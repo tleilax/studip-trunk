@@ -140,7 +140,7 @@ if (GetNumberOfBuddies()) {
     $newInfoboxPart = array("kategorie" => _("Einstellung:"),
         "eintrag" => array(
             array(
-                  "text" => _("<form action=\"".$PHP_SELF."?messaging_cmd=change_view_insert\" method=\"post\"><input type=\"checkbox\" id=\"show_only_buddys\" name=\"show_only_buddys\" $checked >
+                  "text" => _("<form action=\"".URLHelper::getLink('?messaging_cmd=change_view_insert')."\" method=\"post\"><input type=\"checkbox\" id=\"show_only_buddys\" name=\"show_only_buddys\" $checked >
                   Nur Buddies in der &Uuml;bersicht der aktiven Benutzer anzeigen.<input type=\"hidden\" name=\"view\" value=\"Messaging\">".Button::create(_("Übernehmen"), 'newmsgset', array('messaging_cmd' => 'change_view_insert', 'titel' => _("Änderungen übernehmen")))."</form>")
             )
         )
