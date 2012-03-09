@@ -37,6 +37,7 @@
 use Studip\Button, Studip\LinkButton;
 require '../lib/bootstrap.php';
 
+unregister_globals();
 page_open(array("sess" => "Seminar_Session", "auth" => "Seminar_Default_Auth", "perm" => "Seminar_Perm", "user" => "Seminar_User"));
 $auth->login_if(!$logout && ($auth->auth["uid"] == "nobody"));
 
@@ -58,16 +59,19 @@ require_once('lib/deputies_functions.inc.php');
 
 include ('lib/seminar_open.php'); // initialise Stud.IP-Session
 
-$sess->register('edit_about_data');
-
+// b$sess->register('edit_about_data');
+URLHelper::addLinkParam('admin_view', Request::option('admin_view'));
+$view = Request::option('view');
+$cmd = Request::option('cmd');
+$role_id = Request::option('role_id');
 if (!isset($ALLOW_CHANGE_NAME)) $ALLOW_CHANGE_NAME = TRUE; //wegen Abwärtskompatibilität, erst ab 1.1 bekannt
 
+$username = Request::option('username');
 // hier gehts los
 if (!$username) $username = $auth->auth["uname"];
-if($edit_about_msg){
-    $msg = $edit_about_msg;
-    $edit_about_msg = '';
-    $sess->unregister('edit_about_msg');
+if ($_SESSION['edit_about_msg']) {
+    $msg = $_SESSION['edit_about_msg'];
+    unset($_SESSION['edit_about_msg']) ;
 }
 
 checkExternDefaultForUser(get_userid($username));
@@ -120,7 +124,7 @@ $my_about->get_user_details();
  * * * C O N T R O L L E R * * *
  * * * * * * * * * * * * * * * */
 
-if (check_ticket($studipticket)) {
+if (check_ticket(Request::option('studipticket'))) {
     //wozu ??? siehe about::edit_leben()
     //$invalidEntries = parse_datafields($my_about->auth_user['user_id']);
 
@@ -136,15 +140,15 @@ if (check_ticket($studipticket)) {
     // Person einer Rolle hinzufügen
     if ($cmd == 'addToGroup') {
         $db_group = new DB_Seminar();
-        if (InsertPersonStatusgruppe($my_about->auth_user['user_id'], $role_id)) {
+        if (InsertPersonStatusgruppe($my_about->auth_user['user_id'], Request::option('role_id'))) {
             $globalperms = get_global_perm($my_about->auth_user['user_id']);
-            if ($perm->get_studip_perm($subview_id, $my_about->auth_user['user_id']) == FALSE) {
-                log_event('INST_USER_ADD', $subview_id , $my_about->auth_user['user_id'], $globalperms);
-                $db_group->query("INSERT IGNORE INTO user_inst SET Institut_id = '$subview_id', user_id = '{$my_about->auth_user['user_id']}', inst_perms = '$globalperms'");
+            if ($perm->get_studip_perm(Request::option('subview_id'), $my_about->auth_user['user_id']) == FALSE) {
+                log_event('INST_USER_ADD', Request::option('subview_id') , $my_about->auth_user['user_id'], $globalperms);
+                $db_group->query("INSERT IGNORE INTO user_inst SET Institut_id = '".Request::option('subview_id')."', user_id = '{$my_about->auth_user['user_id']}', inst_perms = '$globalperms'");
             }
-            if ($perm->get_studip_perm($subview_id, $my_about->auth_user['user_id']) == 'user') {
-                log_event('INST_USER_STATUS', $subview_id , $my_about->auth_user['user_id'], $globalperms);
-                $db_group->query("UPDATE user_inst SET inst_perms = '$globalperms' WHERE user_id = '{$my_about->auth_user['user_id']}' AND Institut_id = '$subview_id'");
+            if ($perm->get_studip_perm(Request::option('subview_id'), $my_about->auth_user['user_id']) == 'user') {
+                log_event('INST_USER_STATUS', Request::option('subview_id') , $my_about->auth_user['user_id'], $globalperms);
+                $db_group->query("UPDATE user_inst SET inst_perms = '$globalperms' WHERE user_id = '{$my_about->auth_user['user_id']}' AND Institut_id = '".Request::option('subview_id')."'");
             }
             $my_about->msg .= 'msg§'. _("Die Person wurde in die ausgewählte Gruppe eingetragen!"). '§';
             checkExternDefaultForUser($my_about->auth_user['user_id']);
@@ -174,16 +178,16 @@ if (check_ticket($studipticket)) {
     }
 
     if ($cmd == 'makeAllDefault') {
-        MakeDatafieldsDefault($my_about->auth_user['user_id'], $_REQUEST['role_id']);
+        MakeDatafieldsDefault($my_about->auth_user['user_id'], Request::option('role_id'));
     }
 
     if ($cmd == 'makeAllSpecial') {
-        MakeDatafieldsDefault($my_about->auth_user['user_id'], $_REQUEST['role_id'], '');
+        MakeDatafieldsDefault($my_about->auth_user['user_id'], Request::option('role_id'), '');
     }
 
     if ($cmd == 'removeFromGroup') {
         $db_group = new DB_Seminar();
-        $db_group->query("DELETE FROM statusgruppe_user WHERE user_id = '" . $my_about->auth_user['user_id'] . "' AND statusgruppe_id = '$role_id'");
+        $db_group->query("DELETE FROM statusgruppe_user WHERE user_id = '" . $my_about->auth_user['user_id'] . "' AND statusgruppe_id = '".Request::option('role_id')."'");
         $my_about->msg .= 'msg§' . _("Die Person wurde aus der ausgewählten Gruppe gelöscht!") . '§';
     }
 
@@ -208,29 +212,30 @@ if (check_ticket($studipticket)) {
 
     if ($cmd == "fach_abschluss_edit" && (!StudipAuthAbstract::CheckField("studiengang_id", $my_about->auth_user['auth_plugin'])) && ($ALLOW_SELFASSIGN_STUDYCOURSE || $perm->have_perm('admin')))
     {
-        $my_about->fach_abschluss_edit($fach_abschluss_delete,$new_studiengang,$new_abschluss,$fachsem,$change_fachsem,$course_id);
+        $my_about->fach_abschluss_edit(Request::optionArray('fach_abschluss_delete'),Request::quoted('new_studiengang'),Request::quoted('new_abschluss'),Request::option('fachsem'),Request::optionArray('change_fachsem'),Request::option('course_id'));
     }
 
     //Veränderungen an Nutzer-Domains
     if ($cmd == "userdomain_edit" && !StudipAuthAbstract::CheckField("userdomain_id", $my_about->auth_user['auth_plugin']) && $perm->have_perm('admin'))
     {
-        $my_about->userdomain_edit($userdomain_delete,$new_userdomain);
+        $my_about->userdomain_edit(Request::quotedArray('userdomain_delete'),Request::quoted('new_userdomain'));
     }
 
     //Veränderungen an Instituten für Studies
     if ($cmd == "inst_edit" && ($ALLOW_SELFASSIGN_INSTITUTE || $perm->have_perm('admin')))
     {
-        $my_about->inst_edit($inst_delete,$new_inst);
+        $my_about->inst_edit(Request::optionArray('inst_delete'),Request::quoted('new_inst'));
     }
 
     // change order of institutes
     if ($cmd == 'move') {
-        $my_about->move($move_inst, $direction);
+        $my_about->move(Request::option('move_inst'), Request::option('direction'));
     }
 
     if ($cmd=="special_edit") {
-        $invalidEntries = $my_about->special_edit($raum, $sprech, $tel, $fax, $name, $default_inst, $visible,
-                                        $datafields, $group_id, $role_id, array('status' => $_REQUEST['status'], 'inst_id' => $_REQUEST['inst_id']));
+        
+        $invalidEntries = $my_about->special_edit(Request::quotedArray('raum'), Request::quotedArray('sprech'), Request::quotedArray('tel'), Request::quotedArray('fax'), Request::quotedArray('name'), Request::option('default_inst'), Request::optionArray('visible'),
+                                        Request::quotedArray('datafields'), Request::optionArray('group_id'), Request::option('role_id'), array('status' => Request::option('status'), 'inst_id' => Request::option('inst_id')));
 
         if (is_array($invalidEntries))
             foreach ($invalidEntries as $entry)
@@ -273,8 +278,8 @@ if (check_ticket($studipticket)) {
                          $_REQUEST['title_rear'], $_REQUEST['title_rear_chooser'],
                          $_REQUEST['view']);
 
-            if (($my_about->auth_user["username"] != $new_username) && $my_about->logout_user == TRUE) {
-                $my_about->get_auth_user($new_username);   //username wurde geändert!
+            if (($my_about->auth_user["username"] != Request::quoted('new_username')) && $my_about->logout_user == TRUE) {
+                $my_about->get_auth_user(Request::quoted('new_username'));   //username wurde geändert!
             } else {
                 $my_about->get_auth_user($username);
             }
@@ -292,7 +297,7 @@ if (check_ticket($studipticket)) {
              $_REQUEST['home'], $_REQUEST['motto'], $_REQUEST['hobby']
         );
 
-        $invalidEntries = $my_about->edit_leben($lebenslauf,$schwerp,$publi,$view, $_REQUEST['datafields']);
+        $invalidEntries = $my_about->edit_leben(Request::quoted('lebenslauf'),Request::quoted('schwerp'),Request::quoted('publi'),$view, $_REQUEST['datafields']);
         $my_about->msg = "";
         foreach ($invalidEntries as $entry)
             $my_about->msg .= "error§" . sprintf(_("Fehlerhafter Eintrag im Feld <em>%s</em>: %s (Eintrag wurde nicht gespeichert)"), $entry->getName(), $entry->getDisplayValue()) . "§";
@@ -302,8 +307,8 @@ if (check_ticket($studipticket)) {
     // general settings from mystudip: language, jshover, accesskey
     if ($cmd=="change_general") {
         if(array_key_exists(Request::get('forced_language'), $GLOBALS['INSTALLED_LANGUAGES'])) {
-            $my_about->db->query("UPDATE user_info SET preferred_language = '".Request::get('forced_language')."' WHERE user_id='" . $my_about->auth_user["user_id"] ."'");
-            $_SESSION['_language'] = $_language = Request::get('forced_language');
+            $my_about->db->query("UPDATE user_info SET preferred_language = '".Request::quoted('forced_language')."' WHERE user_id='" . $my_about->auth_user["user_id"] ."'");
+            $_SESSION['_language'] = $_language = Request::quoted('forced_language');
         }
 
         $forum["jshover"] = Request::int('jshover');
@@ -314,7 +319,7 @@ if (check_ticket($studipticket)) {
     }
 
     if (Request::submitted('change_global_visibility')) {
-        $success1 = $my_about->change_global_visibility($global_visibility, $online, $chat, $search, $email, $foaf_show_identity);
+        $success1 = $my_about->change_global_visibility(Request::option('global_visibility'), Request::option('online'), Request::option('chat'), Request::option('search'), Request::option('email'), Request::option('foaf_show_identity'));
         
         //change_homepage_visibility
         $data = array();
@@ -424,7 +429,7 @@ if (check_ticket($studipticket)) {
         $nobodymsg = rawurlencode($my_about->msg);
         page_close();
         $user->set_last_action($timeout);
-        header("Location: $PHP_SELF?username=$username&nobodymsg=$nobodymsg&logout=1&view=$view"); //Seite neu aufrufen, damit user nobody wird...
+        header("Location: ".URLHelper::getURL('',array('username'=>$username,'nobodymsg'=>$nobodymsg,'logout'=>1,'view'=>$view))); //Seite neu aufrufen, damit user nobody wird...
         die;
         }
 
@@ -444,8 +449,8 @@ if (check_ticket($studipticket)) {
             $my_about->insert_message($priv_msg, $my_about->auth_user["username"], "____%system%____", FALSE, FALSE, "1", FALSE, _("Systemnachricht:")." "._("Profil verändert"));
         }
         $sess->register('edit_about_msg');
-        $edit_about_msg = $my_about->msg;
-        header("Location: $PHP_SELF?username=$username&view=$view");  //Seite neu aufrufen, um Parameter loszuwerden
+        $_SESSION['edit_about_msg'] = $my_about->msg;
+        header("Location:  ".URLHelper::getURL('',array('username'=>$username,'view'=>$view)));  //Seite neu aufrufen, um Parameter loszuwerden
         page_close();
         die;
     }
@@ -773,7 +778,7 @@ if ($view == 'Bild') {
     if (Avatar::getAvatar($my_about->auth_user['user_id'])->is_customized()) {
         SkipLinks::addIndex(_("Eigenes Bild löschen"), 'delete_picture');
         ?>
-        <form id="delete_picture" name="bild_loeschen" method="POST" action="<?= $GLOBALS['PHP_SELF'] ?>?studipticket=<?= get_ticket() ?>">
+        <form id="delete_picture" name="bild_loeschen" method="POST" action="<?= URLHelper::getLink('?studipticket=' . get_ticket()) ?>">
             <?= CSRFProtection::tokenTag() ?>
             <input type="hidden" name="user_id" value="<?= $my_about->auth_user["user_id"] ?>">
             <input type="hidden" name="username" value="<?= $username ?>">
@@ -785,7 +790,7 @@ if ($view == 'Bild') {
     }
 
     echo '</td><td class="'.$cssSw->getClass().'" width="70%" align="left" valign="top">';
-    echo '<form id="upload_picture" enctype="multipart/form-data" action="' . $_SERVER['PHP_SELF'] . '?cmd=copy&username=' . $username . '&view=Bild&studipticket='.get_ticket().'" method="POST">';
+    echo '<form id="upload_picture" enctype="multipart/form-data" action="'. URLHelper::getLink('?cmd=copy&username=' . $username . '&view=Bild&studipticket='.get_ticket()).'" method="POST">';
     echo CSRFProtection::tokenTag();
     echo "<br>\n" . _("Hochladen eines Bildes:") . "<br><br>\n" . _("1. Wählen Sie mit <b>Durchsuchen</b> eine Bilddatei von Ihrer Festplatte aus.") . "<br><br>\n";
     echo '&nbsp;&nbsp;<input name="imgfile" type="file" style="width: 80%" cols="'.round($max_col*0.7*0.8)."\"><br><br>\n";
@@ -813,7 +818,7 @@ if ($view == 'Daten') {
 
     echo '<tr><td class=blank>';
 
-    echo '<form id="edit_userdata" action="'. $PHP_SELF. '?cmd=edit_pers&username='. $username. '&view='. $view. '&studipticket=' . get_ticket(). '" method="POST" name="pers"';
+    echo '<form id="edit_userdata" action="'. URLHelper::getLink('?cmd=edit_pers&username='. $username. '&view='. $view. '&studipticket=' . get_ticket()).'" method="POST" name="pers"';
     //Keine JavaScript überprüfung bei adminzugriff
     if ($my_about->check == 'user' && $auth->auth['jscript'] ) {
         echo ' onsubmit="return checkdata()" ';
@@ -978,7 +983,7 @@ if ($view == 'Studium') {
         echo '<tr><td class="blank" id="select_fach_abschluss">';
         echo '<h3>' . _("Ich studiere folgende Fächer und Abschlüsse:") . '</h3>';
         if ($allow_change_sg){
-            echo '<form action="'. $_SERVER['PHP_SELF']. '?cmd=fach_abschluss_edit&username=' . $username . '&view=' . $view . '&studipticket=' . get_ticket() . '#studiengaenge" method="POST">';
+            echo '<form action="'. URLHelper::getLink('?cmd=fach_abschluss_edit&username=' . $username . '&view=' . $view . '&studipticket=' . get_ticket() . '#studiengaenge').'" method="POST">';
             echo CSRFProtection::tokenTag();
         }
         echo '<table class="default">'."\n";
@@ -1064,7 +1069,7 @@ if ($view == 'Studium') {
         echo '<tr><td class="blank" id="select_institute">';
         echo "<h3>" . _("Ich studiere an folgenden Einrichtungen:") . "</h3>";
         if ($allow_change_in) {
-            echo '<form action="' . $_SERVER['PHP_SELF'] . '?cmd=inst_edit&username='.$username.'&view='.$view.'&studipticket=' . get_ticket() . '#einrichtungen" method="POST">'. "\n";
+            echo '<form action="' . URLHelper::getLink('?cmd=inst_edit&username='.$username.'&view='.$view.'&studipticket=' . get_ticket() . '#einrichtungen').' method="POST">'. "\n";
             echo CSRFProtection::tokenTag();
         }
         echo '<table class="default">'."\n";
@@ -1233,15 +1238,15 @@ if ($view == 'Karriere') {
     }
     // a group has been chosen to be opened / closed
     if ($_REQUEST['switch']) {
-        if ($edit_about_data['open'] == $_REQUEST['switch']) {
-            $edit_about_data['open'] = '';
+        if ($_SESSION['edit_about_data']['open'] == $_REQUEST['switch']) {
+            $_SESSION['edit_about_data']['open'] = '';
         } else {
-            $edit_about_data['open'] = $_REQUEST['switch'];
+            $_SESSION['edit_about_data']['open'] = $_REQUEST['switch'];
         }
     }
 
     if ($_REQUEST['open']) {
-        $edit_about_data['open'] = $_REQUEST['open'];
+        $_SESSION['edit_about_data']['open'] = $_REQUEST['open'];
     }
 
     echo '<tr><td class=blank>';
@@ -1260,7 +1265,7 @@ if ($view == 'Karriere') {
     // template for tree-view of roles, layout for infobox-location and content-variables
     $template = $GLOBALS['template_factory']->open('statusgruppen/roles_edit_about');
     $template->set_layout('statusgruppen/layout_edit_about');
-    $template->set_attribute('open', $edit_about_data['open']); // the ids of the currently opened statusgroups
+    $template->set_attribute('open', $_SESSION['edit_about_data']['open']); // the ids of the currently opened statusgroups
     $template->set_attribute('institutes', $institutes);
 
     $template->set_attribute('view', $view);
@@ -1269,7 +1274,7 @@ if ($view == 'Karriere') {
     $template->set_attribute('allowed_status', $my_about->allowedInstitutePerms());
 
     // data for edit_about_add_person_to_role
-    $template->set_attribute('subview_id', $subview_id);
+    $template->set_attribute('subview_id', Request::option('subview_id'));
     $template->set_attribute('admin_insts', $admin_insts);
     $template->set_attribute('sub_admin_insts', $sub_admin_insts);
 
@@ -1289,7 +1294,7 @@ if ($view == 'Lebenslauf') {
         echo '</td</tr>';
     }
     echo "<tr><td class=blank>";
-    echo '<form id="edit_private" action="' . $_SERVER['PHP_SELF'] . '?cmd=edit_leben&username=' . $username . '&view=' . $view . '&studipticket=' . get_ticket() . '" method="POST" name="pers">';
+    echo '<form id="edit_private" action="' .URLHelper::getLink('?cmd=edit_leben&username=' . $username . '&view=' . $view . '&studipticket=' . get_ticket() ). '" method="POST" name="pers">';
     echo CSRFProtection::tokenTag();
     echo '<table align="center" width="99%" align="center" border="0" cellpadding="2" cellspacing="0">' . "\n";
 
@@ -1428,21 +1433,22 @@ if ($view == 'Lebenslauf') {
 }
 
 if ($view == "Sonstiges") {
-    if ($freie == "create_freie") create_freie();
-    if ($freie == "delete_freie") delete_freie($freie_id);
-    if ($freie == "verify_delete_freie") verify_delete_freie($freie_id);
-    if ($freie == "update_freie") update_freie();
-    if ($freie == "order_freie") order_freie($cat_id,$direction,$username);
+    $freie_id = Request::optionArray('freie_id');
+    if (Request::option('freie') == "create_freie") create_freie();
+    if (Request::option('freie') == "delete_freie") delete_freie($freie_id);
+    if (Request::option('freie') == "verify_delete_freie") verify_delete_freie($freie_id);
+    if (Request::option('freie') == "update_freie") update_freie();
+    if (Request::option('freie') == "order_freie") order_freie(Request::option('cat_id'),Request::option('direction'),$username);
     print_freie($username);
 }
 
 // Ab hier die Views der MyStudip-Sektion
 
 if ($view=="rss") {
-        if ($rss=="create_rss") create_rss();
-        if ($rss=="delete_rss") delete_rss($rss_id);
-        if ($rss=="update_rss") update_rss();
-        if ($rss=="order_rss") order_rss($cat_id,$direction,$username);
+        if (Request::option('rss')=="create_rss") create_rss();
+        if (Request::option('rss')=="delete_rss") delete_rss($rss_id);
+        if (Request::option('rss')=="update_rss") update_rss();
+        if (Request::option('rss')=="order_rss") order_rss(Request::option('cat_id'),Request::option('direction'),$username);
         print_rss($username);
 }
 
