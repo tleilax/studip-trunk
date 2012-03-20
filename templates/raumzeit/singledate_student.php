@@ -3,7 +3,7 @@
 ?>
 <? if (!$tpl['deleted']) : ?>
 <tr>
-    <TD width="1%" align="left" valign="top" bgcolor="<?=$tpl['aging_color']?>" class="<?=$tpl['class']?><?=($issue_open[$tpl['sd_id']] || $tpl['openall']) ? '3' : '2'?>" nowrap><A href="<?=URLHelper::getLink("?cmd=".($issue_open[$tpl['sd_id']] ? 'close' : 'open')."&open_close_id=".$tpl['sd_id']."#".$tpl['sd_id'])?>"><?=($issue_open[$tpl['sd_id']] || $tpl['openall']) ? Assets::img('forumgraurunt2.png') : Assets::img('forumgrau2.png') ?></A></TD>
+    <TD width="1%" align="left" valign="top" bgcolor="<?=$tpl['aging_color']?>" class="<?=$tpl['class']?><?=($_SESSION['issue_open'][$tpl['sd_id']] || $tpl['openall']) ? '3' : '2'?>" nowrap><A href="<?=URLHelper::getLink("?cmd=".($_SESSION['issue_open'][$tpl['sd_id']] ? 'close' : 'open')."&open_close_id=".$tpl['sd_id']."#".$tpl['sd_id'])?>"><?=($_SESSION['issue_open'][$tpl['sd_id']] || $tpl['openall']) ? Assets::img('forumgraurunt2.png') : Assets::img('forumgrau2.png') ?></A></TD>
 
     <TD width="1%" align="right" valign="bottom" class="<?=$tpl['class']?>" nowrap>
         <A name="<?=$tpl['sd_id']?>" />
@@ -11,7 +11,7 @@
     </TD>
 
     <td nowrap class="<?=$tpl['class']?>" valign="bottom">
-        <a class="tree" href="<?=URLHelper::getLink("?cmd=".($issue_open[$tpl['sd_id']] ? 'close' : 'open')."&open_close_id=".$tpl['sd_id']."#".$tpl['sd_id'])?>">
+        <a class="tree" href="<?=URLHelper::getLink("?cmd=".($_SESSION['issue_open'][$tpl['sd_id']] ? 'close' : 'open')."&open_close_id=".$tpl['sd_id']."#".$tpl['sd_id'])?>">
                 &nbsp;<i><?= htmlReady($tpl['art']) ?>:</i>
                 <?=$tpl['date']?>&nbsp;&nbsp;&nbsp;&nbsp;
         </a>
@@ -54,7 +54,7 @@
     <? endif ?>
 
 </tr>
-<? if ($issue_open[$tpl['sd_id']] || $tpl['openall']) { ?>
+<? if ($_SESSION['issue_open'][$tpl['sd_id']] || $tpl['openall']) { ?>
 <TR>
     <TD colspan="8" class="steel1" align="left" style="padding-left: 10px">
             <FONT size="-1">
@@ -87,8 +87,8 @@
 <tr>
     <td width="1%" align="right" valign="top" class="steelred" nowrap>
         <a name="<?=$tpl['sd_id']?>" />
-        <!--<a href="<?=$PHP_SELF?>?cmd=<?=($issue_open[$tpl['sd_id']]) ? 'close' : 'open'?>&open_close_id=<?=$tpl['sd_id']?>#<?=$tpl['sd_id']?>">
-            <img src="<?=$GLOBALS['ASSETS_URL']?>images/forumrot<?=($issue_open[$tpl['sd_id']]) ? 'runt' : '3'?>.gif" border="0" align="abstop">
+        <!--<a href="<?=$PHP_SELF?>?cmd=<?=($_SESSION['issue_open'][$tpl['sd_id']]) ? 'close' : 'open'?>&open_close_id=<?=$tpl['sd_id']?>#<?=$tpl['sd_id']?>">
+            <img src="<?=$GLOBALS['ASSETS_URL']?>images/forumrot<?=($_SESSION['issue_open'][$tpl['sd_id']]) ? 'runt' : '3'?>.gif" border="0" align="abstop">
         </a>-->
     </td>
 
@@ -97,7 +97,7 @@
     </td>
 
     <td nowrap class="steelred" valign="bottom">
-        <a class="tree" href="<?=URLHelper::getLink("?cmd=".(($issue_open[$tpl['sd_id']]) ? 'close' : 'open')."&open_close_id=".$tpl['sd_id']."#".$tpl['sd_id'])?>">
+        <a class="tree" href="<?=URLHelper::getLink("?cmd=".(($_SESSION['issue_open'][$tpl['sd_id']]) ? 'close' : 'open')."&open_close_id=".$tpl['sd_id']."#".$tpl['sd_id'])?>">
             <font size="-1">
                 <?=$tpl['date']?>&nbsp;&nbsp;&nbsp;&nbsp;
             </font>

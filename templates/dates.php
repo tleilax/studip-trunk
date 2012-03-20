@@ -66,7 +66,7 @@
         <!-- Infobox -->
         <?
             // get a list of semesters (as display options)
-            $semester_selectionlist = raumzeit_get_semesters($sem, $semester, $raumzeitFilter);
+            $semester_selectionlist = raumzeit_get_semesters($sem, $semester, $_SESSION['raumzeitFilter']);
 
             // fill attributes
             $picture = 'infobox/schedules.jpg';
