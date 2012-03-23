@@ -73,7 +73,7 @@ if ($perm->have_perm('admin')) {
     Navigation::activateItem('/course/admin/dates');
 }
 $sd_open = Request::optionArray('sd_open');
-
+$_SESSION['raumzeitFilter'] = Request::get('newFilter');
 // bind linkParams for chosen semester and opened dates
 URLHelper::bindLinkParam('raumzeitFilter', $_SESSION['raumzeitFilter']);
 URLHelper::bindLinkParam('sd_open', $sd_open);
