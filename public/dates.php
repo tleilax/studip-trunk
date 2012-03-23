@@ -20,8 +20,8 @@ unregister_globals();
 page_open(array("sess" => "Seminar_Session", "auth" => "Seminar_Auth", "perm" => "Seminar_Perm", "user" => "Seminar_User"));
 
 $_SESSION['issue_open'] = array();
-//$raumzeitFilter = Request::get('raumzeit_filter');
-
+$raumzeitFilter = Request::get('newFilter');
+$_SESSION['raumzeitFilter'] = $raumzeitFilter;
 URLHelper::bindLinkParam('date_type', Request::option('date_type'));
 URLHelper::bindLinkParam('raumzeit_filter', $_SESSION['raumzeitFilter']);
 URLHelper::bindLinkParam('rzSeminar', Request::option('rzSeminar'));
