@@ -91,8 +91,6 @@ if ($perm->have_studip_perm("tutor", $_SESSION['admin_modules_data']["range_id"]
     //consistency: kill objects
     foreach ($amodules->registered_modules as $key => $val) {
         $moduleXxDeactivate = "module".$key."Deactivate";
-        $delete_xx = "delete_".$key;
-
         if ((Request::option('delete_'.$key)=='TRUE') && (method_exists($amodules,$moduleXxDeactivate))) {
             $amodules->$moduleXxDeactivate($_SESSION['admin_modules_data']["range_id"]);
             $amodules->clearBit($_SESSION['admin_modules_data']["changed_bin"], $amodules->registered_modules[$key]["id"]);
@@ -102,7 +100,6 @@ if ($perm->have_studip_perm("tutor", $_SESSION['admin_modules_data']["range_id"]
     }
     //consistency: cancel kill objects
     foreach ($amodules->registered_modules as $key => $val) {
-        $cancel_xx = "cancel_".$key;
         if (Request::option('cancel_'.$key)=='TRUE') {
             $amodules->setBit($_SESSION['admin_modules_data']["changed_bin"], $amodules->registered_modules[$key]["id"]);
             unset($_SESSION['admin_modules_data']["conflicts"][$key]);
