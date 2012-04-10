@@ -27,6 +27,7 @@ use Studip\Button, Studip\LinkButton;
 
 require '../lib/bootstrap.php';
 
+unregister_globals();
 page_open(array("sess" => "Seminar_Session", "auth" => "Seminar_Auth", "perm" => "Seminar_Perm", 'user' => "Seminar_User"));
 $auth->login_if($auth->auth["uid"] == "nobody");
 $perm->check("dozent");
@@ -70,7 +71,7 @@ include ('lib/include/html_head.inc.php'); // Output of html head
 include ('lib/include/header.php');   //hier wird der "Kopf" nachgeladen
 include 'lib/include/admin_search_form.inc.php';
 
-if (isset($SessSemName[1]) && (!$make_aux)) {
+if (isset($SessSemName[1]) && (!Request::option('make_aux'))) {
     $db7 = new DB_Seminar;
     $db7->query("SELECT aux_lock_rule, Name, Veranstaltungsnummer FROM seminare WHERE Seminar_id='".$SessSemName[1]."'");
     $db7->next_record();
@@ -120,8 +121,8 @@ if (isset($SessSemName[1]) && isset($selected)) {
 
 }
 
-if (!Request::submitted('aux_rule') && is_array($aux_sem) && (!$selected)) {
-    foreach ($aux_sem as $key => $val) {
+if (!Request::submitted('aux_rule') && Request::optionArray('aux_sem') && (!$selected)) {
+    foreach (Request::optionArray('aux_sem') as $key => $val) {
         $sql = "SELECT Veranstaltungsnummer, Name, aux_lock_rule FROM seminare WHERE seminar_id='".$key."'";
         $db->query($sql);
         if ($db->next_record()) {
@@ -130,7 +131,7 @@ if (!Request::submitted('aux_rule') && is_array($aux_sem) && (!$selected)) {
                     $rule['name'] = '-- '._('keine Zusatzangaben').' --';
                 }
                 echo $zt->row(array(htmlReady($db->f("Veranstaltungsnummer")), htmlReady($db->f("Name")), htmlReady($rule["name"])));
-                if ($make_aux) {
+                if (Request::option('make_aux')) {
                     if ($val == 'null') {
                         $sql = "UPDATE seminare SET aux_lock_rule = NULL WHERE Seminar_id='".$key."'";
                     } else {
