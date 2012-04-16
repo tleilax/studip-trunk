@@ -40,7 +40,7 @@ require '../lib/bootstrap.php';
 
 unregister_globals();
 ob_start(); // start output buffering
-var_dump($_REQUEST);
+
 page_open (array ("sess" => "Seminar_Session", "auth" => "Seminar_Auth",
           "perm" => "Seminar_Perm", "user" => "Seminar_User"));
 $perm->check ("autor");
