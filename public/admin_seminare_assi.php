@@ -84,7 +84,7 @@ $semester = new SemesterData;
 
 //Registrieren der Sessionvariablen
 $sess->register("sem_create_data");
-$sess->register("links_admin_data");
+//$sess->register('links_admin_data');
 
 # init of study area selection
 $study_areas = isset($_REQUEST['study_area_selection'])
@@ -295,15 +295,15 @@ if (isset($cmd) && ($cmd == 'do_copy') && $perm->have_studip_perm('tutor',$cp_id
 
 //Assi-Modus an und gesetztes Object loeschen solange keine Veranstaltung angelegt
 if (!$sem_create_data["sem_entry"]) {
-    $links_admin_data["assi"]=TRUE;
+    $_SESSION['links_admin_data']["assi"]=TRUE;
     closeObject();
 } else
-    $links_admin_data["assi"]=FALSE;
+    $_SESSION['links_admin_data']["assi"]=FALSE;
 
 if (($auth->lifetime != 0 && ((time() - $sem_create_data["timestamp"]) >$auth->lifetime*60)) || ($new_session))
     {
     $sem_create_data='';
-    $links_admin_data='';
+    $_SESSION['links_admin_data']='';
     $sem_create_data["sem_start_termin"]=-1;
     $sem_create_data["sem_vor_termin"]=-1;
     $sem_create_data["sem_vor_end_termin"]=-1;
@@ -1812,8 +1812,8 @@ if (($form == 6) && (Request::submitted('jump_next')))
             // Logging
             log_event("SEM_CREATE",$sem_create_data['sem_id'],NULL,NULL,$query);
             log_event(($visible ? "SEM_VISIBLE" : "SEM_INVISIBLE"), $sem_create_data['sem_id'],NULL,NULL,'admin_seminare_assi',"SYSTEM");
-            $links_admin_data["referred_from"]="assi";
-            $links_admin_data["assi"]=FALSE; //protected Assi-mode off
+            $_SESSION['links_admin_data']["referred_from"]="assi";
+            $_SESSION['links_admin_data']["assi"]=FALSE; //protected Assi-mode off
 
             if (!array_key_exists('sem_modules', $sem_create_data)){
                 //write the default module-config
