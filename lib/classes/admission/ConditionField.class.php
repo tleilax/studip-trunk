@@ -12,7 +12,7 @@
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
  *
- * @author      Thomas Hackl, <thomas.hackl@uni-passau.de>
+ * @author      Thomas Hackl <thomas.hackl@uni-passau.de>
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
  */
@@ -25,6 +25,11 @@ class ConditionField
      * Which of the valid compare operators is currently chosen?
      */
     private $compareOperator = '';
+
+    /**
+     * ID of the StudipCondition this field belongs to.
+     */
+    private $conditionId = '';
 
     /**
      * Unique ID for this condition field.
@@ -52,6 +57,11 @@ class ConditionField
     private $value = null;
 
     // --- OPERATIONS ---
+
+    public function __construct($conditionId, $fieldId='') {
+        $this->conditionId = $conditionId;
+        $this->id = $fieldId;
+    }
 
     /**
      * Checks whether the given value fits the configured condition. The
@@ -182,11 +192,39 @@ class ConditionField
         }
     }
 
+    /**
+     * Helper function for storing data to DB.
+     */
+    public function store() {
+        // Generate new ID if field entry doesn't exist in DB yet.
+        if (!$this->id) {
+            do {
+                $newid = md5(uniqid('ConditionField', true));
+                $db = DBManager::get()->query("SELECT `field_id` 
+                    FROM `conditionfields` WHERE `field_id`='.$newid.'");
+            } while ($db->fetch());
+            $this->id = $newid;
+        }
+        // Store field data.
+        $stmt = DBManager::get()->prepare("INSERT INTO `conditionfields` 
+            (`field_id`, `condition_id`, `type`, `value`, `compare_op`, 
+            `mkdate`, `chdate`)  VALUES (?, ?, ?, ?, ?, ?, ?) 
+            ON DUPLICATE KEY UPDATE `condition_id`=VALUES(`condition_id`), 
+            `type`=VALUES(`type`),`value`=VALUES(`value`), 
+            `compare_op`=VALUES(`compare_op`), `chdate`=VALUES(`chdate`)");
+        $stmt->execute(array($this->id, $this-conditionId, get_class($this), 
+            $this->value, $this->compareOperator, time(), time()));
+    }
+
+    /**
+     * Helper function for loading data from DB.
+     */
     private function load() {
         $stmt = DBManager::get()->prepare(
             "SELECT * FROM `conditionfields` WHERE `field_id`=? LIMIT 1");
         $stmt->execute(array($this->id));
         if ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $this->conditionId = $data['condition_id'];
             $this->value = $data['value'];
             $this->compareOperator = $data['compare_op'];
         }

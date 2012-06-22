@@ -11,7 +11,7 @@
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
  *
- * @author      Thomas Hackl, <thomas.hackl@uni-passau.de>
+ * @author      Thomas Hackl <thomas.hackl@uni-passau.de>
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
  */
@@ -102,6 +102,44 @@ class AdmissionUserList
     }
 
     /**
+     * Function for storing the data to DB. Is not called automatically on 
+     * changing object values.
+     */
+    public function store() {
+        // Generate new ID if list doesn't exist in DB yet.
+        if (!$this->id) {
+            do {
+                $newid = md5(uniqid('AdmissionUserList', true));
+                $db = DBManager::get()->query("SELECT `list_id` 
+                    FROM `admissionfactor` WHERE `list_id`='.$newid.'");
+            } while ($db->fetch());
+            $this->id = $newid;
+        }
+        // Store basic list data.
+        $stmt = DBManager::get()->prepare("INSERT INTO `admissionfactor` 
+            (`list_id`, `name`, `factor`, `mkdate`, `chdate`) 
+            VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE 
+            `name`=VALUES(`name`), `factor`=VALUES(`factor`), 
+            `chdate`=VALUES(`chdate`)");
+        $stmt->execute(array($this->id, $this->name, $this->factor, time(), 
+            time()));
+        // Delete removed users from DB.
+        // Clear all old user assignments to this list.
+        DBManager::get()->exec("DELETE FROM `user_factor` WHERE `list_id`='".
+            $this->id."' AND `user_id` NOT IN ('".
+            implode("', '", array_keys($this->users))."')");
+        // Store assigned users.
+        $stmt = DBManager::get()->prepare("INSERT INTO `user_factor` 
+            (`list_id`, `user_id`, `factor`, `mkdate`, `chdate`) 
+            VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE 
+            `name`=VALUES(`name`), `factor`=VALUES(`factor`), 
+            `chdate`=VALUES(`chdate`)");
+        $stmt->execute(array($this->id, $this->name, $this->factor, time(), 
+            time()));
+        return $this;
+    }
+
+    /**
      * Helper function for loading data from DB.
      */
     private function load() {
@@ -121,12 +159,5 @@ class AdmissionUserList
         }
     }
 
-    /**
-     * Helper function for loading data from DB.
-     */
-    private function store() {
-    }
-
 } /* end of class AdmissionUserList */
-
 ?>

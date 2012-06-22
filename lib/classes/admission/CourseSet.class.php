@@ -10,7 +10,7 @@
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
  *
- * @author      Thomas Hackl, <thomas.hackl@uni-passau.de>
+ * @author      Thomas Hackl <thomas.hackl@uni-passau.de>
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
  */
@@ -20,298 +20,238 @@ class CourseSet
     // --- ATTRIBUTES ---
 
     /**
-     * Short description of attribute admissionRules
-     *
-     * @access public
-     * @var Array
+     * Admission rules that are applied to the courses belonging to this set.
      */
-    public $admissionRules = null;
+    public $admissionRules = array();
 
     /**
-     * Short description of attribute algorithm
-     *
-     * @access public
-     * @var AdmissionAlgorithm
+     * Seat distribution algorithm.
      */
     public $algorithm = null;
 
     /**
-     * Short description of attribute courses
-     *
-     * @access public
-     * @var Array
+     * IDs of courses that are aggregated into this set. The array is in the
+     * form ($courseId1 => true, $courseId2 => true).
      */
-    public $courses = null;
+    public $courses = array();
 
     /**
-     * Short description of attribute id
-     *
-     * @access public
-     * @var String
+     * Unique identifier for this set.
      */
-    public $id = null;
+    public $id = '';
 
     /**
-     * Short description of attribute priorities
-     *
-     * @access public
-     * @var AdmissionPriority
+     * Lists of users that shall be treated differently in seat distribution 
+     * (less or more chances).
      */
-    public $priorities = null;
-
-    /**
-     * Short description of attribute userLists
-     *
-     * @access public
-     * @var Array
-     */
-    public $userLists = null;
+    public $userLists = array();
 
     // --- OPERATIONS ---
 
-    /**
-     * Short description of method addAdmissionRule
-     *
-     * @access public
-     * @author Thomas Hackl, <thomas.hackl@uni-passau.de>
-     * @param  String ruleId
-     * @return CourseSet
-     */
-    public function addAdmissionRule( String $ruleId)
-    {
-        $returnValue = null;
-
-        // section -124--25-73--96-30580b3c:136ddc65ce2:-8000:0000000000000F17 begin
-        // section -124--25-73--96-30580b3c:136ddc65ce2:-8000:0000000000000F17 end
-
-        return $returnValue;
+    public function __construct($setId='') {
+        $this->id = $setId;
+        if ($setId) {
+            $this->load();
+        }
     }
 
     /**
-     * Short description of method addCourse
+     * Adds the given admission rule to the list of rules for the course set.
      *
-     * @access public
-     * @author Thomas Hackl, <thomas.hackl@uni-passau.de>
+     * @param  AdmissionRule rule
+     * @return CourseSet
+     */
+    public function addAdmissionRule($rule)
+    {
+        $this->admissionRules[$rule->getId()] = $rule;
+        return $this;
+    }
+
+    /**
+     * Adds the course with the given ID to the course set.
+     *
      * @param  String courseId
      * @return CourseSet
      */
-    public function addCourse( String $courseId)
+    public function addCourse($courseId)
     {
-        $returnValue = null;
-
-        // section -124--25-73--96-30580b3c:136ddc65ce2:-8000:0000000000000F1F begin
-        // section -124--25-73--96-30580b3c:136ddc65ce2:-8000:0000000000000F1F end
-
-        return $returnValue;
+        $this->courses[$courseId] = true;
+        return $this;
     }
 
     /**
-     * Short description of method addCourses
+     * Adds a bunch of courses to the course set. The array must be in the form
+     * ($index1 => $courseId1, $index2 => $courseId2);
      *
-     * @access public
-     * @author Thomas Hackl, <thomas.hackl@uni-passau.de>
-     * @param  Array courses
+     * @param  String courseId
      * @return CourseSet
      */
-    public function addCourses( Array $courses)
+    public function addCourses($courses)
     {
-        $returnValue = null;
-
-        // section -124--25-73--96-30580b3c:136ddc65ce2:-8000:0000000000000F27 begin
-        // section -124--25-73--96-30580b3c:136ddc65ce2:-8000:0000000000000F27 end
-
-        return $returnValue;
+        // Merge given array with current courses after bringing the given 
+        // array in the correct form. 
+        array_merge($this->courses, 
+            array_fill_keys(array_flip($courses), true));
+        return $this;
     }
 
     /**
-     * Short description of method clearCourses
+     * Adds a UserList to the course set. The list contains several users and a 
+     * factor that changes seat distribution chances for these users;
      *
-     * @access public
-     * @author Thomas Hackl, <thomas.hackl@uni-passau.de>
+     * @param  AdmissionUserList list
+     * @return CourseSet
+     */
+    public function addUserList($list)
+    {
+        $this->userLists[$list->getId()] = $list;
+        return $this;
+    }
+
+    /**
+     * Removes all courses from this course set.
+     *
      * @return CourseSet
      */
     public function clearCourses()
     {
-        $returnValue = null;
-
-        // section -124--25-73--96-30580b3c:136ddc65ce2:-8000:0000000000000F24 begin
-        // section -124--25-73--96-30580b3c:136ddc65ce2:-8000:0000000000000F24 end
-
-        return $returnValue;
+        $this->courses = array();
+        return $this;
     }
 
     /**
-     * Short description of method getAdmissionRules
+     * Get all admission rules belonging to the course set.
      *
-     * @access public
-     * @author Thomas Hackl, <thomas.hackl@uni-passau.de>
      * @return Array
      */
     public function getAdmissionRules()
     {
-        $returnValue = null;
-
-        // section -124--25-73--96--5441439f:136ca2b62ec:-8000:0000000000000BD4 begin
-        // section -124--25-73--96--5441439f:136ca2b62ec:-8000:0000000000000BD4 end
-
-        return $returnValue;
+        return $this->admissionRules;
     }
 
     /**
-     * Short description of method getAlgorithm
+     * Get the currently used distribution algorithm.
      *
-     * @access public
-     * @author Thomas Hackl, <thomas.hackl@uni-passau.de>
      * @return AdmissionAlgorithm
      */
     public function getAlgorithm()
     {
-        $returnValue = null;
-
-        // section -124--25-73--96--5100e9d9:136f264efe2:-8000:0000000000000F1E begin
-        // section -124--25-73--96--5100e9d9:136f264efe2:-8000:0000000000000F1E end
-
-        return $returnValue;
+        return $this->algorithm;
     }
 
     /**
-     * Short description of method getAllowedUserCount
+     * How many users will be allowed to register according to the defined 
+     * rules? This can help in estimating whether the combination of the 
+     * defined rules makes sense.
      *
-     * @access public
-     * @author Thomas Hackl, <thomas.hackl@uni-passau.de>
-     * @return Integer
+     * @return int
      */
     public function getAllowedUserCount()
     {
-        $returnValue = null;
-
-        // section -124--25-73--96-30580b3c:136ddc65ce2:-8000:0000000000000F2A begin
-        // section -124--25-73--96-30580b3c:136ddc65ce2:-8000:0000000000000F2A end
-
-        return $returnValue;
+        $users = array();
+        foreach ($this->admissionRules as $rule) {
+            $users = array_merge($users, $rule->getAffectedUsers());
+        }
+        return $sizeof($users);
     }
 
     /**
-     * Short description of method getCourses
+     * Gets the course IDs belonging to the course set.
      *
-     * @access public
-     * @author Thomas Hackl, <thomas.hackl@uni-passau.de>
      * @return Array
      */
     public function getCourses()
     {
-        $returnValue = null;
-
-        // section -124--25-73--96-30580b3c:136ddc65ce2:-8000:0000000000000F1D begin
-        // section -124--25-73--96-30580b3c:136ddc65ce2:-8000:0000000000000F1D end
-
-        return $returnValue;
+        return $this->courses;
     }
 
     /**
-     * Short description of method getId
+     * Get the identifier of the course set.
      *
-     * @access public
-     * @author Thomas Hackl, <thomas.hackl@uni-passau.de>
-     * @return Integer
+     * @return String
      */
     public function getId()
     {
-        $returnValue = null;
-
-        // section -124--25-73--96-30580b3c:136ddc65ce2:-8000:0000000000000F31 begin
-        // section -124--25-73--96-30580b3c:136ddc65ce2:-8000:0000000000000F31 end
-
-        return $returnValue;
+        return $this->id;
     }
 
     /**
-     * Short description of method getPriorities
+     * Retrieves the priorities given to the courses in this set.
      *
-     * @access public
-     * @author Thomas Hackl, <thomas.hackl@uni-passau.de>
-     * @return AdmissionPriority
+     * @return Array
      */
     public function getPriorities()
     {
-        $returnValue = null;
-
-        // section -124--25-73--96--5100e9d9:136f264efe2:-8000:0000000000000F0A begin
-        // section -124--25-73--96--5100e9d9:136f264efe2:-8000:0000000000000F0A end
-
-        return $returnValue;
+        return AdmissionPriority::getPriorities($this->id);
     }
 
     /**
-     * Short description of method getSetsForCourse
+     * Gets all course sets the given course belongs to.
      *
-     * @access public
-     * @author Thomas Hackl, <thomas.hackl@uni-passau.de>
      * @param  String courseId
      * @return Array
      */
-    public function getSetsForCourse( String $courseId)
+    public static function getSetsForCourse($courseId)
     {
-        $returnValue = null;
-
-        // section -124--25-73--96-30580b3c:136ddc65ce2:-8000:0000000000000F50 begin
-        // section -124--25-73--96-30580b3c:136ddc65ce2:-8000:0000000000000F50 end
-
-        return $returnValue;
+        $sets = array();
+        $stmt = DBManager::get()->prepare("SELECT `set_id` 
+            FROM `seminar_set`WHERE `course_id`=?");
+        $stmt->execute(array($courseId));
+        $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($data as $entry) {
+            $current = new CourseSet($entry['set_id']);
+            $sets[] = $current;
+        }
+        return $sets;
     }
 
     /**
-     * Short description of method removeCourse
+     * Retrieves the lists of users that are considered specially in 
+     * seat distribution.
      *
-     * @access public
-     * @author Thomas Hackl, <thomas.hackl@uni-passau.de>
+     * @return Array
+     */
+    public function getUserLists()
+    {
+        return $this->userLists;
+    }
+
+    /**
+     * Removes the course with the given ID from the set. 
+     *
      * @param  String courseId
      * @return CourseSet
      */
-    public function removeCourse( String $courseId)
+    public function removeCourse($courseId)
     {
-        $returnValue = null;
-
-        // section -124--25-73--96-30580b3c:136ddc65ce2:-8000:0000000000000F22 begin
-        // section -124--25-73--96-30580b3c:136ddc65ce2:-8000:0000000000000F22 end
-
-        return $returnValue;
+        unset($this->courses[$courseid]);
+        return $this;
     }
 
     /**
-     * Short description of method removeAdmissionRule
+     * Removes the rule with the given ID from the set.
      *
-     * @access public
-     * @author Thomas Hackl, <thomas.hackl@uni-passau.de>
      * @param  String ruleId
      * @return CourseSet
      */
-    public function removeAdmissionRule( String $ruleId)
+    public function removeAdmissionRule($ruleId)
     {
-        $returnValue = null;
-
-        // section -124--25-73--96-30580b3c:136ddc65ce2:-8000:0000000000000F53 begin
-        // section -124--25-73--96-30580b3c:136ddc65ce2:-8000:0000000000000F53 end
-
-        return $returnValue;
+        unset($this->admissionRules[$ruleId]);
+        return $this;
     }
 
     /**
-     * Short description of method setAlgorithm
+     * Sets a seat distribution algorithm for this course set. This will only
+     * have an effect in conjunction with a TimedAdmission, as the algorithm 
+     * needs a defined point in time where it will start.
      *
-     * @access public
-     * @author Thomas Hackl, <thomas.hackl@uni-passau.de>
      * @param  AdmissionAlgorithm newAlgorithm
      * @return CourseSet
      */
-    public function setAlgorithm( AdmissionAlgorithm $newAlgorithm)
+    public function setAlgorithm($newAlgorithm)
     {
-        $returnValue = null;
-
-        // section -124--25-73--96--5100e9d9:136f264efe2:-8000:0000000000000F20 begin
-        // section -124--25-73--96--5100e9d9:136f264efe2:-8000:0000000000000F20 end
-
-        return $returnValue;
+        $this->algorithm = $newAlgorithm;
+        return $this;
     }
 
 } /* end of class CourseSet */
