@@ -27,7 +27,7 @@ class AdmissionPriority
      * @param  String courseSetId
      * @return A 2-dimensional array containing all priorities.
      */
-    public function getPriorities($courseSetId)
+    public static function getPriorities($courseSetId)
     {
         $priorities = array();
         $stmt = DBManager::get()->prepare(
@@ -49,7 +49,7 @@ class AdmissionPriority
      * @param  String courseId
      * @return An array containing all priorities.
      */
-    public function getPrioritiesByCourse($courseSetId, $courseId)
+    public static function getPrioritiesByCourse($courseSetId, $courseId)
     {
         $priorities = array();
         $stmt = DBManager::get()->prepare(
@@ -71,7 +71,7 @@ class AdmissionPriority
      * @param  String userId
      * @return An array containing all priorities.
      */
-    public function getPrioritiesByUser($courseSetId, $userId)
+    public static function getPrioritiesByUser($courseSetId, $userId)
     {
         $priorities = array();
         $stmt = DBManager::get()->prepare(
@@ -93,7 +93,7 @@ class AdmissionPriority
      * @param  int priority
      * @return int Number of affected rows, if any.
      */
-    public function setPriority($courseSetId, $userId, $courseId, $priority)
+    public static function setPriority($courseSetId, $userId, $courseId, $priority)
     {
         $priorities = array();
         $stmt = DBManager::get()->prepare(

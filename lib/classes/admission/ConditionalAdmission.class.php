@@ -3,8 +3,8 @@
 /**
  * ConditionalAdmission.class.php
  * 
- * Contains users that get different probabilities than others in seat 
- * distribution algorithm.
+ * An admission rule that specifies conditions for course admission, like
+ * degree, study course or semester.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -40,12 +40,12 @@ class ConditionalAdmission extends AdmissionRule
      */
     public function __construct($courseSetId, $ruleId='')
     {
-        parent::__construct();
+        parent::__construct($courseSetId, $ruleId);
         return $this;
     }
 
     /**
-     * Short description of method addCondition
+     * Adds a new StudipCondition to this rule.
      *
      * @param  String conditionId
      * @return ConditionalAdmission
@@ -57,7 +57,22 @@ class ConditionalAdmission extends AdmissionRule
     }
 
     /**
-     * Short description of method getConditions
+     * Gets all users that are matched by thís rule.
+     *
+     * @return Array An array containing IDs of users who are matched by 
+     *      this rule.
+     */
+    public function getAffectedUsers()
+    {
+        $users = array();
+        foreach ($this->condition as $condition) {
+            $users = array_intersect($users, $condition->getAffectedUsers());
+        }
+        return $users;
+    }
+
+    /**
+     * Gets all defined conditions.
      *
      * @return Array
      */
@@ -67,7 +82,7 @@ class ConditionalAdmission extends AdmissionRule
     }
 
     /**
-     * Short description of method removeCondition
+     * Removes the condition with the given ID from the rule.
      *
      * @param  String conditionId
      * @return ConditionalAdmission
@@ -102,6 +117,10 @@ class ConditionalAdmission extends AdmissionRule
      */
     public function store() {
         parent::store();
+        // Delete removed conditions from DB.
+        DBManager::get()->exec("DELETE FROM `admission_condition` 
+            WHERE `rule_id`='".$this->id."' AND `condition_id` NOT IN ('".
+            implode("', '", array_keys($this->conditions))."')");
         // Store all conditions.
         foreach ($this->conditions as $condition) {
             // Store each condition...
@@ -109,7 +128,7 @@ class ConditionalAdmission extends AdmissionRule
             // ... and its connection to the current admission rule.
             $stmt = DBManager::get()->prepare("INSERT INTO `admission_condition` 
                 (`rule_id`, `condition_id`, `mkdate`, `chdate`) 
-                VALUES (? ?, ?, ?) ON DUPLICATE KEY UPDATE 
+                VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE 
                 `condition_id`=VALUES(`condition_id`), `chdate`=VALUES(`chdate`)");
             $stmt->execute(array($this->id, $condition->getId(), time(), time()));
         }

@@ -10,7 +10,7 @@
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
  *
- * @author      Thomas Hackl, <thomas.hackl@uni-passau.de>
+ * @author      Thomas Hackl <thomas.hackl@uni-passau.de>
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
  */
@@ -42,6 +42,43 @@ class SemesterOfStudyCondition extends ConditionField
             $this->id = $field_id;
             $this->load();
         }
+    }
+
+    /**
+     * Compares all the users' degrees by using the specified compare operator
+     * and returns all users that fulfill the condition. This can be
+     * an important informatione when checking on validity of a combination
+     * of conditions.
+     * 
+     * @return Array All users that are affected by the current condition 
+     * field.
+     */
+    public function getAffectedUsers($additional) {
+        $users = array();
+        $query = "SELECT DISTINCT `user_id` ".
+            "FROM `user_studiengang` ".
+            "WHERE `semester`".$this->compareOperator."?"; 
+        $parameters = array($userId);
+        // Additional requirements given...
+        if (is_array($additional)) {
+            // .. such as subject of study...
+            if ($array['studiengang_id']) {
+                $query .= " AND studiengang_id=?";
+                $parameters[] = $array['studiengang_id'];
+            }
+            // ... or degree.
+            if ($array['abschluss_id']) {
+                $query .= " AND abschluss_id=?";
+                $parameters[] = $array['abschluss_id'];
+            }
+        }
+        // Get matching users.
+        $stmt = DBManager::get()->prepare($query);
+        $stmt->execute($parameters);
+        while ($current = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $users[] = $current['user_id'];
+        }
+        return $users;
     }
 
     /**

@@ -12,7 +12,7 @@
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
  *
- * @author      Thomas Hackl, <thomas.hackl@uni-passau.de>
+ * @author      Thomas Hackl <thomas.hackl@uni-passau.de>
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
  */
@@ -50,7 +50,7 @@ class StudipCondition
      * @param  String conditionId
      * @return StudipCondition
      */
-    public function StudipCondition($ruleId, $conditionId='')
+    public function __construct($ruleId, $conditionId='')
     {
         $this->ruleId = $ruleId;
         if ($conditionId) {
@@ -71,6 +71,19 @@ class StudipCondition
         return $this;
     }
 
+    public function checkTimeFrame() {
+        $valid = true;
+        // Start time given, but still in the future.
+        if ($this->startTime && $this->startTime > time()) {
+            $valid = false;
+        }
+        // End time given, but already past.
+        if ($this->endTime && $this->endTime < time()) {
+            $valid = false;
+        }
+        return $valid;
+    }
+
     /**
      * Get end of validity.
      *
@@ -82,7 +95,8 @@ class StudipCondition
     }
 
     /**
-     * Get all fields.
+     * Get all fields (without checking for validity according 
+     * to the current time).
      *
      * @return Array
      */
@@ -166,6 +180,37 @@ class StudipCondition
         return $this;
     }
 
+    /**
+     * Stores data to DB.
+     */
+    public function store() {
+        // Generate new ID if condition entry doesn't exist in DB yet.
+        if (!$this->id) {
+            do {
+                $newid = md5(uniqid('StudipCondition', true));
+                $db = DBManager::get()->query("SELECT `condition_id` 
+                    FROM `studipconditions` WHERE `condition_id`='.$newid.'");
+            } while ($db->fetch());
+            $this->id = $newid;
+        }
+        // Store condition data.
+        $stmt = DBManager::get()->prepare("INSERT INTO `studipconditions` 
+            (`condition_id`, `start_time`, `end_time`, `mkdate`, `chdate`)  
+            VALUES (?, ?, ?, ?, ?) 
+            ON DUPLICATE KEY UPDATE `start_time`=VALUES(`start_time`), 
+            `end_time`=VALUES(`end_time`),`chdate`=VALUES(`chdate`)");
+        $stmt->execute(array($this->id, $this->startTime, $this->endTime, 
+            time(), time()));
+        // Delete removed condition fields from DB.
+        DBManager::get()->exec("DELETE FROM `conditionfields` 
+            WHERE `condition_id`='".$this->id."' AND `field_id` NOT IN ('".
+            implode("', '", array_keys($this->fields))."')");
+        // Store all fields.
+        foreach ($this->fields as $field) {
+            $field->store();
+        }
+    }
+
     public function toString() {
         $text = "";
         // Start time but no end time given.
@@ -189,17 +234,33 @@ class StudipCondition
         return $text;
     }
 
-    private function checkTimeFrame() {
-        $valid = true;
-        // Start time given, but still in the future.
-        if ($this->startTime && $this->startTime > time()) {
-            $valid = false;
+    /**
+     * Internal helper function for loading data from DB.
+     */
+    private function load() {
+        // Load basic condition data.
+        $stmt = DBManager::get()->prepare(
+            "SELECT * FROM `studipconditions` WHERE `condition_id`=? LIMIT 1");
+        $stmt->execute(array($this->id));
+        if ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $this->id = $data['condition_id'];
+            $this->startTime = $data['start_time'];
+            $this->endTime = $data['end_time'];
+            // Load the associated condition fields.
+            $stmt = DBManager::get()->prepare(
+                "SELECT `field_id`, `type` FROM `conditionfields` WHERE `condition_id`=? LIMIT 1");
+            $stmt->execute(array($this->id));
+            while ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                /*
+                 * Create instance of appropriate ConditionField subclass.
+                 * We just "try" here because the class definition could have 
+                 * been removed since saving data to DB.
+                 */
+                try {
+                    $field = new $data['type']($data['id']);
+                } catch (Exception $e) {}
+            }
         }
-        // End time given, but already past.
-        if ($this->endTime && $this->endTime < time()) {
-            $valid = false;
-        }
-        return $valid;
     }
 
 } /* end of class StudipCondition */

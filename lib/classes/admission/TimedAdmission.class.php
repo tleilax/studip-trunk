@@ -1,201 +1,205 @@
 <?php
 
-error_reporting(E_ALL);
-
 /**
- * Anmeldesets - class.TimedAdmission.php
+ * TimedAdmission.class.php
+ * 
+ * Specifies a time frame for course admission.
  *
- * $Id$
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
  *
- * This file is part of Anmeldesets.
- *
- * Automatically generated on 31.05.2012, 15:43:29 with ArgoUML PHP module 
- * (last revised $Date: 2010-01-12 20:14:42 +0100 (Tue, 12 Jan 2010) $)
- *
- * @author Thomas Hackl, <thomas.hackl@uni-passau.de>
+ * @author      Thomas Hackl <thomas.hackl@uni-passau.de>
+ * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
+ * @category    Stud.IP
  */
 
-if (0 > version_compare(PHP_VERSION, '5')) {
-    die('This file was generated for PHP 5');
-}
+require_once('AdmissionRule.class.php');
 
-/**
- * include AdmissionRule
- *
- * @author Thomas Hackl, <thomas.hackl@uni-passau.de>
- */
-require_once('class.AdmissionRule.php');
-
-/* user defined includes */
-// section -124--25-73--96-6de7c8e2:136b9d49c42:-8000:0000000000000A7A-includes begin
-// section -124--25-73--96-6de7c8e2:136b9d49c42:-8000:0000000000000A7A-includes end
-
-/* user defined constants */
-// section -124--25-73--96-6de7c8e2:136b9d49c42:-8000:0000000000000A7A-constants begin
-// section -124--25-73--96-6de7c8e2:136b9d49c42:-8000:0000000000000A7A-constants end
-
-/**
- * Short description of class TimedAdmission
- *
- * @access public
- * @author Thomas Hackl, <thomas.hackl@uni-passau.de>
- */
-class TimedAdmission
-    extends AdmissionRule
+class TimedAdmission extends AdmissionRule
 {
-    // --- ASSOCIATIONS ---
-
-
     // --- ATTRIBUTES ---
 
     /**
-     * Short description of attribute distributionTime
-     *
-     * @access public
-     * @var Integer
+     * Timestamp for execution of seat distribution algorithm
      */
-    public $distributionTime = null;
+    public $distributionTime = 0;
 
     /**
-     * Short description of attribute endTime
-     *
-     * @access private
-     * @var Integer
+     * End of course admission.
      */
-    private $endTime = null;
+    private $endTime = 0;
 
     /**
-     * Short description of attribute startTime
-     *
-     * @access private
-     * @var Integer
+     * Start of course admission.
      */
-    private $startTime = null;
+    private $startTime = 0;
 
     // --- OPERATIONS ---
 
     /**
-     * Short description of method TimedAdmission
+     * Standard constructor
      *
-     * @access public
-     * @author Thomas Hackl, <thomas.hackl@uni-passau.de>
-     * @param  Integer startTime
-     * @param  Integer endTime
-     * @return TimedAdmission
+     * @param  String courseSetId
+     * @param  String ruleId
      */
-    public function TimedAdmission( Integer $startTime,  Integer $endTime)
+    public function __construct($courseSetId, $ruleId='')
     {
-        $returnValue = null;
-
-        // section -124--25-73--96--2ef23cd4:136c98157e7:-8000:0000000000000B6B begin
-        // section -124--25-73--96--2ef23cd4:136c98157e7:-8000:0000000000000B6B end
-
-        return $returnValue;
+        parent::__construct($courseSetId, $ruleId);
+        if ($ruleId) {
+            $this->load();
+        }
     }
 
     /**
-     * Short description of method getDistributionTime
+     * Gets the time for seat distribution algorithm.
      *
-     * @access public
-     * @author Thomas Hackl, <thomas.hackl@uni-passau.de>
-     * @return Integer
+     * @return int
      */
     public function getDistributionTime()
     {
-        $returnValue = null;
-
-        // section -124--25-73--96-2d356ee:137168bd783:-8000:0000000000000BEC begin
-        // section -124--25-73--96-2d356ee:137168bd783:-8000:0000000000000BEC end
-
-        return $returnValue;
+        return $this->distributionTime;
     }
 
     /**
-     * Short description of method getEndTime
+     * Gets the end of course admission.
      *
-     * @access public
-     * @author Thomas Hackl, <thomas.hackl@uni-passau.de>
-     * @return Integer
+     * @return int
      */
     public function getEndTime()
     {
-        $returnValue = null;
-
-        // section -124--25-73--96-6de7c8e2:136b9d49c42:-8000:0000000000000A8F begin
-        // section -124--25-73--96-6de7c8e2:136b9d49c42:-8000:0000000000000A8F end
-
-        return $returnValue;
+        return $this->endTime;
     }
 
     /**
-     * Short description of method getStartTime
+     * Gets the start of course admission.
      *
-     * @access public
-     * @author Thomas Hackl, <thomas.hackl@uni-passau.de>
-     * @return Integer
+     * @return int
      */
     public function getStartTime()
     {
-        $returnValue = null;
-
-        // section -124--25-73--96-6de7c8e2:136b9d49c42:-8000:0000000000000A8D begin
-        // section -124--25-73--96-6de7c8e2:136b9d49c42:-8000:0000000000000A8D end
-
-        return $returnValue;
+        return $this->startTime;
     }
 
     /**
-     * Short description of method setDistributionTime
+     * Is admission allowed according to the defined time frame?
      *
-     * @access public
-     * @author Thomas Hackl, <thomas.hackl@uni-passau.de>
-     * @param  Integer newDistributionTime
-     * @return TimedAdmission
+     * @param  String userId
+     * @param  String courseId
+     * @return Boolean
      */
-    public function setDistributionTime( Integer $newDistributionTime)
-    {
-        $returnValue = null;
-
-        // section -124--25-73--96-2d356ee:137168bd783:-8000:0000000000000BEE begin
-        // section -124--25-73--96-2d356ee:137168bd783:-8000:0000000000000BEE end
-
-        return $returnValue;
+    public function ruleApplies($userId, $courseId) {
+        $applies = true;
+        // Start time given, but still in the future.
+        if ($this->startTime && $this->startTime > time()) {
+            $applies = false;
+        }
+        // End time given, but already past.
+        if ($this->endTime && $this->endTime < time()) {
+            $applies = false;
+        }
+        return $applies;
     }
 
     /**
-     * Short description of method setEndTime
+     * Sets a new timestamp for seat distribution algorithm execution.
      *
-     * @access public
-     * @author Thomas Hackl, <thomas.hackl@uni-passau.de>
-     * @param  Integer newEndTime
+     * @param  int newDistributionTime
      * @return TimedAdmission
      */
-    public function setEndTime( Integer $newEndTime)
+    public function setDistributionTime($newDistributionTime)
     {
-        $returnValue = null;
-
-        // section -124--25-73--96-6de7c8e2:136b9d49c42:-8000:0000000000000A94 begin
-        // section -124--25-73--96-6de7c8e2:136b9d49c42:-8000:0000000000000A94 end
-
-        return $returnValue;
+        $this->distributionTime = $newDistributionTime;
+        return $this;
     }
 
     /**
-     * Short description of method setStartTime
+     * Sets a new end timestamp for course admission.
      *
-     * @access public
-     * @author Thomas Hackl, <thomas.hackl@uni-passau.de>
-     * @param  Integer newStartTime
+     * @param  int newEndTime
      * @return TimedAdmission
      */
-    public function setStartTime( Integer $newStartTime)
+    public function setEndTime($newEndTime)
     {
-        $returnValue = null;
+        $this->endTime = $newEndTime;
+        return $this;
+    }
 
-        // section -124--25-73--96-6de7c8e2:136b9d49c42:-8000:0000000000000A91 begin
-        // section -124--25-73--96-6de7c8e2:136b9d49c42:-8000:0000000000000A91 end
+    /**
+     * Sets a new start timestamp for course admission.
+     *
+     * @param  int newStartTime
+     * @return TimedAdmission
+     */
+    public function setStartTime($newStartTime)
+    {
+        $this->startTime = $newStartTime;
+        return $this;
+    }
 
-        return $returnValue;
+    /**
+     * Store rule definition to database.
+     */
+    public function store() {
+        // Store generic data.
+        parent::store();
+        // Store TimedAdmission specific data.
+        $stmt = DBManager::get()->prepare("INSERT INTO `admissiontimes` 
+            (`rule_id`, `start_time`, `distribution_time`, `end_time`, 
+            `mkdate`, `chdate`) VALUES (?, ?, ?, ?, ?, ?) 
+            ON DUPLICATE KEY UPDATE `start_time`=VALUES(`start_time`), 
+            `distribution_time`=VALUES(`distribution_time`), 
+            `end_time`=VALUES(`end_time`), `chdate`=VALUES(`chdate`)");
+        $stmt->execute(array($this->id, $this->startTime, 
+            $this->distributionTime, $this->endTime, time(), time()));
+    }
+
+    /**
+     * A textual description of the current rule.
+     *
+     * @return String
+     */
+    public function toString()
+    {
+        $text = "";
+        // Start time but no end time given.
+        if ($this->startTime && !$this->endTime) {
+            $text .= sprintf(_("Die Anmeldung ist möglich ab %s"), 
+                date("d.m.Y, H:i", $this->startTime))."\n";
+        // End time but no start time given.
+        } else if (!$this->startTime && $this->endTime) {
+            $text .= sprintf(_("Die Anmeldung ist möglich bis %s"), 
+                date("d.m.Y, H:i", $this->endTime))."\n";
+        // Start and end time given.
+        } else if ($this->startTime && $this->endTime) {
+            $text .= sprintf(_("möglich von %s bis %s"), 
+                date("d.m.Y, H:i", $this->startTime), 
+                date("d.m.Y, H:i", $this->endTime))."\n";
+        }
+        if ($this->distributionTime) {
+            $text .= sprintf(_("Die Platzverteilung erfolgt am %s um %s."), 
+                date("d.m.Y", $this->distributionTime),
+                date("H:i", $this->distributionTime))."\n";
+        }
+        return $text;
+    }
+
+    /**
+     * Internal helper function for loading rule definition from database.
+     */
+    private function load() {
+        // Load basic data.
+        parent::load();
+        // Get TimedAdmission specific data.
+        $stmt = DBManager::get()->prepare("SELECT * 
+            FROM `admissiontimes` WHERE `rule_id`=? LIMIT 1");
+        $stmt->execute(array($this->id));
+        if ($current = $stmt->fetchRow(PDO::FETCH_ASSOC)) {
+            $this->startTime = $current['start_time'];
+            $this->distributionTime = $current['distribution_time'];
+            $this->endTime = $current['end_time'];
+        }
     }
 
 } /* end of class TimedAdmission */

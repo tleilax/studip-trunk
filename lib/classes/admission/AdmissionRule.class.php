@@ -43,17 +43,6 @@ abstract class AdmissionRule
     }
 
     /**
-     * Short description of method getAffectedUsers
-     *
-     * @return Array An array containing IDs of users who are matched by 
-     *      this rule.
-     */
-    public function getAffectedUsers()
-    {
-        return array();
-    }
-
-    /**
      * Gets the rule ID.
      *
      * @return String This rule's ID.
@@ -119,10 +108,6 @@ abstract class AdmissionRule
             `message`=VALUES(`message`), `chdate`=VALUES(`chdate`)");
         $stmt->execute(array($this->id, $this->courseSetId, get_class($this), 
             $this->message, time(), time()));
-        // Delete removed conditions from DB.
-        DBManager::get()->exec("DELETE FROM `admission_condition` 
-            WHERE `rule_id`='".$this->id."' AND `condition_id` NOT IN ('".
-            implode("', '", array_keys($this->conditions))."')");
     }
 
     /**

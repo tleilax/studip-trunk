@@ -10,7 +10,7 @@
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
  *
- * @author      Thomas Hackl, <thomas.hackl@uni-passau.de>
+ * @author      Thomas Hackl <thomas.hackl@uni-passau.de>
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
  */
@@ -31,7 +31,8 @@ class DegreeCondition extends ConditionField
     /**
      * Standard constructor.
      */
-    public function DegreeCondition($field_id='') {
+    public function __construct($conditionId, $fieldId='') {
+        parent::__construct($conditionId);
         // Get all available degrees from database.
         $stmt = DBManager::get()->query(
             "SELECT DISTINCT `abschluss_id`, `name` ".
@@ -40,10 +41,33 @@ class DegreeCondition extends ConditionField
             $this->validValues[$current['abschluss_id']] = $current['name'];
         }
         $this->name = _("Abschluss");
-        if ($field_id) {
-            $this->id = $field_id;
+        if ($fieldId) {
+            $this->id = $fieldId;
             $this->load();
         }
+    }
+
+    /**
+     * Compares all the users' degrees by using the specified compare operator
+     * and returns all users that fulfill the condition. This can be
+     * an important informatione when checking on validity of a combination
+     * of conditions.
+     * 
+     * @return Array All users that are affected by the current condition 
+     * field.
+     */
+    public function getAffectedUsers() {
+        $users = array();
+        // Get all the users that fulfill the degree condition.
+        $stmt = DBManager::get()->prepare(
+            "SELECT DISTINCT `user_id` ".
+            "FROM `user_studiengang` ".
+            "WHERE `abschluss_id`".$this->compareOperator."?");
+        $stmt->execute(array($this->value));
+        while ($current = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $users[] = $current['user_id'];
+        }
+        return $users;
     }
 
     /**
