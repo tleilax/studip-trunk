@@ -16,7 +16,7 @@
  * @category    Stud.IP
  */
 
-require_once('AdmissionRule.class.php');
+require_once(realpath(dirname(__FILE__).'/..').'/AdmissionRule.class.php');
 
 class ConditionalAdmission extends AdmissionRule
 {
@@ -32,15 +32,18 @@ class ConditionalAdmission extends AdmissionRule
     /**
      * Standard constructor.
      *
-     * @param  String courseSetId
-     *      The course set this rule belongs to.
      * @param  String ruleId If this rule has been saved previously, it 
      *      will be loaded from database.
      * @return AdmissionRule the current object (this).
      */
-    public function __construct($courseSetId, $ruleId='')
+    public function __construct($ruleId='')
     {
-        parent::__construct($courseSetId, $ruleId);
+        $this->id = $ruleId;
+        if ($ruleId) {
+            $this->load();
+        } else {
+            $this->generateId('conditionaladmissions');
+        }
         return $this;
     }
 
@@ -54,6 +57,24 @@ class ConditionalAdmission extends AdmissionRule
     {
         $this->conditions[$condition->getId()] = $condition;
         return $this;
+    }
+
+    /**
+     * Deletes the admission rule and all associated data.
+     */
+    public function delete() {
+        // Delete rule data.
+        $stmt = DBManager::get()->prepare("DELETE FROM `conditionaladmissions` 
+            WHERE `rule_id`=?");
+        $stmt->execute(array($this->id));
+        // Delete all associated conditions...
+        foreach ($this->conditions as $condition) {
+            $condition->delete();
+        }
+        // ... and their connection to this rule.
+        $stmt = DBManager::get()->prepare("DELETE FROM `admission_condition` 
+            WHERE `rule_id`=?");
+        $stmt->execute(array($this->id));
     }
 
     /**
@@ -82,6 +103,25 @@ class ConditionalAdmission extends AdmissionRule
     }
 
     /**
+     * Gets some text that describes what this AdmissionRule (or respective 
+     * subclass) does.
+     */
+    public static function getDescription() {
+        return _("Über eine Menge von Bedingungen kann festgelegt werden, ".
+            "wer zur Anmeldung zu den Veranstaltungen des Anmeldesets ".
+            "zugelassen ist. Es muss nur eine der Bedingungen erfüllt sein, ".
+            "innerhalb einer Bedingung müssen aber alle Datenfelder ".
+            "zutreffen.");
+    }
+
+    /**
+     * Return this rule's name.
+     */
+    public static function getName() {
+        return _("Bedingte Anmeldung");
+    }
+
+    /**
      * Removes the condition with the given ID from the rule.
      *
      * @param  String conditionId
@@ -89,6 +129,7 @@ class ConditionalAdmission extends AdmissionRule
      */
     public function removeCondition($conditionId)
     {
+        $this->conditions[$conditionId]->delete();
         unset($this->conditions[$conditionId]);
         return $this;
     }
@@ -116,7 +157,12 @@ class ConditionalAdmission extends AdmissionRule
      * Helper function for storing data to DB.
      */
     public function store() {
-        parent::store();
+        // Store rule data.
+        $stmt = DBManager::get()->prepare("INSERT INTO `conditionaladmissions`
+            (`rule_id`, `message`, `mkdate`, `chdate`)
+            VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE
+            `message`=VALUES(`message`), `chdate`=VALUES(`chdate`)");
+        $stmt->execute(array($this->id, $this->message, time(), time()));
         // Delete removed conditions from DB.
         DBManager::get()->exec("DELETE FROM `admission_condition` 
             WHERE `rule_id`='".$this->id."' AND `condition_id` NOT IN ('".
@@ -151,15 +197,21 @@ class ConditionalAdmission extends AdmissionRule
      * loaded with the parent load() method.
      */
     private function load() {
-        parent::load();
-        // Retrieve conditions.
+        // Load basic data.
         $stmt = DBManager::get()->prepare("SELECT * 
-            FROM `admissionconditions` WHERE `rule_id`=?");
+            FROM `conditionaladmissions` WHERE `rule_id`=? LIMIT 1");
         $stmt->execute(array($this->id));
-        $conditions = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        foreach ($conditions as $condition) {
-            $current = new StudipCondition($this->id, $condition['condition_id']);
-            $this->conditions[$condition['condition_id']] = $current;
+        if ($current = $stmt->fetchRow(PDO::FETCH_ASSOC)) {
+            $this->message = $current['message'];
+            // Retrieve conditions.
+            $stmt = DBManager::get()->prepare("SELECT * 
+                FROM `admission_condition` WHERE `rule_id`=?");
+            $stmt->execute(array($this->id));
+            $conditions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($conditions as $condition) {
+                $current = new StudipCondition($this->id, $condition['condition_id']);
+                $this->conditions[$condition['condition_id']] = $current;
+            }
         }
     }
 

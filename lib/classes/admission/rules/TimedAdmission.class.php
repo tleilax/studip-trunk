@@ -15,7 +15,7 @@
  * @category    Stud.IP
  */
 
-require_once('AdmissionRule.class.php');
+require_once(realpath(dirname(__FILE__).'/..').'/AdmissionRule.class.php');
 
 class TimedAdmission extends AdmissionRule
 {
@@ -41,15 +41,36 @@ class TimedAdmission extends AdmissionRule
     /**
      * Standard constructor
      *
-     * @param  String courseSetId
      * @param  String ruleId
      */
-    public function __construct($courseSetId, $ruleId='')
+    public function __construct($ruleId='')
     {
-        parent::__construct($courseSetId, $ruleId);
+        parent::__construct($ruleId);
         if ($ruleId) {
             $this->load();
+        } else {
+            $this->generateId('admissiontimes');
         }
+    }
+
+    /**
+     * Deletes the admission rule and all associated data.
+     */
+    public function delete() {
+        // Delete rule data.
+        $stmt = DBManager::get()->prepare("DELETE FROM `admissiontimes` 
+            WHERE `rule_id`=?");
+        $stmt->execute(array($this->id));
+    }
+
+    /**
+     * Gets some text that describes what this AdmissionRule (or respective 
+     * subclass) does.
+     */
+    public static function getDescription() {
+        return _("Anmelderegeln dieses Typs legen ein Zeitfenster fest, in ".
+            "dem die Anmeldung zu Veranstaltungen möglich ist. Es kann auch ".
+            "nur ein Start- oder Endzeitpunkt angegeben werden.");
     }
 
     /**
@@ -70,6 +91,13 @@ class TimedAdmission extends AdmissionRule
     public function getEndTime()
     {
         return $this->endTime;
+    }
+
+    /**
+     * Return this rule's name.
+     */
+    public static function getName() {
+        return _("Zeitgesteuerte Anmeldung");
     }
 
     /**
@@ -142,16 +170,14 @@ class TimedAdmission extends AdmissionRule
      * Store rule definition to database.
      */
     public function store() {
-        // Store generic data.
-        parent::store();
-        // Store TimedAdmission specific data.
+        // Store data.
         $stmt = DBManager::get()->prepare("INSERT INTO `admissiontimes` 
-            (`rule_id`, `start_time`, `distribution_time`, `end_time`, 
-            `mkdate`, `chdate`) VALUES (?, ?, ?, ?, ?, ?) 
+            (`rule_id`, `message`, `start_time`, `distribution_time`, 
+            `end_time`, `mkdate`, `chdate`) VALUES (?, ?, ?, ?, ?, ?) 
             ON DUPLICATE KEY UPDATE `start_time`=VALUES(`start_time`), 
             `distribution_time`=VALUES(`distribution_time`), 
             `end_time`=VALUES(`end_time`), `chdate`=VALUES(`chdate`)");
-        $stmt->execute(array($this->id, $this->startTime, 
+        $stmt->execute(array($this->id, $this->message, $this->startTime, 
             $this->distributionTime, $this->endTime, time(), time()));
     }
 
@@ -165,15 +191,15 @@ class TimedAdmission extends AdmissionRule
         $text = "";
         // Start time but no end time given.
         if ($this->startTime && !$this->endTime) {
-            $text .= sprintf(_("Die Anmeldung ist möglich ab %s"), 
+            $text .= sprintf(_("Die Anmeldung ist möglich ab %s."), 
                 date("d.m.Y, H:i", $this->startTime))."\n";
         // End time but no start time given.
         } else if (!$this->startTime && $this->endTime) {
-            $text .= sprintf(_("Die Anmeldung ist möglich bis %s"), 
+            $text .= sprintf(_("Die Anmeldung ist möglich bis %s."), 
                 date("d.m.Y, H:i", $this->endTime))."\n";
         // Start and end time given.
         } else if ($this->startTime && $this->endTime) {
-            $text .= sprintf(_("möglich von %s bis %s"), 
+            $text .= sprintf(_("Die Anmeldung ist möglich von %s bis %s."), 
                 date("d.m.Y, H:i", $this->startTime), 
                 date("d.m.Y, H:i", $this->endTime))."\n";
         }
@@ -196,6 +222,7 @@ class TimedAdmission extends AdmissionRule
             FROM `admissiontimes` WHERE `rule_id`=? LIMIT 1");
         $stmt->execute(array($this->id));
         if ($current = $stmt->fetchRow(PDO::FETCH_ASSOC)) {
+            $this->message = $current['message'];
             $this->startTime = $current['start_time'];
             $this->distributionTime = $current['distribution_time'];
             $this->endTime = $current['end_time'];

@@ -15,7 +15,7 @@
  * @category    Stud.IP
  */
 
-require_once('ConditionField.class.php');
+require_once(realpath(dirname(__FILE__).'/..').'/ConditionField.class.php');
 
 class SubjectCondition extends ConditionField
 {
@@ -24,15 +24,13 @@ class SubjectCondition extends ConditionField
     /**
      * Standard constructor.
      */
-    public function __construct($conditionId, $fieldId='') {
-        parent::__construct($conditionId);
+    public function __construct($fieldId='') {
         // Get all available subjects from database.
         $stmt = DBManager::get()->query("SELECT `studiengang_id`, `name` ".
             "FROM `studiengaenge` ORDER BY `name` ASC");
         while ($current = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $this->validValues[$current['studiengang_id']] = $current['name'];
         }
-        $this->name = _("Studiengang");
         if ($fieldId) {
             $this->id = $fieldId;
             $this->load();
@@ -60,6 +58,16 @@ class SubjectCondition extends ConditionField
             $users[] = $current['user_id'];
         }
         return $users;
+    }
+
+    /**
+     * Get this field's display name.
+     *
+     * @return String
+     */
+    public function getName()
+    {
+        return _("Studienfach");
     }
 
     /**

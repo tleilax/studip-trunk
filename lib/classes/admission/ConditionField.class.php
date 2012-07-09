@@ -24,44 +24,34 @@ class ConditionField
     /**
      * Which of the valid compare operators is currently chosen?
      */
-    private $compareOperator = '';
+    public $compareOperator = '';
 
     /**
      * ID of the StudipCondition this field belongs to.
      */
-    private $conditionId = '';
+    public $conditionId = '';
 
     /**
      * Unique ID for this condition field.
      */
-    private $id = '';
-
-    /**
-     * A display name for this condition field.
-     */
-    private $name = '';
+    public $id = '';
 
     /**
      * The set of valid compare operators.
      */
-    private $validCompareOperators = array('<', '>', '=', '!=');
+    public $validCompareOperators = array('<', '>', '=', '!=');
 
     /**
      * All valid values for this field.
      */
-    private $validValues = array();
+    public $validValues = array();
 
     /**
      * Which of the valid values is currently chosen?
      */
-    private $value = null;
+    public$value = null;
 
     // --- OPERATIONS ---
-
-    public function __construct($conditionId, $fieldId='') {
-        $this->conditionId = $conditionId;
-        $this->id = $fieldId;
-    }
 
     /**
      * Checks whether the given value fits the configured condition. The
@@ -86,6 +76,16 @@ class ConditionField
     }
 
     /**
+     * Deletes the stored data for this condition field from DB.
+     */
+    public function delete() {
+        // Delete condition data.
+        $stmt = DBManager::get()->prepare("DELETE FROM `conditionfields` 
+            WHERE `field_id`=?");
+        $stmt->execute(array($this->id));
+    }
+
+    /**
      * Returns all users that fulfill the specified condition. This can be
      * an important informatione when checking on validity of a combination
      * of conditions.
@@ -95,6 +95,26 @@ class ConditionField
      */
     public function getAffectedUsers() {
         return array();
+    }
+
+    /**
+     * Reads all available ConditionField subclasses and loads their definitions.
+     */
+    public static function getAvailableConditionFields() {
+        $fields = array();
+        // Load all PHP class files found in the condition field folder.
+        foreach (glob(realpath(dirname(__FILE__).'/conditions').'/*.class.php') as $file) {
+            require_once($file);
+            // Try to auto-calculate class name from file name.
+            $className = substr(basename($file), 0, 
+                strpos(basename($file), '.class.php'));
+            $current = new $className();
+            // Check if class is right.
+            if (is_subclass_of($current, 'ConditionField')) {
+                $fields[$className] = $className::getName();
+            }
+        }
+        return $fields;
     }
 
     /**
@@ -124,7 +144,7 @@ class ConditionField
      */
     public function getName()
     {
-        return $this->name;
+        return _("Stud.IP-Bedingung");
     }
 
     /**
@@ -195,8 +215,7 @@ class ConditionField
      */
     public function setValue($newValue)
     {
-        $validValues = $this->getValidValues();
-        if ($validValues[$newValue]) {
+        if ($this->validValues[$newValue]) {
             $this->value = $newValue;
             return $this;
         } else {
@@ -206,8 +225,10 @@ class ConditionField
 
     /**
      * Stores data to DB.
+     * 
+     * @param  String conditionId The condition this field belongs to.
      */
-    public function store() {
+    public function store($conditionId) {
         // Generate new ID if field entry doesn't exist in DB yet.
         if (!$this->id) {
             do {
@@ -224,7 +245,7 @@ class ConditionField
             ON DUPLICATE KEY UPDATE `condition_id`=VALUES(`condition_id`), 
             `type`=VALUES(`type`),`value`=VALUES(`value`), 
             `compare_op`=VALUES(`compare_op`), `chdate`=VALUES(`chdate`)");
-        $stmt->execute(array($this->id, $this-conditionId, get_class($this), 
+        $stmt->execute(array($this->id, $conditionId, get_class($this), 
             $this->value, $this->compareOperator, time(), time()));
     }
 

@@ -50,7 +50,7 @@ class StudipCondition
      * @param  String conditionId
      * @return StudipCondition
      */
-    public function __construct($ruleId, $conditionId='')
+    public function __construct($conditionId='')
     {
         $this->ruleId = $ruleId;
         if ($conditionId) {
@@ -82,6 +82,20 @@ class StudipCondition
             $valid = false;
         }
         return $valid;
+    }
+
+    /**
+     * Deletes the condition and all associated fields.
+     */
+    public function delete() {
+        // Delete condition data.
+        $stmt = DBManager::get()->prepare("DELETE FROM `conditions` 
+            WHERE `condition_id`=?");
+        $stmt->execute(array($this->id));
+        // Delete all defined condition fields.
+        foreach ($this->fields as $field) {
+            $field->delete();
+        }
     }
 
     /**
@@ -189,12 +203,12 @@ class StudipCondition
             do {
                 $newid = md5(uniqid('StudipCondition', true));
                 $db = DBManager::get()->query("SELECT `condition_id` 
-                    FROM `studipconditions` WHERE `condition_id`='.$newid.'");
+                    FROM `conditions` WHERE `condition_id`='.$newid.'");
             } while ($db->fetch());
             $this->id = $newid;
         }
         // Store condition data.
-        $stmt = DBManager::get()->prepare("INSERT INTO `studipconditions` 
+        $stmt = DBManager::get()->prepare("INSERT INTO `conditions` 
             (`condition_id`, `start_time`, `end_time`, `mkdate`, `chdate`)  
             VALUES (?, ?, ?, ?, ?) 
             ON DUPLICATE KEY UPDATE `start_time`=VALUES(`start_time`), 
@@ -207,7 +221,7 @@ class StudipCondition
             implode("', '", array_keys($this->fields))."')");
         // Store all fields.
         foreach ($this->fields as $field) {
-            $field->store();
+            $field->store($this->id);
         }
     }
 
@@ -228,8 +242,10 @@ class StudipCondition
                 date("d.m.Y", $this->endTime))."\n";
         }
         foreach ($this->fields as $field) {
+            $valueNames = $field->getValidValues();
+            echo 'Valid values:<pre>'.print_r($valueNames, true).'</pre>';
             $text .= $field->getName()." ".$field->getCompareOperator().
-                " ".$field->getValue()."\n";
+                " ".$valueNames[$field->getValue()]."\n";
         }
         return $text;
     }
@@ -240,7 +256,7 @@ class StudipCondition
     private function load() {
         // Load basic condition data.
         $stmt = DBManager::get()->prepare(
-            "SELECT * FROM `studipconditions` WHERE `condition_id`=? LIMIT 1");
+            "SELECT * FROM `conditions` WHERE `condition_id`=? LIMIT 1");
         $stmt->execute(array($this->id));
         if ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $this->id = $data['condition_id'];

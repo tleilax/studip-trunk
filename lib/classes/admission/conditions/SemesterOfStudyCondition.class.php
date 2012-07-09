@@ -15,7 +15,7 @@
  * @category    Stud.IP
  */
 
-require_once('ConditionField.class.php');
+require_once(realpath(dirname(__FILE__).'/..').'/ConditionField.class.php');
 
 class SemesterOfStudyCondition extends ConditionField
 {
@@ -24,8 +24,7 @@ class SemesterOfStudyCondition extends ConditionField
     /**
      * Standard constructor.
      */
-    public function SemesterOfStudyCondition($field_id='') {
-        parent::ConditionField();
+    public function __construct($field_id='') {
         // Initialize to some value in case there are no semester numbers.
         $maxsem = 15;
         // Calculate the maximal available semester.
@@ -37,7 +36,6 @@ class SemesterOfStudyCondition extends ConditionField
                 $this->validValues[$i] = $i;
             }
         }
-        $this->name = _("Fachsemester");
         if ($field_id) {
             $this->id = $field_id;
             $this->load();
@@ -79,6 +77,16 @@ class SemesterOfStudyCondition extends ConditionField
             $users[] = $current['user_id'];
         }
         return $users;
+    }
+
+    /**
+     * Get this field's display name.
+     *
+     * @return String
+     */
+    public function getName()
+    {
+        return _("Fachsemester");
     }
 
     /**

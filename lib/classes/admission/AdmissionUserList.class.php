@@ -23,30 +23,29 @@ class AdmissionUserList
     /**
      * Unique identifier of this list.
      */
-    private $id = '';
+    public $id = '';
 
     /**
      * A factor for seat distribution algorithm ("1" means normal algorithm, 
      * everything between 0 and 1 decreases the chance to get a seat, 
      * everything above 1 increases it.)
      */
-    private $factor = 1;
+    public $factor = 1;
 
     /**
      * All user IDs that are on this list.
      */
-    private $users = array();
+    public $users = array();
 
     // --- OPERATIONS ---
 
     /**
      * Standard constructor.
      * 
-     * @param int factor Factor for "luck manipulation"
      * @param String id If this is an existing list, here is its ID.
      * @return This object.
      */
-    public function AdmissionUserList($factor=1, $id='') {
+    public function __construct($id='') {
         $this->factor = $factor;
         if ($id) {
             $this->id = $id;

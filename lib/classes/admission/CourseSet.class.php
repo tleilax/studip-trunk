@@ -41,18 +41,27 @@ class CourseSet
     public $id = '';
 
     /**
-     * Lists of users that shall be treated differently in seat distribution 
-     * (less or more chances).
+     * Which Stud.IP institute does the course set belong to?
      */
-    public $userLists = array();
+    public $institutId = '';
+
+    /**
+     * Some display name for this course set.
+     */
+    public $name = '';
 
     // --- OPERATIONS ---
 
     public function __construct($setId='') {
         $this->id = $setId;
+        $this->name = _("Anmeldeset");
         if ($setId) {
             $this->load();
         }
+        // Define autoload function for admission rules.
+        spl_autoload_register(array('AdmissionRule', 'getAvailableAdmissionRules'));
+        // Define autoload function for admission rules.
+        spl_autoload_register(array('ConditionField', 'getAvailableConditionFields'));
     }
 
     /**
@@ -99,12 +108,14 @@ class CourseSet
      * Adds a UserList to the course set. The list contains several users and a 
      * factor that changes seat distribution chances for these users;
      *
-     * @param  AdmissionUserList list
+     * @param  String listId
      * @return CourseSet
      */
-    public function addUserList($list)
+    public function addUserList($listId)
     {
-        $this->userLists[$list->getId()] = $list;
+        $stmt = DBManager::get()->prepare("INSERT INTO `set_factorlist` 
+            (`set_id`, `list_id`, `mkdate`) VALUES (?, ?, ?)");
+        $stmt->execute(array($this->id, $listId, time()));
         return $this;
     }
 
@@ -213,7 +224,32 @@ class CourseSet
      */
     public function getUserLists()
     {
-        return $this->userLists;
+        $lists = array();
+        $stmt = DBManager::get()->prepare("SELECT `list_id` 
+            FROM `set_factorlist` WHERE `set_id`=?");
+        $stmt->execute(array($this->id));
+        while ($current = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $lists[] = $current['list_id'];
+        }
+        return $lists;
+    }
+
+    /**
+     * Retrieves the lists of users that are considered specially in 
+     * seat distribution.
+     *
+     * @return Array
+     */
+    public function getWaitingList()
+    {
+        $list = array();
+        $stmt = DBManager::get()->prepare("SELECT `user_id` 
+            FROM `waitinglist` WHERE `set_id`=?");
+        $stmt->execute(array($this->id));
+        while ($current = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $list[] = $current['user_id'];
+        }
+        return $list;
     }
 
     /**
@@ -245,13 +281,107 @@ class CourseSet
      * have an effect in conjunction with a TimedAdmission, as the algorithm 
      * needs a defined point in time where it will start.
      *
-     * @param  AdmissionAlgorithm newAlgorithm
+     * @param  String newAlgorithm
      * @return CourseSet
      */
     public function setAlgorithm($newAlgorithm)
     {
-        $this->algorithm = $newAlgorithm;
+        try {
+            $this->algorithm = new $newAlgorithm();
+        } catch (Exception $e) {
+        }
         return $this;
+    }
+
+    /**
+     * Sets a new name for this course set.
+     * 
+     * @param  String newName
+     * @return CourseSet
+     */
+    public function setName($newName) {
+        $this->name = $newName;
+        return $this;
+    }
+
+    public function store() {
+        // Generate new ID if course set doesn't exist in DB yet.
+        if (!$this->id) {
+            do {
+                $newid = md5(uniqid(get_class($this), true));
+                $db = DBManager::get()->query("SELECT `set_id` 
+                    FROM `coursesets` WHERE `set_id`='.$newid.'");
+            } while ($db->fetch());
+            $this->id = $newid;
+        }
+        // Store basic data.
+        $stmt = DBManager::get()->prepare("INSERT INTO `coursesets`
+            (`set_id`, `institut_id`, `name`, `algorithm`, `mkdate`, `chdate`)
+            VALUES (?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE
+            `institut_id`=VALUES(`institut_id`), `name`=VALUES(`name`),
+            `algorithm`=VALUES(`algorithm`), `chdate`=VALUES(`chdate`)");
+        $stmt->execute(array($this->id, $this->institutId, $this->name,
+            $this->algorithm, time(), time()));
+        // Store all rules.
+        foreach ($this->admissionRules as $rule) {
+            // Store each rule...
+            $rule->store();
+            // ... and its connection to the current course set.
+            $stmt = DBManager::get()->prepare("INSERT INTO `courseset_rule` 
+                (`set_id`, `rule_id`, `type`, `mkdate`) 
+                VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE 
+                `type`=VALUES(`type`)");
+            $stmt->execute(array($this->id, $rule->getId(), get_class($rule), time()));
+        }
+    }
+
+    private function load() {
+        // Load basic data.
+        $stmt = DBManager::get()->prepare(
+            "SELECT * FROM `coursesets` WHERE set_id=? LIMIT 1");
+        $stmt->execute(array($this->id));
+        if ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $this->institutId = $data['institut_id'];
+            $this->name = $data['name'];
+            if ($data['algorithm']) {
+                $this->algorithm = new $data['algorithm']();
+            }
+        }
+        // Load courses.
+        $stmt = DBManager::get()->prepare(
+            "SELECT * FROM `seminar_set` WHERE set_id=?");
+        $stmt->execute(array($this->id));
+        while ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $this->courses[$data['seminar_id']] = $data;
+        }
+        // Load admission rules.
+        $stmt = DBManager::get()->prepare(
+            "SELECT * FROM `rule_set` WHERE set_id=?");
+        $stmt->execute(array($this->id));
+        while ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            try {
+                $this->admissionRules[$data['rule_id']] = 
+                    new $data['type']($data['rule_id']);
+            } catch (Exception $e) {
+            }
+        }
+    }
+
+    public function toString() {
+        $text = '';
+        $stmt = DBManager::get()->prepare("SELECT VeranstaltungsNummer, Name
+            FROM seminare
+            WHERE seminar_id IN ('".implode("', '", array_keys($this->courses))."')
+            ORDER BY VeranstaltungsNummer ASC, Name ASC");
+        $stmt->execute();
+        $text .= sprintf(_('Folgende Veranstaltungen gehören zum Anmeldeset "%s":'), $this->name)."\n";
+        while ($current = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $text .= $current['VeranstaltungsNummer']."\t".$current['Name']."\n";
+        }
+        foreach ($this->admissionRules as $rule) {
+            $text .= $rule->toString()."\n";
+        }
+        return $text;
     }
 
 } /* end of class CourseSet */

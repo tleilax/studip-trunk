@@ -15,11 +15,17 @@
  * @category    Stud.IP
  */
 
-require_once('AdmissionRule.class.php');
+require_once(realpath(dirname(__FILE__).'/..').'/AdmissionRule.class.php');
 
 class LimitedAdmission extends AdmissionRule
 {
     // --- ATTRIBUTES ---
+
+    /**
+     * ID of the CourseSet this admission rule belongs to (is stored here for 
+     * performance reasons).
+     */
+    private $courseSetId = '';
 
     /**
      * Maximal number of courses that a user can register for.
@@ -31,16 +37,31 @@ class LimitedAdmission extends AdmissionRule
     /**
      * Standard constructor.
      *
-     * @param  String courseSetId
      * @param  String ruleId
      * @return LimitedAdmission
      */
-    public function __construct($courseSetId, $ruleId='')
+    public function __construct($ruleId='')
     {
-        parent::__construct($courseSetId, $ruleId);
+        $this->id = $ruleId;
         if ($ruleId) {
             $this->load();
+        } else {
+            $this->generateId('admissionlimits');
         }
+    }
+
+    /**
+     * Deletes the admission rule and all associated data.
+     */
+    public function delete() {
+        // Delete rule data.
+        $stmt = DBManager::get()->prepare("DELETE FROM `admissionlimits` 
+            WHERE `rule_id`=?");
+        $stmt->execute(array($this->id));
+        // Delete all custom max numbers.
+        $stmt = DBManager::get()->prepare("DELETE FROM `userlimits` 
+            WHERE `rule_id`=?");
+        $stmt->execute(array($this->id));
     }
 
     /**
@@ -68,6 +89,16 @@ class LimitedAdmission extends AdmissionRule
     }
 
     /**
+     * Gets some text that describes what this AdmissionRule (or respective 
+     * subclass) does.
+     */
+    public static function getDescription() {
+        return _("Diese Art von Anmelderegel legt eine Maximalzahl von ".
+            "Veranstaltungen fest, an denen Nutzer im aktuellen ".
+            "Anmeldeset teilnehmen können.");
+    }
+
+    /**
      * Gets the maximal number of courses that users can be registered for.
      *
      * @return Integer
@@ -75,6 +106,13 @@ class LimitedAdmission extends AdmissionRule
     public function getMaxNumber()
     {
         return $this->maxNumber;
+    }
+
+    /**
+     * Return this rule's name.
+     */
+    public static function getName() {
+        return _("Anmeldung zu maximal n Veranstaltungen");
     }
 
     /**
@@ -138,26 +176,33 @@ class LimitedAdmission extends AdmissionRule
      * Helper function for storing data to DB.
      */
     public function store() {
-        parent::store();
-        // Store LimitedAdmission specific values.
-        $stmt = DBManager::get()->prepare("INSERT INTO `admissionlimits` 
-            (`rule_id`, `maxnumber`, `mkdate`, `chdate`) 
-            VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE 
-            `maxnumber`=VALUES(`maxnumber`), `chdate`=VALUES(`chdate`)");
-        $stmt->execute(array($this->id, $this->maxNumber, time(), time()));
+        // Store data.
+        $stmt = DBManager::get()->prepare("INSERT INTO `admissionlimits`
+            (`rule_id`, `message`, `maxnumber`, `mkdate`, `chdate`)
+            VALUES (?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE
+            `message`=VALUES(`message`), `maxnumber`=VALUES(`maxnumber`),
+            `chdate`=VALUES(`chdate`)");
+        $stmt->execute(array($this->id, $this->message, $this->maxNumber, 
+            time(), time()));
         return $this;
+    }
+
+    public function toString() {
+        return sprintf(_("Sie können sich maximal zu %s Veranstaltungen anmelden!"), $this->maxNumber);
     }
 
     /**
      * Internal helper function for loading rule definition from database.
      */
     private function load() {
-        parent::load();
-        // Get generic data which is common to all subclasses of AdmissionRule.
-        $stmt = DBManager::get()->prepare("SELECT * 
-            FROM `admissionlimits` WHERE `rule_id`=? LIMIT 1");
+        $stmt = DBManager::get()->prepare("SELECT l.*, rs.`set_id`
+            FROM `admissionlimits` l
+                JOIN `rule_set` rs ON (l.`rule_id`=rs.`rule_id`)
+            WHERE l.`rule_id`=? LIMIT 1");
         $stmt->execute(array($this->id));
         if ($current = $stmt->fetchRow(PDO::FETCH_ASSOC)) {
+            $this->courseSetId = $current['set_id'];
+            $this->message = $current['message'];
             $this->maxNumber = $current['maxnumber'];
         }
     }

@@ -15,7 +15,7 @@
  * @category    Stud.IP
  */
 
-require_once('ConditionField.class.php');
+require_once(realpath(dirname(__FILE__).'/..').'/ConditionField.class.php');
 
 class DegreeCondition extends ConditionField
 {
@@ -24,15 +24,14 @@ class DegreeCondition extends ConditionField
     /**
      * The set of valid compare operators.
      */
-    private $validCompareOperators = array('=', '!=');
+    public $validCompareOperators = array('=', '!=');
 
     // --- OPERATIONS ---
 
     /**
      * Standard constructor.
      */
-    public function __construct($conditionId, $fieldId='') {
-        parent::__construct($conditionId);
+    public function __construct($fieldId='') {
         // Get all available degrees from database.
         $stmt = DBManager::get()->query(
             "SELECT DISTINCT `abschluss_id`, `name` ".
@@ -40,7 +39,6 @@ class DegreeCondition extends ConditionField
         while ($current = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $this->validValues[$current['abschluss_id']] = $current['name'];
         }
-        $this->name = _("Abschluss");
         if ($fieldId) {
             $this->id = $fieldId;
             $this->load();
@@ -68,6 +66,16 @@ class DegreeCondition extends ConditionField
             $users[] = $current['user_id'];
         }
         return $users;
+    }
+
+    /**
+     * Get this field's display name.
+     *
+     * @return String
+     */
+    public function getName()
+    {
+        return _("Abschluss");
     }
 
     /**

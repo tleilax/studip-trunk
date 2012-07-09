@@ -22,24 +22,57 @@ abstract class AdmissionRule
     /**
      * A unique identifier for this rule.
      */
-    private $id = '';
-
-    /**
-     * Which course set does this rule belong to?
-     */
-    private $courseSetId = '';
+    public $id = '';
 
     /**
      * A message that is shown to users that are rejected for admission 
      * because of the current rule.
      */
-    private $message = '';
+    public $message = '';
 
     // --- OPERATIONS ---
 
-    public function __construct($courseSetId, $ruleId='') {
-        $this->courseSetId = $courseSetId;
+    public function __construct($ruleId='') {
         $this->id = $ruleId;
+    }
+
+    /**
+     * Deletes the admission rule and all associated data.
+     */
+    public function delete() {
+    }
+
+    /**
+     * Reads all available AdmissionRule subclasses and loads their definitions.
+     */
+    public static function getAvailableAdmissionRules() {
+        $rules = array();
+        // Load all PHP class files found in the admission rule folder.
+        foreach (glob(realpath(dirname(__FILE__).'/rules').'/*.class.php') as $file) {
+            require_once($file);
+            // Try to auto-calculate class name from file name.
+            $className = substr(basename($file), 0, 
+                strpos(basename($file), '.class.php'));
+            $current = new $className();
+            // Check if class is right.
+            if (is_subclass_of($current, 'AdmissionRule')) {
+                $rules[$className] = array(
+                        'name' => $className::getName(),
+                        'description' => $className::getDescription()
+                    );
+            }
+        }
+        return $rules;
+    }
+
+    /**
+     * Gets some text that describes what this AdmissionRule (or respective 
+     * subclass) does.
+     */
+    public static function getDescription() {
+        return _("Legt eine Regel fest, die erfüllt sein muss, um sich ".
+            "erfolgreich zu einer Menge von Veranstaltungen anmelden zu ".
+            "können.");
     }
 
     /**
@@ -60,6 +93,13 @@ abstract class AdmissionRule
     public function getMessage()
     {
         return $this->message;
+    }
+
+    /**
+     * Return this rule's name.
+     */
+    public static function getName() {
+        return _("Anmelderegel");
     }
 
     /**
@@ -91,23 +131,6 @@ abstract class AdmissionRule
      * Helper function for storing rule definition to database.
      */
     public function store() {
-        // Generate new ID if list doesn't exist in DB yet.
-        if (!$this->id) {
-            do {
-                $newid = md5(uniqid(get_class($this), true));
-                $db = DBManager::get()->query("SELECT `list_id` 
-                    FROM `admissionrule` WHERE `rule_id`='.$newid.'");
-            } while ($db->fetch());
-            $this->id = $newid;
-        }
-        // Store basic admission data.
-        $stmt = DBManager::get()->prepare("INSERT INTO `admissionrules` 
-            (`rule_id`, `set_id`, `type`, `message`, `mkdate`, `chdate`) 
-            VALUES (?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE 
-            `set_id`=VALUES(`set_id`), `type`=VALUES(`type`), 
-            `message`=VALUES(`message`), `chdate`=VALUES(`chdate`)");
-        $stmt->execute(array($this->id, $this->courseSetId, get_class($this), 
-            $this->message, time(), time()));
     }
 
     /**
@@ -121,16 +144,23 @@ abstract class AdmissionRule
     }
 
     /**
+     * Generate a new unique ID.
+     * 
+     * @param  String tableName
+     */
+    private function generateId($tableName) {
+        do {
+            $newid = md5(uniqid(get_class($this), true));
+            $db = DBManager::get()->query("SELECT `rule_id` 
+                FROM `".$tableName."` WHERE `rule_id`='.$newid.'");
+        } while ($db->fetch());
+        $this->id = $newid;
+    }
+
+    /**
      * Internal helper function for loading rule definition from database.
      */
     private function load() {
-        // Get generic data which is common to all subclasses of AdmissionRule.
-        $stmt = DBManager::get()->prepare("SELECT * 
-            FROM `admissionrules` WHERE `rule_id`=? LIMIT 1");
-        $stmt->execute(array($this->id));
-        if ($current = $stmt->fetchRow(PDO::FETCH_ASSOC)) {
-            $this->message = $current['message'];
-        }
     }
 
 } /* end of abstract class AdmissionRule */
