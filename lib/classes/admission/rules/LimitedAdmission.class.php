@@ -25,12 +25,12 @@ class LimitedAdmission extends AdmissionRule
      * ID of the CourseSet this admission rule belongs to (is stored here for 
      * performance reasons).
      */
-    private $courseSetId = '';
+    public $courseSetId = '';
 
     /**
      * Maximal number of courses that a user can register for.
      */
-    private $maxNumber = 1;
+    public $maxNumber = 1;
 
     // --- OPERATIONS ---
 
@@ -46,7 +46,7 @@ class LimitedAdmission extends AdmissionRule
         if ($ruleId) {
             $this->load();
         } else {
-            $this->generateId('admissionlimits');
+            $this->id = $this->generateId('admissionlimits');
         }
     }
 
@@ -116,6 +116,22 @@ class LimitedAdmission extends AdmissionRule
     }
 
     /**
+     * Internal helper function for loading rule definition from database.
+     */
+    public function load() {
+        $stmt = DBManager::get()->prepare("SELECT l.*, rs.`set_id`
+            FROM `admissionlimits` l
+                JOIN `rule_set` rs ON (l.`rule_id`=rs.`rule_id`)
+            WHERE l.`rule_id`=? LIMIT 1");
+        $stmt->execute(array($this->id));
+        if ($current = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $this->courseSetId = $current['set_id'];
+            $this->message = $current['message'];
+            $this->maxNumber = $current['maxnumber'];
+        }
+    }
+
+    /**
      * Does the current rule allow the given user to register as participant 
      * in the given course?
      *
@@ -179,7 +195,7 @@ class LimitedAdmission extends AdmissionRule
         // Store data.
         $stmt = DBManager::get()->prepare("INSERT INTO `admissionlimits`
             (`rule_id`, `message`, `maxnumber`, `mkdate`, `chdate`)
-            VALUES (?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE
+            VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE
             `message`=VALUES(`message`), `maxnumber`=VALUES(`maxnumber`),
             `chdate`=VALUES(`chdate`)");
         $stmt->execute(array($this->id, $this->message, $this->maxNumber, 
@@ -189,22 +205,6 @@ class LimitedAdmission extends AdmissionRule
 
     public function toString() {
         return sprintf(_("Sie können sich maximal zu %s Veranstaltungen anmelden!"), $this->maxNumber);
-    }
-
-    /**
-     * Internal helper function for loading rule definition from database.
-     */
-    private function load() {
-        $stmt = DBManager::get()->prepare("SELECT l.*, rs.`set_id`
-            FROM `admissionlimits` l
-                JOIN `rule_set` rs ON (l.`rule_id`=rs.`rule_id`)
-            WHERE l.`rule_id`=? LIMIT 1");
-        $stmt->execute(array($this->id));
-        if ($current = $stmt->fetchRow(PDO::FETCH_ASSOC)) {
-            $this->courseSetId = $current['set_id'];
-            $this->message = $current['message'];
-            $this->maxNumber = $current['maxnumber'];
-        }
     }
 
 } /* end of class LimitedAdmission */

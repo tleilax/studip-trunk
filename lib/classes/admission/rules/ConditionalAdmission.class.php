@@ -25,7 +25,7 @@ class ConditionalAdmission extends AdmissionRule
     /**
      * All conditions that must be fulfilled for successful admission.
      */
-    private $conditions = array();
+    public $conditions = array();
 
     // --- OPERATIONS ---
 
@@ -42,7 +42,7 @@ class ConditionalAdmission extends AdmissionRule
         if ($ruleId) {
             $this->load();
         } else {
-            $this->generateId('conditionaladmissions');
+            $this->id = $this->generateId('conditionaladmissions');
         }
         return $this;
     }
@@ -122,6 +122,29 @@ class ConditionalAdmission extends AdmissionRule
     }
 
     /**
+     * Helper function for loading data from DB. Generic AdmissionRule data is
+     * loaded with the parent load() method.
+     */
+    public function load() {
+        // Load basic data.
+        $stmt = DBManager::get()->prepare("SELECT * 
+            FROM `conditionaladmissions` WHERE `rule_id`=? LIMIT 1");
+        $stmt->execute(array($this->id));
+        if ($current = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $this->message = $current['message'];
+            // Retrieve conditions.
+            $stmt = DBManager::get()->prepare("SELECT * 
+                FROM `admission_condition` WHERE `rule_id`=?");
+            $stmt->execute(array($this->id));
+            $conditions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($conditions as $condition) {
+                $current = new StudipCondition($condition['condition_id']);
+                $this->conditions[$condition['condition_id']] = $current;
+            }
+        }
+    }
+
+    /**
      * Removes the condition with the given ID from the rule.
      *
      * @param  String conditionId
@@ -190,29 +213,6 @@ class ConditionalAdmission extends AdmissionRule
             }
         }
         return $text;
-    }
-
-    /**
-     * Helper function for loading data from DB. Generic AdmissionRule data is
-     * loaded with the parent load() method.
-     */
-    private function load() {
-        // Load basic data.
-        $stmt = DBManager::get()->prepare("SELECT * 
-            FROM `conditionaladmissions` WHERE `rule_id`=? LIMIT 1");
-        $stmt->execute(array($this->id));
-        if ($current = $stmt->fetchRow(PDO::FETCH_ASSOC)) {
-            $this->message = $current['message'];
-            // Retrieve conditions.
-            $stmt = DBManager::get()->prepare("SELECT * 
-                FROM `admission_condition` WHERE `rule_id`=?");
-            $stmt->execute(array($this->id));
-            $conditions = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            foreach ($conditions as $condition) {
-                $current = new StudipCondition($this->id, $condition['condition_id']);
-                $this->conditions[$condition['condition_id']] = $current;
-            }
-        }
     }
 
 } /* end of class ConditionalAdmission */

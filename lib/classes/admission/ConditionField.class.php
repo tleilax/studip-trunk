@@ -49,7 +49,7 @@ class ConditionField
     /**
      * Which of the valid values is currently chosen?
      */
-    public$value = null;
+    public $value = null;
 
     // --- OPERATIONS ---
 
@@ -64,9 +64,14 @@ class ConditionField
     public function checkValue($values)
     {
         $result = false;
+        // For equality checks we must use the "==" operator.
+        if ($this->compareOperator == '=') {
+            $cOp = '==';
+        } else {
+            $cOp = $this->compareOperator;
+        }
         foreach ($values as $value) {
-            if (eval('return ('.$value.$this->compareOperator.
-                $this->value.')'))
+            if (eval("return ('".$value."'".$cOp."'".$this->value."');"))
             {
                 $result = true;
                 break;
@@ -83,6 +88,20 @@ class ConditionField
         $stmt = DBManager::get()->prepare("DELETE FROM `conditionfields` 
             WHERE `field_id`=?");
         $stmt->execute(array($this->id));
+    }
+
+    /**
+     * Generate a new unique ID.
+     * 
+     * @param  String tableName
+     */
+    public function generateId() {
+        do {
+            $newid = md5(uniqid(get_class($this).microtime(), true));
+            $db = DBManager::get()->query("SELECT `field_id` 
+                FROM `conditionfields` WHERE `field_id`='.$newid.'");
+        } while ($db->fetch());
+        return $newid;
     }
 
     /**
@@ -192,6 +211,20 @@ class ConditionField
     }
 
     /**
+     * Helper function for loading data from DB.
+     */
+    public function load() {
+        $stmt = DBManager::get()->prepare(
+            "SELECT * FROM `conditionfields` WHERE `field_id`=? LIMIT 1");
+        $stmt->execute(array($this->id));
+        if ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $this->conditionId = $data['condition_id'];
+            $this->value = $data['value'];
+            $this->compareOperator = $data['compare_op'];
+        }
+    }
+
+    /**
      * Sets a new selected compare operator
      *
      * @param  String newOperator
@@ -206,6 +239,16 @@ class ConditionField
             return false;
         }
     }
+
+    /**
+     * Sets a new condition ID.
+     * 
+     * @param  String newId
+     * @return ConditionField
+     */
+    public function setConditionId($newId) {
+        $this->conditionId = $newId;
+    } 
 
     /**
      * Sets a new selected value.
@@ -247,20 +290,6 @@ class ConditionField
             `compare_op`=VALUES(`compare_op`), `chdate`=VALUES(`chdate`)");
         $stmt->execute(array($this->id, $conditionId, get_class($this), 
             $this->value, $this->compareOperator, time(), time()));
-    }
-
-    /**
-     * Helper function for loading data from DB.
-     */
-    private function load() {
-        $stmt = DBManager::get()->prepare(
-            "SELECT * FROM `conditionfields` WHERE `field_id`=? LIMIT 1");
-        $stmt->execute(array($this->id));
-        if ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $this->conditionId = $data['condition_id'];
-            $this->value = $data['value'];
-            $this->compareOperator = $data['compare_op'];
-        }
     }
 
 } /* end of class ConditionField */

@@ -46,15 +46,16 @@ class StudipCondition
     /**
      * Standard constructor.
      *
-     * @param  String ruleId
      * @param  String conditionId
      * @return StudipCondition
      */
     public function __construct($conditionId='')
     {
-        $this->ruleId = $ruleId;
+        $this->id = $conditionId;
         if ($conditionId) {
             $this->load();
+        } else {
+            $this->id = $this->generateId();
         }
         return $this;
     }
@@ -68,6 +69,7 @@ class StudipCondition
     public function addField($field)
     {
         $this->fields[$field->getId()] = $field;
+        $field->setConditionId($this->id);
         return $this;
     }
 
@@ -96,6 +98,20 @@ class StudipCondition
         foreach ($this->fields as $field) {
             $field->delete();
         }
+    }
+
+    /**
+     * Generate a new unique ID.
+     * 
+     * @param  String tableName
+     */
+    public function generateId() {
+        do {
+            $newid = md5(uniqid(get_class($this).microtime(), true));
+            $db = DBManager::get()->query("SELECT `condition_id` 
+                FROM `conditions` WHERE `condition_id`='.$newid.'");
+        } while ($db->fetch());
+        return $newid;
     }
 
     /**
@@ -145,17 +161,48 @@ class StudipCondition
      * 
      * @return boolean
      */
-    function isFulfilled($userId) {
+    public function isFulfilled($userId) {
         $fulfilled = true;
         // If we are not in specified time frame, we needn't check any further.
         if ($this->checkTimeFrame()) {
             // Check all fields.
             foreach ($this->fields as $field) {
                 $fulfilled = $fulfilled && 
-                    $field->checkValue($field->getUserValue($userId));
+                    $field->checkValue($field->getUserValues($userId));
             }
         }
         return $fulfilled;
+    }
+
+    /**
+     * Helper function for loading data from DB.
+     */
+    public function load() {
+        // Load basic condition data.
+        $stmt = DBManager::get()->prepare(
+            "SELECT * FROM `conditions` WHERE `condition_id`=? LIMIT 1");
+        $stmt->execute(array($this->id));
+        if ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $this->id = $data['condition_id'];
+            $this->startTime = $data['start_time'];
+            $this->endTime = $data['end_time'];
+            // Load the associated condition fields.
+            $stmt = DBManager::get()->prepare(
+                "SELECT `field_id`, `type` FROM `conditionfields`
+                WHERE `condition_id`=?");
+            $stmt->execute(array($this->id));
+            while ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                /*
+                 * Create instance of appropriate ConditionField subclass.
+                 * We just "try" here because the class definition could have 
+                 * been removed since saving data to DB.
+                 */
+                //try {
+                    $field = new $data['type']($data['field_id']);
+                    $this->fields[$field->getId()] = $field;
+                //} catch (Exception $e) {}
+            }
+        }
     }
 
     /**
@@ -243,40 +290,10 @@ class StudipCondition
         }
         foreach ($this->fields as $field) {
             $valueNames = $field->getValidValues();
-            echo 'Valid values:<pre>'.print_r($valueNames, true).'</pre>';
             $text .= $field->getName()." ".$field->getCompareOperator().
                 " ".$valueNames[$field->getValue()]."\n";
         }
         return $text;
-    }
-
-    /**
-     * Internal helper function for loading data from DB.
-     */
-    private function load() {
-        // Load basic condition data.
-        $stmt = DBManager::get()->prepare(
-            "SELECT * FROM `conditions` WHERE `condition_id`=? LIMIT 1");
-        $stmt->execute(array($this->id));
-        if ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $this->id = $data['condition_id'];
-            $this->startTime = $data['start_time'];
-            $this->endTime = $data['end_time'];
-            // Load the associated condition fields.
-            $stmt = DBManager::get()->prepare(
-                "SELECT `field_id`, `type` FROM `conditionfields` WHERE `condition_id`=? LIMIT 1");
-            $stmt->execute(array($this->id));
-            while ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                /*
-                 * Create instance of appropriate ConditionField subclass.
-                 * We just "try" here because the class definition could have 
-                 * been removed since saving data to DB.
-                 */
-                try {
-                    $field = new $data['type']($data['id']);
-                } catch (Exception $e) {}
-            }
-        }
     }
 
 } /* end of class StudipCondition */

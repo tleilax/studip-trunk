@@ -43,6 +43,20 @@ abstract class AdmissionRule
     }
 
     /**
+     * Generate a new unique ID.
+     * 
+     * @param  String tableName
+     */
+    public function generateId($tableName) {
+        do {
+            $newid = md5(uniqid(get_class($this).microtime(), true));
+            $db = DBManager::get()->query("SELECT `rule_id` 
+                FROM `".$tableName."` WHERE `rule_id`='.$newid.'");
+        } while ($db->fetch());
+        return $newid;
+    }
+
+    /**
      * Reads all available AdmissionRule subclasses and loads their definitions.
      */
     public static function getAvailableAdmissionRules() {
@@ -103,6 +117,12 @@ abstract class AdmissionRule
     }
 
     /**
+     * Internal helper function for loading rule definition from database.
+     */
+    public function load() {
+    }
+
+    /**
      * Does the current rule allow the given user to register as participant 
      * in the given course?
      *
@@ -141,26 +161,6 @@ abstract class AdmissionRule
     public function toString()
     {
         return '';
-    }
-
-    /**
-     * Generate a new unique ID.
-     * 
-     * @param  String tableName
-     */
-    private function generateId($tableName) {
-        do {
-            $newid = md5(uniqid(get_class($this), true));
-            $db = DBManager::get()->query("SELECT `rule_id` 
-                FROM `".$tableName."` WHERE `rule_id`='.$newid.'");
-        } while ($db->fetch());
-        $this->id = $newid;
-    }
-
-    /**
-     * Internal helper function for loading rule definition from database.
-     */
-    private function load() {
     }
 
 } /* end of abstract class AdmissionRule */

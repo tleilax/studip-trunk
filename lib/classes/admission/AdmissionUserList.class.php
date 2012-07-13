@@ -21,6 +21,11 @@ class AdmissionUserList
     // --- ATTRIBUTES ---
 
     /**
+     * Course set this list belongs to.
+     */
+    public $courseSetId = '';
+
+    /**
      * Unique identifier of this list.
      */
     public $id = '';
@@ -116,12 +121,12 @@ class AdmissionUserList
         }
         // Store basic list data.
         $stmt = DBManager::get()->prepare("INSERT INTO `admissionfactor` 
-            (`list_id`, `name`, `factor`, `mkdate`, `chdate`) 
+            (`list_id`, `set_id`, `name`, `factor`, `mkdate`, `chdate`) 
             VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE 
             `name`=VALUES(`name`), `factor`=VALUES(`factor`), 
             `chdate`=VALUES(`chdate`)");
-        $stmt->execute(array($this->id, $this->name, $this->factor, time(), 
-            time()));
+        $stmt->execute(array($this->id, $this->courseSetId, $this->name, 
+            $this->factor, time(), time()));
         // Delete removed users from DB.
         // Clear all old user assignments to this list.
         DBManager::get()->exec("DELETE FROM `user_factor` WHERE `list_id`='".
@@ -147,6 +152,7 @@ class AdmissionUserList
             FROM `admissionfactor` WHERE `list_id`=? LIMIT 1");
         $stmt->execute(array($this->id));
         if ($current = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $this->courseSetId = $current['set_id'];
             $this->factor = $current['factor'];
             // Load user IDs.
             $stmt2 = DBManager::get()->prepare("SELECT * 

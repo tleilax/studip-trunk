@@ -39,6 +39,8 @@ class SemesterOfStudyCondition extends ConditionField
         if ($field_id) {
             $this->id = $field_id;
             $this->load();
+        } else {
+            $this->id = $this->generateId();
         }
     }
 

@@ -42,6 +42,8 @@ class DegreeCondition extends ConditionField
         if ($fieldId) {
             $this->id = $fieldId;
             $this->load();
+        } else {
+            $this->id = $this->generateId();
         }
     }
 

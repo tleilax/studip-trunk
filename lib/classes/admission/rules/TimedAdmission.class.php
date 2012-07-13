@@ -29,12 +29,12 @@ class TimedAdmission extends AdmissionRule
     /**
      * End of course admission.
      */
-    private $endTime = 0;
+    public $endTime = 0;
 
     /**
      * Start of course admission.
      */
-    private $startTime = 0;
+    public $startTime = 0;
 
     // --- OPERATIONS ---
 
@@ -49,7 +49,7 @@ class TimedAdmission extends AdmissionRule
         if ($ruleId) {
             $this->load();
         } else {
-            $this->generateId('admissiontimes');
+            $this->id = $this->generateId('admissiontimes');
         }
     }
 
@@ -108,6 +108,22 @@ class TimedAdmission extends AdmissionRule
     public function getStartTime()
     {
         return $this->startTime;
+    }
+
+    /**
+     * Helper function for loading rule definition from database.
+     */
+    public function load() {
+        // Load data.
+        $stmt = DBManager::get()->prepare("SELECT *
+            FROM `admissiontimes` WHERE `rule_id`=? LIMIT 1");
+        $stmt->execute(array($this->id));
+        if ($current = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $this->message = $current['message'];
+            $this->startTime = $current['start_time'];
+            $this->distributionTime = $current['distribution_time'];
+            $this->endTime = $current['end_time'];
+        }
     }
 
     /**
@@ -173,7 +189,7 @@ class TimedAdmission extends AdmissionRule
         // Store data.
         $stmt = DBManager::get()->prepare("INSERT INTO `admissiontimes` 
             (`rule_id`, `message`, `start_time`, `distribution_time`, 
-            `end_time`, `mkdate`, `chdate`) VALUES (?, ?, ?, ?, ?, ?) 
+            `end_time`, `mkdate`, `chdate`) VALUES (?, ?, ?, ?, ?, ?, ?) 
             ON DUPLICATE KEY UPDATE `start_time`=VALUES(`start_time`), 
             `distribution_time`=VALUES(`distribution_time`), 
             `end_time`=VALUES(`end_time`), `chdate`=VALUES(`chdate`)");
@@ -192,41 +208,23 @@ class TimedAdmission extends AdmissionRule
         // Start time but no end time given.
         if ($this->startTime && !$this->endTime) {
             $text .= sprintf(_("Die Anmeldung ist möglich ab %s."), 
-                date("d.m.Y, H:i", $this->startTime))."\n";
+                date("d.m.Y, H:i", $this->startTime));
         // End time but no start time given.
         } else if (!$this->startTime && $this->endTime) {
             $text .= sprintf(_("Die Anmeldung ist möglich bis %s."), 
-                date("d.m.Y, H:i", $this->endTime))."\n";
+                date("d.m.Y, H:i", $this->endTime));
         // Start and end time given.
         } else if ($this->startTime && $this->endTime) {
             $text .= sprintf(_("Die Anmeldung ist möglich von %s bis %s."), 
                 date("d.m.Y, H:i", $this->startTime), 
-                date("d.m.Y, H:i", $this->endTime))."\n";
+                date("d.m.Y, H:i", $this->endTime));
         }
         if ($this->distributionTime) {
             $text .= sprintf(_("Die Platzverteilung erfolgt am %s um %s."), 
                 date("d.m.Y", $this->distributionTime),
-                date("H:i", $this->distributionTime))."\n";
+                date("H:i", $this->distributionTime));
         }
         return $text;
-    }
-
-    /**
-     * Internal helper function for loading rule definition from database.
-     */
-    private function load() {
-        // Load basic data.
-        parent::load();
-        // Get TimedAdmission specific data.
-        $stmt = DBManager::get()->prepare("SELECT * 
-            FROM `admissiontimes` WHERE `rule_id`=? LIMIT 1");
-        $stmt->execute(array($this->id));
-        if ($current = $stmt->fetchRow(PDO::FETCH_ASSOC)) {
-            $this->message = $current['message'];
-            $this->startTime = $current['start_time'];
-            $this->distributionTime = $current['distribution_time'];
-            $this->endTime = $current['end_time'];
-        }
     }
 
 } /* end of class TimedAdmission */
