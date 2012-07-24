@@ -241,16 +241,6 @@ class ConditionField
     }
 
     /**
-     * Sets a new condition ID.
-     * 
-     * @param  String newId
-     * @return ConditionField
-     */
-    public function setConditionId($newId) {
-        $this->conditionId = $newId;
-    } 
-
-    /**
      * Sets a new selected value.
      *
      * @param  String newValue

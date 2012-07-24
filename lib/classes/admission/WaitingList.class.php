@@ -51,7 +51,7 @@ class WaitingList
      * @param  String courseSetId
      * @return Array
      */
-    public function getCourseSetWaitingList($courseSetId) {
+    public static function getCourseSetWaitingList($courseSetId) {
         $stmt = DBManager::get()->prepare("SELECT * FROM `waitinglist` 
             WHERE `set_id`=? ORDER BY `mkdate` ASC");
         $stmt->execute(array($courseSetId));

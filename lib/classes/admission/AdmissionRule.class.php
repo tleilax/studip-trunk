@@ -57,6 +57,17 @@ abstract class AdmissionRule
     }
 
     /**
+     * Gets all users that are matched by thís rule.
+     *
+     * @return Array An array containing IDs of users who are matched by 
+     *      this rule.
+     */
+    public function getAffectedUsers()
+    {
+        return array();
+    }
+
+    /**
      * Reads all available AdmissionRule subclasses and loads their definitions.
      */
     public static function getAvailableAdmissionRules() {

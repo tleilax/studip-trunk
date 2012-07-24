@@ -113,7 +113,7 @@ class CourseSet
      */
     public function addUserList($listId)
     {
-        $stmt = DBManager::get()->prepare("INSERT INTO `set_factorlist` 
+        $stmt = DBManager::get()->prepare("INSERT INTO `courseset_list`
             (`set_id`, `list_id`, `mkdate`) VALUES (?, ?, ?)");
         $stmt->execute(array($this->id, $listId, time()));
         return $this;
@@ -136,14 +136,33 @@ class CourseSet
     }
 
     /**
-     * Removes all courses from this course set.
-     *
-     * @return CourseSet
+     * Deletes the course set and all associated data.
      */
-    public function clearCourses()
-    {
-        $this->courses = array();
-        return $this;
+    public function delete() {
+        // Delete course associations.
+        $stmt = DBManager::get()->prepare("DELETE FROM `seminar_courseset` 
+            WHERE `set_id`=?");
+        $stmt->execute(array($this->id));
+        // Delete waiting lists.
+        $stmt = DBManager::get()->prepare("DELETE FROM `waitinglist` 
+            WHERE `set_id`=?");
+        $stmt->execute(array($this->id));
+        // Delete all rules...
+        foreach ($this->rules as $rule) {
+            $rule->delete();
+        }
+        // ... and their association to the current course set.
+        $stmt = DBManager::get()->prepare("DELETE FROM `courseset_rule`
+            WHERE `set_id`=?");
+        $stmt->execute(array($this->id));
+        // Delete associations to user lists.
+        $stmt = DBManager::get()->prepare("DELETE FROM `courseset_factorlist`
+            WHERE `set_id`=?");
+        $stmt->execute(array($this->id));
+        // Delete course set data.
+        $stmt = DBManager::get()->prepare("DELETE FROM `coursesets` 
+            WHERE `set_id`=?");
+        $stmt->execute(array($this->id));
     }
 
     /**
@@ -193,6 +212,16 @@ class CourseSet
     }
 
     /**
+     * Get the identifier of the course set.
+     *
+     * @return String
+     */
+    public function getId()
+    {
+        return $this->id;
+    }
+
+    /**
      * Which institute does the rule belong to?
      * 
      * @return String
@@ -202,13 +231,10 @@ class CourseSet
     }
 
     /**
-     * Get the identifier of the course set.
-     *
-     * @return String
+     * Gets this course set's display name.
      */
-    public function getId()
-    {
-        return $this->id;
+    public function getName() {
+        return $this->name;
     }
 
     /**
@@ -251,30 +277,12 @@ class CourseSet
     {
         $lists = array();
         $stmt = DBManager::get()->prepare("SELECT `list_id` 
-            FROM `admissionfactor` WHERE `set_id`=?");
+            FROM `courseset_list` WHERE `set_id`=?");
         $stmt->execute(array($this->id));
         while ($current = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $lists[] = $current['list_id'];
         }
         return $lists;
-    }
-
-    /**
-     * Retrieves the lists of users that are considered specially in 
-     * seat distribution.
-     *
-     * @return Array
-     */
-    public function getWaitingList()
-    {
-        $list = array();
-        $stmt = DBManager::get()->prepare("SELECT `user_id` 
-            FROM `waitinglist` WHERE `set_id`=?");
-        $stmt->execute(array($this->id));
-        while ($current = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $list[] = $current['user_id'];
-        }
-        return $list;
     }
 
     /**

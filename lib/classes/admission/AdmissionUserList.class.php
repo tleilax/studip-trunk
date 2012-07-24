@@ -21,11 +21,6 @@ class AdmissionUserList
     // --- ATTRIBUTES ---
 
     /**
-     * Course set this list belongs to.
-     */
-    public $courseSetId = '';
-
-    /**
      * Unique identifier of this list.
      */
     public $id = '';
@@ -36,6 +31,11 @@ class AdmissionUserList
      * everything above 1 increases it.)
      */
     public $factor = 1;
+
+    /**
+     * Some name to display for this list.
+     */
+    public $name = '';
 
     /**
      * All user IDs that are on this list.
@@ -82,6 +82,37 @@ class AdmissionUserList
     }
 
     /**
+     * Gets the list name.
+     *
+     * @return String
+     */
+    public function getName()
+    {
+        return $this->name;
+    }
+
+    /**
+     * Helper function for loading data from DB.
+     */
+    public function load() {
+        // Load basic data.
+        $stmt = DBManager::get()->prepare("SELECT * 
+            FROM `admissionfactor` WHERE `list_id`=? LIMIT 1");
+        $stmt->execute(array($this->id));
+        if ($current = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $this->factor = $current['factor'];
+            $this->name = $current['name'];
+            // Load user IDs.
+            $stmt2 = DBManager::get()->prepare("SELECT * 
+                FROM `user_factorlist` WHERE `list_id`=?");
+            $stmt2->execute(array($this->id));
+            while ($user = $stmt2->fetch(PDO::FETCH_ASSOC)) {
+                $this->users[$user['user_id']] = true;
+            }
+        }
+    }
+
+    /**
      * Removes the given user from the list.
      *
      * @param  String userId
@@ -106,6 +137,18 @@ class AdmissionUserList
     }
 
     /**
+     * Sets a name.
+     *
+     * @param  String $newName New list name.
+     * @return AdmissionUserList
+     */
+    public function setName($newName)
+    {
+        $this->name = $newName;
+        return $this;
+    }
+
+    /**
      * Function for storing the data to DB. Is not called automatically on 
      * changing object values.
      */
@@ -121,19 +164,19 @@ class AdmissionUserList
         }
         // Store basic list data.
         $stmt = DBManager::get()->prepare("INSERT INTO `admissionfactor` 
-            (`list_id`, `set_id`, `name`, `factor`, `mkdate`, `chdate`) 
+            (`list_id`, `name`, `factor`, `mkdate`, `chdate`) 
             VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE 
             `name`=VALUES(`name`), `factor`=VALUES(`factor`), 
             `chdate`=VALUES(`chdate`)");
-        $stmt->execute(array($this->id, $this->courseSetId, $this->name, 
-            $this->factor, time(), time()));
+        $stmt->execute(array($this->id, $this->name, $this->factor, 
+            time(), time()));
         // Delete removed users from DB.
         // Clear all old user assignments to this list.
-        DBManager::get()->exec("DELETE FROM `user_factor` WHERE `list_id`='".
+        DBManager::get()->exec("DELETE FROM `user_factorlist` WHERE `list_id`='".
             $this->id."' AND `user_id` NOT IN ('".
             implode("', '", array_keys($this->users))."')");
         // Store assigned users.
-        $stmt = DBManager::get()->prepare("INSERT INTO `user_factor` 
+        $stmt = DBManager::get()->prepare("INSERT INTO `user_factorlist` 
             (`list_id`, `user_id`, `factor`, `mkdate`, `chdate`) 
             VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE 
             `name`=VALUES(`name`), `factor`=VALUES(`factor`), 
@@ -141,27 +184,6 @@ class AdmissionUserList
         $stmt->execute(array($this->id, $this->name, $this->factor, time(), 
             time()));
         return $this;
-    }
-
-    /**
-     * Helper function for loading data from DB.
-     */
-    private function load() {
-        // Load basic data.
-        $stmt = DBManager::get()->prepare("SELECT * 
-            FROM `admissionfactor` WHERE `list_id`=? LIMIT 1");
-        $stmt->execute(array($this->id));
-        if ($current = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $this->courseSetId = $current['set_id'];
-            $this->factor = $current['factor'];
-            // Load user IDs.
-            $stmt2 = DBManager::get()->prepare("SELECT * 
-                FROM `user_factor` WHERE `list_id`=?");
-            $stmt2->execute(array($this->id));
-            while ($user = $stmt2->fetch(PDO::FETCH_ASSOC)) {
-                $this->users[$user['user_id']] = true;
-            }
-        }
     }
 
 } /* end of class AdmissionUserList */
