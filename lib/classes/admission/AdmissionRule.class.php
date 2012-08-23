@@ -128,6 +128,15 @@ abstract class AdmissionRule
     }
 
     /**
+     * Gets the template that provides a configuration GUI for this rule.
+     * 
+     * @return String
+     */
+    public function getTemplate() {
+        return '';
+    }
+
+    /**
      * Internal helper function for loading rule definition from database.
      */
     public function load() {
