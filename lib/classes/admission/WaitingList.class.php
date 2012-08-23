@@ -80,6 +80,8 @@ class WaitingList
      * @return WaitingList
      */
     public static function removeUser($userId, $courseId) {
+        // Get position of user in waiting list:
+        $position = WaitingList::getUserPosition($userId, $courseId);
         // Remove user entry from database...
         $query = "DELETE FROM `waitinglist`
             WHERE `user_id`=? AND `seminar_id`=?";
@@ -89,8 +91,7 @@ class WaitingList
         $query = "UPDATE `waitinglist` SET `position`=`position`-1
             WHERE `seminar_id`=? AND `position`>?";
         $stmt = DBManager::get()->prepare($query);
-        $success = $stmt->execute(array($courseid, 
-            WaitingList::getUserPosition($userId, $courseId)));
+        $success = $stmt->execute(array($courseid, $position));
     }
 
 } /* end of class WaitingList */
