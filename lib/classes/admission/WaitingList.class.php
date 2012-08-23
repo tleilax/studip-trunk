@@ -45,6 +45,22 @@ class WaitingList
     }
 
     /**
+     * Gets the given user's position on the waiting list for the given course.
+     * 
+     * @param  String $userId User to check
+     * @param  String $courseId Course ID
+     * @return int 
+     */
+    public static function getUserPosition($userId, $courseId) {
+        $query = "SELECT `position` FROM `waitinglist`
+            WHERE `user_id`=? AND `seminar_id`=? LIMIT 1";
+        $stmt = DBManager::get()->prepare($query);
+        $stmt->execute(array($userId, $courseid));
+        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $data['position'];
+    }
+
+    /**
      * Gets the waiting list for the given course.
      * 
      * @param  String courseId
@@ -64,10 +80,17 @@ class WaitingList
      * @return WaitingList
      */
     public static function removeUser($userId, $courseId) {
-        $query = "DELETE FROM `waitinglist` 
+        // Remove user entry from database...
+        $query = "DELETE FROM `waitinglist`
             WHERE `user_id`=? AND `seminar_id`=?";
         $stmt = DBManager::get()->prepare($query);
-        return $stmt->execute(array($userId, $courseid));
+        $success = $stmt->execute(array($userId, $courseid));
+        // ... and update other wating list positions.
+        $query = "UPDATE `waitinglist` SET `position`=`position`-1
+            WHERE `seminar_id`=? AND `position`>?";
+        $stmt = DBManager::get()->prepare($query);
+        $success = $stmt->execute(array($courseid, 
+            WaitingList::getUserPosition($userId, $courseId)));
     }
 
 } /* end of class WaitingList */
