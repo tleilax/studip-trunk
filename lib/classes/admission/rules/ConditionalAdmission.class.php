@@ -27,6 +27,13 @@ class ConditionalAdmission extends AdmissionRule
      */
     public $conditions = array();
 
+    /**
+     * Flag to invalidate all conditions at once, can be used to open a
+     * course set for admission after the seat distribution run. The conditions
+     * themselves are NOT deleted.
+     */
+    public $conditionsStopped = false;
+
     // --- OPERATIONS ---
 
     /**
@@ -103,6 +110,16 @@ class ConditionalAdmission extends AdmissionRule
     }
 
     /**
+     * Gets whether the condition evaluation has been stopped.
+     *
+     * @return boolean
+     */
+    public function getConditionsStopped()
+    {
+        return $this->conditionsStopped;
+    }
+
+    /**
      * Gets some text that describes what this AdmissionRule (or respective 
      * subclass) does.
      */
@@ -122,6 +139,15 @@ class ConditionalAdmission extends AdmissionRule
     }
 
     /**
+     * Invalidates the conditions without deleting them. Can be used to stop
+     * condition evaluation after seat distribution in course set.
+     */
+    public function invalidate() {
+        $this->conditionsStopped = true;
+        $this->store();
+    }
+
+    /**
      * Helper function for loading data from DB. Generic AdmissionRule data is
      * loaded with the parent load() method.
      */
@@ -132,6 +158,7 @@ class ConditionalAdmission extends AdmissionRule
         $stmt->execute(array($this->id));
         if ($current = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $this->message = $current['message'];
+            $this->conditionsStopped = (bool) $current['conditions_stopped'];
             // Retrieve conditions.
             $stmt = DBManager::get()->prepare("SELECT * 
                 FROM `admission_condition` WHERE `rule_id`=?");
@@ -169,11 +196,27 @@ class ConditionalAdmission extends AdmissionRule
      */
     function ruleApplies($userId, $courseId) {
         $applies = false;
-        // Check all configured conditions.
-        foreach ($this->conditions as $condition) {
-            $applies = $applies || $condition->isFulfilled($userId);
+        // Is condition evaluation stopped?
+        if (!$this->conditionsStopped) {
+            // Check all configured conditions.
+            foreach ($this->conditions as $condition) {
+                $applies = $applies || $condition->isFulfilled($userId);
+            }
+        } else {
+            $applies = true;
         }
         return $applies;
+    }
+
+    /**
+     * Sets a new value for invalidation of conditions.
+     * 
+     * @param boolean $newValue
+     * @return ConditionAdmission
+     */
+    function setConditionsStopped($newValue) {
+        $this->conditionsStopped = $newValue;
+        return $this;
     }
 
     /**
@@ -182,12 +225,15 @@ class ConditionalAdmission extends AdmissionRule
     public function store() {
         // Store rule data.
         $stmt = DBManager::get()->prepare("INSERT INTO `conditionaladmissions`
-            (`rule_id`, `message`, `mkdate`, `chdate`)
-            VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE
-            `message`=VALUES(`message`), `chdate`=VALUES(`chdate`)");
-        $stmt->execute(array($this->id, $this->message, time(), time()));
+            (`rule_id`, `message`, `conditions_stopped`, `mkdate`, `chdate`)
+            VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE
+            `message`=VALUES(`message`),
+            `conditions_stopped`=VALUES(`conditions_stopped`),
+            `chdate`=VALUES(`chdate`)");
+        $stmt->execute(array($this->id, $this->message, 
+            $this->conditionsStopped, time(), time()));
         // Delete removed conditions from DB.
-        DBManager::get()->exec("DELETE FROM `admission_condition` 
+        DBManager::get()->exec("DELETE FROM `admission_condition`
             WHERE `rule_id`='".$this->id."' AND `condition_id` NOT IN ('".
             implode("', '", array_keys($this->conditions))."')");
         // Store all conditions.
@@ -195,10 +241,10 @@ class ConditionalAdmission extends AdmissionRule
             // Store each condition...
             $condition->store();
             // ... and its connection to the current admission rule.
-            $stmt = DBManager::get()->prepare("INSERT INTO `admission_condition` 
-                (`rule_id`, `condition_id`, `mkdate`, `chdate`) 
-                VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE 
-                `condition_id`=VALUES(`condition_id`), `chdate`=VALUES(`chdate`)");
+            $stmt = DBManager::get()->prepare("INSERT INTO `admission_condition`
+                (`rule_id`, `condition_id`, `mkdate`)
+                VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE
+                `condition_id`=VALUES(`condition_id`)");
             $stmt->execute(array($this->id, $condition->getId(), time(), time()));
         }
         return $this;
@@ -206,7 +252,7 @@ class ConditionalAdmission extends AdmissionRule
 
     public function toString() {
         $text = "";
-        if ($this->conditions) {
+        if ($this->conditions && !$this->conditionsStopped) {
             $text .= _("Zur Zulassung müssen folgende Bedingungen erfüllt sein:")."\n";
             foreach ($this->conditions as $condition) {
                 $text .= $condition->toString()."\n";

@@ -46,7 +46,7 @@ class LimitedAdmission extends AdmissionRule
         if ($ruleId) {
             $this->load();
         } else {
-            $this->id = $this->generateId('admissionlimits');
+            $this->id = $this->generateId('limitedadmissions');
         }
     }
 
@@ -55,7 +55,7 @@ class LimitedAdmission extends AdmissionRule
      */
     public function delete() {
         // Delete rule data.
-        $stmt = DBManager::get()->prepare("DELETE FROM `admissionlimits` 
+        $stmt = DBManager::get()->prepare("DELETE FROM `limitedadmissions` 
             WHERE `rule_id`=?");
         $stmt->execute(array($this->id));
         // Delete all custom max numbers.
@@ -119,10 +119,8 @@ class LimitedAdmission extends AdmissionRule
      * Internal helper function for loading rule definition from database.
      */
     public function load() {
-        $stmt = DBManager::get()->prepare("SELECT l.*, rs.`set_id`
-            FROM `admissionlimits` l
-                JOIN `rule_set` rs ON (l.`rule_id`=rs.`rule_id`)
-            WHERE l.`rule_id`=? LIMIT 1");
+        $stmt = DBManager::get()->prepare("SELECT *
+            FROM `limitedadmissions` WHERE `rule_id`=? LIMIT 1");
         $stmt->execute(array($this->id));
         if ($current = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $this->courseSetId = $current['set_id'];
@@ -142,18 +140,16 @@ class LimitedAdmission extends AdmissionRule
     public function ruleApplies($userId, $courseId)
     {
         $applies = true;
-        $courseSet = new CourseSet($this->courseSetId);
         // How many courses from this set has the user already registered for?
-        $stmt = DBManager::get()->prepare("SELECT COUNT(`user_id`) AS number 
-            FROM `seminar_user` WHERE `user_id`=? AND `Seminar_id` IN (?)");
-        $stmt->execute(array($userId, 
-            implode("', '", array_keys($courseSet->getCourses()))));
-        if ($current = $stmt->fetch()) {
-            // Check if the number is smaller than admission rule limit 
-            // or own user limit.
-            $applies = ($current['number'] < 
-                min($this->maxNumber, $this->getCustomMaxNumber($userId)));
-        }
+        $stmt = DBManager::get()->prepare("SELECT `user_id`
+            FROM `seminar_user` WHERE `user_id`=? AND `Seminar_id` IN (
+                SELECT `Seminar_id` FROM `seminar_courseset` WHERE `set_id`=?)");
+        $stmt->execute(array($userId, $this->courseSetId));
+        $number = sizeof($stmt->fetchAll(PDO::FETCH_ASSOC));
+        // Check if the number is smaller than admission rule limit 
+        // or own user limit.
+        $applies = ($number < 
+            min($this->maxNumber, $this->getCustomMaxNumber($userId)));
         return $applies;
     }
 
@@ -193,7 +189,7 @@ class LimitedAdmission extends AdmissionRule
      */
     public function store() {
         // Store data.
-        $stmt = DBManager::get()->prepare("INSERT INTO `admissionlimits`
+        $stmt = DBManager::get()->prepare("INSERT INTO `limitedadmissions`
             (`rule_id`, `message`, `maxnumber`, `mkdate`, `chdate`)
             VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE
             `message`=VALUES(`message`), `maxnumber`=VALUES(`maxnumber`),

@@ -241,6 +241,17 @@ class ConditionField
     }
 
     /**
+     * Connects the current field to a StudipCondition.
+     * 
+     * @param  String $id ID of a StudipCondition object.
+     * @return ConditionField
+     */
+    public function setConditionId($id) {
+        $this->conditionId = $id;
+        return $this;
+    }
+
+    /**
      * Sets a new selected value.
      *
      * @param  String newValue
@@ -261,7 +272,7 @@ class ConditionField
      * 
      * @param  String conditionId The condition this field belongs to.
      */
-    public function store($conditionId) {
+    public function store() {
         // Generate new ID if field entry doesn't exist in DB yet.
         if (!$this->id) {
             do {
@@ -278,7 +289,7 @@ class ConditionField
             ON DUPLICATE KEY UPDATE `condition_id`=VALUES(`condition_id`), 
             `type`=VALUES(`type`),`value`=VALUES(`value`), 
             `compare_op`=VALUES(`compare_op`), `chdate`=VALUES(`chdate`)");
-        $stmt->execute(array($this->id, $conditionId, get_class($this), 
+        $stmt->execute(array($this->id, $this->conditionId, get_class($this), 
             $this->value, $this->compareOperator, time(), time()));
     }
 

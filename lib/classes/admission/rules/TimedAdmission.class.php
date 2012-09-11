@@ -49,7 +49,7 @@ class TimedAdmission extends AdmissionRule
         if ($ruleId) {
             $this->load();
         } else {
-            $this->id = $this->generateId('admissiontimes');
+            $this->id = $this->generateId('timedadmissions');
         }
     }
 
@@ -58,7 +58,7 @@ class TimedAdmission extends AdmissionRule
      */
     public function delete() {
         // Delete rule data.
-        $stmt = DBManager::get()->prepare("DELETE FROM `admissiontimes` 
+        $stmt = DBManager::get()->prepare("DELETE FROM `timedadmissions` 
             WHERE `rule_id`=?");
         $stmt->execute(array($this->id));
     }
@@ -116,7 +116,7 @@ class TimedAdmission extends AdmissionRule
     public function load() {
         // Load data.
         $stmt = DBManager::get()->prepare("SELECT *
-            FROM `admissiontimes` WHERE `rule_id`=? LIMIT 1");
+            FROM `timedadmissions` WHERE `rule_id`=? LIMIT 1");
         $stmt->execute(array($this->id));
         if ($current = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $this->message = $current['message'];
@@ -187,7 +187,7 @@ class TimedAdmission extends AdmissionRule
      */
     public function store() {
         // Store data.
-        $stmt = DBManager::get()->prepare("INSERT INTO `admissiontimes` 
+        $stmt = DBManager::get()->prepare("INSERT INTO `timedadmissions` 
             (`rule_id`, `message`, `start_time`, `distribution_time`, 
             `end_time`, `mkdate`, `chdate`) VALUES (?, ?, ?, ?, ?, ?, ?) 
             ON DUPLICATE KEY UPDATE `start_time`=VALUES(`start_time`), 

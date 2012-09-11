@@ -32,7 +32,7 @@ class SemesterOfStudyCondition extends ConditionField
             "FROM `user_studiengang`");
         if ($current = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $maxsem = $current['maxsem'];
-            for ($i=1 ; $i<$maxsem ; $i++) {
+            for ($i=1 ; $i<=$maxsem ; $i++) {
                 $this->validValues[$i] = $i;
             }
         }

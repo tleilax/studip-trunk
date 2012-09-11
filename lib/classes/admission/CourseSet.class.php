@@ -36,6 +36,11 @@ class CourseSet
     public $courses = array();
 
     /**
+     * Has the seat distribution algorithm already been executed?
+     */
+    public $hasAlgorithmRun = false;
+
+    /**
      * Unique identifier for this set.
      */
     public $id = '';
@@ -44,6 +49,11 @@ class CourseSet
      * Which Stud.IP institute does the course set belong to?
      */
     public $institutId = '';
+
+    /**
+     * Should admission rules be invalidated after seat distribution?
+     */
+    public $invalidateRules = false;
 
     /**
      * Some display name for this course set.
@@ -166,6 +176,29 @@ class CourseSet
     }
 
     /**
+     * Starts the seat distribution algorithm and invalidates admission rules
+     * afterwards, if applicable.
+     * 
+     * @return CourseSet
+     */
+    public function distributeSeats() {
+        if ($this->algorithm) {
+            $this->algorithm->run();
+            // Mark as "seats distributed".
+            $this->hasAlgorithmRun = true;
+            // Check whether some rules must be deactivated now.
+            if ($this->invalidateRules) {
+                // Check all rules that implement the "invalidate" function.
+                foreach ($this->admissionRules as $rule) {
+                    if (method_exists($rule, "invalidate")) {
+                        $rule->invalidate();
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Get all admission rules belonging to the course set.
      *
      * @return Array
@@ -231,6 +264,15 @@ class CourseSet
     }
 
     /**
+     * Should rules be invalidated after seat distribution?
+     * 
+     * @return boolean
+     */
+    public function getInvalidateRules() {
+        return $this->invalidateRules;
+    }
+
+    /**
      * Gets this course set's display name.
      */
     public function getName() {
@@ -283,6 +325,16 @@ class CourseSet
             $lists[] = $current['list_id'];
         }
         return $lists;
+    }
+
+    /**
+     * Evaluates whether the seat distribution algorithm has already been 
+     * executed on this course set.
+     * 
+     * @return boolean True if algorithm has already run, otherwise false.
+     */
+    public function hasAlgorithmRun() {
+        return $this->hasAlgorithmRun;
     }
 
     /**
@@ -372,6 +424,16 @@ class CourseSet
     }
 
     /**
+     * Sets a new value for rule invalidation after seat distribution.
+     * 
+     * @param  boolean newValue
+     * @return CourseSet
+     */
+    public function setInvalidateRules($newValue) {
+        $this->invalidateRules = $newValue;
+    }
+
+    /**
      * Sets a new name for this course set.
      * 
      * @param  String newName
@@ -394,12 +456,15 @@ class CourseSet
         }
         // Store basic data.
         $stmt = DBManager::get()->prepare("INSERT INTO `coursesets`
-            (`set_id`, `institut_id`, `name`, `algorithm`, `mkdate`, `chdate`)
-            VALUES (?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE
+            (`set_id`, `institut_id`, `name`, `algorithm`, `invalidate_rules`,
+            `mkdate`, `chdate`)
+            VALUES (?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE
             `institut_id`=VALUES(`institut_id`), `name`=VALUES(`name`),
-            `algorithm`=VALUES(`algorithm`), `chdate`=VALUES(`chdate`)");
+            `algorithm`=VALUES(`algorithm`), 
+            `invalidate_rules`=VALUES(`invalidate_rules`),
+            `chdate`=VALUES(`chdate`)");
         $stmt->execute(array($this->id, $this->institutId, $this->name,
-            $this->algorithm, time(), time()));
+            $this->algorithm, $this->invalidateRules, time(), time()));
         // Delete removed course assignments from database.
         DBManager::get()->exec("DELETE FROM `seminar_courseset` 
             WHERE `set_id`='".$this->id."' AND `seminar_id` NOT IN ('".
