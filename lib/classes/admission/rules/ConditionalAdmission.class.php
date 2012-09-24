@@ -237,16 +237,22 @@ class ConditionalAdmission extends AdmissionRule
             WHERE `rule_id`='".$this->id."' AND `condition_id` NOT IN ('".
             implode("', '", array_keys($this->conditions))."')");
         // Store all conditions.
+        $queries = array();
+        $parameters = array();
         foreach ($this->conditions as $condition) {
             // Store each condition...
             $condition->store();
-            // ... and its connection to the current admission rule.
-            $stmt = DBManager::get()->prepare("INSERT INTO `admission_condition`
-                (`rule_id`, `condition_id`, `mkdate`)
-                VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE
-                `condition_id`=VALUES(`condition_id`)");
-            $stmt->execute(array($this->id, $condition->getId(), time(), time()));
+            $queries[] = "(?, ?, ?)";
+            $parameters[] = $this->id;
+            $parameters[] = $condition->getId();
+            $parameters[] = time();
         }
+        // Store all assignments between rule and condition.
+        $stmt = DBManager::get()->prepare("INSERT INTO `admission_condition`
+            (`rule_id`, `condition_id`, `mkdate`)
+            VALUES ".implode(",", $queries)." ON DUPLICATE KEY UPDATE
+            `condition_id`=VALUES(`condition_id`)");
+        $stmt->execute($parameters);
         return $this;
     }
 
