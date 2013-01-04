@@ -1,8 +1,8 @@
 <?php
 # Lifter001: DONE
 # Lifter002: TODO
+# Lifter003: TEST
 # Lifter007: TODO
-# Lifter003: TODO
 # Lifter005: TODO
 # Lifter010: TODO
 /*
@@ -173,9 +173,25 @@ function parse_link($link, $level=0) {
             fclose($socket);
         }
         $parsed_link = parse_header($response);
+
+        // Anderer Dateiname?
+        $disposition_header = $parsed_link['Content-Disposition']
+                           ?: $parsed_link['content-disposition'];
+        if ($disposition_header) {
+            $header_parts = explode(';', $disposition_header);
+            foreach ($header_parts as $part) {
+                $part = trim($part);
+                list($key, $value) = explode('=', $part, 2);
+                if (strtolower($key) === 'filename') {
+                    $the_file_name = trim($value, '"');
+                }
+            }
+        } else {
+            $the_file_name = basename($url_parts['path']) ?: $the_file_name;
+        }
+
         // Weg über einen Locationheader:
         if (($parsed_link["HTTP/1.1 302 Found"] || $parsed_link["HTTP/1.0 302 Found"]) && $parsed_link["Location"]) {
-            $the_file_name = basename($url_parts["path"]);
             $the_link = $parsed_link["Location"];
             parse_link($parsed_link["Location"],$level + 1);
         }
@@ -257,7 +273,7 @@ function createSelectedZip ($file_ids, $perm_check = TRUE, $size_check = false) 
  * @return string filename(id) of the created zip without path
  */
 function createFolderZip ($folder_id, $perm_check = TRUE, $size_check = false) {
-    global $TMP_PATH, $ZIP_PATH;
+    global $TMP_PATH, $ZIP_PATH, $SessSemName;
     $zip_file_id = false;
     $max_files = Config::GetInstance()->getValue('ZIP_DOWNLOAD_MAX_FILES');
     $max_size = Config::GetInstance()->getValue('ZIP_DOWNLOAD_MAX_SIZE') * 1024 * 1024;
@@ -271,7 +287,7 @@ function createFolderZip ($folder_id, $perm_check = TRUE, $size_check = false) {
         mkdir($tmp_full_path,0700);
 
         //create folder content
-        $filelist = createTempFolder($folder_id, $tmp_full_path, $perm_check);
+        $filelist = createTempFolder($folder_id, $tmp_full_path, $SessSemName[1], $perm_check);
 
         $caption = array('filename' => _("Dateiname"), 'filesize' => _("Größe"), 'author_name' => _("Ersteller"), 'chdate' => _("Datum"), 'name' =>  _("Name"), 'description' => _("Beschreibung"), 'path' => _("Pfad"));
         array_to_csv($filelist, $tmp_full_path . '/' . _("dateiliste.csv"), $caption);
@@ -293,49 +309,63 @@ function createFolderZip ($folder_id, $perm_check = TRUE, $size_check = false) {
  * @param bool $in_recursion used internally to indicate recursive call
  * @return array assoc array with metadata from zipped files
  */
-function createTempFolder($folder_id, $tmp_full_path, $perm_check = TRUE, $in_recursion = false) {
-    global $SessSemName;
+function createTempFolder($folder_id, $tmp_full_path, $sem_id, $perm_check = TRUE, $in_recursion = false)
+{
     static $filelist;
 
     if ($in_recursion === false) {
         $filelist = array();
         $tmp_path = $tmp_full_path;
     }
-    $db = new DB_Seminar();
+
     if ($perm_check){
-        $folder_tree = TreeAbstract::GetInstance('StudipDocumentTree', array('range_id' => $SessSemName[1]));
-        if (!$folder_tree->isDownloadFolder($folder_id, $GLOBALS['user']->id)) return false;
+        $folder_tree = TreeAbstract::GetInstance('StudipDocumentTree', array('range_id' => $sem_id));
+
+        $check_for = $perm_check === true ? $GLOBALS['user']->id : $perm_check;
+        if (!$folder_tree->isDownloadFolder($folder_id, $check_for)) return false;
     }
     //copy all documents from this folder to the temporary folder
     $linkinfo = FALSE;
-    $query = sprintf ("SELECT dokument_id, filename, url, author_name, filesize, name, description, FROM_UNIXTIME(chdate) as chdate FROM dokumente WHERE range_id = '%s' %s ORDER BY name, filename", $folder_id, ($perm_check) ? "AND seminar_id = '".$SessSemName[1]."'" : "");
-    $db->query($query);
-    while ($db->next_record()) {
-        if ($db->f("url") != "") {  // just a linked file
-            $linkinfo .= "\r\n".$db->f("filename");
-        } else {
-            if(check_protected_download($db->f('dokument_id'))){
-                $filename = prepareFilename($db->f('filename'), FALSE, $tmp_full_path);
-                if (copy(get_upload_file_path($db->f('dokument_id')), $tmp_full_path.'/'.$filename)) {
-                TrackAccess($db->f('dokument_id'),'dokument');
-                    $filelist[] = $db->Record + array('path' => $tmp_full_path.'/'.$filename);
+
+    $query = "SELECT dokument_id, filename, url, author_name, filesize, name,
+                     description, FROM_UNIXTIME(chdate) AS chdate
+              FROM dokumente
+              WHERE range_id = ? AND seminar_id = IFNULL(?, seminar_id)
+              ORDER BY name, filename";
+    $statement = DBManager::get()->prepare($query);
+    $statement->execute(array(
+        $folder_id,
+        $perm_check ? $sem_id : null
+    ));
+    while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
+        if ($row['url'] != '') {  // just a linked file
+            $linkinfo .= "\r\n" . $row['filename'];
+        } else if(check_protected_download($row['dokument_id'])) {
+            $filename = prepareFilename($row['filename'], FALSE, $tmp_full_path);
+            if (copy(get_upload_file_path($row['dokument_id']), $tmp_full_path . '/' . $filename)) {
+                TrackAccess($row['dokument_id'], 'dokument');
+                $filelist[] = $row + array('path' => $tmp_full_path . '/' . $filename);
             }
         }
-    }
     }
     if ($linkinfo) {
         $linkinfo = _("Hinweis: die folgenden Dateien sind nicht im Archiv enthalten, da sie lediglich verlinkt wurden:").$linkinfo;
         $fp = fopen ("$tmp_full_path/info.txt","a");
-        fwrite ($fp,$linkinfo);
+        fwrite ($fp, $linkinfo);
         fclose ($fp);
     }
 
-    $db->query("SELECT folder_id, name FROM folder WHERE range_id = '$folder_id' ORDER BY name");
-    while ($db->next_record()) {
-        $foldername = prepareFilename($db->f('name'), FALSE, $tmp_full_path);
-        $tmp_sub_full_path = $tmp_full_path.'/'.$foldername;
+    $query = "SELECT folder_id, name
+              FROM folder
+              WHERE range_id = ?
+              ORDER BY name";
+    $statement = DBManager::get()->prepare($query);
+    $statement->execute(array($folder_id));
+    while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
+        $foldername = prepareFilename($row['name'], FALSE, $tmp_full_path);
+        $tmp_sub_full_path = $tmp_full_path . '/' . $foldername;
         mkdir($tmp_sub_full_path, 0700);
-        createTempFolder($db->f("folder_id"), $tmp_sub_full_path, $perm_check, true);
+        createTempFolder($row['folder_id'], $tmp_sub_full_path, $sem_id, $perm_check, true);
     }
     if ($in_recursion === false) {
        array_walk($filelist, create_function('&$a', '$a["path"] = substr($a["path"], ' . (int)strlen($tmp_path) . ');'));
@@ -395,83 +425,119 @@ function getFolderId($parent_id, $in_recursion = false){
  * @param $range_id      the range id for the folder, course or institute id
  * @return integer
  */
-function doc_count($parent_id, $range_id = null) {
+function doc_count($parent_id, $range_id = null)
+{
     global $SessionSeminar, $user;
     if ($range_id === null)  {
         $range_id = $SessionSeminar;
     }
     $folder_tree = TreeAbstract::GetInstance('StudipDocumentTree', array('range_id' => $range_id));
-    $db=new DB_Seminar;
-    $arr = $folder_tree->getReadableKidsKids($parent_id,$user->id);
-    if($folder_tree->isReadable($parent_id,$user->id) && $folder_tree->isExecutable($parent_id,$user->id)) $arr[] = $parent_id;
-    if (!(is_array($arr) && count($arr))) return 0;
-    $in="('".join("','",$arr)."')";
-    $db->query ("SELECT count(*) as count FROM dokumente WHERE range_id IN $in");
-    $db->next_record();
-    return $db->Record[0];
+
+    $arr = $folder_tree->getReadableKidsKids($parent_id, $user->id);
+    if ($folder_tree->isReadable($parent_id, $user->id) && $folder_tree->isExecutable($parent_id, $user->id)) {
+        $arr[] = $parent_id;
+    }
+
+    if (!is_array($arr) || count($arr) === 0) {
+        return 0;
+    }
+
+    $query = "SELECT COUNT(*) FROM dokumente WHERE range_id IN (?)";
+    $statement = DBManager::get()->prepare($query);
+    $statement->execute(array($arr));
+    return $statement->fetchColumn();
 }
 
-function doc_sum_filesize ($parent_id) {
+function doc_sum_filesize ($parent_id)
+{
     global $SessionSeminar, $user;
     $folder_tree = TreeAbstract::GetInstance('StudipDocumentTree', array('range_id' => $SessionSeminar));
-    $db=new DB_Seminar;
-    $arr = $folder_tree->getReadableKidsKids($parent_id,$user->id);
-    if($folder_tree->isReadable($parent_id,$user->id) && $folder_tree->isExecutable($parent_id,$user->id)) $arr[] = $parent_id;
-    if (!(is_array($arr) && count($arr))) return 0;
-    $in="('".join("','",$arr)."')";
-    $db->query ("SELECT sum(filesize) FROM dokumente WHERE url='' AND range_id IN $in");
-    $db->next_record();
-    return $db->Record[0];
+
+    $arr = $folder_tree->getReadableKidsKids($parent_id, $user->id);
+    if($folder_tree->isReadable($parent_id, $user->id) && $folder_tree->isExecutable($parent_id, $user->id)) {
+        $arr[] = $parent_id;
+    }
+    if (!is_array($arr) || count($arr) === 0) {
+        return 0;
+    }
+
+    $query = "SELECT SUM(filesize)
+              FROM dokumente
+              WHERE url = '' AND range_id IN (?)";
+    $statement = DBManager::get()->prepare($query);
+    $statement->execute(array($arr));
+    return $statement->fetchColumn();
 }
 
-function doc_newest ($parent_id) {
+function doc_newest ($parent_id)
+{
     global $SessionSeminar, $user;
     $folder_tree = TreeAbstract::GetInstance('StudipDocumentTree', array('range_id' => $SessionSeminar));
-    $db=new DB_Seminar;
-    $arr = $folder_tree->getReadableKidsKids($parent_id,$user->id);
-    if($folder_tree->isReadable($parent_id,$user->id) && $folder_tree->isExecutable($parent_id,$user->id)) $arr[] = $parent_id;
-    if (!(is_array($arr) && count($arr))) return 0;
-    $in="('".join("','",$arr)."')";
-    $db->query ("SELECT max(chdate), max(mkdate) FROM dokumente WHERE range_id IN $in ");
-    $db->next_record();
-    if ($db->Record[0] > $db->Record[1])
-        return $db->Record[0];
-    else
-        return $db->Record[1];
+
+    $arr = $folder_tree->getReadableKidsKids($parent_id, $user->id);
+    if($folder_tree->isReadable($parent_id, $user->id) && $folder_tree->isExecutable($parent_id, $user->id)) {
+        $arr[] = $parent_id;
+    }
+    if (!is_array($arr) || count($arr) === 0) {
+        return 0;
+    }
+
+    $query = "SELECT GREATEST(IFNULL(MAX(mkdate), 0), IFNULL(MAX(chdate), 0))
+              FROM dokumente
+              WHERE range_id IN (?)";
+    $statement = DBManager::get()->prepare($query);
+    $statement->execute(array($arr));
+    return $statement->fetchColumn();
 }
 
-function doc_challenge ($parent_id){
+function doc_challenge ($parent_id)
+{
     global $SessionSeminar, $user;
     $folder_tree = TreeAbstract::GetInstance('StudipDocumentTree', array('range_id' => $SessionSeminar));
-    $db=new DB_Seminar;
-    $arr = $folder_tree->getReadableKidsKids($parent_id,$user->id);
-    if($folder_tree->isReadable($parent_id,$user->id) && $folder_tree->isExecutable($parent_id,$user->id)) $arr[] = $parent_id;
-    if (!(is_array($arr) && count($arr))) return 0;
-    $in="('".join("','",$arr)."')";
-    $db->query ("SELECT dokument_id FROM dokumente WHERE range_id IN $in");
-    while($db->next_record()) $result[] = $db->Record[0];
-    return $result;
+
+    $arr = $folder_tree->getReadableKidsKids($parent_id, $user->id);
+    if($folder_tree->isReadable($parent_id, $user->id) && $folder_tree->isExecutable($parent_id ,$user->id)) {
+        $arr[] = $parent_id;
+    }
+    if (!is_array($arr) || count($arr) === 0) {
+        return 0;
+    }
+
+    $query = "SELECT dokument_id FROM dokumente WHERE range_id IN (?)";
+    $statement = DBManager::get()->prepare($query);
+    $statement->execute(array($arr));
+    return $statement->fetchAll(PDO::FETCH_COLUMN);
 }
 
-function get_user_documents_in_folder($folder_id, $user_id){
-    $db = new DB_Seminar("SELECT filename, filesize, chdate FROM dokumente WHERE range_id='$folder_id' AND user_id='$user_id'");
+function get_user_documents_in_folder($folder_id, $user_id)
+{
+    $query = "SELECT filename, filesize, chdate
+              FROM dokumente
+              WHERE range_id = ? AND user_id = ?";
+    $statement = DBManager::get()->prepare($query);
+    $statement->execute(array($folder_id, $user_id));
+
     $ret = array();
-    while ($db->next_record()){
-        $ret[] = $db->f('filename') . ' ('.round($db->f('filesize')/1024).'kB, '.date("d.m.Y - H:i", $db->f('chdate')).')';
+    while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
+        $ret[] = $row['filename']
+               . ' (' . round($row['filesize'] / 1024) . 'kB, '
+               . date('d.m.Y - H:i', $row['chdate']) . ')';
     }
     return $ret;
 }
 
-function move_item($item_id, $new_parent, $change_sem_to = false) {
+function move_item($item_id, $new_parent, $change_sem_to = false)
+{
     global $SessionSeminar;
-    $db = new DB_Seminar;
     $folder_tree = TreeAbstract::GetInstance('StudipDocumentTree', array('range_id' => $SessionSeminar));
 
-    if ($change_sem_to && !$folder_tree->isFolder($item_id)){
-        $db->query("SELECT folder_id FROM folder WHERE range_id='$change_sem_to'");
-        if ($db->next_record()){
-            $new_folder_id = $db->f(0);
-        } else {
+    if ($change_sem_to && !$folder_tree->isFolder($item_id)) {
+        $query = "SELECT folder_id FROM folder WHERE range_id = ?";
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute(array($change_sem_to));
+        $new_folder_id = $statement->fetchColumn();
+
+        if (!$new_folder_id) {
             return false;
         }
     }
@@ -492,21 +558,28 @@ function move_item($item_id, $new_parent, $change_sem_to = false) {
             return array(0,1);
         } else {
             //we want to move a folder, so we have first to check if we want to move a folder in a subordinated folder
-
             $folder = getFolderId($item_id);
 
-            if (is_array($folder) && in_array($new_parent, $folder)) $target_is_child = true;
+            if (is_array($folder) && in_array($new_parent, $folder)) {
+                $target_is_child = true;
+            }
 
             if (!$target_is_child){
-                if ($change_sem_to){
-                    $db->query("UPDATE folder SET range_id='".$new_parent."' WHERE folder_id = '$item_id'");
+                $query = "UPDATE folder SET range_id = ? WHERE folder_id = ?";
+                $statement = DBManager::get()->prepare($query);
+                $statement->execute(array($new_parent, $item_id));
+
+                if ($change_sem_to) {
                     $folder[] = $item_id;
                     // TODO (mlunzena): notify these documents
-                    $db->query("UPDATE dokumente SET seminar_id='$change_sem_to' WHERE range_id IN('".join("','", $folder)."')");
+                    $query = "UPDATE dokumente SET seminar_id = ? WHERE range_id IN (?)";
+                    $statement = DBManager::get()->prepare($query);
+                    $statement->execute(array($change_sem_to, $folder));
+                    $affected = $statement->rowCount();
+
                     $folder_tree->init();
-                    return array(count($folder), (int)$db->affected_rows());
+                    return array(count($folder), $affected);
                 } else {
-                    $db->query("UPDATE folder SET range_id='$new_parent' WHERE folder_id = '$item_id'");
                     $folder_tree->init();
                     return array(1, doc_count($item_id));
                 }
@@ -516,45 +589,56 @@ function move_item($item_id, $new_parent, $change_sem_to = false) {
     return false;
 }
 
-function copy_item($item_id, $new_parent, $change_sem_to = false) {
+function copy_item($item_id, $new_parent, $change_sem_to = false)
+{
     global $SessionSeminar;
 
-    $db=new DB_Seminar;
     $folder_tree = TreeAbstract::GetInstance('StudipDocumentTree', array('range_id' => $SessionSeminar));
 
-    if ($change_sem_to && !$folder_tree->isFolder($item_id)){
-        $db->query("SELECT folder_id FROM folder WHERE range_id='$change_sem_to'");
-        if ($db->next_record()){
-            $new_folder_id = $db->f(0);
-        } else {
+    if ($change_sem_to && !$folder_tree->isFolder($item_id)) {
+        $query = "SELECT folder_id FROM folder WHERE range_id = ?";
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute(array($change_sem_to));
+        $new_folder_id = $statement->fetchColumn();
+
+        if (!$new_folder_id) {
             return false;
         }
     }
 
     if ($item_id != $new_parent) {
-        $db->query("SELECT dokument_id FROM dokumente WHERE dokument_id = '$item_id'");
-        if ($db->next_record()){
+        $query = "SELECT 1 FROM dokumente WHERE dokument_id = ?";
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute(array($item_id));
+        $check = $statement->fetchColumn();
+
+        if ($check) {
             $ret = copy_doc($item_id,
-                            (($change_sem_to) ? $new_folder_id : $new_parent),
+                            $change_sem_to ? $new_folder_id : $new_parent,
                             $change_sem_to);
 
-            return ($ret ? array(0,1) : false);
+            return $ret ? array(0,1) : false;
         } else {
             //we want to move a folder, so we have first to check if we want to move a folder in a subordinated folder
             $folder = getFolderId($item_id);
 
-            if (is_array($folder) && in_array($new_parent, $folder)) $target_is_child = true;
+            if (is_array($folder) && in_array($new_parent, $folder)) {
+                $target_is_child = true;
+            }
 
             $seed = md5(uniqid('blaofuasof',1));
 
-            if (!$target_is_child){
-                if (!($folder_count = copy_folder($item_id, $new_parent, $seed)) ){
+            if (!$target_is_child) {
+                if (!($folder_count = copy_folder($item_id, $new_parent, $seed))) {
                     return false;
                 }
                 $folder[] = $item_id;
-                $db->query("SELECT dokument_id, range_id FROM dokumente WHERE range_id IN('".join("','", $folder)."')");
-                while($db->next_record()){
-                    $doc_count += copy_doc($db->f('dokument_id'), md5($db->f('range_id').$seed), $change_sem_to);
+
+                $query = "SELECT dokument_id, range_id FROM dokument_id WHERE range_id IN (?)";
+                $statement = DBManager::get()->prepare($query);
+                $statement->execute(array($folder));
+                while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
+                    $doc_count += copy_doc($row['dokument_id'], md5($row['range_id'] . $seed), $change_sem_to);
                 }
                 $folder_tree->init();
                 return array($folder_count, $doc_count);
@@ -597,108 +681,158 @@ function copy_doc($doc_id, $new_range, $new_sem = false)
     return $doc->store();
 }
 
-function copy_folder($folder_id, $new_range, $seed = false){
-    $db = new DB_Seminar();
-    if (!$seed){
-        $seed = md5(uniqid('blaofuasof',1));
+function copy_folder($folder_id, $new_range, $seed = false)
+{
+    if (!$seed) {
+        $seed = md5(uniqid('blaofuasof', 1));
     }
-    $db->query("SELECT MD5(CONCAT(folder_id,'$seed')), '$new_range', user_id, name,
-                description, mkdate, " .time(). " as chdate,permission FROM folder WHERE folder_id='$folder_id'");
-    if ($db->next_record()){
-        $record = $db->Record;
-        $record[3] = mysql_escape_string($record[3]);
-        $record[4] = mysql_escape_string($record[4]);
-        $db->query("INSERT INTO folder (folder_id, range_id, user_id, name,
-                    description, mkdate, chdate,permission) VALUES ( '{$record[0]}','{$record[1]}',
-                    '{$record[2]}','{$record[3]}','{$record[4]}',{$record[5]},
-                    {$record[6]},{$record[7]})");
-        if (!$db->affected_rows()){
+
+    // Prepare select statement
+    $query = "SELECT MD5(CONCAT(folder_id, :seed)) AS new_folder_id,
+                     MD5(CONCAT(range_id, :seed)) AS new_range_id,
+                     user_id, name, description, mkdate, permission
+              FROM folder
+              WHERE folder_id = :folder_id";
+    $select_statement = DBManager::get()->prepare($query);
+    $select_statement->bindValue(':seed', $seed);
+
+    // Prepare insert statement
+    $query = "INSERT INTO folder
+                (folder_id, range_id, user_id, name, description, mkdate,
+                 chdate, permission)
+              VALUES (?, ?, ?, ?, ?, ?, UNIX_TIMESTAMP(), ?)";
+    $insert_statement = DBManager::get()->prepare($query);
+
+    // Execute select statement
+    $select_statement->bindValue(':folder_id', $folder_id);
+    $select_statement->execute();
+    $temp = $select_statement->fetch(PDO::FETCH_ASSOC);
+    $select_statement->closeCursor();
+
+    if ($temp) {
+        $insert_statement->execute(array(
+            $temp['new_folder_id'],
+            $new_range,
+            $temp['user_id'],
+            $temp['name'],
+            $temp['description'],
+            $temp['mkdate'],
+            $temp['permission']
+        ));
+        if (!$insert_statement->rowCount()){
             return false;
-        } else {
-            $count = 1;
-            $folder = getFolderId($folder_id);
-            if (is_array($folder)){
-                foreach($folder as $id){
-                    $db->query("SELECT MD5(CONCAT(folder_id,'$seed')), MD5(CONCAT(range_id,'$seed')), user_id, name,
-                                description, mkdate, " .time(). " as chdate,permission FROM folder WHERE folder_id='$id'");
-                    if ($db->next_record()){
-                        $record = $db->Record;
-                        $record[3] = mysql_escape_string($record[3]);
-                        $record[4] = mysql_escape_string($record[4]);
-                        $db->query("INSERT INTO folder (folder_id, range_id, user_id,
-                                    name, description, mkdate, chdate, permission) VALUES (
-                                    '{$record[0]}','{$record[1]}','{$record[2]}',
-                                    '{$record[3]}','{$record[4]}',{$record[5]},
-                                    {$record[6]},{$record[7]})");
-                        $count += $db->affected_rows();
-                    }
+        }
+
+        $count = 1;
+        $folder = getFolderId($folder_id);
+        if (is_array($folder)) {
+            foreach($folder as $id) {
+                $select_statement->bindValue(':folder_id', $id);
+                $select_statement->execute();
+                $temp = $select_statement->fetch(PDO::FETCH_ASSOC);
+                $select_statement->closeCursor();
+
+                if ($temp) {
+                    $insert_statement->execute(array(
+                        $temp['new_folder_id'],
+                        $temp['new_range_id'],
+                        $temp['user_id'],
+                        $temp['name'],
+                        $temp['description'],
+                        $temp['mkdate'],
+                        $temp['permission']
+                    ));
+
+                    $count += $insert_statement->rowCount();
                 }
             }
-            return $count;
         }
+        return $count;
     }
 }
 
-function edit_item ($item_id, $type, $name, $description, $protected=0, $url = "", $filesize="") {
+function edit_item($item_id, $type, $name, $description, $protected = 0, $url = '', $filesize = '')
+{
     global $SessionSeminar;
 
-    $db=new DB_Seminar;
     $folder_tree = TreeAbstract::GetInstance('StudipDocumentTree', array('range_id' => $SessionSeminar));
 
-    if ($url != ""){
+    if ($url != '') {
         $url_parts = parse_url($url);
         $the_file_name = basename($url_parts['path']);
     }
 
-    if ($type){
-        $db->query("UPDATE folder SET  description='$description' " . (strlen($name) ? ", name='$name'" : "" ). " WHERE folder_id ='$item_id'");
-        if($GLOBALS['perm']->have_studip_perm('tutor', $SessionSeminar)){
+    if ($type) {
+        $query = "UPDATE folder
+                  SET description = ?, name = IFNULL(?, name)
+                  WHERE folder_id = ?";
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute(array(
+            $description,
+            strlen($name) ? $name : null,
+            $item_id,
+        ));
+
+        if ($GLOBALS['perm']->have_studip_perm('tutor', $SessionSeminar)) {
             if ($folder_tree->permissions_activated) {
-                foreach(array('r'=>'read','w'=>'write','x'=>'exec') as $p => $v){
-                    if ($_REQUEST["perm_$v"]) $folder_tree->setPermission($item_id, $p);
-                    else $folder_tree->unsetPermission($item_id, $p);
+                foreach(array('r' => 'read', 'w' => 'write', 'x' => 'exec') as $p => $v){
+                    if (Request::get('perm_' . $v)) {
+                        $folder_tree->setPermission($item_id, $p);
+                    } else {
+                        $folder_tree->unsetPermission($item_id, $p);
+                    }
                 }
             }
-            if ($_REQUEST["perm_folder"]) $folder_tree->setPermission($item_id, 'f');
-            else $folder_tree->unsetPermission($item_id, 'f');
+            if (Request::get('perm_folder')) {
+                $folder_tree->setPermission($item_id, 'f');
+            } else {
+                $folder_tree->unsetPermission($item_id, 'f');
+            }
         }
-        return !!$db->affected_rows();
+        return $statement->rowCount() > 0;
     } else {
 
         $doc = new StudipDocument($item_id);
-        $doc->setData(
-            array(
-                'name'        => $name,
-                'description' => $description,
-                'protected'   => $protected
-            ));
+        $doc->setData(compact(words('name description protected')));
 
-        if ($url != "") {
-            $doc["url"] = $url;
-            $doc["filename"] = $the_file_name;
+        if ($url != '') {
+            $doc['url'] = $url;
+            $doc['filename'] = $the_file_name;
         }
 
         return !!$doc->store();
     }
 }
 
-function create_folder ($name, $description, $parent_id, $permission = 7) {
+function create_folder ($name, $description, $parent_id, $permission = 7)
+{
     global $user, $SessionSeminar;
-    $db=new DB_Seminar;
-    $id=md5(uniqid("salmonellen",1));
+
+    $id = md5(uniqid('salmonellen',1));
     $folder_tree = TreeAbstract::GetInstance('StudipDocumentTree', array('range_id' => $SessionSeminar));
 
-    $db->query("INSERT INTO folder SET name='$name', folder_id='$id', description='$description', range_id='$parent_id', user_id='".$user->id."',permission='$permission', mkdate='".time()."', chdate='".time()."'");
-    if ($db->affected_rows()) {
+    $query = "INSERT INTO folder (name, folder_id, description, range_id, user_id, permission, mkdate, chdate)
+              VALUES (?, ?, ?, ?, ?, ?, UNIX_TIMESTAMP(), UNIX_TIMESTAMP())";
+    $statement = DBManager::get()->prepare($query);
+    $statement->execute(array(
+        $name,
+        $id,
+        $description,
+        $parent_id,
+        $user->id,
+        $permission
+    ));
+    if ($statement->rowCount()) {
         $folder_tree->init();
         return $id;
-        }
     }
+}
 
 ## Upload Funktionen ################################################################################
 
 //Ausgabe des Formulars
-function form($refresh = FALSE) {
+function form($refresh = FALSE)
+{
     global $UPLOAD_TYPES,$range_id,$SessSemName,$user,$folder_system_data;
 
     $sem_status = $GLOBALS['perm']->get_studip_perm($SessSemName[1]);
@@ -725,14 +859,14 @@ function form($refresh = FALSE) {
     else
         $print .= "\n<br><br>" . _("Sie haben diese Datei zum Aktualisieren ausgew&auml;hlt. Sie <b>&uuml;berschreiben</b> damit die vorhandene Datei durch eine neue Version!") . "<br><br><center><table width=\"90%\" style=\"border: 1px solid #000000;\" border=0 cellpadding=2 cellspacing=3 id=\"upload_form\">";
     $print.="\n";
-    $print.="\n<tr><td class=\"steel1\" width=\"20%\"><font size=-1><b>";
+    $print.="\n<tr><td class=\"table_row_even\" width=\"20%\"><font size=-1><b>";
 
     //erlaubte Upload-Typen aus Regelliste der Config.inc.php auslesen
     if (!$folder_system_data['zipupload']) {
         if ($UPLOAD_TYPES[$SessSemName["art_num"]]) {
             if ($UPLOAD_TYPES[$SessSemName["art_num"]]["type"] == "allow") {
                 $i=1;
-                $print.= _("Unzul&auml;ssige Dateitypen:") . "</b><font></td><td class=\"steel1\" width=\"80%\"><font size=-1>";
+                $print.= _("Unzul&auml;ssige Dateitypen:") . "</b><font></td><td class=\"table_row_even\" width=\"80%\"><font size=-1>";
                 foreach ($UPLOAD_TYPES[$SessSemName["art_num"]]["file_types"] as $ft) {
                     if ($i !=1)
                         $print.= ", ";
@@ -742,7 +876,7 @@ function form($refresh = FALSE) {
                 }
             else {
                 $i=1;
-                $print.= _("Zul&auml;ssige Dateitypen:") . "</b><font></td><td class=\"steel1\" width=\"80%\"><font size=-1>";
+                $print.= _("Zul&auml;ssige Dateitypen:") . "</b><font></td><td class=\"table_row_even\" width=\"80%\"><font size=-1>";
                 foreach ($UPLOAD_TYPES[$SessSemName["art_num"]]["file_types"] as $ft) {
                     if ($i !=1)
                         $print.= ", ";
@@ -754,7 +888,7 @@ function form($refresh = FALSE) {
         else {
             if ($UPLOAD_TYPES["default"]["type"] == "allow") {
                 $i=1;
-                $print.= _("Unzul&auml;ssige Dateitypen:") . "</b><font></td><td class=\"steel1\" width=\"80%\"><font size=-1>";
+                $print.= _("Unzul&auml;ssige Dateitypen:") . "</b><font></td><td class=\"table_row_even\" width=\"80%\"><font size=-1>";
                 foreach ($UPLOAD_TYPES["default"]["file_types"] as $ft) {
                     if ($i !=1)
                         $print.= ", ";
@@ -764,7 +898,7 @@ function form($refresh = FALSE) {
                 }
             else {
                 $i=1;
-                $print.= _("Zul&auml;ssige Dateitypen:") . "</b></td><font><td class=\"steel1\" width=\"80%\"><font size=-1>";
+                $print.= _("Zul&auml;ssige Dateitypen:") . "</b></td><font><td class=\"table_row_even\" width=\"80%\"><font size=-1>";
                 foreach ($UPLOAD_TYPES["default"]["file_types"] as $ft) {
                     if ($i !=1)
                         $print.= ", ";
@@ -774,41 +908,41 @@ function form($refresh = FALSE) {
                 }
             }
     } else {
-        $print.= _("Zul&auml;ssige Dateitypen:") . "</b></td><font><td class=\"steel1\" width=\"80%\"><font size=-1>";
+        $print.= _("Zul&auml;ssige Dateitypen:") . "</b></td><font><td class=\"table_row_even\" width=\"80%\"><font size=-1>";
         $print .= 'ZIP';
     }
     $print.="</font></td></tr>";
-    $print.="\n<tr><td class=\"steel1\" width=\"20%\"><font size=-1><b>" . _("Maximale Gr&ouml;&szlig;e:") . "</b></font></td><td class=\"steel1\" width=\"80%\"><font size=-1><b>".($max_filesize / 1048576)." </b>" . _("Megabyte") . "</font></td></tr>";
+    $print.="\n<tr><td class=\"table_row_even\" width=\"20%\"><font size=-1><b>" . _("Maximale Gr&ouml;&szlig;e:") . "</b></font></td><td class=\"table_row_even\" width=\"80%\"><font size=-1><b>".($max_filesize / 1048576)." </b>" . _("Megabyte") . "</font></td></tr>";
     if ($folder_system_data['zipupload']) {
-        $print.="\n<tr><td class=\"steel1\" width=\"20%\"><font size=-1><b>" . _("Maximaler Inhalt des Ziparchivs:")
-            . "</b></font></td><td class=\"steel1\" width=\"80%\"><font size=-1>"
+        $print.="\n<tr><td class=\"table_row_even\" width=\"20%\"><font size=-1><b>" . _("Maximaler Inhalt des Ziparchivs:")
+            . "</b></font></td><td class=\"table_row_even\" width=\"80%\"><font size=-1>"
             . sprintf(_("<b>%d</b> Dateien und <b>%d</b> Ordner"),get_config('ZIP_UPLOAD_MAX_FILES'), get_config('ZIP_UPLOAD_MAX_DIRS'))
             . "</font></td></tr>";
     }
-    $print.= "<tr><td class=\"steelgraudunkel\" colspan=2><font size=-1>" . _("1. Klicken Sie auf <b>'Durchsuchen...'</b>, um eine Datei auszuw&auml;hlen.") . " </font></td></tr>";
+    $print.= "<tr><td class=\"content_seperator\" colspan=2><font size=-1>" . _("1. Klicken Sie auf <b>'Durchsuchen...'</b>, um eine Datei auszuw&auml;hlen.") . " </font></td></tr>";
     $print.= "\n<tr>";
-    $print.= "\n<td class=\"steel1\" colspan=2 align=\"left\" valign=\"center\"><font size=-1>&nbsp;<label for=\"the_file\">" . _("Dateipfad:") . "</label>&nbsp;</font><br>";
+    $print.= "\n<td class=\"table_row_even\" colspan=2 align=\"left\" valign=\"center\"><font size=-1>&nbsp;<label for=\"the_file\">" . _("Dateipfad:") . "</label>&nbsp;</font><br>";
     $print.= "&nbsp;<input name=\"the_file\" id=\"the_file\" aria-required=\"true\" type=\"file\"  style=\"width: 70%\" size=\"30\">&nbsp;</td></td>";
     $print.= "\n</tr>";
     if (!$refresh && !$folder_system_data['zipupload']) {
-        $print.= "<tr><td class=\"steelgraudunkel\" colspan=2><font size=-1>" . _("2. Schutz gem&auml;&szlig; Urhebberecht.") . "</font></td></tr>";
-        $print.= "\n<tr><td class=\"steel1\" colspan=2 align=\"left\" valign=\"center\"><font size=-1>";
+        $print.= "<tr><td class=\"content_seperator\" colspan=2><font size=-1>" . _("2. Schutz gem&auml;&szlig; Urhebberecht.") . "</font></td></tr>";
+        $print.= "\n<tr><td class=\"table_row_even\" colspan=2 align=\"left\" valign=\"center\"><font size=-1>";
         $print.= "\n&nbsp;<label><input type=\"RADIO\" name=\"protected\" value=\"0\"".(!$protect ? "checked" :"") .'>'._("Ja, dieses Dokument ist frei von Rechten Dritter") ;
         $print.= "</label>\n&nbsp;<label><input type=\"RADIO\" name=\"protected\" value=\"1\"".($protect ? "checked" :"") .'>'._("Nein, dieses Dokument ist <u>nicht</u> frei von Rechten Dritter");
         $print.= "</label></td></tr>";
 
-        $print.= "<tr><td class=\"steelgraudunkel\" colspan=2><font size=-1>" . _("3. Geben Sie eine kurze Beschreibung und einen Namen f&uuml;r die Datei ein.") . "</font></td></tr>";
-        $print.= "\n<tr><td class=\"steel1\" colspan=2 align=\"left\" valign=\"center\"><label><font size=-1>&nbsp;" . _("Name:") . "&nbsp;</font><br>";
+        $print.= "<tr><td class=\"content_seperator\" colspan=2><font size=-1>" . _("3. Geben Sie eine kurze Beschreibung und einen Namen f&uuml;r die Datei ein.") . "</font></td></tr>";
+        $print.= "\n<tr><td class=\"table_row_even\" colspan=2 align=\"left\" valign=\"center\"><label><font size=-1>&nbsp;" . _("Name:") . "&nbsp;</font><br>";
         $print.= "\n&nbsp;<input type=\"TEXT\" name=\"name\" style=\"width: 70%\" size=\"40\" maxlength\"255\"></label></td></tr>";
-        $print.= "\n<tr><td class=\"steel1\" colspan=2 align=\"left\" valign=\"center\"><label><font size=-1>&nbsp;" . _("Beschreibung:") . "&nbsp;</font><br>";
+        $print.= "\n<tr><td class=\"table_row_even\" colspan=2 align=\"left\" valign=\"center\"><label><font size=-1>&nbsp;" . _("Beschreibung:") . "&nbsp;</font><br>";
         $print.= "\n&nbsp;<textarea name=\"description\" style=\"width: 70%\" COLS=40 ROWS=3 WRAP=PHYSICAL></textarea></label>&nbsp;</td></tr>";
-        $print.= "\n<tr><td class=\"steelgraudunkel\" colspan=2 ><font size=-1>" . _("4. Klicken Sie auf <b>'absenden'</b>, um die Datei hochzuladen") . "</font></td></tr>";
+        $print.= "\n<tr><td class=\"content_seperator\" colspan=2 ><font size=-1>" . _("4. Klicken Sie auf <b>'absenden'</b>, um die Datei hochzuladen") . "</font></td></tr>";
     } else if ($folder_system_data['zipupload']) {
-        $print.= "\n<tr><td class=\"steelgraudunkel\" colspan=2 ><font size=-1>" . _("3. Klicken Sie auf <b>'absenden'</b>, um das Ziparchiv hochzuladen und in diesem Ordner zu entpacken.") . "</font></td></tr>";
+        $print.= "\n<tr><td class=\"content_seperator\" colspan=2 ><font size=-1>" . _("3. Klicken Sie auf <b>'absenden'</b>, um das Ziparchiv hochzuladen und in diesem Ordner zu entpacken.") . "</font></td></tr>";
     } else {
-        $print.= "\n<tr><td class=\"steelgraudunkel\" colspan=2 ><font size=-1>" . _("3. Klicken Sie auf <b>'absenden'</b>, um die Datei hochzuladen und damit die alte Version zu &uuml;berschreiben.") . "</font></td></tr>";
+        $print.= "\n<tr><td class=\"content_seperator\" colspan=2 ><font size=-1>" . _("3. Klicken Sie auf <b>'absenden'</b>, um die Datei hochzuladen und damit die alte Version zu &uuml;berschreiben.") . "</font></td></tr>";
     }
-    $print.= "\n<tr><td class=\"steel1\" colspan=2 align=\"center\" valign=\"center\">";
+    $print.= "\n<tr><td class=\"table_row_even\" colspan=2 align=\"center\" valign=\"center\">";
 
     $print .= '<div class="button-group">';
     $print .= Button::createAccept(_("Absenden"), "create", array('onClick' => 'return STUDIP.OldUpload.upload_start(jQuery(this).closest("form"));'));
@@ -969,7 +1103,7 @@ function validate_upload($the_file, $real_file_name='') {
 
     if ($emsg) {
         $msg .= $emsg;
-        return true;
+        return false;
     } else {
         return true;
     }
@@ -1037,6 +1171,11 @@ function getUploadMetadata($range_id, $refresh = FALSE) {
 
 
 function JS_for_upload() {
+    if ($GLOBALS['i_page'] == "sms_send.php") {
+        $active_upload_type = "attachments";
+    } else {
+        $active_upload_type = $GLOBALS['SessSemName']["art_num"];
+    }
     //displays the templates for upload windows now
     //for upload code see application.js : STUDIP.OldUpload
     ?>
@@ -1055,10 +1194,10 @@ function JS_for_upload() {
     ?></div>
     <div id="upload_file_types" style="display: none;"><?=
         json_encode(
-            $GLOBALS['UPLOAD_TYPES'][$GLOBALS['SessSemName']["art_num"]]
+            $GLOBALS['UPLOAD_TYPES'][$active_upload_type]
             ? array(
-                'allow' => $GLOBALS['UPLOAD_TYPES'][$GLOBALS['SessSemName']["art_num"]]["type"] === "allow" ? 1 : 0,
-                'types' => $GLOBALS['UPLOAD_TYPES'][$GLOBALS['SessSemName']["art_num"]]["file_types"]
+                'allow' => $GLOBALS['UPLOAD_TYPES'][$active_upload_type]["type"] === "allow" ? 1 : 0,
+                'types' => $GLOBALS['UPLOAD_TYPES'][$active_upload_type]["file_types"]
             )
             : array(
                 'allow' => $GLOBALS['UPLOAD_TYPES']["default"]["type"] === "allow" ? 1 : 0,
@@ -1099,7 +1238,7 @@ function insert_link_db($range_id, $the_file_size, $refresh = FALSE) {
     $name = trim(Request::get('name'));            // laestige white spaces loswerden
 
     $url_parts = parse_url($the_link);
-    $the_file_name = basename($url_parts['path']);
+    $the_file_name = $the_file_name ?: basename($url_parts['path']);
 
     if (!$name) {
         $name = $the_file_name;
@@ -1173,25 +1312,35 @@ function link_item ($range_id, $create = FALSE, $echo = FALSE, $refresh = FALSE,
 }
 
 
-function link_form ($range_id, $updating=FALSE) {
+function link_form ($range_id, $updating=FALSE)
+{
     global $SessSemName, $the_link, $protect, $description, $name, $folder_system_data, $user;
-    if ($folder_system_data["update_link"])
+    if ($folder_system_data['update_link']) {
         $updating = TRUE;
-    if ($protect=="on") $protect = "checked";
-    $print = "";
+    }
+    if ($protect == 'on') {
+        $protect = 'checked';
+    }
+    $print = '';
     $hiddenurl = FALSE;
     if ($updating == TRUE) {
-        $db=new DB_Seminar;
-        $db->query("SELECT * FROM dokumente WHERE dokument_id='$range_id'");
-        if ($db->next_record()) {
-            $the_link = $db->f("url");
-            $protect = $db->f("protected");
-            if ($protect==1) $protect = "checked";
-            $name = $db->f("name");
-            $description = $db->f("description");
-            if ($db->f("user_id") != $user->id) { // check if URL can be seen
+        $query = "SELECT name, description, url, protected, user_id
+                  FROM dokumente
+                  WHERE dokument_id = ?";
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute(array($range_id));
+        $row = $statement->fetch(PDO::FETCH_ASSOC);
+        if ($row) {
+            $the_link = $row['url'];
+            $protect  = $row['protected'];
+            if ($protect == 1) {
+                $protect = 'checked';
+            }
+            $name = $row['name'];
+            $description = $row['description'];
+            if ($row['user_id'] != $user->id) { // check if URL can be seen
                 $url_parts = @parse_url( $the_link );
-                if ($url_parts["user"] && $url_parts["user"]!="anonymous") {
+                if ($url_parts['user'] && $url_parts['user'] != 'anonymous') {
                     $hiddenurl = TRUE;
                 }
 
@@ -1212,9 +1361,9 @@ function link_form ($range_id, $updating=FALSE) {
     $print.="</font></td></tr>";
     $print.= "\n<form enctype=\"multipart/form-data\" name=\"link_form\" action=\"" . URLHelper::getLink('#anker') . "\" method=\"post\">";
     $print.= CSRFProtection::tokenTag();
-    $print.= "<tr><td class=\"steelgraudunkel\" colspan=2><font size=-1>" . _("1. Geben Sie hier den <b>vollständigen Pfad</b> zu der Datei an, die Sie verlinken wollen.") . " </font></td></tr>";
+    $print.= "<tr><td class=\"content_seperator\" colspan=2><font size=-1>" . _("1. Geben Sie hier den <b>vollständigen Pfad</b> zu der Datei an, die Sie verlinken wollen.") . " </font></td></tr>";
     $print.= "\n<tr>";
-    $print.= "\n<td class=\"steel1\" colspan=2 align=\"left\" valign=\"center\"><label><font size=-1>&nbsp;" . _("Dateipfad:") . "&nbsp;</font><br>";
+    $print.= "\n<td class=\"table_row_even\" colspan=2 align=\"left\" valign=\"center\"><label><font size=-1>&nbsp;" . _("Dateipfad:") . "&nbsp;</font><br>";
     if ($hiddenurl)
         $print.= "&nbsp;<input name=\"the_link\" type=\"text\"  style=\"width: 70%\" size=\"30\" value=\"***\"></label>&nbsp;</td></td>";
     else
@@ -1222,21 +1371,21 @@ function link_form ($range_id, $updating=FALSE) {
     $print.= "\n</tr>";
     if (!$refresh) {
 
-        $print.= "<tr><td class=\"steelgraudunkel\" colspan=2><font size=-1>" . _("2. Schutz gem&auml;&szlig; Urhebberecht.") . "</font></td></tr>";
-        $print.= "\n<tr><td class=\"steel1\" colspan=2 align=\"left\" valign=\"center\"><font size=-1>&nbsp;" . _("Dieses Dokument ist frei von Rechten Dritter:") . "&nbsp;";
+        $print.= "<tr><td class=\"content_seperator\" colspan=2><font size=-1>" . _("2. Schutz gem&auml;&szlig; Urhebberecht.") . "</font></td></tr>";
+        $print.= "\n<tr><td class=\"table_row_even\" colspan=2 align=\"left\" valign=\"center\"><font size=-1>&nbsp;" . _("Dieses Dokument ist frei von Rechten Dritter:") . "&nbsp;";
         $print.= "\n&nbsp;<label><input type=\"RADIO\" name=\"protect\" value=\"0\"".(!$protect ? "checked" :"") .'>'._("Ja");
         $print.= "</label>\n&nbsp;<label><input type=\"RADIO\" name=\"protect\" value=\"1\"".($protect ? "checked" :"") .'>'._("Nein");
 
-        $print.= "</label><tr><td class=\"steelgraudunkel\" colspan=2><font size=-1>" . _("3. Geben Sie eine kurze Beschreibung und einen Namen für die Datei ein.") . "</font></td></tr>";
-        $print.= "\n<tr><td class=\"steel1\" colspan=2 align=\"left\" valign=\"center\"><label><font size=-1>&nbsp;" . _("Name:") . "&nbsp;</font><br>";
+        $print.= "</label><tr><td class=\"content_seperator\" colspan=2><font size=-1>" . _("3. Geben Sie eine kurze Beschreibung und einen Namen für die Datei ein.") . "</font></td></tr>";
+        $print.= "\n<tr><td class=\"table_row_even\" colspan=2 align=\"left\" valign=\"center\"><label><font size=-1>&nbsp;" . _("Name:") . "&nbsp;</font><br>";
         $print.= "\n".'&nbsp;<input type="text" name="name" id="name" style="width: 70%" size="40" maxlength"255" value="'.$name.'"></label></td></tr>';
 
-        $print.= "\n<tr><td class=\"steel1\" colspan=2 align=\"left\" valign=\"center\"><label><font size=-1>&nbsp;" . _("Beschreibung:") . "&nbsp;</font><br>";
+        $print.= "\n<tr><td class=\"table_row_even\" colspan=2 align=\"left\" valign=\"center\"><label><font size=-1>&nbsp;" . _("Beschreibung:") . "&nbsp;</font><br>";
         $print.= "\n&nbsp;<textarea name=\"description\" id=\"description\" style=\"width: 70%\" COLS=40 ROWS=3 WRAP=PHYSICAL>$description</textarea></label>&nbsp;</td></tr>";
-        $print.= "\n<tr><td class=\"steelgraudunkel\"colspan=2 ><font size=-1>" . _("4. Klicken Sie auf <b>'absenden'</b>, um die Datei zu verlinken") . "</font></td></tr>";
+        $print.= "\n<tr><td class=\"content_seperator\"colspan=2 ><font size=-1>" . _("4. Klicken Sie auf <b>'absenden'</b>, um die Datei zu verlinken") . "</font></td></tr>";
     } else
-        $print.= "\n<tr><td class=\"steelgraudunkel\"colspan=2 ><font size=-1>" . _("2. Klicken Sie auf <b>'absenden'</b>, um die Datei hochzuladen und damit die alte Version zu &uuml;berschreiben.") . "</font></td></tr>";
-    $print.= "\n<tr><td class=\"steel1\" colspan=2 align=\"center\" valign=\"center\">";
+        $print.= "\n<tr><td class=\"content_seperator\"colspan=2 ><font size=-1>" . _("2. Klicken Sie auf <b>'absenden'</b>, um die Datei hochzuladen und damit die alte Version zu &uuml;berschreiben.") . "</font></td></tr>";
+    $print.= "\n<tr><td class=\"table_row_even\" colspan=2 align=\"center\" valign=\"center\">";
 
     $print .= '<div class="button-group">';
     $print .= Button::createAccept(_("Absenden"), "create");
@@ -1296,11 +1445,11 @@ function display_file_body($datei, $folder_id, $open, $change, $move, $upload, $
                 $content = "<div style=\"margin-bottom: 10px; height: {$flash_player['height']}; width: {$flash_player['width']};\">" . $flash_player['player'] . '</div>';
             }
         } else if (strpos($media_type, 'video/') === 0 || $media_type == 'application/ogg') {
-            $content = sprintf('<video class="preview" controls><source src="%s" type="%s"></video><br>', htmlspecialchars($media_url), $media_type);
+            $content = '<div class="preview">' . formatReady('[video]' . $media_url) . '<div>';
         } else if (strpos($media_type, 'audio/') === 0) {
-            $content = sprintf('<audio class="preview" controls><source src="%s" type="%s"></audio><br>', htmlspecialchars($media_url), $media_type);
+            $content = '<div class="preview">' . formatReady('[audio]' . $media_url) . '<div>';
         } else if (strpos($media_type, 'image/') === 0) {
-            $content = sprintf('<img class="preview" src="%s" alt=""><br>', htmlspecialchars($media_url));
+            $content = '<div class="preview">' . formatReady('[img]' . $media_url) . '<div>';
         }
         if ($datei["description"]) {
             $content .= htmlReady($datei["description"], TRUE, TRUE);
@@ -1489,7 +1638,7 @@ function display_file_line ($datei, $folder_id, $open, $change, $move, $upload, 
     //So und jetzt die rechtsbündigen Sachen:
     print "</a></td><td align=\"right\" class=\"printhead\" valign=\"bottom\">";
     if ($datei['username']) {
-        print "<a href=\"".URLHelper::getLink('about.php?username='.$datei['username'])."\">".htmlReady($datei['fullname'])."</a> ";
+        print "<a href=\"".URLHelper::getLink('dispatch.php/profile?username='.$datei['username'])."\">".htmlReady($datei['fullname'])."</a> ";
     } else {
         print htmlReady($datei['author_name']);
     }
@@ -1526,7 +1675,7 @@ function display_file_line ($datei, $folder_id, $open, $change, $move, $upload, 
  * Displays the body of a folder including the description, changeform, subfolder and files
  *
  */
-function display_folder_body($folder_id, $open, $change, $move, $upload, $refresh=FALSE, $filelink="", $anchor_id) {
+function display_folder_body($folder_id, $open, $change, $move, $upload, $refresh=FALSE, $filelink="", $anchor_id, $level = 0) {
     global $_fullname_sql, $SessionSeminar, $SemUserStatus, $SessSemName, $user, $perm, $rechte, $countfolder;
     $db = DBManager::get();
     //Einbinden einer Klasse, die Informationen über den ganzen Baum enthält
@@ -1978,7 +2127,7 @@ function display_folder ($folder_id, $open, $change, $move, $upload, $refresh=FA
     //So und jetzt die rechtsbündigen Sachen:
     print "</td><td align=right class=\"printhead\" valign=\"bottom\">";
 
-    print "<a href=\"".URLHelper::getLink('about.php?username='.$result['username'])."\">".htmlReady($result['fullname'])."</a> ";
+    print "<a href=\"".URLHelper::getLink('dispatch.php/profile?username='.$result['username'])."\">".htmlReady($result['fullname'])."</a> ";
 
     print $bewegeflaeche." ";
 
@@ -1992,7 +2141,7 @@ function display_folder ($folder_id, $open, $change, $move, $upload, $refresh=FA
     if ($open[$folder_id]) {
         print "<div id=\"folder_".$folder_id."_body\">";
         //Der ganze Teil des Unterbaus wurde in die folgende Funktion outsourced:
-        display_folder_body($folder_id, $open, $change, $move, $upload, $refresh, $filelink, $anchor_id);
+        display_folder_body($folder_id, $open, $change, $move, $upload, $refresh, $filelink, $anchor_id, $depth - 3);
     } else {
         print "<div id=\"folder_".$folder_id."_body\" style=\"display: none\">";
     }
@@ -2001,14 +2150,12 @@ function display_folder ($folder_id, $open, $change, $move, $upload, $refresh=FA
 }
 
 
-function getLinkPath($file_id) {
-    $db = new DB_Seminar;
-    $db->query("SELECT url FROM dokumente WHERE dokument_id='$file_id'");
-    if ($db->next_record())
-        $url = $db->f("url");
-    else
-        $url = FALSE;
-    return $url;
+function getLinkPath($file_id)
+{
+    $query = "SELECT url FROM dokumente WHERE dokument_id = ?";
+    $statement = DBManager::get()->prepare($query);
+    $statement->execute(array($file_id));
+    return $statement->fetchColumn() ?: false;
 }
 
 function GetFileIcon($ext, $with_img_tag = false){
@@ -2180,11 +2327,15 @@ Es erfolgt keine Überprüfung der Berechtigung innerhalb der Funktion,
 dies muss das aufrufende Script sicherstellen.
 */
 
-function delete_document($dokument_id, $delete_only_file = FALSE) {
-    $db = new DB_Seminar;
-    $db->query("SELECT * FROM dokumente WHERE dokument_id='$dokument_id'");
-    if ($db->next_record()) {
-        if ($db->f("url") == "") {   //Bei verlinkten Datein nicht nachsehen ob es Datei gibt!
+function delete_document($dokument_id, $delete_only_file = FALSE)
+{
+    $query = "SELECT url FROM dokumente WHERE dokument_id = ?";
+    $statement = DBManager::get()->prepare($query);
+    $statement->execute(array($dokument_id));
+    $url = $statement->fetchColumn();
+
+    if ($url !== false) {
+        if (!$url) {   //Bei verlinkten Datein nicht nachsehen ob es Datei gibt!
             @unlink(get_upload_file_path($dokument_id));
             if ($delete_only_file){
                 return TRUE;
@@ -2213,11 +2364,9 @@ Es erfolgt keine Überprüfung der Berechtigung innerhalb der Funktion,
 dies muss das aufrufende Script sicherstellen.
 */
 
-function delete_folder($folder_id, $delete_subfolders = false) {
-
+function delete_folder($folder_id, $delete_subfolders = false)
+{
     global $msg;
-
-    $db = new DB_Seminar;
 
     if ($delete_subfolders){
         list($subfolders, $num_subfolders) = getFolderChildren($folder_id);
@@ -2228,18 +2377,28 @@ function delete_folder($folder_id, $delete_subfolders = false) {
         }
     }
 
-    $db->query("SELECT name,folder_id FROM folder WHERE folder_id='$folder_id'");
-    if ($db->next_record()){
-        $foldername = $db->f('name');
-        $db->query("SELECT dokument_id FROM dokumente WHERE range_id='$folder_id'");
-        while ($db->next_record()){
-            if (delete_document($db->f("dokument_id"))){
+    $query = "SELECT folder_id, name FROM folder WHERE folder_id = ?";
+    $statement = DBManager::get()->prepare($query);
+    $statement->execute(array($folder_id));
+    $temp = $statement->fetch(PDO::FETCH_ASSOC);
+
+    if ($temp) {
+        $foldername = $temp['name'];
+
+        $query = "SELECT dokument_id FROM dokumente WHERE range_id = ?";
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute(array($folder_id));
+        while ($dokument_id = $statement->fetchColumn()) {
+            if (delete_document($dokument_id)) {
                 $deleted++;
             }
         }
-        $db->query("DELETE FROM folder WHERE folder_id='$folder_id'");
-        if ($db->affected_rows()) {
-            if ($deleted){
+
+        $query = "DELETE FROM folder WHERE folder_id = ?";
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute(array($folder_id));
+        if ($statement->rowCount()) {
+            if ($deleted) {
                 $msg.="info§" . sprintf(_("Der Dateiordner <b>%s</b> und %s Dokument(e) wurden gel&ouml;scht"), htmlReady($foldername), $deleted) . "§";
             } else {
                 $msg.="info§" . sprintf(_("Der Dateiordner <b>%s</b> wurde gel&ouml;scht"),htmlReady($foldername)) . "§";
@@ -2257,29 +2416,40 @@ function delete_folder($folder_id, $delete_subfolders = false) {
 }
 
 //Rekursive Loeschfunktion, loescht erst jeweils enthaltene Dokumente und dann den entsprechenden Ordner
-function recursiv_folder_delete($parent_id) {
+function recursiv_folder_delete($parent_id)
+{
+    // Prepare files statement
+    $query = "SELECT dokument_id FROM dokumente WHERE range_id = ?";
+    $files_statement = DBManager::get()->prepare($query);
 
-    $db=new DB_Seminar;
-    $db2=new DB_Seminar;
+    // Prepare delete statement
+    $query = "DELETE FROM folder WHERE folder_id = ?";
+    $delete_statement = DBManager::get()->prepare($query);
 
     $doc_count = 0;
 
-    $db->query ("SELECT folder_id FROM folder WHERE range_id='$parent_id'");
+    $query = "SELECT folder_id FROM folder WHERE range_id = ?";
+    $statement = DBManager::get()->prepare($query);
+    $statement->execute(array($parent_id));
+    $folder_ids = $statement->fetchAll(PDO::FETCH_COLUMN);
 
-    while ($db->next_record()) {
-        $doc_count += recursiv_folder_delete($db->f("folder_id"));
+    foreach ($folder_ids as $folder_id) {
+        $doc_count += recursiv_folder_delete($folder_id);
 
-        $db2->query ("SELECT dokument_id FROM dokumente WHERE range_id='".$db->f("folder_id")."'");
+        $files_statement->execute(array($folder_id));
+        $file_ids = $files_statement->fetchAll(PDO::FETCH_COLUMN);
+        $files_statement->closeCursor();
 
-        while ($db2->next_record()) {
-            if (delete_document($db2->f("dokument_id")))
+        foreach ($file_ids as $file_id) {
+            if (delete_document($file_id)) {
                 $doc_count++;
             }
-
-         $db2->query ("DELETE FROM folder WHERE folder_id ='".$db->f("folder_id")."'");
         }
-    return $doc_count;
+
+        $delete_statement->execute(array($folder_id));
     }
+    return $doc_count;
+}
 
 function delete_all_documents($range_id){
     if (!$range_id){

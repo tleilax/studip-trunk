@@ -45,7 +45,7 @@ require_once 'lib/admin_search.inc.php';
 
 PageLayout::setHelpKeyword("Basis.VeranstaltungenVerwaltenGruppen");
 
-PageLayout::setTitle(_("Verwaltung von Gruppen und Funktionen"));
+PageLayout::setTitle(_("Verwaltung von Funktionen und Gruppen"));
 
 if ($perm->have_perm('admin')) {
     Navigation::activateItem('/admin/course/groups');
@@ -56,8 +56,8 @@ if ($perm->have_perm('admin')) {
 //get ID, if a object is open
 if ($SessSemName[1])
   $range_id = $SessSemName[1];
-elseif ($_REQUEST['range_id'])
-    $range_id = $_REQUEST['range_id'];
+elseif (Request::option('range_id'))
+    $range_id = Request::option('range_id');
 
 URLHelper::bindLinkParam('range_id', $range_id);
 
@@ -99,12 +99,6 @@ if(LockRules::Check($range_id, 'groups')) {
         die();
 }
 
-// if we add persons to a statusgroup, we receive a role_id as an array-element
-if (is_array($_REQUEST['role_id'])) {
-    $_REQUEST['role_id'] = key($_REQUEST['role_id']);
-}
-
-
 
 /* * * * * * * * * * * * * * * * * *
  * H E L P E R   F U N C T I O N S *
@@ -121,12 +115,12 @@ function MovePersonStatusgruppe ($range_id, $role_id, $type, $persons, $workgrou
     if ($type == 'direct') {
         for ($i  = 0; $i < sizeof($persons); $i++) {
             $user_id = get_userid($persons[$i]);
-            InsertPersonStatusgruppe ($user_id, $role_id);
+            InsertPersonStatusgruppe ($user_id, $role_id, false);
         }
     } else if ($type == 'indirect') {
         for ($i = 0; $i < sizeof($persons); $i++) {
             $user_id = get_userid($persons[$i]);
-            $writedone = InsertPersonStatusgruppe ($user_id, $role_id);
+            $writedone = InsertPersonStatusgruppe ($user_id, $role_id, false);
             if ($writedone) {
                 if ($workgroup_mode == TRUE) {
                     $globalperms = get_global_perm($user_id);
@@ -145,7 +139,7 @@ function MovePersonStatusgruppe ($range_id, $role_id, $type, $persons, $workgrou
         if ($persons != "") {
             for ($i  = 0; $i < sizeof($persons); $i++) {
                 $user_id = get_userid($persons[$i]);
-                $writedone = InsertPersonStatusgruppe ($user_id, $role_id);
+                $writedone = InsertPersonStatusgruppe ($user_id, $role_id, false);
                 if ($writedone) {
                     if ($workgroup_mode == TRUE) {
                         $globalperms = get_global_perm($user_id);
@@ -172,22 +166,22 @@ function MovePersonStatusgruppe ($range_id, $role_id, $type, $persons, $workgrou
 $msgs = array();
 
 // activation and deactvation of options for the statusgroups
-if ($_REQUEST['cmd'] == 'activateSelfAssignAll') {
+if (Request::option('cmd') == 'activateSelfAssignAll') {
     SetSelfAssignAll($range_id, true);
     $msgs['msg'][] = _("Selbsteintrag in allen Gruppen wurde eingeschaltet!");
 }
 
-if ($_REQUEST['cmd'] == 'deactivateSelfAssignAll') {
+if (Request::option('cmd') == 'deactivateSelfAssignAll') {
     SetSelfAssignAll($range_id, false);
     $msgs['msg'][] = _("Selbsteintrag in allen Gruppen wurde ausgeschaltet!");
 }
 
-if ($_REQUEST['cmd'] == 'deactivateSelfAssignExclusive') {
+if (Request::option('cmd') == 'deactivateSelfAssignExclusive') {
     SetSelfAssignExclusive($range_id, false);
     $msgs['msg'][] = _("Selbsteintrag in nur einer Gruppe erlauben wurde ausgeschaltet!");
 }
 
-if ($_REQUEST['cmd'] == 'activateSelfAssignExclusive') {
+if (Request::option('cmd') == 'activateSelfAssignExclusive') {
     SetSelfAssignExclusive($range_id, true);
 
     $check_multiple = CheckStatusgruppeMultipleAssigns($range_id);
@@ -206,59 +200,68 @@ if ($_REQUEST['cmd'] == 'activateSelfAssignExclusive') {
 }
 
 // change the position of two adjacent statusgroups
-if ($_REQUEST['cmd'] == 'swapRoles') {
+if (Request::option('cmd') == 'swapRoles') {
     resortStatusgruppeByRangeId($range_id);
-    SwapStatusgruppe($_REQUEST['role_id']);
+    SwapStatusgruppe(Request::option('role_id'));
 }
 
 // change sort-order of a person in a statsgroup
-if ($_REQUEST['cmd'] == 'move_up') {
-    MovePersonPosition ($_REQUEST['username'], $_REQUEST['role_id'], "up");
+if (Request::option('cmd') == 'move_up') {
+    MovePersonPosition (Request::quoted('username'), Request::option('role_id'), "up");
 }
 
-if ($_REQUEST['cmd'] == 'move_down') {
-    MovePersonPosition ($_REQUEST['username'], $_REQUEST['role_id'], "down");
+if (Request::option('cmd') == 'move_down') {
+    MovePersonPosition (Request::quoted('username'), Request::option('role_id'), "down");
 }
 
 // sort the persons of a statusgroup by their family name
-if ($_REQUEST['cmd'] == 'sortByName') {
-    sortStatusgruppeByName($_REQUEST['role_id']);
+if (Request::option('cmd') == 'sortByName') {
+    sortStatusgruppeByName(Request::option('role_id'));
 }
 
 // add a person to a statusgroup
-$personsAdded = false;
+// if we add persons to a statusgroup, we receive a role_id as an array-element
+$role_id_klicked = Request::optionArray('role_id');
+if (!empty($role_id_klicked)) {
+    $index = key($role_id_klicked);
+    Request::set('role_id', $index);
 
-// the person is participant (if we administrate a seminar), or the person is member (if we administrate an institute)
-if (is_array($_REQUEST['seminarPersons'])) {
-    MovePersonStatusgruppe ($range_id, $_REQUEST['role_id'], 'direct', $_REQUEST['seminarPersons'], $workgroup_mode);
-    $personsAdded = true;
+    $personsAdded = false;
+
+    // the person is participant (if we administrate a seminar), or the person is member (if we administrate an institute)
+    $seminarPersons = Request::getArray('seminarPersons');
+    if (!empty($seminarPersons)) {
+        MovePersonStatusgruppe ($range_id, Request::option('role_id'), 'direct', $seminarPersons, $workgroup_mode);
+        $personsAdded = true;
+    }
+
+    // only for seminars - the person is member of the institute the seminar is in
+    $institutePersons = Request::getArray('institutePersons');
+    if (!empty($institutePersons)) {
+        MovePersonStatusgruppe ($range_id, Request::option('role_id'), 'indirect', $institutePersons, $workgroup_mode);
+        $personsAdded = true;
+    }
+
+    // the person shall be added via the free search
+    $searchPersons = Request::getArray('searchPersons');
+    if (!empty($searchPersons)) {
+        MovePersonStatusgruppe ($range_id, Request::option('role_id'), 'search', $searchPersons, $workgroup_mode);
+        $personsAdded = true;
+    }
+
+    if ($personsAdded) {
+        $msgs['msg'][] = _("Die Personen wurden der Gruppe hinzugefügt.");
+    }
 }
-
-// only for seminars - the person is member of the institute the seminar is in
-if (is_array($_REQUEST['institutePersons'])) {
-    MovePersonStatusgruppe ($range_id, $_REQUEST['role_id'], 'indirect', $_REQUEST['institutePersons'], $workgroup_mode);
-    $personsAdded = true;
-}
-
-// the person shall be added via the free search
-if (isset($_REQUEST['searchPersons'])) {
-    MovePersonStatusgruppe ($range_id, $_REQUEST['role_id'], 'search', $_REQUEST['searchPersons'], $workgroup_mode);
-    $personsAdded = true;
-}
-
-if ($personsAdded) {
-    $msgs['msg'][] = _("Die Personen wurden der Gruppe hinzugefügt.");
-}
-
 // delete a person from a statusgroup
-if ($_REQUEST['cmd'] == 'removePerson') {
+if (Request::option('cmd') == 'removePerson') {
     $msgs['msg'][] = _("Die Person wurde aus der Gruppe entfernt!");
-    RemovePersonStatusgruppe ($_REQUEST['username'], $_REQUEST['role_id']);
+    RemovePersonStatusgruppe (Request::quoted('username'), Request::option('role_id'));
 }
 
 // edit the data of a role
-if ($_REQUEST['cmd'] == 'doEditRole') {
-    $statusgruppe = new Statusgruppe($_REQUEST['role_id']);
+if (Request::option('cmd') == 'doEditRole') {
+    $statusgruppe = new Statusgruppe(Request::option('role_id'));
     $name = htmlReady($statusgruppe->getName());
     if ($statusgruppe->checkData()) {
         $msgs['info'][] = sprintf(_("Die Daten der Gruppe %s wurden geändert!"), '<b>'. $name .'</b>');
@@ -268,9 +271,9 @@ if ($_REQUEST['cmd'] == 'doEditRole') {
 }
 
 // ask, if the user really intends to delete the role
-if ($_REQUEST['cmd'] == 'deleteRole') {
-    $statusgruppe = new Statusgruppe($_REQUEST['role_id']);
-    if ($_REQUEST['really']) {
+if (Request::option('cmd') == 'deleteRole') {
+    $statusgruppe = new Statusgruppe(Request::option('role_id'));
+    if (Request::get('really')) {
         $msgs['msg'][] = sprintf(_("Die Gruppe %s wurde gelöscht!"), htmlReady($statusgruppe->getName()));
         $statusgruppe->delete();
     } else {
@@ -283,7 +286,7 @@ if ($_REQUEST['cmd'] == 'deleteRole') {
 }
 
 // adding a new role
-if ($_REQUEST['cmd'] == 'addRole' && !Request::submitted('choosePreset')) {
+if (Request::option('cmd') == 'addRole' && !Request::submitted('choosePreset')) {
     // to prevent url-hacking for changing the data of an existing role
     $role_id = md5(uniqid(rand()));
     if (!Statusgruppe::roleExists($role_id)) {
@@ -362,12 +365,12 @@ if ($statusgruppen && sizeof($statusgruppen) > 0) {
 
     $template->set_attribute('seminar_class', SeminarCategories::GetBySeminarId($range_id)->id);
 
-    if ($_REQUEST['cmd'] == 'editRole') {
-        $role = new Statusgruppe($_REQUEST['role_id']);
+    if (Request::option('cmd') == 'editRole') {
+        $role = new Statusgruppe(Request::option('role_id'));
         $template->set_attribute('role_data', $role->getData());
         $template->set_attribute('edit_role', $role->getId());
     } else if (Request::submitted('choosePreset')) {
-        $template->set_attribute('role_data', array('name' => $_REQUEST['presetName']));
+        $template->set_attribute('role_data', array('name' => Request::quoted('presetName')));
     }
     $template->set_attribute('show_search_and_members_form', !LockRules::Check($range_id, 'participants'));
     // show the tree-view of the statusgroups
@@ -387,7 +390,7 @@ else {
     $template->set_attribute('seminar_class', SeminarCategories::GetBySeminarId($range_id)->id);
 
     if (Request::submitted('choosePreset')) {
-        $template->set_attribute('role_data', array('name' => $_REQUEST['presetName']));
+        $template->set_attribute('role_data', array('name' => Request::quoted('presetName')));
     }
 
     // no parameters necessary, just display a static page

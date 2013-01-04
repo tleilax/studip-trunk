@@ -107,6 +107,8 @@ class Admin_DatafieldsController extends AuthenticatedController
                 $struct->setViewPerms(Request::get('visibility_perms'));
                 $struct->setPriority(Request::get('priority'));
                 $struct->setType(Request::get('datafield_type'));
+                $struct->setIsRequired(Request::get('is_required'));
+                $struct->setDescription(Request::get('description'));
                 $struct->store();
 
                 $this->flash['success'] = _('Die Änderungen am generischen Datenfeld wurden übernommen.');
@@ -155,6 +157,11 @@ class Admin_DatafieldsController extends AuthenticatedController
                 $struct->setViewPerms(Request::get('visibility_perms'));
                 $struct->setPriority(Request::get('priority'));
                 $struct->setType(Request::get('datafield_typ'));
+                if(in_array($type, array('sem')))
+                {
+                    $struct->setDescription(Request::get('description'));
+                    $struct->setIsRequired(Request::get('mandatory'));
+                }
                 $struct->store();
 
                 $this->flash['success'] = _('Das neue generische Datenfeld wurde angelegt.');

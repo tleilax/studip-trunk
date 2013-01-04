@@ -1,7 +1,7 @@
 <?
 # Lifter010: TODO
 ?>
-<tr class="<?= $background ? $background : 'steel1' ?>">
+<tr class="<?= $background ? $background : 'table_row_even' ?>">
 
     <td width="1%" <?= $gruppe ? "class=\"$gruppe\"" : '' ?>>
         <? if (!$is_buddy) : ?>
@@ -16,13 +16,13 @@
     </td>
 
     <td width="4%">
-        <a href="<?= URLHelper::getLink('about.php', array('username' => $tmp_online_uname)) ?>">
+        <a href="<?= URLHelper::getLink('dispatch.php/profile', array('username' => $tmp_online_uname)) ?>">
             <?= Avatar::getAvatar($tmp_user_id)->getImageTag(Avatar::SMALL) ?>
         </a>
     </td>
 
     <td width="66%">
-        <a href="<?= URLHelper::getLink('about.php', array('username' => $tmp_online_uname)) ?>">
+        <a href="<?= URLHelper::getLink('dispatch.php/profile', array('username' => $tmp_online_uname)) ?>">
             <?= htmlReady($fullname) ?>
         </a>
             <? foreach (StudipKing::is_king($tmp_user_id, TRUE) as $type => $text) : ?>
@@ -35,11 +35,7 @@
     </td>
 
     <td width="3%" align="center">
-        <? if (get_config('CHAT_ENABLE')) : ?>
-            <?= chat_get_online_icon($tmp_user_id, $tmp_online_uname) ?>
-        <? else : ?>
             &nbsp;
-        <? endif ?>
     </td>
 
     <td width="3%" align="center">

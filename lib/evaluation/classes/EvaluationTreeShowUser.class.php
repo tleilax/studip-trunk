@@ -188,7 +188,7 @@ class EvaluationTreeShowUser {
         if( $parent->x_instanceof() == "Evaluation" && $group->getPosition() != 0 )
         echo "<td colspan=\"2\" width=\"100%\"><br></td><tr>";
 
-        echo "<td align=\"left\" width=\"100%\" valign=\"bottom\" class=\"steelkante\" style=\"padding:1px;\">\n";
+        echo "<td align=\"left\" width=\"100%\" valign=\"bottom\" class=\"content_body\" style=\"padding:1px;\">\n";
         $parent_id = $group_id;
         while( $parent_id != "root" ) {
         $chapter_num = ($this->tree->tree_data[$parent_id]['priority'] + 1) .".". $chapter_num;
@@ -338,7 +338,6 @@ class EvaluationTreeShowUser {
     $answerArray = $question->getChildren();
     $hasResidual = NO;
     $leftOutStyle = ( $group->isMandatory() &&
-#             (is_array($_POST["answers"]) || is_array($_POST["freetexts"])) &&
               Request::submitted('voteButton') &&
               is_array( $GLOBALS["mandatories"] ) &&
               in_array( $question->getObjectID(), $GLOBALS["mandatories"] ) )
@@ -386,7 +385,7 @@ class EvaluationTreeShowUser {
             if( $answer->isResidual() ) {
                 $extraStyle = "border-left: $residualBorder;";
                 $html .=
-#               "<td align=\"center\" class=\"steelgraudunkel\" ".
+#               "<td align=\"center\" class=\"content_seperator\" ".
 #               "style=\"border-left: 1px solid black; border-top: 1px solid black;\" ".
 #               "style=\"border-left: $answerBorder; border-top: $answerBorder;\" ".
 #               "width=\"2\">x</td>";
@@ -409,7 +408,7 @@ class EvaluationTreeShowUser {
 
 
         /* Question and Answer Widgets ---------------- */
-        $class = $question->getPosition() % 2 ? "steel3" : "steelgraulight";
+        $class = $question->getPosition() % 2 ? "table_row_even" : "table_row_odd";
         $extraStyle = ($question->getPosition() == $group->getNumberChildren() - 1
                ? "border-bottom: $answerBorder"
                : "");
@@ -427,7 +426,7 @@ class EvaluationTreeShowUser {
             if( $answer->isResidual() ) {
             $extraStyle = "border-left: $residualBorder;";
             $html .=
-#               "<td align=\"center\" class=\"steelgraudunkel\" ".
+#               "<td align=\"center\" class=\"content_seperator\" ".
 #               "style=\"border-left: $answerBorder; border-top: $answerBorder;\" ".
 #               "width=\"2\"></td>";
                 "<td align=\"center\" class=\"steelgroup7\" style=\"$extraStyle\" ".
@@ -437,7 +436,8 @@ class EvaluationTreeShowUser {
             $extraStyle .= ($question->getPosition() == $group->getNumberChildren() - 1
                     ? " border-bottom: $answerBorder;"
                     : "");
-            $checked = $_POST["answers"][$question->getObjectID()] == $answer->getObjectID() ? "checked" : "";
+            $answers = Request::quotedArray('answers');
+            $checked = $answers[$question->getObjectID()] == $answer->getObjectID() ? "checked" : "";
 
             $html .= "  <td align=\"center\" style=\"border-left: $answerBorder; $extraStyle;\" ".
             "width=\"".$cellWidth."%\">";
@@ -453,7 +453,7 @@ class EvaluationTreeShowUser {
 
     /* Normal (question with long answers) ----------------------------- */
     else {
-        $class = $question->getPosition() % 2 ? "steel3" : "steelgraulight";
+        $class = $question->getPosition() % 2 ? "table_row_even" : "table_row_odd";
 
         /* Question ----------------------------------- */
         $html .=
@@ -506,12 +506,13 @@ class EvaluationTreeShowUser {
                     "</td>\n";
 
                 /* one row input field */
+                $freetexts = Request::quotedArray('freetexts');
                 if( $answer->getRows() == 1)
                 $html .=
                     "<td colspan=\"2\">".
                     "<input type=\"text\"".
                     " name=\"freetexts[".$question->getObjectID()."]\"".
-                    " value=\"".htmlspecialchars($_POST["freetexts"][$question->getObjectID()])."\" size=\"60\">".
+                    " value=\"".htmlReady($freetexts[$question->getObjectID()])."\" size=\"60\">".
                     "</td>\n";
 
                 /* multiple row input field (textarea) */
@@ -521,22 +522,22 @@ class EvaluationTreeShowUser {
                     "<textarea".
                     " name=\"freetexts[".$question->getObjectID()."]\"".
                     " cols=\"60\" rows=\"".$answer->getRows()."\">".
-                    htmlspecialchars($_POST["freetexts"][$question->getObjectID()]).
+                    htmlspecialchars($freetexts[$question->getObjectID()]).
                     "</textarea>".
                     "</td>\n";
             }
 
             /* show normal answer ------------- */
             else {
-
+                $answers = Request::quotedArray('answers');
                 /* see if it must be checked  */
                 if( $type == "radio" )
-                $checked = $_POST["answers"][$question->getObjectID()] == $answer->getObjectID()
+                $checked = $answers[$question->getObjectID()] == $answer->getObjectID()
                     ? "checked"
                     : "";
                 else
-                $checked = ( is_array($_POST["answers"][$question->getObjectID()]) &&
-                         in_array( $answer->getObjectID(), $_POST["answers"][$question->getObjectID()] ) )
+                $checked = ( is_array($answers[$question->getObjectID()]) &&
+                         in_array( $answer->getObjectID(), $answers[$question->getObjectID()] ) )
                     ? "checked"
                     : "";
 

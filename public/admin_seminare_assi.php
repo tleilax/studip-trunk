@@ -1,9 +1,9 @@
 <?
 # Lifter001: TODO - URLHelper installed, but still no multi-tab-compatibilty
 # Lifter002: TODO
+# Lifter003: TEST
 # Lifter005: TODO - md5 hash
 # Lifter007: TODO
-# Lifter003: TODO
 # Lifter010: TODO
 /*
 admin_seminare_assi.php - Seminar-Assisten von Stud.IP.
@@ -35,7 +35,6 @@ require_once 'lib/resources/lib/RoomRequest.class.php';
 page_open(array('sess' => 'Seminar_Session', 'auth' => 'Seminar_Auth', 'perm' => 'Seminar_Perm', 'user' => 'Seminar_User'));
 
 require_once ('lib/msg.inc.php');       //Funktionen fuer Nachrichtenmeldungen
-require_once ('config.inc.php');        //wir brauchen die Seminar-Typen
 require_once 'lib/functions.php';       //noch mehr Stuff
 require_once ('lib/forum.inc.php');     //damit wir Themen anlegen koennen
 require_once ('lib/visual.inc.php');        //Aufbereitungsfunktionen
@@ -68,29 +67,36 @@ if ($GLOBALS['RESOURCES_ENABLE']) {
     $resAssign = new VeranstaltungResourcesAssign();
 }
 
+function redirect_to_course_admin($course_id) {
+    $course = new Seminar($course_id);
+    $sem_class = $GLOBALS['SEM_CLASS'][$GLOBALS['SEM_TYPE'][$course->status]['class']];
+    if ($sem_class) {
+        $nav = array_shift($sem_class->getNavigationForSlot("admin", $course_id));
+        if ($nav) {
+            header("Location: " . UrlHelper::getUrl($nav->getURL()));
+        } else {
+            header("Location: ".UrlHelper::getUrl("seminar_main.php"));
+        }
+    } else {
+        header("Location: " . UrlHelper::getUrl('dispatch.php/course/basicdata/view/' . $course_id));
+    }
+    page_close();
+    die();
+}
+
 //cancel
 if (Request::submitted('cancel')) {
-    header ("Location: " . UrlHelper::getUrl('dispatch.php/course/basicdata/view/' . $SessSemName[1]));
+    redirect_to_course_admin($SessSemName[1]);
 }
 
 // Get a database connection and Stuff
-$db = new DB_Seminar;
-$db2 = new DB_Seminar;
-$db3 = new DB_Seminar;
-$db4 = new DB_Seminar;
 $cssSw = new cssClassSwitcher;
 $Modules = new Modules;
 $semester = new SemesterData;
 
 
-//Registrieren der Sessionvariablen
-//$sess->register("sem_create_data");
-//$sess->register('links_admin_data');
-
 # init of study area selection
-$study_areas = isset($_REQUEST['study_area_selection'])
-   ? remove_magic_quotes($_REQUEST['study_area_selection'])
-   : array();
+$study_areas = Request::getArray('study_area_selection', array());
 
 $area_selection = new StudipStudyAreaSelection();
 
@@ -155,46 +161,49 @@ if (!empty($cmd) && ($cmd == 'do_copy') && $perm->have_studip_perm('tutor',$cp_i
         $_SESSION['sem_create_data'] = '';
     } else {
         // Einträge in generischen Datenfelder auslesen und zuweisen
-        $sql = "SELECT datafields_entries.datafield_id, datafields_entries.content, datafields.name, datafields.type FROM datafields_entries LEFT JOIN datafields USING (datafield_id) WHERE range_id = '$cp_id'";
-        $db->query($sql);
-        while ($db->next_record()) {
-            $s_d_fields[$db->f("datafield_id")] = array("type"=>$db->f("type"), "name"=>$db->f("name"), "value"=>$db->f("content"));
-        }
+        $query = "SELECT datafield_id, datafields_entries.content AS value, datafields.name, datafields.type
+                  FROM datafields_entries
+                  LEFT JOIN datafields USING (datafield_id)
+                  WHERE range_id = ?";
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute(array($cp_id));
+        $s_d_fields = $statement->fetchGrouped(PDO::FETCH_ASSOC);
 
         // Beteiligte Einrichtungen finden und zuweisen
-        $sql = "SELECT institut_id FROM seminar_inst WHERE seminar_id = '$cp_id'";
-        $db->query($sql);
-        while ($db->next_record()) {
-            $sem_bet_inst[] = $db->f("institut_id");
-        }
+        $query = "SELECT institut_id FROM seminar_inst WHERE seminar_id = ?";
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute(array($cp_id));
+        $sem_bet_inst = $statement->fetchAll(PDO::FETCH_COLUMN);
 
         // Veranstaltungsgrunddaten finden
-        $sql = "SELECT * FROM seminare WHERE Seminar_id = '$cp_id'";
-        $db->query($sql);
-        $db->next_record();
-        $_SESSION['sem_create_data'] = '';
-        $_SESSION['sem_create_data']["sem_datafields"] = $s_d_fields;
-        $_SESSION['sem_create_data']["sem_bet_inst"] = $sem_bet_inst;
+        $_SESSION['sem_create_data'] = array(
+            'sem_datafields' => $s_d_fields,
+            'sem_bet_inst'   => $sem_bet_inst,
+        );
 
         // Termine
         $term_turnus = array();
         foreach(SeminarCycleDate::findBySeminar($cp_id) as $cycle) {
             $term_turnus[] = $cycle->toArray();
         }
-        $_SESSION['sem_create_data']["term_turnus"] = $term_turnus;
-        $_SESSION['sem_create_data']["turnus_count"] = count($term_turnus);
-        $_SESSION['sem_create_data']["term_art"] = count($term_turnus) > 0 ? 0 : 1;
-                // Nutzerdomänen
-        $_SESSION['sem_create_data']["sem_domain"] = UserDomain::getUserDomainsForSeminar($cp_id);
+        $_SESSION['sem_create_data']['term_turnus'] = $term_turnus;
+        $_SESSION['sem_create_data']['turnus_count'] = count($term_turnus);
+        $_SESSION['sem_create_data']['term_art'] = count($term_turnus) > 0 ? 0 : 1;
+        // Nutzerdomänen
+        $_SESSION['sem_create_data']['sem_domain'] = UserDomain::getUserDomainsForSeminar($cp_id);
 
-        if ($_SESSION['sem_create_data']["term_art"] == 1) { //unregelmaessige Veranstaltung oder Block -> Termine kopieren
+        if ($_SESSION['sem_create_data']['term_art'] == 1) { //unregelmaessige Veranstaltung oder Block -> Termine kopieren
             // Sitzungen
-            $db2->query('SELECT * FROM termine WHERE range_id=\''. $cp_id . '\' AND date_typ=\'1\' ORDER by date');
-            $db2_term_count = 0;
-            while ($db2->next_record()) {
-                $db2_start_date = $db2->f('date');
-                $db2_end_date = $db2->f('end_time');
-                $db2_raum = $db2->f('raum');
+            $query = "SELECT `date`, end_time, raum
+                      FROM termine
+                      WHERE range_id = ? AND date_typ = 1 ORDER BY `date`";
+            $statement = DBManager::get()->prepare($query);
+            $statement->execute(array($cp_id));
+            while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
+                $db2_start_date = $row['date'];
+                $db2_end_date   = $row['end_time'];
+                $db2_raum       = $row['raum'];
+
                 $_SESSION['sem_create_data']['term_tag'][$db2_term_count] = intval(date('j', $db2_start_date));
                 $_SESSION['sem_create_data']['term_monat'][$db2_term_count] = intval(date('n', $db2_start_date));
                 $_SESSION['sem_create_data']['term_jahr'][$db2_term_count] = intval(date('Y', $db2_start_date));
@@ -202,7 +211,8 @@ if (!empty($cmd) && ($cmd == 'do_copy') && $perm->have_studip_perm('tutor',$cp_i
                 $_SESSION['sem_create_data']['term_start_minute'][$db2_term_count] = intval(date('i', $db2_start_date));
                 $_SESSION['sem_create_data']['term_end_stunde'][$db2_term_count] = intval(date('G', $db2_end_date));
                 $_SESSION['sem_create_data']['term_end_minute'][$db2_term_count] = intval(date('i', $db2_end_date));
-                $_SESSION['sem_create_data']['term_room'][$db2_term_count] = ($db2_raum)? $db2_raum : '';
+                $_SESSION['sem_create_data']['term_room'][$db2_term_count] = $db2_raum ?: '';
+
                 $db2_term_count++;
             }
             $_SESSION['sem_create_data']['term_count'] = $db2_term_count;
@@ -223,75 +233,80 @@ if (!empty($cmd) && ($cmd == 'do_copy') && $perm->have_studip_perm('tutor',$cp_i
             $_SESSION['sem_create_data']['sem_vor_termin'] = -1;
         }
 
-        for ($i=0;$i<$_SESSION['sem_create_data']["turnus_count"];$i++) {
-            $_SESSION['sem_create_data']["term_turnus_start_stunde"][$i] = $term_turnus[$i]["start_hour"];
-            $_SESSION['sem_create_data']["term_turnus_start_minute"][$i] = $term_turnus[$i]["start_minute"];
-            $_SESSION['sem_create_data']["term_turnus_end_stunde"][$i] = $term_turnus[$i]["end_hour"];
-            $_SESSION['sem_create_data']["term_turnus_end_minute"][$i] = $term_turnus[$i]["end_minute"];
-            $_SESSION['sem_create_data']["term_turnus_date"][$i] = $term_turnus[$i]["weekday"];
-            $_SESSION['sem_create_data']["term_turnus_desc"][$i] = $term_turnus[$i]["description"];
-            $_SESSION['sem_create_data']["term_turnus_week_offset"][$i] = $term_turnus[$i]["week_offset"];
-            $_SESSION['sem_create_data']["term_turnus_cycle"][$i] = $term_turnus[$i]["cycle"];
-            $_SESSION['sem_create_data']["term_turnus_sws"][$i] = $term_turnus[$i]["sws"];
+        for ($i = 0;$i < $_SESSION['sem_create_data']['turnus_count']; $i++) {
+            $_SESSION['sem_create_data']['term_turnus_start_stunde'][$i] = $term_turnus[$i]['start_hour'];
+            $_SESSION['sem_create_data']['term_turnus_start_minute'][$i] = $term_turnus[$i]['start_minute'];
+            $_SESSION['sem_create_data']['term_turnus_end_stunde'][$i] = $term_turnus[$i]['end_hour'];
+            $_SESSION['sem_create_data']['term_turnus_end_minute'][$i] = $term_turnus[$i]['end_minute'];
+            $_SESSION['sem_create_data']['term_turnus_date'][$i] = $term_turnus[$i]['weekday'];
+            $_SESSION['sem_create_data']['term_turnus_desc'][$i] = $term_turnus[$i]['description'];
+            $_SESSION['sem_create_data']['term_turnus_week_offset'][$i] = $term_turnus[$i]['week_offset'];
+            $_SESSION['sem_create_data']['term_turnus_cycle'][$i] = $term_turnus[$i]['cycle'];
+            $_SESSION['sem_create_data']['term_turnus_sws'][$i] = $term_turnus[$i]['sws'];
         }
 
         // Sonstiges
-        $_SESSION['sem_create_data']["sem_id"] = $db->f("Seminar_id");
-        $_SESSION['sem_create_data']["sem_nummer"] = $db->f("VeranstaltungsNummer");
-        $_SESSION['sem_create_data']["sem_inst_id"] = $db->f("Institut_id");
-        $_SESSION['sem_create_data']["sem_name"] = $db->f("Name");
-        $_SESSION['sem_create_data']["sem_untert"] = $db->f("Untertitel");
-        $_SESSION['sem_create_data']["sem_status"] = $db->f("status");
-        $class = $SEM_TYPE[$_SESSION['sem_create_data']["sem_status"]]["class"];
-        $_SESSION['sem_create_data']["sem_class"] = $class;
-        $_SESSION['sem_create_data']["sem_desc"] = $db->f("Beschreibung");
-        $_SESSION['sem_create_data']["sem_room"] = $db->f("Ort");
-        $_SESSION['sem_create_data']["sem_sonst"] = $db->f("Sonstiges");
-        $_SESSION['sem_create_data']["sem_pw"] = $db->f("Passwort");
-        $_SESSION['sem_create_data']["sem_sec_lese"] = $db->f("Lesezugriff");
-        $_SESSION['sem_create_data']["sem_sec_schreib"] = $db->f("Schreibzugriff");
-        $_SESSION['sem_create_data']["sem_start_time"] = $db->f("start_time");
-        $_SESSION['sem_create_data']["sem_duration_time"] = $db->f("duration_time");
-        $_SESSION['sem_create_data']["sem_art"] = $db->f("art");
-        $_SESSION['sem_create_data']["sem_teiln"] = $db->f("teilnehmer");
-        $_SESSION['sem_create_data']["sem_voraus"] = $db->f("vorrausetzungen");
-        $_SESSION['sem_create_data']["sem_orga"] = $db->f("lernorga");
-        $_SESSION['sem_create_data']["sem_leistnw"] = $db->f("leistungsnachweis");
-        $_SESSION['sem_create_data']["sem_ects"] = $db->f("ects");
-        //$_SESSION['sem_create_data']["sem_admission_date"] = $db->f("admission_endtime");
-        $_SESSION['sem_create_data']["sem_admission_date"] = -1;
-        $_SESSION['sem_create_data']["sem_turnout"] = $db->f("admission_turnout");
-        //$_SESSION['sem_create_data']["sem_admission"] = $db->f("admission_type");
-        $_SESSION['sem_create_data']["sem_payment"] = $db->f("admission_prelim");
-        $_SESSION['sem_create_data']["sem_paytxt"] = $db->f("admission_prelim_txt");
-        //$_SESSION['sem_create_data']["sem_admission_start_date"] = $db->f("admission_starttime");
-        //$_SESSION['sem_create_data']["sem_admission_end_date"] = $db->f("admission_endtime_sem");
-        $_SESSION['sem_create_data']["sem_admission_start_date"] = -1;
-        $_SESSION['sem_create_data']["sem_admission_end_date"] = -1;
-        $_SESSION['sem_create_data']["timestamp"] = time(); // wichtig, da sonst beim ersten Aufruf sofort sem_create_data resetted wird!
+        $query = "SELECT * FROM seminare WHERE Seminar_id = ?";
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute(array($cp_id));
+        $seminar = $statement->fetch(PDO::FETCH_ASSOC);
+
+        $_SESSION['sem_create_data']['sem_id'] = $seminar['Seminar_id'];
+        $_SESSION['sem_create_data']['sem_nummer'] = $seminar['VeranstaltungsNummer'];
+        $_SESSION['sem_create_data']['sem_inst_id'] = $seminar['Institut_id'];
+        $_SESSION['sem_create_data']['sem_name'] = $seminar['Name'];
+        $_SESSION['sem_create_data']['sem_untert'] = $seminar['Untertitel'];
+        $_SESSION['sem_create_data']['sem_status'] = $seminar['status'];
+        $class = $SEM_TYPE[$_SESSION['sem_create_data']['sem_status']]['class'];
+        $_SESSION['sem_create_data']['sem_class'] = $class;
+        $_SESSION['sem_create_data']['sem_desc'] = $seminar['Beschreibung'];
+        $_SESSION['sem_create_data']['sem_room'] = $seminar['Ort'];
+        $_SESSION['sem_create_data']['sem_sonst'] = $seminar['Sonstiges'];
+        $_SESSION['sem_create_data']['sem_pw'] = $seminar['Passwort'];
+        $_SESSION['sem_create_data']['sem_sec_lese'] = $seminar['Lesezugriff'];
+        $_SESSION['sem_create_data']['sem_sec_schreib'] = $seminar['Schreibzugriff'];
+        $_SESSION['sem_create_data']['sem_start_time'] = $seminar['start_time'];
+        $_SESSION['sem_create_data']['sem_duration_time'] = $seminar['duration_time'];
+        $_SESSION['sem_create_data']['sem_art'] = $seminar['art'];
+        $_SESSION['sem_create_data']['sem_teiln'] = $seminar['teilnehmer'];
+        $_SESSION['sem_create_data']['sem_voraus'] = $seminar['vorrausetzungen'];
+        $_SESSION['sem_create_data']['sem_orga'] = $seminar['lernorga'];
+        $_SESSION['sem_create_data']['sem_leistnw'] = $seminar['leistungsnachweis'];
+        $_SESSION['sem_create_data']['sem_ects'] = $seminar['ects'];
+        //$_SESSION['sem_create_data']['sem_admission_date'] = $seminar['admission_endtime'];
+        $_SESSION['sem_create_data']['sem_admission_date'] = -1;
+        $_SESSION['sem_create_data']['sem_turnout'] = $seminar['admission_turnout'];
+        //$_SESSION['sem_create_data']['sem_admission'] = $seminar['admission_type'];
+        $_SESSION['sem_create_data']['sem_payment'] = $seminar['admission_prelim'];
+        $_SESSION['sem_create_data']['sem_paytxt'] = $seminar['admission_prelim_txt'];
+        //$_SESSION['sem_create_data']['sem_admission_start_date'] = $seminar['admission_starttime'];
+        //$_SESSION['sem_create_data']['sem_admission_end_date'] = $seminar['admission_endtime_sem'];
+        $_SESSION['sem_create_data']['sem_admission_start_date'] = -1;
+        $_SESSION['sem_create_data']['sem_admission_end_date'] = -1;
+        $_SESSION['sem_create_data']['timestamp'] = time(); // wichtig, da sonst beim ersten Aufruf sofort sem_create_data resetted wird!
         // eintragen der sem_tree_ids
-        $_SESSION['sem_create_data']["sem_bereich"] = get_seminar_sem_tree_entries($cp_id);
+        $_SESSION['sem_create_data']['sem_bereich'] = get_seminar_sem_tree_entries($cp_id);
 
         // Modulkonfiguration übernehmen
         $_SESSION['sem_create_data']['modules_list'] = $Modules->getLocalModules($cp_id,'sem');
-        $_SESSION['sem_create_data']['sem_modules'] = $db->f('modules');
+        $_SESSION['sem_create_data']['sem_modules'] = $seminar['modules'];
 
         // Pluginkonfiguration übernehmen
         $enabled_plugins = PluginEngine::getPlugins('StandardPlugin', $cp_id);
 
         foreach ($enabled_plugins as $plugin) {
-            $_SESSION['sem_create_data']["enabled_plugins"][] = $plugin->getPluginId();
+            $_SESSION['sem_create_data']['enabled_plugins'][] = $plugin->getPluginId();
         }
 
         // Dozenten und Tutoren eintragen
-        $_SESSION['sem_create_data']["sem_doz"] = get_seminar_dozent($cp_id);
+        $_SESSION['sem_create_data']['sem_doz'] = get_seminar_dozent($cp_id);
         if ($deputies_enabled) {
-            if (!$_SESSION['sem_create_data']["sem_dep"] = getDeputies($cp_id)) {
-                unset($_SESSION['sem_create_data']["sem_dep"]);
+            if (!$_SESSION['sem_create_data']['sem_dep'] = getDeputies($cp_id)) {
+                unset($_SESSION['sem_create_data']['sem_dep']);
             }
         }
-        if (!$_SESSION['sem_create_data']["sem_tut"] = get_seminar_tutor($cp_id)) {
-            unset($_SESSION['sem_create_data']["sem_tut"]);
+        if (!$_SESSION['sem_create_data']['sem_tut'] = get_seminar_tutor($cp_id)) {
+            unset($_SESSION['sem_create_data']['sem_tut']);
         }
     }
 }
@@ -392,15 +407,14 @@ if ($start_level) { //create defaults
     }
 }
 
-if ($form == 1)
-    {
+if ($form == 1 && Request::isPost()) {
     $_SESSION['sem_create_data']["sem_name"]=Request::quoted('sem_name');
     $_SESSION['sem_create_data']["sem_untert"]=Request::quoted('sem_untert');
     $_SESSION['sem_create_data']["sem_nummer"]=Request::quoted('sem_nummer');
     $_SESSION['sem_create_data']["sem_ects"]=Request::quoted('sem_ects');
     $_SESSION['sem_create_data']["sem_desc"]=Request::quoted('sem_desc');
     $_SESSION['sem_create_data']["sem_inst_id"]=Request::option('sem_inst_id');
-    $_SESSION['sem_create_data']["term_art"]=Request::option('term_art');
+    $_SESSION['sem_create_data']["term_art"]=Request::int('term_art');
     $_SESSION['sem_create_data']["sem_start_time"]=Request::option('sem_start_time');
     $_SESSION['sem_create_data']["sem_domain"] = array();
 
@@ -437,6 +451,7 @@ if ($form == 1)
     $_SESSION['sem_create_data']["sem_turnout"]=Request::quoted('sem_turnout');
 
     //Anmeldeverfahren festlegen
+    $sem_admission = Request::quoted('sem_admission');
     if (($_SESSION['sem_create_data']["sem_admission"] = $sem_admission) && $_SESSION['sem_create_data']["sem_admission"] != 3) {
         if(!is_array($_SESSION['sem_create_data']["sem_studg"]) || !count($_SESSION['sem_create_data']["sem_studg"])) $_SESSION['sem_create_data']["sem_studg"]['all'] = array('name' => _("Alle Studiengänge"), 'ratio' => 100);
     } else {
@@ -457,7 +472,7 @@ if ($form == 1)
     $_SESSION['sem_create_data']["sem_art"]=Request::quoted('sem_art');
     }
 
-if ($form == 2) {
+if ($form == 2 && Request::isPost()) {
 
     # evaluate study area selection
     # action: add
@@ -497,7 +512,7 @@ if ($form == 2) {
     }
     }
 
-if ($form == 3)
+if ($form == 3 && Request::isPost())
     {
     if ($_SESSION['sem_create_data']["term_art"] == 0)
         {
@@ -526,8 +541,12 @@ if ($form == 3)
         $term_turnus_start_minute =Request::optionArray('term_turnus_start_minute');
         $term_turnus_end_stunde =Request::optionArray('term_turnus_end_stunde');
         $term_turnus_end_minute = Request::optionArray('term_turnus_end_minute');
-        $term_turnus_desc = Request::optionArray('term_turnus_desc_chooser');
-        
+        $term_turnus_desc_chooser = Request::quotedArray('term_turnus_desc_chooser');
+        $term_turnus_desc = Request::quotedArray('term_turnus_desc');
+        $term_turnus_week_offset = Request::optionArray('term_turnus_week_offset');
+        $term_turnus_cycle = Request::optionArray('term_turnus_cycle');
+        $term_turnus_sws = Request::getArray('term_turnus_sws');
+
         for ($i=0; $i<$_SESSION['sem_create_data']["turnus_count"]; $i++) {
 
             $_SESSION['sem_create_data']["term_turnus_date"][$i]=$term_turnus_date[$i];
@@ -535,14 +554,11 @@ if ($form == 3)
             $_SESSION['sem_create_data']["term_turnus_start_minute"][$i] = (strlen($term_turnus_start_minute[$i]))? intval($term_turnus_start_minute[$i]) : '';
             $_SESSION['sem_create_data']["term_turnus_end_stunde"][$i] = (strlen($term_turnus_end_stunde[$i]))? intval($term_turnus_end_stunde[$i]) : '';
             $_SESSION['sem_create_data']["term_turnus_end_minute"][$i] = (strlen($term_turnus_end_minute[$i]))? intval($term_turnus_end_minute[$i]) : '';
-            $_SESSION['sem_create_data']["term_turnus_desc"][$i]=($term_turnus_desc[$i] ? $term_turnus_desc[$i] : $term_turnus_desc_chooser[$i]);
-            $_SESSION['sem_create_data']["term_turnus_week_offset"][$i] = (int)$_REQUEST['term_turnus_week_offset'][$i];
-            $_SESSION['sem_create_data']["term_turnus_cycle"][$i] = (int)$_REQUEST['term_turnus_cycle'][$i];
-            $_SESSION['sem_create_data']["term_turnus_sws"][$i] = round(str_replace(',','.',$_REQUEST['term_turnus_sws'][$i]),1);
+            $_SESSION['sem_create_data']["term_turnus_desc"][$i] = $term_turnus_desc[$i] ?: $term_turnus_desc_chooser[$i];
+            $_SESSION['sem_create_data']["term_turnus_week_offset"][$i] = (int)$term_turnus_week_offset[$i];
+            $_SESSION['sem_create_data']["term_turnus_cycle"][$i] = (int)$term_turnus_cycle[$i];
+            $_SESSION['sem_create_data']["term_turnus_sws"][$i] = round(str_replace(',','.',$term_turnus_sws[$i]),1);
         }
-
-        //Turnus-Metadaten-Array erzeugen
-        $_SESSION['sem_create_data']["metadata_termin"]='';
 
         //indizierte (=sortierbares Temporaeres Array erzeugen)
         if ($_SESSION['sem_create_data']["term_art"] == 0)
@@ -557,15 +573,14 @@ if ($form == 3)
                     if ($_SESSION['sem_create_data']["term_turnus_start_minute"][$i] < 10)
                         $tmp_idx.="0";
                     $tmp_idx.=$_SESSION['sem_create_data']["term_turnus_start_minute"][$i];
+                    $tmp_idx.=$_SESSION['sem_create_data']["term_turnus_desc"][$i];
                     $tmp_metadata_termin["turnus_data"][]=array("idx"=>$tmp_idx,
                                                                 "day" => $_SESSION['sem_create_data']["term_turnus_date"][$i],
                                                                 "start_stunde" => $_SESSION['sem_create_data']["term_turnus_start_stunde"][$i],
                                                                 "start_minute" => $_SESSION['sem_create_data']["term_turnus_start_minute"][$i],
                                                                 "end_stunde" => $_SESSION['sem_create_data']["term_turnus_end_stunde"][$i],
                                                                 "end_minute" => $_SESSION['sem_create_data']["term_turnus_end_minute"][$i],
-                                                                // they are not needed anymore, but who knows...
-                                                                "room"=>$_SESSION['sem_create_data']["term_turnus_room"][$i],
-                                                                //"resource_id"=>$_SESSION['sem_create_data']["term_turnus_resource_id"][$i],
+                                                                "room"=> is_array($_SESSION['sem_create_data']["metadata_termin"]["turnus_data"]) ? $_SESSION['sem_create_data']["metadata_termin"]["turnus_data"][$i]['room'] : '',
                                                                 "desc"=>$_SESSION['sem_create_data']["term_turnus_desc"][$i],
                                                                 "week_offset"=>$_SESSION['sem_create_data']["term_turnus_week_offset"][$i],
                                                                 "cycle"=>$_SESSION['sem_create_data']["term_turnus_cycle"][$i],
@@ -573,14 +588,16 @@ if ($form == 3)
                                                                 );
                 }
 
+            $_SESSION['sem_create_data']["metadata_termin"] = array();
             if (is_array($tmp_metadata_termin["turnus_data"])) {
                 //sortieren
-                sort ($tmp_metadata_termin["turnus_data"]);
-
-                foreach ($tmp_metadata_termin["turnus_data"] as $tmp_array)
-                    {
-                    $_SESSION['sem_create_data']["metadata_termin"]["turnus_data"][]=$tmp_array;
+                uasort ($tmp_metadata_termin["turnus_data"], create_function('$a,$b', 'return strcmp($a["idx"],$b["idx"]);'));
+                foreach(words('term_turnus_date term_turnus_start_stunde term_turnus_start_minute term_turnus_end_stunde term_turnus_end_minute term_turnus_desc term_turnus_week_offset term_turnus_cycle term_turnus_sws') as $k) {
+                    $sorter = array_flip(array_keys($tmp_metadata_termin["turnus_data"]));
+                    ksort($sorter);
+                    array_multisort($sorter,$_SESSION['sem_create_data'][$k]);
                     }
+                $_SESSION['sem_create_data']["metadata_termin"]["turnus_data"]=$tmp_metadata_termin["turnus_data"];
                 }
             }
         }
@@ -604,6 +621,15 @@ if ($form == 3)
                 }
             }
         }
+
+        // Extract variables from request
+        $term_tag   = Request::getArray('term_tag');
+        $term_monat = Request::getArray('term_monat');
+        $term_jahr  = Request::getArray('term_jahr');
+        $term_start_stunde = Request::getArray('term_start_stunde');
+        $term_start_minute = Request::getArray('term_start_minute');
+        $term_end_stunde   = Request::getArray('term_end_stunde');
+        $term_end_minute   = Request::getArray('term_end_minute');
 
         //Alle eingegebenen Termin-Daten in Sessionvariable uebernehmen
         for ($i=0; $i<$_SESSION['sem_create_data']["term_count"]; $i++) {
@@ -640,7 +666,7 @@ if ($form == 3)
     }
 }
 
-if ($form == 4) {
+if ($form == 4 && Request::isPost()) {
     $_SESSION['sem_create_data']["sem_room"]=Request::quoted('sem_room');
     //The room for the prelimary discussion
     $_SESSION['sem_create_data']["sem_vor_raum"]=Request::quoted('vor_raum');
@@ -654,7 +680,7 @@ if ($form == 4) {
     if ($GLOBALS['RESOURCES_ENABLE']) {
         $room_request_form_attributes = array();
         //Room-Requests
-        $_SESSION['sem_create_data']['skip_room_request'] = (isset($_REQUEST['skip_room_request']));
+        $_SESSION['sem_create_data']['skip_room_request'] = Request::option('skip_room_request');
         if (Request::submitted('room_request_form')) {
             if (Request::option('new_room_request_type')) {
                 if ( $_SESSION['sem_create_data']['room_requests'][Request::option('new_room_request_type')] instanceof RoomRequest) {
@@ -679,16 +705,16 @@ if ($form == 4) {
                 }
             }
         }
-
+    }
     if ($_SESSION['sem_create_data']["term_art"]==0) {
         //get incoming room-data
         $turnus_data=$_SESSION['sem_create_data']["metadata_termin"]["turnus_data"];
-        
+
         if (is_array($turnus_data)){
-            
-            $term_turnus_room = Request::optionArray('term_turnus_room');
+
+            $term_turnus_room = Request::quotedArray('term_turnus_room');
             $term_turnus_resource_id = Request::optionArray('term_turnus_resource_id');
-            
+
             foreach ($turnus_data as $key=>$val) {
                 //echo $term_turnus_room[$key], $term_turnus_resource_id[$key];
 
@@ -713,13 +739,12 @@ if ($form == 4) {
             }*/
         }
     }
-    }
 }
 
-if ($form == 5) {
+if ($form == 5 && Request::isPost()) {
 
     if(Request::submitted('toggle_admission_quota')){
-        $_SESSION['sem_create_data']["admission_enable_quota"] = (int)($_REQUEST["admission_enable_quota"]);
+        $_SESSION['sem_create_data']["admission_enable_quota"] = (int)(Request::int("admission_enable_quota"));
         if(!$_SESSION['sem_create_data']["admission_enable_quota"]){
             $_SESSION['sem_create_data']["sem_admission_date"] = -1;
             $_SESSION['sem_create_data']["sem_admission_ratios_changed"] = false;
@@ -750,14 +775,22 @@ if ($form == 5) {
     $_SESSION['sem_create_data']["sem_sonst"] = Request::quoted('sem_sonst');
     $_SESSION['sem_create_data']["sem_paytxt"] = Request::quoted('sem_paytxt');
     $_SESSION['sem_create_data']["sem_datafields"]='';
-
-    if (is_array($_REQUEST['sem_datafields'])) {
-        foreach ($_REQUEST['sem_datafields']as $id => $df_values) {
+    $sem_datafields = Request::quotedArray('sem_datafields');
+    if (!empty($sem_datafields)) {
+        foreach ($sem_datafields as $id => $df_values) {
             $struct = new DataFieldStructure(array("datafield_id"=>$id));
             $struct->load();
             $entry  = DataFieldEntry::createDataFieldEntry($struct);
             $entry->setValueFromSubmit($df_values);
             $_SESSION['sem_create_data']['sem_datafields'][$id] = array('name'=>$entry->getName(), 'type'=>$entry->getType(), 'value'=> $entry->getValue());
+        }
+    }
+    //check if required datafield was not filled out
+    $dataFieldStructures = DataFieldStructure::getDataFieldStructures('sem', $_SESSION['sem_create_data']['sem_class'], true);
+    foreach ((array)$dataFieldStructures as $id=>$struct) {
+        if ($struct->accessAllowed($perm) && $perm->have_perm($struct->getEditPerms()) && $struct->getIsRequired() ) {
+           if (! trim($sem_datafields[$id]))
+               $errormsg = $errormsg."error§".sprintf(_("Das Feld %s wurde nicht ausgefüllt"), htmlReady($struct->getName()))."§";
         }
     }
 
@@ -782,6 +815,11 @@ if ($form == 5) {
                 $errormsg=$errormsg."error§"._("Bitte geben Sie g&uuml;ltige Werte f&uuml;r das Losdatum ein!")."§";
             } elseif ($_SESSION['sem_create_data']["sem_admission"] == 2 && $_SESSION['sem_create_data']["admission_enable_quota"] == 1) {
                 $errormsg=$errormsg."error§"._("Bitte geben Sie g&uuml;ltige Werte f&uuml;r das Enddatum der Kontingentierung ein!")."§";
+            }
+            if($_SESSION['sem_create_data']['sem_admission_date'] <
+                    $_SESSION['sem_create_data']['sem_admission_start_date'])
+            {
+                $errormsg=$errormsg."error§"._("Das Losdatum darf nicht vor dem Start des Anmeldezeitraums liegen!")."§";
             }
     }
 
@@ -811,10 +849,10 @@ if ($form == 5) {
     }
 }
 
-if ($form == 8)
+if ($form == 8 && Request::isPost())
     {
     $_SESSION['sem_create_data']["sem_scm_content"]=Request::quoted('sem_scm_content');
-    if (!Request::quoted('$sem_scm_name')) {
+    if (!Request::quoted('sem_scm_name')) {
         $_SESSION['sem_create_data']["sem_scm_name"]=$SCM_PRESET[$sem_scm_preset]["name"];
         $_SESSION['sem_create_data']["sem_scm_preset"]=Request::option('sem_scm_preset');
     } else
@@ -823,7 +861,7 @@ if ($form == 8)
 
 //jump-logic
 if (Request::submitted('jump_back')) {
-   
+
     if ($form > 1) {
         // if we have chosen to not enter dates, skip room-requests
         if ($form == 5) {
@@ -839,42 +877,6 @@ if (Request::submitted('jump_back')) {
             $level = $form - 1;
         }
     }
-}
-
-//not pressed any button? Send user to next page and checks...
-if (!Request::submitted('jump_back')
-    && !Request::submitted('jump_next')
-    && !Request::quoted('add_doz')
-    && !Request::quoted('add_dep')
-    && !Request::quoted('add_tut')
-    && !Request::quoted('delete_doz')
-    && !Request::quoted('delete_dep')
-    && !Request::quoted('delete_tut')
-    && !Request::submitted('add_turnus_field')
-    && !Request::submitted('delete_turnus_field_x')
-    && !Request::submitted('send_doz_x')
-    && !Request::submitted('send_tut_x')
-    && !Request::submitted('send_dep_x')
-    && !Request::submitted('reset_search_x')
-    && !Request::submitted('add_term_field')
-    && !Request::submitted('delete_term_field_x')
-    && !Request::submitted('add_studg')
-    && !Request::submitted('delete_studg_x')
-    && !Request::submitted('search_doz_x')
-    && !Request::submitted('search_dep_x')
-    && !Request::submitted('search_tut_x')
-    && !Request::submitted('search_room_x')
-    && !Request::submitted('reset_room_search_x')
-    && !Request::submitted('send_room_x')
-    && !Request::submitted('search_properties_x')
-    && !Request::submitted('send_room_type_x')
-    && !Request::submitted('reset_room_type_x')
-    && !Request::submitted('reset_resource_id_x')
-    && !Request::submitted('room_request_choose')
-    && !Request::submitted('room_request_save')
-    && !Request::submitted('reset_admission_time')
-    && !Request::submitted('toggle_admission_quota')) {
-    Request::set('jump_next', true);
 }
 
 //Check auf korrekte Eingabe und Sprung in naechste Level, hier auf Schritt 2
@@ -918,6 +920,10 @@ if (($form == 1) && (Request::submitted('jump_next')))
 // move Dozenten
 if (Request::quoted('moveup_doz'))
 {
+    // Ensure continuous order by sorting and reordering
+    asort($_SESSION['sem_create_data']['sem_doz']);
+    $_SESSION['sem_create_data']['sem_doz'] = array_flip(array_keys($_SESSION['sem_create_data']['sem_doz']));
+
    $move_uid = get_userid(Request::quoted('moveup_doz'));
    $move_pos = $_SESSION['sem_create_data']["sem_doz"][$move_uid];
 
@@ -933,6 +939,10 @@ if (Request::quoted('moveup_doz'))
 }
 if (Request::quoted('movedown_doz'))
 {
+    // Ensure continuous order by sorting and reordering
+    asort($_SESSION['sem_create_data']['sem_doz']);
+    $_SESSION['sem_create_data']['sem_doz'] = array_flip(array_keys($_SESSION['sem_create_data']['sem_doz']));
+
    $move_uid = get_userid(Request::quoted('movedown_doz'));
    $move_pos = $_SESSION['sem_create_data']["sem_doz"][$move_uid];
 
@@ -949,6 +959,10 @@ if (Request::quoted('movedown_doz'))
 // move Tutoren
 if (Request::quoted('moveup_tut'))
 {
+    // Ensure continuous order by sorting and reordering
+    asort($_SESSION['sem_create_data']['sem_tut']);
+    $_SESSION['sem_create_data']['sem_tut'] = array_flip(array_keys($_SESSION['sem_create_data']['sem_tut']));
+
    $move_uid = get_userid(Request::quoted('moveup_tut'));
    $move_pos = $_SESSION['sem_create_data']["sem_tut"][$move_uid];
 
@@ -964,6 +978,10 @@ if (Request::quoted('moveup_tut'))
 }
 if (Request::quoted('movedown_tut'))
 {
+    // Ensure continuous order by sorting and reordering
+    asort($_SESSION['sem_create_data']['sem_tut']);
+    $_SESSION['sem_create_data']['sem_tut'] = array_flip(array_keys($_SESSION['sem_create_data']['sem_tut']));
+
    $move_uid = get_userid(Request::quoted('movedown_tut'));
    $move_pos = $_SESSION['sem_create_data']["sem_tut"][$move_uid];
 
@@ -1012,24 +1030,25 @@ if (Request::quoted('delete_tut')) {
   $level=2;
 }
 
-if ((Request::submitted('send_doz_x')) && (!Request::submitted('reset_search')) && (Request::quoted('add_doz'))) {
-    
-    $next_position = sizeof($_SESSION['sem_create_data']["sem_doz"]) + 1;
-    $doz_id = get_userid(Request::quoted('add_doz'));
-    $_SESSION['sem_create_data']["sem_doz"][$doz_id]= $next_position;
-    $_SESSION['sem_create_data']["sem_doz_label"][$doz_id]= Request::get("sem_doz_label");
-    if ($deputies_enabled) {
-        // Unset person as deputy.
-        if ($_SESSION['sem_create_data']['sem_dep'][$doz_id]) {
-            unset($_SESSION['sem_create_data']['sem_dep'][$doz_id]);
-        }
-        if (get_config('DEPUTIES_DEFAULTENTRY_ENABLE')) {
-            $deputies = getDeputies($doz_id);
-            // Add the new lecturer's deputies if necessary.
-            foreach ($deputies as $deputy) {
-                if (empty($_SESSION['sem_create_data']['sem_doz'][$deputy['user_id']]) &&
-                       !isset($_SESSION['sem_create_data']['sem_dep'][$deputy['user_id']])) {
+if (Request::submitted('send_doz')) {
+    if (Request::get('add_doz')) {
+        $next_position = sizeof($_SESSION['sem_create_data']["sem_doz"]) + 1;
+        $doz_id = get_userid(Request::quoted('add_doz'));
+        $_SESSION['sem_create_data']["sem_doz"][$doz_id]= $next_position;
+        $_SESSION['sem_create_data']["sem_doz_label"][$doz_id]= Request::get("sem_doz_label");
+        if ($deputies_enabled) {
+            // Unset person as deputy.
+            if ($_SESSION['sem_create_data']['sem_dep'][$doz_id]) {
+                unset($_SESSION['sem_create_data']['sem_dep'][$doz_id]);
+            }
+            if (get_config('DEPUTIES_DEFAULTENTRY_ENABLE')) {
+                $deputies = getDeputies($doz_id);
+                // Add the new lecturer's deputies if necessary.
+                foreach ($deputies as $deputy) {
+                    if (empty($_SESSION['sem_create_data']['sem_doz'][$deputy['user_id']]) &&
+                        !isset($_SESSION['sem_create_data']['sem_dep'][$deputy['user_id']])) {
                     $_SESSION['sem_create_data']['sem_dep'][$deputy['user_id']] = $deputy;
+                        }
                 }
             }
         }
@@ -1037,44 +1056,50 @@ if ((Request::submitted('send_doz_x')) && (!Request::submitted('reset_search')) 
     $level=2;
 }
 
-if ($deputies_enabled && Request::submitted('send_dep_x') && !Request::submitted('reset_search_x') && Request::quoted('add_dep')) {
-    $dep_id = get_userid(Request::quoted('add_dep'));
-    $_SESSION['sem_create_data']["sem_dep"][$dep_id] = array(
-            'user_id' => $dep_id,
-            'username' => get_username($dep_id),
-            'fullname' => get_fullname($dep_id, 'full_rev'),
-            'perms' => $perm->get_perm($dep_id)
-        );
-    // Remove as lecturer if necessary.
-    if (isset($_SESSION['sem_create_data']['sem_doz'][$dep_id])) {
-        unset($_SESSION['sem_create_data']['sem_doz'][$dep_id]);
+if ($deputies_enabled && Request::submitted('send_dep')) {
+    if (Request::get('add_dep')) {
+        $dep_id = get_userid(Request::quoted('add_dep'));
+        $_SESSION['sem_create_data']["sem_dep"][$dep_id] = array(
+                'user_id' => $dep_id,
+                'username' => get_username($dep_id),
+                'fullname' => get_fullname($dep_id, 'full_rev'),
+                'perms' => $perm->get_perm($dep_id)
+            );
+        // Remove as lecturer if necessary.
+        if (isset($_SESSION['sem_create_data']['sem_doz'][$dep_id])) {
+            unset($_SESSION['sem_create_data']['sem_doz'][$dep_id]);
+        }
     }
     $level=2;
 }
 
-if ((Request::submitted('send_tut_x')) && (!Request::submitted('reset_search_x')) && (Request::quoted('add_tut'))) {
-    $next_position = sizeof($_SESSION['sem_create_data']["sem_tut"]) + 1;
-    $tut_id = get_userid(Request::quoted('add_tut'));
-    $_SESSION['sem_create_data']["sem_tut"][$tut_id]= $next_position;
-    $_SESSION['sem_create_data']["sem_tut_label"][$tut_id]= Request::quoted("sem_tut_label");
+if (Request::submitted('send_tut')) {
+    if (Request::get('add_tut')) {
+        $next_position = sizeof($_SESSION['sem_create_data']["sem_tut"]) + 1;
+        $tut_id = get_userid(Request::quoted('add_tut'));
+        $_SESSION['sem_create_data']["sem_tut"][$tut_id]= $next_position;
+        $_SESSION['sem_create_data']["sem_tut_label"][$tut_id]= Request::get("sem_tut_label");
+    }
     $level=2;
 }
 
 // delete user domain
-if (isset($_REQUEST['delete_domain'])) {
-    $index = array_search($_REQUEST['delete_domain'], $_SESSION['sem_create_data']["sem_domain"]);
+
+if (Request::submitted('delete_domain')) {
+    $index = array_search(Request::get('delete_domain'), $_SESSION['sem_create_data']["sem_domain"]);
+
     unset($_SESSION['sem_create_data']["sem_domain"][$index]);
 }
 
-if (Request::quoted('add_doz_parameter') || Request::quoted('add_tut_parameter') || Request::submitted('add_dep') || Request::submitted('search_doz_x') || Request::submitted('search_dep_x') ||Request::submitted('search_tut_x') || Request::submitted('reset_search_x') ||
-    Request::submitted('sem_bereich_do_search') || Request::submitted('add_domain') || isset($_REQUEST['delete_domain']) ||
+if (Request::submitted('search_doz') || Request::submitted('search_dep') || Request::submitted('search_tut') || Request::submitted('reset_search') ||
+    Request::submitted('sem_bereich_do_search') || Request::submitted('add_domain') || Request::submitted('delete_domain') ||
+
     $study_areas['add'] || $study_areas['remove'] ||
     $study_areas['showall_button'] || $study_areas['search_button'] ||
     $study_areas['search_key'] || $study_areas['selected'] ||
     $study_areas['rewind_button']) {
     $level=2;
-
-}elseif (($form == 2) && (Request::submitted('jump_next'))) //wenn alles stimmt, Checks und Sprung auf Schritt 3
+} elseif (($form == 2) && (Request::submitted('jump_next'))) //wenn alles stimmt, Checks und Sprung auf Schritt 3
     {
     if (is_array($_SESSION['sem_create_data']['sem_tut']))
         foreach ($_SESSION['sem_create_data']['sem_tut'] as $key=>$val){
@@ -1260,7 +1285,7 @@ if (($form == 3) && (Request::submitted('jump_next')))
             elseif(!$just_informed4)
                 if (($_SESSION['sem_create_data']["term_tag"][$i] === '') && ($_SESSION['sem_create_data']["term_monat"][$i] === '') && ($_SESSION['sem_create_data']["term_jahr"][$i] === '') && ($_SESSION['sem_create_data']["term_start_stunde"][$i] === '') && ($_SESSION['sem_create_data']["term_start_minute"][$i] === '') && ($_SESSION['sem_create_data']["term_end_stunde"][$i] === '') && ($_SESSION['sem_create_data']["term_end_minute"][$i] === ''))
                     $empty_fields++;
-                else {                    
+                else {
                     $errormsg=$errormsg."error§"._("Sie haben nicht alle Felder bei der Termineingabe ausgef&uuml;llt. Bitte f&uuml;llen Sie alle Felder aus!")."§";
                     $just_informed4=TRUE;
                     }
@@ -1382,7 +1407,7 @@ if ($level == 4 && $GLOBALS['RESOURCES_ENABLE'] && $GLOBALS['RESOURCES_ALLOW_ROO
             if ($_SESSION['sem_create_data']["term_art"] == 0) {
                 foreach ($_SESSION['sem_create_data']['metadata_termin']['turnus_data'] as $key => $value) {
                     $cycle = new SeminarCycleDate();
-                    $cycle->weekday = $value['day'];
+                    $cycle->weekday = $value['day'] == 7 ? 0 : $value['day'];
                     $cycle->week_offset = $value['week_offset'];
                     $cycle->cycle = $value['cycle'];
                     $cycle->start_hour = $value['start_stunde'];
@@ -1422,11 +1447,20 @@ if ($level == 4 && $GLOBALS['RESOURCES_ENABLE'] && $GLOBALS['RESOURCES_ALLOW_ROO
 //Neuen Studiengang zur Begrenzung aufnehmen
 if (Request::submitted('add_studg')) {
     if ($sem_add_studg && $sem_add_studg != 'all') {
-        $db->query("SELECT name FROM studiengaenge WHERE studiengang_id='".$sem_add_studg."' ");
-        $db->next_record();
-        $_SESSION['sem_create_data']["sem_studg"][$sem_add_studg]=array("name"=>$db->f("name"), "ratio"=>(int)$sem_add_ratio);
+        $query = "SELECT name FROM studiengaenge WHERE studiengang_id = ?";
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute(array($sem_add_studg));
+        $studiengang_name = $statement->fetchColumn();
+
+        $_SESSION['sem_create_data']["sem_studg"][$sem_add_studg] = array(
+            'name'  => $studiengang_name,
+            'ratio' => (int)$sem_add_ratio
+        );
     } else if ($sem_add_studg == 'all'){
-        $_SESSION['sem_create_data']["sem_studg"][$sem_add_studg]=array("name"=>_("Alle Studiengänge"), "ratio"=>(int)$sem_add_ratio);
+        $_SESSION['sem_create_data']["sem_studg"][$sem_add_studg] = array(
+            'name'  => _('Alle Studiengänge'),
+            'ratio' => (int)$sem_add_ratio
+        );
     }
     $level=5;
 }
@@ -1702,6 +1736,9 @@ if (($form == 6) && (Request::submitted('jump_next')))
                 foreach ($_SESSION['sem_create_data']["metadata_termin"]["turnus_data"] as $key=>$val) {
                     $_SESSION['sem_create_data']["metadata_termin"]["turnus_data"][$key]["room"] = stripslashes($_SESSION['sem_create_data']["metadata_termin"]["turnus_data"][$key]["room"]);
                     $_SESSION['sem_create_data']["metadata_termin"]["turnus_data"][$key]["description"] = stripslashes($_SESSION['sem_create_data']["metadata_termin"]["turnus_data"][$key]["desc"]);
+                    if ($_SESSION['sem_create_data']["metadata_termin"]["turnus_data"][$key]["day"] == 7) {
+                        $_SESSION['sem_create_data']["metadata_termin"]["turnus_data"][$key]["day"] = 0;
+                    }
                     $metadate_id = $sem->metadate->addCycle($_SESSION['sem_create_data']["metadata_termin"]["turnus_data"][$key]);
                     $temp_rooms[$metadate_id] = $_SESSION['sem_create_data']["metadata_termin"]["turnus_data"][$key]["room"];
                     $temp_resources[$metadate_id] = $_SESSION['sem_create_data']["metadata_termin"]["turnus_data"][$key]["resource_id"];
@@ -1852,19 +1889,25 @@ if (($form == 6) && (Request::submitted('jump_next')))
                 {
                     $group=select_group($_SESSION['sem_create_data']["sem_start_time"]);
 
-                    if ($key == $user_id)
+                    if ($key == $user_id) {
                         $self_included=TRUE;
+                    }
 
-               $next_pos = get_next_position("dozent",$_SESSION['sem_create_data']["sem_id"]);
+                    $next_pos = get_next_position("dozent",$_SESSION['sem_create_data']["sem_id"]);
 
-                    $query = "insert into seminar_user SET Seminar_id = '".
-                    $_SESSION['sem_create_data']["sem_id"]."', user_id = '".
-                    $key."', status = 'dozent', gruppe = '$group', visible = 'yes',".
-                    " mkdate = '".time()."', position = '$next_pos', label = ".DBManager::get()->quote($_SESSION['sem_create_data']["sem_doz_label"][$key], PDO::PARAM_STR)." ";
-                    $db3->query($query);// Dozenten eintragen:w
+                    $query = "INSERT INTO seminar_user (Seminar_id, user_id, status, gruppe,
+                                                        visible, mkdate, position, label)
+                              VALUES (?, ?, 'dozent', ?, 'yes', UNIX_TIMESTAMP(), ?, ?)";
+                    $statement = DBManager::get()->prepare($query);
+                    $statement->execute(array(
+                        $_SESSION['sem_create_data']['sem_id'],
+                        $key, $group, $next_pos,
+                        $_SESSION['sem_create_data']['sem_doz_label'][$key] ?: ''
+                    ));
 
-                    if ($db3->affected_rows() >=1)
+                    if ($statement->rowCount() >= 1) {
                         $count_doz++;
+                    }
                 }
             }
 
@@ -1874,105 +1917,171 @@ if (($form == 6) && (Request::submitted('jump_next')))
 
                 $next_pos = get_next_position("dozent",$_SESSION['sem_create_data']["sem_id"]);
 
-                $query = "insert into seminar_user SET Seminar_id = '".
-                    $_SESSION['sem_create_data']["sem_id"]."', user_id = '".
-                    $user_id."', status = 'dozent', gruppe = '$group', mkdate = '".time()."', position = '$next_pos', " .
-                    "label = ".DBManager::get()->quote($_SESSION['sem_create_data']["sem_doz_label"][$user_id], PDO::PARAM_STR)." ";
-                $db3->query($query);
-                if ($db3->affected_rows() >=1)
+                $query = "INSERT INTO seminar_user (Seminar_id, user_id, status, gruppe,
+                                                    mkdate, position, label)
+                          VALUES (?, ?, 'dozent', ?, UNIX_TIMESTAMP(), ?, ?)";
+                $statement = DBManager::get()->prepare($query);
+                $statement->execute(array(
+                    $_SESSION['sem_create_data']['sem_id'],
+                    $user_id, $group, $next_pos,
+                    $_SESSION['sem_create_data']['sem_doz_label'][$user_id]
+                ));
+
+                if ($statement->rowCount() >= 1) {
                     $count_doz++;
+                }
             }
 
             if (is_array($_SESSION['sem_create_data']["sem_dep"]))  // alle ausgewählten Vertretungen durchlaufen
             {
-                $count_dep=0;
-                foreach ($_SESSION['sem_create_data']["sem_dep"] as $key=>$val)
-                {
-                    $group=select_group($_SESSION['sem_create_data']["sem_start_time"]);
+                // Prepare statement that checks whether a user is already
+                // present in the seminar_user table for a given seminar
+                $query = "SELECT 1 FROM seminar_user WHERE Seminar_id = ? AND user_id = ?";
+                $check_statement = DBManager::get()->prepare($query);
 
-                    $query = "SELECT user_id FROM seminar_user WHERE Seminar_id = '".
-                        $_SESSION['sem_create_data']["sem_id"]."' AND user_id ='$key'";
-                    $db4->query($query);
-                    if ($db4->next_record())    // User schon da, kann beim Anlegen nur als Dozent sein, also ignorieren
-                        ;
-                    else // User noch nicht da
-                        {
+                // Prepare statement that inserts the user as a deputy
+                $query = "INSERT INTO deputies (range_id, user_id, gruppe)
+                          VALUES (?, ?, ?)";
+                $insert_statement = DBManager::get()->prepare($query);
+
+                $count_dep=0;
+                foreach ($_SESSION['sem_create_data']['sem_dep'] as $key => $val) {
+                    $group = select_group($_SESSION['sem_create_data']['sem_start_time']);
+
+                    $check_statement->execute(array(
+                        $_SESSION['sem_create_data']['sem_id'],
+                        $key
+                    ));
+                    $present = $check_statement->fetchColumn();
+                    $check_statement->closeCursor();
+
+                    if (!$present) { // Vertretung eintragen
+                        $insert_statement->execute(array(
+                            $_SESSION['sem_create_data']['sem_id'],
+                            $key, $group
+                        ));
                         $query = "insert into deputies SET range_id = '".
                             $_SESSION['sem_create_data']["sem_id"]."', user_id = '".
                             $key."', gruppe = '$group'";
-                        $db3->query($query);                 // Vertretung eintragen
-                            if ($db3->affected_rows() >= 1)
-                                $count_dep++;
+                        if ($insert_statement->rowCount() >= 1) {
+                            $count_dep++;
                         }
                     }
                 }
+            }
 
             if (is_array($_SESSION['sem_create_data']["sem_tut"]))  // alle ausgewählten Tutoren durchlaufen
             {
+                // Prepare statement that checks whether a user is already
+                // present in the seminar_user table for a given seminar
+                $query = "SELECT 1 FROM seminar_user WHERE Seminar_id = ? AND user_id = ?";
+                $check_statement = DBManager::get()->prepare($query);
+
+                // Prepare statement that inserts the user as a deputy
+                $query = "INSERT INTO seminar_user (Seminar_id, user_id, status,
+                                                    label, gruppe, mkdate, position, visible)
+                          VALUES (?, ?, 'tutor', ?, ?, UNIX_TIMESTAMP(), ?, 'yes')";
+                $insert_statement = DBManager::get()->prepare($query);
+
                 $count_tut=0;
                 foreach ($_SESSION['sem_create_data']["sem_tut"] as $key=>$val)
                 {
                     $group=select_group($_SESSION['sem_create_data']["sem_start_time"]);
 
-                    $query = "SELECT user_id FROM seminar_user WHERE Seminar_id = '".
-                        $_SESSION['sem_create_data']["sem_id"]."' AND user_id ='$key'";
-                    $db4->query($query);
-                    if ($db4->next_record())    // User schon da, kann beim Anlegen nur als Dozent sein, also ignorieren
-                        ;
-                    else // User noch nicht da
-                        {
-                  $next_pos = get_next_position("tutor",$_SESSION['sem_create_data']["sem_id"]);
-                        $query = "insert into seminar_user SET Seminar_id = '".
-                            $_SESSION['sem_create_data']["sem_id"]."', user_id = '".
-                            $key."', status = 'tutor', label=".DBManager::get()->quote($_SESSION['sem_create_data']["sem_tut_label"][$key], PDO::PARAM_STR)." , gruppe = '$group', mkdate = '".time()."', position = '$next_pos', visible='yes'";
-                        $db3->query($query);                 // Tutor eintragen
-                            if ($db3->affected_rows() >= 1)
-                                $count_tut++;
+                    $check_statement->execute(array(
+                        $_SESSION['sem_create_data']['sem_id'],
+                        $key
+                    ));
+                    $present = $check_statement->fetchColumn();
+                    $check_statement->closeCursor();
+
+                    if (!$present) { // User noch nicht da
+                        $next_pos = get_next_position("tutor",$_SESSION['sem_create_data']["sem_id"]);
+
+                        $insert_statement->execute(array(
+                            $_SESSION['sem_create_data']['sem_id'],
+                            $key,
+                            $_SESSION['sem_create_data']['sem_tut_label'][$key] ?: '', 
+                            $group, $next_pos
+                        ));
+
+                        if ($insert_statement->rowCount() >= 1) {
+                            $count_tut++;
                         }
                     }
                 }
+            }
 
             //Eintrag der Studienbereiche
             if (is_array($_SESSION['sem_create_data']["sem_bereich"])) {
                 $seminar = Seminar::getInstance($_SESSION['sem_create_data']["sem_id"]);
                 $seminar->setStudyAreas($_SESSION['sem_create_data']["sem_bereich"]);
                 $count_bereich = sizeof($_SESSION['sem_create_data']["sem_bereich"]);
-                }
+            }
 
             //Eintrag der zugelassen Studiengänge
             if ($_SESSION['sem_create_data']["sem_admission"] && $_SESSION['sem_create_data']["sem_admission"] != 3) {
                 if (is_array($_SESSION['sem_create_data']["sem_studg"])){
-                    foreach($_SESSION['sem_create_data']["sem_studg"] as $key=>$val){
-                        $query = "INSERT INTO admission_seminar_studiengang VALUES('".$_SESSION['sem_create_data']["sem_id"]."', '$key', '".$val["ratio"]."' )";
-                        $db3->query($query);// Studiengang eintragen
+                    $query = "INSERT INTO admission_seminar_studiengang
+                              VALUES (?, ?, ?)";
+                    $insert_statement = DBManager::get()->prepare($query);
+
+                    foreach($_SESSION['sem_create_data']["sem_studg"] as $key => $val) {
+                        // Studiengang eintragen
+                        $insert_statement->execute(array(
+                            $_SESSION['sem_create_data']['sem_id'],
+                            $key, $val['ratio']
+                        ));
                     }
                 }
             }
 
             //Eintrag der beteiligten Institute
-            if (is_array($_SESSION['sem_create_data']["sem_bet_inst"])>0)
-                {
-                $count_bet_inst=0;
-                foreach ($_SESSION['sem_create_data']["sem_bet_inst"] as $tmp_array) //Alle beteiligten Institute durchlaufen
-                    {
-                    $query = "INSERT INTO seminar_inst VALUES('".$_SESSION['sem_create_data']["sem_id"]."', '$tmp_array')";
-                    $db3->query($query);// Institut eintragen
-                    if ($db3->affected_rows() >= 1)
+            if (is_array($_SESSION['sem_create_data']["sem_bet_inst"])) {
+                $query = "INSERT INTO seminar_inst
+                          VALUES (?, ?)";
+                $insert_statement = DBManager::get()->prepare($query);
+
+                $count_bet_inst = 0;
+                //Alle beteiligten Institute durchlaufen
+                foreach ($_SESSION['sem_create_data']["sem_bet_inst"] as $tmp_array) {
+                    // Institut eintragen
+                    $insert_statement->execute(array(
+                        $_SESSION['sem_create_data']['sem_id'],
+                        $tmp_array
+                    ));
+
+                    if ($statement->rowCount() >= 1) {
                         $count_bet_inst++;
                     }
                 }
+            }
 
             //Heimat-Institut ebenfalls eintragen, wenn noch nicht da
-            $query = "INSERT IGNORE INTO seminar_inst values('".$_SESSION['sem_create_data']["sem_id"]."', '".$_SESSION['sem_create_data']["sem_inst_id"]."')";
-            $db3->query($query);
+            $query = "INSERT IGNORE INTO seminar_inst VALUES (?, ?)";
+            $statement = DBManager::get()->prepare($query);
+            $statement->execute(array(
+                $_SESSION['sem_create_data']['sem_id'],
+                $_SESSION['sem_create_data']['sem_inst_id']
+            ));
 
             //Standard Thema im Forum anlegen, damit Studis auch ohne Zutun des Dozenten diskutieren koennen
             if ($_SESSION['sem_create_data']["modules_list"]["forum"])
                 CreateTopic(_("Allgemeine Diskussionen"), get_fullname($user_id), _("Hier ist Raum für allgemeine Diskussionen"), 0, 0, $_SESSION['sem_create_data']["sem_id"]);
 
             //Standard Ordner im Foldersystem anlegen, damit Studis auch ohne Zutun des Dozenten Uploaden k&ouml;nnen
-            if ($_SESSION['sem_create_data']["modules_list"]["documents"])
-                $db3->query("INSERT INTO folder SET folder_id='".md5(uniqid("sommervogel"))."', range_id='".$_SESSION['sem_create_data']["sem_id"]."', user_id='".$user_id."', name='"._("Allgemeiner Dateiordner")."', description='"._("Ablage für allgemeine Ordner und Dokumente der Veranstaltung")."', mkdate='".time()."', chdate='".time()."'");
+            if ($_SESSION['sem_create_data']["modules_list"]["documents"]) {
+                $query = "INSERT INTO folder (folder_id, range_id, user_id, name, description, mkdate, chdate)
+                          VALUES (?, ?, ?, ?, ?, UNIX_TIMESTAMP(), UNIX_TIMESTAMP())";
+                $statement = DBManager::get()->prepare($query);
+                $statement->execute(array(
+                    md5(uniqid('sommervogel', true)),
+                    $_SESSION['sem_create_data']['sem_id'],
+                    $user_id,
+                    _('Allgemeiner Dateiordner'),
+                    _('Ablage für allgemeine Ordner und Dokumente der Veranstaltung')
+                ));
+            }
 
             //Vorbesprechung, falls vorhanden, in Termintabelle eintragen
             if ($_SESSION['sem_create_data']["sem_vor_termin"] <>-1) {
@@ -2015,7 +2124,17 @@ if (($form == 6) && (Request::submitted('jump_next')))
             if ($_SESSION['sem_create_data']["modules_list"]["scm"]){
                 $_SESSION['sem_create_data']["sem_scm_name"] = ($SCM_PRESET[1]['name'] ? $SCM_PRESET[1]['name'] : _("Informationen"));
                 $_SESSION['sem_create_data']["sem_scm_id"] = md5(uniqid(rand()));
-                $db->query("INSERT INTO scm SET scm_id='".$_SESSION['sem_create_data']["sem_scm_id"]."', tab_name='".$_SESSION['sem_create_data']["sem_scm_name"]."', range_id='".$_SESSION['sem_create_data']["sem_id"]."', user_id='$user_id', content='".$_SESSION['sem_create_data']["sem_scm_content"]."', mkdate='".time()."', chdate='".time()."' ");
+
+                $query = "INSERT INTO scm (scm_id, tab_name, range_id, user_id, content, mkdate, chdate)
+                          VALUES (?, ?, ?, ?, ?, UNIX_TIMESTAMP(), UNIX_TIMESTAMP())";
+                $statement = DBManager::get()->prepare($query);
+                $statement->execute(array(
+                    $_SESSION['sem_create_data']['sem_scm_id'],
+                    $_SESSION['sem_create_data']['sem_scm_name'],
+                    $_SESSION['sem_create_data']['sem_id'],
+                    $user_id,
+                    $_SESSION['sem_create_data']['sem_scm_content']
+                ));
             }
 
             // save activation of plugins
@@ -2045,7 +2164,7 @@ if (($form == 6) && (Request::submitted('jump_next')))
 //Nur der Form halber... es geht weiter zur SCM-Seite
 if (($form == 7) && (Request::submitted('jump_next'))) {
     if (!$_SESSION['sem_create_data']["modules_list"]["scm"] && !$_SESSION['sem_create_data']["modules_list"]["schedule"]) {
-        header ('Location: ' . UrlHelper::getUrl('dispatch.php/course/basicdata/view/'.$_SESSION['sem_create_data']["sem_id"]));
+        redirect_to_course_admin($_SESSION['sem_create_data']["sem_id"]);
         die;
     } elseif (!$_SESSION['sem_create_data']["modules_list"]["scm"]) {
         header ("Location: raumzeit.php?cid=".$_SESSION['sem_create_data']["sem_id"]);
@@ -2060,32 +2179,49 @@ if (($form == 8) && (Request::submitted('jump_next'))) {
         //if content is created, we enable the module again (it was turned off above)
         $Modules->writeStatus("scm", $_SESSION['sem_create_data']["sem_id"], TRUE);
         if ($_SESSION['sem_create_data']["sem_scm_id"]) {
-            $db->query("UPDATE scm SET content='".$_SESSION['sem_create_data']["sem_scm_content"]."', tab_name='".$_SESSION['sem_create_data']["sem_scm_name"]."', chdate='".time()."' WHERE scm_id='".$_SESSION['sem_create_data']["sem_scm_id"]."'");
+            $query = "UPDATE scm
+                      SET content = ?, tab_name = ?, chdate = UNIX_TIMESTAMP()
+                      WHERE scm_id = ?";
+            $statement = DBManager::get()->prepare($query);
+            $statement->execute(array(
+                $_SESSION['sem_create_data']['sem_scm_content'],
+                $_SESSION['sem_create_data']['sem_scm_name'],
+                $_SESSION['sem_create_data']['sem_scm_id']
+            ));
+            $affected_rows = $statement->rowCount();
         } else {
             $_SESSION['sem_create_data']["sem_scm_id"]=md5(uniqid(rand()));
-            $db->query("INSERT INTO scm SET scm_id='".$_SESSION['sem_create_data']["sem_scm_id"]."', tab_name='".$_SESSION['sem_create_data']["sem_scm_name"]."', range_id='".$_SESSION['sem_create_data']["sem_id"]."', user_id='$user_id', content='".$_SESSION['sem_create_data']["sem_scm_content"]."', mkdate='".time()."', chdate='".time()."' ");
+
+            $query = "INSERT INTO scm (scm_id, tab_name, range_id, user_id, content, mkdate, chdate)
+                      VALUES (?, ?, ?, ?, ?, UNIX_TIMESTAMP(), UNIX_TIMESTAMP())";
+            $statement = DBManager::get()->prepare($query);
+            $statement->execute(array(
+                $_SESSION['sem_create_data']['sem_scm_id'],
+                $_SESSION['sem_create_data']['sem_scm_name'],
+                $_SESSION['sem_create_data']['sem_id'],
+                $user_id,
+                $_SESSION['sem_create_data']['sem_scm_content']
+            ));
+            $affected_rows = $statement->rowCount();
         }
-        if ($db->affected_rows()) {
+        if ($affected_rows) {
             //if ($_SESSION['sem_create_data']["modules_list"]["schedule"]) // ## RAUMZEIT : schedule duerfte veraltet sein, muesste als komplett weg
                 //header ("Location: admin_dates.php?assi=yes&ebene=sem&range_id=".$_SESSION['sem_create_data']["sem_id"]);
             //else
-                header ('Location: ' . UrlHelper::getUrl('dispatch.php/course/basicdata/view/' . $_SESSION['sem_create_data']["sem_id"]));
+            redirect_to_course_admin($_SESSION['sem_create_data']["sem_id"]);
             page_close();
             die;
-            }
-        else
-            {
+        } else {
             $errormsg .= "error§"._("Fehler! Der Eintrag konnte nicht erfolgreich vorgenommen werden!")."";
             $level=8;
-            }
+        }
     } else {
         //if no content is created yet, we disable the module and jump to the schedule (if activated)
         //$Modules->writeStatus("scm", $_SESSION['sem_create_data']["sem_id"], FALSE); //BIEST00072
         //if ($_SESSION['sem_create_data']["modules_list"]["schedule"]) // ## RAUMZEIT : siehe oben
         //  header ("Location: admin_dates.php?assi=yes&ebene=sem&range_id=".$_SESSION['sem_create_data']["sem_id"]);
         //else
-            header ("Location: " . UrlHelper::getUrl('dispatch.php/course/basicdata/view/' . $_SESSION['sem_create_data']["sem_id"]));
-        page_close();
+        redirect_to_course_admin($_SESSION['sem_create_data']["sem_id"]);
         die;
     }
 }
@@ -2469,27 +2605,61 @@ elseif ((!$level) || ($level == 1))
                         <td class="<? echo $cssSw->getClass() ?>" width="90%" colspan=3>
                             &nbsp;
                             <?
-                            if (!$perm->have_perm("admin"))
-                                $db->query("SELECT Name,a.Institut_id,IF(a.Institut_id=fakultaets_id,1,0) AS is_fak,inst_perms FROM user_inst a LEFT JOIN Institute USING (institut_id) WHERE (user_id = '$user_id' AND inst_perms = 'dozent' ) ORDER BY is_fak,Name");
-                            else if (!$perm->have_perm("root"))
-                                $db->query("SELECT Name,a.Institut_id,IF(a.Institut_id=fakultaets_id,1,0) AS is_fak,inst_perms FROM user_inst  a LEFT JOIN Institute USING (institut_id) WHERE (user_id = '$user_id' AND inst_perms = 'admin') ORDER BY is_fak,Name");
-                            else
-                                $db->query("SELECT Name,Institut_id,1 AS is_fak,'admin' AS inst_perms FROM Institute WHERE Institut_id=fakultaets_id ORDER BY Name");
-                            if ($db->affected_rows()){
-                                echo "<select name=\"sem_inst_id\">";
-                                while ($db->next_record()) {
-                                    printf ("<option %s style=\"%s\" value=%s>%s</option>", $db->f("Institut_id") == $_SESSION['sem_create_data']["sem_inst_id"] ? "selected" : "",
-                                        ($db->f("is_fak")) ? "font-weight:bold;" : "",$db->f("Institut_id"), htmlReady(my_substr($db->f("Name"),0,60)));
-                                    if ($db->f("is_fak") && $db->f("inst_perms") == "admin"){
-                                        $db2->query("SELECT a.Institut_id, a.Name FROM Institute a
-                                            WHERE fakultaets_id='" . $db->f("Institut_id") . "' AND a.Institut_id!='" .$db->f("Institut_id") . "' ORDER BY Name");
-                                        while($db2->next_record()){
-                                            printf ("<option %s value=\"%s\">&nbsp;&nbsp;&nbsp;&nbsp;%s</option>", $db2->f("Institut_id") == $_SESSION['sem_create_data']["sem_inst_id"] ? "selected" : "",
-                                                $db2->f("Institut_id"), htmlReady(my_substr($db2->f("Name"),0,60)));
+                            // Prepare inner statement that obtains all institutes
+                            // for a given faculty id
+                            $query = "SELECT Institut_id, Name
+                                      FROM Institute a
+                                      WHERE fakultaets_id = ? AND Institut_id != fakultaets_id
+                                      ORDER BY Name";
+                            $institute_statement = DBManager::get()->prepare($query);
+
+                            // Prepare outer statement
+                            $parameters = array();
+                            if (!$perm->have_perm('admin')) {
+                                $query = "SELECT Name, a.Institut_id, a.Institut_id = fakultaets_id AS is_fak, inst_perms
+                                          FROM user_inst AS a
+                                          LEFT JOIN Institute USING (institut_id)
+                                          WHERE user_id = ? AND inst_perms = 'dozent'
+                                          ORDER BY is_fak, Name";
+                                $parameters[] = $user_id;
+                            } else if (!$perm->have_perm('root')) {
+                                $query = "SELECT Name, a.Institut_id, a.Institut_id = fakultaets_id AS is_fak, inst_perms
+                                          FROM user_inst AS a
+                                          LEFT JOIN Institute USING (institut_id)
+                                          WHERE user_id = ? AND inst_perms = 'admin'
+                                          ORDER BY is_fak, Name";
+                                $parameters[] = $user_id;
+                            } else {
+                                $query = "SELECT Name, Institut_id, 1 AS is_fak, 'admin' AS inst_perms
+                                          FROM Institute
+                                          WHERE Institut_id = fakultaets_id
+                                          ORDER BY Name";
+                            }
+                            $statement = DBManager::get()->prepare($query);
+                            $statement->execute($parameters);
+                            $options = $statement->fetchAll(PDO::FETCH_ASSOC);
+
+                            if (count($options)) {
+                                echo '<select name="sem_inst_id">';
+                                foreach ($options as $option) {
+                                    printf('<option %s style="%s" value="%s">%s</option>',
+                                           $option['Institut_id'] == $_SESSION['sem_create_data']["sem_inst_id"] ? 'selected' : '',
+                                           $option['is_fak'] ? 'font-weight:bold;' : '',
+                                           $option['Institut_id'],
+                                           htmlReady(my_substr($option['Name'], 0, 60)));
+
+                                    if ($option['is_fak'] && $option['inst_perms'] == 'admin') {
+                                        $institute_statement->execute(array($option['Institut_id']));
+                                        while ($row = $institute_statement->fetch(PDO::FETCH_ASSOC)) {
+                                            printf('<option %s value="%s">&nbsp;&nbsp;&nbsp;&nbsp;%s</option>',
+                                                   $row['Institut_id'] == $_SESSION['sem_create_data']["sem_inst_id"] ? 'selected' : '',
+                                                   $row['Institut_id'],
+                                                   htmlReady(my_substr($row['Name'], 0, 60)));
                                         }
+                                        $institute_statement->closeCursor();
                                     }
                                 }
-                                echo "</select>";
+                                echo '</select>';
                             }
                             ?>
                             <?= tooltipIcon(_("Die Heimat-Einrichtung ist die Einrichtung, die offiziell für die Veranstaltung zuständig ist.")) ?>
@@ -2503,24 +2673,49 @@ elseif ((!$level) || ($level == 1))
                         <td class="<? echo $cssSw->getClass() ?>" width="90%" colspan=3>
                             &nbsp; <select  name="sem_bet_inst[]" MULTIPLE size=7>
                             <?
-                                $db->query("SELECT Institut_id,Name FROM Institute WHERE Institut_id = fakultaets_id ORDER BY Name");
-                                while ($db->next_record()) {
-                                    $selected="";
-                                    if(is_array($_SESSION['sem_create_data']["sem_bet_inst"]) && in_array($db->f("Institut_id"),$_SESSION['sem_create_data']["sem_bet_inst"])){
-                                        $selected = "selected";
+                                // Prepare statement that reads all institutes for
+                                // a given faculty id
+                                $query = "SELECT Institut_id, Name
+                                          FROM Institute
+                                          WHERE fakultaets_id = ? AND Institut_id != fakultaets_id
+                                          ORDER BY Name";
+                                $institute_statement = DBManager::get()->prepare($query);
+
+                                // Prepare and execute statement that obtains
+                                // all faculties
+                                $query = "SELECT Institut_id, Name
+                                          FROM Institute
+                                          WHERE Institut_id = fakultaets_id
+                                          ORDER BY Name";
+                                $statement = DBManager::get()->query($query);
+                                $options = $statement->fetchAll(PDO::FETCH_ASSOC);
+
+                                foreach ($options as $option) {
+                                    $selected = '';
+                                    if (is_array($_SESSION['sem_create_data']['sem_bet_inst'])
+                                        && in_array($option['Institut_id'],$_SESSION['sem_create_data']['sem_bet_inst']))
+                                    {
+                                        $selected = 'selected';
                                     }
-                                    printf ("<option %s style=\"font-weight:bold;\" value=\"%s\">%s</option>",$selected,$db->f("Institut_id")
-                                        , htmlReady(my_substr($db->f("Name"),0,60)));
-                                    $db2->query("SELECT Institut_id, Name FROM Institute
-                                        WHERE fakultaets_id='" . $db->f("Institut_id") . "' AND Institut_id!='" .$db->f("Institut_id") . "' ORDER BY Name" );
-                                    while($db2->next_record()){
-                                        $selected="";
-                                        if(is_array($_SESSION['sem_create_data']["sem_bet_inst"]) && in_array($db2->f("Institut_id"),$_SESSION['sem_create_data']["sem_bet_inst"])){
-                                        $selected = "selected";
+                                    printf('<option %s style="font-weight:bold;" value="%s">%s</option>',
+                                           $selected,
+                                           $option['Institut_id'],
+                                           htmlReady(my_substr($option['Name'], 0, 60)));
+
+                                    $institute_statement->execute(array($option['Institut_id']));
+                                    while ($row = $institute_statement->fetch(PDO::FETCH_ASSOC)) {
+                                        $selected = '';
+                                        if (is_array($_SESSION['sem_create_data']['sem_bet_inst'])
+                                            && in_array($row['Institut_id'], $_SESSION['sem_create_data']['sem_bet_inst']))
+                                        {
+                                            $selected = 'selected';
                                         }
-                                        printf ("<option %s value=\"%s\">&nbsp;&nbsp;&nbsp;&nbsp;%s</option>", $selected,
-                                            $db2->f("Institut_id"), htmlReady(my_substr($db2->f("Name"),0,60)));
+                                        printf('<option %s value="%s">&nbsp;&nbsp;&nbsp;&nbsp;%s</option>',
+                                               $selected,
+                                               $row['Institut_id'],
+                                               htmlReady(my_substr($row['Name'], 0, 60)));
                                     }
+                                    $institute_statement->closeCursor();
                                 }
                             ?>
                             </select>
@@ -2576,14 +2771,13 @@ if ($level == 2)
             <form method="POST" action="<? echo URLHelper::getLink() ?>#anker">
             <?= CSRFProtection::tokenTag() ?>
             <input type="hidden" name="form" value=2>
-            <input type="hidden" name="level" value=2>
                 <table width ="99%" cellspacing=0 cellpadding=2 border=0 align="center">
                     <tr <? $cssSw->switchClass() ?>>
                         <td class="<? echo $cssSw->getClass() ?>" width="10%">
                             &nbsp;
                         </td>
                         <td class="<? echo $cssSw->getClass() ?>" width="90%" align="center" colspan=3>
-                            &nbsp; <?= Button::create('<< '._('Zurück'), 'jump_back') .'&nbsp;'. Button::create(_('Weiter').' >>', 'jump_next') ?>
+                            &nbsp; <?= LinkButton::create('<< '._('Zurück'), UrlHelper::getUrl('?jump_back=1&form=' . $level)) .'&nbsp;'. Button::create(_('Weiter').' >>', 'jump_next') ?>
                         </td>
                     </tr>
                     <tr <? $cssSw->switchClass() ?>>
@@ -2812,8 +3006,8 @@ if ($level == 2)
                               ->withButton(array('search_button_name' => 'search_tut', 'reset_button_name' => 'reset_search'))
                               ->render();
 
-                        print "<input type=\"text\" name=\"sem_tut_label\" placeholder=\""._("Label festlegen")."\">";
                         ?>
+                        <input type="text" name="sem_tut_label" placeholder="<?= _('Funktion') ?>">
                         <br><font size=-1><?=_("Geben Sie zur Suche den Vor-, Nach- oder Benutzernamen ein.")?></font>
                         </td>
                     </tr>
@@ -2912,9 +3106,10 @@ if ($level == 2)
                                     </td>
                                 </tr>
                                     <?
-                                    if (Request::submitted('add_domain') && $_REQUEST['sem_domain'] !== '' &&
-                                        !in_array($_REQUEST['sem_domain'], $_SESSION['sem_create_data']["sem_domain"])) {
-                                        $_SESSION['sem_create_data']["sem_domain"][]= $_REQUEST['sem_domain'];
+                                    $sem_domain = Request::quoted('sem_domain');
+                                    if (Request::submitted('add_domain') && Request::quoted('sem_domain') !== '' &&
+                                        !in_array($sem_domain, $_SESSION['sem_create_data']["sem_domain"])) {
+                                        $_SESSION['sem_create_data']["sem_domain"][]= $sem_domain;
                                     }
 
                                     foreach ($_SESSION['sem_create_data']["sem_domain"] as $domain_id) {
@@ -2973,7 +3168,7 @@ if ($level == 2)
                             &nbsp;
                         </td>
                         <td class="<? echo $cssSw->getClass() ?>" width="90%" align="center" colspan=3>
-                            &nbsp; <?= Button::create('<< '._('Zurück'), 'jump_back') ?>&nbsp;<?= Button::create(_('Weiter').' >>', 'jump_next') ?>
+                            &nbsp; <?= LinkButton::create('<< '._('Zurück'), UrlHelper::getUrl('?jump_back=1&form=' . $level)) ?>&nbsp;<?= Button::create(_('Weiter').' >>', 'jump_next') ?>
                         </td>
                     </tr>
                 </table>
@@ -3031,7 +3226,7 @@ if ($level == 3) {
                             &nbsp;
                         </td>
                         <td class="<? echo $cssSw->getClass() ?>" width="90%" align="center" colspan=3>
-                            &nbsp; <?= Button::create('<< '._('Zurück'), 'jump_back') ?>&nbsp;<?= Button::create(_('Weiter').' >>', 'jump_next') ?>
+                            &nbsp; <?= LinkButton::create('<< '._('Zurück'), UrlHelper::getUrl('?jump_back=1&form=' . $level)) ?>&nbsp;<?= Button::create(_('Weiter').' >>', 'jump_next') ?>
                         </td>
                     </tr>
                     <?
@@ -3054,7 +3249,7 @@ if ($level == 3) {
                                         if ($i>0) echo "<hr>\n";
                                         echo '&nbsp; <font size=-1><select name="term_turnus_date[', $i, ']">';
                                         $ttd = (empty($_SESSION['sem_create_data']["term_turnus_date"][$i]))? 1 : $_SESSION['sem_create_data']["term_turnus_date"][$i];
-                                        for($kk = 0; $kk <= 6; $kk++ ){
+                                        for($kk = 1; $kk <= 7; $kk++ ){
                                             echo '<option ', (($kk == $ttd)? 'selected ':'');
                                             echo 'value="',$kk,'">';
                                             switch ($kk){
@@ -3063,7 +3258,7 @@ if ($level == 3) {
                                                 case 4: echo _("Donnerstag"); break;
                                                 case 5: echo _("Freitag"); break;
                                                 case 6: echo _("Samstag"); break;
-                                                case 0: echo _("Sonntag"); break;
+                                                case 7: echo _("Sonntag"); break;
                                                 case 1:
                                                 default: echo _("Montag");
                                             }
@@ -3241,7 +3436,7 @@ if ($level == 3) {
                             &nbsp;
                         </td>
                         <td class="<? echo $cssSw->getClass() ?>" width="90%" align="center" colspan=3>
-                            &nbsp; <?= Button::create('<< '._('Zurück'), 'jump_back') ?>&nbsp;<?= Button::create(_('Weiter').' >>', 'jump_next') ?>
+                            &nbsp; <?= LinkButton::create('<< '._('Zurück'), UrlHelper::getUrl('?jump_back=1&form=' . $level)) ?>&nbsp;<?= Button::create(_('Weiter').' >>', 'jump_next') ?>
                         </td>
                     </tr>
                 </table>
@@ -3297,7 +3492,7 @@ if ($level == 4) {
                             &nbsp;
                         </td>
                         <td class="<? echo $cssSw->getClass() ?>" width="96%" align="center" colspan=3>
-                            &nbsp; <?= Button::create('<< '._('Zurück'), 'jump_back') ?>&nbsp;<?= Button::create(_('Weiter').' >>', 'jump_next') ?>
+                            &nbsp; <?= LinkButton::create('<< '._('Zurück'), UrlHelper::getUrl('?jump_back=1&form=' . $level)) ?>&nbsp;<?= Button::create(_('Weiter').' >>', 'jump_next') ?>
                         </td>
                     </tr>
                     <?
@@ -3517,7 +3712,7 @@ if ($level == 4) {
                             &nbsp;
                         </td>
                         <td class="<? echo $cssSw->getClass() ?>" width="96%" align="center" colspan=3>
-                            &nbsp; <?= Button::create('<< '._('Zurück'), 'jump_back') ?>&nbsp;<?= Button::create(_('Weiter').' >>', 'jump_next') ?>
+                            &nbsp; <?= LinkButton::create('<< '._('Zurück'), UrlHelper::getUrl('?jump_back=1&form=' . $level)) ?>&nbsp;<?= Button::create(_('Weiter').' >>', 'jump_next') ?>
                         </td>
                     </tr>
                 </table>
@@ -3565,7 +3760,7 @@ if ($level == 5)
                             &nbsp;
                         </td>
                         <td class="<? echo $cssSw->getClass() ?>" width="90%" align="center" colspan=3>
-                            &nbsp; <?= Button::create('<< '._('Zurück'), 'jump_back') ?>&nbsp;<?= Button::create(_('Weiter').' >>', 'jump_next') ?>
+                            &nbsp; <?= LinkButton::create('<< '._('Zurück'), UrlHelper::getUrl('?jump_back=1&form=' . $level)) ?>&nbsp;<?= Button::create(_('Weiter').' >>', 'jump_next') ?>
                         </td>
                     </tr>
                     <? if ($_SESSION['sem_create_data']["sem_admission"] != 3) { ?>
@@ -3740,14 +3935,22 @@ if ($level == 5)
                                     <?
                                         }
                                     }
-                                    $db->queryf("SELECT * FROM studiengaenge WHERE studiengang_id NOT IN ('%s') ORDER BY name", join("','", array_keys($_SESSION['sem_create_data']["sem_studg"])));
                                     $stg = array();
                                     if(!isset($_SESSION['sem_create_data']["sem_studg"]['all'])){
                                         $stg[] = array('name' => _("Alle Studiengänge"), 'studiengang_id' => 'all');
                                     }
-                                    while($db->next_record()){
-                                        $stg[] = $db->Record;
-                                    }
+
+                                    $query = "SELECT *
+                                              FROM studiengaenge
+                                              WHERE studiengang_id NOT IN (?)
+                                              ORDER BY name";
+                                    $statement = DBManager::get()->prepare($query);
+                                    $statement->execute(array(
+                                        array_keys($_SESSION['sem_create_data']['sem_studg']) ?: array('')
+                                    ));
+                                    $studiengaenge = $statement->fetchAll(PDO::FETCH_ASSOC);
+                                    $stg = array_merge($stg, $studiengaenge);
+
                                     if (count($stg)) {
                                     ?>
                                     <tr>
@@ -3849,24 +4052,34 @@ if ($level == 5)
                     }
                     //add the free adminstrable datafields
                     $dataFieldStructures = DataFieldStructure::getDataFieldStructures('sem', $_SESSION['sem_create_data']['sem_class'], true);
-                    foreach ($dataFieldStructures as $id=>$struct) {
+                    foreach ((array)$dataFieldStructures as $id=>$struct) {
                         if ($struct->accessAllowed($perm)) {
                             ?>
                             <tr <? $cssSw->switchClass() ?>>
                                 <td class="<?= $cssSw->getClass() ?>" width="10%" align="right">
                                     <?=htmlReady($struct->getName()) ?>
+
+                                    <?if($struct->getIsRequired() && $perm->have_perm($struct->getEditPerms())):?>
+                                        <font color="red" size=+2>*</font>
+                                    <?endif;?>
                                 </td>
                                 <td class="<?= $cssSw->getClass() ?>" width="90%" colspan=3>
-                                    <?
-                                    if ($perm->have_perm($struct->getEditPerms())) {
-                                        $entry = DataFieldEntry::createDataFieldEntry($struct, '', stripslashes($_SESSION['sem_create_data']["sem_datafields"][$id]['value']));
-                                        print "&nbsp;&nbsp;".$entry->getHTML("sem_datafields");
-                                    } else {
-                                    ?>
-                                    &nbsp;<font size="-1"><?=_("Diese Daten werden von Ihrem zust&auml;ndigen Administrator erfasst.")?></font>
-                                    <?= tooltipIcon(_("Diese Felder werden zentral durch die zuständigen Administratoren erfasst.")) ?>
-                                    <?
-                                    }
+                                    <div style="width:33.8em; float:left;">
+                                        <?
+                                        if ($perm->have_perm($struct->getEditPerms())) {
+                                            $entry = DataFieldEntry::createDataFieldEntry($struct, '', stripslashes($_SESSION['sem_create_data']["sem_datafields"][$id]['value']));
+                                            print "&nbsp;&nbsp;".$entry->getHTML("sem_datafields");
+
+                                        } else {
+                                        ?>
+                                        &nbsp;<font size="-1"><?=_("Diese Daten werden von Ihrem zust&auml;ndigen Administrator erfasst.")?></font>
+                                        <?= tooltipIcon(_("Diese Felder werden zentral durch die zuständigen Administratoren erfasst.")) ?>
+                                        <?
+                                        }
+                                        ?>
+                                    </div>
+                                    <?if ($perm->have_perm($struct->getEditPerms()) && $struct->getDescription())
+                                          echo tooltipIcon(_($struct->getDescription()));
                                     ?>
                                 </td>
                             </tr>
@@ -3907,7 +4120,7 @@ if ($level == 5)
                             &nbsp;
                         </td>
                         <td class="<? echo $cssSw->getClass() ?>" width="90%" align="center" colspan=3>
-                            &nbsp; <?= Button::create('<< '._('Zurück'), 'jump_back') ?>&nbsp;<?= Button::create(_('Weiter').' >>', 'jump_next') ?>
+                            &nbsp; <?= LinkButton::create('<< '._('Zurück'), UrlHelper::getUrl('?jump_back=1&form=' . $level)) ?>&nbsp;<?= Button::create(_('Weiter').' >>', 'jump_next') ?>
                         </td>
                     </tr>
                 </table>
@@ -3938,7 +4151,7 @@ if ($level == 6)
                 <form method="POST" action="<? echo URLHelper::getLink() ?>">
                     <?= CSRFProtection::tokenTag() ?>
                     <input type="hidden" name="form" value=6>
-                    <?= Button::create('<< '._('Zurück'), 'jump_back') ?>&nbsp;<?= Button::create(_('Weiter').' >>', 'jump_next') ?>
+                    <?= LinkButton::create('<< '._('Zurück'), UrlHelper::getUrl('?jump_back=1&form=' . $level)) ?>&nbsp;<?= Button::create(_('Weiter').' >>', 'jump_next') ?>
                 </form>
                 </div>
             </td>
@@ -3973,7 +4186,7 @@ if ($level == 7)
                     <form method="POST" action="<? echo URLHelper::getLink() ?>">
                         <?= CSRFProtection::tokenTag() ?>
                         <input type="hidden" name="form" value=7>
-                        <?= Button::create('<< '._('Zurück'), 'jump_back') ?>
+                        <?= LinkButton::create('<< '._('Zurück'), UrlHelper::getUrl('?jump_back=1&form=' . $level)) ?>
                     </form>
                     </div>
                 </td>

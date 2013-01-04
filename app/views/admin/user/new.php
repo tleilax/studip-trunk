@@ -8,7 +8,7 @@ use Studip\Button, Studip\LinkButton;
 <form method="post" action="<?= $controller->url_for('admin/user/new') ?>">
 <?= CSRFProtection::tokenTag() ?>
 <table class="default">
-    <tr class="<?= TextHelper::cycle('steel1', 'steelgraulight') ?>">
+    <tr class="<?= TextHelper::cycle('table_row_even', 'table_row_odd') ?>">
         <td width="25%">
             <?= _("Benutzername:") ?>
             <span style="color: red; font-size: 1.6em">*</span>
@@ -17,23 +17,23 @@ use Studip\Button, Studip\LinkButton;
             <input class="user_form" type="text" name="username" value="<?= $user['username'] ?>" required >
         </td>
     </tr>
-    <tr class="<?= TextHelper::cycle('steel1', 'steelgraulight') ?>">
+    <tr class="<?= TextHelper::cycle('table_row_even', 'table_row_odd') ?>">
         <td>
             <?= _("globaler Status:") ?>
             <span style="color: red; font-size: 1.6em">*</span>
         </td>
         <td>
             <select class="user_form" name="perm" id="perm" onchange="jQuery('#admin_special').toggle( jQuery('#institut').val() != '0' && jQuery('#perm').val() == 'admin' )">
-                <option>user</option>
-                <option selected="selected">autor</option>
-                <option>tutor</option>
-                <option>dozent</option>
-                <option>admin</option>
-                <option>root</option>
+                <option <? if ($user['perm'] == 'user') echo 'selected'; ?>>user</option>
+                <option <? if (!$user['perm'] || $user['perm'] == 'autor') echo 'selected'; ?>>autor</option>
+                <option <? if ($user['perm'] == 'tutor') echo 'selected'; ?>>tutor</option>
+                <option <? if ($user['perm'] == 'dozent') echo 'selected'; ?>>dozent</option>
+                <option <? if ($user['perm'] == 'admin') echo 'selected'; ?>>admin</option>
+                <option <? if ($user['perm'] == 'root') echo 'selected'; ?>>root</option>
             </select>
         </td>
     </tr>
-    <tr class="<?= TextHelper::cycle('steel1', 'steelgraulight') ?>">
+    <tr class="<?= TextHelper::cycle('table_row_even', 'table_row_odd') ?>">
         <td>
             <?= _("Sichtbarkeit:") ?>
         </td>
@@ -41,7 +41,7 @@ use Studip\Button, Studip\LinkButton;
             <?= vis_chooser($user['visible'], true) ?>
         </td>
     </tr>
-    <tr class="<?= TextHelper::cycle('steel1', 'steelgraulight') ?>">
+    <tr class="<?= TextHelper::cycle('table_row_even', 'table_row_odd') ?>">
         <td>
             <?= _("Vorname:") ?>
             <span style="color: red; font-size: 1.6em">*</span>
@@ -50,7 +50,7 @@ use Studip\Button, Studip\LinkButton;
             <input class="user_form" type="text" name="Vorname" value="<?= htmlReady($user['Vorname']) ?>" required>
         </td>
     </tr>
-    <tr class="<?= TextHelper::cycle('steel1', 'steelgraulight') ?>">
+    <tr class="<?= TextHelper::cycle('table_row_even', 'table_row_odd') ?>">
         <td>
             <?= _("Nachname:") ?>
             <span style="color: red; font-size: 1.6em">*</span>
@@ -59,7 +59,7 @@ use Studip\Button, Studip\LinkButton;
             <input class="user_form" type="text" name="Nachname" value="<?= htmlReady($user['Nachname']) ?>" required>
         </td>
     </tr>
-    <tr class="<?= TextHelper::cycle('steel1', 'steelgraulight') ?>">
+    <tr class="<?= TextHelper::cycle('table_row_even', 'table_row_odd') ?>">
         <td>
             <?= _("Geschlecht:") ?>
         </td>
@@ -72,7 +72,7 @@ use Studip\Button, Studip\LinkButton;
             <label for="female"><?= _("weiblich") ?></label>
         </td>
     </tr>
-    <tr class="<?= TextHelper::cycle('steel1', 'steelgraulight') ?>">
+    <tr class="<?= TextHelper::cycle('table_row_even', 'table_row_odd') ?>">
         <td>
             <?= _("Titel:") ?>
         </td>
@@ -85,7 +85,7 @@ use Studip\Button, Studip\LinkButton;
             <input class="user_form" type="text" name="title_front" value="<?= htmlReady($user['title_front']) ?>">
         </td>
     </tr>
-    <tr class="<?= TextHelper::cycle('steel1', 'steelgraulight') ?>">
+    <tr class="<?= TextHelper::cycle('table_row_even', 'table_row_odd') ?>">
         <td>
             <?=_("Titel nachgestellt:") ?>
         </td>
@@ -98,7 +98,7 @@ use Studip\Button, Studip\LinkButton;
             <input class="user_form" type="text" name="title_rear" value="<?= htmlReady($user['title_rear']) ?>">
         </td>
     </tr>
-    <tr class="<?= TextHelper::cycle('steel1', 'steelgraulight') ?>">
+    <tr class="<?= TextHelper::cycle('table_row_even', 'table_row_odd') ?>">
         <td>
             <?= _("E-Mail:") ?>
             <span style="color: red; font-size: 1.6em">*</span>
@@ -111,7 +111,7 @@ use Studip\Button, Studip\LinkButton;
             <? endif ?>
         </td>
     </tr>
-    <tr class="<?= TextHelper::cycle('steel1', 'steelgraulight') ?>">
+    <tr class="<?= TextHelper::cycle('table_row_even', 'table_row_odd') ?>">
         <td>
             <?= _("Einrichtung:") ?>
         </td>
@@ -119,9 +119,9 @@ use Studip\Button, Studip\LinkButton;
             <select id="institut" class="user_form" name="institute" onchange="jQuery('#admin_special').toggle( jQuery('#institut').val() != '0' && jQuery('#perm').val() == 'admin')">
                 <option value="0"><?= _("-- bitte Einrichtung auswählen --") ?></option>
                 <? foreach ($faks as $fak) : ?>
-                    <option value="<?= $fak['Institut_id'] ?>"<?= ($user['inst'] == $fak['Institut_id']) ? 'selected' : '' ?><?= ($fak['is_fak']) ? 'style="font-weight: bold;"' : '' ?>><?= htmlReady($fak['Name']) ?></option>
+                    <option value="<?= $fak['Institut_id'] ?>" <?= ($user['institute'] == $fak['Institut_id']) ? 'selected' : '' ?><?= ($fak['is_fak']) ? 'style="font-weight: bold;"' : '' ?>><?= htmlReady($fak['Name']) ?></option>
                     <? foreach ($fak['institutes'] as $institute) : ?>
-                    <option value="<?= $institute['Institut_id'] ?>"<?= ($user['inst'] == $institute['Institut_id']) ? 'selected' : '' ?>>&nbsp;&nbsp;&nbsp;<?= htmlReady($institute['Name']) ?></option>
+                    <option value="<?= $institute['Institut_id'] ?>" <?= ($user['institute'] == $institute['Institut_id']) ? 'selected' : '' ?>>&nbsp;&nbsp;&nbsp;<?= htmlReady($institute['Name']) ?></option>
                     <? endforeach ?>
                 <? endforeach ?>
             </select>
@@ -134,7 +134,7 @@ use Studip\Button, Studip\LinkButton;
         </td>
     </tr>
 <? if (count($domains) > 0) : ?>
-    <tr class="<?= TextHelper::cycle('steel1', 'steelgraulight') ?>">
+    <tr class="<?= TextHelper::cycle('table_row_even', 'table_row_odd') ?>">
         <td>
             <?= _("Nutzerdomäne:") ?>
         </td>

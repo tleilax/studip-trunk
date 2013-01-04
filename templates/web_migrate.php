@@ -6,7 +6,7 @@ use Studip\Button, Studip\LinkButton;
 <div align="center">
   <table style="width: 80%;">
     <tr>
-      <td class="topic">
+      <td class="table_header_bold">
         <?= Assets::img('icons/16/white/info.png') ?>
         <b>
           <?= _('Stud.IP Web-Migrator') ?>
@@ -26,7 +26,7 @@ use Studip\Button, Studip\LinkButton;
           <p>
             <?= _('Die hier aufgeführten Anpassungen werden beim Klick auf "starten" ausgeführt:') ?>
           </p>
-          <table class="steel1" width="100%">
+          <table class="table_row_even" width="100%">
             <tr>
               <th>
                 <?= _('Nr.') ?>

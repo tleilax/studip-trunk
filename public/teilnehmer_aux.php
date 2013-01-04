@@ -41,7 +41,7 @@ checkObjectModule("participants");
 PageLayout::setTitle($SessSemName["header_line"]. " - " . _("Zusatzangaben"));
 Navigation::activateItem('/course/members/aux_data');
 
-if (!$_REQUEST['display_type']) {
+if (!Request::quoted('display_type')) {
     // Start of Output
     include ("lib/include/html_head.inc.php"); // Output of html head
     include ("lib/include/header.php");   //hier wird der "Kopf" nachgeladen
@@ -237,7 +237,7 @@ function aux_html() {
     // einzelne Nutzerdaten ausgeben
     foreach ($data['aux'] as $uid => $cur_user) {
         echo $zt->openRow();
-        echo $zt->cell(' <a href="'.URLHelper::getLink('about.php?username='.$cur_user['username']).'">'.htmlReady($cur_user['fullname']).'</a>');
+        echo $zt->cell(' <a href="'.URLHelper::getLink('dispatch.php/profile?username='.$cur_user['username']).'">'.htmlReady($cur_user['fullname']).'</a>');
         foreach ($data['header'] as $showkey => $dontcare) {
             echo $zt->cell(htmlReady($cur_user['entry'][$showkey]), array('align' => 'left'));
         }
@@ -266,12 +266,12 @@ function aux_enter_data() {
     global $datafield_id, $datafield_type, $datafield_sec_range_id, $datafield_content;
 
     unset($msgs);
-
-    if (is_array($_REQUEST['datafields'])) {
+    $datafields = Request::getArray('datafields');
+    if (is_array($datafields)) {
         $invalidEntries = array();
         foreach (filterDatafields(DataFieldEntry::getDataFieldEntries(array($user_id, $sem_id), 'usersemdata')) as $id => $entry){
-            if(isset($_REQUEST['datafields'][$entry->getId()])){
-                $entry->setValueFromSubmit($_REQUEST['datafields'][$entry->getId()]);
+            if(isset($datafields[$entry->getId()])){
+                $entry->setValueFromSubmit($datafields[$entry->getId()]);
                 if ($entry->isValid()) {
                     $entry->store();
                 } else {
@@ -336,7 +336,7 @@ function aux_enter_data() {
 $ct = new ContainerTable(array('width' => '100%', 'class' => 'blank', 'role' => 'main'));
 $zt = new ZebraTable(array('width' => '100%', 'padding' => '2', 'id' => 'main_content'));
 
-switch ($_REQUEST['display_type']) {
+switch (Request::quoted('display_type')) {
     case 'rtf':
         aux_rtf();
         page_close(NULL);

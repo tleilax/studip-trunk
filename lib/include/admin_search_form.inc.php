@@ -33,15 +33,13 @@ global  $auth, $perm, $user;
 
 global  $_fullname_sql,
         $i_page,
-        $links_admin_data,
         $list,
         $msg,
         $SessSemName,
         $view_mode;
-      
+
 if ($perm->have_perm("tutor")) {    // Navigationsleiste ab status "Tutor"
 
-    require_once 'config.inc.php';
     require_once 'lib/dates.inc.php';
     require_once 'lib/msg.inc.php';
     require_once 'lib/visual.inc.php';
@@ -51,9 +49,7 @@ if ($perm->have_perm("tutor")) {    // Navigationsleiste ab status "Tutor"
     require_once "lib/classes/AuxLockRules.class.php";
     require_once "lib/classes/AdminList.class.php";
 
-    $db=new DB_Seminar;
-    $db2=new DB_Seminar;
-    $db4=new DB_Seminar;
+
     $cssSw=new cssClassSwitcher;
     $semester=new SemesterData;
     $aux_rules=new AuxLockRules();
@@ -81,32 +77,38 @@ if ($perm->have_perm("tutor")) {    // Navigationsleiste ab status "Tutor"
                 <?= CSRFProtection::tokenTag() ?>
                 <table cellpadding="0" cellspacing="0" border="0" width="99%" align="center">
                     <tr>
-                        <td class="steel1">
+                        <td class="table_row_even">
                             <br>
                             <b><?=_("Bitte wählen Sie die Einrichtung aus, die Sie bearbeiten wollen:")?></b><br>
                             <br>
                         </td>
                     </tr>
                     <tr>
-                        <td class="steel1">
+                        <td class="table_row_even">
                         <select name="admin_inst_id" size="1" style="vertical-align:middle">
                         <?
+                        $dbparams = array();
                         if ($auth->auth['perm'] == "root"){
-                            $db->query("SELECT Institut_id, Name, 1 AS is_fak  FROM Institute WHERE Institut_id=fakultaets_id ORDER BY Name");
+                            $dbquery = "SELECT Institut_id, Name, 1 AS is_fak  FROM Institute WHERE Institut_id=fakultaets_id ORDER BY Name";
                         } elseif ($auth->auth['perm'] == "admin") {
-                            $db->query("SELECT a.Institut_id,Name, IF(b.Institut_id=b.fakultaets_id,1,0) AS is_fak FROM user_inst a LEFT JOIN Institute b USING (Institut_id)
-                                        WHERE a.user_id='$user->id' AND a.inst_perms='admin' ORDER BY is_fak,Name");
+                            $dbquery = "SELECT a.Institut_id,Name, IF(b.Institut_id=b.fakultaets_id,1,0) AS is_fak FROM user_inst a LEFT JOIN Institute b USING (Institut_id)
+                                        WHERE a.user_id='$user->id' AND a.inst_perms='admin' ORDER BY is_fak,Name";
                         } else {
-                            $db->query("SELECT a.Institut_id,Name FROM user_inst a LEFT JOIN Institute b USING (Institut_id) WHERE inst_perms IN('tutor','dozent') AND user_id='$user->id' ORDER BY Name");
+                            $dbquery = "SELECT a.Institut_id,Name FROM user_inst a LEFT JOIN Institute b USING (Institut_id) WHERE inst_perms IN('tutor','dozent') AND user_id = ? ORDER BY Name";
+                            $dbparams = array($user->id);
                         }
+                        $dbstatement = DBManager::get()->prepare($dbquery);
+                        $dbstatement->execute($dbparams);
 
                         printf ("<option value=\"NULL\">%s</option>\n", _("-- bitte Einrichtung auswählen --"));
-                        while ($db->next_record()){
-                            printf ("<option value=\"%s\" style=\"%s\">%s </option>\n", $db->f("Institut_id"),($db->f("is_fak") ? "font-weight:bold;" : ""), htmlReady(substr($db->f("Name"), 0, 70)));
-                            if ($db->f("is_fak")){
-                                $db2->query("SELECT Institut_id, Name FROM Institute WHERE fakultaets_id='" .$db->f("Institut_id") . "' AND institut_id!='" .$db->f("Institut_id") . "' ORDER BY Name");
-                                while ($db2->next_record()){
-                                    printf("<option value=\"%s\">&nbsp;&nbsp;&nbsp;&nbsp;%s </option>\n", $db2->f("Institut_id"), htmlReady(substr($db2->f("Name"), 0, 70)));
+                        while ($dbrow = $dbstatement->fetch(PDO::FETCH_ASSOC)){
+                            printf ("<option value=\"%s\" style=\"%s\">%s </option>\n", $dbrow['Institut_id'],($dbrow['is_fak'] ? "font-weight:bold;" : ""), htmlReady(substr($dbrow['Name'], 0, 70)));
+                            if ($dbrow['is_fak']){
+                                $db2query = "SELECT Institut_id, Name FROM Institute WHERE fakultaets_id='" .$dbrow['Institut_id'] . "' AND institut_id!='" .$dbrow['Institut_id'] . "' ORDER BY Name";
+                                $db2statement = DBManager::get()->prepare($db2query);
+                                $db2statement->execute();
+                                while ($db2row = $db2statement->fetch(PDO::FETCH_ASSOC)){
+                                    printf("<option value=\"%s\">&nbsp;&nbsp;&nbsp;&nbsp;%s </option>\n", $db2row['Institut_id'], htmlReady(substr($db2row['Name'], 0, 70)));
                                 }
                             }
                         }
@@ -116,17 +118,17 @@ if ($perm->have_perm("tutor")) {    // Navigationsleiste ab status "Tutor"
                     </td>
                 </tr>
                 <tr>
-                    <td class="steel1">&nbsp;
-                        
+                    <td class="table_row_even">&nbsp;
+
                     </td>
                 </tr>
                 <tr>
                     <td class="blank">&nbsp;
-                        
+
                     </td>
                 </tr>
-                
-                
+
+
             </table>
             </form>
             </td>
@@ -161,52 +163,57 @@ if ($perm->have_perm("tutor")) {    // Navigationsleiste ab status "Tutor"
                 <?= CSRFProtection::tokenTag() ?>
                 <table cellpadding="0" cellspacing="0" border="0" width="99%" align="center">
                     <tr>
-                        <td class="steel1" colspan=5>
+                        <td class="table_row_even" colspan=5>
                                <br>
                                <b><?=_("Sie können die Auswahl der Veranstaltungen eingrenzen:")?></b><br>
                                <br>
                         </td>
                     </tr>
                     <tr>
-                        <td class="steel1">
+                        <td class="table_row_even">
                             <?=_("Semester:")?><br>
                             <?=SemesterData::GetSemesterSelector(array('name'=>'srch_sem'), $_SESSION['links_admin_data']['srch_sem'])?>
                         </td>
 
-                        <td class="steel1">
+                        <td class="table_row_even">
                         <?
                         if ($perm->have_perm("root")) {
-                            $db->query("SELECT Institut_id, Name FROM Institute WHERE Institut_id!=fakultaets_id ORDER BY Name");
+                            $dbquery = "SELECT Institut_id, Name FROM Institute WHERE Institut_id!=fakultaets_id ORDER BY Name";
+                            $dbparams = array();
                         } else {
-                            $db->query("SELECT a.Institut_id,Name, IF(b.Institut_id=b.fakultaets_id,1,0) AS is_fak FROM user_inst a LEFT JOIN Institute b USING (Institut_id)
-                                WHERE a.user_id='$user->id' AND a.inst_perms='admin' ORDER BY is_fak,Name");
+                            $dbquery = "SELECT a.Institut_id,Name, IF(b.Institut_id=b.fakultaets_id,1,0) AS is_fak FROM user_inst a LEFT JOIN Institute b USING (Institut_id)
+                                WHERE a.user_id=? AND a.inst_perms='admin' ORDER BY is_fak,Name";
+                            $dbparams = array($user->id);
                         }
                         ?>
                         <?=_("Einrichtung:")?><br>
                         <select name="srch_inst">
                             <option value="0"><?=_("alle")?></option>
                             <?
-                            while ($db->next_record()) {
-                                $my_inst[]=$db->f("Institut_id");
-                                if ($_SESSION['links_admin_data']['srch_inst'] == $db->f("Institut_id"))
-                                    echo"<option selected value=\"".$db->f("Institut_id")."\">".substr($db->f("Name"), 0, 30)."</option>";
+                            $dbstatement = DBManager::get()->prepare($dbquery);
+                            $dbstatement->execute($dbparams);
+
+                            while ($dbrow = $dbstatement->fetch(PDO::FETCH_ASSOC)) {
+                                $my_inst[]=$dbrow['Institut_id'];
+                                if ($_SESSION['links_admin_data']['srch_inst'] == $dbrow['Institut_id'])
+                                    echo"<option selected value=\"".$dbrow['Institut_id']."\">".substr($dbrow['Name'], 0, 30)."</option>";
                                 else
-                                    echo"<option value=\"".$db->f("Institut_id")."\">".substr($db->f("Name"), 0, 30)."</option>";
-                                if ($db->f("is_fak")) {
-                                    $db2->query("SELECT Institut_id, Name FROM Institute WHERE fakultaets_id='" .$db->f("Institut_id") . "' AND institut_id!='" .$db->f("Institut_id") . "' ORDER BY Name");
-                                    while ($db2->next_record()) {
-                                        if ($_SESSION['links_admin_data']['srch_inst'] == $db2->f("Institut_id"))
-                                            echo"<option selected value=\"".$db2->f("Institut_id")."\">&nbsp;&nbsp;&nbsp;".substr($db2->f("Name"), 0, 30)."</option>";
+                                    echo"<option value=\"".$dbrow['Institut_id']."\">".substr($dbrow['Name'], 0, 30)."</option>";
+                                if ($dbrow['is_fak']) {
+                                    $db2query = "SELECT Institut_id, Name FROM Institute WHERE fakultaets_id='" .$dbrow['Institut_id'] . "' AND institut_id!='" .$dbrow['Institut_id'] . "' ORDER BY Name";
+                                    foreach (DBManager::get()->query($db2query) as $dbrow2) {
+                                        if ($_SESSION['links_admin_data']['srch_inst'] == $dbrow2['Institut_id'])
+                                            echo"<option selected value=\"".$dbrow2['Institut_id']."\">&nbsp;&nbsp;&nbsp;".substr($dbrow2['Name'], 0, 30)."</option>";
                                         else
-                                            echo"<option value=\"".$db2->f("Institut_id")."\">&nbsp;&nbsp;&nbsp;".substr($db2->f("Name"), 0, 30)."</option>";
-                                        $my_inst[]=$db2->f("Institut_id");
+                                            echo"<option value=\"".$dbrow2['Institut_id']."\">&nbsp;&nbsp;&nbsp;".substr($dbrow2['Name'], 0, 30)."</option>";
+                                        $my_inst[]=$dbrow2['Institut_id'];
                                     }
                                 }
                             }
                             ?>
                         </select>
                         </td>
-                        <td class="steel1">
+                        <td class="table_row_even">
                         <?
                         if (($perm->have_perm("admin")) && (!$perm->have_perm("root"))) {
                             ?>
@@ -214,20 +221,16 @@ if ($perm->have_perm("tutor")) {    // Navigationsleiste ab status "Tutor"
                             <select name="srch_doz">
                             <option value="0"><?=_("alle")?></option>
                             <?
-                            if (is_array($my_inst)) {
-                                $inst_id_query = "'";
-                                $inst_id_query.= join ("', '",$my_inst);
-                                $inst_id_query.= "'";
-
-                                $query="SELECT auth_user_md5.user_id, " . $_fullname_sql['full_rev'] ." AS fullname, Institut_id FROM user_inst  LEFT JOIN auth_user_md5 USING(user_id) LEFT JOIN user_info USING(user_id) WHERE inst_perms='dozent' AND institut_id IN ($inst_id_query) GROUP BY auth_user_md5.user_id ORDER BY Nachname ";
-                                $db->query($query);
-                                if ($db->num_rows()) {
-                                    while ($db->next_record()) {
-                                        if ($_SESSION['links_admin_data']['srch_doz'] == $db->f("user_id"))
-                                            echo"<option selected value=\"".$db->f("user_id")."\">".htmlReady(my_substr($db->f("fullname"),0,35))."</option>";
+                            if (is_array($my_inst) && count($my_inst)) {
+                                $db2query="SELECT auth_user_md5.user_id, " . $_fullname_sql['full_rev'] ." AS fullname, Institut_id FROM user_inst  LEFT JOIN auth_user_md5 USING(user_id) LEFT JOIN user_info USING(user_id) WHERE inst_perms='dozent' AND institut_id IN (?) GROUP BY auth_user_md5.user_id ORDER BY Nachname";
+                                $db2statement = DBManager::get()->prepare($db2query);
+                                $db2statement->execute(array($my_inst));
+                                while ($db2row = $db2statement->fetch(PDO::FETCH_ASSOC)){
+                                            if ($_SESSION['links_admin_data']['srch_doz'] == $db2row['user_id'])
+                                            echo"<option selected value=\"".$db2row['user_id']."\">".htmlReady(my_substr($db2row['fullname'],0,35))."</option>";
                                         else
-                                            echo"<option value=\"".$db->f("user_id")."\">".htmlReady(my_substr($db->f("fullname"),0,35))."</option>";
-                                    }
+                                            echo"<option value=\"".$db2row['user_id']."\">".htmlReady(my_substr($db2row['fullname'],0,35))."</option>";
+
                                 }
                             }
                             ?>
@@ -236,17 +239,20 @@ if ($perm->have_perm("tutor")) {    // Navigationsleiste ab status "Tutor"
                         }
 
                         if ($perm->have_perm("root")) {
-                            $db->query("SELECT Institut_id,Name FROM Institute WHERE Institut_id=fakultaets_id ORDER BY Name");
+                            $dbquery = "SELECT Institut_id,Name FROM Institute WHERE Institut_id=fakultaets_id ORDER BY Name";
                             ?>
                             <?=_("Fakultät:")?><br>
                             <select name="srch_fak">
                                 <option value="0"><?=_("alle")?></option>
                                 <?
-                                while ($db->next_record()) {
-                                    if ($_SESSION['links_admin_data']['srch_fak'] == $db->f("Institut_id"))
-                                        echo"<option selected value=\"".$db->f("Institut_id")."\">".substr($db->f("Name"), 0, 30)."</option>";
+                                $dbstatement = DBManager::get()->prepare($dbquery);
+                                $dbstatement->execute();
+
+                                while ($dbrow = $dbstatement->fetch(PDO::FETCH_ASSOC)){
+                                    if ($_SESSION['links_admin_data']['srch_fak'] == $dbrow['Institut_id'])
+                                        echo"<option selected value=\"".$dbrow['Institut_id']."\">".substr($dbrow['Name'], 0, 30)."</option>";
                                     else
-                                        echo"<option value=\"".$db->f("Institut_id")."\">".substr($db->f("Name"), 0, 30)."</option>";
+                                        echo"<option value=\"".$dbrow['Institut_id']."\">".substr($dbrow['Name'], 0, 30)."</option>";
                                 }
                                 ?>
                             </select>
@@ -254,12 +260,12 @@ if ($perm->have_perm("tutor")) {    // Navigationsleiste ab status "Tutor"
                         }
                         ?>&nbsp;
                         </td>
-                        <td class="steel1">
+                        <td class="table_row_even">
                             <?=_("freie Suche:")?><br>
                             <input type="text" name="srch_exp" maxlength=255 size=20 value="<? echo htmlReady($_SESSION['links_admin_data']['srch_exp']) ?>">
                             <input type="hidden" name="srch_send" value="TRUE">
                         </td>
-                        <td class="steel1" valign="bottom" width="20%" nowrap="nowrap">
+                        <td class="table_row_even" valign="bottom" width="20%" nowrap="nowrap">
                             <?= Button::create(_("Anzeigen"), 'anzeigen'); ?>
                             <?
                             if ($_SESSION['links_admin_data']['srch_on']){
@@ -270,7 +276,7 @@ if ($perm->have_perm("tutor")) {    // Navigationsleiste ab status "Tutor"
                         </td>
                     </tr>
                 <tr>
-                    <td class="steel1" colspan="5">
+                    <td class="table_row_even" colspan="5">
                         <br>
                         <label>
                             <input type="checkbox" name="show_rooms_check" value="on" <? if ($show_rooms_check == 'on') echo 'checked'; ?> >&nbsp; <?=_("Raumdaten einblenden")?>
@@ -283,7 +289,7 @@ if ($perm->have_perm("tutor")) {    // Navigationsleiste ab status "Tutor"
                     if ($i_page == "archiv_assi.php") {
                         ?>
                         <tr>
-                            <td class="steel1" colspan=6>
+                            <td class="table_row_even" colspan=6>
                                 <br>
                                 <input type="CHECKBOX" name="select_old" <? if ($_SESSION['links_admin_data']['select_old']) echo ' checked' ?>>&nbsp;<?=_("keine zukünftigen Veranstaltungen anzeigen - Beginn des (letzten) Veranstaltungssemesters ist verstrichen")?><br>
                                 <!-- <input type="CHECKBOX" name="select_inactive" <? if ($_SESSION['links_admin_data']['select_inactive']) echo ' checked' ?>>&nbsp;<?=_("nur inaktive Veranstaltungen auswählen (letzte Aktion vor mehr als sechs Monaten)")?> -->
@@ -298,13 +304,13 @@ if ($perm->have_perm("tutor")) {    // Navigationsleiste ab status "Tutor"
                     }
                     ?>
                     <tr>
-                        <td class="steel1" colspan=5>&nbsp;
-                            
+                        <td class="table_row_even" colspan=5>&nbsp;
+
                         </td>
                     </tr>
                     <tr>
                         <td class="blank" colspan=5>&nbsp;
-                            
+
                         </td>
                     </tr>
                     <? if (! empty($message)) : ?>
@@ -337,31 +343,31 @@ if ($perm->have_perm("tutor")) {    // Navigationsleiste ab status "Tutor"
         if (count($results)) {
             ?>
             <tr height=28>
-                <td width="%10" class="steel" valign=bottom>
+                <td width="10%" class="table_header" valign=bottom>
                     <img src="<?= $GLOBALS['ASSETS_URL'] ?>images/blank.gif" width=1 height=20>
                     &nbsp;<a href="<?=URLHelper::getLink('?adminarea_sortby=start_time'. $show_rooms_check_url)?>"><b><?=_("Semester")?></b></a>
                 </td>
-                <td width="5%" class="steel" valign=bottom>
+                <td width="5%" class="table_header" valign=bottom>
                     <img src="<?= $GLOBALS['ASSETS_URL'] ?>images/blank.gif" width=1 height=20>
                     &nbsp; <a href="<?=URLHelper::getLink('?adminarea_sortby=VeranstaltungsNummer'. $show_rooms_check_url)?>"><b><?=_("Nr.")?></b></a>
                 </td>
-                <td width="45%" class="steel" valign=bottom>
+                <td width="45%" class="table_header" valign=bottom>
                     <img src="<?= $GLOBALS['ASSETS_URL'] ?>images/blank.gif" width=1 height=20>
                     &nbsp; <a href="<?=URLHelper::getLink('?adminarea_sortby=Name'. $show_rooms_check_url)?>"><b><?=_("Name")?></b></a>
                 </td>
                 <? if ($show_rooms_check_url) : ?>
-                <td width="25%" class="steel" valign=bottom>
+                <td width="25%" class="table_header" valign=bottom>
                     <img src="<?=$GLOBALS['ASSETS_URL']?>images/blank.gif" width=1 height=20>
                     <b><?=_("Raum")?></b>
                 </td>
                 <? endif; ?>
-                <td width="15%" align="center" class="steel" valign=bottom>
+                <td width="15%" align="center" class="table_header" valign=bottom>
                     <b><?=_("DozentIn")?></b>
                 </td>
-                <td width="25%"align="center" class="steel" valign=bottom>
+                <td width="25%"align="center" class="table_header" valign=bottom>
                     <a href="<?=URLHelper::getLink('?adminarea_sortby=status'. $show_rooms_check_url)?>"><b><?=_("Status")?></b></a>
                 </td>
-                <td width="10%" align="center" class="steel" valign=bottom>
+                <td width="10%" align="center" class="table_header" valign=bottom>
                     <b><?
                         if ($i_page=="archiv_assi.php") {
                             echo _("Archivieren");
@@ -379,14 +385,14 @@ if ($perm->have_perm("tutor")) {    // Navigationsleiste ab status "Tutor"
             //more Options for archiving
             if ($i_page == "archiv_assi.php") {
                 ?>
-                <tr class="steel2">
+                <tr class="table_footer">
                     <td colspan="3">
                     </td>
                     <td colspan="<?= $show_rooms_check == 'on' ? 4 : 3 ?>" align="right">
                     <?
-                        echo LinkButton::create(_("Alle auswählen"), 
+                        echo LinkButton::create(_("Alle auswählen"),
                              URLHelper::getURL('', array('select_all' => TRUE, 'list' => TRUE, 'show_rooms_check' => $show_rooms_check)));
-                        echo LinkButton::create(_('Keine auswählen'), 
+                        echo LinkButton::create(_('Keine auswählen'),
                              URLHelper::getURL('', array('select_none' => TRUE, 'list' => TRUE, 'show_rooms_check' => $show_rooms_check)));
                     ?>
                     </td>
@@ -396,7 +402,7 @@ if ($perm->have_perm("tutor")) {    // Navigationsleiste ab status "Tutor"
             //more Options for visibility changing
             if ($i_page == "admin_visibility.php") {
                 ?>
-                <tr class="steel2">
+                <tr class="table_footer">
                     <td colspan="3">
                     </td>
                     <td colspan="<?= $show_rooms_check == 'on' ? 4 : 3 ?>" align="right">
@@ -407,14 +413,14 @@ if ($perm->have_perm("tutor")) {    // Navigationsleiste ab status "Tutor"
                     ?>
                     </td>
                 </tr>
-                
+
                 <?
             }
         //more Options for lock changing
         if ($i_page == "admin_lock.php") {
             $seminar_lock_rules = LockRules::getAvailableSeminarRules($GLOBALS['user']->id);
             ?>
-            <tr class="steel2">
+            <tr class="table_footer">
                 <td colspan="3">
                 </td>
                 <td colspan="4" align="right">
@@ -443,7 +449,7 @@ if ($perm->have_perm("tutor")) {    // Navigationsleiste ab status "Tutor"
         //more Options for aux data
             if ($i_page == "admin_aux.php") {
                 ?>
-                <tr class="steel2">
+                <tr class="table_footer">
                     <td colspan="3" nowrap>
                     </td>
                     <td colspan="4" align="right">
@@ -509,20 +515,24 @@ if ($perm->have_perm("tutor")) {    // Navigationsleiste ab status "Tutor"
             }
 
             echo "<td align=\"center\" class=\"".$cssSw->getClass()."\">";
-            $db4->query("SELECT ". $_fullname_sql['full'] ." AS fullname, username, position FROM seminar_user
+            $db4query = "SELECT ". $_fullname_sql['full'] ." AS fullname, username, position FROM seminar_user
                 LEFT JOIN auth_user_md5 USING (user_id)
                 LEFT JOIN user_info USING (user_id)
-                WHERE Seminar_id = '$seminar_id' and status = 'dozent' ORDER BY position ");
+                WHERE Seminar_id = ? and status = 'dozent' ORDER BY position ";
             $k=0;
-            if (!$db4->num_rows())
+            $db4statement = DBManager::get()->prepare($db4query);
+            $dbparams = array($seminar_id);
+            $db4statement->execute($dbparams);
+            $db4row = $db4statement->fetch(PDO::FETCH_ASSOC);
+            if ($db4row === false)
                 echo "&nbsp; ";
-            while ($db4->next_record()) {
-                if ($db4->f('username')) {
+            do{
+                if ($db4row['username']) {
                     if ($k) echo ', ';
-                    echo "<a href=\"".UrlHelper::GetLink("about.php?username=".$db4->f("username"))."\">".htmlReady($db4->f("fullname"))."</a>";
+                    echo "<a href=\"".UrlHelper::GetLink("dispatch.php/profile?username=".$db4row['username'])."\">".htmlReady($db4row['fullname'])."</a>";
                     $k++;
                 }
-            }
+            }while($db4row = $db4statement->fetch(PDO::FETCH_ASSOC));
             echo "</td>";
             ?>
 
@@ -556,11 +566,11 @@ if ($perm->have_perm("tutor")) {    // Navigationsleiste ab status "Tutor"
                     printf(_("Literatur") . "<br>%s", LinkButton::create(_('Bearbeiten'), URLHelper::getURL('', array('_range_id'=> $seminar_id))));
                     break;
                 case "admin_statusgruppe.php":
-                    printf(_("Funktionen / Gruppen") . "<br>%s", LinkButton::create(_('Bearbeiten'), 
+                    printf(_("Funktionen / Gruppen") . "<br>%s", LinkButton::create(_('Bearbeiten'),
                     URLHelper::getURL('', array('ebene' => 'sem', 'range_id' => $seminar_id))));
                     break;
                 case "admin_roles.php":
-                    printf(_("Funktionen / Gruppen") . "<br>%s", LinkButton::create(_('Bearbeiten'), 
+                    printf(_("Funktionen / Gruppen") . "<br>%s", LinkButton::create(_('Bearbeiten'),
                     URLHelper::getURL('', array('ebene' => 'sem', 'range_id'=> $seminar_id))));
                     break;
                 case "admin_modules.php":
@@ -570,15 +580,15 @@ if ($perm->have_perm("tutor")) {    // Navigationsleiste ab status "Tutor"
                     printf(_("Ankündigungen") . "<br>%s", LinkButton::create(_('Bearbeiten'), URLHelper::getURl('', array('range_id' => $seminar_id))));
                     break;
                 case 'admin_vote.php':
-                    printf(_("Umfragen und Tests") . "<br>%s", LinkButton::create(_('Bearbeiten'), 
+                    printf(_("Umfragen und Tests") . "<br>%s", LinkButton::create(_('Bearbeiten'),
                     URLHelper::getURL('', array('view' => 'vote_sem', 'showrangeID' => $seminar_id))));
                     break;
                 case 'admin_evaluation.php':
-                    printf(_("Evaluationen") . "<br>%s", LinkButton::create(_('Bearbeiten'), 
+                    printf(_("Evaluationen") . "<br>%s", LinkButton::create(_('Bearbeiten'),
                     URLHelper::getURL('', array('view' => 'eval_sem', 'rangeID' => $seminar_id))));
                     break;
                 case "copy_assi.php":
-                    printf(_("Veranstaltung") . "<br>%s", LinkButton::create(_('Kopieren'), 
+                    printf(_("Veranstaltung") . "<br>%s", LinkButton::create(_('Kopieren'),
                     URLHelper::getURL('admin_seminare_assi.php', array('cmd' => 'do_copy', 'start_level' => TRUE, 'class' => '1', 'cp_id' => $seminar_id))));
                     break;
                 case "admin_lock.php":
@@ -605,9 +615,13 @@ if ($perm->have_perm("tutor")) {    // Navigationsleiste ab status "Tutor"
                     }
                 break;
                 case "admin_aux.php":
-                    $db5 = new Db_Seminar;
-                    $db5->query("SELECT aux_lock_rule from seminare WHERE Seminar_id='$seminar_id'");
-                    $db5->next_record();
+
+                    $db5query = "SELECT aux_lock_rule from seminare WHERE Seminar_id = ?";
+                    $db5params = array($seminar_id);
+                    $db5statement = DBManager::get()->prepare($db5query);
+                    $db5statement->execute($db5params);
+                    $db5row = $db4statement->fetch(PDO::FETCH_ASSOC);
+
                     if ($perm->have_perm("dozent")) {
                         ?>
                         <input type="hidden" name="make_aux" value="1">
@@ -618,7 +632,7 @@ if ($perm->have_perm("tutor")) {    // Navigationsleiste ab status "Tutor"
                                 echo '<option value="'.$lock_id.'"';
                                 if (Request::option('aux_all') && Request::option('aux_all')==$lock_id) {
                                     echo ' selected ';
-                                } elseif (!Request::option('aux_all') && ($lock_id == $db5->f("aux_lock_rule"))) {
+                                } elseif (!Request::option('aux_all') && ($lock_id == $db5row['aux_lock_rule'])) {
                                     echo ' selected ';
                                 }
                                 echo '>'.htmlReady($data['name']).'</option>';
@@ -634,7 +648,7 @@ if ($perm->have_perm("tutor")) {    // Navigationsleiste ab status "Tutor"
                         if(!LockRules::check($seminar_id, 'seminar_visibility')){
                             ?>
                             <input type="hidden" name="all_sem[]" value="<? echo $seminar_id ?>">
-                            <input type="CHECKBOX" name="visibility_sem[<? echo $seminar_id ?>]" <? if (!$_REQUEST['select_none'] && ($_REQUEST['select_all'] || $result['visible'])) echo ' checked'; ?>>
+                            <input type="CHECKBOX" name="visibility_sem[<? echo $seminar_id ?>]" <? if (!Request::get('select_none') && (Request::get('select_all') || $result['visible'])) echo ' checked'; ?>>
                             <?
                         } else {
                             echo $result['visible'] ? _("sichtbar") : _("versteckt");
@@ -646,7 +660,7 @@ if ($perm->have_perm("tutor")) {    // Navigationsleiste ab status "Tutor"
                         if(!LockRules::check($seminar_id, 'seminar_visibility')){
                             ?>
                             <input type="hidden" name="archiv_sem[]" value="_id_<? echo $seminar_id ?>">
-                            <input type="CHECKBOX" name="archiv_sem[]" <? if ($_REQUEST['select_all']) echo ' checked'; ?>>
+                            <input type="CHECKBOX" name="archiv_sem[]" <? if (Request::get('select_all')) echo ' checked'; ?>>
                             <?
                         } else {
                             echo "&nbsp;";
@@ -663,25 +677,28 @@ if ($perm->have_perm("tutor")) {    // Navigationsleiste ab status "Tutor"
                     } elseif ($this instanceof Course_RoomRequestsController){
                         echo _("Raumanfragen") . '<br>',
                             LinkButton::create(_("Bearbeiten"), $this->url_for('index/' . $seminar_id));
+                    } elseif ($this instanceof Course_PlusController){
+                        echo _("Inhaltselemente") . '<br>',
+                            LinkButton::create(_("Bearbeiten"), $this->url_for('course/plus/index/' . $seminar_id));
                     }
                     break;
             }
             echo "</tr>";
         }
-        
+
         //more Options for visibility changing
             if ($i_page == "admin_visibility.php" || $i_page == "admin_aux.php" || $i_page == "admin_lock.php") {
                 ?>
-                <tr class="steel2">
+                <tr class="table_footer">
                     <td colspan="<?= $show_rooms_check == 'on' ? 7 : 6 ?>" align="right">
                     <?= _("Änderungen") ?> <?= Button::createAccept(_('Speichern')) ?>
                     </td>
                 </tr>
-                
+
                 <?
             }
             if ($i_page == "archiv_assi.php"){ ?>
-                <tr class="steel2">
+                <tr class="table_footer">
                     <td colspan="<?= $show_rooms_check == 'on' ? 7 : 6 ?>" align="right">
                         <?=_("Alle ausgewählten Veranstaltungen")?>
                         <?=Button::create(_("Archivieren"))?><br>

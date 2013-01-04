@@ -78,7 +78,7 @@ class Ilias3Soap extends StudipSoapClient
         {
             if ($this->user_sid == false)
                 $this->login();
-            echo "u";
+//            echo "u";
             return $this->user_sid;
         }
         return false;
@@ -110,7 +110,7 @@ class Ilias3Soap extends StudipSoapClient
         {
             $result = parent::call($method, $params);
             // if Session is expired, re-login and try again
-            if (($method != "login") AND $this->soap_client->fault AND ($this->faultstring == "Session not valid" || $this->faultstring == "Session invalid" ))
+            if (($method != "login") AND $this->soap_client->fault AND in_array(strtolower($this->faultstring), array("session not valid","session invalid", "session idled")) )
             {
 //              echo "LOGIN AGAIN.";
                 $caching_status = $this->caching_active;
@@ -134,7 +134,7 @@ class Ilias3Soap extends StudipSoapClient
     */
     function loadCacheData($cms)
     {
-        $this->soap_cache = $GLOBALS["cache_data"][$cms];
+        $this->soap_cache = $_SESSION["cache_data"][$cms];
     }
 
     /**
@@ -170,11 +170,9 @@ class Ilias3Soap extends StudipSoapClient
     */
     function clearCache()
     {
-        global $sess;
-
         $this->soap_cache = "";
-        $GLOBALS["cache_data"][$this->cms_type] = "";
-        $sess->register("cache_data");
+        $_SESSION["cache_data"][$this->cms_type] = "";
+
     }
 
     /**
@@ -185,10 +183,8 @@ class Ilias3Soap extends StudipSoapClient
     */
     function saveCacheData()
     {
-        global $sess;
+       $_SESSION["cache_data"][$this->cms_type] = $this->soap_cache;
 
-        $GLOBALS["cache_data"][$this->cms_type] = $this->soap_cache;
-        $sess->register("cache_data");
     }
 
     /**

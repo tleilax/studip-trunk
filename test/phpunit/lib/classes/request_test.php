@@ -23,14 +23,17 @@ class RequestTest extends PHPUnit_Framework_TestCase
         $_POST['d']   = '12.7';
         $_GET['e']    = '3,14';
         $_POST['s_x'] = '0';
+        $_GET['f']    = 'root@studip';
 
         $_GET['v1']  = array('1', '2.4', '3,7');
         $_POST['v2'] = array('on\'e', 'two', 'thr33');
+        $_GET['v3']  = array('root@studip', 'hotte.testfreund', 42, '!"$%&/()');
 
         if (get_magic_quotes_gpc()) {
             $_GET  = Request::addslashes($_GET);
             $_POST = Request::addslashes($_POST);
         }
+        $GLOBALS['USERNAME_REGULAR_EXPRESSION'] = '/^([a-zA-Z0-9_@.-]{4,})$/';
     }
 
     public function testURL ()
@@ -40,14 +43,14 @@ class RequestTest extends PHPUnit_Framework_TestCase
         $_SERVER['SERVER_PORT'] = '443';
         $_SERVER['REQUEST_URI'] = '/do/it?now=1';
 
-        $this->assertEquals(Request::url(), 'https://www.example.com/do/it?now=1');
+        $this->assertEquals('https://www.example.com/do/it?now=1', Request::url());
 
         $_SERVER['HTTPS'] = '';
         $_SERVER['SERVER_NAME'] = 'www.example.com';
         $_SERVER['SERVER_PORT'] = '8080';
         $_SERVER['REQUEST_URI'] = '/index.php';
 
-        $this->assertEquals(Request::url(), 'http://www.example.com:8080/index.php');
+        $this->assertEquals('http://www.example.com:8080/index.php', Request::url());
     }
 
     public function testArrayAccess ()
@@ -113,6 +116,15 @@ class RequestTest extends PHPUnit_Framework_TestCase
         $this->assertNull(Request::float('v1'));
     }
 
+    public function testUsernameParam ()
+    {
+        $this->assertNull(Request::username('null'));
+        $this->assertSame(Request::username('a'), 'test');
+        $this->assertSame(Request::username('f'), 'root@studip');
+        $this->assertNull(Request::username('b'));
+        $this->assertNull(Request::username('v1'));
+    }
+
     public function testStringArrayParam ()
     {
         $this->assertSame(Request::getArray('null'), array());
@@ -150,6 +162,15 @@ class RequestTest extends PHPUnit_Framework_TestCase
         $this->assertSame(Request::floatArray('v2'), array(0.0, 0.0, 0.0));
     }
 
+    public function testUsernameArrayParam ()
+    {
+        $this->assertSame(Request::usernameArray('null'), array());
+        $this->assertSame(Request::usernameArray('a'), array());
+        $this->assertSame(Request::usernameArray('v1'), array());
+        $this->assertSame(Request::usernameArray('v2'), array(2 => 'thr33'));
+        $this->assertSame(Request::usernameArray('v3'), array('root@studip', 'hotte.testfreund'));
+    }
+
     public function testSubmitted ()
     {
         $this->assertFalse(Request::submitted('null'));
@@ -180,13 +201,13 @@ class RequestMethodTest extends PHPUnit_Framework_TestCase
     public function testMethod()
     {
         $this->setRequestMethod('GET');
-        $this->assertEquals(Request::method(), 'GET');
+        $this->assertEquals('GET', Request::method());
     }
 
     public function testMethodUppercases()
     {
         $this->setRequestMethod('gEt');
-        $this->assertEquals(Request::method(), 'GET');
+        $this->assertEquals('GET', Request::method());
     }
 
     public function testRequestMethodGet()

@@ -65,15 +65,16 @@ class EventLog
     /**
      * build SQL query filter for selected action and object
      */
-    private function sql_event_filter ($action_id, $object_id)
+    private function sql_event_filter ($action_id, $object_id, &$parameters = array())
     {
         if (isset($action_id) && $action_id != 'all') {
-            $filter[] = "action_id = '".addslashes($action_id)."'";
+            $filter[] = "action_id = :action_id";
+            $parameters[':action_id'] = $action_id;
         }
 
         if (isset($object_id)) {
-            $filter[] = "(affected_range_id   = '".addslashes($object_id)."' OR
-                          coaffected_range_id = '".addslashes($object_id)."')";
+            $filter[] = "(:object_id IN (affected_range_id, coaffected_range_id))";
+            $parameters[':object_id'] = $object_id;
         }
 
         return count($filter) ? 'WHERE '.join(' AND ', $filter) : '';
@@ -84,11 +85,12 @@ class EventLog
      */
     function count_log_events ($action_id, $object_id)
     {
-        $db = DBManager::get();
+        $query = "SELECT COUNT(*) FROM log_events ";
+        $query .= $this->sql_event_filter($action_id, $object_id, $parameters);
 
-        $filter = $this->sql_event_filter($action_id, $object_id);
-        $result = $db->query("SELECT COUNT(*) FROM log_events $filter");
-        return $result->fetchColumn(0);
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute($parameters);
+        return $statement->fetchColumn();
     }
 
     /**
@@ -96,14 +98,21 @@ class EventLog
      */
     function get_log_events ($action_id, $object_id, $offset)
     {
-        $db = DBManager::get();
+        $offset = (int)$offset;
+        $filter = $this->sql_event_filter($action_id, $object_id, $parameters);
+
+        $query = "SELECT action_id, user_id, info, dbg_info, mkdate,
+                         affected_range_id, coaffected_range_id
+                  FROM log_events
+                  {$filter}
+                  ORDER BY mkdate DESC, event_id DESC
+                  LIMIT {$offset}, 50";
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute($parameters);
 
         $log_events = array();
-        $filter = $this->sql_event_filter($action_id, $object_id);
-        $sql = "SELECT * FROM log_events $filter ORDER BY mkdate DESC, event_id DESC LIMIT $offset, 50";
-        $result = $db->query($sql);
 
-        foreach ($result as $row) {
+        while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
             $action = get_log_action($row['action_id']);
             $info = showlog_format_infotemplate($action, $row['user_id'], $row['affected_range_id'],
                                                 $row['coaffected_range_id'], $row['info'], $row['dbg_info']);
@@ -123,19 +132,15 @@ class EventLog
      */
     function get_log_actions ()
     {
-        $db = DBManager::get();
+        $query = "SELECT action_id, COUNT(*) FROM log_events GROUP BY action_id";
+        $statement = DBManager::get()->query($query);
+        $log_count = $statement->fetchGrouped(PDO::FETCH_COLUMN);
 
-        $sql = 'SELECT action_id, COUNT(*) FROM log_events GROUP BY action_id';
-        $result = $db->query($sql);
+        $query = "SELECT * FROM log_actions ORDER BY name";
+        $statement = DBManager::get()->query($query);
 
-        foreach ($result as $row) {
-            $log_count[$row[0]] = $row[1];
-        }
-
-        $sql = 'SELECT * FROM log_actions ORDER BY name';
-        $result = $db->query($sql);
-
-        foreach ($result as $row) {
+        $log_actions = array();
+        while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
             $row['log_count'] = (int) $log_count[$row['action_id']];
             $log_actions[] = $row;
         }
@@ -175,12 +180,15 @@ class EventLog
         }
 
         $sql = "UPDATE log_actions
-                SET description = '".addslashes($description)."',
-                    info_template = '".addslashes($info_template)."',
-                    active = $active,
-                    expires = $expires
-                WHERE action_id='".addslashes($action_id)."'";
-        $db->exec($sql);
+                SET description = ?, info_template = ?, active = ?, expires = ?
+                WHERE action_id = ?";
+        $stmt = $db->prepare($sql);
+        $stmt->execute(array(
+            $description,
+            $info_template,
+            $active,
+            $expires,
+            $action_id
+        ));
     }
 }
-?>

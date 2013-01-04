@@ -26,12 +26,13 @@ class ProfileNavigation extends Navigation
      */
     public function __construct()
     {
-        global $user, $auth, $homepage_cache_own, $LastLogin;
+        global $user, $auth;
 
         parent::__construct(_('Profil'));
 
         $db = DBManager::get();
-        $time = $homepage_cache_own ? $homepage_cache_own : $LastLogin;
+
+        $time = $user->cfg->PROFILE_LAST_VISIT ? $user->cfg->PROFILE_LAST_VISIT : $user->cfg->LAST_LOGIN_TIMESTAMP;
 
         $result = $db->query("SELECT COUNT(post_id) AS count FROM guestbook
                                 WHERE range_id = '".$user->id."'
@@ -46,15 +47,15 @@ class ProfileNavigation extends Navigation
                 sprintf(ngettext('Sie haben %d neuen Eintrag im Gästebuch.',
                                  'Sie haben %d neue Einträge im Gästebuch.', $count), $count);
             $hp_class = 'new';
-            $hp_link = 'about.php?guestbook=open#guest';
+            $hp_link = 'dispatch.php/profile?guestbook=open#guest';
         } else {
             $hp_txt = _('Zu Ihrer Profilseite');
-            $hp_link = 'about.php';
+            $hp_link = 'dispatch.php/profile';
         }
 
         $hp_txt .= sprintf(' (%s, %s)', $auth->auth['uname'], $auth->auth['perm']);
         $this->setURL($hp_link);
-        $this->setImage('header/profile.png', array('title' => $hp_txt, 'class' => $hp_class));
+        $this->setImage('header/profile.png', array('title' => $hp_txt, 'class' => $hp_class, "@2x" => TRUE));
     }
 
     /**
@@ -77,51 +78,51 @@ class ProfileNavigation extends Navigation
      */
     public function initSubNavigation()
     {
-        global $auth, $perm;
+        global $user, $perm;
 
         parent::initSubNavigation();
 
-        $username = Request::get('username', $auth->auth['uname']);
-
-        // this really should not be here
-        $username = preg_replace('/[^\w@.-]/', '', $username);
-
-        $my_about = new about($username, NULL);
-        $my_about->get_user_details();
+        $username = Request::username('username', $user->username);
+        $current_user = $username == $user->username ? $user : User::findByUsername($username);
 
         // profile
-        $navigation = new Navigation(_('Profil'), 'about.php');
-        $this->addSubNavigation('view', $navigation);
+        $navigation = new Navigation(_('Profil'), 'dispatch.php/profile/index');
+        $this->addSubNavigation('index', $navigation);
 
-        if ($perm->have_profile_perm('user', $my_about->auth_user['user_id'])) {
+        if ($perm->have_profile_perm('user', $current_user->user_id)) {
             // avatar
-            $navigation = new Navigation(_('Bild'), 'edit_about.php', array('view' => 'Bild'));
+            $navigation = new Navigation(_('Bild'), 'dispatch.php/settings/avatar');
             $this->addSubNavigation('avatar', $navigation);
 
             // profile data
             $navigation = new Navigation(_('Nutzerdaten'));
-            $navigation->addSubNavigation('profile', new Navigation(_('Grunddaten'), 'edit_about.php', array('view' => 'Daten')));
-            $navigation->addSubNavigation('private', new Navigation(_('Weitere Daten'), 'edit_about.php', array('view' => 'Lebenslauf')));
+            $navigation->addSubNavigation('profile', new Navigation(_('Grunddaten'), 'dispatch.php/settings/account'));
+            if (($perm->get_profile_perm($current_user->user_id) == 'user'
+                || ($perm->have_perm('root') && Config::get()->ALLOW_ADMIN_USERACCESS))
+                && !LockRules::check($current_user->user_id, 'password')) {
+                $navigation->addSubNavigation('password', new Navigation(_('Passwort ändern'), 'dispatch.php/settings/password'));
+            }
+            $navigation->addSubNavigation('details', new Navigation(_('Weitere Daten'), 'dispatch.php/settings/details'));
 
-            if ($my_about->auth_user['perms'] != 'admin' && $my_about->auth_user['perms'] != 'root') {
-                $navigation->addSubNavigation('study_data', new Navigation(_('Studiendaten'), 'edit_about.php', array('view' => 'Studium')));
+            if ($current_user->perms != 'admin' && $current_user->perms != 'root') {
+                $navigation->addSubNavigation('studies', new Navigation(_('Studiendaten'), 'dispatch.php/settings/studies'));
             }
 
-            if ($my_about->auth_user['perms'] != 'root') {
+            if ($current_user->perms != 'root') {
                 if (count(UserDomain::getUserDomains())) {
-                    $navigation->addSubNavigation('user_domains', new Navigation(_('Nutzerdomänen'), 'edit_about.php', array('view' => 'userdomains')));
+                    $navigation->addSubNavigation('userdomains', new Navigation(_('Nutzerdomänen'), 'dispatch.php/settings/userdomains'));
                 }
 
-                if ($my_about->special_user) {
-                    $navigation->addSubNavigation('inst_data', new Navigation(_('Einrichtungsdaten'), 'edit_about.php', array('view' => 'Karriere')));
+                if ($perm->is_staff_member($current_user->user_id)) {
+                    $navigation->addSubNavigation('statusgruppen', new Navigation(_('Einrichtungsdaten'), 'dispatch.php/settings/statusgruppen'));
                 }
             }
 
             $this->addSubNavigation('edit', $navigation);
 
             // user defined sections
-            $navigation = new Navigation(_('Kategorien'), 'edit_about.php', array('view' => 'Sonstiges'));
-            $this->addSubNavigation('sections', $navigation);
+            $navigation = new Navigation(_('Kategorien'), 'dispatch.php/settings/categories');
+            $this->addSubNavigation('categories', $navigation);
         }
     }
 }

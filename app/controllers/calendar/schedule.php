@@ -42,14 +42,17 @@ class Calendar_ScheduleController extends AuthenticatedController
      * @return bool
      */
     function before_filter(&$action, &$args) {
+        global $user;
+
         parent::before_filter($action, $args);
-
+        $zoom = Request::int('zoom');
+        $this->my_schedule_settings = UserConfig::get($user->id)->SCHEDULE_SETTINGS;
         // bind zoom and show_hidden for all actions, even preserving them after redirect
-        if (Request::int('zoom')) {
+        if (isset($zoom)) {
             URLHelper::addLinkParam('zoom', Request::int('zoom'));
-			$GLOBALS['user']->user_vars['my_schedule_settings']['zoom'] = Request::int('zoom');
+            $this->my_schedule_settings['zoom'] = Request::int('zoom');
+            UserConfig::get($user->id)->store('SCHEDULE_SETTINGS', $this->my_schedule_settings);
         }
-
         if (Request::int('show_hidden')) {
             URLHelper::addLinkParam('show_hidden', Request::int('show_hidden'));
         }
@@ -65,7 +68,7 @@ class Calendar_ScheduleController extends AuthenticatedController
      */
     function index_action($days = false)
     {
-        global $my_schedule_settings;
+        global $user;
 
         if ($GLOBALS['perm']->have_perm('admin')) $inst_mode = true;
 
@@ -78,13 +81,7 @@ class Calendar_ScheduleController extends AuthenticatedController
 
 
             if (!$institute_id) {
-                $institute_id = $GLOBALS['_my_admin_inst_id']
-                              ? $GLOBALS['_my_admin_inst_id']
-                              : $GLOBALS['my_schedule_settings']["glb_inst_id"];
-
-                if (!$GLOBALS['my_schedule_settings']["glb_inst_id"]) {
-                    $GLOBALS['my_schedule_settings']["glb_inst_id"] = $GLOBALS['_my_admin_inst_id'];
-                }
+                $institute_id = UserConfig::get($user->id)->MY_INSTITUTES_DEFAULT;
             }
 
             if (!$institute_id || !in_array(get_object_type($institute_id), words('fak inst'))) {
@@ -98,7 +95,7 @@ class Calendar_ScheduleController extends AuthenticatedController
         // load semester-data and current semester
         $semdata = new SemesterData();
         $this->semesters = $semdata->getAllSemesterData();
-        
+
         if (Request::option('semester_id')) {
             $this->current_semester = $semdata->getSemesterData(Request::option('semester_id'));
         } else {
@@ -107,17 +104,17 @@ class Calendar_ScheduleController extends AuthenticatedController
         URLHelper::addLinkParam('semester_id', $this->current_semester['semester_id']);
 
         // convert old settings, if necessary (mein_stundenplan.php)
-        if (!$my_schedule_settings['converted']) {
+        if (!$this->my_schedule_settings['converted']) {
             $c = 1;
-            foreach ($my_schedule_settings['glb_days'] as $show) {
+            foreach ($this->my_schedule_settings['glb_days'] as $show) {
                 if ($c == 7) $c = 0;
                 $new_days[] = $c;
                 $c++;
             }
 
             sort($new_days);
-            $my_schedule_settings['glb_days'] = $new_days;
-            $my_schedule_settings['converted'] = true;
+            $this->my_schedule_settings['glb_days'] = $new_days;
+            $this->my_schedule_settings['converted'] = true;
         }
 
         // check type-safe if days is false otherwise sunday (0) cannot be chosen
@@ -125,7 +122,7 @@ class Calendar_ScheduleController extends AuthenticatedController
             if (Request::getArray('days')) {
                 $this->days = array_keys(Request::getArray('days'));
             } else {
-                $this->days = $my_schedule_settings['glb_days'];
+                $this->days = $this->my_schedule_settings['glb_days'];
                 foreach ($this->days as $key => $day_number) {
                     $this->days[$key] = ($day_number + 6) % 7;
                 }
@@ -141,14 +138,14 @@ class Calendar_ScheduleController extends AuthenticatedController
         if ($inst_mode) {
             // get the entries to be displayed in the schedule
             $this->entries = CalendarScheduleModel::getInstituteEntries($GLOBALS['user']->id, $this->current_semester,
-                $my_schedule_settings['glb_start_time'], $my_schedule_settings['glb_end_time'],
+                $this->my_schedule_settings['glb_start_time'], $this->my_schedule_settings['glb_end_time'],
                 $institute_id, $this->days, $show_hidden);
 
             Navigation::activateItem('/browse/my_courses/schedule');
         } else {
             // get the entries to be displayed in the schedule
             $this->entries = CalendarScheduleModel::getEntries($GLOBALS['user']->id, $this->current_semester,
-                $my_schedule_settings['glb_start_time'], $my_schedule_settings['glb_end_time'], $this->days, $show_hidden);
+                $this->my_schedule_settings['glb_start_time'], $this->my_schedule_settings['glb_end_time'], $this->days, $show_hidden);
 
             Navigation::activateItem('/calendar/schedule');
         }
@@ -179,8 +176,8 @@ class Calendar_ScheduleController extends AuthenticatedController
 
         $this->controller = $this;
         $this->calendar_view = new CalendarWeekView($this->entries, 'schedule');
-        $this->calendar_view->setHeight(40 + (20 * $GLOBALS['user']->user_vars['my_schedule_settings']['zoom']));
-        $this->calendar_view->setRange($my_schedule_settings['glb_start_time'], $my_schedule_settings['glb_end_time']);
+        $this->calendar_view->setHeight(40 + (20 * $this->my_schedule_settings['zoom']));
+        $this->calendar_view->setRange($this->my_schedule_settings['glb_start_time'], $this->my_schedule_settings['glb_end_time']);
 
         if ($inst_mode) {
             $this->calendar_view->groupEntries();  // if enabled, group entries with same start- and end-date
@@ -193,7 +190,7 @@ class Calendar_ScheduleController extends AuthenticatedController
         );
 
         $factory = new Flexi_TemplateFactory($this->dispatcher->trails_root . '/views');
-        PageLayout::addStyle($factory->render('calendar/stylesheet', $style_parameters));
+        PageLayout::addStyle($factory->render('calendar/stylesheet', $style_parameters), 'screen, print');
 
         if (Request::option('printview')) {
             $this->calendar_view->setReadOnly();
@@ -228,7 +225,7 @@ class Calendar_ScheduleController extends AuthenticatedController
         }
 
         $error = false;
-        if (Request::int('start_hour') && Request::int('day') && Request::int('end_hour')) {
+        if (Request::int('start_hour') !== null && Request::int('day') !== null && Request::int('end_hour') !== null) {
             $data['start']   = Request::int('start_hour') * 100;
             $data['end']     = Request::int('end_hour')   * 100;
             $data['day']     = Request::int('day') + 1;
@@ -482,22 +479,23 @@ class Calendar_ScheduleController extends AuthenticatedController
      */
     function storesettings_action($start_hour = false, $end_hour = false, $days = false, $semester_id = false)
     {
-        global $my_schedule_settings;
+        global $user;
 
         if ($start_hour === false) {
             $start_hour  = Request::int('start_hour');
             $end_hour    = Request::int('end_hour');
             $days        = Request::getArray('days');
         }
-
-        $my_schedule_settings = array(
+        $this->my_schedule_settings = array(
             'glb_start_time' => $start_hour,
             'glb_end_time'   => $end_hour,
             'glb_days'       => $days,
-            'glb_inst_id'    => $GLOBALS['my_schedule_settings']["glb_inst_id"],
             'converted'      => true
         );
 
+        UserConfig::get($user->id)->store('SCHEDULE_SETTINGS', $this->my_schedule_settings);
+
         $this->redirect('calendar/schedule');
     }
+
 }

@@ -1,8 +1,8 @@
 <?
 # Lifter001: DONE
 # Lifter002: TODO
+# Lifter003: TEST
 # Lifter007: TODO
-# Lifter003: TODO
 # Lifter010: TODO
 /**
  * show_dates.inc.php - Funktionen zum Anzeigen von Terminen
@@ -53,25 +53,27 @@ function show_dates($date_start, $date_end, $open, $range_id = "", $show_not = 0
                     $show_docs = TRUE, $show_admin = FALSE, $full_width = TRUE,
                     $show_as_window = TRUE)
 {
-    global $PHP_SELF, $TERMIN_TYP, $SessSemName, $user, $username, $rechte;
+    global $TERMIN_TYP, $SessSemName, $user, $username, $rechte;
 
     // wenn man keinen Start und Endtag angibt, soll wohl alles angezeigt werden
     // "0" bedeutet jeweils "open end"
 
+    $parameters = array();
     if (($date_start == 0) && ($date_end == 0)) {
+        $show_whole_time = TRUE;
+        $tmp_query = "";
+    } else if ($date_start == 0) {
+        $show_whole_time = TRUE;
+        $tmp_query = " AND t.date <= :date_end ";
+        $parameters[':date_end'] = $date_end;
+    } else if ($date_end == 0) {
         $show_whole_time=TRUE;
-        $tmp_query="";
-    }
-    else if ($date_start == 0) {
-        $show_whole_time=TRUE;
-        $tmp_query=" AND t.date <= $date_end ";
-    }
-    else if ($date_end == 0) {
-        $show_whole_time=TRUE;
-        $tmp_query=" AND t.date >= $date_start ";
-    }
-    else {
-        $tmp_query=" AND (t.date >= $date_start AND t.date <= $date_end) ";
+        $tmp_query = " AND t.date >= :date_start ";
+        $parameters[':date_start'] = $date_start;
+    } else {
+        $tmp_query = " AND (t.date >= $date_start AND t.date <= $date_end) ";
+        $parameters[':date_start'] = $date_start;
+        $parameters[':date_end']   = $date_end;
     }
 
     if ($show_admin) {
@@ -85,65 +87,73 @@ function show_dates($date_start, $date_end, $open, $range_id = "", $show_not = 0
 
     $range_typ = ($range_id != $user->id) ? "sem" : "user";
 
-    $db = new DB_Seminar();
-    $db2 = new DB_Seminar();
-
     if ($show_not) {
-        $k = FALSE;
         // wenn Seminartermine angezeigt werden und show_not =sem
         // zeigen wir nur als Sitzungen definierte Termine
         if ($show_not == "sem") {
-            foreach ($TERMIN_TYP as $key => $type) {
-                if ($type["sitzung"]) {
-                    if (!$k) {
-                        $show_query = " AND t.date_typ IN (";
-                        $k = TRUE;
-                    }
-                    elseif ($k)
-                        $show_query .= ", ";
-                    $show_query .= "'$key'";
-                }
+            $date_types = array_filter($TERMIN_TYP, function ($type) { return $type['sitzung']; });
+            if (count($date_types) > 0) {
+                $show_query = " AND t.date_typ IN (:date_types) ";
+                $parameters[':date_types'] = array_keys($date_types);
             }
         }
 
         //wenn Seminartermine angezeigt werden und show_not =other zeigen wir alles andere an
         if ($show_not == "other") {
-            foreach ($TERMIN_TYP as $key => $type) {
-                if (!$type["sitzung"]) {
-                    if (!$k) {
-                        $show_query = " AND t.date_typ IN (";
-                        $k = TRUE;
-                    }
-                    elseif ($k2)
-                        $show_query .= ", ";
-                    $show_query .= "'$key'";
-                }
+            $date_types = array_filter($TERMIN_TYP, function ($type) { return !$type['sitzung']; });
+            if (count($date_types) > 0) {
+                $show_query = " AND t.date_typ IN (:date_types) ";
+                $parameters[':date_types'] = array_keys($date_types);
             }
         }
-
-        if ($k)
-            $show_query .= ") ";
     }
 
     if (is_array($range_id)) {
-        $query = "SELECT t.*, th.issue_id, th.title as Titel, th.description as Info, s.Name FROM termine t LEFT JOIN themen_termine USING (termin_id) LEFT JOIN themen as th USING (issue_id) LEFT JOIN seminare s ON (range_id = Seminar_id) ";
-        $query .= "WHERE (Seminar_id IN '" . implode(",", $range_id);
-        $query .= "' $show_query $tmp_query ) ORDER BY date";
-    }
-    else if (strlen($range_id))
-        $query = "SELECT t.*, th.issue_id, th.title as Titel, th.description as Info FROM termine t LEFT JOIN themen_termine USING (termin_id) LEFT JOIN themen as th USING (issue_id) WHERE (range_id='$range_id' $show_query $tmp_query ) ORDER BY date";
-    else {
-        $query = "SELECT t.*, th.issue_id, th.title as Titel, th.description as Info, s.Name, su.* FROM termine t ".
-            "LEFT JOIN themen_termine USING (termin_id) ".
-            "LEFT JOIN themen as th USING (issue_id) ".
-            "LEFT JOIN seminare s ON (range_id = s.Seminar_id) ".
-            "LEFT JOIN seminar_user su ON (s.Seminar_id = su.Seminar_id) ".
-            "WHERE (user_id = '" . $user->id . "' $show_query $tmp_query ) ORDER BY date";
+        $query = "SELECT t.*, th.issue_id, th.title AS Titel,
+                         th.description AS Info, s.Name
+                  FROM (SELECT termin_id,range_id,date,end_time,chdate,date_typ,content, 0 as ex_termin
+                        FROM termine WHERE range_id IN(:range_id)
+                        UNION SELECT termin_id,range_id,date,end_time,chdate,date_typ,content, 1 as ex_termin
+                        FROM ex_termine WHERE content <> '' AND range_id IN(:range_id)) AS t
+                  LEFT JOIN themen_termine USING (termin_id)
+                  LEFT JOIN themen AS th USING (issue_id)
+                  INNER JOIN seminare AS s ON (range_id = Seminar_id)
+                  WHERE 1 {$show_query} {$tmp_query}
+                  ORDER BY date";
+        $parameters[':range_id'] = $range_id;
+    } else if (strlen($range_id)) {
+        $query = "SELECT t.*, th.issue_id, th.title AS Titel,
+                         th.description as Info
+                  FROM (SELECT termin_id,range_id,date,end_time,chdate,date_typ,content, 0 as ex_termin
+                        FROM termine WHERE range_id = :range_id
+                        UNION SELECT termin_id,range_id,date,end_time,chdate,date_typ,content, 1 as ex_termin
+                        FROM ex_termine WHERE content <> '' AND range_id = :range_id) AS t
+                  LEFT JOIN themen_termine USING (termin_id)
+                  LEFT JOIN themen AS th USING (issue_id)
+                  WHERE 1 {$show_query} {$tmp_query}
+                  ORDER BY date";
+        $parameters[':range_id'] = $range_id;
+    } else {
+        $query = "SELECT t.*, th.issue_id, th.title as Titel,
+                         th.description as Info, s.Name, su.*
+                  FROM (SELECT termin_id,range_id,date,end_time,chdate,date_typ,content, 0 as ex_termin
+                        FROM termine
+                        UNION SELECT termin_id,range_id,date,end_time,chdate,date_typ,content, 1 as ex_termin
+                        FROM ex_termine WHERE content <> '') AS t
+                  LEFT JOIN themen_termine USING (termin_id)
+                  LEFT JOIN themen AS th USING (issue_id)
+                  LEFT JOIN seminare AS s ON (range_id = s.Seminar_id)
+                  LEFT JOIN seminar_user su ON (s.Seminar_id = su.Seminar_id)
+                  WHERE user_id = :user_id {$show_query} {$tmp_query}
+                  ORDER BY date";
+        $parameters[':user_id'] = $user->id;
     }
 
-    $db->query($query);
+    $statement = DBManager::get()->prepare($query);
+    $statement->execute($parameters);
+    $dates = $statement->fetchAll(PDO::FETCH_ASSOC);
 
-    if ($db->num_rows()) {
+    if (count($dates) > 0) {
         // set skip link
         SkipLinks::addIndex(_("Termine"), 'appointments_box');
 
@@ -154,23 +164,23 @@ function show_dates($date_start, $date_end, $open, $range_id = "", $show_not = 0
             if ($show_admin) {
                 $colspan++;
                 if (!$show_whole_time) {
-                    printf("\n<tr><td class=\"topic\"><img src=\"".Assets::image_path('icons/16/white/schedule.png')."\" %s><b>", tooltip(_("Termine. Klicken Sie rechts auf die Zahnräder, um Termine in diesen Bereich zu bearbeiten. Klicken Sie auf den einfachen Pfeil, um die Terminbeschreibung zu lesen.")));
+                    printf("\n<tr><td class=\"table_header_bold\"><img src=\"".Assets::image_path('icons/16/white/schedule.png')."\" %s><b>", tooltip(_("Termine. Klicken Sie rechts auf die Zahnräder, um Termine in diesen Bereich zu bearbeiten. Klicken Sie auf den einfachen Pfeil, um die Terminbeschreibung zu lesen.")));
                     printf(_("Termine für die Zeit vom %s bis zum %s"), strftime("%d. %B %Y", $date_start), strftime("%d. %B %Y", $date_end));
-                    printf( "</b></td>\n<td align = \"right\" class=\"topic\">%s<img src=\"".Assets::image_path('icons/16/white/admin.png')."\" %s></a></td></tr>", $admin_link, tooltip(_("Neuen Termin anlegen")));
+                    printf( "</b></td>\n<td align = \"right\" class=\"table_header_bold\">%s<img src=\"".Assets::image_path('icons/16/white/admin.png')."\" %s></a></td></tr>", $admin_link, tooltip(_("Neuen Termin anlegen")));
                     }
                 else {
-                    printf("\n<tr><td class=\"topic\"><img src=\"".Assets::image_path('icons/16/white/schedule.png')."\" %s><b>", tooltip(_("Termine. Klicken Sie rechts auf die Zahnräder, um Termine in diesen Bereich zu bearbeiten. Klicken Sie auf den einfachen Pfeil, um die Terminbeschreibung zu lesen.")));
+                    printf("\n<tr><td class=\"table_header_bold\"><img src=\"".Assets::image_path('icons/16/white/schedule.png')."\" %s><b>", tooltip(_("Termine. Klicken Sie rechts auf die Zahnräder, um Termine in diesen Bereich zu bearbeiten. Klicken Sie auf den einfachen Pfeil, um die Terminbeschreibung zu lesen.")));
                     printf(_("Termine"));
-                    printf("</b></td>\n<td align = \"right\" class=\"topic\">%s<img src=\"".Assets::image_path('icons/16/white/admin.png')."\" %s ></a></td></tr>", $admin_link, tooltip(_("Neuen Termin anlegen")));
+                    printf("</b></td>\n<td align = \"right\" class=\"table_header_bold\">%s<img src=\"".Assets::image_path('icons/16/white/admin.png')."\" %s ></a></td></tr>", $admin_link, tooltip(_("Neuen Termin anlegen")));
                     }
                 }
             else
                 if (!$show_whole_time) {
-                    printf("\n<tr valign=\"baseline\"><td class=\"topic\"><img src=\"".Assets::image_path('icons/16/white/schedule.png')."\" %s><b>", tooltip(_("Termine. Klicken Sie auf den Pfeil, um eine Beschreibung des Termins anzuzeigen.")));
+                    printf("\n<tr valign=\"baseline\"><td class=\"table_header_bold\"><img src=\"".Assets::image_path('icons/16/white/schedule.png')."\" %s><b>", tooltip(_("Termine. Klicken Sie auf den Pfeil, um eine Beschreibung des Termins anzuzeigen.")));
                     printf(_("Termine für die Zeit vom %s bis zum %s"), strftime("%d. %B %Y", $date_start), strftime("%d. %B %Y", $date_end));
                     print("</b></td></tr>");
                 } else {
-                    printf("\n<tr valign=\"baseline\"><td class=\"topic\"><img src=\"".Assets::image_path('icons/16/white/schedule.png')."\" %s><b>", tooltip(_("Termine. Klicken Sie auf den Pfeil, um eine Beschreibung des Termins anzuzeigen.")));
+                    printf("\n<tr valign=\"baseline\"><td class=\"table_header_bold\"><img src=\"".Assets::image_path('icons/16/white/schedule.png')."\" %s><b>", tooltip(_("Termine. Klicken Sie auf den Pfeil, um eine Beschreibung des Termins anzuzeigen.")));
                     printf(_("Termine"));
                     print("</b></td></tr>");
                 }
@@ -185,10 +195,10 @@ function show_dates($date_start, $date_end, $open, $range_id = "", $show_not = 0
         if (!$show_as_window) {
             echo "\n<table id=\"appointments_box\" role=\"article\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" align=\"center\">"; //WTF?
             print "\n<tr>";
-            print "\n<td width=\"5%\" class=\"steelgraulight\" align=\"left\"> ";
+            print "\n<td width=\"5%\" class=\"table_row_odd\" align=\"left\"> ";
             if ($rechte)
                 print '<a href="' . URLHelper::getLink('raumzeit.php?cmd=createNewSingleDate#newSingleDate') . '"><img class="middle" src="' . Assets::image_path('icons/16/blue/plus.png') . '" ' . tooltip(_("Einen neuen Termin anlegen")) . '></a></td>';
-            print "\n<td class=\"steelgraulight\" align=\"center\">";
+            print "\n<td class=\"table_row_odd\" align=\"center\">";
             if ($open == "all")
                 print '<a href="' . URLHelper::getLink('?dclose=1') . '"><img style="vertical-align:middle;" src="' . Assets::image_path('close_all.png') . '" ' . tooltip(_("Alle schließen")) . '></a>';
             else
@@ -201,24 +211,35 @@ function show_dates($date_start, $date_end, $open, $range_id = "", $show_not = 0
         if ($show_not)
             $add_to_link .= "&show_not=$show_not";
 
-        while ($db->next_record()) {
-
+        foreach ($dates as $date ) {
+            if($open == $date['termin_id'])
+                $date['open'] = true;
             echo '<div role="article">';
             $zusatz = '';
             if (!$range_id || is_array($range_id)) {
-                $zusatz .= "<a href=\"".URLHelper::getLink("seminar_main.php?auswahl=" . $db->f("range_id"))
-                                . "\"><font size=\"-1\">" . htmlReady(mila($db->f("Name"), 22))
+                die('wirklich tot?');
+                 $titel = "<a href=\"$link\" class=\"tree\" onclick=\"STUDIP.Termine.opencloseSem('"
+                .$date['termin_id']."','".$show_admin."','".$date['date_typ']."','"
+                .$date['info']."'); return false;\" >".$titel."</a>";
+                 $zusatz .= "<a href=\"".URLHelper::getLink("seminar_main.php?auswahl=" . $date['range_id'])
+                                . "onclick=\"STUDIP.Termine.opencloseSem('"
+                 .$date['termin_id']."','".$show_admin."','".$date['date_typ']."','"
+                 .$date['info']."','"
+                .False."','".FALSE."'); return false;\" ><font size=\"-1\">" . htmlReady(mila($date['Name'], 22))
                                 . "</font></a>";
-                $current_seminar_id = $db->f("range_id");
+                $current_seminar_id = $date['range_id'];
             }
             else {
-                $termin = new SingleDate($db->f('termin_id'));
+                $termin = new SingleDate($date['termin_id']);
                 if( $termin->hasRoom() ){
                     $zusatz .= _("Ort:") . " " . $termin->getRoom() . " ";
                 }elseif( $freeroomtext = $termin->getFreeRoomText() ){
                     $zusatz .= " (" . htmlReady($freeroomtext) . ") ";
                 }else{
                     $zusatz .= _("Ort:").' '._("k.A.") . " ";
+                }
+                if ($termin->isExTermin()) {
+                    $zusatz = _("fällt aus");
                 }
                 $current_seminar_id = $range_id;
             }
@@ -227,11 +248,14 @@ function show_dates($date_start, $date_end, $open, $range_id = "", $show_not = 0
             $num_docs = 0;
             $folder_id = '';
             if ($show_docs) {
-                $row = DBManager::get()
-                       ->query("SELECT folder_id, issue_id FROM themen_termine
-                                INNER JOIN folder ON issue_id=range_id
-                                WHERE termin_id ='" . $db->f("termin_id") . "' LIMIT 1")
-                       ->fetch(PDO::FETCH_ASSOC);
+                $query = "SELECT folder_id, issue_id
+                          FROM themen_termine
+                          INNER JOIN folder ON (issue_id = range_id)
+                          WHERE termin_id = ?
+                          LIMIT 1";
+                $statement = DBManager::get()->prepare($query);
+                $statement->execute(array($date['termin_id']));
+                $row = $statement->fetch(PDO::FETCH_ASSOC);
                 if ($row['folder_id']) {
                     $num_docs = doc_count($row['issue_id'], $current_seminar_id);
                     $folder_id = $row['folder_id'];
@@ -240,22 +264,23 @@ function show_dates($date_start, $date_end, $open, $range_id = "", $show_not = 0
 
             $titel = '';
 
-            if ($open == $db->f("termin_id")) {
+            if ($open == $date['termin_id']) {
                 $titel.= "<a name=\"a\"> </a>";
             }
 
-            $titel .= substr(strftime("%a",$db->f("date")),0,2);
-            $titel .= date(". d.m.Y, H:i", $db->f("date"));
-            if ($db->f("date") < $db->f("end_time")) {
-                $titel .= " - " . date("H:i", $db->f("end_time"));
-            }
-            if ($db->f("Titel")) {
+            $titel .= $termin->toString();
+
+            if ($date['Titel']) {
                 //Beschneiden des Titels
-                $tmp_titel = htmlReady(mila($db->f("Titel"), 60 / (($full_width ? 100 : 70) / 100)));
+                $tmp_titel = htmlReady(mila($date['Titel'], 60 / (($full_width ? 100 : 70) / 100)));
                 $titel .= ", " . $tmp_titel;
             }
+            if ($date['ex_termin']) {
+                $titel .= '&nbsp;<i>' . _("Dieser Termin findet nicht statt!").'</i>';
+                $titel .= tooltipIcon($date['content'], true);
+            }
 
-            if ($db->f("chdate") > max(object_get_visit($current_seminar_id, "schedule"), object_get_visit($current_seminar_id, "sem"))) {
+            if ($date['chdate'] > max(object_get_visit($current_seminar_id, "schedule"), object_get_visit($current_seminar_id, "sem"))) {
                 $new = false;
             } else {
                 $new = FALSE;
@@ -269,54 +294,25 @@ function show_dates($date_start, $date_end, $open, $range_id = "", $show_not = 0
             }
 
             //calendar jump
-            $zusatz .= ' <a href="' . UrlHelper::getLink('calendar.php', array('cmd' =>'showweek', 'atime' => $db->f("date"), 'caluser' => 'self'));
+            $zusatz .= ' <a href="' . UrlHelper::getLink('calendar.php', array('cmd' =>'showweek', 'atime' => $date['date'], 'caluser' => 'self'));
             $zusatz .= '"><img style="vertical-align:bottom" src="' . Assets::image_path('popupcalendar.png') . '" ';
-            $zusatz .= tooltip(sprintf(_("Zum %s in den persönlichen Terminkalender springen"), date("d.m.Y", $db->f("date"))));
+            $zusatz .= tooltip(sprintf(_("Zum %s in den persönlichen Terminkalender springen"), date("d.m.Y", $date['date'])));
             $zusatz .= '></a>';
 
 
-            if ($open != $db->f("termin_id")) {
-                $link=URLHelper::getLink("?dopen=".$db->f("termin_id").$add_to_link."#a");
+            if ($open != $date['termin_id']) {
+                $link=URLHelper::getLink("?dopen=".$date['termin_id'].$add_to_link."#a");
             } else {
                 $link=URLHelper::getLink("?dclose=true".$add_to_link);
             }
-            $icon = Assets::img('icons/16/grey/date.png', array('class' => 'text-bottom'));
+            $date['seminar_date'] = $termin;
 
             if ($link) {
-                $titel = "<a href=\"$link\" class=\"tree\" >".$titel."</a>";
+                $titel = "<a href=\"$link\" class=\"tree\" onclick=\"STUDIP.Termine.openclose('".$date['termin_id']."','"
+                .$show_admin."','".$date['date_typ']."','".$date['info']."','"
+                .False."','".FALSE."','".False."','".False."','".False."','".False."','".False."','".False."','".$date['autor_id']."'); return false;\" >".$titel."</a>";
             }
-            echo "\n<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\"><tr>";
-
-            if (($open == $db->f("termin_id")) || ($open == "all") || ($new)) {
-                printhead(0, 0, $link, "open", $new, $icon, $titel, $zusatz, $db->f("chdate"));
-            } else {
-                printhead(0, 0, $link, "close", $new, $icon, $titel, $zusatz, $db->f("chdate"));
-            }
-            echo '</tr></table> ';
-            if (($open == $db->f("termin_id")) || ($open == "all") || ($new)) {
-                $termin = new SingleDate($db->f("termin_id"));
-                $content = '';
-                if ($db->f("Info")) {
-                    $content .= formatReady($db->f("Info"), TRUE, FALSE) . "<br><br>";
-                } else {
-                    $content .= _("Keine Beschreibung vorhanden") . "<br><br>";
-                }
-                $content .= '<b>' . _("Art des Termins:") . '</b> ' . $TERMIN_TYP[$db->f("date_typ")]["name"] . ', ';
-                //$content.="<b>" . _("angelegt von:") . "</b> ".get_fullname($db->f("autor_id"),'full',true)."<br>";
-                $content .= "<b>" . _("durchführende Dozenten:") . "</b> ";
-                foreach ($termin->getRelatedPersons() as $key => $dozent_id) {
-                    $key < 1 || ($content .= ", ");
-                    $content .= htmlReady(get_fullname($dozent_id));
-                }
-                $content .= "<br>";
-
-                if ($show_admin)
-                    $content .= "<br><div align=\"center\"> ". LinkButton::create(_('Bearbeiten'), URLHelper::getURL("raumzeit.php", array('cmd' => 'open','open_close_id' => $db->f("termin_id") . '#' . $db->f("termin_id")))) . "</div>";
-                echo "\n<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\"><tr>";
-                printcontent(0,0, $content, $edit);
-                echo "</tr></table> ";
-                }
-            echo '</div>';
+            echo show_termin_item($date, $open, $new, $link, $zusatz, $titel, $range_id, $show_not, $show_admin);
         }
         echo "</td></tr></table>";
         return TRUE;
@@ -327,11 +323,11 @@ function show_dates($date_start, $date_end, $open, $range_id = "", $show_not = 0
         SkipLinks::addIndex(_("Termine"), 'appointments_box');
 
         print("\n<table id=\"appointments_box\" role=\"article\" class=\"index_box\"".($full_width ? " style=\"width: 100%;\"" : '').">");
-        printf("\n<tr><td class=\"topic\"><img src=\"".Assets::image_path('icons/16/white/schedule.png')."\"><b>  %s</b></td>",_("Termine"));
-        printf("\n<td align =\"right\" class=\"topic\"> %s<img src=\"".Assets::image_path('icons/16/white/admin.png')."\" %s></a> </td></tr>", $admin_link, tooltip(_("Termine einstellen")));
+        printf("\n<tr><td class=\"table_header_bold\"><img src=\"".Assets::image_path('icons/16/white/schedule.png')."\"><b>  %s</b></td>",_("Termine"));
+        printf("\n<td align =\"right\" class=\"table_header_bold\"> %s<img src=\"".Assets::image_path('icons/16/white/admin.png')."\" %s></a> </td></tr>", $admin_link, tooltip(_("Termine einstellen")));
         ?>
         <tr>
-            <td class="steel1" colspan="2">
+            <td class="table_row_even" colspan="2">
                 <p class="info">
                     <?= _("Es sind keine aktuellen Termine vorhanden. Um neue Termine zu erstellen, klicken Sie rechts auf die Zahnräder.") ?>
                 </p>
@@ -357,7 +353,35 @@ function show_dates($date_start, $date_end, $open, $range_id = "", $show_not = 0
         return FALSE;
     }
 }
+function show_termin_item($termin_item, $open, $new, $link, $zusatz, $titel, $range_id = "", $show_not = 0, $show_admin = FALSE )
+{
 
+            $template = $GLOBALS['template_factory']->open('dates/seminar_date');
+            $template->termin_item = $termin_item;
+            $template->range_id = $range_id;
+            $template->show_not = $show_not;
+            $template->show_admin = $show_admin;
+            $template->new = $new;
+            $template->link = $link;
+            $template->zusatz = $zusatz;
+            $template->titel = $titel;
+            $template->icon = Assets::img('icons/16/grey/date.png', array('class' => 'text-bottom'));
+
+            return $template->render();
+}
+
+function show_termin_item_content($termin_item, $new = FALSE, $range_id = "", $show_admin = FALSE )
+{
+            global $TERMIN_TYP;
+            $template = $GLOBALS['template_factory']->open('dates/seminar_date-content');
+
+            $template->termin_item = $termin_item;
+            $template->range_id = $range_id;
+
+            $template->show_admin = $show_admin;
+            $template->new = $new;
+            return $template->render();
+}
 /**
  *
  * @param unknown_type $range_id
@@ -369,8 +393,8 @@ function show_dates($date_start, $date_end, $open, $range_id = "", $show_not = 0
  */
 function show_personal_dates ($range_id, $date_start, $date_end, $show_docs = FALSE, $show_admin = FALSE, $open)
 {
-    global $PHP_SELF, $SessSemName, $user, $TERMIN_TYP;
-    global $PERS_TERMIN_KAT, $username, $LastLogin;
+    global $SessSemName, $user, $TERMIN_TYP;
+    global $PERS_TERMIN_KAT, $username;
 
     if ($show_admin && $range_id == $user->id) {
         $admin_link = '<a href="'.URLHelper::getLink('calendar.php', array('cmd' => 'edit', 'source_page' => URLHelper::getURL())).'">';
@@ -392,13 +416,13 @@ function show_personal_dates ($range_id, $date_start, $date_end, $show_docs = FA
         echo "\n<table id=\"appointments_box\" role=\"article\" class=\"index_box\" style=\"width: 100%;\">";
         if ($show_admin) {
             $colspan++;
-            echo "\n<tr><td class=\"topic\"> <img src=\"" . Assets::image_path('icons/16/white/schedule.png') . '" ' . tooltip(_("Termine. Klicken Sie rechts auf die Zahnräder, um Termine in diesen Bereich zu bearbeiten. Klicken Sie auf den einfachen Pfeil, um die Terminbeschreibung zu lesen.")) . '> <b>';
+            echo "\n<tr><td class=\"table_header_bold\"> <img src=\"" . Assets::image_path('icons/16/white/schedule.png') . '" ' . tooltip(_("Termine. Klicken Sie rechts auf die Zahnräder, um Termine in diesen Bereich zu bearbeiten. Klicken Sie auf den einfachen Pfeil, um die Terminbeschreibung zu lesen.")) . '> <b>';
             printf(_("Termine für die Zeit vom %s bis zum %s"), strftime("%d. %B %Y", $list->getStart()), strftime("%d. %B %Y", $list->getEnd()));
             echo "</b></td>";
-            echo "\n<td align=\"right\" class=\"topic\"> $admin_link<img src=\"" . Assets::image_path('icons/16/white/admin.png') . '" ' . tooltip(_("Neuen Termin anlegen")) . '></a></td></tr>';
+            echo "\n<td align=\"right\" class=\"table_header_bold\"> $admin_link<img src=\"" . Assets::image_path('icons/16/white/admin.png') . '" ' . tooltip(_("Neuen Termin anlegen")) . '></a></td></tr>';
         }
         else {
-            echo "\n<tr><td class=\"topic\"> <img src=\"" . Assets::image_path('icons/16/white/schedule.png') . '" ' . tooltip(_("Termine. Klicken Sie auf den Pfeil, um eine Beschreibung des Termins anzuzeigen.")) . '><b>  ';
+            echo "\n<tr><td class=\"table_header_bold\"> <img src=\"" . Assets::image_path('icons/16/white/schedule.png') . '" ' . tooltip(_("Termine. Klicken Sie auf den Pfeil, um eine Beschreibung des Termins anzuzeigen.")) . '><b>  ';
             printf(_("Termine für die Zeit vom %s bis zum %s"), strftime("%d. %B %Y", $list->getStart()), strftime("%d. %B %Y", $list->getEnd()));
             echo "</b></td></tr>";
         }
@@ -439,8 +463,7 @@ function show_personal_dates ($range_id, $date_start, $date_end, $show_docs = FA
                 $tmp_titel = htmlReady(mila($termin->getTitle())); //Beschneiden des Titels
                 $titel .= ", ".$tmp_titel;
             }
-
-            $new = ($termin->getChangeDate() > $LastLogin);
+            $new = ($termin->getChangeDate() > UserConfig::get($user->id)->LAST_LOGIN_TIMESTAMP);
 
             // Zur Identifikation von auf- bzw. zugeklappten Terminen muss zusaetzlich
             // die Startzeit ueberprueft werden, da die Wiederholung eines Termins die
@@ -455,49 +478,58 @@ function show_personal_dates ($range_id, $date_start, $date_end, $show_docs = FA
             echo "\n<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\"><tr>";
 
             if ($link) {
-                $titel = "<a href=\"$link\" class=\"tree\" >$titel</a>";
+                $titel = "<a href=\"$link\"  onclick=\"STUDIP.Termine.openclose('".$termin->getId()."'); return false;\" class=\"tree\" >$titel</a>";
             }
-
-            if ($open == $app_ident) {
-                // Ebenso muss hier als letzer Parameter eine Methode getMkdate o.ae. angefuegt werden
-                printhead(0, 0, $link, "open", $new, $icon, $titel, $zusatz, $termin->getChangeDate());
+            if (strtolower(get_class($termin)) == 'seminarevent') {
+                    $description = $issue_descriptions;
             } else {
-                // hier auch.....
-                printhead(0, 0, $link, "close", $new, $icon, $titel, $zusatz, $termin->getChangeDate());
+                    $description = $termin->getDescription();
+            }
+            $kat = false;
+            if (sizeof($PERS_TERMIN_KAT) > 1 && strtolower(get_class($termin)) != 'seminarevent') {
+                    $kat = htmlReady($termin->toStringCategories());
             }
 
-            echo "</tr></table> ";
+            if (strtolower(get_class($termin)) == 'seminarcalendarevent') {
+                    $sem =  htmlReady($termin->getSemName());
+            }
 
-            if ($open == $app_ident) {
-                echo "<a name=\"a\"></a>";
+            if (strtolower(get_class($termin)) == 'seminarevent') {
+                    if ($termin->getRoom()) {
 
-                $content = '';
-                if ($termin->getDescription()) {
-                    $content .= sprintf("%s<br><br>", formatReady($termin->getDescription(), TRUE, TRUE));
-                } else {
-                    $content .= _("Keine Beschreibung vorhanden") . "<br><br>";
-                }
+                        $raum= htmlReady(mila($singledate->getRoom(), 25));
+                    } else if ($termin->getFreeRoomText()) {
 
-                if (sizeof($PERS_TERMIN_KAT) > 1) {
-                    $content .= sprintf("<b>%s</b> %s", _("Kategorie:"),
-                            htmlReady($termin->toStringCategories()));
-                }
+                        $ort=htmlReady(mila($singledate->getFreeRoomText(), 25));
+                    }
+             } else {
+                    $pri =  htmlReady($termin->toStringPriority());
 
-                $content .= '<br><b>' . _("Priorit&auml;t:") . ' </b>' . htmlReady($termin->toStringPriority());
-                $content .= '&nbsp; &nbsp; &nbsp; &nbsp; ';
-                $content .= '<b>' . _("Sichtbarkeit:") . ' </b>' . htmlReady($termin->toStringAccessibility());
-                $content .= '<br>' . htmlReady($termin->toStringRecurrence());
+                    $sicht = htmlReady($termin->toStringAccessibility());
+                    $res = htmlReady($termin->toStringRecurrence());
+             }
+             $edit = FALSE;
+             if ($have_write_permission && strtolower(get_class($termin)) != 'seminarevent')  {
+                        // Personal appointment
+                        $edit = true;
+             }
 
-                if ($show_admin) {
-                    $content .= '<div align="center">' . LinkButton::create(_('Bearbeiten'), URLHelper::getURL('calendar.php', array('cmd' => 'edit', 'termin_id' => $termin->getId(), 'atime' => $termin->getStart(), 'source_page' => URLHelper::getURL('about.php'))))
-                             . '</div>';
-                }
 
-                echo "\n<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\"><tr>";
-                printcontent(0, 0, $content, $edit);
-                echo "</tr></table> ";
-                }
-            echo '</div>';
+
+
+
+           $termin_item = array('termin_id'=>$termin->getId(),"chdate"=>$termin->getChangeDate(),
+            'info'=>$description,
+            'kat'=>$kat,'cont'=>$cont,'edit'=>$edit,
+            'sem'=>$sem,'raum'=>$raum,'ort'=>$ort,'pri'=>$pri,'sicht'=>$sicht,'res'=>$res,
+            'autor'=>$autor);
+
+           if ($open == $app_ident) {
+                $termin_item['open'] = "open";
+            }
+            echo show_termin_item($termin_item, $open, $new, $link, $zusatz, $titel);
+
+
         }
         echo "</td></tr></table></td></tr></table>";
         return TRUE;
@@ -508,12 +540,12 @@ function show_personal_dates ($range_id, $date_start, $date_end, $show_docs = FA
         SkipLinks::addIndex(_("Termine"), 'appointments_box');
 
         echo "\n<table id=\"appointments_box\" role=\"article\" class=\"index_box\" style=\"width: 100%;\">";
-        echo "\n<tr><td class=\"topic\"><img src=\"".Assets::image_path('icons/16/white/schedule.png')."\"> <b>" . _("Termine") . "</b></td>";
-        echo "\n<td align =\"right\" class=\"topic\"> $admin_link<img src=\"".Assets::image_path('icons/16/white/admin.png')."\" " . tooltip(_("Termine einstellen")) . "></a> </td></tr>";
+        echo "\n<tr><td class=\"table_header_bold\"><img src=\"".Assets::image_path('icons/16/white/schedule.png')."\"> <b>" . _("Termine") . "</b></td>";
+        echo "\n<td align =\"right\" class=\"table_header_bold\"> $admin_link<img src=\"".Assets::image_path('icons/16/white/admin.png')."\" " . tooltip(_("Termine einstellen")) . "></a> </td></tr>";
         ?>
 
         <tr>
-            <td class="steel1" colspan="2">
+            <td class="table_row_even" colspan="2">
                 <p class="info">
                     <?= _("Es sind keine aktuellen Termine vorhanden. Um neue Termine zu erstellen, klicken Sie rechts auf die Zahnräder.") ?>
                 </p>
@@ -539,15 +571,10 @@ function show_personal_dates ($range_id, $date_start, $date_end, $show_docs = FA
  */
 function show_all_dates($date_start, $date_end, $show_docs=FALSE, $show_admin=TRUE, $open)
 {
-    global $PHP_SELF, $RELATIVE_PATH_CALENDAR, $SessSemName, $user, $TERMIN_TYP;
-    global $PERS_TERMIN_KAT, $username, $CALENDAR_DRIVER, $LastLogin, $calendar_user_control_data;
+    global $RELATIVE_PATH_CALENDAR, $SessSemName, $user, $TERMIN_TYP;
+    global $PERS_TERMIN_KAT, $username, $CALENDAR_DRIVER;
 
     $admin_link = '<a href="'.URLHelper::getLink('calendar.php', array('cmd' => 'edit', 'source_page' => URLHelper::getURL())).'">';
-
-    if (is_array($calendar_user_control_data["bind_seminare"]))
-        $bind_seminare = array_keys($calendar_user_control_data["bind_seminare"], "TRUE");
-    else
-        $bind_seminare = "";
 
     $list = new DbCalendarEventList(new SingleCalendar($user->id, Calendar::PERMISSION_OWN), $date_start, $date_end, TRUE, Calendar::getBindSeminare());
 
@@ -557,25 +584,35 @@ function show_all_dates($date_start, $date_end, $show_docs=FALSE, $show_admin=TR
 
         // Ausgabe der Kopfzeile
         echo "<table id=\"appointments_box\" role=\"article\" class=\"index_box\">";
-        echo "\n<tr><td class=\"topic\" align=\"left\">\n";
+        echo "\n<tr><td class=\"table_header_bold\" align=\"left\">\n";
         echo '<img src="' . Assets::image_path('icons/16/white/schedule.png') . '" ';
         echo tooltip(_("Termine. Klicken Sie rechts auf die Zahnräder, um Termine in diesen Bereich zu bearbeiten. Klicken Sie auf den einfachen Pfeil, um die Terminbeschreibung zu lesen."));
         echo "> <b>";
         echo _("Meine aktuellen Termine");
         echo "</b></td>";
-        echo "\n<td align=\"right\" class=\"topic\"> $admin_link<img src=\"" . Assets::image_path('icons/16/white/admin.png') . '" ' . tooltip(_("Neuen Termin anlegen")) . "></a> </td></tr>\n";
+        echo "\n<td align=\"right\" class=\"table_header_bold\"> $admin_link<img src=\"" . Assets::image_path('icons/16/white/admin.png') . '" ' . tooltip(_("Neuen Termin anlegen")) . "></a> </td></tr>\n";
 
         // Ausgabe der Daten
         echo "<tr><td class=\"blank\" colspan=\"2\">";
 
         while ($termin = $list->nextEvent()) {
             echo '<div role="article">';
+
             $icon = Assets::img('icons/16/grey/date.png', array('class' => 'text-bottom'));
-            $have_write_permission = ((strtolower(get_class($termin)) == 'seminarevent' && $termin->haveWritePermission())
-                    || (strtolower(get_class($termin)) != 'seminarevent'));
+            $have_write_permission = true;
 
             $zusatz = '';
+            $singledate = null;
+
             if(strtolower(get_class($termin)) == 'seminarevent') {
+                $have_write_permission = $GLOBALS['perm']->have_studip_perm('tutor', $termin->getSeminarId());
+                $singledate = new SingleDate($termin->id);
+                $issues = array_map(array('IssueDB', 'restoreIssue'), (array)$singledate->getIssueIDs());
+                $issue_titles = join('; ', array_map(create_function('$a', 'return $a["title"];'), $issues));
+                if (!$issue_titles) {
+                    $issue_titles = _("Ohne Titel");
+                }
+                $issue_descriptions = join("\n\n", array_map(create_function('$a', 'return $a["description"];'), $issues));
                 $zusatz .= '<a href="'.URLHelper::getLink("seminar_main.php?auswahl=" . $termin->getSeminarId())
                                 . "\"><font size=\"-1\">".htmlReady(mila($termin->getSemName(), 22))
                                 . ' </font></a>';
@@ -601,7 +638,12 @@ function show_all_dates($date_start, $date_end, $show_docs=FALSE, $show_admin=TR
 
             if (strtolower(get_class($termin)) == 'seminarevent') {
                 //Beschneiden des Titels
-                $titel .= ', ' . htmlReady(mila($termin->getTitle(), $length - 10));
+                if ($singledate->isExTermin()) {
+                    $titel .= ', <i>' . _("Dieser Termin findet nicht statt!") . '</i>';
+                    $titel .= tooltipIcon($singledate->getComment(), true);
+                } else {
+                    $titel .= ', ' . htmlReady(mila($issue_titles, $length));
+                }
             } else {
                 //Beschneiden des Titels
                 $titel .= ', ' . htmlReady(mila($termin->getTitle(), $length));
@@ -610,12 +652,16 @@ function show_all_dates($date_start, $date_end, $show_docs=FALSE, $show_admin=TR
             //Dokumente zaehlen
             $num_docs = 0;
             if ($show_docs && strtolower(get_class($termin)) == 'seminarevent') {
-
-                $row = DBManager::get()
-                       ->query("SELECT folder_id, issue_id FROM themen_termine
-                                INNER JOIN folder ON issue_id=range_id
-                                WHERE termin_id ='" . $termin->getId() . "' LIMIT 1")
-                       ->fetch(PDO::FETCH_ASSOC);
+                $query = "SELECT folder_id, issue_id
+                          FROM themen_termine
+                          INNER JOIN folder ON (issue_id = range_id)
+                          WHERE termin_id = ?
+                          LIMIT 1";
+                $statement = DBManager::get()->prepare($query);
+                $statement->execute(array(
+                    $termin->getId()
+                ));
+                $row = $statement->fetch(PDO::FETCH_ASSOC);
                 if ($row['folder_id']) {
                     $num_docs = doc_count($row['issue_id'],  $termin->getSeminarId());
                     if ($num_docs) {
@@ -626,8 +672,7 @@ function show_all_dates($date_start, $date_end, $show_docs=FALSE, $show_admin=TR
                     }
                 }
             }
-
-            $new = ($termin->getChangeDate() > $LastLogin);
+            $new = ($termin->getChangeDate() > UserConfig::get($user->id)->LAST_LOGIN_TIMESTAMP);
 
             // Zur Identifikation von auf- bzw. zugeklappten Terminen muss zusätzlich
             // die Startzeit überprüft werden, da die Wiederholung eines Termins die
@@ -639,79 +684,61 @@ function show_all_dates($date_start, $date_end, $show_docs=FALSE, $show_admin=TR
                 $link = URLHelper::getLink("?dclose=true");
             }
 
-            if ($link) {
-                $titel = "<a href=\"$link\" class=\"tree\" >".$titel."</a>";
-            }
-
-            echo "\n<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\"><tr>";
-
-            if ($open == $app_ident) {
-                printhead(0, 0, $link, "open", $new, $icon, $titel, $zusatz, $termin->getChangeDate());
+           if (strtolower(get_class($termin)) == 'seminarevent') {
+                    $description = $issue_descriptions;
             } else {
-                printhead(0, 0, $link, "close", $new, $icon, $titel, $zusatz, $termin->getChangeDate());
+                    $description = $termin->getDescription();
+            }
+            $kat = false;
+            if (sizeof($PERS_TERMIN_KAT) > 1 && strtolower(get_class($termin)) != 'seminarevent') {
+                    $kat = htmlReady($termin->toStringCategories());
             }
 
-            echo "</tr></table> ";
+            if (strtolower(get_class($termin)) == 'seminarcalendarevent') {
+                    $sem =  htmlReady($termin->getSemName());
+            }
 
-            if ($open == $app_ident) {
-                echo "<a name=\"a\"></a>";
+            if (strtolower(get_class($termin)) == 'seminarevent') {
+                    $type=$singledate->getTypeName();
+                    if ($singledate->getRoom()) {
 
-                $content = "";
-                if($termin->getDescription()) {
-                    $content .= sprintf("%s<br><br>", formatReady($termin->getDescription(), TRUE, TRUE));
-                } else {
-                    $content .= _("Keine Beschreibung vorhanden") . "<br><br>";
-                }
+                        $raum= htmlReady(mila($singledate->getRoom(), 25));
+                    } else if ($singledate->getFreeRoomText()) {
 
-                if (strtolower(get_class($termin)) == 'seminarcalendarevent') {
-                    $content .= '<b>' . _("Seminar:") . '</b>' . htmlReady($termin->getSemName()) . '<br>';
-                }
-
-                $have_category = FALSE;
-                if (sizeof($PERS_TERMIN_KAT) > 1 && strtolower(get_class($termin)) != 'seminarevent') {
-                    $content .= "<b>" . _("Kategorie:") . "</b> " . htmlReady($termin->toStringCategories());
-                } elseif (sizeof($TERMIN_TYP) > 1 && strtolower(get_class($termin)) == 'seminarevent') {
-                    $content .= "<b>" . _("Art des Termins:") . "</b> " . htmlReady($termin->toStringCategories());
-                }
-
-                $singledate = new SingleDate($termin->id);
-                if ($singledate->getRoom()) {
-                    $content .= "&nbsp; &nbsp; &nbsp; &nbsp; ";
-                    $content .= "<b>" . _("Raum:") . " </b>";
-                    $content .= htmlReady(mila($singledate->getRoom(), 25));
-                } else if ($singledate->getFreeRoomText()) {
-                    $content .= "&nbsp; &nbsp; &nbsp; &nbsp; ";
-                    $content .= "<b>" . _("Ort:") . " </b>";
-                    $content .= htmlReady(mila($singledate->getFreeRoomText(), 25));
-                }
-
-                if (strtolower(get_class($termin)) != 'seminarevent') {
-                    $content .= '<br><b>' . _("Priorit&auml;t:") . ' </b>'
-                            . htmlReady($termin->toStringPriority());
-                    $content .= '&nbsp; &nbsp; &nbsp; &nbsp; ';
-                    $content .= '<b>' . _("Sichtbarkeit:") . ' </b>'
-                            . htmlReady($termin->toStringAccessibility());
-                    $content .= '<br>' . htmlReady($termin->toStringRecurrence());
-                }
-
-                $edit = FALSE;
-                if ($have_write_permission) {
-                    // Seminar appointment
-                    if (strtolower(get_class($termin)) == 'seminarevent') {
-                        $edit = LinkButton::create(_('Bearbeiten'), URLHelper::getURL('raumzeit.php', array('cid' => $termin->getSeminarId(), 'cmd' => 'open', 'open_close_id' => $termin->getId())) . '#' . $termin->getId());
-                    } else {
-                        // Personal appointment
-                        $edit = LinkButton::create(_('Bearbeiten'), URLHelper::getURL('calendar.php', array('cmd' => 'edit', 'termin_id' => $termin->getId(), 'atime' => $termin->getStart(), 'source_page' => URLHelper::getURL())));                                    
+                        $ort=htmlReady(mila($singledate->getFreeRoomText(), 25));
                     }
-                } else {
-                    $content .= "<br>";
-                }
+             } else {
+                    $pri =  htmlReady($termin->toStringPriority());
 
-                echo "\n<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\"><tr>";
-                printcontent(0, FALSE, $content, $edit);
-                echo "</tr></table> ";
+                    $sicht = htmlReady($termin->toStringAccessibility());
+                    $res = htmlReady($termin->toStringRecurrence());
+             }
+             $edit = FALSE;
+             if ($have_write_permission && strtolower(get_class($termin)) != 'seminarevent')  {
+                        // Personal appointment
+                        $edit = true;
+             }
+
+             if ($link) {
+
+                $titel = "<a href=\"$link\" class=\"tree\"  "
+                 ."onclick=\"STUDIP.Termine.openclose('".$termin->getId()."'); return false;\">".$titel."</a>";
+             }
+
+
+
+
+           $termin_item = array('termin_id'=>$termin->getId(),"chdate"=>$termin->getChangeDate(),
+            'type'=>$type,'info'=>$description,
+            'kat'=>$kat,'cont'=>$cont,'edit'=>$edit,
+            'sem'=>$sem,'raum'=>$raum,'ort'=>$ort,'pri'=>$pri,'sicht'=>$sicht,'res'=>$res,
+            'autor'=>$autor, 'seminar_date' => $singledate);
+           if ($open == $app_ident) {
+                $termin_item['open'] = "open";
             }
-            echo '</div>';
+            echo show_termin_item($termin_item, $open, $new, $link, $zusatz, $titel);
+
+           //contend
         }
         echo "\n</td></tr>\n</table>";
         return TRUE;
@@ -722,11 +749,11 @@ function show_all_dates($date_start, $date_end, $show_docs=FALSE, $show_admin=TR
         SkipLinks::addIndex(_("Termine"), 'appointments_box');
 
         echo "\n<table id=\"appointments_box\" role=\"article\" class=\"index_box\">";
-        echo "\n<tr><td class=\"topic\">" . Assets::img('icons/16/white/schedule.png', array('class' => 'text-top', 'title' =>_('Termine'))) . '<b>  ' . _("Termine") . '</b></td>';
-        echo "\n<td align=\"right\" class=\"topic\"> $admin_link<img src=\"" . Assets::image_path('icons/16/white/admin.png') . '" ' . tooltip(_("Termine einstellen")) . '></a> </td></tr>';
+        echo "\n<tr><td class=\"table_header_bold\">" . Assets::img('icons/16/white/schedule.png', array('class' => 'text-top', 'title' =>_('Termine'))) . '<b>  ' . _("Termine") . '</b></td>';
+        echo "\n<td align=\"right\" class=\"table_header_bold\"> $admin_link<img src=\"" . Assets::image_path('icons/16/white/admin.png') . '" ' . tooltip(_("Termine einstellen")) . '></a> </td></tr>';
         ?>
         <tr>
-            <td class="steel1" colspan="2">
+            <td class="table_row_even" colspan="2">
                 <p class="info">
                     <?= _("Es sind keine aktuellen Termine vorhanden. Um neue Termine zu erstellen, klicken Sie rechts auf die Zahnräder.") ?>
                 </p>
@@ -741,4 +768,3 @@ function show_all_dates($date_start, $date_end, $show_docs=FALSE, $show_admin=TR
         return FALSE;
     }
 }
-?>

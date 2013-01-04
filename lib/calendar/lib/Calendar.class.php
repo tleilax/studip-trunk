@@ -331,11 +331,9 @@ class Calendar
 
     function addEvent($event_id = '', $selected_users = NULL)
     {
-        global $calendar_sess_forms_data;
-
         $this->event = new DbCalendarEvent($this, $event_id);
         if ($this->havePermission(Calendar::PERMISSION_WRITABLE)) {
-            $this->setEventProperties($calendar_sess_forms_data, $calendar_sess_forms_data['mod_prv']);
+            $this->setEventProperties($_SESSION['calendar_sess_forms_data'], $_SESSION['calendar_sess_forms_data']['mod_prv']);
 
             $this->addEventObj($this->event, ($event_id == '' ? false : true), $selected_users);
         }
@@ -406,16 +404,18 @@ class Calendar
 
         $db = DBManager::get();
         if ($names) {
-            $query = "SELECT su.Seminar_id, s.Name FROM seminar_user su LEFT JOIN seminare s USING(Seminar_id) WHERE user_id = '$user_id'";
+            $query = "SELECT su.Seminar_id, s.Name FROM seminar_user su LEFT JOIN seminare s USING(Seminar_id) WHERE user_id = ?";
         } else {
-            $query = "SELECT Seminar_id FROM seminar_user WHERE user_id = '$user_id'";
+            $query = "SELECT Seminar_id FROM seminar_user WHERE user_id = ?";
         }
         if (is_null($all) || $all === false) {
             $query .= " AND bind_calendar = 1";
         }
         if ($names) {
             $query .= ' ORDER BY Name';
-            $result = $db->query($query)->fetchAll(PDO::FETCH_ASSOC);
+            $statement = DBManager::get()->prepare($query);
+            $statement->execute(array($user_id));
+            $result = $statement->fetchAll(PDO::FETCH_ASSOC);
             foreach ($result as $row) {
                 $bind_seminare[$row['Seminar_id']] = $row['Name'];
             }
@@ -427,7 +427,9 @@ class Calendar
                 }
                 return NULL;
             } else {
-                $result = $db->query($query)->fetchAll(PDO::FETCH_ASSOC);
+                $statement = DBManager::get()->prepare($query);
+                $statement->execute(array($user_id));
+                $result = $statement->fetchAll(PDO::FETCH_ASSOC);
                 foreach ($result as $row) {
                     $bind_seminare[] = $row['Seminar_id'];
                 }

@@ -48,11 +48,7 @@ class StudipLitSearch {
     function StudipLitSearch(){
         global $sess, $_lit_search_plugins;
 
-        #if (!$sess->is_registered("_start_result")){
-        #   $sess->register("_start_result");
-        #}
         URLHelper::bindLinkParam("_start_result",$this->start_result);
-        #$this->start_result =& $GLOBALS['_start_result'];
 
         $this->form_template = array('search_term'  =>  array('type' => 'text', 'caption' => _("Suchbegriff"), 'info' => _("Bitte geben Sie hier einen beliebigen Suchbegriff ein.")),
                                     'search_field'  =>  array('type' => 'select', 'caption' => _("Suchfeld"), 'info' => _("Mögliche Suchfelder"),
@@ -84,11 +80,11 @@ class StudipLitSearch {
                                                             'options' => $search_plugin_options, 'default_value' => $search_plugin_options[0]['value']),
                                     'search_term_count' => array('type' => 'hidden', 'default_value' => 1)
                                     );
-        $outer_form_buttons = array('search' => array('caption' => _('suchen'), 'info' => _("Suche starten")),
-                                    'reset' => array('caption' => _('zurücksetzen'), 'info' => _("Suche zurücksetzen")),
-                                    'change' => array('caption' => _('auswählen'), 'info' => _("Anderen Katalog auswählen")),
-                                    'search_add' => array('caption' => _('hinzufügen'), 'info' => _("Suchfeld hinzufügen")),
-                                    'search_sub' => array('caption' => _('entfernen'), 'info' => _("Suchfeld entfernen")));
+        $outer_form_buttons = array('search' => array('caption' => _('Suchen'), 'info' => _("Suche starten")),
+                                    'reset' => array('caption' => _('Zurücksetzen'), 'info' => _("Suche zurücksetzen")),
+                                    'change' => array('caption' => _('Auswählen'), 'info' => _("Anderen Katalog auswählen")),
+                                    'search_add' => array('caption' => _('Hinzufügen'), 'info' => _("Suchfeld hinzufügen")),
+                                    'search_sub' => array('caption' => _('Entfernen'), 'info' => _("Suchfeld entfernen")));
 
         $this->outer_form = new StudipForm($outer_form_fields,$outer_form_buttons,"lit_search");
 

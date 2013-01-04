@@ -43,14 +43,26 @@ function process_news_commands(&$cmd_data)
     $cmd_data["comsubmit"]='';
     $cmd_data["comdel"]='';
     $cmd_data["comdelnews"]='';
+    $comsubmit = Request::option('comsubmit');
+    if (!empty($comsubmit)) {
+        $cmd_data["comsubmit"]=$comsubmit;
+        Request::set('comopen',$comsubmit);
+    }
+    $comdelnews = Request::quoted('comdelnews');
+    if (Request::quoted('comdelnews')){
+        $cmd_data["comdelnews"] = $comdelnews;
+        Request::set('comopen',$comdelnews);
+    }
+    $comopen = Request::quoted('comopen');
+    if (Request::quoted('comopen')) {
+        $cmd_data["comopen"] = $comopen;
+        Request::set('nopen',$comopen);
+    }
 
-    if ($_REQUEST['comsubmit']) $cmd_data["comsubmit"]=$_REQUEST['comopen']=$_REQUEST['comsubmit'];
-    if ($_REQUEST['comdelnews']) $cmd_data["comdelnews"]=$_REQUEST['comopen']=$_REQUEST['comdelnews'];
-    if ($_REQUEST['comopen']) $cmd_data["comopen"]=$_REQUEST['nopen']=$_REQUEST['comopen'];
-    if ($_REQUEST['nopen']) $cmd_data["nopen"]=$_REQUEST['nopen'];
-    if ($_REQUEST['nclose'])  $cmd_data["nopen"]='';
-    if ($_REQUEST['comnew']) $cmd_data["comnew"]=$_REQUEST['comnew'];
-    if ($_REQUEST['comdel']) $cmd_data["comdel"]=$_REQUEST['comdel'];
+    if (Request::option('nopen')) $cmd_data["nopen"]=Request::option('nopen');
+    if (Request::quoted('nclose'))  $cmd_data["nopen"]='';
+    if (Request::quoted('comnew')) $cmd_data["comnew"]=Request::quoted('comnew');
+    if (Request::quoted('comdel')) $cmd_data["comdel"]=Request::quoted('comdel');
 }
 
 /**
@@ -154,7 +166,7 @@ function show_rss_news($range_id, $type)
 
     switch ($type){
         case 'user':
-            $studip_url = $GLOBALS['ABSOLUTE_URI_STUDIP'] . 'about.php?again=yes&username=' . get_username($range_id);
+            $studip_url = $GLOBALS['ABSOLUTE_URI_STUDIP'] . 'dispatch.php/profile?again=yes&username=' . get_username($range_id);
             $title = get_fullname($range_id) . ' (Stud.IP - ' . $GLOBALS['UNI_NAME_CLEAN'] . ')';
             $description = _('Persönliche Neuigkeiten') . ' ' . $title;
         break;
@@ -225,7 +237,7 @@ function show_news_item($news_item, $cmd_data, $show_admin, $admin_link)
     $tempnew = (($news_item['chdate'] >= object_get_visit($id, 'news', false, false))
              && ($news_item['user_id'] != $auth->auth['uid']));
 
-    if ($tempnew && $_REQUEST["new_news"]) {
+    if ($tempnew && Request::get("new_news")) {
         $news_item['open'] = $tempnew;
     }
 
@@ -254,6 +266,7 @@ function show_news_item($news_item, $cmd_data, $show_admin, $admin_link)
                      URLHelper::getLink($link), $id, $admin_link, $titel);
 
     $template = $GLOBALS['template_factory']->open('news/news');
+    $template->link       = $link;
     $template->news_item  = $news_item;
     $template->icon       = Assets::img('icons/16/grey/news.png', array('class' => 'text-bottom'));
     $template->titel      = $titel;
@@ -261,6 +274,7 @@ function show_news_item($news_item, $cmd_data, $show_admin, $admin_link)
     $template->cmd_data   = $cmd_data;
     $template->show_admin = $show_admin;
     $template->admin_link = $admin_link;
+    $template->tempnew    = $tempnew;
 
     return $template->render();
 }

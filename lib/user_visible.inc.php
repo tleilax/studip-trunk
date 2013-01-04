@@ -265,7 +265,6 @@ function get_global_visibility_by_username($username) {
  * at the moment:
  * <ul>
  * <li><b>online</b>: Visibility in "Who is online" list</li>
- * <li><b>chat</b>: Visibility of private chatroom in active chats list</li>
  * <li><b>search</b>: Can the user be found via person search?</li>
  * <li><b>email</b>: Is user's email address shown?</li>
  * <li><b>homepage</b>: Visibility of all user homepage elements, stored as 
@@ -376,7 +375,8 @@ function is_element_visible_for_user($user_id, $owner_id, $element_visibility) {
             case VISIBILITY_DOMAIN:
                 $user_domains = UserDomain::getUserDomainsForUser($user_id);
                 $owner_domains = UserDomain::getUserDomainsForUser($owner_id);
-                if (array_intersect($user_domains, $owner_domains)) {
+                if ((count($user_domains) === 0 && count($owner_domains) === 0)
+                    || array_intersect($user_domains, $owner_domains)) {
                     $is_visible = true;
                 }
                 break;

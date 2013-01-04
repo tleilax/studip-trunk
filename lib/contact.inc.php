@@ -427,13 +427,13 @@ function ShowUserInfo ($contact_id)
 
     if ($temp) {
         $basicinfo[_('E-Mail')] = sprintf('<a href="mailto:%1$s">%1$s</a>', $temp['Email']);
-        $basicinfo['Stud.IP']   = sprintf('<a href="about.php?username=%1$s">%1$s (%2$s)</a>',
+        $basicinfo['Stud.IP']   = sprintf('<a href="dispatch.php/profile?username=%1$s">%1$s (%2$s)</a>',
                                           $temp['username'], get_global_perm($user_id));
     }
 
     // diese Infos hat jeder
     while(list($key,$value) = each($basicinfo)) {
-        $output .= "<tr><td class=\"steelgraulight\" width=\"100\"><font size=\"2\">".$key.":</font></td><td class=\"steelgraulight\" width=\"250\"><font size=\"2\">".$value."</font></td></tr>";
+        $output .= "<tr><td class=\"table_row_odd\" width=\"100\"><font size=\"2\">".$key.":</font></td><td class=\"table_row_odd\" width=\"250\"><font size=\"2\">".$value."</font></td></tr>";
     }
 
     // hier Zusatzinfos
@@ -443,25 +443,25 @@ function ShowUserInfo ($contact_id)
         $userinfo = GetUserInfo($user_id);
         if (is_array($userinfo)) {
             while(list($key,$value) = each($userinfo)) {
-                $output .= "<tr><td class=\"steel1\" width=\"100\"><font size=\"2\">".$key.":</font></td><td class=\"steel1\" width=\"250\"><font size=\"2\">".$value."</font></td></tr>";
+                $output .= "<tr><td class=\"table_row_even\" width=\"100\"><font size=\"2\">".$key.":</font></td><td class=\"table_row_even\" width=\"250\"><font size=\"2\">".$value."</font></td></tr>";
             }
         }
 
         $userinstinfo = GetInstInfo($user_id);
         for ($i=0; $i <sizeof($userinstinfo); $i++) {
             while(list($key,$value) = each($userinstinfo[$i])) {
-                $output .= "<tr><td class=\"steel1\" width=\"100\"><font size=\"2\">".$key.":</font></td><td class=\"steel1\" width=\"250\"><font size=\"2\">".$value."</font></td></tr>";
+                $output .= "<tr><td class=\"table_row_even\" width=\"100\"><font size=\"2\">".$key.":</font></td><td class=\"table_row_even\" width=\"250\"><font size=\"2\">".$value."</font></td></tr>";
             }
         }
 
         $extra = GetExtraUserinfo ($contact_id);
         if (is_array($extra)) {
             while(list($key,$value) = each($extra)) {
-                $output .= "<tr><td class=\"steel1\" width=\"100\"><font size=\"2\">".htmlReady($key).":</font></td><td class=\"steel1\" width=\"250\"><font size=\"2\">".formatReady($value)."</font></td></tr>";
+                $output .= "<tr><td class=\"table_row_even\" width=\"100\"><font size=\"2\">".htmlReady($key).":</font></td><td class=\"table_row_even\" width=\"250\"><font size=\"2\">".formatReady($value)."</font></td></tr>";
             }
         }
 
-        $output .= '<tr><td align="center" class="steel1" colspan="2" width="350"><br>'.Avatar::getAvatar($user_id)->getImageTag(Avatar::NORMAL).'</td>';
+        $output .= '<tr><td align="center" class="table_row_even" colspan="2" width="350"><br>'.Avatar::getAvatar($user_id)->getImageTag(Avatar::NORMAL).'</td>';
         $owner_id = $user->id;
 
         $query = "SELECT DISTINCT name, statusgruppe_id
@@ -473,7 +473,7 @@ function ShowUserInfo ($contact_id)
         $temp = $statement->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($temp as $row) {
-            $output .= "<tr><td class=\"steel1\" width=\"100\"><font size=\"2\">"._("Gruppe").":</font></td><td class=\"steel1\" width=\"250\"><a href=\"$PHP_SELF?view=gruppen&filter=".$row['statusgruppe_id']."\"><font size=\"2\">".htmlready($row['name'])."</font></a></td></tr>";
+            $output .= "<tr><td class=\"table_row_even\" width=\"100\"><font size=\"2\">"._("Gruppe").":</font></td><td class=\"table_row_even\" width=\"250\"><a href=\"".URLHelper::getLink('?view=gruppen&filter='.$row['statusgruppe_id'])."\"><font size=\"2\">".htmlready($row['name'])."</font></a></td></tr>";
         }
     }
     return $output;
@@ -481,7 +481,7 @@ function ShowUserInfo ($contact_id)
 
 function ShowContact ($contact_id)
 {   // Ausgabe eines Kontaktes
-    global $PHP_SELF, $open, $filter, $view;
+    global $open, $filter, $view;
 
     $query = "SELECT contact_id, user_id, buddy, calpermission
               FROM contact
@@ -517,7 +517,7 @@ function ShowContact ($contact_id)
             } else {
                 $buddy = '<a href="' . URLHelper::getLink('#anker', array('view' => $view, 'cmd' => 'changebuddy', 'contact_id' => $contact_id, 'open' => $open, 'rnd' => $rnd)) . '">' . Assets::img('icons/16/blue/person.png', array('class' => 'text-top', 'title' =>_('Zu Buddies hinzufügen'))) . '</a>&nbsp; ';
             }
-            $lastrow = "<tr><td colspan=\"2\" class=\"steel1\" align=\"right\">"
+            $lastrow = "<tr><td colspan=\"2\" class=\"table_row_even\" align=\"right\">"
                         . $calstatus . $buddy
                         . '<a href="' . URLHelper::getLink('', array('edit_id' => $contact_id)) . '">' . Assets::img('icons/16/blue/edit.png', array('class' => 'text-top', 'title' => _('Editieren'))) . '</a> '
                         . '<a href="' . URLHelper::getLink('contact_export.php', array('contactid' => $contact_id)) . '">'
@@ -525,12 +525,12 @@ function ShowContact ($contact_id)
                         . ' <a href="' . URLHelper::getLink('', array('view' => $view, 'cmd' => 'delete', 'contact_id' => $contact_id, 'open' => $open)) . '">'
                         .  Assets::img('icons/16/blue/trash.png', array('class' => 'text-top', 'title' => _("Kontakt löschen")))
                         . ' </a></td></tr>'
-                        . '<tr><td colspan="2" class="steelgraulight" align="center"><a href="' . URLHelper::getLink('', array('view' => $view, 'filter' => $filter)) . '">'
+                        . '<tr><td colspan="2" class="table_row_odd" align="center"><a href="' . URLHelper::getLink('', array('view' => $view, 'filter' => $filter)) . '">'
                         . Assets::img('icons/16/blue/arr_1up.png', array('class' => 'text-top', 'title' =>_('Kontakte schließen')))
                         . '</a></td></tr>';
         } else {
             $link = '<a href="' . URLHelper::getLink('#anker', array('view' => $view, 'filter' => $filter, 'open' => $contact_id)) . '">'. Assets::img('icons/16/blue/arr_1down.png') . '</a>';
-            $lastrow = '<tr><td colspan="3" class="steelgraulight" align="center">' . $link . '</td></tr>';
+            $lastrow = '<tr><td colspan="3" class="table_row_odd" align="center">' . $link . '</td></tr>';
         }
         if ($open == $contact_id) {     //es ist ein einzelner Beitrag aufgeklappt, also Anker setzen
             $output = '<a name="anker"></a>';
@@ -539,11 +539,11 @@ function ShowContact ($contact_id)
         }
         $output .= "<table border=\"0\" cellspacing=\"0\" width=\"280\" class=\"blank\">
                     <tr>
-                        <td class=\"blue_gradient\" width=\"99%\" style=\"font-weight:bold;\">"
+                        <td class=\"table_header_bold\" width=\"99%\" style=\"font-weight:bold;\">"
                             . get_fullname($temp['user_id'], $format = "full_rev",true ) . '</td>'
-                            . "<td class=\"blue_gradient\">"
+                            . "<td class=\"table_header_bold\">"
                             // export to vcf
-                            . '<a href="' . URLHelper::getLink('sms_send.php', array('sms_source_page' => 'contact.php', 'rec_uname' => get_username($temp['user_id']))) . '">' . Assets::img('icons/16/blue/mail.png', array('class' => 'text-top', 'title' =>_('Nachricht schreiben'))) . '</a>'
+                            . '<a href="' . URLHelper::getLink('sms_send.php', array('sms_source_page' => 'contact.php', 'rec_uname' => get_username($temp['user_id']))) . '">' . Assets::img('icons/16/white/mail.png', array('class' => 'text-top', 'title' =>_('Nachricht schreiben'))) . '</a>'
                             . '</td>'
                             . "
                         </td>
@@ -609,7 +609,7 @@ function ShowEditContact ($contact_id)
         $css_switcher = new cssClassSwitcher();
         $output = "<table cellspacing=\"0\" cellpadding=\"3\" width=\"700\" class=\"blank\">
                     <tr>
-                        <td class=\"topicwrite\" colspan=\"3\">"
+                        <td class=\"table_header_bold_red\" colspan=\"3\">"
                             .get_fullname($result['user_id'], $format = "full_rev",true )."</td>"
                             ."
                         </td>
@@ -641,7 +641,7 @@ function ShowEditContact ($contact_id)
             $i++;
         }
         if ($i == 0) { // noch nichts angelegt
-            $output .= "<tr><td class=\"steel1\" colspan=\"3\">&nbsp;<font size=\"2\">"._("Sie können hier eigene Rubriken für diesen Kontakt anlegen:")."</font></td></tr>";
+            $output .= "<tr><td class=\"table_row_even\" colspan=\"3\">&nbsp;<font size=\"2\">"._("Sie können hier eigene Rubriken für diesen Kontakt anlegen:")."</font></td></tr>";
         }
         $css_switcher->switchClass();
         $output .= '<tr><td class="' . $css_switcher->getClass() . '">&nbsp; '

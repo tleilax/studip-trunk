@@ -264,7 +264,6 @@ class UserManagement
             $this->msg .= "error§" . _("E-Mail-Adresse syntaktisch falsch!") . "§";
             return FALSE;
         }
-        return true;
         // E-Mail reachable?
         if (!$this->validator->ValidateEmailHost($Email)) {      // Mailserver nicht erreichbar, ablehnen
             $this->msg .= "error§" . _("Mailserver ist nicht erreichbar!") . "§";
@@ -567,7 +566,7 @@ class UserManagement
     }
 
 
-    private function logInstUserDel($user_id, $condition = NULL) 
+    private function logInstUserDel($user_id, $condition = NULL)
     {
         $query = "SELECT Institut_id FROM user_inst WHERE user_id = ?";
         if (isset($condition)) {
@@ -657,11 +656,9 @@ class UserManagement
                 $this->msg .= "error§" . _("Sie haben keine Berechtigung <em>Root-Accounts</em> zu l&ouml;schen.") . "§";
                 return FALSE;
             }
-            if ($perm->is_fak_admin() && $this->user_data['auth_user_md5.perms'] == "admin"){
-                if (!$this->adminOK()) {
-                    $this->msg .= "error§" . _("Sie haben keine Berechtigung diesen Admin-Account zu l&ouml;schen.") . "§";
-                    return FALSE;
-                }
+            if ($this->user_data['auth_user_md5.perms'] == "admin" && !$this->adminOK()) {
+                $this->msg .= "error§" . _("Sie haben keine Berechtigung diesen Admin-Account zu l&ouml;schen.") . "§";
+                return FALSE;
             }
         }
 
@@ -757,7 +754,7 @@ class UserManagement
 
             // delete empty folders of this user
             $temp_count = 0;
-            
+
             $query = "SELECT COUNT(*) FROM folder WHERE range_id = ?";
             $count_content = DBManager::get()->prepare($query);
 
@@ -896,8 +893,6 @@ class UserManagement
         UserConfigEntry::deleteByUser($this->user_data['auth_user_md5.user_id']);
 
         // delete all remaining user data
-        $query = "DELETE FROM seminar_user_schedule WHERE user_id = ?";
-        DBManager::get()->prepare($query)->execute(array($this->user_data['auth_user_md5.user_id']));
         $query = "DELETE FROM rss_feeds WHERE user_id = ?";
         DBManager::get()->prepare($query)->execute(array($this->user_data['auth_user_md5.user_id']));
         $query = "DELETE FROM kategorien WHERE range_id = ?";
@@ -906,7 +901,8 @@ class UserManagement
         DBManager::get()->prepare($query)->execute(array($this->user_data['auth_user_md5.user_id']));
         $query = "DELETE FROM user_visibility WHERE user_id = ?";
         DBManager::get()->prepare($query)->execute(array($this->user_data['auth_user_md5.user_id']));
-        $GLOBALS['user']->that->ac_delete($this->user_data['auth_user_md5.user_id'], $GLOBALS['user']->name);
+        $query = "DELETE FROM user_online WHERE user_id = ?";
+        DBManager::get()->prepare($query)->execute(array($this->user_data['auth_user_md5.user_id']));
         object_kill_visits($this->user_data['auth_user_md5.user_id']);
         object_kill_views($this->user_data['auth_user_md5.user_id']);
 
@@ -973,7 +969,7 @@ class UserManagement
         return TRUE;
 
     }
-    
+
     private function adminOK()
     {
         static $ok = null;

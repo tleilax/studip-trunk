@@ -127,11 +127,11 @@ class EvalOverview {
         $tr = new HTML("tr");
 
         if ($state == "user_template")
-            $style = "steel_with_steel1_bg";
+            $style = "steel_with_table_row_even_bg";
         elseif ($state == "public_template")
             $style = "eval_grey_border";
         else
-            $style = "steel";
+            $style = "table_header";
 
         for ($i = 0; $rowTitles != NULL; $i++) {
 
@@ -205,13 +205,13 @@ class EvalOverview {
         if ($eval->getAuthor() != $user->id && $no_permissons)
             $no_buttons = 1;
 
-        $style = ($number % 2) ? "steelgraulight" : ($number == 0 ? "steelkante" : "steel1");
+        $style = ($number % 2) ? "table_row_odd" : ($number == 0 ? "content_body" : "table_row_even");
 
         $startDate = $eval->getStartdate() == NULL ? " " : date("d.m.Y", $eval->getStartdate());
 
         $stopDate = $eval->getRealStopdate() == NULL ? " " : date("d.m.Y", $eval->getRealStopdate());
 
-        $link = "?rangeID=" . $GLOBALS["rangeID"];
+        $link = "?rangeID=" . $_SESSION["rangeID"];
         if ($open == NO)
             $link .= '&openID=' . $evalID . '#open';
 
@@ -315,7 +315,7 @@ class EvalOverview {
         }
 
         $form = new HTML("form");
-        $form->addAttr("action", UrlHelper::getLink("?rangeID=" . $GLOBALS["rangeID"]));
+        $form->addAttr("action", UrlHelper::getLink("?rangeID=" . $_SESSION["rangeID"]));
         $form->addAttr("method", "post");
         $form->addAttr("style", "display:inline;");
         $form->addHTMLContent(CSRFProtection::tokenTag());
@@ -438,7 +438,7 @@ class EvalOverview {
         /* initialize variables -------- */
         $evalID = $eval->getObjectID();
 
-        $style = ($number % 2) ? "steelgraulight" : "steel1";
+        $style = ($number % 2) ? "table_row_odd" : "table_row_even";
 
         $startDate = $eval->getStartdate() == NULL ? " " : date("d.m.Y", $eval->getStartdate());
 
@@ -459,7 +459,7 @@ class EvalOverview {
         $form = new HTML("form");
         $form->addAttr("name", "settingsForm");
         $form->addAttr("action", UrlHelper::getLink("?rangeID=" .
-                        $GLOBALS["rangeID"] . "&openID=" . $evalID . "#open"));
+                        $_SESSION["rangeID"] . "&openID=" . $evalID . "#open"));
         $form->addAttr("method", "post");
         $form->addAttr("style", "display:inline;");
         $form->addHTMLContent(CSRFProtection::tokenTag());
@@ -499,7 +499,7 @@ class EvalOverview {
         $td2->addAttr("colspan", "2");
 #$td2->addAttr ("style", "padding-bottom:0; border-top:1px solid black;");
         $td2->addAttr("align", "center");
-        $td2->addAttr("class", ($number % 2 ? "steelgraulight" : "steel1"));
+        $td2->addAttr("class", ($number % 2 ? "table_row_odd" : "table_row_even"));
 
         $td2->addHTMLContent($safeguard);
 
@@ -508,7 +508,7 @@ class EvalOverview {
         $no_permission = EvaluationObjectDB::getEvalUserRangesWithNoPermission($eval);
 
         if (($globalperm == "root" || $globalperm == "admin") &&
-                !$_REQUEST["search"] && $eval->isTemplate()) {
+                !Request::quoted("search") && $eval->isTemplate()) {
             // no RuntimeSettings and Save-Button for Template if there are no ranges
             $td2->addHTMLContent($this->createDomainSettings($eval, $state, $number % 2 ? "eval_grey_border" : "eval_light_border" ));
         } elseif ($no_permission) {
@@ -585,7 +585,7 @@ class EvalOverview {
 
         /* create new ---------------------------------------------------------- */
         $td = new HTML("td");
-        $td->addAttr("class", "steel1");
+        $td->addAttr("class", "table_row_even");
         $td->addAttr("valign", "top");
         $td->addAttr("width", "100%");
 
@@ -599,7 +599,7 @@ class EvalOverview {
         /* Show logo ----------------------------------------------------------- */
         $td = new HTML("td");
         $td->addAttr("align", "right");
-        $td->addAttr("class", "steel1");
+        $td->addAttr("class", "table_row_even");
         $td->addAttr("valign", "top");
         $rows = 5;
         if ($foundTable)
@@ -619,14 +619,14 @@ class EvalOverview {
           if ($this->db->getGlobalPerm() != "autor") {
           $tr = new HTML ("tr");
           $td = new HTML ("td");
-          $td->addAttr ("class", "steelkante");
+          $td->addAttr ("class", "content_body");
           $td->addContent (" ");
           $tr->addContent ($td);
           $table->addContent ($tr);
 
           $tr = new HTML ("tr");
           $td = new HTML ("td");
-          $td->addAttr ("class", "steelgraulight");
+          $td->addAttr ("class", "table_row_odd");
           $td->addAttr ("valign", "top");
           $td->addContent (new HTMLempty ("br"));
           $td->addContent (EvalOverview::createShowRangeForm ());
@@ -639,14 +639,14 @@ class EvalOverview {
         /* search template ----------------------------------------------------- */
         $tr = new HTML("tr");
         $td = new HTML("td");
-        $td->addAttr("class", "steelkante");
+        $td->addAttr("class", "content_body");
         $td->addAttr("valign", "top");
         $td->addContent(" ");
         $tr->addContent($td);
         $table->addContent($tr);
         $tr = new HTML("tr");
         $td = new HTML("td");
-        $td->addAttr("class", "steelgraulight");
+        $td->addAttr("class", "table_row_odd");
         $td->addAttr("valign", "top");
         $td->addContent(new HTMLempty("br"));
         $td->addContent(EvalOverview::createSearchTemplateForm());
@@ -658,7 +658,7 @@ class EvalOverview {
         if ($foundTable) {
             $tr = new HTML("tr");
             $td = new HTML("td");
-            $td->addAttr("class", "steelgraulight");
+            $td->addAttr("class", "table_row_odd");
             $td->addContent($foundTable);
             $tr->addContent($td);
             $table->addContent($tr);
@@ -668,14 +668,14 @@ class EvalOverview {
         /* Show templates ------------------------------------------------------ */
         $tr = new HTML("tr");
         $td = new HTML("td");
-        $td->addAttr("class", "steelkante");
+        $td->addAttr("class", "content_body");
         $td->addContent(" ");
         $tr->addContent($td);
         $table->addContent($tr);
         $tr = new HTML("tr");
         $td = new HTML("td");
         $td->addAttr("valign", "top");
-        $td->addAttr("class", "steel1");
+        $td->addAttr("class", "table_row_even");
         $td->addContent($templates ? $templates : " ");
         $tr->addContent($td);
         $table->addContent($tr);
@@ -696,7 +696,7 @@ class EvalOverview {
      *
      */
     function createNewEvalForm() {
-        $currentRangeID = $GLOBALS['rangeID'];
+        $currentRangeID = $_SESSION['rangeID'];
 
         $form = new HTML("form");
         $form->addAttr("method", "post");
@@ -748,7 +748,7 @@ class EvalOverview {
      */
     function createShowRangeForm() {
 
-        $currentRangeID = $GLOBALS['rangeID'];
+        $currentRangeID = $_SESSION['rangeID'];
 
         $form = new HTML("form");
         $form->addAttr("method", "post");
@@ -809,7 +809,7 @@ class EvalOverview {
     function createSearchTemplateForm() {
         $form = new HTML("form");
         $form->addAttr("method", "post");
-        $form->addAttr("action", UrlHelper::getLink("?rangeID=" . $GLOBALS["rangeID"]));
+        $form->addAttr("action", UrlHelper::getLink("?rangeID=" . $_SESSION["rangeID"]));
         $form->addHTMLContent(CSRFProtection::tokenTag());
 
         $form->addContent(_("Öffentliche Evaluationsvorlage suchen: "));
@@ -845,7 +845,7 @@ class EvalOverview {
         $tr = new HTML("tr");
 
         $td = new HTML("td");
-        $td->addAttr("class", "steelkante");
+        $td->addAttr("class", "content_body");
         $td->addContent($text);
 
         $tr->addContent($td);
@@ -862,7 +862,7 @@ class EvalOverview {
         $tr = new HTML("tr");
         $tr->addAttr("height", "2");
         $td = new HTML("td");
-        $td->addAttr("class", "steelkante");
+        $td->addAttr("class", "content_body");
         $td->addContent("");
         $tr->addContent($td);
 
@@ -1191,17 +1191,17 @@ class EvalOverview {
 
 
                 /* Timesettings ---------------------------------------------------- */
-                if ($_REQUEST["startMode"]) {
+                if (Request::option("startMode")) {
 
 
-                    switch ($_REQUEST["startMode"]) {
+                    switch (Request::option("startMode")) {
 
                         case "manual":
                             $startDate = NULL;
                             break;
 
                         case "timeBased":
-                            $startDate = EvalCommon::date2timestamp($_REQUEST["startDay"], $_REQUEST["startMonth"], $_REQUEST["startYear"], $_REQUEST["startHour"], $_REQUEST["startMinute"]);
+                            $startDate = EvalCommon::date2timestamp(Request::quoted("startDay"), Request::quoted("startMonth"), Request::quoted("startYear"), Request::quoted("startHour"), Request::quoted("startMinute"));
                             break;
 
                         case "immediate":
@@ -1215,22 +1215,22 @@ class EvalOverview {
                     }
                 }
 
-                if ($_REQUEST["stopMode"]) {
+                if (Request::option("stopMode")) {
 
-                    switch ($_REQUEST["stopMode"]) {
+                    switch (Request::option("stopMode")) {
                         case "manual":
                             $stopDate = NULL;
                             $timeSpan = NULL;
                             break;
 
                         case "timeBased":
-                            $stopDate = EvalCommon::date2timestamp($_REQUEST["stopDay"], $_REQUEST["stopMonth"], $_REQUEST["stopYear"], $_REQUEST["stopHour"], $_REQUEST["stopMinute"]);
+                            $stopDate = EvalCommon::date2timestamp(Request::quoted("stopDay"), Request::quoted("stopMonth"), Request::quoted("stopYear"), Request::quoted("stopHour"), Request::quoted("stopMinute"));
                             $timeSpan = NULL;
                             break;
 
                         case "timeSpanBased":
                             $stopDate = NULL;
-                            $timeSpan = $_REQUEST["timeSpan"];
+                            $timeSpan = Request::quoted("timeSpan");
                             break;
                     }
 
@@ -1245,7 +1245,8 @@ class EvalOverview {
 
 
                 /* link eval to ranges --------------------------------------------- */
-                if ($link_range_Array = $_REQUEST["link_range"]) {
+                $link_range_Array = Request::optionArray("link_range");
+                if ($link_range_Array) {
                     $isTemplate = $eval->isTemplate();
                     if ($isTemplate) {
                         $newEval = $eval->duplicate();
@@ -1285,15 +1286,16 @@ class EvalOverview {
 
 
                 /* copy eval to ranges --------------------------------------------- */
-                if ($copy_range_Array = $_REQUEST["copy_range"]) {
+                $copy_range_Array = Request::optionArray("copy_range");
+                if (!empty($copy_range_Array)) {
                     $counter_copy = 0;
                     foreach ($copy_range_Array as $copy_rangeID => $v) {
                         if ($userid = get_userid($copy_rangeID))
                             $copy_rangeID = $userid;
                         $newEval = $eval->duplicate();
-                        if ($_REQUEST["startMode"])
+                        if (Request::option("startMode"))
                             $newEval->setStartdate($startDate);
-                        if ($_REQUEST["stopMode"]) {
+                        if (Request::quoted("stopMode")) {
                             $newEval->setStopdate($stopDate);
                             $newEval->setTimespan($timeSpan);
                         }
@@ -1316,7 +1318,8 @@ class EvalOverview {
                 /* ------------------------------------------- end: copy eval to ranges */
 
                 /* unlink ranges ------------------------------------------------------- */
-                if ($remove_range_Array = $_REQUEST["remove_range"]) {
+                $remove_range_Array = Request::optionArray("remove_range");
+                if (!empty($remove_range_Array)) {
 
                     /* if all rangeIDs will be removed, so ask if it should be deleted -- */
                     if (sizeof($remove_range_Array) == $eval->getNumberRanges()) {
@@ -1408,17 +1411,17 @@ class EvalOverview {
                 }
 
                 if ($eval->isTemplate()) {
-                    if (empty($_REQUEST["link_range"]) && empty($_REQUEST["copy_range"]) && empty($_REQUEST["remove_range"])) {
+                    if (empty($link_range) && empty($copy_range) && empty($remove_range)) {
                         $update_message = sprintf(_("Es wurden keine Ver&auml;nderungen an der Evaluationsvorlage <b>%s</b> gespeichert."), $evalName);
                     }
                 } else {
                     // nothing changed
-                    if (empty($_REQUEST["startMode"]) && empty($_REQUEST["stopMode"]) &&
-                            empty($_REQUEST["link_range"]) && empty($_REQUEST["copy_range"]) && empty($_REQUEST["remove_range"]))
+                    if (! Request::option('startMode') && ! Request::option('stopMode') &&
+                            empty($link_range) && empty($copy_range) && empty($remove_range))
                         $update_message = _("Es wurden keine Ver&auml;nderungen gespeichert.");
 
                     // set new start date
-                    if ($_REQUEST["startMode"] && !$time_msg) {
+                    if (Request::option("startMode") && !$time_msg) {
                         $eval->setStartDate($startDate);
 
                         if ($startDate != NULL && $startDate <= time() - 1) {
@@ -1428,7 +1431,7 @@ class EvalOverview {
                     }
 
                     // set new stop date
-                    if ($_REQUEST["stopMode"] && !$time_msg) {
+                    if (Request::quoted("stopMode") && !$time_msg) {
                         $eval->setStopDate($stopDate);
                         $eval->setTimeSpan($timeSpan);
 
@@ -1467,7 +1470,7 @@ class EvalOverview {
 
             case "search_showrange":
             case "search_range":
-                $search = $_REQUEST["search"];
+                $search = Request::quoted("search");
 
                 if (EvaluationObjectDB::getGlobalPerm(YES) < 31) {
                     $safeguard = $this->createSafeguard("ausruf", _("Sie besitzen keine Berechtigung eine Suche durchzuführen."));
@@ -1566,7 +1569,7 @@ class EvalOverview {
             "cancel" => _("Abbrechen.")
         );
 
-        $html = "   <table align=\"center\" width=\"100%\" border=0 cellpadding=3 cellspacing=0>\n" // class=\"steel1\"
+        $html = "   <table align=\"center\" width=\"100%\" border=0 cellpadding=3 cellspacing=0>\n" // class=\"table_row_even\"
                 . "   <tr>\n"
                 . "    <td width=\"34\" valign=\"middle\" style=\"vertical-align:middle;\">\n";
 
@@ -1708,12 +1711,12 @@ class EvalOverview {
 
         /* Eval has NOT started yet --- */
         if ($state == EVAL_STATE_NEW || $eval->isTemplate()) {
-            $html .= "<tr><td class=\"steel1\">";
+            $html .= "<tr><td class=\"table_row_even\">";
             $html .= "<input type=radio name=\"startMode\" value=\"manual\" " . ($startMode == "manual" ? "checked" : "") . ">&nbsp;";
             $html .= _("sp&auml;ter manuell starten");
             $html .= "</td></tr>";
 
-            $html .= "<tr><td class=steelgraulight>";
+            $html .= "<tr><td class=table_row_odd>";
             $html .= "<input type=radio name=\"startMode\" value=\"timeBased\" " . ($startMode == "timeBased" ? "checked" : "") . ">&nbsp;";
             $html .= _("Startzeitpunkt:");
             $html .= "&nbsp;&nbsp;<input type=text name=\"startDay\" size=3 maxlength=2 value=\"" . $startDay . "\">&nbsp;.&nbsp;"
@@ -1723,7 +1726,7 @@ class EvalOverview {
                             "&nbsp;<input type=text name=\"startMinute\" size=3 maxlength=2 value=\"" . $startMinute . "\">&nbsp;");
             $html .= "</td></tr>";
 
-            $html .= "<tr><td class=steel1 valign=middle>";
+            $html .= "<tr><td class=table_row_even valign=middle>";
             $html .= "<input type=radio name=\"startMode\" value=\"immediate\">&nbsp;";
             $html .= _("sofort");
             $html .= "</td></tr>";
@@ -1754,11 +1757,11 @@ class EvalOverview {
 
         /* Eval has NOT finished yet --- */
         if ($state != EVAL_STATE_STOPPED) {
-            $html .= "<tr><td class=steel1>\n"
+            $html .= "<tr><td class=table_row_even>\n"
                     . "<input type=radio name=\"stopMode\" value=\"manual\" " . ($stopMode == "manual" ? "checked" : "") . ">&nbsp;"
                     . _("manuell beenden")
                     . "</td></tr>"
-                    . "<tr><td class=steelgraulight>\n"
+                    . "<tr><td class=table_row_odd>\n"
                     . "<input type=radio name=\"stopMode\" value=\"timeBased\" " . ($stopMode == "timeBased" ? "checked" : "") . ">&nbsp;"
                     . _("Endzeitpunkt:");
 
@@ -1771,7 +1774,7 @@ class EvalOverview {
             $html .= "&nbsp;"
 #       . "<input type=hidden name=\"stopDate\" value=\"".$stopDate."\">"
                     . "</td></tr>"
-                    . "<tr><td class=steel1 valign=middle>"
+                    . "<tr><td class=table_row_even valign=middle>"
                     . "<input type=radio name=\"stopMode\" value=\"timeSpanBased\" " . ($stopMode == "timeSpanBased" ? "checked" : "")
 #       . " onClick=\"document.settingsForm.submit()\""
                     . ">&nbsp;"
@@ -1839,8 +1842,8 @@ class EvalOverview {
         $rangeIDs = $eval->getRangeIDs();
 
         // search results
-        if ($_REQUEST["search"])
-            $results = $evalDB->search_range($_REQUEST["search"]);
+        if (Request::quoted("search"))
+            $results = $evalDB->search_range(Request::quoted("search"));
         elseif ($globalperm == "dozent")
             $results = $evalDB->search_range("");
 
@@ -1850,7 +1853,7 @@ class EvalOverview {
             $results[$user->id] = array("type" => "user", "name" => _("Profil"));
         }
 
-        if ($globalperm == "dozent" || $globalperm == "autor" || $_REQUEST["search"])
+        if ($globalperm == "dozent" || $globalperm == "autor" || Request::quoted("search"))
             $showsearchresults = 1;
 
 
@@ -1959,7 +1962,7 @@ class EvalOverview {
             }
         } else {
             $td_r = new HTML("td");
-            $td_r->addAttr("class", "steelkante");
+            $td_r->addAttr("class", "content_body");
             $td_r->addAttr("width", "40");
             $td_r->addAttr("align", "center");
             $td_r->addAttr("style", "vertical-align:bottom;");
@@ -2070,11 +2073,11 @@ class EvalOverview {
                     foreach ($ranges["$type_key"] as $range) {
 
                         if ($counter == 0)
-                            $displayclass = "steelkante";
+                            $displayclass = "content_body";
                         elseif (($counter % 2) == 0)
-                            $displayclass = "steel1";
+                            $displayclass = "table_row_even";
                         else
-                            $displayclass = "steelgraulight";
+                            $displayclass = "table_row_odd";
 
                         $cssClass = $cssSw->getFullClass();
 
@@ -2133,7 +2136,7 @@ class EvalOverview {
                 } elseif ($globalperm == "root" || $globalperm == "admin") {
                     $tr_s = new HTML("tr");
                     $td_s = new HTML("td");
-                    $td_s->addAttr("class", "steelkante");
+                    $td_s->addAttr("class", "content_body");
                     $td_s->addAttr("colspan", "4");
                     $td_s->addHTMLContent("&nbsp;");
                     $td_s->addContent(_("Es wurden keine Ergebnisse aus diesem Bereich gefunden."));
@@ -2150,7 +2153,7 @@ class EvalOverview {
 //       $td->addContent(new HTMLempty("hr"));
             $b = new HTML("b");
 #       $b->addContent (_("Suchergebnisse:"));
-            if ($_REQUEST["search"])
+            if (Request::quoted("search"))
                 $b->addContent(_("Sie können die Evaluation folgenden Bereichen zuordnen (Suchergebnisse):"));
             else
                 $b->addContent(_("Sie können die Evaluation folgenden Bereichen zuordnen:"));
@@ -2175,7 +2178,7 @@ class EvalOverview {
             $input->addAttr("type", "text");
             $input->addAttr("name", "search");
             $input->addAttr("style", "vertical-align:middle;");
-            $input->addAttr("value", "" . $_REQUEST["search"] . "");
+            $input->addAttr("value", "" . Request::quoted("search") . "");
             $td->addContent($input);
 
             $td->addContent(Button::create(_('Suchen'), 'search_range_button', array('title' => _('Bereiche suchen'))));
@@ -2251,7 +2254,7 @@ class EvalOverview {
                 // Typ
                 $td = new HTML("td");
                 $td->addAttr("colspan", "1");
-                $td->addAttr("class", "steel");
+                $td->addAttr("class", "table_header");
                 $td->addAttr("height", "22");
                 $td->addAttr("width", "50%");
                 $td->addAttr("style", "vertical-align:bottom;");
@@ -2263,7 +2266,7 @@ class EvalOverview {
 
                 // Typ
                 $td = new HTML("td");
-                $td->addAttr("class", "steel");
+                $td->addAttr("class", "table_header");
                 $td->addAttr("height", "22");
                 $td->addAttr("align", "center");
                 $td->addAttr("style", "vertical-align:bottom;");
@@ -2274,7 +2277,7 @@ class EvalOverview {
 
                 // Typ
                 $td = new HTML("td");
-                $td->addAttr("class", "steel");
+                $td->addAttr("class", "table_header");
                 $td->addAttr("height", "22");
                 $td->addAttr("align", "center");
                 $td->addAttr("style", "vertical-align:bottom;");
@@ -2293,11 +2296,11 @@ class EvalOverview {
                     foreach ($ranges["$type_key"] as $range) {
 
                         if ($counter == 0)
-                            $displayclass = "steelkante";
+                            $displayclass = "content_body";
                         elseif (($counter % 2) == 0)
-                            $displayclass = "steel1";
+                            $displayclass = "table_row_even";
                         else
-                            $displayclass = "steelgraulight";
+                            $displayclass = "table_row_odd";
 
                         $cssClass = $cssSw->getFullClass();
 
@@ -2339,7 +2342,7 @@ class EvalOverview {
                 } elseif ($globalperm == "root" || $globalperm == "admin") {
                     $tr = new HTML("tr");
                     $td = new HTML("td");
-                    $td->addAttr("class", "steelkante");
+                    $td->addAttr("class", "content_body");
                     $td->addAttr("colspan", "4");
                     $td->addHTMLContent("&nbsp;");
                     $td->addContent(_("Es wurden keine Ergebnisse aus diesem Bereich gefunden."));
@@ -2361,8 +2364,8 @@ class EvalOverview {
      *
      */
     function getPageCommand() {
-        if (isset($_REQUEST["evalAction"]))
-            return $_REQUEST["evalAction"];
+        if (Request::option("evalAction"))
+            return Request::option("evalAction");
 
         foreach ($_REQUEST as $key => $value) {
             if (preg_match("/(.*)_button(_x)?/", $key, $command))

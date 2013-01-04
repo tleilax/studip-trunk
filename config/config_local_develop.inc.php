@@ -95,25 +95,15 @@ $ZIP_PATH = "/usr/bin/zip";                             //zip tool
 $ZIP_OPTIONS = "";                                    //command line options for zip, e.g. when using SuSE try "-K" to correct long filenames for windows
 $UNZIP_PATH = "/usr/bin/unzip";
 
-//latexrender settings
-$LATEX_PATH = "/usr/bin/latex";
-$DVIPS_PATH = "/usr/bin/dvips";
-
 // media proxy settings
 $MEDIA_CACHE_PATH = $STUDIP_BASE_PATH . '/data/media_cache';
 $MEDIA_CACHE_MAX_LENGTH = 1000000;
 $MEDIA_CACHE_LIFETIME = 86400;
 $MEDIA_CACHE_MAX_FILES = 3000;
 
-//ImageMagick, used by latexrender modul and for resizing of pictures uploaded by users
-//if the convert utility is not found, an attempt to use gd (must be > 2.01) is made
-$CONVERT_PATH = "/usr/bin/convert";
-$IDENTIFY_PATH = "/usr/bin/identify";
-
 //path to Stud.IP modules (this folders only have to exist, if the corresponcing module is active)
 $RELATIVE_PATH_RESOURCES = "lib/resources";                         //Stud.IP module: resourge management
 $RELATIVE_PATH_CALENDAR = "lib/calendar";                           //Stud.IP module: calendar
-$RELATIVE_PATH_CHAT = "lib/chat";                               //Stud.IP module: chat
 $RELATIVE_PATH_ADMIN_MODULES = "lib/admin";                         //Stud.IP module: admin tools
 $RELATIVE_PATH_EXTERN = "lib/extern";                           //Stud.IP module: SRI-System for including Stud.IP data in other websites
 $RELATIVE_PATH_ELEARNING_INTERFACE = "lib/elearning";                   //Stud.IP module: Ilias 3 lerningmodules-connection / general E-Learning-interface
@@ -131,8 +121,6 @@ $CACHING_FILECACHE_PATH = $TMP_PATH . '/studip_cache';
 enable or disable the Stud.IP internal modules, set and basic settings*/
 
 $CALENDAR_DRIVER = "MySQL";                                 //calendar driver: database to use (MySQL in default installation)*/
-
-$CHAT_SERVER_NAME = "ChatShmServer";
 
 $XSLT_ENABLE = TRUE;
 $FOP_ENABLE = TRUE;
@@ -159,7 +147,6 @@ $PLUGIN_REPOSITORIES = array(
 ----------------------------------------------------------------
 activate or deactivate some basic system-functions here*/
 
-$LATEXRENDER_ENABLE = TRUE;                             //enable to use the LaTexrenderer (Please note the further LaTeX template-settings below)
 $SMILEY_COUNTER = TRUE;                             //enable Smiley-counter
 
 
@@ -222,6 +209,8 @@ $SHOW_TERMS_ON_FIRST_LOGIN = FALSE;                         //if true, the user 
                                             //(this feature makes only sense, if you use disable $ENABLE_SELF_REGISTRATION).
 
 $CONVERT_IDNA_URL = TRUE;                               //if true, urls with german "umlauts" are converted
+
+$USERNAME_REGULAR_EXPRESSION = '/^([a-zA-Z0-9_@.-]{4,})$/'; //regex for allowed characters in usernames
 
 /*language settings
 ----------------------------------------------------------------*/
@@ -422,30 +411,6 @@ $ENABLE_REQUEST_NEW_PASSWORD_BY_USER = TRUE;            //if true, users are abl
 $ENABLE_SELF_REGISTRATION = TRUE;                       //should it be possible for an user to register himself
 $ENABLE_FREE_ACCESS = TRUE;                         //if true, courses with public access are available
 
-/*format templates for LaTex renderer
------------------------------------------------------------------
-you can define specified templates, e.g. phonetic or arab fonts*/
-
-$LATEX_FORMATS = array(
-    "math" => array("tag" => "tex", "template" => "\documentclass[12pt]{article}\n \usepackage[latin1]{inputenc}\n \usepackage{amsmath}\n \usepackage{amsfonts}\n \usepackage{amssymb}\n \pagestyle{empty}\n \begin{document}\n $%s$\n \end{document}\n"));
-/*
-    Format of entries:
-    ------------------
-
-    Internal format name => array (
-        Format tag (e.g. "tex" --> [tex]...[/tex])
-        Format template (must contain structure of an entire valid LaTeX-document and must contain exactly one %s placeholder that will be replaced be the code entered between [tag]....[/tag].
-    )
-
-    Examples for additional formats:
-    --------------------------------
-
-    IPA Phonetic font (needs LaTeX package tipa installed):
-        "ipa" => array("tag" => "ipa", "template" => "\documentclass[12pt]{article}\n \usepackage[latin1]{inputenc}\n \usepackage{tipa}\n \pagestyle{empty}\n \begin{document}\n \\textipa{%s}\n \end{document}\n")
-
-    Arab font (needs LaTeX package arabtex installed):
-        "arab" => array("tag" => "arab", "template" => "\documentclass[12pt]{article}\n \usepackage[latin1]{inputenc}\n \usepackage{arabtex,atrans}\n \pagestyle{empty}\n \begin{document}\n \begin{arabtext}%s\end{arabtext}\n \end{document}\n")
-*/
 // WIKI PLUGINS
 // - plugins are loaded from the wiki module
 // - plugins can define own wiki markup applied after general markup rules//

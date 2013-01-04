@@ -1,7 +1,7 @@
 <?php
 # Lifter002: TODO
+# Lifter003: TEST
 # Lifter007: TODO
-# Lifter003: TODO - halfway through - got stuck at DBView in line 297
 # Lifter010: TODO
 /**
  * meine_seminare.php - Anzeige der eigenen Seminare (anhaengig vom Status)
@@ -38,15 +38,29 @@ ob_start(); //Outputbuffering für maximal Performance
  * @param unknown_type $my_obj_values
  * @param unknown_type $type
  */
-function print_seminar_content($semid, $my_obj_values, $type = 'seminar')
+function print_seminar_content($semid, $my_obj_values, $type = 'seminar', $sem_class = null)
 {
+    $slot_mapper = array(
+        'files' => "documents",
+        'elearning' => "elearning_interface"
+    );
+    $plugin_navigation = getPluginNavigationForSeminar($semid, $my_obj_values['visitdate']);
     foreach (words('forum participants files news scm schedule wiki vote literature elearning') as $key) {
-        $navigation[$key] = $my_obj_values[$key];
+        if ($sem_class) {
+            $slot = isset($slot_mapper[$key]) ? $slot_mapper[$key] : $key;
+            $module = $sem_class->getModule($slot);
+            if (is_a($module, "StandardPlugin")) {
+                $navigation[$key] = $plugin_navigation[get_class($module)];
+                unset($plugin_navigation[get_class($module)]);
+            } else {
+                $navigation[$key] = $my_obj_values[$key];
+            }
+        } else {
+            $navigation[$key] = $my_obj_values[$key];
+        }
     }
 
-    foreach (PluginEngine::getPlugins('StandardPlugin', $semid) as $plugin) {
-        $navigation[] = $plugin->getIconNavigation($semid, $my_obj_values['visitdate']);
-    }
+    $navigation = array_merge($navigation, $plugin_navigation);
 
     foreach ($navigation as $key => $nav) {
         if (isset($nav) && $nav->isVisible(true)) {
@@ -72,7 +86,6 @@ function print_seminar_content($semid, $my_obj_values, $type = 'seminar')
 include ('lib/seminar_open.php'); // initialise Stud.IP-Session
 
 // -- here you have to put initialisations for the current page
-require_once ('config.inc.php');            // Klarnamen fuer den Veranstaltungsstatus
 require_once ('lib/visual.inc.php');            // htmlReady fuer die Veranstaltungsnamen
 require_once ('lib/dates.inc.php');         // Semester-Namen fuer Admins
 require_once ('lib/admission.inc.php');     // Funktionen der Teilnehmerbegrenzung
@@ -84,16 +97,8 @@ require_once ('lib/object.inc.php');
 require_once ('lib/meine_seminare_func.inc.php');
 require_once ('lib/classes/LockRules.class.php');
 
-if (get_config('CHAT_ENABLE')){
-    include_once $RELATIVE_PATH_CHAT."/chat_func_inc.php";
-    $chatServer = ChatServer::GetInstance($GLOBALS['CHAT_SERVER_NAME']);
-    $chatServer->caching = true;
-    $sms = new messaging();
-}
-
 $deputies_enabled = get_config('DEPUTIES_ENABLE');
 $default_deputies_enabled = get_config('DEPUTIES_DEFAULTENTRY_ENABLE');
-$db = new DB_Seminar();
 $Modules = new Modules();
 $userConfig = UserConfig::get($GLOBALS['user']->id);
 
@@ -117,10 +122,6 @@ if (!$perm->have_perm("root")) {
 // Start of Output
 include ('lib/include/html_head.inc.php'); // Output of html head
 include ('lib/include/header.php');   // Output of Stud.IP head
-
-if (get_config('CHAT_ENABLE')){
-    chat_get_javascript();
-}
 
 $cmd = Request::option('cmd');
 if(in_array($cmd, words('no_kill suppose_to_kill suppose_to_kill_admission kill kill_admission'))){
@@ -230,15 +231,16 @@ if ($cmd=="inst_kill" && $GLOBALS['ALLOW_SELFASSIGN_INSTITUTE']) {
 
 // Update der Gruppen
 if (Request::int('gruppesent') == '1'){
-    $_my_sem_group_field = $_REQUEST['select_group_field'];
-    if (is_array($_REQUEST['gruppe'])){
+    $user->cfg->store('MY_COURSES_GROUPING', Request::get('select_group_field'));
+    $gruppe = Request::getArray('gruppe');
+    if (!empty($gruppe)){
         $query = "UPDATE seminar_user SET gruppe = ? WHERE Seminar_id = ? AND user_id = ?";
         $user_statement = DBManager::get()->prepare($query);
-        
+
         $query = "UPDATE deputies SET gruppe = ? WHERE range_id = ? AND user_id = ?";
         $deputy_statement = DBManager::get()->prepare($query);
-        
-        foreach($_REQUEST['gruppe'] as $key => $value){
+
+        foreach($gruppe as $key => $value){
             $user_statement->execute(array($value, $key, $user->id));
             $updated = $user_statement->rowCount();
 
@@ -254,9 +256,8 @@ if ($auth->is_authenticated() && $user->id != "nobody" && !$perm->have_perm("adm
 
     //Alle fuer das Losen anstehenden Veranstaltungen bearbeiten (wenn keine anstehen wird hier nahezu keine Performance verbraten!)
     check_admission();
-    if (!$user->is_registered('_my_sem_open')){
-        $user->register('_my_sem_open');
-    }
+    $_my_sem_group_field = $user->cfg->MY_COURSES_GROUPING;
+    $_my_sem_open = $user->cfg->MY_COURSES_OPEN_GROUPS;
     /*
      * Get and check the global configuration for forced grouping.
      * If the global configuration specifies an unknown field, don't
@@ -265,8 +266,7 @@ if ($auth->is_authenticated() && $user->id != "nobody" && !$perm->have_perm("adm
     $forced_grouping = in_array(get_config('MY_COURSES_FORCE_GROUPING'), getValidGroupingFields()) ?
         get_config('MY_COURSES_FORCE_GROUPING') :
         'not_grouped';
-    if (!$user->is_registered('_my_sem_group_field')){
-        $user->register('_my_sem_group_field');
+    if (!$_my_sem_group_field) {
         $_my_sem_group_field = 'not_grouped';
         $_my_sem_open['not_grouped'] = true;
     }
@@ -278,9 +278,14 @@ if ($auth->is_authenticated() && $user->id != "nobody" && !$perm->have_perm("adm
     }
     $group_field = $_my_sem_group_field;
 
-    if (isset($_REQUEST['open_my_sem'])) $_my_sem_open[$_REQUEST['open_my_sem']] = true;
-
-    if (isset($_REQUEST['close_my_sem'])) unset($_my_sem_open[$_REQUEST['close_my_sem']]);
+    if (Request::option('open_my_sem')) {
+        $_my_sem_open[Request::option('open_my_sem')] = true;
+        $user->cfg->store('MY_COURSES_OPEN_GROUPS', $_my_sem_open);
+    }
+    if (Request::option('close_my_sem')) {
+        unset($_my_sem_open[Request::option('close_my_sem')]);
+        $user->cfg->store('MY_COURSES_OPEN_GROUPS', $_my_sem_open);
+    }
 
     $groups = array();
 
@@ -301,53 +306,55 @@ if ($auth->is_authenticated() && $user->id != "nobody" && !$perm->have_perm("adm
 
     $dbv = new DbView();
 
-    $query = "SELECT seminare.VeranstaltungsNummer AS sem_nr, seminare.Name, seminare.Seminar_id, seminare.status as sem_status, seminar_user.status, seminar_user.gruppe,
-                seminare.chdate, seminare.visible, admission_binding,modules,IFNULL(visitdate,0) as visitdate, admission_prelim,
-                {$dbv->sem_number_sql} as sem_number, {$dbv->sem_number_end_sql} as sem_number_end $add_fields
-                FROM seminar_user LEFT JOIN seminare  USING (Seminar_id)
-                LEFT JOIN object_user_visits ouv ON (ouv.object_id=seminar_user.Seminar_id AND ouv.user_id='$user->id' AND ouv.type='sem')
-                $add_query
-                WHERE seminar_user.user_id = '$user->id'";
+    $query = "SELECT seminare.VeranstaltungsNummer AS sem_nr, seminare.Name, seminare.Seminar_id,
+                     seminare.status as sem_status, seminar_user.status, seminar_user.gruppe,
+                     seminare.chdate, seminare.visible, admission_binding,modules,
+                     IFNULL(visitdate,0) as visitdate, admission_prelim,
+                     {$dbv->sem_number_sql} as sem_number,
+                     {$dbv->sem_number_end_sql} as sem_number_end
+                     {$add_fields}
+              FROM seminar_user LEFT JOIN seminare  USING (Seminar_id)
+              LEFT JOIN object_user_visits ouv ON (ouv.object_id=seminar_user.Seminar_id AND ouv.user_id= :user_id AND ouv.type='sem')
+              {$add_query}
+              WHERE seminar_user.user_id = :user_id";
     if ($deputies_enabled) {
         $query .= " UNION ".getMyDeputySeminarsQuery('meine_sem', $dbv->sem_number_sql, $dbv->sem_number_end_sql, $add_fields, $add_query);
     }
     $query .= " ORDER BY sem_nr ASC";
-    $db->query($query);
-    $num_my_sem = $db->num_rows();
+    $statement = DBManager::get()->prepare($query);
+    $statement->bindValue(':user_id', $user->id);
+    $statement->execute();
+    $seminars = $statement->fetchAll(PDO::FETCH_ASSOC);
 
-    if (!$num_my_sem)
+    if (count($seminars) == 0) {
         $meldung = "info§" . sprintf(_("Sie haben zur Zeit keine Veranstaltungen abonniert, an denen Sie teilnehmen k&ouml;nnen. Bitte nutzen Sie %s<b>Veranstaltung suchen / hinzuf&uuml;gen</b>%s um neue Veranstaltungen aufzunehmen."), "<a href=\"sem_portal.php\">", "</a>") . "§" . $meldung;
+    }
 
-
-    while ($db->next_record()) {
-            $my_obj[$db->f("Seminar_id")] = array(
-                "name"       => $db->f("Name"),
-                'semname'    => $db->f('Name'),
-                "status"     => $db->f("status"),
-                "visible"    => $db->f("visible"),
-                "gruppe"     => $db->f("gruppe"),
-                "chdate"     => $db->f("chdate"),
-                "binding"    => $db->f("admission_binding"),
-                "modules"    => $Modules->getLocalModules($db->f("Seminar_id"), "sem", $db->f("modules"), $db->f("sem_status")),
-                "obj_type"   => "sem",
-                "sem_status" => $db->f("sem_status"),
-                'prelim'     => $db->f('admission_prelim'),
-                "visitdate"  => $db->f("visitdate"),
-                "sem_number" => $db->f("sem_number"),
-                "sem_number_end"   => $db->f("sem_number_end")
-            );
-            if ((get_config('CHAT_ENABLE')) && ($my_obj[$db->f("Seminar_id")]["modules"]["chat"])) {
-                $chatter = $chatServer->isActiveChat($db->f("Seminar_id"));
-                $chat_info[$db->f("Seminar_id")] = array("chatter" => $chatter, "chatuniqid" => $chatServer->chatDetail[$db->f("Seminar_id")]["id"],
-                                                "is_active" => $chatServer->isActiveUser($user->id,$db->f("Seminar_id")));
-                if ($chatter){
-                    $active_chats[$chatServer->chatDetail[$db->f("Seminar_id")]["id"]] = $db->f("Seminar_id");
-                }
-            }
-            if ($group_field){
-                fill_groups($groups, $db->f($group_field), array('seminar_id' => $db->f('Seminar_id'), 'name' => $db->f("Name"), 'gruppe' => $db->f('gruppe')));
-            }
+    foreach ($seminars as $seminar) {
+        $my_obj[$seminar['Seminar_id']] = array(
+            'name'           => $seminar['Name'],
+            'semname'        => $seminar['Name'],
+            'status'         => $seminar['status'],
+            'visible'        => $seminar['visible'],
+            'gruppe'         => $seminar['gruppe'],
+            'chdate'         => $seminar['chdate'],
+            'binding'        => $seminar['admission_binding'],
+            'modules'        => $Modules->getLocalModules($seminar['Seminar_id'], 'sem', $seminar['modules'], $seminar['sem_status']),
+            'obj_type'       => 'sem',
+            'sem_status'     => $seminar['sem_status'],
+            'prelim'         => $seminar['admission_prelim'],
+            'visitdate'      => $seminar['visitdate'],
+            'sem_number'     => $seminar['sem_number'],
+            'sem_number_end' => $seminar['sem_number_end']
+        );
+        if ($group_field){
+            fill_groups($groups, $seminar[$group_field], array(
+                'seminar_id' => $seminar['Seminar_id'],
+                'name'       => $seminar['Name'],
+                'gruppe'     => $seminar['gruppe']
+            ));
         }
+    }
 
         if (is_array($my_obj)){
             $num_my_sem = count($my_obj);
@@ -358,31 +365,33 @@ if ($auth->is_authenticated() && $user->id != "nobody" && !$perm->have_perm("adm
             }
         }
 
-    $db->query ("SELECT b.Name, b.Institut_id,b.type, user_inst.inst_perms,if(b.Institut_id=b.fakultaets_id,1,0) AS is_fak,
-                modules,IFNULL(visitdate,0) as visitdate FROM user_inst LEFT JOIN Institute b USING (Institut_id)
-                LEFT JOIN object_user_visits ouv ON (ouv.object_id=user_inst.Institut_id AND ouv.user_id='$user->id' AND ouv.type='inst')
-                WHERE user_inst.user_id = '$user->id' GROUP BY Institut_id ORDER BY Name");
-    $num_my_inst = $db->num_rows();
-    while ($db->next_record()) {
-        $my_obj[$db->f("Institut_id")]= array("name" => $db->f("Name"),"status" => $db->f("inst_perms"),
-                                            "type" =>($db->f("type")) ? $db->f("type") : 1, "modules" => $Modules->getLocalModules($db->f("Institut_id"),"inst",$db->f("modules"),($db->f("type") ? $db->f("type") : 1)),
-                                            "obj_type" => "inst","visitdate" => $db->f("visitdate"));
-        if ((get_config('CHAT_ENABLE')) && ($my_obj[$db->f("Institut_id")]["modules"]["chat"])) {
-            $chatter = $chatServer->isActiveChat($db->f("Institut_id"));
-            $chat_info[$db->f("Institut_id")] = array("chatter" => $chatter, "chatuniqid" => $chatServer->chatDetail[$db->f("Institut_id")]["id"],
-                                            "is_active" => $chatServer->isActiveUser($user->id,$db->f("Institut_id")));
-            if ($chatter){
-                $active_chats[$chatServer->chatDetail[$db->f("Institut_id")]["id"]] = $db->f("Institut_id");
-            }
-        }
+    $query = "SELECT b.Name, b.Institut_id, b.type, b.Institut_id = b.fakultaets_id AS is_fak,
+                     user_inst.inst_perms, modules, IFNULL(visitdate, 0) AS visitdate
+              FROM user_inst
+              LEFT JOIN Institute AS b USING (Institut_id)
+              LEFT JOIN object_user_visits AS ouv
+                ON (ouv.object_id = user_inst.Institut_id AND ouv.user_id = :user_id AND ouv.type = 'inst')
+              WHERE user_inst.user_id = :user_id
+              GROUP BY Institut_id
+              ORDER BY Name";
+    $statement = DBManager::get()->prepare($query);
+    $statement->bindValue(':user_id', $user->id);
+    $statement->execute();
+
+    $num_my_inst = 0;
+    while ($institute = $statement->fetch(PDO::FETCH_ASSOC)) {
+        $my_obj[$institute['Institut_id']]= array(
+            'name'      => $institute['Name'],
+            'status'    => $institute['inst_perms'],
+            'type'      => $institute['type'] ?: 1,
+            'modules'   => $Modules->getLocalModules($institute['Institut_id'], 'inst', $institute['modules'], $institute['type'] ?: 1),
+            'obj_type'  => 'inst',
+            'visitdate' => $institute['visitdate']
+        );
+        $num_my_inst += 1;
     }
     if (($num_my_sem + $num_my_inst) > 0){
         get_my_obj_values($my_obj, $GLOBALS['user']->id);
-    }
-    if (get_config('CHAT_ENABLE')){
-        if (is_array($active_chats)){
-            $chat_invs = $sms->check_list_of_chatinv(array_keys($active_chats));
-        }
     }
 
     // "Mark all as read"
@@ -390,6 +399,11 @@ if ($auth->is_authenticated() && $user->id != "nobody" && !$perm->have_perm("adm
     // Nasty place for an action but since we don't have a model, this is the
     // perfect place to grab all object ids
     if (Request::option('action') === 'tabularasa') {
+        // load plugins, so they have a chance to register themselves as observers
+        PluginEngine::getPlugins('StandardPlugin');
+
+        NotificationCenter::postNotification('OverviewWillClear', $GLOBALS['user']->id);
+
         $query = "INSERT INTO object_user_visits "
                .   "(object_id, user_id, type, visitdate, last_visitdate) "
                . "("
@@ -427,6 +441,8 @@ if ($auth->is_authenticated() && $user->id != "nobody" && !$perm->have_perm("adm
             object_set_visit($id, $object['obj_type']);
         }
 
+        NotificationCenter::postNotification('OverviewDidClear', $GLOBALS['user']->id);
+
         // PageLayout::postMessage(Messagebox::success(_('Alle Markierungen wurden entfernt')));
         page_close();
 
@@ -452,15 +468,27 @@ if ($auth->is_authenticated() && $user->id != "nobody" && !$perm->have_perm("adm
     $waitlists = $stmt->fetchAll();
 
     // Berechnung der uebrigen Seminare und Einrichtungen
+    // (wird für 5 Minuten im Cache gehalten)
 
-    $db->cache_query("SELECT count(*) as count  FROM Institute");
-    $db->next_record();
-    $anzahlinst = $db->f("count")-$num_my_inst;
+    $cache = StudipCacheFactory::getCache();
 
-    $db->cache_query("SELECT count(*) as count  FROM seminare");
-    $db->next_record();
-    $anzahltext = sprintf(_("Es sind noch %s weitere Veranstaltungen sowie %s weitere Einrichtungen vorhanden."), ($db->f("count")-$num_my_sem),$anzahlinst);
+    $institute_count = unserialize($cache->read('/meine_seminare/count/institute'));
+    if ($institute === false) {
+        $query = "SELECT COUNT(*) FROM Institute";
+        $institute_count = DBManager::get()->query($query)->fetchColumn();
+        $cache->write('/meine_seminare/count/institute', $institute_count, 5 * 60);
+    }
+    $anzahlinst = $institute_count - $num_my_inst;
 
+    $seminar_count = unserialize($cache->read('/meine_seminare/count/seminare'));
+    if ($seminar_count === false) {
+        $query = "SELECT COUNT(*) FROM seminare";
+        $seminar_count = DBManager::get()->query($query)->fetchColumn();
+        $cache->write('/meine_seminare/count/seminare', $seminar_count, 5 * 60);
+    }
+    $anzahltext = sprintf(_('Es sind noch %s weitere Veranstaltungen sowie %s weitere Einrichtungen vorhanden.'),
+                          $seminar_count - $num_my_sem,
+                          $anzahlinst);
 
     // View for Teachers
 
@@ -514,7 +542,7 @@ if ($auth->is_authenticated() && $user->id != "nobody" && !$perm->have_perm("adm
                                         "text"  => sprintf(_("Um Einrichtungen zu suchen und sich Informationen anzeigen zu lassen, nutzen Sie die %sEinrichtungssuche%s."), "<a href=\"institut_browse.php\">", "</a>")
                     ),
                     array    (  "icon" => 'icons/16/black/institute.png',
-                                        "text"  => sprintf(_("Wenn Sie weitere Einrichtungen in Ihre pers&ouml;nliche Auswahl aufnehmen m&ouml;chten, k&ouml;nnen Sie sich hier %szuordnen%s."), "<a href=\"edit_about.php?view=Studium#einrichtungen\">", "</a>")
+                                        "text"  => sprintf(_("Wenn Sie weitere Einrichtungen in Ihre pers&ouml;nliche Auswahl aufnehmen m&ouml;chten, k&ouml;nnen Sie sich hier %szuordnen%s."), "<a href=\"dispatch.php/settings/studies#einrichtungen\">", "</a>")
                     )
                 )
             )
@@ -541,12 +569,12 @@ if ($auth->is_authenticated() && $user->id != "nobody" && !$perm->have_perm("adm
                     'eintrag' => array(array("icon" => 'icons/16/black/group.png',
                                                 "text"  => sprintf(
                                                 _("Gruppierung der angezeigten Veranstaltungen %s&auml;ndern%s."),
-                                                "<a href=\"gruppe.php\">", "</a>")
+                                                "<a href=\"" . URLHelper::getLink('dispatch.php/meine_seminare/groups') . "\">", "</a>")
                                                 )));
     if (get_config('MAIL_NOTIFICATION_ENABLE')){
         $infobox[count($infobox)-1]['eintrag'][] = array(   'icon' => 'icons/16/black/mail.png',
                                                             'text' => sprintf(_("Benachrichtigung über neue Inhalte %sanpassen%s."),
-                                                                    '<a href="sem_notification.php">', '</a>'));
+                                                                    '<a href="' . URLHelper::getLink('dispatch.php/settings/notification'). '">', '</a>'));
     }
 
 
@@ -554,15 +582,13 @@ if ($auth->is_authenticated() && $user->id != "nobody" && !$perm->have_perm("adm
 
     $my_bosses = $default_deputies_enabled ? getDeputyBosses($user->id) : array();
 
-    echo $template->render(compact(words("num_my_sem meldung group_field groups my_obj view _my_sem_open meldung chat_info chat_invs waitlists ".($deputies_enabled && $default_deputies_enabled && $perm->have_perm(getValidDeputyPerms(true)) ? "my_bosses " : "")."num_my_inst infobox")));
+    echo $template->render(compact(words("num_my_sem meldung group_field groups my_obj view _my_sem_open meldung waitlists ".($deputies_enabled && $default_deputies_enabled && $perm->have_perm(getValidDeputyPerms(true)) ? "my_bosses " : "")."num_my_inst infobox")));
 }
 
 
 elseif ($auth->auth["perm"]=="admin") {
 
-    $db2=new DB_Seminar();
-
-    if(isset($_REQUEST['select_sem'])){
+    if(Request::option('select_sem')){
         $_SESSION['_default_sem'] = Request::option('select_sem');
     }
     if ($_SESSION['_default_sem']){
@@ -572,23 +598,53 @@ elseif ($auth->auth["perm"]=="admin") {
     } else {
         $sem_condition = '';
     }
-    $db->query("SELECT a.Institut_id,b.Name, IF(b.Institut_id=b.fakultaets_id,1,0) AS is_fak,count(seminar_id) AS num_sem FROM user_inst a LEFT JOIN Institute b USING (Institut_id)
-                LEFT JOIN seminare ON(seminare.Institut_id=b.Institut_id $sem_condition )   WHERE a.user_id='$user->id' AND a.inst_perms='admin' GROUP BY a.Institut_id ORDER BY is_fak,Name,num_sem DESC");
 
-    while($db->next_record()){
-        $_my_inst[$db->f("Institut_id")] = array("name" => $db->f("Name"), "is_fak" => $db->f("is_fak"), "num_sem" => $db->f("num_sem"));
-        if ($db->f("is_fak")){
-            $db2->query("SELECT a.Institut_id, a.Name,count(seminar_id) AS num_sem FROM Institute a
-                    LEFT JOIN seminare ON(seminare.Institut_id=a.Institut_id $sem_condition ) WHERE fakultaets_id='" . $db->f("Institut_id") . "' AND a.Institut_id!='" .$db->f("Institut_id") . "'
-                    GROUP BY a.Institut_id ORDER BY a.Name,num_sem DESC");
+    // Prepare inner statement which obtains all institutes of a faculty
+    $query = "SELECT a.Institut_id, a.Name, COUNT(seminar_id) AS num_sem
+              FROM Institute AS a
+              LEFT JOIN seminare ON (seminare.Institut_id = a.Institut_id {$sem_condition})
+              WHERE fakultaets_id = ? AND a.Institut_id != a.fakultaets_id
+              GROUP BY a.Institut_id
+              ORDER BY a.Name, num_sem DESC";
+    $institute_statement = DBManager::get()->prepare($query);
+
+    // Prepare and execute main query which obtains all institutes
+    // (regardless whether it's an institute or a faculty)
+    $query = "SELECT a.Institut_id, b.Name, b.Institut_id = b.fakultaets_id AS is_fak,
+                     COUNT(seminar_id) AS num_sem
+              FROM user_inst AS a
+              LEFT JOIN Institute AS b USING (Institut_id)
+              LEFT JOIN seminare ON (seminare.Institut_id = b.Institut_id {$sem_condition})
+              WHERE a.user_id = :user_id AND a.inst_perms = 'admin'
+              GROUP BY a.Institut_id
+              ORDER BY is_fak, num_sem DESC";
+    $statement = DBManager::get()->prepare($query);
+    $statement->bindValue(':user_id', $user->id);
+    $statement->execute();
+
+    while ($institute = $statement->fetch(PDO::FETCH_ASSOC)) {
+        $_my_inst[$institute['Institut_id']] = array(
+            'name'    => $institute['Name'],
+            'is_fak'  => $institute['is_fak'],
+            'num_sem' => $institute['num_sem']
+        );
+        if ($institute['is_fak']) {
             $num_inst = 0;
-            while ($db2->next_record()){
-                if(!$_my_inst[$db2->f("Institut_id")]){
+
+            $institute_statement->execute(array($institute['Institut_id']));
+            while ($inst = $institute_statement->fetch(PDO::FETCH_ASSOC)) {
+                if(!$_my_inst[$inst['Institut_id']]){
                     ++$num_inst;
                 }
-                $_my_inst[$db2->f("Institut_id")] = array("name" => $db2->f("Name"), "is_fak" => 0 , "num_sem" => $db2->f("num_sem"));
+                $_my_inst[$inst['Institut_id']] = array(
+                    'name'    => $inst['Name'],
+                    'is_fak'  => 0 ,
+                    'num_sem' => $inst['num_sem']
+                );
             }
-            $_my_inst[$db->f("Institut_id")]["num_inst"] = $num_inst;
+            $institute_statement->closeCursor();
+
+            $_my_inst[$institute['Institut_id']]['num_inst'] = $num_inst;
         }
     }
 
@@ -596,13 +652,10 @@ elseif ($auth->auth["perm"]=="admin") {
         $meldung="info§" . sprintf(_("Sie wurden noch keinen Einrichtungen zugeordnet. Bitte wenden Sie sich an einen der zust&auml;ndigen %sAdministratoren%s."), "<a href=\"dispatch.php/siteinfo/show\">", "</a>") . "§".$meldung;
     else {
         $_my_inst_arr = array_keys($_my_inst);
-        if(!$user->is_registered("_my_admin_inst_id")){
-            $_my_admin_inst_id = $_my_inst_arr[0];
-            $user->register("_my_admin_inst_id");
+        if(Request::option('institut_id')){
+            $user->cfg->store('MY_INSTITUTES_DEFAULT', isset($_my_inst[Request::option('institut_id')]) ? Request::option('institut_id') : $_my_inst_arr[0]);
         }
-        if($_REQUEST['institut_id']){
-            $_my_admin_inst_id = ($_my_inst[$_REQUEST['institut_id']]) ? $_REQUEST['institut_id'] : $_my_inst_arr[0];
-        }
+        $_my_admin_inst_id = $user->cfg->MY_INSTITUTES_DEFAULT ? : $_my_inst_arr[0];
         $sortby = Request::quoted('sortby');
         //tic #650 sortierung in der userconfig merken
         if (!empty($sortby) && in_array($sortby, words('VeranstaltungsNummer Name status teilnehmer'))) {
@@ -620,54 +673,67 @@ elseif ($auth->auth["perm"]=="admin") {
             $sortby = "status ASC, VeranstaltungsNummer ASC, Name ASC";
         }
 
-        $db->query("SELECT Institute.Name AS Institut, seminare.VeranstaltungsNummer, seminare.Seminar_id,seminare.Name,seminare.status,seminare.chdate,
-                    seminare.start_time,seminare.admission_binding,seminare.visible, seminare.modules,
-                    COUNT(seminar_user.user_id) AS teilnehmer,IFNULL(visitdate,0) as visitdate,
-                    sd1.name AS startsem,IF(duration_time=-1, '"._("unbegrenzt")."', sd2.name) AS endsem
-                    FROM Institute INNER JOIN seminare ON(seminare.Institut_id=Institute.Institut_id $sem_condition )
-                    STRAIGHT_JOIN seminar_user on seminare.seminar_id=seminar_user.seminar_id
-                    LEFT JOIN object_user_visits ouv ON (ouv.object_id=seminare.Seminar_id AND ouv.user_id='$user->id' AND ouv.type='sem')
-                    LEFT JOIN semester_data sd1 ON ( start_time BETWEEN sd1.beginn AND sd1.ende)
-                    LEFT JOIN semester_data sd2 ON ((start_time + duration_time) BETWEEN sd2.beginn AND sd2.ende)
-                    WHERE Institute.Institut_id='$_my_admin_inst_id' GROUP BY seminare.Seminar_id ORDER BY $sortby");
-        $num_my_sem=$db->num_rows();
+        // Prepare teacher statement
+        $query = "SELECT username, Nachname
+                  FROM seminar_user
+                  LEFT JOIN auth_user_md5 USING (user_id)
+                  WHERE Seminar_id = ? AND status='dozent'
+                  ORDER BY position, Nachname ASC";
+        $teacher_statement = DBManager::get()->prepare($query);
+
+        // Prepare and execute seminar statement
+        $query = "SELECT Institute.Name AS Institut, seminare.VeranstaltungsNummer,
+                         seminare.Seminar_id, seminare.Name, seminare.status, seminare.chdate,
+                         seminare.start_time, seminare.admission_binding, seminare.visible,
+                         seminare.modules, COUNT(seminar_user.user_id) AS teilnehmer,
+                         IFNULL(visitdate, 0) AS visitdate,
+                         sd1.name AS startsem, IF (duration_time = -1, :unlimited, sd2.name) AS endsem
+                  FROM Institute
+                  INNER JOIN seminare ON (seminare.Institut_id = Institute.Institut_id {$sem_condition})
+                  STRAIGHT_JOIN seminar_user ON (seminare.seminar_id = seminar_user.seminar_id)
+                  LEFT JOIN object_user_visits AS ouv
+                    ON (ouv.object_id = seminare.Seminar_id AND ouv.user_id = :user_id AND ouv.type = 'sem')
+                  LEFT JOIN semester_data AS sd1 ON (start_time BETWEEN sd1.beginn AND sd1.ende)
+                  LEFT JOIN semester_data sd2 ON (start_time + duration_time BETWEEN sd2.beginn AND sd2.ende)
+                  WHERE Institute.Institut_id = :institute_id
+                  GROUP BY seminare.Seminar_id
+                  ORDER BY {$sortby}";
+        $statement = DBManager::get()->prepare($query);
+        $statement->bindValue(':unlimited', _('unbegrenzt'));
+        $statement->bindValue(':user_id', $user->id);
+        $statement->bindValue('institute_id', $_my_admin_inst_id);
+        $statement->execute();
+        $seminars = $statement->fetchAll(PDO::FETCH_ASSOC);
+
+        $num_my_sem = count($seminars);
         if (!$num_my_sem) {
             $meldung = "msg§"
                     . sprintf(_("An der Einrichtung \"%s\" sind zur Zeit keine Veranstaltungen angelegt."), htmlReady($_my_inst[$_my_admin_inst_id]['name']))
                     . "§"
                     . $meldung;
         } else {
-            while ($db->next_record()) {
+            foreach ($seminars as $seminar) {
+                $teacher_statement->execute(array($seminar['Seminar_id']));
+                $dozenten = $teacher_statement->fetchAll(PDO::FETCH_ASSOC);
+                $teacher_statement->closeCursor();
 
-                $db2->query("SELECT position, Nachname, username FROM  seminar_user ".
-                            "LEFT JOIN auth_user_md5  USING (user_id) ".
-                            "WHERE Seminar_id='".$db->f("Seminar_id")."' AND status='dozent' ".
-                            "ORDER BY position, Nachname ASC");
-                $dozenten = array();
-                while ($db2->next_record()) {
-                    $dozenten[] = array('username' => $db2->f("username"),
-                                        'Nachname' => $db2->f("Nachname"));
-                }
-
-                $my_sem[$db->f("Seminar_id")] = array(
-                        'visitdate' => $db->f('visitdate'),
-                        'institut' => $db->f("Institut"),
-                        'teilnehmer' => $db->f("teilnehmer"),
-                        'VeranstaltungsNummer' => $db->f("VeranstaltungsNummer"),
-                        'name' => $db->f("Name"),
-                        'status' => $db->f("status"),
-                        'chdate' => $db->f("chdate"),
-                        'start_time' => $db->f("start_time"),
-                        'startsem' => $db->f('startsem'),
-                        'endsem' => $db->f('endsem'),
-                        'binding' => $db->f("admission_binding"),
-                        'visible' => $db->f('visible'),
-                        'modules' => $Modules->getLocalModules($db->f("Seminar_id"),
-                                    "sem",
-                                    $db->f("modules"),
-                                    $db->f("status")),
-                        'dozenten' => $dozenten
-                        );
+                $my_sem[$seminar['Seminar_id']] = array(
+                    'visitdate'            => $seminar['visitdate'],
+                    'institut'             => $seminar['Institut'],
+                    'teilnehmer'           => $seminar['teilnehmer'],
+                    'VeranstaltungsNummer' => $seminar['VeranstaltungsNummer'],
+                    'name'                 => $seminar['Name'],
+                    'status'               => $seminar['status'],
+                    'chdate'               => $seminar['chdate'],
+                    'start_time'           => $seminar['start_time'],
+                    'startsem'             => $seminar['startsem'],
+                    'endsem'               => $seminar['endsem'],
+                    'binding'              => $seminar['admission_binding'],
+                    'visible'              => $seminar['visible'],
+                    'modules'              => $Modules->getLocalModules($seminar['Seminar_id'],
+                                                                       'sem', $seminar['modules'], $seminar['status']),
+                    'dozenten'             => $dozenten
+                );
             }
             get_my_obj_values($my_sem, $GLOBALS['user']->id);
         }

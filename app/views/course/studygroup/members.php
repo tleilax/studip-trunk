@@ -12,6 +12,10 @@ if ($rechte) {
                 'text' => '<a href="'. $controller->url_for('course/studygroup/message/' . $sem_id . '/').'">'
                        . _("Nachricht an alle Gruppenmitglieder verschicken") .'</a>',
                 'icon' => "icons/16/black/mail.png"
+            ),
+            array(
+                'text' => _('Klicken Sie auf ein Gruppenmitglied, um ModeratorInnen zu berufen, abzuberufen oder ein Mitglied der Studiengruppe zu entfernen.'),
+                'icon' => "icons/16/black/info.png"
             )
         )
     );
@@ -24,17 +28,13 @@ $infobox = array();
 $infobox['picture'] = StudygroupAvatar::getAvatar($sem_id)->getUrl(Avatar::NORMAL);
 
 $infobox['content'] = array(
-    $aktionen,
     array(
         'kategorie' => _("Information"),
         'eintrag'   => array(
-            array("text" => $text, "icon" => "icons/16/black/info.png"),
-            array(
-                'text' => _('Klicken Sie auf ein Gruppenmitglied, um ModeratorInnen zu berufen, abzuberufen oder ein Mitglied der Studiengruppe zu entfernen.'),
-                'icon' => "icons/16/black/info.png"
-            )
+            array("text" => $text, "icon" => "icons/16/black/info.png")
         )
-    )
+    ),
+    $aktionen
 );
 
 if(isset($flash['question']) && isset($flash['candidate'])) {
@@ -68,8 +68,7 @@ list-style-position:outside;list-style-type:none;">
 <? $this->m = $m ?>
     <li style="position:relative;width:200px;display:inline-block;overflow:hidden;vertical-align:top;" align="left">
 
-        <? if (($GLOBALS['perm']->have_studip_perm('dozent', $sem_id) && $m['status'] != 'dozent')
-               || ($GLOBALS['perm']->have_studip_perm('tutor', $sem_id) && $m['user_id'] == $GLOBALS['auth']->auth['uid'])
+        <? if (($GLOBALS['perm']->have_studip_perm('tutor', $sem_id) && $m['status'] != 'dozent')
                || $GLOBALS['perm']->have_studip_perm('admin', $sem_id)) : ?>
             <div style="float:left;cursor:hand;" onMouseOver="$('.invitation', this).fadeIn();"
                onMouseOut ="$('.invitation', this).fadeOut();"
@@ -87,13 +86,12 @@ list-style-position:outside;list-style-type:none;">
             </div>
         <? endif ?>
 
-        <? if (($GLOBALS['perm']->have_studip_perm('dozent', $sem_id) && $m['status'] != 'dozent')
-               || ($GLOBALS['perm']->have_studip_perm('tutor', $sem_id) && $m['user_id'] == $GLOBALS['auth']->auth['uid'])
+        <? if (($GLOBALS['perm']->have_studip_perm('tutor', $sem_id) && $m['status'] != 'dozent')
                || $GLOBALS['perm']->have_studip_perm('admin', $sem_id)) : ?>
         <noscript>
             <div id="user_<?= $m['user_id']?>" style="float:left; margin-right: 10px; width: 110px;" align="left" valign="top">
                 <div id="user_opt_<?= $m['user_id'] ?>">
-                    <div class="blue_gradient" style="text-align: center"><?= _('Optionen') ?></div>
+                    <div class="table_header_bold" style="text-align: center"><?= _('Optionen') ?></div>
                     <?= $this->render_partial('course/studygroup/_members_options.php') ?>
                 </div>
             </div>
@@ -101,14 +99,14 @@ list-style-position:outside;list-style-type:none;">
 
         <div id="user_<?= $m['user_id'] ?>" style="float:left; margin-right: 10px; width: 0px;" align="left" valign="top">
             <div id="user_opt_<?= $m['user_id'] ?>" style="display: none">
-                <div class="blue_gradient" style="text-align: center"><?= _('Optionen') ?></div>
+                <div class="table_header_bold" style="text-align: center"><?= _('Optionen') ?></div>
                 <?= $this->render_partial('course/studygroup/_members_options.php') ?>
             </div>
         </div>
         <? endif ?>
 
         <div style="clear: both; margin-right: 25px;">
-        <a href="<?= URLHelper::getLink('about.php?username=' . $m['username']) ?>">
+        <a href="<?= URLHelper::getLink('dispatch.php/profile?username=' . $m['username']) ?>">
             <?= htmlReady($m['fullname']) ?>
             <?  if (isset($moderators[$m['user_id']])) : ?>
               <em><?= _("GruppengründerIn") ?></em>
@@ -142,14 +140,14 @@ list-style-position:outside;list-style-type:none;">
             </tr>
 
             <? foreach($accepted as $p) : ?>
-            <tr class="<?= TextHelper::cycle('steel1', 'steelgraulight') ?>">
+            <tr class="<?= TextHelper::cycle('table_row_even', 'table_row_odd') ?>">
                 <td>
-                    <a href="<?= URLHelper::getLink('about.php?username=' . $p['username']) ?>">
+                    <a href="<?= URLHelper::getLink('dispatch.php/profile?username=' . $p['username']) ?>">
                         <?= Avatar::getAvatar($p['user_id'])->getImageTag(Avatar::SMALL) ?>
                     </a>
                 </td>
                 <td>
-                    <a href="<?= URLHelper::getLink('about.php?username=' . $p['username']) ?>">
+                    <a href="<?= URLHelper::getLink('dispatch.php/profile?username=' . $p['username']) ?>">
                         <?= htmlReady($p['fullname']) ?>
                     </a>
                 </td>

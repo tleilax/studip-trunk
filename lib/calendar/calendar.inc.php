@@ -32,6 +32,10 @@ $cmd = Request::option('cmd');
 $cmd_cal = Request::option('cmd_cal');
 $mod_prv = Request::option('mod_prv');
 $mod = Request::option('mod');
+
+// if the calendar-settings are not loaded yet, get them from the UserConfig
+$calendar_user_control_data = UserConfig::get($GLOBALS['user']->id)->CALENDAR_SETTINGS ;
+
 // switch to own calendar if called from header
 if (!get_config('CALENDAR_GROUP_ENABLE') || Request::get('caluser') == 'self') {
     closeObject();
@@ -87,33 +91,6 @@ if (Request::option('cmd') == 'export'
     $_calendar = Calendar::getInstance(Calendar::RANGE_USER, $GLOBALS['user']->id);
 } else {
     $_calendar = Calendar::getInstance($cal_select_id);
-}
-
-// remove user setting (bind_seminare)
-if ($_calendar->getRange() == Calendar::RANGE_USER) {
-    if (is_array($calendar_user_control_data['bind_seminare'])) {
-        unset($calendar_user_control_data['bind_seminare']);
-    }
-    if (isset($calendar_user_control_data['ts_bind_seminare'])) {
-        unset($calendar_user_control_data['ts_bind_seminare']);
-    }
-}
-
-// restore user defined settings
-if ($cmd_cal == 'chng_cal_settings') {
-    $calendar_user_control_data = array(
-        'view' => Request::option('cal_view'),
-        'start' => Request::option('cal_start'),
-        'end' => Request::option('cal_end'),
-        'step_day' => Request::option('cal_step_day'),
-        'step_week' => Request::option('cal_step_week'),
-        'type_week' => Request::option('cal_type_week'),
-        'holidays' => Request::option('cal_holidays'),
-        'sem_data' => Request::option('cal_sem_data'),
-        'delete' => Request::option('cal_delete'),
-        'step_week_group' => Request::option('cal_step_week_group'),
-        'step_day_group' => Request::option('cal_step_day_group')
-    );
 }
 
 // use current timestamp if no timestamp is given
@@ -177,7 +154,7 @@ if (Request::get('jmp_month') && check_date(Request::int('jmp_month'), Request::
 }
 
 // delete all expired events and count events
-$db_control = CalendarDriver::getInstance($user->id);
+$db_control = CalendarDriver::getInstance($GLOBALS['user']->id);
 if ($cmd == 'add' && $calendar_user_control_data['delete'] > 0) {
     $expire_delete = mktime(date('G', time()), date('i', time()), 0, date('n', time()) - $calendar_user_control_data['delete'], date('j', time()), date('Y', time()));
     $db_control->deleteFromDatabase('EXPIRED', '', 0, $expire_delete);
@@ -212,8 +189,8 @@ if ($cmd == 'add' || $cmd == 'edit') {
     if (!isset($_SESSION['calendar_sess_forms_data'])) {
         $_SESSION['calendar_sess_forms_data'] = array();
     }
-    
-    if (!empty($_POST)) {
+
+    if (Request::isPost()) {
         // Formulardaten uebernehmen
         foreach ($accepted_vars as $key) {
             if (!is_null(Request::get($key))) {
@@ -428,7 +405,7 @@ switch ($cmd) {
                 PageLayout::setTitle(sprintf(_("Terminkalender von %s %s - Termin anlegen"), get_fullname($_calendar->getUserId()), $text_permission));
             }
             // call from dayview for new event -> set default values
-            if ($atime && empty($_POST)) {
+            if ($atime && !Request::isPost()) {
                 if (Request::option('devent')) {
                     $properties = array(
                         'DTSTART' => mktime(0, 0, 0, date('n', $atime), date('j', $atime), date('Y', $atime)),
@@ -463,7 +440,7 @@ switch ($cmd) {
             exit;
         }
         if ($_calendar->havePermission(Calendar::PERMISSION_READABLE)) {
-            if (empty($_POST)) {
+            if (!Request::isPost()) {
                 $_calendar->getEventProperties($_SESSION['calendar_sess_forms_data']);
             } else {
                 $err = Calendar::checkFormData($_SESSION['calendar_sess_forms_data']);
@@ -626,13 +603,6 @@ if ($cmd == 'bind') {
 if ($cmd == 'export') {
 
     include $RELATIVE_PATH_CALENDAR . '/views/export.inc.php';
-}
-
-// Ansicht anpassen **********************************************************
-
-if ($cmd == 'changeview') {
-
-    include $RELATIVE_PATH_CALENDAR . '/calendar_settings.inc.php';
 }
 
 echo "</td></tr>\n</table>\n";

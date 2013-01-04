@@ -35,30 +35,25 @@ include ('lib/seminar_open.php');
 require_once 'lib/functions.php';
 require_once ('lib/msg.inc.php');
 require_once ('lib/visual.inc.php');
-require_once ('lib/include/messagingSettings.inc.php');
 require_once ('lib/messaging.inc.php');
 require_once ('lib/statusgruppe.inc.php');
 require_once ('lib/sms_functions.inc.php');
 
-if (get_config('CHAT_ENABLE')){
-    include_once $RELATIVE_PATH_CHAT."/chat_func_inc.php";
-    $chatServer = ChatServer::GetInstance($GLOBALS['CHAT_SERVER_NAME']);
-    $chatServer->caching = true;
-    $admin_chats = $chatServer->getAdminChats($auth->auth['uid']);
-}
-
-// let's register some ...
-//$sess->register("sms_data");
-//$sess->register("sms_show");
-$_SESSION['sms_data'] = $sms_data;
-$_SESSION['sms_show'] = $sms_show;
 $msging = new messaging;
 $query_showfolder = $query_time_sort = $query_movetofolder = $query_time = '';
 $cmd = Request::option('cmd');
 $cmd_show = Request::option('cmd_show');
-$sms_data = $_SESSION['sms_data'];
-$sms_show = $_SESSION['sms_show'];
-//$my_messaging_settings
+$sms_data =& $_SESSION['sms_data'];
+$sms_show =& $_SESSION['sms_show'];
+$my_messaging_settings = UserConfig::get($user->id)->MESSAGING_SETTINGS;
+$my_messaging_hash = md5(serialize($my_messaging_settings));
+$my_messaging_observer =
+function () use (&$my_messaging_settings, $my_messaging_hash, $user) {
+    if ($my_messaging_hash != md5(serialize($my_messaging_settings))) {
+            UserConfig::get($user->id)->store('MESSAGING_SETTINGS', $my_messaging_settings);
+    }
+};
+NotificationCenter::addObserver($my_messaging_observer, '__invoke', 'PageCloseDidExecute');
 // determine view
 if (Request::option('sms_inout')) {
     $sms_data["view"] = Request::option('sms_inout');
@@ -73,10 +68,6 @@ Navigation::activateItem('/messaging/' . $sms_data['view']);
 // Output of html head and Stud.IP head
 include ('lib/include/html_head.inc.php');
 include ('lib/include/header.php');
-
-// check the messaging settings, avoids severals errors
-check_messaging_default();
-
 
 if (Request::option('readingconfirmation')) {
     $sms_data['tmpreadsnd'] = "";
@@ -146,7 +137,8 @@ if ($cmd == "mark_allsmsreaded") {
 $count_newsms = count_messages_from_user($sms_data['view'], "AND deleted='0' AND readed='0'");
 $show_folder = Request::option('show_folder');
 // open default folder if there are new messages
-if (Request::option('neux')) {
+//$neux -> global from lib/Navigation/MessagingNavigation.php
+if ($neux && !$show_folder) {
     $show_folder = "all";
 }
 
@@ -260,7 +252,7 @@ if (Request::option('sel_lock')) {
         $tmp_dont_delete = "0";
         $msg = "msg§"._("Der Lösch-Schutz wurde für die gewählte Nachricht aufgehoben.");
     }
-    
+
     $query = "UPDATE message_user
               SET dont_delete = ?
               WHERE user_id = ? AND message_id = ? AND snd_rec = ?";
@@ -338,9 +330,9 @@ if ($sms_data["time"] == "all") {
     $no_message_text = sprintf(_("Es liegen keine systeminternen Nachrichten%s %s vor."), $infotext_folder, $no_message_text_box);
 } else if ($sms_data["time"] == "new") {
     if ($sms_data["view"] == "in") {
-        $query_time_sort = " AND message_user.mkdate > ".(int)$LastLogin;
+        $query_time_sort = " AND message_user.mkdate > ".(int)UserConfig::get($user->id)->LAST_LOGIN_TIMESTAMP;
     } else {
-        $query_time_sort = " AND message_user.mkdate > ".(int)$CurrentLogin;
+        $query_time_sort = " AND message_user.mkdate > ".(int)UserConfig::get($user->id)->CURRENT_LOGIN_TIMESTAMP;
     }
     $no_message_text = sprintf(_("Es liegen keine neuen systeminternen Nachrichten%s %s vor."), $infotext_folder, $no_message_text_box);
 } else if ($sms_data["time"] == "24h") {
@@ -407,7 +399,7 @@ $query_time = $query_time_sort;
             $content_content .= Button::create(_('Übernehmen'), $tmp[2], array('align' => 'absmiddle'));
             $content_content .= Button::createCancel(_('Abbrechen'), 'a', array('align' => 'absmiddle'));
             $content_content .= " <div>";
-            
+
             echo "\n<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"99%\" align=\"center\"><tr>";
             printcontent("99%",0, $content_content, FALSE);
             echo "</form></tr></table>";
@@ -438,12 +430,12 @@ $query_time = $query_time_sort;
                 <form action=\"".URLHelper::getURL()."\" method=\"post\" style=\"display: inline\">" .
                 CSRFProtection::tokenTag() .
                 "<div class=\"button-group\"><input type=\"hidden\" name=\"cmd\" value=\"select_all\">"
-                . Button::create(_('Alle auswählen'), 'select', array('align' => 'absmiddle')) .    
+                . Button::create(_('Alle auswählen'), 'select', array('align' => 'absmiddle')) .
                 "</form>
                 <form action=\"".URLHelper::getURL()."\" method=\"post\" style=\"display: inline\">".
                 CSRFProtection::tokenTag() .
                 Button::create(_('Löschen'), 'delete_selected_button', array('align' => 'absmiddle'));
-                if (have_msgfolder($sms_data['view']) == TRUE) {                    
+                if (have_msgfolder($sms_data['view']) == TRUE) {
                     $content_content .= Button::create(_('Verschieben'), 'move_selected_button', array('align' => 'absmiddle'));
                 }
                 $content_content .= "</div><br></div>";
@@ -479,7 +471,7 @@ $query_time = $query_time_sort;
                     if (!$sms_data['tmp']['move_to_folder']) {
                          $link = folder_makelink($x);
                          $link_add = "&cmd_show=openall";
-                        
+
                     }
                     // titel
                     $titel = "<a href=\"".$link."\" class=\"tree\" >".htmlready(stripslashes($my_messaging_settings["folder"][$sms_data['view']][$x]))."</a>";

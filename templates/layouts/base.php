@@ -10,12 +10,15 @@
     </title>
     <?= PageLayout::getHeadElements() ?>
 
-    <script src="<?= URLHelper::getLink('dispatch.php/localizations/' . $_SESSION['_language']) ?>"></script>
+    <script src="<?= URLHelper::getScriptLink('dispatch.php/localizations/' . $_SESSION['_language']) ?>"></script>
 
     <script>
       STUDIP.ABSOLUTE_URI_STUDIP = "<?= $GLOBALS['ABSOLUTE_URI_STUDIP'] ?>";
       STUDIP.ASSETS_URL = "<?= $GLOBALS['ASSETS_URL'] ?>";
       String.locale = "<?= htmlReady(strtr($_SESSION['_language'], '_', '-')) ?>";
+      <? if (PersonalNotifications::isActivated() && $GLOBALS['perm']->have_perm("autor")) : ?>
+      STUDIP.jsupdate_enable = true;
+      <? endif ?>
     </script>
 </head>
 
@@ -27,36 +30,27 @@
 
     <? include 'lib/include/header.php' ?>
 
-    <div id="layout_container">
-      <div id="layout_sidebar">
-      <? if ($infobox) : ?>
-      <div id="layout_infobox">
-            <?= $this->render_partial('infobox/infobox_generic_content', $infobox) ?>
-      </div>
-      <? endif ?>
-      </div>
-      <div id="layout_content">
-        <?= implode(PageLayout::getMessages()) ?>
-        <?= $content_for_layout ?>
-        <div class="clear"></div>
-      </div>
-      <div class="clear"></div>
-    </div>
-</div>
-    <script>
-    jQuery(function () {
-        if(jQuery('#layout_sidebar').height() < jQuery('#layout_content').height()) {
-            jQuery('#layout_sidebar').css("height", jQuery('#layout_content').height());
-        }
-    });
-    </script>
-<!-- Ende Page -->
+        <div id="layout_container"><div>
+          <div id="layout_content">
+            <?= implode(PageLayout::getMessages()) ?>
+            <?= $content_for_layout ?>
+          </div>
+          <? if ($infobox) : ?>
+          <div id="layout_sidebar">
+              <div id="layout_infobox">
+                    <?= is_array($infobox) ? $this->render_partial('infobox/infobox_generic_content', $infobox) : $infobox ?>
+              </div>
+          </div>
+          <? endif ?>
+        </div></div>
+    </div> <? // Closes #layout_page opened in included templates/header.php ?>
+
+    <!-- Ende Page -->
     <div id="layout_push"></div>
 </div>
 
     <? include 'templates/footer.php'; ?>
 
     <?= SkipLinks::getHTML() ?>
-
 </body>
 </html>

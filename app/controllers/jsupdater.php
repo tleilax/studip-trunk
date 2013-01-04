@@ -1,5 +1,5 @@
 <?php
-/* 
+/*
  * Copyright (c) 2011  Rasmus Fuhse
  *
  * This program is free software; you can redistribute it and/or
@@ -30,8 +30,22 @@ class JsupdaterController extends AuthenticatedController {
     public function get_action() {
         $data = UpdateInformation::getInformation();
         $data = array_merge($data, $this->coreInformation());
-        $data = $this->recursive_studip_utf8encode($data);
+        $data = studip_utf8encode($data);
         $this->render_text(json_encode($data));
+    }
+
+    public function mark_notification_read_action($id) {
+        PersonalNotifications::markAsRead($id);
+        if (Request::isXhr()) {
+            $this->render_nothing();
+        } else {
+            $notification = new PersonalNotifications($id);
+            if ($notification->url) {
+                $this->redirect(UrlHelper::getUrl($notification->url));
+            } else {
+                $this->render_nothing();
+            }
+        }
     }
 
     /**
@@ -42,6 +56,20 @@ class JsupdaterController extends AuthenticatedController {
      */
     protected function coreInformation() {
         $data = array();
+        if (PersonalNotifications::isActivated()) {
+            $notifications = PersonalNotifications::getMyNotifications();
+            if ($notifications && count($notifications)) {
+                $ret = array();
+                foreach ($notifications as $notification) {
+                    $info = $notification->toArray();
+                    $info['html'] = $notification->getLiElement();
+                    $ret[] = $info;
+                }
+                $data['PersonalNotifications.newNotifications'] = $ret;
+            } else {
+                $data['PersonalNotifications.newNotifications'] = array();
+            }
+        }
         return $data;
     }
 

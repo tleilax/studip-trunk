@@ -40,35 +40,39 @@ if ($order == 'ASC') {
 $query = "SELECT bind_calendar, visitdate, seminare.Name, seminare.Seminar_id, seminar_user.status, seminar_user.gruppe, count(termin_id) as count,
     sd1.name AS startsem,IF(duration_time=-1, '" . _("unbegrenzt") . "', sd2.name) AS endsem
     FROM seminar_user LEFT JOIN seminare ON seminare.Seminar_id=seminar_user.seminar_id
-    LEFT JOIN object_user_visits  ouv ON ouv.object_id = seminare.Seminar_id AND ouv.user_id = '{$user->id}' AND ouv.type = 'sem'
+    LEFT JOIN object_user_visits  ouv ON ouv.object_id = seminare.Seminar_id AND ouv.user_id = :user_id AND ouv.type = 'sem'
     LEFT JOIN semester_data sd1 ON ( start_time BETWEEN sd1.beginn AND sd1.ende)
     LEFT JOIN semester_data sd2 ON ((start_time + duration_time) BETWEEN sd2.beginn AND sd2.ende)
-    LEFT JOIN termine ON range_id=seminare.Seminar_id WHERE seminar_user.user_id = '"
-    . $user->id . "' GROUP BY Seminar_id ORDER BY $sortby $order";
-$result = $db->query($query)->fetchAll(PDO::FETCH_ASSOC);
+    LEFT JOIN termine ON range_id=seminare.Seminar_id WHERE seminar_user.user_id = :user_id
+    GROUP BY Seminar_id ORDER BY $sortby $order";
+$statement = DBManager::get()->prepare($query);
+$statement->execute(array(
+    ':user_id' => $user->id
+));
+$result = $statement->fetchAll(PDO::FETCH_ASSOC);
 
 echo "<table width=\"100%\" border=\"0\" cellpadding=\"5\" cellspacing=\"0\">\n";
 echo "<tr><td class=\"blank\">\n";
 echo "<table border=\"0\" width=\"100%\" cellspacing=\"0\" cellpadding=\"1\" class=\"blank\" id=\"main_content\">\n";
 
 if (!empty($calendar_sess_control_data["view_prv"])) {
-    echo "<form action=\"$PHP_SELF?cmd={$calendar_sess_control_data['view_prv']}\" method=\"post\">";
+    echo "<form action=\"".URLHelper::getLink('?cmd='.$calendar_sess_control_data['view_prv'])."\" method=\"post\">";
 } else {
-    echo "<form action=\"$PHP_SELF?cmd=showweek\" method=\"post\">";
+    echo "<form action=\"".URLHelper::getLink('?cmd=showweek')."\" method=\"post\">";
 }
 echo CSRFProtection::tokenTag();
 echo "\n<tr>\n";
 echo "<th width=\"2%\" nowrap colspan=\"2\" align=\"center\">";
-echo "&nbsp;<a href=\"gruppe.php\">";
+echo "&nbsp;<a href=\"" . URLHelper::getLink('dispatch.php/meine_seminare/groups') . "\">";
 $tooltip = tooltip(_("Gruppe ändern"));
 echo "<img src=\"" . Assets::image_path('icons/16/blue/group.png') . "\" {$tooltip}>";
 echo "</a></th>\n";
 echo "<th width=\"64%\" align=\"left\">";
-echo "<a href=\"$PHP_SELF?cmd=bind&sortby=Name&order=$order\">" . _("Name") . "</a></th>\n";
-echo "<th width=\"7%\"><a href=\"$PHP_SELF?cmd=bind&sortby=count&order=$order\">";
+echo "<a href=\"".URLHelper::getLink('?cmd=bind&sortby=Name&order='.$order)."\">" . _("Name") . "</a></th>\n";
+echo "<th width=\"7%\"><a href=\"".URLHelper::getLink('?cmd=bind&sortby=count&order='.$order)."\">";
 echo _("Termine") . "</a></th>\n";
 echo "<th width=\"13%\"><b>" . _("besucht") . "</b></th>\n";
-echo "<th width=\"13%\"><a href=\"$PHP_SELF?cmd=bind&sortby=status&order=$order\">";
+echo "<th width=\"13%\"><a href=\"".URLHelper::getLink('?cmd=bind&sortby=status&order='.$order)."\">";
 echo _("Status") . "</a></th>\n";
 echo "<th width=\"2%\">&nbsp;</th>\n</tr>\n";
 

@@ -40,6 +40,7 @@
 
 require '../lib/bootstrap.php';
 
+unregister_globals();
 page_open (array ("sess" => "Seminar_Session",
           "auth" => "Seminar_Auth",
           "perm" => "Seminar_Perm",
@@ -71,19 +72,17 @@ $lib = new EvalShow();
 #error_reporting( E_ALL & ~E_NOTICE );
 
 /* Set variables ----------------------------------------------------------- */
-$rangeID = ($rangeID) ? $rangeID : $SessSemName[1];
+$rangeID = Request::option('rangeID',$SessSemName[1]);
 if (empty ($rangeID)) {
     $rangeID = $user->id; }
 
 $evalID = Request::option('evalID');
 $tree = new EvaluationTreeShowUser( $evalID );
 
-#$eval = new Evaluation( $evalID, NULL, EVAL_LOAD_ALL_CHILDREN );
 $eval = $tree->tree->eval;
 $evalDB = new EvaluationDB();
 
-#$isPreview = $_REQUEST["isPreview"] ? YES : (($eval->getStartdate() == NULL ? YES : NO));
-$isPreview = $_REQUEST["isPreview"] ? YES : NO;
+$isPreview = Request::option('isPreview') ? YES : NO;
 
 $votedEarlier = $eval->hasVoted( $auth->auth["uid"] ) && $isPreview == NO;
 $votedNow = Request::submitted('voteButton') && $votedEarlier == NO;
@@ -112,16 +111,18 @@ $table->attr( "align", "center" );
 $table->attr( "cellspacing", "0" );
 $table->attr( "cellpadding", "3" );
 $table->attr( "width", "100%" );
-$table->attr( "class", "steel1" );
+$table->attr( "class", "table_row_even" );
 
 /* count mandatory items */
 $mandatories = checkMandatoryItems( $eval );
-
+$answers = Request::quotedArray('answers');
 /* ------------------------------------------------------------------------- */
 if( $votedNow ) {
-    if( ! ( is_array($_POST["answers"]) ||
+    $answers = Request::quotedArray('answers');
+    $freetexts = Request::quotedArray('freetexts');
+    if( ! ( is_array($answers) ||
         /* clicked no answer */
-        (is_array($_POST["freetexts"]) && implode("", $_POST["freetexts"]) != "")
+        (is_array($freetexts) && implode("", $freetexts) != "")
         /* typed no freetext */
         )
     ) {
@@ -143,8 +144,8 @@ if( $votedNow ) {
     /* the vote was OK */
 
     /* process the user's selected answers --------------------------------- */
-    if( is_array($_POST["answers"]) ) {
-    foreach( $_POST["answers"] as $question_id => $answer ) {
+    if( is_array($answers) ) {
+    foreach( $answers as $question_id => $answer ) {
         if( is_array($answer) )
         /* multiple choice question */
         foreach( $answer as $nr => $answer_id )
@@ -156,8 +157,9 @@ if( $votedNow ) {
     }
 
     /* process the user's typed-in answers --------------------------------- */
-    if( is_array($_POST["freetexts"]) ) {
-    foreach( $_POST["freetexts"] as $question_id => $text ) {
+    $freetexts = Request::quotedArray('freetexts');
+    if( is_array($freetexts) ) {
+    foreach( $freetexts as $question_id => $text ) {
         if( trim($text) != '' ) {
         $question = new EvaluationQuestion( $question_id );
         $answer = new EvaluationAnswer();
@@ -232,13 +234,14 @@ page_close();
      if( $item->x_instanceof() == INSTANCEOF_EVALQUESTION )
      {
         $group = $item->getParentObject();
-
+        $answers = Request::quotedArray('answers');
+        $freetexts = Request::quotedArray('freetexts');
         if( $group->isMandatory() &&
-         ( ! is_array($_POST["answers"]) ||
-           ( is_array($_POST["answers"]) &&
-         ! in_array($item->getObjectID(), array_keys($_POST["answers"])) )
+         ( ! is_array($answers) ||
+           ( is_array($answers) &&
+         ! in_array($item->getObjectID(), array_keys($answers)) )
            ) &&
-         trim($_POST["freetexts"][$item->getObjectID()]) == ''
+         trim($freetexts[$item->getObjectID()]) == ''
          )
          {
              $mandatories[] = $item->getObjectID();

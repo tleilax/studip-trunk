@@ -286,7 +286,7 @@ function answers($parent_id, $anz_nutzer, $question_type)
     $antwort_durchschnitt = 0;
     $has_residual = user_answers_residual($parent_id);
     $i = 1;
-    $edit .= "<tr class=\"steel1\"><td width=\"1%\">&nbsp;</td><td width=\"70%\"><font size=\"-1\"><b>"._("Antworten")."</b></font></td><td width=\"29%\"><font size=\"-1\"><b>"._("Auswertung")."</b></font></td></tr>\n";
+    $edit .= "<tr class=\"table_row_even\"><td width=\"1%\">&nbsp;</td><td width=\"70%\"><font size=\"-1\"><b>"._("Antworten")."</b></font></td><td width=\"29%\"><font size=\"-1\"><b>"._("Auswertung")."</b></font></td></tr>\n";
 
     $query = "SELECT evalanswer_id, `text`, value, residual FROM evalanswer WHERE parent_id = ? ORDER BY position";
     $statement = DBManager::get()->prepare($query);
@@ -303,7 +303,7 @@ function answers($parent_id, $anz_nutzer, $question_type)
         if ($has_residual && ($answers_sum - $has_residual)>0) $prozente_wo_residual = ROUND($answer_counter*100/($anz_nutzer-$has_residual));
         $prozente = 0;
         if ($answers_sum > 0) $prozente = ROUND($answer_counter*100/$anz_nutzer);
-        $edit .= "<tr class=\"".($i==1?"steelkante":$css->getClass())."\"><td width=\"1%\"><font size=\"-1\"><b>".$antwort_nummer.".&nbsp;</b></font></td><td width=\"70%\"><font size=\"-1\">".($answer['text'] != '' ? formatReady($answer['text']) : $answer['value'])."</font></td>";
+        $edit .= "<tr class=\"".($i==1?"content_body":$css->getClass())."\"><td width=\"1%\"><font size=\"-1\"><b>".$antwort_nummer.".&nbsp;</b></font></td><td width=\"70%\"><font size=\"-1\">".($answer['text'] != '' ? formatReady($answer['text']) : $answer['value'])."</font></td>";
         if ($has_residual) $edit .= "<td width=\"29%\"><font size=\"-1\">".$answer_counter." (".$prozente."%) ".($answer['residual'] == 0 ? "(".$prozente_wo_residual."%)<b>*</b>" : "" )."</font></td></tr>\n";
         else $edit .= "<td width=\"29%\"><font size=\"-1\">".$answer_counter." (".$prozente."%)</font></td></tr>\n";
         array_push($summary, array($antwort_nummer."(".$prozente."%)",$answer_counter));
@@ -354,7 +354,7 @@ function answers($parent_id, $anz_nutzer, $question_type)
 
 function groups($parent_id)
 {
-    global $ausgabeformat, $global_counter, $local_counter, $question_type, $eval_id, $PHP_SELF, $evalgroup_id;
+    global $ausgabeformat, $global_counter, $local_counter, $question_type, $eval_id, $evalgroup_id;
 
     $query = "SELECT group_type FROM eval_group_template WHERE evalgroup_id = ?";
     $type_statement = DBManager::get()->prepare($query);
@@ -385,7 +385,7 @@ function groups($parent_id)
             $global_counter += 1;
             $local_counter   = 0;
 
-            echo "  <tr><td class=\"".($ausgabeformat==1 ? "topic" : "blank")."\" align=\"LEFT\" colspan=\"2\">\n";
+            echo "  <tr><td class=\"".($ausgabeformat==1 ? "table_header_bold" : "blank")."\" align=\"LEFT\" colspan=\"2\">\n";
             if (do_template("show_group_headline"))
                 echo "    <b>".$global_counter.". ".formatReady($group['title'])."</b>&nbsp;\n";
             else echo "&nbsp;";
@@ -396,10 +396,10 @@ function groups($parent_id)
             $group_type = $type_statement->fetchColumn() ?: 'normal';
             $type_statement->closeCursor();
 
-            echo "  <tr><td class=\"".($ausgabeformat==1 ? "steelgraulight" : "blank")."\" colspan=\"2\">\n";
+            echo "  <tr><td class=\"".($ausgabeformat==1 ? "table_row_odd" : "blank")."\" colspan=\"2\">\n";
             if (do_template("show_questionblock_headline")) {
                 echo "<table width=\"100%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\"><tr><td align=\"left\"><b>".$global_counter.".".$local_counter.". ".formatReady($group['title'])."</b></td>";
-                echo "<td align=\"RIGHT\">".($ausgabeformat==1 && !($freetype) ? "<a href=\"$PHP_SELF?eval_id=$eval_id&evalgroup_id=".$group['evalgroup_id']."&group_type=".($group_type=="normal" ? "table" : "normal")."&cmd=change_group_type#anker\"><IMG SRC=\"".Assets::image_path('icons/16/blue/'.($group_type=='normal' ? 'vote-stopped' : 'vote').'.png')."\" TITLE=\""._("Zum Darstellungstyp")." ".($group_type=="normal"?_("Tabelle"):_("Normal"))." "._("wechseln").".\" border=\"0\"></a>" : "&nbsp;"). "</td>";
+                echo "<td align=\"RIGHT\">".($ausgabeformat==1 && !($freetype) ? "<a href=\"".URLHelper::getLink('?eval_id='.$eval_id.'&evalgroup_id='.$group['evalgroup_id']."&group_type=".($group_type=="normal" ? "table" : "normal").'&cmd=change_group_type#anker')."\"><IMG SRC=\"".Assets::image_path('icons/16/blue/'.($group_type=='normal' ? 'vote-stopped' : 'vote').'.png')."\" TITLE=\""._("Zum Darstellungstyp")." ".($group_type=="normal"?_("Tabelle"):_("Normal"))." "._("wechseln").".\" border=\"0\"></a>" : "&nbsp;"). "</td>";
                 echo "</tr></table>\n";
             }
             if ($evalgroup_id == $group['evalgroup_id']) {
@@ -457,7 +457,7 @@ function groups($parent_id)
 
                     if (!($antworten_angezeigt)) {
                         $i = 1;
-                                            echo "  <tr class=\"steel1\"><td><font size=\"-1\">&nbsp;</font></td>";
+                                            echo "  <tr class=\"table_row_even\"><td><font size=\"-1\">&nbsp;</font></td>";
                                             foreach ($questions["antwort_texte"] as $k2=>$v2) { // 1. Unterebene, hier sind die Antworttexte abgelegt
                                                 echo "<td><font size=\"-1\">".$v2."</font></td>";
                                             }
@@ -466,7 +466,7 @@ function groups($parent_id)
                                             $antworten_angezeigt = TRUE;
                                         }
 
-                    echo "<tr class=\"". ($i==1?"steelkante":$css->getClass())."\">";
+                    echo "<tr class=\"". ($i==1?"content_body":$css->getClass())."\">";
                     echo "  <td><font size=\"-1\">".$questions["frage"]."</font></td>";
                     foreach ($questions["auswertung"] as $k3=>$v3) {
                         echo "<td width=\"10%\" valign=\"TOP\" ".($i!=1?"CLASS=\"".$css->getClass()."\"":"")."><font size=\"-1\">";
@@ -568,10 +568,10 @@ if ($evaluation = $statement->fetch(PDO::FETCH_ASSOC)) {
 
   // Evaluation existiert auch...
   echo "<table border=\"0\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\">\n";
-  echo "<tr><td class=\"topic\" align=\"left\"><font color=\"".($ausgabeformat==1 ? "white" : "black")."\">";
+  echo "<tr><td class=\"table_header_bold\" align=\"left\"><font color=\"".($ausgabeformat==1 ? "white" : "black")."\">";
   echo ($ausgabeformat==1 ? Assets::img('icons/16/white/test.png') : "" );
   echo "<b>"._("Evaluations-Auswertung")."</b></font></td>\n";
-  echo "<td class=\"".($ausgabeformat==1 ? "topic" : "blank" )."\" align=\"RIGHT\">".($ausgabeformat==1 ? "<a href=\"eval_summary_export.php?eval_id=".$eval_id."\" TARGET=\"_blank\"><font color=\"WHITE\">"._("PDF-Export")."</font></a><b>&nbsp;|&nbsp;</b><a href=\"".$PHP_SELF."?eval_id=".$eval_id."&ausgabeformat=2\" TARGET=\"_blank\"><font color=\"WHITE\">"._("Druckansicht")."</font></a>&nbsp;&nbsp;<a href=\"eval_config.php?eval_id=".$eval_id."\"><IMG SRC=\"".Assets::image_path('icons/16/white/arr_2right.png')."\" border=\"0\" ALT=\""._("Auswertung konfigurieren")."\" TITLE=\""._("Auswertung konfigurieren")."\"></a>" : "" ) ."&nbsp;</td>\n";
+  echo "<td class=\"".($ausgabeformat==1 ? "table_header_bold" : "blank" )."\" align=\"RIGHT\">".($ausgabeformat==1 ? "<a href=\"eval_summary_export.php?eval_id=".$eval_id."\" TARGET=\"_blank\"><font color=\"WHITE\">"._("PDF-Export")."</font></a><b>&nbsp;|&nbsp;</b><a href=\"".URLHelper::getLink('?eval_id='.$eval_id.'&ausgabeformat=2')."\" TARGET=\"_blank\"><font color=\"WHITE\">"._("Druckansicht")."</font></a>&nbsp;&nbsp;<a href=\"eval_config.php?eval_id=".$eval_id."\"><IMG SRC=\"".Assets::image_path('icons/16/white/arr_2right.png')."\" border=\"0\" ALT=\""._("Auswertung konfigurieren")."\" TITLE=\""._("Auswertung konfigurieren")."\"></a>" : "" ) ."&nbsp;</td>\n";
   echo "</tr>\n";
   echo "<tr><td class=\"blank\" colspan=\"2\" align=\"left\">&nbsp;</td></tr>\n";
   echo "<tr><td class=\"blank\" colspan=\"2\" align=\"left\"><font size=\"+1\"><b>&nbsp;&nbsp;".formatReady($evaluation['title'])."</b></font></td>\n";

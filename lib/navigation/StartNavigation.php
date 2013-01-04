@@ -54,7 +54,7 @@ class StartNavigation extends Navigation
         $homeclass = $vote + $news ? 'new' : '';
         $this->setBadgeNumber($vote + $news);
 
-        $this->setImage('header/home.png', array('title' => $homeinfo, 'class' => $homeclass));
+        $this->setImage('header/home.png', array('title' => $homeinfo, 'class' => $homeclass, "@2x" => TRUE));
     }
 
     /**
@@ -167,23 +167,20 @@ class StartNavigation extends Navigation
         $navigation = new Navigation(_('Community'));
         $navigation->addSubNavigation('online', new Navigation(_('Wer ist online?'), 'online.php'));
         $navigation->addSubNavigation('contacts', new Navigation(_('Meine Kontakte'), 'contact.php', array('view' => 'alpha')));
-        if (get_config('CHAT_ENABLE')) {
-            $navigation->addSubNavigation('chat', new Navigation(_('Chat'), 'chat_online.php'));
-        }
         // study groups
         if (get_config('STUDYGROUPS_ENABLE')) {
             $navigation->addSubNavigation('browse',new Navigation(_('Studiengruppen'), 'dispatch.php/studygroup/browse'));
         }
         // ranking
-        $navigation->addSubNavigation('score', new Navigation(_('Rangliste'), 'score.php'));
+        $navigation->addSubNavigation('score', new Navigation(_('Rangliste'), 'dispatch.php/score'));
         $this->addSubNavigation('community', $navigation);
 
         // calendar / home page
         if (!$perm->have_perm('admin')) {
-            $navigation = new Navigation(_('Mein Profil'), 'about.php');
+            $navigation = new Navigation(_('Mein Profil'), 'dispatch.php/profile');
 
             if ($perm->have_perm('autor')) {
-                $navigation->addSubNavigation('settings', new Navigation(_('Einstellungen'), 'edit_about.php?view=allgemein'));
+                $navigation->addSubNavigation('settings', new Navigation(_('Einstellungen'), 'dispatch.php/settings/general'));
             }
 
             $this->addSubNavigation('profile', $navigation);

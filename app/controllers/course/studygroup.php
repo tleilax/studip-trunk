@@ -85,7 +85,7 @@ class Course_StudygroupController extends AuthenticatedController {
         }
 
         $this->studygroup = new Seminar($id);
-        if (!preg_match('/^(' . preg_quote($GLOBALS['CANONICAL_RELATIVE_PATH_STUDIP'],'/') . ')?([a-zA-Z0-9_-]+\.php)([a-zA-Z0-9_?&=-]*)$/', $_REQUEST['send_from_search_page'])) {
+        if (!preg_match('/^(' . preg_quote($GLOBALS['CANONICAL_RELATIVE_PATH_STUDIP'],'/') . ')?([a-zA-Z0-9_-]+\.php)([a-zA-Z0-9_?&=-]*)$/', Request::get('send_from_search_page'))) {
             $this->send_from_search_page = '';
         } else {
             $this->send_from_search_page = Request::get('send_from_search_page');
@@ -105,10 +105,16 @@ class Course_StudygroupController extends AuthenticatedController {
         PageLayout::setTitle(_("Studiengruppe anlegen"));
         Navigation::activateItem('/community/studygroups/new');
         $this->terms             = Config::Get()->STUDYGROUP_TERMS;
-        $this->available_modules = StudygroupModel::getAvailableModules();
-        $this->available_plugins = StudygroupModel::getAvailablePlugins();
+        $this->available_modules = StudygroupModel::getInstalledModules();
+        $this->available_plugins = StudygroupModel::getInstalledPlugins();
         $this->modules           = new Modules();
         $this->groupaccess       = $this->flash['request']['groupaccess'];
+        foreach ($GLOBALS['SEM_CLASS'] as $key => $sem_class) {
+            if ($sem_class['studygroup_mode']) {
+                $this->sem_class = $sem_class;
+                break;
+    }
+        }
     }
 
     /**
@@ -133,6 +139,12 @@ class Course_StudygroupController extends AuthenticatedController {
 
         $admin  = $perm->have_perm('admin');
         $errors = array();
+        foreach ($GLOBALS['SEM_CLASS'] as $key => $class) {
+            if ($class['studygroup_mode']) {
+                $sem_class = $class;
+                break;
+            }
+        }
 
         if (Request::getArray('founders')) {
             $founders = Request::optionArray('founders');
@@ -144,25 +156,19 @@ class Course_StudygroupController extends AuthenticatedController {
 
             // do not allow to search with the empty string
             if ($search_for_founder) {
-
                 // search for the user
-                $pdo = DBManager::get();
-                $search_for_founder = $pdo->quote('%' . $search_for_founder . '%');
-                $stmt = $pdo->query("SELECT user_id, {$GLOBALS['_fullname_sql']['full_rev']} as fullname, username, perms"
-                            . " FROM auth_user_md5"
-                            . " LEFT JOIN user_info USING (user_id)"
-                            . " WHERE perms NOT IN('root', 'admin')"
-                            . " AND (username LIKE $search_for_founder OR Vorname LIKE $search_for_founder"
-                            . " OR Nachname LIKE $search_for_founder)"
-                            . " LIMIT 500");
-
-                while ($data = $stmt->fetch()) {
-                    $results_founders[$data['user_id']] = array(
-                        'fullname' => $data['fullname'],
-                        'username' => $data['username'],
-                        'perms'    => $data['perms']
-                    );
-                }
+                $query = "SELECT user_id, {$GLOBALS['_fullname_sql']['full_rev']} AS fullname, username, perms
+                          FROM auth_user_md5
+                          LEFT JOIN user_info USING (user_id)
+                          WHERE perms NOT IN ('root', 'admin')
+                            AND (username LIKE CONCAT('%', :needle, '%')
+                              OR Vorname LIKE CONCAT('%', :needle, '%')
+                              OR Nachname LIKE CONCAT('%', :needle, '%'))
+                          LIMIT 500";
+                $statement = DBManager::get()->prepare($query);
+                $statement->bindValue(':needle', $search_for_founder);
+                $statement->execute();
+                $results_founders = $statement->fetchGrouped(PDO::FETCH_ASSOC);
             }
 
             if(is_array($results_founders)) {
@@ -216,10 +222,12 @@ class Course_StudygroupController extends AuthenticatedController {
             if (!Request::get('groupname')) {
                 $errors[] = _("Bitte Gruppennamen angeben");
             } else {
-                $pdo = DBManager::get();
-                $stmt = $pdo->query($query = "SELECT * FROM seminare WHERE name = "
-                                           . $pdo->quote(Request::get('groupname')));
-                if ($stmt->fetch()) {
+                $query = "SELECT 1 FROM seminare WHERE name = ?";
+                $statement = DBManager::get()->prepare($query);
+                $statement->execute(array(
+                    Request::get('groupname')
+                ));
+                if ($statement->fetchColumn()) {
                     $errors[] = _("Eine Veranstaltung/Studiengruppe mit diesem Namen existiert bereits. Bitte wählen Sie einen anderen Namen");
                 }
             }
@@ -282,21 +290,40 @@ class Course_StudygroupController extends AuthenticatedController {
                 } else {
                     $user_id = $GLOBALS['auth']->auth['uid'];
                     // insert dozent
-                    DBManager::get()->query("INSERT INTO seminar_user SET "
-                                        . "seminar_id = '$sem->id', "
-                                        . "user_id    = '$user_id', "
-                                        . "status     = 'dozent', "
-                                        . "gruppe     = 8");
+                    $query = "INSERT INTO seminar_user (seminar_id, user_id, status, gruppe)
+                              VALUES (?, ?, 'dozent', 8)";
+                    $statement = DBManager::get()->prepare($query);
+                    $statement->execute(array($sem->id, $user_id));
                 }
 
                 // de-/activate modules
                 $mods              = new Modules();
                 $bitmask           = 0;
-                $available_modules = StudygroupModel::getAvailableModules();
-                $groupmodule       = Request::getArray('groupmodule');
+                $available_modules = StudygroupModel::getInstalledModules();
+                $active_plugins    = Request::getArray('groupplugin');
 
-                foreach ($groupmodule as $key => $enable) {
-                    if ($key=='schedule') continue; // no schedule for studygroups
+                foreach ($available_modules as $key => $enable) {
+                    $module_name = $sem_class->getSlotModule($key);
+                    if ($module_name
+                            && ($sem_class->isModuleMandatory($module_name)
+                                || !$sem_class->isModuleAllowed($module_name))) {
+                        continue;
+                    }
+                    if (!$module_name) {
+                        $module_name = $key;
+                    }
+
+                    if ($active_plugins[$module_name]) {
+                        // activate modules
+                        $mods->setBit($bitmask, $mods->registered_modules[$key]["id"]);
+                        if (!$orig_modules[$key]) {
+                            $methodActivate = "module".ucfirst($key)."Activate";
+                            if (method_exists($admin_mods, $methodActivate)) {
+                                $admin_mods->$methodActivate($sem->id);
+                            }
+                        }
+                    }
+
                     if ($available_modules[$key] && $enable) {
                         $mods->setBit($bitmask, $mods->registered_modules[$key]["id"]);
                         $methodActivate = "module".$key."Activate";
@@ -312,15 +339,17 @@ class Course_StudygroupController extends AuthenticatedController {
                 $sem->store();
 
                 // de-/activate plugins
-                $available_plugins = StudygroupModel::getAvailablePlugins();
+                $available_plugins = StudygroupModel::getInstalledPlugins();
                 $plugin_manager    = PluginManager::getInstance();
-                $groupplugin       = Request::getArray('groupplugin');
 
                 foreach ($available_plugins as $key => $name) {
+                    if (!$sem_class->isModuleAllowed($key)) {
+                        continue;
+                    }
                     $plugin    = $plugin_manager->getPlugin($key);
                     $plugin_id = $plugin->getPluginId();
 
-                    if ($groupplugin[$key] && $name) {
+                    if ($active_plugins[$key] && $name) {
                         $plugin_manager->setPluginActivated($plugin_id, $sem->id, true);
                     } else {
                         $plugin_manager->setPluginActivated($plugin_id, $sem->id, false);
@@ -360,9 +389,10 @@ class Course_StudygroupController extends AuthenticatedController {
             $sem                     = new Seminar($id);
             $this->sem_id            = $id;
             $this->sem               = $sem;
+            $this->sem_class         = $GLOBALS['SEM_CLASS'][$GLOBALS['SEM_TYPE'][$sem->status]['class']];
             $this->tutors            = $sem->getMembers('tutor');
-            $this->available_modules = StudygroupModel::getAvailableModules();
-            $this->available_plugins = StudygroupModel::getAvailablePlugins();
+            $this->available_modules = StudygroupModel::getInstalledModules();
+            $this->available_plugins = StudygroupModel::getInstalledPlugins();
             $this->enabled_plugins   = StudygroupModel::getEnabledPlugins($id);
             $this->modules           = new Modules();
             $this->founders          = StudygroupModel::getFounders( $id );
@@ -404,6 +434,8 @@ class Course_StudygroupController extends AuthenticatedController {
             $errors   = array();
             $admin    = $perm->have_studip_perm('admin', $id);
             $founders = StudygroupModel::getFounders($id);
+            $sem       = new Seminar($id);
+            $sem_class = $GLOBALS['SEM_CLASS'][$GLOBALS['SEM_TYPE'][$sem->status]['class']];
 
             if (Request::get('abort_deactivate')) {
                 // let's do nothing and go back to the studygroup
@@ -419,15 +451,22 @@ class Course_StudygroupController extends AuthenticatedController {
                 // 1. Modules
                 if (is_array($modules)) {
 
-                    $sem  = new Seminar($id);
                     $mods = new Modules();
                     $admin_mods = new AdminModules();
                     $bitmask = $sem->modules;
-                    foreach ($this->flash['deactivate_modules'] as $key) {
+                    foreach ($modules as $key) {
                         $mods->clearBit($bitmask, $mods->registered_modules[$key]["id"]);
                         $methodDeactivate = "module".ucfirst($key)."Deactivate";
                         if (method_exists($admin_mods, $methodDeactivate)) {
                             $admin_mods->$methodDeactivate($sem->id);
+                            $studip_module = $sem_class->getModule($key);
+                            if (is_a($studip_module, "StandardPlugin")) {
+                                PluginManager::getInstance()->setPluginActivated(
+                                    $studip_module->getPluginId(),
+                                    $id,
+                                    false
+                                );
+                            }
                         }
                     }
 
@@ -468,11 +507,13 @@ class Course_StudygroupController extends AuthenticatedController {
                     $errors[] = _("Bitte Gruppennamen angeben");
                 //... if so, test if this is not taken by another group
                 } else {
-                    $pdo = DBManager::get();
-                    $stmt = $pdo->query($query = "SELECT * FROM seminare WHERE name = "
-                                               . $pdo->quote(Request::get('groupname'))
-                                               . " AND Seminar_id != " . $pdo->quote( $id ));
-                    if ($stmt->fetch()) {
+                    $query = "SELECT 1 FROM seminare WHERE name = ? AND Seminar_id != ?";
+                    $statement = DBManager::get()->prepare($query);
+                    $statement->execute(array(
+                        Request::get('groupname'),
+                        $id
+                    ));
+                    if ($statement->fetchColumn()) {
                         $errors[] = _("Eine Veranstaltung/Studiengruppe mit diesem Namen existiert bereits. Bitte wählen Sie einen anderen Namen");
                     }
                 }
@@ -481,7 +522,6 @@ class Course_StudygroupController extends AuthenticatedController {
                     $this->flash['edit'] = true;
                 // Everything seems fine, let's update the studygroup
                 } else {
-                    $sem                 = new Seminar($id);
                     $sem->name           = Request::get('groupname');         // seminar-class quotes itself
                     $sem->description    = Request::get('groupdescription');  // seminar-class quotes itself
                     $sem->read_level     = 1;
@@ -501,20 +541,36 @@ class Course_StudygroupController extends AuthenticatedController {
                     $bitmask = $sem->modules;
 
                     // de-/activate modules
-                    $available_modules = StudygroupModel::getAvailableModules();
+                    $available_modules = StudygroupModel::getInstalledModules();
                     $orig_modules = $mods->getLocalModules($sem->id, "sem");
+                    $active_plugins = Request::getArray("groupplugin");
 
                     $deactivate_modules = array();
-
-                    foreach (array_keys($available_modules) as $key){
-                        if($key == 'participants') continue;
-                        if ($_REQUEST['groupmodule'][$key]) {
+                    foreach (array_keys($available_modules) as $key) {
+                        $module_name = $sem_class->getSlotModule($key);
+                        if ($module_name
+                                && ($sem_class->isModuleMandatory($module_name)
+                                    || !$sem_class->isModuleAllowed($module_name))) {
+                            continue;
+                        }
+                        if (!$module_name) {
+                            $module_name = $key;
+                        }
+                        if ($active_plugins[$module_name]) {
                             // activate modules
                             $mods->setBit($bitmask, $mods->registered_modules[$key]["id"]);
                             if (!$orig_modules[$key]) {
                                 $methodActivate = "module".ucfirst($key)."Activate";
                                 if (method_exists($admin_mods, $methodActivate)) {
                                     $admin_mods->$methodActivate($sem->id);
+                                    $studip_module = $sem_class->getModule($key);
+                                    if (is_a($studip_module, "StandardPlugin")) {
+                                        PluginManager::getInstance()->setPluginActivated(
+                                            $studip_module->getPluginId(),
+                                            $id,
+                                            true
+                                        );
+                                    }
                                 }
                             }
                         } else {
@@ -525,22 +581,20 @@ class Course_StudygroupController extends AuthenticatedController {
                             }
                         }
                     }
-
                     $this->flash['deactivate_modules'] = $deactivate_modules;
 
                     $sem->modules = $bitmask;
                     $sem->store();
 
                     // de-/activate plugins
-                    $available_plugins = StudygroupModel::getAvailablePlugins();
+                    $available_plugins = StudygroupModel::getInstalledPlugins();
                     $plugin_manager    = PluginManager::getInstance();
-                    $groupplugin       = Request::getArray('groupplugin');
                     $deactivate_plugins = array();
 
                     foreach ($available_plugins as $key => $name) {
                         $plugin = $plugin_manager->getPlugin($key);
                         $plugin_id = $plugin->getPluginId();
-                        if ($groupplugin[$key] && $name) {
+                        if ($active_plugins[$key] && $name && $sem_class->isModuleAllowed($key)) {
                             $plugin_manager->setPluginActivated($plugin_id, $id, true);
                         } else {
                             if ($plugin_manager->isPluginActivated($plugin_id, $id)) {
@@ -606,8 +660,8 @@ class Course_StudygroupController extends AuthenticatedController {
                                     . "AND seminar_user.Seminar_id IS NULL "
                                     . "AND " . get_vis_query()
                                     . " AND (username LIKE :input OR Vorname LIKE :input "
-                                    . "OR CONCAT(Vorname,' ',Nachname) LIKE :input " 
-                                    . "OR CONCAT(Nachname,' ',Vorname) LIKE :input " 
+                                    . "OR CONCAT(Vorname,' ',Nachname) LIKE :input "
+                                    . "OR CONCAT(Nachname,' ',Vorname) LIKE :input "
                                     . "OR Nachname LIKE :input OR {$GLOBALS['_fullname_sql']['full_rev']} LIKE :input) "
                                     . "ORDER BY fullname ASC",
                                     _("Nutzer suchen"), "user_id");
@@ -651,9 +705,12 @@ class Course_StudygroupController extends AuthenticatedController {
                     $msg->insert_message(addslashes($message), get_username($receiver),'', '', '', '', '', addslashes($subject));
                     $this->flash['success'] = sprintf(_("%s wurde in die Studiengruppe eingeladen."), get_fullname($receiver, 'full', true));
                 }
-            } elseif ($perm->have_studip_perm('dozent', $id)) {
+            } elseif ($perm->have_studip_perm('tutor', $id)) {
                 if(!$perm->have_studip_perm('dozent',$id,get_userid($user))) {
-                    if ($action == 'promote' && $status != 'dozent') {
+                    if ($action == 'promote' && $status != 'dozent' && $perm->have_studip_perm('dozent',$id)) {
+                        StudygroupModel::promote_user($user,$id,$status);
+                        $this->flash['success'] = sprintf(_("Der Status des Nutzers %s wurde geändert."), get_fullname_from_uname($user, 'full', true));
+                    } elseif ($action == 'promote' && $status == 'autor' && $perm->have_studip_perm('tutor',$id) && $GLOBALS['auth']->auth['uname'] == $user) {
                         StudygroupModel::promote_user($user,$id,$status);
                         $this->flash['success'] = sprintf(_("Der Status des Nutzers %s wurde geändert."), get_fullname_from_uname($user, 'full', true));
                     } elseif ($action == 'remove') {
@@ -671,9 +728,6 @@ class Course_StudygroupController extends AuthenticatedController {
                         )
                     );
                 }
-            } elseif ($action == 'promote' && $status == 'autor' && $GLOBALS['auth']->auth['uname'] == $user) {
-                StudygroupModel::promote_user($user,$id,$status);
-                $this->flash['success'] = sprintf(_("Der Status des Nutzers %s wurde geändert."), get_fullname_from_uname($user, 'full', true));
             }
             //Für die QuickSearch-Suche:
             if (Request::get('choose_member_parameter') && Request::get('choose_member_parameter') !== _("Nutzer suchen") ) {
@@ -737,10 +791,6 @@ class Course_StudygroupController extends AuthenticatedController {
         $perm->check("root");
         PageLayout::setHelpKeyword('Admin.Studiengruppen');
 
-        // get available modules
-        $modules = StudygroupModel::getInstalledModules() + StudygroupModel::getInstalledPlugins();
-        $enabled = StudygroupModel::getAvailability($modules);
-
         // get institutes
         $institutes = StudygroupModel::getInstitutes();
         $default_inst = Config::Get()->STUDYGROUP_DEFAULT_INST;
@@ -761,16 +811,14 @@ class Course_StudygroupController extends AuthenticatedController {
         PageLayout::setTitle(_('Verwaltung studentischer Arbeitsgruppen'));
         Navigation::activateItem('/admin/config/studygroup');
 
-        $db = DBManager::get()->query("SELECT COUNT(*) as c FROM seminare"
-                . " WHERE status IN ('"
-                . implode("', '", studygroup_sem_types()) . "')");
+        $query = "SELECT COUNT(*) FROM seminare WHERE status IN (?)";
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute(array(studygroup_sem_types()));
 
         // set variables for view
-        $this->can_deactivate = ($db->fetchColumn() != 0) ? false : true;
+        $this->can_deactivate = $statement->fetchColumn() == 0;
         $this->current_page   = _("Verwaltung erlaubter Inhaltselemente und Plugins für Studiengruppen");
         $this->configured     = count(studygroup_sem_types()) > 0;
-        $this->modules        = $modules;
-        $this->enabled        = $enabled;
         $this->institutes     = $institutes;
         $this->default_inst   = $default_inst;
         $this->terms          = $terms;
@@ -787,13 +835,6 @@ class Course_StudygroupController extends AuthenticatedController {
         $perm->check("root");
         PageLayout::setHelpKeyword('Admin.Studiengruppen');
 
-        foreach (Request::getArray('modules') as $key => $value) {
-            if ($value=='invalid') {
-                $errors[] = _("Sie müssen sich bei jedem Inhaltselement entscheiden, ob es zur Verfügung stehen soll oder nicht!");
-                break;
-            }
-        }
-
         if (Request::quoted('institute') == 'invalid') {
             $errors[] = _("Bitte wählen Sie eine Einrichtung aus, der die Studiengruppen zugeordnet werden sollen!");
         }
@@ -805,7 +846,6 @@ class Course_StudygroupController extends AuthenticatedController {
         if ($errors) {
             $this->flash['messages'] = array('error' => array('title' => 'Die Studiengruppen konnten nicht aktiviert werden!', 'details' =>  $errors));
             $this->flash['institute'] = Request::get('institute');
-            $this->flash['modules']   = Request::getArray('modules');
             $this->flash['terms']     = Request::get('terms');
         }
 
@@ -816,15 +856,7 @@ class Course_StudygroupController extends AuthenticatedController {
                 $this->flash['success'] = _("Die Studiengruppen wurden aktiviert.");
             }
 
-            if (is_array($_REQUEST['modules']) ) {
-                // $config_string contains modul/pluginname=0/1|...
-                foreach ($_REQUEST['modules'] as $key => $value) {
-                    if (in_array($key, array('participants','schedule'))) continue;
-                    $config_string[] = $key . ':' . ($value == 'on' ? '1' : '0');
-                }
-                $config_string[] = 'participants:1';
-                $config_string[] = 'schedule:0';
-                $cfg->store('STUDYGROUP_SETTINGS', implode(' ', $config_string));
+            if (Request::get('institute')) {
                 $cfg->store('STUDYGROUP_DEFAULT_INST', Request::quoted('institute'));
                 $cfg->store('STUDYGROUP_TERMS', Request::quoted('terms'));
                 $this->flash['success'] = _("Die Einstellungen wurden gespeichert!");
@@ -846,9 +878,11 @@ class Course_StudygroupController extends AuthenticatedController {
         $perm->check("root");
         PageLayout::setHelpKeyword('Admin.Studiengruppen');
 
-        $db = DBManager::get()->query("SELECT COUNT(*) as c FROM seminare"
-                . " WHERE status IN ('" . implode("', '", studygroup_sem_types()) . "')");
-        if (($count = $db->fetchColumn()) != 0) {
+        $query = "SELECT COUNT(*) FROM seminare WHERE status IN (?)";
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute(array(studygroup_sem_types()));
+
+        if (($count = $statement->fetchColumn()) != 0) {
             $this->flash['messages'] = array('error' => array(
                 'title' => sprintf(_("Sie können die Studiengruppen nicht deaktivieren, da noch %s Studiengruppen vorhanden sind!"), $count)
             ));
@@ -870,7 +904,7 @@ class Course_StudygroupController extends AuthenticatedController {
     function message_action($id)
     {
         $sem         = Seminar::GetInstance($id);
-        $source      = 'dispatch.php/course/studygroup/member/' . $id;
+        $source      = 'dispatch.php/course/studygroup/members/' . $id;
         if (studip_strlen($sem->getName()) > 32) //cut subject if to long
             $subject = sprintf(_("[Studiengruppe: %s...]"),studip_substr($sem->getName(), 0, 30));
         else

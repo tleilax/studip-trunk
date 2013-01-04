@@ -78,9 +78,8 @@ class SemGroupScheduleDayOfWeek extends ScheduleView {
     function getColumnName($id, $print_view = false){
         $res_obj = ResourceObject::Factory($this->show_columns[$id]);
         if (!$print_view){
-            $ret = '<a class="tree" href="' . $GLOBALS['PHP_SELF'] . '?show_object=' . $this->show_columns[$id] . '&view=' 
-                    . ($_REQUEST['view'] == 'openobject_group_schedule' ? 'openobject_schedule' : 'view_schedule') 
-                    . '">'
+            $ret = '<a class="tree" href="' . URLHelper::getLink('?show_object=' . $this->show_columns[$id] . '&view='
+                    . (Request::option('view') == 'openobject_group_schedule' ? 'openobject_schedule' : 'view_schedule')) . '">'
                     . htmlReady($res_obj->getName()) . '</a>'
                     . ($res_obj->getSeats() ? '<br>(' . $res_obj->getSeats() . ')' : '');
         } else {
@@ -92,7 +91,7 @@ class SemGroupScheduleDayOfWeek extends ScheduleView {
     function getAddLink($l, $i){
         $add_link_timestamp = $this->base_date + ($i * 60 * 60);
         $add_link_timestamp .= "&show_object=" . $this->show_columns[$l];
-        return sprintf ("class=\"steel1\" align=\"right\" valign=\"bottom\"><a href=\"%s%s\"><img src=\"".$GLOBALS['ASSETS_URL']."images/calplus.gif\" %s border=\"0\"></a></td>",
+        return sprintf ("class=\"table_row_even\" align=\"right\" valign=\"bottom\"><a href=\"%s%s\"><img src=\"".$GLOBALS['ASSETS_URL']."images/calplus.gif\" %s border=\"0\"></a></td>",
                         $this->add_link, $add_link_timestamp, tooltip(sprintf(_("Eine neue Belegung von %s bis %s Uhr anlegen"), date ("H:i", $add_link_timestamp), date ("H:i", $add_link_timestamp + (2 * 60 * 60)))));
     }
 }

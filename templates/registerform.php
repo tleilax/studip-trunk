@@ -102,14 +102,13 @@ function checkdata(){
 }
 // -->
 </SCRIPT>
-<div class="index_container" style="width: 750px;">
 
 <?if (isset($username)): ?>
     <?= MessageBox::error(_("Bei der Registrierung ist ein Fehler aufgetreten!"), array($error_msg, _("Bitte korrigieren Sie Ihre Eingaben und versuchen Sie es erneut"))) ?>
 <?endif;?>
 <table class="index_box logintable">
 <tr>
-    <td class="topic"> <b><?=_("Stud.IP - Registrierung")?></b> </td>
+    <td class="table_header_bold"> <b><?=_("Stud.IP - Registrierung")?></b> </td>
 </tr>
 <tr>
     <td class="blank" style="padding: 1em;">
@@ -185,22 +184,24 @@ function checkdata(){
 <tr valign=top align=left>
   <td colspan="2"><?=_("E-Mail:")?></td>
     <?
-    echo '<td nowrap="nowrap"><input type="email" name="Email" onchange="checkEmail()"  value="';
+    echo '<td nowrap="nowrap">';
     if (trim($email_restriction)) {
-        echo (isset($Email) ? preg_replace('|@.*|', '', trim($Email)) : '' );
+        echo '<input name="Email" onchange="checkEmail()"  value="';
+        echo htmlReady(isset($Email) ? preg_replace('|@.*|', '', trim($Email)) : '' );
         echo "\" size=20 maxlength=63>\n";
         $email_restriction_parts = explode(',', $email_restriction);
         echo '&nbsp;<select name="emaildomain">';
         foreach ($email_restriction_parts as $email_restriction_part) {
             echo '<option value="' . trim($email_restriction_part) . '"';
-            if (trim($email_restriction_part) == $_REQUEST['emaildomain']) {
+            if (trim($email_restriction_part) == Request::get('emaildomain')) {
                 echo ' selected="selected"';
             }
             echo '>@' . trim($email_restriction_part) . "</option>\n";
         }
         echo '</select>';
     } else {
-        echo (isset($Email) ? trim($Email) : '' ) ."\" size=32 maxlength=63>\n" ; 
+        echo '<input type="email" name="Email" onchange="checkEmail()"  value="';
+        echo htmlReady(isset($Email) ? trim($Email) : '' ) ."\" size=32 maxlength=63>\n" ;
     }
     ?>
     </td>
@@ -217,11 +218,9 @@ function checkdata(){
 
 <input type="hidden" name="login_ticket" value="<?=Seminar_Session::get_ticket();?>">
 </form>
-
         </td>
     </tr>
 </table>
-</div>
 
 <script language="JavaScript">
 <!--

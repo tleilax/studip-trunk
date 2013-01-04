@@ -143,8 +143,7 @@ if (!$set_recur_x) {
     echo ($wholeday ? ' checked="checked"' : '') . "$disabled> &nbsp;";
     echo _("ganzt&auml;gig");
     $info = _("Als ganztägig markierte Termine beginnen um 00:00 Uhr am angegebenen Starttag und enden um 23.59 am angegeben Endtag.");
-    echo '&nbsp;&nbsp;&nbsp;<img src="' . Assets::image_path('icons/16/grey/info-circle.png') . '" ';
-    echo tooltip($info, TRUE, TRUE) . ">\n";
+    echo '&nbsp;&nbsp;&nbsp;' . tooltipicon($info) . "\n";
     echo "</td>\n</tr>\n";
     echo "<tr><td colspan=\"2\">&nbsp;</td></tr>\n";
     echo '<tr><td>';
@@ -244,8 +243,7 @@ if (!$set_recur_x) {
             echo "</select>\n&nbsp; &nbsp;";
             echo '<input type="text" name="cat_text" size="30" maxlength="255" value="' . htmlReady($cat_text) . '"' . $disabled . '>';
             $info = _("Sie können beliebige Kategorien in das Freitextfeld eingeben. Trennen Sie einzelne Kategorien bitte durch ein Komma.");
-            echo '&nbsp;&nbsp;&nbsp;<img src="' . Assets::image_path('icons/16/grey/info-circle.png') . '" ';
-            echo tooltip($info, TRUE, TRUE) . ">\n";
+            echo '&nbsp;&nbsp;&nbsp;' . tooltipicon($info). "\n";
         }
         echo "</td>\n</tr>\n";
 
@@ -286,7 +284,7 @@ if (!$set_recur_x) {
                 echo ">$via_name\n";
             }
             echo "</select>&nbsp;&nbsp;&nbsp;";
-            echo '<img src="' . Assets::image_path('icons/16/grey/info-circle.png') . '" ' . tooltip($info, TRUE, TRUE) . ">\n";
+            echo tooltipicon($info) . "\n";
 
             echo "&nbsp;&nbsp;&nbsp;" . _("Priorit&auml;t:");
             echo "&nbsp;&nbsp;<select name=\"priority\" size=\"1\">\n";
@@ -856,14 +854,14 @@ if (isset($_calendar->event) && ($_calendar->event instanceof SeminarEvent || $_
         // max number of events reached
         $info_box['count'] = _("Sie k&ouml;nnen keine weiteren Termine mehr speichern!")
                 . '<br><br>'
-                . sprintf(_("L&ouml;schen Sie &auml;ltere Termine, oder w&auml;hlen Sie eine automatische L&ouml;schfunktion in Ihren %sKalenderoptionen%s."), '<a href="' . URLHelper::getLink('edit_about.php', array('view' => 'calendar')) . '">', '</a>');
+                . sprintf(_("L&ouml;schen Sie &auml;ltere Termine, oder w&auml;hlen Sie eine automatische L&ouml;schfunktion in Ihren %sKalenderoptionen%s."), '<a href="' . URLHelper::getLink('dispatch.php/settings/calendar') . '">', '</a>');
     } elseif ($count_events >= ($CALENDAR_MAX_EVENTS - $CALENDAR_MAX_EVENTS / 20)) {
         // only 5% of max number of events free
         $info_box['count'] = sprintf(_("Sie k&ouml;nnen noch %s Termine speichern."), $CALENDAR_MAX_EVENTS - $count_events);
         $info_box['count'] .= '<br><br>';
-        $info_box['count'] .= sprintf(_("W&auml;hlen Sie eine automatische L&ouml;schfunktion in Ihren %sKalenderoptionen%s, um &auml;ltere Termine zu l&ouml;schen."), '<a href="' . URLHelper::getLink('edit_about.php', array('view' => 'calendar')) . '">', '</a>');
+        $info_box['count'] .= sprintf(_("W&auml;hlen Sie eine automatische L&ouml;schfunktion in Ihren %sKalenderoptionen%s, um &auml;ltere Termine zu l&ouml;schen."), '<a href="' . URLHelper::getLink('dispatch.php/settings/calendar') . '">', '</a>');
     } else {
-        $info_box['count'] = sprintf(_("Sie k&ouml;nnen abgelaufene Termine automatisch l&ouml;schen lassen. W&auml;hlen Sie dazu eine L&ouml;schfunktion in Ihren %sKalenderoptionen%s."), '<a href="' . URLHelper::getLink('edit_about.php', array('view' => 'calendar')) . '">', '</a>');
+        $info_box['count'] = sprintf(_("Sie k&ouml;nnen abgelaufene Termine automatisch l&ouml;schen lassen. W&auml;hlen Sie dazu eine L&ouml;schfunktion in Ihren %sKalenderoptionen%s."), '<a href="' . URLHelper::getLink('dispatch.php/settings/calendar') . '">', '</a>');
     }
     $info_box['all'][0]['kategorie'] = _("Information:");
     $info_box['all'][0]['eintrag'][] = array('icon' => 'icons/16/black/info.png',

@@ -1,8 +1,8 @@
 <?
-# Lifter002: TODO
+# Lifter002: TODO - showRequest() left undone (cause it's horrible)
+# Lifter003: TEST
 # Lifter005: TODO
 # Lifter007: TODO
-# Lifter003: TODO
 # Lifter010: TODO
 /**
 * ShowToolsRequests.class.php
@@ -56,8 +56,6 @@ $cssSw = new cssClassSwitcher;
 **/
 class ShowToolsRequests
 {
-    var $db;
-    var $db2;
     var $cssSw;         //the cssClassSwitcher
     var $requests;          //the requests i'am responsibel for
     var $semester_id;
@@ -65,19 +63,14 @@ class ShowToolsRequests
 
     function ShowToolsRequests($semester_id, $resolve_requests_no_time = null)
     {
-        $this->db = new DB_Seminar;
-        $this->db2 = new DB_Seminar;
-        if (!$semester_id){
-            $this->semester_id = SemesterData::GetSemesterIdByDate(time());
-        } else {
-            $this->semester_id = $semester_id;
-        }
-        if(!is_null($resolve_requests_no_time)){
+        $this->semester_id = $semester_id ?: SemesterData::GetSemesterIdByDate(time());
+        if (!is_null($resolve_requests_no_time)) {
             $this->show_requests_no_time = !$resolve_requests_no_time;
         }
     }
 
-    function getMyOpenSemRequests() {
+    function getMyOpenSemRequests()
+    {
         $this->restoreOpenRequests();
         return (int)$this->requests_stats_open['my_sem'];
     }
@@ -109,161 +102,88 @@ class ShowToolsRequests
         }
     }
 
-    function getMyRequestedRooms(){
-        $db = DBManager::get();
-        $ret = array();
-        $res_requests = array_filter($this->requests, create_function('$val', 'return (!$val["closed"] && $val["my_res"] && ($val["have_times"] || ' . (int)$this->show_requests_no_time . '));'));
-        if(count($res_requests)){
-            $ret = $db->query("SELECT ro.resource_id, ro.name, COUNT(ro.resource_id) as anzahl
-                            FROM resources_requests rr
-                            INNER JOIN resources_objects ro
-                            USING ( resource_id )
-                            WHERE rr.request_id
-                            IN (
-                            " . join(',', array_map(array($db, 'quote'), array_keys($res_requests))) . "
-                            ) GROUP BY ro.resource_id ORDER BY ro.name")->fetchAll(PDO::FETCH_ASSOC);
+    function getMyRequestedRooms()
+    {
+        $no_time = (int) $this->show_requests_no_time;
+        $res_requests = array_filter($this->requests, function($val) use ($no_time) {
+           return !$val['closed'] && $val['my_res'] && ($val['have_times'] || $no_time);
+        });
+
+        if (count($res_requests) > 0) {
+            $query = "SELECT ro.resource_id, ro.name, COUNT(ro.resource_id) as anzahl
+                      FROM resources_requests rr
+                      INNER JOIN resources_objects ro USING (resource_id)
+                      WHERE rr.request_id IN (?)
+                      GROUP BY ro.resource_id
+                      ORDER BY ro.name";
+            $statement = DBManager::get()->prepare($query);
+            $statement->execute(array(
+                array_keys($res_requests),
+            ));
+            return $statement->fetchAll(PDO::FETCH_ASSOC);
         }
-        return $ret;
+        return array();
     }
 
-    function selectSemInstituteNames($inst_id) {
-        $query = sprintf("SELECT a.Name AS inst_name, b.Name AS fak_name FROM Institute a LEFT JOIN Institute b ON (a.fakultaets_id = b.Institut_id) WHERE a.Institut_id = '%s' ", $inst_id);
-        $this->db->query($query);
-        $this->db->next_record();
-        return;
+    function selectSemInstituteNames($inst_id)
+    {
+        $query = "SELECT a.Name AS inst_name, b.Name AS fak_name
+                  FROM Institute AS a
+                  LEFT JOIN Institute b ON (a.fakultaets_id = b.Institut_id)
+                  WHERE a.Institut_id = ?";
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute(array($inst_id));
+        return $statement->fetch(PDO::FETCH_ASSOC);
     }
 
-    function selectDates($seminar_id, $termin_id = '') {
+    function selectDates($seminar_id, $termin_id = '')
+    {
         if (!$termin_id) {
             if ($GLOBALS['RESOURCES_HIDE_PAST_SINGLE_DATES']) {
-                $query = sprintf("SELECT *, resource_id FROM termine LEFT JOIN resources_assign ra ON (ra.assign_user_id = termine.termin_id) WHERE date >= ".(time()-3600)." AND range_id = '%s' ORDER BY date, content", $seminar_id);
+                $query = "SELECT *, resource_id
+                          FROM termine
+                          LEFT JOIN resources_assign AS ra ON (ra.assign_user_id = termine.termin_id)
+                          WHERE date >= UNIX_TIMESTAMP(NOW() - INTERVAL 1 HOUR)
+                            AND range_id = ?
+                          ORDER BY date, content";
+                $parameters = array($seminar_id);
             } else {
-                $query = sprintf("SELECT *, resource_id FROM termine LEFT JOIN resources_assign ra ON (ra.assign_user_id = termine.termin_id) WHERE range_id = '%s' ORDER BY date, content", $seminar_id);
+                $query = "SELECT *, resource_id
+                          FROM termine
+                          LEFT JOIN resources_assign AS ra ON (ra.assign_user_id = termine.termin_id)
+                          WHERE range_id = ?
+                          ORDER BY date, content";
+                $parameters = array($seminar_id);
             }
         } else {
-            $query = sprintf("SELECT *, resource_id FROM termine LEFT JOIN resources_assign ra ON (ra.assign_user_id = termine.termin_id) WHERE range_id = '%s' %s ORDER BY date, content", $seminar_id, "AND termin_id = '".$termin_id."'");
+            $query = "SELECT *, resource_id
+                      FROM termine
+                      LEFT JOIN resources_assign AS ra ON (ra.assign_user_id = termine.termin_id)
+                      WHERE range_id = ? AND termin_id = ?
+                      ORDER BY date, content";
+            $parameters = array($seminar_id, $termin_id);
         }
-
-        $this->db->query($query);
-        return;
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute($parameters);
+        return $statement->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    function showToolStart() {
-        global $PHP_SELF, $cssSw;
-
-        $open_requests = $this->getMyOpenRequests();
-
-        ?>
-        <table border=0 celpadding=2 cellspacing=0 width="99%" align="center">
-        <form method="POST" name="tools_requests_form" action="<?echo $PHP_SELF ?>?tools_requests_start=1">
-            <?= CSRFProtection::tokenTag() ?>
-            <input type="hidden" name="view" value="edit_request">
-            <tr>
-                <td class="<? echo $cssSw->getClass() ?>" width="4%">&nbsp;
-                </td>
-                <td class="<? echo $cssSw->getClass() ?>">
-                <table border="0" cellpadding="2" cellspacing="2">
-                <tr>
-                <td>
-                <?=SemesterData::GetSemesterSelector(array('name' => 'tools_requests_sem_choose', 'onChange' => 'document.tools_requests_form.submit()'), $this->semester_id, 'semester_id',false)?>
-                <?= Button::create(_("Semester auswählen"), 'tools_requests_sem_choose_button') ?>
-                </td>
-                <td class="<? echo $cssSw->getClass() ?>" style="padding-left:10px">
-                <b><?=_("Status:")?></b>
-                <br>
-                    <?
-                    if ($open_requests){
-                        printf (_("Es liegen insgesamt <b>%s</b> nicht aufgel&ouml;ste Anfragen vor - <br>davon <b>%s</b> von Veranstaltungen und <b>%s</b> auf Ressourcen, auf die Sie Zugriff haben."), $open_requests, (int)$this->getMyOpenSemRequests(), (int)$this->getMyOpenResRequests());
-                    } else {
-                        printf (_("Es liegen im Augenblick keine unaufgel&ouml;sten Anfragen vor."));
-                    }
-                    if (($no_time = $this->getMyOpenNoTimeRequests())){
-                        if(!$this->show_requests_no_time){
-                            printf("<br>" . _("(<b>%s</b> weitere Anfragen haben keine Zeiten eingetragen, oder beziehen sich auf vergangene Termine.)"), $no_time);
-                        } else {
-                            printf("<br>" . _("(<b>%s</b> der Anfragen haben keine Zeiten eingetragen, oder beziehen sich auf vergangene Termine.)"), $no_time);
-                        }
-                    }
-                    ?>
-                </td>
-                </tr>
-                <tr>
-                <td colspan="2">
-                    <input onChange="document.tools_requests_form.submit()" name="resolve_requests_no_time" id="resolve_requests_no_time_check" type="checkbox" <?=(!$this->show_requests_no_time ? 'checked' : '')?> value="1">
-                    &nbsp;<label for="resolve_requests_no_time_check"><?=_("Anfragen ohne eingetragene Zeiten oder auf vergangene Termine ausblenden")?></label>
-                </td>
-                </tr>
-                </table>
-                </td>
-            </tr>
-            <? $cssSw->switchClass();
-            if ($open_requests) {
-            ?>
-            <tr>
-                <td class="<? echo $cssSw->getClass() ?>" width="4%">&nbsp;
-                </td>
-                <td class="<? echo $cssSw->getClass() ?>"><font size=-1><b><?=_("Optionen beim Aufl&ouml;sen")?></b><br>
-                    <?
-                    print _("Sie k&ouml;nnen die vorliegenden Anfragen mit folgenden Optionen aufl&ouml;sen:");
-                    ?>
-                    <br><br></font>
-                    <table border="0" cellpadding="2" cellspacing="0">
-                        <tr>
-                            <td width="48%" valign="top">
-                                <font size="-1">
-                                <?
-                                print _("Art der Anfragen:");
-                                print "<br><br><input type=\"RADIO\" name=\"resolve_requests_mode\" value=\"all\" checked>&nbsp;"._("alle Anfragen");
-                                print "<br><input type=\"RADIO\" name=\"resolve_requests_mode\" value=\"sem\">&nbsp;"._("nur Anfragen von meinen Veranstaltungen");
-                                print "<br><input type=\"RADIO\" name=\"resolve_requests_mode\" value=\"res\">&nbsp;"._("nur Anfragen auf meine R&auml;ume");
-                                print "<br><input type=\"RADIO\" id=\"resolve_requests_one_res_check\" name=\"resolve_requests_mode\" value=\"one_res\">&nbsp;"._("nur Anfragen auf einen Raum:");
-                                print "<br><span style=\"padding-left:20px;\"><select onchange=\"$('#resolve_requests_one_res_check').attr('checked', true);\"name=\"resolve_requests_one_res\">";
-                                foreach(array_merge(array(array('resource_id' => '', 'name' => _(" -keine Auswahl - "))), $this->getMyRequestedRooms()) as $one){
-                                    echo '<option value="'.$one['resource_id'].'">'.htmlready($one['name'] . ($one['anzahl'] ? ' (' . $one['anzahl']. ')' : '')).'</option>';
-                                }
-                                print "</select></span>";
-
-                                ?>
-                                </font>
-                            </td>
-                            <td width="4%">
-                            &nbsp;
-                            </td>
-                            <td width="48%">
-                                <font size="-1">
-                                <?
-                                print _("Sortierung der Anfragen:");
-                                print "<br><br><input type=\"RADIO\" name=\"resolve_requests_order\" value=\"complex\" checked>&nbsp;"._("komplexere zuerst (Raumgr&ouml;&szlig;e und  gew&uuml;nschte Eigenschaften)");
-                                print "<br><input type=\"RADIO\" name=\"resolve_requests_order\" value=\"oldest\">&nbsp;"._("&auml;ltere zuerst");
-                                print "<br><input type=\"RADIO\" name=\"resolve_requests_order\" value=\"newest\">&nbsp;"._("neue zuerst");
-                                print "<br><input type=\"RADIO\" name=\"resolve_requests_order\" value=\"urgent\">&nbsp;"._("dringendere zuerst");
-                                ?>
-                                </font>
-                            </td>
-                        </tr>
-
-                    </table>
-                </td>
-            </tr>
-            <? $cssSw->switchClass(); ?>
-            <tr>
-                <td class="<? echo $cssSw->getClass() ?>" width="4%">&nbsp;
-                </td>
-                <td class="<? echo $cssSw->getClass() ?>" align="center">
-                    <?= Button::createAccept(_('Starten'), 'start_multiple_mode') ?>
-            </td>
-            </tr>
-            <?
-            }
-            ?>
-            </form>
-        </table>
-        <br><br>
-        <?
+    function showToolStart()
+    {
+        $template = $GLOBALS['template_factory']->open('resources/planning/start');
+        $template->semester_id = $this->semester_id;
+        $template->open_requests     = $this->getMyOpenRequests();
+        $template->open_sem_requests = $this->getMyOpenSemRequests();
+        $template->open_res_requests = $this->getMyOpenResRequests();
+        $template->no_time           = $this->getMyOpenNoTimeRequests();
+        $template->display_no_time   = $this->show_requests_no_time;
+        $template->rooms             = $this->getMyRequestedRooms();
+        $template->cssSw = $GLOBALS['cssSw'];
+        echo $template->render();
     }
 
     function showRequestList() {
-        global $resources_data, $_fullname_sql, $CANONICAL_RELATIVE_PATH_STUDIP;
+        global $_fullname_sql, $CANONICAL_RELATIVE_PATH_STUDIP;
         require_once("lib/classes/ZebraTable.class.php");
 
         $license_to_kill = (get_config('RESOURCES_ALLOW_DELETE_REQUESTS') && getGlobalPerms($GLOBALS['user']->id) == 'admin');
@@ -287,7 +207,7 @@ class ShowToolsRequests
                 }
             }';
             echo chr(10) . '</script>';
-            echo chr(10) . '<form name="list_requests_form" method="post" action="'.$GLOBALS['PHP_SELF'].'">';
+            echo chr(10) . '<form name="list_requests_form" method="post" action="'.URLHelper::getLink().'">';
             echo CSRFProtection::tokenTag();
             ?>
             <div align="right" style="padding-right: 5px">
@@ -301,22 +221,22 @@ class ShowToolsRequests
         $zt = new ZebraTable(array('width' => '99%', 'padding' => '1', 'align' => 'center'));
         $zt->switchClass();
         echo $zt->openRow();
-        echo $zt->cell("&nbsp;", array("class" => "steelkante"));
-        echo $zt->cell("<font size=\"-1\"><b>" . _("Z&auml;hler") . "</b></font>", array("class" => "steelkante", 'colspan' => '3'));
-        echo $zt->cell("<font size=\"-1\"><b>" . _("V.-Nummer") . "</b></font>", array("class" => "steelkante"));
-        echo $zt->cell("<font size=\"-1\"><b>" . _("Titel") . "</b></font>", array("class" => "steelkante"));
-        echo $zt->cell("<font size=\"-1\"><b>" . _("Dozenten") . "</b></font>", array("class" => "steelkante"));
-        echo $zt->cell("<font size=\"-1\"><b>" . _("Anfrager") . "</b></font>", array("class" => "steelkante"));
-        echo $zt->cell("<font size=\"-1\"><b>" . _("Start-Semester") . "<b></font>", array("class" => "steelkante"));
+        echo $zt->cell("&nbsp;", array("class" => "content_seperator"));
+        echo $zt->cell("<font size=\"-1\"><b>" . _("Z&auml;hler") . "</b></font>", array("class" => "content_seperator", 'colspan' => '3'));
+        echo $zt->cell("<font size=\"-1\"><b>" . _("V.-Nummer") . "</b></font>", array("class" => "content_seperator"));
+        echo $zt->cell("<font size=\"-1\"><b>" . _("Titel") . "</b></font>", array("class" => "content_seperator"));
+        echo $zt->cell("<font size=\"-1\"><b>" . _("Dozenten") . "</b></font>", array("class" => "content_seperator"));
+        echo $zt->cell("<font size=\"-1\"><b>" . _("Anfrager") . "</b></font>", array("class" => "content_seperator"));
+        echo $zt->cell("<font size=\"-1\"><b>" . _("Start-Semester") . "<b></font>", array("class" => "content_seperator"));
         if ($license_to_kill){
-            echo $zt->cell("<font size=\"-1\"><b>" . _("l&ouml;schen") . "<b></font>", array("class" => "steelkante", 'width' => '5%'));
+            echo $zt->cell("<font size=\"-1\"><b>" . _("l&ouml;schen") . "<b></font>", array("class" => "content_seperator", 'width' => '5%'));
         }
         echo $zt->closeRow();
         ?>
         <?
-        foreach ($resources_data['requests_working_on'] as $key => $val) {
+        foreach ($_SESSION['resources_data']['requests_working_on'] as $key => $val) {
             $i++;
-            if ($resources_data['requests_open'][$val['request_id']] || !$resources_data['skip_closed_requests']) {
+            if ($_SESSION['resources_data']['requests_open'][$val['request_id']] || !$_SESSION['resources_data']['skip_closed_requests']) {
                 $reqObj = new RoomRequest($val['request_id']);
                 $semObj = new Seminar($reqObj->getSeminarId());
 
@@ -326,7 +246,7 @@ class ShowToolsRequests
                     echo $zt->cell("&nbsp;");
                     echo $zt->cell("<font size=\"-1\">$i.</font>");
                     echo $zt->cell("<a href=\"resources.php?view=edit_request&edit=".$val['request_id']."\">".Assets::img('icons/16/blue/edit.png', tooltip(_("Anfrage bearbeiten")))."</a>");
-                    echo $zt->cell((($resources_data['requests_open'][$val['request_id']]) ? '' : Assets::img('icons/16/green/accept.png'))."</font>");
+                    echo $zt->cell((($_SESSION['resources_data']['requests_open'][$val['request_id']]) ? '' : Assets::img('icons/16/green/accept.png'))."</font>");
                     echo $zt->cell("<font size=\"-1\">".htmlReady($semObj->seminar_number)."</font>");
                     echo $zt->cell("<font size=\"-1\"><a href=\"details.php?sem_id=".$semObj->getId()."&send_from_search=true&send_from_search_page=".urlencode($CANONICAL_RELATIVE_PATH_STUDIP."resources.php?view=list_requests")."\">".my_substr(htmlReady($semObj->getName()),0,50)."</a><br></font>");
                     echo $zt->openCell();
@@ -334,7 +254,7 @@ class ShowToolsRequests
                     $k = false;
                     foreach ($semObj->getMembers('dozent') as $doz) {
                         if ($k) echo ", ";
-                        echo "<a href=\"about.php?username={$doz['username']}\">".HtmlReady($doz['fullname'])."</a>";
+                        echo "<a href=\"dispatch.php/profile?username={$doz['username']}\">".HtmlReady($doz['fullname'])."</a>";
                         $k = true;
                     }
                     echo "</font>";
@@ -350,7 +270,7 @@ class ShowToolsRequests
                     }
 
                     echo $zt->closeCell();
-                    echo $zt->cell("<font size=\"-1\"><a href=\"about.php?username=".get_username($reqObj->user_id)."\">".get_fullname($reqObj->user_id)."</a></font>");
+                    echo $zt->cell("<font size=\"-1\"><a href=\"dispatch.php/profile?username=".get_username($reqObj->user_id)."\">".get_fullname($reqObj->user_id)."</a></font>");
                     echo $zt->cell("<font size=\"-1\">$cursem</font>");
                     if ($license_to_kill){
                         echo $zt->cell("<font size=\"-1\"><input type=\"checkbox\" name=\"requests_marked_to_kill[]\" value=\"{$val['request_id']}\"></font>", array('align' => 'center'));
@@ -371,7 +291,7 @@ class ShowToolsRequests
      */
     function showRequest($request_id)
     {
-        global $PHP_SELF, $cssSw, $resources_data, $perm;
+        global $cssSw, $perm;
 
         $reqObj = new RoomRequest($request_id);
         $semObj = new Seminar($reqObj->getSeminarId());
@@ -394,10 +314,10 @@ class ShowToolsRequests
                     <font size="-1">
                         <br>
                         <?
-                        $this->selectSemInstituteNames($semObj->getInstitutId());
+                        $names = $this->selectSemInstituteNames($semObj->getInstitutId());
 
                         print "&nbsp;&nbsp;&nbsp;&nbsp;"._("Art der Anfrage:")." ".$reqObj->getTypeExplained()."<br>";
-                        print "&nbsp;&nbsp;&nbsp;&nbsp;"._("Erstellt von:")." <a href=\"".UrlHelper::getLink('about.php?username='.get_username($reqObj->getUserId()))."\">".htmlReady(get_fullname($reqObj->getUserId()))."</a><br>";
+                        print "&nbsp;&nbsp;&nbsp;&nbsp;"._("Erstellt von:")." <a href=\"".UrlHelper::getLink('dispatch.php/profile?username='.get_username($reqObj->getUserId()))."\">".htmlReady(get_fullname($reqObj->getUserId()))."</a><br>";
                         print "&nbsp;&nbsp;&nbsp;&nbsp;"._("Erstellt am:") ." ". strftime('%x %H:%M', $reqObj->mkdate) . '<br>';
                         print "&nbsp;&nbsp;&nbsp;&nbsp;"._("Letzte Änderung:") ." ". strftime('%x %H:%M', $reqObj->chdate) . '<br>';
                         print "&nbsp;&nbsp;&nbsp;&nbsp;"._("Lehrende: ");
@@ -405,12 +325,12 @@ class ShowToolsRequests
                             if ($dozent){
                                 echo ", ";
                             }
-                            echo '<a href ="'. URLHelper::getLink('about.php?username='.$doz['username']). '">'.HtmlReady($doz['fullname'])."</a>";
+                            echo '<a href ="'. URLHelper::getLink('dispatch.php/profile?username='.$doz['username']). '">'.HtmlReady($doz['fullname'])."</a>";
                             $dozent = true;
                         }
                         print "<br>";
-                        print "&nbsp;&nbsp;&nbsp;&nbsp;"._("verantwortliche Einrichtung:")." ".htmlReady($this->db->f("inst_name"))."<br>";
-                        print "&nbsp;&nbsp;&nbsp;&nbsp;"._("verantwortliche Fakult&auml;t:")." ".htmlReady($this->db->f("fak_name"))."<br>";
+                        print "&nbsp;&nbsp;&nbsp;&nbsp;"._("verantwortliche Einrichtung:")." ".htmlReady($names['inst_name'])."<br>";
+                        print "&nbsp;&nbsp;&nbsp;&nbsp;"._("verantwortliche Fakult&auml;t:")." ".htmlReady($names['fak_name'])."<br>";
                         print "&nbsp;&nbsp;&nbsp;&nbsp;"._("aktuelle Teilnehmerzahl:")." ".$semObj->getNumberOfParticipants('total').'<br>';
                         ?>
                     </font>
@@ -425,23 +345,25 @@ class ShowToolsRequests
                     $dates = $semObj->getGroupedDates($reqObj->getTerminId(),$reqObj->getMetadateId());
                     if (count($dates)) {
                             $i = 1;
-                            foreach ($dates['info'] as $info) {
-                                $name = $info['name'];
-                                if ($info['weekend']) $name = '<span style="color:red">'. $info['name'] . '</span>';
-                                printf ("<font color=\"blue\"><i><b>%s</b></i></font>. %s<br>", $i, $name);
-                                $i++;
+                            if(is_array($dates['info']) && sizeof($dates['info']) > 0 ){
+                                 foreach ($dates['info'] as $info) {
+                                      $name = $info['name'];
+                                      if ($info['weekend']) $name = '<span style="color:red">'. $info['name'] . '</span>';
+                                          printf ("<font color=\"blue\"><i><b>%s</b></i></font>. %s<br>", $i, $name);
+                                      $i++;
+                                 }
                             }
 
-                        if ($reqObj->getType() != 'date') {
-                            echo _("regelmäßige Buchung ab:")." ".strftime("%x", $dates['first_event']);
+                            if ($reqObj->getType() != 'date') {
+                                echo _("regelmäßige Buchung ab:")." ".strftime("%x", $dates['first_event']);
                             }
-                        } else {
+                     } else {
                             print _("nicht angegeben");
-                        }
+                     }
                     ?>
                     </font>
                 </td>
-                <td style="border-left:1px dotted black; background-color: #f3f5f8" width="51%" rowspan="3" valign="top">
+                <td style="border-left:1px dotted black; background-color: #f3f5f8" width="51%" rowspan="4" valign="top">
                     <table cellpadding="2" cellspacing="0" border="0" width="90%">
                         <tr>
                             <td width="70%">
@@ -450,8 +372,8 @@ class ShowToolsRequests
                             <?
                             unset($resObj);
                             $cols=0;
-                            if (is_array($resources_data["requests_working_on"][$resources_data["requests_working_pos"]]["groups"]))
-                                foreach ($resources_data["requests_working_on"][$resources_data["requests_working_pos"]]["groups"] as $key => $val) {
+                            if (is_array($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["groups"]))
+                                foreach ($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["groups"] as $key => $val) {
                                     $cols++;
                                     print "<td width=\"1%\" align=\"left\"><font size=\"-1\" color=\"blue\"><i><b>".$cols.".</b></i></font></td>";
                                 }
@@ -465,8 +387,10 @@ class ShowToolsRequests
                             <?
                             if ($request_resource_id = $reqObj->getResourceId()) {
                                 $resObj = ResourceObject::Factory($request_resource_id);
-                                print $resObj->getFormattedLink($resources_data["requests_working_on"][$resources_data["requests_working_pos"]]["first_event"]);
-                                print ' <img class="text-top" src="' . Assets::image_path(($resObj->getOwnerId() == 'global') ? 'icons/16/red/info-circle.png' : 'icons/16/grey/info-circle.png') . '" ' . tooltip(_("Der ausgewählte Raum bietet folgende der wünschbaren Eigenschaften:")." \n".$resObj->getPlainProperties(TRUE), TRUE, TRUE). '>';
+                                print $resObj->getFormattedLink($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["first_event"]);
+                                print tooltipicon(_('Der ausgewählte Raum bietet folgende der wünschbaren Eigenschaften:')
+                                                  . "\n" . $resObj->getPlainProperties(TRUE),
+                                                  $resObj->getOwnerId() == 'global');
                                 if ($resObj->getOwnerId() == 'global') {
                                     print ' [global]';
                                 }
@@ -477,26 +401,27 @@ class ShowToolsRequests
                             </td>
                             <?
                             $i=0;
-
-                            foreach ($resources_data["requests_working_on"][$resources_data["requests_working_pos"]]["groups"] as $key => $val) {
+                            if(is_array($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["groups"]) && sizeof($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["groups"]) > 0 )
+                             foreach ($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["groups"] as $key => $val) {
                                 print "<td width=\"1%\" nowrap><font size=\"-1\">";
                                 if ($request_resource_id) {
                                     if ($request_resource_id == $val["resource_id"]) {
                                         print Assets::img('icons/16/green/accept.png', tooltip(_("Dieser Raum ist augenblicklich gebucht"), TRUE, TRUE));
                                         echo '<input type="radio" name="selected_resource_id['. $i .']" value="'. $request_resource_id .'" checked="checked">';
                                     } else {
-                                        $overlap_status = $this->showGroupOverlapStatus($resources_data["requests_working_on"][$resources_data["requests_working_pos"]]["detected_overlaps"][$request_resource_id], $val["events_count"], $val["overlap_events_count"][$request_resource_id], $val["termin_ids"]);
+                                        $overlap_status = $this->showGroupOverlapStatus($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["detected_overlaps"][$request_resource_id], $val["events_count"], $val["overlap_events_count"][$request_resource_id], $val["termin_ids"]);
                                         print $overlap_status["html"];
                                         printf ("<input type=\"radio\" name=\"selected_resource_id[%s]\" value=\"%s\" %s %s>",
                                             $i, $request_resource_id,
-                                            ($resources_data["requests_working_on"][$resources_data["requests_working_pos"]]["selected_resources"][$i] == $request_resource_id) ? "checked" : "",
+                                            ($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["selected_resources"][$i] == $request_resource_id) ? "checked" : "",
                                             ($overlap_status["status"] == 2 || !ResourcesUserRoomsList::CheckUserResource($request_resource_id)) ? "disabled" : "");
                                     }
                                 } else
                                     print "&nbsp;";
                                 print "</font></td>";
                                 $i++;
-                            }
+                             }
+
                             ?>
                             <td width="29%" align="right">
                                 <?
@@ -518,7 +443,7 @@ class ShowToolsRequests
                         <?
                         if (get_config('RESOURCES_ENABLE_GROUPING')) {
                             $room_group = RoomGroups::GetInstance();
-                            $group_id = $resources_data['actual_room_group'];
+                            $group_id = $_SESSION['resources_data']['actual_room_group'];
                             ?>
                         <tr>
                             <td style="border-top:1px solid;" width="100%" colspan="<?=$cols+2?>">
@@ -553,7 +478,7 @@ class ShowToolsRequests
                             <td width="70%">
                                 <?
                                 $resObj = ResourceObject::Factory($key);
-                                print $resObj->getFormattedLink($resources_data["requests_working_on"][$resources_data["requests_working_pos"]]["first_event"]);
+                                print $resObj->getFormattedLink($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["first_event"]);
                                 print ' <img class="text-top" src="' . Assets::image_path(($resObj->getOwnerId() == 'global') ? 'icons/16/red/info-circle.png' : 'icons/16/grey/info-circle.png') . '" ' . tooltip(_("Der ausgewählte Raum bietet folgende der wünschbaren Eigenschaften:")." \n".$resObj->getPlainProperties(TRUE), TRUE, TRUE). '>';
                                 if ($resObj->getOwnerId() == 'global') {
                                     print ' [global]';
@@ -562,17 +487,17 @@ class ShowToolsRequests
                             </td>
                             <?
                             $i=0;
-                            if (is_array($resources_data["requests_working_on"][$resources_data["requests_working_pos"]]["groups"])) {
-                                foreach ($resources_data["requests_working_on"][$resources_data["requests_working_pos"]]["groups"] as $key2 => $val2) {
+                            if (is_array($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["groups"])) {
+                                foreach ($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["groups"] as $key2 => $val2) {
                                     print "<td width=\"1%\" nowrap><font size=\"-1\">";
                                     if ($key == $val2["resource_id"]) {
                                         print Assets::img('icons/16/green/accept.png', tooltip(_("Dieser Raum ist augenblicklich gebucht"), TRUE, TRUE));
                                         echo '<input type="radio" name="selected_resource_id['. $i .']" value="'. $key .'" checked="checked">';
                                     } else {
-                                        $overlap_status = $this->showGroupOverlapStatus($resources_data["requests_working_on"][$resources_data["requests_working_pos"]]["detected_overlaps"][$key], $val2["events_count"], $val2["overlap_events_count"][$resObj->getId()], $val2["termin_ids"]);
+                                        $overlap_status = $this->showGroupOverlapStatus($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["detected_overlaps"][$key], $val2["events_count"], $val2["overlap_events_count"][$resObj->getId()], $val2["termin_ids"]);
                                         print $overlap_status["html"];
                                         printf ("<input type=\"radio\" name=\"selected_resource_id[%s]\" value=\"%s\" %s %s>", $i, $key,
-                                        ($resources_data["requests_working_on"][$resources_data["requests_working_pos"]]["selected_resources"][$i] == $key) ? "checked" : "",
+                                        ($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["selected_resources"][$i] == $key) ? "checked" : "",
                                         ($overlap_status["status"] == 2 || !ResourcesUserRoomsList::CheckUserResource($key)) ? "disabled" : "");
                                     }
                                     print "</font></td>";
@@ -609,8 +534,8 @@ class ShowToolsRequests
                             </td>
                         </tr>
                         <?
-                        if (is_array($resources_data["requests_working_on"][$resources_data["requests_working_pos"]]["considered_resources"]))
-                            foreach ($resources_data["requests_working_on"][$resources_data["requests_working_pos"]]["considered_resources"] as $key=>$val) {
+                        if (is_array($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["considered_resources"]))
+                            foreach ($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["considered_resources"] as $key=>$val) {
                                 if ($val["type"] == "matching")
                                     $matching_rooms[$key] = TRUE;
                                 if ($val["type"] == "clipped")
@@ -626,7 +551,7 @@ class ShowToolsRequests
                             <td width="70%">
                                 <?
                                 $resObj = ResourceObject::Factory($key);
-                                print $resObj->getFormattedLink($resources_data["requests_working_on"][$resources_data["requests_working_pos"]]["first_event"]);
+                                print $resObj->getFormattedLink($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["first_event"]);
                                 print ' <img class="text-top" src="' . Assets::image_path(($resObj->getOwnerId() == 'global') ? 'icons/16/red/info-circle.png' : 'icons/16/grey/info-circle.png') . '" ' . tooltip(_("Der ausgewählte Raum bietet folgende der wünschbaren Eigenschaften:")." \n".$resObj->getPlainProperties(TRUE), TRUE, TRUE). '>';
                                 if ($resObj->getOwnerId() == 'global') {
                                     print ' [global]';
@@ -635,17 +560,17 @@ class ShowToolsRequests
                             </td>
                             <?
                             $i=0;
-                            if (is_array($resources_data["requests_working_on"][$resources_data["requests_working_pos"]]["groups"])) {
-                                foreach ($resources_data["requests_working_on"][$resources_data["requests_working_pos"]]["groups"] as $key2 => $val2) {
+                            if (is_array($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["groups"])) {
+                                foreach ($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["groups"] as $key2 => $val2) {
                                     print "<td width=\"1%\" nowrap><font size=\"-1\">";
                                     if ($key == $val2["resource_id"]) {
                                         print Assets::img('icons/16/green/accept.png', tooltip(_("Dieser Raum ist augenblicklich gebucht"), TRUE, TRUE));
                                         echo '<input type="radio" name="selected_resource_id['. $i .']" value="'. $key .'" checked="checked">';
                                     } else {
-                                        $overlap_status = $this->showGroupOverlapStatus($resources_data["requests_working_on"][$resources_data["requests_working_pos"]]["detected_overlaps"][$key], $val2["events_count"], $val2["overlap_events_count"][$resObj->getId()], $val2["termin_ids"]);
+                                        $overlap_status = $this->showGroupOverlapStatus($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["detected_overlaps"][$key], $val2["events_count"], $val2["overlap_events_count"][$resObj->getId()], $val2["termin_ids"]);
                                         print $overlap_status["html"];
                                         printf ("<input type=\"radio\" name=\"selected_resource_id[%s]\" value=\"%s\" %s %s>",
-                                        $i, $key, ($resources_data["requests_working_on"][$resources_data["requests_working_pos"]]["selected_resources"][$i] == $key) ? "checked" : "",
+                                        $i, $key, ($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["selected_resources"][$i] == $key) ? "checked" : "",
                                         ($overlap_status["status"] == 2 || !ResourcesUserRoomsList::CheckUserResource($key)) ? "disabled" : "");
                                     }
                                     print "</font></td>";
@@ -677,14 +602,14 @@ class ShowToolsRequests
                             <td colspan="<?=$cols+2?>" align="center">
                                 <font size="-1">
                                     <?=_("zeige R&auml;ume")?>
-                                    <a href="<?=$PHP_SELF?>?dec_limit_low=1">-</a>
-                                    <input type="text" name="search_rooms_limit_low" maxlength="2" size="1" style="font-size:8pt" value="<?=($resources_data["requests_working_on"][$resources_data["requests_working_pos"]]["search_limit_low"] + 1)?>">
-                                    <a href="<?=$PHP_SELF?>?inc_limit_low=1">+</a>
+                                    <a href="<?=URLHelper::getLink('?dec_limit_low=1')?>">-</a>
+                                    <input type="text" name="search_rooms_limit_low" maxlength="2" size="1" style="font-size:8pt" value="<?=($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["search_limit_low"] + 1)?>">
+                                    <a href="<?=URLHelper::getLink('?inc_limit_low=1')?>">+</a>
 
                                     bis
-                                    <a href="<?=$PHP_SELF?>?dec_limit_high=1">-</a>
-                                    <input type="text" name="search_rooms_limit_high" maxlength="2" size="1" style="font-size:8pt" value="<?=$resources_data["requests_working_on"][$resources_data["requests_working_pos"]]["search_limit_high"]?>">
-                                    <a href="<?=$PHP_SELF?>?inc_limit_high=1">+</a>
+                                    <a href="<?=URLHelper::getLink('?dec_limit_high=1') ?>">-</a>
+                                    <input type="text" name="search_rooms_limit_high" maxlength="2" size="1" style="font-size:8pt" value="<?=$_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["search_limit_high"]?>">
+                                    <a href="<?=URLHelper::getLink('?inc_limit_high=1') ?>">+</a>
 
                                     <input type="image" name="matching_rooms_limit_submit" src="<?= Assets::image_path('icons/16/yellow/arr_2up.png') ?>" <?=tooltip(_("ausgewählten Bereich anzeigen"))?>>
                                 </font>
@@ -709,7 +634,7 @@ class ShowToolsRequests
                             <td width="70%">
                                 <?
                                 $resObj = ResourceObject::Factory($key);
-                                print $resObj->getFormattedLink($resources_data["requests_working_on"][$resources_data["requests_working_pos"]]["first_event"]);
+                                print $resObj->getFormattedLink($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["first_event"]);
                                 print ' <img class="text-top" src="' . Assets::image_path(($resObj->getOwnerId() == 'global') ? 'icons/16/red/info-circle.png' : 'icons/16/grey/info-circle.png') . '" ' . tooltip(_("Der ausgewählte Raum bietet folgende der wünschbaren Eigenschaften:")." \n".$resObj->getPlainProperties(TRUE), TRUE, TRUE). '>';
                                 if ($resObj->getOwnerId() == 'global') {
                                     print ' [global]';
@@ -718,17 +643,17 @@ class ShowToolsRequests
                             </td>
                             <?
                             $i=0;
-                            if (is_array($resources_data["requests_working_on"][$resources_data["requests_working_pos"]]["groups"])) {
-                                foreach ($resources_data["requests_working_on"][$resources_data["requests_working_pos"]]["groups"] as $key2 => $val2) {
+                            if (is_array($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["groups"])) {
+                                foreach ($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["groups"] as $key2 => $val2) {
                                     print "<td width=\"1%\" nowrap><font size=\"-1\">";
                                     if ($key == $val2["resource_id"]) {
                                         print "<img src=\"".Assets::image_path('icons/16/blue/accept.png')." ".tooltip(_("Dieser Raum ist augenblicklich gebucht"), TRUE, TRUE).">";
                                     } else {
-                                        $overlap_status = $this->showGroupOverlapStatus($resources_data["requests_working_on"][$resources_data["requests_working_pos"]]["detected_overlaps"][$key], $val2["events_count"], $val2["overlap_events_count"][$resObj->getId()], $val2["termin_ids"]);
+                                        $overlap_status = $this->showGroupOverlapStatus($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["detected_overlaps"][$key], $val2["events_count"], $val2["overlap_events_count"][$resObj->getId()], $val2["termin_ids"]);
                                         print $overlap_status["html"];
                                         printf ("<input type=\"radio\" name=\"selected_resource_id[%s]\" value=\"%s\" %s %s>",
                                         $i, $key,
-                                        ($resources_data["requests_working_on"][$resources_data["requests_working_pos"]]["selected_resources"][$i] == $key) ? "checked" : "",
+                                        ($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["selected_resources"][$i] == $key) ? "checked" : "",
                                         ($overlap_status["status"] == 2 || !ResourcesUserRoomsList::CheckUserResource($key)) ? "disabled" : "");
                                     }
                                     print "</font></td>";
@@ -830,9 +755,8 @@ class ShowToolsRequests
                 <td class="<? $cssSw->switchClass(); echo $cssSw->getClass() ?>" width="4%">&nbsp;
                 </td>
                 <td class="<? echo $cssSw->getClass() ?>" width="35%" valign="top">
-                    <font size="-1"><b><?=_("Kommentar (intern):")?></b><br /><br />
-                    <textarea name="comment_internal" cols="30" rows="2"></textarea>
-                    </font>
+                    <b><?=_("Kommentar (intern):")?></b><br><br>
+                    <textarea name="comment_internal" style="width: 90%" rows="2"></textarea>
                 </td>
             </tr>
 
@@ -843,12 +767,12 @@ class ShowToolsRequests
                     <div class="button-group">
                 <?
                 // can we dec?
-                if ($resources_data["requests_working_pos"] > 0) {
+                if ($_SESSION['resources_data']["requests_working_pos"] > 0) {
                     $d = -1;
-                    if ($resources_data["skip_closed_requests"])
-                        while ((!$resources_data["requests_open"][$resources_data["requests_working_on"][$resources_data["requests_working_pos"] + $d]["request_id"]]) && ($resources_data["requests_working_pos"] + $d > 0))
+                    if ($_SESSION['resources_data']["skip_closed_requests"])
+                        while ((!$_SESSION['resources_data']["requests_open"][$_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"] + $d]["request_id"]]) && ($_SESSION['resources_data']["requests_working_pos"] + $d > 0))
                             $d--;
-                    if ((sizeof($resources_data["requests_open"]) > 1) && (($resources_data["requests_open"][$resources_data["requests_working_on"][$resources_data["requests_working_pos"] + $d]["request_id"]]) || (!$resources_data["skip_closed_requests"])))
+                    if ((sizeof($_SESSION['resources_data']["requests_open"]) > 1) && (($_SESSION['resources_data']["requests_open"][$_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"] + $d]["request_id"]]) || (!$_SESSION['resources_data']["skip_closed_requests"])))
                         $inc_possible = TRUE;
                 }
                 
@@ -862,18 +786,18 @@ class ShowToolsRequests
                 echo Button::create(_('Löschen'), 'delete_request');
                 
                 if ((($reqObj->getResourceId()) || (sizeof($matching_rooms)) || (sizeof($clipped_rooms)) || (sizeof($grouped_rooms))) &&
-                    ((is_array($resources_data["requests_working_on"][$resources_data["requests_working_pos"]]["groups"])) || ($resources_data["requests_working_on"][$resources_data["requests_working_pos"]]["assign_objects"]))) {
+                    ((is_array($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["groups"])) || ($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["assign_objects"]))) {
                     echo Button::createAccept(_('Speichern'), 'save_state');
                     echo Button::createCancel(_('Ablehnen'), 'suppose_decline_request');
                 }
 
                 // can we inc?
-                if ($resources_data["requests_working_pos"] < sizeof($resources_data["requests_working_on"])-1) {
+                if ($_SESSION['resources_data']["requests_working_pos"] < sizeof($_SESSION['resources_data']["requests_working_on"])-1) {
                     $i = 1;
-                    if ($resources_data["skip_closed_requests"])
-                        while ((!$resources_data["requests_open"][$resources_data["requests_working_on"][$resources_data["requests_working_pos"] + $i]["request_id"]]) && ($resources_data["requests_working_pos"] + $i < sizeof($resources_data["requests_working_on"])-1))
+                    if ($_SESSION['resources_data']["skip_closed_requests"])
+                        while ((!$_SESSION['resources_data']["requests_open"][$_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"] + $i]["request_id"]]) && ($_SESSION['resources_data']["requests_working_pos"] + $i < sizeof($_SESSION['resources_data']["requests_working_on"])-1))
                             $i++;
-                    if ((sizeof($resources_data["requests_open"]) > 1) && (($resources_data["requests_open"][$resources_data["requests_working_on"][$resources_data["requests_working_pos"] + $i]["request_id"]]) || (!$resources_data["skip_closed_requests"])))
+                    if ((sizeof($_SESSION['resources_data']["requests_open"]) > 1) && (($_SESSION['resources_data']["requests_open"][$_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"] + $i]["request_id"]]) || (!$_SESSION['resources_data']["skip_closed_requests"])))
                         $dec_possible = TRUE;
                 }
 
@@ -884,9 +808,9 @@ class ShowToolsRequests
                     </div>
                 
                 <?
-                if (sizeof($resources_data["requests_open"]) > 1)
-                    printf ("<br><font size=\"-1\">" . _("<b>%s</b> von <b>%s</b> Anfragen in der Bearbeitung wurden noch nicht aufgel&ouml;st.") . "</font>", sizeof($resources_data["requests_open"]), sizeof($resources_data["requests_working_on"]));
-                    printf ("<br><font size=\"-1\">" . _("Aktueller Request: ")."<b>%s</b></font>", $resources_data["requests_working_pos"]+1);
+                if (sizeof($_SESSION['resources_data']["requests_open"]) > 1)
+                    printf ("<br><font size=\"-1\">" . _("<b>%s</b> von <b>%s</b> Anfragen in der Bearbeitung wurden noch nicht aufgel&ouml;st.") . "</font>", sizeof($_SESSION['resources_data']["requests_open"]), sizeof($_SESSION['resources_data']["requests_working_on"]));
+                    printf ("<br><font size=\"-1\">" . _("Aktueller Request: ")."<b>%s</b></font>", $_SESSION['resources_data']["requests_working_pos"]+1);
                 ?>
                 </td>
             </tr>

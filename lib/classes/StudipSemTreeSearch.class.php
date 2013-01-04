@@ -218,9 +218,9 @@ class StudipSemTreeSearch {
     }
 
     function doSearch(){
-        if (isset($_REQUEST[$this->form_name . "_do_search_x"]) || isset($_REQUEST[$this->form_name . "_send"])){
-            if(isset($_REQUEST[$this->form_name . "_search_field"]) && strlen($_REQUEST[$this->form_name . "_search_field"]) > 2){
-                $this->view->params[0] = "%" . $_REQUEST[$this->form_name . "_search_field"] . "%";
+        if (Request::get($this->form_name . "_do_search_x") || Request::get($this->form_name . "_send")){
+            if(Request::get($this->form_name . "_search_field") && strlen($_REQUEST[$this->form_name . "_search_field"]) > 2){
+                $this->view->params[0] = "%" . Request::quoted($this->form_name . "_search_field") . "%";
                 $this->view->params[1] = $this->sem_tree_ids;
                 $rs = $this->view->get_query("view:SEM_TREE_SEARCH_ITEM");
                 while($rs->next_record()){
@@ -237,9 +237,11 @@ class StudipSemTreeSearch {
 
     function insertSelectedRanges($selected = null){
         if (!$selected){
-            for ($i = 0; $i < count($_REQUEST[$this->form_name . "_chooser"]); ++$i){
-                if($_REQUEST[$this->form_name . "_chooser"][$i]){
-                    $selected[] = $_REQUEST[$this->form_name . "_chooser"][$i];
+            $val = $this->form_name . "_chooser";
+            $$val = Request::quotedArray($this->form_name . "_chooser");
+            for ($i = 0; $i < count($$val); ++$i){
+                if($$val[$i]){
+                    $selected[] = $$val[$i];
                 }
             }
         }

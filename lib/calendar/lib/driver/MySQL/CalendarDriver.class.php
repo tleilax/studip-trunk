@@ -87,46 +87,56 @@ class CalendarDriver
             case 'EVENTS':
                 $select_cal = '*';
                 $select_semcal = 'ce.*, s.Name';
-                $select_sem = 't.*, s.Name, su.status, resource_id';
+                $select_sem = "t.*, s.Name, su.status, resource_id, GROUP_CONCAT(th.title SEPARATOR '; ') as title, GROUP_CONCAT(th.description SEPARATOR '\n\n') as description";
                 break;
 
             case 'COUNT':
                 $select_cal = 'count(event_id) AS cnt';
                 $select_semcal = 'count(event_id) AS cnt';
-                $select_sem = 'count(termin_id) AS cnt';
+                $select_sem = 'count(distinct termin_id) AS cnt';
                 break;
         }
 
         if ($event_type == 'ALL_EVENTS' || $event_type == 'CALENDAR_EVENTS') {
             $db_cal = DBManager::get();
 
-            $query = "SELECT $select_cal FROM calendar_events WHERE range_id = '{$this->range_id}' "
-                    . "AND (start BETWEEN $start AND $end "
-                    . "OR (start <= $end AND (expire + end - start) >= $start AND rtype != 'SINGLE') "
-                    . "OR ($start BETWEEN start AND end))";
+            $query = "SELECT {$select_cal}
+                      FROM calendar_events
+                      WHERE range_id = :range_id
+                        AND (start BETWEEN :start AND :end OR
+                             (start <= :end AND (expire + end - start) >= :start AND rtype != 'SINGLE')  OR
+                             (:start BETWEEN start AND end))";
+            $parameters = array(
+                ':range_id' => $this->range_id,
+                ':start'    => $start,
+                ':end'      => $end
+            );
             if ($except !== NULL) {
-                $except = implode("','", $except);
-                $query .= " AND NOT IN '$except'";
+                $query .= " AND NOT IN (:except)";
+                $parameters[':except'] = $except;
             }
-            $this->result['cal'] = $db_cal->query($query)->fetchAll(PDO::FETCH_ASSOC);
+            $statement = DBManager::get()->prepare($query);
+            $statement->execute($parameters);
+            $this->result['cal'] = $statement->fetchAll(PDO::FETCH_ASSOC);
         }
 
         if ($event_type == 'ALL_EVENTS' || $event_type == 'SEMINAR_EVENTS') {
-            if (is_array($sem_ids) && count($sem_ids)) {
-                $sem_ids = implode("','", $sem_ids);
-            } else {
-                $sem_ids = '';
-            }
 
             $query = "SELECT $select_semcal FROM calendar_events ce
                 LEFT JOIN seminar_user su ON su.Seminar_id = ce.range_id
                 LEFT JOIN seminare s USING(Seminar_id) WHERE su.user_id = ?
-                AND range_id IN ('$sem_ids') AND su.bind_calendar = 1
+                AND range_id IN (?) AND su.bind_calendar = 1
                 AND (start BETWEEN ? AND ?
                 OR (start <= ? AND (expire + end - start) >= ?
                 AND rtype != 'SINGLE') OR (? BETWEEN start AND end))";
             $db_semcal = DBManager::get()->prepare($query);
-            $db_semcal->execute(array($this->range_id, $start, $end, $end, $start, $start));
+            $db_semcal->execute(array(
+                $this->range_id,
+                $sem_ids ?: '',
+                $start, $end,
+                $end, $start,
+                $start
+            ));
 
             if ($this->range_id == $sem_ids) {
                 $range_id = $GLOBALS['user']->id;
@@ -135,14 +145,25 @@ class CalendarDriver
             }
 
             $query = "SELECT $select_sem "
-                    . "FROM termine t LEFT JOIN seminar_user su ON su.Seminar_id=t.range_id "
-                    . "LEFT JOIN seminare s USING(Seminar_id) "
+                    . "FROM (SELECT termin_id,range_id,date,end_time,mkdate,chdate,date_typ,content,metadate_id, 0 as ex_termin
+                        FROM termine WHERE range_id IN (?) AND date BETWEEN ? AND ?
+                        UNION SELECT termin_id,range_id,date,end_time,mkdate,chdate,date_typ,content,metadate_id, 1 as ex_termin
+                        FROM ex_termine WHERE content <> '' AND range_id IN (?) AND date BETWEEN ? AND ?) as t
+                        LEFT JOIN themen_termine USING (termin_id) LEFT JOIN themen as th USING (issue_id)
+                        LEFT JOIN seminar_user su ON su.Seminar_id=t.range_id "
+                    . "LEFT JOIN seminare s ON s.Seminar_id=t.range_id "
                     . "LEFT JOIN resources_assign ON (assign_user_id = termin_id) WHERE "
-                    . "user_id = ? AND range_id IN ('$sem_ids') AND "
-                    . "date BETWEEN ? AND ?";
+                    . "(IFNULL(t.metadate_id,'') = '' OR t.metadate_id NOT IN (SELECT metadate_id FROM schedule_seminare WHERE user_id = ? AND visible = 0)) AND " 
+                    . "user_id = ? GROUP BY termin_id ORDER BY NULL";
             $db_sem = DBManager::get()->prepare($query);
-            $db_sem->execute(array($range_id, $start, $end));
-
+            $db_sem->execute(array(
+                    $sem_ids ?: '',
+                    $start, $end,
+                    $sem_ids ?: '',
+                    $start, $end,
+                    $range_id,
+                    $range_id
+            ));
 
             $this->result['semcal'] = $db_semcal->fetchAll(PDO::FETCH_ASSOC);
             $this->result['sem'] = $db_sem->fetchAll(PDO::FETCH_ASSOC);
@@ -235,22 +256,23 @@ class CalendarDriver
             $properties = array(
                 'DTSTART' => $result['date'],
                 'DTEND' => $result['end_time'],
-                'SUMMARY' => stripslashes($result['content']),
-                'DESCRIPTION' => stripslashes($result['description']),
-                'LOCATION' => stripslashes($result['raum']),
+                'SUMMARY' => $result['ex_termin'] ? _("fällt aus") : $result['title'],
+                'DESCRIPTION' => $result['ex_termin'] ? $result['content'] : $result['description'],
+                'LOCATION' => $result['raum'],
                 'STUDIP_CATEGORY' => $result['date_typ'],
                 'CREATED' => $result['mkdate'],
                 'LAST-MODIFIED' => $result['chdate'],
                 'STUDIP_ID' => $result['termin_id'],
                 'SEM_ID' => $result['range_id'],
-                'SEMNAME' => stripslashes($result['Name']),
+                'SEMNAME' => $result['Name'],
                 'CLASS' => 'CONFIDENTIAL',
                 'UID' => SeminarEvent::createUid($result['termin_id']),
                 'RRULE' => SeminarEvent::createRepeat(),
                 'EVENT_TYPE' => 'sem',
+                'STATUS' => $result['ex_termin'] ? 'CANCELLED' : 'CONFIRMED',
                 'DTSTAMP' => time());
 
-            if ($this->perm->have_studip_perm('autor', $properties['SEM_ID'], $this->user_id)) {
+            if ($result['status']) {
                 $properties['CLASS'] = 'PRIVATE';
             }
 
@@ -310,12 +332,17 @@ class CalendarDriver
             $db_semcal->execute(array($event_id, $this->range_id));
             $this->result['semcal'] = $db_semcal->fetchAll(PDO::FETCH_ASSOC);
         } elseif ($event_type == 'SEMINAR_EVENTS') {
-            $db_sem = DBManager::get()->prepare("SELECT t.*, s.Name, su.status, resource_id "
-                    . "FROM termine t LEFT JOIN seminar_user su ON (su.Seminar_id=t.range_id) "
-                    . "LEFT JOIN seminare s USING(Seminar_id) "
+            $db_sem = DBManager::get()->prepare("SELECT t.*, s.Name, su.status, resource_id, GROUP_CONCAT(th.title SEPARATOR '; ') as title, GROUP_CONCAT(th.description SEPARATOR '\n\n') as description "
+                    . "FROM (SELECT termin_id,range_id,date,end_time,mkdate,chdate,date_typ,content, 0 as ex_termin
+                        FROM termine WHERE termin_id = ?
+                        UNION SELECT termin_id,range_id,date,end_time,mkdate,chdate,date_typ,content, 1 as ex_termin
+                        FROM ex_termine WHERE content <> '' AND termin_id = ?) as t
+                       LEFT JOIN themen_termine USING (termin_id) LEFT JOIN themen as th USING (issue_id)
+                       LEFT JOIN seminar_user su ON (su.Seminar_id=t.range_id) "
+                    . "LEFT JOIN seminare s ON (s.Seminar_id=t.range_id) "
                     . "LEFT JOIN resources_assign ON (assign_user_id = termin_id) WHERE "
-                    . "termin_id = ? AND user_id = ?");
-            $db_sem->execute(array($event_id, $this->user_id));
+                    . "user_id = ? GROUP BY termin_id ORDER BY NULL");
+            $db_sem->execute(array($event_id,$event_id, $this->user_id));
             $this->result['sem'] = $db_sem->fetchAll(PDO::FETCH_ASSOC);
         } else {
             $this->mod = '';

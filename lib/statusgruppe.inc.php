@@ -240,7 +240,7 @@ function EditStatusgruppe ($new_statusgruppe_name, $new_statusgruppe_size, $edit
     }
 }
 
-function InsertPersonStatusgruppe ($user_id, $statusgruppe_id)
+function InsertPersonStatusgruppe ($user_id, $statusgruppe_id, $is_institute_group = true)
 {
     $query = "SELECT 1 FROM statusgruppe_user WHERE user_id = ? AND statusgruppe_id = ?";
     $statement = DBManager::get()->prepare($query);
@@ -258,7 +258,10 @@ function InsertPersonStatusgruppe ($user_id, $statusgruppe_id)
     $statement = DBManager::get()->prepare($query);
     $statement->execute(array($statusgruppe_id, $user_id, $position));
 
-    MakeDatafieldsDefault($user_id, $statusgruppe_id);
+    // Only make Datafields default if it is indeed an institute group. Ref.: #2207
+    if ($is_institute_group) {
+        MakeDatafieldsDefault($user_id, $statusgruppe_id);
+    }
 
     return true;
 }
@@ -814,7 +817,7 @@ function display_roles_recursive($roles, $level = 0, $pred = '') {
         } else {
             $title = $data['name'];
         }
-        echo '<tr><td colspan="2" class="steelkante"><b>'.$title.'</b></td></tr>';
+        echo '<tr><td colspan="2" class="content_seperator"><b>'.$title.'</b></td></tr>';
         if ($persons = getPersonsForRole($role_id)) {
             $z = 1;
             if (is_array($persons))
@@ -823,7 +826,7 @@ function display_roles_recursive($roles, $level = 0, $pred = '') {
                 $class = 'class="'.$css_rec->getClass().'"';
                 //echo '<tr><td '.$class.' width="20" align="center">'.$p['position'].'</td>';
                 echo '<tr><td '.$class.' width="20" align="center">'.$z.'&nbsp;</td>';
-                echo '<td '.$class.'><a href="'.URLHelper::getLink('about.php?username='.$p['username']).'">'.$p['fullname'].'</a></td>';
+                echo '<td '.$class.'><a href="'.URLHelper::getLink('dispatch.php/profile?username='.$p['username']).'">'.$p['fullname'].'</a></td>';
                 $z++;
             }
         }

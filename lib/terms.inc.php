@@ -50,7 +50,7 @@ function check_terms($userid, $_language_path) {
 
 <table align="center" border="0" cellpadding="1" cellspacing="0">
     <tr>
-        <td class="topic">
+        <td class="table_header_bold">
             <img src="<?= $GLOBALS['ASSETS_URL'] ?>images/icons/16/white/door-enter.png" border="0" align="absmiddle"> <b><?=_("Nutzungsbedingungen")?></b>
         </td>
     </tr>
@@ -69,7 +69,7 @@ function check_terms($userid, $_language_path) {
         <p><?=_("Mit der Anmeldung werden die nachfolgenden Nutzungsbedingungen akzeptiert:")?></p>
         <? include("locale/$_language_path/LC_HELP/pages/nutzung.html"); ?>
         <p align="center">
-        <a href="index.php?i_accept_the_terms=yes"><b><?=_("Ich erkenne die Nutzungsbedingungen an")?></b></a>
+        <a href="<?= URLHelper::getLink('', array('i_accept_the_terms' => 'yes')) ?>"><b><?=_("Ich erkenne die Nutzungsbedingungen an")?></b></a>
         </p>
         <br>
         </td>

@@ -13,7 +13,7 @@
     <? SkipLinks::addIndex(_("Hauptnavigation"), 'barTopMenu', 1); ?>
     <ul id="barTopMenu" role="navigation">
     <? $accesskey = 0 ?>
-    <? foreach (Navigation::getItem('/') as $nav) : ?>
+    <? foreach (Navigation::getItem('/') as $path => $nav) : ?>
         <? if ($nav->isVisible(true)) : ?>
             <?
             $accesskey_attr = '';
@@ -31,9 +31,9 @@
             }
 
             ?>
-            <li<? if ($nav->isActive()) : ?> class="active"<? endif ?>>
+            <li id="nav_<?= $path ?>"<? if ($nav->isActive()) : ?> class="active"<? endif ?>>
                 <a href="<?= URLHelper::getLink($nav->getURL(), $link_params) ?>" title="<?= $image['title'] ?>" <?= $accesskey_attr ?><?= $badge_attr ?>>
-                   <span style="background-image: url('<?= $image['src'] ?>');" class="<?= $image['class'] ?>"> </span><br>
+                   <span style="background-image: url('<?= $image['src'] ?>'); background-size: auto 32px;" class="<?= $image['class'] ?>"> </span><br>
                    <?= htmlReady($nav->getTitle()) ?>
                </a>
             </li>
@@ -44,7 +44,7 @@
 <!-- Stud.IP Logo -->
 <div id="barTopStudip">
     <a href="http://www.studip.de/" title="Studip Homepage">
-        <img src="<?=$GLOBALS['ASSETS_URL']?>images/logos/header_logo.png" alt="Stud.IP Homepage">
+        <?= Assets::img('/images/logos/header_logo.png', array('@2x' => TRUE, 'size' => '203@44')); ?>
     </a>
 </div>
 <!-- Leiste unten -->
@@ -59,6 +59,27 @@
     <!-- Dynamische Links ohne Icons -->
     <div id="barBottomright">
         <ul>
+            <? if (PersonalNotifications::isActivated() && $GLOBALS['perm']->have_perm("autor")) : ?>
+            <? $notifications = PersonalNotifications::getMyNotifications() ?>
+            <li id="notification_container">
+                <div id="notification_marker"<?= count($notifications) > 0 ? ' class="alert"' : "" ?> title="<?= _("Benachrichtigungen") ?>">
+                <?= count($notifications) ?>
+                </div>
+                <div class="list below" id="notification_list">
+                    <ul>
+                        <? foreach ($notifications as $notification) : ?>
+                        <?= $notification->getLiElement() ?>
+                        <? endforeach ?>
+                    </ul>
+                </div>
+                <? if (PersonalNotifications::isAudioActivated()) : ?>
+                <audio id="audio_notification" preload="none">
+                    <source src="<?= Assets::url('sounds/30341__junggle__waterdrop24.ogg') ?>" type="audio/ogg">
+                    <source src="<?= Assets::url('sounds/30341__junggle__waterdrop24.mp3') ?>" type="audio/mpeg">
+                </audio>
+                <? endif ?>
+            </li>
+            <? endif ?>
             <? if (isset($search_semester_nr)) : ?>
             <li>
             <form id="quicksearch" role="search" action="<?= URLHelper::getLink('sem_portal.php', array('send' => 'yes', 'group_by' => '0') + $link_params) ?>" method="post">

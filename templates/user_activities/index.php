@@ -1,6 +1,6 @@
 <table class="default">
     <tr>
-        <td class="topic" colspan="3" style="font-weight: bold">
+        <td class="table_header_bold" colspan="3" style="font-weight: bold">
             <?= _('Informationen zu einem Nutzer:') ?>
 
             <?= htmlReady($user->getFullName()) ?>
@@ -8,7 +8,7 @@
         </td>
     </tr>
 <? foreach ($queries as $query): ?>
-    <tr class="<?= TextHelper::cycle('cycle_even', 'cycle_odd') ?>">
+    <tr class="<?= TextHelper::cycle('hover_even', 'hover_odd') ?>">
         <td style="font-weight: bold;"><?= $query['desc'] ?></td>
         <td <? if (!$query['value']) echo 'style="color:#888;"'; ?>>
             <?= htmlReady($query['value']) ?>

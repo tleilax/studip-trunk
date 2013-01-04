@@ -17,11 +17,11 @@ use Studip\Button, Studip\LinkButton;
 <form action="<?= $controller->url_for('admin/configuration/edit_configuration/'.$edit['config_id']) ?>" method=post>
     <?= CSRFProtection::tokenTag() ?>
     <table class="default">
-        <tr class="<?= TextHelper::cycle('cycle_odd', 'cycle_even') ?>">
+        <tr class="<?= TextHelper::cycle('hover_odd', 'hover_even') ?>">
             <td><?= _("Name") ?>:</td>
             <td><?= htmlReady($edit['field'])?></td>
         </tr>
-        <tr class="<?= TextHelper::cycle('cycle_odd', 'cycle_even') ?>">
+        <tr class="<?= TextHelper::cycle('hover_odd', 'hover_even') ?>">
             <td><?= _("Inhalt") ?>:</td>
             <td>
             <? if ($edit['type'] == 'integer'): ?>
@@ -35,16 +35,18 @@ use Studip\Button, Studip\LinkButton;
                         FALSE
                     </option>
                 </select>
+            <? elseif ($edit['type'] == 'array') : ?>
+                <textarea cols="80" rows="5" name="value"><?= htmlReady(json_encode(studip_utf8encode($edit['value'])),true,true)?></textarea>
             <? else : ?>
                 <textarea cols="80" rows="3" name="value"><?= htmlReady($edit['value'])?></textarea>
             <? endif; ?>
             </td>
         </tr>
-        <tr class="<?= TextHelper::cycle('cycle_odd', 'cycle_even') ?>">
+        <tr class="<?= TextHelper::cycle('hover_odd', 'hover_even') ?>">
             <td><?= _("Kommentar") ?>:</td>
             <td><textarea cols="80" rows="2" name="comment"><?= htmlReady($edit['comment']) ?></textarea></td>
         </tr>
-        <tr class="<?= TextHelper::cycle('cycle_odd', 'cycle_even') ?>">
+        <tr class="<?= TextHelper::cycle('hover_odd', 'hover_even') ?>">
             <td><?= _("Standard") ?>:</td>
             <td>
             <? if ($edit['is_default'] == 1): ?>
@@ -56,15 +58,15 @@ use Studip\Button, Studip\LinkButton;
             <? endif; ?>
             </td>
         </tr>
-        <tr class="<?= TextHelper::cycle('cycle_odd', 'cycle_even') ?>">
+        <tr class="<?= TextHelper::cycle('hover_odd', 'hover_even') ?>">
             <td><?= _("Typ") ?></td>
             <td><?= $edit['type'] ?></td>
         </tr>
-        <tr class="<?= TextHelper::cycle('cycle_odd', 'cycle_even') ?>">
+        <tr class="<?= TextHelper::cycle('hover_odd', 'hover_even') ?>">
             <td><?= _("Bereich") ?>:</td>
             <td><?= $edit['range'] ?></td>
         </tr>
-        <tr class="<?= TextHelper::cycle('cycle_odd', 'cycle_even') ?>">
+        <tr class="<?= TextHelper::cycle('hover_odd', 'hover_even') ?>">
             <td><label for="section"><?= _("Kategorie") ?>:</label></td>
             <td>
                 <select name= "section" onchange="$(this).next('input').val( $(this).val() );">
@@ -79,7 +81,7 @@ use Studip\Button, Studip\LinkButton;
                 (<em><?= _('Bitte die neue Kategorie eingeben')?></em>)
            </td>
         </tr>
-        <tr class="steel2">
+        <tr class="table_footer">
             <td>&nbsp;</td>
             <td>
                 <?= Button::createAccept(_('Übernehmen'),'uebernehmen', array('title' => _('Änderungen übernehmen')))?>

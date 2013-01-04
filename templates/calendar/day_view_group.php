@@ -7,14 +7,13 @@ $width1 = floor(90 / $cells);
 $width2 = 10 + (90 - $width1 * $cells);
 $start = $group_calendar->getUserSettings('start') * 3600;
 $end = ($group_calendar->getUserSettings('end') + 1) * 3600;
-
 // add skip link
 SkipLinks::addIndex(_("Tagesansicht"), 'main_content', 100);
 ?>
 <table id="main_content" class="steelgroup0" style="width:100%; table-layout:fixed;" border="0" cellpadding="0" cellspacing="0">
     <tr>
         <td align="center" width="10%" height="40">
-            <a href="<?= URLHelper::getLink('', array('cmd' => 'showday', 'atime' => $group_calendar->view->getStart() + $calendar_user_control_data['start'] * 3600 - 86400)) ?>">
+            <a href="<?= URLHelper::getLink('', array('cmd' => 'showday', 'atime' => $group_calendar->view->getStart() + $GLOBALS['calendar_user_control_data']['start'] * 3600 - 86400)) ?>">
                 <?= Assets::img('icons/16/blue/arr_1left.png', tooltip2(_("zurück"))) ?>
             </a>
         </td>
@@ -26,7 +25,7 @@ SkipLinks::addIndex(_("Tagesansicht"), 'main_content', 100);
             </b>
         </td>
         <td align="center" width="10%">
-            <a href="<?= URLHelper::getLink('', array('cmd' => 'showday', 'atime' => $group_calendar->view->getStart() + $calendar_user_control_data['start'] * 3600  + 86400)) ?>">
+            <a href="<?= URLHelper::getLink('', array('cmd' => 'showday', 'atime' => $group_calendar->view->getStart() + $GLOBALS['calendar_user_control_data']['start'] * 3600  + 86400)) ?>">
                 <?= Assets::img('icons/16/blue/arr_1right.png', tooltip2(_("vor"))) ?>
             </a>
         </td>
@@ -68,7 +67,7 @@ SkipLinks::addIndex(_("Tagesansicht"), 'main_content', 100);
                             $js_events[] = $calendar->view->events[$adapted['day_map'][$i]];
                         endfor; ?>
                         <? if (sizeof($js_events)) : ?>
-                            <td width="<?= $width1 ?>%" class="lightmonth" align="right" style="background-image: url('<?= Assets::url('images/calendar/category5_small.jpg') ?>" <?= js_hover_group($js_events, $calendar->view->getStart(), $calendar->view->getEnd(), $calendar->getUserId()); ?>>
+                            <td width="<?= $width1 ?>%" class="lightmonth" align="right" style="background-image: url('<?= Assets::url('images/calendar/category5_small.jpg') ?>">
                         <? else : ?>
                             <td width="<?= $width1 ?>%" class="lightmonth" align="right">
                         <? endif ?>
@@ -95,7 +94,7 @@ SkipLinks::addIndex(_("Tagesansicht"), 'main_content', 100);
                             <? endfor ?>
 
                             <? if (sizeof($js_events)) : ?>
-                                <td width="<?= $width1 ?>%" align="right" style="background-image: url('<?= Assets::url('/images/calendar/category5_small.jpg') ?>" <?= js_hover_group($js_events, $i, $i + $step_day, $calendar->getUserId()); ?>>
+                                <td width="<?= $width1 ?>%" align="right" style="background-image: url('<?= Assets::url('/images/calendar/category5_small.jpg') ?>">
                             <? else: ?>
                                 <td width="<?= $width1 ?>%" align="right" class="<?= (($k % 2) ? 'month' : 'lightmonth') ?>">
                             <? endif ?>

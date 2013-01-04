@@ -27,29 +27,6 @@ class AbstractStudIPStandardPlugin extends AbstractStudIPLegacyPlugin
     }
 
     /**
-     * Sets the navigation of this plugin.
-     *
-     * @deprecated
-     */
-    function setNavigation(StudipPluginNavigation $navigation) {
-        parent::setNavigation($navigation);
-
-        $navigation->setImage($this->getPluginiconname());
-
-        // prepend copy of navigation to its sub navigation
-        $item_names = array_keys($navigation->getSubNavigation());
-        $navigation_copy = clone $navigation;
-        $navigation_copy->clearSubmenu();
-        $navigation_copy->freezeActivation();
-        $navigation->insertSubNavigation('self', $navigation_copy, $item_names[0]);
-        $navigation->setTitle($this->getDisplayTitle());
-
-        if (Navigation::hasItem('/course') && $this->isActivated()) {
-            Navigation::addItem('/course/' . $this->getPluginclassname(), $navigation);
-        }
-    }
-
-    /**
      * Set the current course id - deprecated, do not use.
      *
      * @deprecated
@@ -82,7 +59,7 @@ class AbstractStudIPStandardPlugin extends AbstractStudIPLegacyPlugin
      *
      * @return object   navigation item to render or NULL
      */
-    function getIconNavigation($course_id, $last_visit) {
+    function getIconNavigation($course_id, $last_visit, $user_id) {
         $this->setId($course_id);
 
         // $sem_type = get_object_type($course_id);
@@ -111,7 +88,21 @@ class AbstractStudIPStandardPlugin extends AbstractStudIPLegacyPlugin
     function getInfoTemplate($course_id) {
         return NULL;
     }
+    
+    function getTabNavigation($course_id) {
+        $nav = $this->getNavigation();
+        if ($nav) {
+            $nav->setImage($this->getPluginiconname());
+            return array(get_class($this) => $nav);
+        } else {
+            return null;
+        }
+    }
 
+    function getNotificationObjects($course_id, $since, $user_id) {
+        return null;
+    }
+    
     /**
      * Gehen beim Deaktivieren des Plugins Daten verloren?
      *

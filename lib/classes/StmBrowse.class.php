@@ -34,10 +34,11 @@ class StmBrowse {
             $_SESSION['sem_browse_data'] = $sem_browse_data_init;
         }
         $this->sem_browse_data =& $_SESSION['sem_browse_data'];
-        $level_change = isset($_REQUEST['start_item_id']);
+        $level_change = Request::option('start_item_id');
         for ($i = 0; $i < count($this->persistent_fields); ++$i){
-            if (isset($_REQUEST[$this->persistent_fields[$i]])){
-            $this->sem_browse_data[$this->persistent_fields[$i]] = $_REQUEST[$this->persistent_fields[$i]];
+             $persistend_field=$this->persistent_fields[$i];
+            if (!empty($persistend_field)){
+            $this->sem_browse_data[$this->persistent_fields[$i]] = Request::quoted($this->persistent_fields[$i]);
             }
         }
         
@@ -46,7 +47,7 @@ class StmBrowse {
             $this->sem_browse_data["start_item_id"] = $this->search_obj->form->getFormFieldValue("scope_choose");
         }
         
-        if (isset($_REQUEST['keep_result_set']) || $this->sem_browse_data['sset'] || (count($this->sem_browse_data['search_result']) && $this->sem_browse_data['show_entries'])){
+        if (Request::option('keep_result_set') || $this->sem_browse_data['sset'] || (count($this->sem_browse_data['search_result']) && $this->sem_browse_data['show_entries'])){
             $this->show_result = true;
         }
         
@@ -75,7 +76,7 @@ class StmBrowse {
             
         $this->stm_tree = new StudipStmInstanceTreeViewSimple($this->sem_browse_data["start_item_id"], $this->seminar_id);
         $this->sem_browse_data['cmd'] = "qs";
-        if ($_REQUEST['cmd'] != "show_stm_tree" && $level_change && !$this->search_obj->search_button_clicked ){
+        if (Request::option('cmd') != "show_stm_tree" && $level_change && !$this->search_obj->search_button_clicked ){
             $this->get_stm_range($this->sem_browse_data["start_item_id"], false);
             $this->show_result = true;
             $this->sem_browse_data['show_entries'] = "level";
@@ -94,15 +95,15 @@ class StmBrowse {
             $this->sem_browse_data['sset'] = true;
         }
         
-        if ($_REQUEST['cmd'] == "show_stm_tree"){
-            $tmp = explode("_",$_REQUEST['item_id']);
+        if (Request::option('cmd') == "show_stm_tree"){
+            $tmp = explode("_",Request::option('item_id'));
             $this->get_stm_range($tmp[0],isset($tmp[1]));
             $this->show_result = true;
             $this->sem_browse_data['show_entries'] = (isset($tmp[1])) ? "sublevels" : "level";
             $this->sem_browse_data['sset'] = false;
         }
         
-        if ($_REQUEST['do_show_class'] == 'mod'){
+        if (Request::quoted('do_show_class') == 'mod'){
             $this->get_stm_range('root', true);
             $this->sem_browse_data['sset'] = true;
             $this->show_result = true;
@@ -120,11 +121,10 @@ class StmBrowse {
     
         
     function print_qs(){
-        global $PHP_SELF;
-        //Quicksort Formular... fuer die eiligen oder die DAUs....
+         //Quicksort Formular... fuer die eiligen oder die DAUs....
         echo "<table border=\"0\" align=\"center\" cellspacing=0 cellpadding=0 width = \"99%\">\n";
         echo $this->search_obj->getFormStart(URLHelper::getLink("?send=yes"));
-        echo "<tr><td height=\"40\" class=\"steel1\" align=\"center\" valign=\"middle\" ><font size=\"-1\">";
+        echo "<tr><td height=\"40\" class=\"table_row_even\" align=\"center\" valign=\"middle\" ><font size=\"-1\">";
         echo _("Schnellsuche:") . "&nbsp;";
         echo $this->search_obj->getSearchField("qs_choose",array('style' => 'vertical-align:middle;font-size:9pt;'));
         $this->search_obj->stm_tree =& $this->stm_tree->tree; 
@@ -143,42 +143,41 @@ class StmBrowse {
     }
     
     function print_xts(){
-        global $PHP_SELF;
         $this->search_obj->attributes_default = array('style' => 'width:100%;font-size:10pt;');
         $this->search_obj->search_fields['type']['size'] = 40 ;
         echo "<table border=\"0\" align=\"center\" cellspacing=0 cellpadding=2 width = \"99%\">\n";
         echo $this->search_obj->getFormStart(URLHelper::getLink("?send=yes"));
-        echo "<tr><td class=\"steel1\" align=\"right\" width=\"15%\">" . _("Titel:") . " </td>";
-        echo "<td class=\"steel1\" align=\"left\" width=\"35%\">";
+        echo "<tr><td class=\"table_row_even\" align=\"right\" width=\"15%\">" . _("Titel:") . " </td>";
+        echo "<td class=\"table_row_even\" align=\"left\" width=\"35%\">";
         echo $this->search_obj->getSearchField("title");
-        echo "</td><td class=\"steel1\" align=\"right\" width=\"15%\">" . _("Typ:") . "</td><td class=\"steel1\" align=\"left\" width=\"35%\">";
+        echo "</td><td class=\"table_row_even\" align=\"right\" width=\"15%\">" . _("Typ:") . "</td><td class=\"table_row_even\" align=\"left\" width=\"35%\">";
         echo $this->search_obj->getSearchField("type",array('style' => 'width:*;font-size:10pt;'));
         echo "</td></tr>\n";
-        echo "<tr><td class=\"steel1\" align=\"right\" width=\"15%\">" . _("Untertitel:") . " </td>";
-        echo "<td  class=\"steel1\" align=\"left\" width=\"35%\">";
+        echo "<tr><td class=\"table_row_even\" align=\"right\" width=\"15%\">" . _("Untertitel:") . " </td>";
+        echo "<td  class=\"table_row_even\" align=\"left\" width=\"35%\">";
         echo $this->search_obj->getSearchField("sub_title");
-        echo "</td><td class=\"steel1\" align=\"right\" width=\"15%\">" . _("Semester:") . " </td>";
-        echo "<td class=\"steel1\" align=\"left\" width=\"35%\">";
+        echo "</td><td class=\"table_row_even\" align=\"right\" width=\"15%\">" . _("Semester:") . " </td>";
+        echo "<td class=\"table_row_even\" align=\"left\" width=\"35%\">";
         echo $this->search_obj->getSearchField("sem",array('style' => 'width:*;font-size:10pt;'),$this->sem_browse_data['default_sem']);
         echo "</td></tr>";
-        echo "<tr><td class=\"steel1\" align=\"right\" width=\"15%\">" . _("Kommentar:") . " </td>";
-        echo "<td class=\"steel1\" align=\"left\" width=\"35%\">";
+        echo "<tr><td class=\"table_row_even\" align=\"right\" width=\"15%\">" . _("Kommentar:") . " </td>";
+        echo "<td class=\"table_row_even\" align=\"left\" width=\"35%\">";
         echo $this->search_obj->getSearchField("comment");
-        echo "</td><td class=\"steel1\" align=\"right\" width=\"15%\">&nbsp;</td><td class=\"steel1\" align=\"left\" width=\"35%\">&nbsp; </td></tr>\n";
-        echo "<tr><td class=\"steel1\" align=\"right\" width=\"15%\">" . _("DozentIn:") . " </td>";
-        echo "<td class=\"steel1\" align=\"left\" width=\"35%\">";
+        echo "</td><td class=\"table_row_even\" align=\"right\" width=\"15%\">&nbsp;</td><td class=\"table_row_even\" align=\"left\" width=\"35%\">&nbsp; </td></tr>\n";
+        echo "<tr><td class=\"table_row_even\" align=\"right\" width=\"15%\">" . _("DozentIn:") . " </td>";
+        echo "<td class=\"table_row_even\" align=\"left\" width=\"35%\">";
         echo $this->search_obj->getSearchField("lecturer");
-        echo "</td><td class=\"steel1\" align=\"right\" width=\"15%\">" . _("Verkn&uuml;pfung:") . " </td>";
-        echo "<td class=\"steel1\" align=\"left\" width=\"35%\">";
+        echo "</td><td class=\"table_row_even\" align=\"right\" width=\"15%\">" . _("Verkn&uuml;pfung:") . " </td>";
+        echo "<td class=\"table_row_even\" align=\"left\" width=\"35%\">";
         echo $this->search_obj->getSearchField("combination",array('style' => 'width:*;font-size:10pt;'));
         echo "</td></tr>\n";
         if ($this->show_class()) {
-            echo "<tr><td class=\"steel1\" align=\"right\" width=\"15%\">" . _("Bereich:") . " </td>";
-            echo "<td class=\"steel1\" align=\"left\" width\"35%\">";
+            echo "<tr><td class=\"table_row_even\" align=\"right\" width=\"15%\">" . _("Bereich:") . " </td>";
+            echo "<td class=\"table_row_even\" align=\"left\" width\"35%\">";
             echo $this->search_obj->getSearchField("scope");
-            echo "</td><td class=\"steel1\" colspan=\"2\">&nbsp</td></tr>";
+            echo "</td><td class=\"table_row_even\" colspan=\"2\">&nbsp</td></tr>";
         }
-        echo "<tr><td class=\"steel1\" align=\"center\" colspan=\"4\">";
+        echo "<tr><td class=\"table_row_even\" align=\"center\" colspan=\"4\">";
         echo $this->search_obj->getSearchButton();
         echo "&nbsp;";
         echo $this->search_obj->getNewSearchButton();
@@ -201,10 +200,10 @@ class StmBrowse {
         
     function print_level(){
         ob_start();
-        global $PHP_SELF, $_language_path;
+        global $_language_path;
         echo "\n<table border=\"0\" align=\"center\" cellspacing=0 cellpadding=0 width = \"99%\">\n";
         if ($this->sem_browse_data['level'] == "f"){
-            echo "\n<tr><td align=\"center\" class=\"steelgraulight\" height=\"40\" valign=\"middle\"><div style=\"margin-top:10px;margin-bottom:10px;\"><font size=\"-1\">";
+            echo "\n<tr><td align=\"center\" class=\"table_row_odd\" height=\"40\" valign=\"middle\"><div style=\"margin-top:10px;margin-bottom:10px;\"><font size=\"-1\">";
             if (($this->show_result && count($this->sem_browse_data['search_result'])) || $this->sem_browse_data['cmd'] == "xts") {
                 printf(_("Suche im %sModulverzeichnis%s"),"<a href=\"".URLHelper::getLink('?level=ev&cmd=qs&sset=0')."\">","</a>");
             } else {
@@ -230,7 +229,7 @@ class StmBrowse {
     
     function print_result(){
         ob_start();
-        global $_fullname_sql,$PHP_SELF,$SEM_TYPE,$SEM_CLASS;
+        global $_fullname_sql,$SEM_TYPE,$SEM_CLASS;
         
         if (is_array($this->sem_browse_data['search_result']) && count($this->sem_browse_data['search_result']) && strlen($this->sem_browse_data['search_result'][0]) == 32) {
             $constraint = "1";
@@ -253,7 +252,7 @@ class StmBrowse {
             $group_by_data = $snap->getGroupedResult($group_field, $data_fields);
             echo "\n" . '<a name="result"></a>';
             echo "\n<table border=\"0\" align=\"center\" cellspacing=0 cellpadding=2 width = \"99%\">\n";
-            echo "\n<tr><td class=\"steelgraulight\" colspan=\"2\"><div style=\"margin-top:10px;margin-bottom:10px;\"><font size=\"-1\"><b>&nbsp;"
+            echo "\n<tr><td class=\"table_row_odd\" colspan=\"2\"><div style=\"margin-top:10px;margin-bottom:10px;\"><font size=\"-1\"><b>&nbsp;"
                 . sprintf(_(" %s Module gefunden %s, Gruppierung: %s"),count($snap->getDistinctRows('stm_instance_id')),
                 (($this->sem_browse_data['sset']) ? _("(Suchergebnis)") : ""),
                 $this->group_by_fields[$this->sem_browse_data['group_by']]['name']) 
@@ -272,7 +271,7 @@ class StmBrowse {
             }
             
             foreach ($group_by_data as $group_field => $stm_ids){
-                echo "\n<tr><td class=\"steelkante\" colspan=\"2\"><font size=-1><b>";
+                echo "\n<tr><td class=\"content_seperator\" colspan=\"2\"><font size=-1><b>";
                 switch ($this->sem_browse_data["group_by"]){
                     case 0:
                     echo key($stm_ids['sem_name']);
@@ -293,18 +292,18 @@ class StmBrowse {
                 if (is_array($stm_ids['stm_instance_id'])){
                     while(list($stm_id,) = each($stm_ids['stm_instance_id'])){
                         $stm_obj = new StudipStmInstance($stm_id);
-                        echo "<tr><td colspan=\"2\" class=\"steel1\" width=\"66%\"><font size=-1><a href=\"stm_details.php?stm_instance_id={$stm_id}&send_from_search=1&send_from_search_page="
+                        echo "<tr><td colspan=\"2\" class=\"table_row_even\" width=\"66%\"><font size=-1><a href=\"stm_details.php?stm_instance_id={$stm_id}&send_from_search=1&send_from_search_page="
                         .$_SERVER['PHP_SELF']. "?keep_result_set=1\">" . htmlReady($stm_obj->getValue('displayname')). "</a></td></tr>";
-                        echo "<tr><td colspan=\"2\" class=\"steel1\" width=\"66%\">";
+                        echo "<tr><td colspan=\"2\" class=\"table_row_even\" width=\"66%\">";
                         $el_group = false;
                         foreach(array_keys($stm_obj->elements) as $element_id){
                             if (strcmp($el_group, ($el_group = $stm_obj->elements[$element_id]->getValue('elementgroup')))){
-                                echo "<div style=\"margin-left:10px;margin-right:10px\" class=\"steel1\"><font size=-2><b><u>".($el_group + 1) .". "._("Modulausprägung")."</u></b></font></div>";
+                                echo "<div style=\"margin-left:10px;margin-right:10px\" class=\"table_row_even\"><font size=-2><b><u>".($el_group + 1) .". "._("Modulausprägung")."</u></b></font></div>";
                             }
                             $dozenten = '';
                             foreach($stm_obj->elements[$element_id]->getValue('dozenten') as $dozent){
                                 if ($dozenten) $dozenten .= ', ';
-                                $dozenten .= sprintf("<a href=\"about.php?username=%s\">%s</a>", $dozent['username'], htmlReady($dozent['Nachname'] . ', ' . $dozent['Vorname']{0} . '.'));
+                                $dozenten .= sprintf("<a href=\"dispatch.php/profile?username=%s\">%s</a>", $dozent['username'], htmlReady($dozent['Nachname'] . ', ' . $dozent['Vorname']{0} . '.'));
                             }
                             if($stm_obj->elements[$element_id]->getValue('sem_id')){
                             echo "<div style=\"margin-left:10px;margin-right:10px\"><font size=-2><a href=\"{$this->target_url}?{$this->target_id}=".$stm_obj->elements[$element_id]->getValue('sem_id')."&send_from_search=1&send_from_search_page="
@@ -327,7 +326,7 @@ class StmBrowse {
             echo "</table>";
         } elseif($this->search_obj->search_button_clicked && !$this->search_obj->new_search_button_clicked){
             echo "\n<table border=\"0\" align=\"center\" cellspacing=0 cellpadding=2 width = \"99%\">\n";
-            echo "\n<tr><td class=\"steelgraulight\"><font size=\"-1\"><b>&nbsp;" . _("Ihre Suche ergab keine Treffer") ;
+            echo "\n<tr><td class=\"table_row_odd\"><font size=\"-1\"><b>&nbsp;" . _("Ihre Suche ergab keine Treffer") ;
             if ($this->search_obj->found_rows === false){
                 echo "<br>" . _("(Der Suchbegriff fehlt oder ist zu kurz)");
             }

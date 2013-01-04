@@ -51,8 +51,11 @@ class EvalTemplateGUI {
   function createSelections( $polTemplates, $skalaTemplates,
               $normalTemplates, $freeTemplates, $myuserid) {
 
+     global $evalID;
+
      $form = new HTM( "form" );
-     $form->attr( "action", UrlHelper::getLink("?page=edit") );
+
+     $form->attr( "action", UrlHelper::getLink("?page=edit&evalID=".$evalID) );
      $form->attr( "method", "post" );
      $form->html(CSRFProtection::tokenTag());
 
@@ -127,7 +130,7 @@ class EvalTemplateGUI {
      /* Likertskalen ------------------------------------------------- */
      $td = new HTML ("td");
      $td->addAttr("align","right");
-     $td->addAttr("class","steelkante");
+     $td->addAttr("class","content_body");
      $tr = new HTML ("tr");
 
      $b = new HTM( "b" );
@@ -136,7 +139,7 @@ class EvalTemplateGUI {
      $tr->addContent($td);
 
      $td = new HTML ("td");
-     $td->addAttr("class","steelkante");
+     $td->addAttr("class","content_body");
 
      /* create button ------------------------------------ */
      $input = new HTMpty( "input" );
@@ -189,7 +192,7 @@ class EvalTemplateGUI {
 
      /* Normale / Multiplechoice ---------------------------------------- */
      $td = new HTML ("td");
-     $td->addAttr("class","steelkante");
+     $td->addAttr("class","content_body");
      $tr = new HTML ("tr");
      $td->addAttr("align","right");
 
@@ -199,7 +202,7 @@ class EvalTemplateGUI {
      $tr->addContent($td);
 
      $td = new HTML ("td");
-     $td->addAttr("class","steelkante");
+     $td->addAttr("class","content_body");
 
      /* create button ------------------------------------ */
      $input = new HTMpty( "input" );
@@ -254,7 +257,7 @@ class EvalTemplateGUI {
      /* Freitext ----------------------------------------------------- */
 
     $td = new HTML ("td");
-    $td->addAttr("class","steelkante");
+    $td->addAttr("class","content_body");
     $tr = new HTML ("tr");
     $td->addAttr("align","right");
 
@@ -264,7 +267,7 @@ class EvalTemplateGUI {
     $tr->addContent($td);
 
     $td = new HTML ("td");
-    $td->addAttr("class","steelkante");
+    $td->addAttr("class","content_body");
     $input = new HTMpty( "input" );
     $input->attr( "type", "image" );
     $input->attr( "name", "template_createfree_scale_button" );
@@ -320,6 +323,7 @@ class EvalTemplateGUI {
    * @param
    */
   function createTemplateForm( &$question, $onthefly = "" ) {
+      global $evalID;
      $type=$question->getType();
      $tableA = new HTM( "table" );
      $tableA->attr("border", "0");
@@ -329,7 +333,7 @@ class EvalTemplateGUI {
 
      $trA = new HTM( "tr" );
      $tdA = new HTM( "td" );
-     $tdA->attr( "class", "topic" );
+     $tdA->attr( "class", "table_header_bold" );
      $tdA->attr ("align","left");
      if( $onthefly ) {
     $tdA->html( _("<b>Freie Antworten definieren</b>") );
@@ -364,8 +368,9 @@ class EvalTemplateGUI {
      $trA = new HTM( "tr" );
      $tdA = new HTM( "td" );
 
-    $form = new HTM( "form" );
-    $form->attr( "action", UrlHelper::getLink("?page=edit"));
+     $form = new HTM( "form" );
+     $form->attr( "action", UrlHelper::getLink("?page=edit&evalID=".$evalID) );
+
     $form->attr( "method", "post" );
     $form->html(CSRFProtection::tokenTag());
     /* template name --------------------------------- */
@@ -521,8 +526,7 @@ class EvalTemplateGUI {
        $form->html("&nbsp;");
        $form->cont( $input );
        $form->cont( $this->BR );
-    }
-    else{
+    }else{
        if($type == EVALQUESTION_TYPE_POL){
       $form->cont( $this->createSubHeadline( _("Antworten").": " ) );
       /* answers --------------------------------------- */
@@ -546,8 +550,7 @@ class EvalTemplateGUI {
               $input->attr( "value", $answer->getObjectID() );
               $form->cont( $input );
               $form->cont( $this->BR );
-           }
-           else{
+           }else{
 
               if($answer->getText(UNQUOTED) == "" ){
              $oldid=$answer->getObjectID();
@@ -770,14 +773,14 @@ class EvalTemplateGUI {
     $table->attr ("width", "100%");
     $tr = new HTM( "tr" );
     $td = new HTM( "td" );
-    $td->attr( "class", "steelkante" );
+    $td->attr( "class", "content_body" );
     $td->attr( "align", "center" );
     $td->cont( $input );
     $tr->cont( $td );
 
     if( $showDelete ) {
        $td = new HTM( "td" );
-       $td->attr( "class", "steelkante" );
+       $td->attr( "class", "content_body" );
        $td->attr( "align", "center" );
        $td->cont( $input2 );
        $tr->cont( $td );
@@ -801,6 +804,7 @@ class EvalTemplateGUI {
    * @param
    */
  function createTemplateFormFree( &$question ) {
+     global $evalID;
      $answer = $question->getNextChild ();
 
      $tableA = new HTM( "table" );
@@ -811,7 +815,7 @@ class EvalTemplateGUI {
 
      $trA = new HTM( "tr" );
      $tdA = new HTM( "td" );
-     $tdA->attr( "class", "topic" );
+     $tdA->attr( "class", "table_header_bold" );
      $tdA->attr( "align","left" );
      $tdA->html( "<b>" . ( strstr($this->getPageCommand(), "create")
                ? _("Freitextvorlage erstellen")
@@ -822,7 +826,7 @@ class EvalTemplateGUI {
      $trA = new HTM( "tr" );
      $tdA = new HTM( "td" );
      $form = new HTM( "form" );
-     $form->attr( "action", UrlHelper::getLink("?page=edit") );
+     $form->attr( "action", UrlHelper::getLink("?page=edit&evalID=".$evalID) );
      $form->attr( "method", "post" );
      $form->html(CSRFProtection::tokenTag());
 
@@ -913,14 +917,14 @@ class EvalTemplateGUI {
     $table->attr ("width", "100%");
     $tr = new HTM( "tr" );
     $td = new HTM( "td" );
-    $td->attr( "class", "steelkante" );
+    $td->attr( "class", "content_body" );
     $td->attr( "align", "center" );
     $td->cont( $input );
     $tr->cont( $td );
 
     if( $showDelete ) {
    $td = new HTM( "td" );
-   $td->attr( "class", "steelkante" );
+   $td->attr( "class", "content_body" );
    $td->attr( "align", "center" );
    $td->cont( $input2 );
    $tr->cont( $td );
@@ -968,7 +972,7 @@ class EvalTemplateGUI {
   function createInfoBox ($command) {
       global $evalID, $rangeID;
 
-      $id = $_REQUEST["itemID"];
+      $id = Request::option("itemID");
 
       $level = EvaluationObjectDB::getType( $id );
 #      echo $level;
@@ -1014,7 +1018,7 @@ class EvalTemplateGUI {
 
       $infoOverviewText = sprintf(_("Zurück zur %s Evaluations-Verwaltung %s"),
                   "<a href=\"". UrlHelper::getLink('admin_evaluation.php?page=overview'
-                    ."&check_abort_creation_button_x=1&evalID=$evalID&rangeID=$rangeID") .
+                    ."&check_abort_creation_button=1&evalID=$evalID&rangeID=$rangeID") .
                   "\">",
                   "</a>");
 
@@ -1095,7 +1099,7 @@ class EvalTemplateGUI {
    */
   function getPageCommand() {
       foreach( $_REQUEST as $key => $value ) {
-    if( preg_match( "/template_(.*)_button(_x)?/", $key, $command ) )
+    if( preg_match( "/template_(.*)_button?/", $key, $command ) )
          break;
       }
 

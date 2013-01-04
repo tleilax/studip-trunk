@@ -26,6 +26,7 @@ use Studip\Button, Studip\LinkButton;
 
 require '../lib/bootstrap.php';
 
+unregister_globals();
 page_open(array("sess" => "Seminar_Session", "auth" => "Seminar_Default_Auth", "perm" => "Seminar_Perm", "user" => "Seminar_User"));
 $auth->login_if($again && ($auth->auth["uid"] == "nobody"));
 
@@ -44,20 +45,21 @@ include ("lib/include/html_head.inc.php"); // Output of html head
 //Inits
 $cssSw=new cssClassSwitcher;
 $msg = array();
-$send_from_search = (int)isset($send_from_search);
+$send_from_search = Request::int('send_from_search',false);
+$send_from_search_page = Request::quoted('send_from_search_page');
 if (!preg_match('/^('.preg_quote($CANONICAL_RELATIVE_PATH_STUDIP,'/').')?([a-zA-Z0-9_-]+\.php)([a-zA-Z0-9_?&=-]*)$/', $send_from_search_page)) $send_from_search_page = '';
 
 if ($send_from_search) $back_msg =_("Zur&uuml;ck zur letzten Auswahl");
 
-$stm_obj = new StudipStmInstance($_REQUEST['stm_instance_id']);
+$stm_obj = new StudipStmInstance(Request::option('stm_instance_id'));
 if (!$stm_obj->isNew()){
-    if ($_REQUEST['cmd'] == 'do_enter'
+    if (Request::option('cmd') == 'do_enter'
         && $stm_obj->isAllowedToEnter($GLOBALS['user']->id)
         && !$stm_obj->isParticipant($GLOBALS['user']->id)
         && Request::submitted('ok')) {
 
-        if (isset($_REQUEST['elgroup']) && is_array($stm_obj->el_struct[$_REQUEST['elgroup']])){
-            $added = $stm_obj->addParticipant($GLOBALS['user']->id, $_REQUEST['elgroup'], $_REQUEST['sem_el']);
+        if (Request::option('elgroup') && is_array($stm_obj->el_struct[Request::option('elgroup')])){
+            $added = $stm_obj->addParticipant($GLOBALS['user']->id, Request::option('elgroup'), Request::OptionArray('sem_el'));
         }
         if ($added) $msg[] = array('msg', _("Ihre gewünschte Belegung wurde eingetragen."));
         else $msg[] = array('error', _("Ihre gewünschte Belegung konnte nicht eingetragen werden."));
@@ -73,13 +75,13 @@ if (!$stm_obj->isNew()){
         echo '<tr><td class="blank" colspan="2">&nbsp;</td></tr>';
         parse_msg_array($msg, "blank", 2, false, false);
     }
-    if ($_REQUEST['cmd'] == 'enter' && $stm_obj->isAllowedToEnter($GLOBALS['user']->id, true) && !$stm_obj->isParticipant($GLOBALS['user']->id)){
+    if (Request::option('cmd') == 'enter' && $stm_obj->isAllowedToEnter($GLOBALS['user']->id, true) && !$stm_obj->isParticipant($GLOBALS['user']->id)){
         $out = _("Sie haben sich entschieden dieses Modul zu belegen.");
         if ($stm_obj->getGroupCount() > 1) $out .= '<br>' . _("Für dieses Modul existieren verschiedene Ausprägungen. Bitte wählen Sie eine davon aus:");
         ?>
         <tr><td class="blank">
         <div style="margin:20px;font-size:10pt;">
-        <form action="<? echo $PHP_SELF.'?cmd=do_enter&stm_instance_id='.$stm_obj->getId().'&send_from_search=1&send_from_search_page='.urlencode($send_from_search_page)?>" method="post">
+            <form action="<? echo URLHelper::getLink('?cmd=do_enter&stm_instance_id='.$stm_obj->getId().'&send_from_search=1&send_from_search_page='.urlencode($send_from_search_page))?>" method="post">
         <?= CSRFProtection::tokenTag() ?>
         <?=$out?>
         <br><br>
@@ -134,7 +136,7 @@ if (!$stm_obj->isNew()){
                 printf ("<font size=-1>%s</font>",htmlReady($stm_obj->getValue('sub_title')));
                 ?>
             </td>
-            <td class="steel1" width="26%" rowspan="7" valign="top">
+            <td class="table_row_even" width="26%" rowspan="7" valign="top">
 
             <? // Infobox
 
@@ -175,7 +177,7 @@ if (1 || $back_msg || $info_msg || $enter) {
     $infobox[0]["kategorie"] = _("Aktionen:");
     if ($enter) {
         $infobox[0]["eintrag"][] = array (  "icon" => "icons/16/black/schedule.png" ,
-                                    "text"  => "<a href=\"$PHP_SELF?cmd=enter&stm_instance_id=".$stm_obj->getId()."&send_from_search=1&send_from_search_page=".urlencode($send_from_search_page)."\">"._("Tragen Sie sich hier in das Modul ein"). "</a>"
+                                    "text"  => "<a href=\"".URLHelper::getLink('?cmd=enter&stm_instance_id=".$stm_obj->getId()."&send_from_search=1&send_from_search_page='.urlencode($send_from_search_page))."\">"._("Tragen Sie sich hier in das Modul ein"). "</a>"
                                 );
     }
     if ($back_msg) {
@@ -217,7 +219,7 @@ print_infobox ($infobox, "infobox/contract.jpg");
                 </td>
                 <td class="<? echo $cssSw->getClass() ?>" valign="top" width="45%">
                 <?
-                 printf ("<font size=-1><b>" . _("Modulverantwortlicher:") . "</b></font><br><font size=-1><a href=\"about.php?username=%s\">%s</a></font>",get_username($stm_obj->getValue('responsible')), htmlReady(get_fullname($stm_obj->getValue('responsible'))));
+                 printf ("<font size=-1><b>" . _("Modulverantwortlicher:") . "</b></font><br><font size=-1><a href=\"dispatch.php/profile?username=%s\">%s</a></font>",get_username($stm_obj->getValue('responsible')), htmlReady(get_fullname($stm_obj->getValue('responsible'))));
                 ?>
                 </td>
                 <td class="<? echo $cssSw->getClass() ?>" valign="top" width="25%">
@@ -330,7 +332,7 @@ print_infobox ($infobox, "infobox/contract.jpg");
                     $dozenten = '';
                     foreach($stm_obj->elements[$element_id]->getValue('dozenten') as $dozent){
                         if ($dozenten) $dozenten .= ', ';
-                        $dozenten .= sprintf("<a href=\"about.php?username=%s\">%s</a>", $dozent['username'], htmlReady($dozent['Nachname'] . ', ' . $dozent['Vorname']{0} . '.'));
+                        $dozenten .= sprintf("<a href=\"dispatch.php/profile?username=%s\">%s</a>", $dozent['username'], htmlReady($dozent['Nachname'] . ', ' . $dozent['Vorname']{0} . '.'));
                     }
                     ?>
                     <tr>

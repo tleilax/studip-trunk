@@ -13,12 +13,12 @@
 
 <h3><?= _('Verwaltung von generischen Datenfeldern') ?></h3>
 
-<!-- Datenfelder für Veranstaltungen -->
+<!-- Alle Datenfelder  -->
 <table class="collapsable default" cellspacing="0" cellpadding="2">
 <? foreach ($datafields_list as $key => $data): ?>
     <tbody class="<?= ((!is_null($current_class) && $current_class == $key) || !is_null($class_filter)) ? '': 'collapsed' ?> <? if (empty($datafields_list[$key])): ?>empty<? endif ?>">
-        <tr class="steel header-row">
-            <td class="toggle-indicator" colspan="8">
+        <tr class="table_header header-row">
+            <td class="toggle-indicator" colspan="10">
             <? if (empty($datafields_list[$key])): ?>
                 <?= sprintf(_('Datenfelder für %s'), $allclasses[$key]) ?>
             <? else: ?>
@@ -28,7 +28,7 @@
             <? endif; ?>
             </td>
         </tr>
-        <tr class="steel2" style="text-align: center;">
+        <tr class="table_footer" style="text-align: center;">
             <th style="text-align: left;"><?=_("Name")?></th>
             <th><?=_("Feldtyp")?></th>
             <th>
@@ -42,12 +42,14 @@
             </th>
             <th><?= _('benötigter Status') ?></th>
             <th><?= _('Sichtbarkeit') ?></th>
+            <th><?= (in_array($key, array('sem'))? _('Pflichtfeld'):'') ?></th>
+            <th><?= (in_array($key, array('sem'))? _('Beschreibung'):'') ?></th>
             <th><?= _('Reihenfolge') ?></th>
             <th><?= _('Einträge') ?></th>
             <th style="text-align: right;"><?= _('Aktionen') ?></th>
         </tr>
     <? foreach ($data as $input => $val): ?>
-        <tr class="<?= TextHelper::cycle('cycle_odd', 'cycle_even') ?>">
+        <tr class="<?= TextHelper::cycle('hover_odd', 'hover_even') ?>">
             <td>
                 <a name="item_<?= $val->getID() ?>"></a>
                 <?= htmlReady($val->getName()) ?>
@@ -74,6 +76,17 @@
             </td>
             <td><?= $val->getEditPerms() ?></td>
             <td><?= $val->getViewPerms() ?></td>
+            <td>
+             <? if (in_array($key, array('sem'))): ?>
+              <?= Assets::img('icons/16/grey/'.($val->getIsRequired()?'accept.png':'decline.png'))?>
+             <? endif; ?>
+            </td>
+             <td>
+             <? if (in_array($key, array('sem'))): ?>
+              <?= Assets::img('icons/16/grey/'.(trim($val->getDescription())?'accept.png':'decline.png'))?>
+             <? endif; ?>
+            </td>
+            
             <td><?= $val->getPriority() ?></td>
             <td><?= $val->getCachedNumEntries() ?></td>
             <td style="text-align: right;">

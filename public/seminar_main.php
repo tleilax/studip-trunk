@@ -27,7 +27,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 require '../lib/bootstrap.php';
 
 unregister_globals();
-
+ob_start();
 page_open(array("sess" => "Seminar_Session", "auth" => "Seminar_Default_Auth", "perm" => "Seminar_Perm", "user" => "Seminar_User"));
 $auth->login_if(Request::get('again') && ($auth->auth["uid"] == "nobody"));
 
@@ -44,12 +44,6 @@ require_once 'lib/functions.php';
 require_once 'lib/classes/CourseAvatar.class.php';
 require_once 'lib/classes/StudygroupAvatar.class.php';
 
-if (get_config('CHAT_ENABLE')){
-    include_once $RELATIVE_PATH_CHAT."/chat_func_inc.php";
-    if ($_REQUEST['kill_chat']){
-        chat_kill_chat($_REQUEST['kill_chat']);
-    }
-}
 if (get_config('VOTE_ENABLE')) {
     include_once ("lib/vote/vote_show.inc.php");
 }
@@ -62,14 +56,36 @@ if (Request::get('auswahl')) {
 }
 
 // gibt es eine Anweisung zur Umleitung?
-if(Request::get('redirect_to')) {
+if (Request::get('redirect_to')) {
     $query_parts = explode('&', stristr($_SERVER['QUERY_STRING'], 'redirect_to'));
     list( , $where_to) = explode('=', array_shift($query_parts));
     $new_query = $where_to . '?' . join('&', $query_parts);
     page_close();
     $new_query = preg_replace('/[^0-9a-z+_#?&=.-\/]/i', '', $new_query);
-    header('Location: '.URLHelper::getURL($new_query));
+    header('Location: '.URLHelper::getURL($new_query, array('cid' => $course_id)));
     die;
+}
+$sem = new Seminar($course_id);
+$sem_class = $GLOBALS['SEM_CLASS'][$GLOBALS['SEM_TYPE'][$sem->status]['class']];
+$sem_class || $sem_class = SemClass::getDefaultSemClass();
+if ($sem_class->getSlotModule("overview") !== "CoreOverview") {
+    foreach ($sem_class->getNavigationForSlot("overview") as $nav) {
+        header('Location: '.URLHelper::getURL($nav->getURL()));
+        die;
+    }
+} else {
+    $Modules = new Modules();
+    $course_modules = $Modules->getLocalModules($course_id);
+    if (!$course_modules['overview'] && !$sem_class->isSlotMandatory("overview")) {
+        //Keine Übersichtsseite. Anstatt eines Fehler wird der Nutzer zum ersten
+        //Reiter der Veranstaltung weiter geleitet.
+        if (Navigation::hasItem("/course")) {
+            foreach (Navigation::getItem("/course")->getSubNavigation() as $navigation) {
+                header('Location: '.URLHelper::getURL($navigation->getURL()));
+                die;
+            }
+        }
+    }
 }
 
 if (get_config('NEWS_RSS_EXPORT_ENABLE') && $course_id){
@@ -89,10 +105,6 @@ PageLayout::setTitle($GLOBALS['SessSemName']["header_line"]. " - " . _("Kurzinfo
 Navigation::activateItem('/course/main/info');
 // add skip link
 SkipLinks::addIndex(Navigation::getItem('/course/main/info')->getTitle(), 'main_content', 100);
-
-// Start of Output
-include ('lib/include/html_head.inc.php'); // Output of html head
-include ('lib/include/header.php');   // Output of Stud.IP head
 
 include 'lib/showNews.inc.php';
 include 'lib/show_dates.inc.php';
@@ -124,7 +136,6 @@ $quarter_year = 60 * 60 * 24 * 90;
 <table width="100%" border=0 cellpadding=0 cellspacing=0>
     <tr>
         <td class="blank" valign="top" id="main_content">
-        <div style="padding:0 1.5em 1.5em 1.5em">
     <?
     echo "<h3>".htmlReady($GLOBALS['SessSemName']["header_line"]). "</h3>";
     if ($GLOBALS['SessSemName'][3]) {
@@ -160,7 +171,7 @@ $quarter_year = 60 * 60 * 24 * 90;
     $num_dozenten = count($dozenten);
     $show_dozenten = array();
     foreach($dozenten as $dozent) {
-        $show_dozenten[] = '<a href="'.URLHelper::getLink("about.php?username=".$dozent['username']).'">'
+        $show_dozenten[] = '<a href="'.URLHelper::getLink("dispatch.php/profile?username=".$dozent['username']).'">'
                             . htmlready($num_dozenten > 10 ? get_fullname($dozent['user_id'], 'no_title_short') : $dozent['fullname'])
                             . '</a>';
     }
@@ -206,12 +217,11 @@ $quarter_year = 60 * 60 * 24 * 90;
         $all_mods = $sem->getMembers('dozent') + $sem->getMembers('tutor');
         $mods = array();
         foreach($all_mods as $mod) {
-            $mods[] = '<a href="'.URLHelper::getLink("about.php?username=".$mod['username']).'">'.htmlready($mod['fullname']).'</a>';
+            $mods[] = '<a href="'.URLHelper::getLink("dispatch.php/profile?username=".$mod['username']).'">'.htmlready($mod['fullname']).'</a>';
         }
         echo implode(', ', $mods);
     }
 ?>
-        </div>
         </td>
         <td class="blank" align="right" valign="top">
             <? if ($studygroup_mode) : ?>
@@ -222,7 +232,6 @@ $quarter_year = 60 * 60 * 24 * 90;
         </td>
     </tr>
     </table>
-<br>
 
 <?php
 
@@ -232,9 +241,16 @@ show_news($course_id, $rechte, 0, $smain_data["nopen"], "100%", object_get_visit
 // Anzeige von Terminen
 $start_zeit=time();
 $end_zeit=$start_zeit+1210000;
-
-($rechte) ? $show_admin=URLHelper::getLink("admin_dates.php?range_id=".$course_id."&ebene=sem&new_sem=TRUE") : $show_admin=FALSE;
+$show_admin = false;
 if (!$studygroup_mode) {
+    if ($rechte) {
+        $show_admin = URLHelper::getLink("admin_dates.php?range_id=".$course_id."&ebene=sem&new_sem=TRUE");
+        PageLayout::addSqueezePackage('raumzeit');
+        PageLayout::addHeadElement('script', array(), "
+        jQuery(function () {
+            STUDIP.CancelDatesDialog.reloadUrlOnClose = '" . UrlHelper::getUrl() ."';
+        });");
+    }
     show_dates($start_zeit, $end_zeit, $smain_data["dopen"], $course_id, 0, TRUE, $show_admin);
 }
 
@@ -256,10 +272,7 @@ foreach ($plugins as $plugin) {
     }
 }
 
-// show chat info
-if (get_config('CHAT_ENABLE') && $modules["chat"]) {
-    chat_show_info($course_id);
-}
-
-include ('lib/include/html_end.inc.php');
+$layout = $GLOBALS['template_factory']->open('layouts/base.php');
+$layout->content_for_layout = ob_get_clean();
+echo $layout->render();
 page_close();

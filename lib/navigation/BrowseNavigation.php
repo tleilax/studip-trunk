@@ -35,7 +35,7 @@ class BrowseNavigation extends Navigation
         parent::__construct($coursetext, $courselink);
 
         if (!$_SESSION['SessionSeminar']) {
-            $this->setImage('header/seminar.png', array('title' => $courseinfo));
+            $this->setImage('header/seminar.png', array('title' => $courseinfo, "@2x" => TRUE));
         }
     }
 
@@ -58,13 +58,13 @@ class BrowseNavigation extends Navigation
             if ($perm->have_perm('admin')) {
                 $navigation->addSubNavigation('schedule', new Navigation(_('Veranstaltungs-Stundenplan'), 'dispatch.php/calendar/schedule'));
             } else {
-                $navigation->addSubNavigation('group', new Navigation(_('Gruppenzuordnung'), 'gruppe.php'));
+                $navigation->addSubNavigation('groups', new Navigation(_('Gruppenzuordnung'), 'dispatch.php/meine_seminare/groups'));
 
                 if (get_config('STM_ENABLE') && $perm->have_perm('dozent')) {
                     $navigation->addSubNavigation('modules', new Navigation(_('Meine Studienmodule'), 'my_stm.php'));
                 }
 
-                $navigation->addSubNavigation('archive', new Navigation(_('Meine archivierten Veranstaltungen'), 'my_archiv.php'));
+                $navigation->addSubNavigation('archive', new Navigation(_('Meine archivierten Veranstaltungen'), 'dispatch.php/meine_seminare/archive'));
 
                 if (get_config('EXPORT_ENABLE')) {
                     $navigation->addSubNavigation('record_of_study', new Navigation(_('Druckansicht'), 'recordofstudy.php'));

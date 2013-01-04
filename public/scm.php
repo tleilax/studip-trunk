@@ -73,10 +73,15 @@ if ($perm->have_studip_perm('tutor', $SessSemName[1]) && in_array($i_view, words
     } else if ($i_view == 'first_position') {
         $scm = new StudipScmEntry($_show_scm);
         if (!$scm->isNew() && $scm->getValue('range_id') == $SessSemName[1]){
-            $minmkdate = DBManager::get()
-                ->query("SELECT MIN(mkdate)-1 FROM scm WHERE range_id='" .  $scm->getValue('range_id') . "'")
-                ->fetchColumn();
-            if(DBManager::get()->exec("UPDATE scm SET mkdate='$minmkdate' WHERE scm_id='" . $scm->getId() . "'")){
+            $query = "SELECT MIN(mkdate) - 1 FROM scm WHERE range_id = ?";
+            $statement = DBManager::get()->prepare($query);
+            $statement->execute(array($scm->getValue('range_id')));
+            $minmkdate = $statement->fetchColumn();
+
+            $query = "UPDATE scm SET mkdate = ? WHERE scm_id = ?";
+            $statement = DBManager::get()->prepare($query);
+            $statement->execute(array($minmkdate, $scm->getId()));
+            if ($statement->rowCount() > 0) {
                 $msg = "msg§" . _("Der Eintrag wurde an die erste Position verschoben.");
             }
         }
@@ -132,7 +137,7 @@ function scm_seminar_footer($table) {
 
 function scm_change_header($table, $titel, $user_id, $chdate) {
     $zusatz = "<font size=-1>";
-    $zusatz .= sprintf(_("Zuletzt ge&auml;ndert von %s am %s"), "</font><a href=\"".URLHelper::getLink("about.php?username=".get_username($user_id))."\"><font size=-1 color=\"#333399\">".get_fullname ($user_id,'full',true)."</font></a><font size=-1>", date("d.m.Y, H:i",$chdate)."<font size=-1>&nbsp;"."</font>");
+    $zusatz .= sprintf(_("Zuletzt ge&auml;ndert von %s am %s"), "</font><a href=\"".URLHelper::getLink("dispatch.php/profile?username=".get_username($user_id))."\"><font size=-1 color=\"#333399\">".get_fullname ($user_id,'full',true)."</font></a><font size=-1>", date("d.m.Y, H:i",$chdate)."<font size=-1>&nbsp;"."</font>");
     $icon = Assets::img('icons/16/grey/infopage.png', array('class' => 'text-top'));
 
     echo $table->openRow();
@@ -188,7 +193,7 @@ function scm_show_content($range_id, $msg, $scm_id) {
         echo $printcontent_table->close();
         echo $content_table->closeRow();
     } else {
-        parse_msg("info§<font size=-1><b>". _("In diesem Bereich wurden noch keine Inhalte erstellt.") . "</b></font>", "§", "steel1", 2, FALSE);
+        parse_msg("info§<font size=-1><b>". _("In diesem Bereich wurden noch keine Inhalte erstellt.") . "</b></font>", "§", "table_row_even", 2, FALSE);
     }
     echo $content_table->close();
     echo $frame_table->row(array("&nbsp;"));
@@ -245,7 +250,7 @@ function scm_edit_content($range_id, $scm_id) {
     $content.= "<input type=\"HIDDEN\" name=\"i_view\" value=\"change\">";
 
     $edit = Button::create(_('Übernehmen'), 'send_scm', array('title' => _('Änderungen vornehmen')));   
-    $edit.="&nbsp;" . LinkButton::createCancel(_('Abbrechen'));
+    $edit.="&nbsp;" . LinkButton::createCancel(_('Abbrechen'), URLHelper::getURL("", array("show_scm" => $scm_id)));
     $edit .= "<font size=\"-1\">&nbsp;&nbsp;<a href=\"".URLHelper::getLink('dispatch.php/smileys')."\" target=\"_blank\">";
 
     $help_url = format_help_url("Basis.VerschiedenesFormat");

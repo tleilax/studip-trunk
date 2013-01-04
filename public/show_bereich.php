@@ -49,10 +49,12 @@ if ($id) {
 
 $group_by = Request::int('group_by', 0);
 
-if (Request::option('select_sem') !== null && Request::option('select_sem') !== '0') {
+ // store the seleced semester in the session
+if (Request::option('select_sem')) {
     $_SESSION['_default_sem'] = Request::option('select_sem');
 }
-$show_semester = Request::option('select_sem') !== null ? Request::option('select_sem') : $_SESSION['_default_sem'];
+
+$show_semester = Request::option('select_sem', $_SESSION['_default_sem']);
 $sem_browse_obj = new SemBrowse(array('group_by' => 0));
 $sem_browse_obj->sem_browse_data['default_sem'] = "all";
 $sem_browse_obj->sem_number = false;
@@ -67,21 +69,17 @@ if ($show_semester) {
 
 switch ($level) {
 case "sbb":
-    $the_tree = TreeAbstract::GetInstance("StudipSemTree", array('visible_only' => !$GLOBALS['perm']->have_perm(get_config('SEM_VISIBILITY_PERM'))));
+    $sem_browse_obj->sem_browse_data['start_item_id'] = $id;
+    $sem_browse_obj->get_sem_range($id, false);
+    $sem_browse_obj->show_result = true;
+    $sem_browse_obj->sem_browse_data['sset'] = false;
+
+    $the_tree = $sem_browse_obj->sem_tree->tree;
     $bereich_typ = _("Studienbereich");
     $head_text = _("Übersicht aller Veranstaltungen eines Studienbereichs");
     $intro_text = sprintf(_("Alle Veranstaltungen, die dem Studienbereich: <br><b>%s</b><br> zugeordnet wurden."),
         htmlReady($the_tree->getShortPath($id)));
     $excel_text = strip_tags(DecodeHtml($intro_text));
-    $sem_ids = $the_tree->getSemIds($id, false);
-    if (is_array($sem_ids)) {
-        $sem_browse_obj->sem_browse_data['search_result'] = array_flip($sem_ids);
-    } else {
-        $sem_browse_obj->sem_browse_data['search_result'] = array();
-    }
-    $sem_browse_obj->show_result = true;
-    $sem_browse_obj->sem_browse_data['sset'] = false;
-    $sem_browse_obj->sem_browse_data['start_item_id'] = $id;
     break;
 case "s":
     $db = DbManager::get();
@@ -89,22 +87,36 @@ case "s":
     $head_text = _("Übersicht aller Veranstaltungen einer Einrichtung");
     $intro_text = sprintf(_("Alle Veranstaltungen der Einrichtung: <b>%s</b>"), htmlReady(Institute::find($id)->name));
     $excel_text = strip_tags(DecodeHtml($intro_text));
-    $query = "SELECT seminar_inst.seminar_id FROM seminar_inst "
-              ."LEFT JOIN seminare s ON (seminar_inst.seminar_id=s.Seminar_id) "
-              . ($show_semester ? "
-                  INNER JOIN semester_data sd ON((s.start_time <= sd.beginn
-                  AND sd.beginn <= ( s.start_time + s.duration_time )
-                  OR (s.start_time <= sd.beginn AND s.duration_time = -1))
-                  AND semester_id = " . $db->quote($show_semester) . ")"
-                  : "")
-              . " WHERE seminar_inst.Institut_id=".$db->quote($id)
-              . (!$GLOBALS['perm']->have_perm(get_config('SEM_VISIBILITY_PERM')) ? " AND s.visible=1" : "");
-    $sem_browse_obj->sem_browse_data['search_result'] = array_flip($db->query($query)->fetchAll(PDO::FETCH_COLUMN));
+
+    $parameters = array($id);
+    if ($show_semester) {
+        $query = "SELECT seminar_inst.seminar_id
+                  FROM seminar_inst
+                  LEFT JOIN seminare AS s ON (seminar_inst.seminar_id = s.Seminar_id)
+                  INNER JOIN semester_data sd
+                     ON ((s.start_time <= sd.beginn AND sd.beginn <= (s.start_time + s.duration_time )
+                         OR (s.start_time <= sd.beginn AND s.duration_time = -1))
+                      AND semester_id = ?)
+                  WHERE seminar_inst.Institut_id = ?";
+        array_unshift($parameters, $show_semester);
+    } else {
+        $query = "SELECT seminar_inst.seminar_id
+                  FROM seminar_inst
+                  LEFT JOIN seminare AS s ON (seminar_inst.seminar_id = s.Seminar_id)
+                  WHERE seminar_inst.Institut_id = ?";
+    }
+    if (!$GLOBALS['perm']->have_perm(get_config('SEM_VISIBILITY_PERM'))) {
+        $query .= " AND s.visible = 1";
+    }
+    $statement = DBManager::get()->prepare($query);
+    $statement->execute($parameters);
+    $seminar_ids = $statement->fetchAll(PDO::FETCH_COLUMN);
+    $sem_browse_obj->sem_browse_data['search_result'] = array_flip($seminar_ids);
     $sem_browse_obj->show_result = true;
     break;
 }
 
-if (isset($_REQUEST['send_excel'])){
+if (Request::int('send_excel')){
     $tmpfile = basename($sem_browse_obj->create_result_xls($excel_text));
     if($tmpfile){
         header('Location: ' . getDownloadLink( $tmpfile, _("Veranstaltungsübersicht.xls"), 4));
@@ -165,11 +177,11 @@ if (get_config('EXPORT_ENABLE') && $perm->have_perm("tutor")) {
 <div style="text-align:right">
     <form method="post" name="sem_form">
     <?= _("Semester:") ?>
-    <?= SemesterData::GetSemesterSelector(array('name'=>'select_sem'), $show_semester) ?>
+    <?= SemesterData::GetSemesterSelector(array('name'=>'select_sem'), $show_semester, 'semester_id', false) ?>
     <?= \Studip\Button::create(_("Auswählen"), 'choose_sem', array('title' => _("anderes Semester auswählen"))); ?>
     </form>
 </div>
-<?= $sem_browse_obj->print_result(); ?>
+<? $sem_browse_obj->print_result(); ?>
 
 <?php
 $layout = $GLOBALS['template_factory']->open('layouts/base.php');

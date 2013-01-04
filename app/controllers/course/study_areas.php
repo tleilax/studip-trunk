@@ -113,9 +113,8 @@ class Course_StudyAreasController extends AuthenticatedController
         if (!$this->locked && !$this->areas_not_allowed) {
 
             // renew status
-            $study_areas = isset($_REQUEST['study_area_selection'])
-                ? remove_magic_quotes($_REQUEST['study_area_selection'])
-                : array();
+            $study_areas = Request::getArray('study_area_selection');
+               
 
             if (isset($study_areas['last_selected'])) {
                 $this->selection->setSelected((string) $study_areas['last_selected']);
@@ -195,7 +194,7 @@ class Course_StudyAreasController extends AuthenticatedController
 
         // retrieve the study area from the POST body
         // w/o a study area ID, render a BAD REQUEST
-        $id = isset($_POST['id']) ? $_POST['id'] : NULL;
+        $id = Request::option('id');
         if ($id === NULL) {
             $this->set_status(400);
             return $this->render_nothing();
@@ -221,7 +220,7 @@ class Course_StudyAreasController extends AuthenticatedController
     function remove_action($course_id = '-')
     {
 
-        $id = isset($_POST['id']) ? $_POST['id'] : NULL;
+        $id = Request::option('id');
 
         if ($id === NULL) {
             $this->set_status(400);

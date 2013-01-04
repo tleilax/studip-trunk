@@ -17,6 +17,7 @@
 require_once 'app/controllers/authenticated_controller.php';
 require_once 'app/models/user.php';
 require_once 'lib/classes/UserManagement.class.php';
+require_once 'lib/classes/Institute.class.php';
 require_once 'vendor/email_message/blackhole_message.php';
 
 /**
@@ -93,7 +94,7 @@ class Admin_UserController extends AuthenticatedController
         if (isset($request)) {
             //suche mit datafields
             foreach ($datafields as $id => $datafield) {
-                if (($request[$id] || ($datafield->getType() == 'bool' && isset($request[$id])))
+                if (($request[$id] || ($datafield->getType() == 'bool' && strlen($request[$id]) > 0))
                     && ($datafield->getType() != 'selectbox' && $request[$id] != 'alle')) {
                     $search_datafields[$id] = $request[$id];
                 }
@@ -112,20 +113,46 @@ class Admin_UserController extends AuthenticatedController
             //Daten abrufen
             $this->users = UserModel::getUsers($request['username'], $request['vorname'],
                 $request['nachname'], $request['email'], $inaktiv, $request['perm'],
-                $request['locked'], $search_datafields, $this->sortby, $this->order);
+                $request['locked'], $search_datafields, $request['userdomains'], $request['auth_plugins'], $this->sortby,  $this->order);
 
             // Fehler abfangen
-            if ($this->users == 0) {
+            if ($this->users === 0) {
                 PageLayout::postMessage(MessageBox::info(_('Sie haben keine Suchkriterien ausgewählt!')));
             } elseif (count($this->users) < 1 && Request::submitted('search')) {
                 PageLayout::postMessage(MessageBox::info(_('Es wurden keine Benutzer mit diesen Suchkriterien gefunden.')));
             } else {
                 $_SESSION['admin']['user']['results'] = true;
             }
+            if (is_array($this->users) && Request::submitted('export')) {
+                $tmpname = md5(uniqid('tmp'));
+                $captions = array('username',
+                                   'vorname', 
+                                   'nachname', 
+                                   'email', 
+                                   'status', 
+                                   'authentifizierung', 
+                                   'registriert seit', 
+                                   'inaktiv seit');
+                $mapper = function ($u) {
+                    return array( $u['username'],
+                                    $u['Vorname'],
+                                    $u['Nachname'], 
+                                    $u['Email'], 
+                                    $u['perms'], 
+                                    $u['auth_plugin'], 
+                                    strftime('%x', $u['mkdate']), 
+                                    strftime('%x', $u['changed_timestamp']));
+                };
+                if (array_to_csv(array_map($mapper, $this->users), $GLOBALS['TMP_PATH'].'/'.$tmpname, $captions)) {
+                    $this->redirect(GetDownloadLink($tmpname, 'nutzer-export.csv', 4, 'force'));
+                }
+            }
         }
-
+        $this->userdomains = UserDomain::getUserDomains();
+        $this->available_auth_plugins = UserModel::getAvailableAuthPlugins();
+        
         //show datafields search
-        if ($advanced || count($search_datafields) > 0) {
+        if ($advanced || $request['auth_plugins'] || $request['userdomains'] || count($search_datafields) > 0) {
             $this->advanced = true;
         }
     }
@@ -311,8 +338,7 @@ class Admin_UserController extends AuthenticatedController
                     if (strlen(Request::get('pass_1')) < 4) {
                         $details[] = _("Das Passwort ist zu kurz. Es sollte mindestens 4 Zeichen lang sein.");
                     } else {
-                        $um->changePassword(Request::get('pass_1'));
-                        $details = explode('§', str_replace(array('msg§', 'info§', 'error§'), '', substr($um->msg, 0, -1)));
+                        $um->changePassword(Request::get('pass_1'));                      
                     }
                 } else {
                     $details[] = _("Bei der Wiederholung des Passwortes ist ein Fehler aufgetreten! Bitte geben Sie das exakte Passwort ein!");
@@ -348,8 +374,10 @@ class Admin_UserController extends AuthenticatedController
             }
 
             //change institute for studiendaten
-            if (in_array($editPerms[0], array('autor', 'tutor', 'dozent')) && Request::option('new_student_inst') != 'none' &&
-                Request::option('new_student_inst') != Request::option('new_inst')) {
+            if (in_array($editPerms[0], array('autor', 'tutor', 'dozent'))
+                    && Request::option('new_student_inst') != 'none'
+                    && Request::option('new_student_inst') != Request::option('new_inst')
+                    && $GLOBALS['perm']->have_studip_perm("admin", Request::option('new_student_inst'))) {
                 log_event('INST_USER_ADD', Request::option('new_student_inst'), $user_id, 'user');
                 $db = DbManager::get()->prepare("INSERT IGNORE INTO user_inst (user_id, Institut_id, inst_perms) "
                                                ."VALUES (?,?,'user')");
@@ -358,7 +386,10 @@ class Admin_UserController extends AuthenticatedController
             }
 
             //change institute
-            if (Request::option('new_inst') != 'none' && Request::option('new_student_inst') != Request::option('new_inst') && $editPerms[0] != 'root') {
+            if (Request::option('new_inst') != 'none'
+                    && Request::option('new_student_inst') != Request::option('new_inst')
+                    && $editPerms[0] != 'root'
+                    && $GLOBALS['perm']->have_studip_perm("admin", Request::option('new_inst'))) {
                 log_event('INST_USER_ADD', Request::option('new_inst'), $user_id, $editPerms[0]);
                 $db = DbManager::get()->prepare("REPLACE INTO user_inst (user_id, Institut_id, inst_perms) "
                                                ."VALUES (?,?,?)");
@@ -421,7 +452,7 @@ class Admin_UserController extends AuthenticatedController
             }
             //get message
             $umdetails = explode('§', str_replace(array('msg§', 'info§', 'error§'), '', substr($um->msg, 0, -1)));
-            $details = array_reverse(array_merge((array)$details,(array)$umdetails));
+            $details = array_reverse(array_merge((array)$details,(array)$umdetails));          
             PageLayout::postMessage(Messagebox::info(_('Hinweise:'), $details));
         }
 
@@ -432,7 +463,7 @@ class Admin_UserController extends AuthenticatedController
         $this->studycourses = UserModel::getUserStudycourse($user_id);
         $this->student_institutes = UserModel::getUserInstitute($user_id, true);
         $this->institutes = UserModel::getUserInstitute($user_id);
-        $this->available_institutes = UserModel::getAvailableInstitutes($user_id);
+        $this->available_institutes = Institute::getMyInstitutes();
         $this->datafields = DataFieldStructure::getDataFieldStructures("user");
         $this->userfields = DataFieldEntry::getDataFieldEntries($user_id);
         $this->userdomains = UserDomain::getUserDomainsForUser($user_id);
@@ -519,13 +550,13 @@ class Admin_UserController extends AuthenticatedController
                     if ($check) {
                         //check recipients
                         if (Request::get('enable_mail_admin') == "admin" && Request::get('enable_mail_dozent') == "dozent") {
-                            $in = "'admin','dozent'";
+                            $in = words('admin dozent');
                             $wem = "Admins und Dozenten";
                         } elseif (Request::get('enable_mail_admin') == "admin") {
-                            $in = "'admin'";
+                            $in = 'admin';
                             $wem = "Admins";
                         } elseif (Request::get('enable_mail_dozent') == "dozent") {
-                            $in = "'dozent'";
+                            $in = 'dozent';
                             $wem = "Dozenten";
                         }
 
@@ -534,15 +565,25 @@ class Admin_UserController extends AuthenticatedController
                             $i = 0;
                             $notin = array();
 
-                            $sql = "SELECT Name FROM Institute WHERE Institut_id='" . Request::option('institute') . "'";
-                            $inst_name = DBManager::get()->query($sql)->fetch(PDO::FETCH_COLUMN);
+                            $sql = "SELECT Name FROM Institute WHERE Institut_id = ?";
+                            $statement = DBManager::get()->prepare($sql);
+                            $statement->execute(array(
+                                Request::option('institute')
+                            ));
+                            $inst_name = $statement->fetchColumn();
 
                             //get admins
-                            $sql = "SELECT a.user_id, b.Vorname, b.Nachname, b.Email FROM "
-                                 . "user_inst a INNER JOIN auth_user_md5 b ON a.user_id = b.user_id "
-                                 . "WHERE a.Institut_id = '" . Request::option('institute') . "' "
-                                 . "AND a.inst_perms IN ({$in}) AND a.user_id != '{$user_id}'";
-                            $users = DBManager::get()->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+                            $sql = "SELECT user_id, b.Vorname, b.Nachname, b.Email
+                                    FROM user_inst AS a
+                                    INNER JOIN auth_user_md5 AS b USING (user_id)
+                                    WHERE a.Institut_id = ? AND a.inst_perms IN (?) AND a.user_id != ?";
+                            $statement = DBManager::get()->prepare($sql);
+                            $statement->execute(array(
+                                Request::option('institute'),
+                                $in,
+                                $user_id
+                            ));
+                            $users = $statement->fetchAll(PDO::FETCH_ASSOC);
 
                             foreach ($users as $admin) {
                                 $subject = _("Neuer Administrator in Ihrer Einrichtung angelegt");
@@ -559,16 +600,23 @@ class Admin_UserController extends AuthenticatedController
                             }
 
                             //Noch ein paar Mails für die Fakultätsadmins
-                            if ($in != "'dozent'") {
-
+                            if ($in != 'dozent') {
+                                $notin[] = $user_id;
                                 //get admins
-                                $sql = sprintf("SELECT a.user_id,b.Vorname,b.Nachname,b.Email FROM user_inst a "
-                                     . "INNER JOIN auth_user_md5 b ON a.user_id = b.user_id WHERE a.user_id NOT "
-                                     . "IN ('%s','%s') AND  a.Institut_id IN (SELECT fakultaets_id FROM Institute "
-                                     . "WHERE Institut_id = '%s' AND fakultaets_id != Institut_id) AND "
-                                     . "a.inst_perms = 'admin' AND a.user_id != '%s' ", implode("','",$notin),
-                                     $user_id, Request::option('institute'), $user_id);
-                                $fak_admins = DBManager::get()->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+                                $sql = "SELECT a.user_id, b.Vorname, b.Nachname, b.Email
+                                        FROM user_inst AS a
+                                        INNER JOIN auth_user_md5 AS b USING (user_id)
+                                        WHERE a.user_id NOT IN (?) AND a.Institut_id IN (
+                                            SELECT fakultaets_id
+                                            FROM Institute
+                                            WHERE Institut_id = ? AND fakultaets_id != Institut_id
+                                        ) AND a.inst_perms = 'admin'";
+                                $statement = DBManager::get()->prepare($sql);
+                                $statement->execute(array(
+                                    $notin,
+                                    Request::option('institute')
+                                ));
+                                $fak_admins = $statement->fetchAll(PDO::FETCH_ASSOC);
 
                                 foreach ($fak_admins as $admin) {
                                     $subject = _("Neuer Administrator in Ihrer Einrichtung angelegt");
@@ -615,22 +663,35 @@ class Admin_UserController extends AuthenticatedController
         }
 
         if ($this->perm->have_perm('root')) {
-            $sql = "SELECT Institut_id, Name, 1 AS is_fak  FROM Institute WHERE Institut_id=fakultaets_id ORDER BY Name";
+            $sql = "SELECT Institut_id, Name, 1 AS is_fak
+                    FROM Institute
+                    WHERE Institut_id=fakultaets_id
+                    ORDER BY Name";
             $faks = DBManager::get()->query($sql)->fetchAll(PDO::FETCH_ASSOC);
             $domains = UserDomain::getUserDomains();
         } else {
-            $sql = "SELECT a.Institut_id, Name, IF(b.Institut_id=b.fakultaets_id,1,0) AS is_fak "
-                 . "FROM user_inst a LEFT JOIN Institute b USING (Institut_id) "
-                 . "WHERE a.user_id='{$auth->auth['uid']}' AND a.inst_perms='admin' ORDER BY is_fak, Name";
-            $faks = DBManager::get()->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+            $sql = "SELECT a.Institut_id, Name, b.Institut_id = b.fakultaets_id AS is_fak
+                    FROM user_inst a
+                    LEFT JOIN Institute b USING (Institut_id) 
+                    WHERE a.user_id = ? AND a.inst_perms = 'admin'
+                    ORDER BY is_fak, Name";
+            $statement = DBManager::get()->prepare($sql);
+            $statement->execute(array($auth->auth['uid']));
+            $faks = $statement->fetchAll(PDO::FETCH_ASSOC);
             $domains = UserDomain::getUserDomainsForUser($auth->auth["uid"]);
         }
 
+        $query = "SELECT Institut_id, Name
+                  FROM Institute
+                  WHERE fakultaets_id = ? AND institut_id != fakultaets_id
+                  ORDER BY Name";
+        $statement = DBManager::get()->prepare($query);
+
         foreach ($faks as $index => $fak) {
             if ($fak['is_fak']) {
-                $sql = "SELECT Institut_id, Name FROM Institute WHERE fakultaets_id='{$fak['Institut_id']}' "
-                     . "AND institut_id!='{$fak['Institut_id']}' ORDER BY Name";
-                $faks[$index]['institutes'] = DBManager::get()->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+                $statement->execute(array($fak['Institut_id']));
+                $faks[$index]['institutes'] = $statement->fetchAll(PDO::FETCH_ASSOC);
+                $statement->closeCursor();
             }
         }
 
@@ -723,7 +784,7 @@ class Admin_UserController extends AuthenticatedController
      */
     public function edit_institute_action($user_id, $institute_id)
     {
-        if (Request::submitted('uebernehmen')) {
+        if (Request::submitted('uebernehmen') && $GLOBALS['perm']->have_studip_perm("admin", $institute_id)) {
             //standard-values
             $values=array();
             foreach(words('inst_perms visible raum sprechzeiten Telefon Fax') as $param) {
@@ -787,10 +848,14 @@ class Admin_UserController extends AuthenticatedController
      */
     public function delete_institute_action($user_id, $institut_id)
     {
-        $db = DBManager::get()->prepare("DELETE FROM user_inst WHERE user_id = ? AND Institut_id = ?");
-        $db->execute(array($user_id, $institut_id));
-        if ($db->rowCount() == 1) {
-            PageLayout::postMessage(MessageBox::success(_('Die Einrichtung wurde erfolgreich gelöscht.')));
+        if ($GLOBALS['perm']->have_studip_perm("admin", $institut_id)) {
+            $db = DBManager::get()->prepare("DELETE FROM user_inst WHERE user_id = ? AND Institut_id = ?");
+            $db->execute(array($user_id, $institut_id));
+            if ($db->rowCount() == 1) {
+                PageLayout::postMessage(MessageBox::success(_('Die Einrichtung wurde erfolgreich gelöscht.')));
+            } else {
+                PageLayout::postMessage(MessageBox::error(_('Die Einrichtung konnte nicht gelöscht werden.')));
+            }
         } else {
             PageLayout::postMessage(MessageBox::error(_('Die Einrichtung konnte nicht gelöscht werden.')));
         }

@@ -29,9 +29,6 @@ use Studip\Button, Studip\LinkButton;
 define('SELECTED', ' checked');
 define('NOT_SELECTED', '');
 
-//$sess->register('issue_open');
-//$sess->register('raumzeitFilter');
-
 $_SESSION['issue_open'] = array();
 
 require_once ('lib/classes/Seminar.class.php');
@@ -62,8 +59,8 @@ if (!$perm->have_studip_perm('tutor', $id)) {
 }
 
 $powerFeatures = true;
-if (isset($_REQUEST['cmd'])) {
-    $cmd = $_REQUEST['cmd'];
+if (Request::option('cmd')) {
+    $cmd = Request::option('cmd');
 }
 $sem = new Seminar($id);
 $sem->checkFilter();
@@ -71,7 +68,7 @@ $themen =& $sem->getIssues();
 
 // if all entries are opened, we parse the submitted results into appropriate arrays
 foreach ($_REQUEST as $key => $val) {
-    if ($_REQUEST['allOpen']) {
+    if (Request::get('allOpen')) {
         if (strstr($key, 'theme_title')) {
             $keys = explode('§', $key);
             $changeTitle[$keys[1]] = $val;
@@ -156,7 +153,7 @@ $termine = getAllSortedSingleDates($sem);
             <table width="99%" cellspacing="0" cellpadding="0" border="0">
                 <? if (is_array($termine) && sizeof($termine) > 0) : ?>
                 <tr>
-                    <td class="steelgraulight" colspan="6" height="24" align="center">
+                    <td class="table_row_odd" colspan="6" height="24" align="center">
                         <a href="<?= URLHelper::getLink("?cmd=".(($openAll) ? 'close' : 'open')."All") ?>">
                             <IMG src="<?=$GLOBALS['ASSETS_URL']?>images/<?=($openAll) ? 'close' : 'open'?>_all.png" border="0" <?=tooltip(sprintf("Alle Termine %sklappen", ($openAll) ? 'zu' : 'auf'))?>>
                         </a>
@@ -175,7 +172,7 @@ $termine = getAllSortedSingleDates($sem);
                 </tr>
             <? if ($openAll) { ?>
                 <tr>
-                    <td class="steelgraulight" colspan="6" align="center" height="30" valign="middle">
+                    <td class="table_row_odd" colspan="6" align="center" height="30" valign="middle">
                         <input type="hidden" name="allOpen" value="TRUE">
                         <?= Button::create(_('Alles übernehmen'), 'editAll') ?>
                         &nbsp;&nbsp;&nbsp;
@@ -184,8 +181,8 @@ $termine = getAllSortedSingleDates($sem);
                 </tr>
 
                 <tr>
-                    <td class="steel1" colspan="4"></td>
-                    <td class="steel1" colspan="2" align="left" nowrap="nowrap">
+                    <td class="table_row_even" colspan="4"></td>
+                    <td class="table_row_even" colspan="2" align="left" nowrap="nowrap">
                         <font size="-1">
                             <? if ($modules['forum']) : ?>
                             <input type="checkbox" name="createAllForumFolders"> <?=_("Für alle Termine einen Forumsordner anlegen")?>
@@ -210,7 +207,7 @@ $termine = getAllSortedSingleDates($sem);
                                 $grenze = $zwsem['ende'];
                                 ?>
                                 <tr>
-                                    <td class="steelgraulight" align="center" colspan="9">
+                                    <td class="table_row_odd" align="center" colspan="9">
                                         <font size="-1"><b><?=$zwsem['name']?></b></font>
                                     </td>
                                 </tr>
@@ -267,7 +264,7 @@ $termine = getAllSortedSingleDates($sem);
             if ($openAll) {
                 ?>
                 <tr>
-                    <td class="steelgraulight" colspan="6" align="center" height="30" valign="middle">
+                    <td class="table_row_odd" colspan="6" align="center" height="30" valign="middle">
                         <input type="hidden" name="allOpen" value="TRUE">
                         <?= Button::create(_('Alles übernehmen'), 'editAll') ?>
                         &nbsp;&nbsp;&nbsp;

@@ -1,7 +1,7 @@
 <?php
 # Lifter002: TODO
 # Lifter007: TODO
-# Lifter003: TODO
+# Lifter003: TEST
 # Lifter010: TODO
 /*
 * DataFieldEntry.class.php - <short-description>
@@ -42,6 +42,11 @@ abstract class DataFieldEntry
         $this->rangeID = $rangeID;
         $this->value = $value;
     }
+    
+    function getDescription()
+    {
+        return $this->structure->getDescription();
+    }
 
     /**
      * Enter description here...
@@ -55,50 +60,48 @@ abstract class DataFieldEntry
     {
         if(! $range_id)
             return false; // we necessarily need a range ID
-        if(is_array($range_id))
-        { // rangeID may be an array ("classic" rangeID and second rangeID used for user roles)
+
+        $parameters = array();
+        if(is_array($range_id)) {
+            // rangeID may be an array ("classic" rangeID and second rangeID used for user roles)
             $secRangeID = $range_id[1];
             $rangeID = $range_id[0]; // to keep compatible with following code
-            if('usersemdata' !== $object_type && 'roleinstdata' !== $object_type)
-            {
+            if('usersemdata' !== $object_type && 'roleinstdata' !== $object_type) {
                 $object_type = 'userinstrole';
             }
-            $clause1 = "AND sec_range_id='$secRangeID'";
-        }
-        else
-        {
+            $clause1 = "AND sec_range_id= :sec_range_id";
+            $parameters[':sec_range_id'] = $secRangeID;
+        } else {
             $rangeID = $range_id;
         }
-        if(! $object_type)
+        if (!$object_type) {
             $object_type = get_object_type($rangeID);
-        if($object_type)
-        {
-            switch ($object_type)
-            {
+        }
+
+        if($object_type) {
+            switch ($object_type) {
                 case 'sem':
-                    if($object_class_hint)
-                    {
+                    if($object_class_hint) {
                         $object_class = SeminarCategories::GetByTypeId($object_class_hint);
-                    }
-                    else
-                    {
+                    } else {
                         $object_class = SeminarCategories::GetBySeminarId($rangeID);
                     }
-                    $clause2 = "object_class=" . (int) $object_class . " OR object_class IS NULL";
+                    $clause2 = "object_class = :object_class OR object_class IS NULL";
+                    $parameters[':object_class'] = (int) $object_class;
                     break;
                 case 'inst':
                 case 'fak':
-                    if($object_class_hint)
-                    {
+                    if($object_class_hint) {
                         $object_class = $object_class_hint;
-                    }
-                    else
-                    {
-                        $query = "SELECT type FROM Institute WHERE Institut_id = '$rangeID'";
-                        $object_class = DBManager::get()->query($query)->fetchColumn();
+                    } else {
+                        $query = "SELECT type FROM Institute WHERE Institut_id = ?";
+                        $statement = DBManager::get()->prepare($query);
+                        $statement->execute(array($rangeID));
+                        $object_class = $statement->fetchColumn();
                     }
                     $object_type = "inst";
-                    $clause2 = "object_class=" . (int) $object_class . " OR object_class IS NULL";
+                    $clause2 = "object_class = :object_class OR object_class IS NULL";
+                    $parameters[':object_class'] = (int) $object_class;
                     break;
                 case 'roleinstdata': //hmm tja, vermutlich so
                     $clause2 = '1';
@@ -107,18 +110,24 @@ abstract class DataFieldEntry
                 case 'userinstrole':
                 case 'usersemdata':
                     $object_class = is_object($GLOBALS['perm']) ? DataFieldStructure::permMask($GLOBALS['perm']->get_perm($rangeID)) : 0;
-                    $clause2 = "((object_class & " . (int) $object_class . ") OR object_class IS NULL)";
+                    $clause2 = "((object_class & :object_class) OR object_class IS NULL)";
+                    $parameters[':object_class'] = (int) $object_class;
                     break;
-                case 'plugin':
-                    $clause2 = '(object_class=' . (int) $object_class_hint . ')';
             }
-            $query = "SELECT a.*, content ";
-            $query .= "FROM datafields a LEFT JOIN datafields_entries b ON (a.datafield_id=b.datafield_id AND range_id = '$rangeID' $clause1) ";
-            $query .= "WHERE object_type ='$object_type' AND ($clause2) ORDER BY object_class, priority";
-            $rs = DBManager::get()->query($query);
+            $query = "SELECT a.*, content 
+                      FROM datafields AS a
+                      LEFT JOIN datafields_entries AS b
+                        ON (a.datafield_id = b.datafield_id AND range_id = :range_id {$clause1})
+                      WHERE object_type = :object_type AND ({$clause2})
+                      ORDER BY object_class, priority";
+            $parameters[':range_id']    = $rangeID;
+            $parameters[':object_type'] = $object_type;
+
+            $rs = DBManager::get()->prepare($query);
+            $rs->execute($parameters);
+
             $entries = array();
-            while($data = $rs->fetch(PDO::FETCH_ASSOC))
-            {
+            while($data = $rs->fetch(PDO::FETCH_ASSOC)) {
                 $struct = new DataFieldStructure($data);
                 $entries[$data['datafield_id']] = DataFieldEntry::createDataFieldEntry($struct, $range_id, $data['content']);
             }
@@ -360,7 +369,10 @@ abstract class DataFieldEntry
      */
     public function isValid()
     {
-        return true;
+        if(!trim($this->getValue()) && $this->structure->getIsRequired())
+           return false;
+        else 
+           return true;
     }
 
     /**
@@ -481,6 +493,7 @@ class DataFieldTextareaEntry extends DataFieldEntry
         $field_name = $name . '[' . $this->structure->getID() . ']';
         return sprintf('<textarea name="%s" rows="6" cols="58">%s</textarea>', $field_name, htmlReady($this->getValue()));
     }
+   
 }
 
 class DataFieldEmailEntry extends DataFieldEntry
@@ -495,8 +508,8 @@ class DataFieldEmailEntry extends DataFieldEntry
     function isValid()
     {
         if($this->getValue())
-            return preg_match("/^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})$/", strtolower($this->getValue()));
-        return true;
+            return (preg_match("/^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})$/", strtolower($this->getValue())) && parent::isValid());
+        return  parent::isValid();
     }
 }
 
@@ -531,7 +544,7 @@ class DataFieldLinkEntry extends DataFieldEntry
 
     public function isValid()
     {
-        return (preg_match('%^(https?|ftp)://%', $this->getValue()) || $this->getValue() == '');
+        return (preg_match('%^(https?|ftp)://%', $this->getValue()) || $this->getValue() == '')  && parent::isValid();
     }
 }
 
@@ -724,8 +737,8 @@ class DataFieldPhoneEntry extends DataFieldEntry
     function isValid()
     {
         if(trim($this->value) == '')
-            return true;
-        return preg_match('/^[1-9][0-9]*\n[1-9][0-9]+\n[1-9][0-9]+(-[0-9]+)?$/', $this->value);
+            return  parent::isValid();;
+        return (preg_match('/^[1-9][0-9]*\n[1-9][0-9]+\n[1-9][0-9]+(-[0-9]+)?$/', $this->value)  && parent::isValid());
     }
 }
 
@@ -771,10 +784,10 @@ class DataFieldDateEntry extends DataFieldEntry
     function isValid()
     {
         if(trim($this->value) == '')
-            return true;
+            return parent::isValid();
         $parts = explode("-", $this->value);
         $valid = preg_match('/^[0-9]{4}-[0-9]{1,2}-[0-9]{1,2}$/', $this->value);
-        return trim($this->value) != '' && $valid && checkdate($parts[1], $parts[2], $parts[0]);
+        return trim($this->value) != '' && $valid  && parent::isValid() && checkdate($parts[1], $parts[2], $parts[0]);
     }
 }
 
@@ -806,7 +819,7 @@ class DataFieldTimeEntry extends DataFieldEntry
     function isValid()
     {
         $parts = explode(':', $this->value);
-        return $parts[0] >= 0 && $parts[0] <= 24 && $parts[1] >= 0 && $parts[1] <= 59;
+        return (($parts[0] >= 0 && $parts[0] <= 24 && $parts[1] >= 0 && $parts[1] <= 59)  && parent::isValid());
     }
 }
 ?>

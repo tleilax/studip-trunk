@@ -1,7 +1,7 @@
 <?
 # Lifter002: TODO
 # Lifter007: TODO
-# Lifter003: TODO
+# Lifter003: TEST
 # Lifter010: TODO
 /**
 * ShowThread.class.php
@@ -52,29 +52,39 @@ class ShowThread extends ShowTreeRow {
     var $lines;     //Uebersichtsarray der Struktur;
 
     function ShowThread() {
-        $this->db = new DB_Seminar;
-        $this->db2 = new DB_Seminar;
     }
 
-    function showThreadLevel ($root_id, $level=0, $lines='') {
-        global $resources_data, $edit_structure_object, $RELATIVE_PATH_RESOURCES, $PHP_SELF, $ActualObjectPerms;
+    function showThreadLevel ($root_id, $level=0, $lines='')
+    {
+        global $edit_structure_object, $RELATIVE_PATH_RESOURCES, $ActualObjectPerms;
 
-        $db=new DB_Seminar;
-        $db2=new DB_Seminar;
+        // Prepare statement that obtains all children of a given resource
+        $query = "SELECT resource_id
+                  FROM resources_objects
+                  WHERE parent_id = ?
+                  ORDER BY name";
+        $children_statement = DBManager::get()->prepare($query);
 
         //Daten des Objects holen
-        $db->query("SELECT resource_id FROM resources_objects WHERE resource_id = '$root_id' ");
+        $query = "SELECT resource_id
+                  FROM resources_objects
+                  WHERE resource_id = ?";
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute(array($root_id));
+        $resource_ids = $statement->fetchAll(PDO::FETCH_COLUMN);
 
-        while ($db->next_record()) {
+        foreach ($resource_ids as $resource_id) {
             //Untergeordnete Objekte laden
-            $db2->query("SELECT resource_id FROM resources_objects WHERE parent_id = '".$db->f("resource_id")."' ORDER BY name ");
+            $children_statement->execute(array($resource_id));
+            $children = $children_statement->fetchAll(PDO::FETCH_COLUMN);
+            $children_statement->closeCursor();
 
             //Struktur merken
-            $weitere=$db2->affected_rows();
-            $this->lines[$level+1] = $weitere;
+            $weitere = count($children);
+            $this->lines[$level + 1] = $weitere;
 
             //Object erstellen
-            $resObject = ResourceObject::Factory($db->f("resource_id"));
+            $resObject = ResourceObject::Factory($resource_id);
 
             //Daten vorbereiten
             if (!$resObject->getCategoryIconnr())
@@ -82,13 +92,13 @@ class ShowThread extends ShowTreeRow {
             else
                 $icon="<img src=\"".$GLOBALS['ASSETS_URL']."images/cont_res".$resObject->getCategoryIconnr().".gif\">";
 
-            if ($resources_data["move_object"])
-                $icon="&nbsp;<a href=\"$PHP_SELF?target_object=".$resObject->id."#a\"><img src=\"".Assets::image_path('icons/16/yellow/arr_2right.png')."\" alt=\""._("Objekt in diese Ebene verschieben")."\"></a>".$icon;
+            if ($_SESSION['resources_data']["move_object"])
+                $icon="&nbsp;<a href=\"".URLHelper::getLink('?target_object='.$resObject->id)."#a\"><img src=\"".Assets::image_path('icons/16/yellow/arr_2right.png')."\" alt=\""._("Objekt in diese Ebene verschieben")."\"></a>".$icon;
 
-            if ($resources_data["structure_opens"][$resObject->id]) {
+            if ($_SESSION['resources_data']["structure_opens"][$resObject->id]) {
                 $link = URLHelper::getLink('?structure_close=' . $resObject->id . '#a');
                 $open = 'open';
-                if ($resources_data["actual_object"] == $resObject->id)
+                if ($_SESSION['resources_data']["actual_object"] == $resObject->id)
                     echo '<a name="a"></a>';
             } else {
                 $link = URLHelper::getLink('?structure_open=' . $resObject->id . '#a');
@@ -135,7 +145,7 @@ class ShowThread extends ShowTreeRow {
                 } else {
                     $content=htmlReady($resObject->getDescription());
                 }
-                if ($resources_data["move_object"] == $resObject->id)
+                if ($_SESSION['resources_data']["move_object"] == $resObject->id)
                     $content.= sprintf ("<br>"._("Dieses Objekt wurde zum Verschieben markiert. Bitte w&auml;hlen Sie das Einf&uuml;gen-Symbol %s, um es in die gew&uuml;nschte Ebene zu verschieben."), "<img src=\"".Assets::image_path('icons/16/yellow/arr_2right.png')."\" alt=\""._("Klicken Sie auf dieses Symbol, um dieses Objekt in eine andere Ebene zu verschieben")."\">");
 
                 if ($resObject->getCategoryId()) {
@@ -155,7 +165,7 @@ class ShowThread extends ShowTreeRow {
                     $edit .= LinkButton::create(_('Liste öffnen'), URLHelper::getURL('?open_list=' . $resObject->id));
                 }
 
-                if ($resources_data["move_object"] == $resObject->id) {
+                if ($_SESSION['resources_data']["move_object"] == $resObject->id) {
                     $edit .= LinkButton::createCancel(_('Abbrechen'), URLHelper::getURL('?cancel_move=TRUE'));
                 } else if ($perms == "admin") {
                     $edit .= LinkButton::create(_('Verschieben'), URLHelper::getURL('?pre_move_object=' . $resObject->id));
@@ -172,9 +182,9 @@ class ShowThread extends ShowTreeRow {
             $this->showRow($icon, $link, $titel, $zusatz, $level, $lines, $weitere, $new, $open, $content, $edit);
 
             //in weitere Ebene abtauchen &nbsp;
-            while ($db2->next_record()) {
-                if ($resources_data["structure_opens"][$db->f("resource_id")])
-                    $this->showThreadLevel($db2->f("resource_id"), $level+1, $lines);
+            foreach ($children as $child_id) {
+                if ($_SESSION['resources_data']['structure_opens'][$resource_id])
+                    $this->showThreadLevel($child_id, $level + 1, $lines);
             }
         }
     }

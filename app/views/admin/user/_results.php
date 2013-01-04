@@ -37,14 +37,14 @@ use Studip\Button, Studip\LinkButton;
     </tr>
 
     <? foreach ($users as $user) : ?>
-    <tr class="<?= TextHelper::cycle('cycle_odd', 'cycle_even')?>">
+    <tr class="<?= TextHelper::cycle('hover_odd', 'hover_even')?>">
         <td>
-            <a href="<?= URLHelper::getLink('about.php', array('username' => $user['username'])) ?>" title="<?= _('Profil des Benutzers anzeigen')?>">
+            <a href="<?= URLHelper::getLink('dispatch.php/profile', array('username' => $user['username'])) ?>" title="<?= _('Profil des Benutzers anzeigen')?>">
                  <?= Avatar::getAvatar($user['user_id'], $user['username'])->getImageTag(Avatar::SMALL, array('title' => htmlReady($user['Vorname'] . ' ' . $user['Nachname']))) ?>
             </a>
         </td>
         <td>
-            <a href="<?= URLHelper::getLink('about.php', array('username' => $user['username'])) ?>" title="<?= _('Profil des Benutzers anzeigen')?>">
+            <a href="<?= URLHelper::getLink('dispatch.php/profile', array('username' => $user['username'])) ?>" title="<?= _('Profil des Benutzers anzeigen')?>">
                 <?= $user['username'] ?>
             </a>
             <?= ($user['locked'] == '1') ?
@@ -93,7 +93,7 @@ use Studip\Button, Studip\LinkButton;
     </tr>
     <? endforeach ?>
 
-    <tr class="steel2">
+    <tr class="table_footer">
         <td colspan="10" align="right">
             <?= Button::create(_('Löschen'), array('title' => _('Alle ausgewählten Benutzer löschen')))?>
             <input class="middle" type="checkbox" name="check_all" title="<?= _('Alle Benutzer auswählen') ?>">

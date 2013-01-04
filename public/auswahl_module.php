@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 require '../lib/bootstrap.php';
 
+unregister_globals();
 page_open(array("sess" => "Seminar_Session", "auth" => "Seminar_Auth", "perm" => "Seminar_Perm", "user" => "Seminar_User"));
 
 include ("lib/seminar_open.php"); // initialise Stud.IP-Session
@@ -39,7 +40,7 @@ include ("lib/include/header.php");   // Output of Stud.IP head
 ?>
 <table width="70%" border=0 cellpadding=0 cellspacing=0 align="center">
 <tr>
-    <td class="topic" colspan="2"><?= Assets::img('icons/16/white/seminar.png')?> <b><?=_("Module in Stud.IP")?></b></td>
+    <td class="table_header_bold" colspan="2"><?= Assets::img('icons/16/white/seminar.png')?> <b><?=_("Module in Stud.IP")?></b></td>
 </tr>
 <tr>
     <td class="blank">

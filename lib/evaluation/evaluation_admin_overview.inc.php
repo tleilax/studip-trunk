@@ -66,7 +66,7 @@ $lib = new EvalOverview ($db, $perm, $user);
 
 /* Set variables ----------------------------------------------------------- */
 if( $_SESSION['evalID'] )   unset($_SESSION['evalID']);
-if( $_SESSION['evalID'] )  unset($_SESSION['rangeID']);
+if( $_SESSION['rangeID'] )  unset($_SESSION['rangeID']);
 
 if (!empty($the_range))
      $rangeID = $the_range;
@@ -75,15 +75,15 @@ $rangeID = ($rangeID) ? $rangeID : $SessSemName[1];
 
 if (empty ($rangeID) || ($rangeID == get_username ($user->id)))
      $rangeID = $user->id;
-
+$_SESSION['rangeID'] = $rangeID;
 $debug = 0;
 
 $evalAction = $lib->getPageCommand();
 
-$openID = $_REQUEST["openID"];
-$evalID = $_REQUEST["evalID"];
-$search = $_REQUEST["search"]; // range
-$templates_search = $_REQUEST["templates_search"];
+$openID = Request::option("openID");
+$evalID = Request::option("evalID");
+$search = Request::quoted("search"); // range
+$templates_search = Request::quoted("templates_search");
 $search = $templates_search;
 /* ---------------------------------------------------------- end: variables */
 
@@ -226,7 +226,7 @@ if( empty($openID) ) {
 $table->addContent ($lib->createClosingRow());
 $tr = new HTML ("tr");
 $td = new HTML ("td");
-$td->addAttr ("class", "steel1");
+$td->addAttr ("class", "table_row_even");
 $td->addContent (new HTMLempty ("br"));
 $tr->addContent($td);
 $table->addContent($tr);
@@ -262,7 +262,7 @@ $table->addContent ($tr);
 /* ----------------------------------------------------------- end: infoline */
 
 /* Show showrange search results ------------------------------------------- */
-if( $evalAction == "search_showrange" && $_REQUEST["search"] ) {
+if( $evalAction == "search_showrange" && Request::quoted("search") ) {
     $tr = new HTML ("tr");
     $td = new HTML ("td");
     $td->addAttr ("class", "blank");
@@ -276,7 +276,7 @@ if( $evalAction == "search_showrange" && $_REQUEST["search"] ) {
     $b->addContent(_("Suchergebnisse:"));
     $td->addContent ($b);
 
-    $td->addHTMLContent ($lib->createDomainLinks ($_REQUEST["search"]));
+    $td->addHTMLContent ($lib->createDomainLinks (Request::quoted("search")));
     $tr->addContent ($td);
     $table->addContent ($tr);
     $table->addContent ($lib->createClosingRow());

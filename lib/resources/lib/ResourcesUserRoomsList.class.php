@@ -1,7 +1,7 @@
 <?
 # Lifter002: TODO
+# Lifter003: TEST
 # Lifter007: TODO
-# Lifter003: TODO
 # Lifter010: TODO
 /**
 * ResourcesUserRoomsList.class.php
@@ -66,19 +66,30 @@ class ResourcesUserRoomsList {
     
     // Konstruktor
     function ResourcesUserRoomsList ($user_id ='', $sort= TRUE, $return_objects = TRUE, $only_rooms = TRUE) {
-        global $RELATIVE_PATH_RESOURCES, $user;
-
         $this->user_id = $user_id;
         if (!$this->user_id)
-            $this->user_id = $user->id;
+            $this->user_id = $GLOBALS['user']->id;
+
         $this->global_perms = getGlobalPerms($this->user_id);
         $this->return_objects = $return_objects;
         $this->only_rooms = $only_rooms;
-        //$this->category_id = $category_id;
         $this->restore();
         
-        if($sort)
+        if ($sort) {
             $this->sort();
+        }
+    }
+    
+    static function getInstance($user_id, $sort = true, $return_objects = true, $only_rooms = true)
+    {
+        static $resources_users_rooms_list;
+        
+        if (!$resources_users_rooms_list[$user_id]) {
+            $resources_users_rooms_list[$user_id] = 
+                new ResourcesUserRoomsList($user_id, $sort, $return_objects, $only_rooms);
+        }
+        
+        return $resources_users_rooms_list[$user_id];
     }
     
     //public
@@ -87,18 +98,23 @@ class ResourcesUserRoomsList {
     }
     
     //private
-    function walkThread ($resource_list) {
-        
-        $db = new DB_Seminar;   
-        
-        $clause = " ('" . join("','", $resource_list) . "') "; 
-        $query = sprintf ("SELECT is_room,resource_id, lockable, resources_objects.name FROM resources_objects  LEFT JOIN resources_categories USING (category_id) WHERE  parent_id IN %s ", $clause);
-        $db->query($query);
-        while($db->next_record()){
-            if (!$this->only_rooms || ($this->only_rooms && $db->f("is_room"))){
-                $this->insertResource($db->f("resource_id"), $db->f("name"), $db->f("lockable"));
+    function walkThread ($resource_list)
+    {
+        if (!count($resource_list)) {
+            return;
+        }
+
+        $query = "SELECT is_room, resource_id, lockable, resources_objects.name
+                  FROM resources_objects
+                  LEFT JOIN resources_categories USING (category_id)
+                  WHERE parent_id IN (?)";
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute(array($resource_list));
+        while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
+            if (!$this->only_rooms || ($this->only_rooms && $row['is_room'])) {
+                $this->insertResource($row['resource_id'], $row['name'], $row['lockable']);
             }
-            $check_childs[] = $db->f("resource_id");
+            $check_childs[] = $row['resource_id'];
         }
         if (is_array($check_childs)){
             $this->walkThread($check_childs);
@@ -116,20 +132,27 @@ class ResourcesUserRoomsList {
     }
     
     // private
-    function restore() {
+    function restore()
+    {
         global $perm, $user;
-        $db = new DB_Seminar;
-        $db2 = new DB_Seminar;
-        
+
         //if perm is root or resources admin, load all rooms/objects
         if (($perm->have_perm ("root")) || ($this->global_perms == "admin")) { //hier muss auch admin rein!! {
-            if ($this->only_rooms)
-                $query = sprintf ("SELECT resource_id, resources_objects.name FROM resources_categories LEFT JOIN resources_objects USING (category_id) WHERE resources_categories.is_room = '1' ORDER BY resources_objects.name");
-            else
-                $query = sprintf ("SELECT resource_id, resources_objects.name FROM resources_objects ORDER BY resources_objects.name");         
-            $db->query($query);
-            while ($db->next_record()) {
-                $this->insertResource($db->f("resource_id"),$db->f("name"));
+            if ($this->only_rooms) {
+                $query = "SELECT resource_id, resources_objects.name
+                          FROM resources_categories
+                          LEFT JOIN resources_objects USING (category_id)
+                          WHERE resources_categories.is_room = 1
+                            AND resource_id IS NOT NULL
+                          ORDER BY resources_objects.name";
+            } else {
+                $query = "SELECT resource_id, resources_objects.name
+                          FROM resources_objects
+                          ORDER BY resources_objects.name";
+            }
+            $statement = DBManager::get()->query($query);
+            while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
+                $this->insertResource($row['resource_id'], $row['name']);
             }
         //if tutor, dozent or admin, load all the rooms of all his administrable objects
         } elseif  ($perm->have_perm ("tutor")) {
@@ -137,24 +160,36 @@ class ResourcesUserRoomsList {
             $my_objects[$this->user_id]=TRUE;
             $my_objects["all"]=TRUE;
             if (is_array($my_objects) && count($my_objects)){
-                $clause = " ('" . join("','", array_keys($my_objects)) . "') ";
-
-                $query = sprintf ("SELECT is_room,resource_id, resources_objects.name,lockable FROM resources_objects LEFT JOIN resources_categories  USING (category_id) WHERE  owner_id IN %s ",$clause);
-                $db->query($query);
-                while ($db->next_record()) {
-                    if (!$this->only_rooms || ($this->only_rooms && $db->f("is_room"))){
-                        $this->insertResource($db->f("resource_id"), $db->f("name"), $db->f("lockable"));
+                $query = "SELECT is_room, resource_id, resources_objects.name, lockable
+                          FROM resources_objects
+                          LEFT JOIN resources_categories USING (category_id)
+                          WHERE owner_id IN (?)";
+                $statement = DBManager::get()->prepare($query);
+                $statement->execute(array(
+                    array_keys($my_objects)
+                ));
+                while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
+                    if (!$this->only_rooms || ($this->only_rooms && $row['is_room'])) {
+                        $this->insertResource($row['resource_id'], $row['name'], $row['lockable']);
                     }
-                    $my_resources[$db->f("resource_id")] = true;
+                    $my_resources[$row['resource_id']] = true;
                 }
-                $query = sprintf ("SELECT is_room,resources_user_resources.resource_id, resources_objects.name,lockable FROM resources_user_resources INNER JOIN resources_objects USING(resource_id) LEFT JOIN resources_categories USING (category_id) WHERE resources_user_resources.user_id IN %s ",$clause);
-                $db->query($query);
-                while ($db->next_record()) {
-                    if (!isset($my_resources[$db->f("resource_id")])){
-                        if (!$this->only_rooms || ($this->only_rooms && $db->f("is_room"))){
-                            $this->insertResource($db->f("resource_id"), $db->f("name"), $db->f("lockable"));
+
+                $query = "SELECT is_room, resources_user_resources.resource_id, resources_objects.name, lockable
+                          FROM resources_user_resources
+                          INNER JOIN resources_objects USING (resource_id)
+                          LEFT JOIN resources_categories USING (category_id)
+                          WHERE resources_user_resources.user_id IN (?)";
+                $statement = DBManager::get()->prepare($query);
+                $statement->execute(array(
+                    array_keys($my_objects)
+                ));
+                while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
+                    if (!isset($my_resources[$row['resource_id']])){
+                        if (!$this->only_rooms || ($this->only_rooms && $row['is_room'])) {
+                            $this->insertResource($row['resource_id'], $row['name'], $row['lockable']);
                         }
-                        $my_resources[$db->f("resource_id")] = true;
+                        $my_resources[$row['resource_id']] = true;
                     }
                 }
                 if (is_array($my_resources)){
@@ -164,16 +199,18 @@ class ResourcesUserRoomsList {
         }
         /*
         if (!$perm->have_perm("admin")) {
-            $query = sprintf ("SELECT resource_id FROM resources_objects WHERE owner_id = '%s' ", $this->user_id);
-            $db->query($query);
-
-            while ($db->next_record()) {
-                $this->walkThread($db->f("resource_id"));
+            $query = "SELECT resource_id FROM resources_objects WHERE owner_id = ?";
+            $statement = DBManager::get()->prepare($query);
+            $statement->execute(array($this->user_id));
+            while ($resource_id = $statement->fetchColumn()) {
+                $this->walkThread($resource_id);
             }
-            $query = sprintf ("SELECT resource_id FROM resources_user_resources WHERE user_id = '%s' ", $this->user_id);
-            $db->query($query2);
-            while ($db->next_record()) {
-                $this->walkThread($db->f("resource_id"));
+
+            $query = "SELECT resource_id FROM resources_user_resources WHERE user_id = ?";
+            $statement = DBManager::get()->prepare($query);
+            $statement->execute(array($this->user_id));
+            while ($resource_id = $statement->fetchColumn()) {
+                $this->walkThread($resource_id);
             }
         }
         */
@@ -190,11 +227,11 @@ class ResourcesUserRoomsList {
     
     //public
     function roomsExist() {
-        return sizeof($this->resources) > 0 ? TRUE : FALSE;
+        return sizeof($this->resources) > 0;
     }
     
     function checkResource($resource_id){
-        return ($resource_id && is_array($this->resources) && isset($this->resources[$resource_id])) ? true : false;
+        return ($resource_id && is_array($this->resources) && isset($this->resources[$resource_id]));
     }
     
     //public

@@ -24,7 +24,7 @@
             </th>
         </tr>
         <? foreach ($groups as $group) : ?>
-            <tr class="<?= TextHelper::cycle('cycle_odd', 'cycle_even') ?>">
+            <tr class="<?= TextHelper::cycle('hover_odd', 'hover_even') ?>">
                 <td>
                    <?=StudygroupAvatar::getAvatar($group['Seminar_id'])->getImageTag(Avatar::SMALL)?>
                 </td>
@@ -45,7 +45,7 @@
                     <? $founders = StudygroupModel::getFounder($group['Seminar_id']);
                     foreach ($founders as $founder) : ?>
                     <?=Avatar::getAvatar($founder['user_id'])->getImageTag(Avatar::SMALL)?>
-                    <a href="<?=URLHelper::getlink('about.php?username='.$founder['uname'])?>"><?=htmlready($founder['fullname'])?></a>
+                    <a href="<?=URLHelper::getlink('dispatch.php/profile?username='.$founder['uname'])?>"><?=htmlready($founder['fullname'])?></a>
                     <br>
                     <? endforeach; ?>
                 </td>

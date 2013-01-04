@@ -39,12 +39,12 @@ class StudipFormatTest extends PHPUnit_Framework_TestCase
 
     public function testAddStudipMarkup()
     {
-        StudipFormat::addStudipMarkup('bb-bold', '\[b\]', '\[\/b\]', 'markupBold');
+        StudipFormat::addStudipMarkup('bb-bold', '\[b\]', '\[\/b\]', 'markupBold', 'links');
         $markup = new StudipFormat();
 
         $input = '[b]some %%code%%[/b]';
         $expected = '<b>some <i>code</i></b>';
-        $this->assertEquals($markup->format($input), $expected);
+        $this->assertEquals($expected, $markup->format($input));
     }
 
     public function testRemoveStudipMarkup()
@@ -54,6 +54,6 @@ class StudipFormatTest extends PHPUnit_Framework_TestCase
 
         $input = '**some %%code%%**';
         $expected = '**some <i>code</i>**';
-        $this->assertEquals($markup->format($input), $expected);
+        $this->assertEquals($expected, $markup->format($input));
     }
 }

@@ -15,19 +15,16 @@
 
 /**
  * Navigation for the community page used for user interaction.
- * It includes the contacts, study groups, chat and ranking.
+ * It includes the contacts, study groups and ranking.
  */
 class CommunityNavigation extends Navigation
 {
     public function __construct()
     {
-        global $my_messaging_settings;
-
         parent::__construct(_('Community'));
 
         $onlinetip = _('Nur Sie sind online');
-        $active_time = 5;
-        $user_count = get_users_online_count($active_time);
+        $user_count = get_users_online_count(10); // Should be the same value as in public/index.php
 
         if ($user_count) {
 
@@ -38,7 +35,7 @@ class CommunityNavigation extends Navigation
             }
         }
 
-        $this->setImage('header/community.png', array('title' => $onlinetip));
+        $this->setImage('header/community.png', array('title' => $onlinetip, "@2x" => TRUE));
     }
 
     /**
@@ -63,12 +60,6 @@ class CommunityNavigation extends Navigation
         $navigation->addSubNavigation('export', new Navigation(_('vCard-Export'), 'contact_export.php'));
         $this->addSubNavigation('contacts', $navigation);
 
-        // chat
-        if (get_config('CHAT_ENABLE')) {
-            $navigation = new Navigation(_('Chat'), 'chat_online.php');
-            $this->addSubNavigation('chat', $navigation);
-        }
-
         // study groups
         if (get_config('STUDYGROUPS_ENABLE')) {
             $navigation = new Navigation(_('Studiengruppen'));
@@ -78,7 +69,7 @@ class CommunityNavigation extends Navigation
         }
 
         // ranking
-        $navigation = new Navigation(_('Rangliste'), 'score.php');
+        $navigation = new Navigation(_('Rangliste'), 'dispatch.php/score');
         $this->addSubNavigation('score', $navigation);
     }
 }

@@ -45,19 +45,8 @@ require_once 'lib/wiki.inc.php';
 require_once 'lib/functions.php';
 require_once 'lib/visual.inc.php';
 
-$db = new DB_Seminar();
-
-// -- Load Wiki Plugins -------------------
-// $WIKI_PLUGINS is defined in local.inc
-//
-if (is_array($WIKI_PLUGINS)) {
-    foreach ($WIKI_PLUGINS as $plugin) {
-        require_once('lib/'.$plugin);
-    }
-}
-
 $view = Request::get('view');
-$keyword = Request::quoted('keyword');
+$keyword = Request::get('keyword');
 $version = Request::int('version');
 $cmd = Request::option('cmd');
 
@@ -72,6 +61,9 @@ if ($view=="wikiprint") {
 } elseif ($view=="export_pdf") {
     include_once 'lib/classes/exportdocument/ExportPDF.class.php';
     exportWikiPagePDF($keyword, $version);
+} elseif ($view=="exportall_pdf") {
+    include_once 'lib/classes/exportdocument/ExportPDF.class.php';
+    exportAllWikiPagesPDF("all", Request::option('sortby'));
 }
 
 checkObject(); // do we have an open object?
@@ -137,7 +129,7 @@ if ($view=="listall") {
     exportWiki();
 
 } else if ($view=="search") {
-    searchWiki(stripslashes($_REQUEST["searchfor"]), $_REQUEST["searchcurrentversions"], $_REQUEST["keyword"], $_REQUEST["localsearch"]);
+    searchWiki(Request::get('searchfor'), Request::get('searchcurrentversions'), Request::get('keyword'), Request::get('localsearch'));
 
 } else if ($view=="edit") {
     //
@@ -156,7 +148,7 @@ if ($view=="listall") {
     $wikiData=getWikiPage($keyword,0); // always get newest page
 
     // set lock
-    setWikiLock($db, $user->id, $SessSemName[1], $keyword);
+    setWikiLock(null, $user->id, $SessSemName[1], $keyword);
 
     //show form
     wikiEdit($keyword, $wikiData, $user->id);
@@ -167,7 +159,7 @@ if ($view=="listall") {
         throw new AccessDeniedException(_('Sie haben keine Berechtigung, Seiten zu editieren!'));
     }
     // set lock
-    setWikiLock($db, $user->id, $SessSemName[1], $keyword);
+    setWikiLock(null, $user->id, $SessSemName[1], $keyword);
     wikiEdit($keyword, NULL, $user->id, Request::quoted('lastpage'));
 
 } else {
@@ -183,7 +175,7 @@ if ($view=="listall") {
         //
         // Page was edited and submitted
         //
-        submitWikiPage($keyword, $version, Request::quoted('body'), $user->id, $SessSemName[1]);
+        submitWikiPage($keyword, $version, Request::get('body'), $user->id, $SessSemName[1]);
         $version=""; // $version="" means: get latest
 
     } else if ($cmd == "abortedit") { // Editieren abgebrochen
@@ -227,7 +219,7 @@ if ($view=="listall") {
     // Show Page
     //
     SkipLinks::addIndex(_("Aktuelle Seite"), 'main_content', 100);
-    showWikiPage($keyword, $version, $special, $show_wiki_comments, stripslashes($_REQUEST["hilight"]));
+    showWikiPage($keyword, $version, $special, $show_wiki_comments, Request::get('hilight'));
 
 } // end default action
 

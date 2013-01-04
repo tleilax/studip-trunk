@@ -205,11 +205,11 @@ function EvaluationTreeEditView ( $itemID = ROOT_BLOCK, $evalID = NULL ){
 
     # handling the moveItemID =============================================== #
     if ( Request::submitted('create_moveItemID') )
-        $this->moveItemID = $_REQUEST["itemID"];
-    elseif ( $_REQUEST["moveItemID"] )
-        $this->moveItemID = $_REQUEST["moveItemID"];
+        $this->moveItemID = Request::option("itemID");
+    elseif ( Request::option("moveItemID") )
+        $this->moveItemID = Request::quoted("moveItemID");
 
-    if ($_REQUEST["abbort_move"])
+    if (Request::submitted("abbort_move"))
         $this->moveItemID = NULL;
 
     if ($this->moveItemID != NULL){
@@ -272,7 +272,7 @@ function showEvalTree(){
     if ( $this->startItemID != ROOT_BLOCK ){
 
     $html .= " <tr>\n"
-        . "  <td class=\"steelgraulight\" align=\"left\" valign=\"top\" "
+        . "  <td class=\"table_row_odd\" align=\"left\" valign=\"top\" "
         . "colspan=\"";
     $html .= ($this->moveItemID) ? "1" : "1";
     $html .="\""
@@ -1120,7 +1120,7 @@ function getSelf ( $param = "", $with_start_item = true ){
     if ($this->evalID)
         $url .= "&evalID=".$this->evalID;
     else
-        $url .= "&evalID=".$_REQUEST["evalID"];
+        $url .= "&evalID=".Request::option("evalID");
 
     if ($param){
         $url .= (($with_start_item)
@@ -1155,18 +1155,20 @@ function getSelf ( $param = "", $with_start_item = true ){
 * @access  private
 */
 function parseCommand(){
-
-    if ($_REQUEST['cmd']){
+    
+    if (Request::option('cmd') || Request::optionArray('cmd')){
         # extract the command from Request (array) =========================== #
-        if (is_array($_REQUEST['cmd']))
-            $exec_func = "execCommand" . key($_REQUEST['cmd']);
+       
+        if (Request::optionArray('cmd'))
+            $exec_func = "execCommand" . key(Request::optionArray('cmd'));
         else
-            $exec_func = "execCommand" . $_REQUEST['cmd'];
+            $exec_func = "execCommand" . Request::option('cmd');
 
     } else {
+        
         # extract the command from the template-site ========================= #
         foreach( $_REQUEST as $key => $value ) {
-            if( preg_match( "/template_(.*)_#(.*)_button(_x)?/", $key, $command ) ){
+            if( preg_match( "/template_(.*)_#(.*)_button?/", $key, $command ) ){
                 $found = 1;
                 break;
             }
@@ -1174,10 +1176,11 @@ function parseCommand(){
 
        if (!$found){
         foreach( $_REQUEST as $key => $value ) {
-            if( preg_match( "/cmd_(.*)_#(.*)_§(.*)_button(_x)?/", $key, $command ) )
+            if( preg_match( "/cmd_(.*)_#(.*)_§(.*)_button?/", $key, $command ) )
                 break;
         }
        }
+       
 
         if ($command[1] == "create_question_answers")
             $exec_func = "execCommandQuestionAnswersCreate";
@@ -1203,7 +1206,7 @@ function parseCommand(){
 function execCommandCancel(){
 
 
-    $itemID = $_REQUEST['startItemID'];
+    $itemID = Request::option('startItemID');
 
     $this->anchor = $itemID;
     $this->msg[$this->startItemID] .= "info§"
@@ -1223,10 +1226,10 @@ function execCommandUpdateItem ( $no_delete = false ){
 
     $mode = $this->getInstance($this->itemID);
 
-    $title = $_REQUEST['title'];
+    $title = Request::quoted('title');
     if ($title == "" && $mode != QUESTION_BLOCK)
         $title = _("Kein Titel angegeben.");
-    $text = $_REQUEST['text'];
+    $text = Request::quoted('text');
 
     switch ($mode){
      case ROOT_BLOCK:
@@ -1235,7 +1238,7 @@ function execCommandUpdateItem ( $no_delete = false ){
         $this->tree->eval->setText($text, QUOTED);
 
         //global features
-        $this->tree->eval->setAnonymous($_REQUEST['anonymous']);
+        $this->tree->eval->setAnonymous(Request::quoted('anonymous'));
 
         $this->tree->eval->save();
 
@@ -1265,7 +1268,7 @@ function execCommandUpdateItem ( $no_delete = false ){
         $group = &$this->tree->getGroupObject($this->itemID, true );
         $group->setTitle($title, QUOTED);
         $group->setText($text, QUOTED);
-        $group->setMandatory($_REQUEST['mandatory']);
+        $group->setMandatory(Request::quoted('mandatory'));
         $group->save();
 
         // update the questions
@@ -1436,7 +1439,7 @@ function execCommandDeleteItem(){
  */
 function execCommandAddGroup(){
 
-
+   
     $group = new EvaluationGroup();
     $group->setTitle( NEW_ARRANGMENT_BLOCK_TITLE , QUOTED);
     $group->setText("");
@@ -1481,13 +1484,13 @@ function execCommandAddQGroup(){
     $group->setTitle( NEW_QUESTION_BLOCK_BLOCK_TITLE , QUOTED);
     $group->setText("");
     $group->setChildType("EvaluationQuestion");
-    $group->setTemplateID($_REQUEST["templateID"]);
-    $template = new EvaluationQuestion ($_REQUEST["templateID"],
+    $group->setTemplateID(Request::option("templateID"));
+    $template = new EvaluationQuestion (Request::option("templateID"),
         NULL, EVAL_LOAD_FIRST_CHILDREN);
 
     // add 3 Questions
 /*  for ($i=0;$i<=3;$i++){
-        $template = new EvaluationQuestion ($_REQUEST["templateID"]);
+        $template = new EvaluationQuestion (Request::quoted("templateID"));
         $newquestion = $template->duplicate ();
         $newquestion->setText(_("Bitte eine Frage eingeben."));
         $newquestion->save ();
@@ -1520,7 +1523,7 @@ function execCommandAddQGroup(){
         if ($parentgroup->isError)
             return EvalCommon::showErrorReport ($parentgroup,
                 _("Fehler beim Anlegen eines neuen Blocks."));
-        if ($_REQUEST["templateID"] != "")
+        if (Request::option("templateID") != "")
             $this->msg[$this->itemID] = "msg§"
                 . sprintf(_("Ein neuer Fragenblock mit der Antwortenvorlage <b>%s</b> wurde angelegt."),
                     htmlReady ($template->getText()));
@@ -1546,7 +1549,7 @@ function execCommandChangeTemplate(){
     $this->execCommandUpdateItem();
 
     $group = &$this->tree->getGroupObject($this->itemID);
-    $group->setTemplateID($_REQUEST["templateID"]);
+    $group->setTemplateID(Request::option("templateID"));
     $group->save();
 
     if ($group->isError)
@@ -1578,17 +1581,17 @@ function execCommandChangeTemplate(){
  */
 function execCommandUpdateQuestions ( $no_delete = false ){
 
-    $questions = $_REQUEST['questions'];
-    $deleteQuestions = $_REQUEST['DeleteQuestions'];
+    $questions = Request::getArray('questions');
+    $deleteQuestions = Request::getArray('DeleteQuestions');
 
     // remove any empty questions
     $deletecount = 0;
 
     $qgroup = &$this->tree->getGroupObject($this->itemID);
     $questionsDB = $qgroup->getChildren();
-
-    if (is_array($_REQUEST['cmd']))
-        if (key($_REQUEST['cmd']) == "UpdateItem")
+    $cmd = Request::optionArray('cmd');
+    if (!empty($cmd))
+        if (key($cmd) == "UpdateItem")
             $delete_empty_questions = 1;
 
     for( $i=0; $i<count($questions); $i++ ) {
@@ -1628,7 +1631,7 @@ function execCommandUpdateQuestions ( $no_delete = false ){
  */
 function execCommandAddQuestions(){
 
-    $addquestions = $_REQUEST['newQuestionFields'];
+    $addquestions = Request::quoted('newQuestionFields');
 
     $qgroup = &$this->tree->getGroupObject($this->itemID);
     $templateID = $qgroup->getTemplateID();
@@ -1664,8 +1667,8 @@ function execCommandAddQuestions(){
  */
 function execCommandDeleteQuestions(){
 
-    $questions = $_REQUEST['questions'];
-    $deleteQuestions = $_REQUEST['DeleteQuestions'];
+    $questions = Request::getArray('questions');
+    $deleteQuestions = Request::getArray('DeleteQuestions');
 
     $deletecount = 0;
     for( $i=0; $i<count($questions); $i++ ) {
@@ -1707,7 +1710,7 @@ function execCommandQuestionAnswersCreate(){
 
      // extract the questionID from the command
      foreach( $_REQUEST as $key => $value ) {
-         if( preg_match( "/template_(.*)_button(_x)?/", $key, $command ) )
+         if( preg_match( "/template_(.*)_button?/", $key, $command ) )
              break;
          }
       if ( preg_match( "/(.*)_#(.*)/", $command[1], $command_parts ) )
@@ -1735,7 +1738,7 @@ function execCommandQuestionAnswersCreated(){
 
     $id = $this->itemID;
 
-    $question = new EvaluationQuestion($_REQUEST["questionID"]);
+    $question = new EvaluationQuestion(Request::quoted("questionID"));
     $title = htmlready ($question->getTitle());
 
     $this->msg[$this->itemID] = "msg§"
@@ -1819,13 +1822,13 @@ function execCommandMoveQuestionDown(){
  */
 function execCommandMove(){
 
-    $direction = $_REQUEST['direction'];
+    $direction = Request::quoted('direction');
 
-    $group = &$this->tree->getGroupObject($_REQUEST['groupID']);
+    $group = &$this->tree->getGroupObject(Request::option('groupID'));
     $oldposition = $group->getPosition();
 
-    $this->swapPosition($this->itemID, $_REQUEST['groupID'],
-        $oldposition, $_REQUEST['direction']);
+    $this->swapPosition($this->itemID, Request::option('groupID'),
+        $oldposition, Request::quoted('direction'));
 
     $this->msg[$this->itemID] = "msg§ ";
     if (($this->itemID != ROOT_BLOCK)
@@ -1861,7 +1864,7 @@ function execCommandMove(){
 function execCommandMoveGroup(){
 
 
-    $moveGroupeID = $_REQUEST['moveGroupeID'];
+    $moveGroupeID = Request::option('moveGroupeID');
 
     if (!$this->moveItemID){
         $this->msg[$this->itemID] = "msg§"
@@ -1950,14 +1953,7 @@ function execCommandMoveGroup(){
                     return false;
                 }
             }
-
-            $newgroup = $move_group->duplicate ();
-
-            $group->addChild ($newgroup);
-            $group->save ();
-
             if ($oldparentID == $this->evalID){
-
                 $grouptodelete = $this->tree->eval->getChild ($move_group->getObjectID());
                 $grouptodelete->delete ();
                 $this->tree->eval->save ();
@@ -1974,6 +1970,12 @@ function execCommandMoveGroup(){
                     return EvalCommon::showErrorReport ($newgroup,
                         _("Fehler beim Verschieben eines Blocks."));
             }
+            $newgroup = $move_group->duplicate ();
+
+            $group->addChild ($newgroup);
+            $group->save ();
+
+            
 
             if ($group->isError)
                 return EvalCommon::showErrorReport ($group,
@@ -2201,7 +2203,7 @@ function createButtonbar ( $show = ARRANGMENT_BLOCK ){
         $child->getText == ""){
         
         $a_content = LinkButton::createCancel(_('Abbrechen'), 
-                UrlHelper::getURL(EVAL_FILE_ADMIN. "?evalID=").$this->tree->eval->getObjectID()."&abort_creation_button_x=1",
+                UrlHelper::getURL(EVAL_FILE_ADMIN. "?evalID=").$this->tree->eval->getObjectID()."&abort_creation_button=1",
                 array('title' => _("Erstellung einer Evaluation abbrechen")));
        
         $buttons .= $seperator
@@ -2250,7 +2252,7 @@ function createFormNew($show = ARRANGMENT_BLOCK){
     $tr = new HTML ("tr");
 
     $td = new HTML ("td");
-    $td->addAttr ("class","steelkante");
+    $td->addAttr ("class","content_body");
 #   $td->addAttr ("class","steelgrau");
     $td->addAttr ("align","center");
 
@@ -2311,7 +2313,7 @@ function createFormNew($show = ARRANGMENT_BLOCK){
         $cancel = $seperator ."&nbsp;";
         
         $a_content = LinkButton::createCancel(_('Abbrechen'), 
-                UrlHelper::getURL(EVAL_FILE_ADMIN . "?evalID=".$this->tree->eval->getObjectID()."&abort_creation_button_x=1"),
+                UrlHelper::getURL(EVAL_FILE_ADMIN . "?evalID=".$this->tree->eval->getObjectID()."&abort_creation_button=1"),
                 array('title' => _("Erstellung einer Evaluation abbrechen")));
         
         $cancel .= $a_content;
@@ -2466,7 +2468,7 @@ function createGlobalFeatures (){
     $tr = new HTML ("tr");
 
     $td = new HTML ("td");
-    $td->addAttr ("class","steelgraulight");
+    $td->addAttr ("class","table_row_odd");
     $td->addAttr ("colspan","2");
 
     $b = new HTML ("b");
@@ -2546,7 +2548,7 @@ function createQuestionFeatures(){
     $tr = new HTML ("tr");
 
     $td = new HTMl ("td");
-    $td->addAttr ("class","steelgraulight");
+    $td->addAttr ("class","table_row_odd");
     $td->addAttr ("colspan","2");
 
     $b = new HTML ("b");
@@ -2653,7 +2655,7 @@ function createQuestionForm(){
     // captions
     $tr2 = new HTML ("tr");
 
-    $showclass = "steelgraulight";
+    $showclass = "table_row_odd";
 
     $td2 = new HTML ("td");
     $td2->addAttr ("class",$showclass);
@@ -2722,18 +2724,18 @@ function createQuestionForm(){
     // brrr :)
     // extract the questionID from the command
     foreach( $_REQUEST as $key => $value ) {
-        if( preg_match( "/template_(.*)_button(_x)?/", $key, $command ) )
+        if( preg_match( "/template_(.*)_button?/", $key, $command ) )
         break;
     }
     if ( preg_match( "/(.*)_#(.*)/", $command[1], $command_parts ) )
         $questionID = $command_parts[2];
     else
-        $questionID = Request::submitted('template_save2_button_x') ? "" : $_REQUEST["template_id"];
+        $questionID = Request::submitted('template_save2_button') ? "" : Request::quoted("template_id");
 
     if ($question->getObjectID() == $questionID)
         $tr2->addAttr ("class", "eval_highlight");
     else
-        $tr2->addAttr ("class", ($i%2 == 1 ? "steelgraulight" : "steel1"));
+        $tr2->addAttr ("class", ($i%2 == 1 ? "table_row_odd" : "table_row_even"));
 
     $td2 = new HTML ("td");
     $td2->addAttr ("align","center");
@@ -2888,7 +2890,7 @@ function createQuestionForm(){
    if (sizeof($questions) == 0){
 
     $tr2 = new HTML ("tr");
-    $td2->addAttr ("class","steel1");
+    $td2->addAttr ("class","table_row_even");
 
     $td2 = new HTML ("td");
     $td2->addAttr ("align","center");
@@ -2921,8 +2923,8 @@ function createQuestionForm(){
     $table2->addAttr ("border","0");
     $table2->addAttr ("class",
         ( $i%2 == 6 )
-            ? "steelkante"
-            : "steelkante");
+            ? "content_body"
+            : "content_body");
     $table2->addAttr ("cellspacing", "0");
     $table2->addAttr ("cellpadding", "2");
 

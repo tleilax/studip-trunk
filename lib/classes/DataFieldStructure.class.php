@@ -1,7 +1,7 @@
 <?php
 # Lifter002: TODO
 # Lifter007: TODO
-# Lifter003: TODO
+# Lifter003: TEST
 # Lifter010: TODO
 /**
  *  DataFieldStructure.class.php
@@ -16,6 +16,8 @@
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
  */
+
+
 
 class DataFieldStructure
 {
@@ -60,6 +62,9 @@ class DataFieldStructure
   function getPriority()         {return $this->data['priority'];}
   function getEditPerms()        {return $this->data['edit_perms'];}
   function getViewPerms()        {return $this->data['view_perms'];}
+  function getIsRequired()       {return (bool)$this->data['is_required']; }
+  function getDescription()      {return $this->data['description'];}
+  
 
   function getCachedNumEntries() {
     if (is_null($this->numEntries)) {
@@ -76,6 +81,8 @@ class DataFieldStructure
   function setPriority($v)         {$this->data['priority'] = $v;}
   function setEditPerms($v)        {$this->data['edit_perms'] = $v;}
   function setViewPerms($v)        {$this->data['view_perms'] = $v;}
+  function setIsRequired($v)        {$this->data['is_required'] = $v;}
+  function setDescription($v)        {$this->data['description'] = $v;}
 
   function setType($v) {
     $this->data['type'] = $v;
@@ -106,13 +113,14 @@ class DataFieldStructure
    *
    * @return integer  the count of entries for this datafield
    */
-  function numberOfUsedEntries() {
-    $db = new DB_Seminar;
+  function numberOfUsedEntries()
+  {
     $id = $this->data['datafield_id'];
-    $query = "SELECT count(range_id) AS count FROM datafields_entries WHERE datafield_id = '$id'";
-    $db->query($query);
-    $db->next_record();
-    return $this->numEntries = $db->f('count');
+
+    $query = "SELECT COUNT(range_id) FROM datafields_entries WHERE datafield_id = ?";
+    $statement = DBManager::get()->prepare($query);
+    $statement->execute(array($id));
+    return $this->numEntries = $statement->fetchColumn();
   }
 
     /**
@@ -183,30 +191,33 @@ class DataFieldStructure
    *
    * @return array    <description>
    */
-  function getDataFieldStructures($objectType=NULL, $objectClass='', $includeNullClass=false) {
+  function getDataFieldStructures($objectType=NULL, $objectClass='', $includeNullClass=false)
+  {
+    $expr = $params = array();
+    if (isset($objectType)) {
+      $expr[] = "object_type = :object_type";
+      $params[':object_type'] = $objectType;
+    }
 
-    $ret = array();
-
-    $db = new DB_Seminar();
-
-    $expr = array();
-
-    if (isset($objectType))
-      $expr[] = "object_type='$objectType'";
-
-    if ($objectClass)
-      $expr[] = "(object_class & $objectClass" .
-                ($includeNullClass ? ' OR object_class IS NULL)' : ')');
-
+    if ($objectClass) {
+      $expr[] = "(object_class & :object_class" .
+                  ($includeNullClass ? ' OR object_class IS NULL)' : ')');
+      $params[':object_class'] = $objectClass;
+    }
 
     $expr = empty($expr) ? '' : 'WHERE ' . join(' AND ', $expr);
 
-    $query = "SELECT * FROM datafields $expr ".
-             "ORDER BY object_class, priority, name";
-    $db->query($query);
+    $query = "SELECT *
+              FROM datafields
+              {$expr}
+              ORDER BY object_class, priority, name";
+    $statement = DBManager::get()->prepare($query);
+    $statement->execute($params);
 
-    while ($db->next_record())
-      $ret[$db->f("datafield_id")] = new DataFieldStructure($db->Record);
+    $ret = array();
+    while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
+      $ret[$row['datafield_id']] = new DataFieldStructure($row);
+    }
 
     return $ret;
   }
@@ -215,11 +226,10 @@ class DataFieldStructure
   # load structure information from database
   function load() {
     if ($this->getID()) {
-      $db = new DB_Seminar;
-      $query = sprintf("SELECT * FROM datafields WHERE datafield_id='%s'", $this->getID());
-      $db->query($query);
-      $db->next_record();
-      $this->data = $db->Record;
+      $query = "SELECT * FROM datafields WHERE datafield_id = ?";
+      $statement = DBManager::get()->prepare($query);
+      $statement->execute(array($this->getID()));
+      $this->data = $statement->fetch(PDO::FETCH_ASSOC);
     }
   }
 
@@ -227,9 +237,11 @@ class DataFieldStructure
   function store() {
     $data = $this->data;
     $db = DbManager::get();
-    $query = "SELECT * FROM datafields WHERE datafield_id = " . $db->quote($data['datafield_id']);
 
-    $row = $db->query($query)->fetch(PDO::FETCH_ASSOC);
+    $query = "SELECT * FROM datafields WHERE datafield_id = ?";
+    $statement = $db->prepare($query);
+    $statement->execute(array($data['datafield_id']));
+    $row = $statement->fetch(PDO::FETCH_ASSOC);
     if ($row['datafield_id']) {
         $data = array_merge($row, $data);
     }
@@ -242,28 +254,29 @@ class DataFieldStructure
         $st = $db->prepare("UPDATE datafields ".
                 "SET name=?, object_type=?, ".
                 "object_class=?, edit_perms=?, priority=?, ".
-                "view_perms=?, type=?, typeparam=?, chdate=UNIX_TIMESTAMP() WHERE datafield_id=?");
+                "view_perms=?, type=?, typeparam=?, is_required=?, description=?, chdate=UNIX_TIMESTAMP() WHERE datafield_id=?");
     } else {
         $st = $db->prepare("INSERT INTO datafields ".
                 "SET name=?, object_type=?, ".
                 "object_class=?, edit_perms=?, priority=?, ".
-                "view_perms=?, type=?, typeparam=?, chdate=UNIX_TIMESTAMP(), mkdate=UNIX_TIMESTAMP(), datafield_id=?");
+                "view_perms=?, type=?, typeparam=?, is_required=?, description=?, chdate=UNIX_TIMESTAMP(), mkdate=UNIX_TIMESTAMP(), datafield_id=?");
     }
 
     $st->execute(array($data['name'], $data['object_type'],
                 $data['object_class'], $data['edit_perms'], (int)$data['priority'],
-                $data['view_perms'], (string)$data['type'], (string)$data['typeparam'], $data['datafield_id']));
+                $data['view_perms'], (string)$data['type'], (string)$data['typeparam'],(bool)$data['is_required'],(string)$data['description'], $data['datafield_id']));
     return $st->rowCount();
   }
 
 
   function remove($id='') {
-    if (!$id)
+    if (!$id) {
       $id = $this->getID();
-    $db = new DB_Seminar;
-    $query = "DELETE FROM datafields WHERE datafield_id = '$id'";
-    $db->query($query);
-    return $db->affected_rows() > 0;
+    }
+    $query = "DELETE FROM datafields WHERE datafield_id = ?";
+    $statement = DBManager::get()->prepare($query);
+    $statement->execute(array($id));
+    return $statement->rowCount() > 0;
   }
 
 

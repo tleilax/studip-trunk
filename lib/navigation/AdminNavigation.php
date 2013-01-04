@@ -23,7 +23,7 @@ class AdminNavigation extends Navigation
     {
         parent::__construct(_('Admin'));
 
-        $this->setImage('header/admin.png', array('title' => _('Zu Ihrer Administrationsseite')));
+        $this->setImage('header/admin.png', array('title' => _('Zu Ihrer Administrationsseite'), "@2x" => TRUE));
     }
 
     /**
@@ -32,7 +32,7 @@ class AdminNavigation extends Navigation
      */
     public function initSubNavigation()
     {
-        global $SessSemName, $archive_kill, $links_admin_data, $perm;
+        global $SessSemName, $archive_kill, $perm;
 
         parent::initSubNavigation();
 
@@ -78,8 +78,8 @@ class AdminNavigation extends Navigation
         }
 
         $navigation->addSubNavigation('admission', new Navigation(_('Zugangsberechtigungen'), 'admin_admission.php?list=TRUE'));
-        $navigation->addSubNavigation('groups', new Navigation(_('Gruppen / Funktionen'), 'admin_statusgruppe.php?list=TRUE'));
-        $navigation->addSubNavigation('modules', new Navigation(_('Inhaltselemente'), 'admin_modules.php?list=TRUE&view=modules_sem'));
+        $navigation->addSubNavigation('groups', new Navigation(_('Funktionen / Gruppen'), 'admin_statusgruppe.php?list=TRUE'));
+        $navigation->addSubNavigation('modules', new Navigation(_('Inhaltselemente'), 'dispatch.php/course/plus/index?list=TRUE'));
 
         if ($perm->have_perm($sem_create_perm)) {
             $navigation->addSubNavigation('copy', new Navigation(_('Veranstaltung kopieren'), 'copy_assi.php?list=TRUE&new_session=TRUE'));
@@ -99,7 +99,7 @@ class AdminNavigation extends Navigation
         $navigation->setURL('admin_institut.php?list=TRUE&quit=1');
         $navigation->addSubNavigation('details', new Navigation(_('Grunddaten'), 'admin_institut.php?list=TRUE'));
         $navigation->addSubNavigation('faculty', new Navigation(_('Mitarbeiter'), 'inst_admin.php?list=TRUE&admin_view=1'));
-        $navigation->addSubNavigation('groups', new Navigation(_('Gruppen / Funktionen'), 'admin_roles.php?list=TRUE'));
+        $navigation->addSubNavigation('groups', new Navigation(_('Funktionen / Gruppen'), 'admin_roles.php?list=TRUE'));
         $navigation->addSubNavigation('news', new Navigation(_('Ankündigungen'), 'admin_news.php?list=TRUE&view=news_inst'));
 
         if (get_config('VOTE_ENABLE')) {
@@ -111,7 +111,7 @@ class AdminNavigation extends Navigation
             $navigation->addSubNavigation('literature', new Navigation(_('Literatur'), 'admin_lit_list.php?list=TRUE&view=literatur_inst'));
         }
 
-        $navigation->addSubNavigation('modules', new Navigation(_('Inhaltselemente'), 'admin_modules.php?list=TRUE&view=modules_inst'));
+        $navigation->addSubNavigation('modules', new Navigation(_('Inhaltselemente'), 'dispatch.php/course/plus/index?list=TRUE'));
 
         if (get_config('EXTERN_ENABLE')) {
             $navigation->addSubNavigation('external', new Navigation(_('Externe Seiten'), 'admin_extern.php?list=TRUE&view=extern_inst'));
@@ -155,7 +155,7 @@ class AdminNavigation extends Navigation
             $navigation->addSubNavigation('auto_insert', new Navigation(_('Automatisiertes Eintragen'), 'dispatch.php/admin/autoinsert'));
 
             if (get_config('BANNER_ADS_ENABLE'))  {
-                $navigation->addSubNavigation('banner_ads', new Navigation(_('Werbebanner'), 'admin_banner_ads.php'));
+                $navigation->addSubNavigation('banner', new Navigation(_('Werbebanner'), 'dispatch.php/admin/banner'));
             }
 
             if (get_config('SEMESTER_ADMINISTRATION_ENABLE')) {
@@ -187,6 +187,7 @@ class AdminNavigation extends Navigation
             if (get_config('WEBSERVICES_ENABLE')) {
                 $navigation->addSubNavigation('webservice_access', new Navigation(_('Webservice'), 'dispatch.php/admin/webservice_access'));
             }
+            $navigation->addSubNavigation('sem_classes', new Navigation(_('Seminarklassen'), 'dispatch.php/admin/sem_classes/overview'));
         }
 
         $this->addSubNavigation('config', $navigation);

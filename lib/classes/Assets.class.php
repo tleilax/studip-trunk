@@ -138,9 +138,24 @@ class Assets {
     if (!$source)
       return '';
 
+    $parts = explode('/', $source);
+
+    if ($parts[0] == "icons") {
+        $opt['size'] = $parts[1];
+        if ($GLOBALS['auth']->auth['devicePixelRatio'] == 2) {
+            $parts[1] = $parts[1] * 1;
+        }
+        $source = implode("/", $parts);
+    }
+  
     $opt = Assets::parse_attributes($opt);
 
     $opt['src'] = Assets::image_path($source);
+
+    if ((isset($opt['@2x'])) && ($GLOBALS['auth']->auth['devicePixelRatio'] == 2)) {
+        $opt['src'] = preg_replace('/\.[^.]+$/', '@2x$0', $opt['src']);
+        unset ($opt['@2x']);
+    }
 
     if (!isset($opt['alt']))
       $opt['alt'] = ucfirst(current(explode('.', basename($opt['src']))));
@@ -150,9 +165,12 @@ class Assets {
       list($opt['width'], $opt['height']) = explode('@', $opt['size'], 2);
       unset($opt['size']);
     }
-
+   
     return Assets::tag('img', $opt);
   }
+
+
+
 
 
   /**
@@ -367,5 +385,35 @@ class Assets {
 
     return $attributes;
   }
+  
+    /**
+     * Returns the dimensions for the passed image.
+     * 
+     * $source can be supplied as a...
+     *
+     * full path,
+     *   like "/my_images/image.gif"
+     *
+     * file name,
+     *   like "rss.png", that gets expanded to "/images/rss.png"
+     *
+     * file name without extension,
+     *   like "logo", that gets expanded to "/images/logo.png"
+     * 
+     * @param string $source path to the image
+     * 
+     * @return array an array containing width and height for the passed image
+     */
+    public static function getImageSize($source) 
+    {
+        $image_path = str_replace($GLOBALS['ABSOLUTE_URI_STUDIP'], '', Assets::image_path($source));
+        $image_size = getimagesize($GLOBALS['STUDIP_BASE_PATH'] . '/public/' . $image_path);
+        
+        if ($image_size) {
+            return array('height' => $image_size[1], 'width' => $image_size[0]);
+        }
+        
+        return false;
+    }
 }
 

@@ -1,8 +1,8 @@
 <?
-# Lifter002: TODO
 # Lifter001: TEST
+# Lifter002: TODO
+# Lifter003: TEST
 # Lifter007: TODO
-# Lifter003: TODO
 # Lifter010: TODO
 /**
 * EditResourceData.class.php
@@ -44,11 +44,6 @@ require_once ($RELATIVE_PATH_RESOURCES.'/lib/AssignObject.class.php');
 require_once ($RELATIVE_PATH_RESOURCES.'/lib/AssignObjectPerms.class.php');
 require_once ($RELATIVE_PATH_RESOURCES.'/lib/RoomRequest.class.php');
 
-require_once ('lib/classes/cssClassSwitcher.inc.php');
-
-$cssSw = new cssClassSwitcher;
-
-
 /*****************************************************************************
 EditResourceData, Darstellung der unterschiedlichen Forms zur
 Bearbeitung eines Objects
@@ -59,8 +54,6 @@ class EditResourceData {
 
     //Konstruktor
     function EditResourceData ($resource_id) {
-        $this->db=new DB_Seminar;
-        $this->db2=new DB_Seminar;
         $this->resObject = ResourceObject::Factory($resource_id);
     }
 
@@ -69,72 +62,96 @@ class EditResourceData {
     }
 
     //private
-    function selectCategories($select_rooms = TRUE) {
-        if (!$select_rooms)
-            $this->db->query("SELECT * FROM resources_categories WHERE is_room = 0 ORDER BY name");
-        else
-            $this->db->query("SELECT * FROM resources_categories ORDER BY name");
+    function selectCategories($select_rooms = TRUE)
+    {
+        if (!$select_rooms) {
+            $query = "SELECT category_id, name FROM resources_categories WHERE is_room = 0 ORDER BY name";
+        } else {
+            $query = "SELECT category_id, name FROM resources_categories ORDER BY name";
+        }
+        $statement = DBManager::get()->query($query);
+        return $statement->fetchGrouped(PDO::FETCH_COLUMN);
     }
 
     //private
-    function selectProperties() {
-        $this->db->query ("SELECT resources_properties.name, resources_properties.description, resources_properties.type, resources_properties.options, resources_properties.system, resources_properties.property_id  FROM resources_properties LEFT JOIN resources_categories_properties USING (property_id) LEFT JOIN resources_objects USING (category_id) WHERE resources_objects.resource_id = '".$this->resObject->getId()."' ORDER BY resources_properties.name");
-        if (!$this->db->affected_rows())
-            return FALSE;
-        else
-            return TRUE;
+    function selectProperties()
+    {
+        $query = "SELECT rp.property_id, rp.name, rp.type, rp.options, rp.system, rop.state
+                  FROM resources_properties AS rp
+                  LEFT JOIN resources_categories_properties AS rcp USING (property_id)
+                  LEFT JOIN resources_objects AS ro USING (category_id)
+                  LEFT JOIN resources_objects_properties AS rop USING (resource_id, property_id)
+                  WHERE ro.resource_id = ?
+                  ORDER BY rp.name";
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute(array($this->resObject->getId()));
+        return $statement->fetchAll(PDO::FETCH_ASSOC);
     }
 
     //private
-    function selectFacultys($only_fak = TRUE) {
-        $this->db->query ("SELECT Name, Institut_id, fakultaets_id  FROM Institute WHERE fakultaets_id = Institut_id ORDER BY name");
-        if (!$this->db->affected_rows())
-            return FALSE;
-        else
-            return TRUE;
+    function selectFaculties($only_fak = TRUE)
+    {
+        $query = "SELECT Institut_id, Name, fakultaets_id
+                  FROM Institute
+                  WHERE fakultaets_id = Institut_id
+                  ORDER BY name";
+        $statement = DBManager::get()->query($query);
+        $faculties = $statement->fetchGrouped(PDO::FETCH_ASSOC);
+
+        if (count($faculties) === 0) {
+            return $faculties;
+        }
+
+        foreach (array_keys($faculties) as $fakultaets_id) {
+            $faculties[$fakultaets_id]['institutes'] = array();
+        }
+
+        $query = "SELECT fakultaets_id, Institut_id, Name
+                  FROM Institute
+                  WHERE fakultaets_id IN (?) AND fakultaets_id != Institut_id
+                  ORDER BY Name";
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute(array(
+            array_keys($faculties),
+        ));
+        while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
+            $faculties[$row['fakultaets_id']]['institutes'][$row['Institut_id']] = $row['Name'];
+        }
+
+        return $faculties;
     }
 
     //private
-    function selectInstitutes($fak_id) {
-        $this->db2->query ( "SELECT Name, Institut_id FROM Institute WHERE fakultaets_id = '$fak_id' AND  fakultaets_id != Institut_id ORDER BY name");
-        if (!$this->db2->affected_rows())
-            return FALSE;
-        else
-            return TRUE;
-    }
-
-
-    //private
-    function selectPerms() {
-        $this->db->query ("SELECT *  FROM resources_user_resources WHERE resource_id = '".$this->resObject->getId()."' ");
-        if (!$this->db->affected_rows())
-            return FALSE;
-        else
-            return TRUE;
+    function selectPerms()
+    {
+        $query = "SELECT user_id, perms FROM resources_user_resources WHERE resource_id = ?";
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute(array($this->resObject->getId()));
+        return $statement->fetchGrouped(PDO::FETCH_COLUMN);
     }
 
     function showScheduleForms($assign_id='') {
-        global $PHP_SELF, $perm, $user, $resources_data, $new_assign_object, $search_user, $search_string_search_user,
-            $CANONICAl_RELATIVE_PATH_STUDIP, $RELATIVE_PATH_RESOURCES, $cssSw, $view_mode,$quick_view, $add_ts,
-            $search_exp_room, $search_properties_x;
+        global $perm, $user,
+            $CANONICAl_RELATIVE_PATH_STUDIP, $RELATIVE_PATH_RESOURCES;
 
         $resReq = new RoomRequest();
 
         $killButton = TRUE;
-        if ($new_assign_object)
-            $resAssign = unserialize($new_assign_object);
+        if ($_SESSION['new_assign_object'])
+            $resAssign = unserialize($_SESSION['new_assign_object']);
         else
             $resAssign = AssignObject::Factory($assign_id);
 
         //workaround anoack: AssignObject::resource_id  must match the actual resource object
-        if($resAssign->getResourceId() != $resources_data['actual_object']) {
+        if($resAssign->getResourceId() != $_SESSION['resources_data']['actual_object']) {
             $resAssign = AssignObject::Factory(false);
         }
         //workaround anoack: new AssignObjects need a resource_id !
         if ($resAssign->isNew()){
-            $resAssign->setResourceId($resources_data['actual_object']);
+            $resAssign->setResourceId($_SESSION['resources_data']['actual_object']);
         }
 
+        $add_ts = Request::int('add_ts');
         if (($add_ts) && ($resAssign->isNew())) {
             $resAssign->setBegin($add_ts);
             $resAssign->setEnd($add_ts + (2 * 60 * 60));
@@ -157,7 +174,7 @@ class EditResourceData {
         $ResourceObjectPerms = ResourceObjectPerms::Factory($resAssign->getResourceId());
 
         //in some case, we load the perms from the assign object, if it has an owner
-        if (($ResourceObjectPerms->getUserPerm() != "admin") && (!$resAssign->isNew()) && (!$new_assign_object)) {
+        if (($ResourceObjectPerms->getUserPerm() != "admin") && (!$resAssign->isNew()) && (!$_SESSION['new_assign_object'])) {
             //load the assign-object perms of a saved object
             $SavedStateAssignObject = AssignObject::Factory($resAssign->getId());
             if ($SavedStateAssignObject->getAssignUserId()){
@@ -195,22 +212,27 @@ class EditResourceData {
                 $seminarName = Seminar::GetInstance($seminarID)->getName();
             }
         }
+        $search_user = Request::quoted('search_user');
+        $search_string_search_user = Request::quoted('search_string_search_user');
+        $view_mode = Request::option('view_mode');
+        $quick_view = Request::option('quick_view');
+        $search_exp_room = Request::quoted('search_exp_room');
+        $search_properties = Request::submitted('search_properties');
 
         /* * * * * * * * * * * * * * * *
          * * * * T E M P L A T E * * * *
          * * * * * * * * * * * * * * * */
         $template = $GLOBALS['template_factory']->open('resources/show_schedule_forms.php');
         $template->set_attribute('used_view', $this->used_view);
-        $template->set_attribute('db', $this->db);
-        $change_schedule_move_or_copy = $_POST['change_schedule_move_or_copy'];
-        echo $template->render(compact( 'resAssign', 'resources_data', 'view_mode', 'cssSw', 'lockedAssign', 'killButton', 
-            'owner_type', 'perm', 'search_string_search_user', 'ResourceObjectPerms', 'search_exp_room',
+        $change_schedule_move_or_copy = Request::option('change_schedule_move_or_copy');
+        echo $template->render(compact( 'resAssign', 'resources_data', 'view_mode', 'lockedAssign', 'killButton', 
+            'owner_type', 'perm', 'search_string_search_user', 'ResourceObjectPerms', 'ObjectPerms', 'search_exp_room',
             'search_properties_x', 'resReq', 'seminarName', 'seminarID','change_schedule_move_or_copy'));
     }
 
 
     function showPropertiesForms() {
-        global $PHP_SELF, $cssSw, $user;
+        global $user;
 
         $ObjectPerms = ResourceObjectPerms::Factory($this->resObject->getId());
 
@@ -219,36 +241,42 @@ class EditResourceData {
          * * * * * * * * * * * * * * * */
         $template = $GLOBALS['template_factory']->open('resources/show_properties_forms.php');
         $template->set_attribute('resObject', $this->resObject);
-        $template->set_attribute('db', $this->db);
-        $template->set_attribute('db2', $this->db2);
         $template->set_attribute('EditResourceData', $this);
 
-        echo $template->render(compact( 'ObjectPerms', 'cssSw', 'user' ));
+        echo $template->render(compact( 'ObjectPerms', 'user' ));
     }
 
     function showPermsForms() {
-        global $PHP_SELF, $search_owner, $search_perm_user, $search_string_search_perm_user, $search_string_search_owner,
-            $cssSw, $user;
-
+        $template = $GLOBALS['template_factory']->open('resources/show_perms_forms.php');
+        
+        if (!Request::submitted('reset_search_perm_user')) {
+            $template->set_attribute('search_string_search_perm_user', Request::get('search_string_search_perm_user'));
+        }
+        
+        if (!Request::submitted('reset_search_owner')) {
+           $template->set_attribute('search_string_search_owner', Request::get('search_string_search_owner'));
+        }
+        
         $ObjectPerms = ResourceObjectPerms::Factory($this->resObject->getId());
+        $owner_perms = checkObjektAdministrablePerms($this->resObject->getOwnerId());
 
-        $owner_perms = checkObjektAdministrablePerms ($this->resObject->getOwnerId());
-
-        if ($owner_perms)
-            $admin_perms = TRUE;
-        else
-            $admin_perms = ($ObjectPerms->havePerm("admin")) ? TRUE : FALSE;
+        if ($owner_perms) {
+            $admin_perms = true;
+        } else {
+            $admin_perms = ($ObjectPerms->havePerm("admin")) ? true : false;
+        }
 
         $selectPerms = $this->selectPerms();
 
         /* * * * * * * * * * * * * * * *
          * * * * T E M P L A T E * * * *
          * * * * * * * * * * * * * * * */
-        $template = $GLOBALS['template_factory']->open('resources/show_perms_forms.php');
-        $template->set_attribute('db', $this->db);
-        $template->set_attribute('resObject', $this->resObject);
+        
+        $template->set_attributes(array(
+            'resObject' => $this->resObject,
+            'user'      => $GLOBALS['user']
+        ));
 
-        echo $template->render(compact( 'search_owner', 'search_perm_user', 'search_string_search_perm_user', 'search_string_search_owner',
-            'cssSw', 'user', 'admin_perms', 'owner_perms', 'ObjectPerms', 'selectPerms' ));
+        echo $template->render(compact('admin_perms', 'owner_perms', 'ObjectPerms', 'selectPerms' ));
     }
 }

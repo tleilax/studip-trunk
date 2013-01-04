@@ -23,7 +23,7 @@ global $auth, $perm, $SEM_CLASS, $SEM_TYPE, $INST_TYPE;
 
                         <tr align="center" valign="top">
                             <th width="2%" colspan="2" nowrap="nowrap" align="center">
-                                <a href="gruppe.php">
+                                <a href="<?= URLHelper::getLink('dispatch.php/meine_seminare/groups') ?>">
                                     <?= Assets::img('icons/16/blue/group.png', array('title' => _("Gruppe ändern"), 'class' => 'middle')) ?>
                                 </a>
                             </th>
@@ -131,7 +131,7 @@ global $auth, $perm, $SEM_CLASS, $SEM_TYPE, $INST_TYPE;
                     if (!$GLOBALS['ALLOW_SELFASSIGN_INSTITUTE'] || $perm->have_perm("dozent")) {
                         $meldung = "info§" . sprintf(_("Sie wurden noch keinen Einrichtungen zugeordnet. Bitte wenden Sie sich an einen der zust&auml;ndigen %sAdministratoren%s."), "<a href=\"dispatch.php/siteinfo/show\">", "</a>") . "§";
                     } else {
-                        $meldung = "info§" . sprintf(_("Sie haben sich noch keinen Einrichtungen zugeordnet. Um sich Einrichtungen zuzuordnen, nutzen Sie bitte die entsprechende %sOption%s unter \"Nutzerdaten - Studiendaten\" auf Ihrer pers&ouml;nlichen Einstellungsseite."), "<a href=\"edit_about.php?view=Studium#einrichtungen\">", "</a>") . "§";
+                        $meldung = "info§" . sprintf(_("Sie haben sich noch keinen Einrichtungen zugeordnet. Um sich Einrichtungen zuzuordnen, nutzen Sie bitte die entsprechende %sOption%s unter \"Nutzerdaten - Studiendaten\" auf Ihrer pers&ouml;nlichen Einstellungsseite."), "<a href=\"dispatch.php/settings/studies#einrichtungen\">", "</a>") . "§";
                     }
                     parse_msg($meldung);
                     ?>
@@ -170,19 +170,9 @@ global $auth, $perm, $SEM_CLASS, $SEM_TYPE, $INST_TYPE;
 
                                 <td align="right" nowrap="nowrap">
                                 <?  if ($GLOBALS['ALLOW_SELFASSIGN_INSTITUTE'] && $values['status'] == 'user') { ?>
-                                    <? if (get_config('CHAT_ENABLE') && $values["modules"]["chat"]) { ?>
-
-                                        <a href="<?= !$auth->auth['jscript'] ? 'chat_online.php' : '#' ?>"
-                                           onClick="return open_chat(<?= $chat_info[$instid]['is_active'] ? 'false' : "'$instid'" ?>);">
-                                            <?= chat_get_chat_icon($chat_info[$instid]['chatter'], $chat_invs[$chat_info[$instid]['chatuniqid']], $chat_info[$instid]['is_active'], true, 'grey', 'red', '') ?>
-                                        </a>
-                                    <? } else { ?>
-                                        <?= Assets::img("blank.gif", array('size' => '16')) ?>
-                                    <? } ?>
-
-                                        <a href="<?= URLHelper::getLink('', array('auswahl' => $instid, 'cmd' => 'inst_kill')) ?>">
-                                            <?= Assets::img('icons/16/grey/door-leave.png', tooltip2(_("aus der Einrichtung austragen"))) ?>
-                                        </a>
+                                    <a href="<?= URLHelper::getLink('', array('auswahl' => $instid, 'cmd' => 'inst_kill')) ?>">
+                                        <?= Assets::img('icons/16/grey/door-leave.png', tooltip2(_("aus der Einrichtung austragen"))) ?>
+                                    </a>
                                 <? } else { ?>
                                         <?= Assets::img('blank.gif', array('size' => '16')) ?>
                                 <? } ?>

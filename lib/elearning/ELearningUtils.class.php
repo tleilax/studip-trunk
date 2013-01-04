@@ -104,17 +104,17 @@ class ELearningUtils
     */
     function getCMSSelectbox($message, $check_active = true)
     {
-        global $ELEARNING_INTERFACE_MODULES, $PHP_SELF, $cms_select, $search_key, $view;
+        global $ELEARNING_INTERFACE_MODULES, $cms_select, $search_key, $view;
         if (! is_array($ELEARNING_INTERFACE_MODULES))
         {
             $msg = sprintf(_("Die ELearning-Schnittstelle ist nicht korrekt konfiguriert. Die Variable \"%s\" muss in der Konfigurationsdatei von Stud.IP erst mit den Verbindungsdaten angebundener Learning-Content-Management-Systeme aufgef&uuml;llt werden. Solange dies nicht geschehen ist, setzen Sie die Variable \"%s\" auf FALSE!"),"\$ELEARNING_INTERFACE_MODULES", "\$ELEARNING_INTERFACE_ENABLE");
             parse_window ("error§" . $msg, "§", _("Konfigurationsfehler"));
             die();
         }
-        $output .=  "<form method=\"POST\" action=\"" . $PHP_SELF . "#anker\">\n";
+        $output .=  "<form method=\"POST\" action=\"" . URLHelper::getLink() . "#anker\">\n";
         $output .= CSRFProtection::tokenTag();
         $output .= "<table border=\"0\" cellspacing=0 cellpadding=0 width = \"99%\">";
-        $output .= "<tr><td class=\"steel1\" align=\"center\" valign=\"middle\" ><font size=\"-1\">";
+        $output .= "<tr><td class=\"table_row_even\" align=\"center\" valign=\"middle\" ><font size=\"-1\">";
         $output .=  ELearningUtils::getHeader(_("Angebundenes System"));
         $output .= "<br>\n";
         $output .= $message;
@@ -165,7 +165,7 @@ class ELearningUtils
             foreach($ELEARNING_INTERFACE_MODULES[$cms]["types"] as $type => $info)
             {
                 $output .=  "<option value=\"$type\"";
-                if ($GLOBALS["module_type_" . $cms] == $type)
+                if (Request::get("module_type_" . $cms) == $type)
                     $output .=  " selected";
                 $output .=  ">" . $info["name"] . "</option>\n";
             }
@@ -192,11 +192,11 @@ class ELearningUtils
     */
     function getSearchfield($message)
     {
-        global $PHP_SELF, $cms_select, $search_key, $view;
-        $output .=  "<form method=\"POST\" action=\"" . $PHP_SELF . "#anker\">\n";
+        global $cms_select, $search_key, $view;
+        $output .=  "<form method=\"POST\" action=\"" . URLHelper::getLink('#anker')."\">\n";
         $output .= CSRFProtection::tokenTag();
         $output .= "<table border=\"0\" cellspacing=0 cellpadding=0 width = \"99%\">";
-        $output .= "<tr><td class=\"steel1\" align=\"center\" valign=\"middle\" ><font size=\"-1\">";
+        $output .= "<tr><td class=\"table_row_even\" align=\"center\" valign=\"middle\" ><font size=\"-1\">";
         $output .= "<br>\n";
         $output .= $message;
         $output .= "<br>\n";
@@ -206,7 +206,7 @@ class ELearningUtils
         $output .= "<input type=\"HIDDEN\" name=\"anker_target\" value=\"search\">\n";
         $output .= "<input type=\"HIDDEN\" name=\"view\" value=\"" . $view . "\">\n";
         $output .= "<input type=\"HIDDEN\" name=\"cms_select\" value=\"" . $cms_select . "\">\n";
-        $output .= "<input name=\"search_key\" size=\"30\" style=\"vertical-align:middle;font-size:9pt;\" value=\"" . $search_key . "\">\n";
+        $output .= "<input name=\"search_key\" size=\"30\" style=\"vertical-align:middle;font-size:9pt;\" value=\"" . htmlReady($search_key) . "\">\n";
 
         $output .=  "&nbsp;";
         $output .=  Button::create(_('Suchen'));
@@ -228,21 +228,21 @@ class ELearningUtils
     */
     function getNewModuleForm($cms)
     {
-        global $ELEARNING_INTERFACE_MODULES, $PHP_SELF, $connected_cms, $module_type;
+        global $ELEARNING_INTERFACE_MODULES, $connected_cms;
 
         if (sizeof($ELEARNING_INTERFACE_MODULES[$cms]["types"]) == 1)
             foreach($ELEARNING_INTERFACE_MODULES[$cms]["types"] as $type => $info)
-                $GLOBALS["module_type_" . $cms] = $type;
+                Request::set("module_type_" . $cms, $type);
         $link = $connected_cms[$cms]->link->getNewModuleLink();
         if ($link == false)
             return false;
         $output .= ELearningUtils::getHeader(sprintf(_("Neues Lernmodul erstellen")));
-        $output .=  "<form method=\"POST\" action=\"" . $PHP_SELF . "#anker\">\n";
+        $output .=  "<form method=\"POST\" action=\"" . URLHelper::getLink('#anker')."\">\n";
         $output .= CSRFProtection::tokenTag();
         $output .= "<table border=\"0\" cellspacing=\"0\" cellpadding=\"6\" width=\"100%\">";
         $output .= "<tr><td>";
         foreach ($ELEARNING_INTERFACE_MODULES as $cms_type => $cms_data)
-            $output .= "<input type=\"HIDDEN\" name=\"module_type_" . $cms_type . "\" value=\"" . $GLOBALS["module_type_" . $cms_type] . "\">\n";
+            $output .= "<input type=\"HIDDEN\" name=\"module_type_" . $cms_type . "\" value=\"" . Request::option("module_type_" . $cms_type) . "\">\n";
 //      $output .= "<input type=\"HIDDEN\" name=\"module_type_cms\" value=\"" . $cms . "\">\n";
         $output .= "<font size=\"-1\">";
         $output .= sprintf(_("Typ f&uuml;r neues Lernmodul: %s"), ELearningUtils::getTypeSelectbox($cms));
@@ -269,9 +269,9 @@ class ELearningUtils
     */
     function getMyAccountForm($message, $my_account_cms)
     {
-        global $PHP_SELF, $connected_cms;
+        global $connected_cms;
 
-        $output .=  "<form method=\"POST\" action=\"" . $PHP_SELF . "#anker\">\n";
+        $output .=  "<form method=\"POST\" action=\"" . URLHelper::getLink('#anker')."\">\n";
         $output .= CSRFProtection::tokenTag();
         $output .= "<table border=\"0\" cellspacing=\"0\" cellpadding=\"6\" width=\"100%\">";
         $output .= "<tr><td>";
@@ -301,10 +301,16 @@ class ELearningUtils
     */
     function getNewAccountForm(&$new_account_cms)
     {
-        global $PHP_SELF, $connected_cms, $cms_select, $search_key, $view, $new_account_step, $current_module,
-            $start, $next, $go_back, $assign, $ext_username, $ext_password, $ext_password_2, $messages, $ref_id, $module_type, $assign,
+        global $connected_cms, $cms_select, $view, $current_module, $messages,
             $RELATIVE_PATH_ELEARNING_INTERFACE, $ELEARNING_INTERFACE_MODULES;
 
+        $new_account_step = Request::int('new_account_step');
+        $ext_password = Request::get('ext_password');
+        $ext_password_2 = Request::get('ext_password_2');
+        $ext_username = Request::get('ext_username');
+        $ref_id = Request::option('ref_id');
+        $module_type = Request::option('module_type');
+        
         ELearningUtils::loadClass($new_account_cms);
 
 //      echo "nas:$new_account_step.cm:$current_module.n:$next.gb:$go_back.a:$assign.<br>";
@@ -372,32 +378,32 @@ class ELearningUtils
         {
             // Assign existing Account
             $output .= "<a name='anker'></a>";
-            $output .=  "<form method=\"POST\" action=\"" . $PHP_SELF . "#anker\">\n";
+            $output .=  "<form method=\"POST\" action=\"" . URLHelper::getLink('#anker')."\">\n";
             $output .= CSRFProtection::tokenTag();
             $output .= "<table border=\"0\" cellspacing=0 cellpadding=6 width = \"99%\">";
-            $output .= "<tr><td class=\"steel1\" align=\"left\" valign=\"middle\" colspan=\"2\"><br>\n";
+            $output .= "<tr><td class=\"table_row_even\" align=\"left\" valign=\"middle\" colspan=\"2\"><br>\n";
             $output .= "<font size=\"-1\">";
             $output .= sprintf(_("Geben Sie nun Benutzernamen und Passwort Ihres Benutzeraccounts in %s ein."),  $connected_cms[$new_account_cms]->getName()) . "";
             $output .= "</font>";
             $output .= "<br></td></tr>\n";
-            $output .=  "<tr><td class=\"steel1\" align=\"right\" valign=\"middle\" colspan=\"2\">";
+            $output .=  "<tr><td class=\"table_row_even\" align=\"right\" valign=\"middle\" colspan=\"2\">";
             $output .= "<br></td></tr>\n";
-            $output .=  "<tr><td class=\"steel1\" align=\"right\" valign=\"middle\" width=\"20%\">";
+            $output .=  "<tr><td class=\"table_row_even\" align=\"right\" valign=\"middle\" width=\"20%\">";
             $output .= "<font size=\"-1\">";
             $output .= "&nbsp;" . _("Benutzername: ") . "&nbsp;\n";
             $output .= "</font>";
-            $output .= "</td><td class=\"steel1\" align=\"left\" valign=\"middle\">";
+            $output .= "</td><td class=\"table_row_even\" align=\"left\" valign=\"middle\">";
             $output .= "" . "<input name=\"ext_username\" size=\"30\" style=\"vertical-align:middle;font-size:9pt;\" value=\"" . $ext_username . "\">";
             $output .= "</td></tr>";
-            $output .=  "<tr><td class=\"steel1\" align=\"right\" valign=\"middle\" colspan=\"2\">";
+            $output .=  "<tr><td class=\"table_row_even\" align=\"right\" valign=\"middle\" colspan=\"2\">";
             $output .= "<br></td></tr>\n";
-            $output .=  "<tr><td class=\"steel1\" align=\"right\" valign=\"middle\" width=\"20%\">";
+            $output .=  "<tr><td class=\"table_row_even\" align=\"right\" valign=\"middle\" width=\"20%\">";
             $output .= "<font size=\"-1\">";
             $output .= "&nbsp;" . _("Passwort: ") . "&nbsp;\n";
             $output .= "</font>";
-            $output .= "</td><td class=\"steel1\" align=\"left\" valign=\"middle\">";
+            $output .= "</td><td class=\"table_row_even\" align=\"left\" valign=\"middle\">";
             $output .= "" . "<input name=\"ext_password\" type=\"PASSWORD\" size=\"30\" style=\"vertical-align:middle;font-size:9pt;\" value=\"" ."\">";
-            $output .= "</td></tr><tr><td class=\"steel1\">&nbsp;</td><td class=\"steel1\" align=\"left\" valign=\"middle\">";
+            $output .= "</td></tr><tr><td class=\"table_row_even\">&nbsp;</td><td class=\"table_row_even\" align=\"left\" valign=\"middle\">";
             $output .=  "<br>&nbsp;". Button::createAccept(_('Bestätigen'), 'next') . "<br>";
             $output .= "</td></tr>";
             $output .=  "<tr><td align=\"center\" valign=\"middle\" colspan=\"2\"><br>";
@@ -420,32 +426,32 @@ class ELearningUtils
         {
             // Create new Account: ask for new password
             $output .= "<a name='anker'></a>";
-            $output .=  "<form method=\"POST\" action=\"" . $PHP_SELF . "#anker\">\n";
+            $output .=  "<form method=\"POST\" action=\"" . URLHelper::getLink('#anker')."\">\n";
             $output .= CSRFProtection::tokenTag();
             $output .= "<table border=\"0\" cellspacing=0 cellpadding=6 width = \"99%\">";
-            $output .= "<tr><td class=\"steel1\" align=\"left\" valign=\"middle\" colspan=\"2\"><br>\n";
+            $output .= "<tr><td class=\"table_row_even\" align=\"left\" valign=\"middle\" colspan=\"2\"><br>\n";
             $output .= "<font size=\"-1\">";
             $output .= sprintf(_("Geben Sie nun ein Passwort f&uuml;r Ihren neuen Benutzeraccount in %s ein."),  $connected_cms[$new_account_cms]->getName());
             $output .= "</font>";
             $output .= "<br></td></tr>\n";
-            $output .=  "<tr><td class=\"steel1\" align=\"right\" valign=\"middle\" colspan=\"2\">";
+            $output .=  "<tr><td class=\"table_row_even\" align=\"right\" valign=\"middle\" colspan=\"2\">";
             $output .= "<br></td></tr>\n";
-            $output .=  "<tr><td class=\"steel1\" align=\"right\" valign=\"middle\" width=\"20%\">";
+            $output .=  "<tr><td class=\"table_row_even\" align=\"right\" valign=\"middle\" width=\"20%\">";
             $output .= "<font size=\"-1\">";
             $output .= "&nbsp;" . _("Passwort:") . "\n";
             $output .= "</font>";
-            $output .= "</td><td class=\"steel1\" align=\"left\" valign=\"middle\">";
+            $output .= "</td><td class=\"table_row_even\" align=\"left\" valign=\"middle\">";
             $output .= "" . "&nbsp;<input name=\"ext_password\" type=\"PASSWORD\" size=\"30\" style=\"vertical-align:middle;font-size:9pt;\" value=\"" ."\">";
             $output .= "</td></tr>";
-            $output .=  "<tr><td class=\"steel1\" align=\"right\" valign=\"middle\" colspan=\"2\">";
+            $output .=  "<tr><td class=\"table_row_even\" align=\"right\" valign=\"middle\" colspan=\"2\">";
             $output .= "<br></td></tr>\n";
-            $output .=  "<tr><td class=\"steel1\" align=\"right\" valign=\"middle\" width=\"20%\" nowrap>";
+            $output .=  "<tr><td class=\"table_row_even\" align=\"right\" valign=\"middle\" width=\"20%\" nowrap>";
             $output .= "<font size=\"-1\">";
             $output .= "&nbsp;" . _("Passwort-Wiederholung:") . "\n";
             $output .= "</font>";
-            $output .= "</td><td class=\"steel1\" align=\"left\" valign=\"middle\">";
+            $output .= "</td><td class=\"table_row_even\" align=\"left\" valign=\"middle\">";
             $output .= "" . "&nbsp;<input name=\"ext_password_2\" type=\"PASSWORD\" size=\"30\" style=\"vertical-align:middle;font-size:9pt;\" value=\"" ."\">";
-            $output .= "</td></tr><tr><td class=\"steel1\">&nbsp;</td><td class=\"steel1\" align=\"left\" valign=\"middle\">";
+            $output .= "</td></tr><tr><td class=\"table_row_even\">&nbsp;</td><td class=\"table_row_even\" align=\"left\" valign=\"middle\">";
             $output .=  "<br>&nbsp;" . Button::createAccept(_('Bestätigen'), 'next') ."<br>";
             $output .= "</td></tr>";
             $output .=  "<tr><td align=\"center\" valign=\"middle\" colspan=\"2\"><br>";
@@ -488,7 +494,7 @@ class ELearningUtils
         else
         {
             $output .= "<a name='anker'></a>";
-            $output .=  "<form method=\"POST\" action=\"" . $PHP_SELF . "#anker\">\n";
+            $output .=  "<form method=\"POST\" action=\"" . URLHelper::getLink('#anker')."\">\n";
             $output .= CSRFProtection::tokenTag();
             $output .= "<table border=\"0\" cellspacing=0 cellpadding=6 width = \"99%\">";
             $output .= "<tr><td>\n";
@@ -522,7 +528,7 @@ class ELearningUtils
             $output .=  "</table>\n";
             $output .=  "</form>\n";
         }
-//      echo "nas:$new_account_step.cm:$current_module.n:$_REQUEST['next_x'].gb:$_REQUEST['go_back_x'].a:$_REQUEST['assign_x'].<br>";
+//      echo "nas:$new_account_step.cm:$current_module.n:Request::quoted('next_x').gb:Request::quoted('go_back_x').a:Request::quoted('assign_x').<br>";
         return $output;
     }
 
@@ -537,13 +543,13 @@ class ELearningUtils
     function getCMSHeader($title)
     {
         $output .= "<table border=\"0\" cellspacing=0 cellpadding=0 width = \"99%\">";
-        $output .= "<tr><td class=\"steel\" align=\"left\" valign=\"middle\" colspan=\"4\">";
+        $output .= "<tr><td class=\"table_header\" align=\"left\" valign=\"middle\" colspan=\"4\">";
 //      $output .= "<font size=\"-1\">";
         $output .= "<b>&nbsp;";
         $output .= $title;
         $output .= "</b>";
 //      $output .= "</font>";
-        $output .= "<img src=\"".$GLOBALS['ASSETS_URL']."images/blank.gif\" height=\"25\"></td></tr><tr><td class=\"steel1\" width=\"1%\">&nbsp</td><td class=\"steel1\"  align=\"left\"  valign=\"top\" colspan=\"1\">";
+        $output .= "<img src=\"".$GLOBALS['ASSETS_URL']."images/blank.gif\" height=\"25\"></td></tr><tr><td class=\"table_row_even\" width=\"1%\">&nbsp</td><td class=\"table_row_even\"  align=\"left\"  valign=\"top\" colspan=\"1\">";
         return $output;
     }
 
@@ -557,7 +563,7 @@ class ELearningUtils
     */
     function getCMSFooter($logo)
     {
-        $output .= "</td><td class=\"steel1\" width=\"1%\">&nbsp</td><td class=\"steelblau_schatten\" align=\"center\" valign=\"top\" width=\"10%\" colspan=\"1\">";
+        $output .= "</td><td class=\"table_row_even\" width=\"1%\">&nbsp</td><td class=\"content_body_panel\" align=\"center\" valign=\"top\" width=\"10%\" colspan=\"1\">";
 //      $output .= "<br>\n";
         $output .= $logo;
         $output .= "&nbsp;<br>\n";
@@ -577,17 +583,17 @@ class ELearningUtils
     */
     function getModuleHeader($title)
     {
-        global $PHP_SELF, $view, $cms_select, $search_key, $elearning_open_close;
+        global $view, $cms_select, $search_key;
         $output .= "<table class=\"blank\"  align=\"center\" valign=\"top\" width=\"100%\" border=\"0\" cellpadding=\"1\" cellspacing=\"0\">";
-        $output .= "<tr valign=\"top\"><td class=\"steelgraulight\" align=\"left\" width=\"40%\">&nbsp;";
+        $output .= "<tr valign=\"top\"><td class=\"table_row_odd\" align=\"left\" width=\"40%\">&nbsp;";
         $output .= "<font size=\"-1\"><b>";
         $output .= $title;
         $output .= "</b></font>";
-        $output .= "</td><td class=\"steelgraulight\" align=\"left\" width=\"40%\">";
-        if ($elearning_open_close["all open"] != "")
-            $output .= "<a href=\"" . $PHP_SELF . "?close_all=1&view=$view&cms_select=$cms_select&search_key=$search_key\"><img src=\"".$GLOBALS['ASSETS_URL']."images/close_all.png\" alt=\"" . _("Alle Module schlie&szlig;en") . "\" title=\"" . _("Alle Module schlie&szlig;en") . "\"  border=\"0\">";
+        $output .= "</td><td class=\"table_row_odd\" align=\"left\" width=\"40%\">";
+        if ($_SESSION['elearning_open_close']["all open"] != "")
+            $output .= "<a href=\"" . URLHelper::getLink('?close_all=1&view='.$view.'&cms_select='.$cms_select.'&search_key='.$search_key)."\"><img src=\"".$GLOBALS['ASSETS_URL']."images/close_all.png\" alt=\"" . _("Alle Module schlie&szlig;en") . "\" title=\"" . _("Alle Module schlie&szlig;en") . "\"  border=\"0\">";
         else
-            $output .= "<a href=\"" . $PHP_SELF . "?open_all=1&view=$view&cms_select=$cms_select&search_key=$search_key\"><img src=\"".$GLOBALS['ASSETS_URL']."images/open_all.png\" alt=\"" . _("Alle Module &ouml;ffnen") . "\" title=\"" . _("Alle Module &ouml;ffnen") . "\"  border=\"0\">";
+            $output .= "<a href=\"" . URLHelper::getLink('?open_all=1&view='.$view.'&cms_select='.$cms_select.'&search_key='.$search_key)."\"><img src=\"".$GLOBALS['ASSETS_URL']."images/open_all.png\" alt=\"" . _("Alle Module &ouml;ffnen") . "\" title=\"" . _("Alle Module &ouml;ffnen") . "\"  border=\"0\">";
         $output .= "</a></td></tr>";
         $output .= "</table>";
         return $output;
@@ -604,7 +610,7 @@ class ELearningUtils
     function getHeader($title)
     {
         $output .= "<table class=\"blank\"  align=\"center\" valign=\"top\" width=\"100%\" border=\"0\" cellpadding=\"1\" cellspacing=\"0\">";
-        $output .= "<tr valign=\"top\"><td class=\"steelgraulight\" align=\"left\">&nbsp;";
+        $output .= "<tr valign=\"top\"><td class=\"table_row_odd\" align=\"left\">&nbsp;";
         $output .= "<font size=\"-1\"><b>";
         $output .= $title;
         $output .= "</b></font>";
@@ -746,8 +752,8 @@ class ELearningUtils
             $messages["info"] .= CSRFProtection::tokenTag();
             $messages["info"] .= "<table>";
             $messages["info"] .= "<tr><td>&nbsp;</td></tr>";
-            $messages["info"] .= "<tr><td>" . sprintf(_("Durch das L&ouml;schen der Daten zum System mit dem Index \"%s\" werden %s Konfigurationseintr&auml;ge und Verkn&uuml;pfungen von Stud.IP-Veranstaltungen und -User-Accounts unwiederbringlich aus der Stud.IP-Datenbank entfernt. Wollen Sie diese Daten jetzt l&ouml;schen?"), $_REQUEST['delete_cms'], $cmsystems[$_REQUEST['delete_cms']]["accounts"]+$cmsystems[$_REQUEST['delete_cms']]["modules"]+$cmsystems[$_REQUEST['delete_cms']]["config"] ) . "</td></tr>";
-            $messages["info"] .= "<tr><td align=\"center\"><input type=\"hidden\" name=\"delete_cms\" value=\"".$_REQUEST['delete_cms']."\">";
+            $messages["info"] .= "<tr><td>" . sprintf(_("Durch das L&ouml;schen der Daten zum System mit dem Index \"%s\" werden %s Konfigurationseintr&auml;ge und Verkn&uuml;pfungen von Stud.IP-Veranstaltungen und -User-Accounts unwiederbringlich aus der Stud.IP-Datenbank entfernt. Wollen Sie diese Daten jetzt l&ouml;schen?"), Request::quoted('delete_cms'), $cmsystems[Request::quoted('delete_cms')]["accounts"]+$cmsystems[Request::quoted('delete_cms')]["modules"]+$cmsystems[Request::quoted('delete_cms')]["config"] ) . "</td></tr>";
+            $messages["info"] .= "<tr><td align=\"center\"><input type=\"hidden\" name=\"delete_cms\" value=\"".Request::quoted('delete_cms')."\">";
             $messages["info"] .= '<div class="button-group">' . Button::create(_('Alle löschen'), 'confirm_delete') . Button::createCancel(_('Abbrechen'), 'abbruch') . '<div></td></tr>';
             $messages["info"] .= "<tr><td align=\"center\"></td></tr>";
             $messages["info"] .= "</table>";
@@ -755,8 +761,8 @@ class ELearningUtils
         }
 
         if (Request::submitted('confirm_delete')) {
-            unset($cmsystems[$_REQUEST['delete_cms']]);
-//          deleteCMSData($_REQUEST['delete_cms']);
+            unset($cmsystems[Request::quoted('delete_cms')]);
+//          deleteCMSData(Request::quoted('delete_cms'));
             $messages["info"] .= _("Daten wurden gel&ouml;scht.");
         }
 

@@ -2,15 +2,14 @@
 # Lifter010: TODO
     use Studip\LinkButton;
 ?>
-<div class="modaloverlay"></div>
-<div class="modalshadow">
-    <div class="messagebox messagebox_modal">
-        <span id="modalquestion">
+<div class="modaloverlay">
+    <div class="messagebox">
+        <div class="content">
             <?= formatReady($question) ?>
-        </span>
-        <div style="margin-top: 1em;">
+        </div>
+        <div class="buttons">
             <?= LinkButton::createAccept(_('JA!'), $approvalLink) ?>
             <?= LinkButton::createCancel(_('NEIN!'), $disapprovalLink) ?>
         </div>
-    </div>
+    </div>    
 </div>

@@ -11,7 +11,7 @@ $infobox['content'] = array(
         'kategorie' => _("Information"),
         'eintrag'   => array(
             array(
-                'text' => 'Hier können Sie angeben, welche Module/Plugins in Studiengruppen verwendet werden dürfen.',
+                'text' => 'Hier können Sie globale Einstellungen zu Studentischen Arbeitsgruppen vornehmen.',
                 "icon" => "icons/16/black/info.png"
             )
         )
@@ -47,36 +47,6 @@ $infobox['content'] = array(
 <?php endif;?>
 <form action="<?= $controller->url_for('course/studygroup/savemodules') ?>" method="post">
     <?= CSRFProtection::tokenTag() ?>
-    <!-- Title -->
-<table class="default zebra">
-    <tr>
-        <th colspan="2"><b><?= _("Aktivierbare Inhaltselemente / Plugins") ?></b></th>
-    </tr>
-    <tr>
-        <td> <?=_("TeilnehmerInnen") ?> </td>
-        <td> <?=_("immer aktiv")?> </td>
-    </tr>
-
-    <!-- Modules / Plugins -->
-<? if (is_array($modules)) foreach( $modules as $key => $name ) :
-    if (in_array($key, array('participants', 'schedule'))) continue; ?>
-
-    <tr>
-        <td> <?= htmlReady($name) ?> </td>
-        <td>
-            <select name='modules[<?= $key ?>]'>
-                <? if (!Config::getInstance()->getValue('STUDYGROUPS_ENABLE')):?>
-                <option value='invalid' selected><?= _("-- bitte auswählen --")?></option>
-                <? endif ?>
-                <option value='on' <?= $enabled[$key] ? 'selected' : '' ?>><?= _("aktivierbar")?></option>
-                <option value='off' <?= $enabled[$key] ? '' : 'selected' ?>><?= _("nicht aktivierbar")?></option>
-            </select>
-        </td>
-    </tr>
-
-<? endforeach; ?>
-</table>
-    <br>
     <!-- Title -->
 <table class="default zebra">
     <tr>

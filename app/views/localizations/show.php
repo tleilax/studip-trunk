@@ -11,6 +11,7 @@ $translations = array(
   , "Freitag" => _("Freitag")
   , "Samstag" => _("Samstag")
   , "Bitte ändern Sie ihre Eingabe" => _("Bitte ändern Sie ihre Eingabe")
+  , "Bitte wählen Sie einen Wert aus" => _("Bitte wählen Sie einen Wert aus")
   , "Bitte geben Sie eine gültige E-Mail-Adresse ein" => _("Bitte geben Sie eine gültige E-Mail-Adresse ein")
   , "Bitte geben Sie eine Zahl ein" => _("Bitte geben Sie eine Zahl ein")
   , "Bitte geben Sie eine gültige Web-Adresse ein" => _("Bitte geben Sie eine gültige Web-Adresse ein")
@@ -18,6 +19,9 @@ $translations = array(
   , "Der eingegebene Wert darf nicht kleiner als $1 sein" => _("Der eingegebene Wert darf nicht kleiner als $1 sein")
   , "Dies ist ein erforderliches Feld" => _("Dies ist ein erforderliches Feld")
   , "Nicht buchbare Räume:" => _("Nicht buchbare Räume:")
+  , 'Die beiden Werte "$1" und "$2" stimmen nicht überein. Bitte überprüfen Sie Ihre Eingabe.' => _('Die beiden Werte "$1" und "$2" stimmen nicht überein. Bitte überprüfen Sie Ihre Eingabe.')
+  , "Bitte geben Sie Ihren tatsächlichen Vornamen an." => _("Bitte geben Sie Ihren tatsächlichen Vornamen an.")
+  , "Bitte geben Sie Ihren tatsächlichen Nachnamen an." => _("Bitte geben Sie Ihren tatsächlichen Nachnamen an.")
   // add your translations here
 );
 

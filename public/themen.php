@@ -32,8 +32,6 @@ $perm->check("tutor");
 
 include ("lib/seminar_open.php"); // initialise Stud.IP-Session
 require_once('lib/raumzeit/raumzeit_functions.inc.php');
-unQuoteAll();
-//$sess->register('viewModeFilter');
 
 // search for a valid id
 $id = Request::option('cid');
@@ -56,7 +54,7 @@ if (!$_SESSION['viewModeFilter']) {
 }
 
 if (Request::option('cmd') == 'changeViewMode') {
-    $_SESSION['viewModeFilter'] = $_REQUEST['newFilter'];
+    $_SESSION['viewModeFilter'] = Request::option('newFilter');
 }
 
 // expert view enabled ?
@@ -77,7 +75,7 @@ $header_line = getHeaderLine($id);
 if ($header_line)
     PageLayout::setTitle($header_line." - ".PageLayout::getTitle());
 
-switch ($viewModeFilter) {
+switch ($_SESSION['viewModeFilter']) {
     case 'expert':
         PageLayout::setHelpKeyword("Basis.VeranstaltungenVerwaltenAblaufplanExpertenansicht");        
         include('lib/raumzeit/themen_expert.php');

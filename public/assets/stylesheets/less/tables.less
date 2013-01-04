@@ -1,30 +1,49 @@
 /* --- Tabellen ------------------------------------------------------------- */
-th {
-    background-color: #d1d1d1;
-    border-bottom: 1px solid #aaa;
+th, table.header, .table_header { //normale Tabellenheader
+    background-color:  @table-header-color;
+    border-bottom: 1px solid #575757;
     color: #000;
     padding: 4px;
 
-    a, a:link, a:visited { color: #000000; }
 }
 
-table.header { background-color: @brand-color-lighter; }
+.table_header_bold { //formerly known as topic(-header)
+    background-color: @brand-color-lighter;
+	border-color: @brand-color-darker;
+	border-style: solid;
+	border-width: 0 0 1px 0;
+    color: #FFFFFF;
+    font-size: 12pt;
+    padding: 3px 5px;
+
+    img { vertical-align: middle; } // for the topic-icons
+}
+
+
 table.links1 { background-color: #fff; }
 table.logintable { background-image: url("@{image-path}/login.jpg"); }
 
-table.toolbar, td.toolbar, td.printhead, .steel {
+
+.gradient-bar(@flow-content: true) {
     #gradient > .vertical-three-colors(#cdd9ed, #e3eaf6, 40%, #e3eaf6);
     border-top: 1px solid @brand-color-lighter;
     line-height: 17pt;
     height: 25px;
 }
-td.toolbar, td.printhead, .steel {
+.gradient-bar(@flow-content: true) when (@flow-content) {
     &:last-child { padding-right: 5px; }
 
     img {
         padding: 0 2px;
         vertical-align: text-bottom;
     }
+}
+
+table.toolbar {
+  .gradient-bar(false);
+}
+td.toolbar, td.printhead {
+  .gradient-bar();
 }
 
 table.default {
@@ -51,7 +70,7 @@ td {
         background-color: #f3f5f8;
         border: 1px solid #000;
     }
-    &.rahmen_steelgraulight {
+    &.rahmen_table_row_odd {
         background-color: #e7ebf1;
         border: 1px solid #000;
     }
@@ -59,10 +78,11 @@ td {
         background: #fff;
         border: 1px solid #000;
     }
-    &.topicwrite {
+    &.table_header_bold_red {
         border: none;
-        background-color: #c02a2a;
-        color: #fff;
+        background-color: #fdc6c6;
+        border-bottom: 1px solid #990000;
+        color: #000;
         height: 20px;
     }
 }
@@ -93,24 +113,51 @@ td.tree-elbow-end img {
 }
 
 /* Zebra styles for tables */
-tr.cycle_odd {
-    background-color: #f3f5f8;
+tr.hover_odd {
+    background-color: #eeeeee;
     &:hover { background-color: #ced8f2; }
 }
-tr.cycle_even {
-    background-color: #e7ebf1;
-    &:hover { background-color: #B7C2E2; }
+tr.hover_even {
+    background-color: #f8f8f8;
+    &:hover { background-color: #b7c2e2; }
 }
-table.zebra, table.zebra-hover {
-    > tbody > tr { 
-        background-color: #f2f2f2;
-        &:nth-child(2n+1) { background-color: #e2e2e2; }
+
+.table_row_odd { background-color: #eeeeee; }
+.table_row_even { background-color: #f8f8f8; }
+
+
+table.zebra, table.zebra-hover { // bg color alternates with tr
+    > tbody > tr {
+        background-color: @alternating-color-odd;
+        &:nth-child(2n+1) { background-color: @alternating-color-even; }
+
+        .zebra &{ // Don't insert a blank between & and { as it would lead to a wrong rule; seems to be a bug in lessc
+            background-color: #e7ebf1;
+            &:nth-child(2n+1) { background-color: #f3f5f8; }
+        }
     }
 }
 table.zebra-hover {
-    > tbody > tr:hover { 
-        background-color: #ced8f2;
-        &:nth-child(2n+1) { background-color: #b7c2e2; }
+    > tbody > tr:hover {
+        background-color: @alternating-highlight-color-odd;
+        &:nth-child(2n+1) { background-color: @alternating-highlight-color-even; }
+
+        .zebra &{ // See above
+            background-color: #b7c2e2;
+            &:nth-child(2n+1) { background-color: #ced8f2; }
+        }
+    }
+}
+table.zebra-big, table.zebra-big-hover { // bg color alternates with tbody
+    > tbody {
+        > tr { background-color: @alternating-color-odd; }
+        &:nth-child(2n+1) > tr { background-color: @alternating-color-even; }
+    }
+}
+table.zebra-big-hover {
+    > tbody {
+        > tr:hover { background-color: @alternating-highlight-color-odd; }
+        &:nth-child(2n+1) > tr:hover { background-color: @alternating-highlight-color-even; }
     }
 }
 
@@ -147,7 +194,7 @@ table.zebra-hover {
     table {
         border: 1px solid #888;
         border-top: 0;
-    }    
+    }
 }
 
 /* --- Sonstige ------------------------------------------------------------- */
@@ -172,8 +219,8 @@ table.zebra-hover {
 
 .blue_gradient {
     #gradient > .vertical-three-colors(#b8c6db, #cedbef, 60%, #cedbef);
-    border-top: 2px solid #97a6cf;
 }
+
 .red_gradient {
     #gradient > .vertical-three-colors(#e3969a, #e8b6b9, 60%, #e8b6b9);
     border-top: 2px solid #b35357;
@@ -209,4 +256,122 @@ tr.sortable {
         background: transparent url("@{image-path}/dreieck_down.png") no-repeat center left;
         padding-left: 17px;
     }
+}
+
+/* styles for settings tables */
+.settings {
+    border-collapse: collapse;
+    margin-bottom: 2em;
+    width: 100%;
+
+    thead th, tbody th {
+        .table_header_bold;
+        text-align: center;
+    }
+    td, th {
+        padding: 8px;
+        vertical-align: top;
+    }
+    tbody {
+        &.maxed {
+            input[type=email], input[type=password], input[type=tel], input[type=text], input[type=url], select, textarea {
+                .box-sizing(border-box);
+                width: 100%;
+            }
+        }
+        &.privacy td:first-child ~ td {
+            font-style: italic;
+            text-align: center;
+        }
+        td:first-child label {
+            display: block;
+            font-weight: bold;
+        }
+    }
+    td:first-child[colspan], .divider > th, .divider > td {
+        background-color: lighten(@brand-color-lighter, 20%);
+        border-bottom: 1px solid #444;
+        border-top: 1px solid #444;
+        color: #000;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    dfn, small {
+        display: block;
+        font-weight: normal;
+    }
+    dfn {
+        font-size: 0.8em;
+        font-style: italic;
+        padding-top: 0.5em;
+    }
+    tfoot {
+        td {
+            background: @table-footer-color;
+            text-align: center;
+        }
+        tr:first-child td {
+            border-top: 1px solid #575757;
+        }
+    }
+    label.required:after {
+        color: red;
+        content:'*';
+        font-size: 1.5em;
+        padding-left: 5px;
+        vertical-align: middle;
+    }
+    &.notification tbody td {
+        text-align: center;
+        &:first-child:not([colspan]) { padding-left: 0; padding-right: 0; font-size: small; }
+        &:nth-child(-n+2) { text-align: left; }
+    }
+    .bordered {
+        &.left  { border-left: 1px solid @brand-color-lighter; }
+        &.right { border-right: 1px solid @brand-color-lighter; }
+    }
+}
+
+table.tree {
+    .header > td {
+        .gradient-bar();
+
+        a.link {
+            padding-left: 5px;
+            &.open   {
+                background: url("@{icon-path}/blue/arr_1down.png") left center no-repeat;
+                padding-left: 20px;
+            }
+            &.closed {
+                background: url("@{icon-path}/blue/arr_1right.png") left center no-repeat;
+                padding-left: 20px;
+            }
+        }
+    }
+    td.blank {
+        background: #fff;
+        border: 0;
+    }
+    td.in-between {
+        background: #fff url("@{image-path}/tree-line.gif") center repeat-y;
+        border: 0;
+    }
+    td.leaf {
+        background: #fff url("@{image-path}/tree-leaf.gif") center no-repeat;
+        border: 0;
+    }
+    td.end {
+        background: #fff url("@{image-path}/tree-end.gif") center no-repeat;
+        border: 0;
+    }
+    .centered {
+        text-align: center;
+        table { margin: auto; text-align: left; }
+    }
+}
+
+.table_footer, .table_footer td {
+    background-color: #e9e9e9;
+    border-top: 1px solid #c8c8c8;
 }

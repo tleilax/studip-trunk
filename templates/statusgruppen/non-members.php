@@ -25,11 +25,11 @@
 <? if ($open): ?>
     <tbody>
     <? foreach ($data as $row): ?>
-        <tr class="<?= TextHelper::cycle('cycle_even', 'cycle_odd') ?>">
+        <tr class="<?= TextHelper::cycle('hover_even', 'hover_odd') ?>">
             <td>&nbsp;</td>
         <? if ($rechte || $row['visible'] || $row['user_id'] == $GLOBALS['user']->id): ?>
             <td>
-                <a href=" <?= URLHelper::getLink('about.php?username=' . $row['username']) ?>">
+                <a href=" <?= URLHelper::getLink('dispatch.php/profile?username=' . $row['username']) ?>">
                     <?= htmlReady($row['fullname']) ?>
                 </a>
             <? if ($row['user_id'] == $GLOBALS['user']->id && !$row['visible']): ?>

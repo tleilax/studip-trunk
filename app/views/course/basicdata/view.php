@@ -76,9 +76,9 @@ $message_types = array('msg' => "success", 'error' => "error", 'info' => "info")
 
 <form name="details" method="post" action="<?= $controller->url_for('course/basicdata/set' , $course_id) ?>">
 <?= CSRFProtection::tokenTag() ?>
-<div style="text-align:center" id="settings" class="steel1">
+<div style="text-align:center" id="settings" class="table_row_even">
 
-  <h2 id="bd_basicsettings" class="steelgraulight"><?= _("Grundeinstellungen") ?></h2>
+  <h2 id="bd_basicsettings" class="table_row_odd"><?= _("Grundeinstellungen") ?></h2>
   <div><table width="100%">
   <?php
   if (!$attributes) {
@@ -101,7 +101,7 @@ $message_types = array('msg' => "success", 'error' => "error", 'info' => "info")
   ?>
   </table></div>
 
-  <h2 id="bd_inst" class="steelgraulight"><?= _("Einrichtungen") ?></h2>
+  <h2 id="bd_inst" class="table_row_odd"><?= _("Einrichtungen") ?></h2>
   <div><table width="100%">
   <?php
   if (!$institutional) {
@@ -129,7 +129,7 @@ $message_types = array('msg' => "success", 'error' => "error", 'info' => "info")
   ?>
   </table></div>
 
-  <h2 id="bd_personal" class="steelgraulight"><?= _("Personal") ?></h2>
+  <h2 id="bd_personal" class="table_row_odd"><?= _("Personal") ?></h2>
   <div>
 
       <style>
@@ -160,7 +160,7 @@ $message_types = array('msg' => "success", 'error' => "error", 'info' => "info")
               <? endif ?>
               </td>
               <td>
-                  <a href="<?= URLHelper::getLink("about.php", array('username' => $dozent['username']))?>">
+                  <a href="<?= URLHelper::getLink("dispatch.php/profile", array('username' => $dozent['username']))?>">
                       <?= Avatar::getAvatar($dozent["user_id"], $dozent['username'])->getImageTag(Avatar::SMALL) ?>
                   </a>
               </td>
@@ -258,7 +258,7 @@ $message_types = array('msg' => "success", 'error' => "error", 'info' => "info")
               <? endif ?>
               </td>
               <td>
-                  <a href="<?= URLHelper::getLink("about.php", array('username' => $tutor['username']))?>">
+                  <a href="<?= URLHelper::getLink("dispatch.php/profile", array('username' => $tutor['username']))?>">
                       <?= Avatar::getAvatar($tutor["user_id"], $tutor['username'])->getImageTag(Avatar::SMALL) ?>
                   </a>
               </td>
@@ -300,7 +300,7 @@ $message_types = array('msg' => "success", 'error' => "error", 'info' => "info")
   </div>
 
 
-  <h2 id="bd_description" class="steelgraulight"><?= _("Beschreibungen") ?></h2>
+  <h2 id="bd_description" class="table_row_odd"><?= _("Beschreibungen") ?></h2>
   <div><table style="width: 100%">
   <?php
   if (!$descriptions) {

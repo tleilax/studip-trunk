@@ -3,6 +3,16 @@
 ?>
 <? if (!$tpl['deleted']) : ?>
 <tr class="dates_headline<?= ($issue_open[$tpl['sd_id']] || $tpl['openall'])? ' dates_opened' : ''?>">
+    <? if (isset($last)) : ?>
+    <td width="1%" <?= !$last ? 'style="background-image: url(\'assets/images/forumstrich.gif\'); background-repeat: repeat-y; border: 0;"' : '' ?>>
+        <? if ($last) : ?>
+        <?= Assets::img('forumstrich2.gif') ?>
+        <? else : ?>
+        <?= Assets::img('forumstrich3.gif') ?>
+        <? endif ?>
+    </td>
+    <? endif ?>
+    
     <td width="1%" align="left" valign="top" bgcolor="<?=$tpl['aging_color']?>" class="<?=$tpl['class']?><?=($issue_open[$tpl['sd_id']] || $tpl['openall']) ? '3' : '2'?>" nowrap>
         <a href="<?=URLHelper::getLink("?cmd=".($issue_open[$tpl['sd_id']] ? 'close' : 'open')."&open_close_id=".$tpl['sd_id']."#".$tpl['sd_id'])?>">
             <?=($issue_open[$tpl['sd_id']] || $tpl['openall']) ? Assets::img('forumgraurunt2.png') : Assets::img('forumgrau2.png') ?>
@@ -55,7 +65,7 @@
 </tr>
 <? if ($issue_open[$tpl['sd_id']] || $tpl['openall']) { ?>
 <tr class="dates_content">
-    <td colspan="8" class="steel1">
+    <td colspan="8" class="table_row_even">
 
         <b><?=($tpl['theme_title']) ? htmlReady($tpl['theme_title']) : _("Keine Titel vorhanden.")?></b><BR/>
         <?=($tpl['theme_description']) ? formatReady($tpl['theme_description']) : _("Keine Beschreibung vorhanden.")?><BR/>
@@ -77,29 +87,36 @@
         <?  }
             }
         ?>
+        <div style="text-align:center">
+        <?
+        if ($rechte && !$cancelled_dates_locked) {
+            echo \Studip\LinkButton::create(_('Ausfallen lassen'), "javascript:STUDIP.CancelDatesDialog.initialize('".UrlHelper::getScriptURL('dispatch.php/course/cancel_dates', array('termin_id' =>  $tpl['sd_id']))."');");
+        }
+        ?>
+        </div>
     </td>
 </tr>
 <? } ?>
 <? else:    // Gelöschter Termin... ?>
 <tr>
-    <td id="<?=$tpl['sd_id']?>" width="1%" align="right" valign="top" class="steelred" nowrap>
+    <td id="<?=$tpl['sd_id']?>" width="1%" align="right" valign="top" class="content_title_red" nowrap>
     </td>
 
-    <td width="1%" align="right" valign="top" class="steelred" nowrap>
+    <td width="1%" align="right" valign="top" class="content_title_red" nowrap>
         <img src="<?=$GLOBALS['ASSETS_URL']?>images/icons/16/blue/date.png" class="middle">
     </td>
 
-    <td nowrap class="steelred">
+    <td nowrap class="content_title_red">
         <a class="tree" href="<?=URLHelper::getLink("?cmd=".(($issue_open[$tpl['sd_id']]) ? 'close' : 'open')."&open_close_id=".$tpl['sd_id']."#".$tpl['sd_id'])?>">
             <?=$tpl['date']?>
         </a>
     </td>
 
-    <td width="80%" colspan="5" class="steelred">
+    <td width="80%" colspan="5" class="content_title_red">
         <span style="text-color: red">
             <b><?=_("Dieser Termin findet nicht statt!")?></b>
         </span>
-        (<?=_("Kommentar")?>: <?=$tpl['comment']?>)
+        (<?=_("Kommentar")?>: <?=htmlready($tpl['comment'])?>)
     </td>
 </tr>
 <?

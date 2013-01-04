@@ -1,23 +1,16 @@
 // TODO: LESSify
 
+@infobox-width: 250px;
+@infobox-margin: 20px;
+@infobox-padding: 20px;
+@infobox-border-width: 1px;
+
+
 /* --- Layouts -------------------------------------------------------------- */
 #layout_page {
     .border-radius(0 0 2px 2px);
     clear: both;
     margin: 15px;
-}
-
-#layout_container {
-    background-color: white;
-    .border-radius(0 0 2px 2px);
-    .box-shadow(3px 3px 5px rgba(0, 0, 0, 0.5));
-    margin: 0;
-    padding: 20px;
-}
-
-#layout_content {
-//    margin-right: 291px;
-    overflow: auto;
 }
 
 // for old pages without template layout
@@ -31,20 +24,43 @@
     td { vertical-align: top; }
 }
 
+#layout_container {
+    background-color: white;
+    .border-radius(0 0 2px 2px);
+    .box-shadow(3px 3px 5px rgba(0, 0, 0, 0.5));
+    margin: 0;
+    display: table;
+    width: 100%;
+}
+#layout_container > div {
+    display: table-row;
+}
+
+#layout_content {
+    // Without the +1 zooming out would break the layout (weird behaviour, i know)
+    display: table-cell;
+    padding: 12px;
+    vertical-align: top;
+}
+
 #layout_sidebar {
-    border-left: 1px dashed #1e3e70;
-    float: right;
-    margin-left: 20px;
-    padding-left: 20px;
+    background: inherit;
+    border-left: 1px dashed @brand-color-darker;
+    max-width: @infobox-width;
+    width: @infobox-width;
+    position: relative;
+    display: table-cell;
+    vertical-align: top;
+    padding: 12px;
 }
 
 #layout_infobox {
-    width: 250px;
+    width: @infobox-width;
 }
 
 #layout_wrapper {
     clear: both;
-    min-width: 900px; // 1024 breite ist minimum
+    min-width: 800px; // 1024 breite ist minimum
     min-height: 100%;
     height: auto !important;
     height: 100%;
@@ -57,8 +73,8 @@
 }
 
 #layout_footer {
-    background-color: #899ab9;
-    border-top: 1px solid #1e3e70;
+    background-color: @brand-color-lighter;
+    border-top: 1px solid @brand-color-darker;
     clear: both;
     color: #fff;
     height: 24px;
@@ -66,4 +82,3 @@
     padding: 0 15px 0 0;
     text-align: right;
 }
-

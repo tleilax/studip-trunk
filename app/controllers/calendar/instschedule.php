@@ -34,13 +34,8 @@ class Calendar_InstscheduleController extends AuthenticatedController
      */
     function index_action($days = false)
     {
-        global $my_schedule_settings;
-
         if ($GLOBALS['perm']->have_perm('admin')) $inst_mode = true;
-
-        // try to find the correct institute-id
-        $institute_id = Request::option('cid', $SessSemName[1]);
-
+        $my_schedule_settings = $GLOBALS['user']->cfg->SCHEDULE_SETTINGS;
         // set the days to be displayed
         if ($days === false) {
             if (Request::getArray('days')) {
@@ -51,17 +46,14 @@ class Calendar_InstscheduleController extends AuthenticatedController
         } else {
             $this->days = explode(',', $days);
         }
-        
+
+        // try to find the correct institute-id
+        $institute_id = Request::option('institute_id',
+            $SessSemName[1] ? $SessSemName[1] :
+            Request::option('cid', false));
+
         if (!$institute_id) {
-            $institute_id = $GLOBALS['_my_admin_inst_id'] 
-                          ? $GLOBALS['_my_admin_inst_id'] 
-                          : $GLOBALS['my_schedule_settings']["glb_inst_id"];
-
-            if (!$GLOBALS['my_schedule_settings']["glb_inst_id"]) {
-                $GLOBALS['my_schedule_settings']["glb_inst_id"] = $GLOBALS['_my_admin_inst_id'];
-            }
-
-            $myschedule = true;
+            $institute_id = $GLOBALS['user']->cfg->MY_INSTITUTES_DEFAULT;
         }
 
         if (!$institute_id || (in_array(get_object_type($institute_id), words('inst fak')) === false)) {
@@ -93,7 +85,7 @@ class Calendar_InstscheduleController extends AuthenticatedController
 
         $this->controller = $this;
         $this->calendar_view = new CalendarWeekView($this->entries, 'instschedule');
-        $this->calendar_view->setHeight(40 + (20 * Request::option('zoom', 0)));
+        $this->calendar_view->setHeight(40 + (20 * Request::int('zoom', 0)));
         $this->calendar_view->setRange($my_schedule_settings['glb_start_time'], $my_schedule_settings['glb_end_time']);
         $this->calendar_view->setReadOnly();
         $this->calendar_view->groupEntries();  // if enabled, group entries with same start- and end-date
@@ -126,7 +118,7 @@ class Calendar_InstscheduleController extends AuthenticatedController
     function groupedentry_action($start, $end, $seminars, $ajax = false)
     {
         // strucutre of an id: seminar_id-cycle_id
-        // we do not need the cycle id here, so we trash it. 
+        // we do not need the cycle id here, so we trash it.
         $seminar_list = array();
 
         foreach (explode(',', $seminars) as $seminar) {

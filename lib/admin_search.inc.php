@@ -26,16 +26,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 # necessary if you want to include admin_search_form.inc.php in function/method scope
 global  $auth, $perm, $sess, $user;
 
-global  $admin_dates_data,
-        $archiv_assi_data,
+global  $archiv_assi_data,
         $archive_kill,
         $i_page,
         $i_view,
-        $links_admin_data,
         $list,
         $new_inst,
         $new_sem,
-        $sem_create_data,
         $SessSemName,
         $view_mode;
 
@@ -45,9 +42,7 @@ if ($perm->have_perm("tutor")) {    // Navigationsleiste ab status "Tutor"
     require_once 'lib/dates.inc.php';
     require_once 'lib/functions.php';
 
-    $sess->register("links_admin_data");
-    $sess->register("sem_create_data");
-    $sess->register("admin_dates_data");
+   
 
     $userConfig = UserConfig::get($GLOBALS['user']->id); // tic #650
 
@@ -59,12 +54,12 @@ if ($perm->have_perm("tutor")) {    // Navigationsleiste ab status "Tutor"
     */
     function reset_all_data($reset_search_fields = false)
     {
-        global $links_admin_data, $sem_create_data, $admin_dates_data, $admin_admission_data,
+        global $admin_admission_data,
         $archiv_assi_data, $term_metadata;
 
         if($reset_search_fields) $_SESSION['links_admin_data']='';
         $_SESSION['sem_create_data']='';
-        $admin_dates_data='';
+        $_SESSION['admin_dates_data']='';
         $admin_admission_data='';
         $admin_rooms_data='';
         $archiv_assi_data='';
@@ -75,10 +70,10 @@ if ($perm->have_perm("tutor")) {    // Navigationsleiste ab status "Tutor"
 
 
     //a Veranstaltung was selected in the admin-search kann viellecht weg
-    if (isset($_REQUEST['select_sem_id'])) {
+    if (Request::get('select_sem_id')) {
         reset_all_data();
         closeObject();
-        openSem($_REQUEST['select_sem_id']);
+        openSem(Request::option('select_sem_id'));
     //a Veranstaltung which was already open should be administrated
     } elseif (($SessSemName[1]) && ($new_sem)) {
         reset_all_data();
@@ -86,10 +81,10 @@ if ($perm->have_perm("tutor")) {    // Navigationsleiste ab status "Tutor"
     }
 
     //a Einrichtung was selected in the admin-search
-    if ($_REQUEST['admin_inst_id'] && $_REQUEST['admin_inst_id'] != "NULL") {
+    if (Request::option('admin_inst_id') && Request::option('admin_inst_id') != "NULL") {
         reset_all_data();
         closeObject();
-        openInst($_REQUEST['admin_inst_id']);
+        openInst(Request::option('admin_inst_id'));
     //a Einrichtung which was already open should be administrated
     } elseif (($SessSemName[1]) && ($new_inst)) {
         reset_all_data();
@@ -102,17 +97,17 @@ if ($perm->have_perm("tutor")) {    // Navigationsleiste ab status "Tutor"
         closeObject();
     }
 
-    $list = $_REQUEST['list'];
+    $list = Request::quoted('list');
 
     //a new session in the adminarea...
-    if (($i_page == "adminarea_start.php" && $list) || $_REQUEST['quit']) {
+    if (($i_page == "adminarea_start.php" && $list) || Request::get('quit')) {
         reset_all_data();
         closeObject();
     } elseif ($i_page== "adminarea_start.php")
         $list=TRUE;
 
     // start tic #650, sortierung in der userconfig merken
-    if ($_REQUEST['adminarea_sortby']) {
+    if (Request::option('adminarea_sortby')) {
         $_SESSION['links_admin_data']["sortby"] = Request::option('adminarea_sortby');
         $list=TRUE;
     }
@@ -134,10 +129,10 @@ if ($perm->have_perm("tutor")) {    // Navigationsleiste ab status "Tutor"
     }
     // end tic #650
 
-    if ($_REQUEST['view'])
+    if (Request::option('view'))
         $_SESSION['links_admin_data']["view"] = Request::option('view');
 
-    if ($_REQUEST['srch_send']) {
+    if (Request::submitted('srch_send')) {
         $_SESSION['links_admin_data']["srch_sem"] = Request::option('srch_sem');
         $_SESSION['links_admin_data']["srch_doz"] = Request::option('srch_doz');
         $_SESSION['links_admin_data']["srch_inst"]= Request::option('srch_inst');
@@ -156,7 +151,7 @@ if ($perm->have_perm("tutor")) {    // Navigationsleiste ab status "Tutor"
     }
 
     //if the user selected the information field at Einrichtung-selection....
-    if ($_REQUEST['admin_inst_id'] == "NULL")
+    if (Request::option('admin_inst_id') == "NULL")
         $list=TRUE;
 
     //user wants to create a new Einrichtung
@@ -227,7 +222,8 @@ if ($perm->have_perm("tutor")) {    // Navigationsleiste ab status "Tutor"
             $statement = DBManager::get()->prepare($query);
             $statement->execute(array($user->id));
 
-            if ($institute_id = $statement->fetchColumn()) {
+            if ($statement->rowCount() == 1) {
+                $institute_id = $statement->fetchColumn();
                 reset_all_data();
                 openInst($institute_id);
             }

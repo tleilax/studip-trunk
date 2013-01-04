@@ -5,19 +5,21 @@
 # Lifter010: TODO
 
 
-require_once('config.inc.php');
+require_once 'config.inc.php';
 require_once 'lib/classes/StudipFormat.php';
+require_once 'lib/classes/WikiFormat.php';
 require_once 'lib/classes/StudipTransformFormat.php';
-require_once('lib/classes/cssClassSwitcher.inc.php');
-include_once('vendor/idna_convert/idna_convert.class.php');
-include_once('lib/classes/QuickSearch.class.php');
-include_once('lib/classes/searchtypes/SQLSearch.class.php');
-include_once('lib/classes/searchtypes/StandardSearch.class.php');
-include_once('lib/classes/searchtypes/PermissionSearch.class.php');
-require_once('lib/classes/LinkButton.class.php');
-require_once('lib/classes/Button.class.php');
+require_once 'lib/classes/cssClassSwitcher.inc.php';
+include_once 'vendor/idna_convert/idna_convert.class.php';
+include_once 'lib/classes/QuickSearch.class.php';
+include_once 'lib/classes/searchtypes/SQLSearch.class.php';
+include_once 'lib/classes/searchtypes/StandardSearch.class.php';
+include_once 'lib/classes/searchtypes/PermissionSearch.class.php';
+require_once 'lib/classes/LinkButton.class.php';
+require_once 'lib/classes/Button.class.php';
 require_once 'lib/classes/ResetButton.class.php';
 require_once 'lib/classes/SmileyFormat.php';
+require_once 'lib/wiki.inc.php';
 
 /**
  * get_ampel_state is a helper function for get_ampel_write and get_ampel_read.
@@ -306,9 +308,10 @@ function quotes_encode($description,$author)
 function formatReady ($what, $trim = TRUE, $extern = FALSE, $wiki = FALSE, $show_comments="icon") {
     $markup = new StudipFormat();
     $what = preg_replace("/\r\n?/", "\n", $what);
+    $what = htmlReady($what, $trim);
 
     $what = $markup->format($what);
-    $what = symbol(smile(latex($what, false)));
+    $what = symbol(smile($what, false));
     return str_replace("\n", '<br>', $what);
 }
 
@@ -319,7 +322,15 @@ function formatReady ($what, $trim = TRUE, $extern = FALSE, $wiki = FALSE, $show
  */
 function formatLinks($what)
 {
-    return FixLinks(htmlReady($what));
+    $link_markup_rule = StudipFormat::getStudipMarkup("links");
+    $markup = new TextFormat();
+    $markup->addMarkup(
+        "links", 
+        $link_markup_rule['start'], 
+        $link_markup_rule['end'], 
+        $link_markup_rule['callback']
+    );
+    return $markup->format(htmlReady($what));
 }
 
 /**
@@ -332,45 +343,16 @@ function formatLinks($what)
 * @param        boolean $extern TRUE if called from external pages ('externe Seiten')
 * @return       string
 */
-function wikiReady ($what, $trim = TRUE, $extern = FALSE, $show_comments="icon") {
-    return wiki_format(formatReady($what, $trim, false, TRUE), $show_comments);
+function wikiReady ($what, $trim = TRUE) {
+    $markup = new WikiFormat();
+    $what = preg_replace("/\r\n?/", "\n", $what);
+    $what = htmlReady($what, $trim);
+
+    $what = $markup->format($what);
+    $what = symbol(smile($what, false));
+    return str_replace("\n", '<br>', $what);
 }
 
-/**
-* a special wiki formatting routine (used for comments)
-*
-*
-* @access       public
-* @param        string $text        what to format
-* @param    string  $show_comments  How to show comments
-*/
-function wiki_format ($text, $show_comments) {
-    if ($show_comments=="icon" || $show_comments=="all") {
-        $text=preg_replace("#\[comment(=.*)?\](.*)\[/comment\]#emsU","format_wiki_comment('\\2','\\1',$show_comments)",$text);
-    } else {
-        $text=preg_replace("#\[comment(=.*)?\](.*)\[/comment\]#msU","",$text);
-    }
-    // Signatur (~~~~ in Wiki, expanded to [sig uname time])
-    $text = preg_replace("'\[sig ([\w@.-]+) ([0-9]+)\]'e", "preg_call_format_signature('\\1','\\2')", $text);
-    return $text;
-}
-
-
-function format_wiki_comment($comment, $metainfo, $show_comment) {
-    $metainfo=trim($metainfo,"=");
-    if ($show_comment=="all") {
-        $commenttmpl="<table style=\"border:thin solid;margin: 5px;\" bgcolor=\"#ffff88\"><tr><td><font size=-1><b>"._("Kommentar von")." %1\$s:</b>&nbsp;</font></td></tr><tr class=steelgrau><td class=steelgrau><font size=-1>%2\$s</font></td></tr></table>";
-        return sprintf($commenttmpl, $metainfo, stripslashes($comment));
-    } elseif ($show_comment=="icon") {
-        $comment = decodehtml($comment);
-        $comment = preg_replace("/<.*>/U","",$comment);
-        $metainfo = decodeHTML($metainfo);
-        return '<nowikilink><a href="javascript:void(0);" '.tooltip(sprintf("%s %s:\n%s",_("Kommentar von"),$metainfo,$comment),TRUE,TRUE) . "><img src=\"".$GLOBALS['ASSETS_URL']."images/comment.png\"></a></nowikilink>";
-    } else {
-        echo "<p>Error: unknown show_comment value in format_wiki_comment: ".$show_comment."</p>";
-        die();
-    }
-}
 
 /**
  * Transform the argument using the replace-before-save rules defined
@@ -388,58 +370,6 @@ function transformBeforeSave($what)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-
-
-function latex($text, $extern = FALSE) {
-    global $LATEXRENDER_ENABLE,
-           $LATEX_PATH,
-           $DVIPS_PATH,
-           $CONVERT_PATH,
-           $IDENTIFY_PATH,
-           $TMP_PATH,
-           $LATEX_FORMATS;
-
-    if ($LATEXRENDER_ENABLE && isset($LATEX_FORMATS)) {
-        include_once("lib/classes/latexrender.class.php");
-        $latex = new LatexRender($GLOBALS['DYNAMIC_CONTENT_PATH'].'/tex', $GLOBALS['DYNAMIC_CONTENT_URL'].'/tex');
-        $latex->_latex_path = $LATEX_PATH;
-        $latex->_dvips_path = $DVIPS_PATH;
-        $latex->_convert_path = $CONVERT_PATH;
-        $latex->_identify_path = $IDENTIFY_PATH;
-        $latex->_tmp_dir = $TMP_PATH;
-
-        // There can be many formatting tags that are
-        // handled by the latex renderer
-        // The tags and their LaTex templates are set in the
-        // variable $LATEX_FORMATS (in local.inc)
-        //
-        foreach( $LATEX_FORMATS as $formatname => $format) {
-            $latex->setFormat($formatname, $format["template"]);
-            $to_match=sprintf("#\[%s\](.*?)\[/%s\]#si", $format["tag"], $format["tag"]);
-            preg_match_all($to_match,$text,$tex_matches);
-
-            for ($i=0; $i < count($tex_matches[0]); $i++) {
-                $pos = strpos($text, $tex_matches[0][$i]);
-                $latex_formula = decodeHTML($tex_matches[1][$i]);
-
-                $url = $latex->getFormulaURL($latex_formula);
-
-                if ($url != false) {
-                    $text = substr_replace($text, "<img src=\"".$url."\">",$pos,strlen($tex_matches[0][$i]));
-                } else {
-                    if ($extern) {
-                        $text = '';
-                    } else {
-                        $errtxt = $latex->getErrorString();
-                        if (!$errtxt) $errtxt = _("Nicht interpretierbare oder möglicherweise gefährliche Latex Formel");
-                        $text = substr_replace($text, '['.$errtxt.']',$pos,strlen($tex_matches[0][$i]));
-                    }
-                }
-            }
-        }
-    }
-    return $text;
-}
 
 /**
 * decodes html entities to normal characters
@@ -460,7 +390,7 @@ function decodeHTML ($string) {
 function preg_call_format_signature($username, $timestamp) {
     $fullname = get_fullname_from_uname($username);
     $date = strftime('%x, %X', $timestamp);
-    return '<span style="font-size: 75%">-- <a href="'.URLHelper::getLink('about.php', array('username' => $username)).'">'.htmlReady($fullname).'</a> '.htmlReady($date).'</span>';
+    return '<span style="font-size: 75%">-- <a href="'.URLHelper::getLink('dispatch.php/profile', array('username' => $username)).'">'.htmlReady($fullname).'</a> '.htmlReady($date).'</span>';
 }
 
 
@@ -535,156 +465,6 @@ function kill_format ($text) {
     }
 
     return preg_replace($pattern, $replace, $text);
-}
-
-/**
-* detects links in a given string and convert it into html-links
-*
-* @access   public
-* @param    string  text to convert
-* @param    string  TRUE if all forms of newlines have to be converted in single \n
-* @param    boolean TRUE if newlines have to be converted into <br>
-* @param    boolean TRUE if pictures should be displayed
-* @param    boolean TRUE if called from external pages ('externe Seiten')
-* @return   string
-*/
-function FixLinks ($data = "", $fix_nl = TRUE, $nl_to_br = TRUE, $img = FALSE, $extern = FALSE, $wiki = FALSE) {
-    global $STUDIP_DOMAINS;
-    $chars= '&;_a-z0-9-';
-    if (empty($data)) {
-        return $data;
-    }
-    if ($fix_nl)
-        $data = preg_replace("/\n?\r\n?/", "\n", $data); // newline fixen
-    $img = $img ? 'TRUE' : 'FALSE';
-    // add protocol type
-    $pattern = array("/([ \t\]\n=]|^)www\./i", "/([ \t\]\n]|^)ftp\./i");
-    $replace = array("\\1http://www.", "\\1ftp://ftp.");
-    $fixed_text = preg_replace($pattern, $replace, $data);
-
-    //transform the domain names of links within Stud.IP
-    $fixed_text = TransformInternalLinks($fixed_text);
-
-    $pattern = array(
-        '#((\[(img|flash|audio|video)(\=([^\n\f:]+?))?(:(\d{1,3}%?))?(:(center|right))?(:([^\]]+))?\]|\[([^\n\f\[]+)\])?(((https?://|ftp://)(['.$chars.':]+@)?)['.$chars.']+(\.['.$chars.':]+)*/?([^<\s]*[^\.\s\]<])*))#ie',
-                    '#(?<=\s|^|\>)(\[([^\n\f]+?)\])?(['.$chars.']+(\.['.$chars.']+)*@(['.$chars.']+(\.['.$chars.']+)+))#ie'
-                    );
-    $replace = array(
-            "preg_call_link(array('\\1', '\\5', '\\7', '\\12', '\\13', '\\3', '\\9', '\\11'), 'LINK', $img, false, '$wiki')",
-            "preg_call_link(array('\\2', '\\3'), 'MAIL', false, false, '$wiki')");
-    $fixed_text = preg_replace($pattern, $replace, $fixed_text);
-
-    if ($nl_to_br)
-        $fixed_text = str_replace("\n", "<br>", $fixed_text);
-
-    return $fixed_text;
-}
-
-/**
-* callback function used by FixLinks()
-*
-* @access   private
-* @param    array $params   parameters extracted by the regular expression
-* @param    string  $mod    type of lin ('LINK' or 'MAIL')
-* @param    boolean $img    TRUE to handle image-links
-* @param    boolean $extern TRUE if called from external pages ('externe Seiten')
-* @return   string
-*/
-function preg_call_link ($params, $mod, $img, $extern = FALSE, $wiki = FALSE) {
-    global $auth, $STUDIP_DOMAINS;
-    $chars= '&;_a-z0-9-';
-
-    $pu = @parse_url($params[4]);
-    $intern = isLinkIntern($params[4]);
-    if ($intern) {
-        list($pu['first_target']) = explode('/',substr($pu['path'],strlen($GLOBALS['CANONICAL_RELATIVE_PATH_STUDIP'])));
-    }
-
-    $link_class = $intern ? 'link-intern' : 'link-extern';
-
-    if ($mod == 'LINK') {
-        if (!in_array($params[5], words('img flash audio video'))) {
-            $link_text = $params[3] != '' ? formatReady(decodeHTML($params[3])) : $params[4];
-            $tbr = '<a class="'.$link_class.'" href="'.idna_link($params[4]).'"'.($intern ? '' : ' target="_blank"').">$link_text</a>";
-        }
-        elseif ($img) {
-            $cfg = Config::GetInstance();
-            $LOAD_EXTERNAL_MEDIA = $cfg->getValue('LOAD_EXTERNAL_MEDIA');
-
-            // Don't execute internal scripts
-            if ($intern && !in_array($pu['first_target'], array('sendfile.php','download','assets','pictures'))) {
-                return $params[0];
-            } else if ((!$LOAD_EXTERNAL_MEDIA || $LOAD_EXTERNAL_MEDIA == 'deny') && !$intern) {
-                return $params[0];
-            }
-
-            $media_url = idna_link($params[4]);
-
-            if (!$intern && $LOAD_EXTERNAL_MEDIA == 'proxy') {
-                if (Seminar_Session::is_current_session_authenticated()) {
-                    // flash player requires ABSOLUTE_URI_STUDIP here
-                    $media_url = $GLOBALS['ABSOLUTE_URI_STUDIP'] . 'dispatch.php/media_proxy?url=' . urlencode(decodeHTML($media_url));
-                }
-            }
-
-            if ($params[2]) {
-                // width in percent
-                if (substr($params[2], -1) == '%') {
-                    $width = (int) substr($params[2], 0, -1) < 100 ? $params[2] : '100%';
-                } else {
-                    // width of image in pixels
-                    if (is_object($auth) && $auth->auth['xres']) {
-                        // 80% of x-resolution maximal
-                        $max_width = floor($auth->auth['xres'] * 0.8);
-                    } else {
-                        $max_width = 800;
-                    }
-                    $width = min($params[2], $max_width);
-                }
-            }
-
-            if ($params[5] == 'img') {
-                $width = isset($width) ? "width=\"$width\"" : '';
-                $tbr = '<img src="'.$media_url."\" $width alt=\"{$params[1]}\" title=\"{$params[1]}\">";
-                if (isURL($params[7])) {
-                    $imgintern = isLinkIntern($params[7]);
-                    $tbr = '<a href="'.idna_link($params[7]).'"'.($imgintern ? '' : ' target="_blank"').'>'.$tbr.'</a>';
-                }
-            } else if ($params[5] == 'audio') {
-                $width = isset($width) ? "width=\"$width\"" : '';
-                $tbr = '<audio src="'.$media_url."\" $width controls title=\"{$params[1]}\"></audio>";
-            } else if ($params[5] == 'video') {
-                $width = isset($width) ? "width=\"$width\"" : '';
-                $tbr = '<video src="'.$media_url."\" $width controls title=\"{$params[1]}\"></video>";
-            } elseif ($params[5] == 'flash') {
-                $width = isset($width) ? $width : 200;
-                $height = round($width * 0.75);
-                $flash_config = $width > 200 ? $GLOBALS['FLASHPLAYER_DEFAULT_CONFIG_MAX'] : $GLOBALS['FLASHPLAYER_DEFAULT_CONFIG_MIN'];
-                $flash_object  = "<object type=\"application/x-shockwave-flash\" id=\"FlashPlayer\" data=\"".Assets::url()."flash/player_flv.swf\" width=\"$width\" height=\"$height\">"; // height=\"323\" width=\"404\"
-                $flash_object .= "<param name=\"movie\" value=\"".Assets::url()."flash/player_flv.swf\">";
-                $flash_object .= '<param name="allowFullScreen" value="true">' . "\n";
-                $flash_object .= "<param name=\"FlashVars\" value=\"flv=".urlencode(decodeHTML($media_url))."&amp;startimage={$params[7]}{$flash_config}\">";
-                $flash_object .= "<embed src=\"".Assets::url()."flash/player_flv.swf\" movie=\"$media_url\" type=\"application/x-shockwave-flash\" FlashVars=\"flv=".urlencode(decodeHTML($media_url))."&amp;startimage={$params[7]}{$flash_config}\">";
-                $flash_object .= "</object>";
-                $tbr = $flash_object;
-            } else {
-                return $params[0];
-            }
-
-            if ($params[6]) {
-                $tbr = "<div align=\"{$params[6]}\">$tbr</div>";
-            }
-        } else {
-            return $params[0];
-        }
-
-    } elseif ($mod == 'MAIL') {
-        $mailtolink=preg_replace("/&quot;/","",idna_link($params[1],true));
-        $link_text = $params[0] != '' ? $params[0] : $params[1];
-        $tbr = '<a class="'.$link_class.'" href="mailto:'.$mailtolink."\">$link_text</a>";
-    }
-    if ($wiki) $tbr = '<nowikilink>'.$tbr.'</nowikilink>';
-    return $tbr;
 }
 
 function isURL($url) {
@@ -941,9 +721,9 @@ function printcontent ($breite, $write = FALSE, $inhalt, $edit, $printout = TRUE
         $print .= "<br><br><div align=\"center\">$edit</div><img src=\"".$GLOBALS['ASSETS_URL']."images/blank.gif\" height=\"6\">";
         if ($addon!="")
             if (substr($addon,0,5)=="open:") // es wird der öffnen-Pfeil mit Link ausgegeben
-                $print .= "</td><td valign=\"middle\" class=\"steel1\" nowrap><a href=\"".substr($addon,5)."\"><img src=\"".Assets::image_path('icons/16/blue/arr_1left.png')."\" align=\"middle\"".tooltip(_("Bewertungsbereich öffnen"))."></a>&nbsp;";
+                $print .= "</td><td valign=\"middle\" class=\"table_row_even\" nowrap><a href=\"".substr($addon,5)."\"><img src=\"".Assets::image_path('icons/16/blue/arr_1left.png')."\" align=\"middle\"".tooltip(_("Bewertungsbereich öffnen"))."></a>&nbsp;";
             else {              // es wird erweiterter Inhalt ausgegeben
-                $print .= "</td><td class=\"steelblau_schatten\" nowrap>";
+                $print .= "</td><td class=\"content_body_panel\" nowrap>";
                 $print .= "<font size=\"-2\" color=\"#444444\">$addon";
     }       }
     else
@@ -1059,7 +839,7 @@ function tooltip2($text, $with_alt = TRUE, $with_popup = FALSE) {
  * 
  * @param type $text 
  */
-function tooltipIcon($text)
+function tooltipIcon($text, $important = false)
 {
     // prepare text
     $text = preg_replace("/(\n\r|\r\n|\n|\r)/", " ", $text);
@@ -1067,7 +847,7 @@ function tooltipIcon($text)
     
     // render tooltip
     $template = $GLOBALS['template_factory']->open('shared/tooltip');
-    return $template->render(compact('text'));
+    return $template->render(compact('text', 'important'));
 }
 
 /**

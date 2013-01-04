@@ -67,9 +67,9 @@ class EvalCommon {
 
     $tdTitle = new HTML("td");
     if ($iconURL) {
-       $tdTitle->addAttr ("class","topic");
+       $tdTitle->addAttr ("class","table_header_bold");
     } else {
-       $tdTitle->addAttr ("class","steel3");
+       $tdTitle->addAttr ("class","content_body");
     }
     $tdTitle->addAttr ("colspan","2");
     $tdTitle->addAttr ("align","left");
@@ -254,7 +254,7 @@ class EvalCommon {
    * Returns the rangeID
    */
   function getRangeID () {
-    $rangeID = $_REQUEST['rangeid'] ? $_REQUEST['rangeid'] : 
+    $rangeID = Request::option('range_id') ? Request::option('range_id') : 
       $GLOBALS["SessSemName"][1];
     if (empty ($rangeID) || ($rangeID == get_username ($GLOBALS['user']->id)))
       $rangeID = $GLOBALS['user']->id;

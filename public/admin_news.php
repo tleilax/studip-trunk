@@ -27,6 +27,8 @@ use Studip\Button, Studip\LinkButton;
 
 require '../lib/bootstrap.php';
 
+unregister_globals();
+
 page_open(array("sess"=> "Seminar_Session", "auth" =>"Seminar_Auth", "perm" => "Seminar_Perm", "user" => "Seminar_User"));
 $auth->login_if($auth->auth["uid"] == "nobody");
 $perm->check("autor");
@@ -39,18 +41,31 @@ require_once 'lib/classes/AdminNewsController.class.php';
 
 include ('lib/seminar_open.php'); // initialise Stud.IP-Session
 
+$Seminar_Session = Request::option('Seminar_Session');
+    
+// unregister globals
+$news_range_id = Request::option('news_range_id');
+$news_range_name = Request::quoted('news_range_name');
+$cmd = Request::option('cmd');
+$edit_news = Request::quoted('edit_news');
+$view_mode = Request::quoted('view_mode');
+$title = Request::quoted('title');
+$view = Request::option('view');
+
+$search = Request::quoted('search');
+
 URLHelper::bindLinkParam('news_range_id',$news_range_id);
 URLHelper::bindLinkParam('news_range_name',$news_range_name);
 
-if (Request::get('admin_inst_id')) {
-    $news_range_id = Request::get('admin_inst_id');
+if (Request::option('admin_inst_id')) {
+    $news_range_id = Request::option('admin_inst_id');
     $view_mode = 'inst';
 }
 
-if ($_REQUEST['range_id'] == "self"){
+if (Request::option('range_id') == "self"){
     $news_range_id = $auth->auth['uid'];
-} else if (isset($_REQUEST['range_id'])){
-    $news_range_id = $_REQUEST['range_id'];
+} else if (Request::option('range_id')){
+    $news_range_id = Request::option('range_id');
 } else if ($view == 'news_sem' || $view == 'news_inst') {
     $news_range_id = $SessSemName[1];
 } else if (!$news_range_id){
@@ -59,6 +74,9 @@ if ($_REQUEST['range_id'] == "self"){
 
 PageLayout::setHelpKeyword("Basis.News");
 PageLayout::setTitle(_("Verwaltung von Ankündigungen"));
+
+$view = Request::option('view');
+$list = Request::option('list');
 
 if ($list || $view || ($news_range_id != $user->id &&
         $news_range_id != 'studip') && $view_mode != 'user' &&
@@ -117,37 +135,44 @@ if ($perm->have_perm("admin"))  {
     }
 }
 
+
+
 if ($cmd == 'news_edit'){
-    if (isset($_REQUEST['news_submit'])) $cmd = 'news_submit';
-    if (isset($_REQUEST['news_range_search'])){
+    if (Request::submitted('news_submit')) $cmd = 'news_submit';
+    if (Request::submitted('news_range_search')){
         $cmd = 'edit';
-        $edit_news = $_REQUEST['news_id'];
+        $edit_news = Request::option('news_id');
     }
 }
+
+// unregister globals
+$topic = Request::quoted('topic');
+$body = Request::quoted('body');
 
 if ($cmd=="news_submit") {
     if (!trim(stripslashes($topic)) && trim(stripslashes($body))) {
         $topic = addslashes(substr(trim(stripslashes($body)),0,30) . '...');
     }
 
-    //Maximale Gültigkeitsdauer von News auf 24 Wochen festgelegt
-    $max_expire = 24 * 7 * 24 * 60 * 60;
-
-    if (Request::get('startdate') && Request::get('enddate')) {
-        if (preg_match('/^(\d{2}).(\d{2}).(\d{4})$/',Request::get('startdate'))
-            && preg_match('/^(\d{2}).(\d{2}).(\d{4})$/',Request::get('enddate'))) {
-
-            $start_array = explode(".", Request::get('startdate'));
-            $starttime = mktime(0, 0, 0, $start_array[1], $start_array[0], $start_array[2]);
-            $end_array = explode(".", Request::get('enddate'));
-            $endtime = mktime(23, 59, 59, $end_array[1], $end_array[0], $end_array[2]);
-            $expire = $endtime - $starttime;
-        }
+    if (preg_match('/^(\d{2}).(\d{2}).(\d{4})$/',Request::get('startdate'))
+        && preg_match('/^(\d{2}).(\d{2}).(\d{4})$/',Request::get('enddate')))
+    {
+        $start_array = explode(".", Request::get('startdate'));
+        $starttime = mktime(0, 0, 0, $start_array[1], $start_array[0], $start_array[2]);
+        $end_array = explode(".", Request::get('enddate'));
+        $endtime = mktime(23, 59, 59, $end_array[1], $end_array[0], $end_array[2]);
+        $expire = $endtime - $starttime;
     }
 
-
+    // unregister globals
+    $author = Request::option('author');
+    $user_id = Request::option('user_id');
+    $add_range = Request::optionArray('add_range');
+    $news_id = Request::option('news_id');
+    $allow_comments = Request::option('allow_comments');
+    
     $max_endtime = $starttime + $expire;
-    if ($topic != "" && $add_range && $expire > 0 && $expire <= $max_expire) {
+    if ($topic != "" && $add_range && $expire > 0) {
         $edit_news = $news->update_news($news_id, $author, $topic, $body, $user_id, $starttime, $expire, $add_range, $allow_comments);
         if ($edit_news) {
             $cmd = "edit";
@@ -162,10 +187,6 @@ if ($cmd=="news_submit") {
         $cmd = "edit";
         $edit_news = Request::option('news_id');
         $news->msg .= "error§"._("Das Einstelldatum muss vor dem Ablaufdatum liegen!")."§";
-    } else if ($expire > $max_expire) {
-        $cmd = "edit";
-        $edit_news = Request::option('news_id');
-        $news->msg .= "error§".sprintf(_("Sie können Ankündigungen maximal bis zum %s einstellen!")."§", strftime('%x', $starttime + $max_expire));
     } else if (!$add_range) {
         $cmd = "edit";
         $edit_news = Request::option('news_id');
@@ -217,6 +238,10 @@ if ($cmd=="edit") {
 }
 
 if ($cmd=="kill") {
+    $kill_news = is_array($_REQUEST['kill_news'])
+               ? Request::optionArray('kill_news')
+               : Request::option('kill_news');
+
     $news->kill_news($kill_news);
     $cmd="";
 }
@@ -244,10 +269,10 @@ if (!$cmd OR $cmd=="show") {
             echo "<table width=\"50%\" cellspacing=0 cellpadding=2 border=0>";
             echo "<form action=\"". URLHelper::getLink("?cmd=search") ."\" method=\"POST\">";
             echo CSRFProtection::tokenTag();
-            echo "<tr><td class=\"steel1\">";
+            echo "<tr><td class=\"table_row_even\">";
             echo "&nbsp; <font size=-1>" . _("Geben Sie einen Suchbegriff ein, um weitere Bereiche zu finden!") . "</font><br><br>";
             echo "&nbsp; <input type=\"TEXT\" style=\"vertical-align:middle;\" name=\"search\" size=\"20\">&nbsp;&nbsp;";
-            echo Button::create(_('Suche starten'), 'submit', array('style' => 'vertical-align:middle;'));
+            echo Button::create(_('Suchen'), 'submit', array('style' => 'vertical-align:middle;'));
             echo "</td></tr></form></table>\n";
             echo "</p>";
             echo "</td></tr>";
@@ -286,7 +311,7 @@ if (!$cmd OR $cmd=="show") {
             while (list($typen_key,$typen_value)=each ($typen)) {
                 if (!$perm->have_perm("root") AND $typen_key=="user")
                     continue;
-                echo "\n".'<td class="steel1" width="'.floor(100/$my_cols).'%" align="center" valign="top"><b>'.$typen_value['name'].'</b><br><div style="font-size:smaller;text-align:left;"><ul>';
+                echo "\n".'<td class="table_row_even" width="'.floor(100/$my_cols).'%" align="center" valign="top"><b>'.$typen_value['name'].'</b><br><div style="font-size:smaller;text-align:left;"><ul>';
                 reset($news->search_result);
                 while (list ($range,$details) = each ($news->search_result)) {
                     $link_view_mode = $perm->have_perm('admin') ? $typen_value['view_mode'] : 'user';

@@ -71,14 +71,12 @@ class StudipFormat extends TextFormat
             'callback' => 'StudipFormat::markupText'
         ),
         'big' => array(
-            'start'    => '\+\+',
-            'end'      => '\+\+',
-            'callback' => 'StudipFormat::markupText'
+            'start'    => '(\+\+)([^\n]*)\+\+',
+            'callback' => 'StudipFormat::markupGreedyText'
         ),
         'small' => array(
-            'start'    => '--',
-            'end'      => '--',
-            'callback' => 'StudipFormat::markupText'
+            'start'    => '(--)([^\n]*)--',
+            'callback' => 'StudipFormat::markupGreedyText'
         ),
         'super' => array(
             'start'    => '&gt;&gt;',
@@ -159,11 +157,11 @@ class StudipFormat extends TextFormat
             'callback' => 'StudipFormat::markupMedia'
         ),
         'emails' => array(
-            'start'    => '(?<=\s|^|\>)(\[([^\n\f]+?)\])?([a-zA-Z0-9_]+(\.[a-zA-Z0-9_]+)*@([a-zA-Z0-9_]+(\.[a-zA-Z0-9_]+)+))',
+            'start'    => '(?<=\s|^|\>)(?:\[([^\n\f\]]+?)\])?([\w.!#%+-]+@([[:alnum:].-]+))(?=\s|$)',
             'callback' => 'StudipFormat::markupEmails'
         ),
         'links' => array(
-            'start'    => '\[(.*?)\](.*?)(?=\s|$)',
+            'start'    => '(?<=\s|^|\>)(?:(?:\[([^\n\f\]]+?)\])?)(\w+?:\/\/.+?)(?=\s|$)',
             'callback' => 'StudipFormat::markupLinks'
         ),
     );
@@ -190,17 +188,43 @@ class StudipFormat extends TextFormat
      * - $markup    the markup parser object
      * - $matches   match results of preg_match for $start
      * - $contents  (parsed) contents of this markup rule
+     * 
+     * Sometimes you may want your rule to apply before another specific rule
+     * will apply. For this case the parameter $before defines a rulename of
+     * existing markup, before which your rule should apply.
      *
      * @param string $name      name of this rule
      * @param string $start     start regular expression
      * @param string $end       end regular expression (optional)
      * @param callback $callback function generating output of this rule
+     * @param string $before mark before which rule this rule should be appended
      */
-    public static function addStudipMarkup($name, $start, $end, $callback)
+    public static function addStudipMarkup($name, $start, $end, $callback, $before = null)
     {
-        self::$studip_rules[$name] = compact('start', 'end', 'callback');
+        $inserted = false;
+        foreach (self::$studip_rules as $rule_name => $rule) {
+            if ($rule_name === $before) {
+                self::$studip_rules[$name] = compact('start', 'end', 'callback');
+                $inserted = true;
+            }
+            if ($inserted) {
+                unset(self::$studip_rules[$rule_name]);
+                self::$studip_rules[$rule_name] = $rule;
+            }
+        }
+        if (!$inserted) {
+            self::$studip_rules[$name] = compact('start', 'end', 'callback');
+        }
     }
-
+    
+    /**
+     * Returns a single markup-rule if it exists.
+     * @return array: array('start' => "...", 'end' => "...", 'callback' => "...")
+     */
+    public static function getStudipMarkup($name) {
+        return self::$studip_rules[$name];
+    }
+    
     /**
      * Removes a markup rule from the global Stud.IP markup set.
      *
@@ -248,10 +272,10 @@ class StudipFormat extends TextFormat
         static $tag = array(
             '**' => 'b',
             '%%' => 'i',
-            '__' => 'u',
-            '##' => 'tt',
             '++' => 'big',
             '--' => 'small',
+            '__' => 'u',
+            '##' => 'tt',
             '&gt;&gt;' => 'sup',
             '&lt;&lt;' => 'sub',
             '{-' => 'strike',
@@ -261,6 +285,21 @@ class StudipFormat extends TextFormat
         $key = $matches[0];
 
         return sprintf('<%s>%s</%s>', $tag[$key], $contents, $tag[$key]);
+    }
+
+    /**
+     * Basic text formatting: bold, italics, underline, big, small etc.
+     */
+    protected static function markupGreedyText($markup, $matches)
+    {
+        static $greedytag = array(
+            '++' => 'big',
+            '--' => 'small'
+        );
+
+        $key = $matches[1];
+
+        return sprintf('<%s>%s</%s>', $greedytag[$key], $markup->format($matches[2]), $greedytag[$key]);
     }
 
     /**
@@ -401,9 +440,9 @@ class StudipFormat extends TextFormat
      */
     protected static function markupEmails($markup, $matches)
     {
-        $link_text = $matches[0] != '' ? $matches[0] : $matches[1];
-        $email = $matches[3];
-        $domain = $matches[5];
+        $link_text = $matches[1] ?: $matches[2];
+        $email = $matches[2];
+        $domain = $matches[3];
         
         $intern = $domain === $_SERVER['HTTP_HOST'];
         
@@ -417,7 +456,8 @@ class StudipFormat extends TextFormat
     /**
      * Stud.IP markup for images, audio, video and flash-films
      */
-    protected static function markupMedia($markup, $matches) {
+    protected static function markupMedia($markup, $matches) 
+    {
         $tag = $matches[1];
         $params = explode(":",$matches[2]);
         $url = $matches[3];
@@ -446,6 +486,28 @@ class StudipFormat extends TextFormat
             'video' => '<video src="%s" style="%s" title="%s" alt="%s" controls></video>'
         );
         
+        //Mediaproxy?
+        $pu = @parse_url($url);
+        if (($pu['scheme'] == 'http' || $pu['scheme'] == 'https')
+                && ($pu['host'] == $_SERVER['HTTP_HOST'] || $pu['host'].':'.$pu['port'] == $_SERVER['HTTP_HOST'])
+                && strpos($pu['path'], $GLOBALS['CANONICAL_RELATIVE_PATH_STUDIP']) === 0) {
+            $intern = true;
+            list($pu['first_target']) = explode('/',substr($pu['path'],strlen($GLOBALS['CANONICAL_RELATIVE_PATH_STUDIP'])));
+            $url = TransformInternalLinks($url);
+        }
+        $LOAD_EXTERNAL_MEDIA = Config::GetInstance()->getValue('LOAD_EXTERNAL_MEDIA');
+        if ($intern && !in_array($pu['first_target'], array('sendfile.php','download','assets','pictures'))) {
+            return $matches[0];
+        } elseif ((!$LOAD_EXTERNAL_MEDIA || $LOAD_EXTERNAL_MEDIA === 'deny') && !$intern) {
+            return $matches[0];
+        }
+        
+        if (!$intern && $LOAD_EXTERNAL_MEDIA === "proxy" && Seminar_Session::is_current_session_authenticated()) {
+            $media_url = $GLOBALS['ABSOLUTE_URI_STUDIP'] . 'dispatch.php/media_proxy?url=' . urlencode(idna_link($url));
+        } else {
+            $media_url = idna_link($url);
+        }
+        
         if ($tag === "flash") {
             $width = $width ? $width : 200;
             $height = round($width * 0.75);
@@ -453,20 +515,26 @@ class StudipFormat extends TextFormat
             $media = '<object type="application/x-shockwave-flash" id="FlashPlayer" data="'.Assets::url().'flash/player_flv.swf" width="'.$width.'" height="'.$height.'">
                         <param name="movie" value="'.Assets::url().'flash/player_flv.swf">
                         <param name="allowFullScreen" value="true">
-                        <param name="FlashVars" value="flv='.urlencode(idna_link($url)).'&amp;startimage='.$link.$flash_config.'">
-                        <embed src="'.Assets::url().'flash/player_flv.swf" movie="$media_url" type="application/x-shockwave-flash" FlashVars="flv='.urlencode(idna_link($url)).'&amp;startimage='.$link.$flash_config.'">
+                        <param name="FlashVars" value="flv='.urlencode($media_url).'&amp;startimage='.$link.$flash_config.'">
+                        <embed src="'.Assets::url().'flash/player_flv.swf" movie="$media_url" type="application/x-shockwave-flash" FlashVars="flv='.urlencode($media_url).'&amp;startimage='.$link.$flash_config.'">
                         </object>';
         } else {
             $media = sprintf($format_strings[$tag],
-                idna_link($url),
+                $media_url,
                 isset($width) ? "width: ".$width."px;" : "",
                 $title,
                 $title
             );
         }
+        
+        if ($tag === 'audio') {
+            $random_id = 'audio-' . substr(md5(uniqid('audio', true)), -8);
+            $media = str_replace('<audio ', '<audio id="' . $random_id . '" onerror="STUDIP.Audio.handle(this);" ', $media);
+        }
+        
         if ($link && $tag === "img") {
             $media = sprintf('<a href="%s"%s>%s</a>',
-                idna_link($link),
+                $media_url,
                 !isLinkIntern($link) ? ' target="_blank"' : "",
                 $media
             );
@@ -482,24 +550,23 @@ class StudipFormat extends TextFormat
      * Stud.IP markup for hyperlinks (intern, extern).
      * Has lower priority than [code], [img], etc
      */
-    protected static function markupLinks($markup, $matches) {
-        if ($matches[1][0] === "[") {
-            //Wiki-Syntax
-            return $matches[0];
-        }
-        $title = $matches[1];
+    protected static function markupLinks($markup, $matches) 
+    {
         $url = $matches[2];
-        $whitespace = $matches[3];
+        $title = $matches[1] ? $matches[1] : $url;
         
         $intern = isLinkIntern($url);
         
         $url = TransformInternalLinks($url);
+
+        $linkmarkup = clone $markup;
+        $linkmarkup->removeMarkup("links");
         
-        return sprintf('<a href="%s" class="%s">%s</a>%s',
-            htmlReady($url),
+        return sprintf('<a class="%s" href="%s"%s>%s</a>',
             $intern ? "link-intern" : "link-extern",
-            $title,
-            $whitespace
+            $url,
+            $intern ? "" : ' target="_blank"',
+            $linkmarkup->format($title)
         );
     }
     

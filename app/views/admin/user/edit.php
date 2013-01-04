@@ -18,12 +18,12 @@ use Studip\Button, Studip\LinkButton;
 <?= CSRFProtection::tokenTag() ?>
 <table class="default collapsable">
 <tbody>
-    <tr class="steel header-row">
+    <tr class="table_header header-row">
         <td colspan="3" class="toggle-indicator">
             <a class="toggler"><b><?= _('Allgemeine Daten') ?></b></a>
         </td>
     </tr>
-    <tr class="<?= TextHelper::cycle('steel1', 'steelgraulight') ?>">
+    <tr class="<?= TextHelper::cycle('table_row_even', 'table_row_odd') ?>">
         <td width="25%">
             <?= _("Benutzername:") ?>
             <span style="color: red; font-size: 1.6em">*</span>
@@ -36,7 +36,7 @@ use Studip\Button, Studip\LinkButton;
         <? endif ?>
         </td>
     </tr>
-    <tr class="<?= TextHelper::cycle('steel1', 'steelgraulight') ?>">
+    <tr class="<?= TextHelper::cycle('table_row_even', 'table_row_odd') ?>">
         <td>
             <?= _("globaler Status:") ?>
         </td>
@@ -44,7 +44,7 @@ use Studip\Button, Studip\LinkButton;
             <?= (StudipAuthAbstract::CheckField("auth_user_md5.perms", $user['auth_plugin'])) ? $user['perms'] : $perm->perm_sel("perms", $user['perms']) ?>
         </td>
     </tr>
-    <tr class="<?= TextHelper::cycle('steel1', 'steelgraulight') ?>">
+    <tr class="<?= TextHelper::cycle('table_row_even', 'table_row_odd') ?>">
         <td>
             <?= _("Sichtbarkeit:") ?>
         </td>
@@ -52,7 +52,7 @@ use Studip\Button, Studip\LinkButton;
             <?= vis_chooser($user['visible']) ?> <small>(<?= $user['visible'] ?>)</small>
         </td>
     </tr>
-    <tr class="<?= TextHelper::cycle('steel1', 'steelgraulight') ?>">
+    <tr class="<?= TextHelper::cycle('table_row_even', 'table_row_odd') ?>">
         <td>
             <?= _("Vorname:") ?>
             <span style="color: red; font-size: 1.6em">*</span>
@@ -65,7 +65,7 @@ use Studip\Button, Studip\LinkButton;
         <? endif ?>
         </td>
     </tr>
-    <tr class="<?= TextHelper::cycle('steel1', 'steelgraulight') ?>">
+    <tr class="<?= TextHelper::cycle('table_row_even', 'table_row_odd') ?>">
         <td>
             <?= _("Nachname:") ?>
             <span style="color: red; font-size: 1.6em">*</span>
@@ -78,7 +78,7 @@ use Studip\Button, Studip\LinkButton;
         <? endif ?>
         </td>
     </tr>
-    <tr class="<?= TextHelper::cycle('steel1', 'steelgraulight') ?>">
+    <tr class="<?= TextHelper::cycle('table_row_even', 'table_row_odd') ?>">
         <td>
             <?= _("Geschlecht:") ?>
         </td>
@@ -92,7 +92,7 @@ use Studip\Button, Studip\LinkButton;
         <? endif ?>
         </td>
     </tr>
-    <tr class="<?= TextHelper::cycle('steel1', 'steelgraulight') ?>">
+    <tr class="<?= TextHelper::cycle('table_row_even', 'table_row_odd') ?>">
         <td>
             <?= _("Titel:") ?>
         </td>
@@ -109,7 +109,7 @@ use Studip\Button, Studip\LinkButton;
         <? endif ?>
         </td>
     </tr>
-    <tr class="<?= TextHelper::cycle('steel1', 'steelgraulight') ?>">
+    <tr class="<?= TextHelper::cycle('table_row_even', 'table_row_odd') ?>">
         <td>
             <?=_("Titel nachgestellt:") ?>
         </td>
@@ -128,14 +128,14 @@ use Studip\Button, Studip\LinkButton;
     </tr>
 </tbody>
 <tbody>
-    <tr class="steel header-row">
+    <tr class="table_header header-row">
         <td colspan="3" class="toggle-indicator">
             <a class="toggler"><b><?= _('Registrierungsdaten') ?></b></a>
         </td>
     </tr>
 
     <? if (!$user['locked']) : ?>
-    <tr class="<?= TextHelper::cycle('steel1', 'steelgraulight') ?>">
+    <tr class="<?= TextHelper::cycle('table_row_even', 'table_row_odd') ?>">
         <td width="25%">
             <?= _("Benutzer sperren:") ?>
         </td>
@@ -147,7 +147,7 @@ use Studip\Button, Studip\LinkButton;
     <? endif ?>
 
     <? if ($perm->have_perm('root') && get_config('ALLOW_ADMIN_USERACCESS') && !StudipAuthAbstract::CheckField("auth_user_md5.password", $user['auth_plugin'])) : ?>
-    <tr class="<?= TextHelper::cycle('steel1', 'steelgraulight') ?>">
+    <tr class="<?= TextHelper::cycle('table_row_even', 'table_row_odd') ?>">
         <td>
             <?= _("Neues Passwort:") ?>
         </td>
@@ -155,7 +155,7 @@ use Studip\Button, Studip\LinkButton;
             <input class="user_form" name="pass_1" type="password" id="pass_1">
         </td>
     </tr>
-    <tr class="<?= TextHelper::cycle('steel1', 'steelgraulight') ?>">
+    <tr class="<?= TextHelper::cycle('table_row_even', 'table_row_odd') ?>">
         <td>
             <?= _("Passwortwiederholung:") ?>
         </td>
@@ -166,7 +166,7 @@ use Studip\Button, Studip\LinkButton;
     </tr>
     <? endif ?>
 
-    <tr class="<?= TextHelper::cycle('steel1', 'steelgraulight') ?>">
+    <tr class="<?= TextHelper::cycle('table_row_even', 'table_row_odd') ?>">
         <td>
             <?= _("E-Mail:") ?>
             <span style="color: red; font-size: 1.6em">*</span>
@@ -183,7 +183,7 @@ use Studip\Button, Studip\LinkButton;
         <? endif ?>
         </td>
     </tr>
-    <tr class="<?= TextHelper::cycle('steel1', 'steelgraulight') ?>">
+    <tr class="<?= TextHelper::cycle('table_row_even', 'table_row_odd') ?>">
         <td>
             <?= _("inaktiv seit:") ?>
         </td>
@@ -201,7 +201,7 @@ use Studip\Button, Studip\LinkButton;
         <?= $inactive ?>
         </td>
     </tr>
-    <tr class="<?= TextHelper::cycle('steel1', 'steelgraulight') ?>">
+    <tr class="<?= TextHelper::cycle('table_row_even', 'table_row_odd') ?>">
         <td>
             <?= _("registriert seit:") ?>
         </td>
@@ -209,7 +209,7 @@ use Studip\Button, Studip\LinkButton;
             <?= ($user["mkdate"]) ? date("d.m.Y", $user["mkdate"]) : _('unbekannt') ?>
         </td>
     </tr>
-    <tr class="<?= TextHelper::cycle('steel1', 'steelgraulight') ?>">
+    <tr class="<?= TextHelper::cycle('table_row_even', 'table_row_odd') ?>">
         <td>
             <?= _("Authentifizierung:") ?>
         </td>
@@ -223,7 +223,7 @@ use Studip\Button, Studip\LinkButton;
     </tr>
 
     <? if ($user['validation_key']) : ?>
-    <tr class="<?= TextHelper::cycle('steel1', 'steelgraulight') ?>">
+    <tr class="<?= TextHelper::cycle('table_row_even', 'table_row_odd') ?>">
         <td>
             <?=_("Validation-Key:")?>
         </td>
@@ -234,7 +234,7 @@ use Studip\Button, Studip\LinkButton;
     </tr>
     <? endif ?>
 
-    <tr class="<?= TextHelper::cycle('steel1', 'steelgraulight') ?>">
+    <tr class="<?= TextHelper::cycle('table_row_even', 'table_row_odd') ?>">
         <td>
             <?= _("Ablaufdatum:") ?>
         </td>
@@ -247,13 +247,13 @@ use Studip\Button, Studip\LinkButton;
 
 <? if (in_array($user['perms'], array('autor', 'tutor', 'dozent'))) : ?>
 <tbody>
-    <tr class="steel header-row">
+    <tr class="table_header header-row">
         <td colspan="3" class="toggle-indicator">
             <a class="toggler"><b><?= _('Studiendaten') ?></b></a>
         </td>
     </tr>
     <? if (!StudipAuthAbstract::CheckField("studiengang_id", $auth_plugin)) : ?>
-    <tr class="steel1">
+    <tr class="table_row_even">
         <td width="25%">
             <?= _('Neuer Studiengang')?>
         </td>
@@ -270,7 +270,7 @@ use Studip\Button, Studip\LinkButton;
     <? endif ?>
     <? if (count($studycourses) > 0) : ?>
     <? foreach ($studycourses as $i => $studiengang) : ?>
-    <tr class="<?= TextHelper::cycle('cycle_odd', 'cycle_even') ?>">
+    <tr class="<?= TextHelper::cycle('hover_odd', 'hover_even') ?>">
         <td>
             <?= $i+1 ?>. <?= _('Studiengang')?>
         </td>
@@ -287,7 +287,7 @@ use Studip\Button, Studip\LinkButton;
     </tr>
     <? endforeach ?>
     <? endif ?>
-    <tr class="steel1">
+    <tr class="table_row_even">
         <td>
             <?= _('Neue Einrichtung')?>
         </td>
@@ -295,14 +295,16 @@ use Studip\Button, Studip\LinkButton;
             <select name="new_student_inst">
                 <option selected="selected" value="none"><?= _('-- Bitte Einrichtung auswählen --') ?></option>
                 <? foreach ($available_institutes as $i) : ?>
-                <option value="<?= $i['Institut_id'] ?>"><?= htmlReady(my_substr($i['Name'], 0, 50)) ?></option>
+                    <? if (!isset($institutes[$i['Institut_id']])) : ?>
+                    <option style="<?= $i['is_fak'] ? 'font-weight:bold;' : 'padding-left:10px;' ?>" value="<?= $i['Institut_id'] ?>"><?= htmlReady(my_substr($i['Name'], 0, 70)) ?></option>
+                    <? endif ?>
                 <? endforeach ?>
             </select>
         </td>
     </tr>
     <? if (count($student_institutes) > 0) : ?>
-    <? foreach ($student_institutes as $i => $institute) : ?>
-    <tr class="<?= TextHelper::cycle('cycle_odd', 'cycle_even') ?>">
+    <? foreach (array_values($student_institutes) as $i => $institute) : ?>
+    <tr class="<?= TextHelper::cycle('hover_odd', 'hover_even') ?>">
         <td>
             <?= $i+1 ?>. <?= _('Einrichtung')?>
         </td>
@@ -310,9 +312,11 @@ use Studip\Button, Studip\LinkButton;
             <?= htmlReady($institute['Name']) ?>
         </td>
         <td align="right">
+            <? if ($GLOBALS['perm']->have_studip_perm("admin", $institute['Institut_id'])) : ?>
             <a href="<?= $controller->url_for('admin/user/delete_institute/' . $user['user_id'] . '/' . $institute['Institut_id']) ?>">
                 <?= Assets::img('icons/16/blue/trash.png', array('class' => 'text-top', 'title' => _('Diese Einrichtung löschen'))) ?>
             </a>
+            <? endif ?>
         </td>
     </tr>
     <? endforeach ?>
@@ -322,12 +326,12 @@ use Studip\Button, Studip\LinkButton;
 
 <? if ($user['perms'] != 'root') : ?>
 <tbody>
-    <tr class="steel header-row">
+    <tr class="table_header header-row">
         <td colspan="3" class="toggle-indicator">
             <a class="toggler"><b><?= _('Einrichtungsdaten') ?></b></a>
         </td>
     </tr>
-    <tr class="steel1">
+    <tr class="table_row_even">
         <td width="25%">
             <?= _('Neue Einrichtung')?>
         </td>
@@ -335,14 +339,19 @@ use Studip\Button, Studip\LinkButton;
             <select name="new_inst">
                 <option selected="selected" value="none"><?= _('-- Bitte Einrichtung auswählen --') ?></option>
                 <? foreach ($available_institutes as $i) : ?>
-                <option value="<?= $i['Institut_id'] ?>"><?= htmlReady(my_substr($i['Name'], 0, 50)) ?></option>
+                    <? if (!isset($institutes[$i['Institut_id']])
+                     && (!($i['is_fak'] && $user['perms'] == 'admin') || $GLOBALS['perm']->have_perm('root'))) : ?>
+                    <option style="<?= $i['is_fak'] ? 'font-weight:bold;' : 'padding-left:10px;' ?>" value="<?= $i['Institut_id'] ?>"><?= htmlReady(my_substr($i['Name'], 0, 70)) ?></option>
+                    <? else : ?>
+                    <option style="text-decoration: line-through; <?= $i['is_fak'] ? 'font-weight:bold;' : 'padding-left:10px;' ?>" value="none"><?= htmlReady(my_substr($i['Name'], 0, 70)) ?></option>
+                    <? endif ?>
                 <? endforeach ?>
             </select>
         </td>
     </tr>
     <? if (count($institutes) > 0) : ?>
-    <? foreach ($institutes as $i => $institute) : ?>
-    <tr class="<?= TextHelper::cycle('cycle_odd', 'cycle_even') ?>">
+    <? foreach (array_values($institutes) as $i => $institute) : ?>
+    <tr class="<?= TextHelper::cycle('hover_odd', 'hover_even') ?>">
         <td>
             <?= $i+1 ?>. <?= _('Einrichtung')?>
         </td>
@@ -350,12 +359,14 @@ use Studip\Button, Studip\LinkButton;
             <?= htmlReady($institute['Name']) ?>
         </td>
         <td align="right">
+            <? if ($GLOBALS['perm']->have_studip_perm("admin", $institute['Institut_id'])) : ?>
             <a class="load-in-new-row" href="<?= $controller->url_for('admin/user/edit_institute/' . $user['user_id'] . '/' . $institute['Institut_id']) ?>">
                 <?= Assets::img('icons/16/blue/edit.png', array('class' => 'text-top', 'title' => _('Diese Einrichtung bearbeiten'))) ?>
             </a>
             <a href="<?= $controller->url_for('admin/user/delete_institute/' . $user['user_id'] . '/' . $institute['Institut_id']) ?>">
                 <?= Assets::img('icons/16/blue/trash.png', array('class' => 'text-top', 'title' => _('Diese Einrichtung löschen'))) ?>
             </a>
+            <? endif ?>
         </td>
     </tr>
     <? endforeach ?>
@@ -365,12 +376,12 @@ use Studip\Button, Studip\LinkButton;
 
 <? if ($user['perms'] != 'root') : ?>
 <tbody>
-    <tr class="steel header-row">
+    <tr class="table_header header-row">
         <td colspan="3" class="toggle-indicator">
             <a class="toggler"><b><?= _('Nutzerdomänen') ?></b></a>
         </td>
     </tr>
-    <tr class="steel1">
+    <tr class="table_row_even">
         <td width="25%">
             <?= _('Neue Nutzerdomäne')?>
         </td>
@@ -380,7 +391,7 @@ use Studip\Button, Studip\LinkButton;
     </tr>
     <? if (count($userdomains) > 0) : ?>
     <? foreach ($userdomains as $i => $domain) : ?>
-    <tr class="<?= TextHelper::cycle('cycle_odd', 'cycle_even') ?>">
+    <tr class="<?= TextHelper::cycle('hover_odd', 'hover_even') ?>">
         <td>
             <?= $i+1 ?>. <?= _('Nutzerdomäne')?>
         </td>
@@ -400,12 +411,12 @@ use Studip\Button, Studip\LinkButton;
 
 <? if ($GLOBALS['perm']->have_perm('root') && count(LockRule::findAllByType('user')) > 0) : ?>
 <tbody>
-    <tr class="steel header-row">
+    <tr class="table_header header-row">
         <td colspan="3" class="toggle-indicator">
             <a class="toggler"><b><?= _('Sperrebene') ?></b></a>
         </td>
     </tr>
-    <tr class="steel1">
+    <tr class="table_row_even">
        <td width="25%">
             <?= _('Sperrebene')?>
         </td>
@@ -423,14 +434,14 @@ use Studip\Button, Studip\LinkButton;
 
 <? if (count($userfields) > 0) : ?>
 <tbody>
-    <tr class="steel header-row">
+    <tr class="table_header header-row">
         <td colspan="3" class="toggle-indicator">
             <a class="toggler"><b><?= _('Datenfelder') ?></b></a>
         </td>
     </tr>
 <? foreach ($userfields as $entry) : ?>
     <? if ($entry->isVisible()) : ?>
-        <tr class="<?= TextHelper::cycle('steel1', 'steelgraulight') ?>">
+        <tr class="<?= TextHelper::cycle('table_row_even', 'table_row_odd') ?>">
             <td width="25%">
                 <?= htmlReady($entry->getName()) ?>:
             </td>
@@ -470,31 +481,34 @@ use Studip\Button, Studip\LinkButton;
 include '_infobox.php';
 
 $paktionen[] = array(
-    "text" => '<a href="' .URLHelper::getLink('about.php?username=' . $user['username']) .'">' . _('Zum Benutzerprofil') .'</a>',
+    "text" => '<a href="' .URLHelper::getLink('dispatch.php/profile?username=' . $user['username']) .'">' . _('Zum Benutzerprofil') .'</a>',
     "icon" => "icons/16/black/person.png");
 $paktionen[] = array(
     "text" => '<a href="' .URLHelper::getLink('sms_send.php?rec_uname=' . $user['username']) .'">' . _('Nachricht an Benutzer verschicken') .'</a>',
     "icon" => "icons/16/black/mail.png");
-$paktionen[] = array(
-    "text" => '<a href="' .URLHelper::getLink('user_activities.php?username=' . $user['username']) . '">' . _('Datei- und Aktivitätsübersicht') .'</a>',
-    "icon" => "icons/16/black/vcard.png");
-if ($GLOBALS['LOG_ENABLE']) {
+if ($GLOBALS['perm']->have_perm('root')) {
     $paktionen[] = array(
+        "text" => '<a href="' .URLHelper::getLink('user_activities.php?username=' . $user['username']) . '">' . _('Datei- und Aktivitätsübersicht') .'</a>',
+        "icon" => "icons/16/black/vcard.png");
+    if ($GLOBALS['LOG_ENABLE']) {
+        $paktionen[] = array(
         "text" => '<a href="' . URLHelper::getLink('dispatch.php/event_log/show?search=' . $user['username'] .'&type=user&object_id=' .$user['user_id']) . '">' . _('Benutzereinträge im Log') . '</a>',
         "icon" => "icons/16/black/log.png");
+    }
 }
 if ($user['locked']) {
     $paktionen[] = array(
         "text" => '<a href="' . $controller->url_for('admin/user/unlock/' . $user['user_id'] . '') . '">' . _('Benutzer entsperren') . '</a>',
         "icon" => "icons/16/black/lock-unlocked.png");
 }
-$paktionen[] = array(
-    "text" => '<a href="' . $controller->url_for('admin/user/change_password/' . $user['user_id'] . '') . '">' . _('Neues Passwort setzen') . '</a>',
-    "icon" => "icons/16/black/lock-locked.png");
-$paktionen[] = array(
-    "text" => '<a href="' . $controller->url_for('admin/user/delete/' . $user['user_id'] . '/edit') . '">' . _('Benutzer löschen') . '</a>',
-    "icon" => "icons/16/black/trash.png");
-
+if ($GLOBALS['perm']->have_perm('root') || $GLOBALS['perm']->is_fak_admin() || !in_array($user['perms'], words('root admin'))) {
+    $paktionen[] = array(
+        "text" => '<a href="' . $controller->url_for('admin/user/change_password/' . $user['user_id'] . '') . '">' . _('Neues Passwort setzen') . '</a>',
+        "icon" => "icons/16/black/lock-locked.png");
+    $paktionen[] = array(
+        "text" => '<a href="' . $controller->url_for('admin/user/delete/' . $user['user_id'] . '/edit') . '">' . _('Benutzer löschen') . '</a>',
+        "icon" => "icons/16/black/trash.png");
+}
 $infobox = array(
     'picture' => 'infobox/board1.jpg',
     'content' => array(

@@ -1,7 +1,7 @@
 <table class="default">
     <thead>
         <tr>
-            <td class="topic" colspan="4"><?= _('Übersicht Gästebucheinträge') ?></td>
+            <td class="table_header_bold" colspan="4"><?= _('Übersicht Gästebucheinträge') ?></td>
         </tr>
     </thead>
     <tbody>
@@ -23,7 +23,7 @@
             <td class="printcontent" colspan="3">
                 <div style="margin-bottom: 10px;">
                     <b>
-                        <a href="<?= URLHelper::getLink('about.php?guestbook=open#guest', array('username' => $post['user']->username)) ?>">
+                        <a href="<?= URLHelper::getLink('dispatch.php/profile?guestbook=open#guest', array('username' => $post['user']->username)) ?>">
                             <?= Assets::img('icons/16/blue/guestbook') ?>
                             <?= _('Gästebuch') ?>:
                             <?= htmlReady($post['user']->getFullName()) ?>

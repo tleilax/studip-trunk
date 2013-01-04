@@ -93,10 +93,10 @@ class StudipLitListViewAdmin extends TreeView
     }
 
     function parseCommand(){
-        if ($_REQUEST['mode'])
-            $this->mode = $_REQUEST['mode'];
-        if ($_REQUEST['cmd']){
-            $exec_func = "execCommand" . $_REQUEST['cmd'];
+        if (Request::quoted('mode'))
+            $this->mode = Request::quoted('mode');
+        if (Request::option('cmd')){
+            $exec_func = "execCommand" . Request::option('cmd');
             if (method_exists($this,$exec_func)){
                 if ($this->$exec_func()){
                     $this->tree->init();
@@ -107,7 +107,7 @@ class StudipLitListViewAdmin extends TreeView
 
 
     function execCommandEditItem(){
-        $item_id = $_REQUEST['item_id'];
+        $item_id = Request::option('item_id');
         $this->mode = "EditItem";
         $this->anchor = $item_id;
         $this->edit_item_id = $item_id;
@@ -115,7 +115,7 @@ class StudipLitListViewAdmin extends TreeView
     }
 
     function execCommandInClipboard(){
-        $item_id = $_REQUEST['item_id'];
+        $item_id = Request::option('item_id');
         if (is_object($this->clip_board)){
             if ($this->tree->isElement($item_id)){
                 $this->clip_board->insertElement($this->tree->tree_data[$item_id]['catalog_id']);
@@ -135,19 +135,20 @@ class StudipLitListViewAdmin extends TreeView
     }
 
     function execCommandInsertItem(){
-        $item_id = $_REQUEST['item_id'];
-        $parent_id = $_REQUEST['parent_id'];
+        $item_id = Request::option('item_id');
+        $parent_id = Request::option('parent_id');
         $user_id = $GLOBALS['auth']->auth['uid'];
         if ($this->mode != "NewItem"){
-            if (isset($_REQUEST['edit_note'])){
-                $affected_rows = $this->tree->updateElement(array('list_element_id' => $item_id, 'note' => $_REQUEST['edit_note'], 'user_id' => $user_id));
+            if (Request::get('edit_note')){
+                $affected_rows = $this->tree->updateElement(array('list_element_id' => $item_id, 'note' => Request::quoted('edit_note'), 'user_id' => $user_id));
                 if ($affected_rows){
                     $this->msg[$item_id] = "msg§" . _("Anmerkung wurde ge&auml;ndert.");
                 } else {
                     $this->msg[$item_id] = "info§" . _("Keine Ver&auml;nderungen vorgenommen.");
                 }
-            } else if (isset($_REQUEST['edit_format'])){
-                $affected_rows = $this->tree->updateList(array('list_id' => $item_id,'format' => $_REQUEST['edit_format'],'name' => $_REQUEST['edit_name'],'visibility' => $_REQUEST['edit_visibility'], 'user_id' => $user_id));
+             } else if ( Request::get('edit_format') ) {
+
+                $affected_rows = $this->tree->updateList(array('list_id' => $item_id,'format' => Request::quoted('edit_format'),'name' => Request::quoted('edit_name'),'visibility' => Request::quoted('edit_visibility'), 'user_id' => $user_id));
                 if ($affected_rows){
                     $this->msg[$item_id] = "msg§" . _("Listeneigenschaften wurden ge&auml;ndert.");
                 } else {
@@ -156,7 +157,7 @@ class StudipLitListViewAdmin extends TreeView
             }
         } else {
             $priority = $this->tree->getMaxPriority($parent_id) + 1;
-            $affected_rows = $this->tree->insertList(array('list_id' => $item_id,'priority' => $priority, 'format' => $_REQUEST['edit_format'],'visibility' => $_REQUEST['edit_visibility'], 'name' => $_REQUEST['edit_name'],'user_id' => $user_id));
+            $affected_rows = $this->tree->insertList(array('list_id' => $item_id,'priority' => $priority, 'format' => Request::quoted('edit_format'),'visibility' => Request::quoted('edit_visibility'), 'name' => Request::quoted('edit_name'),'user_id' => $user_id));
             if ($affected_rows){
                 $this->mode = "";
                 $this->anchor = $item_id;
@@ -171,7 +172,7 @@ class StudipLitListViewAdmin extends TreeView
     }
 
     function execCommandCopyList(){
-        $item_id = $_REQUEST['item_id'];
+        $item_id = Request::option('item_id');
         if ($new_list_id = $this->tree->copyList($item_id)){
             $this->anchor = $new_list_id;
             $this->open_ranges[$new_list_id] = true;
@@ -185,7 +186,7 @@ class StudipLitListViewAdmin extends TreeView
     }
 
     function execCommandCopyUserList(){
-        $list_id = $_REQUEST['user_list'];
+        $list_id = Request::quoted('user_list');
         if ($new_list_id = $this->tree->copyList($list_id)){
             $this->anchor = $new_list_id;
             $this->open_ranges[$new_list_id] = true;
@@ -199,7 +200,7 @@ class StudipLitListViewAdmin extends TreeView
     }
 
     function execCommandToggleVisibility(){
-        $item_id = $_REQUEST['item_id'];
+        $item_id = Request::option('item_id');
         $user_id = $GLOBALS['auth']->auth['uid'];
         $visibility = ($this->tree->tree_data[$item_id]['visibility']) ? 0 : 1;
         if ($this->tree->updateList(array('list_id' => $item_id, 'visibility' => $visibility, 'user_id' => $user_id))){
@@ -212,8 +213,8 @@ class StudipLitListViewAdmin extends TreeView
     }
 
     function execCommandOrderItem(){
-        $direction = $_REQUEST['direction'];
-        $item_id = $_REQUEST['item_id'];
+        $direction = Request::quoted('direction');
+        $item_id = Request::option('item_id');
         $items_to_order = $this->tree->getKids($this->tree->tree_data[$item_id]['parent_id']);
         if (!$items_to_order){
             return false;
@@ -242,7 +243,7 @@ class StudipLitListViewAdmin extends TreeView
     }
 
     function execCommandSortKids(){
-        $item_id = $_REQUEST['item_id'];
+        $item_id = Request::option('item_id');
         $kids = $this->tree->getKids($item_id);
         usort($kids, create_function('$a,$b',
                 '$the_tree = TreeAbstract::GetInstance("StudipLitList", "'.$this->tree->range_id.'");
@@ -261,16 +262,16 @@ class StudipLitListViewAdmin extends TreeView
     }
 
     function execCommandAssertDeleteItem(){
-        $item_id = $_REQUEST['item_id'];
+        $item_id = Request::option('item_id');
         $this->mode = "AssertDeleteItem";
-        
+
         $template = $GLOBALS['template_factory']->open('shared/question');
         $question = _("Sie beabsichtigen, diese Liste inklusive aller Einträge zu löschen. ")
                     . sprintf(_("Es werden insgesamt %s Einträge gelöscht!"), count($this->tree->getKidsKids($item_id)))
                     . "\n" . _("Wollen Sie diese Liste wirklich löschen?");
-        
-        $template->set_attribute('approvalLink', URLHelper::getLink($this->getSelf("cmd=DeleteItem&item_id=$item_id")));
-        $template->set_attribute('disapprovalLink', URLHelper::getLink($this->getSelf("cmd=Cancel&item_id=$item_id")));
+
+        $template->set_attribute('approvalLink', URLHelper::getUrl($this->getSelf("cmd=DeleteItem&item_id=$item_id")));
+        $template->set_attribute('disapprovalLink', URLHelper::getUrl($this->getSelf("cmd=Cancel&item_id=$item_id")));
         $template->set_attribute('question', $question);
 
         echo $template->render();
@@ -279,7 +280,7 @@ class StudipLitListViewAdmin extends TreeView
     }
 
     function execCommandDeleteItem(){
-        $item_id = $_REQUEST['item_id'];
+        $item_id = Request::option('item_id');
         $deleted = 0;
         $item_name = $this->tree->tree_data[$item_id]['name'];
         $this->anchor = $this->tree->tree_data[$item_id]['parent_id'];
@@ -304,7 +305,7 @@ class StudipLitListViewAdmin extends TreeView
     }
 
     function execCommandNewItem(){
-        $item_id = $_REQUEST['item_id'];
+        $item_id = Request::option('item_id');
         $new_item_id = md5(uniqid("listblubb",1));
         $this->tree->tree_data[$new_item_id] = array(
             'chdate' => time(),
@@ -325,7 +326,7 @@ class StudipLitListViewAdmin extends TreeView
     }
 
     function execCommandCancel(){
-        $item_id = $_REQUEST['item_id'];
+        $item_id = Request::option('item_id');
         $this->mode = "";
         $this->anchor = $item_id;
         return false;
@@ -339,7 +340,7 @@ class StudipLitListViewAdmin extends TreeView
 
         if ($item_id == $this->edit_item_id) {
             $edit_content = $this->getEditItemContent();
-            $content .= "\n<tr><td class=\"steel1\" align=\"left\">$edit_content</td></tr>";
+            $content .= "\n<tr><td class=\"table_row_even\" align=\"left\">$edit_content</td></tr>";
         }
         else {
             if ($item_id == "root" && $this->tree->range_type != 'user') {
@@ -356,7 +357,7 @@ class StudipLitListViewAdmin extends TreeView
                 $content .= $this->getSubTitleRowForTableBox(_("Sichtbarkeit:"));
                 $content .= $this->getVisibilityStatusRowForTableBox($item_id);
                 $content .= $this->getBottomRowForTableBox($item_id);
-            }          
+            }
         }
 
         $content .= "</table>";
@@ -389,7 +390,7 @@ class StudipLitListViewAdmin extends TreeView
                     }
                 }
             }
-            
+
             $content .= "</form></td></tr></table>";
         }
 
@@ -400,7 +401,7 @@ class StudipLitListViewAdmin extends TreeView
     function getTableRowForRootInLiteratur() {
         $user_lists = $this->tree->GetListsByRange($GLOBALS['auth']->auth['uid']);
 
-        $content .= "\n<tr><td class=\"steel1\" align=\"left\">";
+        $content .= "\n<tr><td class=\"table_row_even\" align=\"left\">";
         $content .= "\n<form name=\"userlist_form\" action=\"" . URLHelper::getLink($this->getSelf("cmd=CopyUserList")) . "\" method=\"POST\">";
         $content .= CSRFProtection::tokenTag();
         $content .= "<b>" . _("Pers&ouml;nliche Literaturlisten:")
@@ -419,7 +420,7 @@ class StudipLitListViewAdmin extends TreeView
 
 
     function getTopRowForTableBox($title){
-        $content .= "\n<tr><td class=\"steelgraulight\" align=\"left\" style=\"border-top: 1px solid black;border-left: 1px solid black;border-right: 1px solid black;\">";
+        $content .= "\n<tr><td class=\"table_row_odd\" align=\"left\" style=\"border-top: 1px solid black;border-left: 1px solid black;border-right: 1px solid black;\">";
         $content .= $title;
         $content .= " </td></tr>";
 
@@ -428,7 +429,7 @@ class StudipLitListViewAdmin extends TreeView
 
 
     function getLiteratureEntryRowForTableBox($item_id){
-        $content .= "\n<tr><td class=\"steel1\" align=\"left\" style=\"border-left: 1px solid black;border-right: 1px solid black;\">";
+        $content .= "\n<tr><td class=\"table_row_even\" align=\"left\" style=\"border-left: 1px solid black;border-right: 1px solid black;\">";
         $content .= formatReady($this->tree->getFormattedEntry($item_id), false, true);
         $content .= " </td></tr>";
 
@@ -437,7 +438,7 @@ class StudipLitListViewAdmin extends TreeView
 
 
     function getFormatRowForTableBox($item_id){
-        $content .= "\n<tr><td class=\"steel1\" align=\"left\" style=\"border-left: 1px solid black;border-right: 1px solid black;\">";
+        $content .= "\n<tr><td class=\"table_row_even\" align=\"left\" style=\"border-left: 1px solid black;border-right: 1px solid black;\">";
         $content .= htmlReady($this->tree->tree_data[$item_id]['format'], false, true);
         $content .= " &nbsp;</td></tr>";
 
@@ -445,7 +446,7 @@ class StudipLitListViewAdmin extends TreeView
     }
 
     function getVisibilityStatusRowForTableBox($item_id){
-        $content .= "\n<tr><td class=\"steel1\" align=\"left\" style=\"border-left: 1px solid black;border-right: 1px solid black;\">";
+        $content .= "\n<tr><td class=\"table_row_even\" align=\"left\" style=\"border-left: 1px solid black;border-right: 1px solid black;\">";
 
         if ($this->tree->tree_data[$item_id]['visibility']){
             $content .= "<img src=\"" . $GLOBALS['ASSETS_URL'] . "images/icons/16/black/visibility-visible.png\" border=\"0\" style=\"vertical-align:bottom;\">&nbsp;" . _("Sichtbar");
@@ -461,19 +462,19 @@ class StudipLitListViewAdmin extends TreeView
 
 
     function getSubTitleRowForTableBox($title){
-        $content .= "\n<tr><td class=\"steelgraulight\" align=\"left\" style=\"border-left: 1px solid black;border-right: 1px solid black;\">"; 
+        $content .= "\n<tr><td class=\"table_row_odd\" align=\"left\" style=\"border-left: 1px solid black;border-right: 1px solid black;\">";
         $content .= $title;
         $content .= "</td></tr>";
 
         return $content;
     }
 
-    
+
     function getBottomRowForTableBox($item_id){
-        $content .= "\n<tr><td class=\"steelgraulight\" align=\"right\" style=\"border-bottom: 1px solid black;border-left: 1px solid black;border-right: 1px solid black;\">";
+        $content .= "\n<tr><td class=\"table_row_odd\" align=\"right\" style=\"border-bottom: 1px solid black;border-left: 1px solid black;border-right: 1px solid black;\">";
         $content .= _("Letzte &Auml;nderung:");
         $content .= strftime(" %d.%m.%Y ", $this->tree->tree_data[$item_id]['chdate']);
-        $content .= "(<a href=\"about.php?username=";
+        $content .= "(<a href=\"dispatch.php/profile?username=";
         $content .= $this->tree->tree_data[$item_id]['username'];
         $content .= "\">" . htmlReady($this->tree->tree_data[$item_id]['fullname']) . "</a>) </td></tr>";
 
@@ -481,7 +482,7 @@ class StudipLitListViewAdmin extends TreeView
     }
 
     function getNewLiteratureButton($item_id){
-        $content = LinkButton::create(_('neue Literaturliste'), 
+        $content = LinkButton::create(_('neue Literaturliste'),
                     URLHelper::getURL($this->getSelf('cmd=NewItem&item_id='.$item_id)),
                     array('title' => _('Eine neue Literaturliste anlegen')));
         $content .= "&nbsp;";
@@ -490,7 +491,7 @@ class StudipLitListViewAdmin extends TreeView
     }
 
     function getEditFormatingButton($item_id){
-        $content = LinkButton::create(_('bearbeiten'), 
+        $content = LinkButton::create(_('bearbeiten'),
                     URLHelper::getURL($this->getSelf('cmd=EditItem&item_id='.$item_id)),
                     array('title' => _("Dieses Element bearbeiten")));
         $content .= "&nbsp;";
@@ -499,7 +500,7 @@ class StudipLitListViewAdmin extends TreeView
     }
 
     function getEditLiteratureEntryButton($item_id){
-        $content = LinkButton::create(_('Anmerkung'), 
+        $content = LinkButton::create(_('Anmerkung'),
                     URLHelper::getURL($this->getSelf('cmd=EditItem&item_id='. $item_id)),
                     array('title' => _('Dieses Element bearbeiten')));
         $content .= "&nbsp;";
@@ -518,7 +519,7 @@ class StudipLitListViewAdmin extends TreeView
 
     function getCopyListButton($item_id){
         $content = LinkButton::create(_('Kopie erstellen'),
-                    URLHelper::getURL($this->getSelf('cmd=CopyList&item_0id='.$item_id)),
+                    URLHelper::getURL($this->getSelf('cmd=CopyList&item_id='.$item_id)),
                     array('title' => _('Eine Kopie dieser Liste erstellen')));
         $content .= "&nbsp;";
 
@@ -544,7 +545,7 @@ class StudipLitListViewAdmin extends TreeView
     }
 
     function getDeleteButton($item_id, $cmd){
-        $content = LinkButton::create(_('Löschen'), 
+        $content = LinkButton::create(_('Löschen'),
                     URLHelper::getURL($this->getSelf('cmd='.$cmd.'&item_id='.$item_id)),
                     array('title' => _('Dieses Element löschen')));
         $content .= '&nbsp;';
@@ -553,7 +554,7 @@ class StudipLitListViewAdmin extends TreeView
     }
 
     function getToClipboardButton($item_id){
-         $content = LinkButton::create(_('Merkliste'), 
+         $content = LinkButton::create(_('Merkliste'),
                     URLHelper::getURL($this->getSelf('cmd=InClipboard&item_id='.$item_id)),
                     array('title' => _('Eintrag in Merkliste aufnehmen')));
         $content .= '&nbsp;';
@@ -636,24 +637,24 @@ class StudipLitListViewAdmin extends TreeView
         $content .= CSRFProtection::tokenTag();
         $content .= "\n<input type=\"HIDDEN\" name=\"parent_id\" value=\"{$this->tree->tree_data[$this->edit_item_id]['parent_id']}\">";
         if ($this->tree->isElement($this->edit_item_id)){
-            $content .= "\n<tr><td class=\"steelgraulight\"style=\"border-top: 1px solid black;border-left: 1px solid black;border-right: 1px solid black;\" ><b>". _("Anmerkung zu einem Eintrag bearbeiten:") . "</b></td></tr>";
+            $content .= "\n<tr><td class=\"table_row_odd\"style=\"border-top: 1px solid black;border-left: 1px solid black;border-right: 1px solid black;\" ><b>". _("Anmerkung zu einem Eintrag bearbeiten:") . "</b></td></tr>";
             $edit_name = "note";
             $rows = 5;
-            $content .= "<tr><td class=\"steel1\" style=\"border-bottom: 1px solid black;border-left: 1px solid black;border-right: 1px solid black;\"><textarea name=\"edit_{$edit_name}\" style=\"width:99%\" rows=\"$rows\">" . htmlReady($this->tree->tree_data[$this->edit_item_id][$edit_name])
+            $content .= "<tr><td class=\"table_row_even\" style=\"border-bottom: 1px solid black;border-left: 1px solid black;border-right: 1px solid black;\"><textarea name=\"edit_{$edit_name}\" style=\"width:99%\" rows=\"$rows\">" . htmlReady($this->tree->tree_data[$this->edit_item_id][$edit_name])
                 . "</textarea></td></tr>";
         } else {
-            $content .= "\n<tr><td class=\"steelgraulight\" style=\"border-top: 1px solid black;border-left: 1px solid black;border-right: 1px solid black;\" ><b>". _("Name der Liste bearbeiten:") . "</b></td></tr>";
-            $content .= "<tr><td class=\"steel1\" align=\"center\" style=\"border-left: 1px solid black;border-right: 1px solid black;\"><input type=\"text\" name=\"edit_name\" style=\"width:99%\" value=\"" . htmlReady($this->tree->tree_data[$this->edit_item_id]['name'])
+            $content .= "\n<tr><td class=\"table_row_odd\" style=\"border-top: 1px solid black;border-left: 1px solid black;border-right: 1px solid black;\" ><b>". _("Name der Liste bearbeiten:") . "</b></td></tr>";
+            $content .= "<tr><td class=\"table_row_even\" align=\"center\" style=\"border-left: 1px solid black;border-right: 1px solid black;\"><input type=\"text\" name=\"edit_name\" style=\"width:99%\" value=\"" . htmlReady($this->tree->tree_data[$this->edit_item_id]['name'])
                 . "\"></td></tr>";
 
             $edit_name = "format";
             $rows = 2;
-            $content .= "\n<tr><td class=\"steelgraulight\" style=\"border-left: 1px solid black;border-right: 1px solid black;\" ><b>". _("Formatierung der Liste bearbeiten:") . "</b>"
+            $content .= "\n<tr><td class=\"table_row_odd\" style=\"border-left: 1px solid black;border-right: 1px solid black;\" ><b>". _("Formatierung der Liste bearbeiten:") . "</b>"
                     . "&nbsp;<img src=\"".$GLOBALS['ASSETS_URL']."images/icons/16/grey/info-circle.png\""
                     . tooltip($this->format_info, TRUE, TRUE) . " class=\"text-top\"></td></tr>";
-            $content .= "<tr><td class=\"steel1\" align=\"center\" style=\"border-left: 1px solid black;border-right: 1px solid black;\"><textarea name=\"edit_{$edit_name}\" style=\"width:99%\" rows=\"$rows\">" . htmlReady($this->tree->tree_data[$this->edit_item_id][$edit_name])
+            $content .= "<tr><td class=\"table_row_even\" align=\"center\" style=\"border-left: 1px solid black;border-right: 1px solid black;\"><textarea name=\"edit_{$edit_name}\" style=\"width:99%\" rows=\"$rows\">" . htmlReady($this->tree->tree_data[$this->edit_item_id][$edit_name])
                 . "</textarea></td></tr>";
-            $content .= "\n<tr><td class=\"steelgraulight\" style=\"border-bottom: 1px solid black;;border-left: 1px solid black;border-right: 1px solid black;\" >
+            $content .= "\n<tr><td class=\"table_row_odd\" style=\"border-bottom: 1px solid black;;border-left: 1px solid black;border-right: 1px solid black;\" >
             <b>". _("Sichtbarkeit der Liste:") . "</b>&nbsp;&nbsp;&nbsp;
             <input type=\"radio\" name=\"edit_visibility\" value=\"1\" style=\"vertical-align:bottom\" "
             . (($this->tree->tree_data[$this->edit_item_id]['visibility']) ? "checked" : "") . ">" . _("Ja")
@@ -661,11 +662,11 @@ class StudipLitListViewAdmin extends TreeView
             . ((!$this->tree->tree_data[$this->edit_item_id]['visibility']) ? "checked" : "") . ">" . _("Nein") . "</td></tr>";
 
         }
-        $content .= "<tr><td class=\"steel1\">&nbsp;</td></tr><tr><td class=\"steel1\" align=\"center\">" .
-                Button::createAccept(_('Speichern'), 
+        $content .= "<tr><td class=\"table_row_even\">&nbsp;</td></tr><tr><td class=\"table_row_even\" align=\"center\">" .
+                Button::createAccept(_('Speichern'),
                         array('title' => _("Einstellungen speichern"))) .
                 "&nbsp;" .
-                LinkButton::createCancel(_('Abbrechen'), 
+                LinkButton::createCancel(_('Abbrechen'),
                         URLHelper::getURL($this->getSelf("cmd=Cancel&item_id=".$this->edit_item_id)),
                         array('Aktion abbrechen' => _('Aktion abbrechen'))) .
                 '</td></tr>';

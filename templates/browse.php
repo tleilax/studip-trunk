@@ -6,7 +6,7 @@ use Studip\Button, Studip\LinkButton;
 <!-- SEARCHBOX -->
 <form action="<?= URLHelper::getLink() ?>" method="post">
 <?= CSRFProtection::tokenTag() ?>
-<div class="topic"><b><?=_("Suche nach Personen")?></b></div>
+<div class="table_header"><b><?=_("Suche nach Personen")?></b></div>
 
 <? if($sms_msg):?>
 <? parse_msg($sms_msg); ?>
@@ -16,7 +16,7 @@ use Studip\Button, Studip\LinkButton;
 <div style="width: 100%;">
 <table width="100%" cellpadding="2" cellspacing="0">
     <? if (count($institutes)): ?>
-    <tr class="<?= TextHelper::cycle('steel1', 'steelgraulight') ?>">
+    <tr class="<?= TextHelper::cycle('table_row_even', 'table_row_odd') ?>">
         <td style="white-space: nowrap;">
             <b><?=_("in Einrichtungen:")?></b>
         </td>
@@ -32,7 +32,7 @@ use Studip\Button, Studip\LinkButton;
     <? endif ?>
     <!-- form zur wahl der seminare -->
     <? if (count($courses)): ?>
-    <tr class="<?= TextHelper::cycle('steel1', 'steelgraulight') ?>">
+    <tr class="<?= TextHelper::cycle('table_row_even', 'table_row_odd') ?>">
         <td style="white-space: nowrap;">
             <b><?=_("in Veranstaltungen:")?></b>
         </td>
@@ -47,7 +47,7 @@ use Studip\Button, Studip\LinkButton;
     </tr>
     <? endif ?>
     <!-- form zur freien Suche -->
-    <tr class="<?= TextHelper::cycle('steel1', 'steelgraulight') ?>">
+    <tr class="<?= TextHelper::cycle('table_row_even', 'table_row_odd') ?>">
         <td>
             <b><?=_("Name:")?></b>
         </td>
@@ -60,7 +60,7 @@ use Studip\Button, Studip\LinkButton;
                     ->render() ?>
         </td>
     </tr>
-    <tr class="steel2">
+    <tr class="table_footer">
         <td colspan="2" align="center">
             <?= Button::create(_('Suchen'), 'send')?>
             <?= Button::create(_('Zurücksetzen'), 'reset')?>
@@ -73,7 +73,7 @@ use Studip\Button, Studip\LinkButton;
 
 <!-- RESULTS -->
 <? if (isset($users)):?>
-<div class="topic"><b><?=_("Ergebnisse:")?></b></div>
+<div class="table_header_bold"><b><?=_("Ergebnisse:")?></b></div>
 
 <div style="width: 100%;">
 <table width="100%" cellpadding="2" cellspacing="0">
@@ -95,9 +95,9 @@ use Studip\Button, Studip\LinkButton;
         </th>
     </tr>
     <? foreach ($users as $user): ?>
-    <tr class="<?=TextHelper::cycle('cycle_odd', 'cycle_even')?>">
+    <tr class="<?=TextHelper::cycle('hover_odd', 'hover_even')?>">
         <td>
-            <a href="<?= URLHelper::getLink('about.php', array('username' => $user['username'])) ?>">
+            <a href="<?= URLHelper::getLink('dispatch.php/profile', array('username' => $user['username'])) ?>">
                 <?= Avatar::getAvatar($user['user_id'], $user['username'])->getImageTag(Avatar::SMALL) ?>
                 <?= htmlReady($user['fullname']) ?>
             </a>
@@ -106,7 +106,6 @@ use Studip\Button, Studip\LinkButton;
             <?= htmlReady($user['status']) ?>
         </td>
         <td align="right">
-            <?= $user['chat'] ?>
             <a href="<?= URLHelper::getLink('sms_send.php', array('sms_source_page' => 'browse.php', 'rec_uname' => $user['username'])) ?>">
                 <?= Assets::img('icons/16/blue/mail.png', array('class' => 'text-top', 'title' =>_('Nachricht an Benutzer verschicken')))?>
             </a>
@@ -145,7 +144,7 @@ $infobox = array(
             "eintrag" => array(
                 array(
                     "icon" => 'icons/16/black/crown.png',
-                    "text" => '<a href="'.URLHelper::getLink('score.php').'">'._("Zur Stud.IP-Rangliste").'</a>'
+                    "text" => '<a href="'.URLHelper::getLink('dispatch.php/score').'">'._("Zur Stud.IP-Rangliste").'</a>'
                 )
             )
         )

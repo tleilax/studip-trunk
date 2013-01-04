@@ -42,7 +42,7 @@ class Admin_PluginController extends AuthenticatedController
 
     /**
      * Validate ticket (passed via request environment).
-     * This method always checks $_REQUEST['ticket'].
+     * This method always checks Request::quoted('ticket').
      *
      * @throws InvalidArgumentException  if ticket is not valid
      */
@@ -68,7 +68,15 @@ class Admin_PluginController extends AuthenticatedController
         } catch (Exception $ex) {
             $this->error = _('Informationen über Plugin-Updates sind nicht verfügbar.');
             $this->error_detail = array($ex->getMessage());
-            return array();
+
+            // Read current information from local files
+            $update_info = array();
+            foreach ($plugins as $plugin) {
+                $plugin_path = get_config('PLUGINS_PATH') . '/' . $plugin['path'];
+                $manifest    = $this->plugin_admin->getPluginManifest($plugin_path);
+                $update_info[$plugin['id']] = array('version' => $manifest['version']);
+            }
+            return $update_info;
         }
     }
 

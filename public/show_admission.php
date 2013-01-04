@@ -1,9 +1,9 @@
 <?php
 # Lifter001: TEST
 # Lifter002: TODO
+# Lifter003: TEST
 # Lifter005: TODO
 # Lifter007: TODO
-# Lifter003: TODO
 # Lifter010: TODO
 /*
 show_admission.php - Instituts-Mitarbeiter-Verwaltung von Stud.IP
@@ -52,54 +52,101 @@ require_once('lib/admission.inc.php');
 
 function semadmission_get_data($seminare_condition){
     global $perm;
-    $db = new DB_Seminar();
-    $db2 = new DB_Seminar();
     $ret = array();
     $sorter = array();
     list($institut_id, $all) = explode('_', $_SESSION['show_admission']['institut_id']);
-    if ($institut_id == "all"  && $perm->have_perm("root")){
-        $query = "SELECT * FROM seminare WHERE 1 $seminare_condition ORDER BY admission_group DESC, start_time DESC, Name";
-    } elseif ($all == 'all'){
-        $query = "SELECT seminare.* FROM seminare
-        JOIN Institute USING ( Institut_id ) WHERE Institute.fakultaets_id  = '{$institut_id}' $seminare_condition
-        GROUP BY seminare.Seminar_id ORDER BY admission_group DESC, start_time DESC, Name";
-    }else{
-        $query = "SELECT seminare.* FROM seminare
-        WHERE seminare.Institut_id = '{$institut_id}' $seminare_condition
-        GROUP BY seminare.Seminar_id ORDER BY admission_group DESC, start_time DESC, Name";
-    }
+    
+    // Prepare count statements
+    $query = "SELECT SUM(admission_studiengang_id <> '') AS t1,
+                     SUM(admission_studiengang_id = '') AS t2
+              FROM seminar_user
+              WHERE seminar_id = ? AND status IN ('user', 'autor')";
+    $count0_statement = DBManager::get()->prepare($query);
 
-    $db->query($query);
-    while($db->next_record()){
-        $seminar_id = $db->f("Seminar_id");
-        $ret[$seminar_id] = $db->Record;
-        $query2 = "SELECT COUNT(IF(admission_studiengang_id <> '', user_id, NULL)) as t1,COUNT(IF(admission_studiengang_id = '', user_id, NULL)) as t2  FROM seminar_user WHERE seminar_id='$seminar_id' AND status IN('autor','user')";
-        $db2->query($query2);
-        $db2->next_record();
-        $ret[$seminar_id]['count_teilnehmer'] = $db2->f('t1');
-        $ret[$seminar_id]['count_teilnehmer_aux'] = $db2->f('t2');
-                $query2 = "SELECT COUNT(IF(status='accepted', 1, NULL)) AS count2,
-                    COUNT(IF(status='claiming' OR status='awaiting', 1, NULL)) AS count3
-                    FROM admission_seminar_user WHERE seminar_id='$seminar_id' GROUP BY seminar_id";
-        $db2->query($query2);
-        $db2->next_record();
-        $ret[$seminar_id]['count_anmeldung'] = $db2->f("count2");
-        $ret[$seminar_id]['count_wartende'] = $db2->f("count3");
+    $query = "SELECT SUM(status = 'accepted') AS count2,
+                     SUM(status IN ('claiming', 'awaiting')) AS count3
+              FROM admission_seminar_user
+              WHERE seminar_id = ?
+              GROUP BY seminar_id";
+    $count1_statement = DBManager::get()->prepare($query);
+
+    // Prepare group name statement
+    $query = "SELECT name FROM admission_group WHERE group_id = ?";
+    $name_statement = DBManager::get()->prepare($query);
+
+    // Prepare seminar statement
+    $parameters = array();
+    if ($institut_id == 'all'  && $perm->have_perm('root')) {
+        $query = "SELECT *
+                  FROM seminare
+                  WHERE 1 {$seminare_condition}
+                  ORDER BY admission_group DESC, start_time DESC, Name";
+    } elseif ($all == 'all') {
+        $query = "SELECT seminare.*
+                  FROM seminare
+                  JOIN Institute USING (Institut_id)
+                  WHERE Institute.fakultaets_id = ? {$seminare_condition}
+                  GROUP BY seminare.Seminar_id
+                  ORDER BY admission_group DESC, start_time DESC, Name";
+        $parameters[] = $institut_id;
+    } else {
+        $query = "SELECT seminare.*
+                  FROM seminare
+                  WHERE seminare.Institut_id = ? {$seminare_condition}
+                  GROUP BY seminare.Seminar_id
+                  ORDER BY admission_group DESC, start_time DESC, Name";
+        $parameters[] = $institut_id;
+    }
+    $statement = DBManager::get()->prepare($query);
+    $statement->execute($parameters);
+
+    while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
+        $seminar_id = $row['Seminar_id'];
+        $ret[$seminar_id] = $row;
+
+        $count0_statement->execute(array($seminar_id));
+        $counts = $count0_statement->fetch(PDO::FETCH_ASSOC);
+        $count0_statement->closeCursor();
+
+        $ret[$seminar_id]['count_teilnehmer']     = 0 + $counts['t1'];
+        $ret[$seminar_id]['count_teilnehmer_aux'] = 0 + $counts['t2'];
+
+        $count1_statement->execute(array($seminar_id));
+        $counts = $count1_statement->fetch(PDO::FETCH_ASSOC);
+        $count1_statement->closeCursor();
+
+        $ret[$seminar_id]['count_anmeldung'] = $counts['count2'];
+        $ret[$seminar_id]['count_wartende']  = $counts['count3'];
+
         $status = array();
-        if($db->f('admission_type') == 3) $status[] = _("gesperrt");
-        if($db->f('admission_type') == 2) $status[] = _("Chronologisch");
-        if($db->f('admission_type') == 1) $status[] = _("Losverfahren");
-        if($db->f('admission_type') == 0) $status[] = _("kein Anmeldeverfahren");
-        if($db->f('admission_prelim'))  $status[] = _("vorläufig");
-        $ret[$seminar_id]['admission_status_text'] = join('/',$status);
-        if ($db->f('admission_group')) {
-            if($db->f('admission_group') != $last_group) {
+        if ($row['admission_type'] == 3) {
+            $status[] = _('gesperrt');
+        } else if ($row['admission_type'] == 2) {
+            $status[] = _('Chronologisch');
+        } else if ($row['admission_type'] == 1) {
+            $status[] = _('Losverfahren');
+        } else if ($row['admission_type'] == 0) {
+            $status[] = _("kein Anmeldeverfahren");
+        }
+        if ($row['admission_prelim']) {
+            $status[] = _('vorläufig');
+        }
+        $ret[$seminar_id]['admission_status_text'] = join('/', $status);
+        if ($row['admission_group']) {
+            if ($row['admission_group'] != $last_group) {
                 unset($last_group);
             }
             if (!isset($last_group)) {
-                $last_group = $db->f('admission_group');
-                $groupname = DbManager::get()->query("SELECT name FROM admission_group WHERE group_id=" . DbManager::get()->quote($last_group))->fetchColumn();
-                if(!$groupname) $groupname = _("Gruppe") . ++$groupcount;
+                $last_group = $row['admission_group'];
+                
+                $name_statement->execute(array($last_group));
+                $groupname = $name_statement->fetchColumn();
+                $name_statement->closeCursor();
+
+                if (!$groupname) {
+                    $groupname = _('Gruppe') . $groupcount;
+                    $groupcount += 1;
+                }
             }
             $ret[$seminar_id]['groupname'] = $groupname;
         }
@@ -222,47 +269,85 @@ function semadmission_create_result_xls($data){
     return $tmpfile;
 }
 
-function semadmission_get_institute($seminare_condition){
+function semadmission_get_institute($seminare_condition) {
     global $perm, $user;
-    $db = new DB_Seminar();
-    $db2 = new DB_Seminar();
-    if($perm->have_perm('root')){
-        $db->query("SELECT COUNT(*) FROM seminare WHERE 1 $seminare_condition");
-        $db->next_record();
-        $_my_inst['all'] = array("name" => _("alle") , "num_sem" => $db->f(0));
-        $db->query("SELECT a.Institut_id,a.Name, 1 AS is_fak, count(seminar_id) AS num_sem FROM Institute a
-            LEFT JOIN seminare ON(seminare.Institut_id=a.Institut_id $seminare_condition  ) WHERE a.Institut_id=fakultaets_id GROUP BY a.Institut_id ORDER BY is_fak,Name,num_sem DESC");
+
+    // Prepare institute statement
+    $query = "SELECT a.Institut_id, a.Name, COUNT(seminar_id) AS num_sem
+              FROM Institute AS a
+              LEFT JOIN seminare ON (seminare.Institut_id = a.Institut_id {$seminare_condition})
+              WHERE fakultaets_id = ? AND a.Institut_id != fakultaets_id
+              GROUP BY a.Institut_id
+              ORDER BY a.Name, num_sem DESC";
+    $institute_statement = DBManager::get()->prepare($query);
+
+    $parameters = array();
+    if ($perm->have_perm('root')) {
+        $query = "SELECT COUNT(*) FROM seminare WHERE 1 {$seminare_condition}";
+        $statement = DBManager::get()->query($query);
+        $num_sem = $statement->fetchColumn();
+
+        $_my_inst['all'] = array(
+            'name'    => _('alle'),
+            'num_sem' => $num_sem
+        );
+        $query = "SELECT a.Institut_id, a.Name, 1 AS is_fak, COUNT(seminar_id) AS num_sem
+                  FROM Institute AS a
+                  LEFT JOIN seminare ON (seminare.Institut_id = a.Institut_id {$seminare_condition})
+                  WHERE a.Institut_id = fakultaets_id
+                  GROUP BY a.Institut_id
+                  ORDER BY is_fak, Name, num_sem DESC";
     } else {
-        $db->query("SELECT a.Institut_id,b.Name, IF(b.Institut_id=b.fakultaets_id,1,0) AS is_fak,count(seminar_id) AS num_sem FROM user_inst a LEFT JOIN Institute b USING (Institut_id)
-            LEFT JOIN seminare ON(seminare.Institut_id=b.Institut_id $seminare_condition  ) WHERE a.user_id='$user->id' AND a.inst_perms='admin' GROUP BY a.Institut_id ORDER BY is_fak,Name,num_sem DESC");
+        $query = "SELECT a.Institut_id, b.Name, b.Institut_id = b.fakultaets_id AS is_fak,
+                         COUNT(seminar_id) AS num_sem
+                  FROM user_inst AS s
+                  LEFT JOIN Institute AS b USING (Institut_id)
+                  LEFT JOIN seminare ON (seminare.Institut_id = b.Institut_id {$seminare_condition})
+                  WHERE a.user_id = ? AND a.inst_perms = 'admin'
+                  GROUP BY a.Institut_id
+                  ORDER BY is_fak, Name, num_sem DESC";
+        $parameters[] = $user->id;
     }
-    while($db->next_record()){
-        $_my_inst[$db->f("Institut_id")] = array("name" => $db->f("Name"), "is_fak" => $db->f("is_fak"), "num_sem" => $db->f("num_sem"));
-        if ($db->f("is_fak")){
-            $_my_inst[$db->f("Institut_id").'_all'] = array("name" => sprintf(_("[Alle unter %s]"),$db->f("Name")), "is_fak" => 'all', "num_sem" => $db->f("num_sem"));
-            $db2->query("SELECT a.Institut_id, a.Name,count(seminar_id) AS num_sem FROM Institute a
-                LEFT JOIN seminare ON(seminare.Institut_id=a.Institut_id $seminare_condition  ) WHERE fakultaets_id='" . $db->f("Institut_id") . "' AND a.Institut_id!='" .$db->f("Institut_id") . "'
-                GROUP BY a.Institut_id ORDER BY a.Name,num_sem DESC");
+    $statement = DBManager::get()->prepare($query);
+    $statement->execute($parameters);
+    $temp = $statement->fetchAll(PDO::FETCH_ASSOC);
+
+    foreach ($temp as $row) {
+        $_my_inst[$row['Institut_id']] = array(
+            'name'    => $row['Name'],
+            'is_fak'  => $row['is_fak'],
+            'num_sem' => $Row['num_sem']
+        );
+        if ($row["is_fak"]) {
+            $_my_inst[$row['Institut_id'] . '_all'] = array(
+                'name'    => sprintf(_('[Alle unter %s]'), $row['Name']),
+                'is_fak'  => 'all',
+                'num_sem' => $row['num_sem']
+            );
+
             $num_inst = 0;
-            $num_sem_alle = $db->f("num_sem");
-            while ($db2->next_record()){
-                if(!$_my_inst[$db2->f("Institut_id")]){
-                    ++$num_inst;
-                    $num_sem_alle += $db2->f("num_sem");
+            $num_sem_alle = $row['num_sem'];
+
+            $institute_statement->execute(array($row['Institut_id']));
+            while ($institute = $institute_statement->fetch(PDO::FETCH_ASSOC)) {
+                if(!$_my_inst[$institute['Institut_id']]) {
+                    $num_inst += 1;
+                    $num_sem_alle += $institute['num_sem'];
                 }
-                $_my_inst[$db2->f("Institut_id")] = array("name" => $db2->f("Name"), "is_fak" => 0 , "num_sem" => $db2->f("num_sem"));
+                $_my_inst[$institute['Institut_id']] = array(
+                    'name'    => $institute['Name'],
+                    'is_fak'  => 0,
+                    'num_sem' => $institute["num_sem"]
+                );
             }
-            $_my_inst[$db->f("Institut_id")]["num_inst"] = $num_inst;
-            $_my_inst[$db->f("Institut_id").'_all']["num_inst"] = $num_inst;
-            $_my_inst[$db->f("Institut_id").'_all']["num_sem"] = $num_sem_alle;
+            $_my_inst[$row['Institut_id']]['num_inst']          = $num_inst;
+            $_my_inst[$row['Institut_id'] . '_all']['num_inst'] = $num_inst;
+            $_my_inst[$row['Institut_id'] . '_all']['num_sem']  = $num_sem_alle;
         }
     }
     return $_my_inst;
 }
 
-$db=new DB_Seminar;
-$db2=new DB_Seminar;
-$db3=new DB_Seminar;
 $sem_condition = '';
 $admission_condition = array();
 $cssSw = new cssClassSwitcher();
@@ -288,12 +373,12 @@ if(!isset($_SESSION['show_admission']['check_admission'])){
 }
 
 if(Request::submitted('choose_institut')){
-    if(isset($_REQUEST['select_sem'])){
-        $_SESSION['_default_sem'] = $_REQUEST['select_sem'];
+    if(Request::get('select_sem')){
+        $_SESSION['_default_sem'] = Request::get('select_sem');
     }
-    $_SESSION['show_admission']['check_admission'] = isset($_REQUEST['check_admission']);
-    $_SESSION['show_admission']['check_prelim'] = isset($_REQUEST['check_prelim']);
-    $_SESSION['show_admission']['sem_name_prefix'] = trim(stripslashes($_REQUEST['sem_name_prefix']));
+    $_SESSION['show_admission']['check_admission'] = Request::option('check_admission');
+    $_SESSION['show_admission']['check_prelim'] = Request::option('check_prelim');
+    $_SESSION['show_admission']['sem_name_prefix'] = trim(Request::get('sem_name_prefix'));
 }
 
 if ($_SESSION['_default_sem']){
@@ -320,46 +405,48 @@ if (!is_array($_my_inst)){
     if(!$_SESSION['show_admission']['institut_id']){
         $_SESSION['show_admission']['institut_id'] = $_my_inst_arr[0];
     }
-    if($_REQUEST['institut_id']){
-        $_SESSION['show_admission']['institut_id'] = ($_my_inst[$_REQUEST['institut_id']]) ? $_REQUEST['institut_id'] : $_my_inst_arr[0];
+    if(Request::option('institut_id')){
+        $_SESSION['show_admission']['institut_id'] = ($_my_inst[Request::option('institut_id')]) ? Request::option('institut_id') : $_my_inst_arr[0];
     }
 }
-if(Request::submitted('admissiongroupdelete') && isset($_REQUEST['group_id'])){
+if(Request::submitted('admissiongroupdelete') && Request::option('group_id')){
     $msg[] = array('info', _("Wollen Sie die Gruppierung f&uuml;r die ausgew&auml;hlte Gruppe aufl&ouml;sen?")
                             . '<br>' . _("Beachten Sie, dass f&uuml;r bereits eingetragene / auf der Warteliste stehende TeilnehmerInnen keine &Auml;nderungen vorgenommen werden.")
                             . '<form action="'.URLHelper::getLink().'" method="post">'
                             . CSRFProtection::tokenTag()
                             . '<input type="hidden" name="group_sem_x" value="1"><div style="padding:3px;">'
-                            . '<input type="hidden" name="group_id" value="'.$_REQUEST['group_id'].'">'
+                            . '<input type="hidden" name="group_id" value="'.Request::option('group_id').'">'
                             . Button::createAccept(_('JA!'), 'admissiongroupreallydelete', array('title' => _("Gruppe auflösen")))
                             . '&nbsp;'
                             . Button::createCancel(_('NEIN!'), array('title' => _('abbrechen')))
                             . '</div></form>');
 }
-if(Request::submitted('group_sem') && (count($_REQUEST['gruppe']) > 1 || isset($_REQUEST['group_id'])) && !Request::submitted('admissiongroupcancel')){
-    if(isset($_REQUEST['group_id'])){
-            $group_obj = new StudipAdmissionGroup($_REQUEST['group_id']);
+$gruppe = Request::quotedArray('gruppe');
+if(Request::submitted('group_sem') && ($gruppe > 1 || Request::option('group_id')) && !Request::submitted('admissiongroupcancel')){
+    if(Request::option('group_id')){
+            $group_obj = new StudipAdmissionGroup(Request::option('group_id'));
     } else {
         $group_obj = new StudipAdmissionGroup();
-        foreach($_REQUEST['gruppe'] as $sid){
+        
+        foreach($gruppe as $sid){
             $group_obj->addMember($sid);
         }
     }
     if(Request::submitted('admissiongroupchange')){
-        $group_obj->setValue('name', trim(stripslashes($_REQUEST['admission_group_name'])));
-        $group_obj->setValue('status', (int)$_REQUEST['admission_group_status']);
-        $group_obj->setUniqueMemberValue('admission_type', (int)$_REQUEST['admission_group_type']);
+        $group_obj->setValue('name', trim(Request::get('admission_group_name')));
+        $group_obj->setValue('status', (int)Request::int('admission_group_status'));
+        $group_obj->setUniqueMemberValue('admission_type', (int)Request::int('admission_group_type'));
         $group_obj->setUniqueMemberValue('read_level', 3);
         $group_obj->setUniqueMemberValue('write_level', 3);
         $admission_times = array();
         $ok = true;
         $do_admission_update = false;
-        if(isset($_REQUEST['admission_change_enable_quota'])){
-            $group_obj->setUniqueMemberValue('admission_enable_quota', $_REQUEST['admission_enable_quota']);
+        if(Request::get('admission_change_enable_quota')){
+            $group_obj->setUniqueMemberValue('admission_enable_quota', Request::quoted('admission_enable_quota'));
         }
-        if(isset($_REQUEST['admission_change_endtime'])){
+        if(Request::get('admission_change_endtime')){
             $admission_times["admission_endtime"] = '-1';
-            if (!check_and_set_date($_POST['adm_tag'], $_POST['adm_monat'], $_POST['adm_jahr'], $_POST['adm_stunde'], $_POST['adm_minute'], $admission_times, "admission_endtime")) {
+            if (!check_and_set_date(Request::option('adm_tag'), Request::option('adm_monat'), Request::option('adm_jahr'), Request::option('adm_stunde'), Request::option('adm_minute'), $admission_times, "admission_endtime")) {
                 $msg[] = array("error", _("Bitte geben Sie g&uuml;ltige Zeiten f&uuml;r das Ende Kontingente / Losdatum ein!"));
                 $ok = false;
             } else {
@@ -389,22 +476,22 @@ if(Request::submitted('group_sem') && (count($_REQUEST['gruppe']) > 1 || isset($
                 }
             }
         }
-        if(isset($_REQUEST['admission_change_starttime'])){
+        if(Request::get('admission_change_starttime')){
             $admission_times["admission_starttime"] = -1;
-            if (!check_and_set_date($_POST['adm_s_tag'], $_POST['adm_s_monat'], $_POST['adm_s_jahr'], $_POST['adm_s_stunde'], $_POST['adm_s_minute'], $admission_times, "admission_starttime")) {
+            if (!check_and_set_date(Request::option('adm_s_tag'), Request::option('adm_s_monat'), Request::option('adm_s_jahr'), Request::option('adm_s_stunde'), Request::option('adm_s_minute'), $admission_times, "admission_starttime")) {
                 $msg[] = array("error", _("Bitte geben Sie g&uuml;ltige Zeiten f&uuml;r das Startdatum für Anmeldungen ein!"));
                 $ok = false;
             }
         }
-        if(isset($_REQUEST['admission_change_endtime_sem'])){
+        if(Request::get('admission_change_endtime_sem')){
             $admission_times["admission_endtime_sem"] = -1;
-            if (!check_and_set_date($_POST['adm_e_tag'], $_POST['adm_e_monat'], $_POST['adm_e_jahr'], $_POST['adm_e_stunde'], $_POST['adm_e_minute'], $admission_times, "admission_endtime_sem")) {
+            if (!check_and_set_date(Request::option('adm_e_tag'), Request::option('adm_e_monat'), Request::option('adm_e_jahr'), Request::option('adm_e_stunde'), Request::option('adm_e_minute'), $admission_times, "admission_endtime_sem")) {
                 $msg[] = array("error", _("Bitte geben Sie g&uuml;ltige Zeiten f&uuml;r das Enddatum für Anmeldungen ein!"));
                 $ok = false;
             }
         }
-        if(isset($_REQUEST['admission_change_turnout'])){
-            if($_REQUEST['admission_turnout'] < 1){
+        if(Request::get('admission_change_turnout')){
+            if(Request::quoted('admission_turnout') < 1){
                 $msg[] = array("error" , _("Wenn Sie die Teilnahmebeschr&auml;nkung benutzen wollen, m&uuml;ssen Sie wenigstens einen Teilnehmer zulassen."));
                 $ok = false;
             }
@@ -422,10 +509,10 @@ if(Request::submitted('group_sem') && (count($_REQUEST['gruppe']) > 1 || isset($
                 $group_obj->setUniqueMemberValue('admission_endtime_sem', $admission_times["admission_endtime_sem"]);
                 $msg[] = array('msg', sprintf(_("Das Enddatum für Anmeldungen wurde in allen Veranstaltungen geändert.")));
             }
-            if(isset($_REQUEST['admission_change_turnout'])){
-                $do_admission_update = (int)$_REQUEST['admission_turnout'] >= $group_obj->getUniqueMemberValue('admission_turnout');
-                $group_obj->setUniqueMemberValue('admission_turnout', (int)$_REQUEST['admission_turnout']);
-                $msg[] = array('msg', sprintf(_("Die Teilnehmeranzahl wurde in allen Veranstaltungen auf %s geändert."),(int)$_REQUEST['admission_turnout']));
+            if(Request::get('admission_change_turnout')){
+                $do_admission_update = (int)Request::int('admission_turnout') >= $group_obj->getUniqueMemberValue('admission_turnout');
+                $group_obj->setUniqueMemberValue('admission_turnout', (int)Request::int('admission_turnout'));
+                $msg[] = array('msg', sprintf(_("Die Teilnehmeranzahl wurde in allen Veranstaltungen auf %s geändert."),(int)Request::int('admission_turnout')));
             }
 
         }
@@ -472,13 +559,13 @@ if(Request::submitted('group_sem') && (count($_REQUEST['gruppe']) > 1 || isset($
     }
 }
 
-if(isset($_REQUEST['sortby'])){
+if(Request::get('sortby')){
     foreach($cols as $col){
-        if($_REQUEST['sortby'] == $col[2]){
-            if($_SESSION['show_admission']['sortby']['field'] == $_REQUEST['sortby']){
+        if(Request::quoted('sortby') == $col[2]){
+            if($_SESSION['show_admission']['sortby']['field'] == Request::quoted('sortby')){
                 $_SESSION['show_admission']['sortby']['direction'] = (int)!$_SESSION['show_admission']['sortby']['direction'];
             } else {
-                $_SESSION['show_admission']['sortby']['field'] = $_REQUEST['sortby'];
+                $_SESSION['show_admission']['sortby']['field'] = Request::quoted('sortby');
                 $_SESSION['show_admission']['sortby']['direction'] = 0;
             }
             break;
@@ -486,7 +573,7 @@ if(isset($_REQUEST['sortby'])){
     }
 }
 
-if ($_REQUEST['cmd'] == 'send_excel_sheet'){
+if (Request::option('cmd') == 'send_excel_sheet'){
     $tmpfile = basename(semadmission_create_result_xls(semadmission_get_data($seminare_condition)));
     if($tmpfile){
         header('Location: ' . getDownloadLink( $tmpfile, _("LaufendeAnmeldeverfahren.xls"), 4));
@@ -560,7 +647,7 @@ if(is_object($group_obj)){
         <td class="blank" width="100%">
         <form action="<?=URLHelper::getLink()?>" name="Formular" method="post">
         <?= CSRFProtection::tokenTag() ?>
-        <div class="steel1" style="margin:10px;padding:5px;border: 1px solid;">
+        <div class="table_row_even" style="margin:10px;padding:5px;border: 1px solid;">
         <div style="font-weight:bold;"><?=_("Gruppierte Veranstaltungen bearbeiten")?></div>
         <div>
         <?=_("Gruppierte Veranstaltungen müssen ein identisches Anmeldeverfahren benutzen.")?>
@@ -827,7 +914,7 @@ if(is_object($group_obj)){
         echo CSRFProtection::tokenTag();
     } elseif ($institut_id) {
         echo "\n<table width=\"99%\" align=\"center\" border=\"0\" cellspacing=\"2\" cellpadding=\"2\">";
-        parse_msg ("info§"._("Im gew&auml;hlten Bereich existieren keine teilnahmebeschr&auml;nkten Veranstaltungen")."§", "§", "steel1",2, FALSE);
+        parse_msg ("info§"._("Im gew&auml;hlten Bereich existieren keine teilnahmebeschr&auml;nkten Veranstaltungen")."§", "§", "table_row_even",2, FALSE);
     }
     foreach($data as $seminar_id => $semdata) {
         $teilnehmer = $semdata['count_teilnehmer'];

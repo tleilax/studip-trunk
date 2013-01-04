@@ -330,7 +330,7 @@ auf diese Nachricht nicht antworten.") . "\n\n";
 
             echo "<tr><th align=\"left\">\n";
             echo _("Einbinden Ihrer Termine in externe Kalender")."</th></tr>\n";
-            echo "<tr><td class=\"steel1\" id=\"calendar_include\">\n";
+            echo "<tr><td class=\"table_row_even\" id=\"calendar_include\">\n";
             if ($short_id) {
                 echo _("Die folgende Adresse können Sie in externe Terminkalenderanwendungen eintragen, um Ihre Termine dort anzuzeigen:");
                 $url = URLHelper::getLink($GLOBALS['ABSOLUTE_URI_STUDIP'] . 'dispatch.php/ical/index/' . $short_id);
@@ -429,11 +429,11 @@ auf diese Nachricht nicht antworten.") . "\n\n";
     $import = new CalendarImportFile(new CalendarParserICalendar(),
                     $_FILES["importfile"]);
 
-    if ($_REQUEST['import_sem_imp']) {
+    if (Request::get('import_sem_imp')) {
         $import->setImportSem(true);
     }
 
-    if ($_REQUEST['import_as_private_imp']) {
+    if (Request::get('import_as_private_imp')) {
         $import->changePublicToPrivate();
     }
 
@@ -475,11 +475,11 @@ auf diese Nachricht nicht antworten.") . "\n\n";
     $import = new CalendarImportFile(new CalendarParserICalendar(),
                     $_FILES["importfile"]);
 
-    if ($_REQUEST['import_sem_sync']) {
+    if (Request::get('import_sem_sync')) {
         $import->setImportSem(true);
     }
 
-    if ($_REQUEST['import_as_private_sync']) {
+    if (Request::get('import_as_private_sync')) {
         $import->changePublicToPrivate();
     }
 
@@ -498,7 +498,7 @@ auf diese Nachricht nicht antworten.") . "\n\n";
             $_SESSION['calendar_sess_export']['msg'] .= '<br />' . $error->getMessage();
         while ($error = $_calendar_error->nextError(ErrorHandler::ERROR_FATAL))
             $_SESSION['calendar_sess_export']['msg'] .= '<br />' . $error->getMessage();
-        $location = "Location: $PHP_SELF?cmd=export&atime=$atime";
+        $location = "Location: ".URLHelper::getLink('?cmd=export&atime='.$atime);
     } else {
         $_SESSION['calendar_sess_export']['count_import'] = $import->getCount();
         $_SESSION['calendar_sess_export']['count_export'] = $export->getCount();
@@ -528,7 +528,7 @@ auf diese Nachricht nicht antworten.") . "\n\n";
 function print_cell($params)
 {
 
-    echo "<tr><td width=\"100%\" class=\"steel1\">\n";
+    echo "<tr><td width=\"100%\" class=\"table_row_even\">\n";
     echo $params['form'];
     echo '<div>';
     echo $params['content'];

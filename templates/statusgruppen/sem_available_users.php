@@ -1,7 +1,7 @@
 <?
 # Lifter010: TODO
 ?>
-<table class="steel1" cellspacing="0" cellpadding="2" border="0" width="95%">
+<table class="table_row_even" cellspacing="0" cellpadding="2" border="0" width="95%">
     <tr>
         <td>&nbsp;<?= _("VeranstaltungsteilnehmerInnen") ?></td>
     </tr>
@@ -43,9 +43,9 @@
         <td valign="top">
 
             <?
-            $search_exp = $GLOBALS['search_exp'];
+            $search_exp = Request::get('search_exp');
             if ($search_exp) :
-                $users = getSearchResults(trim($GLOBALS['search_exp']), $range_id, 'sem');
+                $users = getSearchResults(trim($search_exp), $range_id, 'sem');
                 if ($users) :
             ?>
             <select name="searchPersons[]" size="5" multiple style="width: 90%;">

@@ -41,12 +41,15 @@
     <title><?= htmlReady(PageLayout::getTitle() . ' - ' . $GLOBALS['UNI_NAME_CLEAN']) ?></title>
     <?= PageLayout::getHeadElements() ?>
 
-    <script src="<?= URLHelper::getLink('dispatch.php/localizations/' . $_SESSION['_language']) ?>"></script>
+    <script src="<?= URLHelper::getScriptLink('dispatch.php/localizations/' . $_SESSION['_language']) ?>"></script>
 
     <script>
         STUDIP.ABSOLUTE_URI_STUDIP = "<?= $GLOBALS['ABSOLUTE_URI_STUDIP'] ?>";
         STUDIP.ASSETS_URL = "<?= $GLOBALS['ASSETS_URL'] ?>";
         String.locale = "<?= htmlReady(strtr($_SESSION['_language'], '_', '-')) ?>";
+        <? if (PersonalNotifications::isActivated() && $GLOBALS['perm']->have_perm("autor")) : ?>
+        STUDIP.jsupdate_enable = true;
+        <? endif ?>
     </script>
 </head>
 

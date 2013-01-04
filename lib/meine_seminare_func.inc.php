@@ -132,8 +132,31 @@ function check_group_new($group_members, $my_obj)
                 $group_last_modified = $last_modified;
             }
         }
+
+        foreach (getPluginNavigationForSeminar($member['seminar_id'], $seminar_content['visitdate']) as $navigation) {
+            if ($navigation && $navigation->isVisible(true) && $navigation->hasBadgeNumber()) {
+                if (!$group_last_modified) {
+                    $group_last_modified = time();
+                }
+            }
+        }
     }
+
     return $group_last_modified;
+}
+
+function getPluginNavigationForSeminar($seminar_id, $visitdate)
+{
+    static $plugin_navigation;
+
+    if (!$plugin_navigation[$seminar_id]) {
+        $plugin_navigation[$seminar_id] = array();
+
+        foreach (PluginEngine::getPlugins('StandardPlugin', $seminar_id) as $plugin) {
+            $plugin_navigation[$seminar_id][get_class($plugin)] = $plugin->getIconNavigation($seminar_id, $visitdate, $GLOBALS['user']->id);
+        }
+    }
+    return $plugin_navigation[$seminar_id];
 }
 
 /**
@@ -143,7 +166,7 @@ function check_group_new($group_members, $my_obj)
  */
 function correct_group_sem_number(&$groups, &$my_obj)
 {
-    if (is_array($groups)){
+    if (is_array($groups) && is_array($my_obj)) {
         $sem_data = SemesterData::GetSemesterArray();
         //end($sem_data);
         //$max_sem = key($sem_data);
@@ -158,7 +181,7 @@ function correct_group_sem_number(&$groups, &$my_obj)
         }
         foreach ($my_obj as $seminar_id => $values){
             if ($values['obj_type'] == 'sem' && $values['sem_number'] != $values['sem_number_end']){
-                if ($values['sem_number_end'] == -1 && $values['sem_number'] != $current_sem){
+                if ($values['sem_number_end'] == -1 && $values['sem_number'] < $current_sem) {
                     unset($groups[$values['sem_number']][$seminar_id]);
                     fill_groups($groups, $current_sem, array('seminar_id' => $seminar_id, 'name' => $values['name'], 'gruppe' => $values['gruppe']));
                     if (!count($groups[$values['sem_number']])) unset($groups[$values['sem_number']]);
@@ -188,13 +211,15 @@ function add_sem_name(&$my_obj)
 {
     if ($GLOBALS['user']->cfg->getValue('SHOWSEM_ENABLE')) {
         $sem_data = SemesterData::GetSemesterArray();
-        foreach ($my_obj as $seminar_id => $values){
-            if ($values['obj_type'] == 'sem' && $values['sem_number'] != $values['sem_number_end']){
-                $sem_name = " (" . $sem_data[$values['sem_number']]['name'] . " - ";
-                $sem_name .= (($values['sem_number_end'] == -1) ? _("unbegrenzt") : $sem_data[$values['sem_number_end']]['name']) . ")";
-                $my_obj[$seminar_id]['name'] .= $sem_name;
-            } else {
-                $my_obj[$seminar_id]['name'] .= " (" . $sem_data[$values['sem_number']]['name'] . ") ";
+        if (is_array($my_obj)) {
+            foreach ($my_obj as $seminar_id => $values){
+                if ($values['obj_type'] == 'sem' && $values['sem_number'] != $values['sem_number_end']){
+                    $sem_name = " (" . $sem_data[$values['sem_number']]['name'] . " - ";
+                    $sem_name .= (($values['sem_number_end'] == -1) ? _("unbegrenzt") : $sem_data[$values['sem_number_end']]['name']) . ")";
+                    $my_obj[$seminar_id]['name'] .= $sem_name;
+                } else {
+                    $my_obj[$seminar_id]['name'] .= " (" . $sem_data[$values['sem_number']]['name'] . ") ";
+                }
             }
         }
     }
@@ -420,6 +445,17 @@ function get_my_obj_values (&$my_obj, $user_id, $modules = NULL)
     }
 
     //Termine?
+    $db2->query(get_obj_clause('ex_termine a','range_id','termin_id',"(chdate > IFNULL(b.visitdate,0) AND autor_id !='$user_id')", 'schedule', false, " AND a.content <> '' "));
+    while($db2->next_record()) {
+        $object_id = $db2->f('object_id');
+        if ($my_obj[$object_id]["modules"]["schedule"]) {
+            $my_obj[$object_id]["neueausfalltermine"] = $db2->f("neue");
+            $my_obj[$object_id]["ausfalltermine"] = $db2->f("count");
+            if ($my_obj[$object_id]['last_modified'] < $db2->f('last_modified')){
+                $my_obj[$object_id]['last_modified'] = $db2->f('last_modified');
+            }
+        }
+    }
     $db2->query(get_obj_clause('termine a','range_id','termin_id',"(chdate > IFNULL(b.visitdate,0) AND autor_id !='$user_id')", 'schedule'));
     while($db2->next_record()) {
         $object_id = $db2->f('object_id');
@@ -431,13 +467,14 @@ function get_my_obj_values (&$my_obj, $user_id, $modules = NULL)
             }
 
             $nav = new Navigation('schedule', 'dates.php');
-
-            if ($db2->f('neue')) {
+            $neue = $my_obj[$object_id]["neuetermine"] + $my_obj[$object_id]["neueausfalltermine"];
+            $count = $my_obj[$object_id]["termine"] + $my_obj[$object_id]["ausfalltermine"];
+            if ($neue) {
                 $nav->setImage('icons/16/red/new/schedule.png', array('title' =>
-                    sprintf(_('%s Termine, %s neue'), $db2->f('count'), $db2->f('neue'))));
-                $nav->setBadgeNumber($db2->f('neue'));
-            } else if ($db2->f('count')) {
-                $nav->setImage('icons/16/grey/schedule.png', array('title' => sprintf(_('%s Termine'), $db2->f('count'))));
+                    sprintf(_('%s Termine, %s neue'), $count, $neue)));
+                $nav->setBadgeNumber($neue);
+            } else if ($count) {
+                $nav->setImage('icons/16/grey/schedule.png', array('title' => sprintf(_('%s Termine'), $count)));
             }
 
             $my_obj[$object_id]['schedule'] = $nav;

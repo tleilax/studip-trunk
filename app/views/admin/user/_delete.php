@@ -3,10 +3,12 @@
 use Studip\Button, Studip\LinkButton;
 
 ?>
-<div class="modalshadow">
-    <div class="messagebox messagebox_modal">
-        <?= formatReady($data['question']) ?>
-        <div style="margin-top: 0.5em;">
+<div class="modaloverlay">
+    <div class="messagebox">
+        <div class="content">
+            <?= formatReady($data['question']) ?>
+        </div>
+        <div class="content">
             <form action="<?= $data['action'] ?>" method="post">
             <?= CSRFProtection::tokenTag() ?>
                 <? if($data['users']) :?>
@@ -29,7 +31,7 @@ use Studip\Button, Studip\LinkButton;
                     <input id="mail" name="mail" value="1" checked type="checkbox">
                     <label style="padding-left:0.5em" for="mail"><?= _("Emailbenachrichtigung verschicken?") ?></label>
                 </div>
-                <div style="margin-top: 0.5em;">
+                <div class="buttons">
                     <?= Button::createAccept(_('JA!'), 'delete', array('title' => _('Benutzer löschen')))?>
                     <span style="margin-left: 1em;">
                         <?= Button::createCancel(_('NEIN!'), 'back')?>

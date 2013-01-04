@@ -77,20 +77,22 @@ class PageLayout
         self::addHeadElement('link', array('rel' => 'apple-touch-icon', 'href' => Assets::image_path('touch-icon-ipad.png'), 'size' => '72x72'));
         self::addHeadElement('link', array('rel' => 'apple-touch-icon', 'href' => Assets::image_path('touch-icon-iphone.png')));
         self::addHeadElement('link', array('rel' => 'shortcut icon', 'href' => Assets::image_path('favicon.png')));
-        
-        // include jQuery + UI
-        self::addStylesheet('jquery-ui-1.8.14.custom.css', array('media' => 'screen, print'));
-        self::addStylesheet('jquery-ui-studip.css', array('media' => 'screen, print'));
-        // include default CSS
-        self::addStylesheet('style.css', array('media' => 'screen'));
-        self::addStylesheet('smiley.css', array('media' => 'screen, print'));
-        //include print CSS
-        self::addStylesheet('print.css', array('media' => 'print'));
+
+        // set initial width for mobile devices
+        self::addHeadElement('meta', array('name' => 'viewport', 'content' => 'width=device-width; initial-scale=1.0;'));
 
         // include ie-specific CSS
         self::addComment('[if IE]>' . Assets::stylesheet('ie.css', array('media' => 'screen,print')) . '<![endif]');
+        
+        self::addHeadElement('link', array(
+            'rel'   => 'help',
+            'href'  => format_help_url('Basis.VerschiedenesFormat'),
+            'class' => 'text-format',
+            'title' => _('Hilfe zur Textformatierung')
+        ));
 
         self::setSqueezePackages("base");
+        self::addScript("mathjax/MathJax.js?config=TeX-AMS_HTML,default");
     }
 
     /**
@@ -159,10 +161,15 @@ class PageLayout
      * Add a STYLE element to the HTML HEAD section.
      *
      * @param string $content   element contents
+     * @param string $media     media types
      */
-    public static function addStyle($content)
+    public static function addStyle($content, $media = '')
     {
-        self::addHeadElement('style', array(), $content);
+        $attr = array();
+        if($media) {
+            $attr = array('media' => $media);
+        }
+        self::addHeadElement('style', $attr, $content);
     }
 
     /**
@@ -310,12 +317,14 @@ class PageLayout
     {
         $result = '';
 
+        $package_elements = self::includeSqueezePackages();
+
         if (isset($GLOBALS['_include_stylesheet'])) {
-            self::removeStylesheet('style.css');
+            unset($package_elements['base-style.css']);
             self::addStylesheet($GLOBALS['_include_stylesheet'], array('media' => 'screen, print'));
         }
 
-        $head_elements = array_merge(self::includeSqueezePackages(), self::$head_elements);
+        $head_elements = array_merge($package_elements, self::$head_elements);
 
         foreach ($head_elements as $element) {
             $result .= '<' . $element['name'];
@@ -402,9 +411,13 @@ class PageLayout
      *
      * @param MessageBox  message object to display
      */
-    public static function postMessage(MessageBox $message)
+    public static function postMessage(MessageBox $message, $id = null)
     {
-        $_SESSION['messages'][] = $message;
+        if ($id === null ) {
+            $_SESSION['messages'][] = $message;
+        } else {
+            $_SESSION['messages'][$id] = $message;
+        }
     }
 
     /**
@@ -489,7 +502,27 @@ class PageLayout
         $config_path   = "$STUDIP_BASE_PATH/config/assets.yml";
         $configuration = Configuration::load($config_path);
         $packager      = new Packager($configuration);
+        $javascripts   = \Studip\Squeeze\includePackages($packager, self::getSqueezePackages());
 
-        return \Studip\Squeeze\includePackages($packager, self::getSqueezePackages());
+        $css = array();
+        foreach (self::getSqueezePackages() as $package) {
+            if (isset($configuration['css'][$package])) {
+                foreach ($configuration['css'][$package] as $filename => $media) {
+                    $attributes = array(
+                        'rel' => 'stylesheet',
+                        'href' => \Studip\Squeeze\shouldPackage()
+                             ? $configuration['package_url'] . '/' . $package . '-' . $filename
+                             : Assets::stylesheet_path($filename),
+                        'media' => $media
+                    );
+                    $css[$package . '-' . $filename] = array(
+                        'name'       => 'link',
+                        'attributes' => $attributes
+                    );
+                }
+            }
+        }
+
+        return array_merge($css, $javascripts);
     }
 }

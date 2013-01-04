@@ -5,6 +5,10 @@ if ($input['type'] === "text") : ?>
     <input <?=$is_locked ?> type="text" name="<?= $input['name'] ?>" value="<?= $input['value'] ?>" style="width: 80%">
 <? endif;
 
+if ($input['type'] === "number") : ?>
+    <input <?=$is_locked ?> type="number" name="<?= $input['name'] ?>" value="<?= $input['value'] ?>" style="width: 80%" min="<?= $input['min'] ?>">
+<? endif; 
+
 if ($input['type'] === "textarea") : ?>
     <textarea <?=$is_locked ?> name="<?= $input['name'] ?>" style="width: 80%; height: 100px;" class=""><?=
         $input['value']
@@ -36,6 +40,11 @@ if ($input['type'] === "multiselect") : ?>
     </select>
 <? endif;
 
-if ($input['type'] === "datafield") {
-    print $input['locked'] ? $input['display_value'] : $input['html_value'];
-}
+if ($input['type'] === "datafield"):?>
+        <div style="float:left;padding-right:0.5em;">
+            <?=$input['locked'] ? $input['display_value'] : $input['html_value'];?>
+        </div>
+        <?if($input['description']):?>
+            <?=tooltipIcon(_($input['description']))?>
+        <?endif?>
+<?endif?>

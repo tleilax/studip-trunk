@@ -38,6 +38,7 @@ class Navigation implements IteratorAggregate
 
     protected $active_image;
     protected $badgeNumber;
+    protected $badgeTimestamp;
     protected $description;
     protected $image;
     protected $params;
@@ -237,6 +238,16 @@ class Navigation implements IteratorAggregate
     {
         return $this->badgeNumber;
     }
+    
+    /**
+     * Return the badge number of this navigation item.
+     *
+     * @return int  the badge number
+     */
+    public function getBadgeTimestamp()
+    {
+        return $this->badgeTimestamp;
+    }   
 
     /**
      * Determines whether this navigation item has a badge number.
@@ -318,6 +329,9 @@ class Navigation implements IteratorAggregate
     {
         if (isset($image)) {
             $options['src'] = Assets::image_path($image);
+            if ((isset($options['@2x'])) && ($GLOBALS['auth']->auth['devicePixelRatio'] == 2)) {
+                $options['src'] = preg_replace('/\.[^.]+$/', '@2x$0', $options['src']);
+            }
             $this->image = $options;
         } else {
             $this->image = NULL;
@@ -385,6 +399,16 @@ class Navigation implements IteratorAggregate
     public function setBadgeNumber($badgeNumber)
     {
         $this->badgeNumber = $badgeNumber;
+    }
+    
+    /**
+     * Set the badge number of this navigation item.
+     *
+     * @param string $badgeNumber    the badge number
+     */
+    public function setBadgeTimestamp($badgeTimestamp)
+    {
+        $this->badgeTimestamp = $badgeTimestamp;
     }
 
     /**

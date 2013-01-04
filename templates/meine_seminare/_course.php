@@ -5,7 +5,8 @@ global $SEM_CLASS, $SEM_TYPE, $auth;
 foreach ($group_members as $member) {
     $semid = $member['seminar_id'];
     $values = $my_obj[$semid];
-    $studygroup_mode = $SEM_CLASS[$SEM_TYPE[$my_obj[$semid]['sem_status']]["class"]]["studygroup_mode"];
+    $sem_class = $SEM_CLASS[$SEM_TYPE[$my_obj[$semid]['sem_status']]["class"]];
+    $studygroup_mode = $sem_class["studygroup_mode"];
 
     if ($values['obj_type'] == "sem") {
 
@@ -13,7 +14,7 @@ foreach ($group_members as $member) {
         ?>
         <tr>
             <td class="gruppe<?= $values['gruppe'] ?>">
-                <a href='gruppe.php'>
+                <a href="<?= URLHelper::getLink('dispatch.php/meine_seminare/groups') ?>">
                     <?= Assets::img('blank.gif', array('size' => '7@12') + tooltip2(_("Gruppe ändern"))) ?>
                 </a>
             </td>
@@ -64,33 +65,23 @@ foreach ($group_members as $member) {
                 <? } ?>
             </td>
             <td align="left" nowrap="nowrap">
-                <? print_seminar_content($semid, $values); ?>
+                <? print_seminar_content($semid, $values, "seminar", $sem_class); ?>
             </td>
 
             <td align="right" nowrap="nowrap">
-            <? if (get_config('CHAT_ENABLE') && $values["modules"]["chat"]) { ?>
-
-                <a href="<?= !$auth->auth['jscript'] ? 'chat_online.php' : '#' ?>"
-                   onClick="return open_chat(<?= $chat_info[$semid]['is_active'] ? 'false' : "'$semid'" ?>);">
-                    <?= chat_get_chat_icon($chat_info[$semid]['chatter'], $chat_invs[$chat_info[$semid]['chatuniqid']], $chat_info[$semid]['is_active'], true, 'grey', 'red', '') ?>
-                </a>
-            <? } else { ?>
-                <?= Assets::img("blank.gif", array('size' => '16')) ?>
-            <? }  ?>
-
             <? if (in_array($values["status"], array("dozent", "tutor"))) { ?>
                 <?
-                    if ($SEM_CLASS[$SEM_TYPE[$values['sem_status']]["class"]]["studygroup_mode"]) {
-                        $course_url = 'dispatch.php/course/studygroup/edit/'. $semid .'?cid='. $semid;
-                    }
-                    else {
-                        $course_url = 'dispatch.php/course/management?cid='. $semid;
-                    }
-                ?>
-
-                    <a href="<?= URLHelper::getUrl($course_url) ?>">
-                        <?= Assets::img('icons/16/grey/admin.png', tooltip2(_("Veranstaltung administrieren"))) ?>
-                    </a>
+                $adminmodule = $sem_class->getModule("admin");
+                if ($adminmodule) {
+                    $adminnavigation = $adminmodule->getIconNavigation($semid, 0, $GLOBALS['user']->id);
+                }
+                if ($adminnavigation) : ?>
+                <a href="<?= URLHelper::getLink($adminnavigation->getURL(), array('cid' => $semid)) ?>">
+                    <img <? foreach ($adminnavigation->getImage() as $attribute => $value) {
+                        echo " ".$attribute."=\"".$value."\"";
+                    } ?>>
+                </a>
+                <? endif ?>
 
             <? } else if ($values["binding"]) { ?>
 

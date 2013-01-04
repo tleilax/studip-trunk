@@ -28,7 +28,7 @@ class ToolsNavigation extends Navigation
     {
         parent::__construct(_('Tools'));
 
-        $this->setImage('header/tools.png', array('title' => _('Tools')));
+        $this->setImage('header/tools.png', array('title' => _('Tools'), "@2x" => TRUE));
     }
 
     /**
@@ -91,7 +91,7 @@ class ToolsNavigation extends Navigation
         }
 
         if ($perm->have_perm('root')) {
-            $this->addSubNavigation('db_integrity', new Navigation(_('DB Integrität'), 'admin_db_integrity.php'));
+            $this->addSubNavigation('db_integrity_new', new Navigation(_('DB Integrität'), 'dispatch.php/admin/db_integrity_check'));
         }
     }
 }

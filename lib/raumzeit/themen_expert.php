@@ -26,9 +26,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 use Studip\Button, Studip\LinkButton;
 
 // -- here you have to put initialisations for the current page
-//$sess->register('issue_open');
-//$sess->register('raumzeitFilter');
-//$sess->register('chronoGroupedFilter');
 
 require_once ('lib/classes/Seminar.class.php');
 require_once ('lib/raumzeit/raumzeit_functions.inc.php');
@@ -57,8 +54,8 @@ define('SELECTED', ' checked');
 define('NOT_SELECTED', '');
 
 $powerFeatures = true;
-if (isset($_REQUEST['cmd'])) {
-    $cmd = $_REQUEST['cmd'];
+if (Request::option('cmd')) {
+    $cmd = Request::option('cmd');
 }
 $sem = new Seminar($id);
 $sem->checkFilter();
@@ -83,7 +80,7 @@ foreach ($_REQUEST as $key => $val) {
         $submitter_id = $keys[0];
         $cycle_id = $keys[1];
     }
-    if ($_REQUEST['allOpen']) {
+    if (Request::quoted('allOpen')) {
         if (strstr($key, 'theme_title')) {
             $keys = explode('§', $key);
             $changeTitle[$keys[1]] = $val;
@@ -107,9 +104,10 @@ if (isset($submitter_id)) {
     if ($submitter_id == 'autoAssign') {
         $cmd = 'autoAssign';
     } else {
-        if (is_array($_REQUEST['themen'])) {
+        $themen = Request::getArray('themen');
+        if (!empty($themen)) {
             $termin =& $sem->getSingleDate($submitter_id, $cycle_id);
-            foreach ($_REQUEST['themen'] as $iss_id) {
+            foreach ($themen as $iss_id) {
                 $termin->addIssueID($iss_id);
             }
             $termin->store();
@@ -232,7 +230,7 @@ $themen =& $sem->getIssues(true);   // read again, so we have the actual sort or
                     </td>
                 </tr>
                 <tr>
-                    <td class="steelgraulight" colspan="3" align="center">
+                    <td class="table_row_odd" colspan="3" align="center">
                         <a href="<?= URLHelper::getLink("?cmd=openAll") ?>">
                             <IMG src="<?= $GLOBALS['ASSETS_URL'] ?>images/icons/16/blue/arr_1down.png" title="<?=_("Alle Themen aufklappen")?>" border="0">
                         </a>
@@ -266,7 +264,7 @@ $themen =& $sem->getIssues(true);   // read again, so we have the actual sort or
                     }
 
                     $tpl['theme_title'] = htmlReady($thema->getTitle());
-                    $tpl['class'] = 'steel';
+                    $tpl['class'] = 'table_header';
                     $tpl['issue_id'] = $thema->getIssueID();
                     $tpl['priority'] = $thema->getPriority();
 
@@ -393,7 +391,7 @@ $themen =& $sem->getIssues(true);   // read again, so we have the actual sort or
                                             $grenze = $zwsem['ende'];
                                             ?>
                                                 <tr>
-                                                <td class="steelgraulight" align="center" colspan="9">
+                                                <td class="table_row_odd" align="center" colspan="9">
                                                 <font size="-1"><b><?=$zwsem['name']?></b></font>
                                                 </td>
                                                 </tr>
@@ -417,14 +415,14 @@ $themen =& $sem->getIssues(true);   // read again, so we have the actual sort or
                                     foreach ($iss as $issue_id) {
                                         if ($themen[$issue_id]) {
                                             $tpl['name'] = htmlReady($themen[$issue_id]->getTitle());
-                                            $tpl['class'] = 'steelgraulight';
+                                            $tpl['class'] = 'table_row_odd';
                                             $tpl['space'] = true;
                                             $tpl['issue_id'] = $issue_id;
                                             $tpl['sd_id'] = $singledate_id;
                                             $tpl['cycle_id'] = $metadate_id;
                                         } else {
                                             $tpl['name'] = '<font color="red">Fehlerhafter Eintrag!</font>';
-                                            $tpl['class'] = 'steelgraulight';
+                                            $tpl['class'] = 'table_row_odd';
                                             $tpl['space'] = true;
                                             $tpl['issue_id'] = $issue_id;
                                             $tpl['sd_id'] = $singledate_id;
@@ -465,7 +463,7 @@ $themen =& $sem->getIssues(true);   // read again, so we have the actual sort or
                         if ($iss = $singledate->getIssueIDs()) {
                             foreach ($iss as $issue_id) {
                                 $tpl['name'] = htmlReady($themen[$issue_id]->getTitle());
-                                $tpl['class'] = 'steelgraulight';
+                                $tpl['class'] = 'table_row_odd';
                                 $tpl['space'] = false;
                                 $tpl['issue_id'] = $issue_id;
                                 $tpl['sd_id'] = $singledate_id;
@@ -487,7 +485,7 @@ $themen =& $sem->getIssues(true);   // read again, so we have the actual sort or
                         </td>
                     </tr>
                     <tr>
-                        <td class="steel1" colspan="3">
+                        <td class="table_row_even" colspan="3">
                             &nbsp;
                             <font size="-1"><?=_("ausgewählte Themen freien Terminen")?></font>&nbsp;
                             <?= Button::create(_('Zuordnen'), 'chronoAutoAssign') ?>
@@ -509,7 +507,7 @@ $themen =& $sem->getIssues(true);   // read again, so we have the actual sort or
                                     $grenze = $zwsem['ende'];
                                     ?>
                                         <tr>
-                                            <td class="steelgraulight" align="center" colspan="9">
+                                            <td class="table_row_odd" align="center" colspan="9">
                                                 <font size="-1"><b><?=$zwsem['name']?></b></font>
                                             </td>
                                         </tr>
@@ -533,7 +531,7 @@ $themen =& $sem->getIssues(true);   // read again, so we have the actual sort or
                         if ($iss = $singledate->getIssueIDs()) {
                             foreach ($iss as $issue_id) {
                                 $tpl['name'] = htmlReady($themen[$issue_id]->getTitle());
-                                $tpl['class'] = 'steelgraulight';
+                                $tpl['class'] = 'table_row_odd';
                                 $tpl['space'] = false;
                                 $tpl['issue_id'] = $issue_id;
                                 $tpl['sd_id'] = $singledate_id;

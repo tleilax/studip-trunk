@@ -42,7 +42,7 @@ if ($list) {
     unset($seminar_id);
 }
 
-if (isset($_REQUEST['seminar_id'])) {
+if (Request::option('seminar_id')) {
     URLHelper::bindLinkParam('seminar_id', $seminar_id);
 }
 
@@ -54,6 +54,7 @@ require_once ('lib/dates.inc.php');
 require_once 'lib/admin_search.inc.php';
 require_once 'lib/classes/LockRules.class.php';
 require_once 'lib/classes/AdminList.class.php';
+require_once('lib/raumzeit.inc.php');
 
 
 if (get_config('RESOURCES_ENABLE')) {
@@ -61,22 +62,46 @@ if (get_config('RESOURCES_ENABLE')) {
     include_once ($GLOBALS['RELATIVE_PATH_RESOURCES'] ."/lib/ResourcesUserRoomsList.class.php");
     include_once ($GLOBALS['RELATIVE_PATH_RESOURCES'] ."/lib/VeranstaltungResourcesAssign.class.php");
     include_once ($GLOBALS['RELATIVE_PATH_RESOURCES'] ."/lib/ResourceObjectPerms.class.php");
-    $resList = new ResourcesUserRoomsList($user->id, TRUE, FALSE, TRUE);
+    $resList = ResourcesUserRoomsList::getInstance($user->id, true, false, true);
+    
+    // fetch the number of seats each room has
+    if ($resList->numberOfRooms()) {
+        $resList->reset();
+        $resource_ids = array();
+
+        // collect all resource_ids
+        while ($res = $resList->next()) {
+            $resource_ids[] = $res['resource_id'];
+        }
+        
+        // get seats in a single query
+        $db = DBManager::get()->query("SELECT ro.resource_id, a.state
+            FROM resources_objects AS ro
+            LEFT JOIN resources_objects_properties AS a USING (resource_id)
+            LEFT JOIN resources_properties AS b USING (property_id)
+            LEFT JOIN resources_categories_properties AS c USING (property_id)
+            WHERE resource_id IN ('". implode("', '", $resource_ids) ."') AND c.category_id = ro.category_id AND b.system = 2
+            ORDER BY b.name");
+        
+        $seats = $db->fetchAll(PDO::FETCH_KEY_PAIR);
+    }
 }
 
 PageLayout::addSqueezePackage('raumzeit');
 PageLayout::setTitle(_("Verwaltung von Zeiten und Raumangaben"));
 
-if ($perm->have_perm('admin')) {
+if ($GLOBALS['perm']->have_perm('admin')) {
     Navigation::activateItem('/admin/course/dates');
 } else {
     Navigation::activateItem('/course/admin/dates');
 }
-$sd_open = Request::optionArray('sd_open');
+
+#$sd_open = Request::optionArray('sd_open');
 $_SESSION['raumzeitFilter'] = Request::get('newFilter');
+
 // bind linkParams for chosen semester and opened dates
 URLHelper::bindLinkParam('raumzeitFilter', $_SESSION['raumzeitFilter']);
-URLHelper::bindLinkParam('sd_open', $sd_open);
+// URLHelper::bindLinkParam('sd_open', $sd_open);
 
 //Change header_line if open object
 $header_line = getHeaderLine($id);
@@ -92,12 +117,11 @@ include ('lib/include/html_head.inc.php'); // Output of html head
 include ('lib/include/header.php');   //hier wird der "Kopf" nachgeladen
 include 'lib/include/admin_search_form.inc.php';
 
-if (!$perm->have_studip_perm('tutor', $id)) {
+if (!$GLOBALS['perm']->have_studip_perm('tutor', $id)) {
     die;
 }
-$cmd = Request::option('cmd');
-unQuoteAll();
 
+$cmd = Request::option('cmd');
 $sem = Seminar::GetInstance($id);
 $sem->checkFilter();
 
@@ -109,46 +133,30 @@ if (LockRules::Check($id, 'room_time')) {
     $sem->createInfo(_("Diese Seite ist für die Bearbeitung gesperrt. Sie können die Daten einsehen, jedoch nicht verändern.")
     . ($data['description'] ? '<br>'.formatLinks($data['description']) : ''));
 }
+$cancelled_dates_locked = LockRules::Check($id, 'cancelled_dates');
 
-
-// what to do with the text-field
-if ($GLOBALS['RESOURCES_ENABLE'] && $resList->numberOfRooms()) {
-    if ( ($_REQUEST['freeRoomText'] != '' && !in_array($_REQUEST['room'], words('nothing nochange'))) || ($_REQUEST['freeRoomText_sd'] != '' && !in_array($_REQUEST['room_sd'], words('nothing nochange'))) ) {
-        $sem->createError("Sie k&ouml;nnen nur eine freie Raumangabe machen, wenn Sie \"keine Buchung, nur Textangabe\" ausw&auml;hlen!");
-        unset($_REQUEST['freeRoomText']);
-        unset($_REQUEST['room']);
-        unset($_REQUEST['freeRoomText_sd']);
-        unset($_REQUEST['room_sd']);
-        unset($cmd);
-        $open_close_id = $_REQUEST['singleDateID'];
-        $cmd = 'open';
-    }
+if (!$_LOCKED) {
+    $sem->registerCommand('checkboxAction', 'raumzeit_checkboxAction');
+    $sem->registerCommand('delete_singledate', 'raumzeit_delete_singledate');
+    $sem->registerCommand('undelete_singledate', 'raumzeit_undelete_singledate');
+    $sem->registerCommand('bookRoom', 'raumzeit_bookRoom');
+    $sem->registerCommand('selectSemester', 'raumzeit_selectSemester');
+    $sem->registerCommand('addCycle', 'raumzeit_addCycle');
+    $sem->registerCommand('doAddCycle', 'raumzeit_doAddCycle');
+    $sem->registerCommand('editCycle', 'raumzeit_editCycle');
+    $sem->registerCommand('deleteCycle', 'raumzeit_deleteCycle');
+    $sem->registerCommand('doDeleteCycle', 'raumzeit_doDeleteCycle');
+    $sem->registerCommand('doAddSingleDate', 'raumzeit_doAddSingleDate');
+    $sem->registerCommand('editSingleDate_button', 'raumzeit_editSingleDate');
+    $sem->registerCommand('editSingleDate', 'raumzeit_editSingleDate');
+    $sem->registerCommand('editDeletedSingleDate', 'raumzeit_editDeletedSingleDate');
+    $sem->registerCommand('removeRequest', 'raumzeit_removeRequest');
+    $sem->registerCommand('removeSeminarRequest', 'raumzeit_removeSeminarRequest');
+    $sem->registerCommand('removeMetadateRequest', 'raumzeit_removeMetadateRequest');
+    $sem->registerCommand('moveCycle', 'raumzeit_moveCycle');
+    $sem->registerCommand('bulkAction', 'raumzeit_bulkAction');
+    $sem->processCommands();
 }
-
-require_once('lib/raumzeit.inc.php');
-$sem->registerCommand('open', 'raumzeit_open');
-$sem->registerCommand('close', 'raumzeit_close');
-$sem->registerCommand('delete_singledate', 'raumzeit_delete_singledate');
-$sem->registerCommand('undelete_singledate', 'raumzeit_undelete_singledate');
-$sem->registerCommand('checkboxAction', 'raumzeit_checkboxAction');
-$sem->registerCommand('bookRoom', 'raumzeit_bookRoom');
-$sem->registerCommand('selectSemester', 'raumzeit_selectSemester');
-$sem->registerCommand('addCycle', 'raumzeit_addCycle');
-$sem->registerCommand('doAddCycle', 'raumzeit_doAddCycle');
-$sem->registerCommand('editCycle', 'raumzeit_editCycle');
-$sem->registerCommand('deleteCycle', 'raumzeit_deleteCycle');
-$sem->registerCommand('doDeleteCycle', 'raumzeit_doDeleteCycle');
-$sem->registerCommand('doAddSingleDate', 'raumzeit_doAddSingleDate');
-$sem->registerCommand('editSingleDate_button', 'raumzeit_editSingleDate');
-$sem->registerCommand('editSingleDate', 'raumzeit_editSingleDate');
-$sem->registerCommand('editDeletedSingleDate', 'raumzeit_editDeletedSingleDate');
-$sem->registerCommand('freeText', 'raumzeit_freeText');
-$sem->registerCommand('removeRequest', 'raumzeit_removeRequest');
-$sem->registerCommand('removeSeminarRequest', 'raumzeit_removeSeminarRequest');
-$sem->registerCommand('removeMetadateRequest', 'raumzeit_removeMetadateRequest');
-$sem->registerCommand('moveCycle', 'raumzeit_moveCycle');
-$sem->registerCommand('related_persons_action_do', 'raumzeit_related_persons_action_do');
-$sem->processCommands();
 
 // get possible start-weeks
 $start_weeks = array();
@@ -179,9 +187,10 @@ if ($perm->have_studip_perm("admin",$sem->getId())) {
 jQuery(function () {
     STUDIP.RoomRequestDialog.reloadUrlOnClose = '<?= UrlHelper::getUrl()?>';
     STUDIP.BlockAppointmentsDialog.reloadUrlOnClose = '<?= UrlHelper::getUrl()?>';
+    STUDIP.CancelDatesDialog.reloadUrlOnClose = '<?= UrlHelper::getUrl()?>';
 });
 </script>
-<table width="100%" border="0" cellpadding="0" cellspacing="0">
+<table width="100%" border="0" cellpadding="0" cellspacing="0" id="raumzeit">
     <tr>
         <td class="blank" width="100%" valign="top" style="padding-left: 8px">
             <table width="99%" border="0" cellpadding="2" cellspacing="0">
@@ -205,9 +214,10 @@ jQuery(function () {
 
             <tr>
                 <td colspan="9" class="blue_gradient">
-                    <b><?=_("Regelmäßige Zeiten")?></b>
+                    <b><?=_("Allgemeine Einstellungen")?></b>
                 </td>
             </tr>
+
             <tr>
                 <td colspan="9" class="blank">
                     <? if (!$_LOCKED) { ?>
@@ -243,7 +253,7 @@ jQuery(function () {
                             <?
                             //if ($perm->have_perm("admin")) {      // admins or higher may do everything
                                 foreach ($all_semester as $val) {
-                                    if ($val['beginn'] > $sem->getStartSemester()) {        // can be removed, if we always need all Semesters
+                                    if ($val['beginn'] >= $sem->getStartSemester()) {        // can be removed, if we always need all Semesters
                                         echo '<option value="'.$val['beginn'].'"';
                                         if ($sem->getEndSemester() == $val['beginn']) {
                                             echo ' selected';
@@ -278,8 +288,24 @@ jQuery(function () {
                         }
                        ?>
                         </form>
+                        <br>
                     </td>
                 </tr>
+
+                <tr>
+                    <td colspan="9" class="blue_gradient">
+                        <b><?=_("Regelmäßige Termine")?></b>
+                    </td>
+                </tr>
+
+                <? if (!$_LOCKED) { ?>
+                <tr>
+                    <td class="blank" colspan="9">
+                        <?= LinkButton::create(_("Regelmäßigen Termin hinzufügen"), URLHelper::getURL('', array('cmd' => 'addCycle')) . '#newCycle') ?>
+                    </td>
+                </tr>
+                <? } ?>
+
                 <?
                     //TODO: string representation should not be collected by a big array, but with the toString method of the CycleData-object
                     $cyclecount = $sem->getMetaDateCount();
@@ -314,6 +340,8 @@ jQuery(function () {
                             $tpl['room_request_ausruf'] .= "\n\n" . $tpl['room_request']->getInfo();
                             if ($tpl['room_request']->getStatus() == 'declined') {
                                 $tpl['symbol'] = 'icons/16/red/exclaim.png';
+                            } elseif ($tpl['room_request']->getStatus() == 'closed') {
+                                $tpl['symbol'] = 'icons/16/grey/accept.png';
                             } else {
                                 $tpl['symbol'] = 'icons/16/grey/pause/date.png';
                             }
@@ -322,26 +350,27 @@ jQuery(function () {
                         }
                         include('lib/raumzeit/templates/metadate.tpl');
 
-                        if ($sd_open[$metadate_id]) {
+                        if (Request::option('cycle_id') == $metadate_id) {
                             $termine =& $sem->getSingleDatesForCycle($metadate_id);
                             ?>
-                            <form action="<?= URLHelper::getLink() ?>" method="post" name="Formular">
+                            <form action="<?= URLHelper::getLink() ?>#Stapelaktionen" method="post" name="Formular">
                             <?= CSRFProtection::tokenTag() ?>
                             <input type="hidden" name="cycle_id" value="<?=$metadate_id?>">
                 <tr>
-                    <td align="center" colspan="9" class="steel1">
-                        <table cellpadding="1" cellspacing="0" border="0" width="90%">
+                    <td align="center" colspan="9" class="table_row_even">
+                        <table style="border-collapse: collapse; width: 100%;" data-cycleid="<?= $metadate_id ?>">
                             <?
                             $every2nd = 1;
                             $all_semester = $semester->getAllSemesterData();
                             $grenze = 0;
+                            $cur_pos = 0;
                             if (sizeof($termine) == 0) {
                                 foreach ($all_semester as $val) {
                                     if ($val['beginn'] == $raumzeitFilter) {
                                         $sem_name = $val['name'];break;
                                     }
                                 }
-                                parse_msg('error§'.sprintf(_("Für das %s gibt es für diese regelmäßige Zeit keine Termine!"), '<b>'.$sem_name.'</b>').'§', '§', 'steel1');
+                                parse_msg('error§'.sprintf(_("Für das %s gibt es für diese regelmäßige Zeit keine Termine!"), '<b>'.$sem_name.'</b>').'§', '§', 'table_row_even');
                             } else foreach ($termine as $singledate_id => $val) {
                                 if ( ($grenze == 0) || ($grenze < $val->getStartTime()) ) {
                                     foreach ($all_semester as $zwsem) {
@@ -349,7 +378,7 @@ jQuery(function () {
                                             $grenze = $zwsem['ende'];
                                             ?>
                                             <tr>
-                                                <td class="steelgraulight" align="center" colspan="9">
+                                                <td class="table_row_odd" align="center" colspan="9">
                                                     <b><?=$zwsem['name']?></b>
                                                 </td>
                                             </tr>
@@ -358,37 +387,54 @@ jQuery(function () {
                                     }
                                 }
                                 // Template fuer einzelnes Datum
-                                $tpl['checked'] = '';
+                                
+                                // $tpl['checked'] = '';
                                 $val->restore();
                                 $tpl = getTemplateDataForSingleDate($val, $metadate_id);
+                                $tpl['last_element'] = (++$cur_pos == sizeof($termine));
                                 $tpl['cycle_sd'] = TRUE;
 
 
-                                if ($sd_open[$singledate_id] && (Request::option('open_close_id') == $singledate_id)) {
+                                include('lib/raumzeit/templates/singledate.tpl');
+                                
+                                if (Request::option('singleDateID') == $singledate_id) {
                                     include('lib/raumzeit/templates/openedsingledate.tpl');
-                                } else {
-                                    unset($sd_open[$singledate_id]);
-                                    include('lib/raumzeit/templates/singledate.tpl');
                                 }
+                                
+                                unset($tpl);
                                 // Ende Template einzelnes Datum
                             }
                             ?>
                         </table>
                     </td>
                 </tr>
+
                 <? if (sizeof($termine) > 0) : ?>
                 <tr>
-                    <td class="steel1" colspan="9" align="center">
+                    <td class="table_row_even" width="1%">
+                    </td>
+                    <td class="table_row_even" colspan="8">
                         <?
-                            $tpl['width'] = '90%';
+                        if (!$_LOCKED) :
                             $tpl['cycle_id'] = $metadate_id;
-                            include('lib/raumzeit/templates/actions.tpl');
+                            if (Request::option('checkboxAction') == 'edit') :
+                                include('lib/raumzeit/templates/bulk_actions.php');
+                            elseif (Request::option('checkboxAction') == 'preparecancel') :
+                                include('lib/raumzeit/templates/bulk_cancel_action.php');
+                            else :
+                                include('lib/raumzeit/templates/actions.php');
+                            endif;
+                        endif;
                         ?>
                     </td>
                 </tr>
-                <?
-                endif;
-                } ?>
+                <? endif; ?>
+
+                <tr>
+                    <td colspan="9"> &nbsp; </td>
+                </tr>
+                
+                <? } ?>
                 </form>
             <? }
 
@@ -396,32 +442,23 @@ jQuery(function () {
             ?>
                 <tr>
                     <?
-                    if (isset($_REQUEST['day'])) {
-                        $tpl['day'] = $_REQUEST['day'];
+                    if (Request::quoted('day')) {
+                        $tpl['day'] = Request::quoted('day');
                     } else {
                         $tpl['day'] = 1;
                     }
-                    $tpl['start_stunde'] = $_REQUEST['start_stunde'];
-                    $tpl['start_minute'] = $_REQUEST['start_minute'];
-                    $tpl['end_stunde'] = $_REQUEST['end_stunde'];
-                    $tpl['end_minute'] = $_REQUEST['end_minute'];
+                    $tpl['start_stunde'] = Request::quoted('start_stunde');
+                    $tpl['start_minute'] = Request::quoted('start_minute');
+                    $tpl['end_stunde'] = Request::quoted('end_stunde');
+                    $tpl['end_minute'] = Request::quoted('end_minute');
                     include('lib/raumzeit/templates/addcycle.tpl')
                     ?>
                 </tr>
             <?
                 }
             ?>
-                <? if (!$_LOCKED) { ?>
                 <tr>
-                    <td class="blank" colspan="9">
-                        <br>
-                        <?=_("Regelmäßigen Zeiteintrag")?>
-                        <?= LinkButton::create(_('Hinzufügen'), URLHelper::getURL('', array('cmd' => 'addCycle')) . '#newCycle') ?>
-                    </td>
-                </tr>
-                <? } ?>
-                <tr>
-                    <td colspan="9" class="blank">&nbsp;</td>
+                    <td colspan="9" class="blank"><br><br></td>
                 </tr>
                 <tr>
                     <td colspan="9" class="blue_gradient">
@@ -429,12 +466,21 @@ jQuery(function () {
                         <b><?=_("Unregelm&auml;&szlig;ige Termine/Blocktermine")?></b>
                     </td>
                 </tr>
-                <? if ($termine =& $sem->getSingleDates(true, true)) { ?>
+                <? if (!$_LOCKED) : ?>
                 <tr>
-                    <td align="left" colspan="9" class="steel1">
-                        <form action="<?= URLHelper::getLink() ?>" method="post" name="Formular">
+                    <td colspan="9" class="blank">
+                        <?= LinkButton::create(_('Einzeltermin hinzufügen'), URLHelper::getURL('', array('cmd' => 'createNewSingleDate')) . '#newSingleDate') ?>
+                        <?= LinkButton::create(_('Blocktermine hinzufügen'), 'javascript:STUDIP.BlockAppointmentsDialog.initialize("'.UrlHelper::getURL('dispatch.php/course/block_appointments').'")'); ?>
+                    </td>
+                </tr>
+                <? endif ?>
+                
+                <? if ($termine =& $sem->getSingleDates(true, true, true)) { ?>
+                <tr>
+                    <td align="left" colspan="9" class="table_row_even">
+                        <form action="<?= URLHelper::getLink() ?>#Stapelaktionen" method="post" name="Formular">
                         <?= CSRFProtection::tokenTag() ?>
-                        <table cellpadding="1" cellspacing="0" border="0" width="100%">
+                        <table cellpadding="1" cellspacing="0" border="0" width="100%" data-cycleid="irregular">
                             <?
                             $count = 0;
                             $every2nd = 1;
@@ -442,14 +488,14 @@ jQuery(function () {
                             foreach ($termine as $key => $val) {
                                 $tpl['checked'] = '';
                                 $tpl = getTemplateDataForSingleDate($val);
-
+                                
                                 if ( ($grenze == 0) || ($grenze < $val->getStartTime()) ) {
                                     foreach ($all_semester as $zwsem) {
                                         if ( ($zwsem['beginn'] < $val->getStartTime()) && ($zwsem['ende'] > $val->getStartTime()) ) {
                                             $grenze = $zwsem['ende'];
                                             ?>
                                             <tr>
-                                                <td class="steelgraulight" align="center" colspan="9">
+                                                <td class="table_row_odd" align="center" colspan="9">
                                                     <b><?=$zwsem['name']?></b>
                                                 </td>
                                             </tr>
@@ -458,26 +504,32 @@ jQuery(function () {
                                     }
                                 }
 
-                                if ($sd_open[$val->getSingleDateID()] && (Request::option('open_close_id') == $val->getSingleDateID())) {
+                                include('lib/raumzeit/templates/singledate.tpl');
+                                
+                                if (Request::option('singleDateID') == $val->getSingleDateID()) {
                                     include('lib/raumzeit/templates/openedsingledate.tpl');
-                                } else {
-                                    unset($sd_open[$val->getSingleDateID()]);
-                                    include('lib/raumzeit/templates/singledate.tpl');
                                 }
                                 $count++;
                             }
                             ?>
                         </table>
                 <? } ?>
-                <? if ($count) { ?>
+                <? if ($count && !$_LOCKED) : ?>
                         <?
+                            $tpl = array();
                             $tpl['width'] = '100%';
-                            include('lib/raumzeit/templates/actions.tpl');
-                        ?>
+                            if (Request::option('checkboxAction') == 'edit') :
+                                include('lib/raumzeit/templates/bulk_actions.php');
+                            elseif (Request::option('checkboxAction') == 'preparecancel') :
+                                include('lib/raumzeit/templates/bulk_cancel_action.php');
+                            else :
+                                include('lib/raumzeit/templates/actions.php');
+                            endif;
+                            ?>
                         </form>
                     </td>
                 </tr>
-                <? } ?>
+                <? endif ?>
 
 
                 <tr>
@@ -487,26 +539,13 @@ jQuery(function () {
                 <? if (!$_LOCKED) { ?>
                 <? if (isset($cmd) && ($cmd == 'createNewSingleDate')) {
                     if ($GLOBALS['RESOURCES_ENABLE_BOOKINGSTATUS_COLORING']) {
-                        $tpl['class'] = 'steelred';
+                        $tpl['class'] = 'content_title_red';
                     } else {
                         $tpl['class'] = 'printhead';
                     }
 
                     include('lib/raumzeit/templates/addsingledate.tpl');
-                } else { ?>
-                <tr>
-                    <td>
-
-                    </td>
-                </tr>
-                <tr>
-                    <td colspan="9" class="blank">
-                                               <?= sprintf (_('Einen neuen Termin %s oder mehrere Termine mit dem Blockveranstaltungsassistenten %s'),
-                            LinkButton::create(_('Erstellen'), URLHelper::getURL('', array('cmd' => 'createNewSingleDate')) . '#newSingleDate'),
-                            LinkButton::create(_('Anlegen'), 'javascript:STUDIP.BlockAppointmentsDialog.initialize("'.UrlHelper::getURL('dispatch.php/course/block_appointments').'")')); ?>
-                    </td>
-                </tr>
-                <? } ?>
+                } ?>
                 <tr>
                     <td class="blank" colspan="9">&nbsp;</td>
                 </tr>
@@ -517,7 +556,7 @@ jQuery(function () {
                 <tr>
                     <td colspan="9" class="blue_gradient">
                         <a name="irregular_dates"></a>
-                        <b><?=_("Raum anfordern")?></b>
+                        <b><?=_("Raumanfrage für die gesamte Veranstaltung")?></b>
                     </td>
                 </tr>
                 <tr>
@@ -547,20 +586,15 @@ jQuery(function () {
                         <br>
                         <? endif; ?>
 
-                        <?= _("Raumanfrage") ?>
-                            <? if ($request_status && $request_status == 'open') {
-                            ?>
-                                <?= Linkbutton::create(_('Bearbeiten'), URLHelper::getURL('dispatch.php/course/room_requests/edit/' . $sem->getId(), array('request_id' => RoomRequest::existsByCourse($id))), array('onclick' => "STUDIP.RoomRequestDialog.initialize(this.href.replace('edit','edit_dialog'));return false;")) ?>
-                            <?
-                            } else {
-                            ?>
-                                <?= Linkbutton::create(_('Erstellen'), URLHelper::getURL('dispatch.php/course/room_requests/edit/' . $sem->getId(), array('new_room_request_type' => 'course')), array('onclick' => "STUDIP.RoomRequestDialog.initialize(this.href.replace('edit','edit_dialog'));return false;")) ?>
-                            <?
-                            } ?>
-                        <? if ($request_status && $request_status == 'open') { ?>
-                        <?= _('oder') ?>
-                        <?= LinkButton::create(_('Zurückziehen'), URLHelper::getURL('', array('cmd' => 'removeSeminarRequest'))) ?>
-                        <? } ?>
+                        <? if ($request_status && $request_status == 'open') : ?>
+                            <?= Linkbutton::create(_('Raumanfrage bearbeiten'), URLHelper::getURL('dispatch.php/course/room_requests/edit/' . $sem->getId(), array('request_id' => RoomRequest::existsByCourse($id))), array('onclick' => "STUDIP.RoomRequestDialog.initialize(this.href.replace('edit','edit_dialog'));return false;")) ?>
+                        <? else : ?>
+                            <?= Linkbutton::create(_('Raumanfrage erstellen'), URLHelper::getURL('dispatch.php/course/room_requests/edit/' . $sem->getId(), array('new_room_request_type' => 'course')), array('onclick' => "STUDIP.RoomRequestDialog.initialize(this.href.replace('edit','edit_dialog'));return false;")) ?>
+                        <? endif ?>
+
+                        <? if ($request_status && $request_status == 'open') : ?>
+                            <?= LinkButton::create(_('Raumanfrage zurückziehen'), URLHelper::getURL('', array('cmd' => 'removeSeminarRequest'))) ?>
+                        <? endif ?>
                     </td>
                 </tr>
                 <tr>

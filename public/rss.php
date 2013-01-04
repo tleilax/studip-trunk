@@ -24,11 +24,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 require '../lib/bootstrap.php';
 
+unregister_globals();
 ob_end_clean();
 ob_start();
 require_once('lib/showNews.inc.php');
 if (get_config('NEWS_RSS_EXPORT_ENABLE')){
-    $range = StudipNews::GetRangeFromRssID($_REQUEST['id']);
+    $range = StudipNews::GetRangeFromRssID(Request::option('id'));
     if (is_array($range)){
         show_rss_news($range['range_id'], $range['range_type']);
     } else {

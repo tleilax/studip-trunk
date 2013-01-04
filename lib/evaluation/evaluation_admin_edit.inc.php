@@ -91,7 +91,7 @@ if (Request::submitted('newButton')){
     // create a new eval
     $eval = new Evaluation ();
     
-    $rangeID = $_REQUEST["rangeID"];
+    $rangeID = Request::option("rangeID");
     if ($rangeID == get_username ($user->id))
         $rangeID = $user->id;
 
@@ -108,9 +108,9 @@ if (Request::submitted('newButton')){
     $groupID = $group->getObjectID();
     $evalID = $eval->getObjectID();
 
-} elseif (isset($_REQUEST["evalID"]) && ($_REQUEST["evalID"] != NULL)) {    
+} elseif (Request::option("evalID") && (Request::option("evalID") != NULL)) {
     $debug .= "isset _REQUTEST[evalID]!<br>";
-    $evalID = $_REQUEST["evalID"];
+    $evalID = Request::option("evalID");
     $eval = new Evaluation ($evalID, NULL, EVAL_LOAD_NO_CHILDREN);
     if ($eval->isError ()) {
         $error = EvalCommon::createReportMessage (
@@ -118,17 +118,6 @@ if (Request::submitted('newButton')){
             EVAL_PIC_ERROR, EVAL_CSS_ERROR);
         $error_msgs[] = $error->createContent();
     } elseif ($evalID == NULL) {
-        $error = EvalCommon::createReportMessage (
-            _("Es wurde keine Evaluations-ID übergeben"),
-            EVAL_PIC_ERROR, EVAL_CSS_ERROR);
-        $error_msgs[] = $error->createContent();
-    }
-    
-} elseif (isset($evalID)) {
-
-    $debug .= "isset [evalID]!<br>";
-    // evalID known as sess. variable
-    if (($evalID == NULL) || ($evalID == "") || ($evalID == "NULL")){
         $error = EvalCommon::createReportMessage (
             _("Es wurde keine Evaluations-ID übergeben"),
             EVAL_PIC_ERROR, EVAL_CSS_ERROR);
@@ -144,29 +133,22 @@ if (Request::submitted('newButton')){
     $error_msgs[] = $error->createContent();
 }
 
-
-$sess->register("evalID");
-
 # ===================================================== END: check the evalID #
 
 # check the itemID =========================================================  #
-
-if (isset($_REQUEST['itemID'])) {
-    $itemID = $_REQUEST['itemID'];
-    $sess->register("itemID");
+$itemID = Request::option('itemID');
+if ($itemID) {
+    $_SESSION['itemID'] = $itemID;
 } elseif (Request::submitted('newButton')) {
-    $itemID = "root";
-}else {
-    # $itemID = "root";
+    $_SESSION['itemID'] = "root";
 }
-
 # ===================================================== END: check the itemID #
 
 # check the rangeID ========================================================  #
 
-if (isset($_REQUEST["rangeID"])) {
-    $rangeID = $_REQUEST["rangeID"];
-    $sess->register("rangeID");
+if (Request::option("rangeID")) {
+    $_SESSION['rangeID'] = Request::option("rangeID");
+   
 }
 
 # ==================================================== END: check the rangeID #
@@ -230,7 +212,7 @@ if ( $authorID != $user->id ) {
 if ($error_msgs){
 
     $back_button = ("&nbsp;&nbsp;&nbsp;")
-                    . "<a href=\"". UrlHelper::getLink('admin_evaluation.php?page=overview&rangeID='. $rangeID) ."\">"
+                    . "<a href=\"". UrlHelper::getLink('admin_evaluation.php?page=overview&rangeID='. Request::option('rangeID')) ."\">"
                     . _("Zur Evaluations-Verwaltung")
                     . "</a>";
     

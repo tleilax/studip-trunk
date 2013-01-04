@@ -109,8 +109,8 @@ if ($auth->is_authenticated() && $user->id != 'nobody') {
 
     // Display banner ad
     if (get_config('BANNER_ADS_ENABLE')) {
-        require_once 'lib/banner_show.inc.php';
-        banner_show();
+        //require_once 'app/models/banner.php';
+        echo Banner::getRandomBanner()->toHTML();
     }
 
     // add skip link
@@ -121,7 +121,7 @@ if ($auth->is_authenticated() && $user->id != 'nobody') {
     <div class="index_container">
         <table class="index_box">
             <tr>
-                <td class="topic" style="font-weight: bold;" colspan="2">
+                <td class="table_header_bold" style="font-weight: bold;" colspan="2">
                     <?= Assets::img('icons/16/white/home.png', array('class' => 'middle')) ?>
                     <?= htmlReady($ueberschrift) ?>
                 </td>
@@ -191,15 +191,17 @@ if ($auth->is_authenticated() && $user->id != 'nobody') {
     }
 } else { //displaymodul for nobody
     $index_nobody_template = $GLOBALS['template_factory']->open('index_nobody');
-    
+
     $num_active_courses = DBManager::get()->query("SELECT COUNT(*) FROM seminare")->fetchColumn();
     $index_nobody_template->set_attribute('num_active_courses', $num_active_courses);
-    
+
     $num_registered_users = DBManager::get()->query("SELECT COUNT(*) FROM auth_user_md5")->fetchColumn();
     $index_nobody_template->set_attribute('num_registered_users', $num_registered_users);
-    $index_nobody_template->set_attribute('num_online_users', get_users_online_count(10));
 
-    if ($_REQUEST['logout'])
+    $num_online_users = get_users_online_count(10); // Should be the same value as in lib/navigation/CommunityNavigation.php
+    $index_nobody_template->set_attribute('num_online_users', $num_online_users);
+
+    if (Request::get('logout'))
     {
         $index_nobody_template->set_attribute('logout', true);
     }

@@ -10,7 +10,7 @@ use Studip\Button, Studip\LinkButton;
 <form action="<?= $controller->url_for('admin/datafields/new/') ?>" method="post">
 <?= CSRFProtection::tokenTag() ?>
 <table class="default">
-    <tr class="steel1">
+    <tr class="table_row_even">
         <td>
         <?= _('Datenfeldtyp:') ?>
         </td>
@@ -38,13 +38,13 @@ use Studip\Button, Studip\LinkButton;
 <form action="<?= $controller->url_for('admin/datafields/new/'.$object_typ) ?>" method=post>
     <?= CSRFProtection::tokenTag() ?>
     <table class="default">
-        <tr class="<?= TextHelper::cycle('steel1', 'steelgraulight') ?>">
+        <tr class="<?= TextHelper::cycle('table_row_even', 'table_row_odd') ?>">
             <td><?= _("Name") ?>:</td>
             <td>
                <input type="text" name="datafield_name" size="60" maxlength="254" value="<?= htmlReady($this->flash['request']['datafield_name']) ?>">
             </td>
         </tr>
-        <tr class="<?= TextHelper::cycle('steel1', 'steelgraulight') ?>">
+        <tr class="<?= TextHelper::cycle('table_row_even', 'table_row_odd') ?>">
             <td><?= _("Feldtyp") ?>:</td>
             <td>
             <select name="datafield_typ" id="datafield_typ">
@@ -56,8 +56,8 @@ use Studip\Button, Studip\LinkButton;
             </select>
             </td>
         </tr>
-        <tr class="<?= TextHelper::cycle('steel1', 'steelgraulight') ?>">
-            <td><? if ($object_typ == 'sem'): ?>Veranstaltungskategorie<? elseif ($object_typ == 'inst'): ?>Einrichtungstyp<? else: ?>Nutzerstatus<? endif; ?></td>
+        <tr class="<?= TextHelper::cycle('table_row_even', 'table_row_odd') ?>">
+            <td><? if ($object_typ == 'sem') echo _('Veranstaltungskategorie'); elseif ($object_typ == 'inst') echo _('Einrichtungstyp'); else echo _('Nutzerstatus'); ?>:</td>
             <td>
                 <? if ($object_typ == 'sem'): ?>
                     <select name="object_class">;
@@ -84,8 +84,8 @@ use Studip\Button, Studip\LinkButton;
                     </select>
             </td>
         </tr>
-        <tr class="<?= TextHelper::cycle('steel1', 'steelgraulight') ?>">
-            <td><?= _("benötigter Status") ?></td>
+        <tr class="<?= TextHelper::cycle('table_row_even', 'table_row_odd') ?>">
+            <td><?= _("benötigter Status") ?>:</td>
             <td>
                 <select name="edit_perms">
                     <option value="user">user</option>
@@ -97,7 +97,7 @@ use Studip\Button, Studip\LinkButton;
                 </select>
             </td>
         </tr>
-        <tr class="<?= TextHelper::cycle('steel1', 'steelgraulight') ?>">
+        <tr class="<?= TextHelper::cycle('table_row_even', 'table_row_odd') ?>">
             <td><?= _("Sichtbarkeit") ?>:</td>
             <td>
                 <select name="visibility_perms">
@@ -110,7 +110,7 @@ use Studip\Button, Studip\LinkButton;
                 </select>
             </td>
         </tr>
-        <tr class="<?= TextHelper::cycle('steel1', 'steelgraulight') ?>">
+        <tr class="<?= TextHelper::cycle('table_row_even', 'table_row_odd') ?>">
             <td>
                <?= _("Reihenfolge") ?>:
             </td>
@@ -118,6 +118,24 @@ use Studip\Button, Studip\LinkButton;
                 <input type="text" maxlength="10" size="2" value="<?= htmlReady($this->flash['request']['priority']) ?>" name="priority">
            </td>
         </tr>
+        <? if (in_array($object_typ, array('sem'))): ?>
+             <tr class="<?= TextHelper::cycle('table_row_even', 'table_row_odd') ?>">
+                <td>
+                   <?= _("Pflichtfeld") ?>:
+                </td>
+                <td>
+                    <input type="checkbox" name="mandatory" value="true" <?= ($this->flash['request']['priority']?'checked="checked"':'') ?>>
+               </td>
+            </tr>
+            <tr class="<?= TextHelper::cycle('table_row_even', 'table_row_odd') ?>">
+                <td>
+                   <?= _("Beschreibung") ?>:
+                </td>
+                <td>
+                     <textarea cols="58" rows="3" name="description" id="description"><?= htmlReady($this->flash['request']['description']) ?></textarea>
+               </td>
+            </tr>
+        <? endif ?>
         <tr>
             <td colspan="2" align="center">
                 <?= Button::create(_('Anlegen'),'anlegen', array('title' => _('Neues Datenfeld anlegen')))?>

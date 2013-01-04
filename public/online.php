@@ -30,6 +30,8 @@ page_open(array(
 ));
 $perm->check("user");
 
+$my_messaging_settings = UserConfig::get($user->id)->MESSAGING_SETTINGS;
+
 // Imports
 require_once 'lib/functions.php';
 require_once 'lib/msg.inc.php';
@@ -41,13 +43,6 @@ require_once 'lib/classes/Avatar.class.php';
 require_once 'lib/classes/StudipKing.class.php';
 
 include ('lib/seminar_open.php'); // initialise Stud.IP-Session
-
-if (get_config('CHAT_ENABLE'))
-{
-    include_once $RELATIVE_PATH_CHAT.'/chat_func_inc.php';
-    $chatServer = ChatServer::GetInstance($GLOBALS['CHAT_SERVER_NAME']);
-    $chatServer->caching = true;
-}
 
 $msging=new messaging;
 $cssSw=new cssClassSwitcher;
@@ -64,7 +59,7 @@ include ('lib/include/header.php');   // Output of Stud.IP head
 
 ob_start();
 
-$kompletter_datensatz= get_users_online(5, $user->cfg->getValue("ONLINE_NAME_FORMAT"));
+$kompletter_datensatz= get_users_online(10, $user->cfg->getValue("ONLINE_NAME_FORMAT"));
 $alle=count($kompletter_datensatz);
 /*
  * Start to filter
@@ -125,6 +120,7 @@ if (GetNumberOfBuddies()) {
     if (Request::submitted('change_show_only_buddys')) {
         CSRFProtection::verifyUnsafeRequest();
         $my_messaging_settings["show_only_buddys"] = Request::int('show_only_buddys', 0);
+        UserConfig::get($user->id)->store("MESSAGING_SETTINGS", $my_messaging_settings);
     }
     $newInfoboxPart = array("kategorie" => _("Einstellung:"),
         "eintrag" => array(
@@ -150,32 +146,7 @@ if (GetNumberOfBuddies()) {
 }
 ?>
 
-<div id="layout_container">
-    <div id="layout_sidebar">
-    <?
-    $infobox = array(
-        array("kategorie" => _("Information:"),
-                "eintrag" => array(
-                    array("icon" => 'icons/16/black/info.png',
-                          "text"  => _("Hier können Sie sehen, wer au&szlig;er Ihnen im Moment online ist.")
-                    ),
-                    array("icon" => 'icons/16/black/mail.png',
-                          "text"  => _("Sie können diesen Benutzern eine Nachricht schicken oder sie zum Chatten einladen.")
-                    ),
-                    array("icon" => 'icons/16/black/person.png',
-                          "text"  => _("Wenn Sie auf den Namen klicken, kommen Sie zur Homepage des Benutzers.")
-                    )
-            )
-        ), $newInfoboxPart
-    );
-
-    print_infobox($infobox, 'infobox/online.jpg');
-    #if ($SessSemName[0] && $SessSemName["class"] == "inst")
-    #    echo "<br><br><a href=\"institut_main.php\">" . _("Zur&uuml;ck zur ausgew&auml;hlten Einrichtung") . "</a>";
-    #elseif ($SessSemName[0])
-    #    echo "<br><br><a href=\"seminar_main.php\">" . _("Zur&uuml;ck zur ausgew&auml;hlten Veranstaltung") . "</a>";
-    ?>
-    </div>
+<div id="layout_container"><div>
     <div id="layout_content">
 <? if ($_SESSION['sms_msg']) {
     parse_msg($_SESSION['sms_msg']);
@@ -241,9 +212,9 @@ if (is_array($non_group_buddies))
 
 <?  //Kopfzeile
     if ($my_messaging_settings["show_only_buddys"])
-        echo "\n<td class=\"topic\" width=\"50%\" align=\"center\"><b>" . _("Kontakte") . "</b></td></tr>\n";
+        echo "\n<td class=\"table_header_bold\" width=\"50%\" align=\"center\"><b>" . _("Kontakte") . "</b></td></tr>\n";
     else
-        echo "\n<td class=\"topic\" width=\"50%\" align=\"center\"><b>" . _("Kontakte") . "</b></td><td class=\"topic\" width=\"50%\" align=\"center\"><b>" . _("andere Nutzer") . "</b></td></tr>\n";
+        echo "\n<td class=\"table_header_bold\" width=\"50%\" align=\"center\"><b>" . _("Kontakte") . "</b></td><td class=\"table_header_bold\" width=\"50%\" align=\"center\"><b>" . _("andere Nutzer") . "</b></td></tr>\n";
     echo "<tr>";
 
     //Buddiespalte
@@ -253,7 +224,7 @@ if (is_array($non_group_buddies))
         <td width="50%" valign="top">
             <table width="100%" cellspacing="0" cellpadding="1" border="0">
                 <tr>
-                    <td class="steel1" width="50%" align="center">
+                    <td class="table_row_even" width="50%" align="center">
                             <?= _("Sie haben keine Buddies ausgew&auml;hlt.") ?>
                             <br>
                             <? printf(_("Zum Adressbuch (%d Eintr&auml;ge) klicken Sie %shier%s"),
@@ -279,7 +250,7 @@ if (is_array($non_group_buddies))
                     </tr>
                 <? } else { // gar keine Buddies online ?>
                     <tr>
-                        <td class="steel1" width="50%" align="center" colspan="7">
+                        <td class="table_row_even" width="50%" align="center" colspan="7">
                             <?= _("Es sind keine Ihrer Buddies online.") ?>
                         </td>
                     </tr>
@@ -295,7 +266,7 @@ if (is_array($non_group_buddies))
                         list($position,$gruppe,$fullname,$zeit,$tmp_online_uname,$statusgruppe_id,$tmp_user_id)=$group_buddies[$index];
                         //list($fullname, $zeit, $tmp_online_uname, $tmp_user_id) = $n_buddies[$index];
                         if ($gruppe != $lastgroup) {// Ueberschrift fuer andere Gruppe
-                            printf("\n<tr><td colspan=\"7\" align=\"middle\" class=\"steelkante\"><a href=\"contact.php?view=gruppen&filter=%s\"><font size=\"2\" color=\"#555555\">%s</font></a></td></tr>",$statusgruppe_id, htmlready($gruppe));
+                            printf("\n<tr><td colspan=\"7\" align=\"middle\" class=\"blue_gradient\"><a href=\"contact.php?view=gruppen&filter=%s\"><font size=\"2\" color=\"#555555\">%s</font></a></td></tr>",$statusgruppe_id, htmlready($gruppe));
                             $groupcount++;
                             if ($groupcount > 10) //irgendwann gehen uns die Farben aus
                                 $groupcount = 1;
@@ -311,7 +282,7 @@ if (is_array($non_group_buddies))
                 }
 
                 if (sizeof($non_group_buddies)) {
-                    echo "\n<tr><td colspan=7 class=\"steelkante\" align=\"center\"><font size=-1 color=\"#555555\"><a href=\"contact.php?view=gruppen&filter=all\"><font size=-1 color=\"#555555\">"._("Buddies ohne Gruppenzuordnung").":</font></a></font></td></tr>";
+                    echo "\n<tr><td colspan=7 class=\"blue_gradient\" align=\"center\"><a href=\"contact.php?view=gruppen&filter=all\">"._("Buddies ohne Gruppenzuordnung").":</a></font></td></tr>";
                     reset ($non_group_buddies);
                     $template = $GLOBALS['template_factory']->open('online/user');
                     while (list($index)=each($non_group_buddies)) {
@@ -363,14 +334,14 @@ if (is_array($non_group_buddies))
             if ($weitere > 0) {
             ?>
             <tr>
-                <td class="steel1" align="center">
+                <td class="table_row_even" align="center">
                     <?=_("Keine sichtbaren Nutzer online.")?>
                 </td>
             </tr>
             <?
             } else {
             ?>
-                <td class="steel1" width="50%" align="center">
+                <td class="table_row_even" width="50%" align="center">
                     <?=_("Kein anderer Nutzer ist online.")?>
                 </td>
             </tr>
@@ -381,7 +352,7 @@ if (is_array($non_group_buddies))
     }
 ?>
         <? if ($user_count > 25) : ?>
-            <div style="text-align:right; padding-top: 2px; padding-bottom: 2px" class="steelgraudunkel">
+            <div style="text-align:right; padding-top: 2px; padding-bottom: 2px" class="content_seperator">
             <?
             $pagination = $GLOBALS['template_factory']->open('shared/pagechooser');
             $pagination->clear_attributes();
@@ -399,9 +370,35 @@ if (is_array($non_group_buddies))
         </td>
         </tr>
         </table>
-    </div>
-    <div class="clear"></div>
-</div>
+    
+    </div><!- layout_content ->
+        
+    <div id="layout_sidebar">
+    <?
+    $infobox = array(
+        array("kategorie" => _("Information:"),
+                "eintrag" => array(
+                    array("icon" => 'icons/16/black/info.png',
+                          "text"  => _("Hier können Sie sehen, wer au&szlig;er Ihnen im Moment online ist.")
+                    ),
+                    array("icon" => 'icons/16/black/mail.png',
+                          "text"  => _("Sie können diesen Benutzern eine Nachricht schicken oder sie zum Chatten einladen.")
+                    ),
+                    array("icon" => 'icons/16/black/person.png',
+                          "text"  => _("Wenn Sie auf den Namen klicken, kommen Sie zur Homepage des Benutzers.")
+                    )
+            )
+        ), $newInfoboxPart
+    );
+
+    print_infobox($infobox, 'infobox/online.jpg');
+    #if ($SessSemName[0] && $SessSemName["class"] == "inst")
+    #    echo "<br><br><a href=\"institut_main.php\">" . _("Zur&uuml;ck zur ausgew&auml;hlten Einrichtung") . "</a>";
+    #elseif ($SessSemName[0])
+    #    echo "<br><br><a href=\"seminar_main.php\">" . _("Zur&uuml;ck zur ausgew&auml;hlten Veranstaltung") . "</a>";
+    ?>
+    </div><!- layout_sidebar ->
+</div></div> <!- layout_container ->
 <?php
     ob_end_flush();
     include ('lib/include/html_end.inc.php');

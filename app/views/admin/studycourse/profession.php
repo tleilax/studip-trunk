@@ -21,7 +21,7 @@
     </thead>
     <? foreach ($studycourses as $fach_id => $studycourse): ?>
     <tbody class="<?= count($studycourse['degree'])?'':'empty' ?> collapsed">
-    <tr class="steel header-row" valign="bottom">
+    <tr class="table_header header-row" valign="bottom">
         <td class="toggle-indicator"><? if (count($studycourse['degree']) < 1): ?><?=$fach_id+1 ?>. <?= htmlReady($studycourse['name']) ?> <? else: ?> <a class="toggler" href="#"><?=$fach_id+1 ?>. <?= htmlReady($studycourse['name']) ?></a><? endif; ?></td>
         <td><?= $studycourse['count_sem'] ?> </td>
         <td><?= $studycourse['count_user'] ?> </td>
@@ -42,7 +42,7 @@
         </td>
     </tr>
     <? foreach ($studycourse['degree'] as $index => $degree): ?>
-    <tr class="<?= TextHelper::cycle('steel1', 'steelgraulight') ?>">
+    <tr class="<?= TextHelper::cycle('table_row_even', 'table_row_odd') ?>">
         <td class="label-cell">
            <?= $fach_id + 1 ?>.<?= $index + 1 ?>
            <?= htmlReady($degree['name']) ?>

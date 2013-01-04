@@ -86,7 +86,7 @@ if (!(have_sem_write_perm()) OR $pass==TRUE) {
             }
             foreach ($rows as $row) {
                 $name = $row['name'];
-                echo"<td class=steel2 colspan=2>&nbsp; &nbsp; <b><font size=2>".htmlReady($name)."</font></b></td>";
+                echo"<td class=table_footer colspan=2>&nbsp; &nbsp; <b><font size=2>".htmlReady($name)."</font></b></td>";
                 echo "\n</tr><tr>";
                 // $parent_description = formatReady($db->f("description"));
                 $parent_description = $row['description'];
@@ -96,11 +96,11 @@ if (!(have_sem_write_perm()) OR $pass==TRUE) {
                 printcontent ("100%","",$parent_description,"");
                 echo "\n</tr>";
                 echo "  <tr>";
-                echo "      <td colspan=2 class=steel1 align=center>";
+                echo "      <td colspan=2 class=table_row_even align=center>";
                 echo LinkButton::create(_("Zitieren"), URLHelper::getURL("?write=1&root_id=$root_id&topic_id=$topic_id&quote=TRUE"));
                 echo "      </td>";
                 echo "  </tr>";
-                echo "<tr><td colspan=2 class=steel>&nbsp; </td></tr><tr><td colspan=2 class=steel1><blockquote>";
+                echo "<tr><td colspan=2 class=content_title>&nbsp; </td></tr><tr><td colspan=2 class=table_row_even><blockquote>";
             
             }
             print "<br><b>" . _("Hierzu antworten:") . "</b><br><br>\n";
@@ -159,9 +159,9 @@ if (!(have_sem_write_perm()) OR $pass==TRUE) {
                 die;
             }
         }
-        if (Request::quoted('nobodysname')) $author = Request::quoted('nobodysname');
+        if (Request::get('nobodysname')) $author = Request::get('nobodysname');
         $writeextern = TRUE;
-        $topic_id = CreateTopic ( Request::quoted('name'), Request::quoted('author'), Request::quoted('description'), $parent_id, $root_id);
+        $topic_id = CreateTopic ( Request::get('name'), Request::get('author'), Request::get('description'), $parent_id, $root_id);
         parse_window( "msg§" . _("Ihr Beitrag wurde erfolgreich ins System &uuml;bernommen") . "§info§" . _("Sie k&ouml;nnen dieses Fenster jetzt schliessen.<br>Um Ihr neues Posting zu sehen, m&uuml;ssen Sie das Hauptfenster aktualisieren!") . "§", "§", "Schreiben erfolgreich", "&nbsp;");
     }
 } else {

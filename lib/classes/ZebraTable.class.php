@@ -42,12 +42,12 @@ class ZebraTable extends Table {
         if (is_array($switcherClass)) {
             $this->switcherClass = $switcherClass;
         } else {
-            $this->switcherClass = array("steelgraulight", "steel1");
+            $this->switcherClass = array("table_row_odd", "table_row_even");
         }
         if ($headerClass) {
             $this->header_class = $headerClass;
         } else {
-            $this->header_class = "steel";
+            $this->header_class = "table_header";
         }
         if (is_array($hovercolor)) {
             $this->hovercolor = $hovercolor;

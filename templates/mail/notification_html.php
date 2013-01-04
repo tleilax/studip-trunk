@@ -18,7 +18,7 @@
 
     <table class="default">
       <? foreach ($news as $sem_titel => $data) : ?>
-        <tr class="blue_gradient">
+        <tr class="table_header_bold">
           <td colspan="2" style="font-weight: bold;">
             <a href="<?= URLHelper::getLink('seminar_main.php?again=yes&auswahl=' . $data[0]['range_id']) ?>">
               <?= htmlReady($sem_titel) ?>
@@ -28,7 +28,7 @@
         </tr>
 
         <? foreach ($data as $module) : ?>
-        <tr class="<?= TextHelper::cycle('cycle_odd', 'cycle_even') ?>">
+        <tr class="<?= TextHelper::cycle('hover_odd', 'hover_even') ?>">
           <td>
             <a href="<?= URLHelper::getLink($module['url']) ?>"><?= htmlReady($module['text']) ?></a>
           </td>

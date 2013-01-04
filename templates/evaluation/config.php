@@ -61,7 +61,7 @@ $graphtypes = array(
         </colgroup>
         <thead>
             <tr>
-                <th class="topic" colspan="3">
+                <th class="table_header_bold" colspan="3">
                     <?= Assets::img('icons/16/white/test.png') ?>
                     <?= _('Auswertungskonfiguration') ?>
                 </th>
@@ -82,7 +82,7 @@ $graphtypes = array(
                 </td>
                 <td style="text-align: center;">
                     <input type="radio" name="<?= $option ?>" value="0"
-                           <? if ($has_template && !$templates[$option]) echo 'checked'; ?>
+                           <? if ($has_template && !$templates[$option]) echo 'checked'; ?>>
                 </td>
             </tr>
         <? endforeach; ?>
