@@ -37,8 +37,6 @@ require_once 'lib/classes/StudipLitList.class.php';
 require_once 'lib/classes/StudipNews.class.php';
 require_once $GLOBALS['RELATIVE_PATH_ELEARNING_INTERFACE'] . "/ObjectConnections.class.php";
 require_once $GLOBALS['RELATIVE_PATH_ELEARNING_INTERFACE'] . "/ELearningUtils.class.php";
-require_once 'lib/classes/LockRules.class.php';
-require_once 'lib/classes/DateFormatter.class.php';
 
 
 class Seminar

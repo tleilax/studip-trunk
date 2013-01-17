@@ -20,9 +20,6 @@
 require '../lib/bootstrap.php';
 
 unregister_globals();
-require_once 'lib/classes/CourseAvatar.class.php';
-require_once 'lib/classes/StudygroupAvatar.class.php';
-require_once 'lib/classes/InstituteAvatar.class.php';
 
 page_open(array("sess" => "Seminar_Session", "auth" => "Seminar_Auth", "perm" => "Seminar_Perm", "user" => "Seminar_User"));
 $perm->check("user");
@@ -95,7 +92,6 @@ require_once ('lib/classes/ModulesNotification.class.php');
 require_once ('lib/statusgruppe.inc.php');      // Funktionen für Statusgruppen
 require_once ('lib/object.inc.php');
 require_once ('lib/meine_seminare_func.inc.php');
-require_once ('lib/classes/LockRules.class.php');
 
 $deputies_enabled = get_config('DEPUTIES_ENABLE');
 $default_deputies_enabled = get_config('DEPUTIES_DEFAULTENTRY_ENABLE');

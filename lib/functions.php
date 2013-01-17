@@ -50,7 +50,6 @@ require_once ('lib/classes/StudipSemTree.class.php');
 require_once ('lib/classes/StudipRangeTree.class.php');
 require_once ('lib/classes/Modules.class.php');
 require_once ('lib/classes/SemesterData.class.php');
-require_once ('lib/classes/HolidayData.class.php');
 require_once ('lib/visual.inc.php');
 require_once ('lib/object.inc.php');
 require_once ('lib/user_visible.inc.php');
@@ -1840,7 +1839,7 @@ function get_title_for_status($type, $count, $sem_type = NULL)
 
     $atype = 'title_'.$type;
 
-    if (isset($SEM_TYPE[$sem_type][$atype])) {
+    if (is_array($SEM_TYPE[$sem_type][$atype])) {
         $title = $SEM_TYPE[$sem_type][$atype];
     } else if (isset($DEFAULT_TITLE_FOR_STATUS[$type])) {
         $title = $DEFAULT_TITLE_FOR_STATUS[$type];
