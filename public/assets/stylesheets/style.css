@@ -2106,6 +2106,193 @@ table.contact-header td.active a {
 table.contact-header td.empty a {
   color: #999;
 }
+/* CSS */
+h2.topic,
+h3.topic {
+  padding: 5px;
+}
+.task label {
+  cursor: pointer;
+  display: block;
+  padding: 5px;
+}
+.task td {
+  padding: 0;
+  vertical-align: middle;
+}
+.task tr ~ tr {
+  display: none;
+}
+.task .selected td {
+  background-color: rgba(255, 51, 51, 0.25);
+}
+.task .selected tr ~ tr {
+  display: table-row;
+}
+.task .selected tr ~ tr td {
+  background-color: #fff;
+}
+.task .selected tr ~ tr td[colspan] {
+  background-color: inherit;
+  padding: 0;
+}
+.task .parameters,
+.task .parameters li {
+  list-style: square;
+  margin: 0;
+  padding: 0;
+}
+.task .parameters {
+  border: 1px solid #888;
+  border-bottom: 0;
+  border-top: 0;
+  padding: 0.5em;
+}
+.task .parameters h3 {
+  margin: 0;
+  padding: 0;
+}
+.task .parameters input[type=text],
+.task .parameters input[type=number],
+.task .parameters select,
+.task .parameters textarea {
+  width: 200px;
+}
+.task .parameter.required {
+  font-weight: bold;
+}
+.task .parameter label {
+  padding: 0;
+}
+.task tbody:last-child .parameters {
+  border-bottom: 1px solid #888;
+  -webkit-border-bottom-right-radius: 3px;
+  -moz-border-radius-bottomright: 3px;
+  border-bottom-right-radius: 3px;
+  -webkit-border-bottom-left-radius: 3px;
+  -moz-border-radius-bottomleft: 3px;
+  border-bottom-left-radius: 3px;
+}
+.schedule label {
+  display: block;
+}
+.schedule label:first-child {
+  cursor: pointer;
+  margin-bottom: 1em;
+}
+.schedule label:first-child h3 {
+  background: url("../images/icons/16/blue/checkbox-unchecked.png") 16px center no-repeat;
+  border: 1px solid transparent;
+  margin: 0;
+  padding: 0.5em 0 0.5em 36px;
+}
+.schedule label:first-child input[type=radio] {
+  display: none;
+}
+.schedule label:first-child input[type=radio]:checked ~ h3 {
+  background-color: rgba(255, 51, 51, 0.5);
+  background-image: url("../images/icons/16/blue/checkbox-checked.png");
+  border-color: #ff3333;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+}
+.schedule td {
+  vertical-align: top;
+}
+.schedule td:last-child {
+  background-color: #e2e2e2;
+}
+.cronjob-filters label {
+  display: block;
+}
+.cronjob-filters select {
+  width: 100%;
+}
+.crontab,
+.crontab li {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.crontab li {
+  display: inline-block;
+  padding-right: 5px;
+  text-align: center;
+}
+.crontab span {
+  display: block;
+  text-align: right;
+}
+.inactivatible td {
+  color: #888;
+}
+.ajaxing {
+  background: url("../images/ajax_indicator_small.gif") center no-repeat;
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  font: 0/0 a;
+  color: transparent;
+  text-shadow: none;
+  background-color: transparent;
+  border: 0;
+}
+.ajaxing img {
+  display: none;
+}
+dl.cronjob {
+  *zoom: 1;
+}
+dl.cronjob:before,
+dl.cronjob:after {
+  display: table;
+  content: "";
+  line-height: 0;
+}
+dl.cronjob:after {
+  clear: both;
+}
+dl.cronjob dt {
+  clear: left;
+  float: left;
+  width: 140px;
+}
+dl.cronjob dt:after {
+  content: ':';
+}
+dl.cronjob dd {
+  margin-left: 140px;
+}
+/* css for timepicker, see http://trentrichardson.com/examples/timepicker/ */
+.ui-timepicker-div .ui-widget-header {
+  margin-bottom: 8px;
+}
+.ui-timepicker-div dl {
+  text-align: left;
+}
+.ui-timepicker-div dl dt {
+  height: 25px;
+  margin-bottom: -25px;
+}
+.ui-timepicker-div dl dd {
+  margin: 0 10px 10px 65px;
+}
+.ui-timepicker-div td {
+  font-size: 90%;
+}
+.ui-tpicker-grid-label {
+  background: none;
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+table.zebra-horizontal td {
+  background-color: #e2e2e2;
+}
+table.zebra-horizontal td:nth-child(2n+1) {
+  background-color: #f2f2f2;
+}
 /* classes for the evaluation modules in Stud.IP ---------------------------- */
 .eval_title {
   font-size: 1.2em;
