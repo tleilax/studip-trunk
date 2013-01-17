@@ -58,7 +58,7 @@ class PurgeCacheJob extends CronJob
                 'type'        => 'boolean',
                 'default'     => false,
                 'status'      => 'optional',
-                'description' => _('Sollen Ausgaben erzeugt werden oder nicht (sind später im Log des Cronjobs sichtbar)'),
+                'description' => _('Sollen Ausgaben erzeugt werden (sind später im Log des Cronjobs sichtbar)'),
             ),
         );
     }

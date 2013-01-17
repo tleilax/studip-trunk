@@ -77,7 +77,7 @@
                 </td>
                 <td>
                     <label for="task-<?= $task->task_id ?>">
-                        <?= substr($task->class, 0, -4) ?>
+                        <?= htmlReady($task->class) ?>
                     </label>
                 </td>
                 <td>
