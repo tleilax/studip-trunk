@@ -1,0 +1,164 @@
+/* CSS */
+h2, h3 {
+    &.topic { padding: 5px; }
+}
+
+.task {
+    label {
+        cursor: pointer;
+        display: block;
+        padding: 5px;
+    }
+    td {
+        padding: 0;
+        vertical-align: middle;
+    }
+    tr ~ tr {
+        display: none;
+    }
+    .selected {
+        td { background-color: fadeout(@active-color, 75%); }
+        tr ~ tr {
+            display: table-row;
+            td {
+                background-color: #fff;
+            }
+            td[colspan] {
+                background-color: inherit;
+                padding: 0;
+            }
+        }
+    }
+    .parameters, .parameters li {
+        list-style: square;
+        margin: 0;
+        padding: 0;
+    }
+    .parameters {
+        border: 1px solid #888;
+        border-bottom: 0;
+        border-top: 0;
+        padding: 0.5em;
+        
+        h3 {
+            margin: 0;
+            padding: 0;
+        }
+        
+        input[type=text], input[type=number], select, textarea {
+            width: 200px;
+        }
+    }
+    .parameter {
+        &.required {
+            font-weight: bold;
+        }
+        label {
+            padding: 0;
+        }
+    }
+    tbody:last-child .parameters {
+        border-bottom: 1px solid #888;
+        .border-bottom-right-radius(3px);
+        .border-bottom-left-radius(3px);
+    }
+}
+
+.schedule {
+    label {
+        display: block;
+    }
+    label:first-child {
+        cursor: pointer;
+        margin-bottom: 1em;
+
+        h3 {
+            background: url("@{icon-path}/blue/checkbox-unchecked.png") 16px center no-repeat;
+            border: 1px solid transparent;
+            margin: 0;
+            padding: 0.5em 0 0.5em 36px;
+        }
+        input[type=radio] {
+            display: none;
+
+            &:checked ~ h3 {
+                background-color: fadeout(@active-color, 50%);
+                background-image: url("@{icon-path}/blue/checkbox-checked.png");
+                border-color: @active-color;
+                .border-radius(5px);
+            }
+        }
+    }
+    td {
+        vertical-align: top;
+        &:last-child { background-color: @alternating-color-odd; }
+    }
+}
+
+.cronjob-filters {
+    label { display: block; }
+    select { width: 100%; }
+}
+.crontab, .crontab li {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.crontab li {
+    display: inline-block;
+    padding-right: 5px;
+    text-align: center;
+}
+.crontab span {
+    display: block;
+    text-align: right;
+}
+
+.inactivatible td {
+    color: #888;
+}
+
+.ajaxing {
+    background: url("@{image-path}/ajax_indicator_small.gif") center no-repeat;
+    display: inline-block;
+    .size(16px, 16px);
+    .hide-text;
+
+    img { display: none; }
+}
+
+dl.cronjob {
+    @width: 140px;
+    .clearfix;
+    dt {
+        clear: left;
+        float: left;
+        width: @width;
+        &:after { content: ':'; }
+    }
+    dd {
+        margin-left: @width;
+    }
+}
+
+/* css for timepicker, see http://trentrichardson.com/examples/timepicker/ */
+.ui-timepicker-div {
+    .ui-widget-header { margin-bottom: 8px; }
+    dl {
+        text-align: left;
+        dt { height: 25px; margin-bottom: -25px; }
+        dd { margin: 0 10px 10px 65px; }
+    }
+    td { font-size: 90%; }
+}
+.ui-tpicker-grid-label { background: none; border: none; margin: 0; padding: 0; }
+
+
+table.zebra-horizontal {
+    td {
+        background-color: @alternating-color-odd;
+        &:nth-child(2n+1) {
+            background-color: @alternating-color-even;
+        }
+    }
+}
