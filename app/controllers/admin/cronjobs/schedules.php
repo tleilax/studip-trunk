@@ -1,0 +1,236 @@
+<?
+
+require_once 'app/controllers/authenticated_controller.php';
+
+class Admin_Cronjobs_SchedulesController extends AuthenticatedController
+{
+    public function before_filter(&$action, &$args)
+    {
+        parent::before_filter($action, $args);
+
+        Navigation::activateItem('/admin/config/cronjobs');
+        PageLayout::setTitle(_('Cronjob-Verwaltung') . ' - ' . _('Cronjobs'));
+
+        if (Request::isXhr()) {
+            $this->set_layout(null);
+            $this->set_content_type('text/html;Charset=windows-1252');
+        } else {
+            $this->set_layout($GLOBALS['template_factory']->open('layouts/base'));
+        }
+
+        if (empty($_SESSION['cronjob-filter'])) {
+            $_SESSION['cronjob-filter'] = array(
+                'where'  => '1',
+                'values' => array(),
+            );
+        }
+    }
+
+    public function index_action($page = 1)
+    {
+        $filter = $_SESSION['cronjob-filter'];
+
+        $this->max_per_page   = Config::get()->ENTRIES_PER_PAGE;
+        $this->total          = CronjobSchedule::countBySql('1');
+        $this->total_filtered = CronjobSchedule::countBySql($filter['where']);
+        $this->page           = max(1, min($page, ceil($this->total_filtered / $this->max_per_page)));
+
+        $limit = sprintf(" LIMIT %u, %u", ($this->page - 1) * $this->max_per_page, $this->max_per_page);
+        $this->schedules = CronjobSchedule::findBySQL($filter['where'] . $limit);
+
+        // Infobox image was produced from an image by Robbert van der Steeg
+        // http://www.flickr.com/photos/robbie73/5924985913/
+        $this->setInfoboxImage(Assets::image_path('infobox/time.jpg'));
+
+        // Navigation
+        $cronjobs = sprintf('<a href="%s"><strong>%s</strong></a>',
+                            $this->url_for('admin/cronjobs/schedules'),
+                            _('Cronjobs verwalten'));
+        $this->addToInfobox(_('Navigation'), $cronjobs, 'icons/16/red/arr_1right');
+
+        $tasks = sprintf('<a href="%s">%s</a>',
+                         $this->url_for('admin/cronjobs/tasks'),
+                         _('Aufgaben verwalten'));
+        $this->addToInfobox(_('Navigation'), $tasks);
+
+        $logs = sprintf('<a href="%s">%s</a>',
+                        $this->url_for('admin/cronjobs/logs'),
+                        _('Logs anzeigen'));
+        $this->addToInfobox(_('Navigation'), $logs);
+
+        // Actions
+        $register = sprintf('<a href="%s">%s</a>',
+                            $this->url_for('admin/cronjobs/schedules/edit'),
+                            _('Neuen Cronjob registrieren'));
+        $this->addToInfobox(_('Aktionen'), $register, 'icons/16/black/plus');
+
+        // Filters
+        $template = $this->get_template_factory()->open('admin/cronjobs/schedules/infobox-filter');
+        $template->controller = $this;
+        $template->tasks      = CronjobTask::findBySql('1');
+        $template->filter     = $filter['values'];
+        $filters = $template->render();
+        $this->addToInfobox(_('Darstellung einschränken'), $filters);
+
+        if ($this->total_filtered != $this->total) {
+            $this->addToInfobox(_('Darstellung einschränken'),
+                                sprintf(_('Passend: %u / %u Cronjobs'), $this->total_filtered, $this->total));
+        }
+    }
+
+    public function display_action($id)
+    {
+        if (!$this->schedule = CronjobSchedule::find($id)) {
+            PageLayout::postMessage(MessageBox::error(_('Es gibt keinen Cronjob mit dieser Id.')));
+            $this->redirect('admin/cronjobs/schedules');
+        }
+
+        $title = sprintf(_('Cronjob "%s" anzeigen'), $this->schedule->title);
+        if (Request::isXhr()) {
+            header('X-Title: ' . $title);
+        } else {
+            PageLayout::setTitle($title);
+        }
+    }
+
+    public function filter_action()
+    {
+        $filter     = array_filter(Request::optionArray('filter'));
+        $conditions = array();
+
+        if (!empty($filter['type'])) {
+            $conditions[] = "type = " . DBManager::get()->quote($filter['type']);
+        }
+        if (!empty($filter['status'])) {
+            $active = (int)($filter['status'] === 'active');
+            $conditions[] = "active = " . DBManager::get()->quote($active);
+        }
+        if (!empty($filter['task_id'])) {
+            $conditions[] = "task_id = " . DBManager::get()->quote($filter['task_id']);
+        }
+
+        $_SESSION['cronjob-filter'] = array(
+            'where'  => implode(' AND ' , $conditions) ?: '1',
+            'values' => $filter,
+        );
+        $this->redirect('admin/cronjobs/schedules');
+    }
+
+    public function edit_action($id = null)
+    {
+        if (Request::submitted('store')) {
+            $parameters = Request::getArray('parameters');
+
+            $schedule = CronjobSchedule::find($id);
+            $schedule->title       = Request::get('title');
+            $schedule->description = Request::get('description');
+            $schedule->active      = Request::int('active', 0);
+            $schedule->task_id     = Request::option('task_id');
+            $schedule->parameters  = $parameters[$schedule->task_id];
+            $schedule->type        = Request::option('type') === 'once'
+                                   ? 'once'
+                                   : 'periodic';
+            if ($schedule->type === 'once') {
+                $temp = Request::getArray('once');
+                $schedule->next_execution = strtotime($temp['date'] . ' ' . $date['time']);
+            } else {
+                $temp = Request::getArray('periodic');
+                $schedule->minute      = strlen($temp['minute']) ? (int)$temp['minute'] : null;
+                $schedule->hour        = strlen($temp['hour']) ? (int)$temp['hour'] : null;
+                $schedule->day         = strlen($temp['day']) ? (int)$temp['day'] : null;
+                $schedule->month       = strlen($temp['month']) ? (int)$temp['month'] : null;
+                $schedule->day_of_week = strlen($temp['day_of_week']) ? (int)$temp['day_of_week'] : null;
+
+                if ($schedule->active) {
+                    $schedule->next_execution = $schedule->calculateNextExecution();
+                }
+            }
+            $schedule->store();
+
+            PageLayout::postMessage(MessageBox::success(_('Die Änderungen wurden gespeichert.')));
+            $this->redirect('admin/cronjobs/schedules');
+            return;
+        }
+
+        $this->tasks = CronjobTask::findBySql('1');
+        $this->schedule = $id === null ? new CronjobSchedule() : CronjobSchedule::find($id);
+    }
+
+    public function activate_action($id, $page = 1)
+    {
+        CronjobSchedule::find($id)->activate();
+
+        if (!Request::isXhr()) {
+            PageLayout::postMessage(Messagebox::success(_('Der Cronjob wurde aktiviert.')));
+        }
+        $this->redirect('admin/cronjobs/schedules/index/' . $page . '#job-' . $id);
+    }
+
+    public function deactivate_action($id, $page = 1)
+    {
+        CronjobSchedule::find($id)->deactivate();
+
+        if (!Request::isXhr()) {
+            PageLayout::postMessage(Messagebox::success(_('Der Cronjob wurde deaktiviert.')));
+        }
+        $this->redirect('admin/cronjobs/schedules/index/' . $page . '#job-' . $id);
+    }
+
+    public function cancel_action($id, $page = 1)
+    {
+        CronjobSchedule::find($id)->delete();
+
+        PageLayout::postMessage(Messagebox::success(_('Der Cronjob wurde gelöscht.')));
+        $this->redirect('admin/cronjobs/schedules/index/' . $page);
+    }
+
+    public function bulk_action($page = 1)
+    {
+        $action    = Request::option('action');
+        $ids       = Request::optionArray('ids');
+        $schedules = CronjobSchedule::findMany($ids);
+
+        if ($action === 'activate') {
+            $schedules = array_filter($schedules, function ($item) { return !$item->active; });
+            $failed = 0;
+            foreach ($schedules as $schedule) {
+                if ($schedule->task->active) {
+                    $schedule->activate();
+                } else {
+                    $failed += 1;
+                }
+            }
+
+            if ($failed > 0) {
+                $message = ngettext('%u Cronjob konnte nicht aktiviert werden, da die entsprechende Aufgabe deaktiviert ist.',
+                                    '%u Cronjob(s) konnte(n) nicht aktiviert werden, da die entsprechende Aufgabe deaktiviert ist.',
+                                    $failed);
+                $message = sprintf($message, $failed);
+                PageLayout::postMessage(MessageBox::info($message));
+            }
+
+            $n = count($schedules) - $failed;
+            $message = sprintf(ngettext('%u Cronjob wurde aktiviert.', '%u Cronjobs wurden aktiviert.', $n), $n);
+            PageLayout::postMessage(MessageBox::success($message));
+        } else if ($action === 'deactivate') {
+            $schedules = array_filter($schedules, function ($item) { return $item->active; });
+            foreach ($schedules as $schedule) {
+                $schedule->deactivate();
+            }
+
+            $n = count($schedules);
+            $message = sprintf(ngettext('%u Cronjob wurde deaktiviert.', '%u Cronjobs wurden deaktiviert.', $n), $n);
+            PageLayout::postMessage(MessageBox::success($message));
+        } else if ($action === 'cancel') {
+            foreach ($schedules as $schedule) {
+                $schedule->delete();
+            }
+
+            $n = count($schedules);
+            $message = sprintf(ngettext('%u Cronjob wurde gelöscht.', '%u Cronjobs wurden gelöscht.', $n), $n);
+            PageLayout::postMessage(MessageBox::success($message));
+        }
+
+        $this->redirect('admin/cronjobs/schedules/index/' . $page);
+    }
+}
