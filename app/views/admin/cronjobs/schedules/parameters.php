@@ -1,5 +1,5 @@
 <?
-    $selected   = $schedule->task_id === $task->task_id;
+    $selected   = !$schedule->isNew() && $schedule->task_id === $task->task_id;
     $parameters = $selected
                 ? $schedule->parameters
                 : array_fill_keys(array_keys($task->parameters), null);
@@ -14,7 +14,7 @@
         <label>
             <input type="checkbox" name="parameters[<?= $task->task_id ?>][<?= htmlReady($key) ?>]" value="1"
                    id="parameter-<?= htmlReady($key) ?>"
-                   <? if ($selected && $parameters[$key]) echo 'selected'; ?>>
+                   <? if ($selected && $parameters[$key]) echo 'checked'; ?>>
             <?= htmlReady($data['description']) ?>
         </label>
     <? else: ?>
