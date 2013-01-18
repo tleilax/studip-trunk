@@ -12,11 +12,20 @@
     );
 ?>
 
-<form action="<?= $controller->url_for('admin/cronjobs/schedules/edit', $schedule->schedule_id) ?>" method="post" class="cronjobs-edit">
+
+<form action="<?= $controller->url_for('admin/cronjobs/schedules/edit', $schedule->schedule_id, $page) ?>" method="post" class="cronjobs-edit">
     <?= CSRFProtection::tokenTag() ?>
 
+    <h1>
+    <? if ($schedule->isNew()): ?>
+        <?= _('Neuen Cronjob anlegen') ?>
+    <? else: ?>
+        <?= sprintf(_('Cronjob "%s" bearbeiten'), $schedule->title) ?>
+    <? endif; ?>
+    </h1>
+
     <h2 class="topic"><?= _('Details') ?></h2>
-    <table class="default zebra-hover settings">
+    <table class="default zebra-hover">
         <colgroup>
             <col width="20%">
             <col width="80%">
@@ -72,7 +81,7 @@
     </table>
 
     <h2 class="topic"><?= _('Aufgabe') ?></h2>
-    <table class="default zebra-big-hover cron-task settings" cellspacing="0" cellpadding="0">
+    <table class="default zebra-big-hover cron-task" cellspacing="0" cellpadding="0">
         <colgroup>
             <col width="20px">
             <col width="100px">
@@ -88,14 +97,17 @@
                 <th>&nbsp;</th>
             </tr>
         </thead>
-        <? foreach ($tasks as $task): ?>
+    <? foreach ($tasks as $task): ?>
+        <? if (!$schedule->isNew() && $task->task_id != $schedule->task_id) continue; ?>
         <tbody <? if ($task->task_id === $schedule->task_id) echo 'class="selected"'; ?>>
             <tr>
                 <td>
+                <? if ($schedule->isNew()): ?>
                     <input required type="radio" name="task_id"
                            id="task-<?= $task->task_id ?>"
                            value="<?= $task->task_id ?>"
                            <? if ($task->task_id === $schedule->task_id) echo 'checked'; ?>>
+                <? endif; ?>
                 </td>
                 <td>
                     <label for="task-<?= $task->task_id ?>">
@@ -121,11 +133,11 @@
             </tr>
         <? endif; ?>
         </tbody>
-        <? endforeach; ?>
+    <? endforeach; ?>
     </table>
 
     <h2 class="topic"><?= _('Zeitplan') ?></h2>
-    <table class="default zebra-horizontal settings">
+    <table class="default zebra-horizontal cron-schedule">
         <colgroup>
             <col width="50%">
             <col width="50%">
@@ -134,16 +146,16 @@
             <tr>
                 <th>
                     <label>
-                        <input type="radio" name="type" value="once"
-                               <? if ($schedule->type === 'once') echo 'checked'; ?>>
-                        <?= _('Einmalig') ?>
+                        <input type="radio" name="type" value="periodic"
+                               <? if ($schedule->type === 'periodic') echo 'checked'; ?>>
+                        <?= _('Wiederholt') ?>
                     </label>
                 </th>
                 <th>
                     <label>
-                        <input type="radio" name="type" value="periodic"
-                               <? if ($schedule->type === 'periodic') echo 'checked'; ?>>
-                        <?= _('Wiederholt') ?>
+                        <input type="radio" name="type" value="once"
+                               <? if ($schedule->type === 'once') echo 'checked'; ?>>
+                        <?= _('Einmalig') ?>
                     </label>
                 </th>
             </tr>
@@ -151,85 +163,118 @@
         <tbody>
             <tr>
                 <td>
+                    <table class="default">
+                        <colgroup>
+                            <col width="20%">
+                            <col width="20%">
+                            <col width="20%">
+                            <col width="20%">
+                            <col width="20%">
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th>
+                                    <label for="minute"><?= _('Minute') ?></label>
+                                </th>
+                                <th>
+                                    <label for="hour"><?= _('Stunde') ?></label>
+                                </th>
+                                <th>
+                                    <label for="day"><?= _('Tag') ?></label>
+                                </th>
+                                <th>
+                                    <label for="month"><?= _('Monat') ?></label>
+                                </th>
+                                <th>
+                                    <label for="day_of_week"><?= _('Wochentag') ?></label>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="cron-item">
+                                    <select name="periodic[minute][type]" id="minute">
+                                        <option value="" title="<?= _('beliebig') ?>">*</option>
+                                        <option value="once" <? if ($schedule->minute !== null && $schedule->minute >= 0) echo 'selected'; ?>>
+                                            min
+                                        </option>
+                                        <option value="periodic" <? if ($schedule->minute < 0) echo 'selected'; ?>>
+                                            */min
+                                        </option>
+                                    </select>
+                                    <div>
+                                        <span>min=</span>
+                                        <input type="number" name="periodic[minute][value]" value="<?= abs($schedule->minute) ?>">
+                                    </div>
+                                </td>
+                                <td class="cron-item">
+                                    <select name="periodic[hour][type]" id="hour">
+                                        <option value="" title="<?= _('beliebig') ?>">*</option>
+                                        <option value="once" <? if ($schedule->hour !== null && $schedule->hour >= 0) echo 'selected'; ?>>
+                                            hour
+                                        </option>
+                                        <option value="periodic" <? if ($schedule->hour < 0) echo 'selected'; ?>>
+                                            */hour
+                                        </option>
+                                    </select>
+                                    <div>
+                                        <span>hour=</span>
+                                        <input type="number" name="periodic[hour][value]" value="<?= abs($schedule->hour) ?>">
+                                    </div>
+                                </td>
+                                <td class="cron-item">
+                                    <select name="periodic[day][type]" id="day">
+                                        <option value="" title="<?= _('beliebig') ?>">*</option>
+                                        <option value="once" <? if ($schedule->day !== null && $schedule->day >= 0) echo 'selected'; ?>>
+                                            day
+                                        </option>
+                                        <option value="periodic" <? if ($schedule->day < 0) echo 'selected'; ?>>
+                                            */day
+                                        </option>
+                                    </select>
+                                    <div>
+                                        <span>day=</span>
+                                        <input type="number" name="periodic[day][value]" value="<?= abs($schedule->day) ?>">
+                                    </div>
+                                </td>
+                                <td class="cron-item">
+                                    <select name="periodic[month][type]" id="month">
+                                        <option value="" title="<?= _('beliebig') ?>">*</option>
+                                        <option value="once" <? if ($schedule->month !== null && $schedule->month >= 0) echo 'selected'; ?>>
+                                            month
+                                        </option>
+                                        <option value="periodic" <? if ($schedule->month < 0) echo 'selected'; ?>>
+                                            */month
+                                        </option>
+                                    </select>
+                                    <div>
+                                        <span>month=</span>
+                                        <input type="number" name="periodic[month][value]" value="<?= abs($schedule->month) ?>">
+                                    </div>
+                                </td>
+                                <td>
+                                    <select name="periodic[day_of_week][value]" id="day_of_week">
+                                        <option value=""><?= _('*') ?></option>
+                                    <? foreach ($days_of_week as $index => $label): ?>
+                                        <option value="<?= $index ?>" <? if ($schedule->day_of_week === $index) echo 'selected'; ?>>
+                                            <?= $index ?> (<?= $label ?>)
+                                        </option>
+                                    <? endforeach; ?>
+                                    </select>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+                <td>
                     <label>
                         <?= _('Datum') ?>
-                        <input type="date" name="once[date]" value="<? if ($schedule->next_execution) echo date('d.m.Y', $schedule->next_execution); ?>">
+                        <input type="date" name="once[date]" value="<? if ($schedule->type === 'once' && $schedule->next_execution) echo date('d.m.Y', $schedule->next_execution); ?>">
                     </label>
-
-                    <br>
 
                     <label>
                         <?= _('Uhrzeit') ?>
-                        <input type="time" name="once[time]" value="<? if ($schedule->next_execution) echo date('H:i', $schedule->next_execution) ?>">
-                    </label>
-                </td>
-                <td>
-                    <dl>
-                        <dt><?= _('Minute') ?></dt>
-                        <dd>
-                            <label>
-                                <input type="radio" name="periodic[minute][type]" value="">
-                                <?= _('Jede Minute') ?>
-                            </label>
-
-                            <br>
-
-                            <label>
-                                <input type="radio" name="periodic[minute][type]" value="once">
-                                <?= _('Alle X Minuten') ?>
-                            </label>
-
-                            <br>
-
-                            <label>
-                                <input type="radio" name="periodic[minute][type]" value="periodic">
-                                <?= _('Minute') ?>
-                            </label>
-                        </dd>
-                    </dl>
-                    <label>
-                        <?= _('Minute') ?>
-                        <select name="periodic[minute][type]">
-                            <option value=""><?= _('Jede Minute') ?></option>
-                            <option value="once"><?= _('Alle X Minuten') ?></option>
-                            <option value="peridoc"><?= _('Genau zur Minute X') ?></option>
-                        </select>
-                        <input type="text" name="periodic[minute][value]" value="<?= $schedule->minute ?>">
-                    </label>
-
-                    <br>
-
-                    <label>
-                        <?= _('Stunde') ?>
-                        <input type="text" name="periodic[hour]" value="<?= $schedule->hour ?>">
-                    </label>
-
-                    <br>
-
-                    <label>
-                        <?= _('Tag') ?>
-                        <input type="text" name="periodic[day]" value="<?= $schedule->day ?>">
-                    </label>
-
-                    <br>
-
-                    <label>
-                        <?= _('Monat') ?>
-                        <input type="text" name="periodic[month]" value="<?= $schedule->month ?>">
-                    </label>
-
-                    <br>
-
-                    <label>
-                        <?= _('Wochentag') ?>
-                        <select name="periodic[day_of_week]">
-                            <option value=""><?= _('Jeden Tag') ?></option>
-                        <? foreach ($days_of_week as $index => $label): ?>
-                            <option value="<?= $index ?>" <? if ($schedule->day_of_week === $index) echo 'selected'; ?>>
-                                <?= $label ?>
-                            </option>
-                        <? endforeach; ?>
-                        </select>
+                        <input type="time" name="once[time]" value="<? if ($schedule->type === 'once' && $schedule->next_execution) echo date('H:i', $schedule->next_execution) ?>">
                     </label>
                 </td>
             </tr>

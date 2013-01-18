@@ -116,30 +116,35 @@ class Admin_Cronjobs_SchedulesController extends AuthenticatedController
         $this->redirect('admin/cronjobs/schedules');
     }
 
-    public function edit_action($id = null)
+    public function edit_action($id = null, $page = 1)
     {
         if (Request::submitted('store')) {
             $parameters = Request::getArray('parameters');
 
-            $schedule = CronjobSchedule::find($id);
+            $schedule = CronjobSchedule::find($id) ?: new CronjobSchedule();
             $schedule->title       = Request::get('title');
             $schedule->description = Request::get('description');
             $schedule->active      = Request::int('active', 0);
-            $schedule->task_id     = Request::option('task_id');
+            if ($schedule->isNew()) {
+                $schedule->task_id     = Request::option('task_id');
+            }
             $schedule->parameters  = $parameters[$schedule->task_id];
             $schedule->type        = Request::option('type') === 'once'
                                    ? 'once'
                                    : 'periodic';
+
             if ($schedule->type === 'once') {
                 $temp = Request::getArray('once');
                 $schedule->next_execution = strtotime($temp['date'] . ' ' . $date['time']);
             } else {
                 $temp = Request::getArray('periodic');
-                $schedule->minute      = strlen($temp['minute']) ? (int)$temp['minute'] : null;
-                $schedule->hour        = strlen($temp['hour']) ? (int)$temp['hour'] : null;
-                $schedule->day         = strlen($temp['day']) ? (int)$temp['day'] : null;
-                $schedule->month       = strlen($temp['month']) ? (int)$temp['month'] : null;
-                $schedule->day_of_week = strlen($temp['day_of_week']) ? (int)$temp['day_of_week'] : null;
+                $schedule->minute      = $this->extractCronItem($temp['minute']);
+                $schedule->hour        = $this->extractCronItem($temp['hour']);
+                $schedule->day         = $this->extractCronItem($temp['day']);
+                $schedule->month       = $this->extractCronItem($temp['month']);
+                $schedule->day_of_week = strlen($temp['day_of_week']['value'])
+                                       ? (int)$temp['day_of_week']['value']
+                                       : null;
 
                 if ($schedule->active) {
                     $schedule->next_execution = $schedule->calculateNextExecution();
@@ -148,12 +153,36 @@ class Admin_Cronjobs_SchedulesController extends AuthenticatedController
             $schedule->store();
 
             PageLayout::postMessage(MessageBox::success(_('Die Änderungen wurden gespeichert.')));
-            $this->redirect('admin/cronjobs/schedules');
+            $this->redirect('admin/cronjobs/schedules/index/' . $page);
             return;
         }
 
-        $this->tasks = CronjobTask::findBySql('1');
-        $this->schedule = $id === null ? new CronjobSchedule() : CronjobSchedule::find($id);
+        PageLayout::setTitle(_('Cronjob-Verwaltung') . ' - ' . _('Cronjob bearbeiten'));
+
+        // Infobox image was produced from an image by Robbert van der Steeg
+        // http://www.flickr.com/photos/robbie73/5924985913/
+        $this->setInfoboxImage(Assets::image_path('infobox/time.jpg'));
+        
+        // Actions
+        $back = sprintf('<a href="%s">%s</a>',
+                        $this->url_for('admin/cronjobs/schedules/index/' . $page),
+                        _('Zurück zur Übersicht'));
+        $this->addToInfobox(_('Aktionen'), $back, 'icons/16/black/link-intern');
+
+        $this->page     = $page;
+        $this->tasks    = CronjobTask::findBySql('1');
+        $this->schedule = CronjobSchedule::find($id) ?: new CronjobSchedule();
+    }
+    
+    private function extractCronItem($item)
+    {
+        if ($item['type'] === '') {
+            return null;
+        }
+        $value = (int) $item['value'];
+        return $item['type'] === 'periodic'
+             ? $value * -1
+             : $value;
     }
 
     public function activate_action($id, $page = 1)

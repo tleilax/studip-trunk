@@ -35,12 +35,12 @@
         border-bottom: 0;
         border-top: 0;
         padding: 0.5em;
-        
+
         h3 {
             margin: 0;
             padding: 0;
         }
-        
+
         input[type=text], input[type=number], select, textarea {
             width: 200px;
         }
@@ -57,37 +57,6 @@
         border-bottom: 1px solid #888;
         .border-bottom-right-radius(3px);
         .border-bottom-left-radius(3px);
-    }
-}
-
-.schedule {
-    label {
-        display: block;
-    }
-    label:first-child {
-        cursor: pointer;
-        margin-bottom: 1em;
-
-        h3 {
-            background: url("@{icon-path}/blue/checkbox-unchecked.png") 16px center no-repeat;
-            border: 1px solid transparent;
-            margin: 0;
-            padding: 0.5em 0 0.5em 36px;
-        }
-        input[type=radio] {
-            display: none;
-
-            &:checked ~ h3 {
-                background-color: fadeout(@active-color, 50%);
-                background-image: url("@{icon-path}/blue/checkbox-checked.png");
-                border-color: @active-color;
-                .border-radius(5px);
-            }
-        }
-    }
-    td {
-        vertical-align: top;
-        &:last-child { background-color: @alternating-color-odd; }
     }
 }
 
@@ -114,20 +83,23 @@
     color: #888;
 }
 
-dl.cronjob {
-    @width: 140px;
-    .clearfix;
-    dt {
-        clear: left;
-        float: left;
-        width: @width;
-        &:after { content: ':'; }
+.cronjobs-edit {
+    h1 {
+        margin: 0 0 0.5em;
     }
-    dd {
-        margin-left: @width;
+
+    > table > thead > tr > th { .table_header_bold; }
+    > table {
+        margin-bottom: 1em;
     }
+    td { vertical-align: top; }
+}
+.cron-schedule tbody tr td label {
+    display: inline;
+    font-weight: normal;
+    white-space: nowrap;
 }
 
-.cronjobs-edit .settings thead th {
-    text-align: left;
+.cron-item input[type=number] {
+    width: 2em;
 }

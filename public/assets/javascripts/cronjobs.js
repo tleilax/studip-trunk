@@ -55,9 +55,23 @@ $('a[data-behaviour~="ajax-toggle"]').live('click', function (event) {
     event.preventDefault();
 });
 
+$('.cron-item select').live('change', function () {
+    var state = $(this).val().length > 0,
+        $next = $(this).next();
+
+    if (state) {
+        $next.show().find('input').focus();
+    } else {
+        $next.hide();
+    }
+});
+
 $(document).ready(function () {
     $('.cronjobs-edit input[type=date]').datepicker();
     $('.cronjobs-edit input[type=time]').timepicker();
+    
+    $('.cron-item select').change();
 })
+
 
 }(jQuery, STUDIP));

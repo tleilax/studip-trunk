@@ -2195,36 +2195,6 @@ table.contact-header td.empty a {
   -moz-border-radius-bottomleft: 3px;
   border-bottom-left-radius: 3px;
 }
-.schedule label {
-  display: block;
-}
-.schedule label:first-child {
-  cursor: pointer;
-  margin-bottom: 1em;
-}
-.schedule label:first-child h3 {
-  background: url("../images/icons/16/blue/checkbox-unchecked.png") 16px center no-repeat;
-  border: 1px solid transparent;
-  margin: 0;
-  padding: 0.5em 0 0.5em 36px;
-}
-.schedule label:first-child input[type=radio] {
-  display: none;
-}
-.schedule label:first-child input[type=radio]:checked ~ h3 {
-  background-color: rgba(255, 51, 51, 0.5);
-  background-image: url("../images/icons/16/blue/checkbox-checked.png");
-  border-color: #ff3333;
-  -webkit-border-radius: 5px;
-  -moz-border-radius: 5px;
-  border-radius: 5px;
-}
-.schedule td {
-  vertical-align: top;
-}
-.schedule td:last-child {
-  background-color: #e2e2e2;
-}
 .cronjob-filters label {
   display: block;
 }
@@ -2249,31 +2219,34 @@ table.contact-header td.empty a {
 .inactivatible td {
   color: #888;
 }
-dl.cronjob {
-  *zoom: 1;
+.cronjobs-edit h1 {
+  margin: 0 0 0.5em;
 }
-dl.cronjob:before,
-dl.cronjob:after {
-  display: table;
-  content: "";
-  line-height: 0;
+.cronjobs-edit > table > thead > tr > th {
+  background-color: #899ab9;
+  border-color: #1e3e70;
+  border-style: solid;
+  border-width: 0 0 1px 0;
+  color: #FFFFFF;
+  font-size: 12pt;
+  padding: 3px 5px;
 }
-dl.cronjob:after {
-  clear: both;
+.cronjobs-edit > table > thead > tr > th img {
+  vertical-align: middle;
 }
-dl.cronjob dt {
-  clear: left;
-  float: left;
-  width: 140px;
+.cronjobs-edit > table {
+  margin-bottom: 1em;
 }
-dl.cronjob dt:after {
-  content: ':';
+.cronjobs-edit td {
+  vertical-align: top;
 }
-dl.cronjob dd {
-  margin-left: 140px;
+.cron-schedule tbody tr td label {
+  display: inline;
+  font-weight: normal;
+  white-space: nowrap;
 }
-.cronjobs-edit .settings thead th {
-  text-align: left;
+.cron-item input[type=number] {
+  width: 2em;
 }
 /* classes for the evaluation modules in Stud.IP ---------------------------- */
 .eval_title {

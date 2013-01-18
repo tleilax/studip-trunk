@@ -68,7 +68,7 @@
                 <a rel="lightbox" href="<?= $controller->url_for('admin/cronjobs/schedules/display', $schedules[$i]->schedule_id) ?>">
                     <?= Assets::img('icons/16/blue/admin', tooltip2(_('Cronjob anzeigen'))) ?>
                 </a>
-                <a href="<?= $controller->url_for('admin/cronjobs/schedules/edit', $schedules[$i]->schedule_id) ?>">
+                <a href="<?= $controller->url_for('admin/cronjobs/schedules/edit', $schedules[$i]->schedule_id, $page) ?>">
                     <?= Assets::img('icons/16/blue/edit', tooltip2(_('Cronjob bearbeiten'))) ?>
                 </a>
                 <a href="<?= $controller->url_for('admin/cronjobs/logs/schedule', $schedules[$i]->schedule_id) ?>">
