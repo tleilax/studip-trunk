@@ -9,6 +9,11 @@
         <col>
         <col width="40px">
         <col width="100px">
+        <col width="30px">
+        <col width="30px">
+        <col width="30px">
+        <col width="30px">
+        <col width="30px">
         <col width="90px">
     </colgroup>
     <thead>
@@ -20,6 +25,7 @@
             <th><?= _('Cronjob') ?></th>
             <th><?= _('Aktiv') ?></th>
             <th><?= _('Typ') ?></th>
+            <th colspan="5"><?= _('Ausführung') ?></th>
             <th><?= _('Optionen') ?></th>
         </tr>
     </thead>
@@ -27,7 +33,7 @@
 <? for ($i = 0; $i < $max_per_page; $i += 1): ?>
     <? if (!isset($schedules[$i])): ?>
         <tr class="empty">
-            <td colspan="5">&nbsp;</td>
+            <td colspan="10">&nbsp;</td>
         </tr>
     <? else: ?>
         <tr id="job-<?= $schedules[$i]->schedule_id ?>" <? if (!$schedules[$i]->task->active) echo 'class="inactivatible"'; ?>>
@@ -51,6 +57,13 @@
             <? endif; ?>
             </td>
             <td><?= ($schedules[$i]->type === 'once') ? _('Einmalig') : _('Regelmässig') ?></td>
+        <? if ($schedules[$i]->type === 'once'): ?>
+            <td colspan="5">
+                <?= date('d.m.Y H:i', $schedules[$i]->next_execution) ?>
+            </td>
+        <? else: ?>
+            <?= $this->render_partial('admin/cronjobs/schedules/periodic-schedule', $schedules[$i]->toArray() + array('display' => 'table-cells')) ?>
+        <? endif; ?>
             <td style="text-align: right">
                 <a rel="lightbox" href="<?= $controller->url_for('admin/cronjobs/schedules/display', $schedules[$i]->schedule_id) ?>">
                     <?= Assets::img('icons/16/blue/admin', tooltip2(_('Cronjob anzeigen'))) ?>
@@ -80,7 +93,7 @@
                 </select>
                 <?= Button::createAccept(_('Ausführen')) ?>
             </td>
-            <td colspan="3" class="printhead" style="text-align: right; vertical-align: middle;">
+            <td colspan="8" class="printhead" style="text-align: right; vertical-align: middle;">
                 <?
                     $pagination = $GLOBALS['template_factory']->open('shared/pagechooser');
                     $pagination->set_attributes(array(
