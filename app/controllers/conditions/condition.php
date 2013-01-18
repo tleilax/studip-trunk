@@ -8,6 +8,7 @@ class Conditions_ConditionController extends AuthenticatedController {
 
     public function before_filter(&$action, &$args) {
         parent::before_filter($action, $args);
+        $this->conditionFields = ConditionField::getAvailableConditionFields();
         if (Request::isXhr()) {
             $this->via_ajax = true;
             $this->set_layout(null);
@@ -28,14 +29,13 @@ class Conditions_ConditionController extends AuthenticatedController {
 
     public function add_action() {
         $condition = new StudipCondition();
-        $conditionFields = ConditionField::getAvailableConditionFields();
         $fields = Request::getArray('field');
         $compareOps = Request::getArray('compare_operator');
         $values = Request::getArray('value');
         $data = array();
         for ($i=0 ; $i<sizeof($fields) ; $i++) {
             $current = $fields[$i];
-            if ($conditionFields[$current]) {
+            if ($this->conditionFields[$current]) {
                 $field = new $current();
                 $field->setCompareOperator($compareOps[$i]);
                 $field->setValue($values[$i]);

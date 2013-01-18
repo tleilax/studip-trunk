@@ -53,6 +53,7 @@ class StudipCondition
      */
     public function __construct($conditionId='')
     {
+        ConditionField::getAvailableConditionFields();
         $this->id = $conditionId;
         if ($conditionId) {
             $this->load();
@@ -180,7 +181,6 @@ class StudipCondition
      * Helper function for loading data from DB.
      */
     public function load() {
-        ConditionField::getAvailableConditionFields();
         // Load basic condition data.
         $stmt = DBManager::get()->prepare(
             "SELECT * FROM `conditions` WHERE `condition_id`=? LIMIT 1");

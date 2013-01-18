@@ -17,6 +17,7 @@
  */
 
 require_once(realpath(dirname(__FILE__).'/..').'/AdmissionRule.class.php');
+require_once(realpath(dirname(__FILE__).'/..').'/StudipCondition.class.php');
 
 class ConditionalAdmission extends AdmissionRule
 {

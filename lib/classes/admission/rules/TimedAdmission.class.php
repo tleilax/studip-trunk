@@ -254,7 +254,6 @@ class TimedAdmission extends AdmissionRule
     public function toString()
     {
         $text = "";
-        $text .= $this->getName();
         // Start time but no end time given.
         if ($this->startTime && !$this->endTime) {
             $text .= sprintf(_("Die Anmeldung ist möglich ab %s."), 

@@ -58,5 +58,14 @@ STUDIP.Admission = {
     toggleRuleDescription: function(targetId) {
         $('#'+targetId).toggle();
         return false;
+    },
+
+    toggleRuleDetails: function(arrowId, detailId) {
+        var oldSrc = $('#'+arrowId).attr('src');
+        var newSrc = $('#'+arrowId).attr('rel');
+        $('#'+arrowId).attr('src', newSrc);
+        $('#'+arrowId).attr('rel', oldSrc);
+        $('#'+detailId).slideToggle();
+        return false;
     }
 };

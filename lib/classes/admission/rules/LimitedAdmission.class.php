@@ -174,7 +174,7 @@ class LimitedAdmission extends AdmissionRule
      */
     public function setAllData($data) {
         parent::setAllData($data);
-        $this->maxnumber = $data['maxnumber'];
+        $this->maxNumber = $data['maxnumber'];
         return $this;
     }
 
@@ -225,8 +225,7 @@ class LimitedAdmission extends AdmissionRule
     }
 
     public function toString() {
-        $text .= $this->getName();
-        return sprintf(_("Sie können sich maximal zu %s Veranstaltungen anmelden!"), $this->maxNumber);
+        return sprintf(_("Anmeldung zu maximal %s Veranstaltungen möglich!"), $this->maxNumber);
     }
 
 } /* end of class LimitedAdmission */
