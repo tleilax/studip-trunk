@@ -53,7 +53,6 @@
     <? if ($schedule->active): ?>
         <dt><?= _('Nächste Ausführung') ?></dt>
         <dd><?= date('d.m.Y H:i:s', $schedule->next_execution) ?></dd>
-        <dd><span style="color: green;"><?= date('d.m.Y H:i:s', $schedule->calculateNextExecution()) ?></span></dd>
     <? endif; ?>
 
     <? if ($schedule->execution_count > 0): ?>
