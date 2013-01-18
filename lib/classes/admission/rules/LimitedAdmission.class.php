@@ -116,6 +116,17 @@ class LimitedAdmission extends AdmissionRule
     }
 
     /**
+     * Gets the template that provides a configuration GUI for this rule.
+     * 
+     * @return String
+     */
+    public function getTemplate() {
+        $tpl = $GLOBALS['template_factory']->open('admission/rules/limitedadmission');
+        $tpl->set_attribute('rule', $this);
+        return $tpl->render();
+    }
+
+    /**
      * Internal helper function for loading rule definition from database.
      */
     public function load() {
@@ -151,6 +162,20 @@ class LimitedAdmission extends AdmissionRule
         $applies = ($number < 
             min($this->maxNumber, $this->getCustomMaxNumber($userId)));
         return $applies;
+    }
+
+    /**
+     * Uses the given data to fill the object values. This can be used
+     * as a generic function for storing data if the concrete rule type
+     * isn't known in advance.
+     * 
+     * @param Array $data
+     * @return AdmissionRule This object.
+     */
+    public function setAllData($data) {
+        parent::setAllData($data);
+        $this->maxnumber = $data['maxnumber'];
+        return $this;
     }
 
     /**
@@ -200,6 +225,7 @@ class LimitedAdmission extends AdmissionRule
     }
 
     public function toString() {
+        $text .= $this->getName();
         return sprintf(_("Sie können sich maximal zu %s Veranstaltungen anmelden!"), $this->maxNumber);
     }
 

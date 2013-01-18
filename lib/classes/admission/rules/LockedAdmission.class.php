@@ -66,6 +66,17 @@ class LockedAdmission extends AdmissionRule
     }
 
     /**
+     * Gets the template that provides a configuration GUI for this rule.
+     * 
+     * @return String
+     */
+    public function getTemplate() {
+        $tpl = $GLOBALS['template_factory']->open('admission/rules/lockedadmission');
+        $tpl->set_attribute('rule', $this);
+        return $tpl->render();
+    }
+
+    /**
      * Internal helper function for loading rule definition from database.
      */
     public function load() {
@@ -105,7 +116,7 @@ class LockedAdmission extends AdmissionRule
     }
 
     public function toString() {
-        return sprintf(_("Die Anmeldung ist gesperrt!"), $this->maxNumber);
+        return $this->getName();
     }
 
 } /* end of class LockedAdmission */

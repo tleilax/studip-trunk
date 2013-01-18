@@ -17,6 +17,8 @@
  * @category    Stud.IP
  */
 
+require_once('lib/classes/admission/ConditionField.class.php');
+
 class StudipCondition
 {
     // --- ATTRIBUTES ---
@@ -178,6 +180,7 @@ class StudipCondition
      * Helper function for loading data from DB.
      */
     public function load() {
+        ConditionField::getAvailableConditionFields();
         // Load basic condition data.
         $stmt = DBManager::get()->prepare(
             "SELECT * FROM `conditions` WHERE `condition_id`=? LIMIT 1");
@@ -288,12 +291,21 @@ class StudipCondition
                 date("d.m.Y", $this->startTime), 
                 date("d.m.Y", $this->endTime))."\n";
         }
+        $i=0;
         foreach ($this->fields as $field) {
+            if ($i > 0) {
+                $text .= ' <b>'._('und').'</b> ';
+            }
             $valueNames = $field->getValidValues();
             $text .= $field->getName()." ".$field->getCompareOperator().
-                " ".$valueNames[$field->getValue()]."\n";
+                " ".$valueNames[$field->getValue()];
+            $i++;
         }
         return $text;
+    }
+
+    public function __toString() {
+        return $this->toString();
     }
 
 } /* end of class StudipCondition */

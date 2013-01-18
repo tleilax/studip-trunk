@@ -168,6 +168,19 @@ abstract class AdmissionRule
     }
 
     /**
+     * Uses the given data to fill the object values. This can be used
+     * as a generic function for storing data if the concrete rule type
+     * isn't known in advance.
+     * 
+     * @param Array $data
+     * @return AdmissionRule This object.
+     */
+    public function setAllData($data) {
+        $this->message = $data['message'];
+        return $this;
+    }
+
+    /**
      * Helper function for storing rule definition to database.
      */
     public function store() {

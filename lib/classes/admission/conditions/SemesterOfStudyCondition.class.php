@@ -31,10 +31,12 @@ class SemesterOfStudyCondition extends ConditionField
         $stmt = DBManager::get()->query("SELECT MAX(`semester`) AS maxsem ".
             "FROM `user_studiengang`");
         if ($current = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $maxsem = $current['maxsem'];
-            for ($i=1 ; $i<=$maxsem ; $i++) {
-                $this->validValues[$i] = $i;
+            if ($current['maxsem']) {
+                $maxsem = $current['maxsem'];
             }
+        }
+        for ($i=1 ; $i<=$maxsem ; $i++) {
+            $this->validValues[$i] = $i;
         }
         if ($field_id) {
             $this->id = $field_id;

@@ -48,7 +48,7 @@ class CourseSet
     /**
      * Which Stud.IP institute does the course set belong to?
      */
-    public $institutId = '';
+    public $institutes = array();
 
     /**
      * Should admission rules be invalidated after seat distribution?
@@ -111,6 +111,29 @@ class CourseSet
         // array in the correct form. 
         array_merge($this->courses, 
             array_fill_keys(array_flip($courses), true));
+        return $this;
+    }
+
+    /**
+     * Adds a new institute ID.
+     * 
+     * @param  String newId
+     * @return CourseSet
+     */
+    public function addInstitute($newId) {
+        $this->institutes[$newId] = true;
+    }
+
+    /**
+     * Adds several institute IDs.
+     * 
+     * @param  Array newIds
+     * @return CourseSet
+     */
+    public function addInstitutes($newIds) {
+        foreach ($newIds as $newId) {
+            $this->addInstitute($newId);
+        }
         return $this;
     }
 
@@ -245,6 +268,19 @@ class CourseSet
     }
 
     /**
+     * Gets all course sets belonging to the given institute ID.
+     * 
+     * @param String $instituteId
+     * @return Array
+     */
+    public function getCoursesetsByInstituteId($instituteId) {
+        $stmt = DBManager::get()->prepare("SELECT * FROM `courseset_institute`
+            WHERE institute_id=?");
+        $stmt->execute(array($instituteId));
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
      * Get the identifier of the course set.
      *
      * @return String
@@ -257,10 +293,10 @@ class CourseSet
     /**
      * Which institute does the rule belong to?
      * 
-     * @return String
+     * @return Array
      */
-    public function getInstitutId() {
-        return $this->institutId;
+    public function getInstitutIds() {
+        return $this->institutIds;
     }
 
     /**
@@ -346,11 +382,17 @@ class CourseSet
             "SELECT * FROM `coursesets` WHERE set_id=? LIMIT 1");
         $stmt->execute(array($this->id));
         if ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $this->institutId = $data['institut_id'];
             $this->name = $data['name'];
             if ($data['algorithm']) {
                 $this->algorithm = new $data['algorithm']();
             }
+        }
+        // Load institute assigments.
+        $stmt = DBManager::get()->prepare(
+            "SELECT * FROM `courseset_institute` WHERE set_id=?");
+        $stmt->execute(array($this->id));
+        while ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $this->institutes[$data['institute_id']] = true;
         }
         // Load courses.
         $stmt = DBManager::get()->prepare(
@@ -397,6 +439,18 @@ class CourseSet
     }
 
     /**
+     * Removes the institute with the given ID from the set.
+     *
+     * @param  String instituteId
+     * @return CourseSet
+     */
+    public function removeInstitute($instituteId)
+    {
+        unset($this->institutes[$instituteId]);
+        return $this;
+    }
+
+    /**
      * Sets a seat distribution algorithm for this course set. This will only
      * have an effect in conjunction with a TimedAdmission, as the algorithm 
      * needs a defined point in time where it will start.
@@ -411,16 +465,6 @@ class CourseSet
         } catch (Exception $e) {
         }
         return $this;
-    }
-
-    /**
-     * Sets a new institute ID.
-     * 
-     * @param  String newId
-     * @return CourseSet
-     */
-    public function setInstitutId($newId) {
-        $this->institutId = $newId;
     }
 
     /**
@@ -456,15 +500,26 @@ class CourseSet
         }
         // Store basic data.
         $stmt = DBManager::get()->prepare("INSERT INTO `coursesets`
-            (`set_id`, `institut_id`, `name`, `algorithm`, `invalidate_rules`,
+            (`set_id`, `name`, `algorithm`, `invalidate_rules`,
             `mkdate`, `chdate`)
             VALUES (?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE
-            `institut_id`=VALUES(`institut_id`), `name`=VALUES(`name`),
-            `algorithm`=VALUES(`algorithm`), 
+            `name`=VALUES(`name`), `algorithm`=VALUES(`algorithm`), 
             `invalidate_rules`=VALUES(`invalidate_rules`),
             `chdate`=VALUES(`chdate`)");
-        $stmt->execute(array($this->id, $this->institutId, $this->name,
+        $stmt->execute(array($this->id, $this->name,
             $this->algorithm, $this->invalidateRules, time(), time()));
+        // Delete removed institute assignments from database.
+        DBManager::get()->exec("DELETE FROM `courseset_institute` 
+            WHERE `set_id`='".$this->id."' AND `institute_id` NOT IN ('".
+            implode("', '", array_keys($this->institutes))."')");
+        // Store associated institute IDs.
+        foreach ($this->institutes as $institute => $associated) {
+            $stmt = DBManager::get()->prepare("INSERT INTO `courseset_institute`
+                (`set_id`, `institute_id`, `mkdate`)
+                VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE
+                `set_id`=VALUES(`set_id`)");
+            $stmt->execute(array($this->id, $institute, time()));
+        }
         // Delete removed course assignments from database.
         DBManager::get()->exec("DELETE FROM `seminar_courseset` 
             WHERE `set_id`='".$this->id."' AND `seminar_id` NOT IN ('".

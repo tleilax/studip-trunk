@@ -60,6 +60,12 @@ javascripts:
 
   settings:
     - javascripts/settings.js
+
+  admission:
+    - javascripts/admission.js
+
+  conditions:
+    - javascripts/conditions.js
 css:
   base:
     # filname : media

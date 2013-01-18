@@ -111,6 +111,18 @@ class TimedAdmission extends AdmissionRule
     }
 
     /**
+     * Gets the template that provides a configuration GUI for this rule.
+     * 
+     * @return String
+     */
+    public function getTemplate() {
+        global $auth;
+        $tpl = $GLOBALS['template_factory']->open('admission/rules/timedadmission');
+        $tpl->set_attribute('rule', $this);
+        return $tpl->render();
+    }
+
+    /**
      * Helper function for loading rule definition from database.
      */
     public function load() {
@@ -144,6 +156,43 @@ class TimedAdmission extends AdmissionRule
             $applies = false;
         }
         return $applies;
+    }
+
+    /**
+     * Uses the given data to fill the object values. This can be used
+     * as a generic function for storing data if the concrete rule type
+     * isn't known in advance.
+     * 
+     * @param Array $data
+     * @return AdmissionRule This object.
+     */
+    public function setAllData($data) {
+        parent::setAllData($data);
+        if ($data['startdate']) {
+            $sdate = $data['startdate'];
+            $shour = $data['starthour'];
+            $sminute = $data['startminute'];
+            $parsed = date_parse($sdate.' '.$shour.':'.$sminute);
+            $timestamp = mktime($parsed['hour'], $parsed['minute'], 0, $parsed['month'], $parsed['day'], $parsed['year']);
+            $this->setStartTime($timestamp);
+        }
+        if ($data['enddate']) {
+            $edate = $data['enddate'];
+            $ehour = $data['endhour'];
+            $eminute = $data['endminute'];
+            $parsed = date_parse($edate.' '.$ehour.':'.$eminute);
+            $timestamp = mktime($parsed['hour'], $parsed['minute'], 0, $parsed['month'], $parsed['day'], $parsed['year']);
+            $this->setEndTime($timestamp);
+        }
+        if ($data['distributiondate']) {
+            $ddate = $data['distributiondate'];
+            $dhour = $data['distributionhour'];
+            $dminute = $data['distributionminute'];
+            $parsed = date_parse($ddate.' '.$dhour.':'.$dminute);
+            $timestamp = mktime($parsed['hour'], $parsed['minute'], 0, $parsed['month'], $parsed['day'], $parsed['year']);
+            $this->setDistributionTime($timestamp);
+        }
+        return $this;
     }
 
     /**
@@ -205,6 +254,7 @@ class TimedAdmission extends AdmissionRule
     public function toString()
     {
         $text = "";
+        $text .= $this->getName();
         // Start time but no end time given.
         if ($this->startTime && !$this->endTime) {
             $text .= sprintf(_("Die Anmeldung ist möglich ab %s."), 

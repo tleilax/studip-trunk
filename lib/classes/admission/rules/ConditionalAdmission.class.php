@@ -139,6 +139,17 @@ class ConditionalAdmission extends AdmissionRule
     }
 
     /**
+     * Gets the template that provides a configuration GUI for this rule.
+     * 
+     * @return String
+     */
+    public function getTemplate() {
+        $tpl = $GLOBALS['template_factory']->open('admission/rules/conditionaladmission');
+        $tpl->set_attribute('rule', $this);
+        return $tpl->render();
+    }
+
+    /**
      * Invalidates the conditions without deleting them. Can be used to stop
      * condition evaluation after seat distribution in course set.
      */
@@ -206,6 +217,22 @@ class ConditionalAdmission extends AdmissionRule
             $applies = true;
         }
         return $applies;
+    }
+
+    /**
+     * Uses the given data to fill the object values. This can be used
+     * as a generic function for storing data if the concrete rule type
+     * isn't known in advance.
+     * 
+     * @param Array $data
+     * @return AdmissionRule This object.
+     */
+    public function setAllData($data) {
+        parent::setAllData($data);
+        foreach ($data['conditions'] as $condition) {
+            $this->addCondition(unserialize($condition));
+        }
+        return $this;
     }
 
     /**
