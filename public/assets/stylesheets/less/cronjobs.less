@@ -1,9 +1,5 @@
 /* CSS */
-h2, h3 {
-    &.topic { padding: 5px; }
-}
-
-.task {
+.cron-task {
     label {
         cursor: pointer;
         display: block;
@@ -118,15 +114,6 @@ h2, h3 {
     color: #888;
 }
 
-.ajaxing {
-    background: url("@{image-path}/ajax_indicator_small.gif") center no-repeat;
-    display: inline-block;
-    .size(16px, 16px);
-    .hide-text;
-
-    img { display: none; }
-}
-
 dl.cronjob {
     @width: 140px;
     .clearfix;
@@ -153,12 +140,6 @@ dl.cronjob {
 }
 .ui-tpicker-grid-label { background: none; border: none; margin: 0; padding: 0; }
 
-
-table.zebra-horizontal {
-    td {
-        background-color: @alternating-color-odd;
-        &:nth-child(2n+1) {
-            background-color: @alternating-color-even;
-        }
-    }
+.cronjobs-edit .settings thead th {
+    text-align: left;
 }
