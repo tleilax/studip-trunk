@@ -35,8 +35,9 @@ class Admin_Cronjobs_LogsController extends AuthenticatedController
         $this->total_filtered = CronjobLog::countBySql($filter['where']);
         $this->page           = max(1, min($page, ceil($this->total_filtered / $this->max_per_page)));
 
+        $order = " ORDER BY executed DESC";
         $limit = sprintf(" LIMIT %u, %u", ($this->page - 1) * $this->max_per_page, $this->max_per_page);
-        $this->logs = CronjobLog::findBySQL($filter['where'] . $limit);
+        $this->logs = CronjobLog::findBySQL($filter['where'] . $order . $limit);
 
         // Infobox image was produced from an image by Robbert van der Steeg
         // http://www.flickr.com/photos/robbie73/5924985913/
