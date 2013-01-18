@@ -55,4 +55,9 @@ $('a[data-behaviour~="ajax-toggle"]').live('click', function (event) {
     event.preventDefault();
 });
 
+$(document).ready(function () {
+    $('.cronjobs-edit input[type=date]').datepicker();
+    $('.cronjobs-edit input[type=time]').timepicker();
+})
+
 }(jQuery, STUDIP));
