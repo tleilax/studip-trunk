@@ -32,9 +32,9 @@ class CronjobSchedule extends SimpleORMap
     /**
      *
      */
-    public function getValue($field)
+    public function __get($field)
     {
-        $value = parent::getValue($field);
+        $value = parent::__get($field);
         return $field === 'title'
             ? ($value ?: $this->task->name)
             : $value;
@@ -76,6 +76,11 @@ class CronjobSchedule extends SimpleORMap
         if ($this->task === null) {
             $message = sprintf('A task with the id "%s" does not exist.', $this->task_id);
             throw new InvalidArgumentException($message);
+        }
+
+        // Remove title if it is the default (task's name)
+        if ($this->title === $this->task->name) {
+            $this->title = null;
         }
 
         parent::store();
