@@ -1,13 +1,44 @@
 <?php
 /**
+ * CronjobSchedule - Model for the database table "cronjobs_schedules"
  *
+ * @author      Jan-Hendrik Willms <tleilax+studip@gmail.com>
+ * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
+ * @category    Stud.IP
+ * @since       2.4
  */
+
+// +---------------------------------------------------------------------------+
+// This file is part of Stud.IP
+// CronjobSchedule.class.php
+//
+// Copyright (C) 2013 Jan-Hendrik Willms <tleilax+studip@gmail.com>
+// +---------------------------------------------------------------------------+
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or any later version.
+// +---------------------------------------------------------------------------+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+// +---------------------------------------------------------------------------+
 class CronjobSchedule extends SimpleORMap
 {
     const PRIORITY_LOW    = 'low';
     const PRIORITY_NORMAL = 'normal';
     const PRIORITY_HIGH   = 'high';
     
+    /**
+     * Returns a mapped version of the priorities (key = priority value,
+     * value = localized priority label).
+     *
+     * @return Array The mapped priorities
+     */
     public static function getPriorities()
     {
         $mapping = array();
@@ -18,6 +49,13 @@ class CronjobSchedule extends SimpleORMap
         return $mapping;
     }
     
+    /**
+     * Maps a priority value to it's localized label.
+     *
+     * @param  String $priority Priority value
+     * @return String The localized label
+     * @throws RuntimeException when an unknown priority value is passed
+     */
     public static function describePriority($priority)
     {
         $mapping = self::getPriorities();
@@ -30,7 +68,11 @@ class CronjobSchedule extends SimpleORMap
     }
 
     /**
+     * Proxy function for setting a field. Passes all calls to parent method
+     * and afterwards replaces title with task name if title is empty.
      *
+     * @param String $field The name of the field in question
+     * @return mixed The value for the the field
      */
     public function __get($field)
     {
@@ -41,8 +83,12 @@ class CronjobSchedule extends SimpleORMap
     }
 
     /**
+     * Defines the associated database table, relations to the task and logs
+     * and appropriate callbacks to encode/decode the parameters.
      *
-     */
+     * @param mixed $id Id of the schedule entry in question or null for a new
+     *                  entry
+     */ 
     public function __construct($id = null)
     {
         $this->db_table = 'cronjobs_schedules';
@@ -69,7 +115,11 @@ class CronjobSchedule extends SimpleORMap
     }
 
     /**
+     * Stores the schedule in database. Will bail out with an exception if
+     * the provided task does not exists. Will also nullify the title if it
+     * matches the task name (see CronjobSchedule::__get()).
      *
+     * @return CronjobSchedule Returns itself to allow chaining
      */
     public function store()
     {
@@ -89,7 +139,9 @@ class CronjobSchedule extends SimpleORMap
     }
 
     /**
+     * Activates this schedule.
      *
+     * @return CronjobSchedule Returns itself to allow chaining
      */
     public function activate()
     {
@@ -101,7 +153,9 @@ class CronjobSchedule extends SimpleORMap
     }
 
     /**
+     * Deactivates this schedule.
      *
+     * @return CronjobSchedule Returns itself to allow chaining
      */
     public function deactivate()
     {
@@ -112,7 +166,13 @@ class CronjobSchedule extends SimpleORMap
     }
 
     /**
+     * Executes this schedule.
      *
+     * @param bool $force Pass true to force execution of  the schedule even
+     *                    if it's not activated
+     * @return mixed The result of the execution
+     * @throws RuntimeException When either the schedule or the according is
+     *                          not activated
      */
     public function execute($force = false)
     {
@@ -143,7 +203,11 @@ class CronjobSchedule extends SimpleORMap
     }
 
     /**
+     * Determines whether the schedule should execute given the provided
+     * timestamp.
      *
+     * @param mixed $now Defines the temporal fix point
+     * @return bool Whether the schedule should execute or not.
      */
     public function shouldExecute($now = null)
     {
@@ -151,7 +215,21 @@ class CronjobSchedule extends SimpleORMap
     }
 
     /**
+     * Calculates the next execution for this schedule.
      *
+     * For schedules of type 'once' the check solely tests whether the
+     * timestamp has already passed and will return false in that case.
+     * Otherwise the defined timestamp will be returned.
+     *
+     * For schedules of type 'periodic' the next execution
+     * is calculated by increasing the current timestamp and testing
+     * whether all conditions match. This is not the best method to test
+     * and should be optimized sooner or later.
+     *
+     * @param mixed $now Defines the temporal fix point
+     * @return int Timestamp of calculated next execution
+     * @throws RuntimeException When calculation takes too long (you should
+     *                          check the conditions for validity in that case)
      */
     public function calculateNextExecution($now = null)
     {
@@ -183,7 +261,7 @@ class CronjobSchedule extends SimpleORMap
         } while (!$valid && $i-- > 0);
 
         if ($i <= 0) {
-            throw new Exception('No result, current: ' . date('d.m.Y H:i', $result));
+            throw new RuntimeException('No result, current: ' . date('d.m.Y H:i', $result));
         }
 
         $this->next_execution = $result;
@@ -191,7 +269,14 @@ class CronjobSchedule extends SimpleORMap
     }
 
     /**
+     * Tests a timestamp against the passed condition.
      *
+     * @param int $timestamp The timestamp to test
+     * @param mixed $condition Can be either null for "don't care", a positive
+     *                         number for an exact moment or a negative number
+     *                         for a repeating moment
+     * @param String $format Format for date() to extract a portion of the
+     *                       timestamp
      */
     protected function testTimestamp($timestamp, $condition, $format)
     {

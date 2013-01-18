@@ -1,6 +1,6 @@
 <?php
 /**
- * purge_cache.php
+ * purge_cache.class.php - Purges the file cache.
  * 
  * @author André Noack <noack@data-quest.de>, Suchi & Berg GmbH <info@data-quest.de>
  * @author Jan-Hendrik Willms <tleilax+studip@gmail.com>
@@ -10,7 +10,7 @@
 
 // +---------------------------------------------------------------------------+
 // This file is part of Stud.IP
-// purge_cache.php
+// purge_cache.class.php
 // 
 // Copyright (C) 2013 Jan-Hendrik Willms <tleilax+studip@gmail.com>
 // +---------------------------------------------------------------------------+
@@ -33,7 +33,7 @@ require_once 'lib/classes/CronJob.class.php';
 class PurgeCacheJob extends CronJob
 {
     /**
-     * 
+     * Returns the name of the cronjob.
      */
     public static function getName()
     {
@@ -41,7 +41,7 @@ class PurgeCacheJob extends CronJob
     }
 
     /**
-     * 
+     * Returns the description of the cronjob.
      */
     public static function getDescription()
     {
@@ -49,7 +49,9 @@ class PurgeCacheJob extends CronJob
     }
 
     /**
-     * 
+     * Return the paremeters for this cronjob.
+     *
+     * @return Array Parameters.
      */
     public static function getParameters()
     {
@@ -64,7 +66,7 @@ class PurgeCacheJob extends CronJob
     }
 
     /**
-     * 
+     * Setup method. Loads the neccessary classes.
      */
     public function setUp()
     {
@@ -72,7 +74,15 @@ class PurgeCacheJob extends CronJob
     }
 
     /**
-     * 
+     * Execute the cronjob.
+     *
+     * @param mixed $last_result What the last execution of this cronjob
+     *                           returned.
+     * @param Array $parameters Parameters for this cronjob instance which
+     *                          were defined during scheduling.
+     *                          Only valid parameter at the moment is
+     *                          "verbose" which toggles verbose output while
+     *                          purging the cache.
      */
     public function execute($last_result, $parameters = array())
     {

@@ -1,9 +1,44 @@
 <?
+/**
+ * Admin_Cronjobs_SchedulesController - Controller class for the schedules of
+ *                                      cronjobs
+ *
+ * @author      Jan-Hendrik Willms <tleilax+studip@gmail.com>
+ * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
+ * @category    Stud.IP
+ * @since       2.4
+ */
+
+// +---------------------------------------------------------------------------+
+// This file is part of Stud.IP
+// schedules.php
+//
+// Copyright (C) 2013 Jan-Hendrik Willms <tleilax+studip@gmail.com>
+// +---------------------------------------------------------------------------+
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or any later version.
+// +---------------------------------------------------------------------------+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+// +---------------------------------------------------------------------------+
 
 require_once 'app/controllers/authenticated_controller.php';
 
 class Admin_Cronjobs_SchedulesController extends AuthenticatedController
 {
+    /**
+     * Set up this controller.
+     *
+     * @param String $action Name of the action to be invoked
+     * @param Array  $args   Arguments to be passed to the action method
+     */
     public function before_filter(&$action, &$args)
     {
         parent::before_filter($action, $args);
@@ -26,6 +61,11 @@ class Admin_Cronjobs_SchedulesController extends AuthenticatedController
         }
     }
 
+    /**
+     * Displays all available schedules according to the set filters.
+     *
+     * @param int $page Which page to display
+     */
     public function index_action($page = 1)
     {
         $filter = $_SESSION['cronjob-filter'];
@@ -78,6 +118,11 @@ class Admin_Cronjobs_SchedulesController extends AuthenticatedController
         }
     }
 
+    /**
+     * Displays a schedule.
+     *
+     * @param String $id Id of the schedule in question
+     */
     public function display_action($id)
     {
         if (!$this->schedule = CronjobSchedule::find($id)) {
@@ -93,6 +138,10 @@ class Admin_Cronjobs_SchedulesController extends AuthenticatedController
         }
     }
 
+    /**
+     * Sets the filters for the schedule view.
+     * Filters are stored in the session.
+     */
     public function filter_action()
     {
         $filter     = array_filter(Request::optionArray('filter'));
@@ -116,6 +165,12 @@ class Admin_Cronjobs_SchedulesController extends AuthenticatedController
         $this->redirect('admin/cronjobs/schedules');
     }
 
+    /**
+     * Edits a schedule.
+     *
+     * @param String $id   Id of the schedule in question (null to create)
+     * @param int    $page Return to this page after editing (optional)
+     */
     public function edit_action($id = null, $page = 1)
     {
         if (Request::submitted('store')) {
@@ -162,7 +217,7 @@ class Admin_Cronjobs_SchedulesController extends AuthenticatedController
         // Infobox image was produced from an image by Robbert van der Steeg
         // http://www.flickr.com/photos/robbie73/5924985913/
         $this->setInfoboxImage(Assets::image_path('infobox/time.jpg'));
-        
+
         // Actions
         $back = sprintf('<a href="%s">%s</a>',
                         $this->url_for('admin/cronjobs/schedules/index/' . $page),
@@ -173,7 +228,16 @@ class Admin_Cronjobs_SchedulesController extends AuthenticatedController
         $this->tasks    = CronjobTask::findBySql('1');
         $this->schedule = CronjobSchedule::find($id) ?: new CronjobSchedule();
     }
-    
+
+    /**
+     * Extracts a cron value from a request item.
+     *
+     * @param Array $item Request item consisting of a type (either empty,
+     *                    'once' or 'periodic') and a value (either null
+      *                   or a signed int)
+     * @return mixed Null if type is empty, a negative number if type is
+     *               'periodic' or a positive number or 0 if type is 'once'
+     */
     private function extractCronItem($item)
     {
         if ($item['type'] === '') {
@@ -185,6 +249,12 @@ class Admin_Cronjobs_SchedulesController extends AuthenticatedController
              : $value;
     }
 
+    /**
+     * Activates a schedule.
+     *
+     * @param String $id Id of the schedule in question
+     * @param int    $page Return to this page after activating (optional)
+     */
     public function activate_action($id, $page = 1)
     {
         CronjobSchedule::find($id)->activate();
@@ -195,6 +265,12 @@ class Admin_Cronjobs_SchedulesController extends AuthenticatedController
         $this->redirect('admin/cronjobs/schedules/index/' . $page . '#job-' . $id);
     }
 
+    /**
+     * Deactivates a schedule.
+     *
+     * @param String $id Id of the schedule in question
+     * @param int    $page Return to this page after deactivating (optional)
+     */
     public function deactivate_action($id, $page = 1)
     {
         CronjobSchedule::find($id)->deactivate();
@@ -205,6 +281,12 @@ class Admin_Cronjobs_SchedulesController extends AuthenticatedController
         $this->redirect('admin/cronjobs/schedules/index/' . $page . '#job-' . $id);
     }
 
+    /**
+     * Cancels/deletes a schedule.
+     *
+     * @param String $id Id of the schedule in question
+     * @param int    $page Return to this page after canceling (optional)
+     */
     public function cancel_action($id, $page = 1)
     {
         CronjobSchedule::find($id)->delete();
@@ -213,6 +295,12 @@ class Admin_Cronjobs_SchedulesController extends AuthenticatedController
         $this->redirect('admin/cronjobs/schedules/index/' . $page);
     }
 
+    /**
+     * Performs a bulk operation on a set of schedules. Operation can be
+     * either activating, deactivating or canceling/deleting.
+     *
+     * @param int    $page Return to this page afterwarsd (optional)
+     */
     public function bulk_action($page = 1)
     {
         $action    = Request::option('action');

@@ -1,6 +1,6 @@
 <?php
 /**
- * cleanup_log.php
+ * cleanup_log.php - Clean up event and cronjob logs
  *
  * @author Tobias Thelen <tobias.thelen@uni-osnabrueck.de>
  * @author Jan-Hendrik Willms <tleilax+studip@gmail.com>
@@ -10,7 +10,7 @@
 
 // +---------------------------------------------------------------------------+
 // This file is part of Stud.IP
-// cleanup_log.php
+// cleanup_log.class.php
 // 
 // Copyright (C) 2013 Jan-Hendrik Willms <tleilax+studip@gmail.com>
 // +---------------------------------------------------------------------------+
@@ -33,7 +33,7 @@ require_once 'lib/classes/CronJob.class.php';
 class CleanupLogJob extends CronJob
 {
     /**
-     * 
+     * Returns the name of the cronjob.
      */
     public static function getName()
     {
@@ -41,7 +41,7 @@ class CleanupLogJob extends CronJob
     }
     
     /**
-     * 
+     * Returns the description of the cronjob.
      */
     public static function getDescription()
     {
@@ -49,7 +49,7 @@ class CleanupLogJob extends CronJob
     }
 
     /**
-     * 
+     * Setup method. Loads the neccessary classes.
      */
     public function setUp()
     {
@@ -57,7 +57,12 @@ class CleanupLogJob extends CronJob
     }
 
     /**
-     * 
+     * Executes the cronjob.
+     *
+     * @param mixed $last_result What the last execution of this cronjob
+     *                           returned.
+     * @param Array $parameters Parameters for this cronjob instance which
+     *                          were defined during scheduling.
      */
     public function execute($last_result, $paramters = array())
     {

@@ -1,6 +1,6 @@
 <?php
 /**
- * send_mail_notifications.php
+ * send_mail_notifications.php - Sends daily email notifications.
  *
  * @author  André Noack <noack@data-quest.de>, Suchi & Berg GmbH <info@data-quest.de>
  * @author  Jan-Hendrik Willms <tleilax+studip@gmail.com>
@@ -33,7 +33,7 @@
 class SendMailNotificationsJob extends CronJob
 {
     /**
-     * 
+     * Returns the name of the cronjob.
      */
     public static function getName()
     {
@@ -41,7 +41,7 @@ class SendMailNotificationsJob extends CronJob
     }
     
     /**
-     * 
+     * Returns the description of the cronjob.
      */
     public static function getDescription()
     {
@@ -49,7 +49,8 @@ class SendMailNotificationsJob extends CronJob
     }
     
     /**
-     * 
+     * Setup method. Loads neccessary classes and checks environment. Will
+     * bail out with an exception if environment does not match requirements.
      */
     public function setUp()
     {
@@ -68,7 +69,15 @@ class SendMailNotificationsJob extends CronJob
     }
     
     /**
-     * 
+     * Executes the cronjob.
+     *
+     * @param mixed $last_result What the last execution of this cronjob
+     *                           returned.
+     * @param Array $parameters Parameters for this cronjob instance which
+     *                          were defined during scheduling.
+     *                          Only valid parameter at the moment is
+     *                          "verbose" which toggles verbose output while
+     *                          purging the cache.
      */
     public function execute($last_result, $parameters = array())
     {

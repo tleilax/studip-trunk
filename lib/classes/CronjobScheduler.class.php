@@ -1,20 +1,33 @@
 <?php
 /**
- * CronjobScheduler.php
+ * CronjobScheduler - Scheduler for the cronjobs.
  *
- * Scheduler for all cronjobs.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the Free
- * Software Foundation; either version 2 of the License, or (at your option)
- * any later version.
- *
- * @author    Jan-Hendrik Willms <tleilax+studip@gmail.com>
- * @copyright 2013 Stud.IP Core-Group
- * @license   http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
- * @category  Stud.IP
- * @since     2.4
+ * @author      Jan-Hendrik Willms <tleilax+studip@gmail.com>
+ * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
+ * @category    Stud.IP
+ * @since       2.4
  */
+
+// +---------------------------------------------------------------------------+
+// This file is part of Stud.IP
+// CronjobScheduler.class.php
+//
+// Copyright (C) 2013 Jan-Hendrik Willms <tleilax+studip@gmail.com>
+// +---------------------------------------------------------------------------+
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or any later version.
+// +---------------------------------------------------------------------------+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+// +---------------------------------------------------------------------------+
+
 class CronjobScheduler
 {
     protected static $instance = null;
@@ -33,7 +46,7 @@ class CronjobScheduler
         return self::$instance;
     }
 
-    public $lock;
+    protected $lock;
 
     /**
      * Private constructor to ensure the singleton pattern is used correctly.
@@ -232,7 +245,9 @@ class CronjobScheduler
 
         $escalation_time = Config::get()->CRONJOBS_ESCALATION;
 
+        // Check whether a previous cronjob worker is still running.
         if ($this->lock->isLocked($data)) {
+            // Running but not yet escalated -> let it run
             if ($data['timestamp'] + $escalation_time > time()) {
                 return;
             }
@@ -265,8 +280,11 @@ class CronjobScheduler
             $this->lock->release();
         }
 
-        $temp = CronjobSchedule::findBySQL('active = 1 AND next_execution <= UNIX_TIMESTAMP() ORDER BY priority DESC, next_execution ASC');
-        $schedules = SimpleORMapCollection::createFromArray($temp)->filter(function ($schedule) { return $schedule->task->active; });
+        // Find all schedules that are due to execute and which task is active
+        $temp = CronjobSchedule::findBySQL('active = 1 AND next_execution <= UNIX_TIMESTAMP() '
+                                          .'ORDER BY priority DESC, next_execution ASC');
+        $temp = SimpleORMapCollection::createFromArray($temp);
+        $schedules = $temp->filter(function ($schedule) { return $schedule->task->active; });
 
         if (count($schedules) === 0) {
             return;
@@ -283,11 +301,14 @@ class CronjobScheduler
 
             set_time_limit($escalation_time);
 
+            // Activate the file lock and store the current timestamp,
+            // schedule id and according log id in it
             $this->lock->lock(array(
                 'schedule_id' => $schedule->schedule_id,
                 'log_id'      => $log->log_id,
             ));
 
+            // Start capturing output and measuring duration
             ob_start();
             $start_time = microtime(true);
 
@@ -314,16 +335,18 @@ class CronjobScheduler
 
                 $this->sendMailToRoots($subject, $message);
             }
+
+            // Actually capture output and duration
             $end_time = microtime(true);
-
             $output = ob_get_clean();
-            $duration = $end_time - $start_time;
 
+            // Complete log
             $log->output    = $output;
-            $log->duration  = $duration;
+            $log->duration  = $end_time - $start_time;
             $log->store();
         }
 
+        // Release lock
         $this->lock->release();
     }
 

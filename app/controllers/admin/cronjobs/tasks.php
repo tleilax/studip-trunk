@@ -1,9 +1,43 @@
 <?
+/**
+ * Admin_Cronjobs_Tasks_Controller - Controller class for cronjob tasks
+ *
+ * @author      Jan-Hendrik Willms <tleilax+studip@gmail.com>
+ * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
+ * @category    Stud.IP
+ * @since       2.4
+ */
+
+// +---------------------------------------------------------------------------+
+// This file is part of Stud.IP
+// tasks.php
+//
+// Copyright (C) 2013 Jan-Hendrik Willms <tleilax+studip@gmail.com>
+// +---------------------------------------------------------------------------+
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or any later version.
+// +---------------------------------------------------------------------------+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+// +---------------------------------------------------------------------------+
 
 require_once 'app/controllers/authenticated_controller.php';
 
 class Admin_Cronjobs_TasksController extends AuthenticatedController
 {
+    /**
+     * Set up this controller.
+     *
+     * @param String $action Name of the action to be invoked
+     * @param Array  $args   Arguments to be passed to the action method
+     */
     public function before_filter(&$action, &$args)
     {
         parent::before_filter($action, $args);
@@ -14,6 +48,11 @@ class Admin_Cronjobs_TasksController extends AuthenticatedController
         $this->set_layout($GLOBALS['template_factory']->open('layouts/base'));
     }
 
+    /**
+     * Displays all available tasks.
+     *
+     * @param int $page Which page to display
+     */
     public function index_action($page = 1)
     {
         $this->max_per_page = Config::get()->ENTRIES_PER_PAGE;
@@ -43,7 +82,13 @@ class Admin_Cronjobs_TasksController extends AuthenticatedController
                         _('Logs anzeigen'));
         $this->addToInfobox(_('Navigation'), $logs);
     }
-    
+
+    /**
+     * Activates a tasks.
+     *
+     * @param String $id Id of the task in question
+     * @param int    $page Return to this page after activating (optional)
+     */
     public function activate_action($id, $page = 1)
     {
         $task = CronjobTask::find($id);
@@ -60,6 +105,12 @@ class Admin_Cronjobs_TasksController extends AuthenticatedController
         $this->redirect('admin/cronjobs/tasks/index/' . $page . '#task-' . $id);
     }
 
+    /**
+     * Deactivates a tasks.
+     *
+     * @param String $id Id of the task in question
+     * @param int    $page Return to this page after deactivating (optional)
+     */
     public function deactivate_action($id, $page = 1)
     {
         $task = CronjobTask::find($id);
@@ -76,6 +127,12 @@ class Admin_Cronjobs_TasksController extends AuthenticatedController
         $this->redirect('admin/cronjobs/tasks/index/' . $page . '#task-' . $id);
     }
 
+    /**
+     * Deletes a tasks.
+     *
+     * @param String $id Id of the task in question
+     * @param int    $page Return to this page after deleting (optional)
+     */
     public function delete_action($id, $page = 1)
     {
         $task = CronjobTask::find($id);
@@ -88,6 +145,12 @@ class Admin_Cronjobs_TasksController extends AuthenticatedController
         $this->redirect('admin/cronjobs/tasks/index/' . $page);
     }
 
+    /**
+     * Performs a bulk operation on a set of tasks. Operation can be either
+     * activating, deactivating or deleting.
+     *
+     * @param int    $page Return to this page afterwarsd (optional)
+     */
     public function bulk_action($page = 1)
     {
         $action = Request::option('action');
