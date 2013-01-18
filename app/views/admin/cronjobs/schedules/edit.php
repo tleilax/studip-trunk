@@ -12,44 +12,67 @@
     );
 ?>
 
-<form action="<?= $controller->url_for('admin/cronjobs/schedules/edit', $schedule->schedule_id) ?>" method="post" id="cronjob-register">
+<form action="<?= $controller->url_for('admin/cronjobs/schedules/edit', $schedule->schedule_id) ?>" method="post" class="cronjobs-edit">
     <?= CSRFProtection::tokenTag() ?>
 
     <h2 class="topic"><?= _('Details') ?></h2>
-    <div>
-        <input type="hidden" name="active" value="0">
-        <label>
-            <input type="checkbox" name="active" value="1" <? if ($schedule->active) echo 'checked'; ?>>
-            <?= _('Aktiv') ?>
-        </label>
-    </div>
-    <div>
-        <label>
-            <?= _('Priorität') ?>:
-            <select name="priority">
-            <? foreach (CronjobSchedule::getPriorities() as $priority => $label): ?>
-                <option value="<?= $priority ?>" <? if ((!$schedule->priority && $priority === CronjobSchedule::PRIORITY_NORMAL) || $schedule->priority === $priority) echo 'selected'; ?>>
-                    <?= htmlReady($label) ?>
-                </option>
-            <? endforeach; ?>
-            </select>
-        </label>
-    </div>
-    <div>
-        <label>
-            <?= _('Titel') ?>
-            <input type="text" name="title" value="<?= htmlReady($schedule->title ?: ($schedule->task->name . ' (' . date('d.m.Y') . ')')) ?>">
-        </label>
-    </div>
-    <div>
-        <label>
-            <?= _('Beschreibung') ?>
-            <textarea name="description"><?= htmlReady($schedule->description ?: '') ?></textarea>
-        </label>
-    </div>
+    <table class="default zebra-hover settings">
+        <colgroup>
+            <col width="20%">
+            <col width="80%">
+        </colgroup>
+        <thead>
+            <tr>
+                <th><?= _('Option') ?></th>
+                <th><?= _('Wert') ?></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <label for="active"><?= _('Aktiv') ?></label>
+                </td>
+                <td>
+                    <input type="hidden" name="active" value="0">
+                    <input type="checkbox" name="active" id="active" value="1"
+                           <? if ($schedule->active) echo 'checked'; ?>>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="priority"><?= _('Priorität') ?></label>
+                </td>
+                <td>
+                    <select name="priority" id="priority">
+                    <? foreach (CronjobSchedule::getPriorities() as $priority => $label): ?>
+                        <option value="<?= $priority ?>" <? if ((!$schedule->priority && $priority === CronjobSchedule::PRIORITY_NORMAL) || $schedule->priority === $priority) echo 'selected'; ?>>
+                            <?= htmlReady($label) ?>
+                        </option>
+                    <? endforeach; ?>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="title"><?= _('Titel') ?></label>
+                </td>
+                <td>
+                    <input type="text" name="title" id="title" value="<?= htmlReady($schedule->title ?: '') ?>">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="description"><?= _('Beschreibung') ?></label>
+                </td>
+                <td>
+                    <textarea name="description"><?= htmlReady($schedule->description ?: '') ?></textarea>
+                </td>
+            </tr>
+        </tbody>
+    </table>
 
     <h2 class="topic"><?= _('Aufgabe') ?></h2>
-    <table class="default zebra-big-hover task" cellspacing="0" cellpadding="0">
+    <table class="default zebra-big-hover cron-task settings" cellspacing="0" cellpadding="0">
         <colgroup>
             <col width="20px">
             <col width="100px">
@@ -59,8 +82,7 @@
         </colgroup>
         <thead>
             <tr>
-                <th>&nbsp;</th>
-                <th><?= _('Klassenname') ?></th>
+                <th colspan="2"><?= _('Klassenname') ?></th>
                 <th><?= _('Name') ?></th>
                 <th><?= _('Beschreibung') ?></th>
                 <th>&nbsp;</th>
@@ -103,7 +125,7 @@
     </table>
 
     <h2 class="topic"><?= _('Zeitplan') ?></h2>
-    <table class="default zebra-horizontal">
+    <table class="default zebra-horizontal settings">
         <colgroup>
             <col width="50%">
             <col width="50%">
