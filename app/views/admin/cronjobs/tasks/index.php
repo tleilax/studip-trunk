@@ -80,7 +80,7 @@
                     'perPage'      => $max_per_page,
                     'num_postings' => $total,
                     'page'         => $page,
-                    'pagelink'     => $controller->url_for('tasks/index/%u')
+                    'pagelink'     => $controller->url_for('admin/cronjobs/tasks/index/%u')
                 ));
                 echo $pagination->render();
             ?>
