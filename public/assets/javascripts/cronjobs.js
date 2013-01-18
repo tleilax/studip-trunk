@@ -1,5 +1,10 @@
 (function ($, STUDIP) {
 
+$('.cron-task input').live('change', function () {
+    $(this).closest('tbody').addClass('selected')
+           .siblings().removeClass('selected');
+});
+
 $(':checkbox[data-proxyfor]').live('change', function () {
     var proxied = $(this).data().proxyfor,
         state   = !!$(this).attr('checked');
