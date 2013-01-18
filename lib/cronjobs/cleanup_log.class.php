@@ -11,7 +11,7 @@
 // +---------------------------------------------------------------------------+
 // This file is part of Stud.IP
 // cleanup_log.class.php
-// 
+//
 // Copyright (C) 2013 Jan-Hendrik Willms <tleilax+studip@gmail.com>
 // +---------------------------------------------------------------------------+
 // This program is free software; you can redistribute it and/or
@@ -39,13 +39,45 @@ class CleanupLogJob extends CronJob
     {
         return _('Logs aufräumen');
     }
-    
+
     /**
      * Returns the description of the cronjob.
      */
     public static function getDescription()
     {
-        return _('Entfernt abgelaufene Log-Einträge');
+        return _('Entfernt abgelaufene Log-Einträge sowohl für das '
+                .'Eventsystem als auch für die Cronjobs');
+    }
+
+    /**
+     * Return the paremeters for this cronjob.
+     *
+     * @return Array Parameters.
+     */
+    public static function getParameters()
+    {
+        return array(
+            'cronjobs' => array(
+                'type'        => 'boolean',
+                'default'     => false,
+                'status'      => 'optional',
+                'description' => _('Sollen die Logeinträge für Cronjobs auch gelöscht werden'),
+            ),
+            'cronjobs-success' => array(
+                'type'        => 'integer',
+                'default'     => 1,
+                'status'      => 'optional',
+                'description' => _('Nach wievielen Tagen sollen Logeinträge für '
+                                  .'erfolgreiche Cronjobs gelöscht werden (0 für nie)'),
+            ),
+            'cronjobs-error' => array(
+                'type'        => 'integer',
+                'default'     => 28,
+                'status'      => 'optional',
+                'description' => _('Nach wievielen Tagen sollen Logeinträge für '
+                                  .'fehlgeschlagene Cronjobs gelöscht werden (0 für nie)'),
+            ),
+        );
     }
 
     /**
@@ -64,10 +96,25 @@ class CleanupLogJob extends CronJob
      * @param Array $parameters Parameters for this cronjob instance which
      *                          were defined during scheduling.
      */
-    public function execute($last_result, $paramters = array())
+    public function execute($last_result, $parameters = array())
     {
         $event_log = new EventLog();
         $event_log->cleanup_log_events();
+
+        if (!empty($parameters['cronjobs'])) {
+            if ($parameters['cronjobs-error'] > 0) {
+                $temp = CronjobLog::findBySql("exception != 'N;' AND executed + ? < UNIX_TIMESTAMP()",
+                                              array($parameters['cronjobs-error'] * 24 * 60 * 60));
+                $logs = SimpleORMapCollection::createFromArray($temp);
+                $logs->sendMessage('delete');
+            }
+            if ($parameters['cronjobs-success'] > 0) {
+                $temp = CronjobLog::findBySql("exception = 'N;' AND executed + ? < UNIX_TIMESTAMP()",
+                                              array($parameters['cronjobs-success'] * 24 * 60 * 60));
+                $logs = SimpleORMapCollection::createFromArray($temp);
+                $logs->sendMessage('delete');
+            }
+        }
     }
 }
 
