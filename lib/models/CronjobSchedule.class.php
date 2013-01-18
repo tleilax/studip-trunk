@@ -133,6 +133,9 @@ class CronjobSchedule extends SimpleORMap
 
         $result = $this->task->engage($this->last_result, $this->parameters);
 
+        if ($this->type === 'once') {
+            $this->active = 0;
+        }
         $this->last_result = $result;
         $this->store();
 
