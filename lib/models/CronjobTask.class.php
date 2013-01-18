@@ -1,6 +1,7 @@
 <?
-require_once 'lib/classes/CronJob.class.php';
-
+/**
+ * 
+ */
 class CronjobTask extends SimpleORMap
 {
     /**

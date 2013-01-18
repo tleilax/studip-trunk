@@ -1,7 +1,4 @@
 <?php
-require_once 'lib/classes/CronJob.class.php';
-require_once 'lib/classes/FileLock.class.php';
-
 /**
  * CronjobScheduler.php
  *
