@@ -22,23 +22,18 @@
 
 require_once 'lib/functions.php';
 require_once 'lib/admission.inc.php';
-require_once 'lib/classes/Modules.class.php';
 require_once 'lib/dates.inc.php';
 require_once 'lib/raumzeit/MetaDate.class.php';
 require_once 'lib/raumzeit/SeminarDB.class.php';
 require_once 'lib/raumzeit/Issue.class.php';
 require_once 'lib/raumzeit/SingleDate.class.php';
-require_once 'lib/classes/SemesterData.class.php';
 require_once 'lib/log_events.inc.php';
 require_once $GLOBALS['RELATIVE_PATH_RESOURCES'].'/lib/ResourceObject.class.php';
 require_once $GLOBALS['RELATIVE_PATH_RESOURCES'].'/lib/DeleteResourcesUser.class.php';
 require_once 'lib/visual.inc.php';
 require_once 'lib/classes/StudipLitList.class.php';
-require_once 'lib/classes/StudipNews.class.php';
 require_once $GLOBALS['RELATIVE_PATH_ELEARNING_INTERFACE'] . "/ObjectConnections.class.php";
 require_once $GLOBALS['RELATIVE_PATH_ELEARNING_INTERFACE'] . "/ELearningUtils.class.php";
-require_once 'lib/classes/LockRules.class.php';
-require_once 'lib/classes/DateFormatter.class.php';
 
 
 class Seminar
@@ -2186,13 +2181,15 @@ class Seminar
         //Cycles
         SeminarCycleDate::deleteBySQL('seminar_id = ' . DBManager::get()->quote($s_id));
 
-        // Alle weiteren Postings zu diesem Seminar loeschen.
-        $query = "DELETE from px_topics where Seminar_id = ?";
-        $statement = DBManager::get()->prepare($query);
-        $statement->execute(array($s_id));
-        if (($db_ar = $statement->rowCount()) > 0) {
-            $this->createMessage(sprintf(_("%s Postings archiviert."), $db_ar));
-        }
+        // Alle weiteren Postings zu diesem Seminar in den Forums-Modulen löschen
+        foreach (PluginEngine::getPlugins('ForumModule') as $plugin) {
+            $plugin->deleteContents($s_id);  // delete content irrespective of plugin-activation in the seminar
+            
+            if ($plugin->isActivated($s_id)) {   // only show a message, if the plugin is activated, to not confuse the user
+                $this->createMessage(sprintf(_('Einträge in %s archiviert.'), $plugin->getPluginName()));
+            }
+        }        
+            
 
         // Alle Dokumente zu diesem Seminar loeschen.
         if (($db_ar = delete_all_documents($s_id)) > 0) {

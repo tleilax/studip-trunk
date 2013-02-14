@@ -11,8 +11,6 @@ require_once ('lib/dates.inc.php');
 require_once ('lib/classes/StudipSemSearch.class.php');
 require_once ('lib/classes/StudipSemTreeViewSimple.class.php');
 require_once ('lib/classes/StudipSemRangeTreeViewSimple.class.php');
-require_once ('lib/classes/CourseAvatar.class.php');
-require_once ('lib/classes/StudygroupAvatar.class.php');
 
 class SemBrowse {
 
@@ -40,7 +38,9 @@ class SemBrowse {
             $_SESSION['sem_browse_data'] = $sem_browse_data_init;
         }
         $this->sem_browse_data =& $_SESSION['sem_browse_data'];
-        $level_change = Request::option('start_item_id');
+
+        $level_change = Request::option('start_item_id') || Request::submitted('search_sem_sem_change');
+
         for ($i = 0; $i < count($this->persistent_fields); ++$i){
             $persistend_field = $this->persistent_fields[$i];
             if (Request::get($persistend_field) != null) {
@@ -725,7 +725,7 @@ class SemBrowse {
                 $add_query
                 WHERE seminare.Seminar_id IN('" . join("','", array_keys($this->sem_browse_data['search_result'])) . "')");
         $db = new DB_Seminar($query);
-        $snap = new DbSnapShot($db);
+        $snap = new DbSnapshot($db);
         $group_field = $this->group_by_fields[$this->sem_browse_data['group_by']]['group_field'];
         $data_fields[0] = "Seminar_id";
         if ($this->group_by_fields[$this->sem_browse_data['group_by']]['unique_field']){

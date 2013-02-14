@@ -27,7 +27,6 @@
 
 require_once ("lib/classes/StudipRangeTree.class.php");
 require_once ("lib/classes/RangeTreeObjectInst.class.php");
-require_once ("lib/classes/RangeTreeObjectFak.class.php");
 
 /**
 * base class for items in the "range tree"
@@ -85,7 +84,7 @@ class RangeTreeObject {
     */
     function GetInstance($item_id){
         $tree = TreeAbstract::GetInstance("StudipRangeTree", false);
-        $class_name = "RangeTreeObject" . $tree->tree_data[$item_id]['studip_object'];
+        $class_name = "RangeTreeObject" . ucfirst($tree->tree_data[$item_id]['studip_object']);
         return new $class_name($item_id);
     }
     

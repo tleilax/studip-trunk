@@ -32,7 +32,6 @@ define('NOT_SELECTED', '');
 $_SESSION['issue_open'] = array();
 
 require_once ('lib/classes/Seminar.class.php');
-require_once ('lib/classes/Modules.class.php');
 require_once ('lib/raumzeit/raumzeit_functions.inc.php');
 require_once ('lib/raumzeit/themen_ablaufplan.inc.php');
 require_once 'lib/admin_search.inc.php';
@@ -48,6 +47,11 @@ if (get_config('RESOURCES_ENABLE')) {
 $moduleClass = new Modules();
 $modules = $moduleClass->getLocalModules($id);
 
+PageLayout::addSqueezePackage('raumzeit');
+PageLayout::addHeadElement('script', array(), "
+        jQuery(function () {
+        STUDIP.CancelDatesDialog.reloadUrlOnClose = '" . UrlHelper::getUrl() ."';
+});");
 //Output starts here
 
 include ('lib/include/html_head.inc.php'); // Output of html head
@@ -62,9 +66,12 @@ $powerFeatures = true;
 if (Request::option('cmd')) {
     $cmd = Request::option('cmd');
 }
-$sem = new Seminar($id);
+$sem = Seminar::getInstance($id);
 $sem->checkFilter();
 $themen =& $sem->getIssues();
+
+// get slot for default forum (if any)
+$forum_slot = $GLOBALS['SEM_CLASS'][$GLOBALS['SEM_TYPE'][$sem->status]['class']]->getSlotModule('forum');
 
 // if all entries are opened, we parse the submitted results into appropriate arrays
 foreach ($_REQUEST as $key => $val) {
@@ -133,6 +140,7 @@ $themen =& $sem->getIssues(true);   // read again, so we have the actual sort or
 $semester = new SemesterData();
 $all_semester = $semester->getAllSemesterData();
 $grenze = 0;
+$cancelled_dates_locked = LockRules::Check($sem->getId(), 'cancelled_dates');
 
 $termine = getAllSortedSingleDates($sem);
 
@@ -249,16 +257,15 @@ $termine = getAllSortedSingleDates($sem);
                                 $thema =& $themen[$issue_id];
                                 $tpl['theme_title'] = $thema->getTitle();
                                 $tpl['theme_description'] = $thema->getDescription();
-                                $tpl['forumEntry'] = ($thema->hasForum()) ? SELECTED : NOT_SELECTED;
                                 $tpl['fileEntry'] = ($thema->hasFile()) ? SELECTED : NOT_SELECTED;
                             } else {
                                 $tpl['theme_title'] = '';
                                 $tpl['theme_description'] = '';
                             }
                         }
-
-                        include('lib/raumzeit/templates/singledate_ablaufplan.tpl');
+                    } else {
                     }
+                    include('lib/raumzeit/templates/singledate_ablaufplan.tpl');
                 }
 
             if ($openAll) {

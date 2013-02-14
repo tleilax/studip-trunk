@@ -45,7 +45,6 @@ require_once('lib/visual.inc.php');
 require_once('config.inc.php');
 require_once 'lib/functions.php';
 require_once('lib/classes/StudipDocumentTree.class.php');
-require_once('lib/classes/StudipDocument.class.php');
 require_once 'lib/raumzeit/Issue.class.php';
 
 $open = Request::option('open');
@@ -1142,7 +1141,7 @@ div.droppable.hover {
             $result2 = $statement->fetchAll(PDO::FETCH_ASSOC);
 
             foreach ($result2 as $row2) {
-                $folder_statement->execute(array($row['statusgruppe_id']));
+                $folder_statement->execute(array($row2['statusgruppe_id']));
                 $folders = $folder_statement->fetchAll(PDO::FETCH_ASSOC);
                 $folder_statement->closeCursor();
 

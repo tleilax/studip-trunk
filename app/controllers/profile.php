@@ -29,9 +29,7 @@ require_once 'lib/dates.inc.php';
 
 require_once 'lib/classes/score.class.php';
 require_once 'lib/classes/StudipLitList.class.php';
-require_once 'lib/classes/Avatar.class.php';
 require_once 'lib/classes/DataFieldEntry.class.php';
-require_once 'lib/classes/StudipKing.class.php';
 
 
 class ProfileController extends AuthenticatedController
@@ -111,12 +109,6 @@ class ProfileController extends AuthenticatedController
                                                          'title' => 'RSS',
                                                          'href'  => 'rss.php?id=' . $news_author_id));
             }
-        }
-
-        $msging = new messaging;
-        //Buddie hinzufuegen
-        if (Request::option('cmd') == 'add_user') {
-            $msging->add_buddy (Request::get('add_uname'), 0);
         }
 
         // Get Avatar
@@ -210,22 +202,6 @@ class ProfileController extends AuthenticatedController
             $this->foaf = $foaf;
         }
 
-        // show Guestbook
-        $guestbook = new Guestbook($this->current_user->user_id, Request::int('guestpage', 0));
-
-        if (($guestbook->active || $guestbook->rights) && $this->profile->checkVisibility('guestbook')) {
-            if (Request::option('guestbook') && $this->perm->have_perm('autor')) {
-                $action       = Request::option('guestbook');
-                $post         = Request::get('post');
-                $deletepost   = Request::option('deletepost');
-                $studipticket = Request::option('studipticket');
-
-                $guestbook->actionsGuestbook($action, $post, $deletepost, $studipticket);
-            }
-
-            $this->guestbook = $guestbook;
-        }
-
         // Hier werden Lebenslauf, Hobbys, Publikationen und Arbeitsschwerpunkte ausgegeben:
         $ausgabe_felder = array(
             'lebenslauf' => _('Lebenslauf'),
@@ -234,12 +210,12 @@ class ProfileController extends AuthenticatedController
             'schwerp'    => _('Arbeitsschwerpunkte')
         );
 
+        $ausgabe_inhalt = array();
         foreach ($ausgabe_felder as $key => $value) {
             if ($this->profile->checkVisibility($key)) {
                 $ausgabe_inhalt[$value] = $this->current_user[$key];
             }
         }
-
         $this->ausgabe_inhalt = array_filter($ausgabe_inhalt);
 
         // Anzeige der Seminare, falls User = dozent
@@ -251,13 +227,15 @@ class ProfileController extends AuthenticatedController
         $homepageplugins = PluginEngine::getPlugins('HomepagePlugin');
 
         foreach ($homepageplugins as $homepageplugin) {
-            // get homepageplugin tempaltes
-            $template = $homepageplugin->getHomepageTemplate($this->current_user->user_id);
-            // create output of the plugins
-            if(!empty($template)) {
-                $render .= $template->render(null, $layout);
+            if ($homepageplugin->isActivated($this->current_user->user_id, 'user')) {
+                // get homepageplugin tempaltes
+                $template = $homepageplugin->getHomepageTemplate($this->current_user->user_id);
+                // create output of the plugins
+                if(!empty($template)) {
+                    $render .= $template->render(null, $layout);
+                }
+                $layout->clear_attributes();
             }
-            $layout->clear_attributes();
         }
 
         $this->hompage_plugin = $render;
@@ -334,5 +312,21 @@ class ProfileController extends AuthenticatedController
     public function not_available_action()
     {
         Navigation::getItem('/profile')->setActive(false);
+    }
+
+    /**
+     * Adds the user identified by the variable username to the current user's
+     * contacts.
+     */
+    public function add_buddy_action()
+    {
+        $username = Request::username('username');
+        
+        $msging = new messaging;
+        //Buddie hinzufuegen
+        $msging->add_buddy($username, 0);
+
+        PageLayout::postMessage(MessageBox::success(_('Der Nutzer wurde zu Ihren Kontakten hinzugefügt.')));
+        $this->redirect('profile/index?username=' . $username);
     }
 }

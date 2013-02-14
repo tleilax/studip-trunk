@@ -6,19 +6,14 @@
 
 
 require_once 'config.inc.php';
-require_once 'lib/classes/StudipFormat.php';
-require_once 'lib/classes/WikiFormat.php';
-require_once 'lib/classes/StudipTransformFormat.php';
 require_once 'lib/classes/cssClassSwitcher.inc.php';
 include_once 'vendor/idna_convert/idna_convert.class.php';
-include_once 'lib/classes/QuickSearch.class.php';
 include_once 'lib/classes/searchtypes/SQLSearch.class.php';
 include_once 'lib/classes/searchtypes/StandardSearch.class.php';
 include_once 'lib/classes/searchtypes/PermissionSearch.class.php';
 require_once 'lib/classes/LinkButton.class.php';
 require_once 'lib/classes/Button.class.php';
 require_once 'lib/classes/ResetButton.class.php';
-require_once 'lib/classes/SmileyFormat.php';
 require_once 'lib/wiki.inc.php';
 
 /**
@@ -318,19 +313,20 @@ function formatReady ($what, $trim = TRUE, $extern = FALSE, $wiki = FALSE, $show
 /**
  * simplified version of formatReady that handles only link formatting
  *
- * @param        string $what        what to format
+ * @param    string $what   what to format
+ * @param    bool $nl2br    convert newlines to <br>
  */
-function formatLinks($what)
+function formatLinks($what, $nl2br = true)
 {
     $link_markup_rule = StudipFormat::getStudipMarkup("links");
     $markup = new TextFormat();
     $markup->addMarkup(
-        "links", 
-        $link_markup_rule['start'], 
-        $link_markup_rule['end'], 
+        "links",
+        $link_markup_rule['start'],
+        $link_markup_rule['end'],
         $link_markup_rule['callback']
     );
-    return $markup->format(htmlReady($what));
+    return $markup->format(htmlReady($what, true, $nl2br));
 }
 
 /**
@@ -836,15 +832,15 @@ function tooltip2($text, $with_alt = TRUE, $with_popup = FALSE) {
 
 /**
  * returns a html-snippet with an icon and a tooltip on it
- * 
- * @param type $text 
+ *
+ * @param type $text
  */
 function tooltipIcon($text, $important = false)
 {
     // prepare text
     $text = preg_replace("/(\n\r|\r\n|\n|\r)/", " ", $text);
     $text = htmlReady($text);
-    
+
     // render tooltip
     $template = $GLOBALS['template_factory']->open('shared/tooltip');
     return $template->render(compact('text', 'important'));
@@ -893,4 +889,34 @@ function createQuestion($question, $approveParams, $disapproveParams = array(), 
     $template->set_attribute('question', $question);
 
     return $template->render();
+}
+
+/**
+ * Displays the provided exception in a more readable fashion.
+ *
+ * @param Exception $exception The exception to be displayed
+ * @param bool $as_html Indicates whether the exception shall be displayed as
+ *                      plain text or html (optional, defaults to plain text)
+ * @param bool $deep    Indicates whether any previous exception should be
+ *                      included in the output (optional, defaults to false)
+ * @return String The exception display either as plain text or html
+ */
+function display_exception(Exception $exception, $as_html = false, $deep = false) {
+    $result  = '';
+    $result .= sprintf("%s: %s\n", _('Typ'), get_class($exception));
+    $result .= sprintf("%s: %s\n", _('Nachricht'), $exception->getMessage());
+    $result .= sprintf("%s: %d\n", _('Code'), $exception->getCode());
+
+    $trace = sprintf("  #$ %s(%u)\n", $exception->getFile(), $exception->getLine())
+           . '  '  . str_replace("\n", "\n  ", $exception->getTraceAsString());
+    $trace = str_replace($GLOBALS['STUDIP_BASE_PATH'] . '/', '', $trace);
+    $result .= sprintf("%s:\n%s\n", _('Stack trace'), $trace);
+
+    if ($deep && $exception->getPrevious()) {
+        $result .= "\n";
+        $result .= _('Vorherige Exception:') . "\n";
+        $result .= display_exception($exception->getPrevious(), false, $deep);
+    }
+
+    return $as_html ? nl2br(htmlReady($result)) : $result;
 }

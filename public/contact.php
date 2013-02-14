@@ -42,8 +42,6 @@ require_once ('lib/user_visible.inc.php');
 require_once ('lib/contact.inc.php');
 require_once ('lib/visual.inc.php');
 
-$cssSw = new cssClassSwitcher;                                  // Klasse für Zebra-Design
-$cssSw->enableHover();
 PageLayout::setTitle(_("Mein Adressbuch"));
 Navigation::activateItem('/community/contacts/' . Request::get('view', 'alpha'));
 // add skip links
@@ -133,7 +131,7 @@ if ($existingowninfolabel) {
 
 
 if (Request::get('edit_id') && Request::submitted('uebernehmen')) {
-    PageLayout::postMessage(Messagebox::success(_('Die Änderungen wurden übernommen.')));
+    PageLayout::postMessage(MessageBox::success(_('Die Änderungen wurden übernommen.')));
 }
 
 $search_exp = Request::quoted('search_exp');
@@ -144,12 +142,12 @@ if ($search_exp) {
     $search_exp = trim($search_exp);
     
     if (strlen($search_exp) < 3) {
-        PageLayout::postMessage(Messagebox::error(_('Ihr Suchbegriff muss mindestens 3 Zeichen umfassen!')));
+        PageLayout::postMessage(MessageBox::error(_('Ihr Suchbegriff muss mindestens 3 Zeichen umfassen!')));
     } else {
         $search_results = SearchResults($search_exp);
         if (!$search_results) {
             $message = sprintf(_('Keine Treffer zum Suchbegriff: %s'), $search_exp);
-            PageLayout::postMessage(Messagebox::info($message));
+            PageLayout::postMessage(MessageBox::info($message));
         }
     }
 }

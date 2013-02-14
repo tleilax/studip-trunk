@@ -28,7 +28,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 use Studip\Button, Studip\LinkButton;
 
 require_once('vendor/idna_convert/idna_convert.class.php');
-require_once('lib/classes/StudipDocument.class.php');
 require_once('lib/classes/StudipDocumentTree.class.php');
 require_once('lib/raumzeit/IssueDB.class.php');
 
@@ -634,9 +633,9 @@ function copy_item($item_id, $new_parent, $change_sem_to = false)
                 }
                 $folder[] = $item_id;
 
-                $query = "SELECT dokument_id, range_id FROM dokument_id WHERE range_id IN (?)";
+                $query = "SELECT dokument_id, range_id FROM dokumente WHERE range_id IN (?)";
                 $statement = DBManager::get()->prepare($query);
-                $statement->execute(array($folder));
+                $statement->execute(array($folder ?: ''));
                 while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
                     $doc_count += copy_doc($row['dokument_id'], md5($row['range_id'] . $seed), $change_sem_to);
                 }
@@ -925,7 +924,7 @@ function form($refresh = FALSE)
     $print.= "&nbsp;<input name=\"the_file\" id=\"the_file\" aria-required=\"true\" type=\"file\"  style=\"width: 70%\" size=\"30\">&nbsp;</td></td>";
     $print.= "\n</tr>";
     if (!$refresh && !$folder_system_data['zipupload']) {
-        $print.= "<tr><td class=\"content_seperator\" colspan=2><font size=-1>" . _("2. Schutz gem&auml;&szlig; Urhebberecht.") . "</font></td></tr>";
+        $print.= "<tr><td class=\"content_seperator\" colspan=2><font size=-1>" . _("2. Schutz gem&auml;&szlig; Urheberrecht.") . "</font></td></tr>";
         $print.= "\n<tr><td class=\"table_row_even\" colspan=2 align=\"left\" valign=\"center\"><font size=-1>";
         $print.= "\n&nbsp;<label><input type=\"RADIO\" name=\"protected\" value=\"0\"".(!$protect ? "checked" :"") .'>'._("Ja, dieses Dokument ist frei von Rechten Dritter") ;
         $print.= "</label>\n&nbsp;<label><input type=\"RADIO\" name=\"protected\" value=\"1\"".($protect ? "checked" :"") .'>'._("Nein, dieses Dokument ist <u>nicht</u> frei von Rechten Dritter");
@@ -1371,7 +1370,7 @@ function link_form ($range_id, $updating=FALSE)
     $print.= "\n</tr>";
     if (!$refresh) {
 
-        $print.= "<tr><td class=\"content_seperator\" colspan=2><font size=-1>" . _("2. Schutz gem&auml;&szlig; Urhebberecht.") . "</font></td></tr>";
+        $print.= "<tr><td class=\"content_seperator\" colspan=2><font size=-1>" . _("2. Schutz gem&auml;&szlig; Urheberrecht.") . "</font></td></tr>";
         $print.= "\n<tr><td class=\"table_row_even\" colspan=2 align=\"left\" valign=\"center\"><font size=-1>&nbsp;" . _("Dieses Dokument ist frei von Rechten Dritter:") . "&nbsp;";
         $print.= "\n&nbsp;<label><input type=\"RADIO\" name=\"protect\" value=\"0\"".(!$protect ? "checked" :"") .'>'._("Ja");
         $print.= "</label>\n&nbsp;<label><input type=\"RADIO\" name=\"protect\" value=\"1\"".($protect ? "checked" :"") .'>'._("Nein");
@@ -1458,6 +1457,12 @@ function display_file_body($datei, $folder_id, $open, $change, $move, $upload, $
         }
         $content .=  "<br><br>" . sprintf(_("<b>Dateigr&ouml;&szlig;e:</b> %s kB"), round ($datei["filesize"] / 1024));
         $content .=  "&nbsp; " . sprintf(_("<b>Dateiname:</b> %s "),htmlReady($datei['filename']));
+        if ($all) {
+            $content .= "<br>" . sprintf(_("<b>Ordner:</b> <a class=\"link-intern\" title=\"%s\" href=\"%s\">%s</a> "),
+                _("Diesen Ordner in der Ordneransicht öffnen"),
+                UrlHelper::getLink('folder.php#anker', array('open' => $datei['range_id'], 'data' => null, 'cmd' => 'tree')),
+                htmlReady($folder_tree->getShortPath($datei['range_id'], null, '/', 1)));
+        }
     }
 
     if ($move == $datei["dokument_id"])
@@ -2169,16 +2174,14 @@ function GetFileIcon($ext, $with_img_tag = false){
         break;
         case 'xls':
         case 'csv':
-            $icon = 'icons/16/blue/file-xls.png';
+        case 'ppt':
+            $icon = 'icons/16/blue/file-office.png';
         break;
         case 'zip':
         case 'tgz':
         case 'gz':
         case 'bz2':
             $icon = 'icons/16/blue/file-archive.png';
-        break;
-        case 'ppt':
-            $icon = 'icons/16/blue/file-presentation.png';
         break;
         case 'pdf':
             $icon = 'icons/16/blue/file-pdf.png';

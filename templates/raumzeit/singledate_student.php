@@ -12,7 +12,7 @@
         <? endif ?>
     </td>
     <? endif ?>
-    
+
     <td width="1%" align="left" valign="top" bgcolor="<?=$tpl['aging_color']?>" class="<?=$tpl['class']?><?=($issue_open[$tpl['sd_id']] || $tpl['openall']) ? '3' : '2'?>" nowrap>
         <a href="<?=URLHelper::getLink("?cmd=".($issue_open[$tpl['sd_id']] ? 'close' : 'open')."&open_close_id=".$tpl['sd_id']."#".$tpl['sd_id'])?>">
             <?=($issue_open[$tpl['sd_id']] || $tpl['openall']) ? Assets::img('forumgraurunt2.png') : Assets::img('forumgrau2.png') ?>
@@ -38,14 +38,21 @@
         <?=$tpl['room']?>
     </td>
 
-    <td width="1%" class="<?=$tpl['class']?>" nowrap="nowrap">
-    <? if ($tpl['forumCount'] > 0) :
-            if ($tpl['forumCount'] == 1) $txt = _("%s Foreneintrag vorhanden"); else $txt = _("%s Foreinträge vorhanden");
+    <td width="1%" class="<?=$tpl['class']?>" nowrap="nowrap" style="padding-left: 5px;">
+    <? if ($tpl['issue_id']) :
+        $forum_slot = $GLOBALS['SEM_CLASS'][$GLOBALS['SEM_TYPE'][$sem->status]['class']]->getSlotModule('forum');
+
+        foreach (PluginEngine::getPlugins('ForumModule') as $plugin) :
+            if (get_class($plugin) == $forum_slot) :
+                if ($count = $plugin->getNumberOfPostingsForIssue($tpl['issue_id'])) : ?>
+                <a href="<?= $plugin->getLinkToThread($tpl['issue_id']) ?>">
+                    <img src="<?=$GLOBALS['ASSETS_URL']?>images/icons/16/blue/forum.png" <?= tooltip(sprintf(_("%s Foreneinträge vorhanden"), $count)) ?>>
+                </a>
+            <? endif;
+            endif;
+        endforeach;
+    endif;
     ?>
-        <a href="<?=URLHelper::getLink("forum.php?open=".$tpl['issue_id']."&treeviewstartposting=&view=#anker")?>">
-            <img src="<?=$GLOBALS['ASSETS_URL']?>images/icons/16/blue/forum.png" <?=tooltip(sprintf($txt, $tpl['forumCount']))?>>
-        </a>
-    <? endif; ?>
     </td>
 
     <td width="1%" class="<?=$tpl['class']?>" nowrap="nowrap">
@@ -98,24 +105,21 @@
 </tr>
 <? } ?>
 <? else:    // Gelöschter Termin... ?>
-<tr>
-    <td id="<?=$tpl['sd_id']?>" width="1%" align="right" valign="top" class="content_title_red" nowrap>
-    </td>
+<tr style="height: 1.8em">
+    <TD width="1%" align="right" valign="bottom" class="content_title_red" nowrap="nowrap">
+        <IMG class="middle" src="<?=$GLOBALS['ASSETS_URL']. 'images/icons/16/blue/arr_1right.png'?>">
+    </TD>
+    <TD width="1%" align="right" valign="bottom" class="content_title_red" nowrap="nowrap">
+        <A name="<?=$tpl['sd_id']?>" />
+        <IMG src="<?=$GLOBALS['ASSETS_URL']?>images/icons/16/blue/date.png" class="middle">&nbsp;
+    </TD>
+    <TD nowrap="nowrap" class="content_title_red" valign="bottom">
+                <i><?= htmlReady($tpl['art']) ?>:&nbsp;</i>
+                <?=$tpl['date']?>&nbsp;
+    </TD>
 
-    <td width="1%" align="right" valign="top" class="content_title_red" nowrap>
-        <img src="<?=$GLOBALS['ASSETS_URL']?>images/icons/16/blue/date.png" class="middle">
-    </td>
-
-    <td nowrap class="content_title_red">
-        <a class="tree" href="<?=URLHelper::getLink("?cmd=".(($issue_open[$tpl['sd_id']]) ? 'close' : 'open')."&open_close_id=".$tpl['sd_id']."#".$tpl['sd_id'])?>">
-            <?=$tpl['date']?>
-        </a>
-    </td>
-
-    <td width="80%" colspan="5" class="content_title_red">
-        <span style="text-color: red">
-            <b><?=_("Dieser Termin findet nicht statt!")?></b>
-        </span>
+    <td width="80%" nowrap="nowrap" colspan="5" class="content_title_red" valign="bottom" align="left">
+        <b><?=_("fällt aus")?></b>
         (<?=_("Kommentar")?>: <?=htmlready($tpl['comment'])?>)
     </td>
 </tr>

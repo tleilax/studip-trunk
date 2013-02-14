@@ -14,16 +14,10 @@
  */
 
 require_once 'lib/functions.php';
-require_once 'lib/classes/Modules.class.php';
-require_once 'lib/classes/StudipScmEntry.class.php';
-require_once 'lib/classes/LockRules.class.php';
-require_once 'lib/classes/AuxLockRules.class.php';
-require_once 'lib/classes/AutoInsert.class.php';
 
 require_once 'lib/modules/CoreAdmin.class.php';
 require_once 'lib/modules/CoreStudygroupAdmin.class.php';
 require_once 'lib/modules/CoreOverview.class.php';
-require_once 'lib/modules/CoreForum.class.php';
 require_once 'lib/modules/CoreParticipants.class.php';
 require_once 'lib/modules/CoreStudygroupParticipants.class.php';
 require_once 'lib/modules/CoreDocuments.class.php';

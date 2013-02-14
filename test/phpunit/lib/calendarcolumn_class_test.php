@@ -11,9 +11,16 @@
 
 
 require_once dirname(__FILE__) . '/../bootstrap.php';
+require_once 'lib/classes/DbView.class.php';
+require_once 'lib/classes/StudipCache.class.php';
+require_once 'lib/classes/StudipNullCache.class.php';
+require_once 'lib/classes/TextFormat.php';
+require_once 'lib/classes/StudipFormat.php';
+require_once 'lib/classes/WikiFormat.php';
+require_once 'lib/classes/TreeAbstract.class.php';
 require_once 'lib/calendar/CalendarColumn.class.php';
 require_once 'lib/functions.php';
-require_once 'lib/classes/URLHelper.php';
+
 
 
 

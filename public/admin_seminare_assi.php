@@ -36,18 +36,13 @@ page_open(array('sess' => 'Seminar_Session', 'auth' => 'Seminar_Auth', 'perm' =>
 
 require_once ('lib/msg.inc.php');       //Funktionen fuer Nachrichtenmeldungen
 require_once 'lib/functions.php';       //noch mehr Stuff
-require_once ('lib/forum.inc.php');     //damit wir Themen anlegen koennen
 require_once ('lib/visual.inc.php');        //Aufbereitungsfunktionen
 require_once ('lib/dates.inc.php');     //Terminfunktionen
 require_once ('lib/log_events.inc.php');
 require_once ('lib/classes/StudipSemTreeSearch.class.php');
-require_once ('lib/classes/Modules.class.php');
 require_once ('lib/classes/DataFieldEntry.class.php');
-require_once ('lib/classes/UserDomain.php'); // Nutzerdomänen
 require_once ('lib/classes/SeminarCategories.class.php');
-require_once ('lib/classes/LockRules.class.php');
 require_once 'lib/classes/Seminar.class.php';
-require_once 'lib/classes/StudipStudyAreaSelection.class.php';
 require_once ('lib/deputies_functions.inc.php');
 
 $sem_create_perm = (in_array(get_config('SEM_CREATE_PERM'), array('root','admin','dozent')) ? get_config('SEM_CREATE_PERM') : 'dozent');
@@ -2001,7 +1996,7 @@ if (($form == 6) && (Request::submitted('jump_next')))
                         $insert_statement->execute(array(
                             $_SESSION['sem_create_data']['sem_id'],
                             $key,
-                            $_SESSION['sem_create_data']['sem_tut_label'][$key] ?: '', 
+                            $_SESSION['sem_create_data']['sem_tut_label'][$key] ?: '',
                             $group, $next_pos
                         ));
 
@@ -2064,10 +2059,6 @@ if (($form == 6) && (Request::submitted('jump_next')))
                 $_SESSION['sem_create_data']['sem_id'],
                 $_SESSION['sem_create_data']['sem_inst_id']
             ));
-
-            //Standard Thema im Forum anlegen, damit Studis auch ohne Zutun des Dozenten diskutieren koennen
-            if ($_SESSION['sem_create_data']["modules_list"]["forum"])
-                CreateTopic(_("Allgemeine Diskussionen"), get_fullname($user_id), _("Hier ist Raum für allgemeine Diskussionen"), 0, 0, $_SESSION['sem_create_data']["sem_id"]);
 
             //Standard Ordner im Foldersystem anlegen, damit Studis auch ohne Zutun des Dozenten Uploaden k&ouml;nnen
             if ($_SESSION['sem_create_data']["modules_list"]["documents"]) {
@@ -3085,7 +3076,7 @@ if ($level == 2)
                             ?>
                                 <input type="radio" name="sem_sec_schreib" value="1" <?php print $_SESSION['sem_create_data']["sem_sec_schreib"] == 1 ? "checked" : ""?>> <?=_("in Stud.IP angemeldet"); ?> &nbsp;
                                 <input type="radio" name="sem_sec_schreib" value="2" <?php print $_SESSION['sem_create_data']["sem_sec_schreib"] == 2 ? "checked" : ""?>> <?=_("nur mit Passwort"); ?> &nbsp;
-                                <?= tooltipIcon(_("Hier geben Sie an, ob der Schreibzugriff auf die Veranstaltung frei (jeder), normal beschränkt (nur registrierte Stud.IP-User) oder nur mit einem speziellen Passwort möglich ist."), TRUE, TRUE) ?>
+                                <?= tooltipIcon(_("Hier geben Sie an, ob der Schreibzugriff auf die Veranstaltung frei (jeder), normal beschränkt (nur registrierte Stud.IP-User) oder nur mit einem speziellen Passwort möglich ist.")) ?>
                             <?
                             } else
                                 print "&nbsp; <font size=-1>"._("Schreibberechtigung nach erfolgreichem Anmeldeprozess")."</font>"
@@ -4151,7 +4142,7 @@ if ($level == 6)
                 <form method="POST" action="<? echo URLHelper::getLink() ?>">
                     <?= CSRFProtection::tokenTag() ?>
                     <input type="hidden" name="form" value=6>
-                    <?= LinkButton::create('<< '._('Zurück'), UrlHelper::getUrl('?jump_back=1&form=' . $level)) ?>&nbsp;<?= Button::create(_('Weiter').' >>', 'jump_next') ?>
+                    <?= LinkButton::create('<< '._('Zurück'), UrlHelper::getUrl('?jump_back=1&form=' . $level)) ?>&nbsp;<?= Button::create(_('Anlegen'), 'jump_next') ?>
                 </form>
                 </div>
             </td>

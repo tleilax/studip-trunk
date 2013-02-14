@@ -351,15 +351,6 @@ class UserModel
             $statement = DBManager::get()->prepare($query);
             $statement->execute(array($new_id, $old_id));
 
-            // Gästebuch
-            $query = "UPDATE IGNORE guestbook SET user_id = ? WHERE user_id = ?";
-            $statement = DBManager::get()->prepare($query);
-            $statement->execute(array($new_id, $old_id));
-
-            $query = "UPDATE IGNORE guestbook SET range_id = ? WHERE range_id = ?";
-            $statement = DBManager::get()->prepare($query);
-            $statement->execute(array($new_id, $old_id));
-
             // Eigene Kategorien
             $query = "UPDATE IGNORE kategorien SET range_id = ? WHERE range_id = ?";
             $statement = DBManager::get()->prepare($query);
@@ -390,11 +381,11 @@ class UserModel
 
         // Restliche Daten übertragen
 
-        // Forumsbeiträge
-        $query = "UPDATE IGNORE px_topics SET user_id = ? WHERE user_id = ?";
-        $statement = DBManager::get()->prepare($query);
-        $statement->execute(array($new_id, $old_id));
-
+        // ForumsModule migrieren
+        foreach (PluginEngine::getPlugins('ForumModule') as $plugin) {
+            $plugin->migrateUser($old_id, $new_id);
+        }
+        
         // Dateieintragungen und Ordner
         // TODO (mlunzena) should post a notification
         $query = "UPDATE IGNORE dokumente SET user_id = ? WHERE user_id = ?";
@@ -568,13 +559,15 @@ class UserModel
             array_push($items, $value['field_item']);
         }
 
-        $query = "DELETE FROM {$table}
-                  WHERE user_id = ? AND {$field} IN (?)";
-        $statement = DBManager::get()->prepare($query);
-        $statement->execute(array(
-            $new_id,
-            $items
-        ));
+        if (!empty($items)) {
+            $query = "DELETE FROM `{$table}`
+                  WHERE user_id = :user_id AND `{$field}` IN (:items)";                  
+
+            $statement = DBManager::get()->prepare($query);
+            $statement->bindValue(':user_id', $new_id);
+            $statement->bindValue(':items', $items, StudipPDO::PARAM_ARRAY);
+            $statement->execute();
+        }
     }
     
     public static function getAvailableAuthPlugins()

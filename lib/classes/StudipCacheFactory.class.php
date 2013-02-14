@@ -13,10 +13,6 @@
  * the License, or (at your option) any later version.
  */
 
-require_once 'StudipCache.class.php';
-require_once 'StudipNullCache.class.php';
-require_once 'StudipFileCache.class.php';
-
 /**
  * This factory retrieves the instance of StudipCache configured for use in
  * this Stud.IP installation.
@@ -164,7 +160,7 @@ class StudipCacheFactory {
                 self::$cache = self::instantiateCache($class, $args);
             } catch (Exception $e) {
                 error_log(__METHOD__ . ': ' . $e->getMessage());
-                echo MessageBox::error(__METHOD__ . ': ' . $e->getMessage());
+                PageLayout::addBodyElements(MessageBox::error(__METHOD__ . ': ' . $e->getMessage()));
                 $class = self::DEFAULT_CACHE_CLASS;
                 self::$cache = new $class();
             }
@@ -232,4 +228,3 @@ class StudipCacheFactory {
                : $reflection_class->newInstance();
     }
 }
-

@@ -81,7 +81,8 @@ class PluginManager
                 'type'        => explode(',', $plugin['plugintype']),
                 'enabled'     => $plugin['enabled'] === 'yes',
                 'position'    => $plugin['navigationpos'],
-                'depends'     => (int) $plugin['dependentonid']
+                'depends'     => (int) $plugin['dependentonid'],
+                'core'        => strpos($plugin['pluginpath'], 'core/') === 0
             );
         }
     }
@@ -197,8 +198,10 @@ class PluginManager
      */
     public function isPluginActivatedForUser($pluginId, $userId)
     {
-        $plugin_class = $this->plugins[$pluginId]['class'];
-        
+        if (!$userId) {
+            $userId = $GLOBALS['user']->id;
+        }
+
         $query = "SELECT state "
                . "FROM plugins_activated "
                . "WHERE pluginid = ? AND poiid = CONCAT('user', ?)";
@@ -208,7 +211,7 @@ class PluginManager
         if (!$state) {
             $activated = get_config('HOMEPAGEPLUGIN_DEFAULT_ACTIVATION') ? true : false;
         } else {
-            $activated = ($state !== 'off' || $state === 'on');
+            $activated = ($state === 'on');
         }
         
         return $activated;
@@ -353,11 +356,12 @@ class PluginManager
      */
     public function registerPlugin ($name, $class, $path, $depends = NULL)
     {
+        
         $db = DBManager::get();
         $info = $this->getPluginInfo($class);
         $type = $this->getPluginType($class, $path);
         $position = 1;
-
+        
         // plugin must implement at least one interface
         if (count($type) == 0) {
             return NULL;
@@ -528,7 +532,7 @@ class PluginManager
         }
 
         $plugin_class = $this->loadPlugin($class, $path);
-
+        
         if ($plugin_class) {
             $plugin = $plugin_class->newInstance();
         }

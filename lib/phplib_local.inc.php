@@ -33,14 +33,10 @@ namespace Studip {
 // use default namespace for the remaining lines
 namespace {
 
-require_once 'lib/classes/Log.php';
-require_once 'lib/classes/SkipLinks.php';
 require_once 'lib/deputies_functions.inc.php';
 require_once 'lib/functions.php';
-require_once 'lib/classes/URLHelper.php';
 require_once 'lib/navigation/Navigation.php';
 require_once 'lib/navigation/AutoNavigation.php';
-require_once 'lib/classes/PageLayout.php';
 
 //setup default logger
 Log::get()->setHandler($GLOBALS['TMP_PATH'] . '/studip.log');
@@ -54,7 +50,6 @@ if (Studip\ENV == 'development') {
 date_default_timezone_set(@date_default_timezone_get());
 
 // set assets url
-require_once('lib/classes/Assets.class.php');
 Assets::set_assets_url($GLOBALS['ASSETS_URL']);
 
 // globale template factory anlegen
@@ -93,9 +88,10 @@ function studip_default_exception_handler($exception) {
 
     try {
         $args = compact('exception', 'status');
+        ob_start();
         echo $GLOBALS['template_factory']->render($template, $args);
-
     } catch (Exception $e) {
+        ob_end_clean();
         echo 'Error: ' . htmlspecialchars($e->getMessage());
     }
     exit;
@@ -107,7 +103,6 @@ if (isset($_SERVER['REQUEST_METHOD'])) {
 }
 
 // set default pdo connection
-require_once('lib/classes/DBManager.class.php');
 DBManager::getInstance()
   ->setConnection('studip',
                   'mysql:host='.$GLOBALS['DB_STUDIP_HOST'].
@@ -159,13 +154,6 @@ PageLayout::initialize();
 require_once 'lib/msg.inc.php';
 require_once('lib/language.inc.php');
 require_once('lib/classes/auth_plugins/StudipAuthAbstract.class.php');
-require_once('lib/classes/Config.class.php');
-require_once('lib/classes/UserConfig.class.php');
-require_once('lib/classes/StudipNews.class.php');
-require_once('lib/classes/StudipCacheFactory.class.php');
-require_once 'lib/classes/SessionDecoder.class.php';
-require_once 'lib/classes/StudipMail.class.php';
-require_once 'lib/classes/User.class.php';
 
 //Besser hier globale Variablen definieren...
 $GLOBALS['_fullname_sql'] = array();

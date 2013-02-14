@@ -41,8 +41,6 @@ include ('lib/seminar_open.php'); // initialise Stud.IP-Session
 require_once('lib/dates.inc.php'); //Funktionen zur Anzeige der Terminstruktur
 require_once('lib/visual.inc.php');
 require_once 'lib/functions.php';
-require_once 'lib/classes/CourseAvatar.class.php';
-require_once 'lib/classes/StudygroupAvatar.class.php';
 
 if (get_config('VOTE_ENABLE')) {
     include_once ("lib/vote/vote_show.inc.php");
@@ -183,7 +181,6 @@ $quarter_year = 60 * 60 * 24 * 90;
     <?
         // Ticket #68
         if (!$perm->have_studip_perm('dozent', $course_id)) {
-            require_once('lib/classes/AuxLockRules.class.php');
             $rule = AuxLockRules::getLockRuleBySemId($course_id);
             if (isset($rule)) {
                 $show = false;

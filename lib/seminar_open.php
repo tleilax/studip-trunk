@@ -119,7 +119,7 @@ if (isset($course_id)) {
 PluginEngine::loadPlugins();
 
 // add navigation item: add modules
-if (Navigation::hasItem('/course/admin')
+if ((Navigation::hasItem('/course/admin') || $GLOBALS['perm']->have_perm('root'))
     && ($perm->have_studip_perm('tutor', $SessSemName[1]) && $SessSemName['class'] == 'sem')
     && ($SessSemName['class'] != 'sem' || !$GLOBALS['SEM_CLASS'][$GLOBALS['SEM_TYPE'][$SessSemName['art_num']]['class']]['studygroup_mode'])) {
     $plus_nav = new Navigation('+', 'dispatch.php/course/plus/index');
@@ -127,9 +127,8 @@ if (Navigation::hasItem('/course/admin')
     Navigation::addItem('/course/modules', $plus_nav);
 }
 // add navigation item for profile: add modules
-if (Navigation::hasItem('/profile')
-    && (!Request::username('username') || Request::username('username') == $user->username || $perm->have_perm('root'))) {
-    $plus_nav = new Navigation('+', 'dispatch.php/profilemodules');
+if (Navigation::hasItem('/profile/edit')) {
+    $plus_nav = new Navigation('+', 'dispatch.php/profilemodules/index');
     $plus_nav->setDescription(_("Inhaltselemente konfigurieren"));
     Navigation::addItem('/profile/modules', $plus_nav);
 }

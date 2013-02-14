@@ -8,25 +8,26 @@
  *  published by the Free Software Foundation; either version 2 of
  *  the License, or (at your option) any later version.
  */
-$cssSw=new cssClassSwitcher;
 use Studip\Button, Studip\LinkButton;
 ?>
 
-<? if (isset($msg)) {
-    parse_msg($msg);
-} ?>
+<? if (isset($msg)): ?>
+    <?= parse_msg($msg) ?>
+<? endif; ?>
+
+<? if ($_SESSION['admin_modules_data']["orig_bin"] != $_SESSION['admin_modules_data']["changed_bin"]): ?>
+    <?= MessageBox::info(_("Diese Daten sind noch nicht gespeichert.")) ?>
+<? endif; ?>
 
 <form action="<?= URLHelper::getLink($save_url) ?>" method="post">
 <?= CSRFProtection::tokenTag() ?>
-<table width="100%" border="0" cellpadding="2" cellspacing="0">
-<tr><? $cssSw->switchClass() ?>
-    <td class="<?= $cssSw->getClass() ?>" align="center" colspan="3">
-        <?= Button::create(_('Übernehmen'), 'uebernehmen') ?>
-        <? if ($_SESSION['admin_modules_data']["orig_bin"] != $_SESSION['admin_modules_data']["changed_bin"]) {?>
-            <?= MessageBox::info(_("Diese Daten sind noch nicht gespeichert.")) ?>
-        <? } ?>
-    </td>
-</tr>
+<table class="default zebra">
+    <colgroup>
+        <col width="15%">
+        <col width="100px">
+        <col>
+    </colgroup>
+    <tbody>
 <?
 foreach ($modules->registered_modules as $key => $val) {
     if ($sem_class) {
@@ -44,8 +45,8 @@ foreach ($modules->registered_modules as $key => $val) {
         }
 
         ?>
-    <tr><? $cssSw->switchClass() ?>
-        <td class="<?= $cssSw->getClass() ?>"  width="15%" align="left">
+    <tr>
+        <td>
             <b><?=$val["name"]?></b>
             <? if ($sem_class) : ?>
             <? $studip_module = $sem_class->getModule($mod);
@@ -56,18 +57,18 @@ foreach ($modules->registered_modules as $key => $val) {
             <? endif ?>
             <br>
         </td>
-        <td class="<?= $cssSw->getClass() ?>" width="15%">
-            <label>
+        <td>
+            <label class="no-break">
                 <input type="radio" <?=($pre_check ? 'disabled' : '')?> name="<?=$key?>_value" value="TRUE" <?=($modules->isBit($_SESSION['admin_modules_data']["changed_bin"], $val["id"])) ? "checked" : "" ?>>
                 <?=_("an")?>
             </label>
-            <label>
+            <label class="no-break">
                 <input type="radio" <?=($pre_check ? 'disabled' : '')?> name="<?=$key?>_value" value="FALSE" <?=($modules->isBit($_SESSION['admin_modules_data']["changed_bin"], $val["id"])) ? "" : "checked" ?>>
                 <?=_("aus")?>
             </label>
             <br>
         </td>
-        <td class="<?= $cssSw->getClass() ?>" width="70%">
+        <td>
             <?
             $getModuleXxExistingItems = "getModule".$key."ExistingItems";
 
@@ -92,23 +93,23 @@ foreach ($available_plugins as $plugin) {
             )) :
         $plugin_activated = $plugin->isActivated($_SESSION['SessionSeminar']);
         ?>
-        <tr><? $cssSw->switchClass() ?>
-            <td class="<?= $cssSw->getClass() ?>"  width="15%" align="left">
+        <tr>
+            <td>
                 <b><?=$plugin->getPluginname()?></b><br>
             </td>
-            <td class="<?= $cssSw->getClass() ?>" width="15%">
+            <td>
                 <!-- mark old state -->
-                <label>
+                <label class="no-break">
                     <input type="radio" name="plugin_<?=$plugin->getPluginId()?>" value="TRUE" <?= $plugin_activated ? "checked" : "" ?>>
                     <?=_("an")?>
                 </label>
-                <label>
+                <label class="no-break">
                     <input type="radio" name="plugin_<?=$plugin->getPluginId()?>" value="FALSE" <?= $plugin_activated ? "" : "checked" ?>>
                     <?=_("aus")?>
                 </label>
                 <br>
             </td>
-            <td class="<?= $cssSw->getClass() ?>" width="70%">
+            <td>
                 <? if (!$plugin_activated): ?>
                     <?= _('Dieses Plugin kann jederzeit aktiviert werden.') ?>
                 <? elseif ($warning = $plugin->deactivationWarning($_SESSION['SessionSeminar'])): ?>
@@ -122,6 +123,14 @@ foreach ($available_plugins as $plugin) {
     endif;
 }
 ?>
+    </tbody>
+    <tfoot>
+        <tr>
+            <td align="center" colspan="3">
+                <?= Button::create(_('Übernehmen'), 'uebernehmen') ?>
+            </td>
+        </tr>
+    </tfoot>
 </table>
 </form>
 

@@ -46,16 +46,14 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // +---------------------------------------------------------------------------+
 
+require_once 'config.inc.php';
+require_once 'lib/visual.inc.php';
+
 require_once ('lib/classes/StudipSemTree.class.php');
 require_once ('lib/classes/StudipRangeTree.class.php');
-require_once ('lib/classes/Modules.class.php');
-require_once ('lib/classes/SemesterData.class.php');
-require_once ('lib/classes/HolidayData.class.php');
-require_once ('lib/visual.inc.php');
+
 require_once ('lib/object.inc.php');
 require_once ('lib/user_visible.inc.php');
-require_once ('lib/exceptions/AccessDeniedException.php');
-require_once ('lib/exceptions/CheckObjectException.php');
 
 /**
  * This function creates the header line for studip-objects
@@ -384,7 +382,6 @@ function lastActivity ($sem_id)
         // Veranstaltungs-data
         "SELECT chdate FROM seminare WHERE Seminar_id = ?",
         // Postings
-        "SELECT MAX(chdate) FROM px_topics WHERE Seminar_id = ?",
         // Folder
         "SELECT MAX(chdate) FROM folder WHERE range_id = ?",
         // Dokuments
@@ -407,6 +404,11 @@ function lastActivity ($sem_id)
     // Wiki
     if (get_config('WIKI_ENABLE')) {
         $queries[] = "SELECT MAX(chdate) FROM wiki WHERE range_id = ?";
+    }
+
+    foreach (PluginEngine::getPlugins('ForumModule') as $plugin) {
+        $table = $plugin->getEntryTableInfo();
+        $queries[] = 'SELECT MAX(`'. $table['chdate'] .'`) FROM `'. $table['table'] .'` WHERE `'. $table['seminar_id'] .'` = ?';
     }
 
     $timestamp = false;
@@ -439,7 +441,7 @@ function lastActivity ($sem_id)
  *
  * @param string $id         the id of the object
  * @param array  $check_only an array to narrow the search, may contain
- *                            'sem', 'fak', 'group' or 'dokument' (optional)
+ *                            'sem', 'inst', 'fak', 'group' or 'dokument' (optional)
  *
  * @return string  return "inst" (Einrichtung), "sem" (Veranstaltung),
  *                 "fak" (Fakultaeten), "group" (Statusgruppe), "dokument" (Dateien)
@@ -490,7 +492,7 @@ function get_object_type($id, $check_only = array())
     }
 
     // Institute or faculty?
-    if ($check_all || in_array('inst', $check_only)) {
+    if ($check_all || in_array('inst', $check_only) || in_array('fak', $check_only)) {
         $query = "SELECT Institut_id = fakultaets_id FROM Institute WHERE Institut_id = ?";
         $statement = DBManager::get()->prepare($query);
         $statement->execute(array($id));
@@ -502,7 +504,7 @@ function get_object_type($id, $check_only = array())
     }
 
     // None of the above
-    return false;
+    return $object_type_cache[$id] = false;
 }
 
 /**
@@ -1840,7 +1842,7 @@ function get_title_for_status($type, $count, $sem_type = NULL)
 
     $atype = 'title_'.$type;
 
-    if (isset($SEM_TYPE[$sem_type][$atype])) {
+    if (is_array($SEM_TYPE[$sem_type][$atype])) {
         $title = $SEM_TYPE[$sem_type][$atype];
     } else if (isset($DEFAULT_TITLE_FOR_STATUS[$type])) {
         $title = $DEFAULT_TITLE_FOR_STATUS[$type];

@@ -43,7 +43,6 @@ require_once ($RELATIVE_PATH_RESOURCES.'/lib/ResourceObjectPerms.class.php');
 require_once ($RELATIVE_PATH_RESOURCES.'/lib/RoomGroups.class.php');
 require_once ($RELATIVE_PATH_RESOURCES.'/lib/RoomRequest.class.php');
 require_once ('lib/dates.inc.php');
-require_once ("lib/classes/SemesterData.class.php");
 
 
 /*****************************************************************************
@@ -204,7 +203,6 @@ if (Request::option('nrecurse_list'))
 
 //Create ClipBoard-Class, if needed
 if (($view == "search") || ($view == "edit_request")) {
-    require_once ("lib/classes/ClipBoard.class.php");
 
     $clipObj =  ClipBoard::GetInstance("search");
     $clipFormObj =& $clipObj->getFormObject();
@@ -366,7 +364,6 @@ $change_object_schedules = Request::option('change_object_schedules');
 if ($change_object_schedules) {
     require_once ('lib/calendar_functions.inc.php'); //needed for extended checkdate
     require_once ($RELATIVE_PATH_RESOURCES."/lib/VeranstaltungResourcesAssign.class.php");
-    require_once ('lib/classes/SemesterData.class.php');
 
     // check, if the submit-button has been pressed. Otherwise do not store the assign.
     $storeAssign = false;
@@ -1884,7 +1881,6 @@ if (Request::submitted('inc_request') || Request::submitted('dec_request')
     require_once ($RELATIVE_PATH_RESOURCES."/lib/VeranstaltungResourcesAssign.class.php");
     require_once ($RELATIVE_PATH_RESOURCES."/lib/ResourcesUserRoomsList.class.php");
     require_once ("lib/classes/Seminar.class.php");
-    require_once ("lib/classes/SemesterData.class.php");
 
     if ((!is_array($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["detected_overlaps"]))
         || ($marked_clip_ids) || ($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["reload"])) {

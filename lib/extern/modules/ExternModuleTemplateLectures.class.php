@@ -44,7 +44,6 @@ require_once('lib/classes/DataFieldEntry.class.php');
 require_once('lib/visual.inc.php');
 require_once($GLOBALS['RELATIVE_PATH_EXTERN'].'/lib/extern_functions.inc.php');
 require_once('lib/classes/SemBrowse.class.php');
-require_once('lib/classes/SemesterData.class.php');
 require_once('lib/dates.inc.php');
 
 
@@ -332,7 +331,7 @@ class ExternSemBrowseTemplate extends SemBrowse {
                  . "') $sem_inst_query $sem_range_query $sem_types_query";
 
             $db = new DB_Seminar($query);
-            $snap = new DbSnapShot($db);
+            $snap = new DbSnapshot($db);
             $group_field = $this->group_by_fields[$this->sem_browse_data['group_by']]['group_field'];
             $data_fields[0] = "Seminar_id";
             if ($this->group_by_fields[$this->sem_browse_data['group_by']]['unique_field']){

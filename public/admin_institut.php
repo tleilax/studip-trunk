@@ -55,19 +55,12 @@ if (Request::option('cancel')) {
 }
 
 require_once 'lib/visual.inc.php';
-require_once 'lib/forum.inc.php';
 require_once 'lib/datei.inc.php';
 require_once 'lib/statusgruppe.inc.php';
 require_once 'lib/functions.php';
-require_once 'lib/classes/Modules.class.php';
 require_once 'lib/classes/DataFieldEntry.class.php';
 require_once 'lib/classes/StudipLitList.class.php';
-require_once 'lib/classes/StudipLitSearch.class.php';
-require_once 'lib/classes/StudipNews.class.php';
 require_once 'lib/log_events.inc.php';
-require_once 'lib/classes/InstituteAvatar.class.php';
-require_once 'lib/classes/LockRules.class.php';
-require_once 'lib/classes/Institute.class.php';
 
 if (get_config('RESOURCES_ENABLE')) {
     include_once($RELATIVE_PATH_RESOURCES . '/lib/DeleteResourcesUser.class.php');
@@ -92,12 +85,12 @@ switch ($submitted_task) {
     // Create a new Institut
     case 'create':
         if (!$perm->have_perm("root") && !($perm->is_fak_admin() && get_config('INST_FAK_ADMIN_PERMS') != 'none'))  {
-            PageLayout::postMessage(Messagebox::error(_('Sie haben nicht die Berechtigung, um neue Einrichtungen zu erstellen!')));
+            PageLayout::postMessage(MessageBox::error(_('Sie haben nicht die Berechtigung, um neue Einrichtungen zu erstellen!')));
             break;
         }
         // Do we have all necessary data?
         if (!Request::get('Name')) {
-            PageLayout::postMessage(Messagebox::error(_('Bitte geben Sie eine Bezeichnung für die Einrichtung ein!')));
+            PageLayout::postMessage(MessageBox::error(_('Bitte geben Sie eine Bezeichnung für die Einrichtung ein!')));
             $i_view = 'new';
             break;
         }
@@ -118,7 +111,7 @@ switch ($submitted_task) {
 
         if ($statement->fetchColumn()) {
             $message = sprintf(_('Die Einrichtung "%s" existiert bereits!'), htmlReady(Request::get('Name')));
-            PageLayout::postMessage(Messagebox::error($message));
+            PageLayout::postMessage(MessageBox::error($message));
             break;
         }
 
@@ -126,7 +119,7 @@ switch ($submitted_task) {
             if ($perm->have_perm('root')) {
                 $Fakultaet = $i_id;
             } else {
-                PageLayout::postMessage(Messagebox::error(_('Sie haben nicht die Berechtigung, neue Fakultäten zu erstellen')));
+                PageLayout::postMessage(MessageBox::error(_('Sie haben nicht die Berechtigung, neue Fakultäten zu erstellen')));
                 break;
             }
         }
@@ -151,7 +144,7 @@ switch ($submitted_task) {
         $institute->setData($data, true);
 
         if (!$institute->store()) {
-            PageLayout::postMessage(Messagebox::error(_('Die Einrichtung konnte nicht angelegt werden.')));
+            PageLayout::postMessage(MessageBox::error(_('Die Einrichtung konnte nicht angelegt werden.')));
             break;
         }
 
@@ -161,11 +154,7 @@ switch ($submitted_task) {
 
         $module_list = $Modules->getLocalModules($i_id, 'inst', $institute->modules, $institute->type);
 
-        // Create default folder and discussion
-        if (isset($module_list['forum'])) {
-            CreateTopic(_('Allgemeine Diskussionen'), ' ', _('Hier ist Raum für allgemeine Diskussionen'), 0, 0, $i_id, 0);
-        }
-            if (isset($module_list['documents'])) {
+        if (isset($module_list['documents'])) {
             $query = "INSERT INTO folder (folder_id, range_id, name, description, mkdate, chdate)
                       VALUES (?, ?, ?, ?, UNIX_TIMESTAMP(), UNIX_TIMESTAMP())";
             $statement = DBManager::get()->prepare($query);
@@ -178,7 +167,7 @@ switch ($submitted_task) {
         }
 
         $message = sprintf(_('Die Einrichtung "%s" wurde erfolgreich angelegt.'), htmlReady(Request::get('Name')));
-        PageLayout::postMessage(Messagebox::success($message));
+        PageLayout::postMessage(MessageBox::success($message));
 
         $i_view = $i_id;
 
@@ -191,13 +180,13 @@ switch ($submitted_task) {
     case 'i_edit':
 
         if (!$perm->have_studip_perm("admin",Request::option('i_id'))){
-            PageLayout::postMessage(Messagebox::error(_('Sie haben nicht die Berechtigung diese Einrichtungen zu verändern!')));
+            PageLayout::postMessage(MessageBox::error(_('Sie haben nicht die Berechtigung diese Einrichtungen zu verändern!')));
             break;
         }
 
         //do we have all necessary data?
         if (Request::get('Name') !== null && !strlen(Request::get('Name'))) {
-            PageLayout::postMessage(Messagebox::error(_('Bitte geben Sie einen Namen für die Einrichtung ein!')));
+            PageLayout::postMessage(MessageBox::error(_('Bitte geben Sie einen Namen für die Einrichtung ein!')));
             break;
         }
 
@@ -219,11 +208,11 @@ switch ($submitted_task) {
             $institute->setData($data, false);
             $ok = $institute->store();
             if ($ok === false) {
-                PageLayout::postMessage(Messagebox::error(_('Die Änderungen konnten nicht gespeichert werden.')));
+                PageLayout::postMessage(MessageBox::error(_('Die Änderungen konnten nicht gespeichert werden.')));
                 break;
             } elseif ($ok) {
                 $message = sprintf(_('Die Änderung der Einrichtung "%s" wurde erfolgreich gespeichert.'), htmlReady($institute->name));
-                PageLayout::postMessage(Messagebox::success($message));
+                PageLayout::postMessage(MessageBox::success($message));
             }
 
             // update additional datafields
@@ -245,10 +234,10 @@ switch ($submitted_task) {
                     }
                 }
                 if (count($invalidEntries)  > 0) {
-                    PageLayout::postMessage(Messagebox::error(_('ungültige Eingaben (s.u.) wurden nicht gespeichert')));
+                    PageLayout::postMessage(MessageBox::error(_('ungültige Eingaben (s.u.) wurden nicht gespeichert')));
                 } elseif ($df_stored) {
                     $message = sprintf(_('Die Daten der Einrichtung "%s" wurden verändert.'), htmlReady($institute->name));
-                    PageLayout::postMessage(Messagebox::success($message));
+                    PageLayout::postMessage(MessageBox::success($message));
                 }
             }
         }
@@ -257,12 +246,12 @@ switch ($submitted_task) {
     // Delete the Institut
     case 'i_kill':
         if ( !check_ticket(Request::option('studipticket'))) {
-            PageLayout::postMessage(Messagebox::error(_('Ihr Ticket ist abgelaufen. Versuchen Sie die letzte Aktion erneut.')));
+            PageLayout::postMessage(MessageBox::error(_('Ihr Ticket ist abgelaufen. Versuchen Sie die letzte Aktion erneut.')));
             break;
         }
 
         if (!$perm->have_perm("root") && !($perm->is_fak_admin() && get_config('INST_FAK_ADMIN_PERMS') == 'all')) {
-            PageLayout::postMessage(Messagebox::error(_('Sie haben nicht die Berechtigung Fakultäten zu löschen!')));
+            PageLayout::postMessage(MessageBox::error(_('Sie haben nicht die Berechtigung Fakultäten zu löschen!')));
             break;
         }
         $i_id = Request::option('i_id');
@@ -271,7 +260,7 @@ switch ($submitted_task) {
         $statement = DBManager::get()->prepare($query);
         $statement->execute(array($i_id));
         if ($statement->fetchColumn()) {
-            PageLayout::postMessage(Messagebox::error(_('Diese Einrichtung kann nicht gelöscht werden, da noch Veranstaltungen an dieser Einrichtung existieren!')));
+            PageLayout::postMessage(MessageBox::error(_('Diese Einrichtung kann nicht gelöscht werden, da noch Veranstaltungen an dieser Einrichtung existieren!')));
             break;
         }
 
@@ -285,12 +274,12 @@ switch ($submitted_task) {
         $temp = $statement->fetch(PDO::FETCH_ASSOC);
 
         if ($temp['num_inst']) {
-            PageLayout::postMessage(Messagebox::error(_("Diese Einrichtung kann nicht gelöscht werden, da sie den Status Fakultät hat, und noch andere Einrichtungen zugeordnet sind!")));
+            PageLayout::postMessage(MessageBox::error(_("Diese Einrichtung kann nicht gelöscht werden, da sie den Status Fakultät hat, und noch andere Einrichtungen zugeordnet sind!")));
             break;
         }
 
         if ($temp['is_fak'] && !$perm->have_perm("root")) {
-            PageLayout::postMessage(Messagebox::error(_("Sie haben nicht die Berechtigung Fakultäten zu löschen!")));
+            PageLayout::postMessage(MessageBox::error(_("Sie haben nicht die Berechtigung Fakultäten zu löschen!")));
             break;
         }
 
@@ -308,7 +297,7 @@ switch ($submitted_task) {
 
         if (($db_ar = $statement->rowCount()) > 0) {
             $message = sprintf(_('%s Mitarbeiter gelöscht.'), $db_ar);
-            PageLayout::postMessage(Messagebox::success($message));
+            PageLayout::postMessage(MessageBox::success($message));
         }
 
         // delete participations in seminar_inst
@@ -317,14 +306,14 @@ switch ($submitted_task) {
         $statement->execute(array($i_id));
         if (($db_ar = $statement->rowCount()) > 0) {
             $message = sprintf(_('%s Beteiligungen an Veranstaltungen gelöscht'), $db_ar);
-            PageLayout::postMessage(Messagebox::success($message));
+            PageLayout::postMessage(MessageBox::success($message));
         }
 
         // delete literatur
         $del_lit = StudipLitList::DeleteListsByRange($i_id);
         if ($del_lit) {
             $message = sprintf(_('%s Literaturlisten gelöscht.'), $del_lit['list']);
-            PageLayout::postMessage(Messagebox::success($message));
+            PageLayout::postMessage(MessageBox::success($message));
         }
 
         // SCM löschen
@@ -332,7 +321,7 @@ switch ($submitted_task) {
         $statement = DBManager::get()->prepare($query);
         $statement->execute(array($i_id));
         if (($db_ar = $statement->rowCount()) > 0) {
-            PageLayout::postMessage(Messagebox::success(_('Freie Seite der Einrichtung gelöscht.')));
+            PageLayout::postMessage(MessageBox::success(_('Freie Seite der Einrichtung gelöscht.')));
         }
 
         // delete news-links
@@ -351,13 +340,13 @@ switch ($submitted_task) {
 
         if (($db_ar = $statement->rowCount()) > 0) {
             $message = sprintf(_('%s Bereiche im Einrichtungsbaum angepasst.'), $db_ar);
-            PageLayout::postMessage(Messagebox::success($message));
+            PageLayout::postMessage(MessageBox::success($message));
         }
 
         // Statusgruppen entfernen
         if ($db_ar = DeleteAllStatusgruppen($i_id) > 0) {
             $message = sprintf(_('%s Funktionen/Gruppen gelöscht.'), $db_ar);
-            PageLayout::postMessage(Messagebox::success($message));
+            PageLayout::postMessage(MessageBox::success($message));
         }
 
         //kill the datafields
@@ -381,23 +370,24 @@ switch ($submitted_task) {
             $counts = ExternConfig::DeleteAllConfigurations($i_id);
             if ($counts) {
                 $message = sprintf(_('%s Konfigurationsdateien für externe Seiten gelöscht.'), $counts);
-                PageLayout::postMessage(Messagebox::success($message));
+                PageLayout::postMessage(MessageBox::success($message));
             }
         }
 
-        // delete folders and discussions
-        $query = "DELETE FROM px_topics WHERE Seminar_id = ?";
-        $statement = DBManager::get()->prepare($query);
-        $statement->execute(array($i_id));
-        if (($db_ar = $statement->rowCount()) > 0) {
-            $message = sprintf(_('%s Postings aus dem Forum der Einrichtung gelöscht.'), $db_ar);
-            PageLayout::postMessage(Messagebox::success($message));
-        }
+        // delete all contents in forum-modules
+        foreach (PluginEngine::getPlugins('ForumModule') as $plugin) {
+            $plugin->deleteContents($i_id);  // delete content irrespective of plugin-activation in the seminar
+            
+            if ($plugin->isActivated($i_id)) {   // only show a message, if the plugin is activated, to not confuse the user
+                $message = sprintf(_('Einträge in %s gelöscht.'), $plugin->getPluginName());
+                PageLayout::postMessage(MessageBox::success($message));
+            }
+        }                
 
         $db_ar = delete_all_documents($i_id);
         if ($db_ar > 0) {
             $message = sprintf(_('%s Dokumente gelöscht.'), $db_ar);
-            PageLayout::postMessage(Messagebox::success($message));
+            PageLayout::postMessage(MessageBox::success($message));
         }
 
         //kill the object_user_vists for this institut
@@ -409,11 +399,11 @@ switch ($submitted_task) {
         $statement = DBManager::get()->prepare($query);
         $statement->execute(array($i_id));
         if ($statement->rowCount() == 0) {
-            PageLayout::postMessage(Messagebox::error(_('Datenbankoperation gescheitert:') . " $query"));
+            PageLayout::postMessage(MessageBox::error(_('Datenbankoperation gescheitert:') . " $query"));
             break;
         } else {
             $message = sprintf(_('Die Einrichtung "%s" wurde gelöscht!'), htmlReady(Request::get('Name')));
-            PageLayout::postMessage(Messagebox::success($message));
+            PageLayout::postMessage(MessageBox::success($message));
 
             // logging - put institute's name in info - it's no longer derivable from id afterwards
             log_event("INST_DEL",$i_id,NULL,Request::quoted('Name'));
@@ -466,7 +456,7 @@ if ((!$SessSemName[1] || $SessSemName['class'] == 'sem') && Request::option('lis
 
     if ($deleted = Request::get('deleted')) {
         $message = sprintf(_('Die Einrichtung "%s" wurde gelöscht!'), htmlReady(Request::get('deleted')));
-        echo '<table class="default blank"><tr><td>' . Messagebox::success($message) . '</td></tr></table>';
+        echo '<table class="default blank"><tr><td>' . MessageBox::success($message) . '</td></tr></table>';
     }
 
     include 'lib/include/admin_search_form.inc.php';
@@ -475,12 +465,12 @@ if ((!$SessSemName[1] || $SessSemName['class'] == 'sem') && Request::option('lis
 
 $lockrule = LockRules::getObjectRule($i_view);
 if ($lockrule->description && LockRules::CheckLockRulePermission($i_view)) {
-    PageLayout::postMessage(Messagebox::info(formatLinks($lockrule->description)));
+    PageLayout::postMessage(MessageBox::info(formatLinks($lockrule->description)));
 }
 
 // A bit hackish, thus TODO
 if (!$perm->have_studip_perm('admin', $i_view) && $i_view != 'new') {
-    PageLayout::postMessage(Messagebox::error(_('Sie sind nicht berechtigt, auf diesen Bereich zuzugreifen')));
+    PageLayout::postMessage(MessageBox::error(_('Sie sind nicht berechtigt, auf diesen Bereich zuzugreifen')));
     echo $GLOBALS['template_factory']->render('layouts/base_without_infobox');
     page_close();
     return;

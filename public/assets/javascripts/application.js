@@ -37,6 +37,53 @@ jQuery('[data-behaviour="\'ajaxContent\'"]').live('click', function () {
 });
 
 
+// Global handler:
+// Open a link in a lightbox (jQuery UI's Dialog). The Dialog's title
+// can be set via a specific "X-Title"-header in the xhr response.
+// Any included link with a rel value containing "option" in the response
+// will be transformed into a button of the lightbox and removed from the
+// response. A close button is always present.
+jQuery('a[rel~="lightbox"]').live('click', function (event) {
+    var $that     = jQuery(this),
+        href      = $that.attr('href'),
+        container = jQuery('<div/>');
+
+    // Load response into a helper container, open dialog after loading
+    // has finished.
+    container.load(href, function (response, status, xhr) {
+        var width   = jQuery('body').width() * 2 / 3,
+            height  = jQuery('body').height() * 2 / 3,
+            buttons = {},
+            title   = xhr.getResponseHeader('X-Title') || '',
+            scripts = jQuery(response).filter('script');
+
+        // Create buttons
+        jQuery('a[rel~="option"]', this).remove().each(function () {
+            var label = jQuery(this).text(),
+                href  = jQuery(this).attr('href');
+            buttons[label] = function () { location.href = href; };
+        });
+        buttons["Schliessen".toLocaleString()] = function () {
+            jQuery(this).dialog('close');
+        };
+
+        // Create dialog
+        jQuery(this).dialog({
+            width :  width,
+            height:  height,
+            buttons: buttons,
+            title:   title,
+            modal:   true,
+            open: function () {
+                jQuery('head').append(scripts);
+            }
+        });
+    });
+
+    event.preventDefault();
+});
+
+
 /* ------------------------------------------------------------------------
  * messages boxes
  * ------------------------------------------------------------------------ */
@@ -176,6 +223,31 @@ jQuery(function ($) {
     };
     $.datepicker.setDefaults($.datepicker.regional.de);
 }(jQuery));
+
+/* ------------------------------------------------------------------------
+ * jQuery timepicker
+ * ------------------------------------------------------------------------ */
+
+/* German translation for the jQuery Timepicker Addon */
+/* Written by Marvin */
+(function($) {
+    $.timepicker.regional.de = {
+        timeOnlyTitle: 'Zeit wählen',
+        timeText: 'Zeit',
+        hourText: 'Stunde',
+        minuteText: 'Minute',
+        secondText: 'Sekunde',
+        millisecText: 'Millisekunde',
+        timezoneText: 'Zeitzone',
+        currentText: 'Jetzt',
+        closeText: 'Fertig',
+        timeFormat: 'HH:mm',
+        amNames: ['vorm.', 'AM', 'A'],
+        pmNames: ['nachm.', 'PM', 'P'],
+        isRTL: false
+    };
+    $.timepicker.setDefaults($.timepicker.regional.de);
+})(jQuery);
 
 
 jQuery(function ($) {

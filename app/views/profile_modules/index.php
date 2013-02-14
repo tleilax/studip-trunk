@@ -15,9 +15,9 @@
   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-//Standard herstellen
-$cssSw = new cssClassSwitcher;
+use Studip\Button, Studip\LinkButton;
 
+//Standard herstellen
 if ($flash->flash['message']) {
     echo MessageBox::success($flash->flash['message']);
 } else if ($flash->flash['error']) {
@@ -30,7 +30,22 @@ $infobox = array(
         'eintrag'   => array(
             array(
                 'icon' => "icons/16/black/info",
-                'text' => _("Sie können hier einzelne Inhaltselemente nachträglich aktivieren oder deaktivieren.")
+                'text' => _("Sie können hier einzelne Inhaltselemente ".
+                            "nachträglich aktivieren oder deaktivieren.")
+            ),
+            array(
+                'icon' => "icons/16/black/plugin",
+                'text' => _("Aktivierte Inhaltselemente fügen neue Funktionen ".
+                            "zu Ihrem Profil oder Ihren Einstellungen hinzu.
+                            Diese werden meist als neuer Reiter im Menü ".
+                            "erscheinen.")
+            ),
+            array(
+                'icon' => "icons/16/black/info",
+                'text' => _("Wenn Sie bestimmte dieser Funktionalitäten nicht ".
+                            "benötigen, können Sie sie einfach hier ".
+                            "deaktivieren, die entsprechenden Menüpunkte ".
+                            "werden dann ausgeblendet.")
             )
         )
     )
@@ -42,34 +57,42 @@ $infobox = array(
 );
 ?>
 
-<form action="profilemodules/update" method="post">
+<form action="<?= URLHelper::getURL('dispatch.php/profilemodules/update', array('username' => $username)) ?>" method="post">
     <?= CSRFProtection::tokenTag() ?>
-    <table width="70%" align="center" cellpadding="8" cellspacing="0" border="0" id="main_content">
-        <tr>
-            <th width="50%" align="center"><?= _("Plugin") ?></th>
-            <th align="center"><?= _("Aktiv") ?></th>
-        </tr>
-        <? foreach ($this->controller->modules as $id => $module) { ?>
-            <tr  <? $cssSw->switchClass() ?>>
-                <td  align="right" class="blank" style="border-bottom:1px dotted black;">
-                    <label for="module_<?= $id ?>">
-                        <?= _($module['name']) ?></label>
+    <table class="zebra" width="70%" align="center" cellpadding="8" cellspacing="0" border="0" id="main_content">
+        <colgroup>
+            <col width="50%">
+            <col width="50%">
+        </colgroup>
+        <thead>
+            <tr>
+                <th align="center"><?= _("Inhaltselement") ?></th>
+                <th align="center"><?= _("Aktiv") ?></th>
+            </tr>
+        </thead>
+        <tbody>
+        <? foreach ($this->controller->modules as $module): ?>
+            <tr>
+                <td align="right" class="blank" style="border-bottom:1px dotted black;">
+                    <label for="module_<?= $module['id'] ?>">
+                        <?= _($module['name']) ?>
+                    </label>
                     <div class="setting_info">
                         <?= _($module['description']) ?>
                     </div>
                 </td>
-                <td <?= $cssSw->getFullClass() ?>>
-                    <input type="checkbox" name="module_<?= $id ?>" <?= $module['activated'] ? ' checked="checked"' : '' ?>>
+                <td>
+                    <input type="checkbox" name="module_<?= $module['id'] ?>" <?= $module['activated'] ? ' checked="checked"' : '' ?>>
                 </td>
             </tr>
-            <?
-        }
-        ?>
-        <tr <? $cssSw->switchClass() ?>>
-        <td  <?= $cssSw->getFullClass() ?> colspan="2" align="middle">
-            <input type="hidden" name="username" value="<?= get_username($this->controller->user_id); ?>"/>
-            <?= makeButton("uebernehmen", "input", _("Änderungen übernehmen")) ?>&nbsp;
-        </td>
-        </tr>
+        <? endforeach; ?>
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="2" align="middle">
+                    <?= Button::createAccept(_('Speichern'), 'submit') ?>
+                </td>
+            </tr>
+        </tfoot>
     </table>
 </form>

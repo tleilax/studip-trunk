@@ -17,7 +17,6 @@
 require_once 'app/controllers/authenticated_controller.php';
 require_once 'app/models/user.php';
 require_once 'lib/classes/UserManagement.class.php';
-require_once 'lib/classes/Institute.class.php';
 require_once 'vendor/email_message/blackhole_message.php';
 
 /**
@@ -453,7 +452,7 @@ class Admin_UserController extends AuthenticatedController
             //get message
             $umdetails = explode('§', str_replace(array('msg§', 'info§', 'error§'), '', substr($um->msg, 0, -1)));
             $details = array_reverse(array_merge((array)$details,(array)$umdetails));          
-            PageLayout::postMessage(Messagebox::info(_('Hinweise:'), $details));
+            PageLayout::postMessage(MessageBox::info(_('Hinweise:'), $details));
         }
 
         //get user informations
@@ -658,7 +657,7 @@ class Admin_UserController extends AuthenticatedController
             } else {
                 //get message
                 $details = explode('§', str_replace(array('msg§', 'info§', 'error§'), '', substr($UserManagement->msg, 0, -1)));
-                PageLayout::postMessage(Messagebox::error(_('Der Benutzer konnte nicht angelegt werden.'), $details));
+                PageLayout::postMessage(MessageBox::error(_('Der Benutzer konnte nicht angelegt werden.'), $details));
             }
         }
 
@@ -751,10 +750,12 @@ class Admin_UserController extends AuthenticatedController
     {
         $UserManagement = new UserManagement($user_id);
         if ($UserManagement->setPassword()) {
-            PageLayout::postMessage(Messagebox::success(_('Das Passwort wurde neu gesetzt.')));
+            // mail address did not change, so skip this check
+            $GLOBALS['MAIL_VALIDATE_BOX'] = false;
+            PageLayout::postMessage(MessageBox::success(_('Das Passwort wurde neu gesetzt.')));
         } else {
             $details = explode('§', str_replace(array('msg§', 'info§', 'error§'), '', substr($UserManagement->msg, 0, -1)));
-            PageLayout::postMessage(Messagebox::error(_('Die Änderungen konnten nicht gespeichert werden.'), $details));
+            PageLayout::postMessage(MessageBox::error(_('Die Änderungen konnten nicht gespeichert werden.'), $details));
         }
         $this->redirect('admin/user/edit/' . $user_id);
     }
@@ -769,9 +770,9 @@ class Admin_UserController extends AuthenticatedController
         $db = DBManager::get()->prepare("UPDATE auth_user_md5 SET locked = 0, lock_comment = NULL, locked_by = NULL WHERE user_id = ?");
         $db->execute(array($user_id));
         if ($db->rowCount() == 1) {
-            PageLayout::postMessage(Messagebox::success(_('Der Benutzer wurde erfolgreich entsperrt.')));
+            PageLayout::postMessage(MessageBox::success(_('Der Benutzer wurde erfolgreich entsperrt.')));
         } else {
-            PageLayout::postMessage(Messagebox::error(_('Der Benutzer konnte nicht entsperrt werden.')));
+            PageLayout::postMessage(MessageBox::error(_('Der Benutzer konnte nicht entsperrt werden.')));
         }
         $this->redirect('admin/user/edit/' . $user_id);
     }
@@ -810,7 +811,7 @@ class Admin_UserController extends AuthenticatedController
             UserModel::setInstitute($user_id, $institute_id, $values);
 
             //output
-            PageLayout::postMessage(Messagebox::success(_('Die Einrichtungsdaten des Benutzers wurden erfolgreich geändert.')));
+            PageLayout::postMessage(MessageBox::success(_('Die Einrichtungsdaten des Benutzers wurden erfolgreich geändert.')));
             $this->redirect('admin/user/edit/' . $user_id);
         }
 

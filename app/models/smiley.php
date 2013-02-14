@@ -1,6 +1,5 @@
 <?php
 require_once 'app/models/smiley_favorites.php';
-require_once 'lib/classes/SmileyFormat.php';
 
 /**
  * smiley.php - model class for a smiley
@@ -24,6 +23,8 @@ class Smiley
     const FETCH_ALL = 0;
     const FETCH_ID  = 1;
 
+    private static $shortnames = null;
+
     public $id          = null;
     public $name        = '';
     public $width       = 0;
@@ -37,7 +38,7 @@ class Smiley
 
     /**
      * Returns the absolute filename of a smiley.
-     * 
+     *
      * @param  mixed  $name Smiley name, defaults to current smiley's name
      * @return String Absolute filename
      */
@@ -48,7 +49,7 @@ class Smiley
 
     /**
      * Returns the url of a smiley.
-     * 
+     *
      * @param  mixed  $name Smiley name, defaults to current smiley's name
      * @return String URL
      */
@@ -59,7 +60,7 @@ class Smiley
 
     /**
      * Returns the HTML image tag of the smiley
-     * 
+     *
      * @param  mixed  $tooltip Tooltip to display for this smiley, defaults to
      *                         smiley's name
      * @return String HTML image tag
@@ -69,10 +70,10 @@ class Smiley
     {
         return self::img($this->name, $tooltip, $this->width, $this->height);
     }
-    
+
     /**
      * Returns the HTML image tag of any smiley.
-     * 
+     *
      * @param  String $name    Name of the smiley
      * @param  mixed  $tooltip Tooltip to display for this smiley, defaults to
      *                         smiley's name
@@ -89,7 +90,7 @@ class Smiley
     /**
      * Returns the smiley object with the given id. If no such object is
      * available, an empty object is returned.
-     * 
+     *
      * @param  int    $id Id of the smiley to load
      * @return Smiley Smiley object
      */
@@ -101,7 +102,7 @@ class Smiley
 
     /**
      * Returns a collection smiley objects with the given ids.
-     * 
+     *
      * @param  mixed $ids Ids of the smileys to load, also accepts an atomic id
      * @return Array Array of Smiley objects
      */
@@ -121,8 +122,8 @@ class Smiley
 
     /**
      * Returns the smiley object with the given name. If no such object is
-     * available, an empty object is returned 
-     * 
+     * available, an empty object is returned
+     *
      * @param  String $name Name of the smiley to load
      * @return Smiley Smiley object
      */
@@ -139,8 +140,8 @@ class Smiley
 
     /**
      * Returns the smiley object with the given short notation. If no such
-     * object is available, an empty object is returned 
-     * 
+     * object is available, an empty object is returned
+     *
      * @param  String $short Short notation of the smiley to load
      * @return Smiley Smiley object
      */
@@ -154,8 +155,8 @@ class Smiley
 
     /**
      * Removes a smiley or a collection of smileys from the database.
-     * 
-     * @param  mixed  $id Id(s) to delete, accepts either an atomic id or an 
+     *
+     * @param  mixed  $id Id(s) to delete, accepts either an atomic id or an
      *                    array of ids
      */
     static function Remove($id)
@@ -171,7 +172,7 @@ class Smiley
     }
 
     /**
-     * Stores the current smiley to database. 
+     * Stores the current smiley to database.
      */
     function store()
     {
@@ -332,11 +333,14 @@ class Smiley
      */
     static function getShort()
     {
-        if (class_exists('DBManager')) {
-            $query = "SELECT short_name, smiley_name FROM smiley WHERE short_name != ''";
-            $short = DBManager::get()->query($query)->fetchGrouped(PDO::FETCH_COLUMN);
+        if (class_exists('DBManager') && !$GLOBALS['SMILEY_NO_DB']) {
+            if (self::$shortnames === null) {
+                $query = "SELECT short_name, smiley_name FROM smiley WHERE short_name != ''";
+                self::$shortnames = DBManager::get()->query($query)->fetchGrouped(PDO::FETCH_COLUMN);
+            }
+            return self::$shortnames;
         } else { // Unit test
-            $short = $GLOBALS['SMILE_SHORT'];
+            $short = (array)$GLOBALS['SMILE_SHORT'];
         }
 
         return $short;
@@ -373,7 +377,6 @@ class Smiley
         // Tabellen, die nach Smileys durchsucht werden sollen
         // Format: array( array (Tabelle, Feld), array (Tabelle, Feld), ... )
         $table_data = array(
-            array('guestbook', 'content'),
             array('datafields_entries','content'),
             array('kategorien', 'content'),
             array('message', 'message'),
@@ -383,21 +386,30 @@ class Smiley
             array('user_info', 'lebenslauf'),
             array('user_info', 'publi'),
             array('user_info', 'schwerp'),
-            array('px_topics', 'description'),
             array('wiki', 'body')
         );
+
+        // add tables from ForumModules to count for
+        foreach (PluginEngine::getPlugins('ForumModule') as $plugin) {
+            $table = $plugin->getEntryTableInfo();
+            $table_data[] = array($table['table'], $table['content']);
+        }
 
         // search in all tables
         $usage = array();
         foreach ($table_data as $table) {
-            $query = "SELECT ? AS txt FROM ?"; // $table1, $table0
+            // only fetch entries which have some content, otherwise the while-loop will fail
+            $query = "SELECT ? AS txt FROM ? WHERE LENGTH(?) > 0"; // $table1, $table0
             if ($table[0] == 'wiki') {  // only the actual wiki page ...
                 $sqltxt = "SELECT MAX(CONCAT(LPAD(version, 5, '0'),' ', ?)) AS txt FROM ? GROUP BY range_id, keyword";
             }
+
             $statement = DBManager::get()->prepare($query);
             $statement->bindParam(1, $table[1], StudipPDO::PARAM_COLUMN);
             $statement->bindParam(2, $table[0], StudipPDO::PARAM_COLUMN);
+            $statement->bindParam(3, $table[1], StudipPDO::PARAM_COLUMN);
             $statement->execute(array());
+
             // and all entrys
             while ($txt = $statement->fetchColumn()) {
                 // extract all smileys
@@ -450,7 +462,7 @@ class Smiley
 
         foreach ($smileys as $smiley) {
             $updated = $usage[$smiley->name];
-            if (!isset($updated) 
+            if (!isset($updated)
                 && $smiley->count + $smiley->short_count + $smiley->fav_count > 0)
             {
                 $smiley->count       = 0;

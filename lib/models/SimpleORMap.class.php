@@ -118,47 +118,26 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
                                               'after_delete' => array(),
                                               'after_initialize' => array());
 
+    /**
+     * contains an array of all used identifiers for fields
+     * (db columns + aliased columns + additional columns + relations)
+     * @var array
+     */
     protected $known_slots = array();
 
+    /**
+     * reserved indentifiers, fields with those names must not have an explicit getXXX() method 
+     * @var array
+     */
     protected $reserved_slots = array('value','newid','iterator','tablemetadata', 'relationvalue','wherequery','relationoptions','data','new','id');
 
-    protected static $autoload_paths = array();
-
-    public static function registerAutoloadPath($path)
-    {
-        self::$autoload_paths[] = realpath($path);
-        if (count(self::$autoload_paths) === 1) {
-            spl_autoload_register(array(self, 'autoload'));
-        }
-    }
-
-    public static function unregisterAutoloadPath($path)
-    {
-        $i = array_search(realpath($path), self::$autoload_paths);
-        if ($i !== false) {
-            unset(self::$autoload_paths[$i]);
-            if (count(self::$autoload_paths) === 0) {
-                spl_autoload_unregister(array(self, 'autoload'));
-            }
-        }
-    }
-
-    public static function autoload($class)
-    {
-        foreach (self::$autoload_paths as $path) {
-            $file =  $path . DIRECTORY_SEPARATOR . $class . '.class.php';
-            if (file_exists($file)) {
-                require $file;
-                return true;
-            }
-        }
-    }
-
     /**
-     * fetch table metadata from db ro from local cache
+     * fetch table metadata from db or from local cache
+     * 
      * @param string $db_table
+     * @return bool true if metadata could be fetched
      */
-    protected static function TableScheme($db_table)
+    protected static function tableScheme($db_table)
     {
         if (self::$schemes === null) {
             $cache = StudipCacheFactory::getCache();
@@ -269,6 +248,15 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
         }
     }
 
+    /**
+     * generate SimpleORMap object structure from assoc array
+     * if given array contains data of related objects in sub-arrays
+     * they are also generated. Existing records are updated, new records are created
+     * (but changes are not yet stored)
+     * 
+     * @param array $data
+     * @return SimpleORMap
+     */
     public static function import($data)
     {
         $class = get_called_class();
@@ -537,6 +525,9 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
     }
 
     /**
+     * constructor, give primary key of record as param to fetch
+     * corresponding record from db if available, if not preset primary key
+     * with given value. Give null to create new record
      *
      * @param mixed $id primary key of table
      */
@@ -584,7 +575,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
      * @param string $type
      * @param string $name
      * @param array $options
-     * @throws Exception
+     * @throws Exception if options for thru_table could not be determined
      * @return array
      */
     protected function parseRelationOptions($type, $name, $options) {
@@ -696,6 +687,9 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
         return $options;
     }
 
+    /**
+     * restore table metadata from db or cache
+     */
     protected function getTableScheme()
     {
         if(self::TableScheme($this->db_table)) {
@@ -732,7 +726,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
     /**
      * set primary key for entry, combined keys must be passed as array
      * @param string|array primary key
-     * @throws InvalidArgumentException
+     * @throws InvalidArgumentException if given key is not complete
      * @return boolean
      */
     function setId($id)
@@ -839,8 +833,11 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
 
     /**
      * returns value of a column
+     * 
+     * @throws InvalidArgumentException if column could not be found
+     * @throws BadMethodCallException if getter for additional field could not be found
      * @param string $field
-     * @return null|string
+     * @return null|string|SimpleORMapCollection
      */
     function getValue($field)
     {
@@ -860,7 +857,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
                 } elseif (method_exists($this, $this->additional_fields[$field]['get'])) {
                     return call_user_func(array($this, $this->additional_fields[$field]['get']), $field);
                 } else {
-                    throw new MethodNotAllowedException('Did not find getter for' . $field);
+                    throw new BadMethodCallException('Did not find getter for' . $field);
                 }
             }
         } else {
@@ -875,7 +872,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
      *
      * @param string $relation name of relation
      * @param string $field name of column
-     * @throws InvalidArgumentException
+     * @throws InvalidArgumentException if no relation with given name is found
      * @return mixed the value from the related object
      */
     function getRelationValue($relation, $field)
@@ -891,6 +888,9 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
 
     /**
      * sets value of a column
+     * 
+     * @throws InvalidArgumentException if column could not be found
+     * @throws BadMethodCallException if setter for additional field could not be found
      * @param string $field
      * @param string $value
      * @return string
@@ -911,7 +911,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
                  } elseif (method_exists($this, $this->additional_fields[$field]['set'])) {
                      return call_user_func(array($this, $this->additional_fields[$field]['set']), $field, $value);
                  } else {
-                     throw new MethodNotAllowedException('Did not find setter for' . $field);
+                     throw new BadMethodCallException('Did not find setter for' . $field);
                  }
              } elseif (array_key_exists($field, $this->relations)) {
                  $options = $this->getRelationOptions($field);
@@ -1199,6 +1199,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
     /**
      * store entry in database
      *
+     * @throws UnexpectedValueException if there are forbidden NULL values
      * @return number|boolean
      */
     function store()
@@ -1215,7 +1216,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
                         return false;
                     }
                 } else {
-                    if ($this->applyCallbacks('before_update')=== false) {
+                    if ($this->applyCallbacks('before_update') === false) {
                         return false;
                     }
                 }
@@ -1225,8 +1226,10 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
                         $value = time();
                     }
                     if ($field == 'mkdate') {
-                        if($this->isNew()) {
-                            $value = time();
+                        if ($this->isNew()) {
+                            if (!$this->isFieldDirty($field)) {
+                                $value = time();
+                            }
                         } else {
                             continue;
                         }
@@ -1405,6 +1408,8 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
 
     /**
      * init internal content arrays with nulls
+     * 
+     * @throws UnexpectedValueException if there is an unmatched alias
      */
     protected function initializeContent()
     {
@@ -1470,7 +1475,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
      * intitalize a relationship and get related record(s)
      *
      * @param string $relation name of relation
-     * @throws InvalidArgumentException
+     * @throws InvalidArgumentException if the relation does not exists
      * @return void
      */
     public function initRelation($relation)
@@ -1506,7 +1511,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
      * clear data for a relationship
      *
      * @param string $relation name of relation
-     * @throws InvalidArgumentException
+     * @throws InvalidArgumentException if teh relation does not exists
      */
     public function resetRelation($relation)
     {
@@ -1549,7 +1554,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
      *
      * @param string|array $types types to register callback for
      * @param mixed $cb callback
-     * @throws InvalidArgumentException
+     * @throws InvalidArgumentException if the callback type is not known
      * @return number of registered callbacks
      */
     protected function registerCallback($types, $cb)
@@ -1571,7 +1576,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
      *
      * @param string|array $types types to unregister callback for
      * @param mixed $cb
-     * @throws InvalidArgumentException
+     * @throws InvalidArgumentException if the callback type is not known
      * @return number of unregistered callbacks
      */
     protected function unregisterCallback($types, $cb)

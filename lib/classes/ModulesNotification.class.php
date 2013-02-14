@@ -35,7 +35,6 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // +---------------------------------------------------------------------------+
 
-require_once 'lib/classes/Modules.class.php';
 require_once 'lib/meine_seminare_func.inc.php';
 require_once 'lib/deputies_functions.inc.php';
 
@@ -250,15 +249,6 @@ class ModulesNotification extends Modules {
     function getModuleText ($m_name, $range_id, $r_data, $range) {
         $text = '';
         switch ($m_name) {
-            case 'forum' :
-                if ($r_data['neuepostings'] > 1) {
-                    $text = sprintf(_("%s neue Beiträge im Forum:"), $r_data['neuepostings']);
-                } else if ($r_data['neuepostings'] > 0) {
-                    $text = _("1 neuer Beitrag im Forum:");
-                }
-                $redirect = '&redirect_to=forum.php&view=neue&sort=age';
-                $icon = "icons/16/blue/forum.png";
-                break;
             case 'participants' :
                 if ($r_data['new_accepted_participants'] > 1) {
                     $text = sprintf(_("%s neue vorläufige TeilnehmerInnen, "), $r_data['newparticipants']);

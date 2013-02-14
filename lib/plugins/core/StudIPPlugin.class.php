@@ -58,20 +58,48 @@ abstract class StudIPPlugin {
     }
 
     /**
+     * Checks if the plugin is a core-plugin. Returns true if this is the case.
+     * 
+     * @return booelan
+     */
+    public function isCorePlugin()
+    {
+       return $this->plugin_info['core'];
+    }
+    
+    /**
      * Get the activation status of this plugin in the given context.
      * This also checks the plugin default activations.
      *
      * @param $context   context range id (optional)
+     * @param $type      type of activation (optional), can be set to 'user'
+     *                   in order to point to a homepage plugin
      */
-    public function isActivated($context = NULL) {
+    public function isActivated($context = null, $type = 'sem') {
+        global $user;
+
         $plugin_id = $this->getPluginId();
         $plugin_manager = PluginManager::getInstance();
 
+        /*
+         * Context can be a Seminar ID or the current user ID if not set.
+         * Identification is done via the "username" parameter.
+         */
         if (!isset($context)) {
-            $context = $_SESSION['SessionSeminar'];
+            if ($type == 'user') {
+                $context = get_userid(Request::username('username', $user->username));
+            } else {
+                $context = $_SESSION['SessionSeminar'];
+            }
         }
 
-        return $plugin_manager->isPluginActivated($plugin_id, $context);
+        if ($type == 'user') {
+            $activated = $plugin_manager->isPluginActivatedForUser($plugin_id, $context);
+        } else {
+            $activated = $plugin_manager->isPluginActivated($plugin_id, $context);
+        }
+
+        return $activated;
     }
 
     /**

@@ -11,10 +11,8 @@ unregister_globals();
 
 page_open(array("sess" => "Seminar_Session", "auth" => "Seminar_Auth", "perm" => "Seminar_Perm", "user" => "Seminar_User"));
 $perm->check("admin");
-require_once ('lib/classes/SemesterData.class.php');
 require_once ('lib/dbviews/literatur.view.php');
 require_once ('lib/classes/StudipLitCatElement.class.php');
-require_once ('lib/classes/StudipLitSearch.class.php');
 
 require_once ('lib/visual.inc.php');
 require_once ('config.inc.php');

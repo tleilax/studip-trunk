@@ -67,7 +67,7 @@ class StudipKing {
 
             # read cache (unserializing a cache miss - FALSE - does not matter)
             $kings = unserialize($cache->read(self::CACHE_KEY));
-
+            
             # cache miss, retrieve from database
             if ($kings === FALSE) {
                 $kings = self::get_kings_uncached();
@@ -81,7 +81,7 @@ class StudipKing {
 
     private static function get_kings_uncached()
     {
-        $types = words('files forum guestbook_entry guestbook_writer news voter votes wiki');
+        $types = words('files forum news voter votes wiki');
         $kings = array();
         foreach ($types as $type) {
             $method = "{$type}_kings";
@@ -112,22 +112,28 @@ class StudipKing {
 
     private static function forum_kings()
     {
-        return self::select_kings("SELECT user_id AS id, COUNT(*) AS num FROM px_topics WHERE parent_id != '0' GROUP BY user_id");
+        $kings = array();
+
+        // sum up postings for all users from all ForumModules available
+        foreach (PluginEngine::getPlugins('ForumModule') as $plugin) {
+            $table = $plugin->getEntryTableInfo();
+            $query = "SELECT user_id AS id, COUNT(*) AS num FROM ". $table['table'] ." GROUP BY user_id";
+            $new_kings = self::select_kings($query);
+            foreach ($new_kings as $user_id => $num) {
+                if (!isset($kings[$user_id])) {
+                    $kings[$user_id] = $num;
+                } else {
+                    $kings[$user_id] += $num;
+                }
+            }
+        }
+        
+        return $kings;
     }
 
     private static function files_kings()
     {
         return self::select_kings("SELECT user_id AS id, COUNT(*) AS num FROM dokumente GROUP BY user_id");
-    }
-
-    private static function guestbook_entry_kings()
-    {
-        return self::select_kings("SELECT range_id AS id, COUNT(*) AS num FROM guestbook GROUP BY range_id");
-    }
-
-    private static function guestbook_writer_kings()
-    {
-        return self::select_kings("SELECT user_id AS id, COUNT(*) AS num FROM guestbook GROUP BY user_id");
     }
 
     private static function votes_kings()
@@ -153,8 +159,6 @@ class StudipKing {
             'files'            => "%d hochgeladene Dateien",
             'forum'            => "%d Forums-Beiträge",
             'wiki'             => "%d Wiki-Beiträge",
-            'guestbook_writer' => "%d geschriebene Gästebucheinträge",
-            'guestbook_entry'  => "%d bekommene Gästebucheinträge",
             'voter'            => "%d abgegebene Stimmen",
             'votes'            => "%d bekommene Stimmen",
             'news'             => "%d eingestellte Ankündigungen"

@@ -20,9 +20,6 @@
 require '../lib/bootstrap.php';
 
 unregister_globals();
-require_once 'lib/classes/CourseAvatar.class.php';
-require_once 'lib/classes/StudygroupAvatar.class.php';
-require_once 'lib/classes/InstituteAvatar.class.php';
 
 page_open(array("sess" => "Seminar_Session", "auth" => "Seminar_Auth", "perm" => "Seminar_Perm", "user" => "Seminar_User"));
 $perm->check("user");
@@ -90,12 +87,10 @@ require_once ('lib/visual.inc.php');            // htmlReady fuer die Veranstalt
 require_once ('lib/dates.inc.php');         // Semester-Namen fuer Admins
 require_once ('lib/admission.inc.php');     // Funktionen der Teilnehmerbegrenzung
 require_once ('lib/messaging.inc.php');
-require_once ('lib/classes/Modules.class.php'); // modul-config class
 require_once ('lib/classes/ModulesNotification.class.php');
 require_once ('lib/statusgruppe.inc.php');      // Funktionen für Statusgruppen
 require_once ('lib/object.inc.php');
 require_once ('lib/meine_seminare_func.inc.php');
-require_once ('lib/classes/LockRules.class.php');
 
 $deputies_enabled = get_config('DEPUTIES_ENABLE');
 $default_deputies_enabled = get_config('DEPUTIES_DEFAULTENTRY_ENABLE');
@@ -399,28 +394,33 @@ if ($auth->is_authenticated() && $user->id != "nobody" && !$perm->have_perm("adm
     // Nasty place for an action but since we don't have a model, this is the
     // perfect place to grab all object ids
     if (Request::option('action') === 'tabularasa') {
+        // Extract timestamp from request
+        $timestamp = Request::int('timestamp', time());
+        
         // load plugins, so they have a chance to register themselves as observers
         PluginEngine::getPlugins('StandardPlugin');
 
         NotificationCenter::postNotification('OverviewWillClear', $GLOBALS['user']->id);
 
-        $query = "INSERT INTO object_user_visits "
-               .   "(object_id, user_id, type, visitdate, last_visitdate) "
-               . "("
-               .  "SELECT news_id, ?, ?, UNIX_TIMESTAMP(), UNIX_TIMESTAMP() "
-               .   "FROM news_range "
-               .   "WHERE range_id = ? "
-               . ") UNION ("
-               .   "SELECT vote_id, ?, ?, UNIX_TIMESTAMP(), UNIX_TIMESTAMP() "
-               .   "FROM vote "
-               .   "WHERE range_id = ?"
-               . ") UNION ("
-               .   "SELECT eval_id, ?, ?, UNIX_TIMESTAMP(), UNIX_TIMESTAMP() "
-               .   "FROM eval_range "
-               .   "WHERE range_id = ?"
-               . ") "
-               . "ON DUPLICATE KEY UPDATE visitdate = UNIX_TIMESTAMP()";
+        $query = "INSERT INTO object_user_visits
+                    (object_id, user_id, type, visitdate, last_visitdate)
+                  (
+                    SELECT news_id, :user_id, 'news', :timestamp, 0
+                    FROM news_range
+                    WHERE range_id = :id
+                  ) UNION (
+                    SELECT vote_id, :user_id, 'vote', :timestamp, 0
+                    FROM vote
+                    WHERE range_id = :id
+                  ) UNION (
+                    SELECT eval_id, :user_id, 'eval', :timestamp, 0
+                    FROM eval_range
+                    WHERE range_id = :id
+                  )
+                  ON DUPLICATE KEY UPDATE last_visitdate = IFNULL(visitdate, 0), visitdate = :timestamp";
         $statement = DBManager::get()->prepare($query);
+        $statement->bindValue('user_id', $GLOBALS['user']->id);
+        $statement->bindValue('timestamp', $timestamp);
 
         foreach ($my_obj as $id => $object) {
             // Update all activated modules
@@ -430,12 +430,9 @@ if ($auth->is_authenticated() && $user->id != "nobody" && !$perm->have_perm("adm
                 }
             }
 
-            // Update news and votes
-            $statement->execute(array(
-                $GLOBALS['auth']->auth['uid'], 'news', $id,
-                $GLOBALS['auth']->auth['uid'], 'vote', $id,
-                $GLOBALS['auth']->auth['uid'], 'eval', $id,
-             ));
+            // Update news, votes and evaluations
+            $statement->bindValue('id', $id);
+            $statement->execute();
 
             // Update object itself
             object_set_visit($id, $object['obj_type']);
@@ -443,7 +440,7 @@ if ($auth->is_authenticated() && $user->id != "nobody" && !$perm->have_perm("adm
 
         NotificationCenter::postNotification('OverviewDidClear', $GLOBALS['user']->id);
 
-        // PageLayout::postMessage(Messagebox::success(_('Alle Markierungen wurden entfernt')));
+        // PageLayout::postMessage(MessageBox::success(_('Alle Markierungen wurden entfernt')));
         page_close();
 
         header('Location: ' . URLHelper::getURL());
@@ -557,9 +554,10 @@ if ($auth->is_authenticated() && $user->id != "nobody" && !$perm->have_perm("adm
 
     // Only display link to "mark all as read" if there is anything new
     if (count(array_filter($temp))) {
-        $infobox[count($infobox) - 1]['eintrag'][] = array(
+        $url = URLHelper::getURL('?action=tabularasa&timestamp=' . time());
+        $infobox[0]['eintrag'][] = array(
             'icon' => 'icons/16/black/refresh.png',
-            'text' => '<a href="' . URLHelper::getURL('?action=tabularasa') . '">'
+            'text' => '<a href="' . $url . '">'
                     . _('Alles als gelesen markieren')
                     . '</a>',
         );

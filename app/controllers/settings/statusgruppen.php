@@ -33,7 +33,6 @@ class Settings_StatusgruppenController extends Settings_SettingsController
         parent::before_filter($action, $args);
 
         require_once 'lib/statusgruppe.inc.php';
-        require_once 'lib/classes/Statusgruppe.class.php';
 
         PageLayout::setHelpKeyword('Basis.HomepageUniversitäreDaten');
         PageLayout::setTitle(_('Einrichtungsdaten bearbeiten'));
@@ -342,7 +341,7 @@ class Settings_StatusgruppenController extends Settings_SettingsController
                 if (($status != $perms) && in_array($status, $this->about->allowedInstitutePerms())) {
                     $query = "UPDATE user_inst SET inst_perms = ? WHERE user_id = ? AND Institut_id = ?";
                     $statement = DBManager::get()->prepare($query);
-                    $stmt->execute(array(
+                    $statement->execute(array(
                         $status,
                         $this->user->user_id,
                         $id

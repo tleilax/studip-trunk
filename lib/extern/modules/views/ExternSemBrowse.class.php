@@ -41,7 +41,6 @@
 global $RELATIVE_PATH_CALENDAR;
 require_once('lib/classes/SemBrowse.class.php');
 require_once('lib/dates.inc.php');
-require_once('lib/classes/SemesterData.class.php');
 
 class ExternSemBrowse extends SemBrowse {
     
@@ -187,7 +186,7 @@ class ExternSemBrowse extends SemBrowse {
                  . "')$sem_inst_query $sem_range_query $sem_types_query";
             
             $db = new DB_Seminar($query);
-            $snap = new DbSnapShot($db);
+            $snap = new DbSnapshot($db);
             if (isset($args['group']) && $args['group'] >= 0 && $args['group'] < 5) {
                 $this->sem_browse_data['group_by'] = $args['group'];
             }

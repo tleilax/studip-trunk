@@ -35,7 +35,7 @@ class Course_PlusController extends AuthenticatedController
 
         PageLayout::setTitle(_("Verwaltung verwendeter Inhaltselemente und Plugins"));
 
-        $id = $range_id ? $range_id : $_SESSION['SessionSeminar'];
+        $id = $range_id ?: $_SESSION['SessionSeminar'];
 
         if (!$id) {
             include 'lib/include/html_head.inc.php';
@@ -62,6 +62,12 @@ class Course_PlusController extends AuthenticatedController
         $this->available_plugins = PluginEngine::getPlugins('StandardPlugin');
         $this->modules           = new AdminModules();
         $this->save_url          = "?";
+        
+        // for institutes we do not have any seminar-classes. We have to remove
+        // the default-module 'forum' and let the (core-)plugins handle it
+        if ($object_type != 'sem') {
+            unset($this->modules->registered_modules['forum']);
+        }
 
         if (!Request::submitted('uebernehmen')) {
             $_SESSION['admin_modules_data']["modules_list"] = $this->modules->getLocalModules($id);
@@ -233,14 +239,9 @@ class Course_PlusController extends AuthenticatedController
                 $_SESSION['plugin_toggle'] = array();
             }
             if( $changes ){
-                $_SESSION['admin_modules_data']['msg'] = 'msg§'._('Die veränderte Konfiguration wurde übernommen.');
-                header('Location: ' . URLHelper::getURL());
-                page_close();
-                die();
+                PageLayout::postMessage(MessageBox::success(_('Die veränderte Konfiguration wurde übernommen.')));
+                $this->redirect('course/plus');
             }
         }
     }
-
-
-
 }

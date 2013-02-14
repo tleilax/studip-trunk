@@ -68,10 +68,15 @@ class Admin_SemClassesController extends AuthenticatedController
             'CoreCalendar' => array('id' => "CoreCalendar", 'name' => _("Kern-Kalender"), 'enabled' => true),
             'CoreElearningInterface' => array('id' => "CoreElearningInterface", 'name' => _("Kern-Lernmodule"), 'enabled' => true)
         );
+
         $plugin_infos = PluginManager::getInstance()->getPluginInfos("StandardPlugin");
+
         foreach ($plugin_infos as $plugin_info) {
-            $modules[$plugin_info['class']] = $plugin_info;
+            if (!$plugin_info['core']) {
+                $modules[$plugin_info['class']] = $plugin_info;
+            }
         }
+
         $this->modules = $modules;
         $this->sem_class = $GLOBALS['SEM_CLASS'][Request::get("id")];
         $this->overview_url = $this->url_for("admin/sem_classes/overview");
@@ -108,7 +113,7 @@ class Admin_SemClassesController extends AuthenticatedController
         $sem_class->set('course_creation_forbidden', Request::int("course_creation_forbidden"));
         $sem_class->store();
         $output = array(
-            'html' => studip_utf8encode((string) MessageBox::success(_("Änderungen wurden gespeichert.")))
+            'html' => studip_utf8encode((string) MessageBox::success(_("Änderungen wurden gespeichert."." ".'<a href="'.URLHelper::getLink("dispatch.php/admin/sem_classes/overview").'">'._("Zurück zur Übersichtsseite.").'</a>')))
         );
         echo json_encode($output);
         $this->render_nothing();
