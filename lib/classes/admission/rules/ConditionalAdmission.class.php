@@ -229,6 +229,7 @@ class ConditionalAdmission extends AdmissionRule
      * @return AdmissionRule This object.
      */
     public function setAllData($data) {
+        ConditionField::getAvailableConditionFields();
         parent::setAllData($data);
         foreach ($data['conditions'] as $condition) {
             $this->addCondition(unserialize($condition));

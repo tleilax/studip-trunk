@@ -21,7 +21,6 @@ class Conditions_ConditionController extends AuthenticatedController {
     }
 
     public function configure_action($conditionId='') {
-        $this->conditionFields = ConditionField::getAvailableConditionFields();
         if ($conditionId) {
             $this->condition = new StudipCondition($conditionId);
         }

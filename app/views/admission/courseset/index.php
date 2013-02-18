@@ -33,9 +33,11 @@ $infobox = array('content' => $infobox,
 if ($coursesets) {
 ?>
 <div id="coursesets">
-    <?php foreach ($coursesets as $courseset) { ?>
-        
-    <?php } ?>
+    <?php
+    foreach ($coursesets as $courseset) {
+        echo $courseset->toString();
+    }
+    ?>
 </div>
 <?php
 } else {

@@ -39,9 +39,14 @@ $infobox = array('content' => $infobox,
     <div style="width: 80%; padding: 10px;" class="table_row_<?= TextHelper::cycle('even', 'odd'); ?>">
         <div align="right" style="display: inline-block; vertical-align: top; width: 20%; font-weight: bold;"><?= _('Einrichtungszuordnung:') ?></div>
         <div style="display: inline-block; vertical-align: top;">
-            <?php foreach ($this->myInstitutes as $institute) { ?>
-            <input type="checkbox" name="institutes[]" value="<?= $institute['Institut_id'] ?>"/> <?= $institute['Name'] ?><br/>
-            <?php } ?>
+        <?php foreach ($myInstitutes as $institute) { ?>
+        <input type="checkbox" name="institutes[]" value="<?= $institute['Institut_id'] ?>"
+            <?= $selectedInstitutes[$institute['Institut_id']] ? 'checked="checked"' : '' ?>
+            class="institute" onclick="STUDIP.Admission.getCourses('institute', 'instcourses', 
+            '<?= $controller->url_for('admission/courseset/instcourses') ?>')"/>
+            <?= $institute['Name'] ?>
+        <br/>
+        <?php } ?>
         </div>
     </div>
     <div style="width: 80%; padding: 10px;" class="table_row_<?= TextHelper::cycle('even', 'odd'); ?>">
@@ -49,11 +54,11 @@ $infobox = array('content' => $infobox,
         <div style="display: inline-block; vertical-align: top;" id="rules">
             <?php if ($courseset) { ?>
             <div id="rulelist">
-                <?php foreach ($courseset->getAdmissionRules() as $rule) { ?>
-                <div class="rule" id="rule_<?= $rule->getId() ?>">
-                    <input type="checkbox" name="rules[]" value="<?= $rule->getId() ?>"/><?= $rule->getName() ?><br/>
-                </div>
-                <?php } ?>
+                <?php
+                foreach ($courseset->getAdmissionRules() as $rule) {
+                    echo $this->render_partial('admission/rule/add', array('rule' => $rule));
+                }
+                ?>
             </div>
             <?php } else { ?>
                 <span id="norules">
@@ -70,7 +75,7 @@ $infobox = array('content' => $infobox,
     </div>
     <div style="width: 80%; padding: 10px;" class="table_row_<?= TextHelper::cycle('even', 'odd'); ?>">
         <div align="right" style="display: inline-block; vertical-align: top; width: 20%; font-weight: bold;"><?= _('Veranstaltungszuordnung:') ?></div>
-        <div style="display: inline-block; vertical-align: top;" id="inst_courses">
+        <div style="display: inline-block; vertical-align: top;" id="instcourses">
             <?php
             if ($courseset) {
                 $courseIds = $courseset->getCourses();

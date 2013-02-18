@@ -15,6 +15,9 @@
  * @category    Stud.IP
  */
 
+require_once('lib/classes/admission/AdmissionRule.class.php');
+require_once('lib/classes/admission/ConditionField.class.php');
+
 class CourseSet
 {
     // --- ATTRIBUTES ---
@@ -125,7 +128,7 @@ class CourseSet
     }
 
     /**
-     * Adds several institute IDs.
+     * Adds several institute IDs to the existing institute assignments.
      * 
      * @param  Array newIds
      * @return CourseSet
@@ -166,6 +169,11 @@ class CourseSet
             $valid = $valid && $rule->ruleApplies($userId, $courseId);
         }
         return $valid;
+    }
+
+    public function clearAdmissionRules() {
+        $this->admissionRules = array();
+        return $this;
     }
 
     /**
@@ -268,6 +276,19 @@ class CourseSet
     }
 
     /**
+     * Gets all courses belonging to the given course set ID.
+     * 
+     * @param String $courseSetId
+     * @return Array
+     */
+    public static function getCoursesByCourseSetId($courseSetId) {
+        $stmt = DBManager::get()->prepare("SELECT seminar_id FROM `seminar_courseset`
+            WHERE courseset_id=?");
+        $stmt->execute(array($courseSetId));
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
      * Gets all course sets belonging to the given institute ID.
      * 
      * @param String $instituteId
@@ -291,12 +312,12 @@ class CourseSet
     }
 
     /**
-     * Which institute does the rule belong to?
+     * Which institutes does the rule belong to?
      * 
      * @return Array
      */
-    public function getInstitutIds() {
-        return $this->institutIds;
+    public function getInstituteIds() {
+        return $this->institutes;
     }
 
     /**
@@ -468,6 +489,21 @@ class CourseSet
     }
 
     /**
+     * Adds several institute IDs after clearing the existing institute
+     * assignments.
+     * 
+     * @param  Array newIds
+     * @return CourseSet
+     */
+    public function setInstitutes($newIds) {
+        $this->institutes = array();
+        foreach ($newIds as $newId) {
+            $this->addInstitute($newId);
+        }
+        return $this;
+    }
+
+    /**
      * Sets a new value for rule invalidation after seat distribution.
      * 
      * @param  boolean newValue
@@ -489,6 +525,7 @@ class CourseSet
     }
 
     public function store() {
+        global $user;
         // Generate new ID if course set doesn't exist in DB yet.
         if (!$this->id) {
             do {
@@ -500,14 +537,14 @@ class CourseSet
         }
         // Store basic data.
         $stmt = DBManager::get()->prepare("INSERT INTO `coursesets`
-            (`set_id`, `name`, `algorithm`, `invalidate_rules`,
+            (`set_id`, `user_id`, `name`, `algorithm`, `invalidate_rules`,
             `mkdate`, `chdate`)
             VALUES (?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE
             `name`=VALUES(`name`), `algorithm`=VALUES(`algorithm`), 
             `invalidate_rules`=VALUES(`invalidate_rules`),
             `chdate`=VALUES(`chdate`)");
-        $stmt->execute(array($this->id, $this->name,
-            $this->algorithm, $this->invalidateRules, time(), time()));
+        $stmt->execute(array($this->id, $user->id, $this->name,
+            get_class($this->algorithm), intval($this->invalidateRules), time(), time()));
         // Delete removed institute assignments from database.
         DBManager::get()->exec("DELETE FROM `courseset_institute` 
             WHERE `set_id`='".$this->id."' AND `institute_id` NOT IN ('".
@@ -546,20 +583,22 @@ class CourseSet
     }
 
     public function toString() {
-        $text = '';
-        $stmt = DBManager::get()->prepare("SELECT VeranstaltungsNummer, Name
-            FROM seminare
-            WHERE seminar_id IN ('".implode("', '", array_keys($this->courses))."')
-            ORDER BY VeranstaltungsNummer ASC, Name ASC");
-        $stmt->execute();
-        $text .= sprintf(_('Folgende Veranstaltungen gehören zum Anmeldeset "%s":'), $this->name)."\n";
-        while ($current = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $text .= $current['VeranstaltungsNummer']."\t".$current['Name']."\n";
+        $tpl = $GLOBALS['template_factory']->open('admission/courseset/display');
+        $tpl->set_attribute('courseset', $this);
+        $institutes = array();
+        foreach ($this->institutes as $id => $assigned) {
+            $current = new Institute($id);
+            $institutes[$id] = $current['Name'];
         }
-        foreach ($this->admissionRules as $rule) {
-            $text .= $rule->toString()."\n";
+        $tpl->set_attribute('institutes', $institutes);
+        $courses = array();
+        foreach ($this->courses as $id => $assigned) {
+            $current = new Seminar($id);
+            $name = ($current->getNumber() ? $current->getNumber().' | '.$current->getName() : $current->getName());
+            $courses[$id] = $name;
         }
-        return $text;
+        $tpl->set_attribute('courses', $courses);
+        return $tpl->render();
     }
 
 } /* end of class CourseSet */

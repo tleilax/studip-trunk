@@ -81,7 +81,7 @@ class LockedAdmission extends AdmissionRule
      */
     public function load() {
         $stmt = DBManager::get()->prepare("SELECT * FROM `lockedadmissions`
-            WHERE l.`rule_id`=? LIMIT 1");
+            WHERE `rule_id`=? LIMIT 1");
         $stmt->execute(array($this->id));
         if ($current = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $this->message = $current['message'];

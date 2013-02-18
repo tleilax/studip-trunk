@@ -95,7 +95,7 @@ class ToolsNavigation extends Navigation
         }
 
         if ($perm->have_perm('dozent')) {
-            $navigation = new Navigation(_('Anmeldesets'), 'dispatch.php/admission/courseset/overview');
+            $navigation = new Navigation(_('Anmeldesets'), 'dispatch.php/admission/courseset/index');
             $this->addSubNavigation('coursesets', $navigation);
         }
 

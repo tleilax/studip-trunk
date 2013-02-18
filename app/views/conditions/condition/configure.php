@@ -38,6 +38,6 @@ use Studip\Button, Studip\LinkButton;
         $('#startdate').datepicker();
         $('#enddate').datepicker();
     </script>
-    <?= Button::create(_('Übernehmen'), 'submit', array('onclick' => "STUDIP.Conditions.addCondition('conditionfields', 'conditions', '".$controller->url_for('conditions/condition/add')."');")) ?>
-    <?= Button::create(_('Abbrechen'), 'cancel', array('onclick' => '$("#condition").remove()')) ?>
+    <?= Button::createAccept(_('Übernehmen'), 'submit', array('onclick' => "STUDIP.Conditions.addCondition('conditionfields', 'conditions', '".$controller->url_for('conditions/condition/add')."');")) ?>
+    <?= Button::createCancel(_('Abbrechen'), 'cancel', array('onclick' => '$("#condition").remove()')) ?>
 </div>

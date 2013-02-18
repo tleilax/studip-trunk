@@ -1,17 +1,24 @@
 <?php
 
 require_once('app/controllers/authenticated_controller.php');
+require_once('app/models/courseset.php');
 require_once('lib/classes/Institute.class.php');
 require_once('lib/classes/admission/CourseSet.class.php');
+require_once('lib/classes/admission/RandomAlgorithm.class.php');
 
 class Admission_CoursesetController extends AuthenticatedController {
 
     public function before_filter(&$action, &$args) {
         parent::before_filter($action, $args);
-        $layout = $GLOBALS['template_factory']->open('layouts/base');
-        $this->set_layout($layout);
-        PageLayout::setTitle(_('Anmeldesets'));
-        Navigation::activateItem('/tools/coursesets');
+        if (Request::isXhr()) {
+            $this->via_ajax = true;
+            $this->set_layout(null);
+        } else {
+            $layout = $GLOBALS['template_factory']->open('layouts/base');
+            $this->set_layout($layout);
+            PageLayout::setTitle(_('Anmeldesets'));
+            Navigation::activateItem('/tools/coursesets');
+        }
         $institutes = Institute::getMyInstitutes();
         $this->myInstitutes = array();
         foreach ($institutes as $institute) {
@@ -23,31 +30,49 @@ class Admission_CoursesetController extends AuthenticatedController {
         PageLayout::addSqueezePackage('conditions');
     }
 
-    public function overview_action() {
+    public function index_action() {
         Navigation::activateItem('/tools/coursesets');
         $this->coursesets = array();
         foreach ($this->myInstitutes as $institute) {
-            $current = CourseSet::getCoursesetsByInstituteId($institute['Institut_id']);
-            if ($current) {
-                $courseset = new CourseSet($current['set_id']);
-                $this->coursesets[$current['set_id']] = $courseset;
+            $sets = CourseSet::getCoursesetsByInstituteId($institute['Institut_id']);
+            foreach ($sets as $set) {
+                $courseset = new CourseSet($set['set_id']);
+                $this->coursesets[$set['set_id']] = $courseset;
             }
         }
     }
 
     public function configure_action($coursesetId='') {
+        $this->selectedInstitutes = $this->myInstitutes;
         if ($coursesetId) {
             $this->courseset = new CourseSet($coursesetId);
+            $this->selectedInstitutes = $this->courseset->getInstituteIds();
         }
-        $this->instCourses = array();
-        $query = "SELECT seminar_inst.seminar_id, s.VeranstaltungsNummer, s.Name
-                  FROM seminar_inst
-                  LEFT JOIN seminare AS s ON (seminar_inst.seminar_id = s.Seminar_id)
-                  WHERE seminar_inst.Institut_id IN ('".
-                  implode("', '", array_keys($this->myInstitutes))."')
-                  ORDER BY s.start_time DESC, s.VeranstaltungsNummer ASC, s.Name ASC";
-        $stmt = DBManager::get()->query($query);
-        $this->courses = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $this->tree = TreeAbstract::getInstance('StudipRangeTree', array('visible_only' => 1));
+        $this->courses = CoursesetModel::getInstCourses($this->myInstitutes);
+    }
+
+    public function save_action($coursesetId='') {
+        if (Request::submitted('submit')) {
+            $courseset = new CourseSet($coursesetId);
+            $courseset->setName(Request::get('name'));
+            $institutes = Request::getArray('institutes');
+            $courseset->setInstitutes($institutes);
+            $courseset->clearAdmissionRules();
+            foreach (Request::getArray('rules') as $serialized) {
+                $rule = unserialize($serialized);
+                $courseset->addAdmissionRule($rule);
+            }
+            $algorithm = new RandomAlgorithm();
+            $courseset->setAlgorithm($algorithm);
+            $courseset->setInvalidateRules(false);
+            $courseset->store();
+        }
+        $this->redirect('admission/courseset');
+    }
+
+    public function instcourses_action() {
+        $this->courses = CoursesetModel::getInstCourses(array_flip(Request::getArray('institutes')));
     }
 
 }

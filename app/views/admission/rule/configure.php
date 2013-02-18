@@ -30,8 +30,9 @@ if (!$ruleType) {
 ?>
     <div style="width: 95%; padding: 5px;" class="table_row_<?= TextHelper::cycle('even', 'odd'); ?>" align="center">
         <input type="hidden" name="ruletype" value="<?= $ruleType ?>"/>
-        <?= Button::create(_('Speichern'), 'submit') ?>
-        <?= Button::create(_('Abbrechen'), 'cancel', array('onclick' => "$('#configurerule').remove()")) ?>
+        <input type="hidden" id="action" name="action" value=""/>
+        <?= Button::createAccept(_('Speichern'), 'submit') ?>
+        <?= Button::createCancel(_('Abbrechen'), 'cancel', array('onclick' => "$('#action').val(this.name)")) ?>
     </div>
 </form>
 <?php
