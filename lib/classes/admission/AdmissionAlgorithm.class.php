@@ -22,10 +22,10 @@ abstract class AdmissionAlgorithm
     /**
      * Runs an algorithm that distributes all seats in the given CourseSet.
      *
-     * @param  CourseSet courseSetId
+     * @param  CourseSet course set object
      * @return boolean Did the algorithm run successfully?
      */
-    public function run($courseSetId)
+    public function run($courseSet)
     {
         return true;
     }

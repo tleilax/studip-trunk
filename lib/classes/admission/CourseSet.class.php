@@ -240,6 +240,20 @@ class CourseSet
     }
 
     /**
+     * check if course set has given admission rule
+     * 
+     * @param string $rule name of AdmissionRule class
+     * @return boolean
+     */
+    public function hasAdmissionRule($rule)
+    {
+        $check = array_filter($this->getAdmissionRules(), function($r) use ($rule) {
+            return strtolower(get_class($r)) === strtolower($rule);
+        });
+        return count($check) > 0;
+    }
+
+    /**
      * Get the currently used distribution algorithm.
      *
      * @return AdmissionAlgorithm
