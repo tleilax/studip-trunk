@@ -187,6 +187,14 @@ class Step00240CourseSets extends Migration
                 `mkdate` INT NULL ,
             PRIMARY KEY (`user_id`, `list_id`) )
             ENGINE = MyISAM");
+        
+        $db->exec("CREATE  TABLE IF NOT EXISTS `courseset_institute` (
+                `set_id` VARCHAR(32) NOT NULL ,
+                `institute_id` VARCHAR(32) NOT NULL ,
+                `mkdate` INT NULL ,
+                `chdate` INT NULL ,
+                PRIMARY KEY (`set_id`, `institute_id`) )
+                ENGINE = MyISAM");
     }
 
     function down()
