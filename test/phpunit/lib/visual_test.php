@@ -42,11 +42,11 @@ class VisualFunctionsTest extends PHPUnit_Framework_TestCase
     {
         $pairs = array(
           'abc'    => 'abc',
-          'äöü'    => '&auml;&ouml;&uuml;',
+          'äöü'    => 'äöü',
           '<'      => '&lt;',
           '"'      => '&quot;',
           "'"      => '&#039;',
-          '&amp;'  => '&amp;amp;',
+          '&amp;'  => '&amp;',
           '&#039;' => '&#039;',
           ''       => '',
           NULL     => NULL
@@ -72,7 +72,7 @@ class VisualFunctionsTest extends PHPUnit_Framework_TestCase
     public function testHeading()
     {
         $input = '!!%%Überschrift%%';
-        $expected = '<h3 class="content"><i>&Uuml;berschrift</i></h3>';
+        $expected = '<h3 class="content"><i>Überschrift</i></h3>';
         $this->assertEquals($expected, formatReady($input));
     }
 
@@ -147,7 +147,7 @@ class VisualFunctionsTest extends PHPUnit_Framework_TestCase
     {
         $input = "- Einführung\n- Hauptteil\n-= Argument 1\n-= Argument 2\n- Schluss\n";
         $expected = '<ul>'
-                   .'<li>Einf&uuml;hrung</li>'
+                   .'<li>Einführung</li>'
                    .'<li>Hauptteil<ol>'
                    .'<li>Argument 1</li>'
                    .'<li>Argument 2</li>'

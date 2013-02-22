@@ -214,11 +214,16 @@ function get_ampel_read ($mein_status, $admission_status, $read_level, $print="T
 }
 
 function htmlReady ($what, $trim = TRUE, $br = FALSE) {
-    if ($trim) $what = trim(htmlentities($what,ENT_QUOTES));
-    else $what = htmlentities($what,ENT_QUOTES);
-    // workaround zur Darstellung von Zeichen in der Form &#x268F oder &#283;
-    $what = preg_replace('/&amp;#(x[0-9a-f]+|[0-9]+);/i', '&#$1;', $what);
-    if ($br) $what = preg_replace("/(\n\r|\r\n|\n|\r)/", "<br>", $what); // newline fixen
+    if ($trim) {
+        $what = trim(htmlspecialchars($what, ENT_QUOTES, 'cp1252', false));
+    } else {
+        $what = htmlspecialchars($what,ENT_QUOTES, 'cp1252', false);
+    }
+
+    if ($br) { // fix newlines
+        $what = nl2br($what, false);
+    }
+
     return $what;
 }
 
@@ -234,22 +239,22 @@ function jsReady ($what = "", $target = "overlib") {
     break;
 
     case "inline-single" :
-        return htmlspecialchars(addcslashes($what, "\\'\n\r"));
+        return htmlReady(addcslashes($what, "\\'\n\r"));
     break;
 
     case "inline-double" :
-        return htmlspecialchars(addcslashes($what, "\\\"\n\r"));
+        return htmlReady(addcslashes($what, "\\\"\n\r"));
     break;
 
     case "contact" :
-        $what = htmlentities($what,ENT_COMPAT);
+        $what = htmlReady($what);
         $what = str_replace("\n","<br>",$what);
         $what = str_replace("\r","",$what);
         return $what;
     break;
 
     case "alert" :
-        $what = addslashes(htmlentities($what,ENT_COMPAT));
+        $what = addslashes(htmlReady($what));
         $what = str_replace("\r","",$what);
         $what = str_replace("\n","\\n",$what); // alert boxen stellen keine html tags dar
         return $what;
@@ -258,12 +263,12 @@ function jsReady ($what = "", $target = "overlib") {
     case 'forum' :
         $what = str_replace("\r",'',formatReady($what));
         $what = '<p width="100%"class="printcontent">' . $what . '</p>';
-        return addslashes(htmlentities($what,ENT_COMPAT));
+        return addslashes(htmlReady($what));
         break;
 
     case "overlib" :
     default :
-        $what = addslashes(htmlentities(htmlentities($what,ENT_COMPAT),ENT_COMPAT));
+        $what = addslashes(htmlReady(htmlReady($what)));
         $what = str_replace("\n","<br>",$what);
         $what = str_replace("\r","",$what);
         return $what;
@@ -375,7 +380,7 @@ function transformBeforeSave($what)
 * @return   string
 */
 function decodeHTML ($string) {
-    return html_entity_decode($string, ENT_QUOTES);
+    return html_entity_decode($string, ENT_QUOTES, 'cp1252');
 }
 
 /**
@@ -493,11 +498,11 @@ function idna_link($link, $mail = false){
         $out = false;
         if ($mail){
             if (preg_match('#^([^@]*)@(.*)$#i',$link, $matches)) {
-                $out = $IDN->encode(utf8_encode(html_entity_decode($matches[2], ENT_NOQUOTES))); // false by error
+                $out = $IDN->encode(utf8_encode(decodeHTML($matches[2], ENT_NOQUOTES))); // false by error
                 $out = ($out)? $matches[1].'@'.$out : $link;
             }
         }elseif (preg_match('#^([^/]*)//([^/?]*)(((/|\?).*$)|$)#i',$link, $matches)) {
-            $out = $IDN->encode(utf8_encode(html_entity_decode($matches[2], ENT_NOQUOTES))); // false by error
+            $out = $IDN->encode(utf8_encode(decodeHTML($matches[2], ENT_NOQUOTES))); // false by error
             $out = ($out)? $matches[1].'//'.$out.$matches[3] : $link;
         }
         return ($out)? $out:$link;

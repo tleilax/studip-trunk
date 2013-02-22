@@ -8,7 +8,7 @@
     </div>
      -->
     <div id="barTopFont">
-    <?= htmlentities($GLOBALS['UNI_NAME_CLEAN']) ?>
+    <?= htmlReady($GLOBALS['UNI_NAME_CLEAN']) ?>
     </div>
     <? SkipLinks::addIndex(_("Hauptnavigation"), 'barTopMenu', 1); ?>
     <ul id="barTopMenu" role="navigation">
@@ -122,7 +122,7 @@
                     <? if (is_internal_url($url = $nav->getURL())) : ?>
                         href="<?= URLHelper::getLink($url, $link_params) ?>"
                     <? else : ?>
-                        href="<?= htmlspecialchars($url) ?>" target="_blank"
+                        href="<?= htmlReady($url) ?>" target="_blank"
                     <? endif ?>
                     <? if ($nav->getDescription()): ?>
                         title="<?= htmlReady($nav->getDescription()) ?>"
