@@ -71,6 +71,7 @@ class ConditionalAdmission extends AdmissionRule
      * Deletes the admission rule and all associated data.
      */
     public function delete() {
+        parent::delete();
         // Delete rule data.
         $stmt = DBManager::get()->prepare("DELETE FROM `conditionaladmissions` 
             WHERE `rule_id`=?");
@@ -145,7 +146,7 @@ class ConditionalAdmission extends AdmissionRule
      * @return String
      */
     public function getTemplate() {
-        $tpl = $GLOBALS['template_factory']->open('admission/rules/conditionaladmission');
+        $tpl = $GLOBALS['template_factory']->open('admission/rules/conditionaladmission/configure');
         $tpl->set_attribute('rule', $this);
         return $tpl->render();
     }
@@ -286,14 +287,9 @@ class ConditionalAdmission extends AdmissionRule
     }
 
     public function toString() {
-        $text = "";
-        if ($this->conditions && !$this->conditionsStopped) {
-            $text .= _("Zur Zulassung müssen folgende Bedingungen erfüllt sein:")."\n";
-            foreach ($this->conditions as $condition) {
-                $text .= $condition->toString()."\n";
-            }
-        }
-        return $text;
+        $tpl = $GLOBALS['template_factory']->open('admission/rules/conditionaladmission/display');
+        $tpl->set_attribute('rule', $this);
+        return $tpl->render();
     }
 
 } /* end of class ConditionalAdmission */

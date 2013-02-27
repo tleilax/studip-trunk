@@ -19,17 +19,14 @@ if (!$ruleType) {
     }
     ?>
     <div style="padding: 5px; text-align: center;" class="table_row_<?= TextHelper::cycle('even', 'odd'); ?>">
-        <?= Button::create(_('Abbrechen'), 'cancel', array('onclick' => "$('#configurerule').remove()")) ?>
+        <?= Button::createCancel(_('Abbrechen'), 'cancel', array('onclick' => "$('#configurerule').remove()")) ?>
     </div>
 <?php
 } else {
 ?>
-<form action="<?= $controller->url_for('admission/rule/add') ?>" id="ruleform" onsubmit="return STUDIP.Admission.addRule('rules', '<?= $controller->url_for('admission/rule/add') ?>')">
-<?php
-    echo $ruleType::getTemplate();
-?>
+<form action="<?= $controller->url_for('admission/rule/save', get_class($rule), $rule->getId()) ?>" id="ruleform" onsubmit="return STUDIP.Admission.saveRule('<?= $rule->getId() ?>', 'rules', '<?= $controller->url_for('admission/rule/save', get_class($rule), $rule->getId()) ?>')">
+    <?= $ruleTemplate ?>
     <div style="width: 95%; padding: 5px;" class="table_row_<?= TextHelper::cycle('even', 'odd'); ?>" align="center">
-        <input type="hidden" name="ruletype" value="<?= $ruleType ?>"/>
         <input type="hidden" id="action" name="action" value=""/>
         <?= Button::createAccept(_('Speichern'), 'submit') ?>
         <?= Button::createCancel(_('Abbrechen'), 'cancel', array('onclick' => "$('#action').val(this.name)")) ?>

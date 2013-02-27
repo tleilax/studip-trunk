@@ -57,6 +57,7 @@ class TimedAdmission extends AdmissionRule
      * Deletes the admission rule and all associated data.
      */
     public function delete() {
+        parent::delete();
         // Delete rule data.
         $stmt = DBManager::get()->prepare("DELETE FROM `timedadmissions` 
             WHERE `rule_id`=?");
@@ -117,7 +118,7 @@ class TimedAdmission extends AdmissionRule
      */
     public function getTemplate() {
         global $auth;
-        $tpl = $GLOBALS['template_factory']->open('admission/rules/timedadmission');
+        $tpl = $GLOBALS['template_factory']->open('admission/rules/timedadmission/configure');
         $tpl->set_attribute('rule', $this);
         return $tpl->render();
     }
@@ -253,27 +254,9 @@ class TimedAdmission extends AdmissionRule
      */
     public function toString()
     {
-        $text = "";
-        // Start time but no end time given.
-        if ($this->startTime && !$this->endTime) {
-            $text .= sprintf(_("Die Anmeldung ist möglich ab %s."), 
-                date("d.m.Y, H:i", $this->startTime));
-        // End time but no start time given.
-        } else if (!$this->startTime && $this->endTime) {
-            $text .= sprintf(_("Die Anmeldung ist möglich bis %s."), 
-                date("d.m.Y, H:i", $this->endTime));
-        // Start and end time given.
-        } else if ($this->startTime && $this->endTime) {
-            $text .= sprintf(_("Die Anmeldung ist möglich von %s bis %s."), 
-                date("d.m.Y, H:i", $this->startTime), 
-                date("d.m.Y, H:i", $this->endTime));
-        }
-        if ($this->distributionTime) {
-            $text .= sprintf(_("Die Platzverteilung erfolgt am %s um %s."), 
-                date("d.m.Y", $this->distributionTime),
-                date("H:i", $this->distributionTime));
-        }
-        return $text;
+        $tpl = $GLOBALS['template_factory']->open('admission/rules/timedadmission/display');
+        $tpl->set_attribute('rule', $this);
+        return $tpl->render();
     }
 
 } /* end of class TimedAdmission */

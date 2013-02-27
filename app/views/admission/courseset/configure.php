@@ -54,11 +54,9 @@ $infobox = array('content' => $infobox,
         <div style="display: inline-block; vertical-align: top;" id="rules">
             <?php if ($courseset) { ?>
             <div id="rulelist">
-                <?php
-                foreach ($courseset->getAdmissionRules() as $rule) {
-                    echo $this->render_partial('admission/rule/add', array('rule' => $rule));
-                }
-                ?>
+                <?php foreach ($courseset->getAdmissionRules() as $rule) { ?>
+                    <?= $this->render_partial('admission/rule/save', array('rule' => $rule)) ?>
+                <?php } ?>
             </div>
             <?php } else { ?>
                 <span id="norules">
@@ -77,21 +75,23 @@ $infobox = array('content' => $infobox,
         <div align="right" style="display: inline-block; vertical-align: top; width: 20%; font-weight: bold;"><?= _('Veranstaltungszuordnung:') ?></div>
         <div style="display: inline-block; vertical-align: top;" id="instcourses">
             <?php
-            if ($courseset) {
-                $courseIds = $courseset->getCourses();
-            }
-            foreach ($this->courses as $course) {
+            $courseIds = $courseset ? $courseset->getCourses() : array();
+            foreach ($courses as $course) {
                 $title = $course['Name'];
                 if ($course['VeranstaltungsNummer']) {
                     $title = $course['VeranstaltungsNummer'].' | '.$title;
-                } 
+                }
+                $checked = '';
+                if (in_array($course['seminar_id'], $courseIds)) {
+                    $checked = ' checked="checked"';
+                }
             ?>
-            <input type="checkbox" name="courses[]" value="<?= $course['seminar_id'] ?>"/> <?= $title ?><br/>
+            <input type="checkbox" name="courses[]" value="<?= $course['seminar_id'] ?>"<?= $checked ?>/> <?= $title ?><br/>
             <?php } ?>
         </div>
     </div>
     <div align="center" style="width: 80%; padding: 10px;" class="table_row_<?= TextHelper::cycle('even', 'odd'); ?>">
-        <?= Button::create(_('Speichern'), 'submit') ?>
-        <?= Button::create(_('Abbrechen'), 'cancel') ?>
+        <?= Button::createAccept(_('Speichern'), 'submit') ?>
+        <?= Button::createCancel(_('Abbrechen'), 'cancel') ?>
     </div>
 </form>

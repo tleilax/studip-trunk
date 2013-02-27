@@ -12,7 +12,7 @@
 <?php } else { ?>
 <div class="conditionfield">
     <select name="field[]" class="conditionfield_class" size="1" onchange="STUDIP.Conditions.getConditionFieldConfiguration(this, '<?= $controller->url_for('conditions/field/configure') ?>')">
-        <option value="">-- <?= $this->via_ajax ? utf8_encode(_('bitte auswählen')) : _('bitte auswählen') ?> --</option>
+        <option value="">-- <?= $via_ajax ? utf8_encode(_('bitte auswählen')) : _('bitte auswählen') ?> --</option>
         <?php foreach ($conditionFields as $className => $displayName) { ?>
         <option value="<?= $className ?>"><?= htmlReady($displayName) ?></option>
         <?php } ?>

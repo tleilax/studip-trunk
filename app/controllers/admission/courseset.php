@@ -48,7 +48,6 @@ class Admission_CoursesetController extends AuthenticatedController {
             $this->courseset = new CourseSet($coursesetId);
             $this->selectedInstitutes = $this->courseset->getInstituteIds();
         }
-        $this->tree = TreeAbstract::getInstance('StudipRangeTree', array('visible_only' => 1));
         $this->courses = CoursesetModel::getInstCourses($this->myInstitutes);
     }
 

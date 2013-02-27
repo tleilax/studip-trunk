@@ -286,7 +286,7 @@ class CourseSet
      */
     public function getCourses()
     {
-        return $this->courses;
+        return array_keys($this->courses);
     }
 
     /**
@@ -582,6 +582,15 @@ class CourseSet
                 VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE
                 `seminar_id`=VALUES(`seminar_id`)");
             $stmt->execute(array($this->id, $course, time()));
+        }
+        // Delete removed admission rules from database.
+        $stmt = DBManager::get()->query("SELECT `rule_id`, `type` FROM `courseset_rule` 
+            WHERE `set_id`='".$this->id."' AND `rule_id` NOT IN ('".
+            implode("', '", array_keys($this->admissionRules))."')");
+        $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($data as $ruleData) {
+            $rule = new $ruleData['type']($ruleData['rule_id']);
+            $rule->delete();
         }
         // Store all rules.
         foreach ($this->admissionRules as $rule) {

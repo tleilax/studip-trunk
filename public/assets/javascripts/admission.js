@@ -24,7 +24,7 @@ STUDIP.Admission = {
 
     configureRule: function (ruleType, targetUrl) {
         var loading = 'Wird geladen'.toLocaleString();
-        if (ruleType == null) {
+        if (ruleType == null || jQuery('#configurerule').length == 0) {
             jQuery('<div id="configurerule" title="Anmelderegel konfigurieren">'+loading+'</div>')
                 .dialog({
                     draggable: false,
@@ -40,14 +40,15 @@ STUDIP.Admission = {
                         STUDIP.ajax_indicator = true;
                     }
                 });
-        } else {
+        }
+        if (ruleType != null) {
             jQuery('#configurerule').html(loading);
             jQuery('#configurerule').load(targetUrl);
         }
         return false;
     },
 
-    addRule: function(targetId, targetUrl) {
+    saveRule: function(ruleId, targetId, targetUrl) {
         if (jQuery('#action').val() != 'cancel') {
             jQuery.ajax({
                 type: 'post',
@@ -62,7 +63,11 @@ STUDIP.Admission = {
                             jQuery('#'+targetId).prepend('<div id="rulelist"></div>');
                         }
                         result += data;
-                        jQuery('#rulelist').append(result);
+                        if (jQuery('#rule_'+ruleId).length != 0) {
+                            jQuery('#rule_'+ruleId).replaceWith(result);
+                        } else {
+                            jQuery('#rulelist').append(result);
+                        }
                     }
                 },
                 error: function(jqXHR, textStatus, errorThrown) {
@@ -71,6 +76,7 @@ STUDIP.Admission = {
             });
         }
         jQuery('#configurerule').remove();
+        return false;
     },
 
     removeRule: function(targetId, containerId) {
@@ -98,4 +104,5 @@ STUDIP.Admission = {
         jQuery('#'+detailId).slideToggle();
         return false;
     }
+
 };

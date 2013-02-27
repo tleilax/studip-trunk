@@ -42,6 +42,7 @@ class LockedAdmission extends AdmissionRule
      * Deletes the admission rule and all associated data.
      */
     public function delete() {
+        parent::delete();
         // Delete rule data.
         $stmt = DBManager::get()->prepare("DELETE FROM `lockedadmissions` 
             WHERE `rule_id`=?");
@@ -71,7 +72,7 @@ class LockedAdmission extends AdmissionRule
      * @return String
      */
     public function getTemplate() {
-        $tpl = $GLOBALS['template_factory']->open('admission/rules/lockedadmission');
+        $tpl = $GLOBALS['template_factory']->open('admission/rules/lockedadmission/configure');
         $tpl->set_attribute('rule', $this);
         return $tpl->render();
     }
@@ -116,7 +117,9 @@ class LockedAdmission extends AdmissionRule
     }
 
     public function toString() {
-        return $this->getName();
+        $tpl = $GLOBALS['template_factory']->open('admission/rules/lockedadmission/display');
+        $tpl->set_attribute('rule', $this);
+        return $tpl->render();
     }
 
 } /* end of class LockedAdmission */

@@ -40,11 +40,19 @@ STUDIP.Conditions = {
                 current.children('.conditionfield_value').first().val();
         }
         query += '&startdate='+$('#startdate').val()+
-            '&starthour='+$('#starthour').val()+
-            '&startminute='+$('#startminute').val()+
-            '&enddate='+$('#enddate').val()+
-            '&endhour='+$('#endhour').val()+
+            '&enddate='+$('#enddate').val();
+        if ($('#starthour').val() != '') {
+            query += '&starthour='+$('#starthour').val();
+        }
+        if ($('#startminute').val() != '') {
+            '&startminute='+$('#startminute').val();
+        }
+        if ($('#endhour').val() != '') {
+            query += '&endhour='+$('#endhour').val();
+        }
+        if ($('#endminute').val() != '') {
             '&endminute='+$('#endminute').val();
+        }
         $.ajax({
             type: 'post',
             url: targetUrl,

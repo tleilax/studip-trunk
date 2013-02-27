@@ -54,6 +54,7 @@ class LimitedAdmission extends AdmissionRule
      * Deletes the admission rule and all associated data.
      */
     public function delete() {
+        parent::delete();
         // Delete rule data.
         $stmt = DBManager::get()->prepare("DELETE FROM `limitedadmissions` 
             WHERE `rule_id`=?");
@@ -121,7 +122,7 @@ class LimitedAdmission extends AdmissionRule
      * @return String
      */
     public function getTemplate() {
-        $tpl = $GLOBALS['template_factory']->open('admission/rules/limitedadmission');
+        $tpl = $GLOBALS['template_factory']->open('admission/rules/limitedadmission/configure');
         $tpl->set_attribute('rule', $this);
         return $tpl->render();
     }
@@ -170,11 +171,12 @@ class LimitedAdmission extends AdmissionRule
      * isn't known in advance.
      * 
      * @param Array $data
+     * @param boolean $ajax
      * @return AdmissionRule This object.
      */
     public function setAllData($data) {
         parent::setAllData($data);
-        $this->maxNumber = $data['maxnumber'];
+        $this->maxNumber = intval($data['maxnumber']);
         return $this;
     }
 
@@ -225,7 +227,9 @@ class LimitedAdmission extends AdmissionRule
     }
 
     public function toString() {
-        return sprintf(_("Anmeldung zu maximal %s Veranstaltungen möglich!"), $this->maxNumber);
+        $tpl = $GLOBALS['template_factory']->open('admission/rules/limitedadmission/display');
+        $tpl->set_attribute('rule', $this);
+        return $tpl->render();
     }
 
 } /* end of class LimitedAdmission */

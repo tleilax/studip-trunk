@@ -23,14 +23,34 @@ class Admission_RuleController extends AuthenticatedController {
         if ($ruleType) {
             $this->ruleType = $ruleType;
             $this->rule = new $ruleType($ruleId);
+            $this->ruleTemplate = ($this->via_ajax ? 
+                utf8_encode($this->rule->getTemplate()) : 
+                $this->rule->getTemplate());
         }
     }
 
-    public function add_action() {
+    public function save_action($ruleType, $ruleId='') {
         $rules = AdmissionRule::getAvailableAdmissionRules();
-        $ruleType = Request::option('ruletype');
-        $this->rule = new $ruleType();
-        $this->rule->setAllData(Request::getInstance());
+        $this->rule = new $ruleType($ruleId);
+        $requestData = Request::getInstance();
+        if ($this->via_ajax) {
+            $decoded = array();
+            foreach ($requestData as $name => $entry) {
+                $decoded[$name] = is_array($entry) ? array_map('utf8_decode', $entry) : utf8_decode($entry);
+            }
+            $this->rule->setAllData($decoded);
+        } else {
+            $this->rule->setAllData($requestData);
+        }
+        $this->rule->store();
+        if (!$this->via_ajax) {
+        }
+    }
+
+    public function delete_action($ruleType, $ruleId) {
+        $rules = AdmissionRule::getAvailableAdmissionRules();
+        $rule = new $ruleType($ruleId);
+        $rule->delete();
     }
 
 }

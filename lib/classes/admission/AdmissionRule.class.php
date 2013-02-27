@@ -40,6 +40,10 @@ abstract class AdmissionRule
      * Deletes the admission rule and all associated data.
      */
     public function delete() {
+        // Delete rule assignment to coursesets.
+        $stmt = DBManager::get()->prepare("DELETE FROM `courseset_rule` 
+            WHERE `rule_id`=?");
+        $stmt->execute(array($this->id));
     }
 
     /**
@@ -176,7 +180,7 @@ abstract class AdmissionRule
      * @return AdmissionRule This object.
      */
     public function setAllData($data) {
-        $this->message = $data['message'];
+        $this->message = $data['ajax'] ? utf8_decode($data['message']) : $data['message'];
         return $this;
     }
 

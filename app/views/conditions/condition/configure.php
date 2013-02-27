@@ -7,11 +7,30 @@ use Studip\Button, Studip\LinkButton;
 <br/>
 <a href="#" onclick="return STUDIP.Conditions.addConditionField('conditionfields', '<?= $controller->url_for('conditions/field/configure') ?>')">
     <?= Assets::img('icons/16/red/plus.png', array('alt' => _('Auswahlfeld hinzufügen'))) ?>
-    <?= utf8_encode(_('Auswahlfeld hinzufügen')) ?></a>
+    <?php
+        $text = _('Auswahlfeld hinzufügen');
+        if ($via_ajax) {
+            $text = utf8_encode($text);
+        }
+        echo $text;
+    ?>
+</a>
 <br/><br/>
-<?= utf8_encode(_('Soll die Bedingung nur zu einer bestimmten Zeit gelten, so kann hier ein Gültigkeitszeitraum angegeben werden:')) ?>
+<?php
+    $text = _('Soll die Bedingung nur zu einer bestimmten Zeit gelten, so kann hier ein Gültigkeitszeitraum angegeben werden:');
+    if ($via_ajax) {
+        $text = utf8_encode($text);
+    }
+    echo $text;
+?>
 <br/>
-<?= utf8_encode(_('Gültigkeit von')) ?>
+<?php
+    $text = _('Gültigkeit von');
+    if ($via_ajax) {
+        $text = utf8_encode($text);
+    }
+    echo $text;
+?>
 <br/>
 <input type="date" name="startdate" id="startdate" size="8"
     value="<?= ($condition && $condition->getStartTime()) ? date('d.m.Y', $condition->getStartTime()) : '' ?>"/>
@@ -38,6 +57,6 @@ use Studip\Button, Studip\LinkButton;
         $('#startdate').datepicker();
         $('#enddate').datepicker();
     </script>
-    <?= Button::createAccept(_('Übernehmen'), 'submit', array('onclick' => "STUDIP.Conditions.addCondition('conditionfields', 'conditions', '".$controller->url_for('conditions/condition/add')."');")) ?>
+    <?= Button::createAccept(_('Speichern'), 'submit', array('onclick' => "STUDIP.Conditions.addCondition('conditionfields', 'conditions', '".$controller->url_for('conditions/condition/add')."');")) ?>
     <?= Button::createCancel(_('Abbrechen'), 'cancel', array('onclick' => '$("#condition").remove()')) ?>
 </div>
