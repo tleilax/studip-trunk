@@ -66,7 +66,7 @@ $infobox = array('content' => $infobox,
             <?php } ?>
             <br/>
             <a href="<?= $controller->url_for('admission/rule/configure') ?>" onclick="return STUDIP.Admission.configureRule(null, '<?= $controller->url_for('admission/rule/configure') ?>');">
-                <?= Assets::img('icons/16/red/plus.png', array(
+                <?= Assets::img('icons/16/blue/plus.png', array(
                     'alt' => _('Anmelderegel hinzufügen'),
                     'title' => _('Anmelderegel hinzufügen'))) ?><?= _('Anmelderegel hinzufügen') ?></a>
         </div>
@@ -92,6 +92,6 @@ $infobox = array('content' => $infobox,
     </div>
     <div align="center" style="width: 80%; padding: 10px;" class="table_row_<?= TextHelper::cycle('even', 'odd'); ?>">
         <?= Button::createAccept(_('Speichern'), 'submit') ?>
-        <?= Button::createCancel(_('Abbrechen'), 'cancel') ?>
+        <?= LinkButton::createCancel(_('Abbrechen'), $controller->url_for('admission/courseset')) ?>
     </div>
 </form>

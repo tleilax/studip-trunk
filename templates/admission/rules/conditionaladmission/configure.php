@@ -10,7 +10,7 @@
             <i><?= _('Sie haben noch keine Bedingungen festgelegt.'); ?></i>
         </span>
         <?php } else { ?>
-            <?php foreach ($rule->getConditions as $condition) { ?>
+            <?php foreach ($rule->getConditions() as $condition) { ?>
                 <div class="condition" id="condition_<?= $condition->getId() ?>">
                     <?= $condition->toString() ?>
                     <a href="#" onclick="return STUDIP.Conditions.removeConditionField($(this).parent())" class="conditionfield_delete">
@@ -20,7 +20,7 @@
         <?php } ?>
         <br/><br/>
         <a href="<?= URLHelper::getURL('dispatch.php/conditions/condition/configure') ?>" onclick="return STUDIP.Conditions.configureCondition('<?= URLHelper::getURL('dispatch.php/conditions/condition/configure') ?>')">
-            <?= Assets::img('icons/16/red/plus.png', array(
+            <?= Assets::img('icons/16/blue/plus.png', array(
                 'alt' => _('Bedingung hinzufügen'),
                 'title' => _('Bedingung hinzufügen'))) ?><?= _('Bedingung hinzufügen') ?></a>
     </div>

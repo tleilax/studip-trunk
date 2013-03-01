@@ -46,7 +46,8 @@ if ($coursesets) {
                 array('alt' => _('Anmeldeset bearbeiten'), 
                       'title' => _('Anmeldeset bearbeiten'))); ?>
         </a>
-        <a href="#">
+        <a href="<?= $controller->url_for('admission/courseset/delete', 
+            $courseset->getId()) ?>">
             <?= Assets::img('icons/16/blue/trash.png', 
                 array('alt' => _('Anmeldeset löschen'), 
                       'title' => _('Anmeldeset löschen'))); ?>
@@ -61,7 +62,10 @@ if ($coursesets) {
 } else {
 ?>
 <span id="nosets">
-    <i><?= _('Sie haben noch keine Anmeldesets angelegt.') ?></i>
+    <i><?= sprintf(_('Es wurden keine Anmeldesets gefunden. Sie können ein '.
+        'neues %sAnmeldeset anlegen%s.'), '<a href="'.
+        $controller->url_for('admission/courseset/configure').'">', 
+        '</a>') ?></i>
 </span>
 <?php
 }

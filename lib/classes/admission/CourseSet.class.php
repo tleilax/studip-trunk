@@ -180,12 +180,12 @@ class CourseSet
      * Deletes the course set and all associated data.
      */
     public function delete() {
-        // Delete course associations.
-        $stmt = DBManager::get()->prepare("DELETE FROM `seminar_courseset` 
+        // Delete institute associations.
+        $stmt = DBManager::get()->prepare("DELETE FROM `courseset_institute` 
             WHERE `set_id`=?");
         $stmt->execute(array($this->id));
-        // Delete waiting lists.
-        $stmt = DBManager::get()->prepare("DELETE FROM `waitinglist` 
+        // Delete course associations.
+        $stmt = DBManager::get()->prepare("DELETE FROM `seminar_courseset` 
             WHERE `set_id`=?");
         $stmt->execute(array($this->id));
         // Delete all rules...
@@ -204,6 +204,14 @@ class CourseSet
         $stmt = DBManager::get()->prepare("DELETE FROM `coursesets` 
             WHERE `set_id`=?");
         $stmt->execute(array($this->id));
+        /*
+         * Delete waiting lists (users are moved to corresponding course as 
+         * participants).
+         */
+        $lists = WaitingList::getWaitingListsForCourseSet($this->id);
+        foreach ($lists as $list) {
+            $list->delete();
+        }
     }
 
     /**
@@ -518,6 +526,21 @@ class CourseSet
     }
 
     /**
+     * Adds several course IDs after clearing the existing course
+     * assignments.
+     * 
+     * @param  Array newIds
+     * @return CourseSet
+     */
+    public function setCourses($newIds) {
+        $this->courses = array();
+        foreach ($newIds as $newId) {
+            $this->addCourse($newId);
+        }
+        return $this;
+    }
+
+    /**
      * Sets a new value for rule invalidation after seat distribution.
      * 
      * @param  boolean newValue
@@ -622,6 +645,10 @@ class CourseSet
         }
         $tpl->set_attribute('courses', $courses);
         return $tpl->render();
+    }
+
+    public function __toString() {
+        return $this->toString();
     }
 
 } /* end of class CourseSet */

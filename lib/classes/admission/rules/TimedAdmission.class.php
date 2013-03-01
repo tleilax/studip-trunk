@@ -171,25 +171,22 @@ class TimedAdmission extends AdmissionRule
         parent::setAllData($data);
         if ($data['startdate']) {
             $sdate = $data['startdate'];
-            $shour = $data['starthour'];
-            $sminute = $data['startminute'];
-            $parsed = date_parse($sdate.' '.$shour.':'.$sminute);
+            $stime = $data['starttime'];
+            $parsed = date_parse($sdate.' '.$stime);
             $timestamp = mktime($parsed['hour'], $parsed['minute'], 0, $parsed['month'], $parsed['day'], $parsed['year']);
             $this->setStartTime($timestamp);
         }
         if ($data['enddate']) {
             $edate = $data['enddate'];
-            $ehour = $data['endhour'];
-            $eminute = $data['endminute'];
-            $parsed = date_parse($edate.' '.$ehour.':'.$eminute);
+            $etime = $data['endtime'];
+            $parsed = date_parse($edate.' '.$etime);
             $timestamp = mktime($parsed['hour'], $parsed['minute'], 0, $parsed['month'], $parsed['day'], $parsed['year']);
             $this->setEndTime($timestamp);
         }
         if ($data['distributiondate']) {
             $ddate = $data['distributiondate'];
-            $dhour = $data['distributionhour'];
-            $dminute = $data['distributionminute'];
-            $parsed = date_parse($ddate.' '.$dhour.':'.$dminute);
+            $dtime = $data['distributiontime'];
+            $parsed = date_parse($ddate.' '.$dtime);
             $timestamp = mktime($parsed['hour'], $parsed['minute'], 0, $parsed['month'], $parsed['day'], $parsed['year']);
             $this->setDistributionTime($timestamp);
         }

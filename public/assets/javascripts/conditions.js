@@ -41,17 +41,11 @@ STUDIP.Conditions = {
         }
         query += '&startdate='+$('#startdate').val()+
             '&enddate='+$('#enddate').val();
-        if ($('#starthour').val() != '') {
-            query += '&starthour='+$('#starthour').val();
+        if ($('#starttime').val() != '') {
+            query += '&starttime='+$('#starttime').val();
         }
-        if ($('#startminute').val() != '') {
-            '&startminute='+$('#startminute').val();
-        }
-        if ($('#endhour').val() != '') {
-            query += '&endhour='+$('#endhour').val();
-        }
-        if ($('#endminute').val() != '') {
-            '&endminute='+$('#endminute').val();
+        if ($('#endtime').val() != '') {
+            query += '&endtime='+$('#endtime').val();
         }
         $.ajax({
             type: 'post',
@@ -74,11 +68,11 @@ STUDIP.Conditions = {
     },
 
     getConditionFieldConfiguration: function(element, targetUrl) {
-        var target = jQuery(element).parent();
-        jQuery.ajax({
+        var target = $(element).parent();
+        $.ajax({
             type: 'post',
             url: targetUrl,
-            data: { 'fieldtype': jQuery(element).val() },
+            data: { 'fieldtype': $(element).val() },
             dataType: 'html',
             success: function(data, textStatus, jqXHR) {
                 target.children('.conditionfield_compare_op').remove();
@@ -93,15 +87,15 @@ STUDIP.Conditions = {
     },
 
     addConditionField: function(targetId, targetUrl) {
-        jQuery.ajax({
+        $.ajax({
             type: 'post',
             url: targetUrl,
             dataType: 'html',
             success: function(data, textStatus, jqXHR) {
-                jQuery('#'+targetId).append(data);
+                $('#'+targetId).append(data);
             },
             error: function() {
-                jQuery('#'+targetId).append('Something not work here.');
+                $('#'+targetId).append('Something not work here.');
             }
         });
         return false;

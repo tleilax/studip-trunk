@@ -43,17 +43,15 @@ class Conditions_ConditionController extends AuthenticatedController {
         }
         $startdate = Request::get('startdate');
         if ($startdate) {
-            $starthour = Request::int('starthour', 0);
-            $startminute = Request::int('startminute', 0);
-            $parsed = date_parse($startdate.' '.$starthour.':'.$startminute);
+            $starttime = Request::get('starttime', '00:00');
+            $parsed = date_parse($startdate.' '.$starttime);
             $timestamp = mktime($parsed['hour'], $parsed['minute'], 0, $parsed['month'], $parsed['day'], $parsed['year']);
             $condition->setStartTime($timestamp);
         }
         $enddate = Request::get('enddate');
         if ($enddate) {
-            $endhour = Request::int('endhour', 23);
-            $endminute = Request::int('endminute', 59);
-            $parsed = date_parse($enddate.' '.$endhour.':'.$endminute);
+            $endtime = Request::get('endhour', '23:59');
+            $parsed = date_parse($enddate.' '.$endtime);
             $timestamp = mktime($parsed['hour'], $parsed['minute'], 0, $parsed['month'], $parsed['day'], $parsed['year']);
             $condition->setEndTime($timestamp);
         }

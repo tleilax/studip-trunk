@@ -8,11 +8,8 @@
         <input type="date" name="startdate" id="startdate" size="8"
             value="<?= $rule->getStartTime() ? date('d.m.Y', $rule->getStartTime()) : date('d.m.Y') ?>"/>
         &nbsp;&nbsp;
-        <input type="number" name="starthour" size="1" max="12"
-            value="<?= $rule->getStartTime() ? date('H', $rule->getStartTime()) : date('H') ?>"/>
-        :
-        <input type="number" name="startminute" size="1"
-            value="<?= $rule->getStartTime() ? date('i', $rule->getStartTime()) : date('i') ?>"/>
+        <input type="time" name="starttime" id="starttime" size="4"
+            value="<?= $rule->getStartTime() ? date('H:i', $rule->getStartTime()) : date('H:i') ?>"/>
     </div>
 </div>
 <div style="width: 95%; padding: 5px;" class="table_row_<?= TextHelper::cycle('even', 'odd'); ?>">
@@ -23,14 +20,13 @@
         <input type="date" name="enddate" id="enddate" size="8"
             value="<?= $rule->getEndTime() ? date('d.m.Y', $rule->getEndTime()) : date('d.m.Y') ?>"/>
         &nbsp;&nbsp;
-        <input type="number" name="endhour" size="1" max="12"
-            value="<?= $rule->getEndTime() ? date('H', $rule->getEndTime()) : date('H') ?>"/>
-        :
-        <input type="number" name="endminute" size="1"
-            value="<?= $rule->getEndTime() ? date('i', $rule->getEndTime()) : date('i') ?>"/>
+        <input type="time" name="endtime" id="endtime" size="4"
+            value="<?= $rule->getEndTime() ? date('H:i', $rule->getEndTime()) : date('H:i') ?>"/>
     </div>
 </div>
 <script>
     $('#startdate').datepicker();
+    $('#starttime').timepicker();
     $('#enddate').datepicker();
+    $('#endtime').timepicker();
 </script>

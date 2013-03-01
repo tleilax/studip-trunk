@@ -6,7 +6,7 @@ use Studip\Button, Studip\LinkButton;
 </div>
 <br/>
 <a href="#" onclick="return STUDIP.Conditions.addConditionField('conditionfields', '<?= $controller->url_for('conditions/field/configure') ?>')">
-    <?= Assets::img('icons/16/red/plus.png', array('alt' => _('Auswahlfeld hinzufügen'))) ?>
+    <?= Assets::img('icons/16/blue/plus.png', array('alt' => _('Auswahlfeld hinzufügen'))) ?>
     <?php
         $text = _('Auswahlfeld hinzufügen');
         if ($via_ajax) {
@@ -35,27 +35,23 @@ use Studip\Button, Studip\LinkButton;
 <input type="date" name="startdate" id="startdate" size="8"
     value="<?= ($condition && $condition->getStartTime()) ? date('d.m.Y', $condition->getStartTime()) : '' ?>"/>
 &nbsp;&nbsp;
-<input type="number" name="starthour" id="starthour" size="1" max="12"
-    value="<?= ($condition && $condition->getStartTime()) ? date('H', $condition->getStartTime()) : '' ?>"/>
-:
-<input type="number" name="startminute" id="startminute" size="1"
-    value="<?= ($condition && $condition->getStartTime()) ? date('i', $condition->getStartTime()) : '' ?>"/>
+<input type="number" name="starttime" id="starttime" size="4"
+    value="<?= ($condition && $condition->getStartTime()) ? date('H:i', $condition->getStartTime()) : '' ?>"/>
 <br/>
 <?= _('bis') ?>
 <br/>
 <input type="date" name="enddate" id="enddate" size="8"
     value="<?= ($condition && $condition->getStartTime()) ? date('d.m.Y', $condition->getEndTime()) : '' ?>"/>
 &nbsp;&nbsp;
-<input type="number" name="endhour" id="endhour" size="1" max="12"
-    value="<?= ($condition && $condition->getStartTime()) ? date('H', $condition->getEndTime()) : '' ?>"/>
-:
-<input type="number" name="endminute" id="endminute" size="1"
-    value="<?= ($condition && $condition->getStartTime()) ? date('i', $condition->getEndTime()) : '' ?>"/>
+<input type="number" name="endtime" id="endtime" size="4"
+    value="<?= ($condition && $condition->getStartTime()) ? date('H:i', $condition->getEndTime()) : '' ?>"/>
 <br/><br/>
 <div align="center">
     <script>
         $('#startdate').datepicker();
+        $('#starttime').timepicker();
         $('#enddate').datepicker();
+        $('#endtime').timepicker();
     </script>
     <?= Button::createAccept(_('Speichern'), 'submit', array('onclick' => "STUDIP.Conditions.addCondition('conditionfields', 'conditions', '".$controller->url_for('conditions/condition/add')."');")) ?>
     <?= Button::createCancel(_('Abbrechen'), 'cancel', array('onclick' => '$("#condition").remove()')) ?>

@@ -178,8 +178,8 @@ class ConditionalAdmission extends AdmissionRule
             $stmt->execute(array($this->id));
             $conditions = $stmt->fetchAll(PDO::FETCH_ASSOC);
             foreach ($conditions as $condition) {
-                $current = new StudipCondition($condition['condition_id']);
-                $this->conditions[$condition['condition_id']] = $current;
+                $currentCondition = new StudipCondition($condition['condition_id']);
+                $this->conditions[$condition['condition_id']] = $currentCondition;
             }
         }
     }

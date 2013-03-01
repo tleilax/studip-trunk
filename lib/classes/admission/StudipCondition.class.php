@@ -276,32 +276,9 @@ class StudipCondition
     }
 
     public function toString() {
-        $text = "";
-        // Start time but no end time given.
-        if ($this->startTime && !$this->endTime) {
-            $text .= sprintf(_("gültig ab %s"), 
-                date("d.m.Y", $this->startTime))."\n";
-        // End time but no start time given.
-        } else if (!$this->startTime && $this->endTime) {
-            $text .= sprintf(_("gültig bis %s"), 
-                date("d.m.Y", $this->endTime))."\n";
-        // Start and end time given.
-        } else if ($this->startTime && $this->endTime) {
-            $text .= sprintf(_("gültig von %s bis %s"), 
-                date("d.m.Y", $this->startTime), 
-                date("d.m.Y", $this->endTime))."\n";
-        }
-        $i=0;
-        foreach ($this->fields as $field) {
-            if ($i > 0) {
-                $text .= ' <b>'._('und').'</b> ';
-            }
-            $valueNames = $field->getValidValues();
-            $text .= $field->getName()." ".$field->getCompareOperator().
-                " ".$valueNames[$field->getValue()];
-            $i++;
-        }
-        return $text;
+        $tpl = $GLOBALS['template_factory']->open('conditions/display');
+        $tpl->set_attribute('condition', $this);
+        return $tpl->render();
     }
 
     public function __toString() {

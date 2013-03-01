@@ -85,6 +85,27 @@ class WaitingList {
     }
 
     /**
+     * Deletes the current waiting list and moves all users as participants to
+     * the corresponding course.
+     */
+    public function delete() {
+        // Assign all users to associated course.
+        $users = $this->getUsers();
+        $course = new Seminar($this->courseId);
+        foreach ($users as $user) {
+            $course->addMember($user['user_id']);
+        }
+        // Delete list data from database.
+        $stmt = DBManager::get()->prepare("DELETE FROM `waitinglist_config`
+            WHERE `list_id`=?");
+        $stmt->execute(array($this->id));
+        $stmt = DBManager::get()->prepare("DELETE FROM `waitinglist_user`
+            WHERE `list_id`=?");
+        $stmt->execute(array($this->id));
+        
+    }
+
+    /**
      * Gets the course ID this waiting list belongs to.
      */
     public function getCourseId() {
@@ -96,6 +117,26 @@ class WaitingList {
      */
     public function getMaxUsers() {
         return $this->maxUsers;
+    }
+
+    /**
+     * Gets all waiting lists for courses that are associated with the given
+     * course set.
+     * 
+     * @param String $courseSetId Course set
+     * @return Array
+     */
+    public static function getWaitingListsForCourseSet($courseSetId) {
+        $lists = array();
+        $stmt = DBManager::get()->prepare("SELECT `list_id`
+            FROM `waitinglist_config` 
+            WHERE `set_id`=?
+            ORDER BY `mkdate`");
+        $stmt->execute(array($courseSetId));
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $current) {
+            $lists[] = $current['list_id'];
+        }
+        return $lists;
     }
 
     /**

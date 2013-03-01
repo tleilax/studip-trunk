@@ -200,6 +200,15 @@ abstract class AdmissionRule
         return '';
     }
 
+    /**
+     * Standard string representation of this object.
+     * 
+     * @return String
+     */
+    public function __toString() {
+        return $this->toString();
+    }
+
 } /* end of abstract class AdmissionRule */
 
 ?>

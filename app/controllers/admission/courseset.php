@@ -5,6 +5,7 @@ require_once('app/models/courseset.php');
 require_once('lib/classes/Institute.class.php');
 require_once('lib/classes/admission/CourseSet.class.php');
 require_once('lib/classes/admission/RandomAlgorithm.class.php');
+require_once('lib/classes/admission/WaitingList.class.php');
 
 class Admission_CoursesetController extends AuthenticatedController {
 
@@ -55,8 +56,8 @@ class Admission_CoursesetController extends AuthenticatedController {
         if (Request::submitted('submit')) {
             $courseset = new CourseSet($coursesetId);
             $courseset->setName(Request::get('name'));
-            $institutes = Request::getArray('institutes');
-            $courseset->setInstitutes($institutes);
+            $courseset->setInstitutes(Request::getArray('institutes'));
+            $courseset->setCourses(Request::getArray('courses'));
             $courseset->clearAdmissionRules();
             foreach (Request::getArray('rules') as $serialized) {
                 $rule = unserialize($serialized);
@@ -68,6 +69,14 @@ class Admission_CoursesetController extends AuthenticatedController {
             $courseset->store();
         }
         $this->redirect('admission/courseset');
+    }
+
+    public function delete_action($coursesetId) {
+        $this->courseset = new CourseSet($coursesetId);
+        if (Request::int('really')) {
+            $this->courseset->delete();
+            $this->redirect($this->url_for('admission/courseset'));
+        }
     }
 
     public function instcourses_action() {
