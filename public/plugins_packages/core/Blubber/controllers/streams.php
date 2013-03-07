@@ -94,9 +94,9 @@ class StreamsController extends ApplicationController {
         PageLayout::addHeadElement("script", array('src' => $this->assets_url."/javascripts/formdata.js"), "");
 
         if (Request::get("extern")) {
-            $this->user = BlubberExternalContact::find(Request::get("user_id"));
+            $this->user = BlubberExternalContact::find(Request::option("user_id"));
         } else {
-            $this->user = new BlubberUser(Request::get("user_id"));
+            $this->user = new BlubberUser(Request::option("user_id"));
         }
         PageLayout::setTitle($this->user->getName()." - Blubber");
         
@@ -227,12 +227,6 @@ class StreamsController extends ApplicationController {
         $thread['parent_id'] = 0;
         $thread['author_host'] = $_SERVER['REMOTE_ADDR'];
         
-        if ($thread->isNew() && !$thread->getId()) {
-            $thread->store();
-            $thread['root_id'] = $thread->getId();
-            $thread->store();
-            
-        }
         if ($GLOBALS['user']->id !== "nobody") {
             $thread['user_id'] = $GLOBALS['user']->id;
         } else {
@@ -247,6 +241,14 @@ class StreamsController extends ApplicationController {
                 throw new AccessDeniedException("No permission to write posting.");
             }
         }
+
+        if ($thread->isNew() && !$thread->getId()) {
+            $thread->store();
+            $thread['root_id'] = $thread->getId();
+            $thread->store();
+            
+        }
+
         BlubberPosting::$mention_posting_id = $thread->getId();
         StudipTransformFormat::addStudipMarkup("mention1", '@\"[^\n\"]*\"', "", "BlubberPosting::mention");
         StudipTransformFormat::addStudipMarkup("mention2", '@[^\s]*[\d\w_]+', "", "BlubberPosting::mention");
@@ -316,8 +318,8 @@ class StreamsController extends ApplicationController {
                 or ($thread['context_type'] === "private" && !$thread->isRelated())) {
             throw new AccessDeniedException("Kein Zugriff");
         }
-        echo studip_utf8encode($posting['description']);
-        $this->render_nothing();
+        $this->set_content_type('text/text');
+        $this->render_text(studip_utf8encode($posting['description']));
     }
 
     /**
@@ -425,10 +427,6 @@ class StreamsController extends ApplicationController {
             StudipTransformFormat::addStudipMarkup("mention1", '@\"[^\n\"]*\"', "", "BlubberPosting::mention");
             StudipTransformFormat::addStudipMarkup("mention2", '@[^\s]*[\d\w_]+', "", "BlubberPosting::mention");
             $content = transformBeforeSave(studip_utf8decode(Request::get("content")));
-            
-            //mentions einbauen:
-            $content = preg_replace("/(@\"[^\n\"]*\")/e", "BlubberPosting::mention('\\1', '".$thread->getId()."')", $content);
-            $content = preg_replace("/(@[^\s]+)/e", "BlubberPosting::mention('\\1', '".$thread->getId()."')", $content);
             
             $posting['description'] = $content;
             if ($GLOBALS['user']->id !== "nobody") {

@@ -135,7 +135,23 @@ class ForumEntry {
             return false;
             // throw new Exception("Could not find entry with id >>$topic_id<< in forum_entries, " . __FILE__ . " on line " . __LINE__);
         }
+
+        // security check: only return topics belonging to the currently preselected seminar
+        /*
+        $seminar_id = ForumHelpers::getSeminarId();
         
+        if (!$seminar_id) { // if no seminar is preselected, check at least the studip-perms
+            if (!$GLOBALS['perm']->have_studip_perm('user', $seminar_id)) {
+                throw new AccessDeniedException('Zugriff verweigert!');
+            }
+        } else {            // if a seminar is preselected, check if the requested topic maps
+            if ($data['seminar_id'] != $seminar_id) {
+                throw new AccessDeniedException('Zugriff verweigert!');
+            }
+        }
+        */
+        // CONSTRAINS TO MUCH AT THE MOMENT - NEEDS FURTHER REFINEMENT
+
         if ($data['depth'] == 1) {
             $data['area'] = 1;
         }
@@ -172,8 +188,9 @@ class ForumEntry {
         $constraints = ForumEntry::getConstraints($topic_id);
         
         $stmt = DBManager::get()->prepare("SELECT topic_id
-            FROM forum_entries WHERE lft >= ? AND rgt <= ?");
-        $stmt->execute(array($constraints['lft'], $constraints['rgt']));
+            FROM forum_entries WHERE lft >= ? AND rgt <= ?
+                AND seminar_id = ?");
+        $stmt->execute(array($constraints['lft'], $constraints['rgt'], $constraints['seminar_id']));
         
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
@@ -508,7 +525,7 @@ class ForumEntry {
     /**
      * get a list of postings of a special type
      * 
-     * @param string $type one of 'area', 'list', 'postings', 'latest', 'favorites'
+     * @param string $type one of 'area', 'list', 'postings', 'latest', 'favorites', 'dump', 'flat'
      * @param string $parent_id the are to fetch from
      * @return array array('list' => ..., 'count' => ...);
      */
@@ -561,7 +578,7 @@ class ForumEntry {
                 $constraint = ForumEntry::getConstraints($parent_id);
 
                 // get postings
-                $stmt = DBManager::get()->prepare($query = "SELECT forum_entries.*, IF(ou.topic_id IS NOT NULL, 'fav', NULL) as fav
+                $stmt = DBManager::get()->prepare("SELECT forum_entries.*, IF(ou.topic_id IS NOT NULL, 'fav', NULL) as fav
                     FROM forum_entries
                     LEFT JOIN forum_favorites as ou ON (ou.topic_id = forum_entries.topic_id AND ou.user_id = :user_id)
                     WHERE seminar_id = :seminar_id AND lft > :left
@@ -622,7 +639,27 @@ class ForumEntry {
                 
                 $count = DBManager::get()->query("SELECT FOUND_ROWS()")->fetchColumn();
 
-                return array('list' => ForumEntry::parseEntries($stmt->fetchAll(PDO::FETCH_ASSOC)), 'count' => $count);
+                $posting_list = array();
+
+                // speed up things a bit by leaving out the formatReady fields
+                foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $data) {
+                    $posting_list[$data['topic_id']] = array(
+                        'author'          => $data['author'],
+                        'topic_id'        => $data['topic_id'],
+                        'name_raw'        => $data['name'],
+                        'content_raw'     => ForumEntry::killEdit($data['content']),
+                        'content_short'   => $desc_short,
+                        'chdate'          => $data['chdate'],
+                        'mkdate'          => $data['mkdate'],
+                        'owner_id'        => $data['user_id'],
+                        'raw_title'       => $data['name'],
+                        'raw_description' => ForumEntry::killEdit($data['content']),
+                        'fav'             => ($data['fav'] == 'fav'),
+                        'depth'           => $data['depth']
+                    );
+                }
+
+                return array('list' => $posting_list, 'count' => $count);
                 break;
         }
     }

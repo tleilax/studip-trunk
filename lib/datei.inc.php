@@ -84,9 +84,20 @@ function parse_link($link, $level=0) {
         return FALSE;
     if ($link == "***" && $link_update)
         $link = getLinkPath($link_update);
+
+    $url_parts = @parse_url( $link );
+    //filter out localhost and reserved or private IPs
+    if (stripos($url_parts["host"], 'localhost') !== false
+        || stripos($url_parts["host"], 'loopback') !== false
+        || (filter_var($url_parts["host"], FILTER_VALIDATE_IP) !== false
+            && (strpos($url_parts["host"],'127') === 0
+                || filter_var($url_parts["host"], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false)
+            )
+        ) {
+        return array('response' => 'HTTP/1.0 400 Bad Request', 'response_code' => 400);
+    }
     if (substr($link,0,6) == "ftp://") {
         // Parsing an FTF-Adress
-        $url_parts = @parse_url( $link );
         $documentpath = $url_parts["path"];
 
         if (strpos($url_parts["host"],"@")) {
@@ -124,7 +135,6 @@ function parse_link($link, $level=0) {
         return $parsed_link;
 
     } else {
-        $url_parts = @parse_url( $link );
         if (!empty( $url_parts["path"])){
             $documentpath = $url_parts["path"];
         } else {
@@ -135,8 +145,11 @@ function parse_link($link, $level=0) {
         }
         $host = $url_parts["host"];
         $port = $url_parts["port"];
-
-        if (substr($link,0,8) == "https://") {
+        $scheme = strtolower($url_parts['scheme']);
+        if (!in_array($scheme , words('http https'))) {
+            return array('response' => 'HTTP/1.0 400 Bad Request', 'response_code' => 400);
+        }
+        if ($scheme == "https") {
             $ssl = TRUE;
             if (empty($port)) $port = 443;
         } else {
@@ -153,7 +166,7 @@ function parse_link($link, $level=0) {
         }
         $socket = @fsockopen( ($ssl? 'ssl://':'').$host, $port, $errno, $errstr, 10 );
         if (!$socket) {
-            //echo "$errstr ($errno)<br>\n";
+            return array('response' => 'HTTP/1.0 400 Bad Request', 'response_code' => 400);
         } else {
             $urlString = "GET ".$documentpath." HTTP/1.0\r\nHost: $host\r\n";
             if ($url_parts["user"] && $url_parts["pass"]) {
@@ -213,21 +226,21 @@ function createSelectedZip ($file_ids, $perm_check = TRUE, $size_check = false) 
     $max_files = Config::GetInstance()->getValue('ZIP_DOWNLOAD_MAX_FILES');
     $max_size = Config::GetInstance()->getValue('ZIP_DOWNLOAD_MAX_SIZE') * 1024 * 1024;
     if(!$max_files && !$max_size) $size_check = false;
-
-    if ( is_array($file_ids) && !($size_check && count($file_ids) > $max_files)){
+    $db = DBManager::get();
+    if ( is_array($file_ids) && !($size_check && count($file_ids) > $max_files)) {
         $folder_tree = TreeAbstract::GetInstance('StudipDocumentTree', array('range_id' => $SessSemName[1]));
-        if ($perm_check){
+        if ($perm_check) {
+            $folders_cond = "AND seminar_id = " . $db->quote($SessSemName[1]);
             $allowed_folders = $folder_tree->getReadableFolders($GLOBALS['user']->id);
-            if (is_array($allowed_folders)) {
-                $folders_cond = " AND range_id IN ('".join("','",$allowed_folders)."')";
+            if (is_array($allowed_folders) && count($allowed_folders)) {
+                $folders_cond .= " AND range_id IN (" . $db->quote($allowed_folders) . ") ";
             } else {
-                $folders_cond = " AND 0 ";
+                $folders_cond .= " AND 0 ";
             }
         }
-        $db = DBManager::get();
-        $in = "('".join("','",$file_ids)."')";
-        $query = sprintf ("SELECT SUM(filesize) FROM dokumente WHERE url='' AND dokument_id IN %s %s", $in, ($perm_check) ? "AND seminar_id = '".$SessSemName[1]."' $folders_cond" : "");
-        $zip_size = $db->query($query)->fetch(PDO::FETCH_COLUMN, 0);
+        $query = $db->prepare("SELECT SUM(filesize) FROM dokumente WHERE url='' AND dokument_id IN(?) " . $folders_cond);
+        $query->execute(array($file_ids));
+        $zip_size = $query->fetch(PDO::FETCH_COLUMN, 0);
         if(!($size_check && $zip_size > $max_size)) {
             $zip_file_id = md5(uniqid("jabba",1));
 
@@ -236,13 +249,13 @@ function createSelectedZip ($file_ids, $perm_check = TRUE, $size_check = false) 
             mkdir($tmp_full_path,0700);
             $filelist = array();
             //create folder content
-            $files = $db->query(
+            $files = $db->prepare(
                 "SELECT dokument_id, filename, author_name, filesize, name, description, FROM_UNIXTIME(chdate) as chdate " .
                 "FROM dokumente " .
-                "WHERE dokument_id IN ('".join("','",$file_ids)."') " .
-                    ($perm_check ? "AND seminar_id = '".$SessSemName[1]."' $folders_cond " : "") .
-                "ORDER BY chdate, name, filename " .
-            "")->fetchAll(PDO::FETCH_ASSOC);
+                "WHERE dokument_id IN (?) " .
+                    $folders_cond .
+                "ORDER BY chdate, name, filename ");
+            $files->execute(array($file_ids));
             foreach ($files as $file) {
                 if(check_protected_download($file['dokument_id'])) {
                     $filename = prepareFilename($file['filename'], FALSE, $tmp_full_path);

@@ -481,8 +481,8 @@ class IndexController extends StudipController
 
         if (Request::isXhr()) {
             $this->render_text(json_encode(array(
-                'name'    => utf8_encode(htmlReady($name)),
-                'content' => utf8_encode(formatReady($content))
+                'name'    => studip_utf8encode(htmlReady($name)),
+                'content' => studip_utf8encode(formatReady($content))
             )));
         } else {
             $this->redirect(PluginEngine::getLink('coreforum/index/index/' . $topic_id .'#'. $topic_id));
@@ -631,7 +631,7 @@ class IndexController extends StudipController
         ForumPerm::check('edit_area', $this->getId());
 
         if (Request::isAjax()) {
-            ForumEntry::update($area_id, utf8_decode(Request::get('name')), utf8_decode(Request::get('content')));
+            ForumEntry::update($area_id, studip_utf8decode(Request::get('name')), studip_utf8decode(Request::get('content')));
             $this->render_nothing();
         } else {
             ForumEntry::update($area_id, Request::get('name'), Request::get('content'));
@@ -645,7 +645,7 @@ class IndexController extends StudipController
         ForumPerm::check('edit_category', $this->getId());
         
         if (Request::isAjax()) {
-            ForumCat::setName($category_id, utf8_decode(Request::get('name')));
+            ForumCat::setName($category_id, studip_utf8decode(Request::get('name')));
             $this->render_nothing();
         } else {
             ForumCat::setName($category_id, Request::get('name'));
@@ -731,16 +731,7 @@ class IndexController extends StudipController
     /* * * * * * * * * * * * * * * * * * * * * * * * * */
     function getId()
     {
-        if (!Request::option('cid')) {
-            if ($GLOBALS['SessionSeminar']) {
-                URLHelper::bindLinkParam('cid', $GLOBALS['SessionSeminar']);
-                return $GLOBALS['SessionSeminar'];
-            }
-
-            return false;
-        }
-
-        return Request::option('cid');
+        return ForumHelpers::getSeminarId();
     }
 
     /**
@@ -900,18 +891,60 @@ class IndexController extends StudipController
         // $this->loadView();
     }
     
-    function moderator_action()
+    function admin_action()
     {
-        ForumPerm::check('moderator', $this->getId());
+        ForumPerm::check('admin', $this->getId());
+        Navigation::activateItem('course/forum2/admin');
+        $list = ForumEntry::getList('flat', $this->getId());
+
+        // sort by cat
+        $new_list = array();
+        // iterate over all categories and add the belonging areas to them
+        foreach ($categories = ForumCat::getList($this->getId(), false) as $category) {
+            if ($category['topic_id']) {
+                $new_list[$category['category_id']][$category['topic_id']] = $list['list'][$category['topic_id']];
+                unset($list['list'][$category['topic_id']]);
+            } else if ($this->has_perms) {
+                $new_list[$category['category_id']] = array();
+            }
+            $this->categories[$category['category_id']] = $category['entry_name'];
+        }
+
+        if (!empty($list['list'])) {
+            // append the remaining entries to the standard category
+            $new_list[$this->getId()] = array_merge((array)$new_list[$this->getId()], $list['list']);
+        }
+
+        // put 'Allgemein' always to the end of the list
+        if (isset($new_list[$this->getId()])) {
+            $allgemein = $new_list[$this->getId()];
+            unset($new_list[$this->getId()]);
+            $new_list[$this->getId()] = $allgemein;
+        }
+
+        $this->list = $new_list;
+
     }
     
-    function moderator_getchilds($parent_id)
+    function admin_getchilds_action($parent_id)
     {
-        
+        ForumPerm::check('admin', $this->getId());
+
+        $this->set_layout(null);
+        $entries = ForumEntry::getList('flat', $parent_id);
+        $this->entries = $entries['list'];
+        $this->render_template('index/_admin_entries');
     }
 
-    function moderator_move_action($from, $to)
+    function admin_move_action($destination)
     {
-        ForumPerm::check('moderator', $this->getId());
+        ForumPerm::check('admin', $this->getId());
+
+        foreach (Request::getArray('topics') as $topic_id) {
+            // TODO: create adjusted move-function, the curent one is not up the task for multi-level movement
+            // ForumEntry::move($topic_id, $destination);
+        }
+
+        $this->render_nothing();
     }
 }
