@@ -7,7 +7,9 @@
     </a>
     <a href="#" onclick="return STUDIP.Admission.configureRule('<?= get_class($rule) ?>', '<?= $controller->url_for('admission/rule/configure', get_class($rule), $rule->getId()) ?>')">
         <?= Assets::img('icons/16/blue/edit.png'); ?></a>
-    <a href="#" onclick="return STUDIP.Admission.removeRule('rule_<?= $rule->getId() ?>', 'rules')">
+    <a href="#" onclick="return STUDIP.Dialogs.showConfirmDialog('<?= 
+                _('Soll die Anmelderegel wirklich gelöscht werden?') ?>', 
+                'javascript:STUDIP.Admission.removeRule(\'rule_<?= $rule->getId() ?>\', \'rules\')')">
         <?= Assets::img('icons/16/blue/trash.png'); ?></a>
     <div id="rule_details_<?= $rule->getId() ?>" style="display: none; margin-left: 20px;">
         <?= $via_ajax ? utf8_encode($rule->toString()) : $rule->toString() ?>

@@ -7,8 +7,6 @@
 
 STUDIP.Admission = {
 
-    confirmDialog: null,
-
     getCourses: function(source, targetId, targetUrl) {
         var selected = jQuery('.'+source+':checked');
         var query = '';
@@ -90,7 +88,7 @@ STUDIP.Admission = {
             $('#'+containerId).prepend('<span id="norules">'+
                 '<i>'+norules+'</i></span>');
         }
-        return false;
+        STUDIP.Dialogs.closeConfirmDialog();
     },
 
     toggleRuleDescription: function(targetId) {
@@ -105,20 +103,6 @@ STUDIP.Admission = {
         $('#'+arrowId).attr('rel', oldSrc);
         $('#'+detailId).slideToggle();
         return false;
-    },
-
-    deleteCourseSet: function(question, confirm, highlight_element) {
-        // compile template
-        var getTemplate = _.memoize(function(name) {
-            return _.template($("#" + name).html());
-        })
-        
-        STUDIP.Admission.confirmDialog = getTemplate('confirm_dialog');
-        return false;
-    },
-
-    showConfirmDialog: function(question, confirm, highlight_element) {
-        
     }
 
 };

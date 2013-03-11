@@ -18,6 +18,7 @@ class Conditions_ConditionController extends AuthenticatedController {
             PageLayout::setTitle(_('Auswahlbedingungen'));
             Navigation::activateItem('/tools/coursesets');
         }
+        PageLayout::addSqueezePackage('conditions');
     }
 
     public function configure_action($conditionId='') {

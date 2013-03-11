@@ -10,13 +10,18 @@
             <i><?= _('Sie haben noch keine Bedingungen festgelegt.'); ?></i>
         </span>
         <?php } else { ?>
+        <div id="conditionlist">
             <?php foreach ($rule->getConditions() as $condition) { ?>
                 <div class="condition" id="condition_<?= $condition->getId() ?>">
                     <?= $condition->toString() ?>
-                    <a href="#" onclick="return STUDIP.Conditions.removeConditionField($(this).parent())" class="conditionfield_delete">
+                    <a href="#" onclick="return STUDIP.Dialogs.showConfirmDialog('<?= 
+                        _('Soll die Bedingung wirklich gelöscht werden?') ?>', 
+                        'javascript:STUDIP.Admission.removeConditionField($(this.parent()))')"
+                        class="conditionfield_delete">
                         <?= Assets::img('icons/16/blue/trash.png'); ?></a>
                 </div>
             <?php } ?>
+        </div>
         <?php } ?>
         <br/><br/>
         <a href="<?= URLHelper::getURL('dispatch.php/conditions/condition/configure') ?>" onclick="return STUDIP.Conditions.configureCondition('<?= URLHelper::getURL('dispatch.php/conditions/condition/configure') ?>')">

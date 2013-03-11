@@ -17,6 +17,7 @@ class Conditions_FieldController extends AuthenticatedController {
             PageLayout::setTitle(_('Bedingung'));
             Navigation::activateItem('/tools/coursesets');
         }
+        PageLayout::addSqueezePackage('conditions');
     }
 
     public function configure_action() {

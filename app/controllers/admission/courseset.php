@@ -28,7 +28,6 @@ class Admission_CoursesetController extends AuthenticatedController {
             }
         }
         PageLayout::addSqueezePackage('admission');
-        PageLayout::addSqueezePackage('conditions');
     }
 
     public function index_action() {
@@ -55,17 +54,17 @@ class Admission_CoursesetController extends AuthenticatedController {
     public function save_action($coursesetId='') {
         if (Request::submitted('submit')) {
             $courseset = new CourseSet($coursesetId);
-            $courseset->setName(Request::get('name'));
-            $courseset->setInstitutes(Request::getArray('institutes'));
-            $courseset->setCourses(Request::getArray('courses'));
-            $courseset->clearAdmissionRules();
+            $courseset->setName(Request::get('name'))
+                ->setInstitutes(Request::getArray('institutes'))
+                ->setCourses(Request::getArray('courses'))
+                ->setInvalidateRules((bool) Request::int('invalidate', false))
+                ->clearAdmissionRules();
             foreach (Request::getArray('rules') as $serialized) {
                 $rule = unserialize($serialized);
                 $courseset->addAdmissionRule($rule);
             }
             $algorithm = new RandomAlgorithm();
             $courseset->setAlgorithm($algorithm);
-            $courseset->setInvalidateRules(false);
             $courseset->store();
         }
         $this->redirect('admission/courseset');
@@ -75,6 +74,9 @@ class Admission_CoursesetController extends AuthenticatedController {
         $this->courseset = new CourseSet($coursesetId);
         if (Request::int('really')) {
             $this->courseset->delete();
+            $this->redirect($this->url_for('admission/courseset'));
+        }
+        if (Request::int('cancel')) {
             $this->redirect($this->url_for('admission/courseset'));
         }
     }

@@ -32,7 +32,10 @@ STUDIP.Conditions = {
         query = '';
         for (var i=0 ; i<children.size() ; i++) {
             var current = $(children[i]);
-            query += '&field[]='+
+            if (query != '') {
+                query += '&';
+            }
+            query += 'field[]='+
                 current.children('.conditionfield_class').first().val()+
                 '&compare_operator[]='+
                 current.children('.conditionfield_compare_op').first().val()+
@@ -103,6 +106,6 @@ STUDIP.Conditions = {
 
     removeConditionField: function(element) {
         element.remove();
-        return false;
+        STUDIP.Dialogs.closeConfirmDialog();
     }
 };

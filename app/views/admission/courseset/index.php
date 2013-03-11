@@ -28,6 +28,7 @@ $infobox = array('content' => $infobox,
                  'picture' => 'infobox/administration.png'
 );
 ?>
+<?= $this->render_partial('dialog/confirm_dialog') ?>
 <h2><?= _('Anmeldesets') ?></h2>
 <?php
 if ($coursesets) {
@@ -47,7 +48,11 @@ if ($coursesets) {
                       'title' => _('Anmeldeset bearbeiten'))); ?>
         </a>
         <a href="<?= $controller->url_for('admission/courseset/delete', 
-            $courseset->getId()) ?>">
+            $courseset->getId()) ?>"
+            onclick="return STUDIP.Dialogs.showConfirmDialog('<?= 
+                sprintf(_('Soll das Anmeldeset %s wirklich gelöscht werden?'), $courseset->getName()) ?>', '<?= 
+                URLHelper::getURL('dispatch.php/admission/courseset/delete/'.
+                $courseset->getId(), array('really' => 1)) ?>')">
             <?= Assets::img('icons/16/blue/trash.png', 
                 array('alt' => _('Anmeldeset löschen'), 
                       'title' => _('Anmeldeset löschen'))); ?>

@@ -28,6 +28,7 @@ $infobox = array('content' => $infobox,
 );
 
 ?>
+<?= $this->render_partial('dialog/confirm_dialog') ?>
 <h2><?= $courseset ? _('Anmeldeset bearbeiten') : _('Anmeldeset anlegen') ?></h2>
 <form action="<?= $controller->url_for('admission/courseset/save', ($courseset ? $courseset->getId() : '')) ?>" method="post">
     <div style="width: 80%; padding: 10px;" class="table_row_<?= TextHelper::cycle('even', 'odd'); ?>">
@@ -69,6 +70,17 @@ $infobox = array('content' => $infobox,
                 <?= Assets::img('icons/16/blue/plus.png', array(
                     'alt' => _('Anmelderegel hinzufügen'),
                     'title' => _('Anmelderegel hinzufügen'))) ?><?= _('Anmelderegel hinzufügen') ?></a>
+        </div>
+    </div>
+    <div style="width: 80%; padding: 10px;" class="table_row_<?= TextHelper::cycle('even', 'odd'); ?>">
+        <div align="right" style="display: inline-block; vertical-align: top; width: 20%; font-weight: bold;"></div>
+        <div style="display: inline-block; vertical-align: top;">
+            <?php
+                // Set checkbox accordingly to courseset status or to unchecked if new courseset.
+                $checked = $courseset ? ($courseset->getInvalidateRules() ? ' checked="checked"' : '') : '';
+            ?>
+            <input type="checkbox" name="invalidate"<?= $checked ?>/>
+            <?= _('Anmeldebedingungen werden nach erfolgter Platzverteilung aufgehoben') ?>
         </div>
     </div>
     <div style="width: 80%; padding: 10px;" class="table_row_<?= TextHelper::cycle('even', 'odd'); ?>">

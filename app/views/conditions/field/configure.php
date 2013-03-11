@@ -17,7 +17,10 @@
         <option value="<?= $className ?>"><?= htmlReady($displayName) ?></option>
         <?php } ?>
     </select>
-    <a href="#" onclick="return STUDIP.Conditions.removeConditionField($(this).parent())" class="conditionfield_delete">
+    <a href="#" onclick="return STUDIP.Dialogs.showConfirmDialog('<?= 
+                _('Soll die Bedingung wirklich gelöscht werden?') ?>', 
+                'javascript:STUDIP.Admission.removeConditionField($(this.parent()))')"
+		class="conditionfield_delete">
         <?= Assets::img('icons/16/blue/trash.png'); ?></a>
 </div>
 <?php } ?>

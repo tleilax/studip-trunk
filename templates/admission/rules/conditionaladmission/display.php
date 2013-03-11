@@ -1,7 +1,12 @@
-<?php echo $this->render_partial('admission/rules/display.php'); ?>
+<i><?= _('Anmeldebedingungen') ?>:</i>
 <br/>
 <?php
+$i = 0;
 foreach ($rule->getConditions() as $condition) {
-    echo $condition->toString();
+    if ($i > 0) {
+        echo '<b>'._('oder').'</b><br/>';
+    }
+    echo $condition->toString().'<br/>';
+    $i++;
 }
 ?>
