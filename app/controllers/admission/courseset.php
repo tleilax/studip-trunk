@@ -57,7 +57,7 @@ class Admission_CoursesetController extends AuthenticatedController {
             $courseset->setName(Request::get('name'))
                 ->setInstitutes(Request::getArray('institutes'))
                 ->setCourses(Request::getArray('courses'))
-                ->setInvalidateRules((bool) Request::int('invalidate', false))
+                ->setInvalidateRules((bool) Request::option('invalidate', false))
                 ->clearAdmissionRules();
             foreach (Request::getArray('rules') as $serialized) {
                 $rule = unserialize($serialized);

@@ -10,7 +10,7 @@ if ($rule->getStartTime() && !$rule->getEndTime()) {
     $text = sprintf(_("von %s bis %s"), date("d.m.Y, H:i", $rule->startTime), date("d.m.Y, H:i", $rule->endTime));
 }
 ?>
-<?= $text ?>;
+<?= $text ?>
 <?php
 if ($rule->getDistributionTime()) {
 ?>

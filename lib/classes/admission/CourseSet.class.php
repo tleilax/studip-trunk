@@ -171,6 +171,11 @@ class CourseSet
         return $valid;
     }
 
+    /**
+     * Removes all admission rules at once.
+     * 
+     * @return CourseSet
+     */
     public function clearAdmissionRules() {
         $this->admissionRules = array();
         return $this;
@@ -426,6 +431,7 @@ class CourseSet
         $stmt->execute(array($this->id));
         if ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $this->name = $data['name'];
+            $this->invalidateRules = (bool) $data['invalidate_rules'];
             if ($data['algorithm']) {
                 $this->algorithm = new $data['algorithm']();
             }
@@ -548,6 +554,7 @@ class CourseSet
      */
     public function setInvalidateRules($newValue) {
         $this->invalidateRules = $newValue;
+        return $this;
     }
 
     /**
