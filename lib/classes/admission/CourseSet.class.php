@@ -49,6 +49,11 @@ class CourseSet
     public $id = '';
 
     /**
+     * Some extensive descriptional text for informing confused students.
+     */
+    public $infoText = '';
+
+    /**
      * Which Stud.IP institute does the course set belong to?
      */
     public $institutes = array();
@@ -339,6 +344,16 @@ class CourseSet
     }
 
     /**
+     * Get the course set's info text.
+     *
+     * @return String
+     */
+    public function getInfoText()
+    {
+        return $this->infoText;
+    }
+
+    /**
      * Which institutes does the rule belong to?
      * 
      * @return Array
@@ -431,9 +446,12 @@ class CourseSet
         $stmt->execute(array($this->id));
         if ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $this->name = $data['name'];
+            $this->infoText = $data['infotext'];
             $this->invalidateRules = (bool) $data['invalidate_rules'];
             if ($data['algorithm']) {
-                $this->algorithm = new $data['algorithm']();
+                if (StudipAutoloader::loadClass($data['algorithm'])) {
+                    $this->algorithm = new $data['algorithm']();
+                }
             }
         }
         // Load institute assigments.
@@ -532,6 +550,17 @@ class CourseSet
     }
 
     /**
+     * Set the course set's info text.
+     *
+     * @return CourseSet
+     */
+    public function setInfoText($newText)
+    {
+        $this->infoText = $newText;
+        return $this;
+    }
+
+    /**
      * Adds several course IDs after clearing the existing course
      * assignments.
      * 
@@ -581,13 +610,14 @@ class CourseSet
         }
         // Store basic data.
         $stmt = DBManager::get()->prepare("INSERT INTO `coursesets`
-            (`set_id`, `user_id`, `name`, `algorithm`, `invalidate_rules`,
-            `mkdate`, `chdate`)
-            VALUES (?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE
-            `name`=VALUES(`name`), `algorithm`=VALUES(`algorithm`), 
+            (`set_id`, `user_id`, `name`, `infotext`, `algorithm`, 
+            `invalidate_rules`, `mkdate`, `chdate`)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE
+            `name`=VALUES(`name`), `infotext`=VALUES(`infotext`),
+            `algorithm`=VALUES(`algorithm`), 
             `invalidate_rules`=VALUES(`invalidate_rules`),
             `chdate`=VALUES(`chdate`)");
-        $stmt->execute(array($this->id, $user->id, $this->name,
+        $stmt->execute(array($this->id, $user->id, $this->name, $this->infoText,
             get_class($this->algorithm), intval($this->invalidateRules), time(), time()));
         // Delete removed institute assignments from database.
         DBManager::get()->exec("DELETE FROM `courseset_institute` 
@@ -635,8 +665,15 @@ class CourseSet
         }
     }
 
-    public function toString() {
-        $tpl = $GLOBALS['template_factory']->open('admission/courseset/display');
+    /**
+     * A textual description of the current rule.
+     *
+     * @param bool short Show only short info without overview of assigned
+     *                   courses and institutes.
+     * @return String
+     */
+    public function toString($short=false) {
+        $tpl = $GLOBALS['template_factory']->open('admission/courseset/info');
         $tpl->set_attribute('courseset', $this);
         $institutes = array();
         foreach ($this->institutes as $id => $assigned) {
@@ -651,6 +688,7 @@ class CourseSet
             $courses[$id] = $name;
         }
         $tpl->set_attribute('courses', $courses);
+        $tpl->set_attribute('short', $short);
         return $tpl->render();
     }
 

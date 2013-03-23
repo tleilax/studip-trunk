@@ -117,6 +117,11 @@ class LockedAdmission extends AdmissionRule
         return $this;
     }
 
+    /**
+     * A textual description of the current rule.
+     *
+     * @return String
+     */
     public function toString() {
         $tpl = $GLOBALS['template_factory']->open('admission/rules/lockedadmission/info');
         $tpl->set_attribute('rule', $this);

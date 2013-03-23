@@ -31,13 +31,13 @@ $infobox = array('content' => $infobox,
 <?= $this->render_partial('dialog/confirm_dialog') ?>
 <h2><?= $courseset ? _('Anmeldeset bearbeiten') : _('Anmeldeset anlegen') ?></h2>
 <form action="<?= $controller->url_for('admission/courseset/save', ($courseset ? $courseset->getId() : '')) ?>" method="post">
-    <div style="width: 80%; padding: 10px;" class="table_row_<?= TextHelper::cycle('even', 'odd'); ?>">
+    <div style="width: 90%; padding: 10px;" class="table_row_<?= TextHelper::cycle('even', 'odd'); ?>">
         <div align="right" style="display: inline-block; vertical-align: top; width: 20%; font-weight: bold;"><?= _('Name des Anmeldesets:') ?></div>
         <div style="display: inline-block; vertical-align: top;">
-            <input type="text" size="60" maxlength="255" name="name" value="<?= $courseset ? $courseset->getName() : '' ?>" required/>
+            <input type="text" size="60" maxlength="255" name="name" value="<?= $courseset ? htmlReady($courseset->getName()) : '' ?>" required/>
         </div>
     </div>
-    <div style="width: 80%; padding: 10px;" class="table_row_<?= TextHelper::cycle('even', 'odd'); ?>">
+    <div style="width: 90%; padding: 10px;" class="table_row_<?= TextHelper::cycle('even', 'odd'); ?>">
         <div align="right" style="display: inline-block; vertical-align: top; width: 20%; font-weight: bold;"><?= _('Einrichtungszuordnung:') ?></div>
         <div style="display: inline-block; vertical-align: top;">
         <?php foreach ($myInstitutes as $institute) { ?>
@@ -50,7 +50,7 @@ $infobox = array('content' => $infobox,
         <?php } ?>
         </div>
     </div>
-    <div style="width: 80%; padding: 10px;" class="table_row_<?= TextHelper::cycle('even', 'odd'); ?>">
+    <div style="width: 90%; padding: 10px;" class="table_row_<?= TextHelper::cycle('even', 'odd'); ?>">
         <div align="right" style="display: inline-block; vertical-align: top; width: 20%; font-weight: bold;"><?= _('Anmelderegeln:') ?></div>
         <div style="display: inline-block; vertical-align: top;" id="rules">
             <?php if ($courseset) { ?>
@@ -72,7 +72,7 @@ $infobox = array('content' => $infobox,
                     'title' => _('Anmelderegel hinzufügen'))) ?><?= _('Anmelderegel hinzufügen') ?></a>
         </div>
     </div>
-    <div style="width: 80%; padding: 10px;" class="table_row_<?= TextHelper::cycle('even', 'odd'); ?>">
+    <div style="width: 90%; padding: 10px;" class="table_row_<?= TextHelper::cycle('even', 'odd'); ?>">
         <div align="right" style="display: inline-block; vertical-align: top; width: 20%; font-weight: bold;"></div>
         <div style="display: inline-block; vertical-align: top;">
             <?php
@@ -83,7 +83,7 @@ $infobox = array('content' => $infobox,
             <?= _('Anmeldebedingungen werden nach erfolgter Platzverteilung aufgehoben') ?>
         </div>
     </div>
-    <div style="width: 80%; padding: 10px;" class="table_row_<?= TextHelper::cycle('even', 'odd'); ?>">
+    <div style="width: 90%; padding: 10px;" class="table_row_<?= TextHelper::cycle('even', 'odd'); ?>">
         <div align="right" style="display: inline-block; vertical-align: top; width: 20%; font-weight: bold;"><?= _('Veranstaltungszuordnung:') ?></div>
         <div style="display: inline-block; vertical-align: top;" id="instcourses">
             <?php
@@ -102,7 +102,13 @@ $infobox = array('content' => $infobox,
             <?php } ?>
         </div>
     </div>
-    <div align="center" style="width: 80%; padding: 10px;" class="table_row_<?= TextHelper::cycle('even', 'odd'); ?>">
+    <div style="width: 90%; padding: 10px;" class="table_row_<?= TextHelper::cycle('even', 'odd'); ?>">
+        <div align="right" style="display: inline-block; vertical-align: top; width: 20%; font-weight: bold;"><?= _('weitere Hinweise:') ?></div>
+        <div style="display: inline-block; vertical-align: top;">
+            <textarea cols="60" rows="3" name="infotext"><?= $courseset ? htmlReady($courseset->getInfoText()) : '' ?></textarea>
+        </div>
+    </div>
+    <div align="center" style="width: 90%; padding: 10px;" class="table_row_<?= TextHelper::cycle('even', 'odd'); ?>">
         <?= Button::createAccept(_('Speichern'), 'submit') ?>
         <?= LinkButton::createCancel(_('Abbrechen'), $controller->url_for('admission/courseset')) ?>
     </div>

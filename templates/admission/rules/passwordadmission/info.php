@@ -1,1 +1,1 @@
-<?= _('Die Anmeldung ist nur möglich, wenn Sie das Zugangspasswort kennen.') ?>
+<?= _('Die Anmeldung ist nur mit Eingabe eines Passworts möglich.') ?>

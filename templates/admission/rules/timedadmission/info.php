@@ -1,19 +1,20 @@
-<i><?= _('Anmeldezeitraum:') ?></i>
-<br/>
 <?php
-$text = '';
+$text = _('');
 if ($rule->getStartTime() && !$rule->getEndTime()) {
-    $text = sprintf(_("ab %s"), date("d.m.Y, H:i", $rule->startTime));
+    $text = sprintf(_("Die Anmeldung ist möglich ab %s."), date("d.m.Y, H:i", 
+        $rule->startTime));
 } else if (!$rule->getStartTime() && $rule->getEndTime()) {
-    $text = sprintf(_("bis %s"), date("d.m.Y, H:i", $rule->endTime));
+    $text = sprintf(_("Die Anmeldung ist möglich bis %s."), date("d.m.Y, H:i", 
+        $rule->endTime));
 } else if ($rule->getStartTime() && $rule->getEndTime()) {
-    $text = sprintf(_("von %s bis %s"), date("d.m.Y, H:i", $rule->startTime), date("d.m.Y, H:i", $rule->endTime));
+    $text = sprintf(_("Die Anmeldung ist möglich von %s bis %s."), 
+        date("d.m.Y, H:i", $rule->startTime), date("d.m.Y, H:i", $rule->endTime));
 }
 ?>
 <?= $text ?>
-<?php
-if ($rule->getDistributionTime()) {
-?>
-<i><?= _('Platzverteilung:') ?></i>
-<?= date("d.m.Y", $rule->distributionTime).' '.date("H:i", $rule->distributionTime); ?>
+<?php if ($rule->getDistributionTime()) { ?>
+<br/>
+<?= sprintf(_('Die Plätze in den betreffenden Veranstaltungen werden am %s '.
+    'um %s verteilt.'), date("d.m.Y", $rule->distributionTime), 
+    date("H:i", $rule->distributionTime)) ?>
 <?php } ?>

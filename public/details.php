@@ -35,6 +35,7 @@ require_once 'lib/functions.php';
 require_once 'lib/classes/StudipSemTree.class.php';
 require_once 'lib/classes/DataFieldEntry.class.php';
 require_once 'lib/deputies_functions.inc.php';
+require_once 'lib/classes/admission/CourseSet.class.php';
 
 include 'lib/seminar_open.php'; // initialise Stud.IP-Session
 
@@ -76,6 +77,8 @@ if ($SessionSeminar == $sem_id) {
     // add skip link
     SkipLinks::addIndex(Navigation::getItem('/course/main/details')->getTitle(), 'main_content', 100);
 }
+
+PageLayout::addSqueezePackage('admission');
 
 ob_start();
 // Start of Output
@@ -811,6 +814,25 @@ echo $template_factory->render(
                 </td>
             </tr>
         <? endif ?>
+        <?php
+        if ($coursesets = CourseSet::getSetsForCourse($sem_id)) {
+            $courseset = $coursesets[0];
+        ?>
+            <tr>
+                <td width="1%">&nbsp;</td>
+                <td colspan="4" valign="top">
+                <font size="-1">
+                    <b>
+                        <?= sprintf(_('Diese Veranstaltung gehört zum Anmeldeset "%s".'), 
+                            htmlReady($courseset->getName())) ?>
+                    </b>
+                </font>
+                <div id="courseset_<?= $courseset->getId() ?>">
+                    <?= $courseset->toString(true) ?>
+                </div>
+                </td>
+            </tr>
+        <?php } ?>
         <tr>
             <td width="1%">&nbsp;</td>
             <td width="24%" valign="top">

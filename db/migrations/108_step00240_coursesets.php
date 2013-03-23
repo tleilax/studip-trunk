@@ -81,14 +81,15 @@ class Step00240CourseSets extends Migration
         // sets of courses with common admission rules
         $db->exec("CREATE  TABLE IF NOT EXISTS `coursesets` (
                 `set_id` VARCHAR(32) NOT NULL ,
-                `user_id` VARCHAR(32) NULL ,
-                `institut_id` VARCHAR(32) NULL ,
-                `name` VARCHAR(255) NULL ,
-                `algorithm` VARCHAR(255) NULL ,
+                `user_id` VARCHAR(32) NOT NULL ,
+                `institut_id` VARCHAR(32) NOT NULL ,
+                `name` VARCHAR(255) NOT NULL ,
+                `infotext` TEXT NOT NULL ,
+                `algorithm` VARCHAR(255) NOT NULL ,
                 `algorithm_run` TINYINT NULL DEFAULT 0 ,
-                `invalidate_rules` TINYINT NULL DEFAULT 0 ,
-                `mkdate` INT NULL ,
-                `chdate` INT NULL ,
+                `invalidate_rules` TINYINT NOT NULL DEFAULT 0 ,
+                `mkdate` INT NOT NULL ,
+                `chdate` INT NOT NULL ,
             PRIMARY KEY (`set_id`) ,
             INDEX `set_user` (`set_id` ASC, `user_id` ASC) ,
             INDEX `set_institut` (`set_id` ASC, `institut_id` ASC))

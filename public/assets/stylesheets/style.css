@@ -3073,3 +3073,24 @@ div.info {
 .printhead .rating img {
   padding: 0;
 }
+
+/* --- admission --- */
+.rule {
+    margin-bottom: 5px;
+    margin-left: 20px;
+    margin-top: 5px;
+}
+
+.rule_actions {
+    display: none;
+    margin-left: 10px;
+}
+
+.rule:hover .rule_actions {
+    float: right;
+    display: inline-block;
+}
+
+.condition {
+    margin-left: 20px;
+}
