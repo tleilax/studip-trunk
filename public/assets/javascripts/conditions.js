@@ -20,8 +20,12 @@ STUDIP.Conditions = {
                     $('#condition').remove();
                 },
                 open: function() {
+                    $('#condition').empty();
+                    $('<img/>', {
+                        src: STUDIP.ASSETS_URL + 'images/ajax_indicator_small.gif'
+                    }).appendTo('#condition');
+                    $('#condition').append(loading);
                     $('#condition').load(targetUrl);
-                    STUDIP.ajax_indicator = true;
                 }
             });
         return false;

@@ -35,13 +35,21 @@ STUDIP.Admission = {
                         $('#configurerule').remove();
                     },
                     open: function() {
+                        $('#configurerule').empty();
+                        $('<img/>', {
+                            src: STUDIP.ASSETS_URL + 'images/ajax_indicator_small.gif'
+                        }).appendTo('#configurerule');
+                        $('#configurerule').append(loading);
                         $('#configurerule').load(targetUrl);
-                        STUDIP.ajax_indicator = true;
                     }
                 });
         }
         if (ruleType != null) {
-            $('#configurerule').html(loading);
+            $('#configurerule').empty();
+            $('<img/>', {
+                src: STUDIP.ASSETS_URL + 'images/ajax_indicator_small.gif'
+            }).appendTo('#configurerule');
+            $('#configurerule').append(loading);
             $('#configurerule').load(targetUrl);
         }
         return false;
