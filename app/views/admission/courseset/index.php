@@ -66,12 +66,10 @@ if ($coursesets) {
 <?php
 } else {
 ?>
-<span id="nosets">
-    <i><?= sprintf(_('Es wurden keine Anmeldesets gefunden. Sie können ein '.
-        'neues %sAnmeldeset anlegen%s.'), '<a href="'.
-        $controller->url_for('admission/courseset/configure').'">', 
-        '</a>') ?></i>
-</span>
+<?= MessageBox::info(sprintf(_('Es wurden keine Anmeldesets gefunden. Sie können ein '.
+    'neues %sAnmeldeset anlegen%s.'), '<a href="'.
+    $controller->url_for('admission/courseset/configure').'">', 
+    '</a>')); ?>
 <?php
 }
 ?>
