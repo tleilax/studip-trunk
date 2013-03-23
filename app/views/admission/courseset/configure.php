@@ -44,7 +44,7 @@ $infobox = array('content' => $infobox,
         <input type="checkbox" name="institutes[]" value="<?= $institute['Institut_id'] ?>"
             <?= $selectedInstitutes[$institute['Institut_id']] ? 'checked="checked"' : '' ?>
             class="institute" onclick="STUDIP.Admission.getCourses('institute', 'instcourses', 
-            '<?= $controller->url_for('admission/courseset/instcourses') ?>')"/>
+            '<?= $controller->url_for('admission/courseset/instcourses', $courseset ? $courseset->getId() : '') ?>')"/>
             <?= $institute['Name'] ?>
         <br/>
         <?php } ?>

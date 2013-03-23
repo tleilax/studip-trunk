@@ -48,7 +48,7 @@ class Admission_CoursesetController extends AuthenticatedController {
             $this->courseset = new CourseSet($coursesetId);
             $this->selectedInstitutes = $this->courseset->getInstituteIds();
         }
-        $this->courses = CoursesetModel::getInstCourses($this->myInstitutes);
+        $this->courses = CoursesetModel::getInstCourses($this->myInstitutes, $coursesetId);
     }
 
     public function save_action($coursesetId='') {
@@ -81,8 +81,8 @@ class Admission_CoursesetController extends AuthenticatedController {
         }
     }
 
-    public function instcourses_action() {
-        $this->courses = CoursesetModel::getInstCourses(array_flip(Request::getArray('institutes')));
+    public function instcourses_action($coursesetId='') {
+        $this->courses = CoursesetModel::getInstCourses(array_flip(Request::getArray('institutes')), $coursesetId);
     }
 
 }
