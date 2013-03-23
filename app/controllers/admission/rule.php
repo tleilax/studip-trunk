@@ -53,6 +53,12 @@ class Admission_RuleController extends AuthenticatedController {
         $rule->delete();
     }
 
+    public function validate_action($ruleType) {
+        $rules = AdmissionRule::getAvailableAdmissionRules();
+        $rule = new $ruleType($ruleId);
+        $this->errors = $rule->validate(Request::getInstance());
+    }
+
 }
 
 ?>

@@ -91,7 +91,8 @@ class LockedAdmission extends AdmissionRule
 
     /**
      * Does the current rule allow the given user to register as participant 
-     * in the given course?
+     * in the given course? Never happens here as admission is completely
+     * locked.
      *
      * @param  String userId
      * @param  String courseId
@@ -117,7 +118,7 @@ class LockedAdmission extends AdmissionRule
     }
 
     public function toString() {
-        $tpl = $GLOBALS['template_factory']->open('admission/rules/lockedadmission/display');
+        $tpl = $GLOBALS['template_factory']->open('admission/rules/lockedadmission/info');
         $tpl->set_attribute('rule', $this);
         return $tpl->render();
     }

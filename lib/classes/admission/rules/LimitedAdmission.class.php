@@ -143,7 +143,8 @@ class LimitedAdmission extends AdmissionRule
 
     /**
      * Does the current rule allow the given user to register as participant 
-     * in the given course?
+     * in the given course? That only happens when the user has no more than
+     * the given number of registrations at the other courses in the course set.
      *
      * @param  String userId
      * @param  String courseId
@@ -171,7 +172,6 @@ class LimitedAdmission extends AdmissionRule
      * isn't known in advance.
      * 
      * @param Array $data
-     * @param boolean $ajax
      * @return AdmissionRule This object.
      */
     public function setAllData($data) {
@@ -227,9 +227,25 @@ class LimitedAdmission extends AdmissionRule
     }
 
     public function toString() {
-        $tpl = $GLOBALS['template_factory']->open('admission/rules/limitedadmission/display');
+        $tpl = $GLOBALS['template_factory']->open('admission/rules/limitedadmission/info');
         $tpl->set_attribute('rule', $this);
         return $tpl->render();
+    }
+
+    /**
+     * Validates if the given request data is sufficient to configure this rule
+     * (e.g. if required values are present).
+     *
+     * @param  Array Request data
+     * @return Array Error messages.
+     */
+    public function validate($data)
+    {
+        $errors = parent::validate($data);
+        if (!$data['maxnumber']) {
+            $errors[] = _('Bitte geben Sie die maximale Anzahl erlaubter Anmeldungen an.');
+        }
+        return $errors;
     }
 
 } /* end of class LimitedAdmission */

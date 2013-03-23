@@ -19,17 +19,18 @@ if (!$ruleType) {
     }
     ?>
     <div style="padding: 5px; text-align: center;" class="table_row_<?= TextHelper::cycle('even', 'odd'); ?>">
-        <?= Button::createCancel(_('Abbrechen'), 'cancel', array('onclick' => "$('#configurerule').remove()")) ?>
+        <?= LinkButton::createCancel(_('Abbrechen'), 'cancel', array('onclick' => "$('#configurerule').remove(); return false;")) ?>
     </div>
 <?php
 } else {
 ?>
-<form action="<?= $controller->url_for('admission/rule/save', get_class($rule), $rule->getId()) ?>" id="ruleform" onsubmit="return STUDIP.Admission.saveRule('<?= $rule->getId() ?>', 'rules', '<?= $controller->url_for('admission/rule/save', get_class($rule), $rule->getId()) ?>')">
+<div id="errormessage"></div>
+<form action="<?= $controller->url_for('admission/rule/save', get_class($rule), $rule->getId()) ?>" id="ruleform" onsubmit="return STUDIP.Admission.checkAndSaveRule('<?= $rule->getId() ?>', 'errormessage', '<?= $controller->url_for('admission/rule/validate', get_class($rule)) ?>', 'rules', '<?= $controller->url_for('admission/rule/save', get_class($rule), $rule->getId()) ?>')">
     <?= $ruleTemplate ?>
     <div style="width: 95%; padding: 5px;" class="table_row_<?= TextHelper::cycle('even', 'odd'); ?>" align="center">
         <input type="hidden" id="action" name="action" value=""/>
         <?= Button::createAccept(_('Speichern'), 'submit') ?>
-        <?= Button::createCancel(_('Abbrechen'), 'cancel', array('onclick' => "$('#action').val(this.name)")) ?>
+        <?= LinkButton::createCancel(_('Abbrechen'), 'cancel', array('onclick' => "$('#configurerule').remove(); return false;")) ?>
     </div>
 </form>
 <?php

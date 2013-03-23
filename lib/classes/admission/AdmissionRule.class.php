@@ -95,6 +95,25 @@ abstract class AdmissionRule
     }
 
     /**
+     * Subclasses of AdmissionRule can require additional data to be entered on
+     * admission (like PasswordAdmission which needs a password for course
+     * access). Their corresponding method getInput only returns a HTML form
+     * fragment as the output can be concatenated with output from other
+     * rules.
+     * This static method provides the frame for rendering a full HTML form
+     * around the fragments from subclasses.
+     * 
+     * @return Array Start and end templates which wrap input form fragments
+     *               from subclasses.
+     */
+    public static final function getInputFrame() {
+        return array(
+            $GLOBALS['template_factory']->open('admission/rules/input_start')->render(),
+            $GLOBALS['template_factory']->open('admission/rules/input_end')->render()
+        );
+    }
+
+    /**
      * Gets some text that describes what this AdmissionRule (or respective 
      * subclass) does.
      */
@@ -152,7 +171,7 @@ abstract class AdmissionRule
      *
      * @param  String userId
      * @param  String courseId
-     * @return Boolean
+     * @return bool
      */
     public function ruleApplies($userId, $courseId)
     {
@@ -198,6 +217,18 @@ abstract class AdmissionRule
     public function toString()
     {
         return '';
+    }
+
+    /**
+     * Validates if the given request data is sufficient to configure this rule
+     * (e.g. if required values are present).
+     *
+     * @param  Array Request data
+     * @return Array Error messages.
+     */
+    public function validate($data)
+    {
+        return array();
     }
 
     /**

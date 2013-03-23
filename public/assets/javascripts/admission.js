@@ -8,11 +8,10 @@
 STUDIP.Admission = {
 
     getCourses: function(source, targetId, targetUrl) {
-        var selected = jQuery('.'+source+':checked');
         var query = '';
-        for (var i=0 ; i<selected.length ; i++) {
-            query += '&institutes[]='+selected[i].value;
-        }
+        $('.'+source+':checked').each(function(index) {
+            query += '&institutes[]='+$(this).val();
+        });
         var loading = 'Wird geladen'.toLocaleString();
         $('#'+targetId).empty();
         $('<img/>', {
@@ -103,6 +102,44 @@ STUDIP.Admission = {
         $('#'+arrowId).attr('rel', oldSrc);
         $('#'+detailId).slideToggle();
         return false;
+    },
+    
+    /**
+     * 
+     * @param String ruleId      The rule to save.
+     * @param String errorTarget Target element ID where error messages will be
+     *                           shown.
+     * @param String validateUrl URL to call for validation.
+     * @param String savedTarget Target element ID where the saved rule will be
+     *                           displayed.
+     * @param String saveUrl     URL to save the rule.
+     */
+    checkAndSaveRule: function(ruleId, errorTarget, validateUrl, savedTarget, saveUrl) {
+        if (STUDIP.Admission.validateRuleConfig(errorTarget, validateUrl)) {
+            return STUDIP.Admission.saveRule(ruleId, savedTarget, saveUrl);
+        } else {
+            return false;
+        }
+    },
+
+    validateRuleConfig: function(containerId, targetUrl) {
+        var valid = true;
+        $.ajax({
+            type: 'post',
+            url: targetUrl,
+            data: $('#ruleform').serialize(),
+            dataType: 'html',
+            success: function(data, textStatus, jqXHR) {
+                if (data != '') {
+                    $('#'+containerId).html(data);
+                    valid = false;
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                alert('Status: '+textStatus+"\nError: "+errorThrown);
+            }
+        });
+        return valid;
     }
 
 };

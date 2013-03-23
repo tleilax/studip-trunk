@@ -251,9 +251,25 @@ class TimedAdmission extends AdmissionRule
      */
     public function toString()
     {
-        $tpl = $GLOBALS['template_factory']->open('admission/rules/timedadmission/display');
+        $tpl = $GLOBALS['template_factory']->open('admission/rules/timedadmission/info');
         $tpl->set_attribute('rule', $this);
         return $tpl->render();
+    }
+
+    /**
+     * Validates if the given request data is sufficient to configure this rule
+     * (e.g. if required values are present).
+     *
+     * @param  Array Request data
+     * @return Array Error messages.
+     */
+    public function validate($data)
+    {
+        $errors = parent::validate($data);
+        if (!$data['startdate'] && !$data['enddate']) {
+            $errors[] = _('Bitte geben Sie entweder ein Start- oder Enddatum an.');
+        }
+        return $errors;
     }
 
 } /* end of class TimedAdmission */

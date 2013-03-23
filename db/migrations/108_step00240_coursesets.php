@@ -113,6 +113,16 @@ class Step00240CourseSets extends Migration
             PRIMARY KEY (`rule_id`) )
             ENGINE = MyISAM");
 
+        // admission rules that specify a password for course access
+        $db->exec("CREATE  TABLE IF NOT EXISTS `passwordadmissions` (
+                `rule_id` VARCHAR(32) NOT NULL ,
+                `message` TEXT NULL ,
+                `password` VARCHAR(255) NULL ,
+                `mkdate` INT NULL ,
+                `chdate` INT NULL ,
+            PRIMARY KEY (`rule_id`) )
+            ENGINE = MyISAM");
+
         // priorities for course assignment
         $db->exec("CREATE  TABLE IF NOT EXISTS `priorities` (
                 `user_id` VARCHAR(32) NOT NULL ,
