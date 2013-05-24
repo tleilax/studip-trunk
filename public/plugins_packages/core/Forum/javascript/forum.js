@@ -175,12 +175,17 @@ STUDIP.Forum = {
         // reset the input field with the unchanged name
         jQuery('table[data-category-id=' + category_id + '] span.heading_edit input[type=text]').val(
             jQuery('table[data-category-id=' + category_id + '] span.category_name').text().trim()
-        );
+        ).closest('form').data('validator').reset();
     },
 
     saveCategoryName: function (category_id) {
         var name = {};
         name.name = jQuery('table[data-category-id=' + category_id + '] span.heading_edit input[type=text]').val();
+
+        if (!$.trim(name.name).length) {
+            jQuery('table[data-category-id=' + category_id + '] span.heading_edit input[type=text]').val('').closest('form').data('validator').checkValidity();
+            return;
+        }
 
         // display the new name immediately
         jQuery('table[data-category-id=' + category_id + '] span.category_name').text(name.name);
@@ -334,16 +339,16 @@ STUDIP.Forum = {
     },
     
     forwardEntry: function(topic_id) {
-        var title   = 'Re: ' + jQuery('span[data-edit-topic=' + topic_id +'] input[name=name]').val();
+        var title   = jQuery('span[data-edit-topic=' + topic_id +'] [name=name]').attr('value');
         var content = jQuery('span[data-edit-topic=' + topic_id +'] textarea[name=content]').val();
         var text    = 'Die Senderin/der Sender dieser Nachricht möchte Sie auf den folgenden Beitrag aufmerksam machen. '
-                    + "\n\n" + 'Link zum Beitrag: ';
+                    + "\n\n" + 'Link zum Beitrag: ' + "\n";
         
         STUDIP.Forum.postToUrl(STUDIP.URLHelper.getURL('sms_send.php'), {
             'message' :  text.toLocaleString()
                 + STUDIP.URLHelper.getURL('plugins.php/coreforum/index/index/'
                 + topic_id + '?cid=' + STUDIP.Forum.seminar_id + '&again=yes#' + topic_id)
-                + "\n\n" + '**' + title + "**\n\n" + content + "\n\n",
+                + "\n\n" + content + "\n\n",
             'sms_source_page' : 'plugins.php/coreforum/index/index/'
                 + topic_id + '?cid=' + STUDIP.Forum.seminar_id + '#' + topic_id,
             'messagesubject': 'WG: ' + title
@@ -436,12 +441,16 @@ STUDIP.Forum = {
             jQuery('li[data-id=' + topic_id + '] ul').remove();
             return;
         }
-
+        
+        jQuery('li[data-id=' + topic_id + '] > a.tooltip2').showAjaxNotification();
+        
         // load children from server and show them
         jQuery.ajax(STUDIP.URLHelper.getURL('plugins.php/coreforum/index/admin_getchilds/' + topic_id), {
             dataType: 'html',
             success: function(response) {
                 jQuery('li[data-id=' + topic_id + ']').append(response);
+
+                jQuery('li[data-id=' + topic_id + '] a.tooltip2').hideAjaxNotification();
 
                 // clean up icons
                 STUDIP.Forum.checkCutPaste();
@@ -497,11 +506,16 @@ STUDIP.Forum = {
     },
 
     paste: function(topic_id) {
+        jQuery('li[data-id=' + topic_id + '] > a.tooltip2').showAjaxNotification();
+
         jQuery.ajax(STUDIP.URLHelper.getURL('plugins.php/coreforum/index/admin_move/' + topic_id), {
             data : {
                 'topics' : STUDIP.Forum.clipboard
             },
+            type: 'POST',
             success: function(response) {
+                jQuery('li[data-id=' + topic_id + '] a.tooltip2').hideAjaxNotification();
+
                 // remove all pasted entries, the are now elsewhere
                 for (id in STUDIP.Forum.clipboard) {
                     jQuery('li[data-id=' + id + ']').remove();
@@ -515,7 +529,7 @@ STUDIP.Forum = {
                 jQuery('a[data-role=cut]').show();
                 jQuery('a[data-role=cancel_cut]').hide();
                 jQuery('a[data-role=paste]').hide();
-                jQuery('li.selected').removeClass('selected');
+                jQuery('li.selected').removeClass('selected');                
             }
         });
     },

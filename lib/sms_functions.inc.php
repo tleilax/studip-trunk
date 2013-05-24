@@ -263,8 +263,8 @@ function print_snd_message($psm) {
 
         // buttons
         $edit = '<div class="button-group">';
-        $edit .= LinkButton::create(_('Weiterleiten'), UrlHelper::getUrl('sms_send.php', array('cmd' => 'write', 'quote' => $psm['message_id'], 'forward' => 'snd')));
-        $edit .= LinkButton::create(_('Drucken'),  UrlHelper::getUrl('dispatch.php/messages/show_print/' . $psm['message_id'] . '/snd'), array('target' => '_blank', 'class' => 'print_action'));
+        $edit .= LinkButton::create(_('Weiterleiten'), URLHelper::getUrl('sms_send.php', array('cmd' => 'write', 'quote' => $psm['message_id'], 'forward' => 'snd')));
+        $edit .= LinkButton::create(_('Drucken'),  URLHelper::getUrl('dispatch.php/messages/show_print/' . $psm['message_id'] . '/snd'), array('target' => '_blank', 'class' => 'print_action'));
         $edit .= LinkButton::create(_('Löschen'), URLHelper::getURL("?cmd=delete_selected", array('sel_sms[1]' => $psm['message_id'])), array('title' => _('Diese Nachricht löschen.')));
         if (have_msgfolder($sms_data['view']) == TRUE) {
             $edit .= LinkButton::create(_('Verschieben'), URLHelper::getURL('', array('move_to_folder[1]' => $psm['message_id'])), array('title' => _('Diese Nachricht in einen frei wählbaren Ordner verschieben.')));
@@ -284,12 +284,17 @@ function print_snd_message($psm) {
     $custom_data = "data-behaviour=\"'ajaxContent'\" "
                  . "data-target=\"'#msg_item_{$psm['message_id']}'\" "
                  . "data-url=\"'{$ajax_link}'\"";
+    $subject = $psm['message_subject'];
+    if (strlen($subject) > 80) {
+        $custom_data .= sprintf(' title="%s"', htmlReady($subject));
+        $subject = mila($subject, 80);
+    }
 
     $titel = "<a name=\"{$psm['message_id']}\" "
            . "href=\"{$link}\" "
            . "class=\"tree\" "
            . $custom_data . "> "
-           . htmlready($psm['message_subject'])
+           . htmlReady($subject)
            . "{$attachment_icon}</a>";
     $message_hovericon['titel'] = $psm['message_subject'];
     // (hover) icon
@@ -388,12 +393,17 @@ function print_rec_message($prm) {
     $custom_data = "data-behaviour=\"'ajaxContent'\" "
                  . "data-target=\"'#msg_item_{$prm['message_id']}'\" "
                  . "data-url=\"'{$ajax_link}'\"";
+    $subject = $prm['message_subject'];
+    if (strlen($subject) > 80) {
+        $custom_data .= sprintf(' title="%s"', htmlReady($subject));
+        $subject = mila($subject, 80);
+    }
 
     $titel = "<a name=\"{$prm['message_id']}\" "
            . "href=\"{$link}\" "
            . "class=\"tree\" "
            . $custom_data . '"> '
-           . htmlReady($prm['message_subject'])."{$attachment_icon}</a>";
+           . htmlReady($subject)."{$attachment_icon}</a>";
 
     if ($open == 'open'){
         $content = formatReady($prm['message']);
@@ -446,8 +456,8 @@ function print_rec_message($prm) {
             $edit .= LinkButton::create(_('Antworten'), URLHelper::getURL('sms_send.php', array('cmd'=> 'write', 'answer_to' => $prm['message_id'])));
             $edit .= LinkButton::create(_('Zitieren'), URLHelper::getURL('sms_send.php', array('cmd' => 'write', 'quote' => $prm['message_id'], 'answer_to' => $prm['message_id'])));
         }
-        $edit .= LinkButton::create(_('Weiterleiten'), UrlHelper::getUrl('sms_send.php', array('cmd' => 'write', 'quote' => $prm['message_id'], 'forward' => 'rec')));
-        $edit .= LinkButton::create(_('Drucken'),  UrlHelper::getUrl('dispatch.php/messages/show_print/' . $prm['message_id'] . '/rec'), array('target' => '_blank', 'class' => 'print_action'));
+        $edit .= LinkButton::create(_('Weiterleiten'), URLHelper::getUrl('sms_send.php', array('cmd' => 'write', 'quote' => $prm['message_id'], 'forward' => 'rec')));
+        $edit .= LinkButton::create(_('Drucken'),  URLHelper::getUrl('dispatch.php/messages/show_print/' . $prm['message_id'] . '/rec'), array('target' => '_blank', 'class' => 'print_action'));
         $edit .= LinkButton::create(_('Löschen'), URLHelper::getURL('', array('cmd' => 'delete_selected', "sel_sms[1]" => $prm['message_id'])));
         if (have_msgfolder($sms_data['view']) == TRUE) {
             $edit .= LinkButton::create(_('Verschieben'), URLHelper::getURL('', array('move_to_folder[1]'=> $prm['message_id'])), array('title' => _('Diese Nachricht in einen frei wählbaren Ordner verschieben.')));
@@ -829,19 +839,13 @@ function show_addrform()
         ->withoutButton()
         ->fireJSFunctionOnSelect("STUDIP.Messaging.addToAdressees")
         ->render();
-    ?>
 
-    <input style="vertical-align: text-top;"
-           type="image"
-           name="search_person"
-           title="<?= !(Request::get("adressee_parameter") && Request::get("adressee_parameter") !== _("Nutzer suchen") )
-                        ? _("Suchen")
-                        : _("Suche zurücksetzen") ?>"
-           src="<?= !(Request::get("adressee_parameter") && Request::get("adressee_parameter") !== _("Nutzer suchen") )
-                        ? Assets::image_path('icons/16/blue/search.png')
-                        : Assets::image_path('icons/16/blue/refresh.png') ?>">
 
-    <?
+	print Assets::input(!(Request::get("adressee_parameter") && Request::get("adressee_parameter") !== _("Nutzer suchen")) 
+              ? 'icons/16/blue/search.png' : 'icons/16/blue/refresh.png', 
+              array('type' => "image", 'style' => "vertical-align: text-top;", 'name' => "search_person", 
+	          'title' => !(Request::get("adressee_parameter") && Request::get("adressee_parameter") !== _("Nutzer suchen")) ? _("Suchen"): _("Suche zurücksetzen")));
+
     $tmp .= ob_get_clean();
 
     return $tmp;

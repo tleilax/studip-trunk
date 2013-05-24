@@ -110,14 +110,14 @@
               ?>
               <input type="hidden" name="search_sem_sem" value="<?= $search_semester_nr ?>">
               <input type="hidden" name="search_sem_qs_choose" value="title_lecturer_number">
-              <input class="quicksearchbutton" type="image" src="<?= Assets::url('images/icons/16/white/search.png') ?>" name="search_sem_do_search" value="OK" title="<?= sprintf(_('Nach Veranstaltungen suchen (%s)'), htmlready($search_semester_name)) ?>">
-            </form>
+              <?= Assets::input("icons/16/white/search.png", array('type' => "image", 'class' => "quicksearchbutton", 'name' => "search_sem_do_search", 'value' => "OK", 'title' => sprintf(_('Nach Veranstaltungen suchen (%s)'), htmlready($search_semester_name)))) ?>
+              </form>
             </li>
             <? endif ?>
             <? if (Navigation::hasItem('/links')) : ?>
             <? foreach (Navigation::getItem('/links') as $nav) : ?>
                 <? if ($nav->isVisible()) : ?>
-                    <li>
+                    <li <? if ($nav->isActive()) echo 'class="active"'; ?>>
                     <a
                     <? if (is_internal_url($url = $nav->getURL())) : ?>
                         href="<?= URLHelper::getLink($url, $link_params) ?>"

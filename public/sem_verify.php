@@ -54,7 +54,6 @@ use Studip\Button, Studip\LinkButton;
 
 require '../lib/bootstrap.php';
 
-unregister_globals();
 require_once 'app/models/studygroup.php';
 
 page_open(array("sess" => "Seminar_Session", "auth" => "Seminar_Auth", "perm" => "Seminar_Perm", "user" => "Seminar_User"));
@@ -188,7 +187,7 @@ require_once 'lib/admission.inc.php';
     if (empty($ask)) {
         $ask = "TRUE";
     }
-    $temp_url = UrlHelper::getLink('?' . $_SERVER['QUERY_STRING']);
+    $temp_url = URLHelper::getLink('?' . $_SERVER['QUERY_STRING']);
 
     // admins und roots haben hier nix verloren
     if ($perm->have_perm("admin")) {

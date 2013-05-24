@@ -30,7 +30,7 @@ class User extends AuthUserMd5
 {
     /**
      * return user object for given username
-     * 
+     *
      * @param string $username a username
      * @return User
      */
@@ -148,16 +148,13 @@ class User extends AuthUserMd5
         if (!$sql) {
             return $this->vorname . ' ' . $this->nachname;
         }
-        foreach (array_merge(array_keys($this->db_fields), array_keys($this->additional_fields)) as $one) {
-            $search[] = $one;
-            $replace[] = $db->quote($this->getValue($one));
-        }
-        return $db->query("SELECT " . str_replace($search, $replace, strtolower($sql)))->fetchColumn();
+        $data = array_map(array($db,'quote'), $this->toArray());
+        return $db->query("SELECT " . strtr(strtolower($sql), $data))->fetchColumn();
     }
-    
-    function toArrayRecursive($depth = 1, $only_these_fields = null)
+
+    function toArrayRecursive($only_these_fields = null)
     {
-        $ret = parent::toArrayRecursive($depth, $only_these_fields);
+        $ret = parent::toArrayRecursive($only_these_fields);
         unset($ret['info']);
         return  $ret;
     }

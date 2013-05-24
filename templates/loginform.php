@@ -36,7 +36,7 @@ $(function () {
             <?endif;?>
                 <p><?=_("Bitte identifizieren Sie sich mit Benutzername und Passwort:")?></p>
 
-                <form name="login" method="post" action="<?=$_SERVER['REQUEST_URI']?>">
+                <form name="login" method="post" action="<?= URLHelper::getLink(Request::url(), array('cancel_login' => NULL)) ?>">
                     <?= CSRFProtection::tokenTag() ?>
                     <input type="hidden" name="login_ticket" value="<?=Seminar_Session::get_ticket();?>">
                     <input type="hidden" name="resolution"  value="">
@@ -69,7 +69,7 @@ $(function () {
                             <tr>
                                 <td align="center" colspan="2">
                                     <?= Button::createAccept(_('Anmelden'), _('Login')); ?>
-                                    <?= LinkButton::create(_('Abbrechen'), UrlHelper::getURL('index.php?cancel_login=1')) ?>
+                                    <?= LinkButton::create(_('Abbrechen'), URLHelper::getURL('index.php?cancel_login=1')) ?>
                                 </td>
                             </tr>
                         </tfoot>
@@ -78,7 +78,7 @@ $(function () {
 
                 <div>
                 <? if ($GLOBALS['ENABLE_REQUEST_NEW_PASSWORD_BY_USER'] && in_array('Standard', $GLOBALS['STUDIP_AUTH_PLUGIN'])): ?>
-                    <a href="<?= UrlHelper::getLink('request_new_password.php?cancel_login=1') ?>">
+                    <a href="<?= URLHelper::getLink('request_new_password.php?cancel_login=1') ?>">
                 <? else: ?>
                     <a href="mailto:<?= $GLOBALS['UNI_CONTACT'] ?>?subject=<?= rawurlencode('Stud.IP Passwort vergessen - '.$GLOBALS['UNI_NAME_CLEAN']) ?>&amp;body=<?= rawurlencode("Ich habe mein Passwort vergessen. Bitte senden Sie mir ein Neues.\nMein Nutzername: " . htmlReady($uname) . "\n") ?>">
                 <? endif; ?>
@@ -86,7 +86,7 @@ $(function () {
                     </a>
                 <? if ($self_registration_activated): ?>
                     /
-                    <a href="<?= UrlHelper::getLink('register1.php?cancel_login=1') ?>">
+                    <a href="<?= URLHelper::getLink('register1.php?cancel_login=1') ?>">
                         <?= _('Registrieren') ?>
                     </a>
                 <? endif; ?>

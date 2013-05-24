@@ -374,7 +374,7 @@ class Admin_BannerController extends AuthenticatedController
         if (!in_array($ext, words('gif jpeg jpg png'))) {
             $errors[] = sprintf(_('Der Dateityp der Bilddatei ist falsch (%s).<br>'
                                  .'Es sind nur die Dateiendungen .gif, .png und .jpg erlaubt!')
-                                , $ext);
+                                , htmlReady($ext));
             return false;
         }
 
@@ -431,6 +431,6 @@ class Admin_BannerController extends AuthenticatedController
         $create = sprintf('<a href="%s">%s</a>',
                           $this->url_for('admin/banner/new'),
                           _('Neues Banner anlegen'));
-        $this->addToInfobox(_('Aktionen'), $create, 'icons/16/black/plus.png');
+        $this->addToInfobox(_('Aktionen'), $create, 'icons/16/black/add.png');
     }
 }

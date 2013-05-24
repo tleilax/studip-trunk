@@ -29,7 +29,7 @@ $infobox_content = array(
         'text' => $info_txt
     ),
     array(
-            'icon' => 'icons/16/black/minus.png',
+            'icon' => 'icons/16/black/remove.png',
             'text' => '<a href="'.$controller->link_for('index/'.$course_id).'">'._('Bearbeiten abbrechen').'</a>'
         ))
     ),
@@ -37,7 +37,7 @@ $infobox_content = array(
 if (getGlobalPerms($GLOBALS['user']->id) == 'admin' || ($GLOBALS['perm']->have_perm('admin') && count(getMyRoomRequests(null, null, true, $request->getId())))) {
     $infobox_content[0]['eintrag'][] = array(
             'icon' => 'icons/16/black/admin.png',
-            'text' => '<a href="'.UrlHelper::getLink('resources.php', array('view' => 'edit_request', 'single_request' => $request->getId())).'">'._('Raumanfrage auflösen').'</a>'
+            'text' => '<a href="'.URLHelper::getLink('resources.php', array('view' => 'edit_request', 'single_request' => $request->getId())).'">'._('Raumanfrage auflösen').'</a>'
         );
 }
 $infobox = array('picture' => 'infobox/board2.jpg', 'content' => $infobox_content);

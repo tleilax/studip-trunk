@@ -209,7 +209,7 @@ class Admin_SmileysController extends AuthenticatedController
         }
         if ($no_gif) {
             $error = sprintf(_('Der Dateityp der Bilddatei ist falsch (%s).<br>'
-                              .'Es ist nur die Dateiendung .gif erlaubt!'), $upload['type']);
+                              .'Es ist nur die Dateiendung .gif erlaubt!'), htmlReady($upload['type']));
             PageLayout::postMessage(MessageBox::error($error));
             return;
         }
@@ -277,7 +277,7 @@ class Admin_SmileysController extends AuthenticatedController
         $upload = sprintf('<a href="%s">%s</a>',
                           $this->url_for('admin/smileys/upload', $view),
                           _('Neues Smiley hochladen'));
-        $this->addToInfobox(_('Aktionen'), $upload, 'icons/16/black/plus.png');
+        $this->addToInfobox(_('Aktionen'), $upload, 'icons/16/black/add.png');
 
         $count = sprintf('<a href="%s">%s</a>',
                          $this->url_for('admin/smileys/count', $view),

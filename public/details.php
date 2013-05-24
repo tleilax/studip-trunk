@@ -21,7 +21,6 @@
 
 require '../lib/bootstrap.php';
 
-unregister_globals();
 page_open(array("sess" => "Seminar_Session", "auth" => "Seminar_Default_Auth", "perm" => "Seminar_Perm", "user" => "Seminar_User"));
 $auth->login_if($again && ($auth->auth["uid"] == "nobody"));
 
@@ -47,8 +46,8 @@ if (empty($sem_id)) {
 }
 //Inits
 $info_msg = $abo_msg = $delete_msg = $back_msg = '';
-$send_from_search = Request::quoted('send_from_search');
-$send_from_search_page = Request::quoted('send_from_search_page');
+$send_from_search = Request::get('send_from_search') !== null;
+$send_from_search_page = Request::get('send_from_search_page');
 if (!preg_match('/^('.preg_quote($CANONICAL_RELATIVE_PATH_STUDIP,'/').')?([a-zA-Z0-9_-]+\.php)([a-zA-Z0-9_?&=-]*)$/', $send_from_search_page)) $send_from_search_page = '';
 
 $sem = new Seminar($sem_id);
@@ -61,9 +60,9 @@ if ($SessionSeminar != $sem_id && !$sem->isVisible() && !$perm->have_perm(get_co
 // redirect, if sem is a studygroup
 if ( $sem->isStudygroup() ) {
     if ($perm->have_studip_perm('autor', $sem_id)) {    // participants may see seminar_main
-        $link = UrlHelper::getUrl('seminar_main.php?auswahl='. $sem_id);
+        $link = URLHelper::getUrl('seminar_main.php?auswahl='. $sem_id);
     } else {   // all other get a special details-page
-        $link = UrlHelper::getUrl('dispatch.php/course/studygroup/details/'. $sem_id, array('send_from_search_page' => $send_from_search_page));
+        $link = URLHelper::getUrl('dispatch.php/course/studygroup/details/'. $sem_id, array('send_from_search_page' => $send_from_search_page));
     }
     header('Location: '. $link);
     die;

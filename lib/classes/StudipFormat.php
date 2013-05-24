@@ -532,7 +532,7 @@ class StudipFormat extends TextFormat
         
         if ($link && $tag === "img") {
             $media = sprintf('<a href="%s"%s>%s</a>',
-                $media_url,
+                $link,
                 !isLinkIntern($link) ? ' target="_blank"' : "",
                 $media
             );
@@ -559,7 +559,9 @@ class StudipFormat extends TextFormat
 
         $linkmarkup = clone $markup;
         $linkmarkup->removeMarkup("links");
-        
+        $linkmarkup->removeMarkup("wiki-links");
+        $linkmarkup->removeMarkup("wiki-links-short");
+
         return sprintf('<a class="%s" href="%s"%s>%s</a>',
             $intern ? "link-intern" : "link-extern",
             $url,

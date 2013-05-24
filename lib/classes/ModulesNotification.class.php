@@ -112,10 +112,10 @@ class ModulesNotification extends Modules {
 
         $query = "UPDATE seminar_user SET notification = ? WHERE Seminar_id = ? AND user_id = ?";
         $update_seminar_user = DBManager::get()->prepare($query);
-        
+
         $query = "UPDATE deputies SET notification = ? WHERE range_id = ? AND user_id = ?";
         $update_deputies = DBManager::get()->prepare($query);
-        
+
         foreach ($m_array as $range_id => $value) {
             $sum = array_sum($value);
             if ($sum > 0xffffffff) {
@@ -141,7 +141,7 @@ class ModulesNotification extends Modules {
         }
         if ($range != 'sem') {
             return false;
-        }        
+        }
 
         $settings = array();
 
@@ -151,7 +151,7 @@ class ModulesNotification extends Modules {
         while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
             $settings[$row['Seminar_id']] = $row['notification'];
         }
-        
+
         if (get_config('DEPUTIES_ENABLE')) {
             $query = "SELECT d.range_id, d.notification "
                    . "FROM deputies d "
@@ -159,7 +159,7 @@ class ModulesNotification extends Modules {
                    . "WHERE d.user_id = ?";
             $statement = DBManager::get()->prepare($query);
             $statement->execute(array($user_id));
-                   
+
             while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
                 $settings[$row['range_id']] = $row['notification'];
             }
@@ -175,21 +175,25 @@ class ModulesNotification extends Modules {
         }
 
         $my_sem = array();
-
-        $query = "SELECT s.Seminar_id, s.Name, s.chdate, s.start_time, s.modules, IFNULL(visitdate, 0) AS visitdate "
+        $query = "SELECT s.Seminar_id, s.Name, s.chdate, s.start_time, s.modules, s.status as sem_status, su.status,s.admission_prelim, su.notification, IFNULL(visitdate, 0) AS visitdate "
                . "FROM seminar_user su "
                . "LEFT JOIN seminare s USING (Seminar_id) "
-               . "LEFT JOIN object_user_visits ouv ON (ouv.object_id = su.Seminar_id AND ouv.user_id = ? AND ouv.type = 'sem') "
-               . "WHERE su.user_id = ? AND su.status != 'user'";
+               . "LEFT JOIN object_user_visits ouv ON (ouv.object_id = su.Seminar_id AND ouv.user_id = :user_id AND ouv.type = 'sem') "
+               . "WHERE su.user_id = :user_id AND su.status != 'user' AND su.notification <> 0";
+        if (get_config('DEPUTIES_ENABLE')) {
+            $query .= " UNION SELECT s.Seminar_id, CONCAT(s.Name, ' [Vertretung]') as Name, s.chdate, s.start_time, s.modules, s.status as sem_status, 'dozent' as status, s.admission_prelim, d.notification, IFNULL(visitdate, 0) AS visitdate "
+               . "FROM deputies d "
+               . "LEFT JOIN seminare s ON (d.range_id = s.Seminar_id) "
+               . "LEFT JOIN object_user_visits ouv ON (ouv.object_id = d.range_id AND ouv.user_id = :user_id AND ouv.type = 'sem') "
+               . "WHERE d.user_id = :user_id AND d.notification <> 0";
+        }
         $statement = DBManager::get()->prepare($query);
-        $statement->execute(array($user_id, $user_id));
+        $statement->bindValue(':user_id', $user_id);
+        $statement->execute();
         while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
             $seminar_id = $row['Seminar_id'];
-            $modulesInt = $row['modules'];
-            if( $modulesInt === null ){
-                $modulesInt = $this->getDefaultBinValue( $seminar_id , "sem" );
-            }
-            $modules = $this->generateModulesArrayFromModulesInteger( $modulesInt );
+            $modules = $this->getLocalModules($seminar_id, 'sem', $row['modules'], $row['sem_status']);
+            $modulesInt = array_sum($modules); //korrigiert wg. SemClass::isSlotMandatory() Kram
             $my_sem[$seminar_id] = array(
                     'name'       => $row['Name'],
                     'chdate'     => $row['chdate'],
@@ -197,16 +201,17 @@ class ModulesNotification extends Modules {
                     'modules'    => $modules,
                     'modulesInt' => $modulesInt,
                     'visitdate'  => $row['visitdate'],
-                    'obj_type'   => 'sem'
+                    'obj_type'   => 'sem',
+                    'notification'=> $row['notification'],
+                    'sem_status' => $row['sem_status'],
+                    'status' => $row['status'],
+                    'prelim'     => $row['admission_prelim'],
                     );
-
             unset( $seminar_id );
             unset( $modules );
             unset( $modulesInt );
         }
-
         $m_enabled_modules = $this->getGlobalEnabledNotificationModules('sem');
-        $m_all_notifications = $this->getModuleNotification('sem', $user_id);
         $m_extended = 0;
         foreach ($this->registered_notification_modules as $m_data) {
             $m_extended += pow(2, $m_data['id']);
@@ -217,7 +222,7 @@ class ModulesNotification extends Modules {
         $news = array();
         foreach ($my_sem as $seminar_id => $s_data) {
             $m_notification = ($s_data['modulesInt'] + $m_extended)
-                    & $m_all_notifications[$seminar_id];
+                    & $s_data['notification'];
             $n_data = array();
             foreach ($m_enabled_modules as $m_name => $m_data) {
                 if ($this->isBit($m_notification, $m_data['id'])) {
@@ -238,7 +243,6 @@ class ModulesNotification extends Modules {
 
             $template_text = $GLOBALS['template_factory']->open('mail/notification_text');
             $template_text->set_attribute('news', $news);
-
             return array('text' => $template_text->render(), 'html' => $template->render());;
         } else {
             return FALSE;
@@ -247,21 +251,63 @@ class ModulesNotification extends Modules {
 
     // only range = 'sem' is implemented
     function getModuleText ($m_name, $range_id, $r_data, $range) {
+        global $SEM_CLASS, $SEM_TYPE;
         $text = '';
+        $sem_class = $SEM_CLASS[$SEM_TYPE[$r_data['sem_status']]["class"]];
+        $slot_mapper = array(
+                'files' => "documents",
+                'elearning' => "elearning_interface"
+            );
+        if ($sem_class) {
+            $slot = isset($slot_mapper[$m_name]) ? $slot_mapper[$m_name] : $m_name;
+            $module = $sem_class->getModule($slot);
+            if (is_a($module, "StandardPlugin")) {
+                $base_url = UrlHelper::setBaseURL();
+                $nav = $module->getIconNavigation($range_id, $r_data['visitdate'], $GLOBALS['user']->id);
+                UrlHelper::setBaseURl($base_url);
+                if (isset($nav) && $nav->isVisible(true)) {
+                    if ($nav->getBadgeNumber()) {
+                        $url = 'seminar_main.php?again=yes&auswahl=' . $range_id . '&redirect_to=' . strtr($nav->getURL(), '?', '&');
+                        $image = $nav->getImage();
+                        $icon = $image['src'];
+                        $tab = $module->getTabNavigation();
+                        if (isset($tab) && $tab->isVisible()) {
+                            $text = $tab->getTitle();
+                        } else {
+                            $text = $this->registered_modules[$m_name]['name'];
+                        }
+                        if ($nav->getBadgeNumber() == 1) {
+                            $text .= ' - ' . _("Ein neuer Beitrag:");
+                        } else {
+                            $text .= ' - ' . sprintf(_("%s neue Beiträge:"), $nav->getBadgeNumber());
+                        }
+                        return compact('text', 'url', 'icon', 'range_id');
+                    } else {
+                        return null;
+                    }
+                }
+            }
+        }
         switch ($m_name) {
             case 'participants' :
-                if ($r_data['new_accepted_participants'] > 1) {
-                    $text = sprintf(_("%s neue vorläufige TeilnehmerInnen, "), $r_data['newparticipants']);
-                } else if ($r_data['new_accepted_participants'] > 0) {
-                    $text = _("1 neuer vorläufiger TeilnehmerIn, ");
+                if (in_array($r_data['status'], words('dozent tutor'))) {
+                    if ($r_data['new_accepted_participants'] > 1) {
+                        $text = sprintf(_("%s neue vorläufige TeilnehmerInnen, "), $r_data['newparticipants']);
+                    } else if ($r_data['new_accepted_participants'] > 0) {
+                        $text = _("1 neuer vorläufiger TeilnehmerIn, ");
+                    }
+                    if ($r_data['newparticipants'] > 1) {
+                        $text = sprintf(_("%s neue TeilnehmerInnen:"), $r_data['newparticipants']);
+                    } else if ($r_data['newparticipants'] > 0) {
+                        $text = _("1 neuer TeilnehmerIn:");
+                    }
+                    if ($sem_class['studygroup_mode']) {
+                        $redirect = '&redirect_to=dispatch.php/course/studygroup/members/';
+                    } else {
+                        $redirect = '&redirect_to=dispatch.php/course/member/index';
+                    }
+                    $icon = "icons/16/blue/persons.png";
                 }
-                if ($r_data['newparticipants'] > 1) {
-                    $text = sprintf(_("%s neue TeilnehmerInnen:"), $r_data['newparticipants']);
-                } else if ($r_data['newparticipants'] > 0) {
-                    $text = _("1 neuer TeilnehmerIn:");
-                }
-                $redirect = '&redirect_to=teilnehmer.php';
-                $icon = "icons/16/blue/persons.png";
                 break;
             case 'documents' :
                 if ($r_data['neuedokumente'] > 1) {
@@ -335,7 +381,7 @@ class ModulesNotification extends Modules {
                     $text = _("Eine neue Ankündigung wurde angelegt:");
                 }
                 $redirect = '';
-                $icon = "icons/16/blue/breaking-news.png";
+                $icon = "icons/16/blue/news.png";
                 break;
             case 'basic_data' :
                 if ($r_data['chdate'] > $r_data['visitdate']) {

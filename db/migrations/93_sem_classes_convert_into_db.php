@@ -49,6 +49,8 @@ class SemClassesConvertIntoDb extends Migration
                 `description` text NOT NULL,
                 `create_description` text NOT NULL,
                 `studygroup_mode` tinyint(4) NOT NULL,
+                `admission_prelim_default` tinyint(4) NOT NULL DEFAULT 0,
+                `admission_type_default` tinyint(4) NOT NULL DEFAULT 0,
                 `title_dozent` VARCHAR(64) NULL,
                 `title_dozent_plural` VARCHAR(64) NULL,
                 `title_tutor` VARCHAR(64) NULL,
@@ -89,6 +91,8 @@ class SemClassesConvertIntoDb extends Migration
                 "visible = :visible, " .
                 "course_creation_forbidden = :course_creation_forbidden, " .
                 "studygroup_mode = :studygroup_mode, " .
+                "admission_prelim_default = :admission_prelim_default, " .
+                "admission_type_default = :admission_type_default, " .
                 "overview = :overview, " .
                 "admin = :admin, " .
                 "forum = :forum, " .
@@ -113,10 +117,12 @@ class SemClassesConvertIntoDb extends Migration
                 "chdate = UNIX_TIMESTAMP() " .
         "");
 
+        //import default language version
+        setTempLanguage();
         include 'config.inc.php';
 
         $studygroup_settings = $this->getStudygroupSettings();
-        $core_modules = array('forum','documents','literature','wiki','documents_folder_permission','participants','schedule');
+        $core_modules = array('forum','documents','literature','wiki','documents_folder_permissions','participants','schedule','scm','elearning_interface','calendar');
 
         foreach ($SEM_CLASS as $id => $sem_class) {
             $modules = array(
@@ -156,6 +162,15 @@ class SemClassesConvertIntoDb extends Migration
             $wiki = $sem_class['studygroup_mode'] || $studygroup_settings['wiki'] || !isset($studygroup_settings['wiki'])
                 ? "CoreWiki"
                 : null;
+            $resources = get_config('RESOURCES_ENABLE') && $this->checkModule("resources", $sem_class, $studygroup_settings)
+                ? "CoreResources"
+                : null;
+            $calendar = get_config('CALENDAR_GROUP_ENABLE') && $this->checkModule("calendar", $sem_class, $studygroup_settings)
+                ? "CoreCalendar"
+                : null;
+            $elearning_interface = get_config('ELEARNING_INTERFACE_ENABLE') && $this->checkModule("elearning_interface", $sem_class, $studygroup_settings)
+                ? "CoreElearningInterface"
+                : null;
 
             $title_dozent = $title_tutor = $title_autor = null;
             $title_dozent_plural = $title_tutor_plural = $title_autor_plural = null;
@@ -193,13 +208,15 @@ class SemClassesConvertIntoDb extends Migration
                 'literature' => $literature,
                 'scm' => $scm,
                 'wiki' => $wiki,
-                'resources' => null,
-                'calendar' => null,
-                'elearning_interface' => null,
+                'resources' => $resources,
+                'calendar' => $calendar,
+                'elearning_interface' => $elearning_interface,
                 'modules' => json_encode($modules),
                 'description' => $sem_class['description'],
                 'create_description' => $sem_class['create_description'],
                 'studygroup_mode' => $sem_class['studygroup_mode'],
+                'admission_prelim_default' => (int)$sem_class['admission_prelim_default'],
+                'admission_type_default' => (int)$sem_class['admission_type_default'],
                 'title_dozent' => $title_dozent ? $title_dozent : null,
                 'title_dozent_plural' => $title_dozent_plural ? $title_dozent_plural : null,
                 'title_tutor' => $title_tutor ? $title_tutor : null,

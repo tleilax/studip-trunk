@@ -31,7 +31,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 require '../lib/bootstrap.php';
-unregister_globals();
 page_open(array(
     'sess' => 'Seminar_Session',
     'auth' => 'Seminar_Auth',
@@ -115,13 +114,9 @@ switch ($submitted_task) {
             break;
         }
 
-        if (!$Fakultaet) {
-            if ($perm->have_perm('root')) {
-                $Fakultaet = $i_id;
-            } else {
-                PageLayout::postMessage(MessageBox::error(_('Sie haben nicht die Berechtigung, neue Fakultäten zu erstellen')));
-                break;
-            }
+        if (!$Fakultaet && !$perm->have_perm('root')) {
+            PageLayout::postMessage(MessageBox::error(_('Sie haben nicht die Berechtigung, neue Fakultäten zu erstellen')));
+            break;
         }
 
         $data = array('name' => Request::get('Name'),
@@ -149,6 +144,14 @@ switch ($submitted_task) {
         }
 
         $i_id = $institute->getId();
+
+        if (!$Fakultaet) {
+            $institute->setValue('fakultaets_id', $i_id);
+            if (!$institute->store()) {
+                PageLayout::postMessage(MessageBox::error(_('Die Einrichtung konnte nicht angelegt werden.')));
+                break;
+            }
+        }
 
         log_event("INST_CREATE", $i_id, NULL, NULL, ''); // logging
 

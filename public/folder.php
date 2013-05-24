@@ -28,7 +28,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 use Studip\Button, Studip\LinkButton;
 
 require '../lib/bootstrap.php';
-unregister_globals();
 
 ob_start();
 page_open(array("sess" => "Seminar_Session",
@@ -37,6 +36,10 @@ page_open(array("sess" => "Seminar_Session",
     "user" => "Seminar_User"));
 
 include ('lib/seminar_open.php'); // initialise Stud.IP-Session
+
+checkObject();
+checkObjectModule('documents');
+object_set_visit_module('documents');
 
 // -- here you have to put initialisations for the current page
 require_once('lib/datei.inc.php');
@@ -136,10 +139,6 @@ if (Request::submitted('download_selected')) {
     }
 }
 
-checkObject();
-checkObjectModule('documents');
-object_set_visit_module('documents');
-
     // add skip links
     SkipLinks::addIndex(Navigation::getItem('/course/files/all')->getTitle(), 'main_content', 100);
     SkipLinks::addIndex(Navigation::getItem('/course/files/tree')->getTitle(), 'main_content', 100);
@@ -169,7 +168,7 @@ if (!$rechte && $open_cmd) {
 
     $owner = (($result['user_id'] == $user->id)
            && ($result['user_id'] != 'nobody')
-           && $folder_tree->isWritable($result['range_id'], $user->id)); 
+           && $folder_tree->isWritable($result['range_id'], $user->id));
 } else {
     $owner = FALSE;
 }
@@ -633,7 +632,7 @@ if ($rechte && Request::submitted('delete_selected')) {
         $template->set_attribute('elements', array('<ul><li>' . join('</li><li>', $files_to_delete) . '</li></ul>'));
         $template->set_attribute('approvalbutton', Button::createAccept(_('JA!'), 'delete'));
         $template->set_attribute('disapprovalbutton', Button::createCancel(_('NEIN!')));
-        $template->set_attribute('action', UrlHelper::getLink());
+        $template->set_attribute('action', URLHelper::getLink());
         $question = $template->render();
     }
 }
@@ -747,7 +746,7 @@ if ($_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest') {
 
     //Datei soll in einen Ordner kopiert werden
     if ((Request::get("copyintofolder")) && (Request::get("copyfile"))) {
-        $query = "SELECT name, description, filename, mkdate, filesize, 
+        $query = "SELECT name, description, filename, mkdate, filesize,
                          autor_host, url, protected
                   FROM dokumente
                   WHERE dokument_id = ?";
@@ -876,7 +875,7 @@ if ($question) {
             }
             echo "\n" . '</select>';
             if ($config['FILESYSTEM_MULTICOPY_ENABLE'] && $open_cmd != 'm') {
-                echo "\n<a href=\"\" onClick=\"STUDIP.MultiSelect.create('#sem_move_id', 'Veranstaltungen'); $(this).hide(); return false\">".Assets::img("icons/16/blue/plus.png", array('title' => _("Mehrere Veranstaltungen auswählen"), "class" => "middle"))."</a>";
+                echo "\n<a href=\"\" onClick=\"STUDIP.MultiSelect.create('#sem_move_id', 'Veranstaltungen'); $(this).hide(); return false\">".Assets::img("icons/16/blue/add.png", array('title' => _("Mehrere Veranstaltungen auswählen"), "class" => "middle"))."</a>";
             }
             echo "\n</td>";
             echo "\n" . '<td class="blank">';
@@ -893,7 +892,7 @@ if ($question) {
             }
             echo "\n" . '</select>';
             if ($config['FILESYSTEM_MULTICOPY_ENABLE'] && $open_cmd != 'm') {
-                echo "\n<a href=\"\" onClick=\"STUDIP.MultiSelect.create('#inst_move_id', 'Institute'); $(this).hide(); return false\">".Assets::img("icons/16/blue/plus.png", array('title' => _("Mehrere Einrichtungen auswählen"), "class" => "middle"))."</a>";
+                echo "\n<a href=\"\" onClick=\"STUDIP.MultiSelect.create('#inst_move_id', 'Institute'); $(this).hide(); return false\">".Assets::img("icons/16/blue/add.png", array('title' => _("Mehrere Einrichtungen auswählen"), "class" => "middle"))."</a>";
             }
             echo "\n</td>";
             echo "\n" . '<td class="blank">';
@@ -1091,7 +1090,7 @@ div.droppable.hover {
         if($SessSemName['class'] == 'sem') {
             $query = "SELECT DISTINCT folder_id
                       FROM themen AS th
-                      LEFT JOIN themen_termine AS tt ON (th.issue_id = tt.issue_id) 
+                      LEFT JOIN themen_termine AS tt ON (th.issue_id = tt.issue_id)
                       LEFT JOIN termine AS t ON (t.termin_id = tt.termin_id)
                       INNER JOIN folder ON (th.issue_id = folder.range_id)
                       WHERE th.seminar_id = ?

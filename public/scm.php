@@ -27,8 +27,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 use Studip\Button, Studip\LinkButton;
 require '../lib/bootstrap.php';
 
-unregister_globals();
-
 page_open(array("sess" => "Seminar_Session", "auth" => "Seminar_Default_Auth", "perm" => "Seminar_Perm", "user" => "Seminar_User"));
 $auth->login_if(Request::get('again') && ($auth->auth["uid"] == "nobody"));
 
@@ -87,7 +85,7 @@ if ($perm->have_studip_perm('tutor', $SessSemName[1]) && in_array($i_view, words
         $_show_scm = $scms[0]['scm_id'];
     }
     $_SESSION['scm-flash'] = $msg;
-    header('Location: ' . UrlHelper::getUrl('scm.php', array('show_scm' => $_show_scm)));
+    header('Location: ' . URLHelper::getUrl('scm.php', array('show_scm' => $_show_scm)));
     page_close();
     die();
 }

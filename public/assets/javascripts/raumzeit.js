@@ -42,7 +42,7 @@ jQuery(function ($) {
                         } else {
                             select.title = '';
                         }
-                        me.attr('src', STUDIP.ASSETS_URL + 'images/icons/16/blue/room_clear.png');
+                        me.attr('src', STUDIP.ASSETS_URL + 'images/icons/16/blue/room-clear.png');
                         me.attr('title', 'Alle RÃ¤ume anzeigen'.toLocaleString());
                         me.attr('data-state', 'enabled');
                     }
@@ -178,7 +178,7 @@ STUDIP.Raumzeit = {
             jQuery('select[name=teachers] option[value=' + lecturer_id + ']').show();
         } else {
             if (jQuery('div.at_least_one_teacher').size() === 0) {
-                jQuery('ul.teachers').before('<div class="at_least_one_teacher" style="display: none"><i>Jeder Termin muss mindestens eine Person haben, die ihn durchfÃ¼hrt!</i><div>');
+                jQuery('ul.teachers').before('<div class="at_least_one_teacher" style="display: none"><i>Jeder Termin muss mindestens eine Person haben, die ihn durchführt!</i><div>');
                 jQuery('div.at_least_one_teacher').slideDown().delay(3000).fadeOut(400, function () {
                     jQuery(this).remove();
                 });
@@ -208,7 +208,7 @@ STUDIP.Raumzeit = {
         });
 
         me.attr('data-state', false);
-        me.attr('src', STUDIP.ASSETS_URL + 'images/icons/16/grey/room_clear.png');
+        me.attr('src', STUDIP.ASSETS_URL + 'images/icons/16/grey/room-clear.png');
         me.attr('title', 'Nur buchbare Räume anzeigen'.toLocaleString());
     }
 };

@@ -43,8 +43,8 @@
             </select>
         </td>
         <td>
-        <input type="image" name="ok" src="<?=Assets::image_path('icons/16/green/accept.png')?>" alt="<?=_("Änderungen speichern")?>" title="<?=_("Änderungen speichern")?>">
-        <input type="image" name="cancel" src="<?=Assets::image_path('icons/16/red/decline.png')?>" alt="<?=_("Abbrechen")?>" title="<?=_("Abbrechen")?>">
+        <?= Assets::input("icons/16/green/accept.png", array('type' => "image", 'class' => "middle", 'name' => "ok", 'title' => _('Änderungen speichern'))) ?>
+        <?= Assets::input("iicons/16/red/decline", array('type' => "image", 'class' => "middle", 'name' => "cancel", 'title' => _('Abbrechen'))) ?>
         </td>
     <? else : ?>
         <td>
@@ -78,11 +78,11 @@ $infobox_content = array(
             array(
                 'kategorie' => _('Zugriffsregeln verwalten'),
                 'eintrag'   => array(array(
-                'icon' => 'icons/16/black/plus.png',
+                'icon' => 'icons/16/black/add.png',
                 'text' => '<a href="'.$controller->url_for('admin/webservice_access/test').'">'._('Regeln testen').'</a>'
             ),
             array(
-                    'icon' => 'icons/16/black/plus.png',
+                    'icon' => 'icons/16/black/add.png',
                     'text' => '<a href="'.$controller->url_for('admin/webservice_access/new').'">'._('Neue Zugriffsregel anlegen').'</a>'
                 ))
             ),

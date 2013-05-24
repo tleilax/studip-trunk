@@ -71,13 +71,20 @@ class ShowGroupSchedulesDaily extends ShowSemSchedules {
             <tr>
                 <td class="<? echo $cssSw->getClass() ?>" width="4%" rowspan="2">&nbsp;
                 </td>
-                <td class="<? echo $cssSw->getClass() ?>" width="40%" valign="top">
+                <td class="<? echo $cssSw->getClass() ?>" width="40%" valign="middle">
+                    <!--CHANGE for Datepicker-->
+                    <input type="text" id="schedule_begin_date" name="schedule_begin_date" size="10" value="<?echo date("d",$start_time).'.'.date("m",$start_time).'.'.date("Y",$start_time);; ?>">
+                    <script>
+                        jQuery('#schedule_begin_date').datepicker();
+                    </script>                    
+                    <!--
                     <input type="text" name="schedule_begin_day" size=2 maxlength=2 value="<?echo date("d",$start_time); ?>">.
                     <input type="text" name="schedule_begin_month" size=2 maxlength=2 value="<?echo date("m",$start_time); ?>">.
                     <input type="text" name="schedule_begin_year" size=4 maxlength=4 value="<?echo date("Y",$start_time); ?>">
+                    -->
                     <?= Button::create(_('Auswählen'), 'jump') ?><br>
                 </td>
-                <td class="<? echo $cssSw->getClass() ?>" width="60%" valign="top">
+                <td class="<? echo $cssSw->getClass() ?>" width="60%" valign="bottom">
                     <?= ($view_mode == 'oobj' ? _("Eine Ressourcengruppe ausw&auml;hlen") : _("Eine Raumgruppe ausw&auml;hlen")) ?>:<br>
                     <select name="group_schedule_choose_group" onChange="document.schedule_form.submit()">
                     <? foreach($this->resources_groups->getAvailableGroups() as $gid) :
@@ -202,7 +209,7 @@ class ShowGroupSchedulesDaily extends ShowSemSchedules {
                     <img src="<?= $GLOBALS['ASSETS_URL'] ?>images/blank.gif" height="35" border="0">
                 </td>
                 <td class="<? echo $cssSw->getClass() ?>"  width="10%" align="left">&nbsp;
-                    <a href="<? echo URLHelper::getLink('?quick_view='.$this->used_view.'&quick_view_mode='.$view_mode.'&previous_day=1')?>"><img class="middle" src="<?= Assets::image_path('icons/16/blue/arr_2left.png') ?>" <? echo tooltip (_("Vorherigen Tag anzeigen")) ?>border="0"></a>
+                    <a href="<? echo URLHelper::getLink('?quick_view='.$this->used_view.'&quick_view_mode='.$view_mode.'&previous_day=1')?>"><?= Assets::img("icons/16/blue/arr_2left.png", array('alt' => _("Vorherigen Tag anzeigen"), 'title' => _("Vorherigen Tag anzeigen"), "border" => 0)) ?></a>
                 </td>
                 <td class="<? echo $cssSw->getClass() ?>" width="76%" align="center" style="font-weight:bold">
                 <? echo htmlReady(strftime('%A, %x (KW %V)', $start_time));
@@ -213,14 +220,14 @@ class ShowGroupSchedulesDaily extends ShowSemSchedules {
                 ?>
                 </td>
                 <td class="<? echo $cssSw->getClass() ?>" width="10%" align="center">&nbsp;
-                    <a href="<? echo URLHelper::getLink('?quick_view='.$this->used_view.'&quick_view_mode='.$view_mode,'&next_day=1')?>"><img class="middle" src="<?= Assets::image_path('icons/16/blue/arr_2right.png') ?>" <? echo tooltip (_("Nächsten Tag anzeigen")) ?>border="0"></a>
+                    <a href="<? echo URLHelper::getLink('?quick_view='.$this->used_view.'&quick_view_mode='.$view_mode.'&next_day=1')?>"><?= Assets::img("icons/16/blue/arr_2right.png", array('alt' => _("Nächsten Tag anzeigen"), 'title' => _("Nächsten Tag anzeigen"), "border" => 0)) ?></a>
                 </td>
             </tr>
             <tr>
                 <td class="<? $cssSw->switchClass(); echo $cssSw->getClass() ?>" width="4%" align="center" valign="bottom">&nbsp;
                     <?
                     if ((!$_SESSION['resources_data']["schedule_time_range"]) || ($_SESSION['resources_data']["schedule_time_range"] == 1))
-                        printf ("<a href=\"".URLHelper::getLink('?quick_view=%s&quick_view_mode=%s&time_range=%s')."\"><img src=\"" . Assets::image_path('icons/16/blue/arr_2up.png') . "\" %s></a>", $this->used_view, $view_mode, ($_SESSION['resources_data']["schedule_time_range"]) ? "FALSE" : -1, tooltip (_("Frühere Belegungen anzeigen")));
+                        printf ("<a href=\"".URLHelper::getLink('?quick_view=%s&quick_view_mode=%s&time_range=%s')."\">" . Assets::img("icons/16/blue/arr_2up.png", array('alt' => _("Frühere Belegungen anzeigen"), 'title' => _("Frühere Belegungen anzeigen"), "border" => 0)) . "</a>", $this->used_view, $view_mode, ($_SESSION['resources_data']["schedule_time_range"]) ? "FALSE" : -1);
                     ?>
                 </td>
                 <td class="<? echo $cssSw->getClass() ?>" width="76%" colspan="2">
@@ -237,7 +244,7 @@ class ShowGroupSchedulesDaily extends ShowSemSchedules {
                     printf ("<option %s style=\"font-size:10px;\" value=\"single\">"._("nur Einzeltermine")."</option>", ($_SESSION['resources_data']["show_repeat_mode"] == "single") ? "selected" : "");
                     printf ("<option %s style=\"font-size:10px;\" value=\"repeated\">"._("nur Wiederholungstermine")."</option>", ($_SESSION['resources_data']["show_repeat_mode"] == "repeated") ? "selected" : "");
                     print "</select>";
-                    print "&nbsp;<input type=\"IMAGE\" name=\"send_schedule_repeat_mode\" src=\"" . Assets::image_path('icons/16/blue/arr_2down.png') . "\" ".tooltip(_("Ansicht umschalten")).">";
+                    print "&nbsp;".Assets::input("icons/16/green/accept.png", array('type' => "image", 'class' => "middle", 'name' => "send_schedule_repeat_mode", 'title' => _('Ansicht umschalten')));
                     ?>
                 </td>
             </tr>
@@ -254,7 +261,7 @@ class ShowGroupSchedulesDaily extends ShowSemSchedules {
                 <td class="<? echo $cssSw->getClass() ?>" width="4%" align="center" valign="bottom">&nbsp;
                     <?
                     if ((!$_SESSION['resources_data']["schedule_time_range"]) || ($_SESSION['resources_data']["schedule_time_range"] == -1))
-                        printf ("<a href=\"".URLHelper::getLink('?quick_view=%s&quick_view_mode=%s&time_range=%s')."\"><img src=\"" . Assets::image_path('icons/16/blue/arr_2down.png') . "\" %sborder=\"0\"></a>", $this->used_view, $view_mode, ($_SESSION['resources_data']["schedule_time_range"]) ? "FALSE" : 1, tooltip (_("Spätere Belegungen anzeigen")));
+                        printf ("<a href=\"".URLHelper::getLink('?quick_view=%s&quick_view_mode=%s&time_range=%s')."\">" . Assets::img("icons/16/blue/arr_2down.png", array('alt' => _("Spätere Belegungen anzeigen"), 'title' => _("Spätere Belegungen anzeigen"), "border" => 0)) . "</a>", $this->used_view, $view_mode, ($_SESSION['resources_data']["schedule_time_range"]) ? "FALSE" : 1);
                     ?>
                 </td>
                 <td class="<? echo $cssSw->getClass() ?>" width="20%" nowrap colspan="3">

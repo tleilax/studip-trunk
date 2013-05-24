@@ -48,9 +48,6 @@ class ForumPerm {
     {
         static $permissions = array();
         
-        // TODO: remove the the following line when multi-move-administration is completed
-        if ($perm == 'admin') return false;
-
         // if no user-id is passed, use the current user (for your convenience)
         if (!$user_id) {
             $user_id = $GLOBALS['user']->id;
@@ -96,7 +93,7 @@ class ForumPerm {
             words('edit_category add_category remove_category sort_category '
             . 'edit_area add_area remove_area sort_area '
             . 'search edit_entry add_entry remove_entry fav_entry like_entry move_thread '
-            . 'abo forward_entry pdfexport admin')
+            . 'abo forward_entry pdfexport')
         ) !== false) {
             return true;
         } else if ($status == 'autor' && in_array($perm, words('search add_entry fav_entry like_entry forward_entry abo pdfexport')) !== false) {
@@ -115,22 +112,28 @@ class ForumPerm {
 
     /**
      * If the user has not the passed perm in a seminar, an AccessDeniedException
-     * is thrown. The user_id is optional, if none is given, the currently 
-     * logged in user is checked.
+     * is thrown.
+     * An optional topic_id can be passed which is checked against the passed
+     * seminar if the topic_id belongs to that seminar
      * 
      * @param string $perm        for the list of possible perms and their function see @ForumPerm::hasPerm()
      * @param string $seminar_id  the seminar to check for
-     * @param string $user_id     the user_id to check
+     * @param string $topic_id    if passed, this topic_id is checked if it belongs to the passed seminar
      * 
      * @throws AccessDeniedException
      */
-    function check($perm, $seminar_id, $user_id = null)
+    function check($perm, $seminar_id, $topic_id = null)
     {
-        if (!self::has($perm, $seminar_id, $user_id)) {
+        if (!self::has($perm, $seminar_id)) {
             throw new AccessDeniedException(sprintf(
                 _("Sie haben keine Berechtigung für diese Aktion! Benötigte Berechtigung: %s"),
                 $perm)
             );
+        }
+        
+        // check the topic id (if any)
+        if ($topic_id) {
+            self::checkTopicId($seminar_id, $topic_id);
         }
     }
     
@@ -163,5 +166,43 @@ class ForumPerm {
         }
 
         return $perms[$topic_id];
-    }    
+    }
+    
+    /**
+     * check if the passed category_id belongs to the passed seminar_id.
+     * Throws an AccessDenied denied exception if this is not the case
+     * 
+     * @param type $seminar_id   id of the seminar, the category should belong to
+     * @param type $category_id  the id of the category to check
+     */
+    static function checkCategoryId($seminar_id, $category_id)
+    {
+        $data = ForumCat::get($category_id);
+        
+        if ($data['seminar_id'] != $seminar_id) {
+            throw new AccessDeniedException(sprintf(
+                _('Forum: Sie haben keine Berechtigung auf die Kategorie mit der ID %s zuzugreifen!'),
+                $category_id
+            ));
+        }        
+    }
+    
+    /**
+     * check if the passed topic_id belongs to the passed seminar_id.
+     * Throws an AccessDenied denied exception if this is not the case
+     * 
+     * @param type $seminar_id  id of the seminar, the category should belong to
+     * @param type $topic_id    the id of the topic to check
+     */
+    static function checkTopicId($seminar_id, $topic_id)
+    {
+        $data = ForumEntry::getConstraints($topic_id);
+
+        if ($data['seminar_id'] != $seminar_id) {
+            throw new AccessDeniedException(sprintf(
+                _('Forum: Sie haben keine Berechtigung auf den Eintrag mit der ID %s zuzugreifen!'),
+                $topic_id
+            ));
+        }
+    }
 }

@@ -6,7 +6,7 @@
 <form method="post" data-topicid="<?= $post['topic_id'] ?>" action="<?= PluginEngine::getLink('coreforum/index/update_entry/' . $post['topic_id']) ?>">
     <?= CSRFProtection::tokenTag() ?>
     
-<div class="posting" style="position: relative;">
+<div class="posting<?= $highlight_topic == $post['topic_id'] ? ' highlight' : '' ?>" style="position: relative;" >
     <span class="corners-top"><span></span></span>
 
     <a class="marked" href="<?= PluginEngine::getLink('coreforum/index/unset_favorite/'. $post['topic_id']) ?>"
@@ -18,10 +18,15 @@
     <div class="postbody">
         <div class="title">
 
-            <? if ($post['name_raw'] && $post['depth'] < 3) : ?>  
+            <? if ($post['depth'] < 3) : ?>  
             <span data-edit-topic="<?= $post['topic_id'] ?>" <?= Request::get('edit_posting') == $post['topic_id'] ? '' : 'style="display: none;"' ?>>
                 <input type="text" name="name" value="<?= htmlReady($post['name_raw']) ?>" data-reset="<?= htmlReady($post['name_raw']) ?>" style="width: 100%">
             </span>
+            <? else : ?>
+                <? $parent_topic = ForumEntry::getConstraints(ForumEntry::getParentTopicId($post['topic_id'])) ?>
+                <span data-edit-topic="<?= $post['topic_id'] ?>">
+                    <span name="name" value="<?= htmlReady($parent_topic['name']) ?>"></span>
+                </span>
             <? endif ?>
             
             <span data-show-topic="<?= $post['topic_id'] ?>">

@@ -24,7 +24,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA   02111-1307, USA.
 
 require '../lib/bootstrap.php';
 
-unregister_globals();
 require_once 'lib/functions.php';
 require_once 'lib/datei.inc.php';
 
@@ -387,7 +386,7 @@ if ($_SESSION['_user_activities']['details'] == 'files') {
         $title = sprintf('%s (%s%s)', $course['Name'], $course['startsem'],
                                       $course['startsem'] != $course['endsem'] ? ' - ' . $course['endsem'] : '');
         $title = sprintf('<a href="%s" class="tree">%s</a>',
-                         URLHelper::getLink('seminar_main.php?redirect_to=teilnehmer.php#' . $_SESSION['_user_activities']['username'], 
+                         URLHelper::getLink('seminar_main.php?redirect_to=dispatch.php/course/members/index#' . $_SESSION['_user_activities']['username'], 
                                             array('auswahl' => $course['Seminar_id'])),
                         htmlReady($title));
 

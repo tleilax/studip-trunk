@@ -62,8 +62,8 @@ if (isset($voteID)) {
 }
 if( !$rangeID ) $rangeID = Request::option("rangeID");
 
-if ( ! ( $perm->have_studip_perm( "tutor", $rangeID ) || 
-        $auth->auth["uname"] == $rangeID || (isDeputyEditAboutActivated() && 
+if ( ! ( $perm->have_studip_perm( "tutor", $rangeID ) ||
+        $auth->auth["uname"] == $rangeID || (isDeputyEditAboutActivated() &&
         isDeputy($auth->auth["uid"], get_userid($rangeID), true)) ) ) {
     $reason = ( ! is_object($vote)
         ? _("Es macht wenig Sinn, die Editierseite aufzurufen, ohne die zu editierende Umfrage anzugeben...")
@@ -113,7 +113,9 @@ $rangeID = Request::option('rangeID');
 $type = Request::option('type');
 if( empty($type) ) $type = "vote";
 $makeACopy = Request::option('makecopy');
-
+if (strlen($makeACopy) > 1) {
+    list($voteID, $type) = explode('_', $makeACopy);
+}
 if ($type=="test") { $vote = new TestVote( $voteID ); }
 else               { $vote = new Vote    ( $voteID ); }
 
@@ -135,19 +137,18 @@ $answers           =  Request::getArray('answers');
 $title             = Request::get('title') != TITLE_HELPTEXT ? Request::get('title') : NULL;
 $question          = Request::get('question') != QUESTION_HELPTEXT ? Request::get('question') : NULL;
 $startMode         = Request::get('startMode');
-$startDay          = Request::get('startDay');
-$startMonth        = Request::get('startMonth');
-$startYear         = Request::get('startYear');
+//Change to use the Datepicker
+$startEvent        = Request::get('startEvent');
+
 $startHour         = Request::get('startHour');
 $startMinute       = Request::get('startMinute');
-if( $startDay )    $startDate = $vote->date2timestamp( $startDay, $startMonth, $startYear, $startHour, $startMinute );
+if( $startEvent )    $startDate = $vote->date2timestamp( $startEvent, $startHour, $startMinute );
 $stopMode          = Request::get('stopMode');
-$stopDay           = Request::get('stopDay');
-$stopMonth         = Request::get('stopMonth');
-$stopYear          = Request::get('stopYear');
+//Change to use the Datepicker
+$stopEvent        = Request::get('stopEvent');
 $stopHour          = Request::get('stopHour');
 $stopMinute        = Request::get('stopMinute');
-if( $stopDay )     $stopDate = $vote->date2timestamp( $stopDay, $stopMonth, $stopYear, $stopHour, $stopMinute );
+if( $stopEvent )     $stopDate = $vote->date2timestamp( $stopEvent, $stopHour, $stopMinute );
 $timeSpan          = Request::get('timeSpan');
 $multipleChoice    = Request::get('multipleChoice');
 $resultVisibility  = Request::get('resultVisibility');
@@ -194,8 +195,8 @@ if( empty( $answers ) ) {
 
 if(!isset( $title ) )           { $title = $vote->getTitle(); if( $makeACopy ) $title .= _(" (Kopie)"); }
 if(!isset( $question ) )          $question = $vote->getQuestion();
-if(!isset( $startDay ) )          $startDate = $vote->getStartDate();
-if(!isset( $stopDay ) )           $stopDate = $vote->getStopDate();
+if(!isset( $startEvent ) )          $startDate = $vote->getStartDate();
+if(!isset( $stopEvent ) )           $stopDate = $vote->getStopDate();
 if(!isset( $timeSpan ) )          $timeSpan = $vote->getTimeSpan();
 if(!isset( $multipleChoice ) )    $multipleChoice = $vote->isMultipleChoice();
 if(!isset( $resultVisibility ) )  $resultVisibility = $vote->getResultVisibility();

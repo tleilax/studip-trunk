@@ -19,14 +19,14 @@
         </a>
     </td>
 
-    <td id=""<?=$tpl['sd_id']?>" width="1%" align="right" class="<?=$tpl['class']?>" nowrap>
+    <td id="<?=$tpl['sd_id']?>" width="1%" align="right" class="<?=$tpl['class']?>" nowrap>
         <?= Assets::img('icons/16/grey/date.png', array('class' => 'middle')) ?>
     </td>
 
     <td nowrap class="<?=$tpl['class']?>">
         <a class="tree" href="<?=URLHelper::getLink("?cmd=".($issue_open[$tpl['sd_id']] ? 'close' : 'open')."&open_close_id=".$tpl['sd_id']."#".$tpl['sd_id'])?>">
                  <i><?= htmlReady($tpl['art']) ?>:</i>
-                <?=$tpl['date']?>
+                <?=$tpl['date']?>&nbsp;
         </a>
     </td>
 
@@ -97,7 +97,7 @@
         <div style="text-align:center">
         <?
         if ($rechte && !$cancelled_dates_locked) {
-            echo \Studip\LinkButton::create(_('Ausfallen lassen'), "javascript:STUDIP.CancelDatesDialog.initialize('".UrlHelper::getScriptURL('dispatch.php/course/cancel_dates', array('termin_id' =>  $tpl['sd_id']))."');");
+            echo \Studip\LinkButton::create(_('Ausfallen lassen'), "javascript:STUDIP.CancelDatesDialog.initialize('".URLHelper::getScriptURL('dispatch.php/course/cancel_dates', array('termin_id' =>  $tpl['sd_id']))."');");
         }
         ?>
         </div>

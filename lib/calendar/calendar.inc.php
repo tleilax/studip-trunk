@@ -149,10 +149,13 @@ if ($atime <= 0 || $atime > Calendar::CALENDAR_END) {
 }
 
 // check date of "go-to-function"
-if (Request::get('jmp_month') && check_date(Request::int('jmp_month'), Request::int('jmp_day'), Request::int('jmp_year'))) {
-    $atime = mktime(12, 0, 0, Request::int('jmp_month'), Request::int('jmp_day'), Request::int('jmp_year'));
+//if (Request::get('jmp_month') && check_date(Request::int('jmp_month'), Request::int('jmp_day'), Request::int('jmp_year'))) {
+//    $atime = mktime(12, 0, 0, Request::int('jmp_month'), Request::int('jmp_day'), Request::int('jmp_year'));
+//}
+if (Request::get('jmp_date')){
+    $date = explode('.', Request::get('jmp_date'));
+    $atime = mktime(12,0,0, $date[1],$date[0],$date[2]);
 }
-
 // delete all expired events and count events
 $db_control = CalendarDriver::getInstance($GLOBALS['user']->id);
 if ($cmd == 'add' && $calendar_user_control_data['delete'] > 0) {
@@ -176,7 +179,7 @@ if ($cmd == '') {
 
 $_calendar->setUserSettings($calendar_user_control_data);
 
-$accepted_vars = array('start_m', 'start_h', 'start_day', 'start_month', 'start_year', 'end_m',
+$accepted_vars = array('startDate','endDate','start_m', 'start_h', 'start_day', 'start_month', 'start_year', 'end_m',
     'end_h', 'end_day', 'end_month', 'end_year', 'exp_day', 'exp_month',
     'exp_year', 'cat', 'priority', 'txt', 'content', 'loc', 'linterval_d',
     'linterval_w', 'type_d', 'type_m', 'linterval_m2', 'sinterval_m',

@@ -198,7 +198,7 @@ class CalendarScheduleModel
                                   . (sizeof($members) > 3 ? ' et al.' : '').')';
 
 
-                $entry['url']     = UrlHelper::getLink('dispatch.php/calendar/schedule/entry/' . $seminar_id
+                $entry['url']     = URLHelper::getLink('dispatch.php/calendar/schedule/entry/' . $seminar_id
                                   . '/' . $cycle->getMetaDateId());
                 $entry['onClick'] = "function (id) {
                     var ids = id.split('-');
@@ -235,26 +235,26 @@ class CalendarScheduleModel
                 if (!$entry['visible']) {
                     $entry['url'] .= '/?show_hidden=1';
 
-                    $bind_url = UrlHelper::getLink('dispatch.php/calendar/schedule/bind/'
+                    $bind_url = URLHelper::getLink('dispatch.php/calendar/schedule/bind/'
                               . $seminar_id . '/' . $cycle->getMetaDateId() . '/?show_hidden=1');
 
                     $entry['icons'][] = array(
                         'url'   => $bind_url,
                         'image' => Assets::image_path('icons/16/white/visibility-invisible.png'),
                         'onClick' => "function(id) { window.location = '". $bind_url ."'; }",
-                        'title' => _("Diesen Eintrag wieder einblenden")
+                        'title' => _("Diesen Eintrag wieder einblenden"),
                     );
                 }
 
                 // show a hide-icon if the entry is not virtual
                 else if ($entry['type'] != 'virtual') {
-                    $unbind_url = UrlHelper::getLink('dispatch.php/calendar/schedule/unbind/'
+                    $unbind_url = URLHelper::getLink('dispatch.php/calendar/schedule/unbind/'
                                 . $seminar_id . '/' . $cycle->getMetaDateId());
                     $entry['icons'][] = array(
                         'url'     => $unbind_url,
                         'image'   => Assets::image_path('icons/16/white/visibility-visible.png'),
                         'onClick' => "function(id) { window.location = '". $unbind_url ."'; }",
-                        'title'   => _("Diesen Eintrag ausblenden")
+                        'title'   => _("Diesen Eintrag ausblenden"),
                     );
 
                 }

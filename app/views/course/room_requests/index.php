@@ -32,7 +32,7 @@ echo $flash['message'];
                 <?= Assets::img('icons/16/blue/edit.png', array('title' => _('Diese Anfrage bearbeiten'))) ?>
             </a>
             <? if (getGlobalPerms($GLOBALS['user']->id) == 'admin' || ($GLOBALS['perm']->have_perm('admin') && count(getMyRoomRequests(null, null, true, $rr->getId())))) : ?>
-                <a href="<?= UrlHelper::getLink('resources.php', array('view' => 'edit_request', 'single_request' => $rr->getId())) ?>">
+                <a href="<?= URLHelper::getLink('resources.php', array('view' => 'edit_request', 'single_request' => $rr->getId())) ?>">
                     <?= Assets::img('icons/16/blue/admin.png', array('title' => _('Diese Anfrage selbst auflösen'))) ?>
                 </a>
             <? endif ?>
@@ -64,7 +64,7 @@ $infobox_content = array(
         'text' => _("Hier sehen Sie eine Übersicht der Raumanfragen zu dieser Veranstaltung.")
     ),
     array(
-            'icon' => 'icons/16/black/plus.png',
+            'icon' => 'icons/16/black/add.png',
             'text' => '<a href="'.$controller->link_for('new/'.$course_id).'">'._('Neue Raumanfrage erstellen').'</a>'
         ))
     ),

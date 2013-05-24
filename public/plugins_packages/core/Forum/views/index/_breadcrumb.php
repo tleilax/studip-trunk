@@ -6,12 +6,16 @@
             .'/1/?searchfor=' . $searchfor . (!empty($options) ? '&'. http_build_query($options) : '' )) ?>">
             <?= _('Suchergebnisse') ?>
         </a>
-    <? elseif ($section == 'latest') : ?>
-        <a href="<?= PluginEngine::getURL('coreforum/index/latest') ?>">
+    <? elseif ($section == 'newest'): ?>
+        <a href="<?= PluginEngine::getURL('coreforum/index/newest') ?>">
             <?= _('Neue Beiträge') ?>
         </a>
-    <? elseif ($section == 'favorites') : ?>
+    <? elseif ($section == 'latest') : ?>
         <a href="<?= PluginEngine::getURL('coreforum/index/latest') ?>">
+            <?= _('Letzte Beiträge') ?>
+        </a>
+    <? elseif ($section == 'favorites') : ?>
+        <a href="<?= PluginEngine::getURL('coreforum/index/favorites') ?>">
             <?= _('Gemerkte Beiträge') ?>
         </a>        
     <? else: ?>

@@ -335,7 +335,8 @@ function checkObjectModule($module)
     if ($SessSemName[1]) {
         $modules = new Modules();
 
-        if (!$modules->checkLocal($module, $SessSemName[1])) {
+        $sem_class = $GLOBALS['SEM_CLASS'][$GLOBALS['SEM_TYPE'][$SessSemName['art_num']]['class']];
+        if (!$sem_class->isSlotMandatory($module) && !$modules->checkLocal($module, $SessSemName[1])) {
             throw new CheckObjectException(sprintf(_('Das Inhaltselement "%s" ist für dieses Objekt leider nicht verfügbar.'), ucfirst($module)));
         }
     }
@@ -365,9 +366,11 @@ function closeObject()
     $SemUserStatus = null;
     $rechte = false;
 
+    unset($_SESSION['SessionSeminar']);
+    unset($_SESSION['SessSemName']);
+    unset($_SESSION['raumzeitFilter']);
+
     URLHelper::removeLinkParam('cid');
-    //$sess->unregister('raumzeitFilter');
-    $_SESSION['raumzeitFilter'] = '';
 }
 
 /**
@@ -1235,28 +1238,25 @@ function archiv_check_perm($seminar_id)
  */
 function get_users_online($active_time = 5, $name_format = 'full_rev')
 {
-    global $user, $_fullname_sql;
-
-    if (!isset($_fullname_sql[$name_format])) {
-        reset($_fullname_sql);
-        $name_format = key($_fullname_sql);
+    if (!isset($GLOBALS['_fullname_sql'][$name_format])) {
+        $name_format = reset(array_keys($GLOBALS['_fullname_sql']));
     }
 
-    $query = "SELECT a.username, {$_fullname_sql[$name_format]} AS name,
+    $query = "SELECT a.username AS temp, a.username, {$GLOBALS['_fullname_sql'][$name_format]} AS name,
                      UNIX_TIMESTAMP() - last_lifesign AS last_action,
                      a.user_id, contact_id AS is_buddy, " . get_vis_query('a', 'online') . " AS is_visible
               FROM user_online uo
-              LEFT JOIN auth_user_md5 a ON (a.user_id = uo.user_id)
+              JOIN auth_user_md5 a ON (a.user_id = uo.user_id)
               LEFT JOIN user_info ON (user_info.user_id = uo.user_id)
               LEFT JOIN user_visibility ON (user_visibility.user_id = uo.user_id)
               LEFT JOIN contact ON (owner_id = ? AND contact.user_id = a.user_id AND buddy = 1)
               WHERE last_lifesign > ? AND uo.user_id <> ?
-              ORDER BY a.Nachname ASC, a.Vorname ASC";
+              ORDER BY last_action ASC, {$GLOBALS['_fullname_sql'][$name_format]} ASC";
     $statement = DBManager::get()->prepare($query);
     $statement->execute(array(
-        $user->id,
+        $GLOBALS['user']->id,
         time() - $active_time * 60,
-        $user->id,
+        $GLOBALS['user']->id,
     ));
     $online = $statement->fetchGrouped();
 
@@ -1401,7 +1401,7 @@ function search_range($search_str = false, $search_user = false, $show_sem = tru
         }
     } elseif ($search_str && $perm->have_perm('admin')) {
         $_hidden = _('(versteckt)');
-        $query = "SELECT s.Seminar_id, IF(s.visible = 0, CONCAT(s.Name, ' {$_hidden}), s.Name) AS Name %s
+        $query = "SELECT s.Seminar_id, IF(s.visible = 0, CONCAT(s.Name, ' {$_hidden}'), s.Name) AS Name %s
                   FROM user_inst AS a
                   LEFT JOIN seminare AS s USING (Institut_id) %s
                   WHERE a.user_id = ? AND a.inst_perms = 'admin' AND s.Name LIKE CONCAT('%%', ?, '%%')
@@ -1436,7 +1436,7 @@ function search_range($search_str = false, $search_user = false, $show_sem = tru
         }
         if ($perm->is_fak_admin()) {
             $_hidden = _('(versteckt)');
-            $query = "SELECT s.Seminar_id, IF(s.visible = 0, CONCAT(s.Name, ' {$_hidden}), s.Name) AS Name %s
+            $query = "SELECT s.Seminar_id, IF(s.visible = 0, CONCAT(s.Name, ' {$_hidden}'), s.Name) AS Name %s
                       FROM user_inst AS a
                       LEFT JOIN Institute AS b ON (a.Institut_id = b.Institut_id AND b.Institut_id = b.fakultaets_id)
                       LEFT JOIN Institute AS c ON (c.fakultaets_id = b.Institut_id AND c.fakultaets_id = c.Institut_id)
@@ -1477,7 +1477,7 @@ function search_range($search_str = false, $search_user = false, $show_sem = tru
             $query = "SELECT b.Institut_id, b.Name
                       FROM user_inst AS a
                       LEFT JOIN Institute AS b ON (a.Institut_id = b.Institut_id AND b.Institut_id = b.fakultaets_id)
-                      WHERE a.user_id = = AND a.inst_perms = 'admin'
+                      WHERE a.user_id = ? AND a.inst_perms = 'admin'
                         AND NOT ISNULL(b.Institut_id) AND b.Name LIKE CONCAT('%', ?, '%')
                       ORDER BY Name";
             $statement = DBManager::get()->prepare($query);
@@ -1630,38 +1630,6 @@ function remove_magic_quotes($mixed)
         }
     }
     return $mixed;
-}
-
-/**
- * Unset all variables set by register_globals (if enabled).
- * Note: The session variables 'auth' and 'SessSemName' are preserved.
- *
- * @return void
- */
-function unregister_globals ()
-{
-    if (!ini_get('register_globals')) {
-        return;
-    }
-
-    if (isset($_REQUEST['GLOBALS']) || isset($_FILES['GLOBALS'])) {
-        die('GLOBALS overwrite attempt detected');
-    }
-
-    $noUnset = array('GLOBALS', '_GET', '_POST', '_COOKIE',
-                     '_REQUEST', '_SERVER', '_ENV', '_FILES',
-                     'auth', 'SessionSeminar', 'SessSemName');
-    $vars = array_merge($_GET, $_POST, $_COOKIE, $_SERVER, $_ENV, $_FILES);
-
-    if (isset($_SESSION)) {
-        $vars = array_merge($vars, $_SESSION);
-    }
-
-    foreach ($vars as $var => $value) {
-        if (!in_array($var, $noUnset) && isset($GLOBALS[$var])) {
-            unset($GLOBALS[$var]);
-        }
-    }
 }
 
 /**
@@ -1975,4 +1943,113 @@ function array_flatten($ary)
         }
     }
     return $ary;
+}
+
+/**
+ * Displays "relative time" - a textual representation between now and a
+ * certain timestamp, e.g. "3 hours ago".
+ *
+ * @param int  $timestamp        Timestamp to relate to.
+ * @param bool $verbose          Display long or short texts (optional)
+ * @param int  $displayed_levels How many levels shall be displayed
+ * @param int  $tolerance        Defines a tolerance area of seconds around
+ *                               now (How many seconds must have passed until
+ *                               the function won't return "now")
+ * @return String Textual representation of the difference between the passed
+ *                timestamp and now
+ */
+function reltime($timestamp, $verbose = true, $displayed_levels = 1, $tolerance = 5)
+{
+    if ($verbose) {
+        $glue = ', ';
+        $levels = array(
+            array(60, array(_('vor %u Sekunde'), _('vor %u Sekunden')), array(_('in %u Sekunde'), _('in %u Sekunden'))),
+            array(60, array(_('vor %u Minute'),  _('vor %u Minuten')),  array(_('in %u Minute'),  _('in %u Minuten'))),
+            array(24, array(_('vor %u Stunde'),  _('vor %u Stunden')),  array(_('in %u Stunde'),  _('in %u Stunden'))),
+            array(30, array(_('vor %u Tag'),     _('vor %u Tagen')),    array(_('in %u Tag'),     _('in %u Tagen'))),
+            array(12, array(_('vor %u Monat'),   _('vor %u Monaten')),  array(_('in %u Monat'),   _('in %u Monaten'))),
+            array(99, array(_('vor %u Jahr'),    _('vor %u Jahren')),   array(_('in %u Jahr'),    _('in %u Jahren'))),
+        );
+    } else {
+        $glue = '';
+        $levels = array(
+            array(60, array(_('%us'),   _('%us')),   array(_('%us'),   _('%us'))),
+            array(60, array(_('%umin'), _('%umin')), array(_('%umin'), _('%umin'))),
+            array(24, array(_('%uh'),   _('%uh')),   array(_('%uh'),   _('%uh'))),
+            array(30, array(_('%ud'),   _('%ud')),   array(_('%ud'),   _('%ud'))),
+            array(12, array(_('%uM'),   _('%uM')),   array(_('%uM'),   _('%uM'))),
+            array(99, array(_('%uy'),   _('%uy')),   array(_('%uy'),   _('%uy'))),
+        );
+    }
+
+    $now   = time();
+    $diff  = abs($timestamp - $now);
+    $index = $timestamp < $now ? 1 : 2;
+
+    if ($diff < $tolerance) {
+        return _('jetzt');
+    }
+
+    $result = array();
+    for ($i = 0; $i < count($levels) && $diff > 0; $i++) {
+        $remainder = $diff % $levels[$i][0];
+        if ($remainder > 0) {
+            $result[] = sprintf(ngettext($levels[$i][$index][0], $levels[$i][$index][1], $remainder), $remainder);
+        }
+        $diff = floor($diff / $levels[$i][0]);
+        if ($diff === 0) {
+            break;
+        }
+    }
+    return implode($glue, array_reverse(array_slice($result, -$displayed_levels)));
+}
+
+/**
+ * Displays a filesize in a (shortened) human readable form including the
+ * according units. For instance, 1234567 would be displayed as "1 MB" or
+ * 12345 would be displayed as "12 kB".
+ * The function can display the units in a short or a long form ("1 b" vs.
+ * "1 Byte").
+ * Optionally, more than one unit part can be displayed. For instance, 1234567
+ * could also be displayed as "1 MB, 234 kB, 567 b".
+ *
+ * @param int    $size             The raw filesize as integer
+ * @param bool   $verbose          Use short or long unit names
+ * @param int    $displayed_levels How many unit parts should be displayed 
+ * @param String $glue             Text used to glue the different unit parts
+ *                                 together
+ * @return String The filesize in human readable form.
+ * @todo Allow "1,3 MB"
+ */
+function relsize($size, $verbose = true, $displayed_levels = 1, $glue = ', ')
+{
+    $units = array(
+        'b' => 'Byte',
+        'kB' => 'Kilobyte',
+        'MB' => 'Megabyte',
+        'GB' => 'Gigabyte',
+        'TB' => 'Terabyte',
+        'PB' => 'Petabyte',
+        'EB' => 'Exabyte',
+        'ZB' => 'Zettabyte',
+        'YB' => 'Yottabyte',
+    );
+ 
+    $result = array();
+    foreach ($units as $short => $long) {
+        $remainder = $size % 1024;
+        if ($remainder > 0) {
+            $template = sprintf('%%u %s%%s', $verbose ? $long : $short);
+            $result[] = sprintf($template, $remainder, ($verbose && $remainder !== 1) ? 's' : '');
+        }
+
+        $size = floor($size / 1024);
+        if ($size === 0) {
+            break;
+        }
+    }
+    if ($displayed_levels > 0) {
+        $result = array_slice($result, -$displayed_levels);
+    }
+    return implode($glue, array_reverse($result));
 }

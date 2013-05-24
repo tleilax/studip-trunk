@@ -18,7 +18,7 @@ class Admin_SemClassesController extends AuthenticatedController
             throw new AccessDeniedException(_("Kein Zugriff"));
         }
         PageLayout::setHelpKeyword("Admins.SemClasses");
-        PageLayout::setTitle("Seminarklassen");
+        PageLayout::setTitle("Veranstaltungskategorien");
     }
 
     public function overview_action()
@@ -27,25 +27,37 @@ class Admin_SemClassesController extends AuthenticatedController
         if (count($_POST) && Request::get("delete_sem_class")) {
             $sem_class = $GLOBALS['SEM_CLASS'][Request::get("delete_sem_class")];
             if ($sem_class->delete()) {
-                PageLayout::postMessage(MessageBox::success(_("Seminarklasse wurde gelöscht.")));
+                PageLayout::postMessage(MessageBox::success(_("Veranstaltungskategorie wurde gelöscht.")));
                 $GLOBALS['SEM_CLASS'] = SemClass::refreshClasses();
             }
         }
         if (count($_POST) && Request::get("add_name")) {
             $statement = DBManager::get()->prepare(
-                "INSERT INTO sem_classes SET name = :name, mkdate = UNIX_TIMESTAMP(), chdate = UNIX_TIMESTAMP() " .
-            "");
+                "SELECT 1 FROM sem_classes WHERE name = :name"
+            );
             $statement->execute(array('name' => Request::get("add_name")));
-            $id = DBManager::get()->lastInsertId();
-            if (Request::get("add_like")) {
-                $sem_class = clone $GLOBALS['SEM_CLASS'][Request::get("add_like")];
-                $sem_class->set('name', Request::get("add_name"));
-                $sem_class->set('id', $id);
-                $sem_class->store();
+            $duplicate = $statement->fetchColumn();
+            if ($duplicate) {
+                $message = sprintf(_("Es existiert bereits eine Veranstaltungskategorie mit dem Namen \"%s\""),
+                                   Request::get("add_name"));
+                PageLayout::postMessage(MessageBox::error($message));
+                $this->redirect('admin/sem_classes/overview');
+            } else {
+                $statement = DBManager::get()->prepare(
+                    "INSERT INTO sem_classes SET name = :name, mkdate = UNIX_TIMESTAMP(), chdate = UNIX_TIMESTAMP() " .
+                "");
+                $statement->execute(array('name' => Request::get("add_name")));
+                $id = DBManager::get()->lastInsertId();
+                if (Request::get("add_like")) {
+                    $sem_class = clone $GLOBALS['SEM_CLASS'][Request::get("add_like")];
+                    $sem_class->set('name', Request::get("add_name"));
+                    $sem_class->set('id', $id);
+                    $sem_class->store();
+                }
+                $this->redirect(URLHelper::getURL($this->url_for('admin/sem_classes/details'), array('id' => $id)));
+                PageLayout::postMessage(MessageBox::success(_("Veranstaltungskategorie wurde erstellt.")));
+                $GLOBALS['SEM_CLASS'] = SemClass::refreshClasses();
             }
-            $this->redirect(URLHelper::getURL($this->url_for('admin/sem_classes/details'), array('id' => $id)));
-            PageLayout::postMessage(MessageBox::success(_("Seminarklasse wurde erstellt.")));
-            $GLOBALS['SEM_CLASS'] = SemClass::refreshClasses();
         }
     }
     
@@ -111,6 +123,8 @@ class Admin_SemClassesController extends AuthenticatedController
         $sem_class->set('topic_create_autor', Request::int("topic_create_autor"));
         $sem_class->set('visible', Request::int("visible"));
         $sem_class->set('course_creation_forbidden', Request::int("course_creation_forbidden"));
+        $sem_class->set('admission_prelim_default', Request::int("admission_prelim_default"));
+        $sem_class->set('admission_type_default', Request::int("admission_type_default"));
         $sem_class->store();
         $output = array(
             'html' => studip_utf8encode((string) MessageBox::success(_("Änderungen wurden gespeichert."." ".'<a href="'.URLHelper::getLink("dispatch.php/admin/sem_classes/overview").'">'._("Zurück zur Übersichtsseite.").'</a>')))

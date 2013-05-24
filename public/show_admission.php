@@ -28,8 +28,6 @@ use Studip\Button, Studip\LinkButton;
 
 require '../lib/bootstrap.php';
 
-unregister_globals();
-
 ob_start();
 page_open(array("sess" => "Seminar_Session", "auth" => "Seminar_Auth", "perm" => "Seminar_Perm", "user" => "Seminar_User"));
 $perm->check("admin");
@@ -297,13 +295,12 @@ function semadmission_get_institute($seminare_condition) {
                   GROUP BY a.Institut_id
                   ORDER BY is_fak, Name, num_sem DESC";
     } else {
-        $query = "SELECT a.Institut_id, b.Name, b.Institut_id = b.fakultaets_id AS is_fak,
-                         COUNT(seminar_id) AS num_sem
+        $query = "SELECT b.Institut_id, b.Name, b.Institut_id = b.fakultaets_id AS is_fak, COUNT( seminar_id ) AS num_sem
                   FROM user_inst AS s
-                  LEFT JOIN Institute AS b USING (Institut_id)
-                  LEFT JOIN seminare ON (seminare.Institut_id = b.Institut_id {$seminare_condition})
-                  WHERE a.user_id = ? AND a.inst_perms = 'admin'
-                  GROUP BY a.Institut_id
+                  LEFT JOIN Institute AS b USING ( Institut_id ) 
+                  LEFT JOIN seminare ON ( seminare.Institut_id = b.Institut_id {$seminare_condition})
+                  WHERE s.user_id = ? AND s.inst_perms = 'admin'
+                  GROUP BY b.Institut_id
                   ORDER BY is_fak, Name, num_sem DESC";
         $parameters[] = $user->id;
     }
@@ -676,13 +673,13 @@ if(is_object($group_obj)){
         <? if(count($distinct_members)  > 0 ) :?>
         <li style="margin-top:5px;">
         <span style="display:block;float:left;width:200px;"><?=_("Anzahl aller Anmeldungen:")?></span><?=count($distinct_members)?>
-        <a href="<?php echo UrlHelper::getLink('', array('group_id' => $group_obj->getId(), 'cmd' => 'download_all_members'))?>" title="<?php echo _("Download")?>"><?php echo Assets::img('icons/16/blue/file-xls.png', array('style' => 'vertical-align:bottom'))?></a>
+        <a href="<?php echo URLHelper::getLink('', array('group_id' => $group_obj->getId(), 'cmd' => 'download_all_members'))?>" title="<?php echo _("Download")?>"><?php echo Assets::img('icons/16/blue/file-xls.png', array('style' => 'vertical-align:bottom'))?></a>
         </li>
         <? endif;?>
         <? if(count($multi_members)  > 0 ) :?>
         <li style="margin-top:5px;">
         <span style="display:block;float:left;width:200px;"><?=_("Mehrfachanmeldungen:")?></span><?=count($multi_members)?>
-        <a href="<?php echo UrlHelper::getLink('', array('group_id' => $group_obj->getId(), 'cmd' => 'download_multi_members'))?>" title="<?php echo _("Download")?>"><?php echo Assets::img('icons/16/blue/file-xls.png', array('style' => 'vertical-align:bottom'))?></a>
+        <a href="<?php echo URLHelper::getLink('', array('group_id' => $group_obj->getId(), 'cmd' => 'download_multi_members'))?>" title="<?php echo _("Download")?>"><?php echo Assets::img('icons/16/blue/file-xls.png', array('style' => 'vertical-align:bottom'))?></a>
         </li>
         <? endif;?>
         <li style="margin-top:5px;">
@@ -1017,7 +1014,7 @@ function getUrlToSeminar($semdata)
     $modules = new Modules();
     $activated_modules = $modules->getLocalModules($semdata['Seminar_id'], 'sem', $semdata['modules'], $semdata['status']);
     if ($activated_modules["participants"]) {
-        return URLHelper::getLink("teilnehmer.php?cid=". $semdata['Seminar_id']);
+        return URLHelper::getLink("dispatch.php/course/members/index?cid=". $semdata['Seminar_id']);
     }
     else {
         return URLHelper::getLink("seminar_main.php?cid=" . $semdata['Seminar_id']);

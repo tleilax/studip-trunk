@@ -119,14 +119,14 @@ class ShowSchedules {
             <tr>
                 <td class="<? echo $cssSw->getClass() ?>" width="4%" rowspan="2">&nbsp;
                 </td>
-                <td class="<? echo $cssSw->getClass() ?>" width="30%" rowspan="2" valign="top"><font size=-1>
+                <td class="<? echo $cssSw->getClass() ?>" width="30%" rowspan="2" valign="middle"><font size=-1>
                     <font size=-1>Beginn:
                     <input type="text" name="schedule_begin_day" size=2 maxlength=2 value="<? if (!$start_time) echo date("d",time()); else echo date("d",$start_time); ?>">.
                     <input type="text" name="schedule_begin_month" size=2 maxlength=2 value="<? if (!$start_time) echo date("m",time()); else echo date("m",$start_time); ?>">.
                     <input type="text" name="schedule_begin_year" size=4 maxlength=4 value="<? if (!$start_time) echo date("Y",time()); else echo date("Y",$start_time); ?>"><br>
                     &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp;<?= Button::create(_('Auswählen'), 'jump') ?>
                 </td>
-                <td class="<? echo $cssSw->getClass() ?>" width="66%" valign="top"><font size=-1>
+                <td class="<? echo $cssSw->getClass() ?>" width="66%" valign="bottom"><font size=-1>
                     <input type="text" name="schedule_length_factor" size=2 maxlength=2 / value="<? if (!$this->length_factor) echo "1"; else echo $this->length_factor; ?>">
                     &nbsp; <select name="schedule_length_unit">
                         <option <? if ($this->length_unit  == "d") echo "selected" ?> value="d"><?=_("Tag(e)")?></option>
@@ -138,7 +138,7 @@ class ShowSchedules {
                 </td>
             </tr>
             <tr>
-                <td class="<? echo $cssSw->getClass() ?>" width="66%" valign="top">
+                <td class="<? echo $cssSw->getClass() ?>" width="66%" valign="bottom">
                     <i>oder</i>
                     <?= Button::create(_('Eine Woche grafisch ausgeben'), 'start_graphical') ?>
                 </td>
@@ -285,7 +285,7 @@ class ShowSchedules {
                     <img src="<?= $GLOBALS['ASSETS_URL'] ?>images/blank.gif" height="35" border="0">
                 </td>
                 <td class="<? echo $cssSw->getClass() ?> hidden"  width="10%" align="left">&nbsp;
-                    <a href="<? echo URLHelper::getLink('?quick_view='.$this->used_view.'&quick_view_mode='.$view_mode.'&previous_week=TRUE') ?> "> <img class="middle" src="<?= Assets::image_path('icons/16/blue/arr_2left.png') ?>" <? echo tooltip (_("Vorherige Woche anzeigen")) ?>border="0"></a>
+                    <a href="<? echo URLHelper::getLink('?quick_view='.$this->used_view.'&quick_view_mode='.$view_mode.'&previous_week=TRUE') ?> "><?= Assets::img("icons/16/blue/arr_2left.png", array('alt' => _("Vorherige Woche anzeigen"), 'title' => _("Vorherige Woche anzeigen"), 'border' => 0)) ?></a>
                 </td>
                 <td class="<? echo $cssSw->getClass() ?>" width="76%" align="center" style="font-weight:bold">
                     <? printf(_("Anzeige der Woche vom %s bis %s (KW %s)"), strftime("%x", $start_time), strftime("%x", $end_time),strftime("%V", $start_time));?>
@@ -293,16 +293,21 @@ class ShowSchedules {
                     <?php
                     $this->showSemWeekNumber($start_time);
                     ?>
+                    <br>
+                    <?php
+                    $room = ResourceObject::Factory($this->resource_id);
+                    echo "Raum: ".htmlReady($room->getName());
+                    ?>
                 </td>
                 <td class="<? echo $cssSw->getClass() ?> hidden" width="10%" align="center">&nbsp;
-                    <a href="<? echo URLHelper::getLink('?quick_view='.$this->used_view.'&quick_view_mode='.$view_mode.'&next_week=TRUE')?>"><img class="middle" src="<?= Assets::image_path('icons/16/blue/arr_2right.png') ?>" <? echo tooltip (_("Nächste Woche anzeigen")) ?>border="0"></a>
+                    <a href="<? echo URLHelper::getLink('?quick_view='.$this->used_view.'&quick_view_mode='.$view_mode.'&next_week=TRUE')?>"><?= Assets::img("icons/16/blue/arr_2right.png", array('alt' => _("Nächste Woche anzeigen"), 'title' => _("Nächste Woche anzeigen"), 'border' => 0)) ?></a>
                 </td>
             </tr>
             <tr>
                 <td class="<? $cssSw->switchClass(); echo $cssSw->getClass() ?> hidden" width="4%" align="center" valign="bottom">&nbsp;
                     <?
                     if ((!$_SESSION['resources_data']["schedule_time_range"]) || ($_SESSION['resources_data']["schedule_time_range"] == 1))
-                        printf ("<a href=\"".URLHelper::getLink('?quick_view=%s&quick_view_mode=%s&time_range=%s')."\"><img src=\"" . Assets::image_path('icons/16/blue/arr_2up.png') . "\" %sborder=\"0\"></a>", $this->used_view, $view_mode, ($_SESSION['resources_data']["schedule_time_range"]) ? "FALSE" : -1, tooltip (_("Frühere Belegungen anzeigen")));
+                        printf ("<a href=\"".URLHelper::getLink('?quick_view=%s&quick_view_mode=%s&time_range=%s')."\">" . Assets::img("icons/16/blue/arr_2up.png", array('alt' => _("Frühere Belegungen anzeigen"), 'title' => _("Frühere Belegungen anzeigen"), "border" => 0)) . "</a>", $this->used_view, $view_mode, ($_SESSION['resources_data']["schedule_time_range"]) ? "FALSE" : -1);
                     ?>
                 </td>
                 <td class="<? echo $cssSw->getClass() ?>" width="76%" colspan="2">
@@ -317,7 +322,7 @@ class ShowSchedules {
                     printf ("<option %s style=\"font-size:10px;\" value=\"single\">"._("nur Einzeltermine")."</option>", ($_SESSION['resources_data']["show_repeat_mode"] == "single") ? "selected" : "");
                     printf ("<option %s style=\"font-size:10px;\" value=\"repeated\">"._("nur Wiederholungstermine")."</option>", ($_SESSION['resources_data']["show_repeat_mode"] == "repeated") ? "selected" : "");
                     print "</select>";
-                    print "&nbsp;<input type=\"IMAGE\" name=\"send_schedule_repeat_mode\" src=\"" . Assets::image_path('icons/16/green/accept.png') . "\" ".tooltip(_("Ansicht umschalten")).">";
+                    print "&nbsp;" . Assets::input("icons/16/green/accept.png", array('type' => "image", 'class' => "middle", 'name' => "send_schedule_repeat_mode", 'title' => _("Ansicht umschalten")));
                     ?>
                 </td>
             </tr>
@@ -334,7 +339,7 @@ class ShowSchedules {
                 <td class="<? echo $cssSw->getClass() ?> hidden" width="4%" align="center" valign="bottom">&nbsp;
                     <?
                     if ((!$_SESSION['resources_data']["schedule_time_range"]) || ($_SESSION['resources_data']["schedule_time_range"] == -1))
-                        printf ("<a href=\"".URLHelper::getLink('?quick_view=%s&quick_view_mode=%s&time_range=%s')."\"><img src=\"" . Assets::image_path('icons/16/blue/arr_2down.png') . "\" %sborder=\"0\"></a>",$this->used_view, $view_mode, ($_SESSION['resources_data']["schedule_time_range"]) ? "FALSE" : 1, tooltip (_("Spätere Belegungen anzeigen")));
+                        printf ("<a href=\"".URLHelper::getLink('?quick_view=%s&quick_view_mode=%s&time_range=%s')."\">" . Assets::img("icons/16/blue/arr_2down.png", array('alt' => _("Spätere Belegungen anzeigen"), 'title' => _("Spätere Belegungen anzeigen"), 'border' => 0)) . "</a>",$this->used_view, $view_mode, ($_SESSION['resources_data']["schedule_time_range"]) ? "FALSE" : 1);
                     ?>
                 </td>
                 <td class="<? echo $cssSw->getClass() ?>" width="20%" nowrap colspan="3">

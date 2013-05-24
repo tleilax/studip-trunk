@@ -130,22 +130,24 @@
                 <br>
                 * Diese Felder sind nur für Sie und AdministratorInnen sichtbar.<br>
             <?endif?>
-               <br />
-            <?=$kings?>
-            <? if(!empty($shortDatafields)) : ?>
-                <? foreach ($shortDatafields as $name => $entry) : ?>
-                    <strong><?= htmlReady($name) ?>:</strong>
-                    <?= $entry['content'] ?>
-                    <span class="minor"><?= $entry['visible'] ?></span>
-                    <br>
-                <? endforeach ?>
-            <?endif?>
+               <br>
+            <? if (isset($kings)): ?>
+                <?= $kings ?><br>
+            <? endif; ?>
+        <? if(!empty($shortDatafields)) : ?>
+            <? foreach ($shortDatafields as $name => $entry) : ?>
+                <strong><?= htmlReady($name) ?>:</strong>
+                <?= $entry['content'] ?>
+                <span class="minor"><?= $entry['visible'] ?></span>
+                <br>
+            <? endforeach ?>
+        <?endif?>
         </td>
     </tr>
 </table>
 <br />
 <? if ($show_news): ?>
-    <? show_news($current_user->user_id, $show_admin, 0, $about_data["nopen"], "100%", 0, $about_data) ?>
+    <? show_news($current_user->user_id, $show_admin, 0, $profile_data["nopen"], "100%", 0, $about_data) ?>
 <? endif; ?>
 
 <? if ($terms) show_personal_dates($current_user->user_id, time(), -1, FALSE, $show_admin, $about_data["dopen"]) ?>

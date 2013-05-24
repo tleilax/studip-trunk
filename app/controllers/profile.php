@@ -77,6 +77,8 @@ class ProfileController extends AuthenticatedController
      */
     public function index_action()
     {
+        process_news_commands($about_data);
+
         //opening and closing for dates
         if (Request::option('dopen')) {
             $about_data['dopen'] = Request::option('dopen');
@@ -112,8 +114,7 @@ class ProfileController extends AuthenticatedController
         }
 
         // Get Avatar
-        $avatar_user_id = $this->profile->checkVisibility('picture') ? $this->current_user->user_id : 'nobody';
-        $this->avatar   = Avatar::getAvatar($avatar_user_id)->getImageTag(Avatar::NORMAL);
+        $this->avatar   = Avatar::getAvatar($this->current_user->user_id)->getImageTag(Avatar::NORMAL);
 
         // GetScroreList
         $score  = new Score($this->current_user->user_id);
@@ -225,9 +226,9 @@ class ProfileController extends AuthenticatedController
 
         // Hompageplugins
         $homepageplugins = PluginEngine::getPlugins('HomepagePlugin');
-
+        
         foreach ($homepageplugins as $homepageplugin) {
-            if ($homepageplugin->isActivated($this->current_user->user_id, 'user')) {
+            if ($homepageplugin->isActivated($this->current_user->user_id, 'user') && Visibility::verify("plugin".$homepageplugin->getPluginID(), $this->current_user->user_id)) {
                 // get homepageplugin tempaltes
                 $template = $homepageplugin->getHomepageTemplate($this->current_user->user_id);
                 // create output of the plugins
@@ -263,32 +264,7 @@ class ProfileController extends AuthenticatedController
             unset($vis_text);
 
             if ($this->user->user_id == $this->current_user->user_id) {
-                $visibility = $this->profile->getSpecificVisibilityValue('kat_' . $cat->kategorie_id);
-
-                if ($visibility) {
-                    $vis_text .= '( ';
-
-                    switch ($visibility) {
-                        case VISIBILITY_ME:
-                            $vis_text .= _('nur für mich sichtbar');
-                            break;
-                        case VISIBILITY_BUDDIES:
-                            $vis_text .= _('nur für meine Buddies sichtbar');
-                            break;
-                        case VISIBILITY_DOMAIN:
-                            $vis_text .= _('nur für meine Nutzerdomäne sichtbar');
-                            break;
-                        case VISIBILITY_EXTERN:
-                            $vis_text .= _('auf externen Seiten sichtbar');
-                            break;
-                        case VISIBILITY_STUDIP:
-                            $vis_text .= _('für alle Stud.IP-Nutzer sichtbar');
-                            break;
-                        default:
-                    }
-
-                    $vis_text .= ' )';
-                }
+                      $vis_text .= ' ( '. Visibility::getStateDescription('kat_'.$cat->kategorie_id).' )';
             }
 
             if ($this->profile->checkVisibility('kat_'.$cat->kategorie_id)) {

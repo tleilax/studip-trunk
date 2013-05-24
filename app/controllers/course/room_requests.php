@@ -157,7 +157,7 @@ class Course_RoomRequestsController extends AuthenticatedController
         if (Request::isXhr()) {
             foreach((array)$_REQUEST as $k => $v) {
                 if (is_array($v)) {
-                    array_walk_recursive(&$v, create_function('&$v', 'if (!is_array($v)) $v = studip_utf8decode($v);'));
+                    array_walk_recursive($v, create_function('$v', 'if (!is_array($v)) $v = studip_utf8decode($v);'));
                     Request::set($k, $v);
                 } else {
                     Request::set($k, studip_utf8decode($v));
@@ -372,7 +372,7 @@ class Course_RoomRequestsController extends AuthenticatedController
         } else {
             $whereto .=  $to;
         }
-        $url = UrlHelper::getURL($this->dispatcher->trails_uri . '/' . $whereto, $params);
+        $url = URLHelper::getURL($this->dispatcher->trails_uri . '/' . $whereto, $params);
         return $url;
     }
 
@@ -384,7 +384,7 @@ class Course_RoomRequestsController extends AuthenticatedController
         } else {
             $whereto .=  $to;
         }
-        $link = UrlHelper::getLink($this->dispatcher->trails_uri . '/' . $whereto, $params);
+        $link = URLHelper::getLink($this->dispatcher->trails_uri . '/' . $whereto, $params);
         return $link;
     }
 

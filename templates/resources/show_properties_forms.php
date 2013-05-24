@@ -2,7 +2,7 @@
 # Lifter010: TEST
 use Studip\Button, Studip\LinkButton;
 ?>
-<form method="post" action="<?= UrlHelper::getLink('?change_object_properties='. $resObject->getId()) ?>">
+<form method="post" action="<?= URLHelper::getLink('?change_object_properties='. $resObject->getId()) ?>">
     <?= CSRFProtection::tokenTag() ?>
     <input type="hidden" name="view" value="edit_object_properties">
 
@@ -48,6 +48,14 @@ use Studip\Button, Studip\LinkButton;
             <!-- Infobox -->
             <td class="blank" rowspan="5" valign="top" style="padding-left: 20px" align="right">
             <?
+                $content[] = array('kategorie' => _("Raum:"),
+                    'eintrag' => array(
+                        array(
+                            'icon' => 'icons/16/black/info.png',
+                            'text' => htmlReady($resObject->getName())
+                        )
+                    )
+                );
                 $content[] = array('kategorie' => _("Informationen:"),
                     'eintrag' => array(
                         array(
@@ -197,7 +205,7 @@ use Studip\Button, Studip\LinkButton;
                 <br>
                 <?= Button::create(_('Übernehmen'))?>
                 <? if ($resObject->isUnchanged()) : ?>
-                    <?= LinkButton::createCancel(_('Abbrechen'), UrlHelper::getLink('?cancel_edit='. $resObject->id))?>
+                    <?= LinkButton::createCancel(_('Abbrechen'), URLHelper::getLink('?cancel_edit='. $resObject->id))?>
                 <? endif; ?>
                 <br>&nbsp;
             </td>

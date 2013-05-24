@@ -47,7 +47,7 @@ if (Studip\ENV == 'development') {
 }
 
 // set default time zone
-date_default_timezone_set(@date_default_timezone_get());
+date_default_timezone_set($DEFAULT_TIMEZONE ?:@date_default_timezone_get());
 
 // set assets url
 Assets::set_assets_url($GLOBALS['ASSETS_URL']);
@@ -68,7 +68,11 @@ function studip_default_exception_handler($exception) {
         $status = 403;
         $template = 'check_object_exception';
     } else {
-        $status = 500;
+        if ($exception instanceOf Trails_Exception) {
+            $status = $exception->getCode();
+        } else {
+            $status = 500;
+        }
         error_log($exception->__toString());
         $template = 'unhandled_exception';
     }
@@ -126,6 +130,7 @@ if (isset($GLOBALS['DB_STUDIP_SLAVE_HOST'])) {
 } else {
     DBManager::getInstance()->aliasConnection('studip', 'studip-slave');
 }
+
 /**
  * @deprecated
  */
@@ -140,7 +145,7 @@ class DB_Seminar extends DB_Sql {
 }
 
 //software version - please leave it as it is!
-$SOFTWARE_VERSION = '2.4.alpha-svn';
+$SOFTWARE_VERSION = '2.5.alpha-svn';
 
 // set dummy navigation until db is ready
 Navigation::setRootNavigation(new Navigation(''));
@@ -343,16 +348,18 @@ class Seminar_User {
     public $cfg = null; //UserConfig object
     private $user = null; //User object
 
-    function __construct($uid = null)
+    function __construct($user = null)
     {
-        if ($uid) {
-            $this->user = User::find($uid);
-            $this->cfg = UserConfig::get($uid);
-            if (!isset($this->user)) {
-                $this->user = new User();
-                $this->user->user_id = 'nobody';
-            }
+        if ($user instanceOf User) {
+            $this->user = $user;
+        } else {
+            $this->user = User::find($user);
         }
+        if (!isset($this->user)) {
+            $this->user = new User();
+            $this->user->user_id = 'nobody';
+        }
+        $this->cfg = UserConfig::get($this->user->user_id);
     }
 
     function get_last_action()

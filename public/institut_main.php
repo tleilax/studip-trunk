@@ -26,8 +26,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 require '../lib/bootstrap.php';
 
-unregister_globals();
-
 page_open(array("sess" => "Seminar_Session", "auth" => "Seminar_Default_Auth", "perm" => "Seminar_Perm", "user" => "Seminar_User"));
 $auth->login_if(Request::get('again') && ($auth->auth["uid"] == "nobody"));
 
@@ -56,7 +54,7 @@ if (Request::get('auswahl')) {
 
 // gibt es eine Anweisung zur Umleitung?
 if(Request::get('redirect_to')) {
-    $query_parts = explode('&', stristr($_SERVER['QUERY_STRING'], 'redirect_to'));
+    $query_parts = explode('&', stristr(urldecode($_SERVER['QUERY_STRING']), 'redirect_to'));
     list( , $where_to) = explode('=', array_shift($query_parts));
     $new_query = $where_to . '?' . join('&', $query_parts);
     page_close();

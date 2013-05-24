@@ -22,7 +22,6 @@
 
 require '../lib/bootstrap.php';
 
-unregister_globals();
 page_open(array("sess" => "Seminar_Session", "auth" => "Seminar_Auth", "perm" => "Seminar_Perm", "user" => "Seminar_User"));
 $perm->check("user");
 $sms_data =& $_SESSION['sms_data'];
@@ -656,8 +655,7 @@ $txt['008'] = _("Lesebestätigung");
                 $attachment->autor_host = $_SERVER['REMOTE_ADDR'];
                 $attachment->user_id = $user->id;
                 $attachment->description = Request::option('attachment_message_id');
-                $new_attachment = $attachment->toArray();
-                unset($new_attachment['dokument_id']);
+                $new_attachment = $attachment->toArray(array('range_id', 'user_id', 'seminar_id', 'name', 'description', 'filename', 'filesize'));
                 StudipDocument::createWithFile(get_upload_file_path($attachment->getId()), $new_attachment);
             }
             unset($quote);

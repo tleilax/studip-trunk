@@ -1,6 +1,17 @@
 <br>
+
+<? if (trim($constraint['content'])) : ?>
+<div class="posting">
+    <span class="corners-top"><span></span></span>
+    <div class="postbody">
+        <div class="content"><?= formatReady(ForumEntry::killEdit($constraint['content'])) ?></div>
+    </div>
+    <span class="corners-bottom"><span></span></span>
+</div>
+<? endif ?>
+
 <div id="sortable_areas">
-<? foreach ($list as $category_id => $entries) : ?>
+<? if (!empty($list)) foreach ($list as $category_id => $entries) : ?>
 <table class="forum" data-category-id="<?= $category_id ?>">
     <thead>
     <tr>
@@ -27,7 +38,7 @@
     <tbody class="sortable">
     <!-- this row allows dropping on otherwise empty categories -->
     <tr class="sort-disabled">
-        <td class="areaborder" style="height: 5px"colspan="5"> </td>
+        <td class="areaborder" style="height: 5px"colspan="4"> </td>
     </tr>
 
     <? if (!empty($entries)) foreach ($entries as $entry) :
@@ -60,8 +71,8 @@
 
         <td class="areaentry">
             <div style="position: relative;">
-                <a href="<?= PluginEngine::getLink('coreforum/index/index/'. $jump_to_topic_id .'#'. $jump_to_topic_id) ?>">
-                    <span class="areaname"><?= htmlReady($entry['name_raw']) ?></span>
+                <a href="<?= PluginEngine::getLink('coreforum/index/index/'. $entry['topic_id'] .'#'. $entry['topic_id']) ?>">
+                    <span class="areaname"><?= htmlReady($entry['name_raw'] ?: _('Ohne Titel')) ?></span>
                 </a>
 
                 <span class="action-icons">
@@ -80,7 +91,7 @@
                         <div style="font-size: 16px; margin-bottom: 5px;">
                             <a href="<?= PluginEngine::getLink('coreforum/index/move_thread/'. $entry['topic_id'].'/'. $area_id) ?>">
                             <?= Assets::img('icons/16/yellow/arr_2right.png') ?>
-                            <?= $area['name'] ?>
+                            <?= htmlReady($area['name_raw']) ?>
                             </a>
                         </div>
                         <? endif ?>
@@ -140,7 +151,7 @@
     <tfoot>
         <!-- bottom border -->
         <tr>
-            <td class="areaborder" colspan="5">
+            <td class="areaborder" colspan="4">
                 <span class="corners-bottom"><span></span></span>
             </td>
         </tr>

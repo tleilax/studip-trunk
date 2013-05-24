@@ -26,7 +26,6 @@
 
 require '../lib/bootstrap.php';
 
-unregister_globals();
 page_open(array("sess" => "Seminar_Session", "auth" => "Seminar_Auth", "perm" => "Seminar_Perm", 'user' => "Seminar_User"));
 $auth->login_if($auth->auth["uid"] == "nobody");
 
@@ -37,9 +36,9 @@ include ('lib/seminar_open.php'); // initialise Stud.IP-Session
 $range_id = Request::option('range_id');
 $cmd = Request::option('cmd');
 $view = Request::option('view');
-$name = Request::quoted('name');
-$Freesearch = Request::quotedArray('Freesearch');
-$AktualMembers = Request::quotedArray('AktualMembers');
+$name = Request::get('name');
+$Freesearch = Request::getArray('Freesearch');
+$AktualMembers = Request::getArray('AktualMembers');
 $edit_id = Request::option('edit_id');
 $statusgruppe_id = Request::option('statusgruppe_id');
 
@@ -377,7 +376,7 @@ function PrintAktualContacts($range_id)
 // alles ist userbezogen:
 // Abfrage der Formulare und Aktionen
 // neue Statusgruppe hinzufuegen
-$new_statusgruppe_name = Request::quoted('new_statusgruppe_name');
+$new_statusgruppe_name = Request::get('new_statusgruppe_name');
 if (($cmd == "add_new_statusgruppe") && ($new_statusgruppe_name != "")) {
     if (Statusgruppe::countByName($new_statusgruppe_name, $range_id) > 0) {
         $msgs[] = 'info§' . sprintf(_("Die Gruppe %s wurde hinzugefügt, es gibt jedoch bereits ein Gruppe mit demselben Namen!"), '<b>' . htmlReady($new_statusgruppe_name) . '</b>');
@@ -544,7 +543,7 @@ if (is_array($msgs)) {
     ?>
                     <br><br>
     <?
-    $search_exp = Request::quoted('search_exp');
+    $search_exp = Request::get('search_exp');
     if ($search_exp) {
 
         $search_exp = str_replace("%", "\%", $search_exp);
@@ -553,15 +552,15 @@ if (is_array($msgs)) {
             echo "&nbsp; <font size=\"-1\">" . _("Ihr Suchbegriff muss mindestens 3 Zeichen umfassen!");
             echo "<br><br><label for=\"search_exp\"><font size=\"-1\">&nbsp; " . _("freie Personensuche (wird in Adressbuch übernommen)") . "</font></label><br>";
             echo "&nbsp; <input type=\"text\" name=\"search_exp\" id=\"search_exp\" value=\"\">";
-            printf(" <input class=\"middle\" type=\"IMAGE\" name=\"search\" src=\"" . Assets::image_path('icons/16/blue/search.png') . "\"  value=\" %s \" %s>&nbsp;  ", _("Person suchen"), tooltip(_("Person suchen")));
+            echo Assets::input("icons/16/blue/search.png", array('type' => "image", 'alt' => _("Person suchen"), 'title' => _("Person suchen"), 'class' => "middle", 'name' => "search"))."&nbsp;  ";
         } else {
             PrintSearchResults($search_exp, $range_id);
-            printf("<input type=\"IMAGE\" name=\"search\" src=\"" . Assets::image_path('icons/16/blue/refresh.png') . "\"  value=\" %s \" %s>&nbsp;  ", _("neue Suche"), tooltip(_("neue Suche")));
+            echo Assets::input("icons/16/blue/refresh.png", array('type' => "image", 'alt' => _("neue Suche"), 'title' => _("neue Suche"), 'class' => "middle", 'name' => "search"))."&nbsp;  ";
         }
     } else {
         echo "<label for=\"search_exp\">"._("freie Personensuche (wird in Adressbuch &uuml;bernommen)") . "</label><br>";
         echo "&nbsp; <input type=\"text\" name=\"search_exp\" id=\"search_exp\" value=\"\">";
-        printf(" <input class=\"middle\" type=\"IMAGE\" name=\"search\" src=\"" . Assets::image_path('icons/16/blue/search.png') . "\"  value=\" %s \" %s>&nbsp;  ", _("Person suchen"), tooltip(_("Person suchen")));
+        echo Assets::input("icons/16/blue/search.png", array('type' => "image", 'alt' => _("Person suchen"), 'title' => _("Person suchen"), 'class' => "middle", 'name' => "search"))."&nbsp;  ";
     }
     echo "<br><br>\n";
     if ($GLOBALS['CALENDAR_GROUP_ENABLE']) {

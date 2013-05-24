@@ -236,7 +236,7 @@ function create_month_view(&$calendar, $atime, $step = NULL)
     $out .= Assets::img('icons/16/blue/arr_1left.png', tooltip2(_("einen Monat zurück"))) . "</a>&nbsp;</td>\n";
     $out .= sprintf("<td colspan=\"%s\" class=\"calhead\">\n", $mod == "nokw" ? "5" : "6");
     $out .= '<font size="+2">';
-    $out .= htmlReady(strftime("%B ", $month->getStart())) . $month->getYear();
+    $out .= htmlReady(strftime("%B ", $month->getStart())) .' '. $month->getYear();
     $out .= "</font></td>\n";
     $out .= '<td align="center">&nbsp;<a href="' . URLHelper::getLink('', array('cmd' => 'showmonth', 'atime' => $month->getEnd() + 1)) . '">';
     $out .= Assets::img('icons/16/blue/arr_1right.png', tooltip2(_("einen Monat vor"))) . '</a>';
@@ -503,8 +503,7 @@ function create_year_view(&$calendar)
 
                 if ($event_count_txt != '') {
                     $out .= "</td><td$day_class align=\"right\">";
-                    $out .= '<img src="' . Assets::image_path('icons/16/blue/date.png') . '" ';
-                    $out .= $event_count_txt . '>';
+                    $out .= Assets::img("icons/16/blue/date.png", array('alt' => $event_count_txt, 'title' => $event_count_txt));
                     $out .= "</td></tr></table>\n";
                 }
                 $out .= '</td>';
@@ -547,14 +546,13 @@ function javascript_hover_year(&$calendar, $day_time)
         }
         if (sizeof($event_count_txt)) {
             $out .= implode('; ', $event_count_txt);
-            $out = tooltip($out);
         }
     } else {
         $event_count = $calendar->view->numberOfEvents($day_time);
         if ($event_count > 1) {
-            $out = tooltip(sprintf(_("%s Termine"), $event_count));
+            $out = sprintf(_("%s Termine"), $event_count);
         } elseif ($event_count == 1) {
-            $out = tooltip(_("1 Termin"));
+            $out = _("1 Termin");
         }
     }
 
@@ -738,7 +736,9 @@ function fit_title($title, $cols, $rows, $max_length, $end_str = "...", $pad = T
         $new_title = substr($new_title, 0, - (strlen($end_str))) . $end_str;
 
     $new_title = htmlReady(chunk_split($new_title, $length, "\n"));
-    $new_title = substr(str_replace("\n", '<br>', $new_title), 0, -4);
+    $new_title = str_replace("\n", '<br>', $new_title);
+    if(substr($new_title, -4) === "<br>")
+        $new_title = substr($new_title, 0, -4);
 
     if ($pad && $title_length < $length)
         $new_title .= str_repeat('&nbsp;', $length - $title_length);
@@ -806,7 +806,7 @@ function js_hover(Event $aterm)
     }
     $jscript_text .= '<br>';
 
-    return " onmouseover=\"STUDIP.CalendarDialog.openCalendarHover('" . JSReady($aterm->toStringDate('SHORT_DAY')) . "', '" . JSReady($jscript_text, 'contact') . "', this);\" onmouseout=\"STUDIP.CalendarDialog.closeCalendarHover();\"";
+    return " onmouseover=\"STUDIP.CalendarDialog.openCalendarHover('" . JSReady($aterm->toStringDate('SHORT_DAY'), 'inline-single') . "', '" . JSReady($jscript_text, 'inline-single') . "', this);\" onmouseout=\"STUDIP.CalendarDialog.closeCalendarHover();\"";
 }
 
 
@@ -821,16 +821,13 @@ function info_icons(&$event)
     }
 
     if ($event->getType() == 'PUBLIC') {
-        $out .= '<img src="' . Assets::image_path('icons/16/blue/visibility-visible.png') . '" ';
-        $out .= 'border="0"' . tooltip($event->toStringAccessibility()) . '>';
+        $out .= Assets::img("icons/16/blue/visibility-visible.png", array('alt' => $event->toStringAccessibility(), 'title' => $event->toStringAccessibility(), 'border' => "0"));
     } else if ($event->getType() == 'CONFIDENTIAL') {
-        $out .= '<img src="' . Assets::image_path('icons/16/blue/visibility-invisible.png') . '" ';
-        $out .= 'border="0"' . tooltip($event->toStringAccessibility()) . '>';
+        $out .= Assets::img("icons/16/blue/visibility-invisible.png", array('alt' => $event->toStringAccessibility(), 'title' => $event->toStringAccessibility(), 'border' => "0"));
     }
 
     if ($event->getRepeat('rtype') != 'SINGLE') {
-        $out .= '<img src="' . Assets::image_path('icons/16/blue/refresh.png') . '" ';
-        $out .= 'border="0"' . tooltip($event->toStringRecurrence()) . '>';
+        $out .= Assets::img("icons/16/blue/refresh.png", array('alt' => $event->toStringRecurrence(), 'title' => $event->toStringRecurrence(), 'border' => "0"));
     }
 
     if ($out != '') {
@@ -849,7 +846,8 @@ function quick_search_form($search_string, $cmd, $atime)
     $out .= _("Suche: ") . " </font>";
     $out .= "<input type=\"text\" name=\"cal_quick_search\" size=\"15\" maxlength=\"50\">";
     $out .= stripslashes($search_string) . "</input>\n";
-    $out .= '<input type="image" src="' . Assets::image_path('icons/16/blue/accept.png') . ' border="0" style="vertical-align: bottom;"></form>';
+    $out .= Assets::img("icons/16/blue/accept.png", array('alt' => $event->toStringAccessibility(), 'style' => "vertical-align: bottom;", 'title' => $event->toStringAccessibility(), 'border' => "0"));
+    $out .= '</form>';
     $out .= "<!-- END CALENDAR QUICK SEARCH -->\n";
 
     return $out;

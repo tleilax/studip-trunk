@@ -77,7 +77,7 @@ class Settings_CategoriesController extends Settings_SettingsController
                             sprintf('<a href="%s">%s</a>',
                                     $this->url_for('settings/categories/create'),
                                     _('Neue Kategorie anlegen')),
-                            'icons/16/black/plus');
+                            'icons/16/black/add');
         $this->addToInfobox(_('Informationen'), _('Hier können Sie beliebige eigene Kategorien anlegen. Diese Kategorien erscheinen je nach eingestellter Sichtbarkeit auf Ihrer Profilseite. Mit den Pfeilsymbolen k&ouml;nnen Sie die Reihenfolge, in der die Kategorien angezeigt werden, ver&auml;ndern.'), 'icons/16/black/info');
         $this->addToInfobox(_('Informationen'), sprintf(_('Für wen Ihre angelegten Kategorien genau sichtbar sein sollen, können Sie in Ihren %sPrivatsphäre-Einstellungen%s festlegen.'), '<a href="'.URLHelper::getURL('dispatch.php/settings/privacy').'">', '</a>'), 'icons/16/black/visibility-invisible');
     }
@@ -97,6 +97,7 @@ class Settings_CategoriesController extends Settings_SettingsController
         
         if ($category->store()) {
             $this->reportSuccess(_('Neue Kategorie angelegt.'));
+            Visibility::addPrivacySetting($category->name, 'kat_'.$category->id, 'owncategory');
         } else {
             $this->reportSuccess(_('Anlegen der Kategorie fehlgeschlagen.'));
         }
@@ -129,6 +130,7 @@ class Settings_CategoriesController extends Settings_SettingsController
 
         if ($category->delete()) {
             $this->reportSuccess(_('Kategorie "%s" gelöscht!'), $name);
+            Visibility::removePrivacySetting('kat_'.$id);
         } else {
             $this->reportError(_('Kategorie "%s" konnte nicht gelöscht werden!'), $name);
         }
@@ -153,6 +155,7 @@ class Settings_CategoriesController extends Settings_SettingsController
             $category->content = $data['content'];
             if ($category->store()) {
                 $this->reportSuccess(_('Kategorien geändert!'));
+                Visibility::renamePrivacySetting('kat_'.$category->id, $category->name);
             }
         }
 

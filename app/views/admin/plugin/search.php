@@ -69,14 +69,49 @@ use Studip\Button, Studip\LinkButton;
                     <form action="<?= $controller->url_for('admin/plugin/install', $name) ?>" method="post">
                         <?= CSRFProtection::tokenTag() ?>
                         <input type="hidden" name="ticket" value="<?= get_ticket() ?>">
-                        <input type="image" name="install" src="<?= Assets::image_path('icons/16/blue/install.png') ?>" title="<?= _('Plugin installieren') ?>">
+                        <?= Assets::input("icons/16/blue/install.png", array('type' => "image", 'class' => "middle", 'name' => "install", 'title' => _('Plugin installieren'))) ?>
                     </form>
                 </td>
             </tr>
         <? endforeach ?>
     </table>
 <? endif ?>
-
+<? if ($unknown_plugins) : ?>
+    <h3>
+        <?= _('Im Pluginverzeichnis vorhandene Plugins registrieren') ?>
+    </h3>
+    <table class="default">
+        <tr>
+            <th><?= _('Name')?></th>
+            <th><?= _('Pluginklasse')?></th>
+            <th><?= _('Version') ?></th>
+            <th><?= _('Ursprung') ?></th>
+            <th class="plugin_install"><?= _('Registrieren') ?></th>
+        </tr>
+        <? foreach ($unknown_plugins as $n => $plugin): ?>
+        <tr class="<?= TextHelper::cycle('hover_odd', 'hover_even') ?>">
+            <td>
+                <?= htmlReady($plugin['pluginname']) ?>
+            </td>
+            <td>
+                <?= htmlReady($plugin['pluginclassname']) ?>
+            </td>
+            <td>
+                <?= htmlReady($plugin['version']) ?>
+            </td>
+            <td>
+                <?= htmlReady($plugin['origin']) ?>
+            </td>
+            <td class="plugin_install">
+                <form action="<?= $controller->url_for('admin/plugin/register/' . $n) ?>" method="post">
+                    <?= CSRFProtection::tokenTag() ?>
+                    <?= Assets::input("icons/16/blue/install.png", array('type' => "image", 'class' => "middle", 'name' => "install", 'title' => _('Plugin registrieren'))) ?>
+                </form>
+            </td>
+        </tr>
+        <? endforeach ?>
+    </table>
+<? endif; ?>
 <? if (get_config('PLUGINS_UPLOAD_ENABLE')): ?>
     <h3>
         <?= _('Plugin als ZIP-Datei hochladen') ?>

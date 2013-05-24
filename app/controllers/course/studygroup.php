@@ -296,6 +296,7 @@ class Course_StudygroupController extends AuthenticatedController {
 
                 // de-/activate modules
                 $mods              = new Modules();
+                $admin_mods        = new AdminModules();
                 $bitmask           = 0;
                 $available_modules = StudygroupModel::getInstalledModules();
                 $active_plugins    = Request::getArray('groupplugin');
@@ -314,19 +315,9 @@ class Course_StudygroupController extends AuthenticatedController {
                     if ($active_plugins[$module_name]) {
                         // activate modules
                         $mods->setBit($bitmask, $mods->registered_modules[$key]["id"]);
-                        if (!$orig_modules[$key]) {
-                            $methodActivate = "module".ucfirst($key)."Activate";
-                            if (method_exists($admin_mods, $methodActivate)) {
-                                $admin_mods->$methodActivate($sem->id);
-                            }
-                        }
-                    }
-
-                    if ($available_modules[$key] && $enable) {
-                        $mods->setBit($bitmask, $mods->registered_modules[$key]["id"]);
-                        $methodActivate = "module".$key."Activate";
-                        if (method_exists($mods, $methodActivate)) {
-                            $mods->$methodActivate($sem->id);
+                        $methodActivate = "module".ucfirst($key)."Activate";
+                        if (method_exists($admin_mods, $methodActivate)) {
+                            $admin_mods->$methodActivate($sem->id);
                         }
                     }
                 }
@@ -406,7 +397,9 @@ class Course_StudygroupController extends AuthenticatedController {
                 foreach ($this->flash['deactivate_plugins'] as $key => $name) {
                     $plugin = PluginManager::getInstance()->getPluginById($key);
                     $p_warning = $plugin->deactivationWarning($id);
-                    $this->deactivate_modules_names .= "- ".$name . " : " . $p_warning ."\n";
+                    $this->deactivate_modules_names .= "- ".$name
+                            .($p_warning ? " : " . $p_warning : "")
+                            ."\n";
                 }
             }
 
@@ -453,6 +446,12 @@ class Course_StudygroupController extends AuthenticatedController {
                     $admin_mods = new AdminModules();
                     $bitmask = $sem->modules;
                     foreach ($modules as $key) {
+                        $module_name = $sem_class->getSlotModule($key);
+                        if ($module_name
+                                && ($sem_class->isModuleMandatory($module_name)
+                                    || !$sem_class->isModuleAllowed($module_name))) {
+                            continue;
+                        }
                         $mods->clearBit($bitmask, $mods->registered_modules[$key]["id"]);
                         $methodDeactivate = "module".ucfirst($key)."Deactivate";
                         if (method_exists($admin_mods, $methodDeactivate)) {
@@ -476,8 +475,17 @@ class Course_StudygroupController extends AuthenticatedController {
 
                 if (is_array($plugins)) {
                     $plugin_manager = PluginManager::getInstance();
-                    foreach ($this->flash['deactivate_plugins'] as $plugin_id => $name) {
-                        $plugin_manager->setPluginActivated($plugin_id, $id, false);
+                    $available_plugins = StudygroupModel::getInstalledPlugins();
+                    
+                    foreach ($plugins as $class) {
+                        $plugin = $plugin_manager->getPlugin($class);
+                        // Deaktiviere Plugin
+                        if ($available_plugins[$class]
+                            && !$sem_class->isModuleMandatory($class)
+                            && !$sem_class->isSlotModule($class))
+                        {
+                            $plugin_manager->setPluginActivated($plugin->getPluginId(), $id, false);
+                        }
                     }
                 }
 
@@ -546,9 +554,9 @@ class Course_StudygroupController extends AuthenticatedController {
                     $deactivate_modules = array();
                     foreach (array_keys($available_modules) as $key) {
                         $module_name = $sem_class->getSlotModule($key);
-                        if ($module_name
+                        if (!$module_name || ($module_name
                                 && ($sem_class->isModuleMandatory($module_name)
-                                    || !$sem_class->isModuleAllowed($module_name))) {
+                                    || !$sem_class->isModuleAllowed($module_name)))) {
                             continue;
                         }
                         if (!$module_name) {
@@ -595,8 +603,8 @@ class Course_StudygroupController extends AuthenticatedController {
                         if ($active_plugins[$key] && $name && $sem_class->isModuleAllowed($key)) {
                             $plugin_manager->setPluginActivated($plugin_id, $id, true);
                         } else {
-                            if ($plugin_manager->isPluginActivated($plugin_id, $id)) {
-                                $deactivate_plugins[$plugin_id] = $name;
+                            if ($plugin_manager->isPluginActivated($plugin_id, $id) && !$sem_class->isSlotModule($key)) {
+                                $deactivate_plugins[$plugin_id] = $key;
                             }
                         }
                     }

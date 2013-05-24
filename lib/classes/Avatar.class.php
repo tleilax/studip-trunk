@@ -33,6 +33,11 @@ class Avatar {
     /**
      * This constant stands for the maximal size of a user picture.
      */
+    const ORIGINAL = 'original';
+
+    /**
+     * This constant stands for the maximal size of a user picture.
+     */
     const NORMAL = 'normal';
 
     /**
@@ -107,6 +112,10 @@ class Avatar {
 
 
     function getCustomAvatarUrl($size, $ext = 'png') {
+        $retina = $GLOBALS['auth']->auth['devicePixelRatio'] == 2;
+        $size = $retina && file_exists($this->getCustomAvatarPath($size, 'png', true))
+            ? $size."@2x"
+            : $size;
         return sprintf('%s/%s_%s.%s',
                                      $this->getAvatarDirectoryUrl(),
                                      $this->user_id,
@@ -115,11 +124,11 @@ class Avatar {
     }
 
 
-    function getCustomAvatarPath($size, $ext = 'png') {
+    function getCustomAvatarPath($size, $ext = 'png', $retina = false) {
         return sprintf('%s/%s_%s.%s',
                                      $this->getAvatarDirectoryPath(),
                                      $this->user_id,
-                                     $size,
+                                     $retina ? $size."@2x" : $size,
                                      $ext);
     }
 
@@ -270,8 +279,7 @@ class Avatar {
 
             // passende Endung ?
             if (!in_array($ext, words('jpg jpeg gif png'))) {
-                throw new Exception(sprintf(_("Der Dateityp der Bilddatei ist falsch (%s). Es sind nur die Dateiendungen .gif, .png, .jpeg und .jpg erlaubt!"),
-                                                                        $ext));
+                throw new Exception(sprintf(_("Der Dateityp der Bilddatei ist falsch (%s). Es sind nur die Dateiendungen .gif, .png, .jpeg und .jpg erlaubt!"), htmlReady($ext)));
             }
 
             // na dann kopieren wir mal...
@@ -311,13 +319,16 @@ class Avatar {
             throw new Exception(_("Es ist ein Fehler beim Bearbeiten des Bildes aufgetreten."));
         }
 
-
         set_error_handler(array(__CLASS__, 'error_handler'));
 
+        copy($filename, $this->getCustomAvatarPath(Avatar::ORIGINAL));
         $this->resize(Avatar::NORMAL, $filename);
+        $this->resize(Avatar::NORMAL, $filename, true);
         $this->resize(Avatar::MEDIUM, $filename);
-        $this->resize(Avatar::SMALL,    $filename);
-
+        $this->resize(Avatar::MEDIUM, $filename, true);
+        $this->resize(Avatar::SMALL,  $filename);
+        $this->resize(Avatar::SMALL,  $filename, true);
+        
         restore_error_handler();
     }
 
@@ -328,9 +339,13 @@ class Avatar {
      */
     function reset() {
         if ($this->is_customized()) {
+            @unlink($this->getCustomAvatarPath(Avatar::ORIGINAL));
             @unlink($this->getCustomAvatarPath(Avatar::NORMAL));
             @unlink($this->getCustomAvatarPath(Avatar::SMALL));
             @unlink($this->getCustomAvatarPath(Avatar::MEDIUM));
+            @unlink($this->getCustomAvatarPath(Avatar::NORMAL, 'png', true));
+            @unlink($this->getCustomAvatarPath(Avatar::SMALL, 'png', true));
+            @unlink($this->getCustomAvatarPath(Avatar::MEDIUM, 'png', true));
         }
     }
 
@@ -344,9 +359,10 @@ class Avatar {
      */
     function getDimension($size) {
         $dimensions = array(
-            Avatar::NORMAL => array(200, 250),
-            Avatar::MEDIUM => array( 80, 100),
-            Avatar::SMALL    => array( 20,    25));
+            Avatar::NORMAL => array(250, 250),
+            Avatar::MEDIUM => array(100, 100),
+            Avatar::SMALL  => array(25, 25)
+        );
         return $dimensions[$size];
     }
 
@@ -359,9 +375,11 @@ class Avatar {
      *
      * @return void
      */
-    private function resize($size, $filename) {
+    private function resize($size, $filename, $retina = false) {
 
         list($thumb_width, $thumb_height) = $this->getDimension($size);
+        $thumb_width = $retina ? $thumb_width * 2 : $thumb_width;
+        $thumb_height = $retina ? $thumb_height * 2 : $thumb_height;
 
         list($width, $height, $type) = getimagesize($filename);
 
@@ -383,15 +401,12 @@ class Avatar {
             $factor = max($thumb_width / $width, $thumb_height / $height);
             $resized_width = round($width * $factor);
             $resized_height = round($height * $factor);
-        }
-
-        else {
+        } else {
             $resized_width    = $width;
             $resized_height = $height;
         }
 
-        $image = self::imageresize($image, $width, $height,
-                                                             $resized_width, $resized_height);
+        $image = self::imageresize($image, $width, $height, $resized_width, $resized_height);
 
         $dst = imagecreatetruecolor($thumb_width, $thumb_height);
         imagealphablending($dst, FALSE);
@@ -407,14 +422,11 @@ class Avatar {
         imagecopy($dst, $image, $xpos, $ypos, 0, 0,
                             $resized_width, $resized_height);
 
-        imagepng($dst, $this->getCustomAvatarPath($size));
+        imagepng($dst, $this->getCustomAvatarPath($size, 'png', $retina));
     }
 
 
-    private function imageresize($image,
-                                                             $current_width, $current_height,
-                                                             $width, $height) {
-
+    private function imageresize($image, $current_width, $current_height, $width, $height) {
         $image_resized = imagecreatetruecolor($width, $height);
 
         imagealphablending($image_resized, FALSE);

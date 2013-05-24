@@ -13,7 +13,7 @@
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
 */
-class SimpleORMapCollection extends ArrayObject
+class SimpleORMapCollection extends SimpleCollection
 {
 
     /**
@@ -30,39 +30,30 @@ class SimpleORMapCollection extends ArrayObject
     protected $relation_options = array();
 
     /**
-     * callable to initialize collection
-     *
-     * @var Closure
-     */
-    protected $finder;
-
-    /**
-     * number of records after last init
-     *
-     * @var int
-     */
-    protected $last_count;
-
-    /**
-     * collection with deleted records
-     * @var SimpleORMapCollection
-     */
-    protected $deleted;
-
-    /**
      * creates a collection from an array of objects
-     * all objects must be of the same type
+     * all objects should be of the same type
      *
+     * @throws InvalidArgumentException if first entry is not SimpleOrMap
      * @param array $data array with SimpleORMap objects
+     * @param bool $strict check every element for correct type and unique pk
      * @return SimpleORMapCollection
      */
-    public static function createFromArray(Array $data)
+    public static function createFromArray(Array $data, $strict = true)
     {
         $ret = new SimpleORMapCollection();
-        if ($data[0] instanceof SimpleORMap) {
-            $ret->setClassName(get_class($data[0]));
-            foreach ($data as $one) {
-                $ret[] = $one;
+        if (count($data)) {
+            $first = current($data);
+            if ($first instanceof SimpleORMap) {
+                $ret->setClassName(get_class($first));
+                if ($strict) {
+                    foreach ($data as $one) {
+                        $ret[] = $one;
+                    }
+                } else {
+                    $ret->exchangeArray($data);
+                }
+            } else {
+                throw new InvalidArgumentException('This collection only accepts objects derived from SimpleORMap');
             }
         }
         return $ret;
@@ -77,20 +68,9 @@ class SimpleORMapCollection extends ArrayObject
      */
     function __construct(Closure $finder = null, Array $options = null, SimpleORMap $record = null)
     {
-        $this->finder = $finder;
         $this->relation_options = $options;
         $this->related_record = $record;
-        $this->deleted = clone $this;
-        $this->refresh();
-    }
-
-    /**
-     *
-     * @see ArrayObject::append()
-     */
-    function append($value)
-    {
-        return $this->offsetSet(null, $value);
+        parent::__construct($finder === null ? array() : $finder);
     }
 
     /**
@@ -122,30 +102,6 @@ class SimpleORMapCollection extends ArrayObject
     }
 
     /**
-     * Unsets the value at the specified index
-     * value is moved to internal deleted collection
-     *
-     * @see ArrayObject::offsetUnset()
-     * @throws InvalidArgumentException
-     */
-    function offsetUnset($index)
-    {
-        if ($this->offsetExists($index)) {
-            $this->deleted[] = $this->offsetGet($index);
-        }
-        return parent::offsetUnset($index);
-    }
-    /**
-     * sets the finder function
-     *
-     * @param Closure $finder
-     */
-    function setFinder(Closure $finder)
-    {
-        $this->finder = $finder;
-    }
-
-    /**
      * sets the allowed class name
      * @param string $class_name
      */
@@ -173,15 +129,6 @@ class SimpleORMapCollection extends ArrayObject
     function getClassName()
     {
         return strtolower($this->relation_options['class_name']);
-    }
-
-    /**
-     * get deleted records collection
-     * @return SimpleORMapCollection
-     */
-    function getDeleted()
-    {
-        return $this->deleted;
     }
 
     /**
@@ -229,97 +176,7 @@ class SimpleORMapCollection extends ArrayObject
      */
     function find($value)
     {
-        return $this->findBy('id', $value)->first();
-    }
-
-    /**
-     * returns a new collection containing all elements
-     * where given column has given value(s)
-     * pass array or space-delimited string for multiple values
-     *
-     * @param string $key the column name
-     * @param mixed $value value to search for,
-     * @return SimpleORMapCollection with found records
-     */
-    function findBy($key, $values)
-    {
-        if (!is_array($values)) {
-            $values = words($values);
-        }
-        return $this->filter(function($record) use ($key, $values) {return in_array($record->$key, $values);});
-    }
-
-    /**
-     * apply given callback to all elements of
-     * collection
-     *
-     * @param Closure $func the function to call
-     * @return int addition of return values
-     */
-    function each(Closure $func)
-    {
-        $result = false;
-        foreach ($this as $record) {
-            $result+= call_user_func($func, $record);
-        }
-        return $result;
-    }
-
-    /**
-     * apply given callback to all elements of
-     * collection and give back array of return values
-     *
-     * @param Closure $func the function to call
-     * @return array
-     */
-    function map(Closure $func)
-    {
-        $results = array();
-        foreach ($this as $record) {
-            $results[] = call_user_func($func, $record);
-        }
-        return $results;
-    }
-
-    /**
-     * filter elements
-     * if given callback returns true
-     *
-     * @param Closure $func the function to call
-     * @return SimpleORMapCollection containing filtered elements
-     */
-    function filter(Closure $func = null)
-    {
-        $results = array();
-        foreach ($this as $record) {
-            if (call_user_func($func, $record)) {
-                $results[] = $record;
-            }
-        }
-        return self::createFromArray($results);
-    }
-
-    /**
-     * extract array of columns values
-     * pass array or space-delimited string for multiple columns
-     *
-     * @param string|array $columns the column(s) to extract
-     * @return array of extracted values
-     */
-    function pluck($columns)
-    {
-        if (!is_array($columns)) {
-            $columns = words($columns);
-        }
-        $func = function($r) use ($columns) {
-            $result = array();
-            foreach ($columns as $c) {
-                $result[] = $r->{$c};
-            }
-            return $result;
-        };
-        $result = $this->map($func);
-        return count($columns) === 1 ? array_map('current', $result) : $result;
+        return $this->findOneBy('id', $value);
     }
 
     /**
@@ -352,36 +209,6 @@ class SimpleORMapCollection extends ArrayObject
     }
 
     /**
-     * get the first element
-     *
-     * @return SimpleORMap first element or null
-     */
-    function first()
-    {
-        return $this->offsetGet(0);
-    }
-
-    /**
-     * get the last element
-     *
-     * @return SimpleORMap last element or null
-     */
-    function last()
-    {
-        return $this->offsetGet($this->count() ? $this->count() - 1 : 0);
-    }
-
-     /**
-     * get the the value from given key from first element
-     *
-     * @return mixed
-     */
-    function val($key)
-    {
-        return $this->first()->$key;
-    }
-
-    /**
      * mark element(s) for deletion
      * element(s) with given primary key are moved to
      * internal deleted collection
@@ -392,31 +219,5 @@ class SimpleORMapCollection extends ArrayObject
     function unsetByPk($id)
     {
         return $this->unsetBy('id', $id);
-    }
-
-    /**
-     * mark element(s) for deletion
-     * where given column has given value(s)
-     * pass array or space-delimited string for multiple values
-     * element(s) are moved to
-     * internal deleted collection
-     *
-     * @param string $key
-     * @param mixed $values
-     * @return number of unsetted elements
-     */
-    function unsetBy($key, $values)
-    {
-        $ret = false;
-        if (!is_array($values)) {
-            $values = words($values);
-        }
-        foreach ($this as $k => $record) {
-            if (in_array($record->$key, $values)) {
-                $this->offsetunset($k);
-                $ret += 1;
-            }
-        }
-        return $ret;
     }
 }

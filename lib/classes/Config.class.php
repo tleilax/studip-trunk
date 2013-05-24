@@ -92,23 +92,25 @@ class Config implements ArrayAccess, Countable, IteratorAggregate
      */
     function getFields($range = null, $section = null, $name = null)
     {
-        $filter = array();
+        $temp = $this->metadata;
+
         if (in_array($range, words('global user'))) {
-            $filter[] = '$a["range"]=="'.$range.'"';
+            $temp = array_filter($temp, function ($a) use ($range) {
+                return $a['range'] === $range;
+            });
         }
         if ($section) {
-            $filter[] = '$a["section"]=="'.$section.'"';
+            $temp = array_filter($temp, function ($a) use ($section) {
+                return $a['section'] === $section;
+            });
         }
         if ($name) {
-            $filter[] = 'preg_match("/'.preg_quote($name, '/').'/i", $a["field"])';
+            $temp = array_filter($temp, function ($a) use ($name) {
+                return stripos($a['field'], $name) !== false;
+            });
         }
-        if (count($filter)) {
-            $filterfunc = create_function('$a', 'return ' . join(' && ', $filter) .  ';');
-            $ret = array_keys(array_filter($this->metadata, $filterfunc));
-        } else {
-            $ret = array_keys($this->metadata);
-        }
-        return $ret;
+
+        return array_keys($temp);
     }
 
     /**
@@ -225,6 +227,10 @@ class Config implements ArrayAccess, Countable, IteratorAggregate
             $db = DbManager::get();
             $rs = $db->query("SELECT field, value, type, section, `range`, description, comment, is_default FROM `config` ORDER BY is_default DESC, section, field");
             while ($row = $rs->fetch(PDO::FETCH_ASSOC)) {
+                // set the the type of the default entry for the modified entry
+                if (!empty($this->metadata[$row['field']])) {
+                    $row['type'] = $this->metadata[$row['field']]['type'];
+                }
                 switch ($row['type']) {
                     case 'integer':
                         $value = (int)$row['value'];
@@ -239,6 +245,7 @@ class Config implements ArrayAccess, Countable, IteratorAggregate
                         $value = (string)$row['value'];
                         $row['type'] = 'string';
                 }
+
                 $this->data[$row['field']] = $value;
                 $this->metadata[$row['field']] = array_intersect_key($row, array_flip(words('type section range description is_default comment')));
                 $this->metadata[$row['field']]['field'] = $row['field'];
@@ -262,8 +269,10 @@ class Config implements ArrayAccess, Countable, IteratorAggregate
             $values = $data;
         }
         switch ($this->metadata[$field]['type']) {
-            case 'integer':
             case 'boolean':
+                $values['value'] = (bool)$values['value'];
+            break;
+            case 'integer':
                 $values['value'] = (int)$values['value'];
             break;
             case 'array' :
@@ -292,6 +301,10 @@ class Config implements ArrayAccess, Countable, IteratorAggregate
                 if (isset($values['comment'])) {
                     $entry->comment = $values['comment'];
                 }
+
+                // store the default-type for the modified entry
+                $entry->type = $this->metadata[$field]['type'];
+
                 $ret += $entry->store();
             }
             if ($ret) {

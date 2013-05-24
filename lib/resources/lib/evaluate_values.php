@@ -2166,7 +2166,11 @@ if ($view == "view_sem_schedule" || $view == "view_group_schedule" || $view == "
     }
     if($view == "view_group_schedule_daily" || $view == 'openobject_group_schedule'){
         if(Request::submitted('jump')) {
-            $_SESSION['resources_data']["schedule_start_time"] = mktime (0, 0, 0, Request::int('schedule_begin_month'), Request::int('schedule_begin_day'), Request::int('schedule_begin_year'));
+            $splitDate= explode('.',  $_REQUEST['schedule_begin_date']);
+            
+            $_SESSION['resources_data']["schedule_start_time"] = mktime (0, 0, 0, $splitDate[1], $splitDate[0], $splitDate[2]);
+            //$_SESSION['resources_data']["schedule_start_time"] = mktime (0, 0, 0, Request::int('schedule_begin_month'), Request::int('schedule_begin_day'), Request::int('schedule_begin_year'));
+
         }
         if(!$_SESSION['resources_data']["schedule_start_time"]) $_SESSION['resources_data']["schedule_start_time"] = strtotime('today');
         if (Request::option('previous_day')){
@@ -2216,8 +2220,8 @@ if ($view == "view_sem_schedule" || $view == "view_group_schedule" || $view == "
     $_SESSION['_default_sem'] = $_SESSION['resources_data']['sem_schedule_semester_id'];
 }
 
-if ((Request::option('show_repeat_mode')) && (Request::submitted('send_schedule_repeat_mode'))) {
-    $_SESSION['resources_data']["show_repeat_mode"] = $show_repeat_mode;
+if (Request::option('show_repeat_mode') && Request::submitted('send_schedule_repeat_mode')) {
+    $_SESSION['resources_data']["show_repeat_mode"] = Request::option('show_repeat_mode');
 }
 
 if (Request::option('time_range')) {

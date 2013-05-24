@@ -201,11 +201,11 @@ function parse_link($link, $level=0) {
         } else {
             $the_file_name = basename($url_parts['path']) ?: $the_file_name;
         }
-
         // Weg über einen Locationheader:
-        if (($parsed_link["HTTP/1.1 302 Found"] || $parsed_link["HTTP/1.0 302 Found"]) && $parsed_link["Location"]) {
-            $the_link = $parsed_link["Location"];
-            parse_link($parsed_link["Location"],$level + 1);
+        $location_header = $parsed_link["Location"]
+                        ?: $parsed_link["location"];
+        if (in_array($parsed_link["response_code"], array(300,301,302,303,305,307)) && $location_header) {
+            parse_link($location_header, $level + 1);
         }
         return $parsed_link;
     }
@@ -347,7 +347,7 @@ function createTempFolder($folder_id, $tmp_full_path, $sem_id, $perm_check = TRU
     $statement = DBManager::get()->prepare($query);
     $statement->execute(array(
         $folder_id,
-        $perm_check ? $sem_id : null
+        $perm_check ? (string)$sem_id : null
     ));
     while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
         if ($row['url'] != '') {  // just a linked file
@@ -1045,8 +1045,10 @@ function validate_upload($the_file, $real_file_name='') {
             $active_upload_type = "attachments";
             $sem_status = $GLOBALS['perm']->get_perm();
         } else {
-            $sem_status = $GLOBALS['perm']->get_studip_perm($SessSemName[1]);
-            $active_upload_type = $SessSemName["art_num"];
+            if (Request::option('cid')) {
+                $sem_status = $GLOBALS['perm']->get_studip_perm($SessSemName[1]);
+                $active_upload_type = $SessSemName["art_num"];
+            }
             if (!isset($UPLOAD_TYPES[$active_upload_type])) {
                 $active_upload_type = 'default';
             }
@@ -1474,7 +1476,7 @@ function display_file_body($datei, $folder_id, $open, $change, $move, $upload, $
             $content .= "<br>" . sprintf("<b>%s</b> <a class=\"link-intern\" title=\"%s\" href=\"%s\">%s</a>",
                     _("Ordner:"),
                     _("Diesen Ordner in der Ordneransicht öffnen"),
-                    UrlHelper::getLink('folder.php#anker', array('open' => $datei['range_id'], 'data' => null, 'cmd' => 'tree')),
+                    URLHelper::getLink('folder.php#anker', array('open' => $datei['range_id'], 'data' => null, 'cmd' => 'tree')),
                     htmlReady($folder_tree->getShortPath($datei['range_id'], null, '/', 1)));
         }
     }
@@ -1618,7 +1620,7 @@ function display_file_line ($datei, $folder_id, $open, $change, $move, $upload, 
     if ($change == $datei["dokument_id"]) {
         print "<span id=\"file_".$datei["dokument_id"]."_header\" style=\"font-weight: bold\"><a href=\"".URLHelper::getLink("?close=".$datei["dokument_id"]."#anker")."\" class=\"tree\"";
         print ' name="anker"></a>';
-        print "<img src=\"".$GLOBALS['ASSETS_URL']."images/".GetFileIcon(getFileExtension($datei['filename']))."\">";
+        print GetFileIcon(getFileExtension($datei['filename']), true);
         print "<input style=\"font-size: 8pt; width: 50%;\" type=\"text\" size=\"20\" maxlength=\"255\" name=\"change_name\" aria-label=\"Ordnername eingeben\" value=\"".htmlReady($datei["name"])."\"></b>";
     } else {
         if (($move == $datei["dokument_id"]) ||  ($upload == $datei["dokument_id"]) || ($anchor_id == $datei["dokument_id"])) {
@@ -1627,7 +1629,7 @@ function display_file_line ($datei, $folder_id, $open, $change, $move, $upload, 
         $type = ($datei['url'] != '')? 6 : 0;
         // LUH Spezerei:
         if (check_protected_download($datei["dokument_id"])) {
-            print "<a href=\"".GetDownloadLink( $datei["dokument_id"], $datei["filename"], $type, "normal")."\" class=\"extern\"><img src=\"".$GLOBALS['ASSETS_URL']."images/".GetFileIcon(getFileExtension($datei['filename']))."\"></a>";
+            print "<a href=\"".GetDownloadLink( $datei["dokument_id"], $datei["filename"], $type, "normal")."\" class=\"extern\">".GetFileIcon(getFileExtension($datei['filename']), true)."</a>";
         } else {
             print Assets::img('icons/16/grey/info-circle.png');
         }
@@ -1645,10 +1647,7 @@ function display_file_line ($datei, $folder_id, $open, $change, $move, $upload, 
     }
 
     //add the size
-    if (($datei["filesize"] /1024 / 1024) >= 1)
-        print "&nbsp;&nbsp;(".round ($datei["filesize"] / 1024 / 1024)." MB";
-    else
-        print "&nbsp;&nbsp;(".round ($datei["filesize"] / 1024)." kB";
+    print '&nbsp;&nbsp;(' . relsize($datei['filesize'], $datei['filesize'] < 1024);
 
     //add number of downloads
     print " / ".(($datei["downloads"] == 1) ? $datei["downloads"]." "._("Download") : $datei["downloads"]." "._("Downloads")).")";
@@ -2184,6 +2183,7 @@ function GetFileIcon($ext, $with_img_tag = false){
         case 'rtf':
         case 'doc':
         case 'docx':
+        case 'odt':
             $icon = 'icons/16/blue/file-text.png';
         break;
         case 'xls':
@@ -2206,13 +2206,13 @@ function GetFileIcon($ext, $with_img_tag = false){
         case 'jpeg':
         case 'png':
         case 'bmp':
-            $icon = 'icons/16/blue/file-image.png';
+            $icon = 'icons/16/blue/file-pic.png';
         break;
         default:
             $icon = 'icons/16/blue/file-generic.png';
         break;
     }
-    return ($with_img_tag ? '<img class=\"text-top\" src="'.$GLOBALS['ASSETS_URL'].'images/'.$icon.'" border="0">' : $icon);
+    return ($with_img_tag ? Assets::img($icon) : $icon);
 }
 
 /**

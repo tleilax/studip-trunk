@@ -2,7 +2,7 @@
 # Lifter010: TEST
 use Studip\Button, Studip\LinkButton;
 ?>
-<form method="post" action="<?= UrlHelper::getLink('?change_object_perms='. $resObject->getId()) ?>">
+<form method="post" action="<?= URLHelper::getLink('?change_object_perms='. $resObject->getId()) ?>">
 <?= CSRFProtection::tokenTag() ?>
 <table class="zebra" border="0" celpadding="2" cellspacing="0" width="99%" align="center">
     <colgroup>
@@ -31,6 +31,14 @@ use Studip\Button, Studip\LinkButton;
             <!-- Infobox -->
             <td rowspan="8" valign="top" style="padding-left: 20px" align="right">
             <?
+                $content[] = array('kategorie' => _("Raum:"),
+                    'eintrag' => array(
+                        array(
+                            'icon' => 'icons/16/black/info.png',
+                            'text' => htmlReady($resObject->getName())
+                        )
+                    )
+                );
                 $content[] = array('kategorie' => _("Informationen:"),
                     'eintrag' => array(
                         array(
@@ -94,7 +102,7 @@ use Studip\Button, Studip\LinkButton;
             <? endif; ?>
 
             <!-- tutor-perms -->
-            <? if (($resObject->getOwnerType($user_id) == 'user') && $admin_perms && (($perm == 'tutor') || $owner_perms)): ?> 
+            <? if (($resObject->getOwnerType($user_id) == 'user') && $admin_perms && (($perm == 'tutor') || $owner_perms)): ?>
                 <label>
                     <input type="radio" name="change_user_perms[<?= $i ?>]" value="tutor"
                            <? if ($perm == 'tutor') echo 'checked'; ?>>
@@ -123,7 +131,7 @@ use Studip\Button, Studip\LinkButton;
 
             <!-- Trash  -->
             <? if ($owner_perms || ($admin_perms && $perm == 'autor')) : ?>
-                <a href="<?= UrlHelper::getLink('?change_object_perms='. $resObject->getId() .'&delete_user_perms='. $user_id) ?>">
+                <a href="<?= URLHelper::getLink('?change_object_perms='. $resObject->getId() .'&delete_user_perms='. $user_id) ?>">
                     <?= Assets::img('icons/16/blue/trash.png', tooltip2(_('Berechtigung löschen'))) ?>
                 </a>
             <? else : ?>

@@ -121,12 +121,13 @@ jQuery(function () {
 
     jQuery('.add_toolbar').addToolbar();
 
-    jQuery('textarea.resizable').resizable({
-        handles: 's',
-        minHeight: 50,
-        zIndex: 1
-    });
-
+    if (document.createElement('textarea').style.resize === undefined) {
+        jQuery('textarea.resizable').resizable({
+            handles: 's',
+            minHeight: 50,
+            zIndex: 1
+        });
+    }
 });
 
 
@@ -269,3 +270,41 @@ jQuery(function ($) {
         return false;
     });
 });
+
+/* Secure textareas by displaying a warning on page unload if there are
+   unsaved changes */
+(function ($) {
+    function securityHandler (event) {
+        var message = 'Ihre Eingaben wurden bislang noch nicht gespeichert.'.toLocaleString(),
+            event   = event || window.event || {};
+        event.returnValue = message;
+        return message;
+    };
+    function submissionHandler () {
+        $(window).off('beforeunload', securityHandler)
+    };
+
+    $(document).on('change keyup', 'textarea[data-secure]', function () {
+        var secured  = $(this).data('secured'),
+            changed  = (this.value != this.defaultValue),
+            action   = null;
+
+        if (changed && !secured) {
+            action = 'on';
+        } else if (!changed && secured) {
+            action = 'off';
+        }
+
+        if (action !== null) {
+            // (at|de)tach before unload handler that will display the message
+            $(window)[action]('beforeunload', securityHandler);
+
+            // (at|de)tach submit handler that will remove the securityHandler
+            // on form submission
+            $(this).closest('form')[action]('submit', submissionHandler);
+
+            // Store current state
+            $(this).data('secured', action === 'on');
+        }
+    });
+}(jQuery));

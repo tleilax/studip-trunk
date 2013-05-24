@@ -16,16 +16,20 @@
                         <select name="newFilter" size="1" title="<?= _("Semester auswählen") ?>">
                         <? for ($i = 0; $i < count($selectionlist); $i++) : ?>
                             <? if ( $selectionlist[$i]['is_selected'] ) : ?>
-                            <option value="<?=$selectionlist[$i]['value']?>" selected><?=$selectionlist[$i]['linktext']?></option>
+                            <option value="<?=$selectionlist[$i]['value']?>" selected>
+                                <?= htmlReady($selectionlist[$i]['linktext']) ?>
+                            </option>
                             <? else: ?>
-                            <option value="<?=$selectionlist[$i]['value']?>"><?=$selectionlist[$i]['linktext']?></option>
+                            <option value="<?=$selectionlist[$i]['value']?>">
+                                <?= htmlReady($selectionlist[$i]['linktext']) ?>
+                            </option>
                             <? endif; ?>
                         <? endfor; ?>
                         </select>
                     </td>
                     <td valign="center">
                         &nbsp;
-                        <input type="image" src="<?=$GLOBALS['ASSETS_URL']?>images/icons/16/blue/accept.png" name="semester" border="0">
+                        <?= Assets::input('icons/16/blue/accept.png', array('name' => 'semester', 'type' => 'image')) ?>
                         <input type="hidden" name="cmd" value="applyFilter">
                     </td>
                 </tr></tbody>

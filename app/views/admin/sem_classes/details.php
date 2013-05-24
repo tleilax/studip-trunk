@@ -44,7 +44,7 @@
                     </div>
                     <div style="margin-left: 21px;">
                         <a href="#" onClick="jQuery(this).closest('.add').children().toggle(); jQuery('#new_sem_type').focus(); return false;">
-                            <?= Assets::img("icons/16/blue/plus", array('class' => "text-bottom", "title" => _("Veranstaltungstyp hinzufügen"))) ?>
+                            <?= Assets::img("icons/16/blue/add", array('class' => "text-bottom", "title" => _("Veranstaltungstyp hinzufügen"))) ?>
                         </a>
                     </div>
                 </div>
@@ -104,7 +104,26 @@
                 </select>
             </td>
         </tr>
-
+        <tr class="sub">
+            <td><label for="admission_prelim_default"><?= _("Anmeldemodus") ?></label></td>
+            <td>
+                <select id="admission_prelim_default">
+                    <option value="0"<?= $sem_class['admission_prelim_default'] == 0 ? " selected" : "" ?>><?= _("direkter Eintrag") ?></option>
+                    <option value="1"<?= $sem_class['admission_prelim_default'] == 1 ? " selected" : "" ?>><?= _("vorläufiger Eintrag") ?></option>
+                </select>
+            </td>
+        </tr>
+        <tr class="sub">
+            <td><label for="admission_type_default"><?= _("Teilnahmebeschränkung") ?></label></td>
+            <td>
+                <select id="admission_type_default">
+                    <option value="0"<?= $sem_class['admission_type_default'] == 0 ? " selected" : "" ?>><?= _("keine") ?></option>
+                    <option value="1"<?= $sem_class['admission_type_default'] == 1 ? " selected" : "" ?>><?= _("nach Anmeldereihenfolge") ?></option>
+                    <option value="2"<?= $sem_class['admission_type_default'] == 2 ? " selected" : "" ?>><?= _("per Losverfahren") ?></option>
+                    <option value="3"<?= $sem_class['admission_type_default'] == 3 ? " selected" : "" ?>><?= _("gesperrt") ?></option>
+                </select>
+            </td>
+        </tr>
         <tr>
             <td colspan="2"><h3><?= _("Forum") ?></h3></td>
         </tr>
@@ -133,7 +152,11 @@
             <td colspan="2"><h3><?= _("Sonstiges") ?></h3></td>
         </tr>
         <tr class="sub">
-            <td><label for="workgroup_mode"><?= _("Studentische Arbeitsgruppe") ?></label></td>
+            <td><label for="studygroup_mode"><?= _("Studentische Arbeitsgruppe") ?></label></td>
+            <td><input type="checkbox" id="studygroup_mode" value="1"<?= $sem_class['studygroup_mode'] ? " checked" : "" ?>></td>
+        </tr>
+        <tr class="sub">
+            <td><label for="workgroup_mode"><?= _("Neue Nutzer immer als Tutoren eintragen.") ?></label></td>
             <td><input type="checkbox" id="workgroup_mode" value="1"<?= $sem_class['workgroup_mode'] ? " checked" : "" ?>></td>
         </tr>
         <tr class="sub">
@@ -210,7 +233,7 @@
                     <div class="droparea">
                         <? foreach ($modules as $module_name => $module_info) : ?>
                         <? $module_attribute = $sem_class->getModuleMetadata($module_name); ?>
-                        <? if (!$module_attribute['activated'] && !$module_attribute['sticky'] && is_numeric($module_info['id'])) : ?>
+                        <? if (!$module_attribute['activated'] && is_numeric($module_info['id'])) : ?>
                             <?= $this->render_partial("admin/sem_classes/content_plugin.php",
                                 array(
                                     'plugin' => $module_info,

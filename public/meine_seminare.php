@@ -19,8 +19,6 @@
 
 require '../lib/bootstrap.php';
 
-unregister_globals();
-
 page_open(array("sess" => "Seminar_Session", "auth" => "Seminar_Auth", "perm" => "Seminar_Perm", "user" => "Seminar_User"));
 $perm->check("user");
 
@@ -63,22 +61,19 @@ function print_seminar_content($semid, $my_obj_values, $type = 'seminar', $sem_c
         if (isset($nav) && $nav->isVisible(true)) {
             // need to use strtr() here to deal with seminar_main craziness
             $url = $type.'_main.php?auswahl='.$semid.'&redirect_to='.strtr($nav->getURL(), '?', '&');
-            printf('<a %s href="%s"><img ',
-                   $nav->hasBadgeNumber()
-                   ? 'class="badge" data-badge-number="' . intval($nav->getBadgeNumber())  . '"'
-                   : '',
-                   htmlReady($url));
-            foreach ($nav->getImage() as $key => $value) {
-                printf('%s="%s" ', $key, htmlReady($value));
-            }
-            echo '></a>';
-        } else if (is_string($key)) {
+            $image=$nav->getImage();
+            printf('<a %s href="%s">'.Assets::img($image['src'], array_map("htmlready", $image)).'</a>',
+                $nav->hasBadgeNumber() ? 'class="badge" data-badge-number="' . intval($nav->getBadgeNumber())  . '"' : '',
+                UrlHelper::getScriptLink($url));
+       } else if (is_string($key)) {
             echo Assets::img('blank.gif', array('width' => 16, 'height' => 16));
         }
         echo ' ';
     }
 }
 
+// we are defintely not in an lexture or institute
+closeObject();
 
 include ('lib/seminar_open.php'); // initialise Stud.IP-Session
 
@@ -97,8 +92,6 @@ $default_deputies_enabled = get_config('DEPUTIES_DEFAULTENTRY_ENABLE');
 $Modules = new Modules();
 $userConfig = UserConfig::get($GLOBALS['user']->id);
 
-// we are defintely not in an lexture or institute
-closeObject();
 $_SESSION['links_admin_data']='';    //Auch im Adminbereich gesetzte Veranstaltungen muessen geloescht werden.
 //delete all temporary permission changes
 if (is_array($_SESSION)) {
@@ -122,7 +115,7 @@ $cmd = Request::option('cmd');
 if(in_array($cmd, words('no_kill suppose_to_kill suppose_to_kill_admission kill kill_admission'))){
     $current_seminar = Seminar::getInstance(Request::option('auswahl'));
     $ticket_check = Seminar_Session::check_ticket(Request::option('studipticket'));
-    UrlHelper::addLinkParam('studipticket', Seminar_Session::get_ticket());
+    URLHelper::addLinkParam('studipticket', Seminar_Session::get_ticket());
 
     //Ausgabe bei bindenden Veranstaltungen, loeschen nicht moeglich!
     if ($cmd == "no_kill") {
@@ -396,7 +389,7 @@ if ($auth->is_authenticated() && $user->id != "nobody" && !$perm->have_perm("adm
     if (Request::option('action') === 'tabularasa') {
         // Extract timestamp from request
         $timestamp = Request::int('timestamp', time());
-        
+
         // load plugins, so they have a chance to register themselves as observers
         PluginEngine::getPlugins('StandardPlugin');
 
