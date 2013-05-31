@@ -26,6 +26,11 @@ class AdmissionUserList
     public $id = '';
 
     /**
+     * Conditions for automatic user selection.
+     */
+    public $conditions = array();
+
+    /**
      * A factor for seat distribution algorithm ("1" means normal algorithm, 
      * everything between 0 and 1 decreases the chance to get a seat, 
      * everything above 1 increases it.)
@@ -36,6 +41,11 @@ class AdmissionUserList
      * Some name to display for this list.
      */
     public $name = '';
+
+    /**
+     * ID of the user who created this list.
+     */
+    public $ownerId = '';
 
     /**
      * All user IDs that are on this list.
@@ -51,11 +61,22 @@ class AdmissionUserList
      * @return This object.
      */
     public function __construct($id='') {
-        $this->factor = $factor;
         if ($id) {
             $this->id = $id;
             $this->load();
         }
+        return $this;
+    }
+
+    /**
+     * Adds the given condition to the list.
+     *
+     * @param  StudipCondition condition
+     * @return AdmissionUserList
+     */
+    public function addCondition($condition)
+    {
+        $this->conditions[$condition->getId()] = $condition;
         return $this;
     }
 
@@ -72,13 +93,45 @@ class AdmissionUserList
     }
 
     /**
-     * Gets the currently set manipulation factor for this list.
+     * Deletes this list.
+     */
+    public function delete() {
+        // Remove user assignments to this list.
+        DBManager::get()->exec("DELETE FROM `user_factorlist` WHERE `list_id`='".
+            $this->id."'");
+        // Delete list data.
+        DBManager::get()->exec("DELETE FROM `admissionfactor` WHERE `list_id`='".
+            $this->id."'");
+    }
+
+    /**
+     * Gets the currently set conditions for automatic user selection.
      *
      * @return Integer
+     */
+    public function getConditions()
+    {
+        return $this->conditions;
+    }
+
+    /**
+     * Gets the currently set manipulation factor for this list.
+     *
+     * @return Float
      */
     public function getFactor()
     {
         return $this->factor;
+    }
+
+    /**
+     * Gets the list ID.
+     *
+     * @return String
+     */
+    public function getId()
+    {
+        return $this->id;
     }
 
     /**
@@ -92,6 +145,44 @@ class AdmissionUserList
     }
 
     /**
+     * Gets the owner ID.
+     *
+     * @return String
+     */
+    public function getOwnerId()
+    {
+        return $this->ownerId;
+    }
+
+    /**
+     * Gets all user lists the given user has created.
+     * 
+     * @param  String userId
+     * @return array
+     */
+    public static function getUserLists($userId) {
+        $result = array();
+        $stmt = DBManager::get()->prepare("SELECT `list_id` FROM `admissionfactor` WHERE ".
+            "`owner_id`=? ORDER BY `name` ASC");
+        $stmt->execute(array($userId));
+        $lists = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($lists as $list) {
+            $result[$list['list_id']] = new AdmissionUserList($list['list_id']); 
+        }
+        return $result;
+    }
+
+    /**
+     * Gets all assigned user IDs.
+     *
+     * @return String
+     */
+    public function getUsers()
+    {
+        return $this->users;
+    }
+
+    /**
      * Helper function for loading data from DB.
      */
     public function load() {
@@ -102,14 +193,33 @@ class AdmissionUserList
         if ($current = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $this->factor = $current['factor'];
             $this->name = $current['name'];
+            $this->ownerId = $current['owner_id'];
             // Load user IDs.
-            $stmt2 = DBManager::get()->prepare("SELECT * 
-                FROM `user_factorlist` WHERE `list_id`=?");
+            $stmt2 = DBManager::get()->prepare("SELECT uf.* 
+                FROM `user_factorlist` uf
+                    JOIN `auth_user_md5` a ON (uf.`user_id`=a.`user_id`)
+                WHERE uf.`list_id`=?
+                ORDER BY a.`Nachname` ASC, a.`Vorname` ASC, a.`username` ASC");
             $stmt2->execute(array($this->id));
             while ($user = $stmt2->fetch(PDO::FETCH_ASSOC)) {
                 $this->users[$user['user_id']] = true;
             }
         }
+        // Load selection conditions, if applicable.
+        $stmt = DBManager::get()->prepare("SELECT * FROM ".
+            "`condition_factorlist` WHERE `list_id`=? ORDER BY `mkdate` ASC");
+    }
+
+    /**
+     * Removes the given condition from the list.
+     *
+     * @param  String conditionId
+     * @return AdmissionUserList
+     */
+    public function removeCondition($conditonId)
+    {
+        unset($this->conditions[$conditionId]);
+        return $this;
     }
 
     /**
@@ -125,9 +235,23 @@ class AdmissionUserList
     }
 
     /**
+     * Set the conditions to the given set.
+     * 
+     * @param  Array conditions
+     * @return AdmissionUserList
+     */
+    public function setConditions($conditions) {
+        $this->conditions = array();
+        foreach ($conditions as $condition) {
+            $this->addCondition($condition);
+        }
+        return $this;
+    }
+
+    /**
      * Sets a factor.
      *
-     * @param int $newFactor The new factor to be set.
+     * @param float $newFactor The new factor to be set.
      * @return AdmissionUserList
      */
     public function setFactor($newFactor)
@@ -149,6 +273,33 @@ class AdmissionUserList
     }
 
     /**
+     * Sets a new owner.
+     *
+     * @param  String $newOwnerId New owner Id.
+     * @return AdmissionUserList
+     */
+    public function setOwnerId($newOwnerId)
+    {
+        $this->ownerId = $newOwnerId;
+        return $this;
+    }
+
+    /**
+     * Sets a set of new list members, replacing previous entries.
+     *
+     * @param  Array $newUsers New member list.
+     * @return AdmissionUserList
+     */
+    public function setUsers($newUsers)
+    {
+        $this->users = array();
+        foreach ($newUsers as $userId) {
+            $this->addUser($userId);
+        }
+        return $this;
+    }
+
+    /**
      * Function for storing the data to DB. Is not called automatically on 
      * changing object values.
      */
@@ -164,26 +315,43 @@ class AdmissionUserList
         }
         // Store basic list data.
         $stmt = DBManager::get()->prepare("INSERT INTO `admissionfactor` 
-            (`list_id`, `name`, `factor`, `mkdate`, `chdate`) 
-            VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE 
+            (`list_id`, `name`, `factor`, `owner_id`, `mkdate`, `chdate`) 
+            VALUES (?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE 
             `name`=VALUES(`name`), `factor`=VALUES(`factor`), 
-            `chdate`=VALUES(`chdate`)");
-        $stmt->execute(array($this->id, $this->name, $this->factor, 
-            time(), time()));
-        // Delete removed users from DB.
+            `owner_id`=VALUES(`owner_id`), `chdate`=VALUES(`chdate`)");
+        $stmt->execute(array($this->id, $this->name, $this->factor,
+            $this->ownerId, time(), time()));
         // Clear all old user assignments to this list.
         DBManager::get()->exec("DELETE FROM `user_factorlist` WHERE `list_id`='".
             $this->id."' AND `user_id` NOT IN ('".
             implode("', '", array_keys($this->users))."')");
         // Store assigned users.
-        $stmt = DBManager::get()->prepare("INSERT INTO `user_factorlist` 
-            (`list_id`, `user_id`, `factor`, `mkdate`, `chdate`) 
-            VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE 
-            `name`=VALUES(`name`), `factor`=VALUES(`factor`), 
-            `chdate`=VALUES(`chdate`)");
-        $stmt->execute(array($this->id, $this->name, $this->factor, time(), 
-            time()));
+        foreach ($this->users as $userId => $assigned) {
+            $stmt = DBManager::get()->prepare("INSERT INTO `user_factorlist` 
+                (`list_id`, `user_id`, `mkdate`) 
+                VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE 
+                `user_id`=VALUES(`user_id`)");
+            $stmt->execute(array($this->id, $userId, time()));
+        }
         return $this;
+    }
+
+    /**
+     * String representation of this object.
+     */
+    public function toString() {
+        $tpl = $GLOBALS['template_factory']->open('admission/userlist');
+        $tpl->set_attribute('userlist', $this);
+        return $tpl->render();
+    }
+
+    /**
+     * Standard string representation of this object.
+     * 
+     * @return String
+     */
+    public function __toString() {
+        return $this->toString();
     }
 
 } /* end of class AdmissionUserList */

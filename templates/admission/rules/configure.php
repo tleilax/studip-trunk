@@ -1,8 +1,8 @@
-<div style="width: 95%; padding: 5px;" class="table_row_<?= TextHelper::cycle('even', 'odd'); ?>">
-    <div style="display: inline-block; vertical-align: top; font-weight: bold;">
+<div class="table_row_<?= TextHelper::cycle('even', 'odd'); ?> admission_data">
+    <div class="admission_label">
         <label for="message"><?= _('Nachricht bei fehlgeschlagener Anmeldung') ?>:</label>
     </div>
-    <div style="display: inline-block; vertical-align: top;">
+    <div class="admission_value">
         <textarea name="message" rows="4" cols="50"><?= $rule->getMessage() ?></textarea>
     </div>
 </div>

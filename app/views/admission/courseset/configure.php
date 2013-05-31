@@ -31,15 +31,15 @@ $infobox = array('content' => $infobox,
 <?= $this->render_partial('dialog/confirm_dialog') ?>
 <h2><?= $courseset ? _('Anmeldeset bearbeiten') : _('Anmeldeset anlegen') ?></h2>
 <form action="<?= $controller->url_for('admission/courseset/save', ($courseset ? $courseset->getId() : '')) ?>" method="post">
-    <div style="width: 90%; padding: 10px;" class="table_row_<?= TextHelper::cycle('even', 'odd'); ?>">
-        <div align="right" style="display: inline-block; vertical-align: top; width: 20%; font-weight: bold;"><?= _('Name des Anmeldesets:') ?></div>
-        <div style="display: inline-block; vertical-align: top;">
+    <div class="table_row_<?= TextHelper::cycle('even', 'odd'); ?> admission_data">
+        <div class="admission_label"><?= _('Name des Anmeldesets:') ?></div>
+        <div class="admission_value">
             <input type="text" size="60" maxlength="255" name="name" value="<?= $courseset ? htmlReady($courseset->getName()) : '' ?>" required/>
         </div>
     </div>
-    <div style="width: 90%; padding: 10px;" class="table_row_<?= TextHelper::cycle('even', 'odd'); ?>">
-        <div align="right" style="display: inline-block; vertical-align: top; width: 20%; font-weight: bold;"><?= _('Einrichtungszuordnung:') ?></div>
-        <div style="display: inline-block; vertical-align: top;">
+    <div class="table_row_<?= TextHelper::cycle('even', 'odd'); ?> admission_data">
+        <div class="admission_label"><?= _('Einrichtungszuordnung:') ?></div>
+        <div class="admission_value">
         <?php foreach ($myInstitutes as $institute) { ?>
         <input type="checkbox" name="institutes[]" value="<?= $institute['Institut_id'] ?>"
             <?= $selectedInstitutes[$institute['Institut_id']] ? 'checked="checked"' : '' ?>
@@ -50,9 +50,9 @@ $infobox = array('content' => $infobox,
         <?php } ?>
         </div>
     </div>
-    <div style="width: 90%; padding: 10px;" class="table_row_<?= TextHelper::cycle('even', 'odd'); ?>">
-        <div align="right" style="display: inline-block; vertical-align: top; width: 20%; font-weight: bold;"><?= _('Anmelderegeln:') ?></div>
-        <div style="display: inline-block; vertical-align: top;" id="rules">
+    <div class="table_row_<?= TextHelper::cycle('even', 'odd'); ?> admission_data">
+        <div class="admission_label"><?= _('Anmelderegeln:') ?></div>
+        <div class="admission_value" id="rules">
             <?php if ($courseset) { ?>
             <div id="rulelist">
                 <?php foreach ($courseset->getAdmissionRules() as $rule) { ?>
@@ -72,9 +72,9 @@ $infobox = array('content' => $infobox,
                     'title' => _('Anmelderegel hinzufügen'))) ?><?= _('Anmelderegel hinzufügen') ?></a>
         </div>
     </div>
-    <div style="width: 90%; padding: 10px;" class="table_row_<?= TextHelper::cycle('even', 'odd'); ?>">
-        <div align="right" style="display: inline-block; vertical-align: top; width: 20%; font-weight: bold;"></div>
-        <div style="display: inline-block; vertical-align: top;">
+    <div class="table_row_<?= TextHelper::cycle('even', 'odd'); ?> admission_data">
+        <div class="admission_label"></div>
+        <div class="admission_value">
             <?php
                 // Set checkbox accordingly to courseset status or to unchecked if new courseset.
                 $checked = $courseset ? ($courseset->getInvalidateRules() ? ' checked="checked"' : '') : '';
@@ -83,9 +83,9 @@ $infobox = array('content' => $infobox,
             <?= _('Anmeldebedingungen werden nach erfolgter Platzverteilung aufgehoben') ?>
         </div>
     </div>
-    <div style="width: 90%; padding: 10px;" class="table_row_<?= TextHelper::cycle('even', 'odd'); ?>">
-        <div align="right" style="display: inline-block; vertical-align: top; width: 20%; font-weight: bold;"><?= _('Veranstaltungszuordnung:') ?></div>
-        <div style="display: inline-block; vertical-align: top;" id="instcourses">
+    <div class="table_row_<?= TextHelper::cycle('even', 'odd'); ?> admission_data">
+        <div class="admission_label"><?= _('Veranstaltungszuordnung:') ?></div>
+        <div class="admission_value" id="instcourses">
             <?php
             $courseIds = $courseset ? $courseset->getCourses() : array();
             foreach ($courses as $course) {
@@ -102,13 +102,13 @@ $infobox = array('content' => $infobox,
             <?php } ?>
         </div>
     </div>
-    <div style="width: 90%; padding: 10px;" class="table_row_<?= TextHelper::cycle('even', 'odd'); ?>">
-        <div align="right" style="display: inline-block; vertical-align: top; width: 20%; font-weight: bold;"><?= _('weitere Hinweise:') ?></div>
-        <div style="display: inline-block; vertical-align: top;">
+    <div class="table_row_<?= TextHelper::cycle('even', 'odd'); ?> admission_data">
+        <div class="admission_label"><?= _('weitere Hinweise:') ?></div>
+        <div class="admission_value">
             <textarea cols="60" rows="3" name="infotext"><?= $courseset ? htmlReady($courseset->getInfoText()) : '' ?></textarea>
         </div>
     </div>
-    <div align="center" style="width: 90%; padding: 10px;" class="table_row_<?= TextHelper::cycle('even', 'odd'); ?>">
+    <div class="table_row_<?= TextHelper::cycle('even', 'odd'); ?> admission_buttons">
         <?= Button::createAccept(_('Speichern'), 'submit') ?>
         <?= LinkButton::createCancel(_('Abbrechen'), $controller->url_for('admission/courseset')) ?>
     </div>

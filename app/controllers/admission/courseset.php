@@ -18,7 +18,7 @@ class Admission_CoursesetController extends AuthenticatedController {
             $layout = $GLOBALS['template_factory']->open('layouts/base');
             $this->set_layout($layout);
             PageLayout::setTitle(_('Anmeldesets'));
-            Navigation::activateItem('/tools/coursesets');
+            Navigation::activateItem('/tools/coursesets/sets');
         }
         $institutes = Institute::getMyInstitutes();
         $this->myInstitutes = array();
@@ -31,7 +31,6 @@ class Admission_CoursesetController extends AuthenticatedController {
     }
 
     public function index_action() {
-        Navigation::activateItem('/tools/coursesets');
         $this->coursesets = array();
         foreach ($this->myInstitutes as $institute) {
             $sets = CourseSet::getCoursesetsByInstituteId($institute['Institut_id']);

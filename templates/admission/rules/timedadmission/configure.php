@@ -1,6 +1,6 @@
 <h3><?= $rule->getName() ?></h3>
 <?php echo $this->render_partial('admission/rules/configure.php'); ?>
-<div style="width: 95%; padding: 5px;" class="table_row_<?= TextHelper::cycle('even', 'odd'); ?>">
+<div class="table_row_<?= TextHelper::cycle('even', 'odd'); ?> admission_data">
     <div style="display: inline-block; vertical-align: top; font-weight: bold; width: 45%;">
         <label for="startdate"><?= _('Start des Anmeldezeitraums') ?>:</label>
     </div>
@@ -12,11 +12,11 @@
             value="<?= $rule->getStartTime() ? date('H:i', $rule->getStartTime()) : date('H:i') ?>"/>
     </div>
 </div>
-<div style="width: 95%; padding: 5px;" class="table_row_<?= TextHelper::cycle('even', 'odd'); ?>">
-    <div style="display: inline-block; vertical-align: top; font-weight: bold; width: 45%;">
+<div class="table_row_<?= TextHelper::cycle('even', 'odd'); ?> admission_data">
+    <div class="admission_label">
         <label for="enddate"><?= _('Ende des Anmeldezeitraums') ?>:</label>
     </div>
-    <div style="display: inline-block; vertical-align: top;">
+    <div class="admission_value">
         <input type="date" name="enddate" id="enddate" size="8"
             value="<?= $rule->getEndTime() ? date('d.m.Y', $rule->getEndTime()) : date('d.m.Y') ?>"/>
         &nbsp;&nbsp;
@@ -24,11 +24,11 @@
             value="<?= $rule->getEndTime() ? date('H:i', $rule->getEndTime()) : date('H:i') ?>"/>
     </div>
 </div>
-<div style="width: 95%; padding: 5px;" class="table_row_<?= TextHelper::cycle('even', 'odd'); ?>">
-    <div style="display: inline-block; vertical-align: top; font-weight: bold; width: 45%;">
+<div class="table_row_<?= TextHelper::cycle('even', 'odd'); ?> admission_data">
+    <div class="admission_label">
         <label for="start"><?= _('Zeitpunkt der automatischen Platzverteilung') ?>:</label>
     </div>
-    <div style="display: inline-block; vertical-align: top;">
+    <div class="admission_value">
         <input type="date" name="distributiondate" id="distributiondate" size="8"
             value="<?= $rule->getDistributionTime() ? date('d.m.Y', $rule->getDistributionTime()) : '' ?>"/>
         &nbsp;&nbsp;
