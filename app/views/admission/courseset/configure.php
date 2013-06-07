@@ -27,8 +27,6 @@ $infobox = array('content' => $infobox,
                  'picture' => 'infobox/administration.png'
 );
 
-DBManager::get()->exec("ALTER TABLE `admissionfactor` ADD `owner_id` VARCHAR(32) NOT NULL AFTER `factor`");
-
 ?>
 <?= $this->render_partial('dialog/confirm_dialog') ?>
 <h2><?= $courseset ? _('Anmeldeset bearbeiten') : _('Anmeldeset anlegen') ?></h2>
