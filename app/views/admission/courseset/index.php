@@ -2,7 +2,7 @@
 //Infobox:
 $actions = array();
 $actions[] = array(
-              "icon" => "icons/16/black/plus.png",
+              "icon" => "icons/16/black/add.png",
               "text" => '<a href="' .
                         $controller->url_for('admission/courseset/configure').
                         '">' . _("Anmeldeset anlegen") . '</a>');
