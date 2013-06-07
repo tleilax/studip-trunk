@@ -27,6 +27,10 @@ $infobox = array('content' => $infobox,
                  'picture' => 'infobox/administration.png'
 );
 
+// Load assigned course IDs.
+$courseIds = $courseset ? $courseset->getCourses() : array();
+// Load assigned user list IDs.
+$userlistIds = $courseset ? $courseset->getUserlists() : array();
 ?>
 <?= $this->render_partial('dialog/confirm_dialog') ?>
 <h2><?= $courseset ? _('Anmeldeset bearbeiten') : _('Anmeldeset anlegen') ?></h2>
@@ -40,14 +44,18 @@ $infobox = array('content' => $infobox,
     <div class="table_row_<?= TextHelper::cycle('even', 'odd'); ?> admission_data">
         <div class="admission_label"><?= _('Einrichtungszuordnung:') ?></div>
         <div class="admission_value">
-        <?php foreach ($myInstitutes as $institute) { ?>
-        <input type="checkbox" name="institutes[]" value="<?= $institute['Institut_id'] ?>"
-            <?= $selectedInstitutes[$institute['Institut_id']] ? 'checked="checked"' : '' ?>
-            class="institute" onclick="STUDIP.Admission.getCourses('institute', 'instcourses', 
-            '<?= $controller->url_for('admission/courseset/instcourses', $courseset ? $courseset->getId() : '') ?>')"/>
-            <?= $institute['Name'] ?>
-        <br/>
-        <?php } ?>
+            <?php if ($myInstitutes) { ?>
+                <?php foreach ($myInstitutes as $institute) { ?>
+                <input type="checkbox" name="institutes[]" value="<?= $institute['Institut_id'] ?>"
+                    <?= $selectedInstitutes[$institute['Institut_id']] ? 'checked="checked"' : '' ?>
+                    class="institute" onclick="STUDIP.Admission.getCourses('institute', 'instcourses', 
+                    '<?= $controller->url_for('admission/courseset/instcourses', $courseset ? $courseset->getId() : '') ?>')"/>
+                    <?= $institute['Name'] ?>
+                <br/>
+                <?php } ?>
+            <?php } else { ?>
+                <i><?=  _('Sie sind keiner Einrichtung zugeordnet.') ?></i>
+            <?php } ?>
         </div>
     </div>
     <div class="table_row_<?= TextHelper::cycle('even', 'odd'); ?> admission_data">
@@ -87,7 +95,6 @@ $infobox = array('content' => $infobox,
         <div class="admission_label"><?= _('Veranstaltungszuordnung:') ?></div>
         <div class="admission_value" id="instcourses">
             <?php
-            $courseIds = $courseset ? $courseset->getCourses() : array();
             foreach ($courses as $course) {
                 $title = $course['Name'];
                 if ($course['VeranstaltungsNummer']) {
@@ -100,6 +107,34 @@ $infobox = array('content' => $infobox,
             ?>
             <input type="checkbox" name="courses[]" value="<?= $course['seminar_id'] ?>"<?= $checked ?>/> <?= $title ?><br/>
             <?php } ?>
+        </div>
+    </div>
+    <div class="table_row_<?= TextHelper::cycle('even', 'odd'); ?> admission_data">
+        <div class="admission_label"><?= _('Nutzerlisten zuordnen:') ?></div>
+        <div class="admission_value">
+            <?php if ($myUserlists) { ?>
+                <?php
+                foreach ($myUserlists as $list) {
+                    $checked = '';
+                    if (in_array($list->getId(), $userlistIds)) {
+                        $checked = ' checked="checked"';
+                    }
+                ?>
+                <input type="checkbox" name="userlists[]" value="<?= $list->getId() ?>"<?= $checked ?>/> <?= $list->getName() ?><br/>
+                <?php } ?>
+            <?php } else { ?>
+                <i><?=  _('Sie haben noch keine Nutzerlisten angelegt.') ?></i>
+            <?php
+            }
+            // Keep lists that were assigned by other users.
+            foreach ($userlistIds as $list) {
+                if (!in_array($list, array_keys($myUserlists))) {
+            ?>
+            <input type="hidden" name="userlists[]" value="<?= $list ?>"/>
+            <?php
+                }
+            }
+            ?>
         </div>
     </div>
     <div class="table_row_<?= TextHelper::cycle('even', 'odd'); ?> admission_data">

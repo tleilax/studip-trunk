@@ -4,6 +4,7 @@ require_once('app/controllers/authenticated_controller.php');
 require_once('app/models/courseset.php');
 require_once('lib/classes/Institute.class.php');
 require_once('lib/classes/admission/CourseSet.class.php');
+require_once('lib/classes/admission/AdmissionUserList.class.php');
 require_once('lib/classes/admission/RandomAlgorithm.class.php');
 require_once('lib/classes/admission/WaitingList.class.php');
 
@@ -27,6 +28,7 @@ class Admission_CoursesetController extends AuthenticatedController {
                 $this->myInstitutes[$institute['Institut_id']] = $institute;
             }
         }
+        $this->myUserlists = AdmissionUserList::getUserLists($GLOBALS['user']->id);
         PageLayout::addSqueezePackage('admission');
     }
 
@@ -56,6 +58,7 @@ class Admission_CoursesetController extends AuthenticatedController {
             $courseset->setName(Request::get('name'))
                 ->setInstitutes(Request::getArray('institutes'))
                 ->setCourses(Request::getArray('courses'))
+                ->setUserLists(Request::getArray('userlists'))
                 ->setInvalidateRules((bool) Request::option('invalidate', false))
                 ->clearAdmissionRules();
             foreach (Request::getArray('rules') as $serialized) {

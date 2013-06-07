@@ -68,6 +68,11 @@ class CourseSet
      */
     public $name = '';
 
+    /*
+     * Lists of users who are treated differently on seat distribution
+     */
+    public $userlists = array();
+
     // --- OPERATIONS ---
 
     public function __construct($setId='') {
@@ -154,9 +159,7 @@ class CourseSet
      */
     public function addUserList($listId)
     {
-        $stmt = DBManager::get()->prepare("INSERT INTO `courseset_list`
-            (`set_id`, `list_id`, `mkdate`) VALUES (?, ?, ?)");
-        $stmt->execute(array($this->id, $listId, time()));
+        $this->userlists[$listId] = true;
         return $this;
     }
 
@@ -416,14 +419,7 @@ class CourseSet
      */
     public function getUserLists()
     {
-        $lists = array();
-        $stmt = DBManager::get()->prepare("SELECT `list_id` 
-            FROM `courseset_list` WHERE `set_id`=?");
-        $stmt->execute(array($this->id));
-        while ($current = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $lists[] = $current['list_id'];
-        }
-        return $lists;
+        return array_keys($this->userlists);
     }
 
     /**
@@ -479,6 +475,14 @@ class CourseSet
             } catch (Exception $e) {
             }
         }
+        // Load assigned user lists.
+        $stmt = DBManager::get()->prepare("SELECT `factorlist_id` 
+            FROM `courseset_factorlist` WHERE `set_id`=?");
+        $stmt->execute(array($this->id));
+        while ($current = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $this->userlists[$current['factorlist_id']] = true;
+        }
+        return $this;
     }
 
     /**
@@ -514,6 +518,18 @@ class CourseSet
     public function removeInstitute($instituteId)
     {
         unset($this->institutes[$instituteId]);
+        return $this;
+    }
+
+    /**
+     * Removes the user list with the given ID from the set.
+     *
+     * @param  String listId
+     * @return CourseSet
+     */
+    public function removeUserlist($listId)
+    {
+        unset($this->userlists[$listId]);
         return $this;
     }
 
@@ -597,6 +613,21 @@ class CourseSet
         return $this;
     }
 
+    /**
+     * Adds several user list IDs after clearing the existing user list
+     * assignments.
+     * 
+     * @param  Array newIds
+     * @return CourseSet
+     */
+    public function setUserlists($newIds) {
+        $this->userlists = array();
+        foreach ($newIds as $newId) {
+            $this->addUserlist($newId);
+        }
+        return $this;
+    }
+
     public function store() {
         global $user;
         // Generate new ID if course set doesn't exist in DB yet.
@@ -642,6 +673,18 @@ class CourseSet
                 VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE
                 `seminar_id`=VALUES(`seminar_id`)");
             $stmt->execute(array($this->id, $course, time()));
+        }
+        // Delete removed user list assignments from database.
+        DBManager::get()->exec("DELETE FROM `courseset_factorlist` 
+            WHERE `set_id`='".$this->id."' AND `factorlist_id` NOT IN ('".
+            implode("', '", array_keys($this->userlists))."')");
+        // Store associated user list IDs.
+        foreach ($this->userlists as $list => $associated) {
+            $stmt = DBManager::get()->prepare("INSERT INTO `courseset_factorlist`
+                (`set_id`, `factorlist_id`, `mkdate`)
+                VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE
+                `factorlist_id`=VALUES(`factorlist_id`)");
+            $stmt->execute(array($this->id, $list, time()));
         }
         // Delete removed admission rules from database.
         $stmt = DBManager::get()->query("SELECT `rule_id`, `type` FROM `courseset_rule` 
