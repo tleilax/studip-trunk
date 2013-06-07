@@ -12,7 +12,7 @@ class Step00240CourseSets extends Migration
         $db = DBManager::get();
 
         // assign conditions to admission rules
-        $db->exec("CREATE  TABLE IF NOT EXISTS `admission_condition` (
+        $db->exec("CREATE TABLE IF NOT EXISTS `admission_condition` (
                 `rule_id` VARCHAR(32) NOT NULL ,
                 `condition_id` VARCHAR(32) NOT NULL ,
                 `mkdate` INT NULL ,
@@ -20,17 +20,18 @@ class Step00240CourseSets extends Migration
             ENGINE = MyISAM");
 
         // "chance adjustment" in seat distribution
-        $db->exec("CREATE  TABLE IF NOT EXISTS `admissionfactor` (
+        $db->exec("CREATE TABLE IF NOT EXISTS `admissionfactor` (
                 `list_id` VARCHAR(32) NOT NULL ,
                 `name` VARCHAR(255) NULL ,
                 `factor` DECIMAL(5,2) NULL ,
+                `owner_id` VARCHAR(32) NOT NULL ,
                 `mkdate` INT NULL ,
                 `chdate` INT NULL ,
             PRIMARY KEY (`list_id`) )
             ENGINE = MyISAM");
 
         // admission rules specifying conditions for access
-        $db->exec("CREATE  TABLE IF NOT EXISTS `conditionaladmissions` (
+        $db->exec("CREATE TABLE IF NOT EXISTS `conditionaladmissions` (
                 `rule_id` VARCHAR(32) NOT NULL ,
                 `message` TEXT NULL ,
                 `mkdate` INT NULL ,
@@ -40,7 +41,7 @@ class Step00240CourseSets extends Migration
             ENGINE = MyISAM");
 
         // several fields form a condition
-        $db->exec("CREATE  TABLE IF NOT EXISTS `conditionfields` (
+        $db->exec("CREATE TABLE IF NOT EXISTS `conditionfields` (
                 `field_id` VARCHAR(32) NOT NULL ,
                 `condition_id` VARCHAR(32) NULL ,
                 `type` VARCHAR(255) NULL ,
@@ -52,7 +53,7 @@ class Step00240CourseSets extends Migration
             ENGINE = MyISAM;");
 
         // conditions for admission
-        $db->exec("CREATE  TABLE IF NOT EXISTS `conditions` (
+        $db->exec("CREATE TABLE IF NOT EXISTS `conditions` (
                 `condition_id` VARCHAR(32) NOT NULL ,
                 `start_time` INT NULL ,
                 `end_time` INT NULL ,
@@ -62,7 +63,7 @@ class Step00240CourseSets extends Migration
             ENGINE = MyISAM");
 
         // assign course sets to factor lists
-        $db->exec("CREATE  TABLE IF NOT EXISTS `courseset_factorlist` (
+        $db->exec("CREATE TABLE IF NOT EXISTS `courseset_factorlist` (
                 `set_id` VARCHAR(32) NOT NULL ,
                 `factorlist_id` VARCHAR(32) NOT NULL ,
                 `mkdate` INT NULL ,
@@ -70,7 +71,7 @@ class Step00240CourseSets extends Migration
             ENGINE = MyISAM");
 
         // assign admission rules to course sets
-        $db->exec("CREATE  TABLE IF NOT EXISTS `courseset_rule` (
+        $db->exec("CREATE TABLE IF NOT EXISTS `courseset_rule` (
                 `set_id` VARCHAR(32) NOT NULL ,
                 `rule_id` VARCHAR(32) NOT NULL ,
                 `type` VARCHAR(255) NULL ,
@@ -79,7 +80,7 @@ class Step00240CourseSets extends Migration
             ENGINE = MyISAM");
 
         // sets of courses with common admission rules
-        $db->exec("CREATE  TABLE IF NOT EXISTS `coursesets` (
+        $db->exec("CREATE TABLE IF NOT EXISTS `coursesets` (
                 `set_id` VARCHAR(32) NOT NULL ,
                 `user_id` VARCHAR(32) NOT NULL ,
                 `institut_id` VARCHAR(32) NOT NULL ,
@@ -96,7 +97,7 @@ class Step00240CourseSets extends Migration
             ENGINE MyISAM");
 
         // admission rules with max number of courses to register for
-        $db->exec("CREATE  TABLE IF NOT EXISTS `limitedadmissions` (
+        $db->exec("CREATE TABLE IF NOT EXISTS `limitedadmissions` (
                 `rule_id` VARCHAR(32) NOT NULL ,
                 `message` TEXT NULL ,
                 `maxnumber` INT NULL ,
@@ -106,7 +107,7 @@ class Step00240CourseSets extends Migration
             ENGINE = MyISAM");
 
         // admission rules that completely lock access to courses
-        $db->exec("CREATE  TABLE IF NOT EXISTS `lockedadmissions` (
+        $db->exec("CREATE TABLE IF NOT EXISTS `lockedadmissions` (
                 `rule_id` VARCHAR(32) NOT NULL ,
                 `message` TEXT NULL ,
                 `mkdate` INT NULL ,
@@ -115,7 +116,7 @@ class Step00240CourseSets extends Migration
             ENGINE = MyISAM");
 
         // admission rules that specify a password for course access
-        $db->exec("CREATE  TABLE IF NOT EXISTS `passwordadmissions` (
+        $db->exec("CREATE TABLE IF NOT EXISTS `passwordadmissions` (
                 `rule_id` VARCHAR(32) NOT NULL ,
                 `message` TEXT NULL ,
                 `password` VARCHAR(255) NULL ,
@@ -125,7 +126,7 @@ class Step00240CourseSets extends Migration
             ENGINE = MyISAM");
 
         // priorities for course assignment
-        $db->exec("CREATE  TABLE IF NOT EXISTS `priorities` (
+        $db->exec("CREATE TABLE IF NOT EXISTS `priorities` (
                 `user_id` VARCHAR(32) NOT NULL ,
                 `set_id` VARCHAR(32) NOT NULL ,
                 `seminar_id` VARCHAR(32) NOT NULL ,
@@ -137,7 +138,7 @@ class Step00240CourseSets extends Migration
             ENGINE = MyISAM");
 
         // assign courses to course sets
-        $db->exec("CREATE  TABLE IF NOT EXISTS `seminar_courseset` (
+        $db->exec("CREATE TABLE IF NOT EXISTS `seminar_courseset` (
                 `set_id` VARCHAR(32) NOT NULL ,
                 `seminar_id` VARCHAR(32) NOT NULL ,
                 `mkdate` INT NULL ,
@@ -146,7 +147,7 @@ class Step00240CourseSets extends Migration
             ENGINE = MyISAM");
 
         // admission rules concerning time
-        $db->exec("CREATE  TABLE IF NOT EXISTS `timedadmissions` (
+        $db->exec("CREATE TABLE IF NOT EXISTS `timedadmissions` (
                 `rule_id` VARCHAR(32) NOT NULL ,
                 `message` TEXT NULL ,
                 `start_time` INT NULL ,
@@ -162,7 +163,7 @@ class Step00240CourseSets extends Migration
             ENGINE = MyISAM;");
 
         // assign users to lists with different factor in seat distribution
-        $db->exec("CREATE  TABLE IF NOT EXISTS `user_factorlist` (
+        $db->exec("CREATE TABLE IF NOT EXISTS `user_factorlist` (
                 `list_id` VARCHAR(32) NULL ,
                 `user_id` VARCHAR(32) NULL ,
                 `mkdate` INT NULL ,
@@ -170,7 +171,7 @@ class Step00240CourseSets extends Migration
             ENGINE = MyISAM");
 
         // user defined max number of courses to register for
-        $db->exec("CREATE  TABLE IF NOT EXISTS `userlimits` (
+        $db->exec("CREATE TABLE IF NOT EXISTS `userlimits` (
                 `rule_id` VARCHAR(32) NOT NULL ,
                 `user_id` VARCHAR(32) NOT NULL ,
                 `maxnumber` INT NULL ,
@@ -180,7 +181,7 @@ class Step00240CourseSets extends Migration
             ENGINE = MyISAM");
 
         // waiting lists at courses
-        $db->exec("CREATE  TABLE IF NOT EXISTS `waitinglist_config` (
+        $db->exec("CREATE TABLE IF NOT EXISTS `waitinglist_config` (
                 `list_id` VARCHAR(32) NOT NULL ,
                 `seminar_id` VARCHAR(32) NOT NULL ,
                 `set_id` VARCHAR(32) NULL ,
@@ -191,7 +192,7 @@ class Step00240CourseSets extends Migration
             ENGINE = MyISAM");
 
         // assign users to waiting lists
-        $db->exec("CREATE  TABLE IF NOT EXISTS `waitinglist_user` (
+        $db->exec("CREATE TABLE IF NOT EXISTS `waitinglist_user` (
                 `list_id` VARCHAR(32) NOT NULL ,
                 `user_id` VARCHAR(32) NOT NULL ,
                 `position` INT NOT NULL ,
@@ -199,7 +200,7 @@ class Step00240CourseSets extends Migration
             PRIMARY KEY (`user_id`, `list_id`) )
             ENGINE = MyISAM");
         
-        $db->exec("CREATE  TABLE IF NOT EXISTS `courseset_institute` (
+        $db->exec("CREATE TABLE IF NOT EXISTS `courseset_institute` (
                 `set_id` VARCHAR(32) NOT NULL ,
                 `institute_id` VARCHAR(32) NOT NULL ,
                 `mkdate` INT NULL ,

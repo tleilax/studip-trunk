@@ -1,5 +1,5 @@
 <div class="table_row_<?= TextHelper::cycle('even', 'odd'); ?> admission_data">
-    <div class="admission_label">
+    <div class="admissionrule_label">
         <label for="message"><?= _('Nachricht bei fehlgeschlagener Anmeldung') ?>:</label>
     </div>
     <div class="admission_value">

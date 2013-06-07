@@ -27,6 +27,8 @@ $infobox = array('content' => $infobox,
                  'picture' => 'infobox/administration.png'
 );
 
+DBManager::get()->exec("ALTER TABLE `admissionfactor` ADD `owner_id` VARCHAR(32) NOT NULL AFTER `factor`");
+
 ?>
 <?= $this->render_partial('dialog/confirm_dialog') ?>
 <h2><?= $courseset ? _('Anmeldeset bearbeiten') : _('Anmeldeset anlegen') ?></h2>
@@ -67,7 +69,7 @@ $infobox = array('content' => $infobox,
             <?php } ?>
             <br/>
             <a href="<?= $controller->url_for('admission/rule/configure') ?>" onclick="return STUDIP.Admission.configureRule(null, '<?= $controller->url_for('admission/rule/configure') ?>');">
-                <?= Assets::img('icons/16/blue/plus.png', array(
+                <?= Assets::img('icons/16/blue/add.png', array(
                     'alt' => _('Anmelderegel hinzufügen'),
                     'title' => _('Anmelderegel hinzufügen'))) ?><?= _('Anmelderegel hinzufügen') ?></a>
         </div>

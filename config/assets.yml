@@ -83,6 +83,3 @@ css:
     style.css:  screen
     smiley.css: screen, print
     print.css:  print
-
-  admission:
-    admission.css: screen

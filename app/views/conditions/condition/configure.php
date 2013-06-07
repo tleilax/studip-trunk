@@ -6,7 +6,7 @@ use Studip\Button, Studip\LinkButton;
 </div>
 <br/>
 <a href="#" onclick="return STUDIP.Conditions.addConditionField('conditionfields', '<?= $controller->url_for('conditions/field/configure') ?>')">
-    <?= Assets::img('icons/16/blue/plus.png', array('alt' => _('Auswahlfeld hinzufügen'))) ?>
+    <?= Assets::img('icons/16/blue/add.png', array('alt' => _('Auswahlfeld hinzufügen'))) ?>
     <?php
         $text = _('Auswahlfeld hinzufügen');
         if ($via_ajax) {

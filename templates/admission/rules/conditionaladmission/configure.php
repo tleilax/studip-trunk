@@ -4,7 +4,7 @@
     <div class="conditionaladmission_label">
         <label for="start"><?= _('Anmeldebedingungen') ?>:</label>
     </div>
-    <div class="admission_value" id="conditions">
+    <div class="conditionaladmission_value" id="conditions">
         <?php if (!$rule->getConditions()) { ?>
         <span id="noconditions">
             <i><?= _('Sie haben noch keine Bedingungen festgelegt.'); ?></i>
@@ -25,7 +25,7 @@
         <?php } ?>
         <br/><br/>
         <a href="<?= URLHelper::getURL('dispatch.php/conditions/condition/configure') ?>" onclick="return STUDIP.Conditions.configureCondition('<?= URLHelper::getURL('dispatch.php/conditions/condition/configure') ?>')">
-            <?= Assets::img('icons/16/blue/plus.png', array(
+            <?= Assets::img('icons/16/blue/add.png', array(
                 'alt' => _('Bedingung hinzufügen'),
                 'title' => _('Bedingung hinzufügen'))) ?><?= _('Bedingung hinzufügen') ?></a>
     </div>
