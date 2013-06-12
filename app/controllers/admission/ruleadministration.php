@@ -22,6 +22,13 @@ class Admission_RuleAdministrationController extends AuthenticatedController {
      * Show overview of available admission rules.
      */
     public function index_action() {
+        DBManager::get()->exec("CREATE TABLE IF NOT EXISTS `admissionrules` (
+          `id` int(11) NOT NULL AUTO_INCREMENT,
+          `ruletype` VARCHAR(255) COLLATE latin1_german1_ci UNIQUE NOT NULL,
+          `active` TINYINT(1) NOT NULL DEFAULT 0,
+          `mkdate` INT(11) NOT NULL DEFAULT 0,
+          PRIMARY KEY (`id`)
+        ) ENGINE = MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_german1_ci");
         $this->ruleTypes = RuleAdministrationModel::getAdmissionRuleTypes();
     }
 
