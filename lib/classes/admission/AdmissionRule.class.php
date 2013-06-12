@@ -73,11 +73,14 @@ abstract class AdmissionRule
 
     /**
      * Reads all available AdmissionRule subclasses and loads their definitions.
+     * 
+     * @param  bool $activeOnly Show only active rules.
+     * @return Array
      */
-    public static function getAvailableAdmissionRules() {
+    public static function getAvailableAdmissionRules($activeOnly=true) {
         $rules = array();
         // Load all PHP class files found in the admission rule folder.
-        foreach (glob(realpath(dirname(__FILE__).'/rules').'/*.class.php') as $file) {
+        /*foreach (glob(realpath(dirname(__FILE__).'/rules').'/*.class.php') as $file) {
             require_once($file);
             // Try to auto-calculate class name from file name.
             $className = substr(basename($file), 0, 
@@ -90,6 +93,18 @@ abstract class AdmissionRule
                         'description' => $className::getDescription()
                     );
             }
+        }*/
+        $where = ($activeOnly ? " WHERE `active`=1" : "");
+        $data = DBManager::get()->query("SELECT * FROM `admissionrules`".$where.
+            " ORDER BY `id` ASC");
+        while ($current = $data->fetch(PDO::FETCH_ASSOC)) {
+            $className = $current['ruletype'];
+            require_once($GLOBALS['ABSOLUTE_PATH_STUDIP'].'admissionrules/'.
+                strtolower($className.'/'.$className.'.class.php'));
+            $rules[$className] = array(
+                    'name' => $className::getName(),
+                    'description' => $className::getDescription()
+                );
         }
         return $rules;
     }

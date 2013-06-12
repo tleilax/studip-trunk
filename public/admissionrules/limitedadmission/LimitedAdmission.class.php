@@ -15,7 +15,7 @@
  * @category    Stud.IP
  */
 
-require_once(realpath(dirname(__FILE__).'/..').'/AdmissionRule.class.php');
+require_once('lib/classes/admission/AdmissionRule.class.php');
 
 class LimitedAdmission extends AdmissionRule
 {
@@ -122,9 +122,15 @@ class LimitedAdmission extends AdmissionRule
      * @return String
      */
     public function getTemplate() {
-        $tpl = $GLOBALS['template_factory']->open('admission/rules/limitedadmission/configure');
+        // Open generic admission rule template.
+        $tpl = $GLOBALS['template_factory']->open('admission/rules/configure');
         $tpl->set_attribute('rule', $this);
-        return $tpl->render();
+        $factory = new Flexi_TemplateFactory(dirname(__FILE__).'/templates/');
+        // Now open specific template for this rule and insert base template. 
+        $tpl2 = $factory->open('configure');
+        $tpl2->set_attribute('rule', $this);
+        $tpl2->set_attribute('tpl', $tpl->render());
+        return $tpl2->render();
     }
 
     /**
@@ -232,7 +238,8 @@ class LimitedAdmission extends AdmissionRule
      * @return String
      */
     public function toString() {
-        $tpl = $GLOBALS['template_factory']->open('admission/rules/limitedadmission/info');
+        $factory = new Flexi_TemplateFactory(dirname(__FILE__).'/templates/');
+        $tpl = $factory->open('info');
         $tpl->set_attribute('rule', $this);
         return $tpl->render();
     }

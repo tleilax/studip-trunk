@@ -1,5 +1,5 @@
 <h3><?= $rule->getName() ?></h3>
-<?php echo $this->render_partial('admission/rules/configure.php'); ?>
+<?= $tpl ?>
 <div class="table_row_<?= TextHelper::cycle('even', 'odd'); ?> admission_data">
     <div style="display: inline-block; vertical-align: top; font-weight: bold; width: 45%;">
         <label for="startdate"><?= _('Start des Anmeldezeitraums') ?>:</label>

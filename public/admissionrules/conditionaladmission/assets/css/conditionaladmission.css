@@ -1,0 +1,11 @@
+.conditionaladmission_label {
+    display: inline-block;
+    font-weight: bold;
+    text-align: left;
+    vertical-align: top;
+    width: 75%;
+}
+
+.conditionaladmission_value {
+    width: 90%;
+}

@@ -2695,30 +2695,6 @@ textarea.wiki-editor {
   vertical-align: top;
   width: 80%;
 }
-.conditionaladmission_label {
-  display: inline-block;
-  font-weight: bold;
-  text-align: left;
-  vertical-align: top;
-  width: 75%;
-}
-.conditionaladmission_value {
-  width: 90%;
-}
-.limitedadmission_label {
-  display: inline-block;
-  font-weight: bold;
-  text-align: right;
-  vertical-align: top;
-  width: 60%;
-}
-.passwordadmission_label {
-  display: inline-block;
-  font-weight: bold;
-  text-align: right;
-  vertical-align: top;
-  width: 40%;
-}
 .userlist_user a {
   visibility: hidden;
 }
