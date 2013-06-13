@@ -41,6 +41,8 @@ class PasswordAdmission extends AdmissionRule
      */
     public function __construct($ruleId='')
     {
+        PageLayout::addStylesheet($GLOBALS['CANONICAL_RELATIVE_PATH_STUDIP'].
+            '/admissionrules/passwordadmission/assets/css/passwordadmission.css');
         $this->id = $ruleId;
         // Create a new bcrypt password hasher (exclude weaker algorithms).
         $this->hasher = new PasswordHash(8, false);
