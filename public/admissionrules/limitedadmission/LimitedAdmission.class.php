@@ -42,7 +42,7 @@ class LimitedAdmission extends AdmissionRule
      */
     public function __construct($ruleId='')
     {
-        PageLayout::addStylesheet($GLOBALS['CANONICAL_RELATIVE_PATH_STUDIP'].
+        PageLayout::addStylesheet($GLOBALS['ABSOLUTE_URI_STUDIP'].
             '/admissionrules/limitedadmission/assets/css/limitedadmission.css');
         $this->id = $ruleId;
         if ($ruleId) {
