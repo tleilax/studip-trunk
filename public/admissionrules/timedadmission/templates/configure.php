@@ -1,10 +1,10 @@
 <h3><?= $rule->getName() ?></h3>
 <?= $tpl ?>
 <div class="table_row_<?= TextHelper::cycle('even', 'odd'); ?> admission_data">
-    <div style="display: inline-block; vertical-align: top; font-weight: bold; width: 45%;">
+    <div class="admissionrule_label">
         <label for="startdate"><?= _('Start des Anmeldezeitraums') ?>:</label>
     </div>
-    <div style="display: inline-block; vertical-align: top;">
+    <div class="admissionrule_value">
         <input type="date" name="startdate" id="startdate" size="8"
             value="<?= $rule->getStartTime() ? date('d.m.Y', $rule->getStartTime()) : date('d.m.Y') ?>"/>
         &nbsp;&nbsp;
@@ -13,10 +13,10 @@
     </div>
 </div>
 <div class="table_row_<?= TextHelper::cycle('even', 'odd'); ?> admission_data">
-    <div class="admission_label">
+    <div class="admissionrule_label">
         <label for="enddate"><?= _('Ende des Anmeldezeitraums') ?>:</label>
     </div>
-    <div class="admission_value">
+    <div class="admissionrule_value">
         <input type="date" name="enddate" id="enddate" size="8"
             value="<?= $rule->getEndTime() ? date('d.m.Y', $rule->getEndTime()) : date('d.m.Y') ?>"/>
         &nbsp;&nbsp;
@@ -25,10 +25,10 @@
     </div>
 </div>
 <div class="table_row_<?= TextHelper::cycle('even', 'odd'); ?> admission_data">
-    <div class="admission_label">
+    <div class="admissionrule_label">
         <label for="start"><?= _('Zeitpunkt der automatischen Platzverteilung') ?>:</label>
     </div>
-    <div class="admission_value">
+    <div class="admissionrule_value">
         <input type="date" name="distributiondate" id="distributiondate" size="8"
             value="<?= $rule->getDistributionTime() ? date('d.m.Y', $rule->getDistributionTime()) : '' ?>"/>
         &nbsp;&nbsp;

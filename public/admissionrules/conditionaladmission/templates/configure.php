@@ -1,10 +1,10 @@
 <h3><?= $rule->getName() ?></h3>
 <?= $tpl ?>
 <div class="table_row_<?= TextHelper::cycle('even', 'odd'); ?> admission_data">
-    <div class="conditionaladmission_label">
-        <label for="start"><?= _('Anmeldebedingungen') ?>:</label>
+    <div class="admissionrule_label_fullsize">
+        <?= _('Anmeldebedingungen') ?>:
     </div>
-    <div class="conditionaladmission_value" id="conditions">
+    <div class="admissionrule_value" id="conditions">
         <?php if (!$rule->getConditions()) { ?>
         <span id="noconditions">
             <i><?= _('Sie haben noch keine Bedingungen festgelegt.'); ?></i>

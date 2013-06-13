@@ -46,8 +46,6 @@ class ConditionalAdmission extends AdmissionRule
      */
     public function __construct($ruleId='')
     {
-        PageLayout::addStylesheet($GLOBALS['ABSOLUTE_URI_STUDIP'].
-            '/admissionrules/conditionaladmission/assets/css/conditionaladmission.css');
         $this->id = $ruleId;
         if ($ruleId) {
             $this->load();
