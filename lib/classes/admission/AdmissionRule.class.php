@@ -100,7 +100,7 @@ abstract class AdmissionRule
         while ($current = $data->fetch(PDO::FETCH_ASSOC)) {
             $className = $current['ruletype'];
             require_once($GLOBALS['ABSOLUTE_PATH_STUDIP'].'admissionrules/'.
-                strtolower($className.'/'.$className.'.class.php'));
+                strtolower($className).'/'.$className.'.class.php');
             $rules[$className] = array(
                     'name' => $className::getName(),
                     'description' => $className::getDescription()
