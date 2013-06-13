@@ -22,13 +22,6 @@ class Admission_RuleAdministrationController extends AuthenticatedController {
      * Show overview of available admission rules.
      */
     public function index_action() {
-        DBManager::get()->exec("INSERT INTO `admissionrules` 
-            (`ruletype`, `active`, `mkdate`) VALUES
-                ('ConditionalAdmission', 1, UNIX_TIMESTAMP()),
-                ('LimitedAdmission', 1, UNIX_TIMESTAMP()),
-                ('LockedAdmission', 1, UNIX_TIMESTAMP()),
-                ('PasswordAdmission', 1, UNIX_TIMESTAMP()),
-                ('TimedAdmission', 1, UNIX_TIMESTAMP());");
         $this->ruleTypes = RuleAdministrationModel::getAdmissionRuleTypes();
     }
 
