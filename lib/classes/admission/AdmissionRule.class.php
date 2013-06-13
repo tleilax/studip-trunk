@@ -79,21 +79,6 @@ abstract class AdmissionRule
      */
     public static function getAvailableAdmissionRules($activeOnly=true) {
         $rules = array();
-        // Load all PHP class files found in the admission rule folder.
-        /*foreach (glob(realpath(dirname(__FILE__).'/rules').'/*.class.php') as $file) {
-            require_once($file);
-            // Try to auto-calculate class name from file name.
-            $className = substr(basename($file), 0, 
-                strpos(basename($file), '.class.php'));
-            $current = new $className();
-            // Check if class is right.
-            if (is_subclass_of($current, 'AdmissionRule')) {
-                $rules[$className] = array(
-                        'name' => $className::getName(),
-                        'description' => $className::getDescription()
-                    );
-            }
-        }*/
         $where = ($activeOnly ? " WHERE `active`=1" : "");
         $data = DBManager::get()->query("SELECT * FROM `admissionrules`".$where.
             " ORDER BY `id` ASC");
