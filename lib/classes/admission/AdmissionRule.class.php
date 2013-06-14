@@ -86,6 +86,7 @@ abstract class AdmissionRule
             $className = $current['ruletype'];
             require_once($GLOBALS['ABSOLUTE_PATH_STUDIP'].'admissionrules/'.
                 strtolower($className).'/'.$className.'.class.php');
+            $rule = new $className();
             $rules[$className] = array(
                     'name' => $className::getName(),
                     'description' => $className::getDescription()
