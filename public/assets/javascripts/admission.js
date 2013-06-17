@@ -30,7 +30,7 @@ STUDIP.Admission = {
                     modal: true,
                     resizable: false,
                     position: ['center', 150],
-                    width: 500,
+                    width: 750,
                     close: function() {
                         $('#configurerule').remove();
                     },
