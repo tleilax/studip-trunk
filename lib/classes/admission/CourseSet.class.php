@@ -469,10 +469,9 @@ class CourseSet
             "SELECT * FROM `courseset_rule` WHERE set_id=?");
         $stmt->execute(array($this->id));
         while ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            try {
+            if (class_exists($data['type'])) {
                 $this->admissionRules[$data['rule_id']] = 
                     new $data['type']($data['rule_id']);
-            } catch (Exception $e) {
             }
         }
         // Load assigned user lists.

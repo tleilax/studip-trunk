@@ -62,7 +62,7 @@ class Admission_CoursesetController extends AuthenticatedController {
                 ->setInvalidateRules((bool) Request::option('invalidate', false))
                 ->clearAdmissionRules();
             foreach (Request::getArray('rules') as $serialized) {
-                $rule = unserialize($serialized);
+                $rule = unserialize(html_entity_decode($serialized, ENT_COMPAT | ENT_HTML401, 'iso-8859-1'));
                 $courseset->addAdmissionRule($rule);
             }
             $algorithm = new RandomAlgorithm();

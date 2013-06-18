@@ -73,11 +73,12 @@ $userlistIds = $courseset ? $courseset->getUserlists() : array();
                 </span>
                 <br/>
             <?php } ?>
-            <br/>
-            <a href="<?= $controller->url_for('admission/rule/configure') ?>" onclick="return STUDIP.Admission.configureRule(null, '<?= $controller->url_for('admission/rule/configure') ?>');">
-                <?= Assets::img('icons/16/blue/add.png', array(
-                    'alt' => _('Anmelderegel hinzufügen'),
-                    'title' => _('Anmelderegel hinzufügen'))) ?><?= _('Anmelderegel hinzufügen') ?></a>
+            <div style="clear: both;">
+                <a href="<?= $controller->url_for('admission/rule/configure') ?>" onclick="return STUDIP.Admission.configureRule(null, '<?= $controller->url_for('admission/rule/configure') ?>');">
+                    <?= Assets::img('icons/16/blue/add.png', array(
+                        'alt' => _('Anmelderegel hinzufügen'),
+                        'title' => _('Anmelderegel hinzufügen'))) ?><?= _('Anmelderegel hinzufügen') ?></a>
+            </div>
         </div>
     </div>
     <div class="table_row_<?= TextHelper::cycle('even', 'odd'); ?> admission_data">

@@ -40,21 +40,26 @@ class Admission_RuleAdministrationController extends AuthenticatedController {
      * Installs a new admission rule.
      */
     public function install_action() {
-        $this->check_ticket();
+        CSRFProtection::verifyUnsafeRequest();
         try {
-            $uploadFile = $_FILES['upload_file']['tmp_name'];
+            if ($this->flash['upload_file']) {
+                $uploadFile = $this->flash['upload_file'];
+            } else {
+                $uploadFile = $_FILES['upload_file']['tmp_name'];
+            }
             $ruleAdmin = new RuleAdministrationModel();
-            $ruleAdmin->install($uploadFile);
+            $ruleAdmin->install($uploadFile, $overwrite);
             $this->flash['message'] = _('Die Anmelderegel wurde erfolgreich installiert.');
-        } catch (AdmissionRuleInstallationException $ex) {
-            $this->flash['error'] = $ex->getMessage();
+            if (isset($uploadFile)) {
+                unlink($uploadFile);
+            }
+            $this->redirect('admission/ruleadministration');
+        } catch (AdmissionRuleInstallationException $e) {
+            $this->flash['error'] = $e->getMessage();
+        } catch (AdmissionRuleExistsException $ex) {
+            $this->flash['upload_file'] = $_FILES['upload_file']['tmp_name'];
+            $this->message = $ex->getMessage();
         }
-
-        if (isset($uploadFile)) {
-            unlink($uploadFile);
-        }
-
-        $this->redirect('admission/ruleadministration');
     }
 
     /**

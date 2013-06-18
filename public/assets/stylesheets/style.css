@@ -2659,6 +2659,7 @@ textarea.wiki-editor {
   margin-bottom: 5px;
   margin-left: 20px;
   margin-top: 5px;
+  clear: both;
 }
 .admissionrule_actions {
   margin-left: 10px;
