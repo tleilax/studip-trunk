@@ -7,10 +7,13 @@
 
 STUDIP.Admission = {
 
-    getCourses: function(source, targetId, targetUrl) {
+    getCourses: function(source, targetId, targetUrl, courses) {
         var query = '';
         $('.'+source+':checked').each(function(index) {
             query += '&institutes[]='+$(this).val();
+        });
+        $('#'+courses+' li.jstree-checked').each(function(index) {
+            query += '&courses[]='+$(this).attr('id');
         });
         var loading = 'Wird geladen'.toLocaleString();
         $('#'+targetId).empty();

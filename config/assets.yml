@@ -63,6 +63,9 @@ javascripts:
   settings:
     - javascripts/settings.js
 
+  tree: &tree
+    - javascripts/jquery/jstree/jquery.jstree.js
+
   dialogs: &dialogs
     - javascripts/dialogs.js
 
@@ -72,6 +75,7 @@ javascripts:
 
   admission:
     - *conditions
+    - *tree
     - javascripts/admission.js
 
 css:

@@ -49,7 +49,7 @@ $userlistIds = $courseset ? $courseset->getUserlists() : array();
                 <input type="checkbox" name="institutes[]" value="<?= $institute['Institut_id'] ?>"
                     <?= $selectedInstitutes[$institute['Institut_id']] ? 'checked="checked"' : '' ?>
                     class="institute" onclick="STUDIP.Admission.getCourses('institute', 'instcourses', 
-                    '<?= $controller->url_for('admission/courseset/instcourses', $courseset ? $courseset->getId() : '') ?>')"/>
+                    '<?= $controller->url_for('admission/courseset/instcourses', $courseset ? $courseset->getId() : '') ?>', 'tree')"/>
                     <?= $institute['Name'] ?>
                 <br/>
                 <?php } ?>
@@ -95,19 +95,7 @@ $userlistIds = $courseset ? $courseset->getUserlists() : array();
     <div class="table_row_<?= TextHelper::cycle('even', 'odd'); ?> admission_data">
         <div class="admission_label"><?= _('Veranstaltungszuordnung:') ?></div>
         <div class="admission_value" id="instcourses">
-            <?php
-            foreach ($courses as $course) {
-                $title = $course['Name'];
-                if ($course['VeranstaltungsNummer']) {
-                    $title = $course['VeranstaltungsNummer'].' | '.$title;
-                }
-                $checked = '';
-                if (in_array($course['seminar_id'], $courseIds)) {
-                    $checked = ' checked="checked"';
-                }
-            ?>
-            <input type="checkbox" name="courses[]" value="<?= $course['seminar_id'] ?>"<?= $checked ?>/> <?= $title ?><br/>
-            <?php } ?>
+            <?= $coursesTpl; ?>
         </div>
     </div>
     <div class="table_row_<?= TextHelper::cycle('even', 'odd'); ?> admission_data">

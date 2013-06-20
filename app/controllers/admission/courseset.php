@@ -44,12 +44,21 @@ class Admission_CoursesetController extends AuthenticatedController {
     }
 
     public function configure_action($coursesetId='') {
-        $this->selectedInstitutes = $this->myInstitutes;
         if ($coursesetId) {
             $this->courseset = new CourseSet($coursesetId);
             $this->selectedInstitutes = $this->courseset->getInstituteIds();
+            $allCourses = CoursesetModel::getInstCourses($this->selectedInstitutes, $coursesetId);
+            $selectedCourses = $this->courseset->getCourses();
+        } else {
+            $this->selectedInstitutes = $this->myInstitutes;
+            $allCourses = CoursesetModel::getInstCourses($this->myInstitutes, $coursesetId);
+            $selectedCourses = array();
         }
-        $this->courses = CoursesetModel::getInstCourses($this->myInstitutes, $coursesetId);
+        $fac = $this->get_template_factory();
+        $tpl = $fac->open('admission/courseset/instcourses');
+        $tpl->set_attribute('allCourses', $allCourses);
+        $tpl->set_attribute('selectedCourses', $selectedCourses);
+        $this->coursesTpl = $tpl->render();
     }
 
     public function save_action($coursesetId='') {
@@ -84,7 +93,15 @@ class Admission_CoursesetController extends AuthenticatedController {
     }
 
     public function instcourses_action($coursesetId='') {
-        $this->courses = CoursesetModel::getInstCourses(array_flip(Request::getArray('institutes')), $coursesetId);
+        $this->allCourses = CoursesetModel::getInstCourses(
+            array_flip(Request::getArray('institutes')), $coursesetId);
+        $this->selectedCourses = array();
+        if ($coursesetId && !Request::getArray('courses')) {
+            $courseset = new CourseSet($coursesetId);
+            $this->selectedCourses = $courseset->getCourses();
+        } else if (Request::getArray('courses')) {
+            $this->selectedCourses = Request::getArray('courses');
+        }
     }
 
 }
