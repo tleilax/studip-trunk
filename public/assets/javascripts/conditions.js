@@ -111,5 +111,6 @@ STUDIP.Conditions = {
     removeConditionField: function(element) {
         element.remove();
         STUDIP.Dialogs.closeConfirmDialog();
+        return false;
     }
 };

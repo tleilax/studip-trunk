@@ -14,11 +14,10 @@
             <?php foreach ($rule->getConditions() as $condition) { ?>
                 <div class="condition" id="condition_<?= $condition->getId() ?>">
                     <?= $condition->toString() ?>
-                    <a href="#" onclick="return STUDIP.Dialogs.showConfirmDialog('<?= 
-                        _('Soll die Bedingung wirklich gelöscht werden?') ?>', 
-                        'javascript:STUDIP.Admission.removeConditionField($(this.parent()))')"
+                    <a href="#" onclick="return STUDIP.Conditions.removeConditionField($(this).parent())"
                         class="conditionfield_delete">
                         <?= Assets::img('icons/16/blue/trash.png'); ?></a>
+                    <input type="hidden" name="conditions[]" value="<?= htmlentities(serialize($condition), ENT_COMPAT | ENT_HTML401, 'iso-8859-1') ?>"/>
                 </div>
             <?php } ?>
         </div>

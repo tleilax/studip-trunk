@@ -59,6 +59,12 @@ class Conditions_ConditionController extends AuthenticatedController {
         $this->condition = $condition;
     }
 
+    public function delete_action($conditionId) {
+        $condition = new StudipCondition($conditionId);
+        $condition->delete();
+        $this->render_nothing();
+    }
+
 }
 
 ?>

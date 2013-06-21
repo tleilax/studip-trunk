@@ -238,6 +238,7 @@ class ConditionalAdmission extends AdmissionRule
     public function setAllData($data) {
         ConditionField::getAvailableConditionFields();
         parent::setAllData($data);
+        $this->conditions = array();
         foreach ($data['conditions'] as $condition) {
             $this->addCondition(unserialize($condition));
         }
@@ -269,6 +270,14 @@ class ConditionalAdmission extends AdmissionRule
         $stmt->execute(array($this->id, $this->message, 
             $this->conditionsStopped, time(), time()));
         // Delete removed conditions from DB.
+        $stmt = DBManager::get()->prepare("SELECT `condition_id` FROM 
+            `admission_condition` WHERE `rule_id`=? AND `condition_id` NOT IN ('".
+            implode("', '", array_keys($this->conditions))."')");
+        $stmt->execute(array($this->id));
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $entry) {
+            $current = new StudipCondition($entry['condition_id']);
+            $current->delete();
+        }
         DBManager::get()->exec("DELETE FROM `admission_condition`
             WHERE `rule_id`='".$this->id."' AND `condition_id` NOT IN ('".
             implode("', '", array_keys($this->conditions))."')");
