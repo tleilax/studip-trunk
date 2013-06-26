@@ -44,7 +44,7 @@ class Admission_CoursesetController extends AuthenticatedController {
      * Show all coursesets the current user has access to.
      */
     public function index_action() {
-        DBManager::get()->exec("ALTER TABLE `coursesets` ADD `conjunction` TINYINT(1) NOT NULL DEFAULT 1' AFTER `algorithm_run`");
+        DBManager::get()->exec("ALTER TABLE `coursesets` ADD `conjunction` TINYINT(1) NOT NULL DEFAULT 1 AFTER `algorithm_run`");
         DBManager::get()->exec("ALTER TABLE `coursesets` DROP `invalidate_rules`");
         DBManager::get()->exec("ALTER TABLE `conditions` DROP `start_time`, DROP `end_time`");
         DBManager::get()->exec("ALTER TABLE `conditionaladmissions` DROP `conditions_stopped`");
