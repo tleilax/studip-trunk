@@ -20,6 +20,11 @@ abstract class AdmissionRule
     // --- ATTRIBUTES ---
 
     /**
+     * When does the validity end?
+     */
+    public $endTime = 0;
+
+    /**
      * A unique identifier for this rule.
      */
     public $id = '';
@@ -30,10 +35,34 @@ abstract class AdmissionRule
      */
     public $message = '';
 
+    /**
+     * When does the validity start?
+     */
+    public $startTime = 0;
+
     // --- OPERATIONS ---
 
     public function __construct($ruleId='') {
         $this->id = $ruleId;
+    }
+
+    /**
+     * Checks if we are in the rule validity time frame.
+     * 
+     * @return True if the rule is valid because the time frame applies,
+     *         otherwise false.
+     */
+    public function checkTimeFrame() {
+        $valid = true;
+        // Start time given, but still in the future.
+        if ($this->startTime && $this->startTime > time()) {
+            $valid = false;
+        }
+        // End time given, but already past.
+        if ($this->endTime && $this->endTime < time()) {
+            $valid = false;
+        }
+        return $valid;
     }
 
     /**
@@ -96,6 +125,16 @@ abstract class AdmissionRule
     }
 
     /**
+     * Get end of validity.
+     *
+     * @return Integer
+     */
+    public function getEndTime()
+    {
+        return $this->endTime;
+    }
+
+    /**
      * Subclasses of AdmissionRule can require additional data to be entered on
      * admission (like PasswordAdmission which needs a password for course
      * access). Their corresponding method getInput only returns a HTML form
@@ -152,6 +191,16 @@ abstract class AdmissionRule
     }
 
     /**
+     * Gets start of validity.
+     *
+     * @return Integer
+     */
+    public function getStartTime()
+    {
+       return $this->startTime;
+    }
+
+    /**
      * Gets the template that provides a configuration GUI for this rule.
      * 
      * @return String
@@ -180,18 +229,6 @@ abstract class AdmissionRule
     }
 
     /**
-     * Sets a new message to show to users.
-     *
-     * @param  String newMessage A new message text.
-     * @return AdmissionRule This object
-     */
-    public function setMessage($newMessage)
-    {
-        $this->message = $newMessage;
-        return $this;
-    }
-
-    /**
      * Uses the given data to fill the object values. This can be used
      * as a generic function for storing data if the concrete rule type
      * isn't known in advance.
@@ -201,6 +238,42 @@ abstract class AdmissionRule
      */
     public function setAllData($data) {
         $this->message = $data['ajax'] ? utf8_decode($data['message']) : $data['message'];
+        $this->startTime = $data['start_time'];
+        $this->endTime = $data['end_time'];
+        return $this;
+    }
+
+    /**
+     * Sets a new end time for condition validity.
+     *
+     * @param  Integer newEndTime
+     * @return StudipCondition
+     */
+    public function setEndTime($newEndTime)
+    {
+        $this->endTime = $newEndTime;
+        return $this;
+    }
+
+    /**
+     * Sets a new message to show to users.
+     *
+     * @param  String newMessage A new message text.
+     * @return AdmissionRule This object
+     */
+    public function setMessage($newMessage) {
+        $this->message = $newMessage;
+        return $this;
+    }
+
+    /**
+     * Sets a new start time for condition validity.
+     *
+     * @param  Integer newStartTime
+     * @return StudipCondition
+     */
+    public function setStartTime($newStartTime) {
+        $this->startTime = $newStartTime;
         return $this;
     }
 

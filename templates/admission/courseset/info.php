@@ -19,11 +19,6 @@
 <?php } ?>
 </ul>
 <?php if (!$short) { ?>
-    <?php if ($courseset->getInvalidateRules()) { ?>
-    <?= _('Die Anmeldebedingungen werden nach erfolgter Platzverteilung aufgehoben.') ?>
-    <br/>
-    <?php } ?>
-    <br/>
     <i><?= _("Veranstaltungszuordnung:") ?></i>
     <ul>
         <?php foreach ($courses as $course) { ?>

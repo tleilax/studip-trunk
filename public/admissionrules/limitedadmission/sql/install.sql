@@ -4,6 +4,8 @@
 CREATE TABLE IF NOT EXISTS `limitedadmissions` (
   `rule_id` varchar(32) NOT NULL,
   `message` text NOT NULL,
+  `start_time` INT(11) NOT NULL DEFAULT 0,
+  `end_time` INT(11) NOT NULL DEFAULT 0,
   `maxnumber` tinyint(11) NOT NULL DEFAULT 0,
   `mkdate` int(11) NOT NULL DEFAULT 0,
   `chdate` int(11) NOT NULL DEFAULT 0,

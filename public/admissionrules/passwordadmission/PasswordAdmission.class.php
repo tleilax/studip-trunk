@@ -126,6 +126,8 @@ class PasswordAdmission extends AdmissionRule
         $stmt->execute(array($this->id));
         if ($current = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $this->message = $current['message'];
+            $this->startTime = $current['start_time'];
+            $this->endTime = $current['end_time'];
             $this->password = $current['password'];
         }
     }
@@ -141,8 +143,12 @@ class PasswordAdmission extends AdmissionRule
      */
     public function ruleApplies($userId, $courseId)
     {
-        return $this->hasher->CheckPassword(Request::get('pwarule_password'),
+        $applies = true;
+        if ($this->checkTimeFrame()) {
+         $applies = $this->hasher->CheckPassword(Request::get('pwarule_password'),
             $this->getPassword());
+        }
+        return $applies;
     }
 
     /**
@@ -176,9 +182,11 @@ class PasswordAdmission extends AdmissionRule
     public function store() {
         // Store data.
         $stmt = DBManager::get()->prepare("INSERT INTO `passwordadmissions`
-            (`rule_id`, `message`, `password`, `mkdate`, `chdate`)
-            VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE
-            `message`=VALUES(`message`), `password`=VALUES(`password`), 
+            (`rule_id`, `message`, `start_time`, `end_time`, `password`,
+                `mkdate`, `chdate`)
+            VALUES (?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE
+            `message`=VALUES(`message`), `start_time`=VALUES(`start_time`),
+            `end_time`=VALUES(`end_time`), `password`=VALUES(`password`), 
             `chdate`=VALUES(`chdate`)");
         $stmt->execute(array($this->id, $this->message, $this->password, 
             time(), time()));

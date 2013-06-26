@@ -143,6 +143,8 @@ class LimitedAdmission extends AdmissionRule
         if ($current = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $this->courseSetId = $current['set_id'];
             $this->message = $current['message'];
+            $this->startTime = $current['start_time'];
+            $this->endTime = $current['end_time'];
             $this->maxNumber = $current['maxnumber'];
         }
     }
@@ -159,16 +161,19 @@ class LimitedAdmission extends AdmissionRule
     public function ruleApplies($userId, $courseId)
     {
         $applies = true;
-        // How many courses from this set has the user already registered for?
-        $stmt = DBManager::get()->prepare("SELECT `user_id`
-            FROM `seminar_user` WHERE `user_id`=? AND `Seminar_id` IN (
-                SELECT `Seminar_id` FROM `seminar_courseset` WHERE `set_id`=?)");
-        $stmt->execute(array($userId, $this->courseSetId));
-        $number = sizeof($stmt->fetchAll(PDO::FETCH_ASSOC));
-        // Check if the number is smaller than admission rule limit 
-        // or own user limit.
-        $applies = ($number < 
-            min($this->maxNumber, $this->getCustomMaxNumber($userId)));
+        // Check for rule validity time frame.
+        if ($this->checkTimeFrame()) {
+            // How many courses from this set has the user already registered for?
+            $stmt = DBManager::get()->prepare("SELECT `user_id`
+                FROM `seminar_user` WHERE `user_id`=? AND `Seminar_id` IN (
+                    SELECT `Seminar_id` FROM `seminar_courseset` WHERE `set_id`=?)");
+            $stmt->execute(array($userId, $this->courseSetId));
+            $number = sizeof($stmt->fetchAll(PDO::FETCH_ASSOC));
+            // Check if the number is smaller than admission rule limit 
+            // or own user limit.
+            $applies = ($number < 
+                min($this->maxNumber, $this->getCustomMaxNumber($userId)));
+        }
         return $applies;
     }
 
@@ -223,12 +228,14 @@ class LimitedAdmission extends AdmissionRule
     public function store() {
         // Store data.
         $stmt = DBManager::get()->prepare("INSERT INTO `limitedadmissions`
-            (`rule_id`, `message`, `maxnumber`, `mkdate`, `chdate`)
-            VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE
-            `message`=VALUES(`message`), `maxnumber`=VALUES(`maxnumber`),
+            (`rule_id`, `message`, `start_time`, `end_time`, `maxnumber`,
+                `mkdate`, `chdate`)
+            VALUES (?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE
+            `message`=VALUES(`message`), `start_time`=VALUES(`start_time`),
+            `end_time`=VALUES(`end_time`), `maxnumber`=VALUES(`maxnumber`),
             `chdate`=VALUES(`chdate`)");
-        $stmt->execute(array($this->id, $this->message, $this->maxNumber, 
-            time(), time()));
+        $stmt->execute(array($this->id, $this->message, $this->startTime,
+            $this->endTime, $this->maxNumber, time(), time()));
         return $this;
     }
 

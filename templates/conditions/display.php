@@ -13,20 +13,3 @@ foreach ($condition->getFields() as $field) {
 }
 echo $fieldText;
 ?>
-<?php
-$text = '';
-// Start time but no end time given.
-if ($condition->startTime && !$condition->endTime) {
-    $text = sprintf(_("gültig ab %s"), date("d.m.Y", $condition->startTime));
-// End time but no start time given.
-} else if (!$condition->startTime && $condition->endTime) {
-    $text = sprintf(_("gültig bis %s"),
-        date("d.m.Y", $condition->endTime));
-// Start and end time given.
-} else if ($condition->startTime && $condition->endTime) {
-    $text = sprintf(_("gültig von %s bis %s"),
-        date("d.m.Y", $condition->startTime), 
-        date("d.m.Y", $condition->endTime));
-}
-?>
-<?= $text ? '<br/>'.$text : '' ?>

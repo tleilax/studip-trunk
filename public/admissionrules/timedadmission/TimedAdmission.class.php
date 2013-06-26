@@ -117,15 +117,11 @@ class TimedAdmission extends AdmissionRule
      * @return String
      */
     public function getTemplate() {
-        // Open generic admission rule template.
-        $tpl = $GLOBALS['template_factory']->open('admission/rules/configure');
-        $tpl->set_attribute('rule', $this);
         $factory = new Flexi_TemplateFactory(dirname(__FILE__).'/templates/');
-        // Now open specific template for this rule and insert base template. 
-        $tpl2 = $factory->open('configure');
-        $tpl2->set_attribute('rule', $this);
-        $tpl2->set_attribute('tpl', $tpl->render());
-        return $tpl2->render();
+        // Open specific template for this rule and insert base template. 
+        $tpl = $factory->open('configure');
+        $tpl->set_attribute('rule', $this);
+        return $tpl->render();
     }
 
     /**
@@ -152,16 +148,7 @@ class TimedAdmission extends AdmissionRule
      * @return Boolean
      */
     public function ruleApplies($userId, $courseId) {
-        $applies = true;
-        // Start time given, but still in the future.
-        if ($this->startTime && $this->startTime > time()) {
-            $applies = false;
-        }
-        // End time given, but already past.
-        if ($this->endTime && $this->endTime < time()) {
-            $applies = false;
-        }
-        return $applies;
+        return $this->checkTimeFrame();
     }
 
     /**

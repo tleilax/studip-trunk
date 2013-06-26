@@ -33,6 +33,11 @@ class CourseSet
     public $algorithm = null;
 
     /**
+     * Must all admission rules be fulfilled or only one?
+     */
+    public $conjunction = true;
+
+    /**
      * IDs of courses that are aggregated into this set. The array is in the
      * form ($courseId1 => true, $courseId2 => true).
      */
@@ -57,11 +62,6 @@ class CourseSet
      * Which Stud.IP institute does the course set belong to?
      */
     public $institutes = array();
-
-    /**
-     * Should admission rules be invalidated after seat distribution?
-     */
-    public $invalidateRules = false;
 
     /**
      * Some display name for this course set.
@@ -174,7 +174,20 @@ class CourseSet
     public function checkAdmission($userId, $courseId) {
         $valid = true;
         foreach ($this->admissionRules as $rule) {
-            $valid = $valid && $rule->ruleApplies($userId, $courseId);
+            // All rules must be fulfilled.
+            if ($this->conjunction) {
+                if (!$rule->ruleApplies($userId, $courseId)) {
+                    $valid = false;
+                    break;
+                }
+            // At least one rule must be fulfilled.
+            } else {
+                $valid = false;
+                if ($rule->ruleApplies($userId, $courseId)) {
+                    $valid = true;
+                    break;
+                }
+            } 
         }
         return $valid;
     }
@@ -228,8 +241,7 @@ class CourseSet
     }
 
     /**
-     * Starts the seat distribution algorithm and invalidates admission rules
-     * afterwards, if applicable.
+     * Starts the seat distribution algorithm.
      * 
      * @return CourseSet
      */
@@ -238,15 +250,6 @@ class CourseSet
             $this->algorithm->run();
             // Mark as "seats distributed".
             $this->hasAlgorithmRun = true;
-            // Check whether some rules must be deactivated now.
-            if ($this->invalidateRules) {
-                // Check all rules that implement the "invalidate" function.
-                foreach ($this->admissionRules as $rule) {
-                    if (method_exists($rule, "invalidate")) {
-                        $rule->invalidate();
-                    }
-                }
-            }
         }
     }
 
@@ -298,6 +301,15 @@ class CourseSet
             $users = array_merge($users, $rule->getAffectedUsers());
         }
         return $sizeof($users);
+    }
+
+    /**
+     * Gets whether all admission rules must be fulfilled or not.
+     * 
+     * @return bool
+     */
+    public function getRuleConjunction() {
+        return $this->conjunction;
     }
 
     /**
@@ -363,15 +375,6 @@ class CourseSet
      */
     public function getInstituteIds() {
         return $this->institutes;
-    }
-
-    /**
-     * Should rules be invalidated after seat distribution?
-     * 
-     * @return boolean
-     */
-    public function getInvalidateRules() {
-        return $this->invalidateRules;
     }
 
     /**
@@ -443,12 +446,12 @@ class CourseSet
         if ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $this->name = $data['name'];
             $this->infoText = $data['infotext'];
-            $this->invalidateRules = (bool) $data['invalidate_rules'];
             if ($data['algorithm']) {
                 if (StudipAutoloader::loadClass($data['algorithm'])) {
                     $this->algorithm = new $data['algorithm']();
                 }
             }
+            $this->conjunction = (bool) $data['conjunction'];
         }
         // Load institute assigments.
         $stmt = DBManager::get()->prepare(
@@ -550,6 +553,16 @@ class CourseSet
     }
 
     /**
+     * Sets whether all admission rules must be fulfilled or not.
+     * 
+     * @return CourseSet
+     */
+    public function setRuleConjunction($newConjunction) {
+        $this->conjunction = $newConjunction;
+        return $this;
+    }
+
+    /**
      * Adds several institute IDs after clearing the existing institute
      * assignments.
      * 
@@ -587,17 +600,6 @@ class CourseSet
         foreach ($newIds as $newId) {
             $this->addCourse($newId);
         }
-        return $this;
-    }
-
-    /**
-     * Sets a new value for rule invalidation after seat distribution.
-     * 
-     * @param  boolean newValue
-     * @return CourseSet
-     */
-    public function setInvalidateRules($newValue) {
-        $this->invalidateRules = $newValue;
         return $this;
     }
 
@@ -641,14 +643,15 @@ class CourseSet
         // Store basic data.
         $stmt = DBManager::get()->prepare("INSERT INTO `coursesets`
             (`set_id`, `user_id`, `name`, `infotext`, `algorithm`, 
-            `invalidate_rules`, `mkdate`, `chdate`)
+            `conjunction`, `mkdate`, `chdate`)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE
             `name`=VALUES(`name`), `infotext`=VALUES(`infotext`),
             `algorithm`=VALUES(`algorithm`), 
-            `invalidate_rules`=VALUES(`invalidate_rules`),
+            `conjunction`=VALUES(`conjunction`),
             `chdate`=VALUES(`chdate`)");
         $stmt->execute(array($this->id, $user->id, $this->name, $this->infoText,
-            get_class($this->algorithm), intval($this->invalidateRules), time(), time()));
+            get_class($this->algorithm), intval($this->conjunction), time(),
+            time()));
         // Delete removed institute assignments from database.
         DBManager::get()->exec("DELETE FROM `courseset_institute` 
             WHERE `set_id`='".$this->id."' AND `institute_id` NOT IN ('".

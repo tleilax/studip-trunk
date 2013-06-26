@@ -162,6 +162,39 @@ STUDIP.Admission = {
                 '<i>'+nousers+'</i></span>');
         }
         return false;
-  }
+    },
+
+    /**
+     * Creates a tree view from the HTML list in <elementId> using the
+     * given data for special node types.
+     * 
+     * @param String elementId
+     * @param typesData JS object with tree nodes types 
+     *          (@see http://www.jstree.com/documentation/types)
+     */
+    makeTree: function(elementId, typesData) {
+        var config = {
+            'core': {
+                'animation': 100,
+                'open_parents': true,
+                'initially_open': ['root']
+            },
+            'checkbox': {
+                'real_checkboxes': true,
+                'selected_parent_open': true,
+                'override_ui': false,
+                'two_state': true
+            },
+            'plugins': [ 'html_data', 'themes', 'types', 'checkbox', 'ui' ]
+        };
+        config.types = {'types': typesData};
+        $('#'+elementId).bind('loaded.jstree', function (event, data) {
+            // Show checked checkboxes.
+            var checkedItems = $('#'+elementId).find('.jstree-checked');
+            checkedItems.removeClass('jstree-unchecked');
+            // Open parent nodes of checked nodes.
+            checkedItems.parents().each(function () { data.inst.open_node(this, false, true); });
+        }).jstree(config);
+    }
 
 };

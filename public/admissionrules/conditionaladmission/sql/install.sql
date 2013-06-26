@@ -4,7 +4,8 @@
 CREATE TABLE IF NOT EXISTS `conditionaladmissions` (
   `rule_id` varchar(32),
   `message` text NOT NULL,
-  `conditions_stopped` tinyint(1) NOT NULL DEFAULT 0,
+  `start_time` INT(11) NOT NULL DEFAULT 0,
+  `end_time` INT(11) NOT NULL DEFAULT 0,
   `mkdate` int(11) NOT NULL DEFAULT 0,
   `chdate` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`rule_id`)

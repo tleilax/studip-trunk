@@ -24,11 +24,6 @@ class StudipCondition
     // --- ATTRIBUTES ---
 
     /**
-     * When does the validity end?
-     */
-    public $endTime = 0;
-
-    /**
      * All condition fields that form this condition.
      */
     public $fields = array();
@@ -37,11 +32,6 @@ class StudipCondition
      * Unique identifier for this condition.
      */
     public $id = '';
-
-    /**
-     * When does the validity start?
-     */
-    public $startTime = 0;
 
     // --- OPERATIONS ---
 
@@ -76,19 +66,6 @@ class StudipCondition
         return $this;
     }
 
-    public function checkTimeFrame() {
-        $valid = true;
-        // Start time given, but still in the future.
-        if ($this->startTime && $this->startTime > time()) {
-            $valid = false;
-        }
-        // End time given, but already past.
-        if ($this->endTime && $this->endTime < time()) {
-            $valid = false;
-        }
-        return $valid;
-    }
-
     /**
      * Deletes the condition and all associated fields.
      */
@@ -118,16 +95,6 @@ class StudipCondition
     }
 
     /**
-     * Get end of validity.
-     *
-     * @return Integer
-     */
-    public function getEndTime()
-    {
-        return $this->endTime;
-    }
-
-    /**
      * Get all fields (without checking for validity according 
      * to the current time).
      *
@@ -149,16 +116,6 @@ class StudipCondition
     }
 
     /**
-     * Gets start of validity.
-     *
-     * @return Integer
-     */
-    public function getStartTime()
-    {
-       return $this->startTime;
-    }
-
-    /**
      * Is the current condition fulfilled (that means, are all 
      * required field values matched)?
      * 
@@ -166,13 +123,10 @@ class StudipCondition
      */
     public function isFulfilled($userId) {
         $fulfilled = true;
-        // If we are not in specified time frame, we needn't check any further.
-        if ($this->checkTimeFrame()) {
-            // Check all fields.
-            foreach ($this->fields as $field) {
-                $fulfilled = $fulfilled && 
-                    $field->checkValue($field->getUserValues($userId));
-            }
+        // Check all fields.
+        foreach ($this->fields as $field) {
+            $fulfilled = $fulfilled && 
+                $field->checkValue($field->getUserValues($userId));
         }
         return $fulfilled;
     }
@@ -187,8 +141,6 @@ class StudipCondition
         $stmt->execute(array($this->id));
         if ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $this->id = $data['condition_id'];
-            $this->startTime = $data['start_time'];
-            $this->endTime = $data['end_time'];
             // Load the associated condition fields.
             $stmt = DBManager::get()->prepare(
                 "SELECT `field_id`, `type` FROM `conditionfields`
@@ -221,30 +173,6 @@ class StudipCondition
     }
 
     /**
-     * Sets a new end time for condition validity.
-     *
-     * @param  Integer newEndTime
-     * @return StudipCondition
-     */
-    public function setEndTime($newEndTime)
-    {
-        $this->endTime = $newEndTime;
-        return $this;
-    }
-
-    /**
-     * Sets a new start time for condition validity.
-     *
-     * @param  Integer newStartTime
-     * @return StudipCondition
-     */
-    public function setStartTime($newStartTime)
-    {
-        $this->startTime = $newStartTime;
-        return $this;
-    }
-
-    /**
      * Stores data to DB.
      */
     public function store() {
@@ -259,12 +187,10 @@ class StudipCondition
         }
         // Store condition data.
         $stmt = DBManager::get()->prepare("INSERT INTO `conditions` 
-            (`condition_id`, `start_time`, `end_time`, `mkdate`, `chdate`)  
-            VALUES (?, ?, ?, ?, ?) 
-            ON DUPLICATE KEY UPDATE `start_time`=VALUES(`start_time`), 
-            `end_time`=VALUES(`end_time`),`chdate`=VALUES(`chdate`)");
-        $stmt->execute(array($this->id, $this->startTime, $this->endTime, 
-            time(), time()));
+            (`condition_id`, `mkdate`, `chdate`)  
+            VALUES (?, ?, ?) 
+            ON DUPLICATE KEY UPDATE `chdate`=VALUES(`chdate`)");
+        $stmt->execute(array($this->id, time(), time()));
         // Delete removed condition fields from DB.
         DBManager::get()->exec("DELETE FROM `conditionfields` 
             WHERE `condition_id`='".$this->id."' AND `field_id` NOT IN ('".

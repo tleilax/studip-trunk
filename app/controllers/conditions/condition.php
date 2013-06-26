@@ -42,20 +42,6 @@ class Conditions_ConditionController extends AuthenticatedController {
                 $condition->addField($field);
             }
         }
-        $startdate = Request::get('startdate');
-        if ($startdate) {
-            $starttime = Request::get('starttime', '00:00');
-            $parsed = date_parse($startdate.' '.$starttime);
-            $timestamp = mktime($parsed['hour'], $parsed['minute'], 0, $parsed['month'], $parsed['day'], $parsed['year']);
-            $condition->setStartTime($timestamp);
-        }
-        $enddate = Request::get('enddate');
-        if ($enddate) {
-            $endtime = Request::get('endhour', '23:59');
-            $parsed = date_parse($enddate.' '.$endtime);
-            $timestamp = mktime($parsed['hour'], $parsed['minute'], 0, $parsed['month'], $parsed['day'], $parsed['year']);
-            $condition->setEndTime($timestamp);
-        }
         $this->condition = $condition;
     }
 

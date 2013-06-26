@@ -1,4 +1,4 @@
-<div id="tree">
+<div id="courselist">
     <ul>
     <?php
     foreach ($allCourses as $semesterId => $semester) {
@@ -27,47 +27,34 @@
     </ul>
     <script>
         $(function() {
-            $('#tree').bind('loaded.jstree', function (event, data) {
+            $('#courselist').bind('loaded.jstree', function (event, data) {
                 // Show checked checkboxes.
-                var checkedItems = $('#tree').find('.jstree-checked');
+                var checkedItems = $('#courselist').find('.jstree-checked');
                 checkedItems.removeClass('jstree-unchecked');
                 // Open parent nodes of checked nodes.
                 checkedItems.parents().each(function () { data.inst.open_node(this, false, true); });
                 // Hide checkbox on all non-courses.
                 $(this).find('li[rel!=course]').find('.jstree-checkbox:first').hide();
-            }).jstree({
-                'core': {
-                    'animation': 100,
-                    'open_parents': true
-                },
-                'checkbox': {
-                    'real_checkboxes': true,
-                    'selected_parent_open': true,
-                    'override_ui': false,
-                    'two_state': true
-                },
-                'types': {
-                    'types': {
-                        'default': {
-                            'select_node': function(event) {
-                                this.toggle_node(event);
-                                return false;
-                            }
-                        },
-                        'semester': {
-                            'icon': {
-                                'image': '<?= Assets::image_path('icons/16/blue/group.png')?>'
-                            }
-                        },
-                        'course': {
-                            'icon': {
-                                'image': '<?= Assets::image_path('icons/16/blue/seminar.png')?>'
-                            }
-                        }
+            });
+            var types = {
+                'default': {
+                    'select_node': function(event) {
+                        this.toggle_node(event);
+                        return false;
                     }
                 },
-                'plugins': [ 'html_data', 'themes', 'types', 'checkbox', 'ui' ]
-            });
+                'semester': {
+                    'icon': {
+                        'image': STUDIP.ASSETS_URL+'images/icons/16/blue/group.png'
+                    }
+                },
+                'course': {
+                    'icon': {
+                        'image': STUDIP.ASSETS_URL+'images/icons/16/blue/course.png'
+                    }
+                }
+            };
+            STUDIP.Admission.makeTree('courselist', types);
         });
     </script>
 </div>

@@ -45,17 +45,67 @@ $userlistIds = $courseset ? $courseset->getUserlists() : array();
         <div class="admission_label"><?= _('Einrichtungszuordnung:') ?></div>
         <div class="admission_value">
             <?php if ($myInstitutes) { ?>
-                <?php foreach ($myInstitutes as $institute) { ?>
-                <input type="checkbox" name="institutes[]" value="<?= $institute['Institut_id'] ?>"
-                    <?= $selectedInstitutes[$institute['Institut_id']] ? 'checked="checked"' : '' ?>
-                    class="institute" onclick="STUDIP.Admission.getCourses('institute', 'instcourses', 
-                    '<?= $controller->url_for('admission/courseset/instcourses', $courseset ? $courseset->getId() : '') ?>', 'tree')"/>
-                    <?= $institute['Name'] ?>
-                <br/>
+                <?php if ($rangeTreeTpl) { ?>
+                    <div id="institutes">
+                        <ul>
+                            <?= $rangeTreeTpl ?>
+                        </ul> 
+                        <script>
+                            $(function() {
+                                $('#institutes').bind('loaded.jstree', function (event, data) {
+                                    // Show checked checkboxes.
+                                    var checkedItems = $('#institutes').find('.jstree-checked');
+                                    checkedItems.removeClass('jstree-unchecked');
+                                    // Open parent nodes of checked nodes.
+                                    checkedItems.parents().each(function () { data.inst.open_node(this, false, true); });
+                                    // Hide checkbox on all non-courses.
+                                    $(this).find('li[rel!=studip_object]').find('.jstree-checkbox:first').hide();
+                                }).bind('change_state.jstree', function(event, data) {
+                                    STUDIP.Admission.getCourses('institute', 'instcourses', 
+                                        '<?= $controller->url_for('admission/courseset/instcourses', 
+                                        $courseset ? $courseset->getId() : '') ?>', 'courselist');
+                                });
+                                var types = {
+                                    'default': {
+                                        'select_node': function(event) {
+                                            this.toggle_node(event);
+                                            return false;
+                                        }
+                                    },
+                                    'tree_level': {
+                                        'icon': {
+                                            'image': STUDIP.ASSETS_URL+'images/icons/16/blue/group.png'
+                                        }
+                                    },
+                                    'studip_object': {
+                                        'icon': {
+                                            'image': STUDIP.ASSETS_URL+'images/icons/16/blue/institute.png'
+                                        }
+                                    }
+                                };
+                                STUDIP.Admission.makeTree('institutes', types);
+                            });
+                        </script>
+                    </div>
+                <?php } else { ?>
+                    <?php foreach ($myInstitutes as $institute) { ?>
+                    <input type="checkbox" name="institutes[]" value="<?= $institute['Institut_id'] ?>"
+                        <?= $selectedInstitutes[$institute['Institut_id']] ? 'checked="checked"' : '' ?>
+                        class="institute" onclick="STUDIP.Admission.getCourses('institute', 'instcourses', 
+                        '<?= $controller->url_for('admission/courseset/instcourses', $courseset ? $courseset->getId() : '') ?>', 'courselist')"/>
+                        <?= $institute['Name'] ?>
+                    <br/>
+                    <?php } ?>
                 <?php } ?>
             <?php } else { ?>
                 <i><?=  _('Sie sind keiner Einrichtung zugeordnet.') ?></i>
             <?php } ?>
+        </div>
+    </div>
+    <div class="table_row_<?= TextHelper::cycle('even', 'odd'); ?> admission_data">
+        <div class="admission_label"><?= _('Veranstaltungszuordnung:') ?></div>
+        <div class="admission_value" id="instcourses">
+            <?= $coursesTpl; ?>
         </div>
     </div>
     <div class="table_row_<?= TextHelper::cycle('even', 'odd'); ?> admission_data">
@@ -82,20 +132,20 @@ $userlistIds = $courseset ? $courseset->getUserlists() : array();
         </div>
     </div>
     <div class="table_row_<?= TextHelper::cycle('even', 'odd'); ?> admission_data">
-        <div class="admission_label"></div>
+        <div class="admission_label">
+            <?= _("Wie werden die Anmelderegeln ausgewertet?") ?>
+        </div>
         <div class="admission_value">
             <?php
                 // Set checkbox accordingly to courseset status or to unchecked if new courseset.
-                $checked = $courseset ? ($courseset->getInvalidateRules() ? ' checked="checked"' : '') : '';
+                $andSelected = $courseset ? ($courseset->getRuleConjunction() ? ' checked="checked"' : '') : ' selected="selected"';
+                $orSelected = $courseset ? ($courseset->getRuleConjunction() ? '' : ' checked="checked"') : '';
             ?>
-            <input type="checkbox" name="invalidate"<?= $checked ?>/>
-            <?= _('Anmeldebedingungen werden nach erfolgter Platzverteilung aufgehoben') ?>
-        </div>
-    </div>
-    <div class="table_row_<?= TextHelper::cycle('even', 'odd'); ?> admission_data">
-        <div class="admission_label"><?= _('Veranstaltungszuordnung:') ?></div>
-        <div class="admission_value" id="instcourses">
-            <?= $coursesTpl; ?>
+            <input type="radio" name="conjunction" value="1"<?= $andSelected ?>/>
+            <?= _('Alle Anmelderegeln müssen erfüllt sein') ?>
+            <br/>
+            <input type="radio" name="conjunction" value="0"<?= $orSelected ?>/>
+            <?= _('Mindestens eine Anmelderegel muss erfüllt sein') ?>
         </div>
     </div>
     <div class="table_row_<?= TextHelper::cycle('even', 'odd'); ?> admission_data">

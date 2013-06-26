@@ -51,6 +51,8 @@ class Step00240CourseSets extends Migration
         $db->exec("CREATE TABLE IF NOT EXISTS `conditionaladmissions` (
                 `rule_id` VARCHAR(32) NOT NULL ,
                 `message` TEXT NULL ,
+                `start_time` INT NOT NULL DEFAULT 0,
+                `end_time` INT NOT NULL DEFAULT 0,
                 `mkdate` INT NOT NULL DEFAULT 0,
                 `conditions_stopped` TINYINT(1) NOT NULL DEFAULT 0 ,
                 `chdate` INT NULL ,
@@ -72,8 +74,6 @@ class Step00240CourseSets extends Migration
         // conditions for admission
         $db->exec("CREATE TABLE IF NOT EXISTS `conditions` (
                 `condition_id` VARCHAR(32) NOT NULL ,
-                `start_time` INT NOT NULL DEFAULT 0,
-                `end_time` INT NOT NULL DEFAULT 0,
                 `mkdate` INT NOT NULL DEFAULT 0,
                 `chdate` INT NOT NULL DEFAULT 0,
             PRIMARY KEY (`condition_id`) )
@@ -113,8 +113,8 @@ class Step00240CourseSets extends Migration
                 `name` VARCHAR(255) NOT NULL ,
                 `infotext` TEXT NOT NULL ,
                 `algorithm` VARCHAR(255) NOT NULL ,
-                `algorithm_run` TINYINT NULL DEFAULT 0 ,
-                `invalidate_rules` TINYINT NOT NULL DEFAULT 0 ,
+                `algorithm_run` TINYINT(1) NOT NULL DEFAULT 0 ,
+                `conjunction` TINYINT(1) NOT NULL DEFAULT 1 ,
                 `mkdate` INT NOT NULL ,
                 `chdate` INT NOT NULL ,
             PRIMARY KEY (`set_id`) ,
@@ -126,6 +126,8 @@ class Step00240CourseSets extends Migration
         $db->exec("CREATE TABLE IF NOT EXISTS `limitedadmissions` (
                 `rule_id` VARCHAR(32) NOT NULL ,
                 `message` TEXT NOT NULL ,
+                `start_time` INT NOT NULL DEFAULT 0,
+                `end_time` INT NOT NULL DEFAULT 0,
                 `maxnumber` INT NOT NULL DEFAULT 0,
                 `mkdate` INT NOT NULL DEFAULT 0,
                 `chdate` INT NOT NULL DEFAULT 0,
@@ -145,6 +147,8 @@ class Step00240CourseSets extends Migration
         $db->exec("CREATE TABLE IF NOT EXISTS `passwordadmissions` (
                 `rule_id` VARCHAR(32) NOT NULL ,
                 `message` TEXT NULL ,
+                `start_time` INT NOT NULL DEFAULT 0,
+                `end_time` INT NOT NULL DEFAULT 0,
                 `password` VARCHAR(255) NULL ,
                 `mkdate` INT NOT NULL DEFAULT 0,
                 `chdate` INT NOT NULL DEFAULT 0,
