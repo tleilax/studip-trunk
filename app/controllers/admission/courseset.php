@@ -44,13 +44,6 @@ class Admission_CoursesetController extends AuthenticatedController {
      * Show all coursesets the current user has access to.
      */
     public function index_action() {
-        DBManager::get()->exec("ALTER TABLE `coursesets` ADD `conjunction` TINYINT(1) NOT NULL DEFAULT 1 AFTER `algorithm_run`");
-        DBManager::get()->exec("ALTER TABLE `coursesets` DROP `invalidate_rules`");
-        DBManager::get()->exec("ALTER TABLE `conditions` DROP `start_time`, DROP `end_time`");
-        DBManager::get()->exec("ALTER TABLE `conditionaladmissions` DROP `conditions_stopped`");
-        DBManager::get()->exec("ALTER TABLE `conditionaladmissions` ADD `start_time` INT( 11 ) NOT NULL DEFAULT '0' AFTER `message`, ADD `end_time` INT( 11 ) NOT NULL DEFAULT '0' AFTER `start_time`");
-        DBManager::get()->exec("ALTER TABLE `limitedadmissions` ADD `start_time` INT( 11 ) NOT NULL DEFAULT '0' AFTER `message`, ADD `end_time` INT( 11 ) NOT NULL DEFAULT '0' AFTER `start_time`");
-        DBManager::get()->exec("ALTER TABLE `lockedadmissions` ADD `start_time` INT( 11 ) NOT NULL DEFAULT '0' AFTER `message`, ADD `end_time` INT( 11 ) NOT NULL DEFAULT '0' AFTER `start_time`");
         $this->coursesets = array();
         foreach ($this->myInstitutes as $institute) {
             $sets = CourseSet::getCoursesetsByInstituteId($institute['Institut_id']);
