@@ -50,7 +50,7 @@
                 },
                 'course': {
                     'icon': {
-                        'image': STUDIP.ASSETS_URL+'images/icons/16/blue/course.png'
+                        'image': STUDIP.ASSETS_URL+'images/icons/16/blue/seminar.png'
                     }
                 }
             };
