@@ -51,7 +51,7 @@ class ConditionalAdmission extends AdmissionRule
     /**
      * Adds a new StudipCondition to this rule.
      *
-     * @param  String conditionId
+     * @param  StudipCondition condition
      * @return ConditionalAdmission
      */
     public function addCondition($condition)
