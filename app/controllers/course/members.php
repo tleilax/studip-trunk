@@ -16,7 +16,6 @@
 
 require_once 'app/controllers/authenticated_controller.php';
 require_once 'app/models/members.php';
-require_once 'app/models/user.php';
 require_once 'lib/messaging.inc.php'; //Funktionen des Nachrichtensystems
 
 require_once 'lib/admission.inc.php'; //Funktionen der Teilnehmerbegrenzung
@@ -132,7 +131,7 @@ class Course_MembersController extends AuthenticatedController {
 
 
         $this->sort_by = Request::option('sortby', 'nachname');
-        $this->order = Request::option('order', 'asc');
+        $this->order = Request::option('order', 'desc');
         $this->sort_status = Request::get('sort_status');
         $this->page = $page;
 
@@ -185,7 +184,7 @@ class Course_MembersController extends AuthenticatedController {
                         'subject' => $this->subject,
                         'filter' => 'all',
                         'emailrequest' => 1)), _('Nachricht an alle (Rundmail)'));
-            $this->addToInfobox(_('Aktionen'), $link, 'icons/16/blue/inbox.png');
+            $this->addToInfobox(_('Aktionen'), $link, 'icons/16/black/inbox.png');
             
             if (get_config('EXPORT_ENABLE') AND $perm->have_studip_perm("tutor", $this->course_id)) {
                 include_once($PATH_EXPORT . "/export_linking_func.inc.php");
@@ -203,8 +202,8 @@ class Course_MembersController extends AuthenticatedController {
                                 htmlReady($this->course_title)), 'rtf', 'rtf-teiln', '',
                         _('TeilnehmerInnen exportieren als rtf Dokument'),
                         'passthrough');
-                $this->addToInfobox(_('Aktionen'), $csvExport, 'icons/16/blue/file-office.png');
-                $this->addToInfobox(_('Aktionen'), $rtfExport, 'icons/16/blue/file-text.png');
+                $this->addToInfobox(_('Aktionen'), $csvExport, 'icons/16/black/export/file-office.png');
+                $this->addToInfobox(_('Aktionen'), $rtfExport, 'icons/16/black/export/file-text.png');
                 
                 if(count($this->awaiting) > 0) {
                     $awaiting_rtf = export_link($this->course_id, "person", sprintf('%s %s', _("Warteliste"), $this->course_title), 
@@ -215,8 +214,8 @@ class Course_MembersController extends AuthenticatedController {
                             "csv", "csv-warteliste", "awaiting", _("Warteliste exportieren als csv Dokument"), 
                             'passthrough');
                     
-                    $this->addToInfobox(_('Aktionen'), $awaiting_csv, 'icons/16/blue/file-office.png');
-                    $this->addToInfobox(_('Aktionen'), $awaiting_rtf, 'icons/16/blue/file-text.png'); 
+                    $this->addToInfobox(_('Aktionen'), $awaiting_csv, 'icons/16/black/export/file-office.png');
+                    $this->addToInfobox(_('Aktionen'), $awaiting_rtf, 'icons/16/black/export/file-text.png'); 
                 }
             }
         }
@@ -596,6 +595,7 @@ class Course_MembersController extends AuthenticatedController {
             $this->flash['consider_contingent'] = Request::get('consider_contingent');
 
             $this->redirect('course/members/add_member');
+            return;
         }
         
         if (Request::submitted('reset_autor') && Request::submitted('reset_autor_x')) {

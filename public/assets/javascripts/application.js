@@ -61,7 +61,9 @@ jQuery('a[rel~="lightbox"]').live('click', function (event) {
         jQuery('a[rel~="option"]', this).remove().each(function () {
             var label = jQuery(this).text(),
                 href  = jQuery(this).attr('href');
-            buttons[label] = function () { location.href = href; };
+            buttons[label] = function () { 
+                location.href = href;
+            };
         });
         buttons["Schliessen".toLocaleString()] = function () {
             jQuery(this).dialog('close');
@@ -181,6 +183,35 @@ jQuery(function ($) {
 
 });
 
+/* ------------------------------------------------------------------------
+ * Toggle dates in seminar_main
+ * ------------------------------------------------------------------------ */
+(function ($) {
+    $('.more-dates').live('click', function () {
+        $('.more-dates-infos').toggle();
+        $('.more-dates-digits').toggle();
+        if ($('.more-dates-infos').is(':visible')) {
+            $('.more-dates').text('(weniger)');
+            $('.more-dates').attr('title', 'Blenden Sie die restlichen Termine aus');
+        } else {
+            $('.more-dates').text('(mehr)');
+            $('.more-dates').attr('title', 'Blenden Sie die restlichen Termine ein');
+        }
+    });
+    
+    $('.more-location-dates').live('click', function () {
+        $(this).closest('div').prev().toggle();
+        $(this).prev().toggle();
+        
+        if ($(this).closest('div').prev().is(':visible')) {
+            $(this).text('(weniger)');
+            $(this).attr('title', 'Blenden Sie die restlichen Termine aus');
+        } else {
+            $(this).text('(mehr)');
+            $(this).attr('title', 'Blenden Sie die restlichen Termine ein');
+        }
+    });
+}(jQuery));
 
 /* ------------------------------------------------------------------------
  * only numbers in the input field
@@ -231,7 +262,7 @@ jQuery(function ($) {
 
 /* German translation for the jQuery Timepicker Addon */
 /* Written by Marvin */
-(function($) {
+(function ($) {
     $.timepicker.regional.de = {
         timeOnlyTitle: 'Zeit wählen',
         timeText: 'Zeit',
@@ -248,7 +279,7 @@ jQuery(function ($) {
         isRTL: false
     };
     $.timepicker.setDefaults($.timepicker.regional.de);
-})(jQuery);
+}(jQuery));
 
 
 jQuery(function ($) {
@@ -274,19 +305,19 @@ jQuery(function ($) {
 /* Secure textareas by displaying a warning on page unload if there are
    unsaved changes */
 (function ($) {
-    function securityHandler (event) {
-        var message = 'Ihre Eingaben wurden bislang noch nicht gespeichert.'.toLocaleString(),
-            event   = event || window.event || {};
+    function securityHandler(event) {
+        var message = 'Ihre Eingaben wurden bislang noch nicht gespeichert.'.toLocaleString();
+        event = event || window.event || {};
         event.returnValue = message;
         return message;
-    };
-    function submissionHandler () {
-        $(window).off('beforeunload', securityHandler)
-    };
+    }
+    function submissionHandler() {
+        $(window).off('beforeunload', securityHandler);
+    }
 
     $(document).on('change keyup', 'textarea[data-secure]', function () {
         var secured  = $(this).data('secured'),
-            changed  = (this.value != this.defaultValue),
+            changed  = (this.value !== this.defaultValue),
             action   = null;
 
         if (changed && !secured) {
@@ -308,3 +339,14 @@ jQuery(function ($) {
         }
     });
 }(jQuery));
+
+/* Copies a value from a select to another element*/
+jQuery(document).on('change', 'select[data-copy-to]', function () {
+    var target = jQuery(this).data().copyTo,
+        value  = jQuery(this).val() || jQuery(target).prop('defaultValue');
+    jQuery(target).val(value);
+});
+
+jQuery(document).ready(function ($) {
+    $('#checkAll').attr('checked', $('.sem_checkbox:checked').length !== 0);
+});

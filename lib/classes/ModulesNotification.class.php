@@ -304,7 +304,7 @@ class ModulesNotification extends Modules {
                     if ($sem_class['studygroup_mode']) {
                         $redirect = '&redirect_to=dispatch.php/course/studygroup/members/';
                     } else {
-                        $redirect = '&redirect_to=dispatch.php/course/member/index';
+                        $redirect = '&redirect_to=dispatch.php/course/members/index';
                     }
                     $icon = "icons/16/blue/persons.png";
                 }
@@ -360,7 +360,7 @@ class ModulesNotification extends Modules {
                 if ($r_data['neuscmcontent']) {
                     $text = sprintf(_("Die Seite \"%s\" wurde neu angelegt oder bearbeitet:"), $r_data['scmtabname']);
                 }
-                $redirect = '&redirect_to=scm.php';
+                $redirect = '&redirect_to=dispatch.php/course/scm';
                 $icon = "icons/16/blue/infopage.png";
                 break;
             case 'votes' :

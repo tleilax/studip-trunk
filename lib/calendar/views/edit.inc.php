@@ -720,7 +720,7 @@ else {
 
 if ($editor_id = $_calendar->event->getEditorId()) {
     echo "<tr><td>";
-    echo sprintf(_("Termin geändert am %s von %s"), get_fullname($editor_id), strftime('%c', $_calendar->event->properties['LAST-MODIFIED']));
+    echo sprintf(_("Termin geändert am %s von %s"), strftime('%x %X', $_calendar->event->properties['LAST-MODIFIED']), get_fullname($editor_id));
     echo "</td></tr>";
 }
 
@@ -731,7 +731,7 @@ if ($termin_id) {
     } else {
         $info_box['export_link'] = URLHelper::getLink('', array('cmd' => 'export', 'expmod' => 'exp_direct', 'termin_id' => $_calendar->event->getId()));
     }
-    $info_box['export'] = array('icon' => 'icons/16/black/date.png',
+    $info_box['export'] = array('icon' => 'icons/16/black/export/date.png',
         'text' => sprintf(_("Diesen Termin einzeln %sexportieren%s."), "<a href=\"{$info_box['export_link']}\">", "</a>"));
 }
 

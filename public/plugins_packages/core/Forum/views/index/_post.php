@@ -6,7 +6,7 @@
 <form method="post" data-topicid="<?= $post['topic_id'] ?>" action="<?= PluginEngine::getLink('coreforum/index/update_entry/' . $post['topic_id']) ?>">
     <?= CSRFProtection::tokenTag() ?>
     
-<div class="posting<?= $highlight_topic == $post['topic_id'] ? ' highlight' : '' ?>" style="position: relative;" >
+<div class="posting<?= $highlight_topic == $post['topic_id'] ? ' highlight' : '' ?>" style="position: relative;" id="forumposting_<?= htmlReady($post['topic_id']) ?>">
     <span class="corners-top"><span></span></span>
 
     <a class="marked" href="<?= PluginEngine::getLink('coreforum/index/unset_favorite/'. $post['topic_id']) ?>"
@@ -17,6 +17,18 @@
 
     <div class="postbody">
         <div class="title">
+
+            <div class="small_screen" style="margin-bottom: 5px">
+                <a href="<?= URLHelper::getLink('about.php?username='. get_username($post['owner_id'])) ?>">
+                    <?= Avatar::getAvatar($post['owner_id'])->getImageTag(Avatar::SMALL,
+                        array('title' => get_username($post['owner_id']))) ?>
+
+                    <?= get_fullname($post['owner_id']) ?>,
+                    <?= strftime($time_format_string_short, (int)$post['mkdate']) ?>
+                </a>
+
+                <br>
+            </div>
 
             <? if ($post['depth'] < 3) : ?>  
             <span data-edit-topic="<?= $post['topic_id'] ?>" <?= Request::get('edit_posting') == $post['topic_id'] ? '' : 'style="display: none;"' ?>>

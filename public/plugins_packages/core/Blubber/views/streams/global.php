@@ -17,7 +17,7 @@
 <input type="hidden" id="last_check" value="<?= time() ?>">
 <input type="hidden" id="base_url" value="plugins.php/blubber/streams/">
 <input type="hidden" id="user_id" value="<?= htmlReady($GLOBALS['user']->id) ?>">
-<input type="hidden" id="stream" value="all">
+<input type="hidden" id="stream" value="global">
 <input type="hidden" id="stream_time" value="<?= time() ?>">
 <input type="hidden" id="search" value="<?= htmlReady($search) ?>">
 <input type="hidden" id="browser_start_time" value="">
@@ -33,7 +33,7 @@
             <?= Assets::img("icons/32/blue/group3", array('class' => "private")) ?>
             <?= Assets::img("icons/32/blue/seminar", array('class' => "seminar")) ?>
         </div>
-        <textarea style="margin-top: 7px;" id="new_posting" placeholder="<?= _("Schreib was, frag was.") ?>" aria-label="<?= _("Schreib was, frag was.") ?>"><?= ($search ? htmlReady($search)." " : "").(Request::get("mention") ? "@".htmlReady(Request::username("mention")).", " : "") ?></textarea>
+        <textarea style="margin-top: 7px;" id="new_posting" placeholder="<?= _("Schreib was, frag was.") ?>" aria-label="<?= _("Schreib was, frag was.") ?>"><?= ($search ? htmlReady("#".$search)." " : "").(Request::get("mention") ? "@".htmlReady(Request::username("mention")).", " : "") ?></textarea>
     </div>
     <div id="context_selector_title" style="display: none;"><?= _("Kontext auswählen") ?></div>
     <div id="context_selector" style="display: none;">
@@ -59,7 +59,7 @@
                 <tr>
                     <td colspan="3"><hr></td>
                 </tr>
-                <tr onMousedown="$('#context_type').val('private'); $('#threadwriter .context_selector').removeAttr('class').addClass('private context_selector'); $(this).parent().find('.selected').removeClass('selected'); $(this).addClass('selected'); ">
+                <tr onMousedown="jQuery('#context_type').val('private'); jQuery('#threadwriter .context_selector').removeAttr('class').addClass('private context_selector'); jQuery(this).parent().find('.selected').removeClass('selected'); jQuery(this).addClass('selected'); ">
                     <td style="text-align: center;">
                         <label>
                             <?= Assets::img("icons/32/black/group3", array('class' => "text-bottom")) ?>
@@ -93,7 +93,7 @@
                 <tr>
                     <td colspan="3"><hr></td>
                 </tr>
-                <tr onMousedown="$('#context_type').val('course'); $('#threadwriter .context_selector').removeAttr('class').addClass('seminar context_selector'); $(this).parent().find('.selected').removeClass('selected'); $(this).addClass('selected'); ">
+                <tr onMousedown="jQuery('#context_type').val('course'); jQuery('#threadwriter .context_selector').removeAttr('class').addClass('seminar context_selector'); jQuery(this).parent().find('.selected').removeClass('selected'); jQuery(this).addClass('selected'); ">
                     <td style="text-align: center;">
                         <label>
                             <?= Assets::img("icons/32/black/seminar", array('class' => "text-bottom")) ?>
@@ -132,7 +132,7 @@
 
 
 <div id="context_background">
-<ul id="forum_threads" class="globalstream" aria-live="polite" aria-relevant="additions">
+<ul id="blubber_threads" class="globalstream" aria-live="polite" aria-relevant="additions">
     <? foreach ($threads as $thread) : ?>
     <?= $this->render_partial("streams/thread.php", array('thread' => $thread)) ?>
     <? endforeach ?>
@@ -143,6 +143,11 @@
 </div>
 
 <?
+
+$tagcloud = "";
+foreach ($favourite_tags as $tag) {
+    $tagcloud .= '<a href="'.URLHelper::getLink("plugins.php/blubber/streams/global", array('hash' => $tag)).'">'.htmlReady("#". $tag).'</a> ';
+}
 
 $infobox = array(
     array("kategorie" => _("Informationen"),
@@ -178,9 +183,22 @@ $infobox = array(
             array(
                 "icon" => "icons/16/black/person",
                 "text" => _("Erwähne jemanden mit @username oder @\"Vorname Nachname\". Diese Person wird dann speziell auf Deinen Blubber hingewiesen.")
+            ),
+            array(
+                "icon" => "icons/16/black/hash",
+                "text" => sprintf(_("Schreibe %s#Hashtags%s in Blubber und Kommentare."), '<a href="'.URLHelper::getLink("plugins.php/blubber/streams/global", array('hash' => "hashtags")).'">', "</a>")
             )
         )
-    )
+    ),
+    array("kategorie" => _("Beliebte #Hashtags"),
+          "eintrag"   =>
+        array(
+            array(
+                "icon" => "icons/16/black/link-intern",
+                "text" => $tagcloud
+            )
+        )
+    ),
 );
 $infobox = array(
     'picture' => $assets_url . "/images/foam.png",

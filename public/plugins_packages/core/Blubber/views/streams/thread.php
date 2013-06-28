@@ -44,7 +44,7 @@ $commentable = $GLOBALS['perm']->have_perm("autor") ? true : (bool) $commentable
     </a>
 </p>
 
-<ul id="forum_threads" class="coursestream singlethread" aria-live="polite" aria-relevant="additions">
+<ul id="blubber_threads" class="coursestream singlethread" aria-live="polite" aria-relevant="additions">
 <? endif; ?>
 <li id="posting_<?= htmlReady($thread->getId()) ?>" mkdate="<?= htmlReady($thread['discussion_time']) ?>" class="thread posting<?= $last_visit < $thread['mkdate'] ? " new" : "" ?>" data-autor="<?= htmlReady($thread['user_id']) ?>">
     <div class="hiddeninfo">
@@ -122,6 +122,12 @@ $commentable = $GLOBALS['perm']->have_perm("autor") ? true : (bool) $commentable
             ?>
             <?= BlubberPosting::format($content) ?>
         </div>
+        <div class="additional_tags"><? foreach ($thread->getTags() as $tag) : ?>
+            <? if (stripos($content, "#".$tag) === false) : ?>
+            <? $link = $thread['context_type'] === "course" ? URLHelper::getLink("plugins.php/blubber/streams/forum", array('cid' => $thread['Seminar_id'], 'hash' => $tag)) : URLHelper::getLink("plugins.php/blubber/streams/global", array('hash' => $tag)) ?>
+            <a href="<?= $link ?>"><?= htmlReady("#".$tag) ?></a>
+            <? endif ?>
+        <? endforeach ?></div>
     </div>
     <ul class="comments">
     <? $postings = $thread->getChildren() ?>

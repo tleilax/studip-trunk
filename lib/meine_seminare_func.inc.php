@@ -387,7 +387,7 @@ function get_my_obj_values (&$my_obj, $user_id, $modules = NULL)
                 $my_obj[$object_id]['last_modified'] = $db2->f('last_modified');
             }
 
-            $nav = new Navigation('scm', 'scm.php');
+            $nav = new Navigation('scm', 'dispatch.php/course/scm');
 
             if ($db2->f('count')) {
                 if ($db2->f('neue')) {
@@ -661,7 +661,7 @@ function get_my_obj_values (&$my_obj, $user_id, $modules = NULL)
                 } else {
                     $nav = new Navigation('participants', 'dispatch.php/course/members/index');
                 }
-                $nav->setImage('icons/16/grey/persons.png', array('title' => sprintf(_('%s TeilnehmerInnen'), $count)));
+                $nav->setImage('icons/16/grey/persons.png', array('title' => _('TeilnehmerInnen')));
                 $my_obj[$object_id]['participants'] = $nav;
             }
         }

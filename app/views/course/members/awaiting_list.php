@@ -23,17 +23,18 @@
                     <a href="<?= URLHelper::getLink('sms_send.php',
                             array('sms_source_page' => 'dispatch.php/course/members?cid=' . $course_id,
                                 'course_id' => $course_id,
-                                'subject' => $subject))
-                    ?>">
+                                'subject' => $subject))?>">
                         <?= Assets::img('icons/16/blue/inbox.png', tooltip2( _('Nachricht an alle NutzerInnen verschicken')))?>
                     </a>
                 </th>
             </tr>
             <tr class="sortable">
-                <th colspan="3>"<?= ($sort_by == 'nachname' && $sort_status == 'awaiting') ?
-                    sprintf('class="sort%s"', $order) : '' ?>>
-                    <input aria-label="<?= _('NutzerInnen auswählen') ?>"
+                <? if($rechte) :?>
+                <input aria-label="<?= _('NutzerInnen auswählen') ?>"
                             type="checkbox" name="all" value="1" data-proxyfor=":checkbox[name^=awaiting]">
+                <? endif ?>
+                <th colspan="<?=$rechte ? 2 : 3?>>"<?= ($sort_by == 'nachname' && $sort_status == 'awaiting') ?
+                    sprintf('class="sort%s"', $order) : '' ?>>
                     <a href="<?= URLHelper::getLink(sprintf('?sortby=nachname&sort_status=awaiting&order=%s&toggle=%s',
                             $order, ($sort_by == 'nachname'))) ?>#awaiting">
                         <?=_('Nachname, Vorname')?>
@@ -41,6 +42,7 @@
                 </th>
                 <th style="text-align: center" <?= ($sort_by == 'position' && $sort_status == 'awaiting') ?
                     sprintf('class="sort%s"', $order) : '' ?>>
+                    <? ($sort_status != 'awaiting') ? $order = 'desc' : $order = $order ?>
                     <a href="<?= URLHelper::getLink(sprintf('?sortby=position&sort_status=awaiting&order=%s&toggle=%s',
                             $order, ($sort_by == 'position'))) ?>#awaiting">
                         <?= _('Position') ?>
@@ -59,11 +61,11 @@
                             name="awaiting[<?= $user['user_id'] ?>]" value="1" /></td>
                 <td style="text-align: right"><?= (++$nr < 10) ? sprintf('%02d', $nr) : $nr ?></td>
                 <td>
-                    <a href="<?= $controller->url_for(sprintf('profile?username=%s',$waiting['username'])) ?>">
+                    <a style="position: relative" href="<?= $controller->url_for(sprintf('profile?username=%s',$waiting['username'])) ?>">
                     <?= Avatar::getAvatar($waiting['user_id'], $waiting['username'])->getImageTag(Avatar::SMALL,
                             array('style' => 'margin-right: 5px', 'title' => htmlReady($fullname))); ?>
                     <?= $waiting['mkdate'] >= $last_visitdate ? Assets::img('red_star.png',
-                        array('style' => 'position: relative; top: -5px; left: -15px; margin: 0px; right: 0px')) : '' ?>
+                        array('style' => 'position: absolute; margin: 0px 0px 0px -15px')) : '' ?>
                     <?= htmlReady($fullname) ?>
                     </a>
                 </td>

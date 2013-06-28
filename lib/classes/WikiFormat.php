@@ -100,7 +100,7 @@ class WikiFormat extends StudipFormat
                 $rule['start'],
                 $rule['end'],
                 $rule['callback'],
-                $rule['before'] ? $rule['before'] : null
+                $rule['before'] ?: null
             );
         }
     }

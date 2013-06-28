@@ -31,6 +31,7 @@
         </tr>
         <tr class="sortable">
             <th colspan="2" <?= ($sort_by == 'nachname' && $sort_status == 'dozent') ? sprintf('class="sort%s"', $order) : '' ?>>
+                <? ($sort_status != 'dozent') ? $order = 'desc' : $order = $order ?>
                 <a href="<?= URLHelper::getLink(sprintf('?sortby=nachname&sort_status=dozent&order=%s&toggle=%s',
                         $order, ($sort_by == 'nachname'))) ?>">
                     <?=_('Nachname, Vorname')?>
@@ -47,11 +48,11 @@
         <tr>
             <td style="text-align: right"><?= (++$nr < 10) ? sprintf('%02d', $nr) : $nr ?></td>
             <td>
-                <a href="<?= $controller->url_for(sprintf('profile?username=%s',$dozent['username'])) ?>">
+                <a style="position: relative" href="<?= $controller->url_for(sprintf('profile?username=%s',$dozent['username'])) ?>">
                     <?= Avatar::getAvatar($dozent['user_id'], $dozent['username'])->getImageTag(Avatar::SMALL,
                             array('style' => 'margin-right: 5px', 'title' => htmlReady($fullname))); ?>
                     <?= $dozent['mkdate'] >= $last_visitdate ? Assets::img('red_star.png',
-                            array('style' => 'position: relative; top: -5px; left: -15px; margin: 0px; right: 0px')) : '' ?>
+                            array('style' => 'position: absolute; margin: 0px 0px 0px -15px')) : '' ?>
                     <?= htmlReady($fullname) ?>
                 </a>
             </td>

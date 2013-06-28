@@ -211,7 +211,9 @@ class StudipFormat extends TextFormat
             }
         }
         if (!$inserted) {
-            self::$studip_rules[$name] = compact('start', 'end', 'callback');
+            self::$studip_rules[$name] = $end 
+                    ? compact('start', 'end', 'callback')
+                    : compact('start', 'callback');
         }
     }
     
@@ -430,7 +432,11 @@ class StudipFormat extends TextFormat
      */
     protected static function markupCode($markup, $matches)
     {
-        return highlight_string(decodeHTML(trim($matches[1]), ENT_QUOTES), true);
+        return '<div class="code_header">'. _('Code') .'<hr></div>' 
+               . str_replace(
+                   '<code>', '<code class="code_content">', 
+                   highlight_string(decodeHTML(trim($matches[1]), ENT_QUOTES), true)
+               );
     }
     
     /**

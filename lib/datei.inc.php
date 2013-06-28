@@ -564,7 +564,7 @@ function move_item($item_id, $new_parent, $change_sem_to = false)
             } else {
                 $doc['range_id'] = $new_parent;
             }
-
+            $doc['chdate'] = $doc['chdate'] + 1;
             $doc->store();
 
             return array(0,1);
@@ -1048,8 +1048,12 @@ function validate_upload($the_file, $real_file_name='') {
             if (Request::option('cid')) {
                 $sem_status = $GLOBALS['perm']->get_studip_perm($SessSemName[1]);
                 $active_upload_type = $SessSemName["art_num"];
+            } else {
+                $sem_status = $GLOBALS['perm']->get_perm();
+                $active_upload_type = "personalfiles";
             }
             if (!isset($UPLOAD_TYPES[$active_upload_type])) {
+                $sem_status = $GLOBALS['perm']->get_perm();
                 $active_upload_type = 'default';
             }
         }
@@ -2082,9 +2086,9 @@ function display_folder ($folder_id, $open, $change, $move, $upload, $refresh=FA
 
         if (!empty($dates_title)) {
             $tmp_titel = sprintf(_("Sitzung am: %s"), implode(', ', $dates_title)) .
-                 ", " . ($tmp_titel ? $tmp_titel : _("ohne Titel"));
+                 ", " . ($tmp_titel ? $tmp_titel : _("Ohne Titel"));
         } else {
-            $tmp_titel = $tmp_titel ? $tmp_titel : _("ohne Titel");
+            $tmp_titel = $tmp_titel ? $tmp_titel : _("Ohne Titel");
         }
     }
 
@@ -2121,7 +2125,7 @@ function display_folder ($folder_id, $open, $change, $move, $upload, $refresh=FA
         if (sizeof($dates_title) > 0) {
             $title_name = sprintf(_("Sitzung am: %s"), implode(', ', $dates_title));
             if (!$result['name']) {
-                $title_name .= _(", ohne Titel");
+                $title_name .= ', '._("Ohne Titel");
             } else {
                 $title_name .= ', '.htmlReady($result['name']);
             }

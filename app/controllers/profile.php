@@ -16,8 +16,6 @@
 global $RELATIVE_PATH_CALENDAR;
 
 require_once 'app/controllers/authenticated_controller.php';
-require_once 'app/models/user.php';
-require_once 'app/models/profile.php';
 
 require_once 'lib/messaging.inc.php';
 require_once 'lib/object.inc.php';
@@ -173,6 +171,7 @@ class ProfileController extends AuthenticatedController
         // show news on profile page
         $show_admin = ($this->perm->have_perm('autor') && $this->user->user_id == $this->current_user->user_id) ||
             (isDeputyEditAboutActivated() && isDeputy($this->user->user_id, $this->current_user->user_id, true));
+
         if (($this->show_news = $this->profile->checkVisibility('news')) === true) {
             $this->profile_data = $about_data;
             $this->show_admin   = $show_admin;

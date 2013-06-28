@@ -325,7 +325,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
         $ret = array();
         $c = 0;
         while($row = $st->fetch(PDO::FETCH_ASSOC)) {
-            $ret[$c] = clone $record;
+            $ret[$c] = new $class();
             $ret[$c]->setData($row, true);
             $ret[$c]->setNew(false);
             ++$c;
@@ -359,7 +359,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
         $ret = array();
         $c = 0;
         while($row = $st->fetch(PDO::FETCH_ASSOC)) {
-            $ret[$c] = clone $record;
+            $ret[$c] = new $class();
             $ret[$c]->setData($row, true);
             $ret[$c]->setNew(false);
             ++$c;
@@ -385,7 +385,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
         $st->execute($params);
         $ret = 0;
         while ($row = $st->fetch(PDO::FETCH_ASSOC)) {
-            $current = clone $record;
+            $current = new $class();
             $current->setData($row, true);
             $current->setNew(false);
             $callable($current);
@@ -608,6 +608,38 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
     }
 
     /**
+     * clean up references after cloning
+     *
+     *
+     */
+    function __clone()
+    {
+        //all references link still to old object => reset all aliases
+        foreach ($this->alias_fields as $alias => $field) {
+            if (isset($this->db_fields[$field])) {
+                $content_value = $this->content[$field];
+                $content_db_value = $this->content_db[$field];
+                unset($this->content[$alias]);
+                unset($this->content_db[$alias]);
+                unset($this->content[$field]);
+                unset($this->content_db[$field]);
+                $this->content[$field] = $content_value;
+                $this->content_db[$field] = $content_db_value;
+                $this->content[$alias] =& $this->content[$field];
+                $this->content_db[$alias] =& $this->content_db[$field];
+            }
+        }
+        //unset all relations for now
+        //TODO: maybe a deep copy of all belonging objects is more appropriate
+        foreach(array('has_many', 'belongs_to', 'has_one', 'has_and_belongs_to_many') as $type) {
+            foreach (array_keys($this->{$type}) as $one) {
+                $this->relations[$one] = null;
+            }
+        }
+        //begun the clone war has... hmpf
+    }
+
+    /**
      * try to determine all needed options for a relationship from
      * configured options
      *
@@ -743,13 +775,18 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
     }
 
     /**
-     * returns table metadata
+     * returns table and columns metadata
      *
      * @return array assoc array with columns, primary keys and name of table
      */
     function getTableMetadata()
     {
-        return array('fields' => $this->db_fields, 'pk' => $this->pk, 'table' => $this->db_table);
+        return array('fields' => $this->db_fields,
+                     'pk' => $this->pk,
+                     'table' => $this->db_table,
+                     'additional_fields' => $this->additional_fields,
+                     'alias_fields' => $this->alias_fields,
+                     'relations' => array_keys($this->relations));
     }
 
     /**
