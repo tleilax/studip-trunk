@@ -15,7 +15,8 @@
 /**
  * The PrivacySetting class is one privacySettings in the UserPrivacyTree
  */
-class User_Visibility_Settings extends SimpleORMap {
+class User_Visibility_Settings extends SimpleORMap
+{
 
     // parent of the Visibility
     public $parent;
@@ -29,7 +30,8 @@ class User_Visibility_Settings extends SimpleORMap {
     /**
      * Recursive load all Children
      */
-    public function loadChildren() {
+    public function loadChildren()
+    {
         $this->displayCheck();
         $this->children = User_Visibility_Settings::findBySQL("user_id = ? AND parent_id = ? ", array($this->user_id, $this->visibilityid));
         foreach ($this->children as $child) {
@@ -42,14 +44,15 @@ class User_Visibility_Settings extends SimpleORMap {
      * Check if the option needs to be displayed in settings. Recursively also
      * set all parents to displayed
      */
-    private function displayCheck() {
+    private function displayCheck()
+    {
         // check if it is a category
         $catDisplay = $this->category != 0;
 
         // check if it is a plugin and if it is activated
         $pluginManager = PluginManager::getInstance();
         $plugin = $pluginManager->getPluginInfoById($this->plugin);
-        $pluginDisplay = ($this->plugin == 0 || ($pluginManager->isPluginActivatedForUser($this->plugin, $this->userid)) && $plugin['enabled']);
+        $pluginDisplay = ($this->plugin == 0 || ($pluginManager->isPluginActivatedForUser($this->plugin, $this->user_id)) && $plugin['enabled']);
         
         // now check both
         if ($catDisplay && $pluginDisplay) {
@@ -61,7 +64,8 @@ class User_Visibility_Settings extends SimpleORMap {
      * Categories without childs are not displayed. Whenever a child in a tree
      * needs to be displayed the whole tree has to be displayed.
      */
-    public function setDisplayed() {
+    public function setDisplayed()
+    {
         $this->displayed = true;
         if ($this->parent_id != 0) {
             $this->parent->setDisplayed();
@@ -73,9 +77,10 @@ class User_Visibility_Settings extends SimpleORMap {
      * @param type $result the given array where the setting stores its data
      * @param type $depth the depth of the setting in the settingstree
      */
-    public function getHTMLArgs(&$result, $depth = 0) {
+    public function getHTMLArgs(&$result, $depth = 0)
+    {
         if ($this->displayed) {
-            $entry['is_header'] = $this->parent_id == 0;
+            $entry['is_header'] = $this->category == 0 && $this->parent_id == 0;
             $entry['is_category'] = $this->category == 0;
             $entry['id'] = $this->visibilityid;
             $entry['state'] = $this->state;
