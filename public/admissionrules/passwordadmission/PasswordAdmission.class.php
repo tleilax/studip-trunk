@@ -188,7 +188,7 @@ class PasswordAdmission extends AdmissionRule
             `message`=VALUES(`message`), `start_time`=VALUES(`start_time`),
             `end_time`=VALUES(`end_time`), `password`=VALUES(`password`), 
             `chdate`=VALUES(`chdate`)");
-        $stmt->execute(array($this->id, $this->message, $this->password, 
+        $stmt->execute(array($this->id, $this->message, (int)$this->startTime, (int)$this->EndTime, $this->password, 
             time(), time()));
         return $this;
     }

@@ -404,7 +404,7 @@ class CourseSet
     {
         $sets = array();
         $stmt = DBManager::get()->prepare("SELECT `set_id` 
-            FROM `seminar_courseset`WHERE `seminar_id`=?");
+            FROM `seminar_courseset` WHERE `seminar_id`=?");
         $stmt->execute(array($courseId));
         $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
         foreach ($data as $entry) {
