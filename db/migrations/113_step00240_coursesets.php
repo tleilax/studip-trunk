@@ -17,7 +17,7 @@ class Step00240CourseSets extends Migration
                 `condition_id` VARCHAR(32) NOT NULL ,
                 `mkdate` INT NULL DEFAULT 0,
             PRIMARY KEY (`rule_id`, `condition_id`) )
-            ENGINE = MyISAM");
+            ENGINE = MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_german1_ci");
 
         // "chance adjustment" in seat distribution
         $db->exec("CREATE TABLE IF NOT EXISTS `admissionfactor` (
@@ -28,7 +28,7 @@ class Step00240CourseSets extends Migration
                 `mkdate` INT NOT NULL DEFAULT 0,
                 `chdate` INT NOT NULL DEFAULT 0,
             PRIMARY KEY (`list_id`) )
-            ENGINE = MyISAM");
+            ENGINE = MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_german1_ci");
 
         // available admission rules.
         $db->exec("CREATE TABLE IF NOT EXISTS `admissionrules` (
@@ -37,7 +37,7 @@ class Step00240CourseSets extends Migration
           `active` TINYINT(1) NOT NULL DEFAULT 0,
           `mkdate` INT(11) NOT NULL DEFAULT 0,
           PRIMARY KEY (`id`)
-        ) ENGINE = MyISAM");
+        ) ENGINE = MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_german1_ci");
         // Create entries for default admission rule types.
         $db->exec("INSERT INTO `admissionrules` 
             (`ruletype`, `active`, `mkdate`) VALUES
@@ -57,7 +57,7 @@ class Step00240CourseSets extends Migration
                 `conditions_stopped` TINYINT(1) NOT NULL DEFAULT 0 ,
                 `chdate` INT NULL ,
             PRIMARY KEY (`rule_id`) )
-            ENGINE = MyISAM");
+            ENGINE = MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_german1_ci");
 
         // several fields form a condition
         $db->exec("CREATE TABLE IF NOT EXISTS `conditionfields` (
@@ -69,7 +69,7 @@ class Step00240CourseSets extends Migration
                 `mkdate` INT NOT NULL DEFAULT 0,
                 `chdate` INT NOT NULL DEFAULT 0,
             PRIMARY KEY (`field_id`) )
-            ENGINE = MyISAM");
+            ENGINE = MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_german1_ci");
 
         // conditions for admission
         $db->exec("CREATE TABLE IF NOT EXISTS `conditions` (
@@ -77,7 +77,7 @@ class Step00240CourseSets extends Migration
                 `mkdate` INT NOT NULL DEFAULT 0,
                 `chdate` INT NOT NULL DEFAULT 0,
             PRIMARY KEY (`condition_id`) )
-            ENGINE = MyISAM");
+            ENGINE = MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_german1_ci");
 
         // assign course sets to factor lists
         $db->exec("CREATE TABLE IF NOT EXISTS `courseset_factorlist` (
@@ -85,7 +85,7 @@ class Step00240CourseSets extends Migration
                 `factorlist_id` VARCHAR(32) NOT NULL ,
                 `mkdate` INT NOT NULL DEFAULT 0 ,
             PRIMARY KEY (`set_id`, `factorlist_id`) )
-            ENGINE = MyISAM");
+            ENGINE = MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_german1_ci");
 
         // assign course sets to institutes
         $db->exec("CREATE TABLE IF NOT EXISTS `courseset_institute` (
@@ -94,7 +94,7 @@ class Step00240CourseSets extends Migration
                 `mkdate` INT NULL ,
                 `chdate` INT NULL ,
             PRIMARY KEY (`set_id`, `institute_id`) )
-            ENGINE = MyISAM");
+            ENGINE = MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_german1_ci");
 
         // assign admission rules to course sets
         $db->exec("CREATE TABLE IF NOT EXISTS `courseset_rule` (
@@ -103,7 +103,7 @@ class Step00240CourseSets extends Migration
                 `type` VARCHAR(255) NULL ,
                 `mkdate` INT NULL ,
             PRIMARY KEY (`set_id`, `rule_id`) )
-            ENGINE = MyISAM");
+            ENGINE = MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_german1_ci");
 
         // sets of courses with common admission rules
         $db->exec("CREATE TABLE IF NOT EXISTS `coursesets` (
@@ -120,7 +120,7 @@ class Step00240CourseSets extends Migration
             PRIMARY KEY (`set_id`) ,
             INDEX `set_user` (`set_id` ASC, `user_id` ASC) ,
             INDEX `set_institut` (`set_id` ASC, `institut_id` ASC))
-            ENGINE = MyISAM");
+            ENGINE MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_german1_ci");
 
         // admission rules with max number of courses to register for
         $db->exec("CREATE TABLE IF NOT EXISTS `limitedadmissions` (
@@ -132,7 +132,7 @@ class Step00240CourseSets extends Migration
                 `mkdate` INT NOT NULL DEFAULT 0,
                 `chdate` INT NOT NULL DEFAULT 0,
             PRIMARY KEY (`rule_id`) )
-            ENGINE = MyISAM");
+            ENGINE = MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_german1_ci");
 
         // admission rules that completely lock access to courses
         $db->exec("CREATE TABLE IF NOT EXISTS `lockedadmissions` (
@@ -141,7 +141,7 @@ class Step00240CourseSets extends Migration
                 `mkdate` INT NOT NULL DEFAULT 0,
                 `chdate` INT NOT NULL DEFAULT 0,
             PRIMARY KEY (`rule_id`) )
-            ENGINE = MyISAM");
+            ENGINE = MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_german1_ci");
 
         // admission rules that specify a password for course access
         $db->exec("CREATE TABLE IF NOT EXISTS `passwordadmissions` (
@@ -153,7 +153,7 @@ class Step00240CourseSets extends Migration
                 `mkdate` INT NOT NULL DEFAULT 0,
                 `chdate` INT NOT NULL DEFAULT 0,
             PRIMARY KEY (`rule_id`) )
-            ENGINE = MyISAM");
+            ENGINE = MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_german1_ci");
 
         // priorities for course assignment
         $db->exec("CREATE TABLE IF NOT EXISTS `priorities` (
@@ -165,7 +165,7 @@ class Step00240CourseSets extends Migration
                 `chdate` INT NOT NULL DEFAULT 0,
             PRIMARY KEY (`user_id`, `set_id`, `seminar_id`) ,
             INDEX `user_rule_priority` (`user_id` ASC, `priority` ASC, `set_id` ASC) )
-            ENGINE = MyISAM");
+            ENGINE = MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_german1_ci");
 
         // assign courses to course sets
         $db->exec("CREATE TABLE IF NOT EXISTS `seminar_courseset` (
@@ -174,7 +174,7 @@ class Step00240CourseSets extends Migration
                 `mkdate` INT NOT NULL DEFAULT 0 ,
                 `chdate` INT NOT NULL DEFAULT 0,
             PRIMARY KEY (`set_id`, `seminar_id`) )
-            ENGINE = MyISAM");
+            ENGINE = MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_german1_ci");
 
         // admission rules concerning time
         $db->exec("CREATE TABLE IF NOT EXISTS `timedadmissions` (
@@ -190,7 +190,7 @@ class Step00240CourseSets extends Migration
             INDEX `end_time` (`end_time` ASC) ,
             INDEX `dist_time` (`distribution_time` ASC) ,
             INDEX `start_end` (`start_time` ASC, `end_time` ASC) )
-            ENGINE = MyISAM");
+            ENGINE = MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_german1_ci");
 
         // assign users to lists with different factor in seat distribution
         $db->exec("CREATE TABLE IF NOT EXISTS `user_factorlist` (
@@ -198,7 +198,7 @@ class Step00240CourseSets extends Migration
                 `user_id` VARCHAR(32) NULL ,
                 `mkdate` INT NULL ,
             PRIMARY KEY (`list_id`, `user_id`) )
-            ENGINE = MyISAM");
+            ENGINE = MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_german1_ci");
 
         // user defined max number of courses to register for
         $db->exec("CREATE TABLE IF NOT EXISTS `userlimits` (
@@ -208,7 +208,7 @@ class Step00240CourseSets extends Migration
                 `mkdate` INT NULL ,
                 `chdate` INT NULL ,
             PRIMARY KEY (`rule_id`, `user_id`) )
-            ENGINE = MyISAM");
+            ENGINE = MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_german1_ci");
 
         // waiting lists at courses
         $db->exec("CREATE TABLE IF NOT EXISTS `waitinglist_config` (
@@ -219,7 +219,7 @@ class Step00240CourseSets extends Migration
                 `mkdate` INT NULL ,
                 `chdate` INT NULL ,
             PRIMARY KEY (`list_id`) )
-            ENGINE = MyISAM");
+            ENGINE = MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_german1_ci");
 
         // assign users to waiting lists
         $db->exec("CREATE TABLE IF NOT EXISTS `waitinglist_user` (
@@ -228,7 +228,7 @@ class Step00240CourseSets extends Migration
                 `position` INT NOT NULL ,
                 `mkdate` INT NULL ,
             PRIMARY KEY (`user_id`, `list_id`) )
-            ENGINE = MyISAM");
+            ENGINE = MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_german1_ci");
     }
 
     function down()
