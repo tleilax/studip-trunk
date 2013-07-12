@@ -23,7 +23,6 @@ class Admission_RuleAdministrationController extends AuthenticatedController {
      */
     public function index_action() {
         $stmt = DBManager::get()->query("SELECT * FROM `admissionrules`");
-        echo 'Admission rules:<pre>'.print_r($stmt->fetchAll(PDO::FETCH_ASSOC), true).'</pre>';
         $this->ruleTypes = RuleAdministrationModel::getAdmissionRuleTypes();
     }
 
