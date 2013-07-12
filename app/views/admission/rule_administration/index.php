@@ -29,7 +29,7 @@ $infobox = array('content' => $infobox,
 if (isset($flash['error'])) {
     echo MessageBox::error($flash['error'], $flash['error_detail']);
 } elseif (isset($flash['success'])) {
-    echo MessageBox::success($flash['message']);
+    echo MessageBox::success($flash['success']);
 }
 ?>
 <?= $this->render_partial('dialog/confirm_dialog') ?>

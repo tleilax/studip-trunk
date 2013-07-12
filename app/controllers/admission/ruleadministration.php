@@ -22,7 +22,6 @@ class Admission_RuleAdministrationController extends AuthenticatedController {
      * Show overview of available admission rules.
      */
     public function index_action() {
-        $stmt = DBManager::get()->query("SELECT * FROM `admissionrules`");
         $this->ruleTypes = RuleAdministrationModel::getAdmissionRuleTypes();
     }
 
@@ -70,7 +69,7 @@ class Admission_RuleAdministrationController extends AuthenticatedController {
             try {
                 $ruleAdmin = new RuleAdministrationModel();
                 $ruleAdmin->uninstall($ruleType);
-                $this->flash['message'] = _('Die Anmelderegel wurde erfolgreich gelöscht.');
+                $this->flash['success'] = _('Die Anmelderegel wurde erfolgreich gelöscht.');
             } catch (AdmissionRuleInstallationException $e) {
                 $this->flash['error'] = $e->getMessage();
             }
