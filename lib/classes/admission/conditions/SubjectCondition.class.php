@@ -1,3 +1,4 @@
+
 <?php
 
 /**
@@ -47,6 +48,16 @@ class SubjectCondition extends ConditionField
     }
 
     /**
+     * Get this field's display name.
+     *
+     * @return String
+     */
+    public function getName()
+    {
+        return _("Studienfach");
+    }
+
+    /**
      * Compares all the users' study courses by using the specified compare 
      * operator and returns all users that fulfill the condition. This can be
      * an important informatione when checking on validity of a combination
@@ -55,7 +66,7 @@ class SubjectCondition extends ConditionField
      * @return Array All users that are affected by the current condition 
      * field.
      */
-    public function getAffectedUsers() {
+    public function getUsers() {
         $users = array();
         // Get all the users that fulfill the degree condition.
         $stmt = DBManager::get()->prepare(
@@ -67,16 +78,6 @@ class SubjectCondition extends ConditionField
             $users[] = $current['user_id'];
         }
         return $users;
-    }
-
-    /**
-     * Get this field's display name.
-     *
-     * @return String
-     */
-    public function getName()
-    {
-        return _("Studienfach");
     }
 
     /**

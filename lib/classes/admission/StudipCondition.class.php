@@ -116,6 +116,19 @@ class StudipCondition
     }
 
     /**
+     * Gets all users that fulfill the current condition.
+     * 
+     * @return Array
+     */
+    public function getUsers() {
+        $users = array();
+        foreach ($this->fields as $field) {
+            $users = array_intersect($users, $field->getAffectedUsers());
+        }
+        return $users;
+    }
+
+    /**
      * Is the current condition fulfilled (that means, are all 
      * required field values matched)?
      * 

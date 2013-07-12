@@ -22,6 +22,7 @@ class Admission_RuleAdministrationController extends AuthenticatedController {
      * Show overview of available admission rules.
      */
     public function index_action() {
+        DBManager::get()->execute("ALTER TABLE `admissionrules` ADD `deleteable` TINYINT(1) NOT NULL DEFAULT 1 AFTER `active`");
         $this->ruleTypes = RuleAdministrationModel::getAdmissionRuleTypes();
     }
 
@@ -48,17 +49,15 @@ class Admission_RuleAdministrationController extends AuthenticatedController {
                 $uploadFile = $_FILES['upload_file']['tmp_name'];
             }
             $ruleAdmin = new RuleAdministrationModel();
-            $ruleAdmin->install($uploadFile, $overwrite);
-            $this->flash['message'] = _('Die Anmelderegel wurde erfolgreich installiert.');
+            $ruleAdmin->install($uploadFile);
+            $this->flash['success'] = _('Die Anmelderegel wurde erfolgreich installiert.');
             if (isset($uploadFile)) {
                 unlink($uploadFile);
             }
             $this->redirect('admission/ruleadministration');
-        } catch (AdmissionRuleInstallationException $e) {
+        } catch (Exception $e) {
             $this->flash['error'] = $e->getMessage();
-        } catch (AdmissionRuleExistsException $ex) {
-            $this->flash['upload_file'] = $_FILES['upload_file']['tmp_name'];
-            $this->message = $ex->getMessage();
+            $this->redirect('admission/ruleadministration');
         }
     }
 

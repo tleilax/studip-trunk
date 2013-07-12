@@ -105,18 +105,6 @@ class ConditionField
     }
 
     /**
-     * Returns all users that fulfill the specified condition. This can be
-     * an important informatione when checking on validity of a combination
-     * of conditions.
-     * 
-     * @return Array All users that are affected by the current condition 
-     * field.
-     */
-    public function getAffectedUsers() {
-        return array();
-    }
-
-    /**
      * Reads all available ConditionField subclasses and loads their definitions.
      */
     public static function getAvailableConditionFields() {
@@ -164,6 +152,18 @@ class ConditionField
     public function getName()
     {
         return _("Stud.IP-Bedingung");
+    }
+
+    /**
+     * Returns all users that fulfill the specified condition. This can be
+     * an important informatione when checking on validity of a combination
+     * of conditions.
+     * 
+     * @return Array All users that are affected by the current condition 
+     * field.
+     */
+    public function getUsers() {
+        return array();
     }
 
     /**

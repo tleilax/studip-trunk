@@ -99,6 +99,12 @@ class AdmissionUserList
         // Remove user assignments to this list.
         DBManager::get()->exec("DELETE FROM `user_factorlist` WHERE `list_id`='".
             $this->id."'");
+        // Remove assigned conditions.
+        foreach ($this->conditions as $condition) {
+            $condition->delete();
+        }
+        DBManager::get()->exec("DELETE FROM `user_factorlist` WHERE `list_id`='".
+            $this->id."'");
         // Delete list data.
         DBManager::get()->exec("DELETE FROM `admissionfactor` WHERE `list_id`='".
             $this->id."'");
@@ -204,10 +210,15 @@ class AdmissionUserList
             while ($user = $stmt2->fetch(PDO::FETCH_ASSOC)) {
                 $this->users[$user['user_id']] = true;
             }
+            // Load selection conditions, if applicable.
+            $stmt2 = DBManager::get()->prepare("SELECT `condition_id` FROM ".
+                "`condition_factorlist` WHERE `list_id`=? ORDER BY `mkdate` ASC");
+            //$stmt2->execute(array($this->id));
+            //while ($current = $stmt2->fetch(PDO::FETCH_ASSOC)) {
+            //    $this->conditions[$current['condition_id']] =
+            //        new StudipCondition($current['condition_id']);
+            //}
         }
-        // Load selection conditions, if applicable.
-        $stmt = DBManager::get()->prepare("SELECT * FROM ".
-            "`condition_factorlist` WHERE `list_id`=? ORDER BY `mkdate` ASC");
     }
 
     /**

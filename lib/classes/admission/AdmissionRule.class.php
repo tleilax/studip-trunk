@@ -47,6 +47,16 @@ abstract class AdmissionRule
     }
 
     /**
+     * Hook that can be called after the seat distribution on the courseset
+     * has completed.
+     * 
+     * @param CourseSet $courseset Current courseset.
+     */
+    public function afterSeatDistribution(&$courseset) {
+        return true;
+    }
+
+    /**
      * Checks if we are in the rule validity time frame.
      * 
      * @return True if the rule is valid because the time frame applies,
@@ -213,6 +223,16 @@ abstract class AdmissionRule
      * Internal helper function for loading rule definition from database.
      */
     public function load() {
+    }
+
+    /**
+     * Hook that can be called when the seat distribution on the courseset
+     * starts.
+     * 
+     * @param CourseSet The courseset this rule belongs to.
+     */
+    public function onSeatDistribution(&$courseset) {
+        return true;
     }
 
     /**

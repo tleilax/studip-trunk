@@ -7,9 +7,9 @@
 
 STUDIP.Conditions = {
 
-    configureCondition: function (targetUrl) {
+    configureCondition: function (targetId, targetUrl) {
         var loading = 'Wird geladen'.toLocaleString();
-        $('<div id="condition" title="Bedingung konfigurieren">'+loading+'</div>')
+        $('<div id="'+targetId+'" title="Bedingung konfigurieren">'+loading+'</div>')
             .dialog({
                 draggable: false,
                 modal: true,
@@ -17,22 +17,22 @@ STUDIP.Conditions = {
                 position: ['center', 200],
                 width: 450,
                 close: function() {
-                    $('#condition').remove();
+                    $('#'+targetId).remove();
                 },
                 open: function() {
-                    $('#condition').empty();
+                    $('#'+targetId).empty();
                     $('<img/>', {
                         src: STUDIP.ASSETS_URL + 'images/ajax_indicator_small.gif'
-                    }).appendTo('#condition');
-                    $('#condition').append(loading);
-                    $('#condition').load(targetUrl);
+                    }).appendTo('#'+targetId);
+                    $('#'+targetId).append(loading);
+                    $('#'+targetId).load(targetUrl);
                 }
             });
         return false;
     },
 
-    addCondition: function(containerId, targetId, targetUrl) {
-        var children = $('#'+containerId).children('.conditionfield');
+    addCondition: function(containerId, targetUrl) {
+        var children = $('.conditionfield');
         query = '';
         for (var i=0 ; i<children.size() ; i++) {
             var current = $(children[i]);
@@ -40,19 +40,11 @@ STUDIP.Conditions = {
                 query += '&';
             }
             query += 'field[]='+
-                current.children('.conditionfield_class').first().val()+
+                current.children('.conditionfield_class:first').val()+
                 '&compare_operator[]='+
-                current.children('.conditionfield_compare_op').first().val()+
+                current.children('.conditionfield_compare_op:first').val()+
                 '&value[]='+
-                current.children('.conditionfield_value').first().val();
-        }
-        query += '&startdate='+$('#startdate').val()+
-            '&enddate='+$('#enddate').val();
-        if ($('#starttime').val() != '') {
-            query += '&starttime='+$('#starttime').val();
-        }
-        if ($('#endtime').val() != '') {
-            query += '&endtime='+$('#endtime').val();
+                current.children('.conditionfield_value:first').val();
         }
         $.ajax({
             type: 'post',
@@ -61,14 +53,14 @@ STUDIP.Conditions = {
             dataType: 'html',
             success: function(data, textStatus, jqXHR) {
                 var result = '';
-                if ($('#noconditions').length > 0) {
-                    $('#noconditions').remove();
-                    $('#'+targetId).prepend('<div id="conditionlist"></div>');
+                if ($('#'+containerId).children('.noconditions').length > 0) {
+                    $('#'+containerId).children('.noconditions').remove();
+                    $('#'+containerId).prepend('<div class="conditionlist"></div>');
                 } else {
                     result += '<b>'+'oder'.toLocaleString()+'</b>';
                 }
                 result += data;
-                $('#conditionlist').append(result);
+                $('#'+containerId).find('.conditionlist').append(result);
             }
         });
         $('#condition').remove();

@@ -21,13 +21,20 @@ class Conditions_ConditionController extends AuthenticatedController {
         PageLayout::addSqueezePackage('conditions');
     }
 
-    public function configure_action($conditionId='') {
+    public function configure_action($containerId, $conditionId='') {
+        $this->containerId = $containerId;
         if ($conditionId) {
             $this->condition = new StudipCondition($conditionId);
         }
     }
 
-    public function add_action() {
+    /**
+     * Adds a condition.
+     * 
+     * @param  String $containerElementId HTML element to which the condition
+     *                entry should be appended.
+     */
+    public function add_action($containerElementId) {
         $condition = new StudipCondition();
         $fields = Request::getArray('field');
         $compareOps = Request::getArray('compare_operator');
@@ -42,6 +49,7 @@ class Conditions_ConditionController extends AuthenticatedController {
                 $condition->addField($field);
             }
         }
+        $this->containerId = $containerElementId;
         $this->condition = $condition;
     }
 

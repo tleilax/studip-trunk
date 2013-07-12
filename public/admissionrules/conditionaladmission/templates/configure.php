@@ -4,13 +4,14 @@
     <div class="admissionrule_label_fullsize">
         <?= _('Anmeldebedingungen') ?>:
     </div>
-    <div class="admissionrule_value" id="conditions">
+    <br/>
+    <div class="admissionrule_value" id="condadmission_conditions">
         <?php if (!$rule->getConditions()) { ?>
-        <span id="noconditions">
+        <span class="noconditions">
             <i><?= _('Sie haben noch keine Bedingungen festgelegt.'); ?></i>
         </span>
         <?php } else { ?>
-        <div id="conditionlist">
+        <div class="conditionlist">
             <?php foreach ($rule->getConditions() as $condition) { ?>
                 <div class="condition" id="condition_<?= $condition->getId() ?>">
                     <?= $condition->toString() ?>
@@ -23,7 +24,7 @@
         </div>
         <?php } ?>
         <br/><br/>
-        <a href="<?= URLHelper::getURL('dispatch.php/conditions/condition/configure') ?>" onclick="return STUDIP.Conditions.configureCondition('<?= URLHelper::getURL('dispatch.php/conditions/condition/configure') ?>')">
+        <a href="<?= URLHelper::getURL('dispatch.php/conditions/condition/configure/condadmission_conditions') ?>" onclick="return STUDIP.Conditions.configureCondition('condition', '<?= URLHelper::getURL('dispatch.php/conditions/condition/configure/condadmission_conditions') ?>')">
             <?= Assets::img('icons/16/blue/add.png', array(
                 'alt' => _('Bedingung hinzufügen'),
                 'title' => _('Bedingung hinzufügen'))) ?><?= _('Bedingung hinzufügen') ?></a>

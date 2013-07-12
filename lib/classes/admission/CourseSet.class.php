@@ -247,9 +247,17 @@ class CourseSet
      */
     public function distributeSeats() {
         if ($this->algorithm) {
+            // Call pre-distribution hooks on all assigned rules.
+            foreach ($this->admissionRules as &$rule) {
+                $rule->beforeSeatDistribution();
+            }
             $this->algorithm->run();
             // Mark as "seats distributed".
             $this->hasAlgorithmRun = true;
+            // Call post-distribution hooks on all assigned rules.
+            foreach ($this->admissionRules as &$rule) {
+                $rule->afterSeatDistribution();
+            }
         }
     }
 

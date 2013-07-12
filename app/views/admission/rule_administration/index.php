@@ -26,6 +26,11 @@ $infobox = array('content' => $infobox,
                  'picture' => 'infobox/administration.png'
 );
 
+if (isset($flash['error'])) {
+    echo MessageBox::error($flash['error'], $flash['error_detail']);
+} elseif (isset($flash['success'])) {
+    echo MessageBox::success($flash['message']);
+}
 ?>
 <?= $this->render_partial('dialog/confirm_dialog') ?>
 <h2><?= _('Installierte Anmelderegeln:') ?></h2>
@@ -70,6 +75,7 @@ if ($ruleTypes) {
                         'alt' => 'Regeldefinition als ZIP herunterladen',
                         'title' => 'Regeldefinition als ZIP herunterladen')); ?>
             </a>
+            <?php if ($details['deleteable']) { ?>
             <a href="<?= $controller->url_for('admission/ruleadministration/uninstall', $type) ?>"
                 onclick="return STUDIP.Dialogs.showConfirmDialog('<?= 
                     sprintf(_('Soll die Anmelderegel vom Typ %s wirklich '.
@@ -82,6 +88,7 @@ if ($ruleTypes) {
                     array('alt' => _('Anmelderegel löschen'), 
                           'title' => _('Anmelderegel löschen'))); ?>
             </a>
+            <?php } ?>
         </td>
     </tr>
     <?php } ?>

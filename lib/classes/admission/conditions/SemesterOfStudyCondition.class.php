@@ -47,6 +47,16 @@ class SemesterOfStudyCondition extends ConditionField
     }
 
     /**
+     * Get this field's display name.
+     *
+     * @return String
+     */
+    public function getName()
+    {
+        return _("Fachsemester");
+    }
+
+    /**
      * Compares all the users' degrees by using the specified compare operator
      * and returns all users that fulfill the condition. This can be
      * an important informatione when checking on validity of a combination
@@ -55,7 +65,7 @@ class SemesterOfStudyCondition extends ConditionField
      * @return Array All users that are affected by the current condition 
      * field.
      */
-    public function getAffectedUsers($additional) {
+    public function getUsers($additional) {
         $users = array();
         $query = "SELECT DISTINCT `user_id` ".
             "FROM `user_studiengang` ".
@@ -81,16 +91,6 @@ class SemesterOfStudyCondition extends ConditionField
             $users[] = $current['user_id'];
         }
         return $users;
-    }
-
-    /**
-     * Get this field's display name.
-     *
-     * @return String
-     */
-    public function getName()
-    {
-        return _("Fachsemester");
     }
 
     /**
