@@ -22,7 +22,7 @@ class Admission_RuleAdministrationController extends AuthenticatedController {
      * Show overview of available admission rules.
      */
     public function index_action() {
-        DBManager::get()->execute("UPDATE `admissionrules` SET `deleteable`=0
+        DBManager::get()->exec("UPDATE `admissionrules` SET `deleteable`=0
             WHERE `ruletype` IN ('ConditionalAdmission', 'LimitedAdmission',
             'LockedAdmission', 'PasswordAdmission', 'TimedAdmission')");
         $this->ruleTypes = RuleAdministrationModel::getAdmissionRuleTypes();
