@@ -1,17 +1,16 @@
 <? use \Studip\Button; ?>
 <br />
 <a name="awaiting"></a>
-<form action="<?= $controller->url_for(sprintf('course/members/edit_awaiting/%s/?cid=%s', $page, Request::get('cid'))) ?>"
-      method="post" onsubmit="if ($('#action_awaiting').val() == 'remove')
-          return confirm('<?= _('Wollen Sie die markierten NutzerInnen wirklich austragen?') ?>');">
+<form action="<?= $controller->url_for('course/members/edit_awaiting/') ?>" method="post">
+    <?= CSRFProtection::tokenTag() ?>
     <table class="default collapsable zebra-hover">
         <colgroup>
-            <col width="3%">
-            <col width="3%">
-            <col width="49%">
+            <col width="20">
+            <col width="20">
+            <col>
             <col width="5%">
-            <col width="25%"
-            <col width="15%">
+            <col width="25%">
+            <col width="80">
         </colgroup>
         <thead>
             <tr>
@@ -24,16 +23,18 @@
                             array('sms_source_page' => 'dispatch.php/course/members?cid=' . $course_id,
                                 'course_id' => $course_id,
                                 'subject' => $subject))?>">
-                        <?= Assets::img('icons/16/blue/inbox.png', tooltip2( _('Nachricht an alle NutzerInnen verschicken')))?>
+                        <?= Assets::img('icons/16/white/inbox.png', tooltip2( _('Nachricht an alle NutzerInnen versenden')))?>
                     </a>
                 </th>
             </tr>
             <tr class="sortable">
-                <? if($rechte) :?>
-                <input aria-label="<?= _('NutzerInnen auswählen') ?>"
-                            type="checkbox" name="all" value="1" data-proxyfor=":checkbox[name^=awaiting]">
+                <? if (!$is_locked) : ?>
+                <th><input aria-label="<?= _('NutzerInnen auswählen') ?>"
+                            type="checkbox" name="all" value="1" data-proxyfor=":checkbox[name^=awaiting]" />
+                </th>
                 <? endif ?>
-                <th colspan="<?=$rechte ? 2 : 3?>>"<?= ($sort_by == 'nachname' && $sort_status == 'awaiting') ?
+                <th></th>
+                <th <?= ($sort_by == 'nachname' && $sort_status == 'awaiting') ?
                     sprintf('class="sort%s"', $order) : '' ?>>
                     <a href="<?= URLHelper::getLink(sprintf('?sortby=nachname&sort_status=awaiting&order=%s&toggle=%s',
                             $order, ($sort_by == 'nachname'))) ?>#awaiting">
@@ -57,8 +58,12 @@
         <? foreach($awaiting as $waiting) : ?>
         <? $fullname = $waiting->user->getFullName('full_rev');?>
             <tr>
-                <td><input aria-label="<?= _('Alle NutzerInnen auswählen') ?>" type="checkbox"
-                            name="awaiting[<?= $user['user_id'] ?>]" value="1" /></td>
+                <td>
+                <? if (!$is_locked) : ?>
+                    <input aria-label="<?= _('Alle NutzerInnen auswählen') ?>" type="checkbox"
+                            name="awaiting[<?= $waiting['user_id'] ?>]" value="1" />
+                <? endif ?>
+                </td>
                 <td style="text-align: right"><?= (++$nr < 10) ? sprintf('%02d', $nr) : $nr ?></td>
                 <td>
                     <a style="position: relative" href="<?= $controller->url_for(sprintf('profile?username=%s',$waiting['username'])) ?>">
@@ -71,25 +76,25 @@
                 </td>
                 <td style="text-align: center"><?= $waiting['position'] ?></td>
                 <td style="text-align: center">
-                    <?= ($autor['admission_studiengang_id'] == 'all') ? _('alle Studiengänge') : '' ?>
+                    <?= ($waiting['studiengang_id'] == 'all') ? _('alle Studiengänge') : '' ?>
                 </td>
                 <td style="text-align: right">
-                    <a href="<?= URLHelper::getLink('sms_send.php',
-                                array('filter' => 'send_sms_to_all',
-                                'rec_uname' => $waiting['username'],
-                                'sms_source_page' => sprintf('dispatch.php/course/members?cid=%s', $course_id),
-                                'subject' => $subject))
-                            ?>
-                    ">
-                        <?= Assets::img('icons/16/blue/mail.png',
-                                tooltip2(sprintf(_('Nachricht an %s verschicken'), htmlReady($fullname)))) ?>
-                    </a>
-                    <? if ($rechte && $is_tutor) : ?>
-                    <a onclick="return confirm('<?= sprintf(_('Wollen Sie  %s wirklich austragen?'),
-                            htmlReady($fullname)) ?>');"
-                        href="<?= $controller->url_for(sprintf('course/members/cancel_subscription/singleuser/awaiting/%s/%s',
-                                $page, $waiting['user_id'])) ?>">
-                        <?= Assets::img('icons/16/blue/remove/person.png',
+                    <? if($user_id != $waiting['user_id']) : ?>
+                        <a href="<?= URLHelper::getLink('sms_send.php',
+                                    array('filter' => 'send_sms_to_all',
+                                    'rec_uname' => $waiting['username'],
+                                    'sms_source_page' => sprintf('dispatch.php/course/members?cid=%s', $course_id),
+                                    'subject' => $subject))
+                                ?>
+                        ">
+                            <?= Assets::img('icons/16/blue/mail.png',
+                                    tooltip2(sprintf(_('Nachricht an %s senden'), htmlReady($fullname)))) ?>
+                        </a>
+                    <? endif?>
+                    <? if (!$is_locked) : ?>
+                    <a href="<?= $controller->url_for(sprintf('course/members/cancel_subscription/singleuser/awaiting/%s',
+                                $waiting['user_id'])) ?>">
+                        <?= Assets::img('icons/16/blue/door-leave.png',
                                 tooltip2(sprintf(_('%s austragen'), htmlReady($fullname)))) ?>
                     </a>
                     <? endif ?>
@@ -97,22 +102,24 @@
             </tr>
         <? endforeach ?>
         </tbody>
+        <? if (!$is_locked) : ?>
         <tfoot>
             <tr>
                 <td class="printhead" colspan="6">
                     <select name="action_awaiting" id="action_awaiting" aria-label="<?= _('Aktion ausführen') ?>">
                         <option value="">- <?= _('Aktion wählen') ?></option>
-                        <option value="upgrade"><?= _('Als NutzerInnen befördern') ?></option>
+                        <option value="upgrade"><?= _('Zu NutzerInnen hochstufen') ?></option>
                         <option value="remove"><?= _('Austragen') ?></option>
+                        <option value="message"><?=_('Nachricht senden')?></option>
     <!--                    <option value="copy_to_sem"><?= _('In Seminar verschieben/kopieren') ?></option>-->
                     </select>
-                    <?= tooltipIcon( _('Mit dieser Einstellung beeinflussen Sie,
-                            ob Teilnehmer die Sie hinzufügen auf die Kontingentplätze angerechnet werden.'))?>
+                    <?= tooltipIcon( _('Hier können Sie auswählen, ob die von Ihnen hinzugefügten TeilnehmerInnen auf die Kontingentplätze angerechnet werden.'))?>
                     <?= _("Kontingent berücksichtigen:"); ?>
                     <input type="checkbox" value="1" name="consider_contingent" checked="checked" />
                     <?= Button::create(_('Ausführen'), 'submit_awaiting') ?>
                 </td>
             </tr>
         </tfoot>
+        <? endif ?>
     </table>
 </form>

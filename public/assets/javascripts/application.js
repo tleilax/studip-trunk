@@ -61,7 +61,7 @@ jQuery('a[rel~="lightbox"]').live('click', function (event) {
         jQuery('a[rel~="option"]', this).remove().each(function () {
             var label = jQuery(this).text(),
                 href  = jQuery(this).attr('href');
-            buttons[label] = function () { 
+            buttons[label] = function () {
                 location.href = href;
             };
         });
@@ -192,23 +192,23 @@ jQuery(function ($) {
         $('.more-dates-digits').toggle();
         if ($('.more-dates-infos').is(':visible')) {
             $('.more-dates').text('(weniger)');
-            $('.more-dates').attr('title', 'Blenden Sie die restlichen Termine aus');
+            $('.more-dates').attr('title', 'Blenden Sie die restlichen Termine aus'.toLocaleString());
         } else {
             $('.more-dates').text('(mehr)');
-            $('.more-dates').attr('title', 'Blenden Sie die restlichen Termine ein');
+            $('.more-dates').attr('title', 'Blenden Sie die restlichen Termine ein'.toLocaleString());
         }
     });
-    
+
     $('.more-location-dates').live('click', function () {
         $(this).closest('div').prev().toggle();
         $(this).prev().toggle();
-        
+
         if ($(this).closest('div').prev().is(':visible')) {
             $(this).text('(weniger)');
-            $(this).attr('title', 'Blenden Sie die restlichen Termine aus');
+            $(this).attr('title', 'Blenden Sie die restlichen Termine aus'.toLocaleString());
         } else {
             $(this).text('(mehr)');
-            $(this).attr('title', 'Blenden Sie die restlichen Termine ein');
+            $(this).attr('title', 'Blenden Sie die restlichen Termine ein'.toLocaleString());
         }
     });
 }(jQuery));
@@ -233,7 +233,7 @@ jQuery.ui.accordion.prototype.options.icons = {
 /* ------------------------------------------------------------------------
  * jQuery datepicker
  * ------------------------------------------------------------------------ */
-jQuery(function ($) {
+(function ($) {
     $.datepicker.regional.de = {
         closeText: 'schließen',
         prevText: '&#x3c;zurück',
@@ -337,6 +337,31 @@ jQuery(function ($) {
             // Store current state
             $(this).data('secured', action === 'on');
         }
+    });
+}(jQuery));
+
+// Global handler:
+// Use a checkbox as a proxy for a set of other checkboxes. Define
+// proxied elements as a css selector in attribute "data-proxyfor".
+(function ($) {
+    $(document).on('change', ':checkbox[data-proxyfor]', function () {
+        var proxied = $(this).data('proxyfor');
+        $(proxied).attr('checked', this.checked);
+    }).on('update.studip', ':checkbox[data-proxyfor]', function () {
+        var proxied  = $(this).data('proxyfor'),
+            $proxied = $(proxied),
+            $checked = $proxied.filter(':checked');
+        $(this).attr('checked', $proxied.length === $checked.length);
+        $(this).prop('indeterminate', $checked.length && $checked.length < $proxied.length);
+    }).on('change', ':checkbox[data-proxiedby]', function () {
+        var proxy = $(this).data('proxiedby');
+        $(proxy).trigger('update.studip');
+    }).ready(function () {
+        $(':checkbox[data-proxyfor]').each(function () {
+            var proxied = $(this).data('proxyfor');
+            // The following seems like a hack but works perfectly fine.
+            $(proxied).attr('data-proxiedby', true).data('proxiedby', this);
+        }).trigger('update.studip');
     });
 }(jQuery));
 

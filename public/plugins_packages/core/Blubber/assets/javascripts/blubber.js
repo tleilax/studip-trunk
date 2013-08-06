@@ -530,13 +530,11 @@ jQuery(".writer > textarea").live("keydown", function (event) {
 //initialize click-events on "show more" links to show more comments
 jQuery("#blubber_threads > li > ul.comments > li.more").live("click", function () {
     var thread_id = jQuery(this).closest("li[id]").attr("id").split("_").pop(),
-        last    = jQuery(this).next("li"),
-        last_id = last.attr("id").split("_").pop(),
         li_more = this;
     jQuery(this).wrapInner('<span/>').find('span').showAjaxNotification()
     jQuery.getJSON(STUDIP.ABSOLUTE_URI_STUDIP + jQuery("#base_url").val() + "/more_comments", {
         thread_id: thread_id,
-        last_id: last_id
+        already_there: jQuery(this).closest("ul").children("li[id]").length
     }, function (json) {
         if (!json.more) {
             jQuery(li_more).remove();
@@ -561,6 +559,29 @@ jQuery(function () {
     jQuery("#blubber_threads a.edit").live("click", STUDIP.Blubber.startEditingComment);
     jQuery("#blubber_threads textarea.corrector").live("blur", function () {STUDIP.Blubber.submitEditedPosting(this);});
     jQuery("#threadwriter .context_selector img").bind("click", STUDIP.Blubber.showContextWindow);
+
+    //for editing custom streams:
+    jQuery("#edit_stream select, #edit_stream input").bind("change", STUDIP.Blubber.update_streams_threadnumber);
+    jQuery("#edit_stream td .checkicons").bind("click", function () {
+        if (jQuery(this).closest("td").is(".selected")) {
+            jQuery(this).closest("td").removeClass("selected").find("input[type=checkbox]").removeAttr("checked");
+        } else {
+            jQuery(this).closest("td").addClass("selected").find("input[type=checkbox]").attr("checked", "checked");
+        }
+    });
+    jQuery("#edit_stream td .label").bind("click", function () {
+        if (!jQuery(this).closest("td").is(".selected")) {
+            jQuery(this).closest("td").addClass("selected").find("input[type=checkbox]").attr("checked", "checked");
+        } else {
+            jQuery(this).closest("td").removeClass("selected").find("input[type=checkbox]").removeAttr("checked");
+        }
+    });
+    jQuery("#edit_stream .selector").bind("click", function () {
+        if (!jQuery(this).closest("td").is(".selected")) {
+            jQuery(this).closest("td").addClass("selected").find("input[type=checkbox]").attr("checked", "checked");
+        }
+    });
+    
 });
 
 //Infinity-scroll:

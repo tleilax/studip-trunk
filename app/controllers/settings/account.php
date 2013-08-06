@@ -48,6 +48,9 @@ class Settings_AccountController extends Settings_SettingsController
         $this->locked_info = LockRules::CheckLockRulePermission($this->user['user_id'])
                            ? LockRules::getObjectRule($this->user['user_id'])->description
                            : false;
+
+        $auth = StudipAuthAbstract::GetInstance($this->user->auth_plugin ?: 'standard');
+        $this->is_sso = $auth instanceOf StudipAuthSSO;
     }
 
     /**
@@ -130,7 +133,10 @@ class Settings_AccountController extends Settings_SettingsController
             $email1 = trim(Request::get('email1'));
             $email2 = trim(Request::get('email2'));
             if ($this->shallChange('auth_user_md5.Email', 'email', $email1)) {
-                if ($this->user['password'] != md5(Request::get('password'))) {
+                $auth   = StudipAuthAbstract::GetInstance($this->user->auth_plugin ?: 'standard');
+                $is_sso = $auth instanceOf StudipAuthSSO;
+
+                if (!$is_sso && $auth->isAuthenticated($this->user->username, Request::get('password'))) {
                     $errors[] = _('Das aktuelle Passwort wurde nicht korrekt eingegeben.');
                 } else if ($email1 !== $email2) {
                     $errors[] = _('Die Wiederholung der E-Mail-Adresse stimmt nicht mit Ihrer Eingabe überein.');
