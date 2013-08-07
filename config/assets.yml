@@ -21,6 +21,10 @@ javascripts:
     - javascripts/toolbar-buttonset.js
     - javascripts/smiley-picker.js
 
+  visual-editor: &visual-editor
+    - javascripts/ckeditor/ckeditor.js
+    - javascripts/visual-editor.js
+
   base:
     - *jquery
     - *modernizr
@@ -56,6 +60,7 @@ javascripts:
     - javascripts/cronjobs.js
     - *header
     - *toolbar
+    - *visual-editor
     - javascripts/application.js
 
   raumzeit:

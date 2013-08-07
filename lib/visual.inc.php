@@ -15,6 +15,8 @@ require_once 'lib/classes/LinkButton.class.php';
 require_once 'lib/classes/Button.class.php';
 require_once 'lib/classes/ResetButton.class.php';
 require_once 'lib/wiki.inc.php';
+require_once 'purifier.php';
+require_once 'utils.php';
 
 /**
  * get_ampel_state is a helper function for get_ampel_write and get_ampel_read.
@@ -213,6 +215,13 @@ function get_ampel_read ($mein_status, $admission_status, $read_level, $print="T
     return $ampel_status;
 }
 
+function htmlReadyOrPurify ($what, $trim = TRUE, $br = FALSE, $double_encode = false) {
+    if (Utils\getConfigValue('HTML_FILTER') == 'purify') {
+        return Purifier\purify($what);
+    }
+    return htmlReady($what, $trim, $br, $double_encode);
+}
+
 function htmlReady ($what, $trim = TRUE, $br = FALSE, $double_encode = false) {
     if ($trim) {
         $what = trim(htmlspecialchars($what, ENT_QUOTES, 'cp1252', $double_encode));
@@ -245,7 +254,7 @@ function jsReady ($what, $target) {
     case "inline-double" :
         return htmlReady(addcslashes($what, "\\\"\n\r"), false, false, true);
     break;
-
+        
     }
     return addslashes($what);
 }
@@ -280,9 +289,13 @@ function quotes_encode($description,$author)
 * @return       string
 */
 function formatReady ($what, $trim = TRUE, $extern = FALSE, $wiki = FALSE, $show_comments="icon") {
+    if (Utils\getConfigValue('MARKUP_MODE') === 'none') {
+        return htmlReadyOrPurify($what, $trim);
+    }
+
     $markup = new StudipFormat();
     $what = preg_replace("/\r\n?/", "\n", $what);
-    $what = htmlReady($what, $trim);
+    $what = htmlReadyOrPurify($what, $trim);
 
     $what = $markup->format($what);
     $what = symbol(smile($what, false));
@@ -297,6 +310,10 @@ function formatReady ($what, $trim = TRUE, $extern = FALSE, $wiki = FALSE, $show
  */
 function formatLinks($what, $nl2br = true)
 {
+    if (Utils\getConfigValue('MARKUP_MODE') === 'none') {
+        return htmlReadyOrPurify($what, $trim);
+    }
+
     $link_markup_rule = StudipFormat::getStudipMarkup("links");
     $markup = new TextFormat();
     $markup->addMarkup(
@@ -305,7 +322,7 @@ function formatLinks($what, $nl2br = true)
         $link_markup_rule['end'],
         $link_markup_rule['callback']
     );
-    return $markup->format(htmlReady($what, true, $nl2br));
+    return $markup->format(htmlReadyOrPurify($what, true, $nl2br));
 }
 
 /**
@@ -319,9 +336,13 @@ function formatLinks($what, $nl2br = true)
 * @return       string
 */
 function wikiReady ($what, $trim = TRUE) {
+    if (Utils\getConfigValue('MARKUP_MODE') === 'none') {
+        return htmlReadyOrPurify($what, $trim);
+    }
+
     $markup = new WikiFormat();
     $what = preg_replace("/\r\n?/", "\n", $what);
-    $what = htmlReady($what, $trim);
+    $what = htmlReadyOrPurify($what, $trim);
 
     $what = $markup->format($what);
     $what = symbol(smile($what, false));
@@ -817,7 +838,8 @@ function tooltip2($text, $with_alt = TRUE, $with_popup = FALSE) {
 function tooltipIcon($text, $important = false, $html = false)
 {
     // prepare text
-    $text = ($html) ? $text : htmlReady($text, true, true);
+    $text = preg_replace("/(\n\r|\r\n|\n|\r)/", " ", $text);
+    $text = ($html) ? $text : htmlReady($text);
 
     // render tooltip
     $template = $GLOBALS['template_factory']->open('shared/tooltip');
@@ -864,27 +886,6 @@ function createQuestion($question, $approveParams, $disapproveParams = array(), 
 
     $template->set_attribute('approvalLink', URLHelper::getURL($baseUrl, $approveParams ));
     $template->set_attribute('disapprovalLink', URLHelper::getURL($baseUrl, $disapproveParams ));
-    $template->set_attribute('question', $question);
-
-    return $template->render();
-}
-
-/**
-* creates a modal dialog ensuring that the user is really aware about the action to perform with formulars
-*
-* @param   string $question          question of the modal dialog
-* @param   string $approveParams     an array of params for a link to be used on approval
-* @param   string $disapproveParams  an array of params for a link to be used on disapproval
-* @param   string $baseUrl           if set, this url is used, PHP_SELF otherwise
-*
-* @return  string $dialog            text which contains the dialog
-*/
-function createQuestion2($question, $approveParams, $disapproveParams = array(), $baseUrl = '?') {
-    $template = $GLOBALS['template_factory']->open('shared/question2');
-    
-    $template->set_attribute('approvalLink', $baseUrl);
-    $template->set_attribute('approvParams', $approveParams);
-    $template->set_attribute('disapproveParams', $disapproveParams);
     $template->set_attribute('question', $question);
 
     return $template->render();
