@@ -66,8 +66,7 @@ class exportTable extends exportElement {
     public $userSelection = false;
     public $whitelist = array();
 
-    // Constructor
-    public function tableExport($array = null) {
+    function __construct($array = null) {
         if ($array != null) {
             $this->content = $array;
         }
