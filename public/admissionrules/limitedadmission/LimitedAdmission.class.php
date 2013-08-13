@@ -234,8 +234,8 @@ class LimitedAdmission extends AdmissionRule
             `message`=VALUES(`message`), `start_time`=VALUES(`start_time`),
             `end_time`=VALUES(`end_time`), `maxnumber`=VALUES(`maxnumber`),
             `chdate`=VALUES(`chdate`)");
-        $stmt->execute(array($this->id, $this->message, $this->startTime,
-            $this->endTime, $this->maxNumber, time(), time()));
+        $stmt->execute(array($this->id, $this->message, (int)$this->startTime,
+            (int)$this->endTime, $this->maxNumber, time(), time()));
         return $this;
     }
 

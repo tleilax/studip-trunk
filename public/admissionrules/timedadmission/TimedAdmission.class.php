@@ -232,8 +232,8 @@ class TimedAdmission extends AdmissionRule
             ON DUPLICATE KEY UPDATE `start_time`=VALUES(`start_time`), 
             `distribution_time`=VALUES(`distribution_time`), 
             `end_time`=VALUES(`end_time`), `chdate`=VALUES(`chdate`)");
-        $stmt->execute(array($this->id, $this->message, $this->startTime, 
-            $this->distributionTime, $this->endTime, time(), time()));
+        $stmt->execute(array($this->id, $this->message, (int)$this->startTime, 
+            (int)$this->distributionTime, (int)$this->endTime, time(), time()));
     }
 
     /**

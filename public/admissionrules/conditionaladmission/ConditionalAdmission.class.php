@@ -232,8 +232,8 @@ class ConditionalAdmission extends AdmissionRule
             `start_time`=VALUES(`start_time`),
             `end_time`=VALUES(`end_time`),
             `chdate`=VALUES(`chdate`)");
-        $stmt->execute(array($this->id, $this->message, $this->startTime,
-            $this->endTime, time(), time()));
+        $stmt->execute(array($this->id, $this->message, (int)$this->startTime,
+            (int)$this->endTime, time(), time()));
         // Delete removed conditions from DB.
         $stmt = DBManager::get()->prepare("SELECT `condition_id` FROM 
             `admission_condition` WHERE `rule_id`=? AND `condition_id` NOT IN ('".
