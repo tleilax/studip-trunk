@@ -44,33 +44,12 @@ class Course_EnrolmentController extends AuthenticatedController
             $this->redirect(UrlHelper::getUrl('seminar_main.php', array('auswahl' => $this->course_id)));
             return false;
         }
-        //Allgemeine Ausschlußkriterien
-        //Admins
-        if ($GLOBALS['perm']->have_perm('admin')) {
-            throw new AccessDeniedException(_("Als Administrator_in können Sie sich nicht für eine Veranstaltung anmelden."));
-        }
-        //falsche Nutzerdomäne
-        $same_domain = true;
-        $user_domains = UserDomain::getUserDomainsForUser($GLOBALS['user']->id);
-        if (count($user_domains) > 0) {
-            $seminar_domains = UserDomain::getUserDomainsForSeminar($this->course_id);
-            $same_domain = count(array_intersect($seminar_domains, $user_domains)) > 0;
-        }
-        if (!$same_domain && !SeminarCategories::GetBySeminarId($this->course_id)->studygroup_mode) {
-            throw new AccessDeniedException(_("Sie sind nicht in einer zugelassenenen Nutzerdomäne, Sie können sich nicht eintragen!"));
-        }
-        //Teilnehmerverwaltung mit Sperregel belegt
-        if (LockRules::Check($this->course_id, 'participants')) {
-            $lockdata = LockRules::getObjectRule($this->course_id);
-            throw new AccessDeniedException(_("In diese Veranstaltung können Sie sich nicht eintragen!") . ($lockdata['description'] ? '<br>' . formatLinks($lockdata['description']) : ''));
-        }
-        $this->course = Course::find($this->course_id);
-        //Veranstaltung unsichtbar für aktuellen Nutzer
-        if (!$this->course->visible && !$GLOBALS['perm']->have_perm(get_config('SEM_VISIBILITY_PERM'))) {
-            throw new AccessDeniedException(_("Die Veranstaltung ist gesperrt, Sie können sich nicht eintragen!"));
+        $course = Seminar::GetInstance($this->course_id);
+        $enrolment_info = $course->getEnrolmentInfo($GLOBALS['user']->id);
+        if (!$enrolment_info['enrolment_allowed']) {
+            throw new AccessDeniedException($enrolment_info['description']);
         }
         PageLayout::setTitle(getHeaderLine($this->course_id)." - " . _("Veranstaltungsfreischaltung"));
-
     }
 
     /**

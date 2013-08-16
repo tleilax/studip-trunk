@@ -2673,4 +2673,87 @@ class Seminar
             NotificationCenter::postNotification("CourseDidChangeMemberLabel", $this);
         }
     }
+
+    public function getEnrolmentInfo($user_id)
+    {
+        $info = array();
+        $user = User::find($user_id);
+        if (!$user) {
+            $info['enrolment_allowed'] = false;
+            $info['cause'] = 'nobody';
+            $info['description'] = _("Sie sind nicht angemeldet.");
+            return $info;
+        }
+        if ($GLOBALS['perm']->have_perm('root', $user_id)) {
+            $info['enrolment_allowed'] = true;
+            $info['cause'] = 'root';
+            $info['description'] = _("Sie dürfen ALLES.");
+            return $info;
+        }
+        if ($GLOBALS['perm']->have_studip_perm('admin', $this->getId(), $user_id)) {
+            $info['enrolment_allowed'] = true;
+            $info['cause'] = 'courseadmin';
+            $info['description'] = _("Sie sind Administrator_in der Veranstaltung.");
+            return $info;
+        }
+        if ($GLOBALS['perm']->have_perm('admin', $user_id)) {
+            $info['enrolment_allowed'] = false;
+            $info['cause'] = 'admin';
+            $info['description'] = _("Als Administrator_in können Sie sich nicht für eine Veranstaltung anmelden.");
+            return $info;
+        }
+        //Ist bereits Teilnehmer
+        if ($GLOBALS['perm']->have_studip_perm('user', $this->getId(), $user_id)) {
+            $info['enrolment_allowed'] = true;
+            $info['cause'] = 'member';
+            $info['description'] = _("Sie sind als TeilnehmerIn der Veranstaltung eingetragen.");
+            return $info;
+        }
+        $admission_status = $user->admission_applications->findBy('seminar_id', $this->getId())->val('status');
+        if ($admission_status == 'accepted') {
+            $info['enrolment_allowed'] = false;
+            $info['cause'] = 'accepted';
+            $info['description'] = _("Sie wurden für diese Veranstaltung vorläufig akzeptiert.");
+            return $info;
+        }
+        if ($admission_status == 'awaiting') {
+            $info['enrolment_allowed'] = false;
+            $info['cause'] = 'awaiting';
+            $info['description'] = _("Sie stehen auf der Warteliste für diese Veranstaltung.");
+            return $info;
+        }
+        //falsche Nutzerdomäne
+        $same_domain = true;
+        $user_domains = UserDomain::getUserDomainsForUser($user_id);
+        if (count($user_domains) > 0) {
+            $seminar_domains = UserDomain::getUserDomainsForSeminar($this->getId());
+            $same_domain = count(array_intersect($seminar_domains, $user_domains)) > 0;
+        }
+        if (!$same_domain && !$this->isStudygroup()) {
+            $info['enrolment_allowed'] = false;
+            $info['cause'] = 'domain';
+            $info['description'] = _("Sie sind nicht in einer zugelassenenen Nutzerdomäne, Sie können sich nicht eintragen!");
+            return $info;
+        }
+        //Teilnehmerverwaltung mit Sperregel belegt
+        if (LockRules::Check($this->getId(), 'participants')) {
+            $info['enrolment_allowed'] = false;
+            $info['cause'] = 'locked';
+            $info['description'] = _("In diese Veranstaltung können Sie sich nicht eintragen!") . ($lockdata['description'] ? '<br>' . formatLinks($lockdata['description']) : '');
+            return $info;
+        }
+        //Veranstaltung unsichtbar für aktuellen Nutzer
+        if (!$this->visible && !$GLOBALS['perm']->have_perm(get_config('SEM_VISIBILITY_PERM'), $user_id)) {
+            $info['enrolment_allowed'] = false;
+            $info['cause'] = 'invisible';
+            $info['description'] = _("Die Veranstaltung ist gesperrt, Sie können sich nicht eintragen!");
+            return $info;
+        }
+        if ($courseset = array_pop(CourseSet::getSetsForCourse($this->getId()))) {
+            $info['enrolment_allowed'] = true;
+            $info['cause'] = 'courseset';
+            $info['description'] = _("Die Anmeldung zu dieser Veranstaltung folgt speziellen Regeln. Lesen Sie den Hinweistext.");
+            return $info;
+        }
+    }
 }

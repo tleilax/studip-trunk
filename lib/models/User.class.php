@@ -141,7 +141,12 @@ class User extends AuthUserMd5
                 'foreign_key' =>
                     function($model) {
                         return array($model);
-                    })
+                    }),
+                'studycourses' => array(
+                            'class_name' => 'UserStudyCourse',
+                            'assoc_func' => 'findByUser',
+                            'on_delete' => 'delete',
+                            'on_store' => 'store'),
         );
         $this->has_one['info'] = array(
                 'class_name' => 'UserInfo',

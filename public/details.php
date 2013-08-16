@@ -98,60 +98,6 @@ if (count($user_domains) > 0) {
     $same_domain = count(array_intersect($seminar_domains, $user_domains)) > 0;
 }
 
-// nachfragen, ob das Seminar abonniert werden soll
-if ($sem_id) {
-    if ($perm->have_studip_perm("admin",$sem_id)) {
-        $skip_verify=TRUE;
-    } elseif ($perm->have_perm("user") && !$perm->have_perm("admin") && $same_domain) { //Add lecture only if logged in
-        $query = "SELECT status FROM seminar_user WHERE user_id = ? AND Seminar_id = ?";
-        $statement = DBManager::get()->prepare($query);
-        $statement->execute(array($user->id, $sem_id));
-        $status = $statement->fetchColumn();
-
-        if (($seminar['admission_starttime'] > time()) && ($seminar['admission_endtime_sem'] == "-1")) {
-            $abo_msg = sprintf ("</a>"._("Tragen Sie sich hier ab %s um %s ein.")."<a>", date("d.m. Y", $seminar['admission_starttime']), date("G:i", $seminar['admission_starttime']));
-        } elseif (($seminar['admission_starttime'] > time()) && ($seminar['admission_endtime_sem'] != "-1")) {
-            $abo_msg = sprintf ("</a>"._("Tragen Sie sich hier von %s bis %s ein.")."<a>",date("d.m. Y, G:i", $seminar['admission_starttime']), date('d.m.Y, G:i', $seminar['admission_endtime_sem']));
-        } elseif (($seminar['admission_endtime_sem'] < time()) && ($seminar['admission_endtime_sem'] != -1)) {
-            if (!$status == "user") $info_msg = _("Eintragen nicht mehr möglich, der Anmeldezeitraum ist abgelaufen");
-        } elseif ($seminar['admission_type'] == 3) {
-                        $info_msg = _("Eintragen nicht m&ouml;glich, diese Veranstaltung ist gesperrt.");
-        } else {
-            if (!$status && (!$deputies_enabled || !isDeputy($user->id, $sem_id))) {
-                $query = "SELECT status FROM admission_seminar_user WHERE user_id = ? AND seminar_id = ?";
-                $statement = DBManager::get()->prepare($query);
-                $statement->execute(array($user->id, $sem_id));
-                $status = $statement->fetchColumn();
-                if (!$status) {
-                    $abo_msg = _("Tragen Sie sich hier f&uuml;r die Veranstaltung ein");
-                }
-            } else if ($status == "user") {
-                $abo_msg = _("Schreibrechte aktivieren");
-            }
-        }
-        if (get_config('SCHEDULE_ENABLE') && !$status && Seminar::getInstance($sem_id)->getMetaDateCount()) {
-            $query = "SELECT COUNT(*) FROM schedule_seminare WHERE seminar_id = ? AND user_id = ?";
-            $statement = DBManager::Get()->prepare($query);
-            $statement->execute(array($sem_id, $GLOBALS['user']->id));
-            $sem_user_schedule = $statement->fetchColumn();
-            if (!$sem_user_schedule) {
-                $plan_msg = "<a href=\"".URLHelper::getLink("dispatch.php/calendar/schedule/addvirtual/$sem_id")."\">"._("Nur im Stundenplan vormerken")."</a>";
-            }
-        }
-
-    }
-
-    if ($perm->have_studip_perm("user",$sem_id) && !$perm->have_studip_perm("tutor",$sem_id)) {
-        if ($seminar['admission_binding'])
-            $info_msg = sprintf(_("Das Austragen aus der Veranstaltung ist nicht mehr m&ouml;glich, da das Abonnement bindend ist.<br>Bitte wenden Sie sich an den Leiter (%s) der Veranstaltung!"), get_title_for_status('dozent', 1), $seminar['status']);
-        else
-            $delete_msg = _("Tragen Sie sich hier aus der Veranstaltung aus");
-    }
-}
-
-if ($send_from_search)
-    $back_msg.=_("Zur&uuml;ck zur letzten Auswahl");
-
 
  //calculate a "quarter" year, to avoid showing dates that are older than a quarter year (only for irregular dates)
 $quarter_year = 60 * 60 * 24 * 90;
@@ -197,56 +143,56 @@ else
 
             <? // Infobox
 
-            $user_id = $auth->auth["uid"];
+            if ($sem_id) {
+                $enrolment_info = Seminar::getInstance($sem_id)->getEnrolmentInfo($user->id);
+                $info_msg = $enrolment_info['description'];
 
-            $query = "SELECT status FROM seminar_user WHERE Seminar_id = ? AND user_id = ?";
-            $statement = DBManager::get()->prepare($query);
-            $statement->execute(array($sem_id, $user_id));
-            $mein_status = $statement->fetchColumn();
-            if (!$mein_status && $deputies_enabled && isDeputy($user_id, $sem_id)) {
-                $mein_status = 'dozent';
-            } else if (!$mein_status) {
-                unset ($mein_status);
-            }
-            //Status als Wartender ermitteln
-            $query = "SELECT status FROM admission_seminar_user WHERE seminar_id = ? AND user_id = ?";
-            $statement = DBManager::get()->prepare($query);
-            $statement->execute(array($sem_id, $user_id));
-            $admission_status = $statement->fetchColumn();
-            if (!$admission_status) {
-                unset ($admission_status);
-            }
-
-            if (($mein_status) || ($admission_status)) {
-                $picture_tmp = 'icons/16/green/accept.png';
-            } else {
-                $picture_tmp = 'icons/16/red/decline.png';
-            }
-
-            if (($mein_status) || ($admission_status)) {
-                if ($mein_status) {
-                    $tmp_text=_("Sie sind als TeilnehmerIn der Veranstaltung eingetragen");
-                    $tmp_text .= $num_text;
-                } elseif ($admission_status) {
-                    if ($admission_status == "accepted") {
-                        $tmp_text = sprintf(_("Sie wurden f&uuml;r diese Veranstaltung vorl&auml;ufig akzeptiert.<br>Lesen Sie den Hinweistext!"));
-                        $tmp_text .= $num_text;
-                    } else {
-                        $tmp_text = sprintf (_("Sie sind in die %s der Veranstaltung eingetragen."), ($admission_status=="claiming")    ? _("Anmeldeliste") : _("Warteliste"));
-                        $tmp_text .= $num_text;
+                if ($enrolment_info['enrolment_allowed'] && in_array($enrolment_info['cause'], words('member root courseadmin'))) {
+                    $abo_msg = _("direkt zur Veranstaltung");
+                } elseif ($enrolment_info['enrolment_allowed']) {
+                    $abo_msg = _("Zugang zur Veranstaltung");
+                }
+                if (get_config('SCHEDULE_ENABLE') && !$status && Seminar::getInstance($sem_id)->getMetaDateCount()) {
+                    $query = "SELECT COUNT(*) FROM schedule_seminare WHERE seminar_id = ? AND user_id = ?";
+                    $statement = DBManager::Get()->prepare($query);
+                    $statement->execute(array($sem_id, $GLOBALS['user']->id));
+                    $sem_user_schedule = $statement->fetchColumn();
+                    if (!$sem_user_schedule) {
+                        $plan_msg = "<a href=\"".URLHelper::getLink("dispatch.php/calendar/schedule/addvirtual/$sem_id")."\">"._("Nur im Stundenplan vormerken")."</a>";
                     }
                 }
-            } elseif ($perm->have_perm("admin")) {
-                $tmp_text=_("Sie sind AdministratorIn und k&ouml;nnen deshalb die Veranstaltung nicht abonnieren.");
-            } elseif (!$same_domain) {
-                $tmp_text=_("Sie sind nicht in einer für die Veranstaltung zugelassenenen Nutzerdomäne.");
-            } else {
-                $tmp_text=_("Sie sind nicht als TeilnehmerIn der Veranstaltung eingetragen.");
-            }
-            if ((!$mein_status) && (!$admission_status)) {
-                $tmp_text = "<font color = red>".$tmp_text."<font>";
+                if ($perm->have_studip_perm("user",$sem_id) && !$perm->have_studip_perm("tutor",$sem_id)) {
+                    if ($seminar['admission_binding'])
+                        $info_msg = sprintf(_("Das Austragen aus der Veranstaltung ist nicht mehr m&ouml;glich, da das Abonnement bindend ist.<br>Bitte wenden Sie sich an den Leiter (%s) der Veranstaltung!"), get_title_for_status('dozent', 1), $seminar['status']);
+                    else
+                        $delete_msg = _("Tragen Sie sich hier aus der Veranstaltung aus");
+                }
             }
 
+            if ($send_from_search) {
+                $back_msg.=_("Zur&uuml;ck zur letzten Auswahl");
+            }
+
+            $picture_tmp = 'icons/16/red/decline.png';
+            if ($enrolment_info['cause'] == 'member') {
+                $mein_status = $perm->get_studip_perm($sem_id);
+                $tmp_text = _("Sie sind als TeilnehmerIn der Veranstaltung eingetragen");
+                $picture_tmp = 'icons/16/green/accept.png';
+            }
+            if ($enrolment_info['cause'] == 'accepted') {
+                $admission_status = 'accepted';
+                $tmp_text = sprintf(_("Sie wurden f&uuml;r diese Veranstaltung vorl&auml;ufig akzeptiert.<br>Lesen Sie den Hinweistext!"));
+            }
+            if ($enrolment_info['cause'] == 'awaiting') {
+                $admission_status = 'awaiting';
+                $tmp_text = _("Sie sind in die Warteliste der Veranstaltung eingetragen.");
+            }
+            if (in_array($enrolment_info['cause'], words('root courseadmin admin'))) {
+                $tmp_text = _("Sie sind AdministratorIn und k&ouml;nnen deshalb die Veranstaltung nicht abonnieren.");
+            }
+            if (!$tmp_text) {
+                $tmp_text = _("Sie sind nicht als TeilnehmerIn der Veranstaltung eingetragen.");
+            }
 
     $infobox = array    (
         array   ("kategorie"    => _("Pers&ouml;nlicher Status:"),
@@ -268,15 +214,10 @@ else
         )
     );
 
-if ($abo_msg || $back_msg || $delete_msg || $info_msg || $plan_msg || $mein_status || $perm->have_studip_perm("admin",$sem_id) ) {
     $infobox[2]["kategorie"] = _("Aktionen:");
-    if (($abo_msg) && (!$skip_verify)) {
+    if ($abo_msg && $sem_id != $_SESSION['SessionSeminar']) {
         $infobox[2]["eintrag"][] = array (  "icon" => 'icons/16/black/door-enter.png',
-                                    "text"  => "<a href=\"".URLHelper::getLink("sem_verify.php?id=".$sem_id."&send_from_search=$send_from_search&send_from_search_page=$send_from_search_page")."\">".$abo_msg. "</a>"
-                                );
-    } elseif ($sem_id != $SessSemName[1] && ($perm->have_studip_perm("admin",$sem_id) || ($mein_status && !$admission_status)) ) {
-        $infobox[2]["eintrag"][] = array (  "icon" => 'icons/16/black/door-enter.png',
-                                    "text"  => "<a href=\"".URLHelper::getLink("seminar_main.php?auswahl=".$sem_id."")."\">"._("direkt zur Veranstaltung"). "</a>"
+                                    "text"  => "<a href=\"".URLHelper::getLink("dispatch.php/course/enrolment/$sem_id")."\">".$abo_msg. "</a>"
                                 );
     }
     if ($delete_msg) {
@@ -299,8 +240,6 @@ if ($abo_msg || $back_msg || $delete_msg || $info_msg || $plan_msg || $mein_stat
                                     "text"  => $plan_msg
                                 );
     }
-
-}
 
 
 if ($seminar['admission_binding']) {
@@ -822,7 +761,7 @@ echo $template_factory->render(
                 <td colspan="4" valign="top">
                 <font size="-1">
                     <b>
-                        <?= sprintf(_('Diese Veranstaltung gehört zum Anmeldeset "%s".'), 
+                        <?= sprintf(_('Diese Veranstaltung gehört zum Anmeldeset "%s".'),
                             htmlReady($courseset->getName())) ?>
                     </b>
                 </font>
