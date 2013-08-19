@@ -37,15 +37,16 @@ class Course_EnrolmentController extends AuthenticatedController
             return false;
         }
         if (!get_object_type($this->course_id, array('sem'))) {
-                throw new Trails_Exception(400);
-        }
-        //Ist bereits Teilnehmer -> gleich weiter
-        if ($GLOBALS['perm']->have_studip_perm('user', $this->course_id)) {
-            $this->redirect(UrlHelper::getUrl('seminar_main.php', array('auswahl' => $this->course_id)));
-            return false;
+            throw new Trails_Exception(400);
         }
         $course = Seminar::GetInstance($this->course_id);
         $enrolment_info = $course->getEnrolmentInfo($GLOBALS['user']->id);
+        //Ist bereits Teilnehmer/Admin/freier Zugriff -> gleich weiter
+        if ($enrolment_info['enrolment_allowed'] && in_array($enrolment_info['cause'], words('root courseadmin member free_access'))) {
+            $this->redirect(UrlHelper::getUrl('seminar_main.php', array('auswahl' => $this->course_id)));
+            return false;
+        }
+        //Grundsätzlich verboten
         if (!$enrolment_info['enrolment_allowed']) {
             throw new AccessDeniedException($enrolment_info['description']);
         }
@@ -57,8 +58,37 @@ class Course_EnrolmentController extends AuthenticatedController
      */
     function apply_action()
     {
-        $this->courseset = array_pop(CourseSet::getSetsForCourse($this->course_id));
-        
+        $user_id = $GLOBALS['user']->id;
+        $courseset = array_pop(CourseSet::getSetsForCourse($this->course_id));
+        if ($courseset) {
+            $this->courseset_message = $courseset->toString(true);
+        } else {
+            $enrol_user = true;
+        }
+
+        if ($enrol_user) {
+            $course = Seminar::GetInstance($this->course_id);
+            if ($course->admission_prelim) {
+                if ($course->addPreliminaryMember($user_id)) {
+                    if ($course->isStudygroup()) {
+                        PageLayout::postMessage(MessageBox::success(sprintf(_("Sie wurden auf die Anmeldeliste der Studiengruppe %s eingetragen. Die Moderatoren der Studiengruppe können Sie jetzt freischalten.")), $course->getName()));
+                    } else {
+                        $success = sprintf(_("Sie wurden in die Veranstaltung %s vorläufig eingetragen."), $course->getName());
+                        if ($course->admission_prelim_txt) {
+                            $success .= '<br>' . _("Lesen Sie bitte folgenden Hinweistext:") . '<br>';
+                            $success .= formatReady($course->admission_prelim_txt);
+                        }
+                        PageLayout::postMessage(MessageBox::success($success));
+                    }
+                }
+            } else {
+                $status = $course->read_level === 1 ? 'user' : 'autor';
+                if ($course->addMember($user_id, $status)) {
+                    $success = sprintf(_("Sie wurden in die Veranstaltung %s als %s eingetragen."), $course->getName(), get_title_for_status($status, 1));
+                    PageLayout::postMessage(MessageBox::success($success));
+                }
+            }
+        }
     }
 
     function url_for($to = '', $params = array())
