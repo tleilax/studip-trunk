@@ -398,8 +398,8 @@ table.default {
     width: 100%;
 
     th, td, caption {
-        line-height: 2em;
-        padding: 3px;
+        line-height: 20px;
+        padding: 5px;
         text-align: left;
     }
     caption {
@@ -408,12 +408,11 @@ table.default {
         color: #fff;
         font-size: 1.2em;
         font-weight: bold;
-        padding: 3px;
         text-align: left;
     }
     thead {
       th {
-        background-color: #d1d1d1;
+        background-color: @table-header-color;
         border-bottom: 1px solid @brand-color-darker;
       }
     }
@@ -427,33 +426,35 @@ table.default {
         td {
             border-bottom: 1px solid #ccc;
         }
+        tr:hover td {
+            background-color: fadeout(@brand-color-lighter, 75%);
+        }
         tr:last-child td {
             border-bottom: 0;
         }
     }
     tfoot {
         td {
-            background-color: #d1d1d1;
+            background-color: @table-header-color;
             border-top: 1px solid #575757;
         }
     }
     .actions {
-      float: right;
-      text-align: right;
-      img {
-          vertical-align: middle;
-      }
+        float: right;
+        text-align: right;
+        img {
+            vertical-align: middle;
+        }
     }
     td.actions, th.actions {
-      float: none;
+        float: none;
     }
 
     tbody.togglable {
-        th:first-child {
-            background-image: url("@{icon-path}/blue/arr_1down.png");
-            background-position: 2px  center;
-            background-repeat: no-repeat;
-            padding-left: 20px;
+        th:before {
+            content: url("@{icon-path}/blue/arr_1down.png");
+            margin-right: 3px;
+            vertical-align: middle;
         }
     }
 }
