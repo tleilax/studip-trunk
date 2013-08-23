@@ -606,7 +606,6 @@ table.default caption {
   line-height: 2em;
   padding: 3px;
   text-align: left;
-  vertical-align: middle;
 }
 table.default caption {
   background-color: #899ab9;
@@ -642,7 +641,8 @@ table.default .actions {
 table.default .actions img {
   vertical-align: middle;
 }
-table.default td.actions {
+table.default td.actions,
+table.default th.actions {
   float: none;
 }
 table.default tbody.togglable th:first-child {
