@@ -606,6 +606,7 @@ table.default caption {
   line-height: 2em;
   padding: 3px;
   text-align: left;
+  vertical-align: middle;
 }
 table.default caption {
   background-color: #899ab9;
@@ -638,11 +639,11 @@ table.default .actions {
   float: right;
   text-align: right;
 }
+table.default .actions img {
+  vertical-align: middle;
+}
 table.default td.actions {
   float: none;
-}
-table.default .has-actions td:last-child {
-  text-align: right;
 }
 table.default tbody.togglable th:first-child {
   background-image: url("../images/icons/16/blue/arr_1down.png");

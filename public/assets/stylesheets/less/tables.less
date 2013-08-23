@@ -401,6 +401,7 @@ table.default {
         line-height: 2em;
         padding: 3px;
         text-align: left;
+        vertical-align: middle;
     }
     caption {
         background-color: @brand-color-lighter;
@@ -438,17 +439,14 @@ table.default {
     .actions {
       float: right;
       text-align: right;
+      img {
+          vertical-align: middle;
+      }
     }
     td.actions {
       float: none;
     }
 
-    .has-actions {
-        td:last-child {
-	        text-align: right;
-        }
-    }
-    
     tbody.togglable {
         th:first-child {
             background-image: url("@{icon-path}/blue/arr_1down.png");
