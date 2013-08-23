@@ -67,7 +67,7 @@ $infobox = array('content' => $infobox,
         <div class="admission_value" id="search">
             <input type="hidden" name="studipticket" value="<?= get_ticket() ?>">
             <?= CSRFProtection::tokenTag() ?>
-            <input type="image" src="<?= Assets::image_path('icons/16/yellow/arr_2left') ?>"
+            <input type="image" src="<?= Assets::image_path('icons/16/yellow/arr_2down') ?>"
                    <?= tooltip(_('NutzerIn hinzufügen')) ?> border="0" name="add_user">
             <?= $search ?>
             <br/><br/>
