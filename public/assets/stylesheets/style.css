@@ -598,6 +598,7 @@ table.tree .centered table {
 }
 table.default {
   border-collapse: collapse;
+  width: 100%;
 }
 table.default th,
 table.default td,
