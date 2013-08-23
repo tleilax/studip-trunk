@@ -654,9 +654,6 @@ table.default tbody.togglable th:before {
   margin-right: 3px;
   vertical-align: middle;
 }
-table.default + table.default {
-  margin-top: 2em;
-}
 .content_title {
   background-color: #e3eaf6;
   background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#cdd9ed), color-stop(40%, #e3eaf6), to(#e3eaf6));
