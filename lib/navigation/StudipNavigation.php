@@ -97,7 +97,9 @@ class StudipNavigation extends Navigation
             $this->addSubNavigation('resources', $navigation);
         }
 
-        $this->addSubNavigation('tables', new Navigation(_('Test'), 'tables.php'));
+        $navigation = new Navigation(_('"Tabelle"'), 'tables.php');
+        $navigation->setImage('header/tools.png');
+        $this->addSubNavigation('tables', $navigation);
 
         // quick links
         $links = new Navigation('Links');
