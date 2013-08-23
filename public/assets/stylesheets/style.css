@@ -424,11 +424,17 @@ tr.sortable {
   background-color: #f4f7f9;
 }
 tr.sortable th.sortasc {
-  background: transparent url("../images/dreieck_up.png") no-repeat center left;
+  background-repeat: no-repeat;
+  background-position: left center;
+  background-image: url("../images/dreieck_up.png");
+  background-image: -webkit-image-set(url("../images/dreieck_up.png") 1x, url("../images/dreieck_up@2x.png") 2x);
   padding-left: 17px;
 }
 tr.sortable th.sortdesc {
-  background: transparent url("../images/dreieck_down.png") no-repeat center left;
+  background-repeat: no-repeat;
+  background-position: left center;
+  background-image: url("../images/dreieck_up.png");
+  background-image: -webkit-image-set(url("../images/dreieck_up.png") 1x, url("../images/dreieck_up@2x.png") 2x);
   padding-left: 17px;
 }
 /* styles for settings tables */
@@ -2001,20 +2007,20 @@ div.clear {
   color: #6e6e6e;
   display: block;
   background: no-repeat left center;
-  background-image: url("../images/icons/16/grey/arr_1right.png");
-  background-image: -webkit-image-set(url("../images/icons/16/grey/arr_1right.png") 1x, url("../images/icons/32/grey/arr_1right.png") 2x);
+  background-image: url("../images//icons/16/grey/arr_1right.png");
+  background-image: -webkit-image-set(url("../images//icons/16/grey/arr_1right.png") 1x, url("../images//icons/32/grey/arr_1right.png") 2x);
   cursor: pointer;
   line-height: 20pt;
   margin-left: 1em;
   padding-left: 20px;
 }
 #tabs2 li:hover a {
-  background-image: url("../images/icons/16/black/arr_1right.png");
-  background-image: -webkit-image-set(url("../images/icons/16/black/arr_1right.png") 1x, url("../images/icons/32/black/arr_1right.png") 2x);
+  background-image: url("../images//icons/16/black/arr_1right.png");
+  background-image: -webkit-image-set(url("../images//icons/16/black/arr_1right.png") 1x, url("../images//icons/32/black/arr_1right.png") 2x);
 }
 #tabs2 li.current a {
-  background-image: url("../images/icons/16/red/arr_1down.png");
-  background-image: -webkit-image-set(url("../images/icons/16/red/arr_1down.png") 1x, url("../images/icons/32/red/arr_1down.png") 2x);
+  background-image: url("../images//icons/16/red/arr_1down.png");
+  background-image: -webkit-image-set(url("../images//icons/16/red/arr_1down.png") 1x, url("../images//icons/32/red/arr_1down.png") 2x);
 }
 #tabs2 a:hover,
 #tabs2 li:hover a,

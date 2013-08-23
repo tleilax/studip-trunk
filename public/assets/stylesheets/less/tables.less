@@ -257,11 +257,15 @@ tr.sortable {
     background-color: #f4f7f9;
 
     th.sortasc {
-        background: transparent url("@{image-path}/dreieck_up.png") no-repeat center left;
+        background-repeat: no-repeat;
+        background-position: left center;
+        .retina-background-image("dreieck_up.png", "dreieck_up@2x.png");
         padding-left: 17px;
     }
     th.sortdesc {
-        background: transparent url("@{image-path}/dreieck_down.png") no-repeat center left;
+        background-repeat: no-repeat;
+        background-position: left center;
+        .retina-background-image("dreieck_up.png", "dreieck_up@2x.png");
         padding-left: 17px;
     }
 }
