@@ -603,7 +603,6 @@ table.default {
 table.default th,
 table.default td,
 table.default caption {
-  line-height: 20px;
   padding: 5px;
   text-align: left;
 }
@@ -618,6 +617,7 @@ table.default caption {
 table.default thead th {
   background-color: #d1d1d1;
   border-bottom: 1px solid #1e3e70;
+  font-size: 1.1em;
 }
 table.default tbody th {
   background-color: #cddaef;
@@ -626,7 +626,7 @@ table.default tbody th {
   text-align: left;
 }
 table.default tbody td {
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid #d1d1d1;
 }
 table.default tbody tr:hover td {
   background-color: rgba(137, 154, 185, 0.25);
@@ -636,7 +636,7 @@ table.default tbody tr:last-child td {
 }
 table.default tfoot td {
   background-color: #d1d1d1;
-  border-top: 1px solid #575757;
+  border-top: 1px solid #1e3e70;
 }
 table.default .actions {
   float: right;
@@ -653,6 +653,9 @@ table.default tbody.togglable th:before {
   content: url("../images/icons/16/blue/arr_1down.png");
   margin-right: 3px;
   vertical-align: middle;
+}
+table.default + table.default {
+  margin-top: 2em;
 }
 .content_title {
   background-color: #e3eaf6;

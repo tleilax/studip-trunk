@@ -11,6 +11,7 @@ PageLayout::setTitle(_('Beispiel-Tabelle'));
 
 ob_start();
 ?>
+<? for ($i = 0; $i < 3; $i++): ?>
 <table class="default">
     <caption>Caption</caption>
     <colgroup>
@@ -29,7 +30,10 @@ ob_start();
     </thead>
     <tbody class="togglable has-actions">
         <tr>
-            <th colspan="4">Content Header #1</th>
+            <th>
+                
+            </th>
+            <th colspan="3">Content Header #1</th>
         </tr>
         <tr>
             <td>
@@ -158,6 +162,7 @@ ob_start();
         </tr>
     </tfoot>
 </table>
+<? endfor; ?>
 <?php
 echo $GLOBALS['template_factory']->render('layouts/base', array('content_for_layout' => ob_get_clean()));
 

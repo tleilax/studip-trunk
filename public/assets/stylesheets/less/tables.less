@@ -398,7 +398,6 @@ table.default {
     width: 100%;
 
     th, td, caption {
-        line-height: 20px;
         padding: 5px;
         text-align: left;
     }
@@ -414,6 +413,7 @@ table.default {
       th {
         background-color: @table-header-color;
         border-bottom: 1px solid @brand-color-darker;
+        font-size: 1.1em;
       }
     }
     tbody {
@@ -424,7 +424,7 @@ table.default {
             text-align: left;
         }
         td {
-            border-bottom: 1px solid #ccc;
+            border-bottom: 1px solid @table-header-color;
         }
         tr:hover td {
             background-color: fadeout(@brand-color-lighter, 75%);
@@ -436,7 +436,7 @@ table.default {
     tfoot {
         td {
             background-color: @table-header-color;
-            border-top: 1px solid #575757;
+            border-top: 1px solid @brand-color-darker;
         }
     }
     .actions {
@@ -456,5 +456,9 @@ table.default {
             margin-right: 3px;
             vertical-align: middle;
         }
+    }
+    
+    & + & {
+        margin-top: 2em;
     }
 }
