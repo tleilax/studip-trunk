@@ -12,7 +12,7 @@
                             array('sms_source_page' => 'dispatch.php/course/members?cid=' . $course_id,
                                 'course_id' => $course_id,
                                 'subject' => $subject))?>">
-                        <?= Assets::img('icons/16/white/inbox.png', tooltip2( _('Nachricht an alle NutzerInnen versenden')))?>
+                        <?= Assets::img('icons/16/blue/inbox.png', tooltip2( _('Nachricht an alle NutzerInnen versenden')))?>
                     </a>
     		</span>
     	</caption>

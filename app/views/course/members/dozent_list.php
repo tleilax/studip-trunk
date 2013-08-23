@@ -7,7 +7,7 @@
                 <a href="<?= URLHelper::getLink('sms_send.php', array('filter' => 'send_sms_to_all', 'who' =>
                         'dozent', 'sms_source_page' => 'dispatch.php/course/members',
                         'course_id' => $course_id, 'subject' => $subject)) ?>">
-                    <?= Assets::img('icons/16/white/inbox.png',
+                    <?= Assets::img('icons/16/blue/inbox.png',
                             tooltip2(sprintf(_('Nachricht an alle %s versenden'), $status_groups['dozent']))) ?>
                 </a>
             <? endif ?>

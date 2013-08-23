@@ -16,7 +16,7 @@
                                 'course_id' => $course_id,
                                 'subject' => $subject))
                         ?>">
-                            <?= Assets::img('icons/16/white/inbox.png',
+                            <?= Assets::img('icons/16/blue/inbox.png',
                                     tooltip2(sprintf(_('Nachricht an alle %s versenden'), htmlReady($status_groups['autor'])))) ?>
                         </a>
                 <? endif ?>
