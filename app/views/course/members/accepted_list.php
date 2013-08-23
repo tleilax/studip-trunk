@@ -5,23 +5,9 @@
 <form action="<?= $controller->url_for('course/members/edit_accepted/') ?>" method="post">
     <?= CSRFProtection::tokenTag() ?>
     <table class="default collapsable zebra-hover">
-        <colgroup>
-            <? if (!$is_locked) : ?>
-            <col width="20">
-            <? endif ?>
-            <col width="20">
-            <col>
-            <col width="15%">
-            <col width="40%">
-            <col width="80">
-        </colgroup>
-        <thead>
-            <tr>
-                <th class="table_header_bold" colspan="<?=(!$is_locked ? 5 : 4)?>">
-                    <?= _('Vorläufig akzeptierte TeilnehmerInnen') ?>
-                </th>
-                <th class="table_header_bold" style="text-align: right">
-                    <?=$controller->getEmailLinkByStatus('accepted')?>
+        <caption>
+        	<span class="actions">
+        		<?=$controller->getEmailLinkByStatus('accepted')?>
                     <a href="<?= URLHelper::getLink('sms_send.php',
                             array('filter' => 'prelim',
                                 'sms_source_page' => 'dispatch.php/course/members?cid=' . $course_id,
@@ -31,8 +17,20 @@
                         <?= Assets::img('icons/16/white/inbox.png',
                                 tooltip2(sprintf(_('Nachricht an alle %s versenden'), 'vorläufig akzeptierten NutzerInnen')))?>
                     </a>
-                </th>
-            </tr>
+			</span>
+        	<?= _('Vorläufig akzeptierte TeilnehmerInnen') ?>
+        </caption>
+        <colgroup>
+            <? if (!$is_locked) : ?>
+            <col width="20">
+            <? endif ?>
+            <col width="20">
+            <col>
+            <col width="15%">
+            <col width="40%">
+            <col width="80">
+        </colgroup>        
+        <thead>
             <tr class="sortable">
                 <? if (!$is_locked) : ?>
                 <th>
