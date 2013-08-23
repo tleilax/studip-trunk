@@ -5,28 +5,28 @@
 
 <div class="online-list <? if (!$showOnlyBuddies) echo 'online-list-double'; ?>">
     <table class="default">
-		<caption>
-			<?= _('Buddies') ?>
-		</caption>
+        <caption>
+            <?= _('Buddies') ?>
+        </caption>
         <colgroup>
             <col width="<?= reset(Avatar::getDimension(Avatar::SMALL)) ?>px">
             <col>
             <col>
             <col width="1%">
         </colgroup>
-		<? if (count($users['buddies']) > 0): ?>
-		<thead>
-		    <tr>
+        <? if (count($users['buddies']) > 0): ?>
+        <thead>
+            <tr>
                 <th colspan="2"><?= _('Name') ?></th>
                 <th><?= _('Letztes Lebenszeichen') ?></th>
-				<th class="actions"><?= _('Aktionen') ?></th>
+                <th class="actions"><?= _('Aktionen') ?></th>
             </tr>
-		</thead>
+        </thead>
         <tbody>
         <? $last_group = false;
            foreach ($users['buddies'] as $buddy):
         ?>
-			<? if ($showGroups && $last_group !== $buddy['group']): ?>
+            <? if ($showGroups && $last_group !== $buddy['group']): ?>
             <tr>
                 <th class="blue_gradient" colspan="4">
                     <a href="<?= URLHelper::getLink('contact.php?view=gruppen',
@@ -36,31 +36,31 @@
                     </a>
                 </th>
             </tr>
-			<? $last_group = $buddy['group'];
-				endif;
-			?>
+            <? $last_group = $buddy['group'];
+                endif;
+            ?>
             <?= $this->render_partial('online/user-row', array('user' => $buddy)) ?>
         <? endforeach; ?>
         </tbody>
-		<? else: ?>
-			<? if ($buddy_count === 0): ?>
-				<tbody>
-					<tr>
-						<td colspan="4">
-							<?= _('Sie haben keine Buddies ausgewählt.') ?>
-						</td>
-					</tr>
-				</tbody>
-			<? elseif (count($users['buddies']) === 0): ?>
-				<tbody>
-					<tr>
-						<td colspan="4">
-							<?= _('Es sind keine Ihrer Buddies online.') ?>
-						</td>
-					</tr>
-				</tbody>
-			<? endif; ?>
-		<? endif; ?>
+        <? else: ?>
+            <? if ($buddy_count === 0): ?>
+                <tbody>
+                    <tr>
+                        <td colspan="4">
+                            <?= _('Sie haben keine Buddies ausgewählt.') ?>
+                        </td>
+                    </tr>
+                </tbody>
+            <? elseif (count($users['buddies']) === 0): ?>
+                <tbody>
+                    <tr>
+                        <td colspan="4">
+                            <?= _('Es sind keine Ihrer Buddies online.') ?>
+                        </td>
+                    </tr>
+                </tbody>
+            <? endif; ?>
+        <? endif; ?>
         <tfoot>
             <tr>
                 <td colspan="4">
@@ -74,14 +74,14 @@
 
 <? if (!$showOnlyBuddies): ?>
     <table class="default">
-		<caption>
-			<?= _('Andere NutzerInnen') ?>
+        <caption>
+            <?= _('Andere NutzerInnen') ?>
             <? if ($users['others'] > 0): ?>
-				<small>
-					(<?= sprintf(_('+ %u unsichtbare NutzerInnen'), $users['others']) ?>)
+                <small>
+                    (<?= sprintf(_('+ %u unsichtbare NutzerInnen'), $users['others']) ?>)
                 </small>
             <? endif; ?>
-		</caption>
+        </caption>
         <colgroup>
             <col width="<?= reset(Avatar::getDimension(Avatar::SMALL)) ?>px">
             <col>
@@ -89,51 +89,51 @@
             <col width="1%">
         </colgroup>
     <? if (count($users['users']) > 0): ?>
-		<thead>
+        <thead>
             <tr>
                 <th colspan="2"><?= _('Name') ?></th>
                 <th><?= _('Letztes Lebenszeichen') ?></th>
-				<th class="actions"><?= _('Aktionen') ?></th>
+                <th class="actions"><?= _('Aktionen') ?></th>
             </tr>
-		</thead>
+        </thead>
         <tbody>
         <? foreach (array_slice($users['users'], ($page - 1) * $limit, $limit) as $user): ?>
             <?= $this->render_partial('online/user-row', compact('user')) ?>
         <? endforeach; ?>
-		</tbody>
+        </tbody>
     <? elseif ($users['others'] > 0): ?>
-		<tbody>
-			<tr>
-				<td colspan="4">
-					<?= _('Keine sichtbaren Nutzer online.') ?>
-				</td>
-			</tr>
-		</tbody>
+        <tbody>
+            <tr>
+                <td colspan="4">
+                    <?= _('Keine sichtbaren Nutzer online.') ?>
+                </td>
+            </tr>
+        </tbody>
     <? else: ?>
-		<tbody>
+        <tbody>
             <tr>
                 <td colspan="4">
                     <?= _('Kein anderer Nutzer ist online.') ?>
                 </td>
             </tr>
-		</tbody>
+        </tbody>
     <? endif; ?>
         <tfoot>
             <tr>
                 <td colspan="4">
-					<? if (count($users['users']) > 0 /*$limit*/): ?>
-						<span class="actions">
-							<?= $GLOBALS['template_factory']->render(
-									'shared/pagechooser',
-									array('perPage' => 5, //$limit,
-										  'num_postings' => 100, //count($users['users']),
-										  'page' => $page,
-										  'pagelink' => 'dispatch.php/online?page=%s')
-							) ?>
-						</span>
-					<? else: ?>
-						&nbsp;
-					<? endif; ?>
+                    <? if (count($users['users']) > $limit): ?>
+                        <span class="actions">
+                            <?= $GLOBALS['template_factory']->render(
+                                    'shared/pagechooser',
+                                    array('perPage' => $limit,
+                                          'num_postings' => count($users['users']),
+                                          'page' => $page,
+                                          'pagelink' => 'dispatch.php/online?page=%s')
+                            ) ?>
+                        </span>
+                    <? else: ?>
+                        &nbsp;
+                    <? endif; ?>
                 </td>
             </tr>
         </tfoot>
