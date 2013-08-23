@@ -391,7 +391,6 @@ table.tree {
     border-top: 1px solid #c8c8c8;
 }
 
-
 // New table definition
 table.default {
     border-collapse: collapse;
@@ -404,15 +403,14 @@ table.default {
     caption {
         background-color: transparent;
         border-bottom: 1px solid @brand-color-darker;
-        color: black;
+        color: #444;
         font-size: 1.4em;
-        font-weight: lighter;
         text-align: left;
     }
     thead {
       th {
         background-color: #f4f7f9;
-        border-bottom: 1px solid @brand-color-darker;
+        border-bottom: 1px solid fadeout(@brand-color-lighter, 80%);
         font-size: 1.0em;
       }
     }
@@ -430,12 +428,78 @@ table.default {
             background-color: fadeout(@brand-color-lighter, 75%);
         }
         tr:last-child td {
-            border-bottom: 0;
+            border-bottom: 1px solid @brand-color-darker;
         }
     }
     tfoot {
         td {
             background-color: #f4f7f9;
+            border-top: 1px solid @brand-color-darker;
+        }
+    }
+    .actions {
+        float: right;
+        text-align: right;
+        img {
+            vertical-align: middle;
+        }
+    }
+    td.actions, th.actions {
+        float: none;
+    }
+
+    tbody.togglable {
+        th:before {
+            content: url("@{icon-path}/blue/arr_1down.png");
+            margin-right: 3px;
+            vertical-align: middle;
+        }
+    }
+}
+
+table.default2 {
+    border-collapse: collapse;
+    width: 100%;
+
+    th, td, caption {
+        padding: 5px;
+        text-align: left;
+    }
+    caption {
+        background-color: @brand-color-lighter;
+        border-bottom: 1px solid @brand-color-darker;
+        color: #fff;
+        font-size: 1.2em;
+        font-weight: bold;
+        text-align: left;
+    }
+    thead {
+      th {
+        background-color: @table-header-color;
+        border-bottom: 1px solid @brand-color-darker;
+        font-size: 1.1em;
+      }
+    }
+    tbody {
+        th {
+            background-color: #cddaef;
+            border-top: 1px solid #575757;
+            border-bottom: 1px solid #575757;
+            text-align: left;
+        }
+        td {
+            border-bottom: 1px solid @table-header-color;
+        }
+        tr:hover td {
+            background-color: fadeout(@brand-color-lighter, 75%);
+        }
+        tr:last-child td {
+            border-bottom: 0;
+        }
+    }
+    tfoot {
+        td {
+            background-color: @table-header-color;
             border-top: 1px solid @brand-color-darker;
         }
     }
