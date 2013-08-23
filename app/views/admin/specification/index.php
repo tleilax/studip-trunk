@@ -36,7 +36,7 @@
         <td>
             <?= htmlReady($rule['description']) ?>
         </td>
-        <td align="right">
+        <td class="actions">
             <a href="<?=$controller->url_for('admin/specification/edit/'.$rule['lock_id']) ?>">
                 <?= Assets::img('icons/16/blue/edit.png', array('title' => _('Regel bearbeiten'))) ?>
             </a>
