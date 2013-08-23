@@ -1,6 +1,6 @@
 <div class="admissionrule" id="rule_<?= $rule->getId() ?>">
     <div class="admissionrule_display" id="rule_data_<?= $rule->getId() ?>">
-        <?= $via_ajax ? utf8_encode($rule->toString()) : $rule->toString() ?>
+        <?= $via_ajax ? studip_utf8encode($rule->toString()) : $rule->toString() ?>
         <input type="hidden" name="rules[]" value="<?= htmlentities(serialize($rule), ENT_COMPAT | ENT_HTML401, 'iso-8859-1') ?>"/>
     </div>
     <div class="admissionrule_actions" id="rule_actions_<?= $rule->getId() ?>">

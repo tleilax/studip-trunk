@@ -32,6 +32,10 @@ class DegreeCondition extends ConditionField
      * Standard constructor.
      */
     public function __construct($fieldId='') {
+        $this->validCompareOperators = array(
+            '=' => _('gleich'),
+            '!=' => _('ungleich')
+        );
         // Get all available degrees from database.
         $stmt = DBManager::get()->query(
             "SELECT DISTINCT `abschluss_id`, `name` ".

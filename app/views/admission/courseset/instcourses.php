@@ -7,7 +7,7 @@
             <a href=""><?= $semester['name'] ?></a>
             <ul>
         <?php foreach ($semester['courses'] as $course) {
-            $title = $via_ajax ? utf8_encode($course['Name']) : $course['Name'];
+            $title = $via_ajax ? studip_utf8encode($course['Name']) : $course['Name'];
             if ($course['VeranstaltungsNummer']) {
                 $title = $course['VeranstaltungsNummer'].' | '.$title;
             }

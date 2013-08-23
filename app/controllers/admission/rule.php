@@ -24,7 +24,7 @@ class Admission_RuleController extends AuthenticatedController {
             $this->ruleType = $ruleType;
             $this->rule = new $ruleType($ruleId);
             $this->ruleTemplate = ($this->via_ajax ? 
-                utf8_encode($this->rule->getTemplate()) : 
+                studip_utf8encode($this->rule->getTemplate()) : 
                 $this->rule->getTemplate());
         }
     }
@@ -49,7 +49,7 @@ class Admission_RuleController extends AuthenticatedController {
         if ($this->via_ajax) {
             $decoded = array();
             foreach ($requestData as $name => $entry) {
-                $decoded[$name] = is_array($entry) ? array_map('utf8_decode', $entry) : utf8_decode($entry);
+                $decoded[$name] = is_array($entry) ? array_map('studip_utf8decode', $entry) : studip_utf8decode($entry);
             }
             $this->rule->setAllData($decoded);
         } else {

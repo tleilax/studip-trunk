@@ -10,7 +10,7 @@ use Studip\Button, Studip\LinkButton;
     <?php
         $text = _('Auswahlfeld hinzufügen');
         if ($via_ajax) {
-            $text = utf8_encode($text);
+            $text = studip_utf8encode($text);
         }
         echo $text;
     ?>

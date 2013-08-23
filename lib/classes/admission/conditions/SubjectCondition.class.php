@@ -33,6 +33,10 @@ class SubjectCondition extends ConditionField
      * Standard constructor.
      */
     public function __construct($fieldId='') {
+        $this->validCompareOperators = array(
+            '=' => _('gleich'),
+            '!=' => _('ungleich')
+        );
         // Get all available subjects from database.
         $stmt = DBManager::get()->query("SELECT `studiengang_id`, `name` ".
             "FROM `studiengaenge` ORDER BY `name` ASC");

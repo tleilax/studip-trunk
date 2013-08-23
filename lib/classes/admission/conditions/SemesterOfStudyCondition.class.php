@@ -25,6 +25,12 @@ class SemesterOfStudyCondition extends ConditionField
      * Standard constructor.
      */
     public function __construct($field_id='') {
+        $this->validCompareOperators = array(
+            '>=' => _('mindestens'),
+            '<=' => _('höchstens'),
+            '=' => _('gleich'),
+            '!=' => _('ungleich')
+        );
         // Initialize to some value in case there are no semester numbers.
         $maxsem = 15;
         // Calculate the maximal available semester.

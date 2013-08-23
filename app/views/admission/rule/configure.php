@@ -5,14 +5,14 @@ if (!$ruleType) {
     foreach ($ruleTypes as $className => $classDetail) {
     ?>
     <div class="table_row_<?= TextHelper::cycle('even', 'odd'); ?> admissionrules_available">
-        <input type="radio" name="ruletype" value="<?= $className?>" onclick="return STUDIP.Admission.configureRule($(this).val(), '<?= $controller->url_for('admission/rule/configure/'.$className); ?>');"/>&nbsp;<b><?= $via_ajax ? utf8_encode($classDetail['name']) : $classDetail['name'] ?></b>
+        <input type="radio" name="ruletype" value="<?= $className?>" onclick="return STUDIP.Admission.configureRule($(this).val(), '<?= $controller->url_for('admission/rule/configure/'.$className); ?>');"/>&nbsp;<b><?= $via_ajax ? studip_utf8encode($classDetail['name']) : $classDetail['name'] ?></b>
         <?php if ($via_ajax) { ?>
         <a href="#" onclick="return STUDIP.Admission.toggleRuleDescription('<?= $className ?>_details')">
             <?= Assets::img('icons/16/blue/question-circle.png', 
                 array('title' => _('Detailliertere Informationen zu diesem Regeltyp'))) ?></a>
         <?php } ?>
         <div id="<?= $className ?>_details" class="admissionrules_description" style="<?= $via_ajax ? ' display: none;' : ''?>">
-            <?= $via_ajax ? utf8_encode($classDetail['description']) : $classDetail['description'] ?>
+            <?= $via_ajax ? studip_utf8encode($classDetail['description']) : $classDetail['description'] ?>
         </div>
     </div>
     <?php

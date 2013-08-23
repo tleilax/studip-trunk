@@ -257,7 +257,7 @@ abstract class AdmissionRule
      * @return AdmissionRule This object.
      */
     public function setAllData($data) {
-        $this->message = $data['ajax'] ? utf8_decode($data['message']) : $data['message'];
+        $this->message = $data['ajax'] ? studip_utf8decode($data['message']) : $data['message'];
         $this->startTime = $data['start_time'];
         $this->endTime = $data['end_time'];
         return $this;
