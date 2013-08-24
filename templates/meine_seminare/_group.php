@@ -10,33 +10,25 @@ foreach ($groups as $group_id => $group_members) {
     } else {
         $last_modified = check_group_new($group_members, $my_obj);
         ?>
+    <tbody class="toggleable">
         <tr>
-            <td class="blank" colspan="<?= $view == 'ext' ? 7 : 5 ?>">
-                <?= Assets::img("blank.gif", array("size" => "1@5", "style" => "display: block;")) ?>
-            </td>
-        </tr>
-        <tr>
-            <td class="blue_gradient" valign="bottom" nowrap height="20" colspan="2">
+            <th nowrap colspan="2">
                 <?= Assets::img("blank.gif", array("size" => "1@20")) ?>
-                <? if (isset($_my_sem_open[$group_id])) { ?>
-
-                    <a class="tree" style="font-weight:bold;" name="<?= $group_id ?>"
-                       href="<?= URLHelper::getLink('#' . $group_id, array('view' => $view, 'close_my_sem' => $group_id)) ?>"
+                <? if (isset($_my_sem_open[$group_id])): ?>
+                    <a class="toggle-switch" href="<?= URLHelper::getLink('#' . $group_id, array('view' => $view, 'close_my_sem' => $group_id)) ?>"
                        <?= tooltip(_("Gruppierung schließen"), true) ?>>
 
-                        <?= Assets::img($last_modified ? 'icons/16/red/arr_1down.png' : 'icons/16/grey/arr_1down.png') ?>
+                        <?= _("Gruppierung schließen") ?>
                     </a>
-                <? } else { ?>
-                    <a class="tree" name="<?= $group_id ?>"
+                <? else: ?>
+                    <a class="toggle-switch"
                        href="<?= URLHelper::getLink('#' . $group_id, array('view' => $view, 'open_my_sem' => $group_id)) ?>"
                        <?= tooltip(_("Gruppierung öffnen"), true) ?>>
 
-                        <?= Assets::img($last_modified ? 'icons/16/red/arr_1right.png' : 'icons/16/grey/arr_1right.png') ?>
+                        <?= _("Gruppierung öffnen") ?>
                     </a>
-                <?
-
-                }
-
+                <? endif; ?>
+				<?
                 if (is_array($group_names[$group_id])) {
                     $group_name = $group_names[$group_id][1]
                                   ? $group_names[$group_id][1] . " > " . $group_names[$group_id][0]
@@ -46,9 +38,8 @@ foreach ($groups as $group_id => $group_members) {
                 }
                 ?>
 
-            </td>
-
-            <td class="blue_gradient" align="left" valign="middle"
+            </th>
+            <th align="left" valign="middle"
                 colspan="<?= $view == 'ext' ? 3 : 1 ?>">
 
                 <a class="tree" <?= $_my_sem_open[$group_id] ? 'style="font-weight:bold"' : '' ?>
@@ -65,9 +56,9 @@ foreach ($groups as $group_id => $group_members) {
                         <sup><?= htmlReady($group_name) ?></sup>
                     </span>
                 <? } ?>
-            </td>
+            </th>
 
-            <td class="blue_gradient" align= "right" valign="top" colspan="4" nowrap>
+            <th align= "right" colspan="4" nowrap>
             <? if ($last_modified) { ?>
                 <span style="font-size:0.8em">
                     <sup><?= _("letzte Änderung:") ?></sup>
@@ -77,8 +68,7 @@ foreach ($groups as $group_id => $group_members) {
                     <sup><?= strftime("%x, %H:%M", $last_modified) ?></sup>
                 </span>
             <? } ?>
-            </td>
-
+            </th>
         </tr>
     <?
     }
@@ -86,4 +76,7 @@ foreach ($groups as $group_id => $group_members) {
     if (isset($_my_sem_open[$group_id])) {
         echo $this->render_partial("meine_seminare/_course", compact("group_members"));
     }
+    ?>
+    </tbody>
+    <?
 }

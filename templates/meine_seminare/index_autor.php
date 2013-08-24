@@ -3,6 +3,8 @@
 global $auth, $perm, $SEM_CLASS, $SEM_TYPE, $INST_TYPE;
 ?>
 <table width="100%" border="0" cellpadding="0" cellspacing="0">
+<? if (isset($meldung)) { parse_msg($meldung, "§", "blank", 5); }?>
+
     <? if (!$num_my_sem) { ?>
         <tr>
             <td class="blank" colspan="2"> </td>
@@ -17,24 +19,30 @@ global $auth, $perm, $SEM_CLASS, $SEM_TYPE, $INST_TYPE;
         <tr valign="top">
             <td valign="top" class="blank" align="center">
                 <br>
-                <table class="zebra-hover" border="0" cellpadding="1" cellspacing="0" width="98%" valign="top" id="my_seminars">
-                    <thead>
-                        <? if (isset($meldung)) { parse_msg($meldung, "§", "blank", 5); }?>
-
-                        <tr align="center" valign="top">
-                            <th width="2%" colspan="2" nowrap="nowrap" align="center">
+                <table class="default" id="my_seminars">
+                    <caption>
+				    	<?=_("Veranstaltungen") ?>
+				    </caption>
+				    <colgroup>
+				    	<col width="5">
+				    	<col width="25">
+				    	<col >
+				    	<col width="20%">
+				    	<col width="3%">
+				    </colgroup> 
+                    <thead >
+                        <tr>
+                            <th colspan="2" nowrap="nowrap" align="center">
                                 <a href="<?= URLHelper::getLink('dispatch.php/meine_seminare/groups') ?>">
                                     <?= Assets::img('icons/16/blue/group.png', array('title' => _("Gruppe ändern"), 'class' => 'middle')) ?>
                                 </a>
                             </th>
-                            <th width="85%" align="left"><?= _("Name") ?></th>
-                            <th width="10%" align="left"><b><?= _("Inhalt") ?></b></th>
-                            <th width="3%"></th>
+                            <th align="left"><?= _("Name") ?></th>
+                            <th align="left"><b><?= _("Inhalt") ?></b></th>
+                            <th></th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <?= $this->render_partial("meine_seminare/_group") ?>
-                    </tbody>
+                    <?= $this->render_partial("meine_seminare/_group") ?>
                 </table>
                 <br><br>
             <? } ?>
@@ -42,7 +50,10 @@ global $auth, $perm, $SEM_CLASS, $SEM_TYPE, $INST_TYPE;
 
             <? if (sizeof($waitlists)) { ?>
                 <? SkipLinks::addIndex(_("Wartelisten"), 'my_waitlists') ?>
-                <table border="0" cellpadding="2" cellspacing="0" width="98%" align="center" class="blank" id="my_waitlists">
+                <table class="default" id="my_waitlists">
+                    <caption>
+				    	<?=_("Wartelisten") ?>
+				    </caption>   
                     <thead>
                         <tr>
                             <th width="67%" align="left" colspan="3"><?= _("Anmelde- und Wartelisteneintr&auml;ge") ?></th>
@@ -126,7 +137,7 @@ global $auth, $perm, $SEM_CLASS, $SEM_TYPE, $INST_TYPE;
 
             <? if (!$num_my_inst) { ?>
 
-                <table border="0" cellpadding="0" cellspacing="0" width="100%" align="center" class="blank">
+                <table class="default">
                     <?
                     if (!$GLOBALS['ALLOW_SELFASSIGN_INSTITUTE'] || $perm->have_perm("dozent")) {
                         $meldung = "info§" . sprintf(_("Sie wurden noch keinen Einrichtungen zugeordnet. Bitte wenden Sie sich an einen der zust&auml;ndigen %sAdministratoren%s."), "<a href=\"dispatch.php/siteinfo/show\">", "</a>") . "§";
@@ -139,11 +150,14 @@ global $auth, $perm, $SEM_CLASS, $SEM_TYPE, $INST_TYPE;
 
             <? } else { ?>
                 <? SkipLinks::addIndex(_("Meine Einrichtungen"), 'my_institutes')?>
-                <table border="0" cellpadding="1" cellspacing="0" width="98%" align="center" class="blank zebra-hover" id="my_institutes">
+                <table class="default" id="my_institutes">
+                    <caption>
+				    	<?=_("Meine Einrichtungen") ?>
+				    </caption>    
                     <thead>
-                        <tr valign="top" align="center">
+                        <tr>
                             <th width="1%">&nbsp; </th>
-                            <th width="86%" align="left"><?= _("Meine Einrichtungen") ?></th>
+                            <th width="86%" align="left"><?= _("Name") ?></th>
                             <th width="10%"><b><?= _("Inhalt") ?></b></th>
                             <th width="3%"></th>
                         </tr>
