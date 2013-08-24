@@ -404,6 +404,7 @@ table.tree {
 // New table definition
 table.default {
     border-collapse: collapse;
+    margin-bottom: 1em;
     width: 100%;
 
     th, td, caption {
@@ -412,7 +413,6 @@ table.default {
     }
     caption {
         background-color: transparent;
-        border-bottom: 1px solid @brand-color-darker;
         color: #444;
         font-size: 1.4em;
         text-align: left;
@@ -421,6 +421,7 @@ table.default {
       th {
         background-color: #f4f7f9;
         border-bottom: 1px solid fadeout(@brand-color-lighter, 80%);
+        border-top: 1px solid @brand-color-darker;
         font-size: 1.0em;
       }
     }
