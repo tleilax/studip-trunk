@@ -21,15 +21,15 @@ global $auth, $perm, $SEM_CLASS, $SEM_TYPE, $INST_TYPE;
                 <br>
                 <table class="default" id="my_seminars">
                     <caption>
-				    	<?=_("Veranstaltungen") ?>
-				    </caption>
-				    <colgroup>
-				    	<col width="10px">
-				    	<col width="25">
-				    	<col >
-				    	<col width="20%">
-				    	<col width="3%">
-				    </colgroup> 
+                        <?=_("Veranstaltungen") ?>
+                    </caption>
+                    <colgroup>
+                        <col width="10px">
+                        <col width="25">
+                        <col >
+                        <col width="20%">
+                        <col width="3%">
+                    </colgroup> 
                     <thead >
                         <tr>
                             <th colspan="2" nowrap="nowrap" align="center">
@@ -52,8 +52,8 @@ global $auth, $perm, $SEM_CLASS, $SEM_TYPE, $INST_TYPE;
                 <? SkipLinks::addIndex(_("Wartelisten"), 'my_waitlists') ?>
                 <table class="default" id="my_waitlists">
                     <caption>
-				    	<?=_("Wartelisten") ?>
-				    </caption>   
+                        <?=_("Wartelisten") ?>
+                    </caption>   
                     <thead>
                         <tr>
                             <th width="67%" align="left" colspan="3"><?= _("Anmelde- und Wartelisteneintr&auml;ge") ?></th>
@@ -152,8 +152,8 @@ global $auth, $perm, $SEM_CLASS, $SEM_TYPE, $INST_TYPE;
                 <? SkipLinks::addIndex(_("Meine Einrichtungen"), 'my_institutes')?>
                 <table class="default" id="my_institutes">
                     <caption>
-				    	<?=_("Meine Einrichtungen") ?>
-				    </caption>    
+                        <?=_("Meine Einrichtungen") ?>
+                    </caption>    
                     <thead>
                         <tr>
                             <th width="1%">&nbsp; </th>
