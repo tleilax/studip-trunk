@@ -64,13 +64,13 @@ function print_seminar_content($semid, $my_obj_values, $type = 'seminar', $sem_c
                 $nav->hasBadgeNumber() ? 'class="badge" data-badge-number="' . intval($nav->getBadgeNumber())  . '"' : '',
                 UrlHelper::getScriptLink($url));
        } else if (is_string($key)) {
-            echo Assets::img('blank.gif', array('width' => 16, 'height' => 16));
+            echo Assets::img('blank.gif', array('width' => 20, 'height' => 20));
         }
         echo ' ';
     }
 }
 
-// we are defintely not in an lexture or institute
+// we are defintely not in an lecture or institute
 closeObject();
 
 include ('lib/seminar_open.php'); // initialise Stud.IP-Session

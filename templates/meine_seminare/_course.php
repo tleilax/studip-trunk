@@ -17,9 +17,11 @@ foreach ($group_members as $member) {
 
             <td>
                 <? if ($studygroup_mode) { ?>
-                    <?= StudygroupAvatar::getAvatar($semid)->getImageTag(Avatar::SMALL, array('title' => htmlReady($values['semname']))) ?>
+                    <?= (StudygroupAvatar::getAvatar($semid)->getImageTag(Avatar::SMALL, array('title' => htmlReady($values['semname']))) !='' ? Assets::img('icons/20/blue/studygroup.png') : 
+                    	StudygroupAvatar::getAvatar($semid)->getImageTag(Avatar::SMALL, array('title' => htmlReady($values['semname'])))) ?>
                 <? } else { ?>
-                    <?= CourseAvatar::getAvatar($semid)->getImageTag(Avatar::SMALL, array('title' => htmlReady($values['semname']))) ?>
+                    <?= (CourseAvatar::getAvatar($semid)->getImageTag(Avatar::SMALL, array('title' => htmlReady($values['semname']))) != '' ? Assets::img('icons/20/blue/seminar.png') : 
+                    	CourseAvatar::getAvatar($semid)->getImageTag(Avatar::SMALL, array('title' => htmlReady($values['semname']))))?>
                 <? } ?>
             </td>
 
@@ -83,13 +85,13 @@ foreach ($group_members as $member) {
             <? } else if ($values["binding"]) { ?>
 
                     <a href="<?= URLHelper::getLink('', array('auswahl' => $semid, 'cmd' => 'no_kill')) ?>">
-                        <?= Assets::img('icons/16/grey/decline/door-leave.png', tooltip2(_("Das Abonnement ist bindend. Bitte wenden Sie sich an die Dozentin oder den Dozenten."))) ?>
+                        <?= Assets::img('icons/20/grey/decline/door-leave.png', tooltip2(_("Das Abonnement ist bindend. Bitte wenden Sie sich an die Dozentin oder den Dozenten."))) ?>
                     </a>
 
             <? } else { ?>
 
                     <a href="<?= URLHelper::getLink('', array('auswahl' => $semid, 'cmd' => 'suppose_to_kill')) ?>">
-                        <?= Assets::img('icons/16/grey/door-leave.png', tooltip2(_("aus der Veranstaltung abmelden"))) ?>
+                        <?= Assets::img('icons/20/grey/door-leave.png', tooltip2(_("aus der Veranstaltung abmelden"))) ?>
                     </a>
             <? } ?>
             </td>

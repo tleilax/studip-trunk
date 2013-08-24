@@ -34,11 +34,11 @@ global $auth, $perm, $SEM_CLASS, $SEM_TYPE, $INST_TYPE;
                         <tr>
                             <th colspan="2" nowrap="nowrap" align="center">
                                 <a href="<?= URLHelper::getLink('dispatch.php/meine_seminare/groups') ?>">
-                                    <?= Assets::img('icons/16/blue/group.png', array('title' => _("Gruppe ändern"), 'class' => 'middle')) ?>
+                                    <?= Assets::img('icons/20/blue/group.png', array('title' => _("Gruppe ändern"), 'class' => 'middle')) ?>
                                 </a>
                             </th>
-                            <th align="left"><?= _("Name") ?></th>
-                            <th align="left"><b><?= _("Inhalt") ?></b></th>
+                            <th><?= _("Name") ?></th>
+                            <th><?= _("Inhalt") ?></th>
                             <th></th>
                         </tr>
                     </thead>
@@ -52,15 +52,23 @@ global $auth, $perm, $SEM_CLASS, $SEM_TYPE, $INST_TYPE;
                 <? SkipLinks::addIndex(_("Wartelisten"), 'my_waitlists') ?>
                 <table class="default" id="my_waitlists">
                     <caption>
-                        <?=_("Wartelisten") ?>
-                    </caption>   
+                        <?=_("Anmelde- und Wartelisteneintr&auml;ge") ?>
+                    </caption>
+					<colgroup>
+                        <col width="10px">
+                        <col width="25px">
+                        <col >
+                        <col width="20%">
+                        <col width="3%">
+                    </colgroup> 
+  
                     <thead>
                         <tr>
-                            <th width="67%" align="left" colspan="3"><?= _("Anmelde- und Wartelisteneintr&auml;ge") ?></th>
-                            <th width="10%"><b><?= _("Datum") ?></b></th>
-                            <th width="10%" nowrap><b><?= _("Position/Chance") ?></b></th>
-                            <th width="10%"><b><?= _("Art") ?></b></th>
-                            <th width="3%"></th>
+                            <th align="left" colspan="3"><?= _("Name") ?></th>
+                            <th><?= _("Datum") ?></th>
+                            <th nowrap><b><?= _("Position/Chance") ?></th>
+                            <th><?= _("Art") ?></th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -153,13 +161,21 @@ global $auth, $perm, $SEM_CLASS, $SEM_TYPE, $INST_TYPE;
                 <table class="default" id="my_institutes">
                     <caption>
                         <?=_("Meine Einrichtungen") ?>
-                    </caption>    
+                    </caption> 
+                    <colgroup>
+                        <col width="10px">
+                        <col width="25px">
+                        <col >
+                        <col width="20%">
+                        <col width="3%">
+                    </colgroup>                  
                     <thead>
                         <tr>
-                            <th width="1%">&nbsp; </th>
-                            <th width="86%" align="left"><?= _("Name") ?></th>
-                            <th width="10%"><b><?= _("Inhalt") ?></b></th>
-                            <th width="3%"></th>
+                            <th></th>
+                            <th></th>
+                            <th><?= _("Name") ?></th>
+                            <th><?= _("Inhalt") ?></th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -168,8 +184,10 @@ global $auth, $perm, $SEM_CLASS, $SEM_TYPE, $INST_TYPE;
                             $lastVisit = $values['visitdate'];
                             ?>
                             <tr>
+                                <td style="width:1px"></td>
                                 <td>
-                                    <?= InstituteAvatar::getAvatar($instid)->getImageTag(Avatar::SMALL, array('title' => htmlReady($values['name']))) ?>
+                                    <?= (InstituteAvatar::getAvatar($instid)->getImageTag(Avatar::SMALL, array('title' => htmlReady($values['name']))) != '' ? Assets::img('icons/20/blue/institute.png') : 
+                                    	InstituteAvatar::getAvatar($instid)->getImageTag(Avatar::SMALL, array('title' => htmlReady($values['name'])))) ?>	
                                 </td>
 
                                 <td align="left">
@@ -185,10 +203,10 @@ global $auth, $perm, $SEM_CLASS, $SEM_TYPE, $INST_TYPE;
                                 <td align="right" nowrap="nowrap">
                                 <?  if ($GLOBALS['ALLOW_SELFASSIGN_INSTITUTE'] && $values['status'] == 'user') { ?>
                                     <a href="<?= URLHelper::getLink('', array('auswahl' => $instid, 'cmd' => 'inst_kill')) ?>">
-                                        <?= Assets::img('icons/16/grey/door-leave.png', tooltip2(_("aus der Einrichtung austragen"))) ?>
+                                        <?= Assets::img('icons/20/grey/door-leave.png', tooltip2(_("aus der Einrichtung austragen"))) ?>
                                     </a>
                                 <? } else { ?>
-                                        <?= Assets::img('blank.gif', array('size' => '16')) ?>
+                                        <?= Assets::img('blank.gif', array('size' => '20')) ?>
                                 <? } ?>
                                 </td>
                             </tr>
