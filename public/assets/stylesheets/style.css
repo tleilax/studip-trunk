@@ -370,6 +370,17 @@ table.zebra-horizontal > tbody > tr > td:nth-child(2n+1) {
 .gruppe8 {
   background-color: #000 !important;
 }
+#my_seminars .gruppe0,
+#my_seminars .gruppe1,
+#my_seminars .gruppe2,
+#my_seminars .gruppe3,
+#my_seminars .gruppe4,
+#my_seminars .gruppe5,
+#my_seminars .gruppe6,
+#my_seminars .gruppe7,
+#my_seminars .gruppe9 {
+  width: 1px;
+}
 .grey {
   background: #bbb none;
 }

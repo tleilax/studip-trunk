@@ -25,7 +25,7 @@ global $auth, $perm, $SEM_CLASS, $SEM_TYPE, $INST_TYPE;
                     </caption>
                     <colgroup>
                         <col width="10px">
-                        <col width="25">
+                        <col width="25px">
                         <col >
                         <col width="20%">
                         <col width="3%">
