@@ -24,7 +24,7 @@ global $auth, $perm, $SEM_CLASS, $SEM_TYPE, $INST_TYPE;
 				    	<?=_("Veranstaltungen") ?>
 				    </caption>
 				    <colgroup>
-				    	<col width="5">
+				    	<col width="10px">
 				    	<col width="25">
 				    	<col >
 				    	<col width="20%">

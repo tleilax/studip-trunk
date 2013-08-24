@@ -13,11 +13,7 @@ foreach ($group_members as $member) {
         $lastVisit = $values['visitdate'];
         ?>
         <tr>
-            <td class="gruppe<?= $values['gruppe'] ?>">
-                <a href="<?= URLHelper::getLink('dispatch.php/meine_seminare/groups') ?>">
-                    <?= Assets::img('blank.gif', array('size' => '7@12') + tooltip2(_("Gruppe ändern"))) ?>
-                </a>
-            </td>
+            <td class="gruppe<?= $values['gruppe'] ?>"></td>
 
             <td>
                 <? if ($studygroup_mode) { ?>

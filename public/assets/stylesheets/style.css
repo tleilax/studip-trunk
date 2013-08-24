@@ -344,31 +344,31 @@ table.zebra-horizontal > tbody > tr > td:nth-child(2n+1) {
 }
 /* --- Sonstige ------------------------------------------------------------- */
 .gruppe0 {
-  background: #fff;
+  background-color: #fff !important;
 }
 .gruppe1 {
-  background: #f00;
+  background-color: #f00 !important;
 }
 .gruppe2 {
-  background: #f93;
+  background-color: #f93 !important;
 }
 .gruppe3 {
-  background: #fc6;
+  background-color: #fc6 !important;
 }
 .gruppe4 {
-  background: #9f9;
+  background-color: #9f9 !important;
 }
 .gruppe5 {
-  background: #6c6;
+  background-color: #6c6 !important;
 }
 .gruppe6 {
-  background: #69c;
+  background-color: #69c !important;
 }
 .gruppe7 {
-  background: #669;
+  background-color: #669 !important;
 }
 .gruppe8 {
-  background: #000;
+  background-color: #000 !important;
 }
 .grey {
   background: #bbb none;

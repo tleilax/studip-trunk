@@ -50,24 +50,18 @@ foreach ($groups as $group_id => $group_members) {
                     <?= htmlReady($group_field == "sem_tree_id" ? $group_names[$group_id][0] : $group_names[$group_id]) ?>
                 </a>
 
-                <? if ($group_field == "sem_tree_id") { ?>
-                    <br>
-                    <span style="font-size:0.8em">
-                        <sup><?= htmlReady($group_name) ?></sup>
-                    </span>
-                <? } ?>
+            <? if ($group_field == "sem_tree_id"): ?>
+                <br>
+                <span style="font-size:0.8em">
+                    <sup><?= htmlReady($group_name) ?></sup>
+                </span>
+            <? endif; ?>
             </th>
 
-            <th align= "right" colspan="4" nowrap>
-            <? if ($last_modified) { ?>
-                <span style="font-size:0.8em">
-                    <sup><?= _("letzte Änderung:") ?></sup>
-                </span>
-
-                <span style="color:red;font-size:0.8em">
-                    <sup><?= strftime("%x, %H:%M", $last_modified) ?></sup>
-                </span>
-            <? } ?>
+            <th colspan="4">
+            <? if ($last_modified): ?>
+                <?= tooltipIcon(_('Letzte Änderung: ') . strftime('%x, %H:%M', $last_modified), true) ?>
+            <? endif; ?>
             </th>
         </tr>
     <?
