@@ -433,8 +433,8 @@ tr.sortable th.sortasc {
 tr.sortable th.sortdesc {
   background-repeat: no-repeat;
   background-position: left center;
-  background-image: url("../images/dreieck_up.png");
-  background-image: -webkit-image-set(url("../images/dreieck_up.png") 1x, url("../images/dreieck_up@2x.png") 2x);
+  background-image: url("../images/dreieck_down.png");
+  background-image: -webkit-image-set(url("../images/dreieck_down.png") 1x, url("../images/dreieck_down@2x.png") 2x);
   padding-left: 17px;
 }
 /* styles for settings tables */
