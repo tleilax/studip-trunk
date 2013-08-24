@@ -643,6 +643,7 @@ table.default tbody th {
 }
 table.default tbody td {
   border-bottom: 1px solid #d1d1d1;
+  transition: background-color 0.3s;
 }
 table.default tbody tr:hover td {
   background-color: rgba(137, 154, 185, 0.25);
