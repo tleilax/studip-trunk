@@ -11,11 +11,10 @@ PageLayout::setTitle(_('Beispiel-Tabelle'));
 
 ob_start();
 ?>
-<? for ($i = 0; $i < 3; $i++): ?>
 <table class="default">
     <caption>Caption</caption>
     <colgroup>
-        <col width="1%">
+        <col width="32px">
         <col width="20%">
         <col>
         <col width="20%">
@@ -28,10 +27,12 @@ ob_start();
             <th>Header #4</th>
         </tr>
     </thead>
-    <tbody class="togglable has-actions">
+    <tbody class="toggleable">
         <tr>
             <th>
-                
+                <a href="#" class="toggle-switch" onclick="$(this).closest('tbody').toggleClass('toggled'); return false;">
+                    Inhalt verstecken
+                </a>
             </th>
             <th colspan="3">Content Header #1</th>
         </tr>
@@ -69,10 +70,13 @@ ob_start();
             </td>
         </tr>
     </tbody>
-    <tbody class="togglable has-actions">
-        <tr>
-            <th colspan="4">Content Header #2</th>
-        </tr>
+    <tbody class="toggleable">
+        <th>
+            <a href="#" class="toggle-switch" onclick="$(this).closest('tbody').toggleClass('toggled'); return false;">
+                Inhalt verstecken
+            </a>
+        </th>
+        <th colspan="3">Content Header #2</th>
         <tr>
             <td>
                 <input type="checkbox" name="foo[]">
@@ -107,10 +111,13 @@ ob_start();
             </td>
         </tr>
     </tbody>
-    <tbody class="togglable">
-        <tr>
-            <th colspan="4">Content Header #3</th>
-        </tr>
+    <tbody class="toggleable">
+        <th>
+            <a href="#" class="toggle-switch" onclick="$(this).closest('tbody').toggleClass('toggled'); return false;">
+                Inhalt verstecken
+            </a>
+        </th>
+        <th colspan="3">Content Header #3</th>
         <tr>
             <td>
                 <input type="checkbox" name="foo[]">
@@ -162,7 +169,6 @@ ob_start();
         </tr>
     </tfoot>
 </table>
-<? endfor; ?>
 <?php
 echo $GLOBALS['template_factory']->render('layouts/base', array('content_for_layout' => ob_get_clean()));
 

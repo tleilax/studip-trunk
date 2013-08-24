@@ -654,10 +654,26 @@ table.default td.actions,
 table.default th.actions {
   float: none;
 }
-table.default tbody.togglable th:before {
-  content: url("../images/icons/16/blue/arr_1down.png");
-  margin-right: 3px;
-  vertical-align: middle;
+table.default tbody.toggleable.toggled .toggle-switch {
+  background-image: url("../images//icons/16//blue/arr_1right.png");
+  background-image: -webkit-image-set(url("../images//icons/16//blue/arr_1right.png") 1x, url("../images//icons/32//blue/arr_1right.png") 2x);
+}
+table.default tbody.toggleable.toggled tr:not(:first-child) {
+  display: none;
+}
+table.default tbody.toggleable .toggle-switch {
+  font: 0/0 a;
+  color: transparent;
+  text-shadow: none;
+  background-color: transparent;
+  border: 0;
+  background-image: url("../images//icons/16//blue/arr_1down.png");
+  background-image: -webkit-image-set(url("../images//icons/16//blue/arr_1down.png") 1x, url("../images//icons/32//blue/arr_1down.png") 2x);
+  display: inline-block;
+  height: 16px;
+  text-align: center;
+  vertical-align: top;
+  width: 16px;
 }
 table.default2 {
   border-collapse: collapse;

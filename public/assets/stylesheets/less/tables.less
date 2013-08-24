@@ -452,11 +452,23 @@ table.default {
         float: none;
     }
 
-    tbody.togglable {
-        th:before {
-            content: url("@{icon-path}/blue/arr_1down.png");
-            margin-right: 3px;
-            vertical-align: middle;
+    tbody.toggleable {
+        &.toggled {
+            .toggle-switch {
+                .retina-background-icon("/blue/arr_1right.png");
+            }
+            tr:not(:first-child) {
+                display: none;
+            }
+        }
+        .toggle-switch {
+            .hide-text();
+            .retina-background-icon("/blue/arr_1down.png");
+            display: inline-block;
+            height: 16px;
+            text-align: center;
+            vertical-align: top;
+            width: 16px;
         }
     }
 }
