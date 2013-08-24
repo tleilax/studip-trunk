@@ -1504,7 +1504,7 @@ li#notification_container:hover .list {
   width: 100%;
 }
 table.infobox td {
-  background-color: #dee2e8;
+  background-color: #F4F7F9;
   text-align: left;
 }
 table.infobox td.infobox-img {
@@ -1520,7 +1520,7 @@ table.infobox td.infobox-img {
 }
 td.infoboxrahmen {
   background-color: #dee2e8;
-  border: 1px solid #ccc;
+  border-bottom: 1px solid rgba(137, 154, 185, 0.19999999999999996);
 }
 /* --- AJAX indicator ------------------------------------------------------- */
 #ajax_notification {
