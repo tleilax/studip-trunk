@@ -33,156 +33,110 @@ $courseIds = $courseset ? $courseset->getCourses() : array();
 $userlistIds = $courseset ? $courseset->getUserlists() : array();
 ?>
 <?= $this->render_partial('dialog/confirm_dialog') ?>
-<h2><?= $courseset ? _('Anmeldeset bearbeiten') : _('Anmeldeset anlegen') ?></h2>
-<form action="<?= $controller->url_for('admission/courseset/save', ($courseset ? $courseset->getId() : '')) ?>" method="post">
-    <div class="table_row_<?= TextHelper::cycle('even', 'odd'); ?> admission_data">
-        <div class="admission_label"><?= _('Name des Anmeldesets:') ?></div>
-        <div class="admission_value">
-            <input type="text" size="60" maxlength="255" name="name" value="<?= $courseset ? htmlReady($courseset->getName()) : '' ?>" required/>
-        </div>
-    </div>
-    <div class="table_row_<?= TextHelper::cycle('even', 'odd'); ?> admission_data">
-        <div class="admission_label"><?= _('Einrichtungszuordnung:') ?></div>
-        <div class="admission_value">
-            <?php if ($myInstitutes) { ?>
-                <?php if ($rangeTreeTpl) { ?>
-                    <div id="institutes">
-                        <ul>
-                            <?= $rangeTreeTpl ?>
-                        </ul> 
-                        <script>
-                            $(function() {
-                                $('#institutes').bind('loaded.jstree', function (event, data) {
-                                    // Show checked checkboxes.
-                                    var checkedItems = $('#institutes').find('.jstree-checked');
-                                    checkedItems.removeClass('jstree-unchecked');
-                                    // Open parent nodes of checked nodes.
-                                    checkedItems.parents().each(function () { data.inst.open_node(this, false, true); });
-                                    // Hide checkbox on all non-courses.
-                                    $(this).find('li[rel!=studip_object]').find('.jstree-checkbox:first').hide();
-                                }).bind('change_state.jstree', function(event, data) {
-                                    STUDIP.Admission.getCourses('institute', 'instcourses', 
-                                        '<?= $controller->url_for('admission/courseset/instcourses', 
-                                        $courseset ? $courseset->getId() : '') ?>', 'courselist');
-                                });
-                                var types = {
-                                    'default': {
-                                        'select_node': function(event) {
-                                            this.toggle_node(event);
-                                            return false;
-                                        }
-                                    },
-                                    'tree_level': {
-                                        'icon': {
-                                            'image': STUDIP.ASSETS_URL+'images/icons/16/blue/group.png'
-                                        }
-                                    },
-                                    'studip_object': {
-                                        'icon': {
-                                            'image': STUDIP.ASSETS_URL+'images/icons/16/blue/institute.png'
-                                        }
-                                    }
-                                };
-                                STUDIP.Admission.makeTree('institutes', types);
-                            });
-                        </script>
-                    </div>
-                <?php } else { ?>
-                    <?php foreach ($myInstitutes as $institute) { ?>
-                    <input type="checkbox" name="institutes[]" value="<?= $institute['Institut_id'] ?>"
-                        <?= $selectedInstitutes[$institute['Institut_id']] ? 'checked="checked"' : '' ?>
-                        class="institute" onclick="STUDIP.Admission.getCourses('institute', 'instcourses', 
-                        '<?= $controller->url_for('admission/courseset/instcourses', $courseset ? $courseset->getId() : '') ?>', 'courselist')"/>
-                        <?= $institute['Name'] ?>
-                    <br/>
-                    <?php } ?>
-                <?php } ?>
-            <?php } else { ?>
-                <i><?=  _('Sie sind keiner Einrichtung zugeordnet.') ?></i>
-            <?php } ?>
-        </div>
-    </div>
-    <div class="table_row_<?= TextHelper::cycle('even', 'odd'); ?> admission_data">
-        <div class="admission_label"><?= _('Veranstaltungszuordnung:') ?></div>
-        <div class="admission_value" id="instcourses">
-            <?= $coursesTpl; ?>
-        </div>
-    </div>
-    <div class="table_row_<?= TextHelper::cycle('even', 'odd'); ?> admission_data">
-        <div class="admission_label"><?= _('Anmelderegeln:') ?></div>
-        <div class="admission_value" id="rules">
-            <?php if ($courseset) { ?>
-            <div id="rulelist">
-                <?php foreach ($courseset->getAdmissionRules() as $rule) { ?>
-                    <?= $this->render_partial('admission/rule/save', array('rule' => $rule)) ?>
-                <?php } ?>
-            </div>
-            <?php } else { ?>
-                <span id="norules">
-                    <i><?= _('Sie haben noch keine Anmelderegeln festgelegt.') ?></i>
-                </span>
-                <br/>
-            <?php } ?>
-            <div style="clear: both;">
-                <a href="<?= $controller->url_for('admission/rule/configure') ?>" onclick="return STUDIP.Admission.configureRule(null, '<?= $controller->url_for('admission/rule/configure') ?>');">
-                    <?= Assets::img('icons/16/blue/add.png', array(
-                        'alt' => _('Anmelderegel hinzufügen'),
-                        'title' => _('Anmelderegel hinzufügen'))) ?><?= _('Anmelderegel hinzufügen') ?></a>
-            </div>
-        </div>
-    </div>
-    <div class="table_row_<?= TextHelper::cycle('even', 'odd'); ?> admission_data">
-        <div class="admission_label">
-            <?= _("Wie werden die Anmelderegeln ausgewertet?") ?>
-        </div>
-        <div class="admission_value">
-            <?php
-                // Set checkbox accordingly to courseset status or to unchecked if new courseset.
-                $andSelected = $courseset ? ($courseset->getRuleConjunction() ? ' checked="checked"' : '') : ' selected="selected"';
-                $orSelected = $courseset ? ($courseset->getRuleConjunction() ? '' : ' checked="checked"') : '';
-            ?>
-            <input type="radio" name="conjunction" value="1"<?= $andSelected ?>/>
-            <?= _('Alle Anmelderegeln müssen erfüllt sein') ?>
+<h1><?= $courseset ? _('Anmeldeset bearbeiten') : _('Anmeldeset anlegen') ?></h1>
+<form class="studip_form" action="<?= $controller->url_for('admission/courseset/save', ($courseset ? $courseset->getId() : '')) ?>" method="post">
+    <label for="name" class="caption">
+        <?= _('Name des Anmeldesets:') ?>
+        <span class="required">*</span>
+    </label>
+    <input type="text" size="60" maxlength="255" name="name"
+        value="<?= $courseset ? htmlReady($courseset->getName()) : '' ?>"
+        required="required" aria-required="true"
+        placeholder="<?= _('Bitte geben Sie einen Namen für das Anmeldeset an') ?>"/>
+    <label for="institute_id" class="caption">
+        <?= _('Einrichtungszuordnung:') ?>
+        <span class="required">*</span>
+    </label>
+    <div id="institutes">
+    <?php if ($myInstitutes) { ?>
+        <?php if ($instSearch) { ?>
+            <?= $instTpl ?>
+        <?php } else { ?>
+            <?php foreach ($myInstitutes as $institute) { ?>
+            <input type="checkbox" name="institutes[]" value="<?= $institute['Institut_id'] ?>"
+                <?= $selectedInstitutes[$institute['Institut_id']] ? 'checked="checked"' : '' ?>
+                class="institute" onclick="STUDIP.Admission.getCourses('institute', 'instcourses', 
+                '<?= $controller->url_for('admission/courseset/instcourses', $courseset ? $courseset->getId() : '') ?>', 'courselist')"/>
+                <?= $institute['Name'] ?>
             <br/>
-            <input type="radio" name="conjunction" value="0"<?= $orSelected ?>/>
-            <?= _('Mindestens eine Anmelderegel muss erfüllt sein') ?>
+            <?php } ?>
+        <?php } ?>
+    <?php } else { ?>
+        <?php if ($instSearch) { ?>
+        <div id="institutes">
+            <input type="image" src="<?= Assets::image_path('icons/16/yellow/arr_2down') ?>"
+                   <?= tooltip(_('Einrichtung hinzufügen')) ?> border="0" name="add_institute">
+            <?= $instSearch ?>
+            <br/><br/>
+        </div>
+        <i><?=  _('Sie haben noch keine Einrichtung ausgewählt. Benutzen Sie obige Suche, um dies zu tun.') ?></i>
+        <?php } else { ?>
+        <i><?=  _('Sie sind keiner Einrichtung zugeordnet.') ?></i>
+        <?php } ?>
+    <?php } ?>
+    </div>
+    <label class="caption">
+        <?= _('Veranstaltungszuordnung:') ?>
+    </label>
+    <?= $coursesTpl; ?>
+    <label class="caption" for="add_rule">
+        <?= _('Anmelderegeln:') ?>
+        <span class="required">*</span>
+    </label>
+    <div id="rules">
+        <?php if ($courseset) { ?>
+        <div id="rulelist">
+            <?php foreach ($courseset->getAdmissionRules() as $rule) { ?>
+                <?= $this->render_partial('admission/rule/save', array('rule' => $rule)) ?>
+            <?php } ?>
+        </div>
+        <?php } else { ?>
+        <span id="norules">
+            <i><?= _('Sie haben noch keine Anmelderegeln festgelegt.') ?></i>
+        </span>
+        <br/>
+        <?php } ?>
+        <div style="clear: both;">
+                <?= LinkButton::create(_('Anmelderegel hinzufügen'), 
+                    $controller->url_for('admission/rule/configure'), 
+                    array(
+                        'onclick' => "return STUDIP.Admission.configureRule(null, '".$controller->url_for('admission/rule/configure')."')"
+                        )
+                    ); ?>
         </div>
     </div>
-    <div class="table_row_<?= TextHelper::cycle('even', 'odd'); ?> admission_data">
-        <div class="admission_label"><?= _('Nutzerlisten zuordnen:') ?></div>
-        <div class="admission_value">
-            <?php if ($myUserlists) { ?>
-                <?php
-                foreach ($myUserlists as $list) {
-                    $checked = '';
-                    if (in_array($list->getId(), $userlistIds)) {
-                        $checked = ' checked="checked"';
-                    }
-                ?>
-                <input type="checkbox" name="userlists[]" value="<?= $list->getId() ?>"<?= $checked ?>/> <?= $list->getName() ?><br/>
-                <?php } ?>
-            <?php } else { ?>
-                <i><?=  _('Sie haben noch keine Nutzerlisten angelegt.') ?></i>
-            <?php
+    <label class="caption">
+        <?= _('Nutzerlisten zuordnen:') ?>
+    </label>
+    <?php if ($myUserlists) { ?>
+        <?php
+        foreach ($myUserlists as $list) {
+            $checked = '';
+            if (in_array($list->getId(), $userlistIds)) {
+                $checked = ' checked="checked"';
             }
-            // Keep lists that were assigned by other users.
-            foreach ($userlistIds as $list) {
-                if (!in_array($list, array_keys($myUserlists))) {
-            ?>
-            <input type="hidden" name="userlists[]" value="<?= $list ?>"/>
-            <?php
-                }
-            }
-            ?>
-        </div>
-    </div>
-    <div class="table_row_<?= TextHelper::cycle('even', 'odd'); ?> admission_data">
-        <div class="admission_label"><?= _('weitere Hinweise:') ?></div>
-        <div class="admission_value">
-            <textarea cols="60" rows="3" name="infotext"><?= $courseset ? htmlReady($courseset->getInfoText()) : '' ?></textarea>
-        </div>
-    </div>
-    <div class="table_row_<?= TextHelper::cycle('even', 'odd'); ?> admission_buttons">
+        ?>
+        <input type="checkbox" name="userlists[]" value="<?= $list->getId() ?>"<?= $checked ?>/> <?= $list->getName() ?><br/>
+        <?php } ?>
+    <?php } else { ?>
+        <i><?=  _('Sie haben noch keine Nutzerlisten angelegt.') ?></i>
+    <?php
+    }
+    // Keep lists that were assigned by other users.
+    foreach ($userlistIds as $list) {
+        if (!in_array($list, array_keys($myUserlists))) {
+    ?>
+    <input type="hidden" name="userlists[]" value="<?= $list ?>"/>
+    <?php
+        }
+    }
+    ?>
+    <label for="infotext" class="caption">
+        <?= _('weitere Hinweise:') ?>
+    </label>
+    <textarea cols="60" rows="3" name="infotext"><?= $courseset ? htmlReady($courseset->getInfoText()) : '' ?></textarea>
+    <div class="submit_wrapper">
+        <?= CSRFProtection::tokenTag() ?>
         <?= Button::createAccept(_('Speichern'), 'submit') ?>
         <?= LinkButton::createCancel(_('Abbrechen'), $controller->url_for('admission/courseset')) ?>
     </div>

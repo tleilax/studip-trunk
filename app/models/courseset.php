@@ -2,19 +2,24 @@
 
 class CoursesetModel {
 
-    public function getInstCourses($instituteIds, $coursesetId='') {
+    public function getInstCourses($instituteIds, $coursesetId='', $selectedCourses=array()) {
         $parameters = array();
         $query = "SELECT DISTINCT si.`seminar_id`, s.`VeranstaltungsNummer`, s.`Name`, 
                     IF(s.`duration_time`=-1, UNIX_TIMESTAMP(), s.`start_time`+s.`duration_time`) AS start
                   FROM `seminar_inst` si
                   JOIN `seminare` AS s ON (si.`seminar_id` = s.`Seminar_id`)
+                  JOIN `semester_data` sd ON (s.`duration_time`=-1 OR s.`start_time`+s.`duration_time` BETWEEN sd.`beginn` AND sd.`ende`)
                   LEFT JOIN `seminar_courseset` AS sc ON (s.`Seminar_id`=sc.`seminar_id`)
-                  WHERE si.`Institut_id` IN ('".
+                  WHERE (si.`Institut_id` IN ('".
                   implode("', '", array_keys($instituteIds))."')
-                  AND (sc.`set_id` IS NULL";
+                  AND (sc.`set_id` IS NULL
+                  AND sd.`ende` >= UNIX_TIMESTAMP())";
         if ($coursesetId) {
             $query .= " OR sc.`set_id`=?";
             $parameters[] = $coursesetId;
+        }
+        if ($selectedCourses) {
+            $query .= " OR sc.`seminar_id` IN ('".implode("', '", $selectedCourses)."')";
         }
         $query .= ") ORDER BY start DESC, s.VeranstaltungsNummer ASC, s.Name ASC";
         $stmt = DBManager::get()->prepare($query);

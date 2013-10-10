@@ -3,7 +3,7 @@
 /**
  * CourseSet.class.php
  * 
- * Represents groups of Stud.IP courses that can be 
+ * Represents groups of Stud.IP courses that have common rules for admission.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -31,11 +31,6 @@ class CourseSet
      * Seat distribution algorithm.
      */
     public $algorithm = null;
-
-    /**
-     * Must all admission rules be fulfilled or only one?
-     */
-    public $conjunction = true;
 
     /**
      * IDs of courses that are aggregated into this set. The array is in the
@@ -112,22 +107,6 @@ class CourseSet
     }
 
     /**
-     * Adds a bunch of courses to the course set. The array must be in the form
-     * ($index1 => $courseId1, $index2 => $courseId2);
-     *
-     * @param  String courseId
-     * @return CourseSet
-     */
-    public function addCourses($courses)
-    {
-        // Merge given array with current courses after bringing the given 
-        // array in the correct form. 
-        array_merge($this->courses, 
-            array_fill_keys(array_flip($courses), true));
-        return $this;
-    }
-
-    /**
      * Adds a new institute ID.
      * 
      * @param  String newId
@@ -175,19 +154,10 @@ class CourseSet
         $valid = true;
         foreach ($this->admissionRules as $rule) {
             // All rules must be fulfilled.
-            if ($this->conjunction) {
-                if (!$rule->ruleApplies($userId, $courseId)) {
-                    $valid = false;
-                    break;
-                }
-            // At least one rule must be fulfilled.
-            } else {
+            if (!$rule->ruleApplies($userId, $courseId)) {
                 $valid = false;
-                if ($rule->ruleApplies($userId, $courseId)) {
-                    $valid = true;
-                    break;
-                }
-            } 
+                break;
+            }
         }
         return $valid;
     }
@@ -309,15 +279,6 @@ class CourseSet
             $users = array_merge($users, $rule->getAffectedUsers());
         }
         return $sizeof($users);
-    }
-
-    /**
-     * Gets whether all admission rules must be fulfilled or not.
-     * 
-     * @return bool
-     */
-    public function getRuleConjunction() {
-        return $this->conjunction;
     }
 
     /**
@@ -459,7 +420,6 @@ class CourseSet
                     $this->algorithm = new $data['algorithm']();
                 }
             }
-            $this->conjunction = (bool) $data['conjunction'];
         }
         // Load institute assigments.
         $stmt = DBManager::get()->prepare(
@@ -544,6 +504,21 @@ class CourseSet
     }
 
     /**
+     * Adds several admission rules after clearing the existing rule
+     * assignments.
+     * 
+     * @param  Array newIds
+     * @return CourseSet
+     */
+    public function setAdmissionRules($newRules) {
+        $this->admissionRules = array();
+        foreach ($newRules as $newRule) {
+            $this->addAdmissionRule(unserialize(html_entity_decode($newRule)));
+        }
+        return $this;
+    }
+
+    /**
      * Sets a seat distribution algorithm for this course set. This will only
      * have an effect in conjunction with a TimedAdmission, as the algorithm 
      * needs a defined point in time where it will start.
@@ -561,12 +536,14 @@ class CourseSet
     }
 
     /**
-     * Sets whether all admission rules must be fulfilled or not.
+     * Adds several course IDs after clearing the existing course
+     * assignments.
      * 
+     * @param  Array newIds
      * @return CourseSet
      */
-    public function setRuleConjunction($newConjunction) {
-        $this->conjunction = $newConjunction;
+    public function setCourses($newIds) {
+        $this->courses = array_fill_keys($newIds, true);
         return $this;
     }
 
@@ -579,9 +556,7 @@ class CourseSet
      */
     public function setInstitutes($newIds) {
         $this->institutes = array();
-        foreach ($newIds as $newId) {
-            $this->addInstitute($newId);
-        }
+        $this->addInstitutes($newIds);
         return $this;
     }
 
@@ -596,23 +571,7 @@ class CourseSet
         return $this;
     }
 
-    /**
-     * Adds several course IDs after clearing the existing course
-     * assignments.
-     * 
-     * @param  Array newIds
-     * @return CourseSet
-     */
-    public function setCourses($newIds) {
-        $this->courses = array();
-        foreach ($newIds as $newId) {
-            $this->addCourse($newId);
-        }
-        return $this;
-    }
-
-    /**
-     * Sets a new name for this course set.
+    /* Sets a new name for this course set.
      * 
      * @param  String newName
      * @return CourseSet
@@ -651,15 +610,13 @@ class CourseSet
         // Store basic data.
         $stmt = DBManager::get()->prepare("INSERT INTO `coursesets`
             (`set_id`, `user_id`, `name`, `infotext`, `algorithm`, 
-            `conjunction`, `mkdate`, `chdate`)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE
+            `mkdate`, `chdate`)
+            VALUES (?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE
             `name`=VALUES(`name`), `infotext`=VALUES(`infotext`),
             `algorithm`=VALUES(`algorithm`), 
-            `conjunction`=VALUES(`conjunction`),
             `chdate`=VALUES(`chdate`)");
         $stmt->execute(array($this->id, $user->id, $this->name, $this->infoText,
-            get_class($this->algorithm), intval($this->conjunction), time(),
-            time()));
+            get_class($this->algorithm), time(), time()));
         // Delete removed institute assignments from database.
         DBManager::get()->exec("DELETE FROM `courseset_institute` 
             WHERE `set_id`='".$this->id."' AND `institute_id` NOT IN ('".

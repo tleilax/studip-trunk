@@ -115,7 +115,6 @@ class Step00240CourseSets extends Migration
                 `infotext` TEXT NOT NULL ,
                 `algorithm` VARCHAR(255) NOT NULL ,
                 `algorithm_run` TINYINT(1) NOT NULL DEFAULT 0 ,
-                `conjunction` TINYINT(1) NOT NULL DEFAULT 1 ,
                 `mkdate` INT NOT NULL DEFAULT 0,
                 `chdate` INT NOT NULL DEFAULT 0,
             PRIMARY KEY (`set_id`) ,
@@ -173,7 +172,6 @@ class Step00240CourseSets extends Migration
                 `set_id` VARCHAR(32) NOT NULL ,
                 `seminar_id` VARCHAR(32) NOT NULL ,
                 `mkdate` INT NOT NULL DEFAULT 0 ,
-                `chdate` INT NOT NULL DEFAULT 0,
             PRIMARY KEY (`set_id`, `seminar_id`) )
             ENGINE = MyISAM");
 

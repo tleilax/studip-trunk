@@ -195,6 +195,40 @@ STUDIP.Admission = {
             // Open parent nodes of checked nodes.
             checkedItems.parents().each(function () { data.inst.open_node(this, false, true); });
         }).jstree(config);
+    },
+
+    updateInstitutes: function(elementId, instURL, courseURL, mode) {
+        if (elementId != '') {
+            var query = '';
+            $('.institute').each(function() {
+                query += '&institutes[]='+this.value;
+            });
+            switch(mode) {
+                case 'delete':
+                    $('#'+elementId).remove();
+                    break;
+                case 'add':
+                    query += '&institutes[]='+elementId;
+                    $.post(
+                        instURL,
+                        query,
+                        function(data) {
+                            $('#institutes').html(data);
+                        }
+                    );
+                    break;
+            }
+            $('#instcourses :checked').each(function() {
+                query += '&courses[]='+this.value;
+            });
+            $.post(
+                courseURL,
+                query,
+                function(data) {
+                    $('#instcourses').html(data);
+                }
+            );
+        }
     }
 
 };

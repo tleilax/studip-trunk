@@ -6,12 +6,12 @@
         $conditions = $rule->getConditions();
         $condition = reset($conditions);
         ?>
-        <div class="condition" id="condition_<?= $condition->getId() ?>">
+        <div id="condition_<?= $condition->getId() ?>">
             <i><?= $condition->toString() ?></i>
         </div>
     </div>
 <?php } else { ?>
-    <?= _('Es muss mindestens eine der folgenden Bedingungen zur Anmeldung '.
+    <?= _('Mindestens eine der folgenden Bedingungen muss zur Anmeldung '.
         'erfüllt sein:') ?>
     <br/>
     <ul id="conditions">
@@ -19,7 +19,7 @@
         $i = 0;
         foreach ($rule->getConditions() as $condition) {
         ?>
-        <li class="condition" id="condition_<?= $condition->getId() ?>">
+        <li id="condition_<?= $condition->getId() ?>">
             <i><?= $condition->toString() ?></i>
         </li>
         <?php

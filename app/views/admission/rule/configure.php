@@ -4,7 +4,7 @@ use Studip\Button, Studip\LinkButton;
 if (!$ruleType) {
     foreach ($ruleTypes as $className => $classDetail) {
     ?>
-    <div class="table_row_<?= TextHelper::cycle('even', 'odd'); ?> admissionrules_available">
+    <div class="admissionrules_available">
         <input type="radio" name="ruletype" value="<?= $className?>" onclick="return STUDIP.Admission.configureRule($(this).val(), '<?= $controller->url_for('admission/rule/configure/'.$className); ?>');"/>&nbsp;<b><?= $via_ajax ? studip_utf8encode($classDetail['name']) : $classDetail['name'] ?></b>
         <?php if ($via_ajax) { ?>
         <a href="#" onclick="return STUDIP.Admission.toggleRuleDescription('<?= $className ?>_details')">
@@ -18,7 +18,7 @@ if (!$ruleType) {
     <?php
     }
     ?>
-    <div class="table_row_<?= TextHelper::cycle('even', 'odd'); ?> admissionrules_button">
+    <div class="submit_wrapper">
         <?= LinkButton::createCancel(_('Abbrechen'), 'cancel', array('onclick' => "$('#configurerule').remove(); return false;")) ?>
     </div>
 <?php
@@ -27,7 +27,7 @@ if (!$ruleType) {
 <div id="errormessage"></div>
 <form action="<?= $controller->url_for('admission/rule/save', get_class($rule), $rule->getId()) ?>" id="ruleform" onsubmit="return STUDIP.Admission.checkAndSaveRule('<?= $rule->getId() ?>', 'errormessage', '<?= $controller->url_for('admission/rule/validate', get_class($rule)) ?>', 'rules', '<?= $controller->url_for('admission/rule/save', get_class($rule), $rule->getId()) ?>')">
     <?= $ruleTemplate ?>
-    <div class="table_row_<?= TextHelper::cycle('even', 'odd'); ?> admissionrules_config">
+    <div class="submit_wrapper">
         <input type="hidden" id="action" name="action" value=""/>
         <?= Button::createAccept(_('Speichern'), 'submit') ?>
         <?= LinkButton::createCancel(_('Abbrechen'), 'cancel', array('onclick' => "$('#configurerule').remove(); return false;")) ?>
