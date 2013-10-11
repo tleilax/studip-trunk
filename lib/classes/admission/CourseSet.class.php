@@ -148,18 +148,18 @@ class CourseSet
      * 
      * @param  String userId
      * @param  String courseId
-     * @return boolean Is registration to the given course possible?
+     * @return Array Optional error messages from rules if something went wrong.
      */
     public function checkAdmission($userId, $courseId) {
-        $valid = true;
+        $errors = array();
         foreach ($this->admissionRules as $rule) {
             // All rules must be fulfilled.
-            if (!$rule->ruleApplies($userId, $courseId)) {
-                $valid = false;
-                break;
+            $ruleCheck = $rule->ruleApplies($userId, $courseId);
+            if ($ruleCheck) {
+                $errors = array_merge($errors, $ruleCheck);
             }
         }
-        return $valid;
+        return $errors;
     }
 
     /**

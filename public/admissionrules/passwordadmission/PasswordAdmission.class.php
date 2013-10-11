@@ -143,12 +143,15 @@ class PasswordAdmission extends AdmissionRule
      */
     public function ruleApplies($userId, $courseId)
     {
-        $applies = true;
+        $errors = array();
         if ($this->checkTimeFrame()) {
-         $applies = $this->hasher->CheckPassword(Request::get('pwarule_password'),
-            $this->getPassword());
+            $pwcheck = $this->hasher->CheckPassword(Request::get('pwarule_password'),
+                $this->getPassword());
+            if (!$pwcheck) {
+                $errors[] = _('Das eingegebene Passwort ist falsch.');
+            }
         }
-        return $applies;
+        return $errors;
     }
 
     /**

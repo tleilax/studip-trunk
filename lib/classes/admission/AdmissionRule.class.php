@@ -241,11 +241,11 @@ abstract class AdmissionRule
      *
      * @param  String userId
      * @param  String courseId
-     * @return bool
+     * @return Array
      */
     public function ruleApplies($userId, $courseId)
     {
-        return true;
+        return array();
     }
 
     /**

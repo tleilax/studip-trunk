@@ -98,12 +98,12 @@ class LockedAdmission extends AdmissionRule
      *
      * @param  String userId
      * @param  String courseId
-     * @return Boolean
+     * @return Array Any errors that occurred on admission.
      */
     public function ruleApplies($userId, $courseId)
     {
         // YOU CANNOT PASS!
-        return false;
+        return array(_('Die Anmeldung ist gesperrt.'));
     }
 
     /**

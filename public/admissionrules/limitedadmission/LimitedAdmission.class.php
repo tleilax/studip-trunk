@@ -156,11 +156,11 @@ class LimitedAdmission extends AdmissionRule
      *
      * @param  String userId
      * @param  String courseId
-     * @return Boolean
+     * @return Array Any errors that occurred on admission.
      */
     public function ruleApplies($userId, $courseId)
     {
-        $applies = true;
+        $errors = array;
         // Check for rule validity time frame.
         if ($this->checkTimeFrame()) {
             // How many courses from this set has the user already registered for?
@@ -171,10 +171,13 @@ class LimitedAdmission extends AdmissionRule
             $number = sizeof($stmt->fetchAll(PDO::FETCH_ASSOC));
             // Check if the number is smaller than admission rule limit 
             // or own user limit.
-            $applies = ($number < 
-                min($this->maxNumber, $this->getCustomMaxNumber($userId)));
+            if (!($number < 
+                    min($this->maxNumber, $this->getCustomMaxNumber($userId)))) {
+                $errors[] = _('Sie haben sich bereits zur maximalen Anzahl von '.
+                    'Veranstaltungen angemeldet.');
+            }
         }
-        return $applies;
+        return $errors;
     }
 
     /**

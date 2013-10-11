@@ -145,10 +145,14 @@ class TimedAdmission extends AdmissionRule
      *
      * @param  String userId
      * @param  String courseId
-     * @return Boolean
+     * @return Array
      */
     public function ruleApplies($userId, $courseId) {
-        return $this->checkTimeFrame();
+        $errors = array();
+        if (!$this->checkTimeFrame()) {
+            $errors[] = _('Sie befinden sich nicht innerhalb des Anmeldezeitraums.');
+        }
+        return $errors;
     }
 
     /**

@@ -186,20 +186,23 @@ class ConditionalAdmission extends AdmissionRule
      * 
      * @param String $userId
      * @param String $courseId
-     * @return boolean Is the user allowed to register?
+     * @return Array Array with conditions that have failed. If array 
+     *               is empty, everything's all right.
      */
     function ruleApplies($userId, $courseId) {
-        $applies = false;
+        $failed = array();
         // Check for rule validity time frame.
         if ($this->checkTimeFrame()) {
             // Check all configured conditions.
             foreach ($this->conditions as $condition) {
-                $applies = $applies || $condition->isFulfilled($userId);
+                if (!$condition->isFulfilled($userId)) {
+                    $failed[] = $condition;
+                }
             }
         } else {
-            $applies = true;
+            $failed = array();
         }
-        return $applies;
+        return $failed;
     }
 
     /**
