@@ -160,7 +160,7 @@ class LimitedAdmission extends AdmissionRule
      */
     public function ruleApplies($userId, $courseId)
     {
-        $errors = array;
+        $errors = array();
         // Check for rule validity time frame.
         if ($this->checkTimeFrame()) {
             // How many courses from this set has the user already registered for?
