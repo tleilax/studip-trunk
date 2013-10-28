@@ -204,9 +204,19 @@ class CourseSet
          * Delete waiting lists (users are moved to corresponding course as 
          * participants).
          */
-        $lists = WaitingList::getWaitingListsForCourseSet($this->id);
-        foreach ($lists as $list) {
-            $list->delete();
+        foreach ($this->courses as $id => $assigned) {
+            // Get waiting list for each course.
+            $list = AdmissionApplication::findBySeminar_id($id);
+            // Move each user into course.
+            foreach ($list as $entry) {
+                $new = new CourseMember(array($id, $entry->user_id));
+                if ($new->isNew()) {
+                    $new->status = 'autor';
+                    $new->admission_studiengang_id = 'all';
+                }
+                $new->store();
+            }
+            AdmissionApplication::deleteBySQL("seminar_id=?", array($id));
         }
     }
 

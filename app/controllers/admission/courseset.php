@@ -6,7 +6,6 @@ require_once('lib/classes/Institute.class.php');
 require_once('lib/classes/admission/CourseSet.class.php');
 require_once('lib/classes/admission/AdmissionUserList.class.php');
 require_once('lib/classes/admission/RandomAlgorithm.class.php');
-require_once('lib/classes/admission/WaitingList.class.php');
 
 class Admission_CoursesetController extends AuthenticatedController {
 
