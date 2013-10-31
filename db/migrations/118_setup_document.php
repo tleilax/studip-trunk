@@ -149,7 +149,7 @@ class SetupDocument extends DBMigration
         $statement->execute(array(
             ':id' =>  md5(uniqid('PERSONALDOCUMENT_ENABLE')),
             ':field' => 'PERSONALDOCUMENT_ENABLE',
-            ':value' => (int) false,
+            ':value' => (int) true,
             ':type' => 'boolean',
             ':description' => 'Aktiviert den persoenlichen Dateibereich',
         ));

@@ -41,9 +41,9 @@ class Document_DateienController extends AuthenticatedController
     }
   
  
-  public function index_action()
-   {    
-    //
-   }
+    public function index_action() {
+        //Configurations for the Documentarea for this user 
+        $this->userConfig = DocUsergroupConfig::getUserConfig($GLOBALS['user']->user_id);
+    }
  }
  

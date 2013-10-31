@@ -95,33 +95,30 @@
     </thead>
     <tbody>
         <?
-        foreach($this->viewData['configAll'] as $conf){
-            echo '<tr>'
-                    .'<td>'.$conf['name'].'</td>'
-                    .'<td>'.$conf['upload'].' '.$conf['upload_unit'].'</td>'
-                    .'<td>'.$conf['quota'].' '.$conf['quota_unit'].'</td><td>';
-
-                    foreach($conf['types'] as $type){
-                        echo ' '.$type['type'].' ';
-                    }
-              
-            if($conf['forbidden']=='1'){
-                echo '</td><td> <input type="checkbox" name="box" checked disabled></td>';
-            }else{
-                echo '</td><td> <input type="checkbox" name="box" disabled></td>';
-            }
-            if($conf['name']!='default'){
-            echo '<td><a href="' .$controller->url_for('document/administration/delete/'.$conf['name'].'/groupConfig'). '">' . Assets::img('icons/16/blue/trash.png') . '</a></td>'
-                .'<td><a href="' .$controller->url_for('document/administration/index/'.$conf['name']). '">' . Assets::img('icons/16/blue/edit.png') . '</a></td>'
-                .'</tr>';
-            }else{
-                echo '<td></td>'
-                .'<td><a href="' .$controller->url_for('document/administration/index/'.$conf['name']). '">' . Assets::img('icons/16/blue/edit.png') . '</a></td>'
-                .'</tr>';
-            }
-            
-            }
-        ?>        
+        foreach($this->viewData['configAll'] as $conf):?>
+            <tr>
+                    <td><?=$conf['name']?></td>
+                    <td><?=$conf['upload']?> <?=$conf['upload_unit']?></td>
+                    <td><?=$conf['quota']?> <?=$conf['quota_unit']?></td>
+                    <td>
+                        <?foreach($conf['types'] as $type):?>
+                            <?=$type['type'].' '?>
+                        <? endforeach;?>
+                        <?if($conf['forbidden']=='1'):?>
+                            </td><td> <input type="checkbox" name="box" checked disabled></td>
+                        <?else :?>
+                            </td><td> <input type="checkbox" name="box" disabled></td>
+                        <?  endif;?>
+            <?if($conf['name']!='default'):?>
+                <td><a href="<?=$controller->url_for('document/administration/delete/'.$conf['name'].'/groupConfig')?>"><?=Assets::img('icons/16/blue/trash.png')?></a></td>
+                <td><a href="<?=$controller->url_for('document/administration/index/'.$conf['name'])?>"><?=Assets::img('icons/16/blue/edit.png')?></a></td>
+                </tr>
+            <?else : ?>
+                <td></td>
+                <td><a href="<?=$controller->url_for('document/administration/index/'.$conf['name'])?>"><?=Assets::img('icons/16/blue/edit.png')?></a></td>
+                </tr>
+            <?  endif;?>            
+        <?endforeach;?>
     </tbody>
     <tfoot>        
     </tfoot>

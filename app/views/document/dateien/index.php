@@ -43,8 +43,7 @@
  </head>
 
  <body>
- 
-  <div style="display:table; width:100%;">
+<div style="display:table; width:100%;">
   
    <div style="display:table-cell; width:100%;">
          

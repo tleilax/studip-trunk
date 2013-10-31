@@ -43,7 +43,7 @@
                 </select>
             </td>
             <td>
-                            <?= Button::createAccept(_('Suche'),'search') ?>
+                <?= Button::createAccept(_('Suche'),'search') ?>
             </td>
         </tr>
     </tbody>
@@ -79,35 +79,40 @@
 
         </tr>
     </thead>
-    <tbody><?
-            foreach($this->viewData['users'] as $u){
-
-                echo '<tr>'.
-                    '<td>'.$u['vorname'].'</td>'.
-                    '<td>'.$u['nachname'].'</td>'.
-                    '<td>'.$u['username'].'</td>'.
-                    '<td>'.$u['email'].'</td>'.
-                    '<td>'.$u['upload'].' '.$u['upload_unit'].'</td>'.                    
-                    '<td>'.$u['quota'].' '.$u['quota_unit'].'</td>'.
-                    '<td>';
-                    foreach($u['types'] as $typ){
-                        echo $typ['type']. ' ';
-                    }
-                    
-                    echo '</td>'.
-                    '<td>'.'<input type="checkbox" name="box" disabled ';
-                    if($u['forbidden']==1){echo 'checked';}                    
-                    echo '>'.'</td>'.
-                    '<td>'.'<input type="checkbox" name="box" disabled ';
-                    if($u['area_close']==1){echo 'checked';}
-                    echo '>'.'</td>'.
-                    '<td>'.
-                    '<a href="' .$controller->url_for('document/administration/delete/'.$u['user_id'].'/userConfig'). '" title="Einstellungen löschen">'.Assets::img('icons/16/blue/trash.png').'</a>'.' '.
-                    '<a href="' .$controller->url_for('document/administration/individualEdit/'.$u['user_id']). '" title="Erstellen oder Bearbeiten der individuellen Einstellungen">'.Assets::img('icons/16/blue/edit.png').'</a>'.
-                    '</td>'.
-                    '</tr>';
-    }?>
-        
+    <tbody>
+        <?foreach($this->viewData['users'] as $u) : ?>
+                <tr>
+                    <td><?=$u['vorname']?></td>
+                    <td><?=$u['nachname']?></td>
+                    <td><?=$u['username']?></td>
+                    <td><?=$u['email']?></td>
+                    <td><?=$u['upload']?> <?$u['upload_unit']?></td>                    
+                    <td><?$u['quota']?> <?=$u['quota_unit']?></td>
+                    <td>
+                        <?foreach($u['types'] as $typ) :?>
+                            <?= $typ['type'] ?>;
+                        <?  endforeach;?>
+                    </td>
+                    <td>
+                        <input type="checkbox" name="box" disabled
+                            <?if($u['forbidden']==1) :?> 
+                                checked
+                            <? endif;?>
+                        >
+                    </td>
+                    <td>
+                        <input type="checkbox" name="box" disabled
+                            <?if($u['area_close']==1): ?>
+                                checked
+                                <? endif;?>
+                           >
+                    </td>
+                    <td>
+                        <a href="<?=$controller->url_for('document/administration/delete/'.$u['user_id'].'/userConfig')?>" title="Einstellungen löschen"><?=Assets::img('icons/16/blue/trash.png')?></a>
+                        <a href="<?=$controller->url_for('document/administration/individualEdit/'.$u['user_id'])?>" title="Erstellen oder Bearbeiten der individuellen Einstellungen"><?=Assets::img('icons/16/blue/edit.png')?></a>
+                    </td>
+                    </tr>
+        <?  endforeach;?>
     </tbody>
     <tfoot>        
     </tfoot>

@@ -64,10 +64,9 @@
             <td colspan="4">
             <textarea name="closeText" cols="50" rows="10" style="resize: none;" align="left" >
             <?
-            if(count($this->viewData['userConfig'])>0 && strlen($this->viewData['userConfig']['area_close_text'])>1){
-                echo trim($this->viewData['userConfig']['area_close_text']);
-            }
-            ?>
+            if(count($this->viewData['userConfig'])>0 && strlen($this->viewData['userConfig']['area_close_text'])>1) : ?>
+                <?= trim($this->viewData['userConfig']['area_close_text'])?>
+            <? endif;?>
             </textarea>  
             </td>
         </tr>

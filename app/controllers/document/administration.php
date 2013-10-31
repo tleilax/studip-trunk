@@ -174,7 +174,6 @@ class Document_AdministrationController extends AuthenticatedController {
             $userConfig['upload']=$this->sizeInUnit($userConfig['upload'], $userConfig['upload_unit']);
             $userConfig['quota']= $this->sizeInUnit($userConfig['quota'], $userConfig['quota_unit']);
             $viewData['userConfig'] = $userConfig;
-            
         }
         $this->viewData=$viewData;
     }
