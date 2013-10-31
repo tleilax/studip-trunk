@@ -25,7 +25,6 @@ $commentable = $GLOBALS['perm']->have_perm("autor") ? true : (bool) $commentable
 <input type="hidden" id="user_id" value="<?= htmlReady($GLOBALS['user']->id) ?>">
 <input type="hidden" id="stream_time" value="<?= time() ?>">
 <input type="hidden" id="browser_start_time" value="">
-<script>jQuery(function () { jQuery("#browser_start_time").val(Math.floor(new Date().getTime() / 1000)); });</script>
 <div id="editing_question" style="display: none;"><?= _("Wollen Sie den Beitrag wirklich bearbeiten?") ?></div>
 <? if (Navigation::hasItem("/community/blubber")) : ?>
 <p>
@@ -48,7 +47,7 @@ $commentable = $GLOBALS['perm']->have_perm("autor") ? true : (bool) $commentable
 
 <ul id="blubber_threads" class="coursestream singlethread" aria-live="polite" aria-relevant="additions">
 <? endif; ?>
-<li id="posting_<?= htmlReady($thread->getId()) ?>" mkdate="<?= htmlReady($thread['discussion_time']) ?>" class="thread posting<?= $last_visit < $thread['mkdate'] ? " new" : "" ?>" data-autor="<?= htmlReady($thread['user_id']) ?>">
+<li id="posting_<?= htmlReady($thread->getId()) ?>" mkdate="<?= htmlReady($thread['discussion_time']) ?>" class="thread posting<?= $last_visit < $thread['mkdate'] ? " new" : "" ?> <?= $thread['context_type'] ?>" data-autor="<?= htmlReady($thread['user_id']) ?>">
     <div class="hiddeninfo">
         <input type="hidden" name="context" value="<?= htmlReady($thread['Seminar_id']) ?>">
         <input type="hidden" name="context_type" value="<?= $thread['Seminar_id'] === $thread['user_id'] ? "public" : "course" ?>">
@@ -59,8 +58,7 @@ $commentable = $GLOBALS['perm']->have_perm("autor") ? true : (bool) $commentable
        title="<?= _("Veranstaltung")." ".htmlReady($title['name']) ?>"
        class="contextinfo"
        style="background-image: url('<?= CourseAvatar::getAvatar($thread['Seminar_id'])->getURL(Avatar::NORMAL) ?>');">
-        <div class="name"><?= htmlReady(Course::find($thread['Seminar_id'])->name) ?></div>
-        <div class="empty"></div>
+        <div class="name"><?= htmlReady(Course::find($thread['Seminar_id'])->name) ?></div><div class="empty"></div>
     </a>
     <? elseif($thread['context_type'] === "private") : ?>
     <? 
@@ -76,11 +74,38 @@ $commentable = $GLOBALS['perm']->have_perm("autor") ? true : (bool) $commentable
             }
         }
     ?>
-    <div class="contextinfo" title="<?= htmlReady($title) ?>" style="background-image: url('<?= $GLOBALS['ABSOLUTE_URI_STUDIP'] ?>/plugins_packages/core/Blubber/assets/images/private.png');">
+    <div class="contextinfo" title="<?= htmlReady($title) ?>" style="background-image: url('<?= $GLOBALS['ABSOLUTE_URI_STUDIP'] ?>/plugins_packages/core/Blubber/assets/images/private<?= $GLOBALS['auth']->auth['devicePixelRatio'] > 1.2 ? "@2x" : "" ?>.png');">
+        <div class="name"><?= _("Privat") ?>
+            <? if (count($related_users) > 1) : ?>
+            <br><?= sprintf("%s Personen", count($related_users)) ?>
+            <? endif ?>
+            </div><div class="empty"></div>
     </div>
     <div class="related_users"></div>
     <? else : ?>
-    <div class="contextinfo" title="<?= _("Öffentlich") ?>" style="background-image: url('<?= $GLOBALS['ABSOLUTE_URI_STUDIP'] ?>/plugins_packages/core/Blubber/assets/images/public.png');">
+    <div class="contextinfo" title="<?= _("Öffentlich") ?>" style="background-image: url('<?= $GLOBALS['ABSOLUTE_URI_STUDIP'] ?>/plugins_packages/core/Blubber/assets/images/public<?= $GLOBALS['auth']->auth['devicePixelRatio'] > 1.2 ? "@2x" : "" ?>.png');">
+        <div class="name"><?= _("Öffentlich") ?></div><div class="empty"></div>
+    </div>
+    <? endif ?>
+    <? if ($thread['context_type'] === "public") : ?>
+    <div class="reshares">
+        <? $sharingusers = $thread->getSharingUsers() ?>
+        <? if (count($sharingusers)) : ?>
+            <?= Assets::img("icons/16/grey/blubber", array('class' => "text-bottom", 'title' => _("Weitergesagt von folgenden Personen"))) ?>
+            <? foreach ($sharingusers as $key => $user) {
+                $url = $user->getURL();
+                $name = $user->getName();
+                if ($url) : ?><a href="<?= $url ?>" title="<?= htmlReady($name) ?>"><? endif;
+                echo $user->getAvatar()->getImageTag(Avatar::SMALL, array('title' => $name));
+                if ($url) : ?></a><? endif;
+            } ?>
+            <? $sharing_user_ids = array_map(function ($v) { return $v['user_id']; }, $sharingusers) ?>
+            <? if (!in_array($GLOBALS['user']->id, $sharing_user_ids) && $GLOBALS['user']->id !== $thread['user_id']) : ?>
+            <?= Assets::img("icons/16/blue/add", array('class' => "text-bottom reshare_blubber", 'title' => _("Selbst weiterblubbern"))) ?>
+            <? else : ?>
+            &nbsp;&nbsp;&nbsp;
+            <? endif ?>
+        <? endif ?>
     </div>
     <? endif ?>
     <div class="avatar_column">
@@ -130,6 +155,14 @@ $commentable = $GLOBALS['perm']->have_perm("autor") ? true : (bool) $commentable
             <a href="<?= $link ?>"><?= htmlReady("#".$tag) ?></a>
             <? endif ?>
         <? endforeach ?></div>
+        <div class="opengraph_area"><? 
+            if (count(OpenGraphURL::$tempURLStorage)) {
+                $og = new OpenGraphURL(OpenGraphURL::$tempURLStorage[0]);
+                if (!$og->isNew()) {
+                    echo $og->render();
+                } 
+            } 
+        ?></div>
     </div>
     <ul class="comments">
     <? $postings = $thread->getChildren(0, 4) ?>

@@ -52,10 +52,10 @@ function raumzeit_delete_singledate($sem) {
                 $sem->createMessage(sprintf(_("Sie haben den Termin %s gelöscht, dem ein Thema zugeorndet war. Sie können das Thema in der %sExpertenansicht des Ablaufplans%s einem anderen Termin (z.B. einem Ausweichtermin) zuordnen."),
                     $termin->toString(), '<a href="'. URLHelper::getLink('themen.php?cmd=changeViewMode&newFilter=expert') .'">', '</a>'));
             } else {
-                if ($termin->hasRoom()) {  
-                    $sem->createMessage(sprintf(_("Der Termin %s wurde gelöscht! <br> Die Buchung für den Raum %s wurde gelöscht."), 
-                        $termin->toString(), $termin->getRoom()));  
-                } else {  
+                if ($termin->hasRoom()) {
+                    $sem->createMessage(sprintf(_("Der Termin %s wurde gelöscht! <br> Die Buchung für den Raum %s wurde gelöscht."),
+                        $termin->toString(), $termin->getRoom()));
+                } else {
                     $sem->createMessage(sprintf(_("Der Termin %s wurde gelöscht!"), $termin->toString()));
                 }
             }
@@ -82,7 +82,7 @@ function raumzeit_undelete_singledate($sem) {
 }
 
 function raumzeit_checkboxAction($sem) {
-    // close any opened singledate, if we do a checkbox action    
+    // close any opened singledate, if we do a checkbox action
     if (Request::get('checkboxAction')) {
         Request::set('singleDateID', null);
     }
@@ -95,16 +95,21 @@ function raumzeit_checkboxAction($sem) {
             $msg = _("Folgende Termine wurden gelöscht:").'<br>';
             $deleted_dates = array();
             foreach ($singledate as $val) {
-                $termin = $sem->getSingleDate($val, Request::option('cycle_id'));
+                $termin = new SingleDate($val);
                 $msg .= '<li>'.$termin->toString().'<br>';
                 if (Request::get('cancel_comment') !== null) {
                     $sem->cancelSingleDate($val, Request::option('cycle_id'));
-                    $termin = new SingleDate($val);
                     $termin->setComment(Request::get('cancel_comment'));
                     $termin->store();
                     $deleted_dates[] = $termin;
                 } else {
-                    $sem->deleteSingleDate($val, Request::option('cycle_id'));
+                    if ($termin->isExTermin()) {
+                        if (!$termin->getMetadateId()) {
+                            $termin->delete();
+                        }
+                    } else {
+                        $sem->deleteSingleDate($val, Request::option('cycle_id'));
+                    }
                 }
             }
             $sem->createMessage($msg);
@@ -121,6 +126,7 @@ function raumzeit_checkboxAction($sem) {
             $link_params = array(
                 'cmd' => 'checkboxAction',
                 'checkboxAction' => 'cancel',
+                'cycle_id' => Request::option('cycle_id'),
                 'singledate' => Request::getArray('singledate')
             );
 
@@ -262,7 +268,7 @@ function raumzeit_checkDate($date, $startStunde,$startMinute,$endStunde,$endMinu
             ||($endMinute<0   ||$endMinute>59)
             ||!is_int($startStunde) || !is_int($endStunde)
             ||!is_int($startMinute) || !is_int($endMinute)
-            
+
             ){
         return FALSE;
     } else {
@@ -282,9 +288,9 @@ function raumzeit_doAddSingleDate($sem) {
     else {
         $termin = new SingleDate();
         //dates[0]=day, dates[1]=month,dates[2]=year
-        $dates = explode('.', Request::get('startDate'));        
-        $start = mktime(Request::get('start_stunde'), Request::get('start_minute'), 0,$dates[1],$dates[0],$dates[2]);
-        $ende = mktime(Request::get('end_stunde'), Request::get('end_minute'), 0, $dates[1],$dates[0],$dates[2]);
+        $dates = explode('.', Request::get('startDate'));
+        $start = mktime(Request::int('start_stunde'), Request::int('start_minute'), 0, $dates[1], $dates[0], $dates[2]);
+        $ende = mktime(Request::int('end_stunde'), Request::int('end_minute'), 0, $dates[1], $dates[0], $dates[2]);
         $termin->setTime($start, $ende);
         $termin->setDateType(Request::get('dateType'));
         $termin->store();
@@ -292,8 +298,9 @@ function raumzeit_doAddSingleDate($sem) {
         if ($start < $sem->filterStart || $ende > $sem->filterEnd) {
             $sem->setFilter('all');
         }
-        if (!Request::get('room')) {
-            $termin->setFreeRoomText(Request::quoted('freeRoomText'));
+        if (!Request::get('room') || Request::get('room') === 'nothing') {
+            $termin->setFreeRoomText(Request::get('freeRoomText'));
+            $termin->store();
             $sem->addSingleDate($termin);
         } else {
             $sem->addSingleDate($termin);
@@ -304,6 +311,9 @@ function raumzeit_doAddSingleDate($sem) {
             if (in_array($dozent_id, array_keys($teachers))) {
                 $termin->addRelatedPerson($dozent_id);
             }
+        }
+        foreach (Request::getArray('related_statusgruppen') as $statusgruppe_id) {
+            $termin->addRelatedGroup($statusgruppe_id);
         }
         $sem->createMessage(sprintf(_("Der Termin %s wurde hinzugefügt!"), '<b>'.$termin->toString().'</b>'));
         $sem->store();
@@ -349,9 +359,9 @@ function raumzeit_editSingleDate($sem) {
     }
     // generate time-stamps we can compare directly
     //dates[0]=day, dates[1]=month,dates[2]=year
-        $dates = explode('.', Request::get('startDate'));        
-        $start = mktime(Request::get('start_stunde'), Request::get('start_minute'), 0,$dates[1],$dates[0],$dates[2]);
-        $ende = mktime(Request::get('end_stunde'), Request::get('end_minute'), 0, $dates[1],$dates[0],$dates[2]);
+        $dates = explode('.', Request::get('startDate'));
+        $start = mktime(Request::int('start_stunde'), Request::int('start_minute'), 0,$dates[1],$dates[0],$dates[2]);
+        $ende = mktime(Request::int('end_stunde'), Request::int('end_minute'), 0, $dates[1],$dates[0],$dates[2]);
 
     // get request-variables
     $termin_id = Request::option('singleDateID');
@@ -416,7 +426,7 @@ function raumzeit_editSingleDate($sem) {
                 $termin->killAssign();
                 $sem->createMessage(sprintf(_("Der Termin %s wurde geändert, etwaige Raumbuchung wurden entfernt und stattdessen der angegebene Freitext eingetragen!"), '<b>'.$termin->toString().'</b>'));
             }
-           
+
             $sem->appendMessages($termin->getMessages());
         }
 
@@ -426,18 +436,27 @@ function raumzeit_editSingleDate($sem) {
         // add persons performing at this date
         $teachers = $sem->getMembers('dozent');
         $teacher_added = false;
-        
+
         foreach (explode(',', Request::get('related_teachers')) as $dozent_id) {
             if (in_array($dozent_id, array_keys($teachers)) !== false) {
                 $teacher_added = true;
                 $termin->addRelatedPerson($dozent_id);
             }
         }
+        
+        $termin->clearRelatedGroups();
+        $gruppen = Statusgruppen::findBySeminar_id($sem->getId());
+        $gruppen_ids = array_map(function ($gruppe) { return $gruppe->getId(); }, $gruppen);
+        foreach (explode(',', Request::get('related_statusgruppen')) as $statusgruppe_id) {
+            if (in_array($statusgruppe_id, $gruppen_ids)) {
+                $termin->addRelatedGroup($statusgruppe_id);
+            }
+        }
 
         if (!$teacher_added) {
             $sem->createInfo(_("Jeder Termin muss mindestens eine Person haben, die ihn durchführt!"));
         }
-        
+
         $termin->store();
         NotificationCenter::postNotification("CourseDidChangeSchedule", $sem);
     }
@@ -457,10 +476,10 @@ function raumzeit_editSingleDate($sem) {
                 $zw_termin->end_time = $ende;
 
                 // parameters to be resent on positive answer
-                foreach (words('day month year start_stunde start_minute end_stunde '
+                foreach (words('startDate start_stunde start_minute end_stunde '
                     . 'end_minute related_teachers room_sd freeRoomText_sd dateType cmd '
                     . 'singleDateID cycle_id action') as $param) {
-                    $url_params[$param] = Request::quoted($param);
+                    $url_params[$param] = Request::get($param);
                 }
 
                 $url_params['approveChange'] = true;
@@ -487,6 +506,15 @@ function raumzeit_editSingleDate($sem) {
             foreach (explode(',', Request::get('related_teachers')) as $dozent_id) {
                 if (in_array($dozent_id, array_keys($teachers))) {
                     $termin->addRelatedPerson($dozent_id);
+                }
+            }
+            
+            $termin->clearRelatedGroups();
+            $gruppen = Statusgruppen::findBySeminar_id($sem->getId());
+            $gruppen_ids = array_map(function ($gruppe) { return $gruppe->getId(); }, $gruppen);
+            foreach (explode(',', Request::get('related_statusgruppen')) as $statusgruppe_id) {
+                if (in_array($statusgruppe_id, $gruppen_ids)) {
+                    $termin->addRelatedGroup($statusgruppe_id);
                 }
             }
 
@@ -578,7 +606,10 @@ function raumzeit_bulkAction($sem) {
     $singledates = Request::getArray('singledate');
     $persons = Request::getArray('related_persons');
     $action = Request::get('related_persons_action');
-    $something_done = false;
+    $groups = Request::getArray('related_groups');
+    $group_action = Request::get('related_groups_action');
+    $teacher_changed = false;
+    $groups_changed = false;
     
     if (in_array($action, array('add', 'delete'))) {
         foreach ($singledates as $singledate) {
@@ -586,7 +617,7 @@ function raumzeit_bulkAction($sem) {
             if ($singledate->getSeminarID() === $sem->getId()) {
                 foreach ($persons as $user_id) {
                     $singledate->{$action."RelatedPerson"}($user_id);
-                    $something_done = true;
+                    $teacher_changed = true;
                 }
             }
             $singledate->store();
@@ -598,18 +629,43 @@ function raumzeit_bulkAction($sem) {
                 $singledate->clearRelatedPersons();
                 foreach ($persons as $user_id) {
                     $singledate->addRelatedPerson($user_id);
-                    $something_done = true;
+                    $teacher_changed = true;
                 }
             }
             $singledate->store();
         }
     }
-    if ($something_done) {
-        $sem->createMessage(_("Zuständige Personen für die Termine wurden geändert."));
-    /*} else {
-        $sem->createInfo(_("An den Zuordnungen von Personen zu Terminen hat sich nichts geändert."));*/
+    if (in_array($group_action, array('add', 'delete'))) {
+        foreach ($singledates as $singledate) {
+            $singledate = new SingleDate($singledate);
+            if ($singledate->getSeminarID() === $sem->getId()) {
+                foreach ($groups as $statusgruppe_id) {
+                    $singledate->{$group_action."RelatedGroup"}($statusgruppe_id);
+                    $groups_changed = true;
+                }
+            }
+            $singledate->store();
+        }
+    } elseif($action === "set") {
+        foreach ($singledates as $singledate) {
+            $singledate = new SingleDate($singledate);
+            if ($singledate->getSeminarID() === $sem->getId()) {
+                $singledate->clearRelatedGroups();
+                foreach ($groups as $statusgruppe_id) {
+                    $singledate->addRelatedGroup($statusgruppe_id);
+                    $groups_changed = true;
+                }
+            }
+            $singledate->store();
+        }
     }
-
+    if ($teacher_changed) {
+        $sem->createMessage(_("Zuständige Personen für die Termine wurden geändert."));
+    }
+    if ($groups_changed) {
+        $sem->createMessage(_("Zugewiesene Gruppen für die Termine wurden geändert."));
+    }
+    
     foreach($singledates as $termin_id) {
         if (Request::option('cycle_id') != '') {
             $termin = $sem->getSingleDate($termin_id, Request::option('cycle_id'));

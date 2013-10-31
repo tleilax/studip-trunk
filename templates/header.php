@@ -62,7 +62,7 @@
     <!-- Dynamische Links ohne Icons -->
     <div id="barBottomright">
         <ul>
-            <? if (PersonalNotifications::isActivated() && $GLOBALS['perm']->have_perm("autor")) : ?>
+            <? if (is_object($GLOBALS['perm']) && PersonalNotifications::isActivated() && $GLOBALS['perm']->have_perm("autor")) : ?>
             <? $notifications = PersonalNotifications::getMyNotifications() ?>
             <? $lastvisit = (int) UserConfig::get($GLOBALS['user']->id)->getValue('NOTIFICATIONS_SEEN_LAST_DATE') ?>
             <li id="notification_container"<?= count($notifications) > 0 ? ' class="hoverable"' : "" ?>>
@@ -83,8 +83,8 @@
                 </div>
                 <? if (PersonalNotifications::isAudioActivated()) : ?>
                 <audio id="audio_notification" preload="none">
-                    <source src="<?= Assets::url('sounds/30341__junggle__waterdrop24.ogg') ?>" type="audio/ogg">
-                    <source src="<?= Assets::url('sounds/30341__junggle__waterdrop24.mp3') ?>" type="audio/mpeg">
+                    <source src="<?= Assets::url('sounds/blubb.ogg') ?>" type="audio/ogg">
+                    <source src="<?= Assets::url('sounds/blubb.mp3') ?>" type="audio/mpeg">
                 </audio>
                 <? endif ?>
             </li>

@@ -271,11 +271,12 @@ class BlubberStream extends SimpleORMap {
         $about_tags = ((count($this['pool_hashtags']) > 0) or (count($this['filter_hashtags']) > 0));
 
         $sql =
-            "SELECT blubber.topic_id,blubber.root_id,blubber.mkdate,blubber.chdate " .
+            "SELECT blubber.topic_id, blubber.root_id, blubber.mkdate, blubber.chdate " .
             "FROM blubber " .
                 "INNER JOIN blubber AS comment ON (comment.root_id = blubber.topic_id) " .
                 "LEFT JOIN blubber_mentions ON (blubber_mentions.topic_id = blubber.topic_id) " .
                 ($about_tags ? "LEFT JOIN blubber_tags ON (blubber_tags.topic_id = blubber.topic_id) " : "") .
+                "LEFT JOIN blubber_reshares ON (blubber_reshares.topic_id = blubber.topic_id) " .
             "WHERE " .
                 //pool
                 (count($pool_sql) ? "(1 != 1 OR ".implode(" OR ", $pool_sql).") " : "") .
@@ -283,7 +284,10 @@ class BlubberStream extends SimpleORMap {
                 //filter
                 (count($filter_sql) ? implode(" AND ", $filter_sql)." " : "") .
             "GROUP BY blubber.topic_id " .
-            "ORDER BY " . ($this['sort'] === "activity" ? "MAX(comment.mkdate) DESC" : "blubber.mkdate DESC")." " .
+            "ORDER BY " . ($this['sort'] === "activity" 
+                            ? "IF(blubber_reshares.chdate IS NULL OR MAX(comment.mkdate) > MAX(blubber_reshares.chdate), MAX(comment.mkdate), MAX(blubber_reshares.chdate)) DESC" 
+                            : "blubber.mkdate DESC"
+                          )." " .
             (($offset or $limit) ? "LIMIT ".(int) $offset.", ".(int) $limit." " : " ") .
         "";
         return array($sql, $parameters);
@@ -306,6 +310,7 @@ class BlubberStream extends SimpleORMap {
                 "INNER JOIN blubber AS comment ON (comment.root_id = blubber.topic_id) " .
                 "LEFT JOIN blubber_mentions ON (blubber_mentions.topic_id = blubber.topic_id) " .
                 "LEFT JOIN blubber_tags ON (blubber_tags.topic_id = blubber.topic_id) " .
+                "LEFT JOIN blubber_reshares ON (blubber_reshares.topic_id = blubber.topic_id) " .
             "WHERE " .
                 //pool
                 (count($pool_sql) ? "(1 != 1 OR ".implode(" OR ", $pool_sql).") " : "") .
@@ -334,11 +339,12 @@ class BlubberStream extends SimpleORMap {
                 $parameters['pool_courses'] = $pool_courses;
             }
         }
-        if (count($this['pool_groups'])) {
+        if (count($this['pool_groups']) > 0) {
             $pool_users = $this->getUsersByGroups($this['pool_groups']);
             $pool_users[] = $GLOBALS['user']->id;
             if (count($pool_users)) {
                 $pool_sql[] = "blubber.user_id IN (:pool_users)";
+                $pool_sql[] = "blubber_reshares.user_id IN (:pool_users)";
                 $parameters['pool_users'] = $pool_users;
             }
         }
@@ -350,11 +356,18 @@ class BlubberStream extends SimpleORMap {
         // Rights to see the blubber-postings:
         $parameters['seminar_ids'] = $this->getMyCourses();
         if ($GLOBALS['perm']->have_perm("admin")) {
-            $filter_sql[] =
-                "(blubber.context_type = 'public' " .
-                    "OR (blubber.context_type = 'private' AND blubber_mentions.user_id = :me) " .
-                    "OR (blubber.context_type = 'course') " .
-                ")";
+            if ((count($this['pool_courses']) && ($this['pool_courses'][0] !== "all")) || count($this['filter_courses'])) {
+                $filter_sql[] =
+                    "(blubber.context_type = 'public' " .
+                        "OR (blubber.context_type = 'private' AND blubber_mentions.user_id = :me) " .
+                        "OR (blubber.context_type = 'course') " .
+                    ")";
+            } else {
+                $filter_sql[] =
+                    "(blubber.context_type = 'public' " .
+                        "OR (blubber.context_type = 'private' AND blubber_mentions.user_id = :me) " .
+                    ")";
+            }
         } else {
             $filter_sql[] =
                 "(blubber.context_type = 'public' " .
@@ -387,7 +400,8 @@ class BlubberStream extends SimpleORMap {
                 $filter_users = $filter_users + $this['filter_users'];
                 $filter_users = array_unique($filter_users);
             }
-            $filter_sql[] = "blubber.user_id IN (:filter_users)";
+            $filter_sql[] = "(blubber.user_id IN (:filter_users) OR blubber_reshares.user_id IN (:filter_users))";
+            
             $parameters['filter_users'] = $filter_users;
         }
         if (count($this['filter_hashtags']) > 0) {

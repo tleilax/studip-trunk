@@ -1771,19 +1771,16 @@ CREATE TABLE IF NOT EXISTS `resources_requests_properties` (
 
 DROP TABLE IF EXISTS `resources_temporary_events`;
 CREATE TABLE IF NOT EXISTS `resources_temporary_events` (
-  `event_id` varchar(32) NOT NULL DEFAULT '',
-  `resource_id` varchar(32) NOT NULL DEFAULT '',
-  `assign_id` varchar(32) NOT NULL DEFAULT '',
-  `seminar_id` varchar(32) NOT NULL DEFAULT '',
-  `termin_id` varchar(32) NOT NULL DEFAULT '',
+  `event_id` char(32) NOT NULL DEFAULT '',
+  `resource_id` char(32) NOT NULL DEFAULT '',
+  `assign_id` char(32) NOT NULL DEFAULT '',
   `begin` int(20) NOT NULL DEFAULT '0',
   `end` int(20) NOT NULL DEFAULT '0',
-  `type` varchar(15) NOT NULL DEFAULT '',
   `mkdate` int(20) NOT NULL DEFAULT '0',
   PRIMARY KEY (`event_id`),
-  KEY `resource_id` (`resource_id`),
-  KEY `assign_object_id` (`assign_id`)
-) ENGINE=MEMORY;
+  KEY `resource_id` (`resource_id`, `begin`),
+  KEY `assign_object_id` (`assign_id`,`resource_id`)
+) ENGINE=MyISAM;
 
 -- --------------------------------------------------------
 
@@ -2682,7 +2679,7 @@ CREATE TABLE IF NOT EXISTS `user_online` (
   `user_id` char(32) NOT NULL,
   `last_lifesign` int(10) unsigned NOT NULL,
   PRIMARY KEY (`user_id`),
-  KEY `user_id` (`user_id`,`last_lifesign`)
+  KEY `last_lifesign` (`last_lifesign`)
 ) ENGINE=MyISAM;
 
 -- --------------------------------------------------------

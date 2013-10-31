@@ -437,7 +437,6 @@ if ($change_object_schedules) {
                 $ChangeObjectPerms = ResourceObjectPerms::Factory($copy_to_resource_id);
                 if ($ChangeObjectPerms->havePerm("tutor")) {
                     $new_assign = $original_assign->getCopyForResource($copy_to_resource_id);
-                    $new_assign->setCommentInternal(Request::get('comment_internal'));
                     $overlaps = $new_assign->checkOverlap();
                     if ($overlaps) {
                         $bad_msg = _("Nicht buchbare Belegungszeiten:");
@@ -1293,7 +1292,7 @@ if ($view == "search") {
 
         //handle dates for searching resources that are free for this times
         /// >> changed for advanced room searches
-        if (Request::option('search_day_of_week')!=-1) // a day is selected. this indicates the user searches a room for the whole term
+        if (Request::get('search_day_of_week')!=-1) // a day is selected. this indicates the user searches a room for the whole term
         {
             /// search whole term
             $semesterData = new SemesterData();
@@ -1320,8 +1319,7 @@ if ($view == "search") {
             check_and_set_date (date("d",$date), date("m",$date), date("Y",$date), Request::quoted('search_begin_hour_2'), Request::quoted('search_begin_minute_2'), $_SESSION['resources_data']["search_array"], "search_assign_begin");
             check_and_set_date (date("d",$date), date("m",$date), date("Y",$date), Request::quoted('search_end_hour_2'), Request::quoted('search_end_minute_2'), $_SESSION['resources_data']["search_array"], "search_assign_end");
             $_SESSION['resources_data']["search_array"]["search_repeating"] = '1';
-        } else
-        {
+        } else {
             check_and_set_date (Request::quoted('search_day'), Request::quoted('search_month'), Request::quoted('search_year'), Request::quoted('search_begin_hour'), Request::quoted('search_begin_minute'), $_SESSION['resources_data']["search_array"], "search_assign_begin");
             check_and_set_date (Request::quoted('search_day'), Request::quoted('search_month'), Request::quoted('search_year'), Request::quoted('search_end_hour'), Request::quoted('search_end_minute'), $_SESSION['resources_data']["search_array"], "search_assign_end");
             $_SESSION['resources_data']["search_array"]["search_repeating"] = Request::int('search_repeating');

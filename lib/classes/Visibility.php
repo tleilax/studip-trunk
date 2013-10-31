@@ -119,6 +119,11 @@ class Visibility
         // parse User and Identifier to format we want to have in the database
         self::getUser($user);
         $parent = self::parseIdentifier($parent, $user);
+        
+        // dont create duplicates
+        if (self::exists($identifier, $user)) {
+            return false;
+        }
 
         // insert the new id and return the id
         $sql = "INSERT INTO user_visibility_settings (`user_id`, `parent_id`, `category`, `name`, `state`, `identifier`, `plugin`)
@@ -629,14 +634,14 @@ class Visibility
      * 
      * @return type true if the id exists. false if not
      */
-    public function exists($id, $user)
+    public static function exists($id, $user = null)
     {
         $where = self::prepareWhere($id, $user);
         $sql = "SELECT user_id FROM user_visibility_settings $where";
         $db = DBManager::get();
         $stmt = $db->prepare($sql);
-        $result = $stmt->execute();
-        return $stmt->rowCount() > 0;
+        $stmt->execute();
+        return $stmt->rowCount();
     }
 }
 ?>

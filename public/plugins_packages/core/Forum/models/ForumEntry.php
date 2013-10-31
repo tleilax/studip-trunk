@@ -70,12 +70,12 @@ class ForumEntry {
      * @param string $description the posting-content
      * @return string the content with the raw text version of the edit-mark
      */
-    static function parseEdit($description)
+    static function parseEdit($description, $anonymous = false)
     {
         // wurde schon mal editiert
         if (preg_match('/^.*(<admin_msg.*?)$/s', $description, $match)) {
             $tmp = explode('"', $match[1]);
-            $append = "\n\n%%[" . _("Zuletzt editiert von") . ' ' . $tmp[1] . " - " . date("d.m.y - H:i", $tmp[3]) . "]%%";
+            $append = "\n\n%%[" . _("Zuletzt editiert von") . ' ' . ($anonymous && !$GLOBALS['perm']->have_perm('root') ? _('Anonym') : $tmp[1]) . " - " . date("d.m.y - H:i", $tmp[3]) . "]%%";
             $description = ForumEntry::killEdit($description) . $append;
         }
         return $description;
@@ -196,7 +196,7 @@ class ForumEntry {
         }
 
         // this calculation only works for postings
-        if ($constraint['depth'] <= 2) return (ForumHelpers::getPage() + 1);
+        if ($constraint['depth'] <= 2) return ForumHelpers::getPage();
 
         if ($parent_id = ForumEntry::getParentTopicId($topic_id)) {
             $parent_constraint = ForumEntry::getConstraints($parent_id);
@@ -342,16 +342,20 @@ class ForumEntry {
                 'topic_id'        => $data['topic_id'],
                 'name'            => formatReady($data['name']),
                 'name_raw'        => $data['name'],
-                'content'         => formatReady(ForumEntry::parseEdit($data['content'])),
+                'content'         => formatReady(ForumEntry::parseEdit($data['content'], $data['anonymous'])),
                 'content_raw'     => ForumEntry::killEdit($data['content']),
                 'content_short'   => $desc_short,
+                'opengraph'       => ($og = OpenGraphURL::find(OpenGraphURL::$tempURLStorage[0])) ? $og->render() : "",
                 'chdate'          => $data['chdate'],
                 'mkdate'          => $data['mkdate'],
                 'owner_id'        => $data['user_id'],
                 'raw_title'       => $data['name'],
                 'raw_description' => ForumEntry::killEdit($data['content']),
                 'fav'             => ($data['fav'] == 'fav'),
-                'depth'           => $data['depth']
+                'depth'           => $data['depth'],
+                'anonymous'       => $data['anonymous'],
+                'closed'          => $data['closed'],
+                'sticky'          => $data['sticky']
             );
         } // retrieve the postings
 
@@ -481,6 +485,7 @@ class ForumEntry {
                 $last_posting['user_id']       = $data['user_id'];
                 $last_posting['user_fullname'] = $data['author'];
                 $last_posting['username']      = get_username($data['user_id']);
+                $last_posting['anonymous']     = $data['anonymous'];
 
                 // we throw away all formatting stuff, tags, etc, so we have just the important bit of information
                 $text = strip_tags($data['name']);
@@ -515,7 +520,7 @@ class ForumEntry {
      */
     static function getList($type, $parent_id)
     {
-        $start = ForumHelpers::getPage() * ForumEntry::POSTINGS_PER_PAGE;
+        $start = (ForumHelpers::getPage() - 1) * ForumEntry::POSTINGS_PER_PAGE;
 
         switch ($type) {
             case 'area':
@@ -538,7 +543,7 @@ class ForumEntry {
                     LEFT JOIN forum_favorites as ou ON (ou.topic_id = fe.topic_id AND ou.user_id = :user_id)
                     WHERE fe.seminar_id = :seminar_id AND fe.lft > :left
                         AND fe.rgt < :right AND fe.depth = 2
-                    ORDER BY latest_chdate DESC
+                    ORDER BY sticky DESC, latest_chdate DESC
                     LIMIT $start, ". ForumEntry::POSTINGS_PER_PAGE);
                 $stmt->bindParam(':seminar_id', $constraint['seminar_id']);
                 $stmt->bindParam(':left', $constraint['lft'], PDO::PARAM_INT);
@@ -671,7 +676,7 @@ class ForumEntry {
      */
     static function getSearchResults($parent_id, $_searchfor, $options)
     {
-        $start = ForumHelpers::getPage() * ForumEntry::POSTINGS_PER_PAGE;
+        $start = (ForumHelpers::getPage() - 1) * ForumEntry::POSTINGS_PER_PAGE;
 
         // if there are quoted parts, they should not be separated
         $suchmuster = '/".*"/U';
@@ -815,7 +820,7 @@ class ForumEntry {
             VALUES (? ,?, ?, ?, ?, UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), ?, ?, ?, ?, ?, ?)");
         $stmt->execute(array($data['topic_id'], $data['seminar_id'], $data['user_id'],
             $data['name'], transformBeforeSave($data['content']), $data['author'], $data['author_host'],
-            $constraint['rgt'], $constraint['rgt'] + 1, $constraint['depth'] + 1, 0));
+            $constraint['rgt'], $constraint['rgt'] + 1, $constraint['depth'] + 1, $data['anonymous'] ? : 0));
 
         // update "latest_chdate" for easier sorting of actual threads
         DBManager::get()->exec("UPDATE forum_entries SET latest_chdate = UNIX_TIMESTAMP()
@@ -974,6 +979,70 @@ class ForumEntry {
             SET lft = (lft * -1) + $diff, rgt = (rgt * -1) + $diff
             WHERE seminar_id = '". $constraints_destination['seminar_id'] ."'
                 AND lft < 0");
+    }
+    
+    /**
+     * close the passed topic
+     *
+     * @param type $topic_id the topic to close
+     *
+     * @return void
+     */
+    static function close($topic_id)
+    {
+        // close all entries belonging to the topic
+        $stmt = DBManager::get()->prepare("UPDATE forum_entries
+            SET closed = 1
+            WHERE topic_id = ?");
+        $stmt->execute(array($topic_id));
+    }
+    
+    /**
+     * open the passed topic
+     *
+     * @param type $topic_id the topic to open
+     *
+     * @return void
+     */
+    static function open($topic_id)
+    {
+        // open all entries belonging to the topic
+        $stmt = DBManager::get()->prepare("UPDATE forum_entries
+            SET closed = 0
+            WHERE topic_id = ?");
+        $stmt->execute(array($topic_id));
+    }
+    
+    /**
+     * make the passed topic sticky
+     *
+     * @param type $topic_id the topic to make sticky
+     *
+     * @return void
+     */
+    static function sticky($topic_id)
+    {
+        // open all entries belonging to the topic
+        $stmt = DBManager::get()->prepare("UPDATE forum_entries
+            SET sticky = 1
+            WHERE topic_id = ?");
+        $stmt->execute(array($topic_id));
+    }
+    
+    /**
+     * make the passed topic unsticky
+     *
+     * @param type $topic_id the topic to make unsticky
+     *
+     * @return void
+     */
+    static function unsticky($topic_id)
+    {
+        // open all entries belonging to the topic
+        $stmt = DBManager::get()->prepare("UPDATE forum_entries
+            SET sticky = 0
+            WHERE topic_id = ?");
+        $stmt->execute(array($topic_id));
     }
 
     /**

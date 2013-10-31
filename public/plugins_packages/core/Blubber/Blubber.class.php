@@ -86,7 +86,7 @@ class Blubber extends StudIPPlugin implements StandardPlugin, SystemPlugin {
                 "");
             }
         }
-        if (Navigation::hasItem("/community") && !$GLOBALS['perm']->have_perm("admin")) {
+        if (Navigation::hasItem("/community")) {
             $nav = new Navigation($this->getDisplayTitle(), PluginEngine::getURL($this, array(), "streams/global"));
             $nav->addSubNavigation("global", new AutoNavigation(_("Globaler Stream"), PluginEngine::getURL($this, array(), "streams/global")));
             foreach (BlubberStream::findMine() as $stream) {
@@ -154,10 +154,10 @@ class Blubber extends StudIPPlugin implements StandardPlugin, SystemPlugin {
         "")->fetch(PDO::FETCH_COLUMN, 0);
         if ($new_ones) {
             $title = $new_ones > 1 ? sprintf(_("%s neue Blubber"), $new_ones) : _("1 neuer Blubber");
-            $icon->setImage(Assets::image_path("icons/16/red/blubber"), array('title' => $title));
+            $icon->setImage(Assets::image_path("icons/20/red/blubber"), array('title' => $title));
             $icon->setTitle($title);
         } else {
-            $icon->setImage(Assets::image_path("icons/16/grey/blubber"), array('title' => $this->getDisplayTitle()));
+            $icon->setImage(Assets::image_path("icons/20/grey/blubber"), array('title' => $this->getDisplayTitle()));
         }
         return $icon;
     }

@@ -411,12 +411,12 @@ class StudipFormat extends TextFormat
     {
         if (strlen($matches[1]) > 1) {
             $title = sprintf(_('%s hat geschrieben:'), $markup->format(substr($matches[1], 1)));
-        } else {
-            $title = _('Zitat:');
-        }
-
-        return sprintf('<blockquote class="quote"><b>%s</b><hr>%s</blockquote>',
+            return sprintf('<blockquote><div class="author">%s</div>%s</blockquote>',
                        $title, trim($contents));
+        } else {
+            return sprintf('<blockquote>%s</blockquote>',
+                       trim($contents));
+        }
     }
 
     /**
@@ -560,6 +560,9 @@ class StudipFormat extends TextFormat
         $title = $matches[1] ? $matches[1] : $url;
         
         $intern = isLinkIntern($url);
+        if (!$intern) {
+            OpenGraphURL::$tempURLStorage[] = $url;
+        }
         
         $url = TransformInternalLinks($url);
 

@@ -68,12 +68,29 @@
 
 class Course extends SimpleORMap
 {
+    /**
+     * Returns the currently active course or false if none is active.
+     *
+     * @return mixed Course object of currently active course, false otherwise
+     * @since 3.0
+     */
+    public static function findCurrent()
+    {
+        return empty($GLOBALS['SessSemName'][1])
+            ? null
+            : Course::find($GLOBALS['SessSemName'][1]);
+    }
+
     function __construct($id = null)
     {
         $this->db_table = 'seminare';
         $this->has_many = array(
                 'members' => array(
                         'class_name' => 'CourseMember',
+                        'on_delete' => 'delete',
+                        'on_store' => 'store'),
+                'statusgruppen' => array(
+                        'class_name' => 'Statusgruppen',
                         'on_delete' => 'delete',
                         'on_store' => 'store'),
                 'admission_applicants' => array(
@@ -141,7 +158,8 @@ class Course extends SimpleORMap
         parent::__construct($id);
     }
     
-    public function store() {
+    public function store()
+    {
         parent::store();
         
         NotificationCenter::postNotification("CourseDidCreateOrUpdate", $this->id);
@@ -151,5 +169,4 @@ class Course extends SimpleORMap
             NotificationCenter::postNotification("CourseDidUpdate", $this->id);
         }
     }
-
 }

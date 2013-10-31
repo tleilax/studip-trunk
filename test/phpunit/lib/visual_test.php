@@ -10,6 +10,7 @@
  */
 
 require_once dirname(__FILE__) . '/../bootstrap.php';
+require_once 'lib/models/OpenGraphURL.class.php';
 require_once 'lib/visual.inc.php';
 require_once 'lib/classes/Config.class.php';
 require_once 'lib/classes/SmileyFormat.php';
@@ -188,8 +189,8 @@ class VisualFunctionsTest extends PHPUnit_Framework_TestCase
     public function testQuote()
     {
         $input = '[quote=__Anonymous__]some text[/quote]';
-        $expected = '<blockquote class="quote">'
-                   .'<b><u>Anonymous</u> hat geschrieben:</b><hr>some text'
+        $expected = '<blockquote>'
+                   .'<div class="author"><u>Anonymous</u> hat geschrieben:</div>some text'
                    .'</blockquote>';
         $this->assertEquals($expected, formatReady($input));
     }

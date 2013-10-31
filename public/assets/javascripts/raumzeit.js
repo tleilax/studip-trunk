@@ -22,7 +22,7 @@ jQuery(function ($) {
                         rooms: _.pluck(select.options, 'value'),
                         selected_dates : _.pluck($('input[name="singledate[]"]:checked'), 'value'),
                         singleDateID: $('input[name=singleDateID]').attr('value'),
-                        new_date: _.map($('#day,#month,#year,#start_stunde,#start_minute,#end_stunde,#end_minute'), function (v) {
+                        new_date: _.map($('#startDate,#start_stunde,#start_minute,#end_stunde,#end_minute'), function (v) {
                             return { name: v.id, value: v.value };
                         })
                     },
@@ -32,7 +32,7 @@ jQuery(function ($) {
                                 var not_bookable_rooms = _.map(result, function (v) {
                                     return $(select).children('option[value=' + v + ']').text().trim();
                                 });
-                                select.title = 'Nicht buchbare RÃ¤ume:'.toLocaleString() + ' ' + not_bookable_rooms.join(', ');
+                                select.title = 'Nicht buchbare Räume:'.toLocaleString() + ' ' + not_bookable_rooms.join(', ');
                             } else {
                                 select.title = '';
                             }
@@ -43,7 +43,7 @@ jQuery(function ($) {
                             select.title = '';
                         }
                         me.attr('src', STUDIP.ASSETS_URL + 'images/icons/16/blue/room-clear.png');
-                        me.attr('title', 'Alle RÃ¤ume anzeigen'.toLocaleString());
+                        me.attr('title', 'Alle Räume anzeigen'.toLocaleString());
                         me.attr('data-state', 'enabled');
                     }
                 });
@@ -178,7 +178,7 @@ STUDIP.Raumzeit = {
             jQuery('select[name=teachers] option[value=' + lecturer_id + ']').show();
         } else {
             if (jQuery('div.at_least_one_teacher').size() === 0) {
-                jQuery('ul.teachers').before('<div class="at_least_one_teacher" style="display: none"><i>Jeder Termin muss mindestens eine Person haben, die ihn durchführt!</i><div>');
+                jQuery('ul.teachers').before('<div class="at_least_one_teacher" style="display: none"><i>' + 'Jeder Termin muss mindestens eine Person haben, die ihn durchführt!'.toLocaleString() + '</i><div>');
                 jQuery('div.at_least_one_teacher').slideDown().delay(3000).fadeOut(400, function () {
                     jQuery(this).remove();
                 });
@@ -197,6 +197,36 @@ STUDIP.Raumzeit = {
         });
 
         jQuery('input[name=related_teachers]').val(data.join(','));
+    },
+    addFormGroups: function () {
+        var data = [];
+        jQuery('ul.groups li:visible').each(function () {
+            data.push(jQuery(this).attr('data-groupid'));
+        });
+        jQuery('input[name=related_statusgruppen]').val(data.join(','));
+    },
+    addGroup: function () {
+        jQuery('select[name=groups] option:selected').each(function () {
+            var statusgruppe_id = jQuery(this).val();
+            if (statusgruppe_id === 'none') {
+                return;
+            }
+
+            jQuery('li[data-groupid=' + statusgruppe_id + ']').show();
+            //jQuery('li[data-groupid=' + statusgruppe_id + '] input').val('1');
+            jQuery('select[name=groups] option[value=' + statusgruppe_id + ']').hide();
+            jQuery('select[name=groups] option[value=none]').attr('selected', 'selected');
+        });
+
+        STUDIP.Raumzeit.addFormGroups();
+    },
+
+    removeGroup: function (statusgruppe_id) {
+        jQuery('li[data-groupid=' + statusgruppe_id + ']').hide();
+        //jQuery('li[data-lecturerid=' + statusgruppe_id + '] input').val('0');
+        jQuery('select[name=groups] option[value=' + statusgruppe_id + ']').show();
+
+        STUDIP.Raumzeit.addFormGroups();
     },
 
     disableBookableRooms: function (icon) {

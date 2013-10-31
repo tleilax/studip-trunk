@@ -1,27 +1,25 @@
 
-<table class="default collapsable zebra-hover">
+<table class="default collapsable ">
+    <caption>
+    	<span class="actions">
+             <? if ($is_tutor) : ?>
+                <?=$controller->getEmailLinkByStatus('dozent', $dozenten)?>
+                <a href="<?= URLHelper::getLink('sms_send.php', array('filter' => 'send_sms_to_all', 'who' =>
+                        'dozent', 'sms_source_page' => 'dispatch.php/course/members',
+                        'course_id' => $course_id, 'subject' => $subject)) ?>">
+                    <?= Assets::img('icons/16/blue/inbox.png',
+                            tooltip2(sprintf(_('Nachricht an alle %s versenden'), $status_groups['dozent']))) ?>
+                </a>
+            <? endif ?>
+ 		</span>
+ 		<?= $this->status_groups['dozent'] ?>
+    </caption>
     <colgroup>
         <col width="<?=($is_tutor) ? '40' : '20'?>">
         <col>
         <col width="80">
     </colgroup>
     <thead>
-        <tr>
-            <th colspan="2" class="table_header_bold" >
-                <?= $this->status_groups['dozent'] ?>
-            </th>
-            <th class="table_header_bold" style="text-align:right">
-            <? if ($is_tutor) : ?>
-                <?=$controller->getEmailLinkByStatus('dozent')?>
-                <a href="<?= URLHelper::getLink('sms_send.php', array('filter' => 'send_sms_to_all', 'who' =>
-                        'dozent', 'sms_source_page' => 'dispatch.php/course/members',
-                        'course_id' => $course_id, 'subject' => $subject)) ?>">
-                    <?= Assets::img('icons/16/white/inbox.png',
-                            tooltip2(sprintf(_('Nachricht an alle %s versenden'), $status_groups['dozent']))) ?>
-                </a>
-            <? endif ?>
-            </th>
-        </tr>
         <tr class="sortable">
             <th></th>
             <th <?= ($sort_by == 'nachname' && $sort_status == 'dozent') ? sprintf('class="sort%s"', $order) : '' ?>>
@@ -37,7 +35,7 @@
     <tbody>
         <? $nr = 0?>
         <? foreach($dozenten as $dozent) : ?>
-        <? $fullname = $dozent->user->getFullName('full_rev');?>
+        <? $fullname = $dozent['fullname'];?>
         <tr>
             <td style="text-align: right"><?= (++$nr < 10) ? sprintf('%02d', $nr) : $nr ?></td>
             <td>

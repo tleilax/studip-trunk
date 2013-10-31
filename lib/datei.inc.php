@@ -205,7 +205,10 @@ function parse_link($link, $level=0) {
         $location_header = $parsed_link["Location"]
                         ?: $parsed_link["location"];
         if (in_array($parsed_link["response_code"], array(300,301,302,303,305,307)) && $location_header) {
-            parse_link($location_header, $level + 1);
+            if (strpos($location_header, 'http') !== 0) {
+                $location_header = $url_parts['scheme'] . '://' . $url_parts['host'] . '/' . $location_header;
+            }
+            $parsed_link = parse_link($location_header, $level + 1);
         }
         return $parsed_link;
     }
@@ -2616,8 +2619,21 @@ function upload_zip_item() {
             @unlink($GLOBALS['TMP_PATH'] . '/' . $tmpname);
             return FALSE;
         }
+
         $ret = upload_recursively($GLOBALS['folder_system_data']['upload'], $tmpdirname);
-        if ($ret['files'] || $ret['subdirs'] ){
+        if ($ret['files_max'] || $ret['subdirs_max']) {
+            $errors = array();
+            if ($ret['files_max']) {
+                $errors[] = sprintf(_('Maximale Dateianzahl von %u Dateien in Zip-Archiv erreicht.'),
+                                    Config::get()->ZIP_UPLOAD_MAX_FILES);
+            }
+            if ($ret['subdirs_max']) {
+                $errors[] = sprintf(_('Maximale Verzeichnistiefe von %u in Zip-Archiv erreicht.'),
+                                    Config::get()->ZIP_UPLOAD_MAX_DIRS);
+            }
+            $msg .= 'error§' . _('Bitte beachten Sie:') . '<br><ul><li>' . implode('</li><li>', $errors) . '</ul>§';
+        }
+        if ($ret['files'] || $ret['subdirs']) {
             $msg .= 'msg§' . sprintf(_("Es wurden %d Dateien und %d Ordner erfolgreich entpackt."),$ret['files'], $ret['subdirs'] ) . '§';
             @rmdirr($tmpdirname);
             @unlink($GLOBALS['TMP_PATH'] . '/' . $tmpname);
@@ -2645,7 +2661,12 @@ function upload_zip_item() {
  * @return (no return value)
  */
 function upload_recursively($range_id, $dir) {
-    static $count = array();
+    static $count = array(
+        'files'       => 0,
+        'files_max'   => false,
+        'subdirs'     => 0,
+        'subdirs_max' => false,
+    );
 
     $max_files = get_config('ZIP_UPLOAD_MAX_FILES');
     $max_dirs = get_config('ZIP_UPLOAD_MAX_DIRS');
@@ -2653,7 +2674,14 @@ function upload_recursively($range_id, $dir) {
     $files = array ();
     $subdirs = array ();
 
-    if ($count['files'] >= $max_files || $count['subdirs'] >= $max_dirs) return;
+    if ($count['files'] >= $max_files) {
+        $count['files_max'] = true;
+        return;
+    }
+    if ($count['subdirs'] >= $max_dirs) {
+        $count['subdirs_max'] = true;
+        return;
+    }
 
     // Versuchen, das Verzeichnis zu oeffnen
     if ($handle = @opendir($dir)) {
@@ -2685,7 +2713,10 @@ function upload_recursively($range_id, $dir) {
 
     // Alle Dateien hinzufuegen.
     while (list ($nr, $file) = each($files)) {
-        if ($count['files'] >= $max_files) break;
+        if ($count['files'] >= $max_files) {
+            $count['files_max'] = true;
+            break;
+        }
         if (validate_upload(array('name' => $file, 'size' => filesize($file)))) {
             $count['files'] += upload_zip_file($range_id, $file);
         }
@@ -2693,7 +2724,10 @@ function upload_recursively($range_id, $dir) {
 
     // Alle Unterverzeichnisse hinzufuegen.
     while (list ($nr, $subdir) = each($subdirs)) {
-        if ($count['subdirs'] >= $max_dirs) break;
+        if ($count['subdirs'] >= $max_dirs) {
+            $count['subdirs_max'] = true;
+            break;
+        }
         // Verzeichnis erstellen
         $pos = strrpos($subdir, "/");
         $name = addslashes(substr($subdir, $pos + 1, strlen($subdir) - $pos));

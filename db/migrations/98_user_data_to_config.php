@@ -70,7 +70,7 @@ class UserDataToConfig extends Migration
                                                    array(
                                                     "glb_start_time"=> 8,
                                                     "glb_end_time"  => 19,
-                                                    "glb_days"      => array ( 0 => 0, 1 => 1, 2 => 2, 3 => 3, 4 => 4, 5 => 5, 6 => 6, ),
+                                                    "glb_days"      => array ( 1 => 1, 2 => 2, 3 => 3, 4 => 4, 5 => 5, 6 => 6, 0 => 0, ),
                                                     "glb_sem"       => null,
                                                     "converted"     => true))
                                                ),
@@ -124,7 +124,7 @@ class UserDataToConfig extends Migration
                                   `user_id` char(32) NOT NULL,
                                   `last_lifesign` int(10) unsigned NOT NULL,
                                   PRIMARY KEY (`user_id`),
-                                  KEY `user_id` (`user_id`,`last_lifesign`)
+                                  KEY `last_lifesign` (`last_lifesign`)
                                 ) ENGINE=MyISAM");
         DBManager::get()->exec("INSERT INTO user_online (user_id,last_lifesign) SELECT sid,UNIX_TIMESTAMP(changed) FROM user_data INNER JOIN auth_user_md5 ON sid = user_id");
 

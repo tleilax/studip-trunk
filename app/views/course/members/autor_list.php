@@ -4,7 +4,25 @@
 
 <form action="<?= $controller->url_for('course/members/edit_autor/') ?>" method="post">
     <?= CSRFProtection::tokenTag() ?>
-    <table id="autor" class="default collapsable zebra-hover tablesorter">
+    <table id="autor" class="default collapsable tablesorter">
+        <caption>
+            <span class="actions">
+                <? if ($is_tutor) : ?>
+                        <?=$controller->getEmailLinkByStatus('autor', $autoren)?>
+                        <a href="<?= URLHelper::getLink('sms_send.php',
+                            array('filter' => 'send_sms_to_all',
+                                'who' => 'autor',
+                                'sms_source_page' => sprintf('dispatch.php/course/members?cid=%s',$course_id),
+                                'course_id' => $course_id,
+                                'subject' => $subject))
+                        ?>">
+                            <?= Assets::img('icons/16/blue/inbox.png',
+                                    tooltip2(sprintf(_('Nachricht an alle %s versenden'), htmlReady($status_groups['autor'])))) ?>
+                        </a>
+                <? endif ?>
+           </span>
+            <?= $status_groups['autor'] ?>
+        </caption>
         <colgroup>
             <col width="20">
             <? if($is_tutor) : ?>
@@ -32,26 +50,6 @@
             <col width="80">
         </colgroup>
         <thead>
-            <tr>
-                <th class="table_header_bold" colspan="<?=($is_tutor) ? $cols-2 : $cols-1?>">
-                    <?= $status_groups['autor'] ?>
-                </th>
-                <th class="table_header_bold" style="text-align: right" colspan="<?=($is_tutor) ? 2 : 1?>">
-                <? if ($is_tutor) : ?>
-                        <?=$controller->getEmailLinkByStatus('autor')?>
-                        <a href="<?= URLHelper::getLink('sms_send.php',
-                            array('filter' => 'send_sms_to_all',
-                                'who' => 'autor',
-                                'sms_source_page' => sprintf('dispatch.php/course/members?cid=%s',$course_id),
-                                'course_id' => $course_id,
-                                'subject' => $subject))
-                        ?>">
-                            <?= Assets::img('icons/16/white/inbox.png',
-                                    tooltip2(sprintf(_('Nachricht an alle %s versenden'), htmlReady($status_groups['autor'])))) ?>
-                        </a>
-                <? endif ?>
-                </th>
-            </tr>
             <tr class="sortable">
                 <? if ($is_tutor && !$is_locked) : ?>
                     <th><input aria-label="<?= sprintf(_('Alle %s auswählen'), $status_groups['autor']) ?>"
@@ -85,7 +83,7 @@
         <tbody>
         <? $nr = $autor_nr?>
         <? foreach($autoren as $autor) : ?>
-        <? $fullname = $autor->user->getFullName('full_rev');?>
+        <? $fullname = $autor['fullname']?>
             <tr>
                 <? if ($is_tutor && !$is_locked) : ?>
                     <td>
@@ -113,30 +111,11 @@
                         <? endif ?>
                     </td>
                     <td>
-                        <? $study_courses = UserModel::getUserStudycourse($autor['user_id']) ?>
-                        <? if(!empty($study_courses)) : ?>
-                            <? if (count($study_courses) < 2) : ?>
-                                <? for ($i = 0; $i < 1; $i++) : ?>
-                                    <?= htmlReady($study_courses[$i]['fach']) ?>
-                                    (<?= htmlReady($study_courses[$i]['abschluss']) ?>)
-                                <? endfor ?>
-                            <? else : ?>
-                                <?= htmlReady($study_courses[0]['fach']) ?>
-                                (<?= htmlReady($study_courses[0]['abschluss']) ?>)
-                                [...]
-                                <? foreach($study_courses as $course) : ?>
-                                    <? $course_res .= sprintf('- %s (%s)<br>',
-                                                              htmlReady($course['fach']),
-                                                              htmlReady($course['abschluss'])) ?>
-                                <? endforeach ?>
-                                <?= tooltipIcon('<strong>' . _('Weitere Studiengänge') . '</strong><br>' . $course_res, false, true) ?>
-                                <? unset($course_res); ?>
-                            <? endif ?>
-                        <? endif ?>
+                        <?= $this->render_partial("course/members/_studycourse.php", array('study_courses' => UserModel::getUserStudycourse($autor['user_id']))) ?>
                     </td>
                     <? if ($semAdmissionEnabled) : ?>
                         <td>
-                            <?= ($autor['admission_studiengang_id'] == 'all') ? _('alle Studiengänge') : '' ?>
+                            <?= ($autor['kontingent'] == 'all') ? _('alle Studiengänge') : htmlReady($autor['kontingent']) ?>
                         </td>
                     <? endif ?>
                 <? endif ?>
@@ -177,7 +156,7 @@
         <? if ($is_tutor && !$is_locked && count($autoren) >0) : ?>
         <tfoot>
             <tr>
-                <td class="printhead" colspan="<?=$cols_foot?>">
+                <td colspan="<?=$cols_foot?>">
                     <select name="action_autor" id="action_autor" aria-label="<?= _('Aktion ausführen') ?>">
                         <option value="">- <?= _('Aktion wählen') ?></option>
                         <? if($is_dozent) : ?>
