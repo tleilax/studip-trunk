@@ -99,24 +99,99 @@ class SetupDocument extends DBMigration
        aktiv BOOLEAN NULL,
        PRIMARY KEY (id)
        )");
+    /*
+     * Migration for the Admin-Area
+     */
+    
+        DBManager::get()->query("CREATE  TABLE IF NOT EXISTS `doc_filetype` (
+                                `id` INT NOT NULL AUTO_INCREMENT ,
+                                `type` VARCHAR(45) NOT NULL ,
+                                `description` TEXT NULL ,
+                                PRIMARY KEY (`id`) )
+                                ENGINE = MyISAM");
+
+        DBManager::get()->query("CREATE  TABLE IF NOT EXISTS `doc_usergroup_config` (
+                                `id` INT NOT NULL AUTO_INCREMENT ,
+                                `usergroup` VARCHAR(45) NOT NULL ,
+                                `upload_quota` TEXT NOT NULL ,
+                                `upload_unit` VARCHAR(45) NULL ,
+                                `quota` TEXT NULL ,
+                                `quota_unit` VARCHAR(45) NULL ,
+                                `upload_forbidden` INT NOT NULL DEFAULT 0 ,
+                                
+                                `area_close` INT NOT NULL DEFAULT 0 ,
+                                `area_close_text` TEXT NULL ,
+                                `is_group_config` INT NOT NULL DEFAULT 0 ,
+                                PRIMARY KEY (`id`, `usergroup`) )
+                                ENGINE = MyISAM");
+
+        DBManager::get()->query("CREATE  TABLE IF NOT EXISTS `doc_filetype_forbidden` (
+                                `id` INT NOT NULL AUTO_INCREMENT ,
+                                `usergroup` VARCHAR(45) NOT NULL ,
+                                `dateityp_id` INT NOT NULL ,
+                                PRIMARY KEY (`id`) ,
+                                INDEX `fk_dateityp_verbot_nutzerbereich_2_idx` (`dateityp_id` ASC) ,
+                                INDEX `fk_dateityp_verbot_nutzerbereich_1_idx` (`usergroup` ASC) )
+                                ENGINE = MyISAM");
+
+
+
+        /*
+         * Set the entry into the table "config" to enable or disable the Personal Document Area
+         */
+        $query = "INSERT IGNORE INTO `config`
+	                    (`config_id`, `field`, `value`, `is_default`, `type`, `range`, `section`,
+	                     `mkdate`, `chdate`, `description`)
+	                  VALUES (:id, :field, :value, 1, :type, 'global', 'files',
+	                          UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), :description)";
+        $statement = DBManager::get()->prepare($query);
+
+        $statement->execute(array(
+            ':id' =>  md5(uniqid('PERSONALDOCUMENT_ENABLE')),
+            ':field' => 'PERSONALDOCUMENT_ENABLE',
+            ':value' => (int) false,
+            ':type' => 'boolean',
+            ':description' => 'Aktiviert den persoenlichen Dateibereich',
+        ));
+        $queryTwo = "INSERT IGNORE INTO `doc_usergroup_config`
+                        (`usergroup`, `upload_quota`, `upload_unit`,`quota`,`quota_unit`,`is_group_config`)
+                        VALUES (:group, :uploadQuota, :uploadUnit, :quota, :quotaUnit, :isGroupConfig)";
+        $statementTwo = DBManager::get()->prepare($queryTwo);
+
+        $statementTwo->execute(array(
+            ':group' => 'default',
+            ':uploadQuota' => '5242880',
+            ':uploadUnit' => 'MB',
+            ':quota' => '52428800',
+            ':quotaUnit' => 'MB',
+            ':isGroupConfig'=>'1'
+        ));
+       
+        $queryThree=("INSERT IGNORE INTO `doc_filetype` 
+           (`type`) VALUES (:type)");
+        $statementThree = DBManager::get()->prepare($queryThree);
+        $values = array('exe', 'com','pif','bat','scr');
+        foreach($values as $value)
+            $statementThree->execute (array(
+                ':type' =>$value
+            ));
    }
 
    
-  public function down() 
-   {
-    $alluserdir = $USER_DOC_PATH;
-    
-    foreach (scandir($alluserdir) as $item)
-     {
-      if ($item == '.' || $item == '..') continue
-       unlink($alluserdir.DIRECTORY_SEPARATOR.$item);
-     }
-     
-    rmdir($alluserdir);
-    
-    $db = DBManager::get();
-    
-    $db -> exec("DROP TABLE IF EXISTS 
+   public function down() {
+        $alluserdir = $USER_DOC_PATH;
+
+        foreach (scandir($alluserdir) as $item) {
+            if ($item == '.' || $item == '..')
+                continue
+                unlink($alluserdir . DIRECTORY_SEPARATOR . $item);
+        }
+
+        rmdir($alluserdir);
+
+        $db = DBManager::get();
+
+        $db->exec("DROP TABLE IF EXISTS 
      (
       'files', 
       'files_layout', 
@@ -125,5 +200,14 @@ class SetupDocument extends DBMigration
       'files_share', 
       'entity'      
      )");
-   }
+        /*
+         * Down-Migration for Admin-Area
+         */
+        //DELETEs the config entry
+        DBManager::get()->query("DELETE FROM config WHERE field IN ('PERSONALDOCUMENT_ENABLE')");
+        //DELETE the added Tables
+        DBManager::get()->query("DROP TABLE IF EXISTS `doc_usergroup_config`");
+        DBManager::get()->query("DROP TABLE IF EXISTS `doc_filetype`");
+        DBManager::get()->query("DROP TABLE IF EXISTS `mydb`.`doc_filetype_forbidden`");
+    }
  }
