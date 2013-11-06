@@ -49,9 +49,6 @@ class CoreForum extends StudipPlugin implements ForumModule
         // JQuery-Tutor JoyRide JS and CSS
         PageLayout::addScript($this->getPluginURL() . '/javascript/jquery.joyride.js');
         PageLayout::addStylesheet($this->getPluginURL() . '/stylesheets/joyride.css');
-
-        // Set helpkeyword for Stud.IP's user-documentation
-        PageLayout::setHelpKeyword('Basis.Forum');
     }
 
     /**
@@ -113,9 +110,9 @@ class CoreForum extends StudipPlugin implements ForumModule
         $navigation->setBadgeNumber($num_entries);
 
         if ($num_entries > 0) {
-            $navigation->setImage('icons/16/red/new/forum.png', array('title' => $text));
+            $navigation->setImage('icons/20/red/new/forum.png', array('title' => $text));
         } else {
-            $navigation->setImage('icons/16/grey/forum.png', array('title' => $text));
+            $navigation->setImage('icons/20/grey/forum.png', array('title' => $text));
         }
 
         return $navigation;
@@ -175,7 +172,7 @@ class CoreForum extends StudipPlugin implements ForumModule
     {
         $topic_id = ForumIssue::getThreadIdForIssue($issue_id);
 
-        return ForumEntry::countEntries($topic_id);
+        return $topic_id ? ForumEntry::countEntries($topic_id) : 0;
     }
 
     function getNumberOfPostingsForSeminar($seminar_id)

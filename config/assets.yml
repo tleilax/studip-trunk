@@ -74,6 +74,7 @@ javascripts:
 css:
   base:
     # filname : media
+    visual-editor.css: screen, print
     jquery-ui-1.9.1.custom.css: screen, print
     jquery-ui-studip.css: screen, print
     jquery-ui-timepicker-addon.css: screen, print

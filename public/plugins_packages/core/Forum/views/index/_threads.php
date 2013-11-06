@@ -10,43 +10,32 @@
 </div>
 <? endif ?>
 
-<div id="sortable_areas">
 <? if (!empty($list)) foreach ($list as $category_id => $entries) : ?>
-<table class="forum" data-category-id="<?= $category_id ?>">
+<table class="default forum" data-category-id="<?= $category_id ?>">
+
+    <colgroup>
+        <col>
+        <col>
+        <col>
+        <col>
+    </colgroup>
+
     <thead>
-    <tr>
-        <td class="forum_header" colspan="2">
-            <span class="corners-top"></span>
-            <span class="heading">
-                <?= _('Themen') ?>
-            </span>
-        </td>
-
-        <td class="forum_header" data-type="answers">
-            <span class="no-corner"></span>
-            <span class="heading"><?= _("Beiträge") ?></span>
-        </td>
-
-        <td class="forum_header" data-type="last_posting">
-            <span class="corners-top-right"></span>
-            <span class="heading" style="float: left"><?= _("letzte Antwort") ?></span>
-        </td>
-    </tr>
+        <tr>
+            <th colspan="2"><?= _('Thema') ?></th>
+            <th data-type="answers"><?= _("Beiträge") ?></th>
+            <th data-type="last_posting"><?= _("letzte Antwort") ?></th>
+        </tr>
     </thead>
 
-
-    <tbody class="sortable">
-    <!-- this row allows dropping on otherwise empty categories -->
-    <tr class="sort-disabled">
-        <td class="areaborder" style="height: 5px"colspan="4"> </td>
-    </tr>
-
+    <tbody>
+    
     <? if (!empty($entries)) foreach ($entries as $entry) :
         $jump_to_topic_id = ($entry['last_unread'] ?: $entry['topic_id']); ?>
  
     <tr data-area-id="<?= $entry['topic_id'] ?>">
 
-        <td class="areaentry icon">
+        <td class="icon">
             <a href="<?= PluginEngine::getLink('coreforum/index/index/'. $jump_to_topic_id .'#'. $jump_to_topic_id) ?>">
             <? if ($entry['chdate'] >= $visitdate && $entry['owner_id'] != $GLOBALS['user']->id): ?>
                 <? $jump_to_topic_id = $entry['topic_id'] ?>
@@ -66,6 +55,19 @@
                     )) ?>
                 <? endif ?>
             <? endif ?>
+
+            <br>
+            <?= Assets::img('icons/16/black/lock-locked.png', array(
+                    'title' => _('Dieses Thema ist geschlossen, es können keine neuen Beiträge erstellt werden.'),
+                    'id'    => 'img-locked-' . $entry['topic_id'],
+                    'style' => $entry['closed'] ? '' : 'display: none'
+            )) ?>
+            
+            <?= Assets::img('icons/16/black/staple.png', array(
+                    'title' => _('Dieses Thema wurde hervorgehoben.'),
+                    'id'    => 'img-sticky-' . $entry['topic_id'],
+                    'style' => $entry['sticky'] ? '' : 'display: none'
+            )) ?>
             </a>
         </td>
 
@@ -79,7 +81,7 @@
                     <? if (ForumPerm::has('move_thread', $seminar_id)) : ?>
                     <a href="javascript:STUDIP.Forum.moveThreadDialog('<?= $entry['topic_id'] ?>');">
                         <?= Assets::img('icons/16/blue/move_right/folder-full.png',
-                            array('class' => 'move-thread', 'title' => 'Dieses Thema verschieben')) ?>
+                            array('class' => 'move-thread', 'title' => _('Dieses Thema verschieben'))) ?>
                     </a>
                     
                     <div id="dialog_<?= $entry['topic_id'] ?>" style="display: none" title="<?= _('Bereich, in den dieser Thread verschoben werden soll:') ?>">
@@ -102,18 +104,61 @@
                     <? if (ForumPerm::has('remove_entry', $seminar_id)) : ?>
                     <a href="<?= PluginEngine::getURL('coreforum/index/delete_entry/' . $entry['topic_id']) ?>"
                         onClick="STUDIP.Forum.showDialog('<?= _('Möchten Sie dieses Thema wirklich löschen?') ?>',
-                       '<?= PluginEngine::getURL('coreforum/index/delete_entry/' . $entry['topic_id'] .'?approve_delete=1&page='. (ForumHelpers::getPage() + 1)) ?>',
+                       '<?= PluginEngine::getURL('coreforum/index/delete_entry/' . $entry['topic_id'] .'?approve_delete=1&page='. ForumHelpers::getPage()) ?>',
                        'tr[data-area-id=<?= $entry['topic_id'] ?>] td.areaentry'); return false;">
                         <?= Assets::img('icons/16/blue/trash.png', 
-                            array('class' => 'move-thread', 'title' => 'Dieses Thema löschen')) ?>
+                            array('class' => 'move-thread', 'title' => _('Dieses Thema löschen'))) ?>
                     </a>
+                    <? endif ?>
+                    
+                    <? if (ForumPerm::has('close_thread', $seminar_id) && $constraint['depth'] >= 1) : ?>
+                        <? if ($entry['closed'] == 0) : ?>
+                            <a href="<?= PluginEngine::getURL('coreforum/index/close_thread/' . $entry['topic_id'] . '/' 
+                                . $constraint['topic_id'] .'/'. ForumHelpers::getPage()) ?>" 
+                                onclick="STUDIP.Forum.closeThreadFromOverview('<?= $entry['topic_id'] ?>', '<?= $constraint['topic_id'] ?>', <?= ForumHelpers::getPage() ?>); return false;"
+                                id="closeButton-<?= $entry['topic_id']; ?>">
+                                <?= Assets::img('icons/16/blue/lock-locked.png', 
+                                    array('title' => _('Thema schließen'))) ?>
+                            </a>
+                        <? else : ?>
+                            <a href="<?= PluginEngine::getURL('coreforum/index/open_thread/' . $entry['topic_id'] . '/' 
+                                . $constraint['topic_id'] . '/' . ForumHelpers::getPage()) ?>"
+                                onclick="STUDIP.Forum.openThreadFromOverview('<?= $entry['topic_id'] ?>', '<?= $constraint['topic_id'] ?>', <?= ForumHelpers::getPage() ?>); return false;"
+                                id="closeButton-<?= $entry['topic_id']; ?>">
+                                <?= Assets::img('icons/16/blue/lock-unlocked.png', 
+                                    array('title' => _('Thema öffnen'))) ?>
+                            </a>
+                        <? endif ?>
+                    <? endif ?>
+                    
+                    <? if (ForumPerm::has('make_sticky', $seminar_id) && $constraint['depth'] >= 1) : ?>
+                        <? if ($entry['sticky'] == 0) : ?>
+                            <a href="<?= PluginEngine::getURL('coreforum/index/make_sticky/' . $entry['topic_id'] . '/' 
+                                . $constraint['topic_id'] . '/0'); ?>" 
+                                id="stickyButton-<?= $entry['topic_id']; ?>">
+                                <?= Assets::img('icons/16/blue/staple.png', 
+                                    array('title' => _('Thema hervorheben'))) ?>
+                            </a>
+                        <? else : ?>
+                            <a href="<?= PluginEngine::getURL('coreforum/index/make_unsticky/' . $entry['topic_id'] . '/' 
+                                . $constraint['topic_id'] . '/0'); ?>" 
+                                id="stickyButton-<?= $entry['topic_id']; ?>">
+                                <?= Assets::img('icons/16/blue/staple.png', 
+                                    array('title' => _('Hervorhebung aufheben'))) ?>
+                            </a>
+                        <? endif ?>
                     <? endif ?>
                 </span>
 
                 <?= _("von") ?>
+            <? if ($entry['anonymous']): ?>
+                <?= _('Anonym') ?>
+            <? endif; ?>
+            <? if (!$entry['anonymous'] || $entry['user_id'] == $GLOBALS['user']->id || $GLOBALS['perm']->have_perm('root')): ?>
                 <a href="<?= UrlHelper::getLink('about.php?username='. get_username($entry['owner_id'])) ?>">
                     <?= htmlReady($entry['author']) ?>
                 </a>
+                <? endif; ?>
                 <?= _("am") ?> <?= strftime($time_format_string_short, (int)$entry['mkdate']) ?>
                 <br>
 
@@ -125,16 +170,22 @@
             </div>
         </td>
 
-        <td class="areaentry postings">
+        <td class="postings">
             <?= $entry['num_postings'] ?>
         </td>
 
-        <td class="areaentry answer">
+        <td class="answer">
             <? if (is_array($entry['last_posting'])) : ?>
             <?= _("von") ?>
+            <? if ($entry['last_posting']['anonymous']): ?>
+                <?= _('Anonym') ?>
+            <? endif; ?>
+            <? if (!$entry['last_posting']['anonymous'] || $entry['last_posting']['user_id'] == $GLOBALS['user']->id || $GLOBALS['perm']->have_perm('root')): ?>
             <a href="<?= UrlHelper::getLink('about.php?username='. $entry['last_posting']['username']) ?>">
                     <?= htmlReady($entry['last_posting']['user_fullname']) ?>
-            </a><br>
+            </a>
+            <? endif; ?>
+            <br>
             <?= _("am") ?> <?= strftime($time_format_string_short, (int)$entry['last_posting']['date']) ?>
             <a href="<?= PluginEngine::getLink('coreforum/index/index/'. $entry['last_posting']['topic_id']) ?>#<?= $entry['last_posting']['topic_id'] ?>" alt="<?= $infotext ?>" title="<?= $infotext ?>">
                 <?= Assets::img('icons/16/blue/link-intern.png', array('title' => $infotext = _("Direkt zum Beitrag..."))) ?>
@@ -147,18 +198,5 @@
     </tr>
     <? endforeach; ?>
     </tbody>
-
-    <tfoot>
-        <!-- bottom border -->
-        <tr>
-            <td class="areaborder" colspan="4">
-                <span class="corners-bottom"><span></span></span>
-            </td>
-        </tr>
-        <tr>
-            <td colspan="6">&nbsp;</td>
-        </tr>
-    </tfoot>
 </table>
 <? endforeach ?>
-</div>

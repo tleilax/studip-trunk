@@ -22,7 +22,7 @@
 require '../lib/bootstrap.php';
 
 page_open(array("sess" => "Seminar_Session", "auth" => "Seminar_Default_Auth", "perm" => "Seminar_Perm", "user" => "Seminar_User"));
-$auth->login_if($again && ($auth->auth["uid"] == "nobody"));
+$auth->login_if(Request::get('again') && ($auth->auth["uid"] == "nobody"));
 
 require_once 'lib/functions.php';
 require_once 'lib/msg.inc.php';
@@ -549,7 +549,7 @@ echo $template_factory->render(
             }
             $studienmodule = null;
             if ($studienmodulmanagement = PluginEngine::getPlugin('StudienmodulManagement')){
-                $studienmodule = array_filter(StudipStudyArea::getStudyAreasForCourse($sem_id), create_function('$a', 'return $a->isModule();'));
+                $studienmodule = StudipStudyArea::getStudyAreasForCourse($sem_id)->filter(function($area) { return $area->isModule(); });
                 if (count($studienmodule)){
                     $semester_id = SemesterData::GetSemesterIdByDate($seminar['start_time']);
                     foreach($studienmodule as $module){

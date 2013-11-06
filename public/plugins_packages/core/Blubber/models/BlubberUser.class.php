@@ -79,19 +79,30 @@ class BlubberUser extends User implements BlubberContact {
      */
     public function mention($posting) {
         $messaging = new messaging();
+        setTempLanguage($this->getId());
         $url = $GLOBALS['ABSOLUTE_URI_STUDIP']."plugins.php/blubber/streams/thread/"
             . $posting['root_id']
             . ($posting['context_type'] === "course" ? '?cid='.$posting['Seminar_id'] : "");
+        $body = sprintf(
+            gettext("%s hat Sie in einem Blubber erwähnt. Zum Beantworten klicken auf Sie auf folgenen Link:\n\n%s\n"),
+            get_fullname(),
+            $url
+        );
+        if ($posting['context_type'] === "course" && !$GLOBALS['perm']->have_studip_perm("user", $posting['Seminar_id'], $this->getId())) {
+            $body .= "\n\n" .
+                    _("Sie sind noch kein Mitglied der zugehörigen Veranstaltung. Melden Sie sich erst hier an, damit Sie den Blubber sehen können: ") .
+                    ($GLOBALS['SEM_CLASS'][$GLOBALS['SEM_TYPE'][Course::find($posting['Seminar_id'])->status]['class']]['studygroup_mode'] 
+                        ? $GLOBALS['ABSOLUTE_URI_STUDIP']."dispatch.php/course/studygroup/details/".$posting['Seminar_id']
+                        : $GLOBALS['ABSOLUTE_URI_STUDIP']."details.php?sem_id=".$posting['Seminar_id']);
+        }
+        $mention_text = _("Sie wurden erwähnt.");
+        restoreLanguage();
         $messaging->insert_message(
-            sprintf(
-                _("%s hat Sie in einem Blubber erwähnt. Zum Beantworten klicken auf Sie auf folgenen Link:\n\n%s\n"),
-                get_fullname(),
-                $url
-            ),
+            $body,
             $this['username'],
             $GLOBALS['user']->id,
             null, null, null, null,
-            _("Sie wurden erwähnt.")
+            $mention_text
         );
     }
 }

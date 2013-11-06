@@ -111,18 +111,18 @@ class BlubberPosting extends SimpleORMap {
      * @return array of Seminar_ids
      */
     static public function getMyBlubberCourses() {
+        $blubber_plugin_info = PluginManager::getInstance()->getPluginInfo('Blubber');
+
         $statement = DBManager::get()->prepare(
             "SELECT seminar_user.Seminar_id " .
             "FROM seminar_user " .
                 "INNER JOIN seminare ON (seminare.Seminar_id = seminar_user.Seminar_id) " .
-                "INNER JOIN plugins_activated ON (plugins_activated.poiid = CONCAT('sem', seminar_user.Seminar_id)) " .
-                "INNER JOIN plugins ON (plugins_activated.pluginid = plugins.pluginid) " .
+                "INNER JOIN plugins_activated ON (pluginid = :blubber_id AND plugins_activated.poiid = CONCAT('sem', seminar_user.Seminar_id)) " .
             "WHERE seminar_user.user_id = :user_id " .
                 "AND plugins_activated.state = 'on' " .
-                "AND plugins.pluginclassname = 'Blubber' " .
             "ORDER BY seminare.start_time ASC, seminare.name ASC " .
         "");
-        $statement->execute(array('user_id' => $GLOBALS['user']->id));
+        $statement->execute(array('user_id' => $GLOBALS['user']->id, 'blubber_id' => $blubber_plugin_info['id']));
         return $statement->fetchAll(PDO::FETCH_COLUMN, 0);
     }
 
@@ -441,6 +441,101 @@ class BlubberPosting extends SimpleORMap {
         } else {
             return new BlubberUser($this['user_id']);
         }
+    }
+    
+    /**
+     * Returns all known users that have been sharing this thread.
+     * @return array of \BlubberContact 
+     */
+    public function getSharingUsers() {
+        if ($this['context_type'] !== "public") {
+            return array();
+        }
+        $get_shares = DBManager::get()->prepare(
+            "SELECT * FROM blubber_reshares WHERE topic_id = ? " .
+        "");
+        $get_shares->execute(array($this['root_id']));
+        $shares = $get_shares->fetchAll(PDO::FETCH_ASSOC);
+        $users = array();
+        foreach ($shares as $share) {
+            $users[] = $share['external_contact'] 
+                ? BlubberExternalContact::find($share['user_id']) 
+                : BlubberUser::find($share['user_id']);
+        }
+        return $users;
+    }
+    
+    /**
+     * Lets the user reshare the posting. If user_id is not given, the current 
+     * user does the reshare.
+     * @param string|null $user_id : md5 user_id of the resharing user.
+     * @param int $external_user : is the user an external user?
+     * @return boolean : true if reshare was successful, else false
+     */
+    public function reshare($user_id = null, $external_user = 0) {
+        if ($this['context_type'] !== "public") {
+            return false;
+        }
+        $user_id or $user_id = $GLOBALS['user']->id;
+        $share = DBManager::get()->prepare(
+            "INSERT IGNORE INTO blubber_reshares " .
+            "SET topic_id = :topic_id, " .
+                "user_id = :user_id, " .
+                "external_contact = :external_contact, " .
+                "chdate = UNIX_TIMESTAMP() " .
+        "");
+        $success = $share->execute(array(
+            'topic_id' => $this['root_id'],
+            'user_id' => $user_id,
+            'external_contact' => $external_user
+        ));
+        if ($success) {
+            $thread = $this->isThread() ? $this : BlubberPosting::find($this['root_id']);
+            $thread['chdate'] = time();
+            $thread->store();
+            if (!$thread['external_contact']) {
+                $url = URLHelper::getURL(
+                    "plugins.php/blubber/streams/thread/".$thread->getId(),
+                    array('cid' => $thread['context_type'] === "course" ? $thread['Seminar_id'] : null, 'reshared' => 1),
+                    true
+                );
+                PersonalNotifications::add(
+                    $thread['user_id'],
+                    $url,
+                    sprintf(_("%s hat Ihren Blubber weitergesagt"), get_fullname()),
+                    "posting_".$thread->getId(), 
+                    Avatar::getAvatar($GLOBALS['user']->id)->getURL(Avatar::MEDIUM)
+                );
+            }
+        }
+        return $success;
+    }
+    
+    /**
+     * Undo a reshare of a user. Do nothing if there was no reshare.
+     * @param string|null $user_id : md5 user_id of the not anymore resharing user.
+     * @param int $external_user : is the user an external user?
+     * @return boolean : true if successfully deleted, false if nothing to do.
+     */
+    public function unreshare($user_id = null, $external_user = 0) {
+        $user_id or $user_id = $GLOBALS['user']->id;
+        $unshare = DBManager::get()->prepare(
+            "DELETE FROM blubber_reshares " .
+            "WHERE topic_id = :topic_id " .
+                "AND user_id = :user_id ",
+                "AND external_contact = :external_contact " .
+        "");
+        $success = $unshare->execute(array(
+            'topic_id' => $this['root_id'],
+            'user_id' => $user_id,
+            'external_contact' => $external_user
+        ));
+        if ($success) {
+            $thread = $this->isThread() ? $this : BlubberPosting::find($this['root_id']);
+            $thread['chdate'] = time();
+            $thread->store();
+        }
+        return $success;
     }
 
 }

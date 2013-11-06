@@ -36,6 +36,10 @@ class CoreAdmin implements StudipModule {
                 $item->setDescription(_('Prüfen und Bearbeiten Sie in diesem Verwaltungsbereich die Grundeinstellungen dieser Veranstaltung.'));
                 $navigation->addSubNavigation('details', $item);
 
+                $item = new Navigation(_('Avatar'), 'dispatch.php/course/avatar/update/' . $course_id);
+                $item->setDescription(_('Bearbeiten oder Löschen Sie den Veranstaltungsavatar, das Infobild zu dieser Veranstaltung.'));
+                $navigation->addSubNavigation('avatar', $item);
+
                 $item = new Navigation(_('Studienbereiche'), 'dispatch.php/course/study_areas/show/' . $course_id);
                 $item->setDescription(_('Legen Sie hier fest, in welchen Studienbereichen diese Veranstaltung im Verzeichnis aller Veranstaltungen erscheint.'));
                 $navigation->addSubNavigation('study_areas', $item);
@@ -54,7 +58,7 @@ class CoreAdmin implements StudipModule {
                 $item->setDescription(_('Richten Sie hier verschiedene Zugangsbeschränkungen, Anmeldeverfahren oder einen Passwortschutz für Ihre Veranstaltung ein.'));
                 $navigation->addSubNavigation('admission', $item);
 
-                $item = new Navigation(_('Zusatzangaben'), 'admin_aux.php');
+                $item = new AutoNavigation(_('Zusatzangaben'), 'dispatch.php/admin/aux');
                 $item->setDescription(_('Hier können Sie Vorlagen zur Erhebung weiter Angaben von Ihren Teilnehmern auswählen.'));
                 $navigation->addSubNavigation('aux_data', $item);
 

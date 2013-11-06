@@ -145,7 +145,7 @@ class DB_Seminar extends DB_Sql {
 }
 
 //software version - please leave it as it is!
-$SOFTWARE_VERSION = '2.5.alpha-svn';
+$SOFTWARE_VERSION = '3.0.alpha-svn';
 
 // set dummy navigation until db is ready
 Navigation::setRootNavigation(new Navigation(''));
@@ -378,8 +378,12 @@ class Seminar_User {
                 $timestamp = time();
             }
             try {
-                $stmt = DBManager::get()->prepare("REPLACE INTO user_online (user_id,last_lifesign) VALUES (?,?)");
-                $stmt->execute(array($this->id, $timestamp));
+                $query = "REPLACE INTO user_online (user_id, last_lifesign)
+                          VALUES (:user_id, UNIX_TIMESTAMP() - :time_delta)";
+                $stmt = DBManager::get()->prepare($query);
+                $stmt->bindValue(':user_id', $this->id);
+                $stmt->bindValue(':time_delta', time() - $timestamp, PDO::PARAM_INT);
+                $stmt->execute();
             } catch (PDOException $e) {
                 require_once 'lib/migrations/db_schema_version.php';
                 $version = new DBSchemaVersion('studip');

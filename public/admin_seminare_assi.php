@@ -2140,6 +2140,7 @@ if (($form == 6) && (Request::submitted('jump_next')))
                     }
                 }
             }
+            
             //end of the seminar-creation process
             openSem($_SESSION['sem_create_data']["sem_id"]); //open Veranstaltung to administrate in the admin-area
         } else {
@@ -2296,10 +2297,10 @@ if ((!$_SESSION['sem_create_data']["sem_class"]) && (!$level)){
         <tr>
             <td class="blank">
                 <ul>
-                <? foreach (SeminarCategories::GetAll() as $category) {
-                    if (!$category->course_creation_forbidden) {
-                        echo "<li><b><a href=\"".URLHelper::getLink("?start_level=TRUE&class=".$category->id)."\">".$category->name."</b></a><br>";
-                        echo $category->create_description."</li>";
+                <? foreach (SemClass::getClasses() as $semclass) {
+                    if (!$semclass['course_creation_forbidden'] && count($semclass->getSemTypes())) {
+                        echo "<li><b><a href=\"".URLHelper::getLink("?start_level=TRUE&class=".$semclass['id'])."\">".htmlReady($semclass['name'])."</b></a><br>";
+                        echo $semclass['create_description']."</li>";
                     }
                 } ?>
                 </ul>

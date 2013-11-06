@@ -293,7 +293,9 @@ function formatReady ($what, $trim = TRUE, $extern = FALSE, $wiki = FALSE, $show
         return htmlReadyOrPurify($what, $trim);
     }
 
+    OpenGraphURL::$tempURLStorage = array();
     $markup = new StudipFormat();
+    
     $what = preg_replace("/\r\n?/", "\n", $what);
     $what = htmlReadyOrPurify($what, $trim);
 

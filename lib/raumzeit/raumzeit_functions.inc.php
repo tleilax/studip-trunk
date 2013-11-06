@@ -82,7 +82,7 @@ function getTemplateDataForSingleDate($val, $cycle_id = '') {
         if ($val->getResourceID()) {
             $resObj = ResourceObject::Factory($val->getResourceID());
             $tpl['room']        = _("Raum: ");
-            $tpl['room']       .= $resObj->getFormattedLink(TRUE, TRUE, TRUE);
+            $tpl['room']       .= $resObj->getFormattedLink(TRUE, TRUE, TRUE, 'view_schedule', 'no_nav', $val->getStartTime());
             $tpl['class']       = 'content_title_green';
             $tpl['resource_id'] = $val->getResourceID();
         } else {
@@ -132,7 +132,8 @@ function getTemplateDataForSingleDate($val, $cycle_id = '') {
     $tpl['end_stunde'] = date('H',$val->getEndTime());
     $tpl['end_minute'] = date('i',$val->getEndTime());
     $tpl['related_persons'] = $val->getRelatedPersons();
-
+    $tpl['related_groups'] = $val->getRelatedGroups();
+    
     if ($request = RoomRequest::findByDate($val->getSingleDateID())) {
         $tpl['room_request'] = $request;
         $tpl['ausruf']  = _("Für diesen Termin existiert eine Raumanfrage:");

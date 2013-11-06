@@ -116,7 +116,6 @@ INSERT INTO `config` (`config_id`, `parent_id`, `field`, `value`, `is_default`, 
 INSERT INTO `config` (`config_id`, `parent_id`, `field`, `value`, `is_default`, `type`, `range`, `section`, `position`, `mkdate`, `chdate`, `description`, `comment`, `message_template`) VALUES('678424efcbb858b401edbb5f98b43dac', '', 'HOMEPAGEPLUGIN_DEFAULT_ACTIVATION', '1', 1, 'boolean', 'global', 'privacy', 0, 1366882121, 1366882121, 'Sollen neu installierte Homepageplugins automatisch für Benutzer aktiviert sein?', '', '');
 INSERT INTO `config` (`config_id`, `parent_id`, `field`, `value`, `is_default`, `type`, `range`, `section`, `position`, `mkdate`, `chdate`, `description`, `comment`, `message_template`) VALUES('bcd4820eebd8e027cef91bc761ab9a75', '', 'STUDYGROUP_TERMS', 'Mir ist bekannt, dass ich die Gruppe nicht zu rechtswidrigen Zwecken nutzen darf. Dazu zählen u.a. Urheberrechtsverletzungen, Beleidigungen und andere Persönlichkeitsdelikte.\r\n\r\nIch erkläre mich damit einverstanden, dass AdministratorInnen die Inhalte der Gruppe zu Kontrollzwecken einsehen dürfen.', 0, 'string', 'global', '', 0, 1268739461, 1268739461, 'Studiengruppen', '', '');
 INSERT INTO `config` (`config_id`, `parent_id`, `field`, `value`, `is_default`, `type`, `range`, `section`, `position`, `mkdate`, `chdate`, `description`, `comment`, `message_template`) VALUES('d924152d8c38aca6a6363eb2a4f51ecb', '', 'MESSAGING_SETTINGS', '{"show_only_buddys":false,"delete_messages_after_logout":false,"timefilter":"30d","opennew":1,"logout_markreaded":false,"openall":false,"addsignature":false,"save_snd":true,"sms_sig":"","send_view":false,"confirm_reading":3,"send_as_email":false,"folder":{"in":["dummy"],"out":["dummy"]}}', 1, 'array', 'user', '', 0, 1366882121, 1366882121, 'persönliche Einstellungen Nachrichtenbereich', '', '');
-INSERT INTO `config` (`config_id`, `parent_id`, `field`, `value`, `is_default`, `type`, `range`, `section`, `position`, `mkdate`, `chdate`, `description`, `comment`, `message_template`) VALUES('135bc61587772882a8dba504b5aa9f05', '', 'FORUM_SETTINGS', '{"neuauf":false,"rateallopen":true,"showimages":true,"sortthemes":"last","themeview":"mixed","presetview":"mixed","shrink":604800}', 1, 'array', 'user', '', 0, 1366882121, 1366882121, 'persönliche Einstellungen Forum', '', '');
 INSERT INTO `config` (`config_id`, `parent_id`, `field`, `value`, `is_default`, `type`, `range`, `section`, `position`, `mkdate`, `chdate`, `description`, `comment`, `message_template`) VALUES('1f284b41a375d9e9707a3af416d03a0e', '', 'SCHEDULE_SETTINGS', '{"glb_start_time":8,"glb_end_time":19,"glb_days":[0,1,2,3,4,5,6],"glb_sem":null,"converted":true}', 1, 'array', 'user', '', 0, 1366882121, 1366882121, 'persönliche Einstellungen Stundenplan', '', '');
 INSERT INTO `config` (`config_id`, `parent_id`, `field`, `value`, `is_default`, `type`, `range`, `section`, `position`, `mkdate`, `chdate`, `description`, `comment`, `message_template`) VALUES('062039db1a9873d253ec8bb8ac956166', '', 'PROFILE_LAST_VISIT', '0', 1, 'integer', 'user', '', 0, 1366882121, 1366882121, 'Zeitstempel des letzten Besuchs der Profilseite', '', '');
 INSERT INTO `config` (`config_id`, `parent_id`, `field`, `value`, `is_default`, `type`, `range`, `section`, `position`, `mkdate`, `chdate`, `description`, `comment`, `message_template`) VALUES('8f794863e1e9f6940eea8030a75f2da1', '', 'CURRENT_LOGIN_TIMESTAMP', '0', 1, 'integer', 'user', '', 0, 1366882121, 1366882121, 'Zeitstempel des Logins', '', '');
@@ -292,7 +291,7 @@ INSERT INTO `roles_user` (`roleid`, `userid`) VALUES(7, 'nobody');
 -- Daten für Tabelle `schema_version`
 --
 
-INSERT INTO `schema_version` (`domain`, `version`) VALUES('studip', 107);
+INSERT INTO `schema_version` (`domain`, `version`) VALUES('studip', 111);
 
 --
 -- Dumping data for table `sem_classes`
@@ -328,7 +327,7 @@ INSERT INTO `sem_types` (`id`, `name`, `class`, `mkdate`, `chdate`) VALUES
 -- Daten für Tabelle `semester_data`
 --
 
-INSERT INTO `semester_data` (`semester_id`, `name`, `description`, `semester_token`, `beginn`, `ende`, `vorles_beginn`, `vorles_ende`) VALUES('f2b4fdf5ac59a9cb57dd73c4d3bbb651', 'SS 2013', '', '', 1364767200, 1380578399, 1365372000, 1373666399);
+INSERT INTO `semester_data` (`semester_id`, `name`, `description`, `semester_token`, `beginn`, `ende`, `vorles_beginn`, `vorles_ende`) VALUES('f2b4fdf5ac59a9cb57dd73c4d3bbb651', 'SS 2014', '', '', 1396303200, 1412114399, 1397426400, 1405720799);
 INSERT INTO `semester_data` (`semester_id`, `name`, `description`, `semester_token`, `beginn`, `ende`, `vorles_beginn`, `vorles_ende`) VALUES('eb828ebb81bb946fac4108521a3b4697', 'WS 2013/14', '', '', 1380578400, 1396303199, 1382306400, 1391900399);
 
 --

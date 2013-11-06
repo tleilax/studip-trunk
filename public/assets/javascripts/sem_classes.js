@@ -72,6 +72,7 @@ STUDIP.admin_sem_class = {
             'data': {
                 'sem_class_id': jQuery("#sem_class_id").val(),
                 'sem_class_name': jQuery("#sem_class_name").val(),
+                'sem_class_description': jQuery("#sem_class_description").val(),
                 'title_dozent': !jQuery("#title_dozent_isnull").is(":checked") ? jQuery("#title_dozent").val() : "",
                 'title_dozent_plural': !jQuery("#title_dozent_isnull").is(":checked") ? jQuery("#title_dozent_plural").val() : "",
                 'title_tutor': !jQuery("#title_tutor_isnull").is(":checked") ? jQuery("#title_tutor").val() : "",
@@ -92,6 +93,8 @@ STUDIP.admin_sem_class = {
                 'topic_create_autor': jQuery("#topic_create_autor").is(":checked") ? 1 : 0,
                 'visible': jQuery("#visible").is(":checked") ? 1 : 0,
                 'course_creation_forbidden': jQuery("#course_creation_forbidden").is(":checked") ? 1 : 0,
+                'create_description': jQuery("#create_description").val(),
+                'description': jQuery("#description").val(),
                 'admission_prelim_default': jQuery("#admission_prelim_default").val(),
                 'admission_type_default': jQuery("#admission_type_default").val()
             },

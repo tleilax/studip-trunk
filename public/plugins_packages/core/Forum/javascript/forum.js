@@ -12,18 +12,17 @@ STUDIP.Forum = {
     clipboard: {},
 
     init: function () {
-        $('html').addClass('forum');
+        jQuery('html').addClass('forum');
 
         // Fenstergröße für Infobox testen
         STUDIP.Forum.checkWindowSize();
-        $(window).resize(STUDIP.Forum.checkWindowSize);
+        jQuery(window).resize(STUDIP.Forum.checkWindowSize);
         
        
         // make categories and areas sortable
         jQuery('#sortable_areas').sortable({
             axis: 'y',
             items: ">*.movable",
-            handle: 'td.handle',
             stop: function () {
                 var categories = {};
                 categories.categories = {};
@@ -127,10 +126,10 @@ STUDIP.Forum = {
     },
 
     checkWindowSize: function() {
-        if ($(window).width() <= 400) {
-            $('#layout_sidebar').css('display', 'none');
+        if (jQuery(window).width() <= 400) {
+            jQuery('#layout_sidebar').css('display', 'none');
         } else {
-            $('#layout_sidebar').css('display', 'block');
+            jQuery('#layout_sidebar').css('display', 'block');
         }
     },
     
@@ -164,13 +163,13 @@ STUDIP.Forum = {
     },
 
     editCategoryName: function (category_id) {
-        jQuery('table[data-category-id=' + category_id + '] span.heading').hide();
+        jQuery('table[data-category-id=' + category_id + '] span.category_name').hide();
         jQuery('table[data-category-id=' + category_id + '] span.heading_edit').show();
     },
 
     cancelEditCategoryName: function (category_id) {
         jQuery('table[data-category-id=' + category_id + '] span.heading_edit').hide();
-        jQuery('table[data-category-id=' + category_id + '] span.heading').show();
+        jQuery('table[data-category-id=' + category_id + '] span.category_name').show();
 
         // reset the input field with the unchanged name
         jQuery('table[data-category-id=' + category_id + '] span.heading_edit input[type=text]').val(
@@ -182,7 +181,7 @@ STUDIP.Forum = {
         var name = {};
         name.name = jQuery('table[data-category-id=' + category_id + '] span.heading_edit input[type=text]').val();
 
-        if (!$.trim(name.name).length) {
+        if (!jQuery.trim(name.name).length) {
             jQuery('table[data-category-id=' + category_id + '] span.heading_edit input[type=text]').val('').closest('form').data('validator').checkValidity();
             return;
         }
@@ -191,7 +190,7 @@ STUDIP.Forum = {
         jQuery('table[data-category-id=' + category_id + '] span.category_name').text(name.name);
 
         jQuery('table[data-category-id=' + category_id + '] span.heading_edit').hide();
-        jQuery('table[data-category-id=' + category_id + '] span.heading').show();
+        jQuery('table[data-category-id=' + category_id + '] span.category_name').show();
 
         jQuery.ajax(STUDIP.URLHelper.getURL('plugins.php/coreforum/index/edit_category/' + category_id + '?cid=' + STUDIP.Forum.seminar_id), {
             type: 'POST',
@@ -323,7 +322,14 @@ STUDIP.Forum = {
         jQuery('#new_entry_preview').parent().hide();
         jQuery('#new_entry_preview').html('');
 
-        var name = jQuery('span.username[data-profile=' + topic_id +']').text().trim();
+        // watch out for anonymous postings
+        var anonymous = jQuery('.anonymous_post[data-profile=' + topic_id + ']').length > 0;
+
+        if (anonymous) {
+            var name = "Anonym".toLocaleString();
+        } else {
+            var name = jQuery('span.username[data-profile=' + topic_id + ']').text().trim();
+        }
         
         // add content from cited posting in [quote]-tags
         var content = '[quote=' + name + ']' + "\n"
@@ -370,12 +376,12 @@ STUDIP.Forum = {
     },
 
     moveThreadDialog: function (topic_id) {
-        $('tr[data-area-id=' + topic_id +'] td.areaentry').addClass('selected');
+        jQuery('tr[data-area-id=' + topic_id +'] td.areaentry').addClass('selected');
         jQuery('#dialog_' + topic_id).dialog({ 
             height: 400,
             width: 400,
             beforeClose: function() {
-                $('tr[data-area-id=' + topic_id +'] td.areaentry').removeClass('selected');
+                jQuery('tr[data-area-id=' + topic_id +'] td.areaentry').removeClass('selected');
             }
         });
     },
@@ -389,6 +395,7 @@ STUDIP.Forum = {
             data: posting,
             success: function (html) {
                 jQuery('#' + preview_id).html(html);
+                STUDIP.Markup.element('#' + preview_id);
                 jQuery('#' + preview_id).parent().show();
             }
         });
@@ -400,7 +407,7 @@ STUDIP.Forum = {
     },
     
     startTour: function() {
-        $('#joyRideTipContent').joyride();
+        jQuery('#joyRideTipContent').joyride();
     },
     
     showDialog: function(question, confirm, highlight_element) {
@@ -544,7 +551,107 @@ STUDIP.Forum = {
             jQuery(this).find('a[data-role=cancel_cut]').hide();
             jQuery(this).find('a[data-role=paste]').hide();
         });
-    }
+    },
+    
+    openThreadFromOverview: function(topic_id, parent_topic_id, page) {
+        var buttonText = "Thema schließen".toLocaleString();
+        jQuery('#closeButton-' + topic_id + ' img').attr('src', STUDIP.ASSETS_URL + 'images/icons/16/black/lock-locked.png');
+        jQuery('#closeButton-' + topic_id + ' img').attr('title', buttonText);
+        jQuery('#closeButton-' + topic_id).attr('onclick', 'STUDIP.Forum.closeThreadFromOverview("' + topic_id + '", "' + parent_topic_id + '", ' + page + '); return false;');
+        jQuery('#img-locked-' + topic_id).hide();
+        
+        STUDIP.Forum.openThread(topic_id, parent_topic_id, page, false);
+    },
+    
+    openThreadFromThread: function(topic_id, page) {
+        var buttonText = "Thema schließen".toLocaleString();
+        jQuery('.closeButtons').text(buttonText);
+        jQuery('.closeButtons').attr('onclick', 'STUDIP.Forum.closeThreadFromThread("' + topic_id + '", ' + page + '); return false;');
+        jQuery('.closeButtons').parent().siblings().find('img').attr('src', STUDIP.ASSETS_URL + 'images/icons/16/black/lock-locked.png');
+        jQuery('.hideWhenClosed').show();
+        
+        STUDIP.Forum.openThread(topic_id, topic_id, page, true);
+    },
+    
+    openThread: function(topic_id, redirect, page, showSuccessMessage) {
+        jQuery.ajax({
+            type: 'GET',
+            url: STUDIP.URLHelper.getURL('plugins.php/coreforum/index/open_thread/' + topic_id + '/' + redirect + '/' + page),
+            success: function(data) {
+                if (showSuccessMessage == true) {
+                    jQuery('#message_area').html(data);
+                }
+            }
+        });
+                
+        return false;
+    },
+    
+    closeThreadFromOverview: function(topic_id, parent_topic_id, page) {
+        var buttonText = "Thema öffnen".toLocaleString();
+        jQuery('#closeButton-' + topic_id + ' img').attr('src', STUDIP.ASSETS_URL + 'images/icons/16/blue/lock-unlocked.png');
+        jQuery('#closeButton-' + topic_id + ' img').attr('title', buttonText);
+        jQuery('#closeButton-' + topic_id).attr('onclick', 'STUDIP.Forum.openThreadFromOverview("' + topic_id + '", ' + page + '); return false;');
+        
+        jQuery('#img-locked-' + topic_id).show();
+        
+        STUDIP.Forum.closeThread(topic_id, parent_topic_id, page, false);
+    },
+    
+    closeThreadFromThread: function(topic_id, page) {
+        var buttonText = "Thema öffnen".toLocaleString();
+        jQuery('.closeButtons').text(buttonText);
+        jQuery('.closeButtons').attr('onclick', 'STUDIP.Forum.openThreadFromThread("' + topic_id + '", '+ page +'); return false;');
+        jQuery('.closeButtons').parent().siblings().find('img').attr('src', STUDIP.ASSETS_URL + 'images/icons/16/black/lock-unlocked.png');
+        jQuery('.hideWhenClosed').hide();
+        
+        STUDIP.Forum.closeThread(topic_id, topic_id, page, true);
+    },
+    
+    closeThread: function(topic_id, redirect, page, showSuccessMessage) {
+        
+        jQuery.ajax({
+            type: 'GET',
+            url: STUDIP.URLHelper.getURL('plugins.php/coreforum/index/close_thread/' + topic_id + '/' + redirect + '/' + page),
+            success: function(data) {
+                if (showSuccessMessage == true) {
+                    jQuery('#message_area').html(data);
+                }
+            }
+        });
+        
+        return false;
+    },
+    
+    makeThreadStickyFromThread: function(topic_id) {
+        jQuery.ajax({
+            type: 'GET',
+            url: STUDIP.URLHelper.getURL('plugins.php/coreforum/index/make_sticky/' + topic_id + '/' + topic_id + '/0'),
+            success: function(data) {
+                jQuery('#message_area').html(data);
+                var linkText = "Hervorhebung aufheben".toLocaleString();
+                jQuery('#stickyButton').text(linkText);
+                jQuery('#stickyButton').attr('onclick', 'STUDIP.Forum.makeThreadUnstickyFromThread("' + topic_id + '"); return false;');
+            }
+        });
+        
+        return false;
+    },
+    
+    makeThreadUnstickyFromThread: function(topic_id) {
+        jQuery.ajax({
+            type: 'GET',
+            url: STUDIP.URLHelper.getURL('plugins.php/coreforum/index/make_unsticky/' + topic_id + '/' + topic_id + '/0'),
+            success: function(data) {
+                jQuery('#message_area').html(data);
+                var linkText = "Thema hervorheben".toLocaleString();
+                jQuery('#stickyButton').text(linkText);
+                jQuery('#stickyButton').attr('onclick', 'STUDIP.Forum.makeThreadStickyFromThread("' + topic_id + '"); return false;');
+            }
+        });
+        
+        return false;
+    },
 };
 
 

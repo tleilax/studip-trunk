@@ -131,6 +131,7 @@ class IndexController extends StudipController
         /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
          * B E R E I C H E / T H R E A D S / P O S T I N G S   L A D E N *
          * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
         // load list of areas for use in thread-movement
         if (ForumPerm::has('move_thread', $this->getId())) {
             $this->areas = ForumEntry::getList('flat', $this->getId());
@@ -174,7 +175,19 @@ class IndexController extends StudipController
                     $new_list[$this->getId()] = $allgemein;
                 }
 
+                // check, if there are any orphaned entries
+                foreach ($new_list as $key1 => $list_item) {
+                    foreach ($list_item as $key2 => $contents) {
+                        if (empty($contents)) {
+                            // remove the orphaned entry from the list and from the database
+                            unset($new_list[$key1][$key2]); 
+                            ForumCat::removeArea($key2);
+                        }
+                    }
+                }
+
                 $this->list = $new_list;
+                
             } else if ($this->constraint['depth'] == 1) {   // THREADS
                 if (!empty($list['list'])) {
                     $this->list = array($list['list']);
@@ -391,7 +404,7 @@ class IndexController extends StudipController
         } else {
             $fullname = get_fullname($GLOBALS['user']->id);
         }
-
+        
         ForumEntry::insert(array(
             'topic_id'    => $new_id,
             'seminar_id'  => $this->getId(),
@@ -399,7 +412,8 @@ class IndexController extends StudipController
             'name'        => Request::get('name') ?: '',
             'content'     => Request::get('content'),
             'author'      => $fullname,
-            'author_host' => getenv('REMOTE_ADDR')
+            'author_host' => getenv('REMOTE_ADDR'),
+            'anonymous'   => Config::get()->FORUM_ANONYMOUS_POSTINGS ? Request::get('anonymous') ? : 0 : 0
         ), $parent_id);
 
         $this->flash['notify'] = $new_id;
@@ -445,10 +459,10 @@ class IndexController extends StudipController
                     ForumEntry::delete($topic_id);
                     $this->flash['messages'] = array('success' => sprintf(_('Der Eintrag %s wurde gelöscht!'), $topic['name']));
                 } else {
-                    $this->flash['messages'] = array('info' => 
+                    $this->flash['messages'] = array('info_html' => 
                         sprintf(_('Sind sie sicher dass Sie den Eintrag %s löschen möchten?'), $topic['name'])
                         . '<br>'. \Studip\LinkButton::createAccept(_('Ja'), PluginEngine::getUrl('coreforum/index/delete_entry/'. $topic_id .'?approve_delete=1'))
-                        . \Studip\LinkButton::createCancel(_('Nein'), PluginEngine::getUrl('coreforum/index/index/'. $topic_id .'/'. $page))
+                        . \Studip\LinkButton::createCancel(_('Nein'), PluginEngine::getUrl('coreforum/index/index/'. ForumEntry::getParentTopicId($topic_id) .'/'. $page))
                     );
                 }
             } else {
@@ -583,6 +597,98 @@ class IndexController extends StudipController
             $this->redirect(PluginEngine::getLink('coreforum/index/index/' . $topic_id .'#'. $topic_id));
         }
     }
+    
+    /**
+     * This action is used to close a thread.
+     * 
+     * @param string $topic_id the topic which will be closed
+     * @param string $redirect the topic which will be shown after closing the thread
+     * @param int    $page the page number of the topic $redirect
+     */
+    function close_thread_action($topic_id, $redirect, $page = 0)
+    {
+        ForumPerm::check('close_thread', $this->getId(), $topic_id);
+        
+        ForumEntry::close($topic_id);
+        
+        $success_text = _('Das Thema wurde erfolgreich geschlossen.');
+
+        if (Request::isAjax()) {
+            $this->render_text(MessageBox::success($success_text));
+        } else {
+            $this->flash['messages'] = array('success' => $success_text);
+            $this->redirect(PluginEngine::getLink('coreforum/index/index/' . $redirect . '/' . $page));
+        }
+    }
+    
+    /**
+     * This action is used to open a thread.
+     * 
+     * @param string $topic_id the topic which will be opened
+     * @param string $redirect the topic which will be shown after opening the thread
+     * @param int    $page the page number of the topic $redirect
+     */
+    function open_thread_action($topic_id, $redirect, $page = 0)
+    {
+        ForumPerm::check('close_thread', $this->getId(), $topic_id);
+        
+        ForumEntry::open($topic_id);
+        
+        $success_text = _('Das Thema wurde erfolgreich geöffnet.');
+
+        if (Request::isAjax()) {
+            $this->render_text(MessageBox::success($success_text));
+        } else {
+            $this->flash['messages'] = array('success' => $success_text);
+            $this->redirect(PluginEngine::getLink('coreforum/index/index/' . $redirect . '/' . $page));
+        }
+    }
+    
+    /**
+     * This action is used to mark a thread as sticky.
+     * 
+     * @param string $topic_id the topic which will be marked as sticky.
+     * @param string $redirect the topic which will be shown afterwards
+     * @param int    $page the page number of the topic $redirect
+     */
+    function make_sticky_action($topic_id, $redirect, $page = 0)
+    {
+        ForumPerm::check('make_sticky', $this->getId(), $topic_id);
+        
+        ForumEntry::sticky($topic_id);
+        
+        $success_text = _('Das Thema wurde erfolgreich in der Themenliste hervorgehoben.');
+
+        if (Request::isAjax()) {
+            $this->render_text(MessageBox::success($success_text));
+        } else {
+            $this->flash['messages'] = array('success' => $success_text);
+            $this->redirect(PluginEngine::getLink('coreforum/index/index/' . $redirect . '/' . $page));
+        }
+    }
+    
+    /**
+     * This action is used to remove the sticky attribute from a topic.
+     * 
+     * @param string $topic_id the topic which will be marked as unsticky.
+     * @param string $redirect the topic which will be shown afterwards
+     * @param int    $page the page number of the topic $redirect
+     */
+    function make_unsticky_action($topic_id, $redirect, $page = 0)
+    {
+        ForumPerm::check('make_sticky', $this->getId(), $topic_id);
+        
+        ForumEntry::unsticky($topic_id);
+        
+        $success_text = _('Die Hervorhebung des Themas in der Themenliste wurde entfernt.');
+
+        if (Request::isAjax()) {
+            $this->render_text(MessageBox::success($success_text));
+        } else {
+            $this->flash['messages'] = array('success' => $success_text);
+            $this->redirect(PluginEngine::getLink('coreforum/index/index/' . $redirect . '/' . $page));
+        }
+    }
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * */
     /* * * *     C O N F I G - A C T I O N S     * * * */
@@ -596,7 +702,7 @@ class IndexController extends StudipController
 
         $this->flash['edit_entry'] = true;
         $this->flash['new_entry_title'] = $topic['name'];
-        $this->flash['new_entry_content'] = "[quote=". $topic['author'] ."]\n" . $topic['content'] . "\n[/quote]\n\n";
+        $this->flash['new_entry_content'] = "[quote=". ($topic['anonymous'] ? _('Anonym') : $topic['author']) ."]\n" . $topic['content'] . "\n[/quote]\n\n";
 
         $this->redirect(PluginEngine::getLink('coreforum/index/index/'. $topic_id .'#create'));
     }
@@ -714,7 +820,7 @@ class IndexController extends StudipController
                 case 1:  $msg = _('Sie haben diesen Bereich abonniert.');break;
                 default: $msg = _('Sie haben dieses Thema abonniert');break;
             }
-            $this->flash['messages'] = array('success' => $msg .' '. _('Jeder neue Beitrag wird Ihnen nun als Nachricht zugestellt.'));
+            $this->flash['messages'] = array('success' => $msg .' '. _('Sie werden nun über jeden neuen Beitrag informiert.'));
             $this->redirect(PluginEngine::getLink('coreforum/index/index/' . $topic_id));
         }
     }
@@ -772,6 +878,8 @@ class IndexController extends StudipController
         $layout = $GLOBALS['template_factory']->open('layouts/base');
         $this->set_layout($layout);
 
+        // Set help keyword for Stud.IP's user-documentation and page title
+        PageLayout::setHelpKeyword('Basis.Forum');
         PageLayout::setTitle(getHeaderLine($this->getId()) .' - '. _('Forum'));
 
         $this->AVAILABLE_DESIGNS = array('web20', 'studip');

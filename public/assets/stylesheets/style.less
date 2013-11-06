@@ -39,6 +39,7 @@
 @import "less/study-area-selection.less";
 @import "less/wiki.less";
 @import "less/raumzeit.less";
+@import "less/opengraph.less";
 
 @import "less/mobile.less";
 @import "less/pagination.less";
@@ -61,27 +62,58 @@ body {
     margin: 0;
 }
 
-h1, h2, h3 { font-weight: bold; }
+/* --- Überschriften -------------------------------------------------------- */
+
+h1, h2, h3 { font-weight: normal; }
+h1,h2,h3,h4,h5,h6 {
+    color: #444444;
+    border-bottom: 2px solid rgba(0,0,0,0.2);
+    width: 80%;
+}
+h1 {
+    margin-top: 0px;
+    font-size: 2em;
+    padding-left: 10px;
+}
+h2 {
+    font-size: 1.7em;
+}
+h3 {
+    font-size: 1.4em;
+}
+h4 {
+    font-size: 1.1em;
+}
+h3,h4,h5,h6 {
+    border-bottom: none;
+}
+h1 + br,h2 + br,h3 + br,h4 + br,h5 + br,h6 + br,ul + br, table + br {
+	display: none;
+}
 
 blockquote {
-    margin: 0;
-    padding: 10px;
+    border-left: 3px solid @brand-color-lighter;
+    padding: 5px;
+    margin: 8px;
+    padding-left: 8px;
+    margin-left: 0px;
+    background-color: rgba(0,0,0,0.05);
+    > .author {
+    	background-color: @brand-color-lighter;
+        padding: 4px;
+        margin-left: -10px;
+        padding-left: 15px;
+        margin-right: -5px;
+        color: white;
+        margin-top: -5px;
+        margin-bottom: 5px;
+    }
 }
 
 dd { margin-left: 1.5em; }
 
 input.placeholder { opacity: 0.7; }
 .placeholder(rgba(0, 0, 0, 0.7));
-
-/* --- Überschriften -------------------------------------------------------- */
-h1.content, h2.content, h3.content { color: @brand-color-dark; }
-hr.content { 
-    margin: 0 1em;
-    background-color: #555555;
-    border-radius: 5px;
-    height: 1px;
-    border: none;
-}
 
 table.content {
     border-collapse: collapse;
@@ -353,14 +385,6 @@ h1:hover, h2:hover, h3:hover, h4:hover {
 
 img.bookable_rooms_action { display: none; }
 
-.quote {
-    background: #eee none;
-    border: 1px solid black;
-    margin-left: 20px;
-    margin-right: 20px;
-    overflow-x: auto;
-    padding: 3px;
-}
 
 .code_header {
     text-transform: uppercase;

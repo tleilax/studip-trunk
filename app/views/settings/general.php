@@ -7,6 +7,7 @@ $start_pages = array(
      3 => _('Mein Stundenplan'),
      4 => _('Mein Adressbuch'),
      5 => _('Mein Planer'),
+     6 => _('Mein globaler Blubberstream'),
 );
 ?>
 
@@ -14,17 +15,18 @@ $start_pages = array(
     <?= CSRFProtection::tokenTag() ?>
     <input type="hidden" name="studipticket" value="<?= get_ticket() ?>">
 
-    <table id="main_content" class="zebra-hover settings">
+    <table id="main_content" class="default">
         <colgroup>
             <col width="50%">
             <col width="50%">
         </colgroup>
-        <thead>
-            <tr>
-                <th colspan="2"><?= _('Allgemeine Einstellungen anpassen') ?></th>
-            </tr>
-        </thead>
+        <caption>
+            <?= _('Allgemeine Einstellungen anpassen') ?>
+        </caption>
         <tbody>
+            <tr>
+                <th colspan="2"><?= _('Allgemein') ?></th>
+            </tr>
             <tr>
                 <td>
                     <label for="forced_language"><?= _('Sprache') ?></label>
@@ -48,7 +50,7 @@ $start_pages = array(
                         <dfn id="personal_startpage_description">
                             <?= _('Sie können hier einstellen, welche Seite standardmäßig nach dem Einloggen '
                                  .'angezeigt wird. Wenn Sie zum Beispiel regelmäßig die Seite &raquo;Meine '
-                                 .'Veranstaltungen&laquo;. nach dem Login aufrufen, so können Sie dies hier '
+                                 .'Veranstaltungen&laquo; nach dem Login aufrufen, so können Sie dies hier '
                                  .'direkt einstellen.') ?>
                         </dfn>
                     </label>
@@ -93,7 +95,7 @@ $start_pages = array(
                                  .'Icons angezeigt.') ?>
                             <?= _('Diese kann für jeden Browser und jedes Betriebssystem unterschiedlich '
                                  .'sein (siehe <a href="http://en.wikipedia.org/wiki/Accesskey" '
-                                 .'target="_blank"">Wikipedia</a>)') ?>
+                                 .'target="_blank"">Wikipedia</a>).') ?>
                         </dfn>
                     </label>
                 </td>
@@ -124,7 +126,7 @@ $start_pages = array(
         <? if (PersonalNotifications::isGloballyActivated()): ?>
         <tbody>
             <tr>
-                <td colspan="2"><?= _('Benachrichtigungen') ?></td>
+                <th colspan="2"><?= _('Benachrichtigungen') ?></th>
             </tr>
             <tr>
                 <td>
@@ -148,7 +150,7 @@ $start_pages = array(
                     <label for="personal_notifications_audio_activated">
                         <?= _('Audio-Feedback zu Benachrichtigungen') ?><br>
                         <dfn id="personal_notifications_audio_activated_description">
-                            <?= _('Wenn eine neue Benachrichtigung für Sie rein kommt, ' .
+                            <?= _('Wenn eine neue Benachrichtigung für Sie reinkommt, ' .
                                   'werden Sie mittels eines kleinen Plopps darüber in Kenntnis gesetzt ' .
                                   '- auch wenn Sie gerade einen anderen Browsertab anschauen. Der Plopp ist ' .
                                   'nur zu hören, wenn Sie die Benachrichtigungen über Javascript aktiviert haben.') ?>

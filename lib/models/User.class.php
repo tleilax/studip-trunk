@@ -11,7 +11,7 @@
  * $a_user->email = $another_users_email;
  * $a_user->store();
  * @endcode
- * 
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of
@@ -105,7 +105,7 @@ class User extends AuthUserMd5
      * @var string a test
      */
     private $test1;
-    
+
     /**
      *
      * @param string $id a user id
@@ -132,15 +132,15 @@ class User extends AuthUserMd5
                 'datafields' => array(
                         'class_name' => 'DatafieldEntryModel',
                         'assoc_foreign_key' =>
-                        function($model,$params) {
+                        function($model, $params) {
                             $model->setValue('range_id', $params[0]->id);
                         },
                 'assoc_func' => 'findByModel',
                 'on_delete' => 'delete',
                 'on_store' => 'store',
                 'foreign_key' =>
-                    function($model) {
-                        return array($model);
+                    function($user) {
+                        return array($user);
                     })
         );
         $this->has_one['info'] = array(
@@ -202,5 +202,19 @@ class User extends AuthUserMd5
         unset($ret['info']);
         return  $ret;
     }
-
+    
+    /**
+     * Returns a collection of user that match the given searchstring
+     * 
+     * @param String $query Searchstring
+     * @param int $limit Limitates the results. Default 10. 0 means no limit
+     * @param String $order 
+     * @return array User that match the querystring
+     */
+    public static function search($query, $limit = 10, $order = 'nachname,vorname ASC') {
+        $searchString = "%" . $query . "%";
+        $limitSQL = $limit ? " LIMIT $limit " : "";
+        $orderSQL = " ORDER BY $order";
+        return self::findBySQL("(vorname LIKE ? OR nachname LIKE ? OR CONCAT_WS(' ',vorname, nachname) LIKE ?) AND ".get_vis_query()." $orderSQL $limitSQL", array($searchString, $searchString, $searchString));
+    }
 }

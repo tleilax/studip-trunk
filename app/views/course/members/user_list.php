@@ -22,25 +22,19 @@
                     <?= $status_groups['user'] ?>
                 </th>
                 <th class="table_header_bold" style="text-align: right">
-                    <? if($is_tutor) :?>
-                        <?=$controller->getEmailLinkByStatus('user')?>
-                        <a href="<?= URLHelper::getLink('sms_send.php',
-                                array('filter' => 'send_sms_to_all',
-                                    'who' => 'user',
-                                    'sms_source_page' => 'dispatch.php/course/members?cid=' . $course_id,
-                                    'course_id' => $course_id,
-                                    'subject' => $subject))
-                        ?>">
-                            <?= Assets::img('icons/16/white/inbox.png',
-                                    tooltip2(sprintf(_('Nachricht an alle %s versenden'), $status_groups['user'])))?>
-                        </a>
-                        <? if ($is_tutor) : ?>
-                        <a href="<?= $controller->url_for('course/members/add_member/user/')?>">
-                            <?= Assets::img('icons/16/white/add/community.png',
-                                    tooltip2(sprintf(_('Neue/n %s in der Veranstaltung eintragen'),$status_groups['user']))) ?>
-                        </a>
-                        <? endif ?>
-                    <? endif ?>
+                <? if($is_tutor) :?>
+                    <?=$controller->getEmailLinkByStatus('user', $users)?>
+                    <a href="<?= URLHelper::getLink('sms_send.php',
+                            array('filter' => 'send_sms_to_all',
+                                'who' => 'user',
+                                'sms_source_page' => 'dispatch.php/course/members?cid=' . $course_id,
+                                'course_id' => $course_id,
+                                'subject' => $subject))
+                    ?>">
+                        <?= Assets::img('icons/16/white/inbox.png',
+                                tooltip2(sprintf(_('Nachricht an alle %s versenden'), $status_groups['user'])))?>
+                    </a>
+                <? endif ?>
                 </th>
             </tr>
             <tr class="sortable">
@@ -70,7 +64,7 @@
         </thead>
         <tbody>
         <? $nr= 0; foreach($users as $leser) : ?>
-        <? $fullname = $leser->user->getFullName('full_rev');?>
+        <? $fullname = $leser['fullname'];?>
             <tr>
                 <? if($is_tutor) :?>
                 <td>
@@ -95,26 +89,7 @@
                         <? endif ?>
                     </td>
                     <td>
-                        <? $study_courses = UserModel::getUserStudycourse($leser['user_id']) ?>
-                        <? if(!empty($study_courses)) : ?>
-                            <? if (count($study_courses) < 2) : ?>
-                                <? for ($i = 0; $i < 1; $i++) : ?>
-                                    <?= htmlReady($study_courses[$i]['fach']) ?>
-                                    (<?= htmlReady($study_courses[$i]['abschluss']) ?>)
-                                <? endfor ?>
-                            <? else : ?>
-                                <?= htmlReady($study_courses[0]['fach']) ?>
-                                (<?= htmlReady($study_courses[0]['abschluss']) ?>)
-                                [...]
-                                <? foreach($study_courses as $course) : ?>
-                                    <? $course_res .= sprintf('- %s (%s)<br>',
-                                                              htmlReady($course['fach']),
-                                                              htmlReady($course['abschluss'])) ?>
-                                <? endforeach ?>
-                                <?= tooltipIcon('<strong>' . _('Weitere Studiengänge') . '</strong><br>' . $course_res, false, true) ?>
-                                <? unset($course_res); ?>
-                            <? endif ?>
-                        <? endif ?>
+                        <?= $this->render_partial("course/members/_studycourse.php", array('study_courses' => UserModel::getUserStudycourse($leser['user_id']))) ?>
                     </td>
                 <? endif ?>
                 <td style="text-align: right">

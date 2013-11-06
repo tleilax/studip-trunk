@@ -159,7 +159,7 @@ function selectSem ($sem_id)
     closeObject();
 
     $query = "SELECT Institut_id, Name, Seminar_id, Untertitel, start_time,
-                     status, Lesezugriff, Schreibzugriff, Passwort
+                     status, Lesezugriff, Schreibzugriff, Passwort, aux_lock_rule_forced
               FROM seminare
               WHERE Seminar_id = ?";
     $statement = DBManager::get()->prepare($query);
@@ -172,6 +172,14 @@ function selectSem ($sem_id)
             $SemUserStatus = "nobody";
             if ($SemSecLevelRead > 0 || !get_config('ENABLE_FREE_ACCESS')) {
                 throw new AccessDeniedException(_("Keine Berechtigung."));
+            }
+        }
+        // if the aux data is forced for this seminar forward all user that havent made an input to this site
+        if ($row["aux_lock_rule_forced"] && !$perm->have_perm('root') && !$perm->have_studip_perm('tutor', $row["Seminar_id"]) && $_SERVER['PATH_INFO'] != '/course/members/aux_input') {
+        $statement = DBManager::get()->prepare("SELECT 1 FROM datafields_entries WHERE range_id = ? AND sec_range_id = ? LIMIT 1");
+        $statement->execute(array($GLOBALS['user']->id, $row["Seminar_id"]));
+        if (!$statement->rowCount()) {
+            header('location: ' . URLHelper::getURL('dispatch.php/course/members/aux_input'));
             }
         }
         $SessionSeminar = $row["Seminar_id"];
@@ -320,7 +328,8 @@ function checkObject()
 
 
 /**
- * This function checks, if given module is allowed in this stud-ip object
+ * This function checks, if given old style module "wiki","scm" (not "CoreWiki") etc.
+ * is allowed in this stud.ip-object.
  *
  * @global array $SessSemName
  *
@@ -335,7 +344,19 @@ function checkObjectModule($module)
     if ($SessSemName[1]) {
         $modules = new Modules();
         $local_modules = $modules->getLocalModules($SessSemName[1], $SessSemName['class']);
-        if (!$local_modules[$module]) {
+        $sem_class = $GLOBALS['SEM_CLASS'][$GLOBALS['SEM_TYPE'][$SessSemName['art_num']]['class']];
+        $new_module_name = "Core".ucfirst($module);
+        $mandatory = false;
+        $checkslot = $module;
+        foreach (SemClass::getSlots() as $slot) {
+            if ($sem_class->getSlotModule($slot) === $new_module_name) {
+                $checkslot = $slot;
+                if ($sem_class->isModuleMandatory($new_module_name)) {
+                    $mandatory = true;
+                }
+            }
+        }
+        if (!$local_modules[$checkslot] && !$mandatory) {
             throw new CheckObjectException(sprintf(_('Das Inhaltselement "%s" ist für dieses Objekt leider nicht verfügbar.'), ucfirst($module)));
         }
     }
@@ -464,7 +485,7 @@ function get_object_type($id, $check_only = array())
     }
 
     // Read from cache if available
-    if ($object_type_cache[$id]) {
+    if (isset($object_type_cache[$id])) {
         return $object_type_cache[$id];
     }
 
@@ -504,9 +525,12 @@ function get_object_type($id, $check_only = array())
             return $object_type_cache[$id] = ($is_fak ? 'fak' : 'inst');
         }
     }
-
-    // None of the above
-    return $object_type_cache[$id] = false;
+    if ($check_all) {
+        // None of the above
+        return $object_type_cache[$id] = false;
+    } else {
+        return false;
+    }
 }
 
 /**
@@ -1242,7 +1266,7 @@ function get_users_online($active_time = 5, $name_format = 'full_rev')
     }
 
     $query = "SELECT a.username AS temp, a.username, {$GLOBALS['_fullname_sql'][$name_format]} AS name,
-                     UNIX_TIMESTAMP() - last_lifesign AS last_action,
+                     ABS(CAST(UNIX_TIMESTAMP() AS SIGNED) - CAST(last_lifesign AS SIGNED)) AS last_action,
                      a.user_id, contact_id AS is_buddy, " . get_vis_query('a', 'online') . " AS is_visible
               FROM user_online uo
               JOIN auth_user_md5 a ON (a.user_id = uo.user_id)
@@ -1250,7 +1274,7 @@ function get_users_online($active_time = 5, $name_format = 'full_rev')
               LEFT JOIN user_visibility ON (user_visibility.user_id = uo.user_id)
               LEFT JOIN contact ON (owner_id = ? AND contact.user_id = a.user_id AND buddy = 1)
               WHERE last_lifesign > ? AND uo.user_id <> ?
-              ORDER BY last_action ASC, {$GLOBALS['_fullname_sql'][$name_format]} ASC";
+              ORDER BY {$GLOBALS['_fullname_sql'][$name_format]} ASC";
     $statement = DBManager::get()->prepare($query);
     $statement->execute(array(
         $GLOBALS['user']->id,
@@ -1579,33 +1603,29 @@ function search_range($search_str = false, $search_user = false, $show_sem = tru
  */
 function format_help_url($keyword)
 {
-    global $auth, $_language;
-
-    $helppage=$keyword;
+    $helppage = $keyword;
 
     // $loc is only set if special help view for installation is known
-    //
-    $loc="";
-    $locationid=get_config("EXTERNAL_HELP_LOCATIONID");
-    if ($locationid && $locationid!="default") {
-    $loc = $locationid."/";
+    $loc = "";
+
+    $locationid = Config::get()->EXTERNAL_HELP_LOCATIONID;
+    if ($locationid && $locationid !== 'default') {
+        $loc = $locationid . '/';
     }
 
     // all help urls need short language tag (de, en)
-    //
-    $lang="de";
-    if ($_language) {
-        list($lang) = explode('_', $_language);
+    $lang = 'de';
+    if ($_SESSION['_language']) {
+        list($lang) = explode('_', $_SESSION['_language']);
     }
 
     // determine Stud.IP version as of MAJOR.MINOR
     // from SOFTWARE_VERSION. That variable MUST match pattern MAJOR.MINOR.*
-    //
-    $v=array();
-    preg_match("/^([0-9]+\.[0-9]+)/", $GLOBALS['SOFTWARE_VERSION'], $v);
-    $version=$v[0];
+    preg_match('/^(\d+\.\d+)/', $GLOBALS['SOFTWARE_VERSION'], $v);
+    $version = $v[0];
 
-    $help_query="http://docs.studip.de/help/".$version."/".$lang."/".$loc.$helppage;
+    $help_query = sprintf('http://docs.studip.de/help/%s/%s/%s%s',
+                          $version, $lang, $loc, $helppage);
     return $help_query;
 }
 

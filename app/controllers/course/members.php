@@ -1,7 +1,7 @@
 <?php
 
 /*
- * MembersConrtoller
+ * MembersController
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -71,9 +71,6 @@ class Course_MembersController extends AuthenticatedController
 
         SkipLinks::addIndex(Navigation::getItem('/course/members')->getTitle(), 'main_content', 100);
 
-        Navigation::activateItem('/course/members');
-        Navigation::activateItem('/course/members/view');
-
         if (Request::isXhr()) {
             $this->set_layout(null);
         } else {
@@ -98,7 +95,9 @@ class Course_MembersController extends AuthenticatedController
             'tutor' => get_title_for_status('tutor', 2),
             'autor' => get_title_for_status('autor', 2),
             'user' => get_title_for_status('user', 2),
-            'accepted' => get_title_for_status('accepted', 2)
+            'accepted' => get_title_for_status('accepted', 2),
+            'awaiting' => _("Wartende NutzerInnen"),
+            'claiming' => _("Wartende NutzerInnen")
         );
 
         // StatusGroups for the view
@@ -109,9 +108,12 @@ class Course_MembersController extends AuthenticatedController
             'user' => get_title_for_status('user', 1)
         );
 
+        //check for admission / waiting list
+        update_admission($this->course_id);
+
         // Create new MembersModel, to get additionanl informations to a given Seminar
         $this->members = new MembersModel($this->course_id, $this->course_title);
-        $this->course = Course::find($this->course_id);
+        $this->members->checkUserVisibility();
     }
 
     function index_action()
@@ -125,13 +127,6 @@ class Course_MembersController extends AuthenticatedController
             unset($_SESSION['sms_msg']);
         }
 
-        // Check autor-perms
-        if (!$this->is_tutor) {
-            SkipLinks::addIndex(_("Sichtbarkeit ändern"), 'change_visibility');
-            $this->invisibles = $this->getInvisibleCount();
-            $this->my_visibilty = $this->getUserVisibility();
-        }
-
         $this->sort_by = Request::option('sortby', 'nachname');
         $this->order = Request::option('order', 'desc');
         $this->sort_status = Request::get('sort_status');
@@ -140,32 +135,55 @@ class Course_MembersController extends AuthenticatedController
             $this->order = $this->order == 'desc' ? 'asc' : 'desc';
         }
 
-        //preload user objects to avoid n+1 performance penalty
-        $members = $this->course->members;
-        $member_ids = $members->pluck('user_id');
-        $member_ids_map = array_flip($member_ids);
-        User::findEachMany(
-                function ($u) use ($members, $member_ids_map) {
-                    $offset = $member_ids_map[$u->id];
-                    $members[$offset]->user = $u;
-                }, $member_ids);
+        $filtered_members = $this->members->getMembers($this->sort_status, $this->sort_by . ' ' . $this->order, !$this->is_tutor ? $this->user_id : null);
+
+        if ($this->is_tutor) {
+            $filtered_members = array_merge($filtered_members, $this->members->getAdmissionMembers($this->sort_status, $this->sort_by . ' ' . $this->order ));
+            $this->awaiting = $filtered_members['awaiting']->toArray('user_id username vorname nachname visible kontingent mkdate');
+            $this->accepted = $filtered_members['accepted']->toArray('user_id username vorname nachname visible kontingent mkdate');
+            $this->claiming = $filtered_members['claiming']->toArray('user_id username vorname nachname visible kontingent mkdate');
+        }
+
+        // Check autor-perms
+        if (!$this->is_tutor) {
+            SkipLinks::addIndex(_("Sichtbarkeit ändern"), 'change_visibility');
+            // filter invisible user
+            $this->invisibles = count($filtered_members['autor']->findBy('visible', 'no')) + count($filtered_members['user']->findBy('visible', 'no'));
+            $current_user_id = $this->user_id;
+            $exclude_invisibles =
+                    function ($user) use ($current_user_id) {
+                        return ($user['visible'] != 'no' || $user['user_id'] == $current_user_id);
+                    };
+            $filtered_members['autor'] = $filtered_members['autor']->filter($exclude_invisibles);
+            $filtered_members['user'] = $filtered_members['user']->filter($exclude_invisibles);
+            $this->my_visibility = $this->getUserVisibility();
+            if (!$this->my_visibility['iam_visible']) {
+                $this->invisibles--;
+            }
+        }
 
         // get member informations
-        $this->dozenten = $this->getMembers('dozent');
-        $this->tutoren = $this->getMembers('tutor');
-        $this->autoren = $this->getAutors();
-        $this->users = $this->getMembers('user');
-        $this->awaiting = $this->getMembers('awaiting');
-        $this->accepted = $this->getMembers('accepted');
+        $this->dozenten = $filtered_members['dozent']->toArray('user_id username vorname nachname');
+        $this->tutoren = $filtered_members['tutor']->toArray('user_id username vorname nachname mkdate');
+        $this->autoren = $filtered_members['autor']->toArray('user_id username vorname nachname visible kontingent mkdate');
+        $this->users = $filtered_members['user']->toArray('user_id username vorname nachname visible kontingent mkdate');
         $this->studipticket = Seminar_Session::get_ticket();
         $this->subject = $this->getSubject();
         $this->groups = $this->status_groups;
-        $this->waitingTitle = $this->getTitleForAwaiting();
-
         // Check Seminar
         if ($this->is_tutor && $sem->isAdmissionEnabled()) {
-            $this->semAdmissionEnabled = true;
+            $this->course = $sem;
             $this->count = $this->members->getCountedMembers();
+            if ($sem->admission_type == 2 || $sem->admission_selection_take_place == 1) {
+                $this->waitingTitle = _("Warteliste");
+                $this->semAdmissionEnabled = 2;
+                $this->waiting_type = 'awaiting';
+            } else {
+                $this->waitingTitle = sprintf(_("Anmeldeliste (Losverfahren am %s)"), strftime('%x %R', $sem->admission_endtime));
+                $this->semAdmissionEnabled = 1;
+                $this->awaiting = $this->claiming;
+                $this->waiting_type = 'claiming';
+            }
         }
         // Set the infobox
         $this->setInfoBoxImage('infobox/groups.jpg');
@@ -212,7 +230,7 @@ class Course_MembersController extends AuthenticatedController
             }
         } elseif (!$this->is_tutor) {
             // Visibility preferences
-            if (!$this->my_visibilty['iam_visible']) {
+            if (!$this->my_visibility['iam_visible']) {
                 $text = _('Sie sind für andere TeilnehmerInnen auf der TeilnehmerInnen-Liste nicht sichtbar.');
                 $icon = 'icons/16/black/visibility-visible.png';
                 $modus = 'make_visible';
@@ -224,7 +242,7 @@ class Course_MembersController extends AuthenticatedController
                 $link_text = _('Klicken Sie hier, um unsichtbar zu werden.');
             }
 
-            $link = sprintf('<a href="%s">%s</a>', $this->url_for(sprintf('course/members/change_visibility/%s/%s', $modus, $this->my_visibilty['visible_mode'])), $link_text);
+            $link = sprintf('<a href="%s">%s</a>', $this->url_for(sprintf('course/members/change_visibility/%s/%s', $modus, $this->my_visibility['visible_mode'])), $link_text);
             $this->addToInfobox(_('Sichtbarkeit'), $text, 'icons/16/black/info.png');
             $this->addToInfobox(_('Sichtbarkeit'), $link, $icon);
         }
@@ -236,102 +254,29 @@ class Course_MembersController extends AuthenticatedController
         }
     }
 
-    /**
-     * Get all members by status of a seminar
-     * @return SimpleOrMapCollection
-     */
-    private function getMembers($status)
-    {
-        $course = $this->course;
-        // get members
-        if ($status == 'awaiting' || $status == 'accepted') {
-            $res = $course->admission_applicants->findBy('status', $status);
-
-            if ($status == $this->sort_status) {
-                $res->orderBy(sprintf('%s %s', $this->sort_by, $this->order), ($this->sort_by != 'nachname') ? SORT_NUMERIC : SORT_LOCALE_STRING);
-            } else {
-                $res->orderBy('position asc', SORT_NUMERIC);
-            }
-        } else {
-            $res = $course->members->findBy('status', $status);
-
-            if ($status == $this->sort_status) {
-                $res->orderBy(sprintf('%s %s', $this->sort_by, $this->order), ($this->sort_by != 'nachname') ? SORT_NUMERIC : SORT_LOCALE_STRING);
-            } else {
-                $res->orderBy('position nachname asc');
-            }
-        }
-        return $res;
-    }
-
-    /**
-     * Get all authors of a seminar
-     * @global Object $perm
-     * @return SimpleOrMapCollection
-     */
-    private function getAutors()
-    {
-        global $perm;
-
-        $course = $this->course;
-        $members = $course->members->findBy('status', 'autor');
-
-        // filter invisible user if not dozent
-        if (!$perm->have_studip_perm('dozent', $this->course_id)) {
-            $user_id = $this->user_id;
-            $members = $members->filter(function($user)use($user_id) {
-                        return ($user['visible'] != 'no' || $user['user_id'] == $user_id);
-                    });
-        }
-        // Sorting
-        if ($this->sort_status == 'autor') {
-            $members->orderBy(sprintf('%s %s', $this->sort_by, $this->order));
-        } else {
-            $members->orderBy('position asc');
-        }
-        return $members;
-    }
-
     /*
      * Returns an array with emails of members
      */
 
-    public function getEmailLinkByStatus($status)
+    public function getEmailLinkByStatus($status, $members)
     {
-        $course = $this->course;
-
-        if ($status == 'accepted' || $status == 'awaiting') {
-            $textStatus = 'NutzerInnen';
-            $members = $course->admission_applicants->findBy('status', $status);
-        } else {
-            $textStatus = $this->status_groups[$status];
-            $members = $course->members->findBy('status', $status);
+        if (!get_config('ENABLE_EMAIL_TO_STATUSGROUP')) {
+            return;
         }
 
-        $results = $members->pluck('email');
+        if (in_array($status, words('accepted awaiting claiming'))) {
+            $textStatus = _('Wartenden');
+        } else {
+            $textStatus = $this->status_groups[$status];
+        }
+
+        $results = SimpleCollection::createFromArray($members)->pluck('email');
 
         if (!empty($results)) {
-            return sprintf('<a href="mailto:%s">%s</a>', htmlReady(join(',', $results)), Assets::img('icons/16/white/move_right/mail.png', tooltip2(sprintf('E-Mail an alle %s versenden', $textStatus))));
+            return sprintf('<a href="mailto:%s">%s</a>', htmlReady(join(',', $results)), Assets::img('icons/16/blue/move_right/mail.png', tooltip2(sprintf('E-Mail an alle %s versenden', $textStatus))));
         } else {
             return null;
         }
-    }
-
-    /**
-     * Get the count of invisible members
-     *
-     * @return int
-     */
-    private function getInvisibleCount()
-    {
-        $course = $this->course;
-        $user_id = $this->user_id;
-
-        return $course->members->findBy('status', 'autor')->findBy('visible', 'no')
-                        ->filter(function($user)use($user_id) {
-                                    return $user['user_id'] != $user_id;
-                                })
-                        ->count();
     }
 
     /**
@@ -518,7 +463,7 @@ class Course_MembersController extends AuthenticatedController
             // selection fails
             if (!Request::option('new_tutor')) {
                 PageLayout::postMessage(MessageBox::error(_('Sie haben keine Auswahl getätigt
-                    oder der/ die gesuchte TeilnehmerInn wurde nicht gefunden')));
+                    oder der/die gesuchte TeilnehmerIn wurde nicht gefunden')));
                 $this->redirect('course/members/add_tutor');
             } else {
                 if ($sem->addMember(Request::option('new_tutor'), "tutor")) {
@@ -575,7 +520,7 @@ class Course_MembersController extends AuthenticatedController
             return;
         }
         //insert new autor
-        if (Request::option('new_autor') && (Request::submitted('add_autor_x') 
+        if (Request::option('new_autor') && (Request::submitted('add_autor_x')
                 || (Request::submitted('add_autor')) && $this->is_tutor)) {
 
             $msg = $this->members->addMember(Request::get('new_autor'), 'autor', Request::get('consider_contingent'));
@@ -585,12 +530,11 @@ class Course_MembersController extends AuthenticatedController
             return;
         } else {
             PageLayout::postMessage(MessageBox::error(_('Sie haben keine Auswahl getätigt
-                oder der/ die gesuchte TeilnehmerInn wurde nicht gefunden')));
+                oder der/die gesuchte TeilnehmerIn wurde nicht gefunden')));
             $this->redirect('course/members/add_member');
             return;
         }
     }
-
 
     /**
      * Send Stud.IP-Message to selected users
@@ -601,10 +545,11 @@ class Course_MembersController extends AuthenticatedController
             // create a usable array
             foreach ($this->flash['users'] as $user => $val) {
                 if ($val) {
-                    $users[] = UserModel::getUser($user, 'username');
+                    $users[] = User::find($user)->username;
                 }
             }
-            $_SESSION['sms_data']['p_rec'] = $users;
+            $_SESSION['sms_data'] = array();
+            $_SESSION['sms_data']['p_rec'] = array_filter($users);
             $this->redirect(URLHelper::getURL('sms_send.php', array('sms_source_page' => 'dispatch.php/course/members/index', 'messagesubject' => $this->getSubject(), 'tmpsavesnd' => 1)));
         } else {
             $this->redirect('course/members/index');
@@ -642,7 +587,6 @@ class Course_MembersController extends AuthenticatedController
                 }
             }
         }
-
 
         if (Request::get('csv_import')) {
             // remove duplicate users from csv-import
@@ -936,7 +880,7 @@ class Course_MembersController extends AuthenticatedController
 
         $this->flash['users'] = Request::getArray('awaiting');
         $this->flash['consider_contingent'] = Request::get('consider_contingent');
-
+        $waiting_type = Request::option('waiting_type');
         // select the additional method
         switch (Request::get('action_awaiting')) {
             case '':
@@ -946,7 +890,7 @@ class Course_MembersController extends AuthenticatedController
                 $this->redirect('course/members/insert_admission/awaiting/collection');
                 break;
             case 'remove':
-                $this->redirect('course/members/cancel_subscription/collection/awaiting');
+                $this->redirect('course/members/cancel_subscription/collection/' . $waiting_type);
                 break;
             case 'message':
                 $this->redirect('course/members/send_message');
@@ -1013,11 +957,11 @@ class Course_MembersController extends AuthenticatedController
 
         // create a usable array
         $users = array_filter($this->flash['users'], function ($user) {
-                        return $user;
-                    });
+                    return $user;
+                });
 
         if ($users) {
-            $msgs = $this->members->insertAdmissionMember($users, 'autor', Request::get('consider_contingent'));
+            $msgs = $this->members->insertAdmissionMember($users, 'autor', Request::get('consider_contingent'), $status == 'accepted');
             if ($msgs) {
                 if ($cmd == 'add_user') {
                     $message = sprintf(_('%s wurde in die Veranstaltung mit dem Status <b>%s</b> eingetragen.'), htmlReady(join(',', $msgs)), $this->decoratedStatusGroups['autor']);
@@ -1063,7 +1007,7 @@ class Course_MembersController extends AuthenticatedController
                 CSRFProtection::verifyUnsafeRequest();
                 $users = Request::getArray('users');
                 if (!empty($users)) {
-                    if ($status == 'accepted' || $status == 'awaiting') {
+                    if (in_array($status, words('accepted awaiting claiming'))) {
                         $msgs = $this->members->cancelAdmissionSubscription($users, $status);
                     } else {
                         $msgs = $this->members->cancelSubscription($users);
@@ -1142,7 +1086,7 @@ class Course_MembersController extends AuthenticatedController
 
             if ($msgs['no_tutor']) {
                 PageLayout::postMessage(MessageBox::error(sprintf(_('Das Hochstufen auf den Status  %s von %s
-                   konnte wegen fehldnder Rechte nicht durchgef&uuml;hrt werden.'), htmlReady($this->decoratedStatusGroups[$next_status]), htmlReady(join(', ', $msgs['no_tutor'])))));
+                   konnte wegen fehlender Rechte nicht durchgef&uuml;hrt werden.'), htmlReady($this->decoratedStatusGroups[$next_status]), htmlReady(join(', ', $msgs['no_tutor'])))));
             }
         } else {
             PageLayout::postMessage(MessageBox::error(sprintf(_('Sie haben keine %s zum Hochstufen ausgewählt'), htmlReady($this->status_groups[$status]))));
@@ -1193,6 +1137,66 @@ class Course_MembersController extends AuthenticatedController
     }
 
     /**
+     * Displays all members of the course and their aux data
+     * @return int fake return to stop after redirect;
+     */
+    function aux_action($format = null) {
+
+        // Users get forwarded to aux_input
+        if (!($this->is_dozent || $this->is_tutor)) {
+            $this->redirect('course/members/aux_input');
+            return 0;
+        }
+
+        // fetch course and aux data
+        $course = new Course($_SESSION['SessionSeminar']);
+        if (Request::submitted('save')) {
+            foreach ($course->members->findBy('status', 'autor') as $member) {
+                $course->aux->updateMember($member, Request::getArray($member->user_id));
+            }
+        }       
+        if (Request::submitted('export')) {
+            $aux = $course->aux->getCourseData($course, true);
+            $doc = new exportDoc();
+            $table = $doc->add('table');
+            $table->header = $aux['head'];
+            $table->content = $aux['rows'];
+            $doc->export('xls');
+        } else {
+            $this->aux = $course->aux->getCourseData($course);
+        }
+    }
+
+    /**
+     * Aux input for users
+     */
+    function aux_input_action() {
+
+        // Activate the autoNavi otherwise we dont find this page in navi
+        Navigation::activateItem('/course/members/aux');
+
+        // Fetch datafields for the user
+        $course = new Course($_SESSION['SessionSeminar']);
+        $member = $course->members->findOneBy('user_id', $GLOBALS['user']->id);
+        $this->datafields = $course->aux->getMemberData($member);
+
+        // Update em if they got submittet
+        if (Request::submitted('save')) {
+            $datafields = SimpleCollection::createFromArray($this->datafields);
+            foreach (Request::getArray('aux') as $aux => $value) {
+                $datafield = $datafields->findOneBy('datafield_id', $aux);
+                if ($datafield) {
+                    $typed = $datafield->getTypedDatafield();
+                    if ($typed->isEditable()) {
+                        $typed->setValueFromSubmit($value);
+                        $typed->store();
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Get the visibility of a user in a seminar
      * @param String $user_id
      * @param String $seminar_id
@@ -1200,10 +1204,10 @@ class Course_MembersController extends AuthenticatedController
      */
     private function getUserVisibility()
     {
-        $member = $this->course->members->findBy('user_id', $this->user_id);
+        $member = CourseMember::find(array($this->course_id, $this->user_id));
 
-        $visibility = $member->val('visible');
-        $status = $member->val('status');
+        $visibility = $member->visible;
+        $status = $member->status;
         #echo "<pre>"; var_dump($member); echo "</pre>";
         $result['visible_mode'] = false;
 
@@ -1218,26 +1222,7 @@ class Course_MembersController extends AuthenticatedController
             }
         }
 
-        $admission_member = $this->course->admission_applicants->findBy('user_id', $this->user_id);
-        $admission_visibility = $admission_member->val('visible');
-
-        if ($admission_visibility) {
-            $result['iam_visible'] = ($admission_visibility == 'yes' || $admission_visibility == 'unknown');
-            $result['visible_mode'] = 'awaiting';
-        }
-
         return $result;
-    }
-
-    /**
-     * Creates a String for the waitinglist
-     * @return String
-     */
-    private function getTitleForAwaiting()
-    {
-        $sem = Seminar::GetInstance($this->course_id);
-        return ($sem->admission_type == 2 || $sem->admission_selection_take_place == 1) ?
-                _("Warteliste") : _("Anmeldeliste");
     }
 
     /**
@@ -1246,7 +1231,7 @@ class Course_MembersController extends AuthenticatedController
      */
     private function getSubject()
     {
-        $result = $this->course->getValue('veranstaltungsnummer');
+        $result = Seminar::GetInstance($this->course_id)->getNumber();
 
         $subject = ($result == '') ? sprintf('[%s]', $this->course_title) :
                 sprintf('[%s] : %s', $result, $this->course_title);
