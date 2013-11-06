@@ -22,6 +22,9 @@ javascripts:
     - javascripts/smiley-picker.js
 
   visual-editor: &visual-editor
+    - javascripts/jquery/jquery.autosize-min.js
+    - javascripts/jquery/jquery.fileupload.js
+    - javascripts/jquery/jquery.iframe-transport.js
     - javascripts/ckeditor/ckeditor.js
     - javascripts/visual-editor.js
 
