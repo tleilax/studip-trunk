@@ -34,7 +34,27 @@ class Statusgruppen extends SimpleORMap {
     protected $belongs_to = array('parent' => array('class_name' => 'Statusgruppen',
             'foreign_key' => 'range_id'
     ));
+    public function __construct($id = null) {
+        parent::__construct($id);
+    }
     
+    public function getDatafields() {
+        return DataFieldEntry::getDataFieldEntries(array($this->range_id, $this->statusgruppe_id), 'roleinstdata');
+    }
+    
+    public function setDatafields($data) {
+        foreach ($this->getDatafields() as $field) {
+               $field->setValueFromSubmit($data[$field->getId()]);
+               $field->store();
+        }
+    }
+    
+    /**
+     * Finds all statusgroups by a course id
+     * 
+     * @param string The course id
+     * @return array Statusgroups
+     */
     static public function findBySeminar_id ($course_id) {
         return self::findBySQL("range_id = ?", array($course_id));
     }
@@ -154,7 +174,7 @@ class Statusgruppen extends SimpleORMap {
      * @return string displaystring
      */
     public function getPlaces() {
-        return $this->size ? "( " . min(count($this->getUsers()), $this->size) . " / {$this->size} )" : "";
+        return $this->size ? "( " . min(count($this->members), $this->size) . " / {$this->size} )" : "";
     }
 
     /**
@@ -258,6 +278,16 @@ class Statusgruppen extends SimpleORMap {
         $sql2 = "UPDATE statusgruppe_user SET position = ? WHERE statusgruppe_id = ? AND user_id = ?";
         $stmt2 = $db->prepare($sql2);
         $stmt2->execute(array($pos, $this->id, $statususer->user_id));
+    }
+    
+    public function store() {
+        if ($this->isNew()) {
+            $sql = "SELECT MAX(position)+1 FROM statusgruppen WHERE range_id = ?";
+            $stmt = DBManager::get()->prepare($sql);
+            $stmt->execute(array($this->range_id));
+            $this->position = $stmt->fetchColumn();
+        }
+        parent::store();
     }
 
 }
