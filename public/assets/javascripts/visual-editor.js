@@ -16,15 +16,20 @@ jQuery(function($){
 
 function replaceTextarea(textarea){
     var uiColor = '#7788AA';  // same as studip's tab navigation background
+
     var toolbarId = 'cktoolbar';
-    var toolbar = $('<div>').attr('id', toolbarId);
+    var toolbar = $('#' + toolbarId);
+    if (toolbar.length == 0) {
+        toolbar = $('<div>').attr('id', toolbarId);
+    }
+
     /*var toolbarHandle = $('<div>').html('&#9776;&nbsp;').attr({
         id: 'toolbar-handle',
         title: 'Werkzeugleiste verschieben'
     });
     toolbar.append(toolbarHandle);*/
-    var anchor = $('<div></div>');
-    anchor.insertBefore(textarea);
+    var toolbar_placeholder = $('<div>');
+    toolbar_placeholder.insertBefore(textarea);
     toolbar.insertBefore(textarea);
 
     CKEDITOR.replace(textarea[0], {
@@ -240,23 +245,22 @@ function replaceTextarea(textarea){
         });
  */
         // do not scroll toolbar out of viewport
-        var placeholder = $('<div>');
         var stickyTools = function() {
             var MARGIN = 30;
-            if($(window).scrollTop() + MARGIN > anchor.offset().top) {
+            if($(window).scrollTop() + MARGIN > toolbar_placeholder.offset().top) {
                 toolbar.css({
                     position: 'fixed',
                     top: MARGIN
                 });
-                placeholder
-                    .css('height', toolbar.height())
-                    .insertAfter(toolbar);
+                toolbar_placeholder
+                    .css('height', toolbar.height());
             } else {
                 toolbar.css({
                     position: 'relative',
                     top: ''
                 });
-                placeholder.remove();
+                toolbar_placeholder
+                    .css('height', 0);
             }
         };
         $(window).scroll(stickyTools);
