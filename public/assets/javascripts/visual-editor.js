@@ -267,8 +267,8 @@ function replaceTextarea(textarea){
     });
 }
 
-$('textarea.add_toolbar').on('focus', function(){
-    $('.editor_toolbar > .buttons').remove();
+$('.editor_toolbar > .buttons').remove();
+$('textarea.add_toolbar').each(function(){
     if (!CKEDITOR.instances[this]) {
         replaceTextarea($(this));
     }
