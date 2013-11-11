@@ -214,7 +214,7 @@ function replaceTextarea(textarea){
 
         // display shadow when editor area is focused
         var fadeTime = 300;
-        var editorArea = textarea.siblings('#cke_richtext-editor');
+        var editorArea = textarea.siblings('.cke_chrome');
         editor.on('focus', function(event){
             // add editor area shadow
             editorArea.css('box-shadow', '0 3px 15px ' + uiColor);
