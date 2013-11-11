@@ -130,7 +130,7 @@ if (isset($GLOBALS['DB_STUDIP_SLAVE_HOST'])) {
 } else {
     DBManager::getInstance()->aliasConnection('studip', 'studip-slave');
 }
-
+//include 'tools/debug/StudipDebugPDO.class.php';
 /**
  * @deprecated
  */
@@ -347,6 +347,7 @@ class Seminar_Session extends Session {
 class Seminar_User {
     public $cfg = null; //UserConfig object
     private $user = null; //User object
+    private $last_online_time = null;
 
     function __construct($user = null)
     {
@@ -360,6 +361,7 @@ class Seminar_User {
             $this->user->user_id = 'nobody';
         }
         $this->cfg = UserConfig::get($this->user->user_id);
+        $this->last_online_time = $this->get_last_action();
     }
 
     function get_last_action()
@@ -375,11 +377,15 @@ class Seminar_User {
     {
         if ($this->id && $this->id != 'nobody') {
             if ($timestamp <= 0) {
+                if ((time() - $this->last_online_time) < 180) {
+                    return 0;
+                }
                 $timestamp = time();
             }
             try {
-                $query = "REPLACE INTO user_online (user_id, last_lifesign)
-                          VALUES (:user_id, UNIX_TIMESTAMP() - :time_delta)";
+                $query = "INSERT INTO user_online (user_id, last_lifesign)
+                          VALUES (:user_id, UNIX_TIMESTAMP() - :time_delta)
+                          ON DUPLICATE KEY UPDATE last_lifesign = UNIX_TIMESTAMP() - :time_delta";
                 $stmt = DBManager::get()->prepare($query);
                 $stmt->bindValue(':user_id', $this->id);
                 $stmt->bindValue(':time_delta', time() - $timestamp, PDO::PARAM_INT);
