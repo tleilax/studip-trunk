@@ -79,7 +79,8 @@ class PasswordAdmission extends AdmissionRule
      * @return String A template-based input form.
      */
     public function getInput() {
-        $tpl = $GLOBALS['template_factory']->open('admission/rules/passwordadmission/input');
+        $factory = new Flexi_TemplateFactory(dirname(__FILE__).'/templates/');
+        $tpl = $factory->open('input');
         $tpl->set_attribute('rule', $this);
         return $tpl->render();
     }
@@ -145,10 +146,14 @@ class PasswordAdmission extends AdmissionRule
     {
         $errors = array();
         if ($this->checkTimeFrame()) {
-            $pwcheck = $this->hasher->CheckPassword(Request::get('pwarule_password'),
-                $this->getPassword());
-            if (!$pwcheck) {
-                $errors[] = _('Das eingegebene Passwort ist falsch.');
+            if (Request::get('pwarule_password') === null) {
+                $errors[] = _('Es wurde kein Passwort eingegeben.');
+            } else {
+                $pwcheck = $this->hasher->CheckPassword(Request::get('pwarule_password'),
+                        $this->getPassword());
+                if (!$pwcheck) {
+                    $errors[] = _('Das eingegebene Passwort ist falsch.');
+                }
             }
         }
         return $errors;
@@ -191,7 +196,7 @@ class PasswordAdmission extends AdmissionRule
             `message`=VALUES(`message`), `start_time`=VALUES(`start_time`),
             `end_time`=VALUES(`end_time`), `password`=VALUES(`password`), 
             `chdate`=VALUES(`chdate`)");
-        $stmt->execute(array($this->id, $this->message, (int)$this->startTime, (int)$this->EndTime, $this->password, 
+        $stmt->execute(array($this->id, $this->message, (int)$this->startTime, (int)$this->endTime, $this->password, 
             time(), time()));
         return $this;
     }

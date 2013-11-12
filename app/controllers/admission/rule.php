@@ -55,9 +55,7 @@ class Admission_RuleController extends AuthenticatedController {
         } else {
             $this->rule->setAllData($requestData);
         }
-        if (!$this->via_ajax) {
-            $this->rule->store();
-        }
+        $this->rule->store();
     }
 
     public function delete_action($ruleType, $ruleId) {

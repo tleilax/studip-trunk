@@ -50,7 +50,7 @@ class Course_EnrolmentController extends AuthenticatedController
         if (!$enrolment_info['enrolment_allowed']) {
             throw new AccessDeniedException($enrolment_info['description']);
         }
-        PageLayout::setTitle(getHeaderLine($this->course_id)." - " . _("Veranstaltungsfreischaltung"));
+        PageLayout::setTitle(getHeaderLine($this->course_id)." - " . _("Veranstaltungsanmeldung"));
     }
 
     /**
@@ -61,7 +61,19 @@ class Course_EnrolmentController extends AuthenticatedController
         $user_id = $GLOBALS['user']->id;
         $courseset = array_pop(CourseSet::getSetsForCourse($this->course_id));
         if ($courseset) {
-            $this->courseset_message = $courseset->toString(true);
+            $errors = $courseset->checkAdmission($user_id, $this->course_id);
+            if (count($errors)) {
+                $this->courseset_message = $courseset->toString(true);
+                $this->admission_error = MessageBox::error(_("Die Anmeldung war nicht erfolgreich."), $errors);
+                foreach ($courseset->getAdmissionRules() as $rule) {
+                    $admission_form .= $rule->getInput();
+                }
+                if ($admission_form) {
+                    $this->admission_form = $admission_form;
+                }
+            } else {
+                $enrol_user = true;
+            }
         } else {
             $enrol_user = true;
         }
@@ -88,6 +100,7 @@ class Course_EnrolmentController extends AuthenticatedController
                     PageLayout::postMessage(MessageBox::success($success));
                 }
             }
+            unset($this->courset_message);
         }
     }
 
