@@ -135,21 +135,21 @@ STUDIP.Admission = {
 
     validateRuleConfig: function(containerId, targetUrl) {
         var valid = true;
-        $.ajax({
+        var error = $.ajax({
             type: 'post',
+            async: false,
             url: targetUrl,
             data: $('#ruleform').serialize(),
             dataType: 'html',
-            success: function(data, textStatus, jqXHR) {
-                if (data != '') {
-                    $('#'+containerId).html(data);
-                    valid = false;
-                }
-            },
+            
             error: function(jqXHR, textStatus, errorThrown) {
                 alert('Status: '+textStatus+"\nError: "+errorThrown);
             }
-        });
+        }).responseText;
+        if (error) {
+            $('#'+containerId).html(error);
+            valid = false;
+        }
         return valid;
     },
 

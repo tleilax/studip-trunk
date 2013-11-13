@@ -20,13 +20,6 @@ require_once(realpath(dirname(__FILE__).'/..').'/ConditionField.class.php');
 
 class SubjectCondition extends ConditionField
 {
-    // --- ATTRIBUTES ---
-
-    /**
-     * The set of valid compare operators.
-     */
-    public $validCompareOperators = array('=', '!=');
-
     // --- OPERATIONS ---
 
     /**

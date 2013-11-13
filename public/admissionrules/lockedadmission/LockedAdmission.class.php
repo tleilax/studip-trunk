@@ -30,7 +30,9 @@ class LockedAdmission extends AdmissionRule
      */
     public function __construct($ruleId='')
     {
-        $this->id = $ruleId;
+        parent::__construct($ruleId);
+        $this->default_message = _('Die Anmeldung ist gesperrt.');
+        
         if ($ruleId) {
             $this->load();
         } else {
@@ -103,7 +105,7 @@ class LockedAdmission extends AdmissionRule
     public function ruleApplies($userId, $courseId)
     {
         // YOU CANNOT PASS!
-        return array(_('Die Anmeldung ist gesperrt.'));
+        return array($this->getMessage());
     }
 
     /**

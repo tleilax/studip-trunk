@@ -232,7 +232,7 @@ class ConditionField
      */
     public function setCompareOperator($newOperator)
     {
-        if (in_array($newOperator, $this->validCompareOperators)) {
+        if (in_array($newOperator, array_keys($this->validCompareOperators))) {
             $this->compareOperator = $newOperator;
             return $this;
         } else {

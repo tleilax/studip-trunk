@@ -41,7 +41,8 @@ class PasswordAdmission extends AdmissionRule
      */
     public function __construct($ruleId='')
     {
-        $this->id = $ruleId;
+        parent::__construct($ruleId);
+        $this->default_message = _('Das eingegebene Passwort ist falsch.');
         // Create a new bcrypt password hasher (exclude weaker algorithms).
         $this->hasher = new PasswordHash(8, false);
         if ($ruleId) {
@@ -147,12 +148,12 @@ class PasswordAdmission extends AdmissionRule
         $errors = array();
         if ($this->checkTimeFrame()) {
             if (Request::get('pwarule_password') === null) {
-                $errors[] = _('Es wurde kein Passwort eingegeben.');
+                $errors[] = _('Die Eingabe eines Passwortes ist erforderlich.');
             } else {
                 $pwcheck = $this->hasher->CheckPassword(Request::get('pwarule_password'),
                         $this->getPassword());
                 if (!$pwcheck) {
-                    $errors[] = _('Das eingegebene Passwort ist falsch.');
+                    $errors[] = $this->getMessage();
                 }
             }
         }

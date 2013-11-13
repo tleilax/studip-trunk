@@ -42,7 +42,9 @@ class LimitedAdmission extends AdmissionRule
      */
     public function __construct($ruleId='')
     {
-        $this->id = $ruleId;
+        parent::__construct($ruleId);
+        $this->default_message = _('Sie haben sich bereits zur maximalen Anzahl von %s Veranstaltungen angemeldet.');
+
         if ($ruleId) {
             $this->load();
         } else {
@@ -106,7 +108,7 @@ class LimitedAdmission extends AdmissionRule
      */
     public function getMaxNumber()
     {
-        return $this->maxNumber;
+        return (int)$this->maxNumber;
     }
 
     /**
@@ -173,8 +175,7 @@ class LimitedAdmission extends AdmissionRule
             // or own user limit.
             if (!($number < 
                     min($this->maxNumber, $this->getCustomMaxNumber($userId)))) {
-                $errors[] = _('Sie haben sich bereits zur maximalen Anzahl von '.
-                    'Veranstaltungen angemeldet.');
+                $errors[] = $this->getMessage();
             }
         }
         return $errors;
@@ -269,7 +270,12 @@ class LimitedAdmission extends AdmissionRule
         }
         return $errors;
     }
-
+    
+    public function getMessage()
+    {
+        $message = parent::getMessage();
+        return sprintf($message, $this->getMaxNumber());
+    }
 } /* end of class LimitedAdmission */
 
 ?>

@@ -30,10 +30,16 @@ abstract class AdmissionRule
     public $id = '';
 
     /**
-     * A message that is shown to users that are rejected for admission 
+     * A customizable message that is shown to users that are rejected for admission 
      * because of the current rule.
      */
     public $message = '';
+    
+    /**
+     * default message that is shown to users that are rejected for admission
+     * because of the current rule.
+     */
+    public $default_message = '';
 
     /**
      * When does the validity start?
@@ -162,7 +168,7 @@ abstract class AdmissionRule
             $GLOBALS['template_factory']->open('admission/rules/input_end')->render()
         );
     }
-
+    
     /**
      * Gets some text that describes what this AdmissionRule (or respective 
      * subclass) does.
@@ -173,6 +179,10 @@ abstract class AdmissionRule
             "können.");
     }
 
+    public function getInput()
+    {
+        return '';
+    }
     /**
      * Gets the rule ID.
      *
@@ -190,7 +200,7 @@ abstract class AdmissionRule
      */
     public function getMessage()
     {
-        return $this->message;
+        return $this->message ?: $this->default_message;
     }
 
     /**

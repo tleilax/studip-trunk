@@ -46,6 +46,7 @@ class TimedAdmission extends AdmissionRule
     public function __construct($ruleId='')
     {
         parent::__construct($ruleId);
+        $this->default_message = _('Sie befinden sich nicht innerhalb des Anmeldezeitraums.');
         if ($ruleId) {
             $this->load();
         } else {
@@ -150,7 +151,7 @@ class TimedAdmission extends AdmissionRule
     public function ruleApplies($userId, $courseId) {
         $errors = array();
         if (!$this->checkTimeFrame()) {
-            $errors[] = _('Sie befinden sich nicht innerhalb des Anmeldezeitraums.');
+            $errors[] = $this->getMessage();
         }
         return $errors;
     }

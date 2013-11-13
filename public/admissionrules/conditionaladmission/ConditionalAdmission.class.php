@@ -39,7 +39,8 @@ class ConditionalAdmission extends AdmissionRule
      */
     public function __construct($ruleId='')
     {
-        $this->id = $ruleId;
+        parent::__construct($ruleId);
+        $this->default_message = _("Sie erfüllen nicht die Bedingung: %s");
         if ($ruleId) {
             $this->load();
         } else {
@@ -196,7 +197,7 @@ class ConditionalAdmission extends AdmissionRule
             // Check all configured conditions.
             foreach ($this->conditions as $condition) {
                 if (!$condition->isFulfilled($userId)) {
-                    $failed[] = $condition;
+                    $failed[] = $this->getMessage($condition->toString());
                 }
             }
         } else {
@@ -291,10 +292,20 @@ class ConditionalAdmission extends AdmissionRule
     public function validate($data)
     {
         $errors = parent::validate($data);
-        if (!$data['conditions[]']) {
+        if (!$data['conditions']) {
             $errors[] = _('Es muss mindestens eine Auswahlbedingung angegeben werden.');
         }
         return $errors;
+    }
+    
+    public function getMessage($condition = null)
+    {
+        $message = parent::getMessage();
+        if ($condition) {
+            return sprintf($message, $condition);
+        } else {
+            return $message;
+        }
     }
 
 } /* end of class ConditionalAdmission */

@@ -21,12 +21,6 @@ class DegreeCondition extends ConditionField
 {
     // --- ATTRIBUTES ---
 
-    /**
-     * The set of valid compare operators.
-     */
-    public $validCompareOperators = array('=', '!=');
-
-    // --- OPERATIONS ---
 
     /**
      * Standard constructor.

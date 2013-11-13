@@ -33,18 +33,18 @@ STUDIP.Conditions = {
 
     addCondition: function(containerId, targetUrl) {
         var children = $('.conditionfield');
-        query = '';
+        var query = '';
         for (var i=0 ; i<children.size() ; i++) {
             var current = $(children[i]);
             if (query != '') {
                 query += '&';
             }
             query += 'field[]='+
-                current.children('.conditionfield_class:first').val()+
+                encodeURIComponent(current.children('.conditionfield_class:first').val())+
                 '&compare_operator[]='+
-                current.children('.conditionfield_compare_op:first').val()+
+                encodeURIComponent(current.children('.conditionfield_compare_op:first').val())+
                 '&value[]='+
-                current.children('.conditionfield_value:first').val();
+                encodeURIComponent(current.children('.conditionfield_value:first').val());
         }
         $.ajax({
             type: 'post',
