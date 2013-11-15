@@ -102,8 +102,24 @@ class AdmissionPriority
                 VALUES (?, ?, ?, ?, ?, ?)
                 ON DUPLICATE KEY UPDATE `priority`=VALUES(`priority`), 
                     `chdate`=VALUES(`chdate`)");
-        return $stmt->execute(array($userId, $courseSetId, $courseId, 
+        $stmt->execute(array($userId, $courseSetId, $courseId, 
             $priority, time(), time()));
+        return $stmt->rowCount();
+    }
+    
+    public static function unsetPriority($courseSetId, $userId, $courseId)
+    {
+        return DBManager::get()
+                ->execute("DELETE FROM priorities WHERE user_id=? AND seminar_id=? AND set_id=? LIMIT 1",
+                 array($userId, $courseId, $courseSetId));
+                
+    }
+    
+    public static function getPrioritiesStats($courseSetId)
+    {
+        return DBManager::get()
+                ->fetchGrouped("SELECT seminar_id, COUNT(*) as c, AVG(priority) as a FROM priorities WHERE set_id = ? GROUP BY seminar_id",
+                 array($courseSetId));
     }
 
 } /* end of class AdmissionPriority */

@@ -32,7 +32,7 @@ class Course_EnrolmentController extends AuthenticatedController
         $this->current_action = $action;
         parent::before_filter($action, $args);
         $this->course_id = $args[0];
-        if (!in_array($action, words('apply'))) {
+        if (!in_array($action, words('apply claim'))) {
             $this->redirect($this->url_for('apply/' . $action));
             return false;
         }
@@ -59,7 +59,8 @@ class Course_EnrolmentController extends AuthenticatedController
     function apply_action()
     {
         $user_id = $GLOBALS['user']->id;
-        $courseset = array_pop(CourseSet::getSetsForCourse($this->course_id));
+        $courseset = CourseSet::getSetForCourse($this->course_id);
+        $this->course_name = PageLayout::getTitle();
         if ($courseset) {
             $errors = $courseset->checkAdmission($user_id, $this->course_id);
             if (count($errors)) {
@@ -72,7 +73,29 @@ class Course_EnrolmentController extends AuthenticatedController
                     $this->admission_form = $admission_form;
                 }
             } else {
-                $enrol_user = true;
+                if ($courseset->isSeatDistributionEnabled()) {
+                    $msg = _("Die Plätze in dieser Veranstaltung werden automatisch verteilt.");
+                    if ($limit = $courseset->getAdmissionRule('LimitedAdmission')) {
+                        $msg_details[] = sprintf(_("Diese Veranstaltung gehört zu einem Anmeldeset mit %s Veranstaltungen. Sie können maximal %s davon belegen. Bei der Verteilung werden die von Ihnen gewünschten Prioritäten berücksichtigt."),
+                                         count($courseset->getCourses()), $limit->getMaxNumberForUser($user_id));
+                        $this->priocourses = Course::findMany($courseset->getCourses(), "ORDER BY Name");
+                        $this->user_prio = AdmissionPriority::getPrioritiesByUser($courseset->getId(), $user_id);
+                        
+                        $this->prio_stats = AdmissionPriority::getPrioritiesStats($courseset->getId());
+                        $this->already_claimed = count($this->user_prio);
+                    } else {
+                        $this->priocourses = Course::find($this->course_id);
+                        $this->already_claimed = array_key_exists($this->course_id, AdmissionPriority::getPrioritiesByUser($courseset->getId(), $user_id));
+                    }
+                    $msg_details[] = _("Zeitpunkt der automatischen Verteilung: ") . strftime("%x %R", $courseset->getSeatDistributionTime());
+                    $this->num_claiming = count(AdmissionPriority::getPrioritiesByCourse($courseset->getId(), $this->course_id));
+                    if ($this->already_claimed) {
+                        $msg_details[] = _("Sie sind bereits für die Verteilung angemeldet.");
+                    }
+                    $this->courseset_message = MessageBox::info($msg, $msg_details);
+                } else {
+                    $enrol_user = true;
+                }
             }
         } else {
             $enrol_user = true;
@@ -102,6 +125,41 @@ class Course_EnrolmentController extends AuthenticatedController
             }
             unset($this->courset_message);
         }
+    }
+    
+    function claim_action()
+    {
+        CSRFProtection::verifyUnsafeRequest();
+        $user_id = $GLOBALS['user']->id;
+        $courseset = CourseSet::getSetForCourse($this->course_id);
+        if ($courseset->isSeatDistributionEnabled() && !count($courseset->checkAdmission($user_id, $this->course_id))) {
+            if ($limit = $courseset->getAdmissionRule('LimitedAdmission')) {
+                foreach(Request::getArray('admission_prio') as $course_id => $p) {
+                    $changed += AdmissionPriority::setPriority($courseset->getId(), $user_id, $course_id, $p);
+                }
+                foreach(Request::getArray('admission_prio_delete') as $course_id => $p) {
+                    $changed += AdmissionPriority::unsetPriority($courseset->getId(), $user_id, $course_id);
+                }
+                if ($changed) {
+                    if (count(AdmissionPriority::getPrioritiesByUser($courseset->getId(), $user_id))) {
+                        PageLayout::postMessage(MessageBox::success(_("Ihre Priorisierung wurde gespeichert.")));
+                    } else {
+                        PageLayout::postMessage(MessageBox::success(_("Ihre Anmeldung zur Platzvergabe wurde zurückgezogen.")));
+                    }
+                }
+            } else {
+                if (Request::int('courseset_claimed')) {
+                    if (AdmissionPriority::setPriority($courseset->getId(), $user_id, $this->course_id, 1)) {
+                        PageLayout::postMessage(MessageBox::success(_("Ihre Anmeldung zur Platzvergabe wurde gespeichert.")));
+                    }
+                } else {
+                    if (AdmissionPriority::unsetPriority($courseset->getId(), $user_id, $this->course_id)) {
+                        PageLayout::postMessage(MessageBox::success(_("Ihre Anmeldung zur Platzvergabe wurde zurückgezogen.")));
+                    }
+                }
+            }
+        }
+        $this->redirect($this->url_for('apply/' . $this->course_id));
     }
 
     function url_for($to = '', $params = array())

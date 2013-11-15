@@ -21,11 +21,6 @@ class LimitedAdmission extends AdmissionRule
 {
     // --- ATTRIBUTES ---
 
-    /**
-     * ID of the CourseSet this admission rule belongs to (is stored here for 
-     * performance reasons).
-     */
-    public $courseSetId = '';
 
     /**
      * Maximal number of courses that a user can register for.
@@ -40,9 +35,9 @@ class LimitedAdmission extends AdmissionRule
      * @param  String ruleId
      * @return LimitedAdmission
      */
-    public function __construct($ruleId='')
+    public function __construct($ruleId='', $courseSetId = '')
     {
-        parent::__construct($ruleId);
+        parent::__construct($ruleId, $courseSetId);
         $this->default_message = _('Sie haben sich bereits zur maximalen Anzahl von %s Veranstaltungen angemeldet.');
 
         if ($ruleId) {
@@ -110,6 +105,12 @@ class LimitedAdmission extends AdmissionRule
     {
         return (int)$this->maxNumber;
     }
+    
+    public function getMaxNumberForUser($userId)
+    {
+        return min($this->maxNumber, $this->getCustomMaxNumber($userId)); 
+    }
+    
 
     /**
      * Return this rule's name.
@@ -143,7 +144,6 @@ class LimitedAdmission extends AdmissionRule
             FROM `limitedadmissions` WHERE `rule_id`=? LIMIT 1");
         $stmt->execute(array($this->id));
         if ($current = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $this->courseSetId = $current['set_id'];
             $this->message = $current['message'];
             $this->startTime = $current['start_time'];
             $this->endTime = $current['end_time'];
@@ -174,8 +174,8 @@ class LimitedAdmission extends AdmissionRule
             // Check if the number is smaller than admission rule limit 
             // or own user limit.
             if (!($number < 
-                    min($this->maxNumber, $this->getCustomMaxNumber($userId)))) {
-                $errors[] = $this->getMessage();
+                    $this->getMaxNumberForUser($userId))) {
+                $errors[] = $this->getMessage($userId);
             }
         }
         return $errors;
@@ -271,10 +271,11 @@ class LimitedAdmission extends AdmissionRule
         return $errors;
     }
     
-    public function getMessage()
+    public function getMessage($userId = null)
     {
         $message = parent::getMessage();
-        return sprintf($message, $this->getMaxNumber());
+        $max_number = $userId ? $this->getMaxNumberForUser($userId) : $this->getMaxNumber();
+        return sprintf($message, $max_number);
     }
 } /* end of class LimitedAdmission */
 

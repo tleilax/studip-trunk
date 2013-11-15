@@ -43,9 +43,9 @@ class TimedAdmission extends AdmissionRule
      *
      * @param  String ruleId
      */
-    public function __construct($ruleId='')
+    public function __construct($ruleId='', $courseSetId = '')
     {
-        parent::__construct($ruleId);
+        parent::__construct($ruleId, $courseSetId);
         $this->default_message = _('Sie befinden sich nicht innerhalb des Anmeldezeitraums.');
         if ($ruleId) {
             $this->load();

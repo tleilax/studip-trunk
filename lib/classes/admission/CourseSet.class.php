@@ -17,6 +17,8 @@
 
 require_once('lib/classes/admission/AdmissionRule.class.php');
 require_once('lib/classes/admission/ConditionField.class.php');
+require_once('lib/classes/admission/RandomAlgorithm.class.php');
+require_once('lib/classes/admission/AdmissionPriority.class.php');
 
 class CourseSet
 {
@@ -241,6 +243,19 @@ class CourseSet
         }
     }
 
+    public function isSeatDistributionEnabled()
+    {
+        return $this->algorithm && $this->hasAdmissionRule('TimedAdmission') && !$this->hasAlgorithmRun;
+    }
+
+    public function getSeatDistributionTime()
+    {
+        $timed_admission = $this->getAdmissionRule('TimedAdmission');
+        if ($timed_admission) {
+            return $timed_admission->getDistributionTime();
+        }
+    }
+
     /**
      * Get all admission rules belonging to the course set.
      *
@@ -251,6 +266,11 @@ class CourseSet
         return $this->admissionRules;
     }
 
+    public function getAdmissionRule($class_name)
+    {
+        return array_pop(array_filter($this->getAdmissionRules(), function($r) use ($class_name) {
+            return $r instanceof $class_name;}));
+    }
     /**
      * check if course set has given admission rule
      * 
@@ -259,10 +279,7 @@ class CourseSet
      */
     public function hasAdmissionRule($rule)
     {
-        $check = array_filter($this->getAdmissionRules(), function($r) use ($rule) {
-            return strtolower(get_class($r)) === strtolower($rule);
-        });
-        return count($check) > 0;
+        return is_object($this->getAdmissionRule($rule));
     }
 
     /**
@@ -379,18 +396,16 @@ class CourseSet
      * @param  String courseId
      * @return Array
      */
-    public static function getSetsForCourse($courseId)
+    public static function getSetForCourse($courseId)
     {
-        $sets = array();
         $stmt = DBManager::get()->prepare("SELECT `set_id` 
             FROM `seminar_courseset` WHERE `seminar_id`=?");
         $stmt->execute(array($courseId));
-        $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        foreach ($data as $entry) {
-            $current = new CourseSet($entry['set_id']);
-            $sets[] = $current;
+        $set_id = $stmt->fetchColumn();
+        if ($set_id) {
+            return new CourseSet($set_id);
         }
-        return $sets;
+        return null;
     }
 
     /**
@@ -425,8 +440,9 @@ class CourseSet
         if ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $this->name = $data['name'];
             $this->infoText = $data['infotext'];
+            $this->hasAlgorithmRun = (bool)$data['algorithm_run'];
             if ($data['algorithm']) {
-                if (StudipAutoloader::loadClass($data['algorithm'])) {
+                if (class_exists($data['algorithm'])) {
                     $this->algorithm = new $data['algorithm']();
                 }
             }
@@ -452,7 +468,7 @@ class CourseSet
         while ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
             if (class_exists($data['type'])) {
                 $this->admissionRules[$data['rule_id']] = 
-                    new $data['type']($data['rule_id']);
+                    new $data['type']($data['rule_id'], $this->id);
             }
         }
         // Load assigned user lists.

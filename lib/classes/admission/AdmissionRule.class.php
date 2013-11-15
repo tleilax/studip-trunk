@@ -46,10 +46,17 @@ abstract class AdmissionRule
      */
     public $startTime = 0;
 
+    /**
+     * ID of the CourseSet this admission rule belongs to (is stored here for
+     * performance reasons).
+     */
+    public $courseSetId = '';
+
     // --- OPERATIONS ---
 
-    public function __construct($ruleId='') {
+    public function __construct($ruleId='', $courseSetId = '') {
         $this->id = $ruleId;
+        $this->courseSetId = $courseSetId;
     }
 
     /**
@@ -100,7 +107,7 @@ abstract class AdmissionRule
         do {
             $newid = md5(uniqid(get_class($this).microtime(), true));
             $db = DBManager::get()->query("SELECT `rule_id` 
-                FROM `".$tableName."` WHERE `rule_id`='.$newid.'");
+                FROM `".$tableName."` WHERE `rule_id`=" . DBManager::get()->quote($newid));
         } while ($db->fetch());
         return $newid;
     }

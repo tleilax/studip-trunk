@@ -2776,7 +2776,7 @@ class Seminar
             $info['description'] = _("Die Veranstaltung ist gesperrt, Sie können sich nicht eintragen!");
             return $info;
         }
-        if ($courseset = array_pop(CourseSet::getSetsForCourse($this->getId()))) {
+        if ($courseset = CourseSet::getSetForCourse($this->getId())) {
             $info['enrolment_allowed'] = true;
             $info['cause'] = 'courseset';
             $info['description'] = _("Die Anmeldung zu dieser Veranstaltung folgt speziellen Regeln. Lesen Sie den Hinweistext.");

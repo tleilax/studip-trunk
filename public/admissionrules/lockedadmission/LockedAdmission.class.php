@@ -28,9 +28,9 @@ class LockedAdmission extends AdmissionRule
      *
      * @param  String ruleId
      */
-    public function __construct($ruleId='')
+    public function __construct($ruleId='', $courseSetId = '')
     {
-        parent::__construct($ruleId);
+        parent::__construct($ruleId, $courseSetId);
         $this->default_message = _('Die Anmeldung ist gesperrt.');
         
         if ($ruleId) {

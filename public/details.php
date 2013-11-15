@@ -753,8 +753,7 @@ echo $template_factory->render(
             </tr>
         <? endif ?>
         <?php
-        if ($coursesets = CourseSet::getSetsForCourse($sem_id)) {
-            $courseset = $coursesets[0];
+        if ($courseset = CourseSet::getSetForCourse($sem_id)) {
         ?>
             <tr>
                 <td width="1%">&nbsp;</td>

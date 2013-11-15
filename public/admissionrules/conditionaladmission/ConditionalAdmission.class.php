@@ -37,9 +37,9 @@ class ConditionalAdmission extends AdmissionRule
      *      will be loaded from database.
      * @return AdmissionRule the current object (this).
      */
-    public function __construct($ruleId='')
+    public function __construct($ruleId='', $courseSetId = '')
     {
-        parent::__construct($ruleId);
+        parent::__construct($ruleId, $courseSetId);
         $this->default_message = _("Sie erfüllen nicht die Bedingung: %s");
         if ($ruleId) {
             $this->load();
