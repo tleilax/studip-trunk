@@ -1564,6 +1564,38 @@ td.infoboxrahmen {
   background-color: #dee2e8;
   border-bottom: 1px solid rgba(137, 154, 185, 0.19999999999999996);
 }
+#header .badge {
+  position: relative;
+}
+#header .badge:after {
+  content: attr(data-badge-number);
+  position: absolute;
+  top: 0px;
+  right: 15px;
+  display: inline-block;
+  max-width: 30px;
+  width: auto;
+  overflow: hidden;
+  margin: 0px;
+  padding: 1px 5px;
+  /* border: 2px solid white; */
+
+  background-color: #D60000;
+  color: white;
+  font-size: 10px;
+  font-weight: bold;
+  text-align: center;
+  text-overflow: ellipsis;
+  vertical-align: top;
+  white-space: nowrap;
+  text-shadow: rgba(0, 0, 0, 0.496094) 0px -1px 0px;
+  -webkit-border-radius: 9px;
+  -moz-border-radius: 9px;
+  border-radius: 9px;
+  -webkit-box-shadow: #000000 0px 1px 3px;
+  -moz-box-shadow: #000000 0px 1px 3px;
+  box-shadow: #000000 0px 1px 3px;
+}
 /* --- AJAX indicator ------------------------------------------------------- */
 #ajax_notification {
   background-color: #7387ac;
@@ -3275,12 +3307,6 @@ h5,
 h6 {
   border-bottom: none;
 }
-h1 + br,
-h2 + br,
-h3 + br,
-h4 + br,
-h5 + br,
-h6 + br,
 ul + br,
 table + br {
   display: none;
