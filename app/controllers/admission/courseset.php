@@ -79,10 +79,26 @@ class Admission_CoursesetController extends AuthenticatedController {
                 ->withButton()
                 ->render();
 		} else {
-			$myInstitutes = Institute::getMyInstitutes();
-			foreach ($myInstitutes as $institute) {
-				$this->myInstitutes[$institute['Institut_id']] = $institute;
-			}
+            $this->myInstitutes = array();
+            $myInstitutes = Institute::getMyInstitutes();
+            foreach ($myInstitutes as $institute) {
+                $this->myInstitutes[$institute['Institut_id']] = $institute;
+            }
+            if ($coursesetId) {
+                // Load course set data.
+                $this->courseset = new CourseSet($coursesetId);
+                $selectedInstitutes = $this->courseset->getInstituteIds();
+                foreach ($selectedInstitutes as $id => $selected) {
+                    $this->myInstitutes[$id] = new Institute($id); 
+                }
+                $this->selectedInstitutes = $this->myInstitutes;
+                $allCourses = CoursesetModel::getInstCourses($this->selectedInstitutes, $coursesetId);
+                $selectedCourses = $this->courseset->getCourses();
+            } else {
+                $this->selectedInstitutes = array();
+                $allCourses = CoursesetModel::getInstCourses($this->myInstitutes, $coursesetId);
+                $selectedCourses = array();
+            }
 		}
 		// If an institute search has been conducted, we need to consider parameters from flash.
         if ($this->flash['name'] || $this->flash['institutes'] || $this->flash['courses'] ||
