@@ -419,6 +419,16 @@ class CourseSet
         return array_keys($this->userlists);
     }
 
+    public function getUserFactorList()
+    {
+        $factored_users = array();
+        foreach ($this->getUserLists() as $ul_id) {
+            $user_list = new AdmissionUserList($ul_id);
+            $factored_users = array_merge($factored_users, array_combine(array_keys($user_list->getUsers()), array_fill(0, count(), $user_list->getFactor())));
+        }
+        return $factored_users;
+    }
+    
     /**
      * Evaluates whether the seat distribution algorithm has already been 
      * executed on this course set.
