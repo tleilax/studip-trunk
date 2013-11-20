@@ -219,6 +219,34 @@ class Admission_CoursesetController extends AuthenticatedController {
             ->withButton()
             ->render();
     }
+    
+    public function configure_courses_action($set_id)
+    {
+        $this->set_content_type('text/html; charset=windows-1252');
+        if (Request::isXhr()) {
+            $this->response->add_header('X-Title', _('Ausgewählte Veranstaltungen konfigurieren'));
+            $this->response->add_header('X-No-Buttons', 1);
+        }
+        $courseset = new CourseSet($set_id);
+        $this->set_id = $courseset->getId();
+        $this->courses = Course::findMany($courseset->getCourses(), "ORDER BY Name");
+        if (Request::submitted('configure_courses_save')) {
+            CSRFProtection::verifyUnsafeRequest();
+            $admission_turnouts = Request::intArray('configure_courses_turnout');
+            $admission_waitlists = Request::intArray('configure_courses_disable_waitlist');
+            $ok = 0;
+            foreach($this->courses as $course) {
+                $course->admission_turnout = $admission_turnouts[$course->id];
+                $course->admission_disable_waitlist = isset($admission_waitlists[$course->id]) ? 0 : 1;
+                $ok += $course->store();
+            }
+            if ($ok) {
+                PageLayout::postMessage(MessageBox::success(_("Die zugeordneten Veranstaltungen wurden konfiguriert.")));
+            }
+            $this->redirect($this->url_for('admission/courseset/configure/' . $courseset->getId()));
+            return;
+        }
+    }
 
 }
 

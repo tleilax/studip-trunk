@@ -33,9 +33,19 @@ class RandomAlgorithm extends AdmissionAlgorithm {
             if ($free_seats > 0) {
                 Log::DEBUG(sprintf('distribute %s seats on %s claiming in course %s', $free_seats, count($claiming_users), $course->id));
                 $claiming_users = $this->rollTheDice($claiming_users);
-                Log::DEBUG(print_r($claiming_users,1));
-                $this->addUsersToCourse(array_slice(array_keys($claiming_users),0 , $free_seats), $course->id);
-                
+                Log::DEBUG('chosen ones: ' . print_r(array_slice(array_keys($claiming_users),0 , $free_seats),1));
+                $this->addUsersToCourse(array_slice(array_keys($claiming_users),0 , $free_seats), $course);
+                if ($free_seats < count($claiming_users)) {
+                    if (!$course->admission_disable_waitlist) {
+                        $free_seats_waitlist = $course->admission_waitlist_max ?: count($claiming_users) - $free_seats;
+                        Log::DEBUG('waiting list ones: ' . print_r(array_slice(array_keys($claiming_users),$free_seats - 1 , $free_seats_waitlist),1));
+                        $this->addUsersToWaitlist(array_slice(array_keys($claiming_users),$free_seats - 1 , $free_seats_waitlist), $course);
+                    }
+                    if (($free_seats_waitlist + $free_seats) < count($claiming_users)) {
+                        Log::DEBUG('remaining ones: ' . print_r(array_slice(array_keys($claiming_users),$free_seats_waitlist + $free_seats - 1),1));
+                        $this->notifyRemainingUsers(array_slice(array_keys($claiming_users),$free_seats_waitlist + $free_seats - 1), $course);
+                    }
+                }
             } else {
                 Log::WARNING(sprintf('could not distribute seats, no free in course %s', $course->id));
             }
@@ -47,9 +57,43 @@ class RandomAlgorithm extends AdmissionAlgorithm {
     
     }
 
-    private function addUsersToCourse($user_list, $course_id)
+    public function notifyRemainingUsers($user_list, $course)
     {
-        $seminar = new Seminar($course_id);
+        foreach ($user_list as $chosen_one) {
+            setTempLanguage($chosen_one);
+            $message_title = sprintf(_('Teilnahme an der Veranstaltung %s'), $course->name);
+            $message_body = sprintf(_('Sie wurden leider im Losverfahren der Veranstaltung **%s** __nicht__ ausgelost. Für diese Veranstaltung wurde keine Warteliste vorgesehen.'),
+                                       $course->name);
+            messaging::sendSystemMessage($chosen_one, $message_title, $message_body);
+            restoreLanguage();
+        }
+    }
+
+    private function addUsersToWaitlist($user_list, $course)
+    {
+        $maxpos = max($course->admission_applicants->findBy('status', 'awaiting')->pluck('position'));
+        foreach ($user_list as $chosen_one) {
+            $maxpos++;
+            $new_admission_member = new AdmissionApplication();
+            $new_admission_member->user_id = $chosen_one;
+            $new_admission_member->position = $maxpos;
+            $new_admission_member->status = 'awaiting';
+            $course->admission_applicants[] = $new_admission_member;
+            if ($new_admission_member->store()) {
+                setTempLanguage($chosen_one);
+                $message_title = sprintf(_('Teilnahme an der Veranstaltung %s'), $course->name);
+                $message_body = sprintf(_('Sie wurden leider im Losverfahren der Veranstaltung **%s** __nicht__ ausgelost. Sie wurden jedoch auf Position %s auf die Warteliste gesetzt. Das System wird Sie automatisch eintragen und benachrichtigen, sobald ein Platz für Sie frei wird.'),
+                                           $course->name,
+                                           $maxpos);
+                messaging::sendSystemMessage($chosen_one, $message_title, $message_body);
+                restoreLanguage();
+            }
+        }
+    }
+
+    private function addUsersToCourse($user_list, $course)
+    {
+        $seminar = new Seminar($course->id);
         foreach ($user_list as $chosen_one) {
             setTempLanguage($chosen_one);
             $message_title = sprintf(_('Teilnahme an der Veranstaltung %s'), $seminar->getName());

@@ -27,48 +27,48 @@ class CourseSet
     /**
      * Admission rules that are applied to the courses belonging to this set.
      */
-    public $admissionRules = array();
+    protected $admissionRules = array();
 
     /**
      * Seat distribution algorithm.
      */
-    public $algorithm = null;
+    protected $algorithm = null;
 
     /**
      * IDs of courses that are aggregated into this set. The array is in the
      * form ($courseId1 => true, $courseId2 => true).
      */
-    public $courses = array();
+    protected $courses = array();
 
     /**
      * Has the seat distribution algorithm already been executed?
      */
-    public $hasAlgorithmRun = false;
+    protected $hasAlgorithmRun = false;
 
     /**
      * Unique identifier for this set.
      */
-    public $id = '';
+    protected $id = '';
 
     /**
      * Some extensive descriptional text for informing confused students.
      */
-    public $infoText = '';
+    protected $infoText = '';
 
     /**
      * Which Stud.IP institute does the course set belong to?
      */
-    public $institutes = array();
+    protected $institutes = array();
 
     /**
      * Some display name for this course set.
      */
-    public $name = '';
+    protected $name = '';
 
     /*
      * Lists of users who are treated differently on seat distribution
      */
-    public $userlists = array();
+    protected $userlists = array();
 
     // --- OPERATIONS ---
 
@@ -235,7 +235,7 @@ class CourseSet
             }
             $this->algorithm->run();
             // Mark as "seats distributed".
-            $this->hasAlgorithmRun = true;
+            $this->setAlgorithmRun(true);
             // Call post-distribution hooks on all assigned rules.
             foreach ($this->admissionRules as &$rule) {
                 $rule->afterSeatDistribution();
@@ -243,6 +243,13 @@ class CourseSet
         }
     }
 
+    public function setAlgorithmRun($state)
+    {
+        $this->hasAlgorithmRun = (bool)$state;
+        $db = DbManager::get();
+        return $db->execute("UPDATE coursesets SET algorithm_run = ? WHERE set_id = ?", array($this->hasAlgorithmRun, $this->getId()));
+    }
+    
     public function isSeatDistributionEnabled()
     {
         return $this->algorithm && $this->hasAdmissionRule('TimedAdmission') && !$this->hasAlgorithmRun;

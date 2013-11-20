@@ -58,17 +58,18 @@ jQuery('a[rel~="lightbox"]').live('click', function (event) {
             scripts = jQuery(response).filter('script');
 
         // Create buttons
-        jQuery('a[rel~="option"]', this).remove().each(function () {
-            var label = jQuery(this).text(),
-                href  = jQuery(this).attr('href');
-            buttons[label] = function () {
-                location.href = href;
+        if (!xhr.getResponseHeader('X-No-Buttons')) {
+            jQuery('a[rel~="option"]', this).remove().each(function () {
+                var label = jQuery(this).text(),
+                    href  = jQuery(this).attr('href');
+                buttons[label] = function () {
+                    location.href = href;
+                };
+            });
+            buttons["Schliessen".toLocaleString()] = function () {
+                jQuery(this).dialog('close');
             };
-        });
-        buttons["Schliessen".toLocaleString()] = function () {
-            jQuery(this).dialog('close');
-        };
-
+        }
         // Create dialog
         jQuery(this).dialog({
             width :  width,

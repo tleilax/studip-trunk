@@ -79,6 +79,16 @@ $userlistIds = $courseset ? $courseset->getUserlists() : array();
         <?= _('Veranstaltungszuordnung:') ?>
     </label>
     <?= $coursesTpl; ?>
+    <? if (count($courseIds)) : ?>
+        <div>
+                <?= LinkButton::create(_('Ausgewählte Veranstaltungen konfigurieren'), 
+                    $controller->url_for('admission/courseset/configure_courses/' . $courseset->getId()), 
+                    array(
+                        'rel' => 'lightbox'
+                        )
+                    ); ?>
+        </div>
+    <? endif ?>
     <label class="caption" for="add_rule">
         <?= _('Anmelderegeln:') ?>
         <span class="required">*</span>

@@ -4,7 +4,7 @@ class CoursesetModel {
 
     public function getInstCourses($instituteIds, $coursesetId='', $selectedCourses=array()) {
         $parameters = array();
-        $query = "SELECT DISTINCT si.`seminar_id`, s.`VeranstaltungsNummer`, s.`Name`, 
+        $query = "SELECT DISTINCT si.`seminar_id`, s.`VeranstaltungsNummer`, s.`Name`, s.admission_turnout,
                     IF(s.`duration_time`=-1, UNIX_TIMESTAMP(), s.`start_time`+s.`duration_time`) AS start
                   FROM `seminar_inst` si
                   JOIN `seminare` AS s ON (si.`seminar_id` = s.`Seminar_id`)

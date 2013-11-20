@@ -1681,7 +1681,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
      */
     protected function registerCallback($types, $cb)
     {
-        $types = is_array($types) ?: words($types);
+        $types = is_array($types) ? $types : words($types);
         foreach ($types as $type) {
             if (isset($this->registered_callbacks[$type])) {
                 $this->registered_callbacks[$type][] = $cb;
@@ -1703,7 +1703,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
      */
     protected function unregisterCallback($types, $cb)
     {
-        $types = is_array($types) ?: words($types);
+        $types = is_array($types) ? $types : words($types);
         foreach ($types as $type) {
             if (isset($this->registered_callbacks[$type])) {
                 $found = array_search($cb, $this->registered_callbacks[$type], true);
