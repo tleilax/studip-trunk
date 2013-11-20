@@ -30,13 +30,8 @@ class Document_DateienController extends AuthenticatedController
      parent::before_filter($action, $args);    
      Navigation::activateItem('/document/dateien');
    
-     $api = new StudipDocumentAPI();
-     $user_id = $GLOBALS['auth'] -> auth['uid'];
-     $user_exists = $api -> authEntity($user_id, "DB");
-     
-     if (! $user_exists)
-      $api -> initEntity($user_id, "DB");
-     
+     //$api = new StudipDocumentAPI();
+        
      PageLayout::setTitle(_('Dateiverwaltung'));
      PageLayout::setHelpKeyword('Basis.Dateien');
      PageLayout::addStylesheet('/stylesheets/document/dateien.css');
