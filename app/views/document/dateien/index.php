@@ -25,17 +25,32 @@
   <!--  Definition von Ausgabe-Funktionen -->
  
   <?php
-   
+       
     function tab($tab_weite)
      {
-      for ($i = 0; $i <= $tab_weite; $i++)
+      for ($i = 0; $i < $tab_weite; $i++)
        print Assets::img("blank.gif");
      }
+      
+    
+    function cr($cr_weite)
+     {
+      for ($i = 0; $i < $cr_weite; $i++)
+       print "<br>";
+     }
+     
      
     function line($weite)
      {
       for ($i = 0; $i <= $weite; $i++)
-       print Assets::img("line.gif");
+       print Assets::img("line2.gif"). "<br>";
+     }
+     
+     
+    function entityID($operator)
+     {
+      $token = explode("-", $operator);
+      return $token[1];
      }
      
   ?>  
@@ -43,7 +58,8 @@
  </head>
 
  <body>
-<div style="display:table; width:100%;">
+ 
+  <div style="display:table; width:100%;">
   
    <div style="display:table-cell; width:100%;">
          
@@ -68,7 +84,7 @@
        
       <td style="text-align:right; color:#1E3E70;">
        
-        <!-- up -->
+        up
        
       </td>
       
@@ -123,89 +139,123 @@
      
      <tbody class="toggleable">
      
-      <tr>
-     
-       <td> 
-       
-        <?php
+     <?php 
+      
+      $max = $flash['count']; 
+         
+      for ($i = 0; $i <= $max; $i++):
 
-         print Assets::img("icons/16/blue/arr_1right.png");
-        
+       if ($flash['inhalt'][$i][0] == "ordner")
+         $color = "color:black;";
+        else
+         $color = "color:#1E3E70;";
+      ?>
+      
+      <tr style="<?= $color ?>" >
+     
+       <td>
+     
+        <?php
+                          
+         if ($flash['inhalt'][$i][0] == "ordner"):
+             
          ?>
+       
+        <a href="<?//= $controller->url_for("document/dateien/open") ?>" title="Öffnen">
+         
+         <?php
+             
+           print Assets::img("icons/16/blue/arr_1right.png");
+          
+          else:
+          
+           print Assets::img("icons/16/blue/file-pdf.png");
+           
+          endif;
+                 
+         ?>
+       
+        </a>
         
         </td>
            
-       <td> Test </td>
+       <td> <?= $flash['inhalt'][$i][1] ?> </td>
        
        <td>
         
         <?php
         
-         print '<span style="text-align:right;">'. Assets::img("icons/16/blue/lock-unlocked.png"). '</span>';
+         if ($flash['inhalt'][$i][2] == "unlocked")
+          print '<span style="text-align:right;">'. Assets::img("icons/16/blue/lock-unlocked.png"). '</span>';
         
          ?>
           
         </td>
       
-       <td> Martin Mustermann </td>
+       <td> <?= $flash['inhalt'][$i][3] ?> </td>
       
-       <td> 16.10.2013 </td>
+       <td> <?= $flash['inhalt'][$i][4] ?> </td>
        
-       <td> 
-       
-        <?php
-        
-         print Assets::img("icons/16/blue/persons.png");
-         tab(2);
-         print Assets::img("icons/16/blue/visibility-checked.png");
-         tab(2);
-         print Assets::img("icons/16/blue/download.png");
-         tab(2);
-         print Assets::img("icons/16/blue/trash.png");
-         
-         ?>
-       
-       </td>
-       
-      </tr>
-      
-      <tr style="color:#1E3E70;">
-      
        <td>
        
         <?php
-
-         print Assets::img("icons/16/blue/file-pdf.png");
-        
-         ?>
-       
-       </td>
-       
-       <td> Hausarbeit.pdf </td>
-       
-       <td> </td>
-       
-       <td> Martin Mustermann </td>
-       
-       <td> 17.10.2013 </td>
-       
-       <td> 
-       
-        <?php
-        
-         print Assets::img("icons/16/blue/persons.png");
-         tab(2);
-         print Assets::img("icons/16/blue/visibility-checked.png");
-         tab(2);
-         print Assets::img("icons/16/blue/download.png");
-         tab(2);
-         print Assets::img("icons/16/blue/trash.png");
          
+         $type = $flash['inhalt'][$i][0];
+         
+        ?>
+         
+        <a href="<?= $controller->url_for("document/dateien/teilen/$type") ?>" title="Mit anderen teilen">        
+               
+         <?php
+             
+          print Assets::img("icons/16/blue/persons.png"); 
+          tab(2);
+                 
          ?>
        
-       </td>
-      
+        </a>
+                
+        <a href="<?= $controller->url_for("document/dateien/bearbeiten/$type") ?>" title="Bearbeiten">
+         
+         <?php
+
+          print Assets::img("icons/16/blue/visibility-checked.png"); 
+          tab(2);
+             
+         ?>
+       
+        </a>
+        
+        <a href="<?= $controller->url_for("document/dateien/verwalten/$type") ?>" title="Verwalten">
+         
+         <?php
+             
+          print Assets::img("icons/16/blue/archive3.png"); 
+          tab(2);
+                 
+         ?>
+       
+        </a>
+        
+        <a href="<?= $controller->url_for("document/dateien/loeschen/$type") ?>" title="Löschen">
+         
+         <?php
+             
+          print Assets::img("icons/16/blue/trash.png"); 
+                 
+         ?>
+       
+        </a>
+       
+       </td>  
+       
       </tr>
+      
+      <?php
+
+       endfor;
+  
+       ?>    
             
      </tbody>
      
@@ -233,31 +283,47 @@
      
      $infobox['picture'] = '/images/infobox/folders.jpg';
      $infobox['content'] = array(
-	  array("kategorie" => _("Ansichten:"),
-	        "eintrag" => array(
-	          array('icon' => 'icons/16/blue/checkbox-checked.png', "text" => 'Meine Dateien'),
-	          array('icon' => 'icons/16/blue/checkbox-unchecked.png', "text" => 'Meine Veranstaltungen'),
-	          array('icon' => 'icons/16/blue/checkbox-unchecked.png', "text" => 'Meine Texte'),
-	          array('icon' => 'icons/16/blue/checkbox-unchecked.png', "text" => 'Mein E-Portfolio'),
-	          array('icon' => 'icons/16/blue/checkbox-unchecked.png', "text" => 'Geteilte Dateien'),
+	  array('kategorie' => _('Ansichten:'),
+	        'eintrag' => array(
+	          array('icon' => 'icons/16/blue/checkbox-checked.png', 
+	                'text' => 'Meine Dateien'),
+	          array('icon' => 'icons/16/blue/checkbox-unchecked.png', 
+	                'text' => 'Meine Veranstaltungen'),
+	          array('icon' => 'icons/16/blue/checkbox-unchecked.png', 
+	                'text' => 'Mein E-Portfolio'),
+	          array('icon' => 'icons/16/blue/checkbox-unchecked.png', 
+	                'text' => 'Mein Repositorium'),
+	          array('icon' => 'icons/16/blue/checkbox-unchecked.png', 
+	                'text' => 'Geteilte Dateien'),
 	          )),
 	  array("kategorie" => _("Aktionen:"),
 	        "eintrag" => array(
-	          array('icon' => '/images/icons/16/blue/upload.png', 'text' => 'Datei / Ordner hochladen'),
-	          array('icon' => '/images/icons/16/blue/add/folder-empty.png', 'text' => 'Neuen Ordner erstellen'),
-              array('icon' => '/images/icons/16/blue/comment.png', 'text' => 'Dateibereich bearbeiten'),
-              array('icon' => '/images/icons/16/blue/persons.png', 'text' => 'Dateibereich teilen'),
-              array('icon' => '/images/icons/16/blue/trash.png', 'text' => 'Dateibereich löschen'))),
-	  array("kategorie" => _("Suche:"),
-	        "eintrag" => array(
-	          array('icon' => 'icons/16/black/search.png', "text" => "Suche"))),
-	  array("kategorie" => _("Export:"),
-	        "eintrag" => array(
-	          array("icon" => 'icons/16/blue/download.png', 
-	                "text" => "Dateibereich herunterladen"))),
-	  array("kategorie" => _("Information:"),
-	        "eintrag" => array(
-	          array('icon' => 'icons/16/black/info.png', "text" => "Quota: 10 MB - belegt: 5%")))
+	          array('icon' => '/images/icons/16/black/upload.png', 
+	                'text' => "<a href=\"". $controller->url_for("document/dateien/verwalten/$type"). "\">".
+	                          _("Datei / Ordner hochladen")."</a>"),
+	          array('icon' => '/images/icons/16/black/add/folder-empty.png', 
+	                'text' => "<a href=\"". $controller->url_for("document/dateien/verwalten/$type"). "\">".
+	                          _("Neuen Ordner erstellen")."</a>"),
+              array('icon' => '/images/icons/16/black/comment.png', 
+                    'text' => "<a href=\"". $controller->url_for("document/dateien/verwalten/$type"). "\">".
+	                          _("Dateibereich konfigurieren")."</a>"),
+              //array('icon' => '/images/icons/16/blue/persons.png', 
+              //      'text' => 'Dateibereich teilen'),
+              array('icon' => '/images/icons/16/black/trash.png', 
+                    'text' => "<a href=\"". $controller->url_for("document/dateien/loeschen/bereich"). "\">".
+	                          _("Dateibereich löschen")."</a>"))),
+	  array('kategorie' => _('Suche:'),
+	        'eintrag' => array(
+	          array('icon' => 'icons/16/black/search.png', 
+	                'text' => 'Suche'))),
+	  array('kategorie' => _('Export:'),
+	        'eintrag' => array(
+	          array('icon' => 'icons/16/black/download.png', 
+	                'text' => "Dateibereich herunterladen"))),
+	  array('kategorie' => _('Information:'),
+	        'eintrag' => array(
+	          array('icon' => 'icons/16/black/info.png', 
+	                'text' => "Quota: 10 MB - belegt: 5%")))
       );
    
     ?>
@@ -266,6 +332,64 @@
   
   </div>
   
+  <!-- Modale Dialoge: -->
+  
+  <?//= $flash['workOn'] ?> 
+  
+  <?php
+
+   if (isset($flash['share'])):
+   
+   ?>
+    
+    <div id="modal">
+       
+     <?= $this -> render_partial('document/dateien/_teilen'); ?>
+    
+    </div>
+    
+   <?php 
+   
+    elseif (isset($flash['workOn'])):
+    
+    ?>
+    
+     <div id="modal">
+       
+      <?= $this -> render_partial('document/dateien/_bearbeiten'); ?>
+    
+     </div>
+   
+   <?php 
+   
+    elseif (isset($flash['admin'])):
+    
+    ?>
+    
+     <div id="modal">
+       
+      <?= $this -> render_partial('document/dateien/_verwalten'); ?>
+    
+     </div>
+     
+   <?php 
+   
+    elseif (isset($flash['delete'])):
+    
+    ?>
+    
+     <div id="modal">
+       
+      <?= $this -> render_partial('document/dateien/_loeschen'); ?>
+    
+     </div>
+     
+  <?php
+
+   endif;
+   
+  ?>
+      
  </body>
  
 </html>
