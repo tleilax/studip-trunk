@@ -134,6 +134,15 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
     protected $reserved_slots = array('value','newid','iterator','tablemetadata', 'relationvalue','wherequery','relationoptions','data','new','id');
 
     /**
+     * assoc array used to map SORM callback to NotificationCenter 
+     * keys are SORM callbacks, values notifications
+     * eg. 'after_create' => 'FooDidCreate'
+     * 
+     * @var array $notification_map
+     */
+    protected $notification_map = array();
+
+    /**
      * fetch table metadata from db or from local cache
      *
      * @param string $db_table
@@ -604,6 +613,9 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
             $this->registerCallback('before_store after_create', 'cbAutoIncrementColumn');
         } elseif (count($this->pk) === 1) {
             $this->registerCallback('before_store', 'cbAutoKeyCreation');
+        }
+        if (count($this->notification_map)) {
+            $this->registerCallback(array_keys($this->notification_map), 'cbNotificationMapper');
         }
 
         $this->known_slots = array_merge(array_keys($this->db_fields), array_keys($this->alias_fields), array_keys($this->additional_fields), array_keys($this->relations));
@@ -1742,6 +1754,25 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
     {
         if ($this->isNew() && $this->getId() === null) {
             $this->setId($this->getNewId());
+        }
+    }
+    
+    /**
+     * default callback used to map specific callbacks to NotificationCenter
+     * 
+     * @param string $type callback type
+     * @return boolean
+     */
+    protected function cbNotificationMapper($type)
+    {
+        if (isset($this->notification_map[$cb_type])) {
+            try {
+                foreach(words($this->notification_map[$cb_type]) as $notification) {
+                    NotificationCenter::postNotification($notification, $this);
+                }
+            } catch (NotificationVetoException $e) {
+                return false;
+            }
         }
     }
 }

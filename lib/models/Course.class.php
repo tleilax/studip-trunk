@@ -172,6 +172,11 @@ class Course extends SimpleORMap
         };
         $this->registerCallback(array_keys($notification_map), $notificator);
         
+        $this->notification_map['after_create'] = 'CourseDidCreateOrUpdate CourseDidCreate';
+        $this->notification_map['after_store'] = 'CourseDidCreateOrUpdate CourseDidUpdate';
+        $this->notification_map['before_create'] = 'CourseWillCreate';
+        $this->notification_map['before_store'] = 'CourseWillUpdate';
+
         parent::__construct($id);
     }
 }
