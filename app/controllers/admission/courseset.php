@@ -34,7 +34,6 @@ class Admission_CoursesetController extends AuthenticatedController {
      * Show all coursesets the current user has access to.
      */
     public function index_action() {
-        DBManager::get()->exec("ALTER TABLE `coursesets` ADD `private` TINYINT(1) NOT NULL DEFAULT 0 AFTER `algorithm_run`");
         // Fetch the institutes that current user is assigned to...
         $institutes = Institute::getMyInstitutes();
         $this->myInstitutes = array();
