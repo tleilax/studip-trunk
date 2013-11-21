@@ -34,6 +34,7 @@ class Admission_CoursesetController extends AuthenticatedController {
      * Show all coursesets the current user has access to.
      */
     public function index_action() {
+        DBManager::get()->exec("ALTER TABLE `coursesets` ADD `private` TINYINT(1) NOT NULL DEFAULT 0 AFTER `algorithm_run`");
         // Fetch the institutes that current user is assigned to...
         $institutes = Institute::getMyInstitutes();
         $this->myInstitutes = array();
@@ -136,6 +137,9 @@ class Admission_CoursesetController extends AuthenticatedController {
             if ($this->flash['infotext']) {
                 $this->courseset->setInfoText($this->flash['infotext']);
             }
+            if ($this->flash['privatet']) {
+                $this->courseset->setPrivate($this->flash['private']);
+            }
         }
         $fac = $this->get_template_factory();
         $tpl = $fac->open('admission/courseset/instcourses');
@@ -160,6 +164,7 @@ class Admission_CoursesetController extends AuthenticatedController {
                 ->setInstitutes(Request::getArray('institutes'))
                 ->setCourses(Request::getArray('courses'))
                 ->setUserLists(Request::getArray('userlists'))
+                ->setPrivate((bool) Request::get('private'))
                 ->clearAdmissionRules();
             foreach (Request::getArray('rules') as $serialized) {
                 $rule = unserialize(html_entity_decode($serialized, ENT_COMPAT | ENT_HTML401, 'iso-8859-1'));
@@ -176,6 +181,7 @@ class Admission_CoursesetController extends AuthenticatedController {
             $this->flash['rules'] = Request::getArray('rules');
             $this->flash['userlists'] = Request::getArray('userlists');
             $this->flash['infotext'] = Request::get('infotext');
+            $this->flash['private'] = (bool) Request::get('private');
             if (Request::submitted('add_institute')) {
                 $this->flash['institutes'] = array_merge($this->flash['institutes'], array(Request::option('institute_id')));
             } else {

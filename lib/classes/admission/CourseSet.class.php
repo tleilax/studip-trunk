@@ -65,6 +65,11 @@ class CourseSet
      */
     protected $name = '';
 
+    /**
+     * Is the course set only visible for the creator?
+     */
+    public $private = false;
+
     /*
      * Lists of users who are treated differently on seat distribution
      */
@@ -345,9 +350,15 @@ class CourseSet
      * @return Array
      */
     public function getCoursesetsByInstituteId($instituteId) {
-        $stmt = DBManager::get()->prepare("SELECT * FROM `courseset_institute`
-            WHERE institute_id=?");
-        $stmt->execute(array($instituteId));
+        $query = "SELECT DISTINCT ci.*
+            FROM `courseset_institute` ci 
+            JOIN `coursesets` c ON (ci.`set_id`=c.`set_id`)
+            WHERE ci.`institute_id`=?";
+        if ($GLOBALS['perm']->have_perm('root')) {
+            $query .= " AND (c.`private`=0 OR c.`user_id`=?)";
+        }
+        $stmt = DBManager::get()->prepare($query);
+        $stmt->execute(array($instituteId, $GLOBALS['user']->id));
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -395,6 +406,15 @@ class CourseSet
     public function getPriorities()
     {
         return AdmissionPriority::getPriorities($this->id);
+    }
+
+    /**
+     * Is the current courseset private?
+     *
+     * @return bool
+     */
+    public function getPrivate() {
+        return $this->private;
     }
 
     /**
@@ -463,6 +483,7 @@ class CourseSet
                     $this->algorithm = new $data['algorithm']();
                 }
             }
+            $this->private = (bool) $data['private'];
         }
         // Load institute assigments.
         $stmt = DBManager::get()->prepare(
@@ -625,6 +646,17 @@ class CourseSet
     }
 
     /**
+     * Set a new value for courseset privacy.
+     *
+     * @param  bool $newPrivate 
+     * @return CourseSet
+     */
+    public function setPrivate($newPrivate) {
+        $this->private = $newPrivate;
+        return $this;
+    }
+
+    /**
      * Adds several user list IDs after clearing the existing user list
      * assignments.
      * 
@@ -652,14 +684,14 @@ class CourseSet
         }
         // Store basic data.
         $stmt = DBManager::get()->prepare("INSERT INTO `coursesets`
-            (`set_id`, `user_id`, `name`, `infotext`, `algorithm`, 
-            `mkdate`, `chdate`)
-            VALUES (?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE
+            (`set_id`, `user_id`, `name`, `infotext`, `algorithm`,
+            `private`, `mkdate`, `chdate`)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE
             `name`=VALUES(`name`), `infotext`=VALUES(`infotext`),
-            `algorithm`=VALUES(`algorithm`), 
+            `algorithm`=VALUES(`algorithm`), `private`=VALUES(`private`),
             `chdate`=VALUES(`chdate`)");
         $stmt->execute(array($this->id, $user->id, $this->name, $this->infoText,
-            get_class($this->algorithm), time(), time()));
+            get_class($this->algorithm), intval($this->private), time(), time()));
         // Delete removed institute assignments from database.
         DBManager::get()->exec("DELETE FROM `courseset_institute` 
             WHERE `set_id`='".$this->id."' AND `institute_id` NOT IN ('".

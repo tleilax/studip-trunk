@@ -110,16 +110,15 @@ class Step00240CourseSets extends Migration
         $db->exec("CREATE TABLE IF NOT EXISTS `coursesets` (
                 `set_id` VARCHAR(32) NOT NULL ,
                 `user_id` VARCHAR(32) NOT NULL ,
-                `institut_id` VARCHAR(32) NOT NULL ,
                 `name` VARCHAR(255) NOT NULL ,
                 `infotext` TEXT NOT NULL ,
                 `algorithm` VARCHAR(255) NOT NULL ,
                 `algorithm_run` TINYINT(1) NOT NULL DEFAULT 0 ,
+                `private` TINYINT(1) NOT NULL DEFAULT 0,
                 `mkdate` INT NOT NULL DEFAULT 0,
                 `chdate` INT NOT NULL DEFAULT 0,
             PRIMARY KEY (`set_id`) ,
-            INDEX `set_user` (`set_id` ASC, `user_id` ASC) ,
-            INDEX `set_institut` (`set_id` ASC, `institut_id` ASC))
+            INDEX `set_user` (`set_id` ASC, `user_id` ASC)
             ENGINE MyISAM");
 
         // admission rules with max number of courses to register for

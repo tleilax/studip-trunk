@@ -43,6 +43,8 @@ $userlistIds = $courseset ? $courseset->getUserlists() : array();
         value="<?= $courseset ? htmlReady($courseset->getName()) : '' ?>"
         required="required" aria-required="true"
         placeholder="<?= _('Bitte geben Sie einen Namen für das Anmeldeset an') ?>"/>
+    <input type="checkbox" name="private"<?= $courseset ? ($courseset->getPrivate() ? ' checked="checked"' : '') : '' ?>/>
+    <?= _('Dieses Anmeldeset soll nur für mich selbst sichtbar sein.') ?>
     <label for="institute_id" class="caption">
         <?= _('Einrichtungszuordnung:') ?>
         <span class="required">*</span>
