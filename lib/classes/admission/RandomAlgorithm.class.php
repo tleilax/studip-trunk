@@ -18,8 +18,8 @@ class RandomAlgorithm extends AdmissionAlgorithm {
         foreach ($courseSet->getCourses() as $course_id) {
             $course = Course::find($course_id);
             $seminar = new Seminar($course_id);
-            $num_participants = $course->members->find('status', words('user autor'))->count();
-            $num_participants += $course->admission_members->find('status', 'accepted')->count();
+            $num_participants = $course->members->findBy('status', words('user autor'))->count();
+            $num_participants += $course->admission_applicants->findBy('status', 'accepted')->count();
             $free_seats = $course->admission_turnout - $num_participants;
             $claiming_users = AdmissionPriority::getPrioritiesByCourse($courseSet->getId(), $course->id);
             $factored_users = $courseSet->getUserFactorList();
@@ -103,7 +103,7 @@ class RandomAlgorithm extends AdmissionAlgorithm {
                             $seminar->getName());
                 }
             } else {
-                if ($seminar->addMember($user_id, 'autor')) {
+                if ($seminar->addMember($chosen_one, 'autor')) {
                     $message_body = sprintf (_("Sie wurden als TeilnehmerIn der Veranstaltung **%s** ausgelost. Ab sofort finden Sie die Veranstaltung in der Übersicht Ihrer Veranstaltungen. Damit sind Sie auch als TeilnehmerIn der Präsenzveranstaltung zugelassen."),
                             $seminar->getName());
                 }
@@ -121,7 +121,7 @@ class RandomAlgorithm extends AdmissionAlgorithm {
     private function rollTheDice($user_list)
     {
         $max = count($user_list);
-        foreach(array_keys($user_list) as $user_id => $factor) {
+        foreach($user_list as $user_id => $factor) {
             $user_list[$user_id] = $factor * mt_rand(1, $max);
         }
         arsort($user_list, SORT_NUMERIC);

@@ -248,7 +248,7 @@ abstract class AdmissionRule
      * 
      * @param CourseSet The courseset this rule belongs to.
      */
-    public function onSeatDistribution(&$courseset) {
+    public function beforeSeatDistribution(&$courseset) {
         return true;
     }
 

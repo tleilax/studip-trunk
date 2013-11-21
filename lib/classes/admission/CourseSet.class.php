@@ -19,6 +19,7 @@ require_once('lib/classes/admission/AdmissionRule.class.php');
 require_once('lib/classes/admission/ConditionField.class.php');
 require_once('lib/classes/admission/RandomAlgorithm.class.php');
 require_once('lib/classes/admission/AdmissionPriority.class.php');
+require_once('lib/classes/admission/AdmissionUserList.class.php');
 
 class CourseSet
 {
@@ -238,7 +239,7 @@ class CourseSet
             foreach ($this->admissionRules as &$rule) {
                 $rule->beforeSeatDistribution();
             }
-            $this->algorithm->run();
+            $this->algorithm->run($this);
             // Mark as "seats distributed".
             $this->setAlgorithmRun(true);
             // Call post-distribution hooks on all assigned rules.
