@@ -12,7 +12,8 @@
  */
 
 require_once 'studip_cli_env.inc.php';
-require_once 'lib/classes/File.php';
+require_once 'lib/files/File.php';
+require_once 'lib/files/StudipDirectory.php';
 
 $root = StudipDirectory::getRootDirectory(md5('foo'));
 
