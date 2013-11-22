@@ -62,8 +62,8 @@ class File // extends SimpleORMap
         $file->restricted = $result['restricted'];
         $file->storage = $result['storage'];
         $file->storage_id = $result['storage_id'];
-        $file->mkdate = strtotime($result['mkdate']);
-        $file->chdate = strtotime($result['chdate']);
+        $file->mkdate = $result['mkdate'];
+        $file->chdate = $result['chdate'];
 
         if ($file->storage_id) {
             $file->storage_object = new $file->storage($file->storage_id);
@@ -287,7 +287,7 @@ class File // extends SimpleORMap
         $this->chdate = $storage_object->getModificationTime();
         $this->size = $storage_object->getSize();
 
-        $stmt = $db->prepare('UPDATE files SET mkdate = FROM_UNIXTIME(?), mime_type = ?, chdate = FROM_UNIXTIME(?), size = ? WHERE id = ?');
+        $stmt = $db->prepare('UPDATE files SET mkdate = ?, mime_type = ?, chdate = ?, size = ? WHERE id = ?');
         $stmt->execute(array($this->mkdate, $this->mime_type, $this->chdate, $this->size, $this->id));
     }
 }

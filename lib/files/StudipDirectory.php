@@ -26,7 +26,7 @@ class StudipDirectory extends File
      */
     public static function getRootDirectory($context_id)
     {
-        return File::get($context_id);
+        return parent::get($context_id);
     }
 
     /**
@@ -47,8 +47,8 @@ class StudipDirectory extends File
         $storage_object = new $this->storage();
 
         $stmt = $db->prepare('INSERT INTO files (id, user_id, mime_type, size, restricted, storage, storage_id, mkdate, chdate)
-                                    VALUES(?, ?, ?, ?, ?, ?, ?, FROM_UNIXTIME(?), FROM_UNIXTIME(?))');
-        $stmt->execute(array($file_id, $user_id, $mime_type, 0, 0, $this->storage, $storage_object->getId(), time(), time()));
+                                    VALUES(?, ?, ?, ?, ?, ?, ?, UNIX_TIMESTAMP(), UNIX_TIMESTAMP())');
+        $stmt->execute(array($file_id, $user_id, $mime_type, 0, 0, $this->storage, $storage_object->getId()));
 
         return $this->link(File::get($file_id), $name);
     }
@@ -204,8 +204,8 @@ class StudipDirectory extends File
         $mime_type = '';
 
         $stmt = $db->prepare('INSERT INTO files (id, user_id, mime_type, size, restricted, storage, storage_id, mkdate, chdate)
-                                    VALUES(?, ?, ?, ?, ?, ?, ?, FROM_UNIXTIME(?), FROM_UNIXTIME(?))');
-        $stmt->execute(array($file_id, $user_id, $mime_type, 0, 0, $this->storage, '', time(), time()));
+                                    VALUES(?, ?, ?, ?, ?, ?, ?, UNIX_TIMESTAMP(), UNIX_TIMESTAMP())');
+        $stmt->execute(array($file_id, $user_id, $mime_type, 0, 0, $this->storage, ''));
 
         $dir = File::get($file_id);
         return $this->link($dir, $name);
