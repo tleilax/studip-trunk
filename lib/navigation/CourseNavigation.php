@@ -77,7 +77,7 @@ class CourseNavigation extends Navigation
 
         // list of used modules
         $Modules = new Modules();
-        $modules = $Modules->getLocalModules($_SESSION['SessionSeminar']);
+        $modules = $Modules->getLocalModules($SessSemName[1], $SessSemName['class'], false, $SessSemName['art_num']);
         $sem_class = $SEM_CLASS[$SEM_TYPE[$SessSemName['art_num']]['class']];
         if (!$sem_class || $SessSemName['class'] == "inst") {
             $sem_class = SemClass::getDefaultSemClass();
@@ -179,7 +179,7 @@ class CourseNavigation extends Navigation
         }
 
         // resources
-        if (get_config('RESOURCES_ENABLE')) {
+        if (get_config('RESOURCES_ENABLE') && ($modules['resources'] || $sem_class->isSlotMandatory("resources"))) {
             foreach ($sem_class->getNavigationForSlot("resources") as $nav_name => $navigation) {
                 if ($nav_name && is_a($navigation, "Navigation")) {
                     $this->addSubNavigation($nav_name, $navigation);

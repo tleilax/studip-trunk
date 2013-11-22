@@ -23,6 +23,16 @@ class Admin_StatusgroupsController extends AuthenticatedController {
         }
         if ($action != 'selectInstitute')
             $this->setType();
+
+        // encode
+        if (Request::isXhr()) {
+            $this->set_content_type('text/html;Charset=windows-1252');
+            $this->set_layout(null);
+            $this->group = new Statusgruppen(Request::get('group'));
+        } else {
+            $this->set_layout($GLOBALS['template_factory']->open('layouts/base'));
+            PageLayout::addScript(Assets::javascript_path('app_admin_statusgroups.js'));
+        }
     }
 
     /**
@@ -32,7 +42,9 @@ class Admin_StatusgroupsController extends AuthenticatedController {
         $this->checkForChangeRequests();
 
         // Do some basic layouting
-        $this->setHead();
+        PageLayout::addScript('jquery/jquery.tablednd.js');
+        PageLayout::addStylesheet('jquery-nestable.css');
+        PageLayout::addScript('jquery/jquery.nestable.js');
         $this->setInfobox();
         $this->setAjaxPaths();
 
@@ -46,6 +58,27 @@ class Admin_StatusgroupsController extends AuthenticatedController {
     }
 
     /**
+     * Interface to edit a group or create a new one
+     */
+    public function editGroup_action($group_id = null) {
+        $this->group = new Statusgruppen($group_id);
+        
+        // We have to do this for the users without javascript! yay!
+        $this->groups = Statusgruppen::findByRange_id($_SESSION['SessionSeminar']);
+        $this->unfolded = array();
+        $this->unfoldGroup($this->unfolded, $this->groups);
+    }
+
+    /**
+     * Interface to sort groups
+     */
+    public function sortGroups_action() {
+        PageLayout::addStylesheet('jquery-nestable.css');
+        PageLayout::addScript('jquery/jquery.nestable.js');
+        $this->groups = Statusgruppen::findByRange_id($_SESSION['SessionSeminar']);
+    }
+
+    /**
      * Interface to add multiple users to multiple groups
      */
     public function memberAdd_action() {
@@ -56,7 +89,7 @@ class Admin_StatusgroupsController extends AuthenticatedController {
 
         $this->setInfoBoxImage('infobox/groups.jpg');
         $this->addToInfobox(_('Aktionen'), "<a href='" . $this->url_for('admin/statusgroups') . "'>" . _('Zurück') . "</a>", 'icons/16/black/arr_1left.png');
-        
+
         if ($search = Request::get('freesearch')) {
             $this->freepeople = User::search($search, 0);
         }
@@ -77,7 +110,6 @@ class Admin_StatusgroupsController extends AuthenticatedController {
                     $this->type['after_user_add']($user_id);
                 }
             }
-                    
         }
     }
 
@@ -86,7 +118,6 @@ class Admin_StatusgroupsController extends AuthenticatedController {
      */
     public function move_action() {
         $this->check('edit');
-        $this->set_layout(null);
         $GLOBALS['perm']->check('tutor');
         $group = Request::get('group');
         $user_id = Request::get('user');
@@ -95,6 +126,7 @@ class Admin_StatusgroupsController extends AuthenticatedController {
         $statusgroup->moveUser($user_id, $pos);
         $this->type['after_user_move']($user_id);
         $this->users = $statusgroup->members;
+        $this->afterFilter();
     }
 
     /**
@@ -102,7 +134,6 @@ class Admin_StatusgroupsController extends AuthenticatedController {
      */
     public function add_action() {
         $this->check('edit');
-        $this->set_layout(null);
         $group = Request::get('group');
         $user_id = Request::get('user');
         $user = new StatusgruppeUser(array($group, $user_id));
@@ -110,23 +141,18 @@ class Admin_StatusgroupsController extends AuthenticatedController {
         $statusgroup = new statusgruppen($group);
         $this->users = $statusgroup->members;
         $this->type['after_user_add']($user_id);
-        $this->render_action('move');
+        $this->afterFilter();
     }
 
     /**
      * Ajaxaction to delete a user
      */
-    public function delete_action() {
+    public function delete_action($group_id, $user_id) {
         $this->check('edit');
-        $this->set_layout(null);
-        $group = Request::get('group');
-        $user_id = Request::get('user');
-        $user = new StatusgruppeUser(array($group, $user_id));
-        $user->delete();
-        $statusgroup = new statusgruppen($group);
-        $this->users = $statusgroup->members;
+        $this->group = new Statusgruppen($group_id);
+        $this->group->removeUser($user_id);
         $this->type['after_user_delete']($user_id);
-        $this->render_action('move');
+        $this->afterFilter();
     }
 
     /**
@@ -142,16 +168,6 @@ class Admin_StatusgroupsController extends AuthenticatedController {
             $json[] = $new;
         }
         echo json_encode($json);
-        $this->render_nothing();
-    }
-
-    /**
-     * Action to reorder the groups
-     */
-    public function order_action() {
-        $this->check('edit');
-        $newOrder = json_decode(Request::get('json'));
-        $this->updateRecoursive($newOrder, $_SESSION['SessionSeminar']);
         $this->render_nothing();
     }
 
@@ -191,20 +207,18 @@ class Admin_StatusgroupsController extends AuthenticatedController {
         }
     }
 
-    private function setHead() {
-        $this->set_layout($GLOBALS['template_factory']->open('layouts/base'));
-        PageLayout::addStylesheet('jquery-nestable.css');
-        PageLayout::addScript('jquery/jquery.tablednd.js');
-        PageLayout::addScript('jquery/jquery.nestable.js');
-        PageLayout::addScript('statusgroups.js');
+    private function afterFilter() {
+        if (Request::isXhr()) {
+            $this->render_action('_members');
+        } else {
+            $this->redirect('admin/statusgroups');
+        }
     }
 
     private function setAjaxPaths() {
         $this->path['ajax_move'] = $this->url_for('admin/statusgroups/move');
         $this->path['ajax_add'] = $this->url_for('admin/statusgroups/add');
         $this->path['ajax_search'] = $this->url_for('admin/statusgroups/search');
-        $this->path['ajax_delete'] = $this->url_for('admin/statusgroups/delete');
-        $this->path['ajax_order'] = $this->url_for('admin/statusgroups/order');
     }
 
     /**
@@ -212,8 +226,10 @@ class Admin_StatusgroupsController extends AuthenticatedController {
      * "unfold" the groups tree
      */
     private function unfoldGroup(&$list, $groups, $preset = array()) {
-        foreach ($groups as $group) {
-
+        if (is_array($groups)) {
+            $groups = SimpleORMapCollection::createFromArray($groups);
+        }
+        foreach ($groups->orderBy('position') as $group) {
             // Numberating groups LIKE A BOSS!
             $this->numbers[$group->id] = join(".", $newpre = array_merge($preset, array(++$i)));
             $list[] = $group;
@@ -237,23 +253,22 @@ class Admin_StatusgroupsController extends AuthenticatedController {
         $infobox_search .= "<h4 class='category' id='free_search' style='margin-bottom: 2px; display:none;'>"
                 . _('Freie Suche') . "</h4><div id='search_result'></div>";
 
-        $this->addToInfobox(_('Aktionen'), "<a id='new_group' href='javascript: newgroup()'>" . _('Neue Gruppe anlegen') . "</a>", 'icons/16/black/add/group3.png');
-        $this->addToInfobox(_('Aktionen'), "<a id='new_group' href='javascript: order()'>" . _('Reihenfolge ändern') . "</a>", 'icons/16/black/refresh.png');
-        $this->addToInfobox(_('Aktionen'), "<a id='new_group' href='" . $this->url_for("admin/statusgroups/memberAdd") . "'>" . _('Mehrere Mitglieder hinzufügen') . "</a>", 'icons/16/black/add/community.png');
+        $this->addToInfobox(_('Aktionen'), "<a title='" . _('Neue Gruppe anlegen') . "' class='modal' href='" . $this->url_for("admin/statusgroups/editGroup") . "'>" . _('Neue Gruppe anlegen') . "</a>", 'icons/16/black/add/group3.png');
+        $this->addToInfobox(_('Aktionen'), "<a title='" . _('Reihenfolge ändern') . "' class='modal' href='" . $this->url_for("admin/statusgroups/sortGroups") . "'>" . _('Reihenfolge ändern') . "</a>", 'icons/16/black/refresh.png');
+        $this->addToInfobox(_('Aktionen'), "<a href='" . $this->url_for("admin/statusgroups/memberAdd") . "'>" . _('Mehrere Mitglieder hinzufügen') . "</a>", 'icons/16/black/add/community.png');
         $this->addToInfobox('Personensuche', $infobox_search);
     }
 
     /*
      * Checks if a group should be updated from a request
      */
+
     private function checkForChangeRequests() {
-        $this->check('edit');
-        if ($id = Request::get('id')) {
-            if ($id == "newgroup") {
-                $group = new Statusgruppen();
+        if (Request::submitted('save')) {
+            $this->check('edit');
+            $group = new Statusgruppen(Request::get('id'));
+            if ($group->isNew()) {
                 $group->range_id = $_SESSION['SessionSeminar'];
-            } else {
-                $group = new Statusgruppen($id);
             }
             if (Request::get('delete')) {
                 $group->delete();
@@ -262,9 +277,17 @@ class Admin_StatusgroupsController extends AuthenticatedController {
                 $group->name_w = Request::get('name_w');
                 $group->name_m = Request::get('name_m');
                 $group->size = Request::get('size');
+                $group->range_id = Request::get('range_id') ? : $group->range_id;
+                $group->position = Request::get('position') ? : $group->position;
                 $group->selfassign = Request::get('selfassign') ? 1 : 0;
                 $group->store();
+                $group->setDatafields(Request::getArray('datafields') ? : array());
             }
+        }
+        if (Request::submitted('order')) {
+            $this->check('edit');
+            $newOrder = json_decode(Request::get('ordering'));
+            $this->updateRecoursive($newOrder, $_SESSION['SessionSeminar']);
         }
     }
 
@@ -282,11 +305,14 @@ class Admin_StatusgroupsController extends AuthenticatedController {
      * Inst statusgroup but could be extended
      */
     private function setType() {
-        if ($_SESSION['SessionSeminar'] && (Request::get('type') == null || get_object_type($_SESSION['SessionSeminar']) == Request::get('type'))) {
-            $types = $this->types();
-            $this->type = $types[get_object_type($_SESSION['SessionSeminar'])];
+        if (get_object_type($_SESSION['SessionSeminar'], array('inst', 'fak'))) {
+            $type = 'inst';
+        }
+        $types = $this->types();
+        if (!$type || Request::submitted('type') && $type != Request::get('type')) {
+            $this->redirect($types[Request::get('type')]['redirect']);
         } else {
-            $this->redirect('admin/statusgroups/selectInstitute');
+            $this->type = $types[$type];
         }
     }
 
@@ -318,9 +344,12 @@ class Admin_StatusgroupsController extends AuthenticatedController {
                 'view' => function ($user_id) {
                     return true;
                 },
+                'needs_size' => false,
+                'needs_self_assign' => false,        
                 'edit' => function ($user_id) {
                     return $GLOBALS['perm']->have_studip_perm('admin', $_SESSION['SessionSeminar']);
                 },
+                'redirect' => 'admin/statusgroups/selectInstitute',
                 'groups' => array(
                     'members' => array(
                         'name' => _('Mitglieder'),

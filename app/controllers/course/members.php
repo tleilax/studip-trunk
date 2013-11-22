@@ -1,7 +1,7 @@
 <?php
 
 /*
- * MembersConrtoller
+ * MembersController
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -71,9 +71,6 @@ class Course_MembersController extends AuthenticatedController
 
         SkipLinks::addIndex(Navigation::getItem('/course/members')->getTitle(), 'main_content', 100);
 
-        Navigation::activateItem('/course/members');
-        Navigation::activateItem('/course/members/view');
-
         if (Request::isXhr()) {
             $this->set_layout(null);
         } else {
@@ -98,7 +95,9 @@ class Course_MembersController extends AuthenticatedController
             'tutor' => get_title_for_status('tutor', 2),
             'autor' => get_title_for_status('autor', 2),
             'user' => get_title_for_status('user', 2),
-            'accepted' => get_title_for_status('accepted', 2)
+            'accepted' => get_title_for_status('accepted', 2),
+            'awaiting' => _("Wartende NutzerInnen"),
+            'claiming' => _("Wartende NutzerInnen")
         );
 
         // StatusGroups for the view
@@ -142,6 +141,7 @@ class Course_MembersController extends AuthenticatedController
             $filtered_members = array_merge($filtered_members, $this->members->getAdmissionMembers($this->sort_status, $this->sort_by . ' ' . $this->order ));
             $this->awaiting = $filtered_members['awaiting']->toArray('user_id username vorname nachname visible kontingent mkdate');
             $this->accepted = $filtered_members['accepted']->toArray('user_id username vorname nachname visible kontingent mkdate');
+            $this->claiming = $filtered_members['claiming']->toArray('user_id username vorname nachname visible kontingent mkdate');
         }
 
         // Check autor-perms
@@ -151,7 +151,7 @@ class Course_MembersController extends AuthenticatedController
             $this->invisibles = count($filtered_members['autor']->findBy('visible', 'no')) + count($filtered_members['user']->findBy('visible', 'no'));
             $current_user_id = $this->user_id;
             $exclude_invisibles =
-                function ($user) use ($current_user_id) {
+                    function ($user) use ($current_user_id) {
                         return ($user['visible'] != 'no' || $user['user_id'] == $current_user_id);
                     };
             $filtered_members['autor'] = $filtered_members['autor']->filter($exclude_invisibles);
@@ -170,12 +170,20 @@ class Course_MembersController extends AuthenticatedController
         $this->studipticket = Seminar_Session::get_ticket();
         $this->subject = $this->getSubject();
         $this->groups = $this->status_groups;
-        $this->waitingTitle = $this->getTitleForAwaiting();
         // Check Seminar
         if ($this->is_tutor && $sem->isAdmissionEnabled()) {
-            $this->semAdmissionEnabled = true;
             $this->course = $sem;
             $this->count = $this->members->getCountedMembers();
+            if ($sem->admission_type == 2 || $sem->admission_selection_take_place == 1) {
+                $this->waitingTitle = _("Warteliste");
+                $this->semAdmissionEnabled = 2;
+                $this->waiting_type = 'awaiting';
+            } else {
+                $this->waitingTitle = sprintf(_("Anmeldeliste (Losverfahren am %s)"), strftime('%x %R', $sem->admission_endtime));
+                $this->semAdmissionEnabled = 1;
+                $this->awaiting = $this->claiming;
+                $this->waiting_type = 'claiming';
+            }
         }
         // Set the infobox
         $this->setInfoBoxImage('infobox/groups.jpg');
@@ -256,8 +264,8 @@ class Course_MembersController extends AuthenticatedController
             return;
         }
 
-        if ($status == 'accepted' || $status == 'awaiting') {
-            $textStatus = 'NutzerInnen';
+        if (in_array($status, words('accepted awaiting claiming'))) {
+            $textStatus = _('Wartenden');
         } else {
             $textStatus = $this->status_groups[$status];
         }
@@ -528,7 +536,6 @@ class Course_MembersController extends AuthenticatedController
         }
     }
 
-
     /**
      * Send Stud.IP-Message to selected users
      */
@@ -580,7 +587,6 @@ class Course_MembersController extends AuthenticatedController
                 }
             }
         }
-
 
         if (Request::get('csv_import')) {
             // remove duplicate users from csv-import
@@ -874,7 +880,7 @@ class Course_MembersController extends AuthenticatedController
 
         $this->flash['users'] = Request::getArray('awaiting');
         $this->flash['consider_contingent'] = Request::get('consider_contingent');
-
+        $waiting_type = Request::option('waiting_type');
         // select the additional method
         switch (Request::get('action_awaiting')) {
             case '':
@@ -884,7 +890,7 @@ class Course_MembersController extends AuthenticatedController
                 $this->redirect('course/members/insert_admission/awaiting/collection');
                 break;
             case 'remove':
-                $this->redirect('course/members/cancel_subscription/collection/awaiting');
+                $this->redirect('course/members/cancel_subscription/collection/' . $waiting_type);
                 break;
             case 'message':
                 $this->redirect('course/members/send_message');
@@ -951,8 +957,8 @@ class Course_MembersController extends AuthenticatedController
 
         // create a usable array
         $users = array_filter($this->flash['users'], function ($user) {
-                        return $user;
-                    });
+                    return $user;
+                });
 
         if ($users) {
             $msgs = $this->members->insertAdmissionMember($users, 'autor', Request::get('consider_contingent'), $status == 'accepted');
@@ -1001,7 +1007,7 @@ class Course_MembersController extends AuthenticatedController
                 CSRFProtection::verifyUnsafeRequest();
                 $users = Request::getArray('users');
                 if (!empty($users)) {
-                    if ($status == 'accepted' || $status == 'awaiting') {
+                    if (in_array($status, words('accepted awaiting claiming'))) {
                         $msgs = $this->members->cancelAdmissionSubscription($users, $status);
                     } else {
                         $msgs = $this->members->cancelSubscription($users);
@@ -1131,6 +1137,66 @@ class Course_MembersController extends AuthenticatedController
     }
 
     /**
+     * Displays all members of the course and their aux data
+     * @return int fake return to stop after redirect;
+     */
+    function additional_action($format = null) {
+
+        // Users get forwarded to aux_input
+        if (!($this->is_dozent || $this->is_tutor)) {
+            $this->redirect('course/members/additional_input');
+            return 0;
+        }
+
+        // fetch course and aux data
+        $course = new Course($_SESSION['SessionSeminar']);
+        if (Request::submitted('save')) {
+            foreach ($course->members->findBy('status', 'autor') as $member) {
+                $course->aux->updateMember($member, Request::getArray($member->user_id));
+            }
+        }       
+        if (Request::submitted('export')) {
+            $aux = $course->aux->getCourseData($course, true);
+            $doc = new exportDoc();
+            $table = $doc->add('table');
+            $table->header = $aux['head'];
+            $table->content = $aux['rows'];
+            $doc->export('xls');
+        } else {
+            $this->aux = $course->aux->getCourseData($course);
+        }
+    }
+
+    /**
+     * Aux input for users
+     */
+    function additional_input_action() {
+
+        // Activate the autoNavi otherwise we dont find this page in navi
+        Navigation::activateItem('/course/members/additional');
+
+        // Fetch datafields for the user
+        $course = new Course($_SESSION['SessionSeminar']);
+        $member = $course->members->findOneBy('user_id', $GLOBALS['user']->id);
+        $this->datafields = $course->aux->getMemberData($member);
+
+        // Update em if they got submittet
+        if (Request::submitted('save')) {
+            $datafields = SimpleCollection::createFromArray($this->datafields);
+            foreach (Request::getArray('aux') as $aux => $value) {
+                $datafield = $datafields->findOneBy('datafield_id', $aux);
+                if ($datafield) {
+                    $typed = $datafield->getTypedDatafield();
+                    if ($typed->isEditable()) {
+                        $typed->setValueFromSubmit($value);
+                        $typed->store();
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Get the visibility of a user in a seminar
      * @param String $user_id
      * @param String $seminar_id
@@ -1157,17 +1223,6 @@ class Course_MembersController extends AuthenticatedController
         }
 
         return $result;
-    }
-
-    /**
-     * Creates a String for the waitinglist
-     * @return String
-     */
-    private function getTitleForAwaiting()
-    {
-        $sem = Seminar::GetInstance($this->course_id);
-        return ($sem->admission_type == 2 || $sem->admission_selection_take_place == 1) ?
-                _("Warteliste") : _("Anmeldeliste");
     }
 
     /**

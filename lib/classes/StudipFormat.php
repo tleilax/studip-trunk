@@ -21,7 +21,7 @@ class StudipFormat extends TextFormat
 
         // heading level 1-4
         'heading' => array(
-            'start'    => '^(!{1,4})([^\n]+)\n?',
+            'start'    => '^(!{1,4})([^\n]+)\n*',
             'callback' => 'StudipFormat::markupHeading'
         ),
 
@@ -560,6 +560,9 @@ class StudipFormat extends TextFormat
         $title = $matches[1] ? $matches[1] : $url;
         
         $intern = isLinkIntern($url);
+        if (!$intern) {
+            OpenGraphURL::$tempURLStorage[] = $url;
+        }
         
         $url = TransformInternalLinks($url);
 

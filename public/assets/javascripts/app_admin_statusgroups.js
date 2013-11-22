@@ -1,12 +1,28 @@
 $(document).ready(function() {
 
-    //prepare group order interface
-    $('.dd').nestable({});
+    $('a.modal').click(function() {
+        var dialog = $("<div></div>");
+        dialog.dialog({
+            autoOpen: false,
+            autoResize: true,
+            resizable: false,
+            position: 'center',
+            close: function() {
+                $(this).remove()
+            },
+            width: 'auto',
+            title: $(this).attr('title'),
+            modal: true
+        });
+        dialog.load($(this).attr('href'));
+        dialog.dialog("open");
+        return false;
+    });
 
     //do everything you would do after a reload
     afterReload();
 
-    //we dont want to reload (hard) the page when enter is pressed in the
+    //we dont want to (hard) reload the page when enter is pressed in the
     //ppl search input
     $('#ppl_search').keydown(function(e) {
         e = e || event;
@@ -36,80 +52,30 @@ $(document).ready(function() {
                 }
             });
             if (found < 10) {
-                delay(function(){
-                $.ajax({
-                    type: 'POST',
-                    url: $('#ajax_search').val(),
-                    dataType: 'json',
-                    data: {query: search, limit: 10 - found},
-                    async: true
-                }).done(function(data) {
-                    $('#search_result').empty();
-                    if (data.length > 0) {
-                        jQuery.each(data, function(i, val) {
-                            if ($('#' + val.id).length === 0) {
-                                $('#search_result').append('<p id="' + (val.id) + '" style="margin: 0px;" class="person">' + val.name + '</p>');
-                            }
-                        });
-                        afterReload();
-                    }
-                });
-                $('#free_search, #search_result').fadeIn(fadeSpeed);
-                }, 800 );
+                delay(function() {
+                    $.ajax({
+                        type: 'POST',
+                        url: $('#ajax_search').val(),
+                        dataType: 'json',
+                        data: {query: search, limit: 10 - found},
+                        async: true
+                    }).done(function(data) {
+                        $('#search_result').empty();
+                        if (data.length > 0) {
+                            jQuery.each(data, function(i, val) {
+                                if ($('#' + val.id).length === 0) {
+                                    $('#search_result').append('<p id="' + (val.id) + '" style="margin: 0px;" class="person">' + val.name + '</p>');
+                                }
+                            });
+                            afterReload();
+                        }
+                    });
+                    $('#free_search, #search_result').fadeIn(fadeSpeed);
+                }, 800);
             } else {
                 $('#free_search, #search_result').fadeOut(fadeSpeed);
             }
         }
-    });
-    
-    var editButtons = {};
-    editButtons["Übernehmen".toLocaleString()] = function() {
-        var id = $(this).attr('id').substr(5);
-        $('#form_' + id).submit();
-        $(this).dialog("close");
-    };
-    editButtons["Abbrechen".toLocaleString()] = function() {
-        $(this).dialog("close");
-    };
-
-    // Create dialog to edit groups
-    $(".edit_dialog").dialog({
-        autoOpen: false,
-        height: 340,
-        width: 300,
-        resizable: false,
-        buttons: editButtons
-    });
-
-    var orderButtons = {};
-    orderButtons["Übernehmen".toLocaleString()] = function() {
-        var text = JSON.stringify($('.dd').nestable('serialize'));
-        $.ajax({
-            type: 'POST',
-            url: $('#ajax_order').val(),
-            dataType: 'html',
-            data: {json: text}
-        }).done(function() {
-            location.reload()
-        });
-        $(this).dialog("close");
-    };
-    orderButtons["Abbrechen".toLocaleString()] = function() {
-        $(this).dialog("close");
-    };
-    // Create the dialog to change orders
-    $(".order_dialog").dialog({
-        autoOpen: false,
-        height: 340,
-        width: 500,
-        resizable: false,
-        buttons: orderButtons
-    });
-
-    // Clicking the edit Button should 
-    $(".edit").click(function() {
-        var id = $(this).closest("table").attr('id');
-        $('#edit_' + id).dialog("open");
     });
 });
 
@@ -120,21 +86,14 @@ $(document).ready(function() {
  * commands
  */
 
-var delay = (function(){
-  var timer = 0;
-  return function(callback, ms){
-    clearTimeout (timer);
-    timer = setTimeout(callback, ms);
-  };
+var delay = (function() {
+    var timer = 0;
+    return function(callback, ms) {
+        clearTimeout(timer);
+        timer = setTimeout(callback, ms);
+    };
 })();
 
-function newgroup() {
-    $('#edit_newgroup').dialog("open");
-}
-
-function order() {
-    $('#edit_order').dialog("open");
-}
 //reattach all jQuery stuff after ajax reload
 function afterReload() {
 
@@ -157,7 +116,7 @@ function afterReload() {
             $('.dropable').fadeTo(400, 1);
         },
         revertDuration: 0
-        });
+    });
 
 //make tables droppable
     $(".dropable").droppable({
@@ -192,7 +151,7 @@ function afterReload() {
                 data: {group: table.id, user: row.id, pos: newposition},
                 async: false
             }).done(function(data) {
-                table.tBodies[0].innerHTML = unescape(data);
+                table.tBodies[0].innerHTML = data;
                 afterReload();
             });
         }
@@ -202,12 +161,10 @@ function afterReload() {
     $(".delete").click(function(e) {
         e.preventDefault();
         var table_id = $(this).closest('table').attr('id');
-        var user = $(this).closest('tr');
         $.ajax({
             type: 'POST',
-            url: $('#ajax_delete').val(),
+            url: $(this).attr('href'),
             dataType: 'html',
-            data: {group: table_id, user: user.attr('id')},
             async: true
         }).done(function(data) {
             $('#' + table_id + " tbody").html(data);

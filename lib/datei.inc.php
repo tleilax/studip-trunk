@@ -205,7 +205,10 @@ function parse_link($link, $level=0) {
         $location_header = $parsed_link["Location"]
                         ?: $parsed_link["location"];
         if (in_array($parsed_link["response_code"], array(300,301,302,303,305,307)) && $location_header) {
-            parse_link($location_header, $level + 1);
+            if (strpos($location_header, 'http') !== 0) {
+                $location_header = $url_parts['scheme'] . '://' . $url_parts['host'] . '/' . $location_header;
+            }
+            $parsed_link = parse_link($location_header, $level + 1);
         }
         return $parsed_link;
     }
@@ -577,11 +580,17 @@ function move_item($item_id, $new_parent, $change_sem_to = false)
             }
 
             if (!$target_is_child){
-                $query = "UPDATE folder SET range_id = ? WHERE folder_id = ?";
+                $query = "UPDATE folder SET range_id = ?, seminar_id = ? WHERE folder_id = ?";
                 $statement = DBManager::get()->prepare($query);
-                $statement->execute(array($new_parent, $item_id));
+                $cid = $change_sem_to ?: $SessionSeminar;
+                $statement->execute(array($new_parent, $cid, $item_id));
 
                 if ($change_sem_to) {
+                    if (is_array($folder) && count($folder)) {
+                        $query = "UPDATE folder SET seminar_id = ? WHERE folder_id IN (?)";
+                        $statement = DBManager::get()->prepare($query);
+                        $statement->execute(array($cid, $folder));
+                    }
                     $folder[] = $item_id;
                     // TODO (mlunzena): notify these documents
                     $query = "UPDATE dokumente SET seminar_id = ? WHERE range_id IN (?)";
@@ -641,7 +650,8 @@ function copy_item($item_id, $new_parent, $change_sem_to = false)
             $seed = md5(uniqid('blaofuasof',1));
 
             if (!$target_is_child) {
-                if (!($folder_count = copy_folder($item_id, $new_parent, $seed))) {
+                $cid = $change_sem_to ?: $SessionSeminar;
+                if (!($folder_count = copy_folder($item_id, $new_parent, $seed, $cid))) {
                     return false;
                 }
                 $folder[] = $item_id;
@@ -693,7 +703,7 @@ function copy_doc($doc_id, $new_range, $new_sem = false)
     return $doc->store();
 }
 
-function copy_folder($folder_id, $new_range, $seed = false)
+function copy_folder($folder_id, $new_range, $seed = false, $seminar_id = null)
 {
     if (!$seed) {
         $seed = md5(uniqid('blaofuasof', 1));
@@ -711,8 +721,8 @@ function copy_folder($folder_id, $new_range, $seed = false)
     // Prepare insert statement
     $query = "INSERT INTO folder
                 (folder_id, range_id, user_id, name, description, mkdate,
-                 chdate, permission)
-              VALUES (?, ?, ?, ?, ?, ?, UNIX_TIMESTAMP(), ?)";
+                 chdate, permission, seminar_id)
+              VALUES (?, ?, ?, ?, ?, ?, UNIX_TIMESTAMP(), ?, ?)";
     $insert_statement = DBManager::get()->prepare($query);
 
     // Execute select statement
@@ -729,7 +739,8 @@ function copy_folder($folder_id, $new_range, $seed = false)
             $temp['name'],
             $temp['description'],
             $temp['mkdate'],
-            $temp['permission']
+            $temp['permission'],
+            $seminar_id
         ));
         if (!$insert_statement->rowCount()){
             return false;
@@ -752,7 +763,8 @@ function copy_folder($folder_id, $new_range, $seed = false)
                         $temp['name'],
                         $temp['description'],
                         $temp['mkdate'],
-                        $temp['permission']
+                        $temp['permission'],
+                        $seminar_id
                     ));
 
                     $count += $insert_statement->rowCount();
@@ -816,21 +828,60 @@ function edit_item($item_id, $type, $name, $description, $protected = 0, $url = 
     }
 }
 
-function create_folder ($name, $description, $parent_id, $permission = 7)
+/**
+ * Create a 'folder' in the files module of a course or institution.
+ * Particularly interesting is the third parameter $parent_id mapping
+ * to the 'range_id' field in the database table 'folder'. It is used
+ * to create a tree structure of folders but is not the usual parent
+ * key. Instead it is one of these:
+ *  - $parent_id equals the course's ID, if this folder is the
+ *    "Allgemeine Dateien" folder.
+ *  - $parent_id equals the ID of an entry in table 'statusgruppen',
+ *    if the folder is associated to that entry.
+ *  - $parent_id equals the ID of an entry in table 'themen', if the
+ *    folder is associated to that entry.
+ *  - $parent_id equals `md5($cid . 'top_folder')`, if that folder is
+ *    not the "Allgemeine Dateien" folder, but exists in the same
+ *    depth of the tree as the mentioned folder. (blame StEP0008)
+ *  - otherwise $parent_id equals the ID of the parent folder.
+ *
+ * @param string $name         the name of the folder
+ * @param string $description  a description of the folder, may be the
+ *                             empty string
+ * @param string $parent_id    some kind of foreign key used to create
+ *                             a tree structure of folders as
+ *                             described above
+ * @param int    $permission   bit-OR your permission:
+ *                             0001 = visible,
+ *                             0010 = writable,
+ *                             0100 = readable,
+ *                             1000 = extendable
+ * @param string $seminar_id   an optional parameter used to associate
+ *                             with a course or institute. $SessionSeminar
+ *                             is used, if it is missing.
+ * @return the ID of the folder if successful, otherwise NULL
+ */
+
+function create_folder ($name, $description, $parent_id, $permission = 7, $seminar_id = null)
 {
-    global $user, $SessionSeminar;
+    global $user;
+
+    if (!isset($seminar_id)) {
+        $seminar_id = $GLOBALS['SessionSeminar'];
+    }
 
     $id = md5(uniqid('salmonellen',1));
-    $folder_tree = TreeAbstract::GetInstance('StudipDocumentTree', array('range_id' => $SessionSeminar));
+    $folder_tree = TreeAbstract::GetInstance('StudipDocumentTree', array('range_id' => $seminar_id));
 
-    $query = "INSERT INTO folder (name, folder_id, description, range_id, user_id, permission, mkdate, chdate)
-              VALUES (?, ?, ?, ?, ?, ?, UNIX_TIMESTAMP(), UNIX_TIMESTAMP())";
+    $query = "INSERT INTO folder (name, folder_id, description, range_id, seminar_id, user_id, permission, mkdate, chdate)
+              VALUES (?, ?, ?, ?, ?, ?, ?, UNIX_TIMESTAMP(), UNIX_TIMESTAMP())";
     $statement = DBManager::get()->prepare($query);
     $statement->execute(array(
         $name,
         $id,
         $description,
         $parent_id,
+        $seminar_id,
         $user->id,
         $permission
     ));

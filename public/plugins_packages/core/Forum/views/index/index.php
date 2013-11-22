@@ -72,14 +72,14 @@ if ($section == 'index') {
     if (ForumPerm::has('pdfexport', $seminar_id)) {
         $eintraege[] = array(
             'icon' => 'icons/16/black/export/file-pdf.png',
-            'text' => '<a href="'. PluginEngine::getLink('coreforum/index/pdfexport/' . $constraint['topic_id']) .'">' . _('Beiträge als PDF exportieren') .'</a>'
+            'text' => '<a href="'. PluginEngine::getLink('coreforum/index/pdfexport/' . $constraint['topic_id']) .'" target="_blank">' . _('Beiträge als PDF exportieren') .'</a>'
         );
     }
 
     if (ForumPerm::has('close_thread', $seminar_id) && $constraint['depth'] > 1) {
         if ($constraint['closed'] == 0) {
             $eintraege[] = array(
-                'icon' => 'icons/16/blue/lock-locked.png',
+                'icon' => 'icons/16/black/lock-locked.png',
                 'text' => '<a class="closeButtons" href="'. PluginEngine::getLink('coreforum/index/close_thread/' 
                             . $constraint['topic_id'] .'/'. $constraint['topic_id'] .'/'. ForumHelpers::getPage()) .'" 
                         onclick="STUDIP.Forum.closeThreadFromThread(\'' . $constraint['topic_id'] . '\', '
@@ -88,12 +88,34 @@ if ($section == 'index') {
             );
         } else {
             $eintraege[] = array(
-                'icon' => 'icons/16/blue/lock-unlocked.png',
+                'icon' => 'icons/16/black/lock-unlocked.png',
                 'text' => '<a class="closeButtons" href="'. PluginEngine::getLink('coreforum/index/open_thread/' 
                                 . $constraint['topic_id'] .'/'. $constraint['topic_id'] .'/'. ForumHelpers::getPage()) .'"
                             onclick="STUDIP.Forum.openThreadFromThread(\'' . $constraint['topic_id'] . '\', '
                                 . ForumHelpers::getPage() . '); return false;">'
                         . _('Thema öffnen') . '</a>'
+            );
+        }
+    }
+    
+    if (ForumPerm::has('make_sticky', $seminar_id) && $constraint['depth'] > 1) {
+        if ($constraint['sticky'] == 0) {
+            $eintraege[] = array(
+                'icon' => 'icons/16/black/staple.png',
+                'text' => '<a id="stickyButton" href="'. PluginEngine::getLink('coreforum/index/make_sticky/' 
+                                . $constraint['topic_id'] .'/'. $constraint['topic_id'] .'/'. ForumHelpers::getPage()) .'"
+                            onclick="STUDIP.Forum.makeThreadStickyFromThread(\'' . $constraint['topic_id'] . '\', '
+                                . ForumHelpers::getPage() . '); return false;">'
+                        . _('Thema hervorheben') . '</a>'
+            );
+        } else {
+            $eintraege[] = array(
+                'icon' => 'icons/16/black/staple.png',
+                'text' => '<a id="stickyButton" href="'. PluginEngine::getLink('coreforum/index/make_unsticky/' 
+                                . $constraint['topic_id'] .'/'. $constraint['topic_id'] .'/'. ForumHelpers::getPage()) .'"
+                            onclick="STUDIP.Forum.makeThreadUnstickyFromThread(\'' . $constraint['topic_id'] . '\', '
+                                . ForumHelpers::getPage() . '); return false;">'
+                        . _('Hervorhebung aufheben') . '</a>'
             );
         }
     }
@@ -180,7 +202,7 @@ endif;
             <? endif ?>
 
             <? if (ForumPerm::has('pdfexport', $seminar_id) && $section == 'index') : ?>
-                <?= Studip\LinkButton::create(_('Beiträge als PDF exportieren'), PluginEngine::getLink('coreforum/index/pdfexport')) ?>
+                <?= Studip\LinkButton::create(_('Beiträge als PDF exportieren'), PluginEngine::getLink('coreforum/index/pdfexport'), array('target' => '_blank')) ?>
             <? endif ?>
         </div>
     </div>
@@ -231,7 +253,7 @@ endif;
                 <? endif ?>
                 
                 <? if (ForumPerm::has('pdfexport', $seminar_id)) : ?>
-                <?= Studip\LinkButton::create(_('Beiträge als PDF exportieren'), PluginEngine::getLink('coreforum/index/pdfexport/' . $topic_id)) ?>
+                <?= Studip\LinkButton::create(_('Beiträge als PDF exportieren'), PluginEngine::getLink('coreforum/index/pdfexport/' . $topic_id), array('target' => '_blank')) ?>
                 <? endif ?>
             </div>
         </div>
