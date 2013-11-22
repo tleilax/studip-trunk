@@ -64,7 +64,7 @@ class CheckAdmissionJob extends CronJob
               }
               foreach($sets as $set_id) {
                   $courseset = new CourseSet($set_id);
-                  if ($courseset->isSeatDistributionEnabled() && $courseset->getSeatDistributionTime() < time()) {
+                  if ($courseset->isSeatDistributionEnabled() && !$courseset->hasAlgorithmRun() && $courseset->getSeatDistributionTime() < time()) {
                       if ($verbose) {
                           echo ++$i . ' ' . $courseset->getId() . ' : ' . $courseset->getName() . chr(10);
                       }

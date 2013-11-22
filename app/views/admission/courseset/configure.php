@@ -134,6 +134,14 @@ $userlistIds = $courseset ? $courseset->getUserlists() : array();
             ?>
             <input type="checkbox" name="userlists[]" value="<?= $list->getId() ?>"<?= $checked ?>/> <?= $list->getName() ?><br/>
             <?php } ?>
+            <div>
+                    <?= LinkButton::create(_('Liste der Nutzer'), 
+                        $controller->url_for('admission/courseset/factored_users/' . $courseset->getId()), 
+                        array(
+                            'rel' => 'lightbox'
+                            )
+                        ); ?>
+            </div>
         <?php } else { ?>
             <i><?=  _('Sie haben noch keine Nutzerlisten angelegt.') ?></i>
         <?php

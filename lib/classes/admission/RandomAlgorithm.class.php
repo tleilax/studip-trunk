@@ -18,9 +18,7 @@ class RandomAlgorithm extends AdmissionAlgorithm {
         foreach ($courseSet->getCourses() as $course_id) {
             $course = Course::find($course_id);
             $seminar = new Seminar($course_id);
-            $num_participants = $course->members->findBy('status', words('user autor'))->count();
-            $num_participants += $course->admission_applicants->findBy('status', 'accepted')->count();
-            $free_seats = $course->admission_turnout - $num_participants;
+            $free_seats = $course->getFreeSeats();
             $claiming_users = AdmissionPriority::getPrioritiesByCourse($courseSet->getId(), $course->id);
             $factored_users = $courseSet->getUserFactorList();
             foreach(array_keys($claiming_users) as $user_id) {
@@ -33,17 +31,21 @@ class RandomAlgorithm extends AdmissionAlgorithm {
             if ($free_seats > 0) {
                 Log::DEBUG(sprintf('distribute %s seats on %s claiming in course %s', $free_seats, count($claiming_users), $course->id));
                 $claiming_users = $this->rollTheDice($claiming_users);
-                Log::DEBUG('chosen ones: ' . print_r(array_slice(array_keys($claiming_users),0 , $free_seats),1));
-                $this->addUsersToCourse(array_slice(array_keys($claiming_users),0 , $free_seats), $course);
+                Log::DEBUG('the die is cast: ' . print_r($claiming_users,1));
+                $chosen_ones = array_slice(array_keys($claiming_users),0 , $free_seats);
+                Log::DEBUG('chosen ones: ' . print_r($chosen_ones,1));
+                $this->addUsersToCourse($chosen_ones, $course);
                 if ($free_seats < count($claiming_users)) {
                     if (!$course->admission_disable_waitlist) {
                         $free_seats_waitlist = $course->admission_waitlist_max ?: count($claiming_users) - $free_seats;
-                        Log::DEBUG('waiting list ones: ' . print_r(array_slice(array_keys($claiming_users),$free_seats - 1 , $free_seats_waitlist),1));
-                        $this->addUsersToWaitlist(array_slice(array_keys($claiming_users),$free_seats - 1 , $free_seats_waitlist), $course);
+                        $waiting_list_ones = array_slice(array_keys($claiming_users),$free_seats , $free_seats_waitlist);
+                        Log::DEBUG('waiting list ones: ' . print_r($waiting_list_ones, 1));
+                        $this->addUsersToWaitlist($waiting_list_ones, $course);
                     }
                     if (($free_seats_waitlist + $free_seats) < count($claiming_users)) {
-                        Log::DEBUG('remaining ones: ' . print_r(array_slice(array_keys($claiming_users),$free_seats_waitlist + $free_seats - 1),1));
-                        $this->notifyRemainingUsers(array_slice(array_keys($claiming_users),$free_seats_waitlist + $free_seats - 1), $course);
+                        $remaining_ones = array_slice(array_keys($claiming_users),$free_seats_waitlist + $free_seats);
+                        Log::DEBUG('remaining ones: ' . print_r($remaining_ones, 1));
+                        $this->notifyRemainingUsers($remaining_ones, $course);
                     }
                 }
             } else {
@@ -71,7 +73,7 @@ class RandomAlgorithm extends AdmissionAlgorithm {
 
     private function addUsersToWaitlist($user_list, $course)
     {
-        $maxpos = max($course->admission_applicants->findBy('status', 'awaiting')->pluck('position'));
+        $maxpos = $course->admission_applicants->findBy('status', 'awaiting')->orderBy('position desc')->val('position');
         foreach ($user_list as $chosen_one) {
             $maxpos++;
             $new_admission_member = new AdmissionApplication();

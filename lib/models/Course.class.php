@@ -179,4 +179,24 @@ class Course extends SimpleORMap
 
         parent::__construct($id);
     }
+    
+    function getFreeSeats()
+    {
+        $num_participants = $this->members->findBy('status', words('user autor'))->count();
+        $num_participants += $this->admission_applicants->findBy('status', 'accepted')->count();
+        $free_seats = $this->admission_turnout - $num_participants;
+        return $free_seats > 0 ? $free_seats : 0;
+    }
+    
+    function isWaitlistAvailable()
+    {
+        if ($this->admission_disable_waitlist) {
+            return false;
+        } else if ($this->admission_waitlist_max) {
+            $num_waitlist = $this->admission_applicants->findBy('status', 'awaiting')->count();
+            return ($this->admission_waitlist_max - $num_waitlist) > 0 ? true : false;
+        } else {
+            return true;
+        }
+    }
 }

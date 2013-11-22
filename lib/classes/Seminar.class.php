@@ -2562,13 +2562,6 @@ class Seminar
                 renumber_admission($this->getId());
             }
             removeScheduleEntriesMarkedAsVirtual($user_id, $this->getId());
-            $stmt = DBManager::get()->prepare('DELETE FROM admission_seminar_user
-                    WHERE user_id = ? AND seminar_id = ?');
-            $stmt->execute(array($user_id, $this->getId()));
-            if ($stmt->rowCount()) {
-                //renumber the waiting/accepted/lot list, a user was deleted from it
-                renumber_admission($this->getId());
-            }
             NotificationCenter::postNotification("CourseDidGetMember", $this, $user_id);
             NotificationCenter::postNotification('UserDidEnterCourse', $this->id, $user_id);
             log_event('SEM_USER_ADD', $this->id, $user_id, $status, 'Wurde in die Veranstaltung eingetragen');
@@ -2627,10 +2620,7 @@ class Seminar
             $query = "DELETE FROM seminar_user WHERE Seminar_id = ? AND user_id = ?";
             $statement = DBManager::get()->prepare($query);
             $statement->execute(array($this->id, $user_id));
-            $query = "DELETE FROM statusgruppe_user INNER JOIN statusgruppen USING(statusgruppe_id) WHERE range_id = ? AND user_id = ?";
-            $statement = DBManager::get()->prepare($query);
-            $statement->execute(array($this->id, $user_id));
-            
+
             if ($dozenten[$user_id]) {
                 $query = "SELECT termin_id FROM termine WHERE range_id = ?";
                 $statement = DBManager::get()->prepare($query);
@@ -2787,7 +2777,7 @@ class Seminar
         $info['description'] = '';
         return $info;
     }
-    
+
     function addPreliminaryMember($user_id)
     {
         $ok = admission_seminar_user_insert($user_id, $this->getId(), 'accepted', '', '');

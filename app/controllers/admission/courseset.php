@@ -252,7 +252,20 @@ class Admission_CoursesetController extends AuthenticatedController {
             return;
         }
     }
-
+    
+    public function factored_users_action($set_id)
+    {
+        $this->set_content_type('text/html; charset=windows-1252');
+        if (Request::isXhr()) {
+            $this->response->add_header('X-Title', _('Liste der Nutzer'));
+        }
+        $courseset = new CourseSet($set_id);
+        $factored_users = $courseset->getUserFactorList();
+        $applicants = AdmissionPriority::getPriorities($set_id);
+        $this->users = User::findAndMapMany(function($u) use ($factored_users, $applicants) {
+                                          return array_merge($u->toArray('username vorname nachname'), array('applicant' => isset($applicants[$u->id]), 'factor' => $factored_users[$u->id]));                      
+                                       }, array_keys($factored_users), 'ORDER BY Nachname');
+    }
 }
 
 ?>

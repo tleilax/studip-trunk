@@ -258,7 +258,7 @@ class CourseSet
     
     public function isSeatDistributionEnabled()
     {
-        return $this->algorithm && $this->hasAdmissionRule('TimedAdmission') && !$this->hasAlgorithmRun;
+        return $this->algorithm && $this->hasAdmissionRule('TimedAdmission');
     }
 
     public function getSeatDistributionTime()
@@ -452,7 +452,11 @@ class CourseSet
         $factored_users = array();
         foreach ($this->getUserLists() as $ul_id) {
             $user_list = new AdmissionUserList($ul_id);
-            $factored_users = array_merge($factored_users, array_combine(array_keys($user_list->getUsers()), array_fill(0, count(), $user_list->getFactor())));
+            $factored_users = array_merge($factored_users,
+                                 array_combine(array_keys($user_list->getUsers()),
+                                         array_fill(0, count($user_list->getUsers()), $user_list->getFactor())
+                                         )
+                    );
         }
         return $factored_users;
     }

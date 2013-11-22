@@ -74,23 +74,45 @@ class Course_EnrolmentController extends AuthenticatedController
                 }
             } else {
                 if ($courseset->isSeatDistributionEnabled()) {
-                    $msg = _("Die Plätze in dieser Veranstaltung werden automatisch verteilt.");
-                    if ($limit = $courseset->getAdmissionRule('LimitedAdmission')) {
-                        $msg_details[] = sprintf(_("Diese Veranstaltung gehört zu einem Anmeldeset mit %s Veranstaltungen. Sie können maximal %s davon belegen. Bei der Verteilung werden die von Ihnen gewünschten Prioritäten berücksichtigt."),
-                                         count($courseset->getCourses()), $limit->getMaxNumberForUser($user_id));
-                        $this->priocourses = Course::findMany($courseset->getCourses(), "ORDER BY Name");
-                        $this->user_prio = AdmissionPriority::getPrioritiesByUser($courseset->getId(), $user_id);
-                        
-                        $this->prio_stats = AdmissionPriority::getPrioritiesStats($courseset->getId());
-                        $this->already_claimed = count($this->user_prio);
+                    if ($courseset->hasAlgorithmRun()) {
+                        $msg = _("Die Plätze in dieser Veranstaltung wurden automatisch verteilt.");
+                        $course = Course::find($this->course_id);
+                        if ($course->getFreeSeats()) {
+                            $enrol_user = true;
+                        } else {
+                            if ($course->isWaitlistAvailable()) {
+                                $maxpos = $course->admission_applicants->findBy('status', 'awaiting')->orderBy('position desc')->val('position');
+                                $new_admission_member = new AdmissionApplication();
+                                $new_admission_member->user_id = $user_id;
+                                $new_admission_member->position = ++$maxpos;
+                                $new_admission_member->status = 'awaiting';
+                                $course->admission_applicants[] = $new_admission_member;
+                                if ($new_admission_member->store()) {
+                                    $msg_details[] = sprintf(_("Alle Plätze sind belegt, Sie wurden daher auf Platz %s der Warteliste gesetzt."), $maxpos);
+                                }
+                            } else {
+                                $this->admission_error = MessageBox::error(_("Die Anmeldung war nicht erfolgreich. Alle Plätze sind belegt und es steht keine Warteliste zur Verfügung."));
+                            }
+                        }
                     } else {
-                        $this->priocourses = Course::find($this->course_id);
-                        $this->already_claimed = array_key_exists($this->course_id, AdmissionPriority::getPrioritiesByUser($courseset->getId(), $user_id));
-                    }
-                    $msg_details[] = _("Zeitpunkt der automatischen Verteilung: ") . strftime("%x %R", $courseset->getSeatDistributionTime());
-                    $this->num_claiming = count(AdmissionPriority::getPrioritiesByCourse($courseset->getId(), $this->course_id));
-                    if ($this->already_claimed) {
-                        $msg_details[] = _("Sie sind bereits für die Verteilung angemeldet.");
+                        $msg = _("Die Plätze in dieser Veranstaltung werden automatisch verteilt.");
+                        if ($limit = $courseset->getAdmissionRule('LimitedAdmission')) {
+                            $msg_details[] = sprintf(_("Diese Veranstaltung gehört zu einem Anmeldeset mit %s Veranstaltungen. Sie können maximal %s davon belegen. Bei der Verteilung werden die von Ihnen gewünschten Prioritäten berücksichtigt."),
+                                             count($courseset->getCourses()), $limit->getMaxNumberForUser($user_id));
+                            $this->priocourses = Course::findMany($courseset->getCourses(), "ORDER BY Name");
+                            $this->user_prio = AdmissionPriority::getPrioritiesByUser($courseset->getId(), $user_id);
+                            
+                            $this->prio_stats = AdmissionPriority::getPrioritiesStats($courseset->getId());
+                            $this->already_claimed = count($this->user_prio);
+                        } else {
+                            $this->priocourses = Course::find($this->course_id);
+                            $this->already_claimed = array_key_exists($this->course_id, AdmissionPriority::getPrioritiesByUser($courseset->getId(), $user_id));
+                        }
+                        $msg_details[] = _("Zeitpunkt der automatischen Verteilung: ") . strftime("%x %R", $courseset->getSeatDistributionTime());
+                        $this->num_claiming = count(AdmissionPriority::getPrioritiesByCourse($courseset->getId(), $this->course_id));
+                        if ($this->already_claimed) {
+                            $msg_details[] = _("Sie sind bereits für die Verteilung angemeldet.");
+                        }
                     }
                     $this->courseset_message = MessageBox::info($msg, $msg_details);
                 } else {

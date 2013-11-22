@@ -208,25 +208,8 @@ class Step00240CourseSets extends Migration
             PRIMARY KEY (`rule_id`, `user_id`) )
             ENGINE = MyISAM");
 
-        // waiting lists at courses
-        $db->exec("CREATE TABLE IF NOT EXISTS `waitinglist_config` (
-                `list_id` VARCHAR(32) NOT NULL ,
-                `seminar_id` VARCHAR(32) NOT NULL ,
-                `set_id` VARCHAR(32) NULL ,
-                `max_users` INT NULL ,
-                `mkdate` INT NULL ,
-                `chdate` INT NULL ,
-            PRIMARY KEY (`list_id`) )
-            ENGINE = MyISAM");
-
-        // assign users to waiting lists
-        $db->exec("CREATE TABLE IF NOT EXISTS `waitinglist_user` (
-                `list_id` VARCHAR(32) NOT NULL ,
-                `user_id` VARCHAR(32) NOT NULL ,
-                `position` INT NOT NULL ,
-                `mkdate` INT NULL ,
-            PRIMARY KEY (`user_id`, `list_id`) )
-            ENGINE = MyISAM");
+        $db->exec("ALTER TABLE  `seminare` ADD  `admission_waitlist_max` INT UNSIGNED NOT NULL DEFAULT  '0'");
+        
     }
 
     function down()
@@ -238,7 +221,7 @@ class Step00240CourseSets extends Migration
             `conditions`, `courseset_factorlist`, `courseset_rule`,
             `coursesets`, `limitedadmissions`, `lockedadmissions`, `priorities`,
             `seminar_courseset`, `timedadmissions`, `user_factorlist`,
-            `userlimits`, `waitinglist_config`, `waitinglist_user`");
+            `userlimits`");
     }
 }
 ?>
