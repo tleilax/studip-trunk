@@ -116,7 +116,7 @@ class DiskFileStorage implements FileStorage
      */
     public function isReadable()
     {
-        return true;
+        return is_readable($this->file_path);
     }
 
     /**
@@ -126,7 +126,7 @@ class DiskFileStorage implements FileStorage
      */
     public function isWritable()
     {
-        return true;
+        return is_writeable($this->file_path);
     }
 
     /**

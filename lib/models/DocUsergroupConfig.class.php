@@ -5,11 +5,11 @@ class DocUsergroupConfig extends SimpleORMap
     public function __construct($id = null)
     {
         $this->db_table = 'doc_usergroup_config';
-        
         parent::__construct($id);
     }
     
-    static function getGroupConfig($usergroup) {
+    static function getGroupConfig($usergroup)
+    {
         $db= DBManager::get();
         $group = array_shift(DocUsergroupConfig::findBySQL('usergroup = '.$db->quote($usergroup)));
         if (!empty($group)) {
@@ -32,7 +32,8 @@ class DocUsergroupConfig extends SimpleORMap
     /*
      * Returns all configuration for Groups (user, autor etc.)
      */
-    static function getGroupConfigAll() {
+    static function getGroupConfigAll()
+    {
         $foo = DocUsergroupConfig::findBySQL('usergroup IS NOT NULL AND is_group_config = 1 ORDER BY usergroup');
         $data = array();
         foreach ($foo as $group) {
@@ -49,7 +50,8 @@ class DocUsergroupConfig extends SimpleORMap
         return $data;
     }
     
-    public static function getForbiddenTypesNameFromGroup($groupname) {
+    public static function getForbiddenTypesNameFromGroup($groupname) 
+    {
         $db = DBManager::get();
         $data = array();
         $typeID = DocFileTypeForbidden::findBySQL('usergroup = ' . $db->quote($groupname));
@@ -70,7 +72,8 @@ class DocUsergroupConfig extends SimpleORMap
      * @return array()
      *  
      */
-    public static function getUserConfig($user_id) {
+    public static function getUserConfig($user_id) 
+    {
         $user = array_shift(User::findByUser_id($user_id));
         $config = DocUsergroupConfig::getGroupConfig($user_id);
         if (empty($config)) {
@@ -82,7 +85,8 @@ class DocUsergroupConfig extends SimpleORMap
         return $config;
     }
     
-    public static function getUser($user_id){
+    public static function getUser($user_id)
+    {
         $db = DBManager::get();
         $user = array_shift(User::findByUser_id($user_id));
         $userConfig = UserConfigEntry::findBySQL('field = '. $db->quote('CALENDAR_SETTINGS').' AND user_id = '. $db->quote($user_id));
@@ -97,7 +101,8 @@ class DocUsergroupConfig extends SimpleORMap
     /*
      * Method to store the individual-user or the group-settings
      */
-    public function setConfig($data) {
+    public function setConfig($data)
+    {
         if (!empty($data)) {
             $config = array_pop(DocUsergroupConfig::findByUsergroup($data['usergroup']));
             if (empty($config)) {
@@ -118,7 +123,8 @@ class DocUsergroupConfig extends SimpleORMap
         }
     }
     
-    public static function searchForUser($searchData) {
+    public static function searchForUser($searchData) 
+    {
         $db = DBManager::get();
         $stringCount = 0;
         $searchString = '';

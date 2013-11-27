@@ -16,7 +16,7 @@
 
 class File // extends SimpleORMap
 {
-    public $id;
+    public $file_id;
     public $user_id;
     public $mime_type;
     public $size;
@@ -38,24 +38,25 @@ class File // extends SimpleORMap
      *
      * @return File  File object
      */
-    public static function get($id)
+    public static function get($file_id)
     {
         $db = DBManager::get();
 
-        $stmt = $db->prepare('SELECT * FROM files WHERE id = ?');
-        $stmt->execute(array($id));
+        $stmt = $db->prepare('SELECT * FROM files WHERE file_id = ?');
+        $stmt->execute(array($file_id));
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($result === false) {
-            return new RootDirectory($id);
+            return new RootDirectory($file_id);
         }
 
         if ($result['storage_id']) {
-            $file = new File($id);
+            $file = new File($file_id);
         } else {
-            $file = new StudipDirectory($id);
+            $file = new StudipDirectory($file_id);
         }
 
+        $file->file_id = $result['file_id'];
         $file->user_id = $result['user_id'];
         $file->mime_type = $result['mime_type'];
         $file->size = $result['size'];
@@ -79,9 +80,9 @@ class File // extends SimpleORMap
      *
      * @return File  File object
      */
-    public function __construct($id)
+    public function __construct($file_id)
     {
-        $this->id = $id;
+        $this->file_id = $file_id;
     }
 
     /**
@@ -96,10 +97,10 @@ class File // extends SimpleORMap
         }
 
         $stmt = $db->prepare('DELETE FROM file_refs WHERE file_id = ?');
-        $stmt->execute(array($this->id));
+        $stmt->execute(array($this->file_id));
 
-        $stmt = $db->prepare('DELETE FROM files WHERE id = ?');
-        $stmt->execute(array($this->id));
+        $stmt = $db->prepare('DELETE FROM files WHERE file_id = ?');
+        $stmt->execute(array($this->file_id));
     }
 
     /**
@@ -119,7 +120,7 @@ class File // extends SimpleORMap
      */
     public function getId()
     {
-        return $this->id;
+        return $this->file_id;
     }
 
     /**
@@ -237,8 +238,8 @@ class File // extends SimpleORMap
     {
         $db = DBManager::get();
 
-        $stmt = $db->prepare('UPDATE files SET mime_type = ? WHERE id = ?');
-        $stmt->execute(array($mime_type, $this->id));
+        $stmt = $db->prepare('UPDATE files SET mime_type = ? WHERE file_id = ?');
+        $stmt->execute(array($mime_type, $this->file_id));
 
         $this->mime_type = $mime_type;
     }
@@ -252,8 +253,8 @@ class File // extends SimpleORMap
     {
         $db = DBManager::get();
 
-        $stmt = $db->prepare('UPDATE files SET user_id = ? WHERE id = ?');
-        $stmt->execute(array($user_id, $this->id));
+        $stmt = $db->prepare('UPDATE files SET user_id = ? WHERE file_id = ?');
+        $stmt->execute(array($user_id, $this->file_id));
 
         $this->user_id = $user_id;
     }
@@ -268,7 +269,7 @@ class File // extends SimpleORMap
     {
         $db = DBManager::get();
 
-        $stmt = $db->prepare('UPDATE files SET restricted = ? WHERE id = ?');
+        $stmt = $db->prepare('UPDATE files SET restricted = ? WHERE file_id = ?');
         $stmt->execute(array($restricted, $this->id));
 
         $this->restricted = $restricted;
@@ -282,12 +283,12 @@ class File // extends SimpleORMap
     {
         $db = DBManager::get();
 
-        $this->mkdate = $storage_object->getCreationTime();
-        $this->mime_type = $storage_object->getMimeType();
-        $this->chdate = $storage_object->getModificationTime();
-        $this->size = $storage_object->getSize();
+        $this->mkdate = $this->storage_object->getCreationTime();
+        $this->mime_type = $this->storage_object->getMimeType();
+        $this->chdate = $this->storage_object->getModificationTime();
+        $this->size = $this->storage_object->getSize();
 
-        $stmt = $db->prepare('UPDATE files SET mkdate = ?, mime_type = ?, chdate = ?, size = ? WHERE id = ?');
+        $stmt = $db->prepare('UPDATE files SET mkdate = ?, mime_type = ?, chdate = ?, size = ? WHERE file_id = ?');
         $stmt->execute(array($this->mkdate, $this->mime_type, $this->chdate, $this->size, $this->id));
     }
 }

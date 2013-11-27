@@ -32,10 +32,9 @@ require_once 'app/controllers/authenticated_controller.php';
 
 class Document_AdministrationController extends AuthenticatedController {
 
-    public function before_filter(&$action, &$args) {
-                
+    public function before_filter(&$action, &$args) 
+    {
         parent::before_filter($action, $args);
-
         Navigation::activateItem('/admin/config/document_area');
         PageLayout::setTitle(_('Persönlicher Dateibereich') . ' - ' . _('Administration'));
         $this->set_layout($GLOBALS['template_factory']->open('layouts/base'));
@@ -43,8 +42,8 @@ class Document_AdministrationController extends AuthenticatedController {
 
     }
     
-    public function index_action($group=NULL) {       
-        //$group='';
+    public function index_action($group=NULL)
+    {       
         PageLayout::addScript('ui.multiselect.js');
         PageLayout::addStylesheet('jquery-ui-multiselect.css');
         DocUsergroupConfig::expireTableScheme();
@@ -68,7 +67,9 @@ class Document_AdministrationController extends AuthenticatedController {
         }
         $this->viewData=$viewData;
     }    
-    function store_action() {
+    
+    function store_action()
+    {
         if (is_numeric(Request::get('upload')) && is_numeric(Request::get('quota'))) {
             $data['id'] = '';
             $data['usergroup'] = Request::get('usergroup');
@@ -93,7 +94,8 @@ class Document_AdministrationController extends AuthenticatedController {
      * $id represents the value for the primarykey in the Database
      * $type represents the kind of configuration. individual oder group-config
      */
-    public function delete_action($id, $type){
+    public function delete_action($id, $type)
+    {
         $db = DBManager::get();
         DocUsergroupConfig::deleteBySQL('usergroup = ' .$db->quote($id));
         DocFileTypeForbidden::deleteBySQL('usergroup = ' .$db->quote($id));
@@ -108,14 +110,16 @@ class Document_AdministrationController extends AuthenticatedController {
     @Deprecated
      * function replaced (delete_action($id,$type))
      */
-    public function individualDelete_action($user_id){
+    public function individualDelete_action($user_id)
+    {
         $db = DBManager::get();
         DocUsergroupConfig::deleteBySQL('usergroup = ' .$db->quote($user_id));
         DocFileTypeForbidden::deleteBySQL('usergroup = ' .$db->quote($user_id));
         $this->redirect('document/administration/individual/'.$user_id); 
     }
     
-    public function individual_action($user_id = null) {
+    public function individual_action($user_id = null) 
+    {
         $users = array();
         if ($user_id != null) {
             $users = DocUsergroupConfig::searchForUser(array('user_id' => $user_id));
@@ -162,7 +166,8 @@ class Document_AdministrationController extends AuthenticatedController {
         $this->viewData = $viewData;
     }
         
-    public function individualEdit_action($user_id){
+    public function individualEdit_action($user_id)
+    {
         PageLayout::addScript('ui.multiselect.js');
         PageLayout::addStylesheet('jquery-ui-multiselect.css');
         $viewData['types'] = DocFiletype::findBySQL('id IS NOT NULL ORDER BY type'); 
@@ -178,7 +183,8 @@ class Document_AdministrationController extends AuthenticatedController {
         $this->viewData=$viewData;
     }
     
-    public function storeIndividual_action($user_id) {
+    public function storeIndividual_action($user_id)
+    {
         if (is_numeric(Request::get('upload')) && is_numeric(Request::get('quota'))) {
             $data['id'] = '';
             $data['usergroup'] = $user_id;
@@ -210,7 +216,8 @@ class Document_AdministrationController extends AuthenticatedController {
     }
     
     
-    public function sizeInByte($size, $unit) {
+    public function sizeInByte($size, $unit)
+    {
         $byte = 0;
         switch ($unit) {
             case 'kB' :
@@ -229,7 +236,8 @@ class Document_AdministrationController extends AuthenticatedController {
         return $byte;
     }
     
-    public function sizeInUnit($byte, $unit) {
+    public function sizeInUnit($byte, $unit) 
+    {
         $size = 0;
         switch ($unit) {
             case 'kB' :
@@ -249,7 +257,8 @@ class Document_AdministrationController extends AuthenticatedController {
     }
     
     //Infobox erstellen mit Navigation ->erweiterbarkeit
-    function getInfobox() {
+    function getInfobox()
+    {
         $this->setInfoboxImage(Assets::image_path('infobox/config.jpg'));
         $default = sprintf('<a href="%s">%s</a>', $this->url_for('document/administration/index'), _('Nutzergruppen-Einstellungen'));
         $individual = sprintf('<a href="%s">%s</a>', $this->url_for('document/administration/individual'), _('individuelle Einstellungen'));
