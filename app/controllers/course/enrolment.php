@@ -76,23 +76,27 @@ class Course_EnrolmentController extends AuthenticatedController
                 if ($courseset->isSeatDistributionEnabled()) {
                     if ($courseset->hasAlgorithmRun()) {
                         $msg = _("Die Plätze in dieser Veranstaltung wurden automatisch verteilt.");
-                        $course = Course::find($this->course_id);
-                        if ($course->getFreeSeats()) {
-                            $enrol_user = true;
-                        } else {
-                            if ($course->isWaitlistAvailable()) {
-                                $maxpos = $course->admission_applicants->findBy('status', 'awaiting')->orderBy('position desc')->val('position');
-                                $new_admission_member = new AdmissionApplication();
-                                $new_admission_member->user_id = $user_id;
-                                $new_admission_member->position = ++$maxpos;
-                                $new_admission_member->status = 'awaiting';
-                                $course->admission_applicants[] = $new_admission_member;
-                                if ($new_admission_member->store()) {
-                                    $msg_details[] = sprintf(_("Alle Plätze sind belegt, Sie wurden daher auf Platz %s der Warteliste gesetzt."), $maxpos);
-                                }
+                        if (StudipLock::get('enrolment' . $this->course_id)) {
+                            $course = Course::find($this->course_id);
+                            if ($course->getFreeSeats()) {
+                                $enrol_user = true;
                             } else {
-                                $this->admission_error = MessageBox::error(_("Die Anmeldung war nicht erfolgreich. Alle Plätze sind belegt und es steht keine Warteliste zur Verfügung."));
+                                if ($course->isWaitlistAvailable()) {
+                                    $maxpos = $course->admission_applicants->findBy('status', 'awaiting')->orderBy('position desc')->val('position');
+                                    $new_admission_member = new AdmissionApplication();
+                                    $new_admission_member->user_id = $user_id;
+                                    $new_admission_member->position = ++$maxpos;
+                                    $new_admission_member->status = 'awaiting';
+                                    $course->admission_applicants[] = $new_admission_member;
+                                    if ($new_admission_member->store()) {
+                                        $msg_details[] = sprintf(_("Alle Plätze sind belegt, Sie wurden daher auf Platz %s der Warteliste gesetzt."), $maxpos);
+                                    }
+                                } else {
+                                    $this->admission_error = MessageBox::error(_("Die Anmeldung war nicht erfolgreich. Alle Plätze sind belegt und es steht keine Warteliste zur Verfügung."));
+                                }
                             }
+                        } else {
+                            $this->admission_error = MessageBox::error(_("Die Anmeldung war wegen technischer Probleme nicht erfolgreich. Bitte versuchen Sie es später noch einmal."));
                         }
                     } else {
                         $msg = _("Die Plätze in dieser Veranstaltung werden automatisch verteilt.");
@@ -147,6 +151,7 @@ class Course_EnrolmentController extends AuthenticatedController
             }
             unset($this->courset_message);
         }
+        StudipLock::release();
     }
     
     function claim_action()
