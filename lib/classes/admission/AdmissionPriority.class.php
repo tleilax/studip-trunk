@@ -118,7 +118,7 @@ class AdmissionPriority
     public static function getPrioritiesStats($courseSetId)
     {
         return DBManager::get()
-                ->fetchGrouped("SELECT seminar_id, COUNT(*) as c, AVG(priority) as a FROM priorities WHERE set_id = ? GROUP BY seminar_id",
+                ->fetchGrouped("SELECT seminar_id, COUNT(*) as c, AVG(priority) as a, COUNT(IF(priority=1,1,NULL) as h FROM priorities WHERE set_id = ? GROUP BY seminar_id",
                  array($courseSetId));
     }
 
