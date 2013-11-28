@@ -34,7 +34,7 @@ require_once 'lib/visual.inc.php';
 require_once 'lib/classes/StudipLitList.class.php';
 require_once $GLOBALS['RELATIVE_PATH_ELEARNING_INTERFACE'] . "/ObjectConnections.class.php";
 require_once $GLOBALS['RELATIVE_PATH_ELEARNING_INTERFACE'] . "/ELearningUtils.class.php";
-
+require_once 'app/models/studygroup.php';
 
 class Seminar
 {

@@ -54,7 +54,7 @@ class Course_EnrolmentController extends AuthenticatedController
     }
 
     /**
-     * 
+     *
      */
     function apply_action()
     {
@@ -105,7 +105,7 @@ class Course_EnrolmentController extends AuthenticatedController
                                              count($courseset->getCourses()), $limit->getMaxNumberForUser($user_id));
                             $this->priocourses = Course::findMany($courseset->getCourses(), "ORDER BY Name");
                             $this->user_prio = AdmissionPriority::getPrioritiesByUser($courseset->getId(), $user_id);
-                            
+
                             $this->prio_stats = AdmissionPriority::getPrioritiesStats($courseset->getId());
                             $this->already_claimed = count($this->user_prio);
                         } else {
@@ -132,7 +132,7 @@ class Course_EnrolmentController extends AuthenticatedController
             if ($course->admission_prelim) {
                 if ($course->addPreliminaryMember($user_id)) {
                     if ($course->isStudygroup()) {
-                        PageLayout::postMessage(MessageBox::success(sprintf(_("Sie wurden auf die Anmeldeliste der Studiengruppe %s eingetragen. Die Moderatoren der Studiengruppe können Sie jetzt freischalten.")), $course->getName()));
+                        PageLayout::postMessage(MessageBox::success(sprintf(_("Sie wurden auf die Anmeldeliste der Studiengruppe %s eingetragen. Die Moderatoren der Studiengruppe können Sie jetzt freischalten."), $course->getName())));
                     } else {
                         $success = sprintf(_("Sie wurden in die Veranstaltung %s vorläufig eingetragen."), $course->getName());
                         if ($course->admission_prelim_txt) {
@@ -153,7 +153,7 @@ class Course_EnrolmentController extends AuthenticatedController
         }
         StudipLock::release();
     }
-    
+
     function claim_action()
     {
         CSRFProtection::verifyUnsafeRequest();
