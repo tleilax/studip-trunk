@@ -408,6 +408,11 @@ class CourseSet
     {
         return AdmissionPriority::getPriorities($this->id);
     }
+    
+    public function getNumApplicants()
+    {
+        return AdmissionPriority::getPrioritiesCount($this->id);
+    }
 
     /**
      * Is the current courseset private?

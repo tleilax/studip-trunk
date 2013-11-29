@@ -63,8 +63,11 @@ class RandomAlgorithm extends AdmissionAlgorithm {
         $factored_users = $courseSet->getUserFactorList();
         
         //all users with their max number of courses
-        $max_seats_users = array_combine(array_keys($claiming_users), array_map(function($u) use ($limited_admission) {return $limited_admission->getMaxNumberForUser($u);}),array_keys($claiming_users));
-        
+        $max_seats_users = array_combine(array_keys($claiming_users),
+                                         array_map(function($u) use ($limited_admission) {return $limited_admission->getMaxNumberForUser($u);},
+                                                   array_keys($claiming_users)
+                                                   )
+                                         );
         //unlucky users get a bonus for the next round
         $bonus_users = array();
         
@@ -74,6 +77,12 @@ class RandomAlgorithm extends AdmissionAlgorithm {
         //number of already distributed seats for users
         $distributed_users = array();
         
+        $prio_mapper = function ($users, $course_id) use ($claiming_users) {
+            $mapper = function ($u) use ($course_id) {
+                return isset($u[$course_id]) ? $u[$course_id] : null;
+            };
+            return array_filter(array_map($mapper, array_intersect_key($claiming_users, array_flip($users))));
+        };
         //sort courses by highest count of prio 1 applicants
         $stats = AdmissionPriority::getPrioritiesStats($courseSet->getId());
         $courses = array_map(function ($a) {return $a['h'];},$stats);
@@ -107,7 +116,7 @@ class RandomAlgorithm extends AdmissionAlgorithm {
                 Log::DEBUG('the die is cast: ' . print_r($current_claiming,1));
                 $chosen_ones = array_slice(array_keys($current_claiming),0 , $free_seats);
                 Log::DEBUG('chosen ones: ' . print_r($chosen_ones,1));
-                $this->addUsersToCourse($chosen_ones, $course, $claiming_users[$course_id]);
+                $this->addUsersToCourse($chosen_ones, $course, $prio_mapper($chosen_ones, $course->id));
                 foreach ($chosen_ones as $one) {
                     $distributed_users[$one]++;
                 }
@@ -115,12 +124,13 @@ class RandomAlgorithm extends AdmissionAlgorithm {
                     $remaining_ones = array_slice(array_keys($current_claiming), $free_seats);
                     foreach ($remaining_ones as $one) {
                         $bonus_users[$one]++;
-                        $waiting_users[$course_id] = $user_id;
+                        $waiting_users[$course_id][] = $one;
                     }
                 }
             }
         }
         //distribute to waitlists if applicable
+        //Log::DEBUG('waiting list: ' . print_r($waiting_users, 1));
         foreach ($waiting_users as $course_id => $users) {
             $users = array_filter($users, function($user_id) use ($distributed_users, $max_seats_users) {
                 return $distributed_users[$user_id] < $max_seats_users[$user_id];});
@@ -128,9 +138,9 @@ class RandomAlgorithm extends AdmissionAlgorithm {
             Log::DEBUG(sprintf('distribute waitlist of %s in course %s', count($users), $course->id));
             if (!$course->admission_disable_waitlist) {
                 $free_seats_waitlist = $course->admission_waitlist_max ?: count($users);
-                $waiting_list_ones = array_slice(array_keys($users),$free_seats , $free_seats_waitlist);
+                $waiting_list_ones = array_slice($users, $free_seats , $free_seats_waitlist);
                 Log::DEBUG('waiting list ones: ' . print_r($waiting_list_ones, 1));
-                $this->addUsersToWaitlist($waiting_list_ones, $course, $claiming_users[$course_id]);
+                $this->addUsersToWaitlist($waiting_list_ones, $course, $prio_mapper($waiting_list_ones, $course->id));
                 foreach ($waiting_list_ones as $one) {
                     $distributed_users[$one]++;
                 }
@@ -138,9 +148,9 @@ class RandomAlgorithm extends AdmissionAlgorithm {
                 $free_seats_waitlist = 0;
             }
             if ($free_seats_waitlist < count($users)) {
-                $remaining_ones = array_slice(array_keys($users), $free_seats_waitlist);
+                $remaining_ones = array_slice($users, $free_seats_waitlist);
                 Log::DEBUG('remaining ones: ' . print_r($remaining_ones, 1));
-                $this->notifyRemainingUsers($remaining_ones, $course, $claiming_users[$course_id]);
+                $this->notifyRemainingUsers($remaining_ones, $course, $prio_mapper($remaining_ones, $course->id));
             }
         }
     }
@@ -153,7 +163,7 @@ class RandomAlgorithm extends AdmissionAlgorithm {
             $message_body = sprintf(_('Sie wurden leider im Losverfahren der Veranstaltung **%s** __nicht__ ausgelost. Für diese Veranstaltung wurde keine Warteliste vorgesehen.'),
                                        $course->name);
             if ($prio) {
-                $message_body .= "\n" . sprintf(_("Sie hatten für diese Veranstaltung die Priorität %s gewählt."), $prio);
+                $message_body .= "\n" . sprintf(_("Sie hatten für diese Veranstaltung die Priorität %s gewählt."), $prio[$chosen_one]);
             }
             messaging::sendSystemMessage($chosen_one, $message_title, $message_body);
             restoreLanguage();
@@ -177,7 +187,7 @@ class RandomAlgorithm extends AdmissionAlgorithm {
                                            $course->name,
                                            $maxpos);
                 if ($prio) {
-                    $message_body .= "\n" . sprintf(_("Sie hatten für diese Veranstaltung die Priorität %s gewählt."), $prio);
+                    $message_body .= "\n" . sprintf(_("Sie hatten für diese Veranstaltung die Priorität %s gewählt."), $prio[$chosen_one]);
                 }
                 messaging::sendSystemMessage($chosen_one, $message_title, $message_body);
                 restoreLanguage();
@@ -203,7 +213,7 @@ class RandomAlgorithm extends AdmissionAlgorithm {
                 }
             }
             if ($prio) {
-                $message_body .= "\n" . sprintf(_("Sie hatten für diese Veranstaltung die Priorität %s gewählt."), $prio);
+                $message_body .= "\n" . sprintf(_("Sie hatten für diese Veranstaltung die Priorität %s gewählt."), $prio[$chosen_one]);
             }
             messaging::sendSystemMessage($chosen_one, $message_title, $message_body);
             restoreLanguage();

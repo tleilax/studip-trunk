@@ -106,7 +106,7 @@ class AdmissionPriority
             $priority, time(), time()));
         return $stmt->rowCount();
     }
-    
+
     public static function unsetPriority($courseSetId, $userId, $courseId)
     {
         return DBManager::get()
@@ -114,11 +114,31 @@ class AdmissionPriority
                  array($userId, $courseId, $courseSetId));
                 
     }
-    
+
+    public static function unsetAllPriorities($courseSetId)
+    {
+        return DBManager::get()
+        ->execute("DELETE FROM priorities WHERE set_id=?",
+                array($courseSetId));
+    }
+    public static function unsetAllPrioritiesForUser($courseSetId, $userId)
+    {
+        return DBManager::get()
+        ->execute("DELETE FROM priorities WHERE user_id=? AND set_id=?",
+                array($userId, $courseSetId));
+    }
+
     public static function getPrioritiesStats($courseSetId)
     {
         return DBManager::get()
-                ->fetchGrouped("SELECT seminar_id, COUNT(*) as c, AVG(priority) as a, COUNT(IF(priority=1,1,NULL) as h FROM priorities WHERE set_id = ? GROUP BY seminar_id",
+                ->fetchGrouped("SELECT seminar_id, COUNT(*) as c, AVG(priority) as a, COUNT(IF(priority=1,1,NULL)) as h FROM priorities WHERE set_id = ? GROUP BY seminar_id",
+                 array($courseSetId));
+    }
+
+    public static function getPrioritiesCount($courseSetId)
+    {
+        return DBManager::get()
+                ->fetchColumn("SELECT COUNT(DISTINCT user_id) FROM priorities WHERE set_id = ?",
                  array($courseSetId));
     }
 

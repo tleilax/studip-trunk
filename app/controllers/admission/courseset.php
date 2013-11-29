@@ -225,9 +225,8 @@ class Admission_CoursesetController extends AuthenticatedController {
             ->render();
     }
     
-    public function configure_courses_action($set_id)
+    public function configure_courses_action($set_id, $csv = null)
     {
-        $this->set_content_type('text/html; charset=windows-1252');
         if (Request::isXhr()) {
             $this->response->add_header('X-Title', _('Ausgewählte Veranstaltungen konfigurieren'));
             $this->response->add_header('X-No-Buttons', 1);
@@ -235,14 +234,39 @@ class Admission_CoursesetController extends AuthenticatedController {
         $courseset = new CourseSet($set_id);
         $this->set_id = $courseset->getId();
         $this->courses = Course::findMany($courseset->getCourses(), "ORDER BY Name");
+        $this->applications = AdmissionPriority::getPrioritiesStats($courseset->getId());
+        if ($csv) {
+            $captions = array(_("Nummer"), _("Name"), _("Dozenten"), _("max. Teilnehmer"), _("Teilnehmer aktuell"), _("Anzahl Anmeldungen"),_("Anzahl Anmeldungen Prio 1"), _("Warteliste"), _("max. Anzahl Warteliste"));
+            $data = array();
+            foreach ($this->courses as $course) {
+                $row = array();
+                $row[] = $course->veranstaltungsnummer;
+                $row[] = $course->name;
+                $row[] = join(', ', $course->members->findBy('status','dozent')->orderBy('position')->pluck('Nachname'));
+                $row[] = $course->admission_turnout;
+                $row[] = count($course->members->findBy('status', words('user autor')));
+                $row[] = $this->applications[$course->id]['c'];
+                $row[] = $this->applications[$course->id]['h'];
+                $row[] = $course->admission_disable_waitlist ? _("ja") : _("nein");
+                $row[] = $course->admission_waitlist_max > 0 ? $course->admission_waitlist_max : '';
+                $data[] = $row;
+            }
+            $tmpname = md5(uniqid('tmp'));
+            if (array_to_csv($data, $GLOBALS['TMP_PATH'].'/'.$tmpname, $captions)) {
+                $this->redirect(GetDownloadLink($tmpname, 'Veranstaltungen_' . $courseset->getName() . '.csv', 4, 'force'));
+                return;
+            }
+        }
         if (Request::submitted('configure_courses_save')) {
             CSRFProtection::verifyUnsafeRequest();
             $admission_turnouts = Request::intArray('configure_courses_turnout');
             $admission_waitlists = Request::intArray('configure_courses_disable_waitlist');
+            $admission_waitlists_max = Request::intArray('configure_courses_waitlist_max');
             $ok = 0;
             foreach($this->courses as $course) {
                 $course->admission_turnout = $admission_turnouts[$course->id];
                 $course->admission_disable_waitlist = isset($admission_waitlists[$course->id]) ? 0 : 1;
+                $course->admission_waitlist_max = $course->admission_disable_waitlist ? 0 : $admission_waitlists_max[$course->id];
                 $ok += $course->store();
             }
             if ($ok) {
@@ -251,6 +275,7 @@ class Admission_CoursesetController extends AuthenticatedController {
             $this->redirect($this->url_for('admission/courseset/configure/' . $courseset->getId()));
             return;
         }
+        $this->set_content_type('text/html; charset=windows-1252');
     }
     
     public function factored_users_action($set_id)
@@ -265,6 +290,45 @@ class Admission_CoursesetController extends AuthenticatedController {
         $this->users = User::findAndMapMany(function($u) use ($factored_users, $applicants) {
                                           return array_merge($u->toArray('username vorname nachname'), array('applicant' => isset($applicants[$u->id]), 'factor' => $factored_users[$u->id]));                      
                                        }, array_keys($factored_users), 'ORDER BY Nachname');
+    }
+    
+    public function applications_list_action($set_id, $csv = null)
+    {
+        $this->set_content_type('text/html; charset=windows-1252');
+        if (Request::isXhr()) {
+            $this->response->add_header('X-Title', _('Liste der Anmeldungen'));
+        }
+        $courseset = new CourseSet($set_id);
+        $applicants = AdmissionPriority::getPriorities($set_id);
+        $users = User::findMany(array_keys($applicants), 'ORDER BY Nachname');
+        $courses = SimpleCollection::createFromArray(Course::findMany($courseset->getCourses()));
+        $captions = array(_("Nachname"), _("Vorname"), _("Nutzername"), _("Veranstaltung"), _("Nummer"), _("Priorität"));
+        $data = array();
+        foreach ($users as $user) {
+            $row = array();
+            $app_courses = $applicants[$user->id];
+            asort($app_courses);
+            foreach ($app_courses as $course_id => $prio) {
+                $row = array();
+                $row[] = $user->nachname;
+                $row[] = $user->vorname;
+                $row[] = $user->username;
+                $row[] = $courses->findOneBy('id', $course_id)->name;
+                $row[] = $courses->findOneBy('id', $course_id)->veranstaltungsnummer;
+                $row[] = $prio;
+                $data[] = $row;
+            }
+        }
+        if ($csv) {
+            $tmpname = md5(uniqid('tmp'));
+            if (array_to_csv($data, $GLOBALS['TMP_PATH'].'/'.$tmpname, $captions)) {
+                $this->redirect(GetDownloadLink($tmpname, 'Anmeldungen_' . $courseset->getName() . '.csv', 4, 'force'));
+                return;
+            }
+        }
+        $this->captions = $captions;
+        $this->data = $data;
+        $this->set_id = $courseset->getId();
     }
 }
 

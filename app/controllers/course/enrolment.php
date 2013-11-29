@@ -161,6 +161,7 @@ class Course_EnrolmentController extends AuthenticatedController
         $courseset = CourseSet::getSetForCourse($this->course_id);
         if ($courseset->isSeatDistributionEnabled() && !count($courseset->checkAdmission($user_id, $this->course_id))) {
             if ($limit = $courseset->getAdmissionRule('LimitedAdmission')) {
+                AdmissionPriority::unsetAllPrioritiesForUser($courseset->getId(), $user_id);
                 foreach(Request::getArray('admission_prio') as $course_id => $p) {
                     $changed += AdmissionPriority::setPriority($courseset->getId(), $user_id, $course_id, $p);
                 }

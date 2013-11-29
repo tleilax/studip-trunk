@@ -91,6 +91,14 @@ $userlistIds = $courseset ? $courseset->getUserlists() : array();
                             'rel' => 'lightbox'
                             )
                         ); ?>
+                    <? if ($num_applicants = $courseset->getNumApplicants()) :?>
+                    <?= LinkButton::create(sprintf(_('Liste der Anmeldungen (%s Nutzer)'), $num_applicants),
+                        $controller->url_for('admission/courseset/applications_list/' . $courseset->getId()), 
+                        array(
+                            'rel' => 'lightbox'
+                            )
+                        ); ?>
+                    <? endif ?>
             </div>
         <? endif ?>
     </fieldset>
