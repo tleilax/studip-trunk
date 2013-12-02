@@ -199,14 +199,14 @@ class Document_AdministrationController extends AuthenticatedController {
                     $data['upload_forbidden'] = '1';
                 }
                 if (Request::get('close') == 'on') {
-                    $data['area_close'] = 1;
+                    $data['area_close'] = '1';
                 } else {
-                    $data['area_close'] = 0;
+                    $data['area_close'] = '0';
                 }
                 $data['area_close_text'] = trim(Request::get('closeText'));
-                $data['datetype'] = Request::intArray('datetype');
+                $data['datetype_id'] = Request::intArray('datetype');
                 DocUsergroupConfig::setConfig($data);
-                $this->redirect('document/administration/individual/' . $user_id);
+                $this->redirect('document/administration/individual/' . $user_id.'/'.Request::get('close'));
             } else {
                 $this->redirect('document/administration/individualEdit/' . $user_id);
             }

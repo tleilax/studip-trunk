@@ -86,8 +86,8 @@
                     <td><?=$u['nachname']?></td>
                     <td><?=$u['username']?></td>
                     <td><?=$u['email']?></td>
-                    <td><?=$u['upload']?> <?$u['upload_unit']?></td>                    
-                    <td><?$u['quota']?> <?=$u['quota_unit']?></td>
+                    <td><?=$u['upload']?> <?=$u['upload_unit']?></td>                    
+                    <td><?=$u['quota']?> <?=$u['quota_unit']?></td>
                     <td>
                         <?foreach($u['types'] as $typ) :?>
                             <?= $typ['type'] ?>;
