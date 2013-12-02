@@ -110,7 +110,8 @@ class DocUsergroupConfig extends SimpleORMap
                 $config->setData($data);
             } else {
                 $config->setData(array('quota' => $data['quota'], 'upload_quota' => $data['upload_quota'],
-                    'upload_forbidden' => $data['upload_forbidden'], 'upload_unit' => $data['upload_unit'], 'quota_unit' => $data['quota_unit']));
+                    'upload_forbidden' => $data['upload_forbidden'], 'area_close_text' =>  $data['area_close_text'],
+                    'area_close' =>  $data['area_close'], 'upload_unit' => $data['upload_unit'], 'quota_unit' => $data['quota_unit']));
             }
             $config->store();
             $db = DBManager::get();
