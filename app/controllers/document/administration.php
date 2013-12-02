@@ -206,7 +206,7 @@ class Document_AdministrationController extends AuthenticatedController {
                 $data['area_close_text'] = trim(Request::get('closeText'));
                 $data['datetype_id'] = Request::intArray('datetype');
                 DocUsergroupConfig::setConfig($data);
-                $this->redirect('document/administration/individual/' . $user_id.'/'.Request::get('close'));
+                $this->redirect('document/administration/individual/' . $user_id);
             } else {
                 $this->redirect('document/administration/individualEdit/' . $user_id);
             }

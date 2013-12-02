@@ -90,8 +90,8 @@
                     <td><?=$u['quota']?> <?=$u['quota_unit']?></td>
                     <td>
                         <?foreach($u['types'] as $typ) :?>
-                            <?= $typ['type'] ?>;
-                        <?  endforeach;?>
+                            <?= $typ['type'] ?>
+                        <? endforeach;?>
                     </td>
                     <td>
                         <input type="checkbox" name="box" disabled

@@ -135,9 +135,9 @@ class DocUsergroupConfig extends SimpleORMap
             if (strlen($wert) > 0) {
                 if ($stringCount > 0 && $searchDataCount <= count($searchData)) {
                     $stringCount++;
-                    $searchString = ' AND ' . ' ' . $name . ' = ' . $db->quote($wert) . ' ';
+                    $searchString = ' AND ' . ' ' . $name . ' LIKE ' . $db->quote('%'.$wert.'%') . ' ';
                 } else {
-                    $searchString = ' ' . $name . ' = ' . $db->quote($wert) . ' ';
+                    $searchString = ' ' . $name . ' LIKE ' . $db->quote('%'.$wert.'%') . ' ';
                     $stringCount++;
                 }
                 $searchQuery .= $searchString;
