@@ -1,0 +1,67 @@
+
+/* --- Modaler Dialog fuer den Dateimanager --------------------------------- */ 
+ 
+#modal
+ {  
+  position: fixed;
+  font-family: Arial, Helvetica, sans-serif;
+  top: 0px;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: rgba(0,0,0,0.3); 
+  z-index: 99999;
+  opacity: 1;
+  -webkit-transition: opacity 400ms ease-in;
+  -moz-transition: opacity 400ms ease-in;
+  transition: opacity 400ms ease-in;
+ }
+ 
+
+#modal > div 
+ {
+  width: 500px;
+  top: 60px;
+  position: relative;
+  margin: 10% auto;
+  padding-left: 0px, 0px, 10px, 0px;
+  background: #FFFFFF;
+ }
+
+#modal > div > h3
+ {
+  padding-left: 10px; 
+  width: 98%; 
+  background: #1E3E70; 
+  color: #FFFFFF;
+ }	
+
+#modal > div > table
+ {
+  padding-left: 10px;
+  padding-bottom: 10px;
+ }
+ 
+	
+.close 
+ {
+  background: #1E3E70;
+  color: #FFFFFF; 
+  line-height: 22px;
+  position: absolute;
+  right: 0px;
+  text-align: center;
+  top: 0px;
+  width: 24px;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 16px;
+ }
+
+
+.close:hover 
+ {
+  background: red;
+  color: red; 
+ }
+ 

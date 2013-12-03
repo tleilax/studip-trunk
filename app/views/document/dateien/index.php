@@ -105,15 +105,15 @@
      
       <col style="width:5%;">
      
-      <col style="width:30%;">
+      <col style="width:20%;">
       
       <col style="width:10%;">
         
-      <col style="witdh:25%;">
+      <col style="witdh:30%;">
       
       <col style="width:15%;">
       
-      <col style="width:15%;">
+      <col style="width:20%;">
       
      </colgroup> 
               
@@ -167,7 +167,7 @@
              
            print Assets::img("icons/16/blue/arr_1right.png");
           
-          else:
+          elseif($flash['inhalt'][$i][0] == "datei"):
           
            print Assets::img("icons/16/blue/file-pdf.png");
            
@@ -199,8 +199,9 @@
        <td>
        
         <?php
-         
-         $type = $flash['inhalt'][$i][0];
+        
+         if (isset($flash['inhalt'][$i][0])):
+          $type = $flash['inhalt'][$i][0];
          
         ?>
          
@@ -241,11 +242,17 @@
          
          <?php
              
-          print Assets::img("icons/16/blue/trash.png"); 
-                 
+          print Assets::img("icons/16/blue/trash.png");
+              
          ?>
-       
+        
         </a>
+        
+        <?php
+        
+         endif;
+         
+         ?>
        
        </td>  
        
@@ -254,8 +261,8 @@
       <?php
 
        endfor;
-  
-       ?>    
+        
+       ?> 
             
      </tbody>
      
@@ -323,7 +330,7 @@
 	  array('kategorie' => _('Information:'),
 	        'eintrag' => array(
 	          array('icon' => 'icons/16/black/info.png', 
-	                'text' => "Quota: 10 MB - belegt: 5%")))
+	                'text' => "Quota: ". $flash['quota']. "- belegt: 1%")))
       );
    
     ?>
@@ -332,9 +339,27 @@
   
   </div>
   
-  <!-- Modale Dialoge: -->
+  <!--  Sperrvermerk -->
   
-  <?//= $flash['workOn'] ?> 
+  <?php
+  
+   if ($flash['closed'] == 1):
+        
+   ?> 
+       
+    <div id="modal">
+  
+     <?= $this -> render_partial('document/dateien/_sperrvermerk'); ?>
+	    
+    </div>
+       
+  <?php
+      
+    endif;
+      
+   ?> 
+  
+  <!-- Modale Dialoge: -->
   
   <?php
 

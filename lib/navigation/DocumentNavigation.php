@@ -24,6 +24,7 @@ class DocumentNavigation extends Navigation
   public function __construct()
    {
     parent::__construct(_('Dokumente'));
+    $documentinfo = "Zur Dateiverwaltung";
     $this -> setImage('header/files.png', array('title' => $documentinfo, "@2x" => TRUE));
    }
 
@@ -38,7 +39,7 @@ class DocumentNavigation extends Navigation
     parent::initSubNavigation();
     
     if (($GLOBALS['auth'] -> is_authenticated() || $GLOBALS['user'] -> id === 'nobody' 
-         || $GLOBALS['perm'] -> have_perm('admin'))&& Config::get()->PERSONALDOCUMENT_ENABLE)  
+         || $GLOBALS['perm'] -> have_perm('admin')) && Config::get() -> PERSONALDOCUMENT_ENABLE)  
       {
        $navigation = new Navigation(_('Dateien'), 'dispatch.php/document/dateien');
        $this -> addSubNavigation('dateien', $navigation);
