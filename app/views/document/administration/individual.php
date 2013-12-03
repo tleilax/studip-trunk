@@ -1,4 +1,9 @@
 <?use Studip\Button, Studip\LinkButton; ?>
+<?if(isset($this->flash['error'])) : ?>
+    <?= MessageBox::error($this->flash['error']) ?>
+<?elseif (isset($this->flash['success'])) : ?>
+    <?= MessageBox::success($this->flash['success']) ?> 
+<?  endif;?>
 <form action="<?= $controller->url_for('document/administration/individual') ?>" method="post">
 <table class="default">
     

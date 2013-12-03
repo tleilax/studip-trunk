@@ -80,12 +80,25 @@ class Document_AdministrationController extends AuthenticatedController {
                 $data['upload_forbidden'] =  '0';
                 $data['quota_unit'] = Request::get('unitQuota');
                 $data['upload_unit'] = Request::get('unitUpload');
-                if(Request::get('forbidden')=='on') {
+                if(Request::get('forbidden')=='on' || $data['upload_quota'] == 0) {
                     $data['upload_forbidden'] = '1';
                 }
                 $data['datetype_id'] = Request::intArray('datetype');
-                DocUsergroupConfig::setConfig($data);
+                if(DocUsergroupConfig::setConfig($data)){
+                         $this->flash['success'] = 'Das Speichern der Einstellungen war erfolgreich. ';
+                         if($data['upload_quota']== 0){
+                             $this->flash['success'] .= 'Der Upload wurde gesperrt, da der max. Upload '.
+                                     Request::get('upload').' ' .Request::get('unitUpload').' beträgt';
+                         }
+                }else{
+                    $this->flash['error'] = 'Beim speichern der Einstellungen ist ein Fehler aufgetreten'.
+                            ' oder es wurden keine Änderungen vorgenommen.';
+                }
+            }else{
+                $this->flash['error'] = 'Upload-Quota ist größer als das gesamte Nutzer-Quota. Bitte korrigieren Sie Ihre Eingabe.';
             }
+        }else{
+             $this->flash['error'] = 'Es wurden fehlerhafte Werte für die Quota eingegeben oder es wurde keine Nutzergruppe ausgewählt.';
         } 
         $this->redirect('document/administration/index/');
     }
@@ -202,7 +215,7 @@ class Document_AdministrationController extends AuthenticatedController {
                 $data['upload_forbidden'] = '0';
                 $data['quota_unit'] = Request::get('unitQuota');
                 $data['upload_unit'] = Request::get('unitUpload');
-                if (Request::get('forbidden') == 'on') {
+                if (Request::get('forbidden') == 'on' || $data['upload_quota'] == 0) {
                     $data['upload_forbidden'] = '1';
                 }
                 if (Request::get('close') == 'on') {
@@ -212,12 +225,23 @@ class Document_AdministrationController extends AuthenticatedController {
                 }
                 $data['area_close_text'] = trim(Request::get('closeText'));
                 $data['datetype_id'] = Request::intArray('datetype');
-                DocUsergroupConfig::setConfig($data);
+                if(DocUsergroupConfig::setConfig($data)){
+                         $this->flash['success'] = 'Das Speichern der Einstellungen war erfolgreich. ';
+                         if($data['upload_quota']== 0){
+                             $this->flash['success'] .= 'Der Upload wurde gesperrt, da der max. Upload '.
+                                     Request::get('upload').' ' .Request::get('unitUpload').' beträgt';
+                         }
+                }else{
+                    $this->flash['error'] = 'Beim speichern der Einstellungen ist ein Fehler aufgetreten'.
+                            ' oder es wurden keine Änderungen vorgenommen.';
+                }
                 $this->redirect('document/administration/individual/' . $user_id);
             } else {
+                $this->flash['error'] = 'Upload-Quota ist größer als das gesamte Nutzer-Quota. Bitte korrigieren Sie Ihre Eingabe.';
                 $this->redirect('document/administration/individualEdit/' . $user_id);
             }
         } else {
+            $this->flash['error'] = 'Es wurden fehlerhafte Werte für die Quota eingegeben.';
             $this->redirect('document/administration/individualEdit/' . $user_id);
         }
     }

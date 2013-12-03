@@ -113,7 +113,7 @@ class DocUsergroupConfig extends SimpleORMap
                     'upload_forbidden' => $data['upload_forbidden'], 'area_close_text' =>  $data['area_close_text'],
                     'area_close' =>  $data['area_close'], 'upload_unit' => $data['upload_unit'], 'quota_unit' => $data['quota_unit']));
             }
-            $config->store();
+            $config = $config->store();
             $db = DBManager::get();
             DocFileTypeForbidden::deleteBySQL('usergroup = ' . $db->quote($data['usergroup']));
             foreach ($data['datetype_id'] as $file) {
@@ -122,6 +122,7 @@ class DocUsergroupConfig extends SimpleORMap
                 $filetype->store();
             }
         }
+        return $config;
     }
     
     public static function searchForUser($searchData) 
