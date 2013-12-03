@@ -10,7 +10,10 @@
     </colgroup>
     <thead>
         <tr>
-            <th colspan="4"><?=_('Individuelle-Einstellungen für: ')?><?= $this->viewData['userInfo']['user']['Vorname'].' '.$this->viewData['userInfo']['user']['Nachname'].' ('.$this->viewData['userInfo']['user']['perms'].')'?></th>            
+            <th colspan="4"><?=_('Individuelle-Einstellungen für: ')?>
+                <?= $this->viewData['userInfo']['user']['Vorname'].' '.$this->viewData['userInfo']['user']['Nachname'].' ('.$this->viewData['userInfo']['user']['perms'].')'?>
+                <br><font size="1">Aktuell verwendete Einstellung: <?=$this->viewData['groupConfig']?></font>
+            </th>            
         </tr>
     </thead>
     <tbody>

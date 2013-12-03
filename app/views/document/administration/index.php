@@ -18,7 +18,7 @@
             <td>
                 <label><?= _('Nutzergruppe')?></label><br>
                 <select id="usergroup "name="usergroup">
-                    <? foreach(array("default", "user", "autor", "tutor", "dozent", "admin", "root") as $one) : ?>
+                    <? foreach(array("","default", "user", "autor", "tutor", "dozent", "admin", "root") as $one) : ?>
                 <option value="<?= $one ?>" <?if(count($this->viewData['configEdit'])>0 && $one == $this->viewData['configEdit']['name']){echo 'selected';}?>><?= $one ?></option>
             <? endforeach ?>
             </select>

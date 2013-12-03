@@ -70,13 +70,13 @@ class Document_AdministrationController extends AuthenticatedController {
     
     function store_action()
     {
-        if (is_numeric(Request::get('upload')) && is_numeric(Request::get('quota'))) {
+        if (is_numeric(Request::get('upload')) && is_numeric(Request::get('quota')) && Request::get('usergroup') != '') {
             $data['id'] = '';
             $data['usergroup'] = Request::get('usergroup');
             $data['upload_quota'] = $this->sizeInByte(Request::get('upload'), Request::get('unitUpload'));
             $data['quota'] = $this->sizeInByte(Request::get('quota'), Request::get('unitQuota'));
             $data['is_group_config'] = 1;
-            if ($data['upload_quota'] < $data['quota']) {
+            if ($data['upload_quota'] <= $data['quota'] && $data['quota'] >= 0 && $data['upload_quota'] >= 0) {
                 $data['upload_forbidden'] =  '0';
                 $data['quota_unit'] = Request::get('unitQuota');
                 $data['upload_unit'] = Request::get('unitUpload');
@@ -143,13 +143,14 @@ class Document_AdministrationController extends AuthenticatedController {
                 $foo[$key] = $value;
             }
             if (empty($config)) {
-                $foo['upload'] = 'keine Einstellungen';
+                $foo['upload'] = 'keine individuelle Einstellung';
                 $foo['upload_unit'] = '';
-                $foo['quota'] = 'keine Einstellungen';
+                $foo['quota'] = 'keine individuelle Einstellung';
                 $foo['quota_unit'] = '';
                 $foo['forbidden'] = 0;
                 $foo['area_close'] = 0;
                 $foo['types'] = array();
+                $foo['deleteIcon'] = 0;
                 $userSetting[] = $foo;
             } else {
                 $foo['upload'] = $this->sizeInUnit($config['upload'], $config['upload_unit']);
@@ -159,6 +160,7 @@ class Document_AdministrationController extends AuthenticatedController {
                 $foo['forbidden'] = $config['forbidden'];
                 $foo['area_close'] = $config['area_close'];
                 $foo['types'] = $config['types'];
+                $foo['deleteIcon'] = 1;
                 $userSetting[] = $foo;
             }
         }
@@ -172,7 +174,12 @@ class Document_AdministrationController extends AuthenticatedController {
         PageLayout::addStylesheet('jquery-ui-multiselect.css');
         $viewData['types'] = DocFiletype::findBySQL('id IS NOT NULL ORDER BY type'); 
         $viewData['userInfo'] = DocUsergroupConfig::getUser($user_id);
-        $userConfig = DocUsergroupConfig::getGroupConfig($user_id);
+        $userConfig = DocUsergroupConfig::getUserConfig($user_id);
+        if($userConfig['name'] != $user_id){
+            $viewData['groupConfig'] = $userConfig['name'];
+        }else{ 
+            $viewData['groupConfig'] = 'individuell';
+        }
         if(empty($userConfig)){
             $viewData['userConfig']=array();
         }else{
@@ -191,7 +198,7 @@ class Document_AdministrationController extends AuthenticatedController {
             $data['upload_quota'] = $this->sizeInByte(Request::get('upload'), Request::get('unitUpload'));
             $data['quota'] = $this->sizeInByte(Request::get('quota'), Request::get('unitQuota'));
             $data['is_group_config'] = 0;
-            if ($data['upload_quota'] < $data['quota']) {
+            if ($data['upload_quota'] <= $data['quota'] && $data['quota'] >= 0 && $data['upload_quota'] >= 0) {
                 $data['upload_forbidden'] = '0';
                 $data['quota_unit'] = Request::get('unitQuota');
                 $data['upload_unit'] = Request::get('unitUpload');

@@ -51,7 +51,7 @@
 </table>    
 
 <table class="default zebra-hover cronjobs">
-    <colgroup>
+    <colgroup><!--
         <col width="20px">
         <col width="40px">
         <col width="100px">
@@ -62,6 +62,18 @@
         <col width="5px">
         <col width="5px">
         <col width="30px">
+        -->
+        
+        <col width="auto">
+        <col width="auto">
+        <col width="auto">
+        <col width="auto">
+        <col width="auto">
+        <col width="auto">
+        <col width="auto">
+        <col width="auto">
+        <col width="auto">
+        <col width="auto">
         
     </colgroup>
     <thead>
@@ -70,11 +82,11 @@
             <th><?= _('Nachname') ?></th>
             <th><?= _('Nutzername') ?></th>
             <th><?= _('E-Mail') ?></th>
-            <th><?= _('Max. Uploadgröße') ?></th>
+            <th><?= _('Max. Upload') ?></th>
             <th><?= _('Nutzerquota') ?></th>
-            <th><?= _('Untersagte Dateitypen') ?></th>
-            <th><?= _('Upload untersagt') ?></th>
-            <th><?= _('Dateibereich gesperrt') ?></th>
+            <th><?= _('Untersagte Typen') ?></th>
+            <th><?= _('Upload verboten') ?></th>
+            <th><?= _('Bereich gesperrt') ?></th>
             <th><?= _('Aktion') ?></th>
 
         </tr>
@@ -108,8 +120,15 @@
                            >
                     </td>
                     <td>
-                        <a href="<?=$controller->url_for('document/administration/delete/'.$u['user_id'].'/userConfig')?>" title="Einstellungen löschen"><?=Assets::img('icons/16/blue/trash.png')?></a>
-                        <a href="<?=$controller->url_for('document/administration/individualEdit/'.$u['user_id'])?>" title="Erstellen oder Bearbeiten der individuellen Einstellungen"><?=Assets::img('icons/16/blue/edit.png')?></a>
+                        <a href="<?=$controller->url_for('document/administration/individualEdit/'.$u['user_id'])?>
+                           "title="Erstellen oder Bearbeiten der individuellen Einstellungen">
+                           <?=Assets::img('icons/16/blue/edit.png')?></a>
+                        <?if($u['deleteIcon'] == 1) :?>
+                        <br>
+                            <a href="<?=$controller->url_for('document/administration/delete/'.$u['user_id'].'/userConfig')?>
+                                "title="Einstellungen löschen"><?=Assets::img('icons/16/blue/trash.png')?></a>
+                        <?  endif;?>
+                        
                     </td>
                     </tr>
         <?  endforeach;?>
