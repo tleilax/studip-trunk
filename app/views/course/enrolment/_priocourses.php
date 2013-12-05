@@ -1,3 +1,13 @@
+<div>
+<label for="admission_user_limit"><?=_("Ich möchte folgende Anzahl an Veranstaltungen belegen:") ?></label>
+<select name="admission_user_limit">
+<? foreach(range(1, $max_limit) as $max) : ?>
+    <option <?= $user_max_limit == $max ? 'selected' : '' ?>>
+    <?= $max ?>
+    </option>
+<? endforeach ?>
+</select>
+</div>
 <table class="default collapsable zebra-hover">
 <caption>
 <?= _("Priorisierung von Veranstaltungen") ?>
@@ -18,7 +28,7 @@
     <td><?= htmlReady($course->admission_turnout) ?></td>
     <td><?= (int)$prio_stats[$course->id]['c'] . ' / ' . round($prio_stats[$course->id]['a'],1) ?></td>
     <td>
-    <? foreach(range(1,5) as $p) : ?>
+    <? foreach(range(1, $max_limit*3) as $p) : ?>
         <input type="radio" <?= ($user_prio[$course->id] == $p ? 'checked' : '')?> name="admission_prio[<?= htmlready($course->id) ?>]" value="<?= $p?>">
     <? endforeach;?>
     </td>

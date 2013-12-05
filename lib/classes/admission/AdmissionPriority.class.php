@@ -142,6 +142,13 @@ class AdmissionPriority
                  array($courseSetId));
     }
 
+    public static function getPrioritiesMax($courseSetId)
+    {
+        return DBManager::get()
+        ->fetchColumn("SELECT MAX(priority) FROM priorities WHERE set_id = ?",
+                array($courseSetId));
+    }
+
 } /* end of class AdmissionPriority */
 
 ?>

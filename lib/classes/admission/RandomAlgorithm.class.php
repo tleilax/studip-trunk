@@ -87,8 +87,9 @@ class RandomAlgorithm extends AdmissionAlgorithm {
         $stats = AdmissionPriority::getPrioritiesStats($courseSet->getId());
         $courses = array_map(function ($a) {return $a['h'];},$stats);
         arsort($courses, SORT_NUMERIC);
+        $max_prio = AdmissionPriority::getPrioritiesMax($courseSet->getId());
         //walk through all prios with all courses
-        foreach(range(1,5) as $current_prio) {
+        foreach(range(1, $max_prio) as $current_prio) {
             foreach (array_keys($courses) as $course_id) {
                 $current_claiming = array();
                 $course = Course::find($course_id);
@@ -106,7 +107,7 @@ class RandomAlgorithm extends AdmissionAlgorithm {
                 //give maximum bonus to users which were unlucky before
                 foreach (array_keys($current_claiming) as $user_id) {
                     if ($bonus_users[$user_id] > 0) {
-                        $current_claiming[$user_id] = count($current_claiming) + 1;
+                        $current_claiming[$user_id] = $bonus_users[$user_id] * count($current_claiming) + 1;
                         $bonus_users[$user_id]--;
                     }
                 }

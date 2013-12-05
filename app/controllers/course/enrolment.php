@@ -102,10 +102,11 @@ class Course_EnrolmentController extends AuthenticatedController
                         $msg = _("Die Plätze in dieser Veranstaltung werden automatisch verteilt.");
                         if ($limit = $courseset->getAdmissionRule('LimitedAdmission')) {
                             $msg_details[] = sprintf(_("Diese Veranstaltung gehört zu einem Anmeldeset mit %s Veranstaltungen. Sie können maximal %s davon belegen. Bei der Verteilung werden die von Ihnen gewünschten Prioritäten berücksichtigt."),
-                                             count($courseset->getCourses()), $limit->getMaxNumberForUser($user_id));
+                                             count($courseset->getCourses()), $limit->getMaxNumber());
+                            $this->user_max_limit = $limit->getMaxNumberForUser($user_id);
                             $this->priocourses = Course::findMany($courseset->getCourses(), "ORDER BY Name");
                             $this->user_prio = AdmissionPriority::getPrioritiesByUser($courseset->getId(), $user_id);
-
+                            $this->max_limit = $limit->getMaxNumber();
                             $this->prio_stats = AdmissionPriority::getPrioritiesStats($courseset->getId());
                             $this->already_claimed = count($this->user_prio);
                         } else {
@@ -161,8 +162,16 @@ class Course_EnrolmentController extends AuthenticatedController
         $courseset = CourseSet::getSetForCourse($this->course_id);
         if ($courseset->isSeatDistributionEnabled() && !count($courseset->checkAdmission($user_id, $this->course_id))) {
             if ($limit = $courseset->getAdmissionRule('LimitedAdmission')) {
+                $admission_user_limit = Request::int('admission_user_limit');
+                if ($admission_user_limit && $admission_user_limit < $limit->getMaxNumber()) {
+                    $limit->setCustomMaxNumber($user_id, $admission_user_limit);
+                }
+                $admission_prio = array_unique(Request::getArray('admission_prio'));
+                if (count($admission_prio) != count(Request::getArray('admission_prio'))) {
+                    PageLayout::postMessage(MessageBox::info(_("Sie dürfen jede Priorität nur einmal auswählen. Überprüfen Sie bitte Ihre Auswahl!")));
+                }
                 AdmissionPriority::unsetAllPrioritiesForUser($courseset->getId(), $user_id);
-                foreach(Request::getArray('admission_prio') as $course_id => $p) {
+                foreach($admission_prio as $course_id => $p) {
                     $changed += AdmissionPriority::setPriority($courseset->getId(), $user_id, $course_id, $p);
                 }
                 foreach(Request::getArray('admission_prio_delete') as $course_id => $p) {
