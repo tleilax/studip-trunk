@@ -131,6 +131,22 @@ function get_object_name($range_id, $object_type)
 }
 
 /**
+ * Returns a sorm object for a given range_id
+ * 
+ * @param string the range_id
+ * @return SimpleORMap Course/Institute/User/Statusgruppen/
+ */
+function get_object_by_range_id($range_id) {
+    $possible_sorms = "Course Institute User";
+    foreach(words($possible_sorms) as $sorm) {
+        if ($object = $sorm::find($range_id)) {
+            return $object;
+        }
+    }
+    return false;
+}
+
+/**
  * This function "selects" a Veranstaltung to work with it
  *
  * The following variables will bet set:

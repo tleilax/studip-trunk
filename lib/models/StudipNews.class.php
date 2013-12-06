@@ -403,7 +403,7 @@ class StudipNews extends SimpleORMap {
             return false;
         }
     }
-
+    
     function deleteRange($range_id) {
         if ($this->issetRange($range_id)) {
             return $this->news_ranges->unsetBy('range_id', $range_id);
