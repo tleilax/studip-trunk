@@ -283,16 +283,7 @@ function quotes_encode($description,$author)
 */
 function formatReady ($what, $trim = TRUE, $extern = FALSE, $wiki = FALSE, $show_comments="icon") {
     OpenGraphURL::$tempURLStorage = array();
-    $markup = new StudipFormat();
-    
-    $what = preg_replace("/\r\n?/", "\n", $what);
-    if ($trim) {
-        $what = trim($what);
-    }
-    $what = $markup->format($what);
-    $what = symbol(smile($what, false));
-    $what = str_replace("\n", '<br>', $what);
-    return Purifier\purify($what);
+    return applyMarkup(new StudipFormat(), $what, $trim);
 }
 
 /**
@@ -319,17 +310,26 @@ function formatLinks($what, $nl2br = true)
 }
 
 /**
-* the special version of formatReady for Wiki-Webs
-*
-*
-* @access       public
-* @param        string $what        what to format
-* @param        string $trim        should the output trimmed?
-* @param        boolean $extern TRUE if called from external pages ('externe Seiten')
-* @return       string
-*/
+ * the special version of formatReady for Wiki-Webs
+ *
+ * @access       public
+ * @param        string $what        what to format
+ * @param        string $trim        should the output trimmed?
+ * @param        boolean $extern TRUE if called from external pages ('externe Seiten')
+ * @return       string
+ */
 function wikiReady ($what, $trim = TRUE) {
-    $markup = new WikiFormat();
+    return applyMarkup(new WikiFormat(), $what, $trim);
+}
+
+/**
+ * Apply markup rules and clean the text up.
+ *
+ * @param   TextFormat  $markup Markup rules applied on the text.
+ * @param   string      $what   The text on which rules are applied.
+ * @param   boolean     $trim   Trim the text before applying markup rules.
+ */
+function applyMarkup($markup, $what, $trim=TRUE){
     $what = preg_replace("/\r\n?/", "\n", $what);
     if ($trim) {
         $what = trim($what);
@@ -337,7 +337,6 @@ function wikiReady ($what, $trim = TRUE) {
     $what = $markup->format($what);
     $what = symbol(smile($what, false));
     $what = str_replace("\n", '<br>', $what);
-
     return Purifier\purify($what);
 }
 
