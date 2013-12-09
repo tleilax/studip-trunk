@@ -142,18 +142,22 @@ $userlistIds = $courseset ? $courseset->getUserlists() : array();
             ?>
             <input type="checkbox" name="userlists[]" value="<?= $list->getId() ?>"<?= $checked ?>/> <?= $list->getName() ?><br/>
             <?php } ?>
-            <div>
-                    <?= LinkButton::create(_('Liste der Nutzer'), 
-                        $controller->url_for('admission/courseset/factored_users/' . $courseset->getId()), 
-                        array(
-                            'rel' => 'lightbox'
-                            )
-                        ); ?>
-            </div>
+            
         <?php } else { ?>
             <i><?=  _('Sie haben noch keine Nutzerlisten angelegt.') ?></i>
         <?php
-        }
+        }?>
+        <? if ($courseset) : ?>
+        <div>
+                <?= LinkButton::create(_('Liste der Nutzer'), 
+                    $controller->url_for('admission/courseset/factored_users/' . $courseset->getId()), 
+                    array(
+                        'rel' => 'lightbox'
+                        )
+                    ); ?>
+        </div>
+        <? endif ?>
+        <?php 
         // Keep lists that were assigned by other users.
         foreach ($userlistIds as $list) {
             if (!in_array($list, array_keys($myUserlists))) {

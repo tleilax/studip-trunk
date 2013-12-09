@@ -29,11 +29,10 @@ class Course_EnrolmentController extends AuthenticatedController
      */
     function before_filter (&$action, &$args)
     {
-        $this->current_action = $action;
         parent::before_filter($action, $args);
         $this->course_id = $args[0];
         if (!in_array($action, words('apply claim'))) {
-            $this->redirect($this->url_for('apply/' . $action));
+            $this->redirect($this->url_for('/apply/' . $action));
             return false;
         }
         if (!get_object_type($this->course_id, array('sem'))) {
@@ -196,35 +195,7 @@ class Course_EnrolmentController extends AuthenticatedController
                 }
             }
         }
-        $this->redirect($this->url_for('apply/' . $this->course_id));
+        $this->redirect($this->url_for('/apply/' . $this->course_id));
     }
 
-    function url_for($to = '', $params = array())
-    {
-        $whereto = 'course/enrolment/';
-        if ($to === '') {
-            $whereto .=  $this->current_action;
-        } else {
-            $whereto .=  $to;
-        }
-        $url = URLHelper::getURL($this->dispatcher->trails_uri . '/' . $whereto, $params);
-        return $url;
-    }
-
-    function link_for($to = '', $params = array())
-    {
-        $whereto = 'course/enrolment/';
-        if ($to === '') {
-            $whereto .=  $this->current_action;
-        } else {
-            $whereto .=  $to;
-        }
-        $link = URLHelper::getLink($this->dispatcher->trails_uri . '/' . $whereto, $params);
-        return $link;
-    }
-
-    function render_json($data){
-        $this->set_content_type('application/json;charset=utf-8');
-        return $this->render_text(json_encode($data));
-    }
 }
