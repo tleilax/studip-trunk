@@ -215,13 +215,6 @@ function get_ampel_read ($mein_status, $admission_status, $read_level, $print="T
     return $ampel_status;
 }
 
-function htmlReadyOrPurify ($what, $trim = TRUE, $br = FALSE, $double_encode = false) {
-    if (Utils\getConfigValue('HTML_FILTER') == 'purify') {
-        return Purifier\purify($what);
-    }
-    return htmlReady($what, $trim, $br, $double_encode);
-}
-
 function htmlReady ($what, $trim = TRUE, $br = FALSE, $double_encode = false) {
     if ($trim) {
         $what = trim(htmlspecialchars($what, ENT_QUOTES, 'cp1252', $double_encode));
@@ -289,19 +282,17 @@ function quotes_encode($description,$author)
 * @return       string
 */
 function formatReady ($what, $trim = TRUE, $extern = FALSE, $wiki = FALSE, $show_comments="icon") {
-    if (Utils\getConfigValue('MARKUP_MODE') === 'none') {
-        return htmlReadyOrPurify($what, $trim);
-    }
-
     OpenGraphURL::$tempURLStorage = array();
     $markup = new StudipFormat();
     
     $what = preg_replace("/\r\n?/", "\n", $what);
-    $what = htmlReadyOrPurify($what, $trim);
-
+    if ($trim) {
+        $what = trim($what);
+    }
     $what = $markup->format($what);
     $what = symbol(smile($what, false));
-    return str_replace("\n", '<br>', $what);
+    $what = str_replace("\n", '<br>', $what);
+    return Purifier\purify($what);
 }
 
 /**
@@ -312,10 +303,6 @@ function formatReady ($what, $trim = TRUE, $extern = FALSE, $wiki = FALSE, $show
  */
 function formatLinks($what, $nl2br = true)
 {
-    if (Utils\getConfigValue('MARKUP_MODE') === 'none') {
-        return htmlReadyOrPurify($what, $trim);
-    }
-
     $link_markup_rule = StudipFormat::getStudipMarkup("links");
     $markup = new TextFormat();
     $markup->addMarkup(
@@ -324,7 +311,11 @@ function formatLinks($what, $nl2br = true)
         $link_markup_rule['end'],
         $link_markup_rule['callback']
     );
-    return $markup->format(htmlReadyOrPurify($what, true, $nl2br));
+    if ($nl2br) { // fix newlines
+        $what = nl2br($what, false);
+    }
+    $what = $markup->format(trim($what));
+    return Purifier\purify($what);
 }
 
 /**
@@ -338,19 +329,17 @@ function formatLinks($what, $nl2br = true)
 * @return       string
 */
 function wikiReady ($what, $trim = TRUE) {
-    if (Utils\getConfigValue('MARKUP_MODE') === 'none') {
-        return htmlReadyOrPurify($what, $trim);
-    }
-
     $markup = new WikiFormat();
     $what = preg_replace("/\r\n?/", "\n", $what);
-    $what = htmlReadyOrPurify($what, $trim);
-
+    if ($trim) {
+        $what = trim($what);
+    }
     $what = $markup->format($what);
     $what = symbol(smile($what, false));
-    return str_replace("\n", '<br>', $what);
-}
+    $what = str_replace("\n", '<br>', $what);
 
+    return Purifier\purify($what);
+}
 
 /**
  * Transform the argument using the replace-before-save rules defined
@@ -361,10 +350,9 @@ function wikiReady ($what, $trim = TRUE) {
  * @return the result of applying the replace-before-save
  * transformations to the argument of the function
  */
-function transformBeforeSave($what)
-{
+function transformBeforeSave($what) {
     $markup = new StudipTransformFormat();
-    return $markup->format($what);
+    return Purifier\purify($markup->format($what));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
