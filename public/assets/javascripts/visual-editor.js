@@ -261,6 +261,9 @@ function replaceTextarea(textarea){
         $(window).scroll(stickyTools);
         stickyTools();
 
+        // hide "source" button's text label
+        $('.cke_button__source_label').hide();
+
         // focus the editor so the user can immediately hack away...
         editor.focus();
     });
