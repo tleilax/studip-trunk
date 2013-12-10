@@ -1,41 +1,36 @@
-<div>
-<label for="admission_user_limit"><?=_("Ich möchte folgende Anzahl an Veranstaltungen belegen:") ?></label>
-<select name="admission_user_limit">
-<? foreach(range(1, $max_limit) as $max) : ?>
-    <option <?= $user_max_limit == $max ? 'selected' : '' ?>>
-    <?= $max ?>
-    </option>
-<? endforeach ?>
-</select>
+<div id="enrollment">
+    <label for="admission_user_limit"><?= _("Ich möchte folgende Anzahl an Veranstaltungen belegen:") ?></label>
+    <select name="admission_user_limit">
+        <? foreach(range(1, $max_limit) as $max) : ?>
+        <option <?= $user_max_limit == $max ? 'selected' : '' ?>>
+            <?= $max ?>
+        </option>
+        <? endforeach ?>
+    </select>
+    <h2> <?= _("Verfügbare Veranstaltungen") ?></h2>
+
+    <ul id="avaliable-courses">
+        <?php $prios = array(); ?>
+        <?php foreach ($priocourses as $course): ?>
+            <?php $prios[$course->id] = htmlReady($course->name) ?>
+            <li class="<?= htmlReady($course->id) ?>" <?= isset($user_prio[$course->id])?'style="display:none"':''?>><?= htmlReady($course->name) ?></li>
+        <?php endforeach; ?>
+    </ul>
+    <h2><?= _("Ausgewählte Veranstaltungen") ?></h2>
+    <ul id="selected-courses">
+        <?php $hasUserPrios = count($user_prio) > 0 ?>
+
+        <li class="empty" <?= $hasUserPrios ? 'style="display:none"' : '' ?>><?= _('Verfügbare Veranstaltungen hierhin droppen') ?></li>
+            <?php
+            asort($user_prio);
+            if ($hasUserPrios):
+                foreach ($user_prio as $id => $prio):
+                    ?>
+                <li class="<?= $id ?>"><?= $prios[$id] ?> <span class="<?= $id ?> delete">delete</span></li>
+                <?php
+            endforeach;
+        endif;
+        ?>
+    </ul>
+
 </div>
-<table class="default collapsable zebra-hover">
-<caption>
-<?= _("Priorisierung von Veranstaltungen") ?>
-</caption>
-<thead>
-    <tr>
-    <th><?= _("Name")?></th>
-    <th><?= _("Plätze")?></th>
-    <th>&#x03A3; / &#x2300; <?= _("Priorität")?></th>
-    <th><?= _("Eigene Priorität")?></th>
-    <th><?= _("Entfernen")?> </th>
-    </tr>
-</thead>
-<tbody>
-<? foreach ($priocourses as $course) :?>
-    <tr>
-    <td><?= htmlReady($course->name) ?></td>
-    <td><?= htmlReady($course->admission_turnout) ?></td>
-    <td><?= (int)$prio_stats[$course->id]['c'] . ' / ' . round($prio_stats[$course->id]['a'],1) ?></td>
-    <td>
-    <? foreach(range(1, $max_limit*3) as $p) : ?>
-        <input type="radio" <?= ($user_prio[$course->id] == $p ? 'checked' : '')?> name="admission_prio[<?= htmlready($course->id) ?>]" value="<?= $p?>">
-    <? endforeach;?>
-    </td>
-    <td>
-    <input type="checkbox" name="admission_prio_delete[<?= htmlready($course->id) ?>]" value="1">
-    </td>
-    </tr>
-<? endforeach?>
-</tbody>
-</table>
