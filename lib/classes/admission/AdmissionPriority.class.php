@@ -2,7 +2,7 @@
 
 /**
  * AdmissionPriority.class.php
- * 
+ *
  * This class represents priorities a user has given to a set of courses.
  * No instance is needed, all methods are designed to be called statically.
  *
@@ -76,7 +76,7 @@ class AdmissionPriority
         $priorities = array();
         $stmt = DBManager::get()->prepare(
             "SELECT * FROM `priorities`
-             WHERE `set_id`=? AND `user_id`=?");
+             WHERE `set_id`=? AND `user_id`=? ORDER BY priority");
         $stmt->execute(array($courseSetId, $userId));
         while ($current = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $priorities[$current['seminar_id']] = $current['priority'];
@@ -97,12 +97,12 @@ class AdmissionPriority
     {
         $priorities = array();
         $stmt = DBManager::get()->prepare(
-            "INSERT INTO `priorities` (`user_id`, `set_id`, `seminar_id`, 
+            "INSERT INTO `priorities` (`user_id`, `set_id`, `seminar_id`,
                     `priority`, `mkdate`, `chdate`)
                 VALUES (?, ?, ?, ?, ?, ?)
-                ON DUPLICATE KEY UPDATE `priority`=VALUES(`priority`), 
+                ON DUPLICATE KEY UPDATE `priority`=VALUES(`priority`),
                     `chdate`=VALUES(`chdate`)");
-        $stmt->execute(array($userId, $courseSetId, $courseId, 
+        $stmt->execute(array($userId, $courseSetId, $courseId,
             $priority, time(), time()));
         return $stmt->rowCount();
     }
@@ -112,7 +112,7 @@ class AdmissionPriority
         return DBManager::get()
                 ->execute("DELETE FROM priorities WHERE user_id=? AND seminar_id=? AND set_id=? LIMIT 1",
                  array($userId, $courseId, $courseSetId));
-                
+
     }
 
     public static function unsetAllPriorities($courseSetId)
