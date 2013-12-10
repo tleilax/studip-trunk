@@ -82,6 +82,9 @@ javascripts:
     - *tree
     - javascripts/admission.js
 
+  enrolment:
+    - javascripts/enrolment.js
+
 css:
   base:
     # filname : media

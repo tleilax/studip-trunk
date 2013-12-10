@@ -50,6 +50,7 @@ class Course_EnrolmentController extends AuthenticatedController
             throw new AccessDeniedException($enrolment_info['description']);
         }
         PageLayout::setTitle(getHeaderLine($this->course_id)." - " . _("Veranstaltungsanmeldung"));
+        PageLayout::addSqueezePackage('enrolment');
     }
 
     /**
