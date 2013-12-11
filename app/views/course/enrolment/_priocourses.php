@@ -16,7 +16,8 @@
                         <?php $prios = array(); ?>
                         <?php foreach ($priocourses as $course): ?>
                             <?php $prios[$course->id] = htmlReady($course->name) ?>
-                            <li class="<?= htmlReady($course->id) ?>" <?= isset($user_prio[$course->id]) ? 'style="display:none"' : '' ?>><?= htmlReady($course->name) ?></li>
+                        <?php $visible = !isset($user_prio[$course->id]);?>
+                            <li class="<?= htmlReady($course->id) ?> <?=$visible?'visible':'' ?>" <?= !$visible ? 'style="display:none"' : '' ?>><?= htmlReady($course->name) ?></li>
                         <?php endforeach; ?>
                     </ul>
                 </td>

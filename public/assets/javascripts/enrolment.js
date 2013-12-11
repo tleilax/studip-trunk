@@ -58,7 +58,7 @@ $(function() {
 	var that = $(this);
 	var parent = that.parent();
 	var id = getIdFromClassname(that);
-	$('#avaliable-courses').find('.' + id).show();
+	$('#avaliable-courses').find('.' + id).addClass('visible').show();
 	parent.remove();
 	toggleText($('#enrollment #selected-courses'));
     });
@@ -76,7 +76,7 @@ $(function() {
 	},
 		stop: function(event, ui) {
 		    if (canHideElement)
-			element.hide();
+			element.removeClass('visible').hide();
 		}
     });
 

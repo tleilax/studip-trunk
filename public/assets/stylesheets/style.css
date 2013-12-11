@@ -3835,17 +3835,15 @@ div.info {
 #enrollment ul li.empty{
     cursor: no-drop;
 }
-#enrollment .ui-draggable.ui-draggable-dragging{
+#enrollment .ui-draggable.ui-draggable-dragging,#enrollment .ui-sortable-helper{
     background-color: #CED8F2;
     padding:5px;
     border:1px solid #1E3E70;
     list-style: none inside;
+    width:auto;
 }
-#enrollment .ui-state-highlight{
-    padding:10px;
-    background:#CB1800;
-    border:0px;
-    height: 30px;
+#enrollment .ui-sortable-helper .delete{
+    display:none;
 }
 #enrollment ul li .delete{
     cursor:pointer;
@@ -3854,6 +3852,12 @@ div.info {
 #enrollment ul li .delete:after{
     clear:both;
 }
-#enrollment ul li:hover{background-color: #CED8F2;}
-#enrollment ul li:visible:nth-child(even){background-color: #F8F8F8;}
-#enrollment ul li:visible:nth-child(odd){ background-color: #EEEEEE;}
+#enrollment ul#avaliable-courses li.visible:hover,#enrollment ul#selected-courses li:hover{background-color: #CED8F2;}
+#enrollment ul#avaliable-courses li.visible:nth-child(even),#enrollment ul#selected-courses li:nth-child(even){background-color: #F8F8F8;}
+#enrollment ul#avaliable-courses li.visible:nth-child(odd),#enrollment ul#selected-courses li:nth-child(odd){ background-color: #EEEEEE;}
+#enrollment .ui-state-highlight{
+    padding:10px;
+    background:#CB1800;
+    border:0px;
+    height: 30px;
+}
