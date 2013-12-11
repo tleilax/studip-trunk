@@ -1,4 +1,4 @@
-<form name="select_rule_type" action="<?= $controller->url_for('admission/rule/configure') ?>" method="post">
+<form name="select_rule_type" class="studip_form" action="<?= $controller->url_for('admission/rule/configure') ?>" method="post">
 <?php
 use Studip\Button;
 
