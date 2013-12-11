@@ -3,7 +3,7 @@ $(function() {
 
     var element = null;
     var canHideElement = false;
-
+    var deleteIcon = $('#enrollment .icons .delete');
     function getIdFromClassname(element) {
 	var className = element.attr('class');
 	var classFragments = className.split(' ');
@@ -21,7 +21,8 @@ $(function() {
 	    var hasHiddenElement = hiddenElement.length > 0;
 	    index++;
 	    if (!hasDeleteButton)
-		that.append('<span class="' + id + ' delete">delete</div>');
+		deleteIcon.clone().attr('class', id + ' delete').appendTo(that);
+	   
 	    if (!hasHiddenElement) {
 		that.append('<input type="hidden" name="admission_prio[' + id + ']" value="' + index + '">');
 		hiddenElement = that.find('input');
@@ -47,6 +48,7 @@ $(function() {
     $('#enrollment #selected-courses').sortable({
 	appendTo: "#enrollment",
 	cursor: "move",
+	cancel: "li.empty",
 	placeholder: "ui-state-highlight",
 	update: function(event, ui) {
 	    update(event, ui, $(this));
