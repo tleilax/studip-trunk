@@ -355,11 +355,13 @@ class CourseSet
             FROM `courseset_institute` ci 
             JOIN `coursesets` c ON (ci.`set_id`=c.`set_id`)
             WHERE ci.`institute_id`=?";
-        if ($GLOBALS['perm']->have_perm('root')) {
+        $parameters = array($instituteId);
+        if (!$GLOBALS['perm']->have_perm('root')) {
             $query .= " AND (c.`private`=0 OR c.`user_id`=?)";
+            $parameters[] = $GLOBALS['user']->id;
         }
         $stmt = DBManager::get()->prepare($query);
-        $stmt->execute(array($instituteId, $GLOBALS['user']->id));
+        $stmt->execute($parameters);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
