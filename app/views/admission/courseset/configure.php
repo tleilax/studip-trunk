@@ -57,10 +57,14 @@ $userlistIds = $courseset ? $courseset->getUserlists() : array();
                 <?= $instTpl ?>
             <?php } else { ?>
                 <?php foreach ($myInstitutes as $institute) { ?>
+                    <?php if (sizeof($myInstitutes) != 1) { ?>
                 <input type="checkbox" name="institutes[]" value="<?= $institute['Institut_id'] ?>"
                     <?= $selectedInstitutes[$institute['Institut_id']] ? 'checked="checked"' : '' ?>
                     class="institute" onclick="STUDIP.Admission.getCourses('institute', 'instcourses', 
                     '<?= $controller->url_for('admission/courseset/instcourses', $courseset ? $courseset->getId() : '') ?>', 'courselist')"/>
+                    <?php } else { ?>
+                <input type="hidden" name="institutes[]" value="<?= $institute['Institut_id'] ?>"/>
+                    <?php } ?>
                     <?= $institute['Name'] ?>
                 <br/>
                 <?php } ?>
@@ -119,9 +123,9 @@ $userlistIds = $courseset ? $courseset->getUserlists() : array();
             <?php } ?>
             <div style="clear: both;">
                     <?= LinkButton::create(_('Anmelderegel hinzufügen'), 
-                        $controller->url_for('admission/rule/configure'), 
+                        $controller->url_for('admission/rule/select_type'), 
                         array(
-                            'onclick' => "return STUDIP.Admission.configureRule(null, '".$controller->url_for('admission/rule/configure')."')"
+                            'rel' => 'lightbox'
                             )
                         ); ?>
             </div>

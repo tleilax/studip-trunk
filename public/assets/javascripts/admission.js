@@ -24,37 +24,11 @@ STUDIP.Admission = {
         $('#'+targetId).load(targetUrl, query);
     },
 
-    configureRule: function (ruleType, targetUrl) {
+    configureRule: function (sourceElement, targetUrl) {
         var loading = 'Wird geladen'.toLocaleString();
-        if (ruleType == null || $('#configurerule').length == 0) {
-            $('<div id="configurerule" title="Anmelderegel konfigurieren">'+loading+'</div>')
-                .dialog({
-                    draggable: false,
-                    modal: true,
-                    resizable: false,
-                    position: ['center', 150],
-                    width: 750,
-                    close: function() {
-                        $('#configurerule').remove();
-                    },
-                    open: function() {
-                        $('#configurerule').empty();
-                        $('<img/>', {
-                            src: STUDIP.ASSETS_URL + 'images/ajax_indicator_small.gif'
-                        }).appendTo('#configurerule');
-                        $('#configurerule').append(loading);
-                        $('#configurerule').load(targetUrl);
-                    }
-                });
-        }
-        if (ruleType != null) {
-            $('#configurerule').empty();
-            $('<img/>', {
-                src: STUDIP.ASSETS_URL + 'images/ajax_indicator_small.gif'
-            }).appendTo('#configurerule');
-            $('#configurerule').append(loading);
-            $('#configurerule').load(targetUrl);
-        }
+        var dlg = $(sourceElement).parents('div .ui-dialog-content').first();
+        var ruleType = $('input[name=ruletype]:checked').val();
+        dlg.load(targetUrl, {'ruletype': ruleType});
         return false;
     },
 
@@ -85,7 +59,7 @@ STUDIP.Admission = {
                 }
             });
         }
-        $('#configurerule').remove();
+        STUDIP.Admission.closeDialog(this);
         return false;
     },
 
@@ -126,11 +100,12 @@ STUDIP.Admission = {
      * @param String saveUrl     URL to save the rule.
      */
     checkAndSaveRule: function(ruleId, errorTarget, validateUrl, savedTarget, saveUrl) {
+        var ret = false;
         if (STUDIP.Admission.validateRuleConfig(errorTarget, validateUrl)) {
-            return STUDIP.Admission.saveRule(ruleId, savedTarget, saveUrl);
-        } else {
-            return false;
+            ret = STUDIP.Admission.saveRule(ruleId, savedTarget, saveUrl);
+            STUDIP.Admission.closeDialog($('#submitrule'));
         }
+        return ret;
     },
 
     validateRuleConfig: function(containerId, targetUrl) {
@@ -229,6 +204,16 @@ STUDIP.Admission = {
                 }
             );
         }
+    },
+
+    closeDialog: function(button) {
+        var dialog = $(button).parents('div[role=dialog]').first();
+        dialog.remove();
+        return false;
+    },
+
+    checkDateRange: function(elementId) {
+        
     }
 
 };
