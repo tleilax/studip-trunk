@@ -3832,8 +3832,12 @@ div.info {
     border-bottom:1px solid #1E3E70;
 
 }
+#selected-courses li {
+    list-style-type: decimal;
+}
 #enrollment ul li.empty{
     cursor: no-drop;
+    list-style-type: none;
 }
 #enrollment .ui-draggable.ui-draggable-dragging,#enrollment .ui-sortable-helper{
     background-color: #CED8F2;
@@ -3841,6 +3845,9 @@ div.info {
     border:1px solid #1E3E70;
     list-style: none inside;
     width:auto;
+}
+#enrollment ul li.ui-sortable-helper {
+    list-style-type: none;
 }
 #enrollment .ui-sortable-helper .delete{
     display:none;
