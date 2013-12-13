@@ -9,12 +9,18 @@ class Admin_StatusgroupsController extends AuthenticatedController {
      */
     public function before_filter(&$action, &$args) {
         parent::before_filter($action, $args);
+
+        if (Request::submitted('abort')) {
+            $this->redirect('admin/statusgroups/index');
+        }
+
         $this->user_id = $GLOBALS['user']->user_id;
 
         // Set pagelayout
         PageLayout::setHelpKeyword("Basis.Allgemeines");
         PageLayout::setTitle(_("Verwaltung von Funktionen und Gruppen"));
         Navigation::activateItem('/admin/institute/groups');
+
 
         // The logic to select an institute should somehow be moved somewhere else
         if ($set = Request::get('admin_inst_id')) {
@@ -48,10 +54,8 @@ class Admin_StatusgroupsController extends AuthenticatedController {
         $this->setInfobox();
         $this->setAjaxPaths();
 
-        // Collect all groups and unfold them for a clear display
-        $this->groups = Statusgruppen::findByRange_id($_SESSION['SessionSeminar']);
-        $this->unfolded = array();
-        $this->unfoldGroup($this->unfolded, $this->groups);
+        // Collect all groups
+        $this->loadGroups();
 
         // Check if the viewing user should get the admin interface
         $this->tutor = $this->type['edit']($this->user_id);
@@ -62,11 +66,7 @@ class Admin_StatusgroupsController extends AuthenticatedController {
      */
     public function editGroup_action($group_id = null) {
         $this->group = new Statusgruppen($group_id);
-        
-        // We have to do this for the users without javascript! yay!
-        $this->groups = Statusgruppen::findByRange_id($_SESSION['SessionSeminar']);
-        $this->unfolded = array();
-        $this->unfoldGroup($this->unfolded, $this->groups);
+        $this->loadGroups();
     }
 
     /**
@@ -75,7 +75,7 @@ class Admin_StatusgroupsController extends AuthenticatedController {
     public function sortGroups_action() {
         PageLayout::addStylesheet('jquery-nestable.css');
         PageLayout::addScript('jquery/jquery.nestable.js');
-        $this->groups = Statusgruppen::findByRange_id($_SESSION['SessionSeminar']);
+        $this->loadGroups();
     }
 
     /**
@@ -150,9 +150,12 @@ class Admin_StatusgroupsController extends AuthenticatedController {
     public function delete_action($group_id, $user_id) {
         $this->check('edit');
         $this->group = new Statusgruppen($group_id);
-        $this->group->removeUser($user_id);
-        $this->type['after_user_delete']($user_id);
-        $this->afterFilter();
+        $this->user = new User($user_id);
+        if (Request::submitted('confirm')) {
+            $this->group->removeUser($user_id);
+            $this->type['after_user_delete']($user_id);
+            $this->afterFilter();
+        }
     }
 
     /**
@@ -185,14 +188,22 @@ class Admin_StatusgroupsController extends AuthenticatedController {
      */
     public function truncate_action($id) {
         $this->check('edit');
-        $group = new Statusgruppen($id);
-        $group->removeAllUsers();
-        $this->redirect('admin/statusgroups/index');
+        $this->group = new Statusgruppen($id);
+        if (Request::submitted('confirm')) {
+            CSRFProtection::verifySecurityToken();
+            $this->group->removeAllUsers();
+            $this->redirect('admin/statusgroups/index');
+        }
     }
 
-    /**********************************
-     ****** PRIVATE HELP FUNCTIONS ****
-     **********************************/
+    /*     * ********************************
+     * ***** PRIVATE HELP FUNCTIONS ****
+     * ******************************** */
+    
+    private function loadGroups() {
+        $this->groups = Statusgruppen::findBySQL('range_id = ? ORDER BY position', array($_SESSION['SessionSeminar']));
+    }
+
     private function updateRecoursive($obj, $parent) {
         $i = 0;
         if ($obj) {
@@ -225,13 +236,11 @@ class Admin_StatusgroupsController extends AuthenticatedController {
      * Since we dont want an ugly tree display but we want numberation we
      * "unfold" the groups tree
      */
-    private function unfoldGroup(&$list, $groups, $preset = array()) {
+    private function unfoldGroup(&$list, $groups) {
         if (is_array($groups)) {
             $groups = SimpleORMapCollection::createFromArray($groups);
         }
         foreach ($groups->orderBy('position') as $group) {
-            // Numberating groups LIKE A BOSS!
-            $this->numbers[$group->id] = join(".", $newpre = array_merge($preset, array(++$i)));
             $list[] = $group;
             $this->unfoldGroup($list, $group->children, $newpre);
         }
@@ -328,38 +337,37 @@ class Admin_StatusgroupsController extends AuthenticatedController {
             'inst' => array(
                 'name' => _('Institut'),
                 'after_user_add' => function ($user_id) {
-                    $newInstUser = new InstituteMember(array($user_id, $_SESSION['SessionSeminar']));
-                    if ($newInstUser->isNew()) {
-                        $user = new User($user_id);
-                        $newInstUser->inst_perms = $user->perms;
-                    }
-                    $newInstUser->store();
-                },
+            $newInstUser = new InstituteMember(array($user_id, $_SESSION['SessionSeminar']));
+            if ($newInstUser->isNew()) {
+                $user = new User($user_id);
+                $newInstUser->inst_perms = $user->perms;
+            }
+            $newInstUser->store();
+        },
                 'after_user_delete' => function ($user_id) {
-                    null;
-                },
+            null;
+        },
                 'after_user_move' => function ($user_id) {
-                    null;
-                },
+            null;
+        },
                 'view' => function ($user_id) {
-                    return true;
-                },
+            return true;
+        },
                 'needs_size' => false,
-                'needs_self_assign' => false,        
+                'needs_self_assign' => false,
                 'edit' => function ($user_id) {
-                    return $GLOBALS['perm']->have_studip_perm('admin', $_SESSION['SessionSeminar']);
-                },
+            return $GLOBALS['perm']->have_studip_perm('admin', $_SESSION['SessionSeminar']);
+        },
                 'redirect' => 'admin/statusgroups/selectInstitute',
                 'groups' => array(
                     'members' => array(
                         'name' => _('Mitglieder'),
                         'user' => function() {
-                            $inst = new Institute($_SESSION['SessionSeminar']);
-                            return $inst->members->findBy('user', null, '<>')->orderBy('nachname');
-                        }))
+                    $inst = new Institute($_SESSION['SessionSeminar']);
+                    return $inst->members->findBy('user', null, '<>')->orderBy('nachname');
+                }))
             )
         );
     }
 
 }
-
