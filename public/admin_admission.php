@@ -59,12 +59,12 @@ require_once('lib/statusgruppe.inc.php');
 PageLayout::setHelpKeyword("Basis.VeranstaltungenVerwaltenZugangsberechtigungen");
 PageLayout::setTitle(_("Verwaltung von Zugangsberechtigungen"));
 
-if ($perm->have_perm('admin')) {
+/*if ($perm->have_perm('admin')) {
     Navigation::activateItem('/admin/course/admission');
 } else {
     Navigation::activateItem('/course/admin/admission');
 }
-
+*/
 $cssSw = new cssClassSwitcher;
 $admin_admission_data = unserialize(base64_decode($_REQUEST['admin_admission_data']));
 $admin_admission_data_original = unserialize(base64_decode($_REQUEST['admin_admission_data']));
