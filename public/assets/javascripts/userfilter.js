@@ -68,6 +68,7 @@ STUDIP.UserFilter = {
                 $('#'+containerId).find('.userfilter').append(result);
             }
         });
+        $('#condition').remove();
     },
 
     getConditionFieldConfiguration: function(element, targetUrl) {
