@@ -1,7 +1,5 @@
 /**
- * visual-editor.js - Activate visual editing of textarea contents.
- *
- * This file contains the plugin's main class.
+ * wysiwyg.js - Replace HTML textareas with WYSIWYG editor.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as

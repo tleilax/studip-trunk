@@ -21,12 +21,12 @@ javascripts:
     - javascripts/toolbar-buttonset.js
     - javascripts/smiley-picker.js
 
-  visual-editor: &visual-editor
+  wysiwyg: &wysiwyg
     - javascripts/jquery/jquery.autosize-min.js
     - javascripts/jquery/jquery.fileupload.js
     - javascripts/jquery/jquery.iframe-transport.js
     - javascripts/ckeditor/ckeditor.js
-    - javascripts/visual-editor.js
+    - javascripts/wysiwyg.js
 
   base:
     - *jquery
@@ -63,7 +63,7 @@ javascripts:
     - javascripts/cronjobs.js
     - *header
     - *toolbar
-    - *visual-editor
+    - *wysiwyg
     - javascripts/application.js
 
   raumzeit:
@@ -76,8 +76,8 @@ javascripts:
     - javascripts/settings.js
 css:
   base:
-    # filname : media
-    visual-editor.css: screen, print
+    # filename : media
+    wysiwyg.css: screen, print
     jquery-ui-1.9.1.custom.css: screen, print
     jquery-ui-studip.css: screen, print
     jquery-ui-timepicker-addon.css: screen, print
