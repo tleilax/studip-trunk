@@ -121,7 +121,10 @@ jQuery(function () {
         jQuery('[autofocus]').first().focus();
     }
 
-    jQuery('.add_toolbar').addToolbar();
+    if (!STUDIP.WYSIWYG) {
+        // add toolbar only if WYSIWYG editor is not activated
+        jQuery('.add_toolbar').addToolbar();
+    }
 
     if (document.createElement('textarea').style.resize === undefined) {
         jQuery('textarea.resizable').resizable({
