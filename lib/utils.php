@@ -163,14 +163,25 @@ function getStudipDocumentData($folder_id, $file) {
 /**
  * Test if string starts with prefix.
  *
- * @param string $string The string that must start with the prefix.
- * @param string $prefix The prefix of the string.
+ * @param string $string Tested string.
+ * @param string $prefix Prefix of tested string.
  *
- * @return boolean  True if string starts with prefix.
- *                  False if string does not start with prefix.
+ * @return boolean  True if string starts with prefix, otherwise False.
  */
 function startsWith($string, $prefix) {
     return \substr($string, 0, \strlen($prefix)) === $prefix;
+}
+
+/**
+ * Test if string ends with suffix.
+ *
+ * @param string $string  Tested string.
+ * @param string $suffix  Suffix of tested string.
+ *
+ * @return boolean  True if string ends with suffix, otherwise False.
+ */
+function endsWith($string, $suffix) {
+    return \substr($string, \strlen($string) - \strlen($suffix)) === $suffix;
 }
 
 /**

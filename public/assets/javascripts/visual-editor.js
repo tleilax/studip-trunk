@@ -269,11 +269,13 @@ function replaceTextarea(textarea){
     });
 }
 
-$('.editor_toolbar > .buttons').remove();
-$('textarea.add_toolbar').each(function(){
-    if (!CKEDITOR.instances[this]) {
-        replaceTextarea($(this));
-    }
-});
+if (STUDIP.WYSIWYG) {
+    $('.editor_toolbar > .buttons').remove();
+    $('textarea.add_toolbar').each(function(){
+        if (!CKEDITOR.instances[this]) {
+            replaceTextarea($(this));
+        }
+    });
+}
 
 }); // jQuery(function($){
