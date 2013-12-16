@@ -51,6 +51,10 @@ class Admission_CoursesetController extends AuthenticatedController {
                 $this->coursesets[$set['set_id']] = $courseset;
             }
         }
+        DBManager::get()->execute("RENAME TABLE `conditions` TO `userfilter`");
+        DBManager::get()->execute("ALTER TABLE `userfilter` CHANGE `condition_id` `filter_id` VARCHAR(32) CHARACTER SET latin1 COLLATE latin1_german1_ci PRIMARY KEY");
+        DBManager::get()->execute("RENAME TABLE `conditionfields` TO `userfilter_fields`");
+        DBManager::get()->execute("ALTER TABLE `userfilter_fields` CHANGE `condition_id` `filter_id` VARCHAR(32) CHARACTER SET latin1 COLLATE latin1_german1_ci NOT NULL");
     }
 
     /**
