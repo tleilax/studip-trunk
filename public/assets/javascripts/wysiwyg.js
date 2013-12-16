@@ -11,6 +11,9 @@
  * @category    Stud.IP
  */
 jQuery(function($){
+    if (!STUDIP.WYSIWYG){
+        return;
+    }
 
     function replaceTextarea(textarea){
         var uiColor = '#7788AA';  // same as studip's tab navigation background
@@ -266,12 +269,11 @@ jQuery(function($){
             editor.focus();
         });
     }
-    if (STUDIP.WYSIWYG) {
-        $('.editor_toolbar > .buttons').remove();
-        $('textarea.add_toolbar').each(function(){
-            if (!CKEDITOR.instances[this]) {
-                replaceTextarea($(this));
-            }
-        });
-    }
+
+    $('.editor_toolbar > .buttons').remove();
+    $('textarea.add_toolbar').each(function(){
+        if (!CKEDITOR.instances[this]) {
+            replaceTextarea($(this));
+        }
+    });
 }); // jQuery(function($){
