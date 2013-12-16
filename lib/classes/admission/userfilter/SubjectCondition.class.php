@@ -16,9 +16,9 @@
  * @category    Stud.IP
  */
 
-require_once(realpath(dirname(__FILE__).'/..').'/ConditionField.class.php');
+require_once(realpath(dirname(__FILE__).'/..').'/UserFilterField.class.php');
 
-class SubjectCondition extends ConditionField
+class SubjectCondition extends UserFilterField
 {
     // --- OPERATIONS ---
 

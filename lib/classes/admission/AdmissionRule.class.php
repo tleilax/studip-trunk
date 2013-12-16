@@ -284,7 +284,7 @@ abstract class AdmissionRule
      * Sets a new end time for condition validity.
      *
      * @param  Integer newEndTime
-     * @return StudipCondition
+     * @return UserFilter
      */
     public function setEndTime($newEndTime)
     {
@@ -307,7 +307,7 @@ abstract class AdmissionRule
      * Sets a new start time for condition validity.
      *
      * @param  Integer newStartTime
-     * @return StudipCondition
+     * @return UserFilter
      */
     public function setStartTime($newStartTime) {
         $this->startTime = $newStartTime;

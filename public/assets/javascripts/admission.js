@@ -24,12 +24,62 @@ STUDIP.Admission = {
         $('#'+targetId).load(targetUrl, query);
     },
 
-    configureRule: function (sourceElement, targetUrl) {
+    configureRule: function (ruleType, targetUrl) {
         var loading = 'Wird geladen'.toLocaleString();
-        var dlg = $(sourceElement).parents('div .ui-dialog-content').first();
-        var ruleType = $('input[name=ruletype]:checked').val();
-        dlg.load(targetUrl, {'ruletype': ruleType});
+        if (ruleType == null || $('#configurerule').length == 0) {
+            $('<div id="configurerule" title="Anmelderegel konfigurieren">'+loading+'</div>')
+                .dialog({
+                    draggable: false,
+                    modal: true,
+                    resizable: false,
+                    position: ['center', 150],
+                    width: 750,
+                    close: function() {
+                        $('#configurerule').remove();
+                    },
+                    open: function() {
+                        $('#configurerule').empty();
+                        $('<img/>', {
+                            src: STUDIP.ASSETS_URL + 'images/ajax_indicator_small.gif'
+                        }).appendTo('#configurerule');
+                        $('#configurerule').append(loading);
+                        $('#configurerule').load(targetUrl);
+                    }
+                });
+        }
+        if (ruleType != null) {
+            $('#configurerule').empty();
+            $('<img/>', {
+                src: STUDIP.ASSETS_URL + 'images/ajax_indicator_small.gif'
+            }).appendTo('#configurerule');
+            $('#configurerule').append(loading);
+            $('#configurerule').load(targetUrl+'/'+ruleType);
+        }
         return false;
+    },
+    
+    selectRuleType: function(targetUrl) {
+        var loading = 'Wird geladen'.toLocaleString();
+        $('<div id="configurerule" title="Anmelderegel konfigurieren">'+loading+'</div>')
+            .dialog({
+                draggable: false,
+                modal: true,
+                resizable: false,
+                position: ['center', 150],
+                width: 750,
+                close: function() {
+                    $('#configurerule').remove();
+                },
+                open: function() {
+                    $('#configurerule').empty();
+                    $('<img/>', {
+                        src: STUDIP.ASSETS_URL + 'images/ajax_indicator_small.gif'
+                    }).appendTo('#configurerule');
+                    $('#configurerule').append(loading);
+                    $('#configurerule').load(targetUrl);
+                }
+            });
+       return false;
     },
 
     saveRule: function(ruleId, targetId, targetUrl) {
@@ -59,7 +109,7 @@ STUDIP.Admission = {
                 }
             });
         }
-        STUDIP.Admission.closeDialog(this);
+        STUDIP.Admission.closeDialog('configurerule');
         return false;
     },
 
@@ -100,12 +150,11 @@ STUDIP.Admission = {
      * @param String saveUrl     URL to save the rule.
      */
     checkAndSaveRule: function(ruleId, errorTarget, validateUrl, savedTarget, saveUrl) {
-        var ret = false;
         if (STUDIP.Admission.validateRuleConfig(errorTarget, validateUrl)) {
-            ret = STUDIP.Admission.saveRule(ruleId, savedTarget, saveUrl);
-            STUDIP.Admission.closeDialog($('#submitrule'));
+            return STUDIP.Admission.saveRule(ruleId, savedTarget, saveUrl);
+        } else {
+            return false;
         }
-        return ret;
     },
 
     validateRuleConfig: function(containerId, targetUrl) {
@@ -206,14 +255,8 @@ STUDIP.Admission = {
         }
     },
 
-    closeDialog: function(button) {
-        var dialog = $(button).parents('div[role=dialog]').first();
-        dialog.remove();
-        return false;
-    },
-
-    checkDateRange: function(elementId) {
-        
+    closeDialog: function(elementId) {
+        $('#'+elementId).remove();
     }
 
 };

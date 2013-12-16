@@ -125,7 +125,7 @@ $userlistIds = $courseset ? $courseset->getUserlists() : array();
                     <?= LinkButton::create(_('Anmelderegel hinzufügen'), 
                         $controller->url_for('admission/rule/select_type'), 
                         array(
-                            'rel' => 'lightbox'
+                            'onclick' => "return STUDIP.Admission.selectRuleType('".$controller->url_for('admission/rule/select_type')."')"
                             )
                         ); ?>
             </div>

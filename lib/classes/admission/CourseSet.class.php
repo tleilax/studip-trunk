@@ -16,7 +16,7 @@
  */
 
 require_once('lib/classes/admission/AdmissionRule.class.php');
-require_once('lib/classes/admission/ConditionField.class.php');
+require_once('lib/classes/admission/UserFilterField.class.php');
 require_once('lib/classes/admission/RandomAlgorithm.class.php');
 require_once('lib/classes/admission/AdmissionPriority.class.php');
 require_once('lib/classes/admission/AdmissionUserList.class.php');
@@ -84,7 +84,7 @@ class CourseSet
         // Define autoload function for admission rules.
         spl_autoload_register(array('AdmissionRule', 'getAvailableAdmissionRules'));
         // Define autoload function for admission rules.
-        spl_autoload_register(array('ConditionField', 'getAvailableConditionFields'));
+        spl_autoload_register(array('UserFilterField', 'getAvailableFilterFields'));
         if ($setId) {
             $this->load();
         }

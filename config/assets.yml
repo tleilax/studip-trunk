@@ -74,12 +74,12 @@ javascripts:
   dialogs: &dialogs
     - javascripts/dialogs.js
 
-  conditions: &conditions
+  userfilter: &userfilter
     - *dialogs
-    - javascripts/conditions.js
+    - javascripts/userfilter.js
 
   admission:
-    - *conditions
+    - *userfilter
     - *tree
     - javascripts/admission.js
 

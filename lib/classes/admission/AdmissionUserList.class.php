@@ -71,7 +71,7 @@ class AdmissionUserList
     /**
      * Adds the given condition to the list.
      *
-     * @param  StudipCondition condition
+     * @param  UserFilter condition
      * @return AdmissionUserList
      */
     public function addCondition($condition)
@@ -216,7 +216,7 @@ class AdmissionUserList
             //$stmt2->execute(array($this->id));
             //while ($current = $stmt2->fetch(PDO::FETCH_ASSOC)) {
             //    $this->conditions[$current['condition_id']] =
-            //        new StudipCondition($current['condition_id']);
+            //        new UserFilter($current['condition_id']);
             //}
         }
     }

@@ -1,11 +1,11 @@
 <?php
 
 /**
- * ConditionField.class.php
+ * UserFilterField.class.php
  * 
  * A specification of a Stud.IP condition that must be fulfilled. One
- * or more instances of the ConditionField subclasses make up a
- * StudipCondition.
+ * or more instances of the UserFilterField subclasses make up a
+ * UserFilter.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -17,7 +17,7 @@
  * @category    Stud.IP
  */
 
-class ConditionField
+class UserFilterField
 {
     // --- ATTRIBUTES ---
 
@@ -27,7 +27,7 @@ class ConditionField
     public $compareOperator = '';
 
     /**
-     * ID of the StudipCondition this field belongs to.
+     * ID of the UserFilter this field belongs to.
      */
     public $conditionId = '';
 
@@ -85,7 +85,7 @@ class ConditionField
      */
     public function delete() {
         // Delete condition data.
-        $stmt = DBManager::get()->prepare("DELETE FROM `conditionfields` 
+        $stmt = DBManager::get()->prepare("DELETE FROM `userfilter_fields` 
             WHERE `field_id`=?");
         $stmt->execute(array($this->id));
     }
@@ -99,25 +99,25 @@ class ConditionField
         do {
             $newid = md5(uniqid(get_class($this).microtime(), true));
             $db = DBManager::get()->query("SELECT `field_id` 
-                FROM `conditionfields` WHERE `field_id`='.$newid.'");
+                FROM `userfilter_fields` WHERE `field_id`='.$newid.'");
         } while ($db->fetch());
         return $newid;
     }
 
     /**
-     * Reads all available ConditionField subclasses and loads their definitions.
+     * Reads all available UserFilterField subclasses and loads their definitions.
      */
-    public static function getAvailableConditionFields() {
+    public static function getAvailableFilterFields() {
         $fields = array();
         // Load all PHP class files found in the condition field folder.
-        foreach (glob(realpath(dirname(__FILE__).'/conditions').'/*.class.php') as $file) {
+        foreach (glob(realpath(dirname(__FILE__).'/userfilter').'/*.class.php') as $file) {
             require_once($file);
             // Try to auto-calculate class name from file name.
             $className = substr(basename($file), 0, 
                 strpos(basename($file), '.class.php'));
             $current = new $className();
             // Check if class is right.
-            if (is_subclass_of($current, 'ConditionField')) {
+            if (is_subclass_of($current, 'UserFilterField')) {
                 $fields[$className] = $className::getName();
             }
         }
@@ -151,7 +151,7 @@ class ConditionField
      */
     public function getName()
     {
-        return _("Stud.IP-Bedingung");
+        return _("Nutzer-Filterfeld");
     }
 
     /**
@@ -215,10 +215,10 @@ class ConditionField
      */
     public function load() {
         $stmt = DBManager::get()->prepare(
-            "SELECT * FROM `conditionfields` WHERE `field_id`=? LIMIT 1");
+            "SELECT * FROM `userfilter_fields` WHERE `field_id`=? LIMIT 1");
         $stmt->execute(array($this->id));
         if ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $this->conditionId = $data['condition_id'];
+            $this->conditionId = $data['filter_id'];
             $this->value = $data['value'];
             $this->compareOperator = $data['compare_op'];
         }
@@ -228,7 +228,7 @@ class ConditionField
      * Sets a new selected compare operator
      *
      * @param  String newOperator
-     * @return ConditionField
+     * @return UserFilterField
      */
     public function setCompareOperator($newOperator)
     {
@@ -241,10 +241,10 @@ class ConditionField
     }
 
     /**
-     * Connects the current field to a StudipCondition.
+     * Connects the current field to a UserFilter.
      * 
-     * @param  String $id ID of a StudipCondition object.
-     * @return ConditionField
+     * @param  String $id ID of a UserFilter object.
+     * @return UserFilterField
      */
     public function setConditionId($id) {
         $this->conditionId = $id;
@@ -255,7 +255,7 @@ class ConditionField
      * Sets a new selected value.
      *
      * @param  String newValue
-     * @return ConditionField
+     * @return UserFilterField
      */
     public function setValue($newValue)
     {
@@ -276,23 +276,23 @@ class ConditionField
         // Generate new ID if field entry doesn't exist in DB yet.
         if (!$this->id) {
             do {
-                $newid = md5(uniqid('ConditionField', true));
+                $newid = md5(uniqid('UserFilterField', true));
                 $db = DBManager::get()->query("SELECT `field_id` 
-                    FROM `conditionfields` WHERE `field_id`='.$newid.'");
+                    FROM `userfilter_fields` WHERE `field_id`='.$newid.'");
             } while ($db->fetch());
             $this->id = $newid;
         }
         // Store field data.
-        $stmt = DBManager::get()->prepare("INSERT INTO `conditionfields` 
-            (`field_id`, `condition_id`, `type`, `value`, `compare_op`, 
+        $stmt = DBManager::get()->prepare("INSERT INTO `userfilter_fields` 
+            (`field_id`, `filter_id`, `type`, `value`, `compare_op`, 
             `mkdate`, `chdate`)  VALUES (?, ?, ?, ?, ?, ?, ?) 
-            ON DUPLICATE KEY UPDATE `condition_id`=VALUES(`condition_id`), 
+            ON DUPLICATE KEY UPDATE `filter_id`=VALUES(`filter_id`), 
             `type`=VALUES(`type`),`value`=VALUES(`value`), 
             `compare_op`=VALUES(`compare_op`), `chdate`=VALUES(`chdate`)");
         $stmt->execute(array($this->id, $this->conditionId, get_class($this), 
             $this->value, $this->compareOperator, time(), time()));
     }
 
-} /* end of class ConditionField */
+} /* end of class UserFilterField */
 
 ?>

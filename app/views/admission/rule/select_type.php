@@ -22,8 +22,8 @@ foreach ($ruleTypes as $className => $classDetail) {
     <div class="submit_wrapper">
         <?= CSRFProtection::tokenTag() ?>
         <?= Button::create(_('Weiter >>'), 'configure', array(
-            'onclick' => "return STUDIP.Admission.configureRule(this, '".
+            'onclick' => "return STUDIP.Admission.configureRule($('input[name=ruletype]:checked').val(), '".
                 $controller->url_for('admission/rule/configure')."')")) ?>
-        <?= Button::createCancel(_('Abbrechen'), 'cancel', array('onclick' => "return STUDIP.Admission.closeDialog(this)")) ?>
+        <?= Button::createCancel(_('Abbrechen'), 'cancel', array('onclick' => "return STUDIP.Admission.closeDialog('configurerule')")) ?>
     </div>
 </form>

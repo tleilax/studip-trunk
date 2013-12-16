@@ -17,7 +17,7 @@
  */
 
 require_once('lib/classes/admission/AdmissionRule.class.php');
-require_once('lib/classes/admission/StudipCondition.class.php');
+require_once('lib/classes/admission/UserFilter.class.php');
 
 class ConditionalAdmission extends AdmissionRule
 {
@@ -50,9 +50,9 @@ class ConditionalAdmission extends AdmissionRule
     }
 
     /**
-     * Adds a new StudipCondition to this rule.
+     * Adds a new UserFilter to this rule.
      *
-     * @param  StudipCondition condition
+     * @param  UserFilter condition
      * @return ConditionalAdmission
      */
     public function addCondition($condition)
@@ -160,7 +160,7 @@ class ConditionalAdmission extends AdmissionRule
             $stmt->execute(array($this->id));
             $conditions = $stmt->fetchAll(PDO::FETCH_ASSOC);
             foreach ($conditions as $condition) {
-                $currentCondition = new StudipCondition($condition['condition_id']);
+                $currentCondition = new UserFilter($condition['condition_id']);
                 $this->conditions[$condition['condition_id']] = $currentCondition;
             }
         }
@@ -215,7 +215,7 @@ class ConditionalAdmission extends AdmissionRule
      * @return AdmissionRule This object.
      */
     public function setAllData($data) {
-        ConditionField::getAvailableConditionFields();
+        UserFilterField::getAvailableFilterFields();
         parent::setAllData($data);
         $this->conditions = array();
         foreach ($data['conditions'] as $condition) {
@@ -244,7 +244,7 @@ class ConditionalAdmission extends AdmissionRule
             implode("', '", array_keys($this->conditions))."')");
         $stmt->execute(array($this->id));
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $entry) {
-            $current = new StudipCondition($entry['condition_id']);
+            $current = new UserFilter($entry['condition_id']);
             $current->delete();
         }
         DBManager::get()->exec("DELETE FROM `admission_condition`

@@ -6,11 +6,7 @@ use Studip\Button, Studip\LinkButton;
     <?= $ruleTemplate ?>
     <div class="submit_wrapper">
         <input type="hidden" id="action" name="action" value=""/>
-        <?= CSRFProtection::tokenTag(); ?>
-        <?= Button::createAccept(_('Speichern'), 'submit', array('id' => 'submitrule')) ?>
-        <?= LinkButton::createCancel(_('Abbrechen'), 'cancel', array(
-                'id' => 'cancelrule',
-                'onclick' => "return STUDIP.Admission.closeDialog(this)")
-            ) ?>
+        <?= Button::createAccept(_('Speichern'), 'submit') ?>
+        <?= LinkButton::createCancel(_('Abbrechen'), 'cancel', array('onclick' => "$('#configurerule').remove(); return false;")) ?>
     </div>
 </form>

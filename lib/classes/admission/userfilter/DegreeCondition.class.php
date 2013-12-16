@@ -15,9 +15,9 @@
  * @category    Stud.IP
  */
 
-require_once(realpath(dirname(__FILE__).'/..').'/ConditionField.class.php');
+require_once(realpath(dirname(__FILE__).'/..').'/UserFilterField.class.php');
 
-class DegreeCondition extends ConditionField
+class DegreeCondition extends UserFilterField
 {
     // --- ATTRIBUTES ---
 

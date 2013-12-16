@@ -1,7 +1,7 @@
 <?php
 
 /**
- * StudipCondition.class.php
+ * UserFilter.class.php
  * 
  * Conditions for user selection in Stud.IP. A condition is a collection of
  * condition fields, e.g. degree, course of study or semester. Each 
@@ -17,9 +17,9 @@
  * @category    Stud.IP
  */
 
-require_once('lib/classes/admission/ConditionField.class.php');
+require_once('lib/classes/admission/UserFilterField.class.php');
 
-class StudipCondition
+class UserFilter
 {
     // --- ATTRIBUTES ---
 
@@ -39,11 +39,11 @@ class StudipCondition
      * Standard constructor.
      *
      * @param  String conditionId
-     * @return StudipCondition
+     * @return UserFilter
      */
     public function __construct($conditionId='')
     {
-        ConditionField::getAvailableConditionFields();
+        UserFilterField::getAvailableFilterFields();
         $this->id = $conditionId;
         if ($conditionId) {
             $this->load();
@@ -57,7 +57,7 @@ class StudipCondition
      * Add a new condition field.
      *
      * @param  ConditionField fieldId
-     * @return StudipCondition
+     * @return UserFilter
      */
     public function addField($field)
     {
@@ -71,8 +71,8 @@ class StudipCondition
      */
     public function delete() {
         // Delete condition data.
-        $stmt = DBManager::get()->prepare("DELETE FROM `conditions` 
-            WHERE `condition_id`=?");
+        $stmt = DBManager::get()->prepare("DELETE FROM `userfilter` 
+            WHERE `filter_id`=?");
         $stmt->execute(array($this->id));
         // Delete all defined condition fields.
         foreach ($this->fields as $field) {
@@ -88,8 +88,8 @@ class StudipCondition
     public function generateId() {
         do {
             $newid = md5(uniqid(get_class($this).microtime(), true));
-            $db = DBManager::get()->query("SELECT `condition_id` 
-                FROM `conditions` WHERE `condition_id`='.$newid.'");
+            $db = DBManager::get()->query("SELECT `filter_id` 
+                FROM `userfilter` WHERE `filter_id`='.$newid.'");
         } while ($db->fetch());
         return $newid;
     }
@@ -150,18 +150,18 @@ class StudipCondition
     public function load() {
         // Load basic condition data.
         $stmt = DBManager::get()->prepare(
-            "SELECT * FROM `conditions` WHERE `condition_id`=? LIMIT 1");
+            "SELECT * FROM `userfilter` WHERE `filter_id`=? LIMIT 1");
         $stmt->execute(array($this->id));
         if ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $this->id = $data['condition_id'];
+            $this->id = $data['filter_id'];
             // Load the associated condition fields.
             $stmt = DBManager::get()->prepare(
-                "SELECT `field_id`, `type` FROM `conditionfields`
-                WHERE `condition_id`=?");
+                "SELECT `field_id`, `type` FROM `userfilter_fields`
+                WHERE `filter_id`=?");
             $stmt->execute(array($this->id));
             while ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
                 /*
-                 * Create instance of appropriate ConditionField subclass.
+                 * Create instance of appropriate UserFilterField subclass.
                  * We just "try" here because the class definition could have 
                  * been removed since saving data to DB.
                  */
@@ -177,7 +177,7 @@ class StudipCondition
      * Removes the field with the given ID from the condition fields.
      *
      * @param  String fieldId
-     * @return StudipCondition
+     * @return UserFilter
      */
     public function removeField($fieldId)
     {
@@ -192,21 +192,21 @@ class StudipCondition
         // Generate new ID if condition entry doesn't exist in DB yet.
         if (!$this->id) {
             do {
-                $newid = md5(uniqid('StudipCondition', true));
-                $db = DBManager::get()->query("SELECT `condition_id` 
-                    FROM `conditions` WHERE `condition_id`='.$newid.'");
+                $newid = md5(uniqid('UserFilter', true));
+                $db = DBManager::get()->query("SELECT `filter_id` 
+                    FROM `userfilter` WHERE `filter_id`='.$newid.'");
             } while ($db->fetch());
             $this->id = $newid;
         }
         // Store condition data.
-        $stmt = DBManager::get()->prepare("INSERT INTO `conditions` 
-            (`condition_id`, `mkdate`, `chdate`)  
+        $stmt = DBManager::get()->prepare("INSERT INTO `userfilter` 
+            (`filter_id`, `mkdate`, `chdate`)  
             VALUES (?, ?, ?) 
             ON DUPLICATE KEY UPDATE `chdate`=VALUES(`chdate`)");
         $stmt->execute(array($this->id, time(), time()));
         // Delete removed condition fields from DB.
-        DBManager::get()->exec("DELETE FROM `conditionfields` 
-            WHERE `condition_id`='".$this->id."' AND `field_id` NOT IN ('".
+        DBManager::get()->exec("DELETE FROM `userfilter_fields` 
+            WHERE `filter_id`='".$this->id."' AND `field_id` NOT IN ('".
             implode("', '", array_keys($this->fields))."')");
         // Store all fields.
         foreach ($this->fields as $field) {
@@ -215,8 +215,8 @@ class StudipCondition
     }
 
     public function toString() {
-        $tpl = $GLOBALS['template_factory']->open('conditions/display');
-        $tpl->set_attribute('condition', $this);
+        $tpl = $GLOBALS['template_factory']->open('userfilter/display');
+        $tpl->set_attribute('filter', $this);
         return $tpl->render();
     }
 
@@ -224,6 +224,6 @@ class StudipCondition
         return $this->toString();
     }
 
-} /* end of class StudipCondition */
+} /* end of class UserFilter */
 
 ?>

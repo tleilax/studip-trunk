@@ -18,21 +18,17 @@ class Admission_RuleController extends AuthenticatedController {
         }
     }
 
-    public function select_type_action() {
+    public function configure_action($ruleType='', $ruleId='') {
         $this->ruleTypes = AdmissionRule::getAvailableAdmissionRules();
-        if ($this->via_ajax) {
-            $this->response->add_header('X-Title', _('Anmelderegel konfigurieren'));
-            $this->response->add_header('X-No-Buttons', 1);
-        }
-    }
-
-    public function configure_action($ruleId='') {
-        $this->ruleTypes = AdmissionRule::getAvailableAdmissionRules();
-        $this->ruleType = Request::get('ruletype');
-        $this->rule = new $this->ruleType($ruleId);
+        $this->ruleType = $ruleType;
+        $this->rule = new $ruleType($ruleId);
         $this->ruleTemplate = ($this->via_ajax ? 
             studip_utf8encode($this->rule->getTemplate()) : 
             $this->rule->getTemplate());
+    }
+
+    public function select_type_action() {
+        $this->ruleTypes = AdmissionRule::getAvailableAdmissionRules();
     }
 
     public function save_action($ruleType, $ruleId='') {
