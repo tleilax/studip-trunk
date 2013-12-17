@@ -45,15 +45,14 @@ class Document_DateienController extends AuthenticatedController
       }
       
      $api = new StudipDocumentAPI();
-     $user_exists = $api -> authEntity($user_id, "DB");
+     $user_exists = $api -> authEntity($user_id, 'DB');
      
      if (! $user_exists)
-      $api -> initEntity($user_id, "DB");
+      $api -> initEntity($user_id, 'DB');
      
      PageLayout::setTitle(_('Dateiverwaltung'));
-     PageLayout::setHelpKeyword('Basis.Dateien');
-     //PageLayout::addScript('./javascripts/application_diff.js');
-     //PageLayout::addScript('./javascripts/jquery/jquery-ui.1.9.1.custom.js');
+     PageLayout::setHelpKeyword('Basis.Dateien');      
+     PageLayout::addStylesheet('/stylesheets/jquery-ui-studip.css');
      
      $this -> set_layout($GLOBALS['template_factory'] -> open('layouts/base'));
     }
@@ -67,28 +66,28 @@ class Document_DateienController extends AuthenticatedController
  
   public function list_action()
    {
-    $inhalt[0][0] = "ordner";
-    $inhalt[0][1] = "Test";
-    $inhalt[0][2] = "unlocked";
-    $inhalt[0][3] = "Martin Mustermann";
-    $inhalt[0][4] = "16.10.2013";
+    $inhalt[0][0] = 0;
+    $inhalt[0][1] = "id1";
+    $inhalt[0][2] = "Ordner";
+    $inhalt[0][3] = "Test";
+    $inhalt[0][4] = "unlocked";
+    $inhalt[0][5] = "Martin Mustermann";
+    $inhalt[0][6] = "16.10.2013";
 
-    $inhalt[1][0] = "datei";
-    $inhalt[1][1] = "Hausarbeit.pdf";
-    $inhalt[1][2] = "locked";
-    $inhalt[1][3] = "Martin Mustermann";
-    $inhalt[1][4] = "17.10.2013";
+    $inhalt[1][0] = 1;
+    $inhalt[1][1] = "id2";
+    $inhalt[1][2] = "Datei";
+    $inhalt[1][3] = "Hausarbeit.pdf";
+    $inhalt[1][4] = "locked";
+    $inhalt[1][5] = "Martin Mustermann";
+    $inhalt[1][6] = "17.10.2013";
     
     $this -> flash['count'] = 1;
     $this -> flash['inhalt'] = $inhalt;
     
     $this -> flash['quota'] = $this -> quota;
     $this -> flash['closed'] = $this -> userConfig['area_close'];
-    $this -> flash['lockMessage'] = $this -> userConfig['area_close_text'];
-    
-    //"Aufgrund eines Verstoßes gegen die Nutzungs-bedingungen 
-    // wurde Ihr persönlicher Dateibereich gesperrt. <br> <br> Bitte setzen Sie 
-    // sich mit dem / der zuständigen Systemadministrator/in in Verbindung."; 
+    $this -> flash['notification'] = $this -> userConfig['area_close_text'];
     
     $this -> render_action('index');
    }
@@ -126,7 +125,7 @@ class Document_DateienController extends AuthenticatedController
     $this -> flash['delete'] = $type;
     $this -> redirect("document/dateien/list");
    }
-   
+     
    
   public function hochladen_action()
    {

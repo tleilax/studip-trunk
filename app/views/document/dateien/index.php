@@ -26,34 +26,38 @@
  
   <?php
        
-    function tab($tab_weite)
-     {
-      for ($i = 0; $i < $tab_weite; $i++)
-       print Assets::img("blank.gif");
-     }
+   function tab($tab_weite)
+    {
+     for ($i = 0; $i < $tab_weite; $i++)
+      print Assets::img('blank.gif');
+    }
       
     
-    function cr($cr_weite)
-     {
-      for ($i = 0; $i < $cr_weite; $i++)
-       print "<br>";
-     }
+   function cr($cr_weite)
+    {
+     for ($i = 0; $i < $cr_weite; $i++)
+      print '<br>';
+    }
      
      
-    function line($weite)
-     {
-      for ($i = 0; $i <= $weite; $i++)
-       print Assets::img("line2.gif"). "<br>";
-     }
+   function line($weite)
+    {
+     for ($i = 0; $i <= $weite; $i++)
+      print Assets::img('line2.gif'). '<br>';
+    }
+  
+   ?>
+  
+  <script type="text/javascript">
      
-     
-    function entityID($operator)
-     {
-      $token = explode("-", $operator);
-      return $token[1];
-     }
-     
-  ?>  
+   <?php
+
+    $ref = json_encode($flash['inhalt']); 
+    print "var ref = '$ref';"; 
+    
+    ?>
+
+  </script>
    
  </head>
 
@@ -140,24 +144,26 @@
      <tbody class="toggleable">
      
      <?php 
-      
+           
       $max = $flash['count']; 
-         
+      
       for ($i = 0; $i <= $max; $i++):
 
-       if ($flash['inhalt'][$i][0] == "ordner")
+       $id = $flash['inhalt'][$i][0];
+      
+       if ($flash['inhalt'][$i][2] == 'Ordner')
          $color = "color:black;";
         else
          $color = "color:#1E3E70;";
       ?>
       
-      <tr style="<?= $color ?>" >
-     
+      <tr id="<?= $id ?>" style="<?= $color ?>" >
+       
        <td>
      
         <?php
                           
-         if ($flash['inhalt'][$i][0] == "ordner"):
+         if ($flash['inhalt'][$i][2] == 'Ordner'):
              
          ?>
        
@@ -165,11 +171,11 @@
          
          <?php
              
-           print Assets::img("icons/16/blue/arr_1right.png");
+           print Assets::img('icons/16/blue/arr_1right.png');
           
-          elseif($flash['inhalt'][$i][0] == "datei"):
+          elseif($flash['inhalt'][$i][2] == 'Datei'):
           
-           print Assets::img("icons/16/blue/file-pdf.png");
+           print Assets::img('icons/16/blue/file-pdf.png');
            
           endif;
                  
@@ -179,34 +185,34 @@
         
         </td>
            
-       <td> <?= $flash['inhalt'][$i][1] ?> </td>
+       <td> <?= $flash['inhalt'][$i][3] ?> </td>
        
        <td>
         
         <?php
         
-         if ($flash['inhalt'][$i][2] == "unlocked")
+         if ($flash['inhalt'][$i][4] == 'unlocked')
           print '<span style="text-align:right;">'. Assets::img("icons/16/blue/lock-unlocked.png"). '</span>';
         
          ?>
           
         </td>
       
-       <td> <?= $flash['inhalt'][$i][3] ?> </td>
+       <td> <?= $flash['inhalt'][$i][5] ?> </td>
       
-       <td> <?= $flash['inhalt'][$i][4] ?> </td>
+       <td> <?= $flash['inhalt'][$i][6] ?> </td>
        
-       <td>
-       
+       <td> 
+         
         <?php
-        
-         if (isset($flash['inhalt'][$i][0])):
-          $type = $flash['inhalt'][$i][0];
-         
+   
+         if (isset($flash['inhalt'][$i][2])):
+                    
         ?>
-         
-        <a href="<?= $controller->url_for("document/dateien/teilen/$type") ?>" title="Mit anderen teilen">        
-               
+        
+        
+        <a id="<?= $id ?>" href="#" onClick="STUDIP.Document.teilen(this.id,ref);" title="Mit anderen teilen">       
+                              
          <?php
              
           print Assets::img("icons/16/blue/persons.png"); 
@@ -215,9 +221,9 @@
          ?>
        
         </a>
-                
-        <a href="<?= $controller->url_for("document/dateien/bearbeiten/$type") ?>" title="Bearbeiten">
-         
+                        
+        <a id="<?= $id ?>" href="#" onClick="STUDIP.Document.bearbeiten(this.id,ref);" title="Bearbeiten">
+    
          <?php
 
           print Assets::img("icons/16/blue/visibility-checked.png"); 
@@ -227,7 +233,7 @@
        
         </a>
         
-        <a href="<?= $controller->url_for("document/dateien/verwalten/$type") ?>" title="Verwalten">
+        <a id="<?= $id ?>" href="#" onClick="STUDIP.Document.verwalten(this.id,ref);" title="Verwalten">
          
          <?php
              
@@ -238,7 +244,7 @@
        
         </a>
         
-        <a href="<?= $controller->url_for("document/dateien/loeschen/$type") ?>" title="Löschen">
+        <a id="<?= $id ?>" href="#" onClick="STUDIP.Document.loeschen(this.id,ref);" title="Löschen">
          
          <?php
              
@@ -253,7 +259,7 @@
          endif;
          
          ?>
-       
+         
        </td>  
        
       </tr>
@@ -339,17 +345,17 @@
   
   </div>
   
-  <!--  Sperrvermerk -->
+  <!--  Benachrichtigung -->
   
   <?php
   
    if ($flash['closed'] == 1):
-        
+            
    ?> 
-       
-    <div id="modal">
+                    
+   <div id="modal">
   
-     <?= $this -> render_partial('document/dateien/_sperrvermerk'); ?>
+     <?= $this -> render_partial('document/dateien/_notification'); ?>
 	    
     </div>
        
@@ -357,64 +363,140 @@
       
     endif;
       
-   ?> 
-  
-  <!-- Modale Dialoge: -->
-  
-  <?php
-
-   if (isset($flash['share'])):
-   
    ?>
     
-    <div id="modal">
+  <!-- Modale Dialoge -->  
+  
+  <div id="modalDialog" style="visibility:collapse;" class="ui-doc-dialog">
+	
+   <table>
+		  
+    <tr>
+		
+	 <td style="vertical-align:top;">
+		  
+ 	  <?php
+              
+       print Assets::img("icons/48/blue/folder-full.png");
+       cr(2);
+       print "<b> Informationen </b>";       
+       cr(1);
+       print "Root-Verzeichnis";
+       cr(1);
+       print "<b> Größe: </b>";
+       cr(1);
+       print "1 MB";
+       cr(1);
+       print "<b> Erstellt: </b>";
+       cr(1);
+       print "16.10.2013 - 14:10";
+       cr(1);
+       print "<b> Geändert: </b>";
+       cr(1);
+       print "16.10.2013 - 14:10";
+       cr(1);
+       print "<b> Autor/in: </b>";
+       cr(1);
+       print "Martin Mustermann";
+          
+      ?>
        
-     <?= $this -> render_partial('document/dateien/_teilen'); ?>
-    
-    </div>
-    
-   <?php 
-   
-    elseif (isset($flash['workOn'])):
-    
-    ?>
-    
-     <div id="modal">
+     </td>
        
-      <?= $this -> render_partial('document/dateien/_bearbeiten'); ?>
-    
-     </div>
-   
-   <?php 
-   
-    elseif (isset($flash['admin'])):
-    
-    ?>
-    
-     <div id="modal">
+     <td style="vertical-align:top; padding-left:15px;"> 
+              
+      <?php
+        
+       line(14);
+           
+       ?> 
        
-      <?= $this -> render_partial('document/dateien/_verwalten'); ?>
+     </td>
+        
+     <td style="vertical-align:top; padding-left:15px; width:52%;">
+        
+      <table class="default"">
+          
+       <colgroup>
+          
+        <col style="width:100%;">
+           
+       </colgroup>
+          
+       <thead> </thead>
+          
+       <tbody class="toggleable">
+          
+        <tr>
+           
+         <td style="border-bottom:0px;">
+           
+          <?php
+           
+           print Assets::img("icons/16/blue/edit.png"); 
+           tab(2);
+           print "<b> Beschreiben </b>";
+            
+          ?>
+           
+         </td>
+          
+        </tr>
+           
+        <tr>
+           
+         <td style="border-bottom:0px;">
+           
+          <?php
+            
+           print Assets::img("icons/16/blue/arr_2up.png"); 
+           tab(2);
+           print "<b> Verschieben </b>";
+            
+          ?>
+           
+         </td>
+          
+        </tr>
+           
+        <tr>
+           
+         <td  style="border-bottom:0px;">
+           
+          <a href="" title="Kopieren">
+                     
+           <?php
     
-     </div>
-     
-   <?php 
+            print Assets::img("icons/16/blue/export.png"); 
+            tab(2);
+            print "<b> Kopieren </b>";
+            
+           ?>
+           
+          </a>
+           
+         </td>
+          
+        </tr>
+           
+       </tbody>
+         
+      </table>
+        
+     </td>
+	   
+    </tr>
+	 
+   </table>
    
-    elseif (isset($flash['delete'])):
-    
-    ?>
-    
-     <div id="modal">
-       
-      <?= $this -> render_partial('document/dateien/_loeschen'); ?>
-    
-     </div>
-     
-  <?php
-
-   endif;
-   
-  ?>
+  </div>
+  
+  <!-- Meldungen: -->
       
+  <div id="message" style="visibility:collapse;" class="ui-doc-dialog">
+    
+  </div>
+  
  </body>
  
 </html>

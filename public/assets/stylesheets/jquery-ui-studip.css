@@ -62,5 +62,23 @@
 }
 
 .ui-datepicker-calendar .ui-state-active.ui-state-hover {
-    color: white;
+    color: #ffffff;
+}
+
+.ui-doc-dialog .ui-dialog-titlebar {
+    background: #1e3e70; 
+}
+
+.ui-doc-dialog .ui-dialog-title {
+	color: #ffffff;
+	font-size: 16px;
+}
+
+.ui-doc-dialog .ui-dialog-titlebar-close:hover { 
+	background: red; 
+}
+
+.ui-doc-dialog .ui-dialog-content {
+	margin: 1% auto;
+    background: #ffffff;
 }

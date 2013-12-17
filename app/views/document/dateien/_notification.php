@@ -3,7 +3,7 @@
 
   <a href="<?= URLHelper::getLink('index.php') ?>" title="Schließen" class="close" style="color:#ffffff;"> X </a>
   	
-  <h3> Systemnachricht </h3>
+  <h3> Benachrichtigung </h3>
 
   <table>
  
@@ -13,8 +13,8 @@
 		  
 	 <?php
               
-      print Assets::img("icons/48/blue/folder-full.png");
-      cr(1);
+      print Assets::img("icons/48/red/exclaim.png");
+      cr(2);
       print "<b> Informationen </b>";       
       cr(1);
       print "Persönlicher Dateibereich";
@@ -43,15 +43,15 @@
               
      <?php
         
-      line(13);
+      line(15);
           
       ?> 
        
     </td>
     
-    <td style="vertical-align:top; padding-left:15px; width:70%; color:red;">
+    <td style="vertical-align:top; padding-left:15px; width:70%;">
     
-     <?= $flash['lockMessage'] ?>
+     <?= $flash['notification'] ?>
     
     </td>
   
