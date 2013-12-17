@@ -26,39 +26,28 @@ STUDIP.Admission = {
 
     configureRule: function (ruleType, targetUrl) {
         var loading = 'Wird geladen'.toLocaleString();
-        if (ruleType == null || $('#configurerule').length == 0) {
+        if ($('#configurerule').length == 0) {
             $('<div id="configurerule" title="Anmelderegel konfigurieren">'+loading+'</div>')
                 .dialog({
                     draggable: false,
                     modal: true,
                     resizable: false,
                     position: ['center', 150],
-                    width: 750,
+                    width: 0.8*$(window).width(),
                     close: function() {
                         $('#configurerule').remove();
-                    },
-                    open: function() {
-                        $('#configurerule').empty();
-                        $('<img/>', {
-                            src: STUDIP.ASSETS_URL + 'images/ajax_indicator_small.gif'
-                        }).appendTo('#configurerule');
-                        $('#configurerule').append(loading);
-                        $('#configurerule').load(targetUrl);
                     }
                 });
         }
-        if (ruleType != null) {
-            $('#configurerule').empty();
-            $('<img/>', {
-                src: STUDIP.ASSETS_URL + 'images/ajax_indicator_small.gif'
-            }).appendTo('#configurerule');
-            $('#configurerule').append(loading);
-            $('#configurerule').load(targetUrl+'/'+ruleType);
-        }
+        $('<img/>', {
+            src: STUDIP.ASSETS_URL + 'images/ajax_indicator_small.gif'
+        }).appendTo('#configurerule');
+        $('#configurerule').append(loading);
+        $('#configurerule').load(targetUrl+'/'+ruleType);
         return false;
     },
     
-    selectRuleType: function(targetUrl) {
+    selectRuleType: function(source) {
         var loading = 'Wird geladen'.toLocaleString();
         $('<div id="configurerule" title="Anmelderegel konfigurieren">'+loading+'</div>')
             .dialog({
@@ -66,7 +55,7 @@ STUDIP.Admission = {
                 modal: true,
                 resizable: false,
                 position: ['center', 150],
-                width: 750,
+                width: 0.8*$(window).width(),
                 close: function() {
                     $('#configurerule').remove();
                 },
@@ -76,7 +65,7 @@ STUDIP.Admission = {
                         src: STUDIP.ASSETS_URL + 'images/ajax_indicator_small.gif'
                     }).appendTo('#configurerule');
                     $('#configurerule').append(loading);
-                    $('#configurerule').load(targetUrl);
+                    $('#configurerule').load($(source).attr('href'));
                 }
             });
        return false;
