@@ -60,7 +60,7 @@ $userlistIds = $courseset ? $courseset->getUserlists() : array();
                     <?php if (sizeof($myInstitutes) != 1) { ?>
                 <input type="checkbox" name="institutes[]" value="<?= $institute['Institut_id'] ?>"
                     <?= $selectedInstitutes[$institute['Institut_id']] ? 'checked="checked"' : '' ?>
-                    class="institute" onclick="STUDIP.Admission.getCourses('institute', 'instcourses', 
+                    class="institute" onclick="STUDIP.Admission.getCourses('institute', 'instcourses',
                     '<?= $controller->url_for('admission/courseset/instcourses', $courseset ? $courseset->getId() : '') ?>', 'courselist')"/>
                     <?php } else { ?>
                 <input type="hidden" name="institutes[]" value="<?= $institute['Institut_id'] ?>"/>
@@ -89,15 +89,15 @@ $userlistIds = $courseset ? $courseset->getUserlists() : array();
         <?= $coursesTpl; ?>
         <? if (count($courseIds)) : ?>
             <div>
-                    <?= LinkButton::create(_('Ausgewählte Veranstaltungen konfigurieren'), 
-                        $controller->url_for('admission/courseset/configure_courses/' . $courseset->getId()), 
+                    <?= LinkButton::create(_('Ausgewählte Veranstaltungen konfigurieren'),
+                        $controller->url_for('admission/courseset/configure_courses/' . $courseset->getId()),
                         array(
                             'rel' => 'lightbox'
                             )
                         ); ?>
                     <? if ($num_applicants = $courseset->getNumApplicants()) :?>
                     <?= LinkButton::create(sprintf(_('Liste der Anmeldungen (%s Nutzer)'), $num_applicants),
-                        $controller->url_for('admission/courseset/applications_list/' . $courseset->getId()), 
+                        $controller->url_for('admission/courseset/applications_list/' . $courseset->getId()),
                         array(
                             'rel' => 'lightbox'
                             )
@@ -122,10 +122,10 @@ $userlistIds = $courseset ? $courseset->getUserlists() : array();
             <br/>
             <?php } ?>
             <div style="clear: both;">
-                    <?= LinkButton::create(_('Anmelderegel hinzufügen'), 
-                        $controller->url_for('admission/rule/select_type'), 
+                    <?= LinkButton::create(_('Anmelderegel hinzufügen'),
+                        $controller->url_for('admission/rule/select_type'),
                         array(
-                            'onclick' => "return STUDIP.Admission.selectRuleType('".$controller->url_for('admission/rule/select_type')."')"
+                            'onclick' => "return STUDIP.Admission.selectRuleType(this)"
                             )
                         ); ?>
             </div>
@@ -146,22 +146,22 @@ $userlistIds = $courseset ? $courseset->getUserlists() : array();
             ?>
             <input type="checkbox" name="userlists[]" value="<?= $list->getId() ?>"<?= $checked ?>/> <?= $list->getName() ?><br/>
             <?php } ?>
-            
+
         <?php } else { ?>
             <i><?=  _('Sie haben noch keine Nutzerlisten angelegt.') ?></i>
         <?php
         }?>
         <? if ($courseset) : ?>
         <div>
-                <?= LinkButton::create(_('Liste der Nutzer'), 
-                    $controller->url_for('admission/courseset/factored_users/' . $courseset->getId()), 
+                <?= LinkButton::create(_('Liste der Nutzer'),
+                    $controller->url_for('admission/courseset/factored_users/' . $courseset->getId()),
                     array(
                         'rel' => 'lightbox'
                         )
                     ); ?>
         </div>
         <? endif ?>
-        <?php 
+        <?php
         // Keep lists that were assigned by other users.
         foreach ($userlistIds as $list) {
             if (!in_array($list, array_keys($myUserlists))) {

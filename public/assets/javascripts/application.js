@@ -70,6 +70,35 @@ jQuery('a[rel~="lightbox"]').live('click', function (event) {
                 jQuery(this).dialog('close');
             };
         }
+        jQuery('a[rel~="close"]', this).live('click', function (event) {
+            event.preventDefault();
+            container.dialog('close');
+        });
+        jQuery('form button', this).live('click', function (event) {
+            event.preventDefault();
+            jQuery(this).attr('disabled', true);
+            var form = jQuery(this).closest('form');
+            var params = form.serializeArray();
+            params.push({'name' : jQuery(this).attr('name'), 'value' : 1});
+            jQuery.ajax({
+                type: "POST",
+                url: form.attr('action'),
+                data: jQuery.param(params), 
+                success: function (data, status, xhr) {
+                    var title = xhr.getResponseHeader('X-Title') || '',
+                        location = xhr.getResponseHeader('X-Location');
+                    if (location) {
+                        container.dialog('close');
+                        document.location.replace(location);
+                    } else {
+                        if (title) {
+                            container.dialog('option', 'title', title); 
+                        }
+                        container.html(data);
+                    }
+                },
+            });
+        });
         // Create dialog
         jQuery(this).dialog({
             width :  width,
@@ -79,7 +108,10 @@ jQuery('a[rel~="lightbox"]').live('click', function (event) {
             modal:   true,
             open: function () {
                 jQuery('head').append(scripts);
-            }
+            },
+            close: function() {
+                jQuery(this).remove();
+            },
         });
     });
 

@@ -2,7 +2,7 @@
 
 /**
  * CourseSet.class.php
- * 
+ *
  * Represents groups of Stud.IP courses that have common rules for admission.
  *
  * This program is free software; you can redistribute it and/or
@@ -69,7 +69,10 @@ class CourseSet
     /**
      * Is the course set only visible for the creator?
      */
-    public $private = false;
+    protected $private = false;
+
+    protected $user_id = false;
+
 
     /*
      * Lists of users who are treated differently on seat distribution
@@ -116,7 +119,7 @@ class CourseSet
 
     /**
      * Adds a new institute ID.
-     * 
+     *
      * @param  String newId
      * @return CourseSet
      */
@@ -126,7 +129,7 @@ class CourseSet
 
     /**
      * Adds several institute IDs to the existing institute assignments.
-     * 
+     *
      * @param  Array newIds
      * @return CourseSet
      */
@@ -138,7 +141,7 @@ class CourseSet
     }
 
     /**
-     * Adds a UserList to the course set. The list contains several users and a 
+     * Adds a UserList to the course set. The list contains several users and a
      * factor that changes seat distribution chances for these users;
      *
      * @param  String listId
@@ -151,9 +154,9 @@ class CourseSet
     }
 
     /**
-     * Is the given user allowed to register as participant in the given 
+     * Is the given user allowed to register as participant in the given
      * course according to the rules of this course set?
-     * 
+     *
      * @param  String userId
      * @param  String courseId
      * @return Array Optional error messages from rules if something went wrong.
@@ -172,7 +175,7 @@ class CourseSet
 
     /**
      * Removes all admission rules at once.
-     * 
+     *
      * @return CourseSet
      */
     public function clearAdmissionRules() {
@@ -185,11 +188,11 @@ class CourseSet
      */
     public function delete() {
         // Delete institute associations.
-        $stmt = DBManager::get()->prepare("DELETE FROM `courseset_institute` 
+        $stmt = DBManager::get()->prepare("DELETE FROM `courseset_institute`
             WHERE `set_id`=?");
         $stmt->execute(array($this->id));
         // Delete course associations.
-        $stmt = DBManager::get()->prepare("DELETE FROM `seminar_courseset` 
+        $stmt = DBManager::get()->prepare("DELETE FROM `seminar_courseset`
             WHERE `set_id`=?");
         $stmt->execute(array($this->id));
         // Delete all rules...
@@ -205,11 +208,11 @@ class CourseSet
             WHERE `set_id`=?");
         $stmt->execute(array($this->id));
         // Delete course set data.
-        $stmt = DBManager::get()->prepare("DELETE FROM `coursesets` 
+        $stmt = DBManager::get()->prepare("DELETE FROM `coursesets`
             WHERE `set_id`=?");
         $stmt->execute(array($this->id));
         /*
-         * Delete waiting lists (users are moved to corresponding course as 
+         * Delete waiting lists (users are moved to corresponding course as
          * participants).
          */
         foreach ($this->courses as $id => $assigned) {
@@ -230,7 +233,7 @@ class CourseSet
 
     /**
      * Starts the seat distribution algorithm.
-     * 
+     *
      * @return CourseSet
      */
     public function distributeSeats() {
@@ -255,7 +258,7 @@ class CourseSet
         $db = DbManager::get();
         return $db->execute("UPDATE coursesets SET algorithm_run = ? WHERE set_id = ?", array($this->hasAlgorithmRun, $this->getId()));
     }
-    
+
     public function isSeatDistributionEnabled()
     {
         return $this->algorithm && $this->hasAdmissionRule('TimedAdmission');
@@ -286,7 +289,7 @@ class CourseSet
     }
     /**
      * check if course set has given admission rule
-     * 
+     *
      * @param string $rule name of AdmissionRule class
      * @return boolean
      */
@@ -306,8 +309,8 @@ class CourseSet
     }
 
     /**
-     * How many users will be allowed to register according to the defined 
-     * rules? This can help in estimating whether the combination of the 
+     * How many users will be allowed to register according to the defined
+     * rules? This can help in estimating whether the combination of the
      * defined rules makes sense.
      *
      * @return int
@@ -333,7 +336,7 @@ class CourseSet
 
     /**
      * Gets all courses belonging to the given course set ID.
-     * 
+     *
      * @param String $courseSetId
      * @return Array
      */
@@ -346,13 +349,13 @@ class CourseSet
 
     /**
      * Gets all course sets belonging to the given institute ID.
-     * 
+     *
      * @param String $instituteId
      * @return Array
      */
-    public function getCoursesetsByInstituteId($instituteId) {
+    public static function getCoursesetsByInstituteId($instituteId) {
         $query = "SELECT DISTINCT ci.*
-            FROM `courseset_institute` ci 
+            FROM `courseset_institute` ci
             JOIN `coursesets` c ON (ci.`set_id`=c.`set_id`)
             WHERE ci.`institute_id`=?";
         $parameters = array($instituteId);
@@ -387,7 +390,7 @@ class CourseSet
 
     /**
      * Which institutes does the rule belong to?
-     * 
+     *
      * @return Array
      */
     public function getInstituteIds() {
@@ -410,7 +413,7 @@ class CourseSet
     {
         return AdmissionPriority::getPriorities($this->id);
     }
-    
+
     public function getNumApplicants()
     {
         return AdmissionPriority::getPrioritiesCount($this->id);
@@ -425,15 +428,19 @@ class CourseSet
         return $this->private;
     }
 
+    public function getUserId() {
+        return $this->user_id;
+    }
+
     /**
-     * Gets all course sets the given course belongs to.
+     * Gets the course sets the given course belongs to.
      *
      * @param  String courseId
-     * @return Array
+     * @return CourseSet
      */
     public static function getSetForCourse($courseId)
     {
-        $stmt = DBManager::get()->prepare("SELECT `set_id` 
+        $stmt = DBManager::get()->prepare("SELECT `set_id`
             FROM `seminar_courseset` WHERE `seminar_id`=?");
         $stmt->execute(array($courseId));
         $set_id = $stmt->fetchColumn();
@@ -442,9 +449,25 @@ class CourseSet
         }
         return null;
     }
-
+    
     /**
-     * Retrieves the lists of users that are considered specially in 
+     * Gets the course sets the given rule belongs to.
+     *
+     * @param  String $rule_id
+     * @return CourseSet
+     */
+    public static function getSetForRule($rule_id)
+    {
+        $set_id = DBManager::get()->fetchColumn("SELECT `set_id`
+            FROM `courseset_rule` WHERE `rule_id`=?", array($rule_id));
+        if ($set_id) {
+            return new CourseSet($set_id);
+        }
+        return null;
+    }
+    
+    /**
+     * Retrieves the lists of users that are considered specially in
      * seat distribution.
      *
      * @return Array
@@ -467,11 +490,11 @@ class CourseSet
         }
         return $factored_users;
     }
-    
+
     /**
-     * Evaluates whether the seat distribution algorithm has already been 
+     * Evaluates whether the seat distribution algorithm has already been
      * executed on this course set.
-     * 
+     *
      * @return boolean True if algorithm has already run, otherwise false.
      */
     public function hasAlgorithmRun() {
@@ -496,6 +519,7 @@ class CourseSet
                 }
             }
             $this->private = (bool) $data['private'];
+            $this->user_id = $data['user_id'];
         }
         // Load institute assigments.
         $stmt = DBManager::get()->prepare(
@@ -517,12 +541,12 @@ class CourseSet
         $stmt->execute(array($this->id));
         while ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
             if (class_exists($data['type'])) {
-                $this->admissionRules[$data['rule_id']] = 
+                $this->admissionRules[$data['rule_id']] =
                     new $data['type']($data['rule_id'], $this->id);
             }
         }
         // Load assigned user lists.
-        $stmt = DBManager::get()->prepare("SELECT `factorlist_id` 
+        $stmt = DBManager::get()->prepare("SELECT `factorlist_id`
             FROM `courseset_factorlist` WHERE `set_id`=?");
         $stmt->execute(array($this->id));
         while ($current = $stmt->fetch(PDO::FETCH_ASSOC)) {
@@ -532,7 +556,7 @@ class CourseSet
     }
 
     /**
-     * Removes the course with the given ID from the set. 
+     * Removes the course with the given ID from the set.
      *
      * @param  String courseId
      * @return CourseSet
@@ -582,7 +606,7 @@ class CourseSet
     /**
      * Adds several admission rules after clearing the existing rule
      * assignments.
-     * 
+     *
      * @param  Array newIds
      * @return CourseSet
      */
@@ -596,7 +620,7 @@ class CourseSet
 
     /**
      * Sets a seat distribution algorithm for this course set. This will only
-     * have an effect in conjunction with a TimedAdmission, as the algorithm 
+     * have an effect in conjunction with a TimedAdmission, as the algorithm
      * needs a defined point in time where it will start.
      *
      * @param  String newAlgorithm
@@ -614,7 +638,7 @@ class CourseSet
     /**
      * Adds several course IDs after clearing the existing course
      * assignments.
-     * 
+     *
      * @param  Array newIds
      * @return CourseSet
      */
@@ -626,7 +650,7 @@ class CourseSet
     /**
      * Adds several institute IDs after clearing the existing institute
      * assignments.
-     * 
+     *
      * @param  Array newIds
      * @return CourseSet
      */
@@ -648,7 +672,7 @@ class CourseSet
     }
 
     /* Sets a new name for this course set.
-     * 
+     *
      * @param  String newName
      * @return CourseSet
      */
@@ -660,7 +684,7 @@ class CourseSet
     /**
      * Set a new value for courseset privacy.
      *
-     * @param  bool $newPrivate 
+     * @param  bool $newPrivate
      * @return CourseSet
      */
     public function setPrivate($newPrivate) {
@@ -671,7 +695,7 @@ class CourseSet
     /**
      * Adds several user list IDs after clearing the existing user list
      * assignments.
-     * 
+     *
      * @param  Array newIds
      * @return CourseSet
      */
@@ -689,7 +713,7 @@ class CourseSet
         if (!$this->id) {
             do {
                 $newid = md5(uniqid(get_class($this), true));
-                $db = DBManager::get()->query("SELECT `set_id` 
+                $db = DBManager::get()->query("SELECT `set_id`
                     FROM `coursesets` WHERE `set_id`='.$newid.'");
             } while ($db->fetch());
             $this->id = $newid;
@@ -705,7 +729,7 @@ class CourseSet
         $stmt->execute(array($this->id, $user->id, $this->name, $this->infoText,
             get_class($this->algorithm), intval($this->private), time(), time()));
         // Delete removed institute assignments from database.
-        DBManager::get()->exec("DELETE FROM `courseset_institute` 
+        DBManager::get()->exec("DELETE FROM `courseset_institute`
             WHERE `set_id`='".$this->id."' AND `institute_id` NOT IN ('".
             implode("', '", array_keys($this->institutes))."')");
         // Store associated institute IDs.
@@ -717,7 +741,7 @@ class CourseSet
             $stmt->execute(array($this->id, $institute, time()));
         }
         // Delete removed course assignments from database.
-        DBManager::get()->exec("DELETE FROM `seminar_courseset` 
+        DBManager::get()->exec("DELETE FROM `seminar_courseset`
             WHERE `set_id`='".$this->id."' AND `seminar_id` NOT IN ('".
             implode("', '", array_keys($this->courses))."')");
         // Store associated course IDs.
@@ -729,7 +753,7 @@ class CourseSet
             $stmt->execute(array($this->id, $course, time()));
         }
         // Delete removed user list assignments from database.
-        DBManager::get()->exec("DELETE FROM `courseset_factorlist` 
+        DBManager::get()->exec("DELETE FROM `courseset_factorlist`
             WHERE `set_id`='".$this->id."' AND `factorlist_id` NOT IN ('".
             implode("', '", array_keys($this->userlists))."')");
         // Store associated user list IDs.
@@ -741,7 +765,7 @@ class CourseSet
             $stmt->execute(array($this->id, $list, time()));
         }
         // Delete removed admission rules from database.
-        $stmt = DBManager::get()->query("SELECT `rule_id`, `type` FROM `courseset_rule` 
+        $stmt = DBManager::get()->query("SELECT `rule_id`, `type` FROM `courseset_rule`
             WHERE `set_id`='".$this->id."' AND `rule_id` NOT IN ('".
             implode("', '", array_keys($this->admissionRules))."')");
         $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -754,9 +778,9 @@ class CourseSet
             // Store each rule...
             $rule->store();
             // ... and its connection to the current course set.
-            $stmt = DBManager::get()->prepare("INSERT INTO `courseset_rule` 
-                (`set_id`, `rule_id`, `type`, `mkdate`) 
-                VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE 
+            $stmt = DBManager::get()->prepare("INSERT INTO `courseset_rule`
+                (`set_id`, `rule_id`, `type`, `mkdate`)
+                VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE
                 `type`=VALUES(`type`)");
             $stmt->execute(array($this->id, $rule->getId(), get_class($rule), time()));
         }
@@ -791,6 +815,15 @@ class CourseSet
 
     public function __toString() {
         return $this->toString();
+    }
+
+    public function isUserAllowedToAssignCourse($user_id, $course_id)
+    {
+        global $perm;
+        $is_dozent = $perm->have_studip_perm('dozent', $course_id, $user_id);
+        $is_private = $this->getUserId() == $user_id && $this->getPrivate();
+        $is_correct_institute = isset($this->institutes[Course::find($course_id)->institut_id]);
+        return $is_dozent && ($is_private || $is_correct_institute);
     }
 
 } /* end of class CourseSet */

@@ -274,6 +274,12 @@ abstract class AdmissionRule
      * @return AdmissionRule This object.
      */
     public function setAllData($data) {
+        if ($data['start_date'] && !$data['start_time']) {
+            $data['start_time'] = strtotime($data['start_date']);
+        }
+        if ($data['end_date'] && !$data['end_time']) {
+            $data['end_time'] = strtotime($data['end_date'] . ' 23:59:59');
+        }
         $this->message = $data['ajax'] ? studip_utf8decode($data['message']) : $data['message'];
         $this->startTime = $data['start_time'];
         $this->endTime = $data['end_time'];

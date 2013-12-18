@@ -42,11 +42,16 @@ STUDIP.Admission = {
         $('<img/>', {
             src: STUDIP.ASSETS_URL + 'images/ajax_indicator_small.gif'
         }).appendTo('#configurerule');
+        var urlparts = targetUrl.split('?');
+        targetUrl = urlparts[0] + '/' + ruleType;
+        if (urlparts[1]) {
+            targetUrl += '?' + urlparts[1];
+        }
         $('#configurerule').append(loading);
-        $('#configurerule').load(targetUrl+'/'+ruleType);
+        $('#configurerule').load(targetUrl);
         return false;
     },
-    
+
     selectRuleType: function(source) {
         var loading = 'Wird geladen'.toLocaleString();
         $('<div id="configurerule" title="Anmelderegel konfigurieren">'+loading+'</div>')
@@ -127,9 +132,9 @@ STUDIP.Admission = {
         $('#'+detailId).slideToggle();
         return false;
     },
-    
+
     /**
-     * 
+     *
      * @param String ruleId      The rule to save.
      * @param String errorTarget Target element ID where error messages will be
      *                           shown.
@@ -154,7 +159,7 @@ STUDIP.Admission = {
             url: targetUrl,
             data: $('#ruleform').serialize(),
             dataType: 'html',
-            
+
             error: function(jqXHR, textStatus, errorThrown) {
                 alert('Status: '+textStatus+"\nError: "+errorThrown);
             }
@@ -180,9 +185,9 @@ STUDIP.Admission = {
     /**
      * Creates a tree view from the HTML list in <elementId> using the
      * given data for special node types.
-     * 
+     *
      * @param String elementId
-     * @param typesData JS object with tree nodes types 
+     * @param typesData JS object with tree nodes types
      *          (@see http://www.jstree.com/documentation/types)
      */
     makeTree: function(elementId, typesData) {

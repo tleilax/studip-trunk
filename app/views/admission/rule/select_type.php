@@ -5,7 +5,7 @@ use Studip\Button;
 foreach ($ruleTypes as $className => $classDetail) {
 ?>
     <div id="<?= $className ?>">
-        <input type="radio" name="ruletype" value="<?= $className ?>"/>&nbsp;<b><?= $via_ajax ? studip_utf8encode($classDetail['name']) : $classDetail['name'] ?></b>
+        <label><input type="radio" name="ruletype" value="<?= $className ?>"/><?= $via_ajax ? studip_utf8encode($classDetail['name']) : $classDetail['name'] ?></label>
         <?php if ($via_ajax) { ?>
         <a href="#" onclick="return STUDIP.Admission.toggleRuleDescription('<?= $className ?>_details')">
             <?= Assets::img('icons/16/blue/question-circle.png', 

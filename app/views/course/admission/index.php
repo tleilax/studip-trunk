@@ -2,11 +2,107 @@
 <form class="studip_form" action="<?= $controller->link_for() ?>" method="post">
     <fieldset>
         <legend><?= _("Anmeldemodus")?></legend>
+              <div>
+              <?= _("Bitte wählen Sie hier einen Anmeldemodus aus:"); ?>
+              </div>
+              <fieldset>
+              <label for="admission_prelim_0">
+              <input <?=$is_locked['admission_prelim'] ?> type="radio" id="admission_prelim_0" name="admission_prelim" value="0" <?= ($course->admission_prelim == 0 ? "checked" : ""); ?>>
+              <?=_("Direkter Eintrag")?></label>
+              <label for="admission_prelim_1">
+              <input <?=$is_locked['admission_prelim'] ?> type="radio" id="admission_prelim_1"  name="admission_prelim" value="1" <?= ($course->admission_prelim == 1 ? "checked" : ""); ?>>
+              <?=_("Vorläufiger Eintrag")?></label>
+              </fieldset>
+              <? if ($course->admission_prelim == 1) : ?>
+                  <label for="admission_prelim_txt" class="caption"><?= _("Hinweistext bei vorläufigen Eintragungen:"); ?></label>
+                  <textarea <?=$is_locked['admission_prelim_txt'] ?> id="admission_prelim_txt" name="admission_prelim_txt" rows=4 >
+                  <?= htmlReady($course->admission_prelim_txt) ?>
+                  </textarea>
+              <? endif ?>
+              <label class="caption"><?=_("verbindliche Anmeldung:")?></label>
+              <label for="admission_binding">
+              <input <?=$is_locked['admission_binding'] ?> id="admission_binding" type="checkbox" <?= ($course->admission_binding == 1 ? "checked" : ""); ?> name="admission_binding"  value="1">
+              <?=_("Anmeldung ist <u>verbindlich</u>. (Teilnehmer können sich nicht austragen.)")?></label>
     </fieldset>
+    <? if (get_config("ENABLE_FREE_ACCESS") && !$current_courseset) : ?>
     <fieldset>
         <legend><?= _("freier Zugriff")?></legend>
+        <div>
+        <?= _("Legen Sie hier fest, ob nicht angemeldete Nutzer Zugriff haben sollen."); ?>
+        </div>
+        <div style="display: inline-block;padding:1ex;width:50%">
+        <label class="caption"><?= _("Lesezugriff") ?></label>
+        <label for="lesezugriff">
+        <input <?=$is_locked['Lesezugriff'] ?> id="lesezugriff" type="checkbox" <?= ($course->lesezugriff == 2 ? "checked" : ""); ?> name="lesezugriff"  value="2">
+        <?= _("Lesezugriff für nicht angemeldete Nutzer erlauben") ?></label>
+        </div>
+        <div style="display: inline-block;padding:1ex;">
+        <label class="caption"><?= _("Schreibzugriff") ?></label>
+        <label for="schreibzugriff">
+        <input <?=($is_locked['Schreibzugriff'] || !SeminarCategories::GetByTypeId($course->status)->write_access_nobody ? 'disabled readonly' : '') ?> id="schreibzugriff" type="checkbox" <?= ($course->schreibzugriff == 2 ? "checked" : ""); ?> name="schreibzugriff"  value="2">
+        <?= _("Schreibzugriff für nicht angemeldete Nutzer erlauben") ?></label>
+        </div>
     </fieldset>
+    <?  endif ?>
+    <? if (count($all_domains)) : ?>
     <fieldset>
-        <legend><?= _("Nutzerdomänen")?></legend>
+        <legend><?= _("Zugelassenene Nutzerdomänen")?></legend>
+        <div>
+            <?=_("Bitte geben Sie hier an, welche Nutzerdomänen zugelassen sind."); ?>
+        </div>
+        <fieldset>
+        <? foreach ($all_domains as $domain) : ?>
+            <label for="user_domain_<?= $domain->getId() ?>">
+              <input <?=$is_locked['user_domain'] ?> id="user_domain_<?= $domain->getId() ?>" type="checkbox" <?= (in_array($domain->getId(), $seminar_domains) ? "checked" : ""); ?> name="user_domain[]"  value="<?= $domain->getId() ?>">
+              <?= htmlReady($domain->getName())?></label>
+        <? endforeach ?>
+        </fieldset>
+    </fieldset>
+    <? endif ?>
+    <fieldset>
+        <legend><?= _("Anmelderegeln")?></legend>
+        <div>
+            <?=_("Bitte geben Sie hier an, welche speziellen Anmelderegeln gelten sollen."); ?>
+        </div>
+        <? if ($current_courseset) : ?>
+        <div>
+            <?= sprintf(_('Diese Veranstaltung gehört zum Anmeldeset "%s".'), htmlReady($current_courseset->getName())) ?>
+            <div id="courseset_<?= $current_courseset->getId() ?>">
+                    <?= $current_courseset->toString() ?>
+            </div>
+            <div>
+            <? if ($current_courseset->isUserAllowedToAssignCourse($user_id, $course_id)) : ?>
+                <?= Studip\LinkButton::create(_("Zuordnung aufheben")) ?>
+            <? endif ?>
+            </div>
+        </div>
+        <? else : ?>
+            <? if (count($available_coursesets)) : ?>
+            <label class="caption">
+                <?=_("Zuordnung zu einem bestehenden Anmeldeset"); ?>
+            </label>
+            <select name="course_set_assign" style="display: inline-block;" 
+                onChange="$('#course_set_assign_explain').load('<?= $controller->link_for('/explain_course_set') ?>&set_id=' + $(this).val());">
+                <option></option>
+                <? foreach($available_coursesets as $cs) : ?>
+                    <option value="<?= $cs->getId() ?>"><?= htmlReady($cs->getName()) ?></option>
+                <? endforeach ?>
+            </select>
+            <div id="course_set_assign_explain" style="display: inline-block;padding:1ex;">
+            </div>
+            <? endif ?>
+            <label class="caption">
+                <?=_("Anmelderegeln erzeugen"); ?>
+            </label>
+            <div>
+            <? if (!$is_locked['passwort']) : ?>
+                <?= Studip\LinkButton::create(_("Anmeldung mit Passwort"), $controller->url_for('/instant_course_set', array('type' => 'PasswordAdmission')),array('rel' => 'lightbox')) ?>
+            <? endif ?> 
+            <? if (!$is_locked['admission_type']) : ?>
+                <?= Studip\LinkButton::create(_("Anmeldung gesperrt"), $controller->url_for('/instant_course_set', array('type' => 'LockedAdmission')),array('rel' => 'lightbox')) ?>
+                <?= Studip\LinkButton::create(_("Zeitgesteuerte Anmeldung"), $controller->url_for('/instant_course_set', array('type' => 'TimedAdmission')),array('rel' => 'lightbox')) ?>
+            <? endif ?> 
+            </div>
+        <? endif ?>
     </fieldset>
 </form>
