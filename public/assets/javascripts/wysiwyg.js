@@ -35,6 +35,7 @@ jQuery(function($){
         toolbar_placeholder.insertBefore(textarea);
         toolbar.insertBefore(textarea);
     
+        // replace textarea with editor
         CKEDITOR.replace(textarea[0], {
             customConfig: '',
             uiColor: uiColor,
@@ -59,10 +60,6 @@ jQuery(function($){
                 {name: 'others'},
                 {name: 'about'}
             ],
-    
-            // file upload (url must be set in edit template)
-            //filebrowserBrowseUrl: 'i/do/not/exist/',
-            //filebrowserUploadUrl: $('#post_files_url').val(),
     
             // convert special chars to html entities
             // NOTE use entities_additional: '#1049,...' for other chars
