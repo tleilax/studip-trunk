@@ -54,7 +54,7 @@ class CourseNavigation extends Navigation
         } else {
             $coursetext = _('Freie');
             $courseinfo = _('Freie Veranstaltungen');
-            $courselink = 'freie.php';
+            $courselink = 'dispatch.php/public_courses';
         }
 
         parent::__construct($coursetext, $courselink);
@@ -77,7 +77,7 @@ class CourseNavigation extends Navigation
 
         // list of used modules
         $Modules = new Modules();
-        $modules = $Modules->getLocalModules($_SESSION['SessionSeminar']);
+        $modules = $Modules->getLocalModules($SessSemName[1], $SessSemName['class'], false, $SessSemName['art_num']);
         $sem_class = $SEM_CLASS[$SEM_TYPE[$SessSemName['art_num']]['class']];
         if (!$sem_class || $SessSemName['class'] == "inst") {
             $sem_class = SemClass::getDefaultSemClass();
@@ -119,7 +119,7 @@ class CourseNavigation extends Navigation
                 $navigation->addSubNavigation('view', new Navigation(_('MitarbeiterInnen'), 'inst_admin.php'));
 
                 if ($GLOBALS['perm']->have_studip_perm('tutor', $_SESSION['SessionSeminar']) && $GLOBALS['perm']->have_perm('admin')) {
-                    $navigation->addSubNavigation('edit_groups', new Navigation(_('Funktionen / Gruppen verwalten'), 'admin_roles.php?new_sem=TRUE&range_id='. $SessSemName[1]));
+                    $navigation->addSubNavigation('edit_groups', new Navigation(_('Funktionen / Gruppen verwalten'), 'dispatch.php/admin/statusgroups'));
                 }
 
                 $this->addSubNavigation('faculty', $navigation);
@@ -179,7 +179,7 @@ class CourseNavigation extends Navigation
         }
 
         // resources
-        if (get_config('RESOURCES_ENABLE')) {
+        if (get_config('RESOURCES_ENABLE') && ($modules['resources'] || $sem_class->isSlotMandatory("resources"))) {
             foreach ($sem_class->getNavigationForSlot("resources") as $nav_name => $navigation) {
                 if ($nav_name && is_a($navigation, "Navigation")) {
                     $this->addSubNavigation($nav_name, $navigation);

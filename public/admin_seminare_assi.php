@@ -408,7 +408,7 @@ if ($form == 1 && Request::isPost()) {
     $_SESSION['sem_create_data']["sem_desc"]=Request::quoted('sem_desc');
     $_SESSION['sem_create_data']["sem_inst_id"]=Request::option('sem_inst_id');
     $_SESSION['sem_create_data']["term_art"]=Request::int('term_art');
-    $_SESSION['sem_create_data']["sem_start_time"]=Request::option('sem_start_time');
+    $_SESSION['sem_create_data']["sem_start_time"]=Request::int('sem_start_time');
     $_SESSION['sem_create_data']["sem_domain"] = array();
 
     # pre-select Heimatinstitut
@@ -436,10 +436,10 @@ if ($form == 1 && Request::isPost()) {
         $one_sem = $semester->getSemesterDataByDate($_SESSION['sem_create_data']["sem_start_time"]);
         $_SESSION['_default_sem'] = $one_sem['semester_id'];
     }
-    if ((Request::option('sem_duration_time') == 0) || (Request::option('sem_duration_time') == -1))
-        $_SESSION['sem_create_data']["sem_duration_time"]=Request::option('sem_duration_time');
+    if ((Request::int('sem_duration_time') == 0) || (Request::int('sem_duration_time') == -1))
+        $_SESSION['sem_create_data']["sem_duration_time"]=Request::int('sem_duration_time');
     else
-        $_SESSION['sem_create_data']["sem_duration_time"]=Request::option('sem_duration_time') - Request::option('sem_start_time');
+        $_SESSION['sem_create_data']["sem_duration_time"]=Request::int('sem_duration_time') - Request::int('sem_start_time');
 
     $_SESSION['sem_create_data']["sem_turnout"]=Request::quoted('sem_turnout');
 
@@ -2060,16 +2060,12 @@ if (($form == 6) && (Request::submitted('jump_next')))
 
             //Standard Ordner im Foldersystem anlegen, damit Studis auch ohne Zutun des Dozenten Uploaden k&ouml;nnen
             if ($_SESSION['sem_create_data']["modules_list"]["documents"]) {
-                $query = "INSERT INTO folder (folder_id, range_id, user_id, name, description, mkdate, chdate)
-                          VALUES (?, ?, ?, ?, ?, UNIX_TIMESTAMP(), UNIX_TIMESTAMP())";
-                $statement = DBManager::get()->prepare($query);
-                $statement->execute(array(
-                    md5(uniqid('sommervogel', true)),
-                    $_SESSION['sem_create_data']['sem_id'],
-                    $user_id,
+                create_folder(
                     _('Allgemeiner Dateiordner'),
-                    _('Ablage für allgemeine Ordner und Dokumente der Veranstaltung')
-                ));
+                    _('Ablage für allgemeine Ordner und Dokumente der Veranstaltung'),
+                    $_SESSION['sem_create_data']['sem_id'],
+                    7,
+                    $_SESSION['sem_create_data']['sem_id']);
             }
 
             //Vorbesprechung, falls vorhanden, in Termintabelle eintragen

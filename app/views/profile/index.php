@@ -1,9 +1,9 @@
 <? if ($msg) : ?>
     <?= parse_msg($msg) ?>
 <? endif ?>
-<table id="user_profile" width="100%" border="0" cellpadding="1" cellspacing="0">
+<table class="default nohover">
     <tr>
-        <td class="table_row_even" valign="top">
+        <td valign="top">
             <?=$avatar?>
             <br>
             <br>
@@ -26,7 +26,7 @@
                 <? endif?>
 
                 <br />
-                <a href="<?=URLHelper::getLink('sms_send.php', array('sms_source_page'=>'dispatch.php/profile','rec_uname'=>$current_user->username))?>">
+                <a href="<?=URLHelper::getLink('sms_send.php', array('sms_source_page'=>'dispatch.php/profile?username='.$current_user->username,'rec_uname'=>$current_user->username))?>">
                     <?=Assets::img('icons/16/blue/mail.png', array('title' => _("Nachricht an Nutzer verschicken"), 'class' => 'middle'))?>
                     <?=_("Nachricht an Nutzer")?>
                 </a>
@@ -48,7 +48,7 @@
         </td>
 
 
-        <td class="table_row_even" width="99%" valign="top" style="padding: 10px;">
+        <td width="99%" valign="top" style="padding: 10px;">
             <h1><?= htmlReady($current_user->getFullname()) ?></h1>
 
             <? if(!empty($motto)) : ?>
@@ -146,11 +146,9 @@
     </tr>
 </table>
 <br />
-<? if ($show_news): ?>
-    <? show_news($current_user->user_id, $show_admin, 0, $profile_data["nopen"], "100%", 0, $about_data) ?>
-<? endif; ?>
 
-<? if ($terms) show_personal_dates($current_user->user_id, time(), -1, FALSE, $show_admin, $about_data["dopen"]) ?>
+<?= $show_news ?>
+<? if ($terms) show_personal_dates($current_user->user_id, time(), -1, FALSE, $show_admin, Request::option('dopen')) ?>
 
 <? if ($show_votes) show_votes($current_user->username, $user->user_id, $perm, YES) ?>
 
@@ -179,7 +177,7 @@
     <? endforeach ?>
     <? $shared_box->clear_attributes()?>
 <?endif?>
-                    
+
 <?=$hompage_plugin?>
 
 <?if(!empty($categories)) :?>
@@ -188,3 +186,4 @@
     <?endforeach?>
     <? $shared_box->clear_attributes()?>
 <? endif; ?>
+

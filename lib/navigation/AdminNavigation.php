@@ -32,7 +32,7 @@ class AdminNavigation extends Navigation
      */
     public function initSubNavigation()
     {
-        global $SessSemName, $archive_kill, $perm;
+        global $SessionSeminar, $SessSemName, $archive_kill, $perm;
 
         parent::initSubNavigation();
 
@@ -57,6 +57,11 @@ class AdminNavigation extends Navigation
         // course administration
         $navigation = new Navigation(_('Veranstaltungen'), 'adminarea_start.php?list=TRUE');
 
+        if ($SessionSeminar == null) {
+            $navigation->addSubNavigation('adminarea_start', new Navigation(_('Veranstaltung auswählen'),
+                                          'adminarea_start.php', array('list' => 'TRUE')));
+        }
+        
         $navigation->addSubNavigation('details', new Navigation(_('Grunddaten'),
                                       'dispatch.php/course/basicdata/view/', array('list' => 'TRUE')));
         $navigation->addSubNavigation('study_areas', new Navigation(_('Studienbereiche'),
@@ -66,7 +71,6 @@ class AdminNavigation extends Navigation
             $navigation->addSubNavigation('room_requests', new Navigation(_('Raumanfragen'), 'dispatch.php/course/room_requests', array('list' => 'TRUE')));
         }
         $navigation->addSubNavigation('schedule', new Navigation(_('Ablaufplan'), 'themen.php?list=TRUE'));
-        $navigation->addSubNavigation('news', new Navigation(_('Ankündigungen'), 'admin_news.php?list=TRUE&view=news_sem'));
 
         if (get_config('VOTE_ENABLE')) {
             $navigation->addSubNavigation('vote', new Navigation(_('Umfragen und Tests'), 'admin_vote.php?view=vote_sem&list=TRUE'));
@@ -100,7 +104,6 @@ class AdminNavigation extends Navigation
         $navigation->addSubNavigation('details', new Navigation(_('Grunddaten'), 'admin_institut.php?list=TRUE'));
         $navigation->addSubNavigation('faculty', new Navigation(_('Mitarbeiter'), 'inst_admin.php?list=TRUE&admin_view=1'));
         $navigation->addSubNavigation('groups', new Navigation(_('Funktionen / Gruppen'), 'dispatch.php/admin/statusgroups?type=inst'));
-        $navigation->addSubNavigation('news', new Navigation(_('Ankündigungen'), 'admin_news.php?list=TRUE&view=news_inst'));
 
         if (get_config('VOTE_ENABLE')) {
             $navigation->addSubNavigation('vote', new Navigation(_('Umfragen und Tests'), 'admin_vote.php?view=vote_inst&list=TRUE'));

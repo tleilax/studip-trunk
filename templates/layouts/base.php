@@ -16,7 +16,7 @@
       STUDIP.ABSOLUTE_URI_STUDIP = "<?= $GLOBALS['ABSOLUTE_URI_STUDIP'] ?>";
       STUDIP.ASSETS_URL = "<?= $GLOBALS['ASSETS_URL'] ?>";
       String.locale = "<?= htmlReady(strtr($_SESSION['_language'], '_', '-')) ?>";
-      <? if (PersonalNotifications::isActivated() && $GLOBALS['perm']->have_perm("autor")) : ?>
+      <? if (is_object($GLOBALS['perm']) && $GLOBALS['perm']->have_perm('autor') && PersonalNotifications::isActivated()) : ?>
       STUDIP.jsupdate_enable = true;
       <? endif ?>
       STUDIP.URLHelper.parameters = <?= json_encode(URLHelper::getLinkParams()) ?>;
@@ -32,8 +32,6 @@
 
     <? include 'lib/include/header.php' ?>
 
-        <div id="layout_container">
-            <div id="layout_content">
                 <?= implode(PageLayout::getMessages()) ?>
                 <?= $content_for_layout ?>
             </div>

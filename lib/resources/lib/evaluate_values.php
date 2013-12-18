@@ -1275,8 +1275,8 @@ if ($view == "search") {
 
     if (Request::option('check_assigns') == "FALSE")
         $_SESSION['resources_data']["check_assigns"]=FALSE;
-    if (Request::get('search_only_rooms'))
-        $_SESSION['resources_data']["search_only_rooms"] = Request::quoted('search_only_rooms');
+    if (Request::get('search_only_rooms') !== null)
+        $_SESSION['resources_data']["search_only_rooms"] = Request::int('search_only_rooms');
 
     if ((Request::submitted('start_search')) || (Request::option('search_send'))) {
         unset($_SESSION['resources_data']["search_array"]);
@@ -2101,8 +2101,8 @@ if ($_sendMessage) {
         $reqObj->store();
         foreach ($users as $userid) {
             setTempLanguage($userid);
-            $messaging->insert_message(addslashes($message), get_username($userid), $user->id, FALSE, FALSE, FALSE, FALSE,
-                addslashes(_("Raumanfrage abgelehnt:") .' '. implode(', ', $title)), TRUE, 'high');
+            $messaging->insert_message($message, get_username($userid), $user->id, FALSE, FALSE, FALSE, FALSE,
+                _("Raumanfrage abgelehnt:") .' '. implode(', ', $title), TRUE, 'high');
             restoreLanguage();
         }
     }
@@ -2122,7 +2122,7 @@ if ($_sendMessage) {
         {
             foreach ($users as $userid) {
                 setTempLanguage($userid);
-                $messaging->insert_message(addslashes($message) . strip_tags(str_ireplace('<br>', "\n", $GLOBALS['messageForUsers'])), get_username($userid), $user->id, FALSE, FALSE, FALSE, FALSE, _("Raumanfrage bearbeitet"), TRUE);
+                $messaging->insert_message($message . strip_tags(str_ireplace('<br>', "\n", $GLOBALS['messageForUsers'])), get_username($userid), $user->id, FALSE, FALSE, FALSE, FALSE, _("Raumanfrage bearbeitet"), TRUE);
                 restoreLanguage();
             }
         }
@@ -2199,7 +2199,7 @@ if ($view == "view_sem_schedule" || $view == "view_group_schedule" || $view == "
             $_SESSION['resources_data']["schedule_mode"] = "graphical";
         }
 
-        if (Request::get('group_schedule_choose_group')){
+        if (Request::submitted('group_schedule_choose_group')){
             $_SESSION['resources_data']['actual_room_group'] = Request::int('group_schedule_choose_group');
         }
     }

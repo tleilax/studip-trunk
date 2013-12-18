@@ -22,10 +22,15 @@ class MessagingNavigation extends Navigation
      */
     public function __construct()
     {
-        global $user, $neux;
 
         parent::__construct(_('Nachrichten'));
+    }
 
+    protected function initItem()
+    {
+        global $user, $neux;
+
+        parent::initItem();
         $my_messaging_settings = UserConfig::get($user->id)->MESSAGING_SETTINGS;
 
         $neum = count_messages_from_user('in', ' AND message_user.readed = 0 ');
@@ -33,7 +38,6 @@ class MessagingNavigation extends Navigation
         $neux = count_x_messages_from_user('in', 'all',
             'AND mkdate > '.(int)$my_messaging_settings['last_box_visit'].' AND message_user.readed = 0 ');
 
-        $mailclass = $neum ? 'new' : '';
         $this->setBadgeNumber($neum);
 
         if ($neux > 0) {
@@ -49,7 +53,8 @@ class MessagingNavigation extends Navigation
             $tip = _('Sie haben keine alten empfangenen Nachrichten');
         }
 
-        $this->setImage('header/mail.png', array('title' => $tip, 'class' => $mailclass, "@2x" => TRUE));
+
+        $this->setImage('header/mail.png', array('title' => $tip, "@2x" => TRUE));
     }
 
     /**

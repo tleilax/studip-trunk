@@ -35,6 +35,7 @@ class Navigation implements IteratorAggregate
 
     protected $active;
     protected $enabled;
+    protected $initialized = false;
 
     protected $active_image;
     protected $badgeNumber;
@@ -166,6 +167,15 @@ class Navigation implements IteratorAggregate
     }
 
     /**
+     * used to defer initialization of item metadata, override in subclasses
+     * if initialization is costly
+     */
+    protected function initItem()
+    {
+        $this->initialized = true;
+    }
+
+    /**
      * Return the current image attributes associated with this
      * navigation item. Attributes are returned as an array with
      * at least the 'src' key set.
@@ -174,11 +184,31 @@ class Navigation implements IteratorAggregate
      */
     public function getImage()
     {
+        if ($this->initialized === false) {
+            $this->initItem();
+        }
         if (isset($this->active_image) && $this->isActive()) {
             return $this->active_image;
         } else {
             return $this->image;
         }
+    }
+
+    /**
+     * Shorthand method for creating an appropriate image tag for display.
+     *
+     * @return string HTML tag snippet for the image
+     */
+    public function getImageTag()
+    {
+        $image = $this->getImage();
+
+        $attributes = array();
+        foreach ($image as $key => $value) {
+            $attributes[] = sprintf('%s="%s"', $key, htmlReady($value));
+        }
+
+        return '<img ' . implode(' ', $attributes) . '>';
     }
 
     /**
@@ -188,6 +218,9 @@ class Navigation implements IteratorAggregate
      */
     public function getTitle()
     {
+        if ($this->initialized === false) {
+            $this->initItem();
+        }
         return $this->title;
     }
 
@@ -198,6 +231,9 @@ class Navigation implements IteratorAggregate
      */
     public function getDescription()
     {
+        if ($this->initialized === false) {
+            $this->initItem();
+        }
         return $this->description;
     }
 
@@ -210,6 +246,9 @@ class Navigation implements IteratorAggregate
      */
     public function getURL()
     {
+        if ($this->initialized === false) {
+            $this->initItem();
+        }
         if (isset($this->url)) {
             if (isset($this->params)) {
                 return URLHelper::getURL($this->url, $this->params);
@@ -238,7 +277,7 @@ class Navigation implements IteratorAggregate
     {
         return $this->badgeNumber;
     }
-    
+
     /**
      * Return the badge number of this navigation item.
      *
@@ -247,7 +286,7 @@ class Navigation implements IteratorAggregate
     public function getBadgeTimestamp()
     {
         return $this->badgeTimestamp;
-    }   
+    }
 
     /**
      * Determines whether this navigation item has a badge number.
@@ -285,7 +324,7 @@ class Navigation implements IteratorAggregate
      */
     public function isVisible($needs_image = false)
     {
-        if ($needs_image && !isset($this->image)) {
+        if ($needs_image && !is_array($this->getImage())) {
             return false;
         }
 
@@ -400,7 +439,7 @@ class Navigation implements IteratorAggregate
     {
         $this->badgeNumber = $badgeNumber;
     }
-    
+
     /**
      * Set the badge number of this navigation item.
      *

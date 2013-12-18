@@ -120,8 +120,8 @@ class AdminModules extends ModulesNotification {
         $this->registered_modules["admin"]["msg_warning"] = _("Wenn die Verwaltungsseite deaktiviert wird, können Dozenten und Admin (Sie eventuell eingeschlossen) die Veranstaltung nicht mehr administrieren.");
         
         $this->registered_modules["resources"]['name'] = _("Ressourcen");
-        $this->registered_modules["resources"]["msg_activate"] = _("Sie können die Ressourcenseite der Studiengruppen jederzeit aktivieren.");
-        $this->registered_modules["resources"]["msg_deactivate"] = _("Sie können die Ressourcenseite der Studiengruppen jederzeit deaktivieren.");
+        $this->registered_modules["resources"]["msg_activate"] = _("Sie können die Ressourcenseite jederzeit aktivieren.");
+        $this->registered_modules["resources"]["msg_deactivate"] = _("Sie können die Ressourcenseite jederzeit deaktivieren.");
     }
     
     function getDocumentsExistingItems($range_id) { //getModuleDocumentsExistingItems
@@ -141,25 +141,17 @@ class AdminModules extends ModulesNotification {
         //Örgs, warum immer ich...
         $this->clearBit($_SESSION['admin_modules_data']["changed_bin"], $this->registered_modules['documents_folder_permissions']['id']);
     }*/
-    
+
     function moduleDocumentsActivate($range_id) {
         if ($this->getDocumentsExistingItems($range_id)) {
             return;
         }
-        //create a default folder
-        $query = "INSERT INTO folder "
-               . "(folder_id, range_id, user_id, name, description, mkdate, chdate) "
-               . "VALUES (?, ?, ?, ?, ?, UNIX_TIMESTAMP(), UNIX_TIMESTAMP())";
-        DBManager::get()
-            ->prepare($query)
-            ->execute(array(
-                md5(uniqid('sommervogel')),
-                $range_id,
-                $GLOBALS['user']->id,
-                _('Allgemeiner Dateiordner'),
-                _('Ablage für allgemeine Ordner und Dokumente der Veranstaltung')
-            ));
-    }   
+        create_folder(_('Allgemeiner Dateiordner'),
+                      _('Ablage für allgemeine Ordner und Dokumente der Veranstaltung'),
+                      $range_id,
+                      7,
+                      $range_id);
+    }
 
     function getModuleLiteratureExistingItems($range_id) {
         $list_count = StudipLitList::GetListCountByRange($range_id);

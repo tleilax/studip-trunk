@@ -58,9 +58,9 @@ class CoreAdmin implements StudipModule {
                 $item->setDescription(_('Richten Sie hier verschiedene Zugangsbeschränkungen, Anmeldeverfahren oder einen Passwortschutz für Ihre Veranstaltung ein.'));
                 $navigation->addSubNavigation('admission', $item);
 
-                $item = new AutoNavigation(_('Zusatzangaben'), 'dispatch.php/admin/aux');
+                $item = new AutoNavigation(_('Zusatzangaben'), 'dispatch.php/admin/additional');
                 $item->setDescription(_('Hier können Sie Vorlagen zur Erhebung weiter Angaben von Ihren Teilnehmern auswählen.'));
-                $navigation->addSubNavigation('aux_data', $item);
+                $navigation->addSubNavigation('additional_data', $item);
 
                 if ($GLOBALS['perm']->have_perm($sem_create_perm)) {
                     if (!LockRules::check($course_id, 'seminar_copy')) {
@@ -90,10 +90,6 @@ class CoreAdmin implements StudipModule {
             }  // endif modules only seminars
 
             if ($GLOBALS['perm']->have_studip_perm('tutor', $course_id) && !$GLOBALS['perm']->have_perm('admin')) {
-                $item = new Navigation(_('Ankündigungen'), 'admin_news.php?view=news_' . $GLOBALS['SessSemName']['class']);
-                $item->setDescription(_('Erstellen Sie Ankündigungen und bearbeiten Sie laufende Ankündigungen.'));
-                $navigation->addSubNavigation('news', $item);
-
                 if (get_config('VOTE_ENABLE')) {
                     $item = new Navigation(_('Umfragen und Tests'), 'admin_vote.php?view=vote_sem');
                     $item->setDescription(_('Erstellen und bearbeiten Sie einfache Umfragen und Tests.'));
@@ -114,5 +110,9 @@ class CoreAdmin implements StudipModule {
     function getNotificationObjects($course_id, $since, $user_id)
     {
         return null;
+    }
+
+    static function getDescription() {
+        return '';
     }
 }

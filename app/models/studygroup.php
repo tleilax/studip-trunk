@@ -250,6 +250,9 @@ class StudygroupModel
         $sql = "SELECT *
                 FROM seminare AS s
                 WHERE status IN (?)";
+        if (!$GLOBALS['perm']->have_perm('root')) {
+            $sql .= "AND visible = 1";
+        }
         $parameters[] = array($status);
 
         if (isset($search)) {
@@ -534,7 +537,6 @@ class StudygroupModel
         $message  = sprintf(_("%s möchte der Studiengruppe %s beitreten. Klicken Sie auf den untenstehenden Link, um direkt zur Studiengruppe zu gelangen.\n\n [Direkt zur Studiengruppe]%s"),
                 get_fullname($user_id) ,$sem->getName(),URLHelper::getlink($GLOBALS['ABSOLUTE_URI_STUDIP']."dispatch.php/course/studygroup/members/" . $sem->id, array('cid' => $sem->id)));
 
-        return $msging->insert_message(addslashes($message), $recipients,"____%system%____", '', '', '', '', addslashes($subject));
-
+        return $msging->insert_message($message, $recipients,"____%system%____", '', '', '', '', $subject);
     }
 }

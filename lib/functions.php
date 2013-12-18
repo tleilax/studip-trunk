@@ -131,6 +131,22 @@ function get_object_name($range_id, $object_type)
 }
 
 /**
+ * Returns a sorm object for a given range_id
+ * 
+ * @param string the range_id
+ * @return SimpleORMap Course/Institute/User/Statusgruppen/
+ */
+function get_object_by_range_id($range_id) {
+    $possible_sorms = "Course Institute User";
+    foreach(words($possible_sorms) as $sorm) {
+        if ($object = $sorm::find($range_id)) {
+            return $object;
+        }
+    }
+    return false;
+}
+
+/**
  * This function "selects" a Veranstaltung to work with it
  *
  * The following variables will bet set:
@@ -175,11 +191,11 @@ function selectSem ($sem_id)
             }
         }
         // if the aux data is forced for this seminar forward all user that havent made an input to this site
-        if ($row["aux_lock_rule_forced"] && !$perm->have_perm('root') && !$perm->have_studip_perm('tutor', $row["Seminar_id"]) && $_SERVER['PATH_INFO'] != '/course/members/aux_input') {
+        if ($row["aux_lock_rule_forced"] && !$perm->have_perm('root') && !$perm->have_studip_perm('tutor', $row["Seminar_id"]) && $_SERVER['PATH_INFO'] != '/course/members/additional_input') {
         $statement = DBManager::get()->prepare("SELECT 1 FROM datafields_entries WHERE range_id = ? AND sec_range_id = ? LIMIT 1");
         $statement->execute(array($GLOBALS['user']->id, $row["Seminar_id"]));
         if (!$statement->rowCount()) {
-            header('location: ' . URLHelper::getURL('dispatch.php/course/members/aux_input'));
+            header('location: ' . URLHelper::getURL('dispatch.php/course/members/additional_input'));
             }
         }
         $SessionSeminar = $row["Seminar_id"];
@@ -344,15 +360,17 @@ function checkObjectModule($module)
     if ($SessSemName[1]) {
         $modules = new Modules();
         $local_modules = $modules->getLocalModules($SessSemName[1], $SessSemName['class']);
-        $sem_class = $GLOBALS['SEM_CLASS'][$GLOBALS['SEM_TYPE'][$SessSemName['art_num']]['class']];
-        $new_module_name = "Core".ucfirst($module);
-        $mandatory = false;
         $checkslot = $module;
-        foreach (SemClass::getSlots() as $slot) {
-            if ($sem_class->getSlotModule($slot) === $new_module_name) {
-                $checkslot = $slot;
-                if ($sem_class->isModuleMandatory($new_module_name)) {
-                    $mandatory = true;
+        if ($SessSemName['class'] == 'sem' && $GLOBALS['SEM_CLASS'][$GLOBALS['SEM_TYPE'][$SessSemName['art_num']]['class']]) {
+            $sem_class = $GLOBALS['SEM_CLASS'][$GLOBALS['SEM_TYPE'][$SessSemName['art_num']]['class']];
+            $new_module_name = "Core".ucfirst($module);
+            $mandatory = false;
+            foreach (SemClass::getSlots() as $slot) {
+                if ($sem_class->getSlotModule($slot) === $new_module_name) {
+                    $checkslot = $slot;
+                    if ($sem_class->isModuleMandatory($new_module_name)) {
+                        $mandatory = true;
+                    }
                 }
             }
         }
@@ -1295,25 +1313,30 @@ function get_users_online($active_time = 5, $name_format = 'full_rev')
  */
 function get_users_online_count($active_time = 5)
 {
-    $query = "SELECT COUNT(*) FROM user_online
-              WHERE last_lifesign > ?";
-    $statement = DBManager::get()->prepare($query);
-    try {
-        $statement->execute(array(time() - $active_time * 60));
-    } catch (PDOException $e) {
-        require_once 'lib/migrations/db_schema_version.php';
-        $version = new DBSchemaVersion('studip');
-        if ($version->get() < 98) {
-            Log::ALERT('get_users_online_count() failed. Check migration no. 98!');
-        } else {
-            throw $e;
+    $cache = StudipCacheFactory::getCache();
+    $online_count = $cache->read('online_count');
+    if ($online_count === false) {
+        $query = "SELECT COUNT(*) FROM user_online
+                  WHERE last_lifesign > ?";
+        $statement = DBManager::get()->prepare($query);
+        try {
+            $statement->execute(array(time() - $active_time * 60));
+        } catch (PDOException $e) {
+            require_once 'lib/migrations/db_schema_version.php';
+            $version = new DBSchemaVersion('studip');
+            if ($version->get() < 98) {
+                Log::ALERT('get_users_online_count() failed. Check migration no. 98!');
+            } else {
+                throw $e;
+            }
         }
+        $online_count = $statement->fetchColumn();
+        $cache->write('online_count', $online_count, 180);
     }
-    $count = $statement->fetchColumn();
     if ($GLOBALS['user']->id && $GLOBALS['user']->id != 'nobody') {
-        --$count;
+        --$online_count;
     }
-    return $count > 0 ? $count : 0;
+    return $online_count > 0 ? $online_count : 0;
 }
 
 /**
@@ -1935,7 +1958,7 @@ function addHiddenFields($variable, $data, $parent = array())
             if (is_array($value)) {
                 $ret .= addHiddenFields($variable, $value, array_merge($parent, array($key)));
             } else {
-                $ret.= '<input type="hidden" name="'. $variable .'['. implode('][', array_merge($parent, array($key))) .']" value="'. $value .'">' ."\n";
+                $ret.= '<input type="hidden" name="'. $variable .'['. implode('][', array_merge($parent, array($key))) .']" value="'. htmlReady($value) .'">' ."\n";
             }
         }
     }

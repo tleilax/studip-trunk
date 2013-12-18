@@ -134,6 +134,15 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
     protected $reserved_slots = array('value','newid','iterator','tablemetadata', 'relationvalue','wherequery','relationoptions','data','new','id');
 
     /**
+     * assoc array used to map SORM callback to NotificationCenter
+     * keys are SORM callbacks, values notifications
+     * eg. 'after_create' => 'FooDidCreate'
+     *
+     * @var array $notification_map
+     */
+    protected $notification_map = array();
+
+    /**
      * fetch table metadata from db or from local cache
      *
      * @param string $db_table
@@ -605,6 +614,9 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
         } elseif (count($this->pk) === 1) {
             $this->registerCallback('before_store', 'cbAutoKeyCreation');
         }
+        if (count($this->notification_map)) {
+            $this->registerCallback(array_keys($this->notification_map), 'cbNotificationMapper');
+        }
 
         $this->known_slots = array_merge(array_keys($this->db_fields), array_keys($this->alias_fields), array_keys($this->additional_fields), array_keys($this->relations));
 
@@ -983,7 +995,8 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
                 }
             }
         } else {
-            throw new InvalidArgumentException($field . ' not found.');
+            throw new InvalidArgumentException(get_class($this) . '::'.$field . ' not found.');
+            
         }
     }
 
@@ -1087,7 +1100,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
                  }
              }
          } else {
-             throw new InvalidArgumentException($field . ' not found.');
+             throw new InvalidArgumentException(get_class($this) . '::'. $field . ' not found.');
          }
          return $ret;
      }
@@ -1221,9 +1234,6 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
         }
         if ($reset) {
             $this->content_db = $this->content;
-            foreach (array_keys($this->relations) as $one) {
-                $this->relations[$one] = null;
-            }
             $this->applyCallbacks('after_initialize');
         }
         return $count;
@@ -1286,7 +1296,11 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
             }
         }
         if (!$where_query || count($pk_not_set)){
-            return false;
+            if ($this->isNew()) {
+                return false;
+            } else {
+                throw new UnexpectedValueException(sprintf("primary key incomplete: %s must not be null", join(',',$pk_not_set)));
+            }
         }
         return $where_query;
     }
@@ -1330,67 +1344,64 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
             return false;
         }
 
-        $where_query = $this->getWhereQuery();
-        if ($where_query) {
-            if ($this->isDirty() || $this->isNew()) {
-                if ($this->isNew()) {
-                    if ($this->applyCallbacks('before_create') === false) {
-                        return false;
-                    }
-                } else {
-                    if ($this->applyCallbacks('before_update') === false) {
-                        return false;
-                    }
+        if ($this->isDirty() || $this->isNew()) {
+            if ($this->isNew()) {
+                if ($this->applyCallbacks('before_create') === false) {
+                    return false;
                 }
-                foreach ($this->db_fields as $field => $meta) {
-                    $value = $this->content[$field];
-                    if ($field == 'chdate' && !$this->isFieldDirty($field) && $this->isDirty()) {
-                        $value = time();
-                    }
-                    if ($field == 'mkdate') {
-                        if ($this->isNew()) {
-                            if (!$this->isFieldDirty($field)) {
-                                $value = time();
-                            }
-                        } else {
-                            continue;
-                        }
-                    }
-                    if ($value === null && $meta['null'] == 'NO') {
-                        $value = $this->default_values[$field];
-                        if ($value === null) {
-                            throw new UnexpectedValueException($this->db_table . '.' . $field . ' must not be null.');
-                        }
-                    }
-                    if (is_float($value)) {
-                        $value = str_replace(',','.', $value);
-                    }
-                    $query_part[] = "`$field` = " . DBManager::get()->quote($value) . " ";
-                }
-                if (!$this->isNew()) {
-                    $query = "UPDATE `{$this->db_table}` SET "
-                    . implode(',', $query_part);
-                    $query .= " WHERE ". join(" AND ", $where_query);
-                } else {
-                    $query = "INSERT INTO `{$this->db_table}` SET "
-                    . implode(',', $query_part);
-                }
-                $ret = DBManager::get()->exec($query);
-                if ($this->isNew()) {
-                    $this->applyCallbacks('after_create');
-                } else {
-                    $this->applyCallbacks('after_update');
+            } else {
+                if ($this->applyCallbacks('before_update') === false) {
+                    return false;
                 }
             }
-            $rel_ret = $this->storeRelations();
-            $this->applyCallbacks('after_store');
-            if ($ret || $rel_ret) {
-                $this->restore();
+            foreach ($this->db_fields as $field => $meta) {
+                $value = $this->content[$field];
+                if ($field == 'chdate' && !$this->isFieldDirty($field) && $this->isDirty()) {
+                    $value = time();
+                }
+                if ($field == 'mkdate') {
+                    if ($this->isNew()) {
+                        if (!$this->isFieldDirty($field)) {
+                            $value = time();
+                        }
+                    } else {
+                        continue;
+                    }
+                }
+                if ($value === null && $meta['null'] == 'NO') {
+                    $value = $this->default_values[$field];
+                    if ($value === null) {
+                        throw new UnexpectedValueException($this->db_table . '.' . $field . ' must not be null.');
+                    }
+                }
+                if (is_float($value)) {
+                    $value = str_replace(',','.', $value);
+                }
+                $this->content[$field] = $value;
+                $query_part[] = "`$field` = " . DBManager::get()->quote($value) . " ";
             }
-            return $ret + $rel_ret;
-        } else {
-            return false;
+            if (!$this->isNew()) {
+                $where_query = $this->getWhereQuery();
+                $query = "UPDATE `{$this->db_table}` SET "
+                . implode(',', $query_part);
+                $query .= " WHERE ". join(" AND ", $where_query);
+            } else {
+                $query = "INSERT INTO `{$this->db_table}` SET "
+                . implode(',', $query_part);
+            }
+            $ret = DBManager::get()->exec($query);
+            if ($this->isNew()) {
+                $this->applyCallbacks('after_create');
+            } else {
+                $this->applyCallbacks('after_update');
+            }
         }
+        $rel_ret = $this->storeRelations();
+        $this->applyCallbacks('after_store');
+        if ($ret || $rel_ret) {
+            $this->restore();
+        }
+        return $ret + $rel_ret;
     }
 
     /**
@@ -1548,6 +1559,9 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
                 throw new UnexpectedValueException(sprintf('Column %s not found for alias %s', $field, $alias));
             }
         }
+        foreach (array_keys($this->relations) as $one) {
+            $this->relations[$one] = null;
+        }
     }
 
     /**
@@ -1681,7 +1695,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
      */
     protected function registerCallback($types, $cb)
     {
-        $types = is_array($types) ?: words($types);
+        $types = is_array($types) ? $types : words($types);
         foreach ($types as $type) {
             if (isset($this->registered_callbacks[$type])) {
                 $this->registered_callbacks[$type][] = $cb;
@@ -1703,7 +1717,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
      */
     protected function unregisterCallback($types, $cb)
     {
-        $types = is_array($types) ?: words($types);
+        $types = is_array($types) ? $types : words($types);
         foreach ($types as $type) {
             if (isset($this->registered_callbacks[$type])) {
                 $found = array_search($cb, $this->registered_callbacks[$type], true);
@@ -1742,6 +1756,25 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
     {
         if ($this->isNew() && $this->getId() === null) {
             $this->setId($this->getNewId());
+        }
+    }
+
+    /**
+     * default callback used to map specific callbacks to NotificationCenter
+     *
+     * @param string $type callback type
+     * @return boolean
+     */
+    protected function cbNotificationMapper($type)
+    {
+        if (isset($this->notification_map[$cb_type])) {
+            try {
+                foreach(words($this->notification_map[$cb_type]) as $notification) {
+                    NotificationCenter::postNotification($notification, $this);
+                }
+            } catch (NotificationVetoException $e) {
+                return false;
+            }
         }
     }
 }

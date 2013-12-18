@@ -260,18 +260,21 @@ class Course_StudygroupController extends AuthenticatedController {
                 $mods                = new Modules();
                 $bitmask             = 0;
                 $sem->admission_type = 0;
+                $sem->visible        = 1;
                 if (Request::get('groupaccess') == 'all') {
                     $sem->admission_prelim = 0;
                 } else {
                     $sem->admission_prelim    = 1;
+                    if (Config::get()->STUDYGROUPS_INVISIBLE_ALLOWED && Request::get('groupaccess') == 'invisible') {
+                        $sem->visible        = 0;
+                    }
                     $sem->admission_prelim_txt = _("Die ModeratorInnen der Studiengruppe können Ihren Aufnahmewunsch bestätigen oder ablehnen. Erst nach Bestätigung erhalten Sie vollen Zugriff auf die Gruppe.");
                 }
                 $sem->admission_endtime     = -1;
                 $sem->admission_binding     = 0;
                 $sem->admission_starttime   = -1;
                 $sem->admission_endtime_sem = -1;
-                $sem->visible               = 1;
-
+                
                 $semdata                     = new SemesterData();
                 $this_semester               = $semdata->getSemesterDataByDate(time());
                 $sem->semester_start_time    = $this_semester['beginn'];
@@ -538,11 +541,15 @@ class Course_StudygroupController extends AuthenticatedController {
                     $sem->read_level     = 1;
                     $sem->write_level    = 1;
                     $sem->admission_type = 0;
-
+                    $sem->visible = 1;
+                    
                     if (Request::get('groupaccess') == 'all') {
                         $sem->admission_prelim = 0;
                     } else {
                         $sem->admission_prelim = 1;
+                        if (Config::get()->STUDYGROUPS_INVISIBLE_ALLOWED && Request::get('groupaccess') == 'invisible') {
+                            $sem->visible = 0;
+                        }
                         $sem->admission_prelim_txt = _("Die ModeratorInnen der Studiengruppe können Ihren Aufnahmewunsch bestätigen oder ablehnen. Erst nach Bestätigung erhalten Sie vollen Zugriff auf die Gruppe.");
                     }
 
@@ -713,7 +720,7 @@ class Course_StudygroupController extends AuthenticatedController {
                     $message = sprintf(_("%s möchte Sie auf die Studiengruppe %s aufmerksam machen. Klicken Sie auf den untenstehenden Link, um direkt zur Studiengruppe zu gelangen.\n\n %s"),
                              get_fullname(), $sem->name, URLHelper::getlink("dispatch.php/course/studygroup/details/" . $id, array('cid' => NULL)));
                     $subject = _("Sie wurden in eine Studiengruppe eingeladen");
-                    $msg->insert_message(addslashes($message), get_username($receiver),'', '', '', '', '', addslashes($subject));
+                    $msg->insert_message($message, get_username($receiver),'', '', '', '', '', $subject);
                     $this->flash['success'] = sprintf(_("%s wurde in die Studiengruppe eingeladen."), get_fullname($receiver, 'full', true));
                 }
             } elseif ($perm->have_studip_perm('tutor', $id)) {

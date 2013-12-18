@@ -20,9 +20,16 @@ class StartNavigation extends Navigation
      */
     public function __construct()
     {
-        global $user;
 
         parent::__construct(_('Start'), 'index.php');
+
+    }
+
+    protected function initItem()
+    {
+        global $user;
+
+        parent::initItem();
 
         $db = DBManager::get();
 
@@ -51,10 +58,9 @@ class StartNavigation extends Navigation
         $homeinfo = _('Zur Startseite');
         $homeinfo .= $news ? ' - ' . sprintf(_('%s neue Ankündigungen'), $news) : '';
         $homeinfo .= $vote ? ' - ' . sprintf(_('%s neue Umfrage(n)'), $vote) : '';
-        $homeclass = $vote + $news ? 'new' : '';
         $this->setBadgeNumber($vote + $news);
 
-        $this->setImage('header/home.png', array('title' => $homeinfo, 'class' => $homeclass, "@2x" => TRUE));
+        $this->setImage('header/home.png', array('title' => $homeinfo, "@2x" => TRUE));
     }
 
     /**
@@ -223,7 +229,7 @@ class StartNavigation extends Navigation
 
         // tools
         $navigation = new Navigation(_('Tools'));
-        $navigation->addSubNavigation('news', new Navigation(_('Ankündigungen'), 'admin_news.php?range_id=self'));
+        $navigation->addSubNavigation('news', new Navigation(_('Ankündigungen'), 'dispatch.php/news/admin_news'));
 
         if (get_config('VOTE_ENABLE')) {
             $navigation->addSubNavigation('vote', new Navigation(_('Umfragen und Tests'), 'admin_vote.php', array('page' => 'overview', 'showrangeID' => $username)));

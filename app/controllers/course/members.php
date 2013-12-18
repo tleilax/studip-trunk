@@ -637,7 +637,7 @@ class Course_MembersController extends AuthenticatedController
                             $message = sprintf(_('Sie wurden als TeilnehmerIn in die Veranstaltung **%s** eingetragen.'), $this->course_title);
 
                             restoreLanguage();
-                            $messaging->insert_message(mysql_escape_string($message), $row['username'], '____%system%____', FALSE, FALSE, '1', FALSE, sprintf('%s %s', _('Systemnachricht:'), _('Eintragung in Veranstaltung')), TRUE);
+                            $messaging->insert_message($message, $row['username'], '____%system%____', FALSE, FALSE, '1', FALSE, sprintf('%s %s', _('Systemnachricht:'), _('Eintragung in Veranstaltung')), TRUE);
                         } elseif (isset($consider_contingent)) {
                             $csv_count_contingent_full++;
                         }
@@ -666,7 +666,7 @@ class Course_MembersController extends AuthenticatedController
                                 TeilnehmerIn in die Veranstaltung **%s** eingetragen.'), $this->course_title);
                         }
                         restoreLanguage();
-                        $messaging->insert_message(mysql_escape_string($message), $selected_user, '____%system%____', FALSE, FALSE, '1', FALSE, sprintf('%s %s', _('Systemnachricht:'), _('Eintragung in Veranstaltung')), TRUE);
+                        $messaging->insert_message($message, $selected_user, '____%system%____', FALSE, FALSE, '1', FALSE, sprintf('%s %s', _('Systemnachricht:'), _('Eintragung in Veranstaltung')), TRUE);
                     } elseif (isset($consider_contingent)) {
                         $csv_count_contingent_full++;
                     }
@@ -1140,11 +1140,11 @@ class Course_MembersController extends AuthenticatedController
      * Displays all members of the course and their aux data
      * @return int fake return to stop after redirect;
      */
-    function aux_action($format = null) {
+    function additional_action($format = null) {
 
         // Users get forwarded to aux_input
         if (!($this->is_dozent || $this->is_tutor)) {
-            $this->redirect('course/members/aux_input');
+            $this->redirect('course/members/additional_input');
             return 0;
         }
 
@@ -1170,10 +1170,10 @@ class Course_MembersController extends AuthenticatedController
     /**
      * Aux input for users
      */
-    function aux_input_action() {
+    function additional_input_action() {
 
         // Activate the autoNavi otherwise we dont find this page in navi
-        Navigation::activateItem('/course/members/aux');
+        Navigation::activateItem('/course/members/additional');
 
         // Fetch datafields for the user
         $course = new Course($_SESSION['SessionSeminar']);

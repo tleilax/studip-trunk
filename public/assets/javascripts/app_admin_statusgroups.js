@@ -1,23 +1,51 @@
-
-<script>
-    $(document).ready(function() {
+$(document).ready(function() {
 
     $('a.modal').click(function() {
-        var dialog =  $("<div></div>");
-                dialog.dialog({
-                autoOpen: false,
-                autoResize: true,
-                resizable: false,
-                position: 'center',
-                close: function() { $(this).remove() },
-                width:'auto',
-                title: $(this).attr('title'),
-                modal: true
-            });
-            dialog.load($(this).attr('href'));
-            dialog.dialog("open");
-            return false;
+        var dialog = $("<div></div>");
+        dialog.load($(this).attr('href'), function() {
+             loadModalDialog($(this));
         });
+        $('<img/>', {
+            src: STUDIP.ASSETS_URL + 'images/ajax_indicator_small.gif'
+        }).appendTo(dialog);
+        dialog.dialog({
+            autoOpen: true,
+            autoResize: true,
+            resizable: false,
+            position: 'center',
+            close: function() {
+                $(this).remove();
+            },
+            width: 'auto',
+            title: $(this).attr('title'),
+            modal: true
+        });
+        return false;
+    });
+    
+    function loadModalDialog(dialog) {
+        dialog.find('.abort').click(function(e) {
+                e.preventDefault();
+                dialog.remove();
+            });
+            dialog.find('.stay_on_dialog').click(function(e) {
+                $(this).attr('disabled', 'true');
+                e.preventDefault();
+                var button = jQuery(this).attr('name');
+                var form = $(this).closest('form');
+                $.ajax({
+                    type: "POST",
+                    url: form.attr('action'),
+                    data: form.serialize()+'&'+button+'=1', // serializes the form's elements.
+                    success: function(data)
+                    {
+                        dialog.html(data); // show response from the php script.
+                        loadModalDialog(dialog);
+                    }
+                });
+            });
+            dialog.dialog({position: 'center'});
+    }
 
     //do everything you would do after a reload
     afterReload();
@@ -52,26 +80,26 @@
                 }
             });
             if (found < 10) {
-                delay(function(){
-                $.ajax({
-                    type: 'POST',
-                    url: $('#ajax_search').val(),
-                    dataType: 'json',
-                    data: {query: search, limit: 10 - found},
-                    async: true
-                }).done(function(data) {
-                    $('#search_result').empty();
-                    if (data.length > 0) {
-                        jQuery.each(data, function(i, val) {
-                            if ($('#' + val.id).length === 0) {
-                                $('#search_result').append('<p id="' + (val.id) + '" style="margin: 0px;" class="person">' + val.name + '</p>');
-                            }
-                        });
-                        afterReload();
-                    }
-                });
-                $('#free_search, #search_result').fadeIn(fadeSpeed);
-                }, 800 );
+                delay(function() {
+                    $.ajax({
+                        type: 'POST',
+                        url: $('#ajax_search').val(),
+                        dataType: 'json',
+                        data: {query: search, limit: 10 - found},
+                        async: true
+                    }).done(function(data) {
+                        $('#search_result').empty();
+                        if (data.length > 0) {
+                            jQuery.each(data, function(i, val) {
+                                if ($('#' + val.id).length === 0) {
+                                    $('#search_result').append('<p id="' + (val.id) + '" style="margin: 0px;" class="person">' + val.name + '</p>');
+                                }
+                            });
+                            afterReload();
+                        }
+                    });
+                    $('#free_search, #search_result').fadeIn(fadeSpeed);
+                }, 800);
             } else {
                 $('#free_search, #search_result').fadeOut(fadeSpeed);
             }
@@ -86,12 +114,12 @@
  * commands
  */
 
-var delay = (function(){
-  var timer = 0;
-  return function(callback, ms){
-    clearTimeout (timer);
-    timer = setTimeout(callback, ms);
-  };
+var delay = (function() {
+    var timer = 0;
+    return function(callback, ms) {
+        clearTimeout(timer);
+        timer = setTimeout(callback, ms);
+    };
 })();
 
 //reattach all jQuery stuff after ajax reload
@@ -116,7 +144,7 @@ function afterReload() {
             $('.dropable').fadeTo(400, 1);
         },
         revertDuration: 0
-        });
+    });
 
 //make tables droppable
     $(".dropable").droppable({
@@ -173,4 +201,15 @@ function afterReload() {
         user.remove();
     });
 }
-</script>
+
+// select all persons from selectable box
+function selectAll() {
+    $('#search_persons_selectable option').prop('selected', 'selected');
+    $('#search_persons_add').click();
+}
+
+// deselect all persons from selected box
+function deselectAll() {
+    $('#search_persons_selected option').prop('selected', 'selected');
+    $('#search_persons_remove').click();
+}

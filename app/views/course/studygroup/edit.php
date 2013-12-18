@@ -106,6 +106,9 @@ $infobox['content'] = array(
       <select name="groupaccess">
           <option <?= ($sem->admission_prelim == 0) ? 'selected="selected"':'' ?> value="all"><?= _('Offen für alle') ?></option>
           <option <?= ($sem->admission_prelim == 1) ? 'selected="selected"':'' ?> value="invite"><?= _('Auf Anfrage') ?></option>
+          <? if(Config::get()->STUDYGROUPS_INVISIBLE_ALLOWED || $sem->visible == 0): ?>
+            <option <?= ($sem->visible == 0) ? 'selected="selected"':'' ?> value="invisible" <?= Config::get()->STUDYGROUPS_INVISIBLE_ALLOWED ? '' : 'disabled="true"' ?>><?= _('Unsichtbar') ?></option>
+          <? endif; ?>
       </select>
   </td>
 </tr>

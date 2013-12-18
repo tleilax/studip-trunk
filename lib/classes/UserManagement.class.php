@@ -209,7 +209,8 @@ class UserManagement
                     $downgrade->execute(array(
                         'user_id' => $this->user_data['auth_user_md5.user_id'],
                         'old_status' => $old_status,
-                        'studygroups' => studygroup_sem_types()
+                        'studygroups' => studygroup_sem_types(),
+                        'new_max_status' => $this->user_data['auth_user_md5.perms']
                     ));
                 }
 
@@ -903,7 +904,7 @@ class UserManagement
 
         // delete all messages send or received by this user
         $messaging=new messaging;
-        $messaging->delete_all_messages($this->user_data['auth_user_md5.user_id'], TRUE);
+        $messaging->delete_all_messages($this->user_data['auth_user_md5.user_id']);
 
         // delete user from all foreign adressbooks and empty own adressbook
         $buddykills = RemoveUserFromBuddys($this->user_data['auth_user_md5.user_id']);
@@ -945,7 +946,7 @@ class UserManagement
         foreach ($queries as $query) {
             DBManager::get()->prepare($query)->execute(array($this->user_data['auth_user_md5.user_id']));
         }
-        
+
         object_kill_visits($this->user_data['auth_user_md5.user_id']);
         object_kill_views($this->user_data['auth_user_md5.user_id']);
 
