@@ -248,6 +248,9 @@ jQuery(function($){
                 }
             };
             $(window).scroll(stickyTools);
+
+            var editorZ = Number(editorArea.css('z-index')) || 0;
+            toolbar.css('z-index', editorZ + 1);
     
             // hide "source" button's text label
             $('.cke_button__source_label').hide();
