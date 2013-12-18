@@ -17,7 +17,7 @@ jQuery(function($){
 
     function replaceTextarea(textarea){
         var uiColor = '#7788AA';  // same as studip's tab navigation background
-    
+
         // find an unused toolbarId
         var toolbarPrefix = 'cktoolbar',
             toolbarIndex = 0,
@@ -30,11 +30,6 @@ jQuery(function($){
 
         // create new toolbar
         var toolbar = $('<div>').attr('id', toolbarId);
-        /*var toolbarHandle = $('<div>').html('&#9776;&nbsp;').attr({
-            id: 'toolbar-handle',
-            title: 'Werkzeugleiste verschieben'
-        });
-        toolbar.append(toolbarHandle);*/
         var toolbar_placeholder = $('<div>');
         toolbar_placeholder.insertBefore(textarea);
         toolbar.insertBefore(textarea);
@@ -220,34 +215,21 @@ jQuery(function($){
             });
     
             // display shadow when editor area is focused
-            var fadeTime = 300;
             var editorArea = textarea.siblings('.cke_chrome');
             editor.on('focus', function(event){
                 // add editor area shadow
                 editorArea.css('box-shadow', '0 3px 15px ' + uiColor);
-    //            toolbar.fadeIn(fadeTime);
             });
             editor.on('blur', function(event){
                 // remove editor area shadow
                 editorArea.css('box-shadow', '');
                 if (toolbar.has(':focus').length > 0) {
                     editor.focus();
-                } else {
-    //                toolbar.fadeOut(fadeTime);
                 }
             });
     
-            // let the toolbar float, make it draggable from everywhere
-            // and hide the dialog's parent window
-    /*        var toolbar_offset = 5;
-            toolbar.draggable().offset({
-                top: editorArea.offset().top - toolbar.height() + toolbar_offset,
-                left: editorArea.offset().left + toolbar_offset
-                      + editorArea.width() - toolbar.width()
-            });
-     */
             // do not scroll toolbar out of viewport
-            var stickyTools = function() {
+            function stickyTools() {
                 var MARGIN = 30;
                 if($(window).scrollTop() + MARGIN > toolbar_placeholder.offset().top) {
                     toolbar.css({
