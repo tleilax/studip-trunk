@@ -19,6 +19,7 @@ jQuery(function($){
         var uiColor = '#7788AA';  // same as studip's tab navigation background
 
         // find an unused toolbarId
+        // toolbarId is needed for sharedSpaces
         var toolbarPrefix = 'cktoolbar',
             toolbarIndex = 0,
             toolbarId = toolbarPrefix + toolbarIndex;
@@ -43,7 +44,7 @@ jQuery(function($){
             extraPlugins: 'autogrow,divarea,sharedspace,studip-wiki,studip-upload',
             studipUpload_url: $('#post_files_url').val(),
             autoGrow_onStartup: true,
-            sharedSpaces: {
+            sharedSpaces: { // needed for sticky toolbar (see stickyTools())
     			top: toolbarId
             },
             toolbarGroups: [
