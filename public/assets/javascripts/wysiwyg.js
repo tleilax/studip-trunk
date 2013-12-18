@@ -18,12 +18,18 @@ jQuery(function($){
     function replaceTextarea(textarea){
         var uiColor = '#7788AA';  // same as studip's tab navigation background
     
-        var toolbarId = 'cktoolbar';
-        var toolbar = $('#' + toolbarId);
-        if (toolbar.length == 0) {
-            toolbar = $('<div>').attr('id', toolbarId);
+        // find an unused toolbarId
+        var toolbarPrefix = 'cktoolbar',
+            toolbarIndex = 0,
+            toolbarId = toolbarPrefix + toolbarIndex;
+
+        while ($('#' + toolbarId).length != 0) {
+            toolbarIndex += 1;
+            toolbarId = toolbarPrefix + toolbarIndex;
         }
-    
+
+        // create new toolbar
+        var toolbar = $('<div>').attr('id', toolbarId);
         /*var toolbarHandle = $('<div>').html('&#9776;&nbsp;').attr({
             id: 'toolbar-handle',
             title: 'Werkzeugleiste verschieben'
@@ -261,6 +267,13 @@ jQuery(function($){
             };
             $(window).scroll(stickyTools);
             stickyTools();
+
+            // TODO remove setInterval(stickyTools)
+            // the Stud.IP forum hides certain elements and displays them only
+            // on request. this leads to the toolbar being positioned at the
+            // top of the web page for hidden elements. since there is no
+            // "onvisible" event, use an interval as workaround
+            setInterval(stickyTools, 1000);
     
             // hide "source" button's text label
             $('.cke_button__source_label').hide();
