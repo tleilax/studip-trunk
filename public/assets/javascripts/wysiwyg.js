@@ -266,14 +266,6 @@ jQuery(function($){
                 }
             };
             $(window).scroll(stickyTools);
-            stickyTools();
-
-            // TODO remove setInterval(stickyTools)
-            // the Stud.IP forum hides certain elements and displays them only
-            // on request. this leads to the toolbar being positioned at the
-            // top of the web page for hidden elements. since there is no
-            // "onvisible" event, use an interval as workaround
-            setInterval(stickyTools, 1000);
     
             // hide "source" button's text label
             $('.cke_button__source_label').hide();
