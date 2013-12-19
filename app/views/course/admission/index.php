@@ -23,6 +23,8 @@
               <label for="admission_binding">
               <input <?=$is_locked['admission_binding'] ?> id="admission_binding" type="checkbox" <?= ($course->admission_binding == 1 ? "checked" : ""); ?> name="admission_binding"  value="1">
               <?=_("Anmeldung ist <u>verbindlich</u>. (Teilnehmer können sich nicht austragen.)")?></label>
+              <?= Studip\Button::create(_("Anmeldemodus ändern"), 'change_admission_prelim') ?>
+              
     </fieldset>
     <? if (get_config("ENABLE_FREE_ACCESS") && !$current_courseset) : ?>
     <fieldset>
@@ -42,6 +44,7 @@
         <input <?=($is_locked['Schreibzugriff'] || !SeminarCategories::GetByTypeId($course->status)->write_access_nobody ? 'disabled readonly' : '') ?> id="schreibzugriff" type="checkbox" <?= ($course->schreibzugriff == 2 ? "checked" : ""); ?> name="schreibzugriff"  value="2">
         <?= _("Schreibzugriff für nicht angemeldete Nutzer erlauben") ?></label>
         </div>
+        <?= Studip\Button::create(_("Freien Zugriff ändern"), 'change_free_access') ?>
     </fieldset>
     <?  endif ?>
     <? if (count($all_domains)) : ?>
@@ -57,6 +60,34 @@
               <?= htmlReady($domain->getName())?></label>
         <? endforeach ?>
         </fieldset>
+        <?= Studip\Button::create(_("Nutzerdomänen ändern"), 'change_domains') ?>
+    </fieldset>
+    <? endif ?>
+    <? if ($current_courseset && $current_courseset->isSeatDistributionEnabled()) : ?>
+    <fieldset>
+        <legend><?= _("Beschränkte Teilnehmeranzahl")?></legend>
+        <div>
+            <?=_("Bitte geben Sie hier an, wieviele Teilnehmer maximal für die Veranstaltung vorgesehen sind, und ob eine Warteliste erstellt werden soll, falls die Anmeldungen die maximale Teilnehmeranzahl überschreiten."); ?>
+        </div>
+        <label class="caption"><?=_("max. Teilnehmeranzahl:")?></label>
+        <label for="admission_turnout">
+        <input type="text" name="admission_turnout" id="admission_turnout" style="display:inline" value="<?= $course->admission_turnout ?>" >
+        <?= sprintf(_("(%s freie Plätze)"), $course->getFreeSeats()) ?></label>
+        <label class="caption"><?=_("Warteliste:")?></label>
+        <label for="admission_disable_waitlist">
+              <input <?=$is_locked['admission_disable_waitlist'] ?> type="checkbox" id="admission_disable_waitlist" name="admission_disable_waitlist" value="1" <?= ($course->admission_disable_waitlist == 0 ? "checked" : ""); ?>>
+              <?=_("Warteliste aktivieren")?>
+              <? if ($num_waitlist = $course->admission_applicants->findBy('status', 'awaiting')->count() ) : ?>
+                  &nbsp;<?= sprintf(_("(%s Wartende)"), $num_waitlist)?>
+              <? endif ?>
+              </label>
+        <label for="admission_disable_waitlist_move">
+              <input <?=$is_locked['admission_disable_waitlist_move'] ?> type="checkbox" id="admission_disable_waitlist_move"  name="admission_disable_waitlist_move" value="1" <?= ($course->admission_disable_waitlist_move == 0 ? "checked" : ""); ?>>
+              <?=_("automatisches Nachrücken aus der Warteliste aktivieren")?></label>
+        <label for="admission_waitlist_max">
+              <input <?=$is_locked['admission_waitlist_max'] ?> type="text" style="display:inline" id="admission_waitlist_max"  name="admission_waitlist_max" value="<?= ($course->admission_waitlist_max ?: '') ?>">
+              <?=_("max. Anzahl an Wartenden (optional)")?></label>
+        <?= Studip\Button::create(_("Teilnehmeranzahl ändern"), 'change_admission_turnout') ?>
     </fieldset>
     <? endif ?>
     <fieldset>
@@ -68,11 +99,11 @@
         <div>
             <?= sprintf(_('Diese Veranstaltung gehört zum Anmeldeset "%s".'), htmlReady($current_courseset->getName())) ?>
             <div id="courseset_<?= $current_courseset->getId() ?>">
-                    <?= $current_courseset->toString() ?>
+                    <?= $current_courseset->toString(true) ?>
             </div>
             <div>
             <? if ($current_courseset->isUserAllowedToAssignCourse($user_id, $course_id)) : ?>
-                <?= Studip\LinkButton::create(_("Zuordnung aufheben")) ?>
+                <?= Studip\Button::create(_("Zuordnung aufheben"), 'change_course_set') ?>
             <? endif ?>
             </div>
         </div>
