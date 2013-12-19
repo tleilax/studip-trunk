@@ -15,7 +15,7 @@ STUDIP.UserFilter = {
                 modal: true,
                 resizable: false,
                 position: ['center', 200],
-                width: 450,
+                width: 0.7*$(window).width(),
                 close: function() {
                     $('#'+targetId).remove();
                 },
