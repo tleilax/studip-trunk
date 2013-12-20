@@ -217,6 +217,7 @@ class Step00240CourseSets extends Migration
             ENGINE = MyISAM");
 
         $db->exec("ALTER TABLE  `seminare` ADD  `admission_waitlist_max` INT UNSIGNED NOT NULL DEFAULT  '0'");
+        $db->exec("ALTER TABLE  `seminare` ADD  `admission_disable_waitlist_move` TINYINT UNSIGNED NOT NULL DEFAULT '0'");
         
     }
 

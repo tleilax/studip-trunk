@@ -100,6 +100,61 @@ class Course_AdmissionController extends AuthenticatedController
             }
         }
     }
+
+    function change_admission_prelim_action()
+    {
+        CSRFProtection::verifyUnsafeRequest();
+        if (Request::submittedSome('change_admission_prelim', 'change_admission_prelim_ok')) {
+            $request = Request::extract('admission_prelim int, admission_binding int, admission_prelim_txt');
+            $this->course->setData($request);
+            if ($this->course->isFieldDirty('admission_prelim')) {
+                if (!Request::submitted('change_admission_prelim_ok')) {
+                    if ($this->course->admission_prelim == 1 && $this->course->getNumParticipants()) {
+                        $question = _("Sie beabsichtigen den Anmeldemodus auf vorläufiger Eintrag zu ändern. Sollen die bereits in der Veranstaltung eingetragenen Teilnehmer in vorläufige Teilnehmer umgewandelt werden?");
+                    }
+                    if ($this->course->admission_prelim == 0 && $this->course->getNumPrelimParticipants()) {
+                        $question = _("Sie beabsichtigen den Anmeldemodus auf direkten Eintrag zu ändern. Sollen die vorläufigen Teilnehmer in die Veranstaltung übernommen werden?");
+                    }
+                }
+                
+            }
+            if (Request::submitted('change_admission_prelim_ok') || !$question) {
+                if ($this->course->admission_prelim == 1 && $this->course->getNumParticipants()) {
+                }
+                if ($this->course->admission_prelim == 0 && $this->course->getNumPrelimParticipants()) {
+                }
+                if ($this->course->store()) {
+                    PageLayout::postMessage(MessageBox::success(_("Der Anmeldemodus wurde geändert.")));
+                }
+                unset($question);
+            }
+        }
+        if (!$question) {
+            $this->redirect($this->url_for('/index'));
+        } else {
+            $this->request = $request;
+            PageLayout::postMessage(MessageBox::info($question));
+        }
+    }
+
+    function change_domains_action()
+    {
+        CSRFProtection::verifyUnsafeRequest();
+        if (Request::submitted('change_domains') && !LockRules::Check($this->course_id, 'user_domain')) {
+            $old_domains = array_map(function($d) {return $d->getId();}, UserDomain::getUserDomainsForSeminar($this->course_id));
+            $new_domains = Request::getArray('user_domain');
+            $changes = count(array_diff($old_domains, $new_domains)) + count(array_diff($new_domains, $old_domains));
+            if ($changes) {
+                UserDomain::removeUserDomainsForSeminar($this->course_id);
+                foreach ($new_domains as $d) {
+                    $domain = new UserDomain($d);
+                    $domain->addSeminar($this->course_id);
+                }
+                PageLayout::postMessage(MessageBox::success(_("Die zugelassenen Nutzerdomänen wurden geändert.")));
+            }
+        }
+        $this->redirect($this->url_for('/index'));
+    }
     
     function explain_course_set_action()
     {

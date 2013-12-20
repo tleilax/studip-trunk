@@ -1,5 +1,6 @@
 <h1><?= _("Zugangsberechtigungen") ?></h1>
-<form class="studip_form" action="<?= $controller->link_for() ?>" method="post">
+<form class="studip_form" action="<?= $controller->link_for('/change_admission_prelim') ?>" method="post">
+<?= CSRFProtection::tokenTag() ?>
     <fieldset>
         <legend><?= _("Anmeldemodus")?></legend>
               <div>
@@ -26,7 +27,10 @@
               <?= Studip\Button::create(_("Anmeldemodus ändern"), 'change_admission_prelim') ?>
               
     </fieldset>
-    <? if (get_config("ENABLE_FREE_ACCESS") && !$current_courseset) : ?>
+</form>
+<? if (get_config("ENABLE_FREE_ACCESS") && !$current_courseset) : ?>
+<form class="studip_form" action="<?= $controller->link_for('/change_free_access') ?>" method="post">
+<?= CSRFProtection::tokenTag() ?>
     <fieldset>
         <legend><?= _("freier Zugriff")?></legend>
         <div>
@@ -47,7 +51,10 @@
         <?= Studip\Button::create(_("Freien Zugriff ändern"), 'change_free_access') ?>
     </fieldset>
     <?  endif ?>
-    <? if (count($all_domains)) : ?>
+</form>
+<? if (count($all_domains)) : ?>
+<form class="studip_form" action="<?= $controller->link_for('/change_domains') ?>" method="post">
+<?= CSRFProtection::tokenTag() ?>
     <fieldset>
         <legend><?= _("Zugelassenene Nutzerdomänen")?></legend>
         <div>
@@ -62,8 +69,11 @@
         </fieldset>
         <?= Studip\Button::create(_("Nutzerdomänen ändern"), 'change_domains') ?>
     </fieldset>
-    <? endif ?>
-    <? if ($current_courseset && $current_courseset->isSeatDistributionEnabled()) : ?>
+</form>
+<? endif ?>
+<? if ($current_courseset && $current_courseset->isSeatDistributionEnabled()) : ?>
+<form class="studip_form" action="<?= $controller->link_for('/change_admission_turnout') ?>" method="post">
+<?= CSRFProtection::tokenTag() ?>
     <fieldset>
         <legend><?= _("Beschränkte Teilnehmeranzahl")?></legend>
         <div>
@@ -89,7 +99,10 @@
               <?=_("max. Anzahl an Wartenden (optional)")?></label>
         <?= Studip\Button::create(_("Teilnehmeranzahl ändern"), 'change_admission_turnout') ?>
     </fieldset>
-    <? endif ?>
+</form>
+<? endif ?>
+<form class="studip_form" action="<?= $controller->link_for('/change_course_set') ?>" method="post">
+<?= CSRFProtection::tokenTag() ?>
     <fieldset>
         <legend><?= _("Anmelderegeln")?></legend>
         <div>

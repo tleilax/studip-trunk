@@ -158,7 +158,6 @@ class Course extends SimpleORMap
                         $course->duration_time = 0;
                     }
                 };
-                $this->additional_fields['admission_disable_waitlist_move']['get'] = function(){};
         $this->notification_map['after_create'] = 'CourseDidCreateOrUpdate CourseDidCreate';
         $this->notification_map['after_store'] = 'CourseDidCreateOrUpdate CourseDidUpdate';
         $this->notification_map['before_create'] = 'CourseWillCreate';
@@ -169,9 +168,7 @@ class Course extends SimpleORMap
     
     function getFreeSeats()
     {
-        $num_participants = $this->members->findBy('status', words('user autor'))->count();
-        $num_participants += $this->admission_applicants->findBy('status', 'accepted')->count();
-        $free_seats = $this->admission_turnout - $num_participants;
+        $free_seats = $this->admission_turnout - $this->getNumParticipants();
         return $free_seats > 0 ? $free_seats : 0;
     }
     
@@ -180,10 +177,24 @@ class Course extends SimpleORMap
         if ($this->admission_disable_waitlist) {
             return false;
         } else if ($this->admission_waitlist_max) {
-            $num_waitlist = $this->admission_applicants->findBy('status', 'awaiting')->count();
-            return ($this->admission_waitlist_max - $num_waitlist) > 0 ? true : false;
+            return ($this->admission_waitlist_max - $this->getNumWaiting()) > 0 ? true : false;
         } else {
             return true;
         }
+    }
+    
+    function getNumParticipants()
+    {
+        return $this->members->findBy('status', words('user autor'))->count() + $this->getNumPrelimParticipants();
+    }
+    
+    function getNumPrelimParticipants()
+    {
+        return $this->admission_applicants->findBy('status', 'accepted')->count();
+    }
+    
+    function getNumWaiting()
+    {
+        return $this->admission_applicants->findBy('status', 'awaiting')->count();
     }
 }
