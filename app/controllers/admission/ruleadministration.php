@@ -11,11 +11,17 @@ class Admission_RuleAdministrationController extends AuthenticatedController {
      */
     public function before_filter(&$action, &$args) {
         parent::before_filter($action, $args);
-        $layout = $GLOBALS['template_factory']->open('layouts/base');
-        $this->set_layout($layout);
-        PageLayout::setTitle(_('Verwaltung von Anmelderegeln'));
-        Navigation::activateItem('/admin/config/admissionrules');
-        PageLayout::addSqueezePackage('dialogs');
+        if (Request::isXhr()) {
+            $this->via_ajax = true;
+            $this->set_layout(null);
+        } else {
+            $this->via_ajax = false;
+            $layout = $GLOBALS['template_factory']->open('layouts/base');
+            $this->set_layout($layout);
+            PageLayout::setTitle(_('Verwaltung von Anmelderegeln'));
+            Navigation::activateItem('/admin/config/admissionrules');
+        }
+        PageLayout::addSqueezePackage('admission');
     }
 
     /**
@@ -23,6 +29,40 @@ class Admission_RuleAdministrationController extends AuthenticatedController {
      */
     public function index_action() {
         $this->ruleTypes = RuleAdministrationModel::getAdmissionRuleTypes();
+		DBManager::get()->execute("CREATE TABLE IF NOT EXISTS `admissionrule_inst` (
+          `rule_id` VARCHAR(32) NOT NULL,
+          `institute_id` VARCHAR(32) NOT NULL,
+          `mkdate` INT(11) NOT NULL DEFAULT 0,
+          PRIMARY KEY (`rule_id`, `institute_id`)
+        ) ENGINE = MyISAM");
+    }
+
+    /**
+     * Shows where the given admission rule is activated (system wide or
+     * only at specific institutes).
+     */
+    public function check_activation_action($ruleType) {
+        if (Request::isXhr()) {
+            $this->response->add_header('X-Title', _('Verfügbarkeit der Anmelderegel'));
+            $this->response->add_header('X-No-Buttons', 1);
+        }
+        $this->ruleTypes = RuleAdministrationModel::getAdmissionRuleTypes();
+        $this->type = $ruleType;
+        $stmt = DBManager::get()->prepare("SELECT ai.`institute_id`
+            FROM `admissionrule_inst` ai
+            JOIN `admissionrules` r ON (ai.`rule_id`=r.`id`)
+            WHERE r.`ruletype`=?");
+        $stmt->execute(array($ruleType));
+        $this->activated = array();
+        $this->globally = true;
+        $this->atInst = false;
+        while ($current = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            if ($globally) $globally = false;
+            if (!$atInst) $atInst = true;
+            $institute = new Institute($current['institute_id']);
+            $this->activated[$current['institute_id']] = (Request::isXhr() ? 
+                studip_utf8encode($institute->name) : $institute->name);
+        }
     }
 
     /**
@@ -30,10 +70,48 @@ class Admission_RuleAdministrationController extends AuthenticatedController {
      * 
      * @param  String $ruleType the class name of the rule type to activate.
      */
-    public function activate_action($ruleType, $status) {
-        $stmt = DBManager::get()->prepare("UPDATE `admissionrules` SET `active`=? WHERE `ruletype`=?");
-        $stmt->execute(array($status, $ruleType));
-        $this->redirect($this->url_for('admission/ruleadministration'));
+    public function activate_action($ruleType) {
+        CSRFProtection::verifyUnsafeRequest();
+        if (Request::submitted('submit')) {
+            $success = false;
+            $stmt = DBManager::get()->prepare("UPDATE `admissionrules` SET `active`=? WHERE `ruletype`=?");
+            $success = $stmt->execute(array((bool) Request::get('enabled'), $ruleType));
+            // Get corresponding rule id.
+            $stmt = DBManager::get()->prepare("SELECT `id` FROM `admissionrules` WHERE `ruletype`=? LIMIT 1");
+            $success = $stmt->execute(array($ruleType));
+            if ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                if (Request::get('enabled')) {
+                    $stmt = DBManager::get()->prepare("DELETE FROM `admissionrule_inst`
+                        WHERE `rule_id` IN (SELECT `id` FROM `admissionrules` WHERE `ruletype`=?);");
+                    $success = $stmt->execute(array($ruleType));
+                    if (Request::get(activated) == 'inst') {
+                        $institutes = Request::getArray('institutes');
+                        $query = "INSERT INTO `admissionrule_inst`
+                            (`rule_id`, `institute_id`, `mkdate`)
+                            VALUES ";
+                        $params = array();
+                        $first = true;
+                        foreach ($institutes as $institute) {
+                            if ($first) {
+                                $first = false;
+                            } else {
+                                $query .= ", ";
+                            }
+                            $query .= "(?, ?, UNIX_TIMESTAMP())";
+                            $params[] = $data['id'];
+                            $params[] = $institute;
+                        }
+                        $stmt = DBManager::get()->prepare($query);
+                        $success = $stmt->execute($params);
+                    }
+                }
+            }
+            if ($success) {
+                $this->successmsg = _('Ihre Einstellungen wurden gespeichert.');
+            } else {
+                $this->errormsg = _('Ihre Einstellungen konnten nicht gespeichert werden.');
+            }
+        }
     }
 
     /**

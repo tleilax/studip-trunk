@@ -140,6 +140,7 @@ abstract class AdmissionRule
                 strtolower($className).'/'.$className.'.class.php');
             $rule = new $className();
             $rules[$className] = array(
+            		'id' => $current['id'],
                     'name' => $className::getName(),
                     'description' => $className::getDescription()
                 );

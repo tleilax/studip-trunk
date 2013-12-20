@@ -48,6 +48,14 @@ class Step00240CourseSets extends Migration
                 ('PasswordAdmission', 1, 0, UNIX_TIMESTAMP()),
                 ('TimedAdmission', 1, 0, UNIX_TIMESTAMP());");
 
+        // Admission rules can be available globally or only at selected institutes.
+        $db->exec("CREATE TABLE IF NOT EXISTS `admissionrule_inst` (
+          `rule_id` VARCHAR(32) NOT NULL,
+          `institute_id` VARCHAR(32) NOT NULL,
+          `mkdate` INT(11) NOT NULL DEFAULT 0,
+          PRIMARY KEY (`rule_id`, `institute_id`)
+        ) ENGINE = MyISAM");
+
         // admission rules specifying conditions for access
         $db->exec("CREATE TABLE IF NOT EXISTS `conditionaladmissions` (
                 `rule_id` VARCHAR(32) NOT NULL ,

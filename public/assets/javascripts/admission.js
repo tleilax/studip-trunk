@@ -249,6 +249,22 @@ STUDIP.Admission = {
         }
     },
 
+	checkRuleActivation: function(target) {
+		var form = $('#'+target);
+		var globalActivation = form.find('input[name=enabled]');
+		if (globalActivation.attr('checked')) {
+		    $('#activation').show();
+		    if (form.find('input[name=activated]:checked').val() == 'studip') {
+                $('#institutes_activation').hide();
+		    } else {
+                $('#institutes_activation').show();
+		    }
+		} else {
+            $('#activation').hide();
+            $('#institutes_activation').hide();
+		}
+	},
+
     closeDialog: function(elementId) {
         $('#'+elementId).remove();
     }

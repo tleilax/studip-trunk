@@ -33,11 +33,11 @@ if (isset($flash['error'])) {
 }
 ?>
 <?= $this->render_partial('dialog/confirm_dialog') ?>
-<h2><?= _('Installierte Anmelderegeln:') ?></h2>
 <?php
 if ($ruleTypes) {
 ?>
-<table class="default" id="admissionrules" width="75%">
+<table class="default" id="admissionrules">
+	<caption><?= _('Installierte Anmelderegeln:') ?></caption>
     <thead>
         <th><?= _('aktiv?') ?></th>
         <th><?= _('Art der Anmelderegel') ?></th>
@@ -45,24 +45,25 @@ if ($ruleTypes) {
     </thead>
     <tbody>
     <?php
-        foreach ($ruleTypes as $type => $details) {
-            if ($details['active']) {
-                $src = 'checkbox-checked';
-                $text = _('Klick zum deaktivieren');
-                $val = '0';
-            } else {
-                $src = 'checkbox-unchecked';
-                $text = _('Klick zum aktivieren');
-                $val = '1';
-            }
+    foreach ($ruleTypes as $type => $details) {
+    	if ($details['active']) {
+    		$text = _('Diese Regel ist aktiv. Klicken Sie hier, um die Einstellungen zu bearbeiten.');
+			$img = 'checkbox-checked';
+    	} else {
+    		$text = _('Diese Regel ist inaktiv. Klicken Sie hier, um die Einstellungen zu bearbeiten.');
+			$img = 'checkbox-unchecked';
+    	}
     ?>
-    <tr id="ruletype_<?= $type ?>" class="table_row_<?= TextHelper::cycle('even', 'odd') ?>">
-        <td>
-            <a href="<?= $controller->url_for('admission/ruleadministration/activate', $type, $val) ?>">
-                <?= Assets::img('icons/16/blue/'.$src.'.png', 
-                    array('alt' => $text, 'title' => $text)); ?>
+    <tr id="ruletype_<?= $type ?>">
+		<td>
+            <a href="<?= $controller->url_for('admission/ruleadministration/check_activation', $type) ?>" rel="lightbox">
+                <?= Assets::img('icons/16/blue/'.$img.'.png', 
+                    array(
+                    	'alt' => $text,
+                    	'title' => $text
+					)); ?>
             </a>
-        </td>
+		</td>
         <td>
             <b><?= $details['name'] ?></b> (<?= $type ?>)
             <br/>
