@@ -29,12 +29,6 @@ class Admission_RuleAdministrationController extends AuthenticatedController {
      */
     public function index_action() {
         $this->ruleTypes = RuleAdministrationModel::getAdmissionRuleTypes();
-		DBManager::get()->execute("CREATE TABLE IF NOT EXISTS `admissionrule_inst` (
-          `rule_id` VARCHAR(32) NOT NULL,
-          `institute_id` VARCHAR(32) NOT NULL,
-          `mkdate` INT(11) NOT NULL DEFAULT 0,
-          PRIMARY KEY (`rule_id`, `institute_id`)
-        ) ENGINE = MyISAM");
     }
 
     /**
