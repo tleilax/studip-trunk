@@ -81,6 +81,17 @@ function getFolder($folder_id) {
 }
 
 /**
+ * Return a string for a single column value of an INSERT query.
+ * @param object $db    Reference to the DB connector object.
+ * @param string $name  Name of the column.
+ * @param string $value Value of the column.
+ * return string Part of SQL query that sets the column value.
+ */
+function insertColumn($name, $value) {
+    return "`$name`=" . \DBManager::get()->quote($value);
+}
+
+/**
  * Get ID of a Stud.IP folder, create the folder if it doesn't exist.
  * @param string $name        Name of the folder.
  * @param string $description Description of the folder (optional and only 
@@ -89,19 +100,24 @@ function getFolder($folder_id) {
  *                 from the folder's name and the seminar's identifier).
  */
 function getFolderId($name, $description=null) {
+    // TODO if a folder by the given name already exists and return it
+    // TODO if description is set for existing folder, update it
     $seminar_id = getSeminarId();
     $folder_id = \md5($name . '_' . $seminar_id);
-    $db = \DBManager::get();
-    $db->exec('INSERT IGNORE INTO folder SET '
-        . 'folder_id = ' . $db->quote($folder_id)
-        . ', range_id = ' . $db->quote($seminar_id)
-        . ', user_id = ' . $db->quote($GLOBALS['user']->id)
-        . ', name = ' . $db->quote($folder_name)
-        . ', permission = ' . $db->quote(7)
-        . ', mkdate = ' . $db->quote(time())
-        . ', chdate = ' . $db->quote(time())
-        . ', description = ' . $db->quote($description) 
-    );
+    $time = time();
+    \DBManager::get()->exec('INSERT IGNORE INTO folder SET '
+       . implode(',', array_map(function($column){
+            return insertColumn($column[0], $column[1]);
+        }, [
+            ['folder_id', $folder_id],
+            ['range_id', $seminar_id],
+            ['user_id', $GLOBALS['user']->id],
+            ['name', $name],
+            ['permission', 7],
+            ['mkdate', $time],
+            ['chdate', $time],
+            ['description', $description]
+        ])));
     return $folder_id;
 }
 
@@ -112,6 +128,8 @@ function getFolderId($name, $description=null) {
  *                with name, type, tmp_name, error, and size keys set.
  */
 function FILES(){
+    // TODO improve description
+    // TODO make it work with any kind of file upload, not only HTML array
     foreach($_FILES['files'] as $key => $fileList){
         foreach($fileList as $fileIndex => $value){
             $files[$fileIndex][$key] = $value;
@@ -186,10 +204,10 @@ function getStudipDocumentData($folder_id, $file) {
 /**
  * Test if string starts with prefix.
  *
- * @param string $string Tested string.
- * @param string $prefix Prefix of tested string.
+ * @param string $string  Tested string.
+ * @param string $prefix  Prefix of tested string.
  *
- * @return boolean  True if string starts with prefix, otherwise False.
+ * @return boolean  TRUE if string starts with prefix.
  */
 function startsWith($string, $prefix) {
     return \substr($string, 0, \strlen($prefix)) === $prefix;
@@ -201,7 +219,7 @@ function startsWith($string, $prefix) {
  * @param string $string  Tested string.
  * @param string $suffix  Suffix of tested string.
  *
- * @return boolean  True if string ends with suffix, otherwise False.
+ * @return boolean  TRUE if string ends with suffix.
  */
 function endsWith($string, $suffix) {
     return \substr($string, \strlen($string) - \strlen($suffix)) === $suffix;
@@ -239,6 +257,7 @@ function testGetMediaUrl() {
     $external_document = 'http://pflanzen-enzyklopaedie.eu/wp-content/uploads/2012/11/Sumpfdotterblume-multiplex-120x120.jpg';
     $proxy_document = 'http://localhost:8080/studip/dispatch.php/media_proxy?url=http%3A%2F%2Fpflanzen-enzyklopaedie.eu%2Fwp-content%2Fuploads%2F2012%2F11%2FSumpfdotterblume-multiplex-120x120.jpg';
     $studip_document_no_domain = '/studip/sendfile.php?type=0&file_id=abc123&file_name=test.jpg';
+    // $proxy_no_domain = '/studip/dispatch.php/media_proxy?url=http%3A%2F%2Fwww.ecult.me%2Fimages%2Flogo.png';
 
     testMediaUrl($studip_document, $studip_document);
     testMediaUrl('invalid url', NULL);
@@ -351,14 +370,21 @@ function getStudipRelativePath($url) {
  *               proxy then this is the exact same value given by $url.
  */
 function decodeMediaProxyUrl($url) {
-    $base_url = $GLOBALS['ABSOLUTE_URI_STUDIP'];
-    $media_proxy = $base_url . 'dispatch.php/media_proxy?url=';
-
-    $transformed_url = tranformInternalIdnaLink($url);
-    if (startsWith($transformed_url, $media_proxy)) {
-        return \urldecode(removePrefix($transformed_url, $media_proxy));
+    # TODO make it work for 'url=' at any position in query
+    $proxypath = getMediaProxyPath() . '?url=';
+    $urlpath = removeStudipDomain($url);
+    if (startsWith($urlpath, $proxypath)) {
+        return \urldecode(removePrefix($urlpath, $proxypath));
     }
     return $url;
+}
+
+function getMediaProxyPath() {
+    return removeStudipDomain(getMediaProxyUrl());
+}
+
+function getMediaProxyUrl() {
+    return $GLOBALS['ABSOLUTE_URI_STUDIP'] . 'dispatch.php/media_proxy';
 }
 
 /**
@@ -373,7 +399,6 @@ function isStudipUrl($url) {
 
     $parsed_url = \parse_url(tranformInternalIdnaLink($url));
     if ($parsed_url === FALSE) {
-
         return FALSE; // url is seriously malformed
     }
 
@@ -385,9 +410,7 @@ function isStudipUrl($url) {
     $is_host = \in_array($parsed_url['host'], $studip_hosts);
     $is_port = \in_array($parsed_url['port'], $studip_ports);
     $is_path = startsWith($parsed_url['path'], $studip_url['path']);
-    $is_studip = $is_scheme && $is_host && $is_port && $is_path;
-
-    return $is_studip;
+    return $is_scheme && $is_host && $is_port && $is_path;
 }
 
 /**
@@ -411,8 +434,7 @@ function isStudipMediaUrlPath($path) {
 }
 
 function hasPermission($permission) {
-    $perm = new \Seminar_Perm();
-    return $perm->have_studip_perm($permission, getSeminarId());
+    return $GLOBALS['perm']->have_studip_perm($permission, getSeminarId());
 }
 
 /**
