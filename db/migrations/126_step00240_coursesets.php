@@ -40,7 +40,7 @@ class Step00240CourseSets extends Migration
           PRIMARY KEY (`id`)
         ) ENGINE = MyISAM");
         // Create entries for default admission rule types.
-        $db->exec("INSERT INTO `admissionrules` 
+        $db->exec("INSERT IGNORE INTO `admissionrules`
             (`ruletype`, `active`, `deleteable`, `mkdate`) VALUES
                 ('ConditionalAdmission', 1, 0, UNIX_TIMESTAMP()),
                 ('LimitedAdmission', 1, 0, UNIX_TIMESTAMP()),
@@ -107,7 +107,7 @@ class Step00240CourseSets extends Migration
                 `chdate` INT NOT NULL DEFAULT 0,
             PRIMARY KEY (`set_id`) ,
             INDEX `set_user` (`set_id` ASC, `user_id` ASC)
-            ENGINE MyISAM");
+            ENGINE = MyISAM");
 
         // admission rules with max number of courses to register for
         $db->exec("CREATE TABLE IF NOT EXISTS `limitedadmissions` (
@@ -218,7 +218,7 @@ class Step00240CourseSets extends Migration
 
         $db->exec("ALTER TABLE  `seminare` ADD  `admission_waitlist_max` INT UNSIGNED NOT NULL DEFAULT  '0'");
         $db->exec("ALTER TABLE  `seminare` ADD  `admission_disable_waitlist_move` TINYINT UNSIGNED NOT NULL DEFAULT '0'");
-        
+
     }
 
     function down()
@@ -229,7 +229,7 @@ class Step00240CourseSets extends Migration
             `admissionrules`, `conditionaladmissions`, `courseset_factorlist`,
             `courseset_rule`, `coursesets`, `limitedadmissions`,
             `lockedadmissions`, `priorities`, `seminar_courseset`,
-            `timedadmissions`, `userfilter_fields`, `userfilter`, 
+            `timedadmissions`, `userfilter_fields`, `userfilter`,
             `user_factorlist`, `userlimits`");
     }
 }
