@@ -16,16 +16,15 @@
               </fieldset>
               <? if ($course->admission_prelim == 1) : ?>
                   <label for="admission_prelim_txt" class="caption"><?= _("Hinweistext bei vorläufigen Eintragungen:"); ?></label>
-                  <textarea <?=$is_locked['admission_prelim_txt'] ?> id="admission_prelim_txt" name="admission_prelim_txt" rows=4 >
-                  <?= htmlReady($course->admission_prelim_txt) ?>
-                  </textarea>
+                  <textarea <?=$is_locked['admission_prelim_txt'] ?> id="admission_prelim_txt" name="admission_prelim_txt" rows="4"><?
+                  echo htmlReady($course->admission_prelim_txt);
+                  ?></textarea>
               <? endif ?>
               <label class="caption"><?=_("verbindliche Anmeldung:")?></label>
               <label for="admission_binding">
               <input <?=$is_locked['admission_binding'] ?> id="admission_binding" type="checkbox" <?= ($course->admission_binding == 1 ? "checked" : ""); ?> name="admission_binding"  value="1">
               <?=_("Anmeldung ist <u>verbindlich</u>. (Teilnehmer können sich nicht austragen.)")?></label>
-              <?= Studip\Button::create(_("Anmeldemodus ändern"), 'change_admission_prelim') ?>
-              
+              <?= Studip\Button::create(_("Anmeldemodus ändern"), 'change_admission_prelim', array('rel' => 'lightbox')) ?>
     </fieldset>
 </form>
 <? if (get_config("ENABLE_FREE_ACCESS") && !$current_courseset) : ?>

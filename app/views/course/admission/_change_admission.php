@@ -6,6 +6,7 @@
 <? foreach($request as $k => $v) : ?>
     <?= addHiddenFields($k, $v) ?>
 <? endforeach ?>
-<?= Studip\Button::create(_("Ja"), 'change_admission_prelim_ok')?>
-<?= Studip\Button::create(_("Nein"), 'change_admission_prelim')?>
+<?= Studip\Button::create(_("Ja"), $button_yes)?>
+<?= Studip\Button::create(_("Nein"), $button_no)?>
+<?= Studip\LinkButton::create(_("Abbrechen"), $controller->url_for('/index'), array('rel' => 'close')) ?>
 </form>

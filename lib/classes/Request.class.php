@@ -526,8 +526,9 @@ class Request implements ArrayAccess, IteratorAggregate
             if (!$func) {
                 $func = 'get';
             }
-            if (self::get($param) !== null) {
-                $return[$param] = self::$func($param);
+            $value = self::$func($param);
+            if ($value !== null) {
+                $return[$param] = $value;
             }
         }
         return $return;

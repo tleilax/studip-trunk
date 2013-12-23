@@ -64,10 +64,18 @@ class Course_AdmissionController extends AuthenticatedController
         PageLayout::addStylesheet('form.css');
         if (Request::isXhr()) {
             $this->set_layout(null);
+            $this->response->add_header('X-No-Buttons', 1);
+            foreach (array_keys($_POST) as $param) {
+                Request::set($param, studip_utf8decode(Request::get($param)));
+            }
         } else {
             $this->set_layout($GLOBALS['template_factory']->open('layouts/base'));
         }
         $this->set_content_type('text/html;charset=windows-1252');
+        $lockrules = words('admission_turnout admission_type admission_endtime admission_binding passwort read_level write_level admission_prelim admission_prelim_txt admission_starttime admission_endtime_sem admission_disable_waitlist user_domain admission_binding admission_studiengang');
+        foreach ($lockrules as $rule) {
+            $this->is_locked[$rule] = LockRules::Check($this->course_id, $rule) ? 'disabled readonly' : '';
+        }
     }
 
     /**
@@ -77,16 +85,6 @@ class Course_AdmissionController extends AuthenticatedController
     {
         $this->setInfoboxImage(Assets::image_path('infobox/hoersaal.jpg'));
         $this->addToInfobox(_('Information'), _("Sie können hier die Zugangsberechtigungen bearbeiten."), 'icons/16/black/info');
-        $lockrules = words('admission_turnout admission_type
-                            admission_endtime admission_binding
-                            passwort read_level
-                            write_level admission_prelim
-                            admission_prelim_txt admission_starttime
-                            admission_endtime_sem admission_disable_waitlist
-                            user_domain admission_binding admission_studiengang');
-        foreach ($lockrules as $rule) {
-            $this->is_locked[$rule] = LockRules::Check($this->course_id, $rule) ? 'disabled readonly' : '';
-        }
         $this->all_domains = UserDomain::getUserDomains();
         $this->seminar_domains = array_map(function($d) {return $d->getId();}, UserDomain::getUserDomainsForSeminar($this->course_id));
         $this->current_courseset = CourseSet::getSetForCourse($this->course_id);
@@ -104,24 +102,68 @@ class Course_AdmissionController extends AuthenticatedController
     function change_admission_prelim_action()
     {
         CSRFProtection::verifyUnsafeRequest();
-        if (Request::submittedSome('change_admission_prelim', 'change_admission_prelim_ok')) {
-            $request = Request::extract('admission_prelim int, admission_binding int, admission_prelim_txt');
+        $this->response->add_header('X-Title', _('Anmeldemodus ändern'));
+        if (Request::submitted('change_admission_prelim')) {
+            $request = Request::extract('admission_prelim int, admission_binding submitted, admission_prelim_txt');
+            $request = array_diff_key($request, array_filter($this->is_locked));
+            $request['change_admission_prelim'] = 1;
             $this->course->setData($request);
             if ($this->course->isFieldDirty('admission_prelim')) {
-                if (!Request::submitted('change_admission_prelim_ok')) {
-                    if ($this->course->admission_prelim == 1 && $this->course->getNumParticipants()) {
-                        $question = _("Sie beabsichtigen den Anmeldemodus auf vorläufiger Eintrag zu ändern. Sollen die bereits in der Veranstaltung eingetragenen Teilnehmer in vorläufige Teilnehmer umgewandelt werden?");
-                    }
-                    if ($this->course->admission_prelim == 0 && $this->course->getNumPrelimParticipants()) {
-                        $question = _("Sie beabsichtigen den Anmeldemodus auf direkten Eintrag zu ändern. Sollen die vorläufigen Teilnehmer in die Veranstaltung übernommen werden?");
-                    }
-                }
-                
-            }
-            if (Request::submitted('change_admission_prelim_ok') || !$question) {
                 if ($this->course->admission_prelim == 1 && $this->course->getNumParticipants()) {
+                    $question = _("Sie beabsichtigen den Anmeldemodus auf vorläufiger Eintrag zu ändern. Sollen die bereits in der Veranstaltung eingetragenen Teilnehmer in vorläufige Teilnehmer umgewandelt werden?");
                 }
                 if ($this->course->admission_prelim == 0 && $this->course->getNumPrelimParticipants()) {
+                    $question = _("Sie beabsichtigen den Anmeldemodus auf direkten Eintrag zu ändern. Sollen die vorläufigen Teilnehmer in die Veranstaltung übernommen werden (ansonsten werden die vorläufigen Teilnehmer aus der Veranstaltung entfernt) ?");
+                }
+            }
+            if (Request::submittedSome('change_admission_prelim_no', 'change_admission_prelim_yes') || !$question) {
+                if ($this->course->admission_prelim == 1 && $this->course->getNumParticipants() && Request::submitted('change_admission_prelim_yes')) {
+                    $num_moved = 0;
+                    $seminar = new Seminar($this->course_id);
+                    foreach ($this->course->members->findBy('status', array('user','autor'))->pluck('user_id') as $user_id) {
+                        $seminar->addPreliminaryMember($user_id);
+                        $num_moved += ($seminar->deleteMember($user_id) !== false);
+                        setTempLanguage($user_id);
+                        $message_body = sprintf(_('Sie wurden in der Veranstaltung **%s** in den Status **vorläufig akzeptiert** befördert, da das Anmeldeverfahren geändert wurde.'), $this->course->name);
+                        $message_title = sprintf(_("Statusänderung %s"), $this->course->name);
+                        messaging::sendSystemMessage($user_id, $message_title, $message_body);
+                        restoreLanguage();
+                    }
+                    if ($num_moved) {
+                        PageLayout::postMessage(MessageBox::success(sprintf(_("%s Teilnehmer wurden auf vorläufigen Eintrag gesetzt."), $num_moved)));
+                    }
+                }
+                if ($this->course->admission_prelim == 0 && $this->course->getNumPrelimParticipants()) {
+                    if (Request::submitted('change_admission_prelim_yes')) {
+                        $num_moved = 0;
+                        $seminar = new Seminar($this->course_id);
+                        foreach ($this->course->admission_applicants->findBy('status', 'accepted')->pluck('user_id') as $user_id) {
+                            $num_moved += ($seminar->addMember($user_id, 'autor') !== false);
+                            setTempLanguage($user_id);
+                            $message_body = sprintf(_('Sie wurden in der Veranstaltung **%s** in den Status **Autor** versetzt, da das Anmeldeverfahren geändert wurde.'), $this->course->name);
+                            $message_title = sprintf(_("Statusänderung %s"), $this->course->name);
+                            messaging::sendSystemMessage($user_id, $message_title, $message_body);
+                            restoreLanguage();
+                        }
+                        if ($num_moved) {
+                            PageLayout::postMessage(MessageBox::success(sprintf(_("%s Teilnehmer wurden in die Veranstaltung übernommen."), $num_moved)));
+                        }
+                    }
+                    if (Request::submitted('change_admission_prelim_no')) {
+                        $num_moved = 0;
+                        foreach ($this->course->admission_applicants->findBy('status', 'accepted') as $applicant) {
+                            setTempLanguage($applicant->user_id);
+                            $message_body = sprintf(_('Sie wurden in der Veranstaltung **%s** in den Status **vorläufig akzeptiert** befördert, da das Anmeldeverfahren geändert wurde.'), $this->course->name);
+                            $message_body = sprintf(_('Sie wurden aus der Veranstaltung **%s** entfernt, da das Anmeldeverfahren geändert wurde.'), $this->course->name);
+                            $message_title = sprintf(_("Statusänderung %s"), $this->course->name);
+                            messaging::sendSystemMessage($applicant->user_id, $message_title, $message_body);
+                            restoreLanguage();
+                            $num_moved += $applicant->delete();
+                        }
+                        if ($num_moved) {
+                            PageLayout::postMessage(MessageBox::success(sprintf(_("%s vorläufige Teilnehmer wurden entfernt."), $num_moved)));
+                        }
+                    }
                 }
                 if ($this->course->store()) {
                     PageLayout::postMessage(MessageBox::success(_("Der Anmeldemodus wurde geändert.")));
@@ -132,11 +174,57 @@ class Course_AdmissionController extends AuthenticatedController
         if (!$question) {
             $this->redirect($this->url_for('/index'));
         } else {
+            $this->button_yes = 'change_admission_prelim_yes';
+            $this->button_yes = 'change_admission_prelim_no';
             $this->request = $request;
             PageLayout::postMessage(MessageBox::info($question));
+            $this->render_template('course/admission/_change_admission.php');
         }
     }
 
+    function change_admission_turnout_action()
+    {
+        CSRFProtection::verifyUnsafeRequest();
+        $this->response->add_header('X-Title', _('Teilnehmeranzahl ändern'));
+        if (Request::submitted('change_admission_turnout')) {
+            $request = Request::extract('admission_turnout int, admission_disable_waitlist submitted, admission_disable_waitlist_move submitted, admission_waitlist_max int');
+            $request = array_diff_key($request, array_filter($this->is_locked));
+            $request['change_admission_turnout'] = 1;
+            if ($request['admission_turnout'] > 1) {
+                $this->course->admission_turnout = $request['admission_turnout'];
+            }
+            if (isset($request['admission_disable_waitlist'])) {
+                $this->course->admission_disable_waitlist = $request['admission_disable_waitlist'] ? 0 : 1;
+                if ($this->admission_disable_waitlist && $this->course->getNumWaiting()) {
+                    $question = sprintf(_("Sie beabsichtigen die Warteliste zu deaktivieren. Die bestehende Warteliste mit %s Einträgen wird gelöscht. Sind sie sicher?"), $this->course->getNumWaiting());
+                }
+            }
+            if (isset($request['admission_disable_waitlist_move'])) {
+                $this->course->admission_disable_waitlist_move = $request['admission_disable_waitlist_move'] ? 0 : 1;
+            }
+            if (isset($request['admission_waitlist_max'])) {
+                $this->course->admission_waitlist_max = $request['admission_waitlist_max'];
+                if ($this->course->admission_waitlist_max > 0 && !$this->admission_disable_waitlist && $this->course->getNumWaiting() > $this->course->admission_waitlist_max) {
+                    $question = sprintf(_("Sie beabsichtigen die Anzahl der Wartenden zu begrenzen. Die letzten %s Einträge der Warteliste werden gelöscht. Sind sie sicher?"), $this->course->getNumWaiting()-$this->course->admission_waitlist_max);
+                }
+            }
+            if (Request::submitted('change_admission_turnout_yes') || !$question) {
+                if ($this->course->store()) {
+                    PageLayout::postMessage(MessageBox::success(_("Die Teilnehmeranzahl wurde geändert.")));
+                }
+                unset($question);
+            }
+        }
+        if (!$question) {
+            $this->redirect($this->url_for('/index'));
+        } else {
+            $this->request = $request;
+            $this->button_yes = 'change_admission_turnout_yes';
+            PageLayout::postMessage(MessageBox::info($question));
+            $this->render_template('course/admission/_change_admission.php');
+        }
+    }
+    
     function change_domains_action()
     {
         CSRFProtection::verifyUnsafeRequest();
@@ -169,13 +257,7 @@ class Course_AdmissionController extends AuthenticatedController
     
     function instant_course_set_action()
     {
-        if (Request::isXhr()) {
-            $this->response->add_header('X-Title', _('Neue Anmelderegel'));
-            $this->response->add_header('X-No-Buttons', 1);
-            foreach (array_keys($_POST) as $param) {
-                Request::set($param, studip_utf8decode(Request::get($param)));
-            }
-        }
+        $this->response->add_header('X-Title', _('Neue Anmelderegel'));
         $type = Request::option('type');
         $rule_id = Request::option('rule_id');
         $rule_types = AdmissionRule::getAvailableAdmissionRules(true);
@@ -201,12 +283,7 @@ class Course_AdmissionController extends AuthenticatedController
                     $course_set->setCourses(array($this->course_id));
                     $course_set->store();
                     PageLayout::postMessage(MessageBox::success(_("Die Anmelderegel wurde erzeugt und der Veranstaltung zugewiesen.")));
-                    if (Request::isXhr()) {
-                        $this->response->add_header('X-Location', $this->url_for('/index'));
-                        $this->render_nothing();
-                    } else {
-                        $this->redirect($this->url_for('/index'));
-                    }
+                    $this->redirect($this->url_for('/index'));
                     return;
                 }
             }
@@ -222,4 +299,18 @@ class Course_AdmissionController extends AuthenticatedController
         }
     }
 
+    function after_filter($action, $args)
+    {
+        if (Request::isXhr()) {
+            foreach ($this->response->headers as $k => $v) {
+                if ($k === 'Location') {
+                    $this->response->headers['X-Location'] = $v;
+                    unset($this->response->headers['Location']);
+                    $this->response->set_status(200);
+                    $this->response->body = '';
+                }
+            }
+        }
+        parent::after_filter($action, $args);
+    }
 }

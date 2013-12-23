@@ -43,14 +43,19 @@ jQuery('[data-behaviour="\'ajaxContent\'"]').live('click', function () {
 // Any included link with a rel value containing "option" in the response
 // will be transformed into a button of the lightbox and removed from the
 // response. A close button is always present.
-jQuery('a[rel~="lightbox"]').live('click', function (event) {
+jQuery('a[rel~="lightbox"], button[rel~="lightbox"]').live('click', function (event) {
     var $that     = jQuery(this),
         href      = $that.attr('href'),
         container = jQuery('<div/>');
-
+    if ($that.prop('form') !== undefined) {
+       var that_form = jQuery($that.prop('form'));
+       var that_params = that_form.serializeArray();
+       that_params.push({'name' : $that.attr('name'), 'value' : 1});
+       href = that_form.attr('action');
+    }
     // Load response into a helper container, open dialog after loading
     // has finished.
-    container.load(href, function (response, status, xhr) {
+    container.load(href, that_params || {}, function (response, status, xhr) {
         var width   = jQuery('body').width() * 2 / 3,
             height  = jQuery('body').height() * 2 / 3,
             buttons = {},
@@ -99,20 +104,24 @@ jQuery('a[rel~="lightbox"]').live('click', function (event) {
                 },
             });
         });
-        // Create dialog
-        jQuery(this).dialog({
-            width :  width,
-            height:  height,
-            buttons: buttons,
-            title:   title,
-            modal:   true,
-            open: function () {
-                jQuery('head').append(scripts);
-            },
-            close: function() {
-                jQuery(this).remove();
-            },
-        });
+        if (xhr.getResponseHeader('X-Location')) {
+            document.location.replace(xhr.getResponseHeader('X-Location'));
+        } else {
+            // Create dialog
+            jQuery(this).dialog({
+                width :  width,
+                height:  height,
+                buttons: buttons,
+                title:   title,
+                modal:   true,
+                open: function () {
+                    jQuery('head').append(scripts);
+                },
+                close: function() {
+                    jQuery(this).remove();
+                },
+            });
+        }
     });
 
     event.preventDefault();
