@@ -106,7 +106,7 @@ class Step00240CourseSets extends Migration
                 `mkdate` INT NOT NULL DEFAULT 0,
                 `chdate` INT NOT NULL DEFAULT 0,
             PRIMARY KEY (`set_id`) ,
-            INDEX `set_user` (`set_id` ASC, `user_id` ASC)
+            INDEX `set_user` (`set_id` ASC, `user_id` ASC) )
             ENGINE = MyISAM");
 
         // admission rules with max number of courses to register for
