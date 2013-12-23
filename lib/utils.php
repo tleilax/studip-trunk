@@ -1,9 +1,9 @@
 <?php namespace Utils;
 /**
- * RichTextPluginUtils.php - Utility functions needed by the RichText plugin.
+ * utils.php - Various utility functions.
  *
- * Even though these functions are included with the ExternalLink plugin they 
- * are not specific to it and might be useful in other projects as well.
+ * These functions where originally implemented as part of the RichTextPlugin 
+ * and are required by some parts of the WYSIWYG editor implementation.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -14,6 +14,13 @@
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
  */
+require_once('bootstrap.php');
+// TODO replace dependence on bootstrap.php by actually used scripts
+//
+// Partial list of scripts included by bootstrap.php and why they are needed:
+//
+//   classes/Request.class.php      Request::isPost
+//   phplib_local.inc.php           $GLOBALS['perm']
 
 /**
  * Get the current URL as called by the web client.
@@ -78,7 +85,8 @@ function getFolder($folder_id) {
  * @param string $name        Name of the folder.
  * @param string $description Description of the folder (optional and only 
  *                            used if folder doesn't exist).
- * @return string The ID of the Stud.IP folder.
+ * @return string  Stud.IP document folder identifier. An MD5 hash created
+ *                 from the folder's name and the seminar's identifier).
  */
 function getFolderId($name, $description=null) {
     $seminar_id = getSeminarId();
@@ -95,6 +103,21 @@ function getFolderId($name, $description=null) {
         . ', description = ' . $db->quote($description) 
     );
     return $folder_id;
+}
+
+/**
+ * Normalize $_FILES for HTML array upload of multiple files.
+ * 
+ * @return array  Each entry contains an associative array for a single file
+ *                with name, type, tmp_name, error, and size keys set.
+ */
+function FILES(){
+    foreach($_FILES['files'] as $key => $fileList){
+        foreach($fileList as $fileIndex => $value){
+            $files[$fileIndex][$key] = $value;
+        }
+    }
+    return $files;
 }
 
 /**
@@ -388,7 +411,8 @@ function isStudipMediaUrlPath($path) {
 }
 
 function hasPermission($permission) {
-    return $GLOBALS['perm']->have_studip_perm($permission, getSeminarId());
+    $perm = new \Seminar_Perm();
+    return $perm->have_studip_perm($permission, getSeminarId());
 }
 
 /**
@@ -415,6 +439,25 @@ function verifyPostRequest() {
 }
 
 /**
+ * Decodes a UTF-8 encoded POST variable.
+ *
+ * @params string  variable    POST variable's name.
+ * @params boolean must_exist  Throw an exception if variable not posted.
+ *
+ * @return mixed value  The variable's decoded value as string or NULL if the 
+ *                      variable has not been posted and must_exist is FALSE.
+ */
+function utf8POST($variable, $must_exist=FALSE) {
+    if (isset($variable)) {
+        return studip_utf8decode($_POST[$variable]);
+    }
+    if ($must_exist) {
+        throw new Exception("POST variable $variable not set.");
+    }
+    return NULL;
+}
+
+/**
  * Read the value of a global configuration entry from the database.
  *
  * @param string $name Identifier of the configuration entry.
@@ -422,4 +465,37 @@ function verifyPostRequest() {
  */
 function getConfigValue($name) {
     return \Config::GetInstance()->getValue($name);
+}
+
+/**
+ * Send the HTTP response as a JSON-encoded string.
+ * @param mixed $response The value that should be sent as response.
+ */
+function sendAsJson($response) {
+    negotiateJsonContent();
+    echo json_encode($response);
+}
+
+/**
+ * Set content-type to application/json if client accepts it.
+ *
+ * If client doesn't accept JSON then set text/plain.
+ * Also tell proxies/caches that content depends on what client accepts.
+ */
+function negotiateJsonContent() {
+    header('Vary: Accept');
+    if (httpAcceptsJson()) {
+        header('Content-type: application/json; charset=utf-8');
+    } else {
+        header('Content-type: text/plain; charset=utf-8');
+    }
+}
+
+/**
+ * Checks if application/json is set in HTTP_ACCEPT.
+ * @returns boolean TRUE if JSON response is accepted, FALSE otherwise.
+ */
+function httpAcceptsJson() {
+    return isset($_SERVER['HTTP_ACCEPT'])
+        && (strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false);
 }

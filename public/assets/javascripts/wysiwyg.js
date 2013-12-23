@@ -15,6 +15,9 @@ jQuery(function($){
         return;
     }
 
+    // workaround: application.js sets base_url too late
+    STUDIP.URLHelper.base_url = STUDIP.ABSOLUTE_URI_STUDIP;
+
     function replaceTextarea(textarea){
         var uiColor = '#7788AA';  // same as studip's tab navigation background
 
@@ -43,7 +46,7 @@ jQuery(function($){
                            + ',forms,iframe,maximize,newpage,preview,resize'
                            + ',showblocks,stylescombo,templates,save,smiley',
             extraPlugins: 'autogrow,divarea,sharedspace,studip-wiki,studip-upload',
-            studipUpload_url: $('#post_files_url').val(),
+            studipUpload_url: STUDIP.URLHelper.getURL('upload.php'),
             autoGrow_onStartup: true,
             sharedSpaces: { // needed for sticky toolbar (see stickyTools())
     			top: toolbarId
