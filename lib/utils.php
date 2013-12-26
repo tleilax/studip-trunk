@@ -13,6 +13,43 @@
  * @author      Robert Costa <rcosta@uos.de>
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
+ *
+ * Overview
+ * --------
+ * getUrl                   Return URL that was called by the web client.
+ * getBasename              Return filename of currently executed PHP script.
+ * getBaseUrl               Like getUrl but exclude base name and everything thereafter.
+ * getSeminarId             Return the selected seminar's identifier.
+ * getFolder                Return a Stud.IP folder's name.
+ * insertColumn             Return string for setting column value in INSERT query.
+ * getFolderId              Return a Stud.IP folder's identifier.
+ * FILES                    Return normalized $_FILES array.
+ * uploadFile               Create a new Stud.IP document from an uploaded file.
+ * verifyUpload             Throw exception if upload of given file is forbidden.
+ * getStudipDocumentData    Return metadata for creating a new Stud.IP document.
+ * startsWith               Test if string starts with prefix.
+ * endsWith                 Test if string ends with suffix.
+ * removePrefix             Remove prefix from string.
+ * getMediaUrl              Return proxied URL, if media proxy is active.
+ * removeStudipDomain       Remove domain name from internal URLs.
+ * tranformInternalIdnaLink Return a normalized, internal URL.
+ * encodeMediaProxyUrl      Return media proxy URL for a given URL.
+ * isStudipMediaUrl         Test if an URL points to internal Stud.IP media path.
+ * getStudipRelativePath    Return URL path component relative to Stud.IP path.
+ * decodeMediaProxyUrl      Extract the original URL from a media proxy URL.
+ * getMediaProxyPath        Return just the path of Stud.IP's media proxy URL.
+ * getMediaProxyUrl         Return Stud.IP's absolute media proxy URL.
+ * isStudipUrl              Test if URL points to internal Stud.IP resource.
+ * getParsedStudipUrl       Return associative array with Stud.IP URL elements.
+ * isStudipMediaUrlPath     Test if path is valid for internal Stud.IP media URLs.
+ * hasPermission            Test if current user has required access level.
+ * verifyPermission         Throw exception if user hasn't required access level.
+ * verifyPostRequest        Throw exception if HTTP request was not send as POST.
+ * utf8POST                 Decode a UTF-8 encoded POST variable.
+ * getConfigValue           Return a configuration value from the Stud.IP DB.
+ * sendAsJson               Send HTTP response as JSON-encoded string.
+ * negotiateJsonContent     Set content-type to application/json if client accepts it.
+ * httpAcceptsJson          Check if application/json is set in HTTP_ACCEPT.
  */
 require_once('bootstrap.php');
 // TODO replace dependence on bootstrap.php by actually used scripts
@@ -24,11 +61,13 @@ require_once('bootstrap.php');
 
 /**
  * Get the current URL as called by the web client.
- * taken from http://stackoverflow.com/a/2820771
  *
  * @return string  The current URL.
+ *
+ * Originally posted on http://stackoverflow.com/a/2820771 by user maček.
  */
 function getUrl() {
+    // TODO move condition to function "httpsActive()"
     $protocol = ($_SERVER['HTTPS'] && $_SERVER['HTTPS'] != 'off') ? 'https' : 'http';
     return $protocol . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
 }
@@ -43,6 +82,8 @@ function getBasename() {
 }
 
 /**
+ * Like getUrl but exclude base name and everything thereafter.
+ *
  * Get the base URL including the directory path, excluding file name, 
  * query string, etc.
  *
@@ -57,10 +98,10 @@ function getBaseUrl() {
 }
 
 /**
- * Return id of currently selected seminar.
- * Return false, if no seminar is selected.
+ * Return the selected seminar's identifier.
  *
- * @return mixed  seminar_id or false
+ * @return mixed  Seminar identifier (string) or FALSE (boolean) if no
+ *                seminar is selected.
  */
 function getSeminarId() {
     if (!\Request::option('cid')) {
@@ -73,6 +114,12 @@ function getSeminarId() {
     return \Request::option('cid');
 }
 
+/**
+ * Return a Stud.IP document folder's name.
+ *
+ * @param string $folder_id  Stud.IP document folder identifier.
+ * @returns string  Stud.IP document folder name.
+ */
 function getFolder($folder_id) {
     $db = \DBManager::get();
     return $db->query('SELECT * FROM folder WHERE folder_id = '
@@ -81,7 +128,8 @@ function getFolder($folder_id) {
 }
 
 /**
- * Return a string for a single column value of an INSERT query.
+ * Return string for setting column value in INSERT query.
+ *
  * @param object $db    Reference to the DB connector object.
  * @param string $name  Name of the column.
  * @param string $value Value of the column.
@@ -93,6 +141,7 @@ function insertColumn($name, $value) {
 
 /**
  * Get ID of a Stud.IP folder, create the folder if it doesn't exist.
+ *
  * @param string $name        Name of the folder.
  * @param string $description Description of the folder (optional and only 
  *                            used if folder doesn't exist).
@@ -127,6 +176,7 @@ function getFolderId($name, $description=null) {
  * @return array  Each entry contains an associative array for a single file
  *                with name, type, tmp_name, error, and size keys set.
  */
+// TODO rename to getFILES()
 function FILES(){
     // TODO improve description
     // TODO make it work with any kind of file upload, not only HTML array
@@ -163,8 +213,9 @@ function uploadFile($file, $folder_id) {
 }
 
 /**
- * Verify that it is allowed to upload the file.
- * @param Array $file PHP file info array of uploaded file.
+ * Throw exception if upload of given file is forbidden.
+ *
+ * @param Array $file  PHP file info array of uploaded file.
  * @throws AccessDeniedException if file is forbidden by Stud.IP settings.
  */
 function verifyUpload($file) {
@@ -242,11 +293,13 @@ function removePrefix($string, $prefix) {
     return $string;
 }
 
+// TODO move this function to a unit test file
 function testMediaUrl($a, $b) {
     $c = getMediaUrl($a);
     \assert($c == $b, "getMediaUrl($a)\n== $c\n!= $b\n");
 }
 
+// TODO move this function to a unit test file
 function testGetMediaUrl() {
     \header('Content-type: text/plain; charset=utf-8');
 
@@ -300,9 +353,12 @@ function getMediaUrl($url) {
 }
 
 /**
- * Removes scheme, domain and authentication information from internal
- * Stud.IP URLs. Leaves external URLs untouched.
- * @param string $url   The URL from which to remove internal domain.
+ * Remove domain name from internal URLs.
+ *
+ * Remove scheme, domain and authentication information from internal
+ * Stud.IP URLs. Leave external URLs untouched.
+ * 
+ * @param string $url   URL from which to remove internal domain.
  * @returns string      URL without internal domain or the exact same
  *                      value as $url for external URLs.
  */
@@ -317,10 +373,22 @@ function removeStudipDomain($url) {
     return $path . $query . $fragment;
 }
 
+/**
+ * Return a normalized, internal URL.
+ *
+ * @params string $url  An internal URL.
+ * @returns string      Normalized internal URL.
+ */
 function tranformInternalIdnaLink($url) {
     return \idna_link(\TransformInternalLinks($url));
 }
 
+/**
+ * Return media proxy URL for a given URL.
+ *
+ * @params string $url  The unproxied URL for accessing a resource.
+ * @return string       The media proxy URL for accessing the same resource.
+ */
 function encodeMediaProxyUrl($url) {
     $base_url = $GLOBALS['ABSOLUTE_URI_STUDIP'];
     $media_proxy = $base_url . 'dispatch.php/media_proxy?url=';
@@ -343,7 +411,7 @@ function isStudipMediaUrl($url) {
 }
 
 /**
- * Returns a URL's path component with the absolute Stud.IP path removed.
+ * Return a URL's path component with the absolute Stud.IP path removed.
  *
  * NOTE: If the URL is not an internal Stud.IP URL, the path component will
  * nevertheless be returned without issuing an error message.
@@ -364,7 +432,8 @@ function getStudipRelativePath($url) {
 }
 
 /**
- * Extracts the original URL from a media proxy URL.
+ * Extract the original URL from a media proxy URL.
+ *
  * @param string $url The media proxy URL.
  * return string The original URL. If $url does not point to the media 
  *               proxy then this is the exact same value given by $url.
@@ -379,19 +448,25 @@ function decodeMediaProxyUrl($url) {
     return $url;
 }
 
+/**
+ * Return just the path of Stud.IP's media proxy URL.
+ */
 function getMediaProxyPath() {
     return removeStudipDomain(getMediaProxyUrl());
 }
 
+/**
+ * Return Stud.IP's absolute media proxy URL.
+ */
 function getMediaProxyUrl() {
     return $GLOBALS['ABSOLUTE_URI_STUDIP'] . 'dispatch.php/media_proxy';
 }
 
 /**
  * Test if given URL points to an internal Stud.IP resource.
- * @param string $url   The URL that is tested.
- * @return boolean      TRUE if URL points to internal Stud.IP resource,
- *                      otherwise FALSE.
+ *
+ * @param string $url  URL that is tested.
+ * @return boolean     TRUE if URL points to internal Stud.IP resource.
  */
 function isStudipUrl($url) {
     $studip_url = getParsedStudipUrl();
@@ -415,15 +490,18 @@ function isStudipUrl($url) {
 
 /**
  * Return an associative array containing the Stud.IP URL elements.
+ *
  * see also: http://php.net/manual/en/function.parse-url.php
- * @returns mixed The exact same values that PHP's parse_url() returns.
+ *
+ * @returns mixed  Same values that PHP's parse_url() returns.
  */
 function getParsedStudipUrl() {
     return \parse_url($GLOBALS['ABSOLUTE_URI_STUDIP']);
 }
 
 /**
- * Test if given URL path is valid for internal Stud.IP media files.
+ * Test if path is valid for internal Stud.IP media URLs.
+ *
  * @params string $path The path component of an URL.
  * return boolean       TRUE for valid media paths, FALSE otherwise.
  */
@@ -433,13 +511,20 @@ function isStudipMediaUrlPath($path) {
     return \in_array($path_head, $valid_paths);
 }
 
+/**
+ * Test if current user has required access level.
+ *
+ * @params string $permission  Minimum require access level.
+ * @returns boolean            TRUE if user has required access level.
+ */
 function hasPermission($permission) {
     return $GLOBALS['perm']->have_studip_perm($permission, getSeminarId());
 }
 
 /**
- * Verify that user has needed permission.
- * @param string $permission Minimum requested permission level.
+ * Throw exception if current user hasn't required access level.
+ *
+ * @param string $permission  Minimum required access level.
  * @throws AccessDeniedException if user does not have permission.
  */
 function verifyPermission($permission) {
@@ -450,7 +535,7 @@ function verifyPermission($permission) {
 }
 
 /**
- * Verify that HTTP request was send as HTTP POST
+ * Throw exception if HTTP request was not send as POST.
  * @throws AccessDeniedException if request was not send as HTTP POST.
  */
 function verifyPostRequest() {
@@ -461,36 +546,40 @@ function verifyPostRequest() {
 }
 
 /**
- * Decodes a UTF-8 encoded POST variable.
+ * Decode a UTF-8 encoded POST variable.
  *
  * @params string  variable    POST variable's name.
  * @params boolean must_exist  Throw an exception if variable not posted.
  *
  * @return mixed value  The variable's decoded value as string or NULL if the 
  *                      variable has not been posted and must_exist is FALSE.
+ * @throws Exception if must_exist is TRUE and variable is not set.
  */
 function utf8POST($variable, $must_exist=FALSE) {
+    // TODO shouldn't this be isset($_POST[$variable])??
     if (isset($variable)) {
         return studip_utf8decode($_POST[$variable]);
     }
     if ($must_exist) {
+        // TODO why doesn't this have any effect???
         throw new Exception("POST variable $variable not set.");
     }
     return NULL;
 }
 
 /**
- * Read the value of a global configuration entry from the database.
+ * Return a configuration value from the Stud.IP DB.
  *
- * @param string $name Identifier of the configuration entry.
- * @returns string Value of the configuration entry.
+ * @param string $name  Identifier of the configuration entry.
+ * @returns string      Value of the configuration entry.
  */
 function getConfigValue($name) {
     return \Config::GetInstance()->getValue($name);
 }
 
 /**
- * Send the HTTP response as a JSON-encoded string.
+ * Send HTTP response as JSON-encoded string.
+ *
  * @param mixed $response The value that should be sent as response.
  */
 function sendAsJson($response) {
@@ -501,8 +590,8 @@ function sendAsJson($response) {
 /**
  * Set content-type to application/json if client accepts it.
  *
- * If client doesn't accept JSON then set text/plain.
  * Also tell proxies/caches that content depends on what client accepts.
+ * If client doesn't accept JSON then set text/plain.
  */
 function negotiateJsonContent() {
     header('Vary: Accept');
@@ -514,7 +603,8 @@ function negotiateJsonContent() {
 }
 
 /**
- * Checks if application/json is set in HTTP_ACCEPT.
+ * Check if application/json is set in HTTP_ACCEPT.
+ *
  * @returns boolean TRUE if JSON response is accepted, FALSE otherwise.
  */
 function httpAcceptsJson() {
