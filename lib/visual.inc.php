@@ -247,7 +247,7 @@ function jsReady ($what, $target) {
     case "inline-double" :
         return htmlReady(addcslashes($what, "\\\"\n\r"), false, false, true);
     break;
-        
+
     }
     return addslashes($what);
 }
@@ -905,8 +905,7 @@ function tooltip2($text, $with_alt = TRUE, $with_popup = FALSE) {
 function tooltipIcon($text, $important = false, $html = false)
 {
     // prepare text
-    $text = preg_replace("/(\n\r|\r\n|\n|\r)/", " ", $text);
-    $text = ($html) ? $text : htmlReady($text);
+    $text = ($html) ? $text : htmlReady($text, true, true);
 
     // render tooltip
     $template = $GLOBALS['template_factory']->open('shared/tooltip');
@@ -953,6 +952,27 @@ function createQuestion($question, $approveParams, $disapproveParams = array(), 
 
     $template->set_attribute('approvalLink', URLHelper::getURL($baseUrl, $approveParams ));
     $template->set_attribute('disapprovalLink', URLHelper::getURL($baseUrl, $disapproveParams ));
+    $template->set_attribute('question', $question);
+
+    return $template->render();
+}
+
+/**
+* creates a modal dialog ensuring that the user is really aware about the action to perform with formulars
+*
+* @param   string $question          question of the modal dialog
+* @param   string $approveParams     an array of params for a link to be used on approval
+* @param   string $disapproveParams  an array of params for a link to be used on disapproval
+* @param   string $baseUrl           if set, this url is used, PHP_SELF otherwise
+*
+* @return  string $dialog            text which contains the dialog
+*/
+function createQuestion2($question, $approveParams, $disapproveParams = array(), $baseUrl = '?') {
+    $template = $GLOBALS['template_factory']->open('shared/question2');
+    
+    $template->set_attribute('approvalLink', $baseUrl);
+    $template->set_attribute('approvParams', $approveParams);
+    $template->set_attribute('disapproveParams', $disapproveParams);
     $template->set_attribute('question', $question);
 
     return $template->render();
