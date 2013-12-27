@@ -2,11 +2,9 @@
 
 <? if (trim($constraint['content'])) : ?>
 <div class="posting">
-    <span class="corners-top"><span></span></span>
     <div class="postbody">
         <div class="content"><?= formatReady(ForumEntry::killEdit($constraint['content'])) ?></div>
     </div>
-    <span class="corners-bottom"><span></span></span>
 </div>
 <? endif ?>
 
@@ -37,7 +35,7 @@
 
         <td class="icon">
             <a href="<?= PluginEngine::getLink('coreforum/index/index/'. $jump_to_topic_id .'#'. $jump_to_topic_id) ?>">
-            <? if ($entry['chdate'] >= $visitdate && $entry['owner_id'] != $GLOBALS['user']->id): ?>
+            <? if ($entry['chdate'] >= $visitdate && $entry['user_id'] != $GLOBALS['user']->id): ?>
                 <? $jump_to_topic_id = $entry['topic_id'] ?>
                 <?= Assets::img('icons/16/red/new/forum.png', array(
                     'title' => _('Dieser Eintrag ist neu!')
@@ -79,7 +77,7 @@
 
                 <span class="action-icons">
                     <? if (ForumPerm::has('move_thread', $seminar_id)) : ?>
-                    <a href="javascript:STUDIP.Forum.moveThreadDialog('<?= $entry['topic_id'] ?>');">
+                    <a href="javascript:STUDIP.Forum.moveThreadDialog('<?= $entry['topic_id'] ?>');" class="js">
                         <?= Assets::img('icons/16/blue/move_right/folder-full.png',
                             array('class' => 'move-thread', 'title' => _('Dieses Thema verschieben'))) ?>
                     </a>
@@ -155,7 +153,7 @@
                 <?= _('Anonym') ?>
             <? endif; ?>
             <? if (!$entry['anonymous'] || $entry['user_id'] == $GLOBALS['user']->id || $GLOBALS['perm']->have_perm('root')): ?>
-                <a href="<?= UrlHelper::getLink('about.php?username='. get_username($entry['owner_id'])) ?>">
+                <a href="<?= UrlHelper::getLink('about.php?username='. get_username($entry['user_id'])) ?>">
                     <?= htmlReady($entry['author']) ?>
                 </a>
                 <? endif; ?>
