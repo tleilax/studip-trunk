@@ -20,10 +20,12 @@
  * getBasename              Return filename of currently executed PHP script.
  * getBaseUrl               Like getUrl but exclude base name and everything thereafter.
  * getSeminarId             Return the selected seminar's identifier.
- * getFolder                Return a Stud.IP folder's name.
- * insertColumn             Return string for setting column value in INSERT query.
- * getFolderId              Return a Stud.IP folder's identifier.
- * FILES                    Return normalized $_FILES array.
+ * executeQuery             Execute a database query and return it's results.
+ * getFolder                Return a Stud.IP folder's database entry.
+ * folderExists             Return TRUE if a folder with the given ID exists.
+ * getFolderId              Return a folder's identifier.
+ * createFolder             Create a new Stud.IP folder or return an existing one.
+ * getUploadedFiles         Return normalized $_FILES array.
  * uploadFile               Create a new Stud.IP document from an uploaded file.
  * verifyUpload             Throw exception if upload of given file is forbidden.
  * getStudipDocumentData    Return metadata for creating a new Stud.IP document.
@@ -52,6 +54,7 @@
  * httpAcceptsJson          Check if application/json is set in HTTP_ACCEPT.
  */
 require_once('bootstrap.php');
+require_once('datei.inc.php');
 // TODO replace dependence on bootstrap.php by actually used scripts
 //
 // Partial list of scripts included by bootstrap.php and why they are needed:
@@ -115,59 +118,69 @@ function getSeminarId() {
 }
 
 /**
- * Return a Stud.IP document folder's name.
+ * Execute a database query and return it's results.
  *
- * @param string $folder_id  Stud.IP document folder identifier.
- * @returns string  Stud.IP document folder name.
+ * Do not use this function to fetch large result sets!
+ * Result format is as defined by PDO::ATTR_DEFAULT_FETCH_MODE.
+ *
+ * @param string $query       SQL query to execute.
+ * @param array  $parameters  Parameters for the SQL query.
+ * @return array              Result set rows (empty for zero results),
+ *                            FALSE on failure.
  */
-function getFolder($folder_id) {
-    $db = \DBManager::get();
-    return $db->query('SELECT * FROM folder WHERE folder_id = '
-        . $db->quote($folder_id)
-    )->fetch(\PDO::FETCH_COLUMN, 0);
+function executeQuery($query, $parameters) {
+    $statement = DBManager::get()->prepare($query);
+    $statement->execute($parameters);
+    return $statement->fetchAll();
 }
 
 /**
- * Return string for setting column value in INSERT query.
+ * Return a Stud.IP folder's database entry.
  *
- * @param object $db    Reference to the DB connector object.
- * @param string $name  Name of the column.
- * @param string $value Value of the column.
- * return string Part of SQL query that sets the column value.
+ * @param string $id  Folder identifier.
+ * @returns array     Folder data, empty array if folder doesn't exist,
+ *                    FALSE if something went wrong.
  */
-function insertColumn($name, $value) {
-    return "`$name`=" . \DBManager::get()->quote($value);
+function getFolder($id) {
+    return executeQuery('SELECT * FROM folder WHERE folder_id=?', $id);
 }
 
 /**
- * Get ID of a Stud.IP folder, create the folder if it doesn't exist.
- *
- * @param string $name        Name of the folder.
- * @param string $description Description of the folder (optional and only 
- *                            used if folder doesn't exist).
- * @return string  Stud.IP document folder identifier. An MD5 hash created
- *                 from the folder's name and the seminar's identifier).
+ * Return TRUE if a folder with the given ID exists.
  */
-function getFolderId($name, $description=null) {
-    // TODO if a folder by the given name already exists and return it
-    // TODO if description is set for existing folder, update it
-    $seminar_id = getSeminarId();
-    $folder_id = \md5($name . '_' . $seminar_id);
-    $time = time();
-    \DBManager::get()->exec('INSERT IGNORE INTO folder SET '
-       . implode(',', array_map(function($column){
-            return insertColumn($column[0], $column[1]);
-        }, [
-            ['folder_id', $folder_id],
-            ['range_id', $seminar_id],
-            ['user_id', $GLOBALS['user']->id],
-            ['name', $name],
-            ['permission', 7],
-            ['mkdate', $time],
-            ['chdate', $time],
-            ['description', $description]
-        ])));
-    return $folder_id;
+function folderExists($id) {
+    return (bool) getFolder($id);
+}
+
+/**
+ * Return a folder's identifier.
+ *
+ * @params string $name       Folder name.
+ * @params string $parent_id  Parent folder's ID, NULL for top-level
+ *                            folders.
+ * @return string             Folder ID if folder exists, NULL if not.
+ */
+function getFolderId($name, $parent_id=NULL) {
+    $result = executeQuery(
+        'SELECT folder_id FROM folder WHERE (name=?, range_id=?)',
+        $name, $parent_id ? $parent_id : getSeminarId());
+    return $result ? $result['folder_id'] : NULL;
+}
+
+/**
+ * Create a new Stud.IP folder or return an existing one.
+ *
+ * @param string $name        Folder name.
+ * @param string $description Folder description. Only used if folder
+ *                            doesn't already exist.
+ * @params string $parent_id  Parent folder's ID, NULL for top-level
+ *                            folders.
+ * @return string             Folder ID, NULL if something went wrong.
+ */
+function createFolder($name, $description=NULL, $parent_id=NULL) {
+    $id = getFolderId($name, $parent_id);
+    return $id ? $id : \create_folder($name, $description,
+                                      $parent_id ? $parent_id : getSeminarId());
 }
 
 /**
@@ -176,8 +189,7 @@ function getFolderId($name, $description=null) {
  * @return array  Each entry contains an associative array for a single file
  *                with name, type, tmp_name, error, and size keys set.
  */
-// TODO rename to getFILES()
-function FILES(){
+function getUploadedFiles(){
     // TODO improve description
     // TODO make it work with any kind of file upload, not only HTML array
     foreach($_FILES['files'] as $key => $fileList){
@@ -194,7 +206,8 @@ function FILES(){
  * @param array  $file      Metadata of uploaded file.
  * @param string $folder_id ID of Stud.IP folder to which file is uploaded.
  *
- * @return StudipDocument   The created Stud.IP document.
+ * @return StudipDocument   Stud.IP document, augmented with a
+ *                          `download_link` property.
  * @throws AccessDeniedException if file is forbidden or upload failed.
  */
 function uploadFile($file, $folder_id) {
@@ -208,7 +221,7 @@ function uploadFile($file, $folder_id) {
         throw new \AccessDeniedException(
             _('Stud.IP-Dokument konnte nicht erstellt werden.'));
     }
-
+    $newfile->download_link = getDownloadLink($newfile->getId());
     return $newfile;
 }
 
@@ -234,12 +247,10 @@ function verifyUpload($file) {
 /**
  * Initialize Stud.IP metadata array for creating a new Stud.IP document.
  *
- * @param string $folder_id     ID of Stud.IP folder in which the document
- *                              is generated.
- * @param array  $file          Array containing metadata of the uploaded
- *                              file.
+ * @param string $folder_id  ID of folder in which the document is created.
+ * @param array  $file       Metadata of uploaded file.
  *
- * @return array    Stud.IP document metadata
+ * @return array             Stud.IP document metadata
  */
 function getStudipDocumentData($folder_id, $file) {
     $filename = \studip_utf8decode($file['name']);
@@ -250,6 +261,18 @@ function getStudipDocumentData($folder_id, $file) {
     $document['range_id'] = $folder_id;
     $document['filesize'] = $file['size'];
     return $document;
+}
+
+/**
+ * Get download link for a file.
+ *
+ * @params string $id  File identifier in database table 'dokumente'.
+ * @returns string     Download link, NULL if file doesn't exist.
+ */
+function getDownloadLink($id) {
+    $result = executeQuery(
+        'SELECT filename FROM dokumente WHERE dokument_id=?', $id);
+    return $result ? GetDownloadLink($id, $result['filename']) : NULL;
 }
 
 /**
@@ -509,6 +532,16 @@ function isStudipMediaUrlPath($path) {
     list($path_head) = \explode('/', $path);
     $valid_paths = array('sendfile.php', 'download', 'assets', 'pictures');
     return \in_array($path_head, $valid_paths);
+}
+
+/**
+ * Initialize session management.
+ */
+function startSession() {
+    page_open(array("sess" => "Seminar_Session",
+                    "auth" => "Seminar_Auth",
+                    "perm" => "Seminar_Perm",
+                    "user" => "Seminar_User"));
 }
 
 /**
