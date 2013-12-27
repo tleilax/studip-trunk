@@ -43,22 +43,17 @@
  */
 require_once('../lib/utils.php');
 
-$upload_permission = 'autor';  // minimum permission level for uploading
-$default_folder = _('Uploads');
-$default_description
-    = _('Automatisch hochgeladene Dateien (z.B. vom WYSIWYG Editor).');
-
 // initialize session management and verify permissions
 Utils\startSession();
 Utils\verifyPostRequest();
-Utils\verifyPermission($upload_permission);
+Utils\verifyPermission('autor');  // minimum permission level for uploading
 CSRFProtection::verifyUnsafeRequest();
 
 // get folder ID
 if (isset($_POST['folder_id']) && Utils\folderExists($_POST['folder_id']) {
     $folder_id = $_POST['folder_id'];
 } else {
-    $folder_id = Utils\createFolder($default_folder, $default_description)
+    $folder_id = Utils\createFolder(_('Uploads'), _('Automatisch hochgeladene Dateien (z.B. vom WYSIWYG Editor).'))
         or exit(_('Erstellen des Upload-Ordners fehlgeschlagen.'));
 }
 
