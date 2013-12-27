@@ -54,7 +54,6 @@
  * httpAcceptsJson          Check if application/json is set in HTTP_ACCEPT.
  */
 require_once('bootstrap.php');
-require_once('datei.inc.php');
 // TODO replace dependence on bootstrap.php by actually used scripts
 //
 // Partial list of scripts included by bootstrap.php and why they are needed:
