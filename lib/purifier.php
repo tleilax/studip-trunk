@@ -1,19 +1,29 @@
 <?php namespace Purifier;
 /**
- * RichTextPluginPurifier.php - Auxilliary function for using HTML Purifier.
+ * purifier.php - Simplified interface to HTML Purifier.
  *
+ * This module exports just one function: `purify`. Use it like this:
+ *
+ *   $clean_html = Purifier\purify($dirty_html).
+ *
+ **
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
  *
- * @author      Robert Costa <zabbarob@gmail.com>
- * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
  * @category    Stud.IP
+ * @copyright   (c) 2013 Stud.IP e.V.
+ * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
+ * @since       File available since Release 3.0
+ * @author      Robert Costa <rcosta@uos.de>
  */
-if (!class_exists('HTMLPurifier_Bootstrap')) {
-    require_once 'HTMLPurifier/HTMLPurifier.auto.php';
-}
+require_once 'HTMLPurifier/HTMLPurifier.auto.php';
 require_once 'utils.php';
 
 /**

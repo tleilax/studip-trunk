@@ -5,15 +5,6 @@
  * These functions where originally implemented as part of the RichTextPlugin 
  * and are required by some parts of the WYSIWYG editor implementation.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * @author      Robert Costa <rcosta@uos.de>
- * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
- * @category    Stud.IP
- *
  * Overview
  * --------
  * getUrl                   Return URL that was called by the web client.
@@ -52,6 +43,23 @@
  * sendAsJson               Send HTTP response as JSON-encoded string.
  * negotiateJsonContent     Set content-type to application/json if client accepts it.
  * httpAcceptsJson          Check if application/json is set in HTTP_ACCEPT.
+ *
+ **
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * @category    Stud.IP
+ * @copyright   (c) 2013 Stud.IP e.V.
+ * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
+ * @since       File available since Release 3.0
+ * @author      Robert Costa <rcosta@uos.de>
  */
 require_once('bootstrap.php');
 // TODO replace dependence on bootstrap.php by actually used scripts

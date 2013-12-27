@@ -5,13 +5,26 @@
  * Files must be posted as an HTML array with the name "files":
  *   <input type="file" name="files[]" multiple />
  *
- * A folder identifier can be given in the POST variable "folder":
+ * A folder identifier can be given in the POST variable "folder_id":
  *   <input type="hidden" name="folder_id" value="IDENTIFIER" />
  *
  * If no folder identifier is given, files will be stored in a folder
  * named "Uploads".
  *
+ * Results are returned as a JSON-encoded array, in the following
+ * format:
  *
+ * [{"name": filename, "type": mime-type, "url": download-link},
+ *  {"name": filename, "type": mime-type, "error": error-message},
+ *  ...]
+ *
+ * Each array-entry corresponds to a single file, each file that was
+ * sent with the HTTP request has exactly one entry.
+ *
+ * Entries with the property "url" correspond to successful uploads.
+ * Entries with the property "error" correspond to failed uploads.
+ *
+ **
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of
@@ -22,9 +35,11 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * @author      Robert Costa <zabbarob@gmail.com>
- * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
+ * @copyright   (c) 2013 Stud.IP e.V.
+ * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
+ * @since       File available since Release 3.0
+ * @author      Robert Costa <rcosta@uos.de>
  */
 require_once('../lib/utils.php');
 
