@@ -22,11 +22,6 @@ class TimedAdmission extends AdmissionRule
     // --- ATTRIBUTES ---
 
     /**
-     * Timestamp for execution of seat distribution algorithm
-     */
-    public $distributionTime = 0;
-
-    /**
      * End of course admission.
      */
     public $endTime = 0;
@@ -73,16 +68,6 @@ class TimedAdmission extends AdmissionRule
         return _("Anmelderegeln dieses Typs legen ein Zeitfenster fest, in ".
             "dem die Anmeldung zu Veranstaltungen möglich ist. Es kann auch ".
             "nur ein Start- oder Endzeitpunkt angegeben werden.");
-    }
-
-    /**
-     * Gets the time for seat distribution algorithm.
-     *
-     * @return int
-     */
-    public function getDistributionTime()
-    {
-        return $this->distributionTime;
     }
 
     /**
@@ -136,7 +121,6 @@ class TimedAdmission extends AdmissionRule
         if ($current = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $this->message = $current['message'];
             $this->startTime = $current['start_time'];
-            $this->distributionTime = $current['distribution_time'];
             $this->endTime = $current['end_time'];
         }
     }
@@ -176,29 +160,13 @@ class TimedAdmission extends AdmissionRule
         if ($data['enddate']) {
             $edate = $data['enddate'];
             $etime = $data['endtime'];
+            if (!$etime) {
+                $etime = '23:59';
+            }
             $parsed = date_parse($edate.' '.$etime);
             $timestamp = mktime($parsed['hour'], $parsed['minute'], 0, $parsed['month'], $parsed['day'], $parsed['year']);
             $this->setEndTime($timestamp);
         }
-        if ($data['distributiondate']) {
-            $ddate = $data['distributiondate'];
-            $dtime = $data['distributiontime'];
-            $parsed = date_parse($ddate.' '.$dtime);
-            $timestamp = mktime($parsed['hour'], $parsed['minute'], 0, $parsed['month'], $parsed['day'], $parsed['year']);
-            $this->setDistributionTime($timestamp);
-        }
-        return $this;
-    }
-
-    /**
-     * Sets a new timestamp for seat distribution algorithm execution.
-     *
-     * @param  int newDistributionTime
-     * @return TimedAdmission
-     */
-    public function setDistributionTime($newDistributionTime)
-    {
-        $this->distributionTime = $newDistributionTime;
         return $this;
     }
 
@@ -232,13 +200,12 @@ class TimedAdmission extends AdmissionRule
     public function store() {
         // Store data.
         $stmt = DBManager::get()->prepare("INSERT INTO `timedadmissions` 
-            (`rule_id`, `message`, `start_time`, `distribution_time`, 
-            `end_time`, `mkdate`, `chdate`) VALUES (?, ?, ?, ?, ?, ?, ?) 
+            (`rule_id`, `message`, `start_time`, 
+            `end_time`, `mkdate`, `chdate`) VALUES (?, ?, ?, ?, ?, ?) 
             ON DUPLICATE KEY UPDATE `start_time`=VALUES(`start_time`), 
-            `distribution_time`=VALUES(`distribution_time`), 
-            `end_time`=VALUES(`end_time`), `chdate`=VALUES(`chdate`)");
+            `end_time`=VALUES(`end_time`),message=VALUES(message), `chdate`=VALUES(`chdate`)");
         $stmt->execute(array($this->id, $this->message, (int)$this->startTime, 
-            (int)$this->distributionTime, (int)$this->endTime, time(), time()));
+            (int)$this->endTime, time(), time()));
     }
 
     /**
@@ -266,6 +233,9 @@ class TimedAdmission extends AdmissionRule
         $errors = parent::validate($data);
         if (!$data['startdate'] && !$data['enddate']) {
             $errors[] = _('Bitte geben Sie entweder ein Start- oder Enddatum an.');
+        }
+        if ($data['startdate'] && strtotime($data['enddate']) < strtotime($data['startdate'])) {
+            $errors[] = _('Das Enddatum darf nicht vor dem Startdatum liegen.');
         }
         return $errors;
     }

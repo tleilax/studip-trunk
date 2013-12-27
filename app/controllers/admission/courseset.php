@@ -166,7 +166,7 @@ class Admission_CoursesetController extends AuthenticatedController {
                 ->setPrivate((bool) Request::get('private'))
                 ->clearAdmissionRules();
             foreach (Request::getArray('rules') as $serialized) {
-                $rule = unserialize(html_entity_decode($serialized, ENT_COMPAT | ENT_HTML401, 'iso-8859-1'));
+                $rule = unserialize($serialized);
                 $courseset->addAdmissionRule($rule);
             }
             $algorithm = new RandomAlgorithm();

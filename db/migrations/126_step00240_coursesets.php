@@ -46,7 +46,8 @@ class Step00240CourseSets extends Migration
                 ('LimitedAdmission', 1, 0, UNIX_TIMESTAMP()),
                 ('LockedAdmission', 1, 0, UNIX_TIMESTAMP()),
                 ('PasswordAdmission', 1, 0, UNIX_TIMESTAMP()),
-                ('TimedAdmission', 1, 0, UNIX_TIMESTAMP());");
+                ('TimedAdmission', 1, 0, UNIX_TIMESTAMP()),
+                ('ParticipantRestrictedAdmissions', 1, 0, UNIX_TIMESTAMP());");
 
         // Admission rules can be available globally or only at selected institutes.
         $db->exec("CREATE TABLE IF NOT EXISTS `admissionrule_inst` (
@@ -167,16 +168,23 @@ class Step00240CourseSets extends Migration
                 `rule_id` VARCHAR(32) NOT NULL ,
                 `message` TEXT NOT NULL ,
                 `start_time` INT NOT NULL DEFAULT 0,
-                `distribution_time` INT NOT NULL DEFAULT 0,
                 `end_time` INT NOT NULL DEFAULT 0,
                 `mkdate` INT NOT NULL DEFAULT 0,
                 `chdate` INT NOT NULL DEFAULT 0,
             PRIMARY KEY (`rule_id`) ,
             INDEX `start_time` (`start_time` ASC) ,
             INDEX `end_time` (`end_time` ASC) ,
-            INDEX `dist_time` (`distribution_time` ASC) ,
             INDEX `start_end` (`start_time` ASC, `end_time` ASC) )
             ENGINE = MyISAM");
+        
+        $db->exec("CREATE TABLE IF NOT EXISTS `participantrestrictedadmissions` (
+        `rule_id` varchar(32),
+        `message` text NOT NULL,
+        `distribution_time` int(11) NOT NULL DEFAULT 0,
+        `mkdate` int(11) NOT NULL DEFAULT 0,
+        `chdate` int(11) NOT NULL DEFAULT 0,
+        PRIMARY KEY (`rule_id`)
+        ) ENGINE=MyISAM");
 
         // assign users to lists with different factor in seat distribution
         $db->exec("CREATE TABLE IF NOT EXISTS `user_factorlist` (

@@ -363,16 +363,23 @@ class Course_AdmissionController extends AuthenticatedController
     function instant_course_set_action()
     {
         $this->response->add_header('X-Title', _('Neue Anmelderegel'));
-        $type = Request::option('type');
-        $rule_id = Request::option('rule_id');
+        list($type, $another_type) = explode('_', Request::option('type'));
+        list($rule_id, $another_rule_id) = explode('_', Request::option('rule_id'));
         $rule_types = AdmissionRule::getAvailableAdmissionRules(true);
         if (isset($rule_types[$type])) {
             $rule = new $type($type_id);
+            if (isset($rule_types[$another_type])) {
+                $another_rule = new $another_type($another_rule_id);
+            }
             $course_set = CourseSet::getSetForRule($rule_id) ?: new CourseSet();
             if (Request::isPost() && Request::submitted('save')) {
                 CSRFProtection::verifyUnsafeRequest();
                 $rule->setAllData(Request::getInstance());
                 $errors = $rule->validate(Request::getInstance());
+                if ($another_rule) {
+                    $another_rule->setAllData(Request::getInstance());
+                    $errors = array_merge($errors, $another_rule->validate(Request::getInstance()));
+                }
                 if (!strlen(trim(Request::get('instant_course_set_name')))) {
                     $errors[] = _("Bitte geben Sie einen Namen für die Anmelderegel ein!");
                 } else {
@@ -386,6 +393,9 @@ class Course_AdmissionController extends AuthenticatedController
                     $course_set->addAdmissionRule($rule);
                     $course_set->setAlgorithm(new RandomAlgorithm());//TODO
                     $course_set->setCourses(array($this->course_id));
+                    if ($another_rule) {
+                        $course_set->addAdmissionRule($another_rule);
+                    }
                     $course_set->store();
                     PageLayout::postMessage(MessageBox::success(_("Die Anmelderegel wurde erzeugt und der Veranstaltung zugewiesen.")));
                     $this->redirect($this->url_for('/index'));
@@ -398,6 +408,11 @@ class Course_AdmissionController extends AuthenticatedController
             $this->rule_template = $rule->getTemplate();
             $this->type = $type;
             $this->rule_id = $rule_id;
+            if ($another_rule) {
+                $this->type = $this->type . '_' . $another_type;
+                $this->rule_id = $this->rule_id . '_' . $another_rule->getId();
+                $this->rule_template = $another_rule->getTemplate() . $this->rule_template;
+            }
             $this->course_set_name = $course_set->getName();
         } else {
             throw new Trails_Exception(400);

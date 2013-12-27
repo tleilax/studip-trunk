@@ -75,7 +75,9 @@ class Course_EnrolmentController extends AuthenticatedController
             } else {
                 if ($courseset->isSeatDistributionEnabled()) {
                     if ($courseset->hasAlgorithmRun()) {
-                        $msg = _("Die Plätze in dieser Veranstaltung wurden automatisch verteilt.");
+                        if ($courseset->getDistributionTime()) {
+                            $msg = _("Die Plätze in dieser Veranstaltung wurden automatisch verteilt.");
+                        }
                         if (StudipLock::get('enrolment' . $this->course_id)) {
                             $course = Course::find($this->course_id);
                             if ($course->getFreeSeats()) {
