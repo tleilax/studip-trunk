@@ -59,7 +59,7 @@ if (isset($_POST['folder_id']) && Utils\folderExists($_POST['folder_id']) {
     $folder_id = $_POST['folder_id'];
 } else {
     $folder_id = Utils\createFolder($default_folder, $default_description)
-        or exit('unable to create default folder');
+        or exit(_('Erstellen des Upload-Ordners fehlgeschlagen.'));
 }
 
 // store uploaded files as StudIP documents
