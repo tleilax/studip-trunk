@@ -8,6 +8,6 @@
 <label class="caption"><?= _("Name für diese Anmelderegel")?></label>
 <input type="text" name="instant_course_set_name" size="70" value="<?= htmlReady($course_set_name) ?>">
 <?= $rule_template ?>
-<?= Studip\Button::create(_("Speichern"), 'save')?>
+<?= Studip\Button::create(_("Speichern"), 'save', array('rel' => 'lightbox'))?>
 <?= Studip\LinkButton::create(_("Abbrechen"), '#', array('rel' => 'close'))?>
 </form>

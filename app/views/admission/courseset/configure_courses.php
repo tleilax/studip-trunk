@@ -29,6 +29,7 @@
 <div style="text-align:center">
 <?= Studip\Button::create(_("Speichern"), 'configure_courses_save') ?>
 <?= Studip\LinkButton::create(_("Download"), $controller->url_for('admission/courseset/configure_courses/' . $set_id .'/csv')) ?>
+<?= Studip\LinkButton::create(_("Abbrechen"), '#', array('rel' => 'close'))?>
 </div>
 <?= CSRFProtection::tokenTag()?>
 </form>

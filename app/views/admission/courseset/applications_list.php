@@ -18,4 +18,5 @@
 </table>
 <div style="text-align:center">
 <?= Studip\LinkButton::create(_("Download"), $controller->url_for('admission/courseset/applications_list/' . $set_id .'/csv')) ?>
+<?= Studip\LinkButton::create(_("Abbrechen"), '#', array('rel' => 'close'))?>
 </div>

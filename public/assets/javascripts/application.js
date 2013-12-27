@@ -79,7 +79,7 @@ jQuery('a[rel~="lightbox"], button[rel~="lightbox"]').live('click', function (ev
             event.preventDefault();
             container.dialog('close');
         });
-        jQuery('form button', this).live('click', function (event) {
+        jQuery('form button[rel~="lightbox"]', this).live('click', function (event) {
             event.preventDefault();
             jQuery(this).attr('disabled', true);
             var form = jQuery(this).closest('form');

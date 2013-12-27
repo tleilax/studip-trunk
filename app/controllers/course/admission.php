@@ -76,6 +76,9 @@ class Course_AdmissionController extends AuthenticatedController
         foreach ($lockrules as $rule) {
             $this->is_locked[$rule] = LockRules::Check($this->course_id, $rule) ? 'disabled readonly' : '';
         }
+        if (!SeminarCategories::GetByTypeId($this->course->status)->write_access_nobody) {
+            $this->is_locked['write_level'] = 'disabled readonly';
+        }
     }
 
     /**
@@ -153,7 +156,6 @@ class Course_AdmissionController extends AuthenticatedController
                         $num_moved = 0;
                         foreach ($this->course->admission_applicants->findBy('status', 'accepted') as $applicant) {
                             setTempLanguage($applicant->user_id);
-                            $message_body = sprintf(_('Sie wurden in der Veranstaltung **%s** in den Status **vorläufig akzeptiert** befördert, da das Anmeldeverfahren geändert wurde.'), $this->course->name);
                             $message_body = sprintf(_('Sie wurden aus der Veranstaltung **%s** entfernt, da das Anmeldeverfahren geändert wurde.'), $this->course->name);
                             $message_title = sprintf(_("Statusänderung %s"), $this->course->name);
                             messaging::sendSystemMessage($applicant->user_id, $message_title, $message_body);
@@ -181,7 +183,36 @@ class Course_AdmissionController extends AuthenticatedController
             $this->render_template('course/admission/_change_admission.php');
         }
     }
-
+    
+    function change_free_access_action()
+    {
+        CSRFProtection::verifyUnsafeRequest();
+        if (Request::submitted('change_free_access')) {
+            $request = Request::extract('read_level submitted, write_level submitted');
+            $request = array_diff_key($request, array_filter($this->is_locked));
+            if (isset($request['write_level'])) {
+                if ($request['write_level'] === true) {
+                    $this->course->schreibzugriff = 2;
+                    $request['read_level'] = true;
+                } else {
+                    $this->course->schreibzugriff = 1;
+                }
+            }
+            if (isset($request['read_level'])) {
+                if ($request['read_level'] === true) {
+                    $this->course->lesezugriff = 2;
+                } else {
+                    $this->course->lesezugriff = 1;
+                    $this->course->schreibzugriff = 1;
+                }
+            }
+            if ($this->course->store()) {
+                PageLayout::postMessage(MessageBox::success(_("Freier Zugriff wurde geändert.")));
+            }
+        }
+        $this->redirect($this->url_for('/index'));
+    }
+    
     function change_admission_turnout_action()
     {
         CSRFProtection::verifyUnsafeRequest();
@@ -195,7 +226,7 @@ class Course_AdmissionController extends AuthenticatedController
             }
             if (isset($request['admission_disable_waitlist'])) {
                 $this->course->admission_disable_waitlist = $request['admission_disable_waitlist'] ? 0 : 1;
-                if ($this->admission_disable_waitlist && $this->course->getNumWaiting()) {
+                if ($this->course->admission_disable_waitlist && $this->course->getNumWaiting()) {
                     $question = sprintf(_("Sie beabsichtigen die Warteliste zu deaktivieren. Die bestehende Warteliste mit %s Einträgen wird gelöscht. Sind sie sicher?"), $this->course->getNumWaiting());
                 }
             }
@@ -209,6 +240,28 @@ class Course_AdmissionController extends AuthenticatedController
                 }
             }
             if (Request::submitted('change_admission_turnout_yes') || !$question) {
+                if ($this->course->admission_disable_waitlist && $this->course->getNumWaiting()) {
+                    $removed_applicants = $this->course->admission_applicants->findBy('status', 'awaiting');
+                }
+                if ($this->course->admission_waitlist_max > 0 && !$this->admission_disable_waitlist && $this->course->getNumWaiting() > $this->course->admission_waitlist_max) {
+                    $limit = $this->course->getNumWaiting() - $this->course->admission_waitlist_max;
+                    $removed_applicants = $this->course->admission_applicants->findBy('status', 'awaiting')->orderBy('position desc', SORT_NUMERIC)->limit($limit);
+                }
+                if ($removed_applicants) {
+                    $num_moved = 0;
+                    foreach ($removed_applicants as $applicant) {
+                        setTempLanguage($applicant->user_id);
+                        $message_body = sprintf(_('Die Warteliste der Veranstaltung **%s** wurde von einem/r DozentIn oder AdministratorIn deaktiviert, Sie sind damit __nicht__ zugelassen worden.'),  $this->course->name);
+                        $message_title = sprintf(_("Statusänderung %s"), $this->course->name);
+                        messaging::sendSystemMessage($applicant->user_id, $message_title, $message_body);
+                        restoreLanguage();
+                        $num_moved += $applicant->delete();
+                    }
+                    if ($num_moved) {
+                        PageLayout::postMessage(MessageBox::success(sprintf(_("%s Wartende wurden entfernt."), $num_moved)));
+                    }
+                }
+                
                 if ($this->course->store()) {
                     PageLayout::postMessage(MessageBox::success(_("Die Teilnehmeranzahl wurde geändert.")));
                 }
@@ -243,7 +296,59 @@ class Course_AdmissionController extends AuthenticatedController
         }
         $this->redirect($this->url_for('/index'));
     }
-    
+
+    function change_course_set_action()
+    {
+        CSRFProtection::verifyUnsafeRequest();
+        if (Request::submitted('change_course_set_assign') && Request::get('course_set_assign') && !LockRules::Check($this->course_id, 'admission_type')) {
+            $cs = new CourseSet(Request::option('course_set_assign'));
+            if ($cs->isUserAllowedToAssignCourse($this->user_id, $this->course_id)) {
+                $cs->addCourse($this->course_id);
+                $cs->store();
+                $cs->load();
+                if (in_array($this->course_id, $cs->getCourses())) {
+                    PageLayout::postMessage(MessageBox::success(sprintf(_("Die Zuordnung zum Anmeldeset %s wurde durchgeführt."), htmlReady($cs->getName()))));
+                }
+            }
+        }
+        if (Request::submitted('change_course_set_unassign') && !LockRules::Check($this->course_id, 'admission_type')) {
+            $this->response->add_header('X-Title', _('Anmelderegeln aufheben'));
+            if ($this->course->getNumWaiting() && !Request::submitted('change_course_set_unassign_yes')) {
+                $question = sprintf(_("In dieser Veranstaltung existiert eine Warteliste. Die bestehende Warteliste mit %s Einträgen wird gelöscht. Sind sie sicher?"), $this->course->getNumWaiting());
+            }
+            if (!$question && ($cs = CourseSet::getSetForCourse($this->course_id))) {
+                $cs->removeCourse($this->course_id);
+                $cs->store();
+                $cs->load();
+                if (!in_array($this->course_id, $cs->getCourses())) {
+                    PageLayout::postMessage(MessageBox::success(sprintf(_("Die Zuordnung zum Anmeldeset %s wurde aufgehoben."), htmlReady($cs->getName()))));
+                }
+                if ($this->course->getNumWaiting()) {
+                    $num_moved = 0;
+                    foreach ($this->course->admission_applicants->findBy('status', 'awaiting') as $applicant) {
+                        setTempLanguage($applicant->user_id);
+                        $message_body = sprintf(_('Die Warteliste der Veranstaltung **%s** wurde von einem/r DozentIn oder AdministratorIn deaktiviert, Sie sind damit __nicht__ zugelassen worden.'),  $this->course->name);
+                        $message_title = sprintf(_("Statusänderung %s"), $this->course->name);
+                        messaging::sendSystemMessage($applicant->user_id, $message_title, $message_body);
+                        restoreLanguage();
+                        $num_moved += $applicant->delete();
+                    }
+                    if ($num_moved) {
+                        PageLayout::postMessage(MessageBox::success(sprintf(_("%s Wartende wurden entfernt."), $num_moved)));
+                    }
+                }
+            }
+        }
+        if (!$question) {
+            $this->redirect($this->url_for('/index'));
+        } else {
+            $this->request = array('change_course_set_unassign' => 1);
+            $this->button_yes = 'change_course_set_unassign_yes';
+            PageLayout::postMessage(MessageBox::info($question));
+            $this->render_template('course/admission/_change_admission.php');
+        }
+    }
+
     function explain_course_set_action()
     {
         $cs = new CourseSet(Request::option('set_id'));
@@ -264,7 +369,7 @@ class Course_AdmissionController extends AuthenticatedController
         if (isset($rule_types[$type])) {
             $rule = new $type($type_id);
             $course_set = CourseSet::getSetForRule($rule_id) ?: new CourseSet();
-            if (Request::isPost()) {
+            if (Request::isPost() && Request::submitted('save')) {
                 CSRFProtection::verifyUnsafeRequest();
                 $rule->setAllData(Request::getInstance());
                 $errors = $rule->validate(Request::getInstance());

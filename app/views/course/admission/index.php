@@ -38,13 +38,13 @@
         <div style="display: inline-block;padding:1ex;width:50%">
         <label class="caption"><?= _("Lesezugriff") ?></label>
         <label for="lesezugriff">
-        <input <?=$is_locked['Lesezugriff'] ?> id="lesezugriff" type="checkbox" <?= ($course->lesezugriff == 2 ? "checked" : ""); ?> name="lesezugriff"  value="2">
+        <input <?=$is_locked['read_level'] ?> id="lesezugriff" type="checkbox" <?= ($course->lesezugriff == 2 ? "checked" : ""); ?> name="read_level"  value="2">
         <?= _("Lesezugriff für nicht angemeldete Nutzer erlauben") ?></label>
         </div>
         <div style="display: inline-block;padding:1ex;">
         <label class="caption"><?= _("Schreibzugriff") ?></label>
         <label for="schreibzugriff">
-        <input <?=($is_locked['Schreibzugriff'] || !SeminarCategories::GetByTypeId($course->status)->write_access_nobody ? 'disabled readonly' : '') ?> id="schreibzugriff" type="checkbox" <?= ($course->schreibzugriff == 2 ? "checked" : ""); ?> name="schreibzugriff"  value="2">
+        <input <?=$is_locked['write_level'] ?> id="schreibzugriff" type="checkbox" <?= ($course->schreibzugriff == 2 ? "checked" : ""); ?> name="write_level"  value="2">
         <?= _("Schreibzugriff für nicht angemeldete Nutzer erlauben") ?></label>
         </div>
         <?= Studip\Button::create(_("Freien Zugriff ändern"), 'change_free_access') ?>
@@ -96,7 +96,7 @@
         <label for="admission_waitlist_max">
               <input <?=$is_locked['admission_waitlist_max'] ?> type="text" style="display:inline" id="admission_waitlist_max"  name="admission_waitlist_max" value="<?= ($course->admission_waitlist_max ?: '') ?>">
               <?=_("max. Anzahl an Wartenden (optional)")?></label>
-        <?= Studip\Button::create(_("Teilnehmeranzahl ändern"), 'change_admission_turnout') ?>
+        <?= Studip\Button::create(_("Teilnehmeranzahl ändern"), 'change_admission_turnout', array('rel' => 'lightbox')) ?>
     </fieldset>
 </form>
 <? endif ?>
@@ -114,13 +114,14 @@
                     <?= $current_courseset->toString(true) ?>
             </div>
             <div>
-            <? if ($current_courseset->isUserAllowedToAssignCourse($user_id, $course_id)) : ?>
-                <?= Studip\Button::create(_("Zuordnung aufheben"), 'change_course_set') ?>
+            <? if (!$is_locked['admission_type'] && $current_courseset->isUserAllowedToAssignCourse($user_id, $course_id)) : ?>
+                <?= Studip\Button::create(_("Zuordnung aufheben"), 'change_course_set_unassign', array('rel' => 'lightbox')) ?>
+                <?= Studip\LinkButton::create(_("Anmeldeset bearbeiten"), $controller->url_for('admission/courseset/configure/' . $current_courseset->getId())); ?>
             <? endif ?>
             </div>
         </div>
         <? else : ?>
-            <? if (count($available_coursesets)) : ?>
+            <? if (!$is_locked['admission_type'] && count($available_coursesets)) : ?>
             <label class="caption">
                 <?=_("Zuordnung zu einem bestehenden Anmeldeset"); ?>
             </label>
@@ -132,6 +133,9 @@
                 <? endforeach ?>
             </select>
             <div id="course_set_assign_explain" style="display: inline-block;padding:1ex;">
+            </div>
+            <div style="display: inline-block;padding:1ex;">
+                <?= Studip\Button::create(_("Zuordnen"), 'change_course_set_assign') ?>
             </div>
             <? endif ?>
             <label class="caption">

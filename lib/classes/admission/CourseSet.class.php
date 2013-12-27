@@ -563,7 +563,7 @@ class CourseSet
      */
     public function removeCourse($courseId)
     {
-        unset($this->courses[$courseid]);
+        unset($this->courses[$courseId]);
         return $this;
     }
 
