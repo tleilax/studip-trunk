@@ -186,37 +186,55 @@ class UtilsTest extends PHPUnit_Framework_TestCase {
         }
     }
 
-    function testGetUploadedFiles_ForZeroFiles() {
-        //$_FILES = NULL;
-        //$result = Utils\GetUploadedFiles();
-        //$this->assertEquals(0, count($result));
+    function testGetUploadedFilesHandlesZeroFiles() {
+        // not uploading at all
+        $_FILES = NULL;
+        $this->assertEquals(array(), Utils\getUploadedFiles());
 
         // uploading zero files
         $_FILES = array('files' => array('name' => array()));
-        $result = array(array());
+        $this->assertEquals(array(), Utils\getUploadedFiles());
+    }
+
+    function testGetUploadedFilesHandlesOneFile() {
+        // uploading one file as HTML array
+        // <input type="file" name="files[]" multiple />
+        $_FILES = array('files' => array(
+            'name'     => array('name'),
+            'tmp_name' => array('temp'),
+            'type'     => array('mime'),
+            'size'     => array(0),
+            'error'    => array(1)
+        ));
+        $result = array(array('name'     => 'name',
+                              'tmp_name' => 'temp',
+                              'type'     => 'mime',
+                              'size'     => 0,
+                              'error'    => 1));
         $this->assertEquals($result, Utils\getUploadedFiles());
     }
 
-    function testGetUploadedFiles_ForOneFile() {
-        // test single file upload
-        $_FILES = array('files' => array('name' => array('filename.txt')));
-        $result = Utils\GetUploadedFiles();
-        $this->assertEquals(array(array('name' => 'filename.txt')), $result);
-    }
-
-    function testGetUploadedFiles_ForMultipleFile() {
-        /*$_FILES = array(
-            'files' => array(
-                'name'     => 'filename.txt',
-                'tmp_name' => 'tmpname.txt',
-                'type'     => 'text/plain',
-                'size'     => 0,
-                'error'    => 0));*/
-
-        //$result = Utils\getUploadedFiles();
-        //$this->assertEquals(1, len($result));
-
-        $this->markTestIncomplete('not implemented');
+    function testGetUploadedFilesHandlesMultipleFiles() {
+        // uploading two files as HTML array
+        // <input type="file" name="files[]" multiple />
+        $_FILES = array('files' => array(
+            'name'     => array('name1', 'name2'),
+            'tmp_name' => array('temp1', 'temp2'),
+            'type'     => array('mime1', 'mime2'),
+            'size'     => array(10, 20),
+            'error'    => array(11, 21)
+        ));
+        $result = array(array('name'     => 'name1',
+                              'tmp_name' => 'temp1',
+                              'type'     => 'mime1',
+                              'size'     => 10,
+                              'error'    => 11),
+                        array('name'     => 'name2',
+                              'tmp_name' => 'temp2',
+                              'type'     => 'mime2',
+                              'size'     => 20,
+                              'error'    => 21));
+        $this->assertEquals($result, Utils\getUploadedFiles());
     }
 
     function testVerifyUpload() {

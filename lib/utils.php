@@ -268,7 +268,7 @@ function transposeArray($a) {
 /**
  * Normalize $_FILES for HTML array upload of multiple files.
  *
- * $_FILES must have the following structure:
+ * $_FILES must have the following structure (HTML array upload):
  *
  * ['files' => ['name'     => [name1, name2, ...],
  *              'tmp_name' => [tmp1, tmp2, ...],
@@ -293,12 +293,13 @@ function transposeArray($a) {
  *   ...],
  *  ...]
  * 
- * @return array  Each entry contains an associative array for a single file.
+ * @return array  Each entry is an associative array for a single file.
  */
 function getUploadedFiles(){
     // TODO improve description
     // TODO make it work with any kind of file upload, not only HTML array
-    return transposeArray($_FILES['files']);
+    $files = transposeArray($_FILES['files']) ?: array();
+    return $files == array(array()) ? array() : $files;
 }
 
 /**
