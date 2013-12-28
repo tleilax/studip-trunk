@@ -5,13 +5,22 @@
  * These functions where originally implemented as part of the RichTextPlugin 
  * and are required by some parts of the WYSIWYG editor implementation.
  *
- * Overview
- * --------
+ * URL Utils
+ * ---------
  * getUrl                   Return URL that was called by the web client.
  * getBasename              Return filename of currently executed PHP script.
  * getBaseUrl               Like getUrl but exclude base name and everything thereafter.
+ *
+ * Stud.IP Utils
+ * -------------
  * getSeminarId             Return the selected seminar's identifier.
+ *
+ * Database Utils
+ * --------------
  * executeQuery             Execute a database query and return it's results.
+ *
+ * Document Utils
+ * --------------
  * getFolder                Return a Stud.IP folder's database entry.
  * folderExists             Return TRUE if a folder with the given ID exists.
  * getFolderId              Return a folder's identifier.
@@ -20,9 +29,15 @@
  * uploadFile               Create a new Stud.IP document from an uploaded file.
  * verifyUpload             Throw exception if upload of given file is forbidden.
  * getStudipDocumentData    Return metadata for creating a new Stud.IP document.
+ *
+ * String Utils
+ * ------------
  * startsWith               Test if string starts with prefix.
  * endsWith                 Test if string ends with suffix.
  * removePrefix             Remove prefix from string.
+ *
+ * URL / Media Proxy Utils
+ * -----------------------
  * getMediaUrl              Return proxied URL, if media proxy is active.
  * removeStudipDomain       Remove domain name from internal URLs.
  * tranformInternalIdnaLink Return a normalized, internal URL.
@@ -35,11 +50,23 @@
  * isStudipUrl              Test if URL points to internal Stud.IP resource.
  * getParsedStudipUrl       Return associative array with Stud.IP URL elements.
  * isStudipMediaUrlPath     Test if path is valid for internal Stud.IP media URLs.
+ *
+ * Access Permission Utils
+ * -----------------------
  * hasPermission            Test if current user has required access level.
  * verifyPermission         Throw exception if user hasn't required access level.
  * verifyPostRequest        Throw exception if HTTP request was not send as POST.
+ *
+ * HTTP Utils
+ * ----------
  * utf8POST                 Decode a UTF-8 encoded POST variable.
+ *
+ * Stud.IP Utils
+ * -------------
  * getConfigValue           Return a configuration value from the Stud.IP DB.
+ *
+ * HTTP / JSON Utils
+ * -----------------
  * sendAsJson               Send HTTP response as JSON-encoded string.
  * negotiateJsonContent     Set content-type to application/json if client accepts it.
  * httpAcceptsJson          Check if application/json is set in HTTP_ACCEPT.
@@ -61,7 +88,7 @@
  * @since       File available since Release 3.0
  * @author      Robert Costa <rcosta@uos.de>
  */
-require_once('bootstrap.php');
+//require_once('bootstrap.php');
 // TODO replace dependence on bootstrap.php by actually used scripts
 //
 // Partial list of scripts included by bootstrap.php and why they are needed:
@@ -191,20 +218,87 @@ function createFolder($name, $description=NULL, $parent_id=NULL) {
 }
 
 /**
+ * Transpose an array of arrays.
+ *
+ * The input array must be of the form:
+ *
+ * [0 => [0 => value11, 1 => value12, 2 => value13, ...],
+ *  1 => [0 => value21, 1 => value22, ...],
+ *  ...]
+ *
+ * The output array will then have the form:
+ *
+ * [0 => [0 => value11, 1 => value21, ...],
+ *  1 => [0 => value12, 1 => value22, ...],
+ *  2 => [0 => value13, ...],
+ *  ...]
+ *
+ * Outer array keys pointing to empty arrays will be removed. For
+ * example: Transposing ['a' => []] results in [[]].
+ *
+ * Note that PHP automatically assigns keys starting at 0 if none are
+ * set explicitely. Therefore ['a' => [], [], []] equals
+ * ['a' => [], 0 => [], 1 => []].
+ *
+ * @param array $a  Input, an array of arrays.
+ * @returns array   Transposed form of input.
+ *                  NULL if input is not an array of arrays.
+ */
+function transposeArray($a) {
+    echo '';
+    if (!is_array($a)) {
+        return NULL;
+    }
+    $b = array();
+    foreach($a as $rowKey => $row){
+        if (!is_array($row)) {
+            return NULL;
+        }
+        if (empty($row)) {
+            $b[] = array();
+            continue;
+        }
+        foreach($row as $columnKey => $value){
+            $b[$columnKey][$rowKey] = $value;
+        }
+    }
+    return $b;
+}
+
+/**
  * Normalize $_FILES for HTML array upload of multiple files.
+ *
+ * $_FILES must have the following structure:
+ *
+ * ['files' => ['name'     => [name1, name2, ...],
+ *              'tmp_name' => [tmp1, tmp2, ...],
+ *              'type'     => [type1, type2, ...],
+ *              'size'     => [size1, size2, ...],
+ *              'error'    => [error1, error2, ...],
+ *              ...]
+ *
+ * The return value will have the structure:
+ *
+ * [['name'     => name1,
+ *   'tmp_name' => tmp1,
+ *   'type'     => type1,
+ *   'size'     => size1,
+ *   'error'    => error1,
+ *   ...],
+ *  ['name'     => name2,
+ *   'tmp_name' => tmp2,
+ *   'type'     => type2,
+ *   'size'     => size2,
+ *   'error'    => error2,
+ *   ...],
+ *  ...]
  * 
- * @return array  Each entry contains an associative array for a single file
- *                with name, type, tmp_name, error, and size keys set.
+ * @return array  Each entry contains an associative array for a single file.
  */
 function getUploadedFiles(){
     // TODO improve description
     // TODO make it work with any kind of file upload, not only HTML array
-    foreach($_FILES['files'] as $key => $fileList){
-        foreach($fileList as $fileIndex => $value){
-            $files[$fileIndex][$key] = $value;
-        }
-    }
-    return $files;
+    return transposeArray($_FILES['files']);
 }
 
 /**
@@ -279,7 +373,7 @@ function getStudipDocumentData($folder_id, $file) {
 function getDownloadLink($id) {
     $result = executeQuery(
         'SELECT filename FROM dokumente WHERE dokument_id=?', $id);
-    return $result ? GetDownloadLink($id, $result['filename']) : NULL;
+    return $result ? \GetDownloadLink($id, $result['filename']) : NULL;
 }
 
 /**
