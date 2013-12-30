@@ -46,13 +46,89 @@ class Admission_RestrictedCoursesController extends AuthenticatedController
                 $sem_condition .= sprintf('AND (seminare.Name LIKE %1$s OR seminare.VeranstaltungsNummer LIKE %1$s) ', DBManager::get()->quote($this->sem_name_prefix . '%'));
             }
         }
+        if (!$this->current_institut_id) {
+            $this->current_institut_id = 'all';
+        }
         
         if ($GLOBALS['perm']->have_perm('admin')) {
             $this->my_inst = $this->get_institutes($sem_condition);
         }
+        $this->courses = $this->get_courses($sem_condition);
     }
-    
-    function get_institutes($seminare_condition) {
+
+    function get_courses($seminare_condition)
+    {
+        global $perm, $user;
+        
+        list($institut_id, $all) = explode('_', $this->current_institut_id);
+        // Prepare count statements
+        $query = "SELECT count(*)
+                  FROM seminar_user
+                  WHERE seminar_id = ? AND status IN ('user', 'autor')";
+        $count0_statement = DBManager::get()->prepare($query);
+        
+        $query = "SELECT SUM(status = 'accepted') AS count2,
+                     SUM(status = 'awaiting') AS count3
+                  FROM admission_seminar_user
+                  WHERE seminar_id = ?
+                  GROUP BY seminar_id";
+        $count1_statement = DBManager::get()->prepare($query);
+        
+        $parameters = array();
+        
+        $sql = "SELECT seminare.seminar_id,seminare.Name as course_name,seminare.VeranstaltungsNummer as course_number,
+                admission_prelim, admission_turnout,seminar_courseset.set_id
+                FROM seminar_courseset 
+                INNER JOIN courseset_rule csr ON csr.set_id=seminar_courseset.set_id AND csr.type='ParticipantRestrictedAdmission'
+                INNER JOIN seminare ON seminar_courseset.seminar_id=seminare.seminar_id
+                ";
+        if ($institut_id == 'all'  && $perm->have_perm('root')) {
+            $sql .= "WHERE 1 {$seminare_condition} ";
+        } elseif ($all == 'all') {
+            $sql .= "INNER JOIN Institute USING (Institut_id)
+                    WHERE Institute.fakultaets_id = ? {$seminare_condition}
+                    ";
+            $parameters[] = $institut_id;
+        } else {
+            $sql .= "WHERE seminare.Institut_id = ? {$seminare_condition}
+                    ";
+            $parameters[] = $institut_id;
+        }
+        $sql .= "GROUP BY seminare.Seminar_id ORDER BY seminar_courseset.set_id, seminare.Name";
+        
+        $statement = DBManager::get()->prepare($sql);
+        $statement->execute($parameters);
+        
+        while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
+            $seminar_id = $row['seminar_id'];
+            $ret[$seminar_id] = $row;
+
+            $count0_statement->execute(array($seminar_id));
+            $count = $count0_statement->fetchColumn();
+
+            $ret[$seminar_id]['count_teilnehmer']     = $count;
+
+            $count1_statement->execute(array($seminar_id));
+            $counts = $count1_statement->fetch(PDO::FETCH_ASSOC);
+
+            $ret[$seminar_id]['count_prelim'] = (int)$counts['count2'];
+            $ret[$seminar_id]['count_waiting']  = (int)$counts['count3'];
+            $cs = new CourseSet($row['set_id']);
+            $ret[$seminar_id]['cs_name'] = $cs->getName();
+            $ret[$seminar_id]['distribution_time'] = $cs->getSeatDistributionTime();
+            if ($ta = $cs->getAdmissionRule('TimedAdmission')) {
+                $ret[$seminar_id]['start_time'] = $ta->getStartTime();
+                $ret[$seminar_id]['end_time'] = $ta->getEndTime();
+            }
+            if (!$cs->hasAlgorithmRun()) {
+                $ret[$seminar_id]['count_claiming'] = $cs->getNumApplicants();
+            }
+        }
+        return $ret;
+    }
+
+    function get_institutes($seminare_condition) 
+    {
         global $perm, $user;
 
         // Prepare institute statement

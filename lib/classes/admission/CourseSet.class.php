@@ -261,14 +261,14 @@ class CourseSet
 
     public function isSeatDistributionEnabled()
     {
-        return $this->algorithm && $this->hasAdmissionRule('ParticipantRestrictedAdmission');
+        return $this->algorithm && $this->getSeatDistributionTime();
     }
 
     public function getSeatDistributionTime()
     {
-        $timed_admission = $this->getAdmissionRule('ParticipantRestrictedAdmission');
-        if ($timed_admission) {
-            return $timed_admission->getDistributionTime();
+        $pr_admission = $this->getAdmissionRule('ParticipantRestrictedAdmission');
+        if ($pr_admission) {
+            return $pr_admission->getDistributionTime();
         }
     }
 
