@@ -109,7 +109,12 @@ class Course extends SimpleORMap
                 'foreign_key' =>
                 function($course) {
                     return array($course);
-                })
+                }),
+                'cycles' => array(
+                        'class_name' => 'SeminarCycleDate',
+                        'assoc_func' => 'findBySeminar',
+                        'on_delete' => 'delete',
+                        'on_store' => 'store'),
         );
 
         $this->belongs_to = array(
@@ -162,7 +167,9 @@ class Course extends SimpleORMap
         $this->notification_map['after_store'] = 'CourseDidCreateOrUpdate CourseDidUpdate';
         $this->notification_map['before_create'] = 'CourseWillCreate';
         $this->notification_map['before_store'] = 'CourseWillUpdate';
-
+        $this->notification_map['after_delete'] = 'CourseDidDelete';
+        $this->notification_map['before_delete'] = 'CourseWillDelete';
+        
         parent::__construct($id);
     }
     

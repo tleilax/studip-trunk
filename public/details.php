@@ -78,6 +78,7 @@ if ($SessionSeminar == $sem_id) {
 }
 
 PageLayout::addSqueezePackage('admission');
+PageLayout::addSqueezePackage('enrolment');
 
 ob_start();
 // Start of Output
@@ -217,7 +218,7 @@ else
     $infobox[2]["kategorie"] = _("Aktionen:");
     if ($abo_msg && $sem_id != $_SESSION['SessionSeminar']) {
         $infobox[2]["eintrag"][] = array (  "icon" => 'icons/16/black/door-enter.png',
-                                    "text"  => "<a href=\"".URLHelper::getLink("dispatch.php/course/enrolment/$sem_id")."\">".$abo_msg. "</a>"
+                                    "text"  => "<a rel=\"lightbox\" href=\"".URLHelper::getLink("dispatch.php/course/enrolment/$sem_id")."\">".$abo_msg. "</a>"
                                 );
     }
     if ($delete_msg) {
@@ -802,7 +803,7 @@ echo $template_factory->render(
             <td width="25%" valign="top">
             <?
             if ($seminar['admission_turnout']){
-                    if($seminar['admission_type']) {
+                    if(Seminar::GetInstance($sem_id)->isAdmissionEnabled()) {
                         printf ("<font size=-1><b>" . _("max. Teilnehmerzahl:") . "&nbsp;</b></font><font size=-1>%s </font>", $seminar['admission_turnout']);
                     }
                     if (isset($all_cont_user) && $all_cont_user !== false){

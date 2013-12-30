@@ -51,6 +51,20 @@ class Course_EnrolmentController extends AuthenticatedController
         }
         PageLayout::setTitle(getHeaderLine($this->course_id)." - " . _("Veranstaltungsanmeldung"));
         PageLayout::addSqueezePackage('enrolment');
+        if (Request::isXhr()) {
+            $this->set_layout(null);
+            $this->response->add_header('X-No-Buttons', 1);
+            $this->response->add_header('X-Title', PageLayout::getTitle());
+            foreach (array_keys($_POST) as $param) {
+                Request::set($param, studip_utf8decode(Request::get($param)));
+            }
+        } else {
+            $this->set_layout($GLOBALS['template_factory']->open('layouts/base'));
+        }
+        $this->set_content_type('text/html;charset=windows-1252');
+        if (Request::submitted('cancel')) {
+            $this->redirect(URLHelper::getURL('details.php', array('sem_id' => $this->course_id)));
+        }
     }
 
     /**
@@ -75,7 +89,7 @@ class Course_EnrolmentController extends AuthenticatedController
             } else {
                 if ($courseset->isSeatDistributionEnabled()) {
                     if ($courseset->hasAlgorithmRun()) {
-                        if ($courseset->getDistributionTime()) {
+                        if ($courseset->getSeatDistributionTime()) {
                             $msg = _("Die Plätze in dieser Veranstaltung wurden automatisch verteilt.");
                         }
                         if (StudipLock::get('enrolment' . $this->course_id)) {
@@ -153,6 +167,7 @@ class Course_EnrolmentController extends AuthenticatedController
                 }
             }
             unset($this->courset_message);
+            $this->enrol_user = true;
         }
         StudipLock::release();
     }
@@ -200,5 +215,4 @@ class Course_EnrolmentController extends AuthenticatedController
         }
         $this->redirect($this->url_for('/apply/' . $this->course_id));
     }
-
 }

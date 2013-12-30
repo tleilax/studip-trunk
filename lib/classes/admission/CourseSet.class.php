@@ -249,6 +249,7 @@ class CourseSet
             foreach ($this->admissionRules as &$rule) {
                 $rule->afterSeatDistribution();
             }
+            AdmissionPriority::unsetAllPriorities($this->getId());
         }
     }
 
@@ -261,7 +262,7 @@ class CourseSet
 
     public function isSeatDistributionEnabled()
     {
-        return $this->algorithm && $this->getSeatDistributionTime();
+        return $this->getSeatDistributionTime() !== null;
     }
 
     public function getSeatDistributionTime()
@@ -718,16 +719,23 @@ class CourseSet
             } while ($db->fetch());
             $this->id = $newid;
         }
+        if ($this->isSeatDistributionEnabled() && !$this->getAlgorithm()) {
+            $algorithm = new RandomAlgorithm();
+            $this->setAlgorithm($algorithm);
+            if (!$this->getSeatDistributionTime()) {
+                $this->setAlgorithmRun($state);
+            }
+        }
         // Store basic data.
         $stmt = DBManager::get()->prepare("INSERT INTO `coursesets`
-            (`set_id`, `user_id`, `name`, `infotext`, `algorithm`,
+            (`set_id`, `user_id`, `name`, `infotext`, `algorithm`, `algorithm_run`,
             `private`, `mkdate`, `chdate`)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE
             `name`=VALUES(`name`), `infotext`=VALUES(`infotext`),
-            `algorithm`=VALUES(`algorithm`), `private`=VALUES(`private`),
+            `algorithm`=VALUES(`algorithm`), `algorithm_run`=VALUES(`algorithm_run`), `private`=VALUES(`private`), 
             `chdate`=VALUES(`chdate`)");
         $stmt->execute(array($this->id, $user->id, $this->name, $this->infoText,
-            get_class($this->algorithm), intval($this->private), time(), time()));
+            get_class($this->algorithm), $this->hasAlgorithmRun(), intval($this->private), time(), time()));
         // Delete removed institute assignments from database.
         DBManager::get()->exec("DELETE FROM `courseset_institute`
             WHERE `set_id`='".$this->id."' AND `institute_id` NOT IN ('".

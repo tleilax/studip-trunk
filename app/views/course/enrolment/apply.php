@@ -9,7 +9,8 @@
     <form name="apply_admission" action="<?= $controller->link_for('/apply/' . $course_id) ?>" method="post">
         <?= $admission_form ?>
         <div>
-        <?= Studip\Button::create(_("OK"), 'apply') ?>
+        <?= Studip\Button::create(_("OK"), 'apply', array('rel' => 'lightbox')) ?>
+        <?= Studip\Button::create(_("Abbrechen"), 'cancel') ?>
         </div>
         <?= CSRFProtection::tokenTag() ?>
     </form>
@@ -24,8 +25,18 @@
         &nbsp;(<?= sprintf(_("max. Teilnehmeranzahl: %s / Anzahl der Anmeldungen: %s"), $priocourses->admission_turnout, $num_claiming) ?>)
     <? endif ?>
     <div>
-    <?= Studip\Button::create(_("OK"), 'claim') ?>
+    <?= Studip\Button::create(_("OK"), 'claim', array('rel' => 'lightbox')) ?>
+    <?= Studip\Button::create(_("Abbrechen"), 'cancel') ?>
     </div>
     <?= CSRFProtection::tokenTag() ?>
     </form>
+<? endif ?>
+<? if (!$priocourses && !$admission_form) :?>
+    <div>
+    <? if ($enrol_user) : ?>
+        <?=Studip\LinkButton::create(_('Zur Veranstaltung'), URLHelper::getURL('seminar_main.php', array('auswahl' => $course_id))) ?>
+    <? else : ?>
+        <?=Studip\LinkButton::create(_('Abbrechen'), URLHelper::getURL('details.php', array('sem_id' => $course_id)), array('rel' => 'close')) ?>
+    <? endif ?>
+    </div>
 <? endif ?>

@@ -169,8 +169,6 @@ class Admission_CoursesetController extends AuthenticatedController {
                 $rule = unserialize($serialized);
                 $courseset->addAdmissionRule($rule);
             }
-            $algorithm = new RandomAlgorithm();
-            $courseset->setAlgorithm($algorithm);
             $courseset->store();
 	        $this->redirect('admission/courseset');
         } else {
