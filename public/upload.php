@@ -41,7 +41,8 @@
  * @since       File available since Release 3.0
  * @author      Robert Costa <rcosta@uos.de>
  */
-require_once('../lib/utils.php');
+
+require_once '../lib/utils.php';
 
 // initialize session management and verify permissions
 Utils\startSession();
@@ -50,7 +51,7 @@ Utils\verifyPermission('autor');  // minimum permission level for uploading
 CSRFProtection::verifyUnsafeRequest();
 
 // get folder ID
-if (isset($_POST['folder_id']) && Utils\folderExists($_POST['folder_id']) {
+if (isset($_POST['folder_id']) && Utils\folderExists($_POST['folder_id'])) {
     $folder_id = $_POST['folder_id'];
 } else {
     $folder_id = Utils\createFolder(_('Uploads'), _('Automatisch hochgeladene Dateien (z.B. vom WYSIWYG Editor).'))
@@ -65,7 +66,7 @@ foreach (Utils\getUploadedFiles() as $file) {
         $response['files'][] = Array(
             'name' => utf8_encode($newfile['filename']),
             'type' => $file['type'],
-            'url' => $newfile->download_link);
+            'url' => Utils\getDownloadLink($newfile->getId()));
     } catch (AccessDeniedException $e) {  // creation of Stud.IP doc failed
         $response['files'][] = Array(
             'name' => $file['name'],
