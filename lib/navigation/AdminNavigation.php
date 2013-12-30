@@ -197,6 +197,8 @@ class AdminNavigation extends Navigation
             }
 
             $navigation->addSubNavigation('admissionrules', new Navigation(_('Anmelderegeln'), 'dispatch.php/admission/ruleadministration'));
+
+            $navigation->addSubNavigation('api', new Navigation(_('API'), 'dispatch.php/admin/api'));
         }
 
         $this->addSubNavigation('config', $navigation);

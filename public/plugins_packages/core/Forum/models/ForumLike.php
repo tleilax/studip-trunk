@@ -69,4 +69,55 @@ class ForumLike {
         
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
+    
+    /**
+     * count the number of likes the user has received - system-wide
+     * 
+     * @staticvar type $entries
+     * @param string $user_id  the user's id to count the received likes for
+     * 
+     * @return int  the number of likes received
+     */
+    static function receivedForUser($user_id)
+    {
+        static $entries;
+
+        if (!$entries[$user_id]) {
+            $stmt = DBManager::get()->prepare("SELECT COUNT(*)
+                FROM forum_entries
+                LEFT JOIN forum_likes USING (topic_id)
+                WHERE forum_entries.user_id = ?
+                    AND forum_likes.topic_id IS NOT NULL
+                    AND forum_likes.user_id != ?");
+            $stmt->execute(array($user_id, $user_id));
+
+            $entries[$user_id] = $stmt->fetchColumn();
+        }
+
+        return $entries[$user_id];
+    }
+    
+    /**
+     * count the number of likes the user has given - system-wide
+     * 
+     * @staticvar type $entries
+     * @param string $user_id  the user's id to count the given likes for
+     * 
+     * @return int  the number of likes received
+     */
+    static function givenForUser($user_id)
+    {
+        static $entries;
+
+        if (!$entries[$user_id]) {
+            $stmt = DBManager::get()->prepare("SELECT COUNT(*)
+                FROM forum_likes
+                WHERE user_id = ?");
+            $stmt->execute(array($user_id));
+
+            $entries[$user_id] = $stmt->fetchColumn();
+        }
+
+        return $entries[$user_id];
+    }    
 }

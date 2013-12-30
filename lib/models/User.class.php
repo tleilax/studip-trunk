@@ -147,6 +147,10 @@ class User extends AuthUserMd5
                             'assoc_func' => 'findByUser',
                             'on_delete' => 'delete',
                             'on_store' => 'store'),
+                'contacts' => array(
+                    'class_name' => 'Contact',
+                    'assoc_foreign_key' => 'owner_id'
+                )
         );
         $this->has_one['info'] = array(
                 'class_name' => 'UserInfo',

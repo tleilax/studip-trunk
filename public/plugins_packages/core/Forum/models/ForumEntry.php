@@ -348,14 +348,15 @@ class ForumEntry {
                 'opengraph'       => ($og = OpenGraphURL::find(OpenGraphURL::$tempURLStorage[0])) ? $og->render() : "",
                 'chdate'          => $data['chdate'],
                 'mkdate'          => $data['mkdate'],
-                'owner_id'        => $data['user_id'],
+                'user_id'        => $data['user_id'],
                 'raw_title'       => $data['name'],
                 'raw_description' => ForumEntry::killEdit($data['content']),
                 'fav'             => ($data['fav'] == 'fav'),
                 'depth'           => $data['depth'],
                 'anonymous'       => $data['anonymous'],
                 'closed'          => $data['closed'],
-                'sticky'          => $data['sticky']
+                'sticky'          => $data['sticky'],
+                'seminar_id'      => $data['seminar_id']
             );
         } // retrieve the postings
 
@@ -376,11 +377,14 @@ class ForumEntry {
      *         'content_short'   => 
      *         'chdate'          => 
      *         'mkdate'          => 
-     *         'owner_id'        => 
+     *         'user_id'        => 
      *         'raw_title'       => 
      *         'raw_description' => 
      *         'fav'             => 
      *         'depth'           => 
+     *         'sticky'          =>
+     *         'closed'          =>
+     *         'seminar_id'      =>
      *     )
      *     'count' =>
      * )
@@ -640,11 +644,12 @@ class ForumEntry {
                         'content_short'   => $desc_short,
                         'chdate'          => $data['chdate'],
                         'mkdate'          => $data['mkdate'],
-                        'owner_id'        => $data['user_id'],
+                        'user_id'        => $data['user_id'],
                         'raw_title'       => $data['name'],
                         'raw_description' => ForumEntry::killEdit($data['content']),
                         'fav'             => ($data['fav'] == 'fav'),
-                        'depth'           => $data['depth']
+                        'depth'           => $data['depth'],
+                        'seminar_id'      => $data['seminar_id']
                     );
                 }
 
@@ -664,6 +669,27 @@ class ForumEntry {
                 return array('list' => $stmt->fetchAll(PDO::FETCH_ASSOC), 'count' => $count);
                 break;
         }
+    }
+    
+    /**
+     * Get the latest forum entries for the passed entries childs
+     * 
+     * @param string $parent_id
+     * @param int $since  timestamp
+     * 
+     * @return array list of postings
+     */
+    function getLatestSince($parent_id, $since)
+    {
+        $constraint = ForumEntry::getConstraints($parent_id);
+                
+        $stmt = DBManager::get()->prepare("SELECT SQL_CALC_FOUND_ROWS * FROM forum_entries
+            WHERE lft > ? AND rgt < ? AND seminar_id = ?
+                AND mkdate >= ?
+            ORDER BY name ASC");
+        $stmt->execute(array($constraint['lft'], $constraint['rgt'], $constraint['seminar_id'], $since));
+        
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /**

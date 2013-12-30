@@ -6,7 +6,7 @@
     });
 </script>
 
-<?= $this->render_partial('index/_confirm_dialog') ?>
+<?= $this->render_partial('index/_js_templates') ?>
 
 <!-- set a CSS "namespace" for Forum -->
 <div id="forum">
@@ -159,10 +159,6 @@ endif;
 </div>
 <br style="clear: both">
 
-<div class="searchbar">
-    <?= $this->render_partial('index/_search', array('id' => 'tutorSearch')); ?>
-</div>
-
 <!-- Message area -->
 <div id="message_area">
     <?= $this->render_partial('messages') ?>
@@ -207,7 +203,7 @@ endif;
         </div>
     </div>
 
-    <? if (ForumPerm::has('add_category', $seminar_id)) : ?>
+    <? if ($section == 'index' && $constraint['depth'] == 0 && ForumPerm::has('add_category', $seminar_id)) : ?>
         <?= $this->render_partial('index/_new_category') ?>
     <? endif ?>
 <? else : ?>

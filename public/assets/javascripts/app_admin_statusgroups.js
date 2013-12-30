@@ -2,22 +2,50 @@ $(document).ready(function() {
 
     $('a.modal').click(function() {
         var dialog = $("<div></div>");
+        dialog.load($(this).attr('href'), function() {
+             loadModalDialog($(this));
+        });
+        $('<img/>', {
+            src: STUDIP.ASSETS_URL + 'images/ajax_indicator_small.gif'
+        }).appendTo(dialog);
         dialog.dialog({
-            autoOpen: false,
+            autoOpen: true,
             autoResize: true,
             resizable: false,
             position: 'center',
             close: function() {
-                $(this).remove()
+                $(this).remove();
             },
             width: 'auto',
             title: $(this).attr('title'),
             modal: true
         });
-        dialog.load($(this).attr('href'));
-        dialog.dialog("open");
         return false;
     });
+    
+    function loadModalDialog(dialog) {
+        dialog.find('.abort').click(function(e) {
+                e.preventDefault();
+                dialog.remove();
+            });
+            dialog.find('.stay_on_dialog').click(function(e) {
+                $(this).attr('disabled', 'true');
+                e.preventDefault();
+                var button = jQuery(this).attr('name');
+                var form = $(this).closest('form');
+                $.ajax({
+                    type: "POST",
+                    url: form.attr('action'),
+                    data: form.serialize()+'&'+button+'=1', // serializes the form's elements.
+                    success: function(data)
+                    {
+                        dialog.html(data); // show response from the php script.
+                        loadModalDialog(dialog);
+                    }
+                });
+            });
+            dialog.dialog({position: 'center'});
+    }
 
     //do everything you would do after a reload
     afterReload();
@@ -172,4 +200,16 @@ function afterReload() {
         });
         user.remove();
     });
+}
+
+// select all persons from selectable box
+function selectAll() {
+    $('#search_persons_selectable option').prop('selected', 'selected');
+    $('#search_persons_add').click();
+}
+
+// deselect all persons from selected box
+function deselectAll() {
+    $('#search_persons_selected option').prop('selected', 'selected');
+    $('#search_persons_remove').click();
 }
