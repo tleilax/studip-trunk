@@ -1,26 +1,171 @@
 <?php
-require_once dirname(__FILE__) . '/../bootstrap.php';
+/**
+ * utils_test.php - Test various functions of lib/utils.php.
+ *
+ * This test needs a running (simulated) Stud.IP environment, since it will 
+ * access the database, session cookies and so on.
+ *
+ * To avoid headers being sent by PHPunit output, redirect stdout:
+ *     phpunit --stderr utils_test.php
+ *
+ **
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * @category    Stud.IP
+ * @copyright   (c) 2013 Stud.IP e.V.
+ * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
+ * @since       File available since Release 3.0
+ * @author      Robert Costa <rcosta@uos.de>
+ */
+require_once dirname(__FILE__) . '/../bootstrap_globals.php';
+
+// setup fake environment
+$_SERVER['HTTP_HOST'] = 'localhost';
+$_SERVER['HTTP_CONNECTION'] = 'keep-alive';
+$_SERVER['HTTP_CACHE_CONTROL'] = 'no-cache';
+$_SERVER['HTTP_ACCEPT'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8';
+$_SERVER['HTTP_PRAGMA'] = 'no-cache';
+$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.63 Safari/537.36';
+$_SERVER['HTTP_ACCEPT_ENCODING'] = 'gzip,deflate,sdch';
+$_SERVER['HTTP_ACCEPT_LANGUAGE'] = 'en-US,en;q=0.8,is;q=0.6,de-DE;q=0.4,de;q=0.2,pt-PT;q=0.2,pt;q=0.2,fr-FR;q=0.2,fr;q=0.2';
+$_SERVER['HTTP_COOKIE'] = 'Seminar_Session=7003c8ec0e75b569af2b1918af8db6ba';
+$_SERVER['PATH'] = '/usr/bin:/bin:/usr/sbin:/sbin';
+$_SERVER['SERVER_SIGNATURE'] = '';
+$_SERVER['SERVER_SOFTWARE'] = 'Apache/2.2.24 (Unix) DAV/2 PHP/5.5.7 mod_ssl/2.2.24 OpenSSL/0.9.8y';
+$_SERVER['SERVER_NAME'] = 'localhost';
+$_SERVER['SERVER_ADDR'] = '127.0.0.1';
+$_SERVER['SERVER_PORT'] = '80';
+$_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+$_SERVER['DOCUMENT_ROOT'] = '/Library/WebServer/Documents';
+$_SERVER['SERVER_ADMIN'] = 'you@example.com';
+$_SERVER['SCRIPT_FILENAME'] = '/Users/rcosta/Sites/step00256/upload.php';
+$_SERVER['REMOTE_PORT'] = '51544';
+$_SERVER['GATEWAY_INTERFACE'] = 'CGI/1.1';
+$_SERVER['SERVER_PROTOCOL'] = 'HTTP/1.1';
+$_SERVER['REQUEST_METHOD'] = 'GET';
+$_SERVER['QUERY_STRING'] = 'cid=a07535cf2f8a72df33c12ddfa4b53dde';
+$_SERVER['REQUEST_URI'] = '/~rcosta/step00256/upload.php?cid=a07535cf2f8a72df33c12ddfa4b53dde';
+$_SERVER['SCRIPT_NAME'] = '/~rcosta/step00256/upload.php';
+$_SERVER['PHP_SELF'] = '/~rcosta/step00256/upload.php';
+$_SERVER['REQUEST_TIME_FLOAT'] = '1388515838.508';
+$_SERVER['REQUEST_TIME'] = '1388515838';
+
+$_GET['cid'] = 'a07535cf2f8a72df33c12ddfa4b53dde';
+$_COOKIE['Seminar_Session'] = '7003c8ec0e75b569af2b1918af8db6ba'; // ID in table session_data
+$_REQUEST['cid'] = 'a07535cf2f8a72df33c12ddfa4b53dde'; // where is cookie??
+//$_REQUEST = array_merge($_GET, $_POST, $_COOKIE);
+
+//$_SESSION['auth_user'] = 'root';
+//$GLOBALS['user'] = 
+
+//PHPUnit_Framework_Error_Warning::$enabled = FALSE;  // Warning
+//PHPUnit_Framework_Error_Notice::$enabled = FALSE;   // notice, strict:
+
 require_once 'lib/utils.php';
 
 class UtilsTest extends PHPUnit_Framework_TestCase {
-    function testExecuteQuery() {
-        $this->markTestIncomplete('not implemented');
+    function setUp() {
+        Utils\startSession();
     }
 
-    function testGetFolder() {
-        $this->markTestIncomplete('not implemented');
+    function testGetSeminarId() {
+        $seminar_id = 'a07535cf2f8a72df33c12ddfa4b53dde';
+        $this->assertEquals($seminar_id, Utils\getSeminarId());
+    }
+/*
+    function testFolderNameExists() {
+        // Note: If a folder by that name already exists, the test will
+        // fail if Utils\folderNameExists works correctly.
+        // Solution: Use a testing database with a sane setup...
+        $name = 'f0b37cbb5b88cdfe73fc4b536e6aedb8';  // random md5 hash
+        $this->assertFalse(Utils\folderNameExists($name));
+        $id = Utils\createFolder($name);
+        $this->assertFalse(Utils\folderNameExists($name));
+
+        // teardown: delete created folder
+        $this->assertTrue(Utils\executeQuery(
+            'DELETE FROM folder WHERE folder_id=:id',
+            array('id' => $id),
+            FALSE));
     }
 
-    function testFolderExists() {
-        $this->markTestIncomplete('not implemented');
+    function testRandomFolderName() {
+        // any negative number of retries yields NULL
+        $this->assertNull(Utils\randomfolderName('', -1)); // -1 retries
+        $this->assertNull(Utils\randomfolderName('', -10)); // -10 retries
+
+        // the create name doesn't exist and the given prefix is used
+        $prefix = 'test random folder name';
+        $name = Utils\randomFolderName($prefix);
+        $this->assertFalse(Utils\folderExists($name));
+        $this->assertTrue(Utils\startsWith($prefix, $name));
     }
 
     function testGetFolderId() {
-        $this->markTestIncomplete('not implemented');
+        // get ID of top-level folder
+        $name = Utils\randomFolderName('testGetFolderId');
+        $id = Utils\createFolder($name);
+        $this->assertNotNull($id);
+        $this->assertEquals($id, Utils\getFolderId($name));
+
+        // get ID of sub-folder
+        $subname = Utils\randomFolderName('testGetFolderId');
+        $subid = Utils\createFolder($name, $id);
+        $this->assertNotNull($subid);
+        $this->assertEquals($subid, Utils\getFolderId($subname, $id));
+
+        // teardown: delete created folders
+        $this->assertTrue(Utils\executeQuery(
+            'DELETE FROM folder WHERE folder_id IN (:id, :subid)',
+            array('id' => $id, 'subid' => $subid),
+            FALSE));
     }
 
     function testCreateFolder() {
-        $this->markTestIncomplete('not implemented');
+        // fail
+        $this->assertNull(Utils\createFolder(NULL));
+        $this->assertNull(Utils\createFolder(str_repeat('1', 256)));
+
+        // create a new top-level folder
+        $name = Utils\randomFolderName('testCreateFolder');
+        $id = Utils\createFolder($name);
+        $this->assertNotNull($id);
+
+        $folder = Utils\getFolderById($id);
+        $this->assertEquals($name, $folder['name']);
+        $this->assertEquals('', $folder['description']);
+        $this->assertEquals(Utils\getSeminarId(), $folder['seminar_id']);
+        $this->assertEquals(Utils\getSeminarId(), $folder['range_id']);
+        $this->assertEquals(7, $folder['permission']);
+
+        // create a subfolder
+        $sub_name = 'sub name';
+        $sub_description = 'sub description';
+        $sub_permission = 3;
+        $sub_id = Utils\createFolder(
+            $sub_name, $sub_description, $id, $sub_permission);
+        $this->assertNotNull($sub_id);
+
+        $sub_folder = Utils\getFolderBy($sub_id);
+        $this->assertEquals($name, $sub_folder['name']);
+        $this->assertEquals('', $sub_folder['description']);
+        $this->assertEquals(Utils\getSeminarId(), $sub_folder['seminar_id']);
+        $this->assertEquals(Utils\getSeminarId(), $sub_folder['range_id']);
+        $this->assertEquals(7, $sub_folder['permission']);
+
+        // teardown: delete created folders
+        $this->assertTrue(Utils\executeQuery(
+            'DELETE FROM folder WHERE folder_id IN (:id, :subid)',
+            array('id' => $id, 'subid' => $sub_id),
+            FALSE));
     }
 
     function testTransposeArrayDetectsBadData() {
@@ -236,20 +381,5 @@ class UtilsTest extends PHPUnit_Framework_TestCase {
                               'error'    => 21));
         $this->assertEquals($result, Utils\getUploadedFiles());
     }
-
-    function testVerifyUpload() {
-        $this->markTestIncomplete('not implemented');
-    }
-
-    function testGetStudipDocumentData() {
-        $this->markTestIncomplete('not implemented');
-    }
-
-    function testGetDownloadLink() {
-        $this->markTestIncomplete('not implemented');
-    }
-
-    function testUploadFile() {
-        $this->markTestIncomplete('not implemented');
-    }
+*/
 }

@@ -41,14 +41,16 @@
  * @since       File available since Release 3.0
  * @author      Robert Costa <rcosta@uos.de>
  */
+require_once '../lib/exceptions/AccessDeniedException.php';
+require_once '../lib/classes/Request.class.php';  // CSRFProtection.php
+require_once '../lib/classes/CSRFProtection.php';
+require_once '../lib/utils.php';  // includes bootstraph.php
 
-require_once '../lib/utils.php';
-
-// initialize session management and verify permissions
-Utils\startSession();
+// verify access permissions
 Utils\verifyPostRequest();
-Utils\verifyPermission('autor');  // minimum permission level for uploading
 CSRFProtection::verifyUnsafeRequest();
+Utils\startSession();
+Utils\verifyPermission('autor');  // minimum permission level for uploading
 
 // get folder ID
 if (isset($_POST['folder_id']) && Utils\folderExists($_POST['folder_id'])) {

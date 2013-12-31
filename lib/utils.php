@@ -22,6 +22,7 @@
  * Document Utils
  * --------------
  * getFolder                Return a Stud.IP folder's database entry.
+ * folderIdExists           Return TRUE if a folder with the given ID exists.
  * folderExists             Return TRUE if a folder with the given ID exists.
  * getFolderId              Return a folder's identifier.
  * createFolder             Create a new Stud.IP folder or return an existing one.
@@ -97,6 +98,61 @@ require_once 'bootstrap.php';
 //
 //   classes/Request.class.php      Request::isPost
 //   phplib_local.inc.php           $GLOBALS['perm']
+/**
+ * This comment block is basically what bootstraph.php doesn't.
+ * Unluckily I couldn't figure out how to circumvent loading all that 
+ * unnecessary stuff...
+
+$PHP_SELF = $_SERVER['PHP_SELF'] = $_SERVER['SCRIPT_NAME'];
+
+$STUDIP_BASE_PATH = realpath(dirname(__FILE__) . '/..');
+
+set_include_path(
+    $STUDIP_BASE_PATH
+    . PATH_SEPARATOR . $STUDIP_BASE_PATH . DIRECTORY_SEPARATOR . 'config'
+    . PATH_SEPARATOR . get_include_path()
+);
+
+define('PHPLIB_SESSIONDATA_TABLE', 'session_data');
+
+require_once 'lib/phplib/db_mysql_studip_pdo.inc';
+require_once 'lib/phplib/ct_sql_studip_pdo.inc';
+require_once 'lib/phplib/session4_custom.inc';
+require_once 'lib/phplib/auth4.inc';
+require_once 'lib/phplib/perm.inc';
+
+//require 'lib/phplib/email_validation.inc';
+require_once 'config_local.inc.php';
+
+require_once 'lib/classes/DbView.class.php';
+require_once 'lib/classes/TreeAbstract.class.php';
+require_once 'lib/classes/Log.php';
+require_once 'lib/classes/Assets.class.php';
+require_once 'lib/classes/DbManager.class.php';
+require_once 'lib/classes/StudipPDO.class.php';
+require_once 'lib/classes/PageLayout.php';
+require_once 'lib/classes/Config.class.php';
+require_once 'lib/models/SimpleORMap.class.php';
+require_once 'lib/classes/StudipObject.class.php';
+require_once 'lib/classes/DatabaseObject.class.php';
+require_once 'lib/classes/StudipMail.class.php';
+require_once 'lib/classes/StudipCacheFactory.class.php';
+require_once 'lib/classes/MessageBox.class.php';
+require_once 'lib/classes/StudipCache.class.php';
+require_once 'lib/classes/StudipFileCache.class.php';
+require_once 'lib/classes/Request.class.php';
+require_once 'lib/classes/URLHelper.php';
+require_once 'lib/classes/SkipLinks.php';
+require_once 'lib/classes/UserConfig.class.php';
+require_once 'lib/models/AuthUserMd5.class.php';
+require_once 'lib/models/UserInfo.class.php';
+require_once 'lib/models/User.class.php';
+require_once 'lib/classes/Avatar.class.php';
+require_once 'lib/models/PersonalNotifications.class.php';
+
+require_once 'lib/phplib_local.inc.php';
+require_once 'lib/phplib/page4.inc';
+*/
 
 /**
  * Get the current URL as called by the web client.
@@ -143,14 +199,14 @@ function getBaseUrl() {
  *                seminar is selected.
  */
 function getSeminarId() {
-    if (!\Request::option('cid')) {
-        if ($GLOBALS['SessionSeminar']) {
-            \URLHelper::bindLinkParam('cid', $GLOBALS['SessionSeminar']);
-            return $GLOBALS['SessionSeminar'];
-        }
-        return false;
+    if (\Request::option('cid')) {
+        return \Request::option('cid');
     }
-    return \Request::option('cid');
+    if ($GLOBALS['SessionSeminar']) {
+        \URLHelper::bindLinkParam('cid', $GLOBALS['SessionSeminar']);
+        return $GLOBALS['SessionSeminar'];
+    }
+    return false;
 }
 
 /**
@@ -177,21 +233,69 @@ function executeQuery($query, $parameters, $fetch=TRUE) {
 /**
  * Return a Stud.IP folder's database entry.
  *
+ * The returned array uses the DB table's column names as keys: name,
+ * folder_id, description, range_id, seminar_id, user_id, permission.
+ *
  * @param string $id  Folder identifier.
- * @returns array     Folder data, empty array if folder doesn't exist,
- *                    FALSE if something went wrong.
+ * @returns array     Folder data. NULL if folder doesn't exist or
+ *                    something went wrong.
  */
-function getFolder($id) {
+function getFolderById($id) {
     $result = executeQuery('SELECT * FROM folder WHERE folder_id=:id',
                            Array(':id' => $id));
     return $result ? $result[0] : NULL;
 }
 
 /**
+ * Return database entries of Stud.IP folders with a specific name.
+ *
+ * The returned array uses the DB table's column names as keys: name,
+ * folder_id, description, range_id, seminar_id, user_id, permission.
+ *
+ * Only folders of the current seminar are returned.
+ *
+ * @param string $name  Folder name.
+ * @returns array       Folder data. NULL if folder doesn't exist or
+ *                      something went wrong.
+ */
+function getFolderByName($name) {
+    return executeQuery(
+        'SELECT * FROM folder WHERE name=:name AND seminar_id=:seminar_id',
+        Array(':name' => $id, ':seminar_id' => getSeminarId()));
+}
+
+/**
  * Return TRUE if a folder with the given ID exists.
  */
-function folderExists($id) {
-    return (bool) getFolder($id);
+function folderIdExists($id) {
+    return (bool) getFolderById($id);
+}
+
+/**
+ * Return TRUE if a folder name is already used in the current seminar.
+ */
+function folderNameExists($name) {
+    return (bool) getFolderByName($name);
+}
+
+/**
+ * Return a random folder name that isn't used already.
+ *
+ * @params string $prefix   Prefix of the folder name (optional).
+ * @params int    $retries  Maximum number of retries, should created
+ *                          names already exist.
+ * @returns string          Unused, random folder name.
+ *                          NULL if no unused name was found.
+ */
+function randomFolderName($prefix='', $retries=99) {
+    while ($retries >= 0) {
+        $retries--;
+        $name = uniqid($prefix);
+        if (!folderNameExists($name)) {
+            return $name;
+        }
+    }
+    return NULL;
 }
 
 /**
