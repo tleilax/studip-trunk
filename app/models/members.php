@@ -359,7 +359,7 @@ class MembersModel
     {
         $cs = CourseSet::getSetForCourse($this->course_id);
         $claiming = array();
-        if ($cs->getSeatDistributionTime() > time()) {
+        if (is_object($cs) && $cs->getSeatDistributionTime() > time()) {
             foreach (AdmissionPriority::getPrioritiesByCourse($cs->getId(), $this->course_id) as $user_id => $p) {
                 $user = User::find($user_id);
                 $data = $user->toArray('user_id username vorname nachname email');
@@ -368,9 +368,9 @@ class MembersModel
                 $data['visible'] = 'unknown';
                 $data['status'] = 'claiming';
                 $claiming[] = $data;
-            } 
+            }
         }
-        
+
         $query = "SELECT asu.user_id,username,vorname,nachname,email,status,position,asu.mkdate,asu.visible,
                 " . $GLOBALS['_fullname_sql']['full_rev'] . " as fullname
                 FROM admission_seminar_user asu INNER JOIN auth_user_md5 USING(user_id)

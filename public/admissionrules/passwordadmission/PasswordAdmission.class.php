@@ -2,7 +2,7 @@
 
 /**
  * PasswordAdmission.class.php
- * 
+ *
  * Represents a rule for course access with a given password.
  *
  * This program is free software; you can redistribute it and/or
@@ -58,13 +58,13 @@ class PasswordAdmission extends AdmissionRule
     public function delete() {
         parent::delete();
         // Delete rule data.
-        $stmt = DBManager::get()->prepare("DELETE FROM `passwordadmissions` 
+        $stmt = DBManager::get()->prepare("DELETE FROM `passwordadmissions`
             WHERE `rule_id`=?");
         $stmt->execute(array($this->id));
     }
 
     /**
-     * Gets some text that describes what this AdmissionRule (or respective 
+     * Gets some text that describes what this AdmissionRule (or respective
      * subclass) does.
      */
     public static function getDescription() {
@@ -76,7 +76,7 @@ class PasswordAdmission extends AdmissionRule
     /**
      * Shows an input form where the user can enter a password and try to get
      * past the holy gates.
-     * 
+     *
      * @return String A template-based input form.
      */
     public function getInput() {
@@ -95,7 +95,7 @@ class PasswordAdmission extends AdmissionRule
 
     /**
      * Gets the bcrypted hash of the current password.
-     * 
+     *
      * @return String
      */
     public function getPassword() {
@@ -104,7 +104,7 @@ class PasswordAdmission extends AdmissionRule
 
     /**
      * Gets the template that provides a configuration GUI for this rule.
-     * 
+     *
      * @return String
      */
     public function getTemplate() {
@@ -112,7 +112,7 @@ class PasswordAdmission extends AdmissionRule
         $tpl = $GLOBALS['template_factory']->open('admission/rules/configure');
         $tpl->set_attribute('rule', $this);
         $factory = new Flexi_TemplateFactory(dirname(__FILE__).'/templates/');
-        // Now open specific template for this rule and insert base template. 
+        // Now open specific template for this rule and insert base template.
         $tpl2 = $factory->open('configure');
         $tpl2->set_attribute('rule', $this);
         $tpl2->set_attribute('tpl', $tpl->render());
@@ -135,7 +135,7 @@ class PasswordAdmission extends AdmissionRule
     }
 
     /**
-     * Does the current rule allow the given user to register as participant 
+     * Does the current rule allow the given user to register as participant
      * in the given course? Here, a given password (via the getInput method) is
      * compared to the stored encrypted one.
      *
@@ -153,7 +153,10 @@ class PasswordAdmission extends AdmissionRule
                 CSRFProtection::verifyUnsafeRequest();
                 $pwcheck = $this->hasher->CheckPassword(Request::get('pwarule_password'),
                         $this->getPassword());
-                if (!$pwcheck) {
+                //migrated passwords
+                $pwcheck_m = $this->hasher->CheckPassword(md5(Request::get('pwarule_password')),
+                        $this->getPassword());
+                if (!($pwcheck || $pwcheck_m)) {
                     $errors[] = $this->getMessage();
                 }
             }
@@ -165,7 +168,7 @@ class PasswordAdmission extends AdmissionRule
      * Uses the given data to fill the object values. This can be used
      * as a generic function for storing data if the concrete rule type
      * isn't known in advance.
-     * 
+     *
      * @param Array $data
      * @return AdmissionRule This object.
      */
@@ -177,7 +180,7 @@ class PasswordAdmission extends AdmissionRule
 
     /**
      * Sets the password by bcrypting the given clear text password.
-     * 
+     *
      * @param  String $clearText The clear text password to be set.
      * @return PasswordAdmission
      */
@@ -196,9 +199,9 @@ class PasswordAdmission extends AdmissionRule
                 `mkdate`, `chdate`)
             VALUES (?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE
             `message`=VALUES(`message`), `start_time`=VALUES(`start_time`),
-            `end_time`=VALUES(`end_time`), `password`=VALUES(`password`), 
+            `end_time`=VALUES(`end_time`), `password`=VALUES(`password`),
             `chdate`=VALUES(`chdate`)");
-        $stmt->execute(array($this->id, $this->message, (int)$this->startTime, (int)$this->endTime, $this->password, 
+        $stmt->execute(array($this->id, $this->message, (int)$this->startTime, (int)$this->endTime, $this->password,
             time(), time()));
         return $this;
     }
