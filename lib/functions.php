@@ -132,7 +132,7 @@ function get_object_name($range_id, $object_type)
 
 /**
  * Returns a sorm object for a given range_id
- * 
+ *
  * @param string the range_id
  * @return SimpleORMap Course/Institute/User/Statusgruppen/
  */
@@ -175,7 +175,7 @@ function selectSem ($sem_id)
     closeObject();
 
     $query = "SELECT Institut_id, Name, Seminar_id, Untertitel, start_time,
-                     status, Lesezugriff, Schreibzugriff, Passwort, aux_lock_rule_forced
+                     status, Lesezugriff, Schreibzugriff, aux_lock_rule_forced
               FROM seminare
               WHERE Seminar_id = ?";
     $statement = DBManager::get()->prepare($query);

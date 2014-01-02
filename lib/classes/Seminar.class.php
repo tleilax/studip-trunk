@@ -49,10 +49,12 @@ class Seminar
     var $message_stack = array();
 
     var $user_number = 0;//?
-    var $old_settings; //? 
-    
+    var $old_settings; //?
+    var $commands; //?
+    var $BookedRoomsStatTemp; //???
+
     private $_metadate = null;               // MetaDate
-    
+
     private $alias = array(
             'seminar_number' => 'VeranstaltungsNummer',
             'subtitle' => 'Untertitel',
@@ -68,11 +70,11 @@ class Seminar
             'requirements' => 'vorrausetzungen',
             'orga' => 'lernorga',
     );
-    
+
     private $course = null;
-    
+
     private static $seminar_object_pool;
-    
+
     static function GetInstance($id = false, $refresh_cache = false)
     {
         if ($id) {
@@ -89,7 +91,7 @@ class Seminar
             return new Seminar(false);
         }
     }
-    
+
     /**
     * Constructor
     *
@@ -109,7 +111,7 @@ class Seminar
             throw new Exception(sprintf(_('Fehler: Konnte das Seminar mit der ID %s nicht finden!'), $course_or_id));
         }
     }
-    
+
     function __get($field)
     {
         if ($field == 'is_new') {
@@ -128,7 +130,7 @@ class Seminar
         }
         return $this->course->$field;
     }
-    
+
     function __set($field, $value)
     {
         if(isset($this->alias[$field])) {
@@ -139,7 +141,7 @@ class Seminar
         }
         return $this->course->$field = $value;
     }
-    
+
     function __isset($field)
     {
         if ($field == 'metadate') {
@@ -150,7 +152,7 @@ class Seminar
         }
         return isset($this->course->$field);
     }
-    
+
     static function GetSemIdByDateId($date_id)
     {
         $stmt = DBManager::get()->prepare("SELECT range_id FROM termine WHERE termin_id = ? LIMIT 1");
@@ -1787,7 +1789,7 @@ class Seminar
         return $participant_count;
     }
 
-    
+
     /**
      * Returns the IDs of this course's study areas.
      *
@@ -2107,42 +2109,10 @@ class Seminar
      */
     function getData()
     {
-        $data = array();
-        $data['seminar_number'] = $this->seminar_number;
-        $data['institut_id'] = $this->institut_id;
-        $data['name'] = $this->name;
-        $data['subtitle'] = $this->subtitle;
-        $data['status'] = $this->status;
-        $data['description'] = $this->description;
-        $data['location'] = $this->location;
-        $data['misc'] = $this->misc;
-        $data['read_level'] = $this->read_level;
-        $data['write_level'] = $this->write_level;
-        $data['semester_start_time'] = $this->semester_start_time;
-        $data['semester_duration_time'] = $this->semester_duration_time;
-        $data['form'] = $this->form;
-        $data['participants'] = $this->participants;
-        $data['requirements'] = $this->requirements;
-        $data['orga'] = $this->orga;
-        $data['leistungsnachweis'] = $this->leistungsnachweis;
-
-        $data['mkdate'] = $this->mkdate;
-        $data['chdate'] = $this->chdate;
-        $data['ects'] = $this->ects;
-        $data['admission_endtime'] = $this->admission_endtime;
-        $data['admission_turnout'] = $this->admission_turnout;
-        $data['admission_binding'] = $this->admission_binding;
-        $data['admission_type'] = $this->admission_type;
-        $data['admission_selection_take_place'] = $this->admission_selection_take_place;
-        $data['admission_group'] = $this->admission_group;
-        $data['admission_prelim'] = $this->admission_prelim;
-        $data['admission_prelim_txt'] = $this->admission_prelim_txt;
-        $data['admission_starttime'] = $this->admission_starttime;
-        $data['admission_endtime_sem'] = $this->admission_endtime_sem;
-        $data['admission_disable_waitlist'] = $this->admission_disable_waitlist;
-        $data['admission_enable_quota'] = $this->admission_enable_quota;
-        $data['visible'] = $this->visible;
-        $data['showscore'] = $this->showscore;
+        $data = $this->course->toArray();
+        foreach($this->alias as $a => $o) {
+            $data[$a] = $this->course->$o;
+        }
         return $data;
     }
 
@@ -2543,7 +2513,7 @@ class Seminar
        $cs = $this->getCourseSet();
        return ($cs && $cs->isSeatDistributionEnabled());
     }
-    
+
     function getFreeAdmissionSeats()
     {
         if ($this->isAdmissionEnabled()) {
@@ -2552,5 +2522,5 @@ class Seminar
             return true;
         }
     }
-    
+
 }

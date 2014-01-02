@@ -481,8 +481,8 @@ if ($form == 2 && Request::isPost()) {
         $_SESSION['sem_create_data']["sem_sec_lese"] = Request::int('sem_sec_lese');
         $_SESSION['sem_create_data']["sem_sec_schreib"] = Request::int('sem_sec_schreib');
     } else {
-        $_SESSION['sem_create_data']["sem_sec_lese"] = 2;
-        $_SESSION['sem_create_data']["sem_sec_schreib"] = 2;
+        $_SESSION['sem_create_data']["sem_sec_lese"] = 1;
+        $_SESSION['sem_create_data']["sem_sec_schreib"] = 1;
     }
     }
 
