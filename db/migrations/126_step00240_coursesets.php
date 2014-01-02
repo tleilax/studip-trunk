@@ -1,4 +1,6 @@
 <?php
+require_once 'vendor/phpass/PasswordHash.php';
+
 class Step00240CourseSets extends Migration
 {
 
@@ -10,6 +12,16 @@ class Step00240CourseSets extends Migration
     function up()
     {
         $db = DBManager::get();
+
+        //check for future admission
+        $future_admissions = $db->fetchColumn("SELECT COUNT(*) FROM seminare WHERE admission_type IN (1,2) AND
+         (admission_starttime > UNIX_TIMESTAMP() OR start_time > UNIX_TIMESTAMP())");
+
+        if ($future_admissions && !Request::submitted('i_accept_the_risk')) {
+            throw new Exception(sprintf("Es gibt %s Veranstaltungen mit Anmeldeverfahren, die in der Zukunft starten.
+                Diese Anmeldeverfahren können nicht migriert werden. Wenn sie auch diese zukünftigen Verfahren in gesperrt umwandeln wollen,
+                rufen sie manuell web_migrate.php?i_accept_the_risk auf, und klicken sie erneut auf Starten", $future_admissions ));
+        }
 
         // assign conditions to admission rules
         $db->exec("CREATE TABLE IF NOT EXISTS `admission_condition` (
@@ -47,7 +59,7 @@ class Step00240CourseSets extends Migration
                 ('LockedAdmission', 1, 0, UNIX_TIMESTAMP()),
                 ('PasswordAdmission', 1, 0, UNIX_TIMESTAMP()),
                 ('TimedAdmission', 1, 0, UNIX_TIMESTAMP()),
-                ('ParticipantRestrictedAdmissions', 1, 0, UNIX_TIMESTAMP());");
+                ('ParticipantRestrictedAdmission', 1, 0, UNIX_TIMESTAMP());");
 
         // Admission rules can be available globally or only at selected institutes.
         $db->exec("CREATE TABLE IF NOT EXISTS `admissionrule_inst` (
@@ -176,7 +188,7 @@ class Step00240CourseSets extends Migration
             INDEX `end_time` (`end_time` ASC) ,
             INDEX `start_end` (`start_time` ASC, `end_time` ASC) )
             ENGINE = MyISAM");
-        
+
         $db->exec("CREATE TABLE IF NOT EXISTS `participantrestrictedadmissions` (
         `rule_id` varchar(32),
         `message` text NOT NULL,
@@ -224,9 +236,94 @@ class Step00240CourseSets extends Migration
             PRIMARY KEY (`rule_id`, `user_id`) )
             ENGINE = MyISAM");
 
+        $cs_insert = $db->prepare("INSERT INTO coursesets (set_id,user_id,institut_id,name,infotext,algorithm,mkdate,chdate)
+                                   VALUES (?,?,?,?,?,'',UNIX_TIMESTAMP(),UNIX_TIMESTAMP())");
+        $cs_r_insert = $db->prepare("INSERT INTO courseset_rule (set_id,rule_id,type,mkdate) VALUES (?,?,?,UNIX_TIMESTAMP())");
+        $s_cs_insert = $db->prepare("INSERT INTO seminar_courseset (set_id,seminar_id,chdate,mkdate) VALUES (?,?,UNIX_TIMESTAMP(),UNIX_TIMESTAMP())");
+        $password_insert = $db->prepare("INSERT INTO passwordadmissions (rule_id,message,password,mkdate,chdate) VALUES (?,'Das Passwort ist falsch',?,UNIX_TIMESTAMP(),UNIX_TIMESTAMP())");
+        $locked_insert = $db->prepare("INSERT INTO lockedadmissions (rule_id,message,mkdate,chdate) VALUES (?,'Die Anmeldung ist gesperrt',UNIX_TIMESTAMP(),UNIX_TIMESTAMP())");
+        $hasher = new PasswordHash(8, false);
+
+        //mit pw wandeln
+        $pw_admission = $db->fetchAll("SELECT seminar_id,name,passwort,institut_id FROM seminare WHERE Lesezugriff=2");
+        foreach ($pw_admission as $course) {
+            $new_pwd = $hasher->HashPassword($course['passwort']);
+            $rule_id = md5(uniqid('passwordadmissions',1));
+            $password_insert->execute(array($rule_id, $new_pwd));
+            $set_id = md5(uniqid('coursesets',1));
+            $name = 'Anmeldung mit Passwort: ' . $course['name'];
+            $info = 'Erzeugt durch Migration 128 ' . strftime('%X %x');
+            $cs_insert->execute(array($set_id,$GLOBALS['user']->id,$course['institut_id'],$name,$info));
+            $cs_r_insert->execute(array($set_id,$rule_id,'PasswordAdmission'));
+            $s_cs_insert ->execute(array($set_id, $course['seminar_id']));
+        }
+
+        //locked wandeln
+        $locked_admission = $db->fetchAll("SELECT seminar_id,name,institut_id FROM seminare WHERE admission_type=3");
+        foreach ($locked_admission as $course) {
+            $rule_id = md5(uniqid('lockedadmissions',1));
+            $locked_insert->execute(array($rule_id));
+            $set_id = md5(uniqid('coursesets',1));
+            $name = 'Anmeldung gesperrt: ' . $course['name'];
+            $info = 'Erzeugt durch Migration 128 ' . strftime('%X %x');
+            $cs_insert->execute(array($set_id,$GLOBALS['user']->id,$course['institut_id'],$name,$info));
+            $cs_r_insert->execute(array($set_id,$rule_id,'LockedAdmission'));
+            $s_cs_insert ->execute(array($set_id, $course['seminar_id']));
+        }
+
+        //gruppierte wandeln
+        $grouped_admission = $db->fetchAll("SELECT seminar_id,seminare.name,admission_group.name as a_name,institut_id,admission_group
+            FROM seminare inner join admission_group on(group_id=admission_group)
+            WHERE admission_type in (1,2) ORDER BY admission_group");
+        foreach ($grouped_admission as $course) {
+            if ($group_id != $course['admission_group']) {
+                $group_id = $course['admission_group'];
+                $group_name = $course['a_name'];
+                if (!$group_name) {
+                    $group_name = "Gruppe " . ++$g;
+                }
+                $rule_id = md5(uniqid('lockedadmissions',1));
+                $locked_insert->execute(array($rule_id));
+                $set_id = md5(uniqid('coursesets',1));
+                $name = 'Anmeldung gesperrt: Gruppe ' . $group_name;
+                $info = 'Erzeugt durch Migration 128 ' . strftime('%X %x');
+                $cs_insert->execute(array($set_id,$GLOBALS['user']->id,$course['institut_id'],$name,$info));
+                $cs_r_insert->execute(array($set_id,$rule_id,'LockedAdmission'));
+            }
+            $s_cs_insert ->execute(array($set_id, $course['seminar_id']));
+        }
+
+        $admission = $db->fetchAll("SELECT seminar_id,seminare.name,institut_id,admission_turnout
+            FROM seminare left join admission_group on(group_id=admission_group) WHERE admission_type in (1,2) AND group_id is null");
+        foreach ($admission as $course) {
+            $rule_id = md5(uniqid('lockedadmissions',1));
+            $locked_insert->execute(array($rule_id));
+            $set_id = md5(uniqid('coursesets',1));
+            $name = 'Anmeldung gesperrt: ' . $course['name'];
+            $info = 'Erzeugt durch Migration 128 ' . strftime('%X %x');
+            $info .= "\n" . ' Teilnahmebeschränkt: ' . $course['admission_turnout'];
+            $cs_insert->execute(array($set_id,$GLOBALS['user']->id,$course['institut_id'],$name,$info));
+            $cs_r_insert->execute(array($set_id,$rule_id,'LockedAdmission'));
+            $s_cs_insert ->execute(array($set_id, $course['seminar_id']));
+        }
+
+        //Warte und Anmeldelisten löschen
+        $db->exec("DELETE FROM admission_seminar_user WHERE status <> 'accepted'");
+        $db->exec("DROP TABLE admission_seminar_studiengang");
+        $db->exec("DROP TABLE admission_group");
+        $db->exec("ALTER TABLE `seminare` DROP `Passwort`");
+        $db->exec("ALTER TABLE `seminare` DROP `admission_endtime`");
+        $db->exec("ALTER TABLE `seminare` DROP `admission_type`");
+        $db->exec("ALTER TABLE `seminare` DROP `admission_selection_take_place`");
+        $db->exec("ALTER TABLE `seminare` DROP `admission_group`");
+        $db->exec("ALTER TABLE `seminare` DROP `admission_starttime`");
+        $db->exec("ALTER TABLE `seminare` DROP `admission_endtime_sem`");
+        $db->exec("ALTER TABLE `seminare` DROP `admission_enable_quota`");
+
         $db->exec("ALTER TABLE  `seminare` ADD  `admission_waitlist_max` INT UNSIGNED NOT NULL DEFAULT  '0'");
         $db->exec("ALTER TABLE  `seminare` ADD  `admission_disable_waitlist_move` TINYINT UNSIGNED NOT NULL DEFAULT '0'");
 
+        SimpleORMap::expireTableScheme();
     }
 
     function down()
