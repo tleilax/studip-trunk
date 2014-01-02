@@ -1,5 +1,6 @@
 <?php if ($courseset->getInfoText()) { ?>
 <?= htmlReady($courseset->getInfoText()) ?>
+<br>
 <?php } ?>
 <?php if (!$short) { ?>
 <br/>

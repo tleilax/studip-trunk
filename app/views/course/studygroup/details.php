@@ -17,7 +17,7 @@ if ($GLOBALS['perm']->have_studip_perm('autor',$studygroup->getId())) {
 
 } else {
     $action = _("Aktionen:");
-    $infolink = '<a href="'. URLHelper::getLink('sem_verify.php?id='. $studygroup->getId()) .'">%s</a>';
+    $infolink = '<a href="'. URLHelper::getLink('dispatch.php/course/enrolment/'. $studygroup->getId()) .'">%s</a>';
     $infotext= sprintf( $infolink, $studygroup->admission_prelim ? _("Mitgliedschaft beantragen") : _("Studiengruppe beitreten"));
 }
 

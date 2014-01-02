@@ -598,15 +598,13 @@ echo $template_factory->render(
                 </td>
     </tr>
             <?
-            if ($seminar['admission_type'] || ($seminar['admission_prelim'] == 1) || ($seminar['admission_starttime'] > time()) || ($seminar['admission_endtime_sem'] != -1)) {
+    if ($seminar['admission_prelim'] == 1) {
             ?>
             <tr>
                 <td width="1%">&nbsp;</td>
                 <td colspan=2 width="51%" valign="top">
                 <font size=-1><b><?=_("Anmeldeverfahren:")?></b></font><br>
                 <?
-    }
-    if ($seminar['admission_prelim'] == 1 && $seminar['admission_type'] != 3) {
         echo "<font size=-1>";
         print(_("Die Auswahl der Teilnehmenden wird nach der Eintragung manuell vorgenommen."));
         echo "<br>";
@@ -627,119 +625,7 @@ echo $template_factory->render(
             }
         }
         echo "</font>";
-    }
-    if ($seminar['admission_starttime'] > time()) {
-        echo "<font size=-1>";
-        printf ("<br>"._("Das Teilnahmeverfahren für diese Veranstaltung startet am %s um %s."),date("d.m.Y",$seminar['admission_starttime']), date("G:i",$seminar['admission_starttime']));
-        echo "</font>";
-    }
-    if (($seminar['admission_endtime_sem'] > time()) && ($seminar['admission_endtime_sem'] != -1)) {
-        echo "<font size=-1>";
-        printf (" "._("Das Teilnahmeverfahren für diese Veranstaltung endet am %s um %s."),date("d.m.Y",$seminar['admission_endtime_sem']), date("G:i",$seminar['admission_endtime_sem']));
-        echo "<br>";
-        echo "</font>";
-    }
-    if (($seminar['admission_endtime_sem'] <= time()) && ($seminar['admission_endtime_sem'] != -1)) {
-        echo "<font size=-1>";
-        printf (_("Das Teilnahmeverfahren für diese Veranstaltung wurde am %s um %s beendet."),date("d.m.Y",$seminar['admission_endtime_sem']), date("G:i",$seminar['admission_endtime_sem']));
-        echo "<br>";
-        echo "</font>";
-    }
-    if ($seminar['admission_type'] == 3) {
-                echo '<font size="-1" color="red">'. _("Diese Veranstaltung ist gesperrt, Sie k&ouml;nnen sich nicht selbst eintragen!");
-                echo "<td colspan=2 width=\"48%\" valign=\"top\"><td>";
-        } elseif ($seminar['admission_type']) {
-        if ($seminar['admission_selection_take_place'] == 1) {
-            if ($seminar['admission_type'] == 1) {
-                printf ("<font size=-1>" . _("Die Auswahl der Teilnehmenden wurde nach dem Losverfahren am %s Uhr festgelegt.") . "</font>", date("d.m.Y, G:i", $seminar['admission_endtime']));
-                if (!$seminar['admission_disable_waitlist'] && ($seminar['admission_endtime_sem'] > time()) || ($seminar['admission_endtime_sem'] == -1)) {
-                    echo "<font size=-1>" . _("Weitere Interessierte k&ouml;nnen per Warteliste einen Platz bekommen.") . "</font>";
-                }
-                echo "<br>";
-            } else {
-                if ($seminar['admission_prelim'] == 1) {
-                    printf ("<font size=-1>" . _("Die vorläufige Auswahl der Teilnehmenden erfolgte in der Reihenfolge der Anmeldung.")."</font>");
-                } else {
-                    printf ("<font size=-1>" . _("Die Auswahl der Teilnehmenden erfolgte in der Reihenfolge der Anmeldung.")."</font>");
-                }
-                if($seminar['admission_enable_quota']) printf("<font size=-1>" .  _("Die Kontingentierung wurde am %s aufgehoben.") . "</font>", date("d.m.Y, G:i", $seminar['admission_endtime']));
-                if (!$seminar['admission_disable_waitlist'] && ($seminar['admission_endtime_sem'] > time() || $seminar['admission_endtime_sem'] == -1)) {
-                    echo "<font size=-1>" . _("Weitere Pl&auml;tze k&ouml;nnen noch &uuml;ber Wartelisten vergeben werden.") . "</font>";
-                }
-                echo "<br>";
-            }
-        } else {
-            if ($seminar['admission_type'] == 1)
-                printf ("<font size=-1>" . _("Die Auswahl der Teilnehmenden erfolgt nach dem Losverfahren am %s Uhr.") . "</font><br>", date("d.m.Y, G:i", $seminar['admission_endtime']));
-            else {
-                if ($seminar['admission_prelim'] == 1) {
-                    printf ("<font size=-1>" . _("Die vorläufige Auswahl der Teilnehmenden erfolgt in der Reihenfolge der Anmeldung."));
-                } else {
-                    printf ("<font size=-1>" . _("Die Auswahl der Teilnehmenden erfolgt in der Reihenfolge der Anmeldung."));
-                }
-                if ($seminar['admission_enable_quota']) {
-                    if ($seminar['admission_endtime'] < time()) {
-                        printf ( _("Die Kontingentierung wurde am %s aufgehoben.") . "<br>", date("d.m.Y, G:i", $seminar['admission_endtime']));
-                    } else {
-                        printf (_("Die Kontingentierung wird am %s aufgehoben.") . "<br>", date("d.m.Y, G:i", $seminar['admission_endtime']));
-                    }
-                }
-            }
-        }
-        //check, if seminar is grouped
-        $group_obj = StudipAdmissionGroup::GetAdmissionGroupBySeminarId($sem_id);
-        if (is_object($group_obj)) {
-                ?>
-                <div style="margin-top:5px;">
-                <font size="-1">
-                    <?=_("Veranstaltungsgruppe:")?>&nbsp;<?=htmlReady($group_obj->getValue('name'))?>
-                    <ol>
-                    <?foreach($group_obj->getMemberIds() as $m_id){
-                        if (!$group_obj->members[$m_id]->isVisible()) continue; // hide invisible courses
-                        $target = $perm->have_studip_perm("autor", $m_id) ? 'seminar_main.php?auswahl=' : 'details.php?sem_id=';
-                        $target .= $m_id;
-                        ?>
-                        <li><a href="<?= URLHelper::getLink($target) ?>">
-                        <?=htmlReady($group_obj->members[$m_id]->getName())?>
-                        </a>
-                        &nbsp;
-                        (<?=htmlReady($group_obj->members[$m_id]->getFormattedTurnus(true))?>)
-                        </li>
-                    <?}?>
-                    </ol>
-                </font>
-                </div>
-            <?}?>
-            </td>
-            <td colspan=2 width="48%" valign="top">
-            <?
-                $all_cont_user = false;
-                $admission_sem = Seminar::GetInstance($sem_id);
-                $free_admission = $admission_sem->getFreeAdmissionSeats();
-                if($free_admission !== false){
-                ?>
-                <div style="margin-top:5px;">
-                <font size="-1">
-                    <b><?=sprintf(_("Zugelassene Studiengänge (%s freie Plätze):"), $free_admission)?></b>
-                    <ul>
-                    <?foreach($admission_sem->admission_studiengang as $studiengang){
-                        ?>
-                        <li><?=htmlReady($studiengang['name'])?>
-                        &nbsp;
-                        (<?=($admission_sem->isAdmissionQuotaEnabled() ? sprintf(_("%s freie Plätze") . ' / ', $studiengang['num_total']-$studiengang['num_occupied']) : '') . sprintf(_("%s belegt"), $studiengang['num_occupied'])?>)
-                        </li>
-                    <?
-                    $all_cont_user += $studiengang['num_occupied'];
-                    }?>
-                    </ul>
-                </font>
-                </div>
-            <?}?>
-            </td>
-        </tr>
-        <?
-        } elseif (($seminar['admission_starttime'] > time()) || ($seminar['admission_prelim'] == 1) || ($seminar['admission_endtime_sem'] != -1)) {
-            echo "<td colspan=2 width=\"48%\" valign=\"top\"><td>";
+        echo "<td colspan=2 width=\"48%\" valign=\"top\"><td>";
         }
         ?>
         <? if (count($seminar_domains)): ?>

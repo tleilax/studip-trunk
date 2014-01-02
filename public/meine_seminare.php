@@ -106,7 +106,7 @@ if (!$perm->have_perm("root")) {
 }
 
 // Capture output
-ob_start(); 
+ob_start();
 
 $cmd = Request::option('cmd');
 if(in_array($cmd, words('no_kill suppose_to_kill suppose_to_kill_admission kill kill_admission'))){
@@ -318,7 +318,7 @@ if ($auth->is_authenticated() && $user->id != "nobody" && !$perm->have_perm("adm
     if (count($seminars) == 0) {
         $meldung = "info§" . sprintf(_("Sie haben zur Zeit keine Veranstaltungen abonniert, an denen Sie teilnehmen k&ouml;nnen. Bitte nutzen Sie %s<b>Veranstaltung suchen / hinzuf&uuml;gen</b>%s um neue Veranstaltungen aufzunehmen."), "<a href=\"sem_portal.php\">", "</a>") . "§" . $meldung;
     }
-    
+
     foreach ($seminars as $seminar) {
         $my_obj[$seminar['Seminar_id']] = array(
             'name'           => $seminar['Name'],
@@ -345,7 +345,7 @@ if ($auth->is_authenticated() && $user->id != "nobody" && !$perm->have_perm("adm
             ));
         }
     }
-    
+
         if (is_array($my_obj)){
             $num_my_sem = count($my_obj);
             if ($group_field == 'sem_number') {
@@ -354,7 +354,7 @@ if ($auth->is_authenticated() && $user->id != "nobody" && !$perm->have_perm("adm
                 add_sem_name($my_obj);
             }
         }
-        
+
     $query = "SELECT b.Name, b.Institut_id, b.type, b.Institut_id = b.fakultaets_id AS is_fak,
                      user_inst.inst_perms, modules, IFNULL(visitdate, 0) AS visitdate
               FROM user_inst
@@ -441,10 +441,10 @@ if ($auth->is_authenticated() && $user->id != "nobody" && !$perm->have_perm("adm
         header('Location: ' . URLHelper::getURL());
         die;
     }
-    
+
     // Anzeige der Wartelisten
     $claiming = DBManager::get()->fetchAll(
-        "SELECT set_id, priorities.seminar_id,'claiming' as status, seminare.Name 
+        "SELECT set_id, priorities.seminar_id,'claiming' as status, seminare.Name
         FROM priorities
         LEFT JOIN seminare USING(seminar_id)
         WHERE user_id = ?", array($user->id));
@@ -471,11 +471,11 @@ if ($auth->is_authenticated() && $user->id != "nobody" && !$perm->have_perm("adm
         "FROM admission_seminar_user ".
         "LEFT JOIN seminare USING(seminar_id) ".
         "WHERE user_id = ? ".
-        "ORDER BY admission_type, name");
+        "ORDER BY admission_seminar_user.status, name");
     $stmt->execute(array($user->id));
 
     $waitlists = array_merge($claiming, $stmt->fetchAll());
-    
+
     // Berechnung der uebrigen Seminare und Einrichtungen
     // (wird für 5 Minuten im Cache gehalten)
 
@@ -668,7 +668,7 @@ elseif ($auth->auth["perm"]=="admin") {
         $_my_admin_inst_id = $user->cfg->MY_INSTITUTES_DEFAULT ? : $_my_inst_arr[0];
         $sortFlag = Request::get('sortFlag');
         $sortby = Request::quoted('sortby');
-        
+
         if(!isset($sortFlag) || $_SESSION['sortby'] != $sortby) {
             $sortFlag = 'ASC';
         } else {
@@ -676,7 +676,7 @@ elseif ($auth->auth["perm"]=="admin") {
         }
         $_SESSION['sortby'] = $sortby;
         Request::set('sortFlag', $sortFlag);
-        
+
         //tic #650 sortierung in der userconfig merken
         //tic #3569 erweiterung der sortierung
         if (isset($sortby) && in_array($sortby, words('VeranstaltungsNummer Name status teilnehmer dozent'))) {
@@ -687,7 +687,7 @@ elseif ($auth->auth["perm"]=="admin") {
 
             if ($sortby=="" || $sortby==false) {
                 $sortby = sprintf('VeranstaltungsNummer %s, Name %s', $sortFlag, $sortFlag);
-            } 
+            }
         }
 
         if ($sortby == "teilnehmer") {

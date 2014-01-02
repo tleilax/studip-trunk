@@ -37,25 +37,25 @@ if ($coursesets) {
     <?php foreach ($coursesets as $courseset) { ?>
     <div id="courseset_<?= $courseset->getId() ?>" class="hover_box">
         <a href="#" onclick="return STUDIP.Admission.toggleDetails('courseset_arrow_<?= $courseset->getId() ?>', 'courseset_details_<?= $courseset->getId() ?>')">
-            <?= Assets::img('icons/16/blue/arr_1right.png', 
-                array('id' => 'courseset_arrow_'.$courseset->getId(), 
+            <?= Assets::img('icons/16/blue/arr_1right.png',
+                array('id' => 'courseset_arrow_'.$courseset->getId(),
                 'align' => 'top', 'rel' => Assets::image_path('icons/16/blue/arr_1down.png'))) ?>
-            <?= $courseset->getName() ?>
+            <?= htmlReady($courseset->getName()) ?>
         </a>
         <span class="hover_symbols">
 	        <a href="<?= URLHelper::getURL('dispatch.php/admission/courseset/configure/'.$courseset->getId()); ?>">
-	            <?= Assets::img('icons/16/blue/edit.png', 
-	                array('alt' => _('Anmeldeset bearbeiten'), 
+	            <?= Assets::img('icons/16/blue/edit.png',
+	                array('alt' => _('Anmeldeset bearbeiten'),
 	                      'title' => _('Anmeldeset bearbeiten'))); ?>
 	        </a>
-	        <a href="<?= $controller->url_for('admission/courseset/delete', 
+	        <a href="<?= $controller->url_for('admission/courseset/delete',
 	            $courseset->getId()) ?>"
-	            onclick="return STUDIP.Dialogs.showConfirmDialog('<?= 
-	                sprintf(_('Soll das Anmeldeset %s wirklich gelöscht werden?'), $courseset->getName()) ?>', '<?= 
+	            onclick="return STUDIP.Dialogs.showConfirmDialog('<?=
+	                sprintf(_('Soll das Anmeldeset %s wirklich gelöscht werden?'), htmlReady($courseset->getName())) ?>', '<?=
 	                URLHelper::getURL('dispatch.php/admission/courseset/delete/'.
 	                $courseset->getId(), array('really' => 1)) ?>')">
-	            <?= Assets::img('icons/16/blue/trash.png', 
-	                array('alt' => _('Anmeldeset löschen'), 
+	            <?= Assets::img('icons/16/blue/trash.png',
+	                array('alt' => _('Anmeldeset löschen'),
 	                      'title' => _('Anmeldeset löschen'))); ?>
 	        </a>
         </span>
@@ -70,7 +70,7 @@ if ($coursesets) {
 ?>
 <?= MessageBox::info(sprintf(_('Es wurden keine Anmeldesets gefunden. Sie können ein '.
     'neues %sAnmeldeset anlegen%s.'), '<a href="'.
-    $controller->url_for('admission/courseset/configure').'">', 
+    $controller->url_for('admission/courseset/configure').'">',
     '</a>')); ?>
 <?php
 }

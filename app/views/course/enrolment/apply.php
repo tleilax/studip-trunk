@@ -5,6 +5,9 @@
     <?= $courseset_message ?>
 </p>
 <? endif ?>
+<? foreach(PageLayout::getMessages() as $pm) : ?>
+    <?= $pm ?>
+<? endforeach; ?>
 <? if ($admission_form) : ?>
     <form name="apply_admission" action="<?= $controller->link_for('/apply/' . $course_id) ?>" method="post">
         <?= $admission_form ?>
