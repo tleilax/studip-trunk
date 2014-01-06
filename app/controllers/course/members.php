@@ -68,6 +68,7 @@ class Course_MembersController extends AuthenticatedController
 
         // Layoutsettings
         PageLayout::setTitle(sprintf('%s - %s', $this->header_line, _("TeilnehmerInnen")));
+        PageLayout::addScript('members.js');
 
         SkipLinks::addIndex(Navigation::getItem('/course/members')->getTitle(), 'main_content', 100);
 
@@ -173,13 +174,13 @@ class Course_MembersController extends AuthenticatedController
         // Check Seminar
         if ($this->is_tutor && $sem->isAdmissionEnabled()) {
             $this->course = $sem;
-            $this->count = $this->members->getCountedMembers();
-            if ($sem->admission_type == 2 || $sem->admission_selection_take_place == 1) {
+            $distribution_time = $sem->getCourseSet()->getSeatDistributionTime();
+            if ($distribution_time < time()) {
                 $this->waitingTitle = _("Warteliste");
                 $this->semAdmissionEnabled = 2;
                 $this->waiting_type = 'awaiting';
             } else {
-                $this->waitingTitle = sprintf(_("Anmeldeliste (Losverfahren am %s)"), strftime('%x %R', $sem->admission_endtime));
+                $this->waitingTitle = sprintf(_("Anmeldeliste (Losverfahren am %s)"), strftime('%x %R', $distribution_time));
                 $this->semAdmissionEnabled = 1;
                 $this->awaiting = $this->claiming;
                 $this->waiting_type = 'claiming';
@@ -339,6 +340,61 @@ class Course_MembersController extends AuthenticatedController
     }
 
     /**
+     * Show dialog to enter a comment for this user
+     * @param String $user_id
+     * @throws AccessDeniedException
+     */
+    function add_comment_action($user_id = null) {
+        // Security Check
+        if (!$this->is_tutor) {
+            throw new AccessDeniedException('Sie haben leider keine ausreichende Berechtigung, um auf diesen Bereich von Stud.IP zuzugreifen.');
+        }
+
+        if (is_null($user_id)) {
+            $this->redirect('course/members/index');
+            return;
+        }
+        $this->comment = CourseMember::find(array($this->course_id, $user_id))->comment;
+        $this->user = User::find($user_id);
+        $this->title = sprintf(_('Bemerkung für %s eintragen'), $this->user->getFullName());
+
+        // Output as dialog (Ajax-Request) or as Stud.IP page?
+        if (Request::isXhr()) {
+            $this->set_layout(null);
+            $this->comment = studip_utf8encode($this->comment);
+            header('X-Title: ' . $this->title);
+        }
+    }
+
+    /**
+     * Store a comment for this user
+     * @param String $user_id
+     * @throws AccessDeniedException
+     */
+    function set_comment_action($user_id = null) {
+        // Security Check
+        if (!$this->is_tutor) {
+            throw new AccessDeniedException('Sie haben leider keine ausreichende Berechtigung, um auf diesen Bereich von Stud.IP zuzugreifen.');
+        }
+
+        if (!Request::submitted('save') || is_null($user_id)) {
+            $this->redirect('course/members/index');
+            return;
+        }
+        CSRFProtection::verifyUnsafeRequest();
+        $course = CourseMember::find(array($this->course_id, $user_id));
+        $course->comment = Request::get('comment');
+
+        if ($course->store() !== false) {
+            PageLayout::postMessage(MessageBox::success(_('Bemerkung wurde erfolgreich gespeichert.')));
+        } else {
+            PageLayout::postMessage(MessageBox::error(_('Bemerkung konnte nicht erfolgreich gespeichert werden.')));
+        }
+
+        $this->redirect('course/members/index');
+    }
+
+    /**
      * New author action
      * @global Object $perm
      * @throws AccessDeniedException
@@ -349,7 +405,6 @@ class Course_MembersController extends AuthenticatedController
         $this->set_layout($GLOBALS['template_factory']->open('layouts/base_without_infobox'));
         // get the seminar object
         $sem = Seminar::GetInstance($this->course_id);
-        $sem->restoreAdmissionStudiengang();
 
         // Security Check
         if (!$this->is_tutor) {
@@ -360,20 +415,12 @@ class Course_MembersController extends AuthenticatedController
         if ($this->is_tutor && $sem->isAdmissionEnabled()) {
             $this->semAdmissionEnabled = true;
 
-            if (!empty($sem->admission_studiengang)) {
-                $admission_studiengang = $sem->admission_studiengang;
-                foreach (array_keys($admission_studiengang) as $studiengang) {
-                    $admission_studiengang[$studiengang]['freeSeats'] = $sem->getFreeAdmissionSeats($studiengang);
-                }
-                $this->admission_studiengang = $admission_studiengang;
-            }
         }
         // Damit die QuickSearch funktioniert
         Request::set('new_autor', $this->flash['new_autor']);
         Request::set('new_autor', $this->flash['new_autor_1']);
         Request::set('new_autor_parameter', $this->flash['new_autor_parameter']);
         Request::set('seminar_id', $this->course_id);
-        Request::set('consider_contingent', $this->flash['consider_contingent']);
 
         // new user-search for given status
         $this->search = new SQLSearch("SELECT auth_user_md5.user_id, CONCAT(" . $GLOBALS['_fullname_sql']['full'] .
@@ -383,6 +430,7 @@ class Course_MembersController extends AuthenticatedController
                 "WHERE (CONCAT(auth_user_md5.Vorname, \" \", auth_user_md5.Nachname) LIKE :input " .
                 "OR auth_user_md5.username LIKE :input) " .
                 "AND auth_user_md5.perms IN ('autor', 'tutor', 'dozent') " .
+                " AND auth_user_md5.visible <> 'never' " .
                 "AND auth_user_md5.user_id NOT IN (SELECT user_id FROM seminar_user WHERE Seminar_id = :cid ) " .
                 "ORDER BY Vorname, Nachname", _("Teilnehmer suchen"), "username");
 
@@ -509,7 +557,6 @@ class Course_MembersController extends AuthenticatedController
             $this->flash['new_autor'] = Request::get('new_autor');
             $this->flash['new_autor_1'] = Request::get('new_autor_1');
             $this->flash['new_autor_parameter'] = Request::get('new_autor_parameter');
-            $this->flash['consider_contingent'] = Request::get('consider_contingent');
 
             $this->redirect('course/members/add_member');
             return;

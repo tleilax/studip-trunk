@@ -15,8 +15,8 @@ require_once 'lib/classes/LinkButton.class.php';
 require_once 'lib/classes/Button.class.php';
 require_once 'lib/classes/ResetButton.class.php';
 require_once 'lib/wiki.inc.php';
-require_once 'purifier.php';
-require_once 'utils.php';
+require_once 'lib/purifier.php';
+require_once 'lib/utils.php';
 
 /**
  * get_ampel_state is a helper function for get_ampel_write and get_ampel_read.
