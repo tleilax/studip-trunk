@@ -41,10 +41,10 @@
  * @since       File available since Release 3.0
  * @author      Robert Costa <rcosta@uos.de>
  */
-require_once 'lib/exceptions/AccessDeniedException.php';
-require_once 'lib/classes/Request.class.php';  // CSRFProtection.php
-require_once 'lib/classes/CSRFProtection.php';
-require_once 'lib/utils.php';  // includes bootstraph.php
+require_once '../lib/exceptions/AccessDeniedException.php';
+require_once '../lib/classes/Request.class.php';  // CSRFProtection.php
+require_once '../lib/classes/CSRFProtection.php';
+require_once '../lib/utils.php';  // includes bootstraph.php
 
 // verify access permissions
 Utils\verifyPostRequest();

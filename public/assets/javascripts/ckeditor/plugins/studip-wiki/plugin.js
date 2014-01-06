@@ -17,32 +17,42 @@ CKEDITOR.plugins.add('studip-wiki', {
         });
         CKEDITOR.dialog.add('wikiDialog', this.path + 'dialogs/wikilink.js.php' );
 
-        // add context menu for existing Stud.IP wiki links
-        if (editor.contextMenu) {
-            editor.addMenuGroup('studipGroup');
-            editor.addMenuItem('wikilinkItem', {
-                label: 'Stud.IP-Wiki Link bearbeiten',
-                icon: this.path + 'icons/wikilink.png', // same as plugin icon
-                command: 'wikiDialog',
-                group: 'studipGroup'
-            });
-            editor.contextMenu.addListener(function(element) {
-                if (isWikiLink(element)) {
-                    return {
-                        wikilinkItem: CKEDITOR.TRISTATE_OFF
-                    };
-                }
-            });
-        }
+//        editor.on('selectionChange', function(event){
+//            if (editor.getSelection().getSelectedText()) {
+//                console.log(editor.getSelection().getSelectedText());
+//                editor.commands.wikiDialog.disable();
+//            } else {
+//                console.log('enable');
+//                editor.commands.wikiDialog.enable();
+//            }
+//        });
 
-        // open dialog when double-clicking link
-        editor.on('doubleclick', function(event) {
-            var element = CKEDITOR.plugins.link.getSelectedLink(editor)
-                          || event.data.element;
-
-            if (isWikiLink(element)) {
-                event.data.dialog = 'wikiDialog';
-            }
-        });
+//        // add context menu for existing Stud.IP wiki links
+//        if (editor.contextMenu) {
+//            editor.addMenuGroup('studipGroup');
+//            editor.addMenuItem('wikilinkItem', {
+//                label: 'Stud.IP-Wiki Link bearbeiten',
+//                icon: this.path + 'icons/wikilink.png', // same as plugin icon
+//                command: 'wikiDialog',
+//                group: 'studipGroup'
+//            });
+//            editor.contextMenu.addListener(function(element) {
+//                if (isWikiLink(element)) {
+//                    return {
+//                        wikilinkItem: CKEDITOR.TRISTATE_OFF
+//                    };
+//                }
+//            });
+//        }
+//
+//        // open dialog when double-clicking link
+//        editor.on('doubleclick', function(event) {
+//            var element = CKEDITOR.plugins.link.getSelectedLink(editor)
+//                          || event.data.element;
+//
+//            if (isWikiLink(element)) {
+//                event.data.dialog = 'wikiDialog';
+//            }
+//        });
     }
 });
