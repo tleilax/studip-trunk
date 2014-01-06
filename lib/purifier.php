@@ -23,8 +23,8 @@
  * @since       File available since Release 3.0
  * @author      Robert Costa <rcosta@uos.de>
  */
-require_once 'HTMLPurifier/HTMLPurifier.auto.php';
-require_once 'utils.php';
+require_once 'vendor/HTMLPurifier/HTMLPurifier.auto.php';
+require_once 'lib/utils.php';
 
 /**
  * Remove invalid <img src> attributes.
