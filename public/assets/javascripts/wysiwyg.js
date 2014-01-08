@@ -261,7 +261,6 @@ jQuery(function($){
         });
     }
 
-    $('.editor_toolbar > .buttons').remove();
     $('textarea.add_toolbar').each(function(){
         if (!CKEDITOR.instances[this]) {
             replaceTextarea($(this));
