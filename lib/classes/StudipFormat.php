@@ -37,7 +37,18 @@ class StudipFormat extends TextFormat
             'callback' => 'StudipFormat::markupList'
         ),
         'table' => array(
-            'start'    => '(^\|[^\n]*\|[^\n]*\n?)+',
+            // <\w+>        HTML open tag without attributes, without whitespace
+            // \w="[^"]"    HTML attribute, without whitespace
+            // \s*<\s*\w+(\s+\w+\s*=\s*"[^"]")*\s*>\s*
+            //              HTML open tag with attributes and whitespace
+            // ((\|[^\n<]*){2,}\n?)+
+            //              Match table markup, at least two | are needed.
+            //              Tables may not contain < symbols (HTML tags).
+            //
+            // First table line may start with opening HTML tag, before the 
+            // first | character. Should HTML in tables be needed, HTML tables 
+            // must be used instead.
+            'start'    => '^(?:\s*<\s*\w+(?:\s+\w+\s*=\s*"[^"]")*\s*>\s*)?((?:(?:\|[^\n<]*){2,}\n?)+)',
             'callback' => 'StudipFormat::markupTable'
         ),
 
@@ -365,7 +376,7 @@ class StudipFormat extends TextFormat
      */
     protected static function markupTable($markup, $matches)
     {
-        $rows = explode("\n", rtrim($matches[0]));
+        $rows = explode("\n", rtrim($matches[1]));
         $result = '<table class="content">';
 
         foreach ($rows as $row) {
