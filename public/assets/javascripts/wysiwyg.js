@@ -21,7 +21,7 @@ jQuery(function($){
     function replaceTextarea(textarea){
         var uiColor = '#7788AA';  // same as studip's tab navigation background
 
-        //
+        // convert plain text entries to html
         function trim(str) {
             return str.replace(/^\s*|\s*$/, '');
         }
@@ -29,11 +29,23 @@ jQuery(function($){
             text = trim(text);
             return text[0] == '<' && text[text.length - 1] == '>';
         }
+        function encodeHtmlEntities(text) {
+            return $('<div>').text(text).html();
+        }
+        function replaceMultiNewlinesWithP(text) {
+            return '<p>' + text.replace(/(\r?\n|\r){2,}/, '</p><p>') + '</p>';
+        }
         function replaceNewlineWithBr(text) {
             return text.replace(/(\r?\n|\r)/g, '<br>\n');
         }
+        function replaceNewlines(text) {
+            return replaceNewlineWithBr(replaceMultiNewlinesWithP(text));
+        }
+        function convertToHtml(text) {
+            return replaceNewlines(encodeHtmlEntities(text));
+        }
         if (!isHtml(textarea.val())) {
-            textarea.val(replaceNewlineWithBr(textarea.val()));
+            textarea.val(convertToHtml(textarea.val()));
         }
 
         // find an unused toolbarId
