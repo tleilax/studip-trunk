@@ -21,6 +21,21 @@ jQuery(function($){
     function replaceTextarea(textarea){
         var uiColor = '#7788AA';  // same as studip's tab navigation background
 
+        //
+        function trim(str) {
+            return str.replace(/^\s*|\s*$/, '');
+        }
+        function isHtml(text) {
+            text = trim(text);
+            return text[0] == '<' && text[text.length - 1] == '>';
+        }
+        function replaceNewlineWithBr(text) {
+            return text.replace(/(\r?\n|\r)/g, '<br>\n');
+        }
+        if (!isHtml(textarea.val())) {
+            textarea.val(replaceNewlineWithBr(textarea.val()));
+        }
+
         // find an unused toolbarId
         // toolbarId is needed for sharedSpaces
         var toolbarPrefix = 'cktoolbar',
