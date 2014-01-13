@@ -44,7 +44,8 @@
 require_once '../lib/exceptions/AccessDeniedException.php';
 require_once '../lib/classes/Request.class.php';  // CSRFProtection.php
 require_once '../lib/classes/CSRFProtection.php';
-require_once '../lib/utils.php';  // includes bootstraph.php
+require_once '../lib/bootstrap.php';  // needed by utils.php
+require_once '../lib/utils.php';
 
 // verify access permissions
 Utils\verifyPostRequest();
