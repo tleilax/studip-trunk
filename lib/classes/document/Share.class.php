@@ -13,10 +13,12 @@
  * - Lifter :
  * 
  *
- * @author      Gerd Hoffmann <gerd.hoffmann@uni-oldenburg.de>
- * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
- * @version     3.0
+ * @version     3.1
+ * 
+ * @author      Gerd Hoffmann <gerd.hoffmann@uni-oldenburg.de>
+ * @license     http://www.gnu.org/licenses/gpl-3.0
+ * @copyright   2014 Carl von Ossietzky Universitaet Oldenburg
  */
 
 

@@ -131,7 +131,7 @@
        
        <th style="border-top:0px;"> </th>
        
-       <th style="border-top:0px;"> Autor </th>
+       <th style="border-top:0px;"> Autor/in </th>
        
        <th style="border-top:0px;"> Datum </th>
        
@@ -145,16 +145,38 @@
      
      <?php 
            
-      $max = $flash['count']; 
+      $max = $flash['count'];
+    
+      if ($max == 0):
       
-      for ($i = 0; $i <= $max; $i++):
+     ?>
+     
+      <tr>
+      
+       <td colspan="6"> 
+       
+        <?php
 
-       $id = $flash['inhalt'][$i][0];
+         print Assets::img('blank.gif');
+          
+         ?>
+        
+       </td>
       
-       if ($flash['inhalt'][$i][2] == 'Ordner')
-         $color = "color:black;";
-        else
-         $color = "color:#1E3E70;";
+      </tr>
+     
+     <?php
+     
+      else:
+      
+       for ($i = 1; $i <= $max; $i++):
+
+        $id = $flash['inhalt'][$i][0];
+      
+        if ($flash['inhalt'][$i][2] == 'Ordner')
+          $color = "color:black;";
+         else
+          $color = "color:#1E3E70;";
       ?>
       
       <tr id="<?= $id ?>" style="<?= $color ?>" >
@@ -183,7 +205,7 @@
        
         </a>
         
-        </td>
+       </td>
            
        <td> <?= $flash['inhalt'][$i][3] ?> </td>
        
@@ -192,11 +214,11 @@
         <?php
         
          if ($flash['inhalt'][$i][4] == 'unlocked')
-          print '<span style="text-align:right;">'. Assets::img("icons/16/blue/lock-unlocked.png"). '</span>';
-        
+          //print '<span style="text-align:right;">'. Assets::img("icons/16/blue/lock-unlocked.png"). '</span>';
+         
          ?>
-          
-        </td>
+           
+       </td>
       
        <td> <?= $flash['inhalt'][$i][5] ?> </td>
       
@@ -208,10 +230,9 @@
    
          if (isset($flash['inhalt'][$i][2])):
                     
-        ?>
-        
-        
-        <a id="<?= $id ?>" href="#" onClick="STUDIP.Document.teilen(this.id,ref);" title="Mit anderen teilen">       
+         ?>
+            
+        <a id="<?= $id ?>" href="#" onClick="STUDIP.Document.freigeben(this.id,ref);" title="Freigeben">       
                               
          <?php
              
@@ -264,11 +285,13 @@
        
       </tr>
       
-      <?php
+     <?php
 
        endfor;
+       
+      endif;
         
-       ?> 
+      ?> 
             
      </tbody>
      

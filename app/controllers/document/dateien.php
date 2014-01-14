@@ -3,8 +3,8 @@
 /**
  * dateien.php 
  * 
- * Der Controller stellt angemeldeten Benutzer/innen ein Dateimanagement-
- * system fuer einen persoenlichen Dateibereich im Stud.IP zur Verfuegung.   
+ * Der Controller stellt angemeldeten Benutzer/innen einen Dateimanager
+ * fuer deren persoenlichen Dateibereich im Stud.IP zur Verfuegung.   
  *
  *
  * TODO:
@@ -12,15 +12,17 @@
  * - Lifter 010: Unterstuetzung einer barrierefreien Nutzung
  * 
  *
- * @author      Gerd Hoffmann <gerd.hoffmann@uni-oldenburg.de>
- * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
- * @version     3.0
+ * @version     3.1
+ * 
+ * @author      Gerd Hoffmann <gerd.hoffmann@uni-oldenburg.de>
+ * @license     http://www.gnu.org/licenses/gpl-3.0
+ * @copyright   2014 Carl von Ossietzky Universitaet Oldenburg
  */
 
 
 require_once 'app/controllers/authenticated_controller.php';
-require_once 'lib/classes/document/StudipDocumentAPI.class.php';
+require_once 'lib/classes/document/UserToAPI.class.php';
 
 
 class Document_DateienController extends AuthenticatedController
@@ -30,11 +32,13 @@ class Document_DateienController extends AuthenticatedController
    
    public function before_filter(&$action, &$args)
     {    
+     global $user, $USER_DOC_PATH;
+      
      parent::before_filter($action, $args);    
      Navigation::activateItem('/document/dateien');
-     
-     $user_id = $GLOBALS['auth'] -> auth['uid'];
-       
+           
+     $user_id = $user -> id;
+            
      //Configurations for the Documentarea for this user 
      $this -> userConfig = DocUsergroupConfig::getUserConfig($GLOBALS['user'] -> user_id);
      
@@ -43,13 +47,13 @@ class Document_DateienController extends AuthenticatedController
        $measure = $this -> userConfig['quota'];
        $this -> quota = $this -> formatiere($measure);
       }
+     
+     $this -> userAPI = new UserToAPI();
+     $user_exists = $this -> userAPI -> authUser($user_id, 'DB');
+     
+     if (!$user_exists)
+      $this -> userAPI -> initUser($user_id, 'DB');
       
-     $api = new StudipDocumentAPI();
-     $user_exists = $api -> authEntity($user_id, 'DB');
-     
-     if (! $user_exists)
-      $api -> initEntity($user_id, 'DB');
-     
      PageLayout::setTitle(_('Dateiverwaltung'));
      PageLayout::setHelpKeyword('Basis.Dateien');      
      PageLayout::addStylesheet('/stylesheets/jquery-ui-studip.css');
@@ -65,26 +69,9 @@ class Document_DateienController extends AuthenticatedController
    
  
   public function list_action()
-   {
-    $inhalt[0][0] = 0;
-    $inhalt[0][1] = "id1";
-    $inhalt[0][2] = "Ordner";
-    $inhalt[0][3] = "Test";
-    $inhalt[0][4] = "unlocked";
-    $inhalt[0][5] = "Martin Mustermann";
-    $inhalt[0][6] = "16.10.2013";
-
-    $inhalt[1][0] = 1;
-    $inhalt[1][1] = "id2";
-    $inhalt[1][2] = "Datei";
-    $inhalt[1][3] = "Hausarbeit.pdf";
-    $inhalt[1][4] = "locked";
-    $inhalt[1][5] = "Martin Mustermann";
-    $inhalt[1][6] = "17.10.2013";
-    
-    $this -> flash['count'] = 1;
-    $this -> flash['inhalt'] = $inhalt;
-    
+   {    
+    $this -> flash['count'] = 0;
+        
     $this -> flash['quota'] = $this -> quota;
     $this -> flash['closed'] = $this -> userConfig['area_close'];
     $this -> flash['notification'] = $this -> userConfig['area_close_text'];
@@ -125,7 +112,16 @@ class Document_DateienController extends AuthenticatedController
     $this -> flash['delete'] = $type;
     $this -> redirect("document/dateien/list");
    }
-     
+   
+   
+   
+  public function crazy_action()
+   {
+    $in = $_GET["test"];   
+    $this -> redirect("document/dateien/list");
+   }
+   
+   
    
   public function hochladen_action()
    {

@@ -2033,8 +2033,8 @@ div.messagebox_warning {
   font-size: 16px;
 }
 .close:hover {
-  background: red;
-  color: red;
+  background: #899AB9;
+  color: #899AB9;
 }
 form#quicksearch {
   display: inline;

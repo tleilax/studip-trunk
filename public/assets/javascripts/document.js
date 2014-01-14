@@ -5,7 +5,7 @@
 
 STUDIP.Document = {
        
-    teilen: function(id,ref) {
+    freigeben: function(id,ref) {
     	var div = document.getElementById("modalDialog");
     	div.style.visibility = "visible";
     	
