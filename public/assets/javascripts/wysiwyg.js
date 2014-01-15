@@ -271,7 +271,9 @@ jQuery(function($){
             // do not scroll toolbar out of viewport
             function stickyTools() {
                 var MARGIN = 30;
-                if($(window).scrollTop() + MARGIN > toolbar_placeholder.offset().top) {
+                // is(':visible'): offset() is wrong for hidden nodes
+                if (($(window).scrollTop() + MARGIN > toolbar_placeholder.offset().top)
+                        && toolbar.is(':visible')) {
                     toolbar.css({
                         position: 'fixed',
                         top: MARGIN
@@ -288,6 +290,8 @@ jQuery(function($){
                 }
             };
             $(window).scroll(stickyTools);
+            // if toolbar is hidden during scrolling it might scroll off screen
+            editor.on('focus', stickyTools);
 
             var editorZ = Number(editorArea.css('z-index')) || 0;
             toolbar.css('z-index', editorZ + 1);
