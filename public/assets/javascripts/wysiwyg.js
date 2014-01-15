@@ -22,11 +22,8 @@ jQuery(function($){
         var uiColor = '#7788AA';  // same as studip's tab navigation background
 
         // convert plain text entries to html
-        function trim(str) {
-            return str.replace(/^\s*|\s*$/, '');
-        }
         function isHtml(text) {
-            text = trim(text);
+            text = text.trim();
             return text[0] == '<' && text[text.length - 1] == '>';
         }
         function encodeHtmlEntities(text) {
@@ -44,10 +41,11 @@ jQuery(function($){
         function convertToHtml(text) {
             return replaceNewlines(encodeHtmlEntities(text));
         }
-        if (!isHtml(textarea.val())) {
-            textarea.val(convertToHtml(textarea.val()));
+        function getHtml(text) {
+            return isHtml(text) ? text : convertToHtml(text);
         }
-
+        textarea.val(getHtml(textarea.val()));
+    
         // find an unused toolbarId
         // toolbarId is needed for sharedSpaces
         var toolbarPrefix = 'cktoolbar',
@@ -244,7 +242,30 @@ jQuery(function($){
 
             // focus editor if corresponding textarea is focused
             textarea.focus(function(){ editor.focus(); });
+
+            // synchronize editor and textarea
+            var textValue = textarea.val();
+            function updateTextArea(){
+                editor.updateElement();
+                textValue = textarea.val();
+            };
+            editor.on('focus', function(){
+                var newValue = textarea.val();
+                if (newValue != textValue) {
+                    editor.setData(getHtml(newValue));
+                    updateTextArea();
+                }
+            });
+            editor.on('blur', function(){
+                // update textarea for other JS code (e.g. Stud.IP Forum)
+                updateTextArea();
+            });
     
+            // TODO find a better solution than blurDelay = 0
+            // it's an ugly hack to be faster than Stud.IP forum's save
+            // function; might produce "strange" behaviour
+            CKEDITOR.focusManager._.blurDelay = 0;
+
             // display shadow when editor area is focused
             var editorArea = textarea.siblings('.cke_chrome');
             editor.on('focus', function(){
@@ -252,15 +273,7 @@ jQuery(function($){
                 editorArea.css('box-shadow', '0 3px 15px ' + uiColor);
             });
 
-            // TODO find a better solution than blurDelay = 0
-            // it's an ugly hack to be faster than Stud.IP forum's save
-            // function; might produce "strange" behaviour
-            CKEDITOR.focusManager._.blurDelay = 0;
-
             editor.on('blur', function(){
-                // update textarea for other JS code (e.g. Stud.IP Forum)
-                editor.updateElement();
-
                 // remove editor area shadow
                 editorArea.css('box-shadow', '');
                 if (toolbar.has(':focus').length > 0) {
