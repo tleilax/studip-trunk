@@ -248,7 +248,16 @@ jQuery(function($){
                 // add editor area shadow
                 editorArea.css('box-shadow', '0 3px 15px ' + uiColor);
             });
-            editor.on('blur', function(event){
+
+            // TODO find a better solution than blurDelay = 0
+            // it's an ugly hack to be faster than Stud.IP forum's save
+            // function; might produce "strange" behaviour
+            CKEDITOR.focusManager._.blurDelay = 0;
+
+            editor.on('blur', function(){
+                // update textarea for other JS code (e.g. Stud.IP Forum)
+                editor.updateElement();
+
                 // remove editor area shadow
                 editorArea.css('box-shadow', '');
                 if (toolbar.has(':focus').length > 0) {
