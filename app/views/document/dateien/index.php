@@ -310,28 +310,28 @@
     
     <?php
    
-     $quickSearch = new SQLSearch("SELECT username, Nachname " .
-      "FROM auth_user_md5 " .
-      "WHERE Nachname LIKE :input " .
-      "LIMIT 5", _("Nachname"), "username");
+     //$quickSearch = new SQLSearch("SELECT username, Nachname " .
+     // "FROM auth_user_md5 " .
+     // "WHERE Nachname LIKE :input " .
+     // "LIMIT 5", _("Nachname"), "username");
      
      //print QuickSearch::get("username", $quickSearch) -> setInputStyle("width: 160px") -> render();
      
      $infobox['picture'] = '/images/infobox/folders.jpg';
      $infobox['content'] = array(
-	  array('kategorie' => _('Ansichten:'),
-	        'eintrag' => array(
-	          array('icon' => 'icons/16/blue/checkbox-checked.png', 
-	                'text' => 'Meine Dateien'),
-	          array('icon' => 'icons/16/blue/checkbox-unchecked.png', 
-	                'text' => 'Meine Veranstaltungen'),
-	          array('icon' => 'icons/16/blue/checkbox-unchecked.png', 
-	                'text' => 'Mein E-Portfolio'),
-	          array('icon' => 'icons/16/blue/checkbox-unchecked.png', 
-	                'text' => 'Mein Repositorium'),
-	          array('icon' => 'icons/16/blue/checkbox-unchecked.png', 
-	                'text' => 'Geteilte Dateien'),
-	          )),
+	  //array('kategorie' => _('Ansichten:'),
+	  //      'eintrag' => array(
+	  //        array('icon' => 'icons/16/blue/checkbox-checked.png', 
+	  //              'text' => 'Meine Dateien'),
+	  //        array('icon' => 'icons/16/blue/checkbox-unchecked.png', 
+	  //              'text' => 'Meine Veranstaltungen'),
+	  //        array('icon' => 'icons/16/blue/checkbox-unchecked.png', 
+	  //              'text' => 'Mein E-Portfolio'),
+	  //        array('icon' => 'icons/16/blue/checkbox-unchecked.png', 
+	  //              'text' => 'Mein Repositorium'),
+	  //        array('icon' => 'icons/16/blue/checkbox-unchecked.png', 
+	  //              'text' => 'Geteilte Dateien')
+	  //        )),
 	  array("kategorie" => _("Aktionen:"),
 	        "eintrag" => array(
 	          array('icon' => '/images/icons/16/black/upload.png', 
@@ -342,16 +342,16 @@
 	                          _("Neuen Ordner erstellen")."</a>"),
               array('icon' => '/images/icons/16/black/comment.png', 
                     'text' => "<a href=\"". $controller->url_for("document/dateien/verwalten/$type"). "\">".
-	                          _("Dateibereich konfigurieren")."</a>"),
+	                          _("Dateibereich beschreiben")."</a>"), //_("Dateibereich konfigurieren")."</a>"),
               //array('icon' => '/images/icons/16/blue/persons.png', 
               //      'text' => 'Dateibereich teilen'),
               array('icon' => '/images/icons/16/black/trash.png', 
                     'text' => "<a href=\"". $controller->url_for("document/dateien/loeschen/bereich"). "\">".
 	                          _("Dateibereich löschen")."</a>"))),
-	  array('kategorie' => _('Suche:'),
-	        'eintrag' => array(
-	          array('icon' => 'icons/16/black/search.png', 
-	                'text' => 'Suche'))),
+	  //array('kategorie' => _('Suche:'),
+	  //      'eintrag' => array(
+	  //        array('icon' => 'icons/16/black/search.png', 
+	  //              'text' => 'Suche'))),
 	  array('kategorie' => _('Export:'),
 	        'eintrag' => array(
 	          array('icon' => 'icons/16/black/download.png', 
@@ -359,7 +359,7 @@
 	  array('kategorie' => _('Information:'),
 	        'eintrag' => array(
 	          array('icon' => 'icons/16/black/info.png', 
-	                'text' => "Quota: ". $flash['quota']. "- belegt: 1%")))
+	                'text' => "Quota: ". $flash['quota']. "- belegt: 0%")))
       );
    
     ?>

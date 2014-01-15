@@ -25,11 +25,11 @@
       cr(1);
       print "<b> Erstellt: </b>";
       cr(1);
-      print "16.10.2013 - 14:10";
+      print "14.01.2014 - 10:07";
       cr(1);
       print "<b> Geändert: </b>";
       cr(1);
-      print "16.10.2013 - 14:10";
+      print "15.01.2014 - 14:10";
       cr(1);
       print "<b> Autor/in: </b>";
       cr(1);
