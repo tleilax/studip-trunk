@@ -244,7 +244,7 @@ jQuery(function($){
     
             // display shadow when editor area is focused
             var editorArea = textarea.siblings('.cke_chrome');
-            editor.on('focus', function(event){
+            editor.on('focus', function(){
                 // add editor area shadow
                 editorArea.css('box-shadow', '0 3px 15px ' + uiColor);
             });
