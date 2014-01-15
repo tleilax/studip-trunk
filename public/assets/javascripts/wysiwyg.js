@@ -241,6 +241,9 @@ jQuery(function($){
                     return false;
                 }
             });
+
+            // focus editor if corresponding textarea is focused
+            textarea.focus(function(){ editor.focus(); });
     
             // display shadow when editor area is focused
             var editorArea = textarea.siblings('.cke_chrome');
