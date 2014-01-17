@@ -34,6 +34,7 @@ require_once 'lib/messaging.inc.php';   // remove messages send or recieved by u
 require_once 'lib/contact.inc.php'; // remove user from adressbooks
 require_once 'lib/classes/DataFieldEntry.class.php';    // remove extra data of user
 require_once 'lib/classes/auth_plugins/StudipAuthAbstract.class.php';
+require_once 'lib/classes/document/UserToAPI.class.php'; //remove private file-space of user
 require_once 'lib/object.inc.php';
 require_once 'lib/log_events.inc.php';  // Event logging
 require_once 'app/models/studygroup.php';
@@ -785,9 +786,23 @@ class UserManagement
                     $temp_count++;
                 }
             }
-            if ($temp_count) {
-                $this->msg .= "info§" . sprintf(_("%s Dokumente gel&ouml;scht."), $temp_count) . "§";
+            
+            //delete private file-space of this user with all documents contained
+            $user_id = $this -> user_data['auth_user_md5.user_id'];
+            $user_exists = StudipDocumentAPI::authEntity('user', $user_id, 'DB');
+     
+            if ($user_exists) {
+               $res = StudipDocumentAPI::deleteEntity('user',$user_id, 'DB');
             }
+            
+            if ($temp_count && $res) {
+                $this->msg .= "info§" . sprintf(_("%s Dokumente und pers&ouml;nlicher 
+                    Dateibereich gel&ouml;scht."), $temp_count) . "§";
+            } 
+            elseif ($temp_count) {
+                $this->msg .= "info§" . sprintf(_("%s Veranstaltungs- und Gruppen-Dokumente 
+                    gel&ouml;scht."), $temp_count) . "§";
+            }  
 
             // delete empty folders of this user
             $temp_count = 0;

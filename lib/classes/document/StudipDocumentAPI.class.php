@@ -56,9 +56,11 @@ class StudipDocumentAPI
     switch ($storage)
      {
       case "DB":
-       DBStorage::deleteRootDir($entity, $id);   
+       $res = DBStorage::deleteRootDir($entity, $id);   
        break;
      }
+     
+    return $res;
    }
  }
 

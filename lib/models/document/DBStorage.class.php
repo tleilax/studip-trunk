@@ -17,6 +17,7 @@
 
 
 //require_once 'lib/classes/document/StudipStorage.php';
+require_once 'FileStorage.class.php';
 
 
 class DBStorage
@@ -28,14 +29,16 @@ class DBStorage
     switch ($entity)
      {
       case "user":
-       $dbSelect = "SELECT COUNT(*) FROM doc_user WHERE user_id = '". $entity_id. 
-        "'". "AND type = 'dir' AND name = '". DIRECTORY_SEPARATOR. "'";         
+       $table = 'doc_user';
        break;
        
       case "seminar":
        //$table = "doc_seminar";
        break;
      }
+     
+    $dbSelect = "SELECT COUNT(*) FROM ". $table. " WHERE user_id = '". $entity_id. 
+     "'". " AND type = 'dir' AND name = '". DIRECTORY_SEPARATOR. "'";         
                          
     $result = $db -> query($dbSelect);
     
@@ -57,7 +60,7 @@ class DBStorage
        global $user;
        
        $dbInsert = $db -> prepare("INSERT INTO doc_user (id, user_id, type, name, 
-        author, mkdate, size, env, stage, description, storage) VALUES (:id, 
+        author, mkdate, size, env, stage, description, storage) VALUES (:id,
         :user_id, :type, :name, :author, :mkdate, :size, :env, :stage, :description, 
         :storage)");
          
@@ -85,7 +88,7 @@ class DBStorage
        break;
        
       case "seminar":
-       //$table = "doc_seminar";
+       //
        break;
      }
             
@@ -95,6 +98,52 @@ class DBStorage
    
   public static function deleteRootDir($entity, $entity_id)
    {
-    //
+    $entity_exists = DBStorage::authRootDir($entity, $entity_id);
+    
+    if ($entity_exists)
+     {
+      $db = DBManager::get();
+    
+      switch ($entity)
+       {
+        case "user":
+         $table = 'doc_user';
+         break;
+       
+        case "seminar":
+         //$table = 'doc_seminar';
+         break;
+       } 
+      
+      $dbSelect = "SELECT id, name FROM ". $table. " WHERE user_id = '". $entity_id. 
+       "'". " AND NOT name = '". DIRECTORY_SEPARATOR. "'" ;
+              
+      $doc_set = $db -> query($dbSelect);
+      $doc_delete = false;
+      
+      if ($doc_set != null)
+       {
+        $i = 0;
+        foreach($doc_set as $row)
+         {
+          $doc_list[$i] = $row['id'];
+          $i++;
+         }    
+    
+        $doc_delete = FileStorage::removeFile($doc_list);
+       }
+       
+      if ($doc_set == null || $doc_delete)
+       {
+        $dbDelete = $db -> prepare("DELETE FROM ". $table. " WHERE user_id = '". 
+         $entity_id. "'");
+                             
+        $remove = $db -> execute($dbDelete);
+        
+        return $remove;
+       }
+     }
+    
+    return false;
    }
  }
