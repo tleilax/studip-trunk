@@ -78,6 +78,7 @@ class WysiwygController extends AuthenticatedController
         }
 
         // send HTTP response to client
+        //$this->response = $response;
         Utils::sendAsJson($response);
         $this->performed = TRUE;
     }
