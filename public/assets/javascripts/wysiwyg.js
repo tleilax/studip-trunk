@@ -71,7 +71,7 @@ jQuery(function($){
                            + ',forms,iframe,maximize,newpage,preview,resize'
                            + ',showblocks,stylescombo,templates,save,smiley',
             extraPlugins: 'autogrow,divarea,sharedspace,studip-wiki,studip-upload',
-            studipUpload_url: STUDIP.URLHelper.getURL('upload.php'),
+            studipUpload_url: STUDIP.URLHelper.getURL('dispatch.php/wysiwyg/upload'),
             autoGrow_onStartup: true,
             sharedSpaces: { // needed for sticky toolbar (see stickyTools())
     			top: toolbarId
