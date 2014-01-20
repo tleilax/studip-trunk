@@ -26,12 +26,6 @@ require_once '../lib/utils.php';
 
 class WysiwygController extends AuthenticatedController
 {
-    public function before_filter(&$action, &$args) {
-        parent::before_filter($action, $args);
-        // verify minimum permission level for uploading and editing
-        //$GLOBALS['perm']->check('autor');
-    }
-
     /**
      * Handle the WYSIWYG editor's file uploads.
      *
@@ -59,6 +53,8 @@ class WysiwygController extends AuthenticatedController
         CSRFProtection::verifyUnsafeRequest();
         //Utils\startSession();  // ==> done by AuthenticatedController::before_filter
         Utils\verifyPermission('autor');
+        // verify minimum permission level for uploading and editing
+        //$GLOBALS['perm']->check('autor');
 
         // get folder ID
         $folder_id = Utils\createFolder(
