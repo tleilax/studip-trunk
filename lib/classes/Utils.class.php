@@ -1,6 +1,6 @@
-<?php namespace Utils;
+<?php namespace Studip;
 /**
- * utils.php - Various utility functions.
+ * Utils.class.php - Various utility functions.
  *
  * These functions where originally implemented as part of the RichTextPlugin 
  * and are required by some parts of the WYSIWYG editor implementation.
@@ -91,68 +91,9 @@
  * @since       File available since Release 3.0
  * @author      Robert Costa <rcosta@uos.de>
  */
-// caller must use require_once 'bootstrap.php'; or utils.php will fail
-// TODO replace dependence on bootstrap.php by actually used scripts
-//
-// Partial list of scripts included by bootstrap.php and why they are needed:
-//
-//   classes/Request.class.php      Request::isPost
-//   phplib_local.inc.php           $GLOBALS['perm']
-/**
- * This comment block is basically what bootstraph.php doesn't.
- * Unluckily I couldn't figure out how to circumvent loading all that 
- * unnecessary stuff...
 
-$PHP_SELF = $_SERVER['PHP_SELF'] = $_SERVER['SCRIPT_NAME'];
-
-$STUDIP_BASE_PATH = realpath(dirname(__FILE__) . '/..');
-
-set_include_path(
-    $STUDIP_BASE_PATH
-    . PATH_SEPARATOR . $STUDIP_BASE_PATH . DIRECTORY_SEPARATOR . 'config'
-    . PATH_SEPARATOR . get_include_path()
-);
-
-define('PHPLIB_SESSIONDATA_TABLE', 'session_data');
-
-require_once 'lib/phplib/db_mysql_studip_pdo.inc';
-require_once 'lib/phplib/ct_sql_studip_pdo.inc';
-require_once 'lib/phplib/session4_custom.inc';
-require_once 'lib/phplib/auth4.inc';
-require_once 'lib/phplib/perm.inc';
-
-//require 'lib/phplib/email_validation.inc';
-require_once 'config_local.inc.php';
-
-require_once 'lib/classes/DbView.class.php';
-require_once 'lib/classes/TreeAbstract.class.php';
-require_once 'lib/classes/Log.php';
-require_once 'lib/classes/Assets.class.php';
-require_once 'lib/classes/DbManager.class.php';
-require_once 'lib/classes/StudipPDO.class.php';
-require_once 'lib/classes/PageLayout.php';
-require_once 'lib/classes/Config.class.php';
-require_once 'lib/models/SimpleORMap.class.php';
-require_once 'lib/classes/StudipObject.class.php';
-require_once 'lib/classes/DatabaseObject.class.php';
-require_once 'lib/classes/StudipMail.class.php';
-require_once 'lib/classes/StudipCacheFactory.class.php';
-require_once 'lib/classes/MessageBox.class.php';
-require_once 'lib/classes/StudipCache.class.php';
-require_once 'lib/classes/StudipFileCache.class.php';
-require_once 'lib/classes/Request.class.php';
-require_once 'lib/classes/URLHelper.php';
-require_once 'lib/classes/SkipLinks.php';
-require_once 'lib/classes/UserConfig.class.php';
-require_once 'lib/models/AuthUserMd5.class.php';
-require_once 'lib/models/UserInfo.class.php';
-require_once 'lib/models/User.class.php';
-require_once 'lib/classes/Avatar.class.php';
-require_once 'lib/models/PersonalNotifications.class.php';
-
-require_once 'lib/phplib_local.inc.php';
-require_once 'lib/phplib/page4.inc';
-*/
+class Utils
+{
 
 /**
  * Get the current URL as called by the web client.
@@ -161,7 +102,7 @@ require_once 'lib/phplib/page4.inc';
  *
  * Originally posted on http://stackoverflow.com/a/2820771 by user maček.
  */
-function getUrl() {
+static function getUrl() {
     // TODO move condition to function "httpsActive()"
     $protocol = ($_SERVER['HTTPS'] && $_SERVER['HTTPS'] != 'off') ? 'https' : 'http';
     return $protocol . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
@@ -172,7 +113,7 @@ function getUrl() {
  *
  * @return string  Filename of currently executed PHP script.
  */
-function getBasename() {
+static function getBasename() {
     return basename($_SERVER['PHP_SELF']);
 }
 
@@ -184,9 +125,9 @@ function getBasename() {
  *
  * return string  Base URL of client request.
  */
-function getBaseUrl() {
-    $url = getUrl();
-    $pos = \strpos($url, getBasename());
+static function getBaseUrl() {
+    $url = Utils::getUrl();
+    $pos = \strpos($url, Utils::getBasename());
     // remove current script name, query, etc.
     // only keep host URL and directory part of path
     return \substr($url, 0, $pos);
@@ -198,7 +139,7 @@ function getBaseUrl() {
  * @return mixed  Seminar identifier (string) or FALSE (boolean) if no
  *                seminar is selected.
  */
-function getSeminarId() {
+static function getSeminarId() {
     if (\Request::option('cid')) {
         return \Request::option('cid');
     }
@@ -222,7 +163,7 @@ function getSeminarId() {
  *                             results), or PDOStatement if $fetch is FALSE.
  *                             Returns FALSE on failure.
  */
-function executeQuery($query, $parameters, $fetch=TRUE) {
+static function executeQuery($query, $parameters, $fetch=TRUE) {
     $statement = \DBManager::get()->prepare($query);
     if (!$statement->execute($parameters)) {
         return FALSE;
@@ -240,8 +181,8 @@ function executeQuery($query, $parameters, $fetch=TRUE) {
  * @returns array     Folder data. NULL if folder doesn't exist or
  *                    something went wrong.
  */
-function getFolderById($id) {
-    $result = executeQuery('SELECT * FROM folder WHERE folder_id=:id',
+static function getFolderById($id) {
+    $result = Utils::executeQuery('SELECT * FROM folder WHERE folder_id=:id',
                            Array(':id' => $id));
     return $result ? $result[0] : NULL;
 }
@@ -258,24 +199,24 @@ function getFolderById($id) {
  * @returns array       Folder data. NULL if folder doesn't exist or
  *                      something went wrong.
  */
-function getFolderByName($name) {
-    return executeQuery(
+static function getFolderByName($name) {
+    return Utils::executeQuery(
         'SELECT * FROM folder WHERE name=:name AND seminar_id=:seminar_id',
-        Array(':name' => $id, ':seminar_id' => getSeminarId()));
+        Array(':name' => $id, ':seminar_id' => Utils::getSeminarId()));
 }
 
 /**
  * Return TRUE if a folder with the given ID exists.
  */
-function folderIdExists($id) {
-    return (bool) getFolderById($id);
+static function folderIdExists($id) {
+    return (bool) Utils::getFolderById($id);
 }
 
 /**
  * Return TRUE if a folder name is already used in the current seminar.
  */
-function folderNameExists($name) {
-    return (bool) getFolderByName($name);
+static function folderNameExists($name) {
+    return (bool) Utils::getFolderByName($name);
 }
 
 /**
@@ -287,11 +228,11 @@ function folderNameExists($name) {
  * @returns string          Unused, random folder name.
  *                          NULL if no unused name was found.
  */
-function randomFolderName($prefix='', $retries=99) {
+static function randomFolderName($prefix='', $retries=99) {
     while ($retries >= 0) {
         $retries--;
         $name = uniqid($prefix);
-        if (!folderNameExists($name)) {
+        if (!Utils::folderNameExists($name)) {
             return $name;
         }
     }
@@ -306,10 +247,10 @@ function randomFolderName($prefix='', $retries=99) {
  *                            folders.
  * @return string             Folder ID if folder exists, NULL if not.
  */
-function getFolderId($name, $parent_id=NULL) {
-    $result = executeQuery(
+static function getFolderId($name, $parent_id=NULL) {
+    $result = Utils::executeQuery(
         'SELECT folder_id FROM folder WHERE name=:name AND range_id=:range_id',
-        Array(':name' => $name, ':range_id' => $parent_id ?: getSeminarId()));
+        Array(':name' => $name, ':range_id' => $parent_id ?: Utils::getSeminarId()));
     return $result ? $result[0]['folder_id'] : NULL;
 }
 
@@ -324,13 +265,13 @@ function getFolderId($name, $parent_id=NULL) {
  * @param int    $permission  Folder access permissions.
  * @return string             Folder ID, NULL if something went wrong.
  */
-function createFolder($name, $description=NULL, $parent_id=NULL, $permission=7) {
-    $id = getFolderId($name, $parent_id);
+static function createFolder($name, $description=NULL, $parent_id=NULL, $permission=7) {
+    $id =Utils::getFolderId($name, $parent_id);
     if ($id) {
         return $id;  // folder already exists
     }
 
-    $seminar_id = getSeminarId();
+    $seminar_id = Utils::getSeminarId();
     $parent_id = $parent_id ?: $seminar_id;
     $id = md5($seminar_id . $parent_id . $name);
 
@@ -351,7 +292,7 @@ function createFolder($name, $description=NULL, $parent_id=NULL, $permission=7) 
         . ', mkdate, chdate) VALUES (' . implode(',', $keys)
         . ', UNIX_TIMESTAMP(), UNIX_TIMESTAMP())';
 
-    return executeQuery($query, $data, FALSE) ? $id : NULL;
+    return Utils::executeQuery($query, $data, FALSE) ? $id : NULL;
 }
 
 /**
@@ -381,7 +322,7 @@ function createFolder($name, $description=NULL, $parent_id=NULL, $permission=7) 
  * @returns array   Transposed form of input.
  *                  NULL if input is not an array of arrays.
  */
-function transposeArray($a) {
+static function transposeArray($a) {
     echo '';
     if (!is_array($a)) {
         return NULL;
@@ -432,10 +373,10 @@ function transposeArray($a) {
  * 
  * @return array  Each entry is an associative array for a single file.
  */
-function getUploadedFiles(){
+static function getUploadedFiles(){
     // TODO improve description
     // TODO make it work with any kind of file upload, not only HTML array
-    $files = transposeArray($_FILES['files']) ?: array();
+    $files = Utils::transposeArray($_FILES['files']) ?: array();
     return $files == array(array()) ? array() : $files;
 }
 
@@ -447,12 +388,12 @@ function getUploadedFiles(){
  * @return StudipDocument    Stud.IP document.
  * @throws AccessDeniedException if file is forbidden or upload failed.
  */
-function uploadFile($file, $folder_id) {
-    verifyUpload($file);  // throw exception if file is forbidden
+static function uploadFile($file, $folder_id) {
+    Utils::verifyUpload($file);  // throw exception if file is forbidden
 
     $newfile = \StudipDocument::createWithFile(
         $file['tmp_name'],
-        getStudipDocumentData($folder_id, $file));
+        Utils::getStudipDocumentData($folder_id, $file));
 
     if (!$newfile) { // file creation failed
         throw new \AccessDeniedException(
@@ -467,7 +408,7 @@ function uploadFile($file, $folder_id) {
  * @param Array $file  PHP file info array of uploaded file.
  * @throws AccessDeniedException if file is forbidden by Stud.IP settings.
  */
-function verifyUpload($file) {
+static function verifyUpload($file) {
     $GLOBALS['msg'] = ''; // validate_upload will store messages here
     if (!\validate_upload($file)) { // upload is forbidden
         // remove error pattern from message
@@ -488,12 +429,12 @@ function verifyUpload($file) {
  *
  * @return array             Stud.IP document metadata
  */
-function getStudipDocumentData($folder_id, $file) {
+static function getStudipDocumentData($folder_id, $file) {
     $filename = \studip_utf8decode($file['name']);
     $document['name'] = $document['filename'] = $filename;
     $document['user_id'] = $GLOBALS['user']->id;
     $document['author_name'] = \get_fullname();
-    $document['seminar_id'] = getSeminarId();
+    $document['seminar_id'] = Utils::getSeminarId();
     $document['range_id'] = $folder_id;
     $document['filesize'] = $file['size'];
     return $document;
@@ -505,8 +446,8 @@ function getStudipDocumentData($folder_id, $file) {
  * @params string $id  File identifier in database table 'dokumente'.
  * @returns string     Download link, NULL if file doesn't exist.
  */
-function getDownloadLink($id) {
-    $filename = getFilename($id);
+static function getDownloadLink($id) {
+    $filename = Utils::getFilename($id);
     return $filename ? \GetDownloadLink($id, $filename) : NULL;
 }
 
@@ -516,8 +457,8 @@ function getDownloadLink($id) {
  * @params string $id  Stud.IP document identifier.
  * @return string      Document's file name, NULL if it doesn't exist.
  */
-function getFilename($id) {
-   $result = executeQuery(
+static function getFilename($id) {
+   $result = Utils::executeQuery(
         'SELECT filename FROM dokumente WHERE dokument_id=:id',
         Array(':id' => $id));
     return $result ? $result[0]['filename'] : NULL;
@@ -531,7 +472,7 @@ function getFilename($id) {
  *
  * @return boolean  TRUE if string starts with prefix.
  */
-function startsWith($string, $prefix) {
+static function startsWith($string, $prefix) {
     return \substr($string, 0, \strlen($prefix)) === $prefix;
 }
 
@@ -543,7 +484,7 @@ function startsWith($string, $prefix) {
  *
  * @return boolean  TRUE if string ends with suffix.
  */
-function endsWith($string, $suffix) {
+static function endsWith($string, $suffix) {
     return \substr($string, \strlen($string) - \strlen($suffix)) === $suffix;
 }
 
@@ -557,38 +498,11 @@ function endsWith($string, $suffix) {
  *
  * @return string String without prefix.
  */
-function removePrefix($string, $prefix) {
-    if (startsWith($string, $prefix)) {
+static function removePrefix($string, $prefix) {
+    if (Utils::startsWith($string, $prefix)) {
         return \substr($string, \strlen($prefix));
     }
     return $string;
-}
-
-// TODO move this function to a unit test file
-function testMediaUrl($a, $b) {
-    $c = getMediaUrl($a);
-    \assert($c == $b, "getMediaUrl($a)\n== $c\n!= $b\n");
-}
-
-// TODO move this function to a unit test file
-function testGetMediaUrl() {
-    \header('Content-type: text/plain; charset=utf-8');
-
-    // studip must be at localhost:8080/studip for tests to work
-    // LOAD_EXTERNAL_MEDIA must be set to 'proxy'
-    $studip_document = 'http://localhost:8080/studip/sendfile.php?type=0&file_id=abc123&file_name=test.jpg';
-    $studip_document_ip = 'http://127.0.0.1:8080/studip/sendfile.php?type=0&file_id=abc123&file_name=test.jpg';
-    $external_document = 'http://pflanzen-enzyklopaedie.eu/wp-content/uploads/2012/11/Sumpfdotterblume-multiplex-120x120.jpg';
-    $proxy_document = 'http://localhost:8080/studip/dispatch.php/media_proxy?url=http%3A%2F%2Fpflanzen-enzyklopaedie.eu%2Fwp-content%2Fuploads%2F2012%2F11%2FSumpfdotterblume-multiplex-120x120.jpg';
-    $studip_document_no_domain = '/studip/sendfile.php?type=0&file_id=abc123&file_name=test.jpg';
-    // $proxy_no_domain = '/studip/dispatch.php/media_proxy?url=http%3A%2F%2Fwww.ecult.me%2Fimages%2Flogo.png';
-
-    testMediaUrl($studip_document, $studip_document);
-    testMediaUrl('invalid url', NULL);
-    testMediaUrl($studip_document_ip, $studip_document);
-    testMediaUrl($external_document, $proxy_document);
-    testMediaUrl($proxy_document, $proxy_document);
-    testMediaUrl($studip_document_no_domain, $studip_document);
 }
 
 /**
@@ -598,14 +512,14 @@ function testGetMediaUrl() {
  * @return mixed        URL string to media file (possibly 'proxied')
  *                      or NULL if URL is invalid.
  */
-function getMediaUrl($url) {
+static function getMediaUrl($url) {
 
     // handle internal media links
-    $url = decodeMediaProxyUrl($url);
-    if (isStudipMediaUrl($url)) {
-        return removeStudipDomain($url);
+    $url = Utils::decodeMediaProxyUrl($url);
+    if (Utils::isStudipMediaUrl($url)) {
+        return Utils::removeStudipDomain($url);
     }
-    if (isStudipUrl($url)) {
+    if (Utils::isStudipUrl($url)) {
         $GLOBALS['msg'][] = 'Invalid internal link removed: ' . \htmlentities($url);
         return NULL; // invalid internal link ==> remove <img src> attribute
     }
@@ -614,7 +528,7 @@ function getMediaUrl($url) {
     $external_media = \Config::GetInstance()->getValue('LOAD_EXTERNAL_MEDIA');
     if ($external_media === 'proxy' && \Seminar_Session::is_current_session_authenticated()) {
         // NOTE will fail if media proxy has external link
-        return removeStudipDomain(encodeMediaProxyUrl($url));
+        return Utils::removeStudipDomain(Utils::encodeMediaProxyUrl($url));
     }
     if ($external_media === 'allow') {
         return $url;
@@ -633,11 +547,11 @@ function getMediaUrl($url) {
  * @returns string      URL without internal domain or the exact same
  *                      value as $url for external URLs.
  */
-function removeStudipDomain($url) {
-    if (!isStudipUrl($url)) {
+static function removeStudipDomain($url) {
+    if (!Utils::isStudipUrl($url)) {
         return $url;
     }
-    $parsed_url = \parse_url(tranformInternalIdnaLink($url));
+    $parsed_url = \parse_url(Utils::tranformInternalIdnaLink($url));
     $path = isset($parsed_url['path']) ? $parsed_url['path'] : '';
     $query = isset($parsed_url['query']) ? '?' . $parsed_url['query'] : '';
     $fragment = isset($parsed_url['fragment']) ? '#' . $parsed_url['fragment'] : '';
@@ -650,7 +564,7 @@ function removeStudipDomain($url) {
  * @params string $url  An internal URL.
  * @returns string      Normalized internal URL.
  */
-function tranformInternalIdnaLink($url) {
+static function tranformInternalIdnaLink($url) {
     return \idna_link(\TransformInternalLinks($url));
 }
 
@@ -660,10 +574,10 @@ function tranformInternalIdnaLink($url) {
  * @params string $url  The unproxied URL for accessing a resource.
  * @return string       The media proxy URL for accessing the same resource.
  */
-function encodeMediaProxyUrl($url) {
+static function encodeMediaProxyUrl($url) {
     $base_url = $GLOBALS['ABSOLUTE_URI_STUDIP'];
     $media_proxy = $base_url . 'dispatch.php/media_proxy?url=';
-    return tranformInternalIdnaLink(
+    return Utils::tranformInternalIdnaLink(
         $media_proxy . \urlencode(\idna_link($url)));
 }
 
@@ -674,11 +588,11 @@ function encodeMediaProxyUrl($url) {
  * @returns boolean TRUE for internal media link URLs.
  *                  FALSE otherwise.
  */
-function isStudipMediaUrl($url) {
-    if (!isStudipUrl($url)) {
+static function isStudipMediaUrl($url) {
+    if (!Utils::isStudipUrl($url)) {
         return FALSE; # external link
     }
-    return isStudipMediaUrlPath(getStudipRelativePath($url));
+    return Utils::isStudipMediaUrlPath(Utils::getStudipRelativePath($url));
 }
 
 /**
@@ -696,10 +610,10 @@ function isStudipMediaUrl($url) {
  *                      path component.
  * returns string Stud.IP-relative path component of $url.
  */
-function getStudipRelativePath($url) {
-    $parsed_url = \parse_url(tranformInternalIdnaLink($url));
-    $parsed_studip_url = getParsedStudipUrl();
-    return removePrefix($parsed_url['path'], $parsed_studip_url['path']);
+static function getStudipRelativePath($url) {
+    $parsed_url = \parse_url(Utils::tranformInternalIdnaLink($url));
+    $parsed_studip_url = Utils::getParsedStudipUrl();
+    return Utils::removePrefix($parsed_url['path'], $parsed_studip_url['path']);
 }
 
 /**
@@ -709,12 +623,12 @@ function getStudipRelativePath($url) {
  * return string The original URL. If $url does not point to the media 
  *               proxy then this is the exact same value given by $url.
  */
-function decodeMediaProxyUrl($url) {
+static function decodeMediaProxyUrl($url) {
     # TODO make it work for 'url=' at any position in query
-    $proxypath = getMediaProxyPath() . '?url=';
-    $urlpath = removeStudipDomain($url);
-    if (startsWith($urlpath, $proxypath)) {
-        return \urldecode(removePrefix($urlpath, $proxypath));
+    $proxypath = Utils::getMediaProxyPath() . '?url=';
+    $urlpath = Utils::removeStudipDomain($url);
+    if (Utils::startsWith($urlpath, $proxypath)) {
+        return \urldecode(Utils::removePrefix($urlpath, $proxypath));
     }
     return $url;
 }
@@ -722,14 +636,14 @@ function decodeMediaProxyUrl($url) {
 /**
  * Return just the path of Stud.IP's media proxy URL.
  */
-function getMediaProxyPath() {
-    return removeStudipDomain(getMediaProxyUrl());
+static function getMediaProxyPath() {
+    return Utils::removeStudipDomain(Utils::getMediaProxyUrl());
 }
 
 /**
  * Return Stud.IP's absolute media proxy URL.
  */
-function getMediaProxyUrl() {
+static function getMediaProxyUrl() {
     return $GLOBALS['ABSOLUTE_URI_STUDIP'] . 'dispatch.php/media_proxy';
 }
 
@@ -739,11 +653,11 @@ function getMediaProxyUrl() {
  * @param string $url  URL that is tested.
  * @return boolean     TRUE if URL points to internal Stud.IP resource.
  */
-function isStudipUrl($url) {
-    $studip_url = getParsedStudipUrl();
+static function isStudipUrl($url) {
+    $studip_url = Utils::getParsedStudipUrl();
     \assert(\is_array($studip_url)); // otherwise something's wrong with studip
 
-    $parsed_url = \parse_url(tranformInternalIdnaLink($url));
+    $parsed_url = \parse_url(Utils::tranformInternalIdnaLink($url));
     if ($parsed_url === FALSE) {
         return FALSE; // url is seriously malformed
     }
@@ -755,7 +669,7 @@ function isStudipUrl($url) {
     $is_scheme = \in_array($parsed_url['scheme'], $studip_schemes);
     $is_host = \in_array($parsed_url['host'], $studip_hosts);
     $is_port = \in_array($parsed_url['port'], $studip_ports);
-    $is_path = startsWith($parsed_url['path'], $studip_url['path']);
+    $is_path = Utils::startsWith($parsed_url['path'], $studip_url['path']);
     return $is_scheme && $is_host && $is_port && $is_path;
 }
 
@@ -766,7 +680,7 @@ function isStudipUrl($url) {
  *
  * @returns mixed  Same values that PHP's parse_url() returns.
  */
-function getParsedStudipUrl() {
+static function getParsedStudipUrl() {
     return \parse_url($GLOBALS['ABSOLUTE_URI_STUDIP']);
 }
 
@@ -776,20 +690,10 @@ function getParsedStudipUrl() {
  * @params string $path The path component of an URL.
  * return boolean       TRUE for valid media paths, FALSE otherwise.
  */
-function isStudipMediaUrlPath($path) {
+static function isStudipMediaUrlPath($path) {
     list($path_head) = \explode('/', $path);
     $valid_paths = array('sendfile.php', 'download', 'assets', 'pictures');
     return \in_array($path_head, $valid_paths);
-}
-
-/**
- * Initialize session management.
- */
-function startSession() {
-    \page_open(array("sess" => "Seminar_Session",
-                     "auth" => "Seminar_Auth",
-                     "perm" => "Seminar_Perm",
-                     "user" => "Seminar_User"));
 }
 
 /**
@@ -798,8 +702,8 @@ function startSession() {
  * @params string $permission  Minimum require access level.
  * @returns boolean            TRUE if user has required access level.
  */
-function hasPermission($permission) {
-    return $GLOBALS['perm']->have_studip_perm($permission, getSeminarId());
+static function hasPermission($permission) {
+    return $GLOBALS['perm']->have_studip_perm($permission, Utils::getSeminarId());
 }
 
 /**
@@ -808,8 +712,8 @@ function hasPermission($permission) {
  * @param string $permission  Minimum required access level.
  * @throws AccessDeniedException if user does not have permission.
  */
-function verifyPermission($permission) {
-    if (!hasPermission($permission)) {
+static function verifyPermission($permission) {
+    if (!Utils::hasPermission($permission)) {
         throw new \AccessDeniedException(\studip_utf8decode(
             \_("Es werden mindestens $permission-Zugriffsrechte benötigt.")));
     }
@@ -819,7 +723,7 @@ function verifyPermission($permission) {
  * Throw exception if HTTP request was not send as POST.
  * @throws AccessDeniedException if request was not send as HTTP POST.
  */
-function verifyPostRequest() {
+static function verifyPostRequest() {
     if (!\Request::isPost()) {
         throw new \AccessDeniedException(\studip_utf8decode(
             _('Die Anfrage muss als HTTP POST gestellt werden.')));
@@ -836,7 +740,7 @@ function verifyPostRequest() {
  *                      variable has not been posted and must_exist is FALSE.
  * @throws Exception if must_exist is TRUE and variable is not set.
  */
-function utf8POST($variable, $must_exist=FALSE) {
+static function utf8POST($variable, $must_exist=FALSE) {
     // TODO shouldn't this be isset($_POST[$variable])??
     if (isset($variable)) {
         return studip_utf8decode($_POST[$variable]);
@@ -854,7 +758,7 @@ function utf8POST($variable, $must_exist=FALSE) {
  * @param string $name  Identifier of the configuration entry.
  * @returns string      Value of the configuration entry.
  */
-function getConfigValue($name) {
+static function getConfigValue($name) {
     return \Config::GetInstance()->getValue($name);
 }
 
@@ -863,8 +767,8 @@ function getConfigValue($name) {
  *
  * @param mixed $response The value that should be sent as response.
  */
-function sendAsJson($response) {
-    negotiateJsonContent();
+static function sendAsJson($response) {
+    Utils::negotiateJsonContent();
     echo json_encode($response);
 }
 
@@ -874,9 +778,9 @@ function sendAsJson($response) {
  * Also tell proxies/caches that content depends on what client accepts.
  * If client doesn't accept JSON then set text/plain.
  */
-function negotiateJsonContent() {
+static function negotiateJsonContent() {
     header('Vary: Accept');
-    if (httpAcceptsJson()) {
+    if (Utils::httpAcceptsJson()) {
         header('Content-type: application/json; charset=utf-8');
     } else {
         header('Content-type: text/plain; charset=utf-8');
@@ -888,7 +792,9 @@ function negotiateJsonContent() {
  *
  * @returns boolean TRUE if JSON response is accepted, FALSE otherwise.
  */
-function httpAcceptsJson() {
+static function httpAcceptsJson() {
     return isset($_SERVER['HTTP_ACCEPT'])
         && (strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false);
 }
+
+} // class Utils

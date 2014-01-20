@@ -81,6 +81,33 @@ class UtilsTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals($seminar_id, Utils\getSeminarId());
     }
 /*
+// TODO implement unit test
+static function testMediaUrl($a, $b) {
+    $c = Utils::getMediaUrl($a);
+    \assert($c == $b, "getMediaUrl($a)\n== $c\n!= $b\n");
+}
+
+// TODO implement unit test
+static function testGetMediaUrl() {
+    \header('Content-type: text/plain; charset=utf-8');
+
+    // studip must be at localhost:8080/studip for tests to work
+    // LOAD_EXTERNAL_MEDIA must be set to 'proxy'
+    $studip_document = 'http://localhost:8080/studip/sendfile.php?type=0&file_id=abc123&file_name=test.jpg';
+    $studip_document_ip = 'http://127.0.0.1:8080/studip/sendfile.php?type=0&file_id=abc123&file_name=test.jpg';
+    $external_document = 'http://pflanzen-enzyklopaedie.eu/wp-content/uploads/2012/11/Sumpfdotterblume-multiplex-120x120.jpg';
+    $proxy_document = 'http://localhost:8080/studip/dispatch.php/media_proxy?url=http%3A%2F%2Fpflanzen-enzyklopaedie.eu%2Fwp-content%2Fuploads%2F2012%2F11%2FSumpfdotterblume-multiplex-120x120.jpg';
+    $studip_document_no_domain = '/studip/sendfile.php?type=0&file_id=abc123&file_name=test.jpg';
+    // $proxy_no_domain = '/studip/dispatch.php/media_proxy?url=http%3A%2F%2Fwww.ecult.me%2Fimages%2Flogo.png';
+
+    testMediaUrl($studip_document, $studip_document);
+    testMediaUrl('invalid url', NULL);
+    testMediaUrl($studip_document_ip, $studip_document);
+    testMediaUrl($external_document, $proxy_document);
+    testMediaUrl($proxy_document, $proxy_document);
+    testMediaUrl($studip_document_no_domain, $studip_document);
+}
+
     function testFolderNameExists() {
         // Note: If a folder by that name already exists, the test will
         // fail if Utils\folderNameExists works correctly.

@@ -24,7 +24,6 @@
  * @author      Robert Costa <rcosta@uos.de>
  */
 require_once 'vendor/HTMLPurifier/HTMLPurifier.auto.php';
-require_once 'lib/utils.php';
 
 /**
  * Remove invalid <img src> attributes.
@@ -34,7 +33,7 @@ class AttrTransform_Image_Source extends \HTMLPurifier_AttrTransform {
      * Implements abstract method of base class.
      */
     function transform($attr, $config, $context) {
-        $attr['src'] = \Utils\getMediaUrl($attr['src']);
+        $attr['src'] = Utils::getMediaUrl($attr['src']);
         return $attr;
     }
 }

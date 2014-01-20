@@ -2,8 +2,6 @@
 /**
  * wysiwyg.php - Provide web services for the WYSIWYG editor.
  * 
- * TODO update documentation
- *
  **
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -22,7 +20,7 @@
  * @author      Robert Costa <rcosta@uos.de>
  */
 require_once 'authenticated_controller.php';
-require_once '../lib/utils.php';
+use Studip\Utils;
 
 class WysiwygController extends AuthenticatedController
 {
@@ -49,28 +47,28 @@ class WysiwygController extends AuthenticatedController
      */
     public function upload_action() {
         // verify access permissions
-        Utils\verifyPostRequest();
+        Utils::verifyPostRequest();
         CSRFProtection::verifyUnsafeRequest();
         //Utils\startSession();  // ==> done by AuthenticatedController::before_filter
-        Utils\verifyPermission('autor');
+        Utils::verifyPermission('autor');
         // verify minimum permission level for uploading and editing
         //$GLOBALS['perm']->check('autor');
 
         // get folder ID
-        $folder_id = Utils\createFolder(
+        $folder_id = Utils::createFolder(
             _('Wysiwyg Uploads'),
             _('Vom WYSIWYG Editor hochgeladene Dateien.')
         ) or exit(_('Erstellen des Upload-Ordners fehlgeschlagen.'));
 
         // store uploaded files as StudIP documents
         $response = array();  // data for HTTP response
-        foreach (Utils\getUploadedFiles() as $file) {
+        foreach (Utils::getUploadedFiles() as $file) {
             try {
-                $newfile = Utils\uploadFile($file, $folder_id);
+                $newfile = Utils::uploadFile($file, $folder_id);
                 $response['files'][] = Array(
                     'name' => utf8_encode($newfile['filename']),
                     'type' => $file['type'],
-                    'url' => Utils\getDownloadLink($newfile->getId()));
+                    'url' => Utils::getDownloadLink($newfile->getId()));
             } catch (AccessDeniedException $e) {  // creation of Stud.IP doc failed
                 $response['files'][] = Array(
                     'name' => $file['name'],
@@ -80,7 +78,7 @@ class WysiwygController extends AuthenticatedController
         }
 
         // send HTTP response to client
-        Utils\sendAsJson($response);
+        Utils::sendAsJson($response);
         $this->performed = TRUE;
     }
 }
