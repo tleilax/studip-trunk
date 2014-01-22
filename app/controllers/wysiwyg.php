@@ -49,10 +49,7 @@ class WysiwygController extends AuthenticatedController
         // verify access permissions
         Utils::verifyPostRequest();
         CSRFProtection::verifyUnsafeRequest();
-        //Utils\startSession();  // ==> done by AuthenticatedController::before_filter
-        Utils::verifyPermission('autor');
-        // verify minimum permission level for uploading and editing
-        //$GLOBALS['perm']->check('autor');
+        $GLOBALS['perm']->check('autor'); // minimum permission level for uploading
 
         // get folder ID
         $folder_id = Utils::createFolder(
@@ -76,10 +73,6 @@ class WysiwygController extends AuthenticatedController
                     'error' => $e->getMessage());
             }
         }
-
-        // send HTTP response to client
-        //$this->response = $response;
-        Utils::sendAsJson($response);
-        $this->performed = TRUE;
+        $this->render_json($response); // send HTTP response to client
     }
 }

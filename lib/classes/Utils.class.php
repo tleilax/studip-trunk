@@ -56,8 +56,6 @@
  *
  * Access Permission Utils
  * -----------------------
- * hasPermission            Test if current user has required access level.
- * verifyPermission         Throw exception if user hasn't required access level.
  * verifyPostRequest        Throw exception if HTTP request was not send as POST.
  *
  * HTTP Utils
@@ -67,12 +65,6 @@
  * Stud.IP Utils
  * -------------
  * getConfigValue           Return a configuration value from the Stud.IP DB.
- *
- * HTTP / JSON Utils
- * -----------------
- * sendAsJson               Send HTTP response as JSON-encoded string.
- * negotiateJsonContent     Set content-type to application/json if client accepts it.
- * httpAcceptsJson          Check if application/json is set in HTTP_ACCEPT.
  *
  **
  * This program is free software; you can redistribute it and/or
@@ -697,29 +689,6 @@ class Utils
     }
     
     /**
-     * Test if current user has required access level.
-     *
-     * @params string $permission  Minimum require access level.
-     * @returns boolean            TRUE if user has required access level.
-     */
-    static function hasPermission($permission) {
-        return $GLOBALS['perm']->have_studip_perm($permission, Utils::getSeminarId());
-    }
-    
-    /**
-     * Throw exception if current user hasn't required access level.
-     *
-     * @param string $permission  Minimum required access level.
-     * @throws AccessDeniedException if user does not have permission.
-     */
-    static function verifyPermission($permission) {
-        if (!Utils::hasPermission($permission)) {
-            throw new \AccessDeniedException(\studip_utf8decode(
-                \_("Es werden mindestens $permission-Zugriffsrechte benötigt.")));
-        }
-    }
-    
-    /**
      * Throw exception if HTTP request was not send as POST.
      * @throws AccessDeniedException if request was not send as HTTP POST.
      */
@@ -760,41 +729,5 @@ class Utils
      */
     static function getConfigValue($name) {
         return \Config::GetInstance()->getValue($name);
-    }
-    
-    /**
-     * Send HTTP response as JSON-encoded string.
-     *
-     * @param mixed $response The value that should be sent as response.
-     */
-    static function sendAsJson($response) {
-        Utils::negotiateJsonContent();
-        echo json_encode($response);
-    }
-    
-    /**
-     * Set content-type to application/json if client accepts it.
-     *
-     * Also tell proxies/caches that content depends on what client accepts.
-     * If client doesn't accept JSON then set text/plain.
-     */
-    static function negotiateJsonContent() {
-        header('Vary: Accept');
-        if (Utils::httpAcceptsJson()) {
-            header('Content-type: application/json; charset=utf-8');
-        } else {
-            header('Content-type: text/plain; charset=utf-8');
-        }
-    }
-    
-    /**
-     * Check if application/json is set in HTTP_ACCEPT.
-     *
-     * @returns boolean TRUE if JSON response is accepted, FALSE otherwise.
-     */
-    static function httpAcceptsJson() {
-        return isset($_SERVER['HTTP_ACCEPT'])
-            && (strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false);
-    }
-
+    } 
 } // class Utils
