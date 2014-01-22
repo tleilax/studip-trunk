@@ -49,7 +49,7 @@ class WysiwygController extends AuthenticatedController
         // verify access permissions
         Utils::verifyPostRequest();
         CSRFProtection::verifyUnsafeRequest();
-        $GLOBALS['perm']->check('autor'); // minimum permission level for uploading
+        Utils::verifyPermission('autor'); // minimum permission level for uploading
 
         // get folder ID
         $folder_id = Utils::createFolder(

@@ -56,6 +56,8 @@
  *
  * Access Permission Utils
  * -----------------------
+ * hasPermission            Test if current user has required access level.
+ * verifyPermission         Throw exception if user hasn't required access level.
  * verifyPostRequest        Throw exception if HTTP request was not send as POST.
  *
  * HTTP Utils
@@ -688,6 +690,29 @@ class Utils
         return \in_array($path_head, $valid_paths);
     }
     
+    /**
+     * Test if current user has required access level. 
+     * 
+     * @params string $permission  Minimum require access level. 
+     * @returns boolean            TRUE if user has required access level. 
+     */ 
+    static function hasPermission($permission) { 
+        return $GLOBALS['perm']->have_studip_perm($permission, Utils::getSeminarId()); 
+    } 
+     
+    /** 
+     * Throw exception if current user hasn't required access level. 
+     * 
+     * @param string $permission  Minimum required access level. 
+     * @throws AccessDeniedException if user does not have permission. 
+     */ 
+    static function verifyPermission($permission) { 
+        if (!Utils::hasPermission($permission)) { 
+            throw new \AccessDeniedException(\studip_utf8decode( 
+                \_("Es werden mindestens $permission-Zugriffsrechte benötigt."))); 
+        } 
+    }
+     
     /**
      * Throw exception if HTTP request was not send as POST.
      * @throws AccessDeniedException if request was not send as HTTP POST.
