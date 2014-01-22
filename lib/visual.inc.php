@@ -213,15 +213,12 @@ function get_ampel_read ($mein_status, $admission_status, $read_level, $print="T
     return $ampel_status;
 }
 
+//// Functions for processing marked-up text (Stud.IP markup, HTML, JS).
+
+use Studip\Markup;
+
 function htmlReady($what, $trim=TRUE, $br=FALSE, $double_encode=FALSE) {
-    $what = htmlspecialchars($what,ENT_QUOTES, 'cp1252', $double_encode);
-    if ($trim) {
-        $what = trim($what);
-    }
-    if ($br) { // fix newlines
-        $what = nl2br($what, false);
-    }
-    return $what;
+    return Markup::htmlReady($what, $trim, $br, $double_encode);
 }
 
 function jsReady ($what, $target) {
@@ -263,10 +260,6 @@ function quotes_encode($description,$author)
     $description = "[quote=".$author."]\n".$description."\n[/quote]";
     return $description;
 }
-
-//// Functions for processing marked-up text.
-
-use Studip\Markup;
 
 /**
  * Common function to get all special Stud.IP formattings.

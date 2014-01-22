@@ -144,6 +144,26 @@ class Markup
 
         return new \HTMLPurifier($config);
     }
+
+    /**
+     * Convert special characters to HTML entities, and clean up.
+     *
+     * @param  string  $text  This text's special chars will be converted.
+     * @param  boolean $trim  Trim text before applying markup rules, if TRUE.
+     * @param  boolean $br    Replace newlines by <br>, if TRUE.
+     * @param  boolean $double_encode  Encode existing HTML entities, if TRUE.
+     * @return string         The converted string.
+     */
+    function htmlReady($text, $trim=TRUE, $br=FALSE, $double_encode=FALSE) {
+        $text = htmlspecialchars($text, ENT_QUOTES, 'cp1252', $double_encode);
+        if ($trim) {
+            $text = trim($text);
+        }
+        if ($br) { // fix newlines
+            $text = nl2br($text, false);
+        }
+        return $text;
+    }
 }
 
 /**
