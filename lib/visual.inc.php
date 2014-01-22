@@ -213,17 +213,14 @@ function get_ampel_read ($mein_status, $admission_status, $read_level, $print="T
     return $ampel_status;
 }
 
-function htmlReady ($what, $trim = TRUE, $br = FALSE, $double_encode = false) {
+function htmlReady($what, $trim=TRUE, $br=FALSE, $double_encode=FALSE) {
+    $what = htmlspecialchars($what,ENT_QUOTES, 'cp1252', $double_encode);
     if ($trim) {
-        $what = trim(htmlspecialchars($what, ENT_QUOTES, 'cp1252', $double_encode));
-    } else {
-        $what = htmlspecialchars($what,ENT_QUOTES, 'cp1252', $double_encode);
+        $what = trim($what);
     }
-
     if ($br) { // fix newlines
         $what = nl2br($what, false);
     }
-
     return $what;
 }
 
