@@ -260,7 +260,7 @@ class Utils
      * @return string             Folder ID, NULL if something went wrong.
      */
     static function createFolder($name, $description=NULL, $parent_id=NULL, $permission=7) {
-        $id =Utils::getFolderId($name, $parent_id);
+        $id = Utils::getFolderId($name, $parent_id);
         if ($id) {
             return $id;  // folder already exists
         }
@@ -285,10 +285,14 @@ class Utils
         $query = 'INSERT INTO folder (' . $column_names
             . ', mkdate, chdate) VALUES (' . implode(',', $keys)
             . ', UNIX_TIMESTAMP(), UNIX_TIMESTAMP())';
-    
-        return Utils::executeQuery($query, $data, FALSE) ? $id : NULL;
+
+        if (Utils::executeQuery($query, $data, FALSE)) {
+            return $id;  // folder successfully created
+        }
+        throw new \AccessDeniedException(
+            _('Stud.IP-Ordner konnte nicht erstellt werden.'));
     }
-    
+
     /**
      * Transpose an array of arrays.
      *

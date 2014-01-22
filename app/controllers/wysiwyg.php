@@ -52,11 +52,16 @@ class WysiwygController extends AuthenticatedController
         Utils::verifyPermission('autor'); // minimum permission level for uploading
 
         // get folder ID
-        $folder_id = Utils::createFolder(
-            _('Wysiwyg Uploads'),
-            _('Vom WYSIWYG Editor hochgeladene Dateien.')
-        ) or exit(_('Erstellen des Upload-Ordners fehlgeschlagen.'));
-
+        try {
+            $folder_id = Utils::createFolder(
+                _('Wysiwyg Uploads'),
+                _('Vom WYSIWYG Editor hochgeladene Dateien.')
+            );
+        } catch (AccessDeniedException $e) {
+            $this->render_json($e->getMessage());
+            return;
+        }
+    
         // store uploaded files as StudIP documents
         $response = array();  // data for HTTP response
         foreach (Utils::getUploadedFiles() as $file) {
