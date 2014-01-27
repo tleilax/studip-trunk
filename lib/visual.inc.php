@@ -272,10 +272,11 @@ function quotes_encode($description,$author)
  * @param string  $show_comments  (deprecated, has no effect)
  * @return string        HTML code computed by applying markup-rules.
  */
-function formatReady($text, $trim=TRUE,
-                     // TODO remove unused function arguments
-                     $extern=FALSE, $wiki=FALSE, $show_comments='icon'){
-    OpenGraphURL::$tempURLStorage = array(); // generate media preview in HTML via JS
+// TODO remove unused function arguments
+function formatReady($text, $trim=TRUE, $extern=FALSE, $wiki=FALSE, $show_comments='icon'){
+    // StudipFormat::markupLinks stores OpenGraph media preview URLs
+    // Blubber and Forum plugins add media previews after formatReady returns
+    OpenGraphURL::$tempURLStorage = array();
     return Markup::apply(new StudipFormat(), $text, $trim);
 }
 
