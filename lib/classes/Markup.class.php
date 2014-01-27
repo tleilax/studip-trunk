@@ -123,7 +123,8 @@ class Markup
         if ($purifier === NULL) {
             $purifier = Markup::createPurifier();
         }
-        return $purifier->purify($dirty_html);
+        return studip_utf8decode(
+            $purifier->purify(studip_utf8encode($dirty_html)));
     }
 
     /**
@@ -132,7 +133,6 @@ class Markup
      */
     function createPurifier() {
         $config = \HTMLPurifier_Config::createDefault();
-        $config->set('Core.Encoding', 'ISO-8859-1');
         $config->set('Core.RemoveInvalidImg', true);
         $config->set('Attr.AllowedFrameTargets', array('_blank'));
         $config->set('Attr.AllowedRel', array('nofollow'));
