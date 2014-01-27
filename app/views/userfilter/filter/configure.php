@@ -9,14 +9,11 @@ use Studip\Button, Studip\LinkButton;
     <?= Assets::img('icons/16/blue/add.png', array('alt' => _('Auswahlfeld hinzufügen'))) ?>
     <?php
         $text = _('Auswahlfeld hinzufügen');
-        if ($via_ajax) {
-            $text = studip_utf8encode($text);
-        }
         echo $text;
     ?>
 </a>
 <br/><br/>
 <div class="submit_wrapper">
-    <?= Button::createAccept(_('Speichern'), 'submit', array('onclick' => "STUDIP.UserFilter.addCondition('".$containerId."', '".$controller->url_for('userfilter/filter/add', 'condamission_conditions')."');")) ?>
+    <?= Button::createAccept(_('Speichern'), 'submit', array('onclick' => "STUDIP.UserFilter.addCondition('".$containerId."', '".$controller->url_for('userfilter/filter/add')."');")) ?>
     <?= Button::createCancel(_('Abbrechen'), 'cancel', array('onclick' => '$("#condition").remove()')) ?>
 </div>

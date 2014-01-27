@@ -47,19 +47,18 @@ class Step00240CourseSets extends Migration
           `id` int(11) NOT NULL AUTO_INCREMENT,
           `ruletype` VARCHAR(255) UNIQUE NOT NULL,
           `active` TINYINT(1) NOT NULL DEFAULT 0,
-          `deleteable` TINYINT(1) NOT NULL DEFAULT 1,
           `mkdate` INT(11) NOT NULL DEFAULT 0,
           PRIMARY KEY (`id`)
         ) ENGINE = MyISAM");
         // Create entries for default admission rule types.
         $db->exec("INSERT IGNORE INTO `admissionrules`
-            (`ruletype`, `active`, `deleteable`, `mkdate`) VALUES
-                ('ConditionalAdmission', 1, 0, UNIX_TIMESTAMP()),
-                ('LimitedAdmission', 1, 0, UNIX_TIMESTAMP()),
-                ('LockedAdmission', 1, 0, UNIX_TIMESTAMP()),
-                ('PasswordAdmission', 1, 0, UNIX_TIMESTAMP()),
-                ('TimedAdmission', 1, 0, UNIX_TIMESTAMP()),
-                ('ParticipantRestrictedAdmission', 1, 0, UNIX_TIMESTAMP());");
+            (`ruletype`, `active`, `mkdate`) VALUES
+                ('ConditionalAdmission', 1, UNIX_TIMESTAMP()),
+                ('LimitedAdmission', 1, UNIX_TIMESTAMP()),
+                ('LockedAdmission', 1, UNIX_TIMESTAMP()),
+                ('PasswordAdmission', 1, UNIX_TIMESTAMP()),
+                ('TimedAdmission', 1, UNIX_TIMESTAMP()),
+                ('ParticipantRestrictedAdmission', 1, UNIX_TIMESTAMP());");
 
         // Admission rules can be available globally or only at selected institutes.
         $db->exec("CREATE TABLE IF NOT EXISTS `admissionrule_inst` (
@@ -95,7 +94,8 @@ class Step00240CourseSets extends Migration
                 `institute_id` VARCHAR(32) NOT NULL ,
                 `mkdate` INT NULL ,
                 `chdate` INT NULL ,
-            PRIMARY KEY (`set_id`, `institute_id`) )
+            PRIMARY KEY (`set_id`, `institute_id`),
+            INDEX `institute_id` (`institute_id`,`set_id`))
             ENGINE = MyISAM");
 
         // assign admission rules to course sets
@@ -104,7 +104,8 @@ class Step00240CourseSets extends Migration
                 `rule_id` VARCHAR(32) NOT NULL ,
                 `type` VARCHAR(255) NULL ,
                 `mkdate` INT NULL ,
-            PRIMARY KEY (`set_id`, `rule_id`) )
+            PRIMARY KEY (`set_id`, `rule_id`),
+            INDEX `type` (`set_id`,`type`))
             ENGINE = MyISAM");
 
         // sets of courses with common admission rules
@@ -112,6 +113,7 @@ class Step00240CourseSets extends Migration
                 `set_id` VARCHAR(32) NOT NULL ,
                 `user_id` VARCHAR(32) NOT NULL ,
                 `name` VARCHAR(255) NOT NULL ,
+                `semester` VARCHAR(32) NOT NULL ,
                 `infotext` TEXT NOT NULL ,
                 `algorithm` VARCHAR(255) NOT NULL ,
                 `algorithm_run` TINYINT(1) NOT NULL DEFAULT 0 ,
@@ -119,7 +121,7 @@ class Step00240CourseSets extends Migration
                 `mkdate` INT NOT NULL DEFAULT 0,
                 `chdate` INT NOT NULL DEFAULT 0,
             PRIMARY KEY (`set_id`) ,
-            INDEX `set_user` (`set_id` ASC, `user_id` ASC) )
+            INDEX `set_user` (`user_id`, `set_id`) )
             ENGINE = MyISAM");
 
         // admission rules with max number of courses to register for
@@ -172,7 +174,8 @@ class Step00240CourseSets extends Migration
                 `set_id` VARCHAR(32) NOT NULL ,
                 `seminar_id` VARCHAR(32) NOT NULL ,
                 `mkdate` INT NOT NULL DEFAULT 0 ,
-            PRIMARY KEY (`set_id`, `seminar_id`) )
+            PRIMARY KEY (`set_id`, `seminar_id`),
+            INDEX `seminar_id` (`seminar_id`, `set_id` ) )
             ENGINE = MyISAM");
 
         // admission rules concerning time
@@ -236,8 +239,8 @@ class Step00240CourseSets extends Migration
             PRIMARY KEY (`rule_id`, `user_id`) )
             ENGINE = MyISAM");
 
-        $cs_insert = $db->prepare("INSERT INTO coursesets (set_id,user_id,name,infotext,algorithm,mkdate,chdate)
-                                   VALUES (?,?,?,?,'',UNIX_TIMESTAMP(),UNIX_TIMESTAMP())");
+        $cs_insert = $db->prepare("INSERT INTO coursesets (set_id,user_id,name,infotext,semester,algorithm,mkdate,chdate)
+                                   VALUES (?,?,?,?,'','',UNIX_TIMESTAMP(),UNIX_TIMESTAMP())");
         $cs_i_insert = $db->prepare("INSERT INTO courseset_institute (set_id,institute_id,mkdate,chdate) VALUES (?,?,UNIX_TIMESTAMP(),UNIX_TIMESTAMP())");
         $cs_r_insert = $db->prepare("INSERT INTO courseset_rule (set_id,rule_id,type,mkdate) VALUES (?,?,?,UNIX_TIMESTAMP())");
         $s_cs_insert = $db->prepare("INSERT INTO seminar_courseset (set_id,seminar_id,mkdate) VALUES (?,?,UNIX_TIMESTAMP())");
@@ -299,17 +302,21 @@ class Step00240CourseSets extends Migration
 
         $admission = $db->fetchAll("SELECT seminar_id,seminare.name,institut_id,admission_turnout
             FROM seminare left join admission_group on(group_id=admission_group) WHERE admission_type in (1,2) AND group_id is null");
+        $migrated_per_institute = array();
         foreach ($admission as $course) {
-            $rule_id = md5(uniqid('lockedadmissions',1));
-            $locked_insert->execute(array($rule_id));
-            $set_id = md5(uniqid('coursesets',1));
-            $name = 'Anmeldung gesperrt: ' . $course['name'];
-            $info = 'Erzeugt durch Migration 128 ' . strftime('%X %x');
-            $info .= "\n" . ' Teilnahmebeschränkt: ' . $course['admission_turnout'];
-            $cs_insert->execute(array($set_id,$GLOBALS['user']->id,$name,$info));
-            $cs_i_insert->execute(array($set_id,$course['institut_id']));
-            $cs_r_insert->execute(array($set_id,$rule_id,'LockedAdmission'));
-            $s_cs_insert->execute(array($set_id, $course['seminar_id']));
+            if (!isset($migrated_per_institute[$course['institut_id']])) {
+                $rule_id = md5(uniqid('lockedadmissions',1));
+                $locked_insert->execute(array($rule_id));
+                $set_id = md5(uniqid('coursesets',1));
+                $inst_name = $db->fetchColumn("SELECT name FROM Institute WHERE Institut_id=?", array($course['institut_id']));
+                $name = 'Anmeldung gesperrt: Einrichtung ' . $inst_name;
+                $info = 'Erzeugt durch Migration 128 ' . strftime('%X %x');
+                $cs_insert->execute(array($set_id,$GLOBALS['user']->id,$name,$info));
+                $cs_i_insert->execute(array($set_id,$course['institut_id']));
+                $cs_r_insert->execute(array($set_id,$rule_id,'LockedAdmission'));
+                $migrated_per_institute[$course['institut_id']] = $set_id;
+            }
+            $s_cs_insert->execute(array($migrated_per_institute[$course['institut_id']], $course['seminar_id']));
         }
 
         //Warte und Anmeldelisten löschen
@@ -329,7 +336,19 @@ class Step00240CourseSets extends Migration
         $db->exec("ALTER TABLE  `seminare` ADD  `admission_disable_waitlist_move` TINYINT UNSIGNED NOT NULL DEFAULT '0'");
 
         SimpleORMap::expireTableScheme();
-    }
+
+        // Insert global configuration: who may edit course sets?
+		DBManager::get()->execute("INSERT IGNORE INTO `config`
+		    (`config_id`, `parent_id`, `field`, `value`, `is_default`,
+		     `type`, `range`, `section`, `position`, `mkdate`, `chdate`,
+		     `description`, `comment`, `message_template`)
+		VALUES
+		    (MD5('ALLOW_DOZENT_COURSESET_ADMIN'), '',
+		    'ALLOW_DOZENT_COURSESET_ADMIN', '0', '1', 'boolean', 'global',
+		    'coursesets', '0', UNIX_TIMESTAMP(), UNIX_TIMESTAMP(),
+		    'Sollen Lehrende einrichtungsweite Anmeldesets anlegen und bearbeiten dürfen?',
+		    '', '')");
+	}
 
     function down()
     {

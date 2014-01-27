@@ -30,6 +30,7 @@ $infobox = array('content' => $infobox,
 ?>
 <?= $this->render_partial('dialog/confirm_dialog') ?>
 <h2><?= _('Anmeldesets') ?></h2>
+<?= $this->render_partial('admission/courseset/_institute_choose.php') ?>
 <?php
 if ($coursesets) {
 ?>
@@ -61,7 +62,7 @@ if ($coursesets) {
         </span>
     </div>
     <div id="courseset_details_<?= $courseset->getId() ?>" style="display: none; margin-left: 20px;">
-        <?= $courseset->toString() ?>
+        <?= $courseset->toString(true) ?>
     </div>
     <?php } ?>
 </div>

@@ -71,8 +71,15 @@ class CourseSet
      */
     protected $private = false;
 
-    protected $user_id = false;
+    /**
+     * Semester ID.
+     */
+    protected $semester = '';
 
+    /**
+     * Who owns this course set?
+     */
+    protected $user_id = false;
 
     /*
      * Lists of users who are treated differently on seat distribution
@@ -354,16 +361,32 @@ class CourseSet
      * @param String $instituteId
      * @return Array
      */
-    public static function getCoursesetsByInstituteId($instituteId) {
+    public static function getCoursesetsByInstituteId($instituteId, $filter = array()) {
         $query = "SELECT DISTINCT ci.*
             FROM `courseset_institute` ci
             JOIN `coursesets` c ON (ci.`set_id`=c.`set_id`)
+            LEFT JOIN courseset_rule cr ON cr.set_id=ci.set_id
+            LEFT JOIN seminar_courseset sc ON c.set_id = sc.set_id
+            LEFT JOIN seminare s ON s.seminar_id = sc.seminar_id
             WHERE ci.`institute_id`=?";
         $parameters = array($instituteId);
         if (!$GLOBALS['perm']->have_perm('root')) {
             $query .= " AND (c.`private`=0 OR c.`user_id`=?)";
             $parameters[] = $GLOBALS['user']->id;
         }
+        if ($filter['course_set_name']) {
+            $query .= " AND c.name LIKE ?";
+            $parameters[] = $filter['course_set_name'] . '%';
+        }
+        if (is_array($filter['rule_types']) && count($filter['rule_types'])) {
+            $query .= " AND cr.type IN (?)";
+            $parameters[] = $filter['rule_types'];
+        }
+        if ($filter['semester_id']) {
+            $query .= " AND s.start_time = ?";
+            $parameters[] = Semester::find($filter['semester_id'])->beginn;
+        }
+        $query .= " ORDER BY c.name";
         $stmt = DBManager::get()->prepare($query);
         $stmt->execute($parameters);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -428,7 +451,15 @@ class CourseSet
     public function getPrivate() {
         return $this->private;
     }
+    
 
+    public function getSemester() {
+        return $this->semester;
+    }
+
+    /**
+     * Gets the owner of this course set.
+     */
     public function getUserId() {
         return $this->user_id;
     }
@@ -520,6 +551,7 @@ class CourseSet
                 }
             }
             $this->private = (bool) $data['private'];
+            $this->semester = $data['semester'];
             $this->user_id = $data['user_id'];
         }
         // Load institute assigments.
@@ -693,6 +725,11 @@ class CourseSet
         return $this;
     }
 
+    public function setSemester($newSemester) {
+        $this->semester = $newSemester;
+        return $this;
+    }
+
     /**
      * Adds several user list IDs after clearing the existing user list
      * assignments.
@@ -728,13 +765,13 @@ class CourseSet
         }
         // Store basic data.
         $stmt = DBManager::get()->prepare("INSERT INTO `coursesets`
-            (`set_id`, `user_id`, `name`, `infotext`, `algorithm`, `algorithm_run`,
+            (`set_id`, `user_id`, `name`, `semester`, `infotext`, `algorithm`, `algorithm_run`,
             `private`, `mkdate`, `chdate`)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE
-            `name`=VALUES(`name`), `infotext`=VALUES(`infotext`),
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE
+            `name`=VALUES(`name`), `semester`=VALUES(`semester`), `infotext`=VALUES(`infotext`),
             `algorithm`=VALUES(`algorithm`), `algorithm_run`=VALUES(`algorithm_run`), `private`=VALUES(`private`), 
             `chdate`=VALUES(`chdate`)");
-        $stmt->execute(array($this->id, $user->id, $this->name, $this->infoText,
+        $stmt->execute(array($this->id, $user->id, $this->name, $this->semester, $this->infoText,
             get_class($this->algorithm), $this->hasAlgorithmRun(), intval($this->private), time(), time()));
         // Delete removed institute assignments from database.
         DBManager::get()->exec("DELETE FROM `courseset_institute`
@@ -805,18 +842,21 @@ class CourseSet
         $tpl = $GLOBALS['template_factory']->open('admission/courseset/info');
         $tpl->set_attribute('courseset', $this);
         $institutes = array();
-        foreach ($this->institutes as $id => $assigned) {
-            $current = new Institute($id);
-            $institutes[$id] = $current['Name'];
+        if (!$short) {
+            foreach ($this->institutes as $id => $assigned) {
+                $current = new Institute($id);
+                $institutes[$id] = $current['Name'];
+            }
+            $courses = array();
+            foreach ($this->courses as $id => $assigned) {
+                $current = new Seminar($id);
+                $name = ($current->getNumber() ? $current->getNumber().' | '.$current->getName() : $current->getName());
+                $name .= ' (' . $current->getStartSemesterName() . ')';
+                $courses[$id] = $name;
+            }
+            $tpl->set_attribute('institutes', $institutes);
+            $tpl->set_attribute('courses', $courses);
         }
-        $tpl->set_attribute('institutes', $institutes);
-        $courses = array();
-        foreach ($this->courses as $id => $assigned) {
-            $current = new Seminar($id);
-            $name = ($current->getNumber() ? $current->getNumber().' | '.$current->getName() : $current->getName());
-            $courses[$id] = $name;
-        }
-        $tpl->set_attribute('courses', $courses);
         $tpl->set_attribute('short', $short);
         return $tpl->render();
     }
@@ -832,6 +872,21 @@ class CourseSet
         $is_private = $this->getUserId() == $user_id && $this->getPrivate();
         $is_correct_institute = isset($this->institutes[Course::find($course_id)->institut_id]);
         return $is_dozent && ($is_private || $is_correct_institute);
+    }
+    
+    public function isUserAllowedToEdit($user_id)
+    {
+        global $perm;
+        $i_am_the_boss = $perm->have_perm('root', $user_id) || $this->getUserId() == $user_id;
+        if (!$i_am_the_boss && ($perm->have_perm('admin') || ($perm->have_perm('dozent') && get_config('ALLOW_DOZENT_COURSESET_ADMIN')))) {
+            foreach ($this->getInstituteIds() as $one) {
+                if ($perm->have_studip_perm('dozent', $one, $user_id)) {
+                    $i_am_the_boss = !$this->getPrivate();
+                    break;
+                }
+            }
+        }
+        return $i_am_the_boss;
     }
 
 } /* end of class CourseSet */

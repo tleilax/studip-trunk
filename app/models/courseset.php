@@ -2,46 +2,142 @@
 
 class CoursesetModel {
 
-    public function getInstCourses($instituteIds, $coursesetId='', $selectedCourses=array()) {
-        $parameters = array();
-        $query = "SELECT DISTINCT si.`seminar_id`, s.`VeranstaltungsNummer`, s.`Name`, s.admission_turnout,
-                    IF(s.`duration_time`=-1, UNIX_TIMESTAMP(), s.`start_time`+s.`duration_time`) AS start
-                  FROM `seminar_inst` si
-                  JOIN `seminare` AS s ON (si.`seminar_id` = s.`Seminar_id`)
-                  JOIN `semester_data` sd ON (s.`duration_time`=-1 OR s.`start_time`+s.`duration_time` BETWEEN sd.`beginn` AND sd.`ende`)
-                  LEFT JOIN `seminar_courseset` AS sc ON (s.`Seminar_id`=sc.`seminar_id`)
-                  WHERE (si.`Institut_id` IN ('".
-                  implode("', '", array_keys($instituteIds))."')
-                  AND (sc.`set_id` IS NULL
-                  AND sd.`ende` >= UNIX_TIMESTAMP())";
-        if ($coursesetId) {
-            $query .= " OR sc.`set_id`=?";
-            $parameters[] = $coursesetId;
-        }
-        if ($selectedCourses) {
-            $query .= " OR sc.`seminar_id` IN ('".implode("', '", $selectedCourses)."')";
-        }
-        $query .= ") ORDER BY start DESC, s.VeranstaltungsNummer ASC, s.Name ASC";
-        $stmt = DBManager::get()->prepare($query);
-        $stmt->execute($parameters);
-        $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        $semesters = SemesterData::GetSemesterArray();
-        $courses = array();
-        foreach ($data as $entry) {
-            $semester_id = SemesterData::GetSemesterIdByDate($entry['start']);
-            if (!$courses[$semester_id]['name']) {
-                foreach ($semesters as $semester) {
-                    if ($semester['beginn'] <= $entry['start'] && $semester['ende'] >= $entry['start']) {
-                        $courses[$semester_id]['name'] = $semester['name'];
-                        break;
-                    }
-                }
+    /**
+     * Fetches courses at the given institutes.
+     * @param Array  $instituteIds IDs of institutes to check
+     * @param String $coursesetId Get also courses assigned to the given courseset
+     * @param Array  $selectedCourses Courses that have already been selected manually
+     * @param String $smeester_id Get only courses belonging to the given semester
+     * @param bool   $onlyOwn Fetch only courses the current user is lecturer of?
+     * 
+     * @return Array Found courses.
+     */
+    public function getInstCourses($instituteIds, $coursesetId='', $selectedCourses=array(), $semester_id = null, $onlyOwn=false) {
+        // Get semester dates for course sorting.
+        $currentSemester = $semester_id ? Semester::find($semester_id) : Semester::findCurrent();
+        
+        $db = DBManager::get();
+        if ($onlyOwn) {
+            $query = "SELECT su.`Seminar_id` FROM `seminar_user` su
+                INNER JOIN `seminare` s USING(`Seminar_id`)
+                WHERE  s.`start_time` <= ? AND (? <= (s.`start_time` + s.`duration_time`) OR s.`duration_time` = -1) 
+                AND su.`user_id`=?";
+            $parameters = array($currentSemester->beginn, $currentSemester->beginn, $GLOBALS['user']->id);
+            if (get_config('DEPUTIES_ENABLE')) {
+                $query .= " UNION SELECT s.`Seminar_id` FROM `seminare` s
+                    INNER JOIN `deputies` d ON (s.`Seminar_id`=d.`range_id`)
+                    WHERE s.`start_time` <= ? AND (? <= (s.`start_time` + s.`duration_time`) OR s.`duration_time` = -1)
+                    AND d.`user_id`=?";
+                $parameters = array_merge($parameters, array($currentSemester->beginn, $currentSemester->beginn, $GLOBALS['user']->id));
             }
-            $courses[$semester_id]['courses'][] = $entry;
+            $courses = $db->fetchFirst($query, $parameters);
+        } else {
+            $courses = $db->fetchFirst("SELECT si.seminar_id FROM seminar_inst si
+                INNER JOIN seminare s USING(seminar_id)
+                WHERE  s.start_time <= ? AND (? <= (s.start_time + s.duration_time) OR s.duration_time = -1) 
+                AND si.Institut_id IN(?)", array($currentSemester->beginn, $currentSemester->beginn, $instituteIds));
         }
-        return $courses;
+        if ($coursesetId) {
+            $courses = array_merge($courses, $db->fetchFirst(
+                    "SELECT seminar_id FROM seminar_courseset sc
+                     WHERE set_id = ?", array($coursesetId)));
+        }
+        
+        if ($selectedCourses) {
+            $courses = array_merge($courses, $selectedCourses);
+        }
+        $data = array();
+        $callable = function ($course) use (&$data) {
+            //$semester = $course->end_semester ?: Semester::findCurrent();
+            //$data[$semester->id]['name'] = $semester->name;
+            $set_id = DBManager::get()->fetchColumn(
+                    "SELECT set_id FROM seminar_courseset WHERE seminar_id=?", array($course->id));
+            // ... and sort them in at the right semester.
+            //$data[$semester->id]['courses'][$course->id] =
+            $data[$course->id] =
+            array(
+                    'seminar_id' => $course->Seminar_id,
+                    'VeranstaltungsNummer' => $course->VeranstaltungsNummer,
+                    'Name' => $course->Name . ($course->duration_time == -1 ? ' ' . _('(unbegrenzt)') : ''),
+                    'admission_turnout' => $course->admission_turnout,
+                    'set_id' => $set_id
+            );
+        };
+        Course::findEachMany($callable, array_unique($courses),"ORDER BY start_time DESC, VeranstaltungsNummer ASC, Name ASC");
+        
+        return $data;
     }
 
+    static function getInstitutes($filter = array())
+    {
+        global $perm, $user;
+        
+        $parameters = array(1);
+        $query = "SELECT COUNT(DISTINCT ci.set_id) FROM courseset_institute ci 
+        LEFT JOIN coursesets c ON c.set_id = ci.set_id
+        LEFT JOIN courseset_rule cr ON c.set_id = cr.set_id
+        LEFT JOIN seminar_courseset sc ON c.set_id = sc.set_id
+        LEFT JOIN seminare s ON s.seminar_id = sc.seminar_id
+        WHERE ci.institute_id = ?";
+        if ($filter['course_set_name']) {
+            $query .= " AND c.name LIKE ?";
+            $parameters[] = $filter['course_set_name'] . '%';
+        }
+        if (is_array($filter['rule_types']) && count($filter['rule_types'])) {
+            $query .= " AND cr.type IN (?)";
+            $parameters[] = $filter['rule_types'];
+        }
+        if ($filter['semester_id']) {
+            $query .= " AND s.start_time = ?";
+            $parameters[] = Semester::find($filter['semester_id'])->beginn;
+        }
+        $cs_count_statement = DBManager::get()->prepare($query);
+        $query = str_replace('ci.institute_id', '1', $query);
+        $cs_count_all_statement = DBManager::get()->prepare($query);
+
+        if ($perm->have_perm('root')) {
+            $cs_count_all_statement->execute($parameters);
+            $num_sets = $cs_count_all_statement->fetchColumn();
+
+            $my_inst['all'] = array(
+                    'name'    => _('alle'),
+                    'num_sets' => $num_sets
+            );
+            $top_insts = Institute::findBySQL('Institut_id = fakultaets_id ORDER BY Name');
+        } else {
+            $top_insts = Institute::findMany(User::find($user->id)->institute_memberships->findBy('inst_perms', words('admin dozent'))->pluck('institut_id'),'ORDER BY institut_id=fakultaets_id,name');
+        }
+        foreach ($top_insts as $inst) {
+            $my_inst[$inst->id] = $inst->toArray('name is_fak');
+            $parameters[0] = $inst->id;
+            $cs_count_statement->execute($parameters);
+            $my_inst[$inst->id]['num_sets'] = $cs_count_statement->fetchColumn();
+            if ($inst->is_fak && ($perm->have_perm('root') || $inst->members->findBy('user_id', $user->id)->val('inst_perms') == 'admin')) {
+                $alle = $inst->sub_institutes;
+                if (count($alle)) {
+                    $my_inst[$inst->id . '_all'] = array(
+                            'name'    => sprintf(_('[Alle unter %s]'), $inst->name),
+                            'is_fak'  => 'all'
+                    );
+    
+                    $num_inst = 0;
+                    $num_sets_alle = $my_inst[$inst->id]['num_sets'];
+    
+                    foreach ($alle as $institute) {
+                       $num_inst += 1;
+                       $my_inst[$institute->id] = $institute->toArray('name is_fak');
+                       $parameters[0] = $institute->id;
+                       $cs_count_statement->execute($parameters);
+                       $my_inst[$institute->id]['num_sets'] = $cs_count_statement->fetchColumn();
+                       $num_sets_alle += $my_inst[$institute->id]['num_sets'];
+                    }
+                    $my_inst[$inst->id . '_all']['num_inst'] = $num_inst;
+                    $my_inst[$inst->id . '_all']['num_sets']  = $num_sets_alle;
+                }
+            }
+        }
+        return $my_inst;
+    }
 }
 
 ?>

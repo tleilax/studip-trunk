@@ -1,5 +1,19 @@
 <?php
-
+/**
+ * StudipLog
+ * Internal API for the Stud.IP logging functions.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * @author      Peter Thienel <thienel@data-quest.de>
+ * @copyright   2013 Stud.IP Core-Group
+ * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
+ * @category    Stud.IP
+ * @since       3.0
+ */
 
 class StudipLog
 {
@@ -65,6 +79,15 @@ class StudipLog
         return false;
     }
     
+    /**
+     * Registers a new log action in database.
+     * Use this function to register log actions for Stud.IP core objects.
+     * 
+     * @param string $name The name of the action.
+     * @param string $description The action's description.
+     * @param string $info_template The template 
+     * @param string $class Name of the core class.
+     */
     public static function registerAction($name, $description, $info_template,
             $class)
     {
@@ -77,31 +100,64 @@ class StudipLog
         $action->store();
     }
     
+    /**
+     * Registers a new log action in database.
+     * Use this function to register log actions for plugin classes.
+     * 
+     * @param string $name The name of the action.
+     * @param string $description The action's description.
+     * @param string $info_template The template 
+     * @param string $plugin_class_name Name of the plugin class.
+     */
     public static function registerActionPlugin($name, $description,
-            $info_template, $plugin_name)
+            $info_template, $plugin_class_name)
     {
         $action = new LogAction();
         $action->name = $name;
         $action->description = $description;
         $action->info_template = $info_template;
-        $action->class = plugin_name;
+        $action->class = $plugin_class_name;
         $action->type = 'plugin';
         $action->store();
     }
     
+    /**
+     * Registers a new log action in database.
+     * Use this function to register log actions for arbitrary objects.
+     * 
+     * @param string $name The name of the action.
+     * @param string $description The action's description.
+     * @param string $info_template The template 
+     * @param string $filename Path to the file with the class (relative
+     * to Stud.IP root).
+     * @param string $class Name of class to be logged.
+     */
     public static function registerActionFile($name, $description,
             $info_template, $filename, $class)
     {
+        $path_file = $GLOBALS['STUDIP_BASE_PATH'] . '/' . $filename;
+        if (!file_exists($path_file)) {
+            $message = sprintf('Task class file "%s" does not exist.',
+                    $path_file);
+            throw new InvalidArgumentException($message);
+        }
         $action = new LogAction();
         $action->name = $name;
         $action->description = $description;
         $action->info_template = $info_template;
-        $action->filename = $filename;
+        $action->filename = $path_file;
         $action->class = $class;
         $action->type = 'file';
         $action->store();
     }
     
+    /**
+     * Removes the action from database.
+     * Deletes all related log events also.
+     * 
+     * @param string $name The name of the log action.
+     * @return mixed Number of deleted objects or false if action is unknown.
+     */
     public function unregisterAction($name)
     {
         $action = LogAction::findByName($name)->first();
@@ -116,7 +172,7 @@ class StudipLog
      * existing or already deleted seminars.
      * 
      * @param string $needle The needle to search for.
-     * @return array
+     * @return array 
      */
     public static function searchSeminar($needle)
     {
@@ -208,16 +264,24 @@ class StudipLog
         }
 
         // search for deleted users
+        // 
         // The name of the user is part of info field,
-        // old id (still in DB) is in affected column
+        // old id (still in DB) is in affected column.
+        // 
+        // The log action "USER_DEL" was removed from the list of initially
+        // registered log actions in the past.
+        // Search for the user if it is still in database. If not, the search
+        // for deleted users is not possible.
         $log_action_deleted_user = SimpleORMapCollection::createFromArray(
                 LogAction::findByName('USER_DEL'))->first();
-        $log_events_deleted_user = LogEvent::findBySQL(
-                "action_id = ? AND info LIKE CONCAT('%', ?, '%')",
-                array($log_action_deleted_user->getId(), $needle));
-        foreach ($log_events_deleted_user as $log_event) {
-            $name = sprintf('%s (%s)', $log_event->info, _('gelöscht'));
-            $result[] = array($log_event->affected_range_id, $name);
+        if ($log_action_deleted_user) {
+            $log_events_deleted_user = LogEvent::findBySQL(
+                    "action_id = ? AND info LIKE CONCAT('%', ?, '%')",
+                    array($log_action_deleted_user->getId(), $needle));
+            foreach ($log_events_deleted_user as $log_event) {
+                $name = sprintf('%s (%s)', $log_event->info, _('gelöscht'));
+                $result[] = array($log_event->affected_range_id, $name);
+            }
         }
 
         return $result;
@@ -225,7 +289,7 @@ class StudipLog
     
     /**
      * Finds all resources by given search string. The search string can be
-     * eather a resource id or part of the name.
+     * either a resource id or part of the name.
      * 
      * @param string $needle The needle to search for.
      * @return array
@@ -245,6 +309,17 @@ class StudipLog
         return $result;
     }
     
+    /**
+     * Finds all objects related to the given action by search string.
+     * The search string can be either a part of the name or the id
+     * of the object.
+     * 
+     * Calls the method Loggable::logSearch() to retrieve the result.
+     * 
+     * @param string $needle
+     * @param type $action_id
+     * @return type
+     */
     public static function searchObjectByAction($needle, $action_id)
     {
         $action = LogAction::find($action_id);

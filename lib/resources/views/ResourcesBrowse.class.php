@@ -161,11 +161,11 @@ class ResourcesBrowse {
                 
             for ($i = sizeof($result_arr)-1; $i>=0; $i--) {
                 if (Request::option('view')) {
-                    $result .= '> <a href="'.URLHelper::getLink(sprintf('?quick_view='.Request::option('view').'&quick_view_mode='.Request::option('view_mode').'&%s='.$result_arr[$i]["id"],(Request::option('view')=='search') ? "open_level" : "actual_object" ) );
+                    $result .= ' &gt; <a href="'.URLHelper::getLink(sprintf('?quick_view='.Request::option('view').'&quick_view_mode='.Request::option('view_mode').'&%s='.$result_arr[$i]["id"],(Request::option('view')=='search') ? "open_level" : "actual_object" ) );
                         
                     $result .= '">'. htmlReady($result_arr[$i]["name"]) .'</a>';
                 } else {
-                    $result.= sprintf (" > %s", htmlReady($result_arr[$i]["name"]));
+                    $result.= sprintf (" &gt; %s", htmlReady($result_arr[$i]["name"]));
                 }
             }
         return $result;
@@ -321,6 +321,7 @@ class ResourcesBrowse {
                                 $i=1;
                             $switched = FALSE;
                             foreach ($category['properties'] as $property) {
+                                $value = $this->searchArray['properties'][$property['property_id']] ?: false;
                                 if (!$switched && $i > count($category['properties']) / 2) {
                                     print "</td><td width=\"50%\" valign=\"top\">";
                                     $switched = TRUE;

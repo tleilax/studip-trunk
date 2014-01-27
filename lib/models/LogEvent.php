@@ -12,7 +12,7 @@
  * @copyright   2013 Stud.IP Core-Group
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
- * 
+ * @since       3.0
  */
 
 
@@ -31,6 +31,8 @@ class LogEvent extends SimpleORMap
             'user' => array(
                 'class_name' => 'User',
                 'foreign_key' => 'user_id'));
+        $this->notification_map['after_create'] = 'LogEventDidCreate';
+        $this->notification_map['before_create'] = 'LogEventWillCreate';
         parent::__construct($id);
     }
     

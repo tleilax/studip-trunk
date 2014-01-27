@@ -2,7 +2,7 @@
 
 require_once('app/controllers/authenticated_controller.php');
 require_once('app/models/courseset.php');
-require_once('lib/classes/Institute.class.php');
+require_once('app/models/rule_administration.php');
 require_once('lib/classes/admission/CourseSet.class.php');
 require_once('lib/classes/admission/AdmissionUserList.class.php');
 require_once('lib/classes/admission/RandomAlgorithm.class.php');
@@ -18,67 +18,117 @@ class Admission_CoursesetController extends AuthenticatedController {
         if (Request::isXhr()) {
             $this->via_ajax = true;
             $this->set_layout(null);
+            $request = Request::getInstance();
+            foreach ($request as $key => $value) {
+                $request[$key] = studip_utf8decode($value);
+            }
         // Open base layout for normal 
         } else {
             $layout = $GLOBALS['template_factory']->open('layouts/base');
             $this->set_layout($layout);
             PageLayout::setTitle(_('Anmeldesets'));
-            Navigation::activateItem('/tools/coursesets/sets');
+            // Get only own courses if user doesn't have permission to edit institute-wide coursesets.
+            $this->onlyOwnCourses = true;
+            if ($GLOBALS['perm']->have_perm('admin') || ($GLOBALS['perm']->have_perm('dozent') && get_config('ALLOW_DOZENT_COURSESET_ADMIN'))) {
+                // We have access to institute-wide course sets, so all courses may be assigned.
+                $this->onlyOwnCourses = false;
+                Navigation::activateItem('/tools/coursesets/sets');
+            } else if (Navigation::hasItem('course')) {
+                Navigation::activateItem('/course/admin/admission');
+            }
         }
-        // Fetch all lists with special user chances.
-        $this->myUserlists = AdmissionUserList::getUserLists($GLOBALS['user']->id);
         PageLayout::addSqueezePackage('admission');
+        $this->set_content_type('text/html;charset=windows-1252');
     }
 
     /**
      * Show all coursesets the current user has access to.
      */
     public function index_action() {
-        // Fetch the institutes that current user is assigned to...
-        $institutes = Institute::getMyInstitutes();
-        $this->myInstitutes = array();
-        // ... with at least the permission "dozent".
-        foreach ($institutes as $institute) {
-            if (in_array($institute['inst_perms'], array('dozent', 'admin'))) {
-                $this->myInstitutes[$institute['Institut_id']] = $institute;
-            }
-        }
+        // Check for correct permissions.
+        //$allowed = (get_config('ALLOW_DOZENT_COURSESET_ADMIN') ? 'dozent' : 'admin');
+        //$GLOBALS['perm']->check($allowed);
+        $this->ruleTypes = RuleAdministrationModel::getAdmissionRuleTypes();
         $this->coursesets = array();
-        foreach ($this->myInstitutes as $institute) {
-            $sets = CourseSet::getCoursesetsByInstituteId($institute['Institut_id']);
-            foreach ($sets as $set) {
-                $courseset = new CourseSet($set['set_id']);
-                $this->coursesets[$set['set_id']] = $courseset;
+        if (Request::submitted('choose_institut')) {
+            $this->current_institut_id = Request::option('choose_institut_id');
+            $this->current_rule_types = Request::getArray('choose_rule_type');
+            $this->set_name_prefix = trim(Request::get('set_name_prefix'));
+            $this->current_semester_id = Request::option('select_semester_id');
+        }
+        if ($this->current_semester_id === null) {
+            $this->current_semester_id = $_SESSION['_default_sem'];
+        } else if ($this->current_semester_id !== '0') {
+            $_SESSION['_default_sem'] = $this->current_semester_id;
+        }
+        if (!count($this->current_rule_types) && !Request::submitted('choose_institut')) {
+            $this->current_rule_types['ParticipantRestrictedAdmission'] = true;
+        }
+        $filter['course_set_name'] = $this->set_name_prefix;
+        $filter['semester_id'] = $this->current_semester_id != 'all' ? $this->current_semester_id : null;
+        $filter['rule_types'] = array_keys($this->current_rule_types);
+        $this->myInstitutes = CoursesetModel::getInstitutes($filter);
+        if (!$this->current_institut_id) {
+            if ($this->myInstitutes['all']['num_sets'] < 100) {
+                $this->current_institut_id = 'all';
+            } else {
+                next($this->myInstitutes);
+                $this->current_institut_id = key($this->myInstitutes);
+                reset($this->myInstitutes);
             }
         }
+        list($institut_id, $all) = explode('_', $this->current_institut_id);
+        if ($institut_id == 'all') {
+            $institutes = array_keys($this->myInstitutes);
+        } else if ($all == 'all') {
+            $institutes[] = $institut_id;
+            $institutes = array_merge($institutes, Institute::find($institut_id)->sub_institutes->pluck('institut_id'));
+        } else {
+            $institutes = array($institut_id);
+        }
+
+        foreach ($institutes as $one) {
+            if ($this->myInstitutes[$one]['num_sets']) {
+                $sets = CourseSet::getCoursesetsByInstituteId($one, $filter);
+                foreach ($sets as $set) {
+                    $courseset = new CourseSet($set['set_id']);
+                    $this->coursesets[$set['set_id']] = $courseset;
+                }
+            }
+        }
+        uasort($this->coursesets, function($a,$b) {
+            return strnatcasecmp($a->getName(), $b->getName());
+        });
     }
 
     /**
      * Configure a new or existing course set.
      */
     public function configure_action($coursesetId='') {
-		if ($GLOBALS['perm']->have_perm('root')) {
-			if ($coursesetId) {
-				// Load course set data.
-				$this->courseset = new CourseSet($coursesetId);
-	    		$this->myInstitutes = array();
-				$selectedInstitutes = $this->courseset->getInstituteIds();
-				foreach ($selectedInstitutes as $id => $selected) {
-					$this->myInstitutes[$id] = new Institute($id); 
-				}
-				$this->selectedInstitutes = $this->myInstitutes;
-				$allCourses = CoursesetModel::getInstCourses($this->selectedInstitutes, $coursesetId);
-				$selectedCourses = $this->courseset->getCourses();
-			} else {
-	    		$this->myInstitutes = array();
-				$this->selectedInstitutes = array();
-				$allCourses = array();
-				$selectedCourses = array();
-			}
+        if ($GLOBALS['perm']->have_perm('root')) {
+            if ($coursesetId) {
+                // Load course set data.
+                $this->courseset = new CourseSet($coursesetId);
+                $this->myInstitutes = array();
+                $selectedInstitutes = $this->courseset->getInstituteIds();
+                foreach ($selectedInstitutes as $id => $selected) {
+                    $this->myInstitutes[$id] = new Institute($id); 
+                }
+                $this->selectedInstitutes = $this->myInstitutes;
+                $allCourses = CoursesetModel::getInstCourses(array_keys($this->selectedInstitutes), $coursesetId, array(), $this->courseset->getSemester());
+                $selectedCourses = $this->courseset->getCourses();
+                $this->selectedSemester = $this->courseset->getSemester();
+            } else {
+                $this->myInstitutes = array();
+                $this->selectedInstitutes = array();
+                $allCourses = array();
+                $selectedCourses = array();
+                $this->selectedSemester = Semester::findCurrent()->semester_id;
+            }
             $this->instSearch = QuickSearch::get("institute_id", new StandardSearch("Institut_id"))
                 ->withButton()
                 ->render();
-		} else {
+        } else {
             $this->myInstitutes = array();
             $myInstitutes = Institute::getMyInstitutes();
             foreach ($myInstitutes as $institute) {
@@ -89,43 +139,45 @@ class Admission_CoursesetController extends AuthenticatedController {
                 $this->courseset = new CourseSet($coursesetId);
                 $selectedInstitutes = $this->courseset->getInstituteIds();
                 foreach ($selectedInstitutes as $id => $selected) {
-                    $this->myInstitutes[$id] = new Institute($id); 
+                    $this->selectedInstitutes[$id] = new Institute($id); 
                 }
-                $this->selectedInstitutes = $this->myInstitutes;
-                $allCourses = CoursesetModel::getInstCourses($this->selectedInstitutes, $coursesetId);
+                $allCourses = CoursesetModel::getInstCourses(array_keys($this->selectedInstitutes), $coursesetId, array(), $this->courseset->getSemester(), $this->onlyOwnCourses);
                 $selectedCourses = $this->courseset->getCourses();
+                $this->selectedSemester = $this->courseset->getSemester();
             } else {
-                $this->selectedInstitutes = array();
-                $allCourses = CoursesetModel::getInstCourses($this->myInstitutes, $coursesetId);
+                $this->selectedSemester = Semester::findCurrent()->semester_id;
+                $this->selectedInstitutes = $this->myInstitutes;
+                $allCourses = CoursesetModel::getInstCourses(array_keys($this->myInstitutes), $coursesetId, array(), $this->selectedSemester, $this->onlyOwnCourses);
                 $selectedCourses = array();
             }
-		}
-		// If an institute search has been conducted, we need to consider parameters from flash.
+        }
+        // If an institute search has been conducted, we need to consider parameters from flash.
         if ($this->flash['name'] || $this->flash['institutes'] || $this->flash['courses'] ||
-				$this->flash['rules'] || $this->flash['userlists'] || $this->flash['infotext']) {
-			if (!$this->courseset) {
-				$this->courseset = new CourseSet($coursesetId);
-			}
+                $this->flash['rules'] || $this->flash['userlists'] || $this->flash['infotext'] ||
+                $this->flash['semester']) {
+            if (!$this->courseset) {
+                $this->courseset = new CourseSet($coursesetId);
+            }
             if ($this->flash['name']) {
                 $this->courseset->setName($this->flash['name']);
             }
             if ($this->flash['institutes']) {
-            	$institutes = $this->flash['institutes'];
+                $institutes = $this->flash['institutes'];
                 $this->courseset->setInstitutes($institutes);
-				if ($GLOBALS['perm']->have_perm('root')) {
-					$this->myInstitutes = array();
-					foreach ($institutes as $id) {
-						$this->myInstitutes[$id] = new Institute($id); 
-						$this->selectedInstitutes[$id] = true;
-					}
-				}
-				$allCourses = CoursesetModel::getInstCourses(array_flip($institutes), $coursesetId);
-				$selectedCourses = $this->courseset->getCourses();
+                if ($GLOBALS['perm']->have_perm('root')) {
+                    $this->myInstitutes = array();
+                    foreach ($institutes as $id) {
+                        $this->myInstitutes[$id] = new Institute($id); 
+                        $this->selectedInstitutes[$id] = true;
+                    }
+                }
+                $allCourses = CoursesetModel::getInstCourses(array_flip($institutes), $coursesetId);
+                $selectedCourses = $this->courseset->getCourses();
             }
             if ($this->flash['courses']) {
-            	$courses = $this->flash['courses'];
+                $courses = $this->flash['courses'];
                 $this->courseset->setCourses($courses);
-				$selectedCourses = $courses;
+                $selectedCourses = $courses;
             }
             if ($this->flash['rules']) {
                 $this->courseset->setAdmissionRules($this->flash['rules']);
@@ -138,6 +190,9 @@ class Admission_CoursesetController extends AuthenticatedController {
             }
             if ($this->flash['privatet']) {
                 $this->courseset->setPrivate($this->flash['private']);
+            }
+            if ($this->flash['semester']) {
+                $this->courseset->setSemester($this->flash['semester']);
             }
         }
         $fac = $this->get_template_factory();
@@ -153,6 +208,11 @@ class Admission_CoursesetController extends AuthenticatedController {
         $tpl->set_attribute('selectedInstitutes', $this->selectedInstitutes);
         $tpl->set_attribute('myInstitutes', $this->myInstitutes);
         $tpl->set_attribute('controller', $this);
+        if ($GLOBALS['perm']->have_perm('admin') || ($GLOBALS['perm']->have_perm('dozent') && get_config('ALLOW_DOZENT_COURSESET_ADMIN'))) {
+            $tpl->set_attribute('rights', true);
+        } else {
+            $tpl->set_attribute('rights', false);
+        }
         $this->instTpl = $tpl->render();
     }
 
@@ -161,6 +221,7 @@ class Admission_CoursesetController extends AuthenticatedController {
             $courseset = new CourseSet($coursesetId);
             $courseset->setName(Request::get('name'))
                 ->setInstitutes(Request::getArray('institutes'))
+                ->setSemester(Request::option('semester'))
                 ->setCourses(Request::getArray('courses'))
                 ->setUserLists(Request::getArray('userlists'))
                 ->setPrivate((bool) Request::get('private'))
@@ -170,7 +231,11 @@ class Admission_CoursesetController extends AuthenticatedController {
                 $courseset->addAdmissionRule($rule);
             }
             $courseset->store();
-	        $this->redirect('admission/courseset');
+            if ($GLOBALS['perm']->have_perm('admin') || ($GLOBALS['perm']->have_perm('dozent') && get_config('ALLOW_DOZENT_COURSESET_ADMIN'))) {
+                $this->redirect($this->url_for('admission/courseset'));
+            } else if (Navigation::hasItem('course')) {
+                $this->redirect($this->url_for('course/admission'));
+            }
         } else {
             $this->flash['name'] = Request::get('name');
             $this->flash['institutes'] = Request::getArray('institutes');
@@ -185,7 +250,11 @@ class Admission_CoursesetController extends AuthenticatedController {
                 $this->flash['institute_id'] = Request::get('institute_id');
                 $this->flash['institute_id_parameter'] = Request::get('institute_id_parameter');
             }
-            $this->redirect($this->url_for('admission/courseset/configure', $coursesetId));
+            if ($GLOBALS['perm']->have_perm('admin') || ($GLOBALS['perm']->have_perm('dozent') && get_config('ALLOW_DOZENT_COURSESET_ADMIN'))) {
+                $this->redirect($this->url_for('admission/courseset/configure', $coursesetId));
+            } else if (Navigation::hasItem('course/admission')) {
+                $this->redirect($this->url_for('course/admission'));
+            }
         }
     }
 
@@ -201,6 +270,7 @@ class Admission_CoursesetController extends AuthenticatedController {
     }
 
     public function instcourses_action($coursesetId='') {
+        //CSRFProtection::verifyUnsafeRequest();
         $this->selectedCourses = array();
         if ($coursesetId && !Request::getArray('courses')) {
             $courseset = new CourseSet($coursesetId);
@@ -208,11 +278,12 @@ class Admission_CoursesetController extends AuthenticatedController {
         } else if (Request::getArray('courses')) {
             $this->selectedCourses = Request::getArray('courses');
         }
-        $this->allCourses = CoursesetModel::getInstCourses(
-            array_flip(Request::getArray('institutes')), $coursesetId, $this->selectedCourses);
+        $this->allCourses = CoursesetModel::getInstCourses(Request::getArray('institutes'), 
+            $coursesetId, $this->selectedCourses, Request::option('semester'), $this->onlyOwnCourses);
     }
 
     public function institutes_action() {
+        CSRFProtection::verifyUnsafeRequest();
         $this->myInstitutes = Institute::getMyInstitutes();
         $this->selectedInstitutes = array();
         foreach(Request::getArray('institutes') as $institute) {
@@ -328,6 +399,78 @@ class Admission_CoursesetController extends AuthenticatedController {
         $this->data = $data;
         $this->set_id = $courseset->getId();
     }
+    
+    function get_courses($seminare_condition)
+    {
+        global $perm, $user;
+
+        list($institut_id, $all) = explode('_', $this->current_institut_id);
+        // Prepare count statements
+        $query = "SELECT count(*)
+                FROM seminar_user
+                WHERE seminar_id = ? AND status IN ('user', 'autor')";
+        $count0_statement = DBManager::get()->prepare($query);
+
+        $query = "SELECT SUM(status = 'accepted') AS count2,
+                SUM(status = 'awaiting') AS count3
+                FROM admission_seminar_user
+                WHERE seminar_id = ?
+                GROUP BY seminar_id";
+        $count1_statement = DBManager::get()->prepare($query);
+
+        $parameters = array();
+
+        $sql = "SELECT seminare.seminar_id,seminare.Name as course_name,seminare.VeranstaltungsNummer as course_number,
+                admission_prelim, admission_turnout,seminar_courseset.set_id
+                FROM seminar_courseset
+                INNER JOIN courseset_rule csr ON csr.set_id=seminar_courseset.set_id AND csr.type='ParticipantRestrictedAdmission'
+                INNER JOIN seminare ON seminar_courseset.seminar_id=seminare.seminar_id
+                ";
+        if ($institut_id == 'all'  && $perm->have_perm('root')) {
+            $sql .= "WHERE 1 {$seminare_condition} ";
+        } elseif ($all == 'all') {
+            $sql .= "INNER JOIN Institute USING (Institut_id)
+            WHERE Institute.fakultaets_id = ? {$seminare_condition}
+            ";
+            $parameters[] = $institut_id;
+        } else {
+            $sql .= "WHERE seminare.Institut_id = ? {$seminare_condition}
+            ";
+            $parameters[] = $institut_id;
+        }
+        $sql .= "GROUP BY seminare.Seminar_id ORDER BY seminar_courseset.set_id, seminare.Name";
+
+        $statement = DBManager::get()->prepare($sql);
+        $statement->execute($parameters);
+
+        while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
+            $seminar_id = $row['seminar_id'];
+            $ret[$seminar_id] = $row;
+
+            $count0_statement->execute(array($seminar_id));
+            $count = $count0_statement->fetchColumn();
+
+            $ret[$seminar_id]['count_teilnehmer']     = $count;
+
+            $count1_statement->execute(array($seminar_id));
+            $counts = $count1_statement->fetch(PDO::FETCH_ASSOC);
+
+            $ret[$seminar_id]['count_prelim'] = (int)$counts['count2'];
+            $ret[$seminar_id]['count_waiting']  = (int)$counts['count3'];
+            $cs = new CourseSet($row['set_id']);
+            $ret[$seminar_id]['cs_name'] = $cs->getName();
+            $ret[$seminar_id]['distribution_time'] = $cs->getSeatDistributionTime();
+            if ($ta = $cs->getAdmissionRule('TimedAdmission')) {
+                $ret[$seminar_id]['start_time'] = $ta->getStartTime();
+                $ret[$seminar_id]['end_time'] = $ta->getEndTime();
+            }
+            if (!$cs->hasAlgorithmRun()) {
+                $ret[$seminar_id]['count_claiming'] = $cs->getNumApplicants();
+            }
+        }
+        return $ret;
+    }
+
 }
 
 ?>

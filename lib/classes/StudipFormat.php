@@ -504,14 +504,13 @@ class StudipFormat extends TextFormat
             'video' => '<video src="%s" style="%s" title="%s" alt="%s" controls></video>'
         );
         
-        //Mediaproxy?
+        $url = TransformInternalLinks($url);
         $pu = @parse_url($url);
         if (($pu['scheme'] == 'http' || $pu['scheme'] == 'https')
                 && ($pu['host'] == $_SERVER['HTTP_HOST'] || $pu['host'].':'.$pu['port'] == $_SERVER['HTTP_HOST'])
                 && strpos($pu['path'], $GLOBALS['CANONICAL_RELATIVE_PATH_STUDIP']) === 0) {
             $intern = true;
             list($pu['first_target']) = explode('/',substr($pu['path'],strlen($GLOBALS['CANONICAL_RELATIVE_PATH_STUDIP'])));
-            $url = TransformInternalLinks($url);
         }
         $LOAD_EXTERNAL_MEDIA = Config::GetInstance()->getValue('LOAD_EXTERNAL_MEDIA');
         if ($intern && !in_array($pu['first_target'], array('sendfile.php','download','assets','pictures'))) {
@@ -520,8 +519,9 @@ class StudipFormat extends TextFormat
             return $matches[0];
         }
         
+        //Mediaproxy?
         if (!$intern && $LOAD_EXTERNAL_MEDIA === "proxy" && Seminar_Session::is_current_session_authenticated()) {
-            $media_url = $GLOBALS['ABSOLUTE_URI_STUDIP'] . 'dispatch.php/media_proxy?url=' . urlencode(idna_link($url));
+            $media_url = $GLOBALS['ABSOLUTE_URI_STUDIP'] . 'dispatch.php/media_proxy?url=' . urlencode(decodeHTML(idna_link($url)));
         } else {
             $media_url = idna_link($url);
         }
@@ -533,8 +533,8 @@ class StudipFormat extends TextFormat
             $media = '<object type="application/x-shockwave-flash" id="FlashPlayer" data="'.Assets::url().'flash/player_flv.swf" width="'.$width.'" height="'.$height.'">
                         <param name="movie" value="'.Assets::url().'flash/player_flv.swf">
                         <param name="allowFullScreen" value="true">
-                        <param name="FlashVars" value="flv='.urlencode($media_url).'&amp;startimage='.$link.$flash_config.'">
-                        <embed src="'.Assets::url().'flash/player_flv.swf" movie="$media_url" type="application/x-shockwave-flash" FlashVars="flv='.urlencode($media_url).'&amp;startimage='.$link.$flash_config.'">
+                        <param name="FlashVars" value="flv='.urlencode(decodeHTML($media_url)).'&amp;startimage='.$link.$flash_config.'">
+                        <embed src="'.Assets::url().'flash/player_flv.swf" movie="$media_url" type="application/x-shockwave-flash" FlashVars="flv='.urlencode(decodeHTML($media_url)).'&amp;startimage='.$link.$flash_config.'">
                         </object>';
         } else {
             $media = sprintf($format_strings[$tag],

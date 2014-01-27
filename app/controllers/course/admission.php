@@ -61,12 +61,12 @@ class Course_AdmissionController extends AuthenticatedController
         $this->user_id = $GLOBALS['user']->id;
         PageLayout::setHelpKeyword("Basis.VeranstaltungenVerwaltenZugangsberechtigungen");
         PageLayout::setTitle(getHeaderLine($this->course_id)." - " ._("Verwaltung von Zugangsberechtigungen"));
-        PageLayout::addStylesheet('form.css');
         if (Request::isXhr()) {
             $this->set_layout(null);
             $this->response->add_header('X-No-Buttons', 1);
-            foreach (array_keys($_POST) as $param) {
-                Request::set($param, studip_utf8decode(Request::get($param)));
+            $request = Request::getInstance();
+            foreach ($request as $key => $value) {
+                $request[$key] = studip_utf8decode($value);
             }
         } else {
             $this->set_layout($GLOBALS['template_factory']->open('layouts/base'));
@@ -79,6 +79,7 @@ class Course_AdmissionController extends AuthenticatedController
         if (!SeminarCategories::GetByTypeId($this->course->status)->write_access_nobody) {
             $this->is_locked['write_level'] = 'disabled readonly';
         }
+        PageLayout::addSqueezePackage('admission');
     }
 
     /**
@@ -392,10 +393,20 @@ class Course_AdmissionController extends AuthenticatedController
                     $course_set->setPrivate(true);
                     $course_set->addAdmissionRule($rule);
                     $course_set->setAlgorithm(new RandomAlgorithm());//TODO
+                    $course_set->setInstitutes(array($this->course->institut_id));
                     $course_set->setCourses(array($this->course_id));
                     if ($another_rule) {
                         $course_set->addAdmissionRule($another_rule);
                     }
+                    $currentSemester = Semester::findCurrent();
+                    if ($this->course->duration_time == -1) {
+                        $semester = $currentSemester->semester_id;
+                    } else if ($this->course->end_semester->beginn > $currentSemester->ende) {
+                        $semester = $currentSemester->semester_id;
+                    } else {
+                        $semester = $this->course->end_semester->semester_id;
+                    }
+                    $course_set->setSemester($semester);
                     $course_set->store();
                     PageLayout::postMessage(MessageBox::success(_("Die Anmelderegel wurde erzeugt und der Veranstaltung zugewiesen.")));
                     $this->redirect($this->url_for('/index'));
@@ -418,7 +429,19 @@ class Course_AdmissionController extends AuthenticatedController
             throw new Trails_Exception(400);
         }
     }
-
+    
+    function edit_courseset_action($cs_id)
+    {
+        $cs = new CourseSet($cs_id);
+        if ($cs->isUserAllowedToAssignCourse($this->user_id, $this->course_id)) {
+            $this->instant_course_set_view = true;
+            $response = $this->relay('admission/courseset/configure/' . $cs->getId());
+            $this->body = $response->body;
+        } else {
+            throw new Trails_Exception(400);
+        }
+    }
+    
     function after_filter($action, $args)
     {
         if (Request::isXhr()) {

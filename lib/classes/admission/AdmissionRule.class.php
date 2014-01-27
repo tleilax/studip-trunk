@@ -136,14 +136,21 @@ abstract class AdmissionRule
             " ORDER BY `id` ASC");
         while ($current = $data->fetch(PDO::FETCH_ASSOC)) {
             $className = $current['ruletype'];
-            require_once($GLOBALS['ABSOLUTE_PATH_STUDIP'].'admissionrules/'.
-                strtolower($className).'/'.$className.'.class.php');
-            $rule = new $className();
-            $rules[$className] = array(
-                    'id' => $current['id'],
-                    'name' => $className::getName(),
-                    'description' => $className::getDescription()
-                );
+            if (is_dir($GLOBALS['STUDIP_BASE_PATH'].
+                   '/lib/admissionrules/'.strtolower($className))) {
+                require_once($GLOBALS['STUDIP_BASE_PATH'].'/lib/admissionrules/'.
+                    strtolower($className).'/'.$className.'.class.php');
+                try {
+                    $rule = new $className();
+                    $rules[$className] = array(
+                            'id' => $current['id'],
+                            'name' => $className::getName(),
+                            'description' => $className::getDescription(),
+                            'active' => $current['active']
+                        );
+                } catch (Exception $e) {
+                }
+            }
         }
         return $rules;
     }

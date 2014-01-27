@@ -125,12 +125,18 @@ $group_list = GetRoleNames($groups, 0, '', true);
 
 $cmd = Request::option('cmd');
 $role_id = Request::option('role_id');
-$username = Request::quoted('username');
+$username = Request::get('username');
 if ($cmd == 'removeFromGroup' && $perm->have_studip_perm('admin', $inst_id)) {
     $query = "DELETE FROM statusgruppe_user
               WHERE statusgruppe_id = ? AND user_id = ?";
     $statement = DBManager::get()->prepare($query);
     $statement->execute(array($role_id, get_userid($username)));
+    
+    if ($statement->rowCount() > 0) {
+        $message = sprintf(_('%s wurde von der Liste der MitarbeiterInnen gelöscht.'),
+                           User::findByUsername($username)->getFullName());
+        my_msg($message);
+    }
 }
 
 if ($cmd == 'removeFromInstitute' && $perm->have_studip_perm('admin', $inst_id)) {
@@ -147,7 +153,14 @@ if ($cmd == 'removeFromInstitute' && $perm->have_studip_perm('admin', $inst_id))
     $statement = DBManager::get()->prepare($query);
     $statement->execute(array($del_user_id, $inst_id));
 
+    if ($statement->rowCount() > 0) {
+        $message = sprintf(_('%s wurde von der Liste der MitarbeiterInnen gelöscht.'),
+                           User::findByUsername($username)->getFullName());
+        my_msg($message);
+    }
+
     log_event('INST_USER_DEL', $inst_id, $del_user_id);
+    checkExternDefaultForUser($del_user_id);
 }
 
 
@@ -520,7 +533,7 @@ if ($inst_id != '' && $inst_id != '0') {
                       FROM auth_user_md5
                       LEFT JOIN user_info USING (user_id)
                       LEFT JOIN user_inst ON user_inst.user_id = auth_user_md5.user_id AND Institut_id = :ins_id
-                      WHERE perms !='root'
+                      WHERE perms NOT IN ('user', 'root')
                         AND (user_inst.inst_perms = 'user' OR user_inst.inst_perms IS NULL)
                         AND (Vorname LIKE :input OR Nachname LIKE :input OR username LIKE :input)
                       ORDER BY Nachname, Vorname";

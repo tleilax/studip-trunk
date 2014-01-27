@@ -68,7 +68,7 @@ td {
         border: 1px solid #000;
     }
     &.rahmen_table_row_odd {
-        background-color: #e7ebf1;
+        background-color: @content-color-20;
         border: 1px solid #000;
     }
     &.rahmen_white {
@@ -129,7 +129,7 @@ table.zebra, table.zebra-hover { // bg color alternates with tr
         &:nth-child(2n+1) { background-color: @alternating-color-even; }
 
         .zebra &{ // Don't insert a blank between & and { as it would lead to a wrong rule; seems to be a bug in lessc
-            background-color: #e7ebf1;
+            background-color: @content-color-20;
             &:nth-child(2n+1) { background-color: #f3f5f8; }
         }
     }
@@ -444,6 +444,10 @@ table.default {
             border-bottom: 1px solid @table-header-color;
             transition: background-color 0.3s;
         }
+        td.dragHandle {
+            background: #ffffff url("../images/anfasser_24.png") center no-repeat;
+            cursor: move;
+        }
         tr:last-child td {
             border-bottom: 1px solid @brand-color-darker;
         }
@@ -464,6 +468,12 @@ table.default {
         img {
             vertical-align: middle;
         }
+    }
+    caption .actions:not(:empty) {
+        border-left: 1px solid @brand-color-darker;
+        margin-bottom: -5px;
+        padding-bottom: 7px;
+        padding-left: 0.5em;
     }
     td.actions, th.actions {
         float: none;

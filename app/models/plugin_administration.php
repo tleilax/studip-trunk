@@ -43,7 +43,9 @@ class PluginAdministration
         $packagedir = get_config('PLUGINS_PATH') . '/tmp_' . md5($filename);
 
         // extract plugin files
-        mkdir($packagedir);
+        if (!file_exists($packagedir) && mkdir($packagedir) === false) {
+            throw new PluginInstallationException(_('Fehler beim Entpacken des Plugins (fehlende Schreibrechte?).'));
+        }
 
         if (unzip_file($filename, $packagedir)) {
             rmdirr($packagedir);

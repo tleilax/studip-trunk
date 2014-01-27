@@ -1,4 +1,21 @@
 <?php
+
+/** @file
+ *
+ * Diese Datei stellt den Ausgangspunkt für alle Zugriffe auf die
+ * RESTful Web Services von Stud.IP dar.
+ * Grob betrachtet läuft das Routings so ab:
+ *
+ * Ein HTTP-Request geht ein. Falls dort eine inkompatible Version der
+ * REST-API verlangt wird, bricht das Skript ab. Die Authentifizierung
+ * wird durchgeführt. Bei Erfolg wird die PATH_INFO und die HTTP
+ * Methode im Router verwendet, um die passende Funktion zu
+ * finden. Der Router liefert in jedem Fall ein Response-Objekt
+ * zurück, dass dann anschließende ausgegeben wird, d.h. die Header
+ * werden gesendet und dann das Ergebnis ausgegeben oder gestreamt.
+ */
+
+
 namespace {
     require_once '../lib/bootstrap.php';
     require_once 'lib/functions.php';
@@ -9,14 +26,14 @@ namespace {
                     'user' => 'Seminar_User'));
 }
 
-namespace API {
+namespace RESTAPI {
     use User, Seminar_Auth, Seminar_User, Seminar_Perm, Config;
 
     // A potential api exception will lead to an according response with the
     // exception code and name as the http status.
     try {
         if (!Config::get()->API_ENABLED) {
-            throw new RouterException(503, 'API is not available');
+            throw new RouterException(503, 'REST API is not available');
         }
 
         require 'lib/bootstrap-api.php';
@@ -25,7 +42,7 @@ namespace API {
         $method = $_SERVER['REQUEST_METHOD'];
 
         // Check version
-        if (defined('API\\VERSION') && preg_match('~^/v(\d+)~i', $uri, $match)) {
+        if (defined('RESTAPI\\VERSION') && preg_match('~^/v(\d+)~i', $uri, $match)) {
             $version = $match[1];
             if ($version != VERSION) {
                 throw new RouterException(400, 'Version not supported');
@@ -42,12 +59,15 @@ namespace API {
 
         // Actual dispatch
         $response = $router->dispatch($uri, $method);
-        $response->output();
 
         // Tear down
         if ($user_id) {
             restoreLanguage();
         }
+
+        // Send output
+        $response->output();
+
     } catch (RouterException $e) {
         $status = sprintf('%s %u %s',
                           $_SERVER['SERVER_PROTOCOL'] ?: 'HTTP/1.1',
@@ -68,17 +88,15 @@ namespace API {
     function setupAuth($router)
     {
         // Detect consumer
-        $consumer = $router->detectConsumer();
+        $consumer = Consumer\Base::detectConsumer();
         if (!$consumer) {
             throw new RouterException(401, 'Unauthorized (no consumer)');
         }
 
         // Set authentication if present
-        if ($user_id = $consumer->authenticate()) {
+        if ($user = $consumer->getUser()) {
             // Skip fake authentication if user is already logged in
-            if ($GLOBALS['user']->id !== $user_id) {
-                // Fake user identity
-                $user = User::find($user_id);
+            if ($GLOBALS['user']->id !== $user->id) {
 
                 $GLOBALS['auth'] = new Seminar_Auth();
                 $GLOBALS['auth']->auth = array(
@@ -95,7 +113,7 @@ namespace API {
             setTempLanguage($GLOBALS['user']->id);
         }
 
-        return $user_id;
+        return $consumer->getUser();
     }
 
 }

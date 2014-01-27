@@ -53,6 +53,10 @@ class Seminar
     var $commands; //?
     var $BookedRoomsStatTemp; //???
 
+    var $request_id;//TODO
+    var $requestData;
+    var $room_request;
+
     private $_metadate = null;               // MetaDate
 
     private $alias = array(
@@ -72,7 +76,7 @@ class Seminar
     );
 
     private $course = null;
-    
+
     private $course_set = null;
 
     private static $seminar_object_pool;
@@ -733,7 +737,7 @@ class Seminar
         // logging <<<<<<
 
         $cache = StudipCacheFactory::getCache();
-        $cache->expire('course/undecorated_data/'. $this->range_id);
+        $cache->expire('course/undecorated_data/'. $this->getId());
 
         $this->readSingleDates();
         $this->irregularSingleDates[$singledate->getSingleDateID()] =& $singledate;
@@ -1891,11 +1895,6 @@ class Seminar
         $statement = DBManager::get()->prepare($query);
         $statement->execute(array($s_id));
 
-        // Alle Eintraege aus Zuordnungen zu Studiengaenge rauswerfen
-        $query = "DELETE FROM admission_seminar_studiengang WHERE seminar_id = ?";
-        $statement = DBManager::get()->prepare($query);
-        $statement->execute(array($s_id));
-
         // Alle beteiligten Institute rauswerfen
         $query = "DELETE FROM seminar_inst WHERE Seminar_id = ?";
         $statement = DBManager::get()->prepare($query);
@@ -2535,19 +2534,19 @@ class Seminar
             return true;
         }
     }
-    
+
     function isAdmissionLocked()
     {
         $cs = $this->getCourseSet();
         return ($cs && $cs->hasAdmissionRule('LockedAdmission'));
     }
-    
+
     function isPasswordProtected()
     {
         $cs = $this->getCourseSet();
         return ($cs && $cs->hasAdmissionRule('PasswordAdmission'));
     }
-    
+
     function getAdmissionTimeFrame()
     {
         $cs = $this->getCourseSet();

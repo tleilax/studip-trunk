@@ -12,6 +12,10 @@ class Userfilter_FilterController extends AuthenticatedController {
         if (Request::isXhr()) {
             $this->via_ajax = true;
             $this->set_layout(null);
+            $request = Request::getInstance();
+            foreach ($request as $key => $value) {
+                $request[$key] = studip_utf8decode($value);
+            }
         } else {
             $layout = $GLOBALS['template_factory']->open('layouts/base');
             $this->set_layout($layout);
@@ -19,6 +23,7 @@ class Userfilter_FilterController extends AuthenticatedController {
             Navigation::activateItem('/tools/coursesets');
         }
         PageLayout::addSqueezePackage('userfilter');
+        $this->set_content_type('text/html;charset=windows-1252');
     }
 
     public function configure_action($containerId, $conditionId='') {
@@ -31,10 +36,8 @@ class Userfilter_FilterController extends AuthenticatedController {
     /**
      * Adds a condition.
      * 
-     * @param  String $containerElementId HTML element to which the condition
-     *                entry should be appended.
      */
-    public function add_action($containerElementId) {
+    public function add_action() {
         $condition = new UserFilter();
         $fields = Request::getArray('field');
         $compareOps = Request::getArray('compare_operator');
@@ -49,7 +52,6 @@ class Userfilter_FilterController extends AuthenticatedController {
                 $condition->addField($field);
             }
         }
-        $this->containerId = $containerElementId;
         $this->condition = $condition;
     }
 

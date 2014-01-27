@@ -37,20 +37,24 @@ class Admission_RestrictedCoursesController extends AuthenticatedController
         if (Request::isPost()) {
             if (Request::submitted('choose_institut')) {
                 $this->current_institut_id = Request::option('choose_institut_id');
-                $this->current_semester_id = Request::get('select_semester_id', $_SESSION['default_sem']);
+                $this->current_semester_id = Request::option('select_semester_id');
                 $this->sem_name_prefix = trim(Request::get('sem_name_prefix'));
-            }
-            $semester = Semester::find($this->current_semester_id);
-            $sem_condition .= "AND seminare.start_time <=" . (int)$semester["beginn"]." AND (" . (int)$semester["beginn"] . " <= (seminare.start_time + seminare.duration_time) OR seminare.duration_time = -1) ";
-            if ($this->sem_name_prefix) {
-                $sem_condition .= sprintf('AND (seminare.Name LIKE %1$s OR seminare.VeranstaltungsNummer LIKE %1$s) ', DBManager::get()->quote($this->sem_name_prefix . '%'));
             }
         }
         if (!$this->current_institut_id) {
             $this->current_institut_id = 'all';
         }
-        
-        if ($GLOBALS['perm']->have_perm('admin')) {
+        if (!$this->current_semester_id) {
+            $this->current_semester_id = $_SESSION['_default_sem'];
+        } else {
+            $_SESSION['_default_sem'] = $this->current_semester_id;
+        }
+        $semester = Semester::find($this->current_semester_id);
+        $sem_condition .= "AND seminare.start_time <=" . (int)$semester["beginn"]." AND (" . (int)$semester["beginn"] . " <= (seminare.start_time + seminare.duration_time) OR seminare.duration_time = -1) ";
+        if ($this->sem_name_prefix) {
+            $sem_condition .= sprintf('AND (seminare.Name LIKE %1$s OR seminare.VeranstaltungsNummer LIKE %1$s) ', DBManager::get()->quote($this->sem_name_prefix . '%'));
+        }
+        if ($GLOBALS['perm']->have_perm('dozent')) {
             $this->my_inst = $this->get_institutes($sem_condition);
         }
         $this->courses = $this->get_courses($sem_condition);
@@ -157,11 +161,11 @@ class Admission_RestrictedCoursesController extends AuthenticatedController
             GROUP BY a.Institut_id
             ORDER BY is_fak, Name, num_sem DESC";
         } else {
-            $query = "SELECT b.Institut_id, b.Name, b.Institut_id = b.fakultaets_id AS is_fak, COUNT( seminar_id ) AS num_sem
+            $query = "SELECT s.inst_perms,b.Institut_id, b.Name, b.Institut_id = b.fakultaets_id AS is_fak, COUNT( seminar_id ) AS num_sem
             FROM user_inst AS s
             LEFT JOIN Institute AS b USING ( Institut_id )
             LEFT JOIN seminare ON ( seminare.Institut_id = b.Institut_id {$seminare_condition})
-            WHERE s.user_id = ? AND s.inst_perms = 'admin'
+            WHERE s.user_id = ? AND s.inst_perms IN ('admin', 'dozent')
             GROUP BY b.Institut_id
             ORDER BY is_fak, Name, num_sem DESC";
             $parameters[] = $user->id;
@@ -174,33 +178,37 @@ class Admission_RestrictedCoursesController extends AuthenticatedController
             $_my_inst[$row['Institut_id']] = array(
                     'name'    => $row['Name'],
                     'is_fak'  => $row['is_fak'],
-                    'num_sem' => $Row['num_sem']
+                    'num_sem' => $row['num_sem']
             );
-            if ($row["is_fak"]) {
-                $_my_inst[$row['Institut_id'] . '_all'] = array(
-                        'name'    => sprintf(_('[Alle unter %s]'), $row['Name']),
-                        'is_fak'  => 'all',
-                        'num_sem' => $row['num_sem']
-                );
-
-                $num_inst = 0;
-                $num_sem_alle = $row['num_sem'];
-
+            if ($row["is_fak"] && $row["inst_perms"] != 'dozent') {
                 $institute_statement->execute(array($row['Institut_id']));
-                while ($institute = $institute_statement->fetch(PDO::FETCH_ASSOC)) {
-                    if(!$_my_inst[$institute['Institut_id']]) {
-                        $num_inst += 1;
-                        $num_sem_alle += $institute['num_sem'];
-                    }
-                    $_my_inst[$institute['Institut_id']] = array(
-                            'name'    => $institute['Name'],
-                            'is_fak'  => 0,
-                            'num_sem' => $institute["num_sem"]
+                $alle = $institute_statement->fetchAll();
+                if (count($alle)) {
+                    $_my_inst[$row['Institut_id'] . '_all'] = array(
+                            'name'    => sprintf(_('[Alle unter %s]'), $row['Name']),
+                            'is_fak'  => 'all',
+                            'num_sem' => $row['num_sem']
                     );
+
+                    $num_inst = 0;
+                    $num_sem_alle = $row['num_sem'];
+
+
+                    foreach ($alle as $institute) {
+                        if(!$_my_inst[$institute['Institut_id']]) {
+                            $num_inst += 1;
+                            $num_sem_alle += $institute['num_sem'];
+                        }
+                        $_my_inst[$institute['Institut_id']] = array(
+                                'name'    => $institute['Name'],
+                                'is_fak'  => 0,
+                                'num_sem' => $institute["num_sem"]
+                        );
+                    }
+                    $_my_inst[$row['Institut_id']]['num_inst']          = $num_inst;
+                    $_my_inst[$row['Institut_id'] . '_all']['num_inst'] = $num_inst;
+                    $_my_inst[$row['Institut_id'] . '_all']['num_sem']  = $num_sem_alle;
                 }
-                $_my_inst[$row['Institut_id']]['num_inst']          = $num_inst;
-                $_my_inst[$row['Institut_id'] . '_all']['num_inst'] = $num_inst;
-                $_my_inst[$row['Institut_id'] . '_all']['num_sem']  = $num_sem_alle;
             }
         }
         return $_my_inst;
