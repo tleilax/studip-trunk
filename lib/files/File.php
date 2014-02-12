@@ -42,7 +42,7 @@ class File // extends SimpleORMap
     {
         $db = DBManager::get();
 
-        $stmt = $db->prepare('SELECT * FROM files WHERE id = ?');
+        $stmt = $db->prepare('SELECT * FROM files WHERE file_id = ?');
         $stmt->execute(array($id));
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -98,7 +98,7 @@ class File // extends SimpleORMap
         $stmt = $db->prepare('DELETE FROM file_refs WHERE file_id = ?');
         $stmt->execute(array($this->id));
 
-        $stmt = $db->prepare('DELETE FROM files WHERE id = ?');
+        $stmt = $db->prepare('DELETE FROM files WHERE file_id = ?');
         $stmt->execute(array($this->id));
     }
 
@@ -237,7 +237,7 @@ class File // extends SimpleORMap
     {
         $db = DBManager::get();
 
-        $stmt = $db->prepare('UPDATE files SET mime_type = ? WHERE id = ?');
+        $stmt = $db->prepare('UPDATE files SET mime_type = ? WHERE file_id = ?');
         $stmt->execute(array($mime_type, $this->id));
 
         $this->mime_type = $mime_type;
@@ -252,7 +252,7 @@ class File // extends SimpleORMap
     {
         $db = DBManager::get();
 
-        $stmt = $db->prepare('UPDATE files SET user_id = ? WHERE id = ?');
+        $stmt = $db->prepare('UPDATE files SET user_id = ? WHERE file_id = ?');
         $stmt->execute(array($user_id, $this->id));
 
         $this->user_id = $user_id;
@@ -268,7 +268,7 @@ class File // extends SimpleORMap
     {
         $db = DBManager::get();
 
-        $stmt = $db->prepare('UPDATE files SET restricted = ? WHERE id = ?');
+        $stmt = $db->prepare('UPDATE files SET restricted = ? WHERE file_id = ?');
         $stmt->execute(array($restricted, $this->id));
 
         $this->restricted = $restricted;
@@ -287,7 +287,7 @@ class File // extends SimpleORMap
         $this->chdate = $storage_object->getModificationTime();
         $this->size = $storage_object->getSize();
 
-        $stmt = $db->prepare('UPDATE files SET mkdate = ?, mime_type = ?, chdate = ?, size = ? WHERE id = ?');
+        $stmt = $db->prepare('UPDATE files SET mkdate = ?, mime_type = ?, chdate = ?, size = ? WHERE file_id = ?');
         $stmt->execute(array($this->mkdate, $this->mime_type, $this->chdate, $this->size, $this->id));
     }
 }

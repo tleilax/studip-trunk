@@ -46,7 +46,7 @@ class StudipDirectory extends File
         $mime_type = 'text/plain';
         $storage_object = new $this->storage();
 
-        $stmt = $db->prepare('INSERT INTO files (id, user_id, mime_type, size, restricted, storage, storage_id, mkdate, chdate)
+        $stmt = $db->prepare('INSERT INTO files (file_id, user_id, mime_type, size, restricted, storage, storage_id, mkdate, chdate)
                                     VALUES(?, ?, ?, ?, ?, ?, ?, UNIX_TIMESTAMP(), UNIX_TIMESTAMP())');
         $stmt->execute(array($file_id, $user_id, $mime_type, 0, 0, $this->storage, $storage_object->getId()));
 
@@ -203,7 +203,7 @@ class StudipDirectory extends File
         $user_id = $GLOBALS['user']->id;
         $mime_type = '';
 
-        $stmt = $db->prepare('INSERT INTO files (id, user_id, mime_type, size, restricted, storage, storage_id, mkdate, chdate)
+        $stmt = $db->prepare('INSERT INTO files (file_id, user_id, mime_type, size, restricted, storage, storage_id, mkdate, chdate)
                                     VALUES(?, ?, ?, ?, ?, ?, ?, UNIX_TIMESTAMP(), UNIX_TIMESTAMP())');
         $stmt->execute(array($file_id, $user_id, $mime_type, 0, 0, $this->storage, ''));
 
