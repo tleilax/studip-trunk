@@ -1,9 +1,5 @@
 <?use Studip\Button, Studip\LinkButton; ?>
-<?if(isset($this->flash['error'])) : ?>
-    <?= MessageBox::error($this->flash['error']) ?>
-<?elseif (isset($this->flash['success'])) : ?>
-    <?= MessageBox::success($this->flash['success']) ?> 
-<?  endif;?>
+<?=$this->test?>
 <form action="<?= $controller->url_for('document/administration/store') ?>" method="post">
 <table class="default">
     <colgroup>
@@ -20,7 +16,7 @@
     <tbody>
         <tr>
             <td>
-                <label><?= _('Nutzergruppe')?></label><br>
+                <label><?= _("Nutzergruppe")?></label><br>
                 <select id="usergroup "name="usergroup">
                     <? foreach(array("","default", "user", "autor", "tutor", "dozent", "admin", "root") as $one) : ?>
                 <option value="<?= $one ?>" <?if(count($this->viewData['configEdit'])>0 && $one == $this->viewData['configEdit']['name']){echo 'selected';}?>><?= $one ?></option>

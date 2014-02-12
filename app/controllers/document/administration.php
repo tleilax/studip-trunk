@@ -36,18 +36,22 @@ class Document_AdministrationController extends AuthenticatedController {
     {
         parent::before_filter($action, $args);
         Navigation::activateItem('/admin/config/document_area');
-        PageLayout::setTitle(_('Persönlicher Dateibereich') . ' - ' . _('Administration'));
+        PageLayout::setTitle(_('Dateibereich') . ' - ' . _('Administration'));
         $this->set_layout($GLOBALS['template_factory']->open('layouts/base'));
         $this->getInfobox();
 
     }
     
     public function index_action($group=NULL)
-    {       
+    {
         PageLayout::addScript('ui.multiselect.js');
         PageLayout::addStylesheet('jquery-ui-multiselect.css');
-        DocUsergroupConfig::expireTableScheme();
-        $viewData['types'] = DocFiletype::findBySQL('id IS NOT NULL ORDER BY type');
+        $types = DocFiletype::findBySQL('id IS NOT NULL ORDER BY type');
+        if(empty($types)){
+            $viewData['types'] = array();
+        }else{
+            $viewData['types'] = $types;
+        }
         $viewData['configEdit'] = array();
         $viewData['configAll'] =  DocUsergroupConfig::getGroupConfigAll();
         $data=$viewData['configAll'];
@@ -70,11 +74,11 @@ class Document_AdministrationController extends AuthenticatedController {
     
     function store_action()
     {
-        if (is_numeric(Request::get('upload')) && is_numeric(Request::get('quota')) && Request::get('usergroup') != '') {
+        if (Request::float('upload') && Request::float('quota') && Request::get('usergroup') != '') {
             $data['id'] = '';
             $data['usergroup'] = Request::get('usergroup');
-            $data['upload_quota'] = $this->sizeInByte(Request::get('upload'), Request::get('unitUpload'));
-            $data['quota'] = $this->sizeInByte(Request::get('quota'), Request::get('unitQuota'));
+            $data['upload_quota'] = $this->sizeInByte(Request::float('upload'), Request::get('unitUpload'));
+            $data['quota'] = $this->sizeInByte(Request::float('quota'), Request::get('unitQuota'));
             $data['is_group_config'] = 1;
             if ($data['upload_quota'] <= $data['quota'] && $data['quota'] >= 0 && $data['upload_quota'] >= 0) {
                 $data['upload_forbidden'] =  '0';
@@ -85,20 +89,24 @@ class Document_AdministrationController extends AuthenticatedController {
                 }
                 $data['datetype_id'] = Request::intArray('datetype');
                 if(DocUsergroupConfig::setConfig($data)){
-                         $this->flash['success'] = 'Das Speichern der Einstellungen war erfolgreich. ';
+                    $message = 'Das Speichern der Einstellungen war erfolgreich. ';
                          if($data['upload_quota']== 0){
-                             $this->flash['success'] .= 'Der Upload wurde gesperrt, da der max. Upload '.
+                            $message .= 'Der Upload wurde gesperrt, da der max. Upload '.
                                      Request::get('upload').' ' .Request::get('unitUpload').' beträgt';
                          }
+                    PageLayout::postMessage(MessageBox::success($message));     
                 }else{
-                    $this->flash['error'] = 'Beim speichern der Einstellungen ist ein Fehler aufgetreten'.
-                            ' oder es wurden keine Änderungen vorgenommen.';
+                    PageLayout::postMessage(MessageBox::error(_(
+                            'Beim speichern der Einstellungen ist ein Fehler aufgetreten'.
+                            ' oder es wurden keine Änderungen vorgenommen.')));
                 }
             }else{
-                $this->flash['error'] = 'Upload-Quota ist größer als das gesamte Nutzer-Quota. Bitte korrigieren Sie Ihre Eingabe.';
+                PageLayout::postMessage(MessageBox::error(_(
+                        'Upload-Quota ist größer als das gesamte Nutzer-Quota. Bitte korrigieren Sie Ihre Eingabe.')));
             }
         }else{
-             $this->flash['error'] = 'Es wurden fehlerhafte Werte für die Quota eingegeben oder es wurde keine Nutzergruppe ausgewählt.';
+             PageLayout::postMessage(MessageBox::error(_(
+                     'Es wurden fehlerhafte Werte für die Quota eingegeben oder es wurde keine Nutzergruppe ausgewählt.')));
         } 
         $this->redirect('document/administration/index/');
     }
@@ -205,11 +213,11 @@ class Document_AdministrationController extends AuthenticatedController {
     
     public function storeIndividual_action($user_id)
     {
-        if (is_numeric(Request::get('upload')) && is_numeric(Request::get('quota'))) {
+        if (Request::float('upload') && Request::float('quota')) {
             $data['id'] = '';
             $data['usergroup'] = $user_id;
-            $data['upload_quota'] = $this->sizeInByte(Request::get('upload'), Request::get('unitUpload'));
-            $data['quota'] = $this->sizeInByte(Request::get('quota'), Request::get('unitQuota'));
+            $data['upload_quota'] = $this->sizeInByte(Request::float('upload'), Request::get('unitUpload'));
+            $data['quota'] = $this->sizeInByte(Request::float('quota'), Request::get('unitQuota'));
             $data['is_group_config'] = 0;
             if ($data['upload_quota'] <= $data['quota'] && $data['quota'] >= 0 && $data['upload_quota'] >= 0) {
                 $data['upload_forbidden'] = '0';
@@ -226,22 +234,26 @@ class Document_AdministrationController extends AuthenticatedController {
                 $data['area_close_text'] = trim(Request::get('closeText'));
                 $data['datetype_id'] = Request::intArray('datetype');
                 if(DocUsergroupConfig::setConfig($data)){
-                         $this->flash['success'] = 'Das Speichern der Einstellungen war erfolgreich. ';
+                         $message = 'Das Speichern der Einstellungen war erfolgreich. ';
                          if($data['upload_quota']== 0){
-                             $this->flash['success'] .= 'Der Upload wurde gesperrt, da der max. Upload '.
+                             $message .= 'Der Upload wurde gesperrt, da der max. Upload '.
                                      Request::get('upload').' ' .Request::get('unitUpload').' beträgt';
                          }
+                         PageLayout::postMessage(MessageBox::success($message));
                 }else{
-                    $this->flash['error'] = 'Beim speichern der Einstellungen ist ein Fehler aufgetreten'.
-                            ' oder es wurden keine Änderungen vorgenommen.';
+                    PageLayout::postMessage(MessageBox::error(
+                            'Beim speichern der Einstellungen ist ein Fehler aufgetreten'.
+                            ' oder es wurden keine Änderungen vorgenommen.'));
                 }
                 $this->redirect('document/administration/individual/' . $user_id);
             } else {
-                $this->flash['error'] = 'Upload-Quota ist größer als das gesamte Nutzer-Quota. Bitte korrigieren Sie Ihre Eingabe.';
+                PageLayout::postMessage(MessageBox::error(
+                        'Upload-Quota ist größer als das gesamte Nutzer-Quota. Bitte korrigieren Sie Ihre Eingabe.'));
                 $this->redirect('document/administration/individualEdit/' . $user_id);
             }
         } else {
-            $this->flash['error'] = 'Es wurden fehlerhafte Werte für die Quota eingegeben.';
+            PageLayout::postMessage(MessageBox::error(
+                    'Es wurden fehlerhafte Werte für die Quota eingegeben.'));
             $this->redirect('document/administration/individualEdit/' . $user_id);
         }
     }
@@ -267,6 +279,11 @@ class Document_AdministrationController extends AuthenticatedController {
         return $byte;
     }
     
+    /*
+     * TODO
+     * Wenn relsize() aus functions.php mit float umgehen kann
+     * dann kommt diese Funktion raus
+     */
     public function sizeInUnit($byte, $unit) 
     {
         $size = 0;
