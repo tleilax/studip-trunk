@@ -45,7 +45,7 @@ class File // extends SimpleORMap
         $stmt = $db->prepare('SELECT * FROM files WHERE file_id = ?');
         $stmt->execute(array($id));
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
-
+        //var_dump($result);
         if ($result === false) {
             return new RootDirectory($id);
         }
@@ -68,7 +68,6 @@ class File // extends SimpleORMap
         if ($file->storage_id) {
             $file->storage_object = new $file->storage($file->storage_id);
         }
-
         return $file;
     }
 

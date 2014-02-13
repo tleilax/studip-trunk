@@ -27,7 +27,7 @@ StudipAutoloader::addAutoloadPath($STUDIP_BASE_PATH . DIRECTORY_SEPARATOR . 'lib
 StudipAutoloader::addAutoloadPath($STUDIP_BASE_PATH . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR . 'classes');
 StudipAutoloader::addAutoloadPath($STUDIP_BASE_PATH . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR . 'exceptions');
 // Development: Use own directory for file related classes
-StudipAutoloader::addAutoloadPath($STUDIP_BASE_PATH . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR . 'files');
+//StudipAutoloader::addAutoloadPath($STUDIP_BASE_PATH . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR . 'files');
 
 require 'lib/phplib/db_mysql_studip_pdo.inc';
 require 'lib/phplib/ct_sql_studip_pdo.inc';
@@ -39,3 +39,12 @@ require 'lib/phplib/email_validation.inc';
 require 'config_local.inc.php';
 require 'lib/phplib_local.inc.php';
 require 'lib/phplib/page4.inc';
+
+// Development: Use own directory for file related classes
+require_once 'lib/files/FileStorage.php';
+require_once 'lib/files/DirectoryEntry.php';
+require_once 'lib/files/DiskFileStorage.php';
+require_once 'lib/files/File.php';
+require_once 'lib/files/StudipDirectory.php';
+require_once 'lib/files/RootDirectory.php';
+
