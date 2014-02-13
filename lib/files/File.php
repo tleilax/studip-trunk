@@ -81,6 +81,7 @@ class File // extends SimpleORMap
     public function __construct($id)
     {
         $this->id = $id;
+        $this->storage = 'DiskFileStorage'; // TODO: Hardcoded storage type
     }
 
     /**

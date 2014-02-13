@@ -12,10 +12,9 @@
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
  */
- 
+
 class StudipDirectory extends File
 {
-   public static $parent_id; 
     /**
      * Get a root directory object for the given context id.
      * Root directories are not represented in the database.
@@ -35,23 +34,23 @@ class StudipDirectory extends File
      * given name and returns the directory entry.
      *
      * @param string $name  file name
-     * @param int $parent_id place in folder hierarchy 
      *
      * @return DirectoryEntry  created DirectoryEntry object
      */
-    public static function create($name, $parent_id)
+    public function create($name)
     {
-        self::$parent_id = $parent_id;
         $db = DBManager::get();
         $file_id = md5(uniqid(__CLASS__, true));
         $user_id = $GLOBALS['user']->id;
         $mime_type = 'text/plain';
-        $storage_object = new DiskFileStorage();
+
+        $reflection = new ReflectionClass($this->storage);
+        $storage_object = $reflection->newInstance();
 
         $stmt = $db->prepare('INSERT INTO files (file_id, user_id, mime_type, size, restricted, storage, storage_id, mkdate, chdate)
                                     VALUES(?, ?, ?, ?, ?, ?, ?, UNIX_TIMESTAMP(), UNIX_TIMESTAMP())');
-        $stmt->execute(array($file_id, $user_id, $mime_type, 0, 0, 'DiskFileStorage',$storage_object->getId()));
-        return StudipDirectory::link(File::get($file_id), $name); 
+        $stmt->execute(array($file_id, $user_id, $mime_type, 0, 0, $this->storage, $storage_object->getId()));
+        return $this->link(File::get($file_id), $name);
     }
 
     /**
@@ -95,12 +94,11 @@ class StudipDirectory extends File
      *
      * @return DirectoryEntry  DirectoryEntry object or NULL
      */
-    public static function getEntry($name)
+    public function getEntry($name)
     {
         $db = DBManager::get();
         $stmt = $db->prepare('SELECT id FROM file_refs WHERE parent_id = ? AND name = ?');
-        //echo $this->parent_id . '     ';var_dump($name);die;
-        $stmt->execute(array(self::$parent_id, $name));
+        $stmt->execute(array($this->id, $name));
         $id = $stmt->fetchColumn();
 
         return $id ? new DirectoryEntry($id) : NULL; // should this throw an error on failure?
@@ -158,14 +156,13 @@ class StudipDirectory extends File
         $db = DBManager::get();
 
         if (StudipDirectory::getEntry($name)) {
-            
             throw new Exception('file "' . $name . '" already exists');
         }
 
         $entry_id = md5(uniqid(__CLASS__, true));
 
         $stmt = $db->prepare('INSERT INTO file_refs (id, file_id, parent_id, name) VALUES(?, ?, ?, ?)');
-        $stmt->execute(array($entry_id, $file->getId(), self::$parent_id, $name));
+        $stmt->execute(array($entry_id, $file->getId(), $this->id, $name));
         return new DirectoryEntry($entry_id);
     }
 
@@ -195,12 +192,11 @@ class StudipDirectory extends File
      * directory. It inherits the backend storage of its parent.
      *
      * @param string $name  directory name
-     * @param int $parent_id place in folder hierarchy 
-     * 
+     * @param int $parent_id place in folder hierarchy
+     *
      */
-    public static function mkdir($name, $parent_id)
+    public function mkdir($name, $parent_id)
     {
-        self::$parent_id = $parent_id;
         $db = DBManager::get();
 
         $file_id = md5(uniqid(__CLASS__, true));
@@ -209,10 +205,10 @@ class StudipDirectory extends File
 
         $stmt = $db->prepare('INSERT INTO files (file_id, user_id, mime_type, size, restricted, storage, storage_id, mkdate, chdate)
                                     VALUES(?, ?, ?, ?, ?, ?, ?, UNIX_TIMESTAMP(), UNIX_TIMESTAMP())');
-        $stmt->execute(array($file_id, $user_id, $mime_type, 0, 0, 'DiskFileStorage', ''));
+        $stmt->execute(array($file_id, $user_id, $mime_type, 0, 0, $this->storage, ''));
 
         $dir = File::get($file_id);
-        return StudipDirectory::link($dir, $name);
+        return $this->link($dir, $name);
     }
 
     /**
