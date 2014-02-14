@@ -4,24 +4,24 @@
 <form action="<?= $controller->url_for('course/members/edit_tutor') ?>" method="post">
     <?= CSRFProtection::tokenTag() ?>
     <table class="default collapsable">
-	   	<caption>
-	   		<span class="actions">
-	   	   		<? if($is_tutor) : ?>
-                	<?=$controller->getEmailLinkByStatus('tutor', $tutoren)?>
-                    	<a href="<?= URLHelper::getLink('sms_send.php',
-                        	    array('filter' => 'send_sms_to_all',
-                            	    'who' => 'tutor',
-                                	'sms_source_page' => sprintf('dispatch.php/course/members?cid=%s',$course_id),
-                                	'course_id' => $course_id,
-                                	'subject' => $subject))
-                    	?>">
-                        	<?= Assets::img('icons/16/blue/inbox.png',
+        <caption>
+        <? if($is_tutor) : ?>
+            <span class="actions">
+                    <?=$controller->getEmailLinkByStatus('tutor', $tutoren)?>
+                        <a href="<?= URLHelper::getLink('sms_send.php',
+                                array('filter' => 'send_sms_to_all',
+                                    'who' => 'tutor',
+                                    'sms_source_page' => sprintf('dispatch.php/course/members?cid=%s',$course_id),
+                                    'course_id' => $course_id,
+                                    'subject' => $subject))
+                        ?>">
+                            <?= Assets::img('icons/16/blue/inbox.png',
                                 tooltip2(sprintf(_('Nachricht an alle %s versenden'), $status_groups['tutor'])))?>
-                    	</a>
-             	<? endif ?>
-		   	</span>
-           	<?= $status_groups['tutor'] ?>
-		</caption>
+                        </a>
+            </span>
+        <? endif ?>
+            <?= $status_groups['tutor'] ?>
+        </caption>
         <colgroup>
         <? if($is_dozent && !$tutor_is_locked) : ?>
             <col width="20">
@@ -84,6 +84,9 @@
                         array('style' => 'position: absolute; margin: 0px 0px 0px -15px')) : '' ?>
                     <?= htmlReady($fullname) ?>
                     </a>
+                    <? if ($is_tutor && $tutor['comment'] != '') : ?>
+                        <?= tooltipIcon(sprintf('<strong>%s</strong><br>%s', _('Bemerkung'), htmlReady($tutor['comment'])), false, true) ?>
+                    <? endif ?>
                 </td>
                 <? if($is_dozent) : ?>
                     <td>
@@ -96,6 +99,11 @@
                     </td>
                 <? endif ?>
                 <td style="text-align: right">
+                    <? if ($is_tutor) : ?>
+                        <a rel="comment_dialog" title='<?= _('Bemerkung hinzufügen') ?>' href="<?=$controller->url_for('course/members/add_comment', $tutor['user_id']) ?>">
+                            <?= Assets::img('icons/16/blue/comment.png') ?>
+                        </a>
+                    <? endif ?>
                     <? if($user_id != $tutor['user_id']) : ?>
                     <a href="<?= URLHelper::getLink('sms_send.php',
                                 array('filter' => 'send_sms_to_all',

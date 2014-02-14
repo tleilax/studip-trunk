@@ -104,4 +104,25 @@ class CoreScm implements StudipModule {
 
         return $items;
     }
+
+    /** 
+     * @see StudipModule::getMetadata()
+     */ 
+    function getMetadata()
+    {
+        return array(
+            'summary' => _('Die Lehrenden bestimmen, wie Titel und Inhalt dieser Seite aussehen.'),
+            'description' => _('Die Freie Informationsseite ist eine Seite, '.
+                'die sich die Lehrenden nach ihren speziellen Anforderungen '.
+                'einrichten können. So kann z.B. der Titel im Kartenreiter '.
+                'selbst definiert werden. Ferner können beliebig viele '.
+                'Einträge im Untermenü vorgenommen werden. Für jeden Eintrag '.
+                'öffnet sich eine Seite mit einem Text-Editor, in den '.
+                'beliebiger Text eingegeben und formatiert werden kann. Oft '.
+                'wird die Seite für die Angabe von Literatur genutzt als '.
+                'Alternative zum Plugin Literatur. Sie kann aber auch für '.
+                'andere beliebige Zusatzinformationen (Links, Protokolle '.
+                'etc.) verwendet werden.')
+        );
+    }
 }

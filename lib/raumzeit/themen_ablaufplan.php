@@ -74,7 +74,7 @@ $themen =& $sem->getIssues();
 $forum_slot = $GLOBALS['SEM_CLASS'][$GLOBALS['SEM_TYPE'][$sem->status]['class']]->getSlotModule('forum');
 
 // if all entries are opened, we parse the submitted results into appropriate arrays
-foreach ($_REQUEST as $key => $val) {
+foreach (Request::getInstance() as $key => $val) {
     if (Request::get('allOpen')) {
         if (strstr($key, 'theme_title')) {
             $keys = explode('§', $key);
@@ -119,7 +119,7 @@ if ($sem->hasDatesOutOfDuration()) {
  *       I N F O B O X       *
  * * * * * * * * * * * * * * */
 
-if ($sem->metadates->art == 0) {
+if ($sem->getMetaDateCount()) {
     $times_info .= '<b>'._("Typ").':</b> '._("regelm&auml;&szlig;ige Veranstaltung").'<br>';
     $z = 0;
     if (is_array($turnus = $sem->getFormattedTurnusDates())) {

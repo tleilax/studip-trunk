@@ -54,7 +54,7 @@ class CoreAdmin implements StudipModule {
                     $navigation->addSubNavigation('room_requests', $item);
                 }
 
-                $item = new Navigation(_('Zugangsberechtigungen'), 'admin_admission.php');
+                $item = new Navigation(_('Zugangsberechtigungen'), 'dispatch.php/course/admission');
                 $item->setDescription(_('Richten Sie hier verschiedene Zugangsbeschränkungen, Anmeldeverfahren oder einen Passwortschutz für Ihre Veranstaltung ein.'));
                 $navigation->addSubNavigation('admission', $item);
 
@@ -90,10 +90,6 @@ class CoreAdmin implements StudipModule {
             }  // endif modules only seminars
 
             if ($GLOBALS['perm']->have_studip_perm('tutor', $course_id) && !$GLOBALS['perm']->have_perm('admin')) {
-                $item = new Navigation(_('Ankündigungen'), 'admin_news.php?view=news_' . $GLOBALS['SessSemName']['class']);
-                $item->setDescription(_('Erstellen Sie Ankündigungen und bearbeiten Sie laufende Ankündigungen.'));
-                $navigation->addSubNavigation('news', $item);
-
                 if (get_config('VOTE_ENABLE')) {
                     $item = new Navigation(_('Umfragen und Tests'), 'admin_vote.php?view=vote_sem');
                     $item->setDescription(_('Erstellen und bearbeiten Sie einfache Umfragen und Tests.'));
@@ -114,5 +110,13 @@ class CoreAdmin implements StudipModule {
     function getNotificationObjects($course_id, $since, $user_id)
     {
         return null;
+    }
+
+    /** 
+     * @see StudipModule::getMetadata()
+     */ 
+    function getMetadata()
+    {
+        return array();
     }
 }

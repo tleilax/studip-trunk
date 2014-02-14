@@ -52,7 +52,7 @@ class Modules {
         'elearning_interface' => array('id' => 13, 'const' => 'ELEARNING_INTERFACE_ENABLE', 'sem' => true, 'inst' => true),
         'documents_folder_permissions' => array('id' => 14, 'const' => '', 'sem' => true, 'inst' => true),
         'calendar' => array('id' => 16, 'const' => 'COURSE_CALENDAR_ENABLE', 'sem' => true, 'inst' => true),
-        'resources' => array('id' => 21, 'const' => '', 'sem' => true, 'inst' => false)
+        'resources' => array('id' => 21, 'const' => 'RESOURCES_ENABLE', 'sem' => true, 'inst' => true)
     );
 
     function Modules() {
@@ -128,9 +128,16 @@ class Modules {
             $type = $statement->fetchColumn();
         }
 
-        foreach ($this->registered_modules as $key=>$val) {
+        if ($range_type == 'sem') {
+            $sc = $SEM_CLASS[$SEM_TYPE[$type]['class']];
+        }
+
+        foreach ($this->registered_modules as $slot => $val) {
             if ($range_type == 'sem') {
-                $temp = $SEM_CLASS[$SEM_TYPE[$type]['class']][$key];
+                $temp = $sc[$slot];
+                if ($temp && $val['sem']) {
+                    $temp = $sc->isModuleActivated($sc->getSlotModule($slot));
+                }
             } else {
                 $temp = $INST_MODULES[$INST_MODULES[$type] ? $type : 'default'][$key];
             }

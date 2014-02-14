@@ -21,6 +21,12 @@ javascripts:
     - javascripts/toolbar-buttonset.js
     - javascripts/smiley-picker.js
 
+  wysiwyg: &wysiwyg
+    - javascripts/jquery/jquery.fileupload.js
+    - javascripts/jquery/jquery.iframe-transport.js
+    - javascripts/ckeditor/ckeditor.js
+    - javascripts/wysiwyg.js
+
   base:
     - *jquery
     - *modernizr
@@ -32,7 +38,6 @@ javascripts:
     - javascripts/updater.js
     - javascripts/study_area_selection.js
     - javascripts/dialog_box.js
-    - javascripts/document.js
     - javascripts/file_system.js
     - javascripts/arbeitsgruppen.js
     - javascripts/news.js
@@ -55,8 +60,10 @@ javascripts:
     - javascripts/status_group.js
     - javascripts/sem_classes.js
     - javascripts/cronjobs.js
+    - javascripts/register.js
     - *header
     - *toolbar
+    - *wysiwyg
     - javascripts/application.js
 
   raumzeit:
@@ -67,9 +74,29 @@ javascripts:
 
   settings:
     - javascripts/settings.js
+
+  tree: &tree
+    - javascripts/jquery/jstree/jquery.jstree.js
+
+  dialogs: &dialogs
+    - javascripts/dialogs.js
+
+  userfilter: &userfilter
+    - *dialogs
+    - javascripts/userfilter.js
+
+  admission:
+    - *userfilter
+    - *tree
+    - javascripts/admission.js
+
+  enrolment:
+    - javascripts/enrolment.js
+
 css:
   base:
-    # filname : media
+    # filename : media
+    wysiwyg.css: screen, print
     jquery-ui-1.9.1.custom.css: screen, print
     jquery-ui-studip.css: screen, print
     jquery-ui-timepicker-addon.css: screen, print

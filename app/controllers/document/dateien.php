@@ -56,7 +56,8 @@ class Document_DateienController extends AuthenticatedController
       
      PageLayout::setTitle(_('Dateiverwaltung'));
      PageLayout::setHelpKeyword('Basis.Dateien');      
-     PageLayout::addStylesheet('/stylesheets/jquery-ui-studip.css');
+     //PageLayout::addScript('./javascripts/application_diff.js');
+     //PageLayout::addScript('./javascripts/jquery/jquery-ui.1.9.1.custom.js');
      
      $this -> set_layout($GLOBALS['template_factory'] -> open('layouts/base'));
     }

@@ -102,7 +102,6 @@ class ShowSchedules {
             $offset = 1 - date ("w", $this->start_time);
         if (date ("w", $this->start_time) <1)
             $offset = -6;
-
         $start_time = mktime (0, 0, 0, date("n",$this->start_time), date("j", $this->start_time)+$offset+($this->week_offset*7), date("Y", $this->start_time));
         $end_time = mktime (23, 59, 0, date("n",$start_time), date("j", $start_time)+6, date("Y", $start_time));
 
@@ -121,9 +120,10 @@ class ShowSchedules {
                 </td>
                 <td class="<? echo $cssSw->getClass() ?>" width="30%" rowspan="2" valign="middle"><font size=-1>
                     <font size=-1>Beginn:
-                    <input type="text" name="schedule_begin_day" size=2 maxlength=2 value="<? if (!$start_time) echo date("d",time()); else echo date("d",$start_time); ?>">.
-                    <input type="text" name="schedule_begin_month" size=2 maxlength=2 value="<? if (!$start_time) echo date("m",time()); else echo date("m",$start_time); ?>">.
-                    <input type="text" name="schedule_begin_year" size=4 maxlength=4 value="<? if (!$start_time) echo date("Y",time()); else echo date("Y",$start_time); ?>"><br>
+                    <input type="text" id="startTime" name="startTime" size="8" value="<?if($start_time) : ?><?=date('j.n.Y', $start_time)?><?endif;?>">
+                    <script>
+                        jQuery("#startTime").datepicker();
+                    </script>
                     &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp;<?= Button::create(_('Auswählen'), 'jump') ?>
                 </td>
                 <td class="<? echo $cssSw->getClass() ?>" width="66%" valign="bottom"><font size=-1>
@@ -305,10 +305,13 @@ class ShowSchedules {
             </tr>
             <tr>
                 <td class="<? $cssSw->switchClass(); echo $cssSw->getClass() ?> hidden" width="4%" align="center" valign="bottom">&nbsp;
-                    <?
-                    if ((!$_SESSION['resources_data']["schedule_time_range"]) || ($_SESSION['resources_data']["schedule_time_range"] == 1))
-                        printf ("<a href=\"".URLHelper::getLink('?quick_view=%s&quick_view_mode=%s&time_range=%s')."\">" . Assets::img("icons/16/blue/arr_2up.png", array('alt' => _("Frühere Belegungen anzeigen"), 'title' => _("Frühere Belegungen anzeigen"), "border" => 0)) . "</a>", $this->used_view, $view_mode, ($_SESSION['resources_data']["schedule_time_range"]) ? "FALSE" : -1);
-                    ?>
+                <? if ((!$_SESSION['resources_data']["schedule_time_range"]) || ($_SESSION['resources_data']["schedule_time_range"] == 1)): ?>
+                    <a href="<?= URLHelper::getLink('', array('quick_view' => $this->used_view,
+                                                              'quick_view_mode' => $view_mode,
+                                                              'time_range' => $_SESSION['resources_data']['schedule_time_range'] ? 'FALSE' : -1)) ?>">
+                        <?= Assets::img('icons/16/blue/arr_2up.png', array('class' => 'middle') + tooltip2(_('Frühere Belegungen anzeigen'))) ?>
+                    </a>
+                <? endif; ?>
                 </td>
                 <td class="<? echo $cssSw->getClass() ?>" width="76%" colspan="2">
                     <?
@@ -337,10 +340,13 @@ class ShowSchedules {
             </tr>
             <tr>
                 <td class="<? echo $cssSw->getClass() ?> hidden" width="4%" align="center" valign="bottom">&nbsp;
-                    <?
-                    if ((!$_SESSION['resources_data']["schedule_time_range"]) || ($_SESSION['resources_data']["schedule_time_range"] == -1))
-                        printf ("<a href=\"".URLHelper::getLink('?quick_view=%s&quick_view_mode=%s&time_range=%s')."\">" . Assets::img("icons/16/blue/arr_2down.png", array('alt' => _("Spätere Belegungen anzeigen"), 'title' => _("Spätere Belegungen anzeigen"), 'border' => 0)) . "</a>",$this->used_view, $view_mode, ($_SESSION['resources_data']["schedule_time_range"]) ? "FALSE" : 1);
-                    ?>
+                <? if ((!$_SESSION['resources_data']['schedule_time_range']) || ($_SESSION['resources_data']['schedule_time_range'] == -1)): ?>
+                    <a href="<?= URLHelper::getLink('', array('quick_view' => $this->used_view,
+                                                              'quick_view_mode' => $view_mode,
+                                                              'time_range' => $_SESSION['resources_data']['schedule_time_range'] ? 'FALSE' : 1)) ?>">
+                        <?= Assets::img('icons/16/blue/arr_2down.png', tooltip2(_('Spätere Belegungen anzeigen'))) ?>
+                    </a>
+                <? endif; ?>
                 </td>
                 <td class="<? echo $cssSw->getClass() ?>" width="20%" nowrap colspan="3">
                 &nbsp;

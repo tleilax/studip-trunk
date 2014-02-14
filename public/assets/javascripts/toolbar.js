@@ -5,6 +5,9 @@
  * jQuery plugin "addToolbar"
  * ------------------------------------------------------------------------ */
 (function ($) {
+    if (STUDIP.WYSIWYG) {
+        return; // don't add button toolbar if WYSIWYG editor is activated
+    }
 
     STUDIP.Toolbar = {
 
@@ -61,17 +64,9 @@
                 toolbar.append(buttons);
             });
 
-            // Render toolbar offscreen in order to obtain it's height
-            temp = $('<div class="editor_toolbar" style="position: absolute; left: -999px; top: -999px;"/>')
-                        .css('width', width)
-                        .html(toolbar.clone().css('position', 'relative'))
-                        .appendTo('body');
-            height = temp.height();
-            temp.remove();
-
             // Attach toolbar to the specified element
             wrap = $('<div class="editor_toolbar"/>').css('width', width);
-            $element.css('width', '100%').wrap(wrap).before(toolbar).css('margin-top', '+=' + height);
+            $element.css('width', '100%').wrap(wrap).before(toolbar);
         }
     };
 
@@ -80,7 +75,12 @@
         // Adds the toolbar to an element
         addToolbar: function (button_set) {
             return this.each(function () {
-                STUDIP.Toolbar.initialize(this, button_set);
+                if (STUDIP.WYSIWYG) {
+                    // fixes wysiwyg insertion for jquery dialogs
+                    STUDIP.addWysiwyg($(this));
+                } else {
+                    STUDIP.Toolbar.initialize(this, button_set);
+                }
             });
         },
         // Obtains the currently selected text from an element

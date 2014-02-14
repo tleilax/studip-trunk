@@ -72,13 +72,61 @@ class ForumEntry {
      */
     static function parseEdit($description, $anonymous = false)
     {
-        // wurde schon mal editiert
-        if (preg_match('/^.*(<admin_msg.*?)$/s', $description, $match)) {
-            $tmp = explode('"', $match[1]);
-            $append = "\n\n%%[" . _("Zuletzt editiert von") . ' ' . ($anonymous && !$GLOBALS['perm']->have_perm('root') ? _('Anonym') : $tmp[1]) . " - " . date("d.m.y - H:i", $tmp[3]) . "]%%";
-            $description = ForumEntry::killEdit($description) . $append;
+        // TODO figure out if this function can be removed
+        //      has been replaced with getContentAsHTML in core code
+        $content = ForumEntry::killEdit($description);
+        $comment = ForumEntry::getEditComment($description, $anonymous);        
+        return $content . ($comment ? "\n\n%%" . $comment .'%%' : '');
+    }
+
+    /**
+     * Get content with appended edit comment as HTML.
+     * 
+     * @param string  $description  Database entry of forum entry's body.
+     * @param bool    $anonymous    True, if only root is allowed to see 
+     *                              authors.
+     * @return string  Content and edit comment as HTML.
+     */
+    static function getContentAsHtml($description, $anonymous = false)
+    {
+        $content = formatReady(ForumEntry::killEdit($description));
+        $comment = ForumEntry::getEditComment($description, $anonymous);
+        return $content . ($comment ? '<i>' . $comment . '</i>' : '');
+    }
+
+    /**
+     * Get author and time of an edited forum entry as a string.
+     *
+     * @param string  $description  Database entry of forum entry's body.
+     * @param bool    $anonymous    True, if only root is allowed to see 
+     *                              authors.
+     * @return string  Author and time or empty string if not edited.
+     */
+    static function getEditComment($description, $anonymous = false)
+    {
+        $info = ForumEntry::getEditInfo($description);
+        if ($info) {
+            $root = $GLOBALS['perm']->have_perm('root');
+            $author = ($anonymous && !$root) ? _('Anonym') : $info['author'];
+            $time = date('d.m.y - H:i', $info['time']);
+            return '[' . _('Zuletzt editiert von') . " $author - $time]";
         }
-        return $description;
+        return '';
+    }
+
+    /**
+     * Get author and time of an edited forum entry.
+     *
+     * @param string  $description  Database entry of forum entry's body.
+     * @return array    Associative array containing author and time.
+     *         boolean  False if edit tag was not found.
+     */
+    static function getEditInfo($description) {
+        if (preg_match('/<admin_msg autor="([^"]*)" chdate="([^"]*)">\s*$/i', $description, $matches)) {
+            // wurde schon mal editiert
+            return array('author' => $matches[1], 'time' => $matches[2]);
+        }
+        return false;
     }
 
     /**
@@ -342,20 +390,21 @@ class ForumEntry {
                 'topic_id'        => $data['topic_id'],
                 'name'            => formatReady($data['name']),
                 'name_raw'        => $data['name'],
-                'content'         => formatReady(ForumEntry::parseEdit($data['content'], $data['anonymous'])),
+                'content'         => ForumEntry::getContentAsHtml($data['content'], $data['anonymous']),
                 'content_raw'     => ForumEntry::killEdit($data['content']),
                 'content_short'   => $desc_short,
                 'opengraph'       => ($og = OpenGraphURL::find(OpenGraphURL::$tempURLStorage[0])) ? $og->render() : "",
                 'chdate'          => $data['chdate'],
                 'mkdate'          => $data['mkdate'],
-                'owner_id'        => $data['user_id'],
+                'user_id'        => $data['user_id'],
                 'raw_title'       => $data['name'],
                 'raw_description' => ForumEntry::killEdit($data['content']),
                 'fav'             => ($data['fav'] == 'fav'),
                 'depth'           => $data['depth'],
                 'anonymous'       => $data['anonymous'],
                 'closed'          => $data['closed'],
-                'sticky'          => $data['sticky']
+                'sticky'          => $data['sticky'],
+                'seminar_id'      => $data['seminar_id']
             );
         } // retrieve the postings
 
@@ -376,11 +425,14 @@ class ForumEntry {
      *         'content_short'   => 
      *         'chdate'          => 
      *         'mkdate'          => 
-     *         'owner_id'        => 
+     *         'user_id'        => 
      *         'raw_title'       => 
      *         'raw_description' => 
      *         'fav'             => 
      *         'depth'           => 
+     *         'sticky'          =>
+     *         'closed'          =>
+     *         'seminar_id'      =>
      *     )
      *     'count' =>
      * )
@@ -640,11 +692,12 @@ class ForumEntry {
                         'content_short'   => $desc_short,
                         'chdate'          => $data['chdate'],
                         'mkdate'          => $data['mkdate'],
-                        'owner_id'        => $data['user_id'],
+                        'user_id'        => $data['user_id'],
                         'raw_title'       => $data['name'],
                         'raw_description' => ForumEntry::killEdit($data['content']),
                         'fav'             => ($data['fav'] == 'fav'),
-                        'depth'           => $data['depth']
+                        'depth'           => $data['depth'],
+                        'seminar_id'      => $data['seminar_id']
                     );
                 }
 
@@ -664,6 +717,27 @@ class ForumEntry {
                 return array('list' => $stmt->fetchAll(PDO::FETCH_ASSOC), 'count' => $count);
                 break;
         }
+    }
+    
+    /**
+     * Get the latest forum entries for the passed entries childs
+     * 
+     * @param string $parent_id
+     * @param int $since  timestamp
+     * 
+     * @return array list of postings
+     */
+    function getLatestSince($parent_id, $since)
+    {
+        $constraint = ForumEntry::getConstraints($parent_id);
+                
+        $stmt = DBManager::get()->prepare("SELECT SQL_CALC_FOUND_ROWS * FROM forum_entries
+            WHERE lft > ? AND rgt < ? AND seminar_id = ?
+                AND mkdate >= ?
+            ORDER BY name ASC");
+        $stmt->execute(array($constraint['lft'], $constraint['rgt'], $constraint['seminar_id'], $since));
+        
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /**

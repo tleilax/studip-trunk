@@ -1,9 +1,9 @@
 <? if ($msg) : ?>
     <?= parse_msg($msg) ?>
 <? endif ?>
-<table id="user_profile" width="100%" border="0" cellpadding="1" cellspacing="0">
+<table class="default nohover">
     <tr>
-        <td class="table_row_even" valign="top">
+        <td valign="top">
             <?=$avatar?>
             <br>
             <br>
@@ -26,7 +26,7 @@
                 <? endif?>
 
                 <br />
-                <a href="<?=URLHelper::getLink('sms_send.php', array('sms_source_page'=>'dispatch.php/profile','rec_uname'=>$current_user->username))?>">
+                <a href="<?=URLHelper::getLink('sms_send.php', array('sms_source_page'=>'dispatch.php/profile?username='.$current_user->username,'rec_uname'=>$current_user->username))?>">
                     <?=Assets::img('icons/16/blue/mail.png', array('title' => _("Nachricht an Nutzer verschicken"), 'class' => 'middle'))?>
                     <?=_("Nachricht an Nutzer")?>
                 </a>
@@ -48,7 +48,7 @@
         </td>
 
 
-        <td class="table_row_even" width="99%" valign="top" style="padding: 10px;">
+        <td width="99%" valign="top" style="padding: 10px;">
             <h1><?= htmlReady($current_user->getFullname()) ?></h1>
 
             <? if(!empty($motto)) : ?>
@@ -66,7 +66,11 @@
                     </p>
                 <? endif ?>
             <? endif ?>
-
+            <? if ($current_user->auth_plugin === null) : ?>
+                <p>
+                    <font color="red"><?= _("(vorläufiger Benutzer)") ?></font>
+                </p>
+            <? endif ?>
             <? if ($public_email != '') : ?>
                 <b><?= _("E-Mail:") ?></b>
                 <a href="mailto:<?= htmlReady($public_email) ?>"><?= htmlReady($public_email) ?></a>
@@ -146,11 +150,12 @@
     </tr>
 </table>
 <br />
+
 <? if ($show_news): ?>
     <? show_news($current_user->user_id, $show_admin, 0, $profile_data["nopen"], "100%", 0, $about_data) ?>
 <? endif; ?>
 
-<? if ($terms) show_personal_dates($current_user->user_id, time(), -1, FALSE, $show_admin, $about_data["dopen"]) ?>
+<? if ($terms) show_personal_dates($current_user->user_id, time(), -1, FALSE, $show_admin, Request::option('dopen')) ?>
 
 <? if ($show_votes) show_votes($current_user->username, $user->user_id, $perm, YES) ?>
 
@@ -173,13 +178,13 @@
     <? $shared_box->clear_attributes()?>
 <?endif?>
 
-<? if(!empty($longDatafields)) :?>
+<? if(!empty($longDatafields) && $GLOBALS['perm']->have_perm('root')) :?>
     <? foreach ($longDatafields as $name => $entry) : ?>
-    <?=$this->render_partial($shared_box, array('admin_url' => null, 'title' => $name, 'content_for_layout' => $entry));?>
+    <?=$this->render_partial($shared_box, array('admin_url' => null, 'title' => $name .' '. $entry['visible'], 'content_for_layout' => $entry['content']));?>
     <? endforeach ?>
     <? $shared_box->clear_attributes()?>
 <?endif?>
-                    
+
 <?=$hompage_plugin?>
 
 <?if(!empty($categories)) :?>
@@ -188,3 +193,4 @@
     <?endforeach?>
     <? $shared_box->clear_attributes()?>
 <? endif; ?>
+

@@ -31,13 +31,13 @@ STUDIP.admin_sem_class = {
             'revert': 200,
             'update': after_update
         });
-        jQuery("#activated_plugins .droparea, #nonactivated_plugins .droparea").sortable({
+        jQuery("#plugins .droparea").sortable({
             'connectWith': ".droparea:not(.full, #deactivated_modules .droparea)",
             'revert': 200,
             'update': after_update
         });
         jQuery("#deactivated_modules .droparea").sortable({
-            'connectWith': ".droparea:not(.full, #activated_plugins .droparea, #nonactivated_plugins .droparea)",
+            'connectWith': ".droparea:not(.full, #plugins .droparea)",
             'revert': 200,
             'update': after_update
         });
@@ -53,19 +53,18 @@ STUDIP.admin_sem_class = {
         });
         var modules = {};
         jQuery("div.plugin").each(function () {
-            var activated = jQuery(this).is("#activated_plugins div.plugin, .core_module_slot div.plugin");
-            var sticky = (jQuery(this).find("select").val() === "sticky" || jQuery(this).is("#deactivated_modules div.plugin"));
-            if (sticky || activated) {
-                var module_name = jQuery(this).attr("id");
-                if (module_name) {
-                    module_name = module_name.substr(module_name.indexOf("_") + 1);
-                }
-                modules[module_name] = {
-                    'activated': activated ? 1 : 0,
-                    'sticky': sticky ? 1 : 0
-                };
+            var activated = jQuery(this).find("input[name=active]").is(":checked");
+            var sticky = (!jQuery(this).find("input[name=nonsticky]").is(":checked") || jQuery(this).is("#deactivated_modules div.plugin"));
+            var module_name = jQuery(this).attr("id");
+            if (module_name) {
+                module_name = module_name.substr(module_name.indexOf("_") + 1);
             }
+            modules[module_name] = {
+                'activated': +activated,
+                'sticky':    +sticky
+            };
         });
+        console.log(modules);
         jQuery("#message_below").html("");
         jQuery.ajax({
             'url': STUDIP.ABSOLUTE_URI_STUDIP + "dispatch.php/admin/sem_classes/save",
@@ -94,7 +93,6 @@ STUDIP.admin_sem_class = {
                 'visible': jQuery("#visible").is(":checked") ? 1 : 0,
                 'course_creation_forbidden': jQuery("#course_creation_forbidden").is(":checked") ? 1 : 0,
                 'create_description': jQuery("#create_description").val(),
-                'description': jQuery("#description").val(),
                 'admission_prelim_default': jQuery("#admission_prelim_default").val(),
                 'admission_type_default': jQuery("#admission_type_default").val()
             },

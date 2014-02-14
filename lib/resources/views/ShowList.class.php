@@ -195,7 +195,7 @@ class ShowList extends ShowTreeRow{
                     }
             }
             $edit .= '</div></div>';
-            
+            $content = $resObject->getDescription();
             //Daten an Ausgabemodul senden
             $this->showRow($icon, $link, $titel, $zusatz, 0, 0, 0, $new, $open, $content, $edit);
         }
@@ -284,16 +284,16 @@ class ShowList extends ShowTreeRow{
 
                 //let's create some possible wildcards
                 if (strpos($val, '<=') !== false) {
-                    $val     = trim(substr($val, strpos($val, '<=') + 2));
+                    $val     = (int) substr($val, strpos($val, '<=') + 2);
                     $linking = '<=';
                 } elseif (strpos($val, '>=') !== false) {
-                    $val     = trim(substr($val, strpos($val, '>=') + 2));
+                    $val     = (int) substr($val, strpos($val, '>=') + 2);
                     $linking = '>=';
                 } elseif (strpos($val, '<') !== false) {
-                    $val     = trim(substr($val, strpos($val, '<') + 1));
+                    $val     = (int) substr($val, strpos($val, '<') + 1);
                     $linking = '<';
                 } elseif (strpos($val, '>') !== false) {
-                    $val     = trim(substr($val, strpos($val, '>') + 1));
+                    $val     = (int) substr($val, strpos($val, '>') + 1);
                     $linking = '>';
                 } else {
                     $linking = '=';

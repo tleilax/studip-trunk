@@ -47,4 +47,20 @@ class CoreSchedule implements StudipModule {
     {
         return null;
     }
+
+    /** 
+     * @see StudipModule::getMetadata()
+     */ 
+    function getMetadata()
+    {
+        return array(
+            'summary' => _('Anzeige aller Termine der Veranstaltung'),
+            'description' => _('Der Ablaufplan listet alle Präsenz-, '.
+                'E-Learning-, Klausur-, Exkursions- und sonstige '.
+                'Veranstaltungstermine auf. Zur besseren Orientierung und zur '.
+                'inhaltlichen Einstimmung der Studierenden können Lehrende den '.
+                'Terminen Themen hinzufügen, die z. B. eine Kurzbeschreibung '.
+                'der Inhalte darstellen.')
+        );
+    }
 }

@@ -8,7 +8,7 @@ $infobox['content'] = array(
     array(
         'kategorie'=>_("Information"),
         'eintrag'=>array(
-            array("text"=>_("Studiengruppen sind eine einfache Möglichkeit, mit KommilitonInnen, KollegInnen und anderen zusammenzuarbeiten. JedeR kann Studiengruppen gründen."),"icon"=>"icons/16/black/info.png"),
+            array("text"=>_("Studiengruppen sind eine einfache Möglichkeit, mit KommilitonInnen, KollegInnen und anderen zusammenzuarbeiten. Jeder kann Studiengruppen gründen."),"icon"=>"icons/16/black/info.png"),
             array("text"=>_("Wählen Sie 'Offen für alle', wenn beliebige Nutzer der Gruppe ohne Nachfrage beitreten können sollen. 'Auf Anfrage' erfordert Ihr Eingreifen: Sie müssen jede einzelne Aufnahmeanfrage annehmen oder ablehnen."),"icon"=>"icons/16/black/info.png"),
             array("text"=>_("Alle Einstellungen können auch später noch unter dem Reiter 'Admin' geändert werden."),"icon"=>"icons/16/black/info.png")
             )
@@ -77,6 +77,9 @@ $infobox['content'] = array(
       <select name="groupaccess" id="groupaccess">
          <option <?= ($groupaccess == 'all') ? 'selected="selected"':'' ?> value="all"><?= _("Offen für alle") ?></option>
          <option <?= ($groupaccess == 'invite') ? 'selected="selected"':'' ?> value="invite"><?= _("Auf Anfrage") ?></option>
+         <? if (Config::get()->STUDYGROUPS_INVISIBLE_ALLOWED): ?>
+             <option <?= ($groupaccess == 'invisible') ? 'selected="selected"':'' ?> value="invisible"><?= _('Unsichtbar') ?></option>
+         <? endif; ?>
       </select>
   </td>
 </tr>

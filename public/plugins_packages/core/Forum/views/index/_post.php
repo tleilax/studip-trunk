@@ -7,8 +7,6 @@
     <?= CSRFProtection::tokenTag() ?>
     
 <div class="posting<?= $highlight_topic == $post['topic_id'] ? ' highlight' : '' ?>" style="position: relative;" id="forumposting_<?= htmlReady($post['topic_id']) ?>">
-    <span class="corners-top"><span></span></span>
-
     <a class="marked" href="<?= PluginEngine::getLink('coreforum/index/unset_favorite/'. $post['topic_id']) ?>"
             onClick="STUDIP.Forum.unsetFavorite('<?= $post['topic_id'] ?>'); return false;" title="<?= _('Beitrag nicht mehr merken') ?>"
             <?= ($post['fav']) ?: 'style="display: none;"' ?> data-topic-id="<?= $post['topic_id'] ?>">
@@ -19,13 +17,23 @@
         <div class="title">
 
             <div class="small_screen" style="margin-bottom: 5px">
-                <a href="<?= URLHelper::getLink('about.php?username='. get_username($post['owner_id'])) ?>">
-                    <?= Avatar::getAvatar($post['owner_id'])->getImageTag(Avatar::SMALL,
-                        array('title' => get_username($post['owner_id']))) ?>
+                <? if ($post['anonymous']): ?>
+                    <strong><?= _('Anonym') ?></strong>
+                    <?= strftime($time_format_string_short, (int)$post['mkdate']) ?>
+                <? elseif (!$post['user_id']) : ?>
+                    <?= Avatar::getAvatar('nobody')->getImageTag(Avatar::SMALL,
+                        array('title' => _('Stud.IP'))) ?>
+                    <?= _('von Stud.IP erstellt') ?>, 
+                    <?= strftime($time_format_string_short, (int)$post['mkdate']) ?>
+                <? else : ?>
+                <a href="<?= URLHelper::getLink('about.php?username='. get_username($post['user_id'])) ?>">
+                    <?= Avatar::getAvatar($post['user_id'])->getImageTag(Avatar::SMALL,
+                        array('title' => get_username($post['user_id']))) ?>
 
-                    <?= htmlReady(get_fullname($post['owner_id'])) ?>,
+                    <?= htmlReady(get_fullname($post['user_id'])) ?>,
                     <?= strftime($time_format_string_short, (int)$post['mkdate']) ?>
                 </a>
+                <? endif ?>
 
                 <br>
             </div>
@@ -144,25 +152,25 @@
             <? if ($post['anonymous']): ?>
                 <dd class="anonymous_post" data-profile="<?= $post['topic_id'] ?>"><strong><?= _('Anonym') ?></strong></dd>
             <? endif; ?>
-            <? if (!$post['anonymous'] || $post['owner_id'] == $GLOBALS['user']->id || $GLOBALS['perm']->have_perm('root')): ?>
+            <? if (!$post['anonymous'] || $post['user_id'] == $GLOBALS['user']->id || $GLOBALS['perm']->have_perm('root')): ?>
             <dt>
-                <? if ($post['owner_id'] != 'nobody' && $post['owner_id']) : ?>
-                <a href="<?= URLHelper::getLink('about.php?username='. get_username($post['owner_id'])) ?>">
-                    <?= Avatar::getAvatar($post['owner_id'])->getImageTag(Avatar::MEDIUM,
-                        array('title' => get_username($post['owner_id']))) ?>
+                <? if ($post['user_id'] != 'nobody' && $post['user_id']) : ?>
+                <a href="<?= URLHelper::getLink('about.php?username='. get_username($post['user_id'])) ?>">
+                    <?= Avatar::getAvatar($post['user_id'])->getImageTag(Avatar::MEDIUM,
+                        array('title' => get_username($post['user_id']))) ?>
                 </a>
                 <br>
                 <? endif ?>
 
-                <? if ($post['owner_id'] == 'nobody') : ?>
+                <? if ($post['user_id'] == 'nobody') : ?>
                     <?= Assets::img('icons/16/black/community.png') ?>
                     <span class="username" data-profile="<?= $post['topic_id'] ?>">
                         <?= htmlReady($post['author']) ?>
                     </span>
-                <? elseif ($post['owner_id']) : ?>
+                <? elseif ($post['user_id']) : ?>
 
                     <!-- Online-Status -->
-                    <? $status = ForumHelpers::getOnlineStatus($post['owner_id']) ?>
+                    <? $status = ForumHelpers::getOnlineStatus($post['user_id']) ?>
                     <? if ($status == 'available') : ?>
                         <img src="<?= $picturepath ?>/community.png" title="<?= _('Online') ?>">
                     <? elseif ($status == 'away') : ?>
@@ -171,29 +179,30 @@
                         <?= Assets::img('icons/16/black/community.png', array('title' => _('Offline'))) ?>
                     <? endif ?>
 
-                    <a href="<?= URLHelper::getLink('about.php?username='. get_username($post['owner_id'])) ?>">
+                    <a href="<?= URLHelper::getLink('about.php?username='. get_username($post['user_id'])) ?>">
                         <span class="username" data-profile="<?= $post['topic_id'] ?>">
-                            <?= htmlReady(get_fullname($post['owner_id'])) ?>
+                            <?= htmlReady(get_fullname($post['user_id'])) ?>
                         </span>
                     </a>
                 <? endif ?>
             </dt>
 
             <dd>
-                <?= ForumHelpers::translate_perm($GLOBALS['perm']->get_studip_perm($constraint['seminar_id'], $post['owner_id']))?>
+                <?= ForumHelpers::translate_perm($GLOBALS['perm']->get_studip_perm($constraint['seminar_id'], $post['user_id']))?>
             </dd>
-            <? if ($post['owner_id']) : ?>
+            <? if ($post['user_id']) : ?>
             <dd>
                 Beiträge:
-                <?= ForumEntry::countUserEntries($post['owner_id']) ?>
+                <?= ForumEntry::countUserEntries($post['user_id']) ?><br>
+                <?= _('Erhaltene "Gefällt mir!":') ?>
+                <?= ForumLike::receivedForUser($post['user_id']) ?>
             </dd>
             <? endif ?>
             <? endif; ?>
             <dd>
-                <? if (!$post['owner_id']) : ?>
+                <? if (!$post['user_id']) : ?>
                     <?= _('von Stud.IP erstellt') ?><br>
                 <? endif ?>
-                <?= strftime($time_format_string_short, (int) $post['mkdate']) ?>
             </dd>
             
             <dd class="posting_icons">
@@ -206,19 +215,21 @@
                 <a href="<?= PluginEngine::getLink('coreforum/index/index/' . $post['topic_id'] .'#'. $post['topic_id']) ?>">
                     <?= Assets::img('icons/16/blue/group.png', array('title' => _('Link zu diesem Beitrag'))) ?>
                 </a>
+                <br>
+
+                <!-- Like -->
+                <span class="likes" id="like_<?= $post['topic_id'] ?>">
+                    <?= $this->render_partial('index/_like', array('topic_id' => $post['topic_id'])) ?>
+                </span>
+            </dd>
 
             <? foreach (PluginEngine::sendMessage('PostingApplet', 'getHTML', $post['name_raw'], $post['content_raw'],
                     PluginEngine::getLink('coreforum/index/index/' . $post['topic_id'] .'#'. $post['topic_id']),
-                    $post['owner_id']) as $applet_data) : ?>
+                    $post['user_id']) as $applet_data) : ?>
             <dd>
                 <?= $applet_data ?>
             </dd>
             <? endforeach ?>
-
-            <!-- Like -->
-            <span class="likes" id="like_<?= $post['topic_id'] ?>">
-                <?= $this->render_partial('index/_like', array('topic_id' => $post['topic_id'])) ?>
-            </span>
         </dl>
         
         <? if ($is_new): ?>
@@ -230,7 +241,7 @@
         <? endif ?>  
     </span>
 
-    <span class="corners-bottom"><span></span></span>
+    <div class="clear"></div>
 </div>
 </form>
 

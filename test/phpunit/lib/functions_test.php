@@ -12,6 +12,17 @@
 require_once dirname(__FILE__) . '/../bootstrap.php';
 require_once 'lib/functions.php';
 
+class StringWrapper {
+    function __construct($string)
+    {
+        $this->string = $string;
+    }
+    function __toString()
+    {
+        return (string) $this->string;
+    }
+}
+
 class FunctionsTest extends PHPUnit_Framework_TestCase {
 
   function testWords() {

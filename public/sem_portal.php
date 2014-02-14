@@ -258,8 +258,8 @@ if ($sem_browse_obj->show_result && count($_SESSION['sem_browse_data']['search_r
 
 
     switch ($_SESSION['sem_portal']["toplist"]) {
-        case 4:
-        default:
+        case 4: 
+       default:
             $query = "SELECT seminar_id, name, mkdate AS count
                       FROM seminare
                       {$sql_where_query_seminare}

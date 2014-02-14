@@ -1,4 +1,5 @@
 <?php
+
 # Lifter010: TODO
 /*
  * studip_controller.php - studip controller base class
@@ -12,6 +13,15 @@
 
 abstract class StudipController extends Trails_Controller
 {
+
+    function before_filter(&$action, &$args)
+    {
+        $this->current_action = $action;
+        // allow only "word" characters in arguments
+        $this->validate_args($args);
+        parent::before_filter($action, $args);
+    }
+
     /**
      * Validate arguments based on a list of given types. The types are:
      * 'int', 'float', 'option' and 'string'. If the list of types is NULL
@@ -23,7 +33,8 @@ abstract class StudipController extends Trails_Controller
      * @param array   an array of arguments to the action
      * @param array   list of argument types (optional)
      */
-    function validate_args(&$args, $types = NULL) {
+    function validate_args(&$args, $types = NULL)
+    {
         foreach ($args as $i => &$arg) {
             $type = isset($types[$i]) ? $types[$i] : 'option';
 
@@ -47,16 +58,56 @@ abstract class StudipController extends Trails_Controller
     }
 
     /**
-    * Returns a URL to a specified route to your Trails application.
-    *
-    * @param  string   a string containing a controller and optionally an action
-    * @param  strings  optional arguments
-    *
-    * @return string  a URL to this route
-    */
-    function url_for($to/*, ...*/) {
-        $url = call_user_func_array("parent::url_for", func_get_args());
-        return URLHelper::getURL($url);
+     * Returns a URL to a specified route to your Trails application.
+     * without first parameter the current action is used
+     * if route begins with a / then the current controller ist prepended
+     * if second parameter is an array it is passed to URLHeper
+     *
+     * @param  string   a string containing a controller and optionally an action
+     * @param  strings  optional arguments
+     *
+     * @return string  a URL to this route
+     */
+    function url_for($to = ''/* , ... */)
+    {
+        $args = func_get_args();
+        if (is_array($args[1])) {
+            $params = $args[1];
+            unset($args[1]);
+        } else {
+            $params = array();
+        }
+        //preserve fragment
+        list($to, $fragment) = explode('#', $to);
+        if (!$to) {
+            $to = '/' . ($this->parent_controller ? $this->parent_controller->current_action : $this->current_action);
+        }
+        if ($to[0] === '/') {
+            $prefix = str_replace('_', '/', strtolower(strstr(get_class($this->parent_controller ? $this->parent_controller : $this), 'Controller', true)));
+            $to = $prefix . $to;
+        }
+        $args[0] = $to;
+        $url = call_user_func_array("parent::url_for", $args);
+        if ($fragment) {
+            $url .= '#' . $fragment;
+        }
+        return URLHelper::getURL($url, $params);
+    }
+
+    /**
+     * Returns an escaped URL to a specified route to your Trails application.
+     * without first parameter the current action is used
+     * if route begins with a / then the current controller ist prepended
+     * if second parameter is an array it is passed to URLHeper
+     *
+     * @param  string   a string containing a controller and optionally an action
+     * @param  strings  optional arguments
+     *
+     * @return string  a URL to this route
+     */
+    function link_for($to = ''/* , ... */)
+    {
+        return htmlReady(call_user_func_array(array($this, 'url_for'), func_get_args()));
     }
 
     /**
@@ -74,8 +125,9 @@ abstract class StudipController extends Trails_Controller
      * Spawns a new infobox variable on this object, if neccessary.
      *
      * @since Stud.IP 2.3
-     **/
-    protected function populateInfobox() {
+     * */
+    protected function populateInfobox()
+    {
         if (!isset($this->infobox)) {
             $this->infobox = array(
                 'picture' => 'blank.gif',
@@ -90,8 +142,9 @@ abstract class StudipController extends Trails_Controller
      * @param String $image Image to display, path is relative to :assets:/images
      *
      * @since Stud.IP 2.3
-     **/
-    function setInfoBoxImage($image) {
+     * */
+    function setInfoBoxImage($image)
+    {
         $this->populateInfobox();
 
         $this->infobox['picture'] = $image;
@@ -110,8 +163,9 @@ abstract class StudipController extends Trails_Controller
      *                         relative to :assets:/images
      *
      * @since Stud.IP 2.3
-     **/
-    function addToInfobox($category, $text, $icon = 'blank.gif') {
+     * */
+    function addToInfobox($category, $text, $icon = 'blank.gif')
+    {
         $this->populateInfobox();
 
         $infobox = $this->infobox;
@@ -119,12 +173,80 @@ abstract class StudipController extends Trails_Controller
         if (!isset($infobox['content'][$category])) {
             $infobox['content'][$category] = array(
                 'kategorie' => $category,
-                'eintrag'   => array(),
+                'eintrag' => array(),
             );
         }
         $infobox['content'][$category]['eintrag'][] = compact('icon', 'text');
 
         $this->infobox = $infobox;
+    }
+
+    /**
+     * render given data as json, data is converted to utf-8
+     *
+     * @param unknown $data
+     */
+    function render_json($data)
+    {
+        $this->set_content_type('application/json;charset=utf-8');
+        return $this->render_text(json_encode(studip_utf8encode($data)));
+    }
+
+    /**
+     * relays current request to another controller and returns the response
+     * the other controller is given all assigned properties, additional parameters are passed
+     * through
+     *
+     * @param string $to_uri a trails route
+     * @return Trails_Response
+     */
+    function relay($to_uri/* , ... */)
+    {
+        $args = func_get_args();
+        $uri = array_shift($args);
+        list($controller_path, $unconsumed) = '' === $uri ? $this->dispatcher->default_route() : $this->dispatcher->parse($uri);
+
+        $controller = $this->dispatcher->load_controller($controller_path);
+        $assigns = $this->get_assigned_variables();
+        unset($assigns['controller']);
+        foreach ($assigns as $k => $v) {
+            $controller->$k = $v;
+        }
+        $controller->layout = null;
+        $controller->parent_controller = $this;
+        array_unshift($args, $unconsumed);
+        return call_user_func_array(array($controller, 'perform_relayed'), $args);
+    }
+
+    /**
+     * perform a given action/parameter string from an relayed request
+     * before_filter and after_filter methods are not called
+     *
+     * @see perform
+     * @param string $unconsumed
+     * @return Trails_Response
+     */
+    function perform_relayed($unconsumed/* , ... */)
+    {
+        $args = func_get_args();
+        $unconsumed = array_shift($args);
+
+        list($action, $extracted_args, $format) = $this->extract_action_and_args($unconsumed);
+        $this->format = isset($format) ? $format : 'html';
+        $this->current_action = $action;
+        $args = array_merge($extracted_args, $args);
+        $callable = $this->map_action($action);
+
+        if (is_callable($callable)) {
+            call_user_func_array($callable, $args);
+        } else {
+            $this->does_not_understand($action, $args);
+        }
+
+        if (!$this->performed) {
+            $this->render_action($action);
+        }
+        return $this->response;
     }
 
 }

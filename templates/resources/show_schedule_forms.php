@@ -95,12 +95,9 @@ use Studip\Button,
             <td valign="top">
                 <?=_("Datum/erster Termin:")?><br>
             <? if ($lockedAssign) : ?>
-                <b><?= date("d.m.Y",$resAssign->getBegin()) ?></b>
+                <b><?=date("d.m.Y",$resAssign->getBegin()) ?></b>
             <? else : ?>
-                <input name="change_schedule_day" value="<? echo date("d",$resAssign->getBegin()); ?>" size=2 maxlength="2">
-                .<input name="change_schedule_month" value="<? echo date("m",$resAssign->getBegin()); ?>" size=2 maxlength="2">
-                .<input name="change_schedule_year" value="<? echo date("Y",$resAssign->getBegin()); ?>" size=4 maxlength="4">
-            <?= Termin_Eingabe_javascript(8,0,$resAssign->getBegin());?>
+                <input name="changeTime" id="changeTime" size="8" value="<?=date('j.n.Y',$resAssign->getBegin())?>">
             <? endif; ?>
             </td>
 
@@ -161,10 +158,8 @@ use Studip\Button,
             if ($lockedAssign) :
                 echo "<b>".date("d.m.Y",$resAssign->getRepeatEnd())."</b>";
             else :
-            ?>
-                <input name="change_schedule_repeat_end_day" value="<? echo date("d",$resAssign->getRepeatEnd()); ?>" size=2 maxlength="2">
-                .<input name="change_schedule_repeat_end_month" value="<? echo date("m",$resAssign->getRepeatEnd()); ?>" size=2 maxlength="2">
-                .<input name="change_schedule_repeat_end_year" value="<? echo date("Y",$resAssign->getRepeatEnd()); ?>" size=4 maxlength="4">
+            ?>  
+                <input name="changeRepeatTime" id="changeRepeatTime" value="<?if(strlen($resAssign->getRepeatEnd())> 0) :?><?=date('j.n.Y',$resAssign->getRepeatEnd())?><?endif;?>">
                 <? if (($resAssign->getRepeatMode() != "y") && ($resAssign->getRepeatMode() != "sd")) : ?>
                     <input type="CHECKBOX" <? printf ("%s", ($resAssign->isRepeatEndSemEnd()) ? "checked" : "") ?> name="change_schedule_repeat_sem_end"> <?=_("Ende der Vorlesungszeit")?>
                 <? endif;
@@ -181,7 +176,7 @@ use Studip\Button,
                 <?
                 $user_name=$resAssign->getUsername(FALSE);
                 if ($user_name)
-                    echo "<b>$user_name&nbsp;</b>";
+                    echo "<b>". htmlReady($user_name) . "</b>";
                 else
                     echo "<b>-- "._("keinE Stud.IP NutzerIn eingetragen")." -- &nbsp;</b>";
                 if (!$lockedAssign) : ?>
@@ -276,17 +271,18 @@ use Studip\Button,
             </td>
         </tr>
 
-        <? if (!$lockedAssign) : ?>
+        <? if ($ObjectPerms->havePerm('admin')) : ?>
         <tr>
             <td align="left">
                 <?= _("Kommentar (intern)") ?>:<br>
                 <textarea name="comment_internal" rows="4" style="width: 98%;"><?= $resAssign->getCommentInternal() ?></textarea>
+                <input type="hidden" name="change_comment_internal" value="1">
             </td>
             <td></td>
         </tr>
         <? endif ?>
 
-        <? if ($ObjectPerms->havePerm('autor')) : ?>
+        <? if ($ObjectPerms->havePerm('admin') || !$lockedAssign) : ?>
         <tr>
             <td colspan="3" align="center"><br>&nbsp;
                 <?= Button::createAccept(_('Übernehmen'), 'submit') ?>
@@ -412,3 +408,7 @@ use Studip\Button,
     </tbody>
 </table>
 </form>
+ <script>
+    jQuery("#changeTime").datepicker();
+    jQuery("#changeRepeatTime").datepicker();
+</script>

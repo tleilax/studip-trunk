@@ -36,13 +36,21 @@ require_once ('lib/classes/StudipLitCatElement.class.php');
 require_once ('lib/classes/StudipLitClipBoard.class.php');
 
 include ('lib/seminar_open.php'); // initialise Stud.IP-Session
-PageLayout::setTitle(_("Literatureintrag bearbeiten"));
+if (Request::option('cmd') == "new_entry"){
+    $_catalog_id = "new_entry";
+} else {
+    $_catalog_id = Request::option('_catalog_id', "new_entry");
+}
+if ($_catalog_id == "new_entry"){
+    $title = _("Literatureintrag anlegen");
+} else {
+    $title = _("Literatureintrag bearbeiten");
+}
+PageLayout::setTitle($title);
 Navigation::activateItem('/tools/literature');
-
 // Start of Output
 include ('lib/include/html_head.inc.php'); // Output of html head
 include ('lib/include/header.php');   // Output of Stud.IP head
-
 //html attributes for form
 $_attributes = array();
 $_attributes['text'] = array('style' => 'width:98%');
@@ -53,11 +61,8 @@ $_attributes['combo'] = array('style' => 'width:45%');
 $_attributes['lit_select'] = array('style' => 'font-size:8pt;width:98%');
 
 
-if (Request::option('cmd') == "new_entry"){
-    $_catalog_id = "new_entry";
-} else {
-    $_catalog_id = Request::option('_catalog_id', "new_entry");
-}
+
+
 
 //dump data into db if $_catalog_id points to a search result
 if ($_catalog_id{0} == "_"){
@@ -203,7 +208,8 @@ echo "<tr><td " . $class_changer->getFullClass() . " align=\"left\" width=\"40%\
 echo "<td " . $class_changer->getFullClass() . " align=\"center\">";
 if ($_the_element->isChangeable()){
     echo $_the_form->getFormButton("send") .  $_the_form->getFormButton("delete") . $_the_form->getFormButton("reset");
-    echo LinkButton::create(_('Kopie erstellen'), URLHelper::getURL('?cmd=clone_entry&_catalog_id='.$_catalog_id), array('title' => _('Eine Kopie dieses Eintrages anlegen')));
+} elseif ($_catalog_id != "new_entry") {
+    echo LinkButton::create(_('Kopie erstellen'), URLHelper::getURL('?cmd=clone_entry&_catalog_id='.$_catalog_id), array('title' => _("Eine Kopie dieses Eintrages anlegen")));
 }
 echo "<img src=\"".$GLOBALS['ASSETS_URL']."images/blank.gif\"  height=\"28\" width=\"15\" border=\"0\">";
 echo LinkButton::create(_('Neu anlegen'), URLHelper::getURL('?cmd=new_entry'), array('title' => _("Neuen Eintrag anlegen")));
@@ -219,6 +225,7 @@ echo "</td></tr>";
 echo '<p style="font-size:-1">';
 printf(_('Alle mit einem Sternchen %s markierten Felder müssen ausgefüllt werden.'),'<span style="font-size:1.5em;color:red;font-weigth:bold;">*</span>');
 echo '</p>';
+
 foreach ($_the_element->fields as $field_name => $field_detail){
     if ($field_detail['caption']){
         echo "<tr><td " . $class_changer->getFullClass() . ">";
@@ -233,7 +240,7 @@ foreach ($_the_element->fields as $field_name => $field_detail){
             $attributes['readonly'] = 'readonly';
             $attributes['disabled'] = 'disabled';
         }
-        echo $_the_form->getFormField($field_name, $attributes);
+        echo $_the_form->getFormField($field_name,$attributes);
         if ($field_name == "lit_plugin"){
             echo "&nbsp;&nbsp;<span style=\"font-size:10pt;\">";
             if (($link = $_the_element->getValue("external_link"))){
@@ -247,6 +254,8 @@ foreach ($_the_element->fields as $field_name => $field_detail){
     }
     $class_changer->switchClass();
 }
+
+
 $class_changer->switchClass();
 echo "<tr><td " . $class_changer->getFullClass() . " align=\"left\" width=\"40%\" style=\"font-size:10pt;\">"
     . sprintf(_("Anzahl an Referenzen für diesen Eintrag: %s"), (int)$_the_element->reference_count) ."</td>";

@@ -102,11 +102,6 @@ class User extends AuthUserMd5
     }
 
     /**
-     * @var string a test
-     */
-    private $test1;
-
-    /**
      *
      * @param string $id a user id
      */
@@ -141,7 +136,16 @@ class User extends AuthUserMd5
                 'foreign_key' =>
                     function($user) {
                         return array($user);
-                    })
+                    }),
+                'studycourses' => array(
+                            'class_name' => 'UserStudyCourse',
+                            'assoc_func' => 'findByUser',
+                            'on_delete' => 'delete',
+                            'on_store' => 'store'),
+                'contacts' => array(
+                    'class_name' => 'Contact',
+                    'assoc_foreign_key' => 'owner_id'
+                )
         );
         $this->has_one['info'] = array(
                 'class_name' => 'UserInfo',
@@ -156,6 +160,14 @@ class User extends AuthUserMd5
                 $this->additional_fields[$field] = array('get' => $info_getter, 'set' => $info_setter);
             }
         }
+        
+        $this->notification_map['after_create'] = 'UserDidCreate';
+        $this->notification_map['after_store'] = 'UserDidUpdate';
+        $this->notification_map['after_delete'] = 'UserDidDelete';
+        $this->notification_map['before_create'] = 'UserWillCreate';
+        $this->notification_map['before_store'] = 'UserWillUpdate';
+        $this->notification_map['before_delete'] = 'UserWillDelete';
+        
         parent::__construct($id);
     }
 
@@ -203,18 +215,4 @@ class User extends AuthUserMd5
         return  $ret;
     }
     
-    /**
-     * Returns a collection of user that match the given searchstring
-     * 
-     * @param String $query Searchstring
-     * @param int $limit Limitates the results. Default 10. 0 means no limit
-     * @param String $order 
-     * @return array User that match the querystring
-     */
-    public static function search($query, $limit = 10, $order = 'nachname,vorname ASC') {
-        $searchString = "%" . $query . "%";
-        $limitSQL = $limit ? " LIMIT $limit " : "";
-        $orderSQL = " ORDER BY $order";
-        return self::findBySQL("(vorname LIKE ? OR nachname LIKE ? OR CONCAT_WS(' ',vorname, nachname) LIKE ?) AND ".get_vis_query()." $orderSQL $limitSQL", array($searchString, $searchString, $searchString));
-    }
 }

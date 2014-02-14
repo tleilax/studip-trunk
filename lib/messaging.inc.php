@@ -26,7 +26,7 @@ require_once ('lib/user_visible.inc.php');
 require_once ('lib/contact.inc.php');
 require_once ('lib/datei.inc.php');
 require_once ('lib/sms_functions.inc.php');
-require_once 'lib/models/MailQueueEntries.class.php';
+require_once 'lib/models/MailQueueEntry.class.php';
 
 //
 function CheckChecked($a, $b)
@@ -77,6 +77,13 @@ class messaging
 {
     var $sig_string; //String, der Signaturen vom eigentlichen Text abgrenzt
 
+    public static function sendSystemMessage($recipient, $message_title, $message_body)
+    {
+        $m = new messaging();
+        $user = User::toObject($recipient);
+        return $m->insert_message($message_body, $user['username'], '____%system%____', FALSE, FALSE, '1', FALSE, $message_title);
+    }
+
     /**
      * Konstruktor
      */
@@ -90,9 +97,8 @@ class messaging
      *
      * @param $message_id
      * @param $user_id
-     * @param $force
      */
-    function delete_message($message_id, $user_id = FALSE, $force = FALSE)
+    function delete_message($message_id, $user_id = FALSE)
     {
         if (!$user_id) {
             $user_id = $GLOBALS['user']->id;
@@ -101,9 +107,6 @@ class messaging
         $query = "UPDATE message_user
                   SET deleted = '1'
                   WHERE message_id = ? AND user_id = ? AND deleted = '0'";
-        if(!$force) {
-            $query .= " AND dont_delete = '0'";
-        }
 
         $statement = DBManager::get()->prepare($query);
         $statement->execute(array($message_id, $user_id));
@@ -154,9 +157,8 @@ class messaging
      * delete all messages from user
      *
      * @param $user_id
-     * @param $force
      */
-    function delete_all_messages($user_id = FALSE, $force = FALSE)
+    function delete_all_messages($user_id = FALSE)
     {
         if (!$user_id) {
             $user_id = $GLOBALS['user']->id;
@@ -168,7 +170,7 @@ class messaging
         $message_ids = $statement->fetchAll(PDO::FETCH_COLUMN);
 
         foreach ($message_ids as $message_id) {
-            $this->delete_message($message_id, $user_id, $force);
+            $this->delete_message($message_id, $user_id);
         }
     }
 
@@ -240,7 +242,7 @@ class messaging
 
         setTempLanguage($rec_user_id);
 
-        $title = "[Stud.IP - " . $GLOBALS['UNI_NAME_CLEAN'] . "] ".stripslashes(kill_format(str_replace(array("\r","\n"), '', $subject)));
+        $title = "[Stud.IP - " . $GLOBALS['UNI_NAME_CLEAN'] . "] ".kill_format(str_replace(array("\r","\n"), '', $subject));
 
         if ($snd_user_id != "____%system%____") {
             $sender = User::find($snd_user_id);
@@ -250,13 +252,13 @@ class messaging
         }
 
         $template = $GLOBALS['template_factory']->open('mail/text');
-        $template->set_attribute('message', kill_format(stripslashes($message)));
+        $template->set_attribute('message', kill_format($message));
         $template->set_attribute('rec_fullname', $rec_fullname);
         $mailmessage = $template->render();
 
         $template = $GLOBALS['template_factory']->open('mail/html');
         $template->set_attribute('lang', getUserLanguagePath($rec_user_id));
-        $template->set_attribute('message', stripslashes($message));
+        $template->set_attribute('message', $message);
         $template->set_attribute('rec_fullname', $rec_fullname);
         $mailhtml = $template->render();
 
@@ -285,7 +287,7 @@ class messaging
         if (!get_config("MAILQUEUE_ENABLE")) {
             $mail->send();
         } else {
-            MailQueueEntries::add($mail, $message_id, $rec_user_id);
+            MailQueueEntry::add($mail, $message_id, $rec_user_id);
         }
     }
 
@@ -405,22 +407,21 @@ class messaging
         }
 
         // wir bastelen ein neues array, das die user_id statt des user_name enthaelt
-        for ($x=0; $x < sizeof($rec_uname); $x++) {
-            $rec_id[$x] = User::findByUsername($rec_uname[$x])->user_id;
+        $rec_id = array();
+        foreach ($rec_uname as $one) {
+            $rec_id[] = User::findByUsername($one)->user_id;
         }
+        $rec_id = array_filter($rec_id);
         // wir gehen das eben erstellt array durch und schauen, ob irgendwer was weiterleiten moechte.
         // diese user_id schreiben wir in ein tempraeres array
-        for ($x=0; $x<sizeof($rec_id); $x++) {
-            $tmp_forward_id = $this->get_forward_id($rec_id[$x]);
-            if ($tmp_forward_id && User::find($tmp_forward_id)) {
-                // Unused?
-                // $tmp_forward_copy = $this->get_forward_copy($rec_id[$x]);
-                $rec_id_tmp[] = $tmp_forward_id;
+        foreach ($rec_id as $one) {
+            $tmp_forward_id = User::find($this->get_forward_id($one))->user_id;
+            if ($tmp_forward_id) {
+                $rec_id[] = $tmp_forward_id;
             }
         }
 
         // wir mergen die eben erstellten arrays und entfernen doppelte eintraege
-        $rec_id = array_merge((array)$rec_id, (array)$rec_id_tmp);
         $rec_id = array_unique($rec_id);
 
         // hier gehen wir alle empfaenger durch, schreiben das in die db und schicken eine mail
@@ -430,13 +431,13 @@ class messaging
         $snd_name = ($user_id != '____%system%____')
             ? User::find($user_id)->getFullName() . ' (' . User::find($user_id)->username . ')'
             : 'Stud.IP-System';
-        for ($x=0; $x<sizeof($rec_id); $x++) {
-            $insert->execute(array($tmp_message_id, $rec_id[$x]));
+        foreach ($rec_id as $one) {
+            $insert->execute(array($tmp_message_id, $one));
             if ($GLOBALS['MESSAGING_FORWARD_AS_EMAIL']) {
                 // mail to original receiver
-                $mailstatus_original = $this->user_wants_email($rec_id[$x]);
+                $mailstatus_original = $this->user_wants_email($one);
                 if ($mailstatus_original == 2 || ($mailstatus_original == 3 && $email_request == 1) || $force_email) {
-                    $this->sendingEmail($rec_id[$x], $snd_user_id, $message, $subject, $tmp_message_id);
+                    $this->sendingEmail($one, $snd_user_id, $message, $subject, $tmp_message_id);
                 }
             }
         }

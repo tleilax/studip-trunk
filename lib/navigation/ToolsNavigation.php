@@ -44,7 +44,7 @@ class ToolsNavigation extends Navigation
         $username = $auth->auth['uname'];
 
         // news
-        $navigation = new Navigation(_('Ankündigungen'), 'admin_news.php', array('range_id' => 'self'));
+        $navigation = new Navigation(_('Ankündigungen'), 'dispatch.php/news/admin_news');
         $this->addSubNavigation('news', $navigation);
 
         // votes and tests, evaluations
@@ -79,8 +79,6 @@ class ToolsNavigation extends Navigation
         }
 
         if ($perm->have_perm('admin')) {
-            $this->addSubNavigation('show_admission', new Navigation(_('Laufende Anmeldeverfahren'), 'show_admission.php'));
-
             if (get_config('LITERATURE_ENABLE')) {
                 $this->addSubNavigation('literature', new Navigation(_('Literaturübersicht'), 'admin_literatur_overview.php'));
             }
@@ -93,5 +91,14 @@ class ToolsNavigation extends Navigation
         if ($perm->have_perm('root')) {
             $this->addSubNavigation('db_integrity_new', new Navigation(_('DB Integrität'), 'dispatch.php/admin/db_integrity_check'));
         }
+
+        if ($perm->have_perm('admin') || ($perm->have_perm('dozent') && get_config('ALLOW_DOZENT_COURSESET_ADMIN'))) {
+            $navigation = new Navigation(_('Anmeldesets'), 'dispatch.php/admission/courseset/index');
+            $this->addSubNavigation('coursesets', $navigation);
+            $navigation->addSubNavigation('sets', new Navigation(_('Anmeldesets verwalten'), 'dispatch.php/admission/courseset/index'));
+            $navigation->addSubNavigation('userlists', new Navigation(_('Nutzerlisten'), 'dispatch.php/admission/userlist/index'));
+            $navigation->addSubNavigation('restricted_courses', new Navigation(_('teilnahmebeschränkte Veranstaltungen'), 'dispatch.php/admission/restricted_courses'));
+        }
+
     }
 }

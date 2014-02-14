@@ -189,9 +189,11 @@ class StartNavigation extends Navigation
             $navigation->addSubNavigation('browse',new Navigation(_('Studiengruppen'), 'dispatch.php/studygroup/browse'));
         }
         // ranking
-        $navigation->addSubNavigation('score', new Navigation(_('Rangliste'), 'dispatch.php/score'));
-        $this->addSubNavigation('community', $navigation);
-
+        if (get_config('SCORE_ENABLE')) {
+            $navigation->addSubNavigation('score', new Navigation(_('Rangliste'), 'dispatch.php/score'));
+            $this->addSubNavigation('community', $navigation);
+        }
+        
         // calendar / home page
         if (!$perm->have_perm('admin')) {
             $navigation = new Navigation(_('Mein Profil'), 'dispatch.php/profile');
@@ -205,7 +207,7 @@ class StartNavigation extends Navigation
             $navigation = new Navigation(_('Mein Planer'));
 
             if (get_config('CALENDAR_ENABLE')) {
-                $navigation->addSubNavigation('calendar', new Navigation(_('Terminkalender'), 'calendar.php'));
+                $navigation->addSubNavigation('calendar', new Navigation(_('Terminkalender'), 'calendar.php?caluser=self'));
             }
 
             if (get_config('SCHEDULE_ENABLE')) {
@@ -229,7 +231,7 @@ class StartNavigation extends Navigation
 
         // tools
         $navigation = new Navigation(_('Tools'));
-        $navigation->addSubNavigation('news', new Navigation(_('Ankündigungen'), 'admin_news.php?range_id=self'));
+        $navigation->addSubNavigation('news', new Navigation(_('Ankündigungen'), 'dispatch.php/news/admin_news'));
 
         if (get_config('VOTE_ENABLE')) {
             $navigation->addSubNavigation('vote', new Navigation(_('Umfragen und Tests'), 'admin_vote.php', array('page' => 'overview', 'showrangeID' => $username)));

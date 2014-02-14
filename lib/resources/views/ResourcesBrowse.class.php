@@ -161,11 +161,11 @@ class ResourcesBrowse {
                 
             for ($i = sizeof($result_arr)-1; $i>=0; $i--) {
                 if (Request::option('view')) {
-                    $result .= '> <a href="'.URLHelper::getLink(sprintf('?quick_view='.Request::option('view').'&quick_view_mode='.Request::option('view_mode').'&%s='.$result_arr[$i]["id"],(Request::option('view')=='search') ? "open_level" : "actual_object" ) );
+                    $result .= ' &gt; <a href="'.URLHelper::getLink(sprintf('?quick_view='.Request::option('view').'&quick_view_mode='.Request::option('view_mode').'&%s='.$result_arr[$i]["id"],(Request::option('view')=='search') ? "open_level" : "actual_object" ) );
                         
                     $result .= '">'. htmlReady($result_arr[$i]["name"]) .'</a>';
                 } else {
-                    $result.= sprintf (" > %s", htmlReady($result_arr[$i]["name"]));
+                    $result.= sprintf (" &gt; %s", htmlReady($result_arr[$i]["name"]));
                 }
             }
         return $result;
@@ -198,9 +198,15 @@ class ResourcesBrowse {
                             <input type="text" style="font-size:8pt;" name="search_end_minute" size="2" maxlength="2" value="<?=($this->searchArray["search_assign_end"]) ? date("i", $this->searchArray["search_assign_end"]) : _("mm")?>">&nbsp;<?=_("Uhr")?>
                 <br>
                             <?=_("Datum")?>: &nbsp;
+                            <input name="searchDate" id="searchDate" size="10" value="<?=($this->searchArray["search_assign_begin"]) ? date("j.n.Y", $this->searchArray["search_assign_begin"]) : _(date('j.n.Y', time()))?>">
+                            <script>
+                                jQuery('#searchDate').datepicker();
+                            </script>
+                            <!--
                             <input type="text" style="font-size:8pt;" name="search_day" size="2" maxlength="2" value="<?=($this->searchArray["search_assign_begin"]) ? date("d", $this->searchArray["search_assign_begin"]) : _("tt")?>">
                             .<input type="text" style="font-size:8pt;" name="search_month" size="2" maxlength="2" value="<?=($this->searchArray["search_assign_begin"]) ? date("m", $this->searchArray["search_assign_begin"]) : _("mm")?>">
                             .<input type="text" style="font-size:8pt;" name="search_year" size="4" maxlength="4" value="<?=($this->searchArray["search_assign_begin"]) ? date("Y", $this->searchArray["search_assign_begin"]) : _("jjjj")?>">
+                            -->
                             &nbsp;&nbsp;&nbsp;&nbsp;    <input type="checkbox" style="font-size:8pt;" name="search_repeating" value="1" <?=($this->searchArray["search_repeating"]==1) ? "checked=checked" : ""?>> für restliches Semester prüfen &nbsp; <br>
                             <br>
                         </td>
@@ -321,6 +327,7 @@ class ResourcesBrowse {
                                 $i=1;
                             $switched = FALSE;
                             foreach ($category['properties'] as $property) {
+                                $value = $this->searchArray['properties'][$property['property_id']] ?: false;
                                 if (!$switched && $i > count($category['properties']) / 2) {
                                     print "</td><td width=\"50%\" valign=\"top\">";
                                     $switched = TRUE;

@@ -304,6 +304,9 @@ class Admin_UserController extends AuthenticatedController
 
         // Änderungen speichern
         if (Request::submitted('edit')) {
+            if (Request::get('auth_plugin') == 'preliminary') {
+                Request::set('auth_plugin', null);
+            }
             $editPerms = Request::getArray('perms');
             $um = new UserManagement($user_id);
 
@@ -394,6 +397,7 @@ class Admin_UserController extends AuthenticatedController
                 $db = DbManager::get()->prepare("REPLACE INTO user_inst (user_id, Institut_id, inst_perms) "
                                                ."VALUES (?,?,?)");
                 $db->execute(array($user_id, Request::option('new_inst'), $editPerms[0]));
+                checkExternDefaultForUser($user_id);
                 $details[] = _('Die Einrichtung wurde hinzugefügt.');
             } elseif (Request::option('new_inst') != 'none' && Request::option('new_student_inst') == Request::option('new_inst') && $editPerms[0] != 'root') {
                 $details[] = _('<b>Die Einrichtung wurde nicht hinzugefügt.</b> Sie können keinen Benutzer gleichzeitig als Student und Mitarbeiter einer Einrichtung hinzufügen.');
@@ -407,10 +411,10 @@ class Admin_UserController extends AuthenticatedController
 
                 $details[] = _('Die Nutzerdomäne wurde hinzugefügt.');
                  foreach ($result['added'] as $item) {
-                    $details[] = sprintf(_("Der automatische Eintrag in die Veranstaltung <em>%s</em> wurde durchgeführt."), $item);
+                    $details[] = sprintf(_("Das automatische Eintragen in die Veranstaltung <em>%s</em> wurde durchgeführt."), $item);
             }
                 foreach ($result['removed'] as $item) {
-                    $details[] = sprintf(_("Der automatische Austrag aus der Veranstaltung <em>%s</em> wurde durchgeführt."), $item);
+                    $details[] = sprintf(_("Das automatische Austragen aus der Veranstaltung <em>%s</em> wurde durchgeführt."), $item);
                 }
             }
 
@@ -467,6 +471,13 @@ class Admin_UserController extends AuthenticatedController
         //get user informations
         $this->user = UserModel::getUser($user_id, NULL, true);
         $this->perm = $perm;
+        $this->prelim = $this->user['auth_plugin'] == 'preliminary';
+        if ($this->prelim) {
+            $this->available_auth_plugins['preliminary'] = _("vorläufig");
+        }
+        foreach ($GLOBALS['STUDIP_AUTH_PLUGIN'] as $ap) {
+            $this->available_auth_plugins[strtolower($ap)] = $ap;
+        }
         $this->about = new about($this->user['username'], '');
         $this->studycourses = UserModel::getUserStudycourse($user_id);
         $this->student_institutes = UserModel::getUserInstitute($user_id, true);
@@ -483,14 +494,15 @@ class Admin_UserController extends AuthenticatedController
     /*
      * Adding a new user to Stud.IP
      */
-    public function new_action()
+    public function new_action($prelim = false)
     {
         global $perm, $auth;
 
         $this->perm = $perm;
-
+        $this->prelim = $prelim;
+        
         //check auth_plugins
-        if (!in_array("Standard", $GLOBALS['STUDIP_AUTH_PLUGIN'])) {
+        if (!in_array("Standard", $GLOBALS['STUDIP_AUTH_PLUGIN']) && !$prelim) {
             PageLayout::postMessage(MessageBox::info(_("Die Standard-Authentifizierung ist ausgeschaltet. Das Anlegen von neuen Benutzern ist nicht möglich!")));
             $this->redirect('admin/user');
         }
@@ -537,7 +549,12 @@ class Admin_UserController extends AuthenticatedController
 
             //create new user
             $UserManagement = new UserManagement();
-            if ($UserManagement->createNewUser($newuser)) {
+            if (!$prelim) {
+                $created = $UserManagement->createNewUser($newuser);
+            } else {
+                $created = $UserManagement->createPreliminaryUser($newuser);
+            }
+            if ($created) {
 
                 //get user_id
                 $user_id = $UserManagement->user_data['auth_user_md5.user_id'];
@@ -553,6 +570,7 @@ class Admin_UserController extends AuthenticatedController
                     //insert into database
                     $db = DBManager::get()->prepare("INSERT INTO user_inst (user_id, Institut_id, inst_perms) VALUES (?, ?, ?)");
                     $check = $db->execute(array($user_id, Request::option('institute'), $UserManagement->user_data['auth_user_md5.perms']));
+                    checkExternDefaultForUser($user_id);
 
                     //send email, if new user is an admin
                     if ($check) {
@@ -662,16 +680,16 @@ class Admin_UserController extends AuthenticatedController
 
 
                     foreach ($result['added'] as $item) {
-                        $details[] = sprintf(_("Der automatische Eintrag in die Veranstaltung <em>%s</em> wurde durchgeführt."), $item);
+                        $details[] = sprintf(_("Das automatische Eintragen in die Veranstaltung <em>%s</em> wurde durchgeführt."), $item);
                 }
                     foreach ($result['removed'] as $item) {
-                        $details[] = sprintf(_("Der automatische Austrag aus der Veranstaltung <em>%s</em> wurde durchgeführt."), $item);
+                        $details[] = sprintf(_("Das automatische Austragen aus der Veranstaltung <em>%s</em> wurde durchgeführt."), $item);
                     }
                 }
 
                 //get message
                 $details = explode('§', str_replace(array('msg§', 'info§', 'error§'), '', substr($UserManagement->msg, 0, -1)));
-                PageLayout::postMessage(MessageBox::success(_('Der Benutzer wurde erfolgreich angelegt.'), $details));
+                PageLayout::postMessage(MessageBox::success(_('Der Benutzer wurde angelegt.'), $details));
                 $this->redirect('admin/user/edit/' . $user_id);
             } else {
                 //get message
@@ -752,7 +770,7 @@ class Admin_UserController extends AuthenticatedController
                     StudipMail::setDefaultTransporter($default_mailer);
                 }
 
-                PageLayout::postMessage(MessageBox::success(_('Die Benutzer wurden erfolgreich migriert.'), $details));
+                PageLayout::postMessage(MessageBox::success(_('Die Benutzer wurden migriert.'), $details));
                 $this->redirect('admin/user/edit/' . $new_id);
             } else {
                 PageLayout::postMessage(MessageBox::error(_("Bitte wählen Sie zwei gültige Benutzer aus.")));
@@ -789,7 +807,7 @@ class Admin_UserController extends AuthenticatedController
         $db = DBManager::get()->prepare("UPDATE auth_user_md5 SET locked = 0, lock_comment = NULL, locked_by = NULL WHERE user_id = ?");
         $db->execute(array($user_id));
         if ($db->rowCount() == 1) {
-            PageLayout::postMessage(MessageBox::success(_('Der Benutzer wurde erfolgreich entsperrt.')));
+            PageLayout::postMessage(MessageBox::success(_('Der Benutzer wurde entsperrt.')));
         } else {
             PageLayout::postMessage(MessageBox::error(_('Der Benutzer konnte nicht entsperrt werden.')));
         }
@@ -830,7 +848,7 @@ class Admin_UserController extends AuthenticatedController
             UserModel::setInstitute($user_id, $institute_id, $values);
 
             //output
-            PageLayout::postMessage(MessageBox::success(_('Die Einrichtungsdaten des Benutzers wurden erfolgreich geändert.')));
+            PageLayout::postMessage(MessageBox::success(_('Die Einrichtungsdaten des Benutzers wurden geändert.')));
             $this->redirect('admin/user/edit/' . $user_id);
         }
 
@@ -853,9 +871,9 @@ class Admin_UserController extends AuthenticatedController
         $db = DBManager::get()->prepare("DELETE FROM user_studiengang WHERE user_id = ? AND studiengang_id = ? AND abschluss_id = ?");
         $db->execute(array($user_id, $fach_id, $abschlus_id));
         if ($db->rowCount() == 1) {
-            PageLayout::postMessage(MessageBox::success(_('Der Studiengang wurde erfolgreich gelöscht.')));
+            PageLayout::postMessage(MessageBox::success(_('Die Zuordnung zum Studiengang wurde gelöscht.')));
         } else {
-            PageLayout::postMessage(MessageBox::error(_('Der Studiengang konnte nicht gelöscht werden.')));
+            PageLayout::postMessage(MessageBox::error(_('Die Zuordnung zum Studiengang konnte nicht gelöscht werden.')));
         }
         $this->redirect('admin/user/edit/' . $user_id);
     }
@@ -872,12 +890,13 @@ class Admin_UserController extends AuthenticatedController
             $db = DBManager::get()->prepare("DELETE FROM user_inst WHERE user_id = ? AND Institut_id = ?");
             $db->execute(array($user_id, $institut_id));
             if ($db->rowCount() == 1) {
-                PageLayout::postMessage(MessageBox::success(_('Die Einrichtung wurde erfolgreich gelöscht.')));
+                checkExternDefaultForUser($user_id);
+                PageLayout::postMessage(MessageBox::success(_('Die Zuordnung zur Einrichtung wurde gelöscht.')));
             } else {
-                PageLayout::postMessage(MessageBox::error(_('Die Einrichtung konnte nicht gelöscht werden.')));
+                PageLayout::postMessage(MessageBox::error(_('Die Zuordnung zur Einrichtung konnte nicht gelöscht werden.')));
             }
         } else {
-            PageLayout::postMessage(MessageBox::error(_('Die Einrichtung konnte nicht gelöscht werden.')));
+            PageLayout::postMessage(MessageBox::error(_('Die Zuordnung zur Einrichtung konnte nicht gelöscht werden.')));
         }
         $this->redirect('admin/user/edit/' . $user_id);
     }
@@ -897,10 +916,10 @@ class Admin_UserController extends AuthenticatedController
         $details = array();
 
         foreach ($result['added'] as $item) {
-            $details[] = sprintf(_("Der automatische Eintrag in die Veranstaltung <em>%s</em> wurde durchgeführt."), $item);
+            $details[] = sprintf(_("Das automatische Eintragen in die Veranstaltung <em>%s</em> wurde durchgeführt."), $item);
         }
         foreach ($result['removed'] as $item) {
-            $details[] = sprintf(_("Der automatische Austrag aus der Veranstaltung <em>%s</em> wurde durchgeführt."), $item);
+            $details[] = sprintf(_("Das automatische Austragen aus der Veranstaltung <em>%s</em> wurde durchgeführt."), $item);
         }
 
         PageLayout::postMessage(MessageBox::success(_('Die Zuordnung zur Nutzerdomäne wurde erfolgreich gelöscht.'), $details));

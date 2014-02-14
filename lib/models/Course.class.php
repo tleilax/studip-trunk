@@ -12,7 +12,7 @@
  * @copyright   2012 Stud.IP Core-Group
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
- * 
+ *
  * @property string seminar_id database column
  * @property string id alias column for seminar_id
  * @property string veranstaltungsnummer database column
@@ -99,7 +99,7 @@ class Course extends SimpleORMap
                         'on_store' => 'store'),
                 'datafields' => array(
                         'class_name' => 'DatafieldEntryModel',
-                        'assoc_foreign_key' => 
+                        'assoc_foreign_key' =>
                             function($model,$params) {
                     $model->setValue('range_id', $params[0]->id);
                 },
@@ -109,13 +109,12 @@ class Course extends SimpleORMap
                 'foreign_key' =>
                 function($course) {
                     return array($course);
-                })
-        );
-        $this->has_one = array('aux' => array(
-                'class_name' => 'AuxLockRule',
-                'assoc_func' => 'findByLock_id',
-                'foreign_key' => 'aux_lock_rule'
-            )
+                }),
+                'cycles' => array(
+                        'class_name' => 'SeminarCycleDate',
+                        'assoc_func' => 'findBySeminar',
+                        'on_delete' => 'delete',
+                        'on_store' => 'store'),
         );
 
         $this->belongs_to = array(
@@ -132,7 +131,10 @@ class Course extends SimpleORMap
             'home_institut' => array(
                 'class_name' => 'Institute',
                 'foreign_key' => 'institut_id',
-                'assoc_func' => 'find')
+                'assoc_func' => 'find'),
+            'aux' => array(
+                'class_name' => 'AuxLockRule',
+                'foreign_key' => 'aux_lock_rule')
         );
         $this->has_and_belongs_to_many = array(
             'study_areas' => array(
@@ -161,12 +163,78 @@ class Course extends SimpleORMap
                         $course->duration_time = 0;
                     }
                 };
-
         $this->notification_map['after_create'] = 'CourseDidCreateOrUpdate CourseDidCreate';
         $this->notification_map['after_store'] = 'CourseDidCreateOrUpdate CourseDidUpdate';
         $this->notification_map['before_create'] = 'CourseWillCreate';
         $this->notification_map['before_store'] = 'CourseWillUpdate';
+        $this->notification_map['after_delete'] = 'CourseDidDelete';
+        $this->notification_map['before_delete'] = 'CourseWillDelete';
 
         parent::__construct($id);
+    }
+
+    function getFreeSeats()
+    {
+        $free_seats = $this->admission_turnout - $this->getNumParticipants();
+        return $free_seats > 0 ? $free_seats : 0;
+    }
+
+    function isWaitlistAvailable()
+    {
+        if ($this->admission_disable_waitlist) {
+            return false;
+        } else if ($this->admission_waitlist_max) {
+            return ($this->admission_waitlist_max - $this->getNumWaiting()) > 0 ? true : false;
+        } else {
+            return true;
+        }
+    }
+
+    /**
+     * Retrieves all members of a status
+     *
+     * @param String|Array $status  the status to filter with
+     *
+     * @return Array an array of all those members.
+     */
+    function getMembersWithStatus($status)
+    {
+        return CourseMember::findBySQL('seminar_id = ? AND status = ? ORDER BY position', array($this->id, $status));
+    }
+
+    /**
+     * Retrieves the number of all members of a status
+     *
+     * @param String|Array $status  the status to filter with
+     *
+     * @return int the number of all those members.
+     */
+    function countMembersWithStatus($status)
+    {
+        return CourseMember::countBySql('seminar_id = ? AND status = ? ORDER BY position', array($this->id, $status));
+    }
+
+    function getNumParticipants()
+    {
+        return $this->members->findBy('status', words('user autor'))->count() + $this->getNumPrelimParticipants();
+    }
+
+    function getNumPrelimParticipants()
+    {
+        return $this->admission_applicants->findBy('status', 'accepted')->count();
+    }
+
+    function getNumWaiting()
+    {
+        return $this->admission_applicants->findBy('status', 'awaiting')->count();
+    }
+
+    function getParticipantStatus($user_id)
+    {
+        $p_status = $this->members->findBy('user_id', $user_id)->val('status');
+        if (!$p_status) {
+            $p_status = $this->admission_applicants->findBy('user_id', $user_id)->val('status');
+        }
+        return $p_status;
     }
 }

@@ -19,7 +19,7 @@
             </td>
             <td width="80%" class="sem_class_name">
                 <div>
-                    <span class="name"><?= $sem_class['name'] ?></span>
+                    <span class="name"><?= htmlReady($sem_class['name']) ?></span>
                     <a href="#" class="sem_class_edit" onClick="jQuery(this).closest('td').children().toggle().find('input:visible').focus(); return false;"><?= Assets::img("icons/16/blue/edit", array('class' => "text-bottom")) ?></a>
                 </div>
                 <div class="name_input" style="display: none;">
@@ -38,7 +38,7 @@
                         <?= Assets::img('icons/16/blue/edit', array('class' => 'text-bottom')) ?></a>
                 </div>
                 <div class="description_input" style="display: none;">
-                    <input id="sem_class_description" type="text" value="<?= htmlReady($sem_class['description']) ?>" onBlur="jQuery(this).closest('td').children().toggle().find('.description').text(this.value);" style="width: 80%;">
+                    <input id="sem_class_description" type="text" value="<?= htmlReady($sem_class['description']) ?>" onBlur="jQuery(this).closest('td.sem_class_name').children().toggle().find('.description').text(this.value);" style="width: 80%;">
                 </div>
             </td>
         </tr>
@@ -190,10 +190,6 @@
             <td><label for="create_description"><?= _("Kurzer Beschreibungstext zum Anlagen einer Veranstaltung") ?></label></td>
             <td><textarea id="create_description" maxlength="200" style="width: 100%"><?= htmlReady($sem_class['create_description']) ?></textarea></td>
         </tr>
-        <tr class="sub">
-            <td><label for="description"><?= _("Allgemeiner Beschreibungstext") ?></label></td>
-            <td><textarea id="description" style="width: 100%"><?= htmlReady($sem_class['description']) ?></textarea></td>
-        </tr>
         <tr>
             <td>
                 <?= _("Inhaltselemente") ?>
@@ -224,6 +220,7 @@
                                     'plugin' => $modules[$sem_class->getSlotModule($container_id)],
                                     'sem_class' => $sem_class,
                                     'plugin_id' => $sem_class->getSlotModule($container_id),
+                                    'activated' => $sem_class['modules'][$sem_class->getSlotModule($container_id)]['activated'],
                                     'sticky' => $sem_class['modules'][$sem_class->getSlotModule($container_id)]['sticky']
                                 )
                             )?>
@@ -233,35 +230,18 @@
                 </div>
                 <? endforeach ?>
                 <br>
-                <div container="plugins" id="activated_plugins">
-                    <h2 title="<?= _("Diese Plugins sind standardmäßig bei den Veranstaltungen dieser Klasse aktiviert.") ?>"><?= _("Aktivierte Plugins") ?></h2>
+                <div container="plugins" id="plugins">
+                    <h2 title="<?= _("Diese Plugins sind standardmäßig bei den Veranstaltungen dieser Klasse aktiviert.") ?>"><?= _("Plugins") ?></h2>
                     <div class="droparea">
                         <? foreach ($modules as $module_name => $module_info) : ?>
                         <? $module_attribute = $sem_class->getModuleMetadata($module_name); ?>
-                        <? if ($module_attribute['activated']) : ?>
+                        <? if (is_numeric($module_info['id'])) : ?>
                             <?= $this->render_partial("admin/sem_classes/content_plugin.php",
                                 array(
                                     'plugin' => $module_info,
                                     'sem_class' => $sem_class,
                                     'plugin_id' => $module_name,
-                                    'sticky' => $sem_class['modules'][$module_name]['sticky']
-                                )
-                            )?>
-                        <? endif ?>
-                        <? endforeach ?>
-                    </div>
-                </div>
-                <div container="plugins" id="nonactivated_plugins">
-                    <h2 title="<?= _("Diese Plugins sind standardmäßig bei den Veranstaltungen dieser Klasse nicht aktiviert, können vom Dozenten aber aktiviert werden.") ?>"><?= _("Nicht aktivierte Plugins") ?></h2>
-                    <div class="droparea">
-                        <? foreach ($modules as $module_name => $module_info) : ?>
-                        <? $module_attribute = $sem_class->getModuleMetadata($module_name); ?>
-                        <? if (!$module_attribute['activated'] && is_numeric($module_info['id'])) : ?>
-                            <?= $this->render_partial("admin/sem_classes/content_plugin.php",
-                                array(
-                                    'plugin' => $module_info,
-                                    'sem_class' => $sem_class,
-                                    'plugin_id' => $module_name,
+                                    'activated' => $sem_class['modules'][$module_name]['activated'],
                                     'sticky' => $sem_class['modules'][$module_name]['sticky']
                                 )
                             )?>
@@ -281,6 +261,7 @@
                                         'plugin' => $module_info,
                                         'sem_class' => $sem_class,
                                         'plugin_id' => $module_id,
+                                        'activated' => $sem_class['modules'][$module_id]['activated'],
                                         'sticky' => $sem_class['modules'][$module_id]['sticky']
                                     )
                                 );

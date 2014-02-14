@@ -30,7 +30,7 @@ div.clear
     .quiet img { opacity: 0.25; }
 
     li {
-        background-color: #899ab9;
+        background-color: @content-color;
         border-right: 1px solid #1e3e70;
         border-bottom: 1px solid #1e3e70;
         .border-radius(2px 2px 0 0);
@@ -62,14 +62,13 @@ div.clear
     padding: 4px 0 4px 0;
     width: 100%;
 
-    a {
+    a, span.quiet {
         color: #6e6e6e;
         display: block;
 
         background: no-repeat left center;
         .retina-background-icon("grey/arr_1right.png");
 
-        cursor: pointer;
         line-height: 20pt;
         margin-left: 1em;
         padding-left: 20px;

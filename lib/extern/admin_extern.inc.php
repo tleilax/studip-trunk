@@ -88,7 +88,7 @@ if ($header_line) {
 
 // upload of configuration
 if (Request::option('com') == "do_upload_config") {
-    $file_content = file_get_contents($_FILES['the_file']['name']);
+    $file_content = file_get_contents($_FILES['the_file']['tmp_name']);
 
     // revert the changes done by indentJson
     $file_content_wo_tabs = str_replace("\t", '', str_replace("\n", '', $file_content));
@@ -169,23 +169,6 @@ if (Request::option('com') == 'info') {
     print_footer();
     page_close();
     exit;
-}
-
-$element_command = FALSE;
-$edit = Request::option('edit');
-if ($edit) {
-    $element_commands = array('show', 'hide', 'move_left', 'move_right', 'show_group', 'hide_group', 'do_search_x');
-    foreach ($element_commands as $element_command) {
-        $element_command_form = $edit . "_" . $element_command;
-        if ($_POST[$element_command_form]) {
-            if (is_array($_POST[$element_command_form])) {
-                $pos_tmp = array_keys($_POST[$element_command_form]);
-                $pos = $pos_tmp[0];
-            }
-            $execute_command = $element_command;
-            Request::set('com','store');
-        }
-    }
 }
 
 if (Request::option('com') == 'new' || Request::option('com') == 'edit' || Request::option('com') == 'open' ||
@@ -355,7 +338,6 @@ if (!$have_config) {
 
     foreach ($module_types_ordered as $order) {
         $module_type = $GLOBALS['EXTERN_MODULE_TYPES'][$order];
-    //foreach ($EXTERN_MODULE_TYPES as $module_type) {
         if (isset($configurations[$module_type["module"]])) {
             $css_switcher_2->switchClass();
             echo "<table width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\">\n";

@@ -30,6 +30,8 @@ abstract class AuthenticatedController extends StudipController {
    */
   function before_filter(&$action, &$args) {
 
+    parent::before_filter($action, $args);
+
     # open session
     page_open(array('sess' => 'Seminar_Session',
                     'auth' => 'Seminar_Auth',
@@ -37,15 +39,12 @@ abstract class AuthenticatedController extends StudipController {
                     'user' => 'Seminar_User'));
 
     // show login-screen, if authentication is "nobody"
-    $GLOBALS['auth']->login_if($auth->auth["uid"] == "nobody");
+    $GLOBALS['auth']->login_if($GLOBALS['auth']->auth['uid'] == 'nobody');
 
     $this->flash = Trails_Flash::instance();
 
     // set up user session
     include 'lib/seminar_open.php';
-
-    // allow only "word" characters in arguments
-    $this->validate_args($args);
 
     # Set base layout
     #

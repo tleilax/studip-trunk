@@ -1,8 +1,8 @@
 
 <table class="default collapsable ">
     <caption>
-    	<span class="actions">
-             <? if ($is_tutor) : ?>
+    <? if ($is_tutor) : ?>
+        <span class="actions">
                 <?=$controller->getEmailLinkByStatus('dozent', $dozenten)?>
                 <a href="<?= URLHelper::getLink('sms_send.php', array('filter' => 'send_sms_to_all', 'who' =>
                         'dozent', 'sms_source_page' => 'dispatch.php/course/members',
@@ -10,9 +10,9 @@
                     <?= Assets::img('icons/16/blue/inbox.png',
                             tooltip2(sprintf(_('Nachricht an alle %s versenden'), $status_groups['dozent']))) ?>
                 </a>
-            <? endif ?>
- 		</span>
- 		<?= $this->status_groups['dozent'] ?>
+        </span>
+    <? endif ?>
+        <?= $this->status_groups['dozent'] ?>
     </caption>
     <colgroup>
         <col width="<?=($is_tutor) ? '40' : '20'?>">
@@ -46,8 +46,16 @@
                             array('style' => 'position: absolute; margin: 0px 0px 0px -15px')) : '' ?>
                     <?= htmlReady($fullname) ?>
                 </a>
+                <? if ($is_tutor && $dozent['comment'] != '') : ?>
+                    <?= tooltipIcon(sprintf('<strong>%s</strong><br>%s', _('Bemerkung'), htmlReady($dozent['comment'])), false, true) ?>
+                <? endif ?>
             </td>
             <td style="text-align: right">
+                <? if ($is_tutor) : ?>
+                    <a rel="comment_dialog" title='<?= _('Bemerkung hinzufügen') ?>' href="<?=$controller->url_for('course/members/add_comment', $dozent['user_id']) ?>">
+                        <?= Assets::img('icons/16/blue/comment.png') ?>
+                    </a>
+                <? endif ?>
                 <? if($user_id != $dozent['user_id']) : ?>
                 <a href="<?= URLHelper::getLink('sms_send.php',
                             array('filter' => 'send_sms_to_all',

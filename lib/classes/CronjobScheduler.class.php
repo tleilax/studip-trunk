@@ -60,8 +60,8 @@ class CronjobScheduler
     /**
      * Registers a new executable task.
      *
-     * @param String $class_filename Path of the task class filename (relative
-     *                               to Stud.IP root)
+     * @param mixed $class_filename Either path of the task class filename (relative
+     *                              to Stud.IP root) or an instance of CronJob
      * @param bool   $active Indicates whether the task should be set active
      *                       or not
      * @return String Id of the created task
@@ -69,31 +69,38 @@ class CronjobScheduler
      *         exist
      * @throws RuntimeException when task has already been registered
      */
-    public function registerTask($class_filename, $active = true)
+    public function registerTask($task, $active = true)
     {
-        $filename = $GLOBALS['STUDIP_BASE_PATH'] . '/' . $class_filename;
-        if (!file_exists($filename)) {
-            $message = sprintf('Task class file "%s" does not exist.', $class_filename);
-            throw new InvalidArgumentException($message);
+        if (is_object($task)) {
+            $reflection = new ReflectionClass($task);
+            $class = $reflection->getName();
+            $class_filename = str_replace($GLOBALS['STUDIP_BASE_PATH'] . '/', '', $reflection->getFileName());
+        } else {
+            $filename = $GLOBALS['STUDIP_BASE_PATH'] . '/' . $task;
+            if (!file_exists($filename)) {
+                $message = sprintf('Task class file "%s" does not exist.', $task);
+                throw new InvalidArgumentException($message);
+            }
+            $class_filename = $task;
+
+            $classes = get_declared_classes();
+            require_once $filename;
+            $class = end(array_diff(get_declared_classes(), $classes));
+
+            if (empty($class)) {
+                throw new RuntimeException('No class was defined in file.');
+            }
+
+            $reflection = new ReflectionClass($class);
         }
 
-        $classes = get_declared_classes();
-        require_once $filename;
-        $class = end(array_diff(get_declared_classes(), $classes));
-
-        if (empty($class)) {
-            throw new RuntimeException('No class was defined in file.');
-        }
-
-        $reflection = new ReflectionClass($class);
         if (!$reflection->isSubclassOf('CronJob')) {
             $message = sprintf('Job class "%s" (defined in %s) does not extend the abstract CronJob class.', $class, $filename);
             throw new RuntimeException($message);
         }
 
-        if (CronjobTask::findByClass($class)) {
-            $message = sprintf('Job class "%s" has already been registered.', $class);
-            throw new RuntimeException($message);
+        if ($task = CronjobTask::findByClass($class)) {
+            return $task->task_id;
         }
 
         $task = new CronjobTask();
@@ -244,7 +251,7 @@ class CronjobScheduler
         }
 
         $escalation_time = Config::get()->CRONJOBS_ESCALATION;
-
+        
         // Check whether a previous cronjob worker is still running.
         if ($this->lock->isLocked($data)) {
             // Running but not yet escalated -> let it run
@@ -252,29 +259,34 @@ class CronjobScheduler
                 return;
             }
 
-            // Deactivate schedule
+            // Load locked schedule
             $schedule = CronjobSchedule::find($data['schedule_id']);
-            $schedule->deactivate();
+            
+            // If we discovered a deadlock release it
+            if ($schedule) {
+                // Deactivate schedule
+                $schedule->deactivate();
 
-            // Adjust log
-            $log = CronjobLog::find($data['log_id']);
-            $log->duration  = time() - $data['timestamp'];
-            $log->exception = new Exception('Cronjob has escalated');
-            $log->store();
+                // Adjust log
+                $log = CronjobLog::find($data['log_id']);
+                $log->duration  = time() - $data['timestamp'];
+                $log->exception = new Exception('Cronjob has escalated');
+                $log->store();
 
-            // Inform roots about the escalated cronjob
-            $subject = sprintf('[Cronjobs] %s: %s',
-                               _('Eskalierte Ausführung'),
-                               $schedule->title);
+                // Inform roots about the escalated cronjob
+                $subject = sprintf('[Cronjobs] %s: %s',
+                                   _('Eskalierte Ausführung'),
+                                   $schedule->title);
 
-            $message = sprintf(_('Der Cronjob "%s" wurde deaktiviert, da '
-                                .'seine Ausführungsdauer die maximale '
-                                .'Ausführungszeit von %u Sekunden '
-                                .'überschritten hat.') . "\n",
-                               $schedule->title,
-                               $escalation_time);
+                $message = sprintf(_('Der Cronjob "%s" wurde deaktiviert, da '
+                                    .'seine Ausführungsdauer die maximale '
+                                    .'Ausführungszeit von %u Sekunden '
+                                    .'überschritten hat.') . "\n",
+                                   $schedule->title,
+                                   $escalation_time);
 
-            $this->sendMailToRoots($subject, $message);
+                $this->sendMailToRoots($subject, $message);
+            }
 
             // Release lock 
             $this->lock->release();

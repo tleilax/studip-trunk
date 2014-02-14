@@ -81,6 +81,16 @@ if (!$set_recur_x) {
         echo _("Veranstaltung") . ":&nbsp; ";
         echo htmlReady($_calendar->event->getSemName());
         echo "</td>\n</tr>\n";
+        // related groups
+        $related_groups = $_calendar->event->getRelatedGroups();
+        if (sizeof($related_groups)) {
+            echo "<tr>\n<td width=\"100%\">\n";
+            echo _('Betroffene Gruppen') . ":&nbsp; ";
+            echo htmlReady(implode(', ', array_map(
+                    function ($group) { return $group->name; },
+                    $related_groups)));
+            echo "</td>\n</tr>\n";
+        }
     }
 
     echo "<tr>\n<td width=\"100%\">\n";
@@ -786,7 +796,7 @@ if (isset($_calendar->event) && ($_calendar->event instanceof SeminarEvent || $_
     if ($_calendar->event->havePermission(Event::PERMISSION_WRITABLE) && $evtype != 'semcal') {
         if ($atime && strtolower(get_class($_calendar->event)) == 'calendarevent') {
             if ($count_events < $CALENDAR_MAX_EVENTS) {
-                echo Button::create(_('Termin speichern'), 'store');
+                echo Button::createAccept(_('Termin speichern'), 'store');
             }
         } else {
             echo "<input type=\"hidden\" name=\"termin_id\" value=\"$termin_id\">\n";

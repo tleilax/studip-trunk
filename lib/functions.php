@@ -131,6 +131,22 @@ function get_object_name($range_id, $object_type)
 }
 
 /**
+ * Returns a sorm object for a given range_id
+ *
+ * @param string the range_id
+ * @return SimpleORMap Course/Institute/User/Statusgruppen/
+ */
+function get_object_by_range_id($range_id) {
+    $possible_sorms = "Course Institute User";
+    foreach(words($possible_sorms) as $sorm) {
+        if ($object = $sorm::find($range_id)) {
+            return $object;
+        }
+    }
+    return false;
+}
+
+/**
  * This function "selects" a Veranstaltung to work with it
  *
  * The following variables will bet set:
@@ -159,7 +175,7 @@ function selectSem ($sem_id)
     closeObject();
 
     $query = "SELECT Institut_id, Name, Seminar_id, Untertitel, start_time,
-                     status, Lesezugriff, Schreibzugriff, Passwort, aux_lock_rule_forced
+                     status, Lesezugriff, Schreibzugriff, aux_lock_rule_forced
               FROM seminare
               WHERE Seminar_id = ?";
     $statement = DBManager::get()->prepare($query);
@@ -585,53 +601,6 @@ function my_substr($what, $start, $end)
     return $what;
 }
 
-
-/**
- * The function determines, if the current user have write perm in a Veranstaltung or Einrichtung
- *
- * It uses the Variables $SemSecLevelWrite, $SemUserStatus and $rechte, which are created in the
- * modul check_sem_entry.inc.php and $perm from PHP-lib
- *
- * @global string  $SemSecLevelWrite
- * @global string  $SemUserStatus
- * @global array   $perm
- * @global boolean $rechte
- *
- * @return string  the error msg. If no msg is returned, the user has write permission
- *
- */
-function have_sem_write_perm ()
-{
-    global $SemSecLevelWrite, $SemUserStatus, $perm, $rechte;
-
-    $error_msg="";
-    if (!($perm->have_perm("root"))) {
-        if (!($rechte || ($SemUserStatus=="autor") || ($SemUserStatus=="tutor") || ($SemUserStatus=="dozent"))) {
-            //Auch eigentlich uberfluessig...
-            //$error_msg = "<br><b>Sie haben nicht die Berechtigung in dieser Veranstaltung zu schreiben!</b><br><br>";
-            switch ($SemSecLevelWrite) {
-                case 2 :
-                    $error_msg=$error_msg."error§" . _("In dieser Veranstaltung ist ein Passwort f&uuml;r den Schreibzugriff n&ouml;tig.") . "<br>" . sprintf(_("Zur %sPassworteingabe%s"), "<a href=\"sem_verify.php\">", "</a>") . "§";
-                    break;
-                case 1 :
-                    if ($perm->have_perm("autor"))
-                        $error_msg=$error_msg."info§" . _("Sie müssen sich erneut für diese Veranstaltung anmelden, um Dateien hochzuladen und Beitr&auml;ge im Forum schreiben zu können!") . "<br>" . sprintf(_("Hier kommen Sie zur %sFreischaltung%s der Veranstaltung."), "<a href=\"sem_verify.php\">", "</a>") . "§";
-                    elseif ($perm->have_perm("user"))
-                        $error_msg=$error_msg."info§" . _("Bitte folgen Sie den Anweisungen in der Registrierungsmail.") . "§";
-                    else
-                        $error_msg=$error_msg."info§" . _("Bitte melden Sie sich an.") . "<br>" . sprintf(_("Hier geht es zur %sRegistrierung%s wenn Sie noch keinen Account im System haben."), "<a href=\"register1.php\">", "</a>") . "§";
-                    break;
-                default :
-                    //Wenn Schreiben fuer Nobody jemals wieder komplett verboten werden soll, diesen Teil bitte wieder einkommentieren (man wei&szlig; ja nie...)
-                    //$error_msg=$error_msg."Bitte melden Sie sich an.<br><br><a href=\"register1.php\"><b>Registrierung</b></a> wenn Sie noch keinen Account im System haben.<br><a href=\"index.php?again=yes\"><b>Login</b></a> f&uuml;r registrierte Benutzer.<br><br>";
-                    break;
-                }
-            $error_msg=$error_msg."info§" . _("Dieser Fehler kann auch auftreten, wenn Sie zu lange inaktiv gewesen sind.") . "§";
-            }
-        }
-    return $error_msg;
-}
-
 /**
  * The function gives the global perm of an user
  *
@@ -886,7 +855,7 @@ function get_sem_tree_path($seminar_id, $depth = false, $delimeter = ">")
     $view->params[0] = $seminar_id;
     $rs = $view->get_query("view:SEMINAR_SEM_TREE_GET_IDS");
     while ($rs->next_record()){
-        $ret[$rs->f('sem_tree_id')] = $the_tree->getShortPath($rs->f('sem_tree_id'),$depth,$delimeter);
+        $ret[$rs->f('sem_tree_id')] = $the_tree->getShortPath($rs->f('sem_tree_id'), NULL, $delimeter, $depth ? $depth - 1 : 0);
     }
     return $ret;
 }
@@ -908,7 +877,7 @@ function get_range_tree_path($institut_id, $depth = false, $delimeter = ">")
     $view->params[0] = $institut_id;
     $rs = $view->get_query("view:TREE_ITEMS_OBJECT");
     while ($rs->next_record()){
-        $ret[$rs->f('item_id')] = $the_tree->getShortPath($rs->f('item_id'),$depth,$delimeter);
+        $ret[$rs->f('item_id')] = $the_tree->getShortPath($rs->f('item_id'), NULL, $delimeter, $depth ? $depth - 1 : 0);
     }
     return $ret;
 }
@@ -1726,21 +1695,19 @@ function studip_utf8encode($data)
         $new_data = array();
         foreach ($data as $key => $value) {
             $key = studip_utf8encode($key);
-            $new_data[$key] = $value = studip_utf8encode($value);
+            $new_data[$key] = studip_utf8encode($value);
         }
         return $new_data;
-    } elseif(is_string($data)) {
-        if(!preg_match('/[\200-\377]/', $data) && !preg_match("'&#[0-9]+;'", $data)){
-            return $data;
-        } else {
-            return mb_decode_numericentity(
-                mb_convert_encoding($data,'UTF-8', 'WINDOWS-1252'),
-                array(0x100, 0xffff, 0, 0xffff),
-                'UTF-8'
-            );
-        }
-    } else {
+    }
+
+    if (!preg_match('/[\200-\377]/', $data) && !preg_match("'&#[0-9]+;'", $data)) {
         return $data;
+    } else {
+        return mb_decode_numericentity(
+            mb_convert_encoding($data,'UTF-8', 'WINDOWS-1252'),
+            array(0x100, 0xffff, 0, 0xffff),
+            'UTF-8'
+        );
     }
 }
 
@@ -1757,58 +1724,56 @@ function studip_utf8decode($data)
         $new_data = array();
         foreach ($data as $key => $value) {
             $key = studip_utf8decode($key);
-            $new_data[$key] = $value = studip_utf8decode($value);
+            $new_data[$key] = studip_utf8decode($value);
         }
         return $new_data;
-    } elseif (is_string($data)) {
-        if(!preg_match('/[\200-\377]/', $data)){
-            return $data;
-        } else {
-            $windows1252 = array(
-                "\x80" => '&#8364;',
-                "\x81" => '&#65533;',
-                "\x82" => '&#8218;',
-                "\x83" => '&#402;',
-                "\x84" => '&#8222;',
-                "\x85" => '&#8230;',
-                "\x86" => '&#8224;',
-                "\x87" => '&#8225;',
-                "\x88" => '&#710;',
-                "\x89" => '&#8240;',
-                "\x8A" => '&#352;',
-                "\x8B" => '&#8249;',
-                "\x8C" => '&#338;',
-                "\x8D" => '&#65533;',
-                "\x8E" => '&#381;',
-                "\x8F" => '&#65533;',
-                "\x90" => '&#65533;',
-                "\x91" => '&#8216;',
-                "\x92" => '&#8217;',
-                "\x93" => '&#8220;',
-                "\x94" => '&#8221;',
-                "\x95" => '&#8226;',
-                "\x96" => '&#8211;',
-                "\x97" => '&#8212;',
-                "\x98" => '&#732;',
-                "\x99" => '&#8482;',
-                "\x9A" => '&#353;',
-                "\x9B" => '&#8250;',
-                "\x9C" => '&#339;',
-                "\x9D" => '&#65533;',
-                "\x9E" => '&#382;',
-                "\x9F" => '&#376;');
-            return str_replace(
-                array_values($windows1252),
-                array_keys($windows1252),
-                utf8_decode(mb_encode_numericentity(
-                    $data,
-                    array(0x100, 0xffff, 0, 0xffff),
-                    'UTF-8'
-                ))
-            );
-        }
-    } else {
+    }
+
+    if (!preg_match('/[\200-\377]/', $data)) {
         return $data;
+    } else {
+        $windows1252 = array(
+            "\x80" => '&#8364;',
+            "\x81" => '&#65533;',
+            "\x82" => '&#8218;',
+            "\x83" => '&#402;',
+            "\x84" => '&#8222;',
+            "\x85" => '&#8230;',
+            "\x86" => '&#8224;',
+            "\x87" => '&#8225;',
+            "\x88" => '&#710;',
+            "\x89" => '&#8240;',
+            "\x8A" => '&#352;',
+            "\x8B" => '&#8249;',
+            "\x8C" => '&#338;',
+            "\x8D" => '&#65533;',
+            "\x8E" => '&#381;',
+            "\x8F" => '&#65533;',
+            "\x90" => '&#65533;',
+            "\x91" => '&#8216;',
+            "\x92" => '&#8217;',
+            "\x93" => '&#8220;',
+            "\x94" => '&#8221;',
+            "\x95" => '&#8226;',
+            "\x96" => '&#8211;',
+            "\x97" => '&#8212;',
+            "\x98" => '&#732;',
+            "\x99" => '&#8482;',
+            "\x9A" => '&#353;',
+            "\x9B" => '&#8250;',
+            "\x9C" => '&#339;',
+            "\x9D" => '&#65533;',
+            "\x9E" => '&#382;',
+            "\x9F" => '&#376;');
+        return str_replace(
+            array_values($windows1252),
+            array_keys($windows1252),
+            utf8_decode(mb_encode_numericentity(
+                $data,
+                array(0x100, 0xffff, 0, 0xffff),
+                'UTF-8'
+            ))
+        );
     }
 }
 
@@ -1942,9 +1907,11 @@ function addHiddenFields($variable, $data, $parent = array())
             if (is_array($value)) {
                 $ret .= addHiddenFields($variable, $value, array_merge($parent, array($key)));
             } else {
-                $ret.= '<input type="hidden" name="'. $variable .'['. implode('][', array_merge($parent, array($key))) .']" value="'. $value .'">' ."\n";
+                $ret.= '<input type="hidden" name="'. htmlReady($variable .'['. implode('][', array_merge($parent, array($key))) .']').'" value="'. htmlReady($value) .'">' ."\n";
             }
         }
+    } else {
+        $ret.= '<input type="hidden" name="'. htmlReady($variable) .'" value="'. htmlReady($data) .'">' ."\n";
     }
 
     return $ret;

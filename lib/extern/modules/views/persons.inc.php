@@ -117,7 +117,7 @@ if (!$grouping) {
         $groups_ids ?: '',
         $range_id
     ));
-    $rows = $statement->fetchAll(PDO::FETCH_COLUMN);
+    $rows = $statement->fetchAll(PDO::FETCH_ASSOC);
 
     // Ensure the main loop will only get executed once since we already
     // have all the neccessary data
@@ -159,8 +159,8 @@ foreach ($visible_groups as $group_id => $group) {
         $rows = $statement->fetchAll(PDO::FETCH_ASSOC);
 
         $position = array_search($group_id, $all_groups);
-        if ($aliases_groups[$position]) {
-            $group = $aliases_groups[$position];
+        if ($aliases_groups[$group_id]) {
+            $group = $aliases_groups[$group_id];
         }
     }
 

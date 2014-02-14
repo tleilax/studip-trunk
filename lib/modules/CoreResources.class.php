@@ -42,4 +42,12 @@ class CoreResources implements StudipModule {
     {
         return null;
     }
+
+    /** 
+     * @see StudipModule::getMetadata()
+     */ 
+    function getMetadata()
+    {
+         return array();
+    }
 }

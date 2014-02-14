@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 require '../lib/bootstrap.php';
 
+ob_start();
 page_open(array("sess" => "Seminar_Session", "auth" => "Seminar_Default_Auth", "perm" => "Seminar_Perm", "user" => "Seminar_User"));
 $auth->login_if(Request::get('again') && ($auth->auth["uid"] == "nobody"));
 
@@ -79,10 +80,6 @@ PageLayout::setHelpKeyword("Basis.Einrichtungen");
 PageLayout::setTitle($SessSemName["header_line"]. " - " ._("Kurzinfo"));
 Navigation::activateItem('/course/main/info');
 
-// Start of Output
-include ('lib/include/html_head.inc.php'); // Output of html head
-include ('lib/include/header.php');   // Output of Stud.IP head
-
 include 'lib/showNews.inc.php';
 
 // list of used modules
@@ -90,6 +87,40 @@ $Modules = new Modules;
 $modules = $Modules->getLocalModules($institute_id);
 
 URLHelper::bindLinkParam("inst_data", $institut_main_data);
+
+// (un)subscribe to institute
+if ($GLOBALS['ALLOW_SELFASSIGN_INSTITUTE'] AND ($GLOBALS['user']->id != 'nobody') AND ! $GLOBALS['perm']->have_perm('admin')) {
+    if (! $perm->have_studip_perm('user', $institute_id) AND (Request::option('follow_inst') == 'on')) {            
+        $query = "INSERT IGNORE INTO user_inst
+                  (user_id, Institut_id, inst_perms)
+                  VALUES (?, ?, 'user')";
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute(array(
+            $GLOBALS['user']->user_id,
+            $institute_id
+        ));
+        if ($statement->rowCount() > 0) {
+            log_event('INST_USER_ADD', $institute_id, $GLOBALS['user']->user_id, 'user');
+            PageLayout::postMessage(MessageBox::success(_("Sie haben die Einrichtung abonniert.")));
+            header('Location: '.URLHelper::getURL('', array('cid' => $institute_id)));
+            die;
+        }
+    } elseif (! $perm->have_studip_perm('autor', $institute_id) AND (Request::option('follow_inst') == 'off')) {            
+	    $query = "DELETE FROM user_inst
+               WHERE user_id = ?  AND Institut_id = ?";
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute(array(
+            $GLOBALS['user']->user_id,
+            $institute_id
+        ));
+        if ($statement->rowCount() > 0) {
+            log_event('INST_USER_DEL', $institute_id, $GLOBALS['user']->user_id, 'user');
+            PageLayout::postMessage(MessageBox::success(_("Sie haben sich aus der Einrichtung ausgetragen.")));
+            header('Location: '.URLHelper::getURL('', array('cid' => $institute_id)));
+            die;
+        }
+    }
+}
 
 //Auf und Zuklappen News
 process_news_commands($institut_main_data);
@@ -175,5 +206,7 @@ foreach ($plugins as $plugin) {
     }
 }
 
-include ('lib/include/html_end.inc.php');
+$layout = $GLOBALS['template_factory']->open('layouts/base.php');
+$layout->content_for_layout = ob_get_clean();
+echo $layout->render();
 page_close();

@@ -107,7 +107,7 @@ class SemClass implements ArrayAccess
             'resources' => "CoreResources",
             'calendar' => "CoreCalendar",
             'elearning_interface' => "CoreElearningInterface",
-            'modules' => '{"CoreOverview":{"activated":1,"sticky":1},"CoreAdmin":{"activated":1,"sticky":1}}',
+            'modules' => '{"CoreOverview":{"activated":1,"sticky":1},"CoreAdmin":{"activated":1,"sticky":1}, "CoreResources":{"activated":1,"sticky":0}}',
             'visible' => 1
         );
         return new SemClass($data);
@@ -207,6 +207,17 @@ class SemClass implements ArrayAccess
     }
 
     /**
+     * Returns true if a module is activated on default for this sem_class.
+     * @param string $modulename
+     * @return boolean
+     */
+    public function isModuleActivated($modulename)
+    {
+        return !$this->data['modules'][$modulename]
+            ||  $this->data['modules'][$modulename]['activated'];
+    }
+
+    /**
      * Returns if a module is allowed to be displayed for this sem_class.
      * @param string $modulename
      * @return boolean
@@ -215,8 +226,7 @@ class SemClass implements ArrayAccess
     {
         return !$this->data['modules'][$modulename]
             || !$this->data['modules'][$modulename]['sticky']
-            ||  $this->data['modules'][$modulename]['activated']
-            ||  $this->isModuleMandatory($modulename);
+            ||  $this->data['modules'][$modulename]['activated'];
     }
 
     /**
@@ -227,8 +237,7 @@ class SemClass implements ArrayAccess
     public function isModuleMandatory($module)
     {
         return $this->data['modules'][$module]['sticky']
-            && ($this->data['modules'][$module]['activated']
-                || $this->isSlotModule($module));
+            && $this->data['modules'][$module]['activated'];
     }
 
     /**

@@ -11,6 +11,7 @@ include_once 'vendor/idna_convert/idna_convert.class.php';
 include_once 'lib/classes/searchtypes/SQLSearch.class.php';
 include_once 'lib/classes/searchtypes/StandardSearch.class.php';
 include_once 'lib/classes/searchtypes/PermissionSearch.class.php';
+require_once 'lib/classes/Markup.class.php';
 require_once 'lib/classes/LinkButton.class.php';
 require_once 'lib/classes/Button.class.php';
 require_once 'lib/classes/ResetButton.class.php';
@@ -213,18 +214,12 @@ function get_ampel_read ($mein_status, $admission_status, $read_level, $print="T
     return $ampel_status;
 }
 
-function htmlReady ($what, $trim = TRUE, $br = FALSE, $double_encode = false) {
-    if ($trim) {
-        $what = trim(htmlspecialchars($what, ENT_QUOTES, 'cp1252', $double_encode));
-    } else {
-        $what = htmlspecialchars($what,ENT_QUOTES, 'cp1252', $double_encode);
-    }
+//// Functions for processing marked-up text (Stud.IP markup, HTML, JS).
 
-    if ($br) { // fix newlines
-        $what = nl2br($what, false);
-    }
+use Studip\Markup;
 
-    return $what;
+function htmlReady($what, $trim=TRUE, $br=FALSE, $double_encode=FALSE) {
+    return Markup::htmlReady($what, $trim, $br, $double_encode);
 }
 
 function jsReady ($what, $target) {
@@ -268,82 +263,68 @@ function quotes_encode($description,$author)
 }
 
 /**
-* universal and very usable functions to get all the special stud.ip formattings
-*
-*
-* @access       public
-* @param        string $what        what to format
-* @param        boolean $trim       should the output trimmed?
-* @param        boolean $extern TRUE if called from external pages ('externe Seiten')
-* @param    boolean $wiki       if TRUE format for wiki
-* @param    string  $show_comments  Comment mode (none, all, icon), used for Wiki comments
-* @return       string
-*/
-function formatReady ($what, $trim = TRUE, $extern = FALSE, $wiki = FALSE, $show_comments="icon") {
+ * Common function to get all special Stud.IP formattings.
+ *
+ * @access public
+ * @param string  $text  Marked-up text.
+ * @param boolean $trim  Trim leading and trailing whitespace, if TRUE.
+ * @param boolean $extern         (deprecated, has no effect)
+ * @param boolean $wiki           (deprecated, has no effect)
+ * @param string  $show_comments  (deprecated, has no effect)
+ * @return string        HTML code computed by applying markup-rules.
+ */
+// TODO remove unused function arguments
+function formatReady($text, $trim=TRUE, $extern=FALSE, $wiki=FALSE, $show_comments='icon'){
+    // StudipFormat::markupLinks stores OpenGraph media preview URLs
+    // Blubber and Forum plugins add media previews after formatReady returns
     OpenGraphURL::$tempURLStorage = array();
-    $markup = new StudipFormat();
-    
-    $what = preg_replace("/\r\n?/", "\n", $what);
-    $what = htmlReady($what, $trim);
-
-    $what = $markup->format($what);
-    $what = symbol(smile($what, false));
-    return str_replace("\n", '<br>', $what);
+    return Markup::apply(new StudipFormat(), $text, $trim);
 }
 
 /**
- * simplified version of formatReady that handles only link formatting
+ * Simplified version of formatReady that handles link formatting only.
  *
- * @param    string $what   what to format
- * @param    bool $nl2br    convert newlines to <br>
+ * @param  string $text   Marked-up text.
+ * @param  bool   $nl2br  Convert newlines to <br>.
+ * @return string         Marked-up text with markup-links converted to
+ *                        HTML-links.
  */
-function formatLinks($what, $nl2br = true)
-{
-    $link_markup_rule = StudipFormat::getStudipMarkup("links");
+function formatLinks($text, $nl2br=TRUE){
+    $link_markup_rule = StudipFormat::getStudipMarkup('links');
     $markup = new TextFormat();
     $markup->addMarkup(
-        "links",
+        'links',
         $link_markup_rule['start'],
         $link_markup_rule['end'],
         $link_markup_rule['callback']
     );
-    return $markup->format(htmlReady($what, true, $nl2br));
+    if ($nl2br) { // fix newlines
+        $text = nl2br($text, FALSE);
+    }
+    return Markup::purify($markup->format(trim($text)));
 }
 
 /**
-* the special version of formatReady for Wiki-Webs
-*
-*
-* @access       public
-* @param        string $what        what to format
-* @param        string $trim        should the output trimmed?
-* @param        boolean $extern TRUE if called from external pages ('externe Seiten')
-* @return       string
-*/
-function wikiReady ($what, $trim = TRUE) {
-    $markup = new WikiFormat();
-    $what = preg_replace("/\r\n?/", "\n", $what);
-    $what = htmlReady($what, $trim);
-
-    $what = $markup->format($what);
-    $what = symbol(smile($what, false));
-    return str_replace("\n", '<br>', $what);
-}
-
-
-/**
- * Transform the argument using the replace-before-save rules defined
- * by StudipTransformFormat.
+ * Special version of formatReady for wiki-webs.
  *
- * @param string $what the original string
- *
- * @return the result of applying the replace-before-save
- * transformations to the argument of the function
+ * @access public
+ * @param  string $what  Marked-up text.
+ * @param  string $trim  Trim leading and trailing whitespace, if TRUE.
+ * @return string        HTML code computed by applying markup-rules.
  */
-function transformBeforeSave($what)
-{
+function wikiReady($text, $trim=TRUE){
+    return Markup::apply(new WikiFormat(), $text, $trim);
+}
+
+/**
+ * Apply StudipTransformFormat rules to marked-up text.
+ *
+ * @param  string $text  Marked-up text.
+ * @return string        HTML code computed by applying markup-rules.
+ */
+function transformBeforeSave($text){
     $markup = new StudipTransformFormat();
-    return $markup->format($what);
+    return $markup->format($text);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -839,7 +820,7 @@ function TransformInternalLinks($str){
         if (is_null($domain_data)){
             $domain_data['domains'] = '';
             foreach ($GLOBALS['STUDIP_DOMAINS'] as $studip_domain) $domain_data['domains'] .= '|' . preg_quote($studip_domain);
-            $domain_data['domains'] = preg_replace("'(\|.+?)((/.*?)|\|)'", "\\1[^/]*?\\2", $domain_data['domains']);
+            $domain_data['domains'] = preg_replace("'\|[^/|]*'", '$0[^/]*?', $domain_data['domains']);
             $domain_data['domains'] = substr($domain_data['domains'], 1);
             $domain_data['user_domain'] = preg_replace("'^({$domain_data['domains']})(.*)$'i", "\\1", $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
             $domain_data['user_domain_scheme'] = 'http' . (($_SERVER['HTTPS'] || $_SERVER['SERVER_PORT'] == 443) ? 's' : '') . '://';

@@ -54,4 +54,13 @@ interface StudipModule {
      * @return array an array of ContentElement-objects
      */
     function getNotificationObjects($course_id, $since, $user_id);
+
+    /** 
+     * Provides metadata like a descriptional text for this module that
+     * is shown on the course "+" page to inform users about what the
+     * module acutally does. Additionally, a URL can be specified.
+     *  
+     * @return array    metadata containg description and/or url
+     */ 
+    function getMetadata();
 }

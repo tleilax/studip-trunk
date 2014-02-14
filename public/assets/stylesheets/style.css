@@ -1,38 +1,10 @@
-/*******************************************************************************
-  Standard-Stylesheet für Stud.IP im Safire-Design
-  - use http://www.colorzilla.com/gradient-editor/ for gradients
-*******************************************************************************/
-/*
- * studip-mixins.less
- *
- * This file contains all mixins created specifically for Stud.IP
- * while mixins.less should contain a copy of the mixins from
- * twitter's bootstrap.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * @author      Jan-Hendrik Willms <tleilax+studip@gmail.com>
- * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
- * @category    Stud.IP
- * @since       2.4
- */
-/*
- * arrow.less - CSS arrows mixin
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * @author      Jan-Hendrik Willms <tleilax+studip@gmail.com>
- * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
- * @category    Stud.IP
- * @since       2.4
- */
-/* --- Links ---------------------------------------------------------------- */
+.hover_box .hover_symbols {
+  display: none;
+}
+.hover_box:hover .hover_symbols {
+  display: inline;
+  padding-left: 5px;
+}
 /* --- Tabellen ------------------------------------------------------------- */
 /* Zebra styles for tables */
 /* --- table.collapsable ---------------------------------------------------- */
@@ -691,13 +663,13 @@ table.default caption {
   text-align: left;
 }
 table.default thead th {
-  background-color: #f4f7f9;
+  background-color: #e7ebf1;
   border-bottom: 1px solid rgba(137,154,185,0.2);
   border-top: 1px solid #1e3e70;
   font-size: 1.0em;
 }
 table.default tbody th {
-  background-color: #f0f4ff;
+  background-color: #e7ebf1;
   border-top: 1px solid #1e3e70;
   border-bottom: 1px solid rgba(137,154,185,0.2);
   text-align: left;
@@ -706,14 +678,18 @@ table.default tbody td {
   border-bottom: 1px solid #d1d1d1;
   transition: background-color 0.3s;
 }
+table.default tbody td.dragHandle {
+  background: #ffffff url("../images/anfasser_24.png") center no-repeat;
+  cursor: move;
+}
 table.default tbody tr:last-child td {
   border-bottom: 1px solid #1e3e70;
 }
 table.default:not(.nohover) > tbody:not(.nohover) > tr:not(.nohover):hover > td {
-  background-color: rgba(137,154,185,0.25);
+  background-color: #e1e4e5;
 }
 table.default tfoot td {
-  background-color: #f4f7f9;
+  background-color: #e7ebf1;
   border-top: 1px solid #1e3e70;
 }
 table.default .actions {
@@ -722,6 +698,12 @@ table.default .actions {
 }
 table.default .actions img {
   vertical-align: middle;
+}
+table.default caption .actions {
+  border-left: 1px solid #1e3e70;
+  margin-bottom: -5px;
+  padding-bottom: 7px;
+  padding-left: 0.5em;
 }
 table.default td.actions,
 table.default th.actions {
@@ -822,6 +804,136 @@ table.default2 tbody.togglable th:before {
   content: url("../images/icons/16/blue/arr_1down.png");
   margin-right: 3px;
   vertical-align: middle;
+}
+.studip_form .caption {
+  font-weight: bold;
+  color: #24437c;
+  font-size: 11pt;
+}
+.studip_form label {
+  display: block;
+}
+.studip_form label input[type=date],
+.studip_form label input[type=email],
+.studip_form label input[type=number],
+.studip_form label input[type=password],
+.studip_form label input[type=text],
+.studip_form label input[type=url],
+.studip_form label textarea,
+.studip_form label select {
+  display: block;
+  min-width: 24em;
+}
+.studip_form label input[type=number] {
+  min-width: 1ex !important;
+}
+.studip_form label textarea {
+  min-height: 6em;
+}
+.studip_form > fieldset {
+  border: none;
+  padding-left: 0;
+}
+.studip_form > fieldset > legend {
+  background-color: #899ab9;
+  color: white;
+  padding: 5px;
+  width: 100%;
+  font-size: 12pt;
+  font-weight: bold;
+}
+.studip_form > fieldset > label {
+  padding: 1ex;
+}
+.studip_form fieldset fieldset {
+  border: none;
+  margin: 1ex 0;
+}
+.studip_form fieldset fieldset legend {
+  font-weight: bold;
+  color: #24437c;
+  font-size: 11pt;
+}
+.studip_form fieldset fieldset label {
+  margin-left: 1ex;
+}
+.studip_form .required {
+  color: red;
+  font-size: 1.2em;
+}
+.studip_form div input[type=date],
+.studip_form div input[type=email],
+.studip_form div input[type=number],
+.studip_form div input[type=password],
+.studip_form div input[type=text],
+.studip_form div input[type=url],
+.studip_form div textarea,
+.studip_form div select {
+  display: inline;
+}
+.studip_form input[type=date],
+.studip_form input[type=email],
+.studip_form input[type=number],
+.studip_form input[type=password],
+.studip_form input[type=text],
+.studip_form input[type=url],
+.studip_form textarea,
+.studip_form select {
+  display: block;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  color: #333;
+  transition: all 0.3s ease-out;
+}
+.studip_form input[type=date]:hover,
+.studip_form input[type=email]:hover,
+.studip_form input[type=number]:hover,
+.studip_form input[type=password]:hover,
+.studip_form input[type=text]:hover,
+.studip_form input[type=url]:hover,
+.studip_form textarea:hover,
+.studip_form select:hover {
+  border-radius: 4px;
+}
+.studip_form input[type=date]:focus,
+.studip_form input[type=email]:focus,
+.studip_form input[type=number]:focus,
+.studip_form input[type=password]:focus,
+.studip_form input[type=text]:focus,
+.studip_form input[type=url]:focus,
+.studip_form textarea:focus,
+.studip_form select:focus {
+  outline: none;
+  border-radius: 4px;
+  border-color: #24437c;
+}
+.studip_form select {
+  height: 30px;
+}
+input[type=checkbox].studip_checkbox {
+  display: none;
+}
+input[type=checkbox].studip_checkbox + label {
+  background-image: url("../images//icons/16//black/checkbox-unchecked.png");
+  background-image: -webkit-image-set(url("../images//icons/16//black/checkbox-unchecked.png") 1x,url("../images//icons/32//black/checkbox-unchecked.png") 2x);
+  background-position: left center;
+  background-repeat: no-repeat;
+  padding-left: 20px;
+}
+input[type=checkbox].studip_checkbox:checked + label {
+  background-image: url("../images//icons/16//black/checkbox-checked.png");
+  background-image: -webkit-image-set(url("../images//icons/16//black/checkbox-checked.png") 1x,url("../images//icons/32//black/checkbox-checked.png") 2x);
+}
+.submit_wrapper {
+  padding: 0;
+  margin-left: 5px;
+  background-color: #d1d1d1;
+  border-top: 1px solid #1e3e70;
+}
+.studip_input_wrapper {
+  margin: 1ex;
+  padding: 1ex;
 }
 .content_title {
   background-color: #e3eaf6;
@@ -1578,7 +1690,7 @@ li#notification_container:hover .list {
   width: 100%;
 }
 table.infobox td {
-  background-color: #F4F7F9;
+  background-color: #e1e4e5;
   text-align: left;
 }
 table.infobox td.infobox-img {
@@ -1586,7 +1698,7 @@ table.infobox td.infobox-img {
 }
 .infobox-img > div {
   min-height: 108px;
-  min-width: 250px;
+  width: 250px;
   border-top-left-radius: 16px;
   background-size: 100%;
   background-repeat: no-repeat;
@@ -1595,6 +1707,46 @@ table.infobox td.infobox-img {
 td.infoboxrahmen {
   background-color: #dee2e8;
   border-bottom: 1px solid rgba(137,154,185,0.2);
+}
+.content_box {
+  border-top: 1px solid #1e3e70;
+  border-bottom: 1px solid #1e3e70;
+  margin-bottom: 8px;
+}
+.content_box > .head {
+  background-color: #f4f7f9;
+  border-bottom: 1px solid rgba(137,154,185,0.2);
+  padding: 4px;
+}
+.content_box .head .actions {
+  float: right;
+}
+.content_box .content {
+  padding: 10px;
+}
+.content_box .content .box > .head {
+  border-top: 1px solid #899ab9;
+  background-color: #e3eaf6;
+  background-image: linear-gradient(#cdd9ed,#e3eaf6 40%,#e3eaf6);
+  padding: 4px;
+}
+.content_box .content .box > .head .actions {
+  float: right;
+}
+.content_box .content .box .content {
+  padding: 10px;
+}
+.content_box .content .box .content .comment {
+  text-align: left;
+  padding: 10px;
+}
+.content_box .content .box .content .comment .head {
+  border-top: 1px solid #899ab9;
+  color: #888888;
+  font-size: 0.8em;
+}
+.content_box .content .box .content .comment .date {
+  float: right;
 }
 #header .badge {
   position: relative;
@@ -1987,55 +2139,6 @@ div.messagebox_warning {
 #index .messagebox {
   margin: 5px 0;
 }
-#modal {
-  position: fixed;
-  font-family: Arial, Helvetica, sans-serif;
-  top: 0px;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  background: rgba(0,0,0,0.3);
-  z-index: 99999;
-  opacity: 1;
-  -webkit-transition: opacity 400ms ease-in;
-  -moz-transition: opacity 400ms ease-in;
-  transition: opacity 400ms ease-in;
-}
-#modal > div {
-  width: 500px;
-  top: 60px;
-  position: relative;
-  margin: 10% auto;
-  padding-left: 0px, 0px, 10px, 0px;
-  background: #FFFFFF;
-}
-#modal > div > h3 {
-  padding-left: 10px;
-  width: 98%;
-  background: #1E3E70;
-  color: #FFFFFF;
-}
-#modal > div > table {
-  padding-left: 10px;
-  padding-bottom: 10px;
-}
-.close {
-  background: #1E3E70;
-  color: #FFFFFF;
-  line-height: 22px;
-  position: absolute;
-  right: 0px;
-  text-align: center;
-  top: 0px;
-  width: 24px;
-  text-decoration: none;
-  font-weight: bold;
-  font-size: 16px;
-}
-.close:hover {
-  background: #899AB9;
-  color: #899AB9;
-}
 form#quicksearch {
   display: inline;
 }
@@ -2177,13 +2280,13 @@ div.clear {
   padding: 4px 0 4px 0;
   width: 100%;
 }
-#tabs2 a {
+#tabs2 a,
+#tabs2 span.quiet {
   color: #6e6e6e;
   display: block;
   background: no-repeat left center;
   background-image: url("../images//icons/16/grey/arr_1right.png");
   background-image: -webkit-image-set(url("../images//icons/16/grey/arr_1right.png") 1x,url("../images//icons/32/grey/arr_1right.png") 2x);
-  cursor: pointer;
   line-height: 20pt;
   margin-left: 1em;
   padding-left: 20px;
@@ -2393,16 +2496,9 @@ table.attribute_table div[container] > div.droparea > div > h2 {
 table.attribute_table div[container] > div.droparea > div.deactivated {
   opacity: 0.5;
 }
-table.attribute_table div[container] > div.droparea > div.plugin .lock {
-  display: none;
-}
-table.attribute_table div[container] > div.droparea > div.plugin.sticky .lock {
-  display: inline-block;
-}
-table.attribute_table div[container]#nonactivated_plugins,
-table.attribute_table div[container]#activated_plugins {
-  width: 49%;
-  max-width: 49%;
+table.attribute_table div[container]#plugins {
+  width: 99%;
+  max-width: 99%;
   margin-left: auto;
   margin-right: auto;
 }
@@ -2801,6 +2897,79 @@ h3.eval {
   color: #000000;
   font-weight: bold;
 }
+#news_dialog_content {
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 15px;
+  padding-top: 10px;
+}
+.news_dialog_content button {
+  vertical-align: middle;
+}
+.news_dialog_content select {
+  width: 45%;
+}
+.news_dialog_content option {
+  height: 16px;
+}
+.news_admin button {
+  vertical-align: middle;
+}
+.news_reset_filter {
+  float: right;
+}
+img.news_area_icon {
+  vertical-align: middle;
+}
+div.news_area_title {
+  display: inline;
+  height: 32px;
+  vertical-align: middle;
+}
+input.news_topic {
+  width: 90%;
+}
+textarea.news_body {
+  resize: vertical;
+  width: 90%;
+  font-size: 10pt;
+}
+select.news_area_options {
+  min-width: 200px;
+  width: 100%;
+  height: 116px;
+}
+option.news_area_title {
+  padding-left: 26px;
+  font-weight: bold;
+  color: #000000;
+  background-repeat: no-repeat;
+  background-color: #d1d1d1;
+}
+input.news_search_term {
+  width: 45%;
+}
+div.news_area_selectable {
+  display: inline-block;
+  float: left;
+  width: 45%;
+  height: 100%;
+}
+div.news_area_actions {
+  display: inline-block;
+  width: 10%;
+  text-align: center;
+}
+div.news_area_selected {
+  display: inline-block;
+  float: right;
+  width: 45%;
+  height: 100%;
+}
+div.news_dialog_buttons {
+  margin-right: 15px;
+  border-top: 1px solid #d1d1d1;
+}
 .dates_items th,
 .dates_items td {
   border-bottom: 3px solid #fff;
@@ -3081,19 +3250,10 @@ textarea.wiki-editor {
   border: thin solid lightgrey;
   padding: 10px;
   margin-top: 10px;
-  opacity: 0.5;
   min-height: 120px;
   margin-left: auto;
   margin-right: auto;
   max-width: 700px;
-}
-.opengraph.video {
-  opacity: 1;
-}
-.opengraph:hover {
-  opacity: 1;
-  transition: opacity;
-  transition-duration: 300ms;
 }
 .opengraph .audio {
   text-align: center;
@@ -3110,22 +3270,14 @@ a.opengraph_info:hover {
   transition: margin, padding, width, height;
   transition-duration: 100ms;
   float: left;
-  width: 100px;
-  height: 100px;
-  margin: 10px;
-  margin-right: 20px;
-  padding: 0px;
-  background-size: 100% auto;
-  background-position: center center;
-  background-repeat: no-repeat;
-}
-.opengraph:hover .opengraph_info_image {
-  transition: margin, padding, width, height;
-  transition-duration: 100ms;
   width: 120px;
   height: 120px;
   margin: 0px;
   margin-right: 10px;
+  padding: 0px;
+  background-size: 100% auto;
+  background-position: center center;
+  background-repeat: no-repeat;
 }
 @media only screen and (max-width: 768px) {
   #layout_wrapper {
@@ -3222,6 +3374,154 @@ a.opengraph_info:hover {
 .pagination .next a {
   background-image: url("../images/icons/16/blue/arr_1right.png");
 }
+.admission_buttons {
+  padding: 10px;
+  text-align: center;
+  width: 90%;
+}
+.admission_data {
+  padding: 10px;
+  width: 90%;
+}
+.admission_label {
+  display: inline-block;
+  font-weight: bold;
+  text-align: right;
+  vertical-align: top;
+  width: 20%;
+}
+.admission_value {
+  display: inline-block;
+  vertical-align: top;
+  width: 70%;
+}
+.admissionrule {
+  margin-bottom: 5px;
+  margin-left: 20px;
+  margin-top: 5px;
+  clear: both;
+}
+.admissionrule_actions {
+  margin-left: 10px;
+  position: relative;
+  top: 0px;
+  left: 25px;
+}
+.admissionrule_data {
+  padding: 10px;
+  width: 95%;
+}
+.admissionrule_display {
+  float: left;
+}
+.admissionrule_label {
+  display: inline-block;
+  font-weight: bold;
+  text-align: right;
+  vertical-align: top;
+  width: 45%;
+}
+.admissionrule_label_fullsize {
+  display: inline-block;
+  font-weight: bold;
+  text-align: left;
+  vertical-align: top;
+  width: 70%;
+}
+.admissionrule_value {
+  display: inline-block;
+  text-align: left;
+  vertical-align: top;
+}
+.admissionrules_available {
+  padding: 5px;
+}
+.admissionrules_buttons {
+  padding: 5px;
+  text-align: center;
+}
+.admissionrules_config {
+  padding: 10px;
+  text-align: center;
+  width: 95%;
+}
+.admissionrules_description {
+  font-style: italic;
+  padding-left: 25px;
+}
+.condition {
+  margin-left: 20px;
+}
+.userlist_user a {
+  visibility: hidden;
+}
+.userlist_user:hover a {
+  visibility: visible;
+}
+#enrollment ul {
+  list-style: none inside;
+  margin: 0px;
+  border-top: 1px solid #1E3E70;
+  padding: 0px;
+  cursor: move;
+}
+#enrollment ul li {
+  padding: 5px;
+  border-bottom: 1px solid #1E3E70;
+}
+#selected-courses li {
+  list-style-type: decimal;
+}
+#enrollment ul li.empty {
+  cursor: no-drop;
+  list-style-type: none;
+}
+#enrollment input[name="filter"] {
+  margin-bottom: 20px;
+}
+#enrollment ul {
+  max-height: 200px;
+  overflow-x: auto;
+}
+#enrollment .ui-draggable.ui-draggable-dragging,
+#enrollment .ui-sortable-helper {
+  background-color: #CED8F2;
+  padding: 5px;
+  border: 1px solid #1E3E70;
+  list-style: none inside;
+  width: auto;
+}
+#enrollment ul li.ui-sortable-helper {
+  list-style-type: none;
+}
+#enrollment .ui-sortable-helper .delete {
+  display: none;
+}
+#enrollment ul li .delete {
+  cursor: pointer;
+  float: right;
+}
+#enrollment ul li .delete:after {
+  clear: both;
+}
+#enrollment ul#avaliable-courses li.visible:hover,
+#enrollment ul#selected-courses li:hover {
+  background-color: #CED8F2;
+}
+#enrollment ul#avaliable-courses li.visible:nth-child(even),
+#enrollment ul#selected-courses li:nth-child(even) {
+  background-color: #F8F8F8;
+}
+#enrollment ul#avaliable-courses li.visible:nth-child(odd),
+#enrollment ul#selected-courses li:nth-child(odd) {
+  background-color: #EEEEEE;
+}
+#enrollment .ui-state-highlight {
+  padding: 10px;
+  background: #CB1800;
+  border: 0px;
+  height: 30px;
+}
 body,
 input,
 textarea {
@@ -3262,7 +3562,6 @@ h5,
 h6 {
   color: #444444;
   border-bottom: 2px solid rgba(0,0,0,0.2);
-  width: 80%;
 }
 h1 {
   margin-top: 0px;
@@ -3445,16 +3744,11 @@ div.overdiv div.content {
 .editor_toolbar {
   display: inline-block;
   font-size: 0.75em;
-  position: relative;
 }
 .editor_toolbar .buttons {
   *zoom: 1;
   margin: 0 !important;
   padding: 0 !important;
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
   border-spacing: 0;
 }
 .editor_toolbar .buttons:before,
@@ -3736,4 +4030,13 @@ div.info {
 }
 .scm .table_footer td {
   text-align: center;
+}
+.no-js .hidden-no-js {
+  display: none;
+}
+.js .hidden-js {
+  display: none;
+}
+.no-js #enrollment ul {
+  cursor: auto;
 }

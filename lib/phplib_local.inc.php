@@ -525,14 +525,13 @@ class Seminar_Auth extends Auth {
             if ( ($authplugin = StudipAuthAbstract::GetInstance($provider)) ) {
                 $authplugin->authenticateUser("","","");
                 if ($authplugin->getUser()){
-                    $uid = $authplugin->getStudipUserid($authplugin->getUser());
-                    $user = User::find($uid);
+                    $user = $authplugin->getStudipUser($authplugin->getUser());
                     $this->auth["jscript"] = true;
                     $this->auth["perm"]  = $user->perms;
                     $this->auth["uname"] = $user->username;
                     $this->auth["auth_plugin"]  = $user->auth_plugin;
                     $this->auth_set_user_settings($user);
-                    return $uid;
+                    return $user->id;
                 }
             } else {
                 return false;
@@ -621,7 +620,7 @@ class Seminar_Auth extends Auth {
                 $_SESSION['semi_logged_in'] = $uid;
                 return false;
             }
-            $user = User::find($uid);
+            $user = $check_auth['user'];
             $this->auth["perm"]  = $user->perms;
             $this->auth["uname"] = $user->username;
             $this->auth["auth_plugin"]  = $user->auth_plugin;
@@ -798,16 +797,18 @@ class Seminar_Register_Auth extends Seminar_Auth {
         }
 
         // alle Checks ok, Benutzer registrieren...
+        $hasher = UserManagement::getPwdHasher();
         $new_user = new User();
         $new_user->username = $username;
         $new_user->perms = 'user';
-        $new_user->password = md5(Request::get('password'));
+        $new_user->password = $hasher->HashPassword(Request::get('password'));
         $new_user->vorname = $Vorname;
         $new_user->nachname = $Nachname;
         $new_user->email = $Email;
         $new_user->geschlecht = Request::int('geschlecht');
         $new_user->title_front = trim(Request::get('title_front', Request::get('title_front_chooser')));
         $new_user->title_rear = trim(Request::get('title_rear', Request::get('title_rear_chooser')));
+        $new_user->auth_plugin = 'standard';
         $new_user->store();
         if ($new_user->user_id) {
             // Abschicken der Bestaetigungsmail

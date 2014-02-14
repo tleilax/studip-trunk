@@ -194,16 +194,16 @@ if ($perm->have_perm("tutor")) {    // Navigationsleiste ab status "Tutor"
                             while ($dbrow = $dbstatement->fetch(PDO::FETCH_ASSOC)) {
                                 $my_inst[]=$dbrow['Institut_id'];
                                 if ($_SESSION['links_admin_data']['srch_inst'] == $dbrow['Institut_id'])
-                                    echo"<option selected value=\"".$dbrow['Institut_id']."\">".substr($dbrow['Name'], 0, 30)."</option>";
+                                    echo"<option selected value=\"".$dbrow['Institut_id']."\">".htmlReady(substr($dbrow['Name'], 0, 30))."</option>";
                                 else
-                                    echo"<option value=\"".$dbrow['Institut_id']."\">".substr($dbrow['Name'], 0, 30)."</option>";
+                                    echo"<option value=\"".$dbrow['Institut_id']."\">".htmlReady(substr($dbrow['Name'], 0, 30))."</option>";
                                 if ($dbrow['is_fak']) {
                                     $db2query = "SELECT Institut_id, Name FROM Institute WHERE fakultaets_id='" .$dbrow['Institut_id'] . "' AND institut_id!='" .$dbrow['Institut_id'] . "' ORDER BY Name";
                                     foreach (DBManager::get()->query($db2query) as $dbrow2) {
                                         if ($_SESSION['links_admin_data']['srch_inst'] == $dbrow2['Institut_id'])
-                                            echo"<option selected value=\"".$dbrow2['Institut_id']."\">&nbsp;&nbsp;&nbsp;".substr($dbrow2['Name'], 0, 30)."</option>";
+                                            echo"<option selected value=\"".$dbrow2['Institut_id']."\">&nbsp;&nbsp;&nbsp;".htmlReady(substr($dbrow2['Name'], 0, 30))."</option>";
                                         else
-                                            echo"<option value=\"".$dbrow2['Institut_id']."\">&nbsp;&nbsp;&nbsp;".substr($dbrow2['Name'], 0, 30)."</option>";
+                                            echo"<option value=\"".$dbrow2['Institut_id']."\">&nbsp;&nbsp;&nbsp;".htmlReady(substr($dbrow2['Name'], 0, 30))."</option>";
                                         $my_inst[]=$dbrow2['Institut_id'];
                                     }
                                 }
@@ -248,9 +248,9 @@ if ($perm->have_perm("tutor")) {    // Navigationsleiste ab status "Tutor"
 
                                 while ($dbrow = $dbstatement->fetch(PDO::FETCH_ASSOC)){
                                     if ($_SESSION['links_admin_data']['srch_fak'] == $dbrow['Institut_id'])
-                                        echo"<option selected value=\"".$dbrow['Institut_id']."\">".substr($dbrow['Name'], 0, 30)."</option>";
+                                        echo"<option selected value=\"".$dbrow['Institut_id']."\">".htmlReady(substr($dbrow['Name'], 0, 30))."</option>";
                                     else
-                                        echo"<option value=\"".$dbrow['Institut_id']."\">".substr($dbrow['Name'], 0, 30)."</option>";
+                                        echo"<option value=\"".$dbrow['Institut_id']."\">".htmlReady(substr($dbrow['Name'], 0, 30))."</option>";
                                 }
                                 ?>
                             </select>
@@ -558,8 +558,6 @@ if ($perm->have_perm("tutor")) {    // Navigationsleiste ab status "Tutor"
                 case "raumzeit.php":
                     printf(_("Zeiten / Räume") . "<br>%s", LinkButton::create(_('Bearbeiten'), URLHelper::getURL('', array('seminar_id' => $seminar_id))));
                     break;
-                case "admin_admission.php":
-                    printf(_("Zugangsberechtigungen") . "<br>%s", LinkButton::create(_('Bearbeiten'), URLHelper::getLink('', array('seminar_id' => $seminar_id))));                    break;
                 case "admin_lit_list.php":
                     printf(_("Literatur") . "<br>%s", LinkButton::create(_('Bearbeiten'), URLHelper::getURL('', array('_range_id'=> $seminar_id))));
                     break;
@@ -678,8 +676,15 @@ if ($perm->have_perm("tutor")) {    // Navigationsleiste ab status "Tutor"
                     } elseif ($this instanceof Course_PlusController){
                         echo _("Inhaltselemente") . '<br>',
                             LinkButton::create(_("Bearbeiten"), $this->url_for('course/plus/index/' . $seminar_id));
+                    } elseif ($this instanceof Course_AdmissionController){
+                        echo _("Zugangsberechtigungen") . '<br>',
+                        LinkButton::create(_("Bearbeiten"), $this->url_for('course/admission/index/' . $seminar_id));
                     }
                     break;
+                default:
+                    echo _(PageLayout::getTitle())."<br>";
+                    echo  LinkButton::create(_("Bearbeiten"), URLHelper::getLink('', array("range_id" => $seminar_id)));
+                
             }
             echo "</tr>";
         }

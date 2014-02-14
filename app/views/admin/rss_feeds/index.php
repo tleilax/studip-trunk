@@ -16,9 +16,12 @@ use Studip\Button, Studip\LinkButton;
          .'ist die Ladezeit der Startseite für Sie!') ?>
 </p>
 
+<? if (empty($feeds)): ?>
+<?= MessageBox::info(_('Es existieren zur Zeit keine eigenen RSS-Feeds.')) ?>
+<? else: ?>
 <form action="<?= $controller->url_for('admin/rss_feeds/update') ?>" method="post">
     <?= CSRFProtection::tokenTag() ?>
-    <table class="default">
+    <table class="default nohover">
         <colgroup>
             <col width="50px">
             <col width="50%">
@@ -26,13 +29,6 @@ use Studip\Button, Studip\LinkButton;
             <col width="70px">
         </colgroup>
         <tbody>
-        <? if (empty($feeds)): ?>
-            <tr class="<?= TextHelper::cycle('table_row_odd', 'table_row_even') ?>">
-                <td colspan="4" style="font-weight: bold;">
-                    <?= _('Es existieren zur Zeit keine eigenen RSS-Feeds.') ?>
-                </td>
-            </tr>
-        <? endif; ?>
         <? foreach ($feeds as $index => $feed): ?>
             <tr class="<?= $cycle = TextHelper::cycle('table_row_odd', 'table_row_even') ?>">
                 <td>
@@ -49,7 +45,7 @@ use Studip\Button, Studip\LinkButton;
                         <?= _('Namen des Feeds holen') ?>
                     </label>
                 </td>
-                <td rowspan="2">
+                <td>
                 <? if ($index): ?>
                     <a href="<?= $controller->url_for('admin/rss_feeds/move/' . $feed->id. '/up') ?>">
                         <?= Assets::img('icons/16/yellow/arr_2up.png',
@@ -85,7 +81,7 @@ use Studip\Button, Studip\LinkButton;
                         <?= _('Aktiv') ?>
                     </label>
                 </td>
-                </td>
+                <td>&nbsp;</td>
             </tr>
         <? endforeach; ?>
         </tbody>
@@ -100,3 +96,4 @@ use Studip\Button, Studip\LinkButton;
     <? endif; ?>
     </table>
 </form>
+<? endif; ?>

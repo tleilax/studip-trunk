@@ -12,13 +12,13 @@
  */
 
 require_once 'studip_cli_env.inc.php';
-require_once 'lib/files/File.php';
-require_once 'lib/files/StudipDirectory.php';
+//require_once 'lib/files/File.php';
+//require_once 'lib/files/StudipDirectory.php';
 
-$root = StudipDirectory::getRootDirectory(md5('foo'));
+//$root = StudipDirectory::getRootDirectory(md5('foo'));
 
 // create a test folder and file
-$folder_entry = $root->mkdir('folder');
+$folder_entry = $root->mkdir('folder', 0);
 $folder_entry->setDescription('test folder');
 $folder = $folder_entry->getFile();
 

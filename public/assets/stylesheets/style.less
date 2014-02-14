@@ -12,12 +12,14 @@
 
 @import "less/links.less";
 @import "less/tables.less";
+@import "less/forms.less";
 @import "less/content.less";
 
 @import "less/layouts.less";
 @import "less/header.less";
 @import "less/navigation.less";
 @import "less/infobox.less";
+@import "less/content_box.less";
 @import "less/badges.less";
 
 @import "less/ajax.less";
@@ -37,6 +39,7 @@
 @import "less/contacts.less";
 @import "less/cronjobs.less";
 @import "less/evaluation.less";
+@import "less/news.less";
 @import "less/schedule.less";
 @import "less/study-area-selection.less";
 @import "less/wiki.less";
@@ -45,6 +48,8 @@
 
 @import "less/mobile.less";
 @import "less/pagination.less";
+@import "less/admission.less";
+@import "less/enrolment.less";
 
 /* --- Schrift (Vorgaben: Typ, Größe, Farbe) -------------------------------- */
 body, input, textarea {
@@ -70,7 +75,6 @@ h1, h2, h3 { font-weight: normal; }
 h1,h2,h3,h4,h5,h6 {
     color: #444444;
     border-bottom: 2px solid rgba(0,0,0,0.2);
-    width: 80%;
 }
 h1 {
     margin-top: 0px;
@@ -239,17 +243,11 @@ div.overdiv {
 .editor_toolbar {
     display: inline-block;
     font-size: 0.75em;
-    position: relative;
 
     .buttons {
         .clearfix();
         margin: 0 !important;  // Locked since .buttons is pretty generic
         padding: 0 !important; // and other styles could easily interfere
-
-        position: absolute;    // Stretch the buttons above the element
-        left: 0;
-        right: 0;
-        top: 0;
 
         border-spacing: 0; // Chrome needs this
 
@@ -517,4 +515,14 @@ div.info { padding-left: 1%; }
     .table_footer td {
         text-align: center;
     }
+}
+
+.no-js .hidden-no-js{
+    display:none;
+}
+.js .hidden-js{
+    display: none;
+}
+.no-js #enrollment ul{
+    cursor: auto;
 }
