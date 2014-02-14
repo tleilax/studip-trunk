@@ -151,7 +151,7 @@ class StudipDirectory extends File
      *
      * @return DirectoryEntry  created DirectoryEntry object
      */
-    public static function link(File $file, $name)
+    public function link(File $file, $name)
     {
         $db = DBManager::get();
 
@@ -195,7 +195,7 @@ class StudipDirectory extends File
      * @param int $parent_id place in folder hierarchy
      *
      */
-    public function mkdir($name, $parent_id)
+    public function mkdir($name)
     {
         $db = DBManager::get();
 
