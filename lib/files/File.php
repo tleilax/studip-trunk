@@ -16,7 +16,7 @@
 
 class File // extends SimpleORMap
 {
-    public $id;
+    public $file_id;
     public $user_id;
     public $mime_type;
     public $size;
@@ -45,7 +45,6 @@ class File // extends SimpleORMap
         $stmt = $db->prepare('SELECT * FROM files WHERE file_id = ?');
         $stmt->execute(array($id));
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        //var_dump($result);
         if ($result === false) {
             return new RootDirectory($id);
         }
@@ -80,7 +79,7 @@ class File // extends SimpleORMap
      */
     public function __construct($id)
     {
-        $this->id = $id;
+        $this->file_id = $id;
         $this->storage = 'DiskFileStorage'; // TODO: Hardcoded storage type
     }
 
@@ -96,10 +95,10 @@ class File // extends SimpleORMap
         }
 
         $stmt = $db->prepare('DELETE FROM file_refs WHERE file_id = ?');
-        $stmt->execute(array($this->id));
+        $stmt->execute(array($this->file_id));
 
         $stmt = $db->prepare('DELETE FROM files WHERE file_id = ?');
-        $stmt->execute(array($this->id));
+        $stmt->execute(array($this->file_id));
     }
 
     /**
@@ -119,7 +118,7 @@ class File // extends SimpleORMap
      */
     public function getId()
     {
-        return $this->id;
+        return $this->file_id;
     }
 
     /**
@@ -289,5 +288,17 @@ class File // extends SimpleORMap
 
         $stmt = $db->prepare('UPDATE files SET mkdate = ?, mime_type = ?, chdate = ?, size = ? WHERE file_id = ?');
         $stmt->execute(array($this->mkdate, $this->mime_type, $this->chdate, $this->size, $this->id));
+    }
+    
+    //Is this function really needed?
+    public static function getRefIDFromParent($file_id)
+    {
+        $db = DBManager::get();
+        $stmt = $db->prepare('SELECT id FROM file_refs WHERE file_id = ?');
+        $stmt->execute(array($file_id));
+        foreach($stmt as $row) {
+            $result = $row;
+        }
+        return $result['id'];
     }
 }

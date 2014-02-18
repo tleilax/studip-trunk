@@ -32,7 +32,6 @@ class DirectoryEntry // extends SimpleORMap
     public function __construct($id)
     {
         $db = DBManager::get();
-
         $stmt = $db->prepare('SELECT * FROM file_refs WHERE id = ?');
         $stmt->execute(array($id));
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
