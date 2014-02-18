@@ -17,7 +17,7 @@ STUDIP.Document = {
     	    title: typ + " teilen",
     	    draggable: false,
     	    resizable: false,
-    	    position: 'top+17%',
+    	    position: 'top+16%',
     	    width: 500,
     	    dialogClass: "ui-doc-dialog"
  		});
@@ -35,28 +35,37 @@ STUDIP.Document = {
     	    title: typ + " bearbeiten",
     	    draggable: false,
     	    resizable: false,
-            position: 'top+17%',
+            position: 'top+16%',
      	    width: 500,
     	    dialogClass: "ui-doc-dialog"
  		});
     },
     
-    verwalten: function(id,ref) {
-        var div = document.getElementById("modalDialog");
+    upload: function() {
+    	var div = document.getElementById("upload");
     	div.style.visibility = "visible";
     	
-    	var inhalt = $.parseJSON(ref);
-    	var typ = inhalt[id][2];
-    	
-    	$("div#modalDialog").dialog({
+    	//var inhalt = $.parseJSON(ref);
+    	//var typ = inhalt[id][2];
+    	    
+    	$("div#upload").dialog({
     	    modal: true,
-    	    title: typ + " verwalten",
+    	    title: "Datei hochladen",
     	    draggable: false,
     	    resizable: false,
-            position: 'top+17%',
-    	    width: 500,
-    	    dialogClass: "ui-doc-dialog"
- 		});	
+            position: 'top+16%',
+    	    width: 600,
+    	    dialogClass: "ui-doc-dialog",
+    	    buttons: {
+    	    	"Übernehmen": function() {
+    	    		
+    	    	},
+    	    	"Abbrechen": function() {
+    	    		$("div#upload").dialog("close");
+    	    	}
+    	    }
+ 		}).prev().find(".ui-dialog-titlebar-close").hide();
+    
     },
     
     loeschen: function(id,ref) {
@@ -71,12 +80,12 @@ STUDIP.Document = {
     	    title: typ + " löschen",
     	    draggable: false,
     	    resizable: false,
-            position: 'top+17%',
+            position: 'top+16%',
     	    width: 500,
     	    dialogClass: "ui-doc-dialog"
  		});
     },
-
+    
     melden: function() {
     	var div = document.getElementById("message");
     	div.style.visibility = "visible";
@@ -86,7 +95,7 @@ STUDIP.Document = {
     	    title: "Meldung",
     	    draggable: false,
     	    resizable: false,
-    	    position: 'top+17%',
+    	    position: 'top+16%',
     	    width: 500,
     	    dialogClass: "ui-doc-dialog",
 

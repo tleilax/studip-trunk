@@ -1,28 +1,8 @@
-<!DOCTYPE html>
-      
 <html>
 
  <head>	 
- 	 
-  <!-- Internet Explorer HTML5 enabling script: -->
-	 
-  <!--[if IE]>
-	 
-      <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-	  <style type="text/css">
-	 
-	   .clear 
-	       {
-	        zoom: 1;
-	        display: block;
-	       }
-	 
-	   </style>
-	 
-  <![endif]-->
-  
-  
-  <!--  Definition von Ausgabe-Funktionen -->
+ 	   
+  <!-- Definition von Ausgabe-Funktionen -->
  
   <?php
        
@@ -77,10 +57,10 @@
      
         print Assets::img("icons/16/blue/folder-full.png");
         tab(1);
-        print '<span style="font-size:1.4em; color:#444">'. "Persönlicher Dateibereich". '</span>';
+        print '<span style="font-size:1.4em; color:#444">'. _("Persönlicher Dateibereich"). '</span>';
         print '<br>';
         tab(5);
-        print '<span style="font-size:11px; color:#444;">'. "Möglicher Beschreibungstext des Dateibereichs". '</span>';
+        print '<span style="font-size:11px; color:#444;">'. _("Möglicher Beschreibungstext des Dateibereichs"). '</span>';
         
        ?>     
         
@@ -147,7 +127,7 @@
            
       $max = $flash['count'];
     
-      if ($max == 0):
+      if ($max == -1):
       
      ?>
      
@@ -169,7 +149,7 @@
      
       else:
       
-       for ($i = 1; $i <= $max; $i++):
+       for ($i = 0; $i <= $max; $i++):
 
         $id = $flash['inhalt'][$i][0];
       
@@ -224,7 +204,7 @@
       
        <td> <?= $flash['inhalt'][$i][6] ?> </td>
        
-       <td> 
+       <td style="text-align:center;"> 
          
         <?php
    
@@ -232,35 +212,35 @@
                     
          ?>
             
-        <a id="<?= $id ?>" href="#" onClick="STUDIP.Document.freigeben(this.id,ref);" title="Freigeben">       
+        <!-- <a id="<?//= $id ?>" href="#" onClick="STUDIP.Document.freigeben(this.id,ref);" title="Freigeben"> -->       
                               
          <?php
              
-          print Assets::img("icons/16/blue/persons.png"); 
-          tab(2);
+          //print Assets::img("icons/16/blue/persons.png"); 
+          //tab(2);
                  
          ?>
        
         </a>
-                        
+                
         <a id="<?= $id ?>" href="#" onClick="STUDIP.Document.bearbeiten(this.id,ref);" title="Bearbeiten">
     
          <?php
 
-          print Assets::img("icons/16/blue/visibility-checked.png"); 
+          print Assets::img('icons/16/blue/visibility-checked.png'); 
           tab(2);
              
          ?>
        
         </a>
         
-        <a id="<?= $id ?>" href="#" onClick="STUDIP.Document.verwalten(this.id,ref);" title="Verwalten">
-         
+        <a id="<?= $id ?>" href="#" onClick="STUDIP.Document.bearbeiten(this.id,ref);" title="Herunterladen">
+    
          <?php
-             
-          print Assets::img("icons/16/blue/archive3.png"); 
+
+          print Assets::img('icons/16/blue/download.png'); 
           tab(2);
-                 
+             
          ?>
        
         </a>
@@ -269,7 +249,7 @@
          
          <?php
              
-          print Assets::img("icons/16/blue/trash.png");
+          print Assets::img('icons/16/blue/trash.png');
               
          ?>
         
@@ -335,19 +315,19 @@
 	  array("kategorie" => _("Aktionen:"),
 	        "eintrag" => array(
 	          array('icon' => '/images/icons/16/black/upload.png', 
-	                'text' => "<a href=\"". $controller->url_for("document/dateien/verwalten/$type"). "\">".
-	                          _("Datei / Ordner hochladen")."</a>"),
+	                'text' => "<a href=\"#\"". "onClick=\"STUDIP.Document.upload()\"". ">". 
+	                          _('Datei hochladen')."</a>"),
 	          array('icon' => '/images/icons/16/black/add/folder-empty.png', 
 	                'text' => "<a href=\"". $controller->url_for("document/dateien/verwalten/$type"). "\">".
-	                          _("Neuen Ordner erstellen")."</a>"),
+	                          _('Neuen Ordner erstellen')."</a>"),
               array('icon' => '/images/icons/16/black/comment.png', 
                     'text' => "<a href=\"". $controller->url_for("document/dateien/verwalten/$type"). "\">".
-	                          _("Dateibereich beschreiben")."</a>"), //_("Dateibereich konfigurieren")."</a>"),
+	                          _('Dateibereich beschreiben')."</a>"), //_("Dateibereich konfigurieren")."</a>"),
               //array('icon' => '/images/icons/16/blue/persons.png', 
               //      'text' => 'Dateibereich teilen'),
               array('icon' => '/images/icons/16/black/trash.png', 
                     'text' => "<a href=\"". $controller->url_for("document/dateien/loeschen/bereich"). "\">".
-	                          _("Dateibereich löschen")."</a>"))),
+	                          _('Dateibereich löschen')."</a>"))),
 	  //array('kategorie' => _('Suche:'),
 	  //      'eintrag' => array(
 	  //        array('icon' => 'icons/16/black/search.png', 
@@ -355,11 +335,11 @@
 	  array('kategorie' => _('Export:'),
 	        'eintrag' => array(
 	          array('icon' => 'icons/16/black/download.png', 
-	                'text' => "Dateibereich herunterladen"))),
+	                'text' => _('Dateibereich herunterladen')))),
 	  array('kategorie' => _('Information:'),
 	        'eintrag' => array(
 	          array('icon' => 'icons/16/black/info.png', 
-	                'text' => "Quota: ". $flash['quota']. "- belegt: 0%")))
+	                'text' => _('Quota: '). $flash['quota']. " - ". _('belegt: 0%'))))
       );
    
     ?>
@@ -400,27 +380,27 @@
 		  
  	  <?php
               
-       print Assets::img("icons/48/blue/folder-full.png");
+       print Assets::img('icons/48/blue/folder-full.png');
        cr(2);
-       print "<b> Informationen </b>";       
+       print '<b>'. _('Informationen:'). '</b>';       
        cr(1);
-       print "Root-Verzeichnis";
+       print 'Root-Verzeichnis';
+       cr(2);
+       print '<b>'. _('Größe:'). '</b>';
        cr(1);
-       print "<b> Größe: </b>";
+       print '1 MB';
+       cr(2);
+       print '<b>'. _('Erstellt:'). '</b>';
        cr(1);
-       print "1 MB";
+       print '16.10.2013 - 14:10';
+       cr(2);
+       print '<b>'. _('Geändert:'). '</b>';
        cr(1);
-       print "<b> Erstellt: </b>";
+       print '16.10.2013 - 14:10';
+       cr(2);
+       print '<b>'. _('Autor/in:'). '</b>';
        cr(1);
-       print "16.10.2013 - 14:10";
-       cr(1);
-       print "<b> Geändert: </b>";
-       cr(1);
-       print "16.10.2013 - 14:10";
-       cr(1);
-       print "<b> Autor/in: </b>";
-       cr(1);
-       print "Martin Mustermann";
+       print 'Martin Mustermann';
           
       ?>
        
@@ -430,7 +410,7 @@
               
       <?php
         
-       line(14);
+       line(18);
            
        ?> 
        
@@ -456,9 +436,25 @@
            
           <?php
            
-           print Assets::img("icons/16/blue/edit.png"); 
+           print Assets::img('icons/16/blue/upload.png'); 
            tab(2);
-           print "<b> Beschreiben </b>";
+           print '<b>'. _('Aktualisieren'). '</b>';
+            
+          ?>
+           
+         </td>
+          
+        </tr>
+        
+        <tr>
+           
+         <td style="border-bottom:0px;">
+           
+          <?php
+           
+           print Assets::img('icons/16/blue/edit.png'); 
+           tab(2);
+           print '<b>'. _('Bearbeiten'). '</b>';
             
           ?>
            
@@ -472,9 +468,9 @@
            
           <?php
             
-           print Assets::img("icons/16/blue/arr_2up.png"); 
+           print Assets::img('icons/16/blue/arr_2up.png'); 
            tab(2);
-           print "<b> Verschieben </b>";
+           print '<b>'. _('Verschieben'). '</b>';
             
           ?>
            
@@ -490,9 +486,9 @@
                      
            <?php
     
-            print Assets::img("icons/16/blue/export.png"); 
+            print Assets::img('icons/16/blue/export.png'); 
             tab(2);
-            print "<b> Kopieren </b>";
+            print '<b>'. _('Kopieren'). '</b>';
             
            ?>
            
@@ -512,6 +508,139 @@
 	 
    </table>
    
+  </div> 
+  
+  <div id="upload" style="visibility:collapse;" class="ui-doc-dialog">
+ 
+   <table>
+		  
+    <tr>
+		
+	 <td style="vertical-align:top;">
+		  
+ 	  <?php
+              
+       print Assets::img('icons/48/blue/folder-full.png');
+       cr(2);
+       print '<b>'. _('Upload-Ordner:'). '</b>';  
+       cr(1);
+       print 'Root-Verzeichnis';
+       cr(2);
+       print '<b>'. _('Unzulässige Dateitypen:'). '</b>';
+       cr(1);
+       print 'EXE';
+       cr(2);
+       print '<b>'. _('Maximale Größe:'). '</b>';
+       cr(1);
+       print '7 MB';
+       cr(2);
+       print '<b>'. _('Autor/in'). '</b>';
+       cr(1);
+       print 'Martin Mustermann';
+          
+      ?>
+       
+     </td>
+       
+     <td style="vertical-align:top; padding-left:15px;"> 
+              
+      <?php
+        
+       line(15);
+           
+       ?> 
+       
+     </td>
+        
+     <td style="vertical-align:top; padding-left:15px; width:72%;">
+        
+      <table>
+          
+       <colgroup>
+          
+        <col style="width:100%;">
+           
+       </colgroup>
+          
+       <thead> </thead>
+          
+       <tbody>
+          
+        <tr>
+           
+         <td style="border-bottom:0px;">
+                    
+          <?php
+           
+           //print _("1. Klicken Sie auf <b>'Durchsuchen...'</b>, um eine Datei auszuw&auml;hlen");
+           //cr(2);
+           //print _("Dateipfad:");
+              
+          ?>
+          
+          <form enctype="multipart/form-data"
+                method="post"
+                action="<?//= $controller->url_for("document/dateien/upload/$item/$envDir/$subDir") ?>">  
+       
+           <?= CSRFProtection::tokenTag() ?>
+           
+           <p>
+           
+            <input name="upfile" type="file" required="required"/>
+           
+           </p>
+           
+           <p>
+           
+            <input type="text" name="filename" value=" Name" size="59" required="required"/> 
+                      
+           </p>
+           
+           <p>
+           
+            <textarea cols="45" rows="3" name="description"> Beschreibung</textarea>
+           
+           </p>
+           
+           <p>
+           
+            <input type="radio" name="protected" checked="checked" value="0">
+           
+            <?php
+          
+             print _("Ja, dieses Dokument ist frei von Rechten Dritter.");
+             cr(1);
+           
+            ?>
+                   
+            <input type="radio" name="protected" value="1">
+          
+            <?php
+          
+             print _("Nein, dieses Dokument ist <u>nicht</u> frei von Rechten Dritter.");
+           
+            ?>
+            
+           </p>
+          
+           <!-- <input type="submit" name="upload" value="hochladen" /> -->
+  
+          </form>
+              
+         </td>
+         
+        </tr>
+               
+       </tbody>
+         
+      </table>
+        
+     </td>
+	   
+    </tr>
+	 
+   </table>
+  
   </div>
   
   <!-- Meldungen: -->
