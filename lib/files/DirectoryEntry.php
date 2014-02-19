@@ -152,4 +152,16 @@ class DirectoryEntry // extends SimpleORMap
     {
         // TODO not implemented yet (do we really need this?)
     }
+    
+    /**
+     * Set the new parent_id.
+     *
+     * @param File $source source to be moved  
+     *     
+    */
+    public function move(File $source){
+        $db = DBManager::get();
+        $stmt = $db->prepare('UPDATE file_refs SET parent_id = :newParent_id WHERE file_id = :file_id');
+        $stmt->execute(array('newParent_id' => $this->file_id, 'file_id' => $source->file_id));
+    }
 }

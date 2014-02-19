@@ -93,7 +93,8 @@ class StudipDirectory extends File
             return $folder;
         }
     }
-
+    
+    
     /**
      * Return the entry with the given name in this directory,
      * if one exists (returns NULL otherwise).
