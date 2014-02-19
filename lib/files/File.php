@@ -296,9 +296,7 @@ class File // extends SimpleORMap
         $db = DBManager::get();
         $stmt = $db->prepare('SELECT id FROM file_refs WHERE file_id = ?');
         $stmt->execute(array($file_id));
-        foreach($stmt as $row) {
-            $result = $row;
-        }
-        return $result['id'];
+        $result = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        return $result['0'];
     }
 }

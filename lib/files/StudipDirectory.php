@@ -66,6 +66,7 @@ class StudipDirectory extends File
      */
     public function copy(File $source, $name)
     {
+        if($source->storage_id != ''){
         $new_entry = $this->create($name);
         $new_file = $new_entry->getFile();
         $source_fp = $source->open('rb');
@@ -77,12 +78,20 @@ class StudipDirectory extends File
         }
         fclose($dest_fp);
         fclose($source_fp);
-
         // copy some attributes
         $new_file->setMimeType($source->getMimeType());
         $new_file->setRestricted($source->isRestricted());
-
         return $new_entry;
+        }else{
+            $newFolder = $this->mkdir($name);
+            $folder = StudipDirectory::get($newFolder->file_id);
+            $entrys = $source->listFiles();
+            foreach($entrys as $entry){
+                $file = File::get($entry->file_id);
+                $folder->copy($file, $entry->name);
+            }
+            return $folder;
+        }
     }
 
     /**
@@ -97,7 +106,7 @@ class StudipDirectory extends File
     {
         $db = DBManager::get();
         $stmt = $db->prepare('SELECT id FROM file_refs WHERE parent_id = ? AND name = ?');
-        $stmt->execute(array($this->id, $name));
+        $stmt->execute(array($this->file_id, $name));
         $id = $stmt->fetchColumn();
 
         return $id ? new DirectoryEntry($id) : NULL; // should this throw an error on failure?
@@ -123,7 +132,7 @@ class StudipDirectory extends File
         $db = DBManager::get();
 
         $stmt = $db->prepare('SELECT COUNT(id) FROM file_refs WHERE parent_id = ?');
-        $stmt->execute(array($this->id));
+        $stmt->execute(array($this->file_id));
         $count = $stmt->fetchColumn();
 
         return $count == 0;
