@@ -1,0 +1,175 @@
+<?php
+/**
+ * multipersonsearch.php - trails-controller for MultiPersonSearch
+ * 
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * he License, or (at your option) any later version.
+ * 
+ * @author      Sebastian Hobert <sebastian.hobert@uni-goettingen.de>
+ * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
+ * @category    Stud.IP
+ */
+require_once 'app/controllers/authenticated_controller.php';
+
+class MultipersonsearchController extends AuthenticatedController {
+    
+    /**
+     * Ajax action used for searching persons.
+     * 
+     * @param $name string name of MultiPersonSearch object
+     * @param $searchterm string searchterm
+     */
+    public function ajax_search_action($name, $searchterm) {
+        $searchterm = str_replace(",", "", $searchterm);
+        $searchterm = str_replace(" ", "", $searchterm);
+        
+        // execute searchobject
+        $mp = MultiPersonSearch::load($name);
+        $searchObject = $mp->getSearchObject();
+        $result = $searchObject->getResults($searchterm, array("cid" => Request::get('cid')));
+        //$result = PermissionSearch::get('user')->getResults($searchterm, array('permission' => array('autor','tutor','dozent','admin','root'), 'exclude_user' => array())); 
+        
+        $this->result = new SimpleCollection(User::findMany($result));
+        $this->result->orderBy("nachname asc, vorname asc");
+        $this->render_template('multipersonsearch/ajax.php');
+    }
+    
+    /**
+     * Action which is used for handling all submits for no-JavaScript
+     * users:
+     * * searching,
+     * * adding a person,
+     * * removing a person,
+     * * selcting a quickfilter,
+     * * aborting,
+     * * saving.
+     * 
+     * This needs to be done in one single action to provider a similar
+     * usability for no-JavaScript users as for JavaScript users.
+     */
+    public function no_js_form_action() {
+        $this->name = Request::get("name");
+        $mp = MultiPersonSearch::load($this->name);
+        
+        $this->selectableUsers = array();
+        $this->selectedUsers = array();
+        $this->search = Request::get("freesearch");
+        
+        $previousSelectableUsers = unserialize(studip_utf8decode(Request::get('search_persons_selectable_hidden')));
+        $previousSelectedUsers = unserialize(studip_utf8decode(Request::get('search_persons_selected_hidden')));
+        
+        // restore quickfilter
+        //$this->quickfilterIDs = $_SESSION['multipersonsearch_' . $this->name . '_quickfilterIds'];
+        $this->quickfilterIDs = $mp->getQuickfilterIds();
+        foreach($this->quickfilterIDs as $title=>$array) {
+            $this->quickfilter[] = $title;
+        }
+        
+        // abort
+        if (Request::submitted('abort')) {
+            //$_SESSION['multipersonsearch_status'] = 'aborted';
+            $this->redirect($_SESSION['multipersonsearch_' . $this->name . '_pageURL']);
+        }
+        // search
+        elseif (Request::submitted('submit_search')) {
+            // evaluate search
+            $this->selectedUsers = User::findMany($previousSelectedUsers);
+            //$result = PermissionSearch::get('user')->getResults($this->search, array('permission' => array('autor','tutor','dozent','admin','root'), 'exclude_user' => $previousSelectedUsers)); 
+            //$searchObject = unserialize($_SESSION['multipersonsearch_' . $this->name . '_searchObject']);
+            $searchObject = $mp->getSearchObject();
+            $result = $searchObject->getResults($searchterm, array("cid" => Request::get('cid')));
+            
+            $this->selectableUsers = User::findMany($result); 
+        }
+        // quickfilter
+        elseif (Request::submitted('submit_search_preset')) {
+            $this->selectedUsers = User::findMany($previousSelectedUsers);
+            $this->selectableUsers = User::findMany($this->quickfilterIDs[Request::get('search_preset')]);
+            foreach ($this->selectableUsers as $key=>$user) {
+                if (in_array($user->id, $previousSelectedUsers)) {
+                    unset($this->selectableUsers[$key]);
+                }
+            }
+        }
+        // add user
+        elseif (Request::submitted('search_persons_add')) {
+            // add users
+            foreach (Request::optionArray('search_persons_selectable') as $userID) {
+                if (($key = array_search($userID, $previousSelectableUsers)) !== false) {
+                    unset($previousSelectableUsers[$key]);
+                }
+                $previousSelectedUsers[] = $userID;
+            }
+            
+            $this->selectedUsers = User::findMany($previousSelectedUsers);
+            $this->selectableUsers = User::findMany($previousSelectableUsers);
+        }
+        // remove user
+        elseif (Request::submitted('search_persons_remove')) {
+            // remove users
+            foreach (Request::optionArray('search_persons_selected') as $userID) {
+                if (($key = array_search($userID, $previousSelectedUsers)) !== false) {
+                    unset($previousSelectedUsers[$key]);
+                }
+                $previousSelectableUsers[] = $userID;
+            }
+            
+            $this->selectedUsers = User::findMany($previousSelectedUsers);
+            $this->selectableUsers = User::findMany($previousSelectableUsers);
+        }
+        // save
+        elseif (Request::submitted('save')) {
+            //$_SESSION['multipersonsearch_' . $this->name . '_status'] = 'save';
+            // find added users
+            $addedUsers = array();
+            $defaultSelectedUsersIDs = $searchObject = $mp->getDefaultSelectedUsersIDs();
+            foreach ($previousSelectedUsers as $selected) {
+                if (!in_array($selected, $defaultSelectedUsersIDs)) {
+                    $addedUsers[] = $selected;
+                }
+            }
+            // find removed users
+            $removedUsers = array();
+            foreach ($defaultSelectedUsersIDs as $default) {
+                if (!in_array($default, $previousSelectedUsers)) {
+                    $removedUsers[] = $default;
+
+                }
+            }
+            $_SESSION['multipersonsearch_' . $this->name . '_selected'] = $previousSelectedUsers;
+            $_SESSION['multipersonsearch_' . $this->name . '_added'] = $addedUsers;
+            $_SESSION['multipersonsearch_' . $this->name . '_removed'] = $removedUsers;
+            // redirect to action which handles the form data
+            $this->redirect($_SESSION['multipersonsearch_' . $this->name . '_executeURL']);
+        }
+        // default
+        else {
+            // get selected and selectable users from SESSION
+            $this->defaultSelectableUsersIDs = $mp->getDefaultSelectableUsersIDs(); //$_SESSION['multipersonsearch_' . $this->name . '_defaultSelectableUsersIDs'];
+            $this->defaultSelectedUsersIDs = $mp->getDefaultSelectedUsersIDs(); //$_SESSION['multipersonsearch_' . $this->name . '_defaultSelectedUsersIDs'];
+            $this->selectableUsers = User::findMany($this->defaultSelectableUsersIDs);
+            $this->selectedUsers = User::findMany($this->defaultSelectedUsersIDs);
+        }
+        
+        // save selected/selectable users in hidden form fields
+        $this->selectableUsers = new SimpleCollection($this->selectableUsers);
+        $this->selectableUsers->orderBy("nachname asc, vorname asc");
+        $this->selectableUsersHidden =  $this->selectableUsers->pluck('id'); 
+        $this->selectedUsers = new SimpleCollection($this->selectedUsers);
+        $this->selectedUsers->orderBy("nachname asc, vorname asc");
+        $this->selectedUsersHidden =  $this->selectedUsers->pluck('id'); 
+        $this->selectableUsers->orderBy('nachname, vorname');
+        $this->selectedUsers->orderBy('nachname, vorname'); 
+        
+        // set layout data
+        $this->set_layout($GLOBALS['template_factory']->open('layouts/base'));
+        $this->title = $mp->getTitle(); // $_SESSION['multipersonsearch_' . $this->name . '_title'];
+        $this->description = $mp->getDescription(); // $_SESSION['multipersonsearch_' . $this->name . '_description'];
+        $this->pageURL = $mp->getPageURL(); // $_SESSION['multipersonsearch_' . $this->name . '_pageURL'];
+        
+        
+    }
+    
+}
