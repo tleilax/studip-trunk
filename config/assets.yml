@@ -38,6 +38,7 @@ javascripts:
     - javascripts/updater.js
     - javascripts/study_area_selection.js
     - javascripts/dialog_box.js
+    - javascripts/document.js 
     - javascripts/file_system.js
     - javascripts/arbeitsgruppen.js
     - javascripts/news.js
