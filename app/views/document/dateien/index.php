@@ -55,14 +55,22 @@
       
        <?php
      
-        print Assets::img("icons/16/blue/folder-full.png");
-        tab(1);
-        print '<span style="font-size:1.4em; color:#444">'. _("Persönlicher Dateibereich"). '</span>';
-        print '<br>';
-        tab(5);
-        print '<span style="font-size:11px; color:#444;">'. _("Möglicher Beschreibungstext des Dateibereichs"). '</span>';
+        //print Assets::img('icons/16/blue/folder-full.png');
+        //tab(1);
+        //print '<span style="font-size:1.4em; color:#444">'. _("Persönlicher Dateibereich"). '</span>';
+        //print '<br>';
+        //tab(5);
+        //print '<span style="font-size:11px; color:#444;">'. _("Möglicher Beschreibungstext des Dateibereichs"). '</span>';
         
-       ?>     
+       ?>
+       
+       <?= Assets::img('icons/16/blue/folder-full.png')?>
+       <? tab(1); ?>
+       <?= '<span style="font-size:1.4em; color:#444">'. _("Persönlicher Dateibereich"). '</span>'?>
+       <?= '<br>'?>
+       <? tab(6); ?>
+       <?= '<span style="font-size:11px; color:#444;">'. _("Möglicher Beschreibungstext des Dateibereichs"). '</span>'?>
+        
         
       </td>
        
@@ -234,7 +242,7 @@
        
         </a>
         
-        <a id="<?= $id ?>" href="#" onClick="STUDIP.Document.bearbeiten(this.id,ref);" title="Herunterladen">
+        <a id="<?= $id ?>" href="#" onClick="" title="Herunterladen">
     
          <?php
 
@@ -318,15 +326,15 @@
 	                'text' => "<a href=\"#\"". "onClick=\"STUDIP.Document.upload()\"". ">". 
 	                          _('Datei hochladen')."</a>"),
 	          array('icon' => '/images/icons/16/black/add/folder-empty.png', 
-	                'text' => "<a href=\"". $controller->url_for("document/dateien/verwalten/$type"). "\">".
+	                'text' => "<a href=\"#\"". "onClick=\"STUDIP.Document.createDir()\"". ">".
 	                          _('Neuen Ordner erstellen')."</a>"),
               array('icon' => '/images/icons/16/black/comment.png', 
-                    'text' => "<a href=\"". $controller->url_for("document/dateien/verwalten/$type"). "\">".
+                    'text' => "<a href=\"#\"". "onClick=\"STUDIP.Document.edit()\"". ">".
 	                          _('Dateibereich beschreiben')."</a>"), //_("Dateibereich konfigurieren")."</a>"),
               //array('icon' => '/images/icons/16/blue/persons.png', 
               //      'text' => 'Dateibereich teilen'),
               array('icon' => '/images/icons/16/black/trash.png', 
-                    'text' => "<a href=\"". $controller->url_for("document/dateien/loeschen/bereich"). "\">".
+                    'text' => "<a href=\"#\"". "onClick=\"STUDIP.Document.loeschen(-1,'nil')\"". ">".
 	                          _('Dateibereich löschen')."</a>"))),
 	  //array('kategorie' => _('Suche:'),
 	  //      'eintrag' => array(
@@ -368,7 +376,9 @@
       
    ?>
     
-  <!-- Modale Dialoge -->  
+  <!-- Modale Dialoge -->
+ 
+  <!-- Bearbeiten -->
   
   <div id="modalDialog" style="visibility:collapse;" class="ui-doc-dialog">
 	
@@ -510,6 +520,8 @@
    
   </div> 
   
+  <!-- Datei hochladen -->
+  
   <div id="upload" style="visibility:collapse;" class="ui-doc-dialog">
  
    <table>
@@ -520,7 +532,7 @@
 		  
  	  <?php
               
-       print Assets::img('icons/48/blue/folder-full.png');
+       print Assets::img('icons/48/blue/upload.png');
        cr(2);
        print '<b>'. _('Upload-Ordner:'). '</b>';  
        cr(1);
@@ -546,7 +558,7 @@
               
       <?php
         
-       line(15);
+       line(16);
            
        ?> 
        
@@ -569,14 +581,6 @@
         <tr>
            
          <td style="border-bottom:0px;">
-                    
-          <?php
-           
-           //print _("1. Klicken Sie auf <b>'Durchsuchen...'</b>, um eine Datei auszuw&auml;hlen");
-           //cr(2);
-           //print _("Dateipfad:");
-              
-          ?>
           
           <form enctype="multipart/form-data"
                 method="post"
@@ -592,13 +596,13 @@
            
            <p>
            
-            <input type="text" name="filename" value=" Name" size="59" required="required"/> 
+            <input type="text" name="filename" value=" Name" size="50" required="required"/> 
                       
            </p>
            
            <p>
            
-            <textarea cols="45" rows="3" name="description"> Beschreibung</textarea>
+            <textarea cols="38" rows="4" name="description"> Beschreibung</textarea>
            
            </p>
            
@@ -608,7 +612,7 @@
            
             <?php
           
-             print _("Ja, dieses Dokument ist frei von Rechten Dritter.");
+             print _('Ja, dieses Dokument ist frei von Rechten Dritter.');
              cr(1);
            
             ?>
@@ -617,13 +621,16 @@
           
             <?php
           
-             print _("Nein, dieses Dokument ist <u>nicht</u> frei von Rechten Dritter.");
+             print _('Nein, dieses Dokument ist <u>nicht</u> frei von Rechten');
+             cr(1);
+             tab(5);
+             print _('Dritter.');
            
             ?>
             
            </p>
           
-           <!-- <input type="submit" name="upload" value="hochladen" /> -->
+           <!-- <p> <input type="submit" name="upload" value="hochladen"/> </p> -->
   
           </form>
               
@@ -641,6 +648,194 @@
 	 
    </table>
   
+  </div>
+  
+  <!-- Neuen Ordner erstellen -->
+  
+  <div id="createDir" style="visibility:collapse;" class="ui-doc-dialog">
+ 
+   <table>
+		  
+    <tr>
+		
+	 <td style="vertical-align:top;">
+		  
+ 	  <?php
+              
+       print Assets::img('icons/48/blue/folder-full.png');
+       cr(2);
+       print '<b>'. _('Ordner erstellen in:'). '</b>';  
+       cr(1);
+       print 'Root-Verzeichnis';
+       cr(2);
+       print '<b>'. _('Autor/in'). '</b>';
+       cr(1);
+       print 'Martin Mustermann';
+          
+      ?>
+       
+     </td>
+       
+     <td style="vertical-align:top; padding-left:15px;"> 
+              
+      <?php
+        
+       line(10);
+           
+       ?> 
+       
+     </td>
+        
+     <td style="vertical-align:top; padding-left:15px; width:70%;">
+        
+      <table>
+          
+       <colgroup>
+          
+        <col style="width:100%;">
+           
+       </colgroup>
+          
+       <thead> </thead>
+          
+       <tbody>
+          
+        <tr>
+           
+         <td style="border-bottom:0px;">
+          
+          <form enctype="multipart/form-data"
+                method="post"
+                action="<?//= $controller->url_for("document/dateien/upload/$item/$envDir/$subDir") ?>">  
+       
+           <?= CSRFProtection::tokenTag() ?>
+                  
+           <p>
+           
+            <input type="text" name="filename" value=" Name" size="50" required="required"/> 
+                      
+           </p>
+           
+           <p>
+           
+            <textarea cols="38" rows="5" name="description"> Beschreibung</textarea>
+           
+           </p>
+          
+           <!-- <p> <input type="submit" name="upload" value="hochladen"/> </p> -->
+  
+          </form>
+              
+         </td>
+         
+        </tr>
+               
+       </tbody>
+         
+      </table>
+        
+     </td>
+	   
+    </tr>
+	 
+   </table>
+   
+  </div>
+  
+  <!-- Dateibereich beschreiben -->
+  
+  <div id="edit" style="visibility:collapse;" class="ui-doc-dialog">
+ 
+   <table>
+		  
+    <tr>
+		
+	 <td style="vertical-align:top;">
+		  
+ 	  <?php
+              
+       print Assets::img('icons/48/blue/edit.png');
+       cr(2);
+       print '<b>'. _('Ordner erstellen in:'). '</b>';  
+       cr(1);
+       print 'Root-Verzeichnis';
+       cr(2);
+       print '<b>'. _('Autor/in'). '</b>';
+       cr(1);
+       print 'Martin Mustermann';
+          
+      ?>
+       
+     </td>
+       
+     <td style="vertical-align:top; padding-left:15px;"> 
+              
+      <?php
+        
+       line(10);
+           
+       ?> 
+       
+     </td>
+        
+     <td style="vertical-align:top; padding-left:15px; width:70%;">
+        
+      <table>
+          
+       <colgroup>
+          
+        <col style="width:100%;">
+           
+       </colgroup>
+          
+       <thead> </thead>
+          
+       <tbody>
+          
+        <tr>
+           
+         <td style="border-bottom:0px;">
+          
+          <form enctype="multipart/form-data"
+                method="post"
+                action="<?//= $controller->url_for("document/dateien/upload/$item/$envDir/$subDir") ?>">  
+       
+           <?= CSRFProtection::tokenTag() ?>
+           
+           <p>
+           
+            <textarea cols="38" rows="5" name="description">M&ouml;glicher Beschreibungstext des Dateibereichs</textarea>
+           
+           </p>
+          
+           <!-- <p> <input type="submit" name="upload" value="hochladen"/> </p> -->
+  
+          </form>
+              
+         </td>
+         
+        </tr>
+               
+       </tbody>
+         
+      </table>
+        
+     </td>
+	   
+    </tr>
+	 
+   </table>
+   
+  </div>
+  
+  <!-- Loeschen -->
+  
+  <div id="remove" style="visibility:collapse;" class="ui-doc-dialog">
+    
+   <?= Assets::img('icons/48/red/question-circle.png')?>
+   
+   <span id="removeItem"></span> 
+    
   </div>
   
   <!-- Meldungen: -->

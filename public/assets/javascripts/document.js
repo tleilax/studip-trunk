@@ -15,10 +15,10 @@ STUDIP.Document = {
     	$("div#modalDialog").dialog({
     	    modal: true,
     	    title: typ + " teilen",
-    	    draggable: false,
+    	    draggable: true,
     	    resizable: false,
     	    position: 'top+16%',
-    	    width: 500,
+    	    width: 550,
     	    dialogClass: "ui-doc-dialog"
  		});
     },
@@ -33,12 +33,54 @@ STUDIP.Document = {
     	$("div#modalDialog").dialog({
     	    modal: true,
     	    title: typ + " bearbeiten",
-    	    draggable: false,
+    	    draggable: true,
     	    resizable: false,
             position: 'top+16%',
-     	    width: 500,
+     	    width: 550,
     	    dialogClass: "ui-doc-dialog"
  		});
+    },
+    
+    loeschen: function(id,ref) {	    	
+    	var div = document.getElementById("remove");    	   	
+    	div.style.visibility = "visible";
+    	
+    	if (id == -1) {
+    		var typ = "Dateibereich";
+        	$("#removeItem").html("M&ouml;chten Sie Ihren <b> gesamten pers&ouml;nlichen Dateibereich </b> wirklich löschen?");
+    	}
+    	else {
+          	var inhalt = $.parseJSON(ref);
+    	    var typ = inhalt[id][2];
+    	    var name = inhalt[id][3];
+    	    
+    	    switch (typ) {
+    	        case "Datei":
+    	        	$("#removeItem").html("M&ouml;chten Sie die Datei <b>" + name + "</b> wirklich löschen?");
+    	    	    break;
+    	        case "Ordner":
+    	        	$("#removeItem").html("M&ouml;chten Sie den Ordner <b>" + name + "</b> wirklich löschen?");
+    	    	    break;
+    	    }
+    	}	    	
+    	
+    	$("div#remove").dialog({
+    	    modal: true,
+    	    title: typ + " löschen",
+    	    draggable: true,
+    	    resizable: false,
+            position: 'top+19%',
+    	    width: 550,
+    	    dialogClass: "ui-doc-dialog",
+    	    buttons: {
+    	    	"Löschen": function() {
+    	    		
+    	    	},
+    	    	"Abbrechen": function() {
+    	    		$("div#remove").dialog("close");
+    	    	}
+    	    }
+ 		}).prev().find(".ui-dialog-titlebar-close").hide();
     },
     
     upload: function() {
@@ -51,13 +93,13 @@ STUDIP.Document = {
     	$("div#upload").dialog({
     	    modal: true,
     	    title: "Datei hochladen",
-    	    draggable: false,
+    	    draggable: true,
     	    resizable: false,
             position: 'top+16%',
-    	    width: 600,
+    	    width: 550,
     	    dialogClass: "ui-doc-dialog",
     	    buttons: {
-    	    	"Übernehmen": function() {
+    	    	"Hochladen": function() {
     	    		
     	    	},
     	    	"Abbrechen": function() {
@@ -68,22 +110,58 @@ STUDIP.Document = {
     
     },
     
-    loeschen: function(id,ref) {
-    	var div = document.getElementById("modalDialog");
+    createDir: function() {
+    	var div = document.getElementById("createDir");
     	div.style.visibility = "visible";
     	
-    	var inhalt = $.parseJSON(ref);
-    	var typ = inhalt[id][2];
-    	
-    	$("div#modalDialog").dialog({
+    	//var inhalt = $.parseJSON(ref);
+    	//var typ = inhalt[id][2];
+    	    
+    	$("div#createDir").dialog({
     	    modal: true,
-    	    title: typ + " löschen",
-    	    draggable: false,
+    	    title: "Neuen Ordner erstellen",
+    	    draggable: true,
     	    resizable: false,
-            position: 'top+16%',
-    	    width: 500,
-    	    dialogClass: "ui-doc-dialog"
- 		});
+            position: 'top+17%',
+    	    width: 550,
+    	    dialogClass: "ui-doc-dialog",
+    	    buttons: {
+    	    	"Erstellen": function() {
+    	    		
+    	    	},
+    	    	"Abbrechen": function() {
+    	    		$("div#createDir").dialog("close");
+    	    	}
+    	    }
+ 		}).prev().find(".ui-dialog-titlebar-close").hide();
+    
+    },
+    
+    edit: function() {
+    	var div = document.getElementById("edit");
+    	div.style.visibility = "visible";
+    	
+    	//var inhalt = $.parseJSON(ref);
+    	//var typ = inhalt[id][2];
+    	    
+    	$("div#edit").dialog({
+    	    modal: true,
+    	    title: "Dateibereich beschreiben",
+    	    draggable: true,
+    	    resizable: false,
+            position: 'top+17%',
+    	    width: 550,
+    	    dialogClass: "ui-doc-dialog",
+    	    buttons: {
+    	    	"Übernehmen": function() {
+    	    		
+    	    	},
+    	    	"Abbrechen": function() {
+    	    		$("div#edit").dialog("close");
+    	    	}
+    	    }
+ 		}).prev().find(".ui-dialog-titlebar-close").hide();
+    
     },
     
     melden: function() {
@@ -93,9 +171,9 @@ STUDIP.Document = {
     	$("div#message").dialog({
     	    modal: true,
     	    title: "Meldung",
-    	    draggable: false,
+    	    draggable: true,
     	    resizable: false,
-    	    position: 'top+16%',
+    	    position: 'top+18%',
     	    width: 500,
     	    dialogClass: "ui-doc-dialog",
 
