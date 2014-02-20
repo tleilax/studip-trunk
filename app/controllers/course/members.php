@@ -199,6 +199,24 @@ class Course_MembersController extends AuthenticatedController
                     //$url = sprintf('<a href="%s">%s</a>', $this->url_for('course/members/add_dozent/'), sprintf(_('Neue/n %s eintragen'), $this->status_groups['dozent']));
                     //$this->addToInfobox(_('Aktionen'), $url, 'icons/16/black/add/community.png');
                     
+                    $sem = Seminar::GetInstance($this->course_id);
+                    $sem_institutes = $sem->getInstitutes();
+
+                    if (SeminarCategories::getByTypeId($sem->status)->only_inst_user) {
+                        $search_template = "user_inst_not_already_in_sem";
+                    } else {
+                        $search_template = "user_not_already_in_sem";
+                    }
+
+                    // create new search for dozent
+                    $searchtype = new PermissionSearch(
+                            $search_template, sprintf(_("%s suchen"), get_title_for_status('dozent', 1, $sem->status)), "user_id", array('permission' => 'dozent',
+                        'seminar_id' => $this->course_id,
+                        'sem_perm' => 'dozent',
+                        'institute' => $sem_institutes)
+                    );
+                    
+                    
                     // add "add dozent" to infobox
                     $mp = MultiPersonSearch::get("add_dozent")
                         ->setLinkText(sprintf(_('Neue/n %s eintragen'), $this->status_groups['dozent']))
@@ -206,16 +224,7 @@ class Course_MembersController extends AuthenticatedController
                         ->setLinkIconPath("")
                         ->setTitle("AutorIn hinzufügen")
                         ->setExecuteURL("course/members/execute_multipersonsearch_dozent")
-                        ->setSearchObject(new SQLSearch("SELECT auth_user_md5.user_id, CONCAT(" . $GLOBALS['_fullname_sql']['full'] .
-                            ", \" (\", auth_user_md5.username, \")\") as fullname " .
-                            "FROM auth_user_md5 " .
-                            "LEFT JOIN user_info ON (user_info.user_id = auth_user_md5.user_id) " .
-                            "WHERE (CONCAT(auth_user_md5.Vorname, \" \", auth_user_md5.Nachname) LIKE :input " .
-                            "OR auth_user_md5.username LIKE :input) " .
-                            "AND auth_user_md5.perms IN ('dozent') " .
-                            " AND auth_user_md5.visible <> 'never' " .
-                            "AND auth_user_md5.user_id NOT IN (SELECT user_id FROM seminar_user WHERE Seminar_id = :cid ) " .
-                            "ORDER BY Vorname, Nachname"))
+                        ->setSearchObject($searchtype)
                         ->render();
                     $this->addToInfobox(_('Aktionen'), $mp, 'icons/16/black/add/community.png');
                 }
@@ -224,6 +233,22 @@ class Course_MembersController extends AuthenticatedController
                     //$url = sprintf('<a href="%s">%s</a>', $this->url_for('course/members/add_tutor/'), sprintf(_('Neue/n %s eintragen'), $this->status_groups['tutor']));
                     //$this->addToInfobox(_('Aktionen'), $url, 'icons/16/black/add/community.png');
                     
+                    $sem = Seminar::GetInstance($this->course_id);
+                    $sem_institutes = $sem->getInstitutes();
+
+                    if (SeminarCategories::getByTypeId($sem->status)->only_inst_user) {
+                        $search_template = 'user_inst_not_already_in_sem';
+                    } else {
+                        $search_template = 'user_not_already_in_sem';
+                    }
+
+                    $searchType = new PermissionSearch(
+                            $search_template, sprintf(_('%s suchen'), get_title_for_status('tutor', 1, $sem->status)), 'user_id', array('permission' => array('dozent', 'tutor'),
+                        'seminar_id' => $this->course_id,
+                        'sem_perm' => array('dozent', 'tutor'),
+                        'institute' => $sem_institutes)
+                    );
+                    
                     // add "add tutor" to infobox
                     $mp = MultiPersonSearch::get("add_tutor")
                         ->setLinkText(sprintf(_('Neue/n %s eintragen'), $this->status_groups['tutor']))
@@ -231,16 +256,7 @@ class Course_MembersController extends AuthenticatedController
                         ->setLinkIconPath("")
                         ->setTitle("AutorIn hinzufügen")
                         ->setExecuteURL("course/members/execute_multipersonsearch_tutor")
-                        ->setSearchObject(new SQLSearch("SELECT auth_user_md5.user_id, CONCAT(" . $GLOBALS['_fullname_sql']['full'] .
-                            ", \" (\", auth_user_md5.username, \")\") as fullname " .
-                            "FROM auth_user_md5 " .
-                            "LEFT JOIN user_info ON (user_info.user_id = auth_user_md5.user_id) " .
-                            "WHERE (CONCAT(auth_user_md5.Vorname, \" \", auth_user_md5.Nachname) LIKE :input " .
-                            "OR auth_user_md5.username LIKE :input) " .
-                            "AND auth_user_md5.perms IN ('tutor', 'dozent') " .
-                            " AND auth_user_md5.visible <> 'never' " .
-                            "AND auth_user_md5.user_id NOT IN (SELECT user_id FROM seminar_user WHERE Seminar_id = :cid ) " .
-                            "ORDER BY Vorname, Nachname"))
+                        ->setSearchObject($searchType)
                         ->render();
                     $this->addToInfobox(_('Aktionen'), $mp, 'icons/16/black/add/community.png');
                 }
@@ -250,6 +266,17 @@ class Course_MembersController extends AuthenticatedController
                 //$url = sprintf('<a href="%s">%s</a>', $this->url_for('course/members/add_member/'), sprintf(_('Neue/n %s eintragen'), $this->status_groups['autor']));
                 //$this->addToInfobox(_('Aktionen'), $url, 'icons/16/black/add/community.png');
                 
+                $searchType = new SQLSearch("SELECT auth_user_md5.user_id, CONCAT(" . $GLOBALS['_fullname_sql']['full'] .
+                ", \" (\", auth_user_md5.username, \")\") as fullname " .
+                "FROM auth_user_md5 " .
+                "LEFT JOIN user_info ON (user_info.user_id = auth_user_md5.user_id) " .
+                "WHERE (CONCAT(auth_user_md5.Vorname, \" \", auth_user_md5.Nachname) LIKE :input " .
+                "OR auth_user_md5.username LIKE :input) " .
+                "AND auth_user_md5.perms IN ('autor', 'tutor', 'dozent') " .
+                " AND auth_user_md5.visible <> 'never' " .
+                "AND auth_user_md5.user_id NOT IN (SELECT user_id FROM seminar_user WHERE Seminar_id = :cid ) " .
+                "ORDER BY Vorname, Nachname", _("Teilnehmer suchen"), "username");
+                
                 // add "add autor" to infobox
                 $mp = MultiPersonSearch::get("add_autor")
                     ->setLinkText(sprintf(_('Neue/n %s eintragen'), $this->status_groups['autor']))
@@ -257,16 +284,7 @@ class Course_MembersController extends AuthenticatedController
                     ->setLinkIconPath("")
                     ->setTitle("AutorIn hinzufügen")
                     ->setExecuteURL("course/members/execute_multipersonsearch_autor")
-                    ->setSearchObject(new SQLSearch("SELECT auth_user_md5.user_id, CONCAT(" . $GLOBALS['_fullname_sql']['full'] .
-                        ", \" (\", auth_user_md5.username, \")\") as fullname " .
-                        "FROM auth_user_md5 " .
-                        "LEFT JOIN user_info ON (user_info.user_id = auth_user_md5.user_id) " .
-                        "WHERE (CONCAT(auth_user_md5.Vorname, \" \", auth_user_md5.Nachname) LIKE :input " .
-                        "OR auth_user_md5.username LIKE :input) " .
-                        "AND auth_user_md5.perms IN ('autor', 'tutor', 'dozent') " .
-                        " AND auth_user_md5.visible <> 'never' " .
-                        "AND auth_user_md5.user_id NOT IN (SELECT user_id FROM seminar_user WHERE Seminar_id = :cid ) " .
-                        "ORDER BY Vorname, Nachname"))
+                    ->setSearchObject($searchType)
                     ->render();
                 $this->addToInfobox(_('Aktionen'), $mp, 'icons/16/black/add/community.png');
             }
@@ -521,7 +539,8 @@ class Course_MembersController extends AuthenticatedController
      * Add members to a seminar.
      * @throws AccessDeniedException
      */
-    function execute_multipersonsearch_autor_action() {
+    function execute_multipersonsearch_autor_action()
+    {
         // Security Check
         if (!$this->is_tutor) {
             throw new AccessDeniedException('Sie haben leider keine ausreichende Berechtigung, um auf diesen Bereich von Stud.IP zuzugreifen.');
@@ -543,8 +562,88 @@ class Course_MembersController extends AuthenticatedController
         }
         PageLayout::postMessage(MessageBox::success($text));
         $this->redirect('course/members/index');
+    }
+    
+     /**
+     * Add dozents to a seminar.
+     * @throws AccessDeniedException
+     */
+    function execute_multipersonsearch_dozent_action()
+    {
+        // Security Check
+        if (!$this->is_dozent) {
+            throw new AccessDeniedException('Sie haben leider keine ausreichende Berechtigung, um auf diesen Bereich von Stud.IP zuzugreifen.');
+        }
         
+        // load MultiPersonSearch object
+        $mp = MultiPersonSearch::load("add_dozent");
         
+        foreach ($mp->getAddedUsers() as $a) {
+            $this->addDozent($a);
+        }
+        $this->redirect('course/members/index');
+    }
+    
+    private function addDozent($dozent) {
+        $deputies_enabled = get_config('DEPUTIES_ENABLE');
+        $sem = Seminar::GetInstance($this->course_id);
+        if ($sem->addMember($dozent, "dozent")) {
+            // Only applicable when globally enabled and user deputies enabled too
+            if ($deputies_enabled) {
+                // Check whether chosen person is set as deputy
+                // -> delete deputy entry.
+                if (isDeputy($dozent, $this->course_id)) {
+                    deleteDeputy($dozent, $this->course_id);
+                }
+                // Add default deputies of the chosen lecturer...
+                if (get_config('DEPUTIES_DEFAULTENTRY_ENABLE')) {
+                    $deputies = getDeputies($dozent);
+                    $lecturers = $sem->getMembers('dozent');
+                    foreach ($deputies as $deputy) {
+                        // ..but only if not already set as lecturer or deputy.
+                        if (!isset($lecturers[$deputy['user_id']]) &&
+                                !isDeputy($deputy['user_id'], $this->course_id)) {
+                            addDeputy($deputy['user_id'], $this->course_id);
+                        }
+                    }
+                }
+            }
+            // new dozent was successfully insert
+            PageLayout::postMessage(MessageBox::success(sprintf(_('%s wurde hinzugefügt.'), get_title_for_status('dozent', 1, $sem->status))));
+        } else {
+            // sorry that was a fail
+            PageLayout::postMessage(MessageBox::error(_('Die gewünschte Operation konnte nicht ausgeführt werden.')));
+        }
+    }
+    
+    /**
+     * Add tutors to a seminar.
+     * @throws AccessDeniedException
+     */
+    function execute_multipersonsearch_tutor_action()
+    {
+        // Security Check
+        if (!$this->is_tutor) {
+            throw new AccessDeniedException('Sie haben leider keine ausreichende Berechtigung, um auf diesen Bereich von Stud.IP zuzugreifen.');
+        }
+        
+        // load MultiPersonSearch object
+        $mp = MultiPersonSearch::load("add_tutor");
+        
+        foreach ($mp->getAddedUsers() as $a) {
+            $this->addTutor($a);
+        }
+        $this->redirect('course/members/index');
+    }
+    
+    private function addTutor($tutor) {
+        $sem = Seminar::GetInstance($this->course_id);
+        if ($sem->addMember($tutor, "tutor")) {
+            PageLayout::postMessage(MessageBox::success(sprintf(_('%s wurde hinzugefügt.'), get_title_for_status('tutor', 1, $sem->status))));
+        } else {
+            // sorry that was a fail
+            PageLayout::postMessage(MessageBox::error(_('Die gewünsche Operation konnte nicht ausgeführt werden')));
+        }
     }
     
     
