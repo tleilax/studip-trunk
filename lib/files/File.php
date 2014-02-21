@@ -289,13 +289,12 @@ class File // extends SimpleORMap
     public function update()
     {
         $db = DBManager::get();
-
-        $this->mkdate = $storage_object->getCreationTime();
-        $this->mime_type = $storage_object->getMimeType();
-        $this->chdate = $storage_object->getModificationTime();
-        $this->size = $storage_object->getSize();
+        $this->mkdate = $this->getCreationTime();
+        $this->mime_type = $this->getMimeType();
+        $this->chdate = $this->getModificationTime();
+        $this->size = $this->getSize();
 
         $stmt = $db->prepare('UPDATE files SET mkdate = ?, mime_type = ?, chdate = ?, size = ? WHERE file_id = ?');
-        $stmt->execute(array($this->mkdate, $this->mime_type, $this->chdate, $this->size, $this->id));
+        $stmt->execute(array($this->mkdate, $this->mime_type, $this->chdate, $this->size, $this->file_id));
     }
 }
