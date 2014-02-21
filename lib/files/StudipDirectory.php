@@ -82,7 +82,8 @@ class StudipDirectory extends File
         $new_file->setMimeType($source->getMimeType());
         $new_file->setRestricted($source->isRestricted());
         return $new_entry;
-        }else{
+         
+        }else{ //COPY directory
             $newFolder = $this->mkdir($name);
             $folder = StudipDirectory::get($newFolder->file_id);
             $entrys = $source->listFiles();

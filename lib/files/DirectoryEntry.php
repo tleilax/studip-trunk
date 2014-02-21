@@ -159,9 +159,25 @@ class DirectoryEntry // extends SimpleORMap
      * @param File $source source to be moved  
      *     
     */
-    public function move(File $source){
+    public function move(File $source)
+    {
         $db = DBManager::get();
         $stmt = $db->prepare('UPDATE file_refs SET parent_id = :newParent_id WHERE file_id = :file_id');
         $stmt->execute(array('newParent_id' => $this->file_id, 'file_id' => $source->file_id));
+    }
+    
+    /**
+    * Returns the Parent from an Entry.
+    *
+    *     
+    */
+    public function getParent()
+    {
+        $db = DBManager::get();
+        $stmt = $db->prepare('SELECT id FROM file_refs WHERE file_id = ?');
+        $stmt->execute(array($this->parent_id));
+        $result = $stmt->fetchColumn();
+        $parent = new DirectoryEntry($result);
+        return $parent;
     }
 }

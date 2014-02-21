@@ -30,7 +30,7 @@ class DiskFileStorage implements FileStorage
         if (isset($storage_id)) {
             $this->storage_id = $storage_id;
             global $USER_DOC_PATH;
-            $path = $USER_DOC_PATH;
+            $path = $USER_DOC_PATH.'/'.$GLOBALS['user']->id.'/'.$this->storage_id;
             $this->file_path = $path;//get_upload_file_path($storage_id);
 
             /* TODO Should a DiskFileStorage exist without backing file?
@@ -51,6 +51,10 @@ class DiskFileStorage implements FileStorage
         unlink($this->file_path);
     }
 
+    public function getPath()
+    {
+        return $this->file_path;
+    }
     /**
      * Check whether the file exists on disk.
      *

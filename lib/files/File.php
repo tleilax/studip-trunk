@@ -73,7 +73,7 @@ class File // extends SimpleORMap
     /**
      * Initialize a new file object for the given id.
      *
-     * @param string $id  file id
+     * @param string $id  file_id
      *
      * @return File  File object
      */
@@ -161,6 +161,15 @@ class File // extends SimpleORMap
     public function getModificationTime()
     {
         return $this->chdate;
+    }
+    
+    /**
+     * Return the Storage Opject from File.
+     *
+     * @return Storage Object
+     */
+    public function getStorageObject(){
+        return $this->storage_object;
     }
 
     /**
@@ -288,15 +297,5 @@ class File // extends SimpleORMap
 
         $stmt = $db->prepare('UPDATE files SET mkdate = ?, mime_type = ?, chdate = ?, size = ? WHERE file_id = ?');
         $stmt->execute(array($this->mkdate, $this->mime_type, $this->chdate, $this->size, $this->id));
-    }
-    
-    //Is this function really needed?
-    public static function getRefIDFromParent($file_id)
-    {
-        $db = DBManager::get();
-        $stmt = $db->prepare('SELECT id FROM file_refs WHERE file_id = ?');
-        $stmt->execute(array($file_id));
-        $result = $stmt->fetchAll(PDO::FETCH_COLUMN);
-        return $result['0'];
     }
 }
