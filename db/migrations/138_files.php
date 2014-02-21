@@ -34,7 +34,7 @@ class files extends DBMigration
 {
     public function description() 
     {
-        return 'Modifies db-scheme for StEP00262 to provide an user-centered filemanager.';
+        return 'Adding db-scheme for StEP00262 to provide user-centered managing of files';
     }
     
     public function up() 
@@ -43,60 +43,7 @@ class files extends DBMigration
         $alluserdir = $USER_DOC_PATH;
         if (!file_exists($alluserdir))
             mkdir($alluserdir, 0744, true);
-        /*
-         * Migration for API in lib/classes/document 
-         */
-        $db = DBManager::get();
-        $db->exec("CREATE TABLE IF NOT EXISTS doc_user
-            (id VARCHAR(32) NOT NULL,
-            user_id VARCHAR(32) NOT NULL,
-            type ENUM('dir','file','link','unkown') NOT NULL,
-            name VARCHAR(128) NOT NULL,       
-            mimetype VARCHAR(16) NULL,
-            author VARCHAR(128) NOT NULL,
-            mkdate INT UNSIGNED NOT NULL, 
-            chdate INT UNSIGNED NULL,
-            size BIGINT UNSIGNED NOT NULL,
-            env VARCHAR(32) NOT NULL,
-            stage TINYINT UNSIGNED NOT NULL,
-            share BOOLEAN DEFAULT FALSE,
-            description TEXT NULL,
-            elearning BOOLEAN DEFAULT FALSE,
-            storage VARCHAR(32) NULL,
-            PRIMARY KEY (id)
-        )");
-
-        $db->exec("CREATE TABLE IF NOT EXISTS doc_elearning
-            (doc_user_id VARCHAR(32) NOT NULL,
-            description TEXT NULL,
-            lecturetype ENUM('leistung'),
-            semester INT UNSIGNED NOT NULL, 
-            feedback MEDIUMTEXT,
-            timestamp INT UNSIGNED NULL,
-            PRIMARY KEY (doc_user_id)
-        )");
-
-        $db->exec("CREATE TABLE IF NOT EXISTS doc_entity
-            (id VARCHAR(32) NOT NULL,
-            PRIMARY KEY (id)
-        )");
-
-        $db->exec("CREATE TABLE IF NOT EXISTS doc_share
-            (doc_user_id VARCHAR(32) NOT NULL,
-            doc_entity_id VARCHAR(32) NOT NULL,
-            description TEXT NULL,
-            read_perm BOOLEAN DEFAULT TRUE,
-            write_perm BOOLEAN DEFAULT FALSE,
-            start_date INT(10) UNSIGNED NOT NULL,
-            end_date INT(10) UNSIGNED NOT NULL,
-            PRIMARY KEY (doc_user_id, doc_entity_id)
-        )");
-
-        $db->exec("CREATE TABLE IF NOT EXISTS doc_storage
-            (id VARCHAR(32) NOT NULL,
-            PRIMARY KEY (id)
-        )");
-
+        
         /*
          * Migration for API in lib/files 
          */
@@ -147,10 +94,10 @@ class files extends DBMigration
             (id VARCHAR(32) NOT NULL,
             aktiv BOOLEAN NULL,
             PRIMARY KEY (id))");
+        
         /*
          * Migration for the Admin-Area
          */
-
         DBManager::get()->query("CREATE  TABLE IF NOT EXISTS `doc_filetype` 
             (`id` INT NOT NULL AUTO_INCREMENT ,
             `type` VARCHAR(45) NOT NULL ,
@@ -225,11 +172,11 @@ class files extends DBMigration
             $statementThree->execute(array('id' => $key,'type' => $value));
     }
     
-    public function down() {
+    public function down() 
+    {
         global $USER_DOC_PATH;
 
         $alluserdir = $USER_DOC_PATH;
-
         foreach (scandir($alluserdir) as $item) {
             if ($item == '.' || $item == '..')
                 continue
@@ -237,16 +184,10 @@ class files extends DBMigration
         }
 
         rmdir($alluserdir);
-
         $db = DBManager::get();
 
         $db->exec("DROP TABLE IF EXISTS 
-            ('doc_user', 
-            'doc_elearning', 
-            'doc_entity', 
-            'doc_share', 
-            'doc_storage',
-            'files',
+            ('files',
             'files_layout',
             'files_backend_studip',
             'files_backend_url',

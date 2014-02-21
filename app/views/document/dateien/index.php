@@ -53,24 +53,12 @@
      
       <td>
       
-       <?php
-     
-        //print Assets::img('icons/16/blue/folder-full.png');
-        //tab(1);
-        //print '<span style="font-size:1.4em; color:#444">'. _("Persönlicher Dateibereich"). '</span>';
-        //print '<br>';
-        //tab(5);
-        //print '<span style="font-size:11px; color:#444;">'. _("Möglicher Beschreibungstext des Dateibereichs"). '</span>';
-        
-       ?>
-       
        <?= Assets::img('icons/16/blue/folder-full.png')?>
        <? tab(1); ?>
        <?= '<span style="font-size:1.4em; color:#444">'. _("Persönlicher Dateibereich"). '</span>'?>
        <?= '<br>'?>
        <? tab(6); ?>
        <?= '<span style="font-size:11px; color:#444;">'. _("Möglicher Beschreibungstext des Dateibereichs"). '</span>'?>
-        
         
       </td>
        
@@ -326,7 +314,7 @@
 	                'text' => "<a href=\"#\"". "onClick=\"STUDIP.Document.upload()\"". ">". 
 	                          _('Datei hochladen')."</a>"),
 	          array('icon' => '/images/icons/16/black/add/folder-empty.png', 
-	                'text' => "<a href=\"#\"". "onClick=\"STUDIP.Document.createDir()\"". ">".
+	                'text' => "<a href=\"#\"". "onClick=\"STUDIP.Document.addDir()\"". ">".
 	                          _('Neuen Ordner erstellen')."</a>"),
               array('icon' => '/images/icons/16/black/comment.png', 
                     'text' => "<a href=\"#\"". "onClick=\"STUDIP.Document.edit()\"". ">".
@@ -377,7 +365,7 @@
    ?>
     
   <!-- Modale Dialoge -->
- 
+   
   <!-- Bearbeiten -->
   
   <div id="modalDialog" style="visibility:collapse;" class="ui-doc-dialog">
@@ -584,7 +572,7 @@
           
           <form enctype="multipart/form-data"
                 method="post"
-                action="<?//= $controller->url_for("document/dateien/upload/$item/$envDir/$subDir") ?>">  
+                action="<?= $controller->url_for("document/dateien/upload") ?>">  
        
            <?= CSRFProtection::tokenTag() ?>
            
@@ -596,13 +584,13 @@
            
            <p>
            
-            <input type="text" name="filename" value=" Name" size="50" required="required"/> 
+            <input type="text" name="filename" value="Dateiname" size="50" required="required"/> 
                       
            </p>
            
            <p>
            
-            <textarea cols="38" rows="4" name="description"> Beschreibung</textarea>
+            <textarea cols="38" rows="4" name="description">Beschreibung</textarea>
            
            </p>
            
@@ -630,7 +618,9 @@
             
            </p>
           
-           <!-- <p> <input type="submit" name="upload" value="hochladen"/> </p> -->
+           <?= Studip\Button::createAccept(_('Hochladen'), 'upload') ?>
+           <?= Studip\LinkButton::createCancel(_('Abbrechen'), $controller->url_for("document/dateien/index")) ?>
+  
   
           </form>
               
@@ -652,7 +642,7 @@
   
   <!-- Neuen Ordner erstellen -->
   
-  <div id="createDir" style="visibility:collapse;" class="ui-doc-dialog">
+  <div id="addDir" style="visibility:collapse;" class="ui-doc-dialog">
  
    <table>
 		  
@@ -666,7 +656,7 @@
        cr(2);
        print '<b>'. _('Ordner erstellen in:'). '</b>';  
        cr(1);
-       print 'Root-Verzeichnis';
+       print 'Pers&ouml;nlicher Dateibereich';
        cr(2);
        print '<b>'. _('Autor/in'). '</b>';
        cr(1);
@@ -704,28 +694,28 @@
            
          <td style="border-bottom:0px;">
           
-          <form enctype="multipart/form-data"
-                method="post"
-                action="<?//= $controller->url_for("document/dateien/upload/$item/$envDir/$subDir") ?>">  
-       
+          <form action="<?= $controller->url_for("document/dateien/addDir") ?>"  
+                method="post">
+           
            <?= CSRFProtection::tokenTag() ?>
                   
            <p>
            
-            <input type="text" name="filename" value=" Name" size="50" required="required"/> 
+            <input type="text" name="dirname" placeholder="Neuer Ordner" size="50" required="required"/> 
                       
            </p>
            
            <p>
            
-            <textarea cols="38" rows="5" name="description"> Beschreibung</textarea>
+            <textarea cols="38" rows="5" name="description">Beschreibung</textarea>
            
            </p>
           
-           <!-- <p> <input type="submit" name="upload" value="hochladen"/> </p> -->
+           <?= Studip\Button::createAccept(_('Erstellen'), 'mkdir') ?>
+           <?= Studip\LinkButton::createCancel(_('Abbrechen'), $controller->url_for("document/dateien/index")) ?>
   
           </form>
-              
+                   
          </td>
          
         </tr>
@@ -808,8 +798,9 @@
            
            </p>
           
-           <!-- <p> <input type="submit" name="upload" value="hochladen"/> </p> -->
-  
+           <?= Studip\Button::createAccept(_('&Uuml;bernehmen'), 'mkdir') ?>
+           <?= Studip\LinkButton::createCancel(_('Abbrechen'), $controller->url_for("document/dateien/index")) ?>
+           
           </form>
               
          </td>
@@ -834,8 +825,39 @@
     
    <?= Assets::img('icons/48/red/question-circle.png')?>
    
-   <span id="removeItem"></span> 
+   <span id="removeItem"></span>
+   
+    <table style="width:99%;">
     
+     <colgroup>
+     
+      <col style="width:30%;">
+     
+      <col style="width:70%;">
+            
+     </colgroup> 
+              
+     <thead>
+        
+     </thead>
+     
+     <tbody>
+     
+      <tr>
+      
+       <td> </td>
+       
+       <td> 
+       
+        <?= Studip\Button::createAccept(_('L&ouml;schen'), 'mkdir') ?>
+        <?= Studip\LinkButton::createCancel(_('Abbrechen'), $controller->url_for("document/dateien/index")) ?>
+   
+       </td>
+       
+      </tr>
+      
+    </table>
+   
   </div>
   
   <!-- Meldungen: -->
@@ -847,4 +869,3 @@
  </body>
  
 </html>
-
