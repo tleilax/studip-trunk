@@ -24,9 +24,7 @@
  * 
  * @author      Gerd Hoffmann <gerd.hoffmann@uni-oldenburg.de>
  * @author      Stefan Osterloh <s.osterloh@uni-oldenburg.de>
- * @license     http://www.gnu.org/licenses/gpl-3.0
- * @copyright   2014 Carl von Ossietzky Universitaet Oldenburg 
- *  
+ * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2 or later
  */
 
 
@@ -39,15 +37,15 @@ class files extends DBMigration
     
     public function up() 
     {
-        global $USER_DOC_PATH;
-        $alluserdir = $USER_DOC_PATH;
-        if (!file_exists($alluserdir))
-            mkdir($alluserdir, 0744, true);
+        // Create directory
+        if (!file_exists($GLOBALS['USER_DOC_PATH'])) {
+            mkdir($GLOBALS['USER_DOC_PATH'], 0755, true);
+        }
         
         /*
          * Migration for API in lib/files 
          */
-        $db->exec("CREATE TABLE IF NOT EXISTS files 
+        DBManager::get()->exec("CREATE TABLE IF NOT EXISTS files 
             (file_id CHAR(32) NOT NULL,
             user_id CHAR(32) NOT NULL,
             mime_type VARCHAR(64) NOT NULL,
@@ -59,7 +57,7 @@ class files extends DBMigration
             chdate INT(11) UNSIGNED NOT NULL DEFAULT 0,
             PRIMARY KEY (file_id))");
 
-        $db->exec("CREATE TABLE IF NOT EXISTS file_refs 
+        DBManager::get()->exec("CREATE TABLE IF NOT EXISTS file_refs 
             (id CHAR(32) NOT NULL,
             file_id CHAR(32) NOT NULL,
             parent_id CHAR(32) NOT NULL,
@@ -68,19 +66,19 @@ class files extends DBMigration
             downloads INT NOT NULL DEFAULT 0,
             PRIMARY KEY (id))");
 
-        $db->exec("CREATE TABLE IF NOT EXISTS files_backend_studip
+        DBManager::get()->exec("CREATE TABLE IF NOT EXISTS files_backend_studip
             (id INT UNSIGNED NOT NULL,
             files_id VARCHAR(64) NOT NULL,
             path VARCHAR(256) NOT NULL,
             PRIMARY KEY (id))");
 
-        $db->exec("CREATE TABLE IF NOT EXISTS files_backend_url
+        DBManager::get()->exec("CREATE TABLE IF NOT EXISTS files_backend_url
             (id INT UNSIGNED NOT NULL,
             files_id VARCHAR(64) NOT NULL,
             url VARCHAR(256) NOT NULL,
             PRIMARY KEY (id))");
 
-        $db->exec("CREATE TABLE IF NOT EXISTS files_share
+        DBManager::get()->exec("CREATE TABLE IF NOT EXISTS files_share
             (files_id VARCHAR(64) NOT NULL,
             entity_id VARCHAR(32) NOT NULL,
             description MEDIUMTEXT NULL,
@@ -90,7 +88,7 @@ class files extends DBMigration
             end_date INT UNSIGNED NOT NULL,
             PRIMARY KEY (files_id, entity_id))");
 
-        $db->exec("CREATE TABLE IF NOT EXISTS entity
+        DBManager::get()->exec("CREATE TABLE IF NOT EXISTS entity
             (id VARCHAR(32) NOT NULL,
             aktiv BOOLEAN NULL,
             PRIMARY KEY (id))");
@@ -135,10 +133,10 @@ class files extends DBMigration
          * Set the entry into the table "config" to enable or disable the Personal Document Area
          */
         $query = "INSERT IGNORE INTO `config`
-                (`config_id`, `field`, `value`, `is_default`, `type`, `range`, `section`, 
-                 `mkdate`, `chdate`, `description`)
-                VALUES (:id, :field, :value, 1, :type, 'global', 'files', UNIX_TIMESTAMP(), 
-                 UNIX_TIMESTAMP(), :description)";
+                  (`config_id`, `field`, `value`, `is_default`, `type`, `range`, `section`, 
+                   `mkdate`, `chdate`, `description`)
+                  VALUES (:id, :field, :value, 1, :type, 'global', 'files', UNIX_TIMESTAMP(), 
+                          UNIX_TIMESTAMP(), :description)";
         $statement = DBManager::get()->prepare($query);
         $statement->execute(array(
             ':id' => md5(uniqid('PERSONALDOCUMENT_ENABLE')),
@@ -148,13 +146,15 @@ class files extends DBMigration
             ':description' => 'Aktiviert den persoenlichen Dateibereich',
         ));
 
-        $queryTwo = "INSERT IGNORE INTO `doc_usergroup_config`
-                (id, `usergroup`, `upload_quota`, `upload_unit`,`quota`,`quota_unit`,`is_group_config`)
-                VALUES (:id, :group, :uploadQuota, :uploadUnit, :quota, :quotaUnit, :isGroupConfig)";
+        $query = "INSERT IGNORE INTO `doc_usergroup_config`
+                     (`id`, `usergroup`, `upload_quota`, `upload_unit`,
+                      `quota`, `quota_unit`, `is_group_config`)
+                   VALUES (:id, :group, :uploadQuota, :uploadUnit, :quota,
+                           :quotaUnit, :isGroupConfig)";
 
-        $statementTwo = DBManager::get()->prepare($queryTwo);
-        $statementTwo->execute(array(
-            'id' => '1',
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute(array(
+            ':id' => '1',
             ':group' => 'default',
             ':uploadQuota' => '5242880',
             ':uploadUnit' => 'MB',
@@ -163,13 +163,15 @@ class files extends DBMigration
             ':isGroupConfig' => '1'
         ));
 
-        $queryThree = ("INSERT IGNORE INTO `doc_filetype` 
-            (id,`type`) VALUES (:id, :type)");
+        $query = "INSERT IGNORE INTO `doc_filetype`  (`type`) VALUES (:type)";
 
-        $statementThree = DBManager::get()->prepare($queryThree);
-        $values = array('1'=>'exe', '2'=>'com', '3'=>'pif', '4'=>'bat','5'=> 'scr');
-        foreach ($values as $key => $value)
-            $statementThree->execute(array('id' => $key,'type' => $value));
+        $statement = DBManager::get()->prepare($query);
+        $values = words('exe com pif bat scr');
+        foreach ($values as $value) {
+            $statement->execute(array(
+                ':type' => $value
+            ));
+        }
     }
     
     public function down() 
