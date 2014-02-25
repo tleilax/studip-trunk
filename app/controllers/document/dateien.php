@@ -26,7 +26,7 @@ require_once 'app/controllers/authenticated_controller.php';
 
 class Document_DateienController extends AuthenticatedController {  
     
-    private $userConfig, $quota;
+    private $realname, $userConfig, $quota;
    
     public function before_filter(&$action, &$args) {        
         global $USER_DOC_PATH;
@@ -36,11 +36,18 @@ class Document_DateienController extends AuthenticatedController {
                    
         //Configurations for the Documentarea for this user 
         $this->userConfig = DocUsergroupConfig::getUserConfig($GLOBALS['user']->id);
-     
+        
         if (!empty($this->userConfig)) {
             $measure = $this->userConfig['quota'];
-            $this->quota = $this->formatiere($measure);
+            $this->quota = $this->resize($measure);
         }
+        
+        //Retrieve the user's realname
+        $user = new StudipUser;
+        $surname = $user->getSurname($GLOBALS['user']->id);
+        $givenname = $user->getGivenname($GLOBALS['user']->id);
+        $this->realname = $givenname. ' '. $surname;
+        
         PageLayout::setTitle(_('Dateiverwaltung'));
         PageLayout::setHelpKeyword('Basis.Dateien');      
         PageLayout::addStylesheet('/stylesheets/jquery-ui-studip.css');
@@ -48,30 +55,65 @@ class Document_DateienController extends AuthenticatedController {
     }
    
     public function index_action() {
-    
-        $this->redirect("document/dateien/list");
+        $user_root = $GLOBALS['user']->id;
+        $this->redirect("document/dateien/list/$user_root");
     }
     
-    public function list_action() {     
-        $user_root = StudipDirectory::getRootDirectory($GLOBALS['user']->id);
-        $dir_list = $user_root->listFiles();
+    public function list_action($dir_id) {
+     
+        if ($dir_id == $GLOBALS['user']->id) {
+            $user_root = new RootDirectory($GLOBALS['user']->id);
+            $dir = $user_root->listFiles();
+                    
+            $i = 0;
+            foreach ($dir as $entry) {
+                $item = File::get($entry->file_id);
+                $inhalt[$i]['ord'] = $i;
+                $inhalt[$i]['id'] = $entry->getId();          
+                $inhalt[$i]['type'] = $item->getEntryType();
+                $inhalt[$i]['name'] = $entry->getName();
+                $inhalt[$i]['lock'] = 'locked';
+                $inhalt[$i]['autor'] = $this->realname;
+                $timestamp = $item->getModificationTime();                
+                $inhalt[$i]['date'] = $this->transformDate($timestamp);
+                $i++;  
+            }
+                   
+            if (empty($dir))
+                $this->flash['count'] = -1;
+            else 
+                $this->flash['count'] = --$i;
+
+            $this->flash['up_dir'] = 'user_root';   
+        }
+        else {
+            $sub_dir = new DirectoryEntry($dir_id);
+            $user_dir = StudipDirectory::get($sub_dir->file_id);
+            $dir = $user_dir->listFiles();
+                    
+            $i = 0;
+            foreach ($dir as $entry) {
+                $item = File::get($entry->file_id);
+                $inhalt[$i]['ord'] = $i;
+                $inhalt[$i]['id'] = $entry->getId();          
+                $inhalt[$i]['type'] = $item->getEntryType();
+                $inhalt[$i]['name'] = $entry->getName();
+                $inhalt[$i]['lock'] = 'locked';
+                $inhalt[$i]['autor'] = $this->realname;
+                $timestamp = $item->getModificationTime();                
+                $inhalt[$i]['date'] = $this->transformDate($timestamp);
+                $i++;  
+            }
+                   
+            if (empty($dir))
+                $this->flash['count'] = -1;
+            else 
+                $this->flash['count'] = --$i;
+                
+            $this->flash['up_dir'] = $GLOBALS['user']->id; //$sub_dir->parent_id;       
+        }
         
-        $count = 0;
-        foreach ($dir_list as $key => $entry) {
-            $merge_result[$key] = array_merge((array) $entry, (array) File::get($entry->file_id));
-            $count++; 
-        }
-        $dir_list = $merge_result;
-        
-        if (empty($dir_list)) {
-            $this->flash['count'] = -1;
-        }
-        else { 
-            foreach ($dir_list as $entry)
-                $inhalt[] = (array) $entry;
-            $this->flash['count'] = $count;
-        }
-           
+        $this->flash['env'] = $dir_id;
         $this->flash['inhalt'] = $inhalt;
         $this->flash['quota'] = $this->quota;
         $this->flash['closed'] = $this->userConfig['area_close'];
@@ -79,45 +121,54 @@ class Document_DateienController extends AuthenticatedController {
         $this -> render_action('index');
     }
     
-    public function addDir_action() {
-        if(Request::submitted('mkdir')) {   
-            $newDir = $_POST['dirname'];
-            $result = $this->verifyName($newDir);
-
-            //test
-            $user_root = new RootDirectory($GLOBALS['user']->id);
-            $entry = $user_root->mkdir($_POST['dirname']);
-            $entry->setDescription($_POST['description']);
-            
-            /*
-            if ($result == 'ok') {
-             
-                if (!isset($dir_id) {
-                    $user_root = new RootDirectory($GLOBALS['user']->id);
-                    $entry = $user_root->mkdir($_POST['dirname']);
-                    $entry->setDescription($_POST['description']);
-                }
-                else {
-                    $dirEntry = new DirectoryEntry($id);
-                    $dir = StudipDirectory::get($dirEntry->file_id);
-                    $entry = $dir->mkdir($_POST['dirname']);
-                    $entry->setDescription($_POST['description']);
-                }
-            }
-            */
-        }
-        $this->redirect('document/dateien/index');           
+    public function openDir_action($sub_dir) {
+        $this->flash['id'] = $sub_dir;
+        $this->redirect("document/dateien/list/$sub_dir"); 
     }
     
-    public function upload_action() {
-        if(Request::submitted('upload')) {
+    public function up_action($up_dir) {
+        //$this->flash['test_dir'] = $up_dir; //
+        $this->redirect("document/dateien/list/$up_dir");  
+    }
+    
+    public function addDir_action($env_dir) {
 
-            /*
-            if (!isset($id) && isset($_FILES['upfile']['tmp_name'])) {
-                $user_root = new RootDirectory($GLOBALS['user']->id);
-                $entry = $user_root->create($_POST['dirname']);
-                $entry->setDescription($_POST['description']); 
+        if(Request::submitted('mkdir')) {   
+            $dir_name = $_POST['dirname'];
+            $result = $this->verifyName($dir_name);
+
+            if ($result == 'ok') {
+                      
+                if ($env_dir == $GLOBALS['user']->id) {
+                    $user_root = new RootDirectory($GLOBALS['user']->id);
+                    $new_dir = $user_root->mkdir($_POST['dirname']);
+                    $new_dir->setDescription($_POST['description']);
+                }
+                else {
+                    $dirEntry = new DirectoryEntry($env_dir);
+                    $sub_dir = StudipDirectory::get($dirEntry->file_id);
+                    $new_dir = $sub_dir->mkdir($_POST['dirname']);
+                    $new_dir->setDescription($_POST['description']);
+                }
             }
+        }
+        $this->redirect("document/dateien/list/$env_dir");           
+    }
+    
+    public function upload_action($env_dir) {
+     
+        if(Request::submitted('upload')) {
+            $file_name = $_POST['upfile']['tmp_name'];
+            $result = $this->verifyName($file_name);
+
+            if ($result == 'ok') {
+
+                if ($env_dir == $GLOBALS['user']->id) {
+                    $user_root = new RootDirectory($GLOBALS['user']->id);
+                    $new_file = $user_root->create($_POST['filename']);
+                    $entry->setDescription($_POST['description']);
+                } 
+            }/*
             else if (isset($id) && isset($_FILES['upfile']['tmp_name'])) {
                 $stud = StudipDirectory::get($dirEntry->file_id);
                 $file = $stud->create($_POST['dateiname']);
@@ -162,7 +213,7 @@ class Document_DateienController extends AuthenticatedController {
            */
        }
       
-      $this -> redirect('document/dateien/list');
+      $this -> redirect("document/dateien/list/$env_dir");
      }
      
     public function edit_action($id, $parent_id) { 
@@ -226,7 +277,45 @@ class Document_DateienController extends AuthenticatedController {
         */
     }
     
-    private function formatiere($bytes) {
+    public function download_action($item, $name) {
+        
+        /* 
+        switch ($item) {
+            case "datei":
+                chdir($dir); 
+                $handle = opendir($dir);
+        
+                if (file_exists($dname)) {                  
+                    header('Content-Type: application/unknown');
+                    header("Content-Disposition: attachment; filename = $dname");
+                    readfile($dname);
+                }
+         
+                closedir($handle);
+                break;
+       
+            case "verz":
+                $zipDatei = $this -> zipEintrag("verzeichnis", $dir, $dname);
+                chdir($verz); 
+                $handle = opendir($verz);
+       
+                if (file_exists($zipDatei)) {        
+                    if ($zip_name != "err") {
+                        header('Content-Type: application/zip');
+                        header("Content-Disposition: attachment; filename = $zipDatei");
+                        readfile($zipDatei);
+                    }
+          
+                unlink($zipDatei);
+                }
+       
+                closedir($handle);
+                break;
+         }
+         */
+    } 
+    
+    private function resize($bytes) {
         if ($bytes >= 1073741824) {
             $groesse = number_format($bytes / 1073741824, 2) . ' GB';
         }
@@ -248,18 +337,20 @@ class Document_DateienController extends AuthenticatedController {
         return $groesse;
     }
     
+    private function transformDate($timestamp) {
+         setlocale(LC_TIME, "de_DE");
+         $day = strftime("%d.%m.%y", $timestamp);
+         $time = strftime("%X", $timestamp);
+         $new_form = $day. ' - '. $time;
+         return $new_form;
+    }
+    
     private function verifyName($name) { 
        if (!(strpos($name, '/') === false)) {
            $ergebnis = "slash";
        }
        else if(!(strpos($name, '\\') === false)) {
            $ergebnis = "backslash";
-       }
-       else if(!(strpos($name, '(') === false) || !(strpos($name, ')') === false)) {
-           $ergebnis = "klammern";
-       }
-       else if(strlen($name) == 0) {
-           $ergebnis = "leer";
        }
        else if (strlen($name) > 256) {
            $ergebnis = "max";

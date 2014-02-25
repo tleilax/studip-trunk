@@ -53,19 +53,33 @@
      
       <td>
       
-       <?= Assets::img('icons/16/blue/folder-full.png')?>
+       <?= Assets::img('icons/16/blue/folder-full.png') ?>
        <? tab(1); ?>
-       <?= '<span style="font-size:1.4em; color:#444">'. _("Persönlicher Dateibereich"). '</span>'?>
-       <?= '<br>'?>
-       <? tab(6); ?>
-       <?= '<span style="font-size:11px; color:#444;">'. _("Möglicher Beschreibungstext des Dateibereichs"). '</span>'?>
+       <?= '<span style="font-size:1.4em; color:#444">'. _("Persönlicher Dateibereich"). '</span>' ?>
+       <?= '<br>' ?>
+       <? //tab(6); ?>
+       <?//= '<span style="font-size:11px; color:#444;">'. _(""). '</span>'?>
+       <? $env_dir = $flash['env']; ?>
         
       </td>
        
-      <td style="text-align:right; color:#1E3E70;">
+      <td style="text-align:right;">
+      
+       <?php
+         
+        if ($flash['up_dir'] != 'user_root'):
+            $up_dir = $flash['up_dir'];
+        
+        ?>
        
-        up
+       <a href="<?= $controller->url_for("document/dateien/up/$up_dir") ?>" title=""> up </a>
        
+       <?php
+       
+        endif;
+        
+        ?>
+        
       </td>
       
       <td style="text-align:right;">
@@ -147,9 +161,9 @@
       
        for ($i = 0; $i <= $max; $i++):
 
-        $id = $flash['inhalt'][$i][0];
+        $id = $flash['inhalt'][$i]['id'];
       
-        if ($flash['inhalt'][$i][2] == 'Ordner')
+        if ($flash['inhalt'][$i]['type'] == 'Ordner')
           $color = "color:black;";
          else
           $color = "color:#1E3E70;";
@@ -161,17 +175,17 @@
      
         <?php
                           
-         if ($flash['inhalt'][$i][2] == 'Ordner'):
+         if ($flash['inhalt'][$i]['type'] == 'Ordner'):
              
          ?>
        
-        <a href="<?//= $controller->url_for("document/dateien/open") ?>" title="Öffnen">
+        <a href="<?= $controller->url_for("document/dateien/openDir/$id") ?>" title="Öffnen">
          
          <?php
              
            print Assets::img('icons/16/blue/arr_1right.png');
           
-          elseif($flash['inhalt'][$i][2] == 'Datei'):
+          elseif($flash['inhalt'][$i]['type'] == 'Datei'):
           
            print Assets::img('icons/16/blue/file-pdf.png');
            
@@ -183,28 +197,28 @@
         
        </td>
            
-       <td> <?= $flash['inhalt'][$i][3] ?> </td>
+       <td> <?= $flash['inhalt'][$i]['name'] ?> </td>
        
        <td>
         
         <?php
         
-         if ($flash['inhalt'][$i][4] == 'unlocked')
+         if ($flash['inhalt'][$i]['lock'] == 'unlocked')
           //print '<span style="text-align:right;">'. Assets::img("icons/16/blue/lock-unlocked.png"). '</span>';
          
          ?>
            
        </td>
       
-       <td> <?= $flash['inhalt'][$i][5] ?> </td>
+       <td> <?= $flash['inhalt'][$i]['autor'] ?> </td>
       
-       <td> <?= $flash['inhalt'][$i][6] ?> </td>
+       <td> <?= $flash['inhalt'][$i]['date'] ?> </td>
        
        <td style="text-align:center;"> 
          
         <?php
    
-         if (isset($flash['inhalt'][$i][2])):
+         if (isset($flash['inhalt'][$i]['type'])):
                     
          ?>
             
@@ -316,9 +330,9 @@
 	          array('icon' => '/images/icons/16/black/add/folder-empty.png', 
 	                'text' => "<a href=\"#\"". "onClick=\"STUDIP.Document.addDir()\"". ">".
 	                          _('Neuen Ordner erstellen')."</a>"),
-              array('icon' => '/images/icons/16/black/comment.png', 
-                    'text' => "<a href=\"#\"". "onClick=\"STUDIP.Document.edit()\"". ">".
-	                          _('Dateibereich beschreiben')."</a>"), //_("Dateibereich konfigurieren")."</a>"),
+              //array('icon' => '/images/icons/16/black/comment.png', 
+              //      'text' => "<a href=\"#\"". "onClick=\"STUDIP.Document.edit()\"". ">".
+	          //                _('Dateibereich beschreiben')."</a>"), //_("Dateibereich konfigurieren")."</a>"),
               //array('icon' => '/images/icons/16/blue/persons.png', 
               //      'text' => 'Dateibereich teilen'),
               array('icon' => '/images/icons/16/black/trash.png', 
@@ -572,7 +586,7 @@
           
           <form enctype="multipart/form-data"
                 method="post"
-                action="<?= $controller->url_for("document/dateien/upload") ?>">  
+                action="<?= $controller->url_for("document/dateien/upload/$env_dir") ?>">  
        
            <?= CSRFProtection::tokenTag() ?>
            
@@ -694,7 +708,7 @@
            
          <td style="border-bottom:0px;">
           
-          <form action="<?= $controller->url_for("document/dateien/addDir") ?>"  
+          <form action="<?= $controller->url_for("document/dateien/addDir/$env_dir") ?>"  
                 method="post">
            
            <?= CSRFProtection::tokenTag() ?>
@@ -788,7 +802,7 @@
           
           <form enctype="multipart/form-data"
                 method="post"
-                action="<?//= $controller->url_for("document/dateien/upload/$item/$envDir/$subDir") ?>">  
+                action="<?//= $controller->url_for("document/dateien/edit/$env_dir") ?>">  
        
            <?= CSRFProtection::tokenTag() ?>
            
@@ -869,3 +883,4 @@
  </body>
  
 </html>
+

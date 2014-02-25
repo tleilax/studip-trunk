@@ -109,6 +109,20 @@ class File // extends SimpleORMap
     public function getCreationTime()
     {
         return $this->mkdate;
+    }  
+    
+   /**
+     * Return the file's entry type.
+     *
+     * @return string
+     */
+
+    public function getEntryType()
+    {
+         if (empty($this->storage_id))
+             return "Ordner";
+         else
+             return "Datei";
     }
 
     /**
