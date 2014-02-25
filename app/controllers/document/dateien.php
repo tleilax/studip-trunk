@@ -69,7 +69,7 @@ class Document_DateienController extends AuthenticatedController {
             foreach ($dir as $entry) {
                 $item = File::get($entry->file_id);
                 $inhalt[$i]['ord'] = $i;
-                $inhalt[$i]['id'] = $entry->getId();          
+                $inhalt[$i]['id'] = $entry->id;
                 $inhalt[$i]['type'] = $item->getEntryType();
                 $inhalt[$i]['name'] = $entry->getName();
                 $inhalt[$i]['lock'] = 'locked';
@@ -95,7 +95,7 @@ class Document_DateienController extends AuthenticatedController {
             foreach ($dir as $entry) {
                 $item = File::get($entry->file_id);
                 $inhalt[$i]['ord'] = $i;
-                $inhalt[$i]['id'] = $entry->getId();          
+                $inhalt[$i]['id'] = $entry->id;          
                 $inhalt[$i]['type'] = $item->getEntryType();
                 $inhalt[$i]['name'] = $entry->getName();
                 $inhalt[$i]['lock'] = 'locked';
@@ -110,7 +110,7 @@ class Document_DateienController extends AuthenticatedController {
             else 
                 $this->flash['count'] = --$i;
                 
-            $this->flash['up_dir'] = $GLOBALS['user']->id; //$sub_dir->parent_id;       
+            $this->flash['up_dir'] = $sub_dir->getParent()->id ?: $GLOBALS['user']->id;       
         }
         
         $this->flash['env'] = $dir_id;
