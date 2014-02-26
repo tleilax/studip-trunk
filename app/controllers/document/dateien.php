@@ -75,7 +75,9 @@ class Document_DateienController extends AuthenticatedController {
             foreach ($dir as $entry) {
                 $item = File::get($entry->file_id);
                 $inhalt[$i]['ord'] = $i;
-                $inhalt[$i]['id'] = $entry->id;          
+                $inhalt[$i]['id'] = $entry->id;
+                $inhalt[$i]['file_id'] = $entry->file_id;
+                         
                 $inhalt[$i]['type'] = $item->getEntryType();
                 $inhalt[$i]['name'] = $entry->getName();
                 $inhalt[$i]['lock'] = 'locked';
@@ -101,7 +103,9 @@ class Document_DateienController extends AuthenticatedController {
             foreach ($dir as $entry) {
                 $item = File::get($entry->file_id);
                 $inhalt[$i]['ord'] = $i;
-                $inhalt[$i]['id'] = $entry->id;          
+                $inhalt[$i]['id'] = $entry->id;
+                $inhalt[$i]['file_id'] = $entry->file_id;
+                     
                 $inhalt[$i]['type'] = $item->getEntryType();
                 $inhalt[$i]['name'] = $entry->getName();
                 $inhalt[$i]['lock'] = 'locked';
@@ -133,6 +137,7 @@ class Document_DateienController extends AuthenticatedController {
     }
     
     public function up_action($up_dir) {
+        //$this->flash['test_dir'] = $up_dir; //
         $this->redirect("document/dateien/list/$up_dir");  
     }
     
@@ -187,10 +192,10 @@ class Document_DateienController extends AuthenticatedController {
             }
         
             $newEntry = File::get($new_file->file_id);
-            $storage = $newEntry->getStoragePath(); 
+            $file_path = $newEntry->getStoragePath(); 
             
-           if (move_uploaded_file($_FILES['upfile']['tmp_name'], $storage. $upfile)) {
-               PageLayout::postMessage(MessageBox::success(_('Datei erfolgreich hochgeladen')));
+           if (move_uploaded_file($_FILES['upfile']['tmp_name'], $file_path)) {
+               //PageLayout::postMessage(MessageBox::success(_('Datei erfolgreich hochgeladen')));
            }
            else {
                PageLayout::postMessage(MessageBox::error(_('Upload-Fehler')));
@@ -245,57 +250,46 @@ class Document_DateienController extends AuthenticatedController {
         $this->redirect('document/dateien/list'. $parent_id);
     }
     
-    public function remove_action($file_id, $parent_id = NULL) {    
-        /* 
-        if (Request::submitted('remove')) {
-            $entry = File::get($file_id);
-            $entry->delete();
+    public function download_action($file_id, $id, $env_dir) {
         
-            if (isset($parent_id)) {
-                $this->redirect('document/dateien/list/'. $parent_id);
-            else
-                $this->redirect('document/dateien/list');
-            }
-        }*/
-    }
+        global $USER_DOC_PATH; 
+        $path = $USER_DOC_PATH.'/'. $GLOBALS['user']->id. '/';
+        
+        chdir($path); 
+        $handle = opendir($path);
+        
+        $file = File::get($file_id);
+        $storage_id = $file->storage_id;
+        
+        $entry = new DirectoryEntry($id);     
+        $filename = $entry->name;
+        $pos = strrpos($filename, ".");
     
-    public function download_action($item, $name) {
+        if ($pos !== false)
+            $pre = substr($filename, 0, $pos);
+           
+        if (file_exists($storage_id)) {                  
+            header('Content-Type: application/unknown');
+            header("Content-Disposition: attachment; filename = $pre");
+            readfile($storage_id);
+        }
         
-        /* 
-        switch ($item) {
-            case "datei":
-                chdir($dir); 
-                $handle = opendir($dir);
-        
-                if (file_exists($dname)) {                  
-                    header('Content-Type: application/unknown');
-                    header("Content-Disposition: attachment; filename = $dname");
-                    readfile($dname);
-                }
+        closedir($handle);
+    }
+
+    public function remove_action($file_id, $env_dir) {    
          
-                closedir($handle);
-                break;
+        if (Request::submitted('remove')) {             
+            //
+        }
        
-            case "verz":
-                $zipDatei = $this -> zipEintrag("verzeichnis", $dir, $dname);
-                chdir($verz); 
-                $handle = opendir($verz);
-       
-                if (file_exists($zipDatei)) {        
-                    if ($zip_name != "err") {
-                        header('Content-Type: application/zip');
-                        header("Content-Disposition: attachment; filename = $zipDatei");
-                        readfile($zipDatei);
-                    }
-          
-                unlink($zipDatei);
-                }
-       
-                closedir($handle);
-                break;
-         }
-         */
-    } 
+        $entry = File::get($file_id);
+        $file_path = $entry->getStoragePath();
+        $entry->delete();
+        unlink($file_path);
+               
+        $this->redirect("document/dateien/list/$env_dir");
+    }
     
     private function resize($bytes) {
         if ($bytes >= 1073741824) {
@@ -334,9 +328,6 @@ class Document_DateienController extends AuthenticatedController {
        else if(!(strpos($name, '\\') === false)) {
            $ergebnis = "backslash";
        }
-       //else if(!(strpos($name, '(') === false) || !(strpos($name, ')') === false)) {
-       //    $ergebnis = "klammern";
-       //}
        else if (strlen($name) > 256) {
            $ergebnis = "max";
        }
@@ -362,3 +353,4 @@ class Document_DateienController extends AuthenticatedController {
        */
    }
 }
+

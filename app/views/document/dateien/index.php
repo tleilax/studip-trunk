@@ -162,6 +162,7 @@
        for ($i = 0; $i <= $max; $i++):
 
         $id = $flash['inhalt'][$i]['id'];
+        $file_id = $flash['inhalt'][$i]['file_id'];
       
         if ($flash['inhalt'][$i]['type'] == 'Ordner')
           $color = "color:black;";
@@ -169,7 +170,7 @@
           $color = "color:#1E3E70;";
       ?>
       
-      <tr id="<?= $id ?>" style="<?= $color ?>" >
+      <tr id="<?= $id; ?>" style="<?= $color ?>" >
        
        <td>
      
@@ -197,7 +198,7 @@
         
        </td>
            
-       <td> <?= $flash['inhalt'][$i]['name'] ?> </td>
+       <td> <?= $flash['inhalt'][$i]['name']; ?> </td>
        
        <td>
         
@@ -244,7 +245,9 @@
        
         </a>
         
-        <a id="<?= $id ?>" href="#" onClick="" title="Herunterladen">
+        <!-- <a id="<?= $id ?>" href="#" onClick="" title="Herunterladen"> -->
+        
+        <a href="<?= $controller->url_for("document/dateien/download/$file_id/$id/$env_dir") ?>" title="Herunterladen">
     
          <?php
 
@@ -255,7 +258,9 @@
        
         </a>
         
-        <a id="<?= $id ?>" href="#" onClick="STUDIP.Document.loeschen(this.id,ref);" title="Löschen">
+        <!-- <a id="<?= $id ?>" href="#" onClick="STUDIP.Document.remove(this.id,ref);" title="Löschen"> -->
+        
+        <a href="<?= $controller->url_for("document/dateien/remove/$file_id/$env_dir") ?>" title="Löschen">
          
          <?php
              
@@ -336,7 +341,7 @@
               //array('icon' => '/images/icons/16/blue/persons.png', 
               //      'text' => 'Dateibereich teilen'),
               array('icon' => '/images/icons/16/black/trash.png', 
-                    'text' => "<a href=\"#\"". "onClick=\"STUDIP.Document.loeschen(-1,'nil')\"". ">".
+                    'text' => "<a href=\"#\"". "onClick=\"STUDIP.Document.remove(-1,'nil')\"". ">".
 	                          _('Dateibereich löschen')."</a>"))),
 	  //array('kategorie' => _('Suche:'),
 	  //      'eintrag' => array(
@@ -598,7 +603,7 @@
            
            <p>
            
-            <input type="text" name="filename" value="Dateiname" size="50" required="required"/> 
+            <!-- <input type="text" name="filename" value="Dateiname" size="50" required="required"/> --> 
                       
            </p>
            
@@ -861,10 +866,17 @@
       
        <td> </td>
        
-       <td> 
+       <td>
        
-        <?= Studip\Button::createAccept(_('L&ouml;schen'), 'mkdir') ?>
-        <?= Studip\LinkButton::createCancel(_('Abbrechen'), $controller->url_for("document/dateien/index")) ?>
+        <form action="<?= $controller->url_for("document/dateien/remove/$id") ?>"  
+              method="post">
+           
+         <?= CSRFProtection::tokenTag() ?>
+       
+         <?= Studip\Button::createAccept(_('L&ouml;schen'), 'remove') ?>
+         <?= Studip\LinkButton::createCancel(_('Abbrechen'), $controller->url_for("document/dateien/index")) ?>
+        
+        </form>
    
        </td>
        
@@ -883,4 +895,3 @@
  </body>
  
 </html>
-
