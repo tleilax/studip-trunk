@@ -48,7 +48,7 @@ use Studip\Button, Studip\LinkButton;
 
     <? foreach ($users as $user) : ?>
     <tr>
-        <td>
+        <td style="white-space:nowrap;">
             <input class="check_all" type="checkbox" name="user_ids[]" value="<?= $user['user_id'] ?>">
             <a href="<?= URLHelper::getLink('dispatch.php/profile', array('username' => $user['username'])) ?>" title="<?= _('Profil des Benutzers anzeigen')?>">
                  <?= Avatar::getAvatar($user['user_id'], $user['username'])->getImageTag(Avatar::SMALL, array('title' => htmlReady($user['Vorname'] . ' ' . $user['Nachname']))) ?>
@@ -111,7 +111,7 @@ use Studip\Button, Studip\LinkButton;
 
     </tbody>
 
-    <tfoot>    
+    <tfoot>
 
     <tr>
         <td colspan="11" align="right">
@@ -120,7 +120,7 @@ use Studip\Button, Studip\LinkButton;
         </td>
     </tr>
 
-    </tfoot>    
+    </tfoot>
 
 </table>
 </form>

@@ -25,7 +25,9 @@ class News extends \RESTAPI\RouteMap
     public function getGlobalNews()
     {
         list($json, $total) = $this->getRangedNews('studip');
-        $this->paginated($json, $total);
+
+        $this->etag(md5(serialize($json)));
+        return $this->paginated($json, $total);
     }
 
     /**
@@ -36,7 +38,9 @@ class News extends \RESTAPI\RouteMap
     public function getCourseNews($course_id)
     {
         list($json, $total) = $this->getRangedNews($course_id);
-        $this->paginated($json, $total, compact('course_id'));
+
+        $this->etag(md5(serialize($json)));
+        return $this->paginated($json, $total, compact('course_id'));
     }
 
     /**
@@ -47,7 +51,9 @@ class News extends \RESTAPI\RouteMap
     public function getUserNews($user_id)
     {
         list($json, $total) = $this->getRangedNews($user_id);
-        $this->paginated($json, $total, compact('user_id'));
+
+        $this->etag(md5(serialize($json)));
+        return $this->paginated($json, $total, compact('user_id'));
     }
 
 
@@ -59,7 +65,13 @@ class News extends \RESTAPI\RouteMap
     public function getNews($news_id)
     {
         $news = $this->requireNews($news_id);
-        return self::newsToJson($news);
+        $news_json = $this->newsToJson($news);
+        
+        $this->lastmodified($news->chdate);
+        $this->expires($news->expire);
+        $this->etag(md5(serialize($news_json)));
+
+        return $news_json;
     }
 
     /**
@@ -177,8 +189,10 @@ class News extends \RESTAPI\RouteMap
         foreach ($comments->limit($this->offset, $this->limit) as $comment) {
             $tmp = $comment->toArray("comment_id object_id user_id content mkdate chdate");
             $tmp['content_html'] = htmlReady($comment->content);
-            $json[sprintf('/comment/%s', htmlReady($comment->id))] = $tmp;
+            $json[$this->urlf('/comment/%s', array(htmlReady($comment->id)))] = $tmp;
         }
+
+        $this->etag(md5(serialize($json)));
 
         return $this->paginated($json, $total, compact('news_id'));
     }
@@ -191,7 +205,12 @@ class News extends \RESTAPI\RouteMap
     public function getComment($comment_id)
     {
         $comment = $this->requireComment($comment_id);
-        return self::commentToJson($comment);
+        $comment_json = $this->commentToJson($comment);
+
+        $this->lastmodified($comment->chdate);
+        $this->etag(md5(serialize($comment_json)));
+
+        return $comment_json;
     }
 
     /**
@@ -202,6 +221,10 @@ class News extends \RESTAPI\RouteMap
     public function appendComment($news_id)
     {
         $news = $this->requireNews($news_id);
+
+        if (!$news->allow_comments) {
+            $this->error(409, 'Comments are not allowed');
+        }
 
         if (!isset($this->data['content']) || !strlen($content = trim($this->data['content']))) {
             $this->error(400, 'Content required.');
@@ -257,7 +280,7 @@ class News extends \RESTAPI\RouteMap
 
         $json = array();
         foreach ($news as $n) {
-            $json[sprintf('/news/%s', $n->id)] = self::newsToJson($n);
+            $json[$this->urlf('/news/%s', array($n->id))] = $this->newsToJson($n);
         }
 
         return array($json, $total);
@@ -299,7 +322,7 @@ class News extends \RESTAPI\RouteMap
         return $news;
     }
 
-    private static function newsToJson($news)
+    private function newsToJson($news)
     {
         $json = $news->toArray(words("news_id topic body date user_id expire allow_comments chdate chdate_uid mkdate"));
 
@@ -307,7 +330,7 @@ class News extends \RESTAPI\RouteMap
         $json['chdate_uid'] = trim($json['chdate_uid']);
 
         if ($news->allow_comments) {
-            $json['comments'] = sprintf('/news/%s/comments', $news->id);
+            $json['comments'] = $this->urlf('/news/%s/comments', array($news->id));
             $json['comments_count'] = sizeof($news->comments);
         }
 
@@ -315,17 +338,16 @@ class News extends \RESTAPI\RouteMap
         foreach ($news->news_ranges as $range) {
             if (self::checkRangePermission($range->range_id, $GLOBALS['user']->id)) {
                 switch ($range->type) {
-                case 'global': $url = '/studip/news'; break;
-                case 'sem':    $url = sprintf('/course/%s/news', $range->range_id); break;
-                case 'user':   $url = sprintf('/user/%s/news', $range->range_id); break;
-                case 'inst':   $url = sprintf('/TODO/%s/news', $range->range_id); break;
-                case 'fak':    $url = sprintf('/TODO/%s/news', $range->range_id); break;
+                case 'global': $url = $this->url('/studip/news'); break;
+                case 'sem':    $url = $this->urlf('/course/%s/news', array($range->range_id)); break;
+                case 'user':   $url = $this->urlf('/user/%s/news', array($range->range_id)); break;
+                case 'inst':   $url = $this->urlf('/TODO/%s/news', array($range->range_id)); break;
+                case 'fak':    $url = $this->urlf('/TODO/%s/news', array($range->range_id)); break;
                 }
 
                 $json['ranges'][] = $url;
             }
         }
-
         return $json;
     }
 
@@ -341,12 +363,12 @@ class News extends \RESTAPI\RouteMap
         return $comment;
     }
 
-    private static function commentToJson($comment)
+    private function commentToJson($comment)
     {
         $json = $comment->toArray(words("comment_id mkdate chdate content"));
         $json['content_html'] = formatReady($json['content']);
-        $json['author'] = sprintf('/user/%s', $comment->user_id);
-        $json['news'] = sprintf('/news/%s', $comment->object_id);
+        $json['author']       = $this->urlf('/user/%s', array($comment->user_id));
+        $json['news']         = $this->urlf('/news/%s', array($comment->object_id));
         return $json;
     }
 }

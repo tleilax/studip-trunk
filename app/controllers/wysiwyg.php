@@ -20,10 +20,19 @@
  * @author      Robert Costa <rcosta@uos.de>
  */
 require_once 'authenticated_controller.php';
-use Studip\Utils;
 
-class WysiwygController extends AuthenticatedController
+use Studip\WysiwygRequest;
+use Studip\WysiwygDocument;
+
+use Studip\MarkupPrivate\MediaProxy; // TODO remove debug code
+
+
+class WysiwygController extends \AuthenticatedController
 {
+    const UPLOAD_PERMISSION = 'autor'; // minimum permission level for uploading
+    const FOLDER_NAME = 'Wysiwyg Uploads';
+    const FOLDER_DESCRIPTION = 'Vom WYSIWYG Editor hochgeladene Dateien.';
+
     /**
      * Handle the WYSIWYG editor's file uploads.
      *
@@ -45,56 +54,37 @@ class WysiwygController extends AuthenticatedController
      * Entries with the property "url" correspond to successful uploads.
      * Entries with the property "error" correspond to failed uploads.
      */
-    public function upload_action() {
-        // verify access permissions
-        Utils::verifyPostRequest();
-        CSRFProtection::verifyUnsafeRequest();
-        Utils::verifyPermission('autor'); // minimum permission level for uploading
-
-        // get folder ID
+    public function upload_action()
+    {
         try {
-            $folder_id = Utils::createFolder(
-                _('Wysiwyg Uploads'),
-                _('Vom WYSIWYG Editor hochgeladene Dateien.')
-            );
+            WysiwygRequest::verifyWritePermission(self::UPLOAD_PERMISSION);
+            $folder_id = WysiwygDocument::createFolder(
+                self::FOLDER_NAME, self::FOLDER_DESCRIPTION);
+            $response = WysiwygDocument::storeUploadedFilesIn($folder_id);
         } catch (AccessDeniedException $e) {
-            $this->render_json($e->getMessage());
-            return;
-        }
-    
-        // store uploaded files as StudIP documents
-        $response = array();  // data for HTTP response
-        foreach (Utils::getUploadedFiles() as $file) {
-            try {
-                $newfile = Utils::uploadFile($file, $folder_id);
-                $response['files'][] = Array(
-                    'name' => utf8_encode($newfile['filename']),
-                    'type' => $file['type'],
-                    'url' => Utils::getDownloadLink($newfile->getId()));
-            } catch (AccessDeniedException $e) {  // creation of Stud.IP doc failed
-                $response['files'][] = Array(
-                    'name' => $file['name'],
-                    'type' => $file['type'],
-                    'error' => $e->getMessage());
-            }
+            $response = $e->getMessage();
         }
         $this->render_json($response); // send HTTP response to client
     }
 
-    public function test_action(){
+    /**
+     * TODO remove this method
+     */
+    public function test_action()
+    {
         // studip must be at localhost/~rcosta/step00256 for tests to work
         // LOAD_EXTERNAL_MEDIA must be set to 'proxy'
-        $studip_root = '/~rcosta/step00256';
+        $studip_root = $GLOBALS['CANONICAL_RELATIVE_PATH_STUDIP'];
 
         $studip_document = $studip_root
-            . '/sendfile.php?type=0&file_id=abc123&file_name=test.jpg';
+            . 'sendfile.php?type=0&file_id=abc123&file_name=test.jpg';
 
         $external_document = 'http://pflanzen-enzyklopaedie.eu'
             . '/wp-content/uploads/2012/11/'
             . 'Sumpfdotterblume-multiplex-120x120.jpg';
 
         $proxy_document = $studip_root
-            . '/dispatch.php/media_proxy?url='
+            . 'dispatch.php/media_proxy?url='
             . 'http%3A%2F%2Fpflanzen-enzyklopaedie.eu'
             . '%2Fwp-content%2Fuploads%2F2012%2F11%2F'
             . 'Sumpfdotterblume-multiplex-120x120.jpg';
@@ -112,7 +102,11 @@ class WysiwygController extends AuthenticatedController
 
         $test_results = '';
         forEach ($tests as $i => $o) {
-            $r = Utils::getMediaUrl($i);
+            try {
+                $r = MediaProxy\getMediaUrl($i);
+            } catch (MediaProxy\InvalidInternalLinkException $e) {
+                $r = 'InvalidInternalLinkException';
+            }
             $v = ($r == $o) ? '==' : '!=';
             $test_results .= "Utils::getMediaUrl($i)<br>"
                           .  "                == $r<br>"
@@ -120,17 +114,23 @@ class WysiwygController extends AuthenticatedController
                           . '<br>';
         }
 
+        $internal_link_tests = '';
+        foreach ($tests as $i => $o) {
+            $is = is_internal_url($i) ? 'true' : 'false';
+            $internal_link_tests .= "$is = is_internal_url($i)<br>";
+        }
+
         $this->render_text('<pre>'
-            .'Utils::getUrl():           '.Utils::getUrl().'<br>'
-            .'Utils::getBaseName():      '.Utils::getBaseName().'<br>'
-            .'Utils::getBaseUrl():       '.Utils::getBaseUrl().'<br>'
-            .'URLHelper::getLink():      '.URLHelper::getLink().'<br>'
-            .'URLHelper::getUrl():       '.URLHelper::getUrl().'<br>'
-            .'URLHelper::getScriptUrl(): '.URLHelper::getScriptUrl().'<br>'
-            .'<br>'
-            .'LOAD_EXTERNAL_MEDIA='.\Config::GetInstance()->getValue('LOAD_EXTERNAL_MEDIA').'<br>'
+            .'URLHelper::getLink():             '.URLHelper::getLink().'<br>'
+            .'URLHelper::getUrl():              '.URLHelper::getUrl().'<br>'
+            .'URLHelper::getScriptUrl():        '.URLHelper::getScriptUrl().'<br>'
+            .'ABSOLUTE_URI_STUDIP               '.$GLOBALS['ABSOLUTE_URI_STUDIP'].'<br>'
+            .'CANONICAL_RELATIVE_PATH_STUDIP    '.$GLOBALS['CANONICAL_RELATIVE_PATH_STUDIP'].'<br>'
+            .'LOAD_EXTERNAL_MEDIA               '.\Config::get()->LOAD_EXTERNAL_MEDIA.'<br>'
             .'<br>'
             .$test_results
+            .'<br>'
+            .$internal_link_tests
             .'</pre>');
     }
 }

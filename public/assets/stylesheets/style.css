@@ -1,62 +1,3 @@
-.hover_box .hover_symbols {
-  display: none;
-}
-.hover_box:hover .hover_symbols {
-  display: inline;
-  padding-left: 5px;
-}
-/* --- Tabellen ------------------------------------------------------------- */
-/* Zebra styles for tables */
-/* --- table.collapsable ---------------------------------------------------- */
-/* --- Table details -------------------------------------------------------- */
-/* --- Sonstige ------------------------------------------------------------- */
-/* --- Styles fuer printhead und printcontent ------------------------------- */
-/* classes for sortable table headers --------------------------------------- */
-/* styles for settings tables */
-/* --- Layouts -------------------------------------------------------------- */
-/* --- header.css ----------------------------------------------------------- */
-/* --- public course marker ------------------------------------------------ */
-/* --- main navigation ----------------------------------------------------- */
-/* --- Infobox -------------------------------------------------------------- */
-/* --- AJAX indicator ------------------------------------------------------- */
-/* --- Autocompleter -------------------------------------------------------- */
-/* --- Avatars of users, courses and institutes ----------------------------- */
-/****************************************************************************/
-/* Grouped Buttons                                                          */
-/****************************************************************************/
-/* --- MessageBoxes --------------------------------------------------------- */
-/* --- Modaler Dialog fuer den Dateimanager --------------------------------- */
-/* --- Quicksearch ---------------------------------------------------------- */
-/* skiplink-area highlighting -------------------------------------------- */
-/* Tooltips for Stud.IP with CSS3 only -------------------------------------- */
-/* --- archiv -------------------------------------------------------------- */
-/* --- Styles fuer Terminkalender ------------------------------------------- */
-/* --- Styles fuer TerminZeile ---------------------------------------------- */
-/* CSS */
-/* classes for the evaluation modules in Stud.IP ---------------------------- */
-/* --- ablaufplan / dates --------------------------------------------------- */
-/* --- Studienbereichsauswahl ----------------------------------------------- */
-/* --- Schrift (Vorgaben: Typ, Größe, Farbe) -------------------------------- */
-/* --- Standardvorgaben ----------------------------------------------------- */
-/* --- Überschriften -------------------------------------------------------- */
-/* --- media preview -------------------------------------------------------- */
-/* --- StudipForm selectbox control------------------------------------------ */
-/* --- index.php anpassungen an den boxen zur vereinheitlichung ------------- */
-/* overdiv */
-/* --- Editor Toolbar ------------------------------------------------------- */
-/* --- Plugin Administration ------------------------------------------------ */
-/* --- User Administration -------------------------------------------------- */
-/* --- Veranstaltungsverwaltung --------------------------------------------- */
-/* --- textarea resizer ----------------------------------------------------- */
-/* --- general style classes ------------------------------------------------ */
-/* classes for the news modules in Stud.IP ---------------------------------- */
-/* error message */
-/* descriptional texts */
-/* --- institute administration ------------------------------------------- */
-/* --- info text neu lecture --------------------------------------------- */
-/* --- rating --- */
-/* --- online list --- */
-/* Simple Content Module */
 .clearfix {
   *zoom: 1;
 }
@@ -1761,7 +1702,6 @@ td.infoboxrahmen {
   width: auto;
   overflow: hidden;
   margin: 0px;
-  /* border: 2px solid white; */
   padding: 1px 5px;
   background-color: #D60000;
   color: white;
@@ -2138,6 +2078,55 @@ div.messagebox_warning {
 }
 #index .messagebox {
   margin: 5px 0;
+}
+#modal {
+  position: fixed;
+  font-family: Arial, Helvetica, sans-serif;
+  top: 0px;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: rgba(0,0,0,0.3);
+  z-index: 99999;
+  opacity: 1;
+  -webkit-transition: opacity 400ms ease-in;
+  -moz-transition: opacity 400ms ease-in;
+  transition: opacity 400ms ease-in;
+}
+#modal > div {
+  width: 500px;
+  top: 60px;
+  position: relative;
+  margin: 10% auto;
+  padding-left: 0px, 0px, 10px, 0px;
+  background: #FFFFFF;
+}
+#modal > div > h3 {
+  padding-left: 10px;
+  width: 98%;
+  background: #1E3E70;
+  color: #FFFFFF;
+}
+#modal > div > table {
+  padding-left: 10px;
+  padding-bottom: 10px;
+}
+.close {
+  background: #1E3E70;
+  color: #FFFFFF;
+  line-height: 22px;
+  position: absolute;
+  right: 0px;
+  text-align: center;
+  top: 0px;
+  width: 24px;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 16px;
+}
+.close:hover {
+  background: #899AB9;
+  color: #899AB9;
 }
 form#quicksearch {
   display: inline;
@@ -2697,7 +2686,6 @@ td.tddaterowpx {
 .contact-legend li {
   border-left: 1px solid #333;
   display: inline-block;
-  /* IE7 inline-block hack */
   *display: inline;
   *zoom: 1;
   padding: 0 0.5em;
@@ -3374,80 +3362,17 @@ a.opengraph_info:hover {
 .pagination .next a {
   background-image: url("../images/icons/16/blue/arr_1right.png");
 }
-.admission_buttons {
-  padding: 10px;
-  text-align: center;
-  width: 90%;
+#rulelist div {
+  display: list-item;
+  list-style-type: disc;
+  margin-left: 25px;
 }
-.admission_data {
-  padding: 10px;
-  width: 90%;
+.hover_box div {
+  display: inline;
 }
-.admission_label {
-  display: inline-block;
-  font-weight: bold;
-  text-align: right;
-  vertical-align: top;
-  width: 20%;
-}
-.admission_value {
-  display: inline-block;
-  vertical-align: top;
-  width: 70%;
-}
-.admissionrule {
-  margin-bottom: 5px;
-  margin-left: 20px;
-  margin-top: 5px;
-  clear: both;
-}
-.admissionrule_actions {
-  margin-left: 10px;
-  position: relative;
-  top: 0px;
-  left: 25px;
-}
-.admissionrule_data {
-  padding: 10px;
-  width: 95%;
-}
-.admissionrule_display {
-  float: left;
-}
-.admissionrule_label {
-  display: inline-block;
-  font-weight: bold;
-  text-align: right;
-  vertical-align: top;
-  width: 45%;
-}
-.admissionrule_label_fullsize {
-  display: inline-block;
-  font-weight: bold;
-  text-align: left;
-  vertical-align: top;
-  width: 70%;
-}
-.admissionrule_value {
-  display: inline-block;
-  text-align: left;
-  vertical-align: top;
-}
-.admissionrules_available {
-  padding: 5px;
-}
-.admissionrules_buttons {
-  padding: 5px;
-  text-align: center;
-}
-.admissionrules_config {
-  padding: 10px;
-  text-align: center;
-  width: 95%;
-}
-.admissionrules_description {
-  font-style: italic;
-  padding-left: 25px;
+.hover_box .action_icons {
+  display: inline;
+  margin-left: 15px;
 }
 .condition {
   margin-left: 20px;
@@ -3457,6 +3382,12 @@ a.opengraph_info:hover {
 }
 .userlist_user:hover a {
   visibility: visible;
+}
+.check_actions {
+  font-weight: normal;
+}
+.check_actions a {
+  cursor: pointer;
 }
 #enrollment ul {
   list-style: none inside;

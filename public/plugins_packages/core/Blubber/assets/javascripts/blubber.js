@@ -25,7 +25,7 @@ STUDIP.Blubber = {
                     STUDIP.Blubber.insertComment(posting.root_id, posting.posting_id, posting.mkdate, posting.content);
                 } else {
                     //thread
-                    STUDIP.Blubber.insertThread(posting.posting_id, posting.mkdate, posting.content);
+                    STUDIP.Blubber.insertThread(posting.posting_id, posting.discussion_time, posting.content);
                 }
             });
             jQuery('#last_check').val(Math.floor(new Date().getTime() / 1000));
@@ -78,7 +78,7 @@ STUDIP.Blubber = {
                 type: "POST",
                 success: function (reply) {
                     jQuery("#new_posting").val("").trigger("keydown");
-                    STUDIP.Blubber.insertThread(reply.posting_id, reply.mkdate, reply.content);
+                    STUDIP.Blubber.insertThread(reply.posting_id, reply.discussion_time, reply.content);
                     jQuery("#submit_button").hide();
                 },
                 complete: function () {
@@ -165,7 +165,7 @@ STUDIP.Blubber = {
     /**
      * Inserts any new thread-postings in the correct order
      */
-    insertThread: function (posting_id, mkdate, content) {
+    insertThread: function (posting_id, discussion_time, content) {
         if (jQuery("#posting_" + posting_id).length) {
             if (jQuery("#posting_" + posting_id + " > .content_column textarea.corrector").length === 0) {
                 var new_version = jQuery(content);
@@ -183,7 +183,7 @@ STUDIP.Blubber = {
             } else {
                 var already_inserted = false;
                 jQuery("#blubber_threads > li[id]").each(function (index, li) {
-                    if (!already_inserted && jQuery(li).attr("mkdate") < mkdate) {
+                    if (!already_inserted && jQuery(li).data("discussion_time") < discussion_time) {
                         var top = jQuery(document).scrollTop();
                         jQuery(content).insertBefore(li).hide().fadeIn();
                         var comment_top = jQuery("#posting_" + posting_id).offset().top;
@@ -487,19 +487,19 @@ STUDIP.Blubber = {
     },
     reshareBlubber: function () {
         var thread_id = jQuery(this).closest(".thread").attr("id");
-        var is_window = false;
+        var panel_open = false;
         if (thread_id) {
             thread_id = thread_id.substr(thread_id.lastIndexOf("_") + 1);
         } else {
             thread_id = jQuery(this).attr("data-thread_id");
-            is_window = true;
+            panel_open = true;
         }
         jQuery.ajax({
             'url': STUDIP.ABSOLUTE_URI_STUDIP + jQuery("#base_url").val() + "/reshare/" + thread_id,
             'type': "POST",
             'success': function (output) {
-                jQuery("#posting_" + thread_id + " .reshares").html(jQuery(output).find(".reshares").html());
-                if (is_window) {
+                jQuery("#posting_" + thread_id + " .reshares").addClass("reshared").html(jQuery(output).find(".reshares").html());
+                if (panel_open) {
                     jQuery("#blubber_public_panel").dialog("close");
                 }
             }
@@ -527,6 +527,7 @@ STUDIP.Blubber = {
                 });
             }
         });
+        return false;
     },
     showPrivatePanel: function () {
         var thread_id = jQuery(this).closest(".thread").attr("id");
@@ -550,6 +551,7 @@ STUDIP.Blubber = {
                 });
             }
         });
+        return false;
     }
 };
 
@@ -625,7 +627,7 @@ jQuery("#blubber_threads > li > ul.comments > li.more").live("click", function (
 jQuery("#blubber_threads a.edit").live("click", STUDIP.Blubber.startEditingComment);
 jQuery("#blubber_threads textarea.corrector").live("blur", function () {STUDIP.Blubber.submitEditedPosting(this);});
 jQuery("#blubber_threads .reshare_blubber, .blubber_contacts .want_to_share").live("click", STUDIP.Blubber.reshareBlubber);
-jQuery("#blubber_threads .thread.public .contextinfo").live("click", STUDIP.Blubber.showPublicPanel);
+jQuery("#blubber_threads .thread.public .contextinfo, #blubber_threads .thread.public .open_reshare_context").live("click", STUDIP.Blubber.showPublicPanel);
 jQuery("#blubber_threads .thread.private .contextinfo").live("click", STUDIP.Blubber.showPrivatePanel);
 
 //initialize autoresizer, file-dropper and events
@@ -680,13 +682,13 @@ jQuery(window.document).bind('scroll', _.throttle(function (event) {
             },
             dataType: "json",
             success: function (response) {
-                jQuery("#blubber_threads > li.loading").remove();
+                var more_indicator = jQuery("#blubber_threads > li.loading").detach();
                 jQuery("#loaded").val(parseInt(jQuery("#loaded").val(), 10) + 1);
                 jQuery.each(response.threads, function (index, thread) {
-                    STUDIP.Blubber.insertThread(thread.posting_id, thread.mkdate, thread.content);
+                    STUDIP.Blubber.insertThread(thread.posting_id, thread.discussion_time, thread.content);
                 });
                 if (response.more) {
-                    jQuery("#blubber_threads").append(jQuery('<li class="more"><img src="' + STUDIP.ASSETS_URL + 'images/ajax_indicator_small.gif" alt="loading"></li>'));
+                    jQuery("#blubber_threads").append(more_indicator.addClass("more").removeClass("loading"));
                 }
             }
         });

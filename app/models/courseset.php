@@ -1,5 +1,19 @@
 <?php
 
+/**
+ * CoursesetModel - Database stuff for course set management
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * @author      Thomas Hackl <thomas.hackl@uni-passau.de>
+ * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
+ * @category    Stud.IP
+ * @since       3.0
+ */
+
 class CoursesetModel {
 
     /**
@@ -7,8 +21,8 @@ class CoursesetModel {
      * @param Array  $instituteIds IDs of institutes to check
      * @param String $coursesetId Get also courses assigned to the given courseset
      * @param Array  $selectedCourses Courses that have already been selected manually
-     * @param String $smeester_id Get only courses belonging to the given semester
-     * @param bool   $onlyOwn Fetch only courses the current user is lecturer of?
+     * @param String $semester_id Get only courses belonging to the given semester
+     * @param mixed  $filter Fetch only courses fulfilling a search string or of a certain lecturer?
      * 
      * @return Array Found courses.
      */
@@ -40,7 +54,7 @@ class CoursesetModel {
                 WHERE s.status NOT IN(:studygroup_types) AND s.start_time <= :sembegin AND (:sembegin <= (s.start_time + s.duration_time) OR s.duration_time = -1) 
                 AND si.Institut_id IN(:institutes)
                 AND (s.name LIKE :filter OR s.Veranstaltungsnummer LIKE :filter OR Nachname LIKE :filter)",
-                     array('studygroup_types' => studygroup_sem_types(),
+                     array('studygroup_types' => studygroup_sem_types() ? studygroup_sem_types() : array(''),
                             'sembegin' => $currentSemester->beginn,
                             'institutes' => $instituteIds,
                             'filter' => '%' . $filter .'%'
@@ -77,6 +91,14 @@ class CoursesetModel {
         return $data;
     }
 
+    /**
+     * Fetch institutes for course sets.
+     * 
+     * @param Array $filter filter settings, e.g. a special subset of allowed
+     * admission rules
+     * 
+     * @return Array Found institutes.
+     */
     static function getInstitutes($filter = array())
     {
         global $perm, $user;

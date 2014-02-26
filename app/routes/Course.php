@@ -35,10 +35,12 @@ class Course extends \RESTAPI\RouteMap
         }
 
         $memberships = $this->findMembershipsByUserId($user_id, $semester);
-
+        
         $total = count($memberships);
         $memberships = $memberships->limit($this->offset, $this->limit);
-        return $this->paginated($this->membershipsToJSON($memberships),
+        $memberships_json = $this->membershipsToJSON($memberships);
+        $this->etag(md5(serialize($memberships_json)));    
+        return $this->paginated($memberships_json,
                                 $total,
                                 compact('user_id'), array('semester' => $semester_id));
     }
@@ -50,8 +52,15 @@ class Course extends \RESTAPI\RouteMap
      */
     public function getCourse($course_id)
     {
+        if (!$course = \Course::find($course_id)) {
+            $this->notFound("Course not found");
+        }
+
         $course = $this->requireCourse($course_id);
-        return $this->courseToJSON($course);
+        $this->lastmodified($course->chdate);
+        $course_json = $this->courseToJSON($course);
+        $this->etag(md5(serialize($course_json)));
+        return $course_json;
     }
 
     /**
@@ -75,7 +84,9 @@ class Course extends \RESTAPI\RouteMap
 
         $total = count($members);
         $members = $members->limit($this->offset, $this->limit);
-        return $this->paginated($this->membersToJSON($course, $members),
+        $members_json = $this->membersToJSON($course, $members)
+        $this->etag(md5(serialize($members_json)));
+        return $this->paginated($members_json,
                                 $total,
                                 compact('course_id'), array('status' => $status_filter));
     }
@@ -115,9 +126,8 @@ class Course extends \RESTAPI\RouteMap
             // add group color
             $course_json['group'] = (int) $membership->gruppe;
 
-            $json[sprintf("/course/%s", $course->id)] = $course_json;
+            $json[$this->urlf("/course/%s", array($course->id))] = $course_json;
         }
-
         return $json;
     }
 
@@ -135,18 +145,18 @@ class Course extends \RESTAPI\RouteMap
 
         // lecturers
         foreach ($course->getMembersWithStatus('dozent') as $lecturer) {
-            $url = sprintf('/user/%s', htmlReady($lecturer->user_id));
+            $url = $this->urlf('/user/%s', array(htmlReady($lecturer->user_id)));
             $json['lecturers'][$url] = $lecturer->user->getFullName();
         }
 
         // other members
         foreach (words("user autor tutor dozent") as $status) {
-            $json['members'][$status] = sprintf('/course/%s/members?status=%s', $course->id, $status);
+            $json['members'][$status] = $this->urlf('/course/%s/members?status=%s', array($course->id, $status));
             $json['members'][$status . '_count'] = $course->countMembersWithStatus($status);
         }
 
         foreach (words("start_semester end_semester") as $key) {
-            $json[$key] = $course->$key ? sprintf('/semester/%s', htmlReady($course->$key->id)) : null;
+            $json[$key] = $course->$key ? $this->urlf('/semester/%s', array(htmlReady($course->$key->id))) : null;
         }
 
         $modules = new \Modules;
@@ -157,10 +167,9 @@ class Course extends \RESTAPI\RouteMap
                        'wiki'      => 'wiki') as $module => $uri) {
 
             if ($activated[$module]) {
-                $json['modules'][$module] = sprintf('/course/%s/%s', htmlReady($course->id), $uri);
+                $json['modules'][$module] = $this->urlf('/course/%s/%s', array(htmlReady($course->id), $uri));
             }
         }
-
         return $json;
     }
 
@@ -182,7 +191,7 @@ class Course extends \RESTAPI\RouteMap
         $json = array();
 
         foreach ($members as $member) {
-            $url = sprintf('/user/%s', $member->user_id);
+            $url = $this->urlf('/user/%s', array($member->user_id));
             $avatar = \Avatar::getAvatar($member->user_id);
             $json[$url] = array(
                 'user_id'       => $member->user_id,
@@ -193,7 +202,6 @@ class Course extends \RESTAPI\RouteMap
                 'avatar_normal' => $avatar->getURL(\Avatar::NORMAL)
             );
         }
-
         return $json;
     }
 }

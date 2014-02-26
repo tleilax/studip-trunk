@@ -35,7 +35,10 @@ class Contacts extends \RESTAPI\RouteMap
         $total = count($user->contacts);
         $contacts = $user->contacts->limit($this->offset, $this->limit);
 
-        return $this->paginated($this->contactsToJSON($contacts),
+        $contacts_json = $this->contactsToJSON($contacts);
+        $this->etag(md5(serialize($contacts_json)));
+
+        return $this->paginated($contacts_json,
                                 $total, compact('user_id'));
     }
 
@@ -61,9 +64,6 @@ class Contacts extends \RESTAPI\RouteMap
         // TODO: only adds contacts to the global $user
         AddNewContact($friend->id);
 
-        // TODO: add/update the buddy to the contacts
-        // TODO: what does the last TODO mean after all?
-
         $this->status(201);
     }
 
@@ -87,9 +87,6 @@ class Contacts extends \RESTAPI\RouteMap
 
         DeleteContact($contact->id);
 
-        // TODO: remove the buddy from the contacts
-        // TODO: what does the last TODO mean after all?
-
         $this->status(204);
     }
 
@@ -111,7 +108,11 @@ class Contacts extends \RESTAPI\RouteMap
 
         $total = count($contact_groups);
         $contact_groups = $contact_groups->limit($this->offset, $this->limit);
-        return $this->paginated($this->contactGroupsToJSON($contact_groups),
+        
+        $contact_groups_json = $this->contactGroupsToJSON($contact_groups);
+        $this->etag(md5(serialize($contact_groups_json)));
+        
+        return $this->paginated($contact_groups_json,
                                 $total, compact('user_id'));
     }
 
@@ -126,13 +127,13 @@ class Contacts extends \RESTAPI\RouteMap
             $this->error(401);
         }
 
-        // TODO: add the new contact group
-
-        if (!$success) {
-            $this->error(500);
+        if (!isset($this->data['name']) || !strlen($name = trim($this->data['name']))) {
+            $this->error(400, 'Contact group name required.');
         }
 
-        $this->redirect('contact_group/' . $contact_group->id, 201, 'ok');
+        $id = AddNewStatusgruppe($name, $GLOBALS['user']->id, $size = 0);
+
+        $this->redirect('contact_group/' . $id, 201, 'ok');
     }
 
     /**
@@ -143,7 +144,9 @@ class Contacts extends \RESTAPI\RouteMap
     public function showContactGroup($group_id)
     {
         $group = $this->requireContactGroup($group_id);
-        return $this->contactGroupToJSON($group);
+        $contact_group_json = $this->contactGroupToJSON($group);
+        $this->etag(md5(serialize($contact_group_json)));
+        return $contact_group_json;
     }
 
     /**
@@ -153,16 +156,8 @@ class Contacts extends \RESTAPI\RouteMap
      */
     public function destroyContactGroup($group_id)
     {
-        // TODO: get contact_group, using #notFound if required
-
-        // TODO: auth
-
-        // TODO: destroy contact group
-
-        if (!$success) {
-            $this->error(500);
-        }
-
+        $group = $this->requireContactGroup($group_id);
+        DeleteStatusgruppe($group_id);
         $this->status(204);
     }
 
@@ -180,6 +175,8 @@ class Contacts extends \RESTAPI\RouteMap
         foreach ($contacts as $contact) {
             $json[] = $this->minimalUserToJSON($contact->user_id, $contact->name());
         }
+
+        $this->etag(md5(serialize($json)));
 
         return $this->paginated($json, count($group->members), compact('group_id'));
     }
@@ -259,10 +256,10 @@ class Contacts extends \RESTAPI\RouteMap
     private function contactsToJSON($contacts) {
         $result = array();
         foreach ($contacts as $contact) {
-            $url = sprintf('/contact/%s', htmlReady($contact->id));
+            $url = $this->urlf('/contact/%s', array(htmlReady($contact->id)));
             $result[$url] = array(
                 'id'            => $contact->id,
-                'owner'         => sprintf('/user/%s', htmlReady($contact->owner_id)),
+                'owner'         => $this->urlf('/user/%s', array(htmlReady($contact->owner_id))),
                 'friend'        => $this->minimalUserToJSON($contact->user_id, array($contact->friend->getFullName())),
                 'buddy'         => (bool) $contact->buddy,
                 'calpermission' => (bool) $contact->calpermission
@@ -275,7 +272,7 @@ class Contacts extends \RESTAPI\RouteMap
     {
         $avatar = \Avatar::getAvatar($id);
         return array('user_id'       => $id,
-                     'url'           => sprintf('/user/%s', htmlReady($id)),
+                     'url'           => $this->urlf('/user/%s', array(htmlReady($id))),
                      'fullname'      => $fullname,
                      'avatar_small'  => $avatar->getURL(\Avatar::SMALL),
                      'avatar_medium' => $avatar->getURL(\Avatar::MEDIUM),
@@ -287,7 +284,7 @@ class Contacts extends \RESTAPI\RouteMap
     {
         $result = array();
         foreach ($contact_groups as $cg) {
-            $url = sprintf('/contact_group/%s', htmlReady($cg->id));
+            $url = $this->urlf('/contact_group/%s', array(htmlReady($cg->id)));
             $result[$url] = $this->contactGroupToJSON($cg);
         }
         return $result;
@@ -296,79 +293,11 @@ class Contacts extends \RESTAPI\RouteMap
     private function contactGroupToJSON($group)
     {
         $json = array(
-            'id' => $group->id,
-            'name' => $group->name,
-            'contacts' => sprintf('/contact_group/%s/members', htmlReady($group->id)),
+            'id'             => $group->id,
+            'name'           => $group->name,
+            'contacts'       => $this->urlf('/contact_group/%s/members', array(htmlReady($group->id))),
             'contacts_count' => sizeof($group->members)
         );
         return $json;
     }
-
-
-    /*
-
-    private function contactGroupExists($group_id)
-    {
-        $query = "SELECT 1 FROM statusgruppen WHERE statusgruppe_id = ?";
-        $statement = \DBManager::get()->prepare($query);
-        $statement->execute(array($group_id));
-        return $statement->fetchColumn();
-    }
-
-
-    static function load($user_id)
-    {
-        $query = "SELECT statusgruppe_id AS group_id, name FROM statusgruppen WHERE range_id = ? ORDER BY position ASC";
-        $statement = DBManager::get()->prepare($query);
-        $statement->execute(array($user_id));
-        $groups = $statement->fetchAll(PDO::FETCH_ASSOC);
-
-        $groups['unassigned'] = self::loadGroup('unassigned');
-        return $groups;
-    }
-
-    static function loadGroup($group_id)
-    {
-        if ($group_id === 'unassigned') {
-            return array(
-                'group_id' => 'unassigned',
-                'name'     => _('Nicht zugeordnet'),
-            );
-        }
-        $query = "SELECT statusgruppe_id AS group_id, name FROM statusgruppen WHERE statusgruppe_id = ?";
-        $statement = DBManager::get()->prepare($query);
-        $statement->execute(array($group_id));
-        return $statement->fetch(PDO::FETCH_ASSOC);
-    }
-
-    static function loadUnassigned($user_id)
-    {
-        $query = "SELECT user_id
-                  FROM contact
-                  WHERE owner_id = :user_id AND user_id NOT IN(
-                      SELECT user_id
-                      FROM statusgruppen
-                      JOIN statusgruppe_user USING (statusgruppe_id)
-                      WHERE range_id = :user_id
-                  )";
-        $statement = DBManager::get()->prepare($query);
-        $statement->bindValue(':user_id', $user_id);
-        $statement->execute();
-        return $statement->fetchAll(PDO::FETCH_COLUMN);
-    }
-
-    static function loadMembers($user_id, $group_id)
-    {
-        if ($group_id === 'unassigned') {
-            return self::loadUnassigned($user_id);
-        }
-        $query = "SELECT user_id
-                  FROM statusgruppen
-                  JOIN statusgruppe_user USING (statusgruppe_id)
-                  WHERE range_id = ? AND statusgruppe_id = ?";
-        $statement = DBManager::get()->prepare($query);
-        $statement->execute(array($user_id, $group_id));
-        return $statement->fetchAll(PDO::FETCH_COLUMN);
-    }
-    */
 }
