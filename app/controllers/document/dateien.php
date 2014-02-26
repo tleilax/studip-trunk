@@ -33,6 +33,12 @@ class Document_DateienController extends AuthenticatedController {
      
         parent::before_filter($action, $args);    
         Navigation::activateItem('/document/dateien');
+         
+        //Setup the user's sub-directory in $USER_DOC_PATH
+        $userdir = $USER_DOC_PATH.'/'.$GLOBALS['user']->id.'/';
+        
+        if (!file_exists($userdir))
+            mkdir($userdir, 0744, true); 
                    
         //Configurations for the Documentarea for this user 
         $this->userConfig = DocUsergroupConfig::getUserConfig($GLOBALS['user']->id);
@@ -64,12 +70,12 @@ class Document_DateienController extends AuthenticatedController {
         if ($dir_id == $GLOBALS['user']->id) {
             $user_root = new RootDirectory($GLOBALS['user']->id);
             $dir = $user_root->listFiles();
-                    
+               
             $i = 0;
             foreach ($dir as $entry) {
                 $item = File::get($entry->file_id);
                 $inhalt[$i]['ord'] = $i;
-                $inhalt[$i]['id'] = $entry->id;
+                $inhalt[$i]['id'] = $entry->id;          
                 $inhalt[$i]['type'] = $item->getEntryType();
                 $inhalt[$i]['name'] = $entry->getName();
                 $inhalt[$i]['lock'] = 'locked';
@@ -127,7 +133,6 @@ class Document_DateienController extends AuthenticatedController {
     }
     
     public function up_action($up_dir) {
-        //$this->flash['test_dir'] = $up_dir; //
         $this->redirect("document/dateien/list/$up_dir");  
     }
     
@@ -141,13 +146,13 @@ class Document_DateienController extends AuthenticatedController {
                       
                 if ($env_dir == $GLOBALS['user']->id) {
                     $user_root = new RootDirectory($GLOBALS['user']->id);
-                    $new_dir = $user_root->mkdir($_POST['dirname']);
+                    $new_dir = $user_root->mkdir($dir_name);
                     $new_dir->setDescription($_POST['description']);
                 }
                 else {
                     $dirEntry = new DirectoryEntry($env_dir);
                     $sub_dir = StudipDirectory::get($dirEntry->file_id);
-                    $new_dir = $sub_dir->mkdir($_POST['dirname']);
+                    $new_dir = $sub_dir->mkdir($dir_name);
                     $new_dir->setDescription($_POST['description']);
                 }
             }
@@ -158,63 +163,42 @@ class Document_DateienController extends AuthenticatedController {
     public function upload_action($env_dir) {
      
         if(Request::submitted('upload')) {
-            $file_name = $_POST['upfile']['tmp_name'];
-            $result = $this->verifyName($file_name);
-
-            if ($result == 'ok') {
-
+            
+            if (isset ($_FILES['upfile']['tmp_name'])) {
+                $upfile = $_FILES['upfile']['name'];
+                $size = $_FILES['upfile']['size'];
+                $type = $_FILES['upfile']['type'];
+                $tmp_name = $_FILES['upfile']['tmp_name'];
+             
                 if ($env_dir == $GLOBALS['user']->id) {
                     $user_root = new RootDirectory($GLOBALS['user']->id);
-                    $new_file = $user_root->create($_POST['filename']);
-                    $entry->setDescription($_POST['description']);
+                    $new_file = $user_root->create($upfile, $type); 
+                    $new_file->setDescription($_POST['description']);
                 } 
-            }/*
-            else if (isset($id) && isset($_FILES['upfile']['tmp_name'])) {
-                $stud = StudipDirectory::get($dirEntry->file_id);
-                $file = $stud->create($_POST['dateiname']);
-                $file->setDescription($_POST['description']);
+                else if ($env_dir != $GLOBALS['user']->id) {
+                    $dirEntry = new DirectoryEntry($env_dir);
+                    $sub_dir = StudipDirectory::get($dirEntry->file_id);
+                    $new_file = $sub_dir->create($upfile, $type);
+                    $new_file->setDescription($_POST['description']);
+                }
+            }
             else {
                 PageLayout::postMessage(MessageBox::error(_('FEHLER')));
             }
         
-            $fileEntry = File::get($file->file_id);
-            $fileEntry->storage;
-            //$storage = $fileEntry->test(); 
+            $newEntry = File::get($new_file->file_id);
+            $storage = $newEntry->getStoragePath(); 
             
-            $upfile = $_FILES['upfile']['name'];
-            $groesse = $_FILES['upfile']['size'];
-            $typ = $_FILES['upfile']['type'];
-            $tmp_name = $_FILES['upfile']['tmp_name'];
-
-            $ergebnis = $this -> kontrolliereDatei($env, $upfile); //$groesse, $typ); 
-
-            switch ($ergebnis) {
-                case "eintrag vorhanden":
-                    $upfile = $this -> renameEintrag($env, $upfile);
-                break;
-           
-                case "datei zu gross":
-                break;
-           
-                case "unerlaubter datei-typ":
-                break;
-           
-                case "quota-ueberschreitung":
-                break;
-            }
-         
-           if (!move_uploaded_file($_FILES['upfile']['tmp_name'], $ziel_verz. $upfile))
-               $this -> $ergebnis = "Upload_Fehler"; 
-           
-           //if ($ergebnis == "ok" && $typ == "application/zip")
-           // $ergebnis = $this -> unzipEintrag($ziel_verz, $upfile);
-         
-           $this -> flash['addFile_MessageFlag'] = $ergebnis;
-           */
-       }
-      
-      $this -> redirect("document/dateien/list/$env_dir");
-     }
+           if (move_uploaded_file($_FILES['upfile']['tmp_name'], $storage. $upfile)) {
+               PageLayout::postMessage(MessageBox::success(_('Datei erfolgreich hochgeladen')));
+           }
+           else {
+               PageLayout::postMessage(MessageBox::error(_('Upload-Fehler')));
+               $newEntry->delete();
+           } 
+        } 
+        $this->redirect("document/dateien/list/$env_dir");
+    }
      
     public function edit_action($id, $parent_id) { 
         if (Request::submitted('edit')) {
@@ -224,7 +208,7 @@ class Document_DateienController extends AuthenticatedController {
             $directory->setDescription($_POST['description']);
             */
         }
-        $this -> redirect('document/dateien/list');
+        $this->redirect('document/dateien/list');
     }
     
     public function copyTo_action($id, $parent_id=NULL) {
@@ -236,7 +220,7 @@ class Document_DateienController extends AuthenticatedController {
         unset($_SESSION['document-copy']['files']);
         */
      
-        $this_redirect('document/dateien/list'. $parent_id);
+        $this->redirect('document/dateien/list'. $parent_id);
     }
     
     public function moveTo_action($id, $parent_id) {
@@ -262,7 +246,6 @@ class Document_DateienController extends AuthenticatedController {
     }
     
     public function remove_action($file_id, $parent_id = NULL) {    
-        
         /* 
         if (Request::submitted('remove')) {
             $entry = File::get($file_id);
@@ -273,8 +256,7 @@ class Document_DateienController extends AuthenticatedController {
             else
                 $this->redirect('document/dateien/list');
             }
-        }
-        */
+        }*/
     }
     
     public function download_action($item, $name) {
@@ -352,6 +334,9 @@ class Document_DateienController extends AuthenticatedController {
        else if(!(strpos($name, '\\') === false)) {
            $ergebnis = "backslash";
        }
+       //else if(!(strpos($name, '(') === false) || !(strpos($name, ')') === false)) {
+       //    $ergebnis = "klammern";
+       //}
        else if (strlen($name) > 256) {
            $ergebnis = "max";
        }
@@ -360,4 +345,20 @@ class Document_DateienController extends AuthenticatedController {
        }
        return $ergebnis;
     }
+    
+   private function checkFile($file) {
+       /*
+       $eintrag = $envDir. "/". $dname;
+    
+       if (file_exists($eintrag))
+          return "eintrag vorhanden";
+       else
+          return "ok";
+      
+       //Datei-Kontrollfunktionen:
+       // -Quota
+       // -Dateigroesse
+       // -Dateityp
+       */
+   }
 }
