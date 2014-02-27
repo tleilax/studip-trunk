@@ -68,57 +68,12 @@ class Document_DateienController extends AuthenticatedController {
     public function list_action($dir_id) {
 
         if ($dir_id == $GLOBALS['user']->id) {
-            $user_root = new RootDirectory($GLOBALS['user']->id);
-            $dir = $user_root->listFiles();
-
-            $i = 0;
-            foreach ($dir as $entry) {
-                $item = File::get($entry->file_id);
-                $inhalt[$i]['ord'] = $i;
-                $inhalt[$i]['id'] = $entry->id;
-                $inhalt[$i]['file_id'] = $entry->file_id;
-
-                $inhalt[$i]['type'] = $item->getEntryType();
-                $inhalt[$i]['name'] = $entry->getName();
-                $inhalt[$i]['lock'] = 'locked';
-                $inhalt[$i]['autor'] = $this->realname;
-                $timestamp = $item->getModificationTime();
-                $inhalt[$i]['date'] = $this->transformDate($timestamp);
-                $i++;
-            }
-
-            if (empty($dir))
-                $this->flash['count'] = -1;
-            else
-                $this->flash['count'] = --$i;
+            $directory = new RootDirectory($GLOBALS['user']->id);
 
             $this->flash['up_dir'] = 'user_root';
-        }
-        else {
+        } else {
             $sub_dir = new DirectoryEntry($dir_id);
-            $user_dir = StudipDirectory::get($sub_dir->file_id);
-            $dir = $user_dir->listFiles();
-
-            $i = 0;
-            foreach ($dir as $entry) {
-                $item = File::get($entry->file_id);
-                $inhalt[$i]['ord'] = $i;
-                $inhalt[$i]['id'] = $entry->id;
-                $inhalt[$i]['file_id'] = $entry->file_id;
-
-                $inhalt[$i]['type'] = $item->getEntryType();
-                $inhalt[$i]['name'] = $entry->getName();
-                $inhalt[$i]['lock'] = 'locked';
-                $inhalt[$i]['autor'] = $this->realname;
-                $timestamp = $item->getModificationTime();
-                $inhalt[$i]['date'] = $this->transformDate($timestamp);
-                $i++;
-            }
-
-            if (empty($dir))
-                $this->flash['count'] = -1;
-            else
-                $this->flash['count'] = --$i;
+            $directory = StudipDirectory::get($sub_dir->file_id);
 
             if ($sub_dir->parent_id === $GLOBALS['user']->id) {
                 $this->flash['up_dir'] = $GLOBALS['user']->id;
@@ -126,6 +81,29 @@ class Document_DateienController extends AuthenticatedController {
                 $this->flash['up_dir'] = $sub_dir->getParent()->id;
             }
         }
+
+        $files = $directory->listFiles();
+
+        $i = 0;
+        foreach ($files as $entry) {
+            $item = File::get($entry->file_id);
+            $inhalt[$i]['ord'] = $i;
+            $inhalt[$i]['id'] = $entry->id;
+            $inhalt[$i]['file_id'] = $entry->file_id;
+
+            $inhalt[$i]['type'] = $item->getEntryType();
+            $inhalt[$i]['name'] = $entry->getName();
+            $inhalt[$i]['lock'] = 'locked';
+            $inhalt[$i]['autor'] = $this->realname;
+            $timestamp = $item->getModificationTime();
+            $inhalt[$i]['date'] = $this->transformDate($timestamp);
+            $i++;
+        }
+
+        if (empty($inhalt))
+            $this->flash['count'] = -1;
+        else
+            $this->flash['count'] = --$i;
 
         $this->flash['env'] = $dir_id;
         $this->flash['inhalt'] = $inhalt;
