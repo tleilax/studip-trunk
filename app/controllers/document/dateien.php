@@ -137,7 +137,6 @@ class Document_DateienController extends AuthenticatedController {
     }
     
     public function up_action($up_dir) {
-        //$this->flash['test_dir'] = $up_dir; //
         $this->redirect("document/dateien/list/$up_dir");  
     }
     
@@ -177,12 +176,26 @@ class Document_DateienController extends AuthenticatedController {
              
                 if ($env_dir == $GLOBALS['user']->id) {
                     $user_root = new RootDirectory($GLOBALS['user']->id);
+                    $exist = $user_root->getEntry($upfile);
+                    
+                    if (!is_null($exist)) {
+                        $newname = $this->nameFactory($upfile);
+                        $upfile = $newname;
+                    }
+                    
                     $new_file = $user_root->create($upfile, $type); 
                     $new_file->setDescription($_POST['description']);
                 } 
                 else if ($env_dir != $GLOBALS['user']->id) {
                     $dirEntry = new DirectoryEntry($env_dir);
                     $sub_dir = StudipDirectory::get($dirEntry->file_id);
+                    $exist = $user_root->getEntry($upfile);
+                    
+                    if (!is_null($exist)) {
+                        $newname = $this->nameFactory($upfile);
+                        $upfile = $newname;
+                    }
+                    
                     $new_file = $sub_dir->create($upfile, $type);
                     $new_file->setDescription($_POST['description']);
                 }
@@ -194,24 +207,19 @@ class Document_DateienController extends AuthenticatedController {
             $newEntry = File::get($new_file->file_id);
             $file_path = $newEntry->getStoragePath(); 
             
-           if (move_uploaded_file($_FILES['upfile']['tmp_name'], $file_path)) {
-               //PageLayout::postMessage(MessageBox::success(_('Datei erfolgreich hochgeladen')));
-           }
-           else {
+           if (!move_uploaded_file($_FILES['upfile']['tmp_name'], $file_path)) {
                PageLayout::postMessage(MessageBox::error(_('Upload-Fehler')));
                $newEntry->delete();
-           } 
+           }
         } 
         $this->redirect("document/dateien/list/$env_dir");
     }
      
-    public function edit_action($id, $parent_id) { 
+    public function edit_action($id, $env_dir) { 
+        
         if (Request::submitted('edit')) {
-            
-            /*
-            $directory = new DirectoryEntry($id);
-            $directory->setDescription($_POST['description']);
-            */
+            $entry = new DirectoryEntry($id);
+            $entry->setDescription($_POST['description']);
         }
         $this->redirect('document/dateien/list');
     }
@@ -280,7 +288,8 @@ class Document_DateienController extends AuthenticatedController {
     public function remove_action($file_id, $env_dir) {    
          
         if (Request::submitted('remove')) {             
-            //
+            //$entry = File::get($file_id);
+            //$entry->delete();
         }
        
         $entry = File::get($file_id);
@@ -328,6 +337,9 @@ class Document_DateienController extends AuthenticatedController {
        else if(!(strpos($name, '\\') === false)) {
            $ergebnis = "backslash";
        }
+       //else if(!(strpos($name, '(') === false) || !(strpos($name, ')') === false)) {
+       //    $ergebnis = "klammern";
+       //}
        else if (strlen($name) > 256) {
            $ergebnis = "max";
        }
@@ -338,6 +350,7 @@ class Document_DateienController extends AuthenticatedController {
     }
     
    private function checkFile($file) {
+       
        /*
        $eintrag = $envDir. "/". $dname;
     
@@ -352,5 +365,19 @@ class Document_DateienController extends AuthenticatedController {
        // -Dateityp
        */
    }
+   
+  private function nameFactory($name) {
+      $cmp = $name. '(1)';
+      
+      if (!strcmp($name, $cmp) == 0) {
+          return $cmp;
+      }
+      else {
+          $length = strlen($name);
+          $number = $name[$length - 2];
+          $number++;
+          $name[$length - 2] = $number;
+          return $name; 
+      }
+  }
 }
-
