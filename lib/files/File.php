@@ -178,6 +178,18 @@ class File // extends SimpleORMap
     }
     
     /**
+     * Return the file's storage path.
+     *
+     * @return string storage path
+     */
+    
+    public function getStoragePath()
+    {
+        $path = $this->storage_object->getPath();
+        return  $path;  
+    }
+    
+    /**
      * Return the Storage Opject from File.
      *
      * @return Storage Object
