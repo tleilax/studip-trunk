@@ -3,51 +3,52 @@
 /**
  * files.php
  *
- * Die Migration erzeugt alle Tabellen, die fuer den Betrieb des persoenlichen 
+ * Die Migration erzeugt alle Tabellen, die fuer den Betrieb des persoenlichen
  * Dateibereichs noetig sind. Dies sind:
- * 
- * - die Kern-Tabellen zur Verwaltung der persoenlichen Verzeichnisse und 
+ *
+ * - die Kern-Tabellen zur Verwaltung der persoenlichen Verzeichnisse und
  *   Dateien
- * 
- * - die Kern-Tabellen zur Verwaltung der vom Stud.IP-Systemadminstrator 
+ *
+ * - die Kern-Tabellen zur Verwaltung der vom Stud.IP-Systemadminstrator
  *   vorgenommenen Konfiguration des persoenlichen Dateibereichs und
- *   
- * - die Kern-Tabelle zur Verwaltung der von einem Benutzer gewaehlten 
+ *
+ * - die Kern-Tabelle zur Verwaltung der von einem Benutzer gewaehlten
  *   Anzeigeoptionen fuer "seinen" Dateimanager.
- *   
- *  Zur physikalischen Speicherung persoenlicher Dateien auf dem lokalen Server 
- *  richtet files das in der config_local.inc.php in der globalen Variablen 
+ *
+ *  Zur physikalischen Speicherung persoenlicher Dateien auf dem lokalen Server
+ *  richtet files das in der config_local.inc.php in der globalen Variablen
  *  "$USER_DOC_PATH" angegebene Verzeichnis ein.
- *  
+ *
  * @category    Stud.IP
  * @version     3.1
- * 
+ *
  * @author      Gerd Hoffmann <gerd.hoffmann@uni-oldenburg.de>
  * @author      Stefan Osterloh <s.osterloh@uni-oldenburg.de>
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2 or later
  */
 
 
-class files extends DBMigration 
+class files extends DBMigration
 {
-    public function description() 
+    public function description()
     {
         return 'Adding db-scheme for StEP00262 to provide user-centered managing of files';
     }
-    
-    public function up() 
+
+    public function up()
     {
         // Create directory
         if (!file_exists($GLOBALS['USER_DOC_PATH'])) {
             mkdir($GLOBALS['USER_DOC_PATH'], 0755, true);
         }
-        
+
         /*
-         * Migration for API in lib/files 
+         * Migration for API in lib/files
          */
-        DBManager::get()->exec("CREATE TABLE IF NOT EXISTS files 
+        DBManager::get()->exec("CREATE TABLE IF NOT EXISTS files
             (file_id CHAR(32) NOT NULL,
             user_id CHAR(32) NOT NULL,
+            filename VARCHAR(255) NOT NULL,
             mime_type VARCHAR(64) NOT NULL,
             size BIGINT UNSIGNED NOT NULL,
             restricted TINYINT(1) NOT NULL DEFAULT 0,
@@ -57,7 +58,7 @@ class files extends DBMigration
             chdate INT(11) UNSIGNED NOT NULL DEFAULT 0,
             PRIMARY KEY (file_id))");
 
-        DBManager::get()->exec("CREATE TABLE IF NOT EXISTS file_refs 
+        DBManager::get()->exec("CREATE TABLE IF NOT EXISTS file_refs
             (id CHAR(32) NOT NULL,
             file_id CHAR(32) NOT NULL,
             parent_id CHAR(32) NOT NULL,
@@ -92,11 +93,11 @@ class files extends DBMigration
             (id VARCHAR(32) NOT NULL,
             aktiv BOOLEAN NULL,
             PRIMARY KEY (id))");
-        
+
         /*
          * Migration for the Admin-Area
          */
-        DBManager::get()->query("CREATE  TABLE IF NOT EXISTS `doc_filetype` 
+        DBManager::get()->query("CREATE  TABLE IF NOT EXISTS `doc_filetype`
             (`id` INT NOT NULL AUTO_INCREMENT ,
             `type` VARCHAR(45) NOT NULL ,
             `description` TEXT NULL ,
@@ -104,7 +105,7 @@ class files extends DBMigration
             ENGINE = MyISAM"
         );
 
-        DBManager::get()->query("CREATE  TABLE IF NOT EXISTS `doc_usergroup_config` 
+        DBManager::get()->query("CREATE  TABLE IF NOT EXISTS `doc_usergroup_config`
             (`id` INT NOT NULL AUTO_INCREMENT ,
             `usergroup` VARCHAR(45) NOT NULL ,
             `upload_quota` TEXT NOT NULL ,
@@ -133,9 +134,9 @@ class files extends DBMigration
          * Set the entry into the table "config" to enable or disable the Personal Document Area
          */
         $query = "INSERT IGNORE INTO `config`
-                  (`config_id`, `field`, `value`, `is_default`, `type`, `range`, `section`, 
+                  (`config_id`, `field`, `value`, `is_default`, `type`, `range`, `section`,
                    `mkdate`, `chdate`, `description`)
-                  VALUES (:id, :field, :value, 1, :type, 'global', 'files', UNIX_TIMESTAMP(), 
+                  VALUES (:id, :field, :value, 1, :type, 'global', 'files', UNIX_TIMESTAMP(),
                           UNIX_TIMESTAMP(), :description)";
         $statement = DBManager::get()->prepare($query);
         $statement->execute(array(
@@ -173,8 +174,8 @@ class files extends DBMigration
             ));
         }
     }
-    
-    public function down() 
+
+    public function down()
     {
         global $USER_DOC_PATH;
 
@@ -188,7 +189,7 @@ class files extends DBMigration
         rmdir($alluserdir);
         $db = DBManager::get();
 
-        $db->exec("DROP TABLE IF EXISTS 
+        $db->exec("DROP TABLE IF EXISTS
             ('files',
             'files_layout',
             'files_backend_studip',
@@ -199,7 +200,7 @@ class files extends DBMigration
             'doc_filetype',
             'doc_filetype_forbidden'
         )");
-     
+
         /*
          * Down-Migration for Admin-Area
          */

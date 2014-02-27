@@ -18,6 +18,7 @@ class File // extends SimpleORMap
 {
     public $file_id;
     public $user_id;
+    public $filename;
     public $mime_type;
     public $size;
     public $restricted;
@@ -56,6 +57,7 @@ class File // extends SimpleORMap
         }
 
         $file->user_id = $result['user_id'];
+        $file->filename = $result['filename'];
         $file->mime_type = $result['mime_type'];
         $file->size = $result['size'];
         $file->restricted = $result['restricted'];
@@ -109,8 +111,8 @@ class File // extends SimpleORMap
     public function getCreationTime()
     {
         return $this->mkdate;
-    }  
-    
+    }
+
    /**
      * Return the file's entry type.
      *
@@ -176,19 +178,19 @@ class File // extends SimpleORMap
     {
         return $this->chdate;
     }
-    
+
     /**
      * Return the file's storage path.
      *
      * @return string storage path
      */
-    
+
     public function getStoragePath()
     {
         $path = $this->storage_object->getPath();
-        return  $path;  
+        return  $path;
     }
-    
+
     /**
      * Return the Storage Opject from File.
      *
