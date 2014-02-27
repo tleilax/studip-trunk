@@ -160,6 +160,12 @@ class File // extends SimpleORMap
     }
 
     /**
+     * Return the file's name.
+     *
+     * @return string file name
+     */
+
+    /**
      * Return the file's mime type, if known.
      *
      * @return string  mime type (NULL if unknown)
@@ -262,6 +268,22 @@ class File // extends SimpleORMap
     public function open($mode)
     {
         return $this->storage_object->open($mode);
+    }
+
+    /**
+     * Set the file's name.
+     *
+     * @param string $filename file name
+     */
+    public function setFilename($filename)
+    {
+        $query = "UPDATES files SET filename = :filename WHERE file_id = :id";
+        $statement = DBManager::get()->prepare($query);
+        $statement->bindvalue(':filename', $filename);
+        $statement->bindValue(':id', $this->id);
+        $statement->execute();
+
+        $this->filename = $filename;
     }
 
     /**
