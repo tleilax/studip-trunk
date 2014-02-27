@@ -37,7 +37,7 @@ class DirectoryEntry // extends SimpleORMap
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($result === false) {
-            throw new IllegalArgumentException('directory entry not found');
+            throw new InvalidArgumentException('directory entry not found');
         }
 
         $this->id = $id;
@@ -152,12 +152,12 @@ class DirectoryEntry // extends SimpleORMap
     {
         // TODO not implemented yet (do we really need this?)
     }
-    
+
     /**
      * Set the new parent_id.
      *
-     * @param File $source source to be moved  
-     *     
+     * @param File $source source to be moved
+     *
     */
     public function move(File $source)
     {
@@ -165,11 +165,11 @@ class DirectoryEntry // extends SimpleORMap
         $stmt = $db->prepare('UPDATE file_refs SET parent_id = :newParent_id WHERE file_id = :file_id');
         $stmt->execute(array('newParent_id' => $this->file_id, 'file_id' => $source->file_id));
     }
-    
+
     /**
     * Returns the Parent from an Entry.
     *
-    *     
+    *
     */
     public function getParent()
     {
