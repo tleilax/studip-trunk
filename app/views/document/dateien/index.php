@@ -603,7 +603,7 @@
            
            <p>
            
-            <!-- <input type="text" name="filename" value="Dateiname" size="50" required="required"/> --> 
+            <input type="text" name="title" value="Titel" size="50"/> 
                       
            </p>
            
