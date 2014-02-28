@@ -49,21 +49,33 @@
          
     <table class="header" style="width:99%; background-color:white;">
      
+     <? $env_dir = $flash['env']; ?>
+     <? $env_dirname = $flash['env_dirname']; ?>
+     
+     <colgroup>
+     
+      <col style="width:50;">
+     
+      <col style="width:10%;">
+      
+      <col style="width:40%;">
+      
+     </colgroup> 
+       
      <tr>
      
-      <td>
-      
+      <td style="text-align:left";>
+    
        <?= Assets::img('icons/16/blue/folder-full.png') ?>
        <? tab(1); ?>
-       <?= '<span style="font-size:1.4em; color:#444">'. _("Persönlicher Dateibereich"). '</span>' ?>
+       <?= '<span style="font-size:1.4em; color:#444">'. $env_dirname. '</span>' ?>
        <?= '<br>' ?>
        <? //tab(6); ?>
        <?//= '<span style="font-size:11px; color:#444;">'. _(""). '</span>'?>
-       <? $env_dir = $flash['env']; ?>
-        
+    
       </td>
        
-      <td style="text-align:right;">
+      <td>
       
        <?php
          
@@ -235,7 +247,7 @@
         </a>
                 
         <a id="<?= $id ?>" href="#" onClick="STUDIP.Document.bearbeiten(this.id,ref);" title="Bearbeiten">
-    
+        
          <?php
 
           print Assets::img('icons/16/blue/visibility-checked.png'); 
@@ -543,19 +555,19 @@
        cr(2);
        print '<b>'. _('Upload-Ordner:'). '</b>';  
        cr(1);
-       print 'Root-Verzeichnis';
+       print $env_dirname;
        cr(2);
-       print '<b>'. _('Unzulässige Dateitypen:'). '</b>';
-       cr(1);
-       print 'EXE';
-       cr(2);
-       print '<b>'. _('Maximale Größe:'). '</b>';
-       cr(1);
-       print '7 MB';
-       cr(2);
+       //print '<b>'. _('Unzulässige Dateitypen:'). '</b>';
+       //cr(1);
+       //print 'EXE';
+       //cr(2);
+       //print '<b>'. _('Maximale Größe:'). '</b>';
+       //cr(1);
+       //print $flash['upload_quota'];
+       //cr(2);
        print '<b>'. _('Autor/in'). '</b>';
        cr(1);
-       print 'Martin Mustermann';
+       print $flash['realname'];
           
       ?>
        
@@ -603,7 +615,7 @@
            
            <p>
            
-            <input type="text" name="title" value="Titel" size="50"/> 
+            <input type="text" name="title" value="Titel" size="50"/>  
                       
            </p>
            
@@ -638,7 +650,8 @@
            </p>
           
            <?= Studip\Button::createAccept(_('Hochladen'), 'upload') ?>
-           <?= Studip\LinkButton::createCancel(_('Abbrechen'), $controller->url_for("document/dateien/index")) ?>
+           <?= Studip\LinkButton::createCancel(_('Abbrechen'), 
+                   $controller->url_for("document/dateien/list/$env_dir")) ?>
   
   
           </form>
@@ -675,11 +688,11 @@
        cr(2);
        print '<b>'. _('Ordner erstellen in:'). '</b>';  
        cr(1);
-       print 'Pers&ouml;nlicher Dateibereich';
+       print $env_dirname;
        cr(2);
        print '<b>'. _('Autor/in'). '</b>';
        cr(1);
-       print 'Martin Mustermann';
+       print $flash['realname'];
           
       ?>
        
@@ -731,7 +744,8 @@
            </p>
           
            <?= Studip\Button::createAccept(_('Erstellen'), 'mkdir') ?>
-           <?= Studip\LinkButton::createCancel(_('Abbrechen'), $controller->url_for("document/dateien/index")) ?>
+           <?= Studip\LinkButton::createCancel(_('Abbrechen'), 
+                   $controller->url_for("document/dateien/list/$env_dir")) ?>
   
           </form>
                    
@@ -767,11 +781,11 @@
        cr(2);
        print '<b>'. _('Ordner erstellen in:'). '</b>';  
        cr(1);
-       print 'Root-Verzeichnis';
+       print $env_dirname;
        cr(2);
        print '<b>'. _('Autor/in'). '</b>';
        cr(1);
-       print 'Martin Mustermann';
+       print $flash['realname'];
           
       ?>
        
@@ -817,8 +831,9 @@
            
            </p>
           
-           <?= Studip\Button::createAccept(_('&Uuml;bernehmen'), 'mkdir') ?>
-           <?= Studip\LinkButton::createCancel(_('Abbrechen'), $controller->url_for("document/dateien/index")) ?>
+           <?= Studip\Button::createAccept(_('&Uuml;bernehmen'), 'edit') ?>
+           <?= Studip\LinkButton::createCancel(_('Abbrechen'), 
+                   $controller->url_for("document/dateien/list/$env_dir")) ?>
            
           </form>
               
@@ -874,7 +889,8 @@
          <?= CSRFProtection::tokenTag() ?>
        
          <?= Studip\Button::createAccept(_('L&ouml;schen'), 'remove') ?>
-         <?= Studip\LinkButton::createCancel(_('Abbrechen'), $controller->url_for("document/dateien/index")) ?>
+         <?= Studip\LinkButton::createCancel(_('Abbrechen'), 
+                 $controller->url_for("document/dateien/list/$env_dir")) ?>
         
         </form>
    
@@ -895,3 +911,4 @@
  </body>
  
 </html>
+
