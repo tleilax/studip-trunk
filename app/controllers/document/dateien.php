@@ -197,7 +197,7 @@ class Document_DateienController extends AuthenticatedController {
                 else if ($env_dir != $GLOBALS['user']->id) {
                     $dirEntry = new DirectoryEntry($env_dir);
                     $sub_dir = StudipDirectory::get($dirEntry->file_id);
-                    $exist = $user_root->getEntry($upfile);
+                    $exist = $sub_dir->getEntry($upfile);
                     
                     //if (!is_null($exist)) {
                     //    $newname = $this->nameFactory($upfile);
