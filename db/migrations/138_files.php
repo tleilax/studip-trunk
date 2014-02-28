@@ -39,7 +39,10 @@ class files extends DBMigration
     {
         // Create directory
         if (!file_exists($GLOBALS['USER_DOC_PATH'])) {
-            mkdir($GLOBALS['USER_DOC_PATH'], 0755, true);
+            $result = mkdir($GLOBALS['USER_DOC_PATH'], 0755, true);
+            if ($result === false) {
+                throw new Exception('Could not create user file path');
+            }
         }
 
         /*
@@ -77,7 +80,7 @@ class files extends DBMigration
             downloads INT NOT NULL DEFAULT 0,
             PRIMARY KEY (id))");
         */
-        
+
         DBManager::get()->exec("CREATE TABLE IF NOT EXISTS files_backend_studip
             (id INT UNSIGNED NOT NULL,
             files_id VARCHAR(64) NOT NULL,
