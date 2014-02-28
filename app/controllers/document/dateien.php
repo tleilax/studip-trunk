@@ -130,38 +130,26 @@ class Document_DateienController extends AuthenticatedController {
             if ($result == 'ok') {
                       
                 if ($env_dir == $GLOBALS['user']->id) {
-                    $user_root = new RootDirectory($GLOBALS['user']->id);
-                    $new_dir = $user_root->mkdir($dir_name);
-                    
-                    /*if (!$new_dir) { 
-                        PageLayout::postMessage(MessageBox::error(_("Ein Ordner '". $dir_name. 
-                        "' ist bereits vorhanden.")));
-                    }
-                    else {
-                        $new_dir->setDescription($_POST['description']);
-                    }*/
-                    
-                    $new_dir->setDescription($_POST['description']);
-                    $handle = File::get($new_dir->file_id);
-                    $handle->setFilename($dir_name);
+                    $user_dir = new RootDirectory($GLOBALS['user']->id);
                 }
                 else {
                     $dirEntry = new DirectoryEntry($env_dir);
-                    $sub_dir = StudipDirectory::get($dirEntry->file_id);
-                    $new_dir = $sub_dir->mkdir($dir_name);
+                    $user_dir = StudipDirectory::get($dirEntry->file_id);    
+                }      
                     
-                    /*if (!$new_dir) {
-                        PageLayout::postMessage(MessageBox::error(_("Ein Ordner '". $dir_name.
-                         "' ist bereits vorhanden.")));
-                    }
-                    else {
-                        $new_dir->setDescription($_POST['description']);
-                    }*/
+                $new_dir = $user_dir->mkdir($dir_name);
                     
-                    $new_dir->setDescription($_POST['description']);
-                    $handle = File::get($new_dir->file_id);
-                    $handle->setFilename($dir_name);
+                /*if (!$new_dir) { 
+                    PageLayout::postMessage(MessageBox::error(_("Ein Ordner '". $dir_name. 
+                    "' ist bereits vorhanden.")));
                 }
+                else {
+                    $new_dir->setDescription($_POST['description']);
+                }*/
+                    
+                $new_dir->setDescription($_POST['description']);
+                $handle = File::get($new_dir->file_id);
+                $handle->setFilename($dir_name);
             }
         }
         $this->redirect("document/dateien/list/$env_dir");           
@@ -176,60 +164,48 @@ class Document_DateienController extends AuthenticatedController {
                 $size = $_FILES['upfile']['size'];
                 $type = $_FILES['upfile']['type'];
                 $tmp_name = $_FILES['upfile']['tmp_name'];
-             
+                
                 if ($env_dir == $GLOBALS['user']->id) {
-                    $user_root = new RootDirectory($GLOBALS['user']->id);
-                    $exist = $user_root->getEntry($upfile);
-                    
-                    //if (!is_null($exist)) {
-                    //    $newname = $this->nameFactory($env_dir, $upfile);
-                    //    $upfile = $newname;
-                    //}
-                     
-                    $new_file = $user_root->create($upfile);
-                    $new_file->rename($_POST['title']);    //$new_file->setTitle($_POST['title']);
-                    $new_file->setDescription($_POST['description']);
-                    $handle = File::get($new_file->file_id);
-                    $handle->setFilename($upfile);
-                    $handle->setMimeType($type);
-                     
-                } 
+                    $user_dir = new RootDirectory($GLOBALS['user']->id);
+                }
                 else if ($env_dir != $GLOBALS['user']->id) {
-                    $dirEntry = new DirectoryEntry($env_dir);
-                    $sub_dir = StudipDirectory::get($dirEntry->file_id);
-                    $exist = $sub_dir->getEntry($upfile);
+                    $dirEntry = new DirectoryEntry($env_dir);                    
+                    $user_dir = StudipDirectory::get($dirEntry->file_id);
+                } 
+                   
+                $exist = $user_dir->getEntry($upfile);    
                     
-                    //if (!is_null($exist)) {
-                    //    $newname = $this->nameFactory($upfile);
-                    //    $upfile = $newname;
-                    //}
-                    
-                    $new_file = $sub_dir->create($upfile);
-                    $new_file->rename($_POST['title']);    //$new_file->setTitle($_POST['title']);
-                    $new_file->setDescription($_POST['description']);
-                    $handle = File::get($new_file->file_id);
-                    $handle->setFilename($upfile);
-                    $handle->setMimeType($type);
+                //if (!is_null($exist)) {
+                //    $newname = $this->nameFactory($env_dir, $upfile);
+                //    $upfile = $newname;
+                //}
+                     
+                $new_file = $user_dir->create($upfile);
+                $new_file->rename($_POST['title']);    //$new_file->setTitle($_POST['title']);
+                $new_file->setDescription($_POST['description']);
+                $handle = File::get($new_file->file_id);
+                $handle->setFilename($upfile);
+                $handle->setMimeType($type); 
+              
+                $newEntry = File::get($new_file->file_id);
+                //$file_path = $newEntry->getStoragePath();
+             
+                try {
+                    $file_path = $newEntry->getStoragePath();
+                }
+                catch (Exception $e) {
+                    echo 'Fehler: '. $e->getMessage(). '<br />';
+                }
+                
+                if (!move_uploaded_file($_FILES['upfile']['tmp_name'], $file_path)) {
+                    //PageLayout::postMessage(MessageBox::error(_('Upload-Fehler')));
+                    $newEntry->delete();
                 }
             }
-            
-            $newEntry = File::get($new_file->file_id);
-            //$file_path = $newEntry->getStoragePath();
-             
-            try {
-                $file_path = $newEntry->getStoragePath();
-            }
-            catch (Exception $e) {
-                echo 'Fehler: '. $e->getMessage(). '<br />';
-            }
-                
-           if (!move_uploaded_file($_FILES['upfile']['tmp_name'], $file_path)) {
-               //PageLayout::postMessage(MessageBox::error(_('Upload-Fehler')));
-               $newEntry->delete();
-           }
         } 
         $this->redirect("document/dateien/list/$env_dir");
     }
+    
      
     public function edit_action($id, $env_dir) { 
         
