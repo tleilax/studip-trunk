@@ -277,12 +277,11 @@ class File // extends SimpleORMap
      */
     public function setFilename($filename)
     {
-        $query = "UPDATES files SET filename = :filename WHERE file_id = :id";
-        $statement = DBManager::get()->prepare($query);
-        $statement->bindvalue(':filename', $filename);
-        $statement->bindValue(':id', $this->id);
-        $statement->execute();
+        $db = DBManager::get();
 
+        $stmt = $db->prepare('UPDATE files SET filename = ? WHERE file_id = ?');        
+        $stmt->execute(array($filename, $this->file_id));
+        
         $this->filename = $filename;
     }
 
@@ -296,7 +295,7 @@ class File // extends SimpleORMap
         $db = DBManager::get();
 
         $stmt = $db->prepare('UPDATE files SET mime_type = ? WHERE file_id = ?');
-        $stmt->execute(array($mime_type, $this->id));
+        $stmt->execute(array($mime_type, $this->file_id));
 
         $this->mime_type = $mime_type;
     }
@@ -311,7 +310,7 @@ class File // extends SimpleORMap
         $db = DBManager::get();
 
         $stmt = $db->prepare('UPDATE files SET user_id = ? WHERE file_id = ?');
-        $stmt->execute(array($user_id, $this->id));
+        $stmt->execute(array($user_id, $this->file_id));
 
         $this->user_id = $user_id;
     }
@@ -327,7 +326,7 @@ class File // extends SimpleORMap
         $db = DBManager::get();
 
         $stmt = $db->prepare('UPDATE files SET restricted = ? WHERE file_id = ?');
-        $stmt->execute(array($restricted, $this->id));
+        $stmt->execute(array($restricted, $this->file_id));
 
         $this->restricted = $restricted;
     }

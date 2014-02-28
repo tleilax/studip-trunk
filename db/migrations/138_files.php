@@ -67,6 +67,17 @@ class files extends DBMigration
             downloads INT NOT NULL DEFAULT 0,
             PRIMARY KEY (id))");
 
+        /*
+        DBManager::get()->exec("CREATE TABLE IF NOT EXISTS file_refs
+            (id CHAR(32) NOT NULL,
+            file_id CHAR(32) NOT NULL,
+            parent_id CHAR(32) NOT NULL,
+            title VARCHAR(255) NOT NULL,
+            description TEXT NOT NULL,
+            downloads INT NOT NULL DEFAULT 0,
+            PRIMARY KEY (id))");
+        */
+        
         DBManager::get()->exec("CREATE TABLE IF NOT EXISTS files_backend_studip
             (id INT UNSIGNED NOT NULL,
             files_id VARCHAR(64) NOT NULL,

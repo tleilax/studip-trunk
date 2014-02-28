@@ -18,7 +18,7 @@ class DirectoryEntry // extends SimpleORMap
     public $id;
     public $file_id;
     public $parent_id;
-    public $name;
+    public $name;        //public $title;
     public $description;
     public $downloads;
 
@@ -43,7 +43,7 @@ class DirectoryEntry // extends SimpleORMap
         $this->id = $id;
         $this->file_id = $result['file_id'];
         $this->parent_id = $result['parent_id'];
-        $this->name = $result['name'];
+        $this->name = $result['name'];               //$this->title = $result['title'];
         $this->description = $result['description'];
         $this->downloads = $result['downloads'];
     }
@@ -97,6 +97,16 @@ class DirectoryEntry // extends SimpleORMap
     {
         return $this->name;
     }
+    
+    /**
+     * Return the title of the entry.
+     *
+     * @return string  file name
+     */
+    //public function getTitle()
+    //{
+    //    return $this->title;
+    //}
 
     /**
      * Rename the file inside the same directory.
@@ -112,6 +122,21 @@ class DirectoryEntry // extends SimpleORMap
 
         $this->name = $name;
     }
+    
+    /**
+     * Set the title for the entry.
+     *
+     * @param string  $text  title text
+     */
+    //public function setTitle($text)
+    //{
+    //    $db = DBManager::get();
+
+    //    $stmt = $db->prepare('UPDATE file_refs SET title = ? WHERE id = ?');
+    //    $stmt->execute(array($text, $this->id));
+
+    //    $this->name = $name;
+    //}
 
     /**
      * Set the description for the entry.

@@ -47,9 +47,9 @@ class StudipDirectory extends File
         $reflection = new ReflectionClass($this->storage);
         $storage_object = $reflection->newInstance();
 
-        $stmt = $db->prepare('INSERT INTO files (file_id, user_id, mime_type, size, restricted, storage, storage_id, mkdate, chdate)
-                                    VALUES(?, ?, ?, ?, ?, ?, ?, UNIX_TIMESTAMP(), UNIX_TIMESTAMP())');
-        $stmt->execute(array($file_id, $user_id, $mime_type, 0, 0, $this->storage, $storage_object->getId()));
+        $stmt = $db->prepare('INSERT INTO files (file_id, user_id, filename, mime_type, size, restricted, storage, storage_id, mkdate, chdate)
+                                  VALUES(?, ?, ?, ?, ?, ?, ?, ?, UNIX_TIMESTAMP(), UNIX_TIMESTAMP())');
+        $stmt->execute(array($file_id, $user_id, '', $mime_type, 0, 0, $this->storage, $storage_object->getId()));
         return $this->link(File::get($file_id), $name);
     }
 
@@ -212,9 +212,9 @@ class StudipDirectory extends File
         $user_id = $GLOBALS['user']->id;
         $mime_type = '';
 
-        $stmt = $db->prepare('INSERT INTO files (file_id, user_id, mime_type, size, restricted, storage, storage_id, mkdate, chdate)
-                                    VALUES(?, ?, ?, ?, ?, ?, ?, UNIX_TIMESTAMP(), UNIX_TIMESTAMP())');
-        $stmt->execute(array($file_id, $user_id, $mime_type, 0, 0, $this->storage, ''));
+        $stmt = $db->prepare('INSERT INTO files (file_id, user_id, filename, mime_type, size, restricted, storage, storage_id, mkdate, chdate)
+                                  VALUES(?, ?, ?, ?, ?, ?, ?, ?, UNIX_TIMESTAMP(), UNIX_TIMESTAMP())');
+        $stmt->execute(array($file_id, $user_id, '', $mime_type, 0, 0, $this->storage, ''));
 
         $dir = File::get($file_id);
         return $this->link($dir, $name);
