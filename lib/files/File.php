@@ -164,6 +164,10 @@ class File // extends SimpleORMap
      *
      * @return string file name
      */
+    public function getFilename()
+    {
+        return $this->filename;
+    }
 
     /**
      * Return the file's mime type, if known.
@@ -279,9 +283,9 @@ class File // extends SimpleORMap
     {
         $db = DBManager::get();
 
-        $stmt = $db->prepare('UPDATE files SET filename = ? WHERE file_id = ?');        
+        $stmt = $db->prepare('UPDATE files SET filename = ? WHERE file_id = ?');
         $stmt->execute(array($filename, $this->file_id));
-        
+
         $this->filename = $filename;
     }
 
