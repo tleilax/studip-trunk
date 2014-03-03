@@ -51,6 +51,7 @@
      
      <? $env_dir = $flash['env']; ?>
      <? $env_dirname = $flash['env_dirname']; ?>
+     <? $realname = $flash['realname']; ?>
      
      <colgroup>
      
@@ -68,10 +69,10 @@
     
        <?= Assets::img('icons/16/blue/folder-full.png') ?>
        <? tab(1); ?>
-       <?= '<span style="font-size:1.4em; color:#444">'. $env_dirname. '</span>' ?>
-       <?= '<br>' ?>
+       <?= '<span style="font-size:1.4em; color:#444">'. $env_dirname. ': '. $realname. '</span>' ?>
+       <?= '<br>' ?> 
        <? //tab(6); ?>
-       <?//= '<span style="font-size:11px; color:#444;">'. _(""). '</span>'?>
+       <?//= '<span style="font-size:11px; color:#444;">'. _(""). '</span>' ?>
     
       </td>
        
@@ -567,7 +568,7 @@
        //cr(2);
        print '<b>'. _('Autor/in'). '</b>';
        cr(1);
-       print $flash['realname'];
+       print $realname;
           
       ?>
        
@@ -692,7 +693,7 @@
        cr(2);
        print '<b>'. _('Autor/in'). '</b>';
        cr(1);
-       print $flash['realname'];
+       print $realname;
           
       ?>
        

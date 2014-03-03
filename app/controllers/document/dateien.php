@@ -26,7 +26,7 @@ require_once 'app/controllers/authenticated_controller.php';
 
 class Document_DateienController extends AuthenticatedController {  
     
-    private $realname, $userConfig, $quota;
+    private $realname, $userConfig, $quota, $upload_quota;
    
     public function before_filter(&$action, &$args) {        
         global $USER_DOC_PATH;
@@ -46,6 +46,8 @@ class Document_DateienController extends AuthenticatedController {
         if (!empty($this->userConfig)) {
             $measure = $this->userConfig['quota'];
             $this->quota = $this->resize($measure);
+            $measure1 = $this->userConfig['upload_quota'];
+            $this->upload_quota = $this->resize($measure1);
         }
         
         //Retrieve the user's realname
@@ -68,12 +70,15 @@ class Document_DateienController extends AuthenticatedController {
     public function list_action($dir_id) {
         
         if ($dir_id == $GLOBALS['user']->id) {
-            $directory = new RootDirectory($GLOBALS['user']->id);
+            $user_dir = new RootDirectory($GLOBALS['user']->id);
+            $this->flash['env_dirname'] = 'Root-Verzeichnis';
             $this->flash['up_dir'] = 'user_root';
         } 
         else {
             $sub_dir = new DirectoryEntry($dir_id);
-            $directory = StudipDirectory::get($sub_dir->file_id);
+            $user_dir = StudipDirectory::get($sub_dir->file_id);
+            $handle = File::get($user_dir->file_id);
+            $this->flash['env_dirname'] = $handle->filename;
 
             if ($sub_dir->parent_id === $GLOBALS['user']->id) {
                 $this->flash['up_dir'] = $GLOBALS['user']->id;
@@ -83,7 +88,7 @@ class Document_DateienController extends AuthenticatedController {
             }
         }
 
-        $files = $directory->listFiles();
+        $files = $user_dir->listFiles();
 
         $i = 0;
         foreach ($files as $entry) {
@@ -107,9 +112,14 @@ class Document_DateienController extends AuthenticatedController {
 
         $this->flash['env'] = $dir_id;
         $this->flash['inhalt'] = $inhalt;
+        
+        $this->flash['realname'] = $this->realname;
+        
         $this->flash['quota'] = $this->quota;
+        $this->flash['upload_quota'] = $this->upload_quota;
         $this->flash['closed'] = $this->userConfig['area_close'];
         $this->flash['notification'] = $this->userConfig['area_close_text'];
+       
         $this -> render_action('index');
     }
     
@@ -205,7 +215,6 @@ class Document_DateienController extends AuthenticatedController {
         } 
         $this->redirect("document/dateien/list/$env_dir");
     }
-    
      
     public function edit_action($id, $env_dir) { 
         
@@ -363,6 +372,63 @@ class Document_DateienController extends AuthenticatedController {
    }
    
   private function nameFactory($env_dir, $name) {
-      //
+      /* 
+      if ($env_dir == $GLOBALS['user']->id) {
+          $user_root = new RootDirectory($GLOBALS['user']->id);
+          $dir = $user_root->listFiles();
+      }
+      else {
+          $sub_dir = new DirectoryEntry($env_dir);        
+          $user_dir = StudipDirectory::get($sub_dir->file_id);
+          $dir = $user_dir->listFiles();
+      }
+   
+      $max = 0;
+      foreach ($dir as $entry) {
+           $inhalt = $entry->getName($name);
+           
+           if (strrpos($name) !== false)
+               $result[$i] = $inhalt;
+           
+           $max++;  
+      }
+      
+      for ($i = 0; $i <= $max; $i++) {
+       
+      }
+      
+                   
+     $pos = strrpos($name, '.');
+    
+     if ($pos !== false) {
+         $pre = substr($name, 0, $pos);
+         $post = substr($name, $pos);
+           
+         if (strrpos($pre, '(1)') === false) {
+             $fact = $pre. '(1)'. $post;
+         }
+         else {
+             $length = strlen($post);
+             //$number = $post[$length-1];
+             //$number++;
+             //$post[$lenght-1] = $number;
+             $fact1 = 'ok'; //$pre. $post;
+         }
+     }
+     else if (strrpos($name, '(1)') !== false) {
+          $fact = $name. '(1)';          
+     }
+     else {
+         $length = $name;
+         $number = $name[$length-1];
+         $number++;
+         $name[$length-1] = $number;
+         $fact = $name; 
+     } 
+     
+     echo '<pre>'; var_dump($name); die;
+     return $fact;
+     */
   }
 }
+
