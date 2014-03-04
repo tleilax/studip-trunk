@@ -29,12 +29,12 @@
    ?>
   
   <script type="text/javascript">
-     
-   <?php
-
-    $ref = json_encode($flash['inhalt']); 
-    print "var ref = '$ref';"; 
     
+   <?php
+   
+    $ref = json_encode($flash['inhalt']); 
+    print "var ref = '$ref';";
+   
     ?>
 
   </script>
@@ -173,7 +173,9 @@
       else:
       
        for ($i = 0; $i <= $max; $i++):
-
+       
+        $ord = $flash['inhalt'][$i]['ord'];
+        
         $id = $flash['inhalt'][$i]['id'];
         $file_id = $flash['inhalt'][$i]['file_id'];
       
@@ -247,7 +249,7 @@
        
         </a>
                 
-        <a id="<?= $id ?>" href="#" onClick="STUDIP.Document.bearbeiten(this.id,ref);" title="Bearbeiten">
+        <a id="<?= $ord ?>" href="#" onClick="ord=this.id; STUDIP.Document.edit(this.id,ref);" title="Bearbeiten">
         
          <?php
 
@@ -257,8 +259,6 @@
          ?>
        
         </a>
-        
-        <!-- <a id="<?= $id ?>" href="#" onClick="" title="Herunterladen"> -->
         
         <a href="<?= $controller->url_for("document/dateien/download/$file_id/$id/$env_dir") ?>" title="Herunterladen">
     
@@ -271,13 +271,11 @@
        
         </a>
         
-        <!-- <a id="<?= $id ?>" href="#" onClick="STUDIP.Document.remove(this.id,ref);" title="Löschen"> -->
-        
-        <a href="<?= $controller->url_for("document/dateien/remove/$file_id/$env_dir") ?>" title="Löschen">
+        <a id="<?= $ord ?>" href="#" onClick="ord=this.id; STUDIP.Document.remove(this.id,ref);" title="Löschen">
          
          <?php
              
-          print Assets::img('icons/16/blue/trash.png');
+          print Assets::img('icons/16/blue/trash.png'); 
               
          ?>
         
@@ -397,10 +395,8 @@
    ?>
     
   <!-- Modale Dialoge -->
-   
-  <!-- Bearbeiten -->
   
-  <div id="modalDialog" style="visibility:collapse;" class="ui-doc-dialog">
+  <div id="admin" style="visibility:collapse;" class="ui-doc-dialog">
 	
    <table>
 		  
@@ -578,7 +574,7 @@
               
       <?php
         
-       line(16);
+       line(18);
            
        ?> 
        
@@ -628,7 +624,7 @@
            
            <p>
            
-            <input type="radio" name="protected" checked="checked" value="0">
+            <input type="radio" name="protected" checked="checked" value="0"/>
            
             <?php
           
@@ -637,7 +633,7 @@
            
             ?>
                    
-            <input type="radio" name="protected" value="1">
+            <input type="radio" name="protected" value="1"/>
           
             <?php
           
@@ -653,7 +649,6 @@
            <?= Studip\Button::createAccept(_('Hochladen'), 'upload') ?>
            <?= Studip\LinkButton::createCancel(_('Abbrechen'), 
                    $controller->url_for("document/dateien/list/$env_dir")) ?>
-  
   
           </form>
               
@@ -703,7 +698,7 @@
               
       <?php
         
-       line(10);
+       line(18);
            
        ?> 
        
@@ -734,13 +729,25 @@
                   
            <p>
            
+            <label> <b>Name:</b> </label>
+            
             <input type="text" name="dirname" placeholder="Neuer Ordner" size="50" required="required"/> 
                       
            </p>
            
            <p>
            
-            <textarea cols="38" rows="5" name="description">Beschreibung</textarea>
+            <label> <b>Titel:</b> </label>
+           
+            <input type="text" name="title" placeholder="Titel" size="50"/>  
+                      
+           </p>
+           
+           <p>
+            
+            <label> <b>Beschreibung:</b> </label>
+            
+            <textarea cols="38" rows="5" name="description" placeholder="Beschreibung"></textarea>
            
            </p>
           
@@ -766,7 +773,7 @@
    
   </div>
   
-  <!-- Dateibereich beschreiben -->
+  <!-- Bearbeiten -->
   
   <div id="edit" style="visibility:collapse;" class="ui-doc-dialog">
  
@@ -780,9 +787,15 @@
               
        print Assets::img('icons/48/blue/edit.png');
        cr(2);
-       print '<b>'. _('Ordner erstellen in:'). '</b>';  
+       print '<b>'. _('Eigenschaften:'). '</b>';  
        cr(1);
-       print $env_dirname;
+       
+       ?>
+       
+      <span id="displayItem"></span>
+       
+      <?php
+       
        cr(2);
        print '<b>'. _('Autor/in'). '</b>';
        cr(1);
@@ -796,7 +809,7 @@
               
       <?php
         
-       line(10);
+       line(18);
            
        ?> 
        
@@ -820,15 +833,53 @@
            
          <td style="border-bottom:0px;">
           
-          <form enctype="multipart/form-data"
-                method="post"
-                action="<?//= $controller->url_for("document/dateien/edit/$env_dir") ?>">  
+          <form action="<?= $controller->url_for("document/dateien/edit/$env_dir") ?>"
+                method="post">  
        
            <?= CSRFProtection::tokenTag() ?>
            
+           <script>
+
+            var inhalt = $.parseJSON(ref);               
+            var editFileId = document.getElementById("editFileId");
+            var editId = document.getElementById("editId");
+            var editName = document.getElementById("editName");
+            var editTitle = document.getElementById("editTitle");
+            var editScript = document.getElementById("editScript");
+            
+            editFileId.value = inhalt[ord]["file_id"];
+            editId.value = inhalt[ord]["id"];
+            editName.value = inhalt[ord]["name"];
+            editTitle.value = inhalt[ord]["title"];
+            editScript.value = inhalt[ord]["script"];
+           
+           </script>
+          
+           <input id="editFileId" type="hidden" name="editFileId"/>
+           
+           <input id="editId" type="hidden" name="editId"/>
+           
            <p>
            
-            <textarea cols="38" rows="5" name="description">M&ouml;glicher Beschreibungstext des Dateibereichs</textarea>
+            <label> <b>Name:</b> </label>
+           
+            <input id="editName" type="text" name="editName" size="50"/>  
+                      
+           </p>
+            
+           <p>
+           
+            <label> <b>Titel:</b> </label>
+           
+            <input id="editTitle" type="text" name="editTitle" value="Titel" size="50"/>  
+                      
+           </p>
+           
+           <p>
+           
+            <label> <b>Beschreibung:</b> </label>
+           
+            <textarea id="editScript" cols="38" rows="5" name="editScript"></textarea>
            
            </p>
           
@@ -884,11 +935,23 @@
        
        <td>
        
-        <form action="<?= $controller->url_for("document/dateien/remove/$id") ?>"  
+        <form action="<?= $controller->url_for("document/dateien/remove/$env_dir") ?>"  
               method="post">
            
          <?= CSRFProtection::tokenTag() ?>
-       
+         
+         <script>
+
+          var inhalt = $.parseJSON(ref); 	     
+          var file_id = inhalt[ord]["file_id"];
+          var item = document.getElementById("rm_item");
+          
+          item.value = file_id;
+           
+         </script>
+          
+         <input id="rm_item" type="hidden" name="rm_item"/>
+          
          <?= Studip\Button::createAccept(_('L&ouml;schen'), 'remove') ?>
          <?= Studip\LinkButton::createCancel(_('Abbrechen'), 
                  $controller->url_for("document/dateien/list/$env_dir")) ?>
@@ -912,4 +975,3 @@
  </body>
  
 </html>
-

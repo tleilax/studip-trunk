@@ -102,6 +102,8 @@ class Document_DateienController extends AuthenticatedController {
             $inhalt[$i]['autor'] = $this->realname;
             $timestamp = $item->getModificationTime();
             $inhalt[$i]['date'] = $this->transformDate($timestamp);
+            $inhalt[$i]['title'] = $entry->name;    //$entry->title;
+            $inhalt[$i]['script'] = $entry->description;
             $i++;
         }
 
@@ -158,6 +160,7 @@ class Document_DateienController extends AuthenticatedController {
                 }*/
                     
                 $new_dir->setDescription($_POST['description']);
+                $new_dir->rename($_POST['title']);    //$new_file->setTitle($_POST['title']);
                 $handle = File::get($new_dir->file_id);
                 $handle->setFilename($dir_name);
             }
@@ -216,13 +219,18 @@ class Document_DateienController extends AuthenticatedController {
         $this->redirect("document/dateien/list/$env_dir");
     }
      
-    public function edit_action($id, $env_dir) { 
+    public function edit_action($env_dir) { 
         
         if (Request::submitted('edit')) {
-            $entry = new DirectoryEntry($id);
-            $entry->setDescription($_POST['description']);
+            $file_id = $_POST['editFileId'];
+            $id = $_POST['editId'];  
+            $entry = File::get($file_id);
+            $entry->setFilename($_POST['editName']);      
+            $entryRef = new DirectoryEntry($id);
+            $entryRef->rename($_POST['editTitle']);
+            $entryRef->setDescription($_POST['editScript']);
         }
-        $this->redirect('document/dateien/list');
+        $this->redirect("document/dateien/list/$env_dir");
     }
     
     public function copyTo_action($id, $parent_id=NULL) {
@@ -268,44 +276,48 @@ class Document_DateienController extends AuthenticatedController {
         $handle = opendir($path);
         
         $file = File::get($file_id);
-        $storage_id = $file->storage_id;
         
-        $entry = new DirectoryEntry($id);     
-        $filename = $entry->name;
-        $pos = strrpos($filename, ".");
+        if($file->getEntryType() == "Datei") {
+            $storage_id = $file->storage_id;
+            $filename = $file->filename;
+            $entry = new DirectoryEntry($id);     
+            $pos = strrpos($filename, ".");
     
-        if ($pos !== false)
-            $pre = substr($filename, 0, $pos);
+            if ($pos !== false)
+                $pre = substr($filename, 0, $pos);
            
-        if (file_exists($storage_id)) {                  
-            header('Content-Type: application/unknown');
-            header("Content-Disposition: attachment; filename = $pre");
-            readfile($storage_id);
+            if (file_exists($storage_id)) {                  
+                header('Content-Type: application/unknown');
+                header("Content-Disposition: attachment; filename = $pre");
+                readfile($storage_id);
             
-            $count = $entry->getDownloadCount();
-            $count++;
-            $entry->setDownloadCount($count);
+                $count = $entry->getDownloadCount();
+                $count++;
+                $entry->setDownloadCount($count);
+            }
+
+            closedir($handle);
         }
-        
-        closedir($handle);
+        else {
+            $this->redirect("document/dateien/list/$env_dir");
+        } 
     }
 
-    public function remove_action($file_id, $env_dir) {    
-         
-        if (Request::submitted('remove')) {             
-            //$entry = File::get($file_id);
-            //$entry->delete();
-        }
-       
-        $entry = File::get($file_id);
-         
-        if ($entry->getEntryType() == 'Datei') {
-            $file_path = $entry->getStoragePath();
-            unlink($file_path);
-        }
+    public function remove_action($env_dir) {
+     
+        if (Request::submitted('remove')) {
+
+            $file_id = $_POST["rm_item"];  
+            $entry = File::get($file_id);
+            
+            if ($entry->getEntryType() == 'Datei') {
+                $file_path = $entry->getStoragePath();
+                unlink($file_path);
+            }
                
-        $entry->delete();                  
-        $this->redirect("document/dateien/list/$env_dir");
+            $entry->delete();                  
+            $this->redirect("document/dateien/list/$env_dir");    
+        }
     }
     
     private function resize($bytes) {
@@ -431,4 +443,3 @@ class Document_DateienController extends AuthenticatedController {
      */
   }
 }
-

@@ -4,56 +4,67 @@
  */
 
 STUDIP.Document = {
-       
-    freigeben: function(id,ref) {
-    	var div = document.getElementById("modalDialog");
+       	
+    addDir: function() {
+	    var div = document.getElementById("addDir");
+	    div.style.visibility = "visible";
+	    	
+	    //var inhalt = $.parseJSON(ref);
+	    //var typ = inhalt[id][2];
+	    	    
+	    $("div#addDir").dialog({
+	        modal: true,
+	        title: "Neuen Ordner erstellen",
+	        draggable: true,
+	        resizable: false,
+	        position: 'top+17%',
+	        width: 550,
+	        dialogClass: "ui-doc-dialog"
+	 	}).prev().find(".ui-dialog-titlebar-close").hide();
+	    
+	},
+	
+	edit: function(ord,ref) {
+    	var div = document.getElementById("edit");
     	div.style.visibility = "visible";
     	
-    	var inhalt = $.parseJSON(ref);
-    	var typ = inhalt[id][2];
-    	
-    	$("div#modalDialog").dialog({
+    	if (ord == -1) {
+    		var typ = "Dateibereich";
+    		var name = typ;
+    		$("#displayItem").html(name);	
+    	}
+    	else {
+          	var inhalt = $.parseJSON(ref); 	
+    	    var typ = inhalt[ord]["type"];
+    	    var name = inhalt[ord]["name"];
+    	    $("#displayItem").html(name);	
+    	}
+    	    
+    	$("div#edit").dialog({
     	    modal: true,
-    	    title: typ + " teilen",
-    	    draggable: true,
-    	    resizable: false,
-    	    position: 'top+16%',
-    	    width: 550,
-    	    dialogClass: "ui-doc-dialog"
- 		});
-    },
-    
-    bearbeiten: function(id,ref) {
-        var div = document.getElementById("modalDialog");
-    	div.style.visibility = "visible";
-    	
-    	var inhalt = $.parseJSON(ref);
-    	var typ = inhalt[id][2];
-    	
-    	$("div#modalDialog").dialog({
-    	    modal: true,
-    	    title: typ + " bearbeiten",
+    	    title: typ + " beschreiben",
     	    draggable: true,
     	    resizable: false,
             position: 'top+16%',
-     	    width: 550,
+    	    width: 550,
     	    dialogClass: "ui-doc-dialog"
- 		});
+ 		}).prev().find(".ui-dialog-titlebar-close").hide();
+    
     },
     
-    loeschen: function(id,ref) {    	
+    remove: function(ord,ref) {    	
     	var div = document.getElementById("remove");    	   	
     	div.style.visibility = "visible";
     	
-    	if (id == -1) {
+    	if (ord == -1) {
     		var typ = "Dateibereich";
         	$("#removeItem").html("M&ouml;chten Sie Ihren <b> gesamten pers&ouml;nlichen Dateibereich </b> wirklich löschen?");
     	}
     	else {
-          	var inhalt = $.parseJSON(ref);
-    	    var typ = inhalt[id][2];
-    	    var name = inhalt[id][3];
-    	    
+          	var inhalt = $.parseJSON(ref); 	
+    	    var typ = inhalt[ord]["type"];
+    	    var name = inhalt[ord]["name"];
+    	     
     	    switch (typ) {
     	        case "Datei":
     	        	$("#removeItem").html("M&ouml;chten Sie die Datei <b>" + name + "</b> wirklich löschen?");
@@ -77,7 +88,7 @@ STUDIP.Document = {
     
     upload: function() {
     	var div = document.getElementById("upload");
-    	div.style.visibility = "visible";
+        div.style.visibility = "visible";
     	
     	//var inhalt = $.parseJSON(ref);
     	//var typ = inhalt[id][2];
@@ -92,63 +103,5 @@ STUDIP.Document = {
     	    dialogClass: "ui-doc-dialog"
  		}).prev().find(".ui-dialog-titlebar-close").hide();
     
-    },
-    
-    addDir: function() {
-    	var div = document.getElementById("addDir");
-    	div.style.visibility = "visible";
-    	
-    	//var inhalt = $.parseJSON(ref);
-    	//var typ = inhalt[id][2];
-    	    
-    	$("div#addDir").dialog({
-    	    modal: true,
-    	    title: "Neuen Ordner erstellen",
-    	    draggable: true,
-    	    resizable: false,
-            position: 'top+17%',
-    	    width: 550,
-    	    dialogClass: "ui-doc-dialog"
- 		}).prev().find(".ui-dialog-titlebar-close").hide();
-    
-    },
-    
-    edit: function() {
-    	var div = document.getElementById("edit");
-    	div.style.visibility = "visible";
-    	
-    	//var inhalt = $.parseJSON(ref);
-    	//var typ = inhalt[id][2];
-    	    
-    	$("div#edit").dialog({
-    	    modal: true,
-    	    title: "Dateibereich beschreiben",
-    	    draggable: true,
-    	    resizable: false,
-            position: 'top+17%',
-    	    width: 550,
-    	    dialogClass: "ui-doc-dialog"
- 		}).prev().find(".ui-dialog-titlebar-close").hide();
-    
-    },
-    
-    melden: function() {
-    	var div = document.getElementById("message");
-    	div.style.visibility = "visible";
-    	
-    	$("div#message").dialog({
-    	    modal: true,
-    	    title: "Meldung",
-    	    draggable: true,
-    	    resizable: false,
-    	    position: 'top+18%',
-    	    width: 500,
-    	    dialogClass: "ui-doc-dialog",
-
-    	    close: function () {
-    		    var url = STUDIP.URLHelper.getURL("dispatch.php/document/dateien/list");
-                onClick(document.location = url); 
-            }
- 		 });
     }
 };
