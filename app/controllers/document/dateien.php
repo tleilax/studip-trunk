@@ -186,12 +186,26 @@ class Document_DateienController extends AuthenticatedController {
                     $user_dir = StudipDirectory::get($dirEntry->file_id);
                 } 
                    
-                $exist = $user_dir->getEntry($upfile);    
-                    
-                //if (!is_null($exist)) {
-                //    $newname = $this->nameFactory($env_dir, $upfile);
-                //    $upfile = $newname;
-                //}
+                $fileEntry = $user_dir->getEntry($upfile);    
+                
+                $i = 1;
+                while (!is_null($fileEntry)) {
+                    $pos = strrpos($name, '.');
+    
+                    if ($pos !== false) {
+                        $pre = substr($name, 0, $pos);
+                        $post = substr($name, $pos);
+                        $newname = $pre. '('. $i. ')';
+                        $upfile = $ext. $post;
+                    }
+                    else {
+                        $newname = $upfile. '('. $i. ')';
+                        $upfile = $newname;
+                    }
+                    $i++;    
+                }
+                
+                //echo '<pre>'; var_dump($fileEntry); die;
                      
                 $new_file = $user_dir->create($upfile);
                 $new_file->rename($_POST['title']);    //$new_file->setTitle($_POST['title']);
@@ -281,24 +295,23 @@ class Document_DateienController extends AuthenticatedController {
             $filename = $file->filename;    
             $entry = new DirectoryEntry($id);     
             $pos = strrpos($filename, ".");
-    
+   
             if ($pos !== false)
                 $pre = substr($filename, 0, $pos);
            
+            $filename = $pre;
+            
             if (file_exists($storage_id)) {                  
                 header('Content-Type: application/unknown');
-                header("Content-Disposition: attachment; filename = $pre");
-                readfile($storage_id);
-            
+                header("Content-Disposition: attachment; filename = $filename");
+                readfile($storage_id); 
                 $count = $entry->getDownloadCount();
-                
-                echo '<pre>'; var_dump($count); die;
-                
                 $count++;
                 $entry->setDownloadCount($count);
             }
 
             closedir($handle);
+            die;
         }
         else
          $this->redirect("document/dateien/list/$env_dir");
@@ -383,64 +396,4 @@ class Document_DateienController extends AuthenticatedController {
        // -Dateigroesse
        // -Dateityp
    }
-   
-  private function nameFactory($env_dir, $name) {
-      /* 
-      if ($env_dir == $GLOBALS['user']->id) {
-          $user_root = new RootDirectory($GLOBALS['user']->id);
-          $dir = $user_root->listFiles();
-      }
-      else {
-          $sub_dir = new DirectoryEntry($env_dir);        
-          $user_dir = StudipDirectory::get($sub_dir->file_id);
-          $dir = $user_dir->listFiles();
-      }
-   
-      $max = 0;
-      foreach ($dir as $entry) {
-           $inhalt = $entry->getName($name);
-           
-           if (strrpos($name) !== false)
-               $result[$i] = $inhalt;
-           
-           $max++;  
-      }
-      
-      for ($i = 0; $i <= $max; $i++) {
-       
-      }
-      
-                   
-     $pos = strrpos($name, '.');
-    
-     if ($pos !== false) {
-         $pre = substr($name, 0, $pos);
-         $post = substr($name, $pos);
-           
-         if (strrpos($pre, '(1)') === false) {
-             $fact = $pre. '(1)'. $post;
-         }
-         else {
-             $length = strlen($post);
-             //$number = $post[$length-1];
-             //$number++;
-             //$post[$lenght-1] = $number;
-             $fact1 = 'ok'; //$pre. $post;
-         }
-     }
-     else if (strrpos($name, '(1)') !== false) {
-          $fact = $name. '(1)';          
-     }
-     else {
-         $length = $name;
-         $number = $name[$length-1];
-         $number++;
-         $name[$length-1] = $number;
-         $fact = $name; 
-     } 
-     
-     echo '<pre>'; var_dump($name); die;
-     return $fact;
-     */
-  }
 }
