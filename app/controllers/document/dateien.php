@@ -272,14 +272,13 @@ class Document_DateienController extends AuthenticatedController {
         global $USER_DOC_PATH; 
         $path = $USER_DOC_PATH.'/'. $GLOBALS['user']->id. '/';
         
-        chdir($path); 
-        $handle = opendir($path);
-        
         $file = File::get($file_id);
         
         if($file->getEntryType() == "Datei") {
-            $storage_id = $file->storage_id;
-            $filename = $file->filename;
+            chdir($path); 
+            $handle = opendir($path);
+            $storage_id = $file->storage_id;  
+            $filename = $file->filename;    
             $entry = new DirectoryEntry($id);     
             $pos = strrpos($filename, ".");
     
@@ -292,15 +291,17 @@ class Document_DateienController extends AuthenticatedController {
                 readfile($storage_id);
             
                 $count = $entry->getDownloadCount();
+                
+                echo '<pre>'; var_dump($count); die;
+                
                 $count++;
                 $entry->setDownloadCount($count);
             }
 
             closedir($handle);
         }
-        else {
-            $this->redirect("document/dateien/list/$env_dir");
-        } 
+        else
+         $this->redirect("document/dateien/list/$env_dir");
     }
 
     public function remove_action($env_dir) {

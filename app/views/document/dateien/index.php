@@ -85,7 +85,7 @@
         
         ?>
        
-       <a href="<?= $controller->url_for("document/dateien/up/$up_dir") ?>" title=""> up </a>
+       <a href="<?= $controller->url_for("document/dateien/up/$up_dir") ?>" title=""> <b>..</b> </a>
        
        <?php
        
