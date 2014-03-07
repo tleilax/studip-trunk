@@ -14,5 +14,5 @@
    </fieldset>
 
    <?= Studip\Button::createAccept(_('Erstellen')) ?>
-   <?= Studip\LinkButton::createCancel(_('Abbrechen'), $controller->url_for('document/files/list/' . $parent_id)) ?>
+   <?= Studip\LinkButton::createCancel(_('Abbrechen'), $controller->url_for('document/files/index/' . $parent_id)) ?>
 </form>

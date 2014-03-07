@@ -232,7 +232,7 @@ class WysiwygDocument
             . ', mkdate, chdate) VALUES (' . implode(',', $keys)
             . ', UNIX_TIMESTAMP(), UNIX_TIMESTAMP())';
 
-        if (self::executeQuery($query, $data, FALSE)) {
+        if (Utils::executeQuery($query, $data, FALSE)) {
             return $id;  // folder successfully created
         }
         throw new \AccessDeniedException(

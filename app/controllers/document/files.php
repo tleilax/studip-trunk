@@ -25,8 +25,8 @@ class Document_FilesController extends AuthenticatedController
     {
         parent::before_filter($action, $args);
 
-		// Lock context to user id
-		$this->context_id = $GLOBALS['user']->id;
+        // Lock context to user id
+        $this->context_id = $GLOBALS['user']->id;
 
         //Setup the user's sub-directory in $USER_DOC_PATH
         $userdir = $GLOBALS['USER_DOC_PATH'] . '/' . $this->context_id . '/';
@@ -81,7 +81,7 @@ class Document_FilesController extends AuthenticatedController
             }
         }
 
-		$this->dir_id = $dir_id;
+        $this->dir_id = $dir_id;
     }
 
     public function upload_action($env_dir)
@@ -262,29 +262,29 @@ class Document_FilesController extends AuthenticatedController
         return $parent_id;
     }
 
-	public function getBreadCrumbs($entry_id)
-	{
-		$crumbs = array();
+    public function getBreadCrumbs($entry_id)
+    {
+        $crumbs = array();
 
-		do {
-			try {
-				$entry = new DirectoryEntry($entry_id);
-				$crumbs[] = array(
-					'id'   => $entry_id,
-					'name' => $entry->getFile()->filename,
-				);
-				$entry_id = $this->getParentId($entry_id);
-			} catch (Exception $e) {
-			}
-		} while ($entry_id !== $this->context_id);
+        do {
+            try {
+                $entry = new DirectoryEntry($entry_id);
+                $crumbs[] = array(
+                    'id'   => $entry_id,
+                    'name' => $entry->getFile()->filename,
+                );
+                $entry_id = $this->getParentId($entry_id);
+            } catch (Exception $e) {
+            }
+        } while ($entry_id !== $this->context_id);
 
-		$crumbs[] = array(
-			'id'   => $this->context_id,
-			'name' => _('Hauptverzeichnis'),
-		);
+        $crumbs[] = array(
+            'id'   => $this->context_id,
+            'name' => _('Hauptverzeichnis'),
+        );
 
-		return array_reverse($crumbs);
-	}
+        return array_reverse($crumbs);
+    }
 
     private function setupInfobox($current_dir)
     {
@@ -314,31 +314,31 @@ class Document_FilesController extends AuthenticatedController
         $this->addToInfobox(_('Export:'), _('Dateibereich herunterladen'), 'icons/16/black/download.png');
     }
 
-	public function getIcon($mime_type)
-	{
-		if (strpos($mime_type, 'image/') === 0) {
-			return 'file-pic.png';
-		}
-		if (strpos($mime_type, 'audio/') === 0) {
-			return 'file-audio.png';
-		}
-		if (strpos($mime_type, 'video/') === 0) {
-			return 'file-video.png';
-		}
-		if ($mime_type === 'application/pdf') {
-			return 'file-pdf.png';
-		}
-		if ($mime_type === 'application/vnd.ms-powerpoint') {
-			return 'file-presentation.png';
-		}
+    public function getIcon($mime_type)
+    {
+        if (strpos($mime_type, 'image/') === 0) {
+            return 'file-pic.png';
+        }
+        if (strpos($mime_type, 'audio/') === 0) {
+            return 'file-audio.png';
+        }
+        if (strpos($mime_type, 'video/') === 0) {
+            return 'file-video.png';
+        }
+        if ($mime_type === 'application/pdf') {
+            return 'file-pdf.png';
+        }
+        if ($mime_type === 'application/vnd.ms-powerpoint') {
+            return 'file-presentation.png';
+        }
 
-		$parts = explode('/', $mime_type);
-		if (reset($parts) === 'application' && in_array(end($parts), words('vnd.ms-excel msexcel x-msexcel x-ms-excel x-excel x-dos_ms_excel xls x-xls'))) {
-			return 'file-xls.png';
-		}
-		if (reset($parts) === 'application' && in_array(end($parts), words('7z arj rar zip'))) {
-			return 'file-archive.png';
-		}
-		return 'file-generic.png';
-	}
+        $parts = explode('/', $mime_type);
+        if (reset($parts) === 'application' && in_array(end($parts), words('vnd.ms-excel msexcel x-msexcel x-ms-excel x-excel x-dos_ms_excel xls x-xls'))) {
+            return 'file-xls.png';
+        }
+        if (reset($parts) === 'application' && in_array(end($parts), words('7z arj rar zip'))) {
+            return 'file-archive.png';
+        }
+        return 'file-generic.png';
+    }
 }

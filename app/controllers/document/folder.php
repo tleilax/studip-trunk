@@ -17,7 +17,8 @@
 require_once 'app/controllers/authenticated_controller.php';
 
 
-class Document_FolderController extends AuthenticatedController {
+class Document_FolderController extends AuthenticatedController
+{
 
     private $realname, $userConfig, $quota, $upload_quota;
 
@@ -64,28 +65,28 @@ class Document_FolderController extends AuthenticatedController {
             $this->redirect('document/files/index/' . $directory->id);
         }
     }
-	
-	public function edit_action($folder_id)
-	{
-		$folder    = new DirectoryEntry($folder_id);
-		$parent_id = $this->getParentId($folder_id);
-		
-		if (Request::isPost()) {
-			$folder->rename(Request::get('name'));
-			$folder->setDescription(Request::get('description'));
-			$folder->getFile()->setFilename(Request::get('name'));
-			
-			PageLayout::postMessage(MessageBox::success(_('Der Ordner wurde bearbeitet.')));
-			$this->redirect('document/files/index/' . $parent_id);
-		}
-		
-		if (Request::isXhr()) {
-			header('X-Title: ' . _('Ordner bearbeiten'));
-		}
-		
-		$this->folder_id = $folder_id;
-		$this->folder    = $folder;
-	}
+    
+    public function edit_action($folder_id)
+    {
+        $folder    = new DirectoryEntry($folder_id);
+        $parent_id = $this->getParentId($folder_id);
+        
+        if (Request::isPost()) {
+            $folder->rename(Request::get('name'));
+            $folder->setDescription(Request::get('description'));
+            $folder->getFile()->setFilename(Request::get('name'));
+            
+            PageLayout::postMessage(MessageBox::success(_('Der Ordner wurde bearbeitet.')));
+            $this->redirect('document/files/index/' . $parent_id);
+        }
+        
+        if (Request::isXhr()) {
+            header('X-Title: ' . _('Ordner bearbeiten'));
+        }
+        
+        $this->folder_id = $folder_id;
+        $this->folder    = $folder;
+    }
 
     public function getParentId($entry_id)
     {

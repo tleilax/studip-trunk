@@ -42,7 +42,7 @@
             <?= _('Nein, dieses Dokument ist <u>nicht</u> frei von Rechten Dritter.') ?>
            </p>
            <?= Studip\Button::createAccept(_('Bearbeiten')) ?>
-           <?= Studip\LinkButton::createCancel(_('Abbrechen'), $controller->url_for('document/files/list/' . $controller->getParentId($entry->id))) ?>
+           <?= Studip\LinkButton::createCancel(_('Abbrechen'), $controller->url_for('document/files/index/' . $controller->getParentId($entry->id))) ?>
           </form>
          </td>
         </tr>
