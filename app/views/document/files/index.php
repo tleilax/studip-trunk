@@ -1,0 +1,140 @@
+<? if (isset($flash['question'])): ?>
+    <?= $flash['question'] ?>
+<? endif; ?>
+
+<form action="<?= $controller->url_for('document/files/bulk/' . $dir_id) ?>" method="post">
+<table class="default documents">
+    <caption>
+        <ul class="bread-crumbs">
+        <? foreach ($controller->getBreadCrumbs($dir_id) as $crumb): ?>
+            <li>
+                <a href="<?= $controller->url_for('document/files/index/' . $crumb['id']) ?>">
+                    <?= htmlReady($crumb['name']) ?>
+                </a>
+            </li>
+        <? endforeach; ?>
+        </ul>
+    </caption>
+    <colgroup>
+        <col width="20px">
+        <col width="20px">
+        <col>
+        <col width="100px">
+        <col width="150px">
+        <col width="120px">
+        <col width="80px">
+    </colgroup>
+    <thead>
+        <th>
+            <input type="checkbox" data-proxyfor=":checkbox[name='ids[]']">
+        </th>
+        <th><?= _('Typ') ?></th>
+        <th><?= _('Name') ?></th>
+        <th><?= _('Größe') ?></th>
+        <th><?= _('Autor/in') ?></th>
+        <th><?= _('Datum') ?></th>
+        <th>&nbsp;</th>
+    </thead>
+    <tbody>
+<? if (!$directory->isRootDirectory()): ?>
+        <tr>
+            <td colspan="2">&nbsp;</td>
+            <td colspan="5">
+                <a href="<?= $controller->url_for('document/files/index/' . $parent_id) ?>">
+                    ..
+                </a>
+            </td>
+        </tr>
+<? endif; ?>
+<? if (empty($files)): ?>
+        <tr>
+            <td colspan="7" class="empty">
+                <?= _('Dieser Ordner ist leer') ?>
+            </td>
+        </tr>
+<? else: ?>
+    <? foreach ($files as $file): ?>
+        <tr>
+            <td>
+                <input type="checkbox" name="ids[]" value="<?= $file->id ?>">
+            </td>
+        <? if ($file->getFile() instanceof StudipDirectory): ?>
+            <td class="document-icon">
+                <a href="<?= $controller->url_for('document/files/index/' . $file->id) ?>">
+                <? if ($file->getFile()->isEmpty()): ?>
+                    <?= Assets::img('icons/16/blue/folder-empty.png') ?>
+                <? else: ?>
+                    <?= Assets::img('icons/16/blue/folder-full.png') ?>
+                <? endif; ?>
+                </a>
+            </td>
+            <td>
+                <a href="<?= $controller->url_for('document/files/index/' . $file->id) ?>">
+                    <?= htmlReady($file->getFile()->filename) ?>
+                </a>
+            <? if ($file->getDescription()): ?>
+                <small><?= htmlReady($file->getDescription()) ?></small>
+            <? endif; ?>
+            </td>
+            <td><?= sprintf(ngettext('%u Eintrag', '%u Einträge', $count = $file->getFile()->countFiles()), $count) ?></td>
+            <td><?= htmlReady(User::find($file->getFile()->user_id)->getFullName()) ?></td>
+            <td title="<?= strftime('%x %X', $file->getFile()->mkdate) ?>">
+                <?= reltime($file->getFile()->mkdate) ?>
+            </td>
+            <td class="options">
+                <a href="<?= $controller->url_for('document/folder/edit/' . $file->id) ?>" rel="lightbox">
+                    <?= Assets::img('icons/16/blue/edit.png', tooltip2(_('Ordner bearbeiten'))) ?>
+                </a>
+                <a href="<?= $controller->url_for('document/folder/download/' . $file->id) ?>">
+                    <?= Assets::img('icons/16/blue/download.png', tooltip2(_('Ordner herunterladen'))) ?>
+                </a>
+                <a href="<?= $controller->url_for('document/folder/delete/' . $file->id) ?>">
+                    <?= Assets::img('icons/16/blue/trash.png', tooltip2(_('Ordner löschen'))) ?>
+                </a>
+            </td>
+        <? else: ?>
+            <td class="document-icon">
+            	<?= Assets::img('icons/16/blue/'. $controller->getIcon($file->getFile()->getMimeType())) ?>
+            </td>
+            <td>
+	            <a href="<?= $controller->url_for('document/files/download/' . $file->id) ?>">
+    	            <?= htmlReady($file->getFile()->filename) ?>
+    	        </a>
+            <? if ($file->getDescription()): ?>
+                <small><?= htmlReady($file->getDescription()) ?></small>
+            <? endif; ?>
+            </td>
+            <td title="<?= number_format($file->getFile()->size, 0, ',', '.') . ' Byte' ?>">
+                <?= relSize($file->getFile()->size, false) ?>
+            </td>
+            <td><?= htmlReady(User::find($file->getFile()->user_id)->getFullName()) ?></td>
+            <td title="<?= strftime('%x %X', $file->getFile()->mkdate) ?>">
+                <?= reltime($file->getFile()->mkdate) ?>
+            </td>
+            <td class="options">
+                <a href="<?= $controller->url_for('document/files/edit/' . $file->id) ?>" rel="lightbox">
+                    <?= Assets::img('icons/16/blue/edit.png', tooltip2(_('Datei bearbeiten'))) ?>
+                </a>
+                <a href="<?= $controller->url_for('document/files/download/' . $file->id) ?>">
+                    <?= Assets::img('icons/16/blue/download.png', tooltip2(_('Datei herunterladen'))) ?>
+                </a>
+                <a href="<?= $controller->url_for('document/files/delete/' . $file->id) ?>">
+                    <?= Assets::img('icons/16/blue/trash.png', tooltip2(_('Datei löschen'))) ?>
+                </a>
+            </td>
+        <? endif; ?>
+        </tr>
+    <? endforeach; ?>
+<? endif; ?>
+    </tbody>
+    <tfoot>
+        <tr>
+            <td colspan="7" class="printhead">
+                <?= _('Alle markierten') ?>
+                <?= Studip\Button::create(_('Herunterladen'), 'download') ?>
+                <?= Studip\Button::create(_('Löschen'), 'delete') ?>
+            </td>
+        </tr>
+    </tfoot>
+</table>
+</form>

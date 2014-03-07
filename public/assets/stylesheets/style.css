@@ -2941,6 +2941,59 @@ table.contact-header td.empty a {
 .cron-item input[type=number] {
   width: 2em;
 }
+.documents .document-icon,
+.documents .empty {
+  text-align: center;
+}
+.documents .options {
+  text-align: right;
+}
+.documents .bread-crumbs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 1em;
+}
+.documents .bread-crumbs li {
+  display: inline-block;
+}
+.documents .bread-crumbs li:before {
+  background-image: url("../images//icons/16/black/arr_1right.png");
+  background-image: -webkit-image-set(url("../images//icons/16/black/arr_1right.png") 1x, url("../images//icons/32/black/arr_1right.png") 2x);
+  content: ' ';
+  display: inline-block;
+  height: 16px;
+  vertical-align: middle;
+  width: 16px;
+}
+.documents .bread-crumbs li:first-child:before {
+  background: none;
+  content: '';
+  width: 0;
+}
+.document-dialog {
+  *zoom: 1;
+}
+.document-dialog:before,
+.document-dialog:after {
+  display: table;
+  content: "";
+  line-height: 0;
+}
+.document-dialog:after {
+  clear: both;
+}
+.document-dialog aside {
+  float: left;
+  width: 120px;
+}
+.document-dialog div {
+  border-left: 1px dashed #888;
+  margin-left: 120px;
+  min-height: 100%;
+  max-height: 100%;
+  overflow-y: auto;
+}
 /* classes for the evaluation modules in Stud.IP ---------------------------- */
 .eval_title {
   font-size: 1.2em;

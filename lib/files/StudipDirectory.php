@@ -49,7 +49,7 @@ class StudipDirectory extends File
 
         $stmt = $db->prepare('INSERT INTO files (file_id, user_id, filename, mime_type, size, restricted, storage, storage_id, mkdate, chdate)
                                   VALUES(?, ?, ?, ?, ?, ?, ?, ?, UNIX_TIMESTAMP(), UNIX_TIMESTAMP())');
-        $stmt->execute(array($file_id, $user_id, '', $mime_type, 0, 0, $this->storage, $storage_object->getId()));
+        $stmt->execute(array($file_id, $user_id, $name, $mime_type, 0, 0, $this->storage, $storage_object->getId()));
         return $this->link(File::get($file_id), $name);
     }
 
@@ -82,7 +82,7 @@ class StudipDirectory extends File
         $new_file->setMimeType($source->getMimeType());
         $new_file->setRestricted($source->isRestricted());
         return $new_entry;
-         
+
         }else{ //COPY directory
             $newFolder = $this->mkdir($name);
             $folder = StudipDirectory::get($newFolder->file_id);
@@ -94,8 +94,8 @@ class StudipDirectory extends File
             return $folder;
         }
     }
-    
-    
+
+
     /**
      * Return the entry with the given name in this directory,
      * if one exists (returns NULL otherwise).
@@ -124,6 +124,21 @@ class StudipDirectory extends File
         return NULL;
     }
 
+	/**
+	 * Returns number of linked files or folder in this directory.
+	 * 
+	 * @return int Number of linked files or folders
+	 */
+	public function countFiles()
+	{
+        $db = DBManager::get();
+
+        $stmt = $db->prepare('SELECT COUNT(id) FROM file_refs WHERE parent_id = :id');
+		$stmt->bindValue(':id', $this->file_id);
+        $stmt->execute();
+        return $stmt->fetchColumn();
+	}
+
     /**
      * Check whether this directory is empty.
      *
@@ -131,13 +146,8 @@ class StudipDirectory extends File
      */
     public function isEmpty()
     {
-        $db = DBManager::get();
 
-        $stmt = $db->prepare('SELECT COUNT(id) FROM file_refs WHERE parent_id = ?');
-        $stmt->execute(array($this->file_id));
-        $count = $stmt->fetchColumn();
-
-        return $count == 0;
+        return $this->countFiles() == 0;
     }
 
     /**
@@ -187,8 +197,14 @@ class StudipDirectory extends File
         $db = DBManager::get();
         $result = array();
 
-        $stmt = $db->prepare('SELECT id FROM file_refs WHERE parent_id = ?');
-        $stmt->execute(array($this->file_id));
+        $query = "SELECT id
+                  FROM file_refs
+                  JOIN files USING (file_id)
+                  WHERE parent_id = :id
+                  ORDER BY storage_id = '' DESC, filename ASC";
+        $stmt = $db->prepare($query);
+        $stmt->bindValue(':id', $this->file_id);
+        $stmt->execute();
 
         foreach($stmt as $row) {
             $result[] = new DirectoryEntry($row[0]);

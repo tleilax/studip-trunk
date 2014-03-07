@@ -97,16 +97,6 @@ class DirectoryEntry // extends SimpleORMap
     {
         return $this->name;
     }
-    
-    /**
-     * Return the title of the entry.
-     *
-     * @return string  file name
-     */
-    //public function getTitle()
-    //{
-    //    return $this->title;
-    //}
 
     /**
      * Rename the file inside the same directory.
@@ -122,21 +112,6 @@ class DirectoryEntry // extends SimpleORMap
 
         $this->name = $name;
     }
-    
-    /**
-     * Set the title for the entry.
-     *
-     * @param string  $text  title text
-     */
-    //public function setTitle($text)
-    //{
-    //    $db = DBManager::get();
-
-    //    $stmt = $db->prepare('UPDATE file_refs SET title = ? WHERE id = ?');
-    //    $stmt->execute(array($text, $this->id));
-
-    //    $this->name = $name;
-    //}
 
     /**
      * Set the description for the entry.
@@ -202,7 +177,10 @@ class DirectoryEntry // extends SimpleORMap
         $stmt = $db->prepare('SELECT id FROM file_refs WHERE file_id = ?');
         $stmt->execute(array($this->parent_id));
         $result = $stmt->fetchColumn();
-        $parent = new DirectoryEntry($result);
-        return $parent;
+
+        if (!$result) {
+            throw new Exception('No parent found');
+        }
+        return new DirectoryEntry($result);
     }
 }

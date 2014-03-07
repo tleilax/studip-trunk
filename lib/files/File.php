@@ -29,11 +29,12 @@ class File // extends SimpleORMap
 
     protected $storage_object;  // backend object
 
+    protected static $object_cache = array();
+
     /**
      * Get a file object for the given id. May be file or directory.
      * If the file does not exist, a new (virtual) RootDirectory is
      * created for this id. TODO Is this a good idea?
-     * TODO Maybe use a singleton (with cache) here?
      *
      * @param string $id  file id
      *
@@ -41,35 +42,38 @@ class File // extends SimpleORMap
      */
     public static function get($id)
     {
-        $db = DBManager::get();
+        if (!isset(self::$object_cache[$id])) {
+            $db = DBManager::get();
 
-        $stmt = $db->prepare('SELECT * FROM files WHERE file_id = ?');
-        $stmt->execute(array($id));
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        if ($result === false) {
-            return new RootDirectory($id);
+            $stmt = $db->prepare('SELECT * FROM files WHERE file_id = ?');
+            $stmt->execute(array($id));
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($result === false) {
+                $file = new RootDirectory($id);
+            } else {
+                if ($result['storage_id']) {
+                    $file = new File($id);
+                } else {
+                    $file = new StudipDirectory($id);
+                }
+
+                $file->user_id = $result['user_id'];
+                $file->filename = $result['filename'];
+                $file->mime_type = $result['mime_type'];
+                $file->size = $result['size'];
+                $file->restricted = $result['restricted'];
+                $file->storage = $result['storage'];
+                $file->storage_id = $result['storage_id'];
+                $file->mkdate = $result['mkdate'];
+                $file->chdate = $result['chdate'];
+
+                if ($file->storage_id) {
+                    $file->storage_object = new $file->storage($file->storage_id);
+                }
+            }
+            self::$object_cache[$id] = $file;
         }
-
-        if ($result['storage_id']) {
-            $file = new File($id);
-        } else {
-            $file = new StudipDirectory($id);
-        }
-
-        $file->user_id = $result['user_id'];
-        $file->filename = $result['filename'];
-        $file->mime_type = $result['mime_type'];
-        $file->size = $result['size'];
-        $file->restricted = $result['restricted'];
-        $file->storage = $result['storage'];
-        $file->storage_id = $result['storage_id'];
-        $file->mkdate = $result['mkdate'];
-        $file->chdate = $result['chdate'];
-
-        if ($file->storage_id) {
-            $file->storage_object = new $file->storage($file->storage_id);
-        }
-        return $file;
+        return self::$object_cache[$id];
     }
 
     /**
@@ -113,20 +117,6 @@ class File // extends SimpleORMap
         return $this->mkdate;
     }
 
-   /**
-     * Return the file's entry type.
-     *
-     * @return string
-     */
-
-    public function getEntryType()
-    {
-         if (empty($this->storage_id))
-             return "Ordner";
-         else
-             return "Datei";
-    }
-
     /**
      * Return the file id of this file.
      *
@@ -150,7 +140,7 @@ class File // extends SimpleORMap
         $result = array();
 
         $stmt = $db->prepare('SELECT id FROM file_refs WHERE parent_id = ?');
-        $stmt->execute(array($this->id));
+        $stmt->execute(array($this->file_id));
 
         foreach ($stmt as $row) {
             $result[] = new DirectoryEntry($row[0]);
