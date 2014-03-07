@@ -9,6 +9,7 @@
  * the License, or (at your option) any later version.
  *
  * @author      David Siegfried <david.siegfried@uni-oldenburg.de>
+ * @author      Sebastian Hobert <sebastian.hobert@uni-goettingen.de>
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
  * @since       2.5
@@ -196,9 +197,6 @@ class Course_MembersController extends AuthenticatedController
         if ($this->is_tutor) {
             if ($this->is_dozent) {
                 if (!$this->dozent_is_locked) {
-                    //$url = sprintf('<a href="%s">%s</a>', $this->url_for('course/members/add_dozent/'), sprintf(_('Neue/n %s eintragen'), $this->status_groups['dozent']));
-                    //$this->addToInfobox(_('Aktionen'), $url, 'icons/16/black/add/community.png');
-                    
                     $sem = Seminar::GetInstance($this->course_id);
                     $sem_institutes = $sem->getInstitutes();
 
@@ -216,7 +214,6 @@ class Course_MembersController extends AuthenticatedController
                         'institute' => $sem_institutes)
                     );
                     
-                    
                     // add "add dozent" to infobox
                     $mp = MultiPersonSearch::get("add_dozent")
                         ->setLinkText(sprintf(_('Neue/n %s eintragen'), $this->status_groups['dozent']))
@@ -230,9 +227,6 @@ class Course_MembersController extends AuthenticatedController
                 }
 
                 if (!$this->tutor_is_locked) {
-                    //$url = sprintf('<a href="%s">%s</a>', $this->url_for('course/members/add_tutor/'), sprintf(_('Neue/n %s eintragen'), $this->status_groups['tutor']));
-                    //$this->addToInfobox(_('Aktionen'), $url, 'icons/16/black/add/community.png');
-                    
                     $sem = Seminar::GetInstance($this->course_id);
                     $sem_institutes = $sem->getInstitutes();
 
@@ -241,7 +235,8 @@ class Course_MembersController extends AuthenticatedController
                     } else {
                         $search_template = 'user_not_already_in_sem';
                     }
-
+                    
+                    // create new search for tutor
                     $searchType = new PermissionSearch(
                             $search_template, sprintf(_('%s suchen'), get_title_for_status('tutor', 1, $sem->status)), 'user_id', array('permission' => array('dozent', 'tutor'),
                         'seminar_id' => $this->course_id,
@@ -262,10 +257,7 @@ class Course_MembersController extends AuthenticatedController
                 }
             }
             if (!$this->is_locked) {
-                
-                //$url = sprintf('<a href="%s">%s</a>', $this->url_for('course/members/add_member/'), sprintf(_('Neue/n %s eintragen'), $this->status_groups['autor']));
-                //$this->addToInfobox(_('Aktionen'), $url, 'icons/16/black/add/community.png');
-                
+                 // create new search for members
                 $searchType = new SQLSearch("SELECT auth_user_md5.user_id, CONCAT(" . $GLOBALS['_fullname_sql']['full'] .
                 ", \" (\", auth_user_md5.username, \")\") as fullname " .
                 "FROM auth_user_md5 " .
@@ -342,7 +334,6 @@ class Course_MembersController extends AuthenticatedController
     /*
      * Returns an array with emails of members
      */
-
     public function getEmailLinkByStatus($status, $members)
     {
         if (!get_config('ENABLE_EMAIL_TO_STATUSGROUP')) {
@@ -362,70 +353,6 @@ class Course_MembersController extends AuthenticatedController
         } else {
             return null;
         }
-    }
-
-    /**
-     * New dozent action.
-     * @throws AccessDeniedException
-     */
-    function add_dozent_action()
-    {
-        // Security Check
-        if (!$this->is_dozent || $this->dozent_is_locked) {
-            throw new AccessDeniedException('Sie haben leider keine ausreichende Berechtigung, um auf diesen Bereich von Stud.IP zuzugreifen.');
-        }
-        if (!Request::isXhr()) {
-            Navigation::activateItem('/course/members/view');
-        }
-        $sem = Seminar::GetInstance($this->course_id);
-        Request::set('new_dozent_parameter', $this->flash['new_dozent_parameter']);
-
-        $sem_institutes = $sem->getInstitutes();
-
-        if (SeminarCategories::getByTypeId($sem->status)->only_inst_user) {
-            $search_template = "user_inst_not_already_in_sem";
-        } else {
-            $search_template = "user_not_already_in_sem";
-        }
-
-        // create new search for dozent
-        $this->search = new PermissionSearch(
-                $search_template, sprintf(_("%s suchen"), get_title_for_status('dozent', 1, $sem->status)), "user_id", array('permission' => 'dozent',
-            'seminar_id' => $this->course_id,
-            'sem_perm' => 'dozent',
-            'institute' => $sem_institutes)
-        );
-    }
-
-    /**
-     * New tutor action
-     * @throws AccessDeniedException
-     */
-    function add_tutor_action()
-    {
-        if (!$this->is_dozent || $this->is_tutor_locked) {
-            throw new AccessDeniedException('Sie haben leider keine ausreichende Berechtigung, um auf diesen Bereich von Stud.IP zuzugreifen.');
-        }
-        if (!Request::isXhr()) {
-            Navigation::activateItem('/course/members/view');
-        }
-        $sem = Seminar::GetInstance($this->course_id);
-        Request::set('new_tutor_parameter', $this->flash['new_tutor_parameter']);
-
-        $sem_institutes = $sem->getInstitutes();
-
-        if (SeminarCategories::getByTypeId($sem->status)->only_inst_user) {
-            $search_template = 'user_inst_not_already_in_sem';
-        } else {
-            $search_template = 'user_not_already_in_sem';
-        }
-
-        $this->search = new PermissionSearch(
-                $search_template, sprintf(_('%s suchen'), get_title_for_status('tutor', 1, $sem->status)), 'user_id', array('permission' => array('dozent', 'tutor'),
-            'seminar_id' => $this->course_id,
-            'sem_perm' => array('dozent', 'tutor'),
-            'institute' => $sem_institutes)
-        );
     }
 
     /**
@@ -482,58 +409,6 @@ class Course_MembersController extends AuthenticatedController
 
         $this->redirect('course/members/index');
     }
-
-    /**
-     * New author action
-     * @global Object $perm
-     * @throws AccessDeniedException
-     */
-    function add_member_action()
-    {
-        global $perm;
-        if (!Request::isXhr()) {
-            Navigation::activateItem('/course/members/view');
-        }
-        $this->set_layout($GLOBALS['template_factory']->open('layouts/base_without_infobox'));
-        // get the seminar object
-        $sem = Seminar::GetInstance($this->course_id);
-
-        // Security Check
-        if (!$this->is_tutor) {
-            throw new AccessDeniedException('Sie haben leider keine ausreichende Berechtigung, um auf diesen Bereich von Stud.IP zuzugreifen.');
-        }
-
-        // Check Seminar
-        if ($this->is_tutor && $sem->isAdmissionEnabled()) {
-            $this->semAdmissionEnabled = true;
-
-        }
-        // Damit die QuickSearch funktioniert
-        Request::set('new_autor', $this->flash['new_autor']);
-        Request::set('new_autor', $this->flash['new_autor_1']);
-        Request::set('new_autor_parameter', $this->flash['new_autor_parameter']);
-        Request::set('seminar_id', $this->course_id);
-
-        // new user-search for given status
-        $this->search = new SQLSearch("SELECT auth_user_md5.user_id, CONCAT(" . $GLOBALS['_fullname_sql']['full'] .
-                ", \" (\", auth_user_md5.username, \")\") as fullname " .
-                "FROM auth_user_md5 " .
-                "LEFT JOIN user_info ON (user_info.user_id = auth_user_md5.user_id) " .
-                "WHERE (CONCAT(auth_user_md5.Vorname, \" \", auth_user_md5.Nachname) LIKE :input " .
-                "OR auth_user_md5.username LIKE :input) " .
-                "AND auth_user_md5.perms IN ('autor', 'tutor', 'dozent') " .
-                " AND auth_user_md5.visible <> 'never' " .
-                "AND auth_user_md5.user_id NOT IN (SELECT user_id FROM seminar_user WHERE Seminar_id = :cid ) " .
-                "ORDER BY Vorname, Nachname", _("Teilnehmer suchen"), "username");
-
-        $datafields = DataFieldStructure::getDataFieldStructures('user', (1 | 2 | 4 | 8), true);
-        foreach ($datafields as $df) {
-            if ($df->accessAllowed($perm) && in_array($df->getId(), $GLOBALS['TEILNEHMER_IMPORT_DATAFIELDS'])) {
-                $accessible_df[] = $df;
-            }
-        }
-        $this->accessible_df = $accessible_df;
-    }
     
     /**
      * Add members to a seminar.
@@ -584,6 +459,9 @@ class Course_MembersController extends AuthenticatedController
         $this->redirect('course/members/index');
     }
     
+    /**
+     * Helper function to add dozents to a seminar.
+     */
     private function addDozent($dozent) {
         $deputies_enabled = get_config('DEPUTIES_ENABLE');
         $sem = Seminar::GetInstance($this->course_id);
@@ -643,147 +521,6 @@ class Course_MembersController extends AuthenticatedController
         } else {
             // sorry that was a fail
             PageLayout::postMessage(MessageBox::error(_('Die gewünsche Operation konnte nicht ausgeführt werden')));
-        }
-    }
-    
-    
-    /**
-     * Add a member to a seminar
-     * @throws AccessDeniedException
-     */
-    function set_action()
-    {
-        // Security Check
-        if (!$this->is_tutor) {
-            throw new AccessDeniedException('Sie haben leider keine ausreichende Berechtigung, um auf diesen Bereich von Stud.IP zuzugreifen.');
-        }
-        CSRFProtection::verifyUnsafeRequest();
-        $sem = Seminar::GetInstance($this->course_id);
-        // insert new dozent in a seminar
-        if (Request::submitted('add_dozent') && $this->is_dozent) {
-
-            if (!Request::option('new_dozent')) {
-                PageLayout::postMessage(MessageBox::error(_('Es wurde niemand gefunden.')));
-
-                $this->redirect('course/members/add_dozent');
-            } else {
-                $deputies_enabled = get_config('DEPUTIES_ENABLE');
-                
-                if ($sem->addMember(Request::option('new_dozent'), "dozent")) {
-                    // Only applicable when globally enabled and user deputies enabled too
-                    if ($deputies_enabled) {
-                        // Check whether chosen person is set as deputy
-                        // -> delete deputy entry.
-                        if (isDeputy(Request::option('new_dozent'), $this->course_id)) {
-                            deleteDeputy(Request::option('new_dozent'), $this->course_id);
-                        }
-                        // Add default deputies of the chosen lecturer...
-                        if (get_config('DEPUTIES_DEFAULTENTRY_ENABLE')) {
-                            $deputies = getDeputies(Request::option('new_dozent'));
-                            $lecturers = $sem->getMembers('dozent');
-                            foreach ($deputies as $deputy) {
-                                // ..but only if not already set as lecturer or deputy.
-                                if (!isset($lecturers[$deputy['user_id']]) &&
-                                        !isDeputy($deputy['user_id'], $this->course_id)) {
-                                    addDeputy($deputy['user_id'], $this->course_id);
-                                }
-                            }
-                        }
-                    }
-                    // new dozent was successfully insert
-                    PageLayout::postMessage(MessageBox::success(sprintf(_('%s wurde hinzugefügt.'), get_title_for_status('dozent', 1, $sem->status))));
-                    // go back
-                    $this->redirect('course/members/index');
-                } else {
-                    // sorry that was a fail
-                    PageLayout::postMessage(MessageBox::error(_('Die gewünschte Operation konnte nicht ausgeführt werden.')));
-                    // go back
-                    $this->redirect('course/members/add_dozent');
-                }
-            }
-        }
-
-        // empty dozent formular
-        if (Request::submitted('search_dozent') && Request::submitted('search_dozent_x')) {
-            $this->flash['new_dozent_parameter'] = Request::get('new_dozent_parameter');
-            $this->redirect('course/members/add_dozent');
-        }
-
-        //insert new tutor
-        if (Request::submitted('add_tutor') && $this->is_dozent) {
-
-            // selection fails
-            if (!Request::option('new_tutor')) {
-                PageLayout::postMessage(MessageBox::error(_('Sie haben keine Auswahl getätigt
-                    oder der/die gesuchte TeilnehmerIn wurde nicht gefunden')));
-                $this->redirect('course/members/add_tutor');
-            } else {
-                if ($sem->addMember(Request::option('new_tutor'), "tutor")) {
-                    PageLayout::postMessage(MessageBox::success(sprintf(_('%s wurde hinzugefügt.'), get_title_for_status('tutor', 1, $sem->status))));
-                    $this->redirect('course/members/index');
-                } else {
-                    // sorry that was a fail
-                    PageLayout::postMessage(MessageBox::error(_('Die gewünsche Operation konnte nicht ausgeführt werden')));
-
-                    $this->redirect('course/members/add_tutor');
-                }
-            }
-        }
-
-        // empty tutor formular
-        if (Request::submitted('search_tutor')) {
-            $this->flash['new_tutor_parameter'] = Request::get('new_tutor_parameter');
-            $this->redirect('course/members/add_tutor');
-        }
-
-        if (Request::submitted('reset_dozent')) {
-            $this->redirect('course/members/add_dozent');
-        }
-
-        if (Request::submitted('reset_tutor')) {
-            $this->redirect('course/members/add_tutor');
-        }
-    }
-
-    /**
-     * Add a author to a seminar
-     * @throws AccessDeniedException
-     */
-    function set_autor_action()
-    {
-        // Security Check
-        if (!$this->is_tutor) {
-            throw new AccessDeniedException('Sie haben leider keine ausreichende Berechtigung, um auf diesen Bereich von Stud.IP zuzugreifen.');
-        }
-        CSRFProtection::verifyUnsafeRequest();
-        // empty autor formular
-        if (Request::submitted('search_autor') && Request::submitted('search_autor_x')) {
-            $this->flash['new_autor'] = Request::get('new_autor');
-            $this->flash['new_autor_1'] = Request::get('new_autor_1');
-            $this->flash['new_autor_parameter'] = Request::get('new_autor_parameter');
-
-            $this->redirect('course/members/add_member');
-            return;
-        }
-
-        if (Request::submitted('reset_autor') && Request::submitted('reset_autor_x')) {
-            $this->redirect('course/members/add_member');
-            return;
-        }
-        //insert new autor
-        if (Request::option('new_autor') && (Request::submitted('add_autor_x')
-                || (Request::submitted('add_autor')) && $this->is_tutor)) {
-
-            $msg = $this->members->addMember(Request::get('new_autor'), 'autor', Request::get('consider_contingent'));
-
-            PageLayout::postMessage($msg);
-            $this->redirect('course/members/index');
-            return;
-        } else {
-            PageLayout::postMessage(MessageBox::error(_('Sie haben keine Auswahl getätigt
-                oder der/die gesuchte TeilnehmerIn wurde nicht gefunden')));
-            $this->redirect('course/members/add_member');
-            return;
         }
     }
 
