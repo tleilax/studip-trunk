@@ -33,11 +33,11 @@
             <textarea cols="38" rows="4" name="description" placeholder="<?= _('Beschreibung') ?>"><?= htmlReady($entry->getDescription()) ?></textarea>
            </p>
            <p>
-            <input type="radio" name="protected" checked value="0">
+            <input type="radio" name="restricted" value="0" <? if (!$entry->getFile()->restricted) echo 'checked'; ?>>
             <?= _('Ja, dieses Dokument ist frei von Rechten Dritter.') ?>
            </p>
            <p>
-            <input type="radio" name="protected" value="1"/>
+            <input type="radio" name="restricted" value="1" <? if ($entry->getFile()->restricted) echo 'checked'; ?>>
 
             <?= _('Nein, dieses Dokument ist <u>nicht</u> frei von Rechten Dritter.') ?>
            </p>

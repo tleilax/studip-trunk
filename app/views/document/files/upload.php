@@ -27,11 +27,11 @@
 
         <fieldset>
             <label>
-                <input type="radio" name="protected" checked value="0">
+                <input type="radio" name="restricted" checked value="0">
                 <?= _('Ja, dieses Dokument ist frei von Rechten Dritter.') ?>
             </label>
             <label>
-                <input type="radio" name="protected" value="1">
+                <input type="radio" name="restricted" value="1">
                 <?= sprintf(_('Nein, dieses Dokumnt ist %snicht%s frei von Rechten Dritter.'), '<em>', '</em>') ?>
             </label>
         </fieldset>

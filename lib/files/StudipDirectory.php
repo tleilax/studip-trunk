@@ -181,8 +181,8 @@ class StudipDirectory extends File
 
         $entry_id = md5(uniqid(__CLASS__, true));
 
-        $stmt = $db->prepare('INSERT INTO file_refs (id, file_id, parent_id, name) VALUES(?, ?, ?, ?)');
-        $stmt->execute(array($entry_id, $file->getId(), $this->file_id, ''));
+        $stmt = $db->prepare('INSERT INTO file_refs (id, file_id, parent_id, name, description) VALUES(?, ?, ?, ?, ?)');
+        $stmt->execute(array($entry_id, $file->getId(), $this->file_id, $name, ''));
         return new DirectoryEntry($entry_id);
     }
 

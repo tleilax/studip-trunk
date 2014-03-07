@@ -107,7 +107,7 @@ class Document_FilesController extends AuthenticatedController
 
                 // TODO: Refactor this
                 $i = 1;
-                while (!is_null($fileEntry)) {
+                while (false and !is_null($fileEntry)) {
                     $pos = strrpos($name, '.');
 
                     if ($pos !== false) {
@@ -124,9 +124,10 @@ class Document_FilesController extends AuthenticatedController
                 }
 
                 $new_file = $user_dir->create($upfile);
-                $new_file->rename($_POST['title']);
+                $new_file->rename($_POST['name']);
                 $new_file->setDescription($_POST['description']);
                 $handle = $new_file->getFile();
+                $handle->setRestricted(Request::int('restricted'));
                 $handle->setMimeType($type);
                 $handle->size = $size;
 
@@ -165,6 +166,7 @@ class Document_FilesController extends AuthenticatedController
 
         if (Request::isPost()) {
             $entry->getFile()->setFilename(Request::get('filename'));
+            $entry->getFile()->setRestricted(Request::int('restricted', 0));
             $entry->rename(Request::get('name'));
             $entry->setDescription(Request::get('description'));
 

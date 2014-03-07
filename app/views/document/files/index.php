@@ -100,6 +100,9 @@
 	            <a href="<?= $controller->url_for('document/files/download/' . $file->id) ?>">
     	            <?= htmlReady($file->getFile()->filename) ?>
     	        </a>
+            <? if ($file->getFile()->restricted): ?>
+                <?= Assets::img('icons/16/blue/lock-locked.png', array('class' => 'text-top') + tooltip2(_('Diese Datei ist nicht frei von Rechten Dritter.'))) ?>
+            <? endif; ?>
             <? if ($file->getDescription()): ?>
                 <small><?= htmlReady($file->getDescription()) ?></small>
             <? endif; ?>
