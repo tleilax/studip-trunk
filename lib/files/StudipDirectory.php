@@ -305,12 +305,12 @@ class StudipDirectory extends File
         $db = DBManager::get();
 
         $stmt = $db->prepare('SELECT file_id FROM file_refs WHERE name = ? AND parent_id = ?');
-        $stmt->execute(array($name, $this->id));
+        $stmt->execute(array($name, $this->file_id));
         $file_id = $stmt->fetchColumn();
 
         if ($file_id) {
             $stmt = $db->prepare('DELETE FROM file_refs WHERE file_id = ? AND parent_id = ?');
-            $stmt->execute(array($file_id, $this->id));
+            $stmt->execute(array($file_id, $this->file_id));
 
             // count links and delete storage if link count == 0
             $stmt = $db->prepare('SELECT COUNT(id) FROM file_refs WHERE file_id = ?');

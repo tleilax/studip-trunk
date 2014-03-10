@@ -94,12 +94,14 @@
             </td>
         <? else: ?>
             <td class="document-icon">
-            	<?= Assets::img('icons/16/blue/'. $controller->getIcon($file->getFile()->getMimeType())) ?>
+                <a href="<?= $controller->url_for('document/files/download/' . $file->id . '/inline') ?>">
+                    <?= Assets::img('icons/16/blue/'. get_icon_for_mimetype($file->getFile()->getMimeType())) ?>
+                </a>
             </td>
             <td>
-	            <a href="<?= $controller->url_for('document/files/download/' . $file->id) ?>">
-    	            <?= htmlReady($file->getFile()->filename) ?>
-    	        </a>
+                <a href="<?= $controller->url_for('document/files/download/' . $file->id) ?>">
+                    <?= htmlReady($file->getFile()->filename) ?>
+                </a>
             <? if ($file->getFile()->restricted): ?>
                 <?= Assets::img('icons/16/blue/lock-locked.png', array('class' => 'text-top') + tooltip2(_('Diese Datei ist nicht frei von Rechten Dritter.'))) ?>
             <? endif; ?>

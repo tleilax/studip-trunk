@@ -131,8 +131,9 @@ class Document_FilesController extends AuthenticatedController
                 $handle->setMimeType($type);
                 $handle->size = $size;
 
+                // TODO: Check if storage path is writable
                 if (!move_uploaded_file($_FILES['upfile']['tmp_name'], $handle->getStoragePath())) {
-                    //PageLayout::postMessage(MessageBox::error(_('Upload-Fehler')));
+                    PageLayout::postMessage(MessageBox::error(_('Upload-Fehler')));
                     $handle->delete();
                 } else {
                     $handle->update();
@@ -239,14 +240,15 @@ class Document_FilesController extends AuthenticatedController
     {
         $entry = new DirectoryEntry($id);
         $parent_id = $this->getParentId($id);
-
+		
         if (!Request::isPost()) {
             $question = createQuestion2(_('Soll die Datei wirklich gelöscht werden?'),
                                         array(), array(),
                                         $this->url_for('document/files/delete/' . $id));
             $this->flash['question'] = $question;
         } elseif (Request::isPost() && Request::submitted('yes')) {
-            $entry->getFile()->delete();
+#			echo '<pre>';var_dump($parent_id, $entry->name);die;
+			File::get($parent_id)->unlink($entry->name);
             PageLayout::postMessage(MessageBox::success(_('Die Datei wurde gelöscht.')));
         }
         $this->redirect('document/files/index/' . $parent_id);
@@ -314,33 +316,5 @@ class Document_FilesController extends AuthenticatedController
                             'icons/16/black/trash.png');
 
         $this->addToInfobox(_('Export:'), _('Dateibereich herunterladen'), 'icons/16/black/download.png');
-    }
-
-    public function getIcon($mime_type)
-    {
-        if (strpos($mime_type, 'image/') === 0) {
-            return 'file-pic.png';
-        }
-        if (strpos($mime_type, 'audio/') === 0) {
-            return 'file-audio.png';
-        }
-        if (strpos($mime_type, 'video/') === 0) {
-            return 'file-video.png';
-        }
-        if ($mime_type === 'application/pdf') {
-            return 'file-pdf.png';
-        }
-        if ($mime_type === 'application/vnd.ms-powerpoint') {
-            return 'file-presentation.png';
-        }
-
-        $parts = explode('/', $mime_type);
-        if (reset($parts) === 'application' && in_array(end($parts), words('vnd.ms-excel msexcel x-msexcel x-ms-excel x-excel x-dos_ms_excel xls x-xls'))) {
-            return 'file-xls.png';
-        }
-        if (reset($parts) === 'application' && in_array(end($parts), words('7z arj rar zip'))) {
-            return 'file-archive.png';
-        }
-        return 'file-generic.png';
     }
 }

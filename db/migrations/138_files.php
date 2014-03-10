@@ -195,9 +195,10 @@ class files extends DBMigration
 
         $alluserdir = $USER_DOC_PATH;
         foreach (scandir($alluserdir) as $item) {
-            if ($item == '.' || $item == '..')
-                continue
-                unlink($alluserdir . DIRECTORY_SEPARATOR . $item);
+            if ($item == '.' || $item == '..') {
+                continue;
+            }
+            unlink($alluserdir . DIRECTORY_SEPARATOR . $item);
         }
 
         rmdir($alluserdir);
