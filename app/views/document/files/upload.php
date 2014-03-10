@@ -6,7 +6,7 @@
     <fieldset>
         <fieldset>
             <label>
-                <?= _('Datei auswählen') ?>
+                <?= _('Datei(en) auswählen') ?>
                 <input name="upfile" id="file" type="file" required>
             </label>
         </fieldset>

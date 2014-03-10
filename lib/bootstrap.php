@@ -49,4 +49,5 @@ require_once 'lib/files/DiskFileStorage.php';
 require_once 'lib/files/File.php';
 require_once 'lib/files/StudipDirectory.php';
 require_once 'lib/files/RootDirectory.php';
+require_once 'lib/files/FileHelper.php';
 

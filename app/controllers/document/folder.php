@@ -14,13 +14,13 @@
  * @since       3.1
  */
 
-require_once 'app/controllers/authenticated_controller.php';
+require_once 'document_controller.php';
 
 
-class Document_FolderController extends AuthenticatedController
+class Document_FolderController extends DocumentController
 {
 
-    private $realname, $userConfig, $quota, $upload_quota;
+    private $realname, $realnameConfig, $quota, $upload_quota;
 
     public function before_filter(&$action, &$args)
     {
@@ -36,12 +36,6 @@ class Document_FolderController extends AuthenticatedController
         if (!file_exists($userdir)) {
             mkdir($userdir, 0755, true);
         }
-
-        if (Request::isXhr()) {
-            $this->set_layout(null);
-        } else {
-            $this->set_layout($GLOBALS['template_factory']->open('layouts/base'));
-        }
     }
 
     public function create_action($parent_id)
@@ -55,9 +49,20 @@ class Document_FolderController extends AuthenticatedController
                 $entry = new DirectoryEntry($parent_id);
                 $parent_dir = $entry->getFile();
             } catch (Exception $e) {
-                $parent_dir = new RootDirectory($GLOBALS['user']->id);
+                $parent_dir = new RootDirectory($this->context_id);
             }
-            $directory = $parent_dir->mkdir($name);
+
+            do {
+                $check = true;
+                try {
+                    $directory = $parent_dir->mkdir($name);
+                } catch (Exception $e) {
+                    $check = false;
+
+                    $name = FileHelper::AdjustFilename($name);
+                }
+            } while (!$check);
+
             $directory->setDescription(Request::get('description', ''));
             $directory->getFile()->setFilename($name);
 
@@ -87,16 +92,100 @@ class Document_FolderController extends AuthenticatedController
         $this->folder_id = $folder_id;
         $this->folder    = $folder;
     }
-
-    public function getParentId($entry_id)
+    
+    public function delete_action($folder_id)
     {
-        try {
-            $entry  = new DirectoryEntry($entry_id);
-            $parent = $entry->getParent();
-            $parent_id = $parent->id;
-        } catch (Exception $e) {
-            $parent_id = $GLOBALS['user']->id;
+        $parent_id = $this->getParentId($folder_id);
+        
+        if (!Request::isPost()) {
+            $message = $folder_id === 'all'
+                     ? _('Soll der gesamte Dateibereich inklusive aller Order und Dateien wirklich gelöscht werden?')
+                     : _('Soll der Ordner inklusive aller darin enthaltenen Dateien wirklich gelöscht werden?');
+            $question = createQuestion2($message, array(), array(),
+                                        $this->url_for('document/folder/delete/' . $folder_id));
+            $this->flash['question'] = $question;
+        } elseif (Request::isPost() && Request::submitted('yes')) {
+            if ($folder_id === 'all') {
+                $entry = new RootDirectory($this->context_id);
+                foreach ($entry->listFiles() as $file) {
+                    $entry->unlink($file->name);
+                }
+                PageLayout::postMessage(MessageBox::success(_('Der Dateibereich wurde geleert.')));
+            } else {
+                $entry = new DirectoryEntry($folder_id);
+                File::get($parent_id)->unlink($entry->name);
+                PageLayout::postMessage(MessageBox::success(_('Der Ordner wurde gelöscht.')));
+            }
         }
-        return $parent_id;
+        $this->redirect('document/files/index/' . $parent_id);
+    }
+    
+    public function download_action($folder_id)
+    {
+        $entries = array();
+        
+        if ($folder_id === 'flashed') {
+            $ids = $this->flash['download-ids'];
+            foreach ($ids as $id) {
+                $entry     = new DirectoryEntry($id);
+                $entries[] = $entry->getFile();
+            }
+        } else {
+            if ($folder_id === $this->context_id) {
+                $entries[] = new RootDirectory($this->context_id);
+            } else {
+                $entry     = new DirectoryEntry($folder_id);
+                $entries[] = $entry->getFile();
+            }
+        }
+        $tmp_file = tempnam($GLOBALS['TMP_PATH'], 'doc');
+        $zip = new ZipArchive();
+        $open_result = $zip->open($tmp_file, ZipArchive::CREATE);
+        if (true !== $open_result) {
+            throw new Exception('Could not create zip file (' . $open_result . ')');
+        }
+
+        foreach ($entries as $entry) {
+            $this->addToZip($zip, $entry, '', $remove);
+        }
+        if (true !== ($close_result = $zip->close())) {
+            throw new Exception('Could not close zip file (' . $close_result . ')');
+        }
+
+        array_map('unlink', $remove);
+
+        // TODO: swap "foobar" with a more appropriate name
+        $this->initiateDownload(false, 'foobar.zip', 'application/zip', filesize($tmp_file), fopen($tmp_file, 'r'));
+        $this->download_remove = $tmp_file;
+    }
+    
+    protected function addToZip(&$zip, $entry, $path = '', &$remove = array())
+    {
+        $path = rtrim($path, '/');
+        if ($entry instanceof StudipDirectory) {
+            $path = ltrim($path . '/' . $entry->filename, '/');
+            if ($path && true !== $zip->addEmptyDir($path)) {
+                throw new Exception('Can not add dir "' . $path . '"');
+            }
+            foreach ($entry->listFiles() as $file) {
+                $this->addToZip($zip, $file->getFile(), $path, $remove);
+            }
+        } else {
+            $tmp_file = tempnam($GLOBALS['TMP_PATH'], 'zip');
+            $source      = $entry->open('r');
+            $destination = fopen($tmp_file, 'w+');
+
+            stream_copy_to_stream($source, $destination);
+            fclose($source);
+            fclose($destination);
+
+            if (!file_exists($tmp_file) || !is_readable($tmp_file) || filesize($tmp_file) === 0) {
+                throw new Exception('Empty file');
+            }
+            if (true !== $zip->addFile($tmp_file, $path . '/' . $entry->filename)) {
+                throw new Exception('Could not add file');
+            }
+            $remove[] = $tmp_file;
+        }
     }
 }

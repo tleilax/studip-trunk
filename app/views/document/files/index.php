@@ -22,7 +22,7 @@
         <col width="100px">
         <col width="150px">
         <col width="120px">
-        <col width="80px">
+        <col width="100px">
     </colgroup>
     <thead>
         <th>
@@ -56,7 +56,7 @@
     <? foreach ($files as $file): ?>
         <tr>
             <td>
-                <input type="checkbox" name="ids[]" value="<?= $file->id ?>">
+                <input type="checkbox" name="ids[]" value="<?= $file->id ?>" <? if (in_array($file->id, $marked)) echo 'checked'; ?>>
             </td>
         <? if ($file->getFile() instanceof StudipDirectory): ?>
             <td class="document-icon">
@@ -88,6 +88,9 @@
                 <a href="<?= $controller->url_for('document/folder/download/' . $file->id) ?>">
                     <?= Assets::img('icons/16/blue/download.png', tooltip2(_('Ordner herunterladen'))) ?>
                 </a>
+                <a href="<?= $controller->url_for('document/folder/move/' . $file->id) ?>">
+                    <?= Assets::img('icons/16/blue/move_right/folder-empty.png', tooltip2(_('Ordner verschieben'))) ?>
+                </a>
                 <a href="<?= $controller->url_for('document/folder/delete/' . $file->id) ?>">
                     <?= Assets::img('icons/16/blue/trash.png', tooltip2(_('Ordner löschen'))) ?>
                 </a>
@@ -99,8 +102,8 @@
                 </a>
             </td>
             <td>
-                <a href="<?= $controller->url_for('document/files/download/' . $file->id) ?>">
-                    <?= htmlReady($file->getFile()->filename) ?>
+                <a href="<?= $controller->url_for('document/files/download/' . $file->id) ?>" title="<?= htmlReady($file->getFile()->filename) ?>">
+                    <?= htmlReady($file->name) ?>
                 </a>
             <? if ($file->getFile()->restricted): ?>
                 <?= Assets::img('icons/16/blue/lock-locked.png', array('class' => 'text-top') + tooltip2(_('Diese Datei ist nicht frei von Rechten Dritter.'))) ?>
@@ -123,6 +126,9 @@
                 <a href="<?= $controller->url_for('document/files/download/' . $file->id) ?>">
                     <?= Assets::img('icons/16/blue/download.png', tooltip2(_('Datei herunterladen'))) ?>
                 </a>
+                <a href="<?= $controller->url_for('document/files/move/' . $file->id) ?>">
+                    <?= Assets::img('icons/16/blue/move_right/file.png', tooltip2(_('Datei verschieben'))) ?>
+                </a>
                 <a href="<?= $controller->url_for('document/files/delete/' . $file->id) ?>">
                     <?= Assets::img('icons/16/blue/trash.png', tooltip2(_('Datei löschen'))) ?>
                 </a>
@@ -137,6 +143,7 @@
             <td colspan="7" class="printhead">
                 <?= _('Alle markierten') ?>
                 <?= Studip\Button::create(_('Herunterladen'), 'download') ?>
+                <?= Studip\Button::create(_('Verschieben'), 'move') ?>
                 <?= Studip\Button::create(_('Löschen'), 'delete') ?>
             </td>
         </tr>

@@ -7,26 +7,21 @@
  * fuer deren persoenlichen Dateibereich im Stud.IP zur Verfuegung.
  *
  *
- * @author      Gerd Hoffmann <gerd.hoffmann@uni-oldenburg.de>
  * @author      Jan-Hendrik Willms <tleilax+studip@gmail.com>
+ * @author      Gerd Hoffmann <gerd.hoffmann@uni-oldenburg.de>
  * @license     http://www.gnu.org/licenses/gpl-3.0
  * @copyright   Stud.IP Core-Group
  * @since       3.1
  */
 
-require_once 'app/controllers/authenticated_controller.php';
+require_once 'document_controller.php';
 
 
-class Document_FilesController extends AuthenticatedController
+class Document_FilesController extends DocumentController
 {
-    private $download_handle = false;
-
     public function before_filter(&$action, &$args)
     {
         parent::before_filter($action, $args);
-
-        // Lock context to user id
-        $this->context_id = $GLOBALS['user']->id;
 
         //Setup the user's sub-directory in $USER_DOC_PATH
         $userdir = $GLOBALS['USER_DOC_PATH'] . '/' . $this->context_id . '/';
@@ -48,13 +43,6 @@ class Document_FilesController extends AuthenticatedController
         PageLayout::setTitle(_('Dateiverwaltung'));
         PageLayout::setHelpKeyword('Basis.Dateien');
         Navigation::activateItem('/document/files');
-
-
-        if (Request::isXhr()) {
-            $this->set_layout(null);
-        } else {
-            $this->set_layout($GLOBALS['template_factory']->open('layouts/base'));
-        }
     }
 
     public function index_action($dir_id = null)
@@ -82,6 +70,7 @@ class Document_FilesController extends AuthenticatedController
         }
 
         $this->dir_id = $dir_id;
+        $this->marked = $this->flash['marked-ids'] ?: array();
     }
 
     public function upload_action($env_dir)
@@ -96,36 +85,20 @@ class Document_FilesController extends AuthenticatedController
                 $type = $_FILES['upfile']['type'];
                 $tmp_name = $_FILES['upfile']['tmp_name'];
 
-                if ($env_dir == $this->context_id) {
+                if ($env_dir === $this->context_id) {
                     $user_dir = new RootDirectory($this->context_id);
-                } else if ($env_dir != $this->context_id) {
+                } else {
                     $dirEntry = new DirectoryEntry($env_dir);
-                    $user_dir = StudipDirectory::get($dirEntry->file_id);
+                    $user_dir = $dirEntry->getfile();
                 }
 
-                $fileEntry = $user_dir->getEntry($upfile);
-
-                // TODO: Refactor this
-                $i = 1;
-                while (false and !is_null($fileEntry)) {
-                    $pos = strrpos($name, '.');
-
-                    if ($pos !== false) {
-                        $pre = substr($name, 0, $pos);
-                        $post = substr($name, $pos);
-                        $newname = $pre. '('. $i. ')';
-                        $upfile = $ext. $post;
-                    }
-                    else {
-                        $newname = $upfile. '('. $i. ')';
-                        $upfile = $newname;
-                    }
-                    $i++;
+                while ($user_dir->getEntry($upfile) !== null) {
+                    $upfile = FileHelper::AdjustFilename($upfile);
                 }
 
                 $new_file = $user_dir->create($upfile);
-                $new_file->rename($_POST['name']);
-                $new_file->setDescription($_POST['description']);
+                $new_file->rename(Request::get('name'));
+                $new_file->setDescription(Request::get('description', ''));
                 $handle = $new_file->getFile();
                 $handle->setRestricted(Request::int('restricted'));
                 $handle->setMimeType($type);
@@ -139,8 +112,10 @@ class Document_FilesController extends AuthenticatedController
                     $handle->update();
                 }
             }
-            $this->redirect("document/files/index/$env_dir");
+            $this->redirect('document/files/index/' . $env_dir);
         }
+
+        $this->env_dir = $env_dir;
 
         $this->setDialogLayout('icons/48/blue/upload.png');
 
@@ -199,59 +174,59 @@ class Document_FilesController extends AuthenticatedController
 
         $entry->setDownloadCount($entry->downloads + 1);
 
-        $response = $this->response;
-
-        if ($_SERVER['HTTPS'] === 'on') {
-            $response->add_header('Pragma', 'public');
-            $response->add_header('Cache-Control', 'private');
-        } else {
-            $response->add_header('Pragma', 'no-cache');
-            $response->add_header('Cache-Control', 'no-store, no-cache, must-revalidate');
-        }
-
-        $dispositon = sprintf('%s;filename="%s"',
-                              $inline ? 'inline' : 'attachment',
-                              urlencode($file->getFilename()));
-        $response->add_header('Content-Disposition', $dispositon);
-        $response->add_header('Content-Description', 'File Transfer');
-        $response->add_header('Content-Transfer-Encoding' , 'binary');
-        $response->add_header('Content-Type', $file->getMimeType());
-        $response->add_header('Content-Length', $file->getSize());
-
-        $this->render_nothing();
-
-        $this->download_handle = $storage->open('r');
+        $this->initiateDownload($inline, $file->getFilename(), $file->getMimeType(), $file->getSize(), $storage->open('r'));
     }
 
-    public function after_filter($action, $args)
-    {
-        parent::after_filter($action, $args);
-
-        if ($this->download_handle) {
-            fpassthru($this->download_handle);
-            fclose($this->download_handle);
-        }
-    }
-
-    /**
-     * @todo This needs to use StudipDirectory::unlink()
-     */
     public function delete_action($id)
     {
         $entry = new DirectoryEntry($id);
         $parent_id = $this->getParentId($id);
-		
+        
         if (!Request::isPost()) {
             $question = createQuestion2(_('Soll die Datei wirklich gelöscht werden?'),
                                         array(), array(),
                                         $this->url_for('document/files/delete/' . $id));
             $this->flash['question'] = $question;
         } elseif (Request::isPost() && Request::submitted('yes')) {
-#			echo '<pre>';var_dump($parent_id, $entry->name);die;
-			File::get($parent_id)->unlink($entry->name);
+            File::get($parent_id)->unlink($entry->name);
             PageLayout::postMessage(MessageBox::success(_('Die Datei wurde gelöscht.')));
         }
         $this->redirect('document/files/index/' . $parent_id);
+    }
+
+    public function bulk_action($folder_id)
+    {
+        $ids = Request::optionArray('ids');
+
+        if (empty($ids)) {
+            $this->redirect('document/files/index/' . $folder_id);
+        } else if (Request::submitted('download')) {
+            $this->flash['download-ids'] = $ids;
+            $this->redirect('document/folder/download/flashed');
+        } else if (Request::submitted('delete')) {
+            if (Request::submitted('yes')) {
+                if ($folder_id === $this->context_id) {
+                    $dir = new RootDirectory($this->context_id);
+                } else {
+                    $entry = new DirectoryEntry($folder_id);
+                    $dir   = $entry->getFile();
+                }
+                foreach ($ids as $id) {
+                    $entry = new DirectoryEntry($id);
+                    $dir->unlink($entry->name);
+                }
+                PageLayout::postMessage(MessageBox::success(_('Die Dateien wurden erfolgreich gelöscht.')));
+            } elseif (!Request::submitted('no')) {
+                $question = createQuestion2(_('Sollen die markierten Dateien wirklich gelöscht werden?'),
+                                            array('delete' => 'true', 'ids' => $ids), array(),
+                                            $this->url_for('document/files/bulk/' . $folder_id));
+                $this->flash['question']   = $question;
+
+                $this->flash['marked-ids'] = $ids;
+            }
+            
+            $this->redirect('document/files/index/' . $folder_id);
+        }
     }
 
     public function getParentId($entry_id)
@@ -309,12 +284,15 @@ class Document_FilesController extends AuthenticatedController
                             'icons/16/black/add/folder-empty.png');
 
         $delete_link = sprintf('<a href="%s">%s</a>',
-                               $this->url_for('document/files/remove/all'),
+                               $this->url_for('document/folder/delete/all'),
                                _('Dateibereich leeren'));
         $this->addToInfobox(_('Aktionen:'),
                             $delete_link,
                             'icons/16/black/trash.png');
 
-        $this->addToInfobox(_('Export:'), _('Dateibereich herunterladen'), 'icons/16/black/download.png');
+        $export_link = sprintf('<a href="%s">%s</a>',
+                               $this->url_for('document/folder/download/' . $this->context_id),
+                               _('Dateibereich herunterladen'));
+        $this->addToInfobox(_('Export:'), $export_link, 'icons/16/black/download.png');
     }
 }
