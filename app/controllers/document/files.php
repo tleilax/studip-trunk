@@ -12,6 +12,19 @@
  * @license     http://www.gnu.org/licenses/gpl-3.0
  * @copyright   Stud.IP Core-Group
  * @since       3.1
+ *
+ * @todo        Remove user dir creation from this controller, it is storage type specific
+ * @todo        Move operations
+ * @todo        Respect quotas
+ * @todo        Respect file extension black list
+ * @todo        Extends file extension black list to mime type black list?
+ * @todo        Info page for # of downloads
+ * @todo        Inline display of media
+ * @todo        The breadcrumbs need a little css love
+ * @todo        AJAX file upload
+ * @todo        Admin/root handling needs to be improved
+ * @todo        ZIP extract in local file space?
+ * @todo        Test another storage type (DB? FTP?)
  */
 
 require_once 'document_controller.php';
@@ -73,49 +86,90 @@ class Document_FilesController extends DocumentController
         $this->marked = $this->flash['marked-ids'] ?: array();
     }
 
-    public function upload_action($env_dir)
+    public function upload_action($folder_id)
     {
-        $env_dir = $env_dir ?: $this->context_id;
+        $folder_id = $folder_id ?: $this->context_id;
 
         if (Request::isPost()) {
+            if ($folder_id === $this->context_id) {
+                $directory = new RootDirectory($this->context_id);
+            } else {
+                $dirEntry = new DirectoryEntry($folder_id);
+                $directory = $dirEntry->getfile();
+            }
+            
+            $title       = Request::get('title');
+            $description = Request::get('description', '');
+            $restricted  = Request::int('restricted', 0);
 
-            if (isset ($_FILES['upfile']['tmp_name'])) {
-                $upfile = $_FILES['upfile']['name'];
-                $size = $_FILES['upfile']['size'];
-                $type = $_FILES['upfile']['type'];
-                $tmp_name = $_FILES['upfile']['tmp_name'];
+            $count = count($_FILES['file']['name']);
 
-                if ($env_dir === $this->context_id) {
-                    $user_dir = new RootDirectory($this->context_id);
-                } else {
-                    $dirEntry = new DirectoryEntry($env_dir);
-                    $user_dir = $dirEntry->getfile();
+            $failed = array();
+            for ($i = 0; $i < $count; $i++) {
+                if ($_FILES['file']['error'][$i] !== 0) {
+                    $failed[] = array($_FILES['file']['name'][$i], 'remote');
+                    continue;
                 }
 
-                while ($user_dir->getEntry($upfile) !== null) {
-                    $upfile = FileHelper::AdjustFilename($upfile);
+                $filename = $_FILES['file']['name'][$i];
+                $filesize = $_FILES['file']['size'][$i];
+                $mimetype = $_FILES['file']['type'][$i];
+                $tempname = $_FILES['file']['tmp_name'][$i];
+
+                while ($directory->getEntry($filename) !== null) {
+                    $filename = FileHelper::AdjustFilename($filename);
+                }
+                
+                $this_title = $title;
+                if ($count > 1) {
+                    $this_title .= ' ' . sprintf(_('(%u von %u)'), $i + 1, $count);
                 }
 
-                $new_file = $user_dir->create($upfile);
-                $new_file->rename(Request::get('name'));
-                $new_file->setDescription(Request::get('description', ''));
+                $new_file = $directory->create($filename);
+                $new_file->rename($this_title);
+                $new_file->setDescription($description);
                 $handle = $new_file->getFile();
-                $handle->setRestricted(Request::int('restricted'));
-                $handle->setMimeType($type);
-                $handle->size = $size;
+                $handle->setRestricted($restricted);
+                $handle->setMimeType($mimetype);
+                $handle->size = $filesize;
 
                 // TODO: Check if storage path is writable
-                if (!move_uploaded_file($_FILES['upfile']['tmp_name'], $handle->getStoragePath())) {
-                    PageLayout::postMessage(MessageBox::error(_('Upload-Fehler')));
+                if (!move_uploaded_file($tempname, $handle->getStoragePath())) {
+                    $failed[] = array($filename, 'local');
                     $handle->delete();
                 } else {
                     $handle->update();
                 }
             }
-            $this->redirect('document/files/index/' . $env_dir);
+            
+            if (!empty($failed)) {
+                $remote = array_map('reset', array_filter($failed, function ($item) {
+                    return $item[1] === 'remote';
+                }));
+                if (!empty($remote)) {
+                    $message = MessageBox::error(_('Folgende Dateien wurden fehlerhaft hochgeladen:'),
+                                                 $remote);
+                    PageLayout::postMessage($message);
+                }
+                
+                $local = array_map('reset', array_filter($failed, function ($item) {
+                    return $item[1] === 'local';
+                }));
+                if (!empty($local)) {
+                    $message = MessageBox::error(_('Folgende Dateien konnten nicht gespeichert werden:'),
+                                                 $remote);
+                    PageLayout::postMessage($message);
+                }
+            }
+            if ($count - count($failed) > 0) {
+                $message = sprintf(_('%u Dateien wurden erfolgreich hochgeladen.'), $count - count($failed));
+                PageLayout::postMessage(MessageBox::success($message));
+            } 
+
+            $this->redirect('document/files/index/' . $folder_id);
         }
 
-        $this->env_dir = $env_dir;
+        $this->folder_id = $folder_id;
 
         $this->setDialogLayout('icons/48/blue/upload.png');
 

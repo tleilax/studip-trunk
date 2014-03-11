@@ -1,5 +1,5 @@
 <form enctype="multipart/form-data" method="post" class="studip_form"
-      action="<?= $controller->url_for('document/files/upload/' . $env_dir) ?>">
+      action="<?= $controller->url_for('document/files/upload/' . $folder_id) ?>">
 
     <?= CSRFProtection::tokenTag() ?>
 
@@ -7,21 +7,21 @@
         <fieldset>
             <label>
                 <?= _('Datei(en) auswählen') ?>
-                <input name="upfile" id="file" type="file" required>
+                <input name="file[]" type="file" required multiple>
             </label>
         </fieldset>
 
         <fieldset>
             <label>
                 <?= _('Titel') ?>
-                <input type="text" name="name" id="name" placeholder="<?= _('Titel') ?>">
+                <input type="text" name="title" placeholder="<?= _('Titel') ?>">
             </label>
         </fieldset>
 
         <fieldset>
             <label>
                 <?= _('Beschreibung') ?>
-                <textarea name="description" placeholder="<?= _('Beschreibung') ?>"></textarea>
+                <textarea name="description" placeholder="<?= _('Optionale Beschreibung') ?>"></textarea>
             </label>
         </fieldset>
 
