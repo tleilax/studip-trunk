@@ -2941,6 +2941,9 @@ table.contact-header td.empty a {
 .cron-item input[type=number] {
   width: 2em;
 }
+.documents .chdir-up a {
+  display: block;
+}
 .documents .document-icon,
 .documents .empty {
   text-align: center;
@@ -2948,28 +2951,66 @@ table.contact-header td.empty a {
 .documents .options {
   text-align: right;
 }
-.documents .bread-crumbs {
-  list-style: none;
+.documents caption header {
+  margin-left: 40px;
+}
+.documents caption header h2 {
+  border: 0;
+  font-size: inherit;
   margin: 0;
   padding: 0;
-  font-size: 1em;
+}
+.documents caption header p {
+  font-size: 0.7em;
+  font-weight: normal;
+  margin: 0;
+  padding: 0;
+}
+.documents .bread-crumbs {
+  display: inline-block;
+  position: relative;
+  min-height: 1.5em;
+  float: left;
+  width: 40px;
+}
+.documents .bread-crumbs > a,
+.documents .bread-crumbs ul {
+  background-color: #fff;
+  border-radius: 2px;
+  padding: 5px;
+}
+.documents .bread-crumbs.extendable:hover > a,
+.documents .bread-crumbs.extendable:hover > ul {
+  box-shadow: 0 4px 5px #444;
+}
+.documents .bread-crumbs.extendable:hover ul {
+  -ms-box-orient: horizontal;
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -moz-flex;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: column-reverse;
+  flex-direction: column-reverse;
+}
+.documents .bread-crumbs ul {
+  display: none;
+  list-style: none;
+  margin: 0;
+  position: absolute;
 }
 .documents .bread-crumbs li {
-  display: inline-block;
+  line-height: 1.5em;
 }
-.documents .bread-crumbs li:before {
-  background-image: url("../images//icons/16/black/arr_1right.png");
-  background-image: -webkit-image-set(url("../images//icons/16/black/arr_1right.png") 1x, url("../images//icons/32/black/arr_1right.png") 2x);
-  content: ' ';
-  display: inline-block;
-  height: 16px;
-  vertical-align: middle;
-  width: 16px;
+.documents .bread-crumbs li a {
+  background-image: url("../images/icons/24/blue/folder-down.png");
+  background-position: left center;
+  background-repeat: no-repeat;
+  padding-left: 30px;
 }
-.documents .bread-crumbs li:first-child:before {
-  background: none;
-  content: '';
-  width: 0;
+.documents .bread-crumbs li:first-child a {
+  background-image: url("../images/icons/24/blue/folder-empty.png");
 }
 .document-dialog {
   *zoom: 1;

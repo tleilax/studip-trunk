@@ -20,7 +20,6 @@
  * @todo        Extends file extension black list to mime type black list?
  * @todo        Info page for # of downloads
  * @todo        Inline display of media
- * @todo        The breadcrumbs need a little css love
  * @todo        AJAX file upload
  * @todo        Admin/root handling needs to be improved
  * @todo        ZIP extract in local file space?
@@ -84,6 +83,7 @@ class Document_FilesController extends DocumentController
 
         $this->dir_id = $dir_id;
         $this->marked = $this->flash['marked-ids'] ?: array();
+        $this->breadcrumbs = $this->getBreadCrumbs($dir_id);
     }
 
     public function upload_action($folder_id)
@@ -305,6 +305,7 @@ class Document_FilesController extends DocumentController
                 $crumbs[] = array(
                     'id'   => $entry_id,
                     'name' => $entry->getFile()->filename,
+                    'description' => $entry->description,
                 );
                 $entry_id = $this->getParentId($entry_id);
             } catch (Exception $e) {
@@ -314,6 +315,7 @@ class Document_FilesController extends DocumentController
         $crumbs[] = array(
             'id'   => $this->context_id,
             'name' => _('Hauptverzeichnis'),
+            'description' => '',
         );
 
         return array_reverse($crumbs);

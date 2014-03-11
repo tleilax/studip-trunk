@@ -5,15 +5,29 @@
 <form action="<?= $controller->url_for('document/files/bulk/' . $dir_id) ?>" method="post">
 <table class="default documents">
     <caption>
-        <ul class="bread-crumbs">
-        <? foreach ($controller->getBreadCrumbs($dir_id) as $crumb): ?>
-            <li>
-                <a href="<?= $controller->url_for('document/files/index/' . $crumb['id']) ?>">
-                    <?= htmlReady($crumb['name']) ?>
-                </a>
-            </li>
-        <? endforeach; ?>
-        </ul>
+    <? $last_crumb = end($breadcrumbs); ?>
+        <div class="bread-crumbs <? if (count($breadcrumbs) > 1) echo 'extendable'; ?>">
+            <a href="<?= $controller->url_for('document/files/index/' . $last_crumb['id']) ?>">
+                <?= Assets::img('icons/24/blue/folder-down.png') ?>
+            </a>
+        <? if (count($breadcrumbs) > 1): ?>
+            <ul>
+            <? foreach (array_slice($breadcrumbs, 0, -1) as $crumb): ?>
+                <li>
+                    <a href="<?= $controller->url_for('document/files/index/' . $crumb['id']) ?>">
+                        <?= htmlReady($crumb['name']) ?>
+                    </a>
+                </li>
+            <? endforeach; ?>
+            </ul>
+        <? endif; ?>
+        </div>
+        <header class="folder-description">
+            <h2><?= htmlReady($last_crumb['name']) ?></h2>
+        <? if ($last_crumb['description']): ?>
+            <p><?= formatReady($last_crumb['description']) ?></p>
+        <? endif; ?>
+        </header>
     </caption>
     <colgroup>
         <col width="20px">
@@ -37,8 +51,13 @@
     </thead>
     <tbody>
 <? if (!$directory->isRootDirectory()): ?>
-        <tr>
-            <td colspan="2">&nbsp;</td>
+        <tr class="chdir-up">
+            <td>&nbsp;</td>
+            <td class="document-icon">
+                <a href="<?= $controller->url_for('document/files/index/' . $parent_id) ?>">
+                    <?= Assets::img('icons/24/blue/arr_1up.png', tooltip2(_('Eine Ordner-Ebene höher springen'))) ?>
+                </a>
+            </td>
             <td colspan="5">
                 <a href="<?= $controller->url_for('document/files/index/' . $parent_id) ?>">
                     ..
@@ -62,9 +81,9 @@
             <td class="document-icon">
                 <a href="<?= $controller->url_for('document/files/index/' . $file->id) ?>">
                 <? if ($file->getFile()->isEmpty()): ?>
-                    <?= Assets::img('icons/16/blue/folder-empty.png') ?>
+                    <?= Assets::img('icons/24/blue/folder-empty.png') ?>
                 <? else: ?>
-                    <?= Assets::img('icons/16/blue/folder-full.png') ?>
+                    <?= Assets::img('icons/24/blue/folder-full.png') ?>
                 <? endif; ?>
                 </a>
             </td>
@@ -98,7 +117,7 @@
         <? else: ?>
             <td class="document-icon">
                 <a href="<?= $controller->url_for('document/files/download/' . $file->id . '/inline') ?>">
-                    <?= Assets::img('icons/16/blue/'. get_icon_for_mimetype($file->getFile()->getMimeType())) ?>
+                    <?= Assets::img('icons/24/blue/'. get_icon_for_mimetype($file->getFile()->getMimeType())) ?>
                 </a>
             </td>
             <td>
