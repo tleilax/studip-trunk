@@ -23,6 +23,7 @@
  * @todo        Admin/root handling needs to be improved
  * @todo        ZIP extract in local file space?
  * @todo        Test another storage type (DB? FTP?)
+ * @todo        Drag and drop move operation
  */
 
 require_once 'document_controller.php';
