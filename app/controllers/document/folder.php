@@ -67,7 +67,7 @@ class Document_FolderController extends DocumentController
             $directory->getFile()->setFilename($name);
 
             PageLayout::postMessage(MessageBox::success(_('Der Ordner wurde erstellt.')));
-            $this->redirect('document/files/index/' . $directory->id);
+            $this->redirect('document/files/index/' . $parent_id);
         }
     }
     

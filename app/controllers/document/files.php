@@ -14,7 +14,6 @@
  * @since       3.1
  *
  * @todo        Remove user dir creation from this controller, it is storage type specific
- * @todo        Move operations
  * @todo        Respect quotas
  * @todo        Respect file extension black list
  * @todo        Extends file extension black list to mime type black list?
@@ -83,7 +82,7 @@ class Document_FilesController extends DocumentController
 
         $this->dir_id = $dir_id;
         $this->marked = $this->flash['marked-ids'] ?: array();
-        $this->breadcrumbs = $this->getBreadCrumbs($dir_id);
+        $this->breadcrumbs = FileHelper::getBreadCrumbs($dir_id);
     }
 
     public function upload_action($folder_id)
@@ -211,6 +210,50 @@ class Document_FilesController extends DocumentController
             header('X-Title: ' . _('Datei bearbeiten'));
         }
     }
+    
+    public function move_action($file_id, $source_id = null)
+    {
+        if (Request::isPost()) {
+            $folder_id = Request::option('folder_id');
+
+            if ($file_id === 'flashed') {
+                $ids = Request::optionArray('file_id');
+            } else {
+                $ids = array($file_id);
+            }
+
+            foreach ($ids as $id) {
+                $source_id = $source_id ?: $this->getParentId($file_id);
+
+                $entry = new DirectoryEntry($id);
+                $entry->move($folder_id);
+            }
+
+            $message = ngettext('Die Datei wurde erfolgreich verschoben', 'Die Dateien wurden erfolgreich verschoben', count($ids));
+            PageLayout::postMessage(MessageBox::success($message));
+
+            $this->redirect('document/files/index/' . $source_id);
+            return;
+        }
+
+        $this->file_id  = $file_id;
+        $this->dir_tree = FileHelper::getDirectoryTree($this->context_id);
+
+        if ($file_id === 'flashed') {
+            $this->flashed = $this->flash['move-ids'];
+            $this->parent_id = $source_id;
+        } else {
+            $this->parent_id = $this->getParentId($file_id);
+        }
+        $this->active_folders = array_keys(FileHelper::getBreadCrumbs($this->parent_id));
+
+        try {
+            $parent = new DirectoryEntry($this->parent_id);
+            $this->parent_file_id = $parent->getFile()->file_id;
+        } catch (Exception $e) {
+            $this->parent_file_id = $this->context_id;
+        }
+    }
 
     public function download_action($entry_id, $inline = false)
     {
@@ -257,6 +300,9 @@ class Document_FilesController extends DocumentController
         } else if (Request::submitted('download')) {
             $this->flash['download-ids'] = $ids;
             $this->redirect('document/folder/download/flashed');
+        } else if (Request::submitted('move')) {
+            $this->flash['move-ids'] = $ids;
+            $this->redirect('document/files/move/flashed/' . $folder_id);
         } else if (Request::submitted('delete')) {
             if (Request::submitted('yes')) {
                 if ($folder_id === $this->context_id) {
@@ -293,32 +339,6 @@ class Document_FilesController extends DocumentController
             $parent_id = $this->context_id;
         }
         return $parent_id;
-    }
-
-    public function getBreadCrumbs($entry_id)
-    {
-        $crumbs = array();
-
-        do {
-            try {
-                $entry = new DirectoryEntry($entry_id);
-                $crumbs[] = array(
-                    'id'   => $entry_id,
-                    'name' => $entry->getFile()->filename,
-                    'description' => $entry->description,
-                );
-                $entry_id = $this->getParentId($entry_id);
-            } catch (Exception $e) {
-            }
-        } while ($entry_id !== $this->context_id);
-
-        $crumbs[] = array(
-            'id'   => $this->context_id,
-            'name' => _('Hauptverzeichnis'),
-            'description' => '',
-        );
-
-        return array_reverse($crumbs);
     }
 
     private function setupInfobox($current_dir)

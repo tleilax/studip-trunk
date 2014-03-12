@@ -107,7 +107,7 @@
                 <a href="<?= $controller->url_for('document/folder/download/' . $file->id) ?>">
                     <?= Assets::img('icons/16/blue/download.png', tooltip2(_('Ordner herunterladen'))) ?>
                 </a>
-                <a href="<?= $controller->url_for('document/folder/move/' . $file->id) ?>">
+                <a href="<?= $controller->url_for('document/files/move/' . $file->id) ?>" rel="lightbox">
                     <?= Assets::img('icons/16/blue/move_right/folder-empty.png', tooltip2(_('Ordner verschieben'))) ?>
                 </a>
                 <a href="<?= $controller->url_for('document/folder/delete/' . $file->id) ?>">
@@ -145,7 +145,7 @@
                 <a href="<?= $controller->url_for('document/files/download/' . $file->id) ?>">
                     <?= Assets::img('icons/16/blue/download.png', tooltip2(_('Datei herunterladen'))) ?>
                 </a>
-                <a href="<?= $controller->url_for('document/files/move/' . $file->id) ?>">
+                <a href="<?= $controller->url_for('document/files/move/' . $file->id) ?>" rel="lightbox">
                     <?= Assets::img('icons/16/blue/move_right/file.png', tooltip2(_('Datei verschieben'))) ?>
                 </a>
                 <a href="<?= $controller->url_for('document/files/delete/' . $file->id) ?>">
@@ -162,7 +162,7 @@
             <td colspan="7" class="printhead">
                 <?= _('Alle markierten') ?>
                 <?= Studip\Button::create(_('Herunterladen'), 'download') ?>
-                <?= Studip\Button::create(_('Verschieben'), 'move') ?>
+                <?= Studip\Button::create(_('Verschieben'), 'move', array('rel' => 'lightbox')) ?>
                 <?= Studip\Button::create(_('Löschen'), 'delete') ?>
             </td>
         </tr>

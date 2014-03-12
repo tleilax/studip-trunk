@@ -24,4 +24,51 @@ class FileHelper
 
         return $filename;
     }
+    
+    public function getBreadCrumbs($entry_id)
+    {
+        $crumbs = array();
+
+        do {
+            try {
+                $entry = new DirectoryEntry($entry_id);
+                $crumbs[$entry->getFile()->file_id] = array(
+                    'id'   => $entry_id,
+                    'name' => $entry->getFile()->filename,
+                    'description' => $entry->description,
+                );
+                $entry_id = $this->getParentId($entry_id);
+            } catch (Exception $e) {
+            }
+        } while ($entry_id !== $this->context_id);
+
+        $crumbs[$this->context_id] = array(
+            'id'   => $this->context_id,
+            'name' => _('Hauptverzeichnis'),
+            'description' => '',
+        );
+
+        return array_reverse($crumbs);
+    }
+
+    public static function GetDirectoryTree($folder_id)
+    {
+        // TODO Top level?
+        $result = array();
+        
+        $folder = new StudipDirectory($folder_id);
+        
+        foreach ($folder->listFiles() as $entry) {
+            $file = $entry->getFile();
+            if ($file instanceof StudipDirectory) {
+                $result[$file->file_id] = array(
+                    'filename'    => $file->filename,
+                    'description' => $entry->description,
+                    'children'    => self::getDirectoryTree($file->file_id),
+                );
+            }
+        }
+
+        return $result;
+    }
 }
