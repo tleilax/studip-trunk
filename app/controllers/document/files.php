@@ -24,6 +24,7 @@
  * @todo        ZIP extract in local file space?
  * @todo        Test another storage type (DB? FTP?)
  * @todo        Drag and drop move operation
+ * @todo        ?? Trash functionality (store deleted files in trash for X days)
  */
 
 require_once 'document_controller.php';
