@@ -147,4 +147,17 @@ class DiskFileStorage implements FileStorage
     {
         return fopen($this->file_path, $mode);
     }
+    
+    public static function getQuotaUsage($user_id)
+    {
+        $db = DBManager::get();
+        $stmt = $db->prepare('SELECT SUM(size) FROM files WHERE user_id = :user_id');
+        $stmt->execute(array('user_id' => $user_id));
+        $result = $stmt->fetchColumn();
+        if($result == 'NULL'){
+            return  0;
+        }else{
+            return $result;
+        }
+    }
 }

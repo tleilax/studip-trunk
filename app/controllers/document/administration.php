@@ -57,7 +57,7 @@ class Document_AdministrationController extends AuthenticatedController {
         $data=$viewData['configAll'];
         for($i=0;$i<count($data);$i++){
             $value = $data[$i];
-            $value['upload']=$this->sizeInUnit($value['upload'], $value['upload_unit']);
+            $value['upload']=$this->sizeInUnit($value['upload_quota'], $value['upload_unit']);
             $value['quota']=$this->sizeInUnit($value['quota'], $value['quota_unit']);
             $data[$i]= $value;
         }        
@@ -65,7 +65,7 @@ class Document_AdministrationController extends AuthenticatedController {
         //Load old config-data for usergroup by ID
         if($group!= NULL){
             $data = DocUsergroupConfig::getGroupConfig($group);
-            $data['upload'] = $this->sizeInUnit($data['upload'], $data['upload_unit']);
+            $data['upload'] = $this->sizeInUnit($data['upload_quota'], $data['upload_unit']);
             $data['quota'] = $this->sizeInUnit($data['quota'], $data['quota_unit']);         
             $viewData['configEdit'] = $data;
         }
@@ -174,7 +174,7 @@ class Document_AdministrationController extends AuthenticatedController {
                 $foo['deleteIcon'] = 0;
                 $userSetting[] = $foo;
             } else {
-                $foo['upload'] = $this->sizeInUnit($config['upload'], $config['upload_unit']);
+                $foo['upload'] = $this->sizeInUnit($config['upload_quota'], $config['upload_unit']);
                 $foo['upload_unit'] = $config['upload_unit'];
                 $foo['quota'] = $this->sizeInUnit($config['quota'], $config['quota_unit']);
                 $foo['quota_unit'] = $config['quota_unit'];
@@ -204,7 +204,7 @@ class Document_AdministrationController extends AuthenticatedController {
         if(empty($userConfig)){
             $viewData['userConfig']=array();
         }else{
-            $userConfig['upload']=$this->sizeInUnit($userConfig['upload'], $userConfig['upload_unit']);
+            $userConfig['upload']=$this->sizeInUnit($userConfig['upload_quota'], $userConfig['upload_unit']);
             $userConfig['quota']= $this->sizeInUnit($userConfig['quota'], $userConfig['quota_unit']);
             $viewData['userConfig'] = $userConfig;
         }

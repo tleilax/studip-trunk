@@ -15,7 +15,7 @@ class DocUsergroupConfig extends SimpleORMap
         if (!empty($group)) {
             $data['id'] = $group['id'];
             $data['name'] = $group['usergroup'];
-            $data['upload'] = $group['upload_quota'];
+            $data['upload_quota'] = $group['upload_quota'];
             $data['upload_unit'] = $group['upload_unit'];
             $data['quota'] = $group['quota'];
             $data['quota_unit'] = $group['quota_unit'];
@@ -39,7 +39,7 @@ class DocUsergroupConfig extends SimpleORMap
         foreach ($foo as $group) {
             $bar['id'] = $group['id'];
             $bar['name'] = $group['usergroup'];
-            $bar['upload'] = $group['upload_quota'];
+            $bar['upload_quota'] = $group['upload_quota'];
             $bar['upload_unit'] = $group['upload_unit'];
             $bar['quota'] = $group['quota'];
             $bar['quota_unit'] = $group['quota_unit'];
