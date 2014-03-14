@@ -22,6 +22,10 @@ class DocumentController extends AuthenticatedController
         } else {
             $this->set_layout($GLOBALS['template_factory']->open('layouts/base'));
         }
+        $this->userConfig = DocUsergroupConfig::getUserConfig($GLOBALS['user']->id);
+        if($this->userConfig['area_close'] == 1){
+            $this->redirect('document/closed/index');
+        }
     }
 
     public function getParentId($entry_id)

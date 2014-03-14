@@ -14,8 +14,8 @@
  * @since       3.1
  *
  * @todo        Remove user dir creation from this controller, it is storage type specific
- * @todo        Respect quotas
- * @todo        Respect file extension black list
+ * @todo        Respect quotas - done in Rev. 29817
+ * @todo        Respect file extension black list - done in Rev. 29817
  * @todo        Extends file extension black list to mime type black list?
  * @todo        Info page for # of downloads
  * @todo        Inline display of media
@@ -35,7 +35,6 @@ class Document_FilesController extends DocumentController
     public function before_filter(&$action, &$args)
     {
         parent::before_filter($action, $args);
-
         //Setup the user's sub-directory in $USER_DOC_PATH
         $userdir = $GLOBALS['USER_DOC_PATH'] . '/' . $this->context_id . '/';
 
@@ -60,9 +59,7 @@ class Document_FilesController extends DocumentController
     public function index_action($dir_id = null)
     {
         $dir_id = $dir_id ?: $this->context_id;
-
         $this->setupInfobox($dir_id);
-
         try {
             $directory = new DirectoryEntry($dir_id);
             $this->directory = $directory->getFile();
@@ -124,15 +121,17 @@ class Document_FilesController extends DocumentController
                         }
                     }
                 }
-                if($filesize > ( (int)$this->userConfig['quota'] - 
-                                 DiskFileStorage::getQuotaUsage($GLOBALS['user']->id))
-                    ){
+                
+                $restQuota = ( (int)$this->userConfig['quota'] - 
+                        DiskFileStorage::getQuotaUsage($GLOBALS['user']->id));
+                
+                if ($filesize > $restQuota){
                     $failed[] = array($_FILES['file']['name'][$i], 'quota');
-                }
-                else if($filesize > (int)$this->userConfig['upload_quota']){
+                
+                } else if ($filesize > (int)$this->userConfig['upload_quota']){
                        $failed[] = array($_FILES['file']['name'][$i], 'upload_quota');
-                }
-                else{
+                
+                } else {
                      while ($directory->getEntry($filename) !== null) {
                         $filename = FileHelper::AdjustFilename($filename);
                     }
@@ -388,10 +387,17 @@ class Document_FilesController extends DocumentController
     private function setupInfobox($current_dir)
     {
         $this->setInfoboxImage('infobox/folders.jpg');
-
-        $upload_link = sprintf('<a href="%s" rel="lightbox">%s</a>',
+        if($this->userConfig['forbidden'] == 0){
+            $upload_link = sprintf('<a href="%s" rel="lightbox">%s</a>',
                                $this->url_for('document/files/upload/' . $current_dir),
                                _('Datei hochladen'));
+        } else {
+            $upload_link = sprintf('<a class="tooltip">' .
+                                   '%s<span>%s</span></a>',
+                                   '<strike>'._('Datei hochladen').'</strike>',
+                                   _('Ihre Upload-Funktion wurde geperrt. Wenden Sie sich an den Support: '));
+        }
+        
         $this->addToInfobox(_('Aktionen:'),
                             $upload_link,
                             'icons/16/black/upload.png');
@@ -417,7 +423,7 @@ class Document_FilesController extends DocumentController
         
         $this->addToInfobox(_('Speicherplatz:'), 
                 ((int)((DiskFileStorage::getQuotaUsage($GLOBALS['user']->id)/
-                        (int)$this->userConfig['quota'])*100)) . '% belegt',
+                        (int)$this->userConfig['quota'])*100)) . sprintf('%s',  '% belegt'),
                 'icons/16/black/stat.png');
     }
 }

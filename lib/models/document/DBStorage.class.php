@@ -17,7 +17,7 @@
 
 
 //require_once 'lib/classes/document/StudipStorage.php';
-require_once 'FileStorage.class.php';
+//require_once 'FileStorage.class.php';
 
 
 class DBStorage

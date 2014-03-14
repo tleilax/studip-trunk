@@ -153,11 +153,7 @@ class DiskFileStorage implements FileStorage
         $db = DBManager::get();
         $stmt = $db->prepare('SELECT SUM(size) FROM files WHERE user_id = :user_id');
         $stmt->execute(array('user_id' => $user_id));
-        $result = $stmt->fetchColumn();
-        if($result == 'NULL'){
-            return  0;
-        }else{
-            return $result;
-        }
+        $result = 0 + $stmt->fetchColumn();
+        return $result;
     }
 }
