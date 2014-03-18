@@ -648,14 +648,14 @@ table.default caption {
 }
 table.default thead th {
   background-color: #e7ebf1;
-  border-bottom: 1px solid rgba(137, 154, 185, 0.2);
+  border-bottom: 1px solid rgba(137, 154, 185, 0.19999999999999996);
   border-top: 1px solid #1e3e70;
   font-size: 1.0em;
 }
 table.default tbody th {
   background-color: #e7ebf1;
   border-top: 1px solid #1e3e70;
-  border-bottom: 1px solid rgba(137, 154, 185, 0.2);
+  border-bottom: 1px solid rgba(137, 154, 185, 0.19999999999999996);
   text-align: left;
 }
 table.default tbody td {
@@ -1721,7 +1721,7 @@ table.infobox td.infobox-img {
 }
 td.infoboxrahmen {
   background-color: #dee2e8;
-  border-bottom: 1px solid rgba(137, 154, 185, 0.2);
+  border-bottom: 1px solid rgba(137, 154, 185, 0.19999999999999996);
 }
 /* --- content_box ------------------------------------------------------- */
 .content_box {
@@ -1731,7 +1731,7 @@ td.infoboxrahmen {
 }
 .content_box > .head {
   background-color: #f4f7f9;
-  border-bottom: 1px solid rgba(137, 154, 185, 0.2);
+  border-bottom: 1px solid rgba(137, 154, 185, 0.19999999999999996);
   padding: 4px;
 }
 .content_box .head .actions {
@@ -3134,6 +3134,14 @@ table.contact-header td.empty a {
 .file-tree input[type=radio]:checked + label:before {
   background-image: url("../images//icons/16/blue/checkbox-checked.png");
   background-image: -webkit-image-set(url("../images//icons/16/blue/checkbox-checked.png") 1x, url("../images//icons/32/blue/checkbox-checked.png") 2x);
+  opacity: 1;
+}
+.file-tree input[type=radio][disabled] + label {
+  color: #888;
+}
+.file-tree input[type=radio][disabled] + label:before {
+  background-image: url("../images//icons/16/grey/decline.png");
+  background-image: -webkit-image-set(url("../images//icons/16/grey/decline.png") 1x, url("../images//icons/32/grey/decline.png") 2x);
   opacity: 1;
 }
 /* classes for the evaluation modules in Stud.IP ---------------------------- */

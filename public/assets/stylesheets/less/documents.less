@@ -151,7 +151,7 @@
     }
     input[type=radio] {
         display: none;
-        
+
         + label {
             cursor: pointer;
             &:before {
@@ -161,11 +161,19 @@
                 margin-right: 8px;
             }
         }
-        
+
         &:checked + label {
             font-weight: bold;
             &:before {
                 .retina-background-icon('blue/checkbox-checked.png');
+                opacity: 1;
+            }
+        }
+
+        &[disabled] + label {
+            color: #888;
+            &:before {
+                .retina-background-icon('grey/decline.png');
                 opacity: 1;
             }
         }

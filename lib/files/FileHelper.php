@@ -62,6 +62,7 @@ class FileHelper
             $file = $entry->getFile();
             if ($file instanceof StudipDirectory) {
                 $result[$file->file_id] = array(
+                    'ref_id'      => $entry->id,
                     'filename'    => $file->filename,
                     'description' => $entry->description,
                     'children'    => self::getDirectoryTree($file->file_id),

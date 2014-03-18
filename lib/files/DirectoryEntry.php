@@ -157,8 +157,8 @@ class DirectoryEntry // extends SimpleORMap
      * Set the new parent_id.
      *
      * @param String $parent_id Directory id of the new parent
-     *
-    */
+     * @todo  Prevent impossible situations (move a folder inside itself)
+     */
     public function move($parent_id)
     {
         $db = DBManager::get();
