@@ -1,5 +1,6 @@
 <?use Studip\Button, Studip\LinkButton; ?>
-<form action="<?= $controller->url_for('document/administration/individual') ?>" method="post">
+<form action="<?= $controller->url_for('document/administration/individual') ?>" method="post"
+      class="studip_form">
 <table class="default">
     
 
@@ -50,20 +51,8 @@
     
 </table>    
 
-<table class="default zebra-hover cronjobs">
-    <colgroup><!--
-        <col width="20px">
-        <col width="40px">
-        <col width="100px">
-        <col width="30px">
-        <col width="30px">
-        <col width="30px">
-        <col width="15px">
-        <col width="5px">
-        <col width="5px">
-        <col width="30px">
-        -->
-        
+<table class="default">
+    <colgroup><col width="auto">
         <col width="auto">
         <col width="auto">
         <col width="auto">
@@ -73,8 +62,6 @@
         <col width="auto">
         <col width="auto">
         <col width="auto">
-        <col width="auto">
-        
     </colgroup>
     <thead>
         <tr>
@@ -120,13 +107,13 @@
                            >
                     </td>
                     <td>
-                        <a href="<?=$controller->url_for('document/administration/individualEdit/'.$u['user_id'])?>
-                           "title="Erstellen oder Bearbeiten der individuellen Einstellungen">
-                           <?=Assets::img('icons/16/blue/edit.png')?></a>
+                         <a rel="lightbox" href="<?= $controller->url_for('document/administration/edit/0/'.$u['user_id'])?>"
+                            title="Einstellung anlegen">
+                        <?= Assets::img('icons/16/blue/edit')?></a>
                         <?if($u['deleteIcon'] == 1) :?>
                         <br>
-                            <a href="<?=$controller->url_for('document/administration/delete/'.$u['user_id'].'/userConfig')?>
-                                "title="Einstellungen löschen"><?=Assets::img('icons/16/blue/trash.png')?></a>
+                            <a href="<?=$controller->url_for('document/administration/delete/'.$u['config_id'])?>"
+                                title="Einstellungen löschen"><?=Assets::img('icons/16/blue/trash.png')?></a>
                         <?  endif;?>
                         
                     </td>
@@ -136,4 +123,4 @@
     <tfoot>        
     </tfoot>
 </table>
-    </form>
+</form>

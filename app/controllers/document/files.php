@@ -423,7 +423,9 @@ class Document_FilesController extends DocumentController
         
         $this->addToInfobox(_('Speicherplatz:'), 
                 ((int)((DiskFileStorage::getQuotaUsage($GLOBALS['user']->id)/
-                        (int)$this->userConfig['quota'])*100)) . sprintf('%s',  '% belegt'),
+                        (int)$this->userConfig['quota'])*100)) . sprintf('%s',  '% belegt') . 
+                        ' (' . relsize(DiskFileStorage::getQuotaUsage($GLOBALS['user']->id), false) . 
+                        '/' . relsize($this->userConfig['quota'], false) . ')',
                 'icons/16/black/stat.png');
     }
 }

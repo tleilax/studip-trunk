@@ -1,136 +1,111 @@
-<?use Studip\Button, Studip\LinkButton; ?>
-<?=$this->test?>
-<form action="<?= $controller->url_for('document/administration/store') ?>" method="post">
-<table class="default">
-    <colgroup>
-        <col width="15%">
-        <col width="30%">
-        <col width="30%">
-        <col width="25%">
-    </colgroup>
+<?php
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+?>
+<? use Studip\Button, Studip\LinkButton; ?>
+<form action="<?= $controller->url_for('document/administration/filter') ?>"
+      method="post" class="studip_form">
+    <table class="default">
     <thead>
-        <tr>
-            <th colspan="4"><?= _('Standardeinstellungen anlegen/bearbeiten') ?></th>            
-        </tr>
+    <tr>
+        <th><?=_('Vorhandene Konfigurationen')?></th>
+    </tr>
     </thead>
     <tbody>
-        <tr>
-            <td>
-                <label><?= _("Nutzergruppe")?></label><br>
-                <select id="usergroup "name="usergroup">
-                    <? foreach(array("","default", "user", "autor", "tutor", "dozent", "admin", "root") as $one) : ?>
-                <option value="<?= $one ?>" <?if(count($this->viewData['configEdit'])>0 && $one == $this->viewData['configEdit']['name']){echo 'selected';}?>><?= $one ?></option>
-            <? endforeach ?>
-            </select>
+    <tr>
+        <td>
+            <label for="showFilter"><?=_('Art der Konfiguration:')?>
+                <select name="showFilter" id="showFilter">
+                    <option value="all" <?if(isset($_SESSION['document_config_filter']) &&
+                            $_SESSION['document_config_filter'] == 'all') : ?>selected<?endif;?>>
+                            <?=_('Alle')?></option>
+                    <option value="group" <?if(isset($_SESSION['document_config_filter']) &&
+                            $_SESSION['document_config_filter'] == 'group') : ?>selected<?endif;?>>
+                            <?=_('Gruppe')?></option>
+                    <option value="individual" <?if(isset($_SESSION['document_config_filter']) &&
+                            $_SESSION['document_config_filter'] == 'individual') : ?>selected<?endif;?>>
+                            <?=_('Individuell')?></option>
                 </select>
-            </td>
-            <td>
-                <label><?=_('Max. Uploadgröße')?></label><br>
-                <input id="upload" name="upload" value="<? if(count($this->viewData['configEdit'])>0 ){echo $this->viewData['configEdit']['upload'];}else{echo '0';}?>">
-                <select id="unitUpload" name="unitUpload" >
-                     <? foreach(array( 'kB','MB','GB','TB') as $unit) : ?>
-                        <option value="<?= $unit ?>"<?if($unit=='MB' || (count($this->viewData['configEdit'])>0 && $unit==$this->viewData['configEdit']['upload_unit'])){echo 'selected';}?>><?= $unit ?></option>
-                    <? endforeach ?>
-                </select>
-            </td>
-            <td>
-                <label><?=_('Nutzerquota')?></label><br>
-                <input id="quota" name="quota" value="<? if(count($this->viewData['configEdit'])>0 ){echo $this->viewData['configEdit']['quota'];}else{echo '0';}?>">
-                <select id="unitQuota" name="unitQuota">
-                    <? foreach(array( 'kB','MB','GB','TB') as $unitQuota) : ?>
-                        <option value="<?= $unitQuota ?>"<?if($unitQuota=='MB' || (count($this->viewData['configEdit'])>0 && $unit==$this->viewData['configEdit']['quota_unit'])){echo 'selected';}?>><?= $unitQuota ?></option>
-                    <? endforeach ?>
-                </select>
-            </td>
-            <td>
-                <label><?=_('Upload untersagen')?></label><br>
-                <input type="checkbox" id="forbidden" name="forbidden" <?if(count($this->viewData['configEdit'])>0 && $this->viewData['configEdit']['forbidden']==1){echo 'checked';}?>>
-            </td>
-        </tr>
-        <tr>
-            <td colspan="4">
-                <label><?=_('Dateitypen ausschließen')?></label>
-                <select id="datetype" multiple="multiple" name="datetype[]" style="height: 25%; width: 60%">
-                    <? foreach($this->viewData['types'] as $types) : ?>
-                            <?foreach($this->viewData['configEdit']['types'] as $forbiddenTypes)
-                                if($forbiddenTypes == $types){
-                                    $setAs = 'selected';
-                                }
-                            ?>                  
-                    
-                        <option value="<?=$types['id'] ?>"<?=$setAs?>><?= $types['type'] ?></option>
-                        <?$setAs = ''?>
-                    <? endforeach ?>
-                </select>
-        </tr>
-    </tbody>
+            </label>
+        </td>
+    </tr>
+    <tbody>
     <tfoot>
         <tr>
             <td>
-<?= Button::createAccept(_('Übernehmen'),'strore') ?>
-            </td>    
+                <?= Button::create(_('Filtern'),'filter') ?>
+            </td>
         </tr>
-    </tfoot>
-</table>    
-
-<table class="default zebra-hover cronjobs">
+    </tfoot>    
+    </table>
+</form>
+<!--show configurations-->
+<table class="default">
     <colgroup>
-        <col width="15%">
-        <col width="17%">
-        <col width="17%">
-        <col width="30%">
+        <col width="5%">
+        <col width="7%">
+        <col width="7%">
         <col width="10%">
+        <col width="10%">
+        <col width="5%">
         <col width="5%">
         <col width="5%">
     </colgroup>
     <thead>
         <tr>
-            <th><?= _('Nutzergruppe') ?></th>
+            <th><?= _('Konfiguration für:') ?></th>
             <th><?= _('Max. Uploadgröße') ?></th>
             <th><?= _('Nutzerquota') ?></th>
             <th><?= _('Untersagte Dateitypen') ?></th>
-            <th><?= _('Upload untersagt') ?></th>
-            <th colspan="2"><?= _('Aktion') ?></th>
+            <th><?= _('gesperrt')?></th>
+            <th><?= _('Upload deaktiviert') ?></th>
+            <th><?= _('Aktion') ?></th>
         </tr>
     </thead>
     <tbody>
-        <?
-        foreach($this->viewData['configAll'] as $conf):?>
+        <?foreach($viewData['configs'] as $config) :?>
             <tr>
-                    <td><?=$conf['name']?></td>
-                    <td><?=$conf['upload']?> <?=$conf['upload_unit']?></td>
-                    <td><?=$conf['quota']?> <?=$conf['quota_unit']?></td>
-                    <td>
-                        <?foreach($conf['types'] as $type):?>
-                            <?=$type['type'].' '?>
+                <td><?= $config['name']?></td>
+                <td><?= relsize($config['upload_quota'], false)?></td>
+                <td><?= relsize($config['quota'], false)?></td>
+                <td>
+                    <? if(!empty($config['types'])) : ?>
+                        <? foreach($config['types'] as $typ) : ?>
+                            <?= htmlReady($typ['type']) ?>
                         <? endforeach;?>
-                        <?if($conf['forbidden']=='1'):?>
-                            </td><td> <input type="checkbox" name="box" checked disabled></td>
-                        <?else :?>
-                            </td><td> <input type="checkbox" name="box" disabled></td>
-                        <?  endif;?>
-            <?if($conf['name']!='default'):?>
-                <td><a href="<?=$controller->url_for('document/administration/delete/'.$conf['name'].'/groupConfig')?>"><?=Assets::img('icons/16/blue/trash.png')?></a></td>
-                <td><a href="<?=$controller->url_for('document/administration/index/'.$conf['name'])?>"><?=Assets::img('icons/16/blue/edit.png')?></a></td>
-                </tr>
-            <?else : ?>
-                <td></td>
-                <td><a href="<?=$controller->url_for('document/administration/index/'.$conf['name'])?>"><?=Assets::img('icons/16/blue/edit.png')?></a></td>
-                </tr>
-            <?  endif;?>            
+                    <? endif;?>
+                </td>
+                <td>
+                    <? if($config['closed'] == 1) : ?>
+                        <a href="<?= $controller->url_for('document/administration/activateDocumentArea', $config['id']) ?>" <!--data-behaviour="ajax-toggle"--> 
+                        <?= Assets::img('icons/16/blue/checkbox-checked', tooltip2(_('Dateibereich öffnen'))) ?></a>
+                    <? else : ?>
+                    <a rel="lightbox" href="<?= $controller->url_for('document/administration/deactivateDocumentArea', $config['id']) ?>" <!--data-behaviour="ajax-toggle"-->
+                        <?= Assets::img('icons/16/blue/checkbox-unchecked', tooltip2(_('Dateibereich sperren'))) ?></a>
+                    <? endif; ?>
+                </td>
+                <td>
+                    <?if($config['forbidden'] == 1) : ?>
+                        <a href="<?= $controller->url_for('document/administration/activateUpload', $config['id']) ?>" <!--data-behaviour="ajax-toggle"-->
+                        <?= Assets::img('icons/16/blue/checkbox-checked', tooltip2(_('Upload aktivieren'))) ?></a>
+                    <?else : ?>
+                            <a href="<?= $controller->url_for('document/administration/deactivateUpload', $config['id']) ?>"<!--data-behaviour="ajax-toggle"-->
+                        <?= Assets::img('icons/16/blue/checkbox-unchecked', tooltip2(_('Upload deaktivieren'))) ?></a>
+                    <?endif;?>
+                
+                </td>
+                <td>
+                    <a rel="lightbox" href="<?= $controller->url_for('document/administration/edit/'.$config['id'])?>">
+                        <?= Assets::img('icons/16/blue/edit')?></a>
+                    <?if($config['name'] != 'default') :?>
+                        <a href="<?= $controller->url_for('document/administration/delete/'.$config['id'])?>">
+                        <?= Assets::img('icons/16/blue/trash')?></a>
+                    <?endif;?>
+                </td>
+            </tr>
         <?endforeach;?>
     </tbody>
-    <tfoot>        
-    </tfoot>
 </table>
-</form>
-<!--Java Script fuer die Multiselectbox-->
-<script type="text/javascript">
-
-    $(function(){
-        // or disable some features
-        $("#datetype").multiselect({sortable: false, searchable: true});
-    });
-</script>
-<!--Java Script fuer die Multiselectbox ENDE-->
-
+    
