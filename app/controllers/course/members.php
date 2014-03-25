@@ -219,7 +219,7 @@ class Course_MembersController extends AuthenticatedController
                         ->setLinkText(sprintf(_('Neue/n %s eintragen'), $this->status_groups['dozent']))
                         ->setDefaultSelectedUser($filtered_members['dozent']->pluck('user_id'))
                         ->setLinkIconPath("")
-                        ->setTitle("AutorIn hinzufügen")
+                        ->setTitle(sprintf(_('Neue/n %s eintragen'), $this->status_groups['dozent']))
                         ->setExecuteURL("course/members/execute_multipersonsearch_dozent")
                         ->setSearchObject($searchtype)
                         ->render();
@@ -249,7 +249,7 @@ class Course_MembersController extends AuthenticatedController
                         ->setLinkText(sprintf(_('Neue/n %s eintragen'), $this->status_groups['tutor']))
                         ->setDefaultSelectedUser($filtered_members['tutor']->pluck('user_id'))
                         ->setLinkIconPath("")
-                        ->setTitle("AutorIn hinzufügen")
+                        ->setTitle(sprintf(_('Neue/n %s eintragen'), $this->status_groups['tutor']))
                         ->setExecuteURL("course/members/execute_multipersonsearch_tutor")
                         ->setSearchObject($searchType)
                         ->render();
@@ -274,7 +274,7 @@ class Course_MembersController extends AuthenticatedController
                     ->setLinkText(sprintf(_('Neue/n %s eintragen'), $this->status_groups['autor']))
                     ->setDefaultSelectedUser($filtered_members['autor']->pluck('user_id'))
                     ->setLinkIconPath("")
-                    ->setTitle("AutorIn hinzufügen")
+                    ->setTitle(sprintf(_('Neue/n %s eintragen'), $this->status_groups['autor']))
                     ->setExecuteURL("course/members/execute_multipersonsearch_autor")
                     ->setSearchObject($searchType)
                     ->render();
