@@ -13,11 +13,11 @@ STUDIP.MultiPersonSearch = {
         
         $('#' + name + '_selectbox').multiSelect({
             selectableHeader: "<div>Suchergebnisse</div>",
-            selectionHeader: "<div>Sie haben <span id='" + this.name + "_count'>0</span> Personen ausgewählt</div>",
+            selectionHeader: "<div>Sie haben <span id='" + this.name + "_count'>0</span> Personen ausgewählt.</div>",
             selectableFooter: '<a href="javascript:STUDIP.MultiPersonSearch.selectAll();">Alle auswählen</a>',
             selectionFooter: '<a href="javascript:STUDIP.MultiPersonSearch.unselectAll();">Alle entfernen</a>'
         });
-        STUDIP.MultiPersonSearch.restoreDefaults();
+        //STUDIP.MultiPersonSearch.restoreDefaults();
         
         $("#" + this.name).on("keyup keypress", function(e) {
             var code = e.keyCode || e.which; 
@@ -44,7 +44,7 @@ STUDIP.MultiPersonSearch = {
         
         var count = 0;
         $('#' + this.name + '_quickfilter_' + title + ' option').each(function() {
-           count += STUDIP.MultiPersonSearch.append($(this).val(), $(this).text(), false);
+           count += STUDIP.MultiPersonSearch.append($(this).val(), $(this).text(), STUDIP.MultiPersonSearch.isAlreadyMember($(this).val()));
         });
         $('#' + this.name + '_selectbox').multiSelect('refresh');
         
@@ -54,6 +54,14 @@ STUDIP.MultiPersonSearch = {
             $("#" + this.name + "_quickfilter_message_box").hide();
         }
         $("#" + this.name + "_search_message_box").hide();
+    },
+    
+    isAlreadyMember: function(user_id) {
+        if ($('#' + this.name + '_selectbox_default option[value="' + user_id + '"]').length > 0) {
+            return true;
+        } else {
+            return false;
+        }
     },
     
     search: function () {
@@ -102,7 +110,7 @@ STUDIP.MultiPersonSearch = {
         if ($('#' + this.name + '_selectbox option[value=' + value + ']').length == 0) {
             var option;
             if (selected) {
-                option = $('<option value="' + value + '" selected>' + text + '</option>');
+                option = $('<option value="' + value + '" disabled>' + text + '</option>');
             } else {
                 option = $('<option value="' + value + '">' + text + '</option>');
             }

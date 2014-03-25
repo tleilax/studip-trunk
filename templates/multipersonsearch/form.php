@@ -3,10 +3,9 @@
     <input id="<?= $name . '_searchinput'; ?>" type="text" placeholder="<?= _("Suchen"); ?>" value="" name="<?= $name . '_searchinput'; ?>" style="width: 210px;" aria-label="<?= _("Suchen"); ?>"></input>
     <img title="Suche starten" src="<?= Assets::image_path("icons/16/blue/search.png"); ?>" onclick="STUDIP.MultiPersonSearch.search()"><br>
     <strong id="<?= $name . '_search_message_box'; ?>" style="display: none;"><?= _("Es wurden keine neuen Ergebnisse gefunden."); ?><br></strong>
-    
     <? foreach($quickfilter as $title => $users) : ?>
-        <a href="javascript:STUDIP.MultiPersonSearch.loadQuickfilter('<?= $title; ?>');"><?= $title; ?> (<?= count($users); ?>)</a> 
-        <select multiple="multiple" id="<?= $name . '_quickfilter_' . $title; ?>" style="display: none;">
+        <a href="javascript:STUDIP.MultiPersonSearch.loadQuickfilter('<?= str_replace(" ", "", $title); ?>');"><?= $title; ?> (<?= count($users); ?>)</a> 
+        <select multiple="multiple" id="<?= $name . '_quickfilter_' . str_replace(" ", "", $title); ?>" style="display: none;">
         <? foreach($users as $user) : ?>
             <option value="<?= $user->id ?>"><?= Avatar::getAvatar($user->id)->getURL(Avatar::SMALL); ?> -- <?= htmlReady($user->getFullName('full_rev')) ?> -- <?= htmlReady($user->perms) ?> (<?= htmlReady($user->username)?>)</option>
         <? endforeach; ?>

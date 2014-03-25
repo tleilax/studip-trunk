@@ -214,6 +214,13 @@ class Course_MembersController extends AuthenticatedController
                         'institute' => $sem_institutes)
                     );
                     
+                    // quickfilter: dozents of institut
+                    $sql = "SELECT user_id FROM user_inst WHERE Institut_id = ? AND inst_perms = 'dozent'";
+                    $db = DBManager::get();
+                    $statement = $db->prepare($sql, array(PDO::FETCH_NUM));
+                    $statement->execute(array(Seminar::getInstance($this->course_id)->getInstitutId()));
+                    $membersOfInstitute = $statement->fetchAll(PDO::FETCH_COLUMN, 0);
+                    
                     // add "add dozent" to infobox
                     $mp = MultiPersonSearch::get("add_dozent")
                         ->setLinkText(sprintf(_('Neue/n %s eintragen'), $this->status_groups['dozent']))
@@ -222,6 +229,7 @@ class Course_MembersController extends AuthenticatedController
                         ->setTitle(sprintf(_('Neue/n %s eintragen'), $this->status_groups['dozent']))
                         ->setExecuteURL("course/members/execute_multipersonsearch_dozent")
                         ->setSearchObject($searchtype)
+                        ->addQuickfilter(sprintf(_('%s der Einrichtung'), $this->status_groups['dozent']), $membersOfInstitute)
                         ->render();
                     $this->addToInfobox(_('Aktionen'), $mp, 'icons/16/black/add/community.png');
                 }
@@ -244,6 +252,13 @@ class Course_MembersController extends AuthenticatedController
                         'institute' => $sem_institutes)
                     );
                     
+                    // quickfilter: tutors of institut
+                    $sql = "SELECT user_id FROM user_inst WHERE Institut_id = ? AND inst_perms = 'tutor'";
+                    $db = DBManager::get();
+                    $statement = $db->prepare($sql, array(PDO::FETCH_NUM));
+                    $statement->execute(array(Seminar::getInstance($this->course_id)->getInstitutId()));
+                    $membersOfInstitute = $statement->fetchAll(PDO::FETCH_COLUMN, 0);
+                    
                     // add "add tutor" to infobox
                     $mp = MultiPersonSearch::get("add_tutor")
                         ->setLinkText(sprintf(_('Neue/n %s eintragen'), $this->status_groups['tutor']))
@@ -252,6 +267,7 @@ class Course_MembersController extends AuthenticatedController
                         ->setTitle(sprintf(_('Neue/n %s eintragen'), $this->status_groups['tutor']))
                         ->setExecuteURL("course/members/execute_multipersonsearch_tutor")
                         ->setSearchObject($searchType)
+                        ->addQuickfilter(sprintf(_('%s der Einrichtung'), $this->status_groups['tutor']), $membersOfInstitute)
                         ->render();
                     $this->addToInfobox(_('Aktionen'), $mp, 'icons/16/black/add/community.png');
                 }
@@ -269,6 +285,13 @@ class Course_MembersController extends AuthenticatedController
                 "AND auth_user_md5.user_id NOT IN (SELECT user_id FROM seminar_user WHERE Seminar_id = :cid ) " .
                 "ORDER BY Vorname, Nachname", _("Teilnehmer suchen"), "username");
                 
+                // quickfilter: tutors of institut
+                $sql = "SELECT user_id FROM user_inst WHERE Institut_id = ? AND inst_perms = 'autor'";
+                $db = DBManager::get();
+                $statement = $db->prepare($sql, array(PDO::FETCH_NUM));
+                $statement->execute(array(Seminar::getInstance($this->course_id)->getInstitutId()));
+                $membersOfInstitute = $statement->fetchAll(PDO::FETCH_COLUMN, 0);
+                
                 // add "add autor" to infobox
                 $mp = MultiPersonSearch::get("add_autor")
                     ->setLinkText(sprintf(_('Neue/n %s eintragen'), $this->status_groups['autor']))
@@ -277,6 +300,7 @@ class Course_MembersController extends AuthenticatedController
                     ->setTitle(sprintf(_('Neue/n %s eintragen'), $this->status_groups['autor']))
                     ->setExecuteURL("course/members/execute_multipersonsearch_autor")
                     ->setSearchObject($searchType)
+                    ->addQuickfilter(sprintf(_('%s der Einrichtung'), $this->status_groups['autor']), $membersOfInstitute)
                     ->render();
                 $this->addToInfobox(_('Aktionen'), $mp, 'icons/16/black/add/community.png');
             }

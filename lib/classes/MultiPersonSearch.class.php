@@ -432,7 +432,7 @@ class MultiPersonSearch {
         $this->title = _("Personen hinzufügen");
         $this->description = _("Bitte wählen Sie aus, wen Sie hinzufügen möchten.");
         $this->linkIconPath = "icons/16/blue/add/community.png";
-        
+        /*
         // load default quickfilters
         $db = DBManager::get();
         // add addressbook
@@ -449,6 +449,7 @@ class MultiPersonSearch {
         
         // add buddies
         $this->addQuickfilter("Buddies", GetBuddyIDs($GLOBALS['user']->id));
+        */
     }
     
 }
