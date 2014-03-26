@@ -201,18 +201,18 @@ class Course_MembersController extends AuthenticatedController
                     $sem_institutes = $sem->getInstitutes();
 
                     if (SeminarCategories::getByTypeId($sem->status)->only_inst_user) {
-                        $search_template = "user_inst_not_already_in_sem";
+                        $search_template = "user_inst";
                     } else {
-                        $search_template = "user_not_already_in_sem";
+                        $search_template = "user";
                     }
 
                     // create new search for dozent
                     $searchtype = new PermissionSearch(
                             $search_template, sprintf(_("%s suchen"), get_title_for_status('dozent', 1, $sem->status)), "user_id", array('permission' => 'dozent',
-                        'seminar_id' => $this->course_id,
-                        'sem_perm' => 'dozent',
-                        'institute' => $sem_institutes)
+                            'exclude_user' => array(),
+                            'institute' => $sem_institutes)
                     );
+
                     
                     // quickfilter: dozents of institut
                     $sql = "SELECT user_id FROM user_inst WHERE Institut_id = ? AND inst_perms = 'dozent'";
@@ -239,16 +239,15 @@ class Course_MembersController extends AuthenticatedController
                     $sem_institutes = $sem->getInstitutes();
 
                     if (SeminarCategories::getByTypeId($sem->status)->only_inst_user) {
-                        $search_template = 'user_inst_not_already_in_sem';
+                        $search_template = 'user_inst';
                     } else {
-                        $search_template = 'user_not_already_in_sem';
+                        $search_template = 'user';
                     }
                     
                     // create new search for tutor
                     $searchType = new PermissionSearch(
                             $search_template, sprintf(_('%s suchen'), get_title_for_status('tutor', 1, $sem->status)), 'user_id', array('permission' => array('dozent', 'tutor'),
-                        'seminar_id' => $this->course_id,
-                        'sem_perm' => array('dozent', 'tutor'),
+                        'exclude_user' => array(),
                         'institute' => $sem_institutes)
                     );
                     
@@ -282,7 +281,6 @@ class Course_MembersController extends AuthenticatedController
                 "OR auth_user_md5.username LIKE :input) " .
                 "AND auth_user_md5.perms IN ('autor', 'tutor', 'dozent') " .
                 " AND auth_user_md5.visible <> 'never' " .
-                "AND auth_user_md5.user_id NOT IN (SELECT user_id FROM seminar_user WHERE Seminar_id = :cid ) " .
                 "ORDER BY Vorname, Nachname", _("Teilnehmer suchen"), "username");
                 
                 // quickfilter: tutors of institut

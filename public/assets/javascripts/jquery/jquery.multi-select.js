@@ -130,6 +130,8 @@
       if ($option.prop('disabled') || ms.prop('disabled')){
         selectedLi.addClass(that.options.disabledClass);
         selectableLi.addClass(that.options.disabledClass);
+        var alreadyMemberMessage  = "Die Person ist bereits hinzugefügt.".toLocaleString();
+        selectableLi.attr('title', alreadyMemberMessage).css('cursor', 'help');
       }
 
       var $optgroup = $option.parent('optgroup');

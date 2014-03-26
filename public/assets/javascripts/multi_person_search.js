@@ -71,7 +71,7 @@ STUDIP.MultiPersonSearch = {
             STUDIP.MultiPersonSearch.removeAllNotSelected();
             var searchcount = 0;
             $.each( data, function( i, item ) {
-                searchcount += STUDIP.MultiPersonSearch.append(item.user_id, item.avatar + ' -- ' + item.text, false)
+                searchcount += STUDIP.MultiPersonSearch.append(item.user_id, item.avatar + ' -- ' + item.text, item.member)
             });
             
             if (searchcount == 0) {

@@ -30,9 +30,9 @@ class MultipersonsearchController extends AuthenticatedController {
         $searchObject = $mp->getSearchObject();
         $result = $searchObject->getResults($searchterm, array("cid" => Request::get('cid')));
         //$result = PermissionSearch::get('user')->getResults($searchterm, array('permission' => array('autor','tutor','dozent','admin','root'), 'exclude_user' => array())); 
-        
         $this->result = new SimpleCollection(User::findMany($result));
         $this->result->orderBy("nachname asc, vorname asc");
+        $this->alreadyMember = $mp->getDefaultSelectedUsersIDs();
         $this->render_template('multipersonsearch/ajax.php');
     }
     

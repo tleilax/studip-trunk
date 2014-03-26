@@ -432,24 +432,6 @@ class MultiPersonSearch {
         $this->title = _("Personen hinzufügen");
         $this->description = _("Bitte wählen Sie aus, wen Sie hinzufügen möchten.");
         $this->linkIconPath = "icons/16/blue/add/community.png";
-        /*
-        // load default quickfilters
-        $db = DBManager::get();
-        // add addressbook
-        $sql = "SELECT user_id FROM contact WHERE owner_id = ?";
-        $statement = $db->prepare($sql, array(PDO::FETCH_NUM));
-        $statement->execute(array($GLOBALS['user']->id));
-        $result = $statement->fetchAll();
-        
-        $userArray = array();
-        foreach ($result as $r) {
-            $userArray[] = $r['user_id'];
-        }
-        $this->addQuickfilter(_("Adressbuch"), $userArray);
-        
-        // add buddies
-        $this->addQuickfilter("Buddies", GetBuddyIDs($GLOBALS['user']->id));
-        */
     }
     
 }
