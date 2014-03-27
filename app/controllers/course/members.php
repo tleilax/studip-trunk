@@ -302,13 +302,18 @@ class Course_MembersController extends AuthenticatedController
                     ->render();
                 $this->addToInfobox(_('Aktionen'), $mp, 'icons/16/black/add/community.png');
             }
+            
+            $link = sprintf('<a href="%s">%s</a>', URLHelper::getLink('dispatch.php/course/members/import_autorlist'), _('Teilnehmerliste importieren'));
+            $this->addToInfobox(_('Aktionen'), $link, 'icons/16/black/add/community.png');
+            
             $link = sprintf('<a href="%s">%s</a>', URLHelper::getLink('sms_send.php', array('sms_source_page' => 'dispatch.php/course/members',
                         'course_id' => $this->course_id,
                         'subject' => $this->subject,
                         'filter' => 'all',
                         'emailrequest' => 1)), _('Nachricht an alle (Rundmail)'));
             $this->addToInfobox(_('Aktionen'), $link, 'icons/16/black/inbox.png');
-
+            
+            
             if (get_config('EXPORT_ENABLE')) {
                 include_once($PATH_EXPORT . "/export_linking_func.inc.php");
 
@@ -565,7 +570,23 @@ class Course_MembersController extends AuthenticatedController
             $this->redirect('course/members/index');
         }
     }
-
+    
+    
+    function import_autorlist_action() {
+        global $perm;
+        if (!Request::isXhr()) {
+            Navigation::activateItem('/course/members/view');
+        }
+        $datafields = DataFieldStructure::getDataFieldStructures('user', (1 | 2 | 4 | 8), true);
+        foreach ($datafields as $df) {
+            if ($df->accessAllowed($perm) && in_array($df->getId(), $GLOBALS['TEILNEHMER_IMPORT_DATAFIELDS'])) {
+                $accessible_df[] = $df;
+            }
+        }
+        $this->accessible_df = $accessible_df;
+        
+    }
+    
     /**
      * Old version of CSV import (copy and paste from teilnehmer.php
      * @global Object $perm
