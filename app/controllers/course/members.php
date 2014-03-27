@@ -303,8 +303,10 @@ class Course_MembersController extends AuthenticatedController
                 $this->addToInfobox(_('Aktionen'), $mp, 'icons/16/black/add/community.png');
             }
             
-            $link = sprintf('<a href="%s">%s</a>', URLHelper::getLink('dispatch.php/course/members/import_autorlist'), _('Teilnehmerliste importieren'));
-            $this->addToInfobox(_('Aktionen'), $link, 'icons/16/black/add/community.png');
+            if (!$this->is_tutor) {
+                $link = sprintf('<a href="%s">%s</a>', URLHelper::getLink('dispatch.php/course/members/import_autorlist'), _('Teilnehmerliste importieren'));
+                $this->addToInfobox(_('Aktionen'), $link, 'icons/16/black/add/community.png');
+            }
             
             $link = sprintf('<a href="%s">%s</a>', URLHelper::getLink('sms_send.php', array('sms_source_page' => 'dispatch.php/course/members',
                         'course_id' => $this->course_id,

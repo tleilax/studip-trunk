@@ -97,7 +97,7 @@ class MultipersonsearchController extends AuthenticatedController {
             $this->selectableUsers = User::findMany($this->quickfilterIDs[Request::get('search_preset')]);
             // remove already selected users
             foreach ($this->selectableUsers as $key=>$user) {
-                if (in_array($user->id, $previousSelectedUsers)) {
+                if (in_array($user->id, $previousSelectedUsers) || in_array($user->id, $mp->getDefaultSelectedUsersIDs()) ) {
                     unset($this->selectableUsers[$key]);
                 }
             }

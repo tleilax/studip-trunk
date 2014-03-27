@@ -11,6 +11,11 @@ STUDIP.MultiPersonSearch = {
         
         this.name = name;
         
+        $( "#" + name + " button[name='" + name + "_button_abort']").click(function() {
+            $( "#" + name ).dialog( "close" );
+            return false;
+        });
+        
         $('#' + name + '_selectbox').multiSelect({
             selectableHeader: "<div>Suchergebnisse</div>",
             selectionHeader: "<div>Sie haben <span id='" + this.name + "_count'>0</span> Personen ausgewählt.</div>",
