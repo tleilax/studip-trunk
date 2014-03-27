@@ -82,11 +82,20 @@ class MultipersonsearchController extends AuthenticatedController {
             $result = $searchObject->getResults($searchterm, array("cid" => Request::get('cid')));
             
             $this->selectableUsers = User::findMany($result); 
+            
+            // remove already selected users
+            foreach ($this->selectableUsers as $key=>$user) {
+                if (in_array($user->id, $previousSelectedUsers) || in_array($user->id, $mp->getDefaultSelectedUsersIDs())) {
+                    unset($this->selectableUsers[$key]);
+                    $this->alreadyMemberUsers[$key] = $user;
+                }
+            }
         }
         // quickfilter
         elseif (Request::submitted('submit_search_preset')) {
             $this->selectedUsers = User::findMany($previousSelectedUsers);
             $this->selectableUsers = User::findMany($this->quickfilterIDs[Request::get('search_preset')]);
+            // remove already selected users
             foreach ($this->selectableUsers as $key=>$user) {
                 if (in_array($user->id, $previousSelectedUsers)) {
                     unset($this->selectableUsers[$key]);
@@ -150,7 +159,7 @@ class MultipersonsearchController extends AuthenticatedController {
             $this->defaultSelectableUsersIDs = $mp->getDefaultSelectableUsersIDs(); //$_SESSION['multipersonsearch_' . $this->name . '_defaultSelectableUsersIDs'];
             $this->defaultSelectedUsersIDs = $mp->getDefaultSelectedUsersIDs(); //$_SESSION['multipersonsearch_' . $this->name . '_defaultSelectedUsersIDs'];
             $this->selectableUsers = User::findMany($this->defaultSelectableUsersIDs);
-            $this->selectedUsers = User::findMany($this->defaultSelectedUsersIDs);
+            $this->selectedUsers = array();
         }
         
         // save selected/selectable users in hidden form fields

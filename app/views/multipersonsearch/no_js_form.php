@@ -56,11 +56,11 @@
                 <div>
                     <? $selectedCount = count($selectedUsers);
                     if ($selectedCount == 0) : ?>
-                        <?=_('Niemand ist in der Gruppe eingetragen.')?>
+                        <?=_('Niemand wurde ausgewählt.')?>
                     <? elseif ($selectedCount == 1) : ?>
-                        <?=_('In der Gruppe ist eine Person eingetragen.')?>
+                        <?=_('Eine Person wurde ausgewählt')?>
                     <? else : ?>
-                        <?=sprintf(_('In der Gruppe sind %s Personen eingetragen.'), $selectedCount)?>
+                        <?=sprintf(_('%s Personen wurden ausgewählt.'), $selectedCount)?>
                     <? endif ?>
                 </div>
                 <select id="search_persons_selected" name="search_persons_selected[]" style="minWidth: 200px; width: 100%; height: 116px" size="7" multiple
