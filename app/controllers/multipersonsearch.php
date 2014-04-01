@@ -36,6 +36,14 @@ class MultipersonsearchController extends AuthenticatedController {
         $this->render_template('multipersonsearch/ajax.php');
     }
     
+    public function js_form_action() {
+        CSRFProtection::verifyUnsafeRequest();
+        $this->name = Request::get("name");
+        $mp = MultiPersonSearch::load($this->name);
+        $mp->saveAddedUsersToSession();
+        $this->redirect(URLHelper::getLink('dispatch.php/' . $mp->getExecuteURL()));
+    }
+    
     /**
      * Action which is used for handling all submits for no-JavaScript
      * users:
@@ -50,6 +58,10 @@ class MultipersonsearchController extends AuthenticatedController {
      * usability for no-JavaScript users as for JavaScript users.
      */
     public function no_js_form_action() {
+        if (!empty($_POST)) {
+            CSRFProtection::verifyUnsafeRequest();
+        }
+        
         $this->name = Request::get("name");
         $mp = MultiPersonSearch::load($this->name);
         
@@ -151,7 +163,7 @@ class MultipersonsearchController extends AuthenticatedController {
             $_SESSION['multipersonsearch_' . $this->name . '_added'] = $addedUsers;
             $_SESSION['multipersonsearch_' . $this->name . '_removed'] = $removedUsers;
             // redirect to action which handles the form data
-            $this->redirect($_SESSION['multipersonsearch_' . $this->name . '_executeURL']);
+            $this->redirect($mp->getExecuteURL());
         }
         // default
         else {

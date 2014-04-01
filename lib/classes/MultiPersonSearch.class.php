@@ -83,19 +83,20 @@ class MultiPersonSearch {
      * @return array containing all new persons
      */
     public function getAddedUsers() {
-        if(Request::get("js")) {
-
-            $addedUsers = array();
-            foreach (Request::optionArray($this->name . '_selectbox') as $selected) {
-                if (!in_array($selected, $_SESSION['multipersonsearch_' . $this->name . '_defaultSelectedUsersIDs'])) {
-                    $addedUsers[] = $selected;
-                }
+        return $_SESSION['multipersonsearch_' . $this->name . '_added'];
+    }
+    
+    /**
+     * saves the added persons to $_SESSION.
+     */
+    public function saveAddedUsersToSession() {
+        $addedUsers = array();
+        foreach (Request::optionArray($this->name . '_selectbox') as $selected) {
+            if (!in_array($selected, $_SESSION['multipersonsearch_' . $this->name . '_defaultSelectedUsersIDs'])) {
+                $addedUsers[] = $selected;
             }
-            return $addedUsers;
-            
-        } else {
-            return $_SESSION['multipersonsearch_' . $this->name . '_added'];
         }
+        $_SESSION['multipersonsearch_' . $this->name . '_added'] = $addedUsers;
     }
     
     /**
@@ -106,19 +107,20 @@ class MultiPersonSearch {
      * @return array containing all removed persons
      */
     public function getRemovedUsers() {
-        if(Request::get("js")) {
-            $removedUsers = array();
-            foreach ($this->defaultSelectedUsersIDs as $default) {
-                if (!in_array($default, Request::optionArray($this->name . '_selectbox'))) {
-                    $removedUsers[] = $default;
-
-                }
+        return $_SESSION['multipersonsearch_' . $this->name . '_removed'];
+    }
+    
+    /**
+     * saves the removed persons to $_SESSION.
+     */
+    public function saveRemovedUsersToSession() {
+        $removedUsers = array();
+        foreach ($this->defaultSelectedUsersIDs as $default) {
+            if (!in_array($default, Request::optionArray($this->name . '_selectbox'))) {
+                $removedUsers[] = $default;
             }
-            return $removedUsers;
-            
-        } else {
-            return $_SESSION['multipersonsearch_' . $this->name . '_removed'];
         }
+        $_SESSION['multipersonsearch_' . $this->name . '_removed'] =  $removedUsers;
     }
     
     /**
