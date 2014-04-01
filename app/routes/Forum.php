@@ -246,11 +246,11 @@ class Forum extends \RESTAPI\RouteMap
     public function updateForumEntry($entry_id)
     {
         $entry = $this->findEntry($entry_id);
-        $cid = $entry['course_id'];
+        $cid = $parent['course_id'];
 
         $perm = self::isArea($entry) ? 'edit_area' : 'edit_entry';
 
-        if (!\ForumPerm::hasEditPerms($entry_id) && !\ForumPerm::has($perm, $cid)) {
+        if (!\ForumPerm::hasEditPerms($entry_id) || !\ForumPerm::has($perm, $cid)) {
             $this->error(401);
         }
 
@@ -284,13 +284,9 @@ class Forum extends \RESTAPI\RouteMap
     public function deleteForumEntry($entry_id)
     {
         $entry = $this->findEntry($entry_id);
-        $cid = $entry['course_id'];
+        $cid = $parent['course_id'];
 
-         if (!\ForumPerm::hasEditPerms($entry_id) && !\ForumPerm::has('remove_entry', $cid)) {
-            $this->error(401);
-        }
-
-        if (!\ForumPerm::has($perm, $cid)) {
+        if (!\ForumPerm::hasEditPerms($entry_id) || !\ForumPerm::has('remove_entry', $cid)) {
             $this->error(401);
         }
 
@@ -322,8 +318,8 @@ class Forum extends \RESTAPI\RouteMap
         }
 
         $entry['children'] = array();
-        foreach (array_values($children['list']) as $entry) {
-            $entry['children'][] = $this->convertEntry($entry);
+        foreach (array_values($children['list']) as $childentry) {
+            $entry['children'][] = $this->convertEntry($childentry);
         }
 
         return $entry;
@@ -338,6 +334,7 @@ class Forum extends \RESTAPI\RouteMap
 
         $entry['subject']      = $raw['name'];
         $entry['user']         = $this->urlf('/user/%s', array(htmlReady($raw['user_id'])));
+        $entry['course_id']    = $raw['seminar_id'];
         $entry['course']       = $this->urlf('/course/%s', array(htmlReady($raw['seminar_id'])));
         $entry['content_html'] = \ForumEntry::getContentAsHtml($raw['content']);
         $entry['content']      = \ForumEntry::killEdit($raw['content']);

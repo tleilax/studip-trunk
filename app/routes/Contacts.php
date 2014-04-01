@@ -194,9 +194,10 @@ class Contacts extends \RESTAPI\RouteMap
         // prevent duplicates
         $exists = $group->members->findBy('user_id', $user_id)->first();
         if ($exists) {
-            $this->error(409, 'Duplicate');
+            $this->halt(204);
         }
 
+        AddNewContact($user_id);
         $success = InsertPersonStatusgruppe($user_id, $group_id);
 
         if (!$success) {
@@ -260,7 +261,7 @@ class Contacts extends \RESTAPI\RouteMap
             $result[$url] = array(
                 'id'            => $contact->id,
                 'owner'         => $this->urlf('/user/%s', array(htmlReady($contact->owner_id))),
-                'friend'        => $this->minimalUserToJSON($contact->user_id, array($contact->friend->getFullName())),
+                'friend'        => $this->minimalUserToJSON($contact->user_id, $contact->friend->getFullName()),
                 'buddy'         => (bool) $contact->buddy,
                 'calpermission' => (bool) $contact->calpermission
             );
@@ -271,12 +272,13 @@ class Contacts extends \RESTAPI\RouteMap
     private function minimalUserToJSON($id, $fullname)
     {
         $avatar = \Avatar::getAvatar($id);
-        return array('user_id'       => $id,
-                     'url'           => $this->urlf('/user/%s', array(htmlReady($id))),
-                     'fullname'      => $fullname,
-                     'avatar_small'  => $avatar->getURL(\Avatar::SMALL),
-                     'avatar_medium' => $avatar->getURL(\Avatar::MEDIUM),
-                     'avatar_normal' => $avatar->getURL(\Avatar::NORMAL)
+        return array('user_id'         => $id,
+                     'url'             => $this->urlf('/user/%s', array(htmlReady($id))),
+                     'fullname'        => $fullname,
+                     'avatar_small'    => $avatar->getURL(\Avatar::SMALL),
+                     'avatar_medium'   => $avatar->getURL(\Avatar::MEDIUM),
+                     'avatar_normal'   => $avatar->getURL(\Avatar::NORMAL),
+                     'avatar_original' => $avatar->getURL(\Avatar::ORIGINAL)
         );
     }
 

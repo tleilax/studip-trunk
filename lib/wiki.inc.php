@@ -463,7 +463,7 @@ function showDeleteDialog($keyword, $version) {
     if (!$willvanish) {
         $msg .= _("Diese Version ist derzeit aktuell. Nach dem Löschen wird die nächstältere Version aktuell.") . "<br>";
     } else {
-        $msg .= _("Diese Version ist die derzeit einzige. Nach dem Löschen ist die Seite komplet gelöscht.") . "<br>";
+        $msg .= _("Diese Version ist die derzeit einzige. Nach dem Löschen ist die Seite komplett gelöscht.") . "<br>";
     }
     //TODO: modaler dialog benutzen
     $msg.=LinkButton::create(_('Ja!'), URLHelper::getURL("?cmd=really_delete&keyword=".urlencode($keyword)."&version=$version&dellatest=$islatest"));
@@ -1217,7 +1217,7 @@ function getSearchbox($preselection, $keyword)
 {
     SkipLinks::addIndex(_("Im Wiki suchen"), 'wiki_search');
     // search
-    $search_text = '<form role=\"search\" id="wiki_search" method="post" action="' . URLHelper::getLink('') . '">';
+    $search_text = '<form role="search" id="wiki_search" method="post" action="' . URLHelper::getLink('') . '">';
     $search_text .= CSRFProtection::tokenTag();
     $search_text .= '<input type="hidden" name="view" value="search">';
     $search_text .= '<input type="hidden" name="keyword" value="' . htmlReady($keyword) . '">';

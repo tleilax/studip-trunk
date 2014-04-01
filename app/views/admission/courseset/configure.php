@@ -47,8 +47,7 @@ if ($flash['error']) {
         </label>
         <input type="text" size="60" maxlength="255" name="name"
             value="<?= $courseset ? htmlReady($courseset->getName()) : '' ?>"
-            required="required" aria-required="true"
-            placeholder="<?= _('Bitte geben Sie einen Namen für das Anmeldeset an') ?>"/>
+            required="required" aria-required="true"/>
         <? if (!$courseset || ($courseset->getUserId() == $GLOBALS['user']->id && !$instant_course_set_view)) : ?>
             <label for="private" class="caption">
                 <?= _('Sichtbarkeit:') ?>
@@ -89,7 +88,7 @@ if ($flash['error']) {
                             $controller->url_for('admission/courseset/institutes', $courseset ? $courseset->getId() : '')."', '".
                             $controller->url_for('admission/courseset/instcourses', $courseset ? $courseset->getId() : '')."', 'add')")) ?>
                     <?= $instSearch ?>
-                    <br/><br/>
+                    <?= Assets::img('icons/16/blue/search.png', array('title' => _("Suche starten")))?>
                 </div>
                 <i><?=  _('Sie haben noch keine Einrichtung ausgewählt. Benutzen Sie obige Suche, um dies zu tun.') ?></i>
                 <?php } else { ?>
@@ -121,16 +120,6 @@ if ($flash['error']) {
                 <?= _('Filter auf Name/Nummer/Dozent:') ?>
                 <input type="text" onKeypress="if (event.which==13) return STUDIP.Admission.getCourses('<?= $controller->url_for('admission/courseset/instcourses', $courseset ? $courseset->getId() : '') ?>')" value="<?= htmlReady($current_course_filter) ?>" name="course_filter" >
             </label>
-            <label class="caption">
-                <?= _('Veranstaltungszuordnung:') ?>
-            </label>
-            <div>
-                <a href="#" onclick="return STUDIP.Admission.checkUncheckAll('courses[]', 'check');"><?= _('alle') ?></a>
-                |
-                <a href="#" onclick="return STUDIP.Admission.checkUncheckAll('courses[]', 'uncheck');"><?= ('keine') ?></a>
-                |
-                <a href="#" onclick="return STUDIP.Admission.checkUncheckAll('courses[]', 'invert');"><?= ('Auswahl umkehren') ?></a>
-            </div>
             <div id="instcourses">
             <?= $coursesTpl; ?>
             </div>
@@ -227,7 +216,7 @@ if ($flash['error']) {
             ?>
         <? endif ?>
         <label for="infotext" class="caption">
-            <?= _('weitere Hinweise:') ?>
+            <?= _('Weitere Hinweise:') ?>
         </label>
         <textarea cols="60" rows="3" name="infotext"><?= $courseset ? htmlReady($courseset->getInfoText()) : '' ?></textarea>
         <div class="submit_wrapper">

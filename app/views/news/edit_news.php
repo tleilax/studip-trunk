@@ -1,16 +1,16 @@
 <? use Studip\Button, Studip\LinkButton ?>
 <? if(!empty($flash['question_text'])) : ?>
-    <? $form_content = array('news_isvisible' => htmlspecialchars(serialize($news_isvisible)),
-              'news_selectable_areas' => htmlspecialchars(serialize($area_options_selectable)), 
-              'news_selected_areas' => htmlspecialchars(serialize($area_options_selected)), 
+    <? $form_content = array('news_isvisible' => htmlReady(serialize($news_isvisible)),
+              'news_selectable_areas' => htmlReady(serialize($area_options_selectable)), 
+              'news_selected_areas' => htmlReady(serialize($area_options_selected)), 
               'news_basic_js' => '',
               'news_comments_js' => '',
               'news_areas_js' => '',
               'news_allow_comments' => $news['allow_comments'],
               'news_topic' => $news['topic'],
               'news_body' => $news['body'],
-              'news_date' => $news['date'],
-              'news_expire' => $news['expire'],
+              'news_startdate' => ($news['date']) ? date('d.m.Y', $news['date']) : "",
+              'news_enddate' => ($news['expire']) ? date('d.m.Y', $news['date']+$news['expire']) : "",
               'news_allow_comments' => $news['allow_comments']) ?>
     <?=createQuestion2($flash['question_text'],
         array_merge($flash['question_param'], $form_content),
@@ -22,9 +22,9 @@
 <input type="hidden" name="news_basic_js" value=""> 
 <input type="hidden" name="news_comments_js" value=""> 
 <input type="hidden" name="news_areas_js" value=""> 
-<input type="hidden" name="news_isvisible" value="<?=htmlspecialchars(serialize($news_isvisible))?>"> 
+<input type="hidden" name="news_isvisible" value="<?=htmlReady(serialize($news_isvisible))?>"> 
 <input type="hidden" name="news_selectable_areas" value="<?=htmlReady(serialize($area_options_selectable));?>"> 
-<input type="hidden" name="news_selected_areas" value="<?=htmlspecialchars(serialize($area_options_selected))?>"> 
+<input type="hidden" name="news_selected_areas" value="<?=htmlReady(serialize($area_options_selected))?>"> 
 <div id="news_dialog_content" class="news_dialog_content">
 <? if (count($_SESSION['messages'])) : ?>
     <? $anker = ''; ?>

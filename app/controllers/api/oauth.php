@@ -63,6 +63,8 @@ class Api_OauthController extends StudipController
             $auth->login_if($user->id === 'nobody');
         }
 
+        $user_id = RESTAPI\Consumer\OAuth::getOAuthId($GLOBALS['user']->id);
+
         try {
             $consumer = RESTAPI\Consumer\Base::detectConsumer('oauth');
             if (isset($_POST['allow'])) {
