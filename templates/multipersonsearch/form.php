@@ -4,7 +4,7 @@
     <img title="Suche starten" src="<?= Assets::image_path("icons/16/blue/search.png"); ?>" onclick="STUDIP.MultiPersonSearch.search()"><br>
     <strong id="<?= $name . '_search_message_box'; ?>" style="display: none;"><?= _("Es wurden keine neuen Ergebnisse gefunden."); ?><br></strong>
     <? foreach($quickfilter as $title => $users) : ?>
-        <a href="javascript:STUDIP.MultiPersonSearch.loadQuickfilter('<?= str_replace(" ", "", $title); ?>');"><?= $title; ?> (<?= count($users); ?>)</a> 
+        <a href="#" class="quickfilter" data-quickfilter="<?= str_replace(" ", "", $title); ?>"><?= $title; ?> (<?= count($users); ?>)</a> 
         <select multiple="multiple" id="<?= $name . '_quickfilter_' . str_replace(" ", "", $title); ?>" style="display: none;">
         <? foreach($users as $user) : ?>
             <option value="<?= $user->id ?>"><?= Avatar::getAvatar($user->id)->getURL(Avatar::SMALL); ?> -- <?= htmlReady($user->getFullName('full_rev')) ?> -- <?= htmlReady($user->perms) ?> (<?= htmlReady($user->username)?>)</option>
@@ -14,7 +14,7 @@
     <br>
     <strong id="<?= $name . '_quickfilter_message_box'; ?>" style="display: none;"><?= _("Es wurden bereits alle Personen dieses Filters ausgewählt."); ?><br></strong>
     
-    <select multiple="multiple" id="<?= $name . '_selectbox'; ?>" name="<?= $name . '_selectbox'; ?>[]" onchange="STUDIP.MultiPersonSearch.count()">
+    <select multiple="multiple" id="<?= $name . '_selectbox'; ?>" name="<?= $name . '_selectbox'; ?>[]">
     </select>
     <select multiple="multiple" id="<?= $name . '_selectbox_default'; ?>" style="display: none;">
         <? foreach ($defaultSelectableUsers as $person): ?>

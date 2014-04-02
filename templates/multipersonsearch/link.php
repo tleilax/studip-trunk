@@ -1,4 +1,4 @@
-<a href="<?= URLHelper::getLink('dispatch.php/multipersonsearch/no_js_form/?name=' . $name); ?>" onclick="STUDIP.MultiPersonSearch.dialog('<?= $name; ?>'); return false;">
+<a href="<?= URLHelper::getLink('dispatch.php/multipersonsearch/no_js_form/?name=' . $name); ?>" class="openmultipersonsearch" data-dialogname="<?= $name; ?>">
     <?
     if (!empty($linkIconPath)) {
         print Assets::img($linkIconPath);

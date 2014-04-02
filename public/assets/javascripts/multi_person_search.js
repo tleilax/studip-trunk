@@ -1,3 +1,9 @@
+$(document).ready(function () {
+    $(".openmultipersonsearch").click(function(){
+        STUDIP.MultiPersonSearch.dialog($(this).attr("data-dialogname"));
+        return false;
+    });
+});
 
 STUDIP.MultiPersonSearch = {
     
@@ -17,10 +23,10 @@ STUDIP.MultiPersonSearch = {
         });
         
         $('#' + name + '_selectbox').multiSelect({
-            selectableHeader: "<div>Suchergebnisse</div>",
-            selectionHeader: "<div>Sie haben <span id='" + this.name + "_count'>0</span> Personen ausgewählt.</div>",
-            selectableFooter: '<a href="javascript:STUDIP.MultiPersonSearch.selectAll();">Alle auswählen</a>',
-            selectionFooter: '<a href="javascript:STUDIP.MultiPersonSearch.unselectAll();">Alle entfernen</a>'
+            selectableHeader: "<div>" + "Suchergebnisse".toLocaleString() + "</div>",
+            selectionHeader: "<div>Sie haben <span id='" + this.name + "_count'>0</span> " + "Personen ausgewählt".toLocaleString() + ".</div>",
+            selectableFooter: '<a href="javascript:STUDIP.MultiPersonSearch.selectAll();">' + 'Alle hinzufügen'.toLocaleString() + '</a>',
+            selectionFooter: '<a href="javascript:STUDIP.MultiPersonSearch.unselectAll();">' + 'Alle entfernen'.toLocaleString() + '</a>'
         });
         //STUDIP.MultiPersonSearch.restoreDefaults();
         
@@ -31,6 +37,15 @@ STUDIP.MultiPersonSearch = {
             STUDIP.MultiPersonSearch.search();
             return false;
             }
+        });
+        
+        $("#" + this.name + "_selectbox").change(function() {
+            STUDIP.MultiPersonSearch.count();
+        });
+        
+        $("#" + this.name + " .quickfilter").click(function() {
+            STUDIP.MultiPersonSearch.loadQuickfilter($(this).attr("data-quickfilter"));
+            return false;
         });
     },
     
