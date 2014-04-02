@@ -222,7 +222,7 @@ class Course_MembersController extends AuthenticatedController
                     $membersOfInstitute = $statement->fetchAll(PDO::FETCH_COLUMN, 0);
                     
                     // add "add dozent" to infobox
-                    $mp = MultiPersonSearch::get("add_dozent")
+                    $mp = MultiPersonSearch::get("add_dozent" . $this->course_id)
                         ->setLinkText(sprintf(_('Neue/n %s eintragen'), $this->status_groups['dozent']))
                         ->setDefaultSelectedUser($filtered_members['dozent']->pluck('user_id'))
                         ->setLinkIconPath("")
@@ -259,7 +259,7 @@ class Course_MembersController extends AuthenticatedController
                     $membersOfInstitute = $statement->fetchAll(PDO::FETCH_COLUMN, 0);
                     
                     // add "add tutor" to infobox
-                    $mp = MultiPersonSearch::get("add_tutor")
+                    $mp = MultiPersonSearch::get("add_tutor" . $this->course_id)
                         ->setLinkText(sprintf(_('Neue/n %s eintragen'), $this->status_groups['tutor']))
                         ->setDefaultSelectedUser($filtered_members['tutor']->pluck('user_id'))
                         ->setLinkIconPath("")
@@ -291,7 +291,7 @@ class Course_MembersController extends AuthenticatedController
                 $membersOfInstitute = $statement->fetchAll(PDO::FETCH_COLUMN, 0);
                 
                 // add "add autor" to infobox
-                $mp = MultiPersonSearch::get("add_autor")
+                $mp = MultiPersonSearch::get("add_autor" . $this->course_id)
                     ->setLinkText(sprintf(_('Neue/n %s eintragen'), $this->status_groups['autor']))
                     ->setDefaultSelectedUser($filtered_members['autor']->pluck('user_id'))
                     ->setLinkIconPath("")
@@ -451,7 +451,7 @@ class Course_MembersController extends AuthenticatedController
         }
         
         // load MultiPersonSearch object
-        $mp = MultiPersonSearch::load("add_autor");
+        $mp = MultiPersonSearch::load("add_autor" . $this->course_id);
         $sem = Seminar::GetInstance($this->course_id);
         
         $countAdded = 0;
@@ -480,7 +480,7 @@ class Course_MembersController extends AuthenticatedController
         }
         
         // load MultiPersonSearch object
-        $mp = MultiPersonSearch::load("add_dozent");
+        $mp = MultiPersonSearch::load("add_dozent" . $this->course_id);
         
         foreach ($mp->getAddedUsers() as $a) {
             $this->addDozent($a);
@@ -535,7 +535,7 @@ class Course_MembersController extends AuthenticatedController
         }
         
         // load MultiPersonSearch object
-        $mp = MultiPersonSearch::load("add_tutor");
+        $mp = MultiPersonSearch::load("add_tutor" . $this->course_id);
         
         foreach ($mp->getAddedUsers() as $a) {
             $this->addTutor($a);
