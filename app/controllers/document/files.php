@@ -94,7 +94,7 @@ class Document_FilesController extends DocumentController
                 $dirEntry = new DirectoryEntry($folder_id);
                 $directory = $dirEntry->getfile();
             }
-            
+
             $title       = Request::get('title');
             $description = Request::get('description', '');
             $restricted  = Request::int('restricted', 0);
@@ -107,12 +107,12 @@ class Document_FilesController extends DocumentController
                     $failed[] = array($_FILES['file']['name'][$i], 'remote');
                     continue;
                 }
-                
+
                 $filename = $_FILES['file']['name'][$i];
                 $filesize = $_FILES['file']['size'][$i];
                 $mimetype = $_FILES['file']['type'][$i];
                 $tempname = $_FILES['file']['tmp_name'][$i];
-                
+
                 $fileExtension = explode('.', $filename);
                 if(!empty($fileExtension) && !empty($this->userConfig['types'])){
                     foreach($this->userConfig['types'] as $typ){
@@ -121,16 +121,16 @@ class Document_FilesController extends DocumentController
                         }
                     }
                 }
-                
-                $restQuota = ( (int)$this->userConfig['quota'] - 
+
+                $restQuota = ( (int)$this->userConfig['quota'] -
                         DiskFileStorage::getQuotaUsage($GLOBALS['user']->id));
-                
+
                 if ($filesize > $restQuota){
                     $failed[] = array($_FILES['file']['name'][$i], 'quota');
-                
+
                 } else if ($filesize > (int)$this->userConfig['upload_quota']){
                        $failed[] = array($_FILES['file']['name'][$i], 'upload_quota');
-                
+
                 } else {
                      while ($directory->getEntry($filename) !== null) {
                         $filename = FileHelper::AdjustFilename($filename);
@@ -166,7 +166,7 @@ class Document_FilesController extends DocumentController
                                                  $remote);
                     PageLayout::postMessage($message);
                 }
-                
+
                 $forbidden = array_map('reset', array_filter($failed, function($item) {
                     return $item[1] === 'forbidden_type' ;
                 }));
@@ -175,7 +175,7 @@ class Document_FilesController extends DocumentController
                                                  $forbidden);
                     PageLayout::postMessage($message);
                 }
-                
+
                 $quota = array_map('reset', array_filter($failed, function($item) {
                     return $item[1] === 'quota' ;
                 }));
@@ -184,7 +184,7 @@ class Document_FilesController extends DocumentController
                                                  $quota);
                     PageLayout::postMessage($message);
                 }
-                
+
                 $upload = array_map('reset', array_filter($failed, function($item) {
                     return $item[1] === 'upload_quota' ;
                 }));
@@ -193,7 +193,7 @@ class Document_FilesController extends DocumentController
                                                  $upload);
                     PageLayout::postMessage($message);
                 }
-                
+
                 $local = array_map('reset', array_filter($failed, function ($item) {
                     return $item[1] === 'local';
                 }));
@@ -206,7 +206,7 @@ class Document_FilesController extends DocumentController
             if ($count - count($failed) > 0) {
                 $message = sprintf(_('%u Dateien wurden erfolgreich hochgeladen.'), $count - count($failed));
                 PageLayout::postMessage(MessageBox::success($message));
-            } 
+            }
 
             $this->redirect('document/files/index/' . $folder_id);
         }
@@ -253,7 +253,7 @@ class Document_FilesController extends DocumentController
             header('X-Title: ' . _('Datei bearbeiten'));
         }
     }
-    
+
     public function move_action($file_id, $source_id = null)
     {
         if (Request::isPost()) {
@@ -321,7 +321,7 @@ class Document_FilesController extends DocumentController
     {
         $entry = new DirectoryEntry($id);
         $parent_id = $this->getParentId($id);
-        
+
         if (!Request::isPost()) {
             $question = createQuestion2(_('Soll die Datei wirklich gelöscht werden?'),
                                         array(), array(),
@@ -367,7 +367,7 @@ class Document_FilesController extends DocumentController
 
                 $this->flash['marked-ids'] = $ids;
             }
-            
+
             $this->redirect('document/files/index/' . $folder_id);
         }
     }
@@ -386,7 +386,7 @@ class Document_FilesController extends DocumentController
 
     private function setupInfobox($current_dir)
     {
-        $this->setInfoboxImage('infobox/folders.jpg');
+        $this->setInfoboxImage('sidebar/files-sidebar.png');
         if($this->userConfig['forbidden'] == 0){
             $upload_link = sprintf('<a href="%s" rel="lightbox">%s</a>',
                                $this->url_for('document/files/upload/' . $current_dir),
@@ -397,7 +397,7 @@ class Document_FilesController extends DocumentController
                                    '<strike>'._('Datei hochladen').'</strike>',
                                    _('Ihre Upload-Funktion wurde geperrt. Wenden Sie sich an den Support: '));
         }
-        
+
         $this->addToInfobox(_('Aktionen:'),
                             $upload_link,
                             'icons/16/black/upload.png');
@@ -420,11 +420,11 @@ class Document_FilesController extends DocumentController
                                $this->url_for('document/folder/download/' . $this->context_id),
                                _('Dateibereich herunterladen'));
         $this->addToInfobox(_('Export:'), $export_link, 'icons/16/black/download.png');
-        
-        $this->addToInfobox(_('Speicherplatz:'), 
+
+        $this->addToInfobox(_('Speicherplatz:'),
                 ((int)((DiskFileStorage::getQuotaUsage($GLOBALS['user']->id)/
-                        (int)$this->userConfig['quota'])*100)) . sprintf('%s',  '% belegt') . 
-                        ' (' . relsize(DiskFileStorage::getQuotaUsage($GLOBALS['user']->id), false) . 
+                        (int)$this->userConfig['quota'])*100)) . sprintf('%s',  '% belegt') .
+                        ' (' . relsize(DiskFileStorage::getQuotaUsage($GLOBALS['user']->id), false) .
                         '/' . relsize($this->userConfig['quota'], false) . ')',
                 'icons/16/black/stat.png');
     }
