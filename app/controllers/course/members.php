@@ -481,10 +481,20 @@ class Course_MembersController extends AuthenticatedController
         
         // load MultiPersonSearch object
         $mp = MultiPersonSearch::load("add_dozent" . $this->course_id);
-        
+        $fail = false;
         foreach ($mp->getAddedUsers() as $a) {
-            $this->addDozent($a);
+            $result = $this->addDozent($a);
+            if ($result !== false) {
+                PageLayout::postMessage($result);
+            } else {
+                $fail = true;
+            }
         }
+        // only show an error messagebox once.
+        if ($fail === true) {
+            PageLayout::postMessage(MessageBox::error(_('Die gewünschte Operation konnte nicht ausgeführt werden.')));
+        }
+        
         $this->redirect('course/members/index');
     }
     
@@ -516,10 +526,12 @@ class Course_MembersController extends AuthenticatedController
                 }
             }
             // new dozent was successfully insert
-            PageLayout::postMessage(MessageBox::success(sprintf(_('%s wurde hinzugefügt.'), get_title_for_status('dozent', 1, $sem->status))));
+            
+            return MessageBox::success(sprintf(_('%s wurde hinzugefügt.'), get_title_for_status('dozent', 1, $sem->status)));
         } else {
             // sorry that was a fail
-            PageLayout::postMessage(MessageBox::error(_('Die gewünschte Operation konnte nicht ausgeführt werden.')));
+            return false;
+            
         }
     }
     
