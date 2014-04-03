@@ -2,7 +2,7 @@
     <?= $flash['question'] ?>
 <? endif; ?>
 
-<form action="<?= $controller->url_for('document/files/bulk/' . $dir_id) ?>" method="post">
+<form action="<?= $controller->url_for('document/files/bulk/' . $dir_id) ?>" method="post" data-shiftcheck>
 <table class="default documents">
     <caption>
     <? $last_crumb = end($breadcrumbs); ?>
@@ -40,7 +40,8 @@
     </colgroup>
     <thead>
         <th>
-            <input type="checkbox" data-proxyfor=":checkbox[name='ids[]']">
+            <input type="checkbox" data-proxyfor=":checkbox[name='ids[]']"
+                   data-activates="table.documents tfoot button">
         </th>
         <th><?= _('Typ') ?></th>
         <th><?= _('Name') ?></th>
