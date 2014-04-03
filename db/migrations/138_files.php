@@ -32,7 +32,7 @@ class files extends DBMigration
 {
     public function description()
     {
-        return 'Adding db-scheme for StEP00262 to provide user-centered managing of files';
+        return 'Setup db for personal file space';
     }
 
     public function up()
@@ -191,30 +191,27 @@ class files extends DBMigration
 
     public function down()
     {
-        global $USER_DOC_PATH;
-
-        $alluserdir = $USER_DOC_PATH;
-        foreach (scandir($alluserdir) as $item) {
+        // Remove user directories
+        // TODO: Refactor this to actually delete the user directories
+        foreach (scandir($GLOBALS['USER_DOC_PATH']) as $item) {
             if ($item == '.' || $item == '..') {
                 continue;
             }
-            unlink($alluserdir . DIRECTORY_SEPARATOR . $item);
+            unlink($GLOBALS['USER_DOC_PATH'] . DIRECTORY_SEPARATOR . $item);
         }
+        rmdir($GLOBALS['USER_DOC_PATH']);
 
-        rmdir($alluserdir);
-        $db = DBManager::get();
-
-        $db->exec("DROP TABLE IF EXISTS
-            ('files',
-            'files_layout',
-            'files_backend_studip',
-            'files_backend_url',
-            'files_share',
-            'entity',
-            'doc_usergroup_config',
-            'doc_filetype',
-            'doc_filetype_forbidden'
-        )");
+        DBManager::get()->exec("DROP TABLE IF EXISTS
+            `files`,
+            `files_layout`,
+            `files_backend_studip`,
+            `files_backend_url`,
+            `files_share`,
+            `entity`,
+            `doc_usergroup_config`,
+            `doc_filetype`,
+            `doc_filetype_forbidden`
+        ");
 
         /*
          * Down-Migration for Admin-Area
