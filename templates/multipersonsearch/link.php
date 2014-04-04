@@ -1,4 +1,4 @@
-<a href="<?= URLHelper::getLink('dispatch.php/multipersonsearch/no_js_form/?name=' . $name); ?>" class="openmultipersonsearch" data-dialogname="<?= $name; ?>">
+<a href="<?= URLHelper::getLink('dispatch.php/multipersonsearch/no_js_form/?name=' . $name); ?>" class="multi_person_search_link mpsmodal" data-dialogname="<?= $name; ?>" title="<?=$title;?>" data-js-form="<?= URLHelper::getLink('dispatch.php/multipersonsearch/js_form/' . $name); ?>">
     <?
     if (!empty($linkIconPath)) {
         print Assets::img($linkIconPath, tooltip2(_('Personen hinzufügen')));
@@ -11,7 +11,3 @@
     }
     ?>
 </a>
-
-<div id="<?= $name; ?>" title="<?= $title; ?>" style="display: none;">
-<? include("form.php"); ?>
-</div>

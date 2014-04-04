@@ -1,19 +1,28 @@
 $(document).ready(function () {
-    $(".openmultipersonsearch").click(function(){
+    /*$(".openmultipersonsearch").click(function(){
         STUDIP.MultiPersonSearch.dialog($(this).attr("data-dialogname"));
         return false;
+    });*/
+    
+    $(".multi_person_search_link").each(function() {
+        $(this).attr("href", $(this).attr("data-js-form"));
     });
+    STUDIP.modalDialog2.apply();
+    
+    // active dialog
+    STUDIP.MultiPersonSearch.dialog($(".mpscontainer").attr("data-dialogname"));
+
 });
 
 STUDIP.MultiPersonSearch = {
     
     dialog: function (name) {
         
-        $( "#" + name ).dialog({
+        /*$( "#" + name ).dialog({
             height: 450,
             width: 720,
             modal: true
-        });
+        });*/
         
         this.name = name;
         
@@ -146,4 +155,62 @@ STUDIP.MultiPersonSearch = {
         $('#' + this.name + '_count').text($('#' + this.name + '_selectbox option:selected').length); 
     }
     
+};
+
+/* 
+ * The following source code is a modified copy of STUDIP.modalDialog
+ * located in app_admin_statusgroups.js. It will be replaced as soon as
+ * a generic studip dialog is available.
+ */
+STUDIP.modalDialog2 = {
+    apply: function () {
+        $('a.mpsmodal').click(function () {
+            var dialog = $("<div></div>");
+            var name = $(this).attr('data-dialogname');
+            console.log(name);
+            dialog.load($(this).attr('href'), function () {
+                STUDIP.modalDialog2.load($(this));
+                STUDIP.MultiPersonSearch.dialog(name);
+            });
+            $('<img/>', {
+                src: STUDIP.ASSETS_URL + 'images/ajax_indicator_small.gif'
+            }).appendTo(dialog);
+            dialog.dialog({
+                autoOpen: true,
+                autoResize: true,
+                resizable: false,
+                position: 'center',
+                close: function () {
+                    $(this).remove();
+                },
+                width: 'auto',
+                title: $(this).attr('title'),
+                modal: true
+            });
+            return false;
+        });
+    },
+    load: function (dialog) {
+        dialog.find('.abort').click(function (e) {
+            e.preventDefault();
+            dialog.remove();
+        });
+        dialog.find('.stay_on_dialog').click(function (e) {
+            $(this).attr('disabled', 'true');
+            e.preventDefault();
+            var button = jQuery(this).attr('name');
+            var form = $(this).closest('form');
+            $.ajax({
+                type: "POST",
+                url: form.attr('action'),
+                data: form.serialize() + '&' + button + '=1', // serializes the form's elements.
+                success: function (data)
+                {
+                    dialog.html(data); // show response from the php script.
+                    STUDIP.modalDialog2.load(dialog);
+                }
+            });
+        });
+        dialog.dialog({position: 'center'});
+    }
 };

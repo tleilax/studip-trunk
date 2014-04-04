@@ -41,12 +41,32 @@ class MultipersonsearchController extends AuthenticatedController {
      * This action checks for CSRF and redirects to the action which
      * handles adding/removing users.
      */
-    public function js_form_action() {
+    public function js_form_exec_action() {
         CSRFProtection::verifyUnsafeRequest();
         $this->name = Request::get("name");
         $mp = MultiPersonSearch::load($this->name);
         $mp->saveAddedUsersToSession();
         $this->redirect(URLHelper::getLink('dispatch.php/' . $mp->getExecuteURL()));
+    }
+    
+    public function js_form_action($name) {
+        $mp = MultiPersonSearch::load($name);
+        $this->name = $name;
+        $this->description = $mp->getDescription();
+        $this->quickfilter = $mp->getQuickfilterIds();
+        foreach ($this->quickfilter as $title => $users) {
+            $this->quickfilter[$title] = User::findMany($users);
+        }
+        $this->executeURL = $mp->getExecuteURL();
+        
+        $this->defaultSelectableUsers = User::findMany($mp->getDefaultSelectableUsersIDs());
+        $this->defaultSelectedUsers = User::findMany($mp->getDefaultSelectedUsersIDs());
+        
+        if (Request::isXhr()) {
+            $this->set_layout(null);
+        } else {
+            $this->title = $mp->getTitle();
+        }
     }
     
     /**

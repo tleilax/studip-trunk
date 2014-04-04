@@ -423,7 +423,7 @@ class MultiPersonSearch {
             PageLayout::addStylesheet('multi-select.css');
             PageLayout::addScript('jquery/jquery.multi-select.js');
              PageLayout::addScript('multi_person_search.js');
-            $importsAlreadyAdded = true;
+            self::$importsAlreadyAdded = true;
         }
     }
     
