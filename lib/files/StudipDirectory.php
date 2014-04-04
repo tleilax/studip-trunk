@@ -69,6 +69,10 @@ class StudipDirectory extends File
         if($source->storage_id != ''){
         $new_entry = $this->create($name);
         $new_file = $new_entry->getFile();
+        $new_file->setFilename($source->filename);
+        $new_file->setMimeType($source->mime_type);
+        $new_file->size = $source->size;
+        $new_file->update();
         $source_fp = $source->open('rb');
         $dest_fp = $new_file->open('wb');
 
@@ -86,6 +90,9 @@ class StudipDirectory extends File
         }else{ //COPY directory
             $newFolder = $this->mkdir($name);
             $folder = StudipDirectory::get($newFolder->file_id);
+            $folder->setFilename($newFolder->name);
+            //$folder->setFilename($newFolder->name);
+            
             $entrys = $source->listFiles();
             foreach($entrys as $entry){
                 $file = File::get($entry->file_id);
@@ -113,7 +120,7 @@ class StudipDirectory extends File
 
         return $id ? new DirectoryEntry($id) : NULL; // should this throw an error on failure?
     }
-
+    
     /**
      * Get access permissions for this directory. Access
      * permissions are not implemented at this time.
@@ -174,11 +181,10 @@ class StudipDirectory extends File
     public function link(File $file, $name)
     {
         $db = DBManager::get();
-
-        if (StudipDirectory::getEntry($name)) {
-            throw new Exception('file "' . $name . '" already exists');
+        
+        while (StudipDirectory::getEntry($name)) {
+            $name = FileHelper::AdjustFilename($name);
         }
-
         $entry_id = md5(uniqid(__CLASS__, true));
 
         $stmt = $db->prepare('INSERT INTO file_refs (id, file_id, parent_id, name, description) VALUES(?, ?, ?, ?, ?)');

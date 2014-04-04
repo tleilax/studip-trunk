@@ -50,7 +50,6 @@ class Document_FilesController extends DocumentController
             $measure1 = $this->userConfig['upload_quota'];
             $this->upload_quota = relsize($measure1);
         }
-
         PageLayout::setTitle(_('Dateiverwaltung'));
         PageLayout::setHelpKeyword('Basis.Dateien');
         Navigation::activateItem('/document/files');
@@ -298,6 +297,89 @@ class Document_FilesController extends DocumentController
         }
     }
 
+    public function copy_action($file_id, $source_id = null)
+    {
+        
+         if (Request::isPost()) {
+            $folder_id = Request::option('folder_id');
+            if ($file_id === 'flashed') {
+                $ids = Request::optionArray('file_id');
+            } else {
+                $ids = array($file_id);
+            }
+            
+            if ($this->checkCopyQuota($ids)) {
+                foreach ($ids as $id) {
+                    $source_id = $source_id ? : $this->getParentId($file_id);
+                    $entry = new DirectoryEntry($id);
+                    $folder = new StudipDirectory($folder_id);
+                    $folder->copy(File::get($entry->file_id), $entry->name);
+                }
+                PageLayout::postMessage(MessageBox::success(_('Die ausgewählten Dateien wurden erfolgreich kopiert')));
+            } else {
+                PageLayout::postMessage(MessageBox::error(_('Der Kopiervorgang wurde abgebrochen, '.
+                    'da Ihnen nicht genügend freier Speicherplatz zur Verfügung steht')));
+            }
+            
+            $this->redirect('document/files/index/' . $source_id);
+            return;
+        }
+        
+        
+        $this->file_id = $file_id;
+        $this->dir_tree = FileHelper::getDirectoryTree($this->context_id);
+
+        if ($file_id === 'flashed') {
+            $this->flashed = $this->flash['move-ids'];
+            $this->parent_id = $source_id;
+        } else {
+            $this->parent_id = $this->getParentId($file_id);
+        }
+        $this->active_folders = array_keys(FileHelper::getBreadCrumbs($this->parent_id));
+
+        try {
+            $parent = new DirectoryEntry($this->parent_id);
+            $this->parent_file_id = $parent->getFile()->file_id;
+        } catch (Exception $e) {
+            $this->parent_file_id = $this->context_id;
+        }
+    }
+    
+    public function checkCopyQuota($ids, $size = NULL)
+    {
+        if(isset($size)){
+            $copySize = $size;
+        }else{
+            $copySize = 0;
+        }
+        foreach($ids as $id){
+            $entry = new DirectoryEntry($id);
+            $file = $entry->getFile();
+            if($file->storage_id == ''){
+                $folderEntries = $file->listFiles();
+                foreach($folderEntries as $entry){
+                    $subIds[]=$entry->id;
+                }
+            }else{
+                $copySize = $copySize+$file->size;
+            }
+        }
+        if(!empty($subIds)){
+            $this->checkCopyQuota($subIds, $copySize);
+        }else{
+            $restQuota = $this->userConfig['quota'] -
+                    DiskFileStorage::getQuotaUsage($GLOBALS['user']->id);
+            $rest = $restQuota - $copySize;
+            if($rest < 0){
+                return false;
+            }else{
+                return true;
+            }
+        }
+
+        
+    }
+    
     public function download_action($entry_id, $inline = false)
     {
         $entry = new DirectoryEntry($entry_id);

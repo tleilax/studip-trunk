@@ -111,6 +111,9 @@
                 <a href="<?= $controller->url_for('document/files/move/' . $file->id) ?>" rel="lightbox">
                     <?= Assets::img('icons/16/blue/move_right/folder-empty.png', tooltip2(_('Ordner verschieben'))) ?>
                 </a>
+                 <a href="<?= $controller->url_for('document/files/copy/' . $file->id) ?>" rel="lightbox">
+                    <?= Assets::img('icons/16/blue/add/folder-empty.png', tooltip2(_('Ordner kopieren'))) ?>
+                </a>
                 <a href="<?= $controller->url_for('document/folder/delete/' . $file->id) ?>">
                     <?= Assets::img('icons/16/blue/trash.png', tooltip2(_('Ordner löschen'))) ?>
                 </a>
@@ -148,6 +151,9 @@
                 </a>
                 <a href="<?= $controller->url_for('document/files/move/' . $file->id) ?>" rel="lightbox">
                     <?= Assets::img('icons/16/blue/move_right/file.png', tooltip2(_('Datei verschieben'))) ?>
+                </a>
+                <a href="<?= $controller->url_for('document/files/copy/' . $file->id) ?>" rel="lightbox">
+                    <?= Assets::img('icons/16/blue/add/file.png', tooltip2(_('Datei kopieren'))) ?>
                 </a>
                 <a href="<?= $controller->url_for('document/files/delete/' . $file->id) ?>">
                     <?= Assets::img('icons/16/blue/trash.png', tooltip2(_('Datei löschen'))) ?>
