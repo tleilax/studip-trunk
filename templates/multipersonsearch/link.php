@@ -1,7 +1,7 @@
 <a href="<?= URLHelper::getLink('dispatch.php/multipersonsearch/no_js_form/?name=' . $name); ?>" class="openmultipersonsearch" data-dialogname="<?= $name; ?>">
     <?
     if (!empty($linkIconPath)) {
-        print Assets::img($linkIconPath);
+        print Assets::img($linkIconPath, tooltip2(_('Personen hinzufügen')));
     }
     if (!empty($linkIconPath) && !empty($linkText)) {
         print " ";
