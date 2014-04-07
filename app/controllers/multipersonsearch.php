@@ -55,12 +55,18 @@ class MultipersonsearchController extends AuthenticatedController {
         $this->description = $mp->getDescription();
         $this->quickfilter = $mp->getQuickfilterIds();
         foreach ($this->quickfilter as $title => $users) {
-            $this->quickfilter[$title] = User::findMany($users);
+            $tmp = new SimpleCollection(User::findMany($users));
+            $tmp->orderBy("nachname asc, vorname asc");
+            $this->quickfilter[$title] = $tmp;
         }
         $this->executeURL = $mp->getExecuteURL();
         
-        $this->defaultSelectableUsers = User::findMany($mp->getDefaultSelectableUsersIDs());
-        $this->defaultSelectedUsers = User::findMany($mp->getDefaultSelectedUsersIDs());
+        $tmp = new SimpleCollection(User::findMany($mp->getDefaultSelectableUsersIDs()));
+        $tmp->orderBy("nachname asc, vorname asc");
+        $this->defaultSelectableUsers = $tmp;
+        $tmp = new SimpleCollection(User::findMany($mp->getDefaultSelectedUsersIDs()));
+        $tmp->orderBy("nachname asc, vorname asc");
+        $this->defaultSelectedUsers = $tmp;
         
         if (Request::isXhr()) {
             $this->set_layout(null);
