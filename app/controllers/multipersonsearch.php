@@ -46,9 +46,17 @@ class MultipersonsearchController extends AuthenticatedController {
         $this->name = Request::get("name");
         $mp = MultiPersonSearch::load($this->name);
         $mp->saveAddedUsersToSession();
-        $this->redirect(URLHelper::getLink('dispatch.php/' . $mp->getExecuteURL()));
+        if (strpos($mp->getExecuteURL(), '.php') === false) {
+            $this->redirect(URLHelper::getLink('dispatch.php/' . $mp->getExecuteURL()));
+        } else {
+            $this->redirect(URLHelper::getLink($mp->getExecuteURL()));
+        }
     }
     
+    
+    /**
+     * Action which shows a js-enabled dialog form.
+     */
     public function js_form_action($name) {
         $mp = MultiPersonSearch::load($name);
         $this->name = $name;
@@ -191,7 +199,11 @@ class MultipersonsearchController extends AuthenticatedController {
             $_SESSION['multipersonsearch_' . $this->name . '_added'] = $addedUsers;
             $_SESSION['multipersonsearch_' . $this->name . '_removed'] = $removedUsers;
             // redirect to action which handles the form data
-            $this->redirect($mp->getExecuteURL());
+            if (strpos($mp->getExecuteURL(), '.php') === false) {
+                $this->redirect(URLHelper::getLink('dispatch.php/' . $mp->getExecuteURL()));
+            } else {
+                $this->redirect(URLHelper::getLink($mp->getExecuteURL()));
+            }
         }
         // default
         else {

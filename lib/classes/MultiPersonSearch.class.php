@@ -416,6 +416,23 @@ class MultiPersonSearch {
     }
     
     /**
+     * clears the session data.
+     */
+    public function clearSession() {
+        unset($_SESSION['multipersonsearch_' . $this->name . '_title']);
+        unset($_SESSION['multipersonsearch_' . $this->name . '_description']);
+        unset($_SESSION['multipersonsearch_' . $this->name . '_quickfilterIds']);
+        unset($_SESSION['multipersonsearch_' . $this->name . '_executeURL']);
+        unset($_SESSION['multipersonsearch_' . $this->name . '_pageURL']);
+        unset($_SESSION['multipersonsearch_' . $this->name . '_defaultSelectableUsersIDs']);
+        unset($_SESSION['multipersonsearch_' . $this->name . '_defaultSelectedUsersIDs']);
+        unset($_SESSION['multipersonsearch_' . $this->name . '_quickfilterIds']);
+        unset($_SESSION['multipersonsearch_' . $this->name . '_searchObject']);
+        unset($_SESSION['multipersonsearch_' . $this->name . '_added']);
+        unset($_SESSION['multipersonsearch_' . $this->name . '_removed']);
+    }
+    
+    /**
      * imports stylesheet and javascript files, if not already done.
      */
     private function loadAssets() {
