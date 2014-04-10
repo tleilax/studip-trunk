@@ -10,21 +10,21 @@
         <a href="#" class="quickfilter" data-quickfilter="<?= str_replace(" ", "", $title); ?>"><?= $title; ?> (<?= count($users); ?>)</a> 
         <select multiple="multiple" id="<?= $name . '_quickfilter_' . str_replace(" ", "", $title); ?>" style="display: none;">
         <? foreach($users as $user) : ?>
-            <option value="<?= $user->id ?>"><?= Avatar::getAvatar($user->id)->getURL(Avatar::SMALL); ?> -- <?= htmlReady($user->getFullName('full_rev')) ?> -- <?= htmlReady($user->perms) ?> (<?= htmlReady($user->username)?>)</option>
+            <option value="<?= $user->id ?>"><?= Avatar::getAvatar($user->id)->getURL(Avatar::MEDIUM); ?> -- <?= htmlReady($user->getFullName('full_rev')) ?> -- <?= htmlReady($user->perms) ?> (<?= htmlReady($user->username)?>)</option>
         <? endforeach; ?>
          </select>
     <? endforeach; ?>
     <br>
-    <strong id="<?= $name . '_quickfilter_message_box'; ?>" style="display: none;"><?= _("Es wurden bereits alle Personen dieses Filters ausgewählt."); ?><br></strong>
+    <strong id="<?= $name . '_quickfilter_message_box'; ?>" style="display: none;"><?= _("Dieser Filter enth&auml;lt keine Personen."); ?><br></strong>
     
     <select multiple="multiple" id="<?= $name . '_selectbox'; ?>" name="<?= $name . '_selectbox'; ?>[]" data-init-js="true">
     </select>
     <select multiple="multiple" id="<?= $name . '_selectbox_default'; ?>" style="display: none;">
         <? foreach ($defaultSelectableUsers as $person): ?>
-            <option value="<?= $person->id ?>"><?= Avatar::getAvatar($person->id)->getURL(Avatar::SMALL); ?> -- <?= htmlReady($person->getFullName('full_rev')) ?> -- <?= htmlReady($person->perms) ?> (<?= htmlReady($person->username)?>)</option>
+            <option value="<?= $person->id ?>"><?= Avatar::getAvatar($person->id)->getURL(Avatar::MEDIUM); ?> -- <?= htmlReady($person->getFullName('full_rev')) ?> -- <?= htmlReady($person->perms) ?> (<?= htmlReady($person->username)?>)</option>
         <? endforeach; ?>
         <? foreach ($defaultSelectedUsers as $person): ?>
-            <option value="<?= $person->id ?>" selected><?= Avatar::getAvatar($person->id)->getURL(Avatar::SMALL); ?> -- <?= htmlReady($person->getFullName('full_rev')) ?> -- <?= htmlReady($person->perms) ?> (<?= htmlReady($person->username)?>)</option>
+            <option value="<?= $person->id ?>" selected><?= Avatar::getAvatar($person->id)->getURL(Avatar::MEDIUM); ?> -- <?= htmlReady($person->getFullName('full_rev')) ?> -- <?= htmlReady($person->perms) ?> (<?= htmlReady($person->username)?>)</option>
         <? endforeach; ?>
     </select>
     

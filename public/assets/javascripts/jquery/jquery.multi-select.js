@@ -111,7 +111,7 @@
         }
       }
       var inputData = $option.text().split('--');
-      var selectableLi = $('<li '+attributes+'><img src="' + inputData[0] + '" height="30px" style="float: left;">'+inputData[1]+'<br>'+inputData[2]+'</li>'),
+      var selectableLi = $('<li '+attributes+'><img src="' + inputData[0] + '" height="30px" style="float: left; margin-right: 10px;">'+inputData[1]+'<br>'+inputData[2]+'</li>'),
           selectedLi = selectableLi.clone(),
           value = $option.val(),
           elementId = that.sanitize(value, that.sanitizeRegexp);

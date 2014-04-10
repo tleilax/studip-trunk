@@ -104,7 +104,6 @@ class MultipersonsearchController extends AuthenticatedController {
         $previousSelectedUsers = unserialize(studip_utf8decode(Request::get('search_persons_selected_hidden')));
         
         // restore quickfilter
-        //$this->quickfilterIDs = $_SESSION['multipersonsearch_' . $this->name . '_quickfilterIds'];
         $this->quickfilterIDs = $mp->getQuickfilterIds();
         foreach($this->quickfilterIDs as $title=>$array) {
             $this->quickfilter[] = $title;
@@ -112,15 +111,13 @@ class MultipersonsearchController extends AuthenticatedController {
         
         // abort
         if (Request::submitted('abort')) {
-            //$_SESSION['multipersonsearch_status'] = 'aborted';
             $this->redirect($_SESSION['multipersonsearch_' . $this->name . '_pageURL']);
         }
         // search
         elseif (Request::submitted('submit_search')) {
             // evaluate search
             $this->selectedUsers = User::findMany($previousSelectedUsers);
-            //$result = PermissionSearch::get('user')->getResults($this->search, array('permission' => array('autor','tutor','dozent','admin','root'), 'exclude_user' => $previousSelectedUsers)); 
-            //$searchObject = unserialize($_SESSION['multipersonsearch_' . $this->name . '_searchObject']);
+            $searchterm = Request::get('freesearch');
             $searchObject = $mp->getSearchObject();
             $result = $searchObject->getResults($searchterm, array("cid" => Request::get('cid')));
             
@@ -199,8 +196,8 @@ class MultipersonsearchController extends AuthenticatedController {
         // default
         else {
             // get selected and selectable users from SESSION
-            $this->defaultSelectableUsersIDs = $mp->getDefaultSelectableUsersIDs(); //$_SESSION['multipersonsearch_' . $this->name . '_defaultSelectableUsersIDs'];
-            $this->defaultSelectedUsersIDs = $mp->getDefaultSelectedUsersIDs(); //$_SESSION['multipersonsearch_' . $this->name . '_defaultSelectedUsersIDs'];
+            $this->defaultSelectableUsersIDs = $mp->getDefaultSelectableUsersIDs();
+            $this->defaultSelectedUsersIDs = $mp->getDefaultSelectedUsersIDs();
             $this->selectableUsers = User::findMany($this->defaultSelectableUsersIDs);
             $this->selectedUsers = array();
         }
@@ -217,10 +214,9 @@ class MultipersonsearchController extends AuthenticatedController {
         
         // set layout data
         $this->set_layout($GLOBALS['template_factory']->open('layouts/base'));
-        $this->title = $mp->getTitle(); // $_SESSION['multipersonsearch_' . $this->name . '_title'];
-        $this->description = $mp->getDescription(); // $_SESSION['multipersonsearch_' . $this->name . '_description'];
-        $this->pageURL = $mp->getPageURL(); // $_SESSION['multipersonsearch_' . $this->name . '_pageURL'];
-        
+        $this->title = $mp->getTitle();
+        $this->description = $mp->getDescription();
+        $this->pageURL = $mp->getPageURL();
         
     }
     
