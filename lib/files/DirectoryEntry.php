@@ -13,7 +13,7 @@
  * the License, or (at your option) any later version.
  */
 
-class DirectoryEntry // extends SimpleORMap
+class DirectoryEntry extends SimpleORMap
 {
     public $id;
     public $file_id;
@@ -29,9 +29,8 @@ class DirectoryEntry // extends SimpleORMap
      *
      * @return DirectoryEntry  DirectoryEntry object
      */
-    public function __construct($id)
-    {
-        $db = DBManager::get();
+    public function __construct($id = NULL)
+    {   $db = DBManager::get();
         $stmt = $db->prepare('SELECT * FROM file_refs WHERE id = ?');
         $stmt->execute(array($id));
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -39,13 +38,15 @@ class DirectoryEntry // extends SimpleORMap
         if ($result === false) {
             throw new InvalidArgumentException('directory entry not found');
         }
-
+        
         $this->id = $id;
         $this->file_id = $result['file_id'];
         $this->parent_id = $result['parent_id'];
-        $this->name = $result['name'];               //$this->title = $result['title'];
+        $this->name = $result['name'];             
         $this->description = $result['description'];
         $this->downloads = $result['downloads'];
+        $this->db_table = 'file_refs';
+        parent::__construct($id);
     }
 
     /**
@@ -105,11 +106,8 @@ class DirectoryEntry // extends SimpleORMap
      */
     public function rename($name)
     {
-        $db = DBManager::get();
-
-        $stmt = $db->prepare('UPDATE file_refs SET name = ? WHERE id = ?');
-        $stmt->execute(array($name, $this->id));
-
+        $this->setData(array('name' => $name));
+        $this->store();
         $this->name = $name;
     }
 
@@ -118,13 +116,10 @@ class DirectoryEntry // extends SimpleORMap
      *
      * @param string $text  description text
      */
-    public function setDescription($text)
+    public function setNewDescription($text)
     {
-        $db = DBManager::get();
-
-        $stmt = $db->prepare('UPDATE file_refs SET description = ? WHERE id = ?');
-        $stmt->execute(array($text, $this->id));
-
+        $this->setData(array('description' => $text));
+        $this->store();
         $this->description = $text;
     }
 
@@ -135,11 +130,8 @@ class DirectoryEntry // extends SimpleORMap
      */
     public function setDownloadCount($count)
     {
-        $db = DBManager::get();
-
-        $stmt = $db->prepare('UPDATE file_refs SET downloads = ? WHERE id = ?');
-        $stmt->execute(array($count, $this->id));
-
+        $this->setData(array('downloads' => $count));
+        $this->store();
         $this->downloads = $count;
     }
 
@@ -161,9 +153,11 @@ class DirectoryEntry // extends SimpleORMap
      */
     public function move($parent_id)
     {
-        $db = DBManager::get();
-        $stmt = $db->prepare('UPDATE file_refs SET parent_id = :newParent_id WHERE file_id = :file_id');
-        $stmt->execute(array('newParent_id' => $parent_id, 'file_id' => $this->file_id));
+        $entry = DirectoryEntry::findBySQL('file_id = :file_id', array('file_id' => $this->file_id));
+        if(!empty($entry)){
+            $entry->setData(array('parent_id' => $parent_id));
+            $entry->store();
+        }
     }
 
     /**
@@ -173,14 +167,10 @@ class DirectoryEntry // extends SimpleORMap
     */
     public function getParent()
     {
-        $db = DBManager::get();
-        $stmt = $db->prepare('SELECT id FROM file_refs WHERE file_id = ?');
-        $stmt->execute(array($this->parent_id));
-        $result = $stmt->fetchColumn();
-
-        if (!$result) {
+        $entry = DirectoryEntry::findBySQL('file_id = :file_id', array('file_id' => $this->parent_id));
+        if (empty($entry)) {
             throw new Exception('No parent found');
         }
-        return new DirectoryEntry($result);
+        return new DirectoryEntry($entry->id);
     }
 }

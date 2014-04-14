@@ -170,6 +170,7 @@
                 <?= _('Alle markierten') ?>
                 <?= Studip\Button::create(_('Herunterladen'), 'download') ?>
                 <?= Studip\Button::create(_('Verschieben'), 'move', array('rel' => 'lightbox')) ?>
+                <?= Studip\Button::create(_('Kopieren'), 'copy', array('rel' => 'lightbox'))?>
                 <?= Studip\Button::create(_('Löschen'), 'delete') ?>
             </td>
         </tr>

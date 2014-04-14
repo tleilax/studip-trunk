@@ -22,7 +22,7 @@
           <form method="post" action="<?= $controller->url_for('document/files/edit/' . $entry->id) ?>">
 
            <?= CSRFProtection::tokenTag() ?>
-
+           
            <p>
                <input type="text" name="filename" placeholder="<?= _('Dateiname') ?>" value="<?= htmlReady($entry->getFile()->filename) ?>" required>
            </p>

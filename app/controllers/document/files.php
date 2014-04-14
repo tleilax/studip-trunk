@@ -71,7 +71,7 @@ class Document_FilesController extends DocumentController
 
         if (isset($directory)) {
             try {
-                $this->parent_id = $directory->getParent()->id;
+                //$this->parent_id = $directory->getParent()->id;
             } catch (Exception $e) {
                 $this->parent_id = $this->context_id;
             }
@@ -93,7 +93,7 @@ class Document_FilesController extends DocumentController
                 $dirEntry = new DirectoryEntry($folder_id);
                 $directory = $dirEntry->getfile();
             }
-
+            
             $title       = Request::get('title');
             $description = Request::get('description', '');
             $restricted  = Request::int('restricted', 0);
@@ -137,16 +137,16 @@ class Document_FilesController extends DocumentController
                     $this_title = $title;
                     if ($count > 1) {
                         $this_title .= ' ' . sprintf(_('(%u von %u)'), $i + 1, $count);
-                    }
-
-                    $new_file = $directory->create($filename);
+                    }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+                    $new_file = $directory->createFile($filename);
                     $new_file->rename($this_title);
-                    $new_file->setDescription($description);
+                    $new_file->setNewDescription($description);
                     $handle = $new_file->getFile();
-                    $handle->setRestricted($restricted);
-                    $handle->setMimeType($mimetype);
+                    $handle->setNewRestricted($restricted);
+                    $handle->setNewMimeType($mimetype);
+                    //echo $filesize;die;
                     $handle->size = $filesize;
-
+                        
                     // TODO: Check if storage path is writable
                     if (!move_uploaded_file($tempname, $handle->getStoragePath())) {
                         $failed[] = array($filename, 'local');
@@ -236,10 +236,10 @@ class Document_FilesController extends DocumentController
         $entry = new DirectoryEntry($entry_id);
 
         if (Request::isPost()) {
-            $entry->getFile()->setFilename(Request::get('filename'));
-            $entry->getFile()->setRestricted(Request::int('restricted', 0));
+            $entry->getFile()->setNewFilename(Request::get('filename'));
+            $entry->getFile()->setNewRestricted(Request::int('restricted', 0));
             $entry->rename(Request::get('name'));
-            $entry->setDescription(Request::get('description'));
+            $entry->setNewDescription(Request::get('description'));
 
             PageLayout::postMessage(MessageBox::success(_('Die Datei wurde bearbeitet.')));
             $this->redirect('document/files/index/' . $this->getParentId($entry_id));
@@ -307,7 +307,6 @@ class Document_FilesController extends DocumentController
             } else {
                 $ids = array($file_id);
             }
-            
             if ($this->checkCopyQuota($ids)) {
                 foreach ($ids as $id) {
                     $source_id = $source_id ? : $this->getParentId($file_id);
@@ -330,7 +329,7 @@ class Document_FilesController extends DocumentController
         $this->dir_tree = FileHelper::getDirectoryTree($this->context_id);
 
         if ($file_id === 'flashed') {
-            $this->flashed = $this->flash['move-ids'];
+            $this->flashed =  $this->flash['copy-ids'];
             $this->parent_id = $source_id;
         } else {
             $this->parent_id = $this->getParentId($file_id);
@@ -345,39 +344,27 @@ class Document_FilesController extends DocumentController
         }
     }
     
-    public function checkCopyQuota($ids, $size = NULL)
+    public function checkCopyQuota($ids, $size)
     {
-        if(isset($size)){
-            $copySize = $size;
-        }else{
-            $copySize = 0;
-        }
-        foreach($ids as $id){
-            $entry = new DirectoryEntry($id);
+        $copySize = $size;
+        for($i = 0; $i<count($ids); $i++){
+            $entry = new DirectoryEntry($ids[$i]);
             $file = $entry->getFile();
             if($file->storage_id == ''){
                 $folderEntries = $file->listFiles();
                 foreach($folderEntries as $entry){
-                    $subIds[]=$entry->id;
+                    $ids[]=$entry->id;
                 }
             }else{
                 $copySize = $copySize+$file->size;
             }
         }
-        if(!empty($subIds)){
-            $this->checkCopyQuota($subIds, $copySize);
-        }else{
-            $restQuota = $this->userConfig['quota'] -
+         $restQuota = $this->userConfig['quota'] - 
                     DiskFileStorage::getQuotaUsage($GLOBALS['user']->id);
-            $rest = $restQuota - $copySize;
-            if($rest < 0){
-                return false;
-            }else{
-                return true;
-            }
+        if(($restQuota - $copySize) <= 0){
+            return false;
         }
-
-        
+        return true;
     }
     
     public function download_action($entry_id, $inline = false)
@@ -428,6 +415,9 @@ class Document_FilesController extends DocumentController
         } else if (Request::submitted('move')) {
             $this->flash['move-ids'] = $ids;
             $this->redirect('document/files/move/flashed/' . $folder_id);
+        } else if (Request::submitted('copy')) {
+            $this->flash['copy-ids'] = $ids;
+            $this->redirect('document/files/copy/flashed/' . $folder_id);
         } else if (Request::submitted('delete')) {
             if (Request::submitted('yes')) {
                 if ($folder_id === $this->context_id) {

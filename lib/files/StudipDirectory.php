@@ -37,7 +37,7 @@ class StudipDirectory extends File
      *
      * @return DirectoryEntry  created DirectoryEntry object
      */
-    public function create($name)
+    public function createFile($name)
     {
         $db = DBManager::get();
         $file_id = md5(uniqid(__CLASS__, true));
@@ -67,10 +67,10 @@ class StudipDirectory extends File
     public function copy(File $source, $name)
     {
         if($source->storage_id != ''){
-        $new_entry = $this->create($name);
+        $new_entry = $this->createFile($name);
         $new_file = $new_entry->getFile();
-        $new_file->setFilename($source->filename);
-        $new_file->setMimeType($source->mime_type);
+        $new_file->setNewFilename($source->filename);
+        $new_file->setNewMimeType($source->mime_type);
         $new_file->size = $source->size;
         $new_file->update();
         $source_fp = $source->open('rb');
@@ -83,14 +83,14 @@ class StudipDirectory extends File
         fclose($dest_fp);
         fclose($source_fp);
         // copy some attributes
-        $new_file->setMimeType($source->getMimeType());
-        $new_file->setRestricted($source->isRestricted());
+        $new_file->setNewMimeType($source->getMimeType());
+        $new_file->setNewRestricted($source->isRestricted());
         return $new_entry;
 
         }else{ //COPY directory
             $newFolder = $this->mkdir($name);
             $folder = StudipDirectory::get($newFolder->file_id);
-            $folder->setFilename($newFolder->name);
+            $folder->setNewFilename($newFolder->name);
             //$folder->setFilename($newFolder->name);
             
             $entrys = $source->listFiles();

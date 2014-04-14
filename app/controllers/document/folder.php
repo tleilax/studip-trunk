@@ -63,8 +63,8 @@ class Document_FolderController extends DocumentController
                 }
             } while (!$check);
 
-            $directory->setDescription(Request::get('description', ''));
-            $directory->getFile()->setFilename($name);
+            $directory->setNewDescription(Request::get('description', ''));
+            $directory->getFile()->setNewFilename($name);
 
             PageLayout::postMessage(MessageBox::success(_('Der Ordner wurde erstellt.')));
             $this->redirect('document/files/index/' . $parent_id);
@@ -72,14 +72,13 @@ class Document_FolderController extends DocumentController
     }
     
     public function edit_action($folder_id)
-    {
-        $folder    = new DirectoryEntry($folder_id);
+    {   $folder    = new DirectoryEntry($folder_id);
         $parent_id = $this->getParentId($folder_id);
         
         if (Request::isPost()) {
             $folder->rename(Request::get('name'));
-            $folder->setDescription(Request::get('description'));
-            $folder->getFile()->setFilename(Request::get('name'));
+            $folder->setNewDescription(Request::get('description'));
+            $folder->getFile()->setNewFilename(Request::get('name'));
             
             PageLayout::postMessage(MessageBox::success(_('Der Ordner wurde bearbeitet.')));
             $this->redirect('document/files/index/' . $parent_id);
