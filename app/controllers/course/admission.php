@@ -87,7 +87,7 @@ class Course_AdmissionController extends AuthenticatedController
      */
     function index_action()
     {
-        $this->setInfoboxImage(Assets::image_path('infobox/hoersaal.jpg'));
+        $this->setInfoboxImage(Assets::image_path('sidebar/seminar-sidebar.png'));
         $this->addToInfobox(_('Information'), _("Sie können hier die Zugangsberechtigungen bearbeiten."), 'icons/16/black/info');
         $this->all_domains = UserDomain::getUserDomains();
         $this->seminar_domains = array_map(function($d) {return $d->getId();}, UserDomain::getUserDomainsForSeminar($this->course_id));
@@ -385,10 +385,10 @@ class Course_AdmissionController extends AuthenticatedController
             }
             $course_set = CourseSet::getSetForRule($rule_id) ?: new CourseSet();
             if ((Request::isPost() && Request::submitted('save')) || $rule instanceof LockedAdmission) {
-                CSRFProtection::verifyUnsafeRequest();
                 if ($rule instanceof LockedAdmission) {
                      $course_set->setName($rule->getName() . ': ' . $this->course->name);
                 } else {
+                    CSRFProtection::verifyUnsafeRequest();
                     $rule->setAllData(Request::getInstance());
                     $errors = $rule->validate(Request::getInstance());
                     if ($another_rule) {

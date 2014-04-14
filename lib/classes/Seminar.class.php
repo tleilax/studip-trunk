@@ -190,7 +190,9 @@ class Seminar
             $ret[$m->user_id]['label'] = $m->label;
             $ret[$m->user_id]['status'] = $m->status;
             $ret[$m->user_id]['mkdate'] = $m->mkdate;
-            $ret[$m->user_id]['fullname'] = $m->user->getFullname();
+            if ($m->user) {
+                $ret[$m->user_id]['fullname'] = $m->user->getFullname();
+            }
         }
         return $ret;
     }
@@ -2398,6 +2400,15 @@ class Seminar
         }
     }
 
+    /**
+     * returns array with information about enrolment to this course for given user_id
+     * ['enrolment_allowed'] : true or false
+     * ['cause']: keyword to describe the cause 
+     * ['description'] : readable description of the cause 
+     * 
+     * @param string $user_id
+     * @return array 
+     */
     public function getEnrolmentInfo($user_id)
     {
         $info = array();
@@ -2473,7 +2484,7 @@ class Seminar
             return $info;
         }
         //Veranstaltung unsichtbar für aktuellen Nutzer
-        if (!$this->visible && !$GLOBALS['perm']->have_perm(get_config('SEM_VISIBILITY_PERM'), $user_id)) {
+        if (!$this->visible && !$this->isStudygroup() && !$GLOBALS['perm']->have_perm(get_config('SEM_VISIBILITY_PERM'), $user_id)) {
             $info['enrolment_allowed'] = false;
             $info['cause'] = 'invisible';
             $info['description'] = _("Die Veranstaltung ist gesperrt, Sie können sich nicht eintragen!");
@@ -2491,6 +2502,12 @@ class Seminar
         return $info;
     }
 
+    /**
+     * adds user with given id as preliminary member to course
+     * 
+     * @param string $user_id
+     * @return integer 1 if successfull
+     */
     function addPreliminaryMember($user_id)
     {
         $new_admission_member = new AdmissionApplication();
@@ -2511,6 +2528,11 @@ class Seminar
         return $ok;
     }
 
+    /**
+     * returns courseset object for this  course
+     * 
+     * @return CourseSet courseset object or null
+     */
     function getCourseSet()
     {
         if ($this->course_set === null) {
@@ -2522,12 +2544,22 @@ class Seminar
         return $this->course_set ?: null;
     }
 
+    /**
+     * returns true if the number of participants of this course is limited
+     * 
+     * @return boolean
+     */
     function isAdmissionEnabled()
     {
        $cs = $this->getCourseSet();
        return ($cs && $cs->isSeatDistributionEnabled());
     }
 
+    /**
+     * returns the number of free seats in the course or true if not limited
+     * 
+     * @return integer 
+     */
     function getFreeAdmissionSeats()
     {
         if ($this->isAdmissionEnabled()) {
@@ -2537,18 +2569,34 @@ class Seminar
         }
     }
 
+    /**
+     * returns true if the course is locked
+     * 
+     * @return boolean
+     */
     function isAdmissionLocked()
     {
         $cs = $this->getCourseSet();
         return ($cs && $cs->hasAdmissionRule('LockedAdmission'));
     }
-
+    
+    /**
+     * returns true if the course is password protected
+     *
+     * @return boolean
+     */
     function isPasswordProtected()
     {
         $cs = $this->getCourseSet();
         return ($cs && $cs->hasAdmissionRule('PasswordAdmission'));
     }
 
+    /**
+     * returns array with start and endtime of course enrolment timeframe
+     * return null if there is no timeframe
+     * 
+     * @return array assoc array with start_time end_time as keys timestamps as values
+     */
     function getAdmissionTimeFrame()
     {
         $cs = $this->getCourseSet();

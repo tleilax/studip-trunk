@@ -57,7 +57,7 @@ jQuery('a[rel~="lightbox"], button[rel~="lightbox"]').live('click', function (ev
     }
     // Load response into a helper container, open dialog after loading
     // has finished.
-    container.load(href, that_params || {}, function (response, status, xhr) {
+    container.load(href, that_params || '', function (response, status, xhr) {
         var width   = jQuery('body').width() * 2 / 3,
             height  = jQuery('body').height() * 2 / 3,
             buttons = {},
@@ -384,31 +384,6 @@ jQuery(function ($) {
             // Store current state
             $(this).data('secured', action === 'on');
         }
-    });
-}(jQuery));
-
-// Global handler:
-// Use a checkbox as a proxy for a set of other checkboxes. Define
-// proxied elements as a css selector in attribute "data-proxyfor".
-(function ($) {
-    $(document).on('change', ':checkbox[data-proxyfor]', function () {
-        var proxied = $(this).data('proxyfor');
-        $(proxied).filter(':not(:disabled)').attr('checked', this.checked);
-    }).on('update.studip', ':checkbox[data-proxyfor]', function () {
-        var proxied  = $(this).data('proxyfor'),
-            $proxied = $(proxied),
-            $checked = $proxied.filter(':not(:disabled)').filter(':checked');
-        $(this).attr('checked', $proxied.length > 0 && $proxied.length === $checked.length);
-        $(this).prop('indeterminate', $checked.length > 0 && $checked.length < $proxied.length);
-    }).on('change', ':checkbox[data-proxiedby]', function () {
-        var proxy = $(this).data('proxiedby');
-        $(proxy).trigger('update.studip');
-    }).ready(function () {
-        $(':checkbox[data-proxyfor]').each(function () {
-            var proxied = $(this).data('proxyfor');
-            // The following seems like a hack but works perfectly fine.
-            $(proxied).attr('data-proxiedby', true).data('proxiedby', this);
-        }).trigger('update.studip');
     });
 }(jQuery));
 

@@ -24,6 +24,9 @@ require_once 'authenticated_controller.php';
 use Studip\WysiwygRequest;
 use Studip\WysiwygDocument;
 
+use Studip\MarkupPrivate\MediaProxy; // TODO remove debug code
+
+
 class WysiwygController extends \AuthenticatedController
 {
     const UPLOAD_PERMISSION = 'autor'; // minimum permission level for uploading
@@ -59,65 +62,8 @@ class WysiwygController extends \AuthenticatedController
                 self::FOLDER_NAME, self::FOLDER_DESCRIPTION);
             $response = WysiwygDocument::storeUploadedFilesIn($folder_id);
         } catch (AccessDeniedException $e) {
-            $response = \studip_utf8encode($e->getMessage());
+            $response = $e->getMessage();
         }
         $this->render_json($response); // send HTTP response to client
-    }
-
-    /**
-     * TODO remove this method
-     */
-    public function test_action()
-    {
-        // studip must be at localhost/~rcosta/step00256 for tests to work
-        // LOAD_EXTERNAL_MEDIA must be set to 'proxy'
-        $studip_root = '/~rcosta/step00256';
-
-        $studip_document = $studip_root
-            . '/sendfile.php?type=0&file_id=abc123&file_name=test.jpg';
-
-        $external_document = 'http://pflanzen-enzyklopaedie.eu'
-            . '/wp-content/uploads/2012/11/'
-            . 'Sumpfdotterblume-multiplex-120x120.jpg';
-
-        $proxy_document = $studip_root
-            . '/dispatch.php/media_proxy?url='
-            . 'http%3A%2F%2Fpflanzen-enzyklopaedie.eu'
-            . '%2Fwp-content%2Fuploads%2F2012%2F11%2F'
-            . 'Sumpfdotterblume-multiplex-120x120.jpg';
-
-        $tests = array(
-            'invalid url' => NULL, // fail
-            $studip_document                      => $studip_document,
-            'http://localhost' . $studip_document => $studip_document,
-            'http://127.0.0.1' . $studip_document => $studip_document, // fail
-            $proxy_document                      => $proxy_document,
-            $external_document                   => $proxy_document,
-            'http://localhost' . $proxy_document => $proxy_document,
-            'http://127.0.0.1' . $proxy_document => $proxy_document, // fail
-        );
-
-        $test_results = '';
-        forEach ($tests as $i => $o) {
-            $r = Utils::getMediaUrl($i);
-            $v = ($r == $o) ? '==' : '!=';
-            $test_results .= "Utils::getMediaUrl($i)<br>"
-                          .  "                == $r<br>"
-                          .  "                $v $o<br>"
-                          . '<br>';
-        }
-
-        $this->render_text('<pre>'
-            .'Utils::getUrl():           '.Utils::getUrl().'<br>'
-            .'Utils::getBaseName():      '.Utils::getBaseName().'<br>'
-            .'Utils::getBaseUrl():       '.Utils::getBaseUrl().'<br>'
-            .'URLHelper::getLink():      '.URLHelper::getLink().'<br>'
-            .'URLHelper::getUrl():       '.URLHelper::getUrl().'<br>'
-            .'URLHelper::getScriptUrl(): '.URLHelper::getScriptUrl().'<br>'
-            .'<br>'
-            .'LOAD_EXTERNAL_MEDIA='.\Config::GetInstance()->getValue('LOAD_EXTERNAL_MEDIA').'<br>'
-            .'<br>'
-            .$test_results
-            .'</pre>');
     }
 }

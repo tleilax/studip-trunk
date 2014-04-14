@@ -8,7 +8,7 @@ use Studip\Button, Studip\LinkButton;
 
 <form action="<?= $controller->url_for('admin/user/migrate') ?>" method="post">
     <?= CSRFProtection::tokenTag() ?>
-    <table class="default zebra">
+    <table class="default">
         <colgroup>
             <col width="250px">
             <col>
@@ -74,7 +74,7 @@ use Studip\Button, Studip\LinkButton;
 include '_infobox.php';
 
 $infobox = array(
-    'picture' => 'infobox/board1.jpg',
+    'picture' => 'sidebar/person-sidebar.png',
     'content' => array(
         array(
             'kategorie' => _("Aktionen"),

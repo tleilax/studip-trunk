@@ -3,20 +3,21 @@
 <form action="<?= $controller->url_for('admin/cronjobs/tasks/bulk', $page) ?>" method="post">
     <?= CSRFProtection::tokenTag() ?>
 
-<table class="default zebra-hover cronjobs">
+<table class="default cronjobs">
     <colgroup>
         <col width="20px">
         <col width="200px">
         <col>
         <col width="100px">
         <col width="40px">
-        <col width="50px">
+        <col width="70px">
     </colgroup>
     <thead>
         <tr>
             <th>
                 <input type="checkbox" name="all" value="1"
-                       data-proxyfor=":checkbox[name='ids[]']">
+                       data-proxyfor=":checkbox[name='ids[]']"
+                       data-activates=".cronjobs select[name=action]">
             </th>
             <th><?= _('Aufgabe') ?></th>
             <th><?= _('Beschreibung') ?></th>
@@ -51,6 +52,9 @@
             <? endif; ?>
             </td>
             <td style="text-align: right">
+                <a rel="lightbox" href="<?= $controller->url_for('admin/cronjobs/tasks/execute/', $tasks[$i]->task_id) ?>">
+                    <?= Assets::img('icons/16/blue/play', tooltip2(_('Aufgabe ausführen'))) ?>
+                </a>
                 <a href="<?= $controller->url_for('admin/cronjobs/logs/task', $tasks[$i]->task_id) ?>">
                     <?= Assets::img('icons/16/blue/log', tooltip2(_('Log anzeigen'))) ?>
                 </a>
@@ -65,13 +69,13 @@
     <tfoot>
         <tr>
             <td colspan="3" class="printhead">
-                <select name="action">
+                <select name="action" data-activates=".cronjobs button[name=bulk]">
                     <option value="">- <?= _('Aktion auswählen') ?></option>
                     <option value="activate"><?= _('Aktivieren') ?></option>
                     <option value="deactivate"><?= _('Deaktivieren') ?></option>
                     <option value="delete"><?= _('Löschen') ?></option>
                 </select>
-                <?= Button::createAccept(_('Ausführen')) ?>
+                <?= Button::createAccept(_('Ausführen'), 'bulk') ?>
             </td>
             <td colspan="3" class="printhead" style="text-align: right; vertical-align: middle;">
             <?

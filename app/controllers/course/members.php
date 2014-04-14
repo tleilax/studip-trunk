@@ -193,7 +193,7 @@ class Course_MembersController extends AuthenticatedController
             }
         }
         // Set the infobox
-        $this->setInfoBoxImage('infobox/groups.jpg');
+        $this->setInfoBoxImage('sidebar/person-sidebar.png');
         if ($this->is_tutor) {
             if ($this->is_dozent) {
                 if (!$this->dozent_is_locked) {
@@ -1224,6 +1224,9 @@ class Course_MembersController extends AuthenticatedController
         $course = new Course($_SESSION['SessionSeminar']);
         $member = $course->members->findOneBy('user_id', $GLOBALS['user']->id);
         $this->datafields = $course->aux->getMemberData($member);
+
+        // We need aux data in the view
+        $this->aux = $course->aux;
 
         // Update em if they got submittet
         if (Request::submitted('save')) {

@@ -47,6 +47,7 @@ class TextFormat
 {
     private $markup_rules;
     private $start_regexp;
+    private $rule_stack;
 
     /**
      * Initializes a new TextFormat instance with an initial set of
@@ -58,6 +59,7 @@ class TextFormat
     {
         $this->markup_rules = $markup_rules;
         $this->start_regexp = NULL;
+        $this->rule_stack = array();
     }
 
     /**
@@ -99,7 +101,7 @@ class TextFormat
         }
         $this->start_regexp = NULL;
     }
-    
+
     /**
      * Returns a single markup-rule if it exists.
      * @return array: array('start' => "...", 'end' => "...", 'callback' => "...")
@@ -159,6 +161,10 @@ class TextFormat
 
         if (isset($pattern)) {
             $parts = preg_split($pattern, $text, -1, $options);
+            if (!is_array($parts)) {
+                $last_error = error_get_last();
+                throw new Exception(__CLASS__ . ': ' . $last_error['message']);
+            }
             array_unshift($parts, NULL);
         } else {
             $parts = array(NULL, array($text, 0));
@@ -208,11 +214,14 @@ class TextFormat
 
             $matched = false;
 
-            foreach ($this->markup_rules as $rule) {
+            foreach ($this->markup_rules as $ruleKey => $rule) {
                 if (self::matchPart($rule['start'], $text, $matches, $part[1])) {
                     if (isset($rule['end'])) {
                         $saved_parts = $parts;
+
+                        array_push($this->rule_stack, $ruleKey);
                         $contents = $this->formatParts($text, $parts, $rule);
+                        array_pop($this->rule_stack);
 
                         // skip this markup rule in case of missing closing tag
                         if (current($parts) === false) {
@@ -266,5 +275,15 @@ class TextFormat
         }
 
         return $result && $match_offset === $offset;
+    }
+
+    /**
+     * Return true if the current markup is surrounded by another markup.
+     * @param string $rule Name of the rule (it's key in markup_rules).
+     * @return boolean  True if inside of $rule-markup.
+     */
+    public function isInsideOf($rule)
+    {
+        return in_array($rule, $this->rule_stack);
     }
 }

@@ -35,12 +35,12 @@ class Files extends \RESTAPI\RouteMap
 
         // is it a file?
         if ($file = $this->loadFile($file_id)) {
-            return self::fileToJSON($file);
+            return $this->fileToJSON($file);
         }
 
         // or is it a folder?
         else if ($folder = $this->loadFolder($file_id)) {
-            return self::folderToJSON($folder);
+            return $this->folderToJSON($folder);
         }
 
         $this->halt(404, "Not found.");
@@ -78,14 +78,54 @@ class Files extends \RESTAPI\RouteMap
         }
     }
 
+
     /**
-     * Datei bzw. Ordner erzeugen
+     * Create file or folder. To create a file just attach a file as multipart request.
+     * If no file is attached, this will create a folder.
      *
-     * @post /file/:file_id
+     * @post /file/:folder_id
+     * @param string $file_id : id of the folder to insert the file or folder to.
+     *
+     * @param string name : if set the document will have this name instead of the filename. For folders this attribute is mandatory.
+     * @param string description : sets the description of the document or folder.
      */
-    public function postFiles()
+    public function addFile($folder_id)
     {
-        $this->error(501);
+        $parentFolder = $this->loadFolder($id);
+        if (!$folder) {
+            $document = $this->loadFile($id);
+            $parentFolder = $this->loadFolder($document['range_id']);
+        }
+        if (count($_FILES)) {
+            //fileupload
+            $file = null;
+            foreach ($_FILES as $filedata) {
+                $file = $filedata;
+                break; //only once please
+            }
+            if ($file && validate_upload($file)) {
+                upload($file, false, $folder_id);
+            }
+            $document = new \StudipDocument($GLOBALS['dokument_id']);
+            $document['description'] = $this->data['description'];
+            if ($this->data['name']) {
+                $document['name'] = $this->data['name'];
+            }
+
+            $this->redirect('file/' . $document->getId(), 201, "ok");
+        } elseif($this->data['name']) {
+            //create folder
+            $newFolder = new \DocumentFolder();
+            $newFolder['range_id'] = $folder_id;
+            $newFolder['seminar_id'] = $parentFolder['seminar_id'];
+            $newFolder['name'] = $this->data['name'];
+            $newFolder['description'] = $this->data['description'];
+            $newFolder['permission'] = $parentFolder['permission'];
+            $newFolder->store();
+            $this->redirect('file/' . $newFolder->getId(), 201, "ok");
+        } else {
+            $this->error(400);
+        }
     }
 
     /**
@@ -94,7 +134,42 @@ class Files extends \RESTAPI\RouteMap
      * @put /file/:file_id
      */
     public function putFile($id) {
-        $this->error(501);
+        $folder = $this->loadFolder($id);
+        if (!$folder) {
+            $document = $this->loadFile($id);
+            $folder = $this->loadFolder($document['range_id']);
+        }
+        if (!$folder) {
+            $this->error(404);
+            return;
+        }
+        if ($document) {
+            if (count($_FILES)) {
+                //fileupload
+                $file = null;
+                foreach ($_FILES as $filedata) {
+                    $file = $filedata;
+                    break; //only once please
+                }
+                if ($file && validate_upload($file)) {
+                    upload($file, $id, $folder->getId());
+                }
+            }
+            if ($this->data['name']) {
+                $document['description'] = $this->data['description'];
+            }
+            if ($this->data['name']) {
+                $document['name'] = $this->data['name'];
+            }
+
+            $this->redirect('file/' . $document->getId(), 201, "ok");
+        } else {
+            //create folder
+            $folder['name'] = $this->data['name'];
+            $folder['description'] = $this->data['description'];
+            $folder->store();
+            $this->redirect('file/' . $folder->getId(), 201, "ok");
+        }
     }
 
     /**
@@ -103,7 +178,20 @@ class Files extends \RESTAPI\RouteMap
      * @delete /file/:file_id
      */
     public function deleteFile($file_id) {
-        $this->error(501);
+        $folder = $this->loadFolder($id);
+        if (!$folder) {
+            $document = $this->loadFile($id);
+            $folder = $this->loadFolder($document['range_id']);
+        }
+        if (!$folder) {
+            $this->error(404);
+            return;
+        }
+        if ($document) {
+            $document->delete();
+        } else {
+            $folder->delete();
+        }
     }
 
     /**
@@ -114,15 +202,16 @@ class Files extends \RESTAPI\RouteMap
     public function getCourseFiles($course_id) {
 
         $folders = \SimpleCollection::createFromArray(
-            \StudipDocumentFolder::findBySeminar_id($course_id))->orderBy('name asc');
+            \DocumentFolder::findBySeminar_id($course_id))->orderBy('name asc');
 
         // slice according to demanded pagination
         $total = count($folders);
-        $folders = $folders->limit($this->offset, $this->limit);
-        foreach ($folders as &$folder) {
-            $folder = self::folderToJSON($folder, true);
+        $json = array();
+        foreach ($folders->limit($this->offset, $this->limit) as $folder) {
+            $url = $this->urlf('/file/%s', array($folder->id));
+            $json[$url] = $this->folderToJSON($folder, true);
         }
-        return $this->paginated($folders, $total, compact('course_id'));
+        return $this->paginated($json, $total, compact('course_id'));
     }
 
 
@@ -150,7 +239,7 @@ class Files extends \RESTAPI\RouteMap
 
     private function loadFolder($id)
     {
-        $folder = new \StudipDocumentFolder($id);
+        $folder = new \DocumentFolder($id);
 
         // return NULL unless it exists
         if ($folder->isNew()) {
@@ -174,18 +263,18 @@ class Files extends \RESTAPI\RouteMap
     /**
      * Transforms file metadata to a filtered JSON set of attributes.
      */
-    private static function fileToJSON($file) {
+    private function fileToJSON($file) {
 
         $result = array('file_id' => $file->getValue('id'));
         foreach (words('range_id seminar_id name description mkdate chdate filename filesize downloads protected') as $word) {
             $result[$word] = $file->getValue($word);
         }
 
-        $result['author'] = '/user/' . $file->getValue('user_id');
+        $result['author']    = $this->urlf('/user/%s', array($file->getValue('user_id')));
         $result['protected'] = !empty($result['protected']);
-        $result['blob'] = '/file/' . $result['file_id'] . '/content';
+        $result['blob']      = $this->urlf('/file/%s/content', array($result['file_id']));
 
-        self::linkToCourseOrInst($result);
+        $this->linkToCourseOrInst($result);
 
         return $result;
     }
@@ -194,7 +283,7 @@ class Files extends \RESTAPI\RouteMap
     /**
      * Transforms folder metadata to a filtered JSON set of attributes.
      */
-    private static function folderToJSON($folder, $shallow = false) {
+    private function folderToJSON($folder, $shallow = false) {
 
         $result = array('folder_id' => $folder->getValue('id'));
         foreach (words('range_id seminar_id user_id name description mkdate chdate') as $word) {
@@ -202,31 +291,31 @@ class Files extends \RESTAPI\RouteMap
         }
 
         // transform user_id
-        $result['author'] = '/user/'.$result['user_id'];
+        $result['author'] = $this->urlf('/user/%s', array($result['user_id']));
         unset($result['user_id']);
 
-        self::linkToCourseOrInst($result);
+        $this->linkToCourseOrInst($result);
 
         $result['permissions'] = $folder->getPermissions();
 
-        $result['documents'] = self::loadDocuments($folder->id);
+        $result['documents'] = $this->loadDocuments($folder->id);
 
         if (!$shallow) {
-            $result['folders']   = self::loadFolders($folder->id);
+            $result['folders'] = self::loadFolders($folder->id);
         }
 
         return $result;
     }
 
     // transform seminar_id
-    private static function linkToCourseOrInst(&$result)
+    private function linkToCourseOrInst(&$result)
     {
         $type = get_object_type($result['seminar_id'], array('sem', 'inst'));
 
         if ($type === 'sem') {
-            $result['course'] = '/course/'.$result['seminar_id'];
+            $result['course'] = $this->urlf('/course/%s', array($result['seminar_id']));
         } else if ($type === 'inst') {
-            $result['institute'] = '/institute/'.$result['seminar_id'];;
+            $result['institute'] = $this->urlf('/institute/%s', array($result['seminar_id']));
         }
         unset($result['seminar_id']);
     }
@@ -282,12 +371,13 @@ class Files extends \RESTAPI\RouteMap
         return $result;
     }
 
-    private static function loadDocuments($folder_id)
+    private function loadDocuments($folder_id)
     {
         $files = \StudipDocument::findByFolderId($folder_id);
         $result = array();
         foreach ($files as $file) {
-            $result[] = self::fileToJSON($file);
+            $url = $this->urlf('/file/%s', array($file->id));
+            $result[$url] = $this->fileToJSON($file);
         }
         return $result;
     }

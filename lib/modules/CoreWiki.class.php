@@ -63,21 +63,44 @@ class CoreWiki implements StudipModule {
                     AND wiki.chdate > ?';
         }
         
+        $wikipage_stmt = DBManager::get()->prepare("SELECT * FROM wiki
+            WHERE keyword = ? AND range_id = ?
+                AND version = ?");
+        
         $stmt = DBManager::get()->prepare($query);
         $stmt->execute(array($user_id, $course_id, $since));
         
         while ($row = $stmt->fetch()) {
             // use correct text depending on type of object
             if ($type == 'sem') {
-                $summary = sprintf('%s hat im Wiki der Veranstaltung "%s" die Seite "%s" geändert.',
-                    $row['fullname'], $row['Name'], $row['keyword']);
+                if ($row['version'] > 1) {
+                    $summary = sprintf('%s hat im Wiki der Veranstaltung "%s" die Seite "%s" geändert.',
+                        $row['fullname'], $row['Name'], $row['keyword']);
+                } else {
+                    $summary = sprintf('%s hat im Wiki der Veranstaltung "%s" die Seite "%s" erstellt.',
+                        $row['fullname'], $row['Name'], $row['keyword']);
+                }
             } else {
-                $summary = sprintf('%s hat im Wiki der Einreichtung "%s" die Seite "%s" geändert.',
-                    $row['fullname'], $row['Name'], $row['keyword']);
+                if ($row['version'] > 1) {
+                    $summary =  sprintf('%s hat im Wiki der Einreichtung "%s" die Seite "%s" geändert.',
+                        $row['fullname'], $row['Name'], $row['keyword']);
+                } else {
+                    $summary =  sprintf('%s hat im Wiki der Einreichtung "%s" die Seite "%s" erstellt.',
+                        $row['fullname'], $row['Name'], $row['keyword']);
+                }
             }
 
+            $content = '';
+            if ($row['version'] > 1) {
+                $wikipage_stmt->execute(array($row['keyword'], $row['range_id'], $row['version'] - 1));
+                $old_page = $wikipage_stmt->fetch(PDO::FETCH_ASSOC);
+                $content = '<table>' . do_diff($old_page['body'], $row['body']) .'</table>';
+            } else {
+                $content = wikiReady($row['body']);
+            }
+            
             $items[] = new ContentElement(
-                'Wiki: ' . $row['keyword'], $summary, $row['body'], $row['user_id'], $row['fullname'],
+                'Wiki: ' . $row['keyword'], $summary, $content, $row['user_id'], $row['fullname'],
                 URLHelper::getLink('wiki.php',
                     array('cid' => $row['range_id'], 'keyword' => $row['keyword'])),
                 $row['chdate']

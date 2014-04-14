@@ -66,7 +66,7 @@ foreach ($registered_modules as $key => $val) {
             <? endif ?>
         </td>
         <td>
-            <? $info = $studip_module instanceOf StudipModule ? $studip_module->getMetadata() : array() ?>
+            <? $info = ($studip_module instanceOf StudipModule) ? $studip_module->getMetadata() : ($val['metadata'] ? $val['metadata'] : array()) ?>
             <? if (isset($info['description'])) : ?>
                 <?= formatReady($info['description']) ?>
             <? else: ?>
@@ -159,6 +159,6 @@ $infobox = array(
     
 );
 $infobox = array(
-    'picture' => "infobox/modules.jpg",
+    'picture' => "sidebar/plugin-sidebar.png",
     'content' => $infobox
 );

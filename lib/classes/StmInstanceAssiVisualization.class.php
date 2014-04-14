@@ -24,7 +24,7 @@ class StmInstanceAssiVisualization{
             "<b>" . _("Wahl eines Konkreten Moduls") . "</b><br>
             " . _("Bitte w&auml;hlen Sie die entsprechende Aktion f&uuml;r ein vorhandenes Konkretes Modul aus. Sie k&ouml;nnen alternativ auch ein neues Modul instanziieren.")
             , array('align' => 'center', 'class' => 'blank'));
-            echo $table->cell(Assets::img('infobox/archiv.jpg'));
+            echo $table->cell(Assets::img('sidebar/seminar-archive-sidebar.png'));
         echo $table->close();
 
         echo $table->open(array('class' => 'table_row_odd'));
@@ -166,7 +166,7 @@ class StmInstanceAssiVisualization{
         , array( 'align' => 'center'));
         echo $table->cell($form->getFormField('topics', array('rows' => '25', 'style' => 'width: 95%; ')) , array( 'style' => 'width:100%; vertical-align:middle', 'align' => 'center'));
         echo $table->openCell(array('align' => 'center'));
-        print_infobox ($infobox, "infobox/wiki.jpg");
+        print_infobox ($infobox, "sidebar/wiki-sidebar.png");
         echo '<br>Vorschau&nbsp;' . $form->getFormButton('preview');
         echo $table->closeCell();
         echo $table->closeRow();

@@ -33,9 +33,11 @@ class Forum extends \RESTAPI\RouteMap
 
         $json = array();
         foreach ($categories as $cat) {
-            $uri = sprintf('/forum_category/%s', htmlReady($cat['category_id']));
-            $json[$uri] = self::categoryToJson($cat);
+            $uri = $this->urlf('/forum_category/%s', array(htmlReady($cat['category_id'])));
+            $json[$uri] = $this->categoryToJson($cat);
         }
+
+        $this->etag(md5(serialize($json)));
 
         return $this->paginated($json, $total, compact('course_id'));
     }
@@ -77,7 +79,9 @@ class Forum extends \RESTAPI\RouteMap
             $this->error(401);
         }
 
-        return self::categoryToJson($category);
+        $category_json = $this->categoryToJson($category);
+        $this->etag(md5(serialize($category_json)));
+        return $category_json;
     }
 
     /**
@@ -136,6 +140,7 @@ class Forum extends \RESTAPI\RouteMap
 
         $areas = $this->getAreas($category_id, $this->offset, $this->limit);
 
+        $this->etag(md5(serialize($areas)));
         return $this->paginated($areas, $this->countAreas($category_id), compact('category_id'));
     }
 
@@ -186,8 +191,11 @@ class Forum extends \RESTAPI\RouteMap
         if (!\ForumPerm::has('view', $cid)) {
             $this->error(401);
         }
-
-        return $this->findEntry($entry_id);
+        
+        $entry = $this->findEntry($entry_id);
+        $this->lastmodified($entry->chdate);
+        $this->etag(md5(serialize($entry)));
+        return $entry;
     }
 
     /**
@@ -238,11 +246,11 @@ class Forum extends \RESTAPI\RouteMap
     public function updateForumEntry($entry_id)
     {
         $entry = $this->findEntry($entry_id);
-        $cid = $entry['course_id'];
+        $cid = $parent['course_id'];
 
         $perm = self::isArea($entry) ? 'edit_area' : 'edit_entry';
 
-        if (!\ForumPerm::hasEditPerms($entry_id) && !\ForumPerm::has($perm, $cid)) {
+        if (!\ForumPerm::hasEditPerms($entry_id) || !\ForumPerm::has($perm, $cid)) {
             $this->error(401);
         }
 
@@ -276,13 +284,9 @@ class Forum extends \RESTAPI\RouteMap
     public function deleteForumEntry($entry_id)
     {
         $entry = $this->findEntry($entry_id);
-        $cid = $entry['course_id'];
+        $cid = $parent['course_id'];
 
-         if (!\ForumPerm::hasEditPerms($entry_id) && !\ForumPerm::has('remove_entry', $cid)) {
-            $this->error(401);
-        }
-
-        if (!\ForumPerm::has($perm, $cid)) {
+        if (!\ForumPerm::hasEditPerms($entry_id) || !\ForumPerm::has('remove_entry', $cid)) {
             $this->error(401);
         }
 
@@ -305,7 +309,7 @@ class Forum extends \RESTAPI\RouteMap
             $this->notFound();
         }
 
-        $entry = self::convertEntry($raw);
+        $entry = $this->convertEntry($raw);
 
         $children = \ForumEntry::getEntries($entry_id, \ForumEntry::WITHOUT_CHILDS, '', 'ASC', 0, false);
 
@@ -313,15 +317,15 @@ class Forum extends \RESTAPI\RouteMap
             unset($children['list'][$entry_id]);
         }
 
-        $entry['children'] = array_map(function ($entry) {
-                return ForumRoute::convertEntry($entry);
-            },
-            array_values($children['list']));
+        $entry['children'] = array();
+        foreach (array_values($children['list']) as $childentry) {
+            $entry['children'][] = $this->convertEntry($childentry);
+        }
 
         return $entry;
     }
 
-    public static function convertEntry($raw)
+    public function convertEntry($raw)
     {
         $entry = array();
         foreach(words("topic_id mkdate chdate anonymous depth") as $key) {
@@ -329,8 +333,9 @@ class Forum extends \RESTAPI\RouteMap
         }
 
         $entry['subject']      = $raw['name'];
-        $entry['user']         = sprintf('/user/%s', htmlReady($raw['user_id']));
-        $entry['course']       = sprintf('/course/%s', htmlReady($raw['seminar_id']));
+        $entry['user']         = $this->urlf('/user/%s', array(htmlReady($raw['user_id'])));
+        $entry['course_id']    = $raw['seminar_id'];
+        $entry['course']       = $this->urlf('/course/%s', array(htmlReady($raw['seminar_id'])));
         $entry['content_html'] = \ForumEntry::getContentAsHtml($raw['content']);
         $entry['content']      = \ForumEntry::killEdit($raw['content']);
 
@@ -343,7 +348,7 @@ class Forum extends \RESTAPI\RouteMap
         return 1 === $entry['depth'];
     }
 
-    private static function createEntry($parent_id, $course_id, $subject, $content, $anonymous)
+    private function createEntry($parent_id, $course_id, $subject, $content, $anonymous)
     {
         $topic_id  = self::generateID();
 
@@ -377,20 +382,20 @@ class Forum extends \RESTAPI\RouteMap
         return $result;
     }
 
-    private static function categoryToJson($category)
+    private function categoryToJson($category)
     {
         $json = $category;
 
-        $json['course'] = sprintf('/course/%s', htmlReady($json['course_id']));
+        $json['course'] = $this->urlf('/course/%s', array(htmlReady($json['course_id'])));
         unset($json['course_id']);
 
-        $json['areas'] = sprintf('/forum_category/%s/areas', $json['category_id']);
-        $json['areas_count'] = self::countAreas($json['category_id']);
+        $json['areas'] = $this->urlf('/forum_category/%s/areas', array($json['category_id']));
+        $json['areas_count'] = $this->countAreas($json['category_id']);
 
         return $json;
     }
 
-    private static function countAreas($category_id)
+    private function countAreas($category_id)
     {
         return sizeof(\ForumCat::getAreas($category_id));
     }
@@ -403,8 +408,8 @@ class Forum extends \RESTAPI\RouteMap
         $areas = array();
 
         foreach (\ForumCat::getAreas($category_id, $offset, $limit) as $area) {
-            $url = sprintf('/forum_entry/%s', htmlReady($area['topic_id']));
-            $areas[$url] = self::convertEntry($area);
+            $url = $this->urlf('/forum_entry/%s', array(htmlReady($area['topic_id'])));
+            $areas[$url] = $this->convertEntry($area);
         }
 
         return $areas;

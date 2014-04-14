@@ -190,10 +190,10 @@ STUDIP.Forum = {
         this.cancelAddArea();
 
         jQuery('table[data-category-id=' + category_id + '] tr.add_area').hide();
-
+        
         $(template({
             category_id : category_id,
-        })).insertBefore('table[data-category-id=' + category_id + '] tr.sort-disabled');
+        })).appendTo('table[data-category-id=' + category_id + ']');
         
         // #FIXME: there should be a better way to initialize a single form
         STUDIP.Forms.initialize();
@@ -216,7 +216,7 @@ STUDIP.Forum = {
                     $('table[data-category-id=' + values.category_id +'] tr.add_area').show();
                     
                     // insert the new area at the end of the list (more precisely: add the exact position where the add-form has been)
-                    $(data).insertBefore('table[data-category-id=' + values.category_id + '] tr.sort-disabled');
+                    $(data).appendTo('table[data-category-id=' + values.category_id + ']');
                     
                     STUDIP.Forum.saveAreaOrder();
                 }

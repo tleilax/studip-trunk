@@ -21,7 +21,7 @@ class BlubberPosting extends SimpleORMap {
     //One-time variable that is set right before markup
     static public $mention_posting_id = false;
     //regexp for hashtags
-    static public $hashtags_regexp = "(^|\s)#([\w\d_\.\-\?!\+=%]*[\w\d])";
+    static public $hashtags_regexp = "(^|\s)\#([\w\d_\.\-\?!\+=%]*[\w\d])";
 
     /**
      * Special format-function that adds hashtags to the common formatReady-markup.
@@ -29,7 +29,7 @@ class BlubberPosting extends SimpleORMap {
      * @return string : formatted text
      */
     static public function format($text) {
-        StudipFormat::addStudipMarkup("blubberhashtag", BlubberPosting::$hashtags_regexp, "", "BlubberPosting::markupHashtags");
+        StudipFormat::addStudipMarkup("blubberhashtag", BlubberPosting::$hashtags_regexp, null, "BlubberPosting::markupHashtags");
         $output = formatReady($text);
         StudipFormat::removeStudipMarkup("blubberhashtag");
         return $output;
@@ -170,10 +170,11 @@ class BlubberPosting extends SimpleORMap {
             if ($posting['topic_id'] === $posting['root_id']) {
                 $db = DBManager::get();
                 return $db->query(
-                    "SELECT mkdate " .
+                    "SELECT GREATEST(MAX(blubber.mkdate),  IFNULL(MAX(blubber_reshares.chdate), 0)) " .
                     "FROM blubber " .
+                        "LEFT JOIN blubber_reshares ON (blubber_reshares.topic_id = blubber.root_id) " .
                     "WHERE root_id = ".$db->quote($posting->getId())." " .
-                    "ORDER BY mkdate DESC " .
+                    "GROUP BY blubber.root_id DESC " .
                     "LIMIT 1 " .
                 "")->fetch(PDO::FETCH_COLUMN, 0);
             } else {
@@ -442,10 +443,10 @@ class BlubberPosting extends SimpleORMap {
             return new BlubberUser($this['user_id']);
         }
     }
-    
+
     /**
      * Returns all known users that have been sharing this thread.
-     * @return array of \BlubberContact 
+     * @return array of \BlubberContact
      */
     public function getSharingUsers() {
         if ($this['context_type'] !== "public") {
@@ -458,15 +459,15 @@ class BlubberPosting extends SimpleORMap {
         $shares = $get_shares->fetchAll(PDO::FETCH_ASSOC);
         $users = array();
         foreach ($shares as $share) {
-            $users[] = $share['external_contact'] 
-                ? BlubberExternalContact::find($share['user_id']) 
+            $users[] = $share['external_contact']
+                ? BlubberExternalContact::find($share['user_id'])
                 : BlubberUser::find($share['user_id']);
         }
         return $users;
     }
-    
+
     /**
-     * Lets the user reshare the posting. If user_id is not given, the current 
+     * Lets the user reshare the posting. If user_id is not given, the current
      * user does the reshare.
      * @param string|null $user_id : md5 user_id of the resharing user.
      * @param int $external_user : is the user an external user?
@@ -503,14 +504,14 @@ class BlubberPosting extends SimpleORMap {
                     $thread['user_id'],
                     $url,
                     sprintf(_("%s hat Ihren Blubber weitergesagt"), get_fullname()),
-                    "posting_".$thread->getId(), 
+                    "posting_".$thread->getId(),
                     Avatar::getAvatar($GLOBALS['user']->id)->getURL(Avatar::MEDIUM)
                 );
             }
         }
         return $success;
     }
-    
+
     /**
      * Undo a reshare of a user. Do nothing if there was no reshare.
      * @param string|null $user_id : md5 user_id of the not anymore resharing user.
@@ -536,6 +537,54 @@ class BlubberPosting extends SimpleORMap {
             $thread->store();
         }
         return $success;
+    }
+
+    /**
+     * Returns all data of this blubber that are relevant as a rest-resource
+     * including reshares and html-content
+     * @return array of restdata of this blubber.
+     */
+    public function toRestResource() {
+
+        $user = $this->getUser();
+        $user_data = array(
+            'user_id'       => $this['user_id'],
+            'url'           => URLHelper::getURL('api.php/user/'.htmlReady($this['user_id']), array(), true),
+            'fullname'      => $user->getName(),
+            'avatar_small'  => $user->getAvatar()->getURL(\Avatar::SMALL),
+            'avatar_medium' => $user->getAvatar()->getURL(\Avatar::MEDIUM),
+            'avatar_normal' => $user->getAvatar()->getURL(\Avatar::NORMAL),
+            'avatar_original' => $user->getAvatar()->getURL(\Avatar::ORIGINAL)
+        );
+
+        if ($this->isThread()) {
+            $sharers = $this->getSharingUsers();
+            $sharer_ids = array();
+            foreach ($sharers as $sharer) {
+                $sharer_ids[] = $sharer['user_id'];
+            }
+
+            return array(
+                'blubber_id' => $this->getId(),
+                'root_id' => $this['root_id'],
+                'context_type' => $this['context_type'],
+                'content_raw' => $this['description'],
+                'content_html' => formatReady($this['description']),
+                'user' => $user_data,
+                'numberOfChildren' => $this->getNumberOfChildren(),
+                'reshares' => $sharer_ids,
+                'tags' => $this->getTags()
+            );
+        } else {
+            return array(
+                'blubber_id' => $this->getId(),
+                'root_id' => $this['root_id'],
+                'context_type' => $this['context_type'],
+                'content_raw' => $this['description'],
+                'content_html' => formatReady($this['description']),
+                'user' => $user_data
+            );
+        }
     }
 
 }

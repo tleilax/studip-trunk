@@ -177,13 +177,15 @@ STUDIP.modalDialog2 = {
             }).appendTo(dialog);
             dialog.dialog({
                 autoOpen: true,
-                autoResize: true,
+                autoResize: false,
                 resizable: false,
+                draggable: false,
                 position: 'center',
                 close: function () {
                     $(this).remove();
                 },
-                width: 'auto',
+                height: 450,
+                width: 720,
                 title: $(this).attr('title'),
                 modal: true
             });

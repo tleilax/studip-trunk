@@ -27,7 +27,7 @@ class StmAbstractAssiVisualization {
             "<b>" . _("Wahl eines Allgemeinen Moduls") . "</b><br>"
             . _("Bitte w&auml;hlen Sie das Modul aus, welches Sie editieren wollen oder l&ouml;schen Sie ein Allgemeines Modul mit dem entsprechenden Knopf. Sie k&ouml;nnen alternativ auch ein neues Modul anlegen. Beachten Sie bitte, dass Sie nur Allgemeine Module bearbeiten und l&ouml;schen k&ouml;nnen, zu denen kein Konkretes Modul existiert!")
             , array('align' => 'center', 'class' => 'blank'));
-            echo $table->cell(Assets::img('infobox/archiv.jpg'));
+            echo $table->cell(Assets::img('sidebar/seminar-archive-sidebar.png'));
         echo $table->close();
 
         echo $table->open(array('class' => 'table_row_odd'));
@@ -98,7 +98,7 @@ class StmAbstractAssiVisualization {
             echo $table->cell($form->getFormField($name, array('rows' => '18', 'style' => 'width: 90%; vertical-align: middle')) .'<br><br>', array( 'align' => 'left'));
             if ($name == 'topics') {
                 echo $table->openCell(array('align' => 'center'));
-                print_infobox ($infobox, "infobox/wiki.jpg");
+                print_infobox ($infobox, "sidebar/wiki-sidebar.png");
                 echo '<br>Vorschau&nbsp;' . $form->getFormButton('preview');
                 echo $table->closeCell();
             }

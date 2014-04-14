@@ -32,6 +32,14 @@ class CoreForum extends StudipPlugin implements ForumModule
     public function perform($unconsumed_path) {
         $this->setupAutoload();
         
+        // Add JS and StyleSheet to header
+        PageLayout::addScript($this->getPluginURL() . '/javascript/forum.js');
+        PageLayout::addStylesheet($this->getPluginURL() . '/stylesheets/forum.css');
+
+        // JQuery-Tutor JoyRide JS and CSS
+        PageLayout::addScript($this->getPluginURL() . '/javascript/jquery.joyride.js');
+        PageLayout::addStylesheet($this->getPluginURL() . '/stylesheets/joyride.css');
+
         $dispatcher = new Trails_Dispatcher(
             $this->getPluginPath(),
             rtrim(PluginEngine::getLink($this, array(), null), '/'),
@@ -130,10 +138,12 @@ class CoreForum extends StudipPlugin implements ForumModule
                 $contents[] = new ContentElement(
                     _('Forum: ') . $obj['name'],
                     $summary,
-                    $post['content'],
+                    formatReady($post['content']),
                     $post['user_id'],
                     $post['author'],
-                    PluginEngine::getURL($this, array(), 'index/index/' . $post['topic_id'] .'#'. $post['topic_id']),
+                    PluginEngine::getURL($this, array(), 'index/index/' . $post['topic_id'] 
+                            .'?cid='. $course_id
+                            .'#'. $post['topic_id']),
                     $post['mkdate']
                 );
             }
@@ -251,7 +261,7 @@ class CoreForum extends StudipPlugin implements ForumModule
     {
         $this->setupAutoload();
         
-        ForumEntry::getDump($seminar_id);
+        return ForumEntry::getDump($seminar_id);
     }
 
     static function getDescription() {

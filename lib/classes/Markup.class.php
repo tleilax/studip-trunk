@@ -36,7 +36,7 @@ class Markup
     public static function apply($markup, $text, $trim)
     {
         if (self::isHtml($text)){
-            return self::markupAndPurify($markup, $text, $trim);
+            return self::markupPurified($markup, $text, $trim);
         }
         return self::markupHtmlReady($markup, $text, $trim);
     }
@@ -60,7 +60,7 @@ class Markup
     }
 
     /**
-     * Run text through HTML purifier after applying markup rules.
+     * Run text through HTML purifier and afterwards apply markup rules.
      *
      * @param TextFormat $markup  Markup rules applied on marked-up text.
      * @param string     $text    Marked-up text on which rules are applied.
@@ -68,13 +68,13 @@ class Markup
      *
      * @return string  HTML code computed from marked-up text.
      */
-    private static function markupAndPurify($markup, $text, $trim)
+    private static function markupPurified($markup, $text, $trim)
     {
         $text = self::unixEOL($text);
         if ($trim) {
             $text = trim($text);
         }
-        return self::purify(Markup::markup($markup, $text));
+        return self::markupText($markup, self::purify($text));
     }
 
     /**
@@ -88,8 +88,8 @@ class Markup
      */
     private static function markupHtmlReady($markup, $text, $trim)
     {
-        return self::markup(
-            $markup, self::htmlReady(self::unixEOL($text), $trim));
+        return str_replace("\n", '<br>', self::markupText(
+            $markup, self::htmlReady(self::unixEOL($text), $trim)));
     }
 
     /**
@@ -112,11 +112,9 @@ class Markup
      *
      * @return string  HTML code computed from marked-up text.
      */
-    private static function markup($markup, $text)
+    private static function markupText($markup, $text)
     {
-        $text = $markup->format($text);
-        $text = symbol(smile($text, false));
-        return str_replace("\n", '<br>', $text);
+        return symbol(smile($markup->format($text), false));
     }
 
     /**
@@ -166,9 +164,10 @@ class Markup
      * @return string         The converted string.
      */
     public static function htmlReady(
-        $text, $trim = true, $br = false, $double_encode = false
+        $text, $trim = true, $br = false, $double_encode = true
     ) {
         $text = htmlspecialchars($text, ENT_QUOTES, 'cp1252', $double_encode);
+        $text = preg_replace('/&amp;#([1-9]{1,1}[0-9]{2,});/', '&#$1;', $text);
         if ($trim) {
             $text = trim($text);
         }
@@ -236,13 +235,13 @@ function getMediaUrl($url) {
     if (isStudipMediaUrl($url)) {
         return removeStudipDomain($url);
     }
-    if (isStudipUrl($url)) {
+    if (is_internal_url($url)) {
         // link is studip-internal, but not to a valid media location
         throw new InvalidInternalLinkException($url);
     }
 
     // handle external media links
-    $external_media = \Config::GetInstance()->getValue('LOAD_EXTERNAL_MEDIA');
+    $external_media = \Config::get()->LOAD_EXTERNAL_MEDIA;
     if ($external_media === 'proxy' &&
         \Seminar_Session::is_current_session_authenticated()
     ) {
@@ -262,7 +261,7 @@ function getMediaUrl($url) {
  * @return string       Media proxy URL for accessing the same resource.
  */
 function encodeMediaProxyUrl($url) {
-    return tranformInternalIdnaLink(
+    return transformInternalIdnaLink(
         getMediaProxyUrl() .'?url=' . \urlencode(\idna_link($url)));
 }
 
@@ -297,7 +296,7 @@ function getMediaProxyUrl() {
  * @returns boolean  TRUE for internal media link URLs, FALSE otherwise.
  */
 function isStudipMediaUrl($url) {
-    return isStudipUrl($url) &&
+    return is_internal_url($url) &&
         isStudipMediaUrlPath(getStudipRelativePath($url));
 }
 
@@ -314,10 +313,10 @@ function isStudipMediaUrl($url) {
  *                      value as $url for external URLs.
  */
 function removeStudipDomain($url) {
-    if (!isStudipUrl($url)) {
+    if (!is_internal_url($url)) {
         return $url;
     }
-    $parsed_url = \parse_url(tranformInternalIdnaLink($url));
+    $parsed_url = \parse_url(transformInternalIdnaLink($url));
     $path = isset($parsed_url['path']) ? $parsed_url['path'] : '';
     $query = isset($parsed_url['query']) ? '?' . $parsed_url['query'] : '';
     $fragment = isset($parsed_url['fragment']) ? '#' . $parsed_url['fragment'] : '';
@@ -340,35 +339,9 @@ function removeStudipDomain($url) {
  * returns string Stud.IP-relative path component of $url.
  */
 function getStudipRelativePath($url) {
-    $parsed_url = \parse_url(tranformInternalIdnaLink($url));
+    $parsed_url = \parse_url(transformInternalIdnaLink($url));
     $parsed_studip_url = getParsedStudipUrl();
     return String\removePrefix($parsed_url['path'], $parsed_studip_url['path']);
-}
-
-/**
- * Test if given URL points to an internal Stud.IP resource.
- *
- * @param string $url  URL that is tested.
- * @return boolean     TRUE if URL points to internal Stud.IP resource.
- */
-function isStudipUrl($url) {
-    $studip_url = getParsedStudipUrl();
-    \assert(\is_array($studip_url)); // otherwise something's wrong with studip
-
-    $parsed_url = \parse_url(tranformInternalIdnaLink($url));
-    if ($parsed_url === FALSE) {
-        return FALSE; // url is seriously malformed
-    }
-
-    $studip_schemes = array($studip_url['scheme'], 'http', 'https', \NULL);
-    $studip_hosts = array($studip_url['host'], \NULL);
-    $studip_ports = array($studip_url['port'], \NULL);
-
-    $is_scheme = \in_array($parsed_url['scheme'], $studip_schemes);
-    $is_host = \in_array($parsed_url['host'], $studip_hosts);
-    $is_port = \in_array($parsed_url['port'], $studip_ports);
-    $is_path = String\startsWith($parsed_url['path'], $studip_url['path']);
-    return $is_scheme && $is_host && $is_port && $is_path;
 }
 
 /**
@@ -400,46 +373,8 @@ function isStudipMediaUrlPath($path) {
  * @params string $url  An internal URL.
  * @returns string      Normalized internal URL.
  */
-function tranformInternalIdnaLink($url) {
+function transformInternalIdnaLink($url) {
     return \idna_link(\TransformInternalLinks($url));
-}
-
-/**
- * Get the current URL as called by the web client.
- *
- * @return string  The current URL.
- *
- * Originally posted on http://stackoverflow.com/a/2820771 by user macek.
- */
-function getUrl() {
-    // TODO move condition to function "httpsActive()"
-    $protocol = ($_SERVER['HTTPS'] && $_SERVER['HTTPS'] != 'off') ? 'https' : 'http';
-    return $protocol . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
-}
-
-/**
- * Get the file name of the currently executed PHP script.
- *
- * @return string  Filename of currently executed PHP script.
- */
-function getBasename() {
-    return basename($_SERVER['PHP_SELF']);
-}
-
-/**
- * Like getUrl but exclude base name and everything thereafter.
- *
- * Get the base URL including the directory path, excluding file name,
- * query string, etc.
- *
- * return string  Base URL of client request.
- */
-function getBaseUrl() {
-    $url = getUrl();
-    $pos = \strpos($url, getBasename());
-    // remove current script name, query, etc.
-    // only keep host URL and directory part of path
-    return \substr($url, 0, $pos);
 }
 
 //// url exceptions ///////////////////////////////////////////////////////////

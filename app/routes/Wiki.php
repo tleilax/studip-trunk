@@ -34,9 +34,11 @@ class Wiki extends \RESTAPI\RouteMap
 
         $linked_pages = array();
         foreach ($pages as $page) {
-            $url = sprintf('/course/%s/wiki/%s', $course_id, htmlReady($page['keyword']));
+            $url = $this->urlf('/course/%s/wiki/%s', array($course_id, htmlReady($page['keyword'])));
             $linked_pages[$url] = self::wikiPageToJson($page, array("content"));
         }
+
+        $this->etag(md5(serialize($linked_pages)));
 
         return $this->paginated($linked_pages, $total, compact('course_id'));
     }
@@ -50,7 +52,10 @@ class Wiki extends \RESTAPI\RouteMap
     public function getCourseWikiKeyword($course_id, $keyword, $version = null)
     {
         $page = $this->requirePage($course_id, $keyword, $version);
-        return self::wikiPageToJson($page);
+        $wiki_json = self::wikiPageToJson($page);
+        $this->etag(md5(serialize($wiki_json)));
+        $this->lastmodified($page->chdate);
+        return $wiki_json;
     }
 
     /**
@@ -82,13 +87,8 @@ class Wiki extends \RESTAPI\RouteMap
 
         $new_version = \WikiPage::findLatestPage($course_id, $keyword);
 
-        $this->status(204);
-        $this->headers(
-            array(
-                'Content-Location' => sprintf('/course/%s/wiki/%s/%d',
-                                              htmlReady($course_id),
-                                              htmlReady($keyword),
-                                              $new_version->version)));
+        $url = sprintf('course/%s/wiki/%s/%d', htmlReady($course_id), htmlReady($keyword), $new_version->version);
+        $this->redirect($url, 201, 'ok');
     }
 
     /**************************************************/

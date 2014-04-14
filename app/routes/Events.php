@@ -42,7 +42,7 @@ class Events extends \RESTAPI\RouteMap
         foreach ($events as $event) {
             $singledate = new SingleDate($event->id);
 
-            $course_uri = sprintf('/course/%s', htmlReady($event->getSeminarId()));
+            $course_uri = $this->urlf('/course/%s', array(htmlReady($event->getSeminarId())));
 
             $json[] = array(
                 'event_id'    => $event->id,
@@ -55,6 +55,8 @@ class Events extends \RESTAPI\RouteMap
                 'room'        => html_entity_decode(strip_tags($singledate->getRoom() ?: $singledate->getFreeRoomText() ?: '')),
             );
         }
+
+        $this->etag(md5(serialize($json)));
 
         return $this->paginated($json, $list->numberOfEvents(), compact('user_id'));
     }
@@ -78,7 +80,7 @@ class Events extends \RESTAPI\RouteMap
         }
 
         $filename = sprintf('%s/export/%s', $GLOBALS['TMP_PATH'], $export->getTempFileName());
-
+        
         $this->sendFile($filename, array(
                             'type' => 'text/calendar',
                             'filename' => 'studip.ics'
@@ -133,6 +135,8 @@ class Events extends \RESTAPI\RouteMap
 
         // END OF HACK
         $showSpecialDays = $old_value;
+
+        $this->etag(md5(serialize($events)));
 
         return $this->paginated($events, $total, compact('course_id'));
     }

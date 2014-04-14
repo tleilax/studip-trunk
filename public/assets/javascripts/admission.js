@@ -170,7 +170,8 @@ STUDIP.Admission = {
                 alert('Status: ' + textStatus + "\nError: " + errorThrown);
             }
         }).responseText;
-        if (error) {
+        error = error.replace(/(\r\n|\n|\r)/gm,'');
+        if ($.trim(error) != '') {
             $('#' + containerId).html(error);
             valid = false;
         }
@@ -274,17 +275,17 @@ STUDIP.Admission = {
     checkUncheckAll: function (inputName, mode) {
         switch (mode) {
         case 'check':
-            $('input[name="' + inputName + '"]').each(function () {
+            $('input[name*="' + inputName + '"]').each(function () {
                 $(this).attr('checked', true);
             });
             break;
         case 'uncheck':
-            $('input[name="' + inputName + '"]').each(function () {
+            $('input[name*="' + inputName + '"]').each(function () {
                 $(this).attr('checked', false);
             });
             break;
         case 'invert':
-            $('input[name="' + inputName + '"]').each(function () {
+            $('input[name*="' + inputName + '"]').each(function () {
                 $(this).attr('checked', !$(this).attr('checked'));
             });
             break;

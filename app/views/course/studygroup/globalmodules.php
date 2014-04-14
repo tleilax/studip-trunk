@@ -5,7 +5,7 @@ use Studip\Button, Studip\LinkButton;
 /* * * * * * * * * * * * *
  * * * I N F O B O X * * *
   * * * * * * * * * * * * */
-$infobox['picture'] = 'infobox/groups.jpg';
+$infobox['picture'] = 'sidebar/studygroup-sidebar.png';
 $infobox['content'] = array(
     array(
         'kategorie' => _("Information"),
@@ -48,7 +48,7 @@ $infobox['content'] = array(
 <form action="<?= $controller->url_for('course/studygroup/savemodules') ?>" method="post">
     <?= CSRFProtection::tokenTag() ?>
     <!-- Title -->
-<table class="default zebra">
+<table class="default">
     <tr>
         <th colspan="2"> <b><?= _("Einrichtungszuordnung") ?></b> </th>
     </tr>
@@ -81,7 +81,7 @@ $infobox['content'] = array(
 <br>
 
 <!-- Title -->
-<table class="default zebra">
+<table class="default">
     <tr>
         <th colspan="2"> <b><?= _("Nutzungsbedingugen") ?></b> </th>
     </tr>

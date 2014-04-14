@@ -5,14 +5,15 @@
         $controller->url_for('admission/courseset/institutes', $courseset ? $courseset->getId() : '')."', '".
         $controller->url_for('admission/courseset/instcourses', $courseset ? $courseset->getId() : '')."', 'add')")) ?>
 <?= $instSearch ?>
-<br/><br/>
+<?= Assets::img('icons/16/blue/search.png', array('title' => _("Suche starten")))?>
+
 <ul>
     <?php foreach ($selectedInstitutes as $institute => $data) { ?>
     <li id="<?= $institute ?>">
         <input type="hidden" name="institutes[]" value="<?= $institute ?>" class="institute">
         <span class="hover_box">
             <?= htmlReady($data['Name']) ?>
-            <span class="hover_symbols">
+            <span class="action_icons">
                 <?= Assets::img('icons/16/blue/trash.png', array(
                             'alt' => _('Einrichtung entfernen'),
                             'title' => _('Einrichtung entfernen'),

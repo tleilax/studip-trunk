@@ -25,7 +25,7 @@ $infobox = array(
     )
 );
 $infobox = array('content' => $infobox,
-                 'picture' => 'infobox/administration.png'
+                 'picture' => 'sidebar/admin-sidebar.png'
 );
 ?>
 <?= $this->render_partial('dialog/confirm_dialog') ?>
@@ -34,7 +34,7 @@ $infobox = array('content' => $infobox,
 <?php
 if ($coursesets) {
 ?>
-<table class="default zebra nohover">
+<table class="default nohover">
     <tr>
         <th width="60%"><?= _('Name des Sets') ?></th>
         <th width="25%"><?= _('Besitzer') ?></th>

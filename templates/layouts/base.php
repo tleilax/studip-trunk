@@ -8,20 +8,28 @@
     <title>
       <?= htmlReady(PageLayout::getTitle() . ' - ' . $GLOBALS['UNI_NAME_CLEAN']) ?>
     </title>
+    <?php
+        // needs to be included in lib/include/html_head.inc.php as well
+        include 'app/views/WysiwygHtmlHeadBeforeJS.php';
+    ?>
+    </script>
     <?= PageLayout::getHeadElements() ?>
 
     <script src="<?= URLHelper::getScriptLink('dispatch.php/localizations/' . $_SESSION['_language']) ?>"></script>
 
     <script>
-      STUDIP.ABSOLUTE_URI_STUDIP = "<?= $GLOBALS['ABSOLUTE_URI_STUDIP'] ?>";
-      STUDIP.ASSETS_URL = "<?= $GLOBALS['ASSETS_URL'] ?>";
-      String.locale = "<?= htmlReady(strtr($_SESSION['_language'], '_', '-')) ?>";
-      <? if (is_object($GLOBALS['perm']) && $GLOBALS['perm']->have_perm('autor') && PersonalNotifications::isActivated()) : ?>
-      STUDIP.jsupdate_enable = true;
-      <? endif ?>
-      STUDIP.URLHelper.parameters = <?= json_encode(studip_utf8encode(URLHelper::getLinkParams())) ?>;
-      STUDIP.WYSIWYG = <?= \Config::GetInstance()->getValue('WYSIWYG') ? 'true' : 'false' ?>;
+        STUDIP.ABSOLUTE_URI_STUDIP = "<?= $GLOBALS['ABSOLUTE_URI_STUDIP'] ?>";
+        STUDIP.ASSETS_URL = "<?= $GLOBALS['ASSETS_URL'] ?>";
+        String.locale = "<?= htmlReady(strtr($_SESSION['_language'], '_', '-')) ?>";
+        <? if (is_object($GLOBALS['perm']) && $GLOBALS['perm']->have_perm('autor') && PersonalNotifications::isActivated()) : ?>
+        STUDIP.jsupdate_enable = true;
+        <? endif ?>
+        STUDIP.URLHelper.parameters = <?= json_encode(studip_utf8encode(URLHelper::getLinkParams())) ?>;
     </script>
+    <?php
+        // needs to be included in lib/include/html_head.inc.php as well
+        include 'app/views/WysiwygHtmlHead.php';
+    ?>
 </head>
 
 <body id="<?= $body_id ? $body_id : PageLayout::getBodyElementId() ?>">

@@ -67,7 +67,7 @@ if ($evtype == 'semcal' || (isset($_calendar->event) && ($_calendar->event insta
 
 echo '<form name="edit_event" action="' . URLHelper::getLink('', array('cmd' => 'edit')) . '" method="post">';
 echo CSRFProtection::tokenTag();
-echo "<table class=\"blank zebra\" width=\"99%\" border=\"0\" cellspacing=\"0\" cellpadding=\"10\">\n";
+echo "<table class=\"blank\" width=\"99%\" border=\"0\" cellspacing=\"0\" cellpadding=\"10\">\n";
 echo "<thead><tr><th width=\"100%\" align=\"left\">";
 echo $edit_mode_out;
 echo "\n</th></tr></thead>\n";
@@ -834,7 +834,7 @@ if (isset($_calendar->event) && ($_calendar->event instanceof SeminarEvent || $_
 
 echo "</td></tr></table></form>\n</td>\n";
 echo "<td class=\"blank\" align=\"right\" valign=\"top\" width=\"270\">\n";
-print_infobox($info_box['all'], "infobox/dates.jpg");
+print_infobox($info_box['all'], "sidebar/schedule-sidebar.png");
 echo "</td></tr>\n";
 echo "</table></td></tr></table><br>\n";
 echo "</td></tr></table>\n";

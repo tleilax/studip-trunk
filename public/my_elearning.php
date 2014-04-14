@@ -115,7 +115,7 @@ if (get_config('ELEARNING_INTERFACE_ENABLE')) {
                 if ($connected_cms[$cms]->user->isConnected())
                 {
                     $startpage_message = "";
-                	$account_message = "<b>" . _("Loginname: ") . "</b>" . $connected_cms[$cms]->user->getUsername();
+                    $account_message = "<b>" . _("Loginname: ") . "</b>" . $connected_cms[$cms]->user->getUsername();
                     $start_link = $connected_cms[$cms]->link->getStartpageLink(_($connected_cms[$cms]->getName()));
                     if ($start_link != false) {
                         $msg_text = _('Hier gelangen Sie direkt zur Startseite im angebundenen System:'). ' ' . $start_link . '<br>';
@@ -202,7 +202,7 @@ if (get_config('ELEARNING_INTERFACE_ENABLE')) {
             $infobox[1]["eintrag"][] = array (  "icon" => 'icons/16/black/learnmodule.png' ,
                                         "text"  => sprintf(_("Wenn Sie &uuml;ber die entsprechenden Rechte verf&uuml;gen, k&ouml;nnen Sie eigene Lernmodule erstellen."))
                                     );
-            print_infobox($infobox, "infobox/lernmodule.jpg");
+            print_infobox($infobox, "sidebar/learnmodule-sidebar.png");
         ?>
         </td>
     </tr>

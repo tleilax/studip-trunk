@@ -283,7 +283,7 @@ class Admin_StatusgroupsController extends AuthenticatedController {
      * Sets the content of the infobox.
      */
     private function setInfoBox() {
-        $this->setInfoBoxImage('infobox/groups.jpg');
+        $this->setInfoBoxImage('sidebar/group-sidebar.png');
 
         $this->addToInfobox(_('Aktionen'), "<a title='" . _('Neue Gruppe anlegen') . "' class='modal' href='" . $this->url_for("admin/statusgroups/editGroup") . "'>" . _('Neue Gruppe anlegen') . "</a>", 'icons/16/black/add/group3.png');
         $this->addToInfobox(_('Aktionen'), "<a title='" . _('Gruppenreihenfolge ändern') . "' class='modal' href='" . $this->url_for("admin/statusgroups/sortGroups") . "'>" . _('Gruppenreihenfolge ändern') . "</a>", 'icons/16/black/arr_2down.png');

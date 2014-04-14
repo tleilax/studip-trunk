@@ -18,7 +18,7 @@
         <? endif; ?>
             </td>
             <td align="right">
-			<span class="actions">
+            <span class="actions">
             <?= $mp; ?>
             </span>
             </td>
