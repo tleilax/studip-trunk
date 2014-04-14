@@ -1,8 +1,4 @@
 $(document).ready(function () {
-    /*$(".openmultipersonsearch").click(function(){
-        STUDIP.MultiPersonSearch.dialog($(this).attr("data-dialogname"));
-        return false;
-    });*/
     
     $(".multi_person_search_link").each(function() {
         $(this).attr("href", $(this).attr("data-js-form"));
@@ -18,12 +14,6 @@ STUDIP.MultiPersonSearch = {
     
     dialog: function (name) {
         
-        /*$( "#" + name ).dialog({
-            height: 450,
-            width: 720,
-            modal: true
-        });*/
-        
         this.name = name;
         
         $( "#" + name + " button[name='" + name + "_button_abort']").click(function() {
@@ -37,7 +27,6 @@ STUDIP.MultiPersonSearch = {
             selectableFooter: '<a href="javascript:STUDIP.MultiPersonSearch.selectAll();">' + 'Alle hinzufügen'.toLocaleString() + '</a>',
             selectionFooter: '<a href="javascript:STUDIP.MultiPersonSearch.unselectAll();">' + 'Alle entfernen'.toLocaleString() + '</a>'
         });
-        //STUDIP.MultiPersonSearch.restoreDefaults();
         
         $("#" + this.name).on("keyup keypress", function(e) {
             var code = e.keyCode || e.which; 
@@ -56,16 +45,6 @@ STUDIP.MultiPersonSearch = {
             STUDIP.MultiPersonSearch.loadQuickfilter($(this).attr("data-quickfilter"));
             return false;
         });
-    },
-    
-    // Restore the pre(un)selected options
-    restoreDefaults: function() {
-        STUDIP.MultiPersonSearch.removeAll();
-        
-        $('#' + this.name + '_selectbox_default option').each(function() {
-           STUDIP.MultiPersonSearch.append($(this).val(), $(this).text(), $(this).is(':selected'));
-        });
-        $('#' + this.name + '_selectbox').multiSelect('refresh');
     },
     
     loadQuickfilter: function(title) {
