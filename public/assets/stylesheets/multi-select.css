@@ -1,5 +1,5 @@
 /*
-* MultiSelect v0.9.8 - mofied for the use in Stud.IP
+* MultiSelect v0.9.8 - modified for the use in Stud.IP
 * Copyright (c) 2012 Louis Cuny
 *
 * This program is free software. It comes without any warranty, to

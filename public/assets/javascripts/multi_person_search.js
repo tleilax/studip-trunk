@@ -131,7 +131,7 @@ STUDIP.MultiPersonSearch = {
     },
     
     count: function () {
-        $('#' + this.name + '_count').text($('#' + this.name + '_selectbox option:selected').length); 
+        $('#' + this.name + '_count').text($('#' + this.name + '_selectbox option:enabled:selected').length); 
     }
     
 };
