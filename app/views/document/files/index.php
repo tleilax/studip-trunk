@@ -36,7 +36,7 @@
         <col width="100px">
         <col width="150px">
         <col width="120px">
-        <col width="100px">
+        <col width="120px">
     </colgroup>
     <thead>
         <th>
