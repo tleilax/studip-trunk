@@ -78,14 +78,67 @@ class Files extends \RESTAPI\RouteMap
         }
     }
 
+
     /**
-     * Datei bzw. Ordner erzeugen
+     * Create file or folder. To create a file just attach a file as multipart request.
+     * If no file is attached, this will create a folder.
      *
-     * @post /file/:file_id
+     * @post /file/:folder_id
+     * @param string $file_id : id of the folder to insert the file or folder to.
+     *
+     * @param string name : if set the document will have this name instead of the filename. For folders this attribute is mandatory.
+     * @param string description : sets the description of the document or folder.
      */
-    public function postFiles()
+    public function addFile($folder_id)
     {
-        $this->error(501);
+        $parentFolder = $this->loadFolder($folder_id);
+        if (!$parentFolder) {
+             $this->error(404, 'folder does not exist');
+        }
+        if (is_array($this->data['_FILES']) && count($this->data['_FILES'])) {
+                //fileupload
+                $file = current($this->data['_FILES']);
+                $GLOBALS['msg'] = '';
+                validate_upload($file);
+                if ($GLOBALS['msg']) {
+                    $this->error(400, decodeHTML(trim(substr($GLOBALS['msg'],6), '§')));
+                }
+                if ($file['size']) {
+                    $document = array();
+                    foreach(words('name description protected') as $c) {
+                        if (isset($this->data[$c])) {
+                            $document[$c] = $this->data[$c];
+                        }
+                    }
+                    $document['filename'] = strtolower($file['name']);
+                    $document['name'] = $document['name'] ?: $document['filename'];
+                    $document['user_id'] = $GLOBALS['user']->id;
+                    $document['author_name'] = get_fullname();
+                    $document['filesize'] = $file['size'];
+                    $document['autor_host']  = $_SERVER['REMOTE_ADDR'];
+                    $document['range_id'] = $parentFolder->id;
+                    $document['seminar_id'] = $parentFolder->seminar_id;
+                    $document = \StudipDocument::createWithFile($file['tmp_name'], $document);
+                    @unlink($file['tmp_name']);
+                }
+                if (!$document) {
+                    $this->error(400, 'could not create file');
+                } else {
+                    $this->redirect('file/' . $document->getId(), 201, "ok");
+                }
+        } elseif($this->data['name']) {
+            //create folder
+            $newFolder = new \DocumentFolder();
+            $newFolder['range_id'] = $parentFolder['folder_id'];
+            $newFolder['seminar_id'] = $parentFolder['seminar_id'];
+            $newFolder['name'] = $this->data['name'];
+            $newFolder['description'] = $this->data['description'];
+            $newFolder['user_id'] = $GLOBALS['user']->id;
+            $newFolder->store();
+            $this->redirect('file/' . $newFolder->getId(), 201, "ok");
+        } else {
+            $this->error(400, 'name is missing');
+        }
     }
 
     /**
@@ -94,7 +147,55 @@ class Files extends \RESTAPI\RouteMap
      * @put /file/:file_id
      */
     public function putFile($id) {
-        $this->error(501);
+
+        $folder = $this->loadFolder($id);
+        if (!$folder) {
+            $document = $this->loadFile($id);
+            $folder = $this->loadFolder($document['range_id']);
+        }
+        if (!$folder) {
+            $this->error(404, 'folder does not exist');
+        }
+        if ($document) {
+            foreach(words('name description protected') as $c) {
+                if (isset($this->data[$c])) {
+                    $document[$c] = $this->data[$c];
+                }
+            }
+            if (is_array($this->data['_FILES']) && count($this->data['_FILES'])) {
+                //fileupload
+                $file = current($this->data['_FILES']);
+                $GLOBALS['msg'] = '';
+                validate_upload($file);
+                if ($GLOBALS['msg']) {
+                    $this->error(400, decodeHTML(trim(substr($GLOBALS['msg'],6), '§')));
+                }
+                if ($file['size']) {
+                    $document['filename'] = strtolower($file['name']);
+                    $document['user_id'] = $GLOBALS['user']->id;
+                    $document['author_name'] = get_fullname();
+                    $document['filesize'] = $file['size'];
+                    $document['autor_host']  = $_SERVER['REMOTE_ADDR'];
+                    $ok = \StudipDocument::createWithFile($file['tmp_name'], $document);
+                    @unlink($file['tmp_name']);
+                }
+                if (!$ok) {
+                    $this->error(400, 'could not create file');
+                }
+            } else {
+                $document->store();
+            }
+        } else {
+            //update folder
+            foreach(words('name description') as $c) {
+                if (isset($this->data[$c])) {
+                    $folder[$c] = $this->data[$c];
+                }
+            }
+            $folder->store();
+        }
+        $this->status(204);
+        $this->body(null); //no content means no content
     }
 
     /**
@@ -103,7 +204,20 @@ class Files extends \RESTAPI\RouteMap
      * @delete /file/:file_id
      */
     public function deleteFile($file_id) {
-        $this->error(501);
+        $folder = $this->loadFolder($id);
+        if (!$folder) {
+            $document = $this->loadFile($id);
+            $folder = $this->loadFolder($document['range_id']);
+        }
+        if (!$folder) {
+            $this->error(404);
+            return;
+        }
+        if ($document) {
+            $document->delete();
+        } else {
+            $folder->delete();
+        }
     }
 
     /**
@@ -114,7 +228,7 @@ class Files extends \RESTAPI\RouteMap
     public function getCourseFiles($course_id) {
 
         $folders = \SimpleCollection::createFromArray(
-            \StudipDocumentFolder::findBySeminar_id($course_id))->orderBy('name asc');
+            \DocumentFolder::findBySeminar_id($course_id))->orderBy('name asc');
 
         // slice according to demanded pagination
         $total = count($folders);
@@ -151,7 +265,7 @@ class Files extends \RESTAPI\RouteMap
 
     private function loadFolder($id)
     {
-        $folder = new \StudipDocumentFolder($id);
+        $folder = new \DocumentFolder($id);
 
         // return NULL unless it exists
         if ($folder->isNew()) {
@@ -182,9 +296,14 @@ class Files extends \RESTAPI\RouteMap
             $result[$word] = $file->getValue($word);
         }
 
+        // string to int conversions as SORM does not know about ints
+        foreach (words("chdate mkdate filesize downloads") as $key) {
+            $result[$key] = intval($result[$key]);
+        }
+
         $result['author']    = $this->urlf('/user/%s', array($file->getValue('user_id')));
         $result['protected'] = !empty($result['protected']);
-        $result['blob']      = $this->urlf('/file/%s/content', array($result['file_id']));
+        $result['content']   = $this->urlf('/file/%s/content', array($result['file_id']));
 
         $this->linkToCourseOrInst($result);
 
@@ -200,6 +319,11 @@ class Files extends \RESTAPI\RouteMap
         $result = array('folder_id' => $folder->getValue('id'));
         foreach (words('range_id seminar_id user_id name description mkdate chdate') as $word) {
             $result[$word] = $folder->getValue($word);
+        }
+
+        // string to int conversions as SORM does not know about ints
+        foreach (words("chdate mkdate") as $key) {
+            $result[$key] = intval($result[$key]);
         }
 
         // transform user_id

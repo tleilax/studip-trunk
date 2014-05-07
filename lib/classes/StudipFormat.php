@@ -170,8 +170,32 @@ class StudipFormat extends TextFormat
             'start'    => '(?<=\s|^|\>)(?:\[([^\n\f\]]+?)\])?([\w.!#%+-]+@([[:alnum:].-]+))(?=\s|$)',
             'callback' => 'StudipFormat::markupEmails'
         ),
+        'htmlAnchor' => array(
+            'start' => '(?xi: <\s* a (?:\s(?:\s* \w+ \s*=\s* "[^"]*" )*)? \s*>)',
+            'end' => '(?xi: <\s* \/\s* a \s*>)',
+            'callback' => 'StudipFormat::htmlAnchor'
+        ),
         'links' => array(
-            'start'    => '(?<=\s|^|\>)(?:(?:\[([^\n\f\]]+?)\])?)(\w+?:\/\/.+?)(?=\s|$)',
+            // markup: [text]url
+            //
+            // To set URLs apart from normal text, scheme and host are
+            // obligatory. URLs are based on, but allow more than RFC3986 in
+            // order to simplify the regular expression.
+            //
+            // http://tools.ietf.org/html/rfc3986
+            'start' => '(?xi:
+                # capture 1: displayed text
+                (?:\[( [^\n\f\]]+ )\])?
+
+                # capture 2: URL
+                \b(
+                    # scheme
+                    [a-z][a-z0-9\+\-\.]*:\/\/
+
+                    # user:password@host:port\/path?query#fragment
+                    [\w\-\.~!$&\'\(\)\[\]*+,;=%:@\/?#]+
+                )
+            )',
             'callback' => 'StudipFormat::markupLinks'
         ),
     );
@@ -575,6 +599,10 @@ class StudipFormat extends TextFormat
      */
     protected static function markupLinks($markup, $matches)
     {
+        if ($markup->isInsideOf('htmlAnchor')) {
+            return $matches[0];
+        }
+
         $url = $matches[2];
         $title = $matches[1] ? $matches[1] : $url;
 
@@ -597,4 +625,8 @@ class StudipFormat extends TextFormat
         );
     }
 
+    protected static function htmlAnchor($markup, $matches, $contents)
+    {
+        return $matches[0] . $contents . '</a>';
+    }
 }

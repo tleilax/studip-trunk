@@ -66,7 +66,7 @@ class IssueDB {
                 ));
             } else {
                 $query = "INSERT INTO folder (folder_id, range_id, user_id, name, description, mkdate, chdate, seminar_id)
-                          VALUES (?, ?, ?, ?, ?, UNIX_TIMESTAMP(), UNIX_TIMESTAMP())";
+                          VALUES (?, ?, ?, ?, ?, UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), ?)";
                 $statement = DBManager::get()->prepare($query);
                 $statement->execute(array(
                     md5(uniqid('folder', true)),
@@ -164,16 +164,6 @@ class IssueDB {
         return (bool)$statement->fetchColumn();
     }
 
-    /*function checkFile($issue_id) {
-        $db = new DB_Seminar();
-        $db->query("SELECT range_id FROM folder WHERE range_id = '$issue_id'");
-        if ($db->num_rows() > 0) {
-            return TRUE;
-        } else {
-            return FALSE;
-        }
-    }*/
-    
     function getDatesforIssue($issue_id)
     {
         $query = "SELECT termine.*

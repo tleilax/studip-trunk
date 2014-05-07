@@ -22,7 +22,7 @@
             </tbody>
             <tfoot>
             <tr>
-                <td colspan="0">
+                <td colspan="<?= count($aux['head']) ?>">
                     <?= \Studip\Button::create(_('Speichern'), 'save') ?>
                     <?= \Studip\Button::create(_('Exportieren'), 'export') ?>
                 </td>
