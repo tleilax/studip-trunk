@@ -63,7 +63,10 @@ class Document_FolderController extends DocumentController
                 }
             } while (!$check);
 
-            $directory->setNewDescription(Request::get('description', ''));
+            $directory->description = Request::get('description', '');
+            $directory->name        = $name;
+            $directory->store();
+
             $directory->getFile()->setNewFilename($name);
 
             PageLayout::postMessage(MessageBox::success(_('Der Ordner wurde erstellt.')));
@@ -73,11 +76,13 @@ class Document_FolderController extends DocumentController
     
     public function edit_action($folder_id)
     {   $folder    = new DirectoryEntry($folder_id);
-        $parent_id = $this->getParentId($folder_id);
+        $parent_id = FileHelper::getParentId($folder_id) ?: $this->context_id;
         
         if (Request::isPost()) {
-            $folder->rename(Request::get('name'));
-            $folder->setNewDescription(Request::get('description'));
+            $folder->name        = Request::get('name');
+            $folder->Description = Request::get('description');
+            $folder->store();
+
             $folder->getFile()->setNewFilename(Request::get('name'));
             
             PageLayout::postMessage(MessageBox::success(_('Der Ordner wurde bearbeitet.')));
@@ -88,13 +93,15 @@ class Document_FolderController extends DocumentController
             header('X-Title: ' . _('Ordner bearbeiten'));
         }
         
+        $this->setDialogLayout('icons/48/blue/edit.png');
+
         $this->folder_id = $folder_id;
         $this->folder    = $folder;
     }
     
     public function delete_action($folder_id)
     {
-        $parent_id = $this->getParentId($folder_id);
+        $parent_id = FileHelper::getParentId($folder_id) ?: $this->context_id;
         
         if (!Request::isPost()) {
             $message = $folder_id === 'all'

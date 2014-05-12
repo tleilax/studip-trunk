@@ -60,7 +60,7 @@
                 </a>
             </td>
             <td colspan="5">
-                <a href="<?= $controller->url_for('document/files/index/' . $parent_id) ?>">
+                <a href="<?= $controller->url_for('document/files/index/' . $parent_id) ?>" title="<?= _('Ein Verzeichnis nach oben wechseln') ?>">
                     ..
                 </a>
             </td>
@@ -78,10 +78,10 @@
             <td>
                 <input type="checkbox" name="ids[]" value="<?= $file->id ?>" <? if (in_array($file->id, $marked)) echo 'checked'; ?>>
             </td>
-        <? if ($file->getFile() instanceof StudipDirectory): ?>
+        <? if ($file->file instanceof StudipDirectory): ?>
             <td class="document-icon">
                 <a href="<?= $controller->url_for('document/files/index/' . $file->id) ?>">
-                <? if ($file->getFile()->isEmpty()): ?>
+                <? if ($file->file->isEmpty()): ?>
                     <?= Assets::img('icons/24/blue/folder-empty.png') ?>
                 <? else: ?>
                     <?= Assets::img('icons/24/blue/folder-full.png') ?>
@@ -90,16 +90,16 @@
             </td>
             <td>
                 <a href="<?= $controller->url_for('document/files/index/' . $file->id) ?>">
-                    <?= htmlReady($file->getFile()->filename) ?>
+                    <?= htmlReady($file->file->filename) ?>
                 </a>
-            <? if ($file->getDescription()): ?>
-                <small><?= htmlReady($file->getDescription()) ?></small>
+            <? if ($file->description): ?>
+                <small><?= htmlReady($file->description) ?></small>
             <? endif; ?>
             </td>
-            <td><?= sprintf(ngettext('%u Eintrag', '%u Einträge', $count = $file->getFile()->countFiles()), $count) ?></td>
-            <td><?= htmlReady(User::find($file->getFile()->user_id)->getFullName()) ?></td>
-            <td title="<?= strftime('%x %X', $file->getFile()->mkdate) ?>">
-                <?= reltime($file->getFile()->mkdate) ?>
+            <td><?= sprintf(ngettext('%u Eintrag', '%u Einträge', $count = $file->file->countFiles()), $count) ?></td>
+            <td><?= htmlReady($file->file->owner->getFullName()) ?></td>
+            <td title="<?= strftime('%x %X', $file->file->mkdate) ?>">
+                <?= reltime($file->file->mkdate) ?>
             </td>
             <td class="options">
                 <a href="<?= $controller->url_for('document/folder/edit/' . $file->id) ?>" rel="lightbox">
@@ -121,26 +121,26 @@
         <? else: ?>
             <td class="document-icon">
                 <a href="<?= $controller->url_for('document/files/download/' . $file->id . '/inline') ?>">
-                    <?= Assets::img('icons/24/blue/'. get_icon_for_mimetype($file->getFile()->getMimeType())) ?>
+                    <?= Assets::img('icons/24/blue/'. get_icon_for_mimetype($file->file->mime_type)) ?>
                 </a>
             </td>
             <td>
-                <a href="<?= $controller->url_for('document/files/download/' . $file->id) ?>" title="<?= htmlReady($file->getFile()->filename) ?>">
+                <a href="<?= $controller->url_for('document/files/download/' . $file->id) ?>" title="<?= htmlReady($file->file->filename) ?>">
                     <?= htmlReady($file->name) ?>
                 </a>
-            <? if ($file->getFile()->restricted): ?>
+            <? if ($file->file->restricted): ?>
                 <?= Assets::img('icons/16/blue/lock-locked.png', array('class' => 'text-top') + tooltip2(_('Diese Datei ist nicht frei von Rechten Dritter.'))) ?>
             <? endif; ?>
-            <? if ($file->getDescription()): ?>
-                <small><?= htmlReady($file->getDescription()) ?></small>
+            <? if ($file->description): ?>
+                <small><?= htmlReady($file->description) ?></small>
             <? endif; ?>
             </td>
-            <td title="<?= number_format($file->getFile()->size, 0, ',', '.') . ' Byte' ?>">
-                <?= relSize($file->getFile()->size, false) ?>
+            <td title="<?= number_format($file->file->size, 0, ',', '.') . ' Byte' ?>">
+                <?= relSize($file->file->size, false) ?>
             </td>
-            <td><?= htmlReady(User::find($file->getFile()->user_id)->getFullName()) ?></td>
-            <td title="<?= strftime('%x %X', $file->getFile()->mkdate) ?>">
-                <?= reltime($file->getFile()->mkdate) ?>
+            <td><?= htmlReady($file->file->owner->getFullName()) ?></td>
+            <td title="<?= strftime('%x %X', $file->file->mkdate) ?>">
+                <?= reltime($file->file->mkdate) ?>
             </td>
             <td class="options">
                 <a href="<?= $controller->url_for('document/files/edit/' . $file->id) ?>" rel="lightbox">

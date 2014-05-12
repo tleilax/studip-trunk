@@ -1,11 +1,11 @@
-<form action="<?= $controller->url_for('document/folder/edit/' . $folder_id) ?>" method="post" class="studip_form">
+<form action="<?= $controller->url_for('document/folder/edit/' . $folder->id) ?>" method="post" class="studip_form">
    <?= CSRFProtection::tokenTag() ?>
 
    <fieldset>
        <fieldset class="required">
            <label>
                <?= _('Name:') ?>
-               <input type="text" name="name" placeholder="<?= _('Ordnername') ?>" value="<?= htmlReady($folder->getName()) ?>" required>
+               <input type="text" name="name" placeholder="<?= _('Ordnername') ?>" value="<?= htmlReady($folder->name) ?>" required>
            </label>
        </fieldset>
 

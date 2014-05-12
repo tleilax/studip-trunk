@@ -15,13 +15,6 @@
 
 class DirectoryEntry extends SimpleORMap
 {
-    public $id;
-    public $file_id;
-    public $parent_id;
-    public $name;        //public $title;
-    public $description;
-    public $downloads;
-
     /**
      * Initialize a new directory entry object for the given id.
      *
@@ -30,119 +23,28 @@ class DirectoryEntry extends SimpleORMap
      * @return DirectoryEntry  DirectoryEntry object
      */
     public function __construct($id = NULL)
-    {   $db = DBManager::get();
-        $stmt = $db->prepare('SELECT * FROM file_refs WHERE id = ?');
-        $stmt->execute(array($id));
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    {
+        $this->db_table = 'file_refs';
+        
+        $this->additional_fields['file'] = array('get' => function ($record, $field) {
+            return File::get($record->file_id);
+        });
+        $this->additional_fields['direcory'] = array('get' => function ($record, $field) {
+            return File::get($record->parent_id);
+        });
 
-        if ($result === false) {
+        $this->notification_map['before_create'] = 'FileWillCreate';
+        $this->notification_map['after_create']  = 'FileDidCreate';
+        $this->notification_map['before_update'] = 'FileWillChange';
+        $this->notification_map['after_update']  = 'FileDidChange';
+        $this->notification_map['before_delete'] = 'FileWillDelete';
+        $this->notification_map['after_delete']  = 'FileDidDelete';
+
+        parent::__construct($id);
+        
+        if ($id !== null && $this->isNew()) {
             throw new InvalidArgumentException('directory entry not found');
         }
-        
-        $this->id = $id;
-        $this->file_id = $result['file_id'];
-        $this->parent_id = $result['parent_id'];
-        $this->name = $result['name'];             
-        $this->description = $result['description'];
-        $this->downloads = $result['downloads'];
-        $this->db_table = 'file_refs';
-        parent::__construct($id);
-    }
-
-    /**
-     * Return the description for the entry.
-     *
-     * @return string  description text
-     */
-    public function getDescription()
-    {
-        return $this->description;
-    }
-
-    /**
-     * Return the directory of the entry.
-     *
-     * @return Directory  directory object
-     */
-    public function getDirectory()
-    {
-        return File::get($this->parent_id);
-    }
-
-    /**
-     * Return the download count of the entry.
-     *
-     * @return int  download count
-     */
-    public function getDownloadCount()
-    {
-        return $this->downloads;
-    }
-
-    /**
-     * Return the file of the entry.
-     *
-     * @return File  file object
-     */
-    public function getFile()
-    {
-        return File::get($this->file_id);
-    }
-
-    /**
-     * Return the name of the entry.
-     *
-     * @return string  file name
-     */
-    public function getName()
-    {
-        return $this->name;
-    }
-
-    /**
-     * Rename the file inside the same directory.
-     *
-     * @param string  new file name
-     */
-    public function rename($name)
-    {
-        $this->setData(array('name' => $name));
-        $this->store();
-        $this->name = $name;
-    }
-
-    /**
-     * Set the description for the entry.
-     *
-     * @param string $text  description text
-     */
-    public function setNewDescription($text)
-    {
-        $this->setData(array('description' => $text));
-        $this->store();
-        $this->description = $text;
-    }
-
-    /**
-     * Set the download count of the entry.
-     *
-     * @param int $count  download count
-     */
-    public function setDownloadCount($count)
-    {
-        $this->setData(array('downloads' => $count));
-        $this->store();
-        $this->downloads = $count;
-    }
-
-    /**
-     * Set the position of the entry in the directory.
-     *
-     * @param int $position  position
-     */
-    public function setPosition($position)
-    {
-        // TODO not implemented yet (do we really need this?)
     }
 
     /**
@@ -153,24 +55,25 @@ class DirectoryEntry extends SimpleORMap
      */
     public function move($parent_id)
     {
-        $entry = DirectoryEntry::findBySQL('file_id = :file_id', array('file_id' => $this->file_id));
-        if(!empty($entry)){
-            $entry->setData(array('parent_id' => $parent_id));
-            $entry->store();
+        $entries = DirectoryEntry::findByFile_id($this->file_id);
+        if(count($entries) > 0) {
+            $entries[0]->parent_id = $parent_id;
+            $entries[0]->store();
         }
     }
 
     /**
     * Returns the Parent from an Entry.
     *
-    *
+    * @return DirectoryEntry Parent entry
+    * @throws Exception if no valid parent is found
     */
     public function getParent()
     {
-        $entry = DirectoryEntry::findBySQL('file_id = :file_id', array('file_id' => $this->parent_id));
-        if (empty($entry)) {
+        $entries = DirectoryEntry::findByFile_id($this->parent_id);
+        if (count($entries) === 0) {
             throw new Exception('No parent found');
         }
-        return new DirectoryEntry($entry->id);
+        return $entries[0];
     }
 }

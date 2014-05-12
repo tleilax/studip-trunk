@@ -29,6 +29,14 @@ class StudipDirectory extends File
         return parent::get($context_id);
     }
 
+    public function __construct($id = null)
+    {
+        SimpleORMap::expireTableScheme();
+        $this->db_table = 'files';
+        
+        parent::__construct($id);
+    }
+
     /**
      * Create a new empty file in this directory under the
      * given name and returns the directory entry.
@@ -131,20 +139,18 @@ class StudipDirectory extends File
         return NULL;
     }
 
-	/**
-	 * Returns number of linked files or folder in this directory.
-	 * 
-	 * @return int Number of linked files or folders
-	 */
-	public function countFiles()
-	{
-        $db = DBManager::get();
-
-        $stmt = $db->prepare('SELECT COUNT(id) FROM file_refs WHERE parent_id = :id');
-		$stmt->bindValue(':id', $this->file_id);
-        $stmt->execute();
-        return $stmt->fetchColumn();
-	}
+    /**
+     * Returns number of linked files or folder in this directory.
+     * 
+     * @return int Number of linked files or folders
+     */
+    public function countFiles()
+    {
+        $statement = DBManager::get()->prepare('SELECT COUNT(id) FROM file_refs WHERE parent_id = :id');
+        $statement->bindValue(':id', $this->id);
+        $statement->execute();
+        return $statement->fetchColumn();
+    }
 
     /**
      * Check whether this directory is empty.
@@ -153,7 +159,6 @@ class StudipDirectory extends File
      */
     public function isEmpty()
     {
-
         return $this->countFiles() == 0;
     }
 

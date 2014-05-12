@@ -22,8 +22,10 @@ class RootDirectory extends StudipDirectory
      *
      * @return RootDirectory  directory object
      */
-    public function __construct($id)
+    public function __construct($id = null)
     {
+        $this->db_table = 'files';
+        
         parent::__construct($id);
 
         // default is to use DiskFileStorage

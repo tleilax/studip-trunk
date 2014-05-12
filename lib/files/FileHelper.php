@@ -24,26 +24,40 @@ class FileHelper
 
         return $filename;
     }
+
+    public static function getParentId($entry_id)
+    {
+        try {
+            $entry  = new DirectoryEntry($entry_id);
+            $parent = $entry->getParent();
+            $parent_id = $parent->id;
+        } catch (Exception $e) {
+            $parent_id = null;
+        }
+        return $parent_id;
+    }
+
     
-    public function getBreadCrumbs($entry_id)
+    public static function getBreadCrumbs($entry_id)
     {
         $crumbs = array();
 
         do {
             try {
                 $entry = new DirectoryEntry($entry_id);
-                $crumbs[$entry->getFile()->file_id] = array(
+                $crumbs[$entry->file->id] = array(
                     'id'   => $entry_id,
-                    'name' => $entry->getFile()->filename,
+                    'name' => $entry->file->filename,
                     'description' => $entry->description,
                 );
-                $entry_id = $this->getParentId($entry_id);
+                $entry_id = self::getParentId($entry_id);
             } catch (Exception $e) {
+                break; // No parent directory, so we are at root level
             }
-        } while ($entry_id !== $this->context_id);
+        } while ($entry_id);
 
-        $crumbs[$this->context_id] = array(
-            'id'   => $this->context_id,
+        $crumbs[$entry_id] = array(
+            'id'   => $entry_id,
             'name' => _('Hauptverzeichnis'),
             'description' => '',
         );
@@ -59,7 +73,7 @@ class FileHelper
         $folder = new StudipDirectory($folder_id);
         
         foreach ($folder->listFiles() as $entry) {
-            $file = $entry->getFile();
+            $file = $entry->file;
             if ($file instanceof StudipDirectory) {
                 $result[$file->file_id] = array(
                     'ref_id'      => $entry->id,

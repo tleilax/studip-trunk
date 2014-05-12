@@ -16,17 +16,6 @@
 
 class File extends SimpleORMap
 {
-    public $file_id;
-    public $user_id;
-    public $filename;
-    public $mime_type;
-    public $size;
-    public $restricted;
-    public $storage;            // backend name
-    public $storage_id;         // backend id (NULL for directories)
-    public $mkdate;
-    public $chdate;
-
     protected $storage_object;  // backend object
 
     protected static $object_cache = array();
@@ -43,25 +32,15 @@ class File extends SimpleORMap
     public static function get($id)
     {
         if (!isset(self::$object_cache[$id])) {
-            $entry = self::find($id)->content;
+            $entry = self::find($id);
             if (empty($entry)) {
                 $file = new RootDirectory($id);
             } else {
                 if ($entry['storage_id']) {
-                    $file = new File($id);
+                    $file = $entry;
                 } else {
                     $file = new StudipDirectory($id);
                 }
-
-                $file->user_id = $entry['user_id'];
-                $file->filename = $entry['filename'];
-                $file->mime_type = $entry['mime_type'];
-                $file->size = $entry['size'];
-                $file->restricted = $entry['restricted'];
-                $file->storage = $entry['storage'];
-                $file->storage_id = $entry['storage_id'];
-                $file->mkdate = $entry['mkdate'];
-                $file->chdate = $entry['chdate'];
 
                 if ($file->storage_id) {
                     $file->storage_object = new $file->storage($file->storage_id);
@@ -79,11 +58,18 @@ class File extends SimpleORMap
      *
      * @return File  File object
      */
-    public function __construct($id)
+    public function __construct($id = null)
     {
-        $this->file_id = $id;
-        $this->storage = 'DiskFileStorage'; // TODO: Hardcoded storage type
         $this->db_table = 'files';
+        
+        $this->belongs_to['owner'] = array(
+            'class_name'  => 'User',
+            'foreign_key' => 'user_id',
+        );
+
+        // TODO: Hardcoded storage type
+        $this->default_values['storage'] = 'DiskFileStorage';
+
         parent::__construct($id);
     }
 
@@ -102,26 +88,6 @@ class File extends SimpleORMap
         $stmt->execute(array($this->file_id));
 
         $this->deleteBySQL('file_id = :file_id', array('file_id' => $this->file_id));
-    }
-
-    /**
-     * Return the file creation time.
-     *
-     * @return int  timestamp
-     */
-    public function getCreationTime()
-    {
-        return $this->mkdate;
-    }
-
-    /**
-     * Return the file id of this file.
-     *
-     * @return string  file id
-     */
-    public function getId()
-    {
-        return $this->file_id;
     }
 
     /**
@@ -147,36 +113,6 @@ class File extends SimpleORMap
     }
 
     /**
-     * Return the file's name.
-     *
-     * @return string file name
-     */
-    public function getFilename()
-    {
-        return $this->filename;
-    }
-
-    /**
-     * Return the file's mime type, if known.
-     *
-     * @return string  mime type (NULL if unknown)
-     */
-    public function getMimeType()
-    {
-        return $this->mime_type;
-    }
-
-    /**
-     * Return the file modification time.
-     *
-     * @return int  timestamp
-     */
-    public function getModificationTime()
-    {
-        return $this->chdate;
-    }
-
-    /**
      * Return the file's storage path.
      *
      * @return string storage path
@@ -198,26 +134,6 @@ class File extends SimpleORMap
     }
 
     /**
-     * Return the file owner's user id.
-     *
-     * @return string  user id
-     */
-    public function getOwner()
-    {
-        return $this->user_id;
-    }
-
-    /**
-     * Return the file's size in bytes.
-     *
-     * @return int  file size
-     */
-    public function getSize()
-    {
-        return $this->size;
-    }
-
-    /**
      * Check if the file's backend allows reading of files.
      *
      * @return boolean  TRUE or FALSE
@@ -225,17 +141,6 @@ class File extends SimpleORMap
     public function isReadable()
     {
         return $this->storage_object->isReadable();
-    }
-
-    /**
-     * Check if the file may be downloaded in open courses.
-     * This was formerly called 'protected'.
-     *
-     * @return boolean  TRUE or FALSE
-     */
-    public function isRestricted()
-    {
-        return $this->restricted;
     }
 
     /**
@@ -261,58 +166,6 @@ class File extends SimpleORMap
         return $this->storage_object->open($mode);
     }
 
-    /**
-     * Set the file's name.
-     *
-     * @param string $filename file name
-     */
-    public function setNewFilename($filename)
-    {
-        $this->filename = $filename;
-        $this->setData(array('filename' => $filename));
-        $this->store();
-        
-    }
-    
-
-    /**
-     * Set the file's mime type.
-     *
-     * @param string $mime_type  mime type
-     */
-    public function setNewMimeType($mime_type)
-    {
-        $this->mime_type = $mime_type;
-        $this->setData(array('mime_type' => $mime_type));
-        $this->store();
-    }
-    
-
-    /**
-     * Set the file's owner.
-     *
-     * @param string $user_id  user id
-     */
-    public function setNewOwner($user_id)
-    {
-        $this->user_id = $user_id;
-        $this->setData(array('user_id' => $user_id));
-        $this->store();
-    }
-    
-    /**
-     * Set the file's download restriction. Restricted files may
-     * only be downloaded in closed courses.
-     *
-     * @param boolean $restricted  TRUE or FALSE
-     */
-    public function setNewRestricted($restricted)
-    {
-        $this->setData(array('restricted' => $restricted));
-        $this->store();
-        $this->restricted = $restricted;
-    }
-    
     /**
      * Update this file's metadata if the content has changed.
      * Note: This needs to be called after each update of the file.

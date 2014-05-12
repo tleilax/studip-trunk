@@ -61,7 +61,7 @@ class Document_FilesController extends DocumentController
         $this->setupInfobox($dir_id);
         try {
             $directory = new DirectoryEntry($dir_id);
-            $this->directory = $directory->getFile();
+            $this->directory = $directory->file;
             $this->files     = $this->directory->listFiles();
         } catch (Exception $e) {
             $this->directory = new RootDirectory($this->context_id);
@@ -71,7 +71,7 @@ class Document_FilesController extends DocumentController
 
         if (isset($directory)) {
             try {
-                //$this->parent_id = $directory->getParent()->id;
+                $this->parent_id = $directory->getParent()->id;
             } catch (Exception $e) {
                 $this->parent_id = $this->context_id;
             }
@@ -139,8 +139,10 @@ class Document_FilesController extends DocumentController
                         $this_title .= ' ' . sprintf(_('(%u von %u)'), $i + 1, $count);
                     }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
                     $new_file = $directory->createFile($filename);
-                    $new_file->rename($this_title);
-                    $new_file->setNewDescription($description);
+                    $new_file->description = $description;
+                    $new_file->name        = $this_title;
+                    $new_file->store();
+
                     $handle = $new_file->getFile();
                     $handle->setNewRestricted($restricted);
                     $handle->setNewMimeType($mimetype);
@@ -219,18 +221,6 @@ class Document_FilesController extends DocumentController
         }
     }
 
-    private function setDialogLayout($icon = false)
-    {
-        $layout = $this->get_template_factory()->open('document/dialog-layout.php');
-        $layout->icon = $icon;
-
-        if (!Request::isXhr()) {
-            $layout->set_layout($GLOBALS['template_factory']->open('layouts/base'));
-        }
-
-        $this->set_layout($layout);
-    }
-
     public function edit_action($entry_id)
     {
         $entry = new DirectoryEntry($entry_id);
@@ -238,13 +228,16 @@ class Document_FilesController extends DocumentController
         if (Request::isPost()) {
             $entry->getFile()->setNewFilename(Request::get('filename'));
             $entry->getFile()->setNewRestricted(Request::int('restricted', 0));
-            $entry->rename(Request::get('name'));
-            $entry->setNewDescription(Request::get('description'));
+            $entry->name        = Request::get('name');
+            $entry->description = Request::get('description');
+            $entry->store();
 
             PageLayout::postMessage(MessageBox::success(_('Die Datei wurde bearbeitet.')));
-            $this->redirect('document/files/index/' . $this->getParentId($entry_id));
+            $this->redirect('document/files/index/' . FileHelper::getParentId($entry_id) ?: $this->context_id);
             return;
         }
+
+        $this->setDialogLayout('icons/48/blue/edit.png');
 
         $this->entry = $entry;
 
@@ -265,7 +258,7 @@ class Document_FilesController extends DocumentController
             }
 
             foreach ($ids as $id) {
-                $source_id = $source_id ?: $this->getParentId($file_id);
+                $source_id = $source_id ?: FileHelper::getParentId($file_id) ?: $this->context_id;
 
                 $entry = new DirectoryEntry($id);
                 $entry->move($folder_id);
@@ -285,7 +278,7 @@ class Document_FilesController extends DocumentController
             $this->flashed = $this->flash['move-ids'];
             $this->parent_id = $source_id;
         } else {
-            $this->parent_id = $this->getParentId($file_id);
+            $this->parent_id = FileHelper::getParentId($file_id) ?: $this->context_id;
         }
         $this->active_folders = array_keys(FileHelper::getBreadCrumbs($this->parent_id));
 
@@ -309,7 +302,7 @@ class Document_FilesController extends DocumentController
             }
             if ($this->checkCopyQuota($ids)) {
                 foreach ($ids as $id) {
-                    $source_id = $source_id ? : $this->getParentId($file_id);
+                    $source_id = $source_id ? : FileHelper::getParentId($file_id) ?: $this->context_id;
                     $entry = new DirectoryEntry($id);
                     $folder = new StudipDirectory($folder_id);
                     $folder->copy(File::get($entry->file_id), $entry->name);
@@ -332,7 +325,7 @@ class Document_FilesController extends DocumentController
             $this->flashed =  $this->flash['copy-ids'];
             $this->parent_id = $source_id;
         } else {
-            $this->parent_id = $this->getParentId($file_id);
+            $this->parent_id = FileHelper::getParentId($file_id) ?: $this->context_id;
         }
         $this->active_folders = array_keys(FileHelper::getBreadCrumbs($this->parent_id));
 
@@ -389,7 +382,7 @@ class Document_FilesController extends DocumentController
     public function delete_action($id)
     {
         $entry = new DirectoryEntry($id);
-        $parent_id = $this->getParentId($id);
+        $parent_id = FileHelper::getParentId($id) ?: $this->context_id;
 
         if (!Request::isPost()) {
             $question = createQuestion2(_('Soll die Datei wirklich gelöscht werden?'),
@@ -442,18 +435,6 @@ class Document_FilesController extends DocumentController
 
             $this->redirect('document/files/index/' . $folder_id);
         }
-    }
-
-    public function getParentId($entry_id)
-    {
-        try {
-            $entry  = new DirectoryEntry($entry_id);
-            $parent = $entry->getParent();
-            $parent_id = $parent->id;
-        } catch (Exception $e) {
-            $parent_id = $this->context_id;
-        }
-        return $parent_id;
     }
 
     private function setupInfobox($current_dir)

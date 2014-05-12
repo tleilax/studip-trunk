@@ -28,16 +28,16 @@ class DocumentController extends AuthenticatedController
         }
     }
 
-    public function getParentId($entry_id)
+    protected function setDialogLayout($icon = false)
     {
-        try {
-            $entry  = new DirectoryEntry($entry_id);
-            $parent = $entry->getParent();
-            $parent_id = $parent->id;
-        } catch (Exception $e) {
-            $parent_id = $GLOBALS['user']->id;
+        $layout = $this->get_template_factory()->open('document/dialog-layout.php');
+        $layout->icon = $icon;
+
+        if (!Request::isXhr()) {
+            $layout->set_layout($GLOBALS['template_factory']->open('layouts/base'));
         }
-        return $parent_id;
+
+        $this->set_layout($layout);
     }
 
     protected function initiateDownload($inline, $filename, $mime_type, $size, $handle)
