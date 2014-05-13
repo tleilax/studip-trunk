@@ -47,7 +47,7 @@ class Document_FolderController extends DocumentController
 
             try {
                 $entry = new DirectoryEntry($parent_id);
-                $parent_dir = $entry->getFile();
+                $parent_dir = $entry->file;
             } catch (Exception $e) {
                 $parent_dir = new RootDirectory($this->context_id);
             }
@@ -67,7 +67,8 @@ class Document_FolderController extends DocumentController
             $directory->name        = $name;
             $directory->store();
 
-            $directory->getFile()->setNewFilename($name);
+            $directory->file->filename = $name;
+            $directory->file->store();
 
             PageLayout::postMessage(MessageBox::success(_('Der Ordner wurde erstellt.')));
             $this->redirect('document/files/index/' . $parent_id);
@@ -83,7 +84,8 @@ class Document_FolderController extends DocumentController
             $folder->Description = Request::get('description');
             $folder->store();
 
-            $folder->getFile()->setNewFilename(Request::get('name'));
+            $folder->file->filename = Request::get('name');
+            $folder->file->store();
             
             PageLayout::postMessage(MessageBox::success(_('Der Ordner wurde bearbeitet.')));
             $this->redirect('document/files/index/' . $parent_id);
@@ -112,14 +114,14 @@ class Document_FolderController extends DocumentController
             $this->flash['question'] = $question;
         } elseif (Request::isPost() && Request::submitted('yes')) {
             if ($folder_id === 'all') {
-                $entry = new RootDirectory($this->context_id);
+                $entry = RootDirectory::find($this->context_id);
                 foreach ($entry->listFiles() as $file) {
                     $entry->unlink($file->name);
                 }
                 PageLayout::postMessage(MessageBox::success(_('Der Dateibereich wurde geleert.')));
             } else {
-                $entry = new DirectoryEntry($folder_id);
-                File::get($parent_id)->unlink($entry->name);
+                $entry = DirectoryEntry::find($folder_id);
+                $entry->directory->file->unlink($entry->name);
                 PageLayout::postMessage(MessageBox::success(_('Der Ordner wurde gelöscht.')));
             }
         }
@@ -134,14 +136,14 @@ class Document_FolderController extends DocumentController
             $ids = $this->flash['download-ids'];
             foreach ($ids as $id) {
                 $entry     = new DirectoryEntry($id);
-                $entries[] = $entry->getFile();
+                $entries[] = $entry->file;
             }
         } else {
             if ($folder_id === $this->context_id) {
                 $entries[] = new RootDirectory($this->context_id);
             } else {
                 $entry     = new DirectoryEntry($folder_id);
-                $entries[] = $entry->getFile();
+                $entries[] = $entry->file;
             }
         }
         $tmp_file = tempnam($GLOBALS['TMP_PATH'], 'doc');
@@ -160,8 +162,8 @@ class Document_FolderController extends DocumentController
 
         array_map('unlink', $remove);
 
-        // TODO: swap "foobar" with a more appropriate name
-        $this->initiateDownload(false, 'foobar.zip', 'application/zip', filesize($tmp_file), fopen($tmp_file, 'r'));
+        // TODO: swap "Stud-IP.zip" with a more appropriate name
+        $this->initiateDownload(false, 'Stud-IP.zip', 'application/zip', filesize($tmp_file), fopen($tmp_file, 'r'));
         $this->download_remove = $tmp_file;
     }
     
@@ -174,7 +176,7 @@ class Document_FolderController extends DocumentController
                 throw new Exception('Can not add dir "' . $path . '"');
             }
             foreach ($entry->listFiles() as $file) {
-                $this->addToZip($zip, $file->getFile(), $path, $remove);
+                $this->addToZip($zip, $file->file, $path, $remove);
             }
         } else {
             $tmp_file = tempnam($GLOBALS['TMP_PATH'], 'zip');

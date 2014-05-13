@@ -78,7 +78,7 @@
             <td>
                 <input type="checkbox" name="ids[]" value="<?= $file->id ?>" <? if (in_array($file->id, $marked)) echo 'checked'; ?>>
             </td>
-        <? if ($file->file instanceof StudipDirectory): ?>
+        <? if ($file->isDirectory()): ?>
             <td class="document-icon">
                 <a href="<?= $controller->url_for('document/files/index/' . $file->id) ?>">
                 <? if ($file->file->isEmpty()): ?>

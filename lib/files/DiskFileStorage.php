@@ -48,7 +48,9 @@ class DiskFileStorage implements FileStorage
      */
     public function delete()
     {
-        unlink($this->file_path);
+        if ($this->exists()) {
+            unlink($this->file_path);
+        }
     }
 
     public function getPath()
@@ -92,7 +94,7 @@ class DiskFileStorage implements FileStorage
      */
     public function getMimeType()
     {
-        return NULL;
+        return mime_content_type($this->file_path);
     }
 
     /**

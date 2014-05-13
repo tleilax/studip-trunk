@@ -24,8 +24,6 @@ class RootDirectory extends StudipDirectory
      */
     public function __construct($id = null)
     {
-        $this->db_table = 'files';
-        
         parent::__construct($id);
 
         // default is to use DiskFileStorage
@@ -39,7 +37,7 @@ class RootDirectory extends StudipDirectory
     public function delete()
     {
         foreach ($this->listFiles() as $entry) {
-            $entry->getFile()->delete();
+            $entry->file->delete();
         }
     }
 }

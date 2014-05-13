@@ -15,7 +15,6 @@
  *
  * @property string user_id database column
  * @property string seminar_id database column
- * @property string studiengang_id database column
  * @property string status database column
  * @property string mkdate database column
  * @property string position database column
@@ -26,11 +25,9 @@
  * @property string username computed column
  * @property string email computed column
  * @property string course_name computed column
- * @property string studycourse_name computed column
  * @property string id computed column read/write
  * @property User user belongs_to User
  * @property Course course belongs_to Course
- * @property StudyCourse studycourse belongs_to StudyCourse
  */
 class AdmissionApplication extends SimpleORMap
 {
@@ -38,31 +35,40 @@ class AdmissionApplication extends SimpleORMap
 
     public static function findByCourse($course_id)
     {
-        return self::findBySeminar_id($course_id, 'ORDER BY position');
+        $db = DbManager::get();
+        return $db->fetchAll("SELECT admission_seminar_user.*, aum.vorname,aum.nachname,aum.email,
+                             aum.username
+                             FROM admission_seminar_user
+                             LEFT JOIN auth_user_md5 aum USING (user_id)
+                             WHERE seminar_id = ? ORDER BY position",
+                             array($course_id),
+                             __CLASS__ . '::buildExisting');
     }
 
     public static function findByUser($user_id)
     {
-        return self::findByUser_id($user_id);
+        $db = DbManager::get();
+        return $db->fetchAll("SELECT admission_seminar_user.*, seminare.Name as course_name
+                             FROM admission_seminar_user
+                             LEFT JOIN seminare USING (seminar_id)
+                             WHERE user_id = ? ORDER BY seminare.Name",
+                             array($user_id),
+                             __CLASS__ . '::buildExisting');
     }
 
-    function __construct($id = array())
+    protected static function configure()
     {
-        $this->db_table = 'admission_seminar_user';
-        $this->belongs_to = array('user' => array('class_name' => 'User',
+        $config['db_table'] = 'admission_seminar_user';
+        $config['belongs_to'] = array('user' => array('class_name' => 'User',
                                                     'foreign_key' => 'user_id'),
                                    'course' => array('class_name' => 'Course',
                                                     'foreign_key' => 'seminar_id'),
         );
-        $user_getter = function ($record, $field) { return $record->getRelationValue('user', $field);};
-        $this->additional_fields['vorname'] = array('get' => $user_getter);
-        $this->additional_fields['nachname'] = array('get' => $user_getter);
-        $this->additional_fields['username'] = array('get' => $user_getter);
-        $this->additional_fields['email'] = array('get' => $user_getter);
-        $this->additional_fields['course_name'] = array('get' =>
-                                                        function ($record, $field) {
-                                                            return $record->getRelationValue('course', 'name');
-                                                        });
-        parent::__construct($id);
+        $config['additional_fields']['vorname'] = array('user', 'vorname');
+        $config['additional_fields']['nachname'] = array('user', 'nachname');
+        $config['additional_fields']['username'] = array('user', 'username');
+        $config['additional_fields']['email'] = array('user', 'email');
+        $config['additional_fields']['course_name'] = array();
+        parent::configure($config);
     }
 }

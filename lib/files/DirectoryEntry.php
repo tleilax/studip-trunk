@@ -16,30 +16,51 @@
 class DirectoryEntry extends SimpleORMap
 {
     /**
+     * Configures this model with additional fields for the file
+     * and directory reference as well as a complete notification map.
+     */
+    protected static function configure($config = array())
+    {
+        $config['db_table'] = 'file_refs';
+        $config['belongs_to']['directory'] = array(
+            'class_name'        => 'DirectoryEntry',
+            'foreign_key'       => 'parent_id',
+            'assoc_foreign_key' => 'file_id',
+        );
+        
+
+        $config['additional_fields']['file'] = array(
+            'get' => function ($record, $field) {
+                return File::get($record->file_id);
+            }
+        );
+
+#        $config['additional_fields']['directory'] = array(
+#            'get' => function ($record, $field) {
+#                return File::get($record->parent_id);
+#            }
+#        );
+
+        $config['notification_map'] = array(
+            'before_create' => 'FileWillCreate',
+            'after_create'  => 'FileDidCreate',
+            'before_update' => 'FileWillChange',
+            'after_update'  => 'FileDidChange',
+            'before_delete' => 'FileWillDelete',
+            'after_delete'  => 'FileDidDelete',
+        );
+        
+        parent::configure($config);
+    }
+    
+    /**
      * Initialize a new directory entry object for the given id.
      *
      * @param string $id  directory entry id
-     *
-     * @return DirectoryEntry  DirectoryEntry object
+     * @throws InvalidArgumentException if id of directory entry is invalid
      */
-    public function __construct($id = NULL)
+    public function __construct($id = null)
     {
-        $this->db_table = 'file_refs';
-        
-        $this->additional_fields['file'] = array('get' => function ($record, $field) {
-            return File::get($record->file_id);
-        });
-        $this->additional_fields['direcory'] = array('get' => function ($record, $field) {
-            return File::get($record->parent_id);
-        });
-
-        $this->notification_map['before_create'] = 'FileWillCreate';
-        $this->notification_map['after_create']  = 'FileDidCreate';
-        $this->notification_map['before_update'] = 'FileWillChange';
-        $this->notification_map['after_update']  = 'FileDidChange';
-        $this->notification_map['before_delete'] = 'FileWillDelete';
-        $this->notification_map['after_delete']  = 'FileDidDelete';
-
         parent::__construct($id);
         
         if ($id !== null && $this->isNew()) {
@@ -75,5 +96,23 @@ class DirectoryEntry extends SimpleORMap
             throw new Exception('No parent found');
         }
         return $entries[0];
+    }
+    
+    public function isDirectory()
+    {
+        return $this->file instanceof StudipDirectory;
+    }
+    
+    public function getSize()
+    {
+        if ($this->isDirectory()) {
+            $size = 0;
+            foreach ($this->file->listFiles() as $file) {
+                $size += $file->getSize();
+            }
+        } else {
+            $size = $this->file->size;
+        }
+        return $size;
     }
 }

@@ -1,6 +1,34 @@
 <?php
 class FileHelper
 {
+    public static function CompressFilename($filename)
+    {
+        $pathinfo = pathinfo($filename);
+
+        if (preg_match_all('/\s\(' . _('Kopie') . '\s*(\d*)\)/', $pathinfo['filename'], $matches, PREG_SET_ORDER) <= 1) {
+            return $filename;
+        }
+        $filename = $pathinfo['filename'];
+        $number = 1;
+            
+        foreach ($matches as $match) {
+            $number += $match[1] ? intval($match[1]) : 1;
+            $filename = str_replace($match[0], '', $filename);
+        }
+        $filename = trim($filename);
+        
+        $filename .= sprintf(' (%s %u)', _('Kopie'), $number);
+
+        if (!empty($pathinfo['extension'])) {
+            $filename .= '.' . $pathinfo['extension'];
+        }
+        if (!empty($pathinfo['dirname']) && $pathinfo['dirname'] !== '.') {
+            $filename = $pathinfo['dirname'] . '/' . $filename;
+        }
+
+        return $filename;
+    }
+    
     public static function AdjustFilename($filename)
     {
         $pathinfo = pathinfo($filename);

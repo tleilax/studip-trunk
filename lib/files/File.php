@@ -38,12 +38,9 @@ class File extends SimpleORMap
             } else {
                 if ($entry['storage_id']) {
                     $file = $entry;
+                    $file->storage_object = new $file->storage($file->storage_id);
                 } else {
                     $file = new StudipDirectory($id);
-                }
-
-                if ($file->storage_id) {
-                    $file->storage_object = new $file->storage($file->storage_id);
                 }
             }
             self::$object_cache[$id] = $file;
@@ -52,25 +49,22 @@ class File extends SimpleORMap
     }
 
     /**
-     * Initialize a new file object for the given id.
-     *
-     * @param string $id  file_id
-     *
-     * @return File  File object
+     * Configures this model
      */
-    public function __construct($id = null)
+    protected static function configure($config = array())
     {
-        $this->db_table = 'files';
-        
-        $this->belongs_to['owner'] = array(
+        $config['db_table'] = 'files';
+        $config['belongs_to']['owner'] = array(
             'class_name'  => 'User',
             'foreign_key' => 'user_id',
         );
-
-        // TODO: Hardcoded storage type
-        $this->default_values['storage'] = 'DiskFileStorage';
-
-        parent::__construct($id);
+        $config['has_many']['refs'] = array(
+            'class_name'  => 'DirectoryEntry',
+            'foreign_key' => 'file_id',
+        );
+        $config['default_values']['storage'] = 'DiskFileStorage';
+            
+        parent::configure($config);
     }
 
     /**
@@ -87,7 +81,7 @@ class File extends SimpleORMap
         $stmt = $db->prepare('DELETE FROM file_refs WHERE file_id = ?');
         $stmt->execute(array($this->file_id));
 
-        $this->deleteBySQL('file_id = :file_id', array('file_id' => $this->file_id));
+        parent::delete();
     }
 
     /**
@@ -172,15 +166,11 @@ class File extends SimpleORMap
      */
     public function update() 
     {
-    
-        $this->mkdate = $this->getCreationTime();
-        $this->mime_type = $this->getMimeType();
-        $this->chdate = $this->getModificationTime();
-        $this->size = $this->getSize();
-        $this->setData(array('mkdate' => $this->mkdate,
-                          'mime_type' => $this->mime_type,
-                          'size' => $this->size,
-                          'chdate' => $this->chdate));
+        $this->mime_type = $this->storage_object->getMimeType() ?: $this->mime_type;
+        $this->mkdate    = $this->storage_object->getCreationTime();
+        $this->chdate    = $this->storage_object->getModificationTime();
+        $this->size      = $this->storage_object->getSize();
+
         $this->store();
     }
 }

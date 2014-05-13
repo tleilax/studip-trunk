@@ -42,7 +42,8 @@ class Document_FilesController extends DocumentController
             mkdir($userdir, 0755, true);
         }
 
-        //Configurations for the Documentarea for this user
+        //Configurations for the Documentarea for this userinclude '../../views/document/files/copy.php';
+        
         $this->userConfig = DocUsergroupConfig::getUserConfig($GLOBALS['user']->id);
         if (!empty($this->userConfig)) {
             $measure = $this->userConfig['quota'];
@@ -91,7 +92,7 @@ class Document_FilesController extends DocumentController
                 $directory = new RootDirectory($this->context_id);
             } else {
                 $dirEntry = new DirectoryEntry($folder_id);
-                $directory = $dirEntry->getfile();
+                $directory = $dirEntry->file;
             }
             
             $title       = Request::get('title');
@@ -143,9 +144,9 @@ class Document_FilesController extends DocumentController
                     $new_file->name        = $this_title;
                     $new_file->store();
 
-                    $handle = $new_file->getFile();
-                    $handle->setNewRestricted($restricted);
-                    $handle->setNewMimeType($mimetype);
+                    $handle = $new_file->file;
+                    $handle->restricted = $restricted;
+                    $handle->mime_type  = $mimetype;
                     //echo $filesize;die;
                     $handle->size = $filesize;
                         
@@ -226,8 +227,10 @@ class Document_FilesController extends DocumentController
         $entry = new DirectoryEntry($entry_id);
 
         if (Request::isPost()) {
-            $entry->getFile()->setNewFilename(Request::get('filename'));
-            $entry->getFile()->setNewRestricted(Request::int('restricted', 0));
+            $entry->file->filename   = Request::get('filename');
+            $entry->file->restricted = Request::int('restricted', 0);
+            $entry->file->store();
+
             $entry->name        = Request::get('name');
             $entry->description = Request::get('description');
             $entry->store();
@@ -284,7 +287,7 @@ class Document_FilesController extends DocumentController
 
         try {
             $parent = new DirectoryEntry($this->parent_id);
-            $this->parent_file_id = $parent->getFile()->file_id;
+            $this->parent_file_id = $parent->file->id;
         } catch (Exception $e) {
             $this->parent_file_id = $this->context_id;
         }
@@ -292,9 +295,9 @@ class Document_FilesController extends DocumentController
 
     public function copy_action($file_id, $source_id = null)
     {
-        
          if (Request::isPost()) {
             $folder_id = Request::option('folder_id');
+            $folder = StudipDirectory::get($folder_id);
             if ($file_id === 'flashed') {
                 $ids = Request::optionArray('file_id');
             } else {
@@ -303,9 +306,8 @@ class Document_FilesController extends DocumentController
             if ($this->checkCopyQuota($ids)) {
                 foreach ($ids as $id) {
                     $source_id = $source_id ? : FileHelper::getParentId($file_id) ?: $this->context_id;
-                    $entry = new DirectoryEntry($id);
-                    $folder = new StudipDirectory($folder_id);
-                    $folder->copy(File::get($entry->file_id), $entry->name);
+                    $entry = DirectoryEntry::find($id);
+                    $folder->copy($entry->file, sprintf('%s (%s)', $entry->name, _('Kopie')), $entry->description);
                 }
                 PageLayout::postMessage(MessageBox::success(_('Die ausgewählten Dateien wurden erfolgreich kopiert')));
             } else {
@@ -318,11 +320,11 @@ class Document_FilesController extends DocumentController
         }
         
         
-        $this->file_id = $file_id;
+        $this->file_id  = $file_id;
         $this->dir_tree = FileHelper::getDirectoryTree($this->context_id);
 
         if ($file_id === 'flashed') {
-            $this->flashed =  $this->flash['copy-ids'];
+            $this->flashed   =  $this->flash['copy-ids'];
             $this->parent_id = $source_id;
         } else {
             $this->parent_id = FileHelper::getParentId($file_id) ?: $this->context_id;
@@ -331,39 +333,28 @@ class Document_FilesController extends DocumentController
 
         try {
             $parent = new DirectoryEntry($this->parent_id);
-            $this->parent_file_id = $parent->getFile()->file_id;
+            $this->parent_file_id = $parent->file->id;
         } catch (Exception $e) {
             $this->parent_file_id = $this->context_id;
         }
     }
     
-    public function checkCopyQuota($ids, $size)
+    public function checkCopyQuota($ids)
     {
-        $copySize = $size;
-        for($i = 0; $i<count($ids); $i++){
-            $entry = new DirectoryEntry($ids[$i]);
-            $file = $entry->getFile();
-            if($file->storage_id == ''){
-                $folderEntries = $file->listFiles();
-                foreach($folderEntries as $entry){
-                    $ids[]=$entry->id;
-                }
-            }else{
-                $copySize = $copySize+$file->size;
-            }
+        $size = 0;
+        foreach ($ids as $id) {
+            $size += DirectoryEntry::find($id)->getSize();
         }
-         $restQuota = $this->userConfig['quota'] - 
-                    DiskFileStorage::getQuotaUsage($GLOBALS['user']->id);
-        if(($restQuota - $copySize) <= 0){
-            return false;
-        }
-        return true;
+
+        $restQuota = $this->userConfig['quota'] -  DiskFileStorage::getQuotaUsage($GLOBALS['user']->id);
+
+        return $restQuota > $copySize;
     }
     
     public function download_action($entry_id, $inline = false)
     {
         $entry = new DirectoryEntry($entry_id);
-        $file  = $entry->getFile();
+        $file  = $entry->file;
 
         if ($file instanceof StudipDirectory) {
             throw new Exception('Cannot download directory');
@@ -374,15 +365,16 @@ class Document_FilesController extends DocumentController
             throw new Exception('Cannot access file');
         }
 
-        $entry->setDownloadCount($entry->downloads + 1);
+        $entry->downloads += 1;
+        $entry->store();
 
-        $this->initiateDownload($inline, $file->getFilename(), $file->getMimeType(), $file->getSize(), $storage->open('r'));
+        $this->initiateDownload($inline, $file->filename, $file->mime_type, $file->size, $storage->open('r'));
     }
 
     public function delete_action($id)
     {
-        $entry = new DirectoryEntry($id);
-        $parent_id = FileHelper::getParentId($id) ?: $this->context_id;
+        $entry = DirectoryEntry::find($id);
+        $parent_id = $entry->directory->id ?: $this->context_id;
 
         if (!Request::isPost()) {
             $question = createQuestion2(_('Soll die Datei wirklich gelöscht werden?'),
@@ -390,7 +382,7 @@ class Document_FilesController extends DocumentController
                                         $this->url_for('document/files/delete/' . $id));
             $this->flash['question'] = $question;
         } elseif (Request::isPost() && Request::submitted('yes')) {
-            File::get($parent_id)->unlink($entry->name);
+            $entry->directory->file->unlink($entry->name);
             PageLayout::postMessage(MessageBox::success(_('Die Datei wurde gelöscht.')));
         }
         $this->redirect('document/files/index/' . $parent_id);
@@ -417,7 +409,7 @@ class Document_FilesController extends DocumentController
                     $dir = new RootDirectory($this->context_id);
                 } else {
                     $entry = new DirectoryEntry($folder_id);
-                    $dir   = $entry->getFile();
+                    $dir   = $entry->file;
                 }
                 foreach ($ids as $id) {
                     $entry = new DirectoryEntry($id);

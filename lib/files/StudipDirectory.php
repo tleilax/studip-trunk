@@ -15,6 +15,17 @@
 
 class StudipDirectory extends File
 {
+    protected static function configure($config = array())
+    {
+        $config['has_many']['files'] = array(
+            'class_name'  => 'DirectoryEntry',
+            'foreign_key' => 'file_id',
+            'assoc_foreign_key' => 'parent_id',
+        );
+        
+        parent::configure($config);
+    }
+    
     /**
      * Get a root directory object for the given context id.
      * Root directories are not represented in the database.
@@ -29,14 +40,6 @@ class StudipDirectory extends File
         return parent::get($context_id);
     }
 
-    public function __construct($id = null)
-    {
-        SimpleORMap::expireTableScheme();
-        $this->db_table = 'files';
-        
-        parent::__construct($id);
-    }
-
     /**
      * Create a new empty file in this directory under the
      * given name and returns the directory entry.
@@ -45,20 +48,22 @@ class StudipDirectory extends File
      *
      * @return DirectoryEntry  created DirectoryEntry object
      */
-    public function createFile($name)
+    public function createFile($name, $description = '')
     {
-        $db = DBManager::get();
-        $file_id = md5(uniqid(__CLASS__, true));
-        $user_id = $GLOBALS['user']->id;
-        $mime_type = 'text/plain';
-
         $reflection = new ReflectionClass($this->storage);
         $storage_object = $reflection->newInstance();
 
-        $stmt = $db->prepare('INSERT INTO files (file_id, user_id, filename, mime_type, size, restricted, storage, storage_id, mkdate, chdate)
-                                  VALUES(?, ?, ?, ?, ?, ?, ?, ?, UNIX_TIMESTAMP(), UNIX_TIMESTAMP())');
-        $stmt->execute(array($file_id, $user_id, $name, $mime_type, 0, 0, $this->storage, $storage_object->getId()));
-        return $this->link(File::get($file_id), $name);
+        $file = new File();
+        $file->user_id    = $GLOBALS['user']->id;
+        $file->filename   = $name;
+        $file->mime_type  = 'text/plain';
+        $file->size       = 0;
+        $file->restricted = false;
+        $file->storage    = $this->storage;
+        $file->storage_id = $storage_object->getId();
+        $file->store();
+
+        return $this->link($file, $name, $description);
     }
 
     /**
@@ -72,42 +77,42 @@ class StudipDirectory extends File
      *
      * @return DirectoryEntry  created DirectoryEntry object
      */
-    public function copy(File $source, $name)
+    public function copy(File $source, $name, $description = '')
     {
-        if($source->storage_id != ''){
-        $new_entry = $this->createFile($name);
-        $new_file = $new_entry->getFile();
-        $new_file->setNewFilename($source->filename);
-        $new_file->setNewMimeType($source->mime_type);
-        $new_file->size = $source->size;
-        $new_file->update();
-        $source_fp = $source->open('rb');
-        $dest_fp = $new_file->open('wb');
-
-        while (!feof($source_fp)) {
-            $buffer = fread($source_fp, 65536);
-            fwrite($dest_fp, $buffer);
-        }
-        fclose($dest_fp);
-        fclose($source_fp);
-        // copy some attributes
-        $new_file->setNewMimeType($source->getMimeType());
-        $new_file->setNewRestricted($source->isRestricted());
-        return $new_entry;
-
-        }else{ //COPY directory
-            $newFolder = $this->mkdir($name);
-            $folder = StudipDirectory::get($newFolder->file_id);
-            $folder->setNewFilename($newFolder->name);
-            //$folder->setFilename($newFolder->name);
+        // Copy single file?
+        if ($source->storage_id != '') {
+            $new_entry = $this->createFile($name, $description);
             
-            $entrys = $source->listFiles();
-            foreach($entrys as $entry){
-                $file = File::get($entry->file_id);
-                $folder->copy($file, $entry->name);
-            }
-            return $folder;
+            $new_file = $new_entry->file;
+
+            // copy contents
+            $source_fp = $source->open('rb');
+            $dest_fp   = $new_file->open('wb');
+            stream_copy_to_stream($source_fp, $dest_fp);
+            fclose($dest_fp);
+            fclose($source_fp);
+
+            // copy attributes
+            $new_file->filename  = $source->filename;
+            $new_file->restricted = $source->restricted;
+            $new_file->mime_type = $source->mime_type;
+            $new_file->size = $source->size;
+            $new_file->update();
+
+            return $new_entry;
         }
+        
+        //COPY directory
+        $newFolder = $this->mkdir($name, $description);
+        // Todo: This probably could be more sormy
+        $folder = StudipDirectory::get($newFolder->file_id);
+        $folder->filename = $newFolder->name;
+        $folder->store();
+
+        foreach ($source->listFiles() as $entry){
+            $folder->copy($entry->file, $entry->name, $entry->description);
+        }
+        return $folder;
     }
 
 
@@ -121,12 +126,7 @@ class StudipDirectory extends File
      */
     public function getEntry($name)
     {
-        $db = DBManager::get();
-        $stmt = $db->prepare('SELECT id FROM file_refs WHERE parent_id = ? AND name = ?');
-        $stmt->execute(array($this->file_id, $name));
-        $id = $stmt->fetchColumn();
-
-        return $id ? new DirectoryEntry($id) : NULL; // should this throw an error on failure?
+        return DirectoryEntry::findOneBySQL('parent_id = ? AND name = ?', array($this->file_id, $name));
     }
     
     /**
@@ -146,10 +146,7 @@ class StudipDirectory extends File
      */
     public function countFiles()
     {
-        $statement = DBManager::get()->prepare('SELECT COUNT(id) FROM file_refs WHERE parent_id = :id');
-        $statement->bindValue(':id', $this->id);
-        $statement->execute();
-        return $statement->fetchColumn();
+        return count($this->files);
     }
 
     /**
@@ -180,21 +177,26 @@ class StudipDirectory extends File
      *
      * @param File $file    file to link
      * @param string $name  new file name
+     * @param string $description optional description
      *
      * @return DirectoryEntry  created DirectoryEntry object
      */
-    public function link(File $file, $name)
+    public function link(File $file, $name, $description = '')
     {
-        $db = DBManager::get();
-        
+        $name = FileHelper::CompressFilename($name);
+
         while (StudipDirectory::getEntry($name)) {
             $name = FileHelper::AdjustFilename($name);
         }
-        $entry_id = md5(uniqid(__CLASS__, true));
 
-        $stmt = $db->prepare('INSERT INTO file_refs (id, file_id, parent_id, name, description) VALUES(?, ?, ?, ?, ?)');
-        $stmt->execute(array($entry_id, $file->getId(), $this->file_id, $name, ''));
-        return new DirectoryEntry($entry_id);
+        $entry = new DirectoryEntry();
+        $entry->file_id     = $file->id;
+        $entry->parent_id   = $this->file_id;
+        $entry->name        = $name;
+        $entry->description = $description;
+        $entry->store();
+        
+        return $entry;
     }
 
     /**
@@ -205,22 +207,7 @@ class StudipDirectory extends File
      */
     public function listFiles()
     {
-        $db = DBManager::get();
-        $result = array();
-
-        $query = "SELECT id
-                  FROM file_refs
-                  JOIN files USING (file_id)
-                  WHERE parent_id = :id
-                  ORDER BY storage_id = '' DESC, filename ASC";
-        $stmt = $db->prepare($query);
-        $stmt->bindValue(':id', $this->file_id);
-        $stmt->execute();
-
-        foreach($stmt as $row) {
-            $result[] = new DirectoryEntry($row[0]);
-        }
-        return $result;
+        return $this->files->orderBy('name asc');
     }
 
     /**
@@ -231,20 +218,19 @@ class StudipDirectory extends File
      * @param int $parent_id place in folder hierarchy
      *
      */
-    public function mkdir($name)
+    public function mkdir($name, $description = '')
     {
-        $db = DBManager::get();
+        $dir = new StudipDirectory();
+        $dir->user_id    = $GLOBALS['user']->id;
+        $dir->filename   = '';
+        $dir->mime_type  = '';
+        $dir->size       = 0;
+        $dir->restricted = false;
+        $dir->storage    = $this->storage;
+        $dir->storage_id = '';
+        $dir->store();
 
-        $file_id = md5(uniqid(__CLASS__, true));
-        $user_id = $GLOBALS['user']->id;
-        $mime_type = '';
-
-        $stmt = $db->prepare('INSERT INTO files (file_id, user_id, filename, mime_type, size, restricted, storage, storage_id, mkdate, chdate)
-                                  VALUES(?, ?, ?, ?, ?, ?, ?, ?, UNIX_TIMESTAMP(), UNIX_TIMESTAMP())');
-        $stmt->execute(array($file_id, $user_id, '', $mime_type, 0, 0, $this->storage, ''));
-
-        $dir = File::get($file_id);
-        return $this->link($dir, $name);
+        return $this->link($dir, $name, $description);
     }
 
     /**
@@ -253,7 +239,7 @@ class StudipDirectory extends File
     public function delete()
     {
         foreach ($this->listFiles() as $entry) {
-            $entry->getFile()->delete();
+            $entry->file->delete();
         }
 
         parent::delete();
@@ -320,11 +306,11 @@ class StudipDirectory extends File
         $file_id = $stmt->fetchColumn();
 
         if ($file_id) {
-            $stmt = $db->prepare('DELETE FROM file_refs WHERE file_id = ? AND parent_id = ?');
+            $stmt = $db->prepare("DELETE FROM file_refs WHERE file_id = ? AND parent_id = ?");
             $stmt->execute(array($file_id, $this->file_id));
 
             // count links and delete storage if link count == 0
-            $stmt = $db->prepare('SELECT COUNT(id) FROM file_refs WHERE file_id = ?');
+            $stmt = $db->prepare("SELECT COUNT(id) FROM file_refs WHERE file_id = ?");
             $stmt->execute(array($file_id));
             $count = $stmt->fetchColumn();
 
