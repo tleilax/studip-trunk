@@ -3106,20 +3106,39 @@ table.contact-header td.empty a {
   padding: 0;
 }
 .file-tree ul {
-  margin-left: 20px;
+  margin-left: 8px;
+  position: relative;
+}
+.file-tree ul:before {
+  border-left: 1px solid #888888;
+  content: '';
+  display: block;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 0;
 }
 .file-tree li {
   overflow: hidden;
+  padding-left: 10px;
+  position: relative;
 }
-.file-tree li.empty-directory:before {
-  content: ' ';
-  background-image: url("../images/icons/16/blue/folder-empty.png");
-  background-image: -webkit-image-set(url("../images/icons/16/blue/folder-empty.png") 1x, url("../images/icons/32/blue/folder-empty.png") 2x);
-  background-repeat: no-repeat;
-  background-position: center;
-  display: inline-block;
-  height: 16px;
-  width: 16px;
+.file-tree ul li:before {
+  content: '';
+  display: block;
+  height: 0;
+  width: 8px;
+  position: absolute;
+  border-top: 1px solid #888888;
+  left: 0;
+  top: 8px;
+}
+.file-tree ul li:last-child:before {
+  background: #fff;
+  height: auto;
+  top: 10px;
+  bottom: 0;
 }
 .file-tree input[type=checkbox] {
   display: none;
@@ -3141,6 +3160,7 @@ table.contact-header td.empty a {
   height: 16px;
   width: 16px;
   cursor: pointer;
+  vertical-align: text-top;
   -webkit-transition: transform 300ms;
   -moz-transition: transform 300ms;
   -o-transition: transform 300ms;
@@ -3154,7 +3174,26 @@ table.contact-header td.empty a {
   -o-transition: all 300ms;
   transition: all 300ms;
 }
+.file-tree input[type=checkbox] ~ input[type=radio] + label {
+  margin-left: 0;
+}
 .file-tree input[type=checkbox]:checked + label {
+  background-image: url("../images/icons/16/blue/arr_1down.png");
+  background-image: -webkit-image-set(url("../images/icons/16/blue/arr_1down.png") 1x, url("../images/icons/32/blue/arr_1down.png") 2x);
+  background-repeat: no-repeat;
+  background-position: center;
+  display: inline-block;
+  height: 16px;
+  width: 16px;
+}
+.csstransforms .file-tree input[type=checkbox]:checked + label {
+  background-image: url("../images/icons/16/blue/arr_1right.png");
+  background-image: -webkit-image-set(url("../images/icons/16/blue/arr_1right.png") 1x, url("../images/icons/32/blue/arr_1right.png") 2x);
+  background-repeat: no-repeat;
+  background-position: center;
+  display: inline-block;
+  height: 16px;
+  width: 16px;
   -webkit-transform: rotate(90deg);
   -moz-transform: rotate(90deg);
   -ms-transform: rotate(90deg);
@@ -3169,35 +3208,18 @@ table.contact-header td.empty a {
   display: none;
 }
 .file-tree input[type=radio] + label {
+  color: #24437c;
+  border-radius: 2px;
   cursor: pointer;
-}
-.file-tree input[type=radio] + label:before {
-  content: ' ';
-  background-image: url("../images/icons/16/blue/checkbox-unchecked.png");
-  background-image: -webkit-image-set(url("../images/icons/16/blue/checkbox-unchecked.png") 1x, url("../images/icons/32/blue/checkbox-unchecked.png") 2x);
-  background-repeat: no-repeat;
-  background-position: center;
-  display: inline-block;
-  height: 16px;
-  width: 16px;
-  opacity: 0.5;
-  margin-right: 8px;
+  padding: 0 3px;
+  margin-left: 1px;
 }
 .file-tree input[type=radio]:checked + label {
   font-weight: bold;
-}
-.file-tree input[type=radio]:checked + label:before {
-  background-image: url("../images/icons/16/blue/checkbox-checked.png");
-  background-image: -webkit-image-set(url("../images/icons/16/blue/checkbox-checked.png") 1x, url("../images/icons/32/blue/checkbox-checked.png") 2x);
-  opacity: 1;
+  background: #d0d7e3;
 }
 .file-tree input[type=radio][disabled] + label {
   color: #888;
-}
-.file-tree input[type=radio][disabled] + label:before {
-  background-image: url("../images/icons/16/grey/decline.png");
-  background-image: -webkit-image-set(url("../images/icons/16/grey/decline.png") 1x, url("../images/icons/32/grey/decline.png") 2x);
-  opacity: 1;
 }
 /* classes for the evaluation modules in Stud.IP ---------------------------- */
 .eval_title {

@@ -107,6 +107,8 @@
     height: 16px;
     width: 16px;
 }
+@distance: 8px;
+@border-style: 1px solid #888;
 .file-tree {
     &, ul {
         list-style: none;
@@ -114,22 +116,50 @@
         padding: 0;
     }
     ul {
-        margin-left: 20px;
+        margin-left: @distance;
+        position: relative;
+
+        &:before {
+            border-left: @border-style;
+            content: '';
+            display: block;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            width: 0;
+        }
     }
     li {
         overflow: hidden;
-        &.empty-directory:before {
-            content: ' ';
-            .studip-icon('blue/folder-empty.png');
-        }
+        padding-left: @distance + 2px;
+        position: relative;
     }
+    ul li:before {
+        content: '';
+        display: block;
+        height: 0;
+        width: @distance;
+        position: absolute;
+        border-top: @border-style;
+        left: 0;
+        top: @distance;
+    }
+    ul li:last-child:before {
+        background: #fff;
+        height: auto;
+        top: 10px;
+        bottom: 0;
+    }
+
     input[type=checkbox] {
         display: none;
         + label {
             .hide-text;
             .studip-icon('blue/arr_1right.png');
             cursor: pointer;
-            
+            vertical-align: text-top;
+
             .transition(transform @file-tree-delay);
         }
         ~ ul {
@@ -138,10 +168,17 @@
             
             .transition(all @file-tree-delay);
         }
+        ~ input[type=radio] + label {
+            margin-left: 0;
+        }
 
         &:checked {
             + label {
-                .rotate(90deg);
+                .studip-icon('blue/arr_1down.png');
+                .csstransforms & {
+                    .studip-icon('blue/arr_1right.png');
+                    .rotate(90deg);
+                }
             }
             ~ ul {
                 max-height: 1000px;
@@ -153,29 +190,20 @@
         display: none;
 
         + label {
+            color: @brand-color-dark;
+            border-radius: 2px;
             cursor: pointer;
-            &:before {
-                content: ' ';
-                .studip-icon('blue/checkbox-unchecked.png');
-                opacity: 0.5;
-                margin-right: 8px;
-            }
+            padding: 0 3px;
+            margin-left: 1px;
         }
 
         &:checked + label {
             font-weight: bold;
-            &:before {
-                .retina-background-icon('blue/checkbox-checked.png');
-                opacity: 1;
-            }
+            background: @content-color-40;
         }
 
         &[disabled] + label {
             color: #888;
-            &:before {
-                .retina-background-icon('grey/decline.png');
-                opacity: 1;
-            }
         }
     }
     
