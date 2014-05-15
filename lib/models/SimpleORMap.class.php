@@ -54,6 +54,12 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
      */
     protected $default_values = array();
 
+    /**
+     * list of columns to deserialize
+     * @var array key is name of column, value is name of ArrayObject class
+     */
+    protected $serialized_fields = array();
+
      /**
      * db table metadata
      * @var array $schemes;
@@ -180,6 +186,13 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
                 }
             }
         }
+        if (isset($config['serialized_fields'])) {
+            foreach ($config['serialized_fields'] as $a_field => $object_type) {
+                if (!(is_subclass_of($object_type, 'StudipArrayObject'))) {
+                    throw new UnexpectedValueException(sprintf('serialized field %s must use subclass of StudipArrayObject', $a_field));
+                }
+            }
+        }
         self::$config[get_called_class()] = $config;
     }
 
@@ -271,12 +284,15 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
      * @param array params for query
      * @return number
      */
-    public static function countBySql($where = 1, $params = array())
+    public static function countBySql($sql = 1, $params = array())
     {
         $class = get_called_class();
         $record = new $class();
         $db = DBManager::get();
-        $sql = "SELECT count(*) FROM `" .  $record->db_table . "` WHERE " . $where;
+        if (stripos($sql, 'WHERE') === false) {
+            $sql = 'WHERE ' . $sql;
+        }
+        $sql = "SELECT count(*) FROM `" .  $record->db_table . "` " . $sql;
         $st = $db->prepare($sql);
         $st->execute($params);
         return $st->fetchColumn();
@@ -385,12 +401,15 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
      * @param array parameters for query
      * @return array array of "self" objects
      */
-    public static function findBySQL($where, $params = array())
+    public static function findBySQL($sql, $params = array())
     {
         $class = get_called_class();
         $record = new $class();
         $db = DBManager::get();
-        $sql = "SELECT * FROM `" .  $record->db_table . "` WHERE " . $where;
+        if (stripos($sql, 'WHERE') === false) {
+            $sql = 'WHERE ' . $sql;
+        }
+        $sql = "SELECT `" . $record->db_table . "`.* FROM `" .  $record->db_table . "` " . $sql;
         $st = $db->prepare($sql);
         $st->execute($params);
         $ret = array();
@@ -462,12 +481,15 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
      * @param array sql statement parameters
      * @return integer number of found records
      */
-    public static function findEachBySQL($callable, $where, $params = array())
+    public static function findEachBySQL($callable, $sql, $params = array())
     {
         $class = get_called_class();
         $record = new $class();
         $db = DBManager::get();
-        $sql = "SELECT * FROM `" .  $record->db_table . "` WHERE " . $where;
+        if (stripos($sql, 'WHERE') === false) {
+            $sql = 'WHERE ' . $sql;
+        }
+        $sql = "SELECT `" . $record->db_table . "`.* FROM `" .  $record->db_table . "` " . $sql;
         $st = $db->prepare($sql);
         $st->execute($params);
         $ret = 0;
@@ -1027,6 +1049,9 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
         }
         foreach($fields as $field) {
            $ret[$field] = $this->getValue($field);
+           if ($ret[$field] instanceof StudipArrayObject) {
+               $ret[$field] = $ret[$field]->getArrayCopy();
+           }
         }
         return $ret;
     }
@@ -1167,7 +1192,11 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
                  return call_user_func(array($this, 'set' . $field), $value);
              }
              if (array_key_exists($field, $this->content)) {
-                 $ret = ($this->content[$field] = $value);
+                 if (array_key_exists($field, $this->serialized_fields)) {
+                     $ret = $this->setSerializedValue($field, $value);
+                 } else {
+                     $ret = ($this->content[$field] = $value);
+                 }
              } elseif (isset($this->additional_fields[$field]['set'])) {
                  if ($this->additional_fields[$field]['set'] instanceof Closure) {
                      return call_user_func_array($this->additional_fields[$field]['set'], array($this, $field, $value));
@@ -1245,7 +1274,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
      */
     function __set($field, $value)
     {
-         return $this->setValue($field, $value);
+        return $this->setValue($field, $value);
     }
     /**
      * magic method for dynamic properties
@@ -1474,7 +1503,6 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
         if ($this->applyCallbacks('before_store') === false) {
             return false;
         }
-
         if ($this->isDirty() || $this->isNew()) {
             if ($this->isNew()) {
                 if ($this->applyCallbacks('before_create') === false) {
@@ -1928,4 +1956,22 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
             }
         }
     }
+
+    /**
+     * default setter used to proxy serialized fields with
+     * ArrayObjects
+     *
+     * @param string $field column name
+     * @param string $value value
+     */
+     protected function setSerializedValue($field, $value)
+     {
+         $object_type = $this->serialized_fields[$field];
+         if ($value instanceof $object_type) {
+             $this->content[$field] = $value;
+         } else {
+             $this->content[$field] = new $object_type($value);
+         }
+         return $this->content[$field];
+     }
 }
