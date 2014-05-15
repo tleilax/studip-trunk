@@ -71,11 +71,7 @@ class Document_FilesController extends DocumentController
         }
 
         if (isset($directory)) {
-            try {
-                $this->parent_id = $directory->getParent()->id;
-            } catch (Exception $e) {
-                $this->parent_id = $this->context_id;
-            }
+            $this->parent_id = $directory->directory->id ?: $this->context_id;
         }
 
         $this->dir_id = $dir_id;
