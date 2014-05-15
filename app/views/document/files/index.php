@@ -102,20 +102,20 @@
                 <?= reltime($file->file->mkdate) ?>
             </td>
             <td class="options">
-                <a href="<?= $controller->url_for('document/folder/edit/' . $file->id) ?>" rel="lightbox">
-                    <?= Assets::img('icons/16/blue/edit.png', tooltip2(_('Ordner bearbeiten'))) ?>
+                <a href="<?= $controller->url_for('document/folder/edit/' . $file->id) ?>" data-lightbox title="<?= _('Ordner bearbeiten') ?>">
+                    <?= Assets::img('icons/16/blue/edit.png', array('alt' => _('bearbeiten'))) ?>
                 </a>
-                <a href="<?= $controller->url_for('document/folder/download/' . $file->id) ?>">
-                    <?= Assets::img('icons/16/blue/download.png', tooltip2(_('Ordner herunterladen'))) ?>
+                <a href="<?= $controller->url_for('document/folder/download/' . $file->id) ?>" title="<?= _('Ordner herunterladen') ?>">
+                    <?= Assets::img('icons/16/blue/download.png', array('alt' => _('herunterladen'))) ?>
                 </a>
-                <a href="<?= $controller->url_for('document/files/move/' . $file->id) ?>" rel="lightbox">
-                    <?= Assets::img('icons/16/blue/move_right/folder-empty.png', tooltip2(_('Ordner verschieben'))) ?>
+                <a href="<?= $controller->url_for('document/files/move/' . $file->id) ?>" data-lightbox title="<?= _('Ordner verschieben') ?>">
+                    <?= Assets::img('icons/16/blue/move_right/folder-empty.png', array('alt' => _('verschieben'))) ?>
                 </a>
-                 <a href="<?= $controller->url_for('document/files/copy/' . $file->id) ?>" rel="lightbox">
-                    <?= Assets::img('icons/16/blue/add/folder-empty.png', tooltip2(_('Ordner kopieren'))) ?>
+                 <a href="<?= $controller->url_for('document/files/copy/' . $file->id) ?>" data-lightbox title="<?= _('Ordner kopieren') ?>">
+                    <?= Assets::img('icons/16/blue/add/folder-empty.png', array('alt' => _('kopieren'))) ?>
                 </a>
-                <a href="<?= $controller->url_for('document/folder/delete/' . $file->id) ?>">
-                    <?= Assets::img('icons/16/blue/trash.png', tooltip2(_('Ordner löschen'))) ?>
+                <a href="<?= $controller->url_for('document/folder/delete/' . $file->id) ?>" title="<?= _('Ordner löschen') ?>">
+                    <?= Assets::img('icons/16/blue/trash.png', array('alt' => _('löschen'))) ?>
                 </a>
             </td>
         <? else: ?>
@@ -143,20 +143,20 @@
                 <?= reltime($file->file->mkdate) ?>
             </td>
             <td class="options">
-                <a href="<?= $controller->url_for('document/files/edit/' . $file->id) ?>" rel="lightbox">
-                    <?= Assets::img('icons/16/blue/edit.png', tooltip2(_('Datei bearbeiten'))) ?>
+                <a href="<?= $controller->url_for('document/files/edit/' . $file->id) ?>" data-lightbox title="<?= _('Datei bearbeiten') ?>">
+                    <?= Assets::img('icons/16/blue/edit.png', array('alt' => _('bearbeiten'))) ?>
                 </a>
-                <a href="<?= $controller->url_for('document/files/download/' . $file->id) ?>">
-                    <?= Assets::img('icons/16/blue/download.png', tooltip2(_('Datei herunterladen'))) ?>
+                <a href="<?= $controller->url_for('document/files/download/' . $file->id) ?>" title="<?= _('Datei herunterladen') ?>">
+                    <?= Assets::img('icons/16/blue/download.png', array('alt' => _('herunterladen'))) ?>
                 </a>
-                <a href="<?= $controller->url_for('document/files/move/' . $file->id) ?>" rel="lightbox">
-                    <?= Assets::img('icons/16/blue/move_right/file.png', tooltip2(_('Datei verschieben'))) ?>
+                <a href="<?= $controller->url_for('document/files/move/' . $file->id) ?>" data-lightbox title="<?= _('Datei verschieben') ?>">
+                    <?= Assets::img('icons/16/blue/move_right/file.png', array('alt' => _('verschieben'))) ?>
                 </a>
-                <a href="<?= $controller->url_for('document/files/copy/' . $file->id) ?>" rel="lightbox">
-                    <?= Assets::img('icons/16/blue/add/file.png', tooltip2(_('Datei kopieren'))) ?>
+                <a href="<?= $controller->url_for('document/files/copy/' . $file->id) ?>" data-lightbox title="<?= _('Datei kopieren') ?>">
+                    <?= Assets::img('icons/16/blue/add/file.png', array('alt' => _('kopieren'))) ?>
                 </a>
-                <a href="<?= $controller->url_for('document/files/delete/' . $file->id) ?>">
-                    <?= Assets::img('icons/16/blue/trash.png', tooltip2(_('Datei löschen'))) ?>
+                <a href="<?= $controller->url_for('document/files/delete/' . $file->id) ?>" title="<?= _('Datei löschen') ?>">
+                    <?= Assets::img('icons/16/blue/trash.png', array('alt' => _('löschen'))) ?>
                 </a>
             </td>
         <? endif; ?>
@@ -169,8 +169,8 @@
             <td colspan="7" class="printhead">
                 <?= _('Alle markierten') ?>
                 <?= Studip\Button::create(_('Herunterladen'), 'download') ?>
-                <?= Studip\Button::create(_('Verschieben'), 'move', array('rel' => 'lightbox')) ?>
-                <?= Studip\Button::create(_('Kopieren'), 'copy', array('rel' => 'lightbox'))?>
+                <?= Studip\Button::create(_('Verschieben'), 'move', array('data-lightbox' => '')) ?>
+                <?= Studip\Button::create(_('Kopieren'), 'copy', array('data-lightbox' => ''))?>
                 <?= Studip\Button::create(_('Löschen'), 'delete') ?>
             </td>
         </tr>

@@ -82,7 +82,7 @@
                         <a href="<?= $controller->url_for('document/administration/activateDocumentArea', $config['id']) ?>" <!--data-behaviour="ajax-toggle"--> 
                         <?= Assets::img('icons/16/blue/checkbox-checked', tooltip2(_('Dateibereich öffnen'))) ?></a>
                     <? else : ?>
-                    <a rel="lightbox" href="<?= $controller->url_for('document/administration/deactivateDocumentArea', $config['id']) ?>" <!--data-behaviour="ajax-toggle"-->
+                    <a data-lightbox href="<?= $controller->url_for('document/administration/deactivateDocumentArea', $config['id']) ?>" <!--data-behaviour="ajax-toggle"-->
                         <?= Assets::img('icons/16/blue/checkbox-unchecked', tooltip2(_('Dateibereich sperren'))) ?></a>
                     <? endif; ?>
                 </td>
@@ -97,7 +97,7 @@
                 
                 </td>
                 <td>
-                    <a rel="lightbox" href="<?= $controller->url_for('document/administration/edit/'.$config['id'])?>">
+                    <a data-lightbox href="<?= $controller->url_for('document/administration/edit/'.$config['id'])?>">
                         <?= Assets::img('icons/16/blue/edit')?></a>
                     <?if($config['name'] != 'default') :?>
                         <a href="<?= $controller->url_for('document/administration/delete/'.$config['id'])?>">

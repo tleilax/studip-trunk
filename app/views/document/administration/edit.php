@@ -97,12 +97,15 @@
                 </tr>
             </table>
         </fieldset>
+
+    <div data-lightbox-button>
         <? if($config_id != 0) : ?>
             <?= Button::create(_('Übernehmen'),'store') ?>
         <? else : ?>
             <?= Button::create(_('Speichern'),'store') ?>
         <?endif;?>
         <?= LinkButton::create(_('Abbrechen'), $controller->url_for('document/administration/filter')) ?>
+    </div>
 </form>
 
 <script type="text/javascript">

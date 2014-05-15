@@ -433,7 +433,7 @@ class Document_FilesController extends DocumentController
     {
         $this->setInfoboxImage('sidebar/files-sidebar.png');
         if($this->userConfig['forbidden'] == 0){
-            $upload_link = sprintf('<a href="%s" rel="lightbox">%s</a>',
+            $upload_link = sprintf('<a href="%s" data-lightbox>%s</a>',
                                $this->url_for('document/files/upload/' . $current_dir),
                                _('Datei hochladen'));
         } else {
@@ -447,7 +447,7 @@ class Document_FilesController extends DocumentController
                             $upload_link,
                             'icons/16/black/upload.png');
 
-        $add_dir_link = sprintf('<a href="%s" rel="lightbox">%s</a>',
+        $add_dir_link = sprintf('<a href="%s" data-lightbox>%s</a>',
                                 $this->url_for('document/folder/create/' . $current_dir),
                                 _('Neuen Ordner erstellen'));
         $this->addToInfobox(_('Aktionen:'),

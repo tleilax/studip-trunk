@@ -107,7 +107,7 @@
                            >
                     </td>
                     <td>
-                         <a rel="lightbox" href="<?= $controller->url_for('document/administration/edit/0/'.$u['user_id'])?>"
+                         <a data-lightbox href="<?= $controller->url_for('document/administration/edit/0/'.$u['user_id'])?>"
                             title="Einstellung anlegen">
                         <?= Assets::img('icons/16/blue/edit')?></a>
                         <?if($u['deleteIcon'] == 1) :?>

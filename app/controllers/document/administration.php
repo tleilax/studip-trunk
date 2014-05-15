@@ -338,7 +338,7 @@ class Document_AdministrationController extends AuthenticatedController {
     {
         $this->setInfoboxImage(Assets::image_path('infobox/config.jpg'));
         
-        $newEntryGroup = sprintf('<a rel="lightbox" href="%s">%s</a>', $this->url_for('document/administration/edit/0/true'), _('Neue Gruppeneinstellungen'));
+        $newEntryGroup = sprintf('<a data-lightbox href="%s">%s</a>', $this->url_for('document/administration/edit/0/true'), _('Neue Gruppeneinstellungen'));
         $this->addToInfobox(_('Aktionen'), $newEntryGroup, 'icons/16/black/add');
         
         $newEntryIndividual = sprintf('<a href="%s">%s</a>', $this->url_for('document/administration/individual'), _('Neue individuelle Einstellungen'));

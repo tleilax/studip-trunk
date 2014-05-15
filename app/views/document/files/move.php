@@ -14,6 +14,8 @@
         </li>
     </ul>
     
-    <?= Studip\Button::createAccept(_('Verschieben'), 'move') ?>
-    <?= Studip\LinkButton::createCancel(_('Abbrechen'), $controller->url_for('document/files/index/' . $parent_id)) ?>
+    <div data-lightbox-button>
+        <?= Studip\Button::createAccept(_('Verschieben'), 'move') ?>
+        <?= Studip\LinkButton::createCancel(_('Abbrechen'), $controller->url_for('document/files/index/' . $parent_id)) ?>
+    </div>
 </form>

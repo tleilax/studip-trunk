@@ -20,6 +20,9 @@
              <textarea name="reason_text" id="reason_text" cols="35" rows="4"><?=$reason_text?></textarea>
         </label>
     </fieldset>
-    <?= Button::create(_('Sperren'),'store') ?>
-    <?= LinkButton::create(_('Abbrechen'), $controller->url_for('document/administration/filter')) ?>
+
+    <div data-lightbox-button>
+        <?= Button::create(_('Sperren'),'store') ?>
+        <?= LinkButton::create(_('Abbrechen'), $controller->url_for('document/administration/filter')) ?>
+    </div>
 </form>
