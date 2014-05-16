@@ -33,29 +33,24 @@
  * @property SimpleORMapCollection members has_many StatusgruppeUser
  * @property Statusgruppen parent belongs_to Statusgruppen
  */
-class Statusgruppen extends SimpleORMap {
-
-    protected $db_table = "statusgruppen";
-    protected $has_many = array(
-        /* Deprecated since we need to order them right away
-          'children' => array(
-          'class_name' => 'Statusgruppen',
-          'on_delete' => 'delete',
-          'assoc_foreign_key' => 'range_id'), */
-        'members' => array(
+class Statusgruppen extends SimpleORMap
+{
+    protected static function configure($config = array())
+    {
+        $config['db_table'] = 'statusgruppen';
+        $config['has_many']['members'] = array(
             'class_name' => 'StatusgruppeUser',
             'on_delete' => 'delete',
-            'assoc_foreign_key' => 'statusgruppe_id')
-    );
-    protected $belongs_to = array('parent' => array('class_name' => 'Statusgruppen',
-            'foreign_key' => 'range_id'
-    ));
-
-    public function __construct($id = null) {
-        $this->additional_fields['children'] = true;
-        parent::__construct($id);
+            'assoc_foreign_key' => 'statusgruppe_id',
+        );
+        $config['belongs_to']['parent'] = array(
+            'class_name' => 'Statusgruppen',
+            'foreign_key' => 'range_id',
+        );
+        $config['additional_fields']['children'] = true;
+        parent::configure($config);
     }
-    
+
     public function getChildren() {
         $result = Statusgruppen::findBySQL('range_id = ? ORDER BY position', array($this->id));
         return $result ? : array();
@@ -80,6 +75,36 @@ class Statusgruppen extends SimpleORMap {
      */
     static public function findBySeminar_id($course_id) {
         return self::findBySQL("range_id = ?", array($course_id));
+    }
+
+    static public function findByTermin_id($termin_id)
+    {
+        $record = new Statusgruppen();
+        $db = DBManager::get();
+        $sql = "
+            SELECT *
+            FROM `" .  $record->db_table . "`
+                INNER JOIN termin_related_groups USING (statusgruppe_id)
+            WHERE termin_related_groups.termin_id = ?
+            ORDER BY name ASC
+        ";
+        $st = $db->prepare($sql);
+        $st->execute(array($termin_id));
+        $ret = array();
+        $c = 0;
+        while($row = $st->fetch(PDO::FETCH_ASSOC)) {
+            $ret[$c] = new Statusgruppen();
+            $ret[$c]->setData($row, true);
+            $ret[$c]->setNew(false);
+            ++$c;
+        }
+        return $ret;
+    }
+
+    static public function findContactGroups($user_id = null)
+    {
+        $user_id || $user_id = $GLOBALS['user']->id;
+        return self::findBySQL("range_id = ?", array($user_id));
     }
 
     /**
@@ -329,5 +354,3 @@ class Statusgruppen extends SimpleORMap {
     }
 
 }
-
-?>

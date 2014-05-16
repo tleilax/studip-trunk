@@ -16,9 +16,9 @@
  */
 class VoteUser extends SimpleORMap
 {
-    public function __construct($id = null)
+    protected static function configure($config = array())
     {
-        $this->db_table = 'vote_user';
-        parent::__construct($id);
+        $config['db_table'] = 'vote_user';
+        parent::configure($config);
     }
 }

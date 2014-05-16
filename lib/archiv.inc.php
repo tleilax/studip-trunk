@@ -506,6 +506,8 @@ function in_archiv ($sem_id)
 {
     global $SEM_CLASS,$SEM_TYPE, $ARCHIV_PATH, $TMP_PATH, $ZIP_PATH, $ZIP_OPTIONS, $_fullname_sql;
 
+    NotificationCenter::postNotification('CourseWillArchive', $seminar_id);
+
     //Besorgen der Grunddaten des Seminars
     $query = "SELECT Seminar_id, Name, Untertitel, Beschreibung,
                      start_time, Institut_id, status
@@ -665,7 +667,7 @@ function in_archiv ($sem_id)
               VALUES
                 (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UNIX_TIMESTAMP())";
     $statement = DBManager::get()->prepare($query);
-    $statement->execute(array(
+    $success = $statement->execute(array(
         $seminar_id,
         $name ?: '',
         $untertitel ?: '',
@@ -682,4 +684,7 @@ function in_archiv ($sem_id)
         $wikidump ?: '',
         $studienbereiche ?: '',
     ));
+    if ($success) {
+        NotificationCenter::postNotification('CourseDidArchive', $seminar_id);
+    }
 }

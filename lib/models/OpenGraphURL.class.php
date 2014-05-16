@@ -28,10 +28,11 @@ class OpenGraphURL extends SimpleORMap {
 
     static public $tempURLStorage = array(); //place to store opengraph-urls from a text.
 
-    protected static function configure()
+    protected static function configure($config = array())
     {
         $config['db_table'] = 'opengraphdata';
         $config['serialized_fields']['data'] = 'JSONArrayObject';
+        $config['default_values']['data'] = '';
         parent::configure($config);
     }
 
@@ -179,6 +180,4 @@ class OpenGraphURL extends SimpleORMap {
         }
         return $files;
     }
-
-
 }

@@ -37,9 +37,10 @@ class AdmissionApplication extends SimpleORMap
     {
         $db = DbManager::get();
         return $db->fetchAll("SELECT admission_seminar_user.*, aum.vorname,aum.nachname,aum.email,
-                             aum.username
+                             aum.username,ui.title_front,ui.title_rear
                              FROM admission_seminar_user
                              LEFT JOIN auth_user_md5 aum USING (user_id)
+                             LEFT JOIN user_info ui USING (user_id)
                              WHERE seminar_id = ? ORDER BY position",
                              array($course_id),
                              __CLASS__ . '::buildExisting');
@@ -56,19 +57,29 @@ class AdmissionApplication extends SimpleORMap
                              __CLASS__ . '::buildExisting');
     }
 
-    protected static function configure()
+    protected static function configure($config = array())
     {
         $config['db_table'] = 'admission_seminar_user';
-        $config['belongs_to'] = array('user' => array('class_name' => 'User',
-                                                    'foreign_key' => 'user_id'),
-                                   'course' => array('class_name' => 'Course',
-                                                    'foreign_key' => 'seminar_id'),
+        $config['belongs_to']['user'] = array(
+            'class_name' => 'User',
+            'foreign_key' => 'user_id',
+        );
+        $config['belongs_to']['course'] = array(
+            'class_name' => 'Course',
+            'foreign_key' => 'seminar_id',
         );
         $config['additional_fields']['vorname'] = array('user', 'vorname');
         $config['additional_fields']['nachname'] = array('user', 'nachname');
         $config['additional_fields']['username'] = array('user', 'username');
         $config['additional_fields']['email'] = array('user', 'email');
+        $config['additional_fields']['title_front'] = array('user', 'title_front');
+        $config['additional_fields']['title_rear'] = array('user', 'title_rear');
         $config['additional_fields']['course_name'] = array();
         parent::configure($config);
+    }
+
+    function getUserFullname($format = "full")
+    {
+        return User::build(array_merge(array('motto' => ''), $this->toArray('vorname nachname username title_front title_rear')))->getFullname($format);
     }
 }
