@@ -42,15 +42,6 @@ class Document_FilesController extends DocumentController
             mkdir($userdir, 0755, true);
         }
 
-        //Configurations for the Documentarea for this userinclude '../../views/document/files/copy.php';
-        
-        $this->userConfig = DocUsergroupConfig::getUserConfig($GLOBALS['user']->id);
-        if (!empty($this->userConfig)) {
-            $measure = $this->userConfig['quota'];
-            $this->quota = relsize($measure);
-            $measure1 = $this->userConfig['upload_quota'];
-            $this->upload_quota = relsize($measure1);
-        }
         PageLayout::setTitle(_('Dateiverwaltung'));
         PageLayout::setHelpKeyword('Basis.Dateien');
         Navigation::activateItem('/document/files');
@@ -77,6 +68,10 @@ class Document_FilesController extends DocumentController
         $this->dir_id = $dir_id;
         $this->marked = $this->flash['marked-ids'] ?: array();
         $this->breadcrumbs = FileHelper::getBreadCrumbs($dir_id);
+
+        $config = DocUsergroupConfig::getUserConfig($GLOBALS['user']->id);
+        $this->space_used  = DiskFileStorage::getQuotaUsage($GLOBALS['user']->id);
+        $this->space_total = $config['quota'];
     }
 
     public function upload_action($folder_id)
@@ -427,46 +422,35 @@ class Document_FilesController extends DocumentController
 
     private function setupInfobox($current_dir)
     {
-        $this->setInfoboxImage('sidebar/files-sidebar.png');
-        if($this->userConfig['forbidden'] == 0){
-            $upload_link = sprintf('<a href="%s" data-lightbox>%s</a>',
-                               $this->url_for('document/files/upload/' . $current_dir),
-                               _('Datei hochladen'));
-        } else {
-            $upload_link = sprintf('<a class="tooltip">' .
-                                   '%s<span>%s</span></a>',
-                                   '<strike>'._('Datei hochladen').'</strike>',
-                                   _('Ihre Upload-Funktion wurde geperrt. Wenden Sie sich an den Support: '));
-        }
+        $sidebar = Sidebar::get();
+        $sidebar->setImage('sidebar/files-sidebar.png');
 
-        $this->addToInfobox(_('Aktionen:'),
-                            $upload_link,
-                            'icons/16/black/upload.png');
+        $widget = new ActionsWidget();
 
-        $add_dir_link = sprintf('<a href="%s" data-lightbox>%s</a>',
-                                $this->url_for('document/folder/create/' . $current_dir),
-                                _('Neuen Ordner erstellen'));
-        $this->addToInfobox(_('Aktionen:'),
-                            $add_dir_link,
-                            'icons/16/black/add/folder-empty.png');
+        $widget->addLink(_('Datei hochladen'),
+                         $this->url_for('document/files/upload/' . $current_dir),
+                         'icons/16/black/upload.png',
+                         $this->userConfig['forbidden']
+                             ? array('disabled' => '',
+                                     'title' => _('Ihre Upload-Funktion wurde gesperrt.'))
+                             : array())
+               ->asDialog();
 
-        $delete_link = sprintf('<a href="%s">%s</a>',
-                               $this->url_for('document/folder/delete/all'),
-                               _('Dateibereich leeren'));
-        $this->addToInfobox(_('Aktionen:'),
-                            $delete_link,
-                            'icons/16/black/trash.png');
+        $widget->addLink(_('Neuen Ordner erstellen'),
+                         $this->url_for('document/folder/create/' . $current_dir),
+                         'icons/16/black/add/folder-empty.png')
+               ->asDialog();
 
-        $export_link = sprintf('<a href="%s">%s</a>',
-                               $this->url_for('document/folder/download/' . $this->context_id),
-                               _('Dateibereich herunterladen'));
-        $this->addToInfobox(_('Export:'), $export_link, 'icons/16/black/download.png');
+        $widget->addLink(_('Dateibereich leeren'),
+                         $this->url_for('document/folder/delete/all'),
+                         'icons/16/black/trash.png');
+        $sidebar->addWidget($widget);
 
-        $this->addToInfobox(_('Speicherplatz:'),
-                ((int)((DiskFileStorage::getQuotaUsage($GLOBALS['user']->id)/
-                        (int)$this->userConfig['quota'])*100)) . sprintf('%s',  '% belegt') .
-                        ' (' . relsize(DiskFileStorage::getQuotaUsage($GLOBALS['user']->id), false) .
-                        '/' . relsize($this->userConfig['quota'], false) . ')',
-                'icons/16/black/stat.png');
+
+        $widget = new ExportWidget();
+        $widget->addLink(_('Dateibereich herunterladen'),
+                         $this->url_for('document/folder/download/' . $this->context_id),
+                         'icons/16/black/download.png');
+        $sidebar->addWidget($widget);
     }
 }

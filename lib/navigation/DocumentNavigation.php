@@ -37,9 +37,7 @@ class DocumentNavigation extends Navigation
     {
         parent::initSubNavigation();
 
-        if (Config::get() -> PERSONALDOCUMENT_ENABLE && $GLOBALS['auth']->is_authenticated()) {
-            $navigation = new Navigation(_('Dateien'), 'dispatch.php/document/files');
-            $this->addSubNavigation('files', $navigation);
-        }
+        $navigation = new Navigation(_('Dateien'), URLHelper::getLink('dispatch.php/document/files'));
+        $this->addSubNavigation('files', $navigation);
     }
 }

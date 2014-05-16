@@ -5,6 +5,12 @@
 <form action="<?= $controller->url_for('document/files/bulk/' . $dir_id) ?>" method="post" data-shiftcheck>
 <table class="default documents">
     <caption>
+        <span class="actions">
+            <?= Assets::img('icons/16/black/stat.png', tooltip2(_('Speicherplatz'))) ?>
+            <?= sprintf(_('%0.1f%% belegt'), $space_used / $space_total * 100) ?>
+            (<?= relsize($space_used, false) ?>/<?= relsize($space_total, false) ?>)
+        </span>
+        
     <? $last_crumb = end($breadcrumbs); ?>
         <div class="bread-crumbs <? if (count($breadcrumbs) > 1) echo 'extendable'; ?>">
             <a href="<?= $controller->url_for('document/files/index/' . $last_crumb['id']) ?>">

@@ -128,7 +128,7 @@ class Document_AdministrationController extends AuthenticatedController {
                     $this->isGroupConfig == 'false';
                 }
                 $this->isGroupConfig == '';
-                $this->config['upload_quota']=$this->sizeInUnit($this->config['upload_quota'], $this->config['upload_unit']);
+                $this->config['upload_quota']= $this->sizeInUnit($this->config['upload_quota'], $this->config['upload_unit']);
                 $this->config['quota']= $this->sizeInUnit($this->config['quota'], $this->config['quota_unit']);
                 if(Request::isXhr()){
                     header('X-Title: ' . _('Persönlichen Dateibereich für ' . $this->config['name'] . ' konfigurieren'));
@@ -336,17 +336,22 @@ class Document_AdministrationController extends AuthenticatedController {
     //Infobox erstellen mit Navigation ->erweiterbarkeit
     function getInfobox()
     {
-        $this->setInfoboxImage(Assets::image_path('infobox/config.jpg'));
+        $sidebar = Sidebar::get();
+        $sidebar->setImage('sidebar/files-sidebar.png');
+        $sidebar->setTitle(_('Persönlicher Dateibereich'));
         
-        $newEntryGroup = sprintf('<a data-lightbox href="%s">%s</a>', $this->url_for('document/administration/edit/0/true'), _('Neue Gruppeneinstellungen'));
-        $this->addToInfobox(_('Aktionen'), $newEntryGroup, 'icons/16/black/add');
+        $widget = new ActionsWidget();
+
+        $widget->addLink(_('Neue Gruppeneinstellungen'),
+                         $this->url_for('document/administration/edit/0/true'),
+                         'icons/16/black/add')
+               ->asDialog();
+        $widget->addLink(_('Neue individuelle Einstellungen'),
+                         $this->url_for('document/administration/individual'),
+                         'icons/16/black/add');
+
+        $sidebar->addWidget($widget);
         
-        $newEntryIndividual = sprintf('<a href="%s">%s</a>', $this->url_for('document/administration/individual'), _('Neue individuelle Einstellungen'));
-        $this->addToInfobox(_('Aktionen'), $newEntryIndividual, 'icons/16/black/add');
-        
-        $showConfig = sprintf('<a href="%s">%s</a>', $this->url_for('document/administration/filter'), _('Zur Übersicht'));
-        $this->addToInfobox(_('Aktionen'), $showConfig, 'icons/16/black/link-intern');
-        
-        $this->addToInfobox(_('Hinweis'), _('Diese Ebene der Einstellungen ermöglicht es Ihnen den persönlichen Dateibereich zu konfigurieren'));
+        Helpbar::get()->addPlainText(_('Hinweis'), _('Diese Ebene der Einstellungen ermöglicht es Ihnen den persönlichen Dateibereich zu konfigurieren.'));
     }
 }
