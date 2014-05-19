@@ -299,7 +299,7 @@ class Document_FilesController extends DocumentController
                     $source_id = $source_id ? : FileHelper::getParentId($file_id) ?: $this->context_id;
                     $entry = DirectoryEntry::find($id);
                     $folder->copy($entry->file, sprintf('%s (%s)', $entry->name, _('Kopie')), $entry->description);
-                }
+                 }
                 PageLayout::postMessage(MessageBox::success(_('Die ausgewählten Dateien wurden erfolgreich kopiert')));
             } else {
                 PageLayout::postMessage(MessageBox::error(_('Der Kopiervorgang wurde abgebrochen, '.
