@@ -648,14 +648,14 @@ table.default caption {
 }
 table.default thead th {
   background-color: #e7ebf1;
-  border-bottom: 1px solid rgba(137, 154, 185, 0.19999999999999996);
+  border-bottom: 1px solid rgba(137, 154, 185, 0.2);
   border-top: 1px solid #1e3e70;
   font-size: 1.0em;
 }
 table.default tbody th {
   background-color: #e7ebf1;
   border-top: 1px solid #1e3e70;
-  border-bottom: 1px solid rgba(137, 154, 185, 0.19999999999999996);
+  border-bottom: 1px solid rgba(137, 154, 185, 0.2);
   text-align: left;
 }
 table.default tbody td {
@@ -1000,6 +1000,7 @@ table.default2 tbody.togglable th:before {
 #layout_content {
   padding: 12px;
   padding-top: 0;
+  padding-left: 20px;
   vertical-align: top;
   min-width: 400px;
 }
@@ -1292,6 +1293,7 @@ table.default2 tbody.togglable th:before {
   width: 0;
   position: absolute;
   pointer-events: none;
+  border-width: 12px 12px 12px 8px;
   border-left-color: #899ab9;
   left: 100%;
   top: 50%;
@@ -1408,6 +1410,7 @@ table.default2 tbody.togglable th:before {
   width: 0;
   position: absolute;
   pointer-events: none;
+  border-width: 10px 10px 6px 10px;
   border-bottom-color: #eeeeee;
   bottom: 100%;
   left: 50%;
@@ -1613,6 +1616,7 @@ li#notification_container:hover .list {
   width: 0;
   position: absolute;
   pointer-events: none;
+  border-width: 12px 12px 12px 8px;
   border-left-color: #c53d3d;
   left: 100%;
   top: 50%;
@@ -1704,7 +1708,7 @@ table.infobox td.infobox-img {
 }
 td.infoboxrahmen {
   background-color: #dee2e8;
-  border-bottom: 1px solid rgba(137, 154, 185, 0.19999999999999996);
+  border-bottom: 1px solid rgba(137, 154, 185, 0.2);
 }
 .sidebar {
   background: #fff;
@@ -1739,6 +1743,7 @@ td.infoboxrahmen {
   margin-bottom: 16px;
 }
 .sidebar-context {
+  background-color: rgba(255, 255, 255, 0.7);
   border: 2px solid white;
   position: absolute;
   bottom: -9px;
@@ -1806,6 +1811,7 @@ td.infoboxrahmen {
   width: 0;
   position: absolute;
   pointer-events: none;
+  border-width: 8px 8px 8px 5px;
   border-left-color: #899ab9;
   left: 100%;
   top: 50%;
@@ -1922,7 +1928,7 @@ td.infoboxrahmen {
   -ms-transform: translate(0, -4px);
   -o-transform: translate(0, -4px);
   transform: translate(0, -4px);
-  z-index: 9999;
+  z-index: 1000;
 }
 .helpbar-header {
   border: 4px solid #fff;
@@ -2523,6 +2529,9 @@ a.drop {
   background-color: #899AB9;
   color: white;
 }
+a.tag {
+  white-space: nowrap;
+}
 #statusbar_container > .statusbar {
   border: thin solid lightgrey;
   min-width: 100%;
@@ -2736,6 +2745,7 @@ a.tooltip span:before {
   width: 0;
   position: absolute;
   pointer-events: none;
+  border-width: 6px 9px 9px 9px;
   border-top-color: #cccccc;
   top: 100%;
   left: 50%;
@@ -2748,6 +2758,7 @@ a.tooltip span:after {
   width: 0;
   position: absolute;
   pointer-events: none;
+  border-width: 5px 8px 8px 8px;
   border-top-color: #dddddd;
   top: 100%;
   left: 50%;

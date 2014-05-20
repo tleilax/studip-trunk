@@ -15,6 +15,8 @@ require_once 'app/controllers/authenticated_controller.php';
 
 class MessagesController extends AuthenticatedController {
 
+    protected $number_of_displayed_messages = 50;
+
     public function overview_action()
     {
         PageLayout::setTitle(_("Nachrichten"));
@@ -33,9 +35,10 @@ class MessagesController extends AuthenticatedController {
         
         $this->messages = $this->get_messages(
             true,
-            Request::int("limit", 50),
+            Request::int("limit", $this->number_of_displayed_messages),
             Request::int("offset", 0),
-            Request::get("tag")
+            Request::get("tag"),
+            Request::get("search")
         );
         $this->received = 1;
         $this->tags = Message::getUserTags();
@@ -59,9 +62,10 @@ class MessagesController extends AuthenticatedController {
         
         $this->messages = $this->get_messages(
             false,
-            Request::int("limit", 50),
+            Request::int("limit", $this->number_of_displayed_messages),
             Request::int("offset", 0),
-            Request::get("tag")
+            Request::get("tag"),
+            Request::get("search")
         );
         $this->received = 0;
         $this->tags = Message::getUserTags();
@@ -73,9 +77,10 @@ class MessagesController extends AuthenticatedController {
     {
         $messages = $this->get_messages(
             Request::int("received") ? true : false,
-            Request::int("limit", 50) + 1,
+            Request::int("limit", $this->number_of_displayed_messages) + 1,
             Request::int("offset", 0),
-            Request::get("tag")
+            Request::get("tag"),
+            Request::get("search")
         );
         $this->output = array('messages' => array(), "more" => 0);
         if (count($messages) > Request::int("limit")) {
@@ -121,17 +126,28 @@ class MessagesController extends AuthenticatedController {
 
         //collect possible default adressees
         $this->to = array();
+        $this->default_message = new Message();
         if (Request::username("rec_uname")) {
-            $this->to[] = get_userid(Request::username("rec_uname"));
+            $user = new MessageUser();
+            $user->setData(array('user_id' => get_userid(Request::username("rec_uname")), 'snd_rec' => "rec"));
+            $this->default_message->users[] = $user;
         }
         if (Request::getArray("rec_uname")) {
-            $this->to = array_map("get_userid", Request::getArray("rec_uname"));
+            foreach (Request::getArray("rec_uname") as $username) {
+                $user = new MessageUser();
+                $user->setData(array('user_id' => get_userid($username), 'snd_rec' => "rec"));
+                $this->default_message->users[] = $user;
+            }
         }
         if (Request::option("group_id")) {
             $group = Statusgruppen::find(Request::option("group_id"));
             if (($group['range_id'] === $GLOBALS['user']->id)
                     || ($GLOBALS['perm']->have_studip_perm("autor", $group['range_id']))) {
-                $this->to += $group->members->map(function ($m) { return $m['user_id']; });
+                foreach ($group->members as $member) {
+                    $user = new MessageUser();
+                    $user->setData(array('user_id' => $member['user_id'], 'snd_rec' => "rec"));
+                    $this->default_message->users[] = $user;
+                }
             }
         }
         if (Request::get("filter") && Request::option("course_id")) {
@@ -155,12 +171,39 @@ class MessagesController extends AuthenticatedController {
                     $query = "SELECT b.user_id FROM user_inst a, auth_user_md5 b WHERE a.Institut_id = '".$course_id."' AND a.user_id = b.user_id AND a.inst_perms = '$who' ORDER BY Nachname, Vorname";
                     break;
             }
-            $this->to += DBManager::get()->query($query)->fetchAll(PDO::FETCH_COLUMN, 0);
+            $user_ids = DBManager::get()->query($query)->fetchAll(PDO::FETCH_COLUMN, 0);
+            foreach ($user_ids as $user_id) {
+                $user = new MessageUser();
+                $user->setData(array('user_id' => $user_ids, 'snd_rec' => "rec"));
+                $this->default_message->users[] = $user;
+            }
         }
         if (Request::option("answer_to")) {
-
+            $old_message = new Message(Request::option("answer_to"));
+            if (!$old_message->permissionToRead()) {
+                throw new AccessDeniedException("Message is not for you.");
+            }
+            if (Request::option("quote") === $old_message->getId()) {
+                $this->default_message['message'] = "[quote]\n".$old_message['message']."\n[/quote]";
+            }
+            $this->default_message['subject'] = substr($old_message['message'], 0, 4) === "Re: " ? $old_message['subject'] : "Re: ".$old_message['subject'];
+            $user = new MessageUser();
+            $user->setData(array('user_id' => $old_message['autor_id'], 'snd_rec' => "rec"));
+            $this->default_message->users[] = $user;
         }
+        if (Request::get("default_body")) {
+            $this->default_message['message'] = Request::get("default_body");
+        }
+        if (Request::get("default_subject")) {
+            $this->default_message['subject'] = Request::get("default_subject");
+        }
+        NotificationCenter::postNotification("DefaultMessageForComposerCreated", $this->default_message);
 
+        if (Request::isXhr()) {
+            $this->set_layout(null);
+            $this->set_content_type('text/html;Charset=windows-1252');
+            $this->response->add_header('X-Title', _("Neue Nachricht schreiben"));
+        }
     }
 
     /**
@@ -187,7 +230,7 @@ class MessagesController extends AuthenticatedController {
                 Request::get("message_subject"),
                 Request::get("message_mail") ? true : "",
                 'normal',
-                Request::get("message_tags")
+                trim(Request::get("message_tags")) ?: null
             );
             PageLayout::postMessage(MessageBox::success(_("Nachricht wurde verschickt.")));
         }
@@ -198,7 +241,18 @@ class MessagesController extends AuthenticatedController {
         if (Request::isPost() && Request::get("tag")) {
             $message = new Message(Request::option("message_id"));
             $message->addTag(Request::get("tag"));
-            $this->redirect("messages/read/".$message->getId());
+
+            $output = array();
+            $factory = $this->get_template_factory();
+            $template = $factory->open($this->get_default_template("read"));
+            $template->set_attribute("message", $message);
+            $output['full'] = $template->render();
+
+            $template = $factory->open($this->get_default_template("_message_row"));
+            $template->set_attribute("message", $message);
+            $output['row'] = $template->render();
+
+            $this->render_text(json_encode(studip_utf8encode($output)));
         } else {
             $this->render_nothing();
         }
@@ -208,7 +262,18 @@ class MessagesController extends AuthenticatedController {
         if (Request::isPost() && Request::get("tag")) {
             $message = new Message(Request::option("message_id"));
             $message->removeTag(Request::get("tag"));
-            $this->redirect("messages/read/".$message->getId());
+
+            $output = array();
+            $factory = $this->get_template_factory();
+            $template = $factory->open($this->get_default_template("read"));
+            $template->set_attribute("message", $message);
+            $output['full'] = $template->render();
+
+            $template = $factory->open($this->get_default_template("_message_row"));
+            $template->set_attribute("message", $message);
+            $output['row'] = $template->render();
+
+            $this->render_text(json_encode(studip_utf8encode($output)));
         } else {
             $this->render_nothing();
         }
@@ -230,7 +295,7 @@ class MessagesController extends AuthenticatedController {
         }
     }
     
-    protected function get_messages($received = true, $limit = 50, $offset = 0, $tag = null)
+    protected function get_messages($received = true, $limit = 50, $offset = 0, $tag = null, $search = null)
     {
         if ($tag) {
             $messages_data = DBManager::get()->prepare("
@@ -249,7 +314,63 @@ class MessagesController extends AuthenticatedController {
                 'tag' => $tag,
                 'sender_receiver' => $received ? "rec" : "snd"
             ));
-        } else{
+        } elseif($search) {
+
+            $suchmuster = '/".*"/U';
+            preg_match_all($suchmuster, $search, $treffer);
+            array_walk($treffer[0], function(&$value) { $value = trim($value, '"'); });
+
+            // remove the quoted parts from $_searchfor
+            $_searchfor = trim(preg_replace($suchmuster, '', $search));
+
+            // split the searchstring $_searchfor at every space
+            $parts = explode(' ', $_searchfor);
+            foreach ($parts as $key => $val) {
+                if ($val == '') {
+                    unset($parts[$key]);
+                }
+            }
+            if (!empty($parts)) {
+                $_searchfor = array_merge($parts, $treffer[0]);
+            } else  {
+                $_searchfor = $treffer[0];
+            }
+
+            $search_sql = "";
+            foreach ($_searchfor as $val) {
+                $tmp_sql = array();
+                if (Request::get("search_autor")) {
+                    $tmp_sql[] = "CONCAT(auth_user_md5.Vorname, ' ', auth_user_md5.Nachname) LIKE ".DBManager::get()->quote("%".$val."%")." ";
+                }
+                if (Request::get("search_subject")) {
+                    $tmp_sql[] = "message.subject LIKE ".DBManager::get()->quote("%".$val."%")." ";
+                }
+                if (Request::get("search_content")) {
+                    $tmp_sql[] = "message.message LIKE ".DBManager::get()->quote("%".$val."%")." ";
+                }
+                $search_sql .= "AND (";
+                $search_sql .= implode(" OR ", $tmp_sql);
+                $search_sql .= ") ";
+            }
+
+
+
+            $messages_data = DBManager::get()->prepare("
+                SELECT *
+                FROM message
+                    INNER JOIN message_user ON (message_user.message_id = message.message_id)
+                    INNER JOIN auth_user_md5 ON (auth_user_md5.user_id = message.autor_id)
+                WHERE message_user.user_id = :me
+                    AND snd_rec = :sender_receiver
+                    $search_sql
+                ORDER BY message.mkdate DESC
+                LIMIT ".(int) $offset .", ".(int) $limit ."
+            ");
+            $messages_data->execute(array(
+                'me' => $GLOBALS['user']->id,
+                'sender_receiver' => $received ? "rec" : "snd"
+            ));
+        } else {
             $messages_data = DBManager::get()->prepare("
                 SELECT *
                 FROM message

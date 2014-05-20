@@ -1,6 +1,10 @@
 <input type="hidden" name="received" id="received" value="<?= (int) $received ?>">
 <input type="hidden" name="since" id="since" value="<?= time() ?>">
 <input type="hidden" name="folder_id" id="tag" value="<?= htmlReady(ucfirst(Request::get("tag"))) ?>">
+<input type="hidden" name="search" id="search" value="<?= htmlReady(Request::get("search")) ?>">
+<input type="hidden" name="search_autor" id="search_autor" value="<?= htmlReady(Request::get("search_autor")) ?>">
+<input type="hidden" name="search_subject" id="search_subject" value="<?= htmlReady(Request::get("search_subject")) ?>">
+<input type="hidden" name="search_content" id="search_content" value="<?= htmlReady(Request::get("search_content")) ?>">
 
 <? if (Request::get("tag")) : ?>
 <h4>
@@ -19,7 +23,7 @@
             <th></th>
         </tr>
     </thead>
-    <tbody>
+    <tbody aria-relevant="additions" aria-live="polite">
         <? if (count($messages) > 0) : ?>
             <? if ($more || (Request::int("offset") > 0)) : ?>
             <noscript>
@@ -67,12 +71,16 @@
     </tbody>
 </table>
 
-<div style="display: none;">
-    <?= Assets::img("icons/20/blue/mail", array('id' => "move_handle")) ?>
+<div style="display: none; background-color: rgba(255,255,255, 0.3); padding: 3px; border-radius: 5px; border: thin solid black;" id="move_handle">
+    <?= Assets::img("icons/20/blue/mail", array('class' => "text-bottom")) ?>
+    <span class="title"></span>
 </div>
 
 <script>
 STUDIP.jsupdate_enable = true;
+jQuery(function () {
+    jQuery("#nav__messaging_messages_write").attr("data-lightbox", "buttons=false");
+});
 </script>
 
 <?php
@@ -87,3 +95,10 @@ if (count($tags)) {
     }
     $sidebar->addWidget($folderwidget, 'folder');
 }
+
+$search = new SearchWidget();
+$search->addElement(new WidgetElement(
+    $this->render_partial('messages/_search'),
+    'search'
+));
+$sidebar->addWidget($search);

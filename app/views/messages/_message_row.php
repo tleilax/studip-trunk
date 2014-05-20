@@ -1,6 +1,6 @@
         <tr id="message_<?= $message->getId() ?>" class="<?= $message->isRead() || $message['autor_id'] === $GLOBALS['user']->id ? "" : "unread" ?>">
             <td><?= count($message->attachments) ? Assets::img("icons/20/black/staple", array("title" => _("Mit Anhang"))) : "" ?></td>
-            <td><a href="<?= URLHelper::getLink("dispatch.php/messages/read/".$message->getId()) ?>" data-lightbox onClick="jQuery(this).closest('tr').removeClass('unread');"><?= htmlReady($message['subject']) ?></a></td>
+            <td class="title"><a href="<?= URLHelper::getLink("dispatch.php/messages/read/".$message->getId()) ?>" data-lightbox="buttons=false"><?= htmlReady($message['subject']) ?></a></td>
             <td>
                 <? if ($message['autor_id'] == "____%system%____") : ?>
                 <?= _("Systemnachricht") ?>
@@ -10,9 +10,9 @@
             </td>
             <td><?= date("d.m.Y G.i", $message['mkdate']) ?></td>
             <td>
-                <? foreach ($message->getTags() as $tag) : ?>
-                    <a href="<?= URLHelper::getLink("?", array('tag' => $tag)) ?>"><?= Assets::img("icons/16/blue/star", array('class' => "text-bottom")).htmlReady(ucfirst($tag)) ?></a>
-                <? endforeach ?>
+            <? foreach ($message->getTags() as $tag) : ?>
+                <a href="<?= URLHelper::getLink("?", array('tag' => $tag)) ?>" class="tag"><?= Assets::img("icons/16/blue/star", array('class' => "text-bottom tag")).htmlReady(ucfirst($tag)) ?></a>
+            <? endforeach ?>
             </td>
             <td>
                 <form action="?" method="post" style="display: inline;">

@@ -22,6 +22,13 @@ STUDIP.Messages = {
         jQuery("#since").val(Math.floor(new Date().getTime() / 1000));
     },
 
+    /*********** helper for the overview site ***********/
+
+    whenMessageIsShown: function (lightbox) {
+        var message_id = jQuery("#message_metadata").data("message_id");
+        jQuery("#message_" + message_id).removeClass("unread");
+    },
+
 
     /*********** helper for the composer-site ***********/
 
@@ -130,6 +137,10 @@ STUDIP.Messages = {
                 statusbar.bind("click", function() { jQuery(this).fadeOut(300, function () { jQuery(this).remove(); })});
             }
         });
+    },
+    send: function (form) {
+        console.log(form);
+        return false;
     }
 };
 
@@ -147,9 +158,11 @@ jQuery("#message_metadata .add_new_tag").live("click", function () {
                 'tag': tag
             },
             'type': "post",
+            'dataType': "json",
             'success': function (response) {
                 if (jQuery(".ui-dialog-content").length) {
-                    jQuery(".ui-dialog-content").html(response);
+                    jQuery(".ui-dialog-content").html(response['full']);
+                    jQuery("#message_" + message_id).replaceWith(response['row']);
                 } else {
                     location.href = STUDIP.ABSOLUTE_URI_STUDIP + "dispatch/messages/read/" + message_id;
                 }
@@ -167,9 +180,11 @@ jQuery("#message_metadata .remove_tag").live("click", function () {
             'tag': tag
         },
         'type': "post",
+        'dataType': "json",
         'success': function (response) {
             if (jQuery(".ui-dialog-content").length) {
-                jQuery(".ui-dialog-content").html(response);
+                jQuery(".ui-dialog-content").html(response['full']);
+                jQuery("#message_" + message_id).replaceWith(response['row']);
             } else {
                 location.href = STUDIP.ABSOLUTE_URI_STUDIP + "dispatch/messages/read/" + message_id;
             }
@@ -177,49 +192,58 @@ jQuery("#message_metadata .remove_tag").live("click", function () {
     });
 });
 
-
-/*********** infinity-scroll in the overview ***********/
-
-if (jQuery("#messages").length > 0) {
-    jQuery(window.document).bind('scroll', _.throttle(function (event) {
-        if ((jQuery(window).scrollTop() + jQuery(window).height() > jQuery(window.document).height() - 500)
-            && (jQuery("#reloader").hasClass("more"))) {
-            //nachladen
-            jQuery("#reloader").removeClass("more").addClass("loading");
-            jQuery.ajax({
-                url: STUDIP.ABSOLUTE_URI_STUDIP + "dispatch.php/messages/more",
-                data: {
-                    'received': jQuery("#received").val(),
-                    'offset': jQuery("#messages > tbody > tr").length - 1,
-                    'tag': jQuery("#tag").val(),
-                    'limit': 50
-                },
-                dataType: "json",
-                success: function (response) {
-                    var more_indicator = jQuery("#reloader").detach();
-
-                    jQuery("#loaded").val(parseInt(jQuery("#loaded").val(), 10) + 1);
-                    jQuery.each(response.messages, function (index, message) {
-                        jQuery("#messages > tbody").append(message);
-                    });
-
-                    if (response.more) {
-                        jQuery("#messages > tbody").append(more_indicator.addClass("more").removeClass("loading"));
-                    }
-                }
-            });
-        }
-    }, 30));
-}
-
-
-/*********** dragging the messages to the tags ***********/
+jQuery(document).on('lightbox-open.studip', '#messages .title a', function () {
+    STUDIP.Messages.whenMessageIsShown();
+})
 
 jQuery(function () {
+
+    /*********** infinity-scroll in the overview ***********/
+    if (jQuery("#messages").length > 0) {
+        jQuery(window.document).bind('scroll', _.throttle(function (event) {
+
+            if ((jQuery(window).scrollTop() + jQuery(window).height() > jQuery(window.document).height() - 500)
+                && (jQuery("#reloader").hasClass("more"))) {
+                //nachladen
+                jQuery("#reloader").removeClass("more").addClass("loading");
+                jQuery.ajax({
+                    url: STUDIP.ABSOLUTE_URI_STUDIP + "dispatch.php/messages/more",
+                    data: {
+                        'received': jQuery("#received").val(),
+                        'offset': jQuery("#messages > tbody > tr").length - 1,
+                        'tag': jQuery("#tag").val(),
+                        'search': jQuery("#search").val(),
+                        'search_autor': jQuery("#search_autor").val(),
+                        'search_subject': jQuery("#search_subject").val(),
+                        'search_content': jQuery("#search_content").val(),
+                        'limit': 50
+                    },
+                    dataType: "json",
+                    success: function (response) {
+                        var more_indicator = jQuery("#reloader").detach();
+
+                        jQuery("#loaded").val(parseInt(jQuery("#loaded").val(), 10) + 1);
+                        jQuery.each(response.messages, function (index, message) {
+                            jQuery("#messages > tbody").append(message);
+                        });
+
+                        if (response.more) {
+                            jQuery("#messages > tbody").append(more_indicator.addClass("more").removeClass("loading"));
+                        }
+                    }
+                });
+            }
+        }, 30));
+    }
+
+    /*********** dragging the messages to the tags ***********/
+
     jQuery("#messages > tbody > tr").draggable({
-        cursor: "move",
+        //cursor: "move",
         helper: function () {
-            return jQuery("#move_handle").clone().show();
+            var handle = jQuery("#move_handle").clone().show();
+            handle.find(".title").text(jQuery(this).find(".title").text());
+            return handle;
         },
         revert: true,
         revertDuration: "200"
@@ -236,8 +260,9 @@ jQuery(function () {
                     'tag': tag
                 },
                 'type': "post",
+                'dataType': "json",
                 'success': function (response) {
-                    location.reload();
+                    jQuery("#message_" + message_id).replaceWith(response.row);
                 }
             });
         }

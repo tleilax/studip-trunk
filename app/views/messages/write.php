@@ -9,12 +9,12 @@
                 <span class="visual"></span>
                 <a class="remove_adressee"><?= Assets::img("icons/16/blue/trash", array('class' => "text-bottom")) ?></a>
             </li>
-            <? foreach ($to as $user_id) : ?>
+            <? foreach ($default_message->users as $user) : ?>
             <li style="padding: 0px;" class="adressee">
-                <input type="hidden" name="message_to[]" value="<?= htmlReady($user_id) ?>">
+                <input type="hidden" name="message_to[]" value="<?= htmlReady($user['user_id']) ?>">
                 <span class="visual">
-                    <?= Avatar::getAvatar($user_id)->getImageTag(Avatar::SMALL) ?>
-                    <?= htmlReady(get_fullname($user_id, 'full_rev')) ?>
+                    <?= Avatar::getAvatar($user['user_id'])->getImageTag(Avatar::SMALL) ?>
+                    <?= htmlReady(get_fullname($user['user_id'], 'full_rev')) ?>
                 </span>
                 <a class="remove_adressee"><?= Assets::img("icons/16/blue/trash", array('class' => "text-bottom")) ?></a>
             </li>
@@ -55,13 +55,13 @@
     <div>
         <label>
             <h4><?= _("Betreff") ?></h4>
-            <input type="text" name="message_subject" style="width: 100%" required value="<?= htmlReady(Request::get("default_subject")) ?>">
+            <input type="text" name="message_subject" style="width: 100%" required value="<?= htmlReady($default_message['subject']) ?>">
         </label>
     </div>
     <div>
         <label>
             <h4><?= _("Nachricht") ?></h4>
-            <textarea style="width: 100%; height: 200px;" name="message_body" class="add_toolbar"><?= htmlReady(Request::get("default_body")) ?></textarea>
+            <textarea style="width: 100%; height: 200px;" name="message_body" class="add_toolbar"><?= htmlReady($default_message['message']) ?></textarea>
         </label>
     </div>
     <div>
@@ -84,7 +84,7 @@
                 <a href="" onClick="jQuery('#settings').toggle('fade');return false;">
                     <?= Assets::img("icons/40/blue/admin") ?>
                     <br>
-                    <strong><?= _("Einstellungen") ?></strong>
+                    <strong><?= _("Optionen") ?></strong>
                 </a>
             </li>
         </ul>
@@ -125,7 +125,7 @@
         </label>
     </div>
     <div id="settings" style="display: none;">
-        <h4><?= _("Einstellungen") ?></h4>
+        <h4><?= _("Optionen") ?></h4>
         <table class="" style="width: 100%">
             <tbody>
                 <tr>
@@ -133,7 +133,7 @@
                         <label for="message_mail"><strong><?= _("Immer per Mail weiterleiten") ?></strong></label>
                     </td>
                     <td>
-                        <input type="checkbox" name="message_mail" id="message_mail" value="1">
+                        <input type="checkbox" name="message_mail" id="message_mail" value="1"<?= $mailforwarding ? " checked" : "" ?>>
                     </td>
                 </tr>
                 <tr>
@@ -151,11 +151,12 @@
     </div>
 
     <div style="text-align: center;">
-        <?= \Studip\Button::create(_("abschicken")) ?>
+        <?= \Studip\Button::create(_("abschicken"), null, array('onclick' => "STUDIP.Messages.send(jQuery(this).closest('form')[0]);")) ?>
     </div>
 
 </form>
 
+<br>
 
 <?php
 $sidebar = Sidebar::get();

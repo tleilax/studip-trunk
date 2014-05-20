@@ -48,7 +48,7 @@
             <td>
                 <? foreach ($message->getTags() as $tag) : ?>
                     <span class="tag" data-tag="<?= htmlReady($tag) ?>">
-                        <a href="<?= URLHelper::getLink("?", array('tag' => $tag)) ?>"><?= Assets::img("icons/16/blue/star", array('class' => "text-bottom")).htmlReady($tag) ?></a><?= Assets::img("icons/16/blue/trash", array('class' => "text-bottom remove_tag")) ?>
+                        <a href="<?= URLHelper::getLink("?", array('tag' => $tag)) ?>" class="tag"><?= Assets::img("icons/16/blue/star", array('class' => "text-bottom")).htmlReady($tag) ?></a><?= Assets::img("icons/16/blue/trash", array('class' => "text-bottom remove_tag")) ?>
                     </span>
                 <? endforeach ?>
                 <span>
@@ -81,9 +81,9 @@
 
 <div align="center">
     <div class="button-group">
-        <a href="<?= URLHelper::getLink("dispatch.php/messages/write", array('cmd' => "write", 'answer_to' => $message->getId())) ?>"><?= \Studip\Button::create(_("Antworten"))?></a>
-        <a href="<?= URLHelper::getLink("dispatch.php/messages/write", array('cmd' => "write", 'answer_to' => $message->getId(), 'quote' => $message->getId())) ?>"><?= \Studip\Button::create(_("Zitieren"))?></a>
-        <a href="<?= URLHelper::getLink("dispatch.php/messages/write", array('cmd' => "write", 'answer_to' => $message->getId(), 'forward' => "rec")) ?>"><?= \Studip\Button::create(_("Weiterleiten"))?></a>
+        <a href="<?= URLHelper::getLink("dispatch.php/messages/write", array('answer_to' => $message->getId())) ?>"><?= \Studip\Button::create(_("Antworten"))?></a>
+        <a href="<?= URLHelper::getLink("dispatch.php/messages/write", array('answer_to' => $message->getId(), 'quote' => $message->getId())) ?>"><?= \Studip\Button::create(_("Zitieren"))?></a>
+        <a href="<?= URLHelper::getLink("dispatch.php/messages/write", array('answer_to' => $message->getId(), 'forward' => "rec")) ?>"><?= \Studip\Button::create(_("Weiterleiten"))?></a>
         <a href="<?= URLHelper::getLink("dispatch.php/messages/print/".$message->getId()) ?>"><?= \Studip\Button::create(_("Drucken"))?></a>
         <form action="?" method="post" style="display: inline;">
             <input type="hidden" name="delete_message" value="<?= $message->getId() ?>">

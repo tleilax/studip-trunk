@@ -16,26 +16,11 @@ class CourseTopic extends SimpleORMap {
 
     static public function findByTermin_id($termin_id)
     {
-        $record = new CourseTopic();
-        $db = DBManager::get();
-        $sql = "
-            SELECT *
-            FROM `" .  $record->db_table . "`
-                INNER JOIN themen_termine USING (issue_id)
+        return self::findBySQL("INNER JOIN themen_termine USING (issue_id)
             WHERE themen_termine.termin_id = ?
-            ORDER BY priority ASC
-        ";
-        $st = $db->prepare($sql);
-        $st->execute(array($termin_id));
-        $ret = array();
-        $c = 0;
-        while($row = $st->fetch(PDO::FETCH_ASSOC)) {
-            $ret[$c] = new CourseTopic();
-            $ret[$c]->setData($row, true);
-            $ret[$c]->setNew(false);
-            ++$c;
-        }
-        return $ret;
+            ORDER BY priority ASC",
+            array($termin_id)
+        );
     }
 
     static public function findBySeminar_id($seminar_id)
@@ -43,9 +28,9 @@ class CourseTopic extends SimpleORMap {
         return self::findBySQL("seminar_id = ? ORDER BY priority ", array($seminar_id));
     }
 
-    function __construct($id = null)
+    protected static function configure($config = array())
     {
-        $this->db_table = 'themen';
-        parent::__construct($id);
+        $config['db_table'] = 'themen';
+        parent::configure($config);
     }
 }
