@@ -17,7 +17,7 @@
         <tr>
             <th></th>
             <th><?= _("Betreff") ?></th>
-            <th><?= _("Von") ?></th>
+            <th><?= _("Autor") ?></th>
             <th><?= _("Zeit") ?></th>
             <th><?= _("Tags") ?></th>
             <th></th>
@@ -79,7 +79,7 @@
 <script>
 STUDIP.jsupdate_enable = true;
 jQuery(function () {
-    jQuery("#nav__messaging_messages_write").attr("data-lightbox", "buttons=false");
+    jQuery("#nav__messaging_messages_write").attr("data-dialog", "buttons=false");
 });
 </script>
 
@@ -95,6 +95,15 @@ if (count($tags)) {
     }
     $sidebar->addWidget($folderwidget, 'folder');
 }
+
+$actions = new ActionsWidget();
+$actions->addLink(
+    _("Neue Nachricht schreiben"),
+    URLHelper::getURL("dispatch.php/messages/write"),
+    null,
+    array('data-dialog' => "buttons=false")
+);
+$sidebar->addWidget($actions);
 
 $search = new SearchWidget();
 $search->addElement(new WidgetElement(

@@ -14,6 +14,15 @@
 
 class CourseDate extends SimpleORMap {
 
+    static public function findByIssue_id($issue_id)
+    {
+        return self::findBySQL("INNER JOIN themen_termine USING (termin_id)
+            WHERE themen_termine.issue_id = ?
+            ORDER BY date ASC",
+            array($issue_id)
+        );
+    }
+
     static public function findBySeminar_id($seminar_id)
     {
         return self::findBySQL("range_id = ? ORDER BY date ", array($seminar_id));
@@ -41,6 +50,44 @@ class CourseDate extends SimpleORMap {
             'on_store' => 'store'
         );
         parent::configure($config);
+    }
+
+    public function addTopic($topic)
+    {
+        if (!is_a($topic, "CourseTopic")) {
+            $topic = CourseTopic::find($topic);
+        }
+        if (!$topic) {
+            throw new Exception("Thema existiert nicht.");
+        }
+        $statement = DBManager::get()->prepare("
+            INSERT IGNORE INTO themen_termine
+            SET issue_id = :issue_id,
+                termin_id = :termin_id
+        ");
+        return $statement->execute(array(
+            'issue_id' => $topic->getId(),
+            'termin_id' => $this->getId()
+        ));
+    }
+
+    public function removeTopic($topic)
+    {
+        if (!is_a($topic, "CourseTopic")) {
+            $topic = CourseTopic::find($topic);
+        }
+        if (!$topic) {
+            throw new Exception("Thema existiert nicht.");
+        }
+        $statement = DBManager::get()->prepare("
+            DELETE FROM themen_termine
+            WHERE issue_id = :issue_id
+                AND termin_id = :termin_id
+        ");
+        return $statement->execute(array(
+            'issue_id' => $topic->getId(),
+            'termin_id' => $this->getId()
+        ));
     }
 
 }

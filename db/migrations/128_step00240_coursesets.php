@@ -12,7 +12,6 @@ class Step00240CourseSets extends Migration
     function up()
     {
         $db = DBManager::get();
-
         //check for future admission
         /*$future_admissions = $db->fetchColumn("SELECT COUNT(*) FROM seminare WHERE admission_type IN (1,2) AND
          (admission_starttime > UNIX_TIMESTAMP() OR start_time > UNIX_TIMESTAMP())");
@@ -446,6 +445,17 @@ class Step00240CourseSets extends Migration
             'ALLOW_DOZENT_COURSESET_ADMIN', '0', '1', 'boolean', 'global',
             'coursesets', '0', UNIX_TIMESTAMP(), UNIX_TIMESTAMP(),
             'Sollen Lehrende einrichtungsweite Anmeldesets anlegen und bearbeiten dürfen?',
+            '', '')");
+        // Insert global configuration: who may edit course sets?
+        $db->exec("INSERT IGNORE INTO `config`
+            (`config_id`, `parent_id`, `field`, `value`, `is_default`,
+             `type`, `range`, `section`, `position`, `mkdate`, `chdate`,
+             `description`, `comment`, `message_template`)
+        VALUES
+            (MD5('ENABLE_COURSESET_FCFS'), '',
+            'ENABLE_COURSESET_FCFS', '0', '1', 'boolean', 'global',
+            'coursesets', '0', UNIX_TIMESTAMP(), UNIX_TIMESTAMP(),
+            'Soll first-come-first-served (Windhundverfahren) bei der Anmeldung erlaubt sein?',
             '', '')");
     }
 

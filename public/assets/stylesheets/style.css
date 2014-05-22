@@ -648,14 +648,14 @@ table.default caption {
 }
 table.default thead th {
   background-color: #e7ebf1;
-  border-bottom: 1px solid rgba(137, 154, 185, 0.2);
+  border-bottom: 1px solid rgba(137, 154, 185, 0.19999999999999996);
   border-top: 1px solid #1e3e70;
   font-size: 1.0em;
 }
 table.default tbody th {
   background-color: #e7ebf1;
   border-top: 1px solid #1e3e70;
-  border-bottom: 1px solid rgba(137, 154, 185, 0.2);
+  border-bottom: 1px solid rgba(137, 154, 185, 0.19999999999999996);
   text-align: left;
 }
 table.default tbody td {
@@ -1708,7 +1708,7 @@ table.infobox td.infobox-img {
 }
 td.infoboxrahmen {
   background-color: #dee2e8;
-  border-bottom: 1px solid rgba(137, 154, 185, 0.2);
+  border-bottom: 1px solid rgba(137, 154, 185, 0.19999999999999996);
 }
 .sidebar {
   background: #fff;
@@ -1909,6 +1909,32 @@ td.infoboxrahmen {
 }
 .sidebar .sidebar-widget:hover .sidebar-widget-options {
   opacity: 1;
+}
+.sidebar-widget .widget-options {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.sidebar-widget .widget-options .options-checkbox {
+  background-repeat: no-repeat;
+  background-position: left top;
+  display: block;
+  padding-left: 20px;
+}
+.sidebar-widget .widget-options .options-checkbox.options-checked {
+  background-image: url("../images/icons/16/blue/checkbox-checked.png");
+  background-image: -webkit-image-set(url("../images/icons/16/blue/checkbox-checked.png") 1x, url("../images/icons/32/blue/checkbox-checked.png") 2x);
+}
+.sidebar-widget .widget-options .options-checkbox.options-unchecked {
+  background-image: url("../images/icons/16/blue/checkbox-unchecked.png");
+  background-image: -webkit-image-set(url("../images/icons/16/blue/checkbox-unchecked.png") 1x, url("../images/icons/32/blue/checkbox-unchecked.png") 2x);
+}
+.sidebar-widget.sidebar-infobox {
+  border-color: #d60000;
+  background: #e1e4e5;
+}
+.sidebar-widget.sidebar-infobox .sidebar-widget-header {
+  background: #ef9999;
 }
 .helpbar-container {
   background: #fff;
@@ -2361,8 +2387,9 @@ button.button[disabled] {
 .button-group {
   display: inline-block;
   list-style: none;
-  margin: 0;
+  margin: 0 0.8em 0 0;
   padding: 0;
+  vertical-align: middle;
 }
 .button-group button,
 .button-group .button {
@@ -4104,20 +4131,17 @@ a.opengraph_info:hover {
   opacity: 1;
 }
 .ui-dialog {
-  border: 0;
+  border: 1px solid white;
   padding: 0;
-  -webkit-box-shadow: 0px 0px 5px #636a71;
-  -moz-box-shadow: 0px 0px 5px #636a71;
-  box-shadow: 0px 0px 5px #636a71;
 }
 .ui-dialog .ui-dialog-titlebar {
-  background: #7e92b0;
+  background: #1e3e70;
   border: 0;
   font-size: 1.5em;
 }
 .ui-dialog .ui-dialog-titlebar-close {
   border: 0;
-  background: #7e92b0;
+  background: #1e3e70;
   width: 32px;
   height: 32px;
   margin-top: -16px;
@@ -4127,7 +4151,7 @@ a.opengraph_info:hover {
 }
 .ui-dialog .ui-dialog-titlebar-close:hover {
   border: 0;
-  background: #7e92b0;
+  background: #1e3e70;
   width: 32px;
   height: 32px;
   margin-top: -16px;

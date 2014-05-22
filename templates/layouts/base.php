@@ -39,6 +39,25 @@ if (Navigation::hasItem('/links/help')) {
 
     Navigation::removeItem('/footer/help');
 }
+
+// TODO: Remove this after sidebar migration has been completed
+if ($infobox && is_array($infobox)) {
+    $sidebar = Sidebar::get();
+    if (!$sidebar->getImage()) {
+        $sidebar->setImage(is_object($infobox['picture']) ? $infobox['picture']->getURL(Avatar::NORMAL) : $infobox['picture']);
+    }
+    foreach (array_reverse($infobox['content']) as $entry) {
+        $widget = new InfoboxWidget();
+        $widget->setTitle($entry['kategorie'] . ' (Infobox)');
+        if (isset($entry['eintrag']) && is_array($entry['eintrag'])) {
+            foreach (@$entry['eintrag'] as $row) {
+                $widget->addElement(new InfoboxElement($row['text'], $row['icon']));
+            }
+        }
+        $sidebar->insertWidget($widget, ':first');
+    }
+    unset($infobox);
+}
 ?>
 <!DOCTYPE html>
 <html class="no-js">

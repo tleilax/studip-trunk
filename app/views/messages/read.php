@@ -1,11 +1,21 @@
+<? if (!Request::isXhr()) : ?>
+    <h1><?= _("Betreff").": ".htmlReady($message["subject"]) ?></h1>
+<? endif ?>
+
 <? if ($message["autor_id"] !== "____%system%____") : ?>
 <div style="float:left;"><?= Avatar::getAvatar($message["autor_id"])->getImageTag(Avatar::MEDIUM) ?></div>
 <? endif ?>
 <table id="message_metadata" data-message_id="<?= $message->getId() ?>">
     <tbody>
         <tr>
-            <td><strong><?= _("Verfasser") ?></strong></td>
-            <td><a href="<?= URLHelper::getLink("dispatch.php/profile", array('username' => get_username($message["autor_id"]))) ?>"><?= htmlReady(get_fullname($message["autor_id"])) ?></a></td>
+            <td><strong><?= _("Autor") ?></strong></td>
+            <td>
+            <? if ($message['autor_id'] === '____%system%____'): ?>
+                <?= _('Stud.IP') ?>
+            <? else: ?>
+                <a href="<?= URLHelper::getLink("dispatch.php/profile", array('username' => get_username($message["autor_id"]))) ?>"><?= htmlReady(get_fullname($message["autor_id"])) ?></a>
+            <? endif; ?>
+            </td>
         </tr>
         <tr>
             <td><strong><?= _("Adressaten") ?></strong></td>
@@ -60,7 +70,6 @@
 </table>
 <div class="clear"></div>
 
-<h2><?= _("Betreff").": ".htmlReady($message["subject"]) ?></h2>
 <div class="message_body" style="font-size: 1.2em; margin: 3px; padding: 10px; background-color: #e7ebf1;">
     <?= formatReady($message["message"]) ?>
 </div>
@@ -79,17 +88,19 @@
 </ul>
 <? endif ?>
 
-<div align="center">
+<div align="center" data-dialog-button>
     <div class="button-group">
+    <? if ($message['autor_id'] !== '____%system%____'): ?>
         <a href="<?= URLHelper::getLink("dispatch.php/messages/write", array('answer_to' => $message->getId())) ?>"><?= \Studip\Button::create(_("Antworten"))?></a>
         <a href="<?= URLHelper::getLink("dispatch.php/messages/write", array('answer_to' => $message->getId(), 'quote' => $message->getId())) ?>"><?= \Studip\Button::create(_("Zitieren"))?></a>
+    <? endif; ?>
         <a href="<?= URLHelper::getLink("dispatch.php/messages/write", array('answer_to' => $message->getId(), 'forward' => "rec")) ?>"><?= \Studip\Button::create(_("Weiterleiten"))?></a>
-        <a href="<?= URLHelper::getLink("dispatch.php/messages/print/".$message->getId()) ?>"><?= \Studip\Button::create(_("Drucken"))?></a>
-        <form action="?" method="post" style="display: inline;">
-            <input type="hidden" name="delete_message" value="<?= $message->getId() ?>">
-            <?= \Studip\Button::create(_("Löschen"))?>
-        </form>
     </div>
+    <a href="<?= URLHelper::getLink("dispatch.php/messages/print/".$message->getId()) ?>"><?= \Studip\Button::create(_("Drucken"))?></a>
+    <form action="?" method="post" style="display: inline;">
+        <input type="hidden" name="delete_message" value="<?= $message->getId() ?>">
+        <?= \Studip\Button::create(_("Löschen"))?>
+    </form>
 </div>
 
 <?php
