@@ -1,34 +1,32 @@
 <?php
 # Lifter010: TODO
 
-foreach (Navigation::getItem('/') as $path1 => $nav1) {
-    if ($nav1->isActive()) {
-        foreach ($nav1->getSubNavigation() as $path2 => $nav2) {
-            if ($nav2->isActive()) {
-                $nav_links = new NavigationWidget();
-                foreach ($nav2->getSubNavigation() as $path3 => $nav3) {
-                    if (!$nav3->isVisible()) {
-                        continue;
-                    }
-                    $image = $nav3->getImage();
-                    $link = $nav_links->addLink(
-                        $nav3->getTitle(),
-                        URLHelper::getUrl($nav3->getURL(), array(), true),
-                        $image ? $image['src'] : null,
-                        array('id' => "nav__".$path1."_".$path2."_".$path3)
-                    );
-                    $link->setActive($nav3->isActive());
-                }
-                if ($nav_links->hasElements()) {
-                    Sidebar::get()->insertWidget($nav_links, ':first');
-                }
+$navigation = PageLayout::getTabNavigation();
+$tab_root_path = PageLayout::getTabNavigationPath();
+if ($navigation) {
+    $subnavigation = $navigation->activeSubNavigation();
+    if ($subnavigation !== null) {
+        $nav_links = new NavigationWidget();
+        foreach ($subnavigation as $path => $nav) {
+            if (!$nav->isVisible()) {
+                continue;
             }
+            $image = $nav->getImage();
+            $nav_id = "nav_".implode("_", preg_split("/\//", $tab_root_path, -1, PREG_SPLIT_NO_EMPTY))."_".$path;
+            $link = $nav_links->addLink(
+                $nav->getTitle(),
+                URLHelper::getUrl($nav->getURL(), array(), true),
+                $image ? $image['src'] : null,
+                array('id' => $nav_id)
+            );
+            $link->setActive($nav->isActive());
+            // TODO check $nav->isEnabled() and make link ".quit" if true "<span class="quiet">"
+        }
+        if ($nav_links->hasElements()) {
+            Sidebar::get()->insertWidget($nav_links, ':first');
         }
     }
 }
-
-
-$navigation = PageLayout::getTabNavigation();
 
 // Remove help from navigation and set it to help center
 if (Navigation::hasItem('/links/help')) {
@@ -38,6 +36,13 @@ if (Navigation::hasItem('/links/help')) {
     Helpbar::get()->insertLink(_('Hilfe-Wiki'), $nav->getURL(), 'icons/16/white/link-extern.png', '_blank');
 
     Navigation::removeItem('/footer/help');
+
+    // add tour links to help center
+    if (get_config('TOURS_ENABLE')) {
+        $tour_data = HelpTour::getHelpbarTourData();
+        foreach($tour_data['tours'] as $index => $tour)
+            Helpbar::get()->addLink(_('Tour:') . ' ' . $tour->name, '?tour_id='.$tour->tour_id, 'icons/16/white/play.png', false, array('class' => 'tour_link', 'id' => $tour->tour_id));
+    }
 }
 
 // TODO: Remove this after sidebar migration has been completed
@@ -82,6 +87,9 @@ if ($infobox && is_array($infobox)) {
         STUDIP.jsupdate_enable = true;
         <? endif ?>
         STUDIP.URLHelper.parameters = <?= json_encode(studip_utf8encode(URLHelper::getLinkParams())) ?>;
+        <? if ($tour_data['active_tour_id']) : ?>
+        STUDIP.Tour.init('<?=$tour_data['active_tour_id']?>', '<?=$tour_data['active_tour_step_nr']?>')
+        <? endif ?>
     </script>
     <?php
         // needs to be included in lib/include/html_head.inc.php as well

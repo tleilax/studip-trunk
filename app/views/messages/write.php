@@ -3,13 +3,13 @@
     <input type="hidden" name="message_id" id="message_id" value="<?= htmlReady($message_id) ?>">
     <div>
         <label for="user_id_1"><h4><?= _("An") ?></h4></label>
-        <ul style="list-style-type: none; margin: 0px; padding: 0px;" id="adressees">
-            <li id="template_adressee" style="display: none; padding: 0px;" class="adressee">
+        <ul class="clean" id="adressees">
+            <li id="template_adressee" style="display: none;" class="adressee">
                 <input type="hidden" name="message_to[]" value="">
                 <span class="visual"></span>
                 <a class="remove_adressee"><?= Assets::img("icons/16/blue/trash", array('class' => "text-bottom")) ?></a>
             </li>
-            <? foreach ($default_message->users as $user) : ?>
+            <? foreach ($default_message->receivers as $user) : ?>
             <li style="padding: 0px;" class="adressee">
                 <input type="hidden" name="message_to[]" value="<?= htmlReady($user['user_id']) ?>">
                 <span class="visual">
@@ -90,7 +90,7 @@
         </ul>
     </div>
 
-    <div id="attachments" style="display: none;">
+    <div id="attachments" style="<?= $default_attachments ? '' : 'display: none;'?>">
         <h4><?= _("Anhänge") ?></h4>
         <div>
             <ul class="files">
@@ -99,6 +99,15 @@
                     <span class="name"></span>
                     <span class="size"></span>
                 </li>
+                <? if ($default_attachments) : ?>
+                    <? foreach ($default_attachments as $a) : ?>
+                    <li class="file">
+                    <span class="icon"><?=$a['icon']?></span>
+                    <span class="name"><?=$a['name']?></span>
+                    <span class="size"><?=$a['size']?></span>
+                    </li>
+                    <? endforeach ?>
+                <? endif ?>
             </ul>
             <div id="statusbar_container">
                 <div class="statusbar" style="display: none;">

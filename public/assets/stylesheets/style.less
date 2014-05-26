@@ -46,6 +46,7 @@
 @import "less/news.less";
 @import "less/schedule.less";
 @import "less/study-area-selection.less";
+@import "less/tour.less";
 @import "less/wiki.less";
 @import "less/raumzeit.less";
 @import "less/opengraph.less";
@@ -147,6 +148,17 @@ h1.topic, h2.topic, h3.topic {
 }
 h1.topic { font-size: 1.6em; }
 h2.topic, h3.topic { font-size: 1.2em; }
+
+ul.clean {
+    list-style-type: none;
+    padding: 0px;
+    margin: 0px;
+    > li {
+        margin-top: 2px;
+        margin-bottom: 2px;
+        padding: 0px;
+    }
+}
 
 /* --- media preview -------------------------------------------------------- */
 .preview {

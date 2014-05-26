@@ -22,7 +22,7 @@ class MessagesController extends AuthenticatedController {
         PageLayout::setTitle(_("Nachrichten"));
         PageLayout::setHelpKeyword("Basis.InteraktionNachrichten");
         Navigation::activateItem('/messaging/messages/inbox');
-        
+
         if (Request::isPost() && Request::get("delete_message")) {
             $messaging = new messaging();
             $success = $messaging->delete_message(Request::option("delete_message"));
@@ -32,7 +32,7 @@ class MessagesController extends AuthenticatedController {
                 PageLayout::postMessage(MessageBox::error(_("Nachricht konnte nicht gelöscht werden.")));
             }
         }
-        
+
         $this->messages = $this->get_messages(
             true,
             Request::int("limit", $this->number_of_displayed_messages),
@@ -43,13 +43,13 @@ class MessagesController extends AuthenticatedController {
         $this->received = 1;
         $this->tags = Message::getUserTags();
     }
-    
+
     public function sent_action()
     {
         PageLayout::setTitle(_("Nachrichten"));
         PageLayout::setHelpKeyword("Basis.InteraktionNachrichten");
         Navigation::activateItem('/messaging/messages/sent');
-        
+
         if (Request::isPost() && Request::get("delete_message")) {
             $messaging = new messaging();
             $success = $messaging->delete_message(Request::option("delete_message"));
@@ -59,7 +59,7 @@ class MessagesController extends AuthenticatedController {
                 PageLayout::postMessage(MessageBox::error(_("Nachricht konnte nicht gelöscht werden.")));
             }
         }
-        
+
         $this->messages = $this->get_messages(
             false,
             Request::int("limit", $this->number_of_displayed_messages),
@@ -69,10 +69,10 @@ class MessagesController extends AuthenticatedController {
         );
         $this->received = 0;
         $this->tags = Message::getUserTags();
-        
+
         $this->render_action("overview");
     }
-    
+
     public function more_action()
     {
         $messages = $this->get_messages(
@@ -93,15 +93,18 @@ class MessagesController extends AuthenticatedController {
                                             ->open("messages/_message_row.php")
                                             ->render(compact("message"));
         }
-        
+
         $this->render_text(json_encode(studip_utf8encode($this->output)));
     }
-    
+
     public function read_action($message_id)
     {
         PageLayout::setTitle(_("Nachrichten"));
         PageLayout::setHelpKeyword("Basis.InteraktionNachrichten");
         $this->message = new Message($message_id);
+        if (!$this->message->permissionToRead()) {
+            throw new AccessDeniedException("Kein Zugriff");
+        }
         if ($this->message['autor_id'] === $GLOBALS['user']->id) {
             Navigation::activateItem('/messaging/messages/sent');
         } else {
@@ -114,7 +117,7 @@ class MessagesController extends AuthenticatedController {
         }
         $this->message->markAsRead($GLOBALS["user"]->id);
     }
-    
+
     /**
      * Lets the user compose a message and send it.
      */
@@ -130,13 +133,13 @@ class MessagesController extends AuthenticatedController {
         if (Request::username("rec_uname")) {
             $user = new MessageUser();
             $user->setData(array('user_id' => get_userid(Request::username("rec_uname")), 'snd_rec' => "rec"));
-            $this->default_message->users[] = $user;
+            $this->default_message->receivers[] = $user;
         }
         if (Request::getArray("rec_uname")) {
             foreach (Request::getArray("rec_uname") as $username) {
                 $user = new MessageUser();
                 $user->setData(array('user_id' => get_userid($username), 'snd_rec' => "rec"));
-                $this->default_message->users[] = $user;
+                $this->default_message->receivers[] = $user;
             }
         }
         if (Request::option("group_id")) {
@@ -146,50 +149,71 @@ class MessagesController extends AuthenticatedController {
                 foreach ($group->members as $member) {
                     $user = new MessageUser();
                     $user->setData(array('user_id' => $member['user_id'], 'snd_rec' => "rec"));
-                    $this->default_message->users[] = $user;
+                    $this->default_message->receivers[] = $user;
                 }
             }
         }
         if (Request::get("filter") && Request::option("course_id")) {
-            $course_id = Request::option('course_id');
+            $params = array(Request::option('course_id'), Request::option('who'));
             switch (Request::get("filter")) {
                 case 'send_sms_to_all':
-                    $who = Request::quoted('who');
-                    $query = "SELECT b.user_id FROM seminar_user a, auth_user_md5 b WHERE a.Seminar_id = '".$course_id."' AND a.user_id = b.user_id AND a.status = '$who' ORDER BY Nachname, Vorname";
+                    $query = "SELECT b.user_id,'rec' as snd_rec FROM seminar_user a, auth_user_md5 b WHERE a.Seminar_id = ? AND a.user_id = b.user_id AND a.status = ? ORDER BY Nachname, Vorname";
                     break;
                 case 'all':
-                    $query = "SELECT user_id FROM seminar_user LEFT JOIN auth_user_md5 USING(user_id) WHERE Seminar_id = '".$course_id."' ORDER BY Nachname, Vorname";
+                    $query = "SELECT user_id,'rec' as snd_rec FROM seminar_user LEFT JOIN auth_user_md5 USING(user_id) WHERE Seminar_id = ? ORDER BY Nachname, Vorname";
                     break;
                 case 'prelim':
-                    $query = "SELECT user_id FROM admission_seminar_user LEFT JOIN auth_user_md5 USING(user_id) WHERE seminar_id = '".$course_id."' AND status='accepted' ORDER BY Nachname, Vorname";
+                    $query = "SELECT user_id,'rec' as snd_rec FROM admission_seminar_user LEFT JOIN auth_user_md5 USING(user_id) WHERE seminar_id = ? AND status='accepted' ORDER BY Nachname, Vorname";
                     break;
                 case 'waiting':
-                    $query = "SELECT user_id FROM admission_seminar_user LEFT JOIN auth_user_md5 USING(user_id) WHERE seminar_id = '".$course_id."' AND (status='awaiting' OR status='claiming') ORDER BY Nachname, Vorname";
+                    $query = "SELECT user_id,'rec' as snd_rec FROM admission_seminar_user LEFT JOIN auth_user_md5 USING(user_id) WHERE seminar_id = ? AND status='awaiting' ORDER BY Nachname, Vorname";
                     break;
                 case 'inst_status':
-                    $who = Request::quoted('who');
-                    $query = "SELECT b.user_id FROM user_inst a, auth_user_md5 b WHERE a.Institut_id = '".$course_id."' AND a.user_id = b.user_id AND a.inst_perms = '$who' ORDER BY Nachname, Vorname";
+                    $query = "SELECT b.user_id,'rec' as snd_rec FROM user_inst a, auth_user_md5 b WHERE a.Institut_id = ? AND a.user_id = b.user_id AND a.inst_perms = ? ORDER BY Nachname, Vorname";
                     break;
             }
-            $user_ids = DBManager::get()->query($query)->fetchAll(PDO::FETCH_COLUMN, 0);
-            foreach ($user_ids as $user_id) {
-                $user = new MessageUser();
-                $user->setData(array('user_id' => $user_ids, 'snd_rec' => "rec"));
-                $this->default_message->users[] = $user;
-            }
+            $this->default_message->receivers = DBManager::get()->fetchAll($query, $params, 'MessageUser::build');
         }
         if (Request::option("answer_to")) {
             $old_message = new Message(Request::option("answer_to"));
             if (!$old_message->permissionToRead()) {
                 throw new AccessDeniedException("Message is not for you.");
             }
-            if (Request::option("quote") === $old_message->getId()) {
-                $this->default_message['message'] = "[quote]\n".$old_message['message']."\n[/quote]";
+            if (!Request::get('forward')) {
+                if (Request::option("quote") === $old_message->getId()) {
+                    $this->default_message['message'] = "[quote]\n".$old_message['message']."\n[/quote]";
+                }
+                $this->default_message['subject'] = substr($old_message['message'], 0, 4) === "RE: " ? $old_message['subject'] : "RE: ".$old_message['subject'];
+                $user = new MessageUser();
+                $user->setData(array('user_id' => $old_message['autor_id'], 'snd_rec' => "rec"));
+                $this->default_message->receivers[] = $user;
+            } else {
+                $messagesubject = 'FWD: ' . $old_message['subject'];
+                $message = _("-_-_ Weitergeleitete Nachricht _-_-");
+                $message .= "\n" . _("Betreff") . ": " . $old_message['subject'];
+                $message .= "\n" . _("Datum") . ": " . strftime('%x %X', $old_message['mkdate']);
+                $message .= "\n" . _("Von") . ": " . get_fullname($old_message['autor_id']);
+                $message .= "\n" . _("An") . ": " . join(', ', $old_message->getRecipients()->getFullname());
+                $message .= "\n\n" . $old_message['message'];
+                if (count($old_message->attachments)) {
+                    Request::set('message_id', $old_message->getNewId());
+                    foreach($old_message->attachments as $attachment) {
+                        $attachment->range_id = 'provisional';
+                        $attachment->seminar_id = $GLOBALS['user']->id;
+                        $attachment->autor_host = $_SERVER['REMOTE_ADDR'];
+                        $attachment->user_id = $GLOBALS['user']->id;
+                        $attachment->description = Request::option('message_id');
+                        $new_attachment = $attachment->toArray(array('range_id', 'user_id', 'seminar_id', 'name', 'description', 'filename', 'filesize'));
+                        StudipDocument::createWithFile(get_upload_file_path($attachment->getId()), $new_attachment);
+                        $this->default_attachments[] = array('icon' => Assets::img(GetFileIcon(getFileExtension($new_attachment['filename'])), array('class' => "text-bottom")),
+                                                             'name' => $new_attachment['filename'],
+                                                             'size' => relsize($new_attachment['filesize'],false));
+
+                    }
+                }
+                $this->default_message['subject'] = $messagesubject;
+                $this->default_message['message'] = $message;
             }
-            $this->default_message['subject'] = substr($old_message['message'], 0, 4) === "Re: " ? $old_message['subject'] : "Re: ".$old_message['subject'];
-            $user = new MessageUser();
-            $user->setData(array('user_id' => $old_message['autor_id'], 'snd_rec' => "rec"));
-            $this->default_message->users[] = $user;
         }
         if (Request::get("default_body")) {
             $this->default_message['message'] = Request::get("default_body");
@@ -279,14 +303,16 @@ class MessagesController extends AuthenticatedController {
         }
     }
 
-    function print_action($message_id, $sndrec = 'rec')
+    function print_action($message_id)
     {
-        $data = get_message_data($message_id, $GLOBALS['user']->id, $sndrec);
-        if ($data) {
-            $this->msg = $data;
-            $this->msg['from'] = get_fullname($data['snd_uid']);
-            $this->msg['to'] = join(', ', array_map('get_fullname', explode(',', $data['rec_uid'])));
-            $this->msg['attachments'] = array_filter(array_map(array('StudipDocument','find'), array_unique(explode(',', $data['attachments']))));
+        $message = Message::find($message_id);
+        if ($message && $message->permissionToRead($GLOBALS['user']->id)) {
+            $this->msg = $message->toArray();
+            $this->msg['from'] = $message->getSender()->getFullname();
+            $this->msg['to'] = $GLOBALS['user']->id == $message->autor_id ?
+                join(', ', $message->getRecipients()->getFullname()) :
+                $GLOBALS['user']->getFullname() . ' ' . sprintf(_('(und %d weitere)'), count($message->receivers)-1);
+            $this->msg['attachments'] = $message->attachments->toArray('filename filesize');
             PageLayout::setTitle($data['subject']);
             $this->set_layout($GLOBALS['template_factory']->open('layouts/base_without_infobox'));
         } else {
@@ -294,7 +320,7 @@ class MessagesController extends AuthenticatedController {
             return $this->render_nothing();
         }
     }
-    
+
     protected function get_messages($received = true, $limit = 50, $offset = 0, $tag = null, $search = null)
     {
         if ($tag) {
@@ -304,6 +330,7 @@ class MessagesController extends AuthenticatedController {
                     INNER JOIN message_user ON (message_user.message_id = message.message_id)
                     INNER JOIN message_tags ON (message_tags.message_id = message.message_id AND message_tags.user_id = message_user.user_id)
                 WHERE message_user.user_id = :me
+                    AND message_user.deleted = 0
                     AND snd_rec = :sender_receiver
                     AND message_tags.tag = :tag
                 ORDER BY message.mkdate DESC
@@ -361,6 +388,7 @@ class MessagesController extends AuthenticatedController {
                     INNER JOIN message_user ON (message_user.message_id = message.message_id)
                     INNER JOIN auth_user_md5 ON (auth_user_md5.user_id = message.autor_id)
                 WHERE message_user.user_id = :me
+                    AND message_user.deleted = 0
                     AND snd_rec = :sender_receiver
                     $search_sql
                 ORDER BY message.mkdate DESC
@@ -376,6 +404,7 @@ class MessagesController extends AuthenticatedController {
                 FROM message
                     INNER JOIN message_user ON (message_user.message_id = message.message_id)
                 WHERE message_user.user_id = :me
+                    AND message_user.deleted = 0
                     AND snd_rec = :sender_receiver
                 ORDER BY message.mkdate DESC
                 LIMIT ".(int) $offset .", ".(int) $limit ."
@@ -432,5 +461,5 @@ class MessagesController extends AuthenticatedController {
 
         $this->render_text(json_encode(studip_utf8encode($output)));
     }
-    
+
 }
