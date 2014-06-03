@@ -28,6 +28,31 @@
 
 class Message extends SimpleORMap
 {
+    static public function markAllAs($user_id = null, $state_of_flag = 1)
+    {
+        $user_id || $user_id = $GLOBALS['user']->id;
+        $statement = DBManager::get()->prepare("
+            UPDATE personal_notifications_user
+                INNER JOIN personal_notifications
+            SET seen = '1'
+            WHERE personal_notifications_user.user_id = :user_id
+                AND personal_notifications.html_id LIKE 'message_%'
+        ");
+        $statement->execute(array(
+            'user_id' => $user_id
+        ));
+
+        $statement = DBManager::get()->prepare("
+            UPDATE message_user
+            SET readed = :flag
+            WHERE user_id = :user_id
+        ");
+        return $statement->execute(array(
+            'user_id' => $user_id,
+            'flag' => $state_of_flag
+        ));
+    }
+
     static public function getUserTags($user_id = null)
     {
         $user_id || $user_id = $GLOBALS['user']->id;

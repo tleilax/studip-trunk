@@ -6,7 +6,7 @@
     } ?>
     <h2><?= htmlReady($topic['title']) ?></h2>
     <div>
-        <table>
+        <table class="default nohover">
             <tbody>
                 <tr>
                     <td><strong><?= _("Beschreibung") ?></strong></td>
@@ -64,9 +64,11 @@
             </tbody>
         </table>
         <div style="text-align: center;">
+            <? if ($GLOBALS['perm']->have_studip_perm("tutor", $_SESSION['SessionSeminar'])) : ?>
             <a href="<?= URLHelper::getLink("dispatch.php/course/topics/edit/".$topic->getId()) ?>" data-dialog>
             <?= \Studip\Button::create(_("bearbeiten"), null, array()) ?>
             </a>
+            <? endif ?>
         </div>
     </div>
     <? endforeach ?>
@@ -75,7 +77,8 @@
 <script>
     jQuery(function () {
         jQuery(".accordion").accordion({
-            'active': <?= (int) $open ?>
+            'active': <?= (int) $open ?>,
+            'heightStyle': "content"
         });
     })
 </script>

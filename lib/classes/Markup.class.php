@@ -21,6 +21,7 @@
 namespace Studip;
 
 require_once 'vendor/HTMLPurifier/HTMLPurifier.auto.php';
+require_once 'htmlpurifier/HTMLPurifier_Injector_Unlinkify.php';
 
 class Markup
 {
@@ -52,7 +53,7 @@ class Markup
      *
      * @return boolean  TRUE for HTML code, FALSE for plain text.
      */
-    private static function isHtml($text)
+    public static function isHtml($text)
     {
         // TODO compare trimming-and-comparing runtime to using regexp
         $trimmed = trim($text);
@@ -176,6 +177,16 @@ class Markup
         }
         return $text;
     }
+
+    public static function removeHTML($html) {
+        $config = \HTMLPurifier_Config::createDefault();
+        $config->set('Core.Encoding', 'ISO-8859-1');
+        $config->set('HTML.Allowed', 'a[href],img[src]');
+        $config->set('AutoFormat.Custom', array('Unlinkify'));
+
+        $purifier = new \HTMLPurifier($config);
+        return $purifier->purify($html);
+    }
 }
 
 /**
@@ -211,6 +222,8 @@ class AttrTransform_Image_Source extends \HTMLPurifier_AttrTransform
         return $attr;
     }
 }
+
+
 
 
 //// media proxy //////////////////////////////////////////////////////////////

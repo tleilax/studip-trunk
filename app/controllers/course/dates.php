@@ -14,6 +14,9 @@ class Course_DatesController extends AuthenticatedController
 
     public function index_action()
     {
+        checkObject();
+        checkObjectModule("schedule");
+	    object_set_visit_module("schedule");
         Navigation::activateItem('/course/schedule/dates');
         $this->dates = CourseDate::findBySeminar_id($_SESSION['SessionSeminar']);
     }
@@ -38,10 +41,11 @@ class Course_DatesController extends AuthenticatedController
         }
         $date = new CourseDate(Request::option("termin_id"));
         $seminar_id = $date['range_id'];
-        $topic = CourseTopic::findByTitle($seminar_id, Request::get("title"));
+        $title = studip_utf8decode(Request::get("title"));
+        $topic = CourseTopic::findByTitle($seminar_id, $title);
         if (!$topic) {
             $topic = new CourseTopic();
-            $topic['title'] = Request::get("title");
+            $topic['title'] = $title;
             $topic['seminar_id'] = $seminar_id;
             $topic['author_id'] = $GLOBALS['user']->id;
             $topic['description'] = "";

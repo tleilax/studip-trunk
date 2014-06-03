@@ -119,13 +119,12 @@
                 buttons[label] = {
                     text: label,
                     click: handler,
-                    'class': $(this).is('.accept') ? 'accept' : 'cancel' 
+                    'class': $(this).is('.accept') ? 'accept' : 'cancel'
                 }
             } else {
                 buttons[label] = handler;
             }
         });
-        console.log(buttons);
 
         return buttons;
     }
@@ -160,7 +159,7 @@
     STUDIP.Dialog.fromElement = function (element, options) {
         options = options || {};
 
-        if ($(element).is(':disabled')) {
+        if ($(element).is(':disabled') || $(window).innerWidth() < 800 || $(window).innerHeight < 400) {
             return;
         }
 
@@ -214,6 +213,7 @@
         }).done(function (response, status, xhr) {
             // Relocate if appropriate header is set
             if (xhr.getResponseHeader('X-Location')) {
+                STUDIP.Dialog.close();
                 document.location = xhr.getResponseHeader('X-Location');
                 return;
             }
@@ -232,6 +232,8 @@
                 STUDIP.Overlay.hide();
             }
         });
+
+        return true;
     };
 
     // Opens or updates the dialog
@@ -273,7 +275,7 @@
             width:   width,
             height:  height,
             buttons: {},
-            title:   options.title || '',
+            title:   $('<div>').text(options.title || '').html(), // kinda like htmlReady()
             modal:   true,
             open: function () {
                 instance.open = true;
@@ -332,8 +334,9 @@
     // Actual dialog handler
     function dialogHandler(event) {
         var options = $(this).data().dialog;
-        STUDIP.Dialog.fromElement(this, parseOptions(options));
-        event.preventDefault();
+        if (STUDIP.Dialog.fromElement(this, parseOptions(options))) {
+            event.preventDefault();
+        }
     }
 
     // Handle links, buttons and forms
@@ -349,8 +352,9 @@
     function legacyDialogHandler(event) {
         var rel  = $(this).attr('rel');
         if (/\blightbox(\s|\[|$)/.test(rel)) {
-            STUDIP.Dialog.fromElement(this, parseOptions(rel, 'lightbox'));
-            event.preventDefault();
+            if (STUDIP.Dialog.fromElement(this, parseOptions(rel, 'lightbox'))) {
+                event.preventDefault();
+            }
         }
     }
     $(document)
