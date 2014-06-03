@@ -7,8 +7,8 @@
  * fuer deren persoenlichen Dateibereich im Stud.IP zur Verfuegung.
  *
  *
- * @author      Gerd Hoffmann <gerd.hoffmann@uni-oldenburg.de>
  * @author      Jan-Hendrik Willms <tleilax+studip@gmail.com>
+ * @author      Stefan Osterloh <s.osterloh@uni-oldenburg.de>
  * @license     http://www.gnu.org/licenses/gpl-3.0
  * @copyright   Stud.IP Core-Group
  * @since       3.1
@@ -16,22 +16,17 @@
 
 require_once 'document_controller.php';
 
-
 class Document_FolderController extends DocumentController
 {
-
-    private $realname, $realnameConfig, $quota, $upload_quota;
-
     public function before_filter(&$action, &$args)
     {
-        global $USER_DOC_PATH;
-
         parent::before_filter($action, $args);
 
         Navigation::activateItem('/document/files');
 
-        //Setup the user's sub-directory in $USER_DOC_PATH
-        $userdir = $USER_DOC_PATH.'/'.$GLOBALS['user']->id.'/';
+        // Setup the user's sub-directory in $USER_DOC_PATH
+        // TODO: This shouldn't be here
+        $userdir = $GLOBALS['USER_DOC_PATH'] . '/' . $GLOBALS['user']->id . '/';
 
         if (!file_exists($userdir)) {
             mkdir($userdir, 0755, true);

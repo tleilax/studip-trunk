@@ -34,14 +34,17 @@
         <? endif; ?>
         </div>
         <header class="folder-description">
-            <h2><?= htmlReady($last_crumb['name']) ?></h2>
+            <h2>
+                <?= htmlReady($last_crumb['name']) ?>
+            </h2>
         <? if ($last_crumb['description']): ?>
             <p><?= formatReady($last_crumb['description']) ?></p>
         <? endif; ?>
         </header>
     </caption>
     <colgroup>
-        <col width="20px">
+        <col width="25px">
+        <col width="30px">
         <col width="20px">
         <col>
         <col width="100px">
@@ -50,6 +53,7 @@
         <col width="120px">
     </colgroup>
     <thead>
+        <th>&nbsp;</th>
         <th>
             <input type="checkbox" data-proxyfor=":checkbox[name='ids[]']"
                    data-activates="table.documents tfoot button">
@@ -63,8 +67,8 @@
     </thead>
     <tbody>
 <? if (!$directory->isRootDirectory()): ?>
-        <tr class="chdir-up">
-            <td>&nbsp;</td>
+        <tr class="chdir-up" data-folder="<?= $folder_id ?>">
+            <td colspan="2">&nbsp;</td>
             <td class="document-icon">
                 <a href="<?= $controller->url_for('document/files/index/' . $parent_id) ?>">
                     <?= Assets::img('icons/24/blue/arr_1up.png', tooltip2(_('Eine Ordner-Ebene höher springen'))) ?>
@@ -79,13 +83,14 @@
 <? endif; ?>
 <? if (empty($files)): ?>
         <tr>
-            <td colspan="7" class="empty">
+            <td colspan="8" class="empty">
                 <?= _('Dieser Ordner ist leer') ?>
             </td>
         </tr>
 <? else: ?>
     <? foreach ($files as $file): ?>
-        <tr>
+        <tr data-file="<?= $file->id ?>" <? if ($file->isDirectory()) printf('data-folder="%s"', $file->file->id); ?>>
+            <td class="dragHandle">&nbsp;</td>
             <td>
                 <input type="checkbox" name="ids[]" value="<?= $file->id ?>" <? if (in_array($file->id, $marked)) echo 'checked'; ?>>
             </td>
@@ -113,16 +118,16 @@
                 <?= reltime($file->file->mkdate) ?>
             </td>
             <td class="options">
-                <a href="<?= $controller->url_for('document/folder/edit/' . $file->id) ?>" data-lightbox title="<?= _('Ordner bearbeiten') ?>">
+                <a href="<?= $controller->url_for('document/folder/edit/' . $file->id) ?>" data-dialog title="<?= _('Ordner bearbeiten') ?>">
                     <?= Assets::img('icons/16/blue/edit.png', array('alt' => _('bearbeiten'))) ?>
                 </a>
                 <a href="<?= $controller->url_for('document/folder/download/' . $file->id) ?>" title="<?= _('Ordner herunterladen') ?>">
                     <?= Assets::img('icons/16/blue/download.png', array('alt' => _('herunterladen'))) ?>
                 </a>
-                <a href="<?= $controller->url_for('document/files/move/' . $file->id) ?>" data-lightbox title="<?= _('Ordner verschieben') ?>">
+                <a href="<?= $controller->url_for('document/files/move/' . $file->id) ?>" data-dialog title="<?= _('Ordner verschieben') ?>">
                     <?= Assets::img('icons/16/blue/move_right/folder-empty.png', array('alt' => _('verschieben'))) ?>
                 </a>
-                 <a href="<?= $controller->url_for('document/files/copy/' . $file->id) ?>" data-lightbox title="<?= _('Ordner kopieren') ?>">
+                 <a href="<?= $controller->url_for('document/files/copy/' . $file->id) ?>" data-dialog title="<?= _('Ordner kopieren') ?>">
                     <?= Assets::img('icons/16/blue/add/folder-empty.png', array('alt' => _('kopieren'))) ?>
                 </a>
                 <a href="<?= $controller->url_for('document/folder/delete/' . $file->id) ?>" title="<?= _('Ordner löschen') ?>">
@@ -154,16 +159,16 @@
                 <?= reltime($file->file->mkdate) ?>
             </td>
             <td class="options">
-                <a href="<?= $controller->url_for('document/files/edit/' . $file->id) ?>" data-lightbox title="<?= _('Datei bearbeiten') ?>">
+                <a href="<?= $controller->url_for('document/files/edit/' . $file->id) ?>" data-dialog title="<?= _('Datei bearbeiten') ?>">
                     <?= Assets::img('icons/16/blue/edit.png', array('alt' => _('bearbeiten'))) ?>
                 </a>
                 <a href="<?= $controller->url_for('document/files/download/' . $file->id) ?>" title="<?= _('Datei herunterladen') ?>">
                     <?= Assets::img('icons/16/blue/download.png', array('alt' => _('herunterladen'))) ?>
                 </a>
-                <a href="<?= $controller->url_for('document/files/move/' . $file->id) ?>" data-lightbox title="<?= _('Datei verschieben') ?>">
+                <a href="<?= $controller->url_for('document/files/move/' . $file->id) ?>" data-dialog title="<?= _('Datei verschieben') ?>">
                     <?= Assets::img('icons/16/blue/move_right/file.png', array('alt' => _('verschieben'))) ?>
                 </a>
-                <a href="<?= $controller->url_for('document/files/copy/' . $file->id) ?>" data-lightbox title="<?= _('Datei kopieren') ?>">
+                <a href="<?= $controller->url_for('document/files/copy/' . $file->id) ?>" data-dialog title="<?= _('Datei kopieren') ?>">
                     <?= Assets::img('icons/16/blue/add/file.png', array('alt' => _('kopieren'))) ?>
                 </a>
                 <a href="<?= $controller->url_for('document/files/delete/' . $file->id) ?>" title="<?= _('Datei löschen') ?>">
@@ -177,11 +182,11 @@
     </tbody>
     <tfoot>
         <tr>
-            <td colspan="7" class="printhead">
+            <td colspan="8" class="printhead">
                 <?= _('Alle markierten') ?>
                 <?= Studip\Button::create(_('Herunterladen'), 'download') ?>
-                <?= Studip\Button::create(_('Verschieben'), 'move', array('data-lightbox' => '')) ?>
-                <?= Studip\Button::create(_('Kopieren'), 'copy', array('data-lightbox' => ''))?>
+                <?= Studip\Button::create(_('Verschieben'), 'move', array('data-dialog' => '')) ?>
+                <?= Studip\Button::create(_('Kopieren'), 'copy', array('data-dialog' => ''))?>
                 <?= Studip\Button::create(_('Löschen'), 'delete') ?>
             </td>
         </tr>

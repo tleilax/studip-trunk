@@ -98,7 +98,7 @@
             </table>
         </fieldset>
 
-    <div data-lightbox-button>
+    <div data-dialog-button>
         <? if($config_id != 0) : ?>
             <?= Button::create(_('Übernehmen'),'store') ?>
         <? else : ?>

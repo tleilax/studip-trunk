@@ -208,5 +208,24 @@
             color: #888;
         }
     }
-    
+}
+
+.documents.dragging {
+    [data-file]:not([data-folder]) {
+        background-color: @light-gray-color-40;
+        opacity: 0.6;
+    }
+}
+.documents {
+    [data-folder].dropping {
+        background-color: @red-40;
+    }
+}
+
+.document-draggable-helper {
+    background-color: @activity-color-40 !important;
+    opacity: 1 !important;
+    td {
+        border-bottom: 0 !important;
+    }
 }

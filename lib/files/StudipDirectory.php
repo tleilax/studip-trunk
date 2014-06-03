@@ -22,7 +22,7 @@ class StudipDirectory extends File
             'foreign_key' => 'file_id',
             'assoc_foreign_key' => 'parent_id',
         );
-        
+
         parent::configure($config);
     }
     

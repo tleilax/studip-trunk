@@ -648,14 +648,14 @@ table.default caption {
 }
 table.default thead th {
   background-color: #e7ebf1;
-  border-bottom: 1px solid rgba(137, 154, 185, 0.19999999999999996);
+  border-bottom: 1px solid rgba(137, 154, 185, 0.2);
   border-top: 1px solid #1e3e70;
   font-size: 1.0em;
 }
 table.default tbody th {
   background-color: #e7ebf1;
   border-top: 1px solid #1e3e70;
-  border-bottom: 1px solid rgba(137, 154, 185, 0.19999999999999996);
+  border-bottom: 1px solid rgba(137, 154, 185, 0.2);
   text-align: left;
 }
 table.default tbody td {
@@ -1708,7 +1708,7 @@ table.infobox td.infobox-img {
 }
 td.infoboxrahmen {
   background-color: #dee2e8;
-  border-bottom: 1px solid rgba(137, 154, 185, 0.19999999999999996);
+  border-bottom: 1px solid rgba(137, 154, 185, 0.2);
 }
 #layout-sidebar {
   background: #fff;
@@ -3570,6 +3570,20 @@ table.contact-header td.empty a {
 .file-tree input[type=radio][disabled] + label {
   color: #888;
 }
+.documents.dragging [data-file]:not([data-folder]) {
+  background-color: #c3c8cc;
+  opacity: 0.6;
+}
+.documents [data-folder].dropping {
+  background-color: #ef9999;
+}
+.document-draggable-helper {
+  background-color: #fff1ad !important;
+  opacity: 1 !important;
+}
+.document-draggable-helper td {
+  border-bottom: 0 !important;
+}
 /* classes for the evaluation modules in Stud.IP ---------------------------- */
 .eval_title {
   font-size: 1.2em;
@@ -3965,12 +3979,12 @@ div#schedule-settings-dialog-shadow {
   height: 0;
 }
 #tour_overlay {
-    background-color: #ffffff;
-    opacity: 0.4;
-    position: fixed;
-    z-index: 10000;
-    width: 100%; 
-    height: 100%;
+  background-color: #ffffff;
+  opacity: 0.4;
+  position: fixed;
+  z-index: 10000;
+  width: 100%;
+  height: 100%;
 }
 #tour_selector_overlay {
   background-color: #000000;

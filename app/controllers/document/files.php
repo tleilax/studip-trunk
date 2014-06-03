@@ -8,14 +8,12 @@
  *
  *
  * @author      Jan-Hendrik Willms <tleilax+studip@gmail.com>
- * @author      Gerd Hoffmann <gerd.hoffmann@uni-oldenburg.de>
+ * @author      Stefan Osterloh <s.osterloh@uni-oldenburg.de>
  * @license     http://www.gnu.org/licenses/gpl-3.0
  * @copyright   Stud.IP Core-Group
  * @since       3.1
  *
  * @todo        Remove user dir creation from this controller, it is storage type specific
- * @todo        Respect quotas - done in Rev. 29817
- * @todo        Respect file extension black list - done in Rev. 29817
  * @todo        Extends file extension black list to mime type black list?
  * @todo        Info page for # of downloads
  * @todo        Inline display of media
@@ -45,6 +43,8 @@ class Document_FilesController extends DocumentController
         PageLayout::setTitle(_('Dateiverwaltung'));
         PageLayout::setHelpKeyword('Basis.Dateien');
         Navigation::activateItem('/document/files');
+        
+        PageLayout::addSqueezePackage('document');
     }
 
     public function index_action($dir_id = null)
@@ -55,10 +55,12 @@ class Document_FilesController extends DocumentController
             $directory = new DirectoryEntry($dir_id);
             $this->directory = $directory->file;
             $this->files     = $this->directory->listFiles();
+            $this->folder_id = $directory->parent_id;
         } catch (Exception $e) {
             $this->directory = new RootDirectory($this->context_id);
             $this->files     = $this->directory->listFiles();
             $this->parent_id = null;
+            $this->folder_id = $this->context_id;
         }
 
         if (isset($directory)) {

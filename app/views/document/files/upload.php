@@ -37,7 +37,7 @@
         </fieldset>
     </fieldset>
 
-    <div data-lightbox-button>
+    <div data-dialog-button>
         <?= Studip\Button::createAccept(_('Hochladen'), 'upload') ?>
         <?= Studip\LinkButton::createCancel(_('Abbrechen'),
                 $controller->url_for('document/files/index/' . $env_dir)) ?>

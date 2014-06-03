@@ -21,7 +21,7 @@
         </label>
     </fieldset>
 
-    <div data-lightbox-button>
+    <div data-dialog-button>
         <?= Button::create(_('Sperren'),'store') ?>
         <?= LinkButton::create(_('Abbrechen'), $controller->url_for('document/administration/filter')) ?>
     </div>
