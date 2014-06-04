@@ -9,7 +9,6 @@
         text-align: right;
     }
     caption header {
-        margin-left: 40px;
         h2 {
             border: 0;
             font-size: inherit;
@@ -25,7 +24,6 @@
     }
     .bread-crumbs {
         display: inline-block;
-        position: absolute;
         min-height: 1.5em;
         width: 40px;
     
@@ -43,16 +41,8 @@
                 box-shadow: 0 4px 5px #444;
             }
             ul {
-                -ms-box-orient: horizontal;
-                display: -webkit-box;
-                display: -moz-box;
-                display: -ms-flexbox;
-                display: -moz-flex;
-                display: -webkit-flex;
-                display: flex;
-    
-                -webkit-flex-direction: column-reverse;
-                flex-direction: column-reverse;
+                .flex();
+                .flex-direction-column-reverse();
             }
         }
     

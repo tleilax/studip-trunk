@@ -5,38 +5,42 @@
 <form action="<?= $controller->url_for('document/files/bulk/' . $dir_id) ?>" method="post" data-shiftcheck>
 <table class="default documents">
     <caption>
-        <span class="actions">
-            <?= Assets::img('icons/16/black/stat.png', tooltip2(_('Speicherplatz'))) ?>
-            <?= sprintf(_('%0.1f%% belegt'), $space_used / $space_total * 100) ?>
-            (<?= relsize($space_used, false) ?>
-            /<?= relsize($space_total, false) ?>)
-        </span>
-        
-    <? $last_crumb = end($breadcrumbs); ?>
-        <div class="bread-crumbs <? if (count($breadcrumbs) > 1) echo 'extendable'; ?>">
-            <a href="<?= $controller->url_for('document/files/index/' . $last_crumb['id']) ?>">
-                <?= Assets::img('icons/24/blue/folder-down.png') ?>
-            </a>
-        <? if (count($breadcrumbs) > 1): ?>
-            <ul>
-            <? foreach (array_slice($breadcrumbs, 0, -1) as $crumb): ?>
-                <li>
-                    <a href="<?= $controller->url_for('document/files/index/' . $crumb['id']) ?>">
-                        <?= htmlReady($crumb['name']) ?>
-                    </a>
-                </li>
-            <? endforeach; ?>
-            </ul>
-        <? endif; ?>
+        <div class="caption-container">
+            <? $last_crumb = end($breadcrumbs); ?>
+            <div class="bread-crumbs <? if (count($breadcrumbs) > 1) echo 'extendable'; ?>">
+                <a href="<?= $controller->url_for('document/files/index/' . $last_crumb['id']) ?>">
+                    <?= Assets::img('icons/24/blue/folder-down.png') ?>
+                </a>
+            <? if (count($breadcrumbs) > 1): ?>
+                <ul>
+                <? foreach (array_slice($breadcrumbs, 0, -1) as $crumb): ?>
+                    <li>
+                        <a href="<?= $controller->url_for('document/files/index/' . $crumb['id']) ?>">
+                            <?= htmlReady($crumb['name']) ?>
+                        </a>
+                    </li>
+                <? endforeach; ?>
+                </ul>
+            <? endif; ?>
+            </div>
+            <div class="caption-content">
+                <header class="folder-description">
+                    <h2>
+                        <?= htmlReady($last_crumb['name']) ?>
+                    </h2>
+                <? if ($last_crumb['description']): ?>
+                    <p><?= formatReady($last_crumb['description']) ?></p>
+                <? endif; ?>
+                </header>
+            </div>
+
+            <div class="caption-actions">
+                <?= Assets::img('icons/16/black/stat.png', tooltip2(_('Speicherplatz'))) ?>
+                <?= sprintf(_('%0.1f%% belegt'), $space_used / $space_total * 100) ?>
+                (<?= relsize($space_used, false) ?>
+                /<?= relsize($space_total, false) ?>)
+            </div>        
         </div>
-        <header class="folder-description">
-            <h2>
-                <?= htmlReady($last_crumb['name']) ?>
-            </h2>
-        <? if ($last_crumb['description']): ?>
-            <p><?= formatReady($last_crumb['description']) ?></p>
-        <? endif; ?>
-        </header>
     </caption>
     <colgroup>
         <col width="25px">
@@ -109,7 +113,15 @@
             <? endif; ?>
             </td>
             <td><?= sprintf(ngettext('%u Eintrag', '%u Einträge', $count = $file->file->countFiles()), $count) ?></td>
-            <td><?= htmlReady($file->file->owner->getFullName()) ?></td>
+            <td>
+            <? if ($file->file->owner->id !== $GLOBALS['user']->id): ?>
+                <a href="<?= URLHelper::getLink('dispatch.php/profile?username=' . $file->file->owner->username) ?>">
+                    <?= htmlReady($file->file->owner->getFullName()) ?>
+                </a>
+            <? else: ?>
+                <?= htmlReady($file->file->owner->getFullName()) ?>
+            <? endif; ?>
+            </td>
             <td title="<?= strftime('%x %X', $file->file->mkdate) ?>">
                 <?= reltime($file->file->mkdate) ?>
             </td>
@@ -150,7 +162,15 @@
             <td title="<?= number_format($file->file->size, 0, ',', '.') . ' Byte' ?>">
                 <?= relSize($file->file->size, false) ?>
             </td>
-            <td><?= htmlReady($file->file->owner->getFullName()) ?></td>
+            <td>
+            <? if ($file->file->owner->id !== $GLOBALS['user']->id): ?>
+                <a href="<?= URLHelper::getLink('dispatch.php/profile?username=' . $file->file->owner->username) ?>">
+                    <?= htmlReady($file->file->owner->getFullName()) ?>
+                </a>
+            <? else: ?>
+                <?= htmlReady($file->file->owner->getFullName()) ?>
+            <? endif; ?>
+            </td>
             <td title="<?= strftime('%x %X', $file->file->mkdate) ?>">
                 <?= reltime($file->file->mkdate) ?>
             </td>
