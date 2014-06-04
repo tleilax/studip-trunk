@@ -8,11 +8,7 @@
         <span class="actions">
             <?= Assets::img('icons/16/black/stat.png', tooltip2(_('Speicherplatz'))) ?>
             <?= sprintf(_('%0.1f%% belegt'), $space_used / $space_total * 100) ?>
-            (<? if($space_used == 0) : ?>
-                <?=$space_used. 'kB'?>
-            <? else : ?>
-                <?= relsize($space_used, false) ?>
-            <? endif;?>
+            (<?= relsize($space_used, false) ?>
             /<?= relsize($space_total, false) ?>)
         </span>
         
