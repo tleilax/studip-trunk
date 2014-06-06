@@ -1,68 +1,45 @@
-<?use Studip\Button, Studip\LinkButton; ?>
-<form action="<?= $controller->url_for('document/administration/individual') ?>" method="post"
-      class="studip_form">
-<table class="default">
-    
+<? use Studip\Button, Studip\LinkButton; ?>
 
-    <colgroup>
-        <col width="33.3%">
-        <col width="33.3%">
-        <col width="33.3%">
-    </colgroup>
-    <thead>
-        <tr>
-            <th><?= _('Suche') ?></th>
-            <th colspan="2"></th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td>
-               <label><?=_('Benutzername')?></label><br>
-               <input id="userName" name="userName">
-            </td>
-            <td>
-                <label><?=_('Vorname')?></label><br>
-                <input id="userVorname" name="userVorname">
-            </td>
-            <td>
-                <label><?=_('Nachname')?></label><br>
-                <input id="userNachname" name="userNachname">
-            </td>
-        </tr>
-                <tr>
-            <td>
-               <label><?=_('E-Mail')?></label><br>
-               <input id="userMail" name="userMail">
-            </td>
-            <td>
-                <label><?=_('Nutzergruppe')?></label><br>
-                <select id="userGroup" name="userGroup">
-            <? foreach(array("alle","user", "autor", "tutor", "dozent", "admin", "root") as $one) : ?>
-                <option value="<?= $one ?>"><?= $one ?></option>
-            <? endforeach ?>                
-                </select>
-            </td>
-            <td>
-                <?= Button::createAccept(_('Suche'),'search') ?>
-            </td>
-        </tr>
-    </tbody>
-    
-</table>    
+<form action="<?= $controller->url_for('document/administration/individual') ?>" method="post" class="studip_form">
+    <fieldset class="document-admin-search">
+        <legend><?= _('Suche') ?></legend>
+
+        <label>
+            <?= _('Vorname') ?>
+            <input type="text" id="userVorname" name="userVorname">
+        </label>
+
+        <label>
+            <?= _('Nachname') ?>
+            <input type="text" id="userNachname" name="userNachname">
+        </label>
+
+        <label>
+            <?= _('Benutzername') ?>
+            <input type="text" id="userName" name="userName">
+        </label>
+
+        <label>
+            <?= _('E-Mail') ?>
+            <input type="text" id="userMail" name="userMail">
+        </label>
+
+        <label>
+            <?= _('Nutzergruppe') ?>
+            <select id="userGroup" name="userGroup">
+            <? foreach(words('alle user autor tutor dozent admin root') as $one): ?>
+                <option><?= $one ?></option>
+            <? endforeach ?>
+            </select>
+        </label>
+
+        <div class="submit_wrapper">
+            <?= Button::createAccept(_('Suche'), 'search') ?>
+        </div>
+    </fieldset>    
+</form>
 
 <table class="default">
-    <colgroup><col width="auto">
-        <col width="auto">
-        <col width="auto">
-        <col width="auto">
-        <col width="auto">
-        <col width="auto">
-        <col width="auto">
-        <col width="auto">
-        <col width="auto">
-        <col width="auto">
-    </colgroup>
     <thead>
         <tr>
             <th><?= _('Vorname') ?></th>
@@ -79,48 +56,36 @@
         </tr>
     </thead>
     <tbody>
-        <?foreach($this->viewData['users'] as $u) : ?>
-                <tr>
-                    <td><?=$u['vorname']?></td>
-                    <td><?=$u['nachname']?></td>
-                    <td><?=$u['username']?></td>
-                    <td><?=$u['email']?></td>
-                    <td><?=$u['upload']?> <?=$u['upload_unit']?></td>                    
-                    <td><?=$u['quota']?> <?=$u['quota_unit']?></td>
-                    <td>
-                        <?foreach($u['types'] as $typ) :?>
-                            <?= $typ['type'] ?>
-                        <? endforeach;?>
-                    </td>
-                    <td>
-                        <input type="checkbox" name="box" disabled
-                            <?if($u['forbidden']==1) :?> 
-                                checked
-                            <? endif;?>
-                        >
-                    </td>
-                    <td>
-                        <input type="checkbox" name="box" disabled
-                            <?if($u['area_close']==1): ?>
-                                checked
-                                <? endif;?>
-                           >
-                    </td>
-                    <td>
-                         <a data-dialog href="<?= $controller->url_for('document/administration/edit/0/'.$u['user_id'])?>"
-                            title="Einstellung anlegen">
-                        <?= Assets::img('icons/16/blue/edit')?></a>
-                        <?if($u['deleteIcon'] == 1) :?>
-                        <br>
-                            <a href="<?=$controller->url_for('document/administration/delete/'.$u['config_id'])?>"
-                                title="Einstellungen löschen"><?=Assets::img('icons/16/blue/trash.png')?></a>
-                        <?  endif;?>
-                        
-                    </td>
-                    </tr>
-        <?  endforeach;?>
+    <? foreach ($this->viewData['users'] as $u): ?>
+        <tr>
+            <td><?= htmlReady($u['vorname']) ?></td>
+            <td><?= htmlReady($u['nachname']) ?></td>
+            <td><?= htmlReady($u['username']) ?></td>
+            <td><?= htmlReady($u['email']) ?></td>
+            <td><?= $u['upload'] ?> <?= $u['upload_unit'] ?></td>
+            <td><?= $u['quota'] ?> <?= $u['quota_unit'] ?></td>
+            <td>
+            <? foreach ($u['types'] as $typ): ?>
+                <?= $typ['type'] ?>
+            <? endforeach;?>
+            </td>
+            <td>
+                <input type="checkbox" name="box" disabled <? if ($u['forbidden']) echo 'checked'; ?>>
+            </td>
+            <td>
+                <input type="checkbox" name="box" disabled <? if ($u['area_close']) echo 'checked'; ?>>
+            </td>
+            <td>
+                 <a data-dialog href="<?= $controller->url_for('document/administration/edit/0/' . $u['user_id']) ?>">
+                    <?= Assets::img('icons/16/blue/edit', tooltip2(_('Einstellung bearbeiten'))) ?>
+                </a>
+            <?if ($u['deleteIcon'] == 1) :?>
+                <a href="<?= $controller->url_for('document/administration/delete/' . $u['config_id']) ?>">
+                    <?= Assets::img('icons/16/blue/trash.png', tooltip2(_('Einstellungen löschen'))) ?>
+                </a>
+            <?  endif;?>
+            </td>
+        </tr>
+    <? endforeach;?>
     </tbody>
-    <tfoot>        
-    </tfoot>
 </table>
-</form>

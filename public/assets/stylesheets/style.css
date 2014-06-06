@@ -3726,6 +3726,38 @@ table.contact-header td.empty a {
 .document-draggable-helper td {
   border-bottom: 0 !important;
 }
+fieldset.document-admin-search label {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  display: inline-block;
+  width: 49%;
+}
+.themen_list > * {
+  background-color: #e7ebf1;
+  margin: 2px;
+}
+.themen_list > * .topic_actions {
+  float: right;
+}
+.themen_list > * .topic_decription {
+  padding: 4px;
+}
+table.dates {
+  width: calc(100% - 4px);
+}
+table.dates .themen_list > * {
+  background-color: transparent;
+}
+table.dates .nextdate {
+  border: 2px solid #24437c;
+}
+table.dates .topic_decription {
+  display: none;
+}
+table.dates .topic_actions {
+  display: none;
+}
 /* classes for the evaluation modules in Stud.IP ---------------------------- */
 .eval_title {
   font-size: 1.2em;

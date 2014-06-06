@@ -34,7 +34,7 @@
             <td>
                 <? $dozenten = $date->dozenten ?>
                 <? count($dozenten) > 0 || $dozenten = array_map(function ($m) { return $m->user; }, (Course::findCurrent()->getMembersWithStatus("dozent"))) ?>
-                <ul class="dozenten_list">
+                <ul class="dozenten_list clean">
                 <? foreach ($dozenten as $dozent) : ?>
                     <li>
                         <a href="<?= URLHelper::getLink("dispatch.php/profile", array('username' => $dozent['username'])) ?>"><?= Avatar::getAvatar($dozent['user_id'])->getImageTag(Avatar::SMALL)." ".htmlReady($dozent->getFullName()) ?></a>
@@ -64,7 +64,7 @@
 <div style="text-align: center;" data-dialog-button>
     <div class="button-group">
         <? if ($GLOBALS['perm']->have_studip_perm("tutor", $_SESSION['SessionSeminar'])) : ?>
-        <?= \Studip\LinkButton::create(_("Bearbeiten"), URLHelper::getURL("raumzeit.php#".$date->getId(), array('raumzeitFilter' => "all", 'cycle_id' => $date['metadate_id'], 'singleDateID' => $date->getId()))) ?>
+        <?= \Studip\LinkButton::create(_("Termin bearbeiten"), URLHelper::getURL("raumzeit.php#".$date->getId(), array('raumzeitFilter' => "all", 'cycle_id' => $date['metadate_id'], 'singleDateID' => $date->getId()))) ?>
         <?= \Studip\LinkButton::create(_("Ausfallen lassen"), URLHelper::getURL("raumzeit.php#".$date->getId(), array('raumzeitFilter' => "all", 'cmd' => "delete_singledate", 'subcommand' => "cancel", 'cycle_id' => $date['metadate_id'], 'sd_id' => $date->getId()))) ?>
         <? endif ?>
     </div>
