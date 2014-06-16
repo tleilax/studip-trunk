@@ -22,8 +22,9 @@
  * @category    Stud.IP
  * @version     3.1
  *
- * @author      Gerd Hoffmann <gerd.hoffmann@uni-oldenburg.de>
+ * @author      Jan-Hendrik Willms <tleilax+studip@gmail.com>
  * @author      Stefan Osterloh <s.osterloh@uni-oldenburg.de>
+ * @author      Gerd Hoffmann <gerd.hoffmann@uni-oldenburg.de>
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2 or later
  */
 
@@ -70,17 +71,6 @@ class files extends DBMigration
             downloads INT NOT NULL DEFAULT 0,
             PRIMARY KEY (id))");
 
-        /*
-        DBManager::get()->exec("CREATE TABLE IF NOT EXISTS file_refs
-            (id CHAR(32) NOT NULL,
-            file_id CHAR(32) NOT NULL,
-            parent_id CHAR(32) NOT NULL,
-            title VARCHAR(255) NOT NULL,
-            description TEXT NOT NULL,
-            downloads INT NOT NULL DEFAULT 0,
-            PRIMARY KEY (id))");
-        */
-
         DBManager::get()->exec("CREATE TABLE IF NOT EXISTS files_backend_studip
             (id INT UNSIGNED NOT NULL,
             files_id VARCHAR(64) NOT NULL,
@@ -102,11 +92,6 @@ class files extends DBMigration
             start_date INT UNSIGNED NOT NULL,
             end_date INT UNSIGNED NOT NULL,
             PRIMARY KEY (files_id, entity_id))");
-
-        DBManager::get()->exec("CREATE TABLE IF NOT EXISTS entity
-            (id VARCHAR(32) NOT NULL,
-            aktiv BOOLEAN NULL,
-            PRIMARY KEY (id))");
 
         /*
          * Migration for the Admin-Area
@@ -156,7 +141,7 @@ class files extends DBMigration
         $statement->execute(array(
             ':id' => md5(uniqid('PERSONALDOCUMENT_ENABLE')),
             ':field' => 'PERSONALDOCUMENT_ENABLE',
-            ':value' => (int) true,
+            ':value' => (int) false,
             ':type' => 'boolean',
             ':description' => 'Aktiviert den persoenlichen Dateibereich',
         ));
@@ -178,11 +163,10 @@ class files extends DBMigration
             ':isGroupConfig' => '1'
         ));
 
-        $query = "INSERT IGNORE INTO `doc_filetype`  (`type`) VALUES (:type)";
+        $query = "INSERT IGNORE INTO `doc_filetype` (`type`) VALUES (:type)";
 
         $statement = DBManager::get()->prepare($query);
-        $values = words('exe com pif bat scr');
-        foreach ($values as $value) {
+        foreach (words('exe com pif bat scr') as $value) {
             $statement->execute(array(
                 ':type' => $value
             ));
@@ -192,31 +176,34 @@ class files extends DBMigration
     public function down()
     {
         // Remove user directories
-        // TODO: Refactor this to actually delete the user directories
-        foreach (scandir($GLOBALS['USER_DOC_PATH']) as $item) {
-            if ($item == '.' || $item == '..') {
-                continue;
-            }
-            unlink($GLOBALS['USER_DOC_PATH'] . DIRECTORY_SEPARATOR . $item);
-        }
-        rmdir($GLOBALS['USER_DOC_PATH']);
+        $this->rm_rf($GLOBALS['USER_DOC_PATH']);
 
+        // Remove db tables
         DBManager::get()->exec("DROP TABLE IF EXISTS
             `files`,
             `files_layout`,
             `files_backend_studip`,
             `files_backend_url`,
             `files_share`,
-            `entity`,
             `doc_usergroup_config`,
             `doc_filetype`,
             `doc_filetype_forbidden`
         ");
 
-        /*
-         * Down-Migration for Admin-Area
-         */
-        //DELETEs the config entry
+        // Remove config entry
         DBManager::get()->query("DELETE FROM config WHERE field IN ('PERSONALDOCUMENT_ENABLE')");
+    }
+    
+    protected function rm_rf($path)
+    {
+        $files = glob(rtrim($path, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . '*');
+        foreach ($files as $file) {
+            if (is_dir($file)) {
+                $this->rm_rf($file);
+            } else {
+                unlink($file);
+            }
+        }
+        rmdir($path);
     }
  }
