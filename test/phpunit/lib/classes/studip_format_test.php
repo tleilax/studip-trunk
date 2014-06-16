@@ -13,6 +13,7 @@
  */
 
 require_once dirname(__FILE__) . '/../../bootstrap.php';
+require_once 'lib/classes/TextFormat.php';
 require_once 'lib/classes/StudipFormat.php';
 
 function markupBold($markup, $matches, $contents)
@@ -55,5 +56,58 @@ class StudipFormatTest extends PHPUnit_Framework_TestCase
         $input = '**some %%code%%**';
         $expected = '**some <i>code</i>**';
         $this->assertEquals($expected, $markup->format($input));
+    }
+
+    public function testHtmlEnclosedMarkup()
+    {
+        $markup = new StudipFormat();
+        $index = 0;
+        forEach (array(
+            '<p>' . PHP_EOL
+            . '- single item' . PHP_EOL
+            . '</p>'
+            =>
+            '<p>' . PHP_EOL
+            . '<ul><li>single item</li></ul>'
+            . '</p>',
+
+            '<p>' . PHP_EOL
+            . '- a' . PHP_EOL
+            . '- list' . PHP_EOL
+            . '</p>'
+            => '<p>' . PHP_EOL
+            . '<ul>'
+            . '<li>a</li>'
+            . '<li>list</li>'
+            . '</ul>'
+            . '</p>'
+        ) as $in => $out) {
+            ++$index;
+            $this->assertEquals($out, $markup->format($in), 'test number ' . $index);
+        }
+    }
+
+    public function testTable()
+    {
+        $markup = new StudipFormat();
+        $index = 0;
+        forEach (array(
+            '|a|table' . PHP_EOL
+            =>
+            '<table class="content">'
+            . '<tr><td>a</td><td>table</td></tr>'
+            . '</table>',
+
+            '| this  | is a | table |' . PHP_EOL
+            . '| with | two | rows |'
+            =>
+            '<table class="content">'
+            . '<tr><td>this</td><td>is a</td><td>table</td></tr>'
+            . '<tr><td>with</td><td>two</td><td>rows</td></tr>'
+            . '</table>'
+        ) as $in => $out) {
+            ++$index;
+            $this->assertEquals($out, $markup->format($in), 'test number ' . $index);
+        }
     }
 }

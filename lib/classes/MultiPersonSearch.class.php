@@ -32,6 +32,7 @@ class MultiPersonSearch {
     public static $importsAlreadyAdded = false;
     private $searchObject = null;
     private $additionalHMTL = "";
+    private $navigationItem = "";
 
     /**
      * restores a MultiPersonSearch object.
@@ -68,7 +69,8 @@ class MultiPersonSearch {
     public function MultiPersonSearch($name)
     {
        $this->name = $name;
-
+       $_SESSION['multipersonsearch'][$this->name]['lastUse'] = time();
+       $this->collectGarbage();
        $this->loadAssets();
        $this->setDefaultValues();
 
@@ -82,7 +84,7 @@ class MultiPersonSearch {
      * @return array containing all new persons
      */
     public function getAddedUsers() {
-        return $_SESSION['multipersonsearch_' . $this->name . '_added'];
+        return $_SESSION['multipersonsearch'][$this->name]['added'];
     }
 
     /**
@@ -91,12 +93,12 @@ class MultiPersonSearch {
     public function saveAddedUsersToSession() {
         $addedUsers = array();
         foreach (Request::optionArray($this->name . '_selectbox') as $selected) {
-            if (!in_array($selected, $_SESSION['multipersonsearch_' . $this->name . '_defaultSelectedUsersIDs'])) {
+            if (!in_array($selected, $_SESSION['multipersonsearch'][$this->name]['defaultSelectedUsersIDs'])) {
                 $addedUsers[] = $selected;
             }
         }
-        $_SESSION['multipersonsearch_' . $this->name . '_added'] = $addedUsers;
-        $_SESSION['multipersonsearch_' . $this->name . '_additional'] = Request::optionArray('additional');
+        $_SESSION['multipersonsearch'][$this->name]['added'] = $addedUsers;
+        $_SESSION['multipersonsearch'][$this->name]['additional'] = Request::optionArray('additional');
     }
 
     /**
@@ -107,7 +109,7 @@ class MultiPersonSearch {
      * @return array containing all removed persons
      */
     public function getRemovedUsers() {
-        return $_SESSION['multipersonsearch_' . $this->name . '_removed'];
+        return $_SESSION['multipersonsearch'][$this->name]['removed'];
     }
 
     /**
@@ -120,7 +122,7 @@ class MultiPersonSearch {
                 $removedUsers[] = $default;
             }
         }
-        $_SESSION['multipersonsearch_' . $this->name . '_removed'] =  $removedUsers;
+        $_SESSION['multipersonsearch'][$this->name]['removed'] =  $removedUsers;
     }
 
     /**
@@ -224,7 +226,12 @@ class MultiPersonSearch {
         $this->jsFunction = $function_name;
         return $this;
     }
-
+    
+    /**
+     * returns a JavaScript-function which should be fired when the user has pressed the submit button.
+     * 
+     * @return string function name
+     */
     public function getJSFunctionOnSubmit()
     {
         return $this->jsFunction;
@@ -251,19 +258,36 @@ class MultiPersonSearch {
     public function getSearchObject() {
         return $this->searchObject;
     }
-
+    
+    /**
+     * sets html code which will be shown inside the form element.
+     * 
+     * @param string html code
+     * 
+     * @return MultiPersonSearch
+     */
     public function setAdditionalHTML($html) {
         $this->additionalHMTL = $html;
 
         return $this;
     }
-
+    
+    /**
+     * returns html code which will be shown inside the form element.
+     * 
+     * @return string html code
+     */
     public function getAdditionHTML() {
         return $this->additionalHMTL;
     }
-
+    
+    /**
+     * returns an additional option array.
+     * 
+     * @return string html code
+     */
     public function getAdditionalOptionArray() {
-        return $_SESSION['multipersonsearch_' . $this->name . '_additional'];
+        return $_SESSION['multipersonsearch'][$this->name]['additional'];
     }
 
     /**
@@ -398,6 +422,8 @@ class MultiPersonSearch {
      * @return array
      */
     public function getQuickfilterIds() {
+        if ($this->quickfilterIds == null)
+            return array();
         return $this->quickfilterIds;
     }
 
@@ -411,59 +437,70 @@ class MultiPersonSearch {
 
         return $this;
     }
+    
+    /**
+     * sets the navigation item.
+     *
+     * @param string  $navigationItem navigation item
+     *
+     * @return MultiPersonSearch
+     */
+    public function setNavigationItem($navigationItem) {
+        $this->navigationItem = $navigationItem;
+        
+        return $this;
+    }
+    
+    /**
+     * returns the navigation item.
+     *
+     * @return string
+     */
+    public function getNavigationItem() {
+        return $this->navigationItem;
+    }
 
     /**
      * stores the internal data to a session.
      */
     public function storeToSession() {
-
-        $_SESSION['multipersonsearch_' . $this->name . '_title'] = $this->title;
-        $_SESSION['multipersonsearch_' . $this->name . '_description'] = $this->description;
-        $_SESSION['multipersonsearch_' . $this->name . '_additionalHMTL'] = $this->additionalHMTL;
-        $_SESSION['multipersonsearch_' . $this->name . '_executeURL'] = $this->executeURL;
-        $_SESSION['multipersonsearch_' . $this->name . '_jsFunction'] = $this->jsFunction;
-        $_SESSION['multipersonsearch_' . $this->name . '_pageURL'] = Request::url();
-        $_SESSION['multipersonsearch_' . $this->name . '_defaultSelectableUsersIDs'] = $this->defaultSelectableUsersIDs;
-        $_SESSION['multipersonsearch_' . $this->name . '_defaultSelectedUsersIDs'] = $this->defaultSelectedUsersIDs;
-        $_SESSION['multipersonsearch_' . $this->name . '_quickfilterIds'] = $this->quickfilterIds;
-        $_SESSION['multipersonsearch_' . $this->name . '_searchObject'] = serialize($this->searchObject);
-
+        $_SESSION['multipersonsearch'][$this->name]['title'] = $this->title;
+        $_SESSION['multipersonsearch'][$this->name]['description'] = $this->description;
+        $_SESSION['multipersonsearch'][$this->name]['additionalHMTL'] = $this->additionalHMTL;
+        $_SESSION['multipersonsearch'][$this->name]['executeURL'] = $this->executeURL;
+        $_SESSION['multipersonsearch'][$this->name]['jsFunction'] = $this->jsFunction;
+        $_SESSION['multipersonsearch'][$this->name]['pageURL'] = Request::url();
+        $_SESSION['multipersonsearch'][$this->name]['defaultSelectableUsersIDs'] = $this->defaultSelectableUsersIDs;
+        $_SESSION['multipersonsearch'][$this->name]['defaultSelectedUsersIDs'] = $this->defaultSelectedUsersIDs;
+        $_SESSION['multipersonsearch'][$this->name]['quickfilterIds'] = $this->quickfilterIds;
+        $_SESSION['multipersonsearch'][$this->name]['searchObject'] = serialize($this->searchObject);
+        $_SESSION['multipersonsearch'][$this->name]['navigationItem'] = $this->navigationItem;
+        $_SESSION['multipersonsearch'][$this->name]['lastUse'] = $this->lastUse;
     }
 
     /**
      * restores the internal data from a session.
      */
     public function restoreFromSession() {
-
-        $this->title = $_SESSION['multipersonsearch_' . $this->name . '_title'];
-        $this->description = $_SESSION['multipersonsearch_' . $this->name . '_description'];
-        $this->quickfilterIds = $_SESSION['multipersonsearch_' . $this->name . '_quickfilterIds'];
-        $this->additionalHMTL = $_SESSION['multipersonsearch_' . $this->name . '_additionalHMTL'];
-        $this->executeURL = html_entity_decode($_SESSION['multipersonsearch_' . $this->name . '_executeURL']);
-        $this->jsFunction = $_SESSION['multipersonsearch_' . $this->name . '_jsFunction'];
-        $this->pageURL = $_SESSION['multipersonsearch_' . $this->name . '_pageURL'];
-        $this->defaultSelectableUsersIDs = $_SESSION['multipersonsearch_' . $this->name . '_defaultSelectableUsersIDs'];
-        $this->defaultSelectedUsersIDs = $_SESSION['multipersonsearch_' . $this->name . '_defaultSelectedUsersIDs'];
-        $this->searchObject = unserialize($_SESSION['multipersonsearch_' . $this->name . '_searchObject']);
-
+        $this->title = $_SESSION['multipersonsearch'][$this->name]['title'];
+        $this->description = $_SESSION['multipersonsearch'][$this->name]['description'];
+        $this->quickfilterIds = $_SESSION['multipersonsearch'][$this->name]['quickfilterIds'];
+        $this->additionalHMTL = $_SESSION['multipersonsearch'][$this->name]['additionalHMTL'];
+        $this->executeURL = html_entity_decode($_SESSION['multipersonsearch'][$this->name]['executeURL']);
+        $this->jsFunction = $_SESSION['multipersonsearch'][$this->name]['jsFunction'];
+        $this->pageURL = $_SESSION['multipersonsearch'][$this->name]['pageURL'];
+        $this->defaultSelectableUsersIDs = $_SESSION['multipersonsearch'][$this->name]['defaultSelectableUsersIDs'];
+        $this->defaultSelectedUsersIDs = $_SESSION['multipersonsearch'][$this->name]['defaultSelectedUsersIDs'];
+        $this->searchObject = unserialize($_SESSION['multipersonsearch'][$this->name]['searchObject']);
+        $this->navigationItem = $_SESSION['multipersonsearch'][$this->name]['navigationItem'];
+        $this->lastUse = $_SESSION['multipersonsearch'][$this->name]['lastUse'];
     }
 
     /**
      * clears the session data.
      */
     public function clearSession() {
-        unset($_SESSION['multipersonsearch_' . $this->name . '_title']);
-        unset($_SESSION['multipersonsearch_' . $this->name . '_description']);
-        unset($_SESSION['multipersonsearch_' . $this->name . '_quickfilterIds']);
-        unset($_SESSION['multipersonsearch_' . $this->name . '_additional']);
-        unset($_SESSION['multipersonsearch_' . $this->name . '_executeURL']);
-        unset($_SESSION['multipersonsearch_' . $this->name . '_jsFunction']);
-        unset($_SESSION['multipersonsearch_' . $this->name . '_pageURL']);
-        unset($_SESSION['multipersonsearch_' . $this->name . '_defaultSelectableUsersIDs']);
-        unset($_SESSION['multipersonsearch_' . $this->name . '_defaultSelectedUsersIDs']);
-        unset($_SESSION['multipersonsearch_' . $this->name . '_searchObject']);
-        unset($_SESSION['multipersonsearch_' . $this->name . '_added']);
-        unset($_SESSION['multipersonsearch_' . $this->name . '_removed']);
+        unset($_SESSION['multipersonsearch'][$this->name]);
     }
 
     /**
@@ -485,6 +522,18 @@ class MultiPersonSearch {
         $this->title = _("Personen hinzuf&uuml;gen");
         $this->description = _("Bitte w&auml;hlen Sie aus, wen Sie hinzuf&uuml;gen m&ouml;chten.");
         $this->linkIconPath = "icons/16/blue/add/community.png";
+    }
+    
+    /**
+     * clear unused sessions.
+     */
+    private function collectGarbage() {
+        $maxLifeTime = 30; // minutes
+        foreach ($_SESSION['multipersonsearch'] as $key=>$value) {
+            if (time() - $value['lastUse'] > $maxLifeTime * 60) {
+                unset($_SESSION['multipersonsearch'][$key]);
+            }
+        }
     }
 
 }

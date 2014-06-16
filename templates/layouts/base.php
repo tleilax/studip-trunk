@@ -36,13 +36,6 @@ if (Navigation::hasItem('/links/help')) {
     Helpbar::get()->insertLink(_('Hilfe-Wiki'), $nav->getURL(), 'icons/16/white/link-extern.png', '_blank');
 
     Navigation::removeItem('/footer/help');
-
-    // add tour links to help center
-    if (get_config('TOURS_ENABLE')) {
-        $tour_data = HelpTour::getHelpbarTourData();
-        foreach($tour_data['tours'] as $index => $tour)
-            Helpbar::get()->addLink(_('Tour:') . ' ' . $tour->name, '?tour_id='.$tour->tour_id, 'icons/16/white/play.png', false, array('class' => 'tour_link', 'id' => $tour->tour_id));
-    }
 }
 
 // TODO: Remove this after sidebar migration has been completed
@@ -56,7 +49,8 @@ if ($infobox && is_array($infobox)) {
         $widget->setTitle($entry['kategorie'] . ' (Infobox)');
         if (isset($entry['eintrag']) && is_array($entry['eintrag'])) {
             foreach (@$entry['eintrag'] as $row) {
-                $widget->addElement(new InfoboxElement($row['text'], $row['icon']));
+                $icon = str_replace('/black/', '/blue/', $row['icon']);
+                $widget->addElement(new InfoboxElement($row['text'], $icon));
             }
         }
         $sidebar->insertWidget($widget, ':first');
@@ -107,7 +101,7 @@ if ($infobox && is_array($infobox)) {
 
     <div id="layout_page">
         <? if (PageLayout::isHeaderEnabled() && is_object($GLOBALS['user']) && $GLOBALS['user']->id != 'nobody' && Navigation::hasItem('/course') && Navigation::getItem('/course')->isActive() && $_SESSION['seminar_change_view_'.$GLOBALS['SessionSeminar']]) : ?>
-            <?= $this->render_partial('change_view') ?>
+            <?= $this->render_partial('change_view', array('changed_status' => $_SESSION['seminar_change_view_'.$GLOBALS['SessionSeminar']])) ?>
         <? endif ?>
 
         <? if (PageLayout::isHeaderEnabled() && isset($navigation)) : ?>

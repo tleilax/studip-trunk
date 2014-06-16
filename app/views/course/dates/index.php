@@ -23,8 +23,8 @@ $lostDateKeys = array();
 <? endif ?>
 
 <? foreach ($allSsemesters as $semester) : ?>
-<h2><?= htmlReady($semester['name']) ?></h2>
 <table class="dates default">
+    <caption><?= htmlReady($semester['name']) ?></caption>
     <thead>
         <tr>
             <th><?= _("Zeit") ?></th>
@@ -47,8 +47,8 @@ $lostDateKeys = array();
 <? endforeach ?>
 
 <? if (count($lostDateKeys)) : ?>
-<h2><?= _("Ohne Semester") ?></h2>
 <table class="dates default">
+    <caption><?= _("Ohne Semester") ?></caption>
     <thead>
     <tr>
         <th><?= _("Zeit") ?></th>
@@ -68,22 +68,8 @@ $lostDateKeys = array();
 
 <script>
     jQuery(function () {
-        jQuery.tablesorter.addParser({
-            id: 'germandatetime',
-            is: function(s) {
-                return false;
-            },
-            format: function(s) {
-                var p = s.split(",");
-                var t = p[1].split("-")[0].split(":");
-                var d = p[0].split('.');
-                return new Date(d[2], d[1], d[0], t[0], t[1]).getTime();
-            },
-            type: 'numeric'
-        });
         jQuery(".dates").tablesorter({
-            headers: { 0: { sorter:'germandatetime' }},
-            textExtraction: function (node) { return jQuery(node).text(); }
+            textExtraction: function (node) { return jQuery(node).data('timestamp') ? jQuery(node).data('timestamp') : jQuery(node).text(); }
         });
     });
 </script>
@@ -94,7 +80,7 @@ $sidebar->setImage(Assets::image_path("sidebar/date-sidebar.png"));
 
 $actions = new ActionsWidget();
 $actions->addLink(
-    _("Exportieren"),
+    _("Als Doc-Datei runterladen"),
     URLhelper::getURL("dispatch.php/course/dates/export")
 );
 $sidebar->addWidget($actions);

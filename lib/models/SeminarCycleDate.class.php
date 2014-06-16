@@ -66,6 +66,12 @@ class SeminarCycleDate extends SimpleORMap
             'on_store' => 'store',
             'on_delete' => 'delete',
         );
+        $config['has_many']['dates'] = array(
+            'class_name' => 'CourseDate',
+            'on_delete' => 'delete',
+            'on_store' => 'store',
+            'order_by' => 'ORDER BY date'
+        );
         $config['additional_fields']['start_hour'] = array('get' => 'getTimeFraction', 'set' => 'setTimeFraction');
         $config['additional_fields']['start_minute'] = array('get' => 'getTimeFraction', 'set' => 'setTimeFraction');
         $config['additional_fields']['end_hour'] = array('get' => 'getTimeFraction', 'set' => 'setTimeFraction');

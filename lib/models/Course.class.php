@@ -92,6 +92,17 @@ class Course extends SimpleORMap
     protected static function configure($config = array())
     {
         $config['db_table'] = 'seminare';
+        $config['has_many']['topics'] = array(
+            'class_name' => 'CourseTopic',
+            'on_delete' => 'delete',
+            'on_store' => 'store',
+        );
+        $config['has_many']['dates'] = array(
+            'class_name' => 'CourseDate',
+            'assoc_foreign_key' => 'range_id',
+            'on_delete' => 'delete',
+            'on_store' => 'store',
+        );
         $config['has_many']['members'] = array(
             'class_name' => 'CourseMember',
             'assoc_func' => 'findByCourse',
@@ -242,6 +253,11 @@ class Course extends SimpleORMap
         return $this->members->findBy('status', words('user autor'))->count() + $this->getNumPrelimParticipants();
     }
 
+    function getMemberWithUser($user_id) {
+        return CourseMember::findBySQL('seminar_id = ? AND user_id = ? ORDER BY position', array($this->id, $user_id));
+    }
+
+
     function getNumPrelimParticipants()
     {
         return $this->admission_applicants->findBy('status', 'accepted')->count();
@@ -292,7 +308,8 @@ class Course extends SimpleORMap
         $template['type-name'] = '%2$s: %1$s';
         $template['number-type-name'] = '%3$s %2$s: %1$s';
         $template['number-name'] = '%3$s %1$s';
-        $template['number-name-semester'] = '%3$s %1$s (%4$s)';
+        $template['number-name-semester'] = '%3$s %1$s %4$s';
+        $template['sem-duration-name'] = '%4$s';
         if ($format === 'default' || !isset($template[$format])) {
            $format = Config::get()->IMPORTANT_SEMNUMBER ? 'number-type-name' : 'type-name';
         }
@@ -301,8 +318,8 @@ class Course extends SimpleORMap
         $data[1] = $sem_type['name'];
         $data[2] = $this->veranstaltungsnummer;
         $data[3] = $this->start_semester->name;
-        if ($this->start_semester !== $this->end_semester) {
-            $data[3] .= ' - ' .  ($this->end_semester ? $this->end_semester->name : _('unbegrenzt'));
+        if ($this->start_semester !== $this->end_semester && (int)$this->status != 99) {
+            $data[3] .= ' - (' .  ($this->end_semester ? $this->end_semester->name : _('unbegrenzt')).')';
         }
         return trim(vsprintf($template[$format], array_map('trim', $data)));
     }

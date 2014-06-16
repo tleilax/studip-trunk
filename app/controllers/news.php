@@ -599,26 +599,24 @@ class NewsController extends StudipController
                 ksort($this->news_groups[$type]);
 
         $this->sidebar = Sidebar::get();
+        Helpbar::get()->load('news/admin_news');
         $this->sidebar->setImage('sidebar/news-sidebar.png');
         if ($GLOBALS['perm']->have_perm('tutor')) {
             $widget = new ViewsWidget();
-            $widget->addLink(_('Alle Ankündigungen'), URLHelper::getURL('dispatch.php/news/admin_news/all'), $this->area_type ? 'icons/16/black/arr_1right' : 'icons/16/grey/arr_1right');
-            if ($GLOBALS['perm']->have_perm('root'))
-                $widget->addLink(_('System'), URLHelper::getURL('dispatch.php/news/admin_news/global'), $this->area_type != 'global' ? 'icons/16/black/arr_1right' : 'icons/16/grey/arr_1right');
-            if ($GLOBALS['perm']->have_perm('dozent'))
-                $widget->addLink(_('Einrichtungen'), URLHelper::getURL('dispatch.php/news/admin_news/inst'), $this->area_type != 'inst' ? 'icons/16/black/arr_1right' : 'icons/16/grey/arr_1right');
-            $widget->addLink(_('Veranstaltungen'), URLHelper::getURL('dispatch.php/news/admin_news/sem'), $this->area_type != 'sem' ? 'icons/16/black/arr_1right' : 'icons/16/grey/arr_1right');
-            $widget->addLink(_('Profil'), URLHelper::getURL('dispatch.php/news/admin_news/user'), $this->area_type != 'user' ? 'icons/16/black/arr_1right' : 'icons/16/grey/arr_1right');
+            $widget->addLink(_('Alle Ankündigungen'), URLHelper::getURL('dispatch.php/news/admin_news/all'))->setActive(!$this->area_type);
+            if ($GLOBALS['perm']->have_perm('root')) {
+                $widget->addLink(_('System'), URLHelper::getURL('dispatch.php/news/admin_news/global'))->setActive($this->area_type === 'global');
+            }
+            if ($GLOBALS['perm']->have_perm('dozent')) {
+                $widget->addLink(_('Einrichtungen'), URLHelper::getURL('dispatch.php/news/admin_news/inst'))->setActive($this->area_type === 'inst');
+            }
+            $widget->addLink(_('Veranstaltungen'), URLHelper::getURL('dispatch.php/news/admin_news/sem'))->setActive($this->area_type === 'inst');
+            $widget->addLink(_('Profil'), URLHelper::getURL('dispatch.php/news/admin_news/user'))->setActive($this->area_type === 'user');
             $this->sidebar->addWidget($widget);
         }
         $widget = new ActionsWidget();
-        $widget->addLink(_('Ankündigung erstellen'), URLHelper::getLink('dispatch.php/news/edit_news/new', array('rel'=>'get_dialog', 'target'=>'_blank')), 'icons/16/black/add/news.png');
+        $widget->addLink(_('Ankündigung erstellen'), URLHelper::getLink('dispatch.php/news/edit_news/new'), 'icons/16/blue/add/news.png', array('rel'=>'get_dialog', 'target'=>'_blank'));
         $this->sidebar->addWidget($widget);
-        
-        // help texts for help center -> to be put into db!
-        $help_text[] = _('Hier können Sie Ihre Ankündigungen verwalten. Durch '
-                            .'die Angabe eines Anzeigezeitraums oder eines Suchbegriffs '
-                            .'können sie die Ausgabe filtern.');
     }
 
     /**

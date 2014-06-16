@@ -16,26 +16,19 @@ $sidebar = Sidebar::get();
 $sidebar->setImage(Assets::image_path("sidebar/forum-sidebar.png"));
 
 if (ForumPerm::has('search', $seminar_id)) {
-    $search = new SearchWidget();
-    $search->add(_('Forum durchsuchen'),
-                 PluginEngine::getLink('coreforum/index/search?backend=search'),
-                 'searchfor',
-                 array(
-                     'search_title'   => _('Titel'),
-                     'search_content' => _('Inhalt'),
-                     'search_author'  => _('AutorIn'),
-                 ),
-                 array(
-                     'id'          => 'tutorSearchInfobox',
-                     'placeholder' => _('Beiträge durchsuchen'),
-                 ));
+    $search = new SearchWidget(PluginEngine::getLink('coreforum/index/search?backend=search'));
+    $search->setId('tutorSearchInfobox');
+    $search->addNeedle(_('Beiträge durchsuchen'), 'searchfor', true);
+    $search->addFilter(_('Titel'), 'search_title');
+    $search->addFilter(_('Inhalt'), 'search_content');
+    $search->addFilter(_('AutorIn'), 'search_autor');
     $sidebar->addWidget($search);
 }
 
 $actions = new ActionsWidget();
 
 if ($constraint['depth'] == 0 && $section == 'index') {
-    $actions->addLink(_('Tour starten'), "javascript:STUDIP.Forum.startTour();", 'icons/16/black/info.png');
+    $actions->addLink(_('Tour starten'), "javascript:STUDIP.Forum.startTour();", 'icons/16/blue/info.png');
 }
 
 $eintraege = array();
@@ -54,11 +47,11 @@ if ($section == 'index') {
             $abo_url = PluginEngine::getLink('coreforum/index/abo/' . $constraint['topic_id']);
         endif;
         
-        $actions->addLink($abo_text, $abo_url, 'icons/16/black/link-intern.png');
+        $actions->addLink($abo_text, $abo_url, 'icons/16/blue/link-intern.png');
     }
 
     if (ForumPerm::has('pdfexport', $seminar_id)) {
-        $actions->addLink(_('Beiträge als PDF exportieren'), PluginEngine::getURL('coreforum/index/pdfexport/' . $constraint['topic_id']), 'icons/16/black/file-pdf.png');
+        $actions->addLink(_('Beiträge als PDF exportieren'), PluginEngine::getURL('coreforum/index/pdfexport/' . $constraint['topic_id']), 'icons/16/blue/file-pdf.png');
     }
 
     if (ForumPerm::has('close_thread', $seminar_id) && $constraint['depth'] > 1) {
@@ -68,7 +61,7 @@ if ($section == 'index') {
             $close = new LinkElement(
                 _('Thema schließen'), 
                 $close_url, 
-                Assets::image_path('icons/16/black/lock-locked.png'),
+                Assets::image_path('icons/16/blue/lock-locked.png'),
                 array(
                     'onclick' => 'STUDIP.Forum.closeThreadFromThread(\'' . $constraint['topic_id'] . '\', '
                             . ForumHelpers::getPage() . '); return false;',
@@ -82,7 +75,7 @@ if ($section == 'index') {
             $open = new LinkElement(
                 _('Thema öffnen'),
                 $open_url,
-                Assets::image_path('icons/16/black/lock-unlocked.png'),
+                Assets::image_path('icons/16/blue/lock-unlocked.png'),
                 array(
                     'onclick' => 'STUDIP.Forum.openThreadFromThread(\'' . $constraint['topic_id'] . '\', '
                                 . ForumHelpers::getPage() . '); return false;',
@@ -100,7 +93,7 @@ if ($section == 'index') {
             $emphasize = new LinkElement(
                 _('Thema hervorheben'),
                 $emphasize_url,
-                Assets::image_path('icons/16/black/staple.png'),
+                Assets::image_path('icons/16/blue/staple.png'),
                 array(
                     'onclick' => 'STUDIP.Forum.makeThreadStickyFromThread(\'' . $constraint['topic_id'] . '\', '
                             . ForumHelpers::getPage() . '); return false;',
@@ -114,7 +107,7 @@ if ($section == 'index') {
             $emphasize = new LinkElement(
                 _('Hervorhebung aufheben'),
                 $unemphasize_url,
-                Assets::image_path('icons/16/black/staple.png'),
+                Assets::image_path('icons/16/blue/staple.png'),
                 array(
                     'onclick' => 'STUDIP.Forum.makeThreadStickyFromThread(\'' . $constraint['topic_id'] . '\', '
                             . ForumHelpers::getPage() . '); return false;',
@@ -126,7 +119,7 @@ if ($section == 'index') {
     }
 
     if ($constraint['depth'] == 0 && ForumPerm::has('add_category', $seminar_id)) {
-        $actions->addLink(_('Neue Kategorie erstellen'), "#create", 'icons/16/black/link-intern.png');
+        $actions->addLink(_('Neue Kategorie erstellen'), "#create", 'icons/16/blue/link-intern.png');
     }
 }
 

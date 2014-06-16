@@ -43,15 +43,13 @@ PageLayout::setTitle(_("Einrichtungssuche"));
 Navigation::activateItem('/search/institutes');
 
 // Start of Output
-include ('lib/include/html_head.inc.php'); // Output of html head
-include ('lib/include/header.php');   // Output of Stud.IP head
-include ('lib/include/deprecated_tabs_layout.php');
+ob_start();
 
 $view = new DbView();
 $the_tree = new StudipRangeTreeView();
 $the_tree->open_ranges['root'] = true;
 if (Request::option('cmd')=="suche"){
-    if (Request::quoted('search_name') && strlen(Request::quoted('search_name')) > 1){
+    if (Request::get('search_name') && strlen(Request::get('search_name')) > 1){
         $view->params[0] = "%" . Request::quoted('search_name') . "%";
         $rs = $view->get_query("view:TREE_SEARCH_ITEM");
         while($rs->next_record()){
@@ -59,7 +57,7 @@ if (Request::option('cmd')=="suche"){
             $the_tree->openItem($rs->f("item_id"));
         }
     }
-    if (Request::quoted('search_user') && strlen(Request::quoted('search_user')) > 1){
+    if (Request::get('search_user') && strlen(Request::get('search_user')) > 1){
         $view->params[0] = "%" . Request::quoted('search_user') . "%";
         $rs = $view->get_query("view:TREE_SEARCH_USER");
         while($rs->next_record()){
@@ -67,7 +65,7 @@ if (Request::option('cmd')=="suche"){
             $the_tree->openItem($rs->f("item_id"));
         }
     }
-    if (Request::quoted('search_sem') && strlen(Request::quoted('search_sem')) > 1){
+    if (Request::get('search_sem') && strlen(Request::get('search_sem')) > 1){
         $view->params[0] = "%" . Request::quoted('search_sem') . "%";
         $rs = $view->get_query("view:TREE_SEARCH_SEM");
         while($rs->next_record()){
@@ -76,53 +74,37 @@ if (Request::option('cmd')=="suche"){
         }
     }
     if (count($found_items)){
-        $msg = "info§" . _("Gefundene Einrichtungen:"). "<div style=\"font-size:10pt;\">" . join("<br>",$found_items) ."</div>§";
+        $message = MessageBox::info(_('Gefundene Einrichtungen:'), $found_items);
     } else {
-        $msg = "info§" . _("Es konnte keine Einrichtung gefunden werden, die Ihrer Suchanfrage entspricht."). "§";
+        $message = MessageBox::info(_('Es konnte keine Einrichtung gefunden werden, die Ihrer Suchanfrage entspricht.'));
     }
+    PageLayout::postMessage($message);
 }
 ?>
-<table width="100%" border="0" cellpadding="2" cellspacing="0">
-    <tr>
-    <td class="blank" align="left" valign="top">
-    <h1><?= _('Suche nach Einrichtungen') ?></h1>
-    <?
+<h1><?= _('Suche nach Einrichtungen') ?></h1>
+<?
+
 if ($msg)   {
     echo "\n<table width=\"99%\" border=\"0\" cellpadding=\"2\" cellspacing=\"0\">";
     parse_msg ($msg,"§","blank",1,false);
     echo "\n</table>";
 }
 $the_tree->showTree();
-    ?>
-    <br>
-    </td>
-    <td class="blank" align="right" valign="top" width="270">
-    <?
-$infobox = array(array("kategorie"  => _("Information:"),
-                        "eintrag" => array(array("icon" => "icons/16/black/info.png",
-                                                "text"  => _("Sie k&ouml;nnen sich durch den Einrichtungsbaum klicken oder das Suchformular benutzen"))
-                                        )
-                        )
-                );
-$such_form = "<form action=\"".URLHelper::getLink("?cmd=suche")."\" method=\"post\">" . _("Bitte geben Sie hier Ihre Suchkriterien ein:") . "<br>"
-            . CSRFProtection::tokenTag()
-            . _("Name der Einrichtung:") . "<br>"
-            . "<input type=\"text\" name=\"search_name\" style=\"width:95%;\"><br>"
-            . _("Einrichtung dieses Mitarbeiters:") . "<br>"
-            . "<input type=\"text\" name=\"search_user\" style=\"width:95%;\"><br>"
-            . _("Einrichtung dieser Veranstaltung:") . "<br>"
-            . "<input type=\"text\" name=\"search_sem\" style=\"width:95%;\">"
-            . "<div align=\"right\" style=\"width:95%;\">". Button::create(_('Suchen'), array('title' => _("Suche starten")))
-            . "</div></form>";
-$infobox[1]["kategorie"] = _("Suchen:");
-$infobox[1]["eintrag"][] = array (  "icon" => "icons/16/black/search.png" ,
-                                    "text" => $such_form
-                                );
-print_infobox($infobox, "sidebar/institute-sidebar.png");
-?>
-</td></tr>
-</table>
-<?
-include ('lib/include/html_end.inc.php');
+
+Helpbar::get()->load('institut_browse');
+
+
+$sidebar = Sidebar::get();
+$sidebar->setImage('sidebar/institute-sidebar.png');
+
+$search = new SearchWidget('?cmd=suche');
+$search->addNeedle(_('Name der Einrichtung'), 'search_name');
+$search->addNeedle(_('Einrichtung dieses Mitarbeiters'), 'search_user');
+$search->addNeedle(_('Einrichtung dieser Veranstaltung'), 'search_sem');
+$sidebar->addWidget($search);
+
+$template = $GLOBALS['template_factory']->open('layouts/base.php');
+$template->content_for_layout = ob_get_clean();
+echo $template->render();
+
 page_close();
-?>

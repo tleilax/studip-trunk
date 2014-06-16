@@ -151,8 +151,8 @@ function getPluginNavigationForSeminar($seminar_id, $visitdate)
 
     if (!$plugin_navigation[$seminar_id]) {
         $plugin_navigation[$seminar_id] = array();
-
-        foreach (PluginEngine::getPlugins('StandardPlugin', $seminar_id) as $plugin) {
+        $plugins = PluginEngine::getPlugins('StandardPlugin', $seminar_id);
+        foreach ($plugins as $plugin) {
             $nav = $plugin->getIconNavigation($seminar_id, $visitdate, $GLOBALS['user']->id);
             if ($nav instanceof Navigation) {
                 $plugin_navigation[$seminar_id][get_class($plugin)] = $nav;
@@ -566,7 +566,7 @@ function get_my_obj_values (&$my_obj, $user_id, $modules = NULL)
                     $my_obj[$object_id]['last_modified'] = $db2->f('last_modified');
                 }
 
-                $nav = new Navigation('literature', 'dispatch.php/course/literatur');
+                $nav = new Navigation('literature', 'dispatch.php/course/literature');
 
                 if ($db2->f('neue')) {
                     $nav->setImage('icons/20/red/new/literature.png', array('title' =>

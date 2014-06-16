@@ -1,6 +1,8 @@
+<? $date_ids = $topic->dates->pluck("termin_id") ?>
 <form action="<?= URLHelper::getLink("dispatch.php/course/topics") ?>" method="post">
     <input type="hidden" name="issue_id" value="<?=htmlReady($topic->getId())  ?>">
     <input type="hidden" name="open" value="<?=htmlReady($topic->getId())  ?>">
+    <input type="hidden" name="edit" value="1">
     <table style="width: 100%;">
         <tbody>
             <tr>
@@ -14,6 +16,22 @@
                     <? if (Request::isAjax()) : ?>
                     <script>jQuery(function() { STUDIP.Toolbar.initialize(jQuery("#topic_description")[0]); });</script>
                     <? endif ?>
+                </td>
+            </tr>
+            <tr>
+                <td><strong><?= _("Termine") ?></strong></td>
+                <td>
+                    <ul class="clean" style="max-height: 100px; overflow: auto;">
+                        <? foreach ($dates as $date) : ?>
+                        <li>
+                            <label>
+                                <?= Assets::img("icons/16/black/date", array('class' => "text-bottom")) ?>
+                                <?= (floor($date['date'] / 86400) !== floor($date['end_time'] / 86400)) ? date("d.m.Y, H:i", $date['date'])." - ".date("d.m.Y, H:i", $date['end_time']) : date("d.m.Y, H:i", $date['date'])." - ".date("H:i", $date['end_time']) ?>
+                                <input type="checkbox" name="date[<?= $date->getId() ?>]" value="1" class="text-bottom"<?= in_array($date->getId(), $date_ids) ? " checked" : "" ?>>
+                            </label>
+                        </li>
+                        <? endforeach ?>
+                    </ul>
                 </td>
             </tr>
             <tr>
@@ -53,7 +71,9 @@
     <div align="center" data-dialog-button>
         <div class="button-group">
             <?= \Studip\Button::create(_("speichern")) ?>
+            <? if (!$topic->isNew()) : ?>
             <?= \Studip\Button::create(_("löschen"), "delete_topic", array('onClick' => "return window.confirm('"._("Wirklich löschen?")."');")) ?>
+            <? endif ?>
         </div>
     </div>
 </form>

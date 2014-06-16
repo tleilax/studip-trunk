@@ -434,7 +434,7 @@ if ($preferred_plugin && in_array($preferred_plugin, $_search_plugins)){
                     $participants = 0;
                     $edit .= LinkButton::create(_('Verfügbarkeit'), URLHelper::getURL('?_catalog_id=' . $element->getValue('catalog_id') . '#anker'), array('title' => _("Verfügbarkeit überprüfen")));
                     $edit .= "&nbsp;";
-                    $edit .= LinkButton::create(_('Details'), 'admin_lit_element.php?_catalog_id=' . $element->getValue('catalog_id'), array('title' => _("Detailansicht dieses Eintrages ansehen.")));
+                    $edit .= LinkButton::create(_('Details'), 'dispatch.php/literature/edit_element.php?_catalog_id=' . $element->getValue('catalog_id'), array('title' => _("Detailansicht dieses Eintrages ansehen.")));
                     $edit .= "&nbsp;";
                     echo "\n<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\">";
                     $content .= "<b>" . _("Titel:") ."</b>&nbsp;&nbsp;" . htmlReady($element->getValue("dc_title"),true,true) . "<br>";
@@ -452,7 +452,7 @@ if ($preferred_plugin && in_array($preferred_plugin, $_search_plugins)){
                     }
                     $content .= "<b>" . _("Veranstaltungen:") . "</b>&nbsp;&nbsp;";
                     foreach ($_SESSION['_lit_data'][$cid]['sem_data'] as $sem_data){
-                        $content .= '<a href="details.php?sem_id=' . $sem_data['Seminar_id'] . '&send_from_search=1&send_from_search_page=' . URLHelper::getURL() . '">' . htmlReady(my_substr($sem_data["Name"],0,50)) . "</a>, ";
+                        $content .= '<a href="dispatch.php/course/details/?sem_id=' . $sem_data['Seminar_id'] . '&send_from_search=1&send_from_search_page=' . URLHelper::getURL() . '">' . htmlReady(my_substr($sem_data["Name"],0,50)) . "</a>, ";
                         $estimated_p += $sem_data['admission_turnout'];
                         $participants += $sem_data['participants'];
                     }

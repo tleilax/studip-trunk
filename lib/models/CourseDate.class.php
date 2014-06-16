@@ -25,69 +25,103 @@ class CourseDate extends SimpleORMap {
 
     static public function findBySeminar_id($seminar_id)
     {
-        return self::findBySQL("range_id = ? ORDER BY date ", array($seminar_id));
+        return self::findByRange_id($seminar_id);
+    }
+
+    static public function findByRange_id($seminar_id, $order_by = "ORDER BY date")
+    {
+        return parent::findByRange_id($seminar_id, $order_by);
     }
 
     protected static function configure($config = array())
     {
         $config['db_table'] = 'termine';
-        $config['has_many']['topics'] = array(
+        $config['has_and_belongs_to_many']['topics'] = array(
             'class_name' => 'CourseTopic',
-            'assoc_func' => 'findByTermin_id',
+            'thru_table' => 'themen_termine',
+            'order_by' => 'ORDER BY priority',
             'on_delete' => 'delete',
             'on_store' => 'store'
         );
-        $config['has_many']['statusgruppen'] = array(
+        $config['has_and_belongs_to_many']['statusgruppen'] = array(
             'class_name' => 'Statusgruppen',
-            'assoc_func' => 'findByTermin_id',
+            'thru_table' => 'termin_related_groups',
             'on_delete' => 'delete',
             'on_store' => 'store'
         );
-        $config['has_many']['dozenten'] = array(
+        $config['has_and_belongs_to_many']['dozenten'] = array(
             'class_name' => 'User',
-            'assoc_func' => 'findDozentenByTermin_id',
+            'thru_table' => 'termin_related_persons',
+            'foreign_key' => 'termin_id',
+            'thru_key' => 'range_id',
             'on_delete' => 'delete',
             'on_store' => 'store'
         );
+        $config['belongs_to']['author'] = array(
+            'class_name'  => 'User',
+            'foreign_key' => 'autor_id'
+        );
+        $config['belongs_to']['course'] = array(
+            'class_name'  => 'Course',
+            'foreign_key' => 'range_id'
+        );
+        $config['belongs_to']['cycle'] = array(
+            'class_name'  => 'SeminarCycleDate',
+            'foreign_key' => 'metadate_id'
+        );
+        $config['has_one']['room_assignment'] = array(
+            'class_name'  => 'ResourceAssignment',
+            'foreign_key' => 'termin_id',
+            'assoc_foreign_key' => 'assign_user_id',
+            'on_delete' => 'delete',
+            'on_store' => 'store'
+        );
+        $config['default_values']['date_typ'] = 1;
         parent::configure($config);
     }
 
     public function addTopic($topic)
     {
-        if (!is_a($topic, "CourseTopic")) {
-            $topic = CourseTopic::find($topic);
+        $topic = CourseTopic::toObject($topic);
+        if (!$this->topics->find($topic->id)) {
+            $this->topics[] = $topic;
+            return $this->storeRelations('topics');
         }
-        if (!$topic) {
-            throw new Exception("Thema existiert nicht.");
-        }
-        $statement = DBManager::get()->prepare("
-            INSERT IGNORE INTO themen_termine
-            SET issue_id = :issue_id,
-                termin_id = :termin_id
-        ");
-        return $statement->execute(array(
-            'issue_id' => $topic->getId(),
-            'termin_id' => $this->getId()
-        ));
     }
 
     public function removeTopic($topic)
     {
-        if (!is_a($topic, "CourseTopic")) {
-            $topic = CourseTopic::find($topic);
+        $this->topics->unsetByPk(is_string($topic) ? $topic : $topic->id);
+        return $this->storeRelations('topics');
+    }
+
+    public function getRoomName()
+    {
+        return $this->room_assignment->resource_id ? $this->room_assignment->resource->getName() : $this['raum'];
+    }
+
+    public function getRoom()
+    {
+        return $this->room_assignment->resource_id ? $this->room_assignment->resource : null;
+    }
+
+    public function getTypeName() {
+        global $TERMIN_TYP;
+        return $TERMIN_TYP[$this->date_typ]['name'];
+    }
+
+    public function getFullname($format = 'default') {
+        if ($this->date) {
+            if ($format === 'default') {
+                if ((($this->end_time - $this->date) / 60 / 60) > 23) {
+                    return strftime('%a., %x' . ' (' . _('ganztägig') . ')' , $this->date);
+                } else {
+                    return strftime('%a., %x, %R', $this->date) . ' - ' . strftime('%R', $this->end_time);
+                }
+            }
+        } else {
+            return '';
         }
-        if (!$topic) {
-            throw new Exception("Thema existiert nicht.");
-        }
-        $statement = DBManager::get()->prepare("
-            DELETE FROM themen_termine
-            WHERE issue_id = :issue_id
-                AND termin_id = :termin_id
-        ");
-        return $statement->execute(array(
-            'issue_id' => $topic->getId(),
-            'termin_id' => $this->getId()
-        ));
     }
 
 }
