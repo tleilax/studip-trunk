@@ -50,6 +50,7 @@ STUDIP.HeaderIcons = {
             var number = parseInt(jQuery(img).data("badge"), 10);
             canvas = jQuery(canvas)[0];
             var ctx = canvas.getContext("2d");
+            var zoom = 1;
             if (window.devicePixelRatio) {
                 var hidefCanvasWidth = parseInt(jQuery(canvas).attr('width'), 10);
                 var hidefCanvasHeight = parseInt(jQuery(canvas).attr('height'), 10);
@@ -59,17 +60,24 @@ STUDIP.HeaderIcons = {
                 jQuery(canvas).attr('height', hidefCanvasHeight * window.devicePixelRatio);
                 jQuery(canvas).css('width', hidefCanvasCssWidth);
                 jQuery(canvas).css('height', hidefCanvasCssHeight);
-                ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+                zoom = window.devicePixelRatio;
             }
 
             ctx.clearRect(0,0,42,32);
             var image = new Image();
+            //image.width = image.height = 28 * 2;
             image.src = icon.src;
-            if (image.width === 128) {
+            if (image.width === 128 && image.height === 32) {
                 //old 32x128 header images
+                ctx.scale(zoom, zoom);
                 ctx.drawImage(icon, 0, 5, 106, 28, 5, 5,  28 * (image.width / image.height), 28);
             } else {
-                ctx.drawImage(icon, 7, 2,  28 * (image.width / image.height), 28);
+                if (!image.width) {
+                    image.width = image.height = 28;
+                }
+                console.log(28 * (image.width / image.height) * zoom);
+                ctx.drawImage(image, 7 * zoom, 2 * zoom,  28 * (image.width / image.height) * zoom, 28 * zoom);
+                ctx.scale(zoom, zoom);
             }
             var filterCanvas = function (filter) {
                 if (canvas.width > 0 && canvas.height > 0) {
@@ -114,18 +122,20 @@ STUDIP.HeaderIcons = {
         });
         jQuery(img).closest("a").addClass("canvasready");
     },
-    render: function (selector, hovered) {
+    render: function (selector) {
         jQuery.each(jQuery(selector), function (index, img) {
             if (img.complete) {
                 STUDIP.HeaderIcons.canvasRender.call(img);
             } else {
-                jQuery(img).on('load', STUDIP.HeaderIcons.canvasRender);
+                jQuery(img).bind('load', STUDIP.HeaderIcons.canvasRender);
             }
         });
     }
 };
 
 jQuery(function () {
-    STUDIP.HeaderIcons.render("img.headericon");
-    jQuery("img.headericon").on("badgechange", function () { STUDIP.HeaderIcons.render(this); });
+    window.setTimeout(function () {
+        STUDIP.HeaderIcons.render("img.headericon");
+        jQuery("img.headericon").on("badgechange", function () { STUDIP.HeaderIcons.render(this); });
+    }, 1000);
 });
