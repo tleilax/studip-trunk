@@ -237,14 +237,10 @@ a.link-intern:before {
   height: 16px;
   margin-right: 2px;
   background-image: url("../images/icons/16/blue/link-intern.png");
+  background-image: none, url("../images/icons/blue/link-intern.svg");
+  background-size: 16px 16px;
   vertical-align: text-top;
   width: 16px;
-}
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  a.link-intern:before {
-    background-image: url("../images/icons/32/blue/link-intern.png");
-    background-size: 16px 16px;
-  }
 }
 a.link-extern:before {
   background-repeat: no-repeat;
@@ -253,14 +249,10 @@ a.link-extern:before {
   height: 16px;
   margin-right: 2px;
   background-image: url("../images/icons/16/blue/link-extern.png");
+  background-image: none, url("../images/icons/blue/link-extern.svg");
+  background-size: 16px 16px;
   vertical-align: text-top;
   width: 16px;
-}
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  a.link-extern:before {
-    background-image: url("../images/icons/32/blue/link-extern.png");
-    background-size: 16px 16px;
-  }
 }
 a img {
   border: 0;
@@ -470,14 +462,10 @@ table.zebra-horizontal > tbody > tr > td:nth-child(2n+1) {
 .collapsable .toggle-indicator a {
   background: left center no-repeat;
   background-image: url("../images/icons/16/blue/arr_1down.png");
+  background-image: none, url("../images/icons/blue/arr_1down.svg");
+  background-size: 16px 16px;
   color: #000;
   cursor: pointer;
-}
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .collapsable .toggle-indicator a {
-    background-image: url("../images/icons/32/blue/arr_1down.png");
-    background-size: 16px 16px;
-  }
 }
 .collapsable .empty .toggle-indicator a {
   background-image: url("../images/icons/16/grey/arr_1right.png");
@@ -908,12 +896,8 @@ table.default caption .caption-actions {
 }
 table.default tbody.toggleable.toggled .toggle-switch {
   background-image: url("../images/icons/16//blue/arr_1right.png");
-}
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  table.default tbody.toggleable.toggled .toggle-switch {
-    background-image: url("../images/icons/32//blue/arr_1right.png");
-    background-size: 16px 16px;
-  }
+  background-image: none, url("../images/icons//blue/arr_1right.svg");
+  background-size: 16px 16px;
 }
 table.default tbody.toggleable.toggled tr:not(:first-child) {
   display: none;
@@ -925,17 +909,13 @@ table.default tbody.toggleable .toggle-switch {
   background-color: transparent;
   border: 0;
   background-image: url("../images/icons/16//blue/arr_1down.png");
+  background-image: none, url("../images/icons//blue/arr_1down.svg");
+  background-size: 16px 16px;
   display: inline-block;
   height: 16px;
   text-align: center;
   vertical-align: top;
   width: 16px;
-}
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  table.default tbody.toggleable .toggle-switch {
-    background-image: url("../images/icons/32//blue/arr_1down.png");
-    background-size: 16px 16px;
-  }
 }
 table.default dfn,
 table.default small {
@@ -1287,14 +1267,10 @@ table.withdetails tr.open + tr.details > td > .detailscontainer {
   height: 16px;
   margin-right: 0;
   background-image: url("../images/icons/16/blue/arr_1right.png");
+  background-image: none, url("../images/icons/blue/arr_1right.svg");
+  background-size: 16px 16px;
   vertical-align: text-top;
   width: 16px;
-}
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .css-tree.collapsable input[type=checkbox] + label:before {
-    background-image: url("../images/icons/32/blue/arr_1right.png");
-    background-size: 16px 16px;
-  }
 }
 .css-tree.collapsable input[type=checkbox] + label:before {
   -webkit-transition: transform 300ms;
@@ -1320,14 +1296,10 @@ table.withdetails tr.open + tr.details > td > .detailscontainer {
   height: 16px;
   margin-right: 0;
   background-image: url("../images/icons/16/blue/arr_1down.png");
+  background-image: none, url("../images/icons/blue/arr_1down.svg");
+  background-size: 16px 16px;
   vertical-align: text-top;
   width: 16px;
-}
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .css-tree.collapsable input[type=checkbox]:checked + label:before {
-    background-image: url("../images/icons/32/blue/arr_1down.png");
-    background-size: 16px 16px;
-  }
 }
 .csstransforms .css-tree.collapsable input[type=checkbox]:checked + label:before {
   background-repeat: no-repeat;
@@ -1336,14 +1308,10 @@ table.withdetails tr.open + tr.details > td > .detailscontainer {
   height: 16px;
   margin-right: 0;
   background-image: url("../images/icons/16/blue/arr_1right.png");
+  background-image: none, url("../images/icons/blue/arr_1right.svg");
+  background-size: 16px 16px;
   vertical-align: text-top;
   width: 16px;
-}
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .csstransforms .css-tree.collapsable input[type=checkbox]:checked + label:before {
-    background-image: url("../images/icons/32/blue/arr_1right.png");
-    background-size: 16px 16px;
-  }
 }
 .csstransforms .css-tree.collapsable input[type=checkbox]:checked + label:before {
   -webkit-transform: rotate(90deg);
@@ -2473,21 +2441,13 @@ ul.widget-list > li {
 }
 .sidebar-widget .widget-options .options-checkbox.options-checked {
   background-image: url("../images/icons/16/blue/checkbox-checked.png");
-}
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .sidebar-widget .widget-options .options-checkbox.options-checked {
-    background-image: url("../images/icons/32/blue/checkbox-checked.png");
-    background-size: 16px 16px;
-  }
+  background-image: none, url("../images/icons/blue/checkbox-checked.svg");
+  background-size: 16px 16px;
 }
 .sidebar-widget .widget-options .options-checkbox.options-unchecked {
   background-image: url("../images/icons/16/blue/checkbox-unchecked.png");
-}
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .sidebar-widget .widget-options .options-checkbox.options-unchecked {
-    background-image: url("../images/icons/32/blue/checkbox-unchecked.png");
-    background-size: 16px 16px;
-  }
+  background-image: none, url("../images/icons/blue/checkbox-unchecked.svg");
+  background-size: 16px 16px;
 }
 .sidebar-widget .widget-options .options-radio {
   background-repeat: no-repeat;
@@ -2497,21 +2457,13 @@ ul.widget-list > li {
 }
 .sidebar-widget .widget-options .options-radio.options-checked {
   background-image: url("../images/icons/16/blue/radiobutton-checked.png");
-}
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .sidebar-widget .widget-options .options-radio.options-checked {
-    background-image: url("../images/icons/32/blue/radiobutton-checked.png");
-    background-size: 16px 16px;
-  }
+  background-image: none, url("../images/icons/blue/radiobutton-checked.svg");
+  background-size: 16px 16px;
 }
 .sidebar-widget .widget-options .options-radio.options-unchecked {
   background-image: url("../images/icons/16/blue/radiobutton-unchecked.png");
-}
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .sidebar-widget .widget-options .options-radio.options-unchecked {
-    background-image: url("../images/icons/32/blue/radiobutton-unchecked.png");
-    background-size: 16px 16px;
-  }
+  background-image: none, url("../images/icons/blue/radiobutton-unchecked.svg");
+  background-size: 16px 16px;
 }
 select.sidebar-selectlist {
   width: 100%;
@@ -2535,17 +2487,13 @@ select.sidebar-selectlist {
   width: 29px;
   height: 20px;
   background-image: url("../images/icons/16/white/search.png");
+  background-image: none, url("../images/icons/white/search.svg");
+  background-size: 16px 16px;
   float: left;
   background-position: center 3px;
   background-repeat: no-repeat;
   vertical-align: top;
   margin-left: -30px;
-}
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .sidebar-search input[type=submit] {
-    background-image: url("../images/icons/32/white/search.png");
-    background-size: 16px 16px;
-  }
 }
 .sidebar-search ul.needles {
   list-style: none;
@@ -2583,14 +2531,10 @@ select.sidebar-selectlist {
   height: 16px;
   margin-right: 2px;
   background-image: url("../images/icons/16/white/link-intern.png");
+  background-image: none, url("../images/icons/white/link-intern.svg");
+  background-size: 16px 16px;
   vertical-align: text-top;
   width: 16px;
-}
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .sidebar a.link-intern:before {
-    background-image: url("../images/icons/32/white/link-intern.png");
-    background-size: 16px 16px;
-  }
 }
 .sidebar a.link-extern:before {
   background-repeat: no-repeat;
@@ -2599,14 +2543,10 @@ select.sidebar-selectlist {
   height: 16px;
   margin-right: 2px;
   background-image: url("../images/icons/16/white/link-extern.png");
+  background-image: none, url("../images/icons/white/link-extern.svg");
+  background-size: 16px 16px;
   vertical-align: text-top;
   width: 16px;
-}
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .sidebar a.link-extern:before {
-    background-image: url("../images/icons/32/white/link-extern.png");
-    background-size: 16px 16px;
-  }
 }
 /*
 .sidebar-widget.sidebar-infobox {
@@ -2718,34 +2658,22 @@ select.sidebar-selectlist {
 }
 .helpbar .help-tours a {
   background-image: url("../images/icons/16/white/play.png");
+  background-image: none, url("../images/icons/white/play.svg");
+  background-size: 16px 16px;
   background-position: left 2px;
   background-repeat: no-repeat;
   display: block;
   padding-left: 20px;
 }
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .helpbar .help-tours a {
-    background-image: url("../images/icons/32/white/play.png");
-    background-size: 16px 16px;
-  }
-}
 .helpbar .help-tours a.tour-paused {
   background-image: url("../images/icons/16/white/pause.png");
-}
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .helpbar .help-tours a.tour-paused {
-    background-image: url("../images/icons/32/white/pause.png");
-    background-size: 16px 16px;
-  }
+  background-image: none, url("../images/icons/white/pause.svg");
+  background-size: 16px 16px;
 }
 .helpbar .help-tours a.tour-completed {
   background-image: url("../images/icons/16/white/accept.png");
-}
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .helpbar .help-tours a.tour-completed {
-    background-image: url("../images/icons/32/white/accept.png");
-    background-size: 16px 16px;
-  }
+  background-image: none, url("../images/icons/white/accept.svg");
+  background-size: 16px 16px;
 }
 .helpbar {
   width: 32px;
@@ -2883,14 +2811,10 @@ section.contentbox article header h1:before {
   height: 16px;
   margin-right: 0;
   background-image: url("../images/icons/16/blue/arr_1right.png");
+  background-image: none, url("../images/icons/blue/arr_1right.svg");
+  background-size: 16px 16px;
   vertical-align: text-top;
   width: 16px;
-}
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  section.contentbox article header h1:before {
-    background-image: url("../images/icons/32/blue/arr_1right.png");
-    background-size: 16px 16px;
-  }
 }
 section.contentbox article header h1:before {
   -webkit-transition: all 200ms ease 0s;
@@ -2959,14 +2883,10 @@ section.contentbox article.new header h1:before {
   height: 16px;
   margin-right: 0;
   background-image: url("../images/icons/16/red/arr_1right.png");
+  background-image: none, url("../images/icons/red/arr_1right.svg");
+  background-size: 16px 16px;
   vertical-align: text-top;
   width: 16px;
-}
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  section.contentbox article.new header h1:before {
-    background-image: url("../images/icons/32/red/arr_1right.png");
-    background-size: 16px 16px;
-  }
 }
 #header .badge {
   position: relative;
@@ -3202,48 +3122,28 @@ button.button[disabled] {
 }
 .button.accept:before {
   background-image: url("../images/icons/16/blue/accept.png");
-}
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .button.accept:before {
-    background-image: url("../images/icons/32/blue/accept.png");
-    background-size: 16px 16px;
-  }
+  background-image: none, url("../images/icons/blue/accept.svg");
+  background-size: 16px 16px;
 }
 .button.cancel:before {
   background-image: url("../images/icons/16/blue/decline.png");
-}
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .button.cancel:before {
-    background-image: url("../images/icons/32/blue/decline.png");
-    background-size: 16px 16px;
-  }
+  background-image: none, url("../images/icons/blue/decline.svg");
+  background-size: 16px 16px;
 }
 .button.edit:before {
   background-image: url("../images/icons/16/blue/edit.png");
-}
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .button.edit:before {
-    background-image: url("../images/icons/32/blue/edit.png");
-    background-size: 16px 16px;
-  }
+  background-image: none, url("../images/icons/blue/edit.svg");
+  background-size: 16px 16px;
 }
 .button.move-up:before {
   background-image: url("../images/icons/16/blue/arr_1up.png");
-}
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .button.move-up:before {
-    background-image: url("../images/icons/32/blue/arr_1up.png");
-    background-size: 16px 16px;
-  }
+  background-image: none, url("../images/icons/blue/arr_1up.svg");
+  background-size: 16px 16px;
 }
 .button.move-down:before {
   background-image: url("../images/icons/16/blue/arr_1down.png");
-}
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .button.move-down:before {
-    background-image: url("../images/icons/32/blue/arr_1down.png");
-    background-size: 16px 16px;
-  }
+  background-image: none, url("../images/icons/blue/arr_1down.svg");
+  background-size: 16px 16px;
 }
 /****************************************************************************/
 /* Grouped Buttons                                                          */
@@ -3442,14 +3342,10 @@ a.message-tag:before {
   height: 16px;
   margin-right: 0;
   background-image: url("../images/icons/16/blue/tag.png");
+  background-image: none, url("../images/icons/blue/tag.svg");
+  background-size: 16px 16px;
   vertical-align: text-top;
   width: 16px;
-}
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  a.message-tag:before {
-    background-image: url("../images/icons/32/blue/tag.png");
-    background-size: 16px 16px;
-  }
 }
 #message-move-handle {
   background-color: rgba(255, 255, 255, 0.3);
@@ -3466,14 +3362,10 @@ a.message-tag:before {
   height: 20px;
   margin-right: 2px;
   background-image: url("../images/icons/20/blue/mail.png");
+  background-image: none, url("../images/icons/blue/mail.svg");
+  background-size: 20px 20px;
   vertical-align: text-top;
   width: 20px;
-}
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  #message-move-handle:before {
-    background-image: url("../images/icons/40/blue/mail.png");
-    background-size: 20px 20px;
-  }
 }
 #messages-tags.dragging .sidebar-widget-content {
   background-color: #fff8d6;
@@ -3734,14 +3626,10 @@ div.clear {
   height: 16px;
   margin-right: 0;
   background-image: url("../images/icons/16/grey/info-circle.png");
+  background-image: none, url("../images/icons/grey/info-circle.svg");
+  background-size: 16px 16px;
   vertical-align: text-top;
   width: 16px;
-}
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .tooltip.tooltip-icon:before {
-    background-image: url("../images/icons/32/grey/info-circle.png");
-    background-size: 16px 16px;
-  }
 }
 .tooltip.tooltip-icon.tooltip-important:before {
   background-repeat: no-repeat;
@@ -3750,14 +3638,10 @@ div.clear {
   height: 16px;
   margin-right: 0;
   background-image: url("../images/icons/16/red/info-circle.png");
+  background-image: none, url("../images/icons/red/info-circle.svg");
+  background-size: 16px 16px;
   vertical-align: text-top;
   width: 16px;
-}
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .tooltip.tooltip-icon.tooltip-important:before {
-    background-image: url("../images/icons/32/red/info-circle.png");
-    background-size: 16px 16px;
-  }
 }
 .tooltip .tooltip-content {
   position: relative;
@@ -5390,24 +5274,16 @@ div.available-widgets .studip-widget {
 }
 .ui-dialog .ui-dialog-titlebar-close .ui-icon {
   background-image: url("../images/icons/16/white/decline.png");
+  background-image: none, url("../images/icons/white/decline.svg");
+  background-size: 16px 16px;
   background-position: 0;
   margin: 0;
   display: inline-block;
 }
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .ui-dialog .ui-dialog-titlebar-close .ui-icon {
-    background-image: url("../images/icons/32/white/decline.png");
-    background-size: 16px 16px;
-  }
-}
 .ui-dialog .ui-dialog-titlebar-close .ui-icon:hover {
   background-image: url("../images/icons/16/white/decline.png");
-}
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .ui-dialog .ui-dialog-titlebar-close .ui-icon:hover {
-    background-image: url("../images/icons/32/white/decline.png");
-    background-size: 16px 16px;
-  }
+  background-image: none, url("../images/icons/white/decline.svg");
+  background-size: 16px 16px;
 }
 .ui-dialog.no-close .ui-dialog-titlebar-close {
   display: none;
@@ -5496,22 +5372,14 @@ div.available-widgets .studip-widget {
 .ui-dialog .ui-dialog-buttonpane .ui-button.accept .ui-button-text:before {
   background: no-repeat;
   background-image: url("../images/icons/16/blue/accept.png");
-}
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .ui-dialog .ui-dialog-buttonpane .ui-button.accept .ui-button-text:before {
-    background-image: url("../images/icons/32/blue/accept.png");
-    background-size: 16px 16px;
-  }
+  background-image: none, url("../images/icons/blue/accept.svg");
+  background-size: 16px 16px;
 }
 .ui-dialog .ui-dialog-buttonpane .ui-button.cancel .ui-button-text:before {
   background: no-repeat;
   background-image: url("../images/icons/16/blue/decline.png");
-}
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .ui-dialog .ui-dialog-buttonpane .ui-button.cancel .ui-button-text:before {
-    background-image: url("../images/icons/32/blue/decline.png");
-    background-size: 16px 16px;
-  }
+  background-image: none, url("../images/icons/blue/decline.svg");
+  background-size: 16px 16px;
 }
 .ui-dialog .ui-dialog-buttonpane .ui-button-text-only .ui-button-text {
   padding: 0;
