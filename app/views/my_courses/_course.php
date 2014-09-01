@@ -6,13 +6,13 @@
             <? if ($sem_class['studygroup_mode']) : ?>
                 <?=
                 StudygroupAvatar::getAvatar($course['seminar_id'])->is_customized()
-                    ? StudygroupAvatar::getAvatar($course['seminar_id'])->getImageTag(Avatar::SMALL, array('title' => htmlReady($course['name'])))
-                    : Assets::img('icons/20/blue/studygroup.png') ?>
+                    ? StudygroupAvatar::getAvatar($course['seminar_id'])->getImageTag(Avatar::SMALL, tooltip2($course['name']))
+                    : Assets::img('icons/20/blue/studygroup.png', tooltip2($course['name'])) ?>
             <? else : ?>
                 <?=
                 CourseAvatar::getAvatar($course['seminar_id'])->is_customized()
-                    ? CourseAvatar::getAvatar($course['seminar_id'])->getImageTag(Avatar::SMALL, array('title' => tooltip2(trim($course["Name"]))))
-                    : Assets::img('icons/20/blue/seminar.png', tooltip2(trim($course["Name"]))) ?>
+                    ? CourseAvatar::getAvatar($course['seminar_id'])->getImageTag(Avatar::SMALL, tooltip2($course['name']))
+                    : Assets::img('icons/20/blue/seminar.png', tooltip2($course['name'])) ?>
             <? endif ?>
         </td>
         <? if($config_sem_number) :?>
@@ -22,7 +22,7 @@
             <a href="<?= URLHelper::getLink('seminar_main.php', array('auswahl' => $course['seminar_id'])) ?>"
                 <?= $course['visitdate'] <= $course['chdate'] ? 'style="color: red;"' : '' ?>>
                 <?= htmlReady($course['name']) ?>
-
+                <?= ($course['is_deputy'] ? ' ' . _("[Vertretung]") : '');?>
             </a>
             <? if ($course['visible'] == 0) : ?>
                 <? $infotext = _("Versteckte Veranstaltungen können über die Suchfunktionen nicht gefunden werden."); ?>

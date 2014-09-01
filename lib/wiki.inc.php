@@ -50,7 +50,7 @@ function getWikiPage($keyword, $version, $db = NULL) {
 
     if (!$row) {
         if ($keyword == 'WikiWikiWeb') {
-            $body = _("Dieses Wiki ist noch leer. Bearbeiten Sie es!\nNeue Seiten oder Links werden einfach durch Eingeben von WikiNamen angelegt.");
+            $body = _("Dieses Wiki ist noch leer. Bearbeiten Sie es!\nNeue Seiten oder Links werden einfach durch Eingeben von [nop][[Wikinamen]][/nop] in doppelten eckigen Klammern angelegt.");
             $wikidata = array('body' => $body, 'user_id' => 'nobody',  'version' => 0);
         } else {
             return NULL;
@@ -1260,7 +1260,7 @@ function getShowPageInfobox($keyword, $latest_version)
         $widget->setExtra($extra);
     }
 
-    $element = new WidgetElement($toccont_empty ? '&nbsp;' : $toccont);
+    $element = new WidgetElement($toccont_empty ? _('Keine QuickLinks vorhanden') : $toccont);
     $element->icon = Assets::image_path('icons/16/blue/link-intern.png');
     $widget->addElement($element);
     $sidebar->addWidget($widget);
@@ -1279,12 +1279,13 @@ function getShowPageInfobox($keyword, $latest_version)
     $widget = new ViewsWidget();
     $widget->addLink(_('Standard'),
                      URLHelper::getLink('?keyword=' . urlencode($keyword) . '&view=show'),
-                     'icons/16/blue/wiki.png');
+                     'icons/16/blue/wiki.png')
+           ->setActive(true);
     if (count($versions) >= 1) {
         $widget->addLink(_('Textänderungen anzeigen'),
                          URLHelper::getLink('?keyword=' . urlencode($keyword) . '&view=diff'));
         $widget->addLink(_('Text mit AutorInnenzuordnung anzeigen'),
-                         URLHelper::getLink('?keyword=' . urlencode($keyword) . '&view=combodiff'));        
+                         URLHelper::getLink('?keyword=' . urlencode($keyword) . '&view=combodiff'));
     }
     $sidebar->addWidget($widget);
 
@@ -1355,8 +1356,16 @@ function getDiffPageInfobox($keyword) {
 
     // Aktuelle Version
     $widget = new ViewsWidget();
-    $widget->addLink(_('Aktuelle Version'),
+    $widget->addLink(_('Standard'),
                      URLHelper::getLink('?keyword=' . urlencode($keyword) . '&view=show'));
+    if (count($versions) >= 1) {
+        $widget->addLink(_('Textänderungen anzeigen'),
+                         URLHelper::getLink('?keyword=' . urlencode($keyword) . '&view=diff'))
+               ->setActive(Request::option('view') === 'diff');
+        $widget->addLink(_('Text mit AutorInnenzuordnung anzeigen'),
+                         URLHelper::getLink('?keyword=' . urlencode($keyword) . '&view=combodiff'))
+               ->setActive(Request::option('view') === 'combodiff');
+    }
     Sidebar::get()->addWidget($widget);
 
     // Versionen

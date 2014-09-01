@@ -10,13 +10,13 @@
 <? if (empty($institutes)) : ?>
     <? if (!$GLOBALS['ALLOW_SELFASSIGN_INSTITUTE'] || $GLOBALS['perm']->have_perm("dozent")) : ?>
         <?=
-        MessageBox::info(sprintf(_('Sie wurden noch keinen Einrichtungen zugeordnet. Bitte wenden Sie sich an einen der zustÃ¤ndigen %sAdministratoren%s.'),
+        MessageBox::info(sprintf(_('Sie wurden noch keinen Einrichtungen zugeordnet. Bitte wenden Sie sich an einen der zuständigen %sAdministratoren%s.'),
             '<a href="' . URLHelper::getLink('dispatch.php/siteinfo/show') . '">', '</a>'))?>
     <? else : ?>
         <?=
         MessageBox::info(sprintf(_('Sie haben sich noch keinen Einrichtungen zugeordnet.
            Um sich Einrichtungen zuzuordnen, nutzen Sie bitte die entsprechende %sOption%s unter "Nutzerdaten - Studiendaten"
-           auf Ihrer persÃ¶nlichen Einstellungsseite.'), '<a href="' . URLHelper::getLink('dispatch.php/settings/studies#einrichtungen') . '">', '</a>'))?>
+           auf Ihrer persönlichen Einstellungsseite.'), '<a href="' . URLHelper::getLink('dispatch.php/settings/studies#einrichtungen') . '">', '</a>'))?>
     <? endif ?>
 <? else : ?>
     <? SkipLinks::addIndex(_('Meine Einrichtungen'), 'my_institutes') ?>
@@ -46,8 +46,8 @@
                 <td style="width:1px"></td>
                 <td>
                     <?=
-                    (InstituteAvatar::getAvatar($instid)->getImageTag(Avatar::SMALL, array('title' => htmlReady($values['name']))) != '' ? Assets::img('icons/20/blue/institute.png') :
-                        InstituteAvatar::getAvatar($instid)->getImageTag(Avatar::SMALL, array('title' => htmlReady($values['name'])))) ?>
+                    (InstituteAvatar::getAvatar($instid)->getImageTag(Avatar::SMALL, tooltip2(htmlReady($values['name']))) != '' ? Assets::img('icons/20/blue/institute.png', tooltip2(htmlReady($values['name']))) :
+                        InstituteAvatar::getAvatar($instid)->getImageTag(Avatar::SMALL, tooltip2(htmlReady($values['name'])))) ?>
                 </td>
 
                 <td style="text-align: left">

@@ -1,6 +1,7 @@
 <form enctype="multipart/form-data" method="post" class="studip_form"
       action="<?= $controller->url_for('document/files/upload/' . $folder_id) ?>">
 
+    <input type="hidden" name="studip-ticket" value="<?= get_ticket() ?>">
     <?= CSRFProtection::tokenTag() ?>
 
     <fieldset>
@@ -11,12 +12,14 @@
             </label>
         </fieldset>
 
+<?/*
         <fieldset>
             <label>
                 <?= _('Titel') ?>
                 <input type="text" name="title" placeholder="<?= _('Titel') ?>">
             </label>
         </fieldset>
+*/?>
 
         <fieldset>
             <label>
@@ -24,6 +27,7 @@
                 <textarea name="description" placeholder="<?= _('Optionale Beschreibung') ?>"></textarea>
             </label>
         </fieldset>
+
 <?/*
         <fieldset>
             <label>
@@ -37,6 +41,7 @@
         </fieldset>
     </fieldset>
 */?>
+
     <div data-dialog-button>
         <?= Studip\Button::createAccept(_('Hochladen'), 'upload') ?>
         <?= Studip\LinkButton::createCancel(_('Abbrechen'),

@@ -559,10 +559,13 @@ class MyRealmModel
 
     public static function getDeputies($user_id)
     {
-        $query     = "SELECT DISTINCT range_id as seminar_id FROM deputies WHERE user_id = ?";
+        $query = "SELECT DISTINCT range_id AS seminar_id
+                  FROM deputies
+                  JOIN seminare ON range_id = seminar_id
+                  WHERE user_id = ?";
         $statement = DBManager::get()->prepare($query);
         $statement->execute(array($user_id));
-        $data = $statement->fetchALL(PDO::FETCH_ASSOC);
+        $data = $statement->fetchAll(PDO::FETCH_ASSOC);
         return $data;
     }
 
@@ -574,7 +577,6 @@ class MyRealmModel
         $statement->execute(array($range_id));
         return $statement->fetch(PDO::FETCH_COLUMN);
     }
-
 
     /**
      * Get the start_ and end_sem_number for a given course
@@ -657,12 +659,13 @@ class MyRealmModel
         if (!empty($courses)) {
             // filtering courses
             $modules = new Modules();
-
+            $member_ships = User::findCurrent()->course_memberships->toGroupedArray('seminar_id', 'status gruppe');
             foreach ($courses as $index => $course) {
                 // export object to array for simple handling
                 $_course                   = $course->toArray($param_array);
                 $_course['start_semester'] = $course->start_semester->name;
                 $_course['end_semester']   = $course->end_semester->name;
+                $_course['sem_class']      = $course->getSemClass();
                 $_course['obj_type']       = 'sem';
 
                 if ($group_field == 'sem_tree_id') {
@@ -671,7 +674,14 @@ class MyRealmModel
 
                 // the sem numbers for a given course
                 $sem_nrs     = self::getCourseSemNumbers($course);
-                $member_ship = User::findCurrent()->course_memberships->findOneBy('seminar_id', $course->id);
+
+                $user_status = @$member_ships[$course->id]['status'];
+                if(!$user_status && Config::get()->DEPUTIES_ENABLE && isDeputy($GLOBALS['user']->id, $course->id)) {
+                    $user_status = 'dozent';
+                    $is_deputy = true;
+                } else {
+                    $is_deputy = false;
+                }
 
                 // get teachers only if grouping selected (for better performance)
                 if ($group_field == 'dozent_id') {
@@ -683,13 +693,14 @@ class MyRealmModel
 
                 $_course['last_visitdate'] = object_get_visit($course->id, 'sem', 'last');
                 $_course['visitdate']      = object_get_visit($course->id, 'sem', '');
-                $_course['user_status']    = $member_ship->status;
-                $_course['gruppe']         = !empty($member_ship->gruppe) ? $member_ship->gruppe : self::getDeputieGroup($course->id);
+                $_course['user_status']    = $user_status;
+                $_course['gruppe']         = !$is_deputy ? @$member_ships[$course->id]['gruppe'] : self::getDeputieGroup($course->id);
                 $_course['sem_number_end'] = $sem_nrs['sem_number_end'];
                 $_course['sem_number']     = $sem_nrs['sem_number'];
                 $_course['modules']        = $modules->getLocalModules($course->id, 'sem', $course->modules, $course->status);
                 $_course['name']           = $course->name;
                 $_course['temp_name']      = $course->name;
+                $_course['is_deputy']      = $is_deputy;
 
                 // add the the course to the correct semester
                 for ($i = $min_sem_key; $i <= $max_sem_key; $i++) {
@@ -1040,14 +1051,9 @@ class MyRealmModel
     public static function getObjectValues(&$course)
     {
 
-        if (!isset($course['sem_class'])) {
-            $sem_class           = $GLOBALS['SEM_CLASS'][$GLOBALS['SEM_TYPE'][$course['status']]['class']];
-            $course['sem_class'] = $sem_class;
-        }
-
         if (!isset($course['navigation'])) {
             // get additional navigation items
-            $course['navigation'] = self::getAdditionalNavigations($course['seminar_id'], $course, $sem_class, $GLOBALS['user']->id);
+            $course['navigation'] = self::getAdditionalNavigations($course['seminar_id'], $course, $course['sem_class'], $GLOBALS['user']->id);
         }
     }
 
@@ -1216,6 +1222,7 @@ class MyRealmModel
         $param_array .= 'chdate admission_binding modules admission_prelim';
         $courses = Course::findAndMapMany(function ($course) use ($param_array, $studygroups, $modules) {
             $ret                   = $course->toArray($param_array);
+            $ret['sem_class']      = $course->getSemClass();
             $ret['start_semester'] = $course->start_semester->name;
             $ret['end_semester']   = $course->end_semester->name;
             $ret['obj_type']       = 'sem';
@@ -1301,4 +1308,4 @@ class MyRealmModel
         }
         return array_reverse($temp);
     }
-} 
+}

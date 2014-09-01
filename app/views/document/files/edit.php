@@ -1,4 +1,5 @@
 <form method="post" action="<?= $controller->url_for('document/files/edit/' . $entry->id) ?>" class="studip_form">
+    <input type="hidden" name="studip-ticket" value="<?= get_ticket() ?>">
     <?= CSRFProtection::tokenTag() ?>
 
     <fieldset>
@@ -9,12 +10,14 @@
             </label>
         </fieldset>
 
+<?/*
         <fieldset class="required">
             <label>
                 <?= _('Titel:') ?>
                 <input type="text" name="name" placeholder="<?= _('Titel der Datei') ?>" value="<?= htmlReady($entry->name) ?>" required>
             </label>
         </fieldset>
+*/?>
 
         <fieldset>
             <label>

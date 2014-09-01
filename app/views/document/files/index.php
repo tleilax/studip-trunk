@@ -3,6 +3,9 @@
 <? endif; ?>
 
 <form action="<?= $controller->url_for('document/files/bulk/' . $dir_id) ?>" method="post" data-shiftcheck>
+    <input type="hidden" name="studip-ticket" value="<?= get_ticket() ?>">
+    <?= CSRFProtection::tokenTag() ?>
+
 <table class="default documents">
     <caption>
         <div class="caption-container">
@@ -75,7 +78,7 @@
             <td colspan="2">&nbsp;</td>
             <td class="document-icon">
                 <a href="<?= $controller->url_for('document/files/index/' . $parent_id) ?>">
-                    <?= Assets::img('icons/24/blue/arr_1up.png', tooltip2(_('Eine Ordner-Ebene höher springen'))) ?>
+                    <?= Assets::img('icons/24/blue/arr_1up.png', tooltip2(_('Ein Verzeichnis nach oben wechseln'))) ?>
                 </a>
             </td>
             <td colspan="5">
@@ -110,7 +113,7 @@
             </td>
             <td>
                 <a href="<?= $controller->url_for('document/files/index/' . $file->id) ?>">
-                    <?= htmlReady($file->file->filename) ?>
+                    <?= htmlReady($file->name) ?>
                 </a>
             <? if ($file->description): ?>
                 <small><?= htmlReady($file->description) ?></small>
@@ -130,16 +133,16 @@
                 <?= reltime($file->file->mkdate) ?>
             </td>
             <td class="options">
-                <a href="<?= $controller->url_for('document/folder/edit/' . $file->id) ?>" data-dialog title="<?= _('Ordner bearbeiten') ?>">
+                <a href="<?= $controller->url_for('document/folder/edit/' . $file->id) ?>" data-dialog="size=auto" title="<?= _('Ordner bearbeiten') ?>">
                     <?= Assets::img('icons/16/blue/edit.png', array('alt' => _('bearbeiten'))) ?>
                 </a>
                 <a href="<?= $file->getDownloadLink() ?>" title="<?= _('Ordner herunterladen') ?>">
                     <?= Assets::img('icons/16/blue/download.png', array('alt' => _('herunterladen'))) ?>
                 </a>
-                <a href="<?= $controller->url_for('document/files/move/' . $file->id) ?>" data-dialog title="<?= _('Ordner verschieben') ?>">
+                <a href="<?= $controller->url_for('document/files/move/' . $file->id) ?>" data-dialog="size=auto" title="<?= _('Ordner verschieben') ?>">
                     <?= Assets::img('icons/16/blue/move_right/folder-empty.png', array('alt' => _('verschieben'))) ?>
                 </a>
-                 <a href="<?= $controller->url_for('document/files/copy/' . $file->id) ?>" data-dialog title="<?= _('Ordner kopieren') ?>">
+                 <a href="<?= $controller->url_for('document/files/copy/' . $file->id) ?>" data-dialog="size=auto" title="<?= _('Ordner kopieren') ?>">
                     <?= Assets::img('icons/16/blue/add/folder-empty.png', array('alt' => _('kopieren'))) ?>
                 </a>
                 <a href="<?= $controller->url_for('document/folder/delete/' . $file->id) ?>" title="<?= _('Ordner löschen') ?>">
@@ -153,7 +156,7 @@
                 </a>
             </td>
             <td>
-                <a href="<?= $file->getDownloadLink() ?>" title="<?= htmlReady($file->file->filename) ?>">
+                <a href="<?= $file->getDownloadLink() ?>">
                     <?= htmlReady($file->name) ?>
                 </a>
             <? if ($file->file->restricted): ?>
@@ -179,16 +182,16 @@
                 <?= reltime($file->file->mkdate) ?>
             </td>
             <td class="options">
-                <a href="<?= $controller->url_for('document/files/edit/' . $file->id) ?>" data-dialog title="<?= _('Datei bearbeiten') ?>">
+                <a href="<?= $controller->url_for('document/files/edit/' . $file->id) ?>" data-dialog="size=auto" title="<?= _('Datei bearbeiten') ?>">
                     <?= Assets::img('icons/16/blue/edit.png', array('alt' => _('bearbeiten'))) ?>
                 </a>
                 <a href="<?= $file->getDownloadLink() ?>" title="<?= _('Datei herunterladen') ?>">
                     <?= Assets::img('icons/16/blue/download.png', array('alt' => _('herunterladen'))) ?>
                 </a>
-                <a href="<?= $controller->url_for('document/files/move/' . $file->id) ?>" data-dialog title="<?= _('Datei verschieben') ?>">
+                <a href="<?= $controller->url_for('document/files/move/' . $file->id) ?>" data-dialog="size=auto" title="<?= _('Datei verschieben') ?>">
                     <?= Assets::img('icons/16/blue/move_right/file.png', array('alt' => _('verschieben'))) ?>
                 </a>
-                <a href="<?= $controller->url_for('document/files/copy/' . $file->id) ?>" data-dialog title="<?= _('Datei kopieren') ?>">
+                <a href="<?= $controller->url_for('document/files/copy/' . $file->id) ?>" data-dialog="size=auto" title="<?= _('Datei kopieren') ?>">
                     <?= Assets::img('icons/16/blue/add/file.png', array('alt' => _('kopieren'))) ?>
                 </a>
                 <a href="<?= $controller->url_for('document/files/delete/' . $file->id) ?>" title="<?= _('Datei löschen') ?>">

@@ -36,7 +36,7 @@ class MessagesController extends AuthenticatedController {
         $this->set_content_type('text/html;charset=windows-1252');
     }
 
-    public function overview_action()
+    public function overview_action($message_id = null)
     {
         Navigation::activateItem('/messaging/messages/inbox');
 
@@ -62,11 +62,12 @@ class MessagesController extends AuthenticatedController {
             Request::get("tag"),
             Request::get("search")
         );
-        $this->received = 1;
-        $this->tags = Message::getUserTags();
+        $this->received   = true;
+        $this->tags       = Message::getUserTags();
+        $this->message_id = $message_id;
     }
 
-    public function sent_action()
+    public function sent_action($message_id = null)
     {
         Navigation::activateItem('/messaging/messages/sent');
 
@@ -87,8 +88,9 @@ class MessagesController extends AuthenticatedController {
             Request::get("tag"),
             Request::get("search")
         );
-        $this->received = 0;
-        $this->tags = Message::getUserTags();
+        $this->received   = false;
+        $this->tags       = Message::getUserTags();
+        $this->message_id = $message_id;
 
         $this->render_action("overview");
     }
@@ -123,13 +125,15 @@ class MessagesController extends AuthenticatedController {
         if (!$this->message->permissionToRead()) {
             throw new AccessDeniedException("Kein Zugriff");
         }
+
+        PageLayout::setTitle(_('Betreff') . ': ' . $this->message['subject']);
+
         if ($this->message['autor_id'] === $GLOBALS['user']->id) {
             Navigation::activateItem('/messaging/messages/sent');
         } else {
             Navigation::activateItem('/messaging/messages/inbox');
         }
         if (Request::isXhr()) {
-            $this->response->add_header('X-Title', _("Betreff").": ".$this->message["subject"]);
             $this->response->add_header('X-Tags', json_encode($this->message->getTags()));
             $this->response->add_header('X-All-Tags', json_encode(Message::getUserTags()));
         }
@@ -281,8 +285,17 @@ class MessagesController extends AuthenticatedController {
         $settings = UserConfig::get($GLOBALS['user']->id)->MESSAGING_SETTINGS;
         $this->mailforwarding = Request::get('emailrequest') ? true : $settings['send_as_email'];
         if (trim($settings['sms_sig'])) {
-            if (Studip\Markup::isHtml($this->default_message['message'])) {
-                $this->default_message['message'] .= formatReady("\n\n--\n" . $settings['sms_sig']);
+            if (Studip\Markup::isHtml($this->default_message['message']) || Studip\Markup::isHtml($settings['sms_sig'])) {
+                if (!Studip\Markup::isHtml($this->default_message['message'])) {
+                    $this->default_message['message'] = '<div>' . nl2br($this->default_message['message']) . '</div>';
+                }
+                $this->default_message['message'] .= '<br><br>--<br>';
+                if (Studip\Markup::isHtml($settings['sms_sig'])) {
+                    $this->default_message['message'] .= $settings['sms_sig'];
+                } else {
+                    $this->default_message['message'] .= formatReady($settings['sms_sig']);
+                }
+                
             } else {
                 $this->default_message['message'] .= "\n\n--\n" . $settings['sms_sig'];
             }

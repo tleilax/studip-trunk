@@ -103,7 +103,7 @@ STUDIP.Forum = {
     },
 
     deleteCategory: function (category_id) {
-        STUDIP.Forum.showDialog('Sind sie sicher, dass Sie diese Kategorie entfernen möchten? ' 
+        STUDIP.Forum.showDialog('Sind sie sicher, dass Sie diese Kategorie entfernen möchten? '.toLocaleString() 
             + 'Alle Bereiche werden dann nach "Allgemein" verschoben!'.toLocaleString(),
             'javascript:STUDIP.Forum.approveDelete()',
             'table[data-category-id=' + category_id +'] td.areaentry');
@@ -176,7 +176,7 @@ STUDIP.Forum = {
     },
 
     deleteArea: function (element, area_id) {
-        STUDIP.Forum.showDialog('Sind sie sicher, dass Sie diesen Bereich löschen möchten? ' 
+        STUDIP.Forum.showDialog('Sind sie sicher, dass Sie diesen Bereich löschen möchten? '.toLocaleString() 
             + 'Es werden auch alle Beiträge in diesem Bereich gelöscht!'.toLocaleString(),
             'javascript:STUDIP.Forum.approveDelete()',
             'tr[data-area-id=' + area_id +'] td.areaentry');
@@ -395,11 +395,13 @@ STUDIP.Forum = {
     forwardEntry: function(topic_id) {
         var title   = jQuery('span[data-edit-topic=' + topic_id +'] [name=name]').attr('value');
         var content = jQuery('span[data-edit-topic=' + topic_id +'] textarea[name=content]').val();
-        var text    = 'Die Senderin/der Sender dieser Nachricht möchte Sie auf den folgenden Beitrag aufmerksam machen. '
-                    + "\n\n" + 'Link zum Beitrag: ' + "\n";
+        var text    = 'Die Senderin/der Sender dieser Nachricht möchte Sie auf den folgenden Beitrag aufmerksam machen. '.toLocaleString()
+                    + "\n\n"
+                    + 'Link zum Beitrag: '.toLocaleString()
+                    + "\n";
         
         STUDIP.Forum.postToUrl(STUDIP.URLHelper.getURL('dispatch.php/messages/write'), {
-            'default_message' :  text.toLocaleString()
+            'default_message' :  text
                 + STUDIP.URLHelper.getURL('plugins.php/coreforum/index/index/'
                 + topic_id + '?cid=' + STUDIP.Forum.seminar_id + '&again=yes#' + topic_id)
                 + "\n\n" + content + "\n\n",
@@ -451,10 +453,6 @@ STUDIP.Forum = {
     loadAction: function(element, action) {
         jQuery(element).load(STUDIP.URLHelper.getURL('plugins.php/coreforum/index/'
             + action + '?cid=' + STUDIP.Forum.seminar_id))
-    },
-    
-    startTour: function() {
-        jQuery('#joyRideTipContent').joyride();
     },
     
     showDialog: function(question, confirm, highlight_element) {
