@@ -2530,8 +2530,8 @@ select.sidebar-selectlist {
   display: inline-block;
   height: 16px;
   margin-right: 2px;
-  background-image: url("../images/icons/16/white/link-intern.png");
-  background-image: none, url("../images/icons/white/link-intern.svg");
+  background-image: url("../images/icons/16/blue/link-intern.png");
+  background-image: none, url("../images/icons/blue/link-intern.svg");
   background-size: 16px 16px;
   vertical-align: text-top;
   width: 16px;
@@ -2542,8 +2542,8 @@ select.sidebar-selectlist {
   display: inline-block;
   height: 16px;
   margin-right: 2px;
-  background-image: url("../images/icons/16/white/link-extern.png");
-  background-image: none, url("../images/icons/white/link-extern.svg");
+  background-image: url("../images/icons/16/blue/link-extern.png");
+  background-image: none, url("../images/icons/blue/link-extern.svg");
   background-size: 16px 16px;
   vertical-align: text-top;
   width: 16px;
@@ -3436,7 +3436,7 @@ input.quicksearchbox {
   height: 14px;
   line-height: 1em;
 }
-input.quicksearchbutton {
+.quicksearchbutton {
   border: 0;
   margin-right: 10px;
   padding: 0;
@@ -5965,4 +5965,11 @@ div.info {
 }
 .length-hint:after {
   content: ')';
+}
+.svg-input input {
+  display: none;
+}
+.svg-input svg,
+.svg-input img {
+  cursor: pointer;
 }

@@ -66,11 +66,11 @@
         background-repeat: no-repeat;
         content: ' ';
         display: inline-block;
-        height: ~"@{size}px";
+        height: unit(@size, px);
         margin-right: @padding;
         .retina-background-icon(@icon, @size);
         vertical-align: text-top;
-        width: ~"@{size}px";
+        width: unit(@size, px);
     }
 }
 

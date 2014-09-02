@@ -137,20 +137,17 @@ class Assets
      */
     static function img($source, $opt = array())
     {
-
         if (!$source) {
             return '';
         }
 
         $parts = explode('/', $source);
 
-        if (($pos = array_search("icons", $parts)) !== false && is_numeric($parts[$pos + 1])) {
-            $size = $parts[$pos + 1] . '@' . $parts[$pos + 1];
-            $source = implode("/", $parts);
-        } else {
-            $size = $opt['size'];
+        if (($pos = array_search('icons', $parts)) !== false) {
+            return Icon::create($source, $opt);
         }
 
+        $size = $opt['size'];
 
         $opt = Assets::parse_attributes($opt);
 
@@ -189,14 +186,15 @@ class Assets
 
         $parts = explode('/', $source);
 
-        if (($pos = array_search("icons", $parts)) !== false) {
-            if (is_numeric($parts[$pos + 1])) {
-                $size = $parts[$pos + 1] . '@' . $parts[$pos + 1];
-            }
-            $source = implode("/", $parts);
-        } else {
-            $size = $opt['size'];
+        if (($pos = array_search('icons', $parts)) !== false) {
+            $source = substr($source, 6);
+            $source = preg_replace('/\.png$/', '', $source);
+            return Assets::content_tag('label',
+                                       self::input('blank.gif', $opt) . Icon::create($source, $opt),
+                                       array('class' => 'svg-input'));
         }
+
+        $size = $opt['size'];
 
         $opt = Assets::parse_attributes($opt);
 
@@ -235,14 +233,13 @@ class Assets
     {
         $path = Assets::compute_public_path($source, 'images', 'png');
 
-        if (true || $respect_retina) {
+        if ($respect_retina) {
             $parts = explode('/', $path);
-            $pos = array_search('icons', $parts);
-            $parts[count($parts) - 1] = preg_replace("/\.png$/", ".svg", $parts[count($parts) - 1]);
+            $pos   = array_search('icons', $parts);
 
             if ($pos !== false) {
-                if (is_numeric($parts[$pos + 1])) {
-                    array_splice($parts, $pos + 1, 1);
+                if ($GLOBALS['auth']->auth['devicePixelRatio'] > 1.2) {
+                    $parts[$pos + 1] = $parts[$pos + 1] * 2;
                 }
                 $path = implode('/', $parts);
             }
@@ -250,7 +247,6 @@ class Assets
 
         return $path;
     }
-
 
     /**
      * Returns a script include tag per source given as argument.
