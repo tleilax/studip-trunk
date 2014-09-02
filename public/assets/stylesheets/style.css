@@ -274,7 +274,8 @@ table.header,
   font-size: 12pt;
   padding: 3px 5px;
 }
-.table_header_bold img {
+.table_header_bold img,
+.table_header_bold svg {
   vertical-align: middle;
 }
 table.links1 {
@@ -320,7 +321,9 @@ td.printhead:last-child {
   padding-right: 5px;
 }
 td.toolbar img,
-td.printhead img {
+td.printhead img,
+td.toolbar svg,
+td.printhead svg {
   padding: 0 2px;
   vertical-align: text-bottom;
 }
@@ -366,7 +369,8 @@ td.onlineinfo,
 td.blanksmall {
   background-color: #fff;
 }
-td.tree-indent img {
+td.tree-indent img,
+td.tree-indent svg {
   vertical-align: bottom;
 }
 td.tree-elbow-line {
@@ -380,7 +384,9 @@ td.tree-elbow-end {
   width: 5px;
 }
 td.tree-elbow-line img,
-td.tree-elbow-end img {
+td.tree-elbow-end img,
+td.tree-elbow-line svg,
+td.tree-elbow-end svg {
   display: block;
 }
 /* Zebra styles for tables */
@@ -642,7 +648,9 @@ tr.sortable th.sortdesc {
   text-align: center;
 }
 .settings thead th img,
-.settings tbody th img {
+.settings tbody th img,
+.settings thead th svg,
+.settings tbody th svg {
   vertical-align: middle;
 }
 .settings td,
@@ -746,7 +754,8 @@ table.tree .header > td {
 table.tree .header > td:last-child {
   padding-right: 5px;
 }
-table.tree .header > td img {
+table.tree .header > td img,
+table.tree .header > td svg {
   padding: 0 2px;
   vertical-align: text-bottom;
 }
@@ -854,7 +863,8 @@ table.default .actions {
   float: right;
   text-align: right;
 }
-table.default .actions img {
+table.default .actions img,
+table.default .actions svg {
   vertical-align: middle;
 }
 table.default caption .actions {
@@ -980,7 +990,8 @@ table.default2 .actions {
   float: right;
   text-align: right;
 }
-table.default2 .actions img {
+table.default2 .actions img,
+table.default2 .actions svg {
   vertical-align: middle;
 }
 table.default2 td.actions,
@@ -4172,7 +4183,8 @@ table.contact-header td.empty a {
   font-size: 12pt;
   padding: 3px 5px;
 }
-.cronjobs-edit > table > thead > tr > th img {
+.cronjobs-edit > table > thead > tr > th img,
+.cronjobs-edit > table > thead > tr > th svg {
   vertical-align: middle;
 }
 .cronjobs-edit > table {

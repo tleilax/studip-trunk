@@ -46,7 +46,7 @@
            (min-resolution: 192dpi)
     {
         background-image: url("@{image-path}/@{image1}");
-        background-size: @width @height;
+        .background-size(@width @height);
     }
 }
 .retina-background-icon(@icon, @size: 16) {
@@ -57,7 +57,7 @@
 
     background-image: url("@{png}");
     background-image: none, url("@{svg}");
-    background-size: unit(@size, px) unit(@size, px);
+    .background-size(unit(@size, px) unit(@size, px));
 }
 
 // Icon before
