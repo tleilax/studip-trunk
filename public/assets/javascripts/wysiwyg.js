@@ -34,19 +34,12 @@ jQuery(function ($) {
     // hidden, the editor does not function properly; therefore attach to
     // visible textareas only
     function replaceVisibleTextareas() {
-        $('textarea.add_toolbar').each(function(){
+        $('textarea.add_toolbar').each(function() {
             var editor = CKEDITOR.dom.element.get(this).getEditor();
-            if ($(this).is(':visible')){
-                if (!editor) {
-                    if (!$(this).attr('id')) {
-                        $(this).attr('id', createNewId('wysiwyg'));
-                    }
-                    replaceTextarea(this);
-                }
-            } else if ($(this).parent().css('display') === 'none') {
-                if (editor && CKEDITOR.instances[$(this).attr('id')]) {
-                    editor.destroy(true);
-                }
+            if (!editor && $(this).is(':visible')) {
+                replaceTextarea(this);
+            } else if (editor && editor.container && $(editor.container.$).is(':hidden')) {
+                editor.destroy(true);
             }
         });
     }
@@ -56,7 +49,14 @@ jQuery(function ($) {
         if (! (textarea instanceof jQuery)) {
             textarea = $(textarea);
         }
-        textarea.val(getHtml(textarea.val())); // convert plain text to html
+
+        // create ID for textarea if it doesn't have one
+        if (!textarea.attr('id')) {
+            textarea.attr('id', createNewId('wysiwyg'));
+        }
+
+        // convert plain text to html
+        textarea.val(getHtml(textarea.val()));
 
         // create new toolbar container
         var textareaWidth = (textarea.width() / textarea.parent().width() * 100) + '%',
@@ -109,8 +109,8 @@ jQuery(function ($) {
 
             // configure dialogs
             removeDialogTabs: 'image:Link;image:advanced;'
-                + 'link:target;link:advanced;'
-                + 'table:advanced',
+                + 'link:target;link:advanced;',
+                //+ 'table:advanced',
 
             // convert special chars except latin ones to html entities
             entities: false,
@@ -267,16 +267,6 @@ jQuery(function ($) {
                 breakAfterClose: true
             });
 
-            // output line breaks on their own line:
-            // first line
-            // <br>
-            // second line
-            editor.dataProcessor.writer.setRules('br', {
-                indent: false,
-                breakBeforeOpen: true,
-                breakAfterOpen: true
-            });
-
             // auto-resize editor area in source view mode, and keep focus!
             editor.on('mode', function (event) {
                 var editor = event.editor;
@@ -340,6 +330,23 @@ jQuery(function ($) {
             editor.focus();
         });
     }
+
+    // customize existing dialog windows
+    CKEDITOR.on('dialogDefinition', function(ev) {
+        var dialogName = ev.data.name,
+            dialogDefinition = ev.data.definition;
+
+        if (dialogName == 'table') {
+            var infoTab = dialogDefinition.getContents('info');
+            infoTab.get('txtBorder')['default'] = '';
+            infoTab.get('txtWidth')['default'] = '';
+            infoTab.get('txtCellSpace')['default'] = '';
+            infoTab.get('txtCellPad')['default'] = '';
+
+            var advancedTab = dialogDefinition.getContents('advanced');
+            advancedTab.get('advCSSClasses')['default'] = 'content';
+        }
+    });
 
     // editor utilities
     function updateStickyTools(editor) {
