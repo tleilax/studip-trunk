@@ -233,18 +233,6 @@ class Assets
     {
         $path = Assets::compute_public_path($source, 'images', 'png');
 
-        if ($respect_retina) {
-            $parts = explode('/', $path);
-            $pos   = array_search('icons', $parts);
-
-            if ($pos !== false) {
-                if ($GLOBALS['auth']->auth['devicePixelRatio'] > 1.2) {
-                    $parts[$pos + 1] = $parts[$pos + 1] * 2;
-                }
-                $path = implode('/', $parts);
-            }
-        }
-
         return $path;
     }
 
