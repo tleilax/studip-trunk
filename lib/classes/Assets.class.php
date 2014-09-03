@@ -26,8 +26,10 @@
  * Example:
  *
  *     # construct the URL for the image "blank.gif"
- *     $url = Assets::url() . 'images/blank.gif';
- *     $url = Assets::url('images/blank.gif');
+ *     $url = Assets::image_path('blank.gif');
+ *
+ *     # construct html tag fot the download icon in blue
+ *     $img = Assets::img('icons/16/blue/download.png');
  *
  * @package   studip
  *
