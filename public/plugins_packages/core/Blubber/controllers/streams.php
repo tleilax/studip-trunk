@@ -90,7 +90,7 @@ class StreamsController extends PluginController {
         PageLayout::addHeadElement("script", array('src' => $this->assets_url."/javascripts/blubber.js"), "");
         PageLayout::addHeadElement("script", array('src' => $this->assets_url."/javascripts/formdata.js"), "");
         PageLayout::setTitle($GLOBALS['SessSemName']["header_line"]." - ".$this->plugin->getDisplayTitle());
-        Navigation::getItem("/course/blubberforum")->setImage(Assets::image_path("icons/16/black/blubber"));
+        Navigation::getItem("/course/blubberforum")->setImage('icons/16/black/blubber.png');
         Navigation::activateItem("/course/blubberforum");
         $coursestream = BlubberStream::getCourseStream($_SESSION['SessionSeminar']);
         $this->tags = $coursestream->fetchTags();
@@ -679,7 +679,7 @@ class StreamsController extends PluginController {
         }
 
         if ($this->thread['context_type'] === "course") {
-            Navigation::getItem("/course/blubberforum")->setImage(Assets::image_path("icons/16/black/blubber"));
+            Navigation::getItem("/course/blubberforum")->setImage('icons/16/black/blubber');
             Navigation::activateItem('/course/blubberforum');
         } elseif($this->thread['context_type'] === "public") {
             if (Navigation::hasItem('/profile')) {

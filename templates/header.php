@@ -5,7 +5,7 @@
 <div id="flex-header">
     <div id="header">
         <!--<div id='barTopLogo'>
-            <img src="<?=$GLOBALS['ASSETS_URL']?>images/logos/logoneu.jpg" alt="Logo Uni Göttingen">
+            <?= Assets::img('logos/logoneu.jpg', array('alt' => 'Logo Uni Göttingen')) ?>
         </div>
          -->
         <div id="barTopFont">
