@@ -679,7 +679,7 @@ function printcontent ($breite, $write = FALSE, $inhalt, $edit, $printout = TRUE
     $print .= $inhalt;
 
     if ($edit) {
-        $print .= "<br><br><div align=\"center\">$edit</div><img src=\"".$GLOBALS['ASSETS_URL']."images/blank.gif\" height=\"6\">";
+        $print .= "<br><br><div align=\"center\">$edit</div>";
         if ($addon!="") {
             if (substr($addon,0,5)=="open:") { // es wird der öffnen-Pfeil mit Link ausgegeben
                 $print .= "</td><td valign=\"middle\" class=\"table_row_even\" nowrap><a href=\"".substr($addon,5)."\">";

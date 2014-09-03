@@ -15,7 +15,7 @@ use Studip\Button, Studip\LinkButton;
                 <a href="<?= URLHelper::getLink("dispatch.php/messages/write?sms_source_page=dispatch.php/institute/members&filter=inst_status&who=".$key . "&group_id=" .$role_id."&subject=".rawurlencode($GLOBALS['SessSemName'][0])) ?>">
                     <?= Assets::img('icons/16/blue/mail.png',
                                     tooltip2(sprintf(_('Nachricht an alle Mitglieder mit dem Status %s verschicken'),
-                                                     $th_title)) ?>
+                                                     $th_title))) ?>
                 </a>
             </th>
             <? 
@@ -26,7 +26,7 @@ use Studip\Button, Studip\LinkButton;
                 <a href="<?= URLHelper::getLink("dispatch.php/messages/write?sms_source_page=dispatch.php/institute/members&group_id=".$role_id."&subject=".rawurlencode($GLOBALS['SessSemName'][0])) ?>">
                     <?= Assets::img('icons/16/blue/mail.png',
                                     tooltip2(sprintf(_('Nachricht an alle Mitglieder der Gruppe %s verschicken'),
-                                                     $th_title)) ?>
+                                                     $th_title))) ?>
                 </a>
             </th>
             <? 

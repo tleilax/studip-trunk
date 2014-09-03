@@ -5,7 +5,7 @@
                             tooltip2(_('Newsticker. Klicken Sie rechts auf die Zahnräder, '
                                      .'um neue News in diesen Bereich einzustellen. Klicken '
                                      .'Sie auf die Pfeile am linken Rand, um den ganzen '
-                                     .'Nachrichtentext zu lesen.')) ?>
+                                     .'Nachrichtentext zu lesen.'))) ?>
             <b><?= _('Ankündigungen') ?></b>
         </td>
         <td align="right" class="table_header_bold">

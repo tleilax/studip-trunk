@@ -90,7 +90,7 @@ class ShowThread extends ShowTreeRow {
             if (!$resObject->getCategoryIconnr())
                 $icon = Assets::img('icons/16/grey/folder-full.png', array('class' => 'text-top'));
             else
-                $icon="<img src=\"".$GLOBALS['ASSETS_URL']."images/cont_res".$resObject->getCategoryIconnr().".gif\">";
+                $icon = Assets::img('cont_res' . $resObject->getCategoryIconnr() . '.gif');
 
             if ($_SESSION['resources_data']["move_object"])
                 $icon="&nbsp;<a href=\"".URLHelper::getLink('?target_object='.$resObject->id)."#a\"><img src=\"".Assets::image_path('icons/16/yellow/arr_2right.png')."\" alt=\""._("Objekt in diese Ebene verschieben")."\"></a>".$icon;

@@ -525,7 +525,7 @@ reset($votes);
  */
 
 function makeTableHeaderCell($text = "&nbsp;", $width = "5%", $align = "center", $colspan = "1"){
-   if ($text == "blindgif") $text = "<img width=\"$width\" align=\"middle\" height=\"1\" src=\"".$GLOBALS['ASSETS_URL']."images/blank.gif\" alt=\"\">";
+   if ($text == "blindgif") $text = Assets::img('blank.gif', array('size' => '1@1'));
    $html = "     <td class=\"table_header\" style=\"vertical-align:bottom;\" colspan=\"$colspan\" align=\"$align\" width=\"$width\">\n"
       . "     <font size=-1><b>$text</b></font>\n"
       . "    </td>\n";

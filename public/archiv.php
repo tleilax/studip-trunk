@@ -470,7 +470,7 @@ if ($_SESSION['archiv_data']["perform_search"]) {
 
 
         echo "<br><br><table class=\"blank\"  width=99% align=center cellspacing=0 border=0>\n";
-    echo "<tr height=28><td  width=\"1%\" class=\"table_header\"><img src=\"".$GLOBALS['ASSETS_URL']."images/blank.gif\" width=1 height=20>&nbsp; </td>\n";
+    echo "<tr height=28><td  width=\"1%\" class=\"table_header\">&nbsp;</td>\n";
         echo "<td  width=\"29%\" class=\"table_header\" align=center valign=bottom><b><a href=\"". URLHelper::getLink("?sortby=Name") ."\">" . _("Name") . "</a></b></td>\n";
         echo "<td  width=\"20%\" class=\"table_header\" align=center valign=bottom><b><a href=\"". URLHelper::getLink("?sortby=dozenten") ."\">" . _("DozentIn") . "</a></b></td>\n";
         echo "<td  width=\"20%\" class=\"table_header\" align=center valign=bottom><b><a href=\"". URLHelper::getLink("?sortby=institute") ."\">" . _("Einrichtungen") . "</a></b></td>\n";
@@ -496,10 +496,14 @@ if ($_SESSION['archiv_data']["perform_search"]) {
 
             // schon aufgeklappt?
             if ($_SESSION['archiv_data']["open"]==$result['seminar_id']) {
-                echo "<a name=\"anker\"></a><a href=\"". URLHelper::getLink("?close=yes") ."\"><img src=\"".$GLOBALS['ASSETS_URL']."images/icons/16/blue/arr_1down.png\" " . tooltip(_("Zuklappen")) . " border=\"0\" valign=\"top\"></a></td>";
+                echo "<a name=\"anker\"></a><a href=\"". URLHelper::getLink("?close=yes") ."\">";
+                echo Assets::img('icons/16/blue/arr_1down.png', tooltip2(_('Zuklappen')) + array('valign' => 'top'));
+                echo "</a></td>";
                 echo "<td class=\"$class\" width=\"29%\"><font size=\"-1\"><b><a href=\"". URLHelper::getLink("?close=yes") ."\">".htmlReady($result['name'])."</a></b></font></td>";
             } else {
-          echo "<a href=\"". URLHelper::getLink("?open=" . $result['seminar_id']) . "#anker\"><img src=\"".$GLOBALS['ASSETS_URL']."images/icons/16/blue/arr_1right.png\" " . tooltip(_("Aufklappen")) . " border=\"0\" valign=\"top\"></a></td>";
+                echo "<a href=\"". URLHelper::getLink("?open=" . $result['seminar_id']) . "#anker\">";
+                echo Assets::img('icons/16/blue/arr_1right.png', tooltip2(_('Aufklappen')) + array('valign' => 'top'));
+                echo "</a></td>";
                 echo "<td class=\"$class\" width=\"29%\"><font size=\"-1\"><a href=\"". URLHelper::getLink("?open=" . $result['seminar_id']) . "#anker\">".htmlReady($result['name'])."</a></font></td>";
             }
         echo "<td align=center class=\"$class\">&nbsp;<font size=-1>".htmlReady($result['dozenten'])."</font></td>";

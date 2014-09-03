@@ -162,50 +162,50 @@
     display: block;
     margin-top: 4px;
 }
-#blubber_threads .avatar_column {
-    vertical-align: top;
-    padding: 5px;
-    width: 55px;
-    max-width: 55px;
-    overflow: hidden;
-    text-align: center;
-    display: table-cell;
-}
-#blubber_threads .avatar_column .avatar_image {
-    margin-left: auto;
-    margin-right: auto;
-    width: 50px;
-    height: 50px;
-    background-size: 100%; 
-    background-repeat: no-repeat; 
-    background-position: center center; 
-}
-#blubber_threads .content_column {
-    display: table-cell;
-    padding: 5px;
-    width: 100%;
-}
-#blubber_threads .content_column {
-}
-#blubber_threads .content_column > .name {
-    color: #888888;
-    font-weight: bold;
-    font-size: 0.8em;
-}
-#blubber_threads .content_column > .name a {
-    color: #888888;
-}
-#blubber_threads .content_column > .content {
-    margin-top: 7px;
-    width: 100%;
-    max-width: 100%;
-    overflow: hidden;
-    hyphens: auto;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-}
-#blubber_threads .content_column > .content a {
-    word-break: break-all;
+#blubber_threads {
+    .avatar_column {
+        vertical-align: top;
+        padding: 5px;
+        width: 55px;
+        max-width: 55px;
+        overflow: hidden;
+        text-align: center;
+        display: table-cell;
+        .avatar_image {
+            margin-left: auto;
+            margin-right: auto;
+            width: 50px;
+            height: 50px;
+            background-size: 100%; 
+            background-repeat: no-repeat; 
+            background-position: center center; 
+        }
+    }
+    .content_column {
+        display: table-cell;
+        padding: 5px;
+        width: 100%;
+        > .name {
+            color: #888888;
+            font-weight: bold;
+            font-size: 0.8em;
+            a {
+                color: #888888;
+            }
+        }
+        > .content {
+            margin-top: 7px;
+            width: 100%;
+            max-width: 100%;
+            overflow: hidden;
+            hyphens: auto;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            a {
+                word-break: break-all;
+            }
+        }
+    }
 }
 #blubber_threads .posting img, #blubber_threads .posting video, #blubber_threads .content_column > .content {
     max-width: 600px;
