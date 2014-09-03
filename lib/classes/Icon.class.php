@@ -5,19 +5,22 @@ class Icon
     const PNG = 2;
     const CSS_BACKGROUND = 4;
     
+    const DEFAULT_SIZE = 16;
+    const DEFAULT_COLOR = 'blue';
+    
     public static $icon_colors = array(
         'black', 'blue', 'green', 'grey', 'lightblue', 'red', 'white', 'yellow',
     );
 
-    public static function create($source, $size = 16, $color = 'blue', $icon = false, $attributes = array())
+    public static function create($source, $size = Icon::DEFAULT_SIZE, $color = Icon::DEFAULT_COLOR, $icon = false, $attributes = array())
     {
         // Extend arguments if not all are given
         if (func_num_args() === 2 && is_array($size)) {
             $attributes = $size;
-            $size = 16;
+            $size = Icon::DEFAULT_SIZE;
         } else if (func_num_args() === 3 && is_array($color)) {
             $attributes = $color;
-            $color = 'blue';
+            $color = Icon::DEFAULT_COLOR;
         } else if (func_num_args() === 4 && is_array($icon)) {
             $attributes = $extra;
             $icon = false;
@@ -49,8 +52,8 @@ class Icon
         }
         
         $result = array_merge(array(
-            'size' => 16,
-            'color' => 'blue',
+            'size' => Icon::DEFAULT_SIZE,
+            'color' => Icon::DEFAULT_COLOR,
             'icon' => array(),
         ), $defaults); 
 
@@ -78,7 +81,7 @@ class Icon
     protected $color;
     protected $attributes;
 
-    public function __construct($icon, $size = 16, $color = 'blue', $attributes = array())
+    public function __construct($icon, $size = Icon::DEFAULT_SIZE, $color = Icon::DEFAULT_COLOR, $attributes = array())
     {
         $this->icon       = $icon;
         $this->size       = $size;
@@ -111,14 +114,14 @@ class Icon
             'xlink:href' => $this->get_asset(Icon::SVG),
             'src' => $this->get_asset(Icon::PNG),
             'alt' => $this->attributes['alt'] ?: $this->attributes['title'] ?: basename($this->icon),
-            'width'  => $this->size,
-            'height' => $this->size,
+            'width'  => $this->get_size(),
+            'height' => $this->get_size(),
         );
         unset($this->attributes['alt']);
 
         $svg_attributes = array_merge($this->attributes, array(
-            'width'  => $this->size,
-            'height' => $this->size,
+            'width'  => $this->get_size(),
+            'height' => $this->get_size(),
         ));
 
         return sprintf('<svg %s><image %s></svg>',
@@ -131,8 +134,8 @@ class Icon
         $attributes = array_merge($this->attributes, array(
             'src' => $this->get_asset(Icon::PNG),
             'alt' => $this->attributes['alt'] ?: $this->attributes['title'] ?: basename($this->icon),
-            'width'  => $this->size,
-            'height' => $this->size,
+            'width'  => $this->get_size(),
+            'height' => $this->get_size(),
         ));
         
         return sprintf('<img %s>', $this->tag_options($attributes));
@@ -143,7 +146,7 @@ class Icon
         return sprintf('background-image:url(%1$s);background-image:none,url(%2$s);background-size:%3$upx %3$upx;',
                        $this->get_asset(Icon::PNG),
                        $this->get_asset(Icon::SVG),
-                       $this->size);
+                       $this->get_size());
     }
 
     protected function get_asset($type)
@@ -159,6 +162,16 @@ class Icon
             return Assets::url('images/icons/' . $size . '/' . $this->color . '/' . $this->icon . '.png');
         }
         throw new Exception('Unknown type');
+    }
+
+    protected function get_size()
+    {
+        $size = $this->size;
+        if (isset($this->attributes['size'])) {
+            list($size, $temp) = explode('@', $this->attributes['size'], 2);
+            unset($this->attributes['size']);
+        }
+        return $size;
     }
 
     protected function tag_options($options)
