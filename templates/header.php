@@ -32,7 +32,6 @@
                         <img class="headericon original" src="<?= $image['src'] ?>" data-icon="<?= $image['src'] ?>" data-badge="<?= (int) $nav->getBadgeNumber() ?>">
                         <img class="headericon normal" src="<?= $image['src'] ?>" data-icon="<?= $image['src'] ?>" data-badge="<?= (int) $nav->getBadgeNumber() ?>">
                         <img class="headericon highlighted" src="<?= $image['src'] ?>" data-icon="<?= $image['src'] ?>" data-badge="<?= (int) $nav->getBadgeNumber() ?>">
-                        <canvas class="headericon" width="84px" height="64px"></canvas>
                         <br>
                        <?= htmlReady($nav->getTitle()) ?>
                    </a>
