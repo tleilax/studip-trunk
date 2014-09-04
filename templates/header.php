@@ -29,9 +29,10 @@
                 ?>
                 <li id="nav_<?= $path ?>"<? if ($nav->isActive()) : ?> class="active"<? endif ?>>
                     <a href="<?= URLHelper::getLink($nav->getURL(), $link_params) ?>" title="<?= $image['title'] ?>" <?= $accesskey_attr ?>>
-                        <img class="headericon" src="<?= $image['src'] ?>" data-icon="<?= $image['src'] ?>" width="28" height="28" data-badge="<?= (int) $nav->getBadgeNumber() ?>" style="margin-left: 6px; margin-right: 6px; margin-top: 2px; margin-bottom: 2px;">
-                        <canvas class="headericon"></canvas>
-                        <canvas class="headericon highlighted"></canvas>
+                        <img class="headericon original" src="<?= $image['src'] ?>" data-icon="<?= $image['src'] ?>" data-badge="<?= (int) $nav->getBadgeNumber() ?>">
+                        <img class="headericon normal" src="<?= $image['src'] ?>" data-icon="<?= $image['src'] ?>" data-badge="<?= (int) $nav->getBadgeNumber() ?>">
+                        <img class="headericon highlighted" src="<?= $image['src'] ?>" data-icon="<?= $image['src'] ?>" data-badge="<?= (int) $nav->getBadgeNumber() ?>">
+                        <canvas class="headericon" width="84px" height="64px"></canvas>
                         <br>
                        <?= htmlReady($nav->getTitle()) ?>
                    </a>
