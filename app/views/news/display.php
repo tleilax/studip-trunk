@@ -15,7 +15,7 @@
         <? endif; ?>
         <? if ($rss_id): ?>
             <a href="<?= URLHelper::getLink('rss.php', array('id' => $rss_id)) ?>">
-                <?= Assets::img('icons/16/blue/rss.png', tooltip2(_('RSS-Feed')) ?>
+                <?= Assets::img('icons/16/blue/rss.png', tooltip2(_('RSS-Feed'))) ?>
             </a>
         <? endif; ?>
         </nav>

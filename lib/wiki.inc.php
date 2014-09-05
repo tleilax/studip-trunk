@@ -1261,7 +1261,7 @@ function getShowPageInfobox($keyword, $latest_version)
     }
 
     $element = new WidgetElement($toccont_empty ? _('Keine QuickLinks vorhanden') : $toccont);
-    $element->icon = Assets::image_path('icons/16/blue/link-intern.png');
+    $element->icon = 'icons/16/blue/link-intern.png';
     $widget->addElement($element);
     $sidebar->addWidget($widget);
 

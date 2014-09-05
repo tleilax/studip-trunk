@@ -217,7 +217,7 @@ class ExternModuleDownload extends ExternModule {
                 }
 
                 if ($icon) {
-                    $picture_file = Assets::image_path('$icon');
+                    $picture_file = $icon;
                 }
                 
                 $download_link = GetDownloadLink($row['dokument_id'], $row['filename']);
@@ -343,7 +343,7 @@ class ExternModuleDownload extends ExternModule {
             }
 
             if ($icon)
-                $picture_file = Assets::image_path($icon);
+                $picture_file = $icon;
 
             // Aufbereiten der Daten
             $table_row_data["content"] = array(

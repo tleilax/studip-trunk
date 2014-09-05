@@ -523,8 +523,11 @@ if ($_SESSION['archiv_data']["perform_search"]) {
                 }
 
                 echo "</td><td class=\"$class\" width=\"3%\">&nbsp;";
-                if (archiv_check_perm($result['seminar_id']) == "admin")
-                    echo "<a href=\"". URLHelper::getLink("?delete_id=".$result['seminar_id']) ."\">&nbsp;<img border=0 src=\"". Assets::image_path('icons/16/blue/trash.png') ."\" " . tooltip(_("Diese Veranstaltung aus dem Archiv entfernen")) . "></a>";
+                if (archiv_check_perm($result['seminar_id']) == "admin") {
+                    echo '<a href="' . URLHelper::getLink('?delete_id=' . $result['seminar_id']) . '">';
+                    echo Assets::img('icons/16/blue/trash.png', tooltip2(_('Diese Veranstaltung aus dem Archiv entfernen')));
+                    echo '</a>';
+                }
                 echo "</td>";
             } else
                 echo "<td class=\"$class\" width=\"9%\" colspan=\"3\">&nbsp;</td>";
@@ -578,8 +581,11 @@ if ($_SESSION['archiv_data']["perform_search"]) {
 
                     while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
                         echo "<font size=\"-1\">".htmlReady($row['fullname']). " (" . _("Status:") . " ". $row['status']. ")</font>";
-                        if ($row['status'] != "dozent")
-                            echo "<a href=\"". URLHelper::getLink("?delete_user=".$row['user_id']."&d_sem_id=".$result['seminar_id']) ,"#anker\"><font size=\"-1\">&nbsp;" . _("Zugriffsberechtigung entfernen") . "</font> <img border=0 src=\"". Assets::image_path('icons/16/blue/trash.png') ."\" " . tooltip(_("Dieser Person die Zugriffsberechtigung entziehen")) . "></a>";
+                        if ($row['status'] != "dozent") {
+                            echo "<a href=\"". URLHelper::getLink("?delete_user=".$row['user_id']."&d_sem_id=".$result['seminar_id']) ,"#anker\"><font size=\"-1\">&nbsp;" . _("Zugriffsberechtigung entfernen") . "</font> ";
+                            echo Assets::img('icons/16/blue/trash.png', tooltip2(_('Dieser Person die Zugriffsberechtigung entziehen')));
+                            echo '</a>';
+                        }
                         echo "<br>";
                     }
                     if ((Request::submitted('add_user')) && (!Request::submitted('new_search'))) {

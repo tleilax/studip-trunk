@@ -274,15 +274,17 @@ class StudipForm {
             } else {
                 $atime = time();
             }
-            $ret .= "&nbsp; <img align=\"absmiddle\" src=\"".Assets::image_path('popupcalendar.png')."\" ";
-            $ret .= "onClick=\"window.open('";
-            $ret .= URLHelper::getLink("termin_eingabe_dispatch.php",
-                 array("form_name" => $this->form_name,
-                       "element_switch" => $this->form_name."_".$name,
-                       "imt" => $atime,
-                       "atime" => $atime));
-            $ret .= "', 'InsertDate', ";
-            $ret .= "'dependent=yes, width=210, height=210, left=500, top=150')\">";
+            $onclick  = "window.open('";
+            $onclick .= URLHelper::getLink('termin_eingabe_dispatch.php',
+                                           array(
+                                               'form_name' => $this->form_name,
+                                               'element_switch' => $this->form_name . '_' . $name,
+                                               'imt' => $atime,
+                                               'atime' => $atime));
+            $onclick .= "', 'InsertDate', ";
+            $onClick .= "'dependent=yes, width=210, height=210, left=500, top=150'";
+            $ret .= "&nbsp; ";
+            $ret .= Assets::img('popupcalendar.png', compact('onclick'));
         }
         $ret .= '</fieldset>';
         return $ret;
