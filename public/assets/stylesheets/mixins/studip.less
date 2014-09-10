@@ -74,6 +74,20 @@
     }
 }
 
+// Icon after
+.icon-after(@icon, @size: 16, @padding: 0) {
+    &:after {
+        background-repeat: no-repeat;
+        content: ' ';
+        display: inline-block;
+        height: unit(@size, px);
+        margin-right: @padding;
+        .retina-background-icon(@icon, @size);
+        vertical-align: text-top;
+        width: unit(@size, px);
+    }
+}
+
 // Scrollboxes
 // From http://lea.verou.me/2012/04/background-attachment-local/
 //  and http://dabblet.com/gist/6134408

@@ -27,12 +27,12 @@ class Icon
         }
 
         // Try to guess correct order of passed arguments
-        $defined = array_filter(compact(words('size color icon')));
+        $defined = array_filter(compact(array('size', 'color', 'icon')));
         $defined = self::rearrange($defined);
         $icon = $defined['icon'];
         unset($defined['icon']);
 
-        $opts = self::rearrange($source, $defined, $defined['icon']);
+        $opts = self::rearrange($source, $defined, $icon);
 
         $opts['source'] = preg_replace('/\.(png|svg)$/', '', $opts['icon']);
 
@@ -83,7 +83,7 @@ class Icon
 
     public function __construct($icon, $size = Icon::DEFAULT_SIZE, $color = Icon::DEFAULT_COLOR, $attributes = array())
     {
-        $this->icon       = $icon;
+        $this->icon       = preg_replace('/\.(?:png|svg)$/', '', $icon);
         $this->size       = $size;
         $this->color      = $color;
         $this->attributes = $attributes;
@@ -178,7 +178,7 @@ class Icon
     {
         $result = array();
         foreach ($options as $key => $value) {
-            $result[] = sprintf('%s="%s"', $key, htmlReady($value));
+            $result[] = sprintf('%s="%s"', $key, addcslashes($value, '"'));
         }
         return join(' ', $result);
     }
