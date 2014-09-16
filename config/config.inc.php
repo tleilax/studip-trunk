@@ -1,21 +1,4 @@
 <?php
-if (!function_exists('_')) {
-    function _($string) { return $string; }
-}
-if (!function_exists('gettext')) {
-    function gettext($string) { return _($string); }
-}
-if (!function_exists('ngettext')) {
-    function ngettext($s0, $s1, $n) { return $n === 1 ? $s0 : $s1; }
-}
-if (!function_exists('bindtextdomain')) {
-    function bindtextdomain($domain, $directory) {}
-}
-if (!function_exists('textdomain')) {
-    function textdomain($text_domain) {}
-}
-error_reporting(E_ALL & ~E_STRICT & ~E_NOTICE & ~E_DEPRECATED);
-
 /**
 * config.inc.php
 *
