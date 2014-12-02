@@ -2,7 +2,7 @@
 # Lifter010: TODO
 ?>
 <? if ($withButton): ?>
-<div class="quicksearch_frame" id="<?= $id ?>_frame" style="width: <?= $box_width ?>px;">
+<div class="quicksearch_frame <?= ($extendedLayout === true) ? 'extendedLayout' : ''; ?>" id="<?= $id ?>_frame" style="width: <?= $box_width ?>px;">
 <? $withAttributes['style'] = "width: ".($box_width-23)."px;"; ?>
     <? if ($box_align === 'left'): ?>
         <?= Assets::input('icons/16/blue/search.png', array('class' => 'text-bottom')) ?>

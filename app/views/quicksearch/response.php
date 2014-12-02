@@ -8,7 +8,7 @@ foreach ($searchresults as $number => $result) {
     $res_array = array();
     $res_array['item_id'] = $result[0];
     $res_array['item_name'] = "";
-    if ($search instanceof StandardSearch && ($search->search == "username" || $search->search == "user_id")) {
+    if ($search instanceof StandardSearch && $search->extendedLayout) {
         $res_array['item_name'] .= $search->getAvatarImageTag(Avatar::MEDIUM);
         $res_array['item_description'] = $result[2] . " (" . $result[3] . ")";
     } else if ($search instanceof SearchType) {

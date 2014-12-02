@@ -3600,12 +3600,12 @@ input.quicksearchbox {
   vertical-align: top;
   margin-left: -30px;
 }
-.quicksearch_frame .ui-autocomplete {
+.extendedLayout .ui-autocomplete {
   max-height: 275px;
   overflow-y: auto;
   overflow-x: hidden;
 }
-.quicksearch_frame .ui-menu-item a img {
+.extendedLayout .ui-menu-item a img {
   float: left;
   width: 40px;
   height: 40px;

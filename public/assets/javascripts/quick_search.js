@@ -66,6 +66,12 @@ STUDIP.QuickSearch = {
                         success: function (data) {
                             var stripTags = /<\w+(\s+("[^"]*"|'[^']*'|[^>])+)?>|<\/\w+>/gi;
                             //an array of possible selections
+                            
+                            if (!data.length) {
+                                add([{value:"", label: "Kein Ergebnis gefunden.".toLocaleString()}]);
+                                return;
+                            }
+                            
                             var suggestions = _.map(data, function (val) {
                                 //adding a label and a hidden item_id - don't use "value":
                                 var label_text = val.item_name;
