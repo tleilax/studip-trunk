@@ -21,7 +21,8 @@
         </ul>
         <?= QuickSearch::get("user_id", new StandardSearch("user_id"))
             ->fireJSFunctionOnSelect("STUDIP.Messages.add_adressee")
-            ->render() ?>
+            ->withButton()
+            ->render() ?><br>
 
         <?
         $search_obj = new SQLSearch("SELECT auth_user_md5.user_id, {$GLOBALS['_fullname_sql']['full_rev']} as fullname, username, perms "
