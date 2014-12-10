@@ -75,6 +75,7 @@
             img {
                 display: inline-block !important;
                 vertical-align: top;
+                margin: 0 !important;
             }
             canvas {
                 display: none !important;
@@ -83,7 +84,7 @@
         }
     }
     #tabs {
-        .icon-before('white/add-circle-full.svg', @icon-size, @icon-padding);
+        .icon-before('white/hamburger-icon.svg', @icon-size, @icon-padding);
         &:before {
             cursor: pointer;
             position: fixed;
@@ -92,7 +93,6 @@
         }
         
         &:hover {
-            .icon-before('white/remove-circle-full.svg', @icon-size, @icon-padding);
             bottom: 0;
             height: auto;
             overflow: visible;
@@ -119,7 +119,7 @@
         position: fixed;
         top: 0;
         left: 0;
-        right: 66%;
+        min-width: 200px;
         height: @header-height;
         overflow: hidden;
         padding: 0;
@@ -145,7 +145,7 @@
     }
     
     #layout-sidebar {
-        .icon-before('white/admin.svg', @icon-size, @icon-padding);
+        .icon-before('white/hamburger-icon-small.svg', @icon-size, @icon-padding);
         &:before {
             cursor: pointer;
             position: fixed;
@@ -187,5 +187,8 @@
             }
             margin-right: 0;
         }
+    }
+    #layout_wrapper #layout_page {
+        min-width: 0;
     }
 }

@@ -5844,6 +5844,7 @@ ol ol {
   #barTopMenu > li img {
     display: inline-block !important;
     vertical-align: top;
+    margin: 0 !important;
   }
   #barTopMenu > li canvas {
     display: none !important;
@@ -5855,7 +5856,7 @@ ol ol {
     position: fixed;
     top: 0;
     left: 0;
-    right: 66%;
+    min-width: 200px;
     height: 36px;
     overflow: hidden;
     padding: 0;
@@ -5869,8 +5870,8 @@ ol ol {
     display: inline-block;
     height: 32px;
     margin-right: 2px;
-    background-image: url("../images/icons/32/white/add-circle-full.png");
-    background-image: none, url("../images/icons/white/add-circle-full.svg");
+    background-image: url("../images/icons/32/white/hamburger-icon.png");
+    background-image: none, url("../images/icons/white/hamburger-icon.svg");
     -webkit-background-size: 32px 32px;
     -moz-background-size: 32px 32px;
     -o-background-size: 32px 32px;
@@ -5901,21 +5902,6 @@ ol ol {
                 z-index: 10000;
             }
 */
-  }
-  #tabs:hover:before {
-    background-repeat: no-repeat;
-    content: ' ';
-    display: inline-block;
-    height: 32px;
-    margin-right: 2px;
-    background-image: url("../images/icons/32/white/remove-circle-full.png");
-    background-image: none, url("../images/icons/white/remove-circle-full.svg");
-    -webkit-background-size: 32px 32px;
-    -moz-background-size: 32px 32px;
-    -o-background-size: 32px 32px;
-    background-size: 32px 32px;
-    vertical-align: text-top;
-    width: 32px;
   }
   #tabs:hover li {
     display: block;
@@ -5954,8 +5940,8 @@ ol ol {
     display: inline-block;
     height: 32px;
     margin-right: 2px;
-    background-image: url("../images/icons/32/white/admin.png");
-    background-image: none, url("../images/icons/white/admin.svg");
+    background-image: url("../images/icons/32/white/hamburger-icon-small.png");
+    background-image: none, url("../images/icons/white/hamburger-icon-small.svg");
     -webkit-background-size: 32px 32px;
     -moz-background-size: 32px 32px;
     -o-background-size: 32px 32px;
@@ -5989,6 +5975,9 @@ ol ol {
   #layout-sidebar .widget-links li.active:before,
   #layout-sidebar .widget-links li.active:after {
     display: none;
+  }
+  #layout_wrapper #layout_page {
+    min-width: 0;
   }
 }
 /* --- Standardvorgaben ----------------------------------------------------- */
