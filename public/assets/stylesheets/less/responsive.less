@@ -4,6 +4,16 @@
     @header-height: @icon-size + 2 * @icon-padding;
     @header-color: @base-color;
 
+    html body {
+        margin-top: @header-height + 1px;
+    }
+    #barBottomContainer {
+        position: fixed;
+        left: 0;
+        right: 0;
+        top: @header-height + 1px;
+    }
+
     #barTopFont, #barTopStudip {
         display: none;
     }
@@ -26,6 +36,7 @@
         left: @icon-size + 2 * @icon-padding;
         right: @icon-size + 2 * @icon-padding;
         height: @header-height;
+        overflow: hidden;
         text-align: center;
         
         .flex-align-items(space-between);
@@ -35,7 +46,9 @@
             right: 0;
             padding-top: @header-height;
             li, li.active {
+                .box-sizing(border-box);
                 display: inline-block;
+                width: 30%;
                 img {
                     width: 64px;
                     height: 64px;

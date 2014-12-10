@@ -5770,6 +5770,15 @@ ol ol {
   content: "";
 }
 @media screen and (max-width: 768px) {
+  html body {
+    margin-top: 37px;
+  }
+  #barBottomContainer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 37px;
+  }
   #barTopFont,
   #barTopStudip {
     display: none;
@@ -5792,6 +5801,7 @@ ol ol {
     left: 36px;
     right: 36px;
     height: 36px;
+    overflow: hidden;
     text-align: center;
     -webkit-align-items: space-between;
     -ms-flex-align: space-between;
@@ -5808,7 +5818,11 @@ ol ol {
   }
   #barTopMenu:hover li,
   #barTopMenu:hover li.active {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
     display: inline-block;
+    width: 30%;
   }
   #barTopMenu:hover li img,
   #barTopMenu:hover li.active img {
