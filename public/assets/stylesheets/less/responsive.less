@@ -1,0 +1,191 @@
+@media screen and (max-width: 768px) {
+    @icon-size: 32px;
+    @icon-padding: 2px;
+    @header-height: @icon-size + 2 * @icon-padding;
+    @header-color: @base-color;
+
+    #barTopFont, #barTopStudip {
+        display: none;
+    }
+    #header {
+        background-color: @header-color;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        border-bottom: 1px solid @light-gray-color-60;
+        
+        height: @header-height;
+        z-index: 10000;
+    }
+    #barTopMenu {
+        z-index: 10001;
+        background-color: inherit;
+        position: fixed;
+        top: 0;
+        left: @icon-size + 2 * @icon-padding;
+        right: @icon-size + 2 * @icon-padding;
+        height: @header-height;
+        text-align: center;
+        
+        .flex-align-items(space-between);
+
+        &:hover {
+            left: 0;
+            right: 0;
+            padding-top: @header-height;
+            li, li.active {
+                display: inline-block;
+                img {
+                    width: 64px;
+                    height: 64px;
+                }
+            }
+            height: auto;
+            overflow-y: auto;
+            bottom: 0;
+        }
+        > li {
+            margin-right: 1em;
+            &:last-child {
+                margin-right: 0;
+            }
+            &.active {
+                &:before {
+                    content: url
+                }
+                display: block;
+            }
+            &:hover {
+                background-color: @base-color-40;
+            }
+            float: none;
+            display: none;
+            padding: 3px;
+
+            a {
+                font-size: 2em;
+                text-align: center;
+                &[data-badge] {
+                    &:before, &:after {
+                        display: none !important;
+                    }
+                }
+            }
+            img {
+                display: inline-block !important;
+                vertical-align: top;
+            }
+            canvas {
+                display: none !important;
+            }
+            
+        }
+    }
+    #tabs {
+        .icon-before('white/add-circle-full.svg', @icon-size, @icon-padding);
+        &:before {
+            cursor: pointer;
+            position: fixed;
+            left: 1px;
+            top: 1px;
+        }
+        
+        &:hover {
+            .icon-before('white/remove-circle-full.svg', @icon-size, @icon-padding);
+            bottom: 0;
+            height: auto;
+            overflow: visible;
+            
+            li {
+                display: block;
+            }
+/*
+            &:after {
+                content: '';
+                display: block;
+                position: fixed;
+                top: @header-height;
+                left: 34%;
+                right: 0;
+                bottom: 0;
+                background-color: fadeout(#888, 80%);
+                z-index: 10000;
+            }
+*/
+        }
+
+        .box-sizing(border-box);
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 66%;
+        height: @header-height;
+        overflow: hidden;
+        padding: 0;
+        background-color: @header-color;
+        padding-top: @header-height;
+        
+        z-index: 10000;
+        
+        li {
+            display: none;
+            border-right: 0;
+            float: none;
+            
+            span {
+                display: inline-block;
+                visibility: hidden;
+                &:before {
+                    content: attr(title);
+                    visibility: visible;
+                }
+            }
+        }
+    }
+    
+    #layout-sidebar {
+        .icon-before('white/admin.svg', @icon-size, @icon-padding);
+        &:before {
+            cursor: pointer;
+            position: fixed;
+            right: 1px;
+            top: 1px;
+        }
+        &:hover {
+            bottom: 0;
+            height: auto;
+            overflow: visible;
+            width: 100%;
+        }
+
+        .box-sizing(border-box);
+        position: fixed;
+        top: 0;
+        right: 0;
+        overflow: hidden;
+        height: @header-height;
+        min-width: @icon-size + 2 * @icon-padding;
+        width: @icon-size + 2 * @icon-padding;
+
+        padding-top: @header-height;
+        z-index: 10000;
+        
+        background: @header-color;
+        
+        .sidebar-image {
+            display: none;
+        }
+        .sidebar {
+            width: 100%;
+            background: inherit;
+            border: 0;
+        }
+        .widget-links li.active {
+            &:before, &:after {
+                display: none;
+            }
+            margin-right: 0;
+        }
+    }
+}

@@ -48,8 +48,8 @@
  */
 .scrollbox-vertical {
   overflow: auto;
-  background: linear-gradient(#ffffff 30%, rgba(255, 255, 255, 0)), linear-gradient(rgba(255, 255, 255, 0), #ffffff 70%) 0 100%, /* Shadows */ radial-gradient(50% 0, farthest-side, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)), radial-gradient(50% 100%, farthest-side, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)) 0 100%;
-  background: linear-gradient(#ffffff 30%, rgba(255, 255, 255, 0)), linear-gradient(rgba(255, 255, 255, 0), #ffffff 70%) 0 100%, /* Shadows */ radial-gradient(farthest-side at 50% 0, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)), radial-gradient(farthest-side at 50% 100%, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)) 0 100%;
+  background: linear-gradient(white 30%, rgba(255, 255, 255, 0)), linear-gradient(rgba(255, 255, 255, 0), white 70%) 0 100%, /* Shadows */ radial-gradient(50% 0, farthest-side, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)), radial-gradient(50% 100%, farthest-side, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)) 0 100%;
+  background: linear-gradient(white 30%, rgba(255, 255, 255, 0)), linear-gradient(rgba(255, 255, 255, 0), white 70%) 0 100%, /* Shadows */ radial-gradient(farthest-side at 50% 0, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)), radial-gradient(farthest-side at 50% 100%, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)) 0 100%;
   background-repeat: no-repeat;
   background-size: 100% 40px, 100% 40px, 100% 14px, 100% 14px;
   /* Opera doesn't support this in the shorthand */
@@ -57,8 +57,8 @@
 }
 .scrollbox-horizontal {
   overflow: auto;
-  background: linear-gradient(90deg, #ffffff 30%, rgba(255, 255, 255, 0)), linear-gradient(90deg, rgba(255, 255, 255, 0), #ffffff 70%) 100% 0, /* Shadows */ radial-gradient(0 50%, farthest-side, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)), radial-gradient(100% 50%, farthest-side, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)) 100% 0;
-  background: linear-gradient(90deg, #ffffff 30%, rgba(255, 255, 255, 0)), linear-gradient(90deg, rgba(255, 255, 255, 0), #ffffff 70%) 100% 0, /* Shadows */ radial-gradient(farthest-side at 0 50%, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)), radial-gradient(farthest-side at 100% 50%, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)) 100% 0;
+  background: linear-gradient(90deg, white 30%, rgba(255, 255, 255, 0)), linear-gradient(90deg, rgba(255, 255, 255, 0), white 70%) 100% 0, /* Shadows */ radial-gradient(0 50%, farthest-side, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)), radial-gradient(100% 50%, farthest-side, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)) 100% 0;
+  background: linear-gradient(90deg, white 30%, rgba(255, 255, 255, 0)), linear-gradient(90deg, rgba(255, 255, 255, 0), white 70%) 100% 0, /* Shadows */ radial-gradient(farthest-side at 0 50%, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)), radial-gradient(farthest-side at 100% 50%, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)) 100% 0;
   background-repeat: no-repeat;
   background-size: 40px 100%, 40px 100%, 14px 100%, 14px 100%;
   /* Opera doesn't support this in the shorthand */
@@ -340,7 +340,7 @@ td.angemeldet {
   border: 1px solid #000;
 }
 td.indexpage {
-  background: #ffffff url("../images/indexpage.jpg") no-repeat;
+  background: white url("../images/indexpage.jpg") no-repeat;
   text-align: left;
 }
 td.nix {
@@ -1467,8 +1467,8 @@ label.required:after {
 }
 #layout_content {
   overflow: auto;
-  background: linear-gradient(90deg, #ffffff 30%, rgba(255, 255, 255, 0)), linear-gradient(90deg, rgba(255, 255, 255, 0), #ffffff 70%) 100% 0, /* Shadows */ radial-gradient(0 50%, farthest-side, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)), radial-gradient(100% 50%, farthest-side, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)) 100% 0;
-  background: linear-gradient(90deg, #ffffff 30%, rgba(255, 255, 255, 0)), linear-gradient(90deg, rgba(255, 255, 255, 0), #ffffff 70%) 100% 0, /* Shadows */ radial-gradient(farthest-side at 0 50%, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)), radial-gradient(farthest-side at 100% 50%, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)) 100% 0;
+  background: linear-gradient(90deg, white 30%, rgba(255, 255, 255, 0)), linear-gradient(90deg, rgba(255, 255, 255, 0), white 70%) 100% 0, /* Shadows */ radial-gradient(0 50%, farthest-side, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)), radial-gradient(100% 50%, farthest-side, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)) 100% 0;
+  background: linear-gradient(90deg, white 30%, rgba(255, 255, 255, 0)), linear-gradient(90deg, rgba(255, 255, 255, 0), white 70%) 100% 0, /* Shadows */ radial-gradient(farthest-side at 0 50%, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)), radial-gradient(farthest-side at 100% 50%, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)) 100% 0;
   background-repeat: no-repeat;
   background-size: 40px 100%, 40px 100%, 14px 100%, 14px 100%;
   /* Opera doesn't support this in the shorthand */
@@ -2699,16 +2699,6 @@ select.sidebar-selectlist {
   vertical-align: text-top;
   width: 16px;
 }
-/*
-.sidebar-widget.sidebar-infobox {
-    border-color: @red;
-    background: @light-gray-color-20;
-
-    .sidebar-widget-header {
-        background: @red-40;
-    }
-}
-*/
 .helpbar-container {
   background: #fff;
   clear: both;
@@ -3080,9 +3070,9 @@ section.contentbox article.new header h1:before {
   -webkit-border-radius: 9px;
   -moz-border-radius: 9px;
   border-radius: 9px;
-  -webkit-box-shadow: #000000 0px 1px 3px;
-  -moz-box-shadow: #000000 0px 1px 3px;
-  box-shadow: #000000 0px 1px 3px;
+  -webkit-box-shadow: black 0px 1px 3px;
+  -moz-box-shadow: black 0px 1px 3px;
+  box-shadow: black 0px 1px 3px;
 }
 /* --- AJAX indicator ------------------------------------------------------- */
 #ajax_notification {
@@ -3417,21 +3407,21 @@ div.messagebox_details {
 }
 div.messagebox_info {
   color: #000000;
-  background-color: #ffffff;
+  background-color: white;
   background-image: url("../images/messagebox/info.png");
   background-size: 32px 32px;
   border-color: #28497c;
 }
 div.messagebox_success {
   color: #000000;
-  background-color: #ffffff;
+  background-color: white;
   background-image: url("../images/messagebox/success.png");
   background-size: 32px 32px;
   border-color: #00962d;
 }
 div.messagebox_error {
   color: #000000;
-  background-color: #ffffff;
+  background-color: white;
   background-image: url("../images/messagebox/error.png");
   background-size: 32px 32px;
   border-color: #d60000;
@@ -5778,6 +5768,228 @@ ol ol {
 }
 .list-csv > li:last-child:after {
   content: "";
+}
+@media screen and (max-width: 768px) {
+  #barTopFont,
+  #barTopStudip {
+    display: none;
+  }
+  #header {
+    background-color: #28497c;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    border-bottom: 1px solid #a5adb2;
+    height: 36px;
+    z-index: 10000;
+  }
+  #barTopMenu {
+    z-index: 10001;
+    background-color: inherit;
+    position: fixed;
+    top: 0;
+    left: 36px;
+    right: 36px;
+    height: 36px;
+    text-align: center;
+    -webkit-align-items: space-between;
+    -ms-flex-align: space-between;
+    -moz-box-align: space-between;
+    align-items: space-between;
+  }
+  #barTopMenu:hover {
+    left: 0;
+    right: 0;
+    padding-top: 36px;
+    height: auto;
+    overflow-y: auto;
+    bottom: 0;
+  }
+  #barTopMenu:hover li,
+  #barTopMenu:hover li.active {
+    display: inline-block;
+  }
+  #barTopMenu:hover li img,
+  #barTopMenu:hover li.active img {
+    width: 64px;
+    height: 64px;
+  }
+  #barTopMenu > li {
+    margin-right: 1em;
+    float: none;
+    display: none;
+    padding: 3px;
+  }
+  #barTopMenu > li:last-child {
+    margin-right: 0;
+  }
+  #barTopMenu > li.active {
+    display: block;
+  }
+  #barTopMenu > li.active:before {
+    content: url;
+  }
+  #barTopMenu > li:hover {
+    background-color: #a9b6cb;
+  }
+  #barTopMenu > li a {
+    font-size: 2em;
+    text-align: center;
+  }
+  #barTopMenu > li a[data-badge]:before,
+  #barTopMenu > li a[data-badge]:after {
+    display: none !important;
+  }
+  #barTopMenu > li img {
+    display: inline-block !important;
+    vertical-align: top;
+  }
+  #barTopMenu > li canvas {
+    display: none !important;
+  }
+  #tabs {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 66%;
+    height: 36px;
+    overflow: hidden;
+    padding: 0;
+    background-color: #28497c;
+    padding-top: 36px;
+    z-index: 10000;
+  }
+  #tabs:before {
+    background-repeat: no-repeat;
+    content: ' ';
+    display: inline-block;
+    height: 32px;
+    margin-right: 2px;
+    background-image: url("../images/icons/32/white/add-circle-full.png");
+    background-image: none, url("../images/icons/white/add-circle-full.svg");
+    -webkit-background-size: 32px 32px;
+    -moz-background-size: 32px 32px;
+    -o-background-size: 32px 32px;
+    background-size: 32px 32px;
+    vertical-align: text-top;
+    width: 32px;
+  }
+  #tabs:before {
+    cursor: pointer;
+    position: fixed;
+    left: 1px;
+    top: 1px;
+  }
+  #tabs:hover {
+    bottom: 0;
+    height: auto;
+    overflow: visible;
+    /*
+            &:after {
+                content: '';
+                display: block;
+                position: fixed;
+                top: @header-height;
+                left: 34%;
+                right: 0;
+                bottom: 0;
+                background-color: fadeout(#888, 80%);
+                z-index: 10000;
+            }
+*/
+  }
+  #tabs:hover:before {
+    background-repeat: no-repeat;
+    content: ' ';
+    display: inline-block;
+    height: 32px;
+    margin-right: 2px;
+    background-image: url("../images/icons/32/white/remove-circle-full.png");
+    background-image: none, url("../images/icons/white/remove-circle-full.svg");
+    -webkit-background-size: 32px 32px;
+    -moz-background-size: 32px 32px;
+    -o-background-size: 32px 32px;
+    background-size: 32px 32px;
+    vertical-align: text-top;
+    width: 32px;
+  }
+  #tabs:hover li {
+    display: block;
+  }
+  #tabs li {
+    display: none;
+    border-right: 0;
+    float: none;
+  }
+  #tabs li span {
+    display: inline-block;
+    visibility: hidden;
+  }
+  #tabs li span:before {
+    content: attr(title);
+    visibility: visible;
+  }
+  #layout-sidebar {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    position: fixed;
+    top: 0;
+    right: 0;
+    overflow: hidden;
+    height: 36px;
+    min-width: 36px;
+    width: 36px;
+    padding-top: 36px;
+    z-index: 10000;
+    background: #28497c;
+  }
+  #layout-sidebar:before {
+    background-repeat: no-repeat;
+    content: ' ';
+    display: inline-block;
+    height: 32px;
+    margin-right: 2px;
+    background-image: url("../images/icons/32/white/admin.png");
+    background-image: none, url("../images/icons/white/admin.svg");
+    -webkit-background-size: 32px 32px;
+    -moz-background-size: 32px 32px;
+    -o-background-size: 32px 32px;
+    background-size: 32px 32px;
+    vertical-align: text-top;
+    width: 32px;
+  }
+  #layout-sidebar:before {
+    cursor: pointer;
+    position: fixed;
+    right: 1px;
+    top: 1px;
+  }
+  #layout-sidebar:hover {
+    bottom: 0;
+    height: auto;
+    overflow: visible;
+    width: 100%;
+  }
+  #layout-sidebar .sidebar-image {
+    display: none;
+  }
+  #layout-sidebar .sidebar {
+    width: 100%;
+    background: inherit;
+    border: 0;
+  }
+  #layout-sidebar .widget-links li.active {
+    margin-right: 0;
+  }
+  #layout-sidebar .widget-links li.active:before,
+  #layout-sidebar .widget-links li.active:after {
+    display: none;
+  }
 }
 /* --- Standardvorgaben ----------------------------------------------------- */
 html,
