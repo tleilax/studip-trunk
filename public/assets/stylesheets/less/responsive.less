@@ -1,207 +1,165 @@
-@media screen and (max-width: 768px) {
-    @icon-size: 32px;
-    @icon-padding: 2px;
-    @header-height: @icon-size + 2 * @icon-padding;
-    @header-color: @base-color;
+@small-screen-width: 768px;
 
-    html body {
-        margin-top: @header-height + 1px;
-    }
-    #barBottomContainer {
-        position: fixed;
-        left: 0;
-        right: 0;
-        top: @header-height + 1px;
-    }
 
-    #barTopFont, #barTopStudip {
+#header {
+    @media screen and (max-width: @small-screen-width) {
+        max-height: 0px;
+        overflow: hidden;
+    }
+}
+
+#barBottomLeft {
+    .current_page {
+        display: block;
+        @media screen and (max-width: @small-screen-width) {
+            display: none;
+        }
+    }
+    .hamburger {
+        display: none;
+        @media screen and (max-width: @small-screen-width) {
+            display: block;
+        }
+    }
+}
+
+#barTopMenu {
+    a {
+        min-width: 42px;
+        display: inline-block;
+        @media screen and (max-width: @small-screen-width) {
+            margin: 0px;
+            padding: 0px;
+            font-size: 0px;
+            max-height: 0px;
+        }
+        img.headericon, img.headericon.punch {
+            @media screen and (max-width: @small-screen-width) {
+                width: 0px;
+                height: 0px;
+            }
+        }
+    }
+}
+#barTopFont {
+    @media screen and (max-width: @small-screen-width) {
+        font-size: 0pt;
+        transition: font-size 600ms;
+    }
+    transition: font-size 600ms;
+}
+
+#layout_wrapper #layout_page {
+    @media screen and (max-width: @small-screen-width) {
+        margin-left: 0px;
+        margin-right: 0px;
+    }
+}
+
+@media screen and (max-width: @small-screen-width) {
+    #layout-sidebar {
         display: none;
     }
-    #header {
-        background-color: @header-color;
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        border-bottom: 1px solid @light-gray-color-60;
-        
-        height: @header-height;
-        z-index: 10000;
-    }
+
     #barTopMenu {
-        z-index: 10001;
-        background-color: inherit;
-        position: fixed;
-        top: 0;
-        left: @icon-size + 2 * @icon-padding;
-        right: @icon-size + 2 * @icon-padding;
-        height: @header-height;
-        overflow: hidden;
-        text-align: center;
-        
-        .flex-align-items(space-between);
+        display: none;
+    }
 
-        &:hover {
-            left: 0;
-            right: 0;
-            padding-top: @header-height;
-            li, li.active {
-                .box-sizing(border-box);
-                display: inline-block;
-                width: 30%;
-                img {
-                    width: 64px;
-                    height: 64px;
-                }
-            }
-            height: auto;
-            overflow-y: auto;
-            bottom: 0;
+    #layout_footer {
+        display: none;
+    }
+}
+
+#barBottomContainer {
+    @media screen and (max-width: @small-screen-width) {
+        display: fixed;
+    }
+}
+
+#hamburgerMenu {
+    max-width: 270px;
+    width: 270px;
+    #gradient > .horizontal(@brand-color-darker, @brand-color-light);
+    position: fixed;
+    left: -276px;
+    transition: left 300ms;
+    height: 100vh;
+    display: none;
+    background-clip: content-box;
+    border-right: 6px solid rgba(0, 0, 0, 0.5);
+    @media screen and (max-width: @small-screen-width) {
+        display: block;
+    }
+}
+
+#hamburgerChecker:checked + #hamburgerMenu {
+    left: 0px;
+    transition: left 300ms;
+}
+
+#hamburgerNavigation {
+    max-height: 100vh;
+    overflow: auto;
+    margin: 0px;
+    padding: 0px;
+    padding-left: 10px;
+    padding-right: 10px;
+    list-style-type: none;
+    label {
+        cursor: pointer;
+    }
+    > li {
+        &:first-child {
+            border-top: none;
         }
+        .icon {
+            width: 20px;
+            height: 20px;
+            display: inline-block;
+            padding-right: 15px;
+        }
+        border-top: 1px solid white;
+        padding: 10px;
+        list-style-type: none;
+    }
+    > li > .navigation_item {
+        font-size: 1.3em;
+    }
+    .navigation_item {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        justify-content: space-between;
+        align-content: center;
+        > .nav_link {
+            border-left: 1px solid white;
+            padding-left: 5px;
+        }
+    }
+    .subnavigation {
+        padding: 0px;
+        margin: 0px;
+        margin-top: 10px;
+        list-style-type: none;
+        max-height: 0px;
+        overflow: hidden;
+        transition: max-height 400ms ease;
         > li {
-            margin-right: 1em;
-            &:last-child {
-                margin-right: 0;
+            background-color: @brand-color-lighter;
+            &:first-child {
+                border-top: none;
             }
-            &.active {
-                &:before {
-                    content: url
-                }
-                display: block;
-            }
-            &:hover {
-                background-color: @base-color-40;
-            }
-            float: none;
-            display: none;
-            padding: 3px;
-
-            a {
-                font-size: 2em;
-                text-align: center;
-                &[data-badge] {
-                    &:before, &:after {
-                        display: none !important;
-                    }
-                }
-            }
-            img {
-                display: inline-block !important;
-                vertical-align: top;
-                margin: 0 !important;
-            }
-            canvas {
-                display: none !important;
-            }
-            
+            border-top: 1px solid white;
+            padding-top: 10px;
+            padding-bottom: 10px;
+            list-style-type: none;
         }
     }
-    #tabs {
-        .icon-before('white/hamburger-icon.svg', @icon-size, @icon-padding);
-        &:before {
-            cursor: pointer;
-            position: fixed;
-            left: 1px;
-            top: 1px;
+    input:checked + .subnavigation {
+        max-height: 600px;
+        transition: max-height 400ms ease;
+        > li {
+            background-color: mix(rgba(0,0,0,0.2), @brand-color-lighter);
         }
-        
-        &:hover {
-            bottom: 0;
-            height: auto;
-            overflow: visible;
-            
-            li {
-                display: block;
-            }
-/*
-            &:after {
-                content: '';
-                display: block;
-                position: fixed;
-                top: @header-height;
-                left: 34%;
-                right: 0;
-                bottom: 0;
-                background-color: fadeout(#888, 80%);
-                z-index: 10000;
-            }
-*/
-        }
-
-        .box-sizing(border-box);
-        position: fixed;
-        top: 0;
-        left: 0;
-        min-width: 200px;
-        height: @header-height;
-        overflow: hidden;
-        padding: 0;
-        background-color: @header-color;
-        padding-top: @header-height;
-        
-        z-index: 10000;
-        
-        li {
-            display: none;
-            border-right: 0;
-            float: none;
-            
-            span {
-                display: inline-block;
-                visibility: hidden;
-                &:before {
-                    content: attr(title);
-                    visibility: visible;
-                }
-            }
-        }
-    }
-    
-    #layout-sidebar {
-        .icon-before('white/hamburger-icon-small.svg', @icon-size, @icon-padding);
-        &:before {
-            cursor: pointer;
-            position: fixed;
-            right: 1px;
-            top: 1px;
-        }
-        &:hover {
-            bottom: 0;
-            height: auto;
-            overflow: visible;
-            width: 100%;
-        }
-
-        .box-sizing(border-box);
-        position: fixed;
-        top: 0;
-        right: 0;
-        overflow: hidden;
-        height: @header-height;
-        min-width: @icon-size + 2 * @icon-padding;
-        width: @icon-size + 2 * @icon-padding;
-
-        padding-top: @header-height;
-        z-index: 10000;
-        
-        background: @header-color;
-        
-        .sidebar-image {
-            display: none;
-        }
-        .sidebar {
-            width: 100%;
-            background: inherit;
-            border: 0;
-        }
-        .widget-links li.active {
-            &:before, &:after {
-                display: none;
-            }
-            margin-right: 0;
-        }
-    }
-    #layout_wrapper #layout_page {
-        min-width: 0;
     }
 }
