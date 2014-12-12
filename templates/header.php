@@ -52,7 +52,7 @@
         </div>
         <div class="hamburger">
             <label for="hamburgerChecker">
-            <?= Assets::img("icons/20/white/hamburger", array('class' => "text-bottom")) ?>
+            <?= Assets::img("icons/20/white/hamburger-icon", array('class' => "text-bottom")) ?>
             </label>
         </div>
 
