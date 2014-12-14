@@ -5929,6 +5929,11 @@ ol ol {
   flex-wrap: nowrap;
   justify-content: space-between;
   align-content: center;
+  display: -webkit-flex;
+  -webkit-flex-direction: row;
+  -webkit-flex-wrap: nowrap;
+  -webkit-justify-content: space-between;
+  -webkit-align-content: center;
 }
 #hamburgerNavigation .navigation_item > .nav_link {
   border-left: 1px solid white;
