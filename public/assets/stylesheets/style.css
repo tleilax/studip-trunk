@@ -5843,13 +5843,9 @@ ol ol {
     height: 0px;
   }
 }
-#barTopFont {
-  transition: font-size 600ms;
-}
 @media screen and (max-width: 768px) {
   #barTopFont {
-    font-size: 0pt;
-    transition: font-size 600ms;
+    display: none;
   }
 }
 @media screen and (max-width: 768px) {
