@@ -5787,8 +5787,25 @@ ol ol {
 }
 @media screen and (max-width: 768px) {
   #barBottommiddle,
-  #barBottomright {
-    display: none;
+  #quicksearch {
+    display: none !important;
+  }
+}
+@media screen and (max-width: 768px) {
+  #notification_marker {
+    margin-top: 5.8333333333333333px;
+  }
+}
+@media screen and (max-width: 768px) {
+  #barBottomright,
+  #barBottomright ul {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+  }
+  #barBottomright > li,
+  #barBottomright ul > li {
+    line-height: 35px;
   }
 }
 #barBottomLeft .current_page {
@@ -5846,7 +5863,8 @@ ol ol {
   #layout_container,
   #layout_footer,
   #barBottomContainer,
-  #flex-header {
+  #flex-header,
+  #layout_content {
     min-width: inherit !important;
   }
 }
@@ -5864,6 +5882,11 @@ ol ol {
 @media screen and (max-width: 768px) {
   #barBottomContainer {
     display: fixed;
+    height: 35px;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.7);
   }
 }
 #hamburgerMenu {
@@ -5884,6 +5907,7 @@ ol ol {
   display: none;
   background-clip: content-box;
   border-right: 6px solid rgba(0, 0, 0, 0.5);
+  top: 35px;
 }
 @media screen and (max-width: 768px) {
   #hamburgerMenu {
@@ -5892,6 +5916,9 @@ ol ol {
 }
 label[for=hamburgerChecker] {
   cursor: pointer;
+}
+.hamburger label svg {
+  margin-top: 5.8333333333333333px;
 }
 #hamburgerChecker:checked + #hamburgerMenu {
   left: 0px;
@@ -5902,15 +5929,13 @@ label[for=hamburgerChecker] {
   overflow: auto;
   margin: 0px;
   padding: 0px;
-  padding-left: 10px;
-  padding-right: 10px;
   list-style-type: none;
 }
 #hamburgerNavigation label {
   cursor: pointer;
 }
 #hamburgerNavigation > li {
-  border-top: 1px solid white;
+  border-top: 1px solid #899ab9;
   padding: 0px;
   list-style-type: none;
 }
@@ -5940,7 +5965,6 @@ label[for=hamburgerChecker] {
   -webkit-align-content: center;
 }
 #hamburgerNavigation .navigation_item > .nav_link {
-  border-left: 1px solid white;
   padding-left: 5px;
 }
 #hamburgerNavigation .subnavigation {
@@ -5954,7 +5978,7 @@ label[for=hamburgerChecker] {
 }
 #hamburgerNavigation .subnavigation > li {
   background-color: #899ab9;
-  border-top: 1px solid white;
+  border-top: 1px solid #899ab9;
   padding: 0px;
   list-style-type: none;
 }
