@@ -11,5 +11,10 @@ jQuery(function() {
         } else {
             jQuery(this).closest("li").siblings().slideDown();
         }
-    }).trigger("change");
+    });
+    jQuery("#hamburgerNavigation .subnavigation input[type=checkbox]").each(function (index, input) {
+        if (jQuery(input).siblings(".subnavigation").find("input:checked").length > 0) {
+            jQuery(input).closest("li").siblings().hide();
+        }
+    });
 });
