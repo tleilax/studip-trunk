@@ -5988,6 +5988,10 @@ label[for=hamburgerChecker] {
 #hamburgerNavigation input:checked + .subnavigation > li {
   background-color: rgba(123, 139, 167, 0.6);
 }
+#hamburgerNavigation > .placeholder {
+  height: 35px;
+  border-top: none;
+}
 /* --- Standardvorgaben ----------------------------------------------------- */
 html,
 body {
