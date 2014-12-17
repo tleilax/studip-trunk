@@ -5946,7 +5946,8 @@ ol ol {
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff36598f', endColorstr='#ff1e3e70', GradientType=1);
     border-left: 6px solid rgba(0, 0, 0, 0.5);
   }
-  #layout-sidebar .sidebar-image {
+  #layout-sidebar .sidebar-image,
+  #layout-sidebar #sidebar-navigation {
     display: none;
   }
   #layout-sidebar .sidebar {

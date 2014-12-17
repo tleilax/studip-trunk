@@ -55,7 +55,7 @@
 
         addMenu();
 
-        if ($('#layout-sidebar').length > 0) {
+        if ($('#layout-sidebar > section > :not(#sidebar-navigation,.sidebar-image)').length > 0) {
             $('<li id="sidebar-menu">').on('click', function () {
                 $('#hamburgerChecker').prop('checked', false);
                 $('#layout-sidebar').toggleClass('visible-sidebar');
