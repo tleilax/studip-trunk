@@ -56,7 +56,7 @@ class ResponsiveHelper
     
     protected static function getURL($url)
     {
-        return str_replace($GLOBALS['ABSOLUTE_URI_STUDIP'], '', $url);
+        return str_replace($GLOBALS['ABSOLUTE_URI_STUDIP'], '', URLHelper::getURL($url));
     }
 
     protected static function getAssetsURL($url)
