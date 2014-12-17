@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Contact.class.php - model class for table contact
  *
@@ -10,15 +11,13 @@
  * @property string user_id database column
  * @property string buddy database column
  * @property string calpermission database column
- * @property SimpleORMapCollection infos has_many ContactUserinfo
+ * @property SimpleORMapCollection group_assignments has_many StatusgruppeUser
  * @property User owner belongs_to User
  * @property User friend belongs_to User
  */
-class Contact extends SimpleORMap
-{
+class Contact extends SimpleORMap {
 
-    protected static function configure($config = array())
-    {
+    protected static function configure($config = array()) {
 
         $config['db_table'] = 'contact';
         $config['belongs_to']['owner'] = array(
@@ -29,17 +28,15 @@ class Contact extends SimpleORMap
             'class_name' => 'User',
             'foreign_key' => 'user_id'
         );
-
-        $config['has_many']['infos'] = array(
-            'class_name' => 'ContactUserinfo',
-            'assoc_foreign_key' => 'contact_id'
+        $config['has_many']['group_assignments'] = array(
+            'class_name' => 'StatusgruppeUser',
+            'foreign_key' => 'user_id',
+            'assoc_foreign_key' => 'user_id',
+            'on_delete' => 'delete',
+            'on_store' => 'store',
         );
 
-        parent::configure($config);
-    }
 
-    public function findByOwner_id($id, $order = 'ORDER BY contact_id ASC')
-    {
-        return self::findBySQL('contact.owner_id = ? ' . $order, array($id));
+        parent::configure($config);
     }
 }

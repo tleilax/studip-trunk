@@ -57,11 +57,7 @@ class CommunityNavigation extends Navigation
         $this->addSubNavigation('online', $navigation);
 
         // contacts
-        $navigation = new Navigation(_('Kontakte'));
-        $navigation->addSubNavigation('alpha', new Navigation(_('Meine Kontakte'), 'contact.php', array('view' => 'alpha')));
-        $navigation->addSubNavigation('gruppen', new Navigation(_('Meine Gruppen'), 'contact.php', array('view' => 'gruppen')));
-        $navigation->addSubNavigation('admin_groups', new Navigation(_('Gruppenverwaltung'), 'contact_statusgruppen.php'));
-        $navigation->addSubNavigation('export', new Navigation(_('vCard-Export'), 'contact_export.php'));
+        $navigation = new Navigation(_('Kontakte'), 'dispatch.php/contact');
         $this->addSubNavigation('contacts', $navigation);
 
         // study groups
