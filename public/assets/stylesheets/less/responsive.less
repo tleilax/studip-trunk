@@ -95,6 +95,29 @@
 
 }
 
+#responsive-navigation {
+    .user-select(none);
+    
+    input[type="checkbox"] {
+        display: none;
+    }
+    label {
+        cursor: pointer;
+    }
+
+    li {
+        border-top: 1px solid @brand-color-lighter;
+    }
+
+    .nav_link {
+        .icon-before('white/arr_1right.svg', 20);
+        &:before {
+            vertical-align: text-bottom;
+        }
+        //border-left: 1px solid white;
+        padding-left: 5px;
+    }
+}
 
 #barBottomLeft {
     .hamburger {
@@ -125,8 +148,6 @@
 
 label[for="hamburgerChecker"] {
     .icon-before('white/hamburger-icon.svg', 20);
-    cursor: pointer;
-    vertical-align: text-bottom;
     &:before {
         vertical-align: bottom;
     }
@@ -161,21 +182,17 @@ label[for="hamburgerChecker"] {
     max-height: 100%;
     overflow: auto;
 
-    label {
-        cursor: pointer;
-    }
-
     > li {
-        border-top: 1px solid @brand-color-lighter;
-
         &:first-child {
             border-top: none;
         }
 
         .icon {
-            .square(20px);
+            .square(26px);
             display: inline-block;
-            padding-right: 15px;
+            padding-right: 8px;
+            vertical-align: text-bottom;
+            width: 26px;
         }
 
         > .navigation_item {
@@ -189,26 +206,25 @@ label[for="hamburgerChecker"] {
         .flex-wrap(nowrap);
         .flex-justify-content(space-between);
         .flex-align-content(center);
-        > .nav_link {
-            //border-left: 1px solid white;
-            padding-left: 5px;
-        }
     }
 
-    .subnavigation {
-        margin-top: 10px;
+    ul {
+        .transition(max-height 400ms ease);
+
         max-height: 0px;
         overflow: hidden;
-        .transition(max-height 400ms ease);
         > li {
             background-color: @brand-color-lighter;
-            border-top: 1px solid @brand-color-lighter;
             > .navigation_item {
-                margin: 10px;
+                padding: 10px;
             }
         }
+
+        .icon {
+            display: none;
+        }
     }
-    input:checked + .subnavigation {
+    input:checked + ul {
         max-height: 600px;
         > li {
             background-color: mix(rgba(0, 0, 0, 0.2), @brand-color-lighter);

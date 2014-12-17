@@ -1516,6 +1516,11 @@ label.required:after {
   margin: 0;
   text-align: right;
 }
+#footer {
+  color: #dfdfdf;
+  float: left;
+  margin: 4px;
+}
 #layout_wrapper {
   display: -ms-flexbox;
   display: -webkit-box;
@@ -5964,6 +5969,43 @@ ol ol {
     display: none;
   }
 }
+#responsive-navigation {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -o-user-select: none;
+  user-select: none;
+}
+#responsive-navigation input[type="checkbox"] {
+  display: none;
+}
+#responsive-navigation label {
+  cursor: pointer;
+}
+#responsive-navigation li {
+  border-top: 1px solid #899ab9;
+}
+#responsive-navigation .nav_link {
+  padding-left: 5px;
+}
+#responsive-navigation .nav_link:before {
+  background-repeat: no-repeat;
+  content: ' ';
+  display: inline-block;
+  height: 20px;
+  margin-right: 0;
+  background-image: url("../images/icons/32/white/arr_1right.png");
+  background-image: none, url("../images/icons/white/arr_1right.svg");
+  -webkit-background-size: 20px 20px;
+  -moz-background-size: 20px 20px;
+  -o-background-size: 20px 20px;
+  background-size: 20px 20px;
+  vertical-align: text-top;
+  width: 20px;
+}
+#responsive-navigation .nav_link:before {
+  vertical-align: text-bottom;
+}
 #barBottomLeft .hamburger {
   display: none;
 }
@@ -5988,10 +6030,6 @@ ol ol {
     width: 0px;
     height: 0px;
   }
-}
-label[for="hamburgerChecker"] {
-  cursor: pointer;
-  vertical-align: text-bottom;
 }
 label[for="hamburgerChecker"]:before {
   background-repeat: no-repeat;
@@ -6048,20 +6086,15 @@ label[for="hamburgerChecker"]:before {
   margin: 0px;
   padding: 0px;
 }
-#hamburgerNavigation label {
-  cursor: pointer;
-}
-#hamburgerNavigation > li {
-  border-top: 1px solid #899ab9;
-}
 #hamburgerNavigation > li:first-child {
   border-top: none;
 }
 #hamburgerNavigation > li .icon {
-  width: 20px;
-  height: 20px;
+  height: 26px;
   display: inline-block;
-  padding-right: 15px;
+  padding-right: 8px;
+  vertical-align: text-bottom;
+  width: 26px;
 }
 #hamburgerNavigation > li > .navigation_item {
   font-size: 1.3em;
@@ -6089,29 +6122,27 @@ label[for="hamburgerChecker"]:before {
   -ms-flex-line-pack: center;
   align-content: center;
 }
-#hamburgerNavigation .navigation_item > .nav_link {
-  padding-left: 5px;
-}
-#hamburgerNavigation .subnavigation {
-  margin-top: 10px;
-  max-height: 0px;
-  overflow: hidden;
+#hamburgerNavigation ul {
   -webkit-transition: max-height 400ms ease;
   -moz-transition: max-height 400ms ease;
   -o-transition: max-height 400ms ease;
   transition: max-height 400ms ease;
+  max-height: 0px;
+  overflow: hidden;
 }
-#hamburgerNavigation .subnavigation > li {
+#hamburgerNavigation ul > li {
   background-color: #899ab9;
-  border-top: 1px solid #899ab9;
 }
-#hamburgerNavigation .subnavigation > li > .navigation_item {
-  margin: 10px;
+#hamburgerNavigation ul > li > .navigation_item {
+  padding: 10px;
 }
-#hamburgerNavigation input:checked + .subnavigation {
+#hamburgerNavigation ul .icon {
+  display: none;
+}
+#hamburgerNavigation input:checked + ul {
   max-height: 600px;
 }
-#hamburgerNavigation input:checked + .subnavigation > li {
+#hamburgerNavigation input:checked + ul > li {
   background-color: rgba(123, 139, 167, 0.6);
 }
 /* --- Standardvorgaben ----------------------------------------------------- */
