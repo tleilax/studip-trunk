@@ -5843,13 +5843,9 @@ ol ol {
     height: 0px;
   }
 }
-#barTopFont {
-  transition: font-size 600ms;
-}
 @media screen and (max-width: 768px) {
   #barTopFont {
-    font-size: 0pt;
-    transition: font-size 600ms;
+    display: none;
   }
 }
 @media screen and (max-width: 768px) {
@@ -5890,15 +5886,16 @@ ol ol {
     border-bottom: 1px solid rgba(255, 255, 255, 0.7);
   }
 }
-#sidebar-menu {
-  display: none !important;
+#barBottomright #sidebar-menu {
+  display: none;
 }
 @media screen and (max-width: 768px) {
-  #sidebar-menu {
-    display: inline-block !important;
+  #barBottomright #sidebar-menu {
+    display: inline-block;
+    cursor: pointer;
     margin: 0 15px;
   }
-  #sidebar-menu img {
+  #barBottomright #sidebar-menu img {
     width: 3px;
   }
 }

@@ -176,7 +176,7 @@
                 <? endforeach ?>
             <? endif ?>
             <li id="sidebar-menu">
-                <?= Assets::img("icons/20/white/hamburger-icon", array('class' => "text-bottom")) ?>
+                <?= Assets::img("icons/20/white/hamburger-icon-small", array('class' => "text-bottom")) ?>
             </li>
         </ul>
 
