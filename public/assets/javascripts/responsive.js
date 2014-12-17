@@ -8,6 +8,7 @@
 
     var media_query = window.matchMedia('(max-width: 768px)');
 
+    // Builds a dom element from a navigation object
     function buildMenu(navigation, path, id) {
         var list = $('<ul>');
 
@@ -15,6 +16,7 @@
             list.attr('id', id);
         }
 
+        // TODO: Templating?
         _.forEach(navigation, function (nav, node) {
             var subpath = path + '_' + node,
                 li      = $('<li>'),
@@ -39,6 +41,7 @@
         return list;
     }
 
+    // Adds the responsive menu to the dom
     function addMenu() {
         var wrapper = $('<div id="responsive-navigation">'),
             menu    = buildMenu(STUDIP.Navigation, 'resp', 'hamburgerNavigation');
@@ -50,6 +53,8 @@
         wrapper.appendTo('#barBottomLeft');
     }
 
+    // Responsifies the layout. Builds the responsive menu from existing
+    // STUDIP.Navigation object
     function responsify() {
         media_query.removeListener(responsify);
 
@@ -79,6 +84,7 @@
         }).trigger('change');
     }
 
+    // Build responsife menu on domready or resize
     $(document).ready(function () {
         if (media_query.matches) {
             responsify();

@@ -5846,29 +5846,35 @@ ol ol {
 .plus .helplink {
   float: right;
 }
-@media screen and (max-width: 768px) {
-  #header {
-    max-height: 0px;
-    overflow: hidden;
+@media screen and (min-width: 768px) {
+  #responsive-navigation,
+  #sidebar-menu {
+    display: none;
   }
+}
+@media screen and (max-width: 768px) {
+  #header,
   #barTopFont,
   #barTopMenu,
   #barBottomLeft .current_page,
   #barBottommiddle,
+  .sidebar-image,
+  #sidebar-navigation,
   #quicksearch,
   #layout_footer {
     display: none !important;
   }
   #notification_marker {
-    margin-top: 5.83333333px;
+    display: inline-block;
+    margin-top: 0;
+    vertical-align: initial;
   }
   #barBottomContainer {
-    display: fixed;
-    height: 35px;
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
     box-sizing: border-box;
     border-bottom: 1px solid rgba(255, 255, 255, 0.7);
+    height: 35px;
   }
   #barBottomright,
   #barBottomright ul {
@@ -5880,47 +5886,33 @@ ol ol {
   #barBottomright ul > li {
     line-height: 35px;
   }
-  #sidebar-menu {
-    cursor: pointer;
-    display: inline-block;
-    margin: 0 5px;
-    vertical-align: text-bottom;
-  }
-  #sidebar-menu:before {
-    background-repeat: no-repeat;
-    content: ' ';
-    display: inline-block;
-    height: 20px;
+  #layout_page {
+    margin-left: 0;
     margin-right: 0;
-    background-image: url("../images/icons/32/white/hamburger-icon-small.png");
-    background-image: none, url("../images/icons/white/hamburger-icon-small.svg");
-    -webkit-background-size: 20px 20px;
-    -moz-background-size: 20px 20px;
-    -o-background-size: 20px 20px;
-    background-size: 20px 20px;
-    vertical-align: text-top;
-    width: 20px;
-  }
-  #layout_wrapper #layout_page {
-    margin-left: 0px;
-    margin-right: 0px;
   }
   #layout_page,
   #layout_container,
-  #layout_footer,
   #barBottomContainer,
   #flex-header,
   #layout_content {
     min-width: inherit !important;
   }
   .visible-sidebar {
-    right: 0px !important;
+    right: 0 !important;
     -webkit-transition: right 300ms;
     -moz-transition: right 300ms;
     -o-transition: right 300ms;
     transition: right 300ms;
   }
   #layout-sidebar {
+    background-color: #1e3e70;
+    background-image: -moz-linear-gradient(left, #36598f, #1e3e70);
+    background-image: -webkit-gradient(linear, 0 0, 100% 0, from(#36598f), to(#1e3e70));
+    background-image: -webkit-linear-gradient(left, #36598f, #1e3e70);
+    background-image: -o-linear-gradient(left, #36598f, #1e3e70);
+    background-image: linear-gradient(to right, #36598f, #1e3e70);
+    background-repeat: repeat-x;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff36598f', endColorstr='#ff1e3e70', GradientType=1);
     -webkit-background-clip: content-box;
     -moz-background-clip: content-box;
     background-clip: content-box;
@@ -5931,33 +5923,22 @@ ol ol {
     position: fixed;
     top: 35px;
     right: -276px;
-    overflow: hidden;
-    overflow-y: auto;
+    bottom: 0;
     height: 100%;
     width: 270px;
+    overflow: hidden;
+    overflow-y: auto;
     z-index: 10000;
-    background-color: #1e3e70;
-    background-image: -moz-linear-gradient(left, #36598f, #1e3e70);
-    background-image: -webkit-gradient(linear, 0 0, 100% 0, from(#36598f), to(#1e3e70));
-    background-image: -webkit-linear-gradient(left, #36598f, #1e3e70);
-    background-image: -o-linear-gradient(left, #36598f, #1e3e70);
-    background-image: linear-gradient(to right, #36598f, #1e3e70);
-    background-repeat: repeat-x;
-    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff36598f', endColorstr='#ff1e3e70', GradientType=1);
     border-left: 6px solid rgba(0, 0, 0, 0.5);
   }
-  #layout-sidebar .sidebar-image,
-  #layout-sidebar #sidebar-navigation {
-    display: none;
-  }
   #layout-sidebar .sidebar {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
     top: auto !important;
     width: 270px !important;
     background: inherit;
     border: 0;
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    box-sizing: border-box;
   }
   #layout-sidebar .sidebar:before {
     border: 0 !important;
@@ -5983,6 +5964,12 @@ ol ol {
 #responsive-navigation label {
   cursor: pointer;
 }
+#responsive-navigation ul,
+#responsive-navigation li {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
 #responsive-navigation li {
   border-top: 1px solid #899ab9;
 }
@@ -6007,31 +5994,6 @@ ol ol {
 #responsive-navigation .nav_link:before {
   vertical-align: text-bottom;
 }
-#barBottomLeft .hamburger {
-  display: none;
-}
-@media screen and (max-width: 768px) {
-  #barBottomLeft .hamburger {
-    display: block;
-  }
-}
-#barTopMenu a {
-  min-width: 42px;
-  display: inline-block;
-}
-@media screen and (max-width: 768px) {
-  #barTopMenu a {
-    margin: 0px;
-    padding: 0px;
-    font-size: 0px;
-    max-height: 0px;
-  }
-  #barTopMenu a img.headericon,
-  #barTopMenu a img.headericon.punch {
-    width: 0px;
-    height: 0px;
-  }
-}
 label[for="hamburgerChecker"]:before {
   background-repeat: no-repeat;
   content: ' ';
@@ -6051,7 +6013,7 @@ label[for="hamburgerChecker"]:before {
   vertical-align: bottom;
 }
 #hamburgerChecker:checked + #hamburgerNavigation {
-  left: 0px;
+  left: 0;
 }
 #hamburgerNavigation {
   background-color: #36598f;
@@ -6074,18 +6036,11 @@ label[for="hamburgerChecker"]:before {
   bottom: 0;
   left: -276px;
   height: 100%;
+  max-height: 100%;
   max-width: 270px;
   width: 270px;
   border-right: 6px solid rgba(0, 0, 0, 0.5);
-  max-height: 100%;
   overflow: auto;
-}
-#hamburgerNavigation,
-#hamburgerNavigation ul,
-#hamburgerNavigation li {
-  list-style-type: none;
-  margin: 0px;
-  padding: 0px;
 }
 #hamburgerNavigation > li:first-child {
   border-top: none;
@@ -6145,6 +6100,27 @@ label[for="hamburgerChecker"]:before {
 }
 #hamburgerNavigation input:checked + ul > li {
   background-color: rgba(123, 139, 167, 0.6);
+}
+#sidebar-menu {
+  cursor: pointer;
+  display: inline-block;
+  margin: 0 5px;
+  vertical-align: text-bottom;
+}
+#sidebar-menu:before {
+  background-repeat: no-repeat;
+  content: ' ';
+  display: inline-block;
+  height: 20px;
+  margin-right: 0;
+  background-image: url("../images/icons/32/white/hamburger-icon-small.png");
+  background-image: none, url("../images/icons/white/hamburger-icon-small.svg");
+  -webkit-background-size: 20px 20px;
+  -moz-background-size: 20px 20px;
+  -o-background-size: 20px 20px;
+  background-size: 20px 20px;
+  vertical-align: text-top;
+  width: 20px;
 }
 /* --- Standardvorgaben ----------------------------------------------------- */
 html,
