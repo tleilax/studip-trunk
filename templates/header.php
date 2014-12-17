@@ -50,50 +50,45 @@
         <div class="current_page">
             <?= ($current_page != "" ? _("Aktuelle Seite:") : "") ?>
         </div>
-        <div class="hamburger">
-            <label for="hamburgerChecker">
-                <?= Assets::img("icons/20/white/hamburger-icon", array('class' => "text-bottom")) ?>
-            </label>
-        </div>
+
+        <label for="hamburgerChecker" class="hamburger"></label>
 
         <input type="checkbox" id="hamburgerChecker" style="display: none;">
 
-        <div id="hamburgerMenu">
-            <ol id="hamburgerNavigation">
-                <? $root = Navigation::getItem("/") ?>
-                <? foreach ($root->getSubNavigation() as $path => $nav) : ?>
-                    <? if ($nav->isVisible(true)) : ?>
-                        <li>
-                            <? $checkbox_id = "checkbox_" . $path ?>
-                            <div class="navigation_item">
-                                <div class="nav_title">
-                                    <? if ($nav->getSubNavigation()) : ?>
-                                    <label for="<?= $checkbox_id ?>">
-                                        <? endif ?>
-                                        <div class="icon">
-                                            <? if ($nav->getImage()) : ?>
-                                                <? $icon_array = $nav->getImage() ?>
-                                                <img src="<?= htmlReady($icon_array['src']) ?>" style="width: 26px; vertical-align: text-bottom;">
-                                            <? endif ?>
-                                        </div>
-                                        <?= htmlReady($nav->getTitle()) ?>
-                                        <? if ($nav->getSubNavigation()) : ?>
-                                    </label>
-                                <? endif ?>
+        <ul id="hamburgerNavigation">
+        <? $root = Navigation::getItem("/") ?>
+        <? foreach ($root->getSubNavigation() as $path => $nav) : ?>
+            <? if ($nav->isVisible(true)) : ?>
+                <li>
+                    <? $checkbox_id = "checkbox_" . $path ?>
+                    <div class="navigation_item">
+                        <div class="nav_title">
+                        <? if ($nav->getSubNavigation()) : ?>
+                            <label for="<?= $checkbox_id ?>">
+                        <? endif; ?>
+                                <div class="icon">
+                                <? if ($nav->getImage()) : ?>
+                                    <? $icon_array = $nav->getImage() ?>
+                                    <img src="<?= htmlReady($icon_array['src']) ?>" style="width: 26px; vertical-align: text-bottom;">
+                                <? endif; ?>
                                 </div>
-                                <a class="nav_link" href="<?= URLHelper::getLink($nav->getURL()) ?>">
-                                    <?= Assets::img("icons/20/white/arr_1right", array('class' => "text-bottom")) ?>
-                                </a>
-                            </div>
-                            <? if ($nav->getSubNavigation()) : ?>
-                                <input type="checkbox" id="<?= $checkbox_id ?>" style="display: none;"<?= $nav->isActive() ? " checked" : "" ?>>
-                                <?= $this->render_partial("navigation/_hamburger_navigation.php", array('path' => $path, 'nav' => $nav)) ?>
-                            <? endif ?>
-                        </li>
-                    <? endif ?>
-                <? endforeach ?>
-            </ol>
-        </div>
+                                <?= htmlReady($nav->getTitle()) ?>
+                        <? if ($nav->getSubNavigation()) : ?>
+                            </label>
+                        <? endif; ?>
+                        </div>
+                        <a class="nav_link" href="<?= URLHelper::getLink($nav->getURL()) ?>">
+                            <?= Assets::img("icons/20/white/arr_1right", array('class' => "text-bottom")) ?>
+                        </a>
+                    </div>
+                <? if ($nav->getSubNavigation()): ?>
+                    <input type="checkbox" id="<?= $checkbox_id ?>" style="display: none;"<?= $nav->isActive() ? " checked" : "" ?>>
+                    <?= $this->render_partial("navigation/_hamburger_navigation.php", compact(words('path nav'))) ?>
+                <? endif; ?>
+                </li>
+            <? endif; ?>
+        <? endforeach; ?>
+        </ul>
     </div>
     <div id="barBottommiddle">
         <?= ($current_page != "" ? htmlReady($current_page) : "") ?>
@@ -157,27 +152,24 @@
                     </form>
                 </li>
             <? endif ?>
-            <? if (Navigation::hasItem('/links')) : ?>
-                <? foreach (Navigation::getItem('/links') as $nav) : ?>
+            <? if (Navigation::hasItem('/links')): ?>
+                <? foreach (Navigation::getItem('/links') as $nav): ?>
                     <? if ($nav->isVisible()) : ?>
                         <li <? if ($nav->isActive()) echo 'class="active"'; ?>>
                             <a
                                 <? if (is_internal_url($url = $nav->getURL())) : ?>
                                     href="<?= URLHelper::getLink($url, $link_params) ?>"
-                                <? else : ?>
+                                <? else: ?>
                                     href="<?= htmlReady($url) ?>" target="_blank"
-                                <? endif ?>
+                                <? endif; ?>
                                 <? if ($nav->getDescription()): ?>
                                     title="<?= htmlReady($nav->getDescription()) ?>"
                                 <? endif; ?>
                                 ><?= htmlReady($nav->getTitle()) ?></a>
                         </li>
-                    <? endif ?>
-                <? endforeach ?>
-            <? endif ?>
-            <li id="sidebar-menu">
-                <?= Assets::img("icons/20/white/hamburger-icon-small", array('class' => "text-bottom")) ?>
-            </li>
+                    <? endif; ?>
+                <? endforeach; ?>
+            <? endif; ?>
         </ul>
 
     </div>

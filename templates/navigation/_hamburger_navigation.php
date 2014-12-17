@@ -1,4 +1,4 @@
-<ol class="subnavigation">
+<ul class="subnavigation">
     <? foreach ($nav->getSubNavigation() as $subpath => $subnav) : ?>
         <li>
             <? $checkbox_id = "checkbox_".$path."_".$subpath ?>
@@ -16,4 +16,4 @@
             <?= $this->render_partial("navigation/_hamburger_navigation.php", array('path' => $path."_".$subpath, 'nav' => $subnav)) ?>
         </li>
     <? endforeach ?>
-</ol>
+</ul>

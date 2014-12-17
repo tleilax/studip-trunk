@@ -1,5 +1,5 @@
 /*******************************************************************************
-  Standard-Stylesheet für Stud.IP im Safire-Design
+  Standard-Stylesheet fï¿½r Stud.IP im Safire-Design
   - use http://www.colorzilla.com/gradient-editor/ for gradients
 *******************************************************************************/
 .clearfix {
@@ -48,8 +48,8 @@
  */
 .scrollbox-vertical {
   overflow: auto;
-  background: /* Shadow covers */ linear-gradient(#ffffff 30%, rgba(255, 255, 255, 0)), linear-gradient(rgba(255, 255, 255, 0), #ffffff 70%) 0 100%, /* Shadows */ radial-gradient(50% 0, farthest-side, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)), radial-gradient(50% 100%, farthest-side, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)) 0 100%;
-  background: /* Shadow covers */ linear-gradient(#ffffff 30%, rgba(255, 255, 255, 0)), linear-gradient(rgba(255, 255, 255, 0), #ffffff 70%) 0 100%, /* Shadows */ radial-gradient(farthest-side at 50% 0, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)), radial-gradient(farthest-side at 50% 100%, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)) 0 100%;
+  background: linear-gradient(white 30%, rgba(255, 255, 255, 0)), linear-gradient(rgba(255, 255, 255, 0), white 70%) 0 100%, /* Shadows */ radial-gradient(50% 0, farthest-side, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)), radial-gradient(50% 100%, farthest-side, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)) 0 100%;
+  background: linear-gradient(white 30%, rgba(255, 255, 255, 0)), linear-gradient(rgba(255, 255, 255, 0), white 70%) 0 100%, /* Shadows */ radial-gradient(farthest-side at 50% 0, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)), radial-gradient(farthest-side at 50% 100%, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)) 0 100%;
   background-repeat: no-repeat;
   background-size: 100% 40px, 100% 40px, 100% 14px, 100% 14px;
   /* Opera doesn't support this in the shorthand */
@@ -57,8 +57,8 @@
 }
 .scrollbox-horizontal {
   overflow: auto;
-  background: /* Shadow covers */ linear-gradient(90deg, #ffffff 30%, rgba(255, 255, 255, 0)), linear-gradient(90deg, rgba(255, 255, 255, 0), #ffffff 70%) 100% 0, /* Shadows */ radial-gradient(0 50%, farthest-side, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)), radial-gradient(100% 50%, farthest-side, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)) 100% 0;
-  background: /* Shadow covers */ linear-gradient(90deg, #ffffff 30%, rgba(255, 255, 255, 0)), linear-gradient(90deg, rgba(255, 255, 255, 0), #ffffff 70%) 100% 0, /* Shadows */ radial-gradient(farthest-side at 0 50%, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)), radial-gradient(farthest-side at 100% 50%, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)) 100% 0;
+  background: linear-gradient(90deg, white 30%, rgba(255, 255, 255, 0)), linear-gradient(90deg, rgba(255, 255, 255, 0), white 70%) 100% 0, /* Shadows */ radial-gradient(0 50%, farthest-side, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)), radial-gradient(100% 50%, farthest-side, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)) 100% 0;
+  background: linear-gradient(90deg, white 30%, rgba(255, 255, 255, 0)), linear-gradient(90deg, rgba(255, 255, 255, 0), white 70%) 100% 0, /* Shadows */ radial-gradient(farthest-side at 0 50%, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)), radial-gradient(farthest-side at 100% 50%, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)) 100% 0;
   background-repeat: no-repeat;
   background-size: 40px 100%, 40px 100%, 14px 100%, 14px 100%;
   /* Opera doesn't support this in the shorthand */
@@ -118,7 +118,7 @@ html {
 body {
   font-family: "Lato", sans-serif;
   font-size: 14px;
-  line-height: 1.428571429;
+  line-height: 1.42857143;
   color: #000000;
 }
 input,
@@ -340,7 +340,7 @@ td.angemeldet {
   border: 1px solid #000;
 }
 td.indexpage {
-  background: #ffffff url("../images/indexpage.jpg") no-repeat;
+  background: white url("../images/indexpage.jpg") no-repeat;
   text-align: left;
 }
 td.nix {
@@ -1467,8 +1467,8 @@ label.required:after {
 }
 #layout_content {
   overflow: auto;
-  background: /* Shadow covers */ linear-gradient(90deg, #ffffff 30%, rgba(255, 255, 255, 0)), linear-gradient(90deg, rgba(255, 255, 255, 0), #ffffff 70%) 100% 0, /* Shadows */ radial-gradient(0 50%, farthest-side, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)), radial-gradient(100% 50%, farthest-side, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)) 100% 0;
-  background: /* Shadow covers */ linear-gradient(90deg, #ffffff 30%, rgba(255, 255, 255, 0)), linear-gradient(90deg, rgba(255, 255, 255, 0), #ffffff 70%) 100% 0, /* Shadows */ radial-gradient(farthest-side at 0 50%, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)), radial-gradient(farthest-side at 100% 50%, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)) 100% 0;
+  background: linear-gradient(90deg, white 30%, rgba(255, 255, 255, 0)), linear-gradient(90deg, rgba(255, 255, 255, 0), white 70%) 100% 0, /* Shadows */ radial-gradient(0 50%, farthest-side, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)), radial-gradient(100% 50%, farthest-side, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)) 100% 0;
+  background: linear-gradient(90deg, white 30%, rgba(255, 255, 255, 0)), linear-gradient(90deg, rgba(255, 255, 255, 0), white 70%) 100% 0, /* Shadows */ radial-gradient(farthest-side at 0 50%, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)), radial-gradient(farthest-side at 100% 50%, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)) 100% 0;
   background-repeat: no-repeat;
   background-size: 40px 100%, 40px 100%, 14px 100%, 14px 100%;
   /* Opera doesn't support this in the shorthand */
@@ -2699,16 +2699,6 @@ select.sidebar-selectlist {
   vertical-align: text-top;
   width: 16px;
 }
-/*
-.sidebar-widget.sidebar-infobox {
-    border-color: @red;
-    background: @light-gray-color-20;
-
-    .sidebar-widget-header {
-        background: @red-40;
-    }
-}
-*/
 .helpbar-container {
   background: #fff;
   clear: both;
@@ -3080,9 +3070,9 @@ section.contentbox article.new header h1:before {
   -webkit-border-radius: 9px;
   -moz-border-radius: 9px;
   border-radius: 9px;
-  -webkit-box-shadow: #000000 0px 1px 3px;
-  -moz-box-shadow: #000000 0px 1px 3px;
-  box-shadow: #000000 0px 1px 3px;
+  -webkit-box-shadow: black 0px 1px 3px;
+  -moz-box-shadow: black 0px 1px 3px;
+  box-shadow: black 0px 1px 3px;
 }
 /* --- AJAX indicator ------------------------------------------------------- */
 #ajax_notification {
@@ -3417,21 +3407,21 @@ div.messagebox_details {
 }
 div.messagebox_info {
   color: #000000;
-  background-color: #ffffff;
+  background-color: white;
   background-image: url("../images/messagebox/info.png");
   background-size: 32px 32px;
   border-color: #28497c;
 }
 div.messagebox_success {
   color: #000000;
-  background-color: #ffffff;
+  background-color: white;
   background-image: url("../images/messagebox/success.png");
   background-size: 32px 32px;
   border-color: #00962d;
 }
 div.messagebox_error {
   color: #000000;
-  background-color: #ffffff;
+  background-color: white;
   background-image: url("../images/messagebox/error.png");
   background-size: 32px 32px;
   border-color: #d60000;
@@ -5856,19 +5846,25 @@ ol ol {
     max-height: 0px;
     overflow: hidden;
   }
-}
-@media screen and (max-width: 768px) {
+  #barTopFont,
+  #barTopMenu,
+  #barBottomLeft .current_page,
   #barBottommiddle,
-  #quicksearch {
+  #quicksearch,
+  #layout_footer {
     display: none !important;
   }
-}
-@media screen and (max-width: 768px) {
   #notification_marker {
-    margin-top: 5.8333333333333333px;
+    margin-top: 5.83333333px;
   }
-}
-@media screen and (max-width: 768px) {
+  #barBottomContainer {
+    display: fixed;
+    height: 35px;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.7);
+  }
   #barBottomright,
   #barBottomright ul {
     -webkit-box-sizing: border-box;
@@ -5879,54 +5875,31 @@ ol ol {
   #barBottomright ul > li {
     line-height: 35px;
   }
-}
-#barBottomLeft .current_page {
-  display: block;
-}
-@media screen and (max-width: 768px) {
-  #barBottomLeft .current_page {
-    display: none;
+  #sidebar-menu {
+    cursor: pointer;
+    display: inline-block;
+    margin: 0 5px;
+    vertical-align: text-bottom;
   }
-}
-#barBottomLeft .hamburger {
-  display: none;
-}
-@media screen and (max-width: 768px) {
-  #barBottomLeft .hamburger {
-    display: block;
+  #sidebar-menu:before {
+    background-repeat: no-repeat;
+    content: ' ';
+    display: inline-block;
+    height: 20px;
+    margin-right: 0;
+    background-image: url("../images/icons/32/white/hamburger-icon-small.png");
+    background-image: none, url("../images/icons/white/hamburger-icon-small.svg");
+    -webkit-background-size: 20px 20px;
+    -moz-background-size: 20px 20px;
+    -o-background-size: 20px 20px;
+    background-size: 20px 20px;
+    vertical-align: text-top;
+    width: 20px;
   }
-}
-#barTopMenu a {
-  min-width: 42px;
-  display: inline-block;
-}
-@media screen and (max-width: 768px) {
-  #barTopMenu a {
-    margin: 0px;
-    padding: 0px;
-    font-size: 0px;
-    max-height: 0px;
-  }
-}
-@media screen and (max-width: 768px) {
-  #barTopMenu a img.headericon,
-  #barTopMenu a img.headericon.punch {
-    width: 0px;
-    height: 0px;
-  }
-}
-@media screen and (max-width: 768px) {
-  #barTopFont {
-    display: none;
-  }
-}
-@media screen and (max-width: 768px) {
   #layout_wrapper #layout_page {
     margin-left: 0px;
     margin-right: 0px;
   }
-}
-@media screen and (max-width: 768px) {
   #layout_page,
   #layout_container,
   #layout_footer,
@@ -5935,53 +5908,28 @@ ol ol {
   #layout_content {
     min-width: inherit !important;
   }
-}
-@media screen and (max-width: 768px) {
-  #barTopMenu {
-    display: none;
-  }
-  #layout_footer {
-    display: none;
-  }
   .visible-sidebar {
     right: 0px !important;
-    transition: right 300ms !important;
+    -webkit-transition: right 300ms;
+    -moz-transition: right 300ms;
+    -o-transition: right 300ms;
+    transition: right 300ms;
   }
-}
-@media screen and (max-width: 768px) {
-  #barBottomContainer {
-    display: fixed;
-    height: 35px;
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    box-sizing: border-box;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.7);
-  }
-}
-#barBottomright #sidebar-menu {
-  display: none;
-}
-@media screen and (max-width: 768px) {
-  #barBottomright #sidebar-menu {
-    display: inline-block;
-    cursor: pointer;
-    margin: 0 15px;
-  }
-  #barBottomright #sidebar-menu img {
-    width: 3px;
-  }
-}
-@media screen and (max-width: 768px) {
   #layout-sidebar {
+    -webkit-background-clip: content-box;
+    -moz-background-clip: content-box;
+    background-clip: content-box;
+    -webkit-transition: right 300ms;
+    -moz-transition: right 300ms;
+    -o-transition: right 300ms;
+    transition: right 300ms;
     position: fixed;
     top: 35px;
-    right: -270px;
-    transition: right 300ms;
+    right: -276px;
     overflow: hidden;
     overflow-y: auto;
     height: 100%;
     width: 270px;
-    background-clip: content-box;
     z-index: 10000;
     background-color: #1e3e70;
     background-image: -moz-linear-gradient(left, #36598f, #1e3e70);
@@ -6016,9 +5964,57 @@ ol ol {
     display: none;
   }
 }
-#hamburgerMenu {
-  max-width: 270px;
-  width: 270px;
+#barBottomLeft .hamburger {
+  display: none;
+}
+@media screen and (max-width: 768px) {
+  #barBottomLeft .hamburger {
+    display: block;
+  }
+}
+#barTopMenu a {
+  min-width: 42px;
+  display: inline-block;
+}
+@media screen and (max-width: 768px) {
+  #barTopMenu a {
+    margin: 0px;
+    padding: 0px;
+    font-size: 0px;
+    max-height: 0px;
+  }
+  #barTopMenu a img.headericon,
+  #barTopMenu a img.headericon.punch {
+    width: 0px;
+    height: 0px;
+  }
+}
+label[for="hamburgerChecker"] {
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+label[for="hamburgerChecker"]:before {
+  background-repeat: no-repeat;
+  content: ' ';
+  display: inline-block;
+  height: 20px;
+  margin-right: 0;
+  background-image: url("../images/icons/32/white/hamburger-icon.png");
+  background-image: none, url("../images/icons/white/hamburger-icon.svg");
+  -webkit-background-size: 20px 20px;
+  -moz-background-size: 20px 20px;
+  -o-background-size: 20px 20px;
+  background-size: 20px 20px;
+  vertical-align: text-top;
+  width: 20px;
+}
+label[for="hamburgerChecker"]:before {
+  vertical-align: bottom;
+}
+#hamburgerChecker:checked + #hamburgerNavigation {
+  left: 0px;
+}
+#hamburgerNavigation {
   background-color: #36598f;
   background-image: -moz-linear-gradient(left, #1e3e70, #36598f);
   background-image: -webkit-gradient(linear, 0 0, 100% 0, from(#1e3e70), to(#36598f));
@@ -6027,44 +6023,36 @@ ol ol {
   background-image: linear-gradient(to right, #1e3e70, #36598f);
   background-repeat: repeat-x;
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff1e3e70', endColorstr='#ff36598f', GradientType=1);
-  position: fixed;
-  left: -276px;
-  transition: left 300ms;
-  height: 100vh;
-  display: none;
+  -webkit-background-clip: content-box;
+  -moz-background-clip: content-box;
   background-clip: content-box;
-  border-right: 6px solid rgba(0, 0, 0, 0.5);
-  top: 35px;
-}
-@media screen and (max-width: 768px) {
-  #hamburgerMenu {
-    display: block;
-  }
-}
-label[for=hamburgerChecker] {
-  cursor: pointer;
-}
-.hamburger label svg {
-  margin-top: 5.8333333333333333px;
-}
-#hamburgerChecker:checked + #hamburgerMenu {
-  left: 0px;
+  -webkit-transition: left 300ms;
+  -moz-transition: left 300ms;
+  -o-transition: left 300ms;
   transition: left 300ms;
-}
-#hamburgerNavigation {
-  max-height: 100vh;
+  position: fixed;
+  top: 35px;
+  bottom: 0;
+  left: -276px;
+  height: 100%;
+  max-width: 270px;
+  width: 270px;
+  border-right: 6px solid rgba(0, 0, 0, 0.5);
+  max-height: 100%;
   overflow: auto;
+}
+#hamburgerNavigation,
+#hamburgerNavigation ul,
+#hamburgerNavigation li {
+  list-style-type: none;
   margin: 0px;
   padding: 0px;
-  list-style-type: none;
 }
 #hamburgerNavigation label {
   cursor: pointer;
 }
 #hamburgerNavigation > li {
   border-top: 1px solid #899ab9;
-  padding: 0px;
-  list-style-type: none;
 }
 #hamburgerNavigation > li:first-child {
   border-top: none;
@@ -6080,41 +6068,48 @@ label[for=hamburgerChecker] {
   margin: 10px;
 }
 #hamburgerNavigation .navigation_item {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  justify-content: space-between;
-  align-content: center;
+  display: -ms-flexbox;
+  display: -webkit-box;
+  display: -webkit-box-flex;
   display: -webkit-flex;
+  display: -moz-box;
+  display: flex;
   -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  -moz-box-direction: normal;
+  -moz-box-orient: horizontal;
+  -webkit-box-orient: horizontal;
+  flex-direction: row;
   -webkit-flex-wrap: nowrap;
+  -ms-flex-wrap: nowrap;
+  flex-wrap: nowrap;
   -webkit-justify-content: space-between;
+  justify-content: space-between;
   -webkit-align-content: center;
+  -ms-flex-line-pack: center;
+  align-content: center;
 }
 #hamburgerNavigation .navigation_item > .nav_link {
   padding-left: 5px;
 }
 #hamburgerNavigation .subnavigation {
-  padding: 0px;
-  margin: 0px;
   margin-top: 10px;
-  list-style-type: none;
   max-height: 0px;
   overflow: hidden;
+  -webkit-transition: max-height 400ms ease;
+  -moz-transition: max-height 400ms ease;
+  -o-transition: max-height 400ms ease;
   transition: max-height 400ms ease;
 }
 #hamburgerNavigation .subnavigation > li {
   background-color: #899ab9;
   border-top: 1px solid #899ab9;
-  padding: 0px;
-  list-style-type: none;
 }
 #hamburgerNavigation .subnavigation > li > .navigation_item {
   margin: 10px;
 }
 #hamburgerNavigation input:checked + .subnavigation {
   max-height: 600px;
-  transition: max-height 400ms ease;
 }
 #hamburgerNavigation input:checked + .subnavigation > li {
   background-color: rgba(123, 139, 167, 0.6);
