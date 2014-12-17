@@ -16,6 +16,13 @@ jQuery(function () {
     if (jQuery('#layout-sidebar').length == 0) {
         jQuery('#sidebar-menu').hide();
     }
+
+    jQuery('.hamburger').click(function () {
+        if (jQuery('#layout-sidebar').hasClass('visible-sidebar')) {
+            jQuery('#layout-sidebar').removeClass('visible-sidebar');
+        }
+    });
+
     jQuery('#sidebar-menu').click(function () {
         jQuery('#layout-sidebar').toggleClass('visible-sidebar');
     });
