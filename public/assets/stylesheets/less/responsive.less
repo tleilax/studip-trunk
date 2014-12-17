@@ -71,8 +71,10 @@
 
 #barTopFont {
     @media screen and (max-width: @small-screen-width) {
-        display: none;
+        font-size: 0pt;
+        transition: font-size 600ms;
     }
+    transition: font-size 600ms;
 }
 
 #layout_wrapper #layout_page {
@@ -105,18 +107,18 @@
 
 #barBottomContainer {
     @media screen and (max-width: @small-screen-width) {
+        display: fixed;
         height: @header-bar-container-height;
         .box-sizing(border-box);
-        display: fixed;
         border-bottom: 1px solid rgba(255, 255, 255, 0.7);
     }
 }
 
 #sidebar-menu {
-    display: none;
+    display: none !important;
     @media screen and (max-width: @small-screen-width) {
-        display: block;
-
+        display: inline-block !important;
+        margin: 0 15px;
         img {
             width: 3px;
         }
@@ -219,7 +221,6 @@ label[for=hamburgerChecker] {
         > .navigation_item {
             font-size: 1.3em;
             margin: 10px;
-            margin-bottom: 0px;
         }
     }
     .navigation_item {
@@ -233,7 +234,6 @@ label[for=hamburgerChecker] {
         -webkit-flex-wrap: nowrap;
         -webkit-justify-content: space-between;
         -webkit-align-content: center;
-        padding-bottom: 10px;
         > .nav_link {
             //border-left: 1px solid white;
             padding-left: 5px;
@@ -242,6 +242,7 @@ label[for=hamburgerChecker] {
     .subnavigation {
         padding: 0px;
         margin: 0px;
+        margin-top: 10px;
         list-style-type: none;
         max-height: 0px;
         overflow: hidden;
@@ -253,7 +254,6 @@ label[for=hamburgerChecker] {
             list-style-type: none;
             > .navigation_item {
                 margin: 10px;
-                margin-bottom: 0px;
             }
         }
     }
@@ -263,9 +263,5 @@ label[for=hamburgerChecker] {
         > li {
             background-color: mix(rgba(0, 0, 0, 0.2), @brand-color-lighter);
         }
-    }
-    > .placeholder {
-        height: @header-bar-container-height;
-        border-top: none;
     }
 }
