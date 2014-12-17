@@ -1,5 +1,9 @@
 @small-screen-width: 768px;
 @header-bar-container-height: 35px;
+@icon-size: 32px;
+@icon-padding: 2px;
+@header-height: @icon-size + 2 * @icon-padding;
+@header-color: @base-color;
 
 #header {
     @media screen and (max-width: @small-screen-width) {
@@ -23,7 +27,7 @@
 #barBottomright, #barBottomright ul {
     @media screen and (max-width: @small-screen-width) {
         .box-sizing(border-box);
-        
+
         > li {
             line-height: @header-bar-container-height;
         }
@@ -85,16 +89,17 @@
 }
 
 @media screen and (max-width: @small-screen-width) {
-    #layout-sidebar {
-        display: none;
-    }
-
     #barTopMenu {
         display: none;
     }
 
     #layout_footer {
         display: none;
+    }
+
+    .visible-sidebar {
+        right: 0px !important;
+        transition: right 300ms !important;
     }
 }
 
@@ -106,6 +111,58 @@
         border-bottom: 1px solid rgba(255, 255, 255, 0.7);
     }
 }
+
+#sidebar-menu {
+    display: none;
+    @media screen and (max-width: @small-screen-width) {
+        display: block;
+
+        img {
+            width: 3px;
+        }
+    }
+}
+
+#layout-sidebar {
+    @media screen and (max-width: @small-screen-width) {
+        position: fixed;
+        top: @header-bar-container-height;
+        right: -270px;
+        transition: right 300ms;
+        overflow: hidden;
+        overflow-y: auto;
+        height: 100%;
+        width: 270px;
+        background-clip: content-box;
+        z-index: 10000;
+
+        #gradient > .horizontal(@brand-color-light, @brand-color-darker);
+        border-left: 6px solid rgba(0, 0, 0, 0.5);
+        .sidebar-image {
+            display: none;
+        }
+
+        .sidebar {
+            top: auto !important;
+            &:before {
+                border: 0 !important;
+            }
+            width: 270px !important;
+            background: inherit;
+            border: 0;
+            .box-sizing(border-box);
+        }
+
+        .widget-links li.active {
+            &:before, &:after {
+                display: none;
+            }
+            margin-right: 0;
+        }
+    }
+}
+
+
 
 #hamburgerMenu {
     max-width: 270px;

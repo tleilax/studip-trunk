@@ -5865,14 +5865,15 @@ ol ol {
   }
 }
 @media screen and (max-width: 768px) {
-  #layout-sidebar {
-    display: none;
-  }
   #barTopMenu {
     display: none;
   }
   #layout_footer {
     display: none;
+  }
+  .visible-sidebar {
+    right: 0px !important;
+    transition: right 300ms !important;
   }
 }
 @media screen and (max-width: 768px) {
@@ -5883,6 +5884,62 @@ ol ol {
     box-sizing: border-box;
     display: fixed;
     border-bottom: 1px solid rgba(255, 255, 255, 0.7);
+  }
+}
+#sidebar-menu {
+  display: none;
+}
+@media screen and (max-width: 768px) {
+  #sidebar-menu {
+    display: block;
+  }
+  #sidebar-menu img {
+    width: 3px;
+  }
+}
+@media screen and (max-width: 768px) {
+  #layout-sidebar {
+    position: fixed;
+    top: 35px;
+    right: -270px;
+    transition: right 300ms;
+    overflow: hidden;
+    overflow-y: auto;
+    height: 100%;
+    width: 270px;
+    background-clip: content-box;
+    z-index: 10000;
+    background-color: #1e3e70;
+    background-image: -moz-linear-gradient(left, #36598f, #1e3e70);
+    background-image: -webkit-gradient(linear, 0 0, 100% 0, from(#36598f), to(#1e3e70));
+    background-image: -webkit-linear-gradient(left, #36598f, #1e3e70);
+    background-image: -o-linear-gradient(left, #36598f, #1e3e70);
+    background-image: linear-gradient(to right, #36598f, #1e3e70);
+    background-repeat: repeat-x;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff36598f', endColorstr='#ff1e3e70', GradientType=1);
+    border-left: 6px solid rgba(0, 0, 0, 0.5);
+  }
+  #layout-sidebar .sidebar-image {
+    display: none;
+  }
+  #layout-sidebar .sidebar {
+    top: auto !important;
+    width: 270px !important;
+    background: inherit;
+    border: 0;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+  }
+  #layout-sidebar .sidebar:before {
+    border: 0 !important;
+  }
+  #layout-sidebar .widget-links li.active {
+    margin-right: 0;
+  }
+  #layout-sidebar .widget-links li.active:before,
+  #layout-sidebar .widget-links li.active:after {
+    display: none;
   }
 }
 #hamburgerMenu {
