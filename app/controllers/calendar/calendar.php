@@ -37,6 +37,8 @@ class Calendar_CalendarController extends AuthenticatedController
         $this->last_view = Request::option('last_view',
                 $this->settings['view']);
         $this->action = $action;
+        $this->restrictions =
+                $this->category ? array('STUDIP_CATEGORY' => $this->category) : null;
         if ($this->category) {
             URLHelper::bindLinkParam('category', $this->category);
         }
@@ -108,22 +110,35 @@ class Calendar_CalendarController extends AuthenticatedController
         
         if ($this->event->isNew()) {
             $this->event = $this->calendar->getNewEvent();
-            $this->event->setStart($this->atime);
-            $this->event->setEnd($this->atime + 3600);
-            $this->event->setAuthor_id($GLOBALS['user']->id);
-            $this->event->setEditor_id($GLOBALS['user']->id);
-            PageLayout::setTitle($this->getTitle($this->calendar, _('Neuer Termin')));
+            if (Request::get('isdayevent')) {
+                $this->event->setStart(mktime(0, 0, 0, date('n', $this->atime),
+                        date('j', $this->atime), date('Y', $this->atime)));
+                $this->event->setEnd(mktime(23, 59, 59, date('n', $this->atime),
+                        date('j', $this->atime), date('Y', $this->atime)));
+            } else {
+                $this->event->setStart($this->atime);
+                $this->event->setEnd($this->atime + 3600);
+            }
+            $this->event->setAuthorId($GLOBALS['user']->id);
+            $this->event->setEditorId($GLOBALS['user']->id);
+            $this->event->setAccessibility('PRIVATE');
             $this->attendees = array($this->event);
+            if (!Request::isXhr()) {
+                PageLayout::setTitle($this->getTitle($this->calendar, _('Neuer Termin')));
+            }
         } else {
-            // open read only events and course events not in form
+            // open read only events and course events not as form
             // show information in dialog instead
             if (!$this->event->havePermission(Event::PERMISSION_WRITABLE)
                     || $this->event instanceof CourseEvent) {
                 $this->redirect($this->url_for('calendar/single/event/' . implode('/',
                         array($this->range_id, $this->event->event_id))));
+                return null;
             }
             $this->attendees = $this->event->getAttendees();
-            PageLayout::setTitle($this->getTitle($this->calendar, _('Termin bearbeiten')));
+            if (!Request::isXhr()) {
+                PageLayout::setTitle($this->getTitle($this->calendar, _('Termin bearbeiten')));
+            }
         }
         
         if (get_config('CALENDAR_GROUP_ENABLE')
@@ -133,8 +148,9 @@ class Calendar_CalendarController extends AuthenticatedController
                 . "LEFT JOIN auth_user_md5 ON calendar_user.owner_id = auth_user_md5.user_id "
                 . "LEFT JOIN user_info ON (auth_user_md5.user_id = user_info.user_id) "
                 . 'WHERE calendar_user.user_id = '
-                . DBManager::get()->quote($GLOBALS['user']->id) . ' AND ('
-                . 'username LIKE :input OR Vorname LIKE :input '
+                . DBManager::get()->quote($GLOBALS['user']->id)
+                . ' AND calendar_user.permission > ' . Event::PERMISSION_READABLE
+                . ' AND (username LIKE :input OR Vorname LIKE :input '
                 . "OR CONCAT(Vorname,' ',Nachname) LIKE :input "
                 . "OR CONCAT(Nachname,' ',Vorname) LIKE :input "
                 . "OR Nachname LIKE :input OR {$GLOBALS['_fullname_sql']['full_rev']} LIKE :input "
@@ -172,9 +188,19 @@ class Calendar_CalendarController extends AuthenticatedController
             $stored = $this->storeEventData($this->event, $this->calendar);
         }
 
-        if ($stored) {
-            PageLayout::postMessage(MessageBox::success(_('Der Termin wurde gespeichert.')));
-            $this->relocate('calendar/single/' . $this->last_view, array('atime' => $this->atime));
+        if ($stored !== false) {
+            if ($stored === 0) {
+                if (Request::isXhr()) {
+                    header('X-Dialog-Close: 1');
+                    exit;
+                } else {
+                    PageLayout::postMessage(MessageBox::success(_('Der Termin wurde nicht geändert.')));
+                    $this->relocate('calendar/single/' . $this->last_view, array('atime' => $this->atime));
+                }
+            } else {
+                PageLayout::postMessage(MessageBox::success(_('Der Termin wurde gespeichert.')));
+                $this->relocate('calendar/single/' . $this->last_view, array('atime' => $this->atime));
+            }
         }
         
         $this->createSidebar('edit', $this->calendar);
@@ -183,7 +209,7 @@ class Calendar_CalendarController extends AuthenticatedController
     
     public function switch_action()
     {
-        $view = Request::option('view', 'week');
+        $view = Request::option('last_view', 'week');
         $this->range_id = Request::option('range_id', $GLOBALS['user']->id);
         $object_type = get_object_type($this->range_id);
         switch ($object_type) {
@@ -203,7 +229,12 @@ class Calendar_CalendarController extends AuthenticatedController
     
     public function jump_to_action()
     {
-        $atime = strtotime(Request::get('jmp_date' . strftime(' %T', $this->atime), 'now'));
+        $date = Request::get('jmp_date');
+        if ($date) {
+            $atime = strtotime($date . strftime(' %T', $this->atime));
+        } else {
+            $atime = 'now';
+        }
         $action = Request::option('action', 'week');
         $this->range_id = $this->range_id ?: $GLOBALS['user']->id;
         $this->redirect($this->url_for($this->base . $action,
@@ -212,26 +243,42 @@ class Calendar_CalendarController extends AuthenticatedController
     
     protected function storeEventData(CalendarEvent $event, SingleCalendar $calendar)
     {
-        $dt_string = Request::get('start_date') . ' ' . Request::int('start_hour')
-                . ':' . Request::int('start_minute');
+        if (Request::int('isdayevent')) {
+            $dt_string = Request::get('start_date') . ' 00:00:00';
+        } else {
+            $dt_string = Request::get('start_date') . ' ' . Request::int('start_hour')
+                    . ':' . Request::int('start_minute');
+        }
         $event->setStart($this->parseDateTime($dt_string));
-        $dt_string = Request::get('end_date') . ' ' . Request::int('end_hour')
-                . ':' . Request::int('end_minute');
+        if (Request::int('isdayevent')) {
+            $dt_string = Request::get('end_date') . ' 23:59:59';
+        } else {
+            $dt_string = Request::get('end_date') . ' ' . Request::int('end_hour')
+                    . ':' . Request::int('end_minute');
+        }
         $event->setEnd($this->parseDateTime($dt_string));
         if ($event->getStart() > $event->getEnd()) {
             $messages[] = _('Die Startzeit muss vor der Endzeit liegen.');
         }
-        $event->setTitle(Request::get('summary', _('Kein Titel')));
+        
+        if (Request::isXhr()) {
+            $event->setTitle(studip_utf8decode(Request::get('summary', '')));
+            $event->event->description = studip_utf8decode(Request::get('description', ''));
+            $event->setUserDefinedCategories(studip_utf8decode(Request::get('categories', '')));
+            $event->event->location = studip_utf8decode(Request::get('location', ''));
+        } else {
+            $event->setTitle(Request::get('summary'));
+            $event->event->description = Request::get('description', '');
+            $event->setUserDefinedCategories(Request::get('categories', ''));
+            $event->event->location = Request::get('location', '');
+        }
+        $event->event->category_intern = Request::int('category_intern', 1);
+        $event->setAccessibility(Request::option('accessibility', 'PRIVATE'));
+        $event->setPriority(Request::int('priority', 0));
+        
         if (!$event->getTitle()) {
             $messages[] = _('Es muss eine Zusammenfassung angegeben werden.');
         }
-        
-        $event->event->description = Request::get('description', '');
-        $event->event->category_intern = Request::int('category_intern', 1);
-        $event->setUserDefinedCategories(Request::get('categories', ''));
-        $event->event->location = Request::get('location', '');
-        $event->setAccessibility(Request::option('accessibility', 'PRIVATE'));
-        $event->setPriority(Request::int('priority', 0));
         
         $rec_type = Request::option('recurrence', 'single');
         $expire = Request::option('exp_c', 'never');
@@ -243,84 +290,77 @@ class Calendar_CalendarController extends AuthenticatedController
             'day' => null,
             'rtype' => 'SINGLE',
             'count' => null,
-            'expire' => Calendar::CALENDAR_END
+            'expire' => null
         );
         if ($expire == 'count') {
             $rrule['count'] = Request::int('exp_count', 10);
         } else if ($expire == 'date') {
-            $exp_date = Request::int('exp_date', strftime('%x', time()));
+            if (Request::isXhr()) {
+                $exp_date = studip_utf8decode(Request::get('exp_date'));
+            } else {
+                $exp_date = Request::get('exp_date');
+            }
+            $exp_date = $exp_date ?: strftime('%x', time());
             $rrule['expire'] = $this->parseDateTime($exp_date . ' 12:00');
         }
         switch ($rec_type) {
             case 'daily':
                 if (Request::option('type_daily', 'day') == 'day') {
-                    $rrule = array(
-                        'linterval' => Request::int('linterval_d', 1),
-                        'rtype' => 'DAILY'
-                    );
+                    $rrule['linterval'] = Request::int('linterval_d', 1);
+                    $rrule['rtype'] = 'DAILY';
                 } else {
-                    $rrule = array(
-                        'linterval' => 1,
-                        'wdays' => '12345',
-                        'rtype' => 'WEEKLY'
-                    );
+                    $rrule['linterval'] = 1;
+                    $rrule['wdays'] = '12345';
+                    $rrule['rtype'] = 'WEEKLY';
                 }
                 break;
             case 'weekly':
-                $rrule = array(
-                    'linterval' => Request::int('linterval_w', 1),
-                    'wdays' => implode('', Request::intArray('wdays',
-                            array(strftime('%u', $event->getStart())))),
-                    'rtype' => 'WEEKLY'
-                );
+                $rrule['linterval'] = Request::int('linterval_w', 1);
+                $rrule['wdays'] = implode('', Request::intArray('wdays',
+                        array(strftime('%u', $event->getStart()))));
+                $rrule['rtype'] = 'WEEKLY';
                 break;
             case 'monthly':
                 if (Request::option('type_m', 'day') == 'day') {
-                    $rrule = array(
-                        'linterval' => Request::int('linterval_m1', 1),
-                        'day' => Request::int('day_m',
-                                strftime('%e', $event->getStart())),
-                        'rtype' => 'MONTHLY'
-                    );
+                    $rrule['linterval'] = Request::int('linterval_m1', 1);
+                    $rrule['day'] = Request::int('day_m',
+                            strftime('%e', $event->getStart()));
+                    $rrule['rtype'] = 'MONTHLY';
                 } else {
-                    $rrule = array(
-                        'linterval' => Request::int('linterval_m2', 1),
-                        'sinterval' => Request::int('sinterval_m', 1),
-                        'wdays' => Request::int('wday_m',
-                                strftime('%u', $event->getStart())),
-                        'rtype' => 'MONTHLY'
-                    );
+                    $rrule['linterval'] = Request::int('linterval_m2', 1);
+                    $rrule['sinterval'] = Request::int('sinterval_m', 1);
+                    $rrule['wdays'] = Request::int('wday_m',
+                            strftime('%u', $event->getStart()));
+                    $rrule['rtype'] = 'MONTHLY';
                 }
                 break;
             case 'yearly':
                 if (Request::option('type_y', 'day') == 'day') {
-                    $rrule = array(
-                        'linterval' => 1,
-                        'day' => Request::int('day_y',
-                                strftime('%e', $event->getStart())),
-                        'month' => Request::int('month_y1',
-                                date('n', $event->getStart())),
-                        'rtype' => 'YEARLY'
-                    );
+                    $rrule['linterval'] = 1;
+                    $rrule['day'] = Request::int('day_y',
+                            strftime('%e', $event->getStart()));
+                    $rrule['month'] = Request::int('month_y1',
+                            date('n', $event->getStart()));
+                    $rrule['rtype'] = 'YEARLY';
                 } else {
-                    $rrule = array(
-                        'linterval' => 1,
-                        'sinterval' => Request::int('sinterval_y', 1),
-                        'wdays' => Request::int('wday_y',
-                                strftime('%u', $event->getStart())),
-                        'month' => Request::int('month_y2',
-                                date('n', $event->getStart())),
-                        'rtype' => 'YEARLY'
-                    );
+                    $rrule['linterval'] = 1;
+                    $rrule['sinterval'] = Request::int('sinterval_y', 1);
+                    $rrule['wdays'] = Request::int('wday_y',
+                            strftime('%u', $event->getStart()));
+                    $rrule['month'] = Request::int('month_y2',
+                            date('n', $event->getStart()));
+                    $rrule['rtype'] = 'YEARLY';
                 }
                 break;
         }
         if (sizeof($messages)) {
             PageLayout::postMessage(MessageBox::error(_('Bitte Eingaben korrigieren'), $messages));
-            return null;
+            return false;
         } else {
             $event->setRecurrence($rrule);
-            $event->setExceptions($this->parseExceptions(Request::get('exc_dates', '')));
+            $exceptions = array_diff(Request::getArray('exc_dates'),
+                    Request::getArray('del_exc_dates'));
+            $event->setExceptions($this->parseExceptions($exceptions));
             // if this is a group event, store event in the calendars of each attendee
             if (get_config('CALENDAR_GROUP_ENABLE')) {
                 $attendee_ids = Request::optionArray('attendees');
@@ -335,24 +375,22 @@ class Calendar_CalendarController extends AuthenticatedController
         $matches = array();
         $dates = array();
         preg_match_all('%(\d{1,2})\h*([/.])\h*(\d{1,2})\h*([/.])\h*(\d{4})\s*%',
-                $exc_dates, $matches, PREG_SET_ORDER);
+                implode(' ', $exc_dates), $matches, PREG_SET_ORDER);
         foreach ($matches as $match) {
             if ($match[2] == '/') {
-                $dates[] = DateTime::createFromFormat('n/j/Y H:i',
-                        $match[1].'/'.$match[3].'/'.$match[5].' 12:00');
+                $dates[] = strtotime($match[1].'/'.$match[3].'/'.$match[5]);
             } else {
-                $dates[] = DateTime::createFromFormat('n#j#Y H:i',
-                        $match[1].$match[2].$match[3].$match[4].$match[5].' 12:00');
+                $dates[] = strtotime($match[1].$match[2].$match[3].$match[4].$match[5]);
             }
         }
-        return implode(',', $dates);
+        return $dates;
     }
     
     protected function parseDateTime($dt_string)
     {
-        $dt_array = date_parse_from_format('j.n.Y H:i', $dt_string);
-        return mktime($dt_array['hour'], $dt_array['minute'], 0, $dt_array['month'],
-                $dt_array['day'], $dt_array['year']);
+        $dt_array = date_parse_from_format('j.n.Y H:i:s', $dt_string);
+        return mktime($dt_array['hour'], $dt_array['minute'], $dt_array['second'],
+                $dt_array['month'], $dt_array['day'], $dt_array['year']);
     }
     
 }

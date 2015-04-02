@@ -16,6 +16,7 @@
 
 require_once('app/controllers/authenticated_controller.php');
 require_once('lib/classes/admission/AdmissionRule.class.php');
+require_once 'lib/classes/admission/CourseSet.class.php';
 
 class Admission_RuleController extends AuthenticatedController {
 
@@ -42,7 +43,7 @@ class Admission_RuleController extends AuthenticatedController {
 
     /**
      * Gets the template for the rule configuration form.
-     * 
+     *
      * @param String $ruleType Class name of the rule to configure.
      * @param String $ruleId   Optional ID of an existing rule.
      */
@@ -55,7 +56,7 @@ class Admission_RuleController extends AuthenticatedController {
 
     /**
      * Shows a form for selecting which rule type to use.
-     * 
+     *
      * @param String $cs_id ID of a courseset the rule shall belong to.
      */
     public function select_type_action($cs_id = '') {
@@ -67,12 +68,12 @@ class Admission_RuleController extends AuthenticatedController {
             if ($rule instanceof AdmissionRule) {
                 $this->courseset->addAdmissionRule($rule);
             }
-        } 
+        }
     }
 
     /**
      * Saves the given rule.
-     * 
+     *
      * @param String $ruleType The class name of the configured rule.
      * @param String $ruleId   ID of the rule to save, or empty if this is a new rule.
      */
@@ -95,30 +96,17 @@ class Admission_RuleController extends AuthenticatedController {
             $requestData['end_time'] = $timestamp;
         }
         $this->rule->setAllData($requestData);
-        $this->rule->store();
-    }
-
-    /**
-     * Deletes the given rule with all dependencies.
-     * 
-     * @param String $ruleType Class name of the given rule.
-     * @param String $ruleId   ID of the given rule.
-     */
-    public function delete_action($ruleType, $ruleId) {
-        $rules = AdmissionRule::getAvailableAdmissionRules();
-        $rule = new $ruleType($ruleId);
-        $rule->delete();
     }
 
     /**
      * Validates if the values given in the current request are sufficient to
      * configure a rule of the given type.
-     * 
+     *
      * @param String $ruleType Class name of the rule to check.
      */
     public function validate_action($ruleType) {
         $rules = AdmissionRule::getAvailableAdmissionRules();
-        $rule = new $ruleType($ruleId);
+        $rule = new $ruleType();
         $this->errors = $rule->validate(Request::getInstance());
     }
 

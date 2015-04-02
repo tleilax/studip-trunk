@@ -3,9 +3,20 @@
 <?=$delete_question?>
 <div id="edit_tour_content" class="edit_tour_content">
 <h2><?= _('Tour bearbeiten') ?></h2>
-<form class="studip_form" action="<?=URLHelper::getURL('dispatch.php/tour/admin_details/'.$tour->tour_id)?>" method="POST">
+<form class="studip_form" action="<?=URLHelper::getURL('dispatch.php/tour/save/'.$tour->tour_id)?>" method="POST">
     <fieldset>
         <legend><?= _('Grunddaten') ?></legend>
+        <? if (! count($tour->steps)) :?>
+        <label for="tour_language" class="caption">
+            <?= _('Sprache der Tour:') ?>
+            <span class="required">*</span>
+        </label>
+        <select name="tour_language">
+            <? foreach ($GLOBALS['INSTALLED_LANGUAGES'] as $key => $language) : ?>
+            <option value="<?=substr($key, 0, 2)?>"<?=($tour->language == substr($key, 0, 2)) ? ' selected' : ''?>><?=$language['name']?></option>
+            <? endforeach ?>
+        </select>
+        <? endif ?>
         <label for="tour_name" class="caption">
             <?= _('Name der Tour:') ?>
             <span class="required">*</span>
@@ -38,7 +49,7 @@
         <option value="autostart_once"<?=($tour->settings->access == 'autostart_once') ? ' selected' : ''?>><?=_('Startet nur beim ersten Aufruf der Seite')?></option>
         </select>
         <? if (! count($tour->steps)) :?>
-        <label for="tour_name" class="caption">
+        <label for="tour_startpage" class="caption">
             <?= _('Startseite der Tour:') ?>
             <span class="required">*</span>
         </label>
@@ -103,9 +114,8 @@
                 <td>
                 <a href="<?=URLHelper::getURL('dispatch.php/tour/edit_step/'.$tour->tour_id.'/'.$step->step)?>" target="blank" <?=tooltip(_('Schritt bearbeiten'))?> data-dialog="size=auto;reload-on-close">
                 <img src="<?= Assets::image_path('icons/16/blue/edit.png')?>"></a>
-                <input type="image" name="delete_tour_step_<?=$step->step?>" 
-                       src="<?= Assets::image_path('icons/16/blue/trash.png')?>" 
-                       aria-label="<?= _('Schritt löschen')?>" <?=tooltip(_("Schritt löschen"),false)?>>
+                <a href="<?=URLHelper::getURL('dispatch.php/tour/admin_details/'.$tour->tour_id.'?delete_tour_step='.$step->step)?>" <?=tooltip(_('Schritt löschen'))?>>
+                <img src="<?= Assets::image_path('icons/16/blue/trash.png')?>"></a>
                 <a href="<?=URLHelper::getURL('dispatch.php/tour/edit_step/'.$tour->tour_id.'/'.($step->step + 1).'/new')?>" target="blank" <?=tooltip(_('Neuen Schritt hinzufügen'))?> data-dialog="size=auto;reload-on-close">
                 <img src="<?= Assets::image_path('icons/16/blue/add.png')?>"></a>
                 </td>
@@ -119,11 +129,6 @@
             </tr>
         <? endif ?>
         </tbody>
-        <tfoot>
-            <tr><td colspan="6">
-            <?=LinkButton::create(_('Neuen Schritt hinzufügen'), URLHelper::getURL('dispatch.php/tour/edit_step/'.$tour->tour_id.'/'.(count($tour->steps)+1).'/new'), array('target' => 'blank', 'data-dialog' => 'size=auto;reload-on-close')) ?>
-            </td></tr>
-        </tfoot>
     </table>
     <? endif ?>
 </form>

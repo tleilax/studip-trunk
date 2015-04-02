@@ -72,7 +72,7 @@ class ProfileController extends AuthenticatedController
     {
 
         // Template Index_Box for render-partials
-        $layout = $GLOBALS['template_factory']->open('shared/index_box');
+        $layout = $GLOBALS['template_factory']->open('shared/content_box');
         $this->shared_box = $layout;
 
         // if he has not yet stored into user_info, he comes in with no values
@@ -274,13 +274,5 @@ class ProfileController extends AuthenticatedController
         $this->redirect('profile/index?username=' . $username);
     }
 
-    public function export_vcard_action()
-    {
-        $vcard = vCard::export($this->current_user);
-        $this->set_content_type("text/x-vCard;charset=utf-8");
-        $this->response->add_header("Content-Disposition", "attachment; filename=\"" . $this->current_user->username . ".vcf\"");
-        $this->response->add_header("Content-Length", strlen($vcard));
-        $this->render_text($vcard);
-    }
 }
 

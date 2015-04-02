@@ -1,11 +1,15 @@
-<?
-use Studip\Button, Studip\LinkButton;
-SkipLinks::addIndex(_("Termine anlegen/bearbeiten"), 'main_content', 100);
-?>
-<form data-dialog="" method="post" action="<?= $controller->url_for('calendar/single/edit/' . $calendar->getRangeId() . '/' . $event->event_id) ?>">
+<? use Studip\Button, Studip\LinkButton; ?>
+<? if (Request::isXhr()) : ?>
+    <? foreach (PageLayout::getMessages() as $messagebox) : ?>
+        <?= $messagebox ?>
+    <? endforeach ?>
+<? else : ?>
+    <? SkipLinks::addIndex(_("Termine anlegen/bearbeiten"), 'main_content', 100); ?>
+<? endif; ?>
+<form data-dialog="" method="post" action="<?= $controller->url_for($base . 'edit/' . $range_id . '/' . $event->event_id) ?>">
 <?= CSRFProtection::tokenTag() ?>
-    <table class="default collapsable" id="main_content">
-        <caption>
+    <table class="default collapsable nohover" id="main_content">
+        <caption class="hide-in-dialog">
             <? if ($event->isNew()) : ?>
             <?= sprintf(_('Neuen Termin anlegen am %s'), strftime('%x', $event->getStart())) ?>
             <? else : ?>
@@ -40,7 +44,7 @@ SkipLinks::addIndex(_("Termine anlegen/bearbeiten"), 'main_content', 100);
                         <input style="text-align: right;" type="text" name="start_minute" value="<?= date('i', $event->getStart()) ?>" size="2" maxlength="2">
                     </span>
                     <label style="white-space: nowrap;"><?= _('ganztägig') ?>
-                        <input type="checkbox" name="isdayevent" <?= $event->isDayEvent() ? 'checked' : '' ?>>
+                        <input type="checkbox" name="isdayevent" value="1" <?= $event->isDayEvent() ? 'checked' : '' ?>>
                     </label>
                 </td>
             </tr>
@@ -146,6 +150,30 @@ SkipLinks::addIndex(_("Termine anlegen/bearbeiten"), 'main_content', 100);
                     </select>
                 </td>
             </tr>
+            <? if (!$event->isNew() && get_config('CALENDAR_GROUP_ENABLE')) : ?>
+            <tr>
+                <td colspan="3">
+                    <div>
+                        <? $author = $event->getAuthor() ?>
+                        <? if ($author) : ?>
+                            <?= sprintf(_('Eingetragen am: %s von %s'),
+                            strftime('%x, %X', $event->mkdate),
+                                htmlReady($author->getFullName('no_title'))) ?>
+                        <? endif; ?>
+                    </div>
+                    <? if ($event->event->mkdate < $event->event->chdate) : ?>
+                        <? $editor = $event->getEditor() ?>
+                        <? if ($editor) : ?>
+                        <div>
+                            <?= sprintf(_('Zuletzt bearbeitet am: %s von %s'),
+                                strftime('%x, %X', $event->chdate),
+                                    htmlReady($editor->getFullName('no_title'))) ?>
+                        </div>
+                        <? endif; ?>
+                    <? endif; ?>
+                </td>
+            </tr>
+            <? endif; ?>
         </tbody>
         <tbody class="collapsed">
             <tr class="header-row">
@@ -336,7 +364,7 @@ SkipLinks::addIndex(_("Termine anlegen/bearbeiten"), 'main_content', 100);
                         <? $checked = $event->getRecurrence('expire') && $event->getRecurrence('expire') < Calendar::CALENDAR_END && !$event->getRecurrence('count') ?>
                         <input type="radio" name="exp_c" value="date"<?= $checked ? ' checked' : '' ?>>
                         <label>
-                            <? $exp_date = $event->getRecurrence('expire') ?: time() ?>
+                            <? $exp_date = $event->getRecurrence('expire') != Calendar::CALENDAR_END ? $event->getRecurrence('expire') : $event->getEnd() ?>
                             <?= sprintf(_('am: %s'),
                                     '<input type="text" size="12" name="exp_date" id="exp-date" value="'
                                     . strftime('%x', $exp_date) . '">') ?>
@@ -360,9 +388,32 @@ SkipLinks::addIndex(_("Termine anlegen/bearbeiten"), 'main_content', 100);
                         <?= _('Ausnahmen') ?>:
                     </label>
                 </td>
-                <? $exceptions = array_map(function ($exc) { return strftime('%x', $exc); }, $event->getExceptions()) ?>
-                <td colspan="2" style="vertical-align: top;">
-                    <textarea rows="5" cols="12" name="exc_dates" id="exc-dates"><?= implode("\n", $exceptions) ?></textarea>
+                <td colspan="2">
+                    <ul id="exc-dates">
+                        <? $exceptions = $event->getExceptions(); ?>
+                        <? sort($exceptions, SORT_NUMERIC); ?>
+                        <? foreach ($exceptions as $exception) : ?>
+                        <li>
+                            <label>
+                                <input type="checkbox" name="del_exc_dates[]" value="<?= strftime('%d.%m.%Y', $exception) ?>" style="display: none;">
+                                <span><?= strftime('%x', $exception) ?><?= Assets::img('icons/16/blue/trash.png', array('title' => _('Ausnahme löschen'), 'style' => 'vertical-align: text-top;')) ?></span>
+                            </label>
+                            <input type="hidden" name="exc_dates[]" value="<?= strftime('%d.%m.%Y', $exception) ?>">
+                        </li>
+                        <? endforeach; ?>
+                    <? /*
+                    <select name="exc_dates" id="exc-dates" size="5" style="width: 10em;" multiple>
+                        <? foreach ($event->getExceptions() as $exception) : ?>
+                        <option value="<?= strftime('%d.%m.%Y', $exception) ?>"><?= strftime('%x', $exception) ?></option>
+                        <? endforeach; ?>
+                    </select>
+                     * 
+                     */?>
+                    </ul>
+                    <input style="vertical-align: top; opacity: 0.8;" type="text" size="12" name="exc_date" id="exc-date" value="<?= strftime('%x', $atime) ?>">
+                    <span style="vertical-align: top;" onclick="STUDIP.CalendarDialog.addException(); return false;">
+                        <?= Assets::input('icons/16/blue/add.png', array('class' => 'text-bottom', 'title' => _('Ausnahme hinzufügen'))) ?>
+                    </span>
                 </td>
             </tr>
         </tbody>
@@ -372,6 +423,9 @@ SkipLinks::addIndex(_("Termine anlegen/bearbeiten"), 'main_content', 100);
     </table>
     <div style="text-align: center;" data-dialog-button>
         <? if (!$event->isNew()) : ?>
+        <? if ($event->getRecurrence('rtype') != 'SINGLE') : ?>
+        <?= LinkButton::create(_('Aus Serie löschen'), $controller->url_for('calendar/single/delete_recurrence/' . implode('/', $event->getId()) . '/' . $atime)) ?>
+        <? endif; ?>
         <?= LinkButton::create(_('Löschen'), $controller->url_for('calendar/single/delete/' . implode('/', $event->getId()))) ?>
         <? endif; ?>
         <?= Button::create(_('Speichern'), 'store', array('title' => _('Termin speichern'))) ?>
@@ -384,4 +438,5 @@ SkipLinks::addIndex(_("Termine anlegen/bearbeiten"), 'main_content', 100);
     jQuery('#start-date').datepicker();
     jQuery('#end-date').datepicker();
     jQuery('#exp-date').datepicker();
+    jQuery('#exc-date').datepicker();
 </script>

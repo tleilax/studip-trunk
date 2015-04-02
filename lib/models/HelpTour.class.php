@@ -222,6 +222,11 @@ class HelpTour extends SimpleORMap {
     function isVisible() {
         if (!$this->settings->active)
             return false;
+        $language = substr($GLOBALS['user']->preferred_language, 0, 2);
+        if (!$language)
+            $language = 'de';
+        if ($language != $this->language)
+            return false;
         $current_role = User::findCurrent() ? User::findCurrent()->perms : 'nobody';
         if ((strpos($this->roles, $current_role) === false))
             return false;
@@ -300,8 +305,10 @@ class HelpTour extends SimpleORMap {
      * deletes step and rearranges existing steps
      */
     function deleteStep($position = 0) {
-        if (!$position OR (count($this->steps) < 2))
+        if (!$position OR (count($this->steps) < 2)) {
+            PageLayout::postMessage(MessageBox::error(_('Löschen nicht möglich. Die Tour muss mindestens einen Schritt enthalten.')));
             return false;
+        }
         $query = "DELETE FROM help_tour_steps 
                   WHERE tour_id = ? AND step = ?";
         $statement = DBManager::get()->prepare($query);

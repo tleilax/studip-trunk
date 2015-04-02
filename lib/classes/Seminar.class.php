@@ -2046,10 +2046,8 @@ class Seminar
             CourseSet::removeCourseFromSet($cs->getId(), $this->getId());
             $cs->load();
             if (!count($cs->getCourses())
-                && !($GLOBALS['perm']->have_perm('admin', $cs->getUserId())
-                    || ($GLOBALS['perm']->have_perm('dozent', $cs->getUserId()) && get_config('ALLOW_DOZENT_COURSESET_ADMIN'))
-                    )
-                && $cs->getPrivate()) {
+                && $cs->isGlobal()
+                && $cs->getUserid() != '') {
                 $cs->delete();
             }
         }
@@ -2427,7 +2425,7 @@ class Seminar
     {
         $info = array();
         $user = User::find($user_id);
-        if ($this->read_level == 0 && get_config('ENABLE_FREE_ACCESS')) {
+        if ($this->read_level == 0 && get_config('ENABLE_FREE_ACCESS') && !$GLOBALS['perm']->get_studip_perm($this->getId(), $user_id)) {
             $info['enrolment_allowed'] = true;
             $info['cause'] = 'free_access';
             $info['description'] = _("Für die Veranstaltung ist keine Anmeldung erforderlich.");

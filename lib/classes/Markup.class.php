@@ -44,22 +44,67 @@ class Markup
         return self::markupHtmlReady($markup, $text, $trim);
     }
 
+    // HTML entries must beginn with "<!--HTML-->". Whitespace is
+    // ignored and comments may be inserted between "<!--HTML" 
+    // and "-->", but must not contain "-" or ">" characters.
+    const HTML_MARKER =
+        '<!-- HTML: Insert text after this line only. -->';
+
+    // No delimiter is given here to enable using the same 
+    // regular expression in JavaScript. It is assumed that '/' 
+    // is used as delimiter and that no modifiers are set.
+    const HTML_MARKER_REGEXP =
+        '^[\s\n]*<!--[\s\n]*[Hh][Tt][Mm][Ll][^->]*-->';
+
     /**
-     * Return True for HTML code and False for plain text.
+     * Return `true` for HTML code and `false` for plain text.
      *
-     * A fairly simple heuristic is used: Every text that begins with '<'
-     * and ends with '>' is considered to be HTML code. Leading and trailing
-     * whitespace characters are ignored.
+     * HTML code must either match `HTML_MARKER_REGEXP` or begin
+     * with '<' and end with '>' (leading and trailing whitespace
+     * is ignored). Everything else is considered to be plain
+     * text.
      *
      * @param string $text  HTML code or plain text.
      *
-     * @return boolean  TRUE for HTML code, FALSE for plain text.
+     * @return boolean  `true` for HTML code, `false` for plain text.
      */
     public static function isHtml($text)
     {
-        // TODO compare trimming-and-comparing runtime to using regexp
+        // NOTE keep this function in sync with the JavaScript 
+        // function isHtml in WyswygHtmlHead.php
+        if (self::hasHtmlMarker($text)) {
+            return true;
+        }
         $trimmed = trim($text);
         return $trimmed[0] === '<' && substr($trimmed, -1) === '>';
+    }
+
+    public static function hasHtmlMarker($text)
+    {
+        // NOTE keep this function in sync with the JavaScript 
+        // function hasHtmlMarker in WyswygHtmlHead.php
+        return preg_match('/' . self::HTML_MARKER_REGEXP . '/', $text);
+    }
+
+    /**
+     * Mark a given text as HTML code.
+     *
+     * No sanity-checking is done on the given text. It is simply 
+     * marked up so to be identified by Markup::isHtml as HTML 
+     * code.
+     *
+     * @param string $text  The text to be marked up as HTML code.
+     *
+     * @return string  The text marked up as HTML code.
+     */
+    public static function markAsHtml($text)
+    {
+        // NOTE keep this function in sync with the JavaScript 
+        // function markAsHtml in WyswygHtmlHead.php
+        if (self::hasHtmlMarker($text)) {
+            return $text; // marker already set, don't set twice
+        }
+        return self::HTML_MARKER . PHP_EOL . $text;
     }
 
     /**
@@ -208,7 +253,7 @@ class Markup
             tbody
             td[colspan|rowspan|style]
             thead
-            th[scope]
+            th[colspan|rowspan|style|scope]
             tr
         ');
 
@@ -233,6 +278,8 @@ class Markup
         $config->set('CSS.AllowedProperties', array(
             'margin-left',
             'text-align',
+            'width',
+            'height',
             'color',
             'background-color',
             'float'
@@ -273,11 +320,14 @@ class Markup
     public static function removeHTML($html) {
         $config = self::createDefaultPurifier();
         $config->set('Core.Encoding', 'ISO-8859-1');
-        $config->set('HTML.Allowed', 'a[href],img[src]');
+        $config->set('HTML.Allowed', 'a[href],img[alt|src],br');
         $config->set('AutoFormat.Custom', array('Unlinkify'));
 
         $purifier = new \HTMLPurifier($config);
-        return $purifier->purify($html);
+
+        return html_entity_decode(str_replace(
+            '<br />', PHP_EOL, $purifier->purify($html)
+        ));
     }
 
     private static function createDefaultPurifier() {

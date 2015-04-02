@@ -275,8 +275,9 @@ function termine (&$module, $row, $alias_content, $text_div, $text_div_end)
             $subheadline_div_end = "";
         }
 
-        $event_list = SingleCalendar::getEventList($row['user_id'], time(),
-                time() + 60 * 60 * 24 * 7);
+        $event_list = SingleCalendar::getEventList($this->user_id, time(),
+                time() + 60 * 60 * 24 * 7, null, array('class' => 'PUBLIC'),
+                array('CalendarEvent'));
         if (sizeof($event_list)) {
             echo "<tr><td width=\"100%\">\n";
             echo "<table" . $module->config->getAttributes("TableParagraph", "table") . ">\n";
@@ -691,36 +692,3 @@ function kontakt ($module, $row, $separate = FALSE) {
 
     return $out;
 }
-
-/*
-function literature (&$module, $content, $alias_content, $text_div, $text_div_end) {
-    if (count($content)) {
-        echo "<tr><td width=\"100%\">\n";
-        echo "<table" . $module->config->getAttributes("TableParagraph", "table") . ">\n";
-        echo "<tr" . $module->config->getAttributes("TableParagraphHeadline", "tr") . ">";
-        echo "<td" . $module->config->getAttributes("TableParagraphHeadline", "td") . ">";
-        echo "<font" . $module->config->getAttributes("TableParagraphHeadline", "font") . ">";
-        echo "$alias_content</font></td></tr>\n";
-
-        $tmpl = "\n<!-- BEGIN LITLIST -->\n   ";
-        $tmpl .= '<tr' . $module->config->getAttributes('TableParagraphSubHeadline', 'tr') . '>';
-        $tmpl .= '<td' . $module->config->getAttributes('TableParagraphSubHeadline', 'td') . '>';
-        $tmpl .= $subheadline_div;
-        $tmpl .= '<font' . $module->config->getAttributes('TableParagraphSubHeadline', 'font') . '>';
-        $tmpl .= '###LITLIST_NAME###';
-        $tmpl .= "</font>$subheadline_div_end</td></tr>\n";
-        $tmpl .= "\n  <!-- BEGIN LITLIST_ITEM -->\n  ";
-        $tmpl .=        '<tr' . $module->config->getAttributes('TableParagraphText', 'tr') . '>';
-        $tmpl .=        '<td' . $module->config->getAttributes('TableParagraphText', 'td') . '>';
-        $tmpl .=        "$text_div<font" . $module->config->getAttributes('TableParagraphText', 'font') . '>';
-        $tmpl .=        '###LITLIST_ITEM_ELEMENT###';
-        $tmpl .=        "</font>$text_div_end</td></tr>\n";
-        $tmpl .= "\n   <!-- END LITLIST_ITEM -->\n   ";
-        $tmpl .= "\n  <!-- END LITLIST -->\n";
-
-        echo $module->elements['LitList']->renderTmpl($tmpl);
-
-        echo "</table>\n</td></tr>\n";
-    }
-}
-*/

@@ -24,9 +24,9 @@ class CoreParticipants implements StudipModule {
         $navigation = new Navigation(_('TeilnehmerInnen'));
         $navigation->setImage('icons/16/white/persons.png');
         $navigation->setActiveImage('icons/16/black/persons.png');
-        $navigation->addSubNavigation('view', new Navigation(_('TeilnehmerInnen'), URLHelper::getLink("dispatch.php/course/members")));
+        $navigation->addSubNavigation('view', new Navigation(_('TeilnehmerInnen'), 'dispatch.php/course/members'));
         if (Course::find($course_id)->aux_lock_rule) {
-            $navigation->addSubNavigation('additional', new Navigation(_('Zusatzangaben'), URLHelper::getLink("dispatch.php/course/members/additional")));
+            $navigation->addSubNavigation('additional', new Navigation(_('Zusatzangaben'), 'dispatch.php/course/members/additional'));
         }
 
         $navigation->addSubNavigation('view_groups', new Navigation(_('Funktionen / Gruppen'), 'statusgruppen.php?view=statusgruppe_sem'));
@@ -86,23 +86,29 @@ class CoreParticipants implements StudipModule {
                 'Möglichkeiten, eine Rundmail an alle zu schreiben (nur '.
                 'Lehrende) bzw. einzelne Teilnehmende separat anzuschreiben.'),
             'displayname' => _('TeilnehmerInnen'),
-        	'keywords' => _('Rundmailfunktion an alle, einzelne oder mehrere Teilnehmenden;
-							Gruppierung nach Lehrenden, TutorInnen und teilnehmenden Studierenden (AutorInnen);
-							Aufnahme neuer teilnehmender Studierender (AutorInnen) und TutorInnen;
-							Import einer Teilnehmendenliste;
-							Export der Teilnehmendenliste;
-							Funktionen und Gruppen einrichten;
-							Anzeige Studiengang und Fachsemester'),
+            'keywords' => _('Rundmail an einzelne, mehrere oder alle Teilnehmenden;
+                            Gruppierung nach Lehrenden, TutorInnen und teilnehmenden Studierenden (AutorInnen);
+                            Aufnahme neuer teilnehmender Studierender (AutorInnen) und TutorInnen;
+                            Import einer Teilnehmendenliste;
+                            Export der Teilnehmendenliste;
+                            Einrichten von Gruppen;
+                            Anzeige Studiengang und Fachsemester'),
             'descriptionshort' => _('Liste aller Teilnehmenden einschließlich Nachrichtenfunktionen'),
-            'descriptionlong' => _('Die Teilnehmenden werden gruppiert nach ihrer jeweiligen Rolle '.
-                				   'in einer Tabelle gelistet. Für Lehrende werden sowohl das Anmeldedatum '.
-                				   'als auch der Studiengang mit Semesterangabe der Studierenden dargestellt. '.
-                				   'Die Liste kann in verschiedene Formate exportiert werden. Außerdem '.
-                				   'gibt es die Möglichkeiten für Lehrende, eine Rundmail an alle zu schreiben '.
-                				   'bzw. einzelne Teilnehmende separat anzuschreiben.'),
-            'category' => _('Lehrorganisation'),
-        	'icon' => 'icons/16/black/persons.png',
-        	'screenshot' => 'plus/screenshots/TeilnehmerInnen/TeilnehmerInnen.png' 
+            'descriptionlong' => _('Die Teilnehmenden werden gruppiert nach ihrer jeweiligen Rolle in '.
+                                   'einer Tabelle gelistet. Für Lehrende werden sowohl das Anmeldedatum '.
+                                   'als auch der Studiengang mit Semesterangabe der Studierenden dargestellt. '.
+                                   'Die Liste kann in verschiedene Formate exportiert werden. Außerdem gibt '.
+                                   'es die Möglichkeiten für Lehrende, allen eine Rundmail zukommen zu lassen '.
+                                   'bzw. einzelne Teilnehmende separat anzuschreiben.'),
+            'category' => _('Lehr- und Lernorganisation'),
+            'icon' => 'icons/16/black/persons.png',
+            'screenshots' => array(
+                'path' => 'plus/screenshots/TeilnehmerInnen',
+                'pictures' => array(
+                    0 => array('source' => 'Liste_aller_TeilnehmerInnen_einer_Veranstaltung.jpg', 'title' => _('Liste aller TeilnehmerInnen einer Veranstaltung')),
+                    1 => array( 'source' => 'Rundmail_an_alle_TeilnehmerInnen_einer_Veranstaltung.jpg', 'title' => _('Rundmail an alle TeilnehmerInnen einer Veranstaltung'))
+                )
+            )
         );
     }
 }

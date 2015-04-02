@@ -50,7 +50,7 @@ if ($rowspan > 1) {
         <? if ($tab_arr[$i]['max_cols'] > 0) : ?>
         <? $event_cols = $tab_arr[$i]['max_cols'] ?: 1; ?>
         <col span="<?= $event_cols ?>" style="width: <?= 100 / $week_type / $event_cols ?>%">
-        <col style="max-width: 0.8em; width: 0.8em;">
+        <col style="max-width: 0.9em; width: 0.9em;">
         <? else : ?>
         <col style="width: <?= 100 / $week_type ?>%">
         <? endif; ?>
@@ -63,19 +63,19 @@ if ($rowspan > 1) {
     <thead>
     <tr>
         <td colspan="<?= $colspan_2 ?>" style="vertical-align: middle; text-align: center;">
-            <div style="text-align: left; width: 20%; display: inline-block; white-space: nowrap;">
-                <a href="<?= $controller->url_for('calendar/single/week', array('atime' => mktime(12, 0, 0, date('n', $atime), date('j', $atime) - 7, date('Y', $atime)))) ?>">
+            <div style="text-align: left; width: 25%; display: inline-block; white-space: nowrap;">
+                <a href="<?= $controller->url_for('calendar/single/week', array('atime' => strtotime('-1 week', $atime))) ?>">
                     <span style="vertical-align: middle;" <?= tooltip(_('eine Woche zurück')) ?>>
                     <?= Assets::img('icons/16/blue/arr_1left.png') ?>
                     </span>
                     <?= strftime(_('%V. Woche'), strtotime('-1 week', $atime)) ?>
                 </a>
             </div>
-            <div style="width: 50%; display: inline-block; text-align: center;" class="calhead">
+            <div style="display: inline-block; text-align: center;" class="calhead">
                 <? printf(_("%s. Woche vom %s bis %s"), strftime("%V", $calendars[0]->getStart()), strftime("%x", $calendars[0]->getStart()), strftime("%x", $calendars[$week_type - 1]->getStart())) ?>
             </div>
-            <div style="text-align: right; width: 20%;  display: inline-block; white-space: nowrap;">
-                <a href="<?= $controller->url_for('calendar/single/week', array('atime' => mktime(12, 0, 0, date('n', $atime), date('j', $atime) + 7, date('Y', $atime)))) ?>">
+            <div style="width: 25%; text-align: right; display: inline-block; white-space: nowrap;">
+                <a href="<?= $controller->url_for('calendar/single/week', array('atime' => strtotime('+1 week', $atime))) ?>">
                     <?= strftime(_('%V. Woche'), strtotime('+1 week', $atime)) ?>
                     <span style="vertical-align: middle;" <?= tooltip(_('eine Woche vor')) ?>>
                     <?= Assets::img('icons/16/blue/arr_1right.png') ?>
@@ -121,21 +121,12 @@ if ($rowspan > 1) {
         <? for ($i = 0; $i < $week_type; $i++) : ?>
         <?
         if (date('Ymd', $calendars[$i]->getStart()) == date('Ymd')) {
-            $style_cell = 'celltoday';
+            $class_cell = 'celltoday';
         } else {
-            $style_cell = 'table_row_even';
+            $class_cell = '';
         }
         ?>
-        <td class="weekdayevents" class="<?= $style_cell ?>" style="text-align:right; vertical-align:top;"<?= (($tab_arr[$i]['max_cols'] > 0) ? ' colspan="' . ($tab_arr[$i]['max_cols'] + 1) . '"' : '') ?>>
-            <?= $this->render_partial('calendar/single/_day_dayevents', array('em' => $tab_arr[$i], 'calendar' => $calendars[$i])) ?>
-            <?/* if ($calendar->havePermission(Calendar::PERMISSION_WRITABLE)) : ?>
-                <div style="width: 14px; float:right;">
-                    <a href="<?= URLHelper::getLink('',  array('cmd' => 'edit', 'atime' => $calendar->view->wdays[$i]->getTs(), 'devent' => '1')) ?>">
-                        <img src="<?= Assets::image_path('calplus.gif') ?>"<?= tooltip(_("neuer Tagestermin")) ?>>
-                    </a>
-                </div>
-            <? endif */?>
-        </td>
+        <?= $this->render_partial('calendar/single/_day_dayevents', array('em' => $tab_arr[$i], 'calendar' => $calendars[$i], 'class_cell' => $class_cell)) ?>
         <? endfor ?>
         <td class="precol1w"<?= $colspan_1 ?>>
             <?= _('Tag') ?>
@@ -160,7 +151,14 @@ if ($rowspan > 1) {
             <? endif ?>
         <? endif ?>
         <? for ($y = 0; $y < $week_type; $y++) : ?>
-            <?= $this->render_partial('calendar/single/_day_cell', array('calendar' => $calendars[$y], 'em' => $tab_arr[$y], 'row' => $i, 'start' => $start * 3600, 'i' => $i + ($start * 3600 / $settings['step_week']), 'step' => $settings['step_week'])); ?>
+            <?
+            if (date('Ymd', $calendars[$y]->getStart()) == date('Ymd')) {
+                $class_cell = 'celltoday';
+            } else {
+                $class_cell = '';
+            }
+            ?>
+            <?= $this->render_partial('calendar/single/_day_cell', array('calendar' => $calendars[$y], 'em' => $tab_arr[$y], 'row' => $i, 'start' => $start * 3600, 'i' => $i + ($start * 3600 / $settings['step_week']), 'step' => $settings['step_week'], 'class_cell' => $class_cell)); ?>
         <? endfor ?>
         <? if ($rowspan > 1) : ?>
             <? if ($minutes == 0) : ?>

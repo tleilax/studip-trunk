@@ -104,7 +104,7 @@ class SingleCalendar
             $class_names = array('CalendarEvent', 'CourseEvent', 'CourseCancelledEvent');
         }
         foreach ($class_names as $type) {
-            if (is_subclass_of($type, 'Event')) {
+            if (in_array('Event', class_implements($type))) {
                 $this->events->merge($type::getEventsByInterval(
                         $this->range_object->getId(), new DateTime('@' . $start),
                         new DateTime('@' . $end)));
@@ -124,8 +124,16 @@ class SingleCalendar
      */
     public function storeEvent(CalendarEvent $event, $attendee_ids = null)
     {
-        if (sizeof($attendee_ids) == 0) {
-            return $event->store();
+        if (!sizeof($attendee_ids)) {
+            if (!$this->havePermission(Calendar::PERMISSION_WRITABLE)) {
+                return false;
+            }
+            $stored = $event->store();
+            if ($stored !== false && $this->getRange() == Calendar::RANGE_USER
+                    && $this->getRangeId() != $GLOBALS['user']->id) {
+                $this->sendStoreMessage($event, $event->isNew());
+            }
+            return $stored;
         } else {
             if ($event->isNew()) {
                 return $this->storeAttendeeEvents($event, $attendee_ids);
@@ -151,22 +159,30 @@ class SingleCalendar
         foreach ($attendee_ids as $attendee_id) {
             if (trim($attendee_id)) {
                 $attendee_calendar = new SingleCalendar($attendee_id);
-                if ($attendee_calendar->getPermissionByUser($this->getRangeId())
-                        >= Calendar::PERMISSION_READABLE) {
+                if ($attendee_calendar->havePermission(Calendar::PERMISSION_WRITABLE)) {
                     $attendee_event = new CalendarEvent(
                             array($attendee_calendar->getRangeId(), $event->event_id));
                     $attendee_event->event = $event->event;
-                    if ($attendee_event->store()) {
-                        $new_attendees[] = $attendee_event->getId();
-                        $ret++;
+                    $is_new = $attendee_event->isNew();
+                    $stored = $attendee_event->store();
+                    if ($stored !== false) {
+                        // send message if not own calendar
+                        if (!$attendee_calendar->havePermission(Calendar::PERMISSION_OWN)) {
+                            $this->sendStoreMessage($attendee_event, $is_new);
+                        }
+                        $new_attendees[] = $attendee_event->range_id;
+                        $ret += $stored;
                     } else {
                         return false;
                     }
                 }
             }
         }
-        if (sizeof($new_attendees)) {
-            CalendarEvent::deleteBySQL('range_id NOT IN(?)', array($new_attendees));
+        $events_delete = CalendarEvent::findBySQL('event_id = ? AND range_id NOT IN(?)',
+                array($event->event_id, $new_attendees));
+        foreach ($events_delete as $event_delete) {
+            $calendar = new SingleCalendar($event_delete->range_id);
+            $calendar->deleteEvent($event_delete);
         }
         return $ret;
     }
@@ -429,91 +445,89 @@ class SingleCalendar
         return $permission == $this->getPermissionByUser($user_id);
     }
     
-    public function addEventObj(&$event, $updated, $selected_users = NULL)
-    {
-        if ($this->havePermission(Calendar::PERMISSION_WRITABLE)) {
-            $this->event = $event;
-            if ($this->range == Calendar::RANGE_USER) {
-                // send a message if it is not the users own calendar
-                $this->sendStoreMessage($event, $updated);
-            }
-
-            $this->event->save();
-        }
-    }
-    
     /**
      * Sends a message to the owner of the calendar that a new event was inserted
      * or an old event was modified by another user. 
      * 
-     * @param CalendarEvent $event
-     * @param bool $updated
+     * @param CalendarEvent $event The new or updated event.
+     * @param bool $is_new True if the event is new.
      */
-    protected function sendStoreMessage($event, $updated)
+    protected function sendStoreMessage($event, $is_new)
     {
-        if (!$this->checkPermission(Calendar::PERMISSION_OWN)
-                && $this->getRange() == Calendar::RANGE_USER) {
-            include_once('lib/messaging.inc.php');
-            $message = new messaging();
-            $event_data = '';
+        $message = new messaging();
+        $event_data = '';
 
-            if ($updated) {
-                $msg_text = sprintf(_("%s hat einen Termin in Ihrem Kalender geändert."), get_fullname());
-                $subject = sprintf(_("Termin am %s geändert"), $event->toStringDate('SHORT_DAY'));
-                $msg_text .= "\n\n**";
-            } else {
-                $msg_text = sprintf(_("%s hat einen neuen Termin in Ihren Kalender eingetragen."), get_fullname());
-                $subject = sprintf(_("Neuer Termin am %s"), $event->toStringDate('SHORT_DAY'));
-                $msg_text .= "\n\n**";
-            }
-            $msg_text .= _("Zeit:") . '** ' . $event->toStringDate('LONG') . "\n**";
-            $msg_text .= _("Zusammenfassung:") . '** ' . $event->getTitle() . "\n";
-            if ($event_data = $event->getDescription()) {
-                $msg_text .= '**' . _("Beschreibung:") . "** $event_data\n";
-            }
-            if ($event_data = $event->toStringCategories()) {
-                $msg_text .= '**' . _("Kategorie:") . "** $event_data\n";
-            }
-            if ($event_data = $event->toStringPriority()) {
-                $msg_text .= '**' . _("Priorität:") . "** $event_data\n";
-            }
-            if ($event_data = $event->toStringAccessibility()) {
-                $msg_text .= '**' . _("Zugriff:") . "** $event_data\n";
-            }
-            if ($event_data = $event->toStringRecurrence()) {
-                $msg_text .= '**' . _("Wiederholung:") . "** $event_data\n";
-            }
-
-            $message->insert_message($msg_text, $this->range_object->username,
-                    '____%system%____', '', '', '', '', $subject);
+        if (!$is_new) {
+            $msg_text = sprintf(_("%s hat einen Termin in Ihrem Kalender geändert."), get_fullname());
+            $subject = strftime(_('Termin am %c geändert'), $event->getStart());
+            $msg_text .= "\n\n**";
+        } else {
+            $msg_text = sprintf(_("%s hat einen neuen Termin in Ihren Kalender eingetragen."), get_fullname());
+            $subject = strftime(_('Neuer Termin am %c'), $event->getStart());
+            $msg_text .= "\n\n**";
         }
+        $msg_text .= _('Zeit:') . '** ' . strftime(' %c - ', $event->getStart())
+                . strftime('%c', $event->getEnd()) . "\n**";
+        $msg_text .= _("Zusammenfassung:") . '** ' . $event->getTitle() . "\n";
+        if ($event_data = $event->getDescription()) {
+            $msg_text .= '**' . _("Beschreibung:") . "** $event_data\n";
+        }
+        if ($event_data = $event->toStringCategories()) {
+            $msg_text .= '**' . _("Kategorie:") . "** $event_data\n";
+        }
+        if ($event_data = $event->toStringPriority()) {
+            $msg_text .= '**' . _("Priorität:") . "** $event_data\n";
+        }
+        if ($event_data = $event->toStringAccessibility()) {
+            $msg_text .= '**' . _("Zugriff:") . "** $event_data\n";
+        }
+        if ($event_data = $event->toStringRecurrence()) {
+            $msg_text .= '**' . _("Wiederholung:") . "** $event_data\n";
+        }
+
+        $message->insert_message($msg_text, get_username($event->range_id),
+                '____%system%____', '', '', '', '', $subject);
     }
 
     /**
      * Deletes an event from this calendar.
      * 
-     * @param string $event_id The id of the event.
-     * @return boolean True if the event was deleted.
+     * @param string|object $calendar_event The id of an event or an event object of type CalendarEvent.
+     * @param boolean $all If true all events of a group event will be deleted.
+     * @return boolean|int The number of deleted events. False if the event was not deleted.
      */
-    function deleteEvent($event_id)
+    public function deleteEvent($calendar_event, $all = false)
     {
         if ($this->havePermission(Calendar::PERMISSION_WRITABLE)) {
-            $this->event = CalendarEvent::find(array($this->getRangeId(), $event_id));
+            if (!is_object($calendar_event)) {
+                $calendar_event = CalendarEvent::find(
+                        array($this->getRangeId(), $calendar_event));
+            }
 
-            if (!$this->event || !$this->event->havePermission(Event::PERMISSION_WRITABLE)) {
+            if (!$calendar_event
+                    || !$calendar_event->havePermission(Event::PERMISSION_WRITABLE)) {
                 return false;
             }
             
-            if (!is_a($this->event, 'CalendarEvent')) {
+            if (!is_a($calendar_event, 'CalendarEvent')) {
                 return false;
             }
 
             if ($this->getRange() == Calendar::RANGE_USER) {
-                $this->sendDeleteMessage($this->event);
-                $this->event->delete();
-                return true;
+                $event_message = clone $calendar_event;
+                $author_id = $calendar_event->getAuthorId();
+                $deleted = $calendar_event->delete();
+                if ($deleted && !$this->havePermission(Calendar::PERMISSION_OWN)) {
+                    $this->sendDeleteMessage($event_message);
+                }
+                if ($all && $deleted && $author_id == $this->getRangeId()) {
+                    CalendarEvent::findEachBySQL(function ($ce) use ($deleted) {
+                        $calendar = new SingleCalendar($ce->range_id);
+                        $deleted += $calendar->deleteEvent($ce);
+                    }, 'event_id = ?', array($event_message->event_id));
+                }
+                return $deleted;
             }
-            $this->event = null;
         }
         return false;
     }
@@ -526,41 +540,38 @@ class SingleCalendar
      */
     protected function sendDeleteMessage($event)
     {
-        if (!$this->checkPermission(Calendar::PERMISSION_OWN)
-                && $this->getRange() == Calendar::RANGE_USER) {
-            include_once('lib/messaging.inc.php');
-            $message = new messaging();
-            $event_data = '';
+        $message = new messaging();
+        $event_data = '';
 
-            $subject = sprintf(_("Termin am %s gelöscht"), $event->toStringDate('SHORT_DAY'));
-            $msg_text = sprintf(_("%s hat folgenden Termin in Ihrem Kalender gelöscht:"), get_fullname());
-            $msg_text .= "\n\n**";
+        $subject = strftime(_('Termin am %c gelöscht'), $event->getStart());
+        $msg_text = sprintf(_("%s hat folgenden Termin in Ihrem Kalender gelöscht:"), get_fullname());
+        $msg_text .= "\n\n";
 
-            $msg_text .= _("Zeit:") . '** ' . $event->toStringDate('LONG') . "\n**";
-            $msg_text .= _("Zusammenfassung:") . '** ' . $event->getTitle() . "\n";
-            if ($event_data = $event->getDescription()) {
-                $msg_text .= '**' . _("Beschreibung:") . "** $event_data\n";
-            }
-            if ($event_data = $event->toStringCategories()) {
-                $msg_text .= '**' . _("Kategorie:") . "** $event_data\n";
-            }
-            if ($event_data = $event->toStringPriority()) {
-                $msg_text .= '**' . _("Priorität:") . "** $event_data\n";
-            }
-            if ($event_data = $event->toStringAccessibility()) {
-                $msg_text .= '**' . _("Zugriff:") . "** $event_data\n";
-            }
-            if ($event_data = $event->toStringRecurrence()) {
-                $msg_text .= '**' . _("Wiederholung:") . "** $event_data\n";
-            }
-
-            $message->insert_message($msg_text, $this->range_object->username,
-                    '____%system%____', '', '', '', '', $subject);
+        $msg_text .= '**' . _('Zeit:') . '**' . strftime(' %c - ', $event->getStart())
+                . strftime('%c', $event->getEnd()) . "\n";
+        $msg_text .= '**' . _("Zusammenfassung:") . '** ' . $event->getTitle() . "\n";
+        if ($event_data = $event->getDescription()) {
+            $msg_text .= '**' . _("Beschreibung:") . "** $event_data\n";
         }
+        if ($event_data = $event->toStringCategories()) {
+            $msg_text .= '**' . _("Kategorie:") . "** $event_data\n";
+        }
+        if ($event_data = $event->toStringPriority()) {
+            $msg_text .= '**' . _("Priorität:") . "** $event_data\n";
+        }
+        if ($event_data = $event->toStringAccessibility()) {
+            $msg_text .= '**' . _("Zugriff:") . "** $event_data\n";
+        }
+        if ($event_data = $event->toStringRecurrence()) {
+            $msg_text .= '**' . _("Wiederholung:") . "** $event_data\n";
+        }
+
+        $message->insert_message($msg_text, get_username($event->range_id),
+                '____%system%____', '', '', '', '', $subject);
     }
     
     /**
-     * Returns a array of all events (with calculated recurrences)
+     * Returns an array of all events (with calculated recurrences)
      * in the given time range.
      * 
      * @param string $owner_id The user id of calendar owner.
@@ -568,7 +579,7 @@ class SingleCalendar
      * @param string $user_id The id of the user who gets access to the calendar (optional, default current user)
      * @param array $restrictions An array with key value pairs of properties to filter the result (optional).
      * @param array $class_names Array of class names. The class must implement Event (optional).
-     * @return \SingleCalendar
+     * @return array All events in the given time range (with calculated recurrences)
      */
     public static function getEventList($owner_id, $start, $end, $user_id = null,
             $restrictions = null, $class_names = null)
@@ -634,8 +645,10 @@ class SingleCalendar
                    && $event->getAccessibility() != 'PUBLIC') {
                 continue;
             }
-            if (!$event->havePermission(Event::PERMISSION_CONFIDENTIAL, $user_id)
-                    && !SingleCalendar::checkRestriction($event, $restrictions)) {
+            if (!$event->havePermission(Event::PERMISSION_CONFIDENTIAL, $user_id)) {
+                continue;
+            }
+            if (!SingleCalendar::checkRestriction($event, $restrictions)) {
                 continue;
             }
             $properties = $event->getProperties();
@@ -664,9 +677,16 @@ class SingleCalendar
             }
             switch ($rep['rtype']) {
                 case 'DAILY':
+                    /*
                     if ($calendar->getEnd() > $rep['expire'] + $duration * 86400) {
                         continue;
                     }
+                     * 
+                     */
+                    if ($end > $rep['expire'] + $duration * 86400) {
+                        continue;
+                    }
+                    $ts = $ts + (date('I', $rep['ts']) * 3600);
                     $pos = (($ts - $rep['ts']) / 86400) % $rep['linterval'];
                     $start = $ts - $pos * 86400;
                     $end = $start + $duration * 86400;
@@ -674,6 +694,7 @@ class SingleCalendar
                             $calendar->getEnd(), $events_created);
                     break;
                 case 'WEEKLY':
+                    $rep['ts'] = $rep['ts'] + ((date('I', $rep['ts']) - date('I', $ts)) * 3600);
                     for ($i = 0; $i < strlen($rep['wdays']); $i++) {
                         $pos = ((($ts - $dow * 86400) - $rep['ts']) / 86400
                                 - ($rep['wdays']{$i} - 1) + $dow)
@@ -806,7 +827,7 @@ class SingleCalendar
         }
         // is event expired?
         $rrule = $event->getRecurrence();
-        if ($rrule['rtype'] != 'SINGLE' && $rrule['expire'] > 0 && $rrule['expire'] <= $hgst) {
+        if ($rrule['rtype'] != 'SINGLE' && $rrule['expire'] > 0 && $rrule['expire'] < $hgst) {
             return false;
         }
         $start = mktime(date('G', $event->getStart()), date('i', $event->getStart()),
@@ -843,15 +864,17 @@ class SingleCalendar
         }
         $end = $this->getEnd();
         $start = $this->getStart();
-        $year = $this->year;
+        $year = date('Y', $start);
         $end_ts = mktime(12, 0, 0, date('n', $end), date('j', $end), date('Y', $end));
         $start_ts = mktime(12, 0, 0, date('n', $start), date('j', $start), date('Y', $start));
         $this->getEvents($class_names)->sortEvents();
         $daylist = array();
-        
+        $this->ts = mktime(12, 0, 0, 1, 1, $year);
         foreach ($this->events as $event) {
-            if (!$event->havePermission(Event::PERMISSION_CONFIDENTIAL, $user_id)
-                    && !SingleCalendar::checkRestriction($event, $restrictions)) {
+            if (!$event->havePermission(Event::PERMISSION_CONFIDENTIAL, $user_id)) {
+                continue;
+            }
+            if (!SingleCalendar::checkRestriction($event, $restrictions)) {
                 continue;
             }
             $properties = $event->getProperties();
@@ -870,7 +893,8 @@ class SingleCalendar
             }
             $hgst = $lwst + $duration * 86400;
             while ($adate >= $start_ts && $adate <= $end_ts && $adate <= $hgst) {
-                $this->countListEvent($properties, $adate, $properties['DTSTART'], $properties['DTEND'], $daylist);
+                $md_date = $adate - date('I', $adate) * 3600;
+                $this->countListEvent($properties, $md_date, $properties['DTSTART'], $properties['DTEND'], $daylist);
                 $adate += 86400;
             }
 
@@ -888,6 +912,7 @@ class SingleCalendar
                             $hgst = $adate + $duration * 86400;
                             $md_date = $adate;
                             while ($md_date <= $end_ts && $md_date >= $this->ts && $md_date <= $hgst) {
+                                $md_date -= 3600 * date('I', $md_date);
                                 $this->countListEvent($properties, $md_date, $adate, $hgst, $daylist);
                                 $md_date += 86400;
                             }
@@ -900,6 +925,7 @@ class SingleCalendar
                         $hgst = $adate + $duration * 86400;
                         $md_date = $adate;
                         while ($md_date <= $end_ts && $md_date >= $this->ts && $md_date <= $hgst) {
+                            $md_date += 3600 * date('I', $md_date);
                             $this->countListEvent($properties, $md_date, $adate, $hgst, $daylist);
                             $md_date += 86400;
                         }
@@ -912,10 +938,11 @@ class SingleCalendar
                         $lwst = mktime(12, 0, 0, date('n', $properties['DTSTART']), date('j', $properties['DTSTART']), date('Y', $properties['DTSTART']));
                         $hgst = $lwst + $duration * 86400;
                         if ($rep['ts'] != $adate) {
-                            $md_date = $lwst;
-                            while ($md_date <= $end_ts && $md_date >= $start_ts && $md_date <= $hgst) {
-                                $this->countListEvent($properties, $md_date, $lwst, $hgst, $daylist);
-                                $md_date += 86400;
+                            $wdate = $lwst;
+                            while ($wdate <= $end_ts && $wdate >= $start_ts && $wdate <= $hgst) {
+                              //  $md_date = $wdate - date('I', $wdate) * 3600;
+                                $this->countListEvent($properties, $wdate, $lwst, $hgst, $daylist);
+                                $wdate += 86400;
                             }
                         }
                         $aday = strftime('%u', $lwst) - 1;
@@ -926,6 +953,7 @@ class SingleCalendar
                                 $hgst = $lwst + $duration * 86400;
                                 $wdate = $lwst;
                                 while ($wdate >= $start_ts && $wdate <= $end_ts && $wdate <= $hgst) {
+                                  //  $md_date = $wdate - date('I', $wdate) * 3600;
                                     $this->countListEvent($properties, $wdate, $lwst, $hgst, $daylist);
                                     $wdate += 86400;
                                 }
@@ -938,7 +966,7 @@ class SingleCalendar
                                 % $rep['linterval']) * 604800;
                         $adate -= $rep['linterval'] * 604800;
                     } else {
-                        $adate = $rep['ts'];
+                        $adate = $rep['ts'] + 604800 * $rep['linterval'];
                     }
 
                     while ($adate >= $properties['DTSTART'] && $adate <= $rep['expire'] && $adate <= $end) {
@@ -951,8 +979,8 @@ class SingleCalendar
                                 $lwst = $start_ts;
                             }
                             $wdate = $lwst;
-
                             while ($wdate >= $start_ts && $wdate <= $end_ts && $wdate <= $hgst) {
+                               // $md_date = $wdate - date('I', $wdate) * 3600;
                                 $this->countListEvent($properties, $wdate, $lwst, $hgst, $daylist);
                                 $wdate += 86400;
                             }
@@ -964,6 +992,7 @@ class SingleCalendar
                 case 'MONTHLY' :
                     $bmonth = ($rep['linterval'] - ((($year - date('Y', $rep['ts'])) * 12)
                             - date('n', $rep['ts'])) % $rep['linterval']) % $rep['linterval'];
+                    
                     for ($amonth = $bmonth - $rep['linterval']; $amonth <= $bmonth; $amonth += $rep['linterval']) {
                         if ($rep['ts'] < $start) {
                             // is repeated at X. week day of X. month...
@@ -995,11 +1024,15 @@ class SingleCalendar
                         } else {
                             // first recurrence
                             $lwst = $rep['ts'];
+                            $lwst = mktime(12, 0, 0, $amonth
+                                        - ((($year - date('Y', $rep['ts'])) * 12
+                                        + ($amonth - date('n', $rep['ts']))) % $rep['linterval']), $rep['day'], $year);
+                            
                         }
                         $hgst = $lwst + $duration * 86400;
                         $md_date = $lwst;
                         // events last longer than one day
-                        while ($hgst >= $start_ts && $md_date <= $hgst && $md_date <= $end_ts) {
+                        while ($md_date >= $start_ts && $md_date <= $hgst && $md_date <= $end_ts) {
                             $this->countListEvent($properties, $md_date, $lwst, $hgst, $daylist);
                             $md_date += 86400;
                         }
@@ -1062,9 +1095,10 @@ class SingleCalendar
                 && $properties['RRULE']['expire'] <= $hgst) {
             return false;
         }
-        $daylist["$date"]["{$properties['STUDIP_ID']}"] =
-                $daylist["$date"]["{$properties['STUDIP_ID']}"]
-                ? $daylist["$date"]["{$properties['STUDIP_ID']}"]++ : 1;
+        $idate = date('Ymd', $date);
+        $daylist["$idate"]["{$properties['STUDIP_ID']}"] =
+                $daylist["$idate"]["{$properties['STUDIP_ID']}"]
+                ? $daylist["$idate"]["{$properties['STUDIP_ID']}"]++ : 1;
         return true;
     }
     
@@ -1220,6 +1254,9 @@ class SingleCalendar
                 }
             }
         }
+        if ($max_cols < 1 && sizeof($em['day_events'])) {
+            $max_cols = 1;
+        }
         $em['cspan'] = $cspan;
         $em['rows'] = $rows;
         $em['colsp'] = $colsp;
@@ -1267,9 +1304,11 @@ class SingleCalendar
     {
         $tmp_event = array();
         $map_events = array();
+        $dst_corr_start = date('I', $this->getStart());
+        $dst_corr_end = date('I', $this->getEnd());
         for ($i = 0; $i < sizeof($this->events); $i++) {
             $event = $this->events[$i];
-            if (($event->getEnd() >= $this->getStart() + $start)
+            if (($event->getEnd() > $this->getStart() + $start)
                     && ($event->getStart() < $this->getStart() + $end + 3600)) {
                 if ($event->isDayEvent()
                         || ($event->getStart() <= $this->getStart()
@@ -1281,12 +1320,6 @@ class SingleCalendar
                     $map_day_events[] = $i;
                 } else {
                     $cloned_event = clone $event;
-                    $start_time = mktime(date('G', $event->getStart()), date('i', $event->getStart()),
-                            date('s', $event->getStart()), date('n', $this->getStart()), date('j', $this->getStart()), date('Y', $this->getStart()));
-                    $end_time = mktime(date('G', $event->getEnd()), date('i', $event->getEnd()),
-                            date('s', $event->getEnd()), date('n', $this->getStart()), date('j', $this->getStart()), date('Y', $this->getStart()));
-                    $cloned_event->setStart($start_time);
-                    $cloned_event->setEnd($end_time);
                     $end_corr = $cloned_event->getEnd() % $step;
                     if ($end_corr > 0) {
                         $end_corr = $cloned_event->getEnd() + ($step - $end_corr);
@@ -1298,6 +1331,15 @@ class SingleCalendar
                     if ($cloned_event->getEnd() > ($this->getStart() + $end + 3600)) {
                         $cloned_event->setEnd($this->getStart() + $end + 3600);
                     }
+                    // adjustment of DST-offset
+                    $dst_corr_event_start = date('I', $cloned_event->getStart());
+                    $dst_corr_event_end = date('I', $cloned_event->getEnd());
+                    $cloned_event->setStart($cloned_event->getStart() +
+                            3600 * ($dst_corr_event_start - $dst_corr_start));
+                    $cloned_event->setEnd($cloned_event->getStart() + ($event->getEnd() - $event->getStart()) +
+                            3600 * ($dst_corr_end - $dst_corr_event_end)
+                            + 3600 * ($dst_corr_event_end - $dst_corr_event_start));
+                    
                     $tmp_event[] = $cloned_event;
                     $map_events[] = $i;
                 }

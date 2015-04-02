@@ -142,8 +142,8 @@ class MyCoursesController extends AuthenticatedController
         $this->my_bosses                    = $default_deputies_enabled ? getDeputyBosses($GLOBALS['user']->id) : array();
 
         // Check for new contents
-        $new_contents = $this->check_for_new($this->sem_courses, $group_field);
-        $this->nav_elements = MyRealmModel::calc_nav_elements($this->sem_courses, $group_field);
+        $new_contents = $this->check_for_new($this->sem_courses, $this->group_field);
+        $this->nav_elements = MyRealmModel::calc_nav_elements($this->sem_courses, $this->group_field);
 
         //
         if ($tabularasa = $this->flash['tabularasa']) {
@@ -218,6 +218,8 @@ class MyCoursesController extends AuthenticatedController
         if ($GLOBALS['perm']->have_perm('admin')) {
             throw new AccessDeniedException();
         }
+
+        DBView::addView('sem_tree');
 
         $this->title = _('Meine Veranstaltungen') . ' - ' . _('Farbgruppierungen');
 
@@ -433,7 +435,8 @@ class MyCoursesController extends AuthenticatedController
         }
 
         if (Request::option('cmd') != 'kill' && Request::option('cmd') != 'kill_admission') {
-            if ($current_seminar->admission_binding) {
+
+            if ($current_seminar->admission_binding && Request::get('cmd') != 'suppose_to_kill_admission' && !LockRules::Check($current_seminar->getId(), 'participants')) {
                 PageLayout::postMessage(MessageBox::error(sprintf(_("Die Veranstaltung <b>%s</b> ist als <b>bindend</b> angelegt.
                     Wenn Sie sich austragen wollen, müssen Sie sich an die Dozentin oder den Dozenten der Veranstaltung wenden."),
                     htmlReady($current_seminar->name))));
@@ -441,7 +444,7 @@ class MyCoursesController extends AuthenticatedController
                 return;
             }
 
-            if (is_null($waiting)) {
+            if (Request::get('cmd') == 'suppose_to_kill') {
                 // check course admission
                 list(,$admission_end_time) = array_values($current_seminar->getAdmissionTimeFrame());
 
@@ -449,11 +452,9 @@ class MyCoursesController extends AuthenticatedController
                 $admission_locked   = $current_seminar->isAdmissionLocked();
 
                 if ($admission_enabled || $admission_locked || (int)$current_seminar->admission_prelim == 1) {
-                    $message = sprintf(_('Wollen Sie das Abonnement der teilnahmebeschränkten Veranstaltung "%s" wirklich aufheben?
-                Sie verlieren damit die Berechtigung für die Veranstaltung und müssen sich ggf. neu anmelden!'), $current_seminar->name);
+                    $message = sprintf(_('Wollen Sie das Abonnement der teilnahmebeschränkten Veranstaltung "%s" wirklich aufheben? Sie verlieren damit die Berechtigung für die Veranstaltung und müssen sich ggf. neu anmelden!'), $current_seminar->name);
                 } else if (isset($admission_end_time) && $admission_end_time < time()) {
-                    $message = sprintf(_('Wollen Sie das Abonnement der Veranstaltung "%s" wirklich aufheben?
-                Der Anmeldzeitraum ist abgelaufen und Sie können sich nicht wieder anmelden!'), $current_seminar->name);
+                    $message = sprintf(_('Wollen Sie das Abonnement der Veranstaltung "%s" wirklich aufheben? Der Anmeldzeitraum ist abgelaufen und Sie können sich nicht wieder anmelden!'), $current_seminar->name);
                 } else {
                     $message = sprintf(_('Wollen Sie das Abonnement der Veranstaltung "%s" wirklich aufheben?'), $current_seminar->name);
                 }
@@ -462,8 +463,7 @@ class MyCoursesController extends AuthenticatedController
                 if (admission_seminar_user_get_position($GLOBALS['user']->id, $course_id) === false) {
                     $message = sprintf(_('Wollen Sie den Eintrag auf der Anmeldeliste der Veranstaltung "%s" wirklich aufheben?'), $current_seminar->name);
                 } else {
-                    $message = sprintf(_('Wollen Sie den Eintrag auf der Warteliste der Veranstaltung "%s" wirklich aufheben?
-                    Sie verlieren damit die bereits erreichte Position und müssen sich ggf. neu anmelden!'), $current_seminar->name);
+                    $message = sprintf(_('Wollen Sie den Eintrag auf der Warteliste der Veranstaltung "%s" wirklich aufheben? Sie verlieren damit die bereits erreichte Position und müssen sich ggf. neu anmelden!'), $current_seminar->name);
                 }
                 $this->flash['cmd'] = 'kill_admission';
             }
@@ -473,6 +473,7 @@ class MyCoursesController extends AuthenticatedController
             $this->flash['message']        = $message;
             $this->flash['studipticket']   = Seminar_Session::get_ticket();
             $this->redirect('my_courses/index');
+            return;
         } else {
             if (!LockRules::Check($course_id, 'participants') && $ticket_check && Request::option('cmd') != 'back' && Request::get('cmd') != 'kill_admission') {
                 $query     = "DELETE FROM seminar_user WHERE user_id = ? AND Seminar_id = ?";
@@ -517,6 +518,7 @@ class MyCoursesController extends AuthenticatedController
             }
 
             $this->redirect('my_courses/index');
+            return;
         }
     }
 

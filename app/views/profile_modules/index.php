@@ -7,8 +7,8 @@
 
 <?
     foreach ($sortedList as $category => $pluginlist) {
-        if ($_SESSION['profile_plus']['displaystyle'] != 'category' && $category != 'Inhaltselemente von A-Z') continue;
-        if (isset($_SESSION['profile_plus']) && !$_SESSION['profile_plus']['Kategorie'][$category] && $category != 'Inhaltselemente von A-Z') continue;
+        if ($_SESSION['profile_plus']['displaystyle'] != 'category' && $category != 'Funktionen von A-Z') continue;
+        if (isset($_SESSION['profile_plus']) && !$_SESSION['profile_plus']['Kategorie'][$category] && $category != 'Funktionen von A-Z') continue;
 ?>
         <tr>
             <th colspan = 3>
@@ -38,8 +38,7 @@
                         <!-- Name -->
                         <label for="<?= $pluginname ?>"><strong><?= htmlReady($pluginname) ?></strong></label>
 
-                        <!-- komplex -->
-                        <? switch ($info['complexity']){
+                        <?/* switch ($info['complexity']){
                                 case 3: $complexname = 'Intensiv';
                                         break;
                                 case 2: $complexname = 'Erweitert';
@@ -66,7 +65,7 @@
                             <div class="complexity_element" style="background-color: <?= $color2?>; border-color: <?= $border_color2?>;"></div>
                             <div class="complexity_element" style="background-color: <?= $color3?>; border-color: <?= $border_color3?>;"></div>
                         </div>
-                        <? endif ?>
+                        <? endif */?>
 
                     </div>
 
@@ -104,36 +103,64 @@
                 <div class="plus_expert">
 
                     <div class="screenshot_holder">
-                        <? if (isset($info['screenshot'])) : 
-                        	$fileext = end(explode(".", $info['screenshot']));
-                        	$filename = str_replace("_"," ",basename($info['screenshot'], ".".$fileext));?>
-
-                            <a href="<?= $URL."/".$info['screenshot'] ?>"
-                               data-lightbox="<?= $pluginname ?>" data-title="<?= $filename ?>">
-                               <img class="big_thumb" src="<?= $URL."/".$info['screenshot'] ?>" alt="<?= $pluginname ?>" />
-                            </a>
-
-                            <?
-                            if(isset($info['additionalscreenshots'])){ ?>
-
-                            <div class="thumb_holder">
-
-                                <? for( $i=0; $i < count($info['additionalscreenshots']); $i++){ 
-                                $fileext = end(explode(".", $info['additionalscreenshots'][$i]));
-                                $filename = str_replace("_"," ",basename($info['additionalscreenshots'][$i], ".".$fileext));?>
-
-                                <a href="<?= $URL."/". $info['additionalscreenshots'][$i] ?>"
-                                   data-lightbox="<?= $pluginname ?>" data-title="<?= $filename ?>">
-                                   <img class="small_thumb" src="<?= $URL."/". $info['additionalscreenshots'][$i] ?>" alt="<?= $pluginname ?>" />
+                        <? if (isset($info['screenshot']) || isset($info['screenshots'])) : 
+                            	if(isset($info['screenshots'])){      
+	                            	$title = $info['screenshots']['pictures'][0]['title'];
+	                            	$source = $info['screenshots']['path'].'/'.$info['screenshots']['pictures'][0]['source'];	                            	
+                            	} else {
+                            		$fileext = end(explode(".", $info['screenshot']));
+                            		$title = str_replace("_"," ",basename($info['screenshot'], ".".$fileext));
+                            		$source = $info['screenshot'];
+                            	}
+                        		?>
+                        		
+                                <a href="<?= $URL . "/" . $source ?>"
+                                   data-lightbox="<?= $pluginname ?>" data-title="<?= $title ?>">
+                                    <img class="big_thumb" src="<?= $URL . "/" . $source ?>"
+                                         alt="<?= $pluginname ?>"/>
                                 </a>
+
+                                <?
+                                if (isset($info['additionalscreenshots']) || (isset($info['screenshots']) && count($info['screenshots']) > 1) ) {
+                                    ?>
+
+                                    <div class="thumb_holder">
+                                    <? 	if (isset($info['screenshots'])){
+                                    		$counter = count($info['screenshots']['pictures']);
+                                    		$cstart = 1;
+                                    	} else {
+                                    		$counter = count($info['additionalscreenshots']);
+                                    		$cstart = 0;
+                                		} ?>
+                                		
+                                        <? for ($i = $cstart; $i < $counter; $i++) { 
+
+                                        	if (isset($info['screenshots'])){
+                                        		$title = $info['screenshots']['pictures'][$i]['title'];
+                                        		$source = $info['screenshots']['path'].'/'.$info['screenshots']['pictures'][$i]['source'];
+                                        	} else {
+                                        		$fileext = end(explode(".", $info['additionalscreenshots'][$i]));
+                                        		$title = str_replace("_"," ",basename($info['additionalscreenshots'][$i], ".".$fileext));
+                                        		$source = $info['additionalscreenshots'][$i];
+                                        	}
+                                        			                             	
+                                       		 ?>
+
+                                            <a href="<?= $URL . "/" . $source ?>"
+                                               data-lightbox="<?= $pluginname ?>"
+                                               data-title="<?= $title ?>">
+                                                <img class="small_thumb"
+                                                     src="<?= $URL . "/" . $source ?>"
+                                                     alt="<?= $pluginname ?>"/>
+                                            </a>
+
+                                        <? } ?>
+
+                                    </div>
 
                                 <? } ?>
 
-                            </div>
-
-                            <? } ?>
-
-                        <? endif ?>
+                            <? endif ?>
                     </div>
 
                     <div class="descriptionbox">
@@ -164,7 +191,7 @@
                             <? if (isset($info['description'])) : ?>
                                 <?= htmlReady($info['description']) ?>
                             <? else: ?>
-                                <?= _("Für dieses Element ist keine Beschreibung vorhanden.") ?>
+                                <?= _("Keine Beschreibung vorhanden.") ?>
                             <? endif ?>
                             </p>
                         <? endif ?>

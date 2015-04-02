@@ -35,7 +35,7 @@
             . " ORDER BY fullname ASC",
             _("Nutzer suchen"), "user_id");
         $mps = MultiPersonSearch::get("add_adressees")
-            ->setLinkText(_('Mehrere Adressaten hinzufügen'))
+           ->setLinkText(_('Mehrere Adressaten hinzufügen'))
             //->setDefaultSelectedUser($defaultSelectedUser)
             ->setTitle(_('Mehrere Adressaten hinzufügen'))
             ->setExecuteURL(URLHelper::getURL("dispatch.php/messages/write"))

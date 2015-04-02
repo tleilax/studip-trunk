@@ -3,32 +3,32 @@
     <thead>
         <tr>
             <td colspan="8" style="text-align: center; vertical-align: middle;">
-                <div style="text-align: left; display: inline-block; width: 20%; white-space: nowrap;">
-                    <a style="padding-right: 2em;" href="<?= $controller->url_for('calendar/single/month', array('atime' => mktime(12, 0, 0, date('n', $calendars[15]->getStart()), 15, date('Y', $calendars[15]->getStart()) - 1))) ?>">
+                <div style="text-align: left; display: inline-block; white-space: nowrap;">
+                    <a style="padding-right: 2em;" href="<?= $controller->url_for('calendar/single/month', array('atime' => strtotime('-1 year', $atime))) ?>">
                         <span style="vertical-align: middle;" <?= tooltip(_('ein Jahr zurück')) ?>>
                         <?= Assets::img('icons/16/blue/arr_2left.png') ?>
                         </span>
-                        <?= strftime('%B %Y', strtotime('-1 year', $calendars[15]->getStart())) ?>
+                        <?= strftime('%B %Y', strtotime('-1 year', $atime)) ?>
                     </a>
-                    <a href="<?= $controller->url_for('calendar/single/month', array('atime' => $calendars[0]->getStart() - 1)) ?>">
+                    <a href="<?= $controller->url_for('calendar/single/month', array('atime' => strtotime('-1 month', $atime))) ?>">
                         <span style="vertical-align: middle;" <?= tooltip(_('einen Monat zurück')) ?>>
                         <?= Assets::img('icons/16/blue/arr_1left.png', tooltip2(_('einen Monat zurück'))) ?>
                         </span>
-                        <?= strftime('%B %Y', strtotime('-1 month', $calendars[15]->getStart())) ?>
+                        <?= strftime('%B %Y', strtotime('-1 month', $atime)) ?>
                     </a>
                 </div>
-                <div class="calhead" style="text-align: center; display: inline-block; width:50%;">
+                <div class="calhead" style="text-align: center; width: 40%; display: inline-block;">
                     <?= htmlReady(strftime("%B ", $calendars[15]->getStart())) .' '. date('Y', $calendars[15]->getStart()); ?>
                 </div>
-                <div style="text-align: right; display: inline-block; width: 20%; white-space: nowrap;">
-                    <a style="padding-right: 2em;" href="<?= $controller->url_for('calendar/single/month', array('atime' => $calendars[sizeof($calendars) - 1]->getEnd() + 1)) ?>">
-                        <?= strftime('%B %Y', strtotime('+1 month', $calendars[15]->getStart())) ?>
+                <div style="text-align: right; display: inline-block; white-space: nowrap;">
+                    <a style="padding-right: 2em;" href="<?= $controller->url_for('calendar/single/month', array('atime' => strtotime('+1 month', $atime))) ?>">
+                        <?= strftime('%B %Y', strtotime('+1 month', $atime)) ?>
                         <span style="vertical-align: middle;" <?= tooltip(_('einen Monat vor')) ?>>
                         <?= Assets::img('icons/16/blue/arr_1right.png') ?>
                         </span>
                     </a>
-                    <a href="<?= $controller->url_for('calendar/single/month', array('atime' => mktime(12, 0, 0, date('n', $calendars[15]->getStart()), 15, date('Y', $calendars[15]->getEnd()) + 1))) ?>">
-                        <?= strftime('%B %Y', strtotime('+1 year', $calendars[15]->getStart())) ?>
+                    <a href="<?= $controller->url_for('calendar/single/month', array('atime' => strtotime('+1 year', $atime))) ?>">
+                        <?= strftime('%B %Y', strtotime('+1 year', $atime)) ?>
                         <span style="vertical-align: middle;" <?= tooltip(_('ein Jahr vor')) ?>>
                         <?= Assets::img('icons/16/blue/arr_2right.png') ?>
                         </span>
@@ -76,9 +76,9 @@
                     <div style="color: #aaaaaa;" class="inday"><?= $hday['name'] ?></div>
                 <? endif; ?>
                 <? foreach ($calendars[$j]->events as $event) : ?>
-                    <div data-tooltip="">
-                        <a data-dialog="size=auto" class="inday calendar-event-text<?= $event->getCategory() ?>" href="<?= $controller->url_for('calendar/single/edit/' . $event->range_id . '/' . $event->event_id, array('atime' => $event->getStart())) ?>"><?= htmlReady($event->getTitle()) ?></a>
-                        <?= $this->render_partial('calendar/single/_tooltip', array('event' => $event)) ?>
+                    <div data-tooltip>
+                        <a data-dialog="size=auto" title="<?= _('Termin bearbeiten') ?>" class="inday calendar-event-text<?= $event->getCategory() ?>" href="<?= $controller->url_for('calendar/single/edit/' . $event->range_id . '/' . $event->event_id, array('atime' => $event->getStart())) ?>"><?= htmlReady($event->getTitle()) ?></a>
+                        <?= $this->render_partial('calendar/single/_tooltip', array('event' => $event, 'calendar' => $calendars[$j])) ?>
                     </div>
                 <? endforeach; ?>
                 </td>
@@ -99,9 +99,9 @@
                     </a>
                 <? endif; ?>
                 <? foreach ($calendars[$j]->events as $event) : ?>
-                    <div data-tooltip="">
-                        <a data-dialog="size=auto" class="inday calendar-event-text<?= $event->getCategory() ?>" href="<?= $controller->url_for('calendar/single/edit/' . $event->range_id . '/' . $event->event_id, array('atime' => $event->getStart())) ?>"><?= htmlReady($event->getTitle()) ?></a>
-                        <?= $this->render_partial('calendar/single/_tooltip', array('event' => $event)) ?>
+                    <div data-tooltip>
+                        <a data-dialog="size=auto" title="<?= _('Termin bearbeiten') ?>" class="inday calendar-event-text<?= $event->getCategory() ?>" href="<?= $controller->url_for('calendar/single/edit/' . $event->range_id . '/' . $event->event_id, array('atime' => $event->getStart())) ?>"><?= htmlReady($event->getTitle()) ?></a>
+                        <?= $this->render_partial('calendar/single/_tooltip', array('event' => $event, 'calendar' => $calendars[$j])) ?>
                     </div>
                 <? endforeach; ?>
                 </td>

@@ -162,6 +162,7 @@ class HelpContentController extends AuthenticatedController
             $this->help_content->position          = 1;
             $this->help_content->custom            = 1;
             $this->help_content->language          = Request::get('help_content_language') ?: substr($GLOBALS['user']->preferred_language, 0, 2);
+            $this->help_content->route             = Request::get('help_content_route');
             if ($this->via_ajax) {
                 header('X-Title: ' . _('Hilfe-Text erstellen'));
             }
@@ -179,6 +180,8 @@ class HelpContentController extends AuthenticatedController
                 $this->help_content->route           = trim(Request::get('help_content_route'));
                 $this->help_content->author_email    = $GLOBALS['user']->Email;
                 $this->help_content->chdate          = time();
+                if (Request::option('help_content_language'))
+                    $this->help_content->language    = Request::option('help_content_language');
                 /*if ($this->help_content->installation_id != $GLOBALS['STUDIP_INSTALLATION_ID']) {
                     $old_id = $this->help_content->getId();
                     $this->help_content->setNew(true);
@@ -218,8 +221,10 @@ class HelpContentController extends AuthenticatedController
         $this->help_content = HelpContent::GetContentByID($id);
         if (is_object($this->help_content)) {
             if (Request::submitted('delete_help_content')) {
+                PageLayout::postMessage(MessageBox::success(sprintf(_('Der Hilfe-Text zur Route "%s" wurde gelöscht.'), $this->help_content->route)));
                 $this->help_content->delete();
                 header('X-Dialog-Close: 1');
+                return $this->render_nothing();
             }
         }
 

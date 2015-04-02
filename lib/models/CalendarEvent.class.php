@@ -65,8 +65,9 @@ class CalendarEvent extends SimpleORMap implements Event
 
     public static function deleteBySQL($where, $params = array())
     {
-        parent::deleteBySQL($where, $params);
+        $ret = parent::deleteBySQL($where, $params);
         EventData::garbageCollect();
+        return $ret;
     }
 
     /**
@@ -87,6 +88,16 @@ class CalendarEvent extends SimpleORMap implements Event
         return null;
     }
 
+    /**
+     * Keeps the event data
+     */
+    public function __clone()
+    {
+        $event = clone $this->event;
+        parent::__clone();
+        $this->event = $event;
+    }
+    
     /**
      * Returns a list of all categories the event belongs to.
      * Returns an empty string if no permission.
@@ -132,7 +143,7 @@ class CalendarEvent extends SimpleORMap implements Event
             'rtype' => $this->event->rtype ?: 'SINGLE',
             'duration' => $this->event->duration,
             'count' => $this->event->count,
-            'expire' => $this->event->expire
+            'expire' => $this->event->expire ?: Calendar::CALENDAR_END
         );
         if ($index) {
             if (in_array($index, array_keys($recurrence))) {
@@ -517,7 +528,7 @@ class CalendarEvent extends SimpleORMap implements Event
     }
 
     /**
-     * Sets proper timestamps as exceptios for given unix timestamps.
+     * Sets proper timestamps as exceptions for given unix timestamps.
      *
      * @param array $exceptions Array of exceptions as unix timestamps.
      */
@@ -608,7 +619,7 @@ class CalendarEvent extends SimpleORMap implements Event
      *
      * @return string User id of the author.
      */
-    public function getAuthor_id()
+    public function getAuthorId()
     {
         return $this->event->author_id;
     }
@@ -618,19 +629,9 @@ class CalendarEvent extends SimpleORMap implements Event
      *
      * @param string $author_id User id of the author.
      */
-    public function setAuthor_id($author_id)
+    public function setAuthorId($author_id)
     {
         $this->event->author_id = $author_id;
-    }
-
-    /**
-     * Returns the user id of the editor.
-     *
-     * @return string User id of the editor.
-     */
-    public function getEditor_id()
-    {
-        return $this->event->editor_id;
     }
 
     /**
@@ -638,7 +639,7 @@ class CalendarEvent extends SimpleORMap implements Event
      *
      * @param string $editor_id User id of the editor.
      */
-    public function setEditor_id($editor_id)
+    public function setEditorId($editor_id)
     {
         $this->event->editor_id = $editor_id;
     }
@@ -722,7 +723,7 @@ class CalendarEvent extends SimpleORMap implements Event
                 foreach ($PERS_TERMIN_KAT as $pers_cat) {
                     $categories[strtolower($pers_cat['name'])] = $i++;
                 }
-                $cat_event = split(',', $this->event->categories);
+                $cat_event = explode(',', $this->event->categories);
                 foreach ($cat_event as $cat) {
                     $index = strtolower(trim($cat));
                     if ($categories[$index]) {
@@ -1071,7 +1072,7 @@ class CalendarEvent extends SimpleORMap implements Event
             if ($user_id == $this->event->author_id) {
                 $permissions[$user_id][$this->event_id] = Event::PERMISSION_WRITABLE;
             } else if ($user_id == $this->range_id) {
-                $permissions[$user_id][$this->event_id] = Event::PERMISSION_READABLE;
+                $permissions[$user_id][$this->event_id] = Event::PERMISSION_WRITABLE;
             } else {
                 switch ($this->getType()) {
                     case 'user':
@@ -1108,8 +1109,12 @@ class CalendarEvent extends SimpleORMap implements Event
                         array($this->user->getId(), $user_id));
                 if ($calendar_user) {
                     if ($accessibility == 'CONFIDENTIAL') {
-                        if ($user_id == $this->getAuthor()) {
-                            $permission = Event::PERMISSION_WRITABLE;
+                        if ($this->event->calendars->findOneBy('range_id', $user_id)) {
+                            if ($calendar_user->permission == Calendar::PERMISSION_WRITABLE) {
+                                $permission = Event::PERMISSION_WRITABLE;
+                            } else {
+                                $permission = Event::PERMISSION_READABLE;
+                            }
                         } else {
                             $permission = Event::PERMISSION_CONFIDENTIAL;
                         }

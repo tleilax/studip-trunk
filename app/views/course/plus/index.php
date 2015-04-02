@@ -24,13 +24,13 @@ use Studip\Button, Studip\LinkButton;
 <tbody>
 <?
 foreach ($available_modules as $category => $pluginlist) {
-    if ($_SESSION['plus']['displaystyle'] != 'category' && $category != 'Inhaltselemente von A-Z') continue;
-    if (isset($_SESSION['plus']) && !$_SESSION['plus']['Kategorie'][$category] && $category != 'Inhaltselemente von A-Z') continue;
+    if ($_SESSION['plus']['displaystyle'] != 'category' && $category != 'Funktionen von A-Z') continue;
+    if (isset($_SESSION['plus']) && !$_SESSION['plus']['Kategorie'][$category] && $category != 'Funktionen von A-Z') continue;
 
     ?>
     <tr>
         <th colspan=3>
-            <?= $category ?>
+            <?= htmlReady($category) ?>            
         </th>
     </tr>
 
@@ -67,7 +67,7 @@ foreach ($available_modules as $category => $pluginlist) {
             $cb_disabled = $pre_check ? 'disabled' : '';
             $cb_checked = $modules->isBit($_SESSION['admin_modules_data']["changed_bin"], $modul["id"]) ? "checked" : "";
 
-            $pluginname = $modul['name'];
+            
             
             $URL = $GLOBALS['ASSETS_URL'].'images';
 
@@ -76,7 +76,7 @@ foreach ($available_modules as $category => $pluginlist) {
             }
 
             $info = ($studip_module instanceOf StudipModule) ? $studip_module->getMetadata() : ($modul['metadata'] ? $modul['metadata'] : array());
-
+            $pluginname = isset($info['displayname']) ? $info['displayname'] : $modul['name'];
             $getModuleXxExistingItems = "getModule" . $val['modulkey'] . "ExistingItems";
 
         }
@@ -101,7 +101,7 @@ foreach ($available_modules as $category => $pluginlist) {
                         <? endif ?>
 						</label>
                         <!-- komplex -->
-                        <? switch ($info['complexity']) {
+                        <?/* switch ($info['complexity']) {
                             case 3:
                                 $complexname = 'Intensiv';
                                 break;
@@ -134,7 +134,7 @@ foreach ($available_modules as $category => $pluginlist) {
                                 <div class="complexity_element"
                                      style="background-color: <?= $color3 ?>; border-color: <?= $border_color3 ?>;"></div>
                             </div>
-                        <? } ?>
+                        <? } */?>
 
                     </div>
 
@@ -155,6 +155,10 @@ foreach ($available_modules as $category => $pluginlist) {
                             <? if (!isset($info['descriptionshort'])) : ?>
                                 <? if (isset($info['summary'])) : ?>
                                     <?= htmlReady($info['summary']) ?>
+                                <? elseif (isset($info['description'])) : ?>  
+                                    <?= htmlReady($info['description']) ?>
+                                <? else: ?>
+                                    <?= _("Keine Beschreibung vorhanden.") ?>
                                 <? endif ?>
                             <? endif ?>
                         </strong>
@@ -172,31 +176,54 @@ foreach ($available_modules as $category => $pluginlist) {
                     <div class="plus_expert">
 
                         <div class="screenshot_holder">
-                            <? if (isset($info['screenshot'])) : 
-                            	$fileext = end(explode(".", $info['screenshot']));
-                        		$filename = str_replace("_"," ",basename($info['screenshot'], ".".$fileext));?>
-								
-                                <a href="<?= $URL . "/" . $info['screenshot'] ?>"
-                                   data-lightbox="<?= $pluginname ?>" data-title="<?= $filename ?>">
-                                    <img class="big_thumb" src="<?= $URL . "/" . $info['screenshot'] ?>"
+                            <? if (isset($info['screenshot']) || isset($info['screenshots'])) : 
+                            	if(isset($info['screenshots'])){   
+	                            	$title = $info['screenshots']['pictures'][0]['title'];
+	                            	$source = $info['screenshots']['path'].'/'.$info['screenshots']['pictures'][0]['source'];	                            	
+                            	} else {
+                            		$fileext = end(explode(".", $info['screenshot']));
+                            		$title = str_replace("_"," ",basename($info['screenshot'], ".".$fileext));
+                            		$source = $info['screenshot'];
+                            	}
+                        		?>
+                        		
+                                <a href="<?= $URL . "/" . $source ?>"
+                                   data-lightbox="<?= $pluginname ?>" data-title="<?= $title ?>">
+                                    <img class="big_thumb" src="<?= $URL . "/" . $source ?>"
                                          alt="<?= $pluginname ?>"/>
                                 </a>
 
                                 <?
-                                if (isset($info['additionalscreenshots'])) {
+                                if (isset($info['additionalscreenshots']) || (isset($info['screenshots']) && count($info['screenshots']) > 1) ) {
                                     ?>
 
                                     <div class="thumb_holder">
+                                    <? 	if (isset($info['screenshots'])){
+                                    		$counter = count($info['screenshots']['pictures']);
+                                    		$cstart = 1;
+                                    	} else {
+                                    		$counter = count($info['additionalscreenshots']);
+                                    		$cstart = 0;
+                                		} ?>
+                                		
+                                        <? for ($i = $cstart; $i < $counter; $i++) { 
 
-                                        <? for ($i = 0; $i < count($info['additionalscreenshots']); $i++) { 
-                                       		 $fileext = end(explode(".", $info['additionalscreenshots'][$i]));
-                                			 $filename = str_replace("_"," ",basename($info['additionalscreenshots'][$i], ".".$fileext));?>
+                                        	if (isset($info['screenshots'])){
+                                        		$title = $info['screenshots']['pictures'][$i]['title'];
+                                        		$source = $info['screenshots']['path'].'/'.$info['screenshots']['pictures'][$i]['source'];
+                                        	} else {
+                                        		$fileext = end(explode(".", $info['additionalscreenshots'][$i]));
+                                        		$title = str_replace("_"," ",basename($info['additionalscreenshots'][$i], ".".$fileext));
+                                        		$source = $info['additionalscreenshots'][$i];
+                                        	}
+                                        			                             	
+                                       		 ?>
 
-                                            <a href="<?= $URL . "/" . $info['additionalscreenshots'][$i] ?>"
+                                            <a href="<?= $URL . "/" . $source ?>"
                                                data-lightbox="<?= $pluginname ?>"
-                                               data-title="<?= $filename ?>">
+                                               data-title="<?= $title ?>">
                                                 <img class="small_thumb"
-                                                     src="<?= $URL . "/" . $info['additionalscreenshots'][$i] ?>"
+                                                     src="<?= $URL . "/" . $source ?>"
                                                      alt="<?= $pluginname ?>"/>
                                             </a>
 
@@ -233,12 +260,12 @@ foreach ($available_modules as $category => $pluginlist) {
                             <? } ?>   
                             <? endif ?>
 
-                            <? if (!isset($info['descriptionlong'])) : ?>
+                            <? if (!isset($info['descriptionlong']) && isset($info['summary'])) : ?>
                                 <p class="longdesc">
                                     <? if (isset($info['description'])) : ?>
                                         <?= htmlReady($info['description']) ?>
                                     <? else: ?>
-                                        <?= _("Für dieses Element ist keine Beschreibung vorhanden.") ?>
+                                        <?= _("Keine Beschreibung vorhanden.") ?>
                                     <? endif ?>
                                 </p>
                             <? endif ?>

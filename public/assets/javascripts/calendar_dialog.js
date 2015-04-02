@@ -16,7 +16,7 @@ STUDIP.CalendarDialog = {
             'type': "post"
         });
         jQuery(form).closest(".ui-dialog-content").dialog("close");
-        STUDIP.Dialog.fromElement("#calendar-open-manageaccess");
+        STUDIP.Dialog.fromURL(jQuery("#calendar-open-manageaccess").attr("action"));
         return false;
     },
     
@@ -35,5 +35,28 @@ STUDIP.CalendarDialog = {
             }
         });
         return false;
+    },
+    
+    addException: function () {
+        var exc_date = jQuery('#exc-date').val();
+        var exists = jQuery("#exc-dates input").is("input[value='" + exc_date + "']");
+        if (!exists) {
+            var compiled  = _.template(
+                '<li><label>'
+                + '<input type="checkbox" name="del_exc_dates[]" value="<%- excdate %>" style="display: none">'
+                + '<span><%- excdate %><img src="'
+                + STUDIP.ASSETS_URL + "images/icons/16/blue/trash.png"
+                + '"></span></label>'
+                + '<input type="hidden" name="exc_dates[]" value="<%- excdate %>">'
+                + '</li>');
+            jQuery('#exc-dates').append(compiled({excdate: exc_date, link: ""}));
+        }
+        return false;
     }
 };
+
+jQuery('td.calendar-day-edit, td.calendar-day-event').live('click', function (event) {
+    var elem = jQuery(this).find('a').first();
+    STUDIP.Dialog.fromURL(elem.attr('href'), {size: 'auto', title: elem.attr('title')});
+    event.preventDefault();
+});

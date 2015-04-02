@@ -76,23 +76,26 @@ use Studip\Button,
             <TR>
                 <TD class="table_row_odd">&nbsp;</TD>
                 <TD class="table_row_odd">
-                    <label><?= _("Durchführende Dozenten:") ?>
-                    <SELECT name="related_teachers[]" multiple>
+                    <label for="related_teachers[]" style="vertical-align: top;"><?= _("Durchführende Dozenten/-innen:") ?></label>
+                    <? if (sizeof($sem->getMembers('dozent')) > 0) : ?>
+					<SELECT name="related_teachers[]" multiple>
                     <? foreach ($sem->getMembers('dozent') as $dozent) : ?>
                         <OPTION value="<?= $dozent['user_id'] ?>"><?= htmlReady($dozent['fullname']) ?></OPTION>
-                    <? endforeach ?>
+                    <? endforeach; ?>
                     </SELECT>
-                    </label>
+					<? endif; ?>
                 </TD>
                 <TD class="table_row_odd">
-                    <label><?= _("Beteiligte Gruppen:") ?>
-                    <SELECT name="related_statusgruppen[]" multiple>
-                    <? $gruppen = Statusgruppen::findBySeminar_id($sem->getId()) ?>
+                    <? $gruppen = Statusgruppen::findBySeminar_id($sem->getId()); 
+					if (sizeof($gruppen) > 0) : ?>
+					<label for="related_statusgruppen[]" style="vertical-align: top;"><?= _("Beteiligte Gruppen:") ?></label>
+					<SELECT name="related_statusgruppen[]" multiple>
+                    
                     <? foreach ($gruppen as $gruppe) : ?>
                     <OPTION value="<?= htmlReady($gruppe->getId()) ?>"><?= htmlReady($gruppe['name']) ?></OPTION>
-                    <? endforeach ?>
+                    <? endforeach; ?>
                     </SELECT>
-                    </label>
+					<? endif; ?>
                 </TD>
             </TR>
             <TR>

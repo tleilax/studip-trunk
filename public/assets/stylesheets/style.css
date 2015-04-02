@@ -2955,7 +2955,7 @@ section.contentbox article footer {
   padding: 0 10px 0 10px;
   max-height: 0px;
   opacity: 0;
-  overflow: hidden;
+  overflow: auto;
   -webkit-transition: opacity 0.3s;
   -moz-transition: opacity 0.3s;
   -o-transition: opacity 0.3s;
@@ -4123,55 +4123,26 @@ table.attribute_table div[container]#deactivated_modules .plugin > div {
 }
 /* --- Styles fuer Terminkalender ------------------------------------------- */
 a.day {
-  color: #3333DD;
   font-weight: bold;
 }
 a.sday {
-  color: #DD0000;
+  color: #d60000;
   font-weight: bold;
 }
 a.hday {
-  color: #DD5555;
+  color: #de3333;
   font-weight: bold;
 }
-a.daymin {
-  color: #3333DD;
-  font-weight: bold;
-}
-a.sdaymin {
-  color: #DD0000;
-  font-weight: bold;
-}
-a.hdaymin {
-  color: #DD5555;
-  font-weight: bold;
-}
-font.kwmin {
-  color: #000000;
+span.kwmin {
+  color: #636a71;
   font-weight: bold;
 }
 a.lightday {
-  color: #8888DD;
+  color: #a9b6cb;
   font-weight: bold;
 }
 a.lightsday {
-  color: #DDAAAA;
-  font-weight: bold;
-}
-a.lighthday {
-  color: #DDAAAA;
-  font-weight: bold;
-}
-a.lightdaymin {
-  color: #8888DD;
-  font-weight: bold;
-}
-a.lightsdaymin {
-  color: #DDAAAA;
-  font-weight: bold;
-}
-a.lighthdaymin {
-  color: #DDAAAA;
+  color: #ef9999;
   font-weight: bold;
 }
 .inday {
@@ -4180,61 +4151,55 @@ a.lighthdaymin {
 .precol1w {
   font-size: 12pt;
   font-weight: bold;
-  color: #AAAAAA;
+  color: #69767f;
   text-align: center;
   vertical-align: top;
 }
 .precol2w {
   font-size: 8pt;
   font-weight: bold;
-  color: #AAAAAA;
+  color: #69767f;
   text-align: center;
 }
 td.calhead,
 div.calhead {
   font-size: 18pt;
   font-weight: bold;
-  color: #AAAAAA;
+  color: #69767f;
   text-align: center;
 }
-A:link.calhead {
-  color: #8888DD;
-  text-decoration: none;
+a:link.calhead {
+  color: #7e92b0;
+  white-space: nowrap;
+  font-weight: bold;
 }
-A:visited.calhead {
-  color: #8888DD;
-  text-decoration: none;
-}
-A:hover.calhead {
-  color: #FF3333;
-  text-decoration: none;
+a:hover.calhead {
+  color: #e66666;
 }
 .celltoday {
-  background-color: #edd5d5;
-}
-.precol1 {
-  font-size: 14pt;
-  font-weight: bold;
-  text-align: center;
-  vertical-align: top;
-}
-.precol2 {
-  font-weight: bold;
-  text-align: left;
+  background-color: #f7cccc;
 }
 td.weekend {
-  background-color: #f0f0f0;
+  background-color: #e2e2e2;
 }
 td.weekday {
-  background-color: #f3f5f8;
+  background-color: #f2f2f2;
 }
 td.current {
-  border: 2px solid #DD0000;
-  background-color: #f0f0f0;
+  padding: 2px;
+  border: 2px solid #d60000;
 }
-td.currenttoday {
-  border: 2px solid #DD0000;
-  background-image: url('../images/celltoday.png');
+table.calendar-week,
+table.calendar-day {
+  table-layout: fixed;
+  width: 100%;
+  border: 1px solid #fff;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+table.calendar-week td,
+table.calendar-day td {
+  padding: 0;
 }
 table.calendar-month {
   width: 100%;
@@ -4245,7 +4210,7 @@ table.calendar-month tr td {
   vertical-align: top;
 }
 td.month {
-  background-color: #f0f0f0;
+  background-color: #e2e2e2;
   padding: 3px;
 }
 td.month div {
@@ -4255,7 +4220,7 @@ td.month div {
   text-overflow: ellipsis;
 }
 td.lightmonth {
-  background-color: #f3f5f8;
+  background-color: #f2f2f2;
   padding: 3px;
 }
 td.lightmonth div {
@@ -4284,6 +4249,7 @@ table.calendar-day {
 }
 .calendar-day-edit {
   text-align: right;
+  font-size: 0.8em;
 }
 .calendar-week tbody tr,
 .calendar-day tbody tr {
@@ -4498,7 +4464,7 @@ table.calendar-day tbody tr td.calendar-category13 div:first-child {
 table.calendar-week tbody tr td.calendar-category14,
 table.calendar-day tbody tr td.calendar-category14 {
   background: linear-gradient(to right, #29ab9f, #5cc4b9) repeat-x #29ab9f;
-  border: solid 1px #E0665B;
+  border: solid 1px #18645C;
   vertical-align: top;
   font-size: 11px;
   color: #fff;
@@ -4506,7 +4472,7 @@ table.calendar-day tbody tr td.calendar-category14 {
 }
 table.calendar-week tbody tr td.calendar-category14 div:first-child,
 table.calendar-day tbody tr td.calendar-category14 div:first-child {
-  background-color: #E0665B;
+  background-color: #18645C;
   overflow: hidden;
 }
 table.calendar-week tbody tr td.calendar-category15,
@@ -4592,6 +4558,23 @@ a.calendar-event-text255 {
 .calendar-group-events {
   background: linear-gradient(to right, #8e8eb2, #babad4) repeat-x #8e8eb2;
   border: solid 1px #505064;
+}
+#exc-dates {
+  padding: 2px;
+  list-style-type: none;
+  width: 7.5em;
+  min-height: 5em;
+  max-height: 10em;
+  overflow: auto;
+  border: 1px solid #888;
+  display: inline-block;
+}
+#exc-dates img {
+  vertical-align: text-top;
+}
+#exc-dates input:checked ~ span {
+  text-decoration: line-through;
+  opacity: 0.6;
 }
 /* --- Styles fuer TerminZeile ---------------------------------------------- */
 table.tabdaterow {
@@ -4897,15 +4880,9 @@ table.contact-header td.empty a {
 .document-dialog > aside {
   float: left;
   width: 150px;
-  padding-top: 100px;
-  background-image: url("../images/icons/112/lightblue/file-generic.png");
-  background-image: none, url("../images/icons/lightblue/file-generic.svg");
-  -webkit-background-size: 100px 100px;
-  -moz-background-size: 100px 100px;
-  -o-background-size: 100px 100px;
-  background-size: 100px 100px;
-  background-position: top center;
-  background-repeat: no-repeat;
+}
+.document-dialog .document-dialog-icon {
+  text-align: center;
 }
 .document-dialog > div {
   border-left: 1px dashed #888;
@@ -5673,11 +5650,13 @@ div.start-widgetcontainer > ul {
 }
 div.start-widgetcontainer > ul:first-child {
   -webkit-flex-grow: 2;
-  flex: 2;
+  flex-grow: 2;
+  max-width: 65%;
+  min-width: 65%;
 }
 div.start-widgetcontainer > ul:last-child {
   -webkit-flex-grow: 1;
-  flex: 1;
+  flex-grow: 1;
   margin-left: 20px;
   max-width: 33%;
   min-width: 33%;
@@ -5718,10 +5697,8 @@ div.available-widgets .studip-widget {
   div.start-widgetcontainer {
     display: block;
   }
-  div.start-widgetcontainer ul {
+  div.start-widgetcontainer ul.portal-widget-list {
     display: block;
-  }
-  div.start-widgetcontainer ul:last-child {
     margin-left: 0;
     min-width: 100%;
     max-width: 100%;

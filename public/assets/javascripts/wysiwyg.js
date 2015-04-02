@@ -141,27 +141,34 @@ jQuery(function ($) {
                 },
                 tbody: {},
                 td: {
+                    // attributes and styles should be the same
+                    // as for <th>, except for 'scope' attribute
                     attributes: ['colspan', 'rowspan'],
-                    styles: ['text-align']
+                    styles: ['text-align', 'width', 'height']
                 },
                 thead: {},
                 th: {
+                    // attributes and styles should be the same
+                    // as for <td>, except for 'scope' attribute
+                    //
                     // note that allowed scope values should be restricted to
                     // "col", "row" or "col row", if scope is set
-                    attributes: 'scope'
+                    attributes: ['colspan', 'rowspan', 'scope'],
+                    styles: ['text-align', 'width', 'height']
                 },
                 tr: {}
             },
             width: textareaWidth,
             skin: 'studip',
-            // NOTE widget plugin requires line utils plugin!!
-            extraPlugins: 'widget,studip-settings,studip-wiki'
+            // NOTE codemirror crashes when not explicitely loaded in CKEditor 4.4.7
+            extraPlugins: 'codemirror,studip-settings,studip-wiki'
                 // only enable uploads in courses with a file section
                 + ($('li#nav_course_files').length > 0 ? ',studip-upload' : ''),
-            removePlugins: 'magicline',
             enterMode: CKEDITOR.ENTER_BR,
             studipUpload_url: STUDIP.URLHelper.getURL('dispatch.php/wysiwyg/upload'),
             codemirror: {
+                autoCloseTags: false,
+                autoCloseBrackets: false,
                 showSearchButton: false,
                 showFormatButton: false,
                 showCommentButton: false,
@@ -311,7 +318,8 @@ jQuery(function ($) {
                     "&#x2297", // ⊗ CIRCLED TIMES
                     "&#x2299", // ⊙ CIRCLED DOT OPERATOR
                 ]
-            )
+            ),
+            on: { pluginsLoaded: onPluginsLoaded }
         }); // CKEDITOR.replace(textarea[0], {
 
         CKEDITOR.on('instanceReady', function (event) {
@@ -368,11 +376,11 @@ jQuery(function ($) {
             // clean up HTML edited in source mode before submit
             var form = $textarea.closest('form');
             form.submit(function (event) {
-                if (!isHtml(editor.getData())) {
-                    editor.setData('<div>' + editor.getData() + '</div>');
-                    // update textarea, in case it's accessed by other JS code
-                    editor.updateElement();
-                }
+                // make sure HTML marker is always set, in
+                // case contents are cut-off by the backend
+                var w = STUDIP.wysiwyg;
+                editor.setData(w.markAsHtml(editor.getData()));
+                editor.updateElement(); // update textarea, in case it's accessed by other JS code
             });
 
             // focus editor if corresponding textarea is focused
@@ -441,6 +449,14 @@ jQuery(function ($) {
         }
     });
 
+    // editor events
+    function onPluginsLoaded(event) {
+        // tell editor to always remove html comments
+        event.editor.dataProcessor.htmlFilter.addRules({
+            comment: function () { return false; }
+        });
+    }
+
     // editor utilities
     function updateStickyTools(editor) {
         var MARGIN = $('#barBottomContainer').length ? $('#barBottomContainer').height() : 25,
@@ -477,11 +493,7 @@ jQuery(function ($) {
 
     // convert plain text entries to html
     function getHtml(text) {
-        return isHtml(text) ? text : convertToHtml(text);
-    }
-    function isHtml(text) {
-        text = text.trim();
-        return text[0] === '<' && text[text.length - 1] === '>';
+        return STUDIP.wysiwyg.isHtml(text) ? text : convertToHtml(text);
     }
     function convertToHtml(text) {
         var quote = getQuote(text);

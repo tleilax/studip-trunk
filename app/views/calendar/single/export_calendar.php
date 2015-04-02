@@ -1,11 +1,15 @@
-<?
-use Studip\Button, Studip\LinkButton;
-SkipLinks::addIndex(_('Kalender exportieren'), 'main_content', 100);
-?>
+<? use Studip\Button, Studip\LinkButton; ?>
+<? if (Request::isXhr()) : ?>
+    <? foreach (PageLayout::getMessages() as $messagebox) : ?>
+        <?= $messagebox ?>
+    <? endforeach ?>
+<? else : ?>
+    <? SkipLinks::addIndex(_('Termine exportieren'), 'main_content', 100); ?>
+<? endif; ?>
 <form action="<?= $controller->url_for('calendar/single/export_calendar/' . $calendar->getRangeId(), array('atime' => $atime, 'last_view' => $last_view)) ?>" method="post" name="sync_form" id="calendar_sync">
     <table class="default" id="main_content">
         <caption>
-            <?= sprintf(_('Kalender exportieren')) ?>
+            <?= sprintf(_('Termine exportieren')) ?>
         </caption>
         <colgroup>
             <col width="25%">
@@ -60,6 +64,9 @@ SkipLinks::addIndex(_('Kalender exportieren'), 'main_content', 100);
     </table>
     <div style="text-align: center; clear: both" data-dialog-button>
         <?= Button::createAccept(_('Termine exportieren'), 'export', array('title' => _('Termine exportieren'))) ?>
+        <? if (!Request::isXhr()) : ?>
+        <?= LinkButton::create(_('Abbrechen'), $controller->url_for('calendar/single/' . $last_view)) ?>
+        <? endif; ?>
     </div>
 </form>
 <script>

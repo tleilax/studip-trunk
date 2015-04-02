@@ -199,8 +199,15 @@ class Contacts extends \RESTAPI\RouteMap
             $this->halt(204);
         }
 
-        AddNewContact($user_id);
-        $success = InsertPersonStatusgruppe($user_id, $group_id);
+        $new_contact = array(
+            'owner_id' => $GLOBALS['user']->id,
+            'user_id'  => $user->id);
+
+        $new_contact['group_assignments'][] = array('statusgruppe_id' => $group->id,
+                                                    'user_id'         => $user->id);
+
+        $success = (bool)\Contact::import($new_contact)->store();
+
 
         if (!$success) {
             $this->error(500);
@@ -259,13 +266,7 @@ class Contacts extends \RESTAPI\RouteMap
     private function contactsToJSON($contacts) {
         $result = array();
         foreach ($contacts as $contact) {
-            $url = $this->urlf('/contact/%s', array(htmlReady($contact->id)));
-            $result[$url] = array(
-                'id'            => $contact->id,
-                'owner'         => $this->urlf('/user/%s', array(htmlReady($contact->owner_id))),
-                'friend'        => User::getMiniUser($this, $contact->friend),
-                'calpermission' => (bool) $contact->calpermission
-            );
+            $result[] = User::getMiniUser($this, $contact);
         }
         return $result;
     }

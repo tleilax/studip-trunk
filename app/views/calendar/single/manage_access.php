@@ -1,3 +1,8 @@
+<? if (Request::isXhr()) : ?>
+    <? foreach (PageLayout::getMessages() as $messagebox) : ?>
+        <?= $messagebox ?>
+    <? endforeach ?>
+<? endif; ?>
 <form id="calendar-manage-access" data-dialog="" method="post" action="<?= $controller->url_for('calendar/single/store_permissions/' . $calendar->getRangeId()) ?>">
     <? CSRFProtection::tokenTag() ?>
     <? $perms = array(1 => _('keine'), 2 => _('lesen'), 4 => _('schreiben')) ?>
@@ -83,5 +88,8 @@
     </table>
     <div style="text-align: center;" data-dialog-button>
         <?= Studip\Button::create(_('Speichern'), 'store') ?>
+        <? if (!Request::isXhr()) : ?>
+        <?= Studip\LinkButton::create(_('Abbrechen'), $controller->url_for('calendar/single/' . $last_view)) ?>
+        <? endif; ?>
     </div>
 </form>

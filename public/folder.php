@@ -524,37 +524,6 @@ if (($SemUserStatus == "autor") || ($rechte)) {
             $folder_system_data["linkerror"]=TRUE;
         }
     }
-    //verschieben / kopieren in andere Veranstaltung
-    if ($rechte && Request::submittedSome('move_to_sem', 'move_to_inst', 'move_to_top_folder')){
-        if (!Request::submitted('move_to_top_folder')){
-            $new_sem_id = Request::submitted('move_to_sem') ? Request::getArray('sem_move_id') : Request::getArray('inst_move_id');
-        } else {
-            $new_sem_id = array($SessSemName[1]);
-        }
-        if ($new_sem_id) {
-            foreach($new_sem_id as $sid) {
-                $new_range_id = md5($sid . 'top_folder');
-                if ($folder_system_data["mode"] == 'move'){
-                    $done = move_item($folder_system_data["move"], $new_range_id, $sid);
-                    if (!$done){
-                        $msg .= "error§" . _("Verschiebung konnte nicht durchgeführt werden. Eventuell wurde im Ziel der Allgemeine Dateiordner nicht angelegt.") . "§";
-                    } else {
-                        $msg .= "msg§" . sprintf(_("%s Ordner, %s Datei(en) wurden verschoben."), $done[0], $done[1]) . '§';
-                    }
-                } else {
-                    $done = copy_item($folder_system_data["move"], $new_range_id, $sid);
-                    if (!$done){
-                        $msg .= "error§" . _("Kopieren konnte nicht durchgeführt werden. Eventuell wurde im Ziel der Allgemeine Dateiordner nicht angelegt.") . "§";
-                    } else {
-                        $s_name = get_object_name($sid, Request::submitted('move_to_sem') ? "sem" : "inst");
-                        $msg .= "msg§" . $s_name['name'] . ": " . sprintf(_("%s Ordner, %s Datei(en) wurden kopiert."), $done[0], $done[1]) . '§';
-                    }
-                }
-            }
-        }
-        $folder_system_data["move"]='';
-        $folder_system_data["mode"]='';
-    }
 
     if (Request::submitted("cancel"))  {
         $folder_system_data["upload"]='';
@@ -568,8 +537,47 @@ if (($SemUserStatus == "autor") || ($rechte)) {
     }
 }
 
+if ($folder_system_data["move"]) {
+    $check_movable_item = StudipDocument::find($folder_system_data["move"]) ?: DocumentFolder::find($folder_system_data["move"]);
+    if (@$check_movable_item->seminar_id != $SessionSeminar
+        || (!$rechte && @$check_movable_item->user_id != $GLOBALS['user']->id)) {
+        throw new AccessDeniedException();
+    }
+}
+
+//verschieben / kopieren in andere Veranstaltung
+if ($rechte && Request::submittedSome('move_to_sem', 'move_to_inst', 'move_to_top_folder')){
+    if (!Request::submitted('move_to_top_folder')){
+        $new_sem_id = Request::submitted('move_to_sem') ? Request::getArray('sem_move_id') : Request::getArray('inst_move_id');
+    } else {
+        $new_sem_id = array($SessSemName[1]);
+    }
+    if ($new_sem_id) {
+        foreach($new_sem_id as $sid) {
+            $new_range_id = md5($sid . 'top_folder');
+            if ($folder_system_data["mode"] == 'move'){
+                $done = move_item($folder_system_data["move"], $new_range_id, $sid);
+                if (!$done){
+                    $msg .= "error§" . _("Verschiebung konnte nicht durchgeführt werden. Eventuell wurde im Ziel der Allgemeine Dateiordner nicht angelegt.") . "§";
+                } else {
+                    $msg .= "msg§" . sprintf(_("%s Ordner, %s Datei(en) wurden verschoben."), $done[0], $done[1]) . '§';
+                }
+            } else {
+                $done = copy_item($folder_system_data["move"], $new_range_id, $sid);
+                if (!$done){
+                    $msg .= "error§" . _("Kopieren konnte nicht durchgeführt werden. Eventuell wurde im Ziel der Allgemeine Dateiordner nicht angelegt.") . "§";
+                } else {
+                    $s_name = get_object_name($sid, Request::submitted('move_to_sem') ? "sem" : "inst");
+                    $msg .= "msg§" . $s_name['name'] . ": " . sprintf(_("%s Ordner, %s Datei(en) wurden kopiert."), $done[0], $done[1]) . '§';
+                }
+            }
+        }
+    }
+    $folder_system_data["move"]='';
+    $folder_system_data["mode"]='';
+}
 //verschieben / kopieren innerhalb der Veranstaltung
-//wurde Code fuer Starten der Verschiebung uebermittelt (=id+"_md_"), wird entsprechende Funktion aufgerufen (hier kein Rechtecheck noetig, da Dok_id aus Sess_Variable.
+//wurde Code fuer Starten der Verschiebung uebermittelt (=id+"_md_"), wird entsprechende Funktion aufgerufen
 if ($open_cmd == 'md' && $folder_tree->isWritable($open_id, $user->id) && !Request::submitted("cancel") && (!$folder_tree->isFolder($folder_system_data["move"]) || ($folder_tree->isFolder($folder_system_data["move"]) && $folder_tree->checkCreateFolder($open_id, $user->id)))) {
     if ($folder_system_data["mode"] == 'move'){
         $done = move_item($folder_system_data["move"], $open_id);
@@ -915,13 +923,13 @@ if ($question) {
         echo "\n" . '</td></tr>';
     }
 
+    print "<tr><td class=\"blank\" colspan=\"3\" width=\"100%\">";
+
     //when changing, uploading or show all (for download selector), create a form
     if ((($change) || ($folder_system_data["cmd"]=="all")) && (!$folder_system_data["upload"])) {
         echo "<form method=\"post\" action=\"".URLHelper::getLink('#anker')."\">";
         echo CSRFProtection::tokenTag();
         }
-
-    print "<tr><td class=\"blank\" colspan=\"3\" width=\"100%\">";
 
 
     if ($folder_system_data["cmd"]=="all") {

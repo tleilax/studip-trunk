@@ -56,24 +56,25 @@ class CoreSchedule implements StudipModule {
                 'Terminen Themen hinzufügen, die z. B. eine Kurzbeschreibung '.
                 'der Inhalte darstellen.'),
             'displayname' => _('Ablaufplan'),
-            'category' => _('Lehrorganisation'),
-        	'keywords' => _('Inhaltliche und räumliche Orientierung für Studierende;
-							Beschreibung der Inhalte einzelner Termine;
-							Raumangabe;
-							Themenzuordnung zu Terminen;
-							Terminzuordnung zu Themen'),
-        	'descriptionshort' => _('Anzeige aller Termine der Veranstaltung, ggf. mit Themenansicht'),
-        	'descriptionlong' => _('Der Ablaufplan listet alle Präsenz-, E-Learning-, Klausur-, '.
-                				   'Exkursions- und sonstige Veranstaltungstermine auf. Zur besseren '.
-                				   'Orientierung und zur inhaltlichen Einstimmung der Studierenden '.
-                				   'können Lehrende den Terminen Themen hinzufügen, die z. B. eine '.
-                				   'Kurzbeschreibung der Inhalte darstellen.'),    		
-        	'icon' => 'icons/16/black/schedule.png',
-        	'screenshot' => 'plus/screenshots/Ablaufplan/Ablaufplan_nach_Terminen.png',
-        	'additionalscreenshots' => array(
-        		'plus/screenshots/Ablaufplan/Ablaufplan_nach_Themen.png',
-        		'plus/screenshots/Ablaufplan/Einzelner_Termin_mit_Beschreibung.png'
-        	)
+            'category' => _('Lehr- und Lernorganisation'),
+            'keywords' => _('Inhaltliche und räumliche Orientierung für Studierende;
+                            Beschreibung der Inhalte einzelner Termine;
+                            Raumangabe;
+                            Themenzuordnung zu Terminen;
+                            Terminzuordnung zu Themen'),
+            'descriptionshort' => _('Anzeige aller Termine der Veranstaltung, ggf. mit Themenansicht'),
+            'descriptionlong' => _('Der Ablaufplan listet alle Präsenz-, E-Learning-, Klausur-, Exkursions- ' .
+                                    'und sonstige Veranstaltungstermine auf. Zur besseren Orientierung und zur ' .
+                                    'inhaltlichen Einstimmung der Studierenden können Lehrende den Terminen ' .
+                                    'Themen hinzufügen, die z. B. eine Kurzbeschreibung der Inhalte darstellen.'),          
+            'icon' => 'icons/16/black/schedule.png',
+            'screenshots' => array(
+                'path' => 'plus/screenshots/Ablaufplan',
+                'pictures' => array(
+                    0 => array('source' => 'Termine_mit_Themen.jpg', 'title' => _('Termine mit Themen')),
+                    1 => array( 'source' => 'Thema_bearbeiten_und_einem_Termin_zuordnen.jpg', 'title' => _('Thema bearbeiten und einem Termin zuordnen'))
+                )
+            )
         );
     }
 }
