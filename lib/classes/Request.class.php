@@ -12,7 +12,7 @@
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
  */
-
+use Studip\Markup;
 /**
  * Singleton class representing a HTTP request in Stud.IP.
  */
@@ -160,6 +160,20 @@ class Request implements ArrayAccess, IteratorAggregate
         }
 
         return $value;
+    }
+    
+    /**
+     * Return the HTML-purified value of the selected query parameter as
+     * a string.
+     *
+     * @param string $param    parameter name
+     * @param string $default  default value if parameter is not set
+     *
+     * @return string  parameter purified value as string (if set), else NULL
+     */
+    public static function getHTML ($param, $default = NULL)
+    {
+        return Markup::purify(self::get($param, $default));
     }
 
     /**
