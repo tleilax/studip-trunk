@@ -173,7 +173,7 @@ class Request implements ArrayAccess, IteratorAggregate
      */
     public static function getHTML ($param, $default = NULL)
     {
-        return Markup::purify(self::get($param, $default));
+        return Markup:markAsHtml(Markup::purify(self::get($param, $default)));
     }
 
     /**
