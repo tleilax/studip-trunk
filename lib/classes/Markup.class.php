@@ -70,13 +70,24 @@ class Markup
      */
     public static function isHtml($text)
     {
+        // check if WYSIWYG is enabled in the config
+        if (!\Config::get()->WYSIWYG) {
+            return false;
+        }
+        
         // NOTE keep this function in sync with the JavaScript 
         // function isHtml in WyswygHtmlHead.php
         if (self::hasHtmlMarker($text)) {
             return true;
         }
-        $trimmed = trim($text);
-        return $trimmed[0] === '<' && substr($trimmed, -1) === '>';
+        
+        // check if heuristic is enabled in the conifg
+        if (\Config::get()->WYSIWYG_HTML_HEURISTIC_FALLBACK) {
+            $trimmed = trim($text);
+            return $trimmed[0] === '<' && substr($trimmed, -1) === '>';
+        }
+        
+        return false;
     }
 
     public static function hasHtmlMarker($text)
@@ -315,6 +326,26 @@ class Markup
             $text = nl2br($text, false);
         }
         return $text;
+    }
+    
+    /**
+     * Prepare text for wysiwyg (if enabled), otherwise convert special
+     * characters using htmlReady.
+     *
+     * @param  string  $text  The text.
+     * @param  boolean $trim  Trim text before applying markup rules, if TRUE.
+     * @param  boolean $br    Replace newlines by <br>, if TRUE and wysiwyg editor disabled.
+     * @param  boolean $double_encode  Encode existing HTML entities, if TRUE and wysiwyg editor disabled.
+     * @return string         The converted string.
+     */
+    public static function wysiwygReady(
+        $text, $trim = true, $br = false, $double_encode = true
+    ) {
+        if (!\Config::get()->WYSIWYG) {
+            return self::htmlReady($text, $trim, $br, $double_encode);
+        } else {
+            return self::markAsHtml(self::markupPurified(new \StudipCoreFormat(), $text, $trim));
+        }
     }
 
     public static function removeHTML($html) {

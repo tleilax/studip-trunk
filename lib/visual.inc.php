@@ -221,6 +221,20 @@ function htmlReady($what, $trim=TRUE, $br=FALSE, $double_encode=true) {
     return Markup::htmlReady($what, $trim, $br, $double_encode);
 }
 
+/**
+ * Prepare text for wysiwyg (if enabled), otherwise convert special
+ * characters using htmlReady.
+ *
+ * @param  string  $text  The text.
+ * @param  boolean $trim  Trim text before applying markup rules, if TRUE.
+ * @param  boolean $br    Replace newlines by <br>, if TRUE and wysiwyg editor disabled.
+ * @param  boolean $double_encode  Encode existing HTML entities, if TRUE and wysiwyg editor disabled.
+ * @return string         The converted string.
+ */
+function wysiwygReady($what, $trim=TRUE, $br=FALSE, $double_encode=true) {
+    return Markup::wysiwygReady($what, $trim, $br, $double_encode);
+}
+
 function jsReady ($what, $target) {
     switch ($target) {
 
