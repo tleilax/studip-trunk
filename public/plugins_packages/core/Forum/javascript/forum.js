@@ -411,11 +411,6 @@ STUDIP.Forum = {
         ).val();
 
         var content = '[quote=' + name + ']\n' + originalContent + '\n[/quote]\n';
-        var w = STUDIP.wysiwyg;
-        if (w && w.isHtml(originalContent)) {
-            content = w.markAsHtml(content);
-        }
-
         jQuery('#new_entry_box textarea').val(content);
         jQuery('#new_entry_box').insertAfter('form[data-topicid=' + topic_id + ']');
         jQuery('#new_entry_box').addClass('cite_box');
