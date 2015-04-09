@@ -422,7 +422,7 @@ STUDIP.Forum = {
     forwardEntry: function(topic_id) {
         var title   = 'WG: ' + jQuery('span[data-edit-topic=' + topic_id +'] [name=name]').attr('value');
         var content = jQuery('span[data-edit-topic=' + topic_id +'] textarea[name=content]').val().trim();
-        var is_html = STUDIP.wysiwyg.isHtml(content);
+        var is_html = !!STUDIP.wysiwyg;
         var nl      = is_html ? '<br>' : "\n";
         var text    = 'Die Senderin/der Sender dieser Nachricht möchte Sie auf den folgenden Beitrag aufmerksam machen. '.toLocaleString()
                     + nl + nl
