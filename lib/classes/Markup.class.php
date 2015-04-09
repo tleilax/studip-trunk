@@ -75,8 +75,6 @@ class Markup
             return false;
         }
         
-        // NOTE keep this function in sync with the JavaScript 
-        // function isHtml in WyswygHtmlHead.php
         if (self::hasHtmlMarker($text)) {
             return true;
         }
@@ -92,8 +90,6 @@ class Markup
 
     public static function hasHtmlMarker($text)
     {
-        // NOTE keep this function in sync with the JavaScript 
-        // function hasHtmlMarker in WyswygHtmlHead.php
         return preg_match('/' . self::HTML_MARKER_REGEXP . '/', $text);
     }
 
@@ -110,8 +106,6 @@ class Markup
      */
     public static function markAsHtml($text)
     {
-        // NOTE keep this function in sync with the JavaScript 
-        // function markAsHtml in WyswygHtmlHead.php
         if (self::hasHtmlMarker($text)) {
             return $text; // marker already set, don't set twice
         }
