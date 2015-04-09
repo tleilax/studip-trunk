@@ -299,16 +299,6 @@ STUDIP.Forum = {
 
         var textarea = $(spanSelector + ' textarea[name=content]');
 
-        // make sure HTML stays HTML
-        // usually the wysiwyg editor does this automatically,
-        // but since there is no submit event the editor does not
-        // get notified
-        var w = STUDIP.wysiwyg;
-        if (w && !w.disabled) {
-            // wysiwyg is active, ensure HTML markers are set
-            textarea.val(w.markAsHtml(textarea.val()));
-        }
-
         // remember current textarea value
         textarea.attr('data-reset', textarea.val());
 
