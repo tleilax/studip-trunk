@@ -1807,7 +1807,7 @@ function display_folder_body($folder_id, $open, $change, $move, $upload, $refres
     if ($change == $folder_id) { //Aenderungsmodus, zweiter Teil
         $content .= chr(10) . '<table cellpadding="2" cellspacing="2" border="0">';
         $content .= chr(10) . '<tr><td>';
-        $content.="\n<textarea name=\"change_description\" class=\"add_toolbar\" aria-label=\"Beschreibung des Ordners eingeben\" rows=\"3\" cols=\"40\">".formatReady($result["description"])."</textarea>";
+        $content.="\n<textarea name=\"change_description\" class=\"add_toolbar wysiwyg\" aria-label=\"Beschreibung des Ordners eingeben\" rows=\"3\" cols=\"40\">".formatReady($result["description"])."</textarea>";
         $content .= chr(10) . '</td><td><font size="-1">';
         if($rechte){
             if ($folder_tree->permissions_activated){
