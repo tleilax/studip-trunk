@@ -58,9 +58,6 @@ jQuery(function ($) {
             textarea.attr('id', createNewId('wysiwyg'));
         }
 
-        // convert plain text to html
-        textarea.val(getHtml(textarea.val()));
-
         // create new toolbar container
         var textareaWidth = (textarea.width() / textarea.parent().width() * 100) + '%',
             toolbarId = createNewId('cktoolbar'); // needed for sharedSpaces
@@ -373,16 +370,6 @@ jQuery(function ($) {
                 }
             });
 
-            // clean up HTML edited in source mode before submit
-            var form = $textarea.closest('form');
-            form.submit(function (event) {
-                // make sure HTML marker is always set, in
-                // case contents are cut-off by the backend
-                var w = STUDIP.wysiwyg;
-                editor.setData(w.markAsHtml(editor.getData()));
-                editor.updateElement(); // update textarea, in case it's accessed by other JS code
-            });
-
             // focus editor if corresponding textarea is focused
             $textarea.focus(function (event) { event.editor.focus(); });
 
@@ -489,38 +476,6 @@ jQuery(function ($) {
             });
             placeholder.css('height', 0);
         }
-    }
-
-    // convert plain text entries to html
-    function getHtml(text) {
-        return STUDIP.wysiwyg.isHtml(text) ? text : convertToHtml(text);
-    }
-    function convertToHtml(text) {
-        var quote = getQuote(text);
-        if (quote) {
-            var quotedHtml = getHtml(quote[2].trim());
-            return '<p>' + quote[1] + quotedHtml + quote[3] + '</p>';
-        }
-        return replaceNewlines(encodeHtmlEntities(text));
-    }
-    function getQuote(text) {
-        // matches[1] = quote start  \[quote(=.*?)?\]
-        // matches[2] = quoted text  [\s\S]*   (multiline)
-        // matches[3] = quote end    \[\/quote\]
-        return text.match(
-            /^\s*(\[quote(?:=.*?)?\])([\s\S]*)(\[\/quote\])\s*$/) || null;
-    }
-    function encodeHtmlEntities(text) {
-        return $('<div>').text(text).html();
-    }
-    function replaceNewlines(text) {
-        return replaceNewlineWithBr(replaceMultiNewlinesWithP(text));
-    }
-    function replaceMultiNewlinesWithP(text) {
-        return '<p>' + text.replace(/(\r?\n|\r){2,}/, '</p><p>') + '</p>';
-    }
-    function replaceNewlineWithBr(text) {
-        return text.replace(/(\r?\n|\r)/g, '<br>\n');
     }
 
     // create an unused id
