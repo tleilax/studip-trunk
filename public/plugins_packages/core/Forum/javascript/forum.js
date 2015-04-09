@@ -433,9 +433,7 @@ STUDIP.Forum = {
                     + nl + nl
                     + content
                     + nl + nl;
-        if (is_html) {
-            text = STUDIP.wysiwyg.markAsHtml(text);
-        }
+
         STUDIP.Dialog.fromURL(STUDIP.URLHelper.getURL('dispatch.php/messages/write'), {
             data: {
                 default_body: text,
