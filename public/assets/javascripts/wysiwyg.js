@@ -85,6 +85,7 @@ jQuery(function ($) {
                     attributes: ['!href', 'target', 'rel'],
                     classes: 'link-extern'
                 },
+                blockquote: {},
                 br: {},
                 caption: {},
                 em: {},

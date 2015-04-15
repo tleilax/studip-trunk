@@ -271,8 +271,7 @@ function quotes_encode($description,$author)
         $postmp = strpos($description,"%%[editiert von");
         $description = substr_replace($description," ",$postmp);
     }
-    $description = "[quote=".$author."]\n".$description."\n[/quote]";
-    return $description;
+    return StudipFormat::quote($description, $author);
 }
 
 /**

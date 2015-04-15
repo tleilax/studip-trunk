@@ -232,11 +232,8 @@ class MessagesController extends AuthenticatedController {
             }
             if (!Request::get('forward')) {
                 if (Request::option("quote") === $old_message->getId()) {
-                    if (Studip\Markup::isHtml($old_message['message'])) {
-                        $this->default_message['message'] = "<div>[quote]\n".$old_message['message']."\n[/quote]</div>";
-                    } else {
-                        $this->default_message['message'] = "[quote]\n".$old_message['message']."\n[/quote]";
-                    }
+                    $this->default_message['message'] =
+                        StudipFormat::applyQuote($old_message['message']);
                 }
                 $this->default_message['subject'] = substr($old_message['message'], 0, 4) === "RE: " ? $old_message['subject'] : "RE: ".$old_message['subject'];
                 $user = new MessageUser();

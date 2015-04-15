@@ -232,6 +232,7 @@ class Markup
         //
         $config->set('HTML.Allowed', '
             a[class|href|target|rel]
+            blockquote
             br
             caption
             em

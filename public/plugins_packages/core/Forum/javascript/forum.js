@@ -395,12 +395,12 @@ STUDIP.Forum = {
             var name = jQuery('span.username[data-profile=' + topic_id + ']').text().trim();
         }
 
-        // add content from cited posting in [quote]-tags
+        // quote cited posting's content
         var originalContent = jQuery(
             'span[data-edit-topic=' + topic_id +'] textarea[name=content]'
         ).val();
 
-        var content = '[quote=' + name + ']\n' + originalContent + '\n[/quote]\n';
+        var content = STUDIP.format.applyQuote(originalContent, name);
         jQuery('#new_entry_box textarea').val(content);
         jQuery('#new_entry_box').insertAfter('form[data-topicid=' + topic_id + ']');
         jQuery('#new_entry_box').addClass('cite_box');
