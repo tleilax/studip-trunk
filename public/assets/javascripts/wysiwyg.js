@@ -163,7 +163,6 @@ jQuery(function ($) {
             extraPlugins: 'codemirror,studip-settings,studip-wiki'
                 // only enable uploads in courses with a file section
                 + ($('li#nav_course_files').length > 0 ? ',studip-upload' : ''),
-            enterMode: CKEDITOR.ENTER_BR,
             studipUpload_url: STUDIP.URLHelper.getURL('dispatch.php/wysiwyg/upload'),
             codemirror: {
                 autoCloseTags: false,
