@@ -235,6 +235,7 @@ class Markup
             blockquote
             br
             caption
+            div[class]
             em
             h1
             h2
@@ -268,7 +269,8 @@ class Markup
         $config->set('Attr.AllowedClasses', array(
             'content',
             'link-extern',
-            'wiki-link'
+            'wiki-link',
+            'author'
         ));
         $config->set('AutoFormat.Custom', array(
             'ClassifyLinks',
