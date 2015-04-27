@@ -176,7 +176,7 @@ class PageLayout
     public static function getTabNavigation()
     {
         if (self::$tab_navigation === false) {
-            self::$tab_navigation = Navigation::getItem('/')->activeSubNavigation();
+            self::$tab_navigation = Navigation::hasItem('/') ? Navigation::getItem('/')->activeSubNavigation() : null;
         }
 
         return self::$tab_navigation;
@@ -188,8 +188,8 @@ class PageLayout
      */
     public static function getTabNavigationPath()
     {
-        if (self::$tab_navigation_path === false) {
-            foreach (Navigation::getItem('/')->getSubNavigation() as $subpath => $navigation) {
+        if (self::$tab_navigation_path === false && self::getTabNavigation()) {
+            foreach (self::getTabNavigation() as $subpath => $navigation) {
                 if ($navigation->isActive()) {
                     self::$tab_navigation_path = $subpath;
                 }

@@ -1,5 +1,6 @@
 <?php
 require_once 'vendor/phpass/PasswordHash.php';
+require_once 'lib/classes/admission/CourseSet.class.php';
 
 class Step00240CourseSets extends Migration
 {
@@ -253,7 +254,7 @@ class Step00240CourseSets extends Migration
         //ein globales set für alle gesperrten
         $locked_set_id = md5(uniqid('coursesets',1));
         $name = 'Anmeldung gesperrt (global)';
-        $info = 'Erzeugt durch Migration 128 ' . strftime('%X %x');
+        $info = '';
         $cs_insert->execute(array($locked_set_id,'',$name,$info,1,time(),time()));
         $locked_rule_id = md5(uniqid('lockedadmissions',1));
         $locked_insert->execute(array($locked_rule_id));
