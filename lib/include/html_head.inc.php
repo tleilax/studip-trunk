@@ -59,7 +59,6 @@
     <?php
         // needs to be included in templates/layouts/base.php as well
         include 'app/views/WysiwygHtmlHead.php';
-        include 'templates/js-format.php';
     ?>
 </head>
 

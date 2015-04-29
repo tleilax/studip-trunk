@@ -712,7 +712,7 @@ class IndexController extends ForumController
         $this->flash['new_entry_title'] = $topic['name'];
 
         $author = $topic['anonymous'] ? _('Anonym') : $topic['author'];
-        $content = StudipFormat::applyQuote($topic['content'], $author);
+        $content = quotes_encode($topic['content'], $author);
         
         if (Markup::isHtml($topic['content'])) {
             $content = Markup::markAsHtml($content);

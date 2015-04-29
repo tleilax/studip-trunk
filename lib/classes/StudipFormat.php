@@ -141,19 +141,6 @@ class StudipFormat extends TextFormat
             'start'    => '\[quote(=.*?)?\]',
             'end'      => '\[\/quote\]',
             'callback' => 'StudipFormat::markupQuote',
-            'templates' => array(
-                'sml' => array(
-                    'withoutName' => "[quote]\n{{text}}\n[quote]\n",
-                    'withName' => "[quote={{name}}]\n{{text}}\n[quote]\n"
-                ),
-                'html' => array(
-                    'withoutName' => '<blockquote>{{text}}</blockquote>',
-                    // TODO figure out how to handle localization
-                    // _('%s hat geschrieben:');
-                    'withName' => '<blockquote><div class="author">{{name}} hat geschrieben:</div>{{text}}</blockquote>'
-                )
-            ),
-            'apply' => 'StudipFormat::applyQuote'
         ),
         'nop' => array(
             'start'    => '\[nop\](.*?)\[\/nop\]',
@@ -233,18 +220,6 @@ class StudipFormat extends TextFormat
     public static function getStudipMarkups()
     {
         return self::$studip_rules;
-    }
-
-    public static function getTemplates()
-    {
-        $type = \Config::get()->WYSIWYG ? 'html' : 'sml';
-        $templates = array();
-        foreach (self::$studip_rules as $ruleName => $rule) {
-            if (array_key_exists('templates', $rule)) {
-                $templates[$ruleName] = $rule['templates'][$type];
-            }
-        }
-        return $templates;
     }
 
     /**
@@ -480,19 +455,23 @@ class StudipFormat extends TextFormat
      */
     protected static function markupQuote($markup, $matches, $contents)
     {
-        $text = trim($contents);
-        $name = strlen($matches[1]) > 1 ? $markup->format(substr($matches[1], 1)) : false;
-        return self::applyQuote($text, $name);
-    }
+        // If quoting is changed update these functions:
+        // - StudipFormat::markupQuote
+        //   lib/classes/StudipFormat.php
+        // - quotes_encode lib/visual.inc.php
+        // - STUDIP.Forum.citeEntry > quote
+        //   public/plugins_packages/core/Forum/javascript/forum.js
+        // - studipQuotePlugin > insertStudipQuote
+        //   public/assets/javascripts/ckeditor/plugins/studip-quote/plugin.js
 
-    public static function applyQuote($text, $name = false) {
-        $templateList = self::getTemplates();
-        $template = $name ? 'withName' : 'withoutName';
-        return str_replace(
-            array('{{text}}', '{{name}}'),
-            array($text, $name),
-            $templateList['quote'][$template]
-        );
+        if (strlen($matches[1]) > 1) {
+            $title = sprintf(_('%s hat geschrieben:'), $markup->format(substr($matches[1], 1)));
+            return sprintf('<blockquote><div class="author">%s</div>%s</blockquote>',
+                       $title, trim($contents));
+        } else {
+            return sprintf('<blockquote>%s</blockquote>',
+                       trim($contents));
+        }
     }
 
     /**

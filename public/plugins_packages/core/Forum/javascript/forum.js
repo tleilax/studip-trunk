@@ -396,17 +396,46 @@ STUDIP.Forum = {
         }
 
         // quote cited posting's content
-        var originalContent = jQuery(
-            'span[data-edit-topic=' + topic_id +'] textarea[name=content]'
-        ).val();
+        var contentSelector = 'span[data-edit-topic=' + topic_id + '] textarea[name=content]';
 
-        var content = STUDIP.format.applyQuote(originalContent, name);
+        var content = quote(jQuery(contentSelector).val(), name);
         jQuery('#new_entry_box textarea').val(content);
         jQuery('#new_entry_box').insertAfter('form[data-topicid=' + topic_id + ']');
         jQuery('#new_entry_box').addClass('cite_box');
 
         jQuery('input[type=hidden][name=parent]').val(topic_id);
         STUDIP.Forum.newEntry();
+
+        ///// local helper functions
+
+        function quote(text, name) {
+            // If quoting is changed update these functions:
+            // - StudipFormat::markupQuote
+            //   lib/classes/StudipFormat.php
+            // - quotes_encode lib/visual.inc.php
+            // - STUDIP.Forum.citeEntry > quote
+            //   public/plugins_packages/core/Forum/javascript/forum.js
+            // - studipQuotePlugin > insertStudipQuote
+            //   public/assets/javascripts/ckeditor/plugins/studip-quote/plugin.js
+
+            if (STUDIP.wysiwyg) {
+                // quote with HTML markup
+                var author = '';
+                if (name) {
+                    var writtenBy = '%s hat geschrieben:'.toLocaleString();
+                    author = '<div class="author">'
+                        + writtenBy.replace('%s', name)
+                        + '</div>';
+                }
+                return '<blockquote>' + author + text + '</blockquote>';
+            }
+
+            // quote with Stud.IP markup
+            if (name) {
+                return '[quote=' + name + ']\n' + text + '\n[/quote]\n';
+            }
+            return '[quote]\n' + text + '\n[/quote]\n';
+        }
     },
 
     forwardEntry: function(topic_id) {

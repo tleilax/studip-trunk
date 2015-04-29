@@ -76,7 +76,6 @@ if ($infobox && is_array($infobox)) {
     <?php
         // needs to be included in lib/include/html_head.inc.php as well
         include 'app/views/WysiwygHtmlHead.php';
-        include 'templates/js-format.php';
     ?>
 </head>
 

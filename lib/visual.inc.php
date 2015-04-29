@@ -259,19 +259,44 @@ function jsReady ($what, $target) {
 }
 
 /**
- * Funktion um Quotings zu encoden
+ * Quote a piece of text, optionally include the author's name.
  *
- * @param string $description der Text der gequotet werden soll, wird zurueckgegeben
- * @param string $author Name des urspruenglichen Autors
- * @return string
+ * Applies Stud.IP-Markup if WYSIWYG/HTML is disabled and HTML
+ * if it is enabled.
+ *
+ * @param string $text Text that is to be quoted.
+ * @param string $author Name of the text's author (optional).
+ *
+ * @return string The quoted text.
  */
-function quotes_encode($description,$author)
+function quotes_encode($text, $author = '')
 {
-    if (preg_match("/%%\[editiert von/",$description)) { // wurde schon mal editiert
-        $postmp = strpos($description,"%%[editiert von");
-        $description = substr_replace($description," ",$postmp);
+    // If quoting is changed update these functions:
+    // - StudipFormat::markupQuote
+    //   lib/classes/StudipFormat.php
+    // - quotes_encode lib/visual.inc.php
+    // - STUDIP.Forum.citeEntry > quote
+    //   public/plugins_packages/core/Forum/javascript/forum.js
+    // - studipQuotePlugin > insertStudipQuote
+    //   public/assets/javascripts/ckeditor/plugins/studip-quote/plugin.js
+
+    if (\Config::get()->WYSIWYG) {
+        // quote with HTML markup
+        if ($author) {
+            return sprintf(
+                '<blockquote><div class="author">%s</div>%s</blockquote>',
+                sprintf(_('%s hat geschrieben:'), $author),
+                $text
+            );
+        }
+        return sprintf('<blockquote>%s</blockquote>', $text);
     }
-    return StudipFormat::quote($description, $author);
+
+    // quote with Stud.IP markup
+    if ($author) {
+        return "[quote=" . $author . "]\n" . $text . "\n[/quote]\n";
+    }
+    return "[quote]\n" . $text . "\n[/quote]\n";
 }
 
 /**
