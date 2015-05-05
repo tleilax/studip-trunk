@@ -1213,7 +1213,7 @@ function execCommandUpdateItem ( $no_delete = false ){
     $title = Request::get('title');
     if ($title == "" && $mode != QUESTION_BLOCK)
         $title = _("Kein Titel angegeben.");
-    $text = trim(Request::getHTML('text'));
+    $text = trim(Request::html('text'));
 
     switch ($mode){
      case ROOT_BLOCK:

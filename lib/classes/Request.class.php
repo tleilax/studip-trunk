@@ -171,9 +171,41 @@ class Request implements ArrayAccess, IteratorAggregate
      *
      * @return string  parameter purified value as string (if set), else NULL
      */
-    public static function getHTML ($param, $default = NULL)
+    public static function html ($param, $default = NULL)
     {
-        return Markup::markAsHtml(Markup::purify(self::get($param, $default)));
+        $value = self::get($param, $default);
+        
+        if (isset($value)) {
+		    $value = Markup::markAsHtml(Markup::purify($value));
+        }
+        
+        return $value;
+    }
+    
+    /**
+     * Return the HTML-purified value of the selected query parameter as
+     * a string.
+     *
+     * @param string $param    parameter name
+     * @param string $default  default value if parameter is not set
+     *
+     * @return string  parameter purified value as string (if set), else NULL
+     */
+    public static function htmlArray ($param, $default = NULL)
+    {
+        $array = self::getArray($param);
+        
+        if (!isset($array) || !is_array($array)) {
+            $array = array();
+        } else {
+            foreach ($array as $key => $value) {
+                if (isset($value)) {
+                    $array[$key] = Markup::markAsHtml(Markup::purify($value));
+                }
+            }
+        }
+        
+        return $array;
     }
 
     /**

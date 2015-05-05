@@ -117,13 +117,13 @@ class Settings_DetailsController extends Settings_SettingsController
         );
         
         foreach ($mapping as $key => $column) {
-            // purify HTML input using getHTML if wysiwyg is used
+            // purify HTML input using Request::html() if wysiwyg is used
             switch($key) {
                 case "hobby":
                 case "lebenslauf":
                 case "schwerp":
                 case "publi":
-                    $value = Request::getHTML($key);
+                    $value = Request::html($key);
                     break;
                 default:
                     $value = Request::get($key);

@@ -317,7 +317,7 @@ class MessagesController extends AuthenticatedController {
             $messaging->provisonal_attachment_id = Request::option("message_id");
             $messaging->send_as_email =  Request::int("message_mail");
             $messaging->insert_message(
-                Request::getHTML("message_body"),
+                Request::html("message_body"),
                 $rec_uname,
                 $GLOBALS['user']->id,
                 '',

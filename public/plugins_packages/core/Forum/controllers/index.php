@@ -387,7 +387,7 @@ class IndexController extends ForumController
             'seminar_id'  => $this->getId(),
             'user_id'     => $GLOBALS['user']->id,
             'name'        => Request::get('name') ?: '',
-            'content'     => Request::getHTML('content'),
+            'content'     => Request::html('content'),
             'author'      => $fullname,
             'author_host' => getenv('REMOTE_ADDR'),
             'anonymous'   => Config::get()->FORUM_ANONYMOUS_POSTINGS ? Request::get('anonymous') ? : 0 : 0
@@ -449,7 +449,7 @@ class IndexController extends ForumController
     {
         if (Request::isXhr()) {
             $name    = studip_utf8decode(Request::get('name', _('Kein Titel')));
-            $content = studip_utf8decode(Request::getHTML('content', _('Keine Beschreibung')));
+            $content = studip_utf8decode(Request::html('content', _('Keine Beschreibung')));
         } else {
             $name    = Request::get('name', _('Kein Titel'));
             $content = Request::get('content', _('Keine Beschreibung'));
