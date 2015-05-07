@@ -90,6 +90,7 @@
                     <strong><?= _("Optionen") ?></strong>
                 </a>
             </li>
+            <? if ($previewActivated) : ?>
             <li style="display: inline-block; min-width: 70px;">
                 <a href="" onClick="STUDIP.Messages.toggleSetting('preview'); STUDIP.Messages.previewComposedMessage(); return false;">
                     <?= Assets::img("icons/40/blue/visibility-visible") ?>
@@ -97,6 +98,7 @@
                     <strong><?= _("Vorschau") ?></strong>
                 </a>
             </li>
+            <? endif; ?>
         </ul>
     </div>
 

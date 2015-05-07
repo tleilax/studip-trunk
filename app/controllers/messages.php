@@ -297,7 +297,8 @@ class MessagesController extends AuthenticatedController {
             }
         }
         NotificationCenter::postNotification("DefaultMessageForComposerCreated", $this->default_message);
-
+        // only show preview if wysiwyg is deactivated
+        $this->previewActivated = !\Config::get()->WYSIWYG;
 
     }
 
