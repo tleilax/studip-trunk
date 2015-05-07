@@ -109,7 +109,7 @@ class Markup
         if (self::hasHtmlMarker($text)) {
             return $text; // marker already set, don't set twice
         }
-        return self::HTML_MARKER . PHP_EOL . $text;
+        return self::HTML_MARKER . $text;
     }
 
     /**
@@ -338,11 +338,19 @@ class Markup
     public static function wysiwygReady(
         $text, $trim = true, $br = false, $double_encode = true
     ) {
-        if (!\Config::get()->WYSIWYG) {
-            return self::htmlReady($text, $trim, $br, $double_encode);
-        } else {
-            return self::htmlReady(self::markAsHtml(self::markupPurified(new \StudipCoreFormat(), $text, $trim)), $trim, $br, $double_encode);
+        if (\Config::get()->WYSIWYG) {
+            if (!self::isHtml($text)) {
+                $text = self::unixEOL($text);
+                if ($trim) {
+                    $text = trim($text);
+                }
+                $text = self::markupText(new \StudipCoreFormat(), $text);
+                $br = true;
+            }
+            $text = self::purify($text);
         }
+        
+        return self::htmlReady($text, $trim, $br, $double_encode);
     }
 
     public static function removeHTML($html) {
