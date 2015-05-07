@@ -338,7 +338,7 @@ class Markup
     public static function wysiwygReady(
         $text, $trim = true, $br = false, $double_encode = true
     ) {
-        if (!\Config::get()->WYSIWYG || !self::isHtml($text)) {
+        if (!\Config::get()->WYSIWYG) {
             return self::htmlReady($text, $trim, $br, $double_encode);
         } else {
             return self::htmlReady(self::markAsHtml(self::markupPurified(new \StudipCoreFormat(), $text, $trim)), $trim, $br, $double_encode);

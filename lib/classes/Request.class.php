@@ -175,7 +175,7 @@ class Request implements ArrayAccess, IteratorAggregate
     {
         $value = self::get($param, $default);
         
-        if (isset($value)) {
+        if (isset($value) && \Config::get()->WYSIWYG) {
 		    $value = Markup::markAsHtml(Markup::purify($value));
         }
         
