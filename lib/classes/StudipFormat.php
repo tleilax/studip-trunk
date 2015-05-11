@@ -316,15 +316,15 @@ class StudipFormat extends TextFormat
     protected static function markupText($markup, $matches, $contents)
     {
         static $tag = array(
-            '**' => 'b',
-            '%%' => 'i',
+            '**' => 'strong',
+            '%%' => 'em',
             '++' => 'big',
             '--' => 'small',
             '__' => 'u',
             '##' => 'tt',
             '&gt;&gt;' => 'sup',
             '&lt;&lt;' => 'sub',
-            '{-' => 'strike',
+            '{-' => 's',
             '[admin_msg]' => 'i'
         );
 
