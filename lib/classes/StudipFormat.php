@@ -354,8 +354,8 @@ class StudipFormat extends TextFormat
     protected static function markupTextSimple($markup, $matches)
     {
         static $tag = array(
-            '*' => 'b',
-            '%' => 'i',
+            '*' => 'strong',
+            '%' => 'em',
             '_' => 'u',
             '#' => 'tt',
             '+' => 'big',
