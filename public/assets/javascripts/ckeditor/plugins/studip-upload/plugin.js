@@ -58,11 +58,10 @@ CKEDITOR.plugins.add('studip-upload', {
         // TODO integrate jQuery File Upload plugin into studip-upload
         var inputId = 'fileupload';
         editor.on('instanceReady', function(event){
-            var $container = $(event.editor.container.$),
-                $content = $container.find('iframe').contents();
+            var $container = $(event.editor.container.$);
 
             // install upload handler
-            $('<input>') // upload by toolbar button click
+            $('<input>')
                 .attr({
                     id: inputId,
                     type: 'file',
@@ -81,27 +80,14 @@ CKEDITOR.plugins.add('studip-upload', {
                         } else {
                             alert('Das Hochladen der Datei(en) ist fehlgeschlagen.\n\n' + data.result);
                         }
+                    },
+                    fail: function (e, data) {
+                        alert(
+                            'Das Hochladen der Datei(en) ist fehlgeschlagen.'
+                            + '\n\nFehler: ' + data.errorThrown.message
+                        );
                     }
                 });
-
-            // drag'n'drop upload (fileupoad.dropzone duplicates images, see #4288)
-            $content.bind('drop', function (e) {
-                var url = $(e.originalEvent.dataTransfer.getData('text/html')).filter('img').attr('src');
-                if (url) { // ignore urls
-                    // NOTE use this place to implement file uploads from other
-                    //      pages (e.g. drag'n'drop an image from another page)
-                } else { // file upload
-                    e.preventDefault();
-                    $('#fileupload').fileupload('send', {
-                        files: e.originalEvent.dataTransfer.files
-                    });
-                }
-            });
-        });
-
-        // disable default browser drop action
-        $(document).bind('drop dragover', function(event){
-            event.preventDefault();
         });
 
         // ckeditor
@@ -119,3 +105,4 @@ CKEDITOR.plugins.add('studip-upload', {
         });
     }
 });
+

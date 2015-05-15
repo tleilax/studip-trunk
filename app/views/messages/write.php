@@ -13,7 +13,7 @@
             <li style="padding: 0px;" class="adressee">
                 <input type="hidden" name="message_to[]" value="<?= htmlReady($user['user_id']) ?>">
                 <span class="visual">
-                    <?= htmlReady($user->getFullname()) ?>
+                    <?= htmlReady($user['fullname']) ?>
                 </span>
                 <a class="remove_adressee"><?= Assets::img("icons/16/blue/trash", array('class' => "text-bottom")) ?></a>
             </li>
@@ -62,7 +62,7 @@
     <div>
         <label>
             <h4><?= _("Nachricht") ?></h4>
-            <textarea style="width: 100%; height: 200px;" name="message_body" class="add_toolbar wysiwyg"><?= wysiwygReady($default_message['message'],false) ?></textarea>
+            <textarea style="width: 100%; height: 200px;" name="message_body" class="add_toolbar wysiwyg" data-secure><?= wysiwygReady($default_message['message'],false) ?></textarea>
         </label>
     </div>
     <div>

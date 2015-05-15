@@ -275,31 +275,48 @@ jQuery(function ($) {
         stickySidebar();
     });
 
-    // Recalculcate positions on ajax and img load events.
-    // Inside the handlers the current document height is compared
-    // to the previous height before the event occured so recalculation
-    // only happens on actual changes
-    $(document).on('ajaxComplete', function () {
-        var curr_height = $(document).height();
-        if (doc_height !== curr_height) {
-            doc_height = curr_height;
-            $(document.body).trigger('sticky_kit:recalc');
-        }
-    });
-    $(document).on('load', '#layout_content img', function () {
-        var curr_height = $(document).height();
-        if (doc_height !== curr_height) {
-            doc_height = curr_height;
-            $(document.body).trigger('sticky_kit:recalc');
-        }
-    });
-
-    // Specialized handler to trigger recalculation when wysiwyg
-    // instances are created.
-    if (STUDIP.wysiwyg) {
-        $(document).on('load.wysiwyg', 'textarea', function () {
-            $(document.body).trigger('sticky_kit:recalc');
+    if (window.MutationObserver !== undefined) {
+        // Attach mutation observer to #layout_content and trigger it on
+        // changes to class and style attributes (which affect the height
+        // of the content). Trigger a recalculation of the sticky kit when
+        // a mutation occurs so the sidebar will
+        var target = $('#layout_content')[0],
+            stickyObserver = new MutationObserver(function (mutations) {
+                $(document.body).trigger('sticky_kit:recalc');
+            });
+        stickyObserver.observe(target, {
+            attributes: true,
+            attributeFilter: ['style', 'class'],
+            characterData: true,
+            subtree: true
         });
+    } else {
+        // Recalculcate positions on ajax and img load events.
+        // Inside the handlers the current document height is compared
+        // to the previous height before the event occured so recalculation
+        // only happens on actual changes
+        $(document).on('ajaxComplete', function () {
+            var curr_height = $(document).height();
+            if (doc_height !== curr_height) {
+                doc_height = curr_height;
+                $(document.body).trigger('sticky_kit:recalc');
+            }
+        });
+        $(document).on('load', '#layout_content img', function () {
+            var curr_height = $(document).height();
+            if (doc_height !== curr_height) {
+                doc_height = curr_height;
+                $(document.body).trigger('sticky_kit:recalc');
+            }
+        });
+
+        // Specialized handler to trigger recalculation when wysiwyg
+        // instances are created.
+        if (STUDIP.wysiwyg) {
+            $(document).on('load.wysiwyg', 'textarea', function () {
+                $(document.body).trigger('sticky_kit:recalc');
+            });
+        }
     }
 
     $('a.print_action').live('click', function (event) {
@@ -324,14 +341,14 @@ jQuery(function ($) {
 /* Secure textareas by displaying a warning on page unload if there are
  unsaved changes */
 (function ($) {
-    function securityHandler(event) {
+    function securityHandlerWindow(event) {
         var message = 'Ihre Eingaben wurden bislang noch nicht gespeichert.'.toLocaleString();
         event = event || window.event || {};
         event.returnValue = message;
         return message;
     }
-    function submissionHandler() {
-        $(window).off('beforeunload', securityHandler);
+    function submissionHandlerWindow() {
+        $(window).off('beforeunload', securityHandlerWindow);
     }
 
     $(document).on('change keyup', 'textarea[data-secure]', function () {
@@ -347,15 +364,44 @@ jQuery(function ($) {
 
         if (action !== null) {
             // (at|de)tach before unload handler that will display the message
-            $(window)[action]('beforeunload', securityHandler);
+            $(window)[action]('beforeunload', securityHandlerWindow);
 
-            // (at|de)tach submit handler that will remove the securityHandler
+            // (at|de)tach submit handler that will remove the securityHandlerWindow
             // on form submission
-            $(this).closest('form')[action]('submit', submissionHandler);
+            $(this).closest('form')[action]('submit', submissionHandlerWindow);
 
             // Store current state
             $(this).data('secured', action === 'on');
         }
+
+        $(this).data('changed', changed);
+    });
+
+    function securityHandlerDialog(event, ui) {
+        var unchanged = true;
+        $('textarea[data-secure]', ui.dialog).each(function () {
+            unchanged = unchanged && this.value === this.defaultValue;
+        });
+
+        if (!unchanged && !confirm('Ihre Eingaben wurden bislang noch nicht gespeichert.'.toLocaleString())) {
+            event.preventDefault();
+            event.stopPropagation();
+            return false;
+        }
+
+        submissionHandlerWindow();
+        return true;
+    }
+
+    $(document).on('dialog-open', function (event, ui) {
+        if ($('textarea[data-secure]', ui.dialog).length === 0) {
+            return;
+        }
+
+        $(ui.dialog).on('dialogbeforeclose', securityHandlerDialog)
+            .find('form:has(textarea[data-secure])').on('submit', function () {
+                $(this).closest('ui.dialog').off('dialogbeforeclose', securityHandlerDialog);
+            });
     });
 }(jQuery));
 

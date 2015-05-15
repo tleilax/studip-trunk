@@ -79,11 +79,6 @@ class Course_BasicdataController extends AuthenticatedController
         $sem = Seminar::getInstance($this->course_id);
         $data = $sem->getData();
 
-        //Admin-Liste für den Admin
-        if ($perm->have_studip_perm("admin",$this->course_id)) {
-            $this->adminList = AdminList::getInstance()->getSelectTemplate($this->course_id);
-        }
-
         //Erster Reiter des Akkordions: Grundeinstellungen
         $this->attributes = array();
         $this->attributes[] = array(
@@ -337,6 +332,40 @@ class Course_BasicdataController extends AuthenticatedController
             $this->flash['msg'] = array_merge((array)$this->flash['msg'], array(array("info", formatLinks($lockdata['description']))));
         }
         $this->flash->discard(); //schmeißt ab jetzt unnötige Variablen aus der Session.
+        $sidebar = Sidebar::get();
+        $sidebar->setImage("sidebar/admin-sidebar.png");
+
+        $widget = new ActionsWidget();
+        $widget->addLink(_('Bild ändern'),
+            $this->url_for('course/avatar/update', $course_id),
+            'icons/16/blue/edit.png');
+        if ($this->deputies_enabled) {
+            if (isDeputy($user->id, $this->course_id)) {
+                $newstatus = 'dozent';
+                $text = _('Dozent/-in werden');
+            } else if (in_array($user->id, array_keys($this->dozenten)) && sizeof($this->dozenten) > 1) {
+                $newstatus = 'deputy';
+                $text = _('Vertretung werden');
+            }
+            $widget->addLink($text,
+                $this->url_for('course/basicdata/switchdeputy', $this->course_id, $newstatus),
+                'icons/blue/persons.svg');
+        }
+        $sidebar->addWidget($widget);
+        // Entry list for admin upwards.
+        if ($perm->have_studip_perm("admin",$this->course_id)) {
+            $adminList = AdminList::getInstance()->getSelectTemplate($this->course_id);
+            if ($adminList) {
+                $list = new SelectorWidget();
+                $list->setUrl("?#admin_top_links");
+                $list->setSelectParameterName("cid");
+                foreach ($adminList->adminList as $seminar) {
+                    $list->addElement(new SelectElement($seminar['Seminar_id'], $seminar['Name']), 'select-' . $seminar['Seminar_id']);
+                }
+                $list->setSelection($adminList->course_id);
+                $sidebar->addWidget($list);
+            }
+        }
     }
 
     /**
@@ -677,6 +706,24 @@ class Course_BasicdataController extends AuthenticatedController
         $this->flash['msg'] = $this->msg;
         $this->flash['open'] = "bd_personal";
         $this->redirect($this->url_for('course/basicdata/view/' . $sem->getId()));
+    }
+
+    public function switchdeputy_action($course_id, $newstatus) {
+        $course = Seminar::getInstance($course_id);
+        switch($newstatus) {
+            case 'dozent':
+                if ($course->addMember($GLOBALS['user']->id, 'dozent')) {
+                    deleteDeputy($GLOBALS['user']->id, $course_id);
+                }
+                break;
+            case 'deputy':
+                if (addDeputy($GLOBALS['user']->id, $course_id)) {
+                    $course->deleteMember($GLOBALS['user']->id);
+                }
+                break;
+        }
+        $this->flash['open'] = "bd_personal";
+        $this->redirect($this->url_for('course/basicdata/view/'.$course_id));
     }
 
 }

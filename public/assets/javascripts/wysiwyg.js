@@ -328,12 +328,6 @@ jQuery(function ($) {
             var editor = event.editor,
                 $textarea = $(editor.element.$);
         
-            // disable default browser drop action on iframe body
-            var iframe_body = $(editor.container.$).find('iframe')[0]
-            .contentWindow.document.getElementsByTagName('body')[0];
-            iframe_body.setAttribute('ondragstart', 'return false');
-            iframe_body.setAttribute('ondrop', 'return false');
-
             // auto-resize editor area in source view mode, and keep focus!
             editor.on('mode', function (event) {
                 var editor = event.editor;

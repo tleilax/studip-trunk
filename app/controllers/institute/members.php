@@ -51,19 +51,29 @@ class Institute_MembersController extends AuthenticatedController
         // or for just displaying the workers and their roles
         if ($this->admin_view) {
             PageLayout::setTitle(_("Verwaltung der MitarbeiterInnen"));
-            Navigation::activateItem('/admin/institute/faculty');
+            if (Navigation::hasItem('/admin/institute/faculty')) {
+                Navigation::activateItem('/admin/institute/faculty');
+            }
             $GLOBALS['perm']->check("admin");
         } else {
             PageLayout::setTitle(_("Liste der MitarbeiterInnen"));
-            Navigation::activateItem('/course/faculty/view');
+            if (Navigation::hasItem('/course/faculty/view')) {
+                Navigation::activateItem('/course/faculty/view');
+            }
             $GLOBALS['perm']->check("autor");
         }
 
         require_once 'lib/admin_search.inc.php';
 
         //get ID from a open Institut. We have to wait until a links_*.inc.php has opened an institute (necessary if we jump directly to this page)
-        if ($GLOBALS['SessSemName'][1])
+        if ($GLOBALS['SessSemName'][1]) {
             $this->inst_id=$GLOBALS['SessSemName'][1];
+        } else {
+            PageLayout::postMessage(MessageBox::info(_('Sie müssen zunächst eine Einrichtung auswählen')));
+            $this->redirect(URLHelper::getLink('admin_institut.php?list=TRUE'));
+            return;
+        }
+
 
         if (!$this->admin_view) {
             checkObject();
@@ -368,7 +378,7 @@ class Institute_MembersController extends AuthenticatedController
                     }, $statement->fetchAll(PDO::FETCH_ASSOC)));
                     URLHelper::setBaseURL($GLOBALS['ABSOLUTE_URI_STUDIP']);
                     $this->mp = MultiPersonSearch::get("inst_member_add" . $this->inst_id)
-                    ->setLinkText(_("neue Person der Einrichtung zuordnen"))
+                    ->setLinkText(_("MitarbeiterInnen hinzufügen"))
                     ->setDefaultSelectedUser($defaultSelectedUser)
                     ->setTitle(_('Personen in die Einrichtung eintragen'))
                     ->setExecuteURL(URLHelper::getLink("dispatch.php/institute/members", array('admin_view' => 1, 'ins_id' => $this->inst_id)))
@@ -646,6 +656,7 @@ class Institute_MembersController extends AuthenticatedController
                     if (count($institut_members) > 0) {
                         $template = $GLOBALS['template_factory']->open('institute/_table_body.php');
                         $template->mail_status = true;
+                        $template->key = $key;
                         $template->group_colspan = $this->colspan - 2;
                         $template->colspan = $this->colspan;
                         $template->th_title = $permission;
@@ -807,6 +818,7 @@ class Institute_MembersController extends AuthenticatedController
                     $template->mail_gruppe = true;
                     $template->group_colspan = $this->colspan - 2;
                 }
+                $template->role_id = $role_id;
                 $template->colspan = $this->colspan;
                 $template->th_title = $zw_title;
                 $template->members = $institut_members;

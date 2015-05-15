@@ -437,7 +437,8 @@ class StudipFormat extends TextFormat
      */
     protected static function markupIndent($markup, $matches)
     {
-        $text = preg_replace('/^  /m', '', $matches[0]);
+        $text = preg_replace('/^ +/', '', $matches[0]);
+        $text = preg_replace('/^  /m', '', $text);
 
         return sprintf('<div class="indent">%s</div>', $markup->format($text));
     }

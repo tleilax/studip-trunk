@@ -74,28 +74,87 @@ class CourseTopic extends SimpleORMap {
             'foreign_key' => 'author_id'
         );
         $config['default_values']['priority'] = function($topic) {return CourseTopic::getMaxPriority($topic->seminar_id) + 1;};
+        $config['additional_fields']['forum_thread_url']['get'] = 'getForumThreadURL';
 
         parent::configure($config);
     }
 
-    public function createFolder()
+    function __construct($id = null)
     {
-        $folder = $this->folder;
-        if ($folder) {
-            return $folder;
-        } else {
-            $folder = new DocumentFolder();
-            $folder['range_id'] = $this->getId();
-            $folder['name'] = $this['title'];
-            $folder['description'] = $this['description'];
-            $folder['priority'] = $this['priority'];
-            $folder['seminar_id'] = $this['seminar_id'];
-            $folder['user_id'] = $GLOBALS['user']->id;
-            $folder['permission'] = 15;
-            $folder->store();
-            $this->resetRelation("folder");
-            return $folder;
-        }
+        parent::__construct($id);
+        $this->registerCallback('after_store', 'cbUpdateConnectedContentModules');
     }
 
+    /**
+    *
+    * @deprecated
+    */
+    public function createFolder()
+    {
+        $this->connectWithDocumentFolder();
+        return $this->folder;
+    }
+
+    /**
+    * set or update connection with document folder
+    */
+    function connectWithDocumentFolder()
+    {
+        if ($this->seminar_id) {
+            $document_module = Seminar::getInstance($this->seminar_id)->getSlotModule('documents');
+            if ($document_module) {
+                if (!$this->folder) {
+                    $folder = new DocumentFolder();
+                    $folder['range_id'] = $this->getId();
+                    $folder['priority'] = $this['priority'];
+                    $folder['seminar_id'] = $this['seminar_id'];
+                    $folder['user_id'] = $GLOBALS['user']->id;
+                    $folder['permission'] = 15;
+                    $this->folder = $folder;
+                }
+                $this->folder['name'] = $this['title'];
+                $this->folder['description'] = $this['description'];
+                return $this->folder->store();
+            }
+        }
+        return false;
+    }
+
+    /**
+    * set or update connection with forum thread
+    */
+    function connectWithForumThread()
+    {
+        if ($this->seminar_id) {
+            $forum_module = Seminar::getInstance($this->seminar_id)->getSlotModule('forum');
+            if ($forum_module instanceOf ForumModule) {
+                $forum_module->setThreadForIssue($this->id, $this->title, $this->description);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function getForumThreadURL()
+    {
+        if ($this->seminar_id) {
+            $forum_module = Seminar::getInstance($this->seminar_id)->getSlotModule('forum');
+            if ($forum_module instanceOf ForumModule) {
+                return html_entity_decode($forum_module->getLinkToThread($this->id));
+            }
+        }
+        return '';
+    }
+
+    protected function cbUpdateConnectedContentModules()
+    {
+        if ($this->isFieldDirty('title') || $this->isFieldDirty('description')) {
+            if ($this->folder) {
+                $this->connectWithDocumentFolder();
+            }
+            if ($this->forum_thread_url) {
+                $this->connectWithForumThread();
+            }
+        }
+    }
 }

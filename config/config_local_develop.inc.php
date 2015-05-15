@@ -157,7 +157,7 @@ $WEBSERVICES_ENABLE = TRUE;
 $PLUGINS_UPLOAD_ENABLE = TRUE;                  //Upload of Plugins is enabled
 
 $PLUGIN_REPOSITORIES = array(
-    'http://plugins.studip.de/plugin-wiki.php'
+    'http://plugins.studip.de/plugins.xml',
 );
 
 /*system functions

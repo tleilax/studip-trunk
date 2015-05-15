@@ -33,10 +33,6 @@ class Admin_CoursesController extends AuthenticatedController
     {
         parent::before_filter($action, $args);
 
-        if ($GLOBALS['perm']->have_perm('root')) {
-            throw new AccessDeniedException(_('Sie haben nicht die nötigen Rechte, um diese Seite zu betreten.'));
-        }
-
         if (!$GLOBALS['perm']->have_perm('admin')) {
             throw new AccessDeniedException(_('Sie haben nicht die nötigen Rechte, um diese Seite zu betreten.'));
         }
@@ -99,8 +95,8 @@ class Admin_CoursesController extends AuthenticatedController
             $config_view_filter = $GLOBALS['user']->cfg->getValue('MY_COURSES_ADMIN_VIEW_FILTER_ARGS');
             $this->view_filter  = isset($config_view_filter) ? unserialize($config_view_filter) : array();
             if (!$this->view_filter) {
-                $GLOBALS['user']->cfg->store('MY_COURSES_ADMIN_VIEW_FILTER_ARGS', serialize($this->getViewFilters()));
-                $this->view_filter = unserialize($GLOBALS['user']->cfg->getValue('MY_COURSES_ADMIN_VIEW_FILTER_ARGS'));
+                $this->view_filter = $this->getViewFilters();
+                $GLOBALS['user']->cfg->store('MY_COURSES_ADMIN_VIEW_FILTER_ARGS', serialize($this->view_filter));
             }
 
             // filter by dozent
@@ -182,51 +178,85 @@ class Admin_CoursesController extends AuthenticatedController
      */
     public function export_csv_action()
     {
+        $config_view_filter = $GLOBALS['user']->cfg->getValue('MY_COURSES_ADMIN_VIEW_FILTER_ARGS');
+        $view_filter  = isset($config_view_filter) ? unserialize($config_view_filter) : array();
+        if (!$view_filter) {
+            $view_filter = $this->getViewFilters();
+            $GLOBALS['user']->cfg->store('MY_COURSES_ADMIN_VIEW_FILTER_ARGS', serialize($view_filter));
+        }
+
+        if($pos = array_search('Inhalt', $view_filter)) {
+            unset($view_filter[$pos]);
+        }
         $sortby                       = $GLOBALS['user']->cfg->getValue('MEINE_SEMINARE_SORT');
         $config_my_course_type_filter = $GLOBALS['user']->cfg->getValue('MY_COURSES_TYPE_FILTER');
 
         $courses = $this->getCourses($GLOBALS['user']->id,
             array('sortby'     => $sortby,
                   'sortFlag'   => 'asc',
-                  'typeFilter' => $config_my_course_type_filter)
+                  'typeFilter' => $config_my_course_type_filter,
+                  'view_filter' => $view_filter)
         );
 
-        $captions = array(
-            _('Veranstaltungsnummer'),
-            _('Name'),
-            _('Veranstaltungstyp'),
-            _('Raum/Zeit'),
-            _('DozentIn'),
-            _('Anzahl Teilnehmer')
-        );
+        $captions = array();
+
+        if(empty($view_filter)) {
+            return;
+        }
+
+        $captions = array_values($view_filter);
+
 
         foreach ($courses as $course_id => $course) {
             $sem      = new Seminar($course_id);
-            $_room    = $sem->getDatesExport(array(
-                'semester_id' => $this->semester->id,
-                'show_room'   => true
-            ));
-            $_room    = $_room ?: _('nicht angegeben');
-            $dozenten = "";
-            array_walk($course['dozenten'], function ($a) use (&$dozenten) {
-                $user = User::findByUsername($a['username']);
-                $dozenten .= $user->getFullName();
-            });
 
-            $data[] = array(
-                $course['VeranstaltungsNummer'],
-                $course['Name'],
-                $course['sem_class_name'] . ': ' . $GLOBALS['SEM_TYPE'][$course['status']]['name'],
-                $_room,
-                $dozenten,
-                $course['teilnehmer']
-            );
+            if(in_array('Nr.', $captions)) {
+                $data[$course_id][array_search('Nr.', $captions)] = $course['VeranstaltungsNummer'];
+            }
+
+            if(in_array('Name', $captions)) {
+                $data[$course_id][array_search('Name', $captions)] = $course['Name'];
+            }
+
+            if(in_array('Veranstaltungstyp', $captions)) {
+                $data[$course_id][array_search('Veranstaltungstyp', $captions)]
+                    = $course['sem_class_name'] . ': ' . $GLOBALS['SEM_TYPE'][$course['status']]['name'];
+            }
+
+            if(in_array('Raum/Zeit', $captions)) {
+                $_room    = $sem->getDatesExport(array(
+                    'semester_id' => $this->semester->id,
+                    'show_room'   => true
+                ));
+                $_room    = $_room ?: _('nicht angegeben');
+                $data[$course_id][array_search('Raum/Zeit', $captions)] = $_room;
+            }
+
+            if(in_array('DozentIn', $captions)) {
+                $dozenten = array();
+                array_walk($course['dozenten'], function ($a) use (&$dozenten) {
+                    $user = User::findByUsername($a['username']);
+                    $dozenten[] = $user->getFullName();
+                });
+                $data[$course_id][array_search('DozentIn', $captions)] = !empty($dozenten) ? implode(', ', $dozenten) : '';
+            }
+
+            if(in_array('TeilnehmerInnen', $captions)) {
+                $data[$course_id][array_search('TeilnehmerInnen', $captions)] = $course['teilnehmer'];
+            }
+
+            if(in_array('TeilnehmerInnen auf Warteliste', $captions)) {
+                $data[$course_id][array_search('TeilnehmerInnen auf Warteliste', $captions)] = $course['waiting'];
+            }
+
+            if(in_array('Vorläufige Anmeldungen', $captions)) {
+                $data[$course_id][array_search('Vorläufige Anmeldungen', $captions)] = $course['prelim'];
+            }
         }
 
         $tmpname = md5(uniqid('Veranstaltungsexport'));
         if (array_to_csv($data, $GLOBALS['TMP_PATH'] . '/' . $tmpname, $captions)) {
             $this->redirect(GetDownloadLink($tmpname, 'Veranstaltungen_Export.csv', 4, 'force'));
-
             return;
         }
     }
@@ -592,22 +622,16 @@ class Admin_CoursesController extends AuthenticatedController
                          seminare.Name, seminare.status, seminare.chdate,
                          seminare.start_time, seminare.admission_binding, seminare.visible,
                          seminare.modules, COUNT(seminar_user.user_id) AS teilnehmer,
-                         IFNULL(visitdate, 0) AS visitdate,
-                         sd1.name AS startsem, IF (duration_time = -1, :unlimited, sd2.name) AS endsem,
-                         sc.name as sem_class_name, seminare.lock_rule, seminare.aux_lock_rule,
+                         seminare.lock_rule, seminare.aux_lock_rule,
                          (SELECT COUNT(seminar_id)
                           FROM admission_seminar_user
-                          WHERE seminar_id = seminare.Seminar_id AND status = 'accepted')AS prelim,
+                          WHERE seminar_id = seminare.Seminar_id AND status = 'accepted') AS prelim,
                           (SELECT COUNT(seminar_id)
                           FROM admission_seminar_user
-                          WHERE seminar_id = seminare.Seminar_id AND status = 'awaiting')AS waiting
+                          WHERE seminar_id = seminare.Seminar_id AND status = 'awaiting') AS waiting
                   FROM Institute
                   INNER JOIN seminare ON (seminare.Institut_id = Institute.Institut_id {$sem_condition})
                   LEFT JOIN seminar_user on (seminare.seminar_id=seminar_user.seminar_id AND seminar_user.status != 'dozent' and seminar_user.status != 'tutor')
-                  LEFT JOIN object_user_visits AS ouv
-                    ON (ouv.object_id = seminare.Seminar_id AND ouv.user_id = :user_id AND ouv.type = 'sem')
-                  LEFT JOIN semester_data AS sd1 ON (start_time BETWEEN sd1.beginn AND sd1.ende)
-                  LEFT JOIN semester_data sd2 ON (start_time + duration_time BETWEEN sd2.beginn AND sd2.ende)
                   LEFT JOIN sem_types as st ON st.id = seminare.status
                   LEFT JOIN sem_classes as sc ON sc.id = st.class
                   WHERE Institute.Institut_id = :institute_id
@@ -616,8 +640,6 @@ class Admin_CoursesController extends AuthenticatedController
                   ORDER BY {$sortby}";
 
         $statement = DBManager::get()->prepare($query);
-        $statement->bindValue(':unlimited', _('unbegrenzt'));
-        $statement->bindValue(':user_id', $user_id);
         $statement->bindValue('institute_id', $this->selected_inst_id);
         if (!is_null($typeFilter) && strcmp($typeFilter, "all") !== 0) {
             $statement->bindValue(':typeFilter', $typeFilter);
@@ -671,12 +693,19 @@ class Admin_CoursesController extends AuthenticatedController
      */
     private function getCourseAmountForStatus(&$id)
     {
-        $sql       = "SELECT COUNT(seminar_id) FROM seminare
-            WHERE Institut_id = ? and status = ?
-            AND seminare.start_time <=" . $this->semester->beginn . " AND (" . $this->semester->beginn . " <= (seminare.start_time + seminare.duration_time)
-            OR seminare.duration_time = -1)";
+        $sql = "
+            SELECT COUNT(seminar_id) FROM seminare
+            WHERE Institut_id = :institut_id
+                AND status = :status
+                AND seminare.start_time <= :semester_beginn
+                AND (:semester_beginn <= (seminare.start_time + seminare.duration_time)
+                    OR seminare.duration_time = -1)";
         $statement = DBManager::get()->prepare($sql);
-        $statement->execute(array($this->selected_inst_id, $id));
+        $statement->execute(array(
+            'institut_id' => $this->selected_inst_id,
+            'status' => $id,
+            'semester_beginn' => $this->semester->beginn
+        ));
         $count = $statement->fetch(PDO::FETCH_COLUMN);
 
         return $count;
@@ -734,7 +763,14 @@ class Admin_CoursesController extends AuthenticatedController
         $sidebar = Sidebar::Get();
         $list    = new SelectWidget(_('Einrichtung'), $this->url_for('admin/courses/set_selection'), 'institute');
         foreach ($this->insts as $institut) {
-            $list->addElement(new SelectElement($institut['Institut_id'], $institut['Name'], $this->selected_inst_id == $institut['Institut_id']), 'select-' . $institut['Name']);
+            $list->addElement(
+                new SelectElement(
+                    $institut['Institut_id'],
+                    (!$institut['is_fak'] ? "  ": "").$institut['Name'],
+                    $this->selected_inst_id == $institut['Institut_id']
+                ),
+                'select-' . $institut['Name']
+            );
         }
         $sidebar->addWidget($list);
     }

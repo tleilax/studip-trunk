@@ -56,12 +56,22 @@ class Admin_StatusgroupsController extends AuthenticatedController {
         PageLayout::addScript('jquery/jquery.tablednd.js');
         PageLayout::addStylesheet('jquery-nestable.css');
         PageLayout::addScript('jquery/jquery.nestable.js');
-        $this->setInfobox();
         $this->setAjaxPaths();
-
+        // Setup sidebar.
+        $sidebar = Sidebar::get();
+        $sidebar->setImage('sidebar/group-sidebar.png');
+        $widget = new ActionsWidget();
+        $widget->addLink(_('Neue Gruppe anlegen'),
+            $this->url_for('admin/statusgroups/editGroup'),
+            'icons/16/black/add/group3.png')
+            ->asDialog('size=auto');
+        $widget->addLink(_('Gruppenreihenfolge ändern'),
+            $this->url_for('admin/statusgroups/sortGroups'),
+            'icons/16/black/arr_2down.png')
+            ->asDialog();
+        $sidebar->addWidget($widget);
         // Collect all groups
         $this->loadGroups();
-
         // Check if the viewing user should get the admin interface
         $this->tutor = $this->type['edit']($this->user_id);
         $membersCollection = new SimpleCollection((User::findMany(Institute::find($_SESSION['SessionSeminar'])->members->orderBy('nachname')->pluck('user_id'))));
@@ -280,16 +290,6 @@ class Admin_StatusgroupsController extends AuthenticatedController {
     }
     
     /*
-     * Sets the content of the infobox.
-     */
-    private function setInfoBox() {
-        $this->setInfoBoxImage('sidebar/group-sidebar.png');
-
-        $this->addToInfobox(_('Aktionen'), "<a title='" . _('Neue Gruppe anlegen') . "' class='modal' href='" . $this->url_for("admin/statusgroups/editGroup") . "'>" . _('Neue Gruppe anlegen') . "</a>", 'icons/16/black/add/group3.png');
-        $this->addToInfobox(_('Aktionen'), "<a title='" . _('Gruppenreihenfolge ändern') . "' class='modal' href='" . $this->url_for("admin/statusgroups/sortGroups") . "'>" . _('Gruppenreihenfolge ändern') . "</a>", 'icons/16/black/arr_2down.png');
-    }
-
-    /*
      * Checks if a group should be updated from a request
      */
     private function checkForChangeRequests() {
@@ -335,8 +335,9 @@ class Admin_StatusgroupsController extends AuthenticatedController {
             $type = 'inst';
         }
         $types = $this->types();
+
         if (!$type || Request::submitted('type') && $type != Request::get('type')) {
-            $types[Request::get('type')]['redirect']();
+            $types[is_null(Request::get('type')) ? 'inst' : Request::get('type')]['redirect']();
         } else {
             $this->type = $types[$type];
         }

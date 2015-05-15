@@ -174,6 +174,7 @@ function parse_link($link, $level=0) {
                 $user = $url_parts["user"];
                 $urlString .= "Authorization: Basic ".base64_encode("$user:$pass")."\r\n";
             }
+            $urlString .= sprintf("User-Agent: Stud.IP v%s File Crawler\r\n", $GLOBALS['SOFTWARE_VERSION']);
             $urlString .= "Connection: close\r\n\r\n";
             fputs($socket, $urlString);
             stream_set_timeout($socket, 5);
@@ -2704,7 +2705,7 @@ function upload_zip_item() {
             $msg .= 'msg§' . sprintf(_("Es wurden %d Dateien und %d Ordner erfolgreich entpackt."),$ret['files'], $ret['subdirs'] ) . '§';
             @rmdirr($tmpdirname);
             @unlink($GLOBALS['TMP_PATH'] . '/' . $tmpname);
-            return true;
+            return (int)$ret['files'];
         }
     }
     @rmdirr($tmpdirname);

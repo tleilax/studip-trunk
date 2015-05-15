@@ -13,9 +13,6 @@
                 <td><strong><label for="topic_description"><?= _("Beschreibung") ?></label></strong></td>
                 <td>
                     <textarea class="add_toolbar wysiwyg" name="description" id="topic_description" style="width: 100%; height: 150px;"><?= wysiwygReady($topic['description']) ?></textarea>
-                    <? if (Request::isAjax()) : ?>
-                    <script>jQuery(function() { STUDIP.Toolbar.initialize(jQuery("#topic_description")[0]); });</script>
-                    <? endif ?>
                 </td>
             </tr>
             <tr>
@@ -45,38 +42,39 @@
                     </ul>
                 </td>
             </tr>
+            <? if ($documents_activated) : ?>
+                <tr>
+                    <td><strong><?= _("Themen-Dateiordner") ?></strong></td>
+                    <td>
+                        <? $folder = $topic->folder ?>
+                        <? if ($folder) : ?>
+                            <?= Assets::img("icons/16/green/accept", array('class' => "text-bottom")) ?>
+                            <?= _("Dateiordner vorhanden ") ?>
+                        <? else : ?>
+                            <label>
+                                <input type="checkbox" name="folder" id="topic_folder">
+                                <?= _("Dateiordner anlegen") ?>
+                            </label>
+                        <? endif ?>
+                    </td>
+                </tr>
+            <? endif ?>
+            <? if ($forum_activated) : ?>
             <tr>
-                <td><strong><?= _("Themen-Dateiordner") ?></strong></td>
+                <td><strong><?= _("Forumsthema") ?></strong></td>
                 <td>
-                    <? $folder = $topic->folder ?>
-                    <? if ($folder) : ?>
+                    <? if ($topic->forum_thread_url) : ?>
                         <?= Assets::img("icons/16/green/accept", array('class' => "text-bottom")) ?>
-                        <?= _("Dateiordner vorhanden ") ?>
+                        <?= _("Forumsthema vorhanden ") ?>
                     <? else : ?>
                         <label>
-                            <input type="checkbox" name="folder" id="topic_folder">
-                            <?= _("Dateiordner anlegen") ?>
+                            <input type="checkbox" name="forumthread" id="topic_forumthread">
+                            <?= _("Forumsthema anlegen") ?>
                         </label>
                     <? endif ?>
                 </td>
             </tr>
-            <tr>
-                <td><strong><?= _("Forumsthema") ?></strong></td>
-                <td>
-                    <? if (class_exists("ForumIssue")) : ?>
-                        <? $posting = ForumEntry::getEntry(ForumIssue::getThreadIdForIssue($topic->getId())) ?>
-                        <? if ($posting) : ?>
-                            <?= Assets::img("icons/16/green/accept", array('class' => "text-bottom")) ?>
-                            <?= _("Forumsthema vorhanden ") ?>
-                        <? else : ?>
-                            <label>
-                                <input type="checkbox" name="forumthread" id="topic_forumthread">
-                                <?= _("Forumsthema anlegen") ?>
-                            </label>
-                        <? endif ?>
-                    <? endif ?>
-                </td>
-            </tr>
+            <? endif ?>
         </tbody>
     </table>
     <div align="center" data-dialog-button>
