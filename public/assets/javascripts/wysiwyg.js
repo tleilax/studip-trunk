@@ -85,6 +85,7 @@ jQuery(function ($) {
                     attributes: ['!href', 'target', 'rel'],
                     classes: 'link-extern'
                 },
+                big: {},
                 blockquote: {},
                 br: {},
                 caption: {},
@@ -131,6 +132,7 @@ jQuery(function ($) {
                 u: {},
                 ul: {},
                 s: {},
+                small: {},
                 sub: {},
                 sup: {},
                 table: {
@@ -155,7 +157,8 @@ jQuery(function ($) {
                     attributes: ['colspan', 'rowspan', 'scope'],
                     styles: ['text-align', 'width', 'height']
                 },
-                tr: {}
+                tr: {},
+                tt: {}
             },
             width: textareaWidth,
             skin: 'studip',
