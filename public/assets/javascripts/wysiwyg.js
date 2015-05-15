@@ -161,9 +161,10 @@ jQuery(function ($) {
             width: textareaWidth,
             skin: 'studip',
             // NOTE codemirror crashes when not explicitely loaded in CKEditor 4.4.7
-            extraPlugins: 'codemirror,studip-settings,studip-wiki'
+            extraPlugins: 'codemirror,divarea,studip-settings,studip-wiki'
                 // only enable uploads in courses with a file section
                 + ($('li#nav_course_files').length > 0 ? ',studip-upload' : ''),
+            removePlugins: 'wysiwygarea',
             enterMode: CKEDITOR.ENTER_BR,
             studipUpload_url: STUDIP.URLHelper.getURL('dispatch.php/wysiwyg/upload'),
             codemirror: {
@@ -326,12 +327,6 @@ jQuery(function ($) {
             var editor = event.editor,
                 $textarea = $(editor.element.$);
         
-            // disable default browser drop action on iframe body
-            var iframe_body = $(editor.container.$).find('iframe')[0]
-            .contentWindow.document.getElementsByTagName('body')[0];
-            iframe_body.setAttribute('ondragstart', 'return false');
-            iframe_body.setAttribute('ondrop', 'return false');
-
             // NOTE some HTML elements are output on their own line so that old
             // markup code and older plugins run into less problems
 
