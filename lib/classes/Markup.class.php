@@ -39,7 +39,7 @@ class Markup
     public static function apply($markup, $text, $trim)
     {
         if (self::isHtml($text)){
-            return self::markupPurified($markup, $text, $trim);
+            return self::purify($text);
         }
         return self::markupHtmlReady($markup, $text, $trim);
     }
@@ -110,24 +110,6 @@ class Markup
             return $text; // marker already set, don't set twice
         }
         return self::HTML_MARKER . $text;
-    }
-
-    /**
-     * Run text through HTML purifier and afterwards apply markup rules.
-     *
-     * @param TextFormat $markup  Markup rules applied on marked-up text.
-     * @param string     $text    Marked-up text on which rules are applied.
-     * @param boolean    $trim    Trim text before applying markup rules, if TRUE.
-     *
-     * @return string  HTML code computed from marked-up text.
-     */
-    private static function markupPurified($markup, $text, $trim)
-    {
-        $text = self::unixEOL($text);
-        if ($trim) {
-            $text = trim($text);
-        }
-        return self::markupText($markup, self::purify($text));
     }
 
     /**
