@@ -344,9 +344,6 @@ jQuery(function ($) {
                 }
             });
 
-            // focus editor if corresponding textarea is focused
-            $textarea.focus(function (event) { event.editor.focus(); });
-
             // update textarea on editor blur
             editor.on('blur', function (event) {
                 event.editor.updateElement();
