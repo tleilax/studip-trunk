@@ -218,6 +218,7 @@ class Markup
             br
             caption
             div[class]
+            div[style]
             em
             h1
             h2
