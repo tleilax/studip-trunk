@@ -162,6 +162,8 @@ class IndexController extends ForumController
                 && !ForumPerm::hasEditPerms($this->edit_posting)) {
             $this->edit_posting = null;
         }
+        // only show preview if wysiwyg is deactivated 
+        $this->previewActivated = !\Config::get()->WYSIWYG; 
 
     }
 

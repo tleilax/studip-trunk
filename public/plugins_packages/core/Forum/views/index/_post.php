@@ -105,8 +105,9 @@
 
             <?= Studip\LinkButton::createCancel(_('Abbrechen'), PluginEngine::getLink('coreforum/index/index/'. $post['topic_id'] .'#'. $post['topic_id']),
                 array('onClick' => "STUDIP.Forum.cancelEditEntry('". $post['topic_id'] ."'); return false;")) ?>
-            
-            <?= Studip\LinkButton::create(_('Vorschau'), "javascript:STUDIP.Forum.preview('". $post['topic_id'] ."', 'preview_". $post['topic_id'] ."');") ?>
+            <? if ($previewActivated) : ?>
+                <?= Studip\LinkButton::create(_('Vorschau'), "javascript:STUDIP.Forum.preview('". $post['topic_id'] ."', 'preview_". $post['topic_id'] ."');") ?>
+            <? endif; ?>
         </span>
                 
         <span data-show-topic="<?= $post['topic_id'] ?>" <?= $edit_posting != $post['topic_id'] ? '' : 'style="display: none;"' ?>>
@@ -266,4 +267,6 @@
 </div>
 </form>
 
-<?= $this->render_partial('index/_preview', array('preview_id' => 'preview_' . $post['topic_id'])) ?>
+<? if ($previewActivated) : ?>
+    <?= $this->render_partial('index/_preview', array('preview_id' => 'preview_' . $post['topic_id'])) ?>
+<? endif; ?>

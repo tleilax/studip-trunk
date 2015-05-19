@@ -43,8 +43,10 @@
                     <?= Studip\LinkButton::createCancel(_('Abbrechen'), '', array(
                         'onClick' => "return STUDIP.Forum.cancelNewEntry();",
                         'tabindex' => '4')) ?>
-
-                    <?= Studip\LinkButton::create(_('Vorschau'), "javascript:STUDIP.Forum.preview('new_entry', 'new_entry_preview');", array('tabindex' => '5', 'class' => 'js')) ?>
+                    
+                    <? if ($previewActivated) : ?>
+                        <?= Studip\LinkButton::create(_('Vorschau'), "javascript:STUDIP.Forum.preview('new_entry', 'new_entry_preview');", array('tabindex' => '5', 'class' => 'js')) ?>
+                    <? endif; ?>
                     <? if (Config::get()->FORUM_ANONYMOUS_POSTINGS): ?>
                         <div style="float: left; margin-top: 14px; margin-left: 14px;">    
                             <label><?= _('Anonym') ?>
@@ -55,9 +57,11 @@
                 </div>
             </div>
         </div>
-
-        <?= $this->render_partial('index/_preview', array('preview_id' => 'new_entry_preview')) ?>
-
+        
+        <? if ($previewActivated) : ?> 
+            <?= $this->render_partial('index/_preview', array('preview_id' => 'new_entry_preview')) ?>
+        <? endif; ?>
+        
         <input type="hidden" name="parent" value="<?= $topic_id ?>">
         <input type="text" name="nixda" style="display: none;">
     </form>
