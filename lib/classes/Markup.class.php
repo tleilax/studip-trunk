@@ -244,6 +244,9 @@ class Markup
             thead
             th[colspan|rowspan|style|scope]
             tr
+            tt
+            big
+            small
         ');
 
         $config->set('Attr.AllowedFrameTargets', array('_blank'));
