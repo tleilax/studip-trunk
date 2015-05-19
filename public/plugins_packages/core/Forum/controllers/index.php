@@ -460,7 +460,7 @@ class IndexController extends ForumController
             $content = studip_utf8decode(Request::html('content', _('Keine Beschreibung')));
         } else {
             $name    = Request::get('name', _('Kein Titel'));
-            $content = Request::get('content', _('Keine Beschreibung'));
+            $content = Request::html('content', _('Keine Beschreibung'));
         }
 
         ForumPerm::check('add_entry', $this->getId(), $topic_id);
