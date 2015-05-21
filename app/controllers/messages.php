@@ -448,30 +448,35 @@ class MessagesController extends AuthenticatedController {
                 $_searchfor = $treffer[0];
             }
 
-            $search_sql = "";
-            foreach ($_searchfor as $val) {
-                $tmp_sql = array();
-                if (Request::get("search_autor")) {
-                    $tmp_sql[] = "CONCAT(auth_user_md5.Vorname, ' ', auth_user_md5.Nachname) LIKE ".DBManager::get()->quote("%".$val."%")." ";
+            if (!Request::int('search_autor') && !Request::int('search_subject') && !Request::int('search_content')) {
+                $message = _('Es wurden keine Bereiche angegeben, in denen gesucht werden soll.');
+                PageLayout::postMessage(MessageBox::error($message));
+
+                $search_sql = "AND 0";
+            } else {
+                $search_sql = "";
+                foreach ($_searchfor as $val) {
+                    $tmp_sql = array();
+                    if (Request::get("search_autor")) {
+                        $tmp_sql[] = "CONCAT(auth_user_md5.Vorname, ' ', auth_user_md5.Nachname) LIKE ".DBManager::get()->quote("%".$val."%")." ";
+                    }
+                    if (Request::get("search_subject")) {
+                        $tmp_sql[] = "message.subject LIKE ".DBManager::get()->quote("%".$val."%")." ";
+                    }
+                    if (Request::get("search_content")) {
+                        $tmp_sql[] = "message.message LIKE ".DBManager::get()->quote("%".$val."%")." ";
+                    }
+                    $search_sql .= "AND (";
+                    $search_sql .= implode(" OR ", $tmp_sql);
+                    $search_sql .= ") ";
                 }
-                if (Request::get("search_subject")) {
-                    $tmp_sql[] = "message.subject LIKE ".DBManager::get()->quote("%".$val."%")." ";
-                }
-                if (Request::get("search_content")) {
-                    $tmp_sql[] = "message.message LIKE ".DBManager::get()->quote("%".$val."%")." ";
-                }
-                $search_sql .= "AND (";
-                $search_sql .= implode(" OR ", $tmp_sql);
-                $search_sql .= ") ";
             }
-
-
 
             $messages_data = DBManager::get()->prepare("
                 SELECT message.*
                 FROM message_user
                     INNER JOIN message ON (message_user.message_id = message.message_id)
-                    INNER JOIN auth_user_md5 ON (auth_user_md5.user_id = message.autor_id)
+                    LEFT JOIN auth_user_md5 ON (auth_user_md5.user_id = message.autor_id)
                 WHERE message_user.user_id = :me
                     AND message_user.deleted = 0
                     AND snd_rec = :sender_receiver

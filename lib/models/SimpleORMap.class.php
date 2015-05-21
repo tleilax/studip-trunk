@@ -1136,10 +1136,38 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
             $fields = array_intersect($only_these_fields, $fields);
         }
         foreach($fields as $field) {
-           $ret[$field] = $this->getValue($field);
-           if ($ret[$field] instanceof StudipArrayObject) {
-               $ret[$field] = $ret[$field]->getArrayCopy();
-           }
+            $ret[$field] = $this->getValue($field);
+            if ($ret[$field] instanceof StudipArrayObject) {
+                $ret[$field] = $ret[$field]->getArrayCopy();
+            }
+        }
+        return $ret;
+    }
+
+    /**
+     * Returns data of table row as assoc array with raw contents like
+     * they are in the database.
+     * Pass array of fieldnames or ws separated string to limit
+     * fields.
+     *
+     * @param mixed $only_these_fields
+     * @return array
+     */
+    function toRawArray($only_these_fields = null)
+    {
+        $ret = array();
+        if (is_string($only_these_fields)) {
+            $only_these_fields = words($only_these_fields);
+        }
+        $fields = array_keys($this->db_fields);
+        if (is_array($only_these_fields)) {
+            $only_these_fields = array_filter(array_map(function($s) {
+                return is_string($s) ? strtolower($s) : null;
+            }, $only_these_fields));
+            $fields = array_intersect($only_these_fields, $fields);
+        }
+        foreach($fields as $field) {
+            $ret[$field] = $this->content[$field];
         }
         return $ret;
     }

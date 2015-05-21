@@ -2722,16 +2722,6 @@ select.sidebar-selectlist {
   vertical-align: text-top;
   width: 16px;
 }
-/*
-.sidebar-widget.sidebar-infobox {
-    border-color: @red;
-    background: @light-gray-color-20;
-
-    .sidebar-widget-header {
-        background: @red-40;
-    }
-}
-*/
 .helpbar-container {
   background: #fff;
   clear: both;
@@ -3160,7 +3150,8 @@ section.contentbox article.new header h1:before {
   background-color: transparent;
   border: 0;
 }
-.ajaxing img {
+.ajaxing img,
+.ajaxing svg {
   display: none;
 }
 /* --- Autocompleter -------------------------------------------------------- */
@@ -5126,6 +5117,12 @@ div.news_dialog_buttons {
   margin-right: 15px;
   border-top: 1px solid #d1d1d1;
 }
+.news-comments-count {
+  color: #aa6;
+}
+.news-comments-count.news-comments-unread {
+  color: #d60000;
+}
 /* --- ablaufplan / dates --------------------------------------------------- */
 .dates_items th,
 .dates_items td {
@@ -6035,6 +6032,10 @@ div.available-widgets .studip-widget {
 .ui-dialog .ui-dialog-buttonpane .ui-button[disabled]:hover {
   color: #28497c;
 }
+.ui-dialog .ui-dialog-buttonpane .ui-button.accept,
+.ui-dialog .ui-dialog-buttonpane .ui-button.cancel {
+  margin-left: 0.8em;
+}
 .ui-dialog .ui-dialog-buttonpane .ui-button.accept:before {
   background-image: url("../images/icons/16/blue/accept.png");
   background-image: none, url("../images/icons/blue/accept.svg");
@@ -6072,7 +6073,6 @@ div.available-widgets .studip-widget {
   margin-top: 2px;
 }
 .ui-dialog .ui-dialog-buttonpane .ui-button-text-only .ui-button-text {
-  margin-left: 0.8em;
   padding: 0;
   white-space: nowrap;
 }
