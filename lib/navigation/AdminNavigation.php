@@ -95,7 +95,7 @@ class AdminNavigation extends Navigation
 
         if ($perm->have_perm($sem_create_perm)) {
             $navigation->addSubNavigation('copy', new Navigation(_('Veranstaltung kopieren'), 'copy_assi.php?list=TRUE&new_session=TRUE'));
-            $navigation->addSubNavigation('create', new Navigation(_('Neue Veranstaltung anlegen'), 'admin_seminare_assi.php?new_session=TRUE'));
+            $navigation->addSubNavigation('create', new Navigation(_('Neue Veranstaltung anlegen'), 'dispatch.php/course/wizard'));
             $navigation->addSubNavigation('archive', new Navigation(_('Archivieren'), 'archiv_assi.php?list=TRUE&new_session=TRUE'));
             $navigation->addSubNavigation('visibility', new Navigation(_('Sichtbarkeit'), 'admin_visibility.php?list=TRUE'));
         }

@@ -187,7 +187,7 @@ class MyCoursesController extends AuthenticatedController
 
         if ($sem_create_perm == 'dozent' && $GLOBALS['perm']->have_perm('dozent')) {
             $setting_widget->addLink(_('Neue Veranstaltung anlegen'),
-                                     URLHelper::getLink('admin_seminare_assi.php', array('new_session' => 'TRUE')),
+                                     URLHelper::getLink('dispatch.php/course/wizard'),
                                      'icons/16/blue/add/seminar.png');
         }
 
@@ -380,6 +380,9 @@ class MyCoursesController extends AuthenticatedController
      */
     public function tabularasa_action($sem = 'all', $timestamp = null)
     {
+        NotificationCenter::postNotification('OverviewWillClear', $GLOBALS['user']->id);
+
+        $timestamp        = $timestamp ?: time();
         $deputies_enabled = Config::get()->DEPUTIES_ENABLE;
 
         $semesters   = MyRealmModel::getSelectedSemesters($sem);
@@ -394,6 +397,8 @@ class MyCoursesController extends AuthenticatedController
             $courses[$index]['obj_type'] = 'sem';
             MyRealmModel::setObjectVisits($courses[$index], $course['seminar_id'], $GLOBALS['user']->id, $timestamp);
         }
+
+        NotificationCenter::postNotification('OverviewDidClear', $GLOBALS['user']->id);
 
         $this->flash['tabularasa'] = $timestamp;
         $this->redirect('my_courses/index');

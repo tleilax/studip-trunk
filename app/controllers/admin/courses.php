@@ -33,10 +33,6 @@ class Admin_CoursesController extends AuthenticatedController
     {
         parent::before_filter($action, $args);
 
-        if ($GLOBALS['perm']->have_perm('root')) {
-            throw new AccessDeniedException(_('Sie haben nicht die nötigen Rechte, um diese Seite zu betreten.'));
-        }
-
         if (!$GLOBALS['perm']->have_perm('admin')) {
             throw new AccessDeniedException(_('Sie haben nicht die nötigen Rechte, um diese Seite zu betreten.'));
         }
@@ -134,6 +130,10 @@ class Admin_CoursesController extends AuthenticatedController
                       'view_filter' => $this->view_filter,
                       'typeFilter'  => $config_my_course_type_filter));
             $this->count_courses = count($this->courses);
+
+            if(in_array('Inhalt', $this->view_filter)) {
+                $this->nav_elements = MyRealmModel::calc_nav_elements(array($this->courses));
+            }
             // get all available teacher for infobox-filter
             // filter by selected teacher
             if (!empty($this->courses)) {
@@ -156,8 +156,8 @@ class Admin_CoursesController extends AuthenticatedController
         if ($this->sem_create_perm) {
             $actions = new ActionsWidget();
             $actions->addLink(_('Neue Veranstaltung anlegen'),
-                URLHelper::getLink('admin_seminare_assi.php',
-                    array('new_session' => 'TRUE')), 'icons/16/blue/add/seminar.png');
+                URLHelper::getLink('dispatch.php/course/wizard'),
+                'icons/16/blue/add/seminar.png');
             $sidebar->addWidget($actions, 'links');
         }
         $this->setSearchWiget();
@@ -621,27 +621,26 @@ class Admin_CoursesController extends AuthenticatedController
             $sem_condition = '';
         }
 
+
+        if($pluginsFilter) {
+            $sem_types = SemType::getTypes();
+            $modules = new Modules();
+        }
         // Prepare and execute seminar statement
         $query = "SELECT DISTINCT seminare.Seminar_id, Institute.Name AS Institut, seminare.VeranstaltungsNummer,
                          seminare.Name, seminare.status, seminare.chdate,
                          seminare.start_time, seminare.admission_binding, seminare.visible,
                          seminare.modules, COUNT(seminar_user.user_id) AS teilnehmer,
-                         IFNULL(visitdate, 0) AS visitdate,
-                         sd1.name AS startsem, IF (duration_time = -1, :unlimited, sd2.name) AS endsem,
-                         sc.name as sem_class_name, seminare.lock_rule, seminare.aux_lock_rule,
+                         seminare.lock_rule, seminare.aux_lock_rule,
                          (SELECT COUNT(seminar_id)
                           FROM admission_seminar_user
-                          WHERE seminar_id = seminare.Seminar_id AND status = 'accepted')AS prelim,
+                          WHERE seminar_id = seminare.Seminar_id AND status = 'accepted') AS prelim,
                           (SELECT COUNT(seminar_id)
                           FROM admission_seminar_user
-                          WHERE seminar_id = seminare.Seminar_id AND status = 'awaiting')AS waiting
+                          WHERE seminar_id = seminare.Seminar_id AND status = 'awaiting') AS waiting
                   FROM Institute
                   INNER JOIN seminare ON (seminare.Institut_id = Institute.Institut_id {$sem_condition})
                   LEFT JOIN seminar_user on (seminare.seminar_id=seminar_user.seminar_id AND seminar_user.status != 'dozent' and seminar_user.status != 'tutor')
-                  LEFT JOIN object_user_visits AS ouv
-                    ON (ouv.object_id = seminare.Seminar_id AND ouv.user_id = :user_id AND ouv.type = 'sem')
-                  LEFT JOIN semester_data AS sd1 ON (start_time BETWEEN sd1.beginn AND sd1.ende)
-                  LEFT JOIN semester_data sd2 ON (start_time + duration_time BETWEEN sd2.beginn AND sd2.ende)
                   LEFT JOIN sem_types as st ON st.id = seminare.status
                   LEFT JOIN sem_classes as sc ON sc.id = st.class
                   WHERE Institute.Institut_id = :institute_id
@@ -650,14 +649,13 @@ class Admin_CoursesController extends AuthenticatedController
                   ORDER BY {$sortby}";
 
         $statement = DBManager::get()->prepare($query);
-        $statement->bindValue(':unlimited', _('unbegrenzt'));
-        $statement->bindValue(':user_id', $user_id);
         $statement->bindValue('institute_id', $this->selected_inst_id);
         if (!is_null($typeFilter) && strcmp($typeFilter, "all") !== 0) {
             $statement->bindValue(':typeFilter', $typeFilter);
         }
         $statement->execute();
         $seminars = array_map('reset', $statement->fetchAll(PDO::FETCH_GROUP | PDO::FETCH_ASSOC));
+
         $statement->closeCursor();
         if (!empty($seminars)) {
             foreach ($seminars as $seminar_id => $seminar) {
@@ -665,7 +663,9 @@ class Admin_CoursesController extends AuthenticatedController
                 $seminars[$seminar_id]['dozenten'] = $dozenten;
 
                 if ($pluginsFilter) {
-                    $seminars[$seminar_id]['navigations'] = MyRealmModel::getPluginNavigationForSeminar($seminar_id, object_get_visit($seminar_id, 'sem', ''));
+                    $seminars[$seminar_id]['sem_class'] = $sem_types[$seminar['status']]->getClass();
+                    $seminars[$seminar_id]['modules'] = $modules->getLocalModules($seminar_id, 'sem', $seminar['modules'], $seminar['status']);
+                    $seminars[$seminar_id]['navigation'] = MyRealmModel::getAdditionalNavigations($seminar_id, $seminars[$seminar_id],$seminars[$seminar_id]['sem_class'], $GLOBALS['user']->id);
                 }
             }
         }
@@ -705,12 +705,19 @@ class Admin_CoursesController extends AuthenticatedController
      */
     private function getCourseAmountForStatus(&$id)
     {
-        $sql       = "SELECT COUNT(seminar_id) FROM seminare
-            WHERE Institut_id = ? and status = ?
-            AND seminare.start_time <=" . $this->semester->beginn . " AND (" . $this->semester->beginn . " <= (seminare.start_time + seminare.duration_time)
-            OR seminare.duration_time = -1)";
+        $sql = "
+            SELECT COUNT(seminar_id) FROM seminare
+            WHERE Institut_id = :institut_id
+                AND status = :status
+                AND seminare.start_time <= :semester_beginn
+                AND (:semester_beginn <= (seminare.start_time + seminare.duration_time)
+                    OR seminare.duration_time = -1)";
         $statement = DBManager::get()->prepare($sql);
-        $statement->execute(array($this->selected_inst_id, $id));
+        $statement->execute(array(
+            'institut_id' => $this->selected_inst_id,
+            'status' => $id,
+            'semester_beginn' => $this->semester->beginn
+        ));
         $count = $statement->fetch(PDO::FETCH_COLUMN);
 
         return $count;
@@ -768,7 +775,14 @@ class Admin_CoursesController extends AuthenticatedController
         $sidebar = Sidebar::Get();
         $list    = new SelectWidget(_('Einrichtung'), $this->url_for('admin/courses/set_selection'), 'institute');
         foreach ($this->insts as $institut) {
-            $list->addElement(new SelectElement($institut['Institut_id'], $institut['Name'], $this->selected_inst_id == $institut['Institut_id']), 'select-' . $institut['Name']);
+            $list->addElement(
+                new SelectElement(
+                    $institut['Institut_id'],
+                    (!$institut['is_fak'] ? "  ": "").$institut['Name'],
+                    $this->selected_inst_id == $institut['Institut_id']
+                ),
+                'select-' . $institut['Name']
+            );
         }
         $sidebar->addWidget($list);
     }
