@@ -39,12 +39,17 @@ class BasicDataWizardStep implements CourseWizardStep
         $tpl->set_attribute('values', $values);
         $semesters = array();
         $now = mktime();
+        // Allow only current or future semesters for selection.
         foreach (Semester::getAll() as $s) {
             if ($s->ende >= $now) {
                 $semesters[] = $s;
             }
         }
         $tpl->set_attribute('semesters', $semesters);
+        // If no semester is set, use current as selected default.
+        if (!$values['start_time']) {
+            $values['start_time'] = Semester::findCurrent()->beginn;
+        }
         $tpl->set_attribute('institutes', Institute::getMyInstitutes());
         $lecturersearch = new PermissionSearch('user',
             _('Dozent/-in auswählen'),
