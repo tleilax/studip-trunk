@@ -200,7 +200,13 @@ class Request implements ArrayAccess, IteratorAggregate
         } else {
             foreach ($array as $key => $value) {
                 if (isset($value)) {
-                    $array[$key] = Markup::markAsHtml(Markup::purify($value));
+                    if (!is_array($value)) {
+                        $array[$key] = Markup::markAsHtml(Markup::purify($value));
+                    } else {
+                        foreach ($value as $key2 => $value2) {
+                            $array[$key][$key2] = Markup::markAsHtml(Markup::purify($value2));
+                        }
+                    }
                 }
             }
         }
