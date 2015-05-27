@@ -109,6 +109,46 @@ class BasicDataWizardStep implements CourseWizardStep
     }
 
     /**
+     * Validates if given values are sufficient for completing the current
+     * course wizard step and switch to another one. If not, all errors are
+     * collected and shown via PageLayout::postMessage.
+     *
+     * @param mixed $values Array of stored values
+     * @return bool Everything ok?
+     */
+    public function validate($values) {
+        $ok = true;
+        $errors = array();
+        if (!$values['name']) {
+            $ok = false;
+            $errors[] = _('Bitte geben Sie den Namen der Veranstaltung an.');
+        }
+        if (!$values['lecturers']) {
+            $ok = false;
+            $errors[] = sprintf(_('Bitte tragen Sie mindestens eine Person als %s ein.'),
+                get_title_for_status('dozent', 1, $values['type']));
+        }
+        if (!$values['lecturers'][$GLOBALS['user']->id] && !$GLOBALS['perm']->have_perm('admin')) {
+            if (Config::get()->DEPUTIES_ENABLE) {
+                if (!$values['deputies'][$GLOBALS['user']->id]) {
+                    $ok = false;
+                    $errors[] = sprintf(_('Sie selbst müssen entweder als %s oder als Vertretung eingetragen sein.'),
+                        get_title_for_status('dozent', 1, $values['type']));
+                }
+            } else {
+                $ok = false;
+                $errors[] = sprintf(_('Sie müssen selbst als %s eingetragen sein.'),
+                    get_title_for_status('dozent', 1, $values['type']));
+            }
+        }
+        if ($errors) {
+            PageLayout::postMessage(MessageBox::error(
+                _('Bitte beheben Sie erst folgende Fehler, bevor Sie fortfahren:'), $errors));
+        }
+        return $ok;
+    }
+
+    /**
      * Stores the given values to the given course.
      *
      * @param Course $course the course to store values for
@@ -137,6 +177,11 @@ class BasicDataWizardStep implements CourseWizardStep
                 ));
             }, array_keys($values['lecturers']));
         $course->members = SimpleORMapCollection::createFromArray($lecturers);
+        if (Config::get()->DEPUTIES_ENABLE) {
+            foreach ($values['deputies'] as $d => $assigned) {
+                addDeputy($d, $course->id);
+            }
+        }
         if ($course->store()) {
             return $course;
         } else {

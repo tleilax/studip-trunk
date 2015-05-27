@@ -4,5 +4,5 @@
     <?php if (!$first_step) { ?>
         <?= Studip\Button::create(_('Zurück'), 'back') ?>
     <?php } ?>
-    <?= Studip\Button::create(_('Weiter'), 'proceed') ?>
+    <?= Studip\Button::create(_('Weiter'), 'next') ?>
 </form>

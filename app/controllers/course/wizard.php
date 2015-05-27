@@ -43,7 +43,7 @@ class Course_WizardController extends AuthenticatedController
             $this->set_layout($GLOBALS['template_factory']->open('layouts/base'));
         }
         $this->set_content_type('text/html;charset=windows-1252');
-        $this->steps = CourseWizardStepRegistry::findBySQL("1 ORDER BY `number`");
+        $this->steps = CourseWizardStepRegistry::findBySQL("`enabled`=1 ORDER BY `number`");
         StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'].'/lib/classes/coursewizardsteps');
         PageLayout::addSqueezePackage('coursewizard');
     }
@@ -70,7 +70,7 @@ class Course_WizardController extends AuthenticatedController
         if ($number == 0) {
             $this->first_step = true;
         }
-        $this->values = $this->getValues($step->classname);
+        $this->values = $this->getValues(get_class($step));
         $this->content = $step->getStepTemplate($this->values);
         $this->stepnumber = $number;
     }
@@ -84,29 +84,43 @@ class Course_WizardController extends AuthenticatedController
     public function process_action($step_number, $temp_id)
     {
         $this->temp_id = $temp_id;
+        // Get request data and store it in session.
         $iterator = Request::getInstance()->getIterator();
         while ($iterator->valid()) {
             $iterator->next();
         }
         $this->setStepValues($this->steps[$step_number]['classname'], Request::getInstance());
-        // Back or forward button clicked -> set next step accordingly.
-        if (Request::submitted('back')) {
-            $next_step = $this->getNextRequiredStep($step_number, 'down');
-        } else if (Request::submitted('next')) {
-            $next_step = $this->getNextRequiredStep($step_number, 'up');
+        // Validate given data.
+        if ($this->getStep($step_number)->validate($this->getValues($this->steps[$step_number]['classname']))) {
+            // Back or forward button clicked -> set next step accordingly.
+            if (Request::submitted('back')) {
+                $next_step = $this->getNextRequiredStep($step_number, 'down');
+            } else if (Request::submitted('next')) {
+                $next_step = $this->getNextRequiredStep($step_number, 'up');
+            /*
+             * Something other than "back" or "next" was clicked, e.g. QuickSearch
+             * -> stay on current step and process given values.
+             */
+            } else {
+                $next_step = $step_number;
+            }
         /*
-         * Something other than "back" or "next" was clicked, e.g. QuickSearch
-         * -> stay on step and process given values.
+         * Validation failed -> stay on current step. Error messages are
+         * provided via the called step class validation method.
          */
         } else {
-            $next_step = $this->getStep($step_number);
+            $next_step = $step_number;
         }
-        // Redirect to next step.
-        if ($next_step < sizeof($this->steps)) {
-            $this->redirect($this->url_for('course/wizard/step', $next_step, $this->temp_id));
         // We are after the last step -> all done, create course.
-        } else {
+        if ($next_step >= sizeof($this->steps)) {
             $this->course = $this->createCourse();
+            PageLayout::postMessage(MessageBox::success(
+                sprintf(_('Die Veranstaltung "%s" wurde angelegt. Sie können Sie direkt hier weiter verwalten.'),
+                    $this->course->getFullname())));
+            $this->redirect(URLHelper::getLink('dispatch.php/course/management?cid='.$this->course->id));
+        // Redirect to next step.
+        } else {
+            $this->redirect($this->url_for('course/wizard/step', $next_step, $this->temp_id));
         }
     }
 
@@ -215,8 +229,7 @@ class Course_WizardController extends AuthenticatedController
      */
     private function getValues($classname='')
     {
-        if ($classname)
-        {
+        if ($classname) {
             return $_SESSION['coursewizard'][$this->temp_id][$classname];
         } else {
             return $_SESSION['coursewizard'][$this->temp_id];

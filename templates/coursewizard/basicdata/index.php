@@ -16,7 +16,6 @@
 <label class="caption">
     <?= _('Semester') ?>
     <select name="start_time">
-        <option value=""><?= _('bitte auswählen') ?></option>
         <?php foreach ($semesters as $semester) { ?>
             <option value="<?= $semester->beginn ?>"<?= $semester->beginn == $values['start_time'] ? ' selected="selected"' : '' ?>>
                 <?= htmlReady($semester->name) ?>
@@ -51,7 +50,7 @@
 <div id="lecturers">
     <?php foreach ($values['lecturers'] as $id => $assigned) : $l = User::find($id); ?>
     <?= $this->render_partial('coursewizard/basicdata/_user',
-            array('class' => 'lecturer', 'inputname' => 'lecturer', 'user' => User::find($id))) ?>
+            array('class' => 'lecturer', 'inputname' => 'lecturers', 'user' => User::find($id))) ?>
     <?php endforeach ?>
 </div>
 <?php if ($dsearch) : ?>
