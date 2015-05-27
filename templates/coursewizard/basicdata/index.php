@@ -50,13 +50,8 @@
 </label>
 <div id="lecturers">
     <?php foreach ($values['lecturers'] as $id => $assigned) : $l = User::find($id); ?>
-    <div class="lecturer">
-        <input type="hidden" name="lecturers[]" value="<?= $id ?>"/>
-        <?= Avatar::getAvatar($l->id)->getImageTag(Avatar::SMALL) ?>
-        <?= htmlReady($l->getFullname('full_rev')) ?> (<?= htmlReady($l->username) ?>)
-        <a href="" onclick="return STUDIP.CourseWizard.removePerson(this)">
-            <?= Assets::img('icons/blue/trash.svg') ?></a>
-    </div>
+    <?= $this->render_partial('coursewizard/basicdata/_user',
+            array('class' => 'lecturer', 'inputname' => 'lecturer', 'user' => User::find($id))) ?>
     <?php endforeach ?>
 </div>
 <?php if ($dsearch) : ?>
@@ -66,13 +61,8 @@
 </label>
 <div id="deputies">
     <?php foreach ($values['deputies'] as $id => $assigned) : $d = User::find($id); ?>
-        <div class="deputy">
-            <input type="hidden" name="deputies[]" value="<?= $id ?>"/>
-            <?= Avatar::getAvatar($id)->getImageTag(Avatar::SMALL) ?>
-            <?= htmlReady($d->getFullname('full_rev')) ?>
-            <a href="" onclick="return STUDIP.CourseWizard.removePerson(this)">
-                <?= Assets::img('icons/blue/trash.svg') ?></a>
-        </div>
+        <?= $this->render_partial('coursewizard/basicdata/_user',
+            array('class' => 'deputy', 'inputname' => 'deputies', 'user' => User::find($id))) ?>
     <?php endforeach ?>
 </div>
 <?php endif ?>

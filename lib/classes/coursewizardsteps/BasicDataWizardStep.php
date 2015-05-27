@@ -25,7 +25,7 @@ class BasicDataWizardStep implements CourseWizardStep
      */
     public function getStepTemplate($values)
     {
-        $tpl = $GLOBALS['template_factory']->open('coursewizard/basicdata');
+        $tpl = $GLOBALS['template_factory']->open('coursewizard/basicdata/index');
         // Get all available course types and their categories.
         $types = DBManager::get()->fetchAll("SELECT t.`id`, t.`name`, c.`name` AS classname
             FROM `sem_types` t
@@ -69,7 +69,7 @@ class BasicDataWizardStep implements CourseWizardStep
                 'exclude_user' => $values['lecturers'] ? array_keys($values['lecturers']) : array()
             )
         );
-        $tpl->set_attribute('lsearch', QuickSearch::get("lecturers", $lecturersearch)
+        $tpl->set_attribute('lsearch', QuickSearch::get('lecturers', $lecturersearch)
             ->withButton(array('search_button_name' => 'search_lecturer', 'reset_button_name' => 'reset_lsearch'))
             ->fireJSFunctionOnSelect('STUDIP.CourseWizard.addLecturer')
             ->render());
@@ -77,13 +77,13 @@ class BasicDataWizardStep implements CourseWizardStep
         $deputies = Config::get()->DEPUTIES_ENABLE;
         if ($deputies) {
             $deputysearch = new PermissionSearch('user',
-                _('Vertretung auswählen'),
+                _('Vertretung hinzufügen'),
                 'user_id',
                 array('permission' => 'dozent',
                     'exclude_user' => $values['deputies'] ? array_keys($values['deputies']) : array()
                 )
             );
-            $tpl->set_attribute('dsearch', QuickSearch::get("lecturers", $deputysearch)
+            $tpl->set_attribute('dsearch', QuickSearch::get('deputies', $deputysearch)
                 ->withButton(array('search_button_name' => 'search_deputy', 'reset_button_name' => 'reset_dsearch'))
                 ->fireJSFunctionOnSelect('STUDIP.CourseWizard.addDeputy')
                 ->render());
@@ -144,8 +144,21 @@ class BasicDataWizardStep implements CourseWizardStep
         }
     }
 
-    public function getSearch($course_type, $institute_id, $exclude_users) {
-        if (SeminarCategories::getByTypeId($course_type)->only_inst_user) {
+    /**
+     * Checks if the current step needs to be executed according
+     * to already given values. A good example are study areas which
+     * are only needed for certain sem_classes.
+     *
+     * @param Array $values values specified from previous steps
+     * @return bool Is the current step required for a new course?
+     */
+    public function isRequired($values) {
+        return true;
+    }
+
+    public function getSearch($course_type, $institute_id, $exclude_users)
+    {
+        if (SeminarCategories::getByTypeId($course_type)->only_inst_user){
             $search = 'user_inst';
         } else {
             $search = 'user';
@@ -165,15 +178,17 @@ class BasicDataWizardStep implements CourseWizardStep
         return $lsearch;
     }
 
-    /**
-     * Checks if the current step needs to be executed according
-     * to already given values. A good example are study areas which
-     * are only needed for certain sem_classes.
-     *
-     * @param Array $values values specified from previous steps
-     * @return bool Is the current step required for a new course?
-     */
-    public function isRequired($values) {
-        return true;
+    public function getDeputies($user_id)
+    {
+        $deputies = array();
+        $config = Config::get();
+        if ($config->DEPUTIES_ENABLE && $config->DEPUTIES_DEFAULTENTRY_ENABLE) {
+            $deps = getDeputies($user_id);
+            foreach ($deps as $d) {
+                //$deputies[] = '<div class="deputies'
+            }
+        }
+        return $deputies;
     }
+
 }
