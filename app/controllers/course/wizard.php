@@ -45,6 +45,7 @@ class Course_WizardController extends AuthenticatedController
         $this->set_content_type('text/html;charset=windows-1252');
         $this->steps = CourseWizardStepRegistry::findBySQL("1 ORDER BY `number`");
         StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'].'/lib/classes/coursewizardsteps');
+        PageLayout::addSqueezePackage('coursewizard');
     }
 
     public function index_action() {
@@ -60,7 +61,6 @@ class Course_WizardController extends AuthenticatedController
      */
     public function step_action($number=0, $temp_id='')
     {
-        PageLayout::addSqueezePackage('coursewizard');
         $step = $this->getStep($number);
         if (!$temp_id) {
             $this->initialize();
@@ -72,6 +72,7 @@ class Course_WizardController extends AuthenticatedController
         }
         $this->values = $this->getValues($step->classname);
         $this->content = $step->getStepTemplate($this->values);
+        $this->stepnumber = $number;
     }
 
     /**
@@ -107,6 +108,20 @@ class Course_WizardController extends AuthenticatedController
         } else {
             $this->course = $this->createCourse();
         }
+    }
+
+    /**
+     * Wrapper for ajax calls to step classes. Three things must be given
+     * via Request:
+     * - step number
+     * - method to call in target step
+     * - parameters for the target method (will be passed in given order)
+     */
+    public function ajax_action() {
+        $stepNumber = Request::int('step');
+        $method = Request::get('method');
+        $parameters = Request::getArray('parameter');
+        $this->result = call_user_func_array(array($this->getStep($stepNumber), $method), $parameters);
     }
 
     /**

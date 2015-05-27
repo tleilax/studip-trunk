@@ -26,17 +26,21 @@ class BasicDataWizardStep implements CourseWizardStep
     public function getStepTemplate($values)
     {
         $tpl = $GLOBALS['template_factory']->open('coursewizard/basicdata');
+        // Get all available course types and their categories.
         $types = DBManager::get()->fetchAll("SELECT t.`id`, t.`name`, c.`name` AS classname
             FROM `sem_types` t
                 INNER JOIN `sem_classes` c ON (t.`class`=c.`id`)
             WHERE c.`course_creation_forbidden` = 0
-            ORDER BY t.`class`, t.`name`");
+            ORDER BY t.`class`, t.`id`");
         $typestruct = array();
         foreach ($types as $t) {
             $typestruct[$t['classname']][] = $t;
         }
         $tpl->set_attribute('types', $typestruct);
-        $tpl->set_attribute('values', $values);
+        // Select a default type if none is given.
+        if (!$values['type']) {
+            $values['type'] = 1;
+        }
         $semesters = array();
         $now = mktime();
         // Allow only current or future semesters for selection.
@@ -50,9 +54,16 @@ class BasicDataWizardStep implements CourseWizardStep
         if (!$values['start_time']) {
             $values['start_time'] = Semester::findCurrent()->beginn;
         }
+        // Get all allowed institutes (my own).
         $tpl->set_attribute('institutes', Institute::getMyInstitutes());
-        $lecturersearch = new PermissionSearch('user',
-            _('Dozent/-in auswählen'),
+        // Quicksearch for lecturers.
+        if (SeminarCategories::getByTypeId($values['type'])->only_inst_user) {
+            $search = 'user_inst';
+        } else {
+            $search = 'user';
+        }
+        $lecturersearch = new PermissionSearch($search,
+            sprintf(_("%s hinzufügen"), get_title_for_status('dozent', 1, $values['type'])),
             'user_id',
             array('permission' => 'dozent',
                 'exclude_user' => $values['lecturers'] ? array_keys($values['lecturers']) : array()
@@ -62,6 +73,7 @@ class BasicDataWizardStep implements CourseWizardStep
             ->withButton(array('search_button_name' => 'search_lecturer', 'reset_button_name' => 'reset_lsearch'))
             ->fireJSFunctionOnSelect('STUDIP.CourseWizard.addLecturer')
             ->render());
+        // Check for deputies.
         $deputies = Config::get()->DEPUTIES_ENABLE;
         if ($deputies) {
             $deputysearch = new PermissionSearch('user',
@@ -130,6 +142,27 @@ class BasicDataWizardStep implements CourseWizardStep
         } else {
             return false;
         }
+    }
+
+    public function getSearch($course_type, $institute_id, $exclude_users) {
+        if (SeminarCategories::getByTypeId($course_type)->only_inst_user) {
+            $search = 'user_inst';
+        } else {
+            $search = 'user';
+        }
+        $lecturersearch = new PermissionSearch($search,
+            sprintf(_("%s hinzufügen"), get_title_for_status('dozent', 1, $course_type)),
+            'user_id',
+            array('permission' => 'dozent',
+                'exclude_user' => $exclude_users ?: array(),
+                'institute' => $institute_id
+            )
+        );
+        $lsearch = QuickSearch::get("lecturers", $lecturersearch)
+            ->withButton(array('search_button_name' => 'search_lecturer', 'reset_button_name' => 'reset_lsearch'))
+            ->fireJSFunctionOnSelect('STUDIP.CourseWizard.addLecturer')
+            ->render();
+        return $lsearch;
     }
 
     /**
