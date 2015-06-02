@@ -90,23 +90,23 @@ class Course_WizardController extends AuthenticatedController
             $iterator->next();
         }
         $this->setStepValues($this->steps[$step_number]['classname'], Request::getInstance());
-        // Validate given data.
-        if ($this->getStep($step_number)->validate($this->getValues($this->steps[$step_number]['classname']))) {
-            // Back or forward button clicked -> set next step accordingly.
-            if (Request::submitted('back')) {
-                $next_step = $this->getNextRequiredStep($step_number, 'down');
-            } else if (Request::submitted('next')) {
+        // Back or forward button clicked -> set next step accordingly.
+        if (Request::submitted('back')) {
+            $next_step = $this->getNextRequiredStep($step_number, 'down');
+        } else if (Request::submitted('next')) {
+            // Validate given data.
+            if ($this->getStep($step_number)->validate($this->getValues($this->steps[$step_number]['classname']))) {
                 $next_step = $this->getNextRequiredStep($step_number, 'up');
             /*
-             * Something other than "back" or "next" was clicked, e.g. QuickSearch
-             * -> stay on current step and process given values.
+             * Validation failed -> stay on current step. Error messages are
+             * provided via the called step class validation method.
              */
             } else {
                 $next_step = $step_number;
             }
         /*
-         * Validation failed -> stay on current step. Error messages are
-         * provided via the called step class validation method.
+         * Something other than "back" or "next" was clicked, e.g. QuickSearch
+         * -> stay on current step and process given values.
          */
         } else {
             $next_step = $step_number;

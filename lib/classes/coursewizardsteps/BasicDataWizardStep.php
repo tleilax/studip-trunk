@@ -116,7 +116,8 @@ class BasicDataWizardStep implements CourseWizardStep
      * @param mixed $values Array of stored values
      * @return bool Everything ok?
      */
-    public function validate($values) {
+    public function validate($values)
+    {
         $ok = true;
         $errors = array();
         if (!$values['name']) {
@@ -157,25 +158,25 @@ class BasicDataWizardStep implements CourseWizardStep
      */
     public function storeValues($course, $values)
     {
-        $course->status = $values['type'];
+        $course->status = $values['coursetype'];
         $course->start_time = $values['start_time'];
         $course->name = $values['name'];
         $course->veranstaltungsnummer = $values['number'];
         $course->institut_id = $values['institute'];
         $lecturers = array_map(function($l) use ($course)
-            {
-                return CourseMember::create(array(
-                    'Seminar_id' => $course->id,
-                    'user_id' => $l,
-                    'status' => 'dozent',
-                    'position' => 0,
-                    'gruppe' => 0,
-                    'notification' => 0,
-                    'comment' => '',
-                    'visible' => 'yes',
-                    'bind_calendar' => 1
-                ));
-            }, array_keys($values['lecturers']));
+        {
+            return CourseMember::create(array(
+                'Seminar_id' => $course->id,
+                'user_id' => $l,
+                'status' => 'dozent',
+                'position' => 0,
+                'gruppe' => 0,
+                'notification' => 0,
+                'comment' => '',
+                'visible' => 'yes',
+                'bind_calendar' => 1
+            ));
+        }, array_keys($values['lecturers']));
         $course->members = SimpleORMapCollection::createFromArray($lecturers);
         if (Config::get()->DEPUTIES_ENABLE) {
             foreach ($values['deputies'] as $d => $assigned) {
@@ -197,7 +198,8 @@ class BasicDataWizardStep implements CourseWizardStep
      * @param Array $values values specified from previous steps
      * @return bool Is the current step required for a new course?
      */
-    public function isRequired($values) {
+    public function isRequired($values)
+    {
         return true;
     }
 

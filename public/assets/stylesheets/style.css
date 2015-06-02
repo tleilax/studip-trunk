@@ -1428,7 +1428,7 @@ label.required:after {
   transform: rotate(90deg);
 }
 .css-tree.collapsable input[type=checkbox]:checked ~ ul {
-  max-height: 1000px;
+  max-height: 5000px;
   opacity: 1;
 }
 .css-tree.selectable input[type=checkbox] + label {
@@ -1457,6 +1457,9 @@ label.required:after {
 }
 .css-tree.selectable input[type=radio][disabled] + label {
   color: #888;
+}
+.css-tree li.css-tree-hidden {
+    display: none;
 }
 /* --- Layouts -------------------------------------------------------------- */
 #layout_page {
