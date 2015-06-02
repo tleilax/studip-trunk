@@ -1,11 +1,11 @@
 <h1><?= _('Grunddaten') ?></h1>
 <label class="caption">
     <?= _('Typ') ?>
-    <select name="type">
+    <select name="coursetype">
         <?php foreach ($types as $class => $subtypes) { ?>
             <optgroup label="<?= htmlReady($class) ?>">
                 <?php foreach ($subtypes as $type) { ?>
-                    <option value="<?= $type['id'] ?>"<?= $type['id'] == $values['type'] ? ' selected="selected"' : '' ?>>
+                    <option value="<?= $type['id'] ?>"<?= $type['id'] == $values['coursetype'] ? ' selected="selected"' : '' ?>>
                         <?= htmlReady($type['name']) ?>
                     </option>
                 <?php } ?>
