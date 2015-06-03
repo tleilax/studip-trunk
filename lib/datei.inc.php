@@ -1806,11 +1806,16 @@ function display_folder_body($folder_id, $open, $change, $move, $upload, $refres
     }
     //Contentbereich erstellen
     if ($change == $folder_id) { //Aenderungsmodus, zweiter Teil
-        $content .= chr(10) . '<table cellpadding="2" cellspacing="2" border="0">';
-        $content .= chr(10) . '<tr><td>';
-        $content.="\n<textarea name=\"change_description\" class=\"add_toolbar\" aria-label=\"Beschreibung des Ordners eingeben\" rows=\"3\" cols=\"40\">".formatReady($result["description"])."</textarea>";
-        $content .= chr(10) . '</td><td><font size="-1">';
+        $content .= '<textarea name="change_description"'
+            . ' style="width:98%" class="add_toolbar"'
+            . ' aria-label="Beschreibung des Ordners eingeben"'
+            . ' rows="3">'
+            . formatReady($result["description"])
+            . '</textarea>';
+
         if($rechte){
+            $content .= '<div>';
+
             if ($folder_tree->permissions_activated){
                 $content.= "\n<label><input style=\"vertical-align:middle\" type=\"checkbox\" value=\"1\" ".($folder_tree->isReadable($folder_id) ? "CHECKED" : "" ) . " name=\"perm_read\">&nbsp;";
                 $content.= '<b>r</b> - ' . _("Lesen (Dateien können heruntergeladen werden)");
@@ -1822,14 +1827,10 @@ function display_folder_body($folder_id, $open, $change, $move, $upload, $refres
             if($level == 0 && $folder_tree->entity_type == 'sem'){
                 $content .= "\n<br><label><input style=\"vertical-align:middle\" type=\"checkbox\" value=\"1\" ".($folder_tree->checkCreateFolder($folder_id) ? "CHECKED" : "" ) . " name=\"perm_folder\">&nbsp;";
                 $content .= '<b>f</b> - ' . _("Ordner erstellen (Alle Nutzer können Ordner erstellen)") . '</label>';
-            } else {
-                $content .= '&nbsp;';
             }
-        } else {
-            $content .= '&nbsp;';
+
+            $content .= '</div>';
         }
-        $content .= chr(10) . '</font></td></tr>';
-        $content .= chr(10) . '<tr><td colspan="2">';
 
         $content .= '<div class="button-group">';
         $content .= Button::createAccept(_("Übernehmen"));
@@ -1838,7 +1839,6 @@ function display_folder_body($folder_id, $open, $change, $move, $upload, $refres
 
         $content.= "\n<input type=\"hidden\" name=\"open\" value=\"".$folder_id."_sc_\">";
         $content.="\n<input type=\"hidden\" name=\"type\" value=\"1\">";
-        $content .= chr(10) . '</td></tr></table>';
     }
     elseif ($result["description"])
         $content .= formatReady($result["description"]);
@@ -2362,7 +2362,7 @@ function get_mime_type($filename)
 
 /**
 * Erzeugt einen Downloadlink abhaengig von der Konfiguration des Systems
-* ($GLOBALS['SENDFILE_LINK_MODE'] = 'normal'|'old'|'rewrite')
+* (Config::get()->SENDFILE_LINK_MODE = 'normal'|'old'|'rewrite')
 *
 * @param    string  $file_id
 * @param    string  $file_name
@@ -2371,7 +2371,7 @@ function get_mime_type($filename)
 * @return   string  downloadlink
 */
 function GetDownloadLink($file_id, $file_name, $type = 0, $dltype = 'normal', $range_id = '', $list_id = ''){
-    $mode = (isset($GLOBALS['SENDFILE_LINK_MODE']))? $GLOBALS['SENDFILE_LINK_MODE']:'normal';
+    $mode = Config::get()->SENDFILE_LINK_MODE ?: 'normal';
     $link[] = $GLOBALS['ABSOLUTE_URI_STUDIP'];
     $wa = '';
     switch($mode) {
