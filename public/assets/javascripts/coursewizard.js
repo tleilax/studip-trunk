@@ -158,8 +158,10 @@ STUDIP.CourseWizard = {
                                 css('width', '16').
                                 css('height', '16')
                         );
+                        STUDIP.CourseWizard.loadingOverlay($('div#studyareas ul.css-tree'));
                     },
                     success: function (data, status, xhr) {
+                        $('#loading-overlay').remove();
                         var startLink = $('#sem-tree-search-start');
                         startLink.
                             attr('onclick', 'return STUDIP.CourseWizard.resetSearch()').
@@ -171,7 +173,8 @@ STUDIP.CourseWizard = {
                         $('#studyareas li input[type="checkbox"]').attr('checked', false);
                         $('#studyareas li').not('.keep-node').addClass('css-tree-hidden');
                         var items = $.parseJSON(data);
-                        STUDIP.CourseWizard.buildPartialTree(items, 'sem-tree-', '');
+                        STUDIP.CourseWizard.buildPartialTree(items, true);
+                        $('#sem-tree-assign-all').removeClass('hidden-js');
                     },
                     error: function (xhr, status, error) {
                         alert(error);
@@ -179,6 +182,23 @@ STUDIP.CourseWizard = {
                 }
             )
         }
+        return false;
+    },
+
+    resetSearch: function() {
+        $('li.css-tree-hidden').removeClass('css-tree-hidden');
+        var startLink = $('#sem-tree-search-start');
+        startLink.
+            attr('onclick', 'return STUDIP.CourseWizard.searchTree()').
+            empty().
+            append($('<img>').
+                attr('src', STUDIP.ASSETS_URL + 'images/icons/blue/search.svg'));
+        $('#sem-tree-search').val('');
+        $('.css-tree-hidden').removeClass('css-tree-hidden');
+        var notloaded = $('li').not('.tree-loaded');
+        notloaded.children('input[type="checkbox"]').attr('checked', false);
+        notloaded.children('ul').empty();
+        $('#sem-tree-assign-all').addClass('hidden-js');
         return false;
     },
 
@@ -191,14 +211,17 @@ STUDIP.CourseWizard = {
         }
         for (var i = 0 ; i < items.length ; i++)
         {
-            console.log(items[i]);
             var parent = $('.' + classPrefix + items[i].parent);
-            if ($('.' + classPrefix + items[i].id).length == 0) {
+            var node = $('.' + classPrefix + items[i].id);
+            if (node.length == 0) {
                 var node = STUDIP.CourseWizard.createTreeNode(items[i], assignable);
                 node.addClass('css-tree-show');
                 parent.children('ul').append(node);
             } else {
-                $('.' + classPrefix + items[i].id).removeClass('css-tree-hidden');
+                node.removeClass('css-tree-hidden');
+            }
+            if (items[i].assignable) {
+                node.addClass('sem-tree-result');
             }
             parent.children('input[id="' + items[i].parent + '"]').attr('checked', true);
             if (items[i].has_children)
@@ -209,71 +232,72 @@ STUDIP.CourseWizard = {
         return false;
     },
 
-    createTreeNode: function(data, assignable)
+    createTreeNode: function(values, assignable)
     {
         if (assignable) {
             var item = $('<li>').
-                addClass('sem-tree-' + data.id);
+                addClass('sem-tree-' + values.id);
             var assign = $('<img>').
                 attr('src', STUDIP.ASSETS_URL + 'images/icons/yellow/arr_2left.svg').
                 css('width', '16').
                 css('height', '16');
             var assignLink = $('<a>').
                 attr('href', '').
-                attr('onclick', "return STUDIP.CourseWizard.assignNode('" + data.id + "')");
+                attr('onclick', "return STUDIP.CourseWizard.assignNode('" + values.id + "')");
             assignLink.append(assign);
-            if (data.has_children) {
+            if (values.has_children) {
                 var input = $('<input>').
                     attr('type', 'checkbox').
-                    attr('id', data.id);
+                    attr('id', values.id);
                 var label = $('<label>').
-                    attr('for', data.id).
-                    attr('onclick', "return STUDIP.CourseWizard.getTreeChildren('" + data.id + "', " + assignable + ")");
-                if (data.assignable) {
+                    attr('for', values.id).
+                    attr('onclick', "return STUDIP.CourseWizard.getTreeChildren('" + values.id + "', " + assignable + ")");
+                if (values.assignable) {
                     label.append(assign);
                 }
-                label.html(label.html() + data.name);
+                label.html(label.html() + values.name);
                 item.append(input);
                 item.append(label);
                 item.append('<ul>');
-                if (data.assignable) {
-                    if ($('#assigned li.sem-tree-assigned-' + data.id).length > 0) {
+                if (values.assignable) {
+                    if ($('#assigned li.sem-tree-assigned-' + values.id).length > 0) {
                         assignLink.css('display', 'none');
                     }
                     item.append(assignLink);
                 }
             } else {
-                if ($('#assigned li.sem-tree-assigned-' + data.id).length > 0) {
+                if ($('#assigned li.sem-tree-assigned-' + values.id).length > 0) {
                     assignLink.css('display', 'none');
                 }
                 item.append(assignLink);
-                item.html(item.html() + data.name);
+                item.html(item.html() + values.name);
                 item.addClass('tree-node');
             }
         } else {
             var item = $('<li>').
-                addClass('sem-tree-assigned-' + data.id);
-            item.html(data.name);
-            if (!data.has_children) {
+                addClass('sem-tree-assigned-' + values.id);
+            item.html(values.name);
+            if (!values.has_children) {
                 var unassign = $('<img>').
                     attr('src', STUDIP.ASSETS_URL + 'images/icons/blue/trash.svg').
                     css('width', '16').
                     css('height', '16');
                 var unassignLink = $('<a>').
                     attr('href', '').
-                    attr('onclick', "return STUDIP.CourseWizard.unassignNode('" + data.id + "')");
+                    attr('onclick', "return STUDIP.CourseWizard.unassignNode('" + values.id + "')");
                 unassignLink.append(unassign);
                 item.append(unassignLink);
             }
-            if (data.assignable) {
+            if (values.assignable) {
                 var input = $('<input>').
                     attr('type', 'hidden').
                     attr('name', 'studyareas[]').
-                    attr('value', data.id);
+                    attr('value', values.id);
                 item.append(input);
             }
             item.append('<ul>');
         }
+        $(item).data('id', values.id);
         return item;
     },
 
@@ -287,19 +311,11 @@ STUDIP.CourseWizard = {
             $('#studyareas').data('ajax-url'),
             {
                 data: params,
-                /*beforeSend: function(xhr, settings) {
-                    $('#sem-tree-search-start').css('display', 'none');
-                    $('#sem-tree-search-start').parent().append(
-                        $('<img>').
-                            attr('src', STUDIP.ASSETS_URL + 'images/ajax-indicator-black.svg').
-                            attr('id', 'sem-tree-search-loading').
-                            css('width', '16').
-                            css('height', '16')
-                    );
-                },*/
+                beforeSend: function(xhr, settings) {
+                    STUDIP.CourseWizard.loadingOverlay($('div#assigned ul.css-tree'));
+                },
                 success: function (data, status, xhr) {
-                    //$('#sem-tree-search-start').css('display', 'inline');
-                    //$('#sem-tree-search-loading').remove();
+                    $('#loading-overlay').remove();
                     var items = $.parseJSON(data);
                     STUDIP.CourseWizard.buildPartialTree(items, false);
                     $('.sem-tree-assigned-root').css('display', '');
@@ -326,6 +342,16 @@ STUDIP.CourseWizard = {
         return false;
     },
 
+    assignAllNodes: function()
+    {
+        $('.sem-tree-result').each(function(index, element)
+        {
+            STUDIP.CourseWizard.assignNode($(element).data('id'));
+        });
+        STUDIP.CourseWizard.resetSearch();
+        return false;
+    },
+
     cleanupAssignTree: function(element)
     {
         if (element.parent().children('li').length == 1 && !element.parent().parent().hasClass('keep-node')) {
@@ -340,20 +366,29 @@ STUDIP.CourseWizard = {
         }
     },
 
-    resetSearch: function() {
-        $('li.css-tree-hidden').removeClass('css-tree-hidden');
-        var startLink = $('#sem-tree-search-start');
-        startLink.
-            attr('onclick', 'return STUDIP.CourseWizard.searchTree()').
-            empty().
-            append($('<img>').
-                attr('src', STUDIP.ASSETS_URL + 'images/icons/blue/search.svg'));
-        $('#sem-tree-search').val('');
-        $('.css-tree-hidden').removeClass('css-tree-hidden');
-        var notloaded = $('li').not('.tree-loaded');
-        notloaded.children('input[type="checkbox"]').attr('checked', false);
-        notloaded.children('ul').empty();
-        return false;
+    loadingOverlay: function(parent)
+    {
+        var pos = parent.offset();
+        var div = $('<div>').
+            attr('id', 'loading-overlay').
+            addClass('ui-widget-overlay').
+            width($(parent).width()).
+            height($(parent).height()).
+            css({
+                'position': 'absolute',
+                'top': pos.top,
+                'left': pos.left,
+            });
+        var loading = $('<img>').
+            attr('src', STUDIP.ASSETS_URL + 'images/ajax-indicator-black.svg').
+            css({
+                'width': 32,
+                'height': 32,
+                'margin-left': (div.width() / 2 - 32),
+                'margin-top': (div.height() / 2 - 32)
+            });
+        div.append(loading);
+        parent.append(div);
     }
 
 }

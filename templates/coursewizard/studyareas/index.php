@@ -2,7 +2,7 @@
 <div id="assigned" style="width: 45%; float:left; padding-right: 10px;">
     <h2><?= _('Bereits zugewiesen') ?></h2>
     <ul class="css-tree">
-        <li class="sem-tree-assigned-root keep-node">
+        <li class="sem-tree-assigned-root keep-node" data-id="root">
             <?= $GLOBALS['UNI_NAME'] ?>
             <ul>
             <?php foreach ($values['studyareas'] as $element) : ?>
@@ -19,6 +19,12 @@
         <a href="" onclick="return STUDIP.CourseWizard.searchTree()" id="sem-tree-search-start">
             <?= Assets::img('icons/blue/search.svg') ?></a>
     </div>
+    <div id="sem-tree-assign-all" class="hidden-js">
+        <a href="" onclick="return STUDIP.CourseWizard.assignAllNodes()">
+            <?= Assets::img('icons/yellow/arr_2left.svg') ?>
+            <?= _('Alle Suchergebnisse zuweisen') ?>
+        </a>
+    </div>
     <ul class="collapsable css-tree">
         <li class="sem-tree-root tree-loaded keep-node">
             <input type="checkbox" id="root" checked="checked"/>
@@ -27,7 +33,7 @@
             </label>
             <ul>
             <?php foreach ($tree as $node) : ?>
-                <li class="sem-tree-<?= htmlReady($node->sem_tree_id) ?> keep-node">
+                <li class="sem-tree-<?= htmlReady($node->id) ?> keep-node" data-id="<?= $node->id ?>">
                     <?php if ($node->isAssignable()) : ?>
                     <img src="<?= Assets::img('images/icons/yellow/arr_2left.svg') ?>"/>
                     <?php endif ?>
