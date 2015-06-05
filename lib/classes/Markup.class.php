@@ -217,8 +217,7 @@ class Markup
             blockquote
             br
             caption
-            div[class]
-            div[style]
+            div[class|style]
             em
             h1
             h2
