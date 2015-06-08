@@ -38,9 +38,7 @@ class Course_WizardController extends AuthenticatedController
             Navigation::activateItem('/browse/my_courses/create');
         }
         if (Request::isXhr()) {
-            $this->set_layout(null);
-        } else {
-            $this->set_layout($GLOBALS['template_factory']->open('layouts/base'));
+            $this->dialog = true;
         }
         $this->set_content_type('text/html;charset=windows-1252');
         $this->steps = CourseWizardStepRegistry::findBySQL("`enabled`=1 ORDER BY `number`");
@@ -106,11 +104,22 @@ class Course_WizardController extends AuthenticatedController
             }
         // The "create" button was clicked -> create course.
         } else if (Request::submitted('create')) {
-            $this->course = $this->createCourse();
-            PageLayout::postMessage(MessageBox::success(
-                sprintf(_('Die Veranstaltung "%s" wurde angelegt. Sie können Sie direkt hier weiter verwalten.'),
-                    $this->course->getFullname())));
-            $this->redirect(URLHelper::getLink('dispatch.php/course/management?cid='.$this->course->id));
+            if ($this->course = $this->createCourse()) {
+                if (Request::int('dialog')) {
+                    PageLayout::postMessage(MessageBox::success(
+                        sprintf(_('Die Veranstaltung "%s" wurde angelegt.'), $this->course->getFullname())));
+                    $this->redirect(URLHelper::getLink('dispatch.php/admin/courses'));
+                } else {
+                    PageLayout::postMessage(MessageBox::success(
+                        sprintf(_('Die Veranstaltung "%s" wurde angelegt. Sie können Sie direkt hier weiter verwalten.'),
+                            $this->course->getFullname())));
+                    $this->redirect(URLHelper::getLink('dispatch.php/course/management?cid=' . $this->course->id));
+                }
+            } else {
+                PageLayout::postMessage(MessageBox::error(
+                    sprintf(_('Die Veranstaltung "%s" konnte nicht angelegt werden.'),
+                        $this->course->getFullname())));
+            }
             $stop = true;
         /*
          * Something other than "back", "next" or "create" was clicked,
@@ -184,7 +193,9 @@ class Course_WizardController extends AuthenticatedController
                 if ($stored = $step->storeValues($course, $this->getValues($this->steps[$i]['classname']))) {
                     $course = $stored;
                 } else {
-                    throw new Exception(_('Die Daten aus Schritt ' . $i . ' konnten nicht gespeichert werden, breche ab.'));
+                    $course = false;
+                    break;
+                    //throw new Exception(_('Die Daten aus Schritt ' . $i . ' konnten nicht gespeichert werden, breche ab.'));
                 }
             }
         }
@@ -193,6 +204,11 @@ class Course_WizardController extends AuthenticatedController
         return $course;
     }
 
+    /**
+     * Fetches the class belonging to the wizard step at the given index.
+     * @param $number
+     * @return mixed
+     */
     private function getStep($number)
     {
         $classname = $this->steps[$number]['classname'];

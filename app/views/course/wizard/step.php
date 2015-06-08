@@ -3,8 +3,10 @@
     <div style="clear: both; padding-top: 25px;">
         <input type="hidden" name="step" value="<?= $stepnumber ?>"/>
         <?php if (!$first_step) { ?>
-            <?= Studip\Button::create(_('Zurück'), 'back') ?>
+            <?= Studip\Button::create(_('Zurück'), 'back',
+                $dialog ? array('data-dialog' => 'size=auto', 'data-dialog-button' => true) : array()) ?>
         <?php } ?>
-        <?= Studip\Button::create(_('Weiter'), 'next') ?>
+        <?= Studip\Button::create(_('Weiter'), 'next',
+            $dialog ? array('data-dialog' => 'size=auto', 'data-dialog-button' => true) : array()) ?>
     </div>
 </form>

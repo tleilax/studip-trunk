@@ -161,10 +161,11 @@ class Admin_CoursesController extends AuthenticatedController
         $sidebar->setImage("sidebar/seminar-sidebar.png");
 
         if ($this->sem_create_perm) {
+            PageLayout::addSqueezePackage('coursewizard');
             $actions = new ActionsWidget();
             $actions->addLink(_('Neue Veranstaltung anlegen'),
                 URLHelper::getLink('dispatch.php/course/wizard'),
-                'icons/16/blue/add/seminar.png');
+                'icons/16/blue/add/seminar.png')->asDialog('size=auto');
             $sidebar->addWidget($actions, 'links');
         }
         $this->setInstSelector();

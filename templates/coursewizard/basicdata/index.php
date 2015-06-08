@@ -48,7 +48,7 @@
     </span>
 </label>
 <div id="lecturers">
-    <?php foreach ($values['lecturers'] as $id => $assigned) : $l = User::find($id); ?>
+    <?php foreach ($values['lecturers'] as $id => $assigned) : ?>
     <?= $this->render_partial('coursewizard/basicdata/_user',
             array('class' => 'lecturer', 'inputname' => 'lecturers', 'user' => User::find($id))) ?>
     <?php endforeach ?>
