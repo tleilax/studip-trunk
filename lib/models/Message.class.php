@@ -100,22 +100,29 @@ class Message extends SimpleORMap
     protected static function configure($config = array())
     {
         $config['db_table'] = 'message';
-        $config['has_one']['author'] = array(
+        $config['belongs_to']['author'] = array(
             'class_name' => 'User',
-            'foreign_key' => 'autor_id',
-            'assoc_foreign_key' => 'user_id'
+            'foreign_key' => 'autor_id'
         );
         $config['has_one']['originator'] = array(
             'class_name' => 'MessageUser',
-            'assoc_func' => 'findSendedByMessageId'
+            'assoc_func' => 'findSendedByMessageId',
+            'on_store' => 'store',
+            'on_delete' => 'delete'
         );
         $config['has_many']['receivers'] = array(
             'class_name' => 'MessageUser',
-            'assoc_func' => 'findReceivedByMessageId'
+            'assoc_func' => 'findReceivedByMessageId',
+            'on_store' => 'store',
+            'on_delete' => 'delete'
         );
         $config['has_many']['attachments'] = array(
             'class_name' => 'StudipDocument',
-            'assoc_foreign_key' => 'range_id'
+            'assoc_foreign_key' => 'range_id',
+            'on_store' => 'store',
+            'on_delete' => function($message) {
+                return array_sum(array_map('delete_document', $message->attachments->pluck('id')));
+            }
         );
         parent::configure($config);
     }
@@ -276,6 +283,18 @@ class Message extends SimpleORMap
     public function getNumAttachments()
     {
         return StudipDocument::countBySQL("range_id=?", array($this->id));
+    }
+
+    /**
+     * Deletes the message if all references in message_user indicate 'deleted'
+     * @return bool
+     */
+    public function removeIfOrphaned()
+    {
+        if (!MessageUser::countBySQL("message_id = ? AND snd_rec IN('rec','snd') AND deleted = 0", array($this->message_id))) {
+            return (bool)$this->delete();
+        }
+        return false;
     }
 
 }

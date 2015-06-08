@@ -50,30 +50,26 @@ class MessageUser extends SimpleORMap
         return self::findBySQL("message_id=? AND snd_rec='rec'", array($message_id));
     }
 
-    /**
-     * Deletes a user message connection. Extends default delete() by
-     * removing associated tags as well.
-     *
-     * @return int number of deleted rows
-     * @see SimpleORMap::delete()
-     */
-    public function delete()
+    function __construct($id = null)
     {
-        $message_id = $this->message_id;
-        $user_id    = $this->user_id;
+        $this->registerCallback('after_store after_delete', 'cleanUp');
+        parent::__construct($id);
+    }
 
-        $ret = parent::delete();
-
-        if ($ret) {
-            $query = "DELETE FROM message_tags
+    function cleanUp($callback)
+    {
+        $query = "DELETE FROM message_tags
                       WHERE message_id = :message_id AND user_id = :user_id";
-            $statement = DBManager::get()->prepare($query);
-            $statement->bindValue(':message_id', $message_id);
-            $statement->bindValue(':user_id', $user_id);
+        $statement = DBManager::get()->prepare($query);
+        $statement->bindValue(':message_id', $this['message_id']);
+        $statement->bindValue(':user_id', $this['user_id']);
+        if ($callback == 'after_delete') {
             $statement->execute();
-            $ret += $statement->rowCount();
         }
-
-        return $ret;
+        if ($callback == 'after_store' && $this->isDirty("deleted") && $this['deleted']) {
+            $statement->execute();
+            $this->message->removeIfOrphaned();
+        }
+        return true;
     }
 }

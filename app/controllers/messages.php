@@ -248,6 +248,7 @@ class MessagesController extends AuthenticatedController {
                 $user = new MessageUser();
                 $user->setData(array('user_id' => $old_message['autor_id'], 'snd_rec' => "rec"));
                 $this->default_message->receivers[] = $user;
+                $this->answer_to = $old_message->id;
             } else {
                 $messagesubject = 'FWD: ' . $old_message['subject'];
                 $message = _("-_-_ Weitergeleitete Nachricht _-_-");
@@ -293,7 +294,7 @@ class MessagesController extends AuthenticatedController {
             $this->default_message['subject'] = Request::get("default_subject");
         }
         $settings = UserConfig::get($GLOBALS['user']->id)->MESSAGING_SETTINGS;
-        $this->mailforwarding = Request::get('emailrequest') ? true : $settings['send_as_email'];
+        $this->mailforwarding = Request::get('emailrequest') ? true : $settings['request_mail_forward'];
         if (trim($settings['sms_sig'])) {
             if (Studip\Markup::isHtml($this->default_message['message']) || Studip\Markup::isHtml($settings['sms_sig'])) {
                 if (!Studip\Markup::isHtml($this->default_message['message'])) {
@@ -343,6 +344,13 @@ class MessagesController extends AuthenticatedController {
                 'normal',
                 trim(Request::get("message_tags")) ?: null
             );
+            if (Request::option('answer_to')) {
+                $old_message = Message::find(Request::option('answer_to'));
+                if ($old_message) {
+                    $old_message->originator->answered = 1;
+                    $old_message->store();
+                }
+            }
             PageLayout::postMessage(MessageBox::success(_("Nachricht wurde verschickt.")));
         } else if (!count(array_filter(Request::getArray('message_to')))) {
             PageLayout::postMessage(MessageBox::error(_('Sie haben nicht angegeben, wer die Nachricht empfangen soll!')));
@@ -391,8 +399,18 @@ class MessagesController extends AuthenticatedController {
 
         $ticket = Request::get('studip-ticket');
         if (Request::isPost() && $ticket && check_ticket($ticket)) {
-            $messaging = new messaging();
-            if ($messaging->delete_message($message_id)) {
+            $messageuser = new MessageUser(array($GLOBALS['user']->id, $message_id, "snd"));
+            $success = 0;
+            if (!$messageuser->isNew()) {
+                $messageuser['deleted'] = 1;
+                $success = $messageuser->store();
+            }
+            $messageuser = new MessageUser(array($GLOBALS['user']->id, $message_id, "rec"));
+            if (!$messageuser->isNew()) {
+                $messageuser['deleted'] = 1;
+                $success += $messageuser->store();
+            }
+            if ($success) {
                 PageLayout::postMessage(MessageBox::success(_('Nachricht gelöscht!')));
             } else {
                 PageLayout::postMessage(MessageBox::error(_('Nachricht konnte nicht gelöscht werden.')));
@@ -519,7 +537,7 @@ class MessagesController extends AuthenticatedController {
         if (!$GLOBALS['ENABLE_EMAIL_ATTACHMENTS']) {
             throw new AccessDeniedException(_('Mailanhänge sind nicht erlaubt.'));
         }
-        $file = $_FILES['file'];
+        $file = studip_utf8decode($_FILES['file']);
         $output = array(
             'name' => $file['name'],
             'size' => $file['size']
@@ -559,6 +577,14 @@ class MessagesController extends AuthenticatedController {
         if (Request::isXhr()) {
             $this->render_text(formatReady(Request::get("text")));
         }
+    }
+
+    public function delete_tag_action()
+    {
+        CSRFProtection::verifyUnsafeRequest();
+        DbManager::get()->execute("DELETE FROM message_tags WHERE user_id=? AND tag LIKE ?", array($GLOBALS['user']->id, Request::get('tag')));
+        PageLayout::postMessage(MessageBox::success(_('Schlagwort gelöscht!')));
+        $this->redirect($this->url_for('messages/overview'));
     }
 
     function after_filter($action, $args)
