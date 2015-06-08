@@ -72,7 +72,7 @@ class StudyAreasWizardStep implements CourseWizardStep
      */
     public function storeValues($course, $values)
     {
-        $course->study_areas = SimpleORMapCollection::createFromArray(StudipStudyAreas::findMany($values['studyareas']));
+        $course->study_areas = SimpleORMapCollection::createFromArray(StudipStudyArea::findMany($values['studyareas']));
         if ($course->store()) {
             return $course;
         } else {
