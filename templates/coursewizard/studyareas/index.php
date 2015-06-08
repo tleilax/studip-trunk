@@ -12,7 +12,7 @@
         </li>
     </ul>
 </div>
-<div id="studyareas"  style="width: 45%; float: left; border-left: 1px solid #666666; padding-left: 10px;" data-ajax-url="<?= URLHelper::getLink('dispatch.php/course/wizard/ajax') ?>"">
+<div id="studyareas"  style="width: 45%; float: left; border-left: 1px solid #666666; padding-left: 10px;" data-ajax-url="<?= URLHelper::getLink('dispatch.php/course/wizard/ajax') ?>" data-no-search-result="<?= _('Es wurde kein Suchergebnis gefunden.') ?>">
     <h2><?= _('Alle Studienbereiche') ?></h2>
     <div>
         <input type="text" size="40" maxlength="255" name="search" id="sem-tree-search"/>

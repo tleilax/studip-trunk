@@ -162,19 +162,24 @@ STUDIP.CourseWizard = {
                     },
                     success: function (data, status, xhr) {
                         $('#loading-overlay').remove();
-                        var startLink = $('#sem-tree-search-start');
-                        startLink.
-                            attr('onclick', 'return STUDIP.CourseWizard.resetSearch()').
-                            css('display', '').
-                            empty().
-                            append($('<img>').
-                                attr('src', STUDIP.ASSETS_URL + 'images/icons/blue/refresh.svg'));
-                        $('#sem-tree-search-loading').remove();
-                        $('#studyareas li input[type="checkbox"]').attr('checked', false);
-                        $('#studyareas li').not('.keep-node').addClass('css-tree-hidden');
                         var items = $.parseJSON(data);
-                        STUDIP.CourseWizard.buildPartialTree(items, true);
-                        $('#sem-tree-assign-all').removeClass('hidden-js');
+                        if (items.length > 0) {
+                            var startLink = $('#sem-tree-search-start');
+                            startLink.
+                                attr('onclick', 'return STUDIP.CourseWizard.resetSearch()').
+                                css('display', '').
+                                empty().
+                                append($('<img>').
+                                    attr('src', STUDIP.ASSETS_URL + 'images/icons/blue/refresh.svg'));
+                            $('#sem-tree-search-loading').remove();
+                            $('#studyareas li input[type="checkbox"]').attr('checked', false);
+                            $('#studyareas li').not('.keep-node').addClass('css-tree-hidden');
+                            STUDIP.CourseWizard.buildPartialTree(items, true);
+                            $('#sem-tree-assign-all').removeClass('hidden-js');
+                        } else {
+                            STUDIP.CourseWizard.resetSearch();
+                            alert($('#studyareas').data('no-search-result'));
+                        }
                     },
                     error: function (xhr, status, error) {
                         alert(error);
