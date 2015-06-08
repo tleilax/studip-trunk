@@ -72,15 +72,10 @@ class StudyAreasWizardStep implements CourseWizardStep
      */
     public function storeValues($course, $values)
     {
-        Log::set('wizard', '/Users/thomashackl/Downloads/studip_wizard.php');
-        Log::info_wizard('Basic data values:');
-        Log::info_wizard(print_r($values, 1));
         $course->study_areas = SimpleORMapCollection::createFromArray(StudipStudyArea::findMany($values['studyareas']));
         if ($course->store()) {
-            Log::info_wizard('Course data stored.');
             return $course;
         } else {
-            Log::error_wizard('Course data could not be stored.');
             return false;
         }
     }
