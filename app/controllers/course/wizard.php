@@ -97,31 +97,47 @@ class Course_WizardController extends AuthenticatedController
             // Validate given data.
             if ($this->getStep($step_number)->validate($this->getValues($this->steps[$step_number]['classname']))) {
                 $next_step = $this->getNextRequiredStep($step_number, 'up');
-            /*
-             * Validation failed -> stay on current step. Error messages are
-             * provided via the called step class validation method.
-             */
+                /*
+                 * Validation failed -> stay on current step. Error messages are
+                 * provided via the called step class validation method.
+                 */
             } else {
                 $next_step = $step_number;
             }
-        /*
-         * Something other than "back" or "next" was clicked, e.g. QuickSearch
-         * -> stay on current step and process given values.
-         */
-        } else {
-            $next_step = $step_number;
-        }
-        // We are after the last step -> all done, create course.
-        if ($next_step >= sizeof($this->steps)) {
+        // The "create" button was clicked -> create course.
+        } else if (Request::submitted('create')) {
             $this->course = $this->createCourse();
             PageLayout::postMessage(MessageBox::success(
                 sprintf(_('Die Veranstaltung "%s" wurde angelegt. Sie können Sie direkt hier weiter verwalten.'),
                     $this->course->getFullname())));
             $this->redirect(URLHelper::getLink('dispatch.php/course/management?cid='.$this->course->id));
-        // Redirect to next step.
+            $stop = true;
+        /*
+         * Something other than "back", "next" or "create" was clicked,
+         * e.g. QuickSearch
+         * -> stay on current step and process given values.
+         */
         } else {
-            $this->redirect($this->url_for('course/wizard/step', $next_step, $this->temp_id));
+            $next_step = $step_number;
         }
+        if (!$stop) {
+            // We are after the last step -> all done, show summary.
+            if ($next_step >= sizeof($this->steps)) {
+                $this->redirect($this->url_for('course/wizard/summary', $next_step, $temp_id));
+                // Redirect to next step.
+            } else {
+                $this->redirect($this->url_for('course/wizard/step', $next_step, $this->temp_id));
+            }
+        }
+    }
+
+    /**
+     * We are after last step: all set and ready to create a new course.
+     */
+    public function summary_action($stepnumber, $temp_id)
+    {
+        $this->stepnumber = $stepnumber;
+        $this->temp_id = $temp_id;
     }
 
     /**
