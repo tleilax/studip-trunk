@@ -27,14 +27,14 @@ class BasicDataWizardStep implements CourseWizardStep
     {
         $tpl = $GLOBALS['template_factory']->open('coursewizard/basicdata/index');
         // Get all available course types and their categories.
-        $types = DBManager::get()->fetchAll("SELECT t.`id`, t.`name`, c.`name` AS classname
-            FROM `sem_types` t
-                INNER JOIN `sem_classes` c ON (t.`class`=c.`id`)
-            WHERE c.`course_creation_forbidden` = 0
-            ORDER BY t.`class`, t.`id`");
         $typestruct = array();
-        foreach ($types as $t) {
-            $typestruct[$t['classname']][] = $t;
+        foreach (SemType::getTypes() as $type)
+        {
+            $class = $type->getClass();
+            if (!$class['course_creation_forbidden'])
+            {
+                $typestruct[$class['name']][] = $type;
+            }
         }
         $tpl->set_attribute('types', $typestruct);
         // Select a default type if none is given.
