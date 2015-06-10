@@ -165,7 +165,7 @@ class Admin_CoursesController extends AuthenticatedController
             $actions = new ActionsWidget();
             $actions->addLink(_('Neue Veranstaltung anlegen'),
                 URLHelper::getLink('dispatch.php/course/wizard'),
-                'icons/16/blue/add/seminar.png')->asDialog('size=auto');
+                'icons/16/blue/add/seminar.png')->asDialog('size=50%');
             $sidebar->addWidget($actions, 'links');
         }
         $this->setInstSelector();

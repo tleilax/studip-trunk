@@ -4,9 +4,9 @@
         <input type="hidden" name="step" value="<?= $stepnumber ?>"/>
         <?php if (!$first_step) { ?>
             <?= Studip\Button::create(_('Zurück'), 'back',
-                $dialog ? array('data-dialog' => 'size=auto', 'data-dialog-button' => true) : array()) ?>
+                $dialog ? array('data-dialog' => 'size=50%', 'data-dialog-button' => true) : array()) ?>
         <?php } ?>
         <?= Studip\Button::create(_('Weiter'), 'next',
-            $dialog ? array('data-dialog' => 'size=auto', 'data-dialog-button' => true) : array()) ?>
+            $dialog ? array('data-dialog' => 'size=50%', 'data-dialog-button' => true) : array()) ?>
     </div>
 </form>

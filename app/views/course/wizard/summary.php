@@ -15,7 +15,7 @@
         <input type="hidden" name="dialog" value="1"/>
         <?php endif ?>
         <?= Studip\Button::create(_('Zurück'), 'back',
-            $dialog ? array('data-dialog' => 'size=auto', 'data-dialog-button' => true) : array()) ?>
+            $dialog ? array('data-dialog' => 'size=50%', 'data-dialog-button' => true) : array()) ?>
         <?= Studip\Button::create(_('Veranstaltung anlegen'), 'create',
             $dialog ? array('data-dialog-button' => true) : array()) ?>
     </div>
