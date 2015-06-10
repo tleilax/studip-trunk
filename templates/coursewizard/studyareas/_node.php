@@ -7,5 +7,7 @@
     <label for="<?= htmlReady($node->sem_tree_id) ?>" onclick="return STUDIP.CourseWizard.getTreeChildren('<?= htmlReady($node->sem_tree_id) ?>', true)">
         <?= htmlReady($node->name) ?>
     </label>
+    <?php if ($node->hasChildren()) : ?>
     <ul></ul>
+    <?php endif ?>
 </li>

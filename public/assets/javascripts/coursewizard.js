@@ -293,7 +293,9 @@ STUDIP.CourseWizard = {
                 label.html(label.html() + values.name);
                 item.append(input);
                 item.append(label);
-                item.append('<ul>');
+                if (values.has_children) {
+                    item.append('<ul>');
+                }
                 if (values.assignable) {
                     if ($('#assigned li.sem-tree-assigned-' + values.id).length > 0) {
                         assignLink.css('display', 'none');
