@@ -87,6 +87,14 @@ STUDIP.CourseWizard = {
         return false;
     },
 
+    /**
+     * Fetches the children of a given sem tree node.
+     * @param node the ID of the parent.
+     * @param assignable is the given node part of the
+     *        full sem tree or the tree of already
+     *        assigned nodes?
+     * @returns {boolean}
+     */
     getTreeChildren: function(node, assignable)
     {
         var target = $('.' + (assignable ? 'sem-tree-' : 'sem-tree-assign-') + node);
@@ -138,6 +146,10 @@ STUDIP.CourseWizard = {
         return false;
     },
 
+    /**
+     * Search the sem tree for a given term and show all matching nodes.
+     * @returns {boolean}
+     */
     searchTree: function()
     {
         var searchterm = $('#sem-tree-search').val();
@@ -190,6 +202,10 @@ STUDIP.CourseWizard = {
         return false;
     },
 
+    /**
+     * Reset a search and restore the "normal" sem tree view.
+     * @returns {boolean}
+     */
     resetSearch: function() {
         $('li.css-tree-hidden').removeClass('css-tree-hidden');
         var startLink = $('#sem-tree-search-start');
@@ -207,6 +223,13 @@ STUDIP.CourseWizard = {
         return false;
     },
 
+    /**
+     * Build a partial sem tree, containing (or showing) only selected nodes.
+     * @param items items to show in the resulting tree
+     * @param assignable are the nodes part of the full
+     *        sem tree whose entries can be assigned?
+     * @returns {boolean}
+     */
     buildPartialTree: function(items, assignable)
     {
         if (assignable) {
@@ -237,6 +260,13 @@ STUDIP.CourseWizard = {
         return false;
     },
 
+    /**
+     * Creates a tree node element from given data.
+     * @param values values for the node
+     * @param assignable is the node part of the full
+     *        sem tree whose entries can be assigned?
+     * @returns {*|jQuery}
+     */
     createTreeNode: function(values, assignable)
     {
         if (assignable) {
@@ -306,6 +336,11 @@ STUDIP.CourseWizard = {
         return item;
     },
 
+    /**
+     * Assign a given node to the course.
+     * @param id sem tree ID to assign
+     * @returns {boolean}
+     */
     assignNode: function(id)
     {
         var root = $('#sem-tree-assigned-nodes');
@@ -334,6 +369,11 @@ STUDIP.CourseWizard = {
         return false;
     },
 
+    /**
+     * Remove a node from the assigned ones.
+     * @param id sem tree ID to unassign
+     * @returns {boolean}
+     */
     unassignNode: function(id)
     {
         var target = $('li.sem-tree-assigned-' + id);
@@ -347,6 +387,12 @@ STUDIP.CourseWizard = {
         return false;
     },
 
+    /**
+     * Assign all visible nodes, e.g. search results.
+     * The nodes to assign are marked by the class
+     * "sem-tree-result".
+     * @returns {boolean}
+     */
     assignAllNodes: function()
     {
         $('.sem-tree-result').each(function(index, element)
@@ -357,6 +403,13 @@ STUDIP.CourseWizard = {
         return false;
     },
 
+    /**
+     * On unassigning a node, we need to check if the
+     * parent node has other children which are still
+     * assigned. If not, we can remove the parent node
+     * as well.
+     * @param element
+     */
     cleanupAssignTree: function(element)
     {
         if (element.parent().children('li').length == 1 && !element.parent().parent().hasClass('keep-node')) {
@@ -371,6 +424,11 @@ STUDIP.CourseWizard = {
         }
     },
 
+    /**
+     * Show some visible indicator that there is
+     * AJAX work in progress.
+     * @param parent
+     */
     loadingOverlay: function(parent)
     {
         var pos = parent.offset();

@@ -39,3 +39,19 @@
         </li>
     </ul>
 </div>
+<script type="text/javascript" language="JavaScript">
+//<!--
+$(function() {
+    var element = $('#sem-tree-search');
+    element.on('keypress', function(e) {
+        if (e.keyCode == 13) {
+            if (element.val() != '') {
+                return STUDIP.CourseWizard.searchTree();
+            } else {
+                return STUDIP.CourseWizard.resetSearch();
+            }
+        }
+    });
+});
+//-->
+</script>
