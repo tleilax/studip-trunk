@@ -177,7 +177,11 @@
                 </td>
             <? endif ?>
             <? if (in_array('DozentIn', $view_filter)) : ?>
-                <td><?= $this->render_partial_collection('my_courses/_dozent', $values['dozenten']) ?></td>
+                <td>
+                    <?= $this->render_partial_collection('my_courses/_dozent', $values['dozenten']) ?>
+                    <br />
+                    <?=$values['teacher_search']->render()?>
+                </td>
             <? endif ?>
             <? if (in_array('TeilnehmerInnen', $view_filter)) : ?>
                 <td style="text-align: center;">

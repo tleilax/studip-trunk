@@ -62,16 +62,7 @@ jQuery(function ($) {
         textarea.val(getHtml(textarea.val()));
 
         // create new toolbar container
-        var textareaWidth = (textarea.width() / textarea.parent().width() * 100) + '%',
-            toolbarId = createNewId('cktoolbar'); // needed for sharedSpaces
-            toolbar = $('<div>')
-                .attr('id', toolbarId)
-                .addClass('cktoolbar')
-                .css('max-width', textareaWidth),
-            toolbarPlaceholder = $('<div>').attr('id', toolbarId + '-placeholder');
-
-        toolbarPlaceholder.insertBefore(textarea);
-        toolbar.insertBefore(textarea);
+        var textareaWidth = (textarea.width() / textarea.parent().width() * 100) + '%';
 
         // replace textarea with editor
         CKEDITOR.replace(textarea[0], {
@@ -113,7 +104,7 @@ jQuery(function ($) {
                 img: {
                     attributes: ['alt', '!src', 'height', 'width'],
                     // only float:left and float:right should be allowed
-                    styles: ['float'] 
+                    styles: ['float']
                 },
                 li: {},
                 ol: {},
@@ -160,9 +151,15 @@ jQuery(function ($) {
                 tr: {}
             },
             width: textareaWidth,
-            skin: 'studip',
+            skin: 'studip,' +
+                (function () {
+                    var skinPath = 'assets/stylesheets/ckeditor-skin/';
+                    var a = document.createElement('a');
+                    a.href = STUDIP.URLHelper.getURL(skinPath);
+                    return a.pathname;
+                })(),
             // NOTE codemirror crashes when not explicitely loaded in CKEditor 4.4.7
-            extraPlugins: 'codemirror,studip-settings,studip-wiki'
+            extraPlugins: 'codemirror,studip-floatbar,studip-settings,studip-wiki'
                 // only enable uploads in courses with a file section
                 + ($('li#nav_course_files').length > 0 ? ',studip-upload' : ''),
             enterMode: CKEDITOR.ENTER_BR,
@@ -180,9 +177,6 @@ jQuery(function ($) {
             autoGrow_onStartup: true,
 
             // configure toolbar
-            sharedSpaces: { // needed for sticky toolbar (see stickyTools())
-                top: toolbarId
-            },
             toolbarGroups: [
                 {name: 'basicstyles', groups: ['undo', 'basicstyles', 'cleanup']},
                 {name: 'paragraph',   groups: ['list', 'indent', 'blocks', 'align']},
@@ -327,7 +321,7 @@ jQuery(function ($) {
         CKEDITOR.on('instanceReady', function (event) {
             var editor = event.editor,
                 $textarea = $(editor.element.$);
-        
+
             // NOTE some HTML elements are output on their own line so that old
             // markup code and older plugins run into less problems
 
@@ -410,14 +404,6 @@ jQuery(function ($) {
                 }
             });
 
-            // do not scroll toolbar out of viewport
-            function stickyTools() {
-                updateStickyTools(editor);
-            };
-            $(window).scroll(stickyTools);
-            $(window).resize(stickyTools);
-            editor.on('focus', stickyTools); // hidden toolbar might scroll off screen
-
             // Trigger load event for the editor event. Uses the underlying
             // textarea element to ensure that the event will be catchable by
             // jQuery.
@@ -451,40 +437,6 @@ jQuery(function ($) {
         event.editor.dataProcessor.htmlFilter.addRules({
             comment: function () { return false; }
         });
-    }
-
-    // editor utilities
-    function updateStickyTools(editor) {
-        var MARGIN = $('#barBottomContainer').length ? $('#barBottomContainer').height() : 25,
-            toolbarId = editor.config.sharedSpaces.top,
-            toolbar = $('#' + toolbarId),
-            placeholder = $('#' + toolbarId + '-placeholder');
-
-        if (toolbar.length === 0 || placeholder.length === 0) {
-            // toolbar/editor removed by some JS code (e.g. when sending messages)
-            return;
-        }
-
-        var outOfView = $(window).scrollTop() + MARGIN
-                        > placeholder.offset().top,
-            width = $(editor.container.$).outerWidth(true);
-
-        // is(':visible'): offset() is wrong for hidden elements
-        if (toolbar.is(':visible') && outOfView) {
-            toolbar.css({
-                position: 'fixed',
-                top: MARGIN,
-                width: width
-            });
-            placeholder.css('height', toolbar.height());
-        } else {
-            toolbar.css({
-                position: 'relative',
-                top: '',
-                width: width
-            });
-            placeholder.css('height', 0);
-        }
     }
 
     // convert plain text entries to html

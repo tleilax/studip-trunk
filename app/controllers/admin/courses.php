@@ -149,6 +149,8 @@ class Admin_CoursesController extends AuthenticatedController
                 return array('Name'       => $c['Name'],
                              'Seminar_id' => $id);
             }, array_values($this->courses), array_keys($this->courses));
+
+
         }
 
         $this->all_lock_rules = array_merge(array(array('name'    => '--' . _("keine Sperrebene") . '--',
@@ -582,7 +584,9 @@ class Admin_CoursesController extends AuthenticatedController
                         unset($seminars[$index]);
                     }
                 }
-                $teachers = array_merge($teachers, $course['dozenten']);
+                foreach ($course['dozenten'] as $user_id => $teacher) {
+                    $teachers[$user_id] = $teacher;
+                }
             }
         }
         $teachers = SimpleCollection::createFromArray($teachers)
@@ -642,6 +646,33 @@ class Admin_CoursesController extends AuthenticatedController
             foreach ($seminars as $seminar_id => $seminar) {
                 $dozenten = $this->getTeacher($seminar_id);
                 $seminars[$seminar_id]['dozenten'] = $dozenten;
+
+                if (in_array('DozentIn',  $params['view_filter'])) {
+
+                    if (SeminarCategories::getByTypeId($seminar['status'])->only_inst_user) {
+                        $search_template = "user_inst_not_already_in_sem";
+                    } else {
+                        $search_template = "user_not_already_in_sem";
+                    }
+
+                    $dozentUserSearch = new PermissionSearch(
+                        $search_template,
+                        sprintf(_("%s suchen"), get_title_for_status('dozent', 1, $seminar['status'])),
+                        "user_id",
+                        array('permission' => 'dozent',
+                              'seminar_id' => $this->course_id,
+                              'sem_perm' => 'dozent',
+                              'institute' => Seminar::GetInstance($seminar_id)->getInstitutes()
+                        )
+                    );
+
+                    $seminars[$seminar_id]['teacher_search'] = MultiPersonSearch::get("add_member_dozent" . $seminar_id)
+                        ->setTitle(_('Mehrere DozentInnen hinzufügen'))
+                        ->setSearchObject($dozentUserSearch)
+                        ->setDefaultSelectedUser(array_keys($dozenten))
+                        ->setDataDialogStatus(Request::isXhr())
+                        ->setExecuteURL(URLHelper::getLink('dispatch.php/course/basicdata/add_member/' . $seminar_id, array('from' => 'admin/courses')));
+                }
 
                 if (in_array('Inhalt', $params['view_filter'])) {
                     $seminars[$seminar_id]['sem_class'] = $sem_types[$seminar['status']]->getClass();
