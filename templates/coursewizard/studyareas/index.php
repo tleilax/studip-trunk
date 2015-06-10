@@ -12,7 +12,7 @@
         </li>
     </ul>
 </div>
-<div id="studyareas"  style="width: 45%; float: left; border-left: 1px solid #666666; padding-left: 10px;" data-ajax-url="<?= URLHelper::getLink('dispatch.php/course/wizard/ajax') ?>" data-no-search-result="<?= _('Es wurde kein Suchergebnis gefunden.') ?>">
+<div id="studyareas"  style="width: 45%; float: left; border-left: 1px solid #666666; padding-left: 10px;" data-ajax-url="<?= $ajax_url ?>" data-no-search-result="<?= _('Es wurde kein Suchergebnis gefunden.') ?>">
     <h2><?= _('Alle Studienbereiche') ?></h2>
     <div>
         <input type="text" size="40" maxlength="255" name="search" id="sem-tree-search"/>
@@ -33,16 +33,7 @@
             </label>
             <ul>
             <?php foreach ($tree as $node) : ?>
-                <li class="sem-tree-<?= htmlReady($node->id) ?> keep-node" data-id="<?= $node->id ?>">
-                    <?php if ($node->isAssignable()) : ?>
-                    <img src="<?= Assets::img('images/icons/yellow/arr_2left.svg') ?>"/>
-                    <?php endif ?>
-                    <input type="checkbox" id="<?= htmlReady($node->sem_tree_id) ?>"/>
-                    <label for="<?= htmlReady($node->sem_tree_id) ?>" onclick="return STUDIP.CourseWizard.getTreeChildren('<?= htmlReady($node->sem_tree_id) ?>', true)">
-                        <?= htmlReady($node->name) ?>
-                    </label>
-                    <ul></ul>
-                </li>
+            <?= $this->render_partial('coursewizard/studyareas/_node', array('node' => $node)) ?>
             <?php endforeach ?>
             </ul>
         </li>

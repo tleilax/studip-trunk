@@ -37,6 +37,7 @@ class StudyAreasWizardStep implements CourseWizardStep
         // First tree level is always shown.
         $tree = StudipStudyArea::findByParent(StudipStudyArea::ROOT);
         $tpl->set_attribute('tree', $tree);
+        $tpl->set_attribute('ajax_url', $values['ajax_url'] ?: URLHelper::getLink('dispatch.php/course/wizard/ajax'));
         return $tpl->render();
     }
 
