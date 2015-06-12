@@ -496,7 +496,7 @@ class Admin_CoursesController extends AuthenticatedController
                         )),
             2  => array('name'       => 'Studienbereiche',
                         'title'      => 'Studienbereiche',
-                        'url'        => 'dispatch.php/course/study_areas/show?cid=%s',
+                        'url'        => 'dispatch.php/course/study_areas/show/%s',
                         'attributes' => array(
                             'data-dialog' => 'size=50%'
                         )),
