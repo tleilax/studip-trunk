@@ -174,6 +174,7 @@ jQuery(function ($) {
                 showUncommentButton: false,
                 showAutoCompleteButton: false
             },
+            readOnly: textarea.attr('readonly') || textarea.attr('disabled'),
             autoGrow_onStartup: true,
 
             // configure toolbar
