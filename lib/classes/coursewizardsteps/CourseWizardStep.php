@@ -22,9 +22,33 @@ interface CourseWizardStep
      * for this step.
      *
      * @param Array $values Pre-set values
+     * @param int $stepnumber which number has the current step in the wizard?
+     * @param String $temp_id temporary ID for wizard workflow
      * @return String a Flexi template for getting needed data.
      */
-    public function getStepTemplate($values);
+    public function getStepTemplate($values, $stepnumber, $temp_id);
+
+    /**
+     * This method provides the possibility to have buttons in the form
+     * that do something other than just iterating between the wizard
+     * steps, e.g. QuickSearch or fallbacks for Non-JS which allow partial
+     * form loading and continuing if certain buttons are clicked for value
+     * submission
+     * An example would be a button submitting a chosen institute ID,
+     * thus allowing a No-JS construction of a QuickSearch needing this
+     * institute ID for its own purposes.
+     *
+     * @param Array $values submitted form values.
+     */
+    public function processRequest($values);
+
+    /**
+     * Validates entered data, e.g. if all mandatory values have been given.
+     *
+     * @param $values
+     * @return mixed
+     */
+    public function validate($values);
 
     /**
      * Stores the given values to the given course.
@@ -44,4 +68,5 @@ interface CourseWizardStep
      * @return bool Is the current step required for a new course?
      */
     public function isRequired($values);
+
 }

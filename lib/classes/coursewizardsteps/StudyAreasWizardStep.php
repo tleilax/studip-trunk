@@ -21,24 +21,95 @@ class StudyAreasWizardStep implements CourseWizardStep
      * for this step.
      *
      * @param Array $values Pre-set values
+     * @param int $stepnumber which number has the current step in the wizard?
+     * @param String $temp_id temporary ID for wizard workflow
      * @return String a Flexi template for getting needed data.
      */
-    public function getStepTemplate($values)
+    public function getStepTemplate($values, $stepnumber, $temp_id)
     {
         $tpl = $GLOBALS['template_factory']->open('coursewizard/studyareas/index');
         if ($values['studyareas'])
         {
             $tree = $this->buildPartialSemTree(StudipStudyArea::backwards(StudipStudyArea::findMany($values['studyareas'])), false);
-            $values['studyareas'] = $tree;
+            $tpl->set_attribute('assigned', $tree);
         } else {
-            $values['studyareas'] = array();
+            $tpl->set_attribute('assigned', array());
         }
         $tpl->set_attribute('values', $values);
         // First tree level is always shown.
         $tree = StudipStudyArea::findByParent(StudipStudyArea::ROOT);
+        /*
+         * Someone works without JS activated, load all ancestors and
+         * children of open node.
+         */
+        if ($values['open_node']) {
+            $tpl->set_attribute('open_nodes',
+                $this->buildPartialSemTree(
+                    StudipStudyArea::backwards(
+                        StudipStudyArea::findByParent(
+                            $values['open_node'])), false, true));
+        }
+        /*
+         * Someone works without JS and has entered a search term:
+         * build the partial tree with search results.
+         */
+        if ($values['searchterm']) {
+            $search = $this->searchSemTree($values['searchterm'], false, true);
+            if ($search) {
+                $tpl->set_attribute('open_nodes', $search);
+                $tpl->set_attribute('search_result', $search);
+                unset($values['open_node']);
+            } else {
+                PageLayout::postMessage(MessageBox::info(_('Es wurde kein Suchergebnis gefunden.')));
+                unset($values['searchterm']);
+            }
+        }
         $tpl->set_attribute('tree', $tree);
         $tpl->set_attribute('ajax_url', $values['ajax_url'] ?: URLHelper::getLink('dispatch.php/course/wizard/ajax'));
+        $tpl->set_attribute('stepnumber', $stepnumber);
+        $tpl->set_attribute('temp_id', $temp_id);
         return $tpl->render();
+    }
+
+    /**
+     * Catch form submits other than "previous" and "next" and handle the
+     * given values. This is only important for no-JS situations.
+     * @param Array $data currently set values for this class.
+     * @return bool
+     */
+    public function processRequest($data)
+    {
+        // A node has been clicked in order to open the subtree.
+        if ($data['request']->option('open_node')) {
+            $data['values']['open_node'] = $data['request']['open_node'];
+        }
+        // Assign a node to the course.
+        if ($assign = array_keys($data['request']->getArray('assign'))) {
+            if ($data['values']['studyareas']) {
+                $data['values']['studyareas'][] = $assign[0];
+            } else {
+                $data['values']['studyareas'] = $assign;
+            }
+        }
+        // Unassign an assigned node.
+        if ($unassign = array_keys($data['request']->getArray('unassign'))) {
+            $unassign = $unassign[0];
+            // Use array_filter to remove the given entry from assigned nodes.
+            $data['values']['studyareas'] = array_filter(
+                $data['values']['studyareas'],
+                function ($e) use ($unassign) { return $e != $unassign; }
+            );
+        }
+        // Search for a given term in the semtree.
+        if ($data['request']->submitted('start_search')) {
+            $data['values']['searchterm'] = $data['request']->get('search');
+            unset($data['values']['open_node']);
+        }
+        // Reset search -> normal semtree view.
+        if ($data['request']->submitted('reset_search')) {
+            unset($data['values']['searchterm']);
+        }
+        return $data['values'];
     }
 
     /**
@@ -73,7 +144,8 @@ class StudyAreasWizardStep implements CourseWizardStep
      */
     public function storeValues($course, $values)
     {
-        $course->study_areas = SimpleORMapCollection::createFromArray(StudipStudyArea::findMany($values['studyareas']));
+        $course->study_areas = SimpleORMapCollection::createFromArray(
+            StudipStudyArea::findMany($values['studyareas']));
         if ($course->store()) {
             return $course;
         } else {
@@ -117,16 +189,24 @@ class StudyAreasWizardStep implements CourseWizardStep
                 'assignable' => $c->isAssignable()
             );
         }
-        return json_encode($level);
+        if (Request::isXhr()) {
+            return json_encode($level);
+        } else {
+            return $level;
+        }
     }
 
-    public function searchSemTree($searchterm)
+    public function searchSemTree($searchterm, $utf=true, $id_only=false)
     {
         $result = array();
         $search = StudipStudyArea::search($searchterm);
         $root = StudipStudyArea::backwards($search);
-        $result = $this->buildPartialSemTree($root);
-        return json_encode($result);
+        $result = $this->buildPartialSemTree($root, $utf, $id_only);
+        if ($id_only) {
+            return $result;
+        } else {
+            return json_encode($result);
+        }
     }
 
     public function getAncestorTree($id)
@@ -138,19 +218,24 @@ class StudyAreasWizardStep implements CourseWizardStep
         return json_encode($result);
     }
 
-    private function buildPartialSemTree($node, $utf = true) {
+    private function buildPartialSemTree($node, $utf = true, $id_only=false) {
         $children = array();
         foreach ($node->required_children as $c)
         {
-            $data = array(
-                'id' => $c->sem_tree_id,
-                'name' => $utf ? studip_utf8encode($c->name) : $c->name,
-                'has_children' => $c->hasChildren(),
-                'parent' => $node->sem_tree_id,
-                'assignable' => $c->isAssignable(),
-                'children' => $this->buildPartialSemTree($c, $utf)
-            );
-            $children[] = $data;
+            if ($id_only) {
+                $children[] = $c->id;
+                $children = array_merge($children, $this->buildPartialSemTree($c, $utf, $id_only));
+            } else {
+                $data = array(
+                    'id' => $c->id,
+                    'name' => $utf ? studip_utf8encode($c->name) : $c->name,
+                    'has_children' => $c->hasChildren(),
+                    'parent' => $node->id,
+                    'assignable' => $c->isAssignable(),
+                    'children' => $this->buildPartialSemTree($c, $utf)
+                );
+                $children[] = $data;
+            }
         }
         return $children;
     }

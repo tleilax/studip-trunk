@@ -41,6 +41,8 @@
         <?php } ?>
     </select>
 </label>
+<?= Assets::input('icons/yellow/arr_2right.svg',
+    array('name' => 'select_institute', 'value' => '1', 'class' => 'hidden-js')) ?>
 <label class="caption">
     <?= _('Dozent/-innen') ?>
     <span id="lecturersearch">

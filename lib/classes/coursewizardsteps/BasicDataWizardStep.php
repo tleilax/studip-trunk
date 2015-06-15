@@ -21,9 +21,11 @@ class BasicDataWizardStep implements CourseWizardStep
      * for this step.
      *
      * @param Array $values Pre-set values
+     * @param int $stepnumber which number has the current step in the wizard?
+     * @param String $temp_id temporary ID for wizard workflow
      * @return String a Flexi template for getting needed data.
      */
-    public function getStepTemplate($values)
+    public function getStepTemplate($values, $stepnumber, $temp_id)
     {
         $tpl = $GLOBALS['template_factory']->open('coursewizard/basicdata/index');
         // Get all available course types and their categories.
@@ -57,22 +59,15 @@ class BasicDataWizardStep implements CourseWizardStep
         // Get all allowed institutes (my own).
         $tpl->set_attribute('institutes', Institute::getMyInstitutes());
         // Quicksearch for lecturers.
-        if (SeminarCategories::getByTypeId($values['type'])->only_inst_user) {
-            $search = 'user_inst';
-        } else {
-            $search = 'user';
+        // No JS: Keep search value and results for displaying in search select box.
+        if ($values['lecturer_id']) {
+            Request::getInstance()->offsetSet('lecturer_id', $values['lecturer_id']);
         }
-        $lecturersearch = new PermissionSearch($search,
-            sprintf(_("%s hinzufügen"), get_title_for_status('dozent', 1, $values['type'])),
-            'user_id',
-            array('permission' => 'dozent',
-                'exclude_user' => $values['lecturers'] ? array_keys($values['lecturers']) : array()
-            )
-        );
-        $tpl->set_attribute('lsearch', QuickSearch::get('lecturers', $lecturersearch)
-            ->withButton(array('search_button_name' => 'search_lecturer', 'reset_button_name' => 'reset_lsearch'))
-            ->fireJSFunctionOnSelect('STUDIP.CourseWizard.addLecturer')
-            ->render());
+        if ($values['lecturer_id_parameter']) {
+            Request::getInstance()->offsetSet('lecturer_id_parameter', $values['lecturer_id_parameter']);
+        }
+        $tpl->set_attribute('lsearch', $this->getSearch($values['type'],
+            $values['institute'], $values['lecturers'] ? array_keys($values['lecturers']) : array()));
         // Check for deputies.
         $deputies = Config::get()->DEPUTIES_ENABLE;
         if ($deputies) {
@@ -83,7 +78,7 @@ class BasicDataWizardStep implements CourseWizardStep
                     'exclude_user' => $values['deputies'] ? array_keys($values['deputies']) : array()
                 )
             );
-            $tpl->set_attribute('dsearch', QuickSearch::get('deputies', $deputysearch)
+            $tpl->set_attribute('dsearch', QuickSearch::get('dsearch', $deputysearch)
                 ->withButton(array('search_button_name' => 'search_deputy', 'reset_button_name' => 'reset_dsearch'))
                 ->fireJSFunctionOnSelect('STUDIP.CourseWizard.addDeputy')
                 ->render());
@@ -112,6 +107,17 @@ class BasicDataWizardStep implements CourseWizardStep
         }
         $tpl->set_attribute('values', $values);
         return $tpl->render();
+    }
+
+    /**
+     * The function does nothing here because everything needed is already
+     * handled automatically via normal request processing.
+     * @param Array $values currently set values for this class.
+     * @return bool
+     */
+    public function processRequest($values)
+    {
+        return $values;
     }
 
     /**
@@ -217,7 +223,7 @@ class BasicDataWizardStep implements CourseWizardStep
         } else {
             $search = 'user';
         }
-        $lecturersearch = new PermissionSearch($search,
+        $psearch = new PermissionSearch($search,
             sprintf(_("%s hinzufügen"), get_title_for_status('dozent', 1, $course_type)),
             'user_id',
             array('permission' => 'dozent',
@@ -225,24 +231,11 @@ class BasicDataWizardStep implements CourseWizardStep
                 'institute' => $institute_id
             )
         );
-        $lsearch = QuickSearch::get("lecturers", $lecturersearch)
+        $qsearch = QuickSearch::get('lecturer_id', $psearch)
             ->withButton(array('search_button_name' => 'search_lecturer', 'reset_button_name' => 'reset_lsearch'))
             ->fireJSFunctionOnSelect('STUDIP.CourseWizard.addLecturer')
             ->render();
-        return $lsearch;
-    }
-
-    public function getDeputies($user_id)
-    {
-        $deputies = array();
-        $config = Config::get();
-        if ($config->DEPUTIES_ENABLE && $config->DEPUTIES_DEFAULTENTRY_ENABLE) {
-            $deps = getDeputies($user_id);
-            foreach ($deps as $d) {
-                //$deputies[] = '<div class="deputies'
-            }
-        }
-        return $deputies;
+        return $qsearch;
     }
 
 }

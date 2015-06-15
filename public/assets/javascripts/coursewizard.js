@@ -176,13 +176,8 @@ STUDIP.CourseWizard = {
                         $('#loading-overlay').remove();
                         var items = $.parseJSON(data);
                         if (items.length > 0) {
-                            var startLink = $('#sem-tree-search-start');
-                            startLink.
-                                attr('onclick', 'return STUDIP.CourseWizard.resetSearch()').
-                                css('display', '').
-                                empty().
-                                append($('<img>').
-                                    attr('src', STUDIP.ASSETS_URL + 'images/icons/blue/refresh.svg'));
+                            $('#sem-tree-search-start').addClass('hidden-js');
+                            $('#sem-tree-search-reset').removeClass('hidden-js').css('display', '');
                             $('#sem-tree-search-loading').remove();
                             $('#studyareas li input[type="checkbox"]').attr('checked', false);
                             $('#studyareas li').not('.keep-node').addClass('css-tree-hidden');
@@ -208,18 +203,15 @@ STUDIP.CourseWizard = {
      */
     resetSearch: function() {
         $('li.css-tree-hidden').removeClass('css-tree-hidden');
-        var startLink = $('#sem-tree-search-start');
-        startLink.
-            attr('onclick', 'return STUDIP.CourseWizard.searchTree()').
-            empty().
-            append($('<img>').
-                attr('src', STUDIP.ASSETS_URL + 'images/icons/blue/search.svg'));
+        $('#sem-tree-search-start').removeClass('hidden-js').css('display', '');
+        $('#sem-tree-search-reset').addClass('hidden-js');
         $('#sem-tree-search').val('');
         $('.css-tree-hidden').removeClass('css-tree-hidden');
-        var notloaded = $('li').not('.tree-loaded');
+        var notloaded = $('#studyareas li').not('.tree-loaded');
         notloaded.children('input[type="checkbox"]').attr('checked', false);
         notloaded.children('ul').empty();
         $('#sem-tree-assign-all').addClass('hidden-js');
+        $('input[name="searchterm"]').remove();
         return false;
     },
 
@@ -360,8 +352,8 @@ STUDIP.CourseWizard = {
                     $('#loading-overlay').remove();
                     var items = $.parseJSON(data);
                     STUDIP.CourseWizard.buildPartialTree(items, false);
-                    $('.sem-tree-assigned-root').css('display', '');
-                    $('li.sem-tree-' + id).children('a').css('display', 'none');
+                    $('.sem-tree-assigned-root').removeClass('hidden-js');
+                    $('li.sem-tree-' + id).children('a').addClass('hidden-js');
                 },
                 error: function (xhr, status, error) {
                     alert(error);
@@ -385,7 +377,7 @@ STUDIP.CourseWizard = {
         } else {
             STUDIP.CourseWizard.cleanupAssignTree(target);
         }
-        $('li.sem-tree-' + id).children('a').css('display', '');
+        $('li.sem-tree-' + id).children('a').removeClass('hidden-js');
         return false;
     },
 

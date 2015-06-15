@@ -47,7 +47,7 @@ class Course_WizardController extends AuthenticatedController
     }
 
     public function index_action() {
-        $this->redirect($this->url_for('course/wizard/step', 0));
+        $this->relocate('course/wizard/step', 0);
     }
 
     /**
@@ -69,7 +69,7 @@ class Course_WizardController extends AuthenticatedController
             $this->first_step = true;
         }
         $this->values = $this->getValues(get_class($step));
-        $this->content = $step->getStepTemplate($this->values);
+        $this->content = $step->getStepTemplate($this->values, $number, $this->temp_id);
         $this->stepnumber = $number;
     }
 
@@ -84,10 +84,12 @@ class Course_WizardController extends AuthenticatedController
         $this->temp_id = $temp_id;
         // Get request data and store it in session.
         $iterator = Request::getInstance()->getIterator();
+        $values = array();
         while ($iterator->valid()) {
+            $values[$iterator->key()] = $iterator->current();
             $iterator->next();
         }
-        $this->setStepValues($this->steps[$step_number]['classname'], Request::getInstance());
+        $this->setStepValues($this->steps[$step_number]['classname'], $values);
         // Back or forward button clicked -> set next step accordingly.
         if (Request::submitted('back')) {
             $next_step = $this->getNextRequiredStep($step_number, 'down');
@@ -95,10 +97,10 @@ class Course_WizardController extends AuthenticatedController
             // Validate given data.
             if ($this->getStep($step_number)->validate($this->getValues($this->steps[$step_number]['classname']))) {
                 $next_step = $this->getNextRequiredStep($step_number, 'up');
-                /*
-                 * Validation failed -> stay on current step. Error messages are
-                 * provided via the called step class validation method.
-                 */
+            /*
+             * Validation failed -> stay on current step. Error messages are
+             * provided via the called step class validation method.
+             */
             } else {
                 $next_step = $step_number;
             }
@@ -127,6 +129,12 @@ class Course_WizardController extends AuthenticatedController
          * -> stay on current step and process given values.
          */
         } else {
+            $stepclass = $this->steps[$step_number]['classname'];
+            $result = $this->getStep($step_number)
+                ->processRequest(array(
+                    'request' => Request::getInstance(),
+                    'values' => $this->getValues($stepclass)));
+            $_SESSION['coursewizard'][$temp_id][$stepclass] = $result;
             $next_step = $step_number;
         }
         if (!$stop) {
@@ -156,11 +164,25 @@ class Course_WizardController extends AuthenticatedController
      * - method to call in target step
      * - parameters for the target method (will be passed in given order)
      */
-    public function ajax_action() {
+    public function ajax_action()
+    {
         $stepNumber = Request::int('step');
         $method = Request::get('method');
         $parameters = Request::getArray('parameter');
         $this->result = call_user_func_array(array($this->getStep($stepNumber), $method), $parameters);
+    }
+
+    public function forward_action($step_number, $temp_id)
+    {
+        $this->temp_id = $temp_id;
+        $stepclass = $this->steps[$step_number]['classname'];
+        $data = array(
+            'request' => Request::getInstance(),
+            'values' => $this->getValues($stepclass) ?: array()
+        );
+        $result = $this->getStep($step_number)->processRequest($data);
+        $this->setStepValues($stepclass, $result);
+        $this->relocate('course/wizard/step', $step_number, $this->temp_id);
     }
 
     /**
@@ -272,13 +294,7 @@ class Course_WizardController extends AuthenticatedController
      * @param $stepclass class name of the current step.
      * @return Array
      */
-    private function setStepValues($stepclass, $request) {
-        $iterator = $request->getIterator();
-        $values = array();
-        while ($iterator->valid()) {
-            $values[$iterator->key()] = $iterator->current();
-            $iterator->next();
-        }
+    private function setStepValues($stepclass, $values) {
         $_SESSION['coursewizard'][$this->temp_id][$stepclass] = $values;
     }
 
