@@ -3605,6 +3605,9 @@ input.quicksearchbox {
   overflow-y: auto;
   overflow-x: hidden;
 }
+.extendedLayout .ui-menu-item {
+  white-space: nowrap;
+}
 .extendedLayout .ui-menu-item a img {
   float: left;
   width: 40px;
