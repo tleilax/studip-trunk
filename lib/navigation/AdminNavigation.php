@@ -149,6 +149,7 @@ class AdminNavigation extends Navigation
 
             if (Config::get()->SEMESTER_ADMINISTRATION_ENABLE) {
                 $navigation->addSubNavigation('semester', new Navigation(_('Semester'), 'dispatch.php/admin/semester'));
+                $navigation->addSubNavigation('holidays', new Navigation(_('Ferien'), 'dispatch.php/admin/holidays'));
             }
 
             if (Config::get()->EXTERN_ENABLE) {
@@ -183,7 +184,8 @@ class AdminNavigation extends Navigation
             if (Config::get()->TOURS_ENABLE) {
                 $navigation->addSubNavigation('tour', new Navigation(_('Touren'), 'dispatch.php/tour/admin_overview'));
             }
-
+            $navigation->addSubNavigation('help_content', new Navigation(_('Hilfe-Texte'), 'dispatch.php/help_content/admin_overview'));
+            
             if (Config::get()->ELEARNING_INTERFACE_ENABLE) {
                 $navigation->addSubNavigation('elearning', new Navigation(_('Lernmodule'), 'admin_elearning_interface.php'));
             }

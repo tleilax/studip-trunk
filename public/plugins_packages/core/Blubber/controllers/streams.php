@@ -9,7 +9,6 @@
  */
 
 require_once 'app/controllers/plugin_controller.php';
-require_once 'lib/contact.inc.php';
 
 /**
  * Controller for displaying streams in Blubber and write and edit Blubber-postings
@@ -115,7 +114,7 @@ class StreamsController extends PluginController {
             $this->threads = array_slice($this->threads, 0, $this->max_threads);
         }
         if (Request::get("user_id") !== $GLOBALS['user']->id) {
-            $this->isBuddy = is_a($this->user, "BlubberExternalContact") ? $this->user->isFollowed() : CheckBuddy($this->user['username']) ;
+            $this->isBuddy = is_a($this->user, "BlubberExternalContact") ? $this->user->isFollowed() : User::findCurrent()->isFriendOf($this->user);
         }
         if (count($this->threads) === 0 && Request::get("user_id") !== $GLOBALS['user']->id) {
             PageLayout::postMessage(MessageBox::info(_("Dieser Nutzer hat noch nicht öffentlich bzw. auf sein Profil geblubbert.")));
@@ -211,6 +210,7 @@ class StreamsController extends PluginController {
             $output['threads'][] = array(
                 'content' => $template->render(),
                 'discussion_time' => $posting['discussion_time'],
+                'mkdate' => $posting['mkdate'],
                 'posting_id' => $posting->getId()
             );
         }
@@ -310,6 +310,7 @@ class StreamsController extends PluginController {
             $template->set_attribute('controller', $this);
             $output['content'] = $template->render();
             $output['discussion_time'] = time();
+            $output['mkdate'] = time();
             $output['posting_id'] = $thread->getId();
         } else {
             $thread->delete();
@@ -327,8 +328,7 @@ class StreamsController extends PluginController {
                 or ($thread['context_type'] === "private" && !$thread->isRelated())) {
             throw new AccessDeniedException("Kein Zugriff");
         }
-        $this->set_content_type('text/text');
-        $this->render_text(studip_utf8encode($posting['description']));
+        $this->render_text($posting['description']);
     }
 
     /**
@@ -396,7 +396,7 @@ class StreamsController extends PluginController {
             $posting->delete();
         }
         BlubberPosting::$course_hashes = ($thread['user_id'] !== $thread['Seminar_id'] ? $thread['Seminar_id'] : false);
-        $this->render_text(studip_utf8encode(BlubberPosting::format($posting['description'])));
+        $this->render_text(BlubberPosting::format($posting['description']));
     }
 
     /**
@@ -411,7 +411,7 @@ class StreamsController extends PluginController {
             throw new AccessDeniedException("Kein Zugriff");
         }
         BlubberPosting::$course_hashes = ($thread['context_type'] === "course" ? $thread['Seminar_id'] : false);
-        $this->render_text(studip_utf8encode(BlubberPosting::format($posting['description'])));
+        $this->render_text(BlubberPosting::format($posting['description']));
     }
 
     /**
@@ -594,7 +594,7 @@ class StreamsController extends PluginController {
                         $newfile = $blubber_directory->file->createFile($document['name']);
                         $newfile->name = $document['name'];
                         $newfile->store();
-                    
+
                         $handle = $newfile->file;
                         $handle->restricted = 0;
                         $handle->mime_type = $file['type'];
@@ -611,7 +611,7 @@ class StreamsController extends PluginController {
                 } else {
                     $newfile = StudipDocument::createWithFile($file['tmp_name'], $document);
                     $success = (bool)$newfile;
-                    
+
                     if ($success) {
                         $url = GetDownloadLink($newfile->getId(), $newfile['filename']);
                     }
@@ -674,7 +674,7 @@ class StreamsController extends PluginController {
 
         $this->course_id     = $_SESSION['SessionSeminar'];
         $this->single_thread = true;
-        BlubberPosting::$course_hashes = ($thread['user_id'] !== $thread['Seminar_id'] ? $thread['Seminar_id'] : false);
+        BlubberPosting::$course_hashes = ($this->thread['user_id'] !== $this->thread['Seminar_id'] ? $this->thread['Seminar_id'] : false);
     }
 
     /**
@@ -706,8 +706,10 @@ class StreamsController extends PluginController {
                     NotificationCenter::postNotification('BlubberExternalContactDidAdd', $user);
                 }
             } else {
-                AddNewContact($user->getId());
-                AddBuddy($user['username']);
+                Contact::import(array(
+                'owner_id' => User::findCurrent()->id,
+                'user_id' => $user->id)
+                    )->store();
             }
         }
         $this->render_json(array(
@@ -877,21 +879,21 @@ class StreamsController extends PluginController {
 
         $this->render_text($stream->fetchNumberOfThreads());
     }
-    
+
     public function reshare_action($thread_id) {
         if (!Request::isPost()) {
             throw new Exception("Wrong method for this action - use POST instead");
         }
         $this->thread = new BlubberPosting($thread_id);
         $success = $this->thread->reshare();
-        
+
         $template = $this->get_template_factory()->open("streams/thread.php");
         $template->set_attributes($this->get_assigned_variables());
         $template->set_layout(null);
         $output = $template->render();
-        $this->render_text(studip_utf8encode($output));
+        $this->render_text($output);
     }
-    
+
     public function public_panel_action() {
         $thread_id = Request::option("thread_id");
         $this->thread = new BlubberPosting($thread_id);
@@ -902,10 +904,9 @@ class StreamsController extends PluginController {
         $template->set_attributes($this->get_assigned_variables());
         $template->set_layout(null);
         $output = $template->render();
-        echo studip_utf8encode($output);
-        $this->render_nothing();
+        $this->render_text($output);
     }
-    
+
     public function private_panel_action() {
         $thread_id = Request::option("thread_id");
         $this->thread = new BlubberPosting($thread_id);
@@ -916,10 +917,9 @@ class StreamsController extends PluginController {
         $template->set_attributes($this->get_assigned_variables());
         $template->set_layout(null);
         $output = $template->render();
-        echo studip_utf8encode($output);
-        $this->render_nothing();
+        $this->render_text($output);
     }
-    
+
     public function get_possible_mentions_action() {
         $output = array(
             array('id' => 1, 'name' => "Rasmus", "avatar" => null)
@@ -927,4 +927,21 @@ class StreamsController extends PluginController {
         $this->render_json($output);
     }
 
+    public function addTagCloudWidgetToSidebar($tags, $context = 'global')
+    {
+        if (count($tags) && $tags[0]) {
+            $cloud = new LinkCloudWidget();
+            $cloud->setTitle(_('Hashtags'));
+            $maximum = $tags[0]['counter'];
+            //$average = ceil(array_sum(array_filter($tags, function ($val) { return $val['counter']; })) / count($tags));
+            foreach ($tags as $tag) {
+                $cloud->addLink(
+                    "#".$tag['tag'],
+                    URLHelper::getLink("plugins.php/blubber/streams/$context", array('hash' => $tag['tag'])),
+                    ceil(10 * $tag['counter'] / $maximum)
+                );
+            }
+            Sidebar::get()->addWidget($cloud, 'tagcloud');
+        }
+    }
 }

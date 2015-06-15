@@ -19,7 +19,7 @@
 <? foreach ($datafields_list as $key => $data): ?>
     <tbody class="<?= ((!is_null($current_class) && $current_class == $key) || !is_null($class_filter)) ? '': 'collapsed' ?> <? if (empty($datafields_list[$key])): ?>empty<? endif ?>">
         <tr class="table_header header-row">
-            <td class="toggle-indicator" colspan="10">
+            <td class="toggle-indicator" colspan="11">
             <? if (empty($datafields_list[$key])): ?>
                 <?= sprintf(_('Datenfelder für %s'), $allclasses[$key]) ?>
             <? else: ?>
@@ -45,6 +45,7 @@
             <th><?= _('Sichtbarkeit') ?></th>
             <th><?= (in_array($key, array('sem'))? _('Pflichtfeld'):'') ?></th>
             <th><?= (in_array($key, array('sem'))? _('Beschreibung'):'') ?></th>
+            <th><?= (in_array($key, array('user'))? _('Anmelderegel'):'') ?></th>
             <th><?= _('Reihenfolge') ?></th>
             <th><?= _('Einträge') ?></th>
             <th style="text-align: right;"><?= _('Aktionen') ?></th>
@@ -56,13 +57,13 @@
                 <?= htmlReady($val->getName()) ?>
             </td>
             <td>
-            <? if (in_array($val->getType(), array('selectbox', 'radio', 'combo'))): ?>
+            <? if (in_array($val->getType(), array('selectbox', 'selectboxmultiple', 'radio', 'combo'))): ?>
                 <a class="datafield_param_link" href="<?=$controller->url_for('admin/datafields/index/'. $current_class .'?edit_id='. $val->getID())?>">
                     <?= Assets::img('icons/16/blue/edit.png', array('class'=> 'text-top', 'title' => 'Einträge bearbeiten')) ?>
                 </a>
             <? endif; ?>
              <span><?= htmlReady($val->getType()) ?></span>
-            <? if (in_array($val->getType(), array('selectbox', 'radio', 'combo'))): ?>
+            <? if (in_array($val->getType(), array('selectbox', 'selectboxmultiple','radio', 'combo'))): ?>
                    <?= $this->render_partial("admin/datafields/_param", array('datafield_id' => $val->getID(), 'typeparam' => $val->getTypeparam(), 'hidden' => $edit_id!=$val->getID() )) ?>
             <? endif; ?>
             </td>
@@ -87,7 +88,11 @@
               <?= Assets::img('icons/16/grey/'.(trim($val->getDescription())?'accept.png':'decline.png'))?>
              <? endif; ?>
             </td>
-            
+            <td>
+            <? if (in_array($key, array('user'))): ?>
+              <?= Assets::img('icons/16/grey/'.($val->getIsUserFilter()?'accept.png':'decline.png'))?>
+             <? endif; ?>
+            </td>
             <td><?= $val->getPriority() ?></td>
             <td><?= $val->getCachedNumEntries() ?></td>
             <td style="text-align: right;">

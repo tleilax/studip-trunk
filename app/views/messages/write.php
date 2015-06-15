@@ -1,6 +1,7 @@
-<form name="write_message" action="<?= URLHelper::getLink("dispatch.php/messages/send") ?>" method="post" style="margin-left: auto; margin-right: auto;" data-dialog>
+<form name="write_message" action="<?= URLHelper::getLink("dispatch.php/messages/send") ?>" method="post" style="margin-left: auto; margin-right: auto;" data-dialog="<?=($answer_to ? 'reload-on-close' : '')?>">
     <? $message_id = Request::option("message_id") ?: md5(uniqid("neWMesSagE")) ?>
     <input type="hidden" name="message_id" id="message_id" value="<?= htmlReady($message_id) ?>">
+    <input type="hidden" name="answer_to" value="<?= htmlReady($answer_to) ?>">
     <div>
         <label for="user_id_1"><h4><?= _("An") ?></h4></label>
         <ul class="clean" id="adressees">
@@ -13,7 +14,7 @@
             <li style="padding: 0px;" class="adressee">
                 <input type="hidden" name="message_to[]" value="<?= htmlReady($user['user_id']) ?>">
                 <span class="visual">
-                    <?= htmlReady($user->getFullname()) ?>
+                    <?= htmlReady($user['fullname']) ?>
                 </span>
                 <a class="remove_adressee"><?= Assets::img("icons/16/blue/trash", array('class' => "text-bottom")) ?></a>
             </li>
@@ -36,7 +37,7 @@
             . " ORDER BY fullname ASC",
             _("Nutzer suchen"), "user_id");
         $mps = MultiPersonSearch::get("add_adressees")
-            ->setLinkText(_('Mehrere Adressaten hinzufügen'))
+           ->setLinkText(_('Mehrere Adressaten hinzufügen'))
             //->setDefaultSelectedUser($defaultSelectedUser)
             ->setTitle(_('Mehrere Adressaten hinzufügen'))
             ->setExecuteURL(URLHelper::getURL("dispatch.php/messages/write"))
@@ -63,11 +64,12 @@
     <div>
         <label>
             <h4><?= _("Nachricht") ?></h4>
-            <textarea style="width: 100%; height: 200px;" name="message_body" class="add_toolbar"><?= htmlReady($default_message['message'],false) ?></textarea>
+            <textarea style="width: 100%; height: 200px;" name="message_body" class="add_toolbar" data-secure><?= htmlReady($default_message['message'],false) ?></textarea>
         </label>
     </div>
     <div>
-        <ul style="list-style-type: none; text-align: center;">
+        <ul style="list-style-type: none; margin: 0; padding: 0; text-align: center;">
+        <? if ($GLOBALS['ENABLE_EMAIL_ATTACHMENTS']): ?>
             <li style="display: inline-block; min-width: 70px;">
                 <a href="" onClick="STUDIP.Messages.toggleSetting('attachments'); return false;">
                     <?= Assets::img("icons/40/blue/staple") ?>
@@ -75,6 +77,7 @@
                     <strong><?= _("Anhänge") ?></strong>
                 </a>
             </li>
+        <? endif; ?>
             <li style="display: inline-block; min-width: 70px;">
                 <a href="" onClick="STUDIP.Messages.toggleSetting('tags'); return false;">
                     <?= Assets::img("icons/40/blue/star") ?>
@@ -99,6 +102,7 @@
         </ul>
     </div>
 
+<? if ($GLOBALS['ENABLE_EMAIL_ATTACHMENTS']): ?>
     <div id="attachments" style="<?= $default_attachments ? '' : 'display: none;'?>">
         <h4><?= _("Anhänge") ?></h4>
         <div>
@@ -124,18 +128,17 @@
                     <div class="progresstext">0%</div>
                 </div>
             </div>
-            <label>
+            <label style="cursor: pointer;">
                 <input type="file" id="fileupload" multiple onChange="STUDIP.Messages.upload_from_input(this);" style="display: none;">
-                <a style="cursor: pointer;">
-                    <?= Assets::img("icons/20/blue/upload", array('title' => _("Datei hochladen"), 'class' => "text-bottom")) ?>
-                    <?= _("Datei hochladen") ?>
-                </a>
+                <?= Assets::img("icons/20/blue/upload", array('title' => _("Datei hochladen"), 'class' => "text-bottom")) ?>
+                <?= _("Datei hochladen") ?>
             </label>
 
             <div id="upload_finished" style="display: none"><?= _("wird verarbeitet") ?></div>
             <div id="upload_received_data" style="display: none"><?= _("gespeichert") ?></div>
         </div>
     </div>
+<? endif; ?>
     <div id="tags" style="<?= Request::get("default_tags") ? "" : 'display: none; ' ?>">
         <label>
             <h4><?= _("Schlagworte") ?></h4>

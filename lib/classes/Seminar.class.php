@@ -49,7 +49,6 @@ class Seminar
     var $message_stack = array();
 
     var $user_number = 0;//?
-    var $old_settings; //?
     var $commands; //?
     var $BookedRoomsStatTemp; //???
 
@@ -156,7 +155,7 @@ class Seminar
     function __isset($field)
     {
         if ($field == 'metadate') {
-            is_object($this->_metadate);
+            return is_object($this->_metadate);
         }
         if(isset($this->alias[$field])) {
             $field = $this->alias[$field];
@@ -466,8 +465,6 @@ class Seminar
         $this->issues = null;
         $this->_metadate = null;
         $this->course_set = null;
-
-        $this->old_settings = $this->getSettings();
 
         return TRUE;
     }
@@ -1195,7 +1192,7 @@ class Seminar
     function getCycleColorClass($cycle_id)
     {
         $stat = $this->getStatOfNotBookedRooms($cycle_id);
-        if ($GLOBALS['RESOURCES_ENABLE'] && $GLOBALS['RESOURCES_ENABLE_BOOKINGSTATUS_COLORING']) {
+        if (Config::get()->RESOURCES_ENABLE && Config::get()->RESOURCES_ENABLE_BOOKINGSTATUS_COLORING) {
             if (!$this->metadate->hasDates($cycle_id, $this->filterStart, $this->filterEnd)) {
                 $return = 'content_title_red';
             } else {
@@ -1530,7 +1527,7 @@ class Seminar
         $semesterData = new SemesterData();
         $all_semester = $semesterData->getAllSemesterData();
 
-        if ($GLOBALS['RESOURCES_HIDE_PAST_SINGLE_DATES']) {
+        if (Config::get()->RESOURCES_HIDE_PAST_SINGLE_DATES) {
             // filtering
             foreach ($all_semester as $semester) {
                 if ($semester['ende'] > time()) {
@@ -1548,7 +1545,7 @@ class Seminar
                     $metadate_has_termine = 0;
                     $single = true;
                     foreach ($group as $termin) {
-                        if (!$termin->isExTermin() && $termin->getStartTime() >= $semester['beginn'] && $termin->getStartTime() <= $semester['ende'] && (!$GLOBALS['RESOURCES_HIDE_PAST_SINGLE_DATES'] || $termin->getStartTime() >= time()) && $termin->isPresence()) {
+                        if (!$termin->isExTermin() && $termin->getStartTime() >= $semester['beginn'] && $termin->getStartTime() <= $semester['ende'] && (!Config::get()->RESOURCES_HIDE_PAST_SINGLE_DATES || $termin->getStartTime() >= time()) && $termin->isPresence()) {
                             if (empty($first_event)) {
                                 $first_event = $termin->getStartTime();
                             }
@@ -1582,10 +1579,10 @@ class Seminar
             if (!$metadate) {
                 $irreg = $this->getSingleDates();
 
-                if ($GLOBALS['RESOURCES_HIDE_PAST_SINGLE_DATES']) {
+                if (Config::get()->RESOURCES_HIDE_PAST_SINGLE_DATES) {
                     $anzahl = 0;
                     foreach ($irreg as $termin_id => $termin) {
-                        if ($termin->getStartTime() > (time() - 3600)) {
+                        if ($termin->getStartTime() > time() - 3600) {
                             $anzahl++;
                         }
                     }
@@ -1593,12 +1590,12 @@ class Seminar
                     $anzahl = sizeof($irreg);
                 }
 
-                if ($anzahl > $GLOBALS["RESOURCES_ALLOW_SINGLE_DATE_GROUPING"]) {
+                if ($anzahl > Config::get()->RESOURCES_ALLOW_SINGLE_DATE_GROUPING) {
                     $single = true;
                     $first = true;
                     foreach ($irreg as $termin_id => $termin) {
                         if ($termin->isPresence()) {
-                            if (!$GLOBALS['RESOURCES_HIDE_PAST_SINGLE_DATES'] ||  $termin->getStartTime() > (time() - 3600)) {
+                            if (!Config::get()->RESOURCES_HIDE_PAST_SINGLE_DATES || $termin->getStartTime() > time() - 3600) {
                                 if (empty($first_event)) {
                                     $first_event = $termin->getStartTime();
                                 }
@@ -1627,7 +1624,7 @@ class Seminar
                 } else {
                     foreach ($irreg as $termin_id => $termin) {
                         if ($termin->isPresence()) {
-                            if (!$GLOBALS['RESOURCES_HIDE_PAST_SINGLE_DATES'] ||  $termin->getStartTime() > (time() - 3600)) {
+                            if (!Config::get()->RESOURCES_HIDE_PAST_SINGLE_DATES || $termin->getStartTime() > time() - 3600) {
                                 if (empty($first_event)) {
                                     $first_event = $termin->getStartTime();
                                 }
@@ -1996,7 +1993,7 @@ class Seminar
         $statement->execute(array($s_id));
 
         // kill all the ressources that are assigned to the Veranstaltung (and all the linked or subordinated stuff!)
-        if ($GLOBALS['RESOURCES_ENABLE']) {
+        if (Config::get()->RESOURCES_ENABLE) {
             $killAssign = new DeleteResourcesUser($s_id);
             $killAssign->delete();
             if ($rr = RoomRequest::existsByCourse($s_id)) {
@@ -2049,10 +2046,8 @@ class Seminar
             CourseSet::removeCourseFromSet($cs->getId(), $this->getId());
             $cs->load();
             if (!count($cs->getCourses())
-                && !($GLOBALS['perm']->have_perm('admin', $cs->getUserId())
-                    || ($GLOBALS['perm']->have_perm('dozent', $cs->getUserId()) && get_config('ALLOW_DOZENT_COURSESET_ADMIN'))
-                    )
-                && $cs->getPrivate()) {
+                && $cs->isGlobal()
+                && $cs->getUserid() != '') {
                 $cs->delete();
             }
         }
@@ -2430,7 +2425,7 @@ class Seminar
     {
         $info = array();
         $user = User::find($user_id);
-        if ($this->read_level == 0 && get_config('ENABLE_FREE_ACCESS')) {
+        if ($this->read_level == 0 && get_config('ENABLE_FREE_ACCESS') && !$GLOBALS['perm']->get_studip_perm($this->getId(), $user_id)) {
             $info['enrolment_allowed'] = true;
             $info['cause'] = 'free_access';
             $info['description'] = _("Für die Veranstaltung ist keine Anmeldung erforderlich.");
@@ -2626,5 +2621,25 @@ class Seminar
         return ($cs && $cs->hasAdmissionRule('TimedAdmission')) ?
             array('start_time' => $cs->getAdmissionRule('TimedAdmission')->getStartTime(),
                   'end_time' => $cs->getAdmissionRule('TimedAdmission')->getEndTime()) : null;
+    }
+
+    /**
+     * returns StudipModule object for given slot, null when deactivated or not available
+     *
+     * @param string $slot
+     * @return StudipModule
+     */
+    function getSlotModule($slot)
+    {
+        $m = new Modules();
+        $activated_slots = array_filter($m->getLocalModules($this->id, 'sem', $this->modules, $this->status));
+        if (isset($activated_slots[$slot])) {
+            $module = $this->getSemClass()->getSlotModule($slot);
+            if (is_subclass_of($module, 'StudIPPlugin')) {
+                return PluginManager::getInstance()->getPlugin($module);
+            } else {
+                return new $module();
+            }
+        }
     }
 }

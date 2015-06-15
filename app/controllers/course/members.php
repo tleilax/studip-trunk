@@ -126,6 +126,7 @@ class Course_MembersController extends AuthenticatedController
     function index_action()
     {
         global $perm, $PATH_EXPORT;
+
         $sem = Seminar::getInstance($this->course_id);
 
         // old message style
@@ -679,21 +680,23 @@ class Course_MembersController extends AuthenticatedController
         // select the additional method
         switch (Request::get('action_tutor')) {
             case '':
-                $this->redirect('course/members/index');
+                $target = 'course/members/index';
                 break;
             case 'downgrade':
-                $this->redirect('course/members/downgrade_user/tutor/autor');
+                $target = 'course/members/downgrade_user/tutor/autor';
                 break;
             case 'remove':
-                $this->redirect('course/members/cancel_subscription/collection/tutor');
+                $target = 'course/members/cancel_subscription/collection/tutor';
                 break;
             case 'message':
                 $this->redirect('course/members/send_message');
+                return;
                 break;
             default:
-                $this->redirect('course/members/index');
+                $target = 'course/members/index';
                 break;
         }
+        $this->relocate($target);
     }
 
     /**
@@ -711,27 +714,29 @@ class Course_MembersController extends AuthenticatedController
 
         switch (Request::get('action_autor')) {
             case '':
-                $this->redirect('course/members/index');
+                $target = 'course/members/index';
                 break;
             case 'upgrade':
-                $this->redirect('course/members/upgrade_user/autor/tutor');
+                $target = 'course/members/upgrade_user/autor/tutor';
                 break;
             case 'downgrade':
-                $this->redirect('course/members/downgrade_user/autor/user');
+                $target = 'course/members/downgrade_user/autor/user';
                 break;
             case 'to_admission':
                 // TODO Warteliste setzen
                 break;
             case 'remove':
-                $this->redirect('course/members/cancel_subscription/collection/autor');
+                $target = 'course/members/cancel_subscription/collection/autor';
                 break;
             case 'message':
                 $this->redirect('course/members/send_message');
+                return;
                 break;
             default:
-                $this->redirect('course/members/index');
+                $target = 'course/members/index';
                 break;
         }
+        $this->relocate($target);
     }
 
     /**
@@ -752,21 +757,23 @@ class Course_MembersController extends AuthenticatedController
         // select the additional method
         switch (Request::get('action_user')) {
             case '':
-                $this->redirect('course/members/index');
+                $target = 'course/members/index';
                 break;
             case 'upgrade':
-                $this->redirect('course/members/upgrade_user/user/autor');
+                $target = 'course/members/upgrade_user/user/autor';
                 break;
             case 'remove':
-                $this->redirect('course/members/cancel_subscription/collection/user');
+                $target = 'course/members/cancel_subscription/collection/user';
                 break;
             case 'message':
                 $this->redirect('course/members/send_message');
+                return;
                 break;
             default:
-                $this->redirect('course/members/index');
+                $target = 'course/members/index';
                 break;
         }
+        $this->relocate($target);
     }
 
     /**
@@ -786,21 +793,23 @@ class Course_MembersController extends AuthenticatedController
         // select the additional method
         switch (Request::get('action_awaiting')) {
             case '':
-                $this->redirect('course/members/index');
+                $target = 'course/members/index';
                 break;
             case 'upgrade':
-                $this->redirect('course/members/insert_admission/awaiting/collection');
+                $target = 'course/members/insert_admission/awaiting/collection';
                 break;
             case 'remove':
-                $this->redirect('course/members/cancel_subscription/collection/' . $waiting_type);
+                $target = 'course/members/cancel_subscription/collection/' . $waiting_type;
                 break;
             case 'message':
                 $this->redirect('course/members/send_message');
+                return;
                 break;
             default:
-                $this->redirect('course/members/index');
+                $target = 'course/members/index';
                 break;
         }
+        $this->relocate($target);
     }
 
     /**
@@ -822,21 +831,23 @@ class Course_MembersController extends AuthenticatedController
         // select the additional method
         switch (Request::get('action_accepted')) {
             case '':
-                $this->redirect('course/members/index');
+                $target = 'course/members/index';
                 break;
             case 'upgrade':
-                $this->redirect('course/members/insert_admission/accepted/collection');
+                $target = 'course/members/insert_admission/accepted/collection';
                 break;
             case 'remove':
-                $this->redirect('course/members/cancel_subscription/collection/accepted');
+                $target = 'course/members/cancel_subscription/collection/accepted';
                 break;
             case 'message':
                 $this->redirect('course/members/send_message');
+                return;
                 break;
             default:
-                $this->redirect('course/members/index');
+                $target = 'course/members/index';
                 break;
         }
+        $this->relocate($target);
     }
 
     /**
@@ -970,10 +981,11 @@ class Course_MembersController extends AuthenticatedController
         }
 
         // create a usable array
-        // TODO: arrayFilter
-        foreach ($this->flash['users'] as $user => $val) {
-            if ($val) {
-                $users[] = $user;
+        if(!empty($this->flash['users'])) {
+            foreach ($this->flash['users'] as $user => $val) {
+                if ($val) {
+                    $users[] = $user;
+                }
             }
         }
 
@@ -1018,9 +1030,11 @@ class Course_MembersController extends AuthenticatedController
                 um auf diesen Teil des Systems zuzugreifen');
         }
 
-        foreach ($this->flash['users'] as $user => $val) {
-            if ($val) {
-                $users[] = $user;
+        if (!empty($this->flash['users'])) {
+            foreach ($this->flash['users'] as $user => $val) {
+                if ($val) {
+                    $users[] = $user;
+                }
             }
         }
 
@@ -1049,7 +1063,7 @@ class Course_MembersController extends AuthenticatedController
             $this->redirect('course/members/additional_input');
             return 0;
         }
-
+        Navigation::activateItem('/course/members/additional');
         // fetch course and aux data
         $course = new Course($_SESSION['SessionSeminar']);
         if (Request::submitted('save')) {
@@ -1285,12 +1299,12 @@ class Course_MembersController extends AuthenticatedController
                 $csvExport = export_link($this->course_id, "person", sprintf('%s %s', htmlReady($this->status_groups['autor']), htmlReady($this->course_title)), 'csv', 'csv-teiln', '', _('TeilnehmerInnen-Liste als csv-Dokument exportieren'), 'passthrough');
                 $widget->addLink(_('TeilnehmerInnen-Liste als csv-Dokument exportieren'),
                                  $this->parseHref($csvExport),
-                                 'icons/16/blue/export/file-office.png');
+                                 'icons/16/blue/file-office.png');
                 // create csv-export link
                 $rtfExport = export_link($this->course_id, "person", sprintf('%s %s', htmlReady($this->status_groups['autor']), htmlReady($this->course_title)), 'rtf', 'rtf-teiln', '', _('TeilnehmerInnen-Liste als rtf-Dokument exportieren'), 'passthrough');
                 $widget->addLink(_('TeilnehmerInnen-Liste als rtf-Dokument exportieren'),
                                  $this->parseHref($rtfExport),
-                                 'icons/16/blue/export/file-text.png');
+                                 'icons/16/blue/file-text.png');
 
                 if (count($this->awaiting) > 0) {
                     $awaiting_rtf = export_link($this->course_id, "person", sprintf('%s %s', _("Warteliste"), htmlReady($this->course_title)), "rtf", "rtf-warteliste", $this->waiting_type, _("Warteliste als rtf-Dokument exportieren"), 'passthrough');
@@ -1306,7 +1320,7 @@ class Course_MembersController extends AuthenticatedController
 
                 $sidebar->addWidget($widget);
             }
-        } else {
+        } else if ($this->is_autor || $this->is_user) {
             // Visibility preferences
             if (!$this->my_visibility['iam_visible']) {
                 $text = _('Sie sind für andere TeilnehmerInnen auf der TeilnehmerInnen-Liste nicht sichtbar.');
@@ -1319,6 +1333,7 @@ class Course_MembersController extends AuthenticatedController
                 $modus = 'make_invisible';
                 $link_text = _('Klicken Sie hier, um unsichtbar zu werden.');
             }
+
 
             $actions = new ActionsWidget();
             $actions->addLink($link_text,
@@ -1333,5 +1348,33 @@ class Course_MembersController extends AuthenticatedController
     {
         $temp = preg_match('/href="(.*?)"/', $string, $match); // Yes, you're absolutely right - this IS horrible!
         return $match[1];
+    }
+
+    public function export_members_csv_action() {
+        if (!$GLOBALS['perm']->have_studip_perm('tutor', $this->course_id)) {
+            throw new AccessDeniedException("Kein Zugriff.");
+        }
+        $filtered_members = $this->members->getMembers($this->sort_status, $this->sort_by . ' ' . $this->order);
+        $filtered_members = array_merge($filtered_members, $this->members->getAdmissionMembers($this->sort_status, $this->sort_by . ' ' . $this->order ));
+        $dozenten = $filtered_members['dozent']->toArray('user_id username vorname nachname visible mkdate');
+        $tutoren = $filtered_members['tutor']->toArray('user_id username vorname nachname visible mkdate');
+        $autoren = $filtered_members['autor']->toArray('user_id username vorname nachname visible mkdate');
+
+
+        $header = array(_("Titel"), _("Vorname"), _("Nachname"), _("Titel2"), _("Nutzernamen"), _("Privatadr"), _("Privatnr"), _("E-Mail"), _("Anmeldedatum"), _("Studiengänge"));
+        $data = array($header);
+        foreach (array($dozenten, $tutoren, $autoren) as $usergroup) {
+            foreach ($usergroup as $dozent) {
+                $line = array(
+                    "",
+                    $dozent['Vorname'],
+                    $dozent['Nachname'],
+                    "",
+                    $dozent['username']
+                );
+                $data[] = $line;
+            }
+        }
+        $csv = array_to_csv($data);
     }
 }

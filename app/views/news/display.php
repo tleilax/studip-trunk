@@ -13,6 +13,11 @@
                 <?= Assets::img('icons/16/blue/add.png'); ?>
             </a>
         <? endif; ?>
+        <? if ($perm && get_config('NEWS_RSS_EXPORT_ENABLE')): ?>
+            <a data-dialog="size=auto;reload-on-close" title="<?=_('RSS-Feed konfigurieren') ?>" href="<?= $controller->link_for('news/rss_config/' . $range); ?>">
+                <?= Assets::img('icons/16/blue/add/rss.png') ?>
+            </a>
+        <? endif; ?>
         <? if ($rss_id): ?>
             <a href="<?= URLHelper::getLink('rss.php', array('id' => $rss_id)) ?>">
                 <?= Assets::img('icons/16/blue/rss.png', tooltip2(_('RSS-Feed'))) ?>
@@ -26,8 +31,8 @@
     <article class="<?= ContentBoxHelper::classes($new->id, $is_new) ?>" id="<?= $new->id ?>" data-visiturl="<?=URLHelper::getScriptLink('dispatch.php/news/visit')?>">
         <header>
             <h1>
-                <?= Assets::img('icons/16/grey/news.png'); ?>
                 <a href="<?= ContentBoxHelper::href($new->id, array('contentbox_type' => 'news')) ?>">
+                    <?= Assets::img('icons/16/blue/news.png'); ?>
                     <?= htmlReady($new['topic']); ?>
                 </a>
             </h1>

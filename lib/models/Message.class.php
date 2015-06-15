@@ -28,28 +28,17 @@
 
 class Message extends SimpleORMap
 {
-    static public function markAllAs($user_id = null, $state_of_flag = 1)
+    public static function markAllAs($user_id = null, $state_of_flag = 1)
     {
-        $user_id || $user_id = $GLOBALS['user']->id;
-        $statement = DBManager::get()->prepare("
-            UPDATE personal_notifications_user
-                INNER JOIN personal_notifications
-            SET seen = '1'
-            WHERE personal_notifications_user.user_id = :user_id
-                AND personal_notifications.html_id LIKE 'message_%'
-        ");
-        $statement->execute(array(
-            'user_id' => $user_id
-        ));
+        PersonalNotifications::markAsReadByHTML('message_%', $user_id ?: $GLOBALS['user']->id);
 
-        $statement = DBManager::get()->prepare("
-            UPDATE message_user
-            SET readed = :flag
-            WHERE user_id = :user_id
-        ");
+        $query = "UPDATE message_user
+                  SET readed = :flag
+                  WHERE user_id = :user_id";
+        $statement = DBManager::get()->prepare($query);
         return $statement->execute(array(
-            'user_id' => $user_id,
-            'flag' => $state_of_flag
+            'user_id' => $user_id ?: $GLOBALS['user']->id,
+            'flag'    => $state_of_flag
         ));
     }
 
@@ -67,16 +56,16 @@ class Message extends SimpleORMap
     {
         if ($tag) {
             $messages_data = DBManager::get()->prepare("
-                SELECT *
-                FROM message
-                    INNER JOIN message_user ON (message_user.message_id = message.message_id)
-                    INNER JOIN message_tags ON (message_tags.message_id = message.message_id
+                SELECT message.*
+                FROM message_user
+                    INNER JOIN message ON (message_user.message_id = message.message_id)
+                    INNER JOIN message_tags ON (message_tags.message_id = message_user.message_id
                         AND message_user.user_id = message_tags.user_id)
                 WHERE message_user.user_id = :me
                     AND snd_rec = :sender_receiver
                     AND message_tags.tag = :tag
-                    AND message.mkdate > :since
-                ORDER BY message.mkdate ASC
+                    AND message_user.mkdate > :since
+                ORDER BY message_user.mkdate ASC
             ");
             $messages_data->execute(array(
                 'me' => $user_id,
@@ -86,13 +75,13 @@ class Message extends SimpleORMap
             ));
         } else {
             $messages_data = DBManager::get()->prepare("
-                SELECT *
-                FROM message
-                    INNER JOIN message_user ON (message_user.message_id = message.message_id)
+                SELECT message.*
+                FROM message_user
+                    INNER JOIN message ON (message_user.message_id = message.message_id)
                 WHERE message_user.user_id = :me
                     AND snd_rec = :sender_receiver
-                    AND message.mkdate > :since
-                ORDER BY message.mkdate ASC
+                    AND message_user.mkdate > :since
+                ORDER BY message_user.mkdate ASC
             ");
             $messages_data->execute(array(
                 'me' => $user_id,
@@ -100,13 +89,10 @@ class Message extends SimpleORMap
                 'since' => $since
             ));
         }
-        $messages_data = $messages_data->fetchAll(PDO::FETCH_ASSOC);
+        $messages_data->setFetchMode(PDO::FETCH_ASSOC);
         $messages = array();
         foreach ($messages_data as $data) {
-            $message = new Message();
-            $message->setData($data);
-            $message->setNew(false);
-            $messages[] = $message;
+            $messages[] = Message::buildExisting($data);
         }
         return $messages;
     }
@@ -114,22 +100,29 @@ class Message extends SimpleORMap
     protected static function configure($config = array())
     {
         $config['db_table'] = 'message';
-        $config['has_one']['author'] = array(
+        $config['belongs_to']['author'] = array(
             'class_name' => 'User',
-            'foreign_key' => 'autor_id',
-            'assoc_foreign_key' => 'user_id'
+            'foreign_key' => 'autor_id'
         );
         $config['has_one']['originator'] = array(
             'class_name' => 'MessageUser',
-            'assoc_func' => 'findSendedByMessageId'
+            'assoc_func' => 'findSendedByMessageId',
+            'on_store' => 'store',
+            'on_delete' => 'delete'
         );
         $config['has_many']['receivers'] = array(
             'class_name' => 'MessageUser',
-            'assoc_func' => 'findReceivedByMessageId'
+            'assoc_func' => 'findReceivedByMessageId',
+            'on_store' => 'store',
+            'on_delete' => 'delete'
         );
         $config['has_many']['attachments'] = array(
             'class_name' => 'StudipDocument',
-            'assoc_foreign_key' => 'range_id'
+            'assoc_foreign_key' => 'range_id',
+            'on_store' => 'store',
+            'on_delete' => function($message) {
+                return array_sum(array_map('delete_document', $message->attachments->pluck('id')));
+            }
         );
         parent::configure($config);
     }
@@ -141,7 +134,41 @@ class Message extends SimpleORMap
 
     public function getRecipients()
     {
-        return new SimpleCollection(User::findMany($this->receivers->pluck('user_id'), 'ORDER BY Nachname'));
+        if ($this->relations['receivers'] === null) {
+            $sql = "SELECT user_id,vorname,nachname,username,title_front,title_rear,perms,motto FROM
+                    message_user
+                    INNER JOIN auth_user_md5 aum USING(user_id)
+                    LEFT JOIN user_info ui USING(user_id)
+                    WHERE message_id=? AND snd_rec='rec'
+                    ORDER BY Nachname";
+            $params = array($this->id);
+        } else {
+            $sql = "SELECT user_id,vorname,nachname,username,title_front,title_rear,perms,motto FROM
+                    auth_user_md5 aum
+                    LEFT JOIN user_info ui USING(user_id)
+                    WHERE aum.user_id IN(?)
+                    ORDER BY Nachname";
+            $params = array($this->receivers->pluck('user_id'));
+        }
+        $db = DbManager::get();
+        return new SimpleCollection(
+            $db->fetchAll($sql,
+                             $params,
+                             function ($data) {
+                                 $user_id = $data['user_id'];
+                                 unset($data['user_id']);
+                                 $user = User::build($data);
+                                 $ret = $user->toArray('username vorname nachname');
+                                 $ret['fullname'] = $user->getFullname();
+                                 $ret['user_id'] = $user_id;
+                                 return $ret;
+                             })
+            );
+    }
+
+    public function getNumRecipients()
+    {
+        return MessageUser::countBySQL("message_id=? AND snd_rec='rec'", array($this->id));
     }
 
     public function markAsRead($user_id)
@@ -162,7 +189,7 @@ class Message extends SimpleORMap
         if ($user_id == $this->autor_id) {
             $mu[] = $this->originator;
         }
-        $receiver = $this->receivers->findOneBy('user_id', $user_id);
+        $receiver = MessageUser::findOneBySQL("message_id = ? AND user_id = ? AND snd_rec ='rec'", array($this->id, $user_id));
         if ($receiver) {
             $mu[] = $receiver;
         }
@@ -176,7 +203,7 @@ class Message extends SimpleORMap
     public function isRead($user_id = null)
     {
         $user_id || $user_id = $GLOBALS['user']->id;
-        return (bool)MessageUser::findOneBySQL("message_id = ? AND user_id = ? AND snd_rec IN('rec','snd') AND readed = 1", array($this->message_id, $user_id));
+        return (bool)MessageUser::countBySQL("message_id = ? AND user_id = ? AND snd_rec IN('rec','snd') AND readed = 1", array($this->message_id, $user_id));
     }
 
     public static function send($sender, $recipients, $subject, $message)
@@ -251,6 +278,23 @@ class Message extends SimpleORMap
             'user_id' => $user_id,
             'tag' => strtolower($tag)
         ));
+    }
+
+    public function getNumAttachments()
+    {
+        return StudipDocument::countBySQL("range_id=?", array($this->id));
+    }
+
+    /**
+     * Deletes the message if all references in message_user indicate 'deleted'
+     * @return bool
+     */
+    public function removeIfOrphaned()
+    {
+        if (!MessageUser::countBySQL("message_id = ? AND snd_rec IN('rec','snd') AND deleted = 0", array($this->message_id))) {
+            return (bool)$this->delete();
+        }
+        return false;
     }
 
 }

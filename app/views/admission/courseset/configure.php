@@ -1,31 +1,9 @@
 <?php
 use Studip\Button, Studip\LinkButton;
 
-//Infobox:
-$info = array();
-$info[] = array(
-              "icon" => "icons/16/black/info.png",
-              "text" => "Hier können Sie die Regeln, Eigenschaften und ".
-                        "Zuordnungen des Anmeldesets bearbeiten.");
-$info[] = array(
-              "icon" => "icons/16/black/info.png",
-              "text" => "Sie können das Anmeldeset allen Einrichtungen zuordnen, ".
-                        "an denen Sie mindestens Dozentenrechte haben.");
-
-$info[] = array(
-              "icon" => "icons/16/black/info.png",
-              "text" => "Alle Veranstaltungen der Einrichtungen, an denen Sie ".
-                        "mindestens Dozentenrechte haben, können zum ".
-                        "Anmeldeset hinzugefügt werden.");
-
-$infobox = array(
-    array("kategorie" => _('Informationen:'),
-          "eintrag" => $info
-    )
-);
-$infobox = array('content' => $infobox,
-                 'picture' => 'sidebar/admin-sidebar.png'
-);
+Helpbar::get()->addPlainText(_('Regeln'), _('Hier können Sie die Regeln, Eigenschaften und Zuordnungen des Anmeldesets bearbeiten.'));
+Helpbar::get()->addPlainText(_('Info'), _('Sie können das Anmeldeset allen Einrichtungen zuordnen, an denen Sie mindestens Dozentenrechte haben.'));
+Helpbar::get()->addPlainText(_('Sichtbarkeit'), _('Alle Veranstaltungen der Einrichtungen, an denen Sie mindestens Dozentenrechte haben, können zum Anmeldeset hinzugefügt werden.'));
 
 // Load assigned course IDs.
 $courseIds = $courseset ? $courseset->getCourses() : array();
@@ -36,6 +14,9 @@ if ($flash['error']) {
     echo MessageBox::error($flash['error']);
 }
 ?>
+<div class="hidden-alert" style="display:none">
+    <?= MessageBox::info(_("Diese Daten sind noch nicht gespeichert."));?>
+</div>
 <?= $this->render_partial('dialog/confirm_dialog') ?>
 <h1><?= $courseset ? _('Anmeldeset bearbeiten') : _('Anmeldeset anlegen') ?></h1>
 <form class="studip_form" action="<?= $controller->url_for(!$instant_course_set_view ? 'admission/courseset/save/' . ($courseset ? $courseset->getId() : '') : 'course/admission/save_courseset/' . $courseset->getId()) ?>" method="post">
@@ -136,7 +117,7 @@ if ($flash['error']) {
                 <div>
                         <?= LinkButton::create(_('Ausgewählte Veranstaltungen konfigurieren'),
                             $controller->url_for('admission/courseset/configure_courses/' . $courseset->getId()),
-                            array('data-dialog' => '')
+                            array('data-dialog' => 'width=90%')
                             ); ?>
                         <? if ($num_applicants = $courseset->getNumApplicants()) :?>
                         <?= LinkButton::create(sprintf(_('Liste der Anmeldungen (%s Nutzer)'), $num_applicants),
@@ -186,6 +167,9 @@ if ($flash['error']) {
             </div>
         </div>
     </fieldset>
+    <div class="hidden-alert" style="display:none">
+        <?= MessageBox::info(_("Diese Daten sind noch nicht gespeichert."));?>
+    </div>
     <fieldset>
         <legend><?= _('Weitere Daten') ?></legend>
    <? if (!$instant_course_set_view) : ?>

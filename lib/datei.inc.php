@@ -174,6 +174,7 @@ function parse_link($link, $level=0) {
                 $user = $url_parts["user"];
                 $urlString .= "Authorization: Basic ".base64_encode("$user:$pass")."\r\n";
             }
+            $urlString .= sprintf("User-Agent: Stud.IP v%s File Crawler\r\n", $GLOBALS['SOFTWARE_VERSION']);
             $urlString .= "Connection: close\r\n\r\n";
             fputs($socket, $urlString);
             stream_set_timeout($socket, 5);
@@ -1163,10 +1164,10 @@ function validate_upload($the_file, $real_file_name='') {
         }
 
         //pruefen ob die Groesse stimmt.
-        if ($the_file_size == 0) {
-            $emsg.= "error§" . _("Sie haben eine leere Datei zum Hochladen ausgewählt!") . "§";
-        } else if ($the_file_size > $max_filesize) {
+        if ($the_file['error'] ===  UPLOAD_ERR_INI_SIZE || $the_file_size > $max_filesize) {
             $emsg.= "error§" . sprintf(_("Die Datei konnte nicht übertragen werden: Die maximale Größe für einen Upload (%s Megabyte) wurde überschritten!"), $max_filesize / 1048576);
+        } elseif ($the_file_size == 0) {
+            $emsg.= "error§" . _("Sie haben eine leere Datei zum Hochladen ausgewählt!") . "§";
         }
     }
 
@@ -1805,11 +1806,16 @@ function display_folder_body($folder_id, $open, $change, $move, $upload, $refres
     }
     //Contentbereich erstellen
     if ($change == $folder_id) { //Aenderungsmodus, zweiter Teil
-        $content .= chr(10) . '<table cellpadding="2" cellspacing="2" border="0">';
-        $content .= chr(10) . '<tr><td>';
-        $content.="\n<textarea name=\"change_description\" class=\"add_toolbar\" aria-label=\"Beschreibung des Ordners eingeben\" rows=\"3\" cols=\"40\">".formatReady($result["description"])."</textarea>";
-        $content .= chr(10) . '</td><td><font size="-1">';
+        $content .= '<textarea name="change_description"'
+            . ' style="width:98%" class="add_toolbar"'
+            . ' aria-label="Beschreibung des Ordners eingeben"'
+            . ' rows="3">'
+            . formatReady($result["description"])
+            . '</textarea>';
+
         if($rechte){
+            $content .= '<div>';
+
             if ($folder_tree->permissions_activated){
                 $content.= "\n<label><input style=\"vertical-align:middle\" type=\"checkbox\" value=\"1\" ".($folder_tree->isReadable($folder_id) ? "CHECKED" : "" ) . " name=\"perm_read\">&nbsp;";
                 $content.= '<b>r</b> - ' . _("Lesen (Dateien können heruntergeladen werden)");
@@ -1821,14 +1827,10 @@ function display_folder_body($folder_id, $open, $change, $move, $upload, $refres
             if($level == 0 && $folder_tree->entity_type == 'sem'){
                 $content .= "\n<br><label><input style=\"vertical-align:middle\" type=\"checkbox\" value=\"1\" ".($folder_tree->checkCreateFolder($folder_id) ? "CHECKED" : "" ) . " name=\"perm_folder\">&nbsp;";
                 $content .= '<b>f</b> - ' . _("Ordner erstellen (Alle Nutzer können Ordner erstellen)") . '</label>';
-            } else {
-                $content .= '&nbsp;';
             }
-        } else {
-            $content .= '&nbsp;';
+
+            $content .= '</div>';
         }
-        $content .= chr(10) . '</font></td></tr>';
-        $content .= chr(10) . '<tr><td colspan="2">';
 
         $content .= '<div class="button-group">';
         $content .= Button::createAccept(_("Übernehmen"));
@@ -1837,7 +1839,6 @@ function display_folder_body($folder_id, $open, $change, $move, $upload, $refres
 
         $content.= "\n<input type=\"hidden\" name=\"open\" value=\"".$folder_id."_sc_\">";
         $content.="\n<input type=\"hidden\" name=\"type\" value=\"1\">";
-        $content .= chr(10) . '</td></tr></table>';
     }
     elseif ($result["description"])
         $content .= formatReady($result["description"]);
@@ -2290,7 +2291,7 @@ function GetFileIcon($ext, $with_img_tag = false){
             $icon = 'icons/16/blue/file-generic.png';
         break;
     }
-    return ($with_img_tag ? Assets::img($icon) : $icon);
+    return ($with_img_tag ? (string)Assets::img($icon) : $icon);
 }
 
 /**
@@ -2361,7 +2362,7 @@ function get_mime_type($filename)
 
 /**
 * Erzeugt einen Downloadlink abhaengig von der Konfiguration des Systems
-* ($GLOBALS['SENDFILE_LINK_MODE'] = 'normal'|'old'|'rewrite')
+* (Config::get()->SENDFILE_LINK_MODE = 'normal'|'old'|'rewrite')
 *
 * @param    string  $file_id
 * @param    string  $file_name
@@ -2370,7 +2371,7 @@ function get_mime_type($filename)
 * @return   string  downloadlink
 */
 function GetDownloadLink($file_id, $file_name, $type = 0, $dltype = 'normal', $range_id = '', $list_id = ''){
-    $mode = (isset($GLOBALS['SENDFILE_LINK_MODE']))? $GLOBALS['SENDFILE_LINK_MODE']:'normal';
+    $mode = Config::get()->SENDFILE_LINK_MODE ?: 'normal';
     $link[] = $GLOBALS['ABSOLUTE_URI_STUDIP'];
     $wa = '';
     switch($mode) {
@@ -2576,7 +2577,7 @@ function rmdirr($dirname){
     // Simple delete for a file
     if (is_file($dirname)) {
         return @unlink($dirname);
-    } else if (!is_dir($dirname)){
+    } else if (!is_dir($dirname)) {
         return false;
     }
 
@@ -2589,7 +2590,7 @@ function rmdirr($dirname){
         }
 
         // Deep delete directories
-        if (is_dir("$dirname/$entry")) {
+        if (is_dir("$dirname/$entry") && !is_link("$dirname/$entry")) {
             rmdirr("$dirname/$entry");
         } else {
             @unlink("$dirname/$entry");
@@ -2704,7 +2705,7 @@ function upload_zip_item() {
             $msg .= 'msg§' . sprintf(_("Es wurden %d Dateien und %d Ordner erfolgreich entpackt."),$ret['files'], $ret['subdirs'] ) . '§';
             @rmdirr($tmpdirname);
             @unlink($GLOBALS['TMP_PATH'] . '/' . $tmpname);
-            return true;
+            return (int)$ret['files'];
         }
     }
     @rmdirr($tmpdirname);
@@ -2760,6 +2761,10 @@ function upload_recursively($range_id, $dir) {
             if ($file != "." && $file != "..") {
                 // Namen vervollstaendigen
                 $file = $dir."/".$file;
+
+                if (is_link($file)) {
+                    continue;
+                }
 
                 if (is_file($file)) {
                     // Datei in Dateiliste einfuegen
@@ -2839,6 +2844,9 @@ function upload_zip_file($dir_id, $file) {
 function pclzip_convert_filename_cb($p_event, &$p_header) {
     if($p_event == PCLZIP_CB_PRE_EXTRACT){
         $p_header['filename'] = iconv("IBM437", "ISO-8859-1", $p_header['filename']);
+        if (strpos($p_header['filename'], '../') !== false) {
+            return 0;
+        }
     } elseif ($p_event == PCLZIP_CB_PRE_ADD) {
         $p_header['stored_filename'] = iconv("ISO-8859-1", "IBM437", $p_header['stored_filename']);
     }

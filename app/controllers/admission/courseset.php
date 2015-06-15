@@ -53,6 +53,12 @@ class Admission_CoursesetController extends AuthenticatedController {
         }
         PageLayout::addSqueezePackage('admission');
         $this->set_content_type('text/html;charset=windows-1252');
+
+        $views = new ViewsWidget();
+        $views->setTitle(_('Aktionen'));
+        $views->addLink(_('Anmeldeset anlegen'),$this->url_for('admission/courseset/configure'))->setActive($action == 'configure');
+        Sidebar::Get()->addWidget($views);
+
     }
 
     /**
@@ -385,7 +391,7 @@ class Admission_CoursesetController extends AuthenticatedController {
         }
         $courseset = new CourseSet($set_id);
         $this->set_id = $courseset->getId();
-        $this->courses = Course::findMany($courseset->getCourses(), "ORDER BY Name");
+        $this->courses = Course::findMany($courseset->getCourses(), "ORDER BY VeranstaltungsNummer, Name");
         $this->applications = AdmissionPriority::getPrioritiesStats($courseset->getId());
         $distinct_members = array();
         $multi_members = array();
@@ -404,12 +410,13 @@ class Admission_CoursesetController extends AuthenticatedController {
         $this->count_multi_members = count($multi_members);
 
         if ($csv == 'csv') {
-            $captions = array(_("Nummer"), _("Name"), _("Zeiten"), _("Dozenten"), _("max. Teilnehmer"), _("Teilnehmer aktuell"), _("Anzahl Anmeldungen"),_("Anzahl Anmeldungen Prio 1"), _("Warteliste"), _("max. Anzahl Warteliste"), _("vorläufige Anmeldung"), _("verbindliche Anmeldung"));
+            $captions = array(_("Nummer"), _("Name"), _("versteckt"), _("Zeiten"), _("Dozenten"), _("max. Teilnehmer"), _("Teilnehmer aktuell"), _("Anzahl Anmeldungen"),_("Anzahl Anmeldungen Prio 1"), _("Warteliste"), _("max. Anzahl Warteliste"), _("vorläufige Anmeldung"), _("verbindliche Anmeldung"));
             $data = array();
             foreach ($this->courses as $course) {
                 $row = array();
                 $row[] = $course->veranstaltungsnummer;
                 $row[] = $course->name;
+                $row[] = $course->visible ? _("nein") : _("ja");
                 $row[] = join('; ', $course->cycles->toString());
                 $row[] = join(', ', $course->members->findBy('status','dozent')->orderBy('position')->pluck('Nachname'));
                 $row[] = $course->admission_turnout;
@@ -486,15 +493,21 @@ class Admission_CoursesetController extends AuthenticatedController {
             $admission_waitlists_max = Request::intArray('configure_courses_waitlist_max');
             $admission_bindings = Request::intArray('configure_courses_binding');
             $admission_prelims = Request::intArray('configure_courses_prelim');
+            $hidden = Request::intArray('configure_courses_hidden');
             $ok = 0;
             foreach($this->courses as $course) {
                 if ($GLOBALS['perm']->have_studip_perm('admin', $course->id)) {
+                    $do_update_admission = $course->admission_turnout < $admission_turnouts[$course->id];
                     $course->admission_turnout = $admission_turnouts[$course->id];
                     $course->admission_disable_waitlist = isset($admission_waitlists[$course->id]) ? 0 : 1;
                     $course->admission_waitlist_max = $course->admission_disable_waitlist ? 0 : $admission_waitlists_max[$course->id];
                     $course->admission_binding = @$admission_bindings[$course->id] ?: 0;
                     $course->admission_prelim = @$admission_prelims[$course->id] ?: 0;
+                    $course->visible = @$hidden[$course->id] ? 0 : 1;
                     $ok += $course->store();
+                    if ($do_update_admission) {
+                        update_admission($course->id);
+                    }
                 }
             }
             if ($ok) {

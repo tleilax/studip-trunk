@@ -15,7 +15,7 @@ namespace Studip {
 // use default namespace for the remaining lines
 namespace {
     //software version - please leave it as it is!
-    $SOFTWARE_VERSION = '3.2.alpha-svn';
+    $SOFTWARE_VERSION = '3.3.alpha-svn';
 
     global $PHP_SELF, $STUDIP_BASE_PATH;
 
@@ -33,7 +33,9 @@ namespace {
     StudipAutoloader::register();
     StudipAutoloader::addAutoloadPath($STUDIP_BASE_PATH . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR . 'models');
     StudipAutoloader::addAutoloadPath($STUDIP_BASE_PATH . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR . 'classes');
+    StudipAutoloader::addAutoloadPath($STUDIP_BASE_PATH . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR . 'classes', 'Studip');
     StudipAutoloader::addAutoloadPath($STUDIP_BASE_PATH . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR . 'exceptions');
+    StudipAutoloader::addAutoloadPath($STUDIP_BASE_PATH . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR . 'classes' . DIRECTORY_SEPARATOR . 'exportdocument');
     StudipAutoloader::addAutoloadPath($STUDIP_BASE_PATH . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR . 'classes' . DIRECTORY_SEPARATOR . 'sidebar');
     StudipAutoloader::addAutoloadPath($STUDIP_BASE_PATH . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR . 'classes' . DIRECTORY_SEPARATOR . 'helpbar');
 
@@ -59,8 +61,11 @@ namespace {
     require 'config.inc.php';
 
     require_once 'lib/functions.php';
+    require_once 'lib/visual.inc.php';
     require_once 'lib/deputies_functions.inc.php';
     require_once 'lib/classes/auth_plugins/StudipAuthAbstract.class.php';
+    require_once 'lib/navigation/Navigation.php';
+    require_once 'lib/navigation/AutoNavigation.php';
 
 //setup default logger
     Log::get()->setHandler($GLOBALS['TMP_PATH'] . '/studip.log');
@@ -128,9 +133,6 @@ namespace {
     }
 
 // set dummy navigation until db is ready
-    require_once 'lib/navigation/Navigation.php';
-    require_once 'lib/navigation/AutoNavigation.php';
-    require_once 'lib/navigation/StudipNavigation.php';
     Navigation::setRootNavigation(new Navigation(''));
 
 // set up default page layout
@@ -153,11 +155,8 @@ namespace {
     $GLOBALS['SEM_TYPE'] = SemType::getTypes();
 
 // set up global navigation
+    require_once 'lib/navigation/StudipNavigation.php';
     Navigation::setRootNavigation(new StudipNavigation(''));
-
-    /*class for config; load config in globals (should be deprecated in future)
-    ----------------------------------------------------------------*/
-    Config::GetInstance()->extractAllGlobal(false);
 
     /* set default umask to a sane value */
     umask(022);

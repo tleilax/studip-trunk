@@ -20,6 +20,8 @@
  * @author      Robert Costa <rcosta@uos.de>
  */
 require_once 'authenticated_controller.php';
+require_once 'app/models/WysiwygRequest.php';
+require_once 'app/models/WysiwygDocument.php';
 
 use Studip\WysiwygRequest;
 use Studip\WysiwygDocument;
@@ -345,6 +347,7 @@ class WysiwygController extends \AuthenticatedController
             ));
         }
         $settings = new stdClass;
+        $settings->disabled = !\Config::get()->WYSIWYG;
         $settings->upload = new stdClass;
         $settings->upload->permission = self::UPLOAD_PERMISSION;
         $settings->upload->folder = new stdClass;

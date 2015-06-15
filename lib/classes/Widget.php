@@ -144,6 +144,17 @@ class Widget
     }
 
     /**
+     * Returns whether an element exists at the given index.
+     *
+     * @param String $index Index/name of the element to check for.
+     * @return bool Does a widget exist at the given index?
+     */
+    public function hasElement($index)
+    {
+        return isset($this->elements[$index]);
+    }
+
+    /**
      * Force rendering
      *
      * @param bool $state Whether to force rendering or not
@@ -164,12 +175,16 @@ class Widget
         $content = '';
 
         if ($this->hasElements() || $this->forced_rendering) {
-            $layout = $GLOBALS['template_factory']->open($this->layout);
 
             $template = $GLOBALS['template_factory']->open($this->template);
-            $template->set_layout($layout);
             $template->set_attributes($variables + $this->template_variables);
             $template->elements = $this->elements;
+
+            if ($this->layout) {
+                $layout = $GLOBALS['template_factory']->open($this->layout);
+                $template->set_layout($layout);
+            }
+
             $content = $template->render();
         }
         

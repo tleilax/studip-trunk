@@ -61,6 +61,11 @@ class PageLayout
     private static $body_elements = '';
 
     /**
+     * id of the body tag
+     */
+    private static $body_element_id = false;
+
+    /**
      * determines whether the navigation header is displayed or not
      */
     private static $display_header = true;
@@ -105,6 +110,7 @@ class PageLayout
 
     /**
      * Set the page title to the given text.
+     * @param string $title Page title
      */
     public static function setTitle($title)
     {
@@ -112,7 +118,17 @@ class PageLayout
     }
 
     /**
+     * Returns whether a title has been set
+     * @return bool
+     */
+    public static function hasTitle()
+    {
+        return isset(self::$title);
+    }
+
+    /**
      * Get the current page title (defaults to $UNI_NAME_CLEAN).
+     * @return string
      */
     public static function getTitle()
     {
@@ -160,7 +176,7 @@ class PageLayout
     public static function getTabNavigation()
     {
         if (self::$tab_navigation === false) {
-            self::$tab_navigation = Navigation::getItem('/')->activeSubNavigation();
+            self::$tab_navigation = Navigation::hasItem('/') ? Navigation::getItem('/')->activeSubNavigation() : null;
         }
 
         return self::$tab_navigation;
@@ -172,8 +188,8 @@ class PageLayout
      */
     public static function getTabNavigationPath()
     {
-        if (self::$tab_navigation_path === false) {
-            foreach (Navigation::getItem('/')->getSubNavigation() as $subpath => $navigation) {
+        if (self::$tab_navigation_path === false && self::getTabNavigation()) {
+            foreach (self::getTabNavigation() as $subpath => $navigation) {
                 if ($navigation->isActive()) {
                     self::$tab_navigation_path = $subpath;
                 }
@@ -205,11 +221,10 @@ class PageLayout
      */
     public static function addStylesheet($source, $attributes = array())
     {
-        $style_attributes = array(
-            'rel'   => 'stylesheet',
-            'href'  => Assets::stylesheet_path($source));
+        $attributes['rel']  = 'stylesheet';
+        $attributes['href'] = Assets::stylesheet_path($source);
 
-        self::addHeadElement('link', array_merge($style_attributes, $attributes));
+        self::addHeadElement('link', $attributes);
     }
 
     /**
@@ -220,37 +235,36 @@ class PageLayout
      */
     public static function removeStylesheet($source, $attributes = array())
     {
-        $style_attributes = array(
-            'rel'   => 'stylesheet',
-            'href'  => Assets::stylesheet_path($source));
+        $attributes['rel']  = 'stylesheet';
+        $attributes['href'] = Assets::stylesheet_path($source);
 
-        self::removeHeadElement('link', array_merge($style_attributes, $attributes));
+        self::removeHeadElement('link', $attributes);
     }
 
     /**
      * Add a JavaScript SCRIPT element to the HTML HEAD section.
      *
      * @param string $source     URL of JS file or file in assets folder
+     * @param array $attributes  Additional parameters for the script tag
      */
-    public static function addScript($source)
+    public static function addScript($source, $attributes = array())
     {
-        $script_attributes = array(
-            'src'   => Assets::javascript_path($source));
+        $attributes['src'] = Assets::javascript_path($source);
 
-        self::addHeadElement('script', $script_attributes, '');
+        self::addHeadElement('script', $attributes, '');
     }
 
     /**
      * Remove a JavaScript SCRIPT element from the HTML HEAD section.
      *
      * @param string $source     URL of JS file or file in assets folder
+     * @param array $attributes  Additional parameters for the script tag
      */
-    public static function removeScript($source)
+    public static function removeScript($source, $attributes = array())
     {
-        $script_attributes = array(
-            'src'   => Assets::javascript_path($source));
+        $attributes['src'] = Assets::javascript_path($source);
 
-        self::removeHeadElement('script', $script_attributes);
+        self::removeHeadElement('script', $attributes);
     }
 
     /**
@@ -420,13 +434,30 @@ class PageLayout
     }
 
     /**
-     * Get a dynamically generated ID for the BODY element.
-     * The ID is based on the name of the PHP script, with the suffix
-     * removed and all non-alphanumeric characters replace with '_'.
+     * Sets the id of the html body element.
+     * The given id is stripped of all non alpha-numeric characters
+     * (except for -).
+     *
+     * @param String $id Id of the body element
+     */
+    public static function setBodyElementId($id)
+    {
+        self::$body_element_id = preg_replace('/[^\w-]/', '_', $id);
+    }
+
+    /**
+     * Gets the id of the body element.
+     * If non was set, it is dynamically generated base on the name of
+     * the current PHP script, with the suffix removed and all
+     * non-alphanumeric characters replaced with '_'.
+     *
+     * @return String containing the body element id
      */
     public static function getBodyElementId()
     {
-        return preg_replace('/\W/', '_', basename($_SERVER['PHP_SELF'], '.php'));
+        // Return specific or dynamically generated body element id
+        return self::$body_element_id
+            ?: preg_replace('/\W/', '_', basename($_SERVER['PHP_SELF'], '.php'));
     }
 
     /**

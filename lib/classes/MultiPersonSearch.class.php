@@ -33,6 +33,7 @@ class MultiPersonSearch {
     private $searchObject = null;
     private $additionalHMTL = "";
     private $navigationItem = "";
+    private $dataDialogStatus = false;
 
     /**
      * restores a MultiPersonSearch object.
@@ -84,7 +85,7 @@ class MultiPersonSearch {
      * @return array containing all new persons
      */
     public function getAddedUsers() {
-        return $_SESSION['multipersonsearch'][$this->name]['added'];
+        return $_SESSION['multipersonsearch'][$this->name]['added'] ? : array();
     }
 
     /**
@@ -271,7 +272,26 @@ class MultiPersonSearch {
 
         return $this;
     }
-    
+
+
+    /**
+     * enables or disabled data-dialog
+     * @param boolean $status
+     * @return $this
+     */
+    public function setDataDialogStatus($status) {
+        $this->dataDialogStatus = $status;
+
+        return $this;
+    }
+
+    /**
+     * returns if data-dialog is enabled or disabled
+     * @return bool
+     */
+    public function getDataDialogStatus() {
+        return $this->dataDialogStatus;
+    }
     /**
      * returns html code which will be shown inside the form element.
      * 
@@ -475,6 +495,7 @@ class MultiPersonSearch {
         $_SESSION['multipersonsearch'][$this->name]['quickfilterIds'] = $this->quickfilterIds;
         $_SESSION['multipersonsearch'][$this->name]['searchObject'] = serialize($this->searchObject);
         $_SESSION['multipersonsearch'][$this->name]['navigationItem'] = $this->navigationItem;
+        $_SESSION['multipersonsearch'][$this->name]['dataDialogStatus'] = $this->dataDialogStatus;
     }
 
     /**
@@ -492,6 +513,7 @@ class MultiPersonSearch {
         $this->defaultSelectedUsersIDs = $_SESSION['multipersonsearch'][$this->name]['defaultSelectedUsersIDs'];
         $this->searchObject = unserialize($_SESSION['multipersonsearch'][$this->name]['searchObject']);
         $this->navigationItem = $_SESSION['multipersonsearch'][$this->name]['navigationItem'];
+        $this->dataDialogStatus = $_SESSION['multipersonsearch'][$this->name]['dataDialogStatus'];
     }
 
     /**

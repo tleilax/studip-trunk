@@ -14,13 +14,17 @@ class SelectWidget extends SidebarWidget
     public function __construct($title, $url, $name, $method = 'get')
     {
         $this->template = 'sidebar/select-widget';
+        $this->template_variables['attributes'] = array(
+            'onchange' => '$(this).closest(\'form\').submit();',
+        );
+
         $this->setTitle($title);
         $this->setUrl($url);
         $this->setSelectParameterName($name);
         $this->setRequestMethod($method);
     }
 
-    public function setUrl($url) 
+    public function setUrl($url)
     {
         $query = parse_url($url, PHP_URL_QUERY);
         if ($query) {
@@ -47,5 +51,26 @@ class SelectWidget extends SidebarWidget
     public function setRequestMethod($method)
     {
         $this->template_variables['method'] = $method;
+    }
+    
+    public function setOptions(Array $options)
+    {
+        $selected = Request::get($this->template_variables['name']);
+        foreach ($options as $key => $label) {
+            $element = new SelectElement($key, $label, $selected === $key);
+            $this->addElement($element);
+        }
+    }
+    
+    public function render($variables = array())
+    {
+        $attributes = array();
+        foreach ($this->template_variables['attributes'] as $key => $value) {
+            $attributes[] = sprintf('%s="%s"', htmlReady($key), htmlReady($value));
+        }
+        $this->template_variables['attributes'] = implode(' ', $attributes) ?: '';
+
+
+        return parent::render($variables);
     }
 }

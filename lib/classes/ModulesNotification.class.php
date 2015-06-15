@@ -54,6 +54,9 @@ class ModulesNotification extends Modules {
         $this->registered_notification_modules['basic_data'] = array(
                 'id' => 27, 'const' => '', 'sem' => TRUE, 'inst' => FALSE,
                 'mes' => TRUE, 'name' => _("Grunddaten der Veranstaltung"));
+        $this->registered_notification_modules['plugins'] = array(
+            'id' => 28, 'const' => '', 'sem' => TRUE, 'inst' => FALSE,
+            'mes' => TRUE, 'name' => _("Plugins der Veranstaltung"));
         $this->subject = _("Stud.IP Benachrichtigung");
         $extend_modules = array(
                 "forum" => array('mes' => TRUE, 'name' =>  _("Forum")),
@@ -175,13 +178,13 @@ class ModulesNotification extends Modules {
         }
 
         $my_sem = array();
-        $query = "SELECT s.Seminar_id, s.Name, s.chdate, s.start_time, s.modules, s.status as sem_status, su.status,s.admission_prelim, su.notification, IFNULL(visitdate, 0) AS visitdate "
+        $query = "SELECT s.Seminar_id, s.Name, s.chdate, s.start_time, s.modules, s.status as sem_status, su.status,s.admission_prelim, su.notification, IFNULL(visitdate, :threshold) AS visitdate "
                . "FROM seminar_user su "
                . "LEFT JOIN seminare s USING (Seminar_id) "
                . "LEFT JOIN object_user_visits ouv ON (ouv.object_id = su.Seminar_id AND ouv.user_id = :user_id AND ouv.type = 'sem') "
                . "WHERE su.user_id = :user_id AND su.status != 'user' AND su.notification <> 0";
         if (get_config('DEPUTIES_ENABLE')) {
-            $query .= " UNION SELECT s.Seminar_id, CONCAT(s.Name, ' [Vertretung]') as Name, s.chdate, s.start_time, s.modules, s.status as sem_status, 'dozent' as status, s.admission_prelim, d.notification, IFNULL(visitdate, 0) AS visitdate "
+            $query .= " UNION SELECT s.Seminar_id, CONCAT(s.Name, ' [Vertretung]') as Name, s.chdate, s.start_time, s.modules, s.status as sem_status, 'dozent' as status, s.admission_prelim, d.notification, IFNULL(visitdate, :threshold) AS visitdate "
                . "FROM deputies d "
                . "LEFT JOIN seminare s ON (d.range_id = s.Seminar_id) "
                . "LEFT JOIN object_user_visits ouv ON (ouv.object_id = d.range_id AND ouv.user_id = :user_id AND ouv.type = 'sem') "
@@ -189,6 +192,7 @@ class ModulesNotification extends Modules {
         }
         $statement = DBManager::get()->prepare($query);
         $statement->bindValue(':user_id', $user_id);
+        $statement->bindValue(':threshold', ($threshold = Config::get()->NEW_INDICATOR_THRESHOLD) ? strtotime("-{$threshold} days 0:00:00") : 0);
         $statement->execute();
         while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
             $seminar_id = $row['Seminar_id'];
@@ -226,9 +230,23 @@ class ModulesNotification extends Modules {
             $n_data = array();
             foreach ($m_enabled_modules as $m_name => $m_data) {
                 if ($this->isBit($m_notification, $m_data['id'])) {
-                    $data = $this->getModuleText($m_name, $seminar_id, $s_data, 'sem');
-                    if ($data) {
-                        $n_data[] = $data;
+                    if ($m_name != 'plugins') {
+                        $data = $this->getModuleText($m_name, $seminar_id, $s_data, 'sem');
+                        if ($data) {
+                            $n_data[] = $data;
+                        }
+                    } else {
+                        $sem_class = $GLOBALS['SEM_CLASS'][$GLOBALS['SEM_TYPE'][$s_data['sem_status']]["class"]];
+                        if (is_object($sem_class)) {
+                            foreach (PluginEngine::getPlugins('StandardPlugin', $seminar_id) as $plugin) {
+                                if (!$sem_class->isSlotModule($plugin)) {
+                                    $data = $this->getPluginText($plugin, $seminar_id, $s_data, 'plugins');
+                                    if ($data) {
+                                        $n_data[] = $data;
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -249,6 +267,35 @@ class ModulesNotification extends Modules {
         }
     }
 
+    function getPluginText($plugin, $range_id, $r_data, $m_name)
+    {
+        $base_url = URLHelper::setBaseURL('');
+        $nav = $plugin->getIconNavigation($range_id, $r_data['visitdate'], $GLOBALS['user']->id);
+        UrlHelper::setBaseURl($base_url);
+        if ($nav instanceof Navigation && $nav->isVisible(true)) {
+            if ($nav->getBadgeNumber()) {
+                $url = 'seminar_main.php?again=yes&auswahl=' . $range_id . '&redirect_to=' . strtr($nav->getURL(), '?', '&');
+                $image = $nav->getImage();
+                $icon = $image['src'];
+                $tab = array_pop($plugin->getTabNavigation());
+                if ($tab instanceof Navigation && $tab->isVisible()) {
+                    $text = $tab->getTitle();
+                }
+                if (!$text) {
+                    $text = $this->registered_modules[$m_name]['name'];
+                }
+                if ($nav->getBadgeNumber() == 1) {
+                    $text .= ' - ' . _("Ein neuer Beitrag:");
+                } else {
+                    $text .= ' - ' . sprintf(_("%s neue Beiträge:"), $nav->getBadgeNumber());
+                }
+                return compact('text', 'url', 'icon', 'range_id');
+            } else {
+                return null;
+            }
+        }
+    }
+
     // only range = 'sem' is implemented
     function getModuleText ($m_name, $range_id, $r_data, $range) {
         global $SEM_CLASS, $SEM_TYPE;
@@ -262,30 +309,7 @@ class ModulesNotification extends Modules {
             $slot = isset($slot_mapper[$m_name]) ? $slot_mapper[$m_name] : $m_name;
             $module = $sem_class->getModule($slot);
             if (is_a($module, "StandardPlugin")) {
-                $base_url = UrlHelper::setBaseURL();
-                $nav = $module->getIconNavigation($range_id, $r_data['visitdate'], $GLOBALS['user']->id);
-                UrlHelper::setBaseURl($base_url);
-                if (isset($nav) && $nav->isVisible(true)) {
-                    if ($nav->getBadgeNumber()) {
-                        $url = 'seminar_main.php?again=yes&auswahl=' . $range_id . '&redirect_to=' . strtr($nav->getURL(), '?', '&');
-                        $image = $nav->getImage();
-                        $icon = $image['src'];
-                        $tab = $module->getTabNavigation();
-                        if (isset($tab) && $tab->isVisible()) {
-                            $text = $tab->getTitle();
-                        } else {
-                            $text = $this->registered_modules[$m_name]['name'];
-                        }
-                        if ($nav->getBadgeNumber() == 1) {
-                            $text .= ' - ' . _("Ein neuer Beitrag:");
-                        } else {
-                            $text .= ' - ' . sprintf(_("%s neue Beiträge:"), $nav->getBadgeNumber());
-                        }
-                        return compact('text', 'url', 'icon', 'range_id');
-                    } else {
-                        return null;
-                    }
-                }
+                return $this->getPluginText($module, $range_id, $r_data, $m_name);
             }
         }
         switch ($m_name) {

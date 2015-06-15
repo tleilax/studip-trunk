@@ -38,7 +38,7 @@
                                 <? $material = false ?>
                                 <ul class="clean">
                                     <? $folder = $topic->folder ?>
-                                    <? if ($folder) : ?>
+                                    <? if ($documents_activated && $folder) : ?>
                                         <li>
                                             <a href="<?= URLHelper::getLink("folder.php#anker", array('data[cmd]' => "tree", 'open' => $folder->getId())) ?>">
                                                 <?= Assets::img("icons/16/blue/folder-empty", array('class' => "text-bottom")) ?>
@@ -48,17 +48,14 @@
                                         <? $material = true ?>
                                     <? endif ?>
 
-                                    <? if (class_exists("ForumIssue")) : ?>
-                                        <? $posting = ForumEntry::getEntry(ForumIssue::getThreadIdForIssue($topic->getId())) ?>
-                                        <? if ($posting) : ?>
-                                            <li>
-                                                <a href="<?= URLhelper::getLink("plugins.php/coreforum/index/index/".$posting['topic_id']."#".$posting['topic_id']) ?>">
-                                                    <?= Assets::img("icons/16/blue/forum", array('class' => "text-bottom")) ?>
-                                                    <?= _("Thema im Forum") ?>
-                                                </a>
-                                            </li>
-                                            <? $material = true ?>
-                                        <? endif ?>
+                                    <? if ($forum_activated && ($link_to_thread = $topic->forum_thread_url)) : ?>
+                                        <li>
+                                            <a href="<?= URLHelper::getLink($link_to_thread) ?>">
+                                                <?= Assets::img("icons/16/blue/forum", array('class' => "text-bottom")) ?>
+                                                <?= _("Thema im Forum") ?>
+                                            </a>
+                                        </li>
+                                        <? $material = true ?>
                                     <? endif ?>
                                 </ul>
                                 <? if (!$material) : ?>
@@ -108,18 +105,21 @@ $sidebar = Sidebar::get();
 $sidebar->setImage('sidebar/date-sidebar.png');
 
 $actions = new ActionsWidget();
-$actions->addLink(_("Alle Themen aufklappen"), null, null, array('onClick' => "jQuery('table.withdetails > tbody > tr:not(.details):not(.open) > :first-child a').click(); return false;"));
+$actions->addLink(_("Alle Themen aufklappen"),
+                  null,
+                  'icons/16/blue/arr_1down.png',
+                  array('onClick' => "jQuery('table.withdetails > tbody > tr:not(.details):not(.open) > :first-child a').click(); return false;"));
 if ($GLOBALS['perm']->have_studip_perm("tutor", $_SESSION['SessionSeminar'])) {
     $actions->addLink(
         _("Neues Thema erstellen"),
         URLHelper::getURL("dispatch.php/course/topics/edit"),
-        null,
+        'icons/16/blue/add.png',
         array('data-dialog' => "buttons")
     );
     $actions->addLink(
         _("Themen aus Veranstaltung kopieren"),
         URLHelper::getURL("dispatch.php/course/topics/copy"),
-        null,
+        'icons/16/blue/add/topic.png',
         array('data-dialog' => "buttons")
     );
 }

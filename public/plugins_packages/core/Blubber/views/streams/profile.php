@@ -2,7 +2,7 @@
 
 /*
  *  Copyright (c) 2012  Rasmus Fuhse <fuhse@data-quest.de>
- * 
+ *
  *  This program is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License as
  *  published by the Free Software Foundation; either version 2 of
@@ -19,6 +19,7 @@
 <input type="hidden" id="stream_time" value="<?= time() ?>">
 <input type="hidden" id="browser_start_time" value="">
 <input type="hidden" id="loaded" value="1">
+<input type="hidden" id="orderby" value="mkdate">
 <div id="editing_question" style="display: none;"><?= _("Wollen Sie den Beitrag wirklich bearbeiten?") ?></div>
 
 <? if ($user->getId() === $GLOBALS['user']->id) : ?>
@@ -43,19 +44,7 @@
 <?
 
 $sidebar = Sidebar::get();
-$sidebar->setImage(CourseAvatar::getAvatar($course_id)->getURL(Avatar::NORMAL));
-
-if (count($tags) && $tags[0]) {
-    $cloud = new LinkCloudWidget();
-    $cloud->setTitle(_("Hashtags des Nutzers"));
-    $maximum = $tags[0]['counter'];
-    //$average = ceil(array_sum(array_filter($tags, function ($val) { return $val['counter']; })) / count($tags));
-    foreach ($tags as $tag) {
-        $cloud->addLink(
-            "#".$tag['tag'],
-            URLHelper::getLink("plugins.php/blubber/streams/forum", array('cid' => $_SESSION['SessionSeminar'], 'hash' => $tag['tag'])),
-            ceil(10 * $tag['counter'] / $maximum)
-        );
-    }
-    $sidebar->addWidget($cloud, 'tagcloud');
-}
+$sidebar->setImage("sidebar/blubber-sidebar");
+$sidebar->setContextAvatar(Avatar::getAvatar($user->getId()));
+URLHelper::addLinkParam('user_id', $user->getId());
+$controller->addTagCloudWidgetToSidebar($tags, 'profile');

@@ -604,7 +604,7 @@ class PluginManager
      */
     public function getPlugins ($type, $context = NULL)
     {
-        $user = $GLOBALS['user']->id;
+        $user = $GLOBALS['user']->id ?: 'nobody';
         $plugin_info = $this->getPluginInfos($type);
         $plugins = array();
 
@@ -650,9 +650,20 @@ class PluginManager
             if ($key === '' || $key[0] === '#') {
                 continue;
             }
-
-            if ($key === 'pluginclassname' && isset($result[$key])) {
+            
+            $key_array = explode('.',$key,2);
+            if(count($key_array) > 1){
+            	if($key_array[0] === 'screenshots'){
+            		$screenshot_data['source'] = $key_array[1];
+            		$screenshot_data['title'] = $value;
+            		$result['screenshots']['pictures'][] = $screenshot_data;
+            	}
+            } elseif($key === 'screenshots') {
+            	$result['screenshots']['path'] = $value;
+            } elseif ($key === 'pluginclassname' && isset($result[$key])) {
                 $result['additionalclasses'][] = $value;
+            } elseif ($key === 'screenshot' && isset($result[$key])) {
+                $result['additionalscreenshots'][] = $value;
             } else {
                 $result[$key] = $value;
             }

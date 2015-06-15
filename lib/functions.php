@@ -1171,12 +1171,12 @@ function get_users_online($active_time = 5, $name_format = 'full_rev')
 
     $query = "SELECT a.username AS temp, a.username, {$GLOBALS['_fullname_sql'][$name_format]} AS name,
                      ABS(CAST(UNIX_TIMESTAMP() AS SIGNED) - CAST(last_lifesign AS SIGNED)) AS last_action,
-                     a.user_id, contact_id AS is_buddy, " . get_vis_query('a', 'online') . " AS is_visible
+                     a.user_id, IF(owner_id IS NOT NULL, 1, 0) AS is_buddy, " . get_vis_query('a', 'online') . " AS is_visible
               FROM user_online uo
               JOIN auth_user_md5 a ON (a.user_id = uo.user_id)
               LEFT JOIN user_info ON (user_info.user_id = uo.user_id)
               LEFT JOIN user_visibility ON (user_visibility.user_id = uo.user_id)
-              LEFT JOIN contact ON (owner_id = ? AND contact.user_id = a.user_id AND buddy = 1)
+              LEFT JOIN contact ON (owner_id = ? AND contact.user_id = a.user_id)
               WHERE last_lifesign > ? AND uo.user_id <> ?
               ORDER BY {$GLOBALS['_fullname_sql'][$name_format]} ASC";
     $statement = DBManager::get()->prepare($query);
@@ -1376,7 +1376,7 @@ function search_range($search_str = false, $search_user = false, $show_sem = tru
             $query = "SELECT s.Seminar_id, IF(s.visible = 0, CONCAT(s.Name, ' {$_hidden}'), s.Name) AS Name %s
                       FROM user_inst AS a
                       LEFT JOIN Institute AS b ON (a.Institut_id = b.Institut_id AND b.Institut_id = b.fakultaets_id)
-                      LEFT JOIN Institute AS c ON (c.fakultaets_id = b.Institut_id AND c.fakultaets_id = c.Institut_id)
+                      LEFT JOIN Institute AS c ON (c.fakultaets_id = b.Institut_id AND c.fakultaets_id != c.Institut_id)
                       LEFT JOIN seminare AS s ON (s.Institut_id = c.Institut_id) %s
                       WHERE a.user_id = ? AND a.inst_perms = 'admin'
                         AND NOT ISNULL(b.Institut_id) AND s.Name LIKE CONCAT('%%', ?, '%%')
@@ -2072,12 +2072,18 @@ function studip_default_exception_handler($exception) {
         Metrics::increment('core.exception.' . $exception_class);
     }
 
+    while (ob_get_level()) {
+        ob_end_clean();
+    }
+    $layout = 'layouts/base.php';
     if ($exception instanceof AccessDeniedException) {
         $status = 403;
         $template = 'access_denied_exception';
     } else if ($exception instanceof CheckObjectException) {
         $status = 403;
         $template = 'check_object_exception';
+    } elseif ($exception instanceof LoginException) {
+        $GLOBALS['auth']->login_if(true);
     } else {
         if ($exception instanceOf Trails_Exception) {
             $status = $exception->getCode();
@@ -2095,16 +2101,14 @@ function studip_default_exception_handler($exception) {
     if (!strcasecmp($_SERVER['HTTP_X_REQUESTED_WITH'], 'xmlhttprequest')) {
         header('Content-Type: application/json; charset=UTF-8');
         $template = 'json_exception';
+        $layout = null;
     }
 
-    while (ob_get_level()) {
-        ob_end_clean();
-    }
 
     try {
         $args = compact('exception', 'status');
         ob_start();
-        echo $GLOBALS['template_factory']->render($template, $args);
+        echo $GLOBALS['template_factory']->render($template, $args, $layout);
     } catch (Exception $e) {
         ob_end_clean();
         echo 'Error: ' . htmlReady($e->getMessage());

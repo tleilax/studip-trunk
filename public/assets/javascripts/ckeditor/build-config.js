@@ -1,5 +1,5 @@
 ﻿/**
- * @license Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2015, CKSource - Frederico Knabben. All rights reserved.
  * For licensing, see LICENSE.md or http://ckeditor.com/license
  */
 
@@ -13,10 +13,10 @@
  * (1) http://ckeditor.com/builder
  *     Visit online builder to build CKEditor from scratch.
  *
- * (2) http://ckeditor.com/builder/26af02c64ef60117b1e05bd9e4dc9697
+ * (2) http://ckeditor.com/builder/6083fada98a4b7f82b1412c747f0724f
  *     Visit online builder to build CKEditor, starting with the same setup as before.
  *
- * (3) http://ckeditor.com/builder/download/26af02c64ef60117b1e05bd9e4dc9697
+ * (3) http://ckeditor.com/builder/download/6083fada98a4b7f82b1412c747f0724f
  *     Straight download link to the latest version of CKEditor (Optimized) with the same setup as before.
  *
  * NOTE:
@@ -28,11 +28,25 @@ var CKBUILDER_CONFIG = {
 	skin: 'moono',
 	preset: 'full',
 	ignore: [
+		'.bender',
+		'bender.js',
+		'bender-err.log',
+		'bender-out.log',
 		'dev',
-		'.gitignore',
+		'.DS_Store',
+		'.editorconfig',
 		'.gitattributes',
+		'.gitignore',
+		'gruntfile.js',
+		'.idea',
+		'.jscsrc',
+		'.jshintignore',
+		'.jshintrc',
+		'.mailmap',
+		'node_modules',
+		'package.json',
 		'README.md',
-		'.mailmap'
+		'tests'
 	],
 	plugins : {
 		'a11yhelp' : 1,
@@ -44,6 +58,7 @@ var CKBUILDER_CONFIG = {
 		'colordialog' : 1,
 		'contextmenu' : 1,
 		'dialogadvtab' : 1,
+		'divarea' : 1,
 		'enterkey' : 1,
 		'entities' : 1,
 		'filebrowser' : 1,
@@ -60,7 +75,7 @@ var CKBUILDER_CONFIG = {
 		'link' : 1,
 		'list' : 1,
 		'liststyle' : 1,
-		'magicline' : 1,
+		'mathjax' : 1,
 		'removeformat' : 1,
 		'selectall' : 1,
 		'sharedspace' : 1,
@@ -74,7 +89,7 @@ var CKBUILDER_CONFIG = {
 		'textselection' : 1,
 		'toolbar' : 1,
 		'undo' : 1,
-		'wysiwygarea' : 1
+		'widget' : 1
 	},
 	languages : {
 		'de' : 1,

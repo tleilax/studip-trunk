@@ -4,12 +4,17 @@ require_once 'app/controllers/authenticated_controller.php';
 
 class Course_TopicsController extends AuthenticatedController
 {
+    protected $allow_nobody = true;
+
     public function before_filter(&$action, &$args)
     {
         parent::before_filter($action, $args);
         checkObject();
         checkObjectModule("schedule");
         PageLayout::setTitle(sprintf('%s - %s', Course::findCurrent()->getFullname(), _("Themen")));
+        $seminar = new Seminar(Course::findCurrent());
+        $this->forum_activated = $seminar->getSlotModule('forum');
+        $this->documents_activated = $seminar->getSlotModule('documents');
     }
 
     public function index_action()
@@ -45,15 +50,13 @@ class Course_TopicsController extends AuthenticatedController
                 $topic->store();
 
                 if (Request::get("folder") && !$topic->folder) {
-                    $topic->createFolder();
+                    $topic->connectWithDocumentFolder();
                 }
-                if (Request::get("forumthread") && class_exists("ForumIssue")) {
-                    ForumIssue::setThreadForIssue(
-                        $_SESSION['SessionSeminar'],
-                        $topic->getId(),
-                        $topic['title'],
-                        $topic['description']
-                    );
+
+                // create a connection to the module forum (can be anything)
+                // will update title and description automagically
+                if (Request::get("forumthread")) {
+                    $topic->connectWithForumThread();
                 }
 
                 if (Request::option("issue_id") === "new") {

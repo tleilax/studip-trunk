@@ -34,7 +34,7 @@ class Admin_UserController extends AuthenticatedController
         parent::before_filter($action, $args);
 
         // user must have root permission if restricted user management is disabled
-        $perm->check($GLOBALS['RESTRICTED_USER_MANAGEMENT'] ? 'root' : 'admin');
+        $perm->check(Config::get()->RESTRICTED_USER_MANAGEMENT ? 'root' : 'admin');
 
         // set navigation
         Navigation::activateItem('/admin/user/index');
@@ -340,7 +340,7 @@ class Admin_UserController extends AuthenticatedController
             }
 
             //change password
-            if (($perm->have_perm('root') && $GLOBALS['ALLOW_ADMIN_USERACCESS']) && (Request::get('pass_1') != '' || Request::get('pass_2') != '' ))
+            if (($perm->have_perm('root') && Config::get()->ALLOW_ADMIN_USERACCESS) && (Request::get('pass_1') != '' || Request::get('pass_2') != '' ))
             {
                 if (Request::get('pass_1') == Request::get('pass_2')){
                     if (strlen(Request::get('pass_1')) < 4) {
@@ -942,6 +942,13 @@ class Admin_UserController extends AuthenticatedController
         $this->redirect('admin/user/edit/' . $user_id);
     }
 
+    public function reset_notification_action($user_id)
+    {
+        $resetted = DBManager::get()->execute("UPDATE seminar_user SET notification=0 WHERE user_id=?", array($user_id));
+        PageLayout::postMessage(MessageBox::success(sprintf(_('Die Benachrichtigungseinstellungen für %s Veranstaltungen wurden zurück gesetzt.'), $resetted)));
+        $this->redirect('admin/user/edit/' . $user_id);
+    }
+
     public function addSidebar()
     {
         $sidebar = Sidebar::Get();
@@ -968,7 +975,7 @@ class Admin_UserController extends AuthenticatedController
                            'user_id',
                            true,
                            new StandardSearch('user_id'),
-                           'function (value) { document.location = "' . $this->url_for('admin/user/edit') . '/" + value; }');
+                           'function (value) { document.location = STUDIP.URLHelper.getURL("dispatch.php/admin/user/edit/" + value); }');
 
         $sidebar->addWidget($actions);
         $sidebar->addWidget($search);
@@ -1008,10 +1015,15 @@ class Admin_UserController extends AuthenticatedController
                                    $this->url_for('admin/user/delete/' . $this->user['user_id'] . '/edit'),
                                    'icons/16/blue/trash.png');
         }
+        if (get_config('MAIL_NOTIFICATION_ENABLE') && CourseMember::findOneBySQL("user_id = ? AND notification <> 0", array($this->user['user_id']))) {
+            $user_actions->addLink(_('Benachrichtigungen zurücksetzen'),
+                $this->url_for('admin/user/reset_notification/' . $this->user['user_id']),
+                'icons/16/blue/refresh.png');
+        }
 
         $sidebar->insertWidget($user_actions, 'actions', 'user_actions');
 
-        $views   = new ViewsWidget();
+        $views = new ViewsWidget();
 
         $views->addLink(_('Zurück zur Übersicht'),
                         $this->url_for('admin/user'))
@@ -1027,9 +1039,9 @@ class Admin_UserController extends AuthenticatedController
             $views->addLink(_('Datei- und Aktivitätsübersicht'),
                             URLHelper::getLink('user_activities.php?username=' . $this->user['username']),
                             'icons/16/blue/vcard.png');
-            if ($GLOBALS['LOG_ENABLE']) {
+            if (Config::get()->LOG_ENABLE) {
                 $views->addLink(_('Benutzereinträge im Log'),
-                                URLHelper::getLink('dispatch.php/event_log/show?search=' . $this->user['username'] .'&type=user&object_id=' .$user['user_id']),
+                                URLHelper::getLink('dispatch.php/event_log/show?search=' . $this->user['username'] .'&type=user&object_id=' .$this->user['user_id']),
                                 'icons/16/blue/log.png');
             }
         }

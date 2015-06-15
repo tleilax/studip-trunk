@@ -233,11 +233,15 @@ STUDIP.Forum = {
 
         var template = STUDIP.Forum.getTemplate('edit_area');
 
+        // disable iconbar
+        jQuery('tr[data-area-id=' + area_id + '] .action-icons').hide();
+
+        // show edit form
         jQuery('tr[data-area-id=' + area_id + '] span.areadata').hide()
             .parent().append(template({
                 area_id : area_id,
                 name : jQuery('tr[data-area-id=' + area_id + '] span.areaname').text().trim(),
-                content : jQuery('tr[data-area-id=' + area_id + '] div.areacontent').text().trim()
+                content : jQuery('tr[data-area-id=' + area_id + '] div.areacontent').attr('data-content')
             }));
     },
 
@@ -245,16 +249,8 @@ STUDIP.Forum = {
         jQuery('tr[data-area-id=' + area_id + '] span.edit_area').remove();
         jQuery('tr[data-area-id=' + area_id + '] span.areadata').show();
 
-        // reset the input field with the unchanged name
-        jQuery('tr[data-area-id=' + area_id + '] span.areaname_edit input[name=name]').val(
-            jQuery('tr[data-area-id=' + area_id + '] span.areaname').text().trim()
-        );
-
-        jQuery('tr[data-area-id=' + area_id + '] span.areaname_edit textarea[name=content]').val(
-            jQuery('tr[data-area-id=' + area_id + '] div.areacontent').text().trim()
-        );
-
-            jQuery('tr[data-area-id=' + area_id + '] span.areadata').parent().css('height', '');
+        // enable iconbar
+        jQuery('tr[data-area-id=' + area_id + '] .action-icons').show();
     },
 
     saveArea: function (area_id) {
@@ -264,31 +260,66 @@ STUDIP.Forum = {
 
         // display the new name immediately
         jQuery('tr[data-area-id=' + area_id + '] span.areaname').text(name.name);
-        jQuery('tr[data-area-id=' + area_id + '] div.areacontent').text(name.content);
 
-        jQuery('tr[data-area-id=' + area_id + '] span.areaname_edit').hide();
-        jQuery('tr[data-area-id=' + area_id + '] span.areaname').parent().parent().show();
+        // store the modified raw-content used for possible subsequent edits
+        jQuery('tr[data-area-id=' + area_id + '] div.areacontent').attr('data-content', name.content);
 
+        // store the modified area and get formatted content-text from server
         jQuery.ajax(STUDIP.URLHelper.getURL('plugins.php/coreforum/area/edit/' + area_id + '?cid=' + STUDIP.Forum.seminar_id), {
             type: 'POST',
-            data: name
+            data: name,
+            success: function(data)  {
+                // shorten the description to 150 chars max
+                if (data.content.length > 150) {
+                    jQuery('tr[data-area-id=' + area_id + '] div.areacontent').text(data.content.substr(0, 150)).append('&hellip;');
+                } else {
+                    jQuery('tr[data-area-id=' + area_id + '] div.areacontent').text(data.content);
+                }
+
+                jQuery('tr[data-area-id=' + area_id + '] span.areaname_edit').hide();
+                jQuery('tr[data-area-id=' + area_id + '] span.areaname').parent().parent().show();
+
+                // remove edit form
+                jQuery('tr[data-area-id=' + area_id + '] span.edit_area').remove();
+
+                // enable iconbar
+                jQuery('tr[data-area-id=' + area_id + '] .action-icons').show();
+            }
         });
 
-        jQuery('tr[data-area-id=' + area_id + '] span.edit_area').remove();
     },
 
     saveEntry: function(topic_id) {
-        jQuery('span[data-edit-topic=' + topic_id +'] input[name=name]').attr('data-reset',
-            jQuery('span[data-edit-topic=' + topic_id +'] input[name=name]').val()
-        );
+        var $ = jQuery;
 
-        jQuery('span[data-edit-topic=' + topic_id +'] textarea[name=content]').attr('data-reset',
-            jQuery('span[data-edit-topic=' + topic_id +'] textarea[name=content]').val()
-        );
+        var spanSelector = 'span[data-edit-topic=' + topic_id +']';
+
+        var name = $(spanSelector + ' input[name=name]');
+        name.attr('data-reset', name.val());
+
+        var textarea = $(spanSelector + ' textarea[name=content]');
+
+        // make sure HTML stays HTML
+        // usually the wysiwyg editor does this automatically,
+        // but since there is no submit event the editor does not
+        // get notified
+        var w = STUDIP.wysiwyg;
+        if (w && !w.disabled) {
+            // wysiwyg is active, ensure HTML markers are set
+            textarea.val(w.markAsHtml(textarea.val()));
+        }
+
+        // remember current textarea value
+        textarea.attr('data-reset', textarea.val());
 
         jQuery.ajax(STUDIP.URLHelper.getURL('plugins.php/coreforum/index/update_entry/' + topic_id + '?cid=' + STUDIP.Forum.seminar_id), {
             type: 'POST',
             data: jQuery('form[data-topicid='+ topic_id +']').serializeObject(),
+            
+            error: function(data) {
+                alert('Server meldet: ' + data.statusText);
+            },
+            
             success: function (data) {
                 var json = jQuery.parseJSON(data);
                 // set the new name and content
@@ -380,9 +411,15 @@ STUDIP.Forum = {
         }
 
         // add content from cited posting in [quote]-tags
-        var content = '[quote=' + name + ']' + "\n"
-            + jQuery('span[data-edit-topic=' + topic_id +'] textarea[name=content]').val()
-            + "\n[/quote]"
+        var originalContent = jQuery(
+            'span[data-edit-topic=' + topic_id +'] textarea[name=content]'
+        ).val();
+
+        var content = '[quote=' + name + ']\n' + originalContent + '\n[/quote]\n';
+        var w = STUDIP.wysiwyg;
+        if (w && w.isHtml(originalContent)) {
+            content = w.markAsHtml(content);
+        }
 
         jQuery('#new_entry_box textarea').val(content);
         jQuery('#new_entry_box').insertAfter('form[data-topicid=' + topic_id + ']');
@@ -395,7 +432,7 @@ STUDIP.Forum = {
     forwardEntry: function(topic_id) {
         var title   = 'WG: ' + jQuery('span[data-edit-topic=' + topic_id +'] [name=name]').attr('value');
         var content = jQuery('span[data-edit-topic=' + topic_id +'] textarea[name=content]').val().trim();
-        var is_html = (content.indexOf('<') === 0 && content.lastIndexOf('>') === content.length -1);
+        var is_html = STUDIP.wysiwyg.isHtml(content);
         var nl      = is_html ? '<br>' : "\n";
         var text    = 'Die Senderin/der Sender dieser Nachricht möchte Sie auf den folgenden Beitrag aufmerksam machen. '.toLocaleString()
                     + nl + nl
@@ -407,7 +444,7 @@ STUDIP.Forum = {
                     + content
                     + nl + nl;
         if (is_html) {
-            text = '<div>' + text + '</div>';
+            text = STUDIP.wysiwyg.markAsHtml(text);
         }
         STUDIP.Dialog.fromURL(STUDIP.URLHelper.getURL('dispatch.php/messages/write'), {
             data: {
@@ -620,7 +657,7 @@ STUDIP.Forum = {
         var buttonText = "Thema schließen".toLocaleString();
         jQuery('.closeButtons').text(buttonText);
         jQuery('.closeButtons').attr('onclick', 'STUDIP.Forum.closeThreadFromThread("' + topic_id + '", ' + page + '); return false;');
-        jQuery('.closeButtons').closest("li").css('list-style-image', "url(" + STUDIP.ASSETS_URL + 'images/icons/16/black/lock-locked.png' + ")");
+        jQuery('.closeButtons').closest("li").css('background-image', "url(" + STUDIP.ASSETS_URL + 'images/icons/16/blue/lock-locked.png' + ")");
         jQuery('.hideWhenClosed').show();
 
         STUDIP.Forum.openThread(topic_id, topic_id, page, true);
@@ -655,8 +692,10 @@ STUDIP.Forum = {
         var buttonText = "Thema öffnen".toLocaleString();
         jQuery('.closeButtons').text(buttonText);
         jQuery('.closeButtons').attr('onclick', 'STUDIP.Forum.openThreadFromThread("' + topic_id + '", '+ page +'); return false;');
-        jQuery('.closeButtons').closest("li").css('list-style-image', "url(" + STUDIP.ASSETS_URL + 'images/icons/16/black/lock-unlocked.png' + ")");
+        jQuery('.closeButtons').closest("li").css('background-image', "url(" + STUDIP.ASSETS_URL + 'images/icons/16/blue/lock-unlocked.png' + ")");
         jQuery('.hideWhenClosed').hide();
+        
+        STUDIP.Forum.cancelNewEntry();
 
         STUDIP.Forum.closeThread(topic_id, topic_id, page, true);
     },

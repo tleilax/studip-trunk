@@ -26,10 +26,10 @@
 require_once('lib/meine_seminare_func.inc.php');
 require_once('lib/object.inc.php');
 require_once('lib/functions.php');
+require_once('lib/classes/admission/CourseSet.class.php');
 
 class MyRealmModel
 {
-
     /**
      * Check for changes in folders for a course
      * @param      $my_obj
@@ -83,8 +83,8 @@ class MyRealmModel
     {
         if ($my_obj["modules"]["literature"]) {
             $sql       = "SELECT a.range_id, COUNT(list_id) as count,
-                COUNT(IF((chdate > IFNULL(b.visitdate,0) AND a.user_id !=:user_id), list_id, NULL)) AS neue,
-                MAX(IF((chdate > IFNULL(b.visitdate, 0) AND a.user_id != :user_id), chdate, 0)) AS last_modified
+                COUNT(IF((chdate > IFNULL(b.visitdate, :threshold) AND a.user_id !=:user_id), list_id, NULL)) AS neue,
+                MAX(IF((chdate > IFNULL(b.visitdate, :threshold) AND a.user_id != :user_id), chdate, 0)) AS last_modified
                 FROM
                 lit_list a
                 LEFT JOIN object_user_visits b ON (b.object_id = a.range_id AND b.user_id = :user_id AND b.type ='literature')
@@ -93,6 +93,7 @@ class MyRealmModel
             $statement = DBManager::get()->prepare($sql);
             $statement->bindValue(':user_id', $user_id);
             $statement->bindValue(':course_id', $object_id);
+            $statement->bindValue(':threshold', ($threshold = Config::get()->NEW_INDICATOR_THRESHOLD) ? strtotime("-{$threshold} days 0:00:00") : 0);
             $statement->execute();
             $result = $statement->fetch(PDO::FETCH_ASSOC);
             if (!empty($result)) {
@@ -127,8 +128,8 @@ class MyRealmModel
     {
         $sql = "SELECT
             COUNT(nw.news_id) as count,
-            MAX(IF ((chdate > IFNULL(b.visitdate, 0) AND nw.user_id !=:user_id), chdate, 0)) AS last_modified,
-            COUNT(IF((chdate > IFNULL(b.visitdate,0) AND nw.user_id !=:user_id), nw.news_id, NULL)) AS neue
+            MAX(IF ((chdate > IFNULL(b.visitdate, :threshold) AND nw.user_id !=:user_id), chdate, 0)) AS last_modified,
+            COUNT(IF((chdate > IFNULL(b.visitdate, :threshold) AND nw.user_id !=:user_id), nw.news_id, NULL)) AS neue
             FROM news_range a
             LEFT JOIN news nw ON(a . news_id = nw . news_id AND UNIX_TIMESTAMP() BETWEEN date AND (date + expire))
             LEFT JOIN object_user_visits b ON(b . object_id = a . news_id AND b . user_id = :user_id AND b . type = 'news')
@@ -138,6 +139,7 @@ class MyRealmModel
         $statement = DBManager::get()->prepare($sql);
         $statement->bindValue(':user_id', $user_id);
         $statement->bindValue(':course_id', $object_id);
+        $statement->bindValue(':threshold', ($threshold = Config::get()->NEW_INDICATOR_THRESHOLD) ? strtotime("-{$threshold} days 0:00:00") : 0);
         $statement->execute();
         $result = $statement->fetch(PDO::FETCH_ASSOC);
 
@@ -171,8 +173,8 @@ class MyRealmModel
         if ($my_obj["modules"]["scm"]) {
             $sql = "SELECT tab_name,  ouv.object_id,
                   COUNT(IF(content !='',1,0)) as count,
-                  COUNT(IF((chdate > IFNULL(ouv.visitdate,0) AND scm.user_id !=:user_id), IF(content !='',1,0), NULL)) AS neue,
-                  MAX(IF((chdate > IFNULL(ouv.visitdate,0) AND scm.user_id !=:user_id), chdate, 0)) AS last_modified
+                  COUNT(IF((chdate > IFNULL(ouv.visitdate, :threshold) AND scm.user_id !=:user_id), IF(content !='',1,0), NULL)) AS neue,
+                  MAX(IF((chdate > IFNULL(ouv.visitdate, :threshold) AND scm.user_id !=:user_id), chdate, 0)) AS last_modified
                 FROM
                   scm
                 LEFT JOIN
@@ -185,6 +187,7 @@ class MyRealmModel
             $statement = DBManager::get()->prepare($sql);
             $statement->bindValue(':user_id', $user_id);
             $statement->bindValue(':course_id', $object_id);
+            $statement->bindValue(':threshold', ($threshold = Config::get()->NEW_INDICATOR_THRESHOLD) ? strtotime("-{$threshold} days 0:00:00") : 0);
             $statement->execute();
             $result = $statement->fetch(PDO::FETCH_ASSOC);
 
@@ -236,8 +239,8 @@ class MyRealmModel
             $neue  = 0;
             // check for extern dates
             $sql       = "SELECT  COUNT(term.termin_id) as count,
-                  MAX(IF ((term.chdate > IFNULL(ouv.visitdate, 0) AND term.autor_id != :user_id), term.chdate, 0)) AS last_modified,
-                  COUNT(IF((term.chdate > IFNULL(ouv.visitdate,0) AND term.autor_id !=:user_id), term.termin_id, NULL)) AS neue
+                  MAX(IF ((term.chdate > IFNULL(ouv.visitdate, :threshold) AND term.autor_id != :user_id), term.chdate, 0)) AS last_modified,
+                  COUNT(IF((term.chdate > IFNULL(ouv.visitdate, :threshold) AND term.autor_id !=:user_id), term.termin_id, NULL)) AS neue
                 FROM
                   ex_termine term
                 LEFT JOIN
@@ -247,6 +250,7 @@ class MyRealmModel
             $statement = DBManager::get()->prepare($sql);
             $statement->bindValue(':user_id', $user_id);
             $statement->bindValue(':course_id', $object_id);
+            $statement->bindValue(':threshold', ($threshold = Config::get()->NEW_INDICATOR_THRESHOLD) ? strtotime("-{$threshold} days 0:00:00") : 0);
             $statement->execute();
             $result = $statement->fetch(PDO::FETCH_ASSOC);
 
@@ -261,8 +265,8 @@ class MyRealmModel
 
             // check for normal dates
             $sql = "SELECT  COUNT(term.termin_id) as count,
-                  COUNT(term.termin_id) as count, COUNT(IF((term.chdate > IFNULL(ouv.visitdate,0) AND term.autor_id !=:user_id), term.termin_id, NULL)) AS neue,
-                  MAX(IF ((term.chdate > IFNULL(ouv.visitdate, 0) AND term.autor_id != :user_id), term . chdate, 0)) AS last_modified
+                  COUNT(term.termin_id) as count, COUNT(IF((term.chdate > IFNULL(ouv.visitdate, :threshold) AND term.autor_id !=:user_id), term.termin_id, NULL)) AS neue,
+                  MAX(IF ((term.chdate > IFNULL(ouv.visitdate, :threshold) AND term.autor_id != :user_id), term . chdate, 0)) AS last_modified
                 FROM
                   termine term
                 LEFT JOIN
@@ -273,6 +277,7 @@ class MyRealmModel
             $statement = DBManager::get()->prepare($sql);
             $statement->bindValue(':user_id', $user_id);
             $statement->bindValue(':course_id', $object_id);
+            $statement->bindValue(':threshold', ($threshold = Config::get()->NEW_INDICATOR_THRESHOLD) ? strtotime("-{$threshold} days 0:00:00") : 0);
             $statement->execute();
             $result = $statement->fetch(PDO::FETCH_ASSOC);
 
@@ -309,8 +314,8 @@ class MyRealmModel
     {
         if ($my_obj["modules"]["wiki"]) {
             $sql       = "SELECT COUNT(DISTINCT keyword) as count_d,
-                COUNT(IF((chdate > IFNULL(ouv.visitdate,0) AND wiki.user_id !=:user_id), keyword, NULL)) AS neue,
-                MAX(IF((chdate > IFNULL(ouv.visitdate,0) AND wiki.user_id !=:user_id), chdate, 0)) AS last_modified,
+                COUNT(IF((chdate > IFNULL(ouv.visitdate, :threshold) AND wiki.user_id !=:user_id), keyword, NULL)) AS neue,
+                MAX(IF((chdate > IFNULL(ouv.visitdate, :threshold) AND wiki.user_id !=:user_id), chdate, 0)) AS last_modified,
               COUNT(keyword) as count
             FROM
               wiki
@@ -323,6 +328,7 @@ class MyRealmModel
             $statement = DBManager::get()->prepare($sql);
             $statement->bindValue(':user_id', $user_id);
             $statement->bindValue(':course_id', $object_id);
+            $statement->bindValue(':threshold', ($threshold = Config::get()->NEW_INDICATOR_THRESHOLD) ? strtotime("-{$threshold} days 0:00:00") : 0);
             $statement->execute();
             $result = $statement->fetch(PDO::FETCH_ASSOC);
 
@@ -358,8 +364,8 @@ class MyRealmModel
     {
         if ($my_obj["modules"]["elearning_interface"]) {
             $sql = "SELECT a.object_id, COUNT(module_id) as count,
-                COUNT(IF((chdate > IFNULL(b.visitdate,0) AND a.module_type != 'crs'), module_id, NULL)) AS neue,
-                MAX(IF((chdate > IFNULL(b.visitdate, 0) AND a.module_type != 'crs'), chdate, 0)) AS last_modified
+                COUNT(IF((chdate > IFNULL(b.visitdate, :threshold) AND a.module_type != 'crs'), module_id, NULL)) AS neue,
+                MAX(IF((chdate > IFNULL(b.visitdate, :threshold) AND a.module_type != 'crs'), chdate, 0)) AS last_modified
                 FROM
                 object_contentmodules a
                 LEFT JOIN object_user_visits b ON (b.object_id = a.object_id AND b.user_id = :user_id AND b.type ='elearning_interface')
@@ -369,6 +375,7 @@ class MyRealmModel
             $statement = DBManager::get()->prepare($sql);
             $statement->bindValue(':user_id', $user_id);
             $statement->bindValue(':course_id', $object_id);
+            $statement->bindValue(':threshold', ($threshold = Config::get()->NEW_INDICATOR_THRESHOLD) ? strtotime("-{$threshold} days 0:00:00") : 0);
             $statement->execute();
             $result = $statement->fetch(PDO::FETCH_ASSOC);
             if (!empty($result)) {
@@ -401,8 +408,8 @@ class MyRealmModel
         $count = 0;
         $neue  = 0;
         $sql   = "SELECT  COUNT(vote.vote_id) as count,
-              COUNT(IF((chdate > IFNULL(ouv.visitdate,0) AND vote.author_id !=:user_id AND vote.state != 'stopvis'), vote_id, NULL)) AS neue,
-              MAX(IF((chdate > IFNULL(ouv.visitdate,0) AND vote.author_id !=:user_id AND vote.state != 'stopvis'), chdate, 0)) AS last_modified
+              COUNT(IF((chdate > IFNULL(ouv.visitdate, :threshold) AND vote.author_id !=:user_id AND vote.state != 'stopvis'), vote_id, NULL)) AS neue,
+              MAX(IF((chdate > IFNULL(ouv.visitdate, :threshold) AND vote.author_id !=:user_id AND vote.state != 'stopvis'), chdate, 0)) AS last_modified
             FROM vote
             LEFT JOIN object_user_visits ouv ON(ouv.object_id = vote.vote_id AND ouv.user_id = :user_id AND ouv.type = 'vote')
             WHERE vote.range_id = :course_id AND vote.state IN('active','stopvis')
@@ -411,6 +418,7 @@ class MyRealmModel
         $statement = DBManager::get()->prepare($sql);
         $statement->bindValue(':user_id', $user_id);
         $statement->bindValue(':course_id', $object_id);
+        $statement->bindValue(':threshold', ($threshold = Config::get()->NEW_INDICATOR_THRESHOLD) ? strtotime("-{$threshold} days 0:00:00") : 0);
         $statement->execute();
         $result = $statement->fetch(PDO::FETCH_ASSOC);
 
@@ -427,8 +435,8 @@ class MyRealmModel
 
         $sql = "SELECT
                 COUNT(a.eval_id) as count,
-                COUNT(IF((chdate > IFNULL(b.visitdate,0) AND d.author_id !=:user_id ), a.eval_id, NULL)) AS neue,
-                MAX(IF ((chdate > IFNULL(b.visitdate, 0) AND d.author_id != :user_id), chdate, 0)) AS last_modified
+                COUNT(IF((chdate > IFNULL(b.visitdate, :threshold) AND d.author_id !=:user_id ), a.eval_id, NULL)) AS neue,
+                MAX(IF ((chdate > IFNULL(b.visitdate, :threshold) AND d.author_id != :user_id), chdate, 0)) AS last_modified
             FROM
                 eval_range a
             INNER JOIN
@@ -447,6 +455,7 @@ class MyRealmModel
         $statement = DBManager::get()->prepare($sql);
         $statement->bindValue(':user_id', $user_id);
         $statement->bindValue(':course_id', $object_id);
+        $statement->bindValue(':threshold', ($threshold = Config::get()->NEW_INDICATOR_THRESHOLD) ? strtotime("-{$threshold} days 0:00:00") : 0);
         $statement->execute();
         $result = $statement->fetch(PDO::FETCH_ASSOC);
         if (!empty($result)) {
@@ -543,14 +552,11 @@ class MyRealmModel
                 return (int)$a['status'] != 99;
             });
         }
-
         $courses = $courses->filter(function ($a) use ($min_sem, $max_sem) {
-            return (($a->end_semester->beginn >= $min_sem['beginn'])
-                || ($a->start_semester->beginn >= $min_sem['beginn'] && $a->end_semester->beginn <= $max_sem['beginn'])
-                || (int)$a->duration_time == -1);
+            return ($a->end_time >= $min_sem['beginn'] && $a->end_time <= $max_sem['beginn'])
+            || ($a->end_time == -1 && $a->start_time <= $max_sem['beginn'])
+            || ($a->end_time > $max_sem['beginn'] &&  $a->start_time <= $min_sem['beginn']);
         });
-
-
         $courses->orderBy($ordering);
 
         return $courses;
@@ -576,32 +582,6 @@ class MyRealmModel
         $statement = DBManager::get()->prepare($query);
         $statement->execute(array($range_id));
         return $statement->fetch(PDO::FETCH_COLUMN);
-    }
-
-    /**
-     * Get the start_ and end_sem_number for a given course
-     * @param $course
-     * @return array
-     */
-    public static function getCourseSemNumbers($course)
-    {
-        $sem_data = SemesterData::GetSemesterArray();
-        $result   = array();
-
-        foreach ($sem_data as $key => $sem) {
-            if (!empty($result['sem_number']) && !empty($result['sem_number_end'])) return $result;
-
-            if ($sem['semester_id'] == $course->start_semester->semester_id) $result['sem_number'] = $key;
-
-            if ($sem['semester_id'] == $course->end_semester->semester_id) $result['sem_number_end'] = $key;
-        }
-
-        // add the last existiting semester to unlimited courses / studygroup
-        if ((int)$course->duration_time == -1) {
-            $result['sem_number_end'] = max(array_keys($sem_data));
-        }
-
-        return $result;
     }
 
     public static function getSelectedSemesters($sem = 'all')
@@ -647,11 +627,13 @@ class MyRealmModel
     public static function getPreparedCourses($sem = "all", $params = array())
     {
         $semesters   = self::getSelectedSemesters($sem);
+        $current_semester_nr = SemesterData::GetSemesterIndexById(@Semester::findCurrent()->id);
         $min_sem_key = min($semesters);
         $max_sem_key = max($semesters);
         $group_field = $params['group_field'];
         $courses     = self::getCourses($min_sem_key, $max_sem_key, $params);
-
+        $show_semester_name = UserConfig::get($GLOBALS['user']->id)->SHOWSEM_ENABLE;
+        $sem_courses = array();
 
         $param_array = 'name seminar_id visible veranstaltungsnummer start_time duration_time status visible ';
         $param_array .= 'chdate admission_binding modules admission_prelim';
@@ -671,9 +653,6 @@ class MyRealmModel
                 if ($group_field == 'sem_tree_id') {
                     $_course['sem_tree'] = $course->study_areas->toArray();
                 }
-
-                // the sem numbers for a given course
-                $sem_nrs     = self::getCourseSemNumbers($course);
 
                 $user_status = @$member_ships[$course->id]['status'];
                 if(!$user_status && Config::get()->DEPUTIES_ENABLE && isDeputy($GLOBALS['user']->id, $course->id)) {
@@ -695,30 +674,30 @@ class MyRealmModel
                 $_course['visitdate']      = object_get_visit($course->id, 'sem', '');
                 $_course['user_status']    = $user_status;
                 $_course['gruppe']         = !$is_deputy ? @$member_ships[$course->id]['gruppe'] : self::getDeputieGroup($course->id);
-                $_course['sem_number_end'] = $sem_nrs['sem_number_end'];
-                $_course['sem_number']     = $sem_nrs['sem_number'];
+                $_course['sem_number_end'] = $course->duration_time == -1 ? $max_sem_key : SemesterData::GetSemesterIndexById($course->end_semester->id);
+                $_course['sem_number']     = SemesterData::GetSemesterIndexById($course->start_semester->id);
                 $_course['modules']        = $modules->getLocalModules($course->id, 'sem', $course->modules, $course->status);
                 $_course['name']           = $course->name;
                 $_course['temp_name']      = $course->name;
                 $_course['is_deputy']      = $is_deputy;
-
+                if ($show_semester_name && $course->duration_time != 0 && !$course->getSemClass()->offsetGet('studygroup_mode')) {
+                    $_course['name'] .= ' (' . $course->getFullname('sem-duration-name') . ')';
+                }
                 // add the the course to the correct semester
-                for ($i = $min_sem_key; $i <= $max_sem_key; $i++) {
-                    if ((int)$course->duration_time == -1) {
-                        self::getObjectValues($_course);
+                self::getObjectValues($_course);
+                if ($course->duration_time == -1) {
+                    if ($current_semester_nr >= $min_sem_key && $current_semester_nr <= $max_sem_key) {
+                        $sem_courses[$current_semester_nr][$course->id] = $_course;
+                    } else {
                         $sem_courses[$max_sem_key][$course->id] = $_course;
-                        unset($course[$index]);
-                        break;
                     }
-
-                    if ($i >= $sem_nrs['sem_number'] && $i <= $sem_nrs['sem_number_end']) {
-                        self::getObjectValues($_course);
-                        $sem_courses[$i][$course->id] = $_course;
-                        unset($course[$index]);
-                        break;
+                } else {
+                    for ($i = $min_sem_key; $i <= $max_sem_key; $i++) {
+                        if ($i >= $_course['sem_number'] && $i <= $_course['sem_number_end']) {
+                            $sem_courses[$i][$course->id] = $_course;
+                        }
                     }
                 }
-
             }
         } else {
             return null;
@@ -784,14 +763,15 @@ class MyRealmModel
 
                 $sql       = "SELECT
                         COUNT(a.user_id) as count,
-                        COUNT(IF((mkdate > IFNULL(b.visitdate,0) AND a.user_id !=:user_id), a.user_id, NULL)) AS neue,
-                        MAX(IF((mkdate > IFNULL(b.visitdate,0) AND a.user_id != :user_id), mkdate, 0)) AS last_modified
+                        COUNT(IF((mkdate > IFNULL(b.visitdate, :threshold) AND a.user_id !=:user_id), a.user_id, NULL)) AS neue,
+                        MAX(IF((mkdate > IFNULL(b.visitdate, :threshold) AND a.user_id != :user_id), mkdate, 0)) AS last_modified
                     FROM admission_seminar_user a
                     LEFT JOIN object_user_visits b ON (b.object_id = a.seminar_id AND b.user_id = :user_id AND b.type ='participants')
                     WHERE a.seminar_id = :course_id";
                 $statement = DBManager::get()->prepare($sql);
                 $statement->bindValue(':user_id', $user_id);
                 $statement->bindValue(':course_id', $object_id);
+                $statement->bindValue(':threshold', ($threshold = Config::get()->NEW_INDICATOR_THRESHOLD) ? strtotime("-{$threshold} days 0:00:00") : 0);
                 $statement->execute();
                 $result = $statement->fetch(PDO::FETCH_ASSOC);
 
@@ -807,14 +787,15 @@ class MyRealmModel
 
                 $sql       = "SELECT
                     COUNT(a . user_id) as count,
-                    COUNT(IF((mkdate > IFNULL(b.visitdate,0) AND a.user_id !=:user_id), a.user_id, NULL)) AS neue,
-                    MAX(IF ((mkdate > IFNULL(b.visitdate, 0) AND a.user_id != :user_id), mkdate, 0)) AS last_modified
+                    COUNT(IF((mkdate > IFNULL(b.visitdate, :threshold) AND a.user_id !=:user_id), a.user_id, NULL)) AS neue,
+                    MAX(IF ((mkdate > IFNULL(b.visitdate, :threshold) AND a.user_id != :user_id), mkdate, 0)) AS last_modified
                     FROM seminar_user a
                     LEFT JOIN object_user_visits b ON(b . object_id = a . seminar_id AND b . user_id = :user_id AND b . type = 'participants')
                     WHERE seminar_id = :course_id";
                 $statement = DBManager::get()->prepare($sql);
                 $statement->bindValue(':user_id', $user_id);
                 $statement->bindValue(':course_id', $object_id);
+                $statement->bindValue(':threshold', ($threshold = Config::get()->NEW_INDICATOR_THRESHOLD) ? strtotime("-{$threshold} days 0:00:00") : 0);
                 $statement->execute();
                 $result = $statement->fetch(PDO::FETCH_ASSOC);
 
@@ -856,9 +837,9 @@ class MyRealmModel
     public static function getDocumentsVisitDate($object_id, $user_id, $unreadable_folders = array())
     {
         $sql = "SELECT
-              MAX(IF ((d.chdate > IFNULL(ouv.visitdate, 0) AND d.user_id !=:user_id), d.chdate, 0)) AS last_modified,
+              MAX(IF ((d.chdate > IFNULL(ouv.visitdate, :threshold) AND d.user_id !=:user_id), d.chdate, 0)) AS last_modified,
               COUNT(d.dokument_id) as count,
-              COUNT(IF((d.chdate > IFNULL(ouv.visitdate,0) AND d.user_id !=:user_id), d.dokument_id, NULL)) AS neue
+              COUNT(IF((d.chdate > IFNULL(ouv.visitdate, :threshold) AND d.user_id !=:user_id), d.dokument_id, NULL)) AS neue
             FROM
               dokumente d
             LEFT JOIN object_user_visits ouv
@@ -870,6 +851,7 @@ class MyRealmModel
         $statement = DBManager::get()->prepare($sql);
         $statement->bindValue(':user_id', $user_id);
         $statement->bindValue(':course_id', $object_id);
+        $statement->bindValue(':threshold', ($threshold = Config::get()->NEW_INDICATOR_THRESHOLD) ? strtotime("-{$threshold} days 0:00:00") : 0);
         $statement->execute();
         return $statement->fetch(PDO::FETCH_ASSOC);
     }
@@ -884,6 +866,9 @@ class MyRealmModel
      */
     public static function getAdditionalNavigations($object_id, &$my_obj_values, $sem_class = null, $user_id)
     {
+        if ($threshold = Config::get()->NEW_INDICATOR_THRESHOLD) {
+            $my_obj_values['visitdate'] = max($my_obj_values['visitdate'], strtotime("-{$threshold} days 0:00:00"));
+        }
 
         $plugin_navigation = MyRealmModel::getPluginNavigationForSeminar($object_id, $my_obj_values['visitdate']);
         $available_modules = 'CoreForum participants documents overview scm schedule wiki vote literature elearning_interface';
@@ -1002,9 +987,7 @@ class MyRealmModel
         // load plugins, so they have a chance to register themselves as observers
         PluginEngine::getPlugins('StandardPlugin');
 
-        NotificationCenter::postNotification('OverviewWillClear', $user_id);
-
-        $query     = "INSERT INTO object_user_visits
+        $query = "INSERT INTO object_user_visits
                     (object_id, user_id, type, visitdate, last_visitdate)
                   (
                     SELECT news_id, :user_id, 'news', :timestamp, 0
@@ -1036,8 +1019,6 @@ class MyRealmModel
 
         // Update object itself
         object_set_visit($object_id, $object['obj_type']);
-
-        NotificationCenter::postNotification('OverviewDidClear', $GLOBALS['user']->id);
 
         return true;
     }

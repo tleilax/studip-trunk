@@ -215,7 +215,7 @@
         }
         active = true;
     };
-    
+
     // Stops the updater, also unregisters the activity handlers
     STUDIP.JSUpdater.stop = function () {
         if (active) {

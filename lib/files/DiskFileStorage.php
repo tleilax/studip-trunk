@@ -27,15 +27,20 @@ class DiskFileStorage implements FileStorage
      */
     public function __construct($storage_id = NULL, $user_id = null)
     {
-        $user_id = $user_id ?: $GLOBALS['user']->id;
+        $user_id  = $user_id ?: $GLOBALS['user']->id;
+        $user_dir = $GLOBALS['USER_DOC_PATH'] . DIRECTORY_SEPARATOR . $user_id;
+
+        if (!file_exists($user_dir)) {
+            mkdir($user_dir, 0755, true);
+        }
 
         if (isset($storage_id)) {
             $this->storage_id = $storage_id;
-            $path = array($GLOBALS['USER_DOC_PATH'], $user_id, $this->storage_id);
-            $this->file_path = join(DIRECTORY_SEPARATOR, $path);
         } else {
             $this->storage_id = md5(uniqid(__CLASS__, true));
         }
+
+        $this->file_path  = $user_dir . DIRECTORY_SEPARATOR . $this->storage_id;
     }
 
     /**
@@ -85,11 +90,14 @@ class DiskFileStorage implements FileStorage
     /**
      * Return the file's mime type, if known.
      *
+     * @param  string  $filename Optional filename if storage_id's do not
+     *                           provide enough information (like file
+     *                           extension)
      * @return string  mime type (NULL if unknown)
      */
-    public function getMimeType()
+    public function getMimeType($filename = null)
     {
-        return mime_content_type($this->file_path);
+        return get_mime_type($filename ?: $this->file_path);
     }
 
     /**
@@ -144,7 +152,7 @@ class DiskFileStorage implements FileStorage
     {
         return fopen($this->file_path, $mode);
     }
-    
+
     public static function getQuotaUsage($user_id)
     {
         $statement = DBManager::get()->prepare('SELECT SUM(size) FROM files WHERE user_id = :user_id');

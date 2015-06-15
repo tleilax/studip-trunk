@@ -72,10 +72,7 @@ jQuery(function () {
         jQuery('[autofocus]').first().focus();
     }
 
-    if (!STUDIP.WYSIWYG) {
-        // add toolbar only if WYSIWYG editor is not activated
-        jQuery('.add_toolbar').addToolbar();
-    }
+    jQuery('.add_toolbar').addToolbar();
 
     if (document.createElement('textarea').style.resize === undefined) {
         jQuery('textarea.resizable').resizable({
@@ -205,9 +202,15 @@ jQuery.ui.accordion.prototype.options.icons = {
         firstDay: 1,
         isRTL: false,
         showMonthAfterYear: false,
-        yearSuffix: ''
+        yearSuffix: '',
+        changeMonth: true,
+        changeYear: true
     };
     $.datepicker.setDefaults($.datepicker.regional.de);
+
+    $(document).on('focus', '.has-date-picker', function () {
+        $(this).removeClass('has-date-picker').datepicker();
+    });
 }(jQuery));
 
 /* ------------------------------------------------------------------------
@@ -274,31 +277,48 @@ jQuery(function ($) {
         stickySidebar();
     });
 
-    // Recalculcate positions on ajax and img load events.
-    // Inside the handlers the current document height is compared
-    // to the previous height before the event occured so recalculation
-    // only happens on actual changes
-    $(document).on('ajaxComplete', function () {
-        var curr_height = $(document).height();
-        if (doc_height !== curr_height) {
-            doc_height = curr_height;
-            $(document.body).trigger('sticky_kit:recalc');
-        }
-    });
-    $(document).on('load', '#layout_content img', function () {
-        var curr_height = $(document).height();
-        if (doc_height !== curr_height) {
-            doc_height = curr_height;
-            $(document.body).trigger('sticky_kit:recalc');
-        }
-    });
-
-    // Specialized handler to trigger recalculation when wysiwyg
-    // instances are created.
-    if (STUDIP.WYSIWYG) {
-        $(document).on('load.wysiwyg', 'textarea', function () {
-            $(document.body).trigger('sticky_kit:recalc');
+    if (window.MutationObserver !== undefined) {
+        // Attach mutation observer to #layout_content and trigger it on
+        // changes to class and style attributes (which affect the height
+        // of the content). Trigger a recalculation of the sticky kit when
+        // a mutation occurs so the sidebar will
+        var target = $('#layout_content')[0],
+            stickyObserver = new MutationObserver(function (mutations) {
+                $(document.body).trigger('sticky_kit:recalc');
+            });
+        stickyObserver.observe(target, {
+            attributes: true,
+            attributeFilter: ['style', 'class'],
+            characterData: true,
+            subtree: true
         });
+    } else {
+        // Recalculcate positions on ajax and img load events.
+        // Inside the handlers the current document height is compared
+        // to the previous height before the event occured so recalculation
+        // only happens on actual changes
+        $(document).on('ajaxComplete', function () {
+            var curr_height = $(document).height();
+            if (doc_height !== curr_height) {
+                doc_height = curr_height;
+                $(document.body).trigger('sticky_kit:recalc');
+            }
+        });
+        $(document).on('load', '#layout_content img', function () {
+            var curr_height = $(document).height();
+            if (doc_height !== curr_height) {
+                doc_height = curr_height;
+                $(document.body).trigger('sticky_kit:recalc');
+            }
+        });
+
+        // Specialized handler to trigger recalculation when wysiwyg
+        // instances are created.
+        if (STUDIP.wysiwyg) {
+            $(document).on('load.wysiwyg', 'textarea', function () {
+                $(document.body).trigger('sticky_kit:recalc');
+            });
+        }
     }
 
     $('a.print_action').live('click', function (event) {
@@ -323,14 +343,14 @@ jQuery(function ($) {
 /* Secure textareas by displaying a warning on page unload if there are
  unsaved changes */
 (function ($) {
-    function securityHandler(event) {
+    function securityHandlerWindow(event) {
         var message = 'Ihre Eingaben wurden bislang noch nicht gespeichert.'.toLocaleString();
         event = event || window.event || {};
         event.returnValue = message;
         return message;
     }
-    function submissionHandler() {
-        $(window).off('beforeunload', securityHandler);
+    function submissionHandlerWindow() {
+        $(window).off('beforeunload', securityHandlerWindow);
     }
 
     $(document).on('change keyup', 'textarea[data-secure]', function () {
@@ -346,15 +366,44 @@ jQuery(function ($) {
 
         if (action !== null) {
             // (at|de)tach before unload handler that will display the message
-            $(window)[action]('beforeunload', securityHandler);
+            $(window)[action]('beforeunload', securityHandlerWindow);
 
-            // (at|de)tach submit handler that will remove the securityHandler
+            // (at|de)tach submit handler that will remove the securityHandlerWindow
             // on form submission
-            $(this).closest('form')[action]('submit', submissionHandler);
+            $(this).closest('form')[action]('submit', submissionHandlerWindow);
 
             // Store current state
             $(this).data('secured', action === 'on');
         }
+
+        $(this).data('changed', changed);
+    });
+
+    function securityHandlerDialog(event, ui) {
+        var unchanged = true;
+        $('textarea[data-secure]', ui.dialog).each(function () {
+            unchanged = unchanged && this.value === this.defaultValue;
+        });
+
+        if (!unchanged && !confirm('Ihre Eingaben wurden bislang noch nicht gespeichert.'.toLocaleString())) {
+            event.preventDefault();
+            event.stopPropagation();
+            return false;
+        }
+
+        submissionHandlerWindow();
+        return true;
+    }
+
+    $(document).on('dialog-open', function (event, ui) {
+        if ($('textarea[data-secure]', ui.dialog).length === 0) {
+            return;
+        }
+
+        $(ui.dialog).on('dialogbeforeclose', securityHandlerDialog)
+            .find('form:has(textarea[data-secure])').on('submit', function () {
+                $(this).closest('ui.dialog').off('dialogbeforeclose', securityHandlerDialog);
+            });
     });
 }(jQuery));
 
@@ -367,6 +416,47 @@ jQuery(document).on('change', 'select[data-copy-to]', function () {
 
 jQuery(document).ready(function ($) {
     $('#checkAll').attr('checked', $('.sem_checkbox:checked').length !== 0);
+
+    // Duplicate scrollbar on top of layout content, if:
+    // - Device does not support touch input (supports sideways scrolling)
+    // - Content is wider than allowed (horizontal scrollbars are visible)
+    // - Content takes up more than 3/4 of the screen and vertical scrollbars
+    //   are visible (otherwise we can except the user to scroll a little bit
+    //   vertically)
+    if ($('html').is('.no-touch')) {
+        var $layout_content = $('#layout_content'),
+            $body           = $('body'),
+            content_element,
+            max_width       = 0,
+            // Determine whether there actually are horizontal scrollbars
+            horizontal_scroll  = $layout_content.get(0).scrollWidth > $layout_content.width(),
+            // Determine whether there actually are vertical scrollbars
+            vertical_scroll    = $body.get(0).scrollHeight > $body.height() + 10,
+            // Determine whether the content is large enough so that a duplication
+            // of the horizontal scrollbars is neccessary (3/4 or 75% seems like
+            // a good value)
+            vertical_oversized = $layout_content.height() > $body.height() * 0.75;
+
+        // Determine the widest element in the content. The double scroll
+        // library needs this, otherwise the scrollbar on top is kinda
+        // messed up
+        $layout_content.children().each(function () {
+            var width = $(this).get(0).scrollWidth;
+            if (width > max_width) {
+                content_element = this;
+                max_width = width;
+            }
+        });
+
+        if (horizontal_scroll && vertical_scroll && vertical_oversized) {
+            // #layout_content's children need to be wrapped in a div since
+            // the flexi layout will interfere with inserted element by
+            // the double scroll library
+            $layout_content.children().wrapAll('<div>').parent().doubleScroll({
+                contentElement: content_element
+            });
+        }
+    }
 });
 
 

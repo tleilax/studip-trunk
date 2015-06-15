@@ -37,17 +37,17 @@
 // +---------------------------------------------------------------------------+
 
 
-require_once($GLOBALS['RELATIVE_PATH_EXTERN'].'/lib/ExternModule.class.php');
-require_once($GLOBALS['RELATIVE_PATH_EXTERN'].'/views/extern_html_templates.inc.php');
-require_once('lib/classes/DataFieldEntry.class.php');
-require_once('lib/visual.inc.php');
-require_once('lib/user_visible.inc.php');
-require_once('lib/statusgruppe.inc.php');
-require_once('lib/dates.inc.php');
-require_once($GLOBALS['RELATIVE_PATH_EXTERN'].'/lib/extern_functions.inc.php');
-if ($GLOBALS["CALENDAR_ENABLE"]) {
-    require_once($GLOBALS["RELATIVE_PATH_CALENDAR"] . "/lib/SingleCalendar.class.php");
-    require_once($GLOBALS["RELATIVE_PATH_CALENDAR"] . "/lib/DbCalendarEventList.class.php");
+require_once 'lib/classes/DataFieldEntry.class.php';
+require_once 'lib/visual.inc.php';
+require_once 'lib/user_visible.inc.php';
+require_once 'lib/statusgruppe.inc.php';
+require_once 'lib/dates.inc.php';
+require_once $GLOBALS['RELATIVE_PATH_EXTERN'] . '/lib/extern_functions.inc.php';
+require_once $GLOBALS['RELATIVE_PATH_EXTERN'] . '/lib/ExternModule.class.php';
+require_once $GLOBALS['RELATIVE_PATH_EXTERN'] . '/views/extern_html_templates.inc.php';
+
+if (Config::get()->CALENDAR_ENABLE) {
+    require_once 'app/models/calendar/SingleCalendar.php';
 }
 global $_fullname_sql;
 
@@ -231,7 +231,7 @@ class ExternModuleTemplatePersondetails extends ExternModule {
             $markers['TemplateAppointments'][] = array('<!-- END NO-APPOINTMENTS -->', '');
             $markers['TemplateAppointments'][] = array('<!-- BEGIN ALL-APPOINTMENTS -->', '');
             $markers['TemplateAppointments'][] = array('<!-- BEGIN SINGLE-APPOINTMENT -->', '');
-            $markers['TemplateAppointments'][] = array('###DATE###', _("Start und Endzeit oder ganztügig"));
+            $markers['TemplateAppointments'][] = array('###DATE###', _("Start und Endzeit oder ganztägig"));
             $markers['TemplateAppointments'][] = array('###BEGIN###', '');
             $markers['TemplateAppointments'][] = array('###END###', '');
             $markers['TemplateAppointments'][] = array('###TITLE###', '');
@@ -606,12 +606,12 @@ class ExternModuleTemplatePersondetails extends ExternModule {
 
     private function getContentAppointments () {
         if (get_config('CALENDAR_ENABLE')) {
-            $event_list = new DbCalendarEventList(new SingleCalendar($this->user_id));
-            $content['APPOINTMENTS']['LIST-START'] = ExternModule::ExtHtmlReady(strftime($this->config->getValue('Main', 'dateformat') . ' %X', $event_list->getStart()));
-            $content['APPOINTMENTS']['LIST-END'] = ExternModule::ExtHtmlReady(strftime($this->config->getValue('Main', 'dateformat') . ' %X', $event_list->getEnd()));
-            if ($event_list->existEvent()) {
+            $events = SingleCalendar::getEventList($this->user_id, time(), time() + 60 * 60 * 24 * 7, null, array('class' => 'PUBLIC'), array('CalendarEvent'));
+            $content['APPOINTMENTS']['LIST-START'] = ExternModule::ExtHtmlReady(strftime($this->config->getValue('Main', 'dateformat') . ' %X', time()));
+            $content['APPOINTMENTS']['LIST-END'] = ExternModule::ExtHtmlReady(strftime($this->config->getValue('Main', 'dateformat') . ' %X', time() + 60 * 60 * 24 * 7));
+            if (sizeof($events)) {
                 $i = 0;
-                while ($event = $event_list->nextEvent()) {
+                foreach ($events as $event) {
                     if ($event->isDayEvent()) {
                         $content['APPOINTMENTS']['ALL-APPOINTMENTS']['SINGLE-APPOINTMENT'][$i]['DATE'] = ExternModule::ExtHtmlReady(strftime($this->config->getValue('Main', 'dateformat'), $event->getStart()) . ' (' . _("ganztügig") . ')');
                     } else {
@@ -695,20 +695,18 @@ class ExternModuleTemplatePersondetails extends ExternModule {
                 $types[] = $key;
             }
         }
-        $stm = DBManager::get()->prepare(sprintf(
+        $stm = DBManager::get()->prepare(
             "SELECT s.Name, s.Seminar_id, s.Untertitel, s.VeranstaltungsNummer "
             . "FROM seminar_user su "
             . "LEFT JOIN seminare s USING(seminar_id) "
             . "WHERE user_id = ? AND su.status LIKE 'dozent' "
-            . "AND ((start_time >= ? AND start_time <= ?) "
-            . "OR (start_time <= ? AND duration_time = -1)) "
-            . "AND s.status IN ('%s') AND s.visible = 1 "
-            . "ORDER BY s.mkdate DESC"
-            , implode("','", $types)));
+            . "AND start_time <= ? AND (? <= start_time + duration_time OR duration_time = -1) "
+            . "AND s.status IN (?) AND s.visible = 1 "
+            . "ORDER BY Name");
 
         $i = 0;
         for (;$current_sem <= $last_sem; $last_sem--) {
-            $stm->execute(array($this->user_id, $all_semester[$last_sem]['beginn'], $all_semester[$last_sem]['beginn'],$all_semester[$last_sem]['ende']));
+            $stm->execute(array($this->user_id, $all_semester[$last_sem]['beginn'], $all_semester[$last_sem]['beginn'], $types ?: ''));
             $result = $stm->fetchAll();
 
             if ($result && sizeof($result)) {

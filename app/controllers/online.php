@@ -14,7 +14,6 @@
  */
 
 require_once 'app/controllers/authenticated_controller.php';
-require_once 'lib/contact.inc.php';
 
 class OnlineController extends AuthenticatedController
 {
@@ -35,7 +34,6 @@ class OnlineController extends AuthenticatedController
 
         $this->set_layout($GLOBALS['template_factory']->open('layouts/base'));
 
-        $this->buddy_count = GetNumberOfBuddies();
         $this->settings    = $GLOBALS['user']->cfg->MESSAGING_SETTINGS;
 
         // If "show_groups" setting is not set, default it to whether the
@@ -56,7 +54,8 @@ class OnlineController extends AuthenticatedController
      **/
     public function index_action()
     {
-        $this->contact_count = GetSizeOfBook(); // Total number of contacts
+
+        $this->contact_count = Contact::countBySQL('owner_id=?', array(User::findCurrent()->id)); // Total number of contacts
 
         $this->users           = $this->getOnlineUsers($this->settings['show_groups']);
         $this->showOnlyBuddies = $this->settings['show_only_buddys'];
@@ -72,14 +71,14 @@ class OnlineController extends AuthenticatedController
 
         // Add buddy configuration option to sidebar only if the user actually
         // has buddies
-        if ($this->buddy_count > 0) {
+        if ($this->contact_count > 0) {
             $actions = new OptionsWidget();
-            
-            $actions->addCheckbox(_('Nur Buddies in der Übersicht der aktiven Benutzer anzeigen'),
+
+            $actions->addCheckbox(_('Nur Kontakte in der Übersicht der aktiven Benutzer anzeigen'),
                                   $this->settings['show_only_buddys'],
                                   $this->url_for('online/config/show_buddies/' . get_ticket()));
 
-            $actions->addCheckbox(_('Kontaktgruppen bei der Buddy-Darstellung berücksichtigen'),
+            $actions->addCheckbox(_('Kontaktgruppen bei der Darstellung berücksichtigen'),
                                   $this->settings['show_groups'],
                                   $this->url_for('online/config/show_groups/' . get_ticket()));
 
@@ -100,13 +99,18 @@ class OnlineController extends AuthenticatedController
     {
         $username = Request::username('username');
 
-        $messaging = new messaging;
         if ($action === 'add' && $username !== null) {
-            $messaging->add_buddy($username);
-            PageLayout::postMessage(MessageBox::success(_('Der Benutzer wurde zu Ihren Buddies hinzugefügt.')));
+            if (Contact::import(array(
+                'owner_id' => User::findCurrent()->id,
+                'user_id' => User::findByUsername($username)->id)
+                    )->store()) {
+                PageLayout::postMessage(MessageBox::success(_('Der Benutzer wurde zu Ihren Kontakten hinzugefügt.')));
+            }
         } elseif ($action === 'remove' && $username !== null) {
-            $messaging->delete_buddy($username);
-            PageLayout::postMessage(MessageBox::success(_('Der Benutzer gehört nicht mehr zu Ihren Buddies.')));
+            $contact = Contact::find(array(User::findCurrent()->id, User::findByUsername($username)->id));
+            if ($contact && $contact->delete()) {
+                PageLayout::postMessage(MessageBox::success(_('Der Benutzer gehört nicht mehr zu Ihren Kontakten.')));
+            }
         }
         $this->redirect('online');
     }
@@ -128,10 +132,10 @@ class OnlineController extends AuthenticatedController
                 $this->settings['show_groups'] = (int)!$this->settings['show_groups'];
             }
             $GLOBALS['user']->cfg->store('MESSAGING_SETTINGS', $this->settings);
-            
+
             $message = MessageBox::success(_('Ihre Einstellungen wurden gespeichert.'));
         }
-        
+
         PageLayout::postMessage($message);
         $this->redirect('online');
     }
@@ -207,7 +211,7 @@ class OnlineController extends AuthenticatedController
                     $buddies[$username]['group_id']       = $group['statusgruppe_id'];
                     $buddies[$username]['group_position'] = $group['position'];
                 } else {
-                    $buddies[$username]['group']          = _('Buddies ohne Gruppenzuordnung');
+                    $buddies[$username]['group']          = _('Kontakte ohne Gruppenzuordnung');
                     $buddies[$username]['group_id']       = 'all';
                     $buddies[$username]['group_position'] = 100000;
                 }

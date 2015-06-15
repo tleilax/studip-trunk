@@ -49,7 +49,7 @@
     </colgroup>
     <caption>
         <?=
-        sprintf(_('%s im %s'), htmlReady($selected_inst['Name']), htmlReady($semester->name)) ?>
+        sprintf(_('%s im %s'), !is_null($selected_inst) ? htmlReady($selected_inst['Name']) : _('Alle Einrichtungen'), htmlReady($semester->name)) ?>
         <span class="actions">
                 <?= sprintf('%u %s', $count_courses, $count_courses > 1 ? _('Veranstaltungen') : _('Veranstaltung')) ?>
             </span>
@@ -108,7 +108,7 @@
             </th>
         <? endif ?>
         <? if (in_array('Inhalt', $view_filter)) : ?>
-            <th>
+            <th style="width: <?= $nav_elements * 27 ?>px">
                 <?= 'Inhalt' ?>
             </th>
         <? endif ?>
@@ -121,7 +121,9 @@
         <? if (count($courses) > 10): ?>
             <tr>
                 <th colspan="<?= $colspan ?>" style="text-align: right">
-                    <?= Studip\Button::createAccept(sprintf('%s', $actions[$selected_action]['button_name']), 'save_action') ?>
+                    <?= Studip\Button::createAccept(is_string($actions[$selected_action]['multimode'])
+                        ? $actions[$selected_action]['multimode']
+                        : $actions[$selected_action]['title'], 'save_action') ?>
                 </th>
             </tr>
         <? endif; ?>
@@ -129,10 +131,6 @@
     </thead>
     <tbody>
     <? foreach ($courses as $semid => $values) { ?>
-        <?
-        $sem_class = $GLOBALS['SEM_CLASS'][$GLOBALS['SEM_TYPE'][$values["status"]]["class"]];
-        $lastVisit = $values['visitdate'];
-        ?>
         <tr>
             <td>
                 <?=
@@ -143,14 +141,13 @@
             <? if (in_array('Nr.', $view_filter)) : ?>
                 <td>
                     <a href="<?= URLHelper::getLink('seminar_main.php', array('auswahl' => $semid)) ?>">
-                        <?= $values["VeranstaltungsNummer"] ?>
+                        <?= htmlReady($values["VeranstaltungsNummer"]) ?>
                     </a>
                 </td>
             <? endif ?>
             <? if (in_array('Name', $view_filter)) : ?>
                 <td>
-                    <a href="<?= URLHelper::getLink('seminar_main.php', array('auswahl' => $semid)) ?>"
-                       style="<?= lastVisit <= $values['chdate'] ? 'color: red;' : '' ?>">
+                    <a href="<?= URLHelper::getLink('seminar_main.php', array('auswahl' => $semid)) ?>">
                         <?= htmlReady(trim($values["Name"])) ?>
                     </a>
                     <a data-dialog="buttons=false;size=auto" href="<?= $controller->url_for(sprintf('course/details/index/%s', $semid)) ?>">
@@ -165,7 +162,7 @@
             <? endif ?>
             <? if (in_array('Veranstaltungstyp', $view_filter)) : ?>
                 <td>
-                    <strong><?= $values['sem_class_name'] ?></strong>: <?= $GLOBALS['SEM_TYPE'][$values["status"]]["name"] ?>
+                    <strong><?= $GLOBALS['SEM_CLASS'][$GLOBALS['SEM_TYPE'][$values["status"]]["class"]]['name'] ?></strong>: <?= $GLOBALS['SEM_TYPE'][$values["status"]]["name"] ?>
                 </td>
             <? endif ?>
             <? if (in_array('Raum/Zeit', $view_filter)) : ?>
@@ -180,21 +177,37 @@
                 </td>
             <? endif ?>
             <? if (in_array('DozentIn', $view_filter)) : ?>
-                <td><?= $this->render_partial_collection('my_courses/_dozent', $values['dozenten']) ?></td>
+                <td>
+                    <?= $this->render_partial_collection('my_courses/_dozent', $values['dozenten']) ?>
+                    <br />
+                    <?=$values['teacher_search']->render()?>
+                </td>
             <? endif ?>
             <? if (in_array('TeilnehmerInnen', $view_filter)) : ?>
-                <td style="text-align: center;"><?= $values["teilnehmer"] ?></td>
+                <td style="text-align: center;">
+                    <a title=<?=_('TeilnehmerInnen')?>" href="<?= URLHelper::getLink('dispatch.php/course/members', array('cid' => $semid))?>">
+                        <?= $values["teilnehmer"] ?>
+                    </a>
+                </td>
             <? endif ?>
             <? if (in_array('TeilnehmerInnen auf Warteliste', $view_filter)) : ?>
-                <td style="text-align: center;"><?= $values["waiting"] ?></td>
+                <td style="text-align: center;">
+                    <a title=<?=_('TeilnehmerInnen auf der Warteliste')?>" href="<?= URLHelper::getLink('dispatch.php/course/members', array('cid' => $semid))?>">
+                        <?= $values["waiting"] ?>
+                    </a>
+                </td>
             <? endif ?>
             <? if (in_array('Vorläufige Anmeldungen', $view_filter)) : ?>
-                <td style="text-align: center;"><?= $values["prelim"] ?></td>
+                <td style="text-align: center;">
+                    <a title=<?=_('Vorläufige Anmeldungen')?>" href="<?= URLHelper::getLink('dispatch.php/course/members', array('cid' => $semid))?>">
+                        <?= $values["prelim"] ?>
+                    </a>
+                </td>
             <? endif ?>
             <? if (in_array('Inhalt', $view_filter)) : ?>
-                <td>
-                    <? if (!empty($values['navigations'])) : ?>
-                        <? foreach (MyRealmModel::array_rtrim($values['navigations']) as $key => $nav)  : ?>
+                <td style="text-align: left; white-space: nowrap;">
+                    <? if (!empty($values['navigation'])) : ?>
+                        <? foreach (MyRealmModel::array_rtrim($values['navigation']) as $key => $nav)  : ?>
                             <? if (isset($nav) && $nav->isVisible(true)) : ?>
                                 <? $image = $nav->getImage(); ?>
                                 <a href="<?=
@@ -237,7 +250,7 @@
                 else : ?>
                     <?=
                     \Studip\LinkButton::createEdit(
-                        _($actions[$selected_action]['button_name']),
+                        _($actions[$selected_action]['title']),
                         URLHelper::getURL(sprintf($actions[$selected_action]['url'], $semid),
                             ($actions[$selected_action]['params'] ? $actions[$selected_action]['params'] : array())),
                         ($actions[$selected_action]['attributes'] ? $actions[$selected_action]['attributes'] : array())
@@ -254,7 +267,7 @@
                 <?= Studip\Button::createAccept(
                     is_string($actions[$selected_action]['multimode'])
                         ? $actions[$selected_action]['multimode']
-                        : $actions[$selected_action]['button_name'],
+                        : $actions[$selected_action]['title'],
                     $actions[$selected_action]['name']) ?>
             </td>
         </tr>

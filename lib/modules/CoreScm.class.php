@@ -33,7 +33,7 @@ class CoreScm implements StudipModule {
             $navigation->setActiveImage('icons/16/black/infopage.png');
 
             foreach ($scms as $scm) {
-                $scm_link = URLHelper::getLink('dispatch.php/course/scm/' . $scm->id);
+                $scm_link = 'dispatch.php/course/scm/' . $scm->id;
                 $nav = new Navigation($scm['tab_name'], $scm_link);
                 $navigation->addSubNavigation($scm->id, $nav);
             }
@@ -116,7 +116,28 @@ class CoreScm implements StudipModule {
                 'wird die Seite für die Angabe von Literatur genutzt als '.
                 'Alternative zum Plugin Literatur. Sie kann aber auch für '.
                 'andere beliebige Zusatzinformationen (Links, Protokolle '.
-                'etc.) verwendet werden.')
+                'etc.) verwendet werden.'),
+            'displayname' => _('Informationen'),
+            'category' => _('Lehr- und Lernorganisation'),
+            'keywords' => _('Raum für eigene Informationen;
+                            Name des Reiters frei definierbar;
+                            Beliebig erweiterbar durch zusätzliche "neue Einträge"'),
+            'descriptionshort' => _('Freie Gestaltung von Reiternamen und Inhalten durch Lehrende.'),
+            'descriptionlong' => _('Diese Seite kann von Lehrenden nach ihren speziellen Anforderungen eingerichtet werden. '.
+                                    'So ist z.B. der Titel im Reiter frei definierbar. Ferner können beliebig viele neue '.
+                                    'Eintragsseiten eingefügt werden. Für jeden Eintrag öffnet sich eine Seite mit einem '.
+                                    'Text-Editor, in den beliebiger Text eingefüft, eingegeben und formatiert werden kann. '.
+                                    'Oft wird die Seite für die Angabe von Literatur genutzt als Alternative zur Funktion '.
+                                    'Literatur. Sie kann aber auch für andere beliebige Zusatzinformationen (Links, Protokolle '.
+                                    'etc.) verwendet werden.'),
+            'icon' => 'icons/16/black/infopage.png',
+            'screenshots' => array(
+                'path' => 'plus/screenshots/Freie_Informationsseite',
+                'pictures' => array(
+                    0 => array('source' => 'Zwei_Eintraege_mit_Inhalten_zur_Verfuegung_stellen.jpg', 'title' => _('Zwei Einträge mit Inhalten zur Verfügung stellen')),
+                    1 => array( 'source' => 'Neue_Informationsseite_anlegen.jpg', 'title' => _('Neue Informationsseite anlegen'))
+                )
+            )       
         );
     }
 }

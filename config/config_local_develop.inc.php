@@ -157,7 +157,7 @@ $WEBSERVICES_ENABLE = TRUE;
 $PLUGINS_UPLOAD_ENABLE = TRUE;                  //Upload of Plugins is enabled
 
 $PLUGIN_REPOSITORIES = array(
-    'http://plugins.studip.de/plugin-wiki.php'
+    'http://plugins.studip.de/plugins.xml',
 );
 
 /*system functions
@@ -362,7 +362,6 @@ all uppercase each item of the configuration array will become a member of your 
 $STUDIP_AUTH_PLUGIN[] = "Standard";
 // $STUDIP_AUTH_PLUGIN[] = "CAS";
 $STUDIP_AUTH_PLUGIN[] = "Shib";
-//$STUDIP_AUTH_PLUGIN[] = "IP";
 
 $STUDIP_AUTH_CONFIG_STANDARD = array("error_head" => "intern");
 
@@ -442,7 +441,6 @@ $STUDIP_AUTH_CONFIG_STANDARDEXTERN = array( "db_host" => "localhost",
                                                 "user_info.schwerp" => array("callback" => "doExternMap", "map_args" => "schwerp"),
                                                 "user_info.Home" => array("callback" => "doExternMap", "map_args" => "Home")));
 
-$STUDIP_AUTH_CONFIG_IP = array('root' => array('127.0.0.1', '::1'));
 */
 
 //some additional authification-settings

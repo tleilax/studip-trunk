@@ -38,9 +38,10 @@
                 <a href="<?= PluginEngine::getLink('coreforum/index/index/'. $jump_to_topic_id .'#'. $jump_to_topic_id) ?>">
                     <span class="areaname"><?= htmlReady($entry['name_raw']) ?></span>
                 </a>
-                <div class="areacontent">
-                    <?= htmlReady(ForumEntry::killEdit(substr($entry['content_raw'], 0, 150))) ?>
-                    <? if(strlen($entry['content_raw']) > 150) : ?>...<? endif ?>
+                <div class="areacontent" data-content="<?= htmlReady($entry['content_raw']) ?>">
+                    <? $description = ForumEntry::killFormat(ForumEntry::killEdit($entry['content_raw'])) ?>
+                    <?= htmlReady(substr($description, 0, 150))
+                    ?><?= (strlen($description) > 150) ? '&hellip;' : '' ?>
                 </div>
             </span>
 
@@ -87,7 +88,7 @@
         <? endif; ?>
         <? if (!$entry['last_posting']['anonymous'] || $entry['last_posting']['user_id'] == $GLOBALS['user']->id || $GLOBALS['perm']->have_perm('root')): ?>
         <a href="<?= UrlHelper::getLink('about.php?username='. $entry['last_posting']['username']) ?>">
-                <?= htmlReady($entry['last_posting']['user_fullname']) ?>
+            <?= htmlReady(($temp_user = User::find($entry['last_posting']['user_id'])) ? $temp_user->getFullname() : $entry['last_posting']['user_fullname']) ?>
         </a><br>
         <?= _("am") ?> <?= strftime($time_format_string_short, (int)$entry['last_posting']['date']) ?>
         <a href="<?= PluginEngine::getLink('coreforum/index/index/'. $entry['last_posting']['topic_id']) ?>#<?= $entry['last_posting']['topic_id'] ?>" alt="<?= $infotext ?>" title="<?= $infotext ?>">

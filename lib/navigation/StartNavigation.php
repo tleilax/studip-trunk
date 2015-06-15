@@ -20,9 +20,7 @@ class StartNavigation extends Navigation
      */
     public function __construct()
     {
-
-        parent::__construct(_('Start'), 'index.php');
-
+        parent::__construct(_('Start'), URLHelper::getLink('dispatch.php/start'));
     }
 
     public function initItem()
@@ -31,30 +29,22 @@ class StartNavigation extends Navigation
 
         if (is_object($GLOBALS['user']) && $GLOBALS['user']->id != 'nobody') {
             if (WidgetHelper::hasWidget($GLOBALS['user']->id, 'News')) {
-                $query = "SELECT SUM(chdate > IFNULL(b.visitdate, 0) AND nw.user_id != :user_id)
-                          FROM news_range a
-                          LEFT JOIN news nw ON (a.news_id = nw.news_id AND UNIX_TIMESTAMP() BETWEEN date AND date + expire)
-                          LEFT JOIN object_user_visits b ON (b.object_id = nw.news_id AND b.user_id = :user_id AND b.type = 'news')
-                          WHERE a.range_id = 'studip'
-                          GROUP BY a.range_id";
-                $statement = DBManager::get()->prepare($query);
-                $statement->bindValue(':user_id', $GLOBALS['user']->id);
-                $statement->execute();
-                $news = (int)$statement->fetchColumn();
+                $news = StudipNews::CountUnread();
             }
 
             if (Config::get()->VOTE_ENABLE && WidgetHelper::hasWidget($GLOBALS['user']->id, 'Evaluations')) {
-                $query = "SELECT COUNT(IF(chdate > IFNULL(b.visitdate, 0) AND a.author_id != :user_id AND a.state != 'stopvis', vote_id, NULL))
+                $query = "SELECT COUNT(IF(chdate > IFNULL(b.visitdate, :threshold) AND a.author_id != :user_id AND a.state != 'stopvis', vote_id, NULL))
                           FROM vote a
                           LEFT JOIN object_user_visits b ON (b.object_id = vote_id AND b.user_id = :user_id AND b.type = 'vote')
                           WHERE a.range_id = 'studip' AND a.state IN ('active', 'stopvis')
                           GROUP BY a.range_id";
                 $statement = DBManager::get()->prepare($query);
                 $statement->bindValue(':user_id', $GLOBALS['user']->id);
+                $statement->bindValue(':threshold', ($threshold = Config::get()->NEW_INDICATOR_THRESHOLD) ? strtotime("-{$threshold} days 0:00:00") : 0);
                 $statement->execute();
                 $vote = (int)$statement->fetchColumn();
 
-                $query = "SELECT COUNT(IF(chdate > IFNULL(b.visitdate, 0) AND d.author_id != :user_id, a.eval_id, NULL))
+                $query = "SELECT COUNT(IF(chdate > IFNULL(b.visitdate, :threshold) AND d.author_id != :user_id, a.eval_id, NULL))
                           FROM eval_range a
                           INNER JOIN eval d ON (a.eval_id = d.eval_id AND d.startdate < UNIX_TIMESTAMP() AND
                                             (d.stopdate > UNIX_TIMESTAMP() OR d.startdate + d.timespan > UNIX_TIMESTAMP() OR (d.stopdate IS NULL AND d.timespan IS NULL)))
@@ -63,6 +53,7 @@ class StartNavigation extends Navigation
                           GROUP BY a.range_id";
                 $statement = DBManager::get()->prepare($query);
                 $statement->bindValue(':user_id', $GLOBALS['user']->id);
+                $statement->bindValue(':threshold', ($threshold = Config::get()->NEW_INDICATOR_THRESHOLD) ? strtotime("-{$threshold} days 0:00:00") : 0);
                 $statement->execute();
                 $vote += (int)$statement->fetchColumn();
             }
@@ -100,6 +91,10 @@ class StartNavigation extends Navigation
         $username = $auth->auth['uname'];
 
         parent::initSubNavigation();
+
+        if (!$perm->have_perm('user')) {
+            return;
+        }
 
         $sem_create_perm = in_array(get_config('SEM_CREATE_PERM'), array('root','admin','dozent')) ? get_config('SEM_CREATE_PERM') : 'dozent';
 
@@ -225,7 +220,7 @@ class StartNavigation extends Navigation
             $navigation = new Navigation(_('Mein Planer'));
 
             if (get_config('CALENDAR_ENABLE')) {
-                $navigation->addSubNavigation('calendar', new Navigation(_('Terminkalender'), 'calendar.php?caluser=self'));
+                $navigation->addSubNavigation('calendar', new Navigation(_('Terminkalender'), 'dispatch.php/calendar/single'));
             }
 
             if (get_config('SCHEDULE_ENABLE')) {

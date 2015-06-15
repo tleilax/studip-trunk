@@ -18,7 +18,8 @@ use Studip\Button, Studip\LinkButton;
 <? if ($delete_plugin): ?>
     <?= $GLOBALS['template_factory']->render('shared/question',
         array('question' => sprintf(_('Wollen Sie wirklich "%s" deinstallieren?'), $delete_plugin['name']),
-              'approvalLink' => $controller->url_for('admin/plugin/delete', $delete_plugin['id']).'?studip_ticket='.get_ticket(),
+              'approvalLink' => $controller->url_for('admin/plugin/delete/' . $delete_plugin['id'],
+                                                     array('studip_ticket' => get_ticket())),
               'disapprovalLink' => $controller->url_for('admin/plugin'))) ?>
 <? endif ?>
 
@@ -94,7 +95,11 @@ use Studip\Button, Studip\LinkButton;
                     <td class="actions" width="20">
                         <? if (!$plugin['depends'] && isset($update_info[$pluginid]['version']) && !$plugin['core']): ?>
                         <a href="<?= $controller->url_for('admin/plugin/edit_automaticupdate', $pluginid) ?>" data-dialog>
-                            <?= Assets::img('icons/20/blue/move_down/plugin', array('title' => _('Automatisches Update verwalten'))) ?>
+                            <? if ($plugin['automatic_update_url']) : ?>
+                                <?= Assets::img('icons/20/red/move_down/plugin', array('title' => _('Automatisches Update verwalten (eingerichtet)'))) ?>
+                            <? else : ?>
+                                <?= Assets::img('icons/20/blue/move_down/plugin', array('title' => _('Automatisches Update verwalten'))) ?>
+                            <? endif ?>
                         </a>
                         <? endif ?>
                     </td>

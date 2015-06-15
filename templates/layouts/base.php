@@ -7,16 +7,16 @@ if ($navigation) {
     $subnavigation = $navigation->activeSubNavigation();
     if ($subnavigation !== null) {
         $nav_links = new NavigationWidget();
+        $nav_links->id = 'sidebar-navigation';
         foreach ($subnavigation as $path => $nav) {
             if (!$nav->isVisible()) {
                 continue;
             }
-            $image = $nav->getImage();
             $nav_id = "nav_".implode("_", preg_split("/\//", $tab_root_path, -1, PREG_SPLIT_NO_EMPTY))."_".$path;
             $link = $nav_links->addLink(
                 $nav->getTitle(),
                 URLHelper::getLink($nav->getURL()),
-                $image ? $image['src'] : null,
+                null,
                 array('id' => $nav_id)
             );
             $link->setActive($nav->isActive());
@@ -66,7 +66,7 @@ if ($infobox && is_array($infobox)) {
     <script>
         STUDIP.ABSOLUTE_URI_STUDIP = "<?= $GLOBALS['ABSOLUTE_URI_STUDIP'] ?>";
         STUDIP.ASSETS_URL = "<?= $GLOBALS['ASSETS_URL'] ?>";
-        STUDIP.STUDIP_SHORT_NAME = "<?= $GLOBALS['STUDIP_SHORT_NAME'] ?>";
+        STUDIP.STUDIP_SHORT_NAME = "<?= Config::get()->STUDIP_SHORT_NAME ?>";
         String.locale = "<?= htmlReady(strtr($_SESSION['_language'], '_', '-')) ?>";
         <? if (is_object($GLOBALS['perm']) && $GLOBALS['perm']->have_perm('autor') && PersonalNotifications::isActivated()) : ?>
         STUDIP.jsupdate_enable = true;
@@ -113,7 +113,7 @@ if ($infobox && is_array($infobox)) {
         </div>
     </div> <? // Closes #layout_page opened in included templates/header.php ?>
 
-    <? include 'templates/footer.php'; ?>
+    <?= $this->render_partial('footer'); ?>
     <!-- Ende Page -->
     <? /* <div id="layout_push"></div> */ ?>
 </div>

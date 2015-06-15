@@ -983,19 +983,18 @@ function wikiEdit($keyword, $wikiData, $user_id, $backpage=NULL)
     if ($keyword=='toc') {
         $message = MessageBox::info(_("Sie bearbeiten die QuickLinks."), array(_("Verwenden Sie Aufzählungszeichen (-, --, ---), um Verweise auf Seiten hinzuzufügen.")));
         PageLayout::postMessage($message);
-        if (!$body) { $body=_("- WikiWikiWeb\n- BeispielSeite\n-- UnterSeite1\n-- UnterSeite2"); }
+        if (!$body) {
+            $body=_("- WikiWikiWeb\n- BeispielSeite\n-- UnterSeite1\n-- UnterSeite2");
+        }
     }
 
-    $cont .= "<p><form method=\"post\" action=\"".URLHelper::getLink("?keyword=".urlencode($keyword)."&cmd=edit")."\">";
-    $cont .= CSRFProtection::tokenTag();
-    $cont .= "<textarea name=\"body\" class=\"wiki-editor add_toolbar resizable\" data-secure=\"true\">".htmlready($body)."</textarea>\n";
-    $cont .= "<input type=\"hidden\" name=\"wiki\" value=\"".htmlReady($keyword)."\">";
-    $cont .= "<input type=\"hidden\" name=\"version\" value=\"".htmlReady($version)."\">";
-    $cont .= "<input type=\"hidden\" name=\"submit\" value=\"true\">";
-    $cont .= "<input type=\"hidden\" name=\"cmd\" value=\"show\">";
-    $cont .= '<br><br>' . Button::createAccept(_('Speichern')) . "&nbsp;" . LinkButton::createCancel(_('Abbrechen'),URLHelper::getURL("?cmd=abortedit&keyword=".urlencode($keyword).$lastpage));
-    $cont .= "</form>\n";
-    printcontent(0,0,$cont,"");
+    $template = $GLOBALS['template_factory']->open('wiki/edit.php');
+    $template->keyword = $keyword;
+    $template->version = $version;
+    $template->body    = $body;
+    $cont = $template->render();
+
+    printcontent(0, 0, $cont, '');
 
     Helpbar::get()->setVariables(array(
         'help_link' => format_help_url('Basis.VerschiedenesFormat'),
@@ -1478,10 +1477,10 @@ function showWikiPage($keyword, $version, $special="", $show_comments="icon", $h
         } else {
             $edit="";
             if ($perm->have_studip_perm("autor", $SessSemName[1])) {
-                $edit.=LinkButton::create(_('Bearbeiten'), URLHelper::getURL("?keyword=".urlencode($keyword)."&view=edit"),array('title'=>_('Seite bearbeiten')));
+                $edit.=LinkButton::create(_('Bearbeiten'), URLHelper::getURL("?keyword=".urlencode($keyword)."&view=edit"));
             }
             if ($perm->have_studip_perm("tutor", $SessSemName[1])) {
-                $edit.=LinkButton::create(_('Löschen'),URLHelper::getURL("?keyword=".urlencode($keyword)."&cmd=delete&version=latest"),array('title'=> _('Seite löschen')) );
+                $edit.=LinkButton::create(_('Löschen'),URLHelper::getURL("?keyword=".urlencode($keyword)."&cmd=delete&version=latest"));
             }
         }
         $edit .= "<br>&nbsp;";

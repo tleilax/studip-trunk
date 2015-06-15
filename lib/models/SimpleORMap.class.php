@@ -742,7 +742,14 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
         //if configuration data for subclass is found, point internal properties to it
         if (self::$config[$class] !== null) {
             foreach (array_keys(self::$config[$class]) as $config_key) {
-                $this->$config_key = self::$config[$class][$config_key];
+                //workaround if old-style config in contructor is used
+                if (is_array($this->{$config_key}) && count($this->{$config_key})) {
+                    foreach (array_keys(self::$config[$class][$config_key]) as $config_sub_key) {
+                        $this->{$config_key}[$config_sub_key] = self::$config[$class][$config_key][$config_sub_key];
+                    }
+                } else {
+                    $this->{$config_key} = self::$config[$class][$config_key];
+                }
             }
         }
 
@@ -830,11 +837,11 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
      */
     protected function _setAdditionalValueFromRelation($field, $value)
     {
-    	list($relation, $relation_field) = array($this->additional_fields[$field]['relation'],
-    			$this->additional_fields[$field]['relation_field']);
-    	$this->$relation->$field = $value;
-    	unset($this->additional_data[$field]);
-    	return $this->_getAdditionalValueFromRelation($field);
+        list($relation, $relation_field) = array($this->additional_fields[$field]['relation'],
+                $this->additional_fields[$field]['relation_field']);
+        $this->$relation->$field = $value;
+        unset($this->additional_data[$field]);
+        return $this->_getAdditionalValueFromRelation($field);
     }
 
     /**
@@ -843,7 +850,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
      */
     protected function _getAdditionalValue($field)
     {
-    	return $this->additional_data[$field];
+        return $this->additional_data[$field];
     }
 
     /**
@@ -1129,10 +1136,38 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
             $fields = array_intersect($only_these_fields, $fields);
         }
         foreach($fields as $field) {
-           $ret[$field] = $this->getValue($field);
-           if ($ret[$field] instanceof StudipArrayObject) {
-               $ret[$field] = $ret[$field]->getArrayCopy();
-           }
+            $ret[$field] = $this->getValue($field);
+            if ($ret[$field] instanceof StudipArrayObject) {
+                $ret[$field] = $ret[$field]->getArrayCopy();
+            }
+        }
+        return $ret;
+    }
+
+    /**
+     * Returns data of table row as assoc array with raw contents like
+     * they are in the database.
+     * Pass array of fieldnames or ws separated string to limit
+     * fields.
+     *
+     * @param mixed $only_these_fields
+     * @return array
+     */
+    function toRawArray($only_these_fields = null)
+    {
+        $ret = array();
+        if (is_string($only_these_fields)) {
+            $only_these_fields = words($only_these_fields);
+        }
+        $fields = array_keys($this->db_fields);
+        if (is_array($only_these_fields)) {
+            $only_these_fields = array_filter(array_map(function($s) {
+                return is_string($s) ? strtolower($s) : null;
+            }, $only_these_fields));
+            $fields = array_intersect($only_these_fields, $fields);
+        }
+        foreach($fields as $field) {
+            $ret[$field] = $this->content[$field];
         }
         return $ret;
     }

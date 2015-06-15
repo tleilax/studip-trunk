@@ -77,6 +77,7 @@ class Course_AdmissionController extends AuthenticatedController
         if (!SeminarCategories::GetByTypeId($this->course->status)->write_access_nobody) {
             $this->is_locked['write_level'] = 'disabled readonly';
         }
+        update_admission($this->course->id);
         PageLayout::addSqueezePackage('admission');
     }
 
@@ -363,8 +364,8 @@ class Course_AdmissionController extends AuthenticatedController
                     PageLayout::postMessage(MessageBox::success(sprintf(_("Die Zuordnung zum Anmeldeset %s wurde aufgehoben."), htmlReady($cs->getName()))));
                 }
                 if (!count($cs->getCourses())
-                    && $this->user_id == $cs->getUserId()
-                    && $cs->getPrivate()) {
+                    && $cs->isGlobal()
+                    && $cs->getUserid() != '') {
                     $cs->delete();
                 }
                 if ($this->course->getNumWaiting()) {

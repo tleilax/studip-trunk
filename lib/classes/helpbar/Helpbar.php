@@ -18,6 +18,7 @@ class Helpbar extends WidgetContainer
         parent::__construct();
         
         $this->json_directory = $GLOBALS['STUDIP_BASE_PATH'] . '/doc/helpbar';
+        $this->help_admin = isset($GLOBALS['perm']) && ($GLOBALS['perm']->have_perm('root') || RolePersistence::isAssignedRole($GLOBALS['user']->id, 'Hilfe-Administrator(in)'));
     }
     
     /**
@@ -29,7 +30,17 @@ class Helpbar extends WidgetContainer
         foreach ($help_content as $row) {
             $this->addPlainText($row['label'] ?: '',
                                 $this->interpolate($row['content'], $this->variables),
-                                $row['icon'] ? sprintf('icons/16/white/%s.png', $row['icon']) : null);
+                                $row['icon'] ? sprintf('icons/16/white/%s.png', $row['icon']) : null,
+                                URLHelper::getURL('dispatch.php/help_content/edit/'.$row['content_id']),
+                                URLHelper::getURL('dispatch.php/help_content/delete/'.$row['content_id']));
+        }  
+        if (!count($help_content) && $this->help_admin) {
+            $this->addPlainText('',
+                                '',
+                                null,
+                                null,
+                                null,
+                                URLHelper::getURL('dispatch.php/help_content/edit/new'.'?help_content_route='.get_route()));
         }
     }
     
@@ -95,7 +106,7 @@ class Helpbar extends WidgetContainer
         return str_replace(array_keys($replaces), array_values($replaces), $string);
     }
 
-    public function addPlainText($label, $text, $icon = null)
+    public function addPlainText($label, $text, $icon = null, $edit_link = null, $delete_link = null, $add_link = null)
     {
         if (is_array($text)) {
             $first = array_shift($text);
@@ -118,6 +129,11 @@ class Helpbar extends WidgetContainer
         $widget = new HelpbarWidget();
         $widget->setIcon($icon);
         $widget->addElement(new WidgetElement($content));
+        if ($this->help_admin) {
+            $widget->edit_link = $edit_link;
+            $widget->delete_link = $delete_link;
+            $widget->add_link = $add_link;
+        }
         $this->addWidget($widget);
     }
     
@@ -179,7 +195,6 @@ class Helpbar extends WidgetContainer
      */
     public function render()
     {
-        // add content
         $this->loadContent();
 
         // add tour links

@@ -2,7 +2,7 @@
 
 /*
  *  Copyright (c) 2012  Rasmus Fuhse <fuhse@data-quest.de>
- * 
+ *
  *  This program is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License as
  *  published by the Free Software Foundation; either version 2 of
@@ -18,6 +18,7 @@
 <input type="hidden" id="search" value="<?= htmlReady($search) ?>">
 <input type="hidden" id="browser_start_time" value="">
 <input type="hidden" id="loaded" value="1">
+<input type="hidden" id="orderby" value="discussion_time">
 <div id="editing_question" style="display: none;"><?= _("Wollen Sie den Beitrag wirklich bearbeiten?") ?></div>
 
 <div id="threadwriter">
@@ -70,20 +71,6 @@
 $sidebar = Sidebar::get();
 $sidebar->setImage('sidebar/blubber-sidebar.png');
 
-if (count($tags) && $tags[0]) {
-    $cloud = new LinkCloudWidget();
-    $cloud->setTitle(_("Hashtags"));
-    $maximum = $tags[0]['counter'];
-    //$average = ceil(array_sum(array_filter($tags, function ($val) { return $val['counter']; })) / count($tags));
-    foreach ($tags as $tag) {
-        $cloud->addLink(
-            "#".$tag['tag'], 
-            URLHelper::getLink("plugins.php/blubber/streams/forum", array('cid' => $_SESSION['SessionSeminar'], 'hash' => $tag['tag'])),
-            ceil(10 * $tag['counter'] / $maximum)
-        );
-    }
-    $sidebar->addWidget($cloud, 'tagcloud');
-}
-
+$controller->addTagCloudWidgetToSidebar($tags, 'forum');
 
 

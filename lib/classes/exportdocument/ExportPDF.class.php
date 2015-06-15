@@ -97,6 +97,11 @@ class ExportPDF extends TCPDF implements ExportDocument {
         $content = preg_replace_callback('/<img[^>]+src="(.*?)"[^>]*>/', function ($match) {
             $url = $match[1];
 
+            // Detect possible html entities in url and remove them
+            if (strpos($url, '&amp;') !== false) {
+                $url = html_entity_decode($url);
+            }
+
             // Handle optional media proxy
             if (Config::GetInstance()->LOAD_EXTERNAL_MEDIA) {
                 $parsed = parse_url($url);
@@ -116,9 +121,11 @@ class ExportPDF extends TCPDF implements ExportDocument {
                 $url = $header['Location'] ?: $header['location'] ?: $url;
             } while (in_array($status, array(300, 301, 302, 303, 305, 307)));
 
-            // Replace image with link on error, otherwise return sainitized
+            $status = $status ?: 404;
+
+            // Replace image with link on error (and not internal), otherwise return sainitized
             // url
-            return (!$status || $status >= 400)
+            return ((!is_internal_url($url) || $status == 404) && $status >= 400)
                  ? sprintf('[<a href="%s">%s</a>]', $url, basename($url))
                  : str_replace($match[1], $url, $match[0]);
         }, $content);
@@ -130,7 +137,7 @@ class ExportPDF extends TCPDF implements ExportDocument {
      *
      * @param <type> $commented_by
      * @param <type> $text
-     * @return <type> 
+     * @return <type>
      */
     public function addEndnote($commented_by, $text)
     {
@@ -243,7 +250,7 @@ class ExportPDF extends TCPDF implements ExportDocument {
     public function setHeaderData($ln = '', $lw = 0, $ht = '', $hs = '') {
         $logo_path = get_config("PDF_LOGO");
         if (!$ln) {
-            $ln = $logo_path ? $logo_path : '../../../public/assets/images/logos/logoklein.png';
+            $ln = $logo_path ? $logo_path : '../../../../public/assets/images/logos/logoklein.png';
         }
         $lw = 30;
         $ht = ($ht == '' ? $this->h_title : $ht);
@@ -291,16 +298,19 @@ class ExportPDF extends TCPDF implements ExportDocument {
                 } catch (Exception $e) {
                     $convurl = '';
                 }
+            } else if (stripos($url, 'dispatch.php/document/download') !== false) {
+                if (preg_match('#([a-f0-9]{32})#', $url, $matches)) {
+                    $convurl = DirectoryEntry::find($matches[1])->file->getStorageObject()->getPath();
+                }
             } else if (stripos($url, 'download') !== false
                     || stripos($url, 'sendfile.php') !== false) {
                 //// get file id
-                $matches = array();
                 if (preg_match('#([a-f0-9]{32})#', $url, $matches)) {
                     $document = new StudipDocument($matches[1]);
                     if ($document->checkAccess($GLOBALS['user']->id)) {
                         $convurl = get_upload_file_path($matches[1]);
                     } else {
-                        $convurl = Assets::image_path("access_denied.png");
+                        $convurl = Assets::image_path('messagebox/exception.png');
                     }
                 }
             }

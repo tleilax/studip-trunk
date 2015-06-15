@@ -51,12 +51,15 @@ abstract class WidgetContainer
      * @param Widget $widget The actual widget
      * @param String $index  Optional index/name of the widget, defaults to
      *                       class name without "widget"
+     * @return Widget The added widget to allow for easier handling
      */
     public function addWidget(Widget $widget, $index = null)
     {
         $index = $index ?: $this->guessIndex($widget);
 
         $this->widgets[$index] = $widget;
+
+        return $widget;
     }
 
     /**
@@ -67,6 +70,7 @@ abstract class WidgetContainer
      * @param String $before_index Insert widget before this widget
      * @param String $index  Optional index/name of the widget, defaults to
      *                       class name without "widget"
+     * @return Widget The inserted widget to allow for easier handling
      */
     public function insertWidget(Widget $widget, $before_index, $index = null)
     {
@@ -92,6 +96,8 @@ abstract class WidgetContainer
         }
 
         $this->widgets = $widgets;
+        
+        return $widget;
     }
 
     /**
@@ -154,7 +160,18 @@ abstract class WidgetContainer
     {
         return count($this->widgets) > 0;
     }
-    
+
+    /**
+     * Returns whether a widget exists at the given index.
+     *
+     * @param String $index Index/name of the widget to check for.
+     * @return bool Does a widget exist at the given index?
+     */
+    public function hasWidget($index)
+    {
+        return isset($this->widgets[$index]);
+    }
+
     /**
      * Renders the container.
      *

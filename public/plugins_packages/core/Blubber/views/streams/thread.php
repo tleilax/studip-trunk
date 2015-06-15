@@ -2,7 +2,7 @@
 
 /*
  *  Copyright (c) 2012  Rasmus Fuhse <fuhse@data-quest.de>
- * 
+ *
  *  This program is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License as
  *  published by the Free Software Foundation; either version 2 of
@@ -25,6 +25,7 @@ $commentable = $GLOBALS['perm']->have_perm("autor") ? true : (bool) $commentable
 <input type="hidden" id="user_id" value="<?= htmlReady($GLOBALS['user']->id) ?>">
 <input type="hidden" id="stream_time" value="<?= time() ?>">
 <input type="hidden" id="browser_start_time" value="">
+<input type="hidden" id="orderby" value="mkdate">
 <div id="editing_question" style="display: none;"><?= _("Wollen Sie den Beitrag wirklich bearbeiten?") ?></div>
 <? if (Navigation::hasItem("/community/blubber")) : ?>
 <p>
@@ -35,9 +36,9 @@ $commentable = $GLOBALS['perm']->have_perm("autor") ? true : (bool) $commentable
         case "public":
             $overview_url = URLHelper::getURL("plugins.php/blubber/streams/profile", array('user_id' => $thread['user_id'], 'extern' => $thread['external_contact'] ? $thread['external_contact'] : null));
             break;
-        default: 
+        default:
             $overview_url = URLHelper::getURL("plugins.php/blubber/streams/global");
-    } ?> 
+    } ?>
     <a href="<?= URLHelper::getLink($overview_url) ?>">
         <?= Assets::img('icons/16/blue/arr_1left', array('class' => 'text-top')) ?>
         <?= _('Zurück zur Übersicht') ?>
@@ -47,8 +48,7 @@ $commentable = $GLOBALS['perm']->have_perm("autor") ? true : (bool) $commentable
 
 <ul id="blubber_threads" class="coursestream singlethread" aria-live="polite" aria-relevant="additions">
 <? endif; ?>
-<li id="posting_<?= htmlReady($thread->getId()) ?>" mkdate="<?= htmlReady($thread['discussion_time']) ?>" data-discussion_time="<?= htmlReady($thread['discussion_time']) ?>" class="thread posting<?= $last_visit < $thread['mkdate'] ? " new" : "" ?> <?= $thread['context_type'] ?>" data-autor="<?= htmlReady($thread['user_id']) ?>">
-    <? $thread['discussion_time'] ?>
+<li id="posting_<?= htmlReady($thread->getId()) ?>" mkdate="<?= htmlReady($thread['discussion_time']) ?>" data-discussion_time="<?= htmlReady($thread['discussion_time']) ?>" data-mkdate="<?= htmlReady($thread['discussion_time']) ?>" class="thread posting<?= $last_visit < $thread['mkdate'] ? " new" : "" ?> <?= $thread['context_type'] ?>" data-autor="<?= htmlReady($thread['user_id']) ?>">
     <div class="hiddeninfo">
         <input type="hidden" name="context" value="<?= htmlReady($thread['Seminar_id']) ?>">
         <input type="hidden" name="context_type" value="<?= $thread['Seminar_id'] === $thread['user_id'] ? "public" : "course" ?>">
@@ -62,7 +62,7 @@ $commentable = $GLOBALS['perm']->have_perm("autor") ? true : (bool) $commentable
         <div class="name"><?= htmlReady(Course::find($thread['Seminar_id'])->name) ?></div><div class="empty"></div>
     </a>
     <? elseif($thread['context_type'] === "private") : ?>
-    <? 
+    <?
         if (count($related_users) > 20) {
             $title = _("Privat: ").sprintf(_("%s Personen"), count($related_users));
         } else {
@@ -93,15 +93,15 @@ $commentable = $GLOBALS['perm']->have_perm("autor") ? true : (bool) $commentable
     <? $sharing_user_ids = array_map(function ($v) { return $v['user_id']; }, $sharingusers) ?>
     <div class="reshares<?= count($sharingusers) > 0 ? " reshared" : "" ?>">
         <? if (count($sharingusers)) : ?>
-            <? if ((!CheckBuddy(get_username($thread['user_id'])) || $thread['external_contact']) && ($GLOBALS['user']->id !== $thread['user_id'])) : ?>
+            <? if ((!User::findCurrent()->isFriendOf($thread) || $thread['external_contact']) && ($GLOBALS['user']->id !== $thread['user_id'])) : ?>
                 <? $sharingcontacts = "" ?>
                 <? $othersharing = 0 ?>
                 <? foreach ($sharingusers as $key => $user) {
-                    if (CheckBuddy(get_username($user['user_id']))) {
+                    if (User::findCurrent()->isFriendOf($user)) {
                         $url = $user->getURL();
                         $name = $user->getName();
-                        if ($url) { 
-                            $sharingcontacts .= '<a href="'.$url.'" title="'.htmlReady($name).'">'; 
+                        if ($url) {
+                            $sharingcontacts .= '<a href="'.$url.'" title="'.htmlReady($name).'">';
                         }
                         $sharingcontacts .= $user->getAvatar()->getImageTag(Avatar::SMALL, array('title' => $name));
                         if ($url) {
@@ -165,7 +165,7 @@ $commentable = $GLOBALS['perm']->have_perm("autor") ? true : (bool) $commentable
             <? endif ?>
         </div>
         <div class="content">
-            <? 
+            <?
             $content = $thread['description'];
             if ($thread['name'] && strpos($thread['description'], $thread['name']) === false) {
                 $content = $thread['name']."\n".$content;
@@ -179,13 +179,13 @@ $commentable = $GLOBALS['perm']->have_perm("autor") ? true : (bool) $commentable
             <a href="<?= $link ?>"><?= htmlReady("#".$tag) ?></a>
             <? endif ?>
         <? endforeach ?></div>
-        <div class="opengraph_area"><? 
+        <div class="opengraph_area"><?
             if (count(OpenGraphURL::$tempURLStorage)) {
                 $og = new OpenGraphURL(OpenGraphURL::$tempURLStorage[0]);
                 if (!$og->isNew()) {
                     echo $og->render();
-                } 
-            } 
+                }
+            }
         ?></div>
     </div>
     <ul class="comments">

@@ -65,8 +65,7 @@ require_once('lib/language.inc.php');
 
 global $i_page,
        $DEFAULT_LANGUAGE, $SessSemName, $SessionSeminar,
-       $sess, $auth, $user, $perm,
-       $CALENDAR_ENABLE, $_language_path;
+       $sess, $auth, $user, $perm, $_language_path;
 
 //get the name of the current page in $i_page
 $i_page = basename($_SERVER['PHP_SELF']);
@@ -133,14 +132,14 @@ PluginEngine::loadPlugins();
 if ((Navigation::hasItem('/course/admin') || $GLOBALS['perm']->have_perm('admin'))
     && ($perm->have_studip_perm('tutor', $SessSemName[1]) && $SessSemName['class'] == 'sem')
     && ($SessSemName['class'] != 'sem' || !$GLOBALS['SEM_CLASS'][$GLOBALS['SEM_TYPE'][$SessSemName['art_num']]['class']]['studygroup_mode'])) {
-    $plus_nav = new Navigation('+', 'dispatch.php/course/plus/index');
-    $plus_nav->setDescription(_("Inhaltselemente konfigurieren"));
+    $plus_nav = new Navigation(_('Mehr …'), 'dispatch.php/course/plus/index');
+    $plus_nav->setDescription(_("Mehr Stud.IP-Funktionen für Ihre Veranstaltung"));
     Navigation::addItem('/course/modules', $plus_nav);
 }
 // add navigation item for profile: add modules
 if (Navigation::hasItem('/profile/edit')) {
-    $plus_nav = new Navigation('+', 'dispatch.php/profilemodules/index');
-    $plus_nav->setDescription(_("Inhaltselemente konfigurieren"));
+    $plus_nav = new Navigation(_('Mehr …'), 'dispatch.php/profilemodules/index');
+    $plus_nav->setDescription(_("Mehr Stud.IP-Funktionen für Ihr Profil"));
     Navigation::addItem('/profile/modules', $plus_nav);
 }
 if ($user_did_login) {

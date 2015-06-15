@@ -11,10 +11,17 @@
         <?= $received ? _("Eingang") : _("Gesendet") ?>
         <? if (Request::get("tag")) : ?>
             <?= ", "._("Schlagwort: ").htmlReady(ucfirst(Request::get("tag"))) ?>
+            <form action="<?= $controller->url_for('messages/delete_tag', array('tag' => Request::get("tag"))) ?>" method="post" style="display: inline;">
+                <button onClick="return window.confirm('<?= _("Schlagwort wirklich löschen?") ?>');" style="background: none; border: none; cursor: pointer;">
+                    <?= Assets::img("icons/20/blue/trash") ?>
+                </button>
+                <?= CSRFProtection::tokenTag() ?>
+            </form>
         <? endif ?>
     </caption>
     <thead>
         <tr>
+            <th></th>
             <th></th>
             <th><?= _("Betreff") ?></th>
             <th><?= $received ? _("Gesendet") : _("Empfänger") ?></th>
@@ -95,7 +102,7 @@ $actions->addLink(
     'icons/16/blue/add/mail.png',
     array('data-dialog' => 'width=650;height=600')
 );
-if (Navigation::getItem('/messaging/messages/inbox')->isActive()) {
+if (Navigation::getItem('/messaging/messages/inbox')->isActive() && $messages) {
     $actions->addLink(
         _('Alle als gelesen markieren'),
         $controller->url_for('messages/overview', array('read_all' => 1)),

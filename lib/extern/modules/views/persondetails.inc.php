@@ -4,17 +4,16 @@
 # Lifter007: TODO
 # Lifter010: TODO
 
-require_once('lib/statusgruppe.inc.php');
-require_once($GLOBALS['RELATIVE_PATH_EXTERN'] . '/lib/extern_functions.inc.php');
+require_once 'lib/statusgruppe.inc.php';
+require_once $GLOBALS['RELATIVE_PATH_EXTERN'] . '/lib/extern_functions.inc.php';
 
-if ($GLOBALS["CALENDAR_ENABLE"]) {
-    require_once($GLOBALS["RELATIVE_PATH_CALENDAR"] . "/lib/SingleCalendar.class.php");
-    require_once($GLOBALS["RELATIVE_PATH_CALENDAR"] . "/lib/DbCalendarEventList.class.php");
+if (Config::get()->CALENDAR_ENABLE) {
+    require_once 'app/models/calendar/SingleCalendar.php';
 }
 
 $instituts_id = $this->config->range_id;
-$username = $args["username"];
-$sem_id = $args["seminar_id"];
+$username = $args['username'];
+$sem_id = $args['seminar_id'];
 
 // Mitarbeiter/in am Institut
 $ext_vis_query = get_ext_vis_query();
@@ -266,7 +265,7 @@ function news (&$module, $row, $alias_content, $text_div, $text_div_end)
 
 function termine (&$module, $row, $alias_content, $text_div, $text_div_end)
 {
-    if ($GLOBALS["CALENDAR_ENABLE"] && Visibility::verify('dates', $row['user_id'])) {
+    if (Config::get()->CALENDAR_ENABLE && Visibility::verify('dates', $row['user_id']) || 1) {
         if ($margin = $module->config->getValue("TableParagraphSubHeadline", "margin")) {
             $subheadline_div = "<div style=\"margin-left:$margin;\">";
             $subheadline_div_end = "</div>";
@@ -276,8 +275,10 @@ function termine (&$module, $row, $alias_content, $text_div, $text_div_end)
             $subheadline_div_end = "";
         }
 
-        $event_list = new DbCalendarEventList(new SingleCalendar($row['user_id']));
-        if ($event_list->existEvent()) {
+        $event_list = SingleCalendar::getEventList($this->user_id, time(),
+                time() + 60 * 60 * 24 * 7, null, array('class' => 'PUBLIC'),
+                array('CalendarEvent'));
+        if (sizeof($event_list)) {
             echo "<tr><td width=\"100%\">\n";
             echo "<table" . $module->config->getAttributes("TableParagraph", "table") . ">\n";
             echo "<tr" . $module->config->getAttributes("TableParagraphHeadline", "tr") . ">";
@@ -285,7 +286,7 @@ function termine (&$module, $row, $alias_content, $text_div, $text_div_end)
             echo "<font" . $module->config->getAttributes("TableParagraphHeadline", "font") . ">";
             echo "$alias_content</font></td></tr>\n";
 
-            while ($event = $event_list->nextEvent()) {
+            foreach ($event_list as $event) {
                 echo "<tr" . $module->config->getAttributes("TableParagraphSubHeadline", "tr") . ">";
                 echo "<td" . $module->config->getAttributes("TableParagraphSubHeadline", "td") . ">";
                 echo $subheadline_div;
@@ -404,15 +405,13 @@ function lehre (&$module, $row, $alias_content, $text_div, $text_div_end)
         $last_sem = count($all_semester) - 1;
     }
 
-    // TODO: [tlx] This query seems a bit odd if you look at it's line 5
     $query = "SELECT *
               FROM seminar_user AS su
               LEFT JOIN seminare AS s USING (seminar_id)
               WHERE user_id = :user_id AND su.status = 'dozent'
-                AND ((start_time >= :beginn AND start_time <= :beginn) OR
-                     (start_time <= :ende AND duration_time = -1))
+                AND start_time <= :beginn AND (:beginn <= start_time + duration_time OR duration_time = -1)
                 AND s.status IN (:types) AND s.visible = 1
-              ORDER BY s.mkdate DESC";
+              ORDER BY Name";
     $statement = DBManager::get()->prepare($query);
     $statement->bindValue(':user_id', $row['user_id']);
     $statement->bindValue(':types', $types ?: '');
@@ -420,7 +419,6 @@ function lehre (&$module, $row, $alias_content, $text_div, $text_div_end)
     $out = '';
     for (;$current_sem <= $last_sem; $last_sem--) {
         $statement->bindValue(':beginn', $all_semester[$last_sem]['beginn']);
-        $statement->bindValue(':ende', $all_semester[$last_sem]['ende']);
         $statement->execute();
         $data = $statement->fetchAll(PDO::FETCH_ASSOC);
 
@@ -694,36 +692,3 @@ function kontakt ($module, $row, $separate = FALSE) {
 
     return $out;
 }
-
-/*
-function literature (&$module, $content, $alias_content, $text_div, $text_div_end) {
-    if (count($content)) {
-        echo "<tr><td width=\"100%\">\n";
-        echo "<table" . $module->config->getAttributes("TableParagraph", "table") . ">\n";
-        echo "<tr" . $module->config->getAttributes("TableParagraphHeadline", "tr") . ">";
-        echo "<td" . $module->config->getAttributes("TableParagraphHeadline", "td") . ">";
-        echo "<font" . $module->config->getAttributes("TableParagraphHeadline", "font") . ">";
-        echo "$alias_content</font></td></tr>\n";
-
-        $tmpl = "\n<!-- BEGIN LITLIST -->\n   ";
-        $tmpl .= '<tr' . $module->config->getAttributes('TableParagraphSubHeadline', 'tr') . '>';
-        $tmpl .= '<td' . $module->config->getAttributes('TableParagraphSubHeadline', 'td') . '>';
-        $tmpl .= $subheadline_div;
-        $tmpl .= '<font' . $module->config->getAttributes('TableParagraphSubHeadline', 'font') . '>';
-        $tmpl .= '###LITLIST_NAME###';
-        $tmpl .= "</font>$subheadline_div_end</td></tr>\n";
-        $tmpl .= "\n  <!-- BEGIN LITLIST_ITEM -->\n  ";
-        $tmpl .=        '<tr' . $module->config->getAttributes('TableParagraphText', 'tr') . '>';
-        $tmpl .=        '<td' . $module->config->getAttributes('TableParagraphText', 'td') . '>';
-        $tmpl .=        "$text_div<font" . $module->config->getAttributes('TableParagraphText', 'font') . '>';
-        $tmpl .=        '###LITLIST_ITEM_ELEMENT###';
-        $tmpl .=        "</font>$text_div_end</td></tr>\n";
-        $tmpl .= "\n   <!-- END LITLIST_ITEM -->\n   ";
-        $tmpl .= "\n  <!-- END LITLIST -->\n";
-
-        echo $module->elements['LitList']->renderTmpl($tmpl);
-
-        echo "</table>\n</td></tr>\n";
-    }
-}
-*/

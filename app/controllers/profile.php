@@ -45,7 +45,7 @@ class ProfileController extends AuthenticatedController
         PageLayout::setHelpKeyword('Basis.Homepage');
         SkipLinks::addIndex(_('Benutzerprofil'), 'user_profile', 100);
 
-        $this->user         = $GLOBALS['user']; // current logged in user
+        $this->user         = User::findCurrent(); // current logged in user
         $this->perm         = $GLOBALS['perm']; // perms of current logged in user
         $this->current_user = User::findByUsername(Request::username('username', $this->user->username)); // current selected user
         // get additional informations to selected user
@@ -54,7 +54,7 @@ class ProfileController extends AuthenticatedController
         // set the page title depending on user selection
         if ($this->current_user['user_id'] == $this->user->id && !$this->current_user['locked']) {
             PageLayout::setTitle(_('Mein Profil'));
-            $this->user->cfg->store('PROFILE_LAST_VISIT', time());
+            UserConfig::get($this->user->id)->store('PROFILE_LAST_VISIT', time());
         } elseif ($this->current_user['user_id'] && ($this->perm->have_perm('root') || (!$this->current_user['locked'] && get_visibility_by_id($this->current_user['user_id'])))) {
             PageLayout::setTitle(_('Profil')  .' - ' . $this->current_user->getFullname());
             object_add_view($this->current_user->user_id);
@@ -71,14 +71,8 @@ class ProfileController extends AuthenticatedController
     public function index_action()
     {
 
-        if ($_SESSION['sms_msg']) {
-            $this->msg = $_SESSION['sms_msg'];
-            unset($_SESSION['sms_msg']);
-        }
-
-
         // Template Index_Box for render-partials
-        $layout = $GLOBALS['template_factory']->open('shared/index_box');
+        $layout = $GLOBALS['template_factory']->open('shared/content_box');
         $this->shared_box = $layout;
 
         // if he has not yet stored into user_info, he comes in with no values
@@ -104,7 +98,7 @@ class ProfileController extends AuthenticatedController
             $score  = new Score($this->current_user->user_id);
             if ($this->current_user->user_id === $GLOBALS['user']->id || $score->ReturnPublik()) {
                 $this->score         = $score->GetMyScore($this->current_user->user_id);
-                $this->score_title   = $score->gettitel($score->GetScore($this->current_user->user_id), $score->GetGender($this->current_user->user_id));
+                $this->score_title   = $score->gettitel($this->score, $score->GetGender($this->current_user->user_id));
             }
         }
 
@@ -176,18 +170,6 @@ class ProfileController extends AuthenticatedController
         if (get_config('VOTE_ENABLE') && $this->profile->checkVisibility('votes')) {
             $response = $this->relay('vote/display/' . $this->current_user->user_id);
             $this->votes = $response->body;
-        }
-
-        // include and show friend-of-a-friend list
-        // (direct/indirect connection via buddy list
-        if ($GLOBALS['FOAF_ENABLE'] && ($this->user->user_id != $this->current_user->user_id)
-            && UserConfig::get($this->current_user->user_id)->FOAF_SHOW_IDENTITY)
-        {
-            include("lib/classes/FoafDisplay.class.php");
-
-            $foaf = new FoafDisplay($this->user->user_id, $this->current_user->user_id, $this->current_user->username);
-
-            $this->foaf = $foaf;
         }
 
         // Hier werden Lebenslauf, Hobbys, Publikationen und Arbeitsschwerpunkte ausgegeben:
@@ -283,13 +265,14 @@ class ProfileController extends AuthenticatedController
     public function add_buddy_action()
     {
         $username = Request::username('username');
-
-        $msging = new messaging;
-        //Buddie hinzufuegen
-        $msging->add_buddy($username, 0);
+        $user = User::findByUsername($username);
+        $current = User::findCurrent();
+        $current->contacts[] = $user;
+        $current->store();
 
         PageLayout::postMessage(MessageBox::success(_('Der Nutzer wurde zu Ihren Kontakten hinzugefügt.')));
         $this->redirect('profile/index?username=' . $username);
     }
+
 }
 

@@ -4,6 +4,9 @@
 /**
  * wysiwyg.js - Replace HTML textareas with WYSIWYG editor.
  *
+ * Developer documentation can be found at
+ * http://docs.studip.de/develop/Entwickler/Wysiwyg.
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of
@@ -14,13 +17,13 @@
  * @category    Stud.IP
  */
 jQuery(function ($) {
-    if (!STUDIP.WYSIWYG) {
+    if (!STUDIP.wysiwyg || STUDIP.wysiwyg.disabled) {
         return;
     }
 
     STUDIP.URLHelper.base_url // workaround: application.js sets base_url too late
         = STUDIP.ABSOLUTE_URI_STUDIP;
-    STUDIP.addWysiwyg = replaceTextarea; // for jquery dialogs, see toolbar.js
+    STUDIP.wysiwyg.replace = replaceTextarea; // for jquery dialogs, see toolbar.js
 
     // replace areas visible on page load
     replaceVisibleTextareas();
@@ -59,19 +62,14 @@ jQuery(function ($) {
         textarea.val(getHtml(textarea.val()));
 
         // create new toolbar container
-        var textareaWidth = (textarea.width() / textarea.parent().width() * 100) + '%',
-            toolbarId = createNewId('cktoolbar'); // needed for sharedSpaces
-            toolbar = $('<div>')
-                .attr('id', toolbarId)
-                .css('max-width', textareaWidth),
-            toolbarPlaceholder = $('<div>').attr('id', toolbarId + '-placeholder');
-
-        toolbarPlaceholder.insertBefore(textarea);
-        toolbar.insertBefore(textarea);
+        var textareaWidth = (textarea.width() / textarea.parent().width() * 100) + '%';
 
         // replace textarea with editor
         CKEDITOR.replace(textarea[0], {
             allowedContent: {
+                // NOTE update the dev docs when changing ACF settings!!
+                // at http://docs.studip.de/develop/Entwickler/Wysiwyg
+                //
                 // note that changes here should also be reflected in
                 // HTMLPurifier's settings!!
                 a: {
@@ -104,7 +102,9 @@ jQuery(function ($) {
                 h6: {},
                 hr: {},
                 img: {
-                    attributes: ['alt', '!src', 'height', 'width']
+                    attributes: ['alt', '!src', 'height', 'width'],
+                    // only float:left and float:right should be allowed
+                    styles: ['float']
                 },
                 li: {},
                 ol: {},
@@ -114,7 +114,7 @@ jQuery(function ($) {
                     // note that 'wiki-links' are currently set as a span due
                     // to implementation difficulties, but probably this
                     // might be changed in future versions
-                    classes: 'wiki-link',
+                    classes: ['wiki-link', 'math-tex'],
 
                     // note that allowed (background-)colors should be further
                     // restricted
@@ -133,27 +133,41 @@ jQuery(function ($) {
                 },
                 tbody: {},
                 td: {
+                    // attributes and styles should be the same
+                    // as for <th>, except for 'scope' attribute
                     attributes: ['colspan', 'rowspan'],
-                    styles: ['text-align']
+                    styles: ['text-align', 'width', 'height']
                 },
                 thead: {},
                 th: {
+                    // attributes and styles should be the same
+                    // as for <td>, except for 'scope' attribute
+                    //
                     // note that allowed scope values should be restricted to
                     // "col", "row" or "col row", if scope is set
-                    attributes: 'scope'
+                    attributes: ['colspan', 'rowspan', 'scope'],
+                    styles: ['text-align', 'width', 'height']
                 },
                 tr: {}
             },
             width: textareaWidth,
-            skin: 'studip',
-            // NOTE widget plugin requires line utils plugin!!
-            extraPlugins: 'widget,studip-wiki'
+            skin: 'studip,' +
+                (function () {
+                    var skinPath = 'assets/stylesheets/ckeditor-skin/';
+                    var a = document.createElement('a');
+                    a.href = STUDIP.URLHelper.getURL(skinPath);
+                    return a.pathname;
+                })(),
+            // NOTE codemirror crashes when not explicitely loaded in CKEditor 4.4.7
+            extraPlugins: 'codemirror,studip-floatbar,studip-settings,studip-wiki'
                 // only enable uploads in courses with a file section
                 + ($('li#nav_course_files').length > 0 ? ',studip-upload' : ''),
-            removePlugins: 'magicline',
             enterMode: CKEDITOR.ENTER_BR,
+            mathJaxLib: STUDIP.URLHelper.getURL('assets/javascripts/mathjax/MathJax.js?config=TeX-AMS_HTML,default'),
             studipUpload_url: STUDIP.URLHelper.getURL('dispatch.php/wysiwyg/upload'),
             codemirror: {
+                autoCloseTags: false,
+                autoCloseBrackets: false,
                 showSearchButton: false,
                 showFormatButton: false,
                 showCommentButton: false,
@@ -163,9 +177,6 @@ jQuery(function ($) {
             autoGrow_onStartup: true,
 
             // configure toolbar
-            sharedSpaces: { // needed for sticky toolbar (see stickyTools())
-                top: toolbarId
-            },
             toolbarGroups: [
                 {name: 'basicstyles', groups: ['undo', 'basicstyles', 'cleanup']},
                 {name: 'paragraph',   groups: ['list', 'indent', 'blocks', 'align']},
@@ -175,7 +186,7 @@ jQuery(function ($) {
                 {name: 'tools'},
                 {name: 'links'},
                 {name: 'insert'},
-                {name: 'html', groups: ['mode']}
+                {name: 'others', groups: ['mode', 'settings']}
             ],
             removeButtons: 'Font,FontSize,Anchor',
             toolbarCanCollapse: true,
@@ -303,18 +314,13 @@ jQuery(function ($) {
                     "&#x2297", // ⊗ CIRCLED TIMES
                     "&#x2299", // ⊙ CIRCLED DOT OPERATOR
                 ]
-            )
+            ),
+            on: { pluginsLoaded: onPluginsLoaded }
         }); // CKEDITOR.replace(textarea[0], {
 
         CKEDITOR.on('instanceReady', function (event) {
             var editor = event.editor,
                 $textarea = $(editor.element.$);
-        
-            // disable default browser drop action on iframe body
-            var iframe_body = $(editor.container.$).find('iframe')[0]
-            .contentWindow.document.getElementsByTagName('body')[0];
-            iframe_body.setAttribute('ondragstart', 'return false');
-            iframe_body.setAttribute('ondrop', 'return false');
 
             // NOTE some HTML elements are output on their own line so that old
             // markup code and older plugins run into less problems
@@ -360,11 +366,11 @@ jQuery(function ($) {
             // clean up HTML edited in source mode before submit
             var form = $textarea.closest('form');
             form.submit(function (event) {
-                if (!isHtml(editor.getData())) {
-                    editor.setData('<div>' + editor.getData() + '</div>');
-                    // update textarea, in case it's accessed by other JS code
-                    editor.updateElement();
-                }
+                // make sure HTML marker is always set, in
+                // case contents are cut-off by the backend
+                var w = STUDIP.wysiwyg;
+                editor.setData(w.markAsHtml(editor.getData()));
+                editor.updateElement(); // update textarea, in case it's accessed by other JS code
             });
 
             // focus editor if corresponding textarea is focused
@@ -398,14 +404,6 @@ jQuery(function ($) {
                 }
             });
 
-            // do not scroll toolbar out of viewport
-            function stickyTools() {
-                updateStickyTools(editor);
-            };
-            $(window).scroll(stickyTools);
-            $(window).resize(stickyTools);
-            editor.on('focus', stickyTools); // hidden toolbar might scroll off screen
-
             // Trigger load event for the editor event. Uses the underlying
             // textarea element to ensure that the event will be catchable by
             // jQuery.
@@ -433,47 +431,17 @@ jQuery(function ($) {
         }
     });
 
-    // editor utilities
-    function updateStickyTools(editor) {
-        var MARGIN = $('#barBottomContainer').length ? $('#barBottomContainer').height() : 25,
-            toolbarId = editor.config.sharedSpaces.top,
-            toolbar = $('#' + toolbarId),
-            placeholder = $('#' + toolbarId + '-placeholder');
-
-        if (toolbar.length === 0 || placeholder.length === 0) {
-            // toolbar/editor removed by some JS code (e.g. when sending messages)
-            return;
-        }
-
-        var outOfView = $(window).scrollTop() + MARGIN
-                        > placeholder.offset().top,
-            width = $(editor.container.$).outerWidth(true);
-
-        // is(':visible'): offset() is wrong for hidden elements
-        if (toolbar.is(':visible') && outOfView) {
-            toolbar.css({
-                position: 'fixed',
-                top: MARGIN,
-                width: width
-            });
-            placeholder.css('height', toolbar.height());
-        } else {
-            toolbar.css({
-                position: 'relative',
-                top: '',
-                width: width
-            });
-            placeholder.css('height', 0);
-        }
+    // editor events
+    function onPluginsLoaded(event) {
+        // tell editor to always remove html comments
+        event.editor.dataProcessor.htmlFilter.addRules({
+            comment: function () { return false; }
+        });
     }
 
     // convert plain text entries to html
     function getHtml(text) {
-        return isHtml(text) ? text : convertToHtml(text);
-    }
-    function isHtml(text) {
-        text = text.trim();
-        return text[0] === '<' && text[text.length - 1] === '>';
+        return STUDIP.wysiwyg.isHtml(text) ? text : convertToHtml(text);
     }
     function convertToHtml(text) {
         var quote = getQuote(text);

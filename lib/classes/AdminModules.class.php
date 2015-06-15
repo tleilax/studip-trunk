@@ -42,9 +42,6 @@ require_once ('lib/datei.inc.php');
 require_once ('lib/dates.inc.php');
 require_once ($RELATIVE_PATH_ELEARNING_INTERFACE . "/ObjectConnections.class.php");
 require_once ($RELATIVE_PATH_ELEARNING_INTERFACE . "/ELearningUtils.class.php");
-if (get_config('CALENDAR_ENABLE')) {
-    require_once ('lib/calendar/lib/Calendar.class.php');
-}
 
 class AdminModules extends ModulesNotification {
 
@@ -100,7 +97,28 @@ class AdminModules extends ModulesNotification {
         $this->registered_modules["documents_folder_permissions"]['preconditions'] = array('documents');
         $this->registered_modules["documents_folder_permissions"]['metadata'] = array(
                 'summary' => _("Dateiordnerberechtigungen"),
-                'description' => _('Mit den Einstellungen zur Dateiordnerberechtigung können Lehrende die Zugriffsrechte für Ordner im Dateibereich verändern. Wird z. B. das Leserecht entfernt, entsteht ein Hausaufgabenordner, in den Studierende Dateien zwar hochladen, aber nicht sehen können, welche Dateien sich noch im Ordner befinden. Es gibt vier Einstellungsmöglichkeiten, die miteinander kombiniert werden können (Lesen, Schreiben, Sehen, Ordner anlegen). Beim Einschalten bestimmter PlugIns wird die Dateiordnerberechtigung automatisch eingeschaltet (z. B. bei Elmo).')
+                'descriptionshort' => _("Vergabe von Rechten für Dateiordner an teilnehmende Studierende (AutorInnen)"),
+                'category' => _("Lehr- und Lernorganisation"),
+                'keywords' => _('Das Recht "Lesen" (r): Dateien können geöffnet und heruntergeladen werden;
+                                Das Recht "Schreiben" (w): Studierende können Dateien hochladen;
+                                Das Recht "Sichtbarkeit" (x): Ordner wird angezeigt;
+                                Das Recht "Ordner erstellen" (f): Studierende können Unterordner anlegen'),
+                'icon' => 'icons/16/black/files.png',
+                'screenshots' => array(
+                    'path' => 'plus/screenshots/Dateiordnerberechtigung', 
+                    'pictures' => array( 
+                        0 => array(
+                            'source' => 'Ordner_zum_Hausaufgabenordner_umwandeln.jpg', 
+                            'title'  => _('Ordner zum Hausaufgabenordner umwandeln'),
+                        )
+                    )
+                ),              
+                'description' => _('Mit den Einstellungen zur Dateiordnerberechtigung können Lehrende die Zugriffsrechte '.
+                                    'für Ordner im Dateibereich verändern. Wird z. B. das Leserecht entfernt, entsteht ein '.
+                                    'Hausaufgabenordner, in den Studierende Dateien zwar hochladen, aber nicht sehen können, '.
+                                    'welche Dateien sich noch im Ordner befinden. Es gibt vier Einstellungsmöglichkeiten, '.
+                                    'die miteinander kombiniert werden können (Lesen, Schreiben, Sehen, Ordner anlegen). '.
+                                    'Beim Einschalten bestimmter Funktionen wird die Dateiordnerberechtigung automatisch eingeschaltet.')
             );
         if (get_config('CALENDAR_GROUP_ENABLE')) {
             $this->registered_modules["calendar"]["name"] = _("Kalender");
@@ -271,18 +289,7 @@ class AdminModules extends ModulesNotification {
 
     function getModuleCalendarExistingItems($range_id)
     {
-        $calendar_connect = CalendarDriver::GetInstance($range_id);
-        $calendar_connect->openDatabase('COUNT', 'CALENDAR_EVENTS');
-        return $calendar_connect->getCountEvents();
+        return CalendarEvent::countBySql('range_id = ?', array($range_id));
     }
-
-    /*function moduleCalendarDeactivate($range_id)
-    {
-        $calendar_connect = CalendarDriver::GetInstance($range_id);
-        if ($deleted = $calendar_connect->deleteFromDatabase('ALL')) {
-            return $deleted;
-        }
-        return 0;
-    }*/
 
 }

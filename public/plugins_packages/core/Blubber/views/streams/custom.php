@@ -12,6 +12,7 @@
 <input type="hidden" id="browser_start_time" value="">
 <script>jQuery(function () { jQuery("#browser_start_time").val(Math.floor(new Date().getTime() / 1000)); });</script>
 <input type="hidden" id="loaded" value="1">
+<input type="hidden" id="orderby" value="<?= $stream['sort'] === "age" ? "mkdate" : "discussion_time" ?>">
 <div id="editing_question" style="display: none;"><?= _("Wollen Sie den Beitrag wirklich bearbeiten?") ?></div>
 
 <div id="threadwriter" class="globalstream">
@@ -142,20 +143,7 @@ if ($streamAvatar->is_customized()) {
 }
 
 $actions = new ActionsWidget();
-$actions->addLink(_("Diesen Stream bearbeiten"), PluginEngine::getURL($plugin, array(), 'streams/edit/'.$stream->getId()), "icons/16/black/edit");
+$actions->addLink(_("Diesen Stream bearbeiten"), PluginEngine::getURL($plugin, array(), 'streams/edit/'.$stream->getId()), "icons/16/blue/edit");
 $sidebar->addWidget($actions);
 
-if (count($tags) && $tags[0]) {
-    $cloud = new LinkCloudWidget();
-    $cloud->setTitle(_("Hashtags des Nutzers"));
-    $maximum = $tags[0]['counter'];
-    //$average = ceil(array_sum(array_filter($tags, function ($val) { return $val['counter']; })) / count($tags));
-    foreach ($tags as $tag) {
-        $cloud->addLink(
-            "#".$tag['tag'],
-            URLHelper::getLink("plugins.php/blubber/streams/global", array('cid' => $_SESSION['SessionSeminar'], 'hash' => $tag['tag'])),
-            ceil(10 * $tag['counter'] / $maximum)
-        );
-    }
-    $sidebar->addWidget($cloud, 'tagcloud');
-}
+$controller->addTagCloudWidgetToSidebar($tags, 'custom/' . $stream->getId());

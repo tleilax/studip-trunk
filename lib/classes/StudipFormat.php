@@ -146,8 +146,16 @@ class StudipFormat extends TextFormat
             'start'    => '\[nop\](.*?)\[\/nop\]',
             'callback' => 'StudipFormat::markupNoFormat'
         ),
+        'tex' => array(
+            'start'    => '\[tex\](.*?)\[\/tex\]',
+            'callback' => 'StudipFormat::markupTex'
+        ),
+        'TEX' => array(
+            'start'    => '\[TEX\](.*?)\[\/TEX\]',
+            'callback' => 'StudipFormat::markupTex'
+        ),
         'code' => array(
-            'start'    => '\[code\](.*?)\[\/code\]',
+            'start'    => '\[code(=.*?)?\](.*?)\[\/code\]',
             'callback' => 'StudipFormat::markupCode'
         ),
         'media' => array(
@@ -437,7 +445,8 @@ class StudipFormat extends TextFormat
      */
     protected static function markupIndent($markup, $matches)
     {
-        $text = preg_replace('/^  /m', '', $matches[0]);
+        $text = preg_replace('/^ +/', '', $matches[0]);
+        $text = preg_replace('/^  /m', '', $text);
 
         return sprintf('<div class="indent">%s</div>', $markup->format($text));
     }
@@ -478,11 +487,12 @@ class StudipFormat extends TextFormat
      */
     protected static function markupCode($markup, $matches)
     {
-        return '<div class="code_header">'. _('Code') .'<hr></div>'
-               . str_replace(
-                   '<code>', '<code class="code_content">',
-                   highlight_string(decodeHTML(trim($matches[1]), ENT_QUOTES), true)
-               );
+        $codetype = "";
+        if (strlen($matches[1])) {
+            $codetype = " ".decodeHTML(trim(substr($matches[1], 1)), ENT_QUOTES);
+        }
+        $code = decodeHTML(trim($matches[2]), ENT_QUOTES);
+        return '<pre class="usercode'.$codetype.'"><code class="'.$codetype.'">'.htmlReady($code).'</code></pre>';
     }
 
     /**
@@ -646,5 +656,10 @@ class StudipFormat extends TextFormat
     protected static function htmlImg($markup, $matches, $contents)
     {
         return $matches[0];
+    }
+
+    protected static function markupTex($markup, $matches)
+    {
+         return preg_replace('/<br\s*\/?>/', '', $matches[0]);
     }
 }

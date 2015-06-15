@@ -13,21 +13,135 @@
 
 abstract class StudipController extends Trails_Controller
 {
+    protected $with_session = false; //do we need to have a session for this controller
+    protected $allow_nobody = true; //should 'nobody' allowed for this controller or redirected to login?
+    protected $encoding = "windows-1252";
+    protected $utf8decode_xhr = false; //uf8decode request parameters from XHR ?
 
     function before_filter(&$action, &$args)
     {
         $this->current_action = $action;
         // allow only "word" characters in arguments
         $this->validate_args($args);
-        
-        // Set default layout and encoding
-        if (Request::isXhr()) {
-            $this->set_layout(null);
-            $this->set_content_type('text/html;Charset=windows-1252');
-        } else {
-            $this->set_layout($GLOBALS['template_factory']->open('layouts/base'));
-        }
+
         parent::before_filter($action, $args);
+
+        if ($this->with_session) {
+            # open session
+            page_open(array(
+                'sess' => 'Seminar_Session',
+                'auth' => $this->allow_nobody ? 'Seminar_Default_Auth' : 'Seminar_Auth',
+                'perm' => 'Seminar_Perm',
+                'user' => 'Seminar_User'
+            ));
+
+            // show login-screen, if authentication is "nobody"
+            $GLOBALS['auth']->login_if((Request::get('again') || !$this->allow_nobody) && $GLOBALS['user']->id == 'nobody');
+
+            // Setup flash instance
+            $this->flash = Trails_Flash::instance();
+
+            // set up user session
+            include 'lib/seminar_open.php';
+        }
+
+        # Set base layout
+        #
+        # If your controller needs another layout, overwrite your controller's
+        # before filter:
+        #
+        #   class YourController extends AuthenticatedController {
+        #     function before_filter(&$action, &$args) {
+        #       parent::before_filter($action, $args);
+        #       $this->set_layout("your_layout");
+        #     }
+        #   }
+        #
+        # or unset layout by sending:
+        #
+        #   $this->set_layout(NULL)
+        #
+        $layout_file = Request::isXhr()
+                     ? 'layouts/dialog.php'
+                     : 'layouts/base.php';
+        $layout = $GLOBALS['template_factory']->open($layout_file);
+        $this->set_layout($layout);
+        if ($this->encoding) {
+            $this->set_content_type('text/html;charset=' . $this->encoding);
+        }
+        if (Request::isXhr() && $this->utf8decode_xhr) {
+            $request = Request::getInstance();
+            foreach ($request as $key => $value) {
+                $request[$key] = studip_utf8decode($value);
+            }
+        }
+    }
+
+    /**
+     * Hooked perform method in order to inject body element id creation.
+     *
+     * In order to avoid clashes, these body element id will be joined
+     * with a minus sign. Otherwise the controller "x" with action
+     * "y_z" would be given the same id as the controller "x/y" with
+     * the action "z", namely "x_y_z". With the minus sign this will
+     * result in the ids "x-y_z" and "x_y-z".
+     *
+     * Plugins will always have a leading 'plugin-' and the decamelized
+     * plugin name in front of the id.
+     *
+     * @param String $unconsumed_path Path segment containing action and
+     *                                optionally arguments or format
+     * @return Trails_Response from parent controller
+     */
+    public function perform($unconsumed_path)
+    {
+        // Extract action from unconsumed path segment
+        list($action) = $this->extract_action_and_args($unconsumed_path);
+
+        // Extract decamelized controller name from class name
+        $controller = preg_replace('/Controller$/', '', get_class($this));
+        $controller = Trails_Inflector::underscore($controller);
+
+        // Build main parts of the body element id
+        $body_id_parts = explode('/', $controller);
+        $body_id_parts[] = $action;
+
+        // If the controller is from a plugin, Inject plugin identifier
+        // and name of plugin
+        if (basename($this->dispatcher->trails_uri, '.php') === 'plugins') {
+            $plugin = basename($this->dispatcher->trails_root);
+            $plugin = Trails_Inflector::underscore($plugin);
+            array_unshift($body_id_parts, $plugin);
+
+            array_unshift($body_id_parts, 'plugin');
+        }
+
+        // Create and set body element id
+        $body_id = implode('-', $body_id_parts);
+        PageLayout::setBodyElementId($body_id);
+
+        return parent::perform($unconsumed_path);
+    }
+
+    /**
+     * Callback function being called after an action is executed.
+     *
+     * @param string Name of the action to perform.
+     * @param array  An array of arguments to the action.
+     *
+     * @return void
+     */
+    function after_filter($action, $args)
+    {
+        parent::after_filter($action, $args);
+
+        if (Request::isXhr() && !isset($this->response->headers['X-Title']) && PageLayout::hasTitle()) {
+            $this->response->add_header('X-Title', PageLayout::getTitle());
+        }
+
+        if ($this->with_session) {
+            page_close();
+        }
     }
 
     /**
@@ -119,6 +233,33 @@ abstract class StudipController extends Trails_Controller
     }
 
     /**
+     * Relocate the user to another location. This is a specialized version
+     * of redirect that differs in two points:
+     *
+     * - relocate() will force the browser to leave the current dialog while
+     *   redirect would refresh the dialog's contents
+     * - relocate() accepts all the parameters that url_for() accepts so it's
+     *   no longer neccessary to chain url_for() and redirect()
+     *
+     * @param String $to Location to redirect to
+     */
+    public function relocate($to)
+    {
+        $from_dialog = Request::isXhr() && isset($_SERVER['HTTP_X_DIALOG']);
+
+        if (func_num_args() > 1 || $from_dialog) {
+            $to = call_user_func_array(array($this, 'url_for'), func_get_args());
+        }
+
+        if ($from_dialog) {
+            $this->response->add_header('X-Location', $to);
+            $this->render_nothing();
+        } else {
+            parent::redirect($to);
+        }
+    }
+
+    /**
      * Exception handler called when the performance of an action raises an
      * exception.
      *
@@ -133,6 +274,7 @@ abstract class StudipController extends Trails_Controller
      * Spawns a new infobox variable on this object, if neccessary.
      *
      * @since Stud.IP 2.3
+     * @deprecated since Stud.IP 3.1 in favor of the sidebar
      * */
     protected function populateInfobox()
     {
@@ -150,9 +292,13 @@ abstract class StudipController extends Trails_Controller
      * @param String $image Image to display, path is relative to :assets:/images
      *
      * @since Stud.IP 2.3
+     * @deprecated since Stud.IP 3.1 in favor of the sidebar
      * */
     function setInfoBoxImage($image)
     {
+        // Trigger deprecated warning
+        trigger_error('Use Sidebar instead', E_USER_DEPRECATED);
+        
         $this->populateInfobox();
 
         $this->infobox['picture'] = $image;
@@ -171,9 +317,13 @@ abstract class StudipController extends Trails_Controller
      *                         relative to :assets:/images
      *
      * @since Stud.IP 2.3
+     * @deprecated since Stud.IP 3.1 in favor of the sidebar
      * */
     function addToInfobox($category, $text, $icon = 'blank.gif')
     {
+        // Trigger deprecated warning
+        trigger_error('Use Sidebar instead', E_USER_DEPRECATED);
+        
         $this->populateInfobox();
 
         $infobox = $this->infobox;
@@ -257,6 +407,13 @@ abstract class StudipController extends Trails_Controller
         return $this->response;
     }
 
+    /**
+     * Renders a given template and returns the resulting string.
+     *
+     * @param string $template Name of the template file
+     * @param mixed  $layout   Optional layout
+     * @return string
+     */
     function render_template_as_string($template, $layout = null)
     {
         $template = $this->get_template_factory()->open($template);

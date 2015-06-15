@@ -65,6 +65,7 @@ class Blubber extends StudIPPlugin implements StandardPlugin, SystemPlugin {
                     $output['postings'][] = array(
                         'posting_id' => $new_posting['topic_id'],
                         'discussion_time' => $new_posting['discussion_time'],
+                        'mkdate' => $new_posting['mkdate'],
                         'root_id' => $new_posting['root_id'],
                         'content' => $template->render()
                     );
@@ -186,15 +187,12 @@ class Blubber extends StudIPPlugin implements StandardPlugin, SystemPlugin {
      */
     public function getNotificationObjects($course_id, $since, $user_id)
     {
-        $blubber = BlubberPosting::getPostings(array(
-            'seminar_id' => $course_id,
-            'since' => $since
-        ));
+        $blubber = BlubberStream::getCourseStream($course_id)->fetchNewPostings($since);
         $contents = array();
         foreach ($blubber as $blubb) {
             $contents[] = new ContentElement(
-                $blubb['title'],
-                $blubb['title'],
+                $blubb['name'],
+                $blubb['name'],
                 $blubb['description'],
                 $blubb['user_id'],
                 get_fullname($blubb['user_id']),
@@ -220,7 +218,7 @@ class Blubber extends StudIPPlugin implements StandardPlugin, SystemPlugin {
      * @return type
      */
     public function getDisplayTitle() {
-        return _("Blubbern");
+        return _("Blubber");
     }
 
 }

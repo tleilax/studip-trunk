@@ -226,7 +226,7 @@ abstract class DataFieldEntry
      */
     public static function getSupportedTypes()
     {
-        return array("bool" , "textline" , "textarea" , "selectbox" , "date" , "time" , "email" , "phone" , "radio" , "combo" , "link");
+        return array("bool" , "textline" , "textarea" , "selectbox" , "selectboxmultiple", "date" , "time" , "email" , "phone" , "radio" , "combo" , "link");
     }
 
     /**
@@ -335,7 +335,7 @@ abstract class DataFieldEntry
      */
     public function setValueFromSubmit($submitted_value)
     {
-        $this->setValue(remove_magic_quotes($submitted_value));
+        $this->setValue($submitted_value);
     }
 
     /**
@@ -563,15 +563,18 @@ class DataFieldSelectboxEntry extends DataFieldEntry
         list ($values, $is_assoc) = $this->getParams();
         $this->is_assoc_param = $is_assoc;
         $this->type_param = $values;
+        $this->init();
+    }
+
+    function init()
+    {
+        $is_assoc = $this->is_assoc_param;
+        $values = $this->type_param;
         reset($values);
-        if(is_null($this->getValue()))
-        {
-            if(! $is_assoc)
-            {
+        if (is_null($this->getValue())) {
+            if (!$is_assoc) {
                 $this->setValue(current($values)); // first selectbox entry is default
-            }
-            else
-            {
+            } else {
                 $this->setValue((string) key($values));
             }
         }
@@ -618,6 +621,57 @@ class DataFieldSelectboxEntry extends DataFieldEntry
     {
         $value = $this->is_assoc_param ? $this->type_param[$this->getValue()] : $this->getValue();
         return $entities ? htmlReady($value) : $value;
+    }
+}
+
+class DataFieldSelectboxMultipleEntry extends DataFieldSelectboxEntry
+{
+
+    function init()
+    {
+        if (is_null($this->getValue())) {
+            $this->setValue('');
+        }
+    }
+
+    function getHTML($name)
+    {
+        $field_name = $name . '[' . $this->structure->getID() . '][]';
+        $field_id = $name . '_' . $this->structure->getID();
+        $require = $this->structure->getIsRequired() ? "required" : "";
+        $ret = "<select multiple name=\"$field_name\" name=\"$field_id\" $require>";
+        $values = $this->getValue() ? array_map('trim', explode('|', $this->getValue())) : array();
+        foreach($this->type_param as $pkey => $pval)
+        {
+            $value = $this->is_assoc_param ? (string) $pkey : $pval;
+            $sel = in_array($value, $values) ? 'selected' : '';
+            $ret .= sprintf('<option value="%s" %s>%s</option>', htmlReady($value), $sel, htmlReady($pval));
+        }
+        return $ret . "</select>";
+    }
+
+    function getDisplayValue($entities = true)
+    {
+        $value = $this->getValue();
+        if ($value) {
+            $type_param = $this->type_param;
+            $mapper = !$this->is_assoc_param ?
+                'trim' :
+                function ($a) use ($type_param) {
+                    return $type_param[trim($a)];
+                };
+            $value = join('; ', (array_map($mapper, explode('|', $value))));
+        }
+        return $entities ? htmlReady($value) : $value;
+    }
+
+    function setValueFromSubmit($value)
+    {
+        if (is_array($value)) {
+            parent::setValueFromSubmit(join('|', array_unique(array_filter(array_map('trim',$value)))));
+        } else {
+            parent::setValueFromSubmit('');
+        }
     }
 }
 
@@ -788,13 +842,13 @@ class DataFieldDateEntry extends DataFieldEntry
         $ret = sprintf('<input name="%s" maxlength="2" size="1" value="%s" title="'._("Tag").'" %s>', $field_name, $parts[2], $require);
         $ret .= ". ";
         //TODO: was ist, wenn studip auf englisch eingestellt ist?!? lieber srfttime oder so benutzen...
-        $months = array('' , 'Januar' , 'Februar' , 'März' , 'April' , 'Mai' , 'Juni' , 'Juli' , 'August' , 'September' , 'Oktober' , 'Novemember' , 'Dezember');
+        $months = array('' , 'Januar' , 'Februar' , 'März' , 'April' , 'Mai' , 'Juni' , 'Juli' , 'August' , 'September' , 'Oktober' , 'November' , 'Dezember');
         $ret .= "<select name=\"$field_name\" title=\""._("Monat")."\" $require>";
         foreach($months as $i => $m)
             $ret .= sprintf('<option %s value="%s">%s</option>', ($parts[1] == $i ? 'selected' : ''), $i, $m);
         $ret .= "</select> ";
         $ret .= sprintf('<input name="%s" maxlength="4" size="3" value="%s" title="'._("Jahr").'" %s>', $field_name, $parts[0], $require);
-        return $ret;
+        return '<div style="white-space: nowrap">' . $ret . '</div>';
     }
 
     function isValid()
@@ -830,7 +884,7 @@ class DataFieldTimeEntry extends DataFieldEntry
         $require = $this->structure->getIsRequired() ? "required" : "";
         $ret = sprintf('<input name="%s" maxlength="2" size="1" value="%s" title="'._("Stunden").'" %s>:', $name, $parts[0], $require);
         $ret .= sprintf('<input name="%s" maxlength="2" size="1" value="%s" title="'._("Minuten").'" %s>', $name, $parts[1], $require);
-        return $ret;
+        return '<div style="white-space: nowrap">' . $ret . '</div>';
     }
 
     function isValid()

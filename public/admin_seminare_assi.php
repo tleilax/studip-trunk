@@ -53,7 +53,7 @@ $hash_secret = "nirhtak";
 
 include ('lib/seminar_open.php');   //hier werden die sessions initialisiert
 
-if ($GLOBALS['RESOURCES_ENABLE']) {
+if (Config::get()->RESOURCES_ENABLE) {
     include_once ($GLOBALS['RELATIVE_PATH_RESOURCES']."/lib/VeranstaltungResourcesAssign.class.php");
     include_once ($GLOBALS['RELATIVE_PATH_RESOURCES']."/lib/ResourcesUserRoomsList.class.php");
     require_once 'vendor/trails/trails.php';
@@ -129,7 +129,7 @@ if (($cmd == 'do_copy' && SeminarCategories::GetBySeminarId($cp_id)->course_crea
     unset($cmd);
     $start_level = '';
     unset($form);
-    $_SESSION['sem_create_data'] = '';
+    $_SESSION['sem_create_data'] = array();
     $errormsg = "error§" . sprintf(_("Veranstaltungen dieser Kategorie dürfen in dieser Installation nicht angelegt werden!"));
 }
 
@@ -153,7 +153,7 @@ if (!empty($cmd) && ($cmd == 'do_copy') && $perm->have_studip_perm('tutor',$cp_i
         unset($cmd);
         $start_level = '';
         unset($form);
-        $_SESSION['sem_create_data'] = '';
+        $_SESSION['sem_create_data'] = array();
     } else {
         // Einträge in generischen Datenfelder auslesen und zuweisen
         $query = "SELECT datafield_id, datafields_entries.content AS value, datafields.name, datafields.type
@@ -194,6 +194,7 @@ if (!empty($cmd) && ($cmd == 'do_copy') && $perm->have_studip_perm('tutor',$cp_i
                       WHERE range_id = ? AND date_typ = 1 ORDER BY `date`";
             $statement = DBManager::get()->prepare($query);
             $statement->execute(array($cp_id));
+            $db2_term_count = 0;
             while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
                 $db2_start_date = $row['date'];
                 $db2_end_date   = $row['end_time'];
@@ -305,8 +306,8 @@ if (!$_SESSION['sem_create_data']["sem_entry"]) {
 
 if (($auth->lifetime != 0 && ((time() - $_SESSION['sem_create_data']["timestamp"]) >$auth->lifetime*60)) || (Request::option('new_session')))
 {
-    $_SESSION['sem_create_data']='';
-    $_SESSION['links_admin_data']='';
+    $_SESSION['sem_create_data'] = array();
+    $_SESSION['links_admin_data'] = array();
     $_SESSION['sem_create_data']["sem_start_termin"]=-1;
     $_SESSION['sem_create_data']["sem_vor_termin"]=-1;
     $_SESSION['sem_create_data']["sem_vor_end_termin"]=-1;
@@ -315,7 +316,7 @@ if (($auth->lifetime != 0 && ((time() - $_SESSION['sem_create_data']["timestamp"
     $area_selection = new StudipStudyAreaSelection();
     $_SESSION['sem_create_data']["sem_bereich"] = array();
 
-    if ($GLOBALS['ASSI_SEMESTER_PRESELECT']){
+    if (Config::get()->ASSI_SEMESTER_PRESELECT){
         if ($_SESSION['_default_sem']){
             $one_sem = $semester->getSemesterData($_SESSION['_default_sem']);
             if ($one_sem["vorles_ende"] > time()) $_SESSION['sem_create_data']['sem_start_time'] = $one_sem['beginn'];
@@ -329,7 +330,7 @@ else
 //wenn das Seminar bereits geschrieben wurde und wir trotzdem frisch reinkommen, soll die Variable geloescht werden
 if (($_SESSION['sem_create_data']["sem_entry"]) && (!$form))
 {
-    $_SESSION['sem_create_data']='';
+    $_SESSION['sem_create_data'] = array();
     $_SESSION['sem_create_data']["sem_start_termin"]=-1;
     $_SESSION['sem_create_data']["sem_vor_termin"]=-1;
     $_SESSION['sem_create_data']["sem_vor_end_termin"]=-1;
@@ -341,7 +342,7 @@ if ($start_level) { //create defaults
     if (SeminarCategories::Get($class) === false || SeminarCategories::Get($class)->course_creation_forbidden) {
         $start_level = '';
         unset($form);
-        $_SESSION['sem_create_data'] = '';
+        $_SESSION['sem_create_data'] = array();
         $errormsg = "error§" . sprintf(_("Veranstaltungen dieser Kategorie dürfen in dieser Installation nicht angelegt werden!"));
     } else {
         if (!array_key_exists('sem_class', $_SESSION['sem_create_data'])) {
@@ -644,12 +645,12 @@ if ($form == 4 && Request::isPost()) {
     $_SESSION['sem_create_data']["sem_vor_raum"]=Request::quoted('vor_raum');
     $_SESSION['sem_create_data']["sem_vor_resource_id"]=(Request::option('vor_resource_id') == "FALSE") ? FALSE : Request::option('vor_resource_id');
     //if we have a resource_id, we take the room name from resource_id (deprecated at the moment)
-    /*if ($GLOBALS['RESOURCES_ENABLE'] && $_SESSION['sem_create_data']["sem_vor_resource_id"]) {
+    /*if (Config::get()->RESOURCES_ENABLE && $_SESSION['sem_create_data']["sem_vor_resource_id"]) {
         $resObject = ResourceObject::Factory($_SESSION['sem_create_data']["sem_vor_resource_id"]);
         $_SESSION['sem_create_data']["sem_vor_raum"]=$resObject->getName();
     }*/
 
-    if ($GLOBALS['RESOURCES_ENABLE']) {
+    if (Config::get()->RESOURCES_ENABLE) {
         $room_request_form_attributes = array();
         //Room-Requests
         $_SESSION['sem_create_data']['skip_room_request'] = Request::option('skip_room_request');
@@ -694,7 +695,7 @@ if ($form == 4 && Request::isPost()) {
                 $_SESSION['sem_create_data']["metadata_termin"]["turnus_data"][$key]["resource_id"] = ($term_turnus_resource_id[$key] == "FALSE") ? FALSE : $term_turnus_resource_id[$key];
 
                 //if we have a resource_id, we take the room name from resource_id (deprecated at the moment)
-                /*if ($GLOBALS['RESOURCES_ENABLE'] && $_SESSION['sem_create_data']["metadata_termin"]["turnus_data"][$key]["resource_id"]) {
+                /*if (Config::get()->RESOURCES_ENABLE && $_SESSION['sem_create_data']["metadata_termin"]["turnus_data"][$key]["resource_id"]) {
                     $resObject = ResourceObject::Factory($_SESSION['sem_create_data']["metadata_termin"]["turnus_data"][$key]["resource_id"]);
                     $_SESSION['sem_create_data']["metadata_termin"]["turnus_data"][$key]["room"]=$resObject->getName();
                 }*/
@@ -705,7 +706,7 @@ if ($form == 4 && Request::isPost()) {
             $_SESSION['sem_create_data']["term_room"][$i]=$term_room[$i];
             $_SESSION['sem_create_data']["term_resource_id"][$i]=($term_resource_id[$i] == "FALSE") ? FALSE : $term_resource_id[$i];
             //if we have a resource_id, we take the room name from resource_id (deprecated at the moment)
-            /*if ($GLOBALS['RESOURCES_ENABLE'] && $_SESSION['sem_create_data']["term_resource_id"][$i]) {
+            /*if (Config::get()->RESOURCES_ENABLE && $_SESSION['sem_create_data']["term_resource_id"][$i]) {
                 $resObject = ResourceObject::Factory($_SESSION['sem_create_data']["term_resource_id"][$i]);
                 $_SESSION['sem_create_data']["term_room"][$i]=$resObject->getName();
             }*/
@@ -760,7 +761,7 @@ if ($form == 5 && Request::isPost()) {
             $_SESSION['sem_create_data']["sem_start_termin"] = mktime((int)Request::option('stunde'),(int)Request::option('minute'),0,(int)$monat,(int)$tag,(int)$jahr);
             $_SESSION['sem_create_data']["metadata_termin"]["start_termin"] = $_SESSION['sem_create_data']["sem_start_termin"];
             //check overlaps...
-            if ($GLOBALS['RESOURCES_ENABLE']) {
+            if (Config::get()->RESOURCES_ENABLE) {
                 $checkResult = $resAssign->changeMetaAssigns($_SESSION['sem_create_data']["metadata_termin"], $_SESSION['sem_create_data']["sem_start_time"], $_SESSION['sem_create_data']["sem_duration_time"],TRUE);
             }
         }
@@ -1215,7 +1216,7 @@ if (($form == 3) && (Request::submitted('jump_next')))
             $errormsg=$errormsg."error§"._("Bitte füllen Sie beide Felder für Start- und Endzeit der Vorbesprechung aus!")."§";
 
         //check for room management: we dont allow the preliminary discussion matches a turnus date (in this case, a schedule schoudl be used!)
-        if ((!$_SESSION['sem_create_data']["term_art"]) && ($GLOBALS['RESOURCES_ENABLE'])) {
+        if (!$_SESSION['sem_create_data']['term_art'] && Config::get()->RESOURCES_ENABLE) {
             $sem_start_timestamp = veranstaltung_beginn_from_metadata($_SESSION['sem_create_data']["term_art"],$_SESSION['sem_create_data']["sem_start_time"],$_SESSION['sem_create_data']['term_start_woche'],$_SESSION['sem_create_data']['sem_start_termin'],$_SESSION['sem_create_data']['metadata_termin']['turnus_data']);
             if ($sem_start_timestamp > 0 && $_SESSION['sem_create_data']["sem_vor_termin"] >= $sem_start_timestamp){
                 $tmp_vor_day = date("w", $_SESSION['sem_create_data']["sem_vor_termin"]);
@@ -1278,7 +1279,7 @@ if (($form == 4) && (Request::submitted('jump_next'))) {
 
     //checks for direct ressources-assign
     if ($_SESSION['sem_create_data']["term_art"]==0 && is_array($_SESSION['sem_create_data']["metadata_termin"]["turnus_data"])) {
-        if ($GLOBALS['RESOURCES_ENABLE']) {
+        if (Config::get()->RESOURCES_ENABLE) {
             $tmp_metadate = new Metadate();
             $tmp_assigns = array();
             $tmp_metadate->setSeminarStartTime($_SESSION['sem_create_data']['sem_start_time']);
@@ -1292,7 +1293,7 @@ if (($form == 4) && (Request::submitted('jump_next'))) {
     } else {
         for ($i=0; $i<$_SESSION['sem_create_data']["term_count"]; $i++) {
             //check overlaps
-            if ((!$errormsg) && ($GLOBALS['RESOURCES_ENABLE'])) {
+            if (!$errormsg && Config::get()->RESOURCES_ENABLE) {
                 $tmp_chk_date=mktime((int)$_SESSION['sem_create_data']["term_start_stunde"][$i], (int)$_SESSION['sem_create_data']["term_start_minute"][$i], 0, (int)$_SESSION['sem_create_data']["term_monat"][$i], (int)$_SESSION['sem_create_data']["term_tag"][$i], (int)$_SESSION['sem_create_data']["term_jahr"][$i]);
                 $tmp_chk_end_time=mktime((int)$_SESSION['sem_create_data']["term_end_stunde"][$i], (int)$_SESSION['sem_create_data']["term_end_minute"][$i], 0, (int)$_SESSION['sem_create_data']["term_monat"][$i], (int)$_SESSION['sem_create_data']["term_tag"][$i], (int)$_SESSION['sem_create_data']["term_jahr"][$i]);
                 $checkResult = array_merge((array)$checkResult, (array)$resAssign->insertDateAssign(FALSE, $_SESSION['sem_create_data']["term_resource_id"][$i], $tmp_chk_date, $tmp_chk_end_time, TRUE));
@@ -1303,13 +1304,13 @@ if (($form == 4) && (Request::submitted('jump_next'))) {
     if ($_SESSION['sem_create_data']["sem_vor_termin"] == -1);
     else {
         //check overlaps...
-        if ($GLOBALS['RESOURCES_ENABLE']) {
+        if (Config::get()->RESOURCES_ENABLE) {
             $checkResult = array_merge((array)$checkResult, (array)$resAssign->insertDateAssign(FALSE, $_SESSION['sem_create_data']["sem_vor_resource_id"], $_SESSION['sem_create_data']["sem_vor_termin"], $_SESSION['sem_create_data']["sem_vor_end_termin"],TRUE));
         }
     }
 
     //generate bad messages
-    if ($GLOBALS['RESOURCES_ENABLE']) {
+    if (Config::get()->RESOURCES_ENABLE) {
         $errormsg.=getFormattedResult($checkResult);
     }
     if (!$errormsg)
@@ -1318,7 +1319,7 @@ if (($form == 4) && (Request::submitted('jump_next'))) {
         $level=4;
 }
 
-if ($level == 4 && $GLOBALS['RESOURCES_ENABLE'] && $GLOBALS['RESOURCES_ALLOW_ROOM_REQUESTS']) {
+if ($level == 4 && Config::get()->RESOURCES_ENABLE && Config::get()->RESOURCES_ALLOW_ROOM_REQUESTS) {
     $_SESSION['sem_create_data']['room_requests_options'] = array();
     $_SESSION['sem_create_data']['room_requests_options'][] = array('value' => 'course', 'name' => _('alle regelmäßigen und unregelmäßigen Termine der Veranstaltung'));
     if ($_SESSION['sem_create_data']["dates_are_valid"]) {
@@ -1572,7 +1573,7 @@ if (($form == 6) && (Request::submitted('jump_next')))
         $_SESSION['sem_create_data']["sem_id"] = $sem->getId();
 
         // Raumanfragen erzeugen
-        if ($GLOBALS['RESOURCES_ENABLE'] && $GLOBALS['RESOURCES_ALLOW_ROOM_REQUESTS']) {
+        if (Config::get()->RESOURCES_ENABLE && Config::get()->RESOURCES_ALLOW_ROOM_REQUESTS) {
             if (!$_SESSION['sem_create_data']['skip_room_request'] && is_array($_SESSION['sem_create_data']['room_requests'])) {
                 foreach ($_SESSION['sem_create_data']['room_requests'] as $request) {
                     $request->seminar_id = $sem->getId();
@@ -1597,7 +1598,7 @@ if (($form == 6) && (Request::submitted('jump_next')))
                 if (($temp_resources[$key] != '') || ($temp_rooms[$key] != '')) {
                     $singleDates =& $sem->getSingleDatesForCycle($key);
                     foreach ($singleDates as $sd_key => $sd_val) {
-                        if ($GLOBALS['RESOURCES_ENABLE'] && $temp_resources[$key]  != '') {
+                        if (Config::get()->RESOURCES_ENABLE && $temp_resources[$key]  != '') {
                             $singleDates[$sd_key]->bookRoom($temp_resources[$key]);
                             if ($msg = $singleDates[$sd_key]->getMessages()) {
                                 $errormsg .= $msg;
@@ -2069,7 +2070,7 @@ elseif ((!$_SESSION['sem_create_data']["sem_class"]) && (!$level)){
                 </td>
             </tr>
         <? endif ?>
-        <? if ($GLOBALS['STUDYGROUPS_ENABLE']) : ?>
+        <? if (Config::get()->STUDYGROUPS_ENABLE) : ?>
             <tr>
                 <td class="blank">
                     <p class="info">
@@ -2156,11 +2157,11 @@ elseif ((!$level) || ($level == 1)) {
                                 ? "selected"
                                 : "",
                             $sem_type_id,
-                            $sem_type["name"]);
+                            htmlReady($sem_type["name"]));
                 }
                 ?>
             </select> <br>
-            &nbsp; <font size="-1"> <?=_("in der Kategorie"); ?> <b><? echo $SEM_CLASS[$_SESSION['sem_create_data']["sem_class"]]["name"] ?></b></font>
+            &nbsp; <font size="-1"> <?=_("in der Kategorie"); ?> <b><? echo htmlReady($SEM_CLASS[$_SESSION['sem_create_data']["sem_class"]]["name"]) ?></b></font>
             <?= tooltipIcon(_("Über den Typ der Veranstaltung werden die Veranstaltungen innerhalb von Listen gruppiert.")) ?>
             <font color="red" size=+2>*</font>
         </td>
@@ -2253,9 +2254,8 @@ elseif ((!$level) || ($level == 1)) {
             $all_semester = $semester->getAllSemesterData();
 
             echo "<select name=\"sem_start_time\">";
-            if(!$GLOBALS['ASSI_SEMESTER_PRESELECT'])
-            {
-                echo "<option value=\"-1\" >["._('bitte auswählen')."]</option>";
+            if (Config::get()->ASSI_SEMESTER_PRESELECT) {
+                echo '<option value="-1">[' ._('bitte auswählen') . ']</option>';
             }
             foreach ($all_semester as $key => $semester) {
                 if ((!$semester["past"]) && ($semester["ende"] > time())) {
@@ -2486,14 +2486,14 @@ elseif ($level == 2) {
     </tr>
     <tr>
         <td class="blank" valign="top">
- 	          <div class="info">
+              <div class="info">
                 <?
                 if ($SEM_CLASS[$_SESSION['sem_create_data']["sem_class"]]["bereiche"])
                     echo _("Geben Sie hier Personendaten, Studienbereiche und weitere Angaben zur Veranstaltung an.")."<br><br>";
                 else
                     echo _("Geben Sie hier Personendaten und weitere Angaben zur Veranstaltung an.")."<br><br>";
                 ?>
- 	            <font size=-1><? printf (_("Alle mit einem Sternchen%smarkierten Felder <b>müssen</b> ausgefüllt werden, um eine Veranstaltung anlegen zu können.")."</font><br><br>", "&nbsp;</font><font color=\"red\" size=+1><b>*</b></font><font size=-1>&nbsp;");?>
+                <font size=-1><? printf (_("Alle mit einem Sternchen%smarkierten Felder <b>müssen</b> ausgefüllt werden, um eine Veranstaltung anlegen zu können.")."</font><br><br>", "&nbsp;</font><font color=\"red\" size=+1><b>*</b></font><font size=-1>&nbsp;");?>
             </div>
         </td>
     </tr>
@@ -3054,7 +3054,7 @@ elseif ($level == 3) {
                         echo ' value="'.$sem_week.'">';
                         echo ($sem_week+1).'. '._("Semesterwoche")." ("._("ab")." ".date("d.m.Y",$tmp_first_date).")</option>";
                         $sem_week++;
-                        $tmp_first_date = $tmp_first_date + (7 * 24 * 60 * 60);
+                        $tmp_first_date = strtotime('+1 week', $tmp_first_date);
                     }
                     echo '</select>';
                     echo "&nbsp;" ._("SWS Dozent:");
@@ -3175,7 +3175,7 @@ elseif ($level == 3) {
 
 //Level 4: Raumdaten
 elseif ($level == 4) {
-    if ($GLOBALS['RESOURCES_ENABLE'])
+    if (Config::get()->RESOURCES_ENABLE)
         $resList = new ResourcesUserRoomsList($user_id->id, TRUE, FALSE, TRUE);
 
     Sidebar::get()->setImage('sidebar/seminar-sidebar.png');
@@ -3194,16 +3194,19 @@ elseif ($level == 4) {
         <td class="blank" valign="top">
             <div class="info">
                 <?
-                if ($GLOBALS['RESOURCES_ENABLE']) {
-                    if ($GLOBALS['RESOURCES_ALLOW_ROOM_REQUESTS']) {
-                        if ($resList->roomsExist())
-                            print _("Bitte geben Sie hier ein, welche Angaben zu Räumen gemacht werden, buchen Sie konkrete Räume oder stellen Sie Raumwünsche an die zentrale Raumverwaltung.")."<br><br>";
-                        else
-                            print _("Bitte geben Sie hier ein, welche Angaben zu Räumen gemacht werden oder stellen Sie Raumwünsche an die zentrale Raumverwaltung.")."<br><br>";
-                    } elseif ($resList->roomsExist())
-                        print _("Bitte geben Sie hier ein, welche Angaben zu Räumen gemacht werden oder buchen Sie konkrete Räume.")."<br><br>";
-                } else
-                    print _("Bitte geben Sie hier ein, welche Angaben zu Räumen gemacht werden.")."<br><br>";
+                if (Config::get()->RESOURCES_ENABLE) {
+                    if (Config::get()->RESOURCES_ALLOW_ROOM_REQUESTS) {
+                        if ($resList->roomsExist()) {
+                            print _('Bitte geben Sie hier ein, welche Angaben zu Räumen gemacht werden, buchen Sie konkrete Räume oder stellen Sie Raumwünsche an die zentrale Raumverwaltung.') . '<br><br>';
+                        } else {
+                            print _('Bitte geben Sie hier ein, welche Angaben zu Räumen gemacht werden oder stellen Sie Raumwünsche an die zentrale Raumverwaltung.') . '<br><br>';
+                        }
+                    } elseif ($resList->roomsExist()) {
+                        print _('Bitte geben Sie hier ein, welche Angaben zu Räumen gemacht werden oder buchen Sie konkrete Räume.') . '<br><br>';
+                    }
+                } else {
+                    print _('Bitte geben Sie hier ein, welche Angaben zu Räumen gemacht werden.') . '<br><br>';
+                }
                 ?>
         </td>
     </tr>
@@ -3222,7 +3225,7 @@ elseif ($level == 4) {
         </td>
     </tr>
     <?
-    if (($GLOBALS['RESOURCES_ALLOW_ROOM_REQUESTS']) && ($GLOBALS['RESOURCES_ENABLE']) && $_SESSION['sem_create_data']['dates_are_valid']) {
+    if (Config::get()->RESOURCES_ALLOW_ROOM_REQUESTS && Config::get()->RESOURCES_ENABLE && $_SESSION['sem_create_data']['dates_are_valid']) {
     ?>
 
     <tr <? $cssSw->switchClass() ?>>
@@ -3280,7 +3283,7 @@ elseif ($level == 4) {
     } else {
         echo "<input type=\"hidden\" name=\"skip_room_request\" value=\"1\">";
     }
-    if ($GLOBALS['RESOURCES_ENABLE'] && $resList->roomsExist() &&
+    if (Config::get()->RESOURCES_ENABLE && $resList->roomsExist() &&
         (((is_array($_SESSION['sem_create_data']["metadata_termin"]["turnus_data"])) && ($_SESSION['sem_create_data']["term_art"] == 0))
             || (($_SESSION['sem_create_data']["term_first_date"])) && ($_SESSION['sem_create_data']["term_art"] == 1)
             || ($_SESSION['sem_create_data']["sem_vor_termin"] > -1))) {
@@ -3372,7 +3375,7 @@ elseif ($level == 4) {
                 <font size="-1"><b><?=_("freie Angaben zu Räumen"); ?></b></font><br><br>
                 <table border="0" width="100%" cellspaceing="2" cellpadding="0">
                     <?
-                    printf ("<font size=\"-1\">"._("%sSie können zu jedem Termin freie Angaben zu Raum bzw. Ort machen:")."</font><br>", (($GLOBALS['RESOURCES_ENABLE'] && $resList->roomsExist()) ? "<i><u>"._("oder:")."</u></i>&nbsp;" : ""));
+                    printf ("<font size=\"-1\">"._("%sSie können zu jedem Termin freie Angaben zu Raum bzw. Ort machen:")."</font><br>", ((Config::get()->RESOURCES_ENABLE && $resList->roomsExist()) ? "<i><u>"._("oder:")."</u></i>&nbsp;" : ""));
                     if ($_SESSION['sem_create_data']["term_art"] == 0) {
                         if (is_array($_SESSION['sem_create_data']["metadata_termin"]["turnus_data"])) {
                             foreach ($_SESSION['sem_create_data']["metadata_termin"]["turnus_data"] as $val) {
@@ -3776,16 +3779,18 @@ elseif ($level == 7) {
                                         printf("<li>"._("<b>%d</b> %s für die Veranstaltung eingetragen.")."<br><br>", $count_dep, get_title_for_status('deputy', $count_dep, $_SESSION['sem_create_data']["sem_status"]));
                                     }
                                     printf("<li>"._("<b>%d</b> %s für die Veranstaltung eingetragen.")."<br><br>", $count_tut, get_title_for_status('tutor', $count_tut, $_SESSION['sem_create_data']["sem_status"]));
-                                    if ($count_doms==1)
+                                    if ($count_doms == 1) {
                                         print "<li>"._("<b>1</b> Nutzerdomäne für die Veranstaltung eingetragen.")."<br><br>";
-                                    elseif ($count_doms>1)
+                                    } elseif ($count_doms > 1) {
                                         printf ("<li>"._("<b>%s</b> Nutzerdomänen für die Veranstaltung eingetragen.")."<br><br>", $count_doms);
-                                    if ($count_bereich==1)
+                                    }
+                                    if ($count_bereich == 1) {
                                         print "<li>"._("<b>1</b> Bereich für die Veranstaltung eingetragen.")."<br><br>";
-                                    elseif ($count_bereich)
+                                    } elseif ($count_bereich) {
                                         printf ("<li>"._("<b>%s</b> Bereiche für die Veranstaltung eingetragen.")."<br><br>", $count_bereich);
+                                    }
                                     //Show the result from the resources system
-                                    if ($GLOBALS['RESOURCES_ENABLE']) {
+                                    if (Config::get()->RESOURCES_ENABLE) {
                                         if (is_array($updateResult))
                                             foreach ($updateResult as $key=>$val) {
                                                 if ($val["resource_id"]) {

@@ -63,6 +63,7 @@ class DataFieldStructure
   function getEditPerms()        {return $this->data['edit_perms'];}
   function getViewPerms()        {return $this->data['view_perms'];}
   function getIsRequired()       {return (bool)$this->data['is_required']; }
+  function getIsUserfilter()     {return (bool)$this->data['is_userfilter']; }
   function getDescription()      {return $this->data['description'];}
 
 
@@ -81,12 +82,13 @@ class DataFieldStructure
   function setPriority($v)         {$this->data['priority'] = $v;}
   function setEditPerms($v)        {$this->data['edit_perms'] = $v;}
   function setViewPerms($v)        {$this->data['view_perms'] = $v;}
-  function setIsRequired($v)        {$this->data['is_required'] = $v;}
-  function setDescription($v)        {$this->data['description'] = $v;}
+  function setIsRequired($v)       {$this->data['is_required'] = $v;}
+  function setIsUserfilter($v)     {$this->data['is_userfilter'] = $v;}
+  function setDescription($v)      {$this->data['description'] = $v;}
 
   function setType($v) {
     $this->data['type'] = $v;
-    if (!in_array($v, array('selectbox', 'radio', 'combo')))
+    if (!in_array($v, array('selectbox', 'selectboxmultiple', 'radio', 'combo')))
       $this->setTypeParam('');
   }
 
@@ -100,7 +102,7 @@ class DataFieldStructure
    */
   function getHTMLEditor($name) {
     $ret = '';
-    if (in_array($this->getType(), array('selectbox', 'radio', 'combo'))) {
+    if (in_array($this->getType(), array('selectbox', 'selectboxmultiple', 'radio', 'combo'))) {
       $content = $this->getTypeParam();
       $ret = "<textarea name=\"$name\" cols=\"20\" rows=\"8\" wrap=\"off\">" . htmlReady($content) . "</textarea>";
     }
@@ -246,7 +248,7 @@ class DataFieldStructure
         $data = array_merge($row, $data);
     }
 
-    if (!in_array($data['type'], array('selectbox', 'radio', 'combo'))) {
+    if (!in_array($data['type'], array('selectbox', 'selectboxmultiple', 'radio', 'combo'))) {
         $data['typeparam'] = '';
     }
     $data['object_class'] = (int)$data['object_class'] ? (int)$data['object_class'] : null;
@@ -254,17 +256,17 @@ class DataFieldStructure
         $st = $db->prepare("UPDATE datafields ".
                 "SET name=?, object_type=?, ".
                 "object_class=?, edit_perms=?, priority=?, ".
-                "view_perms=?, type=?, typeparam=?, is_required=?, description=?, chdate=UNIX_TIMESTAMP() WHERE datafield_id=?");
+                "view_perms=?, type=?, typeparam=?, is_required=?, is_userfilter=?, description=?, chdate=UNIX_TIMESTAMP() WHERE datafield_id=?");
     } else {
         $st = $db->prepare("INSERT INTO datafields ".
                 "SET name=?, object_type=?, ".
                 "object_class=?, edit_perms=?, priority=?, ".
-                "view_perms=?, type=?, typeparam=?, is_required=?, description=?, chdate=UNIX_TIMESTAMP(), mkdate=UNIX_TIMESTAMP(), datafield_id=?");
+                "view_perms=?, type=?, typeparam=?, is_required=?, is_userfilter=?, description=?, chdate=UNIX_TIMESTAMP(), mkdate=UNIX_TIMESTAMP(), datafield_id=?");
     }
 
     $st->execute(array($data['name'], $data['object_type'],
                 $data['object_class'], $data['edit_perms'], (int)$data['priority'],
-                $data['view_perms'], (string)$data['type'], (string)$data['typeparam'],(bool)$data['is_required'],(string)$data['description'], $data['datafield_id']));
+                $data['view_perms'], (string)$data['type'], (string)$data['typeparam'],(bool)$data['is_required'],(bool)$data['is_userfilter'],(string)$data['description'], $data['datafield_id']));
     return $st->rowCount();
   }
 

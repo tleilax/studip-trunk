@@ -37,9 +37,6 @@
                         message.addEventListener("click", function () {
                             location.href = STUDIP.ABSOLUTE_URI_STUDIP + "dispatch.php/jsupdater/mark_notification_read/" + this.tag;
                         });
-                        message.addEventListener("close", function () {
-                            STUDIP.PersonalNotifications.sendReadInfo(this.tag);
-                        });
                         sessionStorage['desktop.notification.exists.' + notification.id] = 1;
                     }
                 }
@@ -102,8 +99,8 @@
             }
             if (old_count !== count) {
                 $('#notification_marker').text(count);
+                Notificon(count || '', {favicon: favicon_url});
             }
-            Notificon(count || '', {favicon: favicon_url});
         },
         isVisited: function () {
             var id = this.id;

@@ -184,9 +184,20 @@ class User extends AuthUserMd5
             'on_delete' => 'delete',
             'on_store' => 'store',
         );
-        $config['has_many']['contacts'] = array(
-            'class_name' => 'Contact',
-            'assoc_foreign_key' => 'owner_id'
+        $config['has_and_belongs_to_many']['contacts'] = array(
+            'class_name' => 'User',
+            'thru_table' => 'contact',
+            'thru_key' => 'owner_id',
+            'thru_assoc_key' => 'user_id',
+            'order_by' => 'ORDER BY Nachname, Vorname',
+            'on_delete' => 'delete',
+            'on_store' => 'store'
+        );
+        $config['has_many']['contactgroups'] = array(
+            'class_name' => 'Statusgruppen',
+            'assoc_foreign_key' => 'range_id',
+            'on_delete' => 'delete',
+            'on_store' => 'store'
         );
         $config['has_one']['info'] = array(
             'class_name' => 'UserInfo',
@@ -245,13 +256,30 @@ class User extends AuthUserMd5
      */
     function getFullName($format = "full")
     {
+        static $concat,$left,$if,$quote;
+
         $sql = $GLOBALS['_fullname_sql'][$format];
-        $db = DBManager::get();
-        if (!$sql) {
+        if (!$sql || $format == 'no_title') {
             return $this->vorname . ' ' . $this->nachname;
         }
-        $data = array_map(array($db,'quote'), $this->toArray('vorname nachname username title_front title_rear motto perms'));
-        return $db->query("SELECT " . strtr(strtolower($sql), $data))->fetchColumn();
+        if ($format == 'no_title_rev') {
+            return $this->nachname . ' ' . $this->vorname;
+        }
+        if ($concat === null) {
+            $concat = function() {return join('', func_get_args());};
+            $left = function($str, $c = 0) {return substr($str,0,$c);};
+            $if = function($ok,$yes,$no) {return $ok ? $yes : $no;};
+            $quote = function($str) {return "'" . addcslashes($str, "\\'\0") . "'";};
+        }
+
+        $data = array_map($quote, $this->toArray('vorname nachname username title_front title_rear motto perms'));
+        $replace_func['CONCAT'] = '$concat';
+        $replace_func['LEFT'] = '$left';
+        $replace_func['UCASE'] = 'strtoupper';
+        $replace_func['IF'] = '$if';
+        $eval = strtr($sql, $replace_func);
+        $eval = strtr(strtolower($eval), $data);
+        return eval('return ' . $eval . ';');
     }
 
     function toArrayRecursive($only_these_fields = null)
@@ -271,5 +299,77 @@ class User extends AuthUserMd5
     public function hasRole($role, $institute_id = '')
     {
         return RolePersistence::isAssignedRole($this->user_id, $role, $institute_id);
+    }
+
+    /**
+     * Returns whether the given user is stored in contacts.
+     *
+     * @param User $another_user
+     * @return bool
+     */
+    public function isFriendOf($another_user)
+    {
+        return $this->contacts->findOneBy('user_id', $another_user['user_id']) !== null;
+    }
+
+    /**
+     * checks if at least one field was modified since last restore
+     *
+     * @return boolean
+     */
+    public function isDirty()
+    {
+        return parent::isDirty() || $this->info->isDirty();
+    }
+
+    /**
+     * checks if given field was modified since last restore
+     *
+     * @param string $field
+     * @return boolean
+     */
+    public function isFieldDirty($field)
+    {
+        $field = strtolower($field);
+        return (array_key_exists($field, $this->content_db) ? parent::isFieldDirty($field) : $this->info->isFieldDirty($field));
+    }
+
+    /**
+     * reverts value of given field to last restored value
+     *
+     * @param string $field
+     * @return mixed the restored value
+     */
+    public function revertValue($field)
+    {
+        $field = strtolower($field);
+        return (array_key_exists($field, $this->content_db) ? parent::revertValue($field) : $this->info->revertValue($field));
+    }
+
+    /**
+     * returns unmodified value of given field
+     *
+     * @param string $field
+     * @throws InvalidArgumentException
+     * @return mixed
+     */
+    public function getPristineValue($field)
+    {
+        $field = strtolower($field);
+        return (array_key_exists($field, $this->content_db) ? parent::getPristineValue($field) : $this->info->getPristineValue($field));
+    }
+
+    /**
+     * Returns data of table row as assoc array with raw contents like
+     * they are in the database.
+     * Pass array of fieldnames or ws separated string to limit
+     * fields.
+     *
+     * @param mixed $only_these_fields
+     * @return array
+     */
+    public function toRawArray($only_these_fields = null)
+    {
+        return array_merge($this->info->toRawArray($only_these_fields), parent::toRawArray($only_these_fields));
     }
 }

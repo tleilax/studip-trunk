@@ -101,9 +101,9 @@ URLHelper::bindLinkParam('raumzeitFilter', $_SESSION['raumzeitFilter']);
 // URLHelper::bindLinkParam('sd_open', $sd_open);
 
 //Change header_line if open object
-$header_line = getHeaderLine($id);
-if ($header_line)
-    PageLayout::setTitle($header_line." - ".PageLayout::getTitle());
+$course = Course::find($id);
+if ($course)
+	PageLayout::setTitle($course->getFullname() ." - ".PageLayout::getTitle());
 
 //save messages from
 $pmessages = PageLayout::getMessages();
@@ -525,7 +525,7 @@ if ($newCycle) {
 
     <? if (!$_LOCKED) { ?>
     <? if (isset($cmd) && ($cmd == 'createNewSingleDate')) {
-        if ($GLOBALS['RESOURCES_ENABLE_BOOKINGSTATUS_COLORING']) {
+        if (Config::get()->RESOURCES_ENABLE_BOOKINGSTATUS_COLORING) {
             $tpl['class'] = 'content_title_red';
         } else {
             $tpl['class'] = 'printhead';
@@ -539,7 +539,7 @@ if ($newCycle) {
     <?
     }
 
-    if (!$_LOCKED && $RESOURCES_ENABLE && $RESOURCES_ALLOW_ROOM_REQUESTS) { ?>
+    if (!$_LOCKED && Config::get()->RESOURCES_ENABLE && Config::get()->RESOURCES_ALLOW_ROOM_REQUESTS) { ?>
     <tr>
         <td colspan="9" class="blue_gradient">
             <a name="irregular_dates"></a>
@@ -613,7 +613,7 @@ if ($adminList) {
     $sidebar->addWidget($widget);
 }
 
-if ($GLOBALS['RESOURCES_ENABLE'] && $GLOBALS['RESOURCES_ENABLE_BOOKINGSTATUS_COLORING']) {
+if (Config::get()->RESOURCES_ENABLE && Config::get()->RESOURCES_ENABLE_BOOKINGSTATUS_COLORING) {
     $template = $GLOBALS['template_factory']->open('raumzeit/legend.php');
     $element  = new WidgetElement($template->render());
 

@@ -29,7 +29,7 @@ class BrowseNavigation extends Navigation
             $coursetext = _('Veranstaltungen');
             $courseinfo = _('Meine Veranstaltungen & Einrichtungen');
 
-            if ($perm->have_perm('admin') && !$perm->have_perm('root')) {
+            if ($perm->have_perm('admin')) {
                 $courselink = 'dispatch.php/admin/courses';
             }
         } else {
@@ -57,7 +57,7 @@ class BrowseNavigation extends Navigation
 
 
         // my courses
-        if (is_object($user) && $user->id != 'nobody' && !$perm->have_perm('root')) {
+        if (is_object($user) && $user->id != 'nobody') {
 
             if ($perm->have_perm('admin')) {
                 $navigation = new Navigation(_('Administration'));
@@ -68,7 +68,7 @@ class BrowseNavigation extends Navigation
             $navigation->addSubNavigation('list', new Navigation(_('Aktuelle Veranstaltungen'), 'dispatch.php/my_courses'));
 
             if ($perm->have_perm('admin')) {
-                $navigation->addSubNavigation('schedule', new Navigation(_('Veranstaltungs-Stundenplan'), 'dispatch.php/calendar/schedule'));
+                $navigation->addSubNavigation('schedule', new Navigation(_('Veranstaltungs-Stundenplan'), 'dispatch.php/calendar/instschedule?cid=' . $GLOBALS['user']->cfg->MY_INSTITUTES_DEFAULT));
             } else {
                 $navigation->addSubNavigation('archive', new Navigation(_('Archivierte Veranstaltungen'), 'dispatch.php/my_courses/archive'));
             }

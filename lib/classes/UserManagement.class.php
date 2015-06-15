@@ -30,7 +30,6 @@ require_once 'lib/datei.inc.php';   // remove documents of user
 require_once 'lib/statusgruppe.inc.php';    // remove user from statusgroups
 require_once 'lib/dates.inc.php';   // remove appointments of user
 require_once 'lib/messaging.inc.php';   // remove messages send or recieved by user
-require_once 'lib/contact.inc.php'; // remove user from adressbooks
 require_once 'lib/classes/DataFieldEntry.class.php';    // remove extra data of user
 require_once 'lib/classes/auth_plugins/StudipAuthAbstract.class.php';
 require_once 'lib/object.inc.php';
@@ -38,15 +37,11 @@ require_once 'lib/log_events.inc.php';  // Event logging
 require_once 'app/models/studygroup.php';
 require_once 'vendor/phpass/PasswordHash.php';
 
-if ($GLOBALS['RESOURCES_ENABLE']) {
-    include_once ($GLOBALS['RELATIVE_PATH_RESOURCES']."/lib/DeleteResourcesUser.class.php");
+if (Config::get()->RESOURCES_ENABLE) {
+    include_once $GLOBALS['RELATIVE_PATH_RESOURCES'] . '/lib/DeleteResourcesUser.class.php';
 }
-if (get_config('CALENDAR_ENABLE')) {
-    include_once ($GLOBALS['RELATIVE_PATH_CALENDAR']
-    . "/lib/driver/{$GLOBALS['CALENDAR_DRIVER']}/CalendarDriver.class.php");
-}
-if (get_config('ELEARNING_INTERFACE_ENABLE')){
-    require_once ($GLOBALS['RELATIVE_PATH_ELEARNING_INTERFACE'] . "/ELearningUtils.class.php");
+if (Config::get()->ELEARNING_INTERFACE_ENABLE) {
+    require_once $GLOBALS['RELATIVE_PATH_ELEARNING_INTERFACE'] . '/ELearningUtils.class.php';
 }
 
 /**
@@ -888,6 +883,13 @@ class UserManagement
 
         // delete documents of this user
         if ($delete_documents) {
+            // Remove private file space of this user
+            if (Config::get()->PERSONALDOCUMENT_ENABLE) {
+                $root_dir = new RootDirectory($this->user_data['auth_user_md5.user_id']);
+                $root_dir->delete();
+            }
+
+            // Remove other files
             $temp_count = 0;
             $query = "SELECT dokument_id FROM dokumente WHERE user_id = ?";
             $statement = DBManager::get()->prepare($query);
@@ -898,9 +900,9 @@ class UserManagement
                 }
             }
 
-            // Remove private file space of this user
-            $root_dir = new RootDirectory($this->user_data['auth_user_md5.user_id']);
-            $root_dir->delete();
+            if ($temp_count) {
+                $this->msg .= "info§" . sprintf(_("%s Dokumente gelöscht."), $temp_count) . "§";
+	        }
 
             // delete empty folders of this user
             $temp_count = 0;
@@ -938,7 +940,7 @@ class UserManagement
             }
         }
         // kill all the ressources that are assigned to the user (and all the linked or subordinated stuff!)
-        if ($GLOBALS['RESOURCES_ENABLE']) {
+        if (Config::get()->RESOURCES_ENABLE) {
             $killAssign = new DeleteResourcesUser($this->user_data['auth_user_md5.user_id']);
             $killAssign->delete();
         }
@@ -1005,14 +1007,25 @@ class UserManagement
         $query = "DELETE FROM user_studiengang WHERE user_id = ?";
         $statement = DBManager::get()->prepare($query);
         $statement->execute(array($this->user_data['auth_user_md5.user_id']));
-        if (($db_ar = $statement->rowCount()) > 0)
+        if (($db_ar = $statement->rowCount()) > 0) {
             $this->msg .= "info§" . sprintf(_("%s Zuordnungen zu Studiengängen gelöscht."), $db_ar) . "§";
+        }
 
         // delete all private appointments of this user
         if (get_config('CALENDAR_ENABLE')) {
-            $calendar = new CalendarDriver($this->user_data['auth_user_md5.user_id']);
-            if ($appkills = $calendar->deleteFromDatabase('ALL'))
+            $appkills = CalendarEvent::deleteBySQL('range_id = ?',
+                    array($this->user_data['auth_user_md5.user_id']));
+            if ($appkills) {
                 $this->msg .= "info§" . sprintf(_("%s Einträge aus den Terminen gelöscht."), $appkills) ."§";
+            }
+            // delete membership in group calendars
+            if (get_config('GROUP_CALENDAR_ENABLE')) {
+                $membershipkills = CalendarUser::deleteBySQL('owner_id = :user_id OR user_id = :user_id',
+                        array(':user_id' => $this->user_data['auth_user_md5.user_id']));
+                if ($membershipkills) {
+                    $this->msg .= 'info§' . sprintf(_('%s Verknüpfungen mit Gruppenterminkalendern gelöscht.'));
+                }
+            }
         }
 
         // delete all messages send or received by this user
@@ -1020,14 +1033,20 @@ class UserManagement
         $messaging->delete_all_messages($this->user_data['auth_user_md5.user_id']);
 
         // delete user from all foreign adressbooks and empty own adressbook
-        $buddykills = RemoveUserFromBuddys($this->user_data['auth_user_md5.user_id']);
+        $buddykills = Contact::deleteBySQL('user_id = ?', array($this->user_data['auth_user_md5.user_id']));
         if ($buddykills > 0) {
             $this->msg .= "info§" . sprintf(_("%s Einträge aus Adressbüchern gelöscht."), $buddykills) . "§";
         }
-        $msg = DeleteAdressbook($this->user_data['auth_user_md5.user_id']);
-        if ($msg) {
-            $this->msg .= "info§" . $msg . "§";
+        $contactkills = Contact::deleteBySQL('owner_id = ?', array($this->user_data['auth_user_md5.user_id']));
+        if ($contactkills) {
+            $this->msg .= sprintf(_('Adressbuch mit %d Einträgen gelöscht.'), $contactkills);
         }
+
+        // delete users groups
+        Statusgruppen::deleteBySQL('range_id = ?', array($this->user_data['auth_user_md5.user_id']));
+
+        // remove user from any groups
+        StatusgruppeUser::deleteBySQL('user_id = ?', array($this->user_data['auth_user_md5.user_id']));
 
         // delete all blubber entrys
         $query = "DELETE FROM blubber WHERE user_id = ?";

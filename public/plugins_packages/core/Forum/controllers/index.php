@@ -11,6 +11,9 @@
 require_once 'lib/classes/AdminModules.class.php';
 require_once 'lib/classes/Config.class.php';
 
+use \Studip\Markup;
+
+
 class IndexController extends ForumController
 {
     /* * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -154,6 +157,12 @@ class IndexController extends ForumController
         if (Request::getArray('highlight')) {
             $this->highlight = Request::optionArray('highlight');
         }
+
+        if ($this->edit_posting = Request::get('edit_posting', null)
+                && !ForumPerm::hasEditPerms($this->edit_posting)) {
+            $this->edit_posting = null;
+        }
+
     }
 
     /**
@@ -703,11 +712,27 @@ class IndexController extends ForumController
     {
         ForumPerm::check('add_entry', $this->getId(), $topic_id);
 
+        if (ForumEntry::isClosed($topic_id) && !ForumPerm::has('edit_closed')) {
+            throw new AccessDeniedException(
+                _('Sie dürfen keinen Beitrag in einem geschlossenen Thema erstellen!')
+            );
+        }
+
         $topic = ForumEntry::getConstraints($topic_id);
 
         $this->flash['edit_entry'] = true;
         $this->flash['new_entry_title'] = $topic['name'];
-        $this->flash['new_entry_content'] = "[quote=". ($topic['anonymous'] ? _('Anonym') : $topic['author']) ."]\n" . $topic['content'] . "\n[/quote]\n\n";
+
+        $author = $topic['anonymous'] ? _('Anonym') : $topic['author'];
+        $content = '[quote=' . $author . ']' . PHP_EOL
+            . $topic['content'] . PHP_EOL
+            . '[/quote]' . PHP_EOL;
+        
+        if (Markup::isHtml($topic['content'])) {
+            $content = Markup::markAsHtml($content);
+        }
+
+        $this->flash['new_entry_content'] = $content;
 
         $this->redirect(PluginEngine::getLink('coreforum/index/index/'. $topic_id .'#create'));
     }
@@ -720,6 +745,12 @@ class IndexController extends ForumController
     function new_entry_action($topic_id)
     {
         ForumPerm::check('add_entry', $this->getId(), $topic_id);
+
+        if (ForumEntry::isClosed($topic_id) && !ForumPerm::has('edit_closed')) {
+            throw new AccessDeniedException(
+                _('Sie dürfen keinen Beitrag in einem geschlossenen Thema erstellen!')
+            );
+        }
 
         $this->flash['edit_entry'] = true;
         $this->redirect(PluginEngine::getLink('coreforum/index/index/'. $topic_id .'#create'));

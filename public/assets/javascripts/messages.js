@@ -131,8 +131,8 @@ STUDIP.Messages = {
                 statusbar.delay(1000).fadeOut(300, function () { jQuery(this).remove(); });
             },
             error: function(jqxhr, status, errorThrown) {
-                statusbar.find(".progress").addClass("error").attr("title", errorThrown);
-                statusbar.find(".progresstext").text(errorThrown);
+                statusbar.find(".progress").addClass("progress-error").attr("title", errorThrown);
+                statusbar.find(".progresstext").html(errorThrown);
                 statusbar.bind("click", function() { jQuery(this).fadeOut(300, function () { jQuery(this).remove(); })});
             }
         });
@@ -211,6 +211,7 @@ STUDIP.Messages = {
                     type: "POST",
                     success: function (html) {
                         jQuery("#preview .message_body").html(html);
+                        STUDIP.Markup.element("#preview .message_body");
                     }
                 });
                 old_written_text = written_text;
