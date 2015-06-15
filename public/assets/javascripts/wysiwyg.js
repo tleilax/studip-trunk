@@ -323,6 +323,13 @@ jQuery(function ($) {
             var editor = event.editor,
                 $textarea = $(editor.element.$);
 
+            // CKEDITOR "steals" the required flag from the
+            // textarea, but we don't want that, so give
+            // it back.
+            if (editor._.required) {
+                $textarea.attr('required', true);
+            }
+
             // NOTE some HTML elements are output on their own line so that old
             // markup code and older plugins run into less problems
 
@@ -366,11 +373,18 @@ jQuery(function ($) {
 
             // clean up HTML edited in source mode before submit
             var form = $textarea.closest('form');
-            form.submit(function (event) {
-                // make sure HTML marker is always set, in
-                // case contents are cut-off by the backend
-                var w = STUDIP.wysiwyg;
-                editor.setData(w.markAsHtml(editor.getData()));
+            form.submit({ editor: editor }, function (event) {
+                // set HTML marker only if textarea contains data
+                // also ensure that whitespace is ignored
+                var editor = event.data.editor;
+                var plainText = editor.editable().getText();
+                if (plainText.length > 0) {
+                    editor.setData(STUDIP.wysiwyg.markAsHtml(
+                        editor.getData().trim()
+                    ));
+                } else {
+                    editor.setData('');
+                }
                 editor.updateElement(); // update textarea, in case it's accessed by other JS code
             });
 
