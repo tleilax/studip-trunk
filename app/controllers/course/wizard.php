@@ -46,6 +46,9 @@ class Course_WizardController extends AuthenticatedController
         PageLayout::addSqueezePackage('coursewizard');
     }
 
+    /**
+     * Just some sort of placeholder for initial calling without a step number.
+     */
     public function index_action() {
         $this->relocate('course/wizard/step', 0);
     }
@@ -183,6 +186,21 @@ class Course_WizardController extends AuthenticatedController
         $result = $this->getStep($step_number)->processRequest($data);
         $this->setStepValues($stepclass, $result);
         $this->relocate('course/wizard/step', $step_number, $this->temp_id);
+    }
+
+    /**
+     * Copy an existing course.
+     */
+    public function copy_action() {
+        $course = Course::findCurrent();
+        $values = array();
+        for ($i = 0 ; $i < sizeof($this->steps) ; $i++) {
+            $step = $this->getStep($i);
+            $values = $step->copy($course, $values);
+        }
+        $this->initialize();
+        $_SESSION['coursewizard'][$this->temp_id] = $values;
+        $this->relocate('course/wizard/step', 0, $this->temp_id);
     }
 
     /**

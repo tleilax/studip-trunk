@@ -176,6 +176,27 @@ class StudyAreasWizardStep implements CourseWizardStep
         return $category->bereiche;
     }
 
+    /**
+     * Copy values for study areas wizard step from given course.
+     * @param Course $course
+     * @param Array $values
+     */
+    public function copy($course, $values)
+    {
+        $data = array();
+        foreach ($course->study_areas as $a) {
+            /*
+             * Check if areas assigned to given course are
+             * still assignable.
+             */
+            if ($a->isAssignable()) {
+                $data['studyareas'][] = $a->id;
+            }
+        }
+        $values[__CLASS__] = $data;
+        return $values;
+    }
+
     public function getSemTreeLevel($parentId)
     {
         $level = array();

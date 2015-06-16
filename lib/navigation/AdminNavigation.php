@@ -94,7 +94,7 @@ class AdminNavigation extends Navigation
         $navigation->addSubNavigation('modules', new Navigation(_('Inhaltselemente'), 'dispatch.php/course/plus/index?list=TRUE'));
 
         if ($perm->have_perm($sem_create_perm)) {
-            $navigation->addSubNavigation('copy', new Navigation(_('Veranstaltung kopieren'), 'copy_assi.php?list=TRUE&new_session=TRUE'));
+            $navigation->addSubNavigation('copy', new Navigation(_('Veranstaltung kopieren'), 'dispatch.php/course/wizard/copy'));
             $navigation->addSubNavigation('create', new Navigation(_('Neue Veranstaltung anlegen'), 'dispatch.php/course/wizard'));
             $navigation->addSubNavigation('archive', new Navigation(_('Archivieren'), 'archiv_assi.php?list=TRUE&new_session=TRUE'));
             $navigation->addSubNavigation('visibility', new Navigation(_('Sichtbarkeit'), 'admin_visibility.php?list=TRUE'));

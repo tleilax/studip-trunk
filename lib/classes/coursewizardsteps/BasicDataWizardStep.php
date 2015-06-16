@@ -216,6 +216,33 @@ class BasicDataWizardStep implements CourseWizardStep
         return true;
     }
 
+    /**
+     * Copy values for basic data wizard step from given course.
+     * @param Course $course
+     * @param Array $values
+     */
+    public function copy($course, $values)
+    {
+        $data = array(
+            'coursetype' => $course->status,
+            'start_time' => $course->start_time,
+            'name' => $course->name,
+            'number' => $course->veranstaltungsnummer,
+            'institute' => $course->institut_id
+        );
+        $lecturers = array_map(function($l) {
+                return $l->user_id;
+            },
+            $course->getMembersWithStatus('dozent'));
+        $data['lecturers'] = array_keys($lecturers);
+        if (Config::get()->DEPUTIES_ENABLE) {
+            $deputies = getDeputies($course->id);
+            $data['deputies'] = array_keys($deputies);
+        }
+        $values[__CLASS__] = $data;
+        return $values;
+    }
+
     public function getSearch($course_type, $institute_id, $exclude_users)
     {
         if (SeminarCategories::getByTypeId($course_type)->only_inst_user){

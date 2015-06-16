@@ -69,4 +69,14 @@ interface CourseWizardStep
      */
     public function isRequired($values);
 
+    /**
+     * Prepares a copy of the given course by setting the necessary values
+     * in the given array.
+     *
+     * @param Course $course the course to copy
+     * @param Array $values values to set for course wizard
+     * @return Array original values array with added entries for this step.
+     */
+    public function copy($course, $values);
+
 }

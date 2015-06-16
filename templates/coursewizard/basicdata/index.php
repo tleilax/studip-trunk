@@ -51,8 +51,10 @@
 </label>
 <div id="lecturers">
     <?php foreach ($values['lecturers'] as $id => $assigned) : ?>
+        <?php if ($user = User::find($id)) : ?>
     <?= $this->render_partial('coursewizard/basicdata/_user',
-            array('class' => 'lecturer', 'inputname' => 'lecturers', 'user' => User::find($id))) ?>
+            array('class' => 'lecturer', 'inputname' => 'lecturers', 'user' => $user)) ?>
+        <?php endif ?>
     <?php endforeach ?>
 </div>
 <?php if ($dsearch) : ?>
@@ -61,9 +63,13 @@
     <?= $dsearch ?>
 </label>
 <div id="deputies">
-    <?php foreach ($values['deputies'] as $id => $assigned) : $d = User::find($id); ?>
-        <?= $this->render_partial('coursewizard/basicdata/_user',
-            array('class' => 'deputy', 'inputname' => 'deputies', 'user' => User::find($id))) ?>
+    <?php foreach ($values['deputies'] as $id => $assigned) : ?>
+        <?php if ($user = User::find($id)) : ?>
+            <?php if (!in_array($id, array_keys($values['lecturers']))) : ?>
+    <?= $this->render_partial('coursewizard/basicdata/_user',
+        array('class' => 'deputy', 'inputname' => 'deputies', 'user' => $user)) ?>
+            <?php endif ?>
+        <?php endif ?>
     <?php endforeach ?>
 </div>
 <?php endif ?>
