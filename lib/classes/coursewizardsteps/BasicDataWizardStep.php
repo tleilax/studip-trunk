@@ -51,7 +51,7 @@ class BasicDataWizardStep implements CourseWizardStep
                 $semesters[] = $s;
             }
         }
-        $tpl->set_attribute('semesters', $semesters);
+        $tpl->set_attribute('semesters', array_reverse($semesters));
         // If no semester is set, use current as selected default.
         if (!$values['start_time']) {
             $values['start_time'] = Semester::findCurrent()->beginn;
