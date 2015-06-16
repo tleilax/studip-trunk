@@ -454,6 +454,6 @@ $(function()
 {
     if ($('.sem-tree-assigned-root').children('ul').children('li').length == 0)
     {
-        $('.sem-tree-assigned-root').css('display', 'none');
+        $('.sem-tree-assigned-root').addClass('hidden-js');
     }
 });
