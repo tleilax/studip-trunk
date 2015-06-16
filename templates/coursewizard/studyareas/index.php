@@ -46,7 +46,7 @@
             <?= $this->render_partial('coursewizard/studyareas/_node',
                     array('node' => $node, 'stepnumber' => $stepnumber,
                         'temp_id' => $temp_id, 'values' => $values,
-                        'open_nodes' => $open_nodes,
+                        'open_nodes' => $open_nodes ?: array(),
                         'search_result' => $search_result ?: array())) ?>
             <?php endforeach ?>
             </ul>
