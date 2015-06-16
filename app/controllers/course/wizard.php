@@ -28,15 +28,7 @@ class Course_WizardController extends AuthenticatedController
     {
         parent::before_filter($action, $args);
         global $perm;
-        if ($perm->have_perm('admin')) {
-            Navigation::activateItem('/admin/course/create');
-        } else {
-            $nav = Navigation::getItem('/browse/my_courses');
-            $nav->addSubnavigation('create',
-                new Navigation(_('Neue Veranstaltung'),
-                $this->url_for('course/wizard/step', 0, $this->temp_id)));
-            Navigation::activateItem('/browse/my_courses/create');
-        }
+        Navigation::activateItem('/browse/my_courses');
         if (Request::isXhr()) {
             $this->dialog = true;
         }
@@ -191,8 +183,8 @@ class Course_WizardController extends AuthenticatedController
     /**
      * Copy an existing course.
      */
-    public function copy_action() {
-        $course = Course::findCurrent();
+    public function copy_action($id) {
+        $course = Course::find($id);
         $values = array();
         for ($i = 0 ; $i < sizeof($this->steps) ; $i++) {
             $step = $this->getStep($i);

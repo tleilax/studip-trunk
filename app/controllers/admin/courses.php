@@ -517,7 +517,7 @@ class Admin_CoursesController extends AuthenticatedController
                         'multimode' => true),
             11 => array('name'  => 'Veranstaltung kopieren',
                         'title' => 'Kopieren',
-                        'url'   => 'admin_seminare_assi.php?cmd=do_copy&start_level=1&class=1&cp_id=%s'),
+                        'url'   => 'dispatch.php/course/wizard/copy/%s'),
             14 => array('name'       => 'Zugangsberechtigungen',
                         'title'      => 'Zugangsberechtigungen',
                         'url'        => 'dispatch.php/course/admission?cid=%s',
