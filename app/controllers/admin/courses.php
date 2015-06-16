@@ -517,7 +517,10 @@ class Admin_CoursesController extends AuthenticatedController
                         'multimode' => true),
             11 => array('name'  => 'Veranstaltung kopieren',
                         'title' => 'Kopieren',
-                        'url'   => 'dispatch.php/course/wizard/copy/%s'),
+                        'url'   => 'dispatch.php/course/wizard/copy/%s',
+                        'attributes' => array(
+                            'data-dialog' => 'size=50%'
+                        )),
             14 => array('name'       => 'Zugangsberechtigungen',
                         'title'      => 'Zugangsberechtigungen',
                         'url'        => 'dispatch.php/course/admission?cid=%s',

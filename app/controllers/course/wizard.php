@@ -12,6 +12,7 @@
  * @copyright   2015 Stud.IP Core-Group
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
+ * @since       3.3
  */
 
 require_once 'app/controllers/authenticated_controller.php';
@@ -42,7 +43,7 @@ class Course_WizardController extends AuthenticatedController
      * Just some sort of placeholder for initial calling without a step number.
      */
     public function index_action() {
-        $this->relocate('course/wizard/step', 0);
+        $this->redirect($this->url_for('course/wizard/step', 0));
     }
 
     /**
@@ -177,7 +178,7 @@ class Course_WizardController extends AuthenticatedController
         );
         $result = $this->getStep($step_number)->processRequest($data);
         $this->setStepValues($stepclass, $result);
-        $this->relocate('course/wizard/step', $step_number, $this->temp_id);
+        $this->redirect($this->url_for('course/wizard/step', $step_number, $this->temp_id));
     }
 
     /**
@@ -192,7 +193,7 @@ class Course_WizardController extends AuthenticatedController
         }
         $this->initialize();
         $_SESSION['coursewizard'][$this->temp_id] = $values;
-        $this->relocate('course/wizard/step', 0, $this->temp_id);
+        $this->redirect($this->url_for('course/wizard/step', 0, $this->temp_id));
     }
 
     /**
