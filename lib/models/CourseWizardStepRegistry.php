@@ -16,9 +16,36 @@
 
 class CourseWizardStepRegistry extends SimpleORMap
 {
+
     protected static function configure($config = array())
     {
         $config['db_table'] = 'coursewizardsteps';
         parent::configure($config);
     }
+
+    public static function registerStep($name, $class, $number, $enabled=false)
+    {
+        $step = new CourseWizardStepRegistry();
+        $step->name = $name;
+        $step->classname = $class;
+        $step->number = $number;
+        $step->enabled = $enabled ? 1 : 0;
+        return $step->store();
+    }
+
+    public static function unregisterStep($class)
+    {
+        $step = self::findByClassname($class);
+        if ($step)
+        {
+            return $step->delete();
+        }
+        return true;
+    }
+
+    public static function hasEnabledSteps()
+    {
+        return sizeof(self::findBySQL("`enabled`=1")) > 0 ? true : false;
+    }
+
 }

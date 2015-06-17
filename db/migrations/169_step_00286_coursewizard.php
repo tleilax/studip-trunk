@@ -17,7 +17,6 @@ class Step00286CourseWizard extends Migration
             `name` VARCHAR(255) NOT NULL,
             `classname` VARCHAR(255) NOT NULL UNIQUE,
             `number` TINYINT(1) NOT NULL,
-            `system` TINYINT(1) NOT NULL DEFAULT 0,
             `enabled` TINYINT(1) NOT NULL DEFAULT 1,
             `mkdate` INT NOT NULL DEFAULT 0,
             `chdate` INT NOT NULL DEFAULT 0,
@@ -25,23 +24,11 @@ class Step00286CourseWizard extends Migration
         // Add the default steps:
         // Step 1: Basic data.
         if (!CourseWizardStepRegistry::findByClassName('CourseWizardBasicData')) {
-            $step1 = new CourseWizardStepRegistry();
-            $step1->name = 'Grunddaten';
-            $step1->classname = 'BasicDataWizardStep';
-            $step1->number = 1;
-            $step1->system = 1;
-            $step1->enabled = 1;
-            $step1->store();
+            CourseWizardStepRegistry::registerStep('Grunddaten', 'BasicDataWizardStep', 1, true);
         }
         // Step 2: Study area assignment (there are course classes requiring this).
         if (!CourseWizardStepRegistry::findByClassName('CourseWizardStudyAreas')) {
-            $step2 = new CourseWizardStepRegistry();
-            $step2->name = 'Studienbereiche';
-            $step2->classname = 'StudyAreasWizardStep';
-            $step2->number = 2;
-            $step2->system = 1;
-            $step2->enabled = 1;
-            $step2->store();
+            CourseWizardStepRegistry::registerStep('Studienbereiche', 'StudyAreasWizardStep', 2, true);
         }
     }
 
