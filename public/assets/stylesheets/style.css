@@ -3663,6 +3663,9 @@ input.quicksearchbox {
   height: 14px;
   line-height: 1em;
 }
+.quicksearch_frame {
+  display: inline;
+}
 .quicksearch_frame input[type="text"] {
   box-sizing: border-box;
   border-width: 1px 30px 1px 1px;
@@ -3700,6 +3703,7 @@ input.quicksearchbox {
   max-height: 275px;
   overflow-y: auto;
   overflow-x: hidden;
+  z-index: 2;
 }
 .extendedLayout .ui-menu-item {
   white-space: nowrap;
