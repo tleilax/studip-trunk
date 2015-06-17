@@ -234,7 +234,7 @@ class BasicDataWizardStep implements CourseWizardStep
                 return $l->user_id;
             },
             $course->getMembersWithStatus('dozent'));
-        $data['lecturers'] = array_keys($lecturers);
+        $data['lecturers'] = array_flip($lecturers);
         if (Config::get()->DEPUTIES_ENABLE) {
             $deputies = getDeputies($course->id);
             $data['deputies'] = array_keys($deputies);
