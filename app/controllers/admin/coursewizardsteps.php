@@ -77,17 +77,35 @@ class Admin_CourseWizardStepsController extends AuthenticatedController
                 $step->classname = Request::get('classname');
                 $step->number = Request::int('number');
                 $step->enabled = Request::option('enabled') ? 1 : 0;
+                if ($step->store()) {
+                    PageLayout::postMessage(MessageBox::success(_('Die Daten wurden gespeichert.')));
+                } else {
+                    PageLayout::postMessage(MessageBox::error(_('Die Daten konnten nicht gespeichert werden.')));
+                }
             } else {
-                $step = new CourseWizardStepRegistry();
-                $step->name = Request::get('name');
-                $step->classname = Request::get('classname');
-                $step->number = Request::int('number');
-                $step->enabled = Request::option('enabled') ? 1 : 0;
-            }
-            if ($step->store()) {
-                PageLayout::postMessage(MessageBox::success(_('Die Daten wurden gespeichert.')));
-            } else {
-                PageLayout::postMessage(MessageBox::error(_('Die Daten konnten nicht gespeichert werden.')));
+                $classname = Request::get('classname');
+                // Check if given class name can be found in system.
+                if (!class_exists($classname)) {
+                    PageLayout::postMessage(MessageBox::error(
+                        sprintf(_('Die angegebene PHP-Klasse "%s" wurde nicht gefunden.'), $classname)));
+                // Class found, now check if it implements the interface definition for wizard steps.
+                } else if (!in_array('CourseWizardStep', class_implements($classname) ?: array())) {
+                    PageLayout::postMessage(MessageBox::error(
+                        sprintf(_('Die angegebene PHP-Klasse "%s" implementiert nicht das Interface CourseWizardStep.'),
+                            $classname)));
+                // All ok, create new database entry.
+                } else {
+                    $step = new CourseWizardStepRegistry();
+                    $step->name = Request::get('name');
+                    $step->classname = $classname;
+                    $step->number = Request::int('number');
+                    $step->enabled = Request::option('enabled') ? 1 : 0;
+                    if ($step->store()) {
+                        PageLayout::postMessage(MessageBox::success(_('Die Daten wurden gespeichert.')));
+                    } else {
+                        PageLayout::postMessage(MessageBox::error(_('Die Daten konnten nicht gespeichert werden.')));
+                    }
+                }
             }
         }
         $this->redirect($this->url_for('admin/coursewizardsteps'));
