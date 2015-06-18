@@ -1,7 +1,7 @@
 <h1><?= _('Grunddaten') ?></h1>
 <label class="caption">
     <?= _('Typ') ?>
-    <select name="type">
+    <select name="coursetype">
         <?php foreach ($types as $class => $subtypes) { ?>
             <optgroup label="<?= htmlReady($class) ?>">
                 <?php foreach ($subtypes as $type) { ?>

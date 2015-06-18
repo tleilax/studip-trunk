@@ -40,8 +40,8 @@ class BasicDataWizardStep implements CourseWizardStep
         }
         $tpl->set_attribute('types', $typestruct);
         // Select a default type if none is given.
-        if (!$values['type']) {
-            $values['type'] = 1;
+        if (!$values['coursetype']) {
+            $values['coursetype'] = 1;
         }
         $semesters = array();
         $now = mktime();
@@ -95,7 +95,7 @@ class BasicDataWizardStep implements CourseWizardStep
             $values['deputies'] = array();
         }
         // Quicksearch for lecturers.
-        $tpl->set_attribute('lsearch', $this->getSearch($values['type'],
+        $tpl->set_attribute('lsearch', $this->getSearch($values['coursetype'],
             $values['institute'], array_keys($values['lecturers'])));
         // Quicksearch for deputies if applicable.
         if ($deputies) {
@@ -144,19 +144,19 @@ class BasicDataWizardStep implements CourseWizardStep
         if (!$values['lecturers']) {
             $ok = false;
             $errors[] = sprintf(_('Bitte tragen Sie mindestens eine Person als %s ein.'),
-                get_title_for_status('dozent', 1, $values['type']));
+                get_title_for_status('dozent', 1, $values['coursetype']));
         }
         if (!$values['lecturers'][$GLOBALS['user']->id] && !$GLOBALS['perm']->have_perm('admin')) {
             if (Config::get()->DEPUTIES_ENABLE) {
                 if (!$values['deputies'][$GLOBALS['user']->id]) {
                     $ok = false;
                     $errors[] = sprintf(_('Sie selbst müssen entweder als %s oder als Vertretung eingetragen sein.'),
-                        get_title_for_status('dozent', 1, $values['type']));
+                        get_title_for_status('dozent', 1, $values['coursetype']));
                 }
             } else {
                 $ok = false;
                 $errors[] = sprintf(_('Sie müssen selbst als %s eingetragen sein.'),
-                    get_title_for_status('dozent', 1, $values['type']));
+                    get_title_for_status('dozent', 1, $values['coursetype']));
             }
         }
         if ($errors) {
