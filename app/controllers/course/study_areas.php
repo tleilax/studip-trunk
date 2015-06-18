@@ -36,7 +36,8 @@ class Course_StudyAreasController extends AuthenticatedController
         $course_id = current($args);
         $this->course = Course::find($args[0]);
         if (!is_null($this->course)
-            && !$perm->have_studip_perm("tutor", $this->course->id)) {
+            && !$perm->have_studip_perm("tutor", $this->course->id)
+        ) {
             $this->set_status(403);
             return FALSE;
         }
@@ -52,21 +53,24 @@ class Course_StudyAreasController extends AuthenticatedController
 
     function show_action()
     {
-        $this->tree = $this->step->getStepTemplate($this->values);
+        $this->tree = $this->step->getStepTemplate($this->values, 0, 0);
     }
 
-    function ajax_action() {
+    function ajax_action()
+    {
         $parameter = Request::getArray('parameter');
         $method = Request::get('method');
 
-        switch($method) {
-            case 'getAncestorTree':
-                $json = $this->step->getAncestorTree($parameter[0]);
-                break;
+        switch ($method) {
             case 'getSemTreeLevel':
                 $json = $this->step->getSemTreeLevel($parameter[0]);
                 break;
-
+            case 'getAncestorTree':
+                $json = $this->step->getAncestorTree($parameter[0]);
+                break;
+            default:
+                $json = $this->step->getAncestorTree($parameter[0]);
+                break;
         }
 
         $this->render_json($json);
@@ -75,7 +79,7 @@ class Course_StudyAreasController extends AuthenticatedController
     function save_action()
     {
         $studyareas = Request::getArray('studyareas');
-        if(empty($studyareas)) {
+        if (empty($studyareas)) {
             PageLayout::postMessage(MessageBox::error(_('Sie müssen mindesens einen Studienbereich auswählen')));
             $this->redirect('admin/courses');
             return;
@@ -83,7 +87,7 @@ class Course_StudyAreasController extends AuthenticatedController
 
         $this->course->study_areas = SimpleORMapCollection::createFromArray(StudipStudyArea::findMany($studyareas));
 
-        if($this->course->store()) {
+        if ($this->course->store()) {
             PageLayout::postMessage(MessageBox::success(_('Die gewünschten Studienbereiche wurden zugordnet!')));
         } else {
             PageLayout::postMessage(MessageBox::error(_('Beim Speichern ist ein Fehler aufgetreten')));
