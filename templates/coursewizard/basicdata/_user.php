@@ -1,5 +1,5 @@
 <div class="<?= $class ?>">
-    <input type="hidden" name="<?= $inputname ?>[<?= $user->id ?>]" value="1"/>
+    <input type="hidden" name="<?= $inputname ?>[<?= $user->id ?>]" value="1" id="<?= $user->id ?>"/>
     <?= Avatar::getAvatar($user->id)->getImageTag(Avatar::SMALL) ?>
     <?= htmlReady($user->getFullname('full_rev')) ?> (<?= htmlReady($user->username) ?>)
     <a href="" onclick="return STUDIP.CourseWizard.removePerson(this)">

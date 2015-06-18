@@ -10,10 +10,9 @@ STUDIP.CourseWizard = {
         var params = 'step=' + $('input[name="step"]').val() +
             '&method=getSearch' +
             '&parameter[]=' + $('select[name="type"] option:selected').val() +
-            '&parameter[]=' + $('select[name="institute"] option:selected').val() +
-            '&parameter[][]=';
-        $('input[name="lecturers[]"]').each(function (l) {
-            params += '&parameter[][]=' + $(this).val();
+            '&parameter[]=' + $('select[name="institute"] option:selected').val();
+        $('input[name^="lecturers["]').each(function () {
+            params += '&parameter[][]=' + $(this).attr('id');
         });
         $('span#lecturersearch').load(
             $('select[name="institute"]').data('ajax-url'),

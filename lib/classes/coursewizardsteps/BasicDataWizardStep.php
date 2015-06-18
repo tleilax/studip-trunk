@@ -57,7 +57,11 @@ class BasicDataWizardStep implements CourseWizardStep
             $values['start_time'] = Semester::findCurrent()->beginn;
         }
         // Get all allowed institutes (my own).
-        $tpl->set_attribute('institutes', Institute::getMyInstitutes());
+        $institutes = Institute::getMyInstitutes();
+        $tpl->set_attribute('institutes', $institutes);
+        if (!$values['institute']) {
+            $values['institute'] = $institutes[0]['Institut_id'];
+        }
         // Quicksearch for lecturers.
         // No JS: Keep search value and results for displaying in search select box.
         if ($values['lecturer_id']) {
@@ -66,23 +70,8 @@ class BasicDataWizardStep implements CourseWizardStep
         if ($values['lecturer_id_parameter']) {
             Request::getInstance()->offsetSet('lecturer_id_parameter', $values['lecturer_id_parameter']);
         }
-        $tpl->set_attribute('lsearch', $this->getSearch($values['type'],
-            $values['institute'], $values['lecturers'] ? array_keys($values['lecturers']) : array()));
         // Check for deputies.
         $deputies = Config::get()->DEPUTIES_ENABLE;
-        if ($deputies) {
-            $deputysearch = new PermissionSearch('user',
-                _('Vertretung hinzufügen'),
-                'user_id',
-                array('permission' => 'dozent',
-                    'exclude_user' => $values['deputies'] ? array_keys($values['deputies']) : array()
-                )
-            );
-            $tpl->set_attribute('dsearch', QuickSearch::get('dsearch', $deputysearch)
-                ->withButton(array('search_button_name' => 'search_deputy', 'reset_button_name' => 'reset_dsearch'))
-                ->fireJSFunctionOnSelect('STUDIP.CourseWizard.addDeputy')
-                ->render());
-        }
         /*
          * No lecturers set, add yourself so that at least one lecturer is
          * present. But this can only be done if your own permission level
@@ -104,6 +93,22 @@ class BasicDataWizardStep implements CourseWizardStep
         }
         if ($deputies && !$values['deputies']) {
             $values['deputies'] = array();
+        }
+        // Quicksearch for lecturers.
+        $tpl->set_attribute('lsearch', $this->getSearch($values['type'],
+            $values['institute'], array_keys($values['lecturers'])));
+        // Quicksearch for deputies if applicable.
+        if ($deputies) {
+            $deputysearch = new PermissionSearch('user',
+                _('Vertretung hinzufügen'),
+                'user_id',
+                array('permission' => 'dozent',
+                    'exclude_user' => array_keys($values['deputies']))
+            );
+            $tpl->set_attribute('dsearch', QuickSearch::get('dsearch', $deputysearch)
+                ->withButton(array('search_button_name' => 'search_deputy', 'reset_button_name' => 'reset_dsearch'))
+                ->fireJSFunctionOnSelect('STUDIP.CourseWizard.addDeputy')
+                ->render());
         }
         $tpl->set_attribute('values', $values);
         return $tpl->render();
