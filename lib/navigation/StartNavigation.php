@@ -110,14 +110,14 @@ class StartNavigation extends Navigation
                 $navigation->addSubNavigation('browse', new Navigation(_('Veranstaltung hinzufügen'), 'dispatch.php/search/courses'));
 
                 if ($perm->have_perm('autor') && get_config('STUDYGROUPS_ENABLE')) {
-                    $navigation->addSubNavigation('new_studygroup', new Navigation(_('Studiengruppe anlegen'), 'dispatch.php/course/studygroup/new'));
+                    $navigation->addSubNavigation('new_studygroup', new Navigation(_('Studiengruppe anlegen'), 'dispatch.php/course/wizard?studygroup=1'));
                 }
             } else {
                 if ($perm->have_perm($sem_create_perm)) {
                     $navigation->addSubNavigation('new_course', new Navigation(_('Neue Veranstaltung anlegen'), 'dispatch.php/course/wizard'));
                 }
                 if (get_config('STUDYGROUPS_ENABLE')) {
-                    $navigation->addSubNavigation('new_studygroup', new Navigation(_('Studiengruppe anlegen'), 'dispatch.php/course/studygroup/new'));
+                    $navigation->addSubNavigation('new_studygroup', new Navigation(_('Studiengruppe anlegen'), 'dispatch.php/course/wizard?studygroup=1'));
                 }
 
             }
@@ -134,7 +134,7 @@ class StartNavigation extends Navigation
             }
 
             if (get_config('STUDYGROUPS_ENABLE')) {
-                $navigation->addSubNavigation('new_studygroup', new Navigation(_('Studiengruppe anlegen'), 'dispatch.php/course/studygroup/new'));
+                $navigation->addSubNavigation('new_studygroup', new Navigation(_('Studiengruppe anlegen'), 'dispatch.php/course/wizard?studygroup=1'));
             }
 
             $this->addSubNavigation('admin_course', $navigation);

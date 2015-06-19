@@ -1,4 +1,3 @@
-<h1><?= _('Studienbereiche') ?></h1>
 <div id="assigned" style="width: 45%; float:left; padding-right: 10px;">
     <h2><?= _('Bereits zugewiesen') ?></h2>
     <ul class="css-tree">

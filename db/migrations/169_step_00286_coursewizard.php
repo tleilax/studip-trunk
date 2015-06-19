@@ -23,12 +23,28 @@ class Step00286CourseWizard extends Migration
             PRIMARY KEY (`id`))");
         // Add the default steps:
         // Step 1: Basic data.
-        if (!CourseWizardStepRegistry::findByClassName('CourseWizardBasicData')) {
+        if (!CourseWizardStepRegistry::findByClassName('BasicDataWizardStep')) {
             CourseWizardStepRegistry::registerStep('Grunddaten', 'BasicDataWizardStep', 1, true);
         }
         // Step 2: Study area assignment (there are course classes requiring this).
-        if (!CourseWizardStepRegistry::findByClassName('CourseWizardStudyAreas')) {
+        if (!CourseWizardStepRegistry::findByClassName('StudyAreasWizardStep')) {
             CourseWizardStepRegistry::registerStep('Studienbereiche', 'StudyAreasWizardStep', 2, true);
+        }
+        // Add text template for studygroup acceptance to global config.
+        if (!Config::get()->STUDYGROUP_ACCEPTANCE_TEXT) {
+            Config::get()->create('STUDYGROUP_ACCEPTANCE_TEXT', array(
+                'value' => _('Die Moderatorinnen und ' .
+                    'Moderatoren der Studiengruppe können Ihren ' .
+                    'Aufnahmewunsch bestätigen oder ablehnen. Erst nach ' .
+                    'Bestätigung erhalten Sie vollen Zugriff auf die ' .
+                    'Gruppe.'),
+                'is_default' => 1,
+                'type' => 'string',
+                'range' => 'global',
+                'section' => 'studygroups',
+                'description' => _('Text, der angezeigt wird, wenn man sich ' .
+                    'in eine zugriffsbeschränkte Studiengruppe eintragen möchte')
+            ));
         }
     }
 

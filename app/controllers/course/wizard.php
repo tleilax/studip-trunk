@@ -37,6 +37,10 @@ class Course_WizardController extends AuthenticatedController
         $this->steps = CourseWizardStepRegistry::findBySQL("`enabled`=1 ORDER BY `number`");
         StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'].'/lib/classes/coursewizardsteps');
         PageLayout::addSqueezePackage('coursewizard');
+        // Special handling for studygroups.
+        if (Request::int('studygroup')) {
+            $this->flash['studygroup'] = true;
+        }
     }
 
     /**
@@ -65,8 +69,12 @@ class Course_WizardController extends AuthenticatedController
             $this->first_step = true;
         }
         $this->values = $this->getValues(get_class($step));
+        if ($this->flash['studygroup']) {
+            $this->values['studygroup'] = true;
+        }
         $this->content = $step->getStepTemplate($this->values, $number, $this->temp_id);
         $this->stepnumber = $number;
+        $this->stepname = $this->steps[$number]['name'];
     }
 
     /**
@@ -103,16 +111,28 @@ class Course_WizardController extends AuthenticatedController
         // The "create" button was clicked -> create course.
         } else if (Request::submitted('create')) {
             if ($this->course = $this->createCourse()) {
-                if (Request::int('dialog')) {
-                    PageLayout::postMessage(MessageBox::success(
-                        sprintf(_('Die Veranstaltung "%s" wurde angelegt.'), $this->course->getFullname())));
-                    $this->redirect(URLHelper::getLink('dispatch.php/admin/courses'));
+                // A studygroup has been created.
+                if (in_array($this->course->status, studygroup_sem_types() ?: array())) {
+                    $message = MessageBox::success(
+                        sprintf(_('Die Studien-/Arbeitsgruppe "%s" wurde angelegt. '.
+                            'Sie können Sie direkt hier weiter verwalten.'),
+                            $this->course->name));
+                    $target = $this->url_for('course/studygroup/edit/'.$this->course->id.'?cid='.$this->course->id);
+                // "Normal" course.
                 } else {
-                    PageLayout::postMessage(MessageBox::success(
-                        sprintf(_('Die Veranstaltung "%s" wurde angelegt. Sie können Sie direkt hier weiter verwalten.'),
-                            $this->course->getFullname())));
-                    $this->redirect(URLHelper::getLink('dispatch.php/course/management?cid=' . $this->course->id));
+                    if (Request::int('dialog')) {
+                        $message = MessageBox::success(
+                            sprintf(_('Die Veranstaltung "%s" wurde angelegt.'), $this->course->getFullname()));
+                        $target = $this->url_for('admin/courses');
+                    } else {
+                        $message = MessageBox::success(
+                            sprintf(_('Die Veranstaltung "%s" wurde angelegt. Sie können Sie direkt hier weiter verwalten.'),
+                                $this->course->getFullname()));
+                        $target = $this->url_for('course/management?cid=' . $this->course->id);
+                    }
                 }
+                PageLayout::postMessage($message);
+                $this->redirect($target);
             } else {
                 PageLayout::postMessage(MessageBox::error(
                     sprintf(_('Die Veranstaltung "%s" konnte nicht angelegt werden.'),

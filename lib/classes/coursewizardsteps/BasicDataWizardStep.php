@@ -27,15 +27,30 @@ class BasicDataWizardStep implements CourseWizardStep
      */
     public function getStepTemplate($values, $stepnumber, $temp_id)
     {
-        $tpl = $GLOBALS['template_factory']->open('coursewizard/basicdata/index');
+        if ($values['studygroup']) {
+            $tpl = $GLOBALS['template_factory']->open('coursewizard/basicdata/index_studygroup');
+            $values['lecturers'][$GLOBALS['user']->id] = 1;
+        } else {
+            $tpl = $GLOBALS['template_factory']->open('coursewizard/basicdata/index');
+        }
         // Get all available course types and their categories.
         $typestruct = array();
         foreach (SemType::getTypes() as $type)
         {
             $class = $type->getClass();
-            if (!$class['course_creation_forbidden'])
-            {
-                $typestruct[$class['name']][] = $type;
+            // Creates a studygroup.
+            if ($values['studygroup']) {
+                // Get all studygroup types.
+                if ($class['studygroup_mode']) {
+                    $typestruct[$class['name']][] = $type;
+                }
+                // Pre-set institute for studygroup assignment.
+                $values['institute'] = Config::get()->STUDYGROUP_DEFAULT_INST;
+            // Normal course.
+            } else {
+                if (!$class['course_creation_forbidden']) {
+                    $typestruct[$class['name']][] = $type;
+                }
             }
         }
         $tpl->set_attribute('types', $typestruct);
@@ -137,29 +152,33 @@ class BasicDataWizardStep implements CourseWizardStep
     {
         $ok = true;
         $errors = array();
+        Log::set('wizard', '/Users/thomashackl/Downloads/studip_wizard.log');
+        Log::info_wizard(print_r($values, 1));
         if (!$values['name']) {
-            $ok = false;
             $errors[] = _('Bitte geben Sie den Namen der Veranstaltung an.');
         }
         if (!$values['lecturers']) {
-            $ok = false;
             $errors[] = sprintf(_('Bitte tragen Sie mindestens eine Person als %s ein.'),
                 get_title_for_status('dozent', 1, $values['coursetype']));
         }
         if (!$values['lecturers'][$GLOBALS['user']->id] && !$GLOBALS['perm']->have_perm('admin')) {
             if (Config::get()->DEPUTIES_ENABLE) {
                 if (!$values['deputies'][$GLOBALS['user']->id]) {
-                    $ok = false;
                     $errors[] = sprintf(_('Sie selbst müssen entweder als %s oder als Vertretung eingetragen sein.'),
                         get_title_for_status('dozent', 1, $values['coursetype']));
                 }
             } else {
-                $ok = false;
                 $errors[] = sprintf(_('Sie müssen selbst als %s eingetragen sein.'),
                     get_title_for_status('dozent', 1, $values['coursetype']));
             }
         }
+        if (in_array($values['coursetype'], studygroup_sem_types())) {
+            if (!$values['accept']) {
+                $errors[] = _('Sie müssen die Nutzungsbedingungen akzeptieren.');
+            }
+        }
         if ($errors) {
+            $ok = false;
             PageLayout::postMessage(MessageBox::error(
                 _('Bitte beheben Sie erst folgende Fehler, bevor Sie fortfahren:'), $errors));
         }
@@ -181,6 +200,7 @@ class BasicDataWizardStep implements CourseWizardStep
         $course->name = $values['name'];
         $course->veranstaltungsnummer = $values['number'];
         $course->institut_id = $values['institute'];
+        $course->visible = 0;
         $lecturers = array_map(function($l) use ($course)
         {
             return CourseMember::create(array(
@@ -200,6 +220,24 @@ class BasicDataWizardStep implements CourseWizardStep
             foreach ($values['deputies'] as $d => $assigned) {
                 addDeputy($d, $course->id);
             }
+        }
+        // Studygroups: access and description.
+        if (in_array($values['coursetype'], studygroup_sem_types())) {
+            $course->visible = 1;
+            switch ($values['access']) {
+                case 'all':
+                    $course->admission_prelim = 0;
+                    break;
+                case 'invisible':
+                    if (!Config::get()->STUDYGROUPS_INVISIBLE_ALLOWED) {
+                        $course->visible = 0;
+                    }
+                case 'invite':
+                    $course->admission_prelim = 1;
+                    $course->admission_prelim_txt = Config::get()->STUDYGROUP_ACCEPTANCE_TEXT;
+                    break;
+            }
+            $course->beschreibung = $values['description'];
         }
         if ($course->store()) {
             return $course;

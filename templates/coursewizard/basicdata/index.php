@@ -1,4 +1,3 @@
-<h1><?= _('Grunddaten') ?></h1>
 <label class="caption">
     <?= _('Typ') ?>
     <select name="coursetype">
@@ -24,7 +23,7 @@
     </select>
 </label>
 <label class="caption">
-    <?= _('Titel') ?>
+    <?= _('Name') ?>
     <input type="text" name="name" size="75" maxlength="254" value="<?= $values['name'] ?>"/>
 </label>
 <label class="caption">
