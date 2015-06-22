@@ -39,6 +39,12 @@ class Markup
     public static function apply($markup, $text, $trim)
     {
         if (self::isHtml($text)){
+            if ($markup instanceof \WikiFormat) {
+                foreach (\StudipFormat::getStudipMarkups() as $name => $rule) {
+                    $markup->removeMarkup($name);
+                }
+                $text = $markup->format($text);
+            }
             return self::purify($text);
         }
         return self::markupHtmlReady($markup, $text, $trim);
@@ -325,12 +331,7 @@ class Markup
     ) {
         if (\Config::get()->WYSIWYG) {
             if (!self::isHtml($text)) {
-                $text = self::unixEOL($text);
-                if ($trim) {
-                    $text = trim($text);
-                }
-                $text = self::markupText(new \StudipCoreFormat(), $text);
-                $br = true;
+                $text = self::markupHtmlReady(new \StudipCoreFormat(), $text, $trim);
             }
             $text = self::purify($text);
         }
