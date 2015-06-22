@@ -74,7 +74,6 @@ class Course_WizardController extends AuthenticatedController
         }
         $this->content = $step->getStepTemplate($this->values, $number, $this->temp_id);
         $this->stepnumber = $number;
-        $this->stepname = $this->steps[$number]['name'];
     }
 
     /**

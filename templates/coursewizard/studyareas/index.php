@@ -1,5 +1,9 @@
-<div id="assigned" style="width: 45%; float:left; padding-right: 10px;">
-    <h2><?= _('Bereits zugewiesen') ?></h2>
+<h1><?= _('Studienbereiche') ?></h1>
+<div id="assigned">
+    <h2>
+        <?= _('Bereits zugewiesen') ?>
+        <span class="required">*</span>
+    </h2>
     <ul class="css-tree">
         <li class="sem-tree-assigned-root keep-node" data-id="root">
             <?= $GLOBALS['UNI_NAME'] ?>
@@ -11,7 +15,7 @@
         </li>
     </ul>
 </div>
-<div id="studyareas"  style="width: 45%; float: left; border-left: 1px solid #666666; padding-left: 10px;" data-ajax-url="<?= $ajax_url ?>" data-no-search-result="<?= _('Es wurde kein Suchergebnis gefunden.') ?>">
+<div id="studyareas" data-ajax-url="<?= $ajax_url ?>" data-no-search-result="<?= _('Es wurde kein Suchergebnis gefunden.') ?>">
     <h2><?= _('Alle Studienbereiche') ?></h2>
     <div>
         <input type="text" size="40" maxlength="255" name="search" id="sem-tree-search" value="<?= $values['searchterm'] ?>"/>

@@ -6253,6 +6253,23 @@ ol ol {
 .plus .helplink {
   float: right;
 }
+option.faculty {
+  font-weight: bold;
+}
+option.sub_institute {
+  padding-left: 15px;
+}
+div#assigned {
+  float:left;
+  padding-right: 10px;
+  width: 45%;
+}
+div#studyareas {
+  border-left: 1px solid #666666;
+  float: left;
+  padding-left: 10px;
+  width: 45%;
+}
 #responsive-container {
   display: none;
   -webkit-user-select: none;

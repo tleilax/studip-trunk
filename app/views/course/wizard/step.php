@@ -1,5 +1,4 @@
 <form class="studip_form" action="<?= $controller->url_for('course/wizard/process', $stepnumber, $temp_id) ?>" method="post">
-    <h1><?= htmlReady($stepname) ?></h1>
     <?= $content ?>
     <div style="clear: both; padding-top: 25px;">
         <input type="hidden" name="step" value="<?= $stepnumber ?>"/>

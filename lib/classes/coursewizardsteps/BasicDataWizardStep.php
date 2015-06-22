@@ -152,8 +152,6 @@ class BasicDataWizardStep implements CourseWizardStep
     {
         $ok = true;
         $errors = array();
-        Log::set('wizard', '/Users/thomashackl/Downloads/studip_wizard.log');
-        Log::info_wizard(print_r($values, 1));
         if (!$values['name']) {
             $errors[] = _('Bitte geben Sie den Namen der Veranstaltung an.');
         }
