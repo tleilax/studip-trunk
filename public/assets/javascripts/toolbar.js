@@ -31,12 +31,17 @@
             // if WYSIWYG is globally enabled then add a button so
             // the user can activate it
             if (STUDIP.wysiwyg) {
-
-                // TODO show button only if css class "wysiwyg" is set
-
                 button_set.right.wysiwyg = {
                     label: 'WYSIWYG',
                     evaluate: function () {
+                        if (!$(element).hasClass('wysiwyg')) {
+                            var message = 'WYSIWYG wird von diesem'
+                               + ' Eingabefeld leider nicht unterstützt.';
+
+                            alert(message.toLocaleString());
+                            return;
+                        }
+
                         var activate = confirm(
                             'Soll der WYSIWYG Editor aktiviert werden?'
                             + '\n'
