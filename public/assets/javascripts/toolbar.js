@@ -31,6 +31,9 @@
             // if WYSIWYG is globally enabled then add a button so
             // the user can activate it
             if (STUDIP.wysiwyg) {
+
+                // TODO show button only if css class "wysiwyg" is set
+
                 button_set.right.wysiwyg = {
                     label: 'WYSIWYG',
                     evaluate: function () {
@@ -111,11 +114,12 @@
     $.fn.extend({
         // Adds the toolbar to an element
         addToolbar: function (button_set) {
-            if (STUDIP.wysiwyg && !STUDIP.wysiwyg.disabled) {
-                return this;
-            }
             return this.each(function () {
-                STUDIP.Toolbar.initialize(this, button_set);
+                var wysiwygDisabled = !STUDIP.wysiwyg || STUDIP.wysiwyg.disabled;
+                var wysiwygTextarea = $(this).hasClass('wysiwyg');
+                if (wysiwygDisabled || !wysiwygTextarea) {
+                    STUDIP.Toolbar.initialize(this, button_set);
+                }
             });
         }
     });
