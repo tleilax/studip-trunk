@@ -21,6 +21,11 @@ jQuery(function ($) {
         return;
     }
 
+    if (!CKEDITOR.env.isCompatible) {
+        workaroundIncompatibleEnvironment();
+        return;
+    }
+
     STUDIP.URLHelper.base_url // workaround: application.js sets base_url too late
         = STUDIP.ABSOLUTE_URI_STUDIP;
     STUDIP.wysiwyg.replace = replaceTextarea; // for jquery dialogs, see toolbar.js
@@ -112,7 +117,7 @@ jQuery(function ($) {
                 img: {
                     attributes: ['alt', '!src', 'height', 'width'],
                     // only float:left and float:right should be allowed
-                    styles: ['float'] 
+                    styles: ['float']
                 },
                 li: {},
                 ol: {},
@@ -327,7 +332,7 @@ jQuery(function ($) {
         CKEDITOR.on('instanceReady', function (event) {
             var editor = event.editor,
                 $textarea = $(editor.element.$);
-        
+
             // auto-resize editor area in source view mode, and keep focus!
             editor.on('mode', function (event) {
                 var editor = event.editor;
@@ -441,6 +446,67 @@ jQuery(function ($) {
             });
             placeholder.css('height', 0);
         }
+    }
+
+    //// helpers for environments where ckeditor doesn't work
+
+    function workaroundIncompatibleEnvironment() {
+        // do nothing when other JS code wants to replace textareas
+        STUDIP.wysiwyg.replace = function () { };
+
+        // JS does not emit an event when new DOM nodes are
+        // inserted. This interval timer checks for new
+        // textareas.
+        setInterval(function () {
+            $('textarea.wysiwyg').each(function (index, textarea) {
+                onSubmitConvertToHtml(textarea);
+            });
+        }, 300);
+    }
+
+    // convert content of wysiwyg textareas to html when
+    // user presses submit button of surrounding form
+    function onSubmitConvertToHtml(textarea) {
+        // detach from invisible textareas
+        if (!$(textarea).is(':visible')) {
+            delete textarea.containsHtml;
+            return;
+        }
+
+        // return if we are already attached to this textarea
+        if (textarea.hasOwnProperty('containsHtml')) {
+            return;
+        }
+
+        // remember if contents already are html
+        textarea.containsHtml = textarea.value.trim().length > 0;
+
+        // on submit replace plain text with html contents
+        var form = $(textarea).closest('form');
+        form.submit({ textarea: textarea }, function (event) {
+            var t = event.data.textarea;
+            if (!t.containsHtml) {
+                t.value = text2Html(t.value);
+                t.containsHtml = true;
+            }
+        });
+    }
+
+    //// helpers that could be useful not only for wysiwyg
+
+    // convert plain text to html
+    function text2Html(text) {
+        return newline2br(htmlEncode(text));
+    }
+
+    // encode html entities
+    function htmlEncode(text) {
+        return $('<div/>').text(text).html();
+    }
+
+    // convert all newline characters to <br> tags
+    function newline2br(text) {
+        return text.replace(/(?:\r\n|\r|\n)/g, '<br />\n');
     }
 
     // create an unused id
