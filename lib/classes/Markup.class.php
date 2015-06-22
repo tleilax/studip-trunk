@@ -39,13 +39,15 @@ class Markup
     public static function apply($markup, $text, $trim)
     {
         if (self::isHtml($text)){
-            if ($markup instanceof \WikiFormat) {
-                foreach (\StudipFormat::getStudipMarkups() as $name => $rule) {
+            $text = self::purify($text);
+            foreach (\StudipFormat::getStudipMarkups() as $name => $rule) {
+                // filter out all basic Stud.IP markup rules
+                if (is_string($rule['callback']) &&
+                    strpos($rule['callback'], 'StudipFormat::') === 0) {
                     $markup->removeMarkup($name);
                 }
-                $text = $markup->format($text);
             }
-            return self::purify($text);
+            return $markup->format($text);
         }
         return self::markupHtmlReady($markup, $text, $trim);
     }
