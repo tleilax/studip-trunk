@@ -14,7 +14,6 @@
         <?php } ?>
     </select>
 </label>
-<br/>
 <label class="caption">
     <?= _('Semester') ?>
     <span class="required">*</span>
@@ -26,18 +25,15 @@
         <?php } ?>
     </select>
 </label>
-<br/>
 <label class="caption">
     <?= _('Name') ?>
     <span class="required">*</span>
     <input type="text" name="name" size="75" maxlength="254" value="<?= $values['name'] ?>"/>
 </label>
-<br/>
 <label class="caption">
     <?= _('Veranstaltungsnummer') ?>
     <input type="text" name="number" size="20" maxlength="99" value="<?= $values['number'] ?>"/>
 </label>
-<br/>
 <label class="caption">
     <?= _('Heimateinrichtung') ?>
     <span class="required">*</span>
@@ -59,7 +55,6 @@
 </label>
 <?= Assets::input('icons/yellow/arr_2right.svg',
     array('name' => 'select_institute', 'value' => '1', 'class' => 'hidden-js')) ?>
-<br/>
 <label class="caption">
     <?= _('Dozent/-innen') ?>
     <span class="required">*</span>
@@ -76,7 +71,6 @@
         <?php endif ?>
     <?php endforeach ?>
 </div>
-<br/>
 <?php if ($dsearch) : ?>
 <label class="caption">
     <?= _('Vertretungen') ?>
