@@ -120,6 +120,10 @@
                         <option value="">- <?= _('Aktion auswählen') ?></option>
                         <option value="upgrade"><?= sprintf(_('Zu %s hochstufen'),
                                 htmlReady($status_groups['autor'])) ?></option>
+                        <?php if ($to_waitlist_actions) : ?>
+                            <option value="to_admission_first"><?= _('An den Anfang der Warteliste verschieben') ?></option>
+                            <option value="to_admission_last"><?= _('Ans Ende der Warteliste verschieben') ?></option>
+                        <?php endif ?>
                         <option value="remove"><?= _('Austragen') ?></option>
                         <option value="message"><?=_('Nachricht senden')?></option>
                         <!--<option value="copy_to_course"><?= _('In Seminar verschieben/kopieren') ?></option>-->

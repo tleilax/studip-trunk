@@ -155,7 +155,10 @@
                         <? endif ?>
                         <option value="downgrade"><?= sprintf(_('Zu %s herunterstufen'),
                                 htmlReady($status_groups['user'])) ?></option>
-                        <!--<option value="to_admission">Auf Warteliste setzen</option>-->
+                        <?php if ($to_waitlist_actions) : ?>
+                        <option value="to_admission_first"><?= _('An den Anfang der Warteliste verschieben') ?></option>
+                        <option value="to_admission_last"><?= _('Ans Ende der Warteliste verschieben') ?></option>
+                        <?php endif ?>
                         <option value="remove"><?= _('Austragen') ?></option>
                         <option value="message"><?=_('Nachricht senden')?></option>
                         <!--<option value="copy_to_course">In Seminar verschieben/kopieren</option>-->

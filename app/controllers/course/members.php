@@ -200,13 +200,19 @@ class Course_MembersController extends AuthenticatedController
             }
         }
         // Set the infobox
-        $this->createSidebar($filtered_members);
+        $this->createSidebar($filtered_members, $course);
 
         if ($this->is_locked && $this->is_tutor) {
             $lockdata = LockRules::getObjectRule($this->course_id);
             if ($lockdata['description']) {
                 PageLayout::postMessage(MessageBox::info(formatLinks($lockdata['description'])));
             }
+        }
+
+        // Check for waitlist availability (influences available actions)
+        // People can be moved to waitlist if waitlist available and no automatic moving up.
+        if (!$sem->__get('admission_disable_waitlist') && $sem->__get('admission_disable_waitlist_move')) {
+            $this->to_waitlist_actions = true;
         }
     }
 
@@ -353,6 +359,48 @@ class Course_MembersController extends AuthenticatedController
             PageLayout::postMessage(MessageBox::error(_('Die gewünschte Operation konnte nicht ausgeführt werden.')));
         }
 
+        $this->redirect('course/members/index');
+    }
+
+    /**
+     * Add people to a course waitlist.
+     * @throws AccessDeniedException
+     */
+    function execute_multipersonsearch_waitlist_action()
+    {
+        // Security Check
+        if (!$this->is_tutor) {
+            throw new AccessDeniedException('Sie haben leider keine ausreichende Berechtigung, um auf diesen Bereich von Stud.IP zuzugreifen.');
+        }
+
+        // load MultiPersonSearch object
+        $mp = MultiPersonSearch::load("add_waitlist" . $this->course_id);
+        $sem = Seminar::GetInstance($this->course_id);
+
+        $countAdded = 0;
+        $countFailed = 0;
+        foreach ($mp->getAddedUsers() as $a) {
+            if ($this->members->addToWaitlist($a)) {
+                $countAdded++;
+            } else {
+                $countFailed++;
+            }
+        }
+
+        if ($countAdded == 1) {
+            $text = _("Es wurde ein/e neue/r Person auf der Warteliste hinzugefügt.");
+        } else {
+            $text = sprintf(_("Es wurden %s neue Personen auf der Warteliste hinzugefügt."), $countAdded);
+        }
+        PageLayout::postMessage(MessageBox::success($text));
+        if ($countFailed) {
+            if ($countFailed == 1) {
+                $text = _("Eine Person konnte nicht auf die Warteliste eingetragen werden.");
+            } else {
+                $text = sprintf(_("%s neue Personen konnten nicht auf die Warteliste eingetragen werden."), $countFailed);
+            }
+            PageLayout::postMessage(MessageBox::error($text));
+        }
         $this->redirect('course/members/index');
     }
 
@@ -722,11 +770,18 @@ class Course_MembersController extends AuthenticatedController
             case 'downgrade':
                 $target = 'course/members/downgrade_user/autor/user';
                 break;
-            case 'to_admission':
-                // TODO Warteliste setzen
+            case 'to_admission_first':
+                $target = 'course/members/to_waitlist/first';
+                break;
+            case 'to_admission_last':
+                $target = 'course/members/to_waitlist/last';
                 break;
             case 'remove':
                 $target = 'course/members/cancel_subscription/collection/autor';
+                break;
+            case 'to_course':
+                $this->redirect('course/members/send_to_course');
+                return;
                 break;
             case 'message':
                 $this->redirect('course/members/send_message');
@@ -761,6 +816,12 @@ class Course_MembersController extends AuthenticatedController
                 break;
             case 'upgrade':
                 $target = 'course/members/upgrade_user/user/autor';
+                break;
+            case 'to_admission_first':
+                $target = 'course/members/to_waitlist/first';
+                break;
+            case 'to_admission_last':
+                $target = 'course/members/to_waitlist/last';
                 break;
             case 'remove':
                 $target = 'course/members/cancel_subscription/collection/user';
@@ -1053,6 +1114,47 @@ class Course_MembersController extends AuthenticatedController
     }
 
     /**
+     * Moves selected users to waitlist, either at the top or at the end.
+     * @param $which_end 'first' or 'last': append to top or to end of waitlist?
+     */
+    function to_waitlist_action($which_end)
+    {
+        // Security Check
+        if (!$this->is_tutor) {
+            throw new AccessDeniedException('Sie haben keine ausreichende Berechtigung,
+                um auf diesen Teil des Systems zuzugreifen');
+        }
+
+        $users = array();
+        if (!empty($this->flash['users'])) {
+            foreach ($this->flash['users'] as $user => $val) {
+                if ($val) {
+                    $users[] = $user;
+                }
+            }
+        }
+
+        if (!empty($users)) {
+            $msg = $this->members->moveToWaitlist($users, $which_end);
+            if (sizeof($msg['success'])) {
+                PageLayout::postMessage(MessageBox::success(sprintf(
+                    _('%s Person(en) wurden auf die Warteliste verschoben.'),
+                    sizeof($msg['success'])), sizeof($msg['success']) <= 5 ? $msg['success'] : array()));
+            }
+            if (sizeof($msg['errors'])) {
+                PageLayout::postMessage(MessageBox::success(sprintf(
+                    _('%s Person(en) konnten nicht auf die Warteliste verschoben werden.'),
+                    sizeof($msg['errors'])), sizeof($msg['error']) <= 5 ? $msg['error'] : array()));
+            }
+        } else {
+            PageLayout::postMessage(MessageBox::error(
+                _('Sie haben keine Personen zum Verschieben auf die Warteliste ausgewählt')));
+        }
+
+        $this->redirect('course/members/index');
+    }
+
+    /**
      * Displays all members of the course and their aux data
      * @return int fake return to stop after redirect;
      */
@@ -1282,6 +1384,31 @@ class Course_MembersController extends AuthenticatedController
                     ->render();
                 $element = LinkElement::fromHTML($mp, 'icons/16/blue/add/community.png');
                 $widget->addElement($element);
+
+                // add "add person to waitlist" to sidebar
+                if ($sem->isAdmissionEnabled() && !$sem->__get('admission_disable_waitlist') &&
+                    (!$sem->getFreeSeats() || $sem->__get('admission_disable_waitlist_move')))
+                {
+                    $ignore = array_merge(
+                        $filtered_members['dozent']->pluck('user_id'),
+                        $filtered_members['tutor']->pluck('user_id'),
+                        $filtered_members['autor']->pluck('user_id'),
+                        $filtered_members['user']->pluck('user_id'),
+                        $filtered_members['awaiting']->pluck('user_id')
+                    );
+                    $mp = MultiPersonSearch::get("add_waitlist" . $this->course_id)
+                        ->setLinkText(_('Neue/n Person auf Warteliste eintragen'))
+                        ->setDefaultSelectedUser($ignore)
+                        ->setLinkIconPath("")
+                        ->setTitle(_('Neue/n Person auf Warteliste eintragen'))
+                        ->setExecuteURL(URLHelper::getLink('dispatch.php/course/members/execute_multipersonsearch_waitlist'))
+                        ->setSearchObject($searchType)
+                        ->addQuickfilter(_('Mitglieder der Einrichtung'), $membersOfInstitute)
+                        ->setNavigationItem('/course/members/view')
+                        ->render();
+                    $element = LinkElement::fromHTML($mp, 'icons/16/blue/add/community.png');
+                    $widget->addElement($element);
+                }
             }
 
             $widget->addLink(_('Teilnehmerliste importieren'),
