@@ -42,6 +42,7 @@ class StudyAreasWizardStep implements CourseWizardStep
          * Someone works without JS activated, load all ancestors and
          * children of open node.
          */
+
         if ($values['open_node']) {
             $tpl->set_attribute('open_nodes',
                 $this->buildPartialSemTree(
@@ -66,6 +67,7 @@ class StudyAreasWizardStep implements CourseWizardStep
         }
         $tpl->set_attribute('tree', $tree);
         $tpl->set_attribute('ajax_url', $values['ajax_url'] ?: URLHelper::getLink('dispatch.php/course/wizard/ajax'));
+        $tpl->set_attribute('no_js_url', $values['no_js_url'] ? : 'dispatch.php/course/wizard/forward/'.$stepnumber.'/'.$temp_id);
         $tpl->set_attribute('stepnumber', $stepnumber);
         $tpl->set_attribute('temp_id', $temp_id);
         return $tpl->render();

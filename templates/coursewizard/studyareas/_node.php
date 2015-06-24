@@ -9,7 +9,7 @@
     <?php if ($node->hasChildren()) : ?>
     <input type="checkbox" id="<?= htmlReady($node->id) ?>"<?= (in_array($node->id, $open_nodes) && $node->parent_id != $values['open_node']) ? ' checked="checked"' : '' ?>/>
     <label for="<?= htmlReady($node->id) ?>">
-        <a href="<?= URLHelper::getLink('dispatch.php/course/wizard/forward/'.$stepnumber.'/'.$temp_id,
+        <a href="<?= URLHelper::getLink($no_js_url,
             array('open_node' => $node->id)) ?>"
            onclick="return STUDIP.CourseWizard.getTreeChildren('<?= htmlReady($node->sem_tree_id) ?>', true)">
     <?php endif ?>
