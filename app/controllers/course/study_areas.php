@@ -1,15 +1,17 @@
 <?php
-# Lifter007: TODO
-# Lifter003: TODO
-# Lifter010: TODO
-
 /*
- * Copyright (C) 2008 - Marcus Lunzenauer <mlunzena@uos.de>
+ * Course_StudyAreasController
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
+ *
+ *
+ * @author      Marcus Lunzenauer <mlunzena@uos.de>
+ * @author      David Siegfried <david.siegfried@uni-vechta.de>
+ * @category    Stud.IP
+ * @since       3.2
  */
 
 
@@ -32,11 +34,10 @@ class Course_StudyAreasController extends AuthenticatedController
 
         parent::before_filter($action, $args);
 
-        $this->course = Course::find($args[0]);
-        if(Request::get('cid') && ($this->course->id != Request::get('cid'))) {
-            $this->course = Course::findCurrent();
-        }
+        // Search for course object
+        $this->course = Course::findCurrent();
 
+        // check course object and perms
         if (!is_null($this->course)
             && !$perm->have_studip_perm("tutor", $this->course->id)
         ) {
@@ -45,19 +46,29 @@ class Course_StudyAreasController extends AuthenticatedController
         }
 
         $this->set_content_type('text/html; charset=windows-1252');
+
+        // Init Studyareas-Step for
         $this->step = new StudyAreasWizardStep();
         $this->values = array();
         $this->values['studyareas'] = $this->get_area_ids($this->course->id);
         $this->values['ajax_url'] = $this->url_for('course/study_areas/ajax');
         $this->values['no_js_url'] = $this->url_for('course/study_areas/show');
-
+        PageLayout::addSqueezePackage('coursewizard');
+        PageLayout::setTitle(sprintf(_("%s - Studienbereiche"), $this->course->getFullname()));
     }
 
 
     function show_action()
     {
-        if(!Request::isXhr()) {
-            PageLayout::setTitle(sprintf(_("%s - Studienbreiche"), $this->course->getFullname()));
+        $this->url_params = array();
+        if (Request::get('from')) {
+            $this->url_params['from'] = Request::get('from');
+        }
+        if (Request::get('open_node')) {
+            $this->url_params['open_node'] = Request::get('open_node');
+        }
+        if (!Request::isXhr()) {
+
             Navigation::activateItem('course/admin/study_areas');
             $sidebar = Sidebar::get();
             $sidebar->setImage('sidebar/admin-sidebar.png');
@@ -84,7 +95,7 @@ class Course_StudyAreasController extends AuthenticatedController
                 }
             }
         }
-        if(Request::get('open_node')) {
+        if (Request::get('open_node')) {
             $this->values['open_node'] = Request::get('open_node');
         }
         $this->tree = $this->step->getStepTemplate($this->values, 0, 0);
@@ -112,19 +123,29 @@ class Course_StudyAreasController extends AuthenticatedController
 
     function save_action()
     {
-        if(Request::submitted('assign') || Request::submitted('unassign')) {
-            if(Request::submitted('assign')) {
+        $params = array();
+        if(Request::get('open_node')) {
+            $params['open_node'] = Request::get('open_node');
+        }
+        if (Request::get('from')) {
+            $url = $this->url_for(Request::get('from'));
+        } else {
+            $url = $this->url_for('course/study_areas/show/' . $this->course->id);
+        }
+
+        if (Request::submitted('assign') || Request::submitted('unassign')) {
+            if (Request::submitted('assign')) {
                 $msg = $this->assign();
             }
 
-            if(Request::submitted('unassign')) {
+            if (Request::submitted('unassign')) {
                 $msg = $this->unassign();
             }
-            $url = $this->url_for('course/study_areas/show/'. $this->course->id);
+
 
         } else {
             $studyareas = Request::getArray('studyareas');
-            $url = $this->url_for('admin/courses');
+
             if (empty($studyareas)) {
                 PageLayout::postMessage(MessageBox::error(_('Sie müssen mindesens einen Studienbereich auswählen')));
                 $this->redirect($url);
@@ -135,7 +156,7 @@ class Course_StudyAreasController extends AuthenticatedController
             try {
                 $msg = null;
                 $this->course->store();
-            } catch(UnexpectedValueException $e){
+            } catch (UnexpectedValueException $e) {
                 $msg = $e->getMessage();
             }
         }
@@ -148,14 +169,15 @@ class Course_StudyAreasController extends AuthenticatedController
         $this->redirect($url);
     }
 
-    public function unassign() {
-        if($this->course->study_areas) {
-            foreach($this->course->study_areas as $area) {
+    public function unassign()
+    {
+        if ($this->course->study_areas) {
+            foreach ($this->course->study_areas as $area) {
                 $assigned[] = $area->sem_tree_id;
             }
 
-            foreach(array_keys(Request::getArray('unassign')) as $remove) {
-                if($pos = array_search($remove, $assigned)) {
+            foreach (array_keys(Request::getArray('unassign')) as $remove) {
+                if ($pos = array_search($remove, $assigned)) {
                     unset($assigned[$pos]);
                 }
             }
@@ -166,21 +188,22 @@ class Course_StudyAreasController extends AuthenticatedController
         try {
             $msg = null;
             $this->course->store();
-        } catch(UnexpectedValueException $e){
+        } catch (UnexpectedValueException $e) {
             $msg = $e->getMessage();
         }
         return $msg;
     }
 
-    public function assign() {
+    public function assign()
+    {
 
-        if($this->course->study_areas) {
-            foreach($this->course->study_areas as $area) {
+        if ($this->course->study_areas) {
+            foreach ($this->course->study_areas as $area) {
                 $assigned[] = $area->sem_tree_id;
             }
 
-            foreach(array_keys(Request::getArray('assign')) as $new) {
-                if(!in_array($new, $assigned)) {
+            foreach (array_keys(Request::getArray('assign')) as $new) {
+                if (!in_array($new, $assigned)) {
                     $assigned[] = $new;
                 }
             }
@@ -191,7 +214,7 @@ class Course_StudyAreasController extends AuthenticatedController
         try {
             $msg = null;
             $this->course->store();
-        } catch(UnexpectedValueException $e){
+        } catch (UnexpectedValueException $e) {
             $msg = $e->getMessage();
         }
         return $msg;
