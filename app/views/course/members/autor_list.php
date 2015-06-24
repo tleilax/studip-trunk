@@ -2,7 +2,7 @@
 <a name="autoren"></a>
 
 
-<form action="<?= $controller->url_for('course/members/edit_autor/') ?>" method="post" data-dialog="size=50%>
+<form action="<?= $controller->url_for('course/members/edit_autor') ?>" method="post" data-dialog="size=50%">
     <?= CSRFProtection::tokenTag() ?>
     <table id="autor" class="default collapsable tablesorter">
         <caption>
@@ -160,8 +160,10 @@
                         <option value="to_admission_last"><?= _('Ans Ende der Warteliste verschieben') ?></option>
                         <?php endif ?>
                         <option value="remove"><?= _('Austragen') ?></option>
+                        <? if($is_dozent) : ?>
+                            <option value="to_course"><?= _('In andere Veranstaltung verschieben/kopieren') ?></option>
+                        <? endif ?>
                         <option value="message"><?=_('Nachricht senden')?></option>
-                        <!--<option value="copy_to_course">In Seminar verschieben/kopieren</option>-->
                     </select>
                     <?= Button::create(_('Ausführen'), 'submit_autor') ?>
                 </td>

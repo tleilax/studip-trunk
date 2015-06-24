@@ -125,6 +125,9 @@
                             <option value="to_admission_last"><?= _('Ans Ende der Warteliste verschieben') ?></option>
                         <?php endif ?>
                         <option value="remove"><?= _('Austragen') ?></option>
+                        <? if($is_dozent) : ?>
+                            <option value="to_course"><?= _('In andere Veranstaltung verschieben/kopieren') ?></option>
+                        <? endif ?>
                         <option value="message"><?=_('Nachricht senden')?></option>
                         <!--<option value="copy_to_course"><?= _('In Seminar verschieben/kopieren') ?></option>-->
                     </select>

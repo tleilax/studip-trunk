@@ -20,6 +20,7 @@ require_once 'app/models/members.php';
 require_once 'lib/messaging.inc.php'; //Funktionen des Nachrichtensystems
 
 require_once 'lib/admission.inc.php'; //Funktionen der Teilnehmerbegrenzung
+require_once 'lib/classes/searchtypes/MyCoursesSearch.class.php';
 require_once 'lib/functions.php'; //Funktionen der Teilnehmerbegrenzung
 require_once 'lib/language.inc.php'; //Funktionen der Teilnehmerbegrenzung
 require_once 'lib/export/export_studipdata_func.inc.php'; // Funktionne für den Export
@@ -472,6 +473,110 @@ class Course_MembersController extends AuthenticatedController
     }
 
     /**
+     * Provides a dialog to move or copy selected users to another course.
+     */
+    public function select_course_action()
+    {
+        if (Request::submitted('submit')) {
+            CSRFProtection::verifyUnsafeRequest();
+            $this->flash['users_to_send'] = Request::getArray('users');
+            $this->flash['target_course'] = Request::option('course_id');
+            $this->flash['move'] = Request::int('move');
+            $this->redirect('course/members/send_to_course');
+        } else {
+            global $perm;
+            if ($perm->have_perm('root')) {
+                $parameters = array(
+                    'semtypes' => studygroup_sem_types() ?: array(),
+                    'exclude' => array($GLOBALS['SessSemName'][1])
+                );
+            } else if ($perm->have_perm('admin')) {
+                $parameters = array(
+                    'semtypes' => studygroup_sem_types() ?: array(),
+                    'institutes' => array_map(function ($i) {
+                        return $i['Institut_id'];
+                    }, Institute::getMyInstitutes()),
+                    'exclude' => array($GLOBALS['SessSemName'][1])
+                );
+
+            } else {
+                $parameters = array(
+                    'userid' => $GLOBALS['user']->id,
+                    'semtypes' => studygroup_sem_types() ?: array(),
+                    'exclude' => array($GLOBALS['SessSemName'][1])
+                );
+            }
+            $coursesearch = MyCoursesSearch::get('Seminar_id', $GLOBALS['perm']->get_perm(), $parameters);
+            $this->search = QuickSearch::get('course_id', $coursesearch)
+                ->setInputStyle('width: 400px')
+                ->withButton()
+                ->render();
+            $this->course_id = Request::option('course_id');
+            $this->course_id_parameter = Request::get('course_id_parameter');
+            if (!empty($this->flash['users']) || Request::getArray('users')) {
+                $users = $this->flash['users'] ?: Request::getArray('users');
+                // create a usable array
+                foreach ($this->flash['users'] as $user => $val) {
+                    if ($val) {
+                        $this->users[] = $user;
+                    }
+                }
+                if (Request::isXhr()) {
+                    $this->response->add_header('X-Title', _('Zielveranstaltung auswählen'));
+                }
+            } else {
+                $this->redirect('course/members/index');
+            }
+        }
+    }
+
+    /**
+     * Copies or moves selected users to the selected target course.
+     */
+    public function send_to_course_action()
+    {
+        if ($target = $this->flash['target_course']) {
+            $msg = $this->members->sendToCourse(
+                $this->flash['users_to_send'],
+                $target,
+                $this->flash['move']
+            );
+            if ($msg['success']) {
+                if (sizeof($msg['success']) == 1) {
+                    $text = _('Eine Person wurde in die Zielveranstaltung eingetragen.');
+                } else {
+                    $text = sprintf(_('%s Person(en) wurde(n) in die Zielveranstaltung eingetragen.'),
+                        sizeof($msg['success']));
+                }
+                PageLayout::postMessage(MessageBox::success($text));
+            }
+            if ($msg['existing']) {
+                if (sizeof($msg['existing']) == 1) {
+                    $text = _('Eine Person ist bereits in die Zielveranstaltung eingetragen ' .
+                                'und kann daher nicht verschoben/kopiert werden.');
+                } else {
+                    $text = sprintf(_('%s Person(en) sind bereits in die Zielveranstaltung eingetragen ' .
+                        'und konnten daher nicht verschoben/kopiert werden.'),
+                        sizeof($msg['existing']));
+                }
+                PageLayout::postMessage(MessageBox::info($text));
+            }
+            if ($msg['failed']) {
+                if (sizeof($msg['failed']) == 1) {
+                    $text = _('Eine Person kann nicht in die Zielveranstaltung eingetragen werden.');
+                } else {
+                    $text = sprintf(_('%s Person(en) konnten nicht in die Zielveranstaltung eingetragen werden.'),
+                            sizeof($msg['failed']));
+                }
+                PageLayout::postMessage(MessageBox::error($text));
+            }
+        } else {
+            PageLayout::postMessage(MessageBox::error(_('Bitte wählen Sie eine Zielveranstaltung.')));
+        }
+        $this->redirect('course/members/index');
+    }
+
+    /**
      * Send Stud.IP-Message to selected users
      */
     function send_message_action()
@@ -780,7 +885,7 @@ class Course_MembersController extends AuthenticatedController
                 $target = 'course/members/cancel_subscription/collection/autor';
                 break;
             case 'to_course':
-                $this->redirect('course/members/send_to_course');
+                $this->redirect('course/members/select_course');
                 return;
                 break;
             case 'message':
@@ -825,6 +930,10 @@ class Course_MembersController extends AuthenticatedController
                 break;
             case 'remove':
                 $target = 'course/members/cancel_subscription/collection/user';
+                break;
+            case 'to_course':
+                $this->redirect('course/members/send_to_course');
+                return;
                 break;
             case 'message':
                 $this->redirect('course/members/send_message');
@@ -1117,7 +1226,7 @@ class Course_MembersController extends AuthenticatedController
      * Moves selected users to waitlist, either at the top or at the end.
      * @param $which_end 'first' or 'last': append to top or to end of waitlist?
      */
-    function to_waitlist_action($which_end)
+    public function to_waitlist_action($which_end)
     {
         // Security Check
         if (!$this->is_tutor) {

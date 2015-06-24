@@ -285,6 +285,37 @@ class MembersModel
     }
 
     /**
+     * Adds the given users to the target course.
+     * @param array $users users to add
+     * @param string $target_course which course to add users to
+     * @param bool $move move users (=delete in source course) or just add to target course?
+     * @return array success and failure statuses
+     */
+    public function sendToCourse($users, $target_course, $move = false)
+    {
+        $msg = array();
+        foreach ($users as $user) {
+            if (!CourseMember::exists($target_course, $user)) {
+                $m = new CourseMember();
+                $m->seminar_id = $target_course;
+                $m->user_id = $user;
+                $m->status = 'autor';
+                if ($m->store()) {
+                    if ($move) {
+                        CourseMember::find(array($this->course_id, $user))->delete();
+                    }
+                    $msg['success'][] = $user;
+                } else {
+                    $msg['failed'][] = $user;
+                }
+            } else {
+                $msg['existing'][] = $user;
+            }
+        }
+        return $msg;
+    }
+
+    /**
      * Get user informations by first and last name for csv-import
      * @param String $vorname
      * @param String $nachname
