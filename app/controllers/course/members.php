@@ -968,6 +968,9 @@ class Course_MembersController extends AuthenticatedController
             case 'upgrade':
                 $target = 'course/members/insert_admission/awaiting/collection';
                 break;
+            case 'upgrade_user':
+                $target = 'course/members/insert_admission/awaiting/collection/user';
+                break;
             case 'remove':
                 $target = 'course/members/cancel_subscription/collection/' . $waiting_type;
                 break;
@@ -1024,11 +1027,11 @@ class Course_MembersController extends AuthenticatedController
      * Insert a user to a given seminar or a group of users
      * @param String $status
      * @param String $cmd
-     * @param String $user_id
+     * @param String $target_status
      * @return String
      * @throws AccessDeniedException
      */
-    function insert_admission_action($status, $cmd)
+    function insert_admission_action($status, $cmd, $target_status='autor')
     {
         if (!$this->is_tutor) {
             throw new AccessDeniedException('Sie haben leider keine ausreichende Berechtigung, um auf diesen Bereich von Stud.IP zuzugreifen.');
@@ -1044,17 +1047,17 @@ class Course_MembersController extends AuthenticatedController
                 });
 
         if ($users) {
-            $msgs = $this->members->insertAdmissionMember($users, 'autor', Request::get('consider_contingent'), $status == 'accepted');
+            $msgs = $this->members->insertAdmissionMember($users, $target_status, Request::get('consider_contingent'), $status == 'accepted');
             if ($msgs) {
                 if ($cmd == 'add_user') {
                     $message = sprintf(_('%s wurde in die Veranstaltung mit dem Status <b>%s</b> eingetragen.'), htmlReady(join(',', $msgs)), $this->decoratedStatusGroups['autor']);
                 } else {
                     if ($status == 'awaiting') {
                         $message = sprintf(_('%s wurde aus der Anmelde bzw. Warteliste mit dem Status
-                            <b>%s</b> in die Veranstaltung eingetragen.'), htmlReady(join(', ', $msgs)), $this->decoratedStatusGroups['autor']);
+                            <b>%s</b> in die Veranstaltung eingetragen.'), htmlReady(join(', ', $msgs)), $this->decoratedStatusGroups[$target_status]);
                     } else {
                         $message = sprintf(_('%s wurde mit dem Status <b>%s</b> endgültig akzeptiert
-                            und damit in die Veranstaltung aufgenommen.'), htmlReady(join(', ', $msgs)), $this->decoratedStatusGroups['autor']);
+                            und damit in die Veranstaltung aufgenommen.'), htmlReady(join(', ', $msgs)), $this->decoratedStatusGroups[$target_status]);
                     }
                 }
 
