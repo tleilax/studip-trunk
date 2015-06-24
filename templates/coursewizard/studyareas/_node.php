@@ -4,7 +4,7 @@
     <?= Assets::input('icons/yellow/arr_2left.svg',
             array('name' => 'assign['.$node->id.']',
             'onclick' => "return STUDIP.CourseWizard.assignNode('".$node->id."')",
-            'class' => in_array($node->id, $values['studyareas']) ? 'hidden-no-js' : '')) ?>
+            'class' => in_array($node->id, $values['studyareas'] ?: array()) ? 'hidden-no-js' : '')) ?>
     <?php endif ?>
     <?php if ($node->hasChildren()) : ?>
     <input type="checkbox" id="<?= htmlReady($node->id) ?>"<?= (in_array($node->id, $open_nodes) && $node->parent_id != $values['open_node']) ? ' checked="checked"' : '' ?>/>
