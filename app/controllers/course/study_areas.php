@@ -133,7 +133,7 @@ class Course_StudyAreasController extends AuthenticatedController
             $url = $this->url_for('course/study_areas/show/' . $this->course->id);
         }
 
-        if (Request::submitted('assign') || Request::submitted('unassign')) {
+        if (Request::submittedSome('assign', 'unassign')) {
             if (Request::submitted('assign')) {
                 $msg = $this->assign();
             }
@@ -177,12 +177,15 @@ class Course_StudyAreasController extends AuthenticatedController
             }
 
             foreach (array_keys(Request::getArray('unassign')) as $remove) {
-                if ($pos = array_search($remove, $assigned)) {
+                if (false !== ($pos = array_search($remove, $assigned))) {
                     unset($assigned[$pos]);
                 }
             }
         }
 
+        if(empty($assigned)) {
+            return _('Sie müssen mindesens einen Studienbereich auswählen');
+        }
         $this->course->study_areas = SimpleORMapCollection::createFromArray(StudipStudyArea::findMany(array_values($assigned)));
 
         try {
