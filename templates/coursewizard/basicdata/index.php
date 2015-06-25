@@ -64,7 +64,7 @@
 </label>
 <?php if ($values['lecturer_id_parameter']) : ?>
 <?= Assets::input('icons/yellow/arr_2down.svg',
-    array('name' => 'add_lecturer', 'value' => '1', 'class' => 'hidden-js')) ?>
+    array('name' => 'add_lecturer', 'value' => '1')) ?>
 <?php endif ?>
 <br/>
 <div id="lecturers">
@@ -84,7 +84,7 @@
 </label>
 <?php if ($values['deputy_id_parameter']) : ?>
     <?= Assets::input('icons/yellow/arr_2down.svg',
-        array('name' => 'add_deputy', 'value' => '1', 'class' => 'hidden-js')) ?>
+        array('name' => 'add_deputy', 'value' => '1')) ?>
 <?php endif ?>
 <br/>
 <div id="deputies">
