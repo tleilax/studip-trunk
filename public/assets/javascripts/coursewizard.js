@@ -189,7 +189,7 @@ STUDIP.CourseWizard = {
                             $('#sem-tree-search-loading').remove();
                             $('#studyareas li input[type="checkbox"]').attr('checked', false);
                             $('#studyareas li').not('.keep-node').addClass('css-tree-hidden');
-                            STUDIP.CourseWizard.buildPartialTree(items, true);
+                            STUDIP.CourseWizard.buildPartialTree(items, true, '');
                             $('#sem-tree-assign-all').removeClass('hidden-js');
                         } else {
                             STUDIP.CourseWizard.resetSearch();
@@ -228,9 +228,11 @@ STUDIP.CourseWizard = {
      * @param items items to show in the resulting tree
      * @param assignable are the nodes part of the full
      *        sem tree whose entries can be assigned?
+     * @param source_node the single node that initiated the tree building,
+     *        useful for marking elements.
      * @returns {boolean}
      */
-    buildPartialTree: function(items, assignable)
+    buildPartialTree: function(items, assignable, source_node)
     {
         if (assignable) {
             var classPrefix = 'sem-tree-';
@@ -242,11 +244,31 @@ STUDIP.CourseWizard = {
             var parent = $('.' + classPrefix + items[i].parent);
             var node = $('.' + classPrefix + items[i].id);
             if (node.length == 0) {
-                var node = STUDIP.CourseWizard.createTreeNode(items[i], assignable);
+                if (!assignable && source_node == items[i].id) {
+                    var selected = true;
+                } else {
+                    var selected = false;
+                }
+                var node = STUDIP.CourseWizard.createTreeNode(items[i], assignable, selected);
                 node.addClass('css-tree-show');
                 parent.children('ul').append(node);
             } else {
                 node.removeClass('css-tree-hidden');
+                if (!assignable && items[i].id == source_node) {
+                    var input = $('<input>').
+                        attr('type', 'hidden').
+                        attr('name', 'studyareas[]').
+                        attr('value', items[i].id);
+                    node.children('ul').before(input);
+                    var unassign = $('<input>').
+                        attr('type', 'image').
+                        attr('name', 'unassign[' + items[i].id + ']').
+                        attr('src', STUDIP.ASSETS_URL + 'images/icons/blue/trash.svg').
+                        attr('width', '16').
+                        height('height', '16').
+                        attr('onclick', "return STUDIP.CourseWizard.unassignNode('" + items[i].id + "')");
+                    node.children('input[name="studyareas[]"]').before(unassign);
+                }
             }
             if (items[i].assignable) {
                 node.addClass('sem-tree-result');
@@ -254,7 +276,7 @@ STUDIP.CourseWizard = {
             parent.children('input[id="' + items[i].parent + '"]').attr('checked', true);
             if (items[i].has_children)
             {
-                STUDIP.CourseWizard.buildPartialTree(items[i].children, assignable);
+                STUDIP.CourseWizard.buildPartialTree(items[i].children, assignable, source_node);
             }
         }
         return false;
@@ -267,9 +289,9 @@ STUDIP.CourseWizard = {
      *        sem tree whose entries can be assigned?
      * @returns {*|jQuery}
      */
-    createTreeNode: function(values, assignable)
+    createTreeNode: function(values, assignable, selected)
     {
-        console.log(values);
+        // Node in "All study areas" tree.
         if (assignable) {
             var item = $('<li>').
                 addClass('sem-tree-' + values.id);
@@ -288,9 +310,20 @@ STUDIP.CourseWizard = {
                     attr('type', 'checkbox').
                     attr('id', values.id);
                 var label = $('<label>').
-                    attr('for', values.id).
-                    attr('onclick', "return STUDIP.CourseWizard.getTreeChildren('" + values.id + "', " + assignable + ")");
-                label.html(label.html() + values.name);
+                    attr('for', values.id);
+                // Build link for opening the current node.
+                var link = $('div#studyareas').data('forward-url');
+                if (link.indexOf('?') > -1) {
+                    link += '&open_node=' + values.id;
+                } else {
+                    link += '?open_node=' + values.id;
+                }
+                var openLink = $('<a>').
+                    attr('href', link).
+                    attr('onclick', "return STUDIP.CourseWizard.getTreeChildren('" +
+                        values.id + "', true)");
+                openLink.html(values.name);
+                label.append(openLink);
                 item.append(input);
                 item.append(label);
                 if (values.has_children) {
@@ -308,11 +341,12 @@ STUDIP.CourseWizard = {
                 item.html(item.html() + values.name);
                 item.addClass('tree-node');
             }
+        // Node in "assigned study areas" tree.
         } else {
             var item = $('<li>').
                 addClass('sem-tree-assigned-' + values.id);
             item.html(values.name);
-            if (!values.has_children || values.assignable) {
+            if ((!values.has_children || values.assignable) && selected) {
                 var unassign = $('<input>').
                     attr('type', 'image').
                     attr('name', 'unassign[' + values.id + ']').
@@ -322,7 +356,7 @@ STUDIP.CourseWizard = {
                     attr('onclick', "return STUDIP.CourseWizard.unassignNode('" + values.id + "')");
                 item.append(unassign);
             }
-            if (values.assignable) {
+            if (values.assignable && selected) {
                 var input = $('<input>').
                     attr('type', 'hidden').
                     attr('name', 'studyareas[]').
@@ -356,7 +390,7 @@ STUDIP.CourseWizard = {
                 success: function (data, status, xhr) {
                     $('#loading-overlay').remove();
                     var items = $.parseJSON(data);
-                    STUDIP.CourseWizard.buildPartialTree(items, false);
+                    STUDIP.CourseWizard.buildPartialTree(items, false, id);
                     $('.sem-tree-assigned-root').removeClass('hidden-js');
                     $('input[name="assign[' + id + ']"]').addClass('hidden-js');
                 },
@@ -378,6 +412,7 @@ STUDIP.CourseWizard = {
         var target = $('li.sem-tree-assigned-' + id);
         if (target.children('ul').children('li').length > 0) {
             target.children('input[name="studyareas[]"]').remove();
+            target.children('input[name="unassign[' + id + ']"]').remove();
             target.children('a').remove();
         } else {
             STUDIP.CourseWizard.cleanupAssignTree(target);
@@ -419,7 +454,7 @@ STUDIP.CourseWizard = {
         var root = $('li.sem-tree-assigned-root');
         if (root.children('ul').children('li').length < 1)
         {
-            root.css('display', 'none');
+            root.addClass('hidden-js');
         }
     },
 

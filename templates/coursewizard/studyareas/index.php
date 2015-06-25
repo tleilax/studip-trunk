@@ -5,20 +5,24 @@
         <span class="required">*</span>
     </h2>
     <ul class="css-tree">
-        <li class="sem-tree-assigned-root keep-node" data-id="root">
+        <li class="sem-tree-assigned-root keep-node" data-id="root"<?=
+                $assigned ? ' class="hidden-no-js hidden-no-js"' : '' ?>>
             <?= $GLOBALS['UNI_NAME'] ?>
             <ul>
-            <?php foreach ($assigned as $element) : ?>
-            <?= $this->render_partial('coursewizard/studyareas/_assigned_node', array('element' => $element)) ?>
+            <?php foreach ($assigned->required_children as $element) : ?>
+            <?= $this->render_partial('coursewizard/studyareas/_assigned_node',
+                    array('element' => $element, 'studyareas' => $values['studyareas'])) ?>
             <?php endforeach ?>
             </ul>
         </li>
     </ul>
 </div>
-<div id="studyareas" data-ajax-url="<?= $ajax_url ?>" data-no-search-result="<?= _('Es wurde kein Suchergebnis gefunden.') ?>">
+<div id="studyareas" data-ajax-url="<?= $ajax_url ?>"
+    data-forward-url="<?= $no_js_url ?>" data-no-search-result="<?=_('Es wurde kein Suchergebnis gefunden.') ?>">
     <h2><?= _('Alle Studienbereiche') ?></h2>
     <div>
-        <input type="text" size="40" maxlength="255" name="search" id="sem-tree-search" value="<?= $values['searchterm'] ?>"/>
+        <input type="text" size="40" maxlength="255" name="search" id="sem-tree-search"
+               value="<?= $values['searchterm'] ?>"/>
         <span id="sem-tree-search-start">
             <?= Assets::input('icons/blue/search.svg',
                 array('name' => 'start_search',

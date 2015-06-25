@@ -134,7 +134,7 @@ class Admin_CourseWizardStepsController extends AuthenticatedController
             $step = CourseWizardStepRegistry::find($id);
             if ($step) {
                 $name = $step->name;
-                if (CourseWizardStepRegistry::unregisterStep($step->classname)) {
+                if (CourseWizardStepRegistry::unregisterStep($id)) {
                     PageLayout::postMessage(
                         MessageBox::success(sprintf(_('Der Schritt "%s" wurde gelöscht.'), $name)));
                 } else {

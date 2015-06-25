@@ -33,9 +33,9 @@ class CourseWizardStepRegistry extends SimpleORMap
         return $step->store();
     }
 
-    public static function unregisterStep($class)
+    public static function unregisterStep($id)
     {
-        $step = self::findByClassname($class);
+        $step = self::find($id);
         if ($step)
         {
             return $step->delete();
