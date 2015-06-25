@@ -313,7 +313,7 @@ class BasicDataWizardStep implements CourseWizardStep
         return $values;
     }
 
-    public function getSearch($course_type, $institute_id, $exclude_users)
+    public function getSearch($course_type, $institute_id, $exclude_users = array())
     {
         if (SeminarCategories::getByTypeId($course_type)->only_inst_user){
             $search = 'user_inst';
