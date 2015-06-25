@@ -14,9 +14,18 @@ STUDIP.CourseWizard = {
         $('input[name^="lecturers["]').each(function () {
             params += '&parameter[][]=' + $(this).attr('id');
         });
-        $('span#lecturersearch').load(
+        var target = $('div#lecturersearch');
+        $.ajax(
             $('select[name="institute"]').data('ajax-url'),
-            params
+            {
+                data: params,
+                success: function (data, status, xhr) {
+                    target.html(data);
+                },
+                error: function (xhr, status, error) {
+                    alert(error);
+                }
+            }
         );
     },
 
@@ -260,17 +269,20 @@ STUDIP.CourseWizard = {
      */
     createTreeNode: function(values, assignable)
     {
+        console.log(values);
         if (assignable) {
             var item = $('<li>').
                 addClass('sem-tree-' + values.id);
-            var assign = $('<img>').
+            var assign = $('<input>').
+                attr('type', 'image').
+                attr('name', 'assign[' + values.id + ']').
                 attr('src', STUDIP.ASSETS_URL + 'images/icons/yellow/arr_2left.svg').
-                css('width', '16').
-                css('height', '16');
-            var assignLink = $('<a>').
-                attr('href', '').
+                attr('width', '16').
+                height('height', '16').
                 attr('onclick', "return STUDIP.CourseWizard.assignNode('" + values.id + "')");
-            assignLink.append(assign);
+            if (values.assignable) {
+                item.append(assign);
+            }
             if (values.has_children) {
                 var input = $('<input>').
                     attr('type', 'checkbox').
@@ -278,9 +290,6 @@ STUDIP.CourseWizard = {
                 var label = $('<label>').
                     attr('for', values.id).
                     attr('onclick', "return STUDIP.CourseWizard.getTreeChildren('" + values.id + "', " + assignable + ")");
-                if (values.assignable) {
-                    label.append(assign);
-                }
                 label.html(label.html() + values.name);
                 item.append(input);
                 item.append(label);
@@ -289,15 +298,13 @@ STUDIP.CourseWizard = {
                 }
                 if (values.assignable) {
                     if ($('#assigned li.sem-tree-assigned-' + values.id).length > 0) {
-                        assignLink.css('display', 'none');
+                        assign.css('display', 'none');
                     }
-                    item.append(assignLink);
                 }
             } else {
                 if ($('#assigned li.sem-tree-assigned-' + values.id).length > 0) {
                     assignLink.css('display', 'none');
                 }
-                item.append(assignLink);
                 item.html(item.html() + values.name);
                 item.addClass('tree-node');
             }
@@ -305,16 +312,15 @@ STUDIP.CourseWizard = {
             var item = $('<li>').
                 addClass('sem-tree-assigned-' + values.id);
             item.html(values.name);
-            if (!values.has_children) {
-                var unassign = $('<img>').
+            if (!values.has_children || values.assignable) {
+                var unassign = $('<input>').
+                    attr('type', 'image').
+                    attr('name', 'unassign[' + values.id + ']').
                     attr('src', STUDIP.ASSETS_URL + 'images/icons/blue/trash.svg').
-                    css('width', '16').
-                    css('height', '16');
-                var unassignLink = $('<a>').
-                    attr('href', '').
+                    attr('width', '16').
+                    height('height', '16').
                     attr('onclick', "return STUDIP.CourseWizard.unassignNode('" + values.id + "')");
-                unassignLink.append(unassign);
-                item.append(unassignLink);
+                item.append(unassign);
             }
             if (values.assignable) {
                 var input = $('<input>').
@@ -352,7 +358,7 @@ STUDIP.CourseWizard = {
                     var items = $.parseJSON(data);
                     STUDIP.CourseWizard.buildPartialTree(items, false);
                     $('.sem-tree-assigned-root').removeClass('hidden-js');
-                    $('li.sem-tree-' + id).children('a').addClass('hidden-js');
+                    $('input[name="assign[' + id + ']"]').addClass('hidden-js');
                 },
                 error: function (xhr, status, error) {
                     alert(error);
@@ -376,7 +382,7 @@ STUDIP.CourseWizard = {
         } else {
             STUDIP.CourseWizard.cleanupAssignTree(target);
         }
-        $('li.sem-tree-' + id).children('a').removeClass('hidden-js');
+        $('input[name="assign[' + id + ']"]').removeClass('hidden-js');
         return false;
     },
 

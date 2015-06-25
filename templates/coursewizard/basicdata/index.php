@@ -62,6 +62,10 @@
         <?= $lsearch ?>
     </div>
 </label>
+<?php if ($values['lecturer_id_parameter']) : ?>
+<?= Assets::input('icons/yellow/arr_2down.svg',
+    array('name' => 'add_lecturer', 'value' => '1', 'class' => 'hidden-js')) ?>
+<?php endif ?>
 <br/>
 <div id="lecturers">
     <?php foreach ($values['lecturers'] as $id => $assigned) : ?>
@@ -78,6 +82,10 @@
         <?= $dsearch ?>
     </div>
 </label>
+<?php if ($values['deputy_id_parameter']) : ?>
+    <?= Assets::input('icons/yellow/arr_2down.svg',
+        array('name' => 'add_deputy', 'value' => '1', 'class' => 'hidden-js')) ?>
+<?php endif ?>
 <br/>
 <div id="deputies">
     <?php foreach ($values['deputies'] as $id => $assigned) : ?>

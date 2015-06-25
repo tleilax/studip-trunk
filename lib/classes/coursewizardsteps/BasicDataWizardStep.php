@@ -114,13 +114,20 @@ class BasicDataWizardStep implements CourseWizardStep
             $values['institute'], array_keys($values['lecturers'])));
         // Quicksearch for deputies if applicable.
         if ($deputies) {
+            // No JS: Keep search value and results for displaying in search select box.
+            if ($values['deputy_id']) {
+                Request::getInstance()->offsetSet('deputy_id', $values['deputy_id']);
+            }
+            if ($values['deputy_id_parameter']) {
+                Request::getInstance()->offsetSet('deputy_id_parameter', $values['deputy_id_parameter']);
+            }
             $deputysearch = new PermissionSearch('user',
                 _('Vertretung hinzufügen'),
                 'user_id',
                 array('permission' => 'dozent',
                     'exclude_user' => array_keys($values['deputies']))
             );
-            $tpl->set_attribute('dsearch', QuickSearch::get('dsearch', $deputysearch)
+            $tpl->set_attribute('dsearch', QuickSearch::get('deputy_id', $deputysearch)
                 ->withButton(array('search_button_name' => 'search_deputy', 'reset_button_name' => 'reset_dsearch'))
                 ->fireJSFunctionOnSelect('STUDIP.CourseWizard.addDeputy')
                 ->render());
@@ -130,14 +137,36 @@ class BasicDataWizardStep implements CourseWizardStep
     }
 
     /**
-     * The function does nothing here because everything needed is already
-     * handled automatically via normal request processing.
+     * The function only needs to handle person adding and removing
+     * as other actions are handled by normal request processing.
      * @param Array $values currently set values for this class.
      * @return bool
      */
     public function processRequest($values)
     {
-        return $values;
+        // Add a lecturer.
+        if ($values['request']->submitted('add_lecturer')) {
+            $values['values']['lecturers'][$values['request']->option('lecturer_id')] = true;
+            unset($values['values']['lecturer_id']);
+            unset($values['values']['lecturer_id_parameter']);
+        }
+        // Remove a lecturer.
+        if ($remove = array_keys($values['request']->getArray('remove_lecturer'))) {
+            $remove = $remove[0];
+            unset($values['values']['lecturers'][$remove]);
+        }
+        // Add a deputy.
+        if ($values['request']->submitted('add_deputy')) {
+            $values['values']['deputies'][$values['request']->option('deputy_id')] = true;
+            unset($values['values']['deputy_id']);
+            unset($values['values']['deputy_id_parameter']);
+        }
+        // Remove a deputy.
+        if ($remove = array_keys($values['request']->getArray('remove_deputy'))) {
+            $remove = $remove[0];
+            unset($values['values']['deputies'][$remove]);
+        }
+        return $values['values'];
     }
 
     /**
@@ -152,7 +181,7 @@ class BasicDataWizardStep implements CourseWizardStep
     {
         $ok = true;
         $errors = array();
-        if (!$values['name']) {
+        if (!trim($values['name'])) {
             $errors[] = _('Bitte geben Sie den Namen der Veranstaltung an.');
         }
         if (!$values['lecturers']) {
