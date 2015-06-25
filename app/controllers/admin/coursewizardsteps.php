@@ -17,6 +17,14 @@
 
 require_once 'app/controllers/authenticated_controller.php';
 
+$stepdir = "../lib/classes/coursewizardsteps";
+foreach (scandir($stepdir) as $file) {
+    if (stripos($file, ".php") !== false) {
+        require_once $stepdir . "/" . $file;
+    }
+}
+
+
 class Admin_CourseWizardStepsController extends AuthenticatedController
 {
     public function before_filter(&$action, &$args)
@@ -57,6 +65,17 @@ class Admin_CourseWizardStepsController extends AuthenticatedController
             $this->step->classname = '';
             $this->step->number = 0;
             $this->step->enabled = false;
+
+            $this->availableClasses = array();
+            foreach (get_declared_classes() as $className) {
+                if (is_a($className, "CourseWizardStep", true)
+                        && $className !== "CourseWizardStep") {
+                    $collection = new SimpleCollection(CourseWizardStepRegistry::findBySQL("1 ORDER BY `number`"));
+                    if (!in_array($className, $collection->pluck("classname"))) {
+                        $this->availableClasses[] = $className;
+                    }
+                }
+            }
         }
         if (Request::isXhr()) {
             $this->response->add_header('X-Title', $title);
