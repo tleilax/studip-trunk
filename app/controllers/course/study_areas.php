@@ -50,9 +50,9 @@ class Course_StudyAreasController extends AuthenticatedController
         // Init Studyareas-Step for
         $this->step = new StudyAreasWizardStep();
         $this->values = array();
-        $this->values['studyareas'] = $this->get_area_ids($this->course->id);
-        $this->values['ajax_url'] = $this->url_for('course/study_areas/ajax');
-        $this->values['no_js_url'] = $this->url_for('course/study_areas/show');
+        $this->values['StudyAreasWizardStep']['studyareas'] = $this->get_area_ids($this->course->id);
+        $this->values['StudyAreasWizardStep']['ajax_url'] = $this->url_for('course/study_areas/ajax');
+        $this->values['StudyAreasWizardStep']['no_js_url'] = $this->url_for('course/study_areas/show');
         PageLayout::addSqueezePackage('coursewizard');
         PageLayout::setTitle(sprintf(_("%s - Studienbereiche"), $this->course->getFullname()));
     }
@@ -96,7 +96,7 @@ class Course_StudyAreasController extends AuthenticatedController
             }
         }
         if (Request::get('open_node')) {
-            $this->values['open_node'] = Request::get('open_node');
+            $this->values['StudyAreasWizardStep']['open_node'] = Request::get('open_node');
         }
         $this->tree = $this->step->getStepTemplate($this->values, 0, 0);
     }

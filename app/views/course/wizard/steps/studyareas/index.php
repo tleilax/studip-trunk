@@ -9,7 +9,8 @@
                 $assigned ? ' class="hidden-no-js hidden-no-js"' : '' ?>>
             <?= $GLOBALS['UNI_NAME'] ?>
             <ul>
-            <?php foreach ($assigned->required_children ?: array() as $element) : ?>
+            <?php foreach ($assigned as $element) : ?>
+            <?= $element->name ?>
             <?= $this->render_partial('studyareas/_assigned_node',
                     array('element' => $element, 'studyareas' => $values['studyareas'])) ?>
             <?php endforeach ?>
