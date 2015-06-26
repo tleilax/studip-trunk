@@ -32,6 +32,7 @@ class Course_WizardController extends AuthenticatedController
         Navigation::activateItem('/browse/my_courses');
         if (Request::isXhr()) {
             $this->dialog = true;
+            $this->set_content_type('text/html;charset=windows-1252');
         }
         $this->set_content_type('text/html;charset=windows-1252');
         $this->steps = CourseWizardStepRegistry::findBySQL("`enabled`=1 ORDER BY `number`");
