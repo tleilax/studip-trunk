@@ -146,9 +146,7 @@ class Course_WizardController extends AuthenticatedController
         } else {
             $stepclass = $this->steps[$step_number]['classname'];
             $result = $this->getStep($step_number)
-                ->processRequest(array(
-                    'request' => Request::getInstance(),
-                    'values' => $this->getValues($stepclass)));
+                ->alterValues($this->getValues($stepclass));
             $_SESSION['coursewizard'][$temp_id][$stepclass] = $result;
             $next_step = $step_number;
         }
@@ -191,11 +189,7 @@ class Course_WizardController extends AuthenticatedController
     {
         $this->temp_id = $temp_id;
         $stepclass = $this->steps[$step_number]['classname'];
-        $data = array(
-            'request' => Request::getInstance(),
-            'values' => $this->getValues($stepclass) ?: array()
-        );
-        $result = $this->getStep($step_number)->processRequest($data);
+        $result = $this->getStep($step_number)->alterValues($this->getValues($stepclass) ?: array());
         $this->setStepValues($stepclass, $result);
         $this->redirect($this->url_for('course/wizard/step', $step_number, $this->temp_id));
     }

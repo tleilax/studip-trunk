@@ -18,15 +18,14 @@
 interface CourseWizardStep
 {
     /**
-     * Returns the Flexi template for entering the necessary values
-     * for this step.
+     * Checks if the current step needs to be executed according
+     * to already given values. A good example are study areas which
+     * are only needed for certain sem_classes.
      *
-     * @param Array $values Pre-set values
-     * @param int $stepnumber which number has the current step in the wizard?
-     * @param String $temp_id temporary ID for wizard workflow
-     * @return String a Flexi template for getting needed data.
+     * @param Array $values values specified from previous steps
+     * @return bool Is the current step required for a new course?
      */
-    public function getStepTemplate($values, $stepnumber, $temp_id);
+    public function isRequired($values);
 
     /**
      * This method provides the possibility to have buttons in the form
@@ -38,9 +37,21 @@ interface CourseWizardStep
      * thus allowing a No-JS construction of a QuickSearch needing this
      * institute ID for its own purposes.
      *
-     * @param Array $values submitted form values.
+     * @param Array $values former values from the wizard.
+     * @return new altered $values. If nothing changes return $values.
      */
-    public function processRequest($values);
+    public function alterValues($values);
+
+    /**
+     * Returns the Flexi template for entering the necessary values
+     * for this step.
+     *
+     * @param Array $values Pre-set values
+     * @param int $stepnumber which number has the current step in the wizard?
+     * @param String $temp_id temporary ID for wizard workflow
+     * @return String a Flexi template for getting needed data.
+     */
+    public function getStepTemplate($values, $stepnumber, $temp_id);
 
     /**
      * Validates entered data, e.g. if all mandatory values have been given.
@@ -58,16 +69,6 @@ interface CourseWizardStep
      * @return Course The given course object with updated values.
      */
     public function storeValues($course, $values);
-
-    /**
-     * Checks if the current step needs to be executed according
-     * to already given values. A good example are study areas which
-     * are only needed for certain sem_classes.
-     *
-     * @param Array $values values specified from previous steps
-     * @return bool Is the current step required for a new course?
-     */
-    public function isRequired($values);
 
     /**
      * Prepares a copy of the given course by setting the necessary values

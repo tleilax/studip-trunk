@@ -163,34 +163,34 @@ class BasicDataWizardStep implements CourseWizardStep
     /**
      * The function only needs to handle person adding and removing
      * as other actions are handled by normal request processing.
-     * @param Array $values currently set values for this class.
+     * @param Array $values currently set values for the wizard.
      * @return bool
      */
-    public function processRequest($values)
+    public function alterValues($values)
     {
         // Add a lecturer.
-        if ($values['request']->submitted('add_lecturer')) {
-            $values['values']['lecturers'][$values['request']->option('lecturer_id')] = true;
-            unset($values['values']['lecturer_id']);
-            unset($values['values']['lecturer_id_parameter']);
+        if (Request::submitted('add_lecturer') && Request::option('lecturer_id')) {
+            $values['lecturers'][Request::option('lecturer_id')] = true;
+            unset($values['lecturer_id']);
+            unset($values['lecturer_id_parameter']);
         }
         // Remove a lecturer.
-        if ($remove = array_keys($values['request']->getArray('remove_lecturer'))) {
+        if ($remove = array_keys(Request::getArray('remove_lecturer'))) {
             $remove = $remove[0];
-            unset($values['values']['lecturers'][$remove]);
+            unset($values['lecturers'][$remove]);
         }
         // Add a deputy.
-        if ($values['request']->submitted('add_deputy')) {
-            $values['values']['deputies'][$values['request']->option('deputy_id')] = true;
-            unset($values['values']['deputy_id']);
-            unset($values['values']['deputy_id_parameter']);
+        if (Request::submitted('add_deputy')) {
+            $values['deputies'][Request::option('deputy_id')] = true;
+            unset($values['deputy_id']);
+            unset($values['deputy_id_parameter']);
         }
         // Remove a deputy.
-        if ($remove = array_keys($values['request']->getArray('remove_deputy'))) {
+        if ($remove = array_keys(Request::getArray('remove_deputy'))) {
             $remove = $remove[0];
-            unset($values['values']['deputies'][$remove]);
+            unset($values['deputies'][$remove]);
         }
-        return $values['values'];
+        return $values;
     }
 
     /**

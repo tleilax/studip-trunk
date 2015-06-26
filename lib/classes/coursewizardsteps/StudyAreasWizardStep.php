@@ -78,42 +78,42 @@ class StudyAreasWizardStep implements CourseWizardStep
     /**
      * Catch form submits other than "previous" and "next" and handle the
      * given values. This is only important for no-JS situations.
-     * @param Array $data currently set values for this class.
+     * @param Array $values currently set values for the wizard.
      * @return bool
      */
-    public function processRequest($data)
+    public function alterValues($values)
     {
         // A node has been clicked in order to open the subtree.
-        if ($data['request']->option('open_node')) {
-            $data['values']['open_node'] = $data['request']['open_node'];
+        if (Request::option('open_node')) {
+            $values['open_node'] = Request::get('open_node');
         }
         // Assign a node to the course.
-        if ($assign = array_keys($data['request']->getArray('assign'))) {
-            if ($data['values']['studyareas']) {
-                $data['values']['studyareas'][] = $assign[0];
+        if ($assign = array_keys(Request::getArray('assign'))) {
+            if ($values['studyareas']) {
+                $values['studyareas'][] = $assign[0];
             } else {
-                $data['values']['studyareas'] = $assign;
+                $values['studyareas'] = $assign;
             }
         }
         // Unassign an assigned node.
-        if ($unassign = array_keys($data['request']->getArray('unassign'))) {
+        if ($unassign = array_keys(Request::getArray('unassign'))) {
             $unassign = $unassign[0];
             // Use array_filter to remove the given entry from assigned nodes.
-            $data['values']['studyareas'] = array_filter(
-                $data['values']['studyareas'],
+            $values['studyareas'] = array_filter(
+                $values['studyareas'],
                 function ($e) use ($unassign) { return $e != $unassign; }
             );
         }
         // Search for a given term in the semtree.
-        if ($data['request']->submitted('start_search')) {
-            $data['values']['searchterm'] = $data['request']->get('search');
-            unset($data['values']['open_node']);
+        if (Request::submitted('start_search')) {
+            $values['searchterm'] = Request::get('search');
+            unset($values['open_node']);
         }
         // Reset search -> normal semtree view.
-        if ($data['request']->submitted('reset_search')) {
-            unset($data['values']['searchterm']);
+        if (Request::submitted('reset_search')) {
+            unset($values['searchterm']);
         }
-        return $data['values'];
+        return $values;
     }
 
     /**
