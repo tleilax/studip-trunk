@@ -98,7 +98,7 @@ class Course_WizardController extends AuthenticatedController
             $next_step = $this->getNextRequiredStep($step_number, 'down');
         } else if (Request::submitted('next')) {
             // Validate given data.
-            if ($this->getStep($step_number)->validate($this->getValues($this->steps[$step_number]['classname']))) {
+            if ($this->getStep($step_number)->validate($this->getValues())) {
                 $next_step = $this->getNextRequiredStep($step_number, 'up');
             /*
              * Validation failed -> stay on current step. Error messages are
@@ -146,7 +146,7 @@ class Course_WizardController extends AuthenticatedController
         } else {
             $stepclass = $this->steps[$step_number]['classname'];
             $result = $this->getStep($step_number)
-                ->alterValues($this->getValues($stepclass));
+                ->alterValues($this->getValues());
             $_SESSION['coursewizard'][$temp_id][$stepclass] = $result;
             $next_step = $step_number;
         }
@@ -189,7 +189,7 @@ class Course_WizardController extends AuthenticatedController
     {
         $this->temp_id = $temp_id;
         $stepclass = $this->steps[$step_number]['classname'];
-        $result = $this->getStep($step_number)->alterValues($this->getValues($stepclass) ?: array());
+        $result = $this->getStep($step_number)->alterValues($this->getValues() ?: array());
         $this->setStepValues($stepclass, $result);
         $this->redirect($this->url_for('course/wizard/step', $step_number, $this->temp_id));
     }
@@ -236,7 +236,7 @@ class Course_WizardController extends AuthenticatedController
         for ($i = 0; $i < sizeof($this->steps) ; $i++) {
             $step = $this->getStep($i);
             if ($step->isRequired($this->getValues())) {
-                if ($stored = $step->storeValues($course, $this->getValues($this->steps[$i]['classname']))) {
+                if ($stored = $step->storeValues($course, $this->getValues())) {
                     $course = $stored;
                 } else {
                     $course = false;

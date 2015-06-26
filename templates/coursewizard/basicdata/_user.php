@@ -4,5 +4,5 @@
     <?= htmlReady($user->getFullname('full_rev')) ?> (<?= htmlReady($user->username) ?>)
     <?= Assets::input('icons/blue/trash.svg', array(
         'name' => 'remove_'.$class.'['.$user->id.']',
-        'onclick' => 'return STUDIP.CourseWizard.removePerson(this)')) ?>
+        'onclick' => "return STUDIP.CourseWizard.removePerson('".$user->id."')")) ?>
 </div>

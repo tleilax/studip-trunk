@@ -9,14 +9,15 @@ STUDIP.CourseWizard = {
     {
         var params = 'step=' + $('input[name="step"]').val() +
             '&method=getSearch' +
-            '&parameter[]=' + $('select[name="coursetype"] option:selected').val() +
-            '&parameter[]=' + $('select[name="institute"] option:selected').val();
+            '&parameter[]=' + $('select#wizard-coursetype option:selected').val() +
+            '&parameter[]=' + $('select#wizard-home-institute option:selected').val();
         $('input[name^="lecturers["]').each(function () {
             params += '&parameter[][]=' + $(this).attr('id');
         });
-        var target = $('div#lecturersearch');
+        var target = $('div#wizard-lecturersearch');
+        var oldSearch = target.html();
         $.ajax(
-            $('select[name="institute"]').data('ajax-url'),
+            $('select#wizard-home-institute').data('ajax-url'),
             {
                 data: params,
                 success: function (data, status, xhr) {
@@ -48,16 +49,17 @@ STUDIP.CourseWizard = {
             var input = $('<input>').
                 attr('type', 'hidden').
                 attr('name', inputName + '[' + id + ']').
+                attr('id', id).
                 attr('value', '1');
-            var trashLink = $('<a>').
-                attr('href', '').
-                attr('onclick', 'return STUDIP.CourseWizard.removePerson(this)');
-            var trash = $('<img>').
-                attr('src', STUDIP.ASSETS_URL + 'images/icons/blue/trash.svg');
-            trashLink.append(trash);
+            var trash = $('<input>').
+                attr('type', 'image').
+                attr('src', STUDIP.ASSETS_URL + 'images/icons/blue/trash.svg').
+                attr('name', 'remove_' + elClass + '[' + id + ']').
+                attr('value', '1').
+                attr('onclick', "return STUDIP.CourseWizard.removePerson('" + id + "')");
             wrapper.append(input);
             wrapper.append(name);
-            wrapper.append(trashLink);
+            wrapper.append(trash);
             $('#' + elId).append(wrapper);
             // Remove as deputy if set.
             $('input[name="' + otherInput + '[' + id + ']"]').parent().remove();
@@ -71,7 +73,7 @@ STUDIP.CourseWizard = {
      */
     addLecturer: function(id, name)
     {
-        STUDIP.CourseWizard.addPerson(id, name, 'lecturers', 'lecturer', 'lecturers', 'deputies');
+        STUDIP.CourseWizard.addPerson(id, name, 'lecturers', 'lecturer', 'wizard-lecturers', 'deputies');
     },
 
     /**
@@ -81,17 +83,17 @@ STUDIP.CourseWizard = {
      */
     addDeputy: function(id, name)
     {
-        STUDIP.CourseWizard.addPerson(id, name, 'deputies', 'deputy', 'deputies', 'lecturers');
+        STUDIP.CourseWizard.addPerson(id, name, 'deputies', 'deputy', 'wizard-deputies', 'lecturers');
     },
 
     /**
      * Remove a person (lecturer or deputy) from the list.
-     * @param element clicked element (trash icon)
+     * @param id ID of the person to remove
      * @returns {boolean}
      */
-    removePerson: function(element)
+    removePerson: function(id)
     {
-        $(element).parent().remove();
+        $('input#' + id).parent().remove();
         return false;
     },
 

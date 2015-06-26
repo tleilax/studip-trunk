@@ -2,7 +2,7 @@
 <label class="caption">
     <?= _('Typ') ?>
     <span class="required">*</span>
-    <select name="coursetype">
+    <select name="coursetype" id="wizard-coursetype">
         <?php foreach ($types as $class => $subtypes) { ?>
             <optgroup label="<?= htmlReady($class) ?>">
                 <?php foreach ($subtypes as $type) { ?>
@@ -17,7 +17,7 @@
 <label class="caption">
     <?= _('Semester') ?>
     <span class="required">*</span>
-    <select name="start_time">
+    <select name="start_time" id="wizard-start_time" >
         <?php foreach ($semesters as $semester) { ?>
             <option value="<?= $semester->beginn ?>"<?= $semester->beginn == $values['start_time'] ? ' selected="selected"' : '' ?>>
                 <?= htmlReady($semester->name) ?>
@@ -28,16 +28,16 @@
 <label class="caption">
     <?= _('Name') ?>
     <span class="required">*</span>
-    <input type="text" name="name" size="75" maxlength="254" value="<?= $values['name'] ?>"/>
+    <input type="text" name="name" id="wizard-name" size="75" maxlength="254" value="<?= $values['name'] ?>"/>
 </label>
 <label class="caption">
     <?= _('Veranstaltungsnummer') ?>
-    <input type="text" name="number" size="20" maxlength="99" value="<?= $values['number'] ?>"/>
+    <input type="text" name="number" id="wizard-number" size="20" maxlength="99" value="<?= $values['number'] ?>"/>
 </label>
 <label class="caption">
     <?= _('Heimateinrichtung') ?>
     <span class="required">*</span>
-    <select name="institute" onchange="STUDIP.CourseWizard.getLecturerSearch()" data-ajax-url="<?= URLHelper::getLink('dispatch.php/course/wizard/ajax') ?>">
+    <select name="institute" id="wizard-home-institute" onchange="STUDIP.CourseWizard.getLecturerSearch()" data-ajax-url="<?= URLHelper::getLink('dispatch.php/course/wizard/ajax') ?>">
         <?php
             $fak_id = '';
             foreach ($institutes as $inst) :
@@ -58,7 +58,7 @@
 <label class="caption">
     <?= _('Dozent/-innen') ?>
     <span class="required">*</span>
-    <div id="lecturersearch">
+    <div id="wizard-lecturersearch">
         <?= $lsearch ?>
     </div>
 </label>
@@ -67,7 +67,7 @@
     array('name' => 'add_lecturer', 'value' => '1')) ?>
 <?php endif ?>
 <br/>
-<div id="lecturers">
+<div id="wizard-lecturers">
     <?php foreach ($values['lecturers'] as $id => $assigned) : ?>
         <?php if ($user = User::find($id)) : ?>
     <?= $this->render_partial('coursewizard/basicdata/_user',
@@ -78,7 +78,7 @@
 <?php if ($dsearch) : ?>
 <label class="caption">
     <?= _('Vertretungen') ?>
-    <div id="deputysearch">
+    <div id="wizard-deputysearch">
         <?= $dsearch ?>
     </div>
 </label>
@@ -87,7 +87,7 @@
         array('name' => 'add_deputy', 'value' => '1')) ?>
 <?php endif ?>
 <br/>
-<div id="deputies">
+<div id="wizard-deputies">
     <?php foreach ($values['deputies'] as $id => $assigned) : ?>
         <?php if ($user = User::find($id)) : ?>
             <?php if (!in_array($id, array_keys($values['lecturers']))) : ?>

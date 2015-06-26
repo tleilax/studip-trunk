@@ -29,6 +29,8 @@ class StudyAreasWizardStep implements CourseWizardStep
      */
     public function getStepTemplate($values, $stepnumber, $temp_id)
     {
+        // We only need our own stored values here.
+        $values = $values[__CLASS__];
         $tpl = $GLOBALS['template_factory']->open('coursewizard/studyareas/index');
         if ($values['studyareas'])
         {
@@ -83,6 +85,8 @@ class StudyAreasWizardStep implements CourseWizardStep
      */
     public function alterValues($values)
     {
+        // We only need our own stored values here.
+        $values = $values[__CLASS__];
         // A node has been clicked in order to open the subtree.
         if (Request::option('open_node')) {
             $values['open_node'] = Request::get('open_node');
@@ -126,6 +130,8 @@ class StudyAreasWizardStep implements CourseWizardStep
      */
     public function validate($values)
     {
+        // We only need our own stored values here.
+        $values = $values[__CLASS__];
         $ok = true;
         $errors = array();
         if (!$values['studyareas']) {
@@ -148,6 +154,8 @@ class StudyAreasWizardStep implements CourseWizardStep
      */
     public function storeValues($course, $values)
     {
+        // We only need our own stored values here.
+        $values = $values[__CLASS__];
         $course->study_areas = SimpleORMapCollection::createFromArray(
             StudipStudyArea::findMany($values['studyareas']));
         if ($course->store()) {

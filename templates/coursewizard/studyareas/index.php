@@ -9,7 +9,7 @@
                 $assigned ? ' class="hidden-no-js hidden-no-js"' : '' ?>>
             <?= $GLOBALS['UNI_NAME'] ?>
             <ul>
-            <?php foreach ($assigned->required_children as $element) : ?>
+            <?php foreach ($assigned->required_children ?: array() as $element) : ?>
             <?= $this->render_partial('coursewizard/studyareas/_assigned_node',
                     array('element' => $element, 'studyareas' => $values['studyareas'])) ?>
             <?php endforeach ?>

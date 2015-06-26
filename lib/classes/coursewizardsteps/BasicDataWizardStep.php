@@ -29,6 +29,8 @@ class BasicDataWizardStep implements CourseWizardStep
      */
     public function getStepTemplate($values, $stepnumber, $temp_id)
     {
+        // We only need our own stored values here.
+        $values = $values[__CLASS__];
         if ($values['studygroup']) {
             $tpl = $GLOBALS['template_factory']->open('coursewizard/basicdata/index_studygroup');
             $values['lecturers'][$GLOBALS['user']->id] = 1;
@@ -168,6 +170,8 @@ class BasicDataWizardStep implements CourseWizardStep
      */
     public function alterValues($values)
     {
+        // We only need our own stored values here.
+        $values = $values[__CLASS__];
         // Add a lecturer.
         if (Request::submitted('add_lecturer') && Request::option('lecturer_id')) {
             $values['lecturers'][Request::option('lecturer_id')] = true;
@@ -203,6 +207,8 @@ class BasicDataWizardStep implements CourseWizardStep
      */
     public function validate($values)
     {
+        // We only need our own stored values here.
+        $values = $values[__CLASS__];
         $ok = true;
         $errors = array();
         if (!trim($values['name'])) {
@@ -245,6 +251,8 @@ class BasicDataWizardStep implements CourseWizardStep
      */
     public function storeValues($course, $values)
     {
+        // We only need our own stored values here.
+        $values = $values[__CLASS__];
         $course->status = $values['coursetype'];
         $course->start_time = $values['start_time'];
         $course->duration_time = 0;
