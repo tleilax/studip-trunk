@@ -14,8 +14,6 @@
  * @category    Stud.IP
  */
 
-require_once 'CourseWizardStep.php';
-
 class StudyAreasWizardStep implements CourseWizardStep
 {
     /**

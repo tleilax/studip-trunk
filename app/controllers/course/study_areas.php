@@ -19,7 +19,6 @@ require_once 'lib/functions.php';
 require_once 'lib/classes/Seminar.class.php';
 require_once 'lib/webservices/api/studip_lecture_tree.php';
 require_once 'app/controllers/authenticated_controller.php';
-require_once 'lib/classes/coursewizardsteps/CourseWizardStep.php';
 require_once 'lib/classes/coursewizardsteps/StudyAreasWizardStep.php';
 
 class Course_StudyAreasController extends AuthenticatedController
