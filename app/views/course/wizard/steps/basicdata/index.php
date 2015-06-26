@@ -70,7 +70,7 @@
 <div id="wizard-lecturers">
     <?php foreach ($values['lecturers'] as $id => $assigned) : ?>
         <?php if ($user = User::find($id)) : ?>
-    <?= $this->render_partial('coursewizard/basicdata/_user',
+    <?= $this->render_partial('basicdata/_user',
             array('class' => 'lecturer', 'inputname' => 'lecturers', 'user' => $user)) ?>
         <?php endif ?>
     <?php endforeach ?>
@@ -91,7 +91,7 @@
     <?php foreach ($values['deputies'] as $id => $assigned) : ?>
         <?php if ($user = User::find($id)) : ?>
             <?php if (!in_array($id, array_keys($values['lecturers']))) : ?>
-    <?= $this->render_partial('coursewizard/basicdata/_user',
+    <?= $this->render_partial('basicdata/_user',
         array('class' => 'deputy', 'inputname' => 'deputies', 'user' => $user)) ?>
             <?php endif ?>
         <?php endif ?>

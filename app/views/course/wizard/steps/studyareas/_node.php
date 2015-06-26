@@ -20,7 +20,7 @@
     <ul>
         <?php if ($node->hasChildren() && in_array($node->id, $open_nodes) && $node->_parent->id != $values['open_node']) : ?>
             <?php foreach ($node->getChildren() as $child) : ?>
-                <?= $this->render_partial('coursewizard/studyareas/_node',
+                <?= $this->render_partial('studyareas/_node',
                     array('node' => $child, 'stepnumber' => $stepnumber,
                         'temp_id' => $temp_id, 'values' => $values,
                         'open_nodes' => $open_nodes ?: array(),

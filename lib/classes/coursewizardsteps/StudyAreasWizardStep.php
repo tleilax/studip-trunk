@@ -31,7 +31,9 @@ class StudyAreasWizardStep implements CourseWizardStep
     {
         // We only need our own stored values here.
         $values = $values[__CLASS__];
-        $tpl = $GLOBALS['template_factory']->open('coursewizard/studyareas/index');
+        // Load template from step template directory.
+        $factory = new Flexi_TemplateFactory($GLOBALS['STUDIP_BASE_PATH'].'/app/views/course/wizard/steps');
+        $tpl = $factory->open('studyareas/index');
         if ($values['studyareas'])
         {
             $tree = $this->buildPartialSemTree(StudipStudyArea::backwards(StudipStudyArea::findMany($values['studyareas'])), false);

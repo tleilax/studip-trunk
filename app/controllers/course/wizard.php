@@ -68,7 +68,7 @@ class Course_WizardController extends AuthenticatedController
         if ($number == 0) {
             $this->first_step = true;
         }
-        $this->values = $this->getValues(get_class($step));
+        $this->values = $this->getValues();
         if ($this->flash['studygroup']) {
             $this->values['studygroup'] = true;
         }

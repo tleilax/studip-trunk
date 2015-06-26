@@ -8,7 +8,7 @@
     <?php endif ?>
     <ul>
         <?php foreach ($element['children'] as $c) : ?>
-        <?= $this->render_partial('coursewizard/studyareas/_assigned_node', array('element' => $c)) ?>
+        <?= $this->render_partial('studyareas/_assigned_node', array('element' => $c)) ?>
         <?php endforeach ?>
     </ul>
 </li>

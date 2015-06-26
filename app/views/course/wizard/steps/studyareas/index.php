@@ -10,7 +10,7 @@
             <?= $GLOBALS['UNI_NAME'] ?>
             <ul>
             <?php foreach ($assigned->required_children ?: array() as $element) : ?>
-            <?= $this->render_partial('coursewizard/studyareas/_assigned_node',
+            <?= $this->render_partial('studyareas/_assigned_node',
                     array('element' => $element, 'studyareas' => $values['studyareas'])) ?>
             <?php endforeach ?>
             </ul>
@@ -50,7 +50,7 @@
             </label>
             <ul>
             <?php foreach ($tree as $node) : ?>
-            <?= $this->render_partial('coursewizard/studyareas/_node',
+            <?= $this->render_partial('studyareas/_node',
                     array('node' => $node, 'stepnumber' => $stepnumber,
                         'temp_id' => $temp_id, 'values' => $values,
                         'open_nodes' => $open_nodes ?: array(),
