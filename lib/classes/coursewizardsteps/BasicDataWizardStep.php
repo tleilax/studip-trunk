@@ -58,13 +58,21 @@ class BasicDataWizardStep implements CourseWizardStep
         $tpl->set_attribute('types', $typestruct);
         // Select a default type if none is given.
         if (!$values['coursetype']) {
-            $values['coursetype'] = 1;
+            if ($GLOBALS['user']->cfg->MY_COURSES_TYPE_FILTER && Request::isXhr()) {
+                $values['coursetype'] = $GLOBALS['user']->cfg->MY_COURSES_TYPE_FILTER;
+            } else {
+                $values['coursetype'] = 1;
+            }
         }
         $semesters = array();
         $now = mktime();
         // Allow only current or future semesters for selection.
         foreach (Semester::getAll() as $s) {
             if ($s->ende >= $now) {
+                if ($s->id == $GLOBALS['user']->cfg->MY_COURSES_SELECTED_CYCLE &&
+                        !$values['start_time'] && Request::isXhr()) {
+                    $values['start_time'] = $s->beginn;
+                }
                 $semesters[] = $s;
             }
         }
@@ -77,7 +85,11 @@ class BasicDataWizardStep implements CourseWizardStep
         $institutes = Institute::getMyInstitutes();
         $tpl->set_attribute('institutes', $institutes);
         if (!$values['institute']) {
-            $values['institute'] = $institutes[0]['Institut_id'];
+            if ($GLOBALS['user']->cfg->MY_INSTITUTES_DEFAULT && Request::isXhr()) {
+                $values['institute'] = $GLOBALS['user']->cfg->MY_INSTITUTES_DEFAULT;
+            } else {
+                $values['institute'] = $institutes[0]['Institut_id'];
+            }
         }
         // Quicksearch for lecturers.
         // No JS: Keep search value and results for displaying in search select box.
@@ -102,7 +114,17 @@ class BasicDataWizardStep implements CourseWizardStep
             }
             // Add your own default deputies if applicable.
             if ($deputies && Config::get()->DEPUTIES_DEFAULTENTRY_ENABLE) {
-                $values['deputies'] = array_merge($values['deputies'] ?: array(), getDeputies($GLOBALS['user']->id));
+                $values['deputies'] = array_merge($values['deputies'] ?: array(),
+                    array_keys(getDeputies($GLOBALS['user']->id)));
+            }
+        }
+        // Add lecturer from my courses filter.
+        if ($GLOBALS['user']->cfg->ADMIN_COURSES_TEACHERFILTER && !$values['lecturers'] && Request::isXhr()) {
+            $values['lecturers'][$GLOBALS['user']->cfg->ADMIN_COURSES_TEACHERFILTER] = true;
+            // Add this lecturer's default deputies if applicable.
+            if ($deputies && Config::get()->DEPUTIES_DEFAULTENTRY_ENABLE) {
+                $values['deputies'] = array_merge($values['deputies'] ?: array(),
+                    array_keys(getDeputies($GLOBALS['user']->cfg->ADMIN_COURSES_TEACHERFILTER)));
             }
         }
         if (!$values['lecturers']) {
