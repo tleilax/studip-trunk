@@ -106,6 +106,9 @@ class Course_StudyAreasController extends AuthenticatedController
         $method = Request::get('method');
 
         switch ($method) {
+            case 'searchSemTree':
+                $json = $this->step->searchSemTree($parameter[0]);
+                break;
             case 'getSemTreeLevel':
                 $json = $this->step->getSemTreeLevel($parameter[0]);
                 break;
