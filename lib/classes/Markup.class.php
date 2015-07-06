@@ -39,25 +39,30 @@ class Markup
     public static function apply($markup, $text, $trim)
     {
         if (self::isHtml($text)) {
+            $is_fallback = self::isHtmlFallback($text);
             $text = self::purify($text);
-            foreach (\StudipFormat::getStudipMarkups() as $name => $rule) {
-                // filter out all basic Stud.IP markup rules
-                if (is_string($rule['callback']) &&
-                    strpos($rule['callback'], 'StudipFormat::') === 0) {
-                    $markup->removeMarkup($name);
+
+            if (!$is_fallback) {
+                foreach (\StudipFormat::getStudipMarkups() as $name => $rule) {
+                    // filter out all basic Stud.IP markup rules
+                    if (is_string($rule['callback']) &&
+                        strpos($rule['callback'], 'StudipFormat::') === 0) {
+                        $markup->removeMarkup($name);
+                    }
                 }
             }
-            return $markup->format($text);
-        } else if (self::maybeHtml($text)) {
-            $text = self::purify($text);
+
             return $markup->format($text);
         }
 
         return self::markupHtmlReady($markup, $text, $trim);
     }
 
-    // HTML entries must beginn with "<!-- HTML -->".
-    const HTML_MARKER = '<!-- HTML -->';
+    // signature for HTML entries
+    const HTML_MARKER = '<!--HTML-->';
+
+    // regular expression for detecting HTML signature
+    const HTML_MARKER_REGEXP = '/^\s*<!--\s*HTML(.|\s)*?-->/i';
 
     /**
      * Return `true` for HTML code and `false` for plain text.
@@ -73,39 +78,55 @@ class Markup
      */
     public static function isHtml($text)
     {
-        // check if WYSIWYG is enabled in the config
-        if (!\Config::get()->WYSIWYG) {
+        return \Config::get()->WYSIWYG &&
+            (self::hasHtmlMarker($text) || self::isHtmlFallback($text));
+    }
+
+    /**
+     * Return `true` for Stud.IP-HTML and `false` otherwise.
+     *
+     * Stud.IP-HTML is HTML that can contain Stud.IP Markup.
+     *
+     * Stud.IP-HTML must either match Stud.IP 3.2's HTML marker
+     * or begin with '<' and end with '>'. Leading and trailing
+     * whitespace is ignored.
+     *
+     * Everything else is considered not Stud.IP-HTML. In other
+     * words, if it's not Stud.IP-HTML it might be everything
+     * from plain text to binary code. But usually it's either
+     * Stud.IP markup or plain HTML code, then.
+     *
+     * @param string $text  Text that is or isn't Stud.IP-HTML.
+     *
+     * @return boolean  `true` for Stud.IP-HTML
+     */
+    public static function isHtmlFallback($text)
+    {
+        // return false if Stud.IP-HTML is not allowed
+        if (!\Config::get()->WYSIWYG_HTML_HEURISTIC_FALLBACK) {
             return false;
         }
 
-        if (self::hasHtmlMarker($text)) {
+        // it's Stud.IP-HTML if Stud.IP 3.2's HTML marker is detected
+        $trimmed = trim($text);
+        $studip_3_2_Marker = '<!-- HTML: Insert text after this line only. -->';
+        if (MarkupPrivate\String\startsWith($trimmed, $studip_3_2_Marker)) {
             return true;
         }
 
-        return false;
-    }
-
-    public static function maybeHtml($text)
-    {
-        // check if WYSIWYG is enabled in the config
-        if (!\Config::get()->WYSIWYG) {
+        // it's not Stud.IP-HTML if it's plain HTML: plain HTML
+        // might look like Stud.IP-HTML to '< ... >' heuristic
+        if (self::hasHtmlMarker($text)) {
             return false;
         }
 
-        // check if heuristic is enabled in the conifg
-        if (\Config::get()->WYSIWYG_HTML_HEURISTIC_FALLBACK) {
-            $trimmed = trim($text);
-            $oldHeuristic = $trimmed[0] === '<' && substr($trimmed, -1) === '>';
-            $oldMarker = preg_match('/^<!-- HTML: .*? -->/', $text);
-            return $oldHeuristic || $oldMarker;
-        }
-
-        return false;
+        // it's Stud.IP-HTML if it fit's the '< ... >' heuristic
+        return $trimmed[0] === '<' && substr($trimmed, -1) === '>';
     }
 
     public static function hasHtmlMarker($text)
     {
-        return preg_match('/^' . self::HTML_MARKER . '/', $text);
+        return preg_match(self::HTML_MARKER_REGEXP, $text);
     }
 
     /**
@@ -340,15 +361,16 @@ class Markup
         $text, $trim = true, $br = false, $double_encode = true
     ) {
         if (\Config::get()->WYSIWYG) {
-            if (!self::isHtml($text)) {
-                if (self::maybeHtml($text)) {
-                    $text = preg_replace('/^<!-- HTML: .*? -->/', '', $text);
+            if (self::isHtml($text)) {
+                $is_fallback = self::isHtmlFallback($text);
+                $text = self::purify($text);
+
+                if ($is_fallback) {
                     $text = self::markupText(new \StudipCoreFormat(), $text);
-                } else {
-                    $text = self::markupHtmlReady(new \StudipCoreFormat(), $text, $trim);
                 }
+            } else {
+                $text = self::markupHtmlReady(new \StudipCoreFormat(), $text, $trim);
             }
-            $text = self::purify($text);
         }
 
         return self::htmlReady($text, $trim, $br, $double_encode);

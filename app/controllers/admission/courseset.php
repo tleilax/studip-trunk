@@ -212,7 +212,7 @@ class Admission_CoursesetController extends AuthenticatedController {
                     $this->myInstitutes = array();
                     foreach ($institutes as $id) {
                         $this->myInstitutes[$id] = new Institute($id);
-                        $this->selectedInstitutes[$id] = true;
+                        $this->selectedInstitutes[$id] = $this->myInstitutes[$id];
                     }
                 }
                 $selectedCourses = $this->courseset->getCourses();
@@ -597,6 +597,27 @@ class Admission_CoursesetController extends AuthenticatedController {
                   'emailrequest'    => 1
             )
         ));
+    }
+
+    function copy_action($set_id)
+    {
+        $courseset = new CourseSet($set_id);
+        $cloned_courseset = clone $courseset;
+        $cloned_courseset->setName(_("Kopie von:") . ' ' . $cloned_courseset->getName());
+        $cloned_courseset->store();
+        foreach ($cloned_courseset->getAdmissionRules() as $id => $rule) {
+            if ($rule instanceOf ParticipantRestrictedAdmission) {
+                if ($rule->getDistributionTime() && $rule->getDistributionTime() < time()) {
+                    $rule->setDistributionTime(strtotime('+1 month 23:59'));
+                    $rule->store();
+                    $cloned_courseset->setAlgorithmRun(false);
+                    PageLayout::postMessage(MessageBox::info(sprintf(_("Bitte passen Sie das Datum der automatischen Platzverteilung an, es wurde automatisch auf %s festgelegt!"), strftime('%x %X', $rule->getDistributiontime()))));
+                }
+            } else if ($rule->getEndTime() && $rule->getEndTime() < time()) {
+                PageLayout::postMessage(MessageBox::info(sprintf(_("Der Gültigkeitszeitraum der Regel %s endet in der Vergangenheit!"), $rule->getName())));
+            }
+        }
+        $this->redirect($this->url_for('/configure/' . $cloned_courseset->getId()));
     }
 
     /**
