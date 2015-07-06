@@ -11,10 +11,11 @@
             <option value="0"><?= _('kopieren') ?></option>
         </select>
     </label>
-    <?php foreach ($users as $u) : ?>
-    <input type="hidden" name="users[]" value="<?= htmlReady($u) ?>"/>
-    <?php endforeach ?>
+        <?php foreach ($users as $u) : ?>
+            <input type="hidden" name="users[]" value="<?= htmlReady($u) ?>"/>
+        <?php endforeach ?>
     <?= CSRFProtection::tokenTag() ?>
+    <br/><br/>
     <div data-dialog-button>
         <?= Studip\Button::createAccept(_('Abschicken'), 'submit') ?>
         <?= Studip\Button::createCancel(_('Abbrechen'), 'cancel', array('data-dialog' => 'close')) ?>

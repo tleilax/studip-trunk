@@ -108,7 +108,7 @@
                 <td colspan="5">
                     <select name="action_awaiting" id="action_awaiting" aria-label="<?= _('Aktion ausführen') ?>">
                         <option value="">- <?= _('Aktion wählen') ?></option>
-                        <option value="upgrade_user"><?= sprintf(_('Zu %s hochstufen'),
+                        <option value="upgrade_autor"><?= sprintf(_('Zu %s hochstufen'),
                                 htmlReady($status_groups['autor'])) ?></option>
                         <option value="upgrade_user"><?= sprintf(_('Zu %s hochstufen'),
                                 htmlReady($status_groups['user'])) ?></option>

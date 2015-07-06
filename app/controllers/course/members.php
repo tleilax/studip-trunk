@@ -212,7 +212,7 @@ class Course_MembersController extends AuthenticatedController
 
         // Check for waitlist availability (influences available actions)
         // People can be moved to waitlist if waitlist available and no automatic moving up.
-        if (!$sem->__get('admission_disable_waitlist') && $sem->__get('admission_disable_waitlist_move')) {
+        if (!$sem->admission_disable_waitlist && $sem->admission_disable_waitlist_move) {
             $this->to_waitlist_actions = true;
         }
     }
@@ -375,7 +375,7 @@ class Course_MembersController extends AuthenticatedController
         }
 
         // load MultiPersonSearch object
-        $mp = MultiPersonSearch::load("add_waitlist" . $this->course_id);
+        $mp = MultiPersonSearch::load('add_waitlist' . $this->course_id);
         $sem = Seminar::GetInstance($this->course_id);
 
         $countAdded = 0;
@@ -388,18 +388,15 @@ class Course_MembersController extends AuthenticatedController
             }
         }
 
-        if ($countAdded == 1) {
-            $text = _("Es wurde ein/e neue/r Person auf der Warteliste hinzugefügt.");
-        } else {
-            $text = sprintf(_("Es wurden %s neue Personen auf der Warteliste hinzugefügt."), $countAdded);
+        if ($countAdded) {
+            $text = sprintf(ngettext('Es wurde %u neue Person auf der Warteliste hinzugefügt.',
+                'Es wurden %u neue Personen auf der Warteliste hinzugefügt.', 1), $countAdded);
+            PageLayout::postMessage(MessageBox::success($text));
         }
-        PageLayout::postMessage(MessageBox::success($text));
         if ($countFailed) {
-            if ($countFailed == 1) {
-                $text = _("Eine Person konnte nicht auf die Warteliste eingetragen werden.");
-            } else {
-                $text = sprintf(_("%s neue Personen konnten nicht auf die Warteliste eingetragen werden."), $countFailed);
-            }
+            $text = sprintf(ngettext('%u Person konnte nicht auf die Warteliste eingetragen werden.',
+                '%u neue Personen konnten nicht auf die Warteliste eingetragen werden.', 1),
+                $countFailed);
             PageLayout::postMessage(MessageBox::error($text));
         }
         $this->redirect('course/members/index');
@@ -932,7 +929,7 @@ class Course_MembersController extends AuthenticatedController
                 $target = 'course/members/cancel_subscription/collection/user';
                 break;
             case 'to_course':
-                $this->redirect('course/members/send_to_course');
+                $this->redirect('course/members/select_course');
                 return;
                 break;
             case 'message':
@@ -965,7 +962,7 @@ class Course_MembersController extends AuthenticatedController
             case '':
                 $target = 'course/members/index';
                 break;
-            case 'upgrade':
+            case 'upgrade_autor':
                 $target = 'course/members/insert_admission/awaiting/collection';
                 break;
             case 'upgrade_user':
@@ -1233,30 +1230,27 @@ class Course_MembersController extends AuthenticatedController
     {
         // Security Check
         if (!$this->is_tutor) {
-            throw new AccessDeniedException('Sie haben keine ausreichende Berechtigung,
-                um auf diesen Teil des Systems zuzugreifen');
+            throw new AccessDeniedException('Sie haben keine ausreichende Berechtigung, '.
+                'um auf diesen Teil des Systems zuzugreifen');
         }
 
         $users = array();
         if (!empty($this->flash['users'])) {
-            foreach ($this->flash['users'] as $user => $val) {
-                if ($val) {
-                    $users[] = $user;
-                }
-            }
+            $users = array_keys(array_filter($this->flash['users']));
         }
 
+        $msg = array('success' => array(), 'errors' => array());
         if (!empty($users)) {
             $msg = $this->members->moveToWaitlist($users, $which_end);
-            if (sizeof($msg['success'])) {
+            if (count($msg['success'])) {
                 PageLayout::postMessage(MessageBox::success(sprintf(
                     _('%s Person(en) wurden auf die Warteliste verschoben.'),
-                    sizeof($msg['success'])), sizeof($msg['success']) <= 5 ? $msg['success'] : array()));
+                    count($msg['success'])), count($msg['success']) <= 5 ? $msg['success'] : array()));
             }
-            if (sizeof($msg['errors'])) {
+            if (count($msg['errors'])) {
                 PageLayout::postMessage(MessageBox::success(sprintf(
                     _('%s Person(en) konnten nicht auf die Warteliste verschoben werden.'),
-                    sizeof($msg['errors'])), sizeof($msg['error']) <= 5 ? $msg['error'] : array()));
+                    count($msg['errors'])), count($msg['error']) <= 5 ? $msg['error'] : array()));
             }
         } else {
             PageLayout::postMessage(MessageBox::error(
@@ -1498,8 +1492,8 @@ class Course_MembersController extends AuthenticatedController
                 $widget->addElement($element);
 
                 // add "add person to waitlist" to sidebar
-                if ($sem->isAdmissionEnabled() && !$sem->__get('admission_disable_waitlist') &&
-                    (!$sem->getFreeSeats() || $sem->__get('admission_disable_waitlist_move')))
+                if ($sem->isAdmissionEnabled() && !$sem->admission_disable_waitlist &&
+                    (!$sem->getFreeSeats() || $sem->admission_disable_waitlist_move))
                 {
                     $ignore = array_merge(
                         $filtered_members['dozent']->pluck('user_id'),
@@ -1508,10 +1502,10 @@ class Course_MembersController extends AuthenticatedController
                         $filtered_members['user']->pluck('user_id'),
                         $filtered_members['awaiting']->pluck('user_id')
                     );
-                    $mp = MultiPersonSearch::get("add_waitlist" . $this->course_id)
+                    $mp = MultiPersonSearch::get('add_waitlist' . $this->course_id)
                         ->setLinkText(_('Neue/n Person auf Warteliste eintragen'))
                         ->setDefaultSelectedUser($ignore)
-                        ->setLinkIconPath("")
+                        ->setLinkIconPath('')
                         ->setTitle(_('Neue/n Person auf Warteliste eintragen'))
                         ->setExecuteURL(URLHelper::getLink('dispatch.php/course/members/execute_multipersonsearch_waitlist'))
                         ->setSearchObject($searchType)

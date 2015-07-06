@@ -150,19 +150,19 @@
                     <select name="action_autor" id="action_autor" aria-label="<?= _('Aktion ausführen') ?>">
                         <option value="">- <?= _('Aktion wählen') ?></option>
                         <? if($is_dozent) : ?>
-                            <option value="upgrade"><?= sprintf(_('Zu %s hochstufen'),
-                                htmlReady($status_groups['tutor'])) ?></option>
+                        <option value="upgrade"><?= sprintf(_('Zu %s hochstufen'),
+                            htmlReady($status_groups['tutor'])) ?></option>
                         <? endif ?>
                         <option value="downgrade"><?= sprintf(_('Zu %s herunterstufen'),
                                 htmlReady($status_groups['user'])) ?></option>
-                        <?php if ($to_waitlist_actions) : ?>
-                        <option value="to_admission_first"><?= _('An den Anfang der Warteliste verschieben') ?></option>
-                        <option value="to_admission_last"><?= _('Ans Ende der Warteliste verschieben') ?></option>
-                        <?php endif ?>
+                            <?php if ($to_waitlist_actions) : ?>
+                            <option value="to_admission_first"><?= _('An den Anfang der Warteliste verschieben') ?></option>
+                            <option value="to_admission_last"><?= _('Ans Ende der Warteliste verschieben') ?></option>
+                            <?php endif ?>
                         <option value="remove"><?= _('Austragen') ?></option>
-                        <? if($is_dozent) : ?>
+                            <?php if($is_dozent) : ?>
                             <option value="to_course"><?= _('In andere Veranstaltung verschieben/kopieren') ?></option>
-                        <? endif ?>
+                            <?php endif ?>
                         <option value="message"><?=_('Nachricht senden')?></option>
                     </select>
                     <?= Button::create(_('Ausführen'), 'submit_autor') ?>

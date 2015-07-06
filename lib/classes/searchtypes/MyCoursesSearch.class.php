@@ -72,7 +72,8 @@ class MyCoursesSearch extends StandardSearch
      * @param offset int: return results starting from this row (default: 0)
      * @return array: array(array(), ...)
      */
-    public function getResults($input, $contextual_data = array(), $limit = PHP_INT_MAX, $offset = 0) {
+    public function getResults($input, $contextual_data = array(), $limit = PHP_INT_MAX, $offset = 0)
+    {
         $db = DBManager::get();
         $sql = $this->getSQL();
         if ($offset || $limit != PHP_INT_MAX) {
@@ -107,9 +108,9 @@ class MyCoursesSearch extends StandardSearch
     private function getSQL()
     {
         $semnumber = Config::get()->IMPORTANT_SEMNUMBER;
-        $name = $semnumber ?
-            "CONCAT(TRIM(CONCAT_WS(' ', s.`VeranstaltungsNummer`, s.`Name`)), ' (', sem.`name`, ')')" :
-            "CONCAT(s.`Name`, ' (', sem.`name`, ')')";
+        $name = $semnumber
+            ? "CONCAT(TRIM(CONCAT_WS(' ', s.`VeranstaltungsNummer`, s.`Name`)), ' (', sem.`name`, ')')"
+            : "CONCAT(s.`Name`, ' (', sem.`name`, ')')";
         switch ($this->perm_level) {
             // Roots see everything, everywhere.
             case 'root':
@@ -191,6 +192,6 @@ class MyCoursesSearch extends StandardSearch
      */
     public function includePath()
     {
-        return __file__;
+        return __FILE__;
     }
 }
