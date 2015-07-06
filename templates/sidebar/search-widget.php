@@ -1,3 +1,8 @@
+<? if ($reset_search): ?>
+<div style="text-align: right;">
+    <?= $reset_search ?>
+</div>
+<? endif; ?>
 <form action="<?= $url ?>" method="<?= $method ?>" <? if (isset($id)) printf('id="%s"', htmlReady($id)); ?> class="sidebar-search">
 <? foreach ($url_params as $key => $value): ?>
     <?=addHiddenFields($key,$value)?>
@@ -14,8 +19,7 @@
             <input type="text" id="needle-<?= $hash ?>"
                    name="<?= htmlReady($needle['name']) ?>"
                    value="<?= htmlReady($needle['value']) ?>"
-                   <? if ($needle['placeholder']) printf('placeholder="%s"', htmlReady($needle['label'])); ?>
-                   <? if (count($needles) === 1) echo 'required'; ?>>
+                   <? if ($needle['placeholder']) printf('placeholder="%s"', htmlReady($needle['label'])); ?>>
         <? endif; ?>
             <input type="submit" value="<?= _('Suchen') ?>">
         </li>

@@ -1,14 +1,15 @@
 <form action="<?= $url ?>" method="post">
     <select id="course_type" name="course_type" style="width: 100%">
         <option value="all" <?= ($selected == 'all' ? 'selected="selected"' : '') ?>><?= _('Alle') ?></option>
-        <? foreach ($types as $cat => $ids) : ?>
-            <optgroup label="<?= htmlReady($cat)?>">
-                <? foreach ($ids as $id => $result) : ?>
-                    <option value="<?=$id?>" <?= ($selected == $id ? 'selected="selected"' : '')?>>
-                        <?= htmlReady($result['name'])?> (<?= htmlReady($result['amount'])?>)
-                    </option>
-            <? endforeach ?>
-            </optgroup>
+        <? foreach ($GLOBALS['SEM_CLASS'] as $class_id => $class) : ?>
+            <? if (!$class['studygroup_mode']) : ?>
+                <option style="font-weight:bold" value="<?=$class_id?>" <?= ($selected == $class_id ? 'selected="selected"' : '')?>><?= htmlReady($class['name'])?></option>
+                    <? foreach ($class->getSemTypes() as $id => $result) : ?>
+                        <option value="<?=$class_id . '_' . $id?>" <?= ($selected == $class_id . '_' . $id ? 'selected="selected"' : '')?>>
+                            &nbsp;&nbsp;<?= htmlReady($result['name'])?>
+                        </option>
+                <? endforeach ?>
+            <? endif ?>
         <? endforeach ?>
     </select>
     <script>

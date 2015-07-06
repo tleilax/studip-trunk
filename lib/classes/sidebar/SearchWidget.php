@@ -84,9 +84,9 @@ class SearchWidget extends SidebarWidget
      *                             function itself that's executed when an
      *                             entry of the found elements is selected
      */
-    public function addNeedle($label, $name, $placeholder = false, SearchType $quick_search = null, $js_func = null)
+    public function addNeedle($label, $name, $placeholder = false, SearchType $quick_search = null, $js_func = null, $value = null)
     {
-        $value = Request::get($name);
+        $value = $value ?: Request::get($name);
         $this->needles[] = compact(words('label name placeholder value quick_search js_func'));
     }
 
@@ -116,7 +116,7 @@ class SearchWidget extends SidebarWidget
 
     /**
      * Renders the widget.
-     * 
+     *
      * @param Array $variables Unused variables parameter
      * @return String containing the html output of the widget
      */
@@ -148,6 +148,14 @@ class SearchWidget extends SidebarWidget
             }
         }
 
+        if ($this->hasData()) {
+            $reset_link = sprintf('<a href="%s">%s %s</a>',
+                                  URLHelper::getLink($this->template_variables['url'], array('reset-search' => 1)),
+                                  Assets::img('icons/blue/decline/search.svg', array('class' => 'text-top')),
+                                  _('Zurücksetzen'));
+            $this->template_variables['reset_search'] = $reset_link;
+        }
+
         $this->template_variables['needles'] = $this->needles;
         $this->template_variables['filters'] = $this->filters;
 
@@ -171,7 +179,7 @@ class SearchWidget extends SidebarWidget
         }
 
         foreach ($this->needles as $needle) {
-            if (Request::get($needle['name'])) {
+            if ($needle['value']) {
                 return true;
             }
         }

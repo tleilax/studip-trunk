@@ -23,7 +23,7 @@ class CoreAdmin implements StudipModule {
 
         $sem_create_perm = in_array(get_config('SEM_CREATE_PERM'), array('root','admin','dozent')) ? get_config('SEM_CREATE_PERM') : 'dozent';
 
-        if ($GLOBALS['perm']->have_studip_perm('tutor', $course_id) && !$GLOBALS['perm']->have_perm('admin')) {
+        if ($GLOBALS['perm']->have_studip_perm('tutor', $course_id)) {
             $navigation = new Navigation(_('Verwaltung'));
             $navigation->setImage('icons/16/white/admin.png');
             $navigation->setActiveImage('icons/16/black/admin.png');
@@ -75,21 +75,24 @@ class CoreAdmin implements StudipModule {
                         $main->addSubNavigation('archive', $item);
                     }
 
-                    if (get_config('ALLOW_DOZENT_VISIBILITY')) {
-                        $item = new Navigation(_('Sichtbarkeit ändern'), 'admin_visibility.php');
-                        $item->setImage('icons/16/black/visibility-invisible.png');
+                    if (get_config('ALLOW_DOZENT_VISIBILITY') && !LockRules::Check($course_id, 'seminar_visibility')) {
+                        $is_visible = Course::findCurrent()->visible;
+                        $item = new Navigation(_('Sichtbarkeit ändern') . ' (' .  ($is_visible ? _('sichtbar') : _('unsichtbar')) . ')', 'dispatch.php/course/management/change_visibility');
+                        $item->setImage('icons/16/black/visibility-' . ($is_visible ? 'visible' : 'invisible' ). '.png');
                         $main->addSubNavigation('visibility', $item);
                     }
                 }
 
                 // show entry for simulated participant view
-                $item = new Navigation('Studierendenansicht simulieren', 'dispatch.php/course/change_view?cid='.Request::option('cid'));
-                $item->setDescription(_('Hier können Sie sich die Veranstaltung so ansehen, wie sie für Ihre TeilnehmerInnen aussieht.'));
-                $item->setImage('icons/16/black/visibility-invisible.png');
-                $main->addSubNavigation('change_view', $item);
+                if (in_array($GLOBALS['perm']->get_studip_perm($course_id), words('tutor dozent'))) {
+                    $item = new Navigation('Studierendenansicht simulieren', 'dispatch.php/course/change_view?cid='.Request::option('cid'));
+                    $item->setDescription(_('Hier können Sie sich die Veranstaltung so ansehen, wie sie für Ihre TeilnehmerInnen aussieht.'));
+                    $item->setImage('icons/16/black/visibility-invisible.png');
+                    $main->addSubNavigation('change_view', $item);
+                }
             }  // endif modules only seminars
 
-            if ($GLOBALS['perm']->have_studip_perm('tutor', $course_id) && !$GLOBALS['perm']->have_perm('admin')) {
+            if ($GLOBALS['perm']->have_studip_perm('tutor', $course_id)) {
                 if (get_config('VOTE_ENABLE')) {
                     $item = new Navigation(_('Umfragen und Tests'), 'admin_vote.php?view=vote_sem');
                     $item->setDescription(_('Erstellen und bearbeiten Sie einfache Umfragen und Tests.'));
@@ -112,9 +115,9 @@ class CoreAdmin implements StudipModule {
         return null;
     }
 
-    /** 
+    /**
      * @see StudipModule::getMetadata()
-     */ 
+     */
     function getMetadata()
     {
         return array();

@@ -12,7 +12,7 @@ if ($rule->getStartTime() && $rule->getEndTime()) {
     <?= _('Folgende Bedingung muss zur Anmeldung erfüllt sein:') ?>
     <br/>
     <div id="conditions">
-        <?php 
+        <?php
         $conditions = $rule->getConditions();
         $condition = reset($conditions);
         ?>

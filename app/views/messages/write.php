@@ -22,9 +22,9 @@
         </ul>
         <?= QuickSearch::get("user_id", new StandardSearch("user_id"))
             ->fireJSFunctionOnSelect("STUDIP.Messages.add_adressee")
-            ->render() ?>
-
-        <?
+            ->withButton()
+            ->render();
+        
         $search_obj = new SQLSearch("SELECT auth_user_md5.user_id, {$GLOBALS['_fullname_sql']['full_rev']} as fullname, username, perms "
             . "FROM auth_user_md5 "
             . "LEFT JOIN user_info ON (auth_user_md5.user_id = user_info.user_id) "
@@ -63,7 +63,7 @@
     <div>
         <label>
             <h4><?= _("Nachricht") ?></h4>
-            <textarea style="width: 100%; height: 200px;" name="message_body" class="add_toolbar" data-secure><?= htmlReady($default_message['message'],false) ?></textarea>
+            <textarea style="width: 100%; height: 200px;" name="message_body" class="add_toolbar wysiwyg" data-secure><?= wysiwygReady($default_message['message'],false) ?></textarea>
         </label>
     </div>
     <div>
@@ -91,6 +91,7 @@
                     <strong><?= _("Optionen") ?></strong>
                 </a>
             </li>
+            <? if ($previewActivated) : ?>
             <li style="display: inline-block; min-width: 70px;">
                 <a href="" onClick="STUDIP.Messages.toggleSetting('preview'); STUDIP.Messages.previewComposedMessage(); return false;">
                     <?= Assets::img("icons/40/blue/visibility-visible") ?>
@@ -98,6 +99,7 @@
                     <strong><?= _("Vorschau") ?></strong>
                 </a>
             </li>
+            <? endif; ?>
         </ul>
     </div>
 

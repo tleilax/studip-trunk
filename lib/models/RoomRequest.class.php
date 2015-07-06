@@ -38,6 +38,22 @@ class RoomRequest extends SimpleORMap
     protected static function configure($config = array())
     {
         $config['db_table'] = 'resources_requests';
+        $config['belongs_to']['user'] = array(
+            'class_name'  => 'User',
+            'foreign_key' => 'user_id'
+        );
+        $config['belongs_to']['course'] = array(
+            'class_name'  => 'Course',
+            'foreign_key' => 'seminar_id'
+        );
+        $config['belongs_to']['cycle'] = array(
+            'class_name'  => 'SeminarCycleDate',
+            'foreign_key' => 'metadate_id'
+        );
+        $config['belongs_to']['date'] = array(
+            'class_name'  => 'CourseDate',
+            'foreign_key' => 'termin_id'
+        );
         parent::configure($config);
     }
 
@@ -454,6 +470,7 @@ class RoomRequest extends SimpleORMap
             if ($properties_stored || $this->isDirty()) {
                 $this->last_modified_by = $GLOBALS['user']->id;
             }
+            $is_new = $this->isNew();
             $stored = parent::store();
             // LOGGING
             $props="";
@@ -463,18 +480,20 @@ class RoomRequest extends SimpleORMap
             if (!$props) {
                 $props="--";
             }
-            if ($this->isNew()) {
+            if ($is_new) {
                 log_event("RES_REQUEST_NEW",$this->seminar_id,$this->resource_id,"Termin: $this->termin_id, Metadate: $this->metadate_id, Properties: $props, Kommentar: $this->comment",$query);
             } else {
                 if($properties_changed && !$stored) {
                     $this->triggerChdate();
                 }
-                if ($this->closed==1 || $this->closed==2) {
-                    log_event("RES_REQUEST_RESOLVE",$this->seminar_id,$this->resource_id,"Termin: {$this->termin_id}, Metadate: $this->metadate_id, Properties: $props, Status: ".$this->closed,$query);
-                } else if ($this->closed==3) {
-                    log_event("RES_REQUEST_DENY",$this->seminar_id,$this->resource_id,"Termin: {$this->termin_id}, Metadate: $this->metadate_id, Properties: $props, Status: ".$this->closed,$query);
-                } else {
-                    log_event("RES_REQUEST_UPDATE",$this->seminar_id,$this->resource_id,"Termin: {$this->termin_id}, Metadate: $this->metadate_id, Properties: $props, Status: ".$this->closed,$query);
+                if ($stored) {
+                    if ($this->closed==1 || $this->closed==2) {
+                        log_event("RES_REQUEST_RESOLVE",$this->seminar_id,$this->resource_id,"Termin: {$this->termin_id}, Metadate: $this->metadate_id, Properties: $props, Status: ".$this->closed,$query);
+                    } else if ($this->closed==3) {
+                        log_event("RES_REQUEST_DENY",$this->seminar_id,$this->resource_id,"Termin: {$this->termin_id}, Metadate: $this->metadate_id, Properties: $props, Status: ".$this->closed,$query);
+                    } else {
+                        log_event("RES_REQUEST_UPDATE",$this->seminar_id,$this->resource_id,"Termin: {$this->termin_id}, Metadate: $this->metadate_id, Properties: $props, Status: ".$this->closed,$query);
+                    }
                 }
             }
         }
@@ -630,6 +649,23 @@ class RoomRequest extends SimpleORMap
         $st = $db->prepare($sql);
         $st->execute(array($this->request_id, $user_id));
         return $st->rowCount();
+    }
+
+    function getAffectedDates()
+    {
+        $dates = array();
+        switch ($this->getType()) {
+        case 'date':
+            $dates[] = $this->date;
+            break;
+        case 'cycle':
+            $dates = $this->cycle->dates->getArrayCopy();
+            break;
+        case 'course':
+            $dates = $this->course->dates->getArrayCopy();
+            break;
+        }
+        return $dates;
     }
 }
 

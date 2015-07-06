@@ -11,7 +11,7 @@
                     <input type="text" name="author" style="width: 99%" placeholder="<?= _('Ihr Name') ?>" required tabindex="1"><br>
                     <br>
                     <? endif ?>
-                    <input type="text" name="name" style="width: 99%" value="<?= $this->flash['new_entry_title'] ?>"
+                    <input type="text" name="name" style="width: 99%" value="<?= htmlReady($this->flash['new_entry_title']) ?>"
                         <?= $constraint['depth'] == 1 ? 'required' : '' ?> placeholder="<?= _('Titel') ?>" tabindex="2">
                     <br>
                     <br>
@@ -25,9 +25,9 @@
             </div>
 
             <div class="postbody">
-                <textarea class="add_toolbar" data-textarea="new_entry" name="content" required tabindex="3"
+                <textarea class="add_toolbar wysiwyg" data-textarea="new_entry" name="content" required tabindex="3"
                     placeholder="<?= _('Schreiben Sie hier Ihren Beitrag. Hilfe zu Formatierungen'
-                        . ' finden Sie rechts neben diesem Textfeld.') ?>"><?= $this->flash['new_entry_content'] ?></textarea>
+                        . ' finden Sie rechts neben diesem Textfeld.') ?>"><?= wysiwygReady($this->flash['new_entry_content']) ?></textarea>
             </div>
 
             <dl class="postprofile">
@@ -43,8 +43,10 @@
                     <?= Studip\LinkButton::createCancel(_('Abbrechen'), '', array(
                         'onClick' => "return STUDIP.Forum.cancelNewEntry();",
                         'tabindex' => '4')) ?>
-
-                    <?= Studip\LinkButton::create(_('Vorschau'), "javascript:STUDIP.Forum.preview('new_entry', 'new_entry_preview');", array('tabindex' => '5', 'class' => 'js')) ?>
+                    
+                    <? if ($previewActivated) : ?>
+                        <?= Studip\LinkButton::create(_('Vorschau'), "javascript:STUDIP.Forum.preview('new_entry', 'new_entry_preview');", array('tabindex' => '5', 'class' => 'js')) ?>
+                    <? endif; ?>
                     <? if (Config::get()->FORUM_ANONYMOUS_POSTINGS): ?>
                         <div style="float: left; margin-top: 14px; margin-left: 14px;">    
                             <label><?= _('Anonym') ?>
@@ -55,9 +57,11 @@
                 </div>
             </div>
         </div>
-
-        <?= $this->render_partial('index/_preview', array('preview_id' => 'new_entry_preview')) ?>
-
+        
+        <? if ($previewActivated) : ?> 
+            <?= $this->render_partial('index/_preview', array('preview_id' => 'new_entry_preview')) ?>
+        <? endif; ?>
+        
         <input type="hidden" name="parent" value="<?= $topic_id ?>">
         <input type="text" name="nixda" style="display: none;">
     </form>

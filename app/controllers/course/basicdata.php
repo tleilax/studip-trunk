@@ -43,24 +43,7 @@ class Course_BasicdataController extends AuthenticatedController
 
         $this->course_id = Request::option('cid', $course_id);
 
-        if ($perm->have_perm('admin')) {
-            //Navigation im Admin-Bereich:
-            Navigation::activateItem('/admin/course/details');
-        } else {
-            //Navigation in der Veranstaltung:
-            Navigation::activateItem('/course/admin/details');
-        }
-
-        //Auswähler für Admin-Bereich:
-        if (!$this->course_id) {
-            PageLayout::setTitle(_("Verwaltung der Grunddaten"));
-            $GLOBALS['view_mode'] = "sem";
-
-            require_once 'lib/admin_search.inc.php';
-
-            include 'lib/include/admin_search_form.inc.php';  // will not return
-            die(); //must not return
-        }
+        Navigation::activateItem('/course/admin/details');
 
         //Berechtigungscheck:
         if (!$perm->have_studip_perm("tutor",$this->course_id)) {
@@ -354,17 +337,14 @@ class Course_BasicdataController extends AuthenticatedController
         $sidebar->addWidget($widget);
         // Entry list for admin upwards.
         if ($perm->have_studip_perm("admin",$this->course_id)) {
-            $adminList = AdminList::getInstance()->getSelectTemplate($this->course_id);
-            if ($adminList) {
-                $list = new SelectorWidget();
-                $list->setUrl("?#admin_top_links");
-                $list->setSelectParameterName("cid");
-                foreach ($adminList->adminList as $seminar) {
-                    $list->addElement(new SelectElement($seminar['Seminar_id'], $seminar['Name']), 'select-' . $seminar['Seminar_id']);
-                }
-                $list->setSelection($adminList->course_id);
-                $sidebar->addWidget($list);
+            $list = new SelectorWidget();
+            $list->setUrl("?#admin_top_links");
+            $list->setSelectParameterName("cid");
+            foreach (AdminCourseFilter::get()->getCourses(false) as $seminar) {
+                $list->addElement(new SelectElement($seminar['Seminar_id'], $seminar['Name']), 'select-' . $seminar['Seminar_id']);
             }
+            $list->setSelection($this->course_id);
+            $sidebar->addWidget($list);
         }
     }
 
@@ -726,5 +706,8 @@ class Course_BasicdataController extends AuthenticatedController
         $this->flash['open'] = "bd_personal";
         $this->redirect($this->url_for('course/basicdata/view/'.$course_id));
     }
+
+
+
 
 }

@@ -11,9 +11,9 @@
         <div>
             <b><?= _('Veranstaltung') ?>:</b>
             <? if ($GLOBALS['perm']->have_studip_perm('user', $event->range_id)) : ?>
-            <a href="<?= URLHelper::getLink('dispatch.php/course/details/?cid=' . $event->range_id) ?>">
+            <a href="<?= URLHelper::getLink('dispatch.php/course/details/', array('cid' => $event->range_id), true) ?>">
             <? else : ?>
-            <a href="<?= URLHelper::getLink('seminar_main.php?auswahl=' . $event->range_id) ?>">
+            <a href="<?= URLHelper::getLink('dispatch.php/course/details/', array('sem_id' => $event->range_id), true) ?>">
             <? endif; ?>
                 <?= htmlReady($event->course->getFullname()) ?>
             </a>
@@ -90,12 +90,32 @@
                 <? endif; ?>
             <? endif; ?>
         <? else : ?>
+            <? // durchführende Dozenten ?>
+            <? $related_persons = $event->dozenten; ?>
+            <? if (sizeof($related_persons)) : ?>
+            <div>
+                <b><?= ngettext('Durchführender Dozent', 'Durchführende Dozenten', sizeof($related_persons)) ?>:</b>
+                <ul class="list-unstyled">
+                <? foreach ($related_persons as $related_person) : ?>
+                    <li>
+                        <?= ObjectdisplayHelper::link($related_person) ?>
+                    </li>
+                <? endforeach; ?>
+                </ul>
+            </div>
+            <? endif; ?>
             <? // related groups ?>
             <? $related_groups = $event->getRelatedGroups(); ?>
             <? if (sizeof($related_groups)) : ?>
             <div>
                 <b><?= _('Betroffene Gruppen') ?>:</b>
-                <?= htmlReady(implode(', ', $related_groups->pluck('name'))) ?>
+                <ul class="list-unstyled">
+                <? foreach ($related_groups as $group) : ?>
+                    <li>
+                        <?= htmlReady($group->name) ?>
+                    </li>
+                <? endforeach; ?>
+                </ul>
             </div>
             <? endif; ?>
         <? endif; ?>

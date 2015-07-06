@@ -17,22 +17,22 @@ class CourseCancelledEvent extends CourseEvent
     
     protected static function configure($config= array())
     {
-        $config['db_table'] = 'ex_termine';
         $config['alias_fields']['ex_description'] = 'content';
         parent::configure($config);
+        self::$config['CourseCancelledEvent']['db_table'] = 'ex_termine';
     }
     
     /**
-     * Returns all CalendarEvents in the given time range for the given range_id.
+     * Returns all CourseCancelledEvents in the given time range for the given range_id.
      * 
      * @param string $user_id Id of Stud.IP object from type user, course, inst
      * @param DateTime $start The start date time.
      * @param DateTime $end The end date time.
-     * @return SimpleORMapCollection Collection of found CalendarEvents.
+     * @return SimpleORMapCollection Collection of found CourseCancelledEvents.
      */
     public static function getEventsByInterval($user_id, DateTime $start, dateTime $end)
     {
-        $stmt = DBManager::get()->prepare('SELECT * FROM seminar_user '
+        $stmt = DBManager::get()->prepare('SELECT ex_termine.* FROM seminar_user '
                 . 'INNER JOIN ex_termine ON seminar_id = range_id '
                 . 'WHERE ex_termine.content <> \'\' AND user_id = :user_id '
                 . 'AND date BETWEEN :start AND :end '
@@ -52,7 +52,7 @@ class CourseCancelledEvent extends CourseEvent
             $event = new CourseCancelledEvent();
             $event->setData($row);
             $event->setNew(false);
-            // related persons (dozenten)
+            // related persons (dozenten) or groups
             if (self::checkRelated($event, $user_id)) {
                 $event_collection[] = $event;
             }
@@ -91,7 +91,7 @@ class CourseCancelledEvent extends CourseEvent
         return 255;
     }
     
-    function getDescription()
+    public function getDescription()
     {
         if ($this->havePermission(Event::PERMISSION_READABLE)) {
             return $this->ex_description;

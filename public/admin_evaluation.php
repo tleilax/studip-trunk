@@ -49,9 +49,8 @@ $perm->check ("autor");
 $list = Request::option('list');
 $view = Request::option('view');
 
-if (Request::get('admin_inst_id')) {
-    $view = 'eval_inst';
-}
+
+
 
 require_once 'lib/functions.php';
 include_once 'lib/seminar_open.php';
@@ -64,18 +63,12 @@ if ($GLOBALS['SessSemName'][1]) {
 PageLayout::setTitle($title);
 
 require_once 'lib/evaluation/evaluation.config.php';
-require_once 'lib/admin_search.inc.php';
 
-if ($list || $view) {
-    if ($perm->have_perm('admin')) {
-        if ($_SESSION['links_admin_data']['topkat'] == 'sem') {
-            Navigation::activateItem('/admin/course/evaluation');
-        } else {
-            Navigation::activateItem('/admin/institute/evaluation');
-        }
-    } else {
-        Navigation::activateItem('/course/admin/evaluation');
-    }
+if ($view === 'eval_inst') {
+    Navigation::activateItem('/admin/institute/evaluation');
+    require_once 'lib/admin_search.inc.php';
+} else if ($SessSemName[1] && $view == "eval_sem") {
+    Navigation::activateItem('/course/admin/evaluation');
 } else {
     Navigation::activateItem('/tools/evaluation');
 }
@@ -109,9 +102,6 @@ if ($the_range != $auth->auth['uname'] && $the_range != 'studip' && !$isUserrang
     }
 }
 
-if ($list || !$isUserrange) {
-    include 'lib/include/admin_search_form.inc.php';
-}
 
 ob_start();
 if (Request::option('page') == "edit"){

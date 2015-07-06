@@ -58,12 +58,32 @@
             <? endif; ?>
         <? endif; ?>
         <? if ($event instanceof CourseEvent) : ?>
+            <? // durchführende Dozenten ?>
+            <? $related_persons = $event->dozenten; ?>
+            <? if (sizeof($related_persons)) : ?>
+            <div>
+                <b><?= ngettext('Durchführender Dozent', 'Durchführende Dozenten', sizeof($related_persons)) ?>:</b>
+                <ul class="list-unstyled">
+                <? foreach ($related_persons as $related_person) : ?>
+                    <li>
+                        <?= htmlReady($related_person->getFullName()) ?>
+                    </li>
+                <? endforeach; ?>
+                </ul>
+            </div>
+            <? endif; ?>
             <? // related groups ?>
             <? $related_groups = $event->getRelatedGroups(); ?>
             <? if (sizeof($related_groups)) : ?>
             <div>
                 <b><?= _('Betroffene Gruppen') ?>:</b>
-                <?= htmlReady(implode(', ', $related_groups->pluck('name'))) ?>
+                <ul class="list-unstyled">
+                <? foreach ($related_groups as $group) : ?>
+                    <li>
+                        <?= htmlReady($group->name) ?>
+                    </li>
+                <? endforeach; ?>
+                </ul>
             </div>
             <? endif; ?>
         <? endif; ?>

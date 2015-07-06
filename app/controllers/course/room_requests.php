@@ -35,23 +35,8 @@ class Course_RoomRequestsController extends AuthenticatedController
         $this->course_id = Request::option('cid', $course_id);
         //$course_id == '-' means dialog called from Assi
         if ($course_id != '-') {
-            if ($perm->have_perm('admin')) {
-                //Navigation im Admin-Bereich:
-                Navigation::activateItem('/admin/course/room_requests');
-            } else {
-                //Navigation in der Veranstaltung:
-                Navigation::activateItem('/course/admin/room_requests');
-            }
-
-            if (!$this->course_id) {
-                PageLayout::setTitle(_("Verwaltung von Raumanfragen"));
-                $GLOBALS['view_mode'] = "sem";
-
-                require_once 'lib/admin_search.inc.php';
-
-                include 'lib/include/admin_search_form.inc.php';  // will not return
-                die(); //must not return
-            }
+            //Navigation in der Veranstaltung:
+            Navigation::activateItem('/course/admin/room_requests');
 
             if (!get_object_type($this->course_id, array('sem')) ||
                 SeminarCategories::GetBySeminarId($this->course_id)->studygroup_mode ||
@@ -354,9 +339,42 @@ class Course_RoomRequestsController extends AuthenticatedController
                 }
             }
             if ((Request::get('search_exp_room') && Request::submitted('search_room'))
-            || Request::submitted('search_properties')) {
-                $search_result = $request->searchRoomsToRequest(Request::get('search_exp_room'), Request::submitted('search_properties'));
+                || Request::submitted('search_properties')) {
+                $tmp_search_result = $request->searchRoomsToRequest(Request::get('search_exp_room'), Request::submitted('search_properties'));
                 $search_by_properties = Request::submitted('search_properties');
+                $search_result = array();
+                if (count($tmp_search_result)) {
+                    $timestamps = $events = array();
+                    foreach ($request->getAffectedDates() as $date) {
+                        if (!isset($date->room_assignment)) {
+                            $timestamps[] = $date->date;
+                            $timestamps[] = $date->end_time;
+                            $event = new AssignEvent($date->id, $date->date, $date->end_time, null, null, '');
+                            $events[$event->getId()] = $event;
+                        }
+                    }
+                    $check_result = array();
+                    if (count($events)) {
+                        $checker = new CheckMultipleOverlaps();
+                        $checker->setTimeRange(min($timestamps), max($timestamps));
+                        foreach(array_keys($tmp_search_result) as $room) $checker->addResource($room);
+                        $checker->checkOverlap($events, $check_result, "assign_id");
+                    }
+                    foreach($tmp_search_result as $room_id => $name) {
+                        if (isset($check_result[$room_id])) {
+                            $details = $check_result[$room_id];
+                            if (count($details) >= round(count($events) * Config::get()->RESOURCES_ALLOW_SINGLE_ASSIGN_PERCENTAGE / 100)) {
+                                $overlap_status = 'red';
+                            } elseif (count($details)) {
+                                $overlap_status = 'yellow';
+                            }
+                        } else {
+                            $overlap_status = 'green';
+                        }
+                        $search_result[$room_id] = array('name' => $name,
+                                                         'overlap_status' => $overlap_status);
+                    }
+                }
             }
         }
         return compact('search_result', 'search_by_properties', 'request', 'admission_turnout');

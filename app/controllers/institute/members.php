@@ -70,7 +70,7 @@ class Institute_MembersController extends AuthenticatedController
             $this->inst_id=$GLOBALS['SessSemName'][1];
         } else {
             PageLayout::postMessage(MessageBox::info(_('Sie müssen zunächst eine Einrichtung auswählen')));
-            $this->redirect(URLHelper::getLink('admin_institut.php?list=TRUE'));
+            $this->redirect(URLHelper::getLink('dispatch.php/institute/basicdata/index?list=TRUE'));
             return;
         }
 
@@ -88,10 +88,6 @@ class Institute_MembersController extends AuthenticatedController
         $header_line = getHeaderLine($this->inst_id);
         if ($header_line) {
             PageLayout::setTitle($header_line." - ".PageLayout::getTitle());
-        }
-
-        if ($this->admin_view || !isset($this->inst_id)) {
-            include 'lib/include/admin_search_form.inc.php';
         }
 
         // check the given parameters or initialize them

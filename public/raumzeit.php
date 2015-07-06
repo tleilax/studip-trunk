@@ -50,7 +50,6 @@ $id = Request::option('seminar_id', $SessSemName[1]);
 require_once ('lib/classes/Seminar.class.php');
 require_once ('lib/raumzeit/raumzeit_functions.inc.php');
 require_once ('lib/dates.inc.php');
-require_once 'lib/admin_search.inc.php';
 require_once('lib/raumzeit.inc.php');
 
 
@@ -87,11 +86,7 @@ if (get_config('RESOURCES_ENABLE')) {
 PageLayout::addSqueezePackage('raumzeit');
 PageLayout::setTitle(_("Verwaltung von Zeiten und Raumangaben"));
 
-if ($GLOBALS['perm']->have_perm('admin')) {
-    Navigation::activateItem('/admin/course/dates');
-} else {
-    Navigation::activateItem('/course/admin/dates');
-}
+Navigation::activateItem('/course/admin/dates');
 
 #$sd_open = Request::optionArray('sd_open');
 $_SESSION['raumzeitFilter'] = Request::get('newFilter');
@@ -103,14 +98,12 @@ URLHelper::bindLinkParam('raumzeitFilter', $_SESSION['raumzeitFilter']);
 //Change header_line if open object
 $course = Course::find($id);
 if ($course)
-	PageLayout::setTitle($course->getFullname() ." - ".PageLayout::getTitle());
+    PageLayout::setTitle($course->getFullname() ." - ".PageLayout::getTitle());
 
 //save messages from
 $pmessages = PageLayout::getMessages();
 
 //Output starts here
-
-include 'lib/include/admin_search_form.inc.php';
 
 ob_start();
 
@@ -607,10 +600,17 @@ foreach ($selection as $item) {
 }
 $sidebar->addWidget($widget);
 
-if ($adminList) {
-    $widget = new SidebarWidget(_('Veranstaltungsliste'));
-    $widget->addElement(new WidgetElement($adminList->render()));
-    $sidebar->addWidget($widget);
+if ($GLOBALS['perm']->have_perm("admin")) {
+    include_once 'app/models/AdminCourseFilter.class.php';
+
+    $list = new SelectorWidget();
+    $list->setUrl("?#admin_top_links");
+    $list->setSelectParameterName("cid");
+    foreach (AdminCourseFilter::get()->getCourses(false) as $seminar) {
+        $list->addElement(new SelectElement($seminar['Seminar_id'], $seminar['Name']), 'select-' . $seminar['Seminar_id']);
+    }
+    $list->setSelection($id);
+    $sidebar->addWidget($list);
 }
 
 if (Config::get()->RESOURCES_ENABLE && Config::get()->RESOURCES_ENABLE_BOOKINGSTATUS_COLORING) {

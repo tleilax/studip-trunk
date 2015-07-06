@@ -1,7 +1,55 @@
 <?php
 
-class AdminCourseFilter {
-
+/**
+ * Class AdminCourseFilter
+ *
+ * The main class to filter all courses for admins. It's a singleton class, so you
+ * better call it with AdminCourseFilter::get(). The whole class is created to
+ * provide a nice hook for plugins to add special filters into the admin-area of
+ * Stud.IP.
+ *
+ * To add a filter with a plugin, listen to the notification "AdminCourseFilterWillQuery"
+ * like this:
+ *
+ *     NotificationCenter::addObserver($this, "addMyFilter", "AdminCourseFilterWillQuery");
+ *
+ * Where $this is an object and "addMyFilter" a method. Such a method might look like this:
+ *
+ *     public function addLectureshipFilter($event, $filter)
+ *     {
+ *         if ($GLOBALS['user']->cfg->getValue("LECTURESHIP_FILTER")) {
+ *             $filter->settings['query']['joins']['lehrauftrag'] = array(
+ *                 'join' => "INNER JOIN",
+ *                 'on' => "seminare.Seminar_id = lehrauftrag.seminar_id"
+ *             );
+ *         }
+ *     }
+ *
+ * Within this method you alter the public $filter->settings array, because this array
+ * describes entirely the big query for the admin-search. In our example above
+ * we simple add an INNER JOIN to filter for the course having an entry in
+ * the lehrauftrag table.
+ *
+ * Description of this array is as follows:
+ *
+ * $filter->settings['query']            : The main sql query as a prepared statement.
+ * $filter->settings['query']['select']  : An assoc array. $filter->settings['query']['select']['Number_of_teachers'] = "COUNT(DISTINCT dozenten.user_id)"
+ *                                         will select the result of COUNT as the variable Number_of_teachers.
+ * $filter->settings['query']['joins']   : Example $filter->settings['query']['joins']['dozenten'] = array(
+ *                                          'join' => "INNER JOIN", //default value, else use "LEFT JOIN"
+ *                                          'table' => "seminar_user", //can me omitted if you don't want to use a table-alias
+ *                                          'on' => "dozenten.Seminar_id = seminare.Seminar_id AND dozenten.status = 'dozent'"
+ *                                          )
+ *                                         if 'table' differs from the index, the index will be the alias of the table.
+ *                                         So normally you don't need to name a table if you don't want it to be aliased.
+ * $filter->settings['query']['where']   : You might want to use the method $filter->where($sql, $parameter) instead.
+ * $filter->settings['query']['orderby'] : You might want to use $filter->orderBy($attribute, $flag = "ASC") instead.
+ * $filter->settings['parameter']        : An assoc array of parameter that will be passed to
+ *                                         the prepared statement.
+ *
+ */
+class AdminCourseFilter
+{
     static protected $instance = null;
     public $settings = array();
 
@@ -9,7 +57,8 @@ class AdminCourseFilter {
      * returns an AdminCourseFilter singleton object
      * @return AdminCourseFilter or derived-class object
      */
-    static public function get($reset_settings = false) {
+    static public function get($reset_settings = false)
+    {
         if (!self::$instance) {
             $class = get_called_class();
             self::$instance = new $class($reset_settings);
@@ -68,7 +117,8 @@ class AdminCourseFilter {
      * @return $this
      * @throws Exception if semester_id does not exist
      */
-    public function filterBySemester($semester_id) {
+    public function filterBySemester($semester_id)
+    {
         $semester = Semester::find($semester_id);
         if (!$semester) {
             throw new Exception("Das ausgewählte Semester scheint nicht zu existieren.");
@@ -83,7 +133,8 @@ class AdminCourseFilter {
      * @param array|integer $type : id or ids of sem_types
      * @return $this
      */
-    public function filterByType($type) {
+    public function filterByType($type)
+    {
         if (is_array($type)) {
             $this->settings['query']['where']['status'] = "seminare.status IN (:types)";
             $this->settings['parameter']['types'] = $type;
@@ -99,7 +150,8 @@ class AdminCourseFilter {
      * @param array|integer $institut_ids : id or ids of institutes
      * @return $this
      */
-    public function filterByInstitute($institut_ids) {
+    public function filterByInstitute($institut_ids)
+    {
         if (is_array($institut_ids)) {
             $this->settings['query']['where']['institute'] = "seminare.Institut_id IN (:institut_ids)";
             $this->settings['parameter']['institut_ids'] = $institut_ids;
@@ -110,13 +162,31 @@ class AdminCourseFilter {
         return $this;
     }
 
+    public function filterByDozent($user_ids)
+    {
+        $this->settings['query']['joins']['dozenten'] = array(
+            'join' => "INNER JOIN",
+            'table' => "seminar_user",
+            'on' => "dozenten.Seminar_id = seminare.Seminar_id AND dozenten.status = 'dozent'"
+        );
+        if (is_array($user_ids)) {
+            $this->settings['query']['where']['dozenten'] = "dozenten.user_id IN (:dozenten_ids)";
+            $this->settings['parameter']['dozenten_ids'] = $user_ids;
+        } else {
+            $this->settings['query']['where']['dozenten'] = "dozenten.user_id = :dozenten_id";
+            $this->settings['parameter']['dozenten_id'] = (string) $user_ids;
+        }
+        return $this;
+    }
+
     /**
      * Adds a filter for a textstring, that can be the coursenumber, the name of the course
      * or the last name of one of the dozenten.
      * @param string $text : the searchstring
      * @return $this
      */
-    public function filterBySearchstring($text) {
+    public function filterBySearchstring($text)
+    {
         $this->settings['query']['joins']['dozenten'] = array(
             'join' => "INNER JOIN",
             'table' => "seminar_user",
@@ -138,7 +208,8 @@ class AdminCourseFilter {
      * @return $this
      * @throws Exception if $flag does not exist
      */
-    public function orderBy($attribute, $flag = "ASC") {
+    public function orderBy($attribute, $flag = "ASC")
+    {
         if (!in_array($flag, words("ASC DESC"))) {
             throw new Exception("Sortierreihenfolge undefiniert.");
         }
@@ -157,7 +228,8 @@ class AdminCourseFilter {
      *                          by plugins if necessary. Can be omitted.
      * @return $this
      */
-    public function where($where, $parameter = array(), $id = null) {
+    public function where($where, $parameter = array(), $id = null)
+    {
         if (!$id) {
             $id = md5($where);
         }
@@ -173,24 +245,42 @@ class AdminCourseFilter {
      * Plugins may register at this event to fully alter this AdminCourseFilter-object and so the resultset.
      * @return array : associative array with seminar_ids as keys and seminar-data-arrays as values.
      */
-    public function getCourses()
+    public function getCourses($grouped = true)
     {
         NotificationCenter::postNotification("AdminCourseFilterWillQuery", $this);
         $statement = DBManager::get()->prepare($this->createQuery());
         $statement->execute($this->settings['parameter']);
         $_SESSION['AdminCourseFilter_settings'] = $this->settings;
-        return $statement->fetchAll(PDO::FETCH_GROUP | PDO::FETCH_ASSOC);
+        return $statement->fetchAll($grouped ? (PDO::FETCH_GROUP | PDO::FETCH_ASSOC) : PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * @return number of courses that this filter would return
+     */
+    public function countCourses()
+    {
+        NotificationCenter::postNotification("AdminCourseFilterWillQuery", $this);
+        $query = "SELECT COUNT(*) FROM (".$this->createQuery(true).") AS filterted_courses";
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute($this->settings['parameter']);
+        $number =  $statement->fetch(PDO::FETCH_COLUMN, 0);
+        return $number;
     }
 
     /**
      * Creates the sql-query from the $this->settings['query']
+     * @only_count : boolean
      * @return string : the big query
      */
-    public function createQuery()
+    public function createQuery($only_count = false)
     {
-        $select_query = "seminare.* ";
-        foreach ((array) $this->settings['query']['select'] as $alias => $select) {
-            $select_query .= ", ".$select." AS ".$alias." ";
+        if ($only_count) {
+            $select_query = "1";
+        } else {
+            $select_query = "seminare.* ";
+            foreach ((array) $this->settings['query']['select'] as $alias => $select) {
+                $select_query .= ", ".$select." AS ".$alias." ";
+            }
         }
 
         $join_query = "";
