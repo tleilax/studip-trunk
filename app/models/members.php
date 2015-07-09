@@ -168,7 +168,7 @@ class MembersModel
                                         get_title_for_status('dozent', 1), $this->course_title);
                             } else {
                                 $message = sprintf(_('Sie wurden von einem/einer %s oder AdministratorIn
-                                    vom Status **vorläufig akzeptiert** zum/r TeilnehmerIn der Veranstaltung **%s**
+                                    vom Status **vorlï¿½ufig akzeptiert** zum/r TeilnehmerIn der Veranstaltung **%s**
                                     hochgestuft und sind damit zugelassen.'), get_title_for_status('dozent', 1), $this->course_title);
                             }
                         }
@@ -216,7 +216,7 @@ class MembersModel
                             get_title_for_status('dozent', 1), $this->course_title);
                 } else {
                     $message = sprintf(_('Sie wurden von einem/einer %s oder AdministratorIn vom Status
-                        **vorläufig akzeptiert** zum/r TeilnehmerIn der Veranstaltung **%s**
+                        **vorlï¿½ufig akzeptiert** zum/r TeilnehmerIn der Veranstaltung **%s**
                         hochgestuft und sind damit zugelassen.'), get_title_for_status('dozent', 1), $this->course_title);
                 }
             }
@@ -239,11 +239,11 @@ class MembersModel
                         mit dem Status <b>%s</b> in die Veranstaltung eingetragen.'), $fullname, $status));
                 } else {
                     $msg = MessageBox::success(sprintf(_('NutzerIn %s wurde mit dem Status <b>%s</b>
-                        endgültig akzeptiert und damit in die Veranstaltung aufgenommen.'), $fullname, $status));
+                        endgï¿½ltig akzeptiert und damit in die Veranstaltung aufgenommen.'), $fullname, $status));
                 }
             }
         } else if ($consider_contingent) {
-            $msg = MessageBox::error(_('Es stehen keine weiteren Plätze mehr im Teilnehmerkontingent zur Verfügung.'));
+            $msg = MessageBox::error(_('Es stehen keine weiteren Plï¿½tze mehr im Teilnehmerkontingent zur Verfï¿½gung.'));
         } else {
             $msg = MessageBox::error(_('Beim Eintragen ist ein Fehler aufgetreten.
                 Bitte versuchen Sie es erneut oder wenden Sie sich an einen Systemadministrator'));
@@ -252,6 +252,13 @@ class MembersModel
         return $msg;
     }
 
+    /**
+     * Adds the given user to the waitlist of the current course and sends a
+     * corresponding message.
+     *
+     * @param String $user_id The user to add
+     * @return bool Successful operation?
+     */
     public function addToWaitlist($user_id)
     {
         $messaging = new messaging;
@@ -461,6 +468,14 @@ class MembersModel
         return $filtered_members;
     }
 
+    /**
+     * Adds given users to the course waitlist, either at list beginning or end.
+     * System messages are sent to affected users.
+     *
+     * @param mixed $users array of user ids to add
+     * @param String $which_end 'last' or 'first': which list end to append to
+     * @return mixed Array of messages (stating success and/or errors)
+     */
     public function moveToWaitlist($users, $which_end)
     {
         $messaging = new messaging;
@@ -488,6 +503,7 @@ class MembersModel
         $curpos = $waitpos;
         foreach ($users as $user_id) {
             $temp_user = UserModel::getUser($user_id);
+            // Create new waitlist entry.
             $a = new AdmissionApplication();
             $a->user_id = $user_id;
             $a->seminar_id = $this->course_id;
