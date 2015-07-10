@@ -20,7 +20,10 @@ if ($navigation) {
                 array('id' => $nav_id)
             );
             $link->setActive($nav->isActive());
-            // TODO check $nav->isEnabled() and make link ".quit" if true "<span class="quiet">"
+            if (!$nav->isEnabled()) {
+                $link['disabled'] = true;
+                $link->addClass('quiet');
+            }
         }
         if ($nav_links->hasElements()) {
             Sidebar::get()->insertWidget($nav_links, ':first');
@@ -73,10 +76,6 @@ if ($infobox && is_array($infobox)) {
         <? endif ?>
         STUDIP.URLHelper.parameters = <?= json_encode(studip_utf8encode(URLHelper::getLinkParams())) ?>;
     </script>
-    <?php
-        // needs to be included in lib/include/html_head.inc.php as well
-        include 'app/views/WysiwygHtmlHead.php';
-    ?>
 </head>
 
 <body id="<?= $body_id ? $body_id : PageLayout::getBodyElementId() ?>">
