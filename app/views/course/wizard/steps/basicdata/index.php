@@ -56,6 +56,25 @@
 <?= Assets::input('icons/yellow/arr_2right.svg',
     array('name' => 'select_institute', 'value' => '1', 'class' => 'hidden-js')) ?>
 <label class="caption">
+    <?= _('Beteiligte Einrichtungen') ?>
+    <div id="wizard-instsearch">
+        <?= $instsearch ?>
+    </div>
+</label>
+<?php if ($values['part_inst_id_parameter']) : ?>
+    <?= Assets::input('icons/yellow/arr_2down.svg',
+        array('name' => 'add_part_inst', 'value' => '1')) ?>
+<?php endif ?>
+<br/>
+<div id="wizard-participating">
+    <?php foreach ($values['participating'] as $id => $assigned) : ?>
+        <?php if ($inst = Institute::find($id)) : ?>
+            <?= $this->render_partial('basicdata/_institute',
+                array('class' => 'institute', 'inst' => $inst)) ?>
+        <?php endif ?>
+    <?php endforeach ?>
+</div>
+<label class="caption">
     <?= _('Dozent/-innen') ?>
     <span class="required">*</span>
     <div id="wizard-lecturersearch">

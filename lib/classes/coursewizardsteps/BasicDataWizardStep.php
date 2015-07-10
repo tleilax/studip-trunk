@@ -37,6 +37,7 @@ class BasicDataWizardStep implements CourseWizardStep
         } else {
             $tpl = $factory->open('basicdata/index');
         }
+
         // Get all available course types and their categories.
         $typestruct = array();
         foreach (SemType::getTypes() as $type)
@@ -66,6 +67,8 @@ class BasicDataWizardStep implements CourseWizardStep
                 $values['coursetype'] = 1;
             }
         }
+
+        // Semester selection.
         $semesters = array();
         $now = mktime();
         // Allow only current or future semesters for selection.
@@ -83,7 +86,8 @@ class BasicDataWizardStep implements CourseWizardStep
         if (!$values['start_time']) {
             $values['start_time'] = Semester::findCurrent()->beginn;
         }
-        // Get all allowed institutes (my own).
+
+        // Get all allowed home institutes (my own).
         $institutes = Institute::getMyInstitutes();
         $tpl->set_attribute('institutes', $institutes);
         if (!$values['institute']) {
@@ -93,6 +97,27 @@ class BasicDataWizardStep implements CourseWizardStep
                 $values['institute'] = $institutes[0]['Institut_id'];
             }
         }
+
+        // QuickSearch for participating institutes.
+        // No JS: Keep search value and results for displaying in search select box.
+        if ($values['part_inst_id']) {
+            Request::getInstance()->offsetSet('part_inst_id', $values['part_inst_id']);
+        }
+        if ($values['part_inst_id_parameter']) {
+            Request::getInstance()->offsetSet('part_inst_id_parameter', $values['part_inst_id_parameter']);
+        }
+        $instsearch = new StandardSearch('Institut_id',
+            _('Beteiligte Einrichtung hinzufügen'),
+            'part_inst_id'
+        );
+        $tpl->set_attribute('instsearch', QuickSearch::get('part_inst_id', $instsearch)
+            ->withButton(array('search_button_name' => 'search_part_inst', 'reset_button_name' => 'reset_instsearch'))
+            ->fireJSFunctionOnSelect('STUDIP.CourseWizard.addParticipatingInst')
+            ->render());
+        if (!$values['participating']) {
+            $values['participating'] = array();
+        }
+
         // Quicksearch for lecturers.
         // No JS: Keep search value and results for displaying in search select box.
         if ($values['lecturer_id']) {
@@ -101,6 +126,7 @@ class BasicDataWizardStep implements CourseWizardStep
         if ($values['lecturer_id_parameter']) {
             Request::getInstance()->offsetSet('lecturer_id_parameter', $values['lecturer_id_parameter']);
         }
+
         // Check for deputies.
         $deputies = Config::get()->DEPUTIES_ENABLE;
         /*
@@ -135,9 +161,11 @@ class BasicDataWizardStep implements CourseWizardStep
         if ($deputies && !$values['deputies']) {
             $values['deputies'] = array();
         }
+
         // Quicksearch for lecturers.
         $tpl->set_attribute('lsearch', $this->getSearch($values['coursetype'],
             $values['institute'], array_keys($values['lecturers'])));
+
         // Quicksearch for deputies if applicable.
         if ($deputies) {
             // No JS: Keep search value and results for displaying in search select box.
@@ -172,6 +200,12 @@ class BasicDataWizardStep implements CourseWizardStep
     {
         // We only need our own stored values here.
         $values = $values[__CLASS__];
+        // Add a participating institute.
+        if (Request::submitted('add_part_inst') && Request::option('part_inst_id')) {
+            $values['participating'][Request::option('part_inst_id')] = true;
+            unset($values['part_inst_id']);
+            unset($values['part_inst_id_parameter']);
+        }
         // Add a lecturer.
         if (Request::submitted('add_lecturer') && Request::option('lecturer_id')) {
             $values['lecturers'][Request::option('lecturer_id')] = true;

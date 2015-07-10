@@ -1,6 +1,51 @@
 STUDIP.CourseWizard = {
 
     /**
+     * Adds a new participating institute to the course.
+     * @param id Stud.IP institute ID
+     * @param name Full name
+     * @param inputName name of the for input to generate
+     * @param elClass desired CSS class name
+     * @param elId ID of the target container to append to
+     * @param otherInput name of other inputs to check
+     *
+     *                   (e.g. deputies if adding a lecturer)
+     */
+    addParticipatingInst: function(id, name)
+    {
+        // Check if already set.
+        if ($('input[name="participating[' + id + ']"]').length == 0) {
+            var wrapper = $('<div>').attr('class', 'institute');
+            var input = $('<input>').
+                attr('type', 'hidden').
+                attr('name', 'participating[' + id + ']').
+                attr('id', id).
+                attr('value', '1');
+            var trash = $('<input>').
+                attr('type', 'image').
+                attr('src', STUDIP.ASSETS_URL + 'images/icons/blue/trash.svg').
+                attr('name', 'remove_participating[' + id + ']').
+                attr('value', '1').
+                attr('onclick', "return STUDIP.CourseWizard.removeParticipatingInst('" + id + "')");
+            wrapper.append(input);
+            wrapper.append(name);
+            wrapper.append(trash);
+            $('#wizard-participating').append(wrapper);
+        }
+    },
+
+    /**
+     * Remove a participating institute from the list.
+     * @param id ID of the institute to remove
+     * @returns {boolean}
+     */
+    removeParticipatingInst: function(id)
+    {
+        $('input#' + id).parent().remove();
+        return false;
+    },
+
+    /**
      * Fetches a quicksearch input form via AJAX. This is necessary as the
      * required QuickSearch needs an institute ID which is not known in
      * advance and is provided by JS here.
