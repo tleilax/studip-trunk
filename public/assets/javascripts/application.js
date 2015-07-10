@@ -385,6 +385,12 @@ jQuery(function ($) {
             unchanged = unchanged && this.value === this.defaultValue;
         });
 
+        // If WYSIWYG editor is enabled, always assume that the text has been
+        // changed.
+        if ($('textarea.wysiwyg', ui.dialog).length > 0) {
+            unchanged = false;
+        }
+
         if (!unchanged && !confirm('Ihre Eingaben wurden bislang noch nicht gespeichert.'.toLocaleString())) {
             event.preventDefault();
             event.stopPropagation();
@@ -395,7 +401,7 @@ jQuery(function ($) {
         return true;
     }
 
-    $(document).on('dialog-open', function (event, ui) {
+    $(document).on('dialog-update', function (event, ui) {
         if ($('textarea[data-secure]', ui.dialog).length === 0) {
             return;
         }
@@ -405,6 +411,7 @@ jQuery(function ($) {
                 $(this).closest('ui.dialog').off('dialogbeforeclose', securityHandlerDialog);
             });
     });
+
 }(jQuery));
 
 /* Copies a value from a select to another element*/
