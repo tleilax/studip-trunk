@@ -47,7 +47,11 @@ class CoreAdmin implements StudipModule {
                 $item = new Navigation(_('Zeiten/Räume'), 'raumzeit.php');
                 $item->setDescription(_('Verändern Sie hier Angaben über regelmäßige Veranstaltungszeiten, Einzeltermine und Ortsangaben.'));
                 $navigation->addSubNavigation('dates', $item);
-
+                
+                $item = new Navigation(_('Zeiten/Räume (NEU)'), 'dispatch.php/course/timesrooms/index/'.$course_id);
+                $item->setDescription(_('Verändern Sie hier Angaben über regelmäßige Veranstaltungszeiten, Einzeltermine und Ortsangaben.'));
+                $navigation->addSubNavigation('timesrooms', $item);
+                
                 if (get_config('RESOURCES_ENABLE') && get_config('RESOURCES_ALLOW_ROOM_REQUESTS')) {
                     $item = new Navigation(_('Raumanfragen'), 'dispatch.php/course/room_requests/index/' . $course_id);
                     $item->setDescription(_('Verwalten Sie hier Raumanfragen zu Veranstaltungszeiten.'));
