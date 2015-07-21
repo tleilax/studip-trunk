@@ -6,14 +6,14 @@
             </h1>
             <nav>
                 <span>
-                    <a href="">
+                    <a href="<?=$controller->link_for('course/timesrooms/editIrregular/0')?>" data-dialog>
                         <?=_('Neuen Einzeltermin')?>    
                         <?= Assets::img('icons/16/blue/add.png', array('style' => 'margin-right:20px;',
                             'title' => _('Einzeltermin hinzufügen')))?>
                     </a>
                 </span>
                 <span>
-                    <a href="">
+                    <a href="<?=$controller->link_for('course/timesrooms/editBlock/0')?>" data-dialog>
                         <?=_('Neuen Blocktermin')?>
                         <?= Assets::img('icons/16/blue/add.png', array('style' => 'margin-right:20px;',
                             'title' => _('Blocktermin hinzufügen')))?>

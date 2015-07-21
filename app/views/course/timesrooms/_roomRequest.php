@@ -12,12 +12,13 @@
                                     . 'klappen Sie diesen auf und wählen dort Raumanfrage erstellen')))?>
                 </span>
                 <span>
-                    <a href="">
+                        <a href="<?=$controller->link_for('course/room_requests/new/'.$course->id)?>" data-dialog>
                         <?=_('Neue Raumanfrage')?>
                         <?= Assets::img('icons/16/blue/add.png', array('style' => 'float:right; margin-right:20px;',
-                            'title' => _('Neue Raumanfrage für die Veranstaltung erstellen')))?>
+                          'title' => _('Neue Raumanfrage für die Veranstaltung erstellen')))?>
                     </a>
                 </span>
+                
             </nav>
         </header>
         <section>

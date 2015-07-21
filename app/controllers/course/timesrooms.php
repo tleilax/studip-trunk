@@ -6,19 +6,22 @@
  * and open the template in the editor.
  */
 require_once 'app/controllers/authenticated_controller.php';
-
+require_once ($GLOBALS['RELATIVE_PATH_RESOURCES'] ."/lib/ResourcesUserRoomsList.class.php");
 
 class Course_TimesroomsController extends AuthenticatedController{
     
     public function before_filter(&$action, &$args)
     {
         parent::before_filter($action, $args);
-
+        if(Request::isXhr()){
+            $this->set_layout(null);
+        } else {
+            $this->set_layout($GLOBALS['template_factory']->open('layouts/base'));
+        }
         if (!$GLOBALS['perm']->have_perm('admin')) {
             throw new AccessDeniedException(_('Sie haben nicht die nötigen Rechte, um diese Seite zu betreten.'));
         }
 
-        
         $this->course_id = Request::get('cid', NULL);
         if(isset($this->course_id)){
             $this->course = Seminar::getInstance($this->course_id);
@@ -35,10 +38,10 @@ class Course_TimesroomsController extends AuthenticatedController{
                 isset($this->course) ? $this->course->getFullname() . ' - ' : ''));
     }
     
-    public function index_action($course_id = NULL)
+    public function index_action($course_id = null)
     {
         if(request::isXhr()){
-            $this->show = array('regular' => true, 'irregular' => true, 'roomRequest' => true);
+            $this->show = array('regular' => true, 'irregular' => true, 'roomRequest' => false);
         }
         if(isset($course_id)){
             $this->course_id = $course_id;
@@ -49,8 +52,39 @@ class Course_TimesroomsController extends AuthenticatedController{
         $this->cycles = $this->course->metadate->getCycles();
     }
     
-    public function editDate_action($cycle_id = NULL){
+    public function editDate_action($termin_id, $metadate_id = null)
+    {
+        global $TERMIN_TYP;
+        if(!isset($metadate_id)){
+            $dates = $this->course->getSingleDates(true, true, true) ;
+            $this->date_info  =  $dates[$termin_id];
+        } else {
+            $dates = $this->course->getSingleDatesForCycle($metadate_id);
+            $this->date_info = $dates[$termin_id];
+        }
+        
+        $this->resList = ResourcesUserRoomsList::getInstance($GLOBALS['user']->id, true, false, true);
+        $this->types = $TERMIN_TYP;
         $this->dozenten = $this->course->getMembers('dozent');
+        $this->dozenten_options = $this->course->getMembers('dozent');
+        $this->groups_options = Statusgruppen::findBySeminar_id($this->course->getId());
+        $this->groups = $this->date_info->getRelatedGroups();
+    }
+    
+    public function editCycle_action($cycle_id = null)
+    {
+        
+    }
+    
+    public function editIrregular_action($id = 0)
+    {
+    
+        
+    }
+    
+    public function editBlock_action($id = 0)
+    {
+        
     }
     
     function setSidebar()

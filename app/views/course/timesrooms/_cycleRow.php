@@ -7,7 +7,11 @@
     </td>
     <td><?=$termin->getRoom()?></td>
     <td>
-        <a class="load-in-new-row" href="<?= $controller->link_for('course/timesrooms/editDate/'.$termin->termin_id) ?>">
+        <a class="load-in-new-row" href="
+        <?=isset($termin->metadate_id) ? 
+        $controller->link_for('course/timesrooms/editDate/'.$termin->termin_id.'/'.$termin->metadate_id)  
+        : $controller->link_for('course/timesrooms/editDate/'.$termin->termin_id)?>
+           ">
                 <?= Assets::img('icons/16/blue/edit.png', array('title' => _('Termin bearbeiten'))) ?>
             </a>
         
