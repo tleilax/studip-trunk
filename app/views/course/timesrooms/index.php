@@ -37,7 +37,7 @@
         <footer>
             <?= Studip\Button::createAccept(_('Semester speichern'), 'save', $semesterFormParams) ?>
             <? if (Request::isXhr()) : ?>
-                <?= Studip\Button::createAccept(_('Semester speichern & Schließen'), 'save_close', $semesterFormParams) ?>
+                <?= Studip\Button::createAccept(_('Semester speichern & schließen'), 'save_close', $semesterFormParams) ?>
             <? endif ?>
         </footer>
 
