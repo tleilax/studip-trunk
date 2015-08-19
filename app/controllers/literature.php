@@ -36,7 +36,6 @@ class LiteratureController extends AuthenticatedController
             throw new AccessDeniedException(_('Die Literaturverwaltung ist nicht aktiviert.'));
         }
 
-        $this->attributes['text'] = array('style' => 'width:98%');
         $this->attributes['textarea'] = array('style' => 'width:98%','rows'=>2);
         $this->attributes['select'] = array();
         $this->attributes['date'] = array();
@@ -284,10 +283,11 @@ class LiteratureController extends AuthenticatedController
             $hits = $_the_search->doSearch();
             if(!$_the_search->search_plugin->getNumError()) {
                 if($_the_search->getNumHits() == 0) {
-                    $_msg .= "info§" . sprintf(_("Ihre Suche ergab %s Treffer."), $_the_search->getNumHits()) . "§";
+                    $_msg = sprintf(_("Ihre Suche ergab %s Treffer."), $_the_search->getNumHits());
                 } else {
-                    $_msg .= "msg§" . sprintf(_("Ihre Suche ergab %s Treffer."), $_the_search->getNumHits()) . "§";
+                    $_msg = sprintf(_("Ihre Suche ergab %s Treffer."), $_the_search->getNumHits());
                 }
+                PageLayout::postMessage(MessageBox::info($_msg));
             }
             $_the_search->start_result = 1;
         }
@@ -313,7 +313,6 @@ class LiteratureController extends AuthenticatedController
             $_the_clipboard->insertElement($catalog_id);
         }
 
-        $_msg .= $_the_clipboard->msg;
         $_msg .= $_the_search->search_plugin->getError("msg");
 
         $this->msg = $_msg;

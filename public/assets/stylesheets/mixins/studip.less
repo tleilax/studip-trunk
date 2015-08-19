@@ -23,6 +23,11 @@
           box-shadow: @shadow1, @shadow2;
 }
 
+// Double transition
+.transition(@transition1, @transition2) {
+    .transition(~"@{transition1}, @{transition2}");
+}
+
 // Gradients
 #gradient {
     .horizontal-with-stop(@startColor: #555, @endColor: #333, @colorStop: 50%) {
@@ -62,7 +67,7 @@
 
 // Icon before
 .icon-before(@icon, @size: 16, @padding: 0) {
-    &:before {
+    &::before {
         background-repeat: no-repeat;
         content: ' ';
         display: inline-block;
@@ -73,18 +78,42 @@
         width: unit(@size, px);
     }
 }
+.retina-image-before(@image0, @image1, @width: 100%, @height: @width, @padding: 0) {
+    &::before {
+        background-repeat: no-repeat;
+        content: ' ';
+        display: inline-block;
+        height: unit(@height, px);
+        margin-right: @padding;
+        .retina-background-image(@image0, @image1, @width, @height);
+        vertical-align: text-top;
+        width: unit(@width, px);
+    }
+}
 
 // Icon after
 .icon-after(@icon, @size: 16, @padding: 0) {
-    &:after {
+    &::after {
         background-repeat: no-repeat;
         content: ' ';
         display: inline-block;
         height: unit(@size, px);
-        margin-right: @padding;
+        margin-left: @padding;
         .retina-background-icon(@icon, @size);
         vertical-align: text-top;
         width: unit(@size, px);
+    }
+}
+.retina-image-after(@image0, @image1, @width: 100%, @height: @width, @padding: 0) {
+    &::after {
+        background-repeat: no-repeat;
+        content: ' ';
+        display: inline-block;
+        height: unit(@height, px);
+        margin-left: @padding;
+        .retina-background-image(@image0, @image1, @width, @height);
+        vertical-align: text-top;
+        width: unit(@width, px);
     }
 }
 

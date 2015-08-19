@@ -60,9 +60,9 @@
                     <td colspan="2">
                         <label><?= _("Inhalt") ?><br>
                         <? list ($body, $admin_msg) = explode("<admin_msg>", $news['body']); ?>
-                        <textarea class="news_body add_toolbar wysiwyg" name="news_body" rows="6"
+                        <textarea class="news_body add_toolbar" name="news_body" rows="6"
                             wrap="virtual" placeholder="<?= _('Geben Sie hier den Ankündigungstext ein') ?>"
-                            aria-label="<?= _('Inhalt der Ankündigung') ?>"><?= wysiwygReady($body) ?></textarea></label>
+                            aria-label="<?= _('Inhalt der Ankündigung') ?>"><?= htmlReady($body) ?></textarea></label>
                     </td>
                 </tr>
                 <tr>
@@ -82,7 +82,7 @@
                     <? endif ?>
                     <? if ($news['allow_comments']): ?>
                         <input type="hidden" name="news_allow_comments" value="1">
-                        <?= Assets::input('icons/16/blue/checkbox-checkbox.png', tooltip2(_('Kommentare sperren')) + array(
+                        <?= Assets::input('icons/16/blue/checkbox-checked.png', tooltip2(_('Kommentare sperren')) + array(
                                 'name' => 'comments_status_deny',
                         )) ?>
                         <?= _('Kommentare zulassen') ?>

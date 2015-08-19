@@ -239,7 +239,7 @@ class MembersModel
                         mit dem Status <b>%s</b> in die Veranstaltung eingetragen.'), $fullname, $status));
                 } else {
                     $msg = MessageBox::success(sprintf(_('NutzerIn %s wurde mit dem Status <b>%s</b>
-                        endgültig akzeptiert und damit in die Veranstaltung aufgenommen.'), $fullname, $status));
+                        endg?ltig akzeptiert und damit in die Veranstaltung aufgenommen.'), $fullname, $status));
                 }
             }
         } else if ($consider_contingent) {
@@ -249,6 +249,60 @@ class MembersModel
                 Bitte versuchen Sie es erneut oder wenden Sie sich an einen Systemadministrator'));
         }
 
+        return $msg;
+    }
+
+    /**
+     * Adds the given user to the waitlist of the current course and sends a
+     * corresponding message.
+     *
+     * @param String $user_id The user to add
+     * @return bool Successful operation?
+     */
+    public function addToWaitlist($user_id)
+    {
+        $course = Seminar::getInstance($this->course_id);
+        // Insert user in waitlist at current position.
+        if ($course->addToWaitlist($user_id, 'last')) {
+            setTempLanguage($user_id);
+            $message = sprintf(_('Sie wurden von einem/einer Veranstaltungsleiter/-in (%s) ' .
+                'oder einem/einer Administrator/-in auf die Warteliste der Veranstaltung **%s** gesetzt.'),
+                get_title_for_status('dozent', 1), $this->course_title);
+            restoreLanguage();
+            messaging::sendSystemMessage($user_id, sprintf('%s %s', _('Systemnachricht:'),
+                    _('Auf Warteliste gesetzt')), $message);
+
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Adds the given users to the target course.
+     * @param array $users users to add
+     * @param string $target_course which course to add users to
+     * @param bool $move move users (=delete in source course) or just add to target course?
+     * @return array success and failure statuses
+     */
+    public function sendToCourse($users, $target_course_id, $move = false)
+    {
+        $msg = array();
+        foreach ($users as $user) {
+            if (!CourseMember::exists(array($target_course_id, $user))) {
+                $target_course = new Seminar($target_course_id);
+                if ($target_course->addMember($user)) {
+                    if ($move) {
+                        $remove_from = Seminar::getInstance($this->course_id);
+                        $remove_from->deleteMember($user);
+                    }
+                    $msg['success'][] = $user;
+                } else {
+                    $msg['failed'][] = $user;
+                }
+            } else {
+                $msg['existing'][] = $user;
+            }
+        }
         return $msg;
     }
 
@@ -392,6 +446,45 @@ class MembersModel
         }
         return $filtered_members;
     }
+
+    /**
+     * Adds given users to the course waitlist, either at list beginning or end.
+     * System messages are sent to affected users.
+     *
+     * @param mixed $users array of user ids to add
+     * @param String $which_end 'last' or 'first': which list end to append to
+     * @return mixed Array of messages (stating success and/or errors)
+     */
+     public function moveToWaitlist($users, $which_end)
+     {
+         $course = Seminar::getInstance($this->course_id);
+         foreach ($users as $user_id) {
+             // Delete member from seminar
+             if ($course->deleteMember($user_id)) {
+                 setTempLanguage($user_id);
+                 $message = sprintf(_('Ihr Abonnement der Veranstaltung **%s** wurde von '.
+                     'einem/einer Veranstaltungsleiter/-in (%s) oder Administrator/-in aufgehoben, '.
+                     'Sie wurden auf die Warteliste dieser Veranstaltung gesetzt.'),
+                     $this->course_title, get_title_for_status('dozent', 1));
+                 restoreLanguage();
+                 messaging::sendSystemMessage($user_id, sprintf('%s %s', _('Systemnachricht:'),
+                     _('Abonnement aufgehoben, auf Warteliste gesetzt')), $message);
+                 // Insert user in waitlist at current position.
+                 if ($course->addToWaitlist($user_id, $which_end)) {
+                     $temp_user = User::find($user_id);
+                     $msgs['success'][] = $temp_user->getFullname('no_title');
+                     $curpos++;
+                     // Something went wrong on removing the user from course.
+                 } else {
+                     $msgs['error'][] = $temp_user->getFullname('no_title');
+                 }
+                 // Something went wrong on inserting the user in waitlist.
+             } else {
+                 $msgs['error'][] = $temp_user->getFullname('no_title');
+             }
+         }
+         return $msgs;
+     }
 
     /**
      * Get the positon out of the database

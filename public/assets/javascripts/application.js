@@ -23,7 +23,7 @@
 /* ------------------------------------------------------------------------
  * ajax_loader
  * ------------------------------------------------------------------------ */
-jQuery('[data-behaviour="ajaxContent"]').live('click', function () {
+jQuery(document).on('click', '[data-behaviour="ajaxContent"]', function () {
     var parameters = jQuery(this).data(),
         indicator = parameters.hasOwnProperty('indicator') ? parameters.indicator : this,
         target    = parameters.hasOwnProperty('target') ? parameters.target : jQuery(this).next(),
@@ -40,7 +40,7 @@ jQuery('[data-behaviour="ajaxContent"]').live('click', function () {
 /* ------------------------------------------------------------------------
  * messages boxes
  * ------------------------------------------------------------------------ */
-jQuery('.messagebox .messagebox_buttons a').live('click', function () {
+jQuery(document).on('click', '.messagebox .messagebox_buttons a', function () {
     if (jQuery(this).is('.details')) {
         jQuery(this).closest('.messagebox').toggleClass('details_hidden');
     } else if (jQuery(this).is('.close')) {
@@ -49,7 +49,7 @@ jQuery('.messagebox .messagebox_buttons a').live('click', function () {
         });
     }
     return false;
-}).live('focus', function () {
+}).on('focus', '.messagebox .messagebox_buttons a', function () {
     jQuery(this).blur(); // Get rid of the ugly "clicked border" due to the text-indent
 });
 
@@ -89,14 +89,14 @@ jQuery(function () {
  * ------------------------------------------------------------------------ */
 jQuery(function ($) {
 
-    $('table.collapsable .toggler').focus(function () {
+    $(document).on('focus', 'table.collapsable .toggler', function () {
         $(this).blur();
-    }).live('click', function () {
+    }).on('click', 'table.collapsable .toggler', function () {
         $(this).closest('tbody').toggleClass('collapsed');
         return false;
     });
 
-    $('a.load-in-new-row').live('click', function () {
+    $(document).on('click', 'a.load-in-new-row', function () {
         if ($(this).data('busy')) {
             return false;
         }
@@ -127,7 +127,7 @@ jQuery(function ($) {
         return false;
     });
 
-    $('.loaded-details a.cancel').live('click', function () {
+    $(document).on('click', '.loaded-details a.cancel', function () {
         $(this).closest('.loaded-details').prev().find('a.load-in-new-row').click();
         return false;
     });
@@ -138,7 +138,7 @@ jQuery(function ($) {
  * Toggle dates in seminar_main
  * ------------------------------------------------------------------------ */
 (function ($) {
-    $('.more-dates').live('click', function () {
+    $(document).on('click', '.more-dates', function () {
         $('.more-dates-infos').toggle();
         $('.more-dates-digits').toggle();
         if ($('.more-dates-infos').is(':visible')) {
@@ -150,7 +150,7 @@ jQuery(function ($) {
         }
     });
 
-    $('.more-location-dates').live('click', function () {
+    $(document).on('click', '.more-location-dates', function () {
         $(this).closest('div').prev().toggle();
         $(this).prev().toggle();
 
@@ -167,7 +167,7 @@ jQuery(function ($) {
 /* ------------------------------------------------------------------------
  * only numbers in the input field
  * ------------------------------------------------------------------------ */
-jQuery('input.allow-only-numbers').live('keyup', function () {
+jQuery(document).on('keyup', 'input.allow-only-numbers', function () {
     jQuery(this).val(jQuery(this).val().replace(/\D/, ''));
 });
 
@@ -177,7 +177,7 @@ jQuery('input.allow-only-numbers').live('keyup', function () {
  * ------------------------------------------------------------------------ */
 jQuery.ui.accordion.prototype.options.icons = {
     header: 'arrow_right',
-    headerSelected: 'arrow_down'
+    activeHeader : 'arrow_down'
 };
 
 
@@ -227,101 +227,22 @@ jQuery.ui.accordion.prototype.options.icons = {
         minuteText: 'Minute',
         secondText: 'Sekunde',
         millisecText: 'Millisekunde',
+        microsecText: 'Mikrosekunde',
         timezoneText: 'Zeitzone',
         currentText: 'Jetzt',
         closeText: 'Fertig',
-        timeFormat: 'HH:mm',
+        timeFormat: "HH:mm",
         amNames: ['vorm.', 'AM', 'A'],
         pmNames: ['nachm.', 'PM', 'P'],
-        isRTL: false
+        isRTL: false,
+        showTimezone: false
     };
     $.timepicker.setDefaults($.timepicker.regional.de);
 }(jQuery));
 
 
 jQuery(function ($) {
-    // Store document height (we will need this to check for changes)
-    var doc_height = $(document).height();
-
-    // This function inits the sticky sidebar by using the StickyKit lib
-    // <http://leafo.net/sticky-kit/>
-    function stickySidebar (is_sticky) {
-        if (arguments.length === 0) {
-            is_sticky = true;
-        }
-        if (is_sticky) {
-            $('#layout-sidebar .sidebar').stick_in_parent({
-                offset_top: $('#barBottomContainer').outerHeight(true),
-                inner_scrolling: true
-            }).on('sticky_kit:stick sticky_kit:unbottom', function () {
-                var stuckHandler = function (top, left) {
-                    $('#layout-sidebar .sidebar').css('margin-left', -left);
-                };
-                STUDIP.Scroll.addHandler('sticky.horizontal', stuckHandler);
-                stuckHandler(0, $(window).scrollLeft());
-            }).on('sticky_kit:unstick sticky_kit:bottom', function () {
-                STUDIP.Scroll.removeHandler('sticky.horizontal');
-                $(this).css('margin-left', 0);
-            });
-        } else {
-            STUDIP.Scroll.removeHandler('sticky.horizontal');
-            $('#layout-sidebar .sidebar').trigger('sticky_kit:unstick').trigger('sticky_kit:detach');
-        }
-    };
-    stickySidebar();
-
-    // (De|Re)activate when help tours start|stop
-    $(document).on('tourstart.studip', function () {
-        stickySidebar(false);
-    }).on('tourend.studip', function () {
-        stickySidebar();
-    });
-
-    if (window.MutationObserver !== undefined) {
-        // Attach mutation observer to #layout_content and trigger it on
-        // changes to class and style attributes (which affect the height
-        // of the content). Trigger a recalculation of the sticky kit when
-        // a mutation occurs so the sidebar will
-        var target = $('#layout_content')[0],
-            stickyObserver = new MutationObserver(function (mutations) {
-                $(document.body).trigger('sticky_kit:recalc');
-            });
-        stickyObserver.observe(target, {
-            attributes: true,
-            attributeFilter: ['style', 'class'],
-            characterData: true,
-            subtree: true
-        });
-    } else {
-        // Recalculcate positions on ajax and img load events.
-        // Inside the handlers the current document height is compared
-        // to the previous height before the event occured so recalculation
-        // only happens on actual changes
-        $(document).on('ajaxComplete', function () {
-            var curr_height = $(document).height();
-            if (doc_height !== curr_height) {
-                doc_height = curr_height;
-                $(document.body).trigger('sticky_kit:recalc');
-            }
-        });
-        $(document).on('load', '#layout_content img', function () {
-            var curr_height = $(document).height();
-            if (doc_height !== curr_height) {
-                doc_height = curr_height;
-                $(document.body).trigger('sticky_kit:recalc');
-            }
-        });
-
-        // Specialized handler to trigger recalculation when wysiwyg
-        // instances are created.
-        if (STUDIP.wysiwyg) {
-            $(document).on('load.wysiwyg', 'textarea', function () {
-                $(document.body).trigger('sticky_kit:recalc');
-            });
-        }
-    }
-
-    $('a.print_action').live('click', function (event) {
+    $(document).on('click', 'a.print_action', function (event) {
         var url_to_print = this.href;
         $('<iframe/>', {
             name: url_to_print,
@@ -423,46 +344,61 @@ jQuery(document).on('change', 'select[data-copy-to]', function () {
 
 jQuery(document).ready(function ($) {
     $('#checkAll').attr('checked', $('.sem_checkbox:checked').length !== 0);
+});
 
-    // Duplicate scrollbar on top of layout content, if:
-    // - Device does not support touch input (supports sideways scrolling)
-    // - Content is wider than allowed (horizontal scrollbars are visible)
-    // - Content takes up more than 3/4 of the screen and vertical scrollbars
-    //   are visible (otherwise we can except the user to scroll a little bit
-    //   vertically)
-    if ($('html').is('.no-touch')) {
-        var $layout_content = $('#layout_content'),
-            $body           = $('body'),
-            content_element,
-            max_width       = 0,
-            // Determine whether there actually are horizontal scrollbars
-            horizontal_scroll  = $layout_content.get(0).scrollWidth > $layout_content.width(),
-            // Determine whether there actually are vertical scrollbars
-            vertical_scroll    = $body.get(0).scrollHeight > $body.height() + 10,
-            // Determine whether the content is large enough so that a duplication
-            // of the horizontal scrollbars is neccessary (3/4 or 75% seems like
-            // a good value)
-            vertical_oversized = $layout_content.height() > $body.height() * 0.75;
+// Fix horizontal scroll issue on domready, window load and window resize.
+// This also makes the header and footer sticky regarding horizontal scrolling.
+jQuery(document).on('ready', function () {
+    var page_margin    = ($('#layout_page').outerWidth(true) - $('#layout_page').width()) / 2,
+        content_margin = $('#layout_content').outerWidth(true) - $('#layout_content').innerWidth(),
+        sidebar_width  = $('#layout-sidebar').outerWidth(true);
 
-        // Determine the widest element in the content. The double scroll
-        // library needs this, otherwise the scrollbar on top is kinda
-        // messed up
-        $layout_content.children().each(function () {
-            var width = $(this).get(0).scrollWidth;
-            if (width > max_width) {
-                content_element = this;
-                max_width = width;
-            }
+    function fixScrolling () {
+        $('#layout_page').removeClass('oversized').css({
+            minWidth: '',
+            marginRight: '',
+            paddingRight: ''
         });
 
-        if (horizontal_scroll && vertical_scroll && vertical_oversized) {
-            // #layout_content's children need to be wrapped in a div since
-            // the flexi layout will interfere with inserted element by
-            // the double scroll library
-            $layout_content.children().wrapAll('<div>').parent().doubleScroll({
-                contentElement: content_element
+        var max_width    = 0,
+            fix_required = $('html').is(':not(.responsified)') && $('#layout_content').get(0).scrollWidth > $('#layout_content').width();
+
+        if (fix_required) {
+            $('#layout_content').children().each(function () {
+                var width = $(this).get(0).scrollWidth + ($(this).outerWidth(true) - $(this).innerWidth());
+                if (width > max_width) {
+                    max_width = width;
+                }
             });
+
+            $('#layout_page').addClass('oversized').css({
+                minWidth: sidebar_width + content_margin + max_width + page_margin,
+                marginRight: 0,
+                paddingRight: page_margin
+            });
+
+            STUDIP.Scroll.addHandler('horizontal-scroll', (function () {
+                var last_left = null;
+                return function (top, left) {
+                    if (last_left !== left) {
+                        $('#flex-header,#layout_footer,#barBottomContainer').css({
+                            transform: 'translate3d(' + left + 'px,0,0)'
+                        });
+                    }
+                    last_left = left;
+                };
+            }()));
+        } else {
+            STUDIP.Scroll.removeHandler('horizontal-scroll');
         }
+    };
+
+    if ($('.no-touch #layout_content').length > 0) {
+        // Try to fix now
+        fixScrolling();
+
+        // and fix again on window load and resize
+        $(window).on('resize load', _.debounce(fixScrolling, 100));
     }
 });
 

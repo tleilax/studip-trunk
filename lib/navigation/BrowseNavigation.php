@@ -65,10 +65,12 @@ class BrowseNavigation extends Navigation
                 $navigation = new Navigation(_('Meine Veranstaltungen'));
             }
 
-            $navigation->addSubNavigation('list', new Navigation(_('Aktuelle Veranstaltungen'), 'dispatch.php/my_courses'));
+            $navigation->addSubNavigation('list', new Navigation($perm->have_perm('admin') ? _('Veranstaltungsadministration') : _('Aktuelle Veranstaltungen'), 'dispatch.php/my_courses'));
 
             if ($perm->have_perm('admin')) {
-                $navigation->addSubNavigation('schedule', new Navigation(_('Veranstaltungs-Stundenplan'), 'dispatch.php/calendar/instschedule?cid=' . $GLOBALS['user']->cfg->MY_INSTITUTES_DEFAULT));
+                if ($GLOBALS['user']->cfg->MY_INSTITUTES_DEFAULT != 'all') {
+                    $navigation->addSubNavigation('schedule', new Navigation(_('Veranstaltungs-Stundenplan'), 'dispatch.php/calendar/instschedule?cid=' . $GLOBALS['user']->cfg->MY_INSTITUTES_DEFAULT));
+                }
             } else {
                 $navigation->addSubNavigation('archive', new Navigation(_('Archivierte Veranstaltungen'), 'dispatch.php/my_courses/archive'));
             }
@@ -79,7 +81,7 @@ class BrowseNavigation extends Navigation
                 $navigation = new Navigation(_('Meine Studiengruppen'), 'dispatch.php/my_studygroups');
                 $navigation->addSubNavigation('index', new Navigation(_('Meine Studiengruppen'), 'dispatch.php/my_studygroups'));
                 $navigation->addSubNavigation('all', new Navigation(_('Studiengruppensuche'), 'dispatch.php/studygroup/browse'));
-                $navigation->addSubNavigation('new', new Navigation(_('Neue Studiengruppe anlegen'), 'dispatch.php/course/studygroup/new'));
+                $navigation->addSubNavigation('new', new Navigation(_('Neue Studiengruppe anlegen'), 'dispatch.php/course/wizard?studygroup=1'));
                 $this->addSubNavigation('my_studygroups', $navigation);
             }
 

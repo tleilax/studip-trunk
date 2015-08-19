@@ -69,12 +69,14 @@ class StudipFormat extends TextFormat
             'callback' => 'StudipFormat::markupText'
         ),
         'big' => array(
-            'start'    => '(\+\+)([^\n]*)\+\+',
-            'callback' => 'StudipFormat::markupGreedyText'
+            'start'    => '(\+\+)+',
+            'end'      => '(\+\+)+',
+            'callback' => 'StudipFormat::markupTextSize'
         ),
         'small' => array(
-            'start'    => '(--)([^\n]*)--',
-            'callback' => 'StudipFormat::markupGreedyText'
+            'start'    => '(--)+',
+            'end'      => '(--)+',
+            'callback' => 'StudipFormat::markupTextSize'
         ),
         'super' => array(
             'start'    => '&gt;&gt;',
@@ -140,7 +142,7 @@ class StudipFormat extends TextFormat
         'quote' => array(
             'start'    => '\[quote(=.*?)?\]',
             'end'      => '\[\/quote\]',
-            'callback' => 'StudipFormat::markupQuote',
+            'callback' => 'StudipFormat::markupQuote'
         ),
         'nop' => array(
             'start'    => '\[nop\](.*?)\[\/nop\]',
@@ -319,20 +321,18 @@ class StudipFormat extends TextFormat
     }
 
     /**
-     * Basic text formatting: bold, italics, underline, big, small etc.
+     * Basic text formatting: bold, italics, underline, sup, sub etc.
      */
     protected static function markupText($markup, $matches, $contents)
     {
         static $tag = array(
-            '**' => 'strong',
-            '%%' => 'em',
-            '++' => 'big',
-            '--' => 'small',
+            '**' => 'b',
+            '%%' => 'i',
             '__' => 'u',
             '##' => 'tt',
             '&gt;&gt;' => 'sup',
             '&lt;&lt;' => 'sub',
-            '{-' => 's',
+            '{-' => 'strike',
             '[admin_msg]' => 'i'
         );
 
@@ -342,18 +342,21 @@ class StudipFormat extends TextFormat
     }
 
     /**
-     * Basic text formatting: bold, italics, underline, big, small etc.
+     * Text size formatting: small and small
      */
-    protected static function markupGreedyText($markup, $matches)
+    protected static function markupTextSize($markup, $matches, $contents)
     {
-        static $greedytag = array(
+        static $tag = array(
             '++' => 'big',
-            '--' => 'small'
+            '--' => 'small',
         );
 
         $key = $matches[1];
+        $level = strlen($matches[0]) / 2;
+        $open = str_repeat('<' . $tag[$key] . '>', $level);
+        $close = str_repeat('</' . $tag[$key] . '>', $level);
 
-        return sprintf('<%s>%s</%s>', $greedytag[$key], $markup->format($matches[2]), $greedytag[$key]);
+        return $open . $contents . $close;
     }
 
     /**
@@ -362,8 +365,8 @@ class StudipFormat extends TextFormat
     protected static function markupTextSimple($markup, $matches)
     {
         static $tag = array(
-            '*' => 'strong',
-            '%' => 'em',
+            '*' => 'b',
+            '%' => 'i',
             '_' => 'u',
             '#' => 'tt',
             '+' => 'big',
@@ -464,15 +467,6 @@ class StudipFormat extends TextFormat
      */
     protected static function markupQuote($markup, $matches, $contents)
     {
-        // If quoting is changed update these functions:
-        // - StudipFormat::markupQuote
-        //   lib/classes/StudipFormat.php
-        // - quotes_encode lib/visual.inc.php
-        // - STUDIP.Forum.citeEntry > quote
-        //   public/plugins_packages/core/Forum/javascript/forum.js
-        // - studipQuotePlugin > insertStudipQuote
-        //   public/assets/javascripts/ckeditor/plugins/studip-quote/plugin.js
-
         if (strlen($matches[1]) > 1) {
             $title = sprintf(_('%s hat geschrieben:'), $markup->format(substr($matches[1], 1)));
             return sprintf('<blockquote><div class="author">%s</div>%s</blockquote>',
@@ -501,7 +495,9 @@ class StudipFormat extends TextFormat
             $codetype = " ".decodeHTML(trim(substr($matches[1], 1)), ENT_QUOTES);
         }
         $code = decodeHTML(trim($matches[2]), ENT_QUOTES);
-        return '<pre class="usercode'.$codetype.'"><code class="'.$codetype.'">'.htmlReady($code).'</code></pre>';
+        return sprintf('<pre class="usercode %1$s"><code class="%1$s">%2$s</code></pre>',
+                       htmlReady($codetype),
+                       htmlReady($code));
     }
 
     /**

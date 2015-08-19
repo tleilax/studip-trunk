@@ -73,6 +73,7 @@ class Institute extends SimpleORMap
     {
         return self::findBySQL("fakultaets_id=? AND fakultaets_id <> institut_id ORDER BY Name ASC", array($fakultaets_id));
     }
+
     /**
      * returns an array of all institutes ordered by faculties and name
      * @return array
@@ -101,14 +102,14 @@ class Institute extends SimpleORMap
         }
         $db = DBManager::get();
         if (!$perm->have_perm("admin")) {
-            $result = $db->query("SELECT user_inst.Institut_id, Institute.Name, IF(user_inst.Institut_id=Institute.fakultaets_id,1,0) AS is_fak, user_inst.inst_perms " .
+            $result = $db->query("SELECT user_inst.Institut_id, Institute.Name, Institute.fakultaets_id, IF(user_inst.Institut_id=Institute.fakultaets_id,1,0) AS is_fak, user_inst.inst_perms " .
                 "FROM user_inst " .
                     "LEFT JOIN Institute USING (institut_id) " .
                 "WHERE (user_id = ".$db->quote($user_id)." " .
                     "AND (inst_perms = 'dozent' OR inst_perms = 'tutor')) " .
                 "ORDER BY Institute.Name ASC")->fetchAll(PDO::FETCH_ASSOC);
         } else if (!$perm->have_perm("root")) {
-            $result = $db->query("SELECT user_inst.Institut_id, Institute.Name, IF(user_inst.Institut_id=Institute.fakultaets_id,1,0) AS is_fak, user_inst.inst_perms " .
+            $result = $db->query("SELECT user_inst.Institut_id, Institute.Name, Institute.fakultaets_id, IF(user_inst.Institut_id=Institute.fakultaets_id,1,0) AS is_fak, user_inst.inst_perms " .
                 "FROM user_inst " .
                     "LEFT JOIN Institute USING (institut_id) " .
                 "WHERE (user_id = ".$db->quote($user_id)." AND inst_perms = 'admin') " .
@@ -116,7 +117,7 @@ class Institute extends SimpleORMap
             if ($perm->is_fak_admin()) {
                 foreach($result as $fak) {
                     $combined_result[] = $fak;
-                    $institutes = $db->query("SELECT Institut_id, Name, 0 as is_fak, 'admin' as inst_perms
+                    $institutes = $db->query("SELECT Institut_id, Name, fakultaets_id, 0 as is_fak, 'admin' as inst_perms
                                               FROM Institute WHERE Institut_id <> fakultaets_id AND fakultaets_id = " . $db->quote($fak['Institut_id'])
                                              . " ORDER BY Institute.Name ASC")->fetchAll(PDO::FETCH_ASSOC);
                     $combined_result = array_merge($combined_result, $institutes);
@@ -125,7 +126,7 @@ class Institute extends SimpleORMap
             }
 
         } else {
-            $result = $db->query("SELECT Institute.Institut_id, Institute.Name, IF(Institute.Institut_id=Institute.fakultaets_id,1,0) AS is_fak, 'admin' AS inst_perms " .
+            $result = $db->query("SELECT Institute.Institut_id, Institute.Name, Institute.fakultaets_id, IF(Institute.Institut_id=Institute.fakultaets_id,1,0) AS is_fak, 'admin' AS inst_perms " .
                 "FROM Institute " .
                     "LEFT JOIN Institute as fakultaet ON (Institute.fakultaets_id = fakultaet.Institut_id) " .
                 "ORDER BY fakultaet.Name ASC, is_fak DESC, Institute.Name ASC")->fetchAll(PDO::FETCH_ASSOC);
@@ -181,6 +182,19 @@ class Institute extends SimpleORMap
             'thru_table' => 'seminar_inst',
             'on_delete' => 'delete',
             'on_store' => 'store',
+        );
+        $config['has_many']['scm'] = array(
+            'class_name'        => 'StudipScmEntry',
+            'assoc_foreign_key' => 'range_id',
+            'on_delete'         => 'delete',
+            'on_store'          => 'store',
+        );
+        $config['has_many']['status_groups'] = array(
+            'class_name'        => 'Statusgruppen',
+            'assoc_foreign_key' => 'range_id',
+            'on_delete'         => 'delete',
+            'on_store'          => 'store',
+            'order_by'          => 'ORDER BY position ASC',
         );
         parent::configure($config);
     }

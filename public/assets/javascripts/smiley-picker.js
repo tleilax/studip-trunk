@@ -77,8 +77,9 @@
                         {
                             text: 'Zur Gesamtübersicht'.toLocaleString(),
                             click: function () {
-                                window.open(STUDIP.URLHelper.getURL('dispatch.php/smileys'), '_blank');
+                                var url = STUDIP.URLHelper.getURL('dispatch.php/smileys');
                                 picker_element.dialog('close');
+                                STUDIP.Dialog.fromURL(url);
                             }
                         },
                         {
@@ -119,7 +120,7 @@
     // Attach global event handlers:
 
     // Navigation: Load any url in this very same dialog
-    $('.smiley-picker .navigation a').live('click', function () {
+    $(document).on('click', '.smiley-picker .navigation a', function () {
         loadURL(this.href);
         return false;
     });
@@ -127,7 +128,7 @@
     // Smiley:
     // Execute select handler with selected smiley's code
     // (typically adds the code to a certain textarea)
-    $('.smiley-picker .smiley').live('click', function () {
+    $(document).on('click', '.smiley-picker .smiley', function () {
         select_handler($(this).data().code);
         picker_element.dialog('close');
         return false;

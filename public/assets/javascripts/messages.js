@@ -64,6 +64,18 @@ STUDIP.Messages = {
         jQuery(this).closest("li").fadeOut(300, function() { jQuery(this).remove(); });
     },
 
+    remove_attachment: function () {
+        jQuery.ajax({
+                    url: STUDIP.ABSOLUTE_URI_STUDIP + "dispatch.php/messages/delete_attachment",
+                    data: {
+                        'document_id' : jQuery(this).closest("li").data('document_id'),
+                        'message_id' : jQuery(this).closest("form").find('input[name=message_id]').val()
+                    },
+                    type: "POST",
+        });
+        jQuery(this).closest("li").fadeOut(300, function() { jQuery(this).remove(); });
+    },
+
     upload_from_input: function (input) {
         STUDIP.Messages.upload_files(input.files);
         jQuery(input).val("");
@@ -125,7 +137,7 @@ STUDIP.Messages = {
                     file.find(".size").text(Math.floor(data.size / 1024 / 1024 / 1024) + "GB");
                 }
                 file.find(".icon").html(data.icon);
-
+                file.data('document_id', data.document_id);
                 file.appendTo("#attachments .files");
                 file.fadeIn(300);
                 statusbar.find(".progresstext").text(jQuery("#upload_received_data").text());
@@ -299,5 +311,6 @@ jQuery(function () {
     });
     jQuery('.widget-links li:has(.tag)').each(STUDIP.Messages.createDroppable);
 
-    jQuery(".adressee .remove_adressee").live("click", STUDIP.Messages.remove_adressee);
+    jQuery(document).on("click", ".adressee .remove_adressee", STUDIP.Messages.remove_adressee);
+    jQuery(document).on("click", ".file .remove_attachment", STUDIP.Messages.remove_attachment);
 });

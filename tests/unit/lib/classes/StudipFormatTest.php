@@ -44,7 +44,7 @@ class StudipFormatTest extends PHPUnit_Framework_TestCase
         $markup = new StudipFormat();
 
         $input = '[b]some %%code%%[/b]';
-        $expected = '<b>some <em>code</em></b>';
+        $expected = '<b>some <i>code</i></b>';
         $this->assertEquals($expected, $markup->format($input));
     }
 
@@ -54,7 +54,16 @@ class StudipFormatTest extends PHPUnit_Framework_TestCase
         $markup = new StudipFormat();
 
         $input = '**some %%code%%**';
-        $expected = '**some <em>code</em>**';
+        $expected = '**some <i>code</i>**';
+        $this->assertEquals($expected, $markup->format($input));
+    }
+
+    public function testTextSizing()
+    {
+        $markup = new StudipFormat();
+
+        $input = '++++abc++++ **++123++**';
+        $expected = '<big><big>abc</big></big> <b><big>123</big></b>';
         $this->assertEquals($expected, $markup->format($input));
     }
 

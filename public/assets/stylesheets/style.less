@@ -1,10 +1,7 @@
 /*******************************************************************************
-  Standard-Stylesheet für Stud.IP im Safire-Design
+  Standard-Stylesheet fï¿½r Stud.IP im Safire-Design
   - use http://www.colorzilla.com/gradient-editor/ for gradients
 *******************************************************************************/
-
-@image-path: "../images";
-@icon-path: "@{image-path}/icons/16";
 
 @import "mixins.less";
 
@@ -14,6 +11,7 @@
 @import "less/links.less";
 @import "less/tables.less";
 @import "less/forms.less";
+@import "less/studip-form.less";
 @import "less/content.less";
 @import "less/css_tree.less";
 
@@ -62,6 +60,8 @@
 @import "less/dialog.less";
 @import "less/lists.less";
 @import "less/plus.less";
+@import "less/coursewizard.less";
+@import "less/smileys.less";
 
 @import "less/responsive.less";
 
@@ -189,13 +189,13 @@ table.index_box {
 }
 
 td.index_box_cell {
-    background-color: #f3f5f8;
+    background-color: @content-color-20;
     padding: 4px;
 }
 
 /* overdiv */
 div.overdiv {
-    background-color: #f3f5f8;
+    background-color: @content-color-20;
     margin: 0;
     padding: 0;
     position: absolute;
@@ -222,7 +222,7 @@ div.overdiv {
     }
 
     div.content {
-        background-color: #f3f5f8;
+        background-color: @content-color-20;
         clear: both;
         margin: 0;
         overflow: hidden;
@@ -250,8 +250,8 @@ div.overdiv {
         .right { float: right; }
 
         .ui-button {
-            .border-radius(4px);
-            line-height: 1em;
+            display: inline-block;
+            height: 2.3em;
         }
     }
 }
@@ -277,7 +277,7 @@ img.plugin_preview {
 /* --- Veranstaltungsverwaltung --------------------------------------------- */
 .click_me {
     div {
-        background-color: #f3f5f8;
+        background-color: @content-color-20;
         border: 1px solid #D0D0D0;
         float: left;
         height: 10em;
@@ -315,26 +315,22 @@ img.plugin_preview {
     border-top: 1px solid #D0D0D0;
 }
 
-/* --- textarea resizer ----------------------------------------------------- */
-.ui-resizable-handle.ui-resizable-s {
-    background: #eee url("@{image-path}/vendor/handle_background.png") no-repeat center;
-    bottom: 0;
-    cursor: s-resize;
-    height: 12px;
-}
-
 /* --- general style classes ------------------------------------------------ */
 .arrow_down {
-    background: transparent url("@{icon-path}/blue/arr_1down.png") top left no-repeat !important;
-    background-position: 0 0 !important;
+    background: transparent top left no-repeat !important;
+    .retina-background-icon('blue/arr_1down.png') !important;
 }
 .arrow_right {
-    background: transparent url("@{icon-path}/blue/arr_1right.png") top left no-repeat !important;
-    background-position: 0 0 !important;
+    background: transparent top left no-repeat !important;
+    .retina-background-icon('blue/arr_1right.png') !important;
 }
 h1:hover, h2:hover, h3:hover, h4:hover {
-    .arrow_down  { background-image: url("@{icon-path}/red/arr_1down.png"); }
-    .arrow_right { background-image: url("@{icon-path}/red/arr_1right.png"); }
+    .arrow_down  {
+        .retina-background-icon('red/arr_1down.png');
+    }
+    .arrow_right {
+        .retina-background-icon('red/arr_1right.png');
+    }
 }
 
 .invalid { border: 2px dotted red; } // an invalid form entry

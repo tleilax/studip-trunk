@@ -51,6 +51,7 @@
 class AdminCourseFilter
 {
     static protected $instance = null;
+    public $max_show_courses = 500;
     public $settings = array();
 
     /**
@@ -73,6 +74,47 @@ class AdminCourseFilter
      */
     public function __construct($reset_settings = false)
     {
+        $this->initSettings();
+
+        if ($reset_settings) {
+            $this->resetSettings();
+        } else {
+            $this->restoreSettings();
+        }
+    }
+
+    /**
+     * store settings in session
+     */
+    public function storeSettings()
+    {
+        $_SESSION['AdminCourseFilter_settings'] = $this->settings;
+    }
+
+    /**
+     * restore settings from session
+     */
+    public function restoreSettings()
+    {
+        if ($_SESSION['AdminCourseFilter_settings']) {
+            $this->settings = $_SESSION['AdminCourseFilter_settings'];
+        }
+    }
+
+    /**
+     * reset settings
+     */
+    public function resetSettings()
+    {
+        $this->initSettings();
+        unset($_SESSION['AdminCourseFilter_settings']);
+    }
+
+    /**
+     * initialize settings
+     */
+    public function initSettings()
+    {
         $this->settings = array();
 
         $this->settings['query']['select'] = array(
@@ -83,7 +125,8 @@ class AdminCourseFilter
                           WHERE seminar_id = seminare.Seminar_id AND status = 'accepted')",
             'waiting' => "(SELECT COUNT(seminar_id)
                           FROM admission_seminar_user
-                          WHERE seminar_id = seminare.Seminar_id AND status = 'awaiting')"
+                          WHERE seminar_id = seminare.Seminar_id AND status = 'awaiting')",
+            'course_set' => "(SELECT set_id FROM seminar_courseset WHERE seminar_id = seminare.Seminar_id)"
         );
         $this->settings['query']['joins'] = array(
             'Institute' => array(
@@ -105,10 +148,6 @@ class AdminCourseFilter
         );
         $this->settings['query']['where'] = array();
         $this->settings['query']['orderby'] = "seminare.name";
-
-        if ($_SESSION['AdminCourseFilter_settings'] && !$reset_settings) {
-            $this->settings = $_SESSION['AdminCourseFilter_settings'];
-        }
     }
 
     /**
@@ -208,13 +247,14 @@ class AdminCourseFilter
      * @return $this
      * @throws Exception if $flag does not exist
      */
-    public function orderBy($attribute, $flag = "ASC")
+    public function orderBy($attribute, $flag = 'ASC')
     {
-        if (!in_array($flag, words("ASC DESC"))) {
+        $flag = strtoupper($flag);
+        if (!in_array($flag, words('ASC DESC'))) {
             throw new Exception("Sortierreihenfolge undefiniert.");
         }
-        if (in_array($attribute, words('VeranstaltungsNummer Name status teilnehmer waiting prelim')) && in_array($flag, words("ASC, DESC"))) {
-            $this->settings['query']['orderby'] = $attribute." ".$flag;
+        if (in_array($attribute, words('VeranstaltungsNummer Name status teilnehmer waiting prelim'))) {
+            $this->settings['query']['orderby'] = $attribute . ' ' . $flag;
         }
         return $this;
     }
@@ -260,11 +300,28 @@ class AdminCourseFilter
     public function countCourses()
     {
         NotificationCenter::postNotification("AdminCourseFilterWillQuery", $this);
-        $query = "SELECT COUNT(*) FROM (".$this->createQuery(true).") AS filterted_courses";
-        $statement = DBManager::get()->prepare($query);
-        $statement->execute($this->settings['parameter']);
-        $number =  $statement->fetch(PDO::FETCH_COLUMN, 0);
-        return $number;
+        return DBManager::get()->fetchColumn($this->createQuery(true), $this->settings['parameter']);
+    }
+
+    /**
+     * Returns the data of the resultset of the AdminCourseFilter.
+     *
+     * Note that a notification AdminCourseFilterWillQuery will be posted, before the result is computed.
+     * Plugins may register at this event to fully alter this AdminCourseFilter-object and so the resultset.
+     * @return array : associative array with seminar_ids as keys and seminar-data-arrays as values.
+     */
+    public function getCoursesForAdminWidget()
+    {
+        $count_courses = $this->countCourses();
+        if ($count_courses && $count_courses <= $this->max_show_courses) {
+            $settings = $this->settings;
+            $this->settings['query']['select'] = array();
+            $this->settings['query']['orderby'] = "seminare.name";
+            $ret = $this->getCourses(false);
+            $this->settings = $settings;
+            return $ret;
+        }
+        return array();
     }
 
     /**
@@ -275,7 +332,7 @@ class AdminCourseFilter
     public function createQuery($only_count = false)
     {
         if ($only_count) {
-            $select_query = "1";
+            $select_query = "COUNT(DISTINCT seminare.Seminar_id) ";
         } else {
             $select_query = "seminare.* ";
             foreach ((array) $this->settings['query']['select'] as $alias => $select) {
@@ -299,10 +356,10 @@ class AdminCourseFilter
             SELECT ".$select_query."
             FROM seminare
                 ".$join_query."
-            ".($where_query ? "WHERE ".$where_query : "")."
-            GROUP BY seminare.Seminar_id
-            ORDER BY ".$this->settings['query']['orderby'].($this->settings['query']['orderby'] !== "seminare.name" ? ", seminare.name" : "")."
-        ";
+            ".($where_query ? "WHERE ".$where_query : "");
+        if (!$only_count) {
+            $query .= " GROUP BY seminare.Seminar_id ORDER BY ".$this->settings['query']['orderby'].($this->settings['query']['orderby'] !== "seminare.name" ? ", seminare.name" : "");
+        }
         return $query;
     }
 

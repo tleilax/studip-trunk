@@ -16,6 +16,7 @@
 /* --- Layouts -------------------------------------------------------------- */
 #layout_page {
     .border-radius(0 0 2px 2px);
+    .box-sizing(border-box);
     clear: both;
     margin: @page-margin;
 }
@@ -37,11 +38,21 @@
     margin: 0;
 }
 
+#layout_page.oversized {
+    overflow: visible;
+}
+
+
 #layout_content {
+    .box-sizing(border-box);
     .scrollbox-horizontal();
     margin: 0 @content-margin @content-margin 20px;
     vertical-align: top;
     min-width: @content-width;
+    
+    .oversized & {
+        overflow: visible;
+    }
 }
 
 #layout_sidebar {
@@ -119,6 +130,7 @@
         .flex-item(0, 1);
 
         min-width: @site-width;
+        z-index: 1001; // High enough so it will be above the sidebar
     }
 
     #layout_page {              // third row of flex-main
