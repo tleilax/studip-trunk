@@ -47,6 +47,12 @@
         </header>
         <? if (!empty($dozenten)) : ?>
             <table class="default">
+                <thead>
+                <tr>
+                    <th><?= _('Name') ?></th>
+                    <th><?= _('Aktion') ?></th>
+                </tr>
+                </thead>
                 <? foreach ($dozenten as $dozent) : ?>
                     <tr>
                         <td><?= htmlReady($dozent['Vorname']) ?> <?= htmlReady($dozent['Nachname']) ?></td>
@@ -60,7 +66,10 @@
             <?= _('Keine Dozenten eingetragen') ?>
         <? endif; ?>
         <section>
-            <select name="addDozent">
+            <label for="addDozent">
+                <?= _('Lehrenden hinzufügen') ?>
+            </label>
+            <select name="addDozent" id="addDozent">
                 <option><?= _('Dozent/in auswählen') ?></option>
                 <? foreach ($dozenten_options as $doz_id => $dozent_option) : ?>
                     <? if (!key_exists($doz_id, $dozenten)) : ?>
@@ -80,37 +89,38 @@
         </header>
         <? if (Config::get()->RESOURCES_ENABLE && $resList->numberOfRooms()) : ?>
             <section>
-                <label for="room">
-                    <?= _('Raum') ?>
-                </label>
                 <input id="room" type="radio" name="room"
                     <?= !empty($date_info->resource_id) ? 'checked' : '' ?>>
-            </section>
-
-            <section>
-                <select>
-                    <option value=""><?= _('kein Raum gebucht') ?></option>
-                    <? foreach ($resList->resources as $room_id => $room) : ?>
-                        <option value="<?= $room_id ?>"
-                            <?= $date_info->resource_id == $room_id ? 'selected' : '' ?>>
-                            <?= $room ?>
-                        </option>
-                    <? endforeach; ?>
-                </select>
-
+                <label for="room" class="horizontal">
+                    <?= _('Raum') ?>
+                </label>
+                <label>
+                    <select id="select_room">
+                        <option value=""><?= _('kein Raum gebucht') ?></option>
+                        <? foreach ($resList->resources as $room_id => $room) : ?>
+                            <option value="<?= $room_id ?>"
+                                <?= $date_info->resource_id == $room_id ? 'selected' : '' ?>>
+                                <?= $room ?>
+                            </option>
+                        <? endforeach; ?>
+                    </select>
+                </label>
             </section>
         <? endif; ?>
         <section>
+            <input id="freetext_room" type="radio" name="room" <?= !empty($date_info->raum) ? 'checked' : '' ?>>
+            <label class="horizontal" for="freetext_room">
+                <?= _('Freie Raumangabe') ?>
+            </label>
             <label>
-                <input type="radio" name="room" <?= !empty($date_info->raum) ? 'checked' : '' ?>>
                 <input type="text" placeholder="<?= _('freie Ortsangabe (keine Raumbuchung)') ?>"
                        value="<?= isset($date_info->raum) ? htmlReady($date_info->raum) : '' ?>">
             </label>
         </section>
         <section>
-            <label>
-                <input type="radio" name="room"
-                    <?= !empty($date_inf->resource_id) ? '' : (!empty($date_info->raum) ? '' : 'checked') ?>>
+            <input type="radio" name="room" id="room_none"
+                <?= !empty($date_inf->resource_id) ? '' : (!empty($date_info->raum) ? '' : 'checked') ?>>
+            <label for="room_none" class="horizontal">
                 <?= _('kein Raum') ?>
             </label>
         </section>
