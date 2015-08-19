@@ -516,7 +516,7 @@ class Seminar
 
         if ($perm->have_perm('tutor') && $start != $this->semester_start_time) {
             // logging >>>>>>
-            log_event("SEM_SET_STARTSEMESTER", $this->getId(), $start);
+            StudipLog::log("SEM_SET_STARTSEMESTER", $this->getId(), $start);
             NotificationCenter::postNotification("CourseDidChangeSchedule", $this);
             // logging <<<<<<
             $this->semester_start_time = $start;
