@@ -19,21 +19,28 @@
     <input class="has-date-picker" type="text" name="date" id="date"
            value="<?= $date_info->date ? strftime('%d.%m.%G', $date_info->date) : 'tt.mm.jjjj' ?>"/>
 </section>
-<section>
-    <label for="start_time">
-        <?= _('Uhrzeit von') ?>
-    </label>
-    <input type="time" name="start_time" id="start_time"
-           value="<?= $date_info->date ? strftime('%H:%M', $date_info->date) : '--:--' ?>">
-</section>
-<section>
-    <label for="end_time">
-        <?= _('Uhrzeit bis') ?>
-    </label>
-    <input type="time" name="end_time" id="end_time"
-           value="<?= $date_info->end_time ? strftime('%H:%M', $date_info->end_time) : '--:--' ?>">
+<section class="clearfix">
+    <section style="width: 47%; float:left;">
+        <label for="start_time">
+            <?= _('Startzeit') ?>
+        </label>
+        <input type="time" name="start_time" id="start_time"
+               value="<?= $date_info->date ? strftime('%H:%M', $date_info->date) : '--:--' ?>">
+    </section>
+    <section style="width: 47%; float:right;">
+        <label for="end_time">
+            <?= _('Endzeit') ?>
+        </label>
+        <input type="time" name="end_time" id="end_time"
+               value="<?= $date_info->end_time ? strftime('%H:%M', $date_info->end_time) : '--:--' ?>">
+    </section>
 </section>
 
 <div data-dialog-button>
     <?= Studip\Button::createAccept(_('Speichern'), 'save_dates', array('formaction' => $controller->url_for('course/timesrooms/editSingleDate/' . $termin_id), 'data-dialog' => 'size=50%')) ?>
 </div>
+
+<script>
+    jQuery('#end_time').timepicker();
+    jQuery('#start_time').timepicker();
+</script>
