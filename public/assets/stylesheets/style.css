@@ -868,6 +868,13 @@ table.default > thead > tr > th {
   border-top: 1px solid #1e3e70;
   font-size: 1.0em;
 }
+table.default > tbody > tr.red {
+  background-color: #f7cccc;
+}
+table.default > tbody > tr.red > td {
+  border-bottom: 1px solid #ffffff;
+  transition: background-color 0.3s;
+}
 table.default > tbody > tr > th {
   background-color: #e7ebf1;
   border-top: 1px solid #1e3e70;
@@ -3249,11 +3256,16 @@ section.contentbox article {
   border-width: 1px;
   margin: 10px;
 }
+section.contentbox article.red {
+  border-color: #f7cccc;
+}
+section.contentbox article.red header {
+  background-color: #f7cccc;
+}
 section.contentbox article > p,
 section.contentbox article > section,
 section.contentbox article > footer,
 section.contentbox article > div {
-  padding: 0 10px 0 10px;
   max-height: 0px;
   opacity: 0;
   overflow: auto;
@@ -3262,12 +3274,23 @@ section.contentbox article > div {
   -o-transition: opacity 0.3s;
   transition: opacity 0.3s;
 }
+section.contentbox article > p,
+section.contentbox article > footer,
+section.contentbox article > div {
+  padding: 0 10px 0 10px;
+}
 section.contentbox article div,
 section.contentbox article p {
   margin: 0;
 }
 section.contentbox article section {
   border-width: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+  padding: 0;
+}
+section.contentbox article section article {
+  border: none;
 }
 section.contentbox article section header {
   background: transparent;

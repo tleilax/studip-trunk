@@ -8,7 +8,8 @@
                 <span>
                     <a href="<?= $controller->link_for('course/timesrooms/editCycle') ?>" data-dialog>
                         <?= Assets::img('icons/16/blue/add.png', array('style' => 'float:right; margin-right:20px;',
-                                                                       'title' => _('Regelmäßigen Termin hinzufügen')))
+                                                                       'title' => _('Regelmäßigen Termin hinzufügen')
+                        ))
                         ?>
                         <?= _('Neuer Zeitraum') ?>
                     </a>
@@ -18,10 +19,12 @@
 
         <? if (!empty($cycles)) : ?>
             <? foreach ($cycles as $metadate_id => $cycle) : ?>
-                <? if (!$roomRequest = $course->getDatesTemplate('dates/seminar_predominant_html', array('cycle_id' => $metadate_id))) :?>
-                    <? $roomRequest = _('keiner');?>
+                <? if (!$roomRequest = $course->getDatesTemplate('dates/seminar_predominant_html', array('cycle_id' => $metadate_id))) : ?>
+                    <? $noRequest = true ?>
+                    <? $roomRequest = _('keiner'); ?>
                 <? endif ?>
-                <article id="<?= $metadate_id ?>">
+                <article id="<?= $metadate_id ?>"
+                         class="<?= $noRequest ? 'red' : '' ?> <?= Request::get('contentbox_open') == $metadate_id ? 'open' : '' ?>">
                     <header>
                         <h1>
                             <a href="<?= ContentBoxHelper::href($metadate_id, array()) ?>">
@@ -49,11 +52,11 @@
                                     <col width="10%%">
                                 </colgroup>
                                 <thead>
-                                    <tr>
-                                        <th colspan="2"><?=_('Termin')?></th>
-                                        <th><?=_('Raum')?></th>
-                                        <th><?=_('Aktion')?></th>
-                                    </tr>
+                                <tr>
+                                    <th colspan="2"><?= _('Termin') ?></th>
+                                    <th><?= _('Raum') ?></th>
+                                    <th><?= _('Aktion') ?></th>
+                                </tr>
                                 </thead>
                                 <tbody>
                                 <? foreach ($termine as $termin) : ?>
@@ -63,10 +66,13 @@
                                 <tfoot>
                                 <tr>
                                     <td colspan="2">
-                                        <label for="checkAll">
-                                            <input data-proxyfor="[name^=cycle_ids]:checkbox" type="checkbox" id="checkAll" data-prox>
-                                            <?= _('alle Auswählen') ?>
-                                        </label>
+                                        <section style="margin: 0; padding: 0">
+                                            <input data-proxyfor="[name^=cycle_ids]:checkbox" type="checkbox"
+                                                   id="checkAll">
+                                            <label for="checkAll" class="horizontal">
+                                                <?= _('alle Auswählen') ?>
+                                            </label>
+                                        </section>
                                     </td>
                                     <td>
                                         <select name="actionForAll">

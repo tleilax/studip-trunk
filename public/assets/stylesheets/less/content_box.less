@@ -1,4 +1,5 @@
 section.contentbox {
+
     border-color: @content-color-40;
     border-style: solid;
     border-width: 1px;
@@ -66,17 +67,28 @@ section.contentbox {
     }
 
     article {
+        &.red {
+            border-color: @red-20;
+
+            header {
+                background-color: @red-20;
+            }
+        }
         border-color: @content-color-40;
         border-style: solid;
         border-width: 1px;
         margin: 10px;
 
         > p, > section, > footer, > div {
-            padding: 0 10px 0 10px;
             max-height: 0px;
             opacity: 0;
             overflow: auto;
             .transition(opacity 0.3s);
+        }
+
+
+        > p, > footer, > div {
+            padding: 0 10px 0 10px;
         }
 
         div, p {
@@ -85,6 +97,13 @@ section.contentbox {
 
         section {
             border-width: 0;
+            margin-top: 0;
+            margin-bottom: 0;
+            padding: 0;
+
+            article {
+                border: none;
+            }
 
             header {
                 background: transparent;
