@@ -34,7 +34,7 @@ class Admin_CoursesController extends AuthenticatedController
         parent::before_filter($action, $args);
 
         if (!$GLOBALS['perm']->have_perm('admin')) {
-            throw new AccessDeniedException();
+            throw new AccessDeniedException(_('Sie haben nicht die nötigen Rechte, um diese Seite zu betreten.'));
         }
 
         Navigation::activateItem('/browse/my_courses/list');
@@ -517,13 +517,13 @@ class Admin_CoursesController extends AuthenticatedController
                         'title'      => _('Grunddaten'),
                         'url'        => 'dispatch.php/course/basicdata/view?cid=%s',
                         'attributes' => array(
-                            'data-dialog' => 'size=50%'
+                            'data-dialog' => 'size=100%x100%'
                         )),
             2  => array('name'       => _('Studienbereiche'),
                         'title'      => _('Studienbereiche'),
                         'url'        => 'dispatch.php/course/study_areas/show/?cid=%s&from=admin/courses',
                         'attributes' => array(
-                            'data-dialog' => 'size=50%'
+                            'data-dialog' => 'size=100%x100%'
                         )),
             3  => array('name'  => _('Zeiten / Räume'),
                         'title' => _('Zeiten / Räume'),
@@ -547,13 +547,13 @@ class Admin_CoursesController extends AuthenticatedController
                         'title' => _('Kopieren'),
                         'url'   => 'dispatch.php/course/wizard/copy/%s',
                         'attributes' => array(
-                            'data-dialog' => 'size=50%'
+                            'data-dialog' => 'size=100%x100%'
                         )),
             14 => array('name'       => 'Zugangsberechtigungen',
                         'title'      => _('Zugangsberechtigungen'),
                         'url'        => 'dispatch.php/course/admission?cid=%s',
                         'attributes' => array(
-                            'data-dialog' => 'size=50%'
+                            'data-dialog' => 'size=100%x100%'
                         )),
             16 => array('name'      => _('Archivieren'),
                         'title'     => _('Archivieren'),
@@ -563,6 +563,12 @@ class Admin_CoursesController extends AuthenticatedController
                         'title'     => _('Einstellungen speichern'),
                         'url'       => 'dispatch.php/admin/courses/set_locked',
                         'multimode' => true),
+            18  => array('name'       => _('Semestereinstellungen'),
+                        'title'      => _('Semestereinstellungen'),
+                        'url'        => 'dispatch.php/course/timesrooms/edit_semester?cid=%s',
+                        'attributes' => array(
+                            'data-dialog' => 'size=400'
+                        )),
         );
 
         if (get_config('RESOURCES_ALLOW_ROOM_REQUESTS')) {

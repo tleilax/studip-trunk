@@ -24,11 +24,11 @@ class Course_TimesroomsController extends AuthenticatedController
             throw new AccessDeniedException(_('Sie haben nicht die nötigen Rechte, um diese Seite zu betreten.'));
         }
 
-        $this->course_id = Request::get('cid', NULL);
-        if (isset($this->course_id)) {
-            $this->course = Seminar::getInstance($this->course_id);
-        }
+        $this->course_id = Request::get('cid', null);
 
+        if($this->course_id) {
+            $this->course = Seminar::GetInstance($this->course_id);
+        }
 
         if (Navigation::hasItem('course/admin/timesrooms')) {
             Navigation::activateItem('course/admin/timesrooms');
@@ -46,7 +46,7 @@ class Course_TimesroomsController extends AuthenticatedController
         if (request::isXhr()) {
             $this->show = array('regular' => true, 'irregular' => true, 'roomRequest' => false);
         }
-        if (isset($course_id)) {
+        if ($course_id) {
             $this->course_id = $course_id;
             $this->course = Seminar::getInstance($course_id);
         }
@@ -58,12 +58,24 @@ class Course_TimesroomsController extends AuthenticatedController
         $semesterFormParams = array(
             'formaction' => $this->url_for('course/timesrooms/set_semester/' . $this->course->id)
         );
+
         if (Request::isXhr()) {
             $asDialog['data-dialog'] = 'size=50%"';
             $semesterFormParams += $asDialog;
         }
 
         $this->semesterFormParams = $semesterFormParams;
+    }
+
+    public function edit_semester_action($course_id = null)
+    {
+        if ($course_id) {
+            $this->course_id = $course_id;
+            $this->course = Seminar::getInstance($course_id);
+        }
+        $this->semester = array_reverse(Semester::getAll());
+        $this->current_semester = Semester::findCurrent();
+        $this->cycles = $this->course->metadate->getCycles();
     }
 
     public function editDate_action($termin_id, $metadate_id = null)
@@ -109,7 +121,7 @@ class Course_TimesroomsController extends AuthenticatedController
         if ($termin->store()) {
             PageLayout::postMessage(MessageBox::success(_('Die gewünschten Zeiten wurden übernommen!')));
         }
-        $this->redirect($this->url_for('course/timesrooms/index#'. $termin->metadate_id, array('contentbox_open' => $termin->metadate_id)));
+        $this->redirect($this->url_for('course/timesrooms/index#' . $termin->metadate_id, array('contentbox_open' => $termin->metadate_id)));
     }
 
     public function editCycle_action($cycle_id = null)
