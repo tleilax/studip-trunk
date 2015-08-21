@@ -1,23 +1,27 @@
-<section>
-    <label id="course_type">
-        <?= _('Art') ?>
-    </label>
-    <select name="course_type" id="course_type">
-        <? foreach ($types as $id => $value) : ?>
-            <option value="<?= $id ?>"
-                <?= $date_info->date_typ == $id ? 'selected' : '' ?>>
-                <?= htmlReady($value['name']) ?>
-            </option>
-        <? endforeach; ?>
-    </select>
-</section>
+<section class="clearfix">
 
-<section>
-    <label for="date">
-        <?= _('Datum') ?>
-    </label>
-    <input class="has-date-picker" type="text" name="date" id="date"
-           value="<?= $date_info->date ? strftime('%d.%m.%G', $date_info->date) : 'tt.mm.jjjj' ?>"/>
+    <section style="width: 47%; float:left;">
+        <label for="date">
+            <?= _('Datum') ?>
+        </label>
+        <input class="has-date-picker" type="text" name="date" id="date"
+               value="<?= $date_info->date ? strftime('%d.%m.%G', $date_info->date) : 'tt.mm.jjjj' ?>"/>
+    </section>
+
+    <section style="width: 47%; float:right;">
+        <label id="course_type">
+            <?= _('Art') ?>
+        </label>
+        <select name="course_type" id="course_type">
+            <? foreach ($types as $id => $value) : ?>
+                <option value="<?= $id ?>"
+                    <?= $date_info->date_typ == $id ? 'selected' : '' ?>>
+                    <?= htmlReady($value['name']) ?>
+                </option>
+            <? endforeach; ?>
+        </select>
+    </section>
+
 </section>
 <section class="clearfix">
     <section style="width: 47%; float:left;">
