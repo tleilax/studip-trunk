@@ -26,7 +26,7 @@ class Course_TimesroomsController extends AuthenticatedController
 
         $this->course_id = Request::get('cid', null);
 
-        if($this->course_id) {
+        if ($this->course_id) {
             $this->course = Seminar::GetInstance($this->course_id);
         }
 
@@ -69,6 +69,10 @@ class Course_TimesroomsController extends AuthenticatedController
 
     public function edit_semester_action($course_id = null)
     {
+        if (!Request::isXhr()) {
+            $this->redirect('course/timesrooms/index');
+            return;
+        }
         if ($course_id) {
             $this->course_id = $course_id;
             $this->course = Seminar::getInstance($course_id);

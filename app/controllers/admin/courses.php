@@ -563,8 +563,8 @@ class Admin_CoursesController extends AuthenticatedController
                         'title'     => _('Einstellungen speichern'),
                         'url'       => 'dispatch.php/admin/courses/set_locked',
                         'multimode' => true),
-            18  => array('name'       => _('Semestereinstellungen'),
-                        'title'      => _('Semestereinstellungen'),
+            18  => array('name'       => _('Startsemester'),
+                        'title'      => _('Startsemester'),
                         'url'        => 'dispatch.php/course/timesrooms/edit_semester?cid=%s',
                         'attributes' => array(
                             'data-dialog' => 'size=400'
