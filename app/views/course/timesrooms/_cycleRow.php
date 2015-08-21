@@ -33,16 +33,8 @@
     <td class="actions">
         <? if (!$termin->isExTermin()) : ?>
             <a class="load-in-new-row"
-               href="<?= $controller->url_for('course/timesrooms/editTeacher/' . $termin->termin_id . ($termin->metadate_id ? '/' . $termin->metadate_id : '')) ?>">
-                <?= Assets::img('icons/blue/add/person', tooltip2(_('Durchführende Dozenten bearbeiten'))) ?>
-            </a>
-            <a class="load-in-new-row"
                href="<?= $controller->url_for('course/timesrooms/editDate/' . $termin->termin_id . ($termin->metadate_id ? '/' . $termin->metadate_id : '')) ?>">
                 <?= Assets::img('icons/blue/edit', tooltip2(_('Termin bearbeiten'))) ?>
-            </a>
-            <a class="load-in-new-row"
-               href="<?= $controller->url_for('course/timesrooms/editRoom/' . $termin->termin_id . ($termin->metadate_id ? '/' . $termin->metadate_id : '')) ?>">
-                <?= Assets::img('icons/blue/resources', array('title' => _('Raumangaben bearbeiten'))) ?>
             </a>
             <?= Assets::img('icons/blue/trash', array('title' => _('Termin löschen'))) ?>
         <? endif ?>

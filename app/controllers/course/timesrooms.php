@@ -48,12 +48,12 @@ class Course_TimesroomsController extends AuthenticatedController
         }
         if ($course_id) {
             $this->course_id = $course_id;
-            $this->course = Seminar::getInstance($course_id);
+            $this->course    = Seminar::getInstance($course_id);
         }
 
-        $this->semester = array_reverse(Semester::getAll());
+        $this->semester         = array_reverse(Semester::getAll());
         $this->current_semester = Semester::findCurrent();
-        $this->cycles = $this->course->metadate->getCycles();
+        $this->cycles           = $this->course->metadate->getCycles();
 
         $semesterFormParams = array(
             'formaction' => $this->url_for('course/timesrooms/set_semester/' . $this->course->id)
@@ -71,64 +71,57 @@ class Course_TimesroomsController extends AuthenticatedController
     {
         if (!Request::isXhr()) {
             $this->redirect('course/timesrooms/index');
+
             return;
         }
         if ($course_id) {
             $this->course_id = $course_id;
-            $this->course = Seminar::getInstance($course_id);
+            $this->course    = Seminar::getInstance($course_id);
         }
-        $this->semester = array_reverse(Semester::getAll());
+        $this->semester         = array_reverse(Semester::getAll());
         $this->current_semester = Semester::findCurrent();
-        $this->cycles = $this->course->metadate->getCycles();
+        $this->cycles           = $this->course->metadate->getCycles();
     }
 
     public function editDate_action($termin_id, $metadate_id = null)
     {
         if (!isset($metadate_id)) {
-            $dates = $this->course->getSingleDates(true, true, true);
+            $dates           = $this->course->getSingleDates(true, true, true);
             $this->date_info = $dates[$termin_id];
         } else {
-            $dates = $this->course->getSingleDatesForCycle($metadate_id);
+            $dates           = $this->course->getSingleDatesForCycle($metadate_id);
             $this->date_info = $dates[$termin_id];
         }
         $this->termin_id = $termin_id;
-        $this->termin = SingleDate::getInstance($termin_id);
-        $this->resList = ResourcesUserRoomsList::getInstance($GLOBALS['user']->id, true, false, true);
-        $this->types = $GLOBALS['TERMIN_TYP'];
-    }
+        $this->termin    = SingleDate::getInstance($termin_id);
+        $this->resList   = ResourcesUserRoomsList::getInstance($GLOBALS['user']->id, true, false, true);
+        $this->types     = $GLOBALS['TERMIN_TYP'];
 
-    public function editTeacher_action($termin_id)
-    {
-        PageLayout::setTitle(_('Durchführende Lehrende bearbeiten'));
-        $this->termin = Termine::find($termin_id);
+        $this->dozenten        = $this->course->getMembers('dozent');
         $this->related_persons = $this->termin->getRelatedPersons();
-        $this->dozenten = $this->course->getMembers('dozent');
-        if (!count($this->related_persons)) {
-            $this->related_persons = $this->dozenten;
-        } else {
-            $this->dozenten = array_diff_key($this->dozenten, $this->related_persons);
-        }
+        $this->related_groups  = $this->termin->getRelatedGroups();
+        $this->gruppen         = Statusgruppen::findBySeminar_id($this->course->id);;
     }
 
     public function editRoom_action($termin_id, $metadate_id = null)
     {
         if (!isset($metadate_id)) {
-            $dates = $this->course->getSingleDates(true, true, true);
+            $dates           = $this->course->getSingleDates(true, true, true);
             $this->date_info = $dates[$termin_id];
         } else {
-            $dates = $this->course->getSingleDatesForCycle($metadate_id);
+            $dates           = $this->course->getSingleDatesForCycle($metadate_id);
             $this->date_info = $dates[$termin_id];
         }
         $this->termin_id = $termin_id;
-        $this->termin = SingleDate::getInstance($termin_id);
-        $this->resList = ResourcesUserRoomsList::getInstance($GLOBALS['user']->id, true, false, true);
+        $this->termin    = SingleDate::getInstance($termin_id);
+        $this->resList   = ResourcesUserRoomsList::getInstance($GLOBALS['user']->id, true, false, true);
     }
 
     public function editSingleDate_action($termin_id)
     {
-        $termin = SingleDate::getInstance($termin_id);
+        $termin     = SingleDate::getInstance($termin_id);
         $start_time = sprintf('%s %s', Request::get('date'), Request::get('start_time'));
-        $end_time = sprintf('%s %s', Request::get('date'), Request::get('end_time'));
+        $end_time   = sprintf('%s %s', Request::get('date'), Request::get('end_time'));
         $termin->setTime(strtotime($start_time), strtotime($end_time));
         $termin->setDateType(Request::int('course_type'));
         if ($termin->store()) {
@@ -155,9 +148,9 @@ class Course_TimesroomsController extends AuthenticatedController
 
     public function addRelatedPerson_action($termin_id)
     {
-        $termin = Termine::find($termin_id);
+        $termin          = Termine::find($termin_id);
         $related_persons = $termin->getRelatedPersons();
-        $user_id = Request::get('add_teacher');
+        $user_id         = Request::get('add_teacher');
         if (!in_array($user_id, $related_persons)) {
             if ($termin->addRelatedPerson($user_id)) {
                 $user = User::find($user_id);
@@ -172,7 +165,7 @@ class Course_TimesroomsController extends AuthenticatedController
 
     function setSidebar()
     {
-        $sidebar = Sidebar::get();
+        $sidebar        = Sidebar::get();
         $semesterSelect = new SemesterSelectorWidget($this->url_for('/set_semester'));
         $sidebar->addWidget($semesterSelect);
 
@@ -191,8 +184,8 @@ class Course_TimesroomsController extends AuthenticatedController
 
         if (Config::get()->RESOURCES_ENABLE && Config::get()->RESOURCES_ENABLE_BOOKINGSTATUS_COLORING) {
             $template = $GLOBALS['template_factory']->open('raumzeit/legend.php');
-            $element = new WidgetElement($template->render());
-            $widget = new SidebarWidget();
+            $element  = new WidgetElement($template->render());
+            $widget   = new SidebarWidget();
             $widget->setTitle(_('Legende'));
             $widget->addElement($element);
             $sidebar->addWidget($widget);
@@ -203,7 +196,7 @@ class Course_TimesroomsController extends AuthenticatedController
     function set_semester_action($course_id)
     {
         $current_semester = Semester::findCurrent();
-        $start_semester = Semester::find(Request::get('startSemester'));
+        $start_semester   = Semester::find(Request::get('startSemester'));
         if ((int)Request::get('endSemester') != -1) {
             $end_semester = Semester::find(Request::get('endSemester'));
         } else {
