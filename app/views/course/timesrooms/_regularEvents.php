@@ -1,4 +1,4 @@
-<form class="studip_form">
+<form class="studip-form">
     <section class="contentbox">
         <header>
             <h1>
