@@ -4,20 +4,16 @@
             <h1>
                 <?= _('Raumanfrage für die gesamte Veranstaltung') ?>
             </h1>
-            
+
             <nav>
-                <span>
-                    <?=Assets::img('icons/blue/info-circle', array('title' => _('Hier können Sie für die gesamte Veranstaltung, also für alle regelmäßigen und unregelmäßigen Termine, '
-                                    . 'eine Raumanfrage erstellen. Um für einen einzelnen Termin eine Raumanfrage zu erstellen, '
-                                    . 'klappen Sie diesen auf und wählen dort Raumanfrage erstellen')))?>
-                </span>
-                <span>
-                        <a class="link-add" href="<?=$controller->link_for('course/room_requests/new/'.$course->id)?>" data-dialog
-                           title="<?=_('Neue Raumanfrage für die Veranstaltung erstellen')?>">
-                        <?=_('Neue Raumanfrage')?>
-                    </a>
-                </span>
-                
+                <?= tooltipIcon(_('Hier können Sie für die gesamte Veranstaltung, also für alle regelmäßigen und unregelmäßigen Termine, '
+                                  . 'eine Raumanfrage erstellen. Um für einen einzelnen Termin eine Raumanfrage zu erstellen, '
+                                  . 'klappen Sie diesen auf und wählen dort Raumanfrage erstellen')) ?>
+                <a class="link-add" href="<?= $controller->link_for('course/room_requests/new/' . $course->id) ?>"
+                   data-dialog
+                   title="<?= _('Neue Raumanfrage für die Veranstaltung erstellen') ?>">
+                    <?= _('Neue Raumanfrage') ?>
+                </a>
             </nav>
         </header>
         <section>
@@ -31,7 +27,7 @@
                 <?= MessageBox::error(_('Die Raumanfrage für diese Veranstaltung wurde abgelehnt!'), array(nl2br(htmlReady($roomRequests)))) ?>
             <? else : ?>
                 <?= MessageBox::info(_('Keine Raumanfrage vorhanden')) ?>
-            <? endif; ?>    
+            <? endif; ?>
         </section>
     </section>
 </form>

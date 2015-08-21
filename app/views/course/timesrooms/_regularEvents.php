@@ -5,11 +5,9 @@
                 <?= _('Regelmäßige Termine') ?>
             </h1>
             <nav>
-                <span>
-                    <a class="link-add" href="<?= $controller->link_for('course/timesrooms/editCycle') ?>" data-dialog title="<?=_('Regelmäßigen Termin hinzufügen')?>">
-                        <?= _('Neuer Zeitraum') ?>
-                    </a>
-                </span>
+                <a class="link-add" href="<?= $controller->link_for('course/timesrooms/editCycle') ?>" data-dialog title="<?=_('Regelmäßigen Termin hinzufügen')?>">
+                    <?= _('Neuer Zeitraum') ?>
+                </a>
             </nav>
         </header>
 
@@ -51,32 +49,32 @@
                                 <tr>
                                     <th colspan="2"><?= _('Termin') ?></th>
                                     <th><?= _('Raum') ?></th>
-                                    <th><?= _('Aktion') ?></th>
+                                    <th></th>
                                 </tr>
                                 </thead>
                                 <tbody>
                                 <? foreach ($termine as $termin) : ?>
-                                    <?= $this->render_partial('course/timesrooms/_cycleRow.php', array('termin' => $termin)) ?>
+                                    <?= $this->render_partial('course/timesrooms/_cycleRow.php', array('termin' => $termin, 'class_ids' => 'ids-regular')) ?>
                                 <? endforeach; ?>
                                 </tbody>
                                 <tfoot>
                                 <tr>
                                     <td colspan="2">
                                         <section style="margin: 0; padding: 0">
-                                            <input data-proxyfor="[name^=cycle_ids]:checkbox" type="checkbox"
-                                                   id="checkAll">
+                                            <input data-proxyfor=".ids-regular" type="checkbox"
+                                                   id="checkAll" data-activates=".actionForAll">
                                             <label for="checkAll" class="horizontal">
                                                 <?= _('alle Auswählen') ?>
                                             </label>
                                         </section>
                                     </td>
                                     <td>
-                                        <select name="actionForAll">
+                                        <select name="actionForAll" class="actionForAll">
                                             <option><?= _('aktion für alle ausgewählten') ?></option>
                                         </select>
                                     </td>
                                     <td>
-                                        <?= Studip\Button::create('ausführen') ?>
+                                        <?= Studip\Button::create('ausführen', 'run', array('class' => 'actionForAll')) ?>
                                     </td>
                                 </tr>
                                 </tfoot>

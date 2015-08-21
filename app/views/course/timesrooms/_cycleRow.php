@@ -1,7 +1,7 @@
 <tr <?= !$termin->getRoom() ? 'class="red"' : '' ?>>
     <td>
         <label for="<?= htmlReady($termin->termin_id) ?>">
-            <input type="checkbox" id="<?= htmlReady($termin->termin_id) ?>"
+            <input class="<?=$class_ids?>" type="checkbox" id="<?= htmlReady($termin->termin_id) ?>"
                    name="cycle_ids[]" <?= $termin->isExTermin() ? 'disabled' : '' ?> />
         </label>
     </td>
@@ -30,7 +30,7 @@
             (<?= _('Keine Raumangabe') ?>)
         <? endif ?>
     </td>
-    <td>
+    <td class="actions">
         <? if (!$termin->isExTermin()) : ?>
             <a class="load-in-new-row" href="
         <?= isset($termin->metadate_id) ?

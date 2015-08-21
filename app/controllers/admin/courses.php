@@ -517,19 +517,19 @@ class Admin_CoursesController extends AuthenticatedController
                         'title'      => _('Grunddaten'),
                         'url'        => 'dispatch.php/course/basicdata/view?cid=%s',
                         'attributes' => array(
-                            'data-dialog' => 'size=100%x100%'
+                            'data-dialog' => 'size=big'
                         )),
             2  => array('name'       => _('Studienbereiche'),
                         'title'      => _('Studienbereiche'),
                         'url'        => 'dispatch.php/course/study_areas/show/?cid=%s&from=admin/courses',
                         'attributes' => array(
-                            'data-dialog' => 'size=100%x100%'
+                            'data-dialog' => 'size=big'
                         )),
             3  => array('name'  => _('Zeiten / Räume'),
                         'title' => _('Zeiten / Räume'),
                         'url'   => 'dispatch.php/course/timesrooms/index?cid=%s',
                         'attributes' => array(
-                            'data-dialog' => 'size=100%x100%'
+                            'data-dialog' => 'size=big'
                         )),
             8  => array('name'      => _('Sperrebene'),
                         'title'     => _('Sperrebenen'),
@@ -547,13 +547,13 @@ class Admin_CoursesController extends AuthenticatedController
                         'title' => _('Kopieren'),
                         'url'   => 'dispatch.php/course/wizard/copy/%s',
                         'attributes' => array(
-                            'data-dialog' => 'size=100%x100%'
+                            'data-dialog' => 'size=big'
                         )),
             14 => array('name'       => 'Zugangsberechtigungen',
                         'title'      => _('Zugangsberechtigungen'),
                         'url'        => 'dispatch.php/course/admission?cid=%s',
                         'attributes' => array(
-                            'data-dialog' => 'size=100%x100%'
+                            'data-dialog' => 'size=big'
                         )),
             16 => array('name'      => _('Archivieren'),
                         'title'     => _('Archivieren'),

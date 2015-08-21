@@ -28,32 +28,32 @@
                 <tr>
                     <th colspan="2"><?= _('Termin') ?></th>
                     <th><?= _('Raum') ?></th>
-                    <th><?= _('Aktion') ?></th>
+                    <th></th>
                 </tr>
                 </thead>
                 <tbody>
                 <? foreach ($termine as $termin) : ?>
-                    <?= $this->render_partial('course/timesrooms/_cycleRow.php', array('termin' => $termin)) ?>
+                    <?= $this->render_partial('course/timesrooms/_cycleRow.php', array('termin' => $termin, 'class_ids' => 'ids-irregular')) ?>
                 <? endforeach; ?>
                 </tbody>
                 <tfoot>
                 <tr>
                     <td colspan="2">
                         <section style="margin: 0; padding: 0">
-                            <input data-proxyfor="[name^=cycle_ids]:checkbox" type="checkbox"
-                                   id="checkAll">
+                            <input data-proxyfor=".ids-irregular" type="checkbox"
+                                   id="checkAll" data-activates=".actionForAllIrregular">
                             <label for="checkAll" class="horizontal">
                                 <?= _('alle Auswählen') ?>
                             </label>
                         </section>
                     </td>
                     <td>
-                        <select name="actionForAll">
+                        <select name="actionForAll" class="actionForAllIrregular">
                             <option><?= _('aktion für alle ausgewählten') ?></option>
                         </select>
                     </td>
                     <td>
-                        <?= Studip\Button::create('ausführen') ?>
+                        <?= Studip\Button::create('ausführen', 'run', array('class' => 'actionForAllIrregular')) ?>
                     </td>
                 </tr>
                 </tfoot>
