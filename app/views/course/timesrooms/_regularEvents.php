@@ -6,11 +6,7 @@
             </h1>
             <nav>
                 <span>
-                    <a href="<?= $controller->link_for('course/timesrooms/editCycle') ?>" data-dialog>
-                        <?= Assets::img('icons/16/blue/add.png', array('style' => 'float:right; margin-right:20px;',
-                                                                       'title' => _('Regelmäßigen Termin hinzufügen')
-                        ))
-                        ?>
+                    <a class="link-add" href="<?= $controller->link_for('course/timesrooms/editCycle') ?>" data-dialog title="<?=_('Regelmäßigen Termin hinzufügen')?>">
                         <?= _('Neuer Zeitraum') ?>
                     </a>
                 </span>

@@ -26,8 +26,8 @@
 jQuery(document).on('click', '[data-behaviour="ajaxContent"]', function () {
     var parameters = jQuery(this).data(),
         indicator = parameters.hasOwnProperty('indicator') ? parameters.indicator : this,
-        target = parameters.hasOwnProperty('target') ? parameters.target : jQuery(this).next(),
-        url = parameters.hasOwnProperty('url') ? parameters.url : jQuery(this).attr('href');
+        target    = parameters.hasOwnProperty('target') ? parameters.target : jQuery(this).next(),
+        url       = parameters.hasOwnProperty('url') ? parameters.url : jQuery(this).attr('href');
 
     jQuery(indicator).showAjaxNotification('right');
     jQuery(target).load(url, function () {
@@ -177,7 +177,7 @@ jQuery(document).on('keyup', 'input.allow-only-numbers', function () {
  * ------------------------------------------------------------------------ */
 jQuery.ui.accordion.prototype.options.icons = {
     header: 'arrow_right',
-    activeHeader: 'arrow_down'
+    activeHeader : 'arrow_down'
 };
 
 
@@ -274,15 +274,14 @@ jQuery(function ($) {
         event.returnValue = message;
         return message;
     }
-
     function submissionHandlerWindow() {
         $(window).off('beforeunload', securityHandlerWindow);
     }
 
     $(document).on('change keyup', 'textarea[data-secure]', function () {
-        var secured = $(this).data('secured'),
-            changed = (this.value !== this.defaultValue),
-            action = null;
+        var secured  = $(this).data('secured'),
+            changed  = (this.value !== this.defaultValue),
+            action   = null;
 
         if (changed && !secured) {
             action = 'on';
@@ -343,29 +342,29 @@ jQuery(function ($) {
 /* Copies a value from a select to another element*/
 jQuery(document).on('change', 'select[data-copy-to]', function () {
     var target = jQuery(this).data().copyTo,
-        value = jQuery(this).val() || jQuery(target).prop('defaultValue');
+        value  = jQuery(this).val() || jQuery(target).prop('defaultValue');
     jQuery(target).val(value);
 });
 
 jQuery(document).ready(function ($) {
-    $('#checkAll').attr('checked', $('.sem_checkbox:checked').length !== 0);
+    $('#checkAll').prop('checked', $('.sem_checkbox:checked').length !== 0);
 });
 
 // Fix horizontal scroll issue on domready, window load and window resize.
 // This also makes the header and footer sticky regarding horizontal scrolling.
 jQuery(document).on('ready', function () {
-    var page_margin = ($('#layout_page').outerWidth(true) - $('#layout_page').width()) / 2,
+    var page_margin    = ($('#layout_page').outerWidth(true) - $('#layout_page').width()) / 2,
         content_margin = $('#layout_content').outerWidth(true) - $('#layout_content').innerWidth(),
-        sidebar_width = $('#layout-sidebar').outerWidth(true);
+        sidebar_width  = $('#layout-sidebar').outerWidth(true);
 
-    function fixScrolling() {
+    function fixScrolling () {
         $('#layout_page').removeClass('oversized').css({
             minWidth: '',
             marginRight: '',
             paddingRight: ''
         });
 
-        var max_width = 0,
+        var max_width    = 0,
             fix_required = $('html').is(':not(.responsified)') && $('#layout_content').get(0).scrollWidth > $('#layout_content').width();
 
         if (fix_required) {
@@ -422,7 +421,7 @@ jQuery(document)
     window.print = function () {
         if (typeof MathJax !== 'undefined') {
             MathJax.Hub.Queue(
-                ["Delay", MathJax.Callback, 700],
+                ["Delay",MathJax.Callback,700],
                 origPrint
             );
         } else {

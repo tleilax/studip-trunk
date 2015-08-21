@@ -4,7 +4,7 @@
         <? foreach ($related_persons as $dozent) : ?>
             <li>
                 <?= htmlReady($dozent['fullname']) ?>
-                <?= Assets::img('icons/16/blue/trash.png', tooltip2(sprintf(_('%s aus Termin austragen'), htmlReady($dozent['fullname'])))) ?>
+                <?= Assets::img('icons/blue/trash', tooltip2(sprintf(_('%s aus Termin austragen'), htmlReady($dozent['fullname'])))) ?>
             </li>
         <? endforeach; ?>
     </ul>

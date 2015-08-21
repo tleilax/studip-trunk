@@ -7,15 +7,14 @@
             
             <nav>
                 <span>
-                    <?=Assets::img('icons/16/blue/info-circle.png', array('title' => _('Hier können Sie für die gesamte Veranstaltung, also für alle regelmäßigen und unregelmäßigen Termine, '
+                    <?=Assets::img('icons/blue/info-circle', array('title' => _('Hier können Sie für die gesamte Veranstaltung, also für alle regelmäßigen und unregelmäßigen Termine, '
                                     . 'eine Raumanfrage erstellen. Um für einen einzelnen Termin eine Raumanfrage zu erstellen, '
                                     . 'klappen Sie diesen auf und wählen dort Raumanfrage erstellen')))?>
                 </span>
                 <span>
-                        <a href="<?=$controller->link_for('course/room_requests/new/'.$course->id)?>" data-dialog>
+                        <a class="link-add" href="<?=$controller->link_for('course/room_requests/new/'.$course->id)?>" data-dialog
+                           title="<?=_('Neue Raumanfrage für die Veranstaltung erstellen')?>">
                         <?=_('Neue Raumanfrage')?>
-                        <?= Assets::img('icons/16/blue/add.png', array('style' => 'float:right; margin-right:20px;',
-                          'title' => _('Neue Raumanfrage für die Veranstaltung erstellen')))?>
                     </a>
                 </span>
                 

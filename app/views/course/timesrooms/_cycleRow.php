@@ -37,18 +37,18 @@
                 $controller->url_for('course/timesrooms/editTeacher/' . $termin->termin_id . '/' . $termin->metadate_id)
                 : $controller->url_for('course/timesrooms/editTeacher/' . $termin->termin_id) ?>
            ">
-                <?= Assets::img('icons/16/blue/add/person.png', tooltip2(_('Durchführende Dozenten bearbeiten'))) ?>
+                <?= Assets::img('icons/blue/add/person', tooltip2(_('Durchführende Dozenten bearbeiten'))) ?>
             </a>
             <a class="load-in-new-row" href="
         <?= isset($termin->metadate_id) ?
                 $controller->url_for('course/timesrooms/editDate/' . $termin->termin_id . '/' . $termin->metadate_id)
                 : $controller->url_for('course/timesrooms/editDate/' . $termin->termin_id) ?>
            ">
-                <?= Assets::img('icons/16/blue/edit.png', tooltip2(_('Termin bearbeiten'))) ?>
+                <?= Assets::img('icons/blue/edit', tooltip2(_('Termin bearbeiten'))) ?>
             </a>
 
-            <?= Assets::img('icons/16/blue/place.png', array('title' => _('Raumanfrage bearbeiten'))) ?>
-            <?= Assets::img('icons/16/blue/trash.png', array('title' => _('Termin löschen'))) ?>
+            <?= Assets::img('icons/blue/resources', array('title' => _('Raumanfrage bearbeiten'))) ?>
+            <?= Assets::img('icons/blue/trash', array('title' => _('Termin löschen'))) ?>
         <? endif ?>
     </td>
 </tr>

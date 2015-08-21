@@ -265,6 +265,21 @@ a.link-extern::before {
   vertical-align: text-top;
   width: 16px;
 }
+a.link-add::before {
+  background-repeat: no-repeat;
+  content: ' ';
+  display: inline-block;
+  height: 16px;
+  margin-right: 2px;
+  background-image: url("../images/icons/16/blue/add.png");
+  background-image: none, url("../images/icons/blue/add.svg");
+  -webkit-background-size: 16px 16px;
+  -moz-background-size: 16px 16px;
+  -o-background-size: 16px 16px;
+  background-size: 16px 16px;
+  vertical-align: text-top;
+  width: 16px;
+}
 a img {
   border: 0;
 }
