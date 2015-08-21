@@ -77,6 +77,7 @@ class Course_TimesroomsController extends AuthenticatedController
             $this->date_info = $dates[$termin_id];
         }
         $this->termin_id = $termin_id;
+        $this->termin = SingleDate::getInstance($termin_id);
         $this->resList = ResourcesUserRoomsList::getInstance($GLOBALS['user']->id, true, false, true);
         $this->types = $TERMIN_TYP;
         $this->dozenten = $this->course->getMembers('dozent');

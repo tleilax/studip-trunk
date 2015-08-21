@@ -32,14 +32,14 @@
     </td>
     <td>
         <? if (!$termin->isExTermin()) : ?>
-            <a class="load-in-new-row" href="
+            <a data-dialog="size=50%" href="
         <?= isset($termin->metadate_id) ?
                 $controller->url_for('course/timesrooms/editTeacher/' . $termin->termin_id . '/' . $termin->metadate_id)
                 : $controller->url_for('course/timesrooms/editTeacher/' . $termin->termin_id) ?>
            ">
                 <?= Assets::img('icons/16/blue/add/person.png', tooltip2(_('Durchführende Dozenten bearbeiten'))) ?>
             </a>
-            <a class="load-in-new-row" href="
+            <a data-dialog="size=50%" href="
         <?= isset($termin->metadate_id) ?
                 $controller->url_for('course/timesrooms/editDate/' . $termin->termin_id . '/' . $termin->metadate_id)
                 : $controller->url_for('course/timesrooms/editDate/' . $termin->termin_id) ?>
