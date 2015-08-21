@@ -110,7 +110,6 @@ jQuery(function ($) {
         var that = this;
         $.get($(this).attr('href'), function (response) {
             var row = $('<tr />').addClass('loaded-details');
-            console.log($(this).html());
             $('<td />')
                 .attr('colspan', $(that).closest('td').siblings().length + 1)
                 .html(response)

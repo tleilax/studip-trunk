@@ -193,8 +193,8 @@
         var chunks = value.trim().split('.'),
             callback = window,
             payload = xhr.getResponseHeader('Content-Type').match(/json/)
-                    ? $.parseJSON(xhr.responseText)
-                    : xhr.responseText;
+                ? $.parseJSON(xhr.responseText)
+                : xhr.responseText;
 
         $.each(chunks, function (index, chunk) {
             if (!callback.hasOwnProperty(chunk)) {
@@ -416,7 +416,7 @@
             },
             resizeStop: function (event, ui) {
                 var position = [Math.floor(ui.position.left) - $(window).scrollLeft(),
-                                Math.floor(ui.position.top) - $(window).scrollTop()];
+                    Math.floor(ui.position.top) - $(window).scrollTop()];
                 $(event.target).parent().css('position', 'fixed');
                 $(event.target).dialog('option', 'position', position);
             },
@@ -455,14 +455,14 @@
             };
         }
 
-        // Trigger update event on document since options.origin might have been removed
-        $(document).trigger('dialog-update', {dialog: instance.element, options: options});
-
         // Blur background
         $('#layout_wrapper').css('filter', 'blur(' + STUDIP.Dialog.stack.length + 'px)');
 
         // Create/update dialog
         instance.element.dialog(dialog_options);
+
+        // Trigger update event on document since options.origin might have been removed
+        $(document).trigger('dialog-update', {dialog: instance.element, options: options});
     };
 
     // Closes the dialog for good
