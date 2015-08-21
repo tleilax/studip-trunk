@@ -54,14 +54,9 @@
 
             var table_id = $(this).closest('table').data().tableId;
 
-            // jQuery' addClass does not work on svgs so we need to set the
-            // handle class by hand
-            // (see http://stackoverflow.com/a/29525743/982902)
-            $(this).children().each(function () {
-                this.classList.add('draggable-topic-handle');
-            });
+            $(this).children().addClass('draggable-topic-handle');
 
-            $(this).addClass('draggable-topic').attr('data-table-id', table_id).draggable({
+            $(this).addClass('draggable-topic').data('table-id', table_id).draggable({
                 axis: 'y',
                 containment: $(this).closest('tbody'),
                 handle: '.draggable-topic-handle',

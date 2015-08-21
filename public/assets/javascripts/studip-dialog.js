@@ -135,6 +135,7 @@
 
     STUDIP.Dialog = {
         instances: {},
+        stack: [],
         hasInstance: function (id) {
             id = id || 'default';
             return this.instances.hasOwnProperty(id);
@@ -145,8 +146,11 @@
                 this.instances[id] = {
                     open: false,
                     element: $('<div>'),
-                    options: {}
+                    options: {},
+                    previous: this.stack[0] || false
                 };
+
+                this.stack.unshift(id);
             }
             return this.instances[id];
         },
@@ -154,6 +158,9 @@
             id = id || 'default';
             if (this.hasInstance(id)) {
                 delete this.instances[id];
+
+                var index = this.stack.indexOf(id);
+                this.stack.splice(index, 1);
             }
         },
         shouldOpen: function () {
@@ -165,7 +172,7 @@
     };
 
     // Handler for HTTP header X-Location: Relocate to another location
-    STUDIP.Dialog.handlers.header['X-Location'] = function (location) {
+    STUDIP.Dialog.handlers.header['X-Location'] = function (location, options) {
         if (document.location.href === location) {
             document.location.reload(true);
         } else {
@@ -176,7 +183,7 @@
             });
         }
 
-        STUDIP.Dialog.close();
+        STUDIP.Dialog.close(options);
         document.location = location;
 
         return false;
@@ -337,16 +344,16 @@
 
         var scripts = $('<div>' + content + '</div>').filter('script'), // Extract scripts
             dialog_options = {},
+            instance = STUDIP.Dialog.getInstance(options.id),
+            previous = instance.previous !== false ? STUDIP.Dialog.getInstance(instance.previous) : false,
             width  = options.width || $('body').width() * 2 / 3,
-            height = options.height || $('body').height()  * 2 / 3,
+            height = options.height || $('body').height() * 2 / 3,
             temp,
-            helper,
-            instance = STUDIP.Dialog.getInstance(options.id);
+            helper;
 
         if (instance.open) {
             options.title = options.title || instance.element.dialog('option', 'title');
         }
-        instance.options = options;
 
         if (options['center-content']) {
             content = '<div class="studip-dialog-centered-helper">' + content + '</div>';
@@ -367,6 +374,12 @@
             height = Math.max(200, Math.min(helper.height() + 130, height));
             // Remove helper element
             helper.remove();
+        } else if (options.size && options.size === 'big') {
+            width  = $('body').width() * 0.9;
+            height = $('body').height() * 0.8;
+        } else if (options.size && options.size === 'small') {
+            width  = 300;
+            height = 200;
         } else if (options.size && options.size.match(/^\d+x\d+$/)) {
             temp = options.size.split('x');
             width = temp[0];
@@ -375,6 +388,22 @@
             width = height = options.size;
         }
 
+        // Ensure dimensions fit in viewport
+        width  = Math.min(width, $('body').width() * 0.95);
+        height = Math.min(height, $('body').height() * 0.9);
+        if (previous !== false && width > previous.dimensions.width && height > previous.dimensions.height) {
+            width = width > previous.dimensions.width ? previous.dimensions.width * 0.95 : width;
+            height = height > previous.dimensions.height ? previous.dimensions.height * 0.95 : height;
+        }
+
+        // Store options and dimensions
+        instance.options = options;
+        instance.dimensions = {
+            width: window.parseInt(width, 10),
+            height: window.parseInt(height, 10)
+        };
+
+        // Set dialog options
         dialog_options = $.extend(dialog_options, {
             width:   width,
             height:  height,
@@ -382,6 +411,15 @@
             title:   $('<div>').text(options.title || '').html(), // kinda like htmlReady()
             modal:   true,
             resizable: options.hasOwnProperty('resize') ? options.resize : true,
+            create: function (event) {
+                $(event.target).parent().css('position', 'fixed');
+            },
+            resizeStop: function (event, ui) {
+                var position = [Math.floor(ui.position.left) - $(window).scrollLeft(),
+                                Math.floor(ui.position.top) - $(window).scrollTop()];
+                $(event.target).parent().css('position', 'fixed');
+                $(event.target).dialog('option', 'position', position);
+            },
             open: function () {
                 var helpbar_element = $('.helpbar a[href*="docs.studip.de"]'),
                     tooltip = helpbar_element.text(),
@@ -420,6 +458,9 @@
         // Trigger update event on document since options.origin might have been removed
         $(document).trigger('dialog-update', {dialog: instance.element, options: options});
 
+        // Blur background
+        $('#layout_wrapper').css('filter', 'blur(' + STUDIP.Dialog.stack.length + 'px)');
+
         // Create/update dialog
         instance.element.dialog(dialog_options);
     };
@@ -453,6 +494,9 @@
             }
 
             STUDIP.Dialog.removeInstance(options.id);
+
+            // Remove background blur
+            $('#layout_wrapper').css('filter', 'blur(' + STUDIP.Dialog.stack.length + 'px)');
         }
 
         if (options['reload-on-close']) {
@@ -487,6 +531,15 @@
         .on('click', 'form[data-dialog] :submit', clickHandler)
         .on('click', 'form[data-dialog] input[type=image]', clickHandler)
         .on('submit', 'form[data-dialog]', dialogHandler);
+
+    // Close dialog on click outside of it
+    $(document).on('click', '.ui-widget-overlay', function () {
+        if ($('.ui-dialog').length > 0 && STUDIP.Dialog.stack.length) {
+            STUDIP.Dialog.close({
+                id: STUDIP.Dialog.stack[0]
+            });
+        }
+    });
 
     // Extra: Expose parseOptions to STUDIP object
     STUDIP.parseOptions = parseOptions;

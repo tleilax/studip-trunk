@@ -184,10 +184,10 @@ class Admin_StatusgroupsController extends AuthenticatedController
         $user_id = Request::get('user');
         $pos     = Request::get('pos');
 
-        $statusgroup = new Statusgruppen($group);
-        $statusgroup->moveUser($user_id, $pos);
+        $this->group = new Statusgruppen($group);
+        $this->group->moveUser($user_id, $pos);
         $this->type['after_user_move']($user_id);
-        $this->users = $statusgroup->members;
+        $this->users = $this->group->members;
         $this->afterFilter();
     }
 
@@ -303,7 +303,7 @@ class Admin_StatusgroupsController extends AuthenticatedController
     private function check($rights)
     {
         if (!$this->type[$rights]($this->user_id)) {
-            throw new AccessDeniedException(_('Sie dürfen auf diesen Bereich nicht zugreifen.'));
+            throw new AccessDeniedException();
         }
     }
 

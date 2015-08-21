@@ -3475,6 +3475,7 @@ section.contentbox article.new header h1::before {
   border: 0;
 }
 .ajaxing img,
+.ajaxing image,
 .ajaxing svg {
   display: none;
 }
@@ -5858,6 +5859,9 @@ body#wiki #main_content td.printcontent:last-child:not(:first-child) {
 #raumzeit div.at_least_one_teacher {
   width: 325px;
 }
+#raumzeit a.bookable_rooms_action {
+  display: none;
+}
 .opengraph {
   font-size: 0.8em;
   border: thin solid lightgrey;
@@ -6331,28 +6335,28 @@ div.available-widgets .studip-widget {
   padding: 0;
 }
 .ui-dialog .ui-dialog-titlebar-close .ui-icon {
-  width: 24px;
-  height: 24px;
-  background-image: url("../images/icons/32/white/decline.png");
+  width: 16px;
+  height: 16px;
+  background-image: url("../images/icons/16/white/decline.png");
   background-image: none, url("../images/icons/white/decline.svg");
-  -webkit-background-size: 24px 24px;
-  -moz-background-size: 24px 24px;
-  -o-background-size: 24px 24px;
-  background-size: 24px 24px;
+  -webkit-background-size: 16px 16px;
+  -moz-background-size: 16px 16px;
+  -o-background-size: 16px 16px;
+  background-size: 16px 16px;
   background-position: 0;
   display: inline-block;
   margin: 0;
   position: relative;
-  left: 2px;
-  top: 4px;
+  left: 1px;
+  top: 1px;
 }
 .ui-dialog .ui-dialog-titlebar-close .ui-icon:hover {
-  background-image: url("../images/icons/32/white/decline.png");
+  background-image: url("../images/icons/16/white/decline.png");
   background-image: none, url("../images/icons/white/decline.svg");
-  -webkit-background-size: 24px 24px;
-  -moz-background-size: 24px 24px;
-  -o-background-size: 24px 24px;
-  background-size: 24px 24px;
+  -webkit-background-size: 16px 16px;
+  -moz-background-size: 16px 16px;
+  -o-background-size: 16px 16px;
+  background-size: 16px 16px;
 }
 .ui-dialog.no-close .ui-dialog-titlebar-close {
   display: none;
@@ -7093,8 +7097,9 @@ label[for="responsive-toggle"]:before {
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
     box-sizing: border-box;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.7);
     height: 35px;
+    position: fixed;
+    top: 0;
   }
   #barBottomright,
   #barBottomright ul {
@@ -7543,9 +7548,6 @@ h4:hover .arrow_right {
   font-style: italic;
   text-align: right;
   color: #444;
-}
-img.bookable_rooms_action {
-  display: none;
 }
 pre.usercode {
   padding: 5px;

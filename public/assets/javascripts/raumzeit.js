@@ -2,14 +2,13 @@
 /*global window, $, jQuery, _, STUDIP */
 
 jQuery(function ($) {
-    $('.bookable_rooms_action').bind('click', function (event) {
+    $(document).on('click', 'a.bookable_rooms_action', function (event) {
         var select = $(this).prev('select')[0];
         var me = $(this);
         if (select !== null && select !== undefined) {
-            if (me.attr('data-state') === 'enabled') {
+            if (me.data('state') === 'enabled') {
                 STUDIP.Raumzeit.disableBookableRooms(me);
             } else {
-                me.attr('src', STUDIP.ASSETS_URL + 'images/ajax_indicator_small.gif');
                 if (me.data('options') === undefined) {
                     me.data('options', $(select).children('option').clone(true));
                 } else {
@@ -37,23 +36,23 @@ jQuery(function ($) {
                                 select.title = '';
                             }
                             _.each(result, function (v) {
-                                $(select).children('option[value=' + v + ']').attr('disabled', 'disabled');
+                                $(select).children('option[value=' + v + ']').prop('disabled', true);
                             });
                         } else {
                             select.title = '';
                         }
-                        me.attr('src', STUDIP.ASSETS_URL + 'images/icons/16/blue/room-clear.png');
                         me.attr('title', 'Alle Räume anzeigen'.toLocaleString());
-                        me.attr('data-state', 'enabled');
+                        me.data('state', 'enabled');
                     }
                 });
             }
         }
+        event.preventDefault();
     });
-    $('.bookable_rooms_action').show();
+    $('a.bookable_rooms_action').show();
 
-    $('input[type=checkbox]').bind('change', function () {
-        STUDIP.Raumzeit.disableBookableRooms($('img[data-name=bulk_action]'));
+    $(document).on('change', 'input[name="singledate[]"]', function () {
+        STUDIP.Raumzeit.disableBookableRooms($('a.bookable_rooms_action'));
     });
 });
 
@@ -100,12 +99,12 @@ jQuery(function ($) {
             $('#block_appointments_days input:checkbox').click(function () {
                 var clicked_id = parseInt(this.id.split('_').pop(), 10);
                 if (clicked_id === 0 || clicked_id === 1) {
-                    $('#block_appointments_days input:checkbox').attr('checked', function (i) {
+                    $('#block_appointments_days input:checkbox').prop('checked', function (i) {
                         return i === clicked_id;
                     });
                 } else {
-                    $('#block_appointments_days_0').attr('checked', false);
-                    $('#block_appointments_days_1').attr('checked', false);
+                    $('#block_appointments_days_0').prop('checked', false);
+                    $('#block_appointments_days_1').prop('checked', false);
                 }
             });
         },
@@ -147,12 +146,12 @@ STUDIP.Raumzeit = {
     toggleCheckboxes: function (cycle_id) {
         var checked = false;
         jQuery('table[data-cycleid=' + cycle_id + '] input[name^=singledate]').each(function () {
-            if (jQuery(this).attr('checked')) {
+            if (jQuery(this).prop('checked')) {
                 checked = true;
             }
         });
 
-        jQuery('table[data-cycleid=' + cycle_id + '] input[name*=singledate]').attr('checked', !checked);
+        jQuery('table[data-cycleid=' + cycle_id + '] input[name*=singledate]').prop('checked', !checked);
     },
 
     addLecturer: function () {
@@ -165,7 +164,7 @@ STUDIP.Raumzeit = {
             jQuery('li[data-lecturerid=' + lecturer_id + ']').show();
             //jQuery('li[data-lecturerid=' + lecturer_id + '] input').val('1');
             jQuery('select[name=teachers] option[value=' + lecturer_id + ']').hide();
-            jQuery('select[name=teachers] option[value=none]').attr('selected', 'selected');
+            jQuery('select[name=teachers] option[value=none]').prop('selected', true);
         });
 
         STUDIP.Raumzeit.addFormLecturers();
@@ -193,7 +192,7 @@ STUDIP.Raumzeit = {
         var data = [];
 
         jQuery('ul.teachers li:visible').each(function () {
-            data.push(jQuery(this).attr('data-lecturerid'));
+            data.push(jQuery(this).data('lecturerid'));
         });
 
         jQuery('input[name=related_teachers]').val(data.join(','));
@@ -201,7 +200,7 @@ STUDIP.Raumzeit = {
     addFormGroups: function () {
         var data = [];
         jQuery('ul.groups li:visible').each(function () {
-            data.push(jQuery(this).attr('data-groupid'));
+            data.push(jQuery(this).data('groupid'));
         });
         jQuery('input[name=related_statusgruppen]').val(data.join(','));
     },
@@ -215,7 +214,7 @@ STUDIP.Raumzeit = {
             jQuery('li[data-groupid=' + statusgruppe_id + ']').show();
             //jQuery('li[data-groupid=' + statusgruppe_id + '] input').val('1');
             jQuery('select[name=groups] option[value=' + statusgruppe_id + ']').hide();
-            jQuery('select[name=groups] option[value=none]').attr('selected', 'selected');
+            jQuery('select[name=groups] option[value=none]').prop('selected', true);
         });
 
         STUDIP.Raumzeit.addFormGroups();
@@ -232,13 +231,12 @@ STUDIP.Raumzeit = {
     disableBookableRooms: function (icon) {
         var select = $(icon).prev('select')[0];
         var me = $(icon);
-
+        select.title = '';
         $(select).children('option').each(function () {
-            $(this).attr('disabled', false);
+            $(this).prop('disabled', false);
         });
 
-        me.attr('data-state', false);
-        me.attr('src', STUDIP.ASSETS_URL + 'images/icons/16/grey/room-clear.png');
+        me.data('state', false);
         me.attr('title', 'Nur buchbare Räume anzeigen'.toLocaleString());
     }
 };
