@@ -39,7 +39,8 @@
 </div>
 
 <div data-dialog-button>
-    <?= Studip\Button::createAccept(_('Speichern'), 'save_dates', array('formaction'  => $controller->url_for('course/timesrooms/editSingleDate/' . $termin_id),
-                                                                        'data-dialog' => 'size=50%'
-    )) ?>
+    <?= Studip\Button::createAccept(_('Speichern'), 'save_dates',
+        array('formaction'  => $controller->url_for('course/timesrooms/editSingleDate/' . $termin_id),
+              'data-dialog' => 'size=big'
+        )) ?>
 </div>

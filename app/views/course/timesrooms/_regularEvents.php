@@ -62,19 +62,19 @@
                                     <td colspan="2">
                                         <section style="margin: 0; padding: 0">
                                             <input data-proxyfor=".ids-regular" type="checkbox"
-                                                   id="checkAll" data-activates=".actionForAll">
-                                            <label for="checkAll" class="horizontal">
+                                                   id="checkAllRegular" data-activates=".actionForAllRegular">
+                                            <label for="checkAllRegular" class="horizontal">
                                                 <?= _('alle Auswählen') ?>
                                             </label>
                                         </section>
                                     </td>
                                     <td>
-                                        <select name="actionForAll" class="actionForAll">
+                                        <select name="actionForAllRegular" class="actionForAllRegular">
                                             <option><?= _('aktion für alle ausgewählten') ?></option>
                                         </select>
                                     </td>
                                     <td>
-                                        <?= Studip\Button::create('ausführen', 'run', array('class' => 'actionForAll')) ?>
+                                        <?= Studip\Button::create('ausführen', 'run', array('class' => 'actionForAllRegular')) ?>
                                     </td>
                                 </tr>
                                 </tfoot>

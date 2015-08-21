@@ -14,7 +14,7 @@
 
 <? if (!empty($dozenten)) : ?>
     <form action="<?= $controller->url_for('course/timesrooms/addRelatedPerson/' . $termin->id) ?>"
-          data-dialog="size=50%">
+          data-dialog="size=big">
         <section style="margin-top: 20px">
             <label for="add_teacher">
                 <?= _('Lehrenden auswählen') ?>

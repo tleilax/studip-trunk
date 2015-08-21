@@ -21,7 +21,7 @@ table.header, .table_header { //normale Tabellenheader
 
 
 table.links1 { background-color: #fff; }
-table.logintable { 
+table.logintable {
     background-image: url("@{image-path}/login.jpg");
     background-size: 750px 350px;
     h1 {
@@ -48,7 +48,7 @@ table.logintable {
 
 table.toolbar {
   .gradient-bar(false);
-} 
+}
 td.toolbar, td.printhead {
   .gradient-bar();
 }
@@ -191,10 +191,10 @@ table.zebra-horizontal > tbody > tr > td {
             display: block;
         }
     }
-    .empty .toggle-indicator a { 
+    .empty .toggle-indicator a {
         .retina-background-icon('grey/arr_1right.png');
  }
-    .collapsed .toggle-indicator a { 
+    .collapsed .toggle-indicator a {
         .retina-background-icon('blue/arr_1right.png');
     }
     td.label-cell, .toggle-indicator a, .empty .toggle-indicator { padding-left: 20px; }
@@ -209,7 +209,14 @@ table.zebra-horizontal > tbody > tr > td {
 
 /* --- Table details -------------------------------------------------------- */
 .loaded-details {
-    > td { padding: 0 20px 5px 20px !important; }
+    &:hover {
+        > td {
+            background: white  !important;
+        }
+    }
+    > td {
+        padding: 0 20px 5px 20px !important;
+    }
     table {
         border: 1px solid #888;
         border-top: 0;
@@ -514,14 +521,14 @@ table.default {
     td.actions, th.actions {
         float: none;
     }
-    
+
     > caption {
         .caption-container {
             .flex();
             .flex-align-items(stretch);
             .flex-justify-content(space-between);
             margin-bottom: -5px;
-        }  
+        }
         .caption-content {
             .flex-grow(1);
             border-right: 1px solid @brand-color-darker;
@@ -570,7 +577,7 @@ table.default {
         padding-left: 5px;
         vertical-align: middle;
     }
-    
+
     &.has-form {
         input[type=text], textarea {
             .box-sizing(border-box);
@@ -631,7 +638,7 @@ table.withdetails {
 .sortable-table {
     .header, .tablesorter-header:not(.sorter-false) {
         white-space: nowrap;
-        
+
         color: @base-color;
         &:hover {
             color: @active-color;

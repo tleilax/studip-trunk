@@ -41,14 +41,14 @@
                     <td colspan="2">
                         <section style="margin: 0; padding: 0">
                             <input data-proxyfor=".ids-irregular" type="checkbox"
-                                   id="checkAll" data-activates=".actionForAllIrregular">
-                            <label for="checkAll" class="horizontal">
+                                   id="checkAllIrregular" data-activates=".actionForAllIrregular">
+                            <label for="checkAllIrregular" class="horizontal">
                                 <?= _('alle Auswählen') ?>
                             </label>
                         </section>
                     </td>
                     <td>
-                        <select name="actionForAll" class="actionForAllIrregular">
+                        <select name="actionForAllIrregular" class="actionForAllIrregular">
                             <option><?= _('aktion für alle ausgewählten') ?></option>
                         </select>
                     </td>

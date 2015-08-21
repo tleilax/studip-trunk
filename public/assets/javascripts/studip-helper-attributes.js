@@ -28,10 +28,7 @@
     }).ready(function () {
         $(':checkbox[data-proxyfor]').each(function () {
             var proxied = $(this).data('proxyfor');
-
             // The following seems like a hack but works perfectly fine.
-            // The attribute needs to be changed so the previous event handler
-            // will work
             $(proxied).attr('data-proxiedby', true).data('proxiedby', this);
         }).trigger('update.proxy');
     });
@@ -42,7 +39,7 @@
     $(document).on('change', ':checkbox[data-activates]', function () {
         var activates = $(this).data('activates'),
             activated = $(this).prop('checked') || $(this).prop('indeterminate') || false;
-        $(activates).prop('disabled', !activated).trigger('update.proxy');
+        $(activates).attr('disabled', !activated).trigger('update.proxy');
     }).ready(function () {
         $(':checkbox[data-activates]').trigger('change');
     });
@@ -53,7 +50,7 @@
     $(document).on('change update.proxy', 'select[data-activates]', function () {
         var activates = $(this).data('activates'),
             disabled = $(this).is(':disabled') || $(this).val().length === 0;
-        $(activates).prop('disabled', disabled);
+        $(activates).attr('disabled', disabled);
     }).ready(function () {
         $('select[data-activates]').trigger('change');
     });

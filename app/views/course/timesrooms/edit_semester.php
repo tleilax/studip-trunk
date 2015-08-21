@@ -1,5 +1,5 @@
 <? if (Request::isXhr()) : ?>
-    <form action="<?=$controller->url_for('course/timesrooms/set_semester/' . $course->id)?>" method="post" class="studip-form" data-dialog>
+    <form action="<?=$controller->url_for('course/timesrooms/set_semester/' . $course->id)?>" method="post" class="studip-form" data-dialog="size=big">
 <? endif ?>
 
 <section <?= !Request::isXhr() ? 'style="float: left; width: 45%"' : '' ?>>

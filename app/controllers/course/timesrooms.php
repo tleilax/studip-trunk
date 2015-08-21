@@ -84,7 +84,6 @@ class Course_TimesroomsController extends AuthenticatedController
 
     public function editDate_action($termin_id, $metadate_id = null)
     {
-        global $TERMIN_TYP;
         if (!isset($metadate_id)) {
             $dates = $this->course->getSingleDates(true, true, true);
             $this->date_info = $dates[$termin_id];
@@ -95,11 +94,7 @@ class Course_TimesroomsController extends AuthenticatedController
         $this->termin_id = $termin_id;
         $this->termin = SingleDate::getInstance($termin_id);
         $this->resList = ResourcesUserRoomsList::getInstance($GLOBALS['user']->id, true, false, true);
-        $this->types = $TERMIN_TYP;
-        $this->dozenten = $this->course->getMembers('dozent');
-        $this->dozenten_options = $this->course->getMembers('dozent');
-        $this->groups_options = Statusgruppen::findBySeminar_id($this->course->getId());
-        $this->groups = $this->date_info->getRelatedGroups();
+        $this->types = $GLOBALS['TERMIN_TYP'];
     }
 
     public function editTeacher_action($termin_id)
@@ -113,6 +108,20 @@ class Course_TimesroomsController extends AuthenticatedController
         } else {
             $this->dozenten = array_diff_key($this->dozenten, $this->related_persons);
         }
+    }
+
+    public function editRoom_action($termin_id, $metadate_id = null)
+    {
+        if (!isset($metadate_id)) {
+            $dates = $this->course->getSingleDates(true, true, true);
+            $this->date_info = $dates[$termin_id];
+        } else {
+            $dates = $this->course->getSingleDatesForCycle($metadate_id);
+            $this->date_info = $dates[$termin_id];
+        }
+        $this->termin_id = $termin_id;
+        $this->termin = SingleDate::getInstance($termin_id);
+        $this->resList = ResourcesUserRoomsList::getInstance($GLOBALS['user']->id, true, false, true);
     }
 
     public function editSingleDate_action($termin_id)

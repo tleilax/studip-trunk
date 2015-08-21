@@ -534,6 +534,9 @@ table.zebra-horizontal > tbody > tr > td:nth-child(2n+1) {
   display: inline-block !important;
 }
 /* --- Table details -------------------------------------------------------- */
+.loaded-details:hover > td {
+  background: white  !important;
+}
 .loaded-details > td {
   padding: 0 20px 5px 20px !important;
 }
