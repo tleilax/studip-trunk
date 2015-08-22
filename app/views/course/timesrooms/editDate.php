@@ -40,7 +40,6 @@
         </section>
 
 
-
         <section style="margin: 20px 0">
             <p><strong><?= _('Durchführende Lehrende:') ?></strong></p>
             <? if (!empty($dozenten)) : ?>
@@ -143,25 +142,22 @@
                             <?= Assets::img('icons/blue/trash') ?>
                         </a>
                     </li>
-                    <? unset($gruppen[$index]) ?>
                 <? endforeach ?>
             </ul>
 
             <input type="hidden" name="related_statusgruppen" value="<?= implode(',', $related_groups) ?>">
 
-            <? if (!empty($gruppen)) : ?>
-                <select name="groups">
-                    <option value="none"><?= _('-- Gruppen auswählen --') ?></option>
-                    <? foreach ($gruppen as $gruppe) : ?>
-                        <option value="<?= htmlReady($gruppe->getId()) ?>" style="<?= in_array($gruppe->getId(), $related_groups) ? 'display: none;' : '' ?>">
-                            <?= htmlReady($gruppe['name']) ?>
-                        </option>
-                    <? endforeach ?>
-                </select>
-                <a href="javascript:" onClick="STUDIP.Raumzeit.addGroup()" title="<?= _('Gruppe hinzufügen') ?>">
-                    <?= Assets::img('icons/16/yellow/arr_2up.png') ?>
-                </a>
-            <? endif ?>
+            <select name="groups">
+                <option value="none"><?= _('-- Gruppen auswählen --') ?></option>
+                <? foreach ($gruppen as $gruppe) : ?>
+                    <option value="<?= htmlReady($gruppe->getId()) ?>" style="<?= in_array($gruppe->getId(), $related_groups) ? 'display: none;' : '' ?>">
+                        <?= htmlReady($gruppe['name']) ?>
+                    </option>
+                <? endforeach ?>
+            </select>
+            <a href="javascript:" onClick="STUDIP.Raumzeit.addGroup()" title="<?= _('Gruppe hinzufügen') ?>">
+                <?= Assets::img('icons/16/yellow/arr_2up.png') ?>
+            </a>
         </section>
     </div>
 </div>

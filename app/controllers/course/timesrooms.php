@@ -37,6 +37,7 @@ class Course_TimesroomsController extends AuthenticatedController
 
         $this->setSidebar();
         PageLayout::setHelpKeyword('Basis.Veranstaltungen');
+        PageLayout::addSqueezePackage('raumzeit');
         PageLayout::setTitle(sprintf(_('%sVerwaltung von Zeiten und Räumen'),
             isset($this->course) ? $this->course->getFullname() . ' - ' : ''));
     }
@@ -119,13 +120,53 @@ class Course_TimesroomsController extends AuthenticatedController
 
     public function editSingleDate_action($termin_id)
     {
+
         $termin     = SingleDate::getInstance($termin_id);
         $start_time = sprintf('%s %s', Request::get('date'), Request::get('start_time'));
         $end_time   = sprintf('%s %s', Request::get('date'), Request::get('end_time'));
         $termin->setTime(strtotime($start_time), strtotime($end_time));
         $termin->setDateType(Request::int('course_type'));
+
+        $related_groups = Request::get('related_statusgruppen');
+        if(!empty($related_groups)) {
+            $related_groups = explode(',', $related_groups);
+            $termin->clearRelatedGroups();
+            foreach($related_groups as $group_id) {
+                $termin->addRelatedGroup($group_id);
+            }
+        } else {
+            $termin->clearRelatedGroups();
+        }
+
+        // Set Room
+        if (Request::option('room')) {
+            if ($resObj = $termin->bookRoom(Request::option('room_sd'))) {
+                $this->course->createMessage(sprintf(_('Der Termin %s wurde geändert und der Raum %s gebucht, etwaige freie Ortsangaben wurden entfernt.'),
+                    '<b>'. $termin->toString() .'</b>',
+                    '<b>'. $resObj->getName() .'</b>'));
+            } else {
+                $this->course->createError(sprintf(_('Der angegebene Raum konnte für den Termin %s nicht gebucht werden!'),
+                    '<b>'. $termin->toString() .'</b>'));
+            }
+        } else if (Request::option('noroom')) {
+            $termin->killAssign();
+            $this->course->createMessage(sprintf(_('Der Termin %s wurde geändert, etwaige freie Ortsangaben und Raumbuchungen wurden entfernt.'), '<b>'.$termin->toString().'</b>'));
+        } else if (Request::option('freetext')) {
+            $termin->setFreeRoomText(Request::quoted('freeRoomText_sd'));
+            $termin->killAssign();
+            $this->course->createMessage(sprintf(_('Der Termin %s wurde geändert, etwaige Raumbuchung wurden entfernt und stattdessen der angegebene Freitext eingetragen!'), '<b>'.$termin->toString().'</b>'));
+        }
+
         if ($termin->store()) {
-            PageLayout::postMessage(MessageBox::success(_('Die gewünschten Zeiten wurden übernommen!')));
+            NotificationCenter::postNotification("CourseDidChangeSchedule", $this->course);
+            $this->course->appendMessages($termin->getMessages());
+            $messages = $this->course->getStackedMessages();
+
+            if(!empty($messages)) {
+                foreach($messages as $type => $msg) {
+                    PageLayout::postMessage(MessageBox::$type($msg['title'], $msg['details']));
+                }
+            }
         }
         $this->redirect($this->url_for('course/timesrooms/index#' . $termin->metadate_id, array('contentbox_open' => $termin->metadate_id)));
     }
@@ -144,23 +185,6 @@ class Course_TimesroomsController extends AuthenticatedController
     public function editBlock_action($id = 0)
     {
 
-    }
-
-    public function addRelatedPerson_action($termin_id)
-    {
-        $termin          = Termine::find($termin_id);
-        $related_persons = $termin->getRelatedPersons();
-        $user_id         = Request::get('add_teacher');
-        if (!in_array($user_id, $related_persons)) {
-            if ($termin->addRelatedPerson($user_id)) {
-                $user = User::find($user_id);
-                PageLayout::postMessage(MessageBox::success(sprintf(_('%s wurde als Lehrernder zu dem gewünschten Termin hinzugefügt!'), $user->getFullname())));
-            }
-        }
-        /**
-         * TODO: LOGGING
-         */
-        $this->redirect('course/timesrooms/editTeacher/' . $termin_id);
     }
 
     function setSidebar()
