@@ -57,7 +57,6 @@
                                 <?= Assets::img('icons/blue/trash') ?>
                             </a>
                         </li>
-                        <? unset($dozenten[$related_person]) ?>
                         <input type="hidden" name="related_teachers" value="<?= implode(',', $related_persons) ?>">
                     <? endforeach; ?>
                 </ul>
@@ -65,26 +64,22 @@
                 <p><?= _('Keine Lehrende eingetragen') ?></p>
             <? endif ?>
 
-            <? if (!empty($dozenten)) : ?>
-                <section style="margin-top: 20px">
-                    <label for="add_teacher">
-                        <?= _('Lehrenden auswählen') ?>
-                    </label>
-                    <select id="add_teacher" name="add_teacher">
-                        <option value="none"><?= _('-- Dozent/in auswählen --') ?></option>
-                        <? foreach ($dozenten as $dozent) : ?>
-                            <option value="<?= htmlReady($dozent['user_id']) ?>" <?= $dozent['hidden'] ? 'style="display: none"' : '' ?>>
-                                <?= htmlReady($dozent['fullname']) ?>
-                            </option>
-                        <? endforeach; ?>
-                    </select>
-                    <?= Assets::input('icons/16/blue/add.png',
-                        array('title'       => _('Dozenten zu diesem Termin hinzufügen'),
-                              'formaction'  => $controller->url_for('course/timesrooms/addRelatedPerson/' . $termin->id),
-                              'data-dialog' => 'size=big')
-                    ) ?>
-                </section>
-            <? endif ?>
+            <section style="margin-top: 20px">
+                <label for="add_teacher">
+                    <?= _('Lehrenden auswählen') ?>
+                </label>
+                <select id="add_teacher" name="teachers">
+                    <option value="none"><?= _('-- Dozent/in auswählen --') ?></option>
+                    <? foreach ($dozenten as $dozent) : ?>
+                        <option value="<?= htmlReady($dozent['user_id']) ?>" <?= $dozent['hidden'] ? 'style="display: none"' : '' ?>>
+                            <?= htmlReady($dozent['fullname']) ?>
+                        </option>
+                    <? endforeach; ?>
+                </select>
+                <a href="javascript:" onClick="STUDIP.Raumzeit.addLecturer()" title="<?= _('Lehrenden hinzufügen') ?>">
+                    <?= Assets::img('icons/16/yellow/arr_2up.png') ?>
+                </a>
+            </section>
         </section>
 
 
@@ -96,11 +91,11 @@
             <section class="clearfix" style="margin: 10px 0">
 
                 <label class="horizontal">
-                    <input style="display: inline;" type="radio" name="room"
+                    <input style="display: inline;" type="radio" name="room" value="room"
                            id="room" <?= !empty($date_info->resource_id) ? 'checked' : '' ?> />
                 </label>
 
-                <select style="display: inline-block; margin-left: 40px" class="single_room size-m">
+                <select name="room_sd" style="display: inline-block; margin-left: 40px" class="single_room size-m">
                     <option value=""><?= _('Wählen Sie einen Raum aus') ?></option>
                     <? foreach ($resList->resources as $room_id => $room) : ?>
                         <option value="<?= $room_id ?>"
@@ -113,15 +108,15 @@
         <? endif; ?>
         <section style="margin: 10px 0">
             <label class="horizontal">
-                <input type="radio" name="room" <?= !empty($date_info->raum) ? 'checked' : '' ?> style="display: inline" />
+                <input type="radio" name="room" value="freetext" <?= !empty($date_info->raum) ? 'checked' : '' ?> style="display: inline" />
             </label>
-            <input style="margin-left: 40px; display: inline-block" type="text" class="size-m"
+            <input style="margin-left: 40px; display: inline-block" type="text" class="size-m" name="freeRoomText_sd"
                    placeholder="<?= _('freie Ortsangabe (keine Raumbuchung)') ?>"
                    value="<?= isset($date_info->raum) ? htmlReady($date_info->raum) : '' ?>">
         </section>
         <section style="margin: 10px 0">
             <label class="horizontal">
-                <input type="radio" name="room" style="display:inline;"
+                <input type="radio" name="room" style="display:inline;" value="noroom"
                     <?= !empty($date_inf->resource_id) ? '' : (!empty($date_info->raum) ? '' : 'checked') ?>>
                 <span style="display: inline-block; margin-left: 40px"><?= _('kein Raum') ?></span>
             </label>

@@ -1,24 +1,24 @@
-<form class="studip-form">
-    <section class="contentbox">
-        <header>
-            <h1>
-                <?= _('Regelmäßige Termine') ?>
-            </h1>
-            <nav>
-                <a class="link-add" href="<?= $controller->link_for('course/timesrooms/editCycle') ?>" data-dialog title="<?=_('Regelmäßigen Termin hinzufügen')?>">
-                    <?= _('Neuer Zeitraum') ?>
-                </a>
-            </nav>
-        </header>
+<section class="contentbox">
+    <header>
+        <h1>
+            <?= _('Regelmäßige Termine') ?>
+        </h1>
+        <nav>
+            <a class="link-add" href="<?= $controller->link_for('course/timesrooms/editCycle') ?>" data-dialog title="<?= _('Regelmäßigen Termin hinzufügen') ?>">
+                <?= _('Neuer Zeitraum') ?>
+            </a>
+        </nav>
+    </header>
 
-        <? if (!empty($cycles)) : ?>
+    <? if (empty($cycles)) : ?>
+        <form class="studip-form">
             <? foreach ($cycles as $metadate_id => $cycle) : ?>
                 <? if (!$roomRequest = $course->getDatesTemplate('dates/seminar_predominant_html', array('cycle_id' => $metadate_id))) : ?>
                     <? $noRequest = true ?>
                     <? $roomRequest = _('keiner'); ?>
                 <? endif ?>
                 <article id="<?= $metadate_id ?>"
-                         class="<?= $noRequest ? 'red' : '' ?> <?= Request::get('contentbox_open') == $metadate_id ? 'open' : '' ?>">
+                         class="<?= Request::get('contentbox_open') == $metadate_id ? 'open' : '' ?>">
                     <header>
                         <h1>
                             <a href="<?= ContentBoxHelper::href($metadate_id, array()) ?>">
@@ -86,8 +86,12 @@
                     </section>
                 </article>
             <? endforeach; ?>
-        <? else : ?>
-            <?= MessageBox::info(sprintf(_('Kein Blocktermin für %s vorhanden'), htmlReady($course->name))) ?>
-        <? endif; ?>
-    </section>
-</form>
+        </form>
+    <? else : ?>
+        <section>
+            <p class="text-center">
+                <strong><?= sprintf(_('Kein Blocktermin für %s vorhanden'), htmlReady($course->name)) ?></strong>
+            </p>
+        </section>
+    <? endif; ?>
+</section>

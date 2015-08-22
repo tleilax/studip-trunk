@@ -186,6 +186,9 @@ h1 span {
 p {
   margin: 0 0 10px;
 }
+.text-center {
+  text-align: center;
+}
 /* --- Links ---------------------------------------------------------------- */
 a,
 a:link,
@@ -885,13 +888,6 @@ table.default > thead > tr > th {
   border-bottom: 1px solid rgba(137, 154, 185, 0.2);
   border-top: 1px solid #1e3e70;
   font-size: 1.0em;
-}
-table.default > tbody > tr.red {
-  background-color: #f7cccc;
-}
-table.default > tbody > tr.red > td {
-  border-bottom: 1px solid #ffffff;
-  transition: background-color 0.3s;
 }
 table.default > tbody > tr > th {
   background-color: #e7ebf1;
@@ -3274,12 +3270,6 @@ section.contentbox article {
   border-style: solid;
   border-width: 1px;
   margin: 10px;
-}
-section.contentbox article.red {
-  border-color: #f7cccc;
-}
-section.contentbox article.red header {
-  background-color: #f7cccc;
 }
 section.contentbox article > p,
 section.contentbox article > section,

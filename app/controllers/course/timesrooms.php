@@ -138,20 +138,31 @@ class Course_TimesroomsController extends AuthenticatedController
             $termin->clearRelatedGroups();
         }
 
-        // Set Room
-        if (Request::option('room')) {
+        $related_users = Request::get('related_teachers');
+
+        if(!empty($related_users)) {
+            $related_users = explode(',', $related_users);
+            $termin->clearRelatedPersons();
+            foreach($related_users as $user_id) {
+                $termin->addRelatedPerson($user_id);
+            }
+        }
+
+
+            // Set Room
+        if (Request::option('room') == 'room') {
             if ($resObj = $termin->bookRoom(Request::option('room_sd'))) {
                 $this->course->createMessage(sprintf(_('Der Termin %s wurde geändert und der Raum %s gebucht, etwaige freie Ortsangaben wurden entfernt.'),
-                    '<b>'. $termin->toString() .'</b>',
-                    '<b>'. $resObj->getName() .'</b>'));
+                    '<strong>'. $termin->toString() .'</strong>',
+                    '<strong>'. $resObj->getName() .'</strong>'));
             } else {
                 $this->course->createError(sprintf(_('Der angegebene Raum konnte für den Termin %s nicht gebucht werden!'),
-                    '<b>'. $termin->toString() .'</b>'));
+                    '<strong>'. $termin->toString() .'</strong>'));
             }
-        } else if (Request::option('noroom')) {
+        } else if (Request::option('room') == 'noroom') {
             $termin->killAssign();
             $this->course->createMessage(sprintf(_('Der Termin %s wurde geändert, etwaige freie Ortsangaben und Raumbuchungen wurden entfernt.'), '<b>'.$termin->toString().'</b>'));
-        } else if (Request::option('freetext')) {
+        } else if (Request::option('room') == 'freetext') {
             $termin->setFreeRoomText(Request::quoted('freeRoomText_sd'));
             $termin->killAssign();
             $this->course->createMessage(sprintf(_('Der Termin %s wurde geändert, etwaige Raumbuchung wurden entfernt und stattdessen der angegebene Freitext eingetragen!'), '<b>'.$termin->toString().'</b>'));

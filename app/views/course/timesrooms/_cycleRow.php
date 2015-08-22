@@ -1,4 +1,4 @@
-<tr <?= !$termin->getRoom() ? 'class="red"' : '' ?>>
+<tr>
     <td>
         <label for="<?= htmlReady($termin->termin_id) ?>">
             <input class="<?= $class_ids ?>" type="checkbox" id="<?= htmlReady($termin->termin_id) ?>"
@@ -11,7 +11,10 @@
                 <?= htmlReady($termin->toString()) ?>
             </span>
         <? else : ?>
-            <?= htmlReady($termin->toString()) ?>
+            <a class="load-in-new-row"
+               href="<?= $controller->url_for('course/timesrooms/editDate/' . $termin->termin_id . ($termin->metadate_id ? '/' . $termin->metadate_id : '')) ?>">
+                <?= htmlReady($termin->toString()) ?>
+            </a>
         <? endif ?>
     </td>
     <td>
@@ -25,7 +28,9 @@
                     (<?= htmlReady($name) ?>)
                 </span>
         <? elseif ($room = $termin->getRoom()): ?>
-            <?= htmlReady($room) ?>
+            <?= htmlReady($room); ?>
+        <? elseif ($freeTextRoom = $termin->getFreeRoomText()) : ?>
+            <?= sprintf('(%s)', htmlReady($freeTextRoom)) ?>
         <? else : ?>
             (<?= _('Keine Raumangabe') ?>)
         <? endif ?>

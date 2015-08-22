@@ -1,22 +1,22 @@
-<form class="studip-form">
-    <section class="contentbox">
-        <header>
-            <h1>
-                <?= _('Unregelmäßige Termine / Blocktermine') ?>
-            </h1>
-            <nav>
-                <a class="link-add" href="<?= $controller->link_for('course/timesrooms/editIrregular/0') ?>"
-                   data-dialog title="<?= _('Neuen Einzeltermin') ?>">
-                    <?= _('Neuen Einzeltermin') ?>
-                </a>
-                <a class="link-add" href="<?= $controller->link_for('course/timesrooms/editBlock/0') ?>" data-dialog
-                   title="<? _('Blocktermin hinzufügen') ?>">
-                    <?= _('Neuen Blocktermin') ?>
-                </a>
-            </nav>
-        </header>
-        <? $termine = $course->getSingleDates(true, true, true) ?>
-        <? if (!empty($termine)) : ?>
+<section class="contentbox">
+    <header>
+        <h1>
+            <?= _('Unregelmäßige Termine / Blocktermine') ?>
+        </h1>
+        <nav>
+            <a class="link-add" href="<?= $controller->link_for('course/timesrooms/editIrregular/0') ?>"
+               data-dialog title="<?= _('Neuen Einzeltermin') ?>">
+                <?= _('Neuen Einzeltermin') ?>
+            </a>
+            <a class="link-add" href="<?= $controller->link_for('course/timesrooms/editBlock/0') ?>" data-dialog
+               title="<? _('Blocktermin hinzufügen') ?>">
+                <?= _('Neuen Blocktermin') ?>
+            </a>
+        </nav>
+    </header>
+    <? $termine = $course->getSingleDates(true, true, true) ?>
+    <? if (!empty($termine)) : ?>
+        <form class="studip-form">
             <table class="default">
                 <colgroup>
                     <col width="30px">
@@ -58,9 +58,14 @@
                 </tr>
                 </tfoot>
             </table>
-
-        <? else : ?>
-            <?= MessageBox::info(sprintf(_('Keine unregelmäßigen Termine für %s vorhanden'), $course->name)) ?>
-        <? endif; ?>
-    </section>
-</form>
+        </form>
+    <? else : ?>
+        <section>
+            <p class="text-center">
+                <strong>
+                    <?= sprintf(_('Keine unregelmäßigen Termine für %s vorhanden'), $course->name) ?>
+                </strong>
+            </p>
+        </section>
+    <? endif; ?>
+</section>

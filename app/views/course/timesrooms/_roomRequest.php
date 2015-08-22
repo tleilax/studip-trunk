@@ -26,7 +26,9 @@
             <? elseif ($roomRequests_state && $roomRequests_state == 'declined') : ?>
                 <?= MessageBox::error(_('Die Raumanfrage für diese Veranstaltung wurde abgelehnt!'), array(nl2br(htmlReady($roomRequests)))) ?>
             <? else : ?>
-                <?= MessageBox::info(_('Keine Raumanfrage vorhanden')) ?>
+                <p class="text-center">
+                    <strong><?= _('Keine Raumanfrage vorhanden') ?></strong>
+                </p>
             <? endif; ?>
         </section>
     </section>

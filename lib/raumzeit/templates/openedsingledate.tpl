@@ -82,7 +82,7 @@ use Studip\Button,
                         <? endforeach ?>
                 </ul>
 
-                <input type="hidden" name="related_teachers" value="<?= implode(',', $tpl['related_persons']) ?>">
+                    <input type="hidden" name="related_teachers" value="<?= implode(',', $tpl['related_persons']) ?>">
 
                 <select name="teachers" style="width: 300px">
                     <option value="none"><?= _('-- Dozent/in auswählen --') ?></option>
