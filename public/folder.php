@@ -228,9 +228,11 @@ if ($rechte || $owner || $create_folder_perm) {
                 $description= _("Themenbezogener Dateiordner");
             }
         }
-        $change = create_folder(addslashes($titel), $description, $open_id, $permission);
-        $folder_system_data["open"][$change] = TRUE;
-        $folder_system_data['open']['anker'] = $change;
+        $open_id = create_folder($titel, $description, $open_id, $permission);
+
+        PageLayout::postMessage(MessageBox::success(_('Der Ordner wurde erstellt.')));
+        $folder_system_data['open'][$open_id] = true;
+        $folder_system_data['open']['anker'] = $open_id;
     }
 
     //wurde Code fuer Loeschen von Ordnern ubermittelt (=id+"_d_"), wird entsprechende Funktion aufgerufen
@@ -1290,7 +1292,7 @@ if ($rechte) {
     $actions->addLink(_('Neuer Ordner'),
                       URLHelper::getLink('dispatch.php/folder/create/' . $range_id . '/' . $SessSemName['class']),
                       'icons/16/blue/add/folder-empty.png',
-                      array('data-dialog' => 'size=400x200'));
+                      array('data-dialog' => 'size=auto'));
     $sidebar->addWidget($actions);
 }
 
