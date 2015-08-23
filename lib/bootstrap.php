@@ -54,6 +54,10 @@ namespace {
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/app/models');
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/app/models', 'Studip');
 
+    // Messy file names
+    StudipAutoloader::addClassLookup('email_validation_class',
+                                     $GLOBALS['STUDIP_BASE_PATH'] . '/lib/phplib/email_validation.class.php');
+
     // Plugins
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/plugins/core');
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/plugins/db');
