@@ -15,53 +15,51 @@
         </nav>
     </header>
     <? if (!empty($single_dates)) : ?>
-        <form class="studip-form" method="post">
-            <table class="default nohover">
-                <colgroup>
-                    <col width="30px">
-                    <col>
-                    <col width="30%">
-                    <col width="10%%">
-                </colgroup>
+        <table class="default nohover">
+            <colgroup>
+                <col width="30px">
+                <col>
+                <col width="30%">
+                <col width="10%%">
+            </colgroup>
 
-                <? foreach ($single_dates as $semester_id => $termine) : ?>
-                    <thead>
-                    <tr>
-                        <th colspan="4"><?= htmlReady(Semester::find($semester_id)->name) ?></th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <? foreach ($termine as $termin) : ?>
-                        <?= $this->render_partial('course/timesrooms/_cycleRow.php', array('termin'    => $termin,
-                                                                                           'class_ids' => 'ids-irregular'
-                        )) ?>
-                    <? endforeach ?>
-                    </tbody>
-                <? endforeach; ?>
-
-                <tfoot>
+            <? foreach ($single_dates as $semester_id => $termine) : ?>
+                <thead>
                 <tr>
-                    <td colspan="2">
-                        <section style="margin: 0; padding: 0">
-                            <input data-proxyfor=".ids-irregular" type="checkbox"
-                                   id="checkAllIrregular" data-activates=".actionForAllIrregular">
-                            <label for="checkAllIrregular" class="horizontal">
-                                <?= _('alle Auswählen') ?>
-                            </label>
-                        </section>
-                    </td>
-                    <td>
-                        <select name="actionForAllIrregular" class="actionForAllIrregular">
-                            <option><?= _('aktion für alle ausgewählten') ?></option>
-                        </select>
-                    </td>
-                    <td>
-                        <?= Studip\Button::create('ausführen', 'run', array('class' => 'actionForAllIrregular')) ?>
-                    </td>
+                    <th colspan="4"><?= htmlReady(Semester::find($semester_id)->name) ?></th>
                 </tr>
-                </tfoot>
-            </table>
-        </form>
+                </thead>
+                <tbody>
+                <? foreach ($termine as $termin) : ?>
+                    <?= $this->render_partial('course/timesrooms/_cycleRow.php', array('termin'    => $termin,
+                                                                                       'class_ids' => 'ids-irregular'
+                    )) ?>
+                <? endforeach ?>
+                </tbody>
+            <? endforeach; ?>
+
+            <tfoot>
+            <tr>
+                <td colspan="2">
+                    <section style="margin: 0; padding: 0">
+                        <input data-proxyfor=".ids-irregular" type="checkbox"
+                               id="checkAllIrregular" data-activates=".actionForAllIrregular">
+                        <label for="checkAllIrregular" class="horizontal">
+                            <?= _('alle Auswählen') ?>
+                        </label>
+                    </section>
+                </td>
+                <td>
+                    <select name="actionForAllIrregular" class="actionForAllIrregular">
+                        <option><?= _('aktion für alle ausgewählten') ?></option>
+                    </select>
+                </td>
+                <td>
+                    <?= Studip\Button::create('ausführen', 'run', array('class' => 'actionForAllIrregular')) ?>
+                </td>
+            </tr>
+            </tfoot>
+        </table>
     <? else : ?>
         <section>
             <p class="text-center">
