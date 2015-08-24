@@ -3,79 +3,87 @@
         <label for="date">
             <?= _('Datum') ?>
         </label>
-        <input class="size-l has-date-picker" type="text" name="date" id="date"
+        <input class="size-m has-date-picker" type="text" name="date" id="date" value="<?= $date_info->date ? strftime('%d.%m.%Y', $date_info->date) : '' ?>" />
 
 
         <div style="clear:both">
-            <div style="width: 50%; float: left">
+            <div style="width: 100px; float: left">
                 <label for="end_time">
                     <?= _('Endzeit') ?>
                 </label>
                 <input class="size-m has-time-picker" type="time" name="end_time" id="end_time"
-                       value="<?= $date_info->end_time ? strftime('%H:%M', $date_info->end_time) : '--:--' ?>">
+                       value="<?= $date_info->end_time ? strftime('%H:%M', $date_info->end_time) : '' ?>">
             </div>
-            <div style="width: 50%; float: left">
+            <div style="width: 100px; float: left">
                 <label for="start_time">
                     <?= _('Startzeit') ?>
                 </label>
                 <input class="size-m has-time-picker" type="time" name="start_time" id="start_time"
-                       value="<?= $date_info->date ? strftime('%H:%M', $date_info->date) : '--:--' ?>">
+                       value="<?= $date_info->date ? strftime('%H:%M', $date_info->date) : '' ?>">
             </div>
         </div>
 
-        <label id="course_type">
-            <?= _('Art') ?>
-        </label>
-        <select class="size-s" name="course_type" id="course_type">
-            <? foreach ($types as $id => $value) : ?>
-                <option value="<?= $id ?>"
-                    <?= $date_info->date_typ == $id ? 'selected' : '' ?>>
-                    <?= htmlReady($value['name']) ?>
-                </option>
-            <? endforeach; ?>
-        </select>
+        <div style="clear: both">
+
+            <label id="course_type">
+                <?= _('Art') ?>
+            </label>
+            <select class="size-s" name="course_type" id="course_type">
+                <? foreach ($types as $id => $value) : ?>
+                    <option value="<?= $id ?>"
+                        <?= $date_info->date_typ == $id ? 'selected' : '' ?>>
+                        <?= htmlReady($value['name']) ?>
+                    </option>
+                <? endforeach; ?>
+            </select>
+
+        </div>
 
 
-        <p><strong><?= _('Durchführende Lehrende:') ?></strong></p>
-        <? if (!empty($dozenten)) : ?>
-            <ul class="termin_related teachers">
-                <? foreach ($dozenten as $related_person => $dozent) : ?>
+        <div style="margin: 15px 0">
+            <p><strong><?= _('Durchführende Lehrende:') ?></strong></p>
+            <? if (!empty($dozenten)) : ?>
+                <ul class="termin_related teachers">
+                    <? foreach ($dozenten as $related_person => $dozent) : ?>
 
-                    <? $related = false;
-                    if (in_array($related_person, $related_persons) !== false) :
-                        $related = true;
-                    endif ?>
+                        <? $related = false;
+                        if (in_array($related_person, $related_persons) !== false) :
+                            $related = true;
+                        endif ?>
 
-                    <li data-lecturerid="<?= $related_person ?>" <?= $related ? '' : 'style="display: none"' ?>>
-                        <? $dozenten[$related_person]['hidden'] = $related ?>
-                        <?= htmlReady(User::find($related_person)->getFullname()); ?>
+                        <li data-lecturerid="<?= $related_person ?>" <?= $related ? '' : 'style="display: none"' ?>>
+                            <? $dozenten[$related_person]['hidden'] = $related ?>
+                            <?= htmlReady(User::find($related_person)->getFullname()); ?>
 
-                        <a href="javascript:" onClick="STUDIP.Raumzeit.removeLecturer('<?= $related_person ?>')">
-                            <?= Assets::img('icons/16/blue/trash.png') ?>
-                        </a>
-                    </li>
-                <? endforeach ?>
-            </ul>
-        <? else : ?>
-            <p><?= _('Keine Lehrende eingetragen') ?></p>
-        <? endif ?>
-        <input type="hidden" name="related_teachers" value="<?= implode(',', $related_persons) ?>"/>
+                            <a href="javascript:" onClick="STUDIP.Raumzeit.removeLecturer('<?= $related_person ?>')">
+                                <?= Assets::img('icons/16/blue/trash.png') ?>
+                            </a>
+                        </li>
+                    <? endforeach ?>
+                </ul>
+            <? else : ?>
+                <p><?= _('Keine Lehrende eingetragen') ?></p>
+            <? endif ?>
+            <input type="hidden" name="related_teachers" value="<?= implode(',', $related_persons) ?>"/>
 
-        <label for="add_teacher">
-            <?= _('Lehrenden auswählen') ?>
-        </label>
-        <select id="add_teacher" name="teachers" class="size-l">
-            <option value="none"><?= _('-- Dozent/in auswählen --') ?></option>
-            <? foreach ($dozenten as $dozent) : ?>
-                <option
-                    value="<?= htmlReady($dozent['user_id']) ?>" <?= $dozent['hidden'] ? 'style="display: none"' : '' ?>>
-                    <?= htmlReady($dozent['fullname']) ?>
-                </option>
-            <? endforeach; ?>
-        </select>
-        <a href="javascript:" onClick="STUDIP.Raumzeit.addLecturer()" title="<?= _('Lehrenden hinzufügen') ?>">
-            <?= Assets::img('icons/16/yellow/arr_2up.png') ?>
-        </a>
+            <label for="add_teacher">
+                <?= _('Lehrenden auswählen') ?>
+            </label>
+            <select id="add_teacher" name="teachers" class="size-m">
+                <option value="none"><?= _('-- Dozent/in auswählen --') ?></option>
+                <? foreach ($dozenten as $dozent) : ?>
+                    <option
+                        value="<?= htmlReady($dozent['user_id']) ?>" <?= $dozent['hidden'] ? 'style="display: none"' : '' ?>>
+                        <?= htmlReady($dozent['fullname']) ?>
+                    </option>
+                <? endforeach; ?>
+            </select>
+            <a href="javascript:" onClick="STUDIP.Raumzeit.addLecturer()" title="<?= _('Lehrenden hinzufügen') ?>">
+                <?= Assets::img('icons/16/yellow/arr_2up.png') ?>
+            </a>
+        </div>
+
+
     </section>
 
 

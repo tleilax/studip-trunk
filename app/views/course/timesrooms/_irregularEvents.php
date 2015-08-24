@@ -4,11 +4,11 @@
             <?= _('Unregelmäßige Termine / Blocktermine') ?>
         </h1>
         <nav>
-            <a class="link-add" href="<?= $controller->link_for('course/timesrooms/editIrregular/0') ?>"
+            <a data-dialog-button class="link-add" href="<?= $controller->link_for('course/timesrooms/editIrregular/0') ?>"
                data-dialog title="<?= _('Neuen Einzeltermin') ?>">
                 <?= _('Neuen Einzeltermin') ?>
             </a>
-            <a class="link-add" href="<?= $controller->link_for('course/timesrooms/editBlock/0') ?>" data-dialog
+            <a data-dialog-button class="link-add" href="<?= $controller->link_for('course/timesrooms/editBlock/0') ?>" data-dialog
                title="<? _('Blocktermin hinzufügen') ?>">
                 <?= _('Neuen Blocktermin') ?>
             </a>
@@ -69,14 +69,4 @@
             </p>
         </section>
     <? endif; ?>
-    <footer>
-        <a class="link-add" href="<?= $controller->link_for('course/timesrooms/editIrregular/0') ?>"
-           data-dialog title="<?= _('Neuen Einzeltermin') ?>">
-            <?= _('Neuen Einzeltermin') ?>
-        </a>
-        <a class="link-add" href="<?= $controller->link_for('course/timesrooms/editBlock/0') ?>" data-dialog
-           title="<? _('Blocktermin hinzufügen') ?>">
-            <?= _('Neuen Blocktermin') ?>
-        </a>
-    </footer>
 </section>

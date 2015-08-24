@@ -4,7 +4,7 @@
             <?= _('Regelmäßige Termine') ?>
         </h1>
         <nav>
-            <a class="link-add" href="<?= $controller->link_for('course/timesrooms/editCycle') ?>" data-dialog
+            <a data-dialog-button class="link-add" href="<?= $controller->link_for('course/timesrooms/editCycle') ?>" data-dialog
                title="<?= _('Regelmäßigen Termin hinzufügen') ?>">
                 <?= _('Neuen Zeitraum festlegen') ?>
             </a>
@@ -72,10 +72,4 @@
             </p>
         </section>
     <? endif; ?>
-    <footer>
-        <a class="link-add" href="<?= $controller->link_for('course/timesrooms/editCycle') ?>" data-dialog
-           title="<?= _('Regelmäßigen Termin hinzufügen') ?>">
-            <?= _('Neuen Zeitraum festlegen') ?>
-        </a>
-    </footer>
 </section>
