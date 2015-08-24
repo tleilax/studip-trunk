@@ -31,5 +31,12 @@
                 </p>
             <? endif; ?>
         </section>
+        <footer>
+            <a class="link-add" href="<?= $controller->link_for('course/room_requests/new/' . $course->id) ?>"
+               data-dialog
+               title="<?= _('Neue Raumanfrage für die Veranstaltung erstellen') ?>">
+                <?= _('Neue Raumanfrage') ?>
+            </a>
+        </footer>
     </section>
 </form>

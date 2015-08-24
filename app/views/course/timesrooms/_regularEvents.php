@@ -5,12 +5,12 @@
         </h1>
         <nav>
             <a class="link-add" href="<?= $controller->link_for('course/timesrooms/editCycle') ?>" data-dialog title="<?= _('Regelmäßigen Termin hinzufügen') ?>">
-                <?= _('Neuer Zeitraum') ?>
+                <?= _('Neuen Zeitraum festlegen') ?>
             </a>
         </nav>
     </header>
 
-    <? if (empty($cycles)) : ?>
+    <? if (!empty($cycles)) : ?>
         <form class="studip-form">
             <? foreach ($cycles as $metadate_id => $cycle) : ?>
                 <? if (!$roomRequest = $course->getDatesTemplate('dates/seminar_predominant_html', array('cycle_id' => $metadate_id))) : ?>
@@ -94,4 +94,9 @@
             </p>
         </section>
     <? endif; ?>
+    <footer>
+        <a class="link-add" href="<?= $controller->link_for('course/timesrooms/editCycle') ?>" data-dialog title="<?= _('Regelmäßigen Termin hinzufügen') ?>">
+            <?= _('Neuen Zeitraum festlegen') ?>
+        </a>
+    </footer>
 </section>
