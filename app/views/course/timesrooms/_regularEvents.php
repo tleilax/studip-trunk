@@ -20,7 +20,7 @@
             <? endif ?>
             <article id="<?= $metadate_id ?>"
                      class="<?= Request::get('contentbox_open') == $metadate_id ? 'open' : '' ?>">
-                <header>
+                <header class="<?= $noRequest ? 'red' : 'green'?>">
                     <h1>
                         <a href="<?= ContentBoxHelper::href($metadate_id, array()) ?>">
                             <?= htmlReady($cycle['name']) ?>
@@ -60,6 +60,27 @@
                             <? endforeach ?>
                             </tbody>
                         <? endforeach ?>
+                        <tfoot>
+                        <tr>
+                            <td colspan="2">
+                                <section style="margin: 0; padding: 0">
+                                    <input data-proxyfor=".ids-regular" type="checkbox"
+                                           id="checkAllRegular" data-activates=".actionForAllRegular">
+                                    <label for="checkAllRegular" class="horizontal">
+                                        <?= _('alle Auswählen') ?>
+                                    </label>
+                                </section>
+                            </td>
+                            <td>
+                                <select name="actionForAllRegular" class="actionForAllRegular">
+                                    <option><?= _('aktion für alle ausgewählten') ?></option>
+                                </select>
+                            </td>
+                            <td>
+                                <?= Studip\Button::create('ausführen', 'run', array('class' => 'actionForAllIrregular')) ?>
+                            </td>
+                        </tr>
+                        </tfoot>
                     </table>
                 </section>
             </article>
