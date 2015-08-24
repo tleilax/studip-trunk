@@ -2062,8 +2062,6 @@ if (Request::submitted('inc_request') || Request::submitted('dec_request')
 //if ($snd_closed_request_sms) {
 if ($_sendMessage) {
     require_once 'lib/messaging.inc.php';
-    require_once 'lib/language.inc.php';
-
 
     $messaging = new messaging;
 

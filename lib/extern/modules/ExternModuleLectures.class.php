@@ -39,7 +39,6 @@
 
 require_once $GLOBALS['RELATIVE_PATH_EXTERN'] . '/views/extern_html_templates.inc.php';
 require_once $GLOBALS['RELATIVE_PATH_EXTERN'] . '/modules/views/ExternSemBrowse.class.php';
-require_once 'lib/language.inc.php';
 
 class ExternModuleLectures extends ExternModule {
 

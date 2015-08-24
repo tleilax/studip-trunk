@@ -38,7 +38,6 @@
 // +---------------------------------------------------------------------------+
 
 require_once $GLOBALS['RELATIVE_PATH_EXTERN'] . '/views/extern_html_templates.inc.php';
-require_once 'lib/language.inc.php';
 require_once 'lib/dates.inc.php';
 
 class ExternModulePersondetails extends ExternModule {

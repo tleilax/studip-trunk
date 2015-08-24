@@ -23,7 +23,6 @@
  */
 
 // Imports
-require_once 'lib/language.inc.php';
 require_once 'lib/admission.inc.php';   // remove user from waiting lists
 require_once 'lib/datei.inc.php';   // remove documents of user
 require_once 'lib/statusgruppe.inc.php';    // remove user from statusgroups

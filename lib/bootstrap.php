@@ -55,8 +55,10 @@ namespace {
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/app/models', 'Studip');
 
     // Messy file names
-    StudipAutoloader::addClassLookup('email_validation_class',
-                                     $GLOBALS['STUDIP_BASE_PATH'] . '/lib/phplib/email_validation.class.php');
+    StudipAutoloader::addClassLookups(array(
+        'email_validation_class' => $GLOBALS['STUDIP_BASE_PATH'] . '/lib/phplib/email_validation.class.php',
+        'cssClassSwitcher'       => $GLOBALS['STUDIP_BASE_PATH'] . '/lib/classes/cssClassSwitcher.inc.php',
+    ));
 
     // Plugins
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/plugins/core');
@@ -100,6 +102,7 @@ namespace {
     require 'config.inc.php';
 
     require_once 'lib/functions.php';
+    require_once 'lib/language.inc.php';
     require_once 'lib/visual.inc.php';
     require_once 'lib/deputies_functions.inc.php';
 
@@ -181,6 +184,7 @@ namespace {
     }
     if (Config::get()->CALENDAR_ENABLE) {
         StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/' . $GLOBALS['RELATIVE_PATH_CALENDAR'] . '/lib');
+        require_once $GLOBALS['STUDIP_BASE_PATH'] . '/' . $GLOBALS['RELATIVE_PATH_CALENDAR'] . '/calendar_func.inc.php';
     }
     if (Config::get()->ELEARNING_INTERFACE_ENABLE) {
         StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/' . $GLOBALS['RELATIVE_PATH_ELEARNING_INTERFACE']);

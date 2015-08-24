@@ -39,8 +39,6 @@
 
 use Studip\Button, Studip\LinkButton;
 
-require_once('lib/language.inc.php');
-
 class ExternEdit {
 
     var $css;

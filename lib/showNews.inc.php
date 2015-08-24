@@ -23,7 +23,6 @@
  * @package     news
  */
 
-require_once 'lib/language.inc.php';
 require_once 'lib/object.inc.php';
 
 /**

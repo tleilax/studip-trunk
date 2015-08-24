@@ -20,7 +20,6 @@
  * @package     messaging
  */
 
-require_once 'lib/language.inc.php';
 require_once 'lib/user_visible.inc.php';
 require_once 'lib/datei.inc.php';
 require_once 'lib/sms_functions.inc.php';

@@ -108,9 +108,7 @@ if (Request::option('com') == "do_upload_config") {
 
 ob_start();
 
-require_once('lib/msg.inc.php'); //Funktionen für Nachrichtenmeldungen
-require_once('lib/classes/cssClassSwitcher.inc.php');
-require_once('lib/language.inc.php');
+require_once 'lib/msg.inc.php'; //Funktionen für Nachrichtenmeldungen
 
 echo "<table border=\"0\" class=\"blank\" align=\"center\" cellspacing=\"0\" cellpadding=\"0\" width=\"100%\">\n";
 echo "<tr><td class=\"blank\" colspan=\"2\">&nbsp;</td></tr>\n";

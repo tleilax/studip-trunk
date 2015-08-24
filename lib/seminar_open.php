@@ -59,8 +59,6 @@ function startpage_redirect($page_code) {
     exit;
 }
 
-require_once('lib/language.inc.php');
-
 global $i_page,
        $DEFAULT_LANGUAGE, $SessSemName, $SessionSeminar,
        $sess, $auth, $user, $perm, $_language_path;
