@@ -1356,8 +1356,7 @@ label.required:after {
 .studip-form input[type="tel"],
 .studip-form input[type="url"],
 .studip-form div.quicksearch_frame input[type="text"],
-.studip-form select,
-.studip-form textarea {
+.studip-form select {
   border: 1px solid #a9b6cb;
   height: 26px;
   padding-left: 10px;
@@ -1375,7 +1374,15 @@ label.required:after {
 .studip-form input[type="tel"]:focus,
 .studip-form input[type="url"]:focus,
 .studip-form div.quicksearch_frame input[type="text"]:focus,
-.studip-form select:focus,
+.studip-form select:focus {
+  border: 1px solid #28497c;
+  transition: border-color 0.5s;
+}
+.studip-form textarea {
+  border: 1px solid #a9b6cb;
+  padding-left: 10px;
+  /* Darken border on focus */
+}
 .studip-form textarea:focus {
   border: 1px solid #28497c;
   transition: border-color 0.5s;

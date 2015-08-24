@@ -14,9 +14,8 @@
             </a>
         </nav>
     </header>
-    <? $termine = $course->getSingleDates(true, true, true) ?>
-    <? if (!empty($termine)) : ?>
-        <form class="studip-form">
+    <? if (!empty($single_dates)) : ?>
+        <form class="studip-form" method="post">
             <table class="default">
                 <colgroup>
                     <col width="30px">
@@ -24,18 +23,22 @@
                     <col width="30%">
                     <col width="10%%">
                 </colgroup>
-                <thead>
-                <tr>
-                    <th colspan="2"><?= _('Termin') ?></th>
-                    <th><?= _('Raum') ?></th>
-                    <th></th>
-                </tr>
-                </thead>
-                <tbody>
-                <? foreach ($termine as $termin) : ?>
-                    <?= $this->render_partial('course/timesrooms/_cycleRow.php', array('termin' => $termin, 'class_ids' => 'ids-irregular')) ?>
+
+                <? foreach ($single_dates as $semester_id => $termine) : ?>
+                    <thead>
+                    <tr>
+                        <th colspan="4"><?= htmlReady(Semester::find($semester_id)->name) ?></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <? foreach ($termine as $termin) : ?>
+                        <?= $this->render_partial('course/timesrooms/_cycleRow.php', array('termin'    => $termin,
+                                                                                           'class_ids' => 'ids-irregular'
+                        )) ?>
+                    <? endforeach ?>
+                    </tbody>
                 <? endforeach; ?>
-                </tbody>
+
                 <tfoot>
                 <tr>
                     <td colspan="2">
