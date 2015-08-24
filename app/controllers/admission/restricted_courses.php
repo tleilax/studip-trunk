@@ -34,7 +34,7 @@ class Admission_RestrictedCoursesController extends AuthenticatedController
     {
 
         $actions = new ActionsWidget();
-        $actions->addLink(_("Export"), $this->link_for('admission/restricted_courses', array('csv' => 1)), 'icons/16/blue/file-xls');
+        $actions->addLink(_("Export"), $this->link_for('admission/restricted_courses', array('csv' => 1)), 'icons/16/blue/export/file-excel.png');
         Sidebar::get()->addWidget($actions);
         Sidebar::get()->setImage('sidebar/admin-sidebar.png');
 
