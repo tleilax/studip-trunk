@@ -16,7 +16,7 @@
     </header>
     <? if (!empty($single_dates)) : ?>
         <form class="studip-form" method="post">
-            <table class="default">
+            <table class="default nohover">
                 <colgroup>
                     <col width="30px">
                     <col>

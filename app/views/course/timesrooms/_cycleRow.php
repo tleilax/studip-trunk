@@ -5,7 +5,7 @@
                    name="cycle_ids[]" <?= $termin->isExTermin() ? 'disabled' : '' ?> />
         </label>
     </td>
-    <td>
+    <td class="<?= $termin->hasRoom() || $termin->getFreeRoomText() != '' ? 'green' : 'red'?>">
         <? if ($termin->isExTermin() || $termin->isHoliday()) : ?>
             <span style="color: #666666">
                 <?= htmlReady($termin->toString()) ?>
@@ -18,36 +18,43 @@
         <? endif ?>
     </td>
     <td>
+        <? if($room_holiday = $termin->isHoliday()) : ?>
+            <? $room_holiday = sprintf('<span style="color: #666666">(%s)</span>', htmlReady($room_holiday))?>
+        <? endif?>
+
         <? if ($termin->isExTermin() && ($comment = $termin->getComment())) : ?>
             <span style="font-style: italic; color: #666666"><?= _("(fällt aus)") ?></span>
-                <?= tooltipIcon($termin->getComment(), false) ?>
-        <? elseif ($name = $termin->isHoliday()): ?>
+            <?= tooltipIcon($termin->getComment(), false) ?>
+        <? elseif (($name = $termin->isHoliday()) && !is_null($termin->isExTermin())): ?>
             <span style="color: #666666">
                     (<?= htmlReady($name) ?>)
                 </span>
         <? elseif ($room = $termin->getRoom()): ?>
             <?= htmlReady($room); ?>
-        <? elseif ($freeTextRoom = $termin->getFreeRoomText()) : ?>
+            <?= $room_holiday ? : ''?>
+        <? elseif
+        ($freeTextRoom = $termin->getFreeRoomText()) : ?>
             <?= sprintf('(%s)', htmlReady($freeTextRoom)) ?>
         <? else : ?>
-            (<?= _('Keine Raumangabe') ?>)
+        <?= _('Keine Raumangabe') ?>
+            <?= $room_holiday ? : ''?>
         <? endif ?>
     </td>
     <td class="actions">
-        <? if (!$termin->isExTermin() && !$termin->isHoliday()) : ?>
-            <a class="load-in-new-row"
-               href="<?= $controller->url_for('course/timesrooms/editDate/' . $termin->termin_id . ($termin->metadate_id ? '/' . $termin->metadate_id : '')) ?>">
-                <?= Assets::img('icons/blue/edit', tooltip2(_('Termin bearbeiten'))) ?>
+        <? if (!$termin->isExTermin()) : ?>
+        <a class="load-in-new-row"
+           href="<?= $controller->url_for('course/timesrooms/editDate/' . $termin->termin_id . ($termin->metadate_id ? '/' . $termin->metadate_id : '')) ?>">
+            <?= Assets::img('icons/blue/edit', tooltip2(_('Termin bearbeiten'))) ?>
+        </a>
+        <?= Assets::img('icons/blue/trash', array('title' => _('Termin löschen'))) ?>
+        <? else : ?>
+
+            <a data-dialog="size=big"
+               href="<?= $controller->url_for('course/timesrooms/undeleteSingle/' . $termin->termin_id) ?>">
+                <?= Assets::img('icons/grey/decline/trash', tooltip2(_('Termin wiederherstellen'))) ?>
             </a>
-            <?= Assets::img('icons/blue/trash', array('title' => _('Termin löschen'))) ?>
+
         <? endif ?>
 
-        <? if ($termin->isExTermin() || $termin->isHoliday()) : ?>
-            <a class="load-in-new-row"
-               href="<?= $controller->url_for('course/timesrooms/cancel/' . $termin->termin_id) ?>">
-                <?= Assets::img('icons/blue/edit', tooltip2(_('Kommentar hinzufügen'))) ?>
-            </a>
-            <?= Assets::img('icons/grey/trash') ?>
-        <? endif ?>
     </td>
 </tr>

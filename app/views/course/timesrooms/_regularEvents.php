@@ -38,7 +38,7 @@
                     </header>
                     <section>
                         <? $dates = $cycle['dates'] ?>
-                        <table class="default">
+                        <table class="default nohover">
                             <colgroup>
                                 <col width="30px">
                                 <col>

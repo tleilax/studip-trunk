@@ -252,6 +252,18 @@ class Course_TimesroomsController extends AuthenticatedController
         $this->redirect($this->url_for('course/timesrooms/index#' . $termin->metadate_id, array('contentbox_open' => $termin->metadate_id)));
     }
 
+    public function undeleteSingle_action($termin_id) {
+        if ($this->course->unDeleteSingleDate($termin_id)) {
+            $termin = SingleDate::getInstance($termin_id);
+            $this->course->createMessage(sprintf(_('Der Termin %s wurde wiederhergestellt!'), $termin->toString()));
+            $this->displayMessages();
+        }
+        $params = array();
+        if($termin->metadate_id) {
+            $params['contentbox_open'] = $termin->metadate_id;
+        }
+        $this->redirect($this->url_for('course/timesrooms/index'. ($termin->metadate_id ? '#'. $termin->metadate_id : ''), $params));
+    }
 
     function setSidebar()
     {

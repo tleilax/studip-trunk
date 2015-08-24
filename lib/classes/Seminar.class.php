@@ -811,7 +811,7 @@ class Seminar
     function unDeleteSingleDate($date_id, $cycle_id = '')
     {
         // logging >>>>>>
-        log_event("SEM_UNDELETE_SINGLEDATE",$date_id, $this->getId(), 'Cycle_id: '.$cycle_id);
+        StudipLog::log("SEM_UNDELETE_SINGLEDATE",$date_id, $this->getId(), 'Cycle_id: '.$cycle_id);
         NotificationCenter::postNotification("CourseDidChangeSchedule", $this);
         // logging <<<<<<
         if ($cycle_id == '') {

@@ -538,7 +538,7 @@ table.zebra-horizontal > tbody > tr > td:nth-child(2n+1) {
 }
 /* --- Table details -------------------------------------------------------- */
 .loaded-details:hover > td {
-  background: white  !important;
+  background: white !important;
 }
 .loaded-details > td {
   padding: 0 20px 5px 20px !important;
@@ -628,6 +628,12 @@ table.zebra-horizontal > tbody > tr > td:nth-child(2n+1) {
   background-repeat: no-repeat;
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffe3969a', endColorstr='#ffe8b6b9', GradientType=0);
   border-top: 2px solid #b35357;
+}
+td.green {
+  border-left: 3px solid #99d5ab;
+}
+td.red {
+  border-left: 3px solid #ef9999;
 }
 /* --- Styles fuer printhead und printcontent ------------------------------- */
 table td.printcontent {
