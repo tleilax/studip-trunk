@@ -12,7 +12,8 @@
             </span>
         <? else : ?>
             <a class="load-in-new-row"
-               href="<?= $controller->url_for('course/timesrooms/editDate/' . $termin->termin_id . ($termin->metadate_id ? '/' . $termin->metadate_id : '')) ?>">
+               href="<?= $controller->url_for('course/timesrooms/editDate/'
+                      . $termin->termin_id . ($termin->metadate_id ? '/' . $termin->metadate_id : ''), $editParams) ?>">
                 <?= htmlReady($termin->toString()) ?>
             </a>
         <? endif ?>
@@ -54,7 +55,8 @@
     <td class="actions">
         <? if (!$termin->isExTermin()) : ?>
             <a class="load-in-new-row"
-               href="<?= $controller->url_for('course/timesrooms/editDate/' . $termin->termin_id . ($termin->metadate_id ? '/' . $termin->metadate_id : '')) ?>">
+               href="<?= $controller->url_for('course/timesrooms/editDate/'
+                      . $termin->termin_id . ($termin->metadate_id ? '/' . $termin->metadate_id : ''), $editParams) ?>">
                 <?= Assets::img('icons/blue/edit', tooltip2(_('Termin bearbeiten'))) ?>
             </a>
             <?= Assets::img('icons/blue/trash', array('title' => _('Termin löschen'))) ?>

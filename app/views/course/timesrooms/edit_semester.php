@@ -16,18 +16,18 @@
             <label for="endSemester"><?= _('Dauer') ?>:</label>
             <select class="size-xl" name="endSemester" id="endSemester">
                 <option value="0"
-                    <?= $course->__get('metadate')->seminarDurationTime == 0 ? 'selected' : '' ?>>
+                    <?= (int)$course->duration_time == 0 ? 'selected' : '' ?>>
                     <?= _('ein Semester') ?></option>
                 <? foreach ($semester as $sem) : ?>
-                    <? if ($sem->beginn >= $current_semester->beginn) : ?>
+                    <? if ($sem->beginn >= $course->start_semester->beginn) : ?>
                         <option value="<?= $sem->semester_id ?>"
-                            <?= $course->__get('metadate')->seminarDurationTime == $sem->semester_id ? 'selected' : '' ?>>
+                            <?= (int)$course->duration_time != 0 && (($course->start_time + $course->duration_time) == $sem->beginn) ? 'selected' : '' ?>>
                             <?= htmlReady($sem->name) ?>
                         </option>
                     <? endif; ?>
                 <? endforeach; ?>
                 <option value="-1"
-                    <?= $course->__get('metadate')->seminarDurationTime == -1 ? 'selected' : '' ?>>
+                    <?= (int)$course->duration_time == -1 ? 'selected' : '' ?>>
                     <?= _('unbegrenzt') ?></option>
             </select>
         </section>

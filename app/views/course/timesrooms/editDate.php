@@ -1,5 +1,5 @@
 <form class="studip-form" method="post"
-      action="<?= $controller->url_for('course/timesrooms/editSingleDate/' . $termin_id) ?>" <?= Request::isXhr() ? 'data-dialog="size=big"' : '' ?>>
+      action="<?= $controller->url_for('course/timesrooms/editSingleDate/' . $termin_id) ?>" <?= Request::option('asDialog') ? 'data-dialog="size=big"' : '' ?>>
     <section style="width: 45%; float: left">
         <label for="date">
             <?= _('Datum') ?>

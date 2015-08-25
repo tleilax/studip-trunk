@@ -60,7 +60,7 @@ class Course_TimesroomsController extends AuthenticatedController
          */
         $cycles = $this->course->metadate->getCycles();
         $cycle_dates = array();
-        foreach($cycles as $metadate_id => $cycle) {
+        foreach ($cycles as $metadate_id => $cycle) {
             $cycle_dates[$metadate_id]['name'] = $cycle->toString('long');
             $dates = $this->course->getSingleDatesForCycle($metadate_id);
             foreach ($dates as $val) {
@@ -73,7 +73,6 @@ class Course_TimesroomsController extends AuthenticatedController
         }
 
         $this->cycle_dates = $cycle_dates;
-
 
         /**
          * GET Single Dates
@@ -94,11 +93,14 @@ class Course_TimesroomsController extends AuthenticatedController
             'formaction' => $this->url_for('course/timesrooms/set_semester/' . $this->course->id)
         );
 
+        $editParams = array();
         if (Request::isXhr()) {
             $asDialog['data-dialog'] = 'size=50%"';
             $semesterFormParams += $asDialog;
+            $editParams['asDialog'] = true;
         }
         $this->semesterFormParams = $semesterFormParams;
+        $this->editParams = $editParams;
     }
 
     public function edit_semester_action($course_id = null)
@@ -134,7 +136,7 @@ class Course_TimesroomsController extends AuthenticatedController
         $this->dozenten = $this->course->getMembers('dozent');
         $this->related_persons = $this->termin->getRelatedPersons();
         $this->related_groups = $this->termin->getRelatedGroups();
-        $this->gruppen = Statusgruppen::findBySeminar_id($this->course->id);;
+        $this->gruppen = Statusgruppen::findBySeminar_id($this->course->id);
     }
 
     public function editRoom_action($termin_id, $metadate_id = null)
@@ -251,17 +253,18 @@ class Course_TimesroomsController extends AuthenticatedController
         $this->redirect($this->url_for('course/timesrooms/index#' . $termin->metadate_id, array('contentbox_open' => $termin->metadate_id)));
     }
 
-    public function undeleteSingle_action($termin_id) {
+    public function undeleteSingle_action($termin_id)
+    {
         if ($this->course->unDeleteSingleDate($termin_id)) {
             $termin = SingleDate::getInstance($termin_id);
             $this->course->createMessage(sprintf(_('Der Termin %s wurde wiederhergestellt!'), $termin->toString()));
             $this->displayMessages();
         }
         $params = array();
-        if($termin->metadate_id) {
+        if ($termin->metadate_id) {
             $params['contentbox_open'] = $termin->metadate_id;
         }
-        $this->redirect($this->url_for('course/timesrooms/index'. ($termin->metadate_id ? '#'. $termin->metadate_id : ''), $params));
+        $this->redirect($this->url_for('course/timesrooms/index' . ($termin->metadate_id ? '#' . $termin->metadate_id : ''), $params));
     }
 
     function setSidebar()
