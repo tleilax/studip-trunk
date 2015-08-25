@@ -1311,7 +1311,7 @@ label.required:after {
   vertical-align: text-top;
   width: 16px;
 }
-section.contentbox .studip-form section {
+section.contentbox .studip-form section section {
   padding: 0;
 }
 section.contentbox article .studip-form section {
