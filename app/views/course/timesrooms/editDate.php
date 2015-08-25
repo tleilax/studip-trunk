@@ -1,9 +1,11 @@
-<form class="studip-form" method="post">
+<form class="studip-form" method="post"
+      action="<?= $controller->url_for('course/timesrooms/editSingleDate/' . $termin_id) ?>" <?= Request::isXhr() ? 'data-dialog="size=big"' : '' ?>>
     <section style="width: 45%; float: left">
         <label for="date">
             <?= _('Datum') ?>
         </label>
-        <input class="size-m has-date-picker" type="text" name="date" id="date" value="<?= $date_info->date ? strftime('%d.%m.%Y', $date_info->date) : '' ?>" />
+        <input class="size-m has-date-picker" type="text" name="date" id="date"
+               value="<?= $date_info->date ? strftime('%d.%m.%Y', $date_info->date) : '' ?>"/>
 
 
         <div style="clear:both">
@@ -39,10 +41,10 @@
 
         </div>
 
+        <? if (!empty($dozenten)) : ?>
+            <div style="margin: 15px 0">
+                <p><strong><?= _('Durchführende Lehrende:') ?></strong></p>
 
-        <div style="margin: 15px 0">
-            <p><strong><?= _('Durchführende Lehrende:') ?></strong></p>
-            <? if (!empty($dozenten)) : ?>
                 <ul class="termin_related teachers">
                     <? foreach ($dozenten as $related_person => $dozent) : ?>
 
@@ -61,28 +63,25 @@
                         </li>
                     <? endforeach ?>
                 </ul>
-            <? else : ?>
-                <p><?= _('Keine Lehrende eingetragen') ?></p>
-            <? endif ?>
-            <input type="hidden" name="related_teachers" value="<?= implode(',', $related_persons) ?>"/>
+                <input type="hidden" name="related_teachers" value="<?= implode(',', $related_persons) ?>"/>
 
-            <label for="add_teacher">
-                <?= _('Lehrenden auswählen') ?>
-            </label>
-            <select id="add_teacher" name="teachers" class="size-m">
-                <option value="none"><?= _('-- Dozent/in auswählen --') ?></option>
-                <? foreach ($dozenten as $dozent) : ?>
-                    <option
-                        value="<?= htmlReady($dozent['user_id']) ?>" <?= $dozent['hidden'] ? 'style="display: none"' : '' ?>>
-                        <?= htmlReady($dozent['fullname']) ?>
-                    </option>
-                <? endforeach; ?>
-            </select>
-            <a href="javascript:" onClick="STUDIP.Raumzeit.addLecturer()" title="<?= _('Lehrenden hinzufügen') ?>">
-                <?= Assets::img('icons/16/yellow/arr_2up.png') ?>
-            </a>
-        </div>
-
+                <label for="add_teacher">
+                    <?= _('Lehrenden auswählen') ?>
+                </label>
+                <select id="add_teacher" name="teachers" class="size-m">
+                    <option value="none"><?= _('-- Dozent/in auswählen --') ?></option>
+                    <? foreach ($dozenten as $dozent) : ?>
+                        <option
+                            value="<?= htmlReady($dozent['user_id']) ?>" <?= $dozent['hidden'] ? 'style="display: none"' : '' ?>>
+                            <?= htmlReady($dozent['fullname']) ?>
+                        </option>
+                    <? endforeach; ?>
+                </select>
+                <a href="javascript:" onClick="STUDIP.Raumzeit.addLecturer()" title="<?= _('Lehrenden hinzufügen') ?>">
+                    <?= Assets::img('icons/16/yellow/arr_2up.png') ?>
+                </a>
+            </div>
+        <? endif ?>
 
     </section>
 
@@ -129,44 +128,44 @@
                 <span style="display: inline-block; margin-left: 40px"><?= _('kein Raum') ?></span>
             </label>
         </section>
-        <p><strong><?= _('Beteiligte Gruppen') ?>:</strong></p>
 
-        <ul class="termin_related groups">
-            <? foreach ($gruppen as $index => $statusgruppe) : ?>
-                <? $related = false ?>
-                <? if (in_array($statusgruppe->getId(), $related_groups)) : ?>
-                    <? $related = true; ?>
-                <? endif ?>
-                <li data-groupid="<?= htmlReady($statusgruppe->getId()) ?>" <?= $related ? '' : 'style="display: none"' ?>>
-                    <?= htmlReady($statusgruppe['name']) ?>
-                    <a href="javascript:" onClick="STUDIP.Raumzeit.removeGroup('<?= $statusgruppe->getId() ?>')">
-                        <?= Assets::img('icons/blue/trash') ?>
-                    </a>
-                </li>
-            <? endforeach ?>
-        </ul>
+        <? if (!empty($gruppen)) : ?>
+            <p><strong><?= _('Beteiligte Gruppen') ?>:</strong></p>
 
-        <input type="hidden" name="related_statusgruppen" value="<?= implode(',', $related_groups) ?>">
+            <ul class="termin_related groups">
+                <? foreach ($gruppen as $index => $statusgruppe) : ?>
+                    <? $related = false ?>
+                    <? if (in_array($statusgruppe->getId(), $related_groups)) : ?>
+                        <? $related = true; ?>
+                    <? endif ?>
+                    <li data-groupid="<?= htmlReady($statusgruppe->getId()) ?>" <?= $related ? '' : 'style="display: none"' ?>>
+                        <?= htmlReady($statusgruppe['name']) ?>
+                        <a href="javascript:" onClick="STUDIP.Raumzeit.removeGroup('<?= $statusgruppe->getId() ?>')">
+                            <?= Assets::img('icons/blue/trash') ?>
+                        </a>
+                    </li>
+                <? endforeach ?>
+            </ul>
 
-        <select name="groups">
-            <option value="none"><?= _('-- Gruppen auswählen --') ?></option>
-            <? foreach ($gruppen as $gruppe) : ?>
-                <option value="<?= htmlReady($gruppe->getId()) ?>"
-                        style="<?= in_array($gruppe->getId(), $related_groups) ? 'display: none;' : '' ?>">
-                    <?= htmlReady($gruppe['name']) ?>
-                </option>
-            <? endforeach ?>
-        </select>
-        <a href="javascript:" onClick="STUDIP.Raumzeit.addGroup()" title="<?= _('Gruppe hinzufügen') ?>">
-            <?= Assets::img('icons/16/yellow/arr_2up.png') ?>
-        </a>
+            <input type="hidden" name="related_statusgruppen" value="<?= implode(',', $related_groups) ?>">
+
+            <select name="groups">
+                <option value="none"><?= _('-- Gruppen auswählen --') ?></option>
+                <? foreach ($gruppen as $gruppe) : ?>
+                    <option value="<?= htmlReady($gruppe->getId()) ?>"
+                            style="<?= in_array($gruppe->getId(), $related_groups) ? 'display: none;' : '' ?>">
+                        <?= htmlReady($gruppe['name']) ?>
+                    </option>
+                <? endforeach ?>
+            </select>
+            <a href="javascript:" onClick="STUDIP.Raumzeit.addGroup()" title="<?= _('Gruppe hinzufügen') ?>">
+                <?= Assets::img('icons/16/yellow/arr_2up.png') ?>
+            </a>
+        <? endif ?>
     </section>
 
 
     <section data-dialog-button style="text-align: center; clear: both">
-        <?= Studip\Button::createAccept(_('Speichern'), 'save_dates',
-            array('formaction'  => $controller->url_for('course/timesrooms/editSingleDate/' . $termin_id),
-                  'data-dialog' => 'size=big'
-            )) ?>
+        <?= Studip\Button::createAccept(_('Speichern'), 'save_dates') ?>
     </section>
 </form>

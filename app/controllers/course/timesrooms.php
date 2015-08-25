@@ -153,7 +153,6 @@ class Course_TimesroomsController extends AuthenticatedController
 
     public function editSingleDate_action($termin_id)
     {
-
         $termin = SingleDate::getInstance($termin_id);
         $start_time = sprintf('%s %s', Request::get('date'), Request::get('start_time'));
         $end_time = sprintf('%s %s', Request::get('date'), Request::get('end_time'));
