@@ -20,10 +20,11 @@
     <td>
         <? $dozenten = $termin->getRelatedPersons() ?>
         <? if (count($dozenten)) : ?>
-            <? foreach ($dozenten as $key => $dozent) : ?>
-                <?= ($key > 0) ? ', ' : '' ?>
-                <?= htmlReady(User::find($dozent)->getFullName()) ?>
-            <? endforeach ?>
+            <ul class="list-unstyled list-csv">
+                <? foreach ($dozenten as $key => $dozent) : ?>
+                    <li><?= htmlReady(User::find($dozent)->getFullName()) ?></li>
+                <? endforeach ?>
+            </ul>
         <? endif ?>
     </td>
     <td>
