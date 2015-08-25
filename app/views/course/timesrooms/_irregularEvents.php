@@ -20,13 +20,14 @@
                 <col width="30px">
                 <col>
                 <col width="30%">
-                <col width="10%%">
+                <col width="20%">
+                <col width="10%">
             </colgroup>
 
             <? foreach ($single_dates as $semester_id => $termine) : ?>
                 <thead>
                 <tr>
-                    <th colspan="4"><?= htmlReady(Semester::find($semester_id)->name) ?></th>
+                    <th colspan="5"><?= htmlReady(Semester::find($semester_id)->name) ?></th>
                 </tr>
                 </thead>
                 <tbody>
@@ -40,7 +41,7 @@
 
             <tfoot>
             <tr>
-                <td colspan="2">
+                <td colspan="3">
                     <section style="margin: 0; padding: 0">
                         <input data-proxyfor=".ids-irregular" type="checkbox"
                                id="checkAllIrregular" data-activates=".actionForAllIrregular">
