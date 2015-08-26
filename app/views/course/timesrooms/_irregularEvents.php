@@ -8,7 +8,7 @@
                data-dialog title="<?= _('Neuen Einzeltermin') ?>">
                 <?= _('Neuen Einzeltermin') ?>
             </a>
-            <a data-dialog-button class="link-add" href="<?= $controller->link_for('course/timesrooms/editBlock/0') ?>" data-dialog
+            <a data-dialog-button class="link-add" href="<?= $controller->url_for('course/block_appointments/index/'.$course_id) ?>" data-dialog
                title="<? _('Blocktermin hinzufügen') ?>">
                 <?= _('Neuen Blocktermin') ?>
             </a>
@@ -19,7 +19,7 @@
             <colgroup>
                 <col width="30px">
                 <col>
-                <col width="40%">
+                <col width="0%">
                 <col width="20%">
                 <col width="10%">
             </colgroup>

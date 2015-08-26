@@ -59,10 +59,10 @@ class Course_TimesroomsController extends AuthenticatedController
         $this->semester = array_reverse(Semester::getAll());
         $this->current_semester = Semester::findCurrent();
         $semesters = $this->semester;
-        if(!Request::isXhr() && isset($_SESSION['selectedTimesRoomSemester']) && $_SESSION['selectedTimesRoomSemester'] != 'all') {
-           $semesters = array_filter($semesters, function($a) {
-               return $_SESSION['selectedTimesRoomSemester'] == $a->beginn;
-           });
+        if (!Request::isXhr() && isset($_SESSION['selectedTimesRoomSemester']) && $_SESSION['selectedTimesRoomSemester'] != 'all') {
+            $semesters = array_filter($semesters, function ($a) {
+                return $_SESSION['selectedTimesRoomSemester'] == $a->beginn;
+            });
         }
 
         /**
@@ -118,7 +118,7 @@ class Course_TimesroomsController extends AuthenticatedController
     }
 
 
-    public function edit_semester_action($course_id = null)
+    public function editSemester_action($course_id = null)
     {
         if (!Request::isXhr()) {
             $this->redirect('course/timesrooms/index');
@@ -247,6 +247,11 @@ class Course_TimesroomsController extends AuthenticatedController
 
     }
 
+
+    public function createSingleDate_action()
+    {
+
+    }
 
     public function cancel_action($termin_id)
     {

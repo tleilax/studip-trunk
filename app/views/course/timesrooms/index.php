@@ -5,7 +5,7 @@
                 <?= _('Allgemeine Einstellungen') ?>
             </h1>
         </header>
-        <?= $this->render_partial('course/timesrooms/edit_semester.php') ?>
+        <?= $this->render_partial('course/timesrooms/editSemester.php') ?>
     </section>
 <? endif ?>
 
