@@ -69,6 +69,11 @@ class Course_TimesroomsController extends AuthenticatedController
             $dates = $this->course->getSingleDatesForCycle($metadate_id);
             foreach ($dates as $val) {
                 foreach ($this->semester as $sem) {
+                    if(!Request::isXhr() && isset($_SESSION['selectedTimesRoomSemester']) && $_SESSION['selectedTimesRoomSemester'] != 'all') {
+                        if($sem->beginn != $_SESSION['selectedTimesRoomSemester']) {
+                            continue;
+                        }
+                    }
                     if (($sem->beginn <= $val->getStartTime()) && ($sem->ende >= $val->getStartTime())) {
                         $cycle_dates[$metadate_id]['dates'][$sem->id][] = $val;
                     }
@@ -85,6 +90,14 @@ class Course_TimesroomsController extends AuthenticatedController
         $single_dates = array();
         foreach ($_single_dates as $id => $val) {
             foreach ($this->semester as $sem) {
+                if(!Request::isXhr() && isset($_SESSION['selectedTimesRoomSemester']) && $_SESSION['selectedTimesRoomSemester'] != 'all') {
+                    if(!Request::isXhr() && isset($_SESSION['selectedTimesRoomSemester']) && $_SESSION['selectedTimesRoomSemester'] != 'all') {
+                        if($sem->beginn != $_SESSION['selectedTimesRoomSemester']) {
+                            continue;
+                        }
+                    }
+                }
+
                 if (($sem->beginn <= $val->getStartTime()) && ($sem->ende >= $val->getStartTime())) {
                     $single_dates[$sem->id][] = $val;
                 }
@@ -105,7 +118,12 @@ class Course_TimesroomsController extends AuthenticatedController
         }
         $this->semesterFormParams = $semesterFormParams;
         $this->editParams = $editParams;
+
+
+        NotificationCenter::addObserver($this, 'addSemesterWidget', 'SidebarWillRender');
+
     }
+
 
     public function edit_semester_action($course_id = null)
     {
@@ -419,6 +437,29 @@ class Course_TimesroomsController extends AuthenticatedController
                 PageLayout::postMessage(MessageBox::$type($msg['title'], $msg['details']));
             }
         }
+    }
+
+    public function addSemesterWidget()
+    {
+        $sidebar = Sidebar::Get();
+
+        $widget = new SelectWidget(_('Semester'), $this->url_for('course/timesrooms/set_semester_filter'), 'newFilter');
+        $selection = raumzeit_get_semesters($this->course, new SemesterData(), $_SESSION['selectedTimesRoomSemester']);
+        foreach ($selection as $item) {
+            $element = new SelectElement($item['value'], $item['linktext'], $item['is_selected']);
+            $widget->addElement($element);
+        }
+        if ($sidebar->hasWidget('semesterselector')) {
+            $sidebar->insertWidget($widget, 'semesterselector');
+            $sidebar->removeWidget('semesterselector');
+        }
+    }
+
+    public function set_semester_filter_action()
+    {
+        $_SESSION['selectedTimesRoomSemester'] = Request::get('newFilter');
+        PageLayout::postMessage(MessageBox::success(_('Das gewünschte Semester wurde ausgewählt!')));
+        $this->redirect('course/timesrooms/index');
     }
 }
 
