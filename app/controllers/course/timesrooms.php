@@ -305,6 +305,29 @@ class Course_TimesroomsController extends AuthenticatedController
         $this->redirect('course/timesrooms/index');
     }
 
+    public function createCycle_action()
+    {
+        if ($this->flash['request']) {
+            foreach (words('day start_time end_time description') as $value) {
+                Request::set($value, $this->flash['request'][$value]);
+            }
+        }
+
+        $this->start_weeks = $this->getStartWeeks();
+    }
+
+    public function saveCycle_action()
+    {
+        global $newCycle;
+        if ($cycle_id = $this->course->addCycle($_REQUEST)) {
+            $info = $this->sem->metadate->cycles[$cycle_id]->toString();
+            $sem->createMessage(sprintf(_("Die regelmäßige Veranstaltungszeit \"%s\" wurde hinzugefügt!"), '<b>' . $info . '</b>'));
+        } else {
+            $sem->createError(_("Die regelmäßige Veranstaltungszeit konnte nicht hinzugefügt werden! Bitte überprüfen Sie Ihre Eingabe."));
+            $newCycle = true;
+        }
+    }
+
     public function cancel_action($termin_id)
     {
         if (Request::get('asDialog')) {
@@ -511,6 +534,28 @@ class Course_TimesroomsController extends AuthenticatedController
         $_SESSION['selectedTimesRoomSemester'] = Request::get('newFilter');
         PageLayout::postMessage(MessageBox::success(_('Das gewünschte Semester wurde ausgewählt!')));
         $this->redirect('course/timesrooms/index');
+    }
+
+    private function getStartWeeks()
+    {
+        // get possible start-weeks
+        $start_weeks = array();
+        $semester = new SemesterData();
+        $semester_index = get_sem_num($this->course->getStartSemester());
+        $tmp_first_date = getCorrectedSemesterVorlesBegin($semester_index);
+        $_tmp_first_date = strftime('%d.%m.%Y', $tmp_first_date);
+        $all_semester = $semester->getAllSemesterData();
+        $end_date = $all_semester[$semester_index]['vorles_ende'];
+
+        $i = 0;
+        while ($tmp_first_date < $end_date) {
+            $start_weeks[$i]['text'] = ($i + 1) . '. ' . _("Semesterwoche") . ' (' . _("ab") . ' ' . strftime("%d.%m.%Y", $tmp_first_date) . ')';
+            $start_weeks[$i]['selected'] = ($this->course->getStartWeek() == $i);
+
+            $i++;
+            $tmp_first_date = strtotime(sprintf('+%u weeks %s', $i, $_tmp_first_date));
+        }
+        return $start_weeks;
     }
 }
 

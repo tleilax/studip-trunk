@@ -287,10 +287,6 @@ function raumzeit_doAddSingleDate($sem) {
     // create date
     else {
         $termin = new SingleDate();
-        echo "<pre>";
-        var_dump($termin);
-        echo "</pre>";
-        die;
         //dates[0]=day, dates[1]=month,dates[2]=year
         $dates = explode('.', Request::get('startDate'));
         $start = mktime(Request::int('start_stunde'), Request::int('start_minute'), 0, $dates[1], $dates[0], $dates[2]);
