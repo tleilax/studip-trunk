@@ -10,18 +10,18 @@
 
         <div style="clear:both">
             <div style="width: 100px; float: left">
-                <label for="end_time">
-                    <?= _('Endzeit') ?>
-                </label>
-                <input class="size-m has-time-picker" type="time" name="end_time" id="end_time"
-                       value="<?= $date_info->end_time ? strftime('%H:%M', $date_info->end_time) : '' ?>">
-            </div>
-            <div style="width: 100px; float: left">
                 <label for="start_time">
                     <?= _('Startzeit') ?>
                 </label>
                 <input class="size-m has-time-picker" type="time" name="start_time" id="start_time"
                        value="<?= $date_info->date ? strftime('%H:%M', $date_info->date) : '' ?>">
+            </div>
+            <div style="width: 100px; float: left">
+                <label for="end_time">
+                    <?= _('Endzeit') ?>
+                </label>
+                <input class="size-m has-time-picker" type="time" name="end_time" id="end_time"
+                       value="<?= $date_info->end_time ? strftime('%H:%M', $date_info->end_time) : '' ?>">
             </div>
         </div>
 
@@ -164,8 +164,8 @@
         <? endif ?>
     </section>
 
-
-    <section data-dialog-button style="text-align: center; clear: both">
+    <footer data-dialog-button style="text-align: center; clear: both">
         <?= Studip\Button::createAccept(_('Speichern'), 'save_dates') ?>
-    </section>
+        <?= Studip\LinkButton::create(_('Raumanfrage erstellen'),$controller->url_for('course/room_requests/edit/'. $course->id, $params), array('data-dialog' => 'size=big')) ?>
+    </footer>
 </form>

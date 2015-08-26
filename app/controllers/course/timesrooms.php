@@ -133,6 +133,12 @@ class Course_TimesroomsController extends AuthenticatedController
         $this->resList = ResourcesUserRoomsList::getInstance($GLOBALS['user']->id, true, false, true);
         $this->types = $GLOBALS['TERMIN_TYP'];
 
+        if ($request = RoomRequest::findByDate($this->termin->getSingleDateID())) {
+            $this->params = array('request_id' => $request->getId());
+        } else {
+            $this->params = array('new_room_request_type' => 'date_' . $this->termin->getSingleDateID());
+        }
+
         $this->dozenten = $this->course->getMembers('dozent');
         $this->related_persons = $this->termin->getRelatedPersons();
         $this->related_groups = $this->termin->getRelatedGroups();

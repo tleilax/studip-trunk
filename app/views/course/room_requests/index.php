@@ -70,7 +70,7 @@ echo $flash['message'];
 
 <? if (Request::isXhr()) : ?>
     <div data-dialog-button>
-        <?= \Studip\LinkButton::createEdit(_('Neue Raumanfrage erstellen'), $controller->url_for('new/' . $course_id), array('data-dialog' => 'size=big')) ?>
+        <?= \Studip\LinkButton::createEdit(_('Neue Raumanfrage erstellen'), $controller->url_for('course/room_requests/new/' . $course_id), array('data-dialog' => 'size=big')) ?>
     </div>
 <? endif ?>
 <?

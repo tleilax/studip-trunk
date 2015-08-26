@@ -445,8 +445,7 @@ class Course_RoomRequestsController extends AuthenticatedController
         } else {
             $whereto .= $to;
         }
-        $link = URLHelper::getLink($this->dispatcher->trails_uri . '/' . $whereto, $params);
-        return $link;
+        return parent::link_for($whereto, $params);
     }
 
 }
