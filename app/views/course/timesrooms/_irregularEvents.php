@@ -4,8 +4,8 @@
             <?= _('Unregelmäßige Termine / Blocktermine') ?>
         </h1>
         <nav>
-            <a data-dialog-button class="link-add" href="<?= $controller->link_for('course/timesrooms/editIrregular/0') ?>"
-               data-dialog title="<?= _('Neuen Einzeltermin') ?>">
+            <a data-dialog-button class="link-add" href="<?= $controller->link_for('course/timesrooms/createSingleDate/'. $course_id) ?>"
+               data-dialog="size=50%" title="<?= _('Neuen Einzeltermin') ?>">
                 <?= _('Neuen Einzeltermin') ?>
             </a>
             <a data-dialog-button class="link-add" href="<?= $controller->url_for('course/block_appointments/index/'.$course_id) ?>" data-dialog

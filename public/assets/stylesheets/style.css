@@ -1376,6 +1376,21 @@ section.contentbox article .studip-form section {
   padding-left: 10px;
   /* Darken border on focus */
 }
+.studip-form input[type="text"].multiple,
+.studip-form input[type="number"].multiple,
+.studip-form input[type="password"].multiple,
+.studip-form input[type="date"].multiple,
+.studip-form input[type="datetime"].multiple,
+.studip-form input[type="email"].multiple,
+.studip-form input[type="range"].multiple,
+.studip-form input[type="search"].multiple,
+.studip-form input[type="time"].multiple,
+.studip-form input[type="tel"].multiple,
+.studip-form input[type="url"].multiple,
+.studip-form div.quicksearch_frame input[type="text"].multiple,
+.studip-form select.multiple {
+  height: auto;
+}
 .studip-form input[type="text"]:focus,
 .studip-form input[type="number"]:focus,
 .studip-form input[type="password"]:focus,

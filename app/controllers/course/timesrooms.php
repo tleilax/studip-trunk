@@ -250,7 +250,59 @@ class Course_TimesroomsController extends AuthenticatedController
 
     public function createSingleDate_action()
     {
+        if ($this->flash['request']) {
+            foreach (words('date start_time end_time room related_teachers related_statusgruppen freeRoomText dateType') as $value) {
+                Request::set($value, $this->flash['request'][$value]);
+            }
+        }
+        $this->resList = ResourcesUserRoomsList::getInstance($GLOBALS['user']->id, true, false, true);
+        $this->teachers = $this->course->getMembers('dozent');
+        $this->groups = Statusgruppen::findBySeminar_id($this->course_id);
+    }
 
+    public function saveSingleDate_action()
+    {
+        CSRFProtection::verifyRequest();
+        $termin = new SingleDate(array('seminar_id' => $this->course->id));
+        $start_time = strtotime(sprintf('%s %s', Request::get('date'), Request::get('start_time')));
+        $end_time = strtotime(sprintf('%s %s', Request::get('date'), Request::get('end_time')));
+
+        if ($start_time > $end_time) {
+            $this->flash['request'] = Request::getInstance();
+            PageLayout::postMessage(MessageBox::error(_('Die Zeitangaben sind nicht korrekt. Bitte überprüfen Sie diese!')));
+            $this->redirect('course/timesrooms/createSingleDate');
+            return;
+        }
+
+        $termin->setTime($start_time, $end_time);
+        $termin->setDateType(Request::get('dateType'));
+
+        $termin->store();
+
+        if ($start_time < $this->course->filterStart || $end_time > $this->course->filterEnd) {
+            $this->course->setFilter('all');
+        }
+        if (!Request::get('room') || Request::get('room') === 'nothing') {
+            $termin->setFreeRoomText(Request::get('freeRoomText'));
+            $termin->store();
+            $this->course->addSingleDate($termin);
+        } else {
+            $this->course->addSingleDate($termin);
+            $this->course->bookRoomForSingleDate($termin->getSingleDateID(), Request::get('room'));
+        }
+        $teachers = $this->course->getMembers('dozent');
+        foreach (Request::getArray('related_teachers') as $dozent_id) {
+            if (in_array($dozent_id, array_keys($teachers))) {
+                $termin->addRelatedPerson($dozent_id);
+            }
+        }
+        foreach (Request::getArray('related_statusgruppen') as $statusgruppe_id) {
+            $termin->addRelatedGroup($statusgruppe_id);
+        }
+        $this->course->createMessage(sprintf(_('Der Termin %s wurde hinzugefügt!'), '<b>' . $termin->toString() . '</b>'));
+        $this->course->store();
+        $this->displayMessages();
+        $this->redirect('course/timesrooms/index');
     }
 
     public function cancel_action($termin_id)
@@ -313,6 +365,7 @@ class Course_TimesroomsController extends AuthenticatedController
         }
         $this->redirect($this->url_for('course/timesrooms/index' . ($termin->metadate_id ? '#' . $termin->metadate_id : ''), $params));
     }
+
 
     public function undeleteSingle_action($termin_id)
     {
