@@ -47,7 +47,7 @@ class SingleDate
     var $room_request    = NULL;
     var $related_persons = array();
     var $related_groups  = array();
-    
+
     /**
      * Return the SingleDate instance of the given id
      *
@@ -83,15 +83,15 @@ class SingleDate
         }
         if ($termin_id != '') {
             $this->termin_id = $termin_id;
-            $this->update    = true;
+            $this->update = true;
             $this->restore();
         } else {
             $this->termin_id = md5(uniqid('SingleDate', 1));
             $this->author_id = $user->id;
-            $this->range_id  = $id;
-            $this->mkdate    = time();
-            $this->chdate    = time();
-            $this->update    = false;
+            $this->range_id = $id;
+            $this->mkdate = time();
+            $this->chdate = time();
+            $this->update = false;
         }
     }
 
@@ -120,7 +120,7 @@ class SingleDate
                     }
                 }
 
-                $this->date     = $start;
+                $this->date = $start;
                 $this->end_time = $end;
 
                 $after = $this->toString();
@@ -318,7 +318,7 @@ class SingleDate
     function setExTermin($ex)
     {
         if ($ex != $this->ex_termin) {
-            $this->update    = false;
+            $this->update = false;
             $this->ex_termin = $ex;
 
             return true;
@@ -352,7 +352,7 @@ class SingleDate
 
         if (!$name) {
             $holy_type = holiday($this->date);
-            $name      = $holy_type['name'];
+            $name = $holy_type['name'];
         }
 
         if ($name) {
@@ -365,27 +365,27 @@ class SingleDate
     function fillValuesFromArray($daten)
     {
         $this->metadate_id = $daten['metadate_id'];
-        $this->termin_id   = $daten['termin_id'];
+        $this->termin_id = $daten['termin_id'];
         if ($daten['date_typ'] != 0) {
             $this->date_typ = $daten['date_typ'];
         } else {
             // if no date_typ is specified it defaults to 1
             $this->date_typ = 1;
         }
-        $this->date            = $daten['date'];
-        $this->end_time        = $daten['end_time'];
-        $this->mkdate          = $daten['mkdate'];
-        $this->chdate          = $daten ['chdate'];
-        $this->ex_termin       = $daten['ex_termin'];
-        $this->orig_ex         = $daten['ex_termin'];
-        $this->range_id        = $daten['range_id'];
-        $this->author_id       = $daten['autor_id'];
-        $this->resource_id     = $daten['resource_id'];
-        $this->raum            = $daten['raum'];
-        $this->content         = $daten['content'];
-        $this->update          = true;
+        $this->date = $daten['date'];
+        $this->end_time = $daten['end_time'];
+        $this->mkdate = $daten['mkdate'];
+        $this->chdate = $daten ['chdate'];
+        $this->ex_termin = $daten['ex_termin'];
+        $this->orig_ex = $daten['ex_termin'];
+        $this->range_id = $daten['range_id'];
+        $this->author_id = $daten['autor_id'];
+        $this->resource_id = $daten['resource_id'];
+        $this->raum = $daten['raum'];
+        $this->content = $daten['content'];
+        $this->update = true;
         $this->related_persons = is_array($daten['related_persons']) ? $daten['related_persons'] : array();
-        $this->related_groups  = is_array($daten['related_groups']) ? $daten['related_groups'] : array();
+        $this->related_groups = is_array($daten['related_groups']) ? $daten['related_groups'] : array();
 
         return true;
     }
@@ -442,8 +442,8 @@ class SingleDate
         $overlaps = $createAssign->checkOverlap(true);
         if (is_array($overlaps) && (sizeof($overlaps) > 0)) {
             $resObj = ResourceObject::Factory($roomID);
-            $raum   = $resObj->getFormattedLink($this->date);
-            $msg    = sprintf(_("Für den Termin %s konnte der Raum %s nicht gebucht werden, da es Überschneidungen mit folgenden Terminen gibt:"), $this->toString(), $raum) . '<br>';
+            $raum = $resObj->getFormattedLink($this->date);
+            $msg = sprintf(_("Für den Termin %s konnte der Raum %s nicht gebucht werden, da es Überschneidungen mit folgenden Terminen gibt:"), $this->toString(), $raum) . '<br>';
             foreach ($overlaps as $tmp_assign_id => $val) {
                 if ($val["lock"])
                     $msg .= sprintf(_("%s, %s Uhr bis %s, %s Uhr (Sperrzeit)") . "\n", date("d.m.Y", $val["begin"]), date("H:i", $val["begin"]), date("d.m.Y", $val["end"]), date("H:i", $val["end"]));
@@ -456,11 +456,11 @@ class SingleDate
         }
 
         if ($createAssign->create()) {
-            $resObj                      = ResourceObject::Factory($roomID);
-            $raum                        = $resObj->getFormattedLink($this->date);
-            $msg                         = sprintf(_("Für den Termin %s wurde der Raum %s gebucht."), $this->toString(), $raum);
+            $resObj = ResourceObject::Factory($roomID);
+            $raum = $resObj->getFormattedLink($this->date);
+            $msg = sprintf(_("Für den Termin %s wurde der Raum %s gebucht."), $this->toString(), $raum);
             $this->messages['success'][] = $msg;
-            $this->resource_id           = $roomID;
+            $this->resource_id = $roomID;
 
             return true;
         }
@@ -489,8 +489,8 @@ class SingleDate
             $overlaps = $changeAssign->checkOverlap(true);
             if (is_array($overlaps) && (sizeof($overlaps) > 0)) {
                 $resObj = ResourceObject::Factory($roomID);
-                $raum   = $resObj->getFormattedLink($this->date);
-                $msg    = sprintf(_("Für den Termin %s konnte der Raum %s nicht gebucht werden, da es Überschneidungen mit folgenden Terminen gibt:"), $this->toString(), $raum) . '<br>';
+                $raum = $resObj->getFormattedLink($this->date);
+                $msg = sprintf(_("Für den Termin %s konnte der Raum %s nicht gebucht werden, da es Überschneidungen mit folgenden Terminen gibt:"), $this->toString(), $raum) . '<br>';
                 foreach ($overlaps as $tmp_assign_id => $val) {
                     if ($val["lock"])
                         $msg .= sprintf(_("%s, %s Uhr bis %s, %s Uhr (Sperrzeit)") . "\n", date("d.m.Y", $val["begin"]), date("H:i", $val["begin"]), date("d.m.Y", $val["end"]), date("H:i", $val["end"]));
@@ -504,9 +504,9 @@ class SingleDate
 
             $this->resource_id = $roomID;
             $changeAssign->store();
-            $resObj                      = ResourceObject::Factory($roomID);
-            $raum                        = $resObj->getFormattedLink($this->date);
-            $msg                         = sprintf(_("Für den Termin %s wurde der Raum %s gebucht."), $this->toString(), $raum);
+            $resObj = ResourceObject::Factory($roomID);
+            $raum = $resObj->getFormattedLink($this->date);
+            $msg = sprintf(_("Für den Termin %s wurde der Raum %s gebucht."), $this->toString(), $raum);
             $this->messages['success'][] = $msg;
 
             return true;
@@ -530,7 +530,7 @@ class SingleDate
      * may happen...
      *
      * @param int $start the start-time to set for the assign
-     * @param int $end the end-time to set for the assign
+     * @param int $end   the end-time to set for the assign
      */
     private function shrinkAssign($start, $end)
     {
@@ -600,21 +600,29 @@ class SingleDate
     function getRoomRequestStatus()
     {
         // check if there is any room-request
-        $this->request_id = RoomRequest::existsByDate($this->termin_id);
-        if (!$this->request_id) {
+        $this->room_request = $this->getRoomRequest();
+        if (!$this->room_request) {
             return false;
         }
 
-        // room-request found, parse int-status and return string-status
-        $this->room_request = RoomRequest::find($this->request_id);
-
         return $this->room_request->getStatus();
+    }
+
+
+    function getRoomRequest()
+    {
+        if ($request = RoomRequest::findByDate($this->termin_id)) {
+            $this->room_request = $request;
+
+            return $this->room_request;
+        }
+        return false;
     }
 
     function getRequestedRoom()
     {
         if ($this->hasRoomRequest()) {
-            $rD        = new RoomRequest($this->request_id);
+            $rD = new RoomRequest($this->request_id);
             $resObject = ResourceObject::Factory($rD->resource_id);
 
             return $resObject->getName();
@@ -676,7 +684,7 @@ class SingleDate
 
     function getMessages()
     {
-        $temp           = $this->messages;
+        $temp = $this->messages;
         $this->messages = NULL;
 
         return $temp;
@@ -730,7 +738,7 @@ class SingleDate
      */
     function getDatesExport($params = array())
     {
-        $template       = $GLOBALS['template_factory']->open('dates/date_export.php');
+        $template = $GLOBALS['template_factory']->open('dates/date_export.php');
         $params['link'] = false;
         $template->set_attributes($params);
 
@@ -779,7 +787,7 @@ class SingleDate
     public function addRelatedPerson($user_id)
     {
         $this->related_persons[] = $user_id;
-        $this->related_persons   = array_unique($this->related_persons);
+        $this->related_persons = array_unique($this->related_persons);
     }
 
     /**
@@ -789,7 +797,7 @@ class SingleDate
     public function deleteRelatedPerson($user_id)
     {
         if (!$this->related_persons) {
-            $sem                   = Seminar::getInstance($this->getSeminarID());
+            $sem = Seminar::getInstance($this->getSeminarID());
             $this->related_persons = array_keys($sem->getMembers('dozent'));
         }
         foreach ($this->related_persons as $key => $related_person) {
@@ -822,7 +830,7 @@ class SingleDate
     {
         $this->related_persons = array();
     }
-    
+
     /**
      * adds a given statusgruppe_id as a related group to the date
      * @param string $statusgruppe_id statusgruppe_id from statusgruppen of the group to be added
@@ -830,7 +838,7 @@ class SingleDate
     public function addRelatedGroup($statusgruppe_id)
     {
         $this->related_groups[] = $statusgruppe_id;
-        $this->related_groups   = array_unique($this->related_groups);
+        $this->related_groups = array_unique($this->related_groups);
     }
 
     /**
@@ -840,7 +848,7 @@ class SingleDate
     public function deleteRelatedGroup($statusgruppe_id)
     {
         if (!$this->related_groups) {
-            $groups               = Statusgruppen::findBySeminar_id($this->getSeminarID());
+            $groups = Statusgruppen::findBySeminar_id($this->getSeminarID());
             $this->related_groups = array_map(function ($g) {
                 return $g->getId();
             }, $groups);
@@ -874,7 +882,7 @@ class SingleDate
      */
     public function clearRelatedGroups()
     {
-        $this->related_groups        = array();
+        $this->related_groups = array();
         $this->messages['success'][] = _('Die beteiligten Gruppen wurden zurückgesetzt!');
     }
 }

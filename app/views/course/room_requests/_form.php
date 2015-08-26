@@ -47,7 +47,7 @@ if ($request_resource_id = $request->getResourceId()) :
                 array('type'  => "image", 'style' => "vertical-align:bottom", 'name' => "reset_resource_id",
                       'title' => _('den ausgewählten Raum löschen')
                 )) ?>
-            <?= Assets::img("icons/grey/info-circle", array('alt' => _('Der ausgewählte Raum bietet folgende der wünschbaren Eigenschaften:') . " \n" . $resObject->getPlainProperties(TRUE))) ?>
+            <?= tooltipIcon(_('Der ausgewählte Raum bietet folgende der wünschbaren Eigenschaften:') . " \n" . $resObject->getPlainProperties(TRUE))?>
         </p>
         <input type="hidden" name="selected_room" value="<?= htmlready($request_resource_id) ?>">
     </section>

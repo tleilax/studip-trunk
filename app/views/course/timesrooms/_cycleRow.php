@@ -13,7 +13,7 @@
         <? else : ?>
             <a class="load-in-new-row"
                href="<?= $controller->url_for('course/timesrooms/editDate/'
-                      . $termin->termin_id . ($termin->metadate_id ? '/' . $termin->metadate_id : ''), $editParams) ?>">
+                                              . $termin->termin_id . ($termin->metadate_id ? '/' . $termin->metadate_id : ''), $editParams) ?>">
                 <?= htmlReady($termin->toString()) ?>
             </a>
         <? endif ?>
@@ -51,19 +51,49 @@
             <?= _('Keine Raumangabe') ?>
             <?= $room_holiday ?: '' ?>
         <? endif ?>
+
+        <? if ($request = $termin->getRoomRequest()) : ?>
+            <? $msg_info = _('Für diesen Termin existiert eine Raumanfrage: ') . $request->getInfo() ?>
+            <?= tooltipIcon($msg_info) ?>
+        <? endif ?>
     </td>
     <td class="actions">
+
         <? if (!$termin->isExTermin()) : ?>
             <a class="load-in-new-row"
                href="<?= $controller->url_for('course/timesrooms/editDate/'
-                      . $termin->termin_id . ($termin->metadate_id ? '/' . $termin->metadate_id : ''), $editParams) ?>">
+                                              . $termin->termin_id . ($termin->metadate_id ? '/' . $termin->metadate_id : ''), $editParams) ?>">
                 <?= Assets::img('icons/blue/edit', tooltip2(_('Termin bearbeiten'))) ?>
             </a>
-            <?= Assets::img('icons/blue/trash', array('title' => _('Termin löschen'))) ?>
+
+            <? $warning = array() ?>
+            <? if ($termin->getIssueIDs()) : ?>
+                <? if (Config::get()->RESOURCES_ENABLE_EXPERT_SCHEDULE_VIEW) : ?>
+                    <? $warning[] = _('Diesem Termin ist im Ablaufplan ein Thema zugeordnet.
+                        Titel und Beschreibung des Themas bleiben erhalten und können in der Expertenansicht des Ablaufplans einem anderen Termin wieder zugeordnet werden.'); ?>
+                <? else : ?>
+                    <? $warning[] = _('Diesem Termin ist ein Thema zugeordnet.'); ?>
+                <? endif ?>
+            <? endif ?>
+
+            <? if (Config::get()->RESOURCES_ENABLE && $termin->hasRoom()) : ?>
+                <? $warning[] = _('Dieser Termin hat eine Raumbuchung, welche mit dem Termin gelöscht wird.'); ?>
+            <? endif ?>
+
+            <a <?= Request::isXhr() ? 'data-dialog="size=big"' : '' ?>  href="<?= $controller->url_for('course/timesrooms/deleteSingle/' . $termin->termin_id) ?>" <? !empty($warning) ? 'data-confirm="'.implode("\n", $warning).'"' : ''?>>
+                <?= Assets::img('icons/blue/trash', array('title' => _('Termin löschen'))) ?>
+            </a>
         <? else : ?>
 
-            <a data-dialog="size=big"
-               href="<?= $controller->url_for('course/timesrooms/undeleteSingle/' . $termin->termin_id) ?>">
+            <a class="load-in-new-row"
+               href="<?= $controller->url_for('course/timesrooms/cancel/'
+                                              . $termin->termin_id . ($termin->metadate_id ? '/' . $termin->metadate_id : ''), $editParams) ?>">
+                <?= Assets::img('icons/grey/edit', tooltip2(_('Termin bearbeiten'))) ?>
+            </a>
+
+
+            <a <?= Request::isXhr() ? 'data-dialog="size=big"' : '' ?> <? !empty($warning) ? 'data-confirm="'.implode("\n", $warning).'"' : ''?>
+                href="<?= $controller->url_for('course/timesrooms/undeleteSingle/' . $termin->termin_id, $editParams) ?>">
                 <?= Assets::img('icons/grey/decline/trash', tooltip2(_('Termin wiederherstellen'))) ?>
             </a>
 

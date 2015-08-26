@@ -40,6 +40,10 @@ class Course_TimesroomsController extends AuthenticatedController
         PageLayout::addSqueezePackage('raumzeit');
         PageLayout::setTitle(sprintf(_('%sVerwaltung von Zeiten und Räumen'),
             isset($this->course) ? $this->course->getFullname() . ' - ' : ''));
+
+        if (isset($this->flash['question'])) {
+            PageLayout::addBodyElements($this->flash['question']);
+        }
     }
 
     public function index_action($course_id = null)
@@ -79,7 +83,7 @@ class Course_TimesroomsController extends AuthenticatedController
          */
         $_single_dates = $this->course->getSingleDates(true, true, true);
         $single_dates = array();
-        foreach ($_single_dates as $val) {
+        foreach ($_single_dates as $id => $val) {
             foreach ($this->semester as $sem) {
                 if (($sem->beginn <= $val->getStartTime()) && ($sem->ende >= $val->getStartTime())) {
                     $single_dates[$sem->id][] = $val;
@@ -235,6 +239,9 @@ class Course_TimesroomsController extends AuthenticatedController
 
     public function cancel_action($termin_id)
     {
+        if (Request::get('asDialog')) {
+            $this->asDialog = true;
+        }
         $this->termin = SingleDate::getInstance($termin_id);
     }
 
@@ -257,6 +264,38 @@ class Course_TimesroomsController extends AuthenticatedController
         $termin->store();
         $this->displayMessages();
         $this->redirect($this->url_for('course/timesrooms/index#' . $termin->metadate_id, array('contentbox_open' => $termin->metadate_id)));
+    }
+
+    public function deleteSingle_action($termin_id, $sub_cmd = 'delete')
+    {
+        $termin = SingleDate::getInstance($termin_id);
+        if (Request::get('approveDelete')) {
+            if (Config::get()->RESOURCES_ENABLE_EXPERT_SCHEDULE_VIEW) {
+                $this->course->createMessage(sprintf(_('Sie haben den Termin %s gelöscht, dem ein Thema zugeorndet war. Sie können das Thema in der %sExpertenansicht des Ablaufplans%s einem anderen Termin (z.B. einem Ausweichtermin) zuordnen.'),
+                    $termin->toString(), '<a href="' . URLHelper::getLink('themen.php?cmd=changeViewMode&newFilter=expert') . '">', '</a>'));
+            } else {
+                if ($termin->hasRoom()) {
+                    $this->course->createMessage(sprintf(_('Der Termin %s wurde gelöscht! <br> Die Buchung für den Raum %s wurde gelöscht.'),
+                        $termin->toString(), $termin->getRoom()));
+                } else {
+                    $this->course->createMessage(sprintf(_('Der Termin %s wurde gelöscht!'), $termin->toString()));
+                }
+            }
+        } // no approval needed, delete unquestioned
+        else {
+            $this->course->createMessage(sprintf(_("Der Termin %s wurde gelöscht!"), $termin->toString()));
+        }
+        if ($sub_cmd == 'cancel') {
+            $this->course->cancelSingleDate($termin_id, $termin->metadate_id);
+        } else {
+            $this->course->deleteSingleDate($termin_id, $termin->metadate_id);
+        }
+        $this->displayMessages();
+        $params = array();
+        if ($termin->metadate_id) {
+            $params['contentbox_open'] = $termin->metadate_id;
+        }
+        $this->redirect($this->url_for('course/timesrooms/index' . ($termin->metadate_id ? '#' . $termin->metadate_id : ''), $params));
     }
 
     public function undeleteSingle_action($termin_id)

@@ -27,7 +27,6 @@ require_once 'lib/raumzeit/MetaDate.class.php';
 require_once 'lib/raumzeit/SeminarDB.class.php';
 require_once 'lib/raumzeit/Issue.class.php';
 require_once 'lib/raumzeit/SingleDate.class.php';
-require_once 'lib/log_events.inc.php';
 require_once $GLOBALS['RELATIVE_PATH_RESOURCES'].'/lib/ResourceObject.class.php';
 require_once $GLOBALS['RELATIVE_PATH_RESOURCES'].'/lib/DeleteResourcesUser.class.php';
 require_once 'lib/visual.inc.php';
@@ -562,18 +561,18 @@ class Seminar
                 $this->semester_duration_time = 0;
                 $this->metadate->setSeminarDurationTime(0);
                 // logging >>>>>>
-                log_event("SEM_SET_ENDSEMESTER", $this->getId(), $end, 'Laufzeit: 1 Semester');
+                StudipLog::log("SEM_SET_ENDSEMESTER", $this->getId(), $end, 'Laufzeit: 1 Semester');
                 // logging <<<<<<
             } else if ($end == -1) {    // the seminar takes place in every semester above and including the start-semester
                 // logging >>>>>>
-                log_event("SEM_SET_ENDSEMESTER", $this->getId(), $end, 'Laufzeit: unbegrenzt');
+                StudipLog::log("SEM_SET_ENDSEMESTER", $this->getId(), $end, 'Laufzeit: unbegrenzt');
                 // logging <<<<<<
                 $this->semester_duration_time = -1;
                 $this->metadate->setSeminarDurationTime(-1);
                 SeminarDB::removeOutRangedSingleDates($this->semester_start_time, $this->getEndSemesterVorlesEnde(), $this->id);
             } else {                                    // the seminar takes place  between the selected start~ and end-semester
                 // logging >>>>>>
-                log_event("SEM_SET_ENDSEMESTER", $this->getId(), $end);
+                StudipLog::log("SEM_SET_ENDSEMESTER", $this->getId(), $end);
                 // logging <<<<<<
                 $this->semester_duration_time = $end - $this->semester_start_time;  // the duration is stored, not the real end-point
                 $this->metadate->setSeminarDurationTime($this->semester_duration_time);
@@ -743,7 +742,7 @@ class Seminar
     function addSingleDate(&$singledate)
     {
         // logging >>>>>>
-        log_event("SEM_ADD_SINGLEDATE", $this->getId(), $singledate->toString(), 'SingleDateID: '.$singledate->getTerminID());
+        StudipLog::log("SEM_ADD_SINGLEDATE", $this->getId(), $singledate->toString(), 'SingleDateID: '.$singledate->getTerminID());
         // logging <<<<<<
 
         $cache = StudipCacheFactory::getCache();
@@ -778,7 +777,7 @@ class Seminar
     {
         $this->readSingleDates();
         // logging >>>>>>
-        log_event("SEM_DELETE_SINGLEDATE",$date_id, $this->getId(), 'Cycle_id: '.$cycle_id);
+        StudipLog::log("SEM_DELETE_SINGLEDATE",$date_id, $this->getId(), 'Cycle_id: '.$cycle_id);
         // logging <<<<<<
         if ($cycle_id == '') {
             $this->irregularSingleDates[$date_id]->delete(true);
@@ -799,7 +798,7 @@ class Seminar
         }
         $this->readSingleDates();
         // logging >>>>>>
-        log_event("SEM_DELETE_SINGLEDATE",$date_id, $this->getId(), 'appointment cancelled');
+        StudipLog::log("SEM_DELETE_SINGLEDATE",$date_id, $this->getId(), 'appointment cancelled');
         // logging <<<<<<
         $this->irregularSingleDates[$date_id]->setExTermin(true);
         $this->irregularSingleDates[$date_id]->store();
@@ -951,7 +950,7 @@ class Seminar
         if($new_id){
             $cycle_info = $this->metadate->cycles[$new_id]->toString();
             NotificationCenter::postNotification("CourseDidChangeSchedule", $this);
-            log_event("SEM_ADD_CYCLE", $this->getId(), NULL, $cycle_info, '<pre>'.print_r($data,true).'</pre>');
+            StudipLog::log("SEM_ADD_CYCLE", $this->getId(), NULL, $cycle_info, '<pre>'.print_r($data,true).'</pre>');
         }
         // logging <<<<<<
         return $new_id;
@@ -1057,7 +1056,7 @@ class Seminar
             if ($this->metadate->editCycle($data)) {
                 if (!$same_time) {
                     // logging >>>>>>
-                    log_event("SEM_CHANGE_CYCLE", $this->getId(), NULL, $change_from .' -> '. $cycle->toString());
+                    StudipLog::log("SEM_CHANGE_CYCLE", $this->getId(), NULL, $change_from .' -> '. $cycle->toString());
                     NotificationCenter::postNotification("CourseDidChangeSchedule", $this);
                     // logging <<<<<<
                     $this->createMessage(sprintf(_("Die regelmäßige Veranstaltungszeit wurde auf \"%s\" für alle in der Zukunft liegenden Termine geändert!"),
@@ -1085,7 +1084,7 @@ class Seminar
     {
         // logging >>>>>>
         $cycle_info = $this->metadate->cycles[$cycle_id]->toString();
-        log_event("SEM_DELETE_CYCLE", $this->getId(), NULL, $cycle_info);
+        StudipLog::log("SEM_DELETE_CYCLE", $this->getId(), NULL, $cycle_info);
         NotificationCenter::postNotification("CourseDidChangeSchedule", $this);
         // logging <<<<<<
         return $this->metadate->deleteCycle($cycle_id);
@@ -1719,7 +1718,7 @@ class Seminar
         $request_id = RoomRequest::existsByCourse($this->getId());
         if ($request_id) {
             // logging >>>>>>
-            log_event("SEM_DELETE_REQUEST", $this->getId());
+            StudipLog::log("SEM_DELETE_REQUEST", $this->getId());
             // logging <<<<<<
             $this->requestData = '';
             return RoomRequest::find($request_id)->delete();
@@ -2031,7 +2030,7 @@ class Seminar
         $statement->execute(array($s_id));
         $semlogname = $statement->fetchColumn() ?: sprintf('unknown sem_id: %s', $s_id);
 
-        log_event("SEM_ARCHIVE",$s_id,NULL,$semlogname);
+        StudipLog::log("SEM_ARCHIVE",$s_id,NULL,$semlogname);
         // ...logged
 
         // delete deputies if necessary
@@ -2185,7 +2184,7 @@ class Seminar
 
             foreach($todelete as $inst) {
                 $tmp_instname= get_object_name($inst, 'inst');
-                log_event('CHANGE_INSTITUTE_DATA', $this->id, $inst, 'Die beteiligte Einrichtung "'. $tmp_instname['name'] .'" wurde gelöscht.');
+                StudipLog::log('CHANGE_INSTITUTE_DATA', $this->id, $inst, 'Die beteiligte Einrichtung "'. $tmp_instname['name'] .'" wurde gelöscht.');
                 $statement->execute(array($this->id, $inst));
             }
 
@@ -2196,7 +2195,7 @@ class Seminar
 
             foreach($toinsert as $inst) {
                 $tmp_instname= get_object_name($inst, 'inst');
-                log_event('CHANGE_INSTITUTE_DATA', $this->id, $inst, 'Die beteiligte Einrichtung "'. $tmp_instname['name'] .'" wurde hinzugefügt.');
+                StudipLog::log('CHANGE_INSTITUTE_DATA', $this->id, $inst, 'Die beteiligte Einrichtung "'. $tmp_instname['name'] .'" wurde hinzugefügt.');
                 $statement->execute(array($this->id, $inst));
             }
             if ($todelete || $toinsert) {
@@ -2287,7 +2286,7 @@ class Seminar
             removeScheduleEntriesMarkedAsVirtual($user_id, $this->getId());
             NotificationCenter::postNotification("CourseDidGetMember", $this, $user_id);
             NotificationCenter::postNotification('UserDidEnterCourse', $this->id, $user_id);
-            log_event('SEM_USER_ADD', $this->id, $user_id, $status, 'Wurde in die Veranstaltung eingetragen');
+            StudipLog::log('SEM_USER_ADD', $this->id, $user_id, $status, 'Wurde in die Veranstaltung eingetragen');
             $this->course->resetRelation('members');
             $this->course->resetRelation('admission_applicants');
             return $this;
@@ -2366,7 +2365,7 @@ class Seminar
                 "<i>".htmlReady(get_fullname($user_id))."</i>"));
             NotificationCenter::postNotification("CourseDidChangeMember", $this, $user_id);
             NotificationCenter::postNotification('UserDidLeaveCourse', $this->id, $user_id);
-            log_event('SEM_USER_DEL', $this->id, $user_id, 'Wurde aus der Veranstaltung rausgeworfen');
+            StudipLog::log('SEM_USER_DEL', $this->id, $user_id, 'Wurde aus der Veranstaltung rausgeworfen');
             $this->course->resetRelation('members');
             return $this;
         } else {
@@ -2549,7 +2548,7 @@ class Seminar
             $prio_delete = AdmissionPriority::unsetPriority($cs->getId(), $user_id, $this->getId());
         }
         // LOGGING
-        log_event('SEM_USER_ADD', $this->getId(), $user_id, 'accepted', 'Vorläufig akzeptiert');
+        StudipLog::log('SEM_USER_ADD', $this->getId(), $user_id, 'accepted', 'Vorläufig akzeptiert');
         return $ok;
     }
 
