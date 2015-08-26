@@ -58,6 +58,12 @@ class Course_TimesroomsController extends AuthenticatedController
 
         $this->semester = array_reverse(Semester::getAll());
         $this->current_semester = Semester::findCurrent();
+        $semesters = $this->semester;
+        if(!Request::isXhr() && isset($_SESSION['selectedTimesRoomSemester']) && $_SESSION['selectedTimesRoomSemester'] != 'all') {
+           $semesters = array_filter($semesters, function($a) {
+               return $_SESSION['selectedTimesRoomSemester'] == $a->beginn;
+           });
+        }
 
         /**
          * Get Cycles
@@ -68,12 +74,7 @@ class Course_TimesroomsController extends AuthenticatedController
             $cycle_dates[$metadate_id]['name'] = $cycle->toString('long');
             $dates = $this->course->getSingleDatesForCycle($metadate_id);
             foreach ($dates as $val) {
-                foreach ($this->semester as $sem) {
-                    if(!Request::isXhr() && isset($_SESSION['selectedTimesRoomSemester']) && $_SESSION['selectedTimesRoomSemester'] != 'all') {
-                        if($sem->beginn != $_SESSION['selectedTimesRoomSemester']) {
-                            continue;
-                        }
-                    }
+                foreach ($semesters as $sem) {
                     if (($sem->beginn <= $val->getStartTime()) && ($sem->ende >= $val->getStartTime())) {
                         $cycle_dates[$metadate_id]['dates'][$sem->id][] = $val;
                     }
@@ -89,15 +90,7 @@ class Course_TimesroomsController extends AuthenticatedController
         $_single_dates = $this->course->getSingleDates(true, true, true);
         $single_dates = array();
         foreach ($_single_dates as $id => $val) {
-            foreach ($this->semester as $sem) {
-                if(!Request::isXhr() && isset($_SESSION['selectedTimesRoomSemester']) && $_SESSION['selectedTimesRoomSemester'] != 'all') {
-                    if(!Request::isXhr() && isset($_SESSION['selectedTimesRoomSemester']) && $_SESSION['selectedTimesRoomSemester'] != 'all') {
-                        if($sem->beginn != $_SESSION['selectedTimesRoomSemester']) {
-                            continue;
-                        }
-                    }
-                }
-
+            foreach ($semesters as $sem) {
                 if (($sem->beginn <= $val->getStartTime()) && ($sem->ende >= $val->getStartTime())) {
                     $single_dates[$sem->id][] = $val;
                 }
