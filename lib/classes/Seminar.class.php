@@ -1003,7 +1003,7 @@ class Seminar
                 );
                 $question = _("Wenn Sie die regelmäßige Zeit auf %s ändern, verlieren Sie die Raumbuchungen für alle in der Zukunft liegenden Termine!")
                     ."\n". _("Sind Sie sicher, dass Sie die regelmäßige Zeit ändern möchten?");
-                $question_time = '**'. getWeekday($data['day'], FALSE) .', '. $data['start_stunde'] .':'. $data['start_minute']
+                $question_time = '**'. strftime('%A', $data['day']) .', '. $data['start_stunde'] .':'. $data['start_minute']
                     .' - '. $data['end_stunde'] .':'. $data['end_minute'] .'**';
 
                 echo createQuestion(sprintf($question, $question_time), $link_params);
@@ -1060,14 +1060,14 @@ class Seminar
                     NotificationCenter::postNotification("CourseDidChangeSchedule", $this);
                     // logging <<<<<<
                     $this->createMessage(sprintf(_("Die regelmäßige Veranstaltungszeit wurde auf \"%s\" für alle in der Zukunft liegenden Termine geändert!"),
-                        '<b>'.getWeekday($data['day'], false) . ', ' . $data['start_stunde'] . ':' . $data['start_minute'].' - '.
+                        '<b>'.strftime('%A', $data['day']) . ', ' . $data['start_stunde'] . ':' . $data['start_minute'].' - '.
                         $data['end_stunde'] . ':' . $data['end_minute'] . '</b>'));
                     $message = true;
                 }
             } else {
                 if (!$same_time) {
                     $this->createInfo(sprintf(_("Die regelmäßige Veranstaltungszeit wurde auf \"%s\" geändert, jedoch gab es keine Termine die davon betroffen waren."),
-                        '<b>'.getWeekday($data['day'], false) . ', ' . $data['start_stunde'] . ':' . $data['start_minute'].' - '.
+                        '<b>'.strftime('%A', $data['day']) . ', ' . $data['start_stunde'] . ':' . $data['start_minute'].' - '.
                         $data['end_stunde'] . ':' . $data['end_minute'] . '</b>'));
                     $message = true;
                 }
@@ -1156,22 +1156,28 @@ class Seminar
     function getBookedRoomsTooltip($cycle_id)
     {
         $stat = $this->getStatOfNotBookedRooms($cycle_id);
-
+        $pattern = '%s , %s, %s-%s <br />';
         if (($stat['open'] > 0) && ($stat['open'] == $stat['all'])) {
-            //$return = _("Keiner der Termine hat eine Raumbuchung!");
             $return = '';
         } else if ($stat['open'] > 0) {
-            $return = _("Folgende Termine haben keine Raumbuchung:").'\n\n';
+            $return = _('Folgende Termine haben keine Raumbuchung:') . '<br />';
+
             foreach ($stat['open_rooms'] as $aSingleDate) {
-                $return .= getWeekday(date('w',$aSingleDate['date'])).', '.date('d.m.Y', $aSingleDate['date']).', '.date('H:i', $aSingleDate['date']).' - '.date('H:i', $aSingleDate['end_time']).'\n';
+                $return .= sprintf($pattern,strftime('%a', $aSingleDate['date']),
+                    strftime('%d.%m.%Y', $aSingleDate['date']),
+                    strftime('%H:%M', $aSingleDate['date']),
+                    strftime('%H:%M', $aSingleDate['end_time']));
             }
         }
 
         // are there any dates with declined room-requests?
         if ($stat['declined'] > 0) {
-            $return .= '\n' . _("Folgende Termine haben eine abgelehnte Raumanfrage:") .'\n\n';
+            $return .= _('Folgende Termine haben eine abgelehnte Raumanfrage') . '<br />';
             foreach ($stat['declined_dates'] as $aSingleDate) {
-                $return .= getWeekday(date('w',$aSingleDate['date'])).', '.date('d.m.Y', $aSingleDate['date']).', '.date('H:i', $aSingleDate['date']).' - '.date('H:i', $aSingleDate['end_time']).'\n';
+                $return .= sprintf($pattern,strftime('%a', $aSingleDate['date']),
+                    strftime('%d.%m.%Y', $aSingleDate['date']),
+                    strftime('%H:%M', $aSingleDate['date']),
+                    strftime('%H:%M', $aSingleDate['end_time']));
             }
         }
 

@@ -395,9 +395,13 @@ class SingleDate
         if (!$this->date) {
             return null;
         } elseif ((($this->end_time - $this->date) / 60 / 60) > 23) {
-            return getWeekDay(date('w', $this->date)) . '., ' . date('d.m.Y', $this->date) . ' (' . _('ganztägig') . ')';
+            return sprintf('%s , %s (%s)',strftime('%a', $this->date),
+                strftime('%d.%m.%Y', $this->date),
+                _('ganztägig'));
         } else {
-            return getWeekDay(date('w', $this->date)) . '., ' . date('d.m.Y, H:i', $this->date) . ' - ' . date('H:i', $this->end_time);
+            return sprintf('%s , %s - %s',strftime('%a', $this->date),
+                strftime('%d.%m.%Y %H:%M', $this->date),
+                strftime('%H:%M', $this->end_time));
         }
     }
 

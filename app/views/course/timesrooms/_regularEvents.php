@@ -19,20 +19,22 @@
             <? endif ?>
             <article id="<?= $metadate_id ?>"
                      class="<?= Request::get('contentbox_open') == $metadate_id ? 'open' : '' ?>">
-                <header <?= ($class = $course->getCycleColorClass($metadate_id)) ? 'class="'.$class.'"' : ''?>>
+                <header <?= ($class = $course->getCycleColorClass($metadate_id)) ? 'class="' . $class . '"' : '' ?>>
                     <h1>
                         <a href="<?= ContentBoxHelper::href($metadate_id, array()) ?>">
                             <?= htmlReady($cycle['name']) ?>
                         </a>
                     </h1>
                     <nav>
-                            <span>
-                                <?= sprintf(_('Raum %s'), ': ' . $roomRequest) ?>
-                            </span>
-                            <span>
-                                <?= sprintf(_('Einzel-Raumanfrage %s'), $course->getRequestsInfo($metadate_id))
-                                ?>
-                            </span>
+                        <? if ($info = $course->getBookedRoomsTooltip($metadate_id)) : ?>
+                            <?= tooltipIcon($info, true); ?>
+                        <? endif ?>
+                        <span>
+                            <?= _('Raum')?>: <?= $roomRequest ?>
+                        </span>
+                        <span>
+                            <?=_('Einzel-Raumanfrage')?>: <?= htmlReady($course->getRequestsInfo($metadate_id))?>
+                        </span>
                     </nav>
                 </header>
 

@@ -61,7 +61,7 @@ function getWeekday($day_num, $short = TRUE) {
     }
 
     // return i18n of day
-    return _($day);
+    return $day;
 }
 
 
@@ -185,7 +185,7 @@ function shrink_dates($dates) {
         }
 
         if ((!$dates[$i]["conjuncted"]) || (!$dates[$i+1]["conjuncted"])) {
-            $return_string .= ' ' . getWeekday(date('w', $dates[$i]['start_time'])) .'.';
+            $return_string .= ' ' . strftime('%A', $dates[$i]['start_time']) .'.';
             $return_string .= date (" d.m.", $dates[$i]["start_time"]);
         }
 
