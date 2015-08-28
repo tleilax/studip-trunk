@@ -49,6 +49,10 @@ class Course_TimesroomsController extends AuthenticatedController
 
     public function index_action($course_id = null)
     {
+
+        Helpbar::get()->addPlainText(_('Rot'), _('Kein Termin hat eine Raumbuchung.'));
+        Helpbar::get()->addPlainText(_('Gelb'), _('Mindestens ein Termin hat keine Raumbuchung.'));
+        Helpbar::get()->addPlainText(_('Grün'), _('Alle Termine haben eine Raumbuchung.'));
         if (request::isXhr()) {
             $this->show = array('regular' => true, 'irregular' => true, 'roomRequest' => false);
         }

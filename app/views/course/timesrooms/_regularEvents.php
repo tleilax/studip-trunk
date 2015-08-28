@@ -15,12 +15,11 @@
 
         <? foreach ($cycle_dates as $metadate_id => $cycle) : ?>
             <? if (!$roomRequest = $course->getDatesTemplate('dates/seminar_predominant_html', array('cycle_id' => $metadate_id))) : ?>
-                <? $noRequest = true ?>
                 <? $roomRequest = _('keiner'); ?>
             <? endif ?>
             <article id="<?= $metadate_id ?>"
                      class="<?= Request::get('contentbox_open') == $metadate_id ? 'open' : '' ?>">
-                <header class="<?= $noRequest ? 'red' : 'green'?>">
+                <header <?= ($class = $course->getCycleColorClass($metadate_id)) ? 'class="'.$class.'"' : ''?>>
                     <h1>
                         <a href="<?= ContentBoxHelper::href($metadate_id, array()) ?>">
                             <?= htmlReady($cycle['name']) ?>
@@ -31,7 +30,7 @@
                                 <?= sprintf(_('Raum %s'), ': ' . $roomRequest) ?>
                             </span>
                             <span>
-                                <?= sprintf(_('Einzel-Raumanfrage %s'), $room = RoomRequest::existsByCycle($metadate_id) ? $room : _('nein'))
+                                <?= sprintf(_('Einzel-Raumanfrage %s'), $course->getRequestsInfo($metadate_id))
                                 ?>
                             </span>
                     </nav>

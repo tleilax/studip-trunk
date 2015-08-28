@@ -1188,23 +1188,27 @@ class Seminar
         }
     }
 
+    /**
+     * @param $cycle_id
+     * @return string
+     */
     function getCycleColorClass($cycle_id)
     {
         $stat = $this->getStatOfNotBookedRooms($cycle_id);
         if (Config::get()->RESOURCES_ENABLE && Config::get()->RESOURCES_ENABLE_BOOKINGSTATUS_COLORING) {
             if (!$this->metadate->hasDates($cycle_id, $this->filterStart, $this->filterEnd)) {
-                $return = 'content_title_red';
+                $return = 'red';
             } else {
                 if (($stat['open'] > 0) && ($stat['open'] == $stat['all'])) {
-                    $return = 'content_title_red';
+                    $return = 'red';
                 } else if ($stat['open'] > 0) {
-                    $return = 'content_title_yellow ';
+                    $return = 'yellow ';
                 } else {
-                    $return = 'content_title_green ';
+                    $return = 'green ';
                 }
             }
         } else {
-            $return = 'printhead';
+            $return = '';
         }
 
         return $return;

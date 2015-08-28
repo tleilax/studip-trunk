@@ -609,15 +609,6 @@ if ($GLOBALS['perm']->have_perm("admin")) {
     $sidebar->addWidget($list);
 }
 
-if (Config::get()->RESOURCES_ENABLE && Config::get()->RESOURCES_ENABLE_BOOKINGSTATUS_COLORING) {
-    $template = $GLOBALS['template_factory']->open('raumzeit/legend.php');
-    $element  = new WidgetElement($template->render());
-
-    $widget = new SidebarWidget();
-    $widget->setTitle(_('Legende'));
-    $widget->addElement($element);
-    $sidebar->addWidget($widget);
-}
 PageLayout::addHeadElement('script', array('type' => 'text/javascript'),
 "jQuery(function () {
     STUDIP.RoomRequestDialog.reloadUrlOnClose = '". URLHelper::getUrl() ."';
