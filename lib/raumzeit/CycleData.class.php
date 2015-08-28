@@ -141,6 +141,16 @@ class CycleData
         return $this->cycle_date->weekday;
     }
 
+    function getStartTime()
+    {
+        return sprintf('%02d:%02d',$this->getStartStunde(), $this->getStartMinute());
+    }
+
+    function getEndTime()
+    {
+        return sprintf('%02d:%02d',$this->getEndStunde(), $this->getEndMinute());
+    }
+
     function setDay($day)
     {
         $this->cycle_date->weekday = $day;

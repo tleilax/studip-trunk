@@ -358,7 +358,7 @@ class Course_TimesroomsController extends AuthenticatedController
     /**
      * Create a cycle
      */
-    public function createCycle_action()
+    public function createCycle_action($cycle_id = null)
     {
         if ($this->flash['request']) {
             foreach (words('day start_time end_time description cycle startWeek teacher_sws') as $value) {
@@ -366,8 +366,13 @@ class Course_TimesroomsController extends AuthenticatedController
             }
         }
 
+        if(!is_null($cycle_id)) {
+            $this->cycle = $this->course->metadate->cycles[$cycle_id];
+        }
+        
         $this->start_weeks = $this->getStartWeeks();
     }
+
 
     /**
      * Save cycle

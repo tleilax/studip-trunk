@@ -30,10 +30,19 @@
                             <?= tooltipIcon($info, true); ?>
                         <? endif ?>
                         <span>
-                            <?= _('Raum')?>: <?= $roomRequest ?>
+                            <?= _('Raum') ?>: <?= $roomRequest ?>
                         </span>
                         <span>
-                            <?=_('Einzel-Raumanfrage')?>: <?= htmlReady($course->getRequestsInfo($metadate_id))?>
+                            <?= _('Einzel-Raumanfrage') ?>: <?= htmlReady($course->getRequestsInfo($metadate_id)) ?>
+                        </span>
+
+                        <span>
+                            <a href="<?= $controller->url_for('course/timesrooms/createCycle/' . $metadate_id) ?>" data-dialog="size=450">
+                                <?= Assets::img('icons/blue/edit', tooltip2(_('Diesen Zeitraum bearbeiten'))) ?>
+                            </a>
+                            <a href="#" data-dialog="size=big">
+                                <?= Assets::img('icons/blue/trash', tooltip2(_('Diesen Zeitraum löschen'))) ?>
+                            </a>
                         </span>
                     </nav>
                 </header>

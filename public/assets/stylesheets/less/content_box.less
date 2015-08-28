@@ -143,6 +143,16 @@ section.contentbox {
                     display: inline-block;
                     vertical-align: middle;
                 }
+
+                span {
+                    &:last-child {
+                        border-right: none;
+                        padding-right: 0px;
+                    }
+                    display: inline-block;
+                    border-right: 1px solid @content-color;
+                    padding: 0px 5px;
+                }
             }
         }
 

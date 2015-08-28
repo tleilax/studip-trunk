@@ -1,4 +1,5 @@
-<form action="<?= $controller->url_for('course/timesrooms/saveCycle') ?>" class="studip-form" method="post" <?= Request::isXhr() ? 'data-dialog="size=big"' : '' ?>>
+<form action="<?= $controller->url_for('course/timesrooms/saveCycle' .($cycle ? '/'. $cycle->getMetaDateID() : '')) ?>" class="studip-form" method="post"
+    <?= Request::isXhr() ? 'data-dialog="size=big"' : '' ?>>
     <?= CSRFProtection::tokenTag() ?>
     <section>
         <label for="day">
@@ -7,7 +8,7 @@
         <select class="size-l" name="day" id="day">
             <? foreach (range(1, 6) + array(6 => 0) as $d) : ?>
                 <option
-                    value="<?= $d ?>"<?= (Request::int('day') === $d) ? 'selected' : (!Request::get('day') && $d == 1) ? 'selected' : '' ?>>
+                    value="<?= $d ?>"<?= (Request::int('day', $cycle->getDay()) === $d) ? 'selected' : (!Request::get('day', $cycle->getDay()) && $d == 1) ? 'selected' : '' ?>>
                     <?= getWeekday($d, false) ?></option>
             <? endforeach; ?>
         </select>
@@ -18,14 +19,14 @@
                 <?= _('Startzeit') ?>
             </label>
             <input class="size-m has-time-picker" type="time" name="start_time" id="start_time"
-                   value="<?= htmlReady(Request::get('start_time')) ?>" required>
+                   value="<?= htmlReady(Request::get('start_time', $cycle->getStartTime())) ?>" required>
         </div>
         <div style="width: 100px; float: left">
             <label for="end_time">
                 <?= _('Endzeit') ?>
             </label>
             <input class="size-m has-time-picker" type="time" name="end_time" id="end_time"
-                   value="<?= htmlReady(Request::get('end_time')) ?>" required>
+                   value="<?= htmlReady(Request::get('end_time',$cycle->getEndTime())) ?>" required>
         </div>
     </section>
 
@@ -33,7 +34,7 @@
         <label for="description">
             <?= _('Beschreibung') ?>
         </label>
-        <input class="size-l" type="text" name="description" id="description" value="<?= Request::get('description') ?>" />
+        <input class="size-l" type="text" name="description" id="description" value="<?= Request::get('description', $cycle->getDescription()) ?>" />
     </section>
 
     <section>
@@ -53,7 +54,7 @@
         </label>
         <select name="startWeek" id="startWeek" class="size-l">
             <? foreach ($start_weeks as $value => $data) : ?>
-                <option value=<?= $value ?> <?= Request::get('startWeek') == $value ? 'selected' : '' ?>>
+                <option value=<?= $value ?> <?= Request::get('startWeek', $cycle->week_offset) == $value ? 'selected' : '' ?>>
                     <?= htmlReady($data['text']) ?>
                 </option>
             <? endforeach ?>

@@ -280,6 +280,20 @@ a.link-add::before {
   vertical-align: text-top;
   width: 16px;
 }
+a.link-edit::before {
+  background-repeat: no-repeat;
+  content: ' ';
+  display: inline-block;
+  height: 16px;
+  margin-right: 2px;
+  background-image: url("../images/icons/blue/edit.svg");
+  -webkit-background-size: 16px 16px;
+  -moz-background-size: 16px 16px;
+  -o-background-size: 16px 16px;
+  background-size: 16px 16px;
+  vertical-align: text-top;
+  width: 16px;
+}
 a img {
   border: 0;
 }
@@ -1299,7 +1313,7 @@ label.required:after {
   vertical-align: text-top;
   width: 16px;
 }
-section.contentbox .studip-form section section {
+section.contentbox .studip-form div section {
   padding: 0;
 }
 section.contentbox article .studip-form section {
@@ -3362,6 +3376,15 @@ section.contentbox article header h1:before {
 section.contentbox article header nav * {
   display: inline-block;
   vertical-align: middle;
+}
+section.contentbox article header nav span {
+  display: inline-block;
+  border-right: 1px solid #899ab9;
+  padding: 0px 5px;
+}
+section.contentbox article header nav span:last-child {
+  border-right: none;
+  padding-right: 0px;
 }
 section.contentbox article footer {
   text-align: center;

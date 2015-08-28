@@ -47,7 +47,7 @@
 
         <? if (!empty($dozenten)) : ?>
             <section style="margin: 15px 0">
-                <p><strong><?= _('Durchführende Lehrende:') ?></strong></p>
+                <p><strong><?= _('Durchführende Dozenten:') ?></strong></p>
 
                 <ul class="termin_related teachers">
                     <? foreach ($dozenten as $related_person => $dozent) : ?>
@@ -73,7 +73,7 @@
                     <?= _('Lehrenden auswählen') ?>
                 </label>
                 <select id="add_teacher" name="teachers" class="size-m">
-                    <option value="none"><?= _('-- Dozent/in auswählen --') ?></option>
+                    <option value="none"><?= _('Dozent/in auswählen') ?></option>
                     <? foreach ($dozenten as $dozent) : ?>
                         <option
                             value="<?= htmlReady($dozent['user_id']) ?>" <?= $dozent['hidden'] ? 'style="display: none"' : '' ?>>
@@ -122,7 +122,7 @@
             </label>
             <input style="margin-left: 40px; display: inline-block" type="text" class="size-m"
                    name="freeRoomText_sd"
-                   placeholder="<?= _('freie Ortsangabe (keine Raumbuchung)') ?>"
+                   placeholder="<?= _('freie Ortsangabe (keine Raumbuchung):') ?>"
                    value="<?= $date_info->raum ? htmlReady($date_info->raum) : '' ?>" />
         </section>
 
@@ -155,7 +155,7 @@
             <input type="hidden" name="related_statusgruppen" value="<?= implode(',', $related_groups) ?>">
 
             <select name="groups">
-                <option value="none"><?= _('-- Gruppen auswählen --') ?></option>
+                <option value="none"><?= _('Gruppen auswählen') ?></option>
                 <? foreach ($gruppen as $gruppe) : ?>
                     <option value="<?= htmlReady($gruppe->getId()) ?>"
                             style="<?= in_array($gruppe->getId(), $related_groups) ? 'display: none;' : '' ?>">
