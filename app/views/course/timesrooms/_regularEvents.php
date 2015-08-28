@@ -4,7 +4,7 @@
             <?= _('Regelmäßige Termine') ?>
         </h1>
         <nav>
-            <a data-dialog-button class="link-add" href="<?= $controller->link_for('course/timesrooms/createCycle') ?>" data-dialog="size=50%"
+            <a data-dialog-button class="link-add" href="<?= $controller->link_for('course/timesrooms/createCycle') ?>" data-dialog="size=450"
                title="<?= _('Regelmäßigen Termin hinzufügen') ?>">
                 <?= _('Regelmäßigen Termin hinzufügen') ?>
             </a>
@@ -42,10 +42,10 @@
                     <table class="default nohover">
                         <colgroup>
                             <col width="30px">
-                            <col>
+                            <col width="30%">
                             <col width="40%">
-                            <col width="20%">
                             <col width="10%">
+                            <col width="50px">
                         </colgroup>
                         <? foreach ($dates as $semester_id => $termine) : ?>
                             <thead>

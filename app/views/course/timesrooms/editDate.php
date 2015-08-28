@@ -1,14 +1,18 @@
 <form class="studip-form" method="post"
-      action="<?= $controller->url_for('course/timesrooms/editSingleDate/' . $termin_id) ?>" <?= Request::option('asDialog') ? 'data-dialog="size=big"' : '' ?>>
-    <section style="width: 45%; float: left">
-        <label for="date">
-            <?= _('Datum') ?>
-        </label>
-        <input class="size-m has-date-picker" type="text" name="date" id="date"
-               value="<?= $date_info->date ? strftime('%d.%m.%Y', $date_info->date) : '' ?>"/>
+      action="<?= $controller->url_for('course/timesrooms/saveDate/' . $termin_id) ?>" <?= Request::option('asDialog') ? 'data-dialog="size=big"' : '' ?>>
 
 
-        <div style="clear:both">
+    <div style="width: 45%; float: left">
+
+        <section>
+            <label for="date">
+                <?= _('Datum') ?>
+            </label>
+            <input class="size-m has-date-picker" type="text" name="date" id="date"
+                   value="<?= $date_info->date ? strftime('%d.%m.%Y', $date_info->date) : '' ?>" />
+        </section>
+
+        <section class="clearfix">
             <div style="width: 100px; float: left">
                 <label for="start_time">
                     <?= _('Startzeit') ?>
@@ -23,14 +27,14 @@
                 <input class="size-m has-time-picker" type="time" name="end_time" id="end_time"
                        value="<?= $date_info->end_time ? strftime('%H:%M', $date_info->end_time) : '' ?>">
             </div>
-        </div>
+        </section>
 
-        <div style="clear: both">
+        <section>
 
             <label id="course_type">
                 <?= _('Art') ?>
             </label>
-            <select class="size-s" name="course_type" id="course_type">
+            <select class="size-m" name="course_type" id="course_type">
                 <? foreach ($types as $id => $value) : ?>
                     <option value="<?= $id ?>"
                         <?= $date_info->date_typ == $id ? 'selected' : '' ?>>
@@ -39,10 +43,10 @@
                 <? endforeach; ?>
             </select>
 
-        </div>
+        </section>
 
         <? if (!empty($dozenten)) : ?>
-            <div style="margin: 15px 0">
+            <section style="margin: 15px 0">
                 <p><strong><?= _('Durchführende Lehrende:') ?></strong></p>
 
                 <ul class="termin_related teachers">
@@ -63,7 +67,7 @@
                         </li>
                     <? endforeach ?>
                 </ul>
-                <input type="hidden" name="related_teachers" value="<?= implode(',', $related_persons) ?>"/>
+                <input type="hidden" name="related_teachers" value="<?= implode(',', $related_persons) ?>" />
 
                 <label for="add_teacher">
                     <?= _('Lehrenden auswählen') ?>
@@ -80,13 +84,14 @@
                 <a href="javascript:" onClick="STUDIP.Raumzeit.addLecturer()" title="<?= _('Lehrenden hinzufügen') ?>">
                     <?= Assets::img('icons/16/yellow/arr_2up.png') ?>
                 </a>
-            </div>
+            </section>
         <? endif ?>
+    </div>
 
-    </section>
+
+    <div style="float: right; width: 45%">
 
 
-    <section style="float: right; width: 45%">
         <p><strong><?= _('Raumangaben') ?></strong></p>
 
         <? if (Config::get()->RESOURCES_ENABLE && $resList->numberOfRooms()) : ?>
@@ -113,12 +118,12 @@
         <section>
             <label class="horizontal">
                 <input type="radio" name="room" value="freetext" <?= $date_info->raum ? 'checked' : '' ?>
-                       style="display: inline"/>
+                       style="display: inline" />
             </label>
             <input style="margin-left: 40px; display: inline-block" type="text" class="size-m"
                    name="freeRoomText_sd"
                    placeholder="<?= _('freie Ortsangabe (keine Raumbuchung)') ?>"
-                   value="<?= $date_info->raum ? htmlReady($date_info->raum) : '' ?>"/>
+                   value="<?= $date_info->raum ? htmlReady($date_info->raum) : '' ?>" />
         </section>
 
         <section>
@@ -162,10 +167,11 @@
                 <?= Assets::img('icons/16/yellow/arr_2up.png') ?>
             </a>
         <? endif ?>
-    </section>
+    </div>
+
 
     <footer data-dialog-button style="text-align: center; clear: both">
         <?= Studip\Button::createAccept(_('Speichern'), 'save_dates') ?>
-        <?= Studip\LinkButton::create(_('Raumanfrage erstellen'),$controller->url_for('course/room_requests/edit/'. $course->id, $params), array('data-dialog' => 'size=big')) ?>
+        <?= Studip\LinkButton::create(_('Raumanfrage erstellen'), $controller->url_for('course/room_requests/edit/' . $course->id, $params), array('data-dialog' => 'size=big')) ?>
     </footer>
 </form>

@@ -1,9 +1,10 @@
-<form action="" class="studip-form" method="post" <?= Request::isXhr() ? 'data-dialog="size=big"' : '' ?>>
+<form action="<?= $controller->url_for('course/timesrooms/saveCycle') ?>" class="studip-form" method="post" <?= Request::isXhr() ? 'data-dialog="size=big"' : '' ?>>
+    <?= CSRFProtection::tokenTag() ?>
     <section>
         <label for="day">
             <?= _('Starttag') ?>
         </label>
-        <select name="day" id="day">
+        <select class="size-l" name="day" id="day">
             <? foreach (range(1, 6) + array(6 => 0) as $d) : ?>
                 <option
                     value="<?= $d ?>"<?= (Request::int('day') === $d) ? 'selected' : (!Request::get('day') && $d == 1) ? 'selected' : '' ?>>
@@ -27,27 +28,30 @@
                    value="<?= htmlReady(Request::get('end_time')) ?>" required>
         </div>
     </section>
+
     <section>
         <label for="description">
             <?= _('Beschreibung') ?>
         </label>
-        <input type="text" name="description" id="description" value="<?= Request::get('description') ?>"/>
+        <input class="size-l" type="text" name="description" id="description" value="<?= Request::get('description') ?>" />
     </section>
+
     <section>
         <label for="cycle">
             <?= _('Turnus') ?>
         </label>
-        <select name="cycle" id="cycle">
+        <select name="cycle" id="cycle" class="size-l">
             <option value="0"<?= Request::get('cycle') == 0 ? 'selected' : '' ?>><?= _("wöchentlich"); ?></option>
             <option value="1"<?= Request::get('cycle') == 1 ? 'selected' : '' ?>><?= _("zweiwöchentlich") ?></option>
             <option value="2"<?= Request::get('cycle') == 2 ? 'selected' : '' ?>><?= _("dreiwöchentlich") ?></option>
         </select>
     </section>
+
     <section>
         <label for="startWeek">
             <?= _('Beginnt in der') ?>
         </label>
-        <select name="startWeek" id="startWeek">
+        <select name="startWeek" id="startWeek" class="size-l">
             <? foreach ($start_weeks as $value => $data) : ?>
                 <option value=<?= $value ?> <?= Request::get('startWeek') == $value ? 'selected' : '' ?>>
                     <?= htmlReady($data['text']) ?>
@@ -61,6 +65,11 @@
             <?= _('SWS Dozent') ?>
         </label>
         <input type="text" value="<?= htmlReady(Request::get('teacher_sws')) ?>" class="size-s" name="teacher_sws"
-               id="teacher_sws"/>
+               id="teacher_sws" />
     </section>
+
+    <footer data-dialog-button>
+        <?= Studip\Button::createAccept(_('Speichern'), 'save') ?>
+        <?= Studip\LinkButton::create(_('Zurück zur Übersicht'), $controller->url_for('course/timesrooms/index'), array('data-dialog' => 'size=big')) ?>
+    </footer>
 </form>

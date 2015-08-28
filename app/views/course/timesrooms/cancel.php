@@ -1,4 +1,4 @@
-<form class="studip-form" action="<?= $controller->url_for('course/timesrooms/save_comment/' . $termin->getTerminID())?>" <?= $asDialog ? 'data-dialog="size=big"' : ''?>>
+<form method="post" class="studip-form" action="<?= $controller->url_for('course/timesrooms/saveComment/' . $termin->getTerminID())?>" <?= $asDialog ? 'data-dialog="size=big"' : ''?>>
     <section>
         <p>
             <strong> <?= _('Wenn Sie die nicht stattfindenden Termine mit einem Kommentar versehen, werden die Ausfalltermine im Ablaufplan weiterhin dargestellt und auch im Terminkalender eingeblendet.') ?></strong>
@@ -15,10 +15,9 @@
         </label>
 
     </section>
-    <section>
+    <footer>
         <?= Studip\Button::createAccept(_('Übernehmen'), 'editDeletedSingleDate') ?>
-        <?= Studip\LinkButton::createCancel(_('Abbrechen'),
-            URLHelper::getURL('?#' . $termin->id)) ?>
-    </section>
+        <?= Studip\LinkButton::createCancel(_('Abbrechen'), '?#' . $termin_id) ?>
+    </footer>
 
 </form>

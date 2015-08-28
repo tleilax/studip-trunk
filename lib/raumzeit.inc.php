@@ -260,6 +260,16 @@ function raumzeit_doDeleteCycle($sem) {
     $sem->createMessage(sprintf(_("Der regelmäßige Eintrag \"%s\" wurde gelöscht."), '<b>'.$sem->metadate->cycles[Request::option('cycle_id')]->toString().'</b>'));
     $sem->deleteCycle(Request::option('cycle_id'));
 }
+
+/**
+ * @deprecated
+* @param $date
+* @param $startStunde
+* @param $startMinute
+* @param $endStunde
+* @param $endMinute
+ * @return bool
+ */
 function raumzeit_checkDate($date, $startStunde,$startMinute,$endStunde,$endMinute){
     if(strlen($date)<8
             ||($startStunde<0 || $startStunde>23)

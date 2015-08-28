@@ -5,10 +5,11 @@
         </h1>
         <nav>
             <a data-dialog-button class="link-add" href="<?= $controller->link_for('course/timesrooms/createSingleDate/'. $course_id) ?>"
-               data-dialog="size=50%" title="<?= _('Neuen Einzeltermin') ?>">
+               data-dialog="size=450" title="<?= _('Neuen Einzeltermin') ?>">
                 <?= _('Neuen Einzeltermin') ?>
             </a>
-            <a data-dialog-button class="link-add" href="<?= $controller->url_for('course/block_appointments/index/'.$course_id) ?>" data-dialog
+            <a data-dialog-button class="link-add" href="<?= $controller->url_for('course/block_appointments/index/'.$course_id) ?>"
+               data-dialog="size=50%"
                title="<? _('Blocktermin hinzufügen') ?>">
                 <?= _('Neuen Blocktermin') ?>
             </a>
@@ -18,10 +19,10 @@
         <table class="default nohover">
             <colgroup>
                 <col width="30px">
-                <col>
-                <col width="0%">
-                <col width="20%">
+                <col width="30%">
+                <col width="40%">
                 <col width="10%">
+                <col width="50px">
             </colgroup>
 
             <? foreach ($single_dates as $semester_id => $termine) : ?>

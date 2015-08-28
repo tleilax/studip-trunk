@@ -232,6 +232,7 @@ class MetaDate
         $data['end_minute'] = (int)$data['end_minute'];
 
         $cycle = new CycleData();
+
         if ($this->setCycleData($data, $cycle)) {
             $this->cycles[$cycle->getMetadateID()] = $cycle;
             $this->sortCycleData();

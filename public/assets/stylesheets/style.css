@@ -272,8 +272,7 @@ a.link-add::before {
   display: inline-block;
   height: 16px;
   margin-right: 2px;
-  background-image: url("../images/icons/16/blue/add.png");
-  background-image: none, url("../images/icons/blue/add.svg");
+  background-image: url("../images/icons/blue/add.svg");
   -webkit-background-size: 16px 16px;
   -moz-background-size: 16px 16px;
   -o-background-size: 16px 16px;
@@ -1312,6 +1311,9 @@ section.contentbox article .studip-form section {
   /* Default settings for possible input fields */
   /* Quicksearch needs some extra treatment */
   /* Footer is always as bottom, clearing floats */
+}
+.studip-form fieldset legend {
+  font-weight: bold;
 }
 .studip-form section {
   margin-bottom: 15px;

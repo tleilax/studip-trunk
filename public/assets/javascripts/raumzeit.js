@@ -2,6 +2,21 @@
 /*global window, $, jQuery, _, STUDIP */
 
 jQuery(function ($) {
+
+    $(document).on('ready dialog-open dialog-update', function() {
+        $('#block_appointments_days input').click(function () {
+            var clicked_id = parseInt(this.id.split('_').pop(), 10);
+            if (clicked_id === 0 || clicked_id === 1) {
+                $('#block_appointments_days input:checkbox').prop('checked', function (i) {
+                    return i === clicked_id;
+                });
+            } else {
+                $('#block_appointments_days_0').prop('checked', false);
+                $('#block_appointments_days_1').prop('checked', false);
+            }
+        });
+    });
+
     $(document).on('click', 'a.bookable_rooms_action', function (event) {
         var select = $(this).prev('select')[0];
         var me = $(this);
@@ -56,92 +71,6 @@ jQuery(function ($) {
     });
 });
 
-jQuery(function ($) {
-    STUDIP.BlockAppointmentsDialog = {
-        dialog: null,
-        reloadUrlOnClose: null,
-        initialize: function (url) {
-            if (STUDIP.BlockAppointmentsDialog.dialog === null) {
-                $.ajax({
-                    url: url,
-                    data: {},
-                    success: function (data) {
-                        STUDIP.BlockAppointmentsDialog.dialog =
-                            jQuery('<div id="BlockAppointmentsDialogbox">' + data.content + '</div>').dialog({
-                                show: '',
-                                hide: 'scale',
-                                title: data.title,
-                                draggable: true,
-                                modal: true,
-                                resizable: false,
-                                width: Math.min(800, $(window).width() - 64),
-                                height: 'auto',
-                                maxHeight: $(window).height(),
-                                close: function () {
-                                    $(this).remove();
-                                    STUDIP.BlockAppointmentsDialog.dialog = null;
-                                }
-                            });
-                        STUDIP.BlockAppointmentsDialog.bindevents();
-                    }
-                });
-            }
-        },
-        bindevents: function () {
-            $('form[name$=block_appointments] button[type=submit]').bind('click dblclick', function () {
-                var button_clicked = this.name;
-                var form = $('form[name$=block_appointments]')[0];
-                STUDIP.BlockAppointmentsDialog.submit(form, button_clicked);
-                return false;
-            });
-            $('form[name$=block_appointments] .hasDatePicker').datepicker();
-            $('form[name$=block_appointments] .hasDatePicker').blur();
-            $('#block_appointments_days input:checkbox').click(function () {
-                var clicked_id = parseInt(this.id.split('_').pop(), 10);
-                if (clicked_id === 0 || clicked_id === 1) {
-                    $('#block_appointments_days input:checkbox').prop('checked', function (i) {
-                        return i === clicked_id;
-                    });
-                } else {
-                    $('#block_appointments_days_0').prop('checked', false);
-                    $('#block_appointments_days_1').prop('checked', false);
-                }
-            });
-        },
-        submit: function (form, button_clicked) {
-            if (form) {
-                var form_data = $(form).serializeArray();
-                form_data.push({name: button_clicked, value: 1});
-                STUDIP.BlockAppointmentsDialog.update(form.action, form_data);
-            }
-        },
-        update: function (url, data) {
-            var zIndex = $('#BlockAppointmentsDialogbox').parent().zIndex();
-            $('#BlockAppointmentsDialogbox').parent().zIndex(zIndex - 1);
-            $.ajax({
-                type: 'POST',
-                url: url,
-                data: data,
-                success: function (data) {
-                    if (STUDIP.BlockAppointmentsDialog.dialog !== null) {
-                        if (data.auto_close === true) {
-                            STUDIP.BlockAppointmentsDialog.dialog.dialog('close');
-                            if (data.auto_reload === true && STUDIP.BlockAppointmentsDialog.reloadUrlOnClose !== null) {
-                                document.location.replace(STUDIP.BlockAppointmentsDialog.reloadUrlOnClose);
-                            }
-                        } else {
-                            STUDIP.BlockAppointmentsDialog.dialog.dialog('option', 'title', data.title);
-                            $('#BlockAppointmentsDialogbox').html(data.content);
-                            $('#BlockAppointmentsDialogbox').parent().zIndex(zIndex);
-                            STUDIP.BlockAppointmentsDialog.bindevents();
-                        }
-                    }
-                }
-            });
-        }
-    };
-});
-
 STUDIP.Raumzeit = {
     toggleCheckboxes: function (cycle_id) {
         var checked = false;
@@ -162,7 +91,6 @@ STUDIP.Raumzeit = {
             }
 
             jQuery('li[data-lecturerid=' + lecturer_id + ']').show();
-            //jQuery('li[data-lecturerid=' + lecturer_id + '] input').val('1');
             jQuery('select[name=teachers] option[value=' + lecturer_id + ']').hide();
             jQuery('select[name=teachers] option[value=none]').prop('selected', true);
         });
@@ -212,7 +140,6 @@ STUDIP.Raumzeit = {
             }
 
             jQuery('li[data-groupid=' + statusgruppe_id + ']').show();
-            //jQuery('li[data-groupid=' + statusgruppe_id + '] input').val('1');
             jQuery('select[name=groups] option[value=' + statusgruppe_id + ']').hide();
             jQuery('select[name=groups] option[value=none]').prop('selected', true);
         });
@@ -222,7 +149,6 @@ STUDIP.Raumzeit = {
 
     removeGroup: function (statusgruppe_id) {
         jQuery('li[data-groupid=' + statusgruppe_id + ']').hide();
-        //jQuery('li[data-lecturerid=' + statusgruppe_id + '] input').val('0');
         jQuery('select[name=groups] option[value=' + statusgruppe_id + ']').show();
 
         STUDIP.Raumzeit.addFormGroups();
