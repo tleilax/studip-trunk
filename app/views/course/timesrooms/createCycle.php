@@ -55,11 +55,11 @@
         </label>
         <select name="cycle" id="cycle" class="size-xl">
             <option
-                value="0"<?= Request::int('cycle', !is_null($cycle) ? $cycle->getTurnus() : null) === 0 ? 'selected' : '' ?>><?= _("wöchentlich"); ?></option>
+                value="0"<?= Request::int('cycle', !is_null($cycle) ? $cycle->cycle : null) === 0 ? 'selected' : '' ?>><?= _("wöchentlich"); ?></option>
             <option
-                value="1"<?= Request::int('cycle', !is_null($cycle) ? $cycle->getTurnus() : null) == 1 ? 'selected' : '' ?>><?= _("zweiwöchentlich") ?></option>
+                value="1"<?= Request::int('cycle', !is_null($cycle) ? $cycle->cycle : null) == 1 ? 'selected' : '' ?>><?= _("zweiwöchentlich") ?></option>
             <option
-                value="2"<?= Request::int('cycle', !is_null($cycle) ? $cycle->getTurnus() : null) == 2 ? 'selected' : '' ?>><?= _("dreiwöchentlich") ?></option>
+                value="2"<?= Request::int('cycle', !is_null($cycle) ? $cycle->cycle : null) == 2 ? 'selected' : '' ?>><?= _("dreiwöchentlich") ?></option>
         </select>
     </section>
 
@@ -81,7 +81,7 @@
         <label for="teacher_sws">
             <?= _('SWS Dozent') ?>
         </label>
-        <input type="text" value="<?= htmlReady(Request::get('teacher_sws', !is_null($cycle) ? $cycle->sws : null)) ?>"
+        <input type="text" value="<?= htmlReady(Request::get('teacher_sws', !is_null($cycle) && $cycle->sws != 0 ? $cycle->sws : '')) ?>"
                class="size-s" name="teacher_sws"
                id="teacher_sws"/>
     </section>

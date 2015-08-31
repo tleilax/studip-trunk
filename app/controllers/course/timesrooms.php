@@ -75,12 +75,12 @@ class Course_TimesroomsController extends AuthenticatedController
         }
         if ($course_id) {
             $this->course_id = $course_id;
-            $this->course    = Seminar::getInstance($course_id);
+            $this->course = Seminar::getInstance($course_id);
         }
 
-        $this->semester         = array_reverse(Semester::getAll());
+        $this->semester = array_reverse(Semester::getAll());
         $this->current_semester = Semester::findCurrent();
-        $semesters              = $this->semester;
+        $semesters = $this->semester;
         if (!Request::isXhr() && isset($_SESSION['raumzeitFilter']) && $_SESSION['raumzeitFilter'] != 'all') {
             $semesters = array_filter($semesters, function ($a) {
                 return $_SESSION['raumzeitFilter'] == $a->beginn;
@@ -95,7 +95,7 @@ class Course_TimesroomsController extends AuthenticatedController
         $cycle_dates = array();
         foreach ($cycles as $metadate_id => $cycle) {
             $cycle_dates[$metadate_id]['name'] = $cycle->toString('long');
-            $dates                             = $this->course->getSingleDatesForCycle($metadate_id);
+            $dates = $this->course->getSingleDatesForCycle($metadate_id);
             foreach ($dates as $val) {
                 foreach ($semesters as $sem) {
                     if (($sem->beginn <= $val->getStartTime()) && ($sem->ende >= $val->getStartTime())) {
@@ -111,7 +111,7 @@ class Course_TimesroomsController extends AuthenticatedController
          * GET Single Dates
          */
         $_single_dates = $this->course->getSingleDates(true, true, true);
-        $single_dates  = array();
+        $single_dates = array();
         foreach ($_single_dates as $id => $val) {
             foreach ($semesters as $sem) {
                 if (($sem->beginn <= $val->getStartTime()) && ($sem->ende >= $val->getStartTime())) {
@@ -133,7 +133,7 @@ class Course_TimesroomsController extends AuthenticatedController
             $editParams['asDialog'] = true;
         }
         $this->semesterFormParams = $semesterFormParams;
-        $this->editParams         = $editParams;
+        $this->editParams = $editParams;
     }
 
     /**
@@ -151,12 +151,12 @@ class Course_TimesroomsController extends AuthenticatedController
 
         if ($course_id) {
             $this->course_id = $course_id;
-            $this->course    = Seminar::getInstance($course_id);
+            $this->course = Seminar::getInstance($course_id);
         }
 
-        $this->semester         = array_reverse(Semester::getAll());
+        $this->semester = array_reverse(Semester::getAll());
         $this->current_semester = Semester::findCurrent();
-        $this->cycles           = $this->course->metadate->getCycles();
+        $this->cycles = $this->course->metadate->getCycles();
     }
 
     /**
@@ -167,16 +167,16 @@ class Course_TimesroomsController extends AuthenticatedController
     public function editDate_action($termin_id, $metadate_id = null)
     {
         if (!isset($metadate_id)) {
-            $dates           = $this->course->getSingleDates(true, true, true);
+            $dates = $this->course->getSingleDates(true, true, true);
             $this->date_info = $dates[$termin_id];
         } else {
-            $dates           = $this->course->getSingleDatesForCycle($metadate_id);
+            $dates = $this->course->getSingleDatesForCycle($metadate_id);
             $this->date_info = $dates[$termin_id];
         }
         $this->termin_id = $termin_id;
-        $this->termin    = SingleDate::getInstance($termin_id);
-        $this->resList   = ResourcesUserRoomsList::getInstance($GLOBALS['user']->id, true, false, true);
-        $this->types     = $GLOBALS['TERMIN_TYP'];
+        $this->termin = SingleDate::getInstance($termin_id);
+        $this->resList = ResourcesUserRoomsList::getInstance($GLOBALS['user']->id, true, false, true);
+        $this->types = $GLOBALS['TERMIN_TYP'];
 
         if ($request = RoomRequest::findByDate($this->termin->getSingleDateID())) {
             $this->params = array('request_id' => $request->getId());
@@ -184,10 +184,10 @@ class Course_TimesroomsController extends AuthenticatedController
             $this->params = array('new_room_request_type' => 'date_' . $this->termin->getSingleDateID());
         }
 
-        $this->dozenten        = $this->course->getMembers('dozent');
+        $this->dozenten = $this->course->getMembers('dozent');
         $this->related_persons = $this->termin->getRelatedPersons();
-        $this->related_groups  = $this->termin->getRelatedGroups();
-        $this->gruppen         = Statusgruppen::findBySeminar_id($this->course->id);
+        $this->related_groups = $this->termin->getRelatedGroups();
+        $this->gruppen = Statusgruppen::findBySeminar_id($this->course->id);
     }
 
 
@@ -198,9 +198,9 @@ class Course_TimesroomsController extends AuthenticatedController
      */
     public function saveDate_action($termin_id)
     {
-        $termin     = SingleDate::getInstance($termin_id);
+        $termin = SingleDate::getInstance($termin_id);
         $start_time = sprintf('%s %s', Request::get('date'), Request::get('start_time'));
-        $end_time   = sprintf('%s %s', Request::get('date'), Request::get('end_time'));
+        $end_time = sprintf('%s %s', Request::get('date'), Request::get('end_time'));
         $termin->setTime(strtotime($start_time), strtotime($end_time));
         $termin->setDateType(Request::int('course_type'));
 
@@ -263,9 +263,9 @@ class Course_TimesroomsController extends AuthenticatedController
                 Request::set($value, $this->flash['request'][$value]);
             }
         }
-        $this->resList  = ResourcesUserRoomsList::getInstance($GLOBALS['user']->id, true, false, true);
+        $this->resList = ResourcesUserRoomsList::getInstance($GLOBALS['user']->id, true, false, true);
         $this->teachers = $this->course->getMembers('dozent');
-        $this->groups   = Statusgruppen::findBySeminar_id($this->course_id);
+        $this->groups = Statusgruppen::findBySeminar_id($this->course_id);
     }
 
     /**
@@ -275,9 +275,9 @@ class Course_TimesroomsController extends AuthenticatedController
     public function saveSingleDate_action()
     {
         CSRFProtection::verifyRequest();
-        $termin     = new SingleDate(array('seminar_id' => $this->course->id));
+        $termin = new SingleDate(array('seminar_id' => $this->course->id));
         $start_time = strtotime(sprintf('%s %s', Request::get('date'), Request::get('start_time')));
-        $end_time   = strtotime(sprintf('%s %s', Request::get('date'), Request::get('end_time')));
+        $end_time = strtotime(sprintf('%s %s', Request::get('date'), Request::get('end_time')));
 
         if ($start_time > $end_time) {
             $this->flash['request'] = Request::getInstance();
@@ -381,7 +381,7 @@ class Course_TimesroomsController extends AuthenticatedController
         }
 
         if (!is_null($cycle_id)) {
-            $this->cycle        = $this->course->metadate->cycles[$cycle_id];
+            $this->cycle = $this->course->metadate->cycles[$cycle_id];
             $this->has_bookings = false;
             foreach ($this->cycle->getSingleDates() as $singleDate) {
                 if ($singleDate->getStarttime() > (time() - 3600) && $singleDate->hasRoom()) {
@@ -405,29 +405,29 @@ class Course_TimesroomsController extends AuthenticatedController
             return;
         }
 
-        $new_start   = strtotime(Request::get('start_time'));
-        $new_end     = strtotime(Request::get('end_time'));
-        $turnus      = Request::get('cycle');
+        $new_start = strtotime(Request::get('start_time'));
+        $new_end = strtotime(Request::get('end_time'));
+        $turnus = Request::get('cycle');
         $description = Request::get('description');
 
-        $week_day    = Request::int('week_day');
+        $week_day = Request::int('week_day');
         $week_offset = Request::get('startWeek');
-        $sws         = Request::get('teacher_sws');
+        $sws = Request::get('teacher_sws');
 
 
-        $data                 = array();
+        $data = array();
         $data['start_stunde'] = strftime('%H', strtotime(Request::get('start_time')));
         $data['start_minute'] = strftime('%M', strtotime(Request::get('start_time')));
-        $data['end_stunde']   = strftime('%H', strtotime(Request::get('end_time')));
-        $data['end_minute']   = strftime('%M', strtotime(Request::get('end_time')));
+        $data['end_stunde'] = strftime('%H', strtotime(Request::get('end_time')));
+        $data['end_minute'] = strftime('%M', strtotime(Request::get('end_time')));
 
-        $data['week_day']    = Request::int('week_day');
+        $data['week_day'] = Request::int('week_day');
         $data['week_offset'] = Request::get('startWeek');
-        $data['cycle']       = Request::get('cycle');
-        $data['sws']         = Request::get('teacher_sws');
+        $data['cycle'] = Request::get('cycle');
+        $data['sws'] = Request::get('teacher_sws');
 
         $old_start = strftime($cycle->getStartTime());
-        $old_end   = strftime($cycle->getEndTime());
+        $old_end = strftime($cycle->getEndTime());
 
         if ($description != $cycle->getDescription()) {
             $cycle->setDescription($description);
@@ -447,7 +447,7 @@ class Course_TimesroomsController extends AuthenticatedController
             $message = true;
         }
         if ($week_day != $cycle->day) {
-            $message   = true;
+            $message = true;
             $same_time = false;
         }
         if (round(str_replace(',', '.', $sws), 1) != $cycle->sws) {
@@ -491,16 +491,16 @@ class Course_TimesroomsController extends AuthenticatedController
      */
     public function saveCycle_action()
     {
-        $data                 = array();
+        $data = array();
         $data['start_stunde'] = strftime('%H', strtotime(Request::get('start_time')));
         $data['start_minute'] = strftime('%M', strtotime(Request::get('start_time')));
-        $data['end_stunde']   = strftime('%H', strtotime(Request::get('end_time')));
-        $data['end_minute']   = strftime('%M', strtotime(Request::get('end_time')));
+        $data['end_stunde'] = strftime('%H', strtotime(Request::get('end_time')));
+        $data['end_minute'] = strftime('%M', strtotime(Request::get('end_time')));
 
-        $data['week_day']    = Request::int('week_day');
+        $data['week_day'] = Request::int('week_day');
         $data['week_offset'] = Request::get('startWeek');
-        $data['cycle']       = Request::get('cycle');
-        $data['sws']         = Request::get('teacher_sws');
+        $data['cycle'] = Request::get('cycle');
+        $data['sws'] = Request::get('teacher_sws');
 
         if ($data['start_minute'] > $data['start_stunde']) {
             $this->flash['request'] = Request::getInstance();
@@ -549,7 +549,7 @@ class Course_TimesroomsController extends AuthenticatedController
      */
     public function saveComment_action($termin_id)
     {
-        $termin      = SingleDate::getInstance($termin_id);
+        $termin = SingleDate::getInstance($termin_id);
         $old_comment = $termin->getComment();
         $termin->setComment(Request::get('cancel_comment'));
         if ($termin->getComment() != $old_comment) {
@@ -570,7 +570,7 @@ class Course_TimesroomsController extends AuthenticatedController
 
     function setSidebar()
     {
-        $widget    = new SelectWidget(_('Semester'), $this->url_for('course/timesrooms/index', array('cmd' => 'applyFilter')), 'newFilter');
+        $widget = new SelectWidget(_('Semester'), $this->url_for('course/timesrooms/index', array('cmd' => 'applyFilter')), 'newFilter');
         $selection = raumzeit_get_semesters($this->course, new SemesterData(), $_SESSION['raumzeitFilter']);
         foreach ($selection as $item) {
             $element = new SelectElement($item['value'], $item['linktext'], $item['is_selected']);
@@ -598,7 +598,7 @@ class Course_TimesroomsController extends AuthenticatedController
     function setSemester_action($course_id)
     {
         $current_semester = Semester::findCurrent();
-        $start_semester   = Semester::find(Request::get('startSemester'));
+        $start_semester = Semester::find(Request::get('startSemester'));
         if ((int)Request::get('endSemester') != -1) {
             $end_semester = Semester::find(Request::get('endSemester'));
         } else {
@@ -676,16 +676,18 @@ class Course_TimesroomsController extends AuthenticatedController
 
     private function getStartWeeks()
     {
-        $start_weeks     = array();
-        $semester_index  = SemesterData::GetSemesterIndexById($this->course->start_semester->id);
-        $tmp_first_date  = getCorrectedSemesterVorlesBegin($semester_index);
+        $start_weeks = array();
+        $all_semester = SemesterData::GetInstance()->getAllSemesterData();
+        $semester_index = SemesterData::GetSemesterIndexById($this->course->start_semester->id);
+        $tmp_first_date = getCorrectedSemesterVorlesBegin($semester_index);
         $_tmp_first_date = strftime('%d.%m.%Y', $tmp_first_date);
-        $all_semester    = SemesterData::GetSemesterArray();
-        $end_date        = $all_semester[$semester_index]['vorles_ende'];
+
+        $end_date = $all_semester[$semester_index]['vorles_ende'];
 
         $i = 0;
         while ($tmp_first_date < $end_date) {
-            $start_weeks[$i]['text']     = ($i + 1) . '. ' . _("Semesterwoche") . ' (' . _("ab") . ' ' . strftime("%d.%m.%Y", $tmp_first_date) . ')';
+
+            $start_weeks[$i]['text'] = ($i + 1) . '. ' . _("Semesterwoche") . ' (' . _("ab") . ' ' . strftime("%d.%m.%Y", $tmp_first_date) . ')';
             $start_weeks[$i]['selected'] = ($this->course->getStartWeek() == $i);
 
             $i++;
