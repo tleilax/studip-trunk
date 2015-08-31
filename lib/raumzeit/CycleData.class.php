@@ -94,6 +94,9 @@ class CycleData
         return $this->cycle_date->description;
     }
 
+    function getCycleDate() {
+        return $this->cycle_date;
+    }
     function setDescription($description)
     {
         $this->cycle_date->description = $description;

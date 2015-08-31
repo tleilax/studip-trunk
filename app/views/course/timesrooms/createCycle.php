@@ -1,5 +1,5 @@
 <form
-    action="<?= $controller->url_for('course/timesrooms/saveCycle' . ($cycle ? '/' . $cycle->getMetaDateID() : '')) ?>"
+    action="<?= $controller->url_for('course/timesrooms/' . ($cycle ? 'editCycle/' . $cycle->getMetaDateID() : 'saveCycle')) ?>"
     class="studip-form" method="post"
     <?= Request::isXhr() ? 'data-dialog="size=big"' : '' ?>>
     <?= CSRFProtection::tokenTag() ?>

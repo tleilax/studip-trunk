@@ -289,7 +289,6 @@ class Course_TimesroomsController extends AuthenticatedController
 
         $termin->setTime($start_time, $end_time);
         $termin->setDateType(Request::get('dateType'));
-
         $termin->store();
 
         if ($start_time < $this->course->filterStart || $end_time > $this->course->filterEnd) {
@@ -374,6 +373,8 @@ class Course_TimesroomsController extends AuthenticatedController
      */
     public function createCycle_action($cycle_id = null)
     {
+        $this->set_content_type('text/html;charset=windows-1252');
+
         if ($this->flash['request']) {
             foreach (words('day start_time end_time description cycle startWeek teacher_sws') as $value) {
                 Request::set($value, $this->flash['request'][$value]);
@@ -383,6 +384,7 @@ class Course_TimesroomsController extends AuthenticatedController
         if (!is_null($cycle_id)) {
             $this->cycle = $this->course->metadate->cycles[$cycle_id];
             $this->has_bookings = false;
+
             foreach ($this->cycle->getSingleDates() as $singleDate) {
                 if ($singleDate->getStarttime() > (time() - 3600) && $singleDate->hasRoom()) {
                     $this->has_bookings = true;
@@ -394,141 +396,138 @@ class Course_TimesroomsController extends AuthenticatedController
         $this->start_weeks = $this->getStartWeeks();
     }
 
-    public function editCycle_action($cycle_id)
+    public function saveCycle_action()
     {
-        $cycle = $this->course->metadate->cycles[$cycle_id];
+        $data = array();
+        $startHour = strftime('%H', strtotime(Request::get('start_time')));
+        $startMinute = strftime('%M', strtotime(Request::get('start_time')));
+        $endHour = strftime('%H', strtotime(Request::get('end_time')));
+        $endMinute = strftime('%M', strtotime(Request::get('end_time')));
 
-        if (!$cycle) {
-            PageLayout::postMessage(MessageBox::error(_('Der gewünschte Zeitraum wurde nicht gefunden!')));
-            $this->redirect('course/timesrooms/index');
+        // Prepare Request for saving Request
+        $data['startWeek'] = Request::get('startWeek');
+        $data['week_offset'] = Request::get('startWeek');
+        $data['turnus'] = Request::get('cycle');
+        $data['cycle'] = Request::get('cycle');
+        $data['description'] = studip_utf8decode(Request::get('description'));
+        $data['day'] = Request::int('day');
+        $data['weekday'] = Request::int('day');
+        $data['start_stunde'] = $startHour;
+        $data['start_minute'] = $startMinute;
+        $data['end_stunde'] = $endHour;
+        $data['end_minute'] = $endMinute;
+        $data['sws'] = Request::int('teacher_sws');
 
+        if ($startHour < $endHour) {
+            $this->flash['request'] = Request::getInstance();
+            PageLayout::postMessage(MessageBox::error(_('Die Zeitangaben sind nicht korrekt. Bitte überprüfen Sie diese!')));
+            $this->redirect('course/timesrooms/createSingleDate');
             return;
         }
 
-        $new_start = strtotime(Request::get('start_time'));
-        $new_end = strtotime(Request::get('end_time'));
-        $turnus = Request::get('cycle');
-        $description = Request::get('description');
-
-        $week_day = Request::int('week_day');
-        $week_offset = Request::get('startWeek');
-        $sws = Request::get('teacher_sws');
-
-
-        $data = array();
-        $data['start_stunde'] = strftime('%H', strtotime(Request::get('start_time')));
-        $data['start_minute'] = strftime('%M', strtotime(Request::get('start_time')));
-        $data['end_stunde'] = strftime('%H', strtotime(Request::get('end_time')));
-        $data['end_minute'] = strftime('%M', strtotime(Request::get('end_time')));
-
-        $data['week_day'] = Request::int('week_day');
-        $data['week_offset'] = Request::get('startWeek');
-        $data['cycle'] = Request::get('cycle');
-        $data['sws'] = Request::get('teacher_sws');
-
-        $old_start = strftime($cycle->getStartTime());
-        $old_end = strftime($cycle->getEndTime());
-
-        if ($description != $cycle->getDescription()) {
-            $cycle->setDescription($description);
-            $this->course->createMessage(_('Die Beschreibung des regelmäßigen Eintrags wurde geändert.'));
-            $message = true;
-        }
-
-        if ($old_start == $new_start && $old_end == $new_end) {
-            $same_time = true;
-        }
-        if ($week_offset != $cycle->week_offset) {
-            $this->course->setStartWeek($week_offset, $cycle->metadate_id);
-            $message = true;
-        }
-        if ($turnus != $cycle->cycle) {
-            $this->course->setTurnus($turnus, $cycle->metadate_id);
-            $message = true;
-        }
-        if ($week_day != $cycle->day) {
-            $message = true;
-            $same_time = false;
-        }
-        if (round(str_replace(',', '.', $sws), 1) != $cycle->sws) {
-            $cycle->sws = $sws;
-            $this->course->createMessage(_('Die Semesterwochenstunden für Dozenten des regelmäßigen Eintrags wurden geändert.'));
-            $message = true;
-        }
-
-        $change_from = $cycle->toString();
-
-        if ($this->metadate->editCycle($data)) {
-            if (!$same_time) {
-
-                StudipLog::log("SEM_CHANGE_CYCLE", $this->course->getId(), NULL, $change_from . ' -> ' . $cycle->toString());
-                NotificationCenter::postNotification("CourseDidChangeSchedule", $this->course);
-
-                $this->course->createMessage(sprintf(_('Die regelmäßige Veranstaltungszeit wurde auf %s für alle in der Zukunft liegenden Termine geändert!'),
-                    getWeekday($week_day) . ', ' . Request::get('start_time') . ' - ' . Request::get('end_time')));
-                $message = true;
-            }
+        if ($cycle_id = $this->course->addCycle($data)) {
+            $info = $this->course->metadate->cycles[$cycle_id]->toString();
+            $this->course->createMessage(sprintf(_('Die regelmäßige Veranstaltungszeit %s wurde hinzugefügt!'), $info));
+            $this->displayMessages();
+            $this->redirect('course/timesrooms/index');
+            return;
         } else {
-            if (!$same_time) {
-                $this->course->createInfo(sprintf(_('Die regelmäßige Veranstaltungszeit wurde auf %s geändert, jedoch gab es keine Termine die davon betroffen waren.'),
-                    getWeekday($week_day) . ', ' . Request::get('start_time') . ' - ' . Request::get('end_time')));
-                $message = true;
-            }
+            $this->flash['request'] = Request::getInstance();
+            $this->course->createError(_('Die regelmäßige Veranstaltungszeit konnte nicht hinzugefügt werden! Bitte überprüfen Sie Ihre Eingabe.'));
+            $this->displayMessages();
+            $this->redirect('course/timesrooms/createSingleDate');
+            return;
         }
-        $this->metadate->sortCycleData();
-
-        if (!$message) {
-            $this->course->createInfo('Sie haben keine Änderungen vorgenommen!');
-        }
-        $this->displayMessages();
-        $this->redirect('course/timesrooms/index');
-
     }
 
     /**
      * Save cycle
      * @throws Trails_DoubleRenderError
      */
-    public function saveCycle_action()
+    public function editCycle_action($cycle_id)
     {
-        $data = array();
-        $data['start_stunde'] = strftime('%H', strtotime(Request::get('start_time')));
-        $data['start_minute'] = strftime('%M', strtotime(Request::get('start_time')));
-        $data['end_stunde'] = strftime('%H', strtotime(Request::get('end_time')));
-        $data['end_minute'] = strftime('%M', strtotime(Request::get('end_time')));
-
-        $data['week_day'] = Request::int('week_day');
+        $cycle = $this->course->metadate->cycles[$cycle_id];
+        // Prepare Request for saving Request
+        $data['cycle_id'] = $cycle_id;
+        $data['startWeek'] = Request::get('startWeek');
         $data['week_offset'] = Request::get('startWeek');
+        $data['turnus'] = Request::get('cycle');
         $data['cycle'] = Request::get('cycle');
+        $data['description'] = studip_utf8decode(Request::get('description'));
+        $data['day'] = Request::int('day');
+        $data['weekday'] = Request::int('day');
+        $data['start_stunde'] = strftime('%H', strtotime(Request::get('start_time')));;
+        $data['start_minute'] = strftime('%M', strtotime(Request::get('start_time')));;
+        $data['end_stunde'] = strftime('%H', strtotime(Request::get('end_time')));;
+        $data['end_minute'] = strftime('%M', strtotime(Request::get('end_time')));;
         $data['sws'] = Request::get('teacher_sws');
 
-        if ($data['start_minute'] > $data['start_stunde']) {
-            $this->flash['request'] = Request::getInstance();
-            PageLayout::postMessage(MessageBox::error(_('Die Zeitangaben sind nicht korrekt. Bitte überprüfen Sie diese!')));
 
-            $this->redirect('course/timesrooms/createSingleDate');
+        $new_start = mktime($data['start_stunde'], $data['start_minute']);
+        $new_end = mktime($data['end_stunde'], $data['end_minute']);
+        $old_start = mktime($cycle->getStartStunde(), $cycle->getStartMinute());
+        $old_end = mktime($cycle->getEndStunde(), $cycle->getEndMinute());
 
-            return;
+        $same_time = false;
+
+        // only apply changes, if the user approved the change or
+        // the change does not need any approval
+        if ($data['description'] != $cycle->getDescription()) {
+            $this->course->createMessage(_('Die Beschreibung des regelmäßigen Eintrags wurde geändert.'));
+            $cycle->setDescription($data['description']);
+            $cycle->store();
+            $message = true;
         }
 
-        if ($cycle_id = $this->course->addCycle($data)) {
-            $info = $this->course->metadate->cycles[$cycle_id]->toString();
-            $this->course->createMessage(sprintf(_('Die regelmäßige Veranstaltungszeit "%s" wurde hinzugefügt!'), $info));
-            $this->displayMessages();
+        if ($old_start == $new_start && $old_end == $new_end) {
+            $same_time = true;
+        }
+        if ($data['startWeek'] != $cycle->week_offset) {
+            $this->course->setStartWeek($data['startWeek'], $cycle->metadate_id);
+            $message = true;
+        }
+        if ($data['turnus'] != $cycle->cycle) {
+            $this->course->setTurnus($data['turnus'], $cycle->metadate_id);
+            $message = true;
+        }
+        if ($data['day'] != $cycle->day) {
+            $message = true;
+            $same_time = false;
+        }
+        if (round(str_replace(',', '.', $data['sws']), 1) != $cycle->sws) {
+            $cycle->sws = $data['sws'];
+            $this->course->createMessage(_('Die Semesterwochenstunden für Dozenten des regelmäßigen Eintrags wurden geändert.'));
+            $message = true;
+        }
 
-            /** TODO OPEN NEW CYCLE */
-            $this->redirect('course/timesrooms/index');
-
-            return;
+        $change_from = $cycle->toString();
+        if ($this->course->metadate->editCycle($data)) {
+            if (!$same_time) {
+                // logging >>>>>>
+                StudipLog::log("SEM_CHANGE_CYCLE", $this->course->getId(), NULL, $change_from . ' -> ' . $cycle->toString());
+                NotificationCenter::postNotification("CourseDidChangeSchedule", $this->course);
+                // logging <<<<<<
+                $this->course->createMessage(sprintf(_('Die regelmäßige Veranstaltungszeit wurde auf "%s" für alle in der Zukunft liegenden Termine geändert!'),
+                    '<b>' . getWeekday($data['day']) . ', ' . $data['start_stunde'] . ':' . $data['start_minute'] . ' - ' .
+                    $data['end_stunde'] . ':' . $data['end_minute'] . '</b>'));
+                $message = true;
+            }
         } else {
-            $this->flash['request'] = Request::getInstance();
-            $this->course->createError(_('Die regelmäßige Veranstaltungszeit konnte nicht hinzugefügt werden! Bitte überprüfen Sie Ihre Eingabe.'));
-            $this->displayMessages();
-
-            $this->redirect('course/timesrooms/createSingleDate');
-
-            return;
+            if (!$same_time) {
+                $this->course->createInfo(sprintf(_('Die regelmäßige Veranstaltungszeit wurde auf "%s" geändert, jedoch gab es keine Termine die davon betroffen waren.'),
+                    '<b>' . getWeekday($data['day']) . ', ' . $data['start_stunde'] . ':' . $data['start_minute'] . ' - ' .
+                    $data['end_stunde'] . ':' . $data['end_minute'] . '</b>'));
+                $message = true;
+            }
         }
+        $cycle->storeCycleDate();
+        $this->course->metadate->sortCycleData();
+
+        if (!$message) {
+            $this->course->createInfo('Sie haben keine Änderungen vorgenommen!');
+        }
+        $this->displayMessages();
+        $this->redirect('course/timesrooms/index');
     }
 
     /**

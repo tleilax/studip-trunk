@@ -242,6 +242,10 @@ function raumzeit_doAddCycle($sem) {
 }
 
 function raumzeit_editCycle($sem) {
+    echo "<pre>";
+    var_dump($sem);
+    echo "</pre>";
+    die;
     $sem->editCycle($_REQUEST);
 }
 

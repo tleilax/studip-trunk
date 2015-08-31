@@ -188,6 +188,7 @@ class MetaDate
         if ($cycle->getDescription() != $data['description']) {
             $cycle->setDescription($data['description']);
         }
+
         if(isset($data['weekday'])) $cycle->weekday = (int)$data['weekday'];
         if(isset($data['week_offset'])) $cycle->week_offset = (int)$data['week_offset'];
         if(isset($data['cycle'])) $cycle->cycle = (int)$data['cycle'];
