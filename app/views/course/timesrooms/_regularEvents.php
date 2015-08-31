@@ -4,7 +4,8 @@
             <?= _('Regelmäßige Termine') ?>
         </h1>
         <nav>
-            <a data-dialog-button class="link-add" href="<?= $controller->link_for('course/timesrooms/createCycle') ?>" data-dialog="size=450"
+            <a data-dialog-button class="link-add" href="<?= $controller->link_for('course/timesrooms/createCycle') ?>"
+               data-dialog="size=450"
                title="<?= _('Regelmäßigen Termin hinzufügen') ?>">
                 <?= _('Regelmäßigen Termin hinzufügen') ?>
             </a>
@@ -37,7 +38,8 @@
                         </span>
 
                         <span>
-                            <a href="<?= $controller->url_for('course/timesrooms/createCycle/' . $metadate_id) ?>" data-dialog="size=450">
+                            <a href="<?= $controller->url_for('course/timesrooms/createCycle/' . $metadate_id) ?>"
+                               data-dialog="size=450">
                                 <?= Assets::img('icons/blue/edit', tooltip2(_('Diesen Zeitraum bearbeiten'))) ?>
                             </a>
                             <a href="#" data-dialog="size=big">
@@ -49,50 +51,51 @@
 
                 <section>
                     <? $dates = $cycle['dates'] ?>
-                    <table class="default nohover">
-                        <colgroup>
-                            <col width="30px">
-                            <col width="30%">
-                            <col width="40%">
-                            <col width="10%">
-                            <col width="50px">
-                        </colgroup>
-                        <? foreach ($dates as $semester_id => $termine) : ?>
-                            <thead>
-                            <tr>
-                                <th colspan="5"><?= htmlReady(Semester::find($semester_id)->name) ?></th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <? foreach ($termine as $termin) : ?>
-                                <?= $this->render_partial('course/timesrooms/_cycleRow.php', array('termin'    => $termin,
-                                                                                                   'class_ids' => 'ids-regular'
-                                )) ?>
+                    <form class="studip-form" action="<?= $controller->url_for('course/timesrooms/stack') ?>"
+                          data-dialog="size=big" method="post">
+                        <table class="default nohover">
+                            <colgroup>
+                                <col width="30px">
+                                <col width="30%">
+                                <col width="40%">
+                                <col width="15%">
+                                <col width="50px">
+                            </colgroup>
+                            <? foreach ($dates as $semester_id => $termine) : ?>
+                                <thead>
+                                <tr>
+                                    <th colspan="5"><?= htmlReady(Semester::find($semester_id)->name) ?></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <? foreach ($termine as $termin) : ?>
+                                    <?= $this->render_partial('course/timesrooms/_cycleRow.php', array('termin'    => $termin,
+                                                                                                       'class_ids' => 'ids-regular'
+                                    )) ?>
+                                <? endforeach ?>
+                                </tbody>
                             <? endforeach ?>
-                            </tbody>
-                        <? endforeach ?>
-                        <tfoot>
-                        <tr>
-                            <td colspan="3">
-                                <section style="margin: 0; padding: 0">
-                                    <input data-proxyfor=".ids-regular" type="checkbox"
-                                           id="checkAllRegular" data-activates=".actionForAllRegular">
-                                    <label for="checkAllRegular" class="horizontal">
-                                        <?= _('alle Auswählen') ?>
-                                    </label>
-                                </section>
-                            </td>
-                            <td>
-                                <select name="actionForAllRegular" class="actionForAllRegular">
-                                    <option><?= _('aktion für alle ausgewählten') ?></option>
-                                </select>
-                            </td>
-                            <td>
-                                <?= Studip\Button::create('ausführen', 'run', array('class' => 'actionForAllIrregular')) ?>
-                            </td>
-                        </tr>
-                        </tfoot>
-                    </table>
+                            <tfoot>
+                            <tr>
+                                <td colspan="2">
+                                    <section style="margin: 0; padding: 0">
+                                        <input data-proxyfor=".ids-regular" type="checkbox"
+                                               id="checkAllRegular" data-activates=".actionForAllRegular">
+                                        <label for="checkAllRegular" class="horizontal">
+                                            <?= _('alle Auswählen') ?>
+                                        </label>
+                                    </section>
+                                </td>
+                                <td colspan="3" class="action">
+                                    <select name="method" class="actionForAllRegular">
+                                        <?= $this->render_partial('course/timesrooms/_stack_actions.php') ?>
+                                    </select>
+                                    <?= Studip\Button::create('ausführen', 'run', array('class' => 'actionForAllIrregular')) ?>
+                                </td>
+                            </tr>
+                            </tfoot>
+                        </table>
+                    </form>
                 </section>
             </article>
         <? endforeach; ?>

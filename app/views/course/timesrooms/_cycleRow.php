@@ -2,7 +2,7 @@
     <td>
         <label for="<?= htmlReady($termin->termin_id) ?>">
             <input class="<?= $class_ids ?>" type="checkbox" id="<?= htmlReady($termin->termin_id) ?>"
-                   name="cycle_ids[]" <?= $termin->isExTermin() ? 'disabled' : '' ?> />
+                   name="single_dates[]" <?= $termin->isExTermin() ? 'disabled' : '' ?> />
         </label>
     </td>
     <td class="<?= $termin->hasRoom() || $termin->getFreeRoomText() != '' ? 'green' : 'red' ?>">

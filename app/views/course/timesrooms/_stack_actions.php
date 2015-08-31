@@ -1,0 +1,1 @@
+<option value="edit"><?=_('Bearbeiten')?></option>

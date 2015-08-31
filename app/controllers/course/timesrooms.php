@@ -368,6 +368,50 @@ class Course_TimesroomsController extends AuthenticatedController
     }
 
 
+    public function stack_action()
+    {
+        $ids = Request::getArray('single_dates');
+        switch (Request::get('method')) {
+            case 'edit':
+                $this->editStack($ids);
+                break;
+        }
+    }
+
+    public function editStack($ids)
+    {
+        $this->flash['ids'] = $ids;
+        $this->render_template('course/timesrooms/editStack');
+    }
+
+
+    public function saveStack_action()
+    {
+        $ids = $this->flash['ids'];
+
+        if (empty($ids)) {
+            PageLayout::postMessage(MessageBox::error(_('Sie haben keine Termine ausgewählt!')));
+            die('foo');
+            $this->redirect('course/timesrooms/index');
+            return;
+        }
+        $this->ids = $ids;
+        switch (Request::get('method')) {
+            case 'edit':
+                $this->saveEditedStack();
+                break;
+        }
+    }
+
+    public function saveEditedStack()
+    {
+        /**
+         * TODO
+         */
+        PageLayout::postMessage(MessageBox::success(_('Die Änderungen wurden erfolgreich gespeichert!')));
+        $this->redirect('course/timesrooms/index');
+    }
+
     /**
      * Create a cycle
      */
