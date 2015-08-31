@@ -1060,14 +1060,14 @@ class Seminar
                     NotificationCenter::postNotification("CourseDidChangeSchedule", $this);
                     // logging <<<<<<
                     $this->createMessage(sprintf(_("Die regelmäßige Veranstaltungszeit wurde auf \"%s\" für alle in der Zukunft liegenden Termine geändert!"),
-                        '<b>'.strftime('%A', $data['day']) . ', ' . $data['start_stunde'] . ':' . $data['start_minute'].' - '.
+                        '<b>'.getWeekday($data['day']) . ', ' . $data['start_stunde'] . ':' . $data['start_minute'].' - '.
                         $data['end_stunde'] . ':' . $data['end_minute'] . '</b>'));
                     $message = true;
                 }
             } else {
                 if (!$same_time) {
                     $this->createInfo(sprintf(_("Die regelmäßige Veranstaltungszeit wurde auf \"%s\" geändert, jedoch gab es keine Termine die davon betroffen waren."),
-                        '<b>'.strftime('%A', $data['day']) . ', ' . $data['start_stunde'] . ':' . $data['start_minute'].' - '.
+                        '<b>'.getWeekday($data['day']) . ', ' . $data['start_stunde'] . ':' . $data['start_minute'].' - '.
                         $data['end_stunde'] . ':' . $data['end_minute'] . '</b>'));
                     $message = true;
                 }

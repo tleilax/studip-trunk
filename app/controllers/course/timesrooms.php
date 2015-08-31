@@ -1,9 +1,18 @@
 <?php
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+/**
+ * timesrooms.php
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * @author      David Siegfried <david.siegfried@uni-vechta.de>
+ * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
+ * @category    Stud.IP
+ * @package     admin
+ * @since       3.4
  */
 require_once 'app/controllers/authenticated_controller.php';
 require_once($GLOBALS['RELATIVE_PATH_RESOURCES'] . "/lib/ResourcesUserRoomsList.class.php");
@@ -61,19 +70,24 @@ class Course_TimesroomsController extends AuthenticatedController
             $this->course    = Seminar::getInstance($course_id);
         }
 
+        echo "<pre>";
+        var_dump($_SESSION['raumzeitFilter']);
+        echo "</pre>";
+
         $this->semester         = array_reverse(Semester::getAll());
         $this->current_semester = Semester::findCurrent();
         $semesters              = $this->semester;
-        if (!Request::isXhr() && isset($_SESSION['selectedTimesRoomSemester']) && $_SESSION['selectedTimesRoomSemester'] != 'all') {
+        if (!Request::isXhr() && isset($_SESSION['raumzeitFilter']) && $_SESSION['raumzeitFilter'] != 'all') {
             $semesters = array_filter($semesters, function ($a) {
-                return $_SESSION['selectedTimesRoomSemester'] == $a->beginn;
+                return $_SESSION['raumzeitFilter'] == $a->beginn;
             });
         }
 
         /**
          * Get Cycles
          */
-        $cycles      = $this->course->metadate->getCycles();
+        $cycles = $this->course->metadate->getCycles();
+
         $cycle_dates = array();
         foreach ($cycles as $metadate_id => $cycle) {
             $cycle_dates[$metadate_id]['name'] = $cycle->toString('long');
@@ -366,13 +380,109 @@ class Course_TimesroomsController extends AuthenticatedController
             }
         }
 
-        if(!is_null($cycle_id)) {
-            $this->cycle = $this->course->metadate->cycles[$cycle_id];
+        if (!is_null($cycle_id)) {
+            $this->cycle        = $this->course->metadate->cycles[$cycle_id];
+            $this->has_bookings = false;
+            foreach ($this->cycle->getSingleDates() as $singleDate) {
+                if ($singleDate->getStarttime() > (time() - 3600) && $singleDate->hasRoom()) {
+                    $this->has_bookings = true;
+                    break;
+                }
+            }
         }
-        
+
         $this->start_weeks = $this->getStartWeeks();
     }
 
+    public function editCycle_action($cycle_id)
+    {
+        $cycle = $this->course->metadate->cycles[$cycle_id];
+
+        if (!$cycle) {
+            PageLayout::postMessage(MessageBox::error(_('Der gewünschte Zeitraum wurde nicht gefunden!')));
+            $this->redirect('course/timesrooms/index');
+
+            return;
+        }
+        $new_start   = strtotime(Request::get('start_time'));
+        $new_end     = strtotime(Request::get('end_time'));
+        $turnus      = Request::get('cycle');
+        $description = Request::get('description');
+
+        $week_day    = Request::int('week_day');
+        $week_offset = Request::get('startWeek');
+        $sws         = Request::get('teacher_sws');
+
+
+        $data                 = array();
+        $data['start_stunde'] = strftime('%H', strtotime(Request::get('start_time')));
+        $data['start_minute'] = strftime('%M', strtotime(Request::get('start_time')));
+        $data['end_stunde']   = strftime('%H', strtotime(Request::get('end_time')));
+        $data['end_minute']   = strftime('%M', strtotime(Request::get('end_time')));
+
+        $data['week_day']    = Request::int('week_day');
+        $data['week_offset'] = Request::get('startWeek');
+        $data['cycle']       = Request::get('cycle');
+        $data['sws']         = Request::get('teacher_sws');
+
+        $old_start = strftime($cycle->getStartTime());
+        $old_end   = strftime($cycle->getEndTime());
+
+        if ($description != $cycle->getDescription()) {
+            $cycle->setDescription($description);
+            $this->course->createMessage(_('Die Beschreibung des regelmäßigen Eintrags wurde geändert.'));
+            $message = true;
+        }
+
+        if ($old_start == $new_start && $old_end == $new_end) {
+            $same_time = true;
+        }
+        if ($week_offset != $cycle->week_offset) {
+            $this->course->setStartWeek($week_offset, $cycle->metadate_id);
+            $message = true;
+        }
+        if ($turnus != $cycle->cycle) {
+            $this->course->setTurnus($turnus, $cycle->metadate_id);
+            $message = true;
+        }
+        if ($week_day != $cycle->day) {
+            $message   = true;
+            $same_time = false;
+        }
+        if (round(str_replace(',', '.', $sws), 1) != $cycle->sws) {
+            $cycle->sws = $sws;
+            $this->course->createMessage(_('Die Semesterwochenstunden für Dozenten des regelmäßigen Eintrags wurden geändert.'));
+            $message = true;
+        }
+
+        $change_from = $cycle->toString();
+
+        if ($this->metadate->editCycle($data)) {
+            if (!$same_time) {
+
+                StudipLog::log("SEM_CHANGE_CYCLE", $this->course->getId(), NULL, $change_from . ' -> ' . $cycle->toString());
+                NotificationCenter::postNotification("CourseDidChangeSchedule", $this->course);
+
+                $this->course->createMessage(sprintf(_('Die regelmäßige Veranstaltungszeit wurde auf %s für alle in der Zukunft liegenden Termine geändert!'),
+                    getWeekday($week_day) . ', ' . Request::get('start_time') . ' - ' . Request::get('end_time')));
+                $message = true;
+            }
+        } else {
+            if (!$same_time) {
+                $this->course->createInfo(sprintf(_('Die regelmäßige Veranstaltungszeit wurde auf %s geändert, jedoch gab es keine Termine die davon betroffen waren.'),
+                    getWeekday($week_day) . ', ' . Request::get('start_time') . ' - ' . Request::get('end_time')));
+                $message = true;
+            }
+        }
+        $this->metadate->sortCycleData();
+
+        if (!$message) {
+            $this->course->createInfo('Sie haben keine Änderungen vorgenommen!');
+        }
+        $this->displayMessages();
+        $this->redirect('course/timesrooms/index');
+
+    }
 
     /**
      * Save cycle
@@ -394,6 +504,7 @@ class Course_TimesroomsController extends AuthenticatedController
         if ($data['start_minute'] > $data['start_stunde']) {
             $this->flash['request'] = Request::getInstance();
             PageLayout::postMessage(MessageBox::error(_('Die Zeitangaben sind nicht korrekt. Bitte überprüfen Sie diese!')));
+
             $this->redirect('course/timesrooms/createSingleDate');
 
             return;
@@ -403,6 +514,7 @@ class Course_TimesroomsController extends AuthenticatedController
             $info = $this->course->metadate->cycles[$cycle_id]->toString();
             $this->course->createMessage(sprintf(_('Die regelmäßige Veranstaltungszeit "%s" wurde hinzugefügt!'), $info));
             $this->displayMessages();
+
             /** TODO OPEN NEW CYCLE */
             $this->redirect('course/timesrooms/index');
 
@@ -411,6 +523,7 @@ class Course_TimesroomsController extends AuthenticatedController
             $this->flash['request'] = Request::getInstance();
             $this->course->createError(_('Die regelmäßige Veranstaltungszeit konnte nicht hinzugefügt werden! Bitte überprüfen Sie Ihre Eingabe.'));
             $this->displayMessages();
+
             $this->redirect('course/timesrooms/createSingleDate');
 
             return;
@@ -560,7 +673,7 @@ class Course_TimesroomsController extends AuthenticatedController
         $sidebar = Sidebar::Get();
 
         $widget    = new SelectWidget(_('Semester'), $this->url_for('course/timesrooms/setSemesterFilter'), 'newFilter');
-        $selection = raumzeit_get_semesters($this->course, new SemesterData(), $_SESSION['selectedTimesRoomSemester']);
+        $selection = raumzeit_get_semesters($this->course, new SemesterData(), $_SESSION['raumzeitFilter']);
         foreach ($selection as $item) {
             $element = new SelectElement($item['value'], $item['linktext'], $item['is_selected']);
             $widget->addElement($element);
@@ -573,16 +686,16 @@ class Course_TimesroomsController extends AuthenticatedController
 
     public function setSemesterFilter_action()
     {
-        $_SESSION['selectedTimesRoomSemester'] = Request::get('newFilter');
+        $GLOBALS['cmd'] = 'applyFilter';
+        $this->course->checkFilter();
         PageLayout::postMessage(MessageBox::success(_('Das gewünschte Semester wurde ausgewählt!')));
         $this->redirect('course/timesrooms/index');
     }
 
     private function getStartWeeks()
     {
-        // get possible start-weeks
         $start_weeks     = array();
-        $semester_index  = SemesterData::GetSemesterIndexById($this->course->getStartSemester());
+        $semester_index  = SemesterData::GetSemesterIndexById($this->course->start_semester->id);
         $tmp_first_date  = getCorrectedSemesterVorlesBegin($semester_index);
         $_tmp_first_date = strftime('%d.%m.%Y', $tmp_first_date);
         $all_semester    = SemesterData::GetSemesterArray();

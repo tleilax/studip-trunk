@@ -8,6 +8,7 @@
  * the License, or (at your option) any later version.
  *
  * @author      André Noack <noack@data-quest.de>
+ * @author      David Siegfried <david.siegfried@uni-vechta.de>
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
  * @package     admin
