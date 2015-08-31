@@ -1454,6 +1454,7 @@ class Seminar
     function checkFilter()
     {
         global $cmd;
+
         $semester = new SemesterData();
         if (isset($cmd) && ($cmd == 'applyFilter')) {
             $_SESSION['raumzeitFilter'] = Request::quoted('newFilter');

@@ -45,7 +45,7 @@ class Course_TimesroomsController extends AuthenticatedController
         }
         $this->show = array('regular' => true, 'irregular' => true, 'roomRequest' => true);
 
-        $this->setSidebar();
+
         PageLayout::setHelpKeyword('Basis.Veranstaltungen');
         PageLayout::addSqueezePackage('raumzeit');
         PageLayout::setTitle(sprintf(_('%sVerwaltung von Zeiten und Räumen'),
@@ -54,11 +54,19 @@ class Course_TimesroomsController extends AuthenticatedController
         if (isset($this->flash['question'])) {
             PageLayout::addBodyElements($this->flash['question']);
         }
+
+
+        $_SESSION['raumzeitFilter'] = Request::quoted('newFilter');
+
+        // bind linkParams for chosen semester and opened dates
+        URLHelper::bindLinkParam('raumzeitFilter', $_SESSION['raumzeitFilter']);
+        $GLOBALS['cmd'] = Request::option('cmd');
+        $this->course->checkFilter();
+        $this->setSidebar();
     }
 
     public function index_action($course_id = null)
     {
-
         Helpbar::get()->addPlainText(_('Rot'), _('Kein Termin hat eine Raumbuchung.'));
         Helpbar::get()->addPlainText(_('Gelb'), _('Mindestens ein Termin hat keine Raumbuchung.'));
         Helpbar::get()->addPlainText(_('Grün'), _('Alle Termine haben eine Raumbuchung.'));
@@ -69,10 +77,6 @@ class Course_TimesroomsController extends AuthenticatedController
             $this->course_id = $course_id;
             $this->course    = Seminar::getInstance($course_id);
         }
-
-        echo "<pre>";
-        var_dump($_SESSION['raumzeitFilter']);
-        echo "</pre>";
 
         $this->semester         = array_reverse(Semester::getAll());
         $this->current_semester = Semester::findCurrent();
@@ -130,10 +134,6 @@ class Course_TimesroomsController extends AuthenticatedController
         }
         $this->semesterFormParams = $semesterFormParams;
         $this->editParams         = $editParams;
-
-
-        NotificationCenter::addObserver($this, 'addSemesterWidget', 'SidebarWillRender');
-
     }
 
     /**
@@ -404,6 +404,7 @@ class Course_TimesroomsController extends AuthenticatedController
 
             return;
         }
+
         $new_start   = strtotime(Request::get('start_time'));
         $new_end     = strtotime(Request::get('end_time'));
         $turnus      = Request::get('cycle');
@@ -569,9 +570,14 @@ class Course_TimesroomsController extends AuthenticatedController
 
     function setSidebar()
     {
-        $sidebar        = Sidebar::get();
-        $semesterSelect = new SemesterSelectorWidget($this->url_for('course/timesrooms/setSemester'));
-        $sidebar->addWidget($semesterSelect);
+        $widget    = new SelectWidget(_('Semester'), $this->url_for('course/timesrooms/index', array('cmd' => 'applyFilter')), 'newFilter');
+        $selection = raumzeit_get_semesters($this->course, new SemesterData(), $_SESSION['raumzeitFilter']);
+        foreach ($selection as $item) {
+            $element = new SelectElement($item['value'], $item['linktext'], $item['is_selected']);
+            $widget->addElement($element);
+        }
+        Sidebar::Get()->addWidget($widget);
+
 
         if ($GLOBALS['perm']->have_perm("admin")) {
             include_once 'app/models/AdminCourseFilter.class.php';
@@ -583,7 +589,7 @@ class Course_TimesroomsController extends AuthenticatedController
                 $list->addElement(new SelectElement($seminar['Seminar_id'], $seminar['Name']), 'select-' . $seminar['Seminar_id']);
             }
             $list->setSelection($this->course_id);
-            $sidebar->addWidget($list);
+            Sidebar::Get()->addWidget($list);
         }
 
     }
@@ -666,30 +672,6 @@ class Course_TimesroomsController extends AuthenticatedController
                 PageLayout::postMessage(MessageBox::$type($msg['title'], $msg['details']));
             }
         }
-    }
-
-    public function addSemesterWidget()
-    {
-        $sidebar = Sidebar::Get();
-
-        $widget    = new SelectWidget(_('Semester'), $this->url_for('course/timesrooms/setSemesterFilter'), 'newFilter');
-        $selection = raumzeit_get_semesters($this->course, new SemesterData(), $_SESSION['raumzeitFilter']);
-        foreach ($selection as $item) {
-            $element = new SelectElement($item['value'], $item['linktext'], $item['is_selected']);
-            $widget->addElement($element);
-        }
-        if ($sidebar->hasWidget('semesterselector')) {
-            $sidebar->insertWidget($widget, 'semesterselector');
-            $sidebar->removeWidget('semesterselector');
-        }
-    }
-
-    public function setSemesterFilter_action()
-    {
-        $GLOBALS['cmd'] = 'applyFilter';
-        $this->course->checkFilter();
-        PageLayout::postMessage(MessageBox::success(_('Das gewünschte Semester wurde ausgewählt!')));
-        $this->redirect('course/timesrooms/index');
     }
 
     private function getStartWeeks()

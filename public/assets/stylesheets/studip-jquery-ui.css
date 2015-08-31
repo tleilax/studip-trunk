@@ -44,8 +44,8 @@
  */
 .scrollbox-vertical {
   overflow: auto;
-  background: linear-gradient(white 30%, rgba(255, 255, 255, 0)), linear-gradient(rgba(255, 255, 255, 0), white 70%) 0 100%, /* Shadows */ radial-gradient(50% 0, farthest-side, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)), radial-gradient(50% 100%, farthest-side, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)) 0 100%;
-  background: linear-gradient(white 30%, rgba(255, 255, 255, 0)), linear-gradient(rgba(255, 255, 255, 0), white 70%) 0 100%, /* Shadows */ radial-gradient(farthest-side at 50% 0, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)), radial-gradient(farthest-side at 50% 100%, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)) 0 100%;
+  background: /* Shadow covers */ linear-gradient(#ffffff 30%, rgba(255, 255, 255, 0)), linear-gradient(rgba(255, 255, 255, 0), #ffffff 70%) 0 100%, /* Shadows */ radial-gradient(50% 0, farthest-side, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)), radial-gradient(50% 100%, farthest-side, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)) 0 100%;
+  background: /* Shadow covers */ linear-gradient(#ffffff 30%, rgba(255, 255, 255, 0)), linear-gradient(rgba(255, 255, 255, 0), #ffffff 70%) 0 100%, /* Shadows */ radial-gradient(farthest-side at 50% 0, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)), radial-gradient(farthest-side at 50% 100%, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)) 0 100%;
   background-repeat: no-repeat;
   background-size: 100% 40px, 100% 40px, 100% 14px, 100% 14px;
   /* Opera doesn't support this in the shorthand */
@@ -53,8 +53,8 @@
 }
 .scrollbox-horizontal {
   overflow: auto;
-  background: linear-gradient(90deg, white 30%, rgba(255, 255, 255, 0)), linear-gradient(90deg, rgba(255, 255, 255, 0), white 70%) 100% 0, /* Shadows */ radial-gradient(0 50%, farthest-side, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)), radial-gradient(100% 50%, farthest-side, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)) 100% 0;
-  background: linear-gradient(90deg, white 30%, rgba(255, 255, 255, 0)), linear-gradient(90deg, rgba(255, 255, 255, 0), white 70%) 100% 0, /* Shadows */ radial-gradient(farthest-side at 0 50%, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)), radial-gradient(farthest-side at 100% 50%, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)) 100% 0;
+  background: /* Shadow covers */ linear-gradient(90deg, #ffffff 30%, rgba(255, 255, 255, 0)), linear-gradient(90deg, rgba(255, 255, 255, 0), #ffffff 70%) 100% 0, /* Shadows */ radial-gradient(0 50%, farthest-side, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)), radial-gradient(100% 50%, farthest-side, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)) 100% 0;
+  background: /* Shadow covers */ linear-gradient(90deg, #ffffff 30%, rgba(255, 255, 255, 0)), linear-gradient(90deg, rgba(255, 255, 255, 0), #ffffff 70%) 100% 0, /* Shadows */ radial-gradient(farthest-side at 0 50%, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)), radial-gradient(farthest-side at 100% 50%, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)) 100% 0;
   background-repeat: no-repeat;
   background-size: 40px 100%, 40px 100%, 14px 100%, 14px 100%;
   /* Opera doesn't support this in the shorthand */
@@ -380,7 +380,7 @@ input.ui-button {
 }
 .ui-buttonset .ui-button {
   margin-left: 0;
-  margin-right: -0.3em;
+  margin-right: -.3em;
 }
 /* workarounds */
 /* reset extra padding in Firefox, see h5bp.com/l */
@@ -761,8 +761,8 @@ button.ui-button::-moz-focus-inner {
   height: .8em;
 }
 .ui-slider-horizontal .ui-slider-handle {
-  top: -0.3em;
-  margin-left: -0.6em;
+  top: -.3em;
+  margin-left: -.6em;
 }
 .ui-slider-horizontal .ui-slider-range {
   top: 0;
@@ -779,9 +779,9 @@ button.ui-button::-moz-focus-inner {
   height: 100px;
 }
 .ui-slider-vertical .ui-slider-handle {
-  left: -0.3em;
+  left: -.3em;
   margin-left: 0;
-  margin-bottom: -0.6em;
+  margin-bottom: -.6em;
 }
 .ui-slider-vertical .ui-slider-range {
   left: 0;
@@ -1177,7 +1177,7 @@ input.ui-button {
 }
 .ui-buttonset .ui-button {
   margin-left: 0;
-  margin-right: -0.3em;
+  margin-right: -.3em;
 }
 /* workarounds */
 button.ui-button::-moz-focus-inner {
@@ -1533,8 +1533,8 @@ button.ui-button::-moz-focus-inner {
   height: .8em;
 }
 .ui-slider-horizontal .ui-slider-handle {
-  top: -0.3em;
-  margin-left: -0.6em;
+  top: -.3em;
+  margin-left: -.6em;
 }
 .ui-slider-horizontal .ui-slider-range {
   top: 0;
@@ -1551,9 +1551,9 @@ button.ui-button::-moz-focus-inner {
   height: 100px;
 }
 .ui-slider-vertical .ui-slider-handle {
-  left: -0.3em;
+  left: -.3em;
   margin-left: 0;
-  margin-bottom: -0.6em;
+  margin-bottom: -.6em;
 }
 .ui-slider-vertical .ui-slider-range {
   left: 0;
