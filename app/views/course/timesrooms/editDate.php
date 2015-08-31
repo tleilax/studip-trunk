@@ -167,6 +167,8 @@
 
 
 <footer data-dialog-button style="text-align: center; clear: both">
-    <?= Studip\Button::createAccept(_('Speichern'), 'save_dates', array('formaction' => $controller->url_for('course/timesrooms/saveDate/' . $termin_id))) ?>
+    <?= Studip\Button::createAccept(_('Speichern'), 'save_dates',
+        array('formaction' => $controller->url_for('course/timesrooms/saveDate/' . $termin_id),
+              'data-dialog' => 'size=big')) ?>
     <?= Studip\LinkButton::create(_('Raumanfrage erstellen'), $controller->url_for('course/room_requests/edit/' . $course->id, $params), array('data-dialog' => 'size=big')) ?>
 </footer>

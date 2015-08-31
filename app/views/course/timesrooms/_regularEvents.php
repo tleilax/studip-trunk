@@ -52,7 +52,7 @@
                 <section>
                     <? $dates = $cycle['dates'] ?>
                     <form class="studip-form" action="<?= $controller->url_for('course/timesrooms/stack') ?>"
-                          data-dialog="size=big" method="post">
+                          method="post">
                         <table class="default nohover">
                             <colgroup>
                                 <col width="30px">
