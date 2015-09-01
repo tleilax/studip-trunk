@@ -9,9 +9,7 @@
  */
 
 require_once 'lib/sms_functions.inc.php';
-require_once 'lib/visual.inc.php';
 require_once 'lib/statusgruppe.inc.php';
-require_once 'app/controllers/authenticated_controller.php';
 
 class MessagesController extends AuthenticatedController {
 
@@ -47,7 +45,7 @@ class MessagesController extends AuthenticatedController {
             foreach (Request::getArray("bulk") as $message_id) {
                 $this->delete_message($message_id);
             }
-            PageLayout::postMessage(MessageBox::success(_("%s Nachrichten wurden gelöscht"), count(Request::getArray("bulk"))));
+            PageLayout::postMessage(MessageBox::success(sprintf(_("%u Nachrichten wurden gelöscht"), count(Request::getArray("bulk")))));
         }
 
         $this->messages = $this->get_messages(
@@ -71,7 +69,7 @@ class MessagesController extends AuthenticatedController {
             foreach (Request::getArray("bulk") as $message_id) {
                 $this->delete_message($message_id);
             }
-            PageLayout::postMessage(MessageBox::success(_("%s Nachrichten wurden gelöscht"), count(Request::getArray("bulk"))));
+            PageLayout::postMessage(MessageBox::success(sprintf(_("%u Nachrichten wurden gelöscht"), count(Request::getArray("bulk")))));
         }
 
         $this->messages = $this->get_messages(

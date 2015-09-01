@@ -10,8 +10,6 @@
  * @since     3.1
  */
 
-require_once 'app/controllers/authenticated_controller.php';
-
 class Document_DownloadController extends AuthenticatedController
 {
     /**
@@ -69,7 +67,7 @@ class Document_DownloadController extends AuthenticatedController
         if ($entry_id === 'flashed') {
             foreach ($this->flash['ids'] as $id) {
                 $entry   = new DirectoryEntry($id);
-                if ($entry->isDirectory() && !$entry->checkAccess()) {
+                if ($entry->isDirectory() && !$entry->checkAccess(null, false)) {
                     throw new AccessDeniedException(_('Sie dürfen keinen fremden Ordner herunterladen.'));
                 }
                 $download_files[] = $entry;
@@ -87,7 +85,7 @@ class Document_DownloadController extends AuthenticatedController
                                   ? 'multiple'
                                   : 'single';
 
-                if (!$entry->checkAccess()) {
+                if (!$entry->checkAccess(null, false)) {
                     if ($entry->isDirectory()) {
                         throw new AccessDeniedException(_('Sie dürfen keinen fremden Ordner herunterladen.'));
                     } elseif (false) {

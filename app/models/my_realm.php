@@ -23,10 +23,8 @@
  * @since       3.1
  */
 
-require_once('lib/meine_seminare_func.inc.php');
-require_once('lib/object.inc.php');
-require_once('lib/functions.php');
-require_once('lib/classes/admission/CourseSet.class.php');
+require_once 'lib/meine_seminare_func.inc.php';
+require_once 'lib/object.inc.php';
 
 class MyRealmModel
 {
@@ -588,11 +586,8 @@ class MyRealmModel
     {
         $sem_data  = SemesterData::GetSemesterArray();
         $semesters = array();
-        foreach ($sem_data as $sem_key => $one_sem) {
-            $current_sem = $sem_key;
-            if (!$one_sem['past']) break;
-        }
-
+        $current_sem = SemesterData::GetSemesterIndexById($_SESSION['_default_sem']);
+        
         if (isset($sem_data[$current_sem + 1])) {
             $max_sem = $current_sem + 1;
         } else {
