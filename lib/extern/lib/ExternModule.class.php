@@ -37,8 +37,6 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // +---------------------------------------------------------------------------+
 
-
-require_once 'extern_config.inc.php';
 require_once $GLOBALS['RELATIVE_PATH_EXTERN'] . '/views/ExternEditModule.class.php';
 
 class ExternModule {

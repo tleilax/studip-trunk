@@ -177,9 +177,11 @@ namespace {
     if (Config::get()->RESOURCES_ENABLE) {
         StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/' . $GLOBALS['RELATIVE_PATH_RESOURCES'] . '/lib');
         require_once $GLOBALS['RELATIVE_PATH_RESOURCES'] . '/resourcesFunc.inc.php';
+        require_once $GLOBALS['RELATIVE_PATH_RESOURCES'] . '/lib/list_assign.inc.php';
     }
     if (Config::get()->EXTERN_ENABLE) {
         StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/' . $GLOBALS['RELATIVE_PATH_EXTERN'] . '/lib');
+        require_once $GLOBALS['STUDIP_BASE_PATH'] . '/' . $GLOBALS['RELATIVE_PATH_EXTERN'] . '/extern_config.inc.php';
         require_once $GLOBALS['STUDIP_BASE_PATH'] . '/' . $GLOBALS['RELATIVE_PATH_EXTERN'] . '/lib/extern_functions.inc.php';
     }
     if (Config::get()->CALENDAR_ENABLE) {
