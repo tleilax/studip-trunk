@@ -65,12 +65,25 @@
 
     <section>
         <label for="startWeek">
-            <?= _('Beginnt in der') ?>
+            <?= _('Startwoche') ?>
         </label>
         <select name="startWeek" id="startWeek" class="size-xl">
             <? foreach ($start_weeks as $value => $data) : ?>
                 <option
                     value=<?= $value ?> <?= Request::get('startWeek', !is_null($cycle) ? $cycle->week_offset : null) == $value ? 'selected' : '' ?>>
+                    <?= htmlReady($data['text']) ?>
+                </option>
+            <? endforeach ?>
+        </select>
+    </section>
+    <section>
+        <label for="endWeek">
+            <?= _('Endwoche') ?>
+        </label>
+        <select name="endWeek" id="endWeek" class="size-xl">
+            <? foreach ($start_weeks as $value => $data) : ?>
+                <option
+                    value=<?= $value ?> <?= Request::get('endWeek', !is_null($cycle) ? $cycle->week_offset : null) == $value ? 'selected' : '' ?>>
                     <?= htmlReady($data['text']) ?>
                 </option>
             <? endforeach ?>

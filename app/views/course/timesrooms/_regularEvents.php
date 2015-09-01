@@ -51,8 +51,8 @@
 
                 <section>
                     <? $dates = $cycle['dates'] ?>
-                    <form class="studip-form" action="<?= $controller->url_for('course/timesrooms/stack') ?>"
-                          method="post">
+                    <form class="studip-form" action="<?= $controller->url_for('course/timesrooms/stack/'. $metadate_id) ?>"
+                          method="post" data-dialog="size=50%">
                         <table class="default nohover">
                             <colgroup>
                                 <col width="30px">

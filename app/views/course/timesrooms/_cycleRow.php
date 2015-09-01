@@ -5,7 +5,7 @@
                    name="single_dates[]" <?= $termin->isExTermin() ? 'disabled' : '' ?> />
         </label>
     </td>
-    <td class="<?= $termin->hasRoom() || $termin->getFreeRoomText() != '' ? 'green' : 'red' ?>">
+    <td class="<?= $termin->hasRoom() ? 'green' : 'red' ?>">
         <? if ($termin->isExTermin() || $termin->isHoliday()) : ?>
             <span style="color: #666666">
                 <?= htmlReady($termin->toString()) ?>

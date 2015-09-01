@@ -19,7 +19,7 @@
     </header>
     <? if (!empty($single_dates)) : ?>
         <form class="studip-form" action="<?= $controller->url_for('course/timesrooms/stack') ?>"
-              data-dialog="size=big"  method="post">
+              data-dialog="size=50%"  method="post">
             <table class="default nohover">
                 <colgroup>
                     <col width="30px">
