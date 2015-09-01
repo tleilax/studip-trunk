@@ -59,7 +59,7 @@ class Course_RoomRequestsController extends AuthenticatedController
         $this->request_id = Request::option('request_id');
 
         $actions = new ActionsWidget();
-        $actions->addLink(_('Neue Raumanfrage erstellen'), $this->url_for('new/' . $this->course_id), Assets::image_path("icons/16/blue/add"));
+        $actions->addLink(_('Neue Raumanfrage erstellen'), $this->url_for('course/room_requests/new/' . $this->course_id), Assets::image_path("icons/16/blue/add"));
         Sidebar::get()->addWidget($actions);
 
         if ($GLOBALS['perm']->have_perm("admin")) {

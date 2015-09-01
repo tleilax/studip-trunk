@@ -44,10 +44,10 @@ if ($request_resource_id = $request->getResourceId()) :
         <p><?= _("verantwortlich:") ?>
             <a href="<?= $resObject->getOwnerLink() ?>"><?= htmlReady($resObject->getOwnerName()) ?></a>
             <?= Assets::input("icons/blue/trash",
-                array('type'  => "image", 'style' => "vertical-align:bottom", 'name' => "reset_resource_id",
+                array('type'  => "image", 'style' => "vertical-align:middle", 'name' => "reset_resource_id",
                       'title' => _('den ausgewählten Raum löschen')
                 )) ?>
-            <?= tooltipIcon(_('Der ausgewählte Raum bietet folgende der wünschbaren Eigenschaften:') . " \n" . $resObject->getPlainProperties(TRUE))?>
+            <?= tooltipIcon(_('Der ausgewählte Raum bietet folgende der wünschbaren Eigenschaften:') . " \n" . $resObject->getPlainProperties(TRUE)) ?>
         </p>
         <input type="hidden" name="selected_room" value="<?= htmlready($request_resource_id) ?>">
     </section>
@@ -74,15 +74,15 @@ if ($request_resource_id = $request->getResourceId()) :
                     <? endforeach ?>
                 </select>
                 <?= Assets::input("icons/blue/accept", array('type'  => "image",
-                                                                    'style' => "vertical-align:bottom",
-                                                                    'name'  => "send_room_type",
-                                                                    'value' => _("Raumtyp auswählen"),
-                                                                    'title' => _('Raumtyp auswählen')
+                                                             'style' => "vertical-align:middle",
+                                                             'name'  => "send_room_type",
+                                                             'value' => _("Raumtyp auswählen"),
+                                                             'title' => _('Raumtyp auswählen')
                 )) ?>
                 <?= Assets::input("icons/blue/refresh", array('type'  => "image",
-                                                                   'style' => "vertical-align:bottom",
-                                                                   'name'  => "reset_room_type",
-                                                                   'title' => _('alle Angaben zurücksetzen')
+                                                              'style' => "vertical-align:middle",
+                                                              'name'  => "reset_room_type",
+                                                              'title' => _('alle Angaben zurücksetzen')
                 )) ?>
             <? endif ?>
             <? $props = $request->getAvailableProperties() ?>
@@ -142,10 +142,10 @@ if ($request_resource_id = $request->getResourceId()) :
                 <? endforeach ?>
             </select>
             <?= Assets::input("icons/blue/accept", array('type'  => "image",
-                                                                'style' => "vertical-align:bottom",
-                                                                'name'  => "send_room_type",
-                                                                'value' => _("Raumtyp auswählen"),
-                                                                'title' => _('Raumtyp auswählen')
+                                                         'style' => "vertical-align:middle",
+                                                         'name'  => "send_room_type",
+                                                         'value' => _("Raumtyp auswählen"),
+                                                         'title' => _('Raumtyp auswählen')
             )) ?>
         <? endif ?>
 
@@ -155,10 +155,10 @@ if ($request_resource_id = $request->getResourceId()) :
                     <?= _('passende Räume suchen') ?>
                 </label>
                 <?= Assets::input("icons/yellow/arr_2right", array('type'  => "image",
-                                                                          'class' => "middle",
-                                                                          'search_rooms',
-                                                                          'name'  => "search_properties",
-                                                                          'title' => _('passende Räume suchen')
+                                                                   'class' => "middle",
+                                                                   'search_rooms',
+                                                                   'name'  => "search_properties",
+                                                                   'title' => _('passende Räume suchen')
                 )) ?>
 
             </section>
@@ -205,8 +205,8 @@ if ($request_resource_id = $request->getResourceId()) :
 
                 <input id="search_exp_room" type="text" size="30" maxlength="255" name="search_exp_room">
                 <?= Assets::input("icons/blue/search", array('type'  => "image", 'class' => "middle",
-                                                                    'name'  => "search_room",
-                                                                    'title' => _('Suche starten')
+                                                             'name'  => "search_room",
+                                                             'title' => _('Suche starten')
                 )) ?>
             </section>
         <? endif ?>
