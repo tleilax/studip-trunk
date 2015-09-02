@@ -1,4 +1,5 @@
 <?php
+
 /**
  * SeminarCycleDate.class.php
  * model class for table seminar_cycle_dates
@@ -12,28 +13,28 @@
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
  * @since       2.0
- * @property string metadate_id database column
- * @property string id alias column for metadate_id
- * @property string seminar_id database column
- * @property string start_time database column
- * @property string end_time database column
- * @property string weekday database column
- * @property string description database column
- * @property string sws database column
- * @property string cycle database column
- * @property string week_offset database column
- * @property string sorter database column
- * @property string mkdate database column
- * @property string chdate database column
- * @property string start_hour computed column read/write
- * @property string start_minute computed column read/write
- * @property string end_hour computed column read/write
- * @property string end_minute computed column read/write
- * @property SimpleORMapCollection dates has_many CourseDate
- * @property Course course belongs_to Course
- * @property RoomRequest room_request has_one RoomRequest
+ * @property string                metadate_id  database column
+ * @property string                id           alias column for metadate_id
+ * @property string                seminar_id   database column
+ * @property string                start_time   database column
+ * @property string                end_time     database column
+ * @property string                weekday      database column
+ * @property string                description  database column
+ * @property string                sws          database column
+ * @property string                cycle        database column
+ * @property string                week_offset  database column
+ * @property string                end_offset   database column
+ * @property string                sorter       database column
+ * @property string                mkdate       database column
+ * @property string                chdate       database column
+ * @property string                start_hour   computed column read/write
+ * @property string                start_minute computed column read/write
+ * @property string                end_hour     computed column read/write
+ * @property string                end_minute   computed column read/write
+ * @property SimpleORMapCollection dates        has_many CourseDate
+ * @property Course                course       belongs_to Course
+ * @property RoomRequest           room_request has_one RoomRequest
  */
-
 class SeminarCycleDate extends SimpleORMap
 {
 
@@ -41,7 +42,7 @@ class SeminarCycleDate extends SimpleORMap
      * returns array of instances of SeminarCycleDates of the given seminar_id
      * @param string seminar_id: selected seminar to search for SeminarCycleDates
      * @return array of instances of SeminarCycleDates of the given seminar_id or
-     * an empty array
+     *               an empty array
      */
     static function findBySeminar($seminar_id)
     {
@@ -56,7 +57,9 @@ class SeminarCycleDate extends SimpleORMap
     static function findByTermin($termin_id)
     {
         return self::findOneBySql("metadate_id=(SELECT metadate_id FROM termine WHERE termin_id= ? "
-                                  . "UNION SELECT metadate_id FROM ex_termine WHERE termin_id = ? )", array($termin_id, $termin_id));
+                                  . "UNION SELECT metadate_id FROM ex_termine WHERE termin_id = ? )", array($termin_id,
+                                                                                                            $termin_id
+        ));
     }
 
 
@@ -66,14 +69,14 @@ class SeminarCycleDate extends SimpleORMap
         $config['belongs_to']['course'] = array('class_name' => 'Course');
         $config['has_one']['room_request'] = array(
             'class_name' => 'RoomRequest',
-            'on_store' => 'store',
-            'on_delete' => 'delete',
+            'on_store'   => 'store',
+            'on_delete'  => 'delete',
         );
         $config['has_many']['dates'] = array(
             'class_name' => 'CourseDate',
-            'on_delete' => 'delete',
-            'on_store' => 'store',
-            'order_by' => 'ORDER BY date'
+            'on_delete'  => 'delete',
+            'on_store'   => 'store',
+            'order_by'   => 'ORDER BY date'
         );
         $config['additional_fields']['start_hour'] = array('get' => 'getTimeFraction', 'set' => 'setTimeFraction');
         $config['additional_fields']['start_minute'] = array('get' => 'getTimeFraction', 'set' => 'setTimeFraction');
@@ -105,7 +108,7 @@ class SeminarCycleDate extends SimpleORMap
             return $this->start_minute;
         }
         if ($field == 'end_hour') {
-            $this->end_time = sprintf('%02u:%02u:00', $value , $this->end_minute);
+            $this->end_time = sprintf('%02u:%02u:00', $value, $this->end_minute);
             return $this->end_hour;
         }
         if ($field == 'end_minute') {
@@ -121,7 +124,7 @@ class SeminarCycleDate extends SimpleORMap
      */
     protected function setSws($value)
     {
-        $this->content['sws'] =  round(str_replace(',','.', $value),1);
+        $this->content['sws'] = round(str_replace(',', '.', $value), 1);
     }
 
     /**
@@ -134,17 +137,25 @@ class SeminarCycleDate extends SimpleORMap
     {
         $template['short'] = '%s. %02s:%02s - %02s:%02s';
         $template['long'] = '%s: %02s:%02s - %02s:%02s, %s';
-        $template['full'] = '%s: %02s:%02s - %02s:%02s, ' . _("%s, ab der %s. Semesterwoche") . '%s';
+        $template['full'] = '%s: %02s:%02s - %02s:%02s, ' . _("%s, ab der %s. Semesterwoche");
+        if ($this->end_offset) {
+            $template['full'] .= ' bis zur %s. Semesterwoche';
+        } else {
+            $template['full'] .= '%s';
+        }
+        $template['full'] .= '%s';
         $cycles = array(_("wöchentlich"), _("zweiwöchentlich"), _("dreiwöchentlich"));
         $day = getWeekDay($this->weekday, $format == 'short');
-        return sprintf($template[$format],
-                       $day,
-                       $this->start_hour,
-                       $this->start_minute,
-                       $this->end_hour,
-                       $this->end_minute,
-                       $cycles[(int)$this->cycle],
-                       $this->week_offset + 1,
-                       $this->description ? ' ('.$this->description.')' : '');
+        $result = sprintf($template[$format],
+            $day,
+            $this->start_hour,
+            $this->start_minute,
+            $this->end_hour,
+            $this->end_minute,
+            $cycles[(int)$this->cycle],
+            $this->week_offset + 1,
+            $this->end_offset ? $this->end_offset: '',
+            $this->description ? ' (' . $this->description . ')' : '');
+        return $result;
     }
 }

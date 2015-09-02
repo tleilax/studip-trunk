@@ -80,12 +80,6 @@ class Course_TimesroomsController extends AuthenticatedController
 
         $this->semester = array_reverse(Semester::getAll());
         $this->current_semester = Semester::findCurrent();
-        $semesters = $this->semester;
-        if (!Request::isXhr() && isset($_SESSION['raumzeitFilter']) && $_SESSION['raumzeitFilter'] != 'all') {
-            $semesters = array_filter($semesters, function ($a) {
-                return $_SESSION['raumzeitFilter'] == $a->beginn;
-            });
-        }
 
         /**
          * Get Cycles
@@ -97,9 +91,12 @@ class Course_TimesroomsController extends AuthenticatedController
             $cycle_dates[$metadate_id]['name'] = $cycle->toString('long');
             $dates = $this->course->getSingleDatesForCycle($metadate_id);
             foreach ($dates as $val) {
-                foreach ($semesters as $sem) {
+                foreach ($this->semester as $sem) {
+                    if($_SESSION['raumzeitFilter'] != 'all' && $_SESSION['raumzeitFilter'] == $sem->id) {
+                        continue;
+                    }
                     if (($sem->beginn <= $val->getStartTime()) && ($sem->ende >= $val->getStartTime())) {
-                        $cycle_dates[$metadate_id]['dates'][$sem->id][] = $val;
+                        $cycle_dates[$metadate_id]['dates' ][$sem->id][] = $val;
                     }
                 }
             }
@@ -113,7 +110,10 @@ class Course_TimesroomsController extends AuthenticatedController
         $_single_dates = $this->course->getSingleDates(true, true, true);
         $single_dates = array();
         foreach ($_single_dates as $id => $val) {
-            foreach ($semesters as $sem) {
+            foreach ($this->semester as $sem) {
+                if($_SESSION['raumzeitFilter'] != 'all' && $_SESSION['raumzeitFilter'] == $sem->id) {
+                    continue;
+                }
                 if (($sem->beginn <= $val->getStartTime()) && ($sem->ende >= $val->getStartTime())) {
                     $single_dates[$sem->id][] = $val;
                 }
@@ -470,6 +470,7 @@ class Course_TimesroomsController extends AuthenticatedController
         $cycle->sws = round(str_replace(',', '.', Request::get('teacher_sws')), 1);
         $cycle->cycle = Request::int('cycle');
         $cycle->week_offset = Request::int('startWeek');
+        $cycle->end_offset = Request::int('endWeek') != 0 ? Request::int('endWeek') : null;
         $cycle->mkdate = $now;
         $cycle->chdate = $now;
         $cycle->start_time = sprintf('%02u:%02u:00', $startHour, $startMinute);
@@ -732,18 +733,28 @@ class Course_TimesroomsController extends AuthenticatedController
     {
         $start_weeks = array();
         $all_semester = SemesterData::GetInstance()->getAllSemesterData();
-        $semester_index = SemesterData::GetSemesterIndexById($this->course->start_semester->id);
-        $tmp_first_date = getCorrectedSemesterVorlesBegin($semester_index);
-        $_tmp_first_date = strftime('%d.%m.%Y', $tmp_first_date);
+        if($this->course->start_semester->beginn < time()) {
+            $start_sem_id = Semester::findCurrent()->id;
+        } else {
+            $start_sem_id = $this->course->start_semester->id;
+        }
 
-        $end_date = $all_semester[$semester_index]['vorles_ende'];
+        if($this->course->duration_time != -1) {
+            $end_index = SemesterData::GetSemesterIndexById($this->course->end_semester->id);
+        } else {
+            $end_index = array_pop(array_keys($all_semester));
+        }
+        $start_index = SemesterData::GetSemesterIndexById($start_sem_id);
+        $tmp_first_date = getCorrectedSemesterVorlesBegin($start_index);
+        $_tmp_first_date = strftime('%d.%m.%Y', $tmp_first_date);
+        $end_date = $all_semester[$end_index]['vorles_ende'];
 
         $i = 0;
+        $now = time();
         while ($tmp_first_date < $end_date) {
 
             $start_weeks[$i]['text'] = ($i + 1) . '. ' . _("Semesterwoche") . ' (' . _("ab") . ' ' . strftime("%d.%m.%Y", $tmp_first_date) . ')';
             $start_weeks[$i]['selected'] = ($this->course->getStartWeek() == $i);
-
             $i++;
             $tmp_first_date = strtotime(sprintf('+%u weeks %s', $i, $_tmp_first_date));
         }

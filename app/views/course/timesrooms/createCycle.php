@@ -81,9 +81,11 @@
             <?= _('Endwoche') ?>
         </label>
         <select name="endWeek" id="endWeek" class="size-xl">
+            <? var_dump($cycle)?>
+            <option value="0"><?=_('Ganzes Semester')?></option>
             <? foreach ($start_weeks as $value => $data) : ?>
                 <option
-                    value=<?= $value ?> <?= Request::get('endWeek', !is_null($cycle) ? $cycle->week_offset : null) == $value ? 'selected' : '' ?>>
+                    value=<?= $value+1 ?> <?= Request::get('endWeek', ($cycle ? $cycle->end_offset : null)) == $value+1 ? 'selected' : '' ?>>
                     <?= htmlReady($data['text']) ?>
                 </option>
             <? endforeach ?>
