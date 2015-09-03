@@ -81,9 +81,7 @@ class Admin_CoursesController extends AuthenticatedController
      * Show all courses with more options
      */
     public function index_action()
-    {   
-        //echo '<pre>';
-        //var_dump($GLOBALS['user']->cfg);die;
+    {
         $this->sem_create_perm = in_array(Config::get()->SEM_CREATE_PERM, array('root', 'admin', 'dozent'))
             ? Config::get()->SEM_CREATE_PERM
             : 'dozent';
@@ -528,6 +526,9 @@ class Admin_CoursesController extends AuthenticatedController
                         'url'   => 'dispatch.php/course/timesrooms/index?cid=%s',
                         'attributes' => array(
                             'data-dialog' => 'size=big'
+                        ),
+                        'params' => array(
+                            'newFilter' => $GLOBALS['user']->cfg->MY_COURSES_SELECTED_CYCLE
                         )),
             8  => array('name'      => _('Sperrebene'),
                         'title'     => _('Sperrebenen'),
