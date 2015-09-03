@@ -6,7 +6,7 @@
         <nav>
             <a data-dialog-button class="link-add"
                href="<?= $controller->link_for('course/timesrooms/createSingleDate/' . $course_id) ?>"
-               data-dialog="size=450" title="<?= _('Neuen Einzeltermin') ?>">
+               data-dialog="size=50%" title="<?= _('Neuen Einzeltermin') ?>">
                 <?= _('Neuen Einzeltermin') ?>
             </a>
             <a data-dialog-button class="link-add"

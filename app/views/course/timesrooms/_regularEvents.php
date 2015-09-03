@@ -5,7 +5,7 @@
         </h1>
         <nav>
             <a data-dialog-button class="link-add" href="<?= $controller->link_for('course/timesrooms/createCycle') ?>"
-               data-dialog="size=450"
+               data-dialog="size=50%"
                title="<?= _('Regelmäßigen Termin hinzufügen') ?>">
                 <?= _('Regelmäßigen Termin hinzufügen') ?>
             </a>
@@ -39,7 +39,7 @@
 
                         <span>
                             <a href="<?= $controller->url_for('course/timesrooms/createCycle/' . $metadate_id) ?>"
-                               data-dialog="size=450">
+                               data-dialog="size=50%">
                                 <?= Assets::img('icons/blue/edit', tooltip2(_('Diesen Zeitraum bearbeiten'))) ?>
                             </a>
                             <a href="#" data-dialog="size=big">
@@ -90,7 +90,7 @@
                                     <select name="method" class="actionForAllRegular">
                                         <?= $this->render_partial('course/timesrooms/_stack_actions.php') ?>
                                     </select>
-                                    <?= Studip\Button::create('ausführen', 'run', array('class' => 'actionForAllIrregular')) ?>
+                                    <?= Studip\Button::create('ausführen', 'run', array('class' => 'actionForAllRegular')) ?>
                                 </td>
                             </tr>
                             </tfoot>
