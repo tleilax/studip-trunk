@@ -4,7 +4,7 @@
             <?= _('Regelmäßige Termine') ?>
         </h1>
         <nav>
-            <a data-dialog-button class="link-add" href="<?= $controller->link_for('course/timesrooms/createCycle') ?>"
+            <a data-dialog-button class="link-add" href="<?= $controller->link_for('course/timesrooms/createCycle', $editParams) ?>"
                data-dialog="size=50%"
                title="<?= _('Regelmäßigen Termin hinzufügen') ?>">
                 <?= _('Regelmäßigen Termin hinzufügen') ?>
@@ -57,8 +57,8 @@
                             <colgroup>
                                 <col width="30px">
                                 <col width="30%">
-                                <col width="40%">
-                                <col width="15%">
+                                <col>
+                                <col width="20%">
                                 <col width="50px">
                             </colgroup>
                             <? foreach ($dates as $semester_id => $termine) : ?>

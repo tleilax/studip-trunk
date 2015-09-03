@@ -1,7 +1,7 @@
 <tr>
     <td>
         <label for="<?= htmlReady($termin->termin_id) ?>">
-            <input class="<?= $class_ids ?>" type="checkbox" id="<?= htmlReady($termin->termin_id) ?>"
+            <input class="<?= $class_ids ?>" type="checkbox" id="<?= htmlReady($termin->termin_id) ?>" value="<?= htmlReady($termin->termin_id) ?>"
                    name="single_dates[]" <?= $termin->isExTermin() ? 'disabled' : '' ?> />
         </label>
     </td>

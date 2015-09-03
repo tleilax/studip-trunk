@@ -42,7 +42,7 @@ class Course_BlockAppointmentsController extends AuthenticatedController
         if (!Request::isXhr()) {
             Navigation::activateItem('/course/admin/timesrooms');
         }
-
+        $this->editParams = array('fromDialog' => Request::get('fromDialog'));
         $this->start_ts = strtotime('this monday');
     }
 
@@ -59,14 +59,14 @@ class Course_BlockAppointmentsController extends AuthenticatedController
         if (!($start_day && $end_day && $start_day <= $end_day)) {
             $errors[] = _("Bitte geben Sie korrekte Werte für Start- und Enddatum an!");
         } else {
-
             $start_time = strtotime(Request::get('block_appointments_start_time'), $start_day);
-            $end_time   = strtotime(Request::get('block_appointments_end_time'), $start_day);
+            $end_time   = strtotime(Request::get('block_appointments_end_time'), $end_day);
 
             if (!($start_time && $end_time && $start_time < $end_time)) {
                 $errors[] = _("Bitte geben Sie korrekte Werte für Start- und Endzeit an!");
             }
         }
+
 
         $termin_typ     = (int)Request::int('block_appointments_termin_typ');
         $free_room_text = Request::get('block_appointments_room_text');
@@ -86,14 +86,17 @@ class Course_BlockAppointmentsController extends AuthenticatedController
             $dates    = array();
             $delta    = $end_time - $start_time;
             $last_day = strtotime(Request::get('block_appointments_start_time'), $end_day);
+
             if (in_array('everyday', $days)) {
                 $days = range(1, 7);
             }
             if (in_array('weekdays', $days)) {
                 $days = range(1, 5);
             }
-            for ($t = $start_time; $t <= $last_day; $t = strtotime('+1 day', $t)) {
-                if (in_array(strftime('%u', $t), $days)) {
+
+            $t = $start_time;
+            while($t <= $last_day) {
+                if (in_array(date('N', $t), $days)) {
                     for ($i = 1; $i <= $date_count; $i++) {
                         $date = new SingleDate();
                         $date->setDateType($termin_typ);
@@ -104,8 +107,8 @@ class Course_BlockAppointmentsController extends AuthenticatedController
                         $dates[]        = $date;
                     }
                 }
+                $t = strtotime('+1 day', $t);
             }
-
 
             if (count($dates)) {
                 if (Request::submitted('preview')) {
@@ -128,9 +131,16 @@ class Course_BlockAppointmentsController extends AuthenticatedController
                 }
             } else {
                 PageLayout::postMessage(MessageBox::error(_("Keiner der ausgewählten Tage liegt in dem angegebenen Zeitraum!")));
+                $this->redirect('course/block_appointments/index');
+                return;
             }
         }
-        $this->redirect('course/timesrooms/index');
+
+        if(Request::get('fromDialog') == 'true') {
+            $this->redirect('course/timesrooms/index');
+        } else {
+            $this->relocate('course/timesrooms/index');
+        }
     }
 
     public function render_json($data)

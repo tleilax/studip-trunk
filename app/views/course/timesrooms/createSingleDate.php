@@ -1,4 +1,4 @@
-<form action="<?= $controller->url_for('course/timesrooms/saveSingleDate') ?>" method="post"
+<form action="<?= $controller->url_for('course/timesrooms/saveSingleDate', $editParams) ?>" method="post"
       class="studip-form" <?= Request::isXhr() ? 'data-dialog=size=big"' : '' ?>>
     <?= CSRFProtection::tokenTag() ?>
     <section>
