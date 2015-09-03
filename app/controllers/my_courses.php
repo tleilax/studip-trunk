@@ -23,7 +23,6 @@
  * @category    Stud.IP
  * @since       3.1
  */
-require_once 'app/models/my_realm.php';
 require_once 'lib/meine_seminare_func.inc.php';
 require_once 'lib/object.inc.php';
 
@@ -217,7 +216,6 @@ class MyCoursesController extends AuthenticatedController
             throw new AccessDeniedException();
         }
 
-        DBView::addView('sem_tree');
 
         $this->title = _('Meine Veranstaltungen') . ' - ' . _('Farbgruppierungen');
 
@@ -255,7 +253,7 @@ class MyCoursesController extends AuthenticatedController
             $add_query  = "LEFT JOIN seminar_user as su1 ON (su1.seminar_id=seminare.Seminar_id AND su1.status='dozent')";
         }
 
-        $dbv = new DbView();
+        $dbv = DbView::getView('sem_tree');
 
         $query = "SELECT seminare.VeranstaltungsNummer AS sem_nr, seminare.Name, seminare.Seminar_id,
                          seminare.status AS sem_status, seminar_user.gruppe, seminare.visible,

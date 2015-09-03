@@ -22,7 +22,6 @@
 
 require_once 'lib/admission.inc.php';
 require_once 'lib/dates.inc.php';
-require_once 'app/models/studygroup.php';
 
 class Seminar
 {
