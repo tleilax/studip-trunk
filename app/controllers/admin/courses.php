@@ -87,7 +87,7 @@ class Admin_CoursesController extends AuthenticatedController
             : 'dozent';
 
         // get courses only if institutes available
-        $this->actions = self::getActions();
+        $this->actions = $this->getActions();
 
         $config_my_course_type_filter = $GLOBALS['user']->cfg->MY_COURSES_TYPE_FILTER;
 
@@ -505,69 +505,82 @@ class Admin_CoursesController extends AuthenticatedController
      * @param null $selected
      * @return array
      */
-    private static function getActions($selected = null)
+    private function getActions($selected = null)
     {
         // array for the avaiable modules
+        $sem_filter = $this->semester ? $this->semester->beginn : 'all';
         $actions = array(
             1  => array('name'       => _('Grunddaten'),
                         'title'      => _('Grunddaten'),
                         'url'        => 'dispatch.php/course/basicdata/view?cid=%s',
                         'attributes' => array(
                             'data-dialog' => 'size=big'
-                        )),
+                        )
+            ),
             2  => array('name'       => _('Studienbereiche'),
                         'title'      => _('Studienbereiche'),
                         'url'        => 'dispatch.php/course/study_areas/show/?cid=%s&from=admin/courses',
                         'attributes' => array(
                             'data-dialog' => 'size=big'
-                        )),
-            3  => array('name'  => _('Zeiten / Räume'),
-                        'title' => _('Zeiten / Räume'),
-                        'url'   => 'dispatch.php/course/timesrooms/index?cid=%s',
+                        )
+            ),
+            3  => array('name'       => _('Zeiten / Räume'),
+                        'title'      => _('Zeiten / Räume'),
+                        'url'        => 'dispatch.php/course/timesrooms/index?cid=%s',
                         'attributes' => array(
                             'data-dialog' => 'size=big'
                         ),
-                        'params' => array(
-                            'newFilter' => $GLOBALS['user']->cfg->MY_COURSES_SELECTED_CYCLE
-                        )),
+                        'params'     => array(
+                            'newFilter' => $sem_filter,
+                            'cmd'       => 'applyFilter'
+                        )
+            ),
             8  => array('name'      => _('Sperrebene'),
                         'title'     => _('Sperrebenen'),
                         'url'       => 'dispatch.php/admin/courses/set_lockrule',
-                        'multimode' => true),
+                        'multimode' => true
+            ),
             9  => array('name'      => _('Sichtbarkeit'),
                         'title'     => _('Sichtbarkeit'),
                         'url'       => 'dispatch.php/admin/courses/set_visibility',
-                        'multimode' => true),
+                        'multimode' => true
+            ),
             10 => array('name'      => _('Zusatzangaben'),
                         'title'     => _('Zusatzangaben'),
                         'url'       => 'dispatch.php/admin/courses/set_aux_lockrule',
-                        'multimode' => true),
-            11 => array('name'  => _('Veranstaltung kopieren'),
-                        'title' => _('Kopieren'),
-                        'url'   => 'dispatch.php/course/wizard/copy/%s',
+                        'multimode' => true
+            ),
+            11 => array('name'       => _('Veranstaltung kopieren'),
+                        'title'      => _('Kopieren'),
+                        'url'        => 'dispatch.php/course/wizard/copy/%s',
                         'attributes' => array(
                             'data-dialog' => 'size=big'
-                        )),
+                        )
+            ),
             14 => array('name'       => 'Zugangsberechtigungen',
                         'title'      => _('Zugangsberechtigungen'),
                         'url'        => 'dispatch.php/course/admission?cid=%s',
                         'attributes' => array(
                             'data-dialog' => 'size=big'
-                        )),
+                        )
+            ),
             16 => array('name'      => _('Archivieren'),
                         'title'     => _('Archivieren'),
                         'url'       => 'archiv_assi.php',
-                        'multimode' => true),
-            17  => array('name'      => _('Gesperrte Veranstaltungen'),
+                        'multimode' => true
+            ),
+            17 => array('name'      => _('Gesperrte Veranstaltungen'),
                         'title'     => _('Einstellungen speichern'),
                         'url'       => 'dispatch.php/admin/courses/set_locked',
-                        'multimode' => true),
-            18  => array('name'       => _('Startsemester'),
+                        'multimode' => true
+            ),
+            18 => array('name'       => _('Startsemester'),
                         'title'      => _('Startsemester'),
                         'url'        => 'dispatch.php/course/timesrooms/editSemester?cid=%s',
                         'attributes' => array(
                             'data-dialog' => 'size=400'
-                        )),
+                        )
+            ),
         );
 
         if (get_config('RESOURCES_ALLOW_ROOM_REQUESTS')) {
@@ -828,7 +841,7 @@ class Admin_CoursesController extends AuthenticatedController
      */
     private function setActionsWidget($selected_action = null)
     {
-        $actions = self::getActions();
+        $actions = $this->getActions();
         $sidebar = Sidebar::Get();
         $list = new SelectWidget(_('Aktionsbereich-Auswahl'), $this->url_for('admin/courses/set_action_type'), 'action_area');
 

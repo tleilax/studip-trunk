@@ -54,15 +54,16 @@ class Course_TimesroomsController extends AuthenticatedController
         if (isset($this->flash['question'])) {
             PageLayout::addBodyElements($this->flash['question']);
         }
-
-
         $_SESSION['raumzeitFilter'] = Request::quoted('newFilter');
-
         // bind linkParams for chosen semester and opened dates
         URLHelper::bindLinkParam('raumzeitFilter', $_SESSION['raumzeitFilter']);
         $GLOBALS['cmd'] = Request::option('cmd');
         $this->course->checkFilter();
-        $this->setSidebar();
+
+
+        if(!Request::isXhr()) {
+            $this->setSidebar();
+        }
     }
 
     public function index_action($course_id = null)
@@ -93,6 +94,7 @@ class Course_TimesroomsController extends AuthenticatedController
 
         $this->semester = array_reverse(Semester::getAll());
         $this->current_semester = Semester::findCurrent();
+
 
         /**
          * Get Cycles
@@ -378,12 +380,12 @@ class Course_TimesroomsController extends AuthenticatedController
     public function deleteStack($ids, $cycle_id = '')
     {
         if (!empty($ids)) {
-            foreach($ids as $id) {
+            foreach ($ids as $id) {
                 $this->deleteDate($id, Request::get('sub_cmd'), $cycle_id);
             }
         }
         $this->displayMessages();
-        if(Request::get('fromDialog') == 'true') {
+        if (Request::get('fromDialog') == 'true') {
             $this->redirect('course/timesrooms/index#' . $cycle_id,
                 array('contentbox_open' => $cycle_id));
         } else {
@@ -416,7 +418,7 @@ class Course_TimesroomsController extends AuthenticatedController
          * TODO
          */
         PageLayout::postMessage(MessageBox::success(_('Die Änderungen wurden erfolgreich gespeichert!')));
-        if(Request::get('fromDialog') == 'true') {
+        if (Request::get('fromDialog') == 'true') {
             $this->redirect('course/timesrooms/index#' . $cycle_id,
                 array('contentbox_open' => $cycle_id));
         } else {
