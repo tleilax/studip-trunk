@@ -13,7 +13,6 @@
  * @category    Stud.IP
  * @package     admin
  */
-
 class Course_RoomRequestsController extends AuthenticatedController
 {
     /**
@@ -167,19 +166,22 @@ class Course_RoomRequestsController extends AuthenticatedController
                                                                                                    'single_request' => $request->getId()
             )), 'icons/blue/admin');
         }
-        Sidebar::Get()->addWidget($actions);
 
-        $widget = new SidebarWidget();
-        $widget->setTitle(_('Informationen'));
-        if ($request->isNew()) {
-            $widget->addElement(new WidgetElement(_('Dies ist eine neue Raumanfrage.')));
-        } else {
-            $info_txt = '<p>' . sprintf(_('Erstellt von: %s'), User::find($request->user_id)->getFullname()) . '</p>';
-            $info_txt .= '<p>' . sprintf(_('Erstellt am: %s'), strftime('%x %H:%M', $request->mkdate)) . '</p>';
-            $info_txt .= '<p>' . sprintf(_('Letzte Änderung: %s'), strftime('%x %H:%M', $request->chdate)) . '</p>';
-            $widget->addElement(new WidgetElement($info_txt));
+        if (Request::isXhr()) {
+            Sidebar::Get()->addWidget($actions);
+
+            $widget = new SidebarWidget();
+            $widget->setTitle(_('Informationen'));
+            if ($request->isNew()) {
+                $widget->addElement(new WidgetElement(_('Dies ist eine neue Raumanfrage.')));
+            } else {
+                $info_txt = '<p>' . sprintf(_('Erstellt von: %s'), User::find($request->user_id)->getFullname()) . '</p>';
+                $info_txt .= '<p>' . sprintf(_('Erstellt am: %s'), strftime('%x %H:%M', $request->mkdate)) . '</p>';
+                $info_txt .= '<p>' . sprintf(_('Letzte Änderung: %s'), strftime('%x %H:%M', $request->chdate)) . '</p>';
+                $widget->addElement(new WidgetElement($info_txt));
+            }
+            Sidebar::Get()->addWidget($widget);
         }
-        Sidebar::Get()->addWidget($widget);
     }
 
     function edit_dialog_action()
@@ -344,7 +346,7 @@ class Course_RoomRequestsController extends AuthenticatedController
                 }
             }
         }
-        $this->redirect($this->url_for('index/' . $this->course_id));
+        $this->redirect('course/room_requests/index/' . $this->course_id);
     }
 
     /**
