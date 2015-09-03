@@ -733,24 +733,18 @@ class Course_TimesroomsController extends AuthenticatedController
     {
         $start_weeks = array();
         $all_semester = SemesterData::GetInstance()->getAllSemesterData();
-        if($this->course->start_semester->beginn < time()) {
-            $start_sem_id = Semester::findCurrent()->id;
-        } else {
-            $start_sem_id = $this->course->start_semester->id;
-        }
-
         if($this->course->duration_time != -1) {
             $end_index = SemesterData::GetSemesterIndexById($this->course->end_semester->id);
         } else {
             $end_index = array_pop(array_keys($all_semester));
         }
-        $start_index = SemesterData::GetSemesterIndexById($start_sem_id);
+        $start_index = SemesterData::GetSemesterIndexById($this->course->start_semester->id);
         $tmp_first_date = getCorrectedSemesterVorlesBegin($start_index);
         $_tmp_first_date = strftime('%d.%m.%Y', $tmp_first_date);
         $end_date = $all_semester[$end_index]['vorles_ende'];
 
         $i = 0;
-        $now = time();
+
         while ($tmp_first_date < $end_date) {
 
             $start_weeks[$i]['text'] = ($i + 1) . '. ' . _("Semesterwoche") . ' (' . _("ab") . ' ' . strftime("%d.%m.%Y", $tmp_first_date) . ')';
