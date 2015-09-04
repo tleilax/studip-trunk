@@ -189,6 +189,7 @@ class Course_TimesroomsController extends AuthenticatedController
             $this->params = array('new_room_request_type' => 'date_' . $this->termin->getSingleDateID());
         }
 
+        $this->params['fromDialog'] = Request::get('fromDialog');
         $this->dozenten = $this->course->getMembers('dozent');
         $this->related_persons = $this->termin->getRelatedPersons();
         $this->related_groups = $this->termin->getRelatedGroups();
@@ -336,7 +337,7 @@ class Course_TimesroomsController extends AuthenticatedController
         if (Request::option('cycle_id')) {
             $params['contentbox_open'] = Request::get('cycle_id');
         }
-        $this->redirect('course/timesrooms/index' . (Request::get('cycle_id') ? '#' . Request::get('cycle_id') : ''), $params);
+        $this->redirect($this->url_for('course/timesrooms/index' . (Request::option('cycle_id') ? '#' . Request::option('cycle_id') : ''), $params));
     }
 
 
@@ -348,10 +349,10 @@ class Course_TimesroomsController extends AuthenticatedController
             $this->displayMessages();
         }
         $params = array();
-        if ($termin->metadate_id) {
+        if ($termin->metadate_id != '') {
             $params['contentbox_open'] = $termin->metadate_id;
         }
-        $this->redirect('course/timesrooms/index' . ($termin->metadate_id ? '#' . $termin->metadate_id : ''), $params);
+        $this->redirect($this->url_for('course/timesrooms/index' . ($termin->metadate_id ? '#' . $termin->metadate_id : ''), $params));
     }
 
 
@@ -361,8 +362,8 @@ class Course_TimesroomsController extends AuthenticatedController
         if (empty($ids)) {
             PageLayout::postMessage(MessageBox::error(_('Sie haben keine Termine ausgewählt!')));
             if (Request::get('fromDialog') == 'true') {
-                $this->redirect('course/timesrooms/index#' . $cycle_id,
-                    array('contentbox_open' => $cycle_id));
+                $this->redirect($this->url_for('course/timesrooms/index#' . $cycle_id,
+                    array('contentbox_open' => $cycle_id)));
             } else {
                 $this->relocate('course/timesrooms/index#' . $cycle_id,
                     array('contentbox_open' => $cycle_id));
@@ -409,8 +410,8 @@ class Course_TimesroomsController extends AuthenticatedController
         }
         $this->displayMessages();
         if (Request::get('fromDialog') == 'true') {
-            $this->redirect('course/timesrooms/index#' . $cycle_id,
-                array('contentbox_open' => $cycle_id));
+            $this->redirect($this->url_for('course/timesrooms/index#' . $cycle_id,
+                array('contentbox_open' => $cycle_id)));
         } else {
             $this->relocate('course/timesrooms/index#' . $cycle_id,
                 array('contentbox_open' => $cycle_id));
@@ -431,8 +432,8 @@ class Course_TimesroomsController extends AuthenticatedController
         }
         $this->displayMessages();
         if (Request::get('fromDialog') == 'true') {
-            $this->redirect('course/timesrooms/index#' . $cycle_id,
-                array('contentbox_open' => $cycle_id));
+            $this->redirect($this->url_for('course/timesrooms/index#' . $cycle_id,
+                array('contentbox_open' => $cycle_id)));
         } else {
             $this->relocate('course/timesrooms/index#' . $cycle_id,
                 array('contentbox_open' => $cycle_id));
@@ -770,7 +771,7 @@ class Course_TimesroomsController extends AuthenticatedController
         }
         $termin->store();
         $this->displayMessages();
-        $this->redirect('course/timesrooms/index#' . $termin->metadate_id, array('contentbox_open' => $termin->metadate_id));
+        $this->redirect($this->url_for('course/timesrooms/index#' . $termin->metadate_id, array('contentbox_open' => $termin->metadate_id)));
     }
 
     function setSidebar()

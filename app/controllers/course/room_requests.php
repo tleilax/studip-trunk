@@ -114,10 +114,7 @@ class Course_RoomRequestsController extends AuthenticatedController
         $attributes = self::process_form($request, $admission_turnout);
 
         $this->params = array('request_id' => $request->getId());
-
-        if (Request::get('asDialog')) {
-            $this->params['asDialog'] = true;
-        }
+        $this->params['fromDialog'] = Request::get('fromDialog');
 
         if (Request::submitted('save') || Request::submitted('save_close')) {
             if (!($request->getSettedPropertiesCount() || $request->getResourceId())) {
@@ -132,10 +129,10 @@ class Course_RoomRequestsController extends AuthenticatedController
                     if (!Request::isXhr()) {
                         $this->redirect('course/room_requests/index/' . $this->course_id);
                     } else {
-                        if (!Request::get('asDialog')) {
-                            $this->relocate('course/room_requests/index/' . $this->course_id);
-                        } else {
+                        if (Request::get('fromDialog') == true) {
                             $this->relocate('admin/courses');
+                        } else {
+                            $this->relocate('course/room_requests/index/' . $this->course_id);
                         }
                     }
                 }
