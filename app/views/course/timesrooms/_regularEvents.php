@@ -60,7 +60,7 @@
                 <section>
                     <? $dates = $cycle['dates'] ?>
                     <form class="studip-form"
-                          action="<?= $controller->url_for('course/timesrooms/stack/' . $metadate_id) ?>"
+                          action="<?= $controller->url_for('course/timesrooms/stack/' . $metadate_id, $editParams) ?>"
                           method="post" data-dialog="size=50%">
                         <table class="default nohover">
                             <colgroup>

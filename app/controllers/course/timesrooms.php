@@ -374,6 +374,7 @@ class Course_TimesroomsController extends AuthenticatedController
         $this->teachers = $this->course->getMembers('dozent');
         $this->gruppen = Statusgruppen::findBySeminar_id($this->course->id);
         $this->resList = ResourcesUserRoomsList::getInstance($GLOBALS['user']->id, true, false, true);
+        $this->editParams = array('fromDialog' => Request::get('fromDialog'));
         $this->render_template('course/timesrooms/editStack');
     }
 
