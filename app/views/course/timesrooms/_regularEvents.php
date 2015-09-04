@@ -6,7 +6,7 @@
         <nav>
             <a data-dialog-button class="link-add"
                href="<?= $controller->link_for('course/timesrooms/createCycle', $editParams) ?>"
-               data-dialog="size=50%"
+               data-dialog="size=big"
                title="<?= _('Regelmäßigen Termin hinzufügen') ?>">
                 <?= _('Regelmäßigen Termin hinzufügen') ?>
             </a>
@@ -47,7 +47,7 @@
 
                         <span>
                             <a href="<?= $controller->url_for('course/timesrooms/createCycle/' . $metadate_id) ?>"
-                               data-dialog="size=50%">
+                               data-dialog="size=big">
                                 <?= Assets::img('icons/blue/edit', tooltip2(_('Diesen Zeitraum bearbeiten'))) ?>
                             </a>
                             <a href="#" data-dialog="size=big">
@@ -61,7 +61,7 @@
                     <? $dates = $cycle['dates'] ?>
                     <form class="studip-form"
                           action="<?= $controller->url_for('course/timesrooms/stack/' . $metadate_id, $editParams) ?>"
-                          method="post" data-dialog="size=50%">
+                          method="post" data-dialog="size=big">
                         <table class="default nohover">
                             <colgroup>
                                 <col width="30px">

@@ -66,7 +66,7 @@ class Seminar
 
     private static $seminar_object_pool;
 
-    static function GetInstance($id = false, $refresh_cache = false)
+    public static function GetInstance($id = false, $refresh_cache = false)
     {
         if ($id) {
             if ($refresh_cache) {
@@ -83,7 +83,7 @@ class Seminar
         }
     }
 
-    static function setInstance(Seminar $seminar)
+    public static function setInstance(Seminar $seminar)
     {
         return self::$seminar_object_pool[$seminar->id] = $seminar;
     }
@@ -95,7 +95,7 @@ class Seminar
      * @access   public
      * @param    string  $seminar_id the seminar to be retrieved
      */
-    function __construct($course_or_id = FALSE)
+    public function __construct($course_or_id = FALSE)
     {
         $course = Course::toObject($course_or_id);
         if ($course) {
@@ -108,7 +108,7 @@ class Seminar
         }
     }
 
-    function __get($field)
+    public function __get($field)
     {
         if ($field == 'is_new') {
             return $this->course->isNew();
@@ -127,7 +127,7 @@ class Seminar
         return $this->course->$field;
     }
 
-    function __set($field, $value)
+    public function __set($field, $value)
     {
         if(isset($this->alias[$field])) {
             $field = $this->alias[$field];
@@ -138,7 +138,7 @@ class Seminar
         return $this->course->$field = $value;
     }
 
-    function __isset($field)
+    public function __isset($field)
     {
         if ($field == 'metadate') {
             return is_object($this->_metadate);
@@ -149,12 +149,12 @@ class Seminar
         return isset($this->course->$field);
     }
 
-    function __call($method, $params)
+    public function __call($method, $params)
     {
         return call_user_func_array(array($this->course, $method), $params);
     }
 
-    static function GetSemIdByDateId($date_id)
+    public static function GetSemIdByDateId($date_id)
     {
         $stmt = DBManager::get()->prepare("SELECT range_id FROM termine WHERE termin_id = ? LIMIT 1");
         $stmt->execute(array($date_id));
@@ -167,12 +167,12 @@ class Seminar
      * @access   private
      * @return   string  the unique id
      */
-    function createId()
+    public function createId()
     {
         return $this->course->getNewId();
     }
 
-    function getMembers($status = 'dozent')
+    public function getMembers($status = 'dozent')
     {
         $ret = array();
         foreach($this->course->getMembersWithStatus($status) as $m) {
@@ -190,7 +190,7 @@ class Seminar
         return $ret;
     }
 
-    function getAdmissionMembers($status = 'awaiting')
+    public function getAdmissionMembers($status = 'awaiting')
     {
         $ret = array();
         foreach($this->course->admission_applicants->findBy('status', $status)->orderBy('position nachname') as $m) {
@@ -207,12 +207,12 @@ class Seminar
         return $ret;
     }
 
-    function getId()
+    public function getId()
     {
         return $this->id;
     }
 
-    function getName()
+    public function getName()
     {
         return $this->name;
     }
@@ -222,33 +222,34 @@ class Seminar
      *
      * @return  string  the seminar-number for the current seminar
      */
-    function getNumber()
+    public function getNumber()
     {
         return $this->seminar_number;
     }
 
-    function isVisible()
+    public function isVisible()
     {
         return $this->visible;
     }
 
-    function getInstitutId()
+    public function getInstitutId()
     {
         return $this->institut_id;
     }
 
-    function getSemesterStartTime()
+    public function getSemesterStartTime()
     {
         return $this->semester_start_time;
     }
 
-    function getSemesterDurationTime()
+    public function getSemesterDurationTime()
     {
         return $this->semester_duration_time;
     }
 
-    function getNextDate($return_mode = 'string')
+    public function getNextDate($return_mode = 'string')
     {
+        $next_date = '';
         if ($return_mode == 'int') {
             echo __class__.'::'.__function__.', line '.__line__.', return_mode "int" ist not supported by this function!';die;
         }
@@ -288,7 +289,7 @@ class Seminar
         return false;
     }
 
-    function getFirstDate($return_mode = 'string') {
+    public function getFirstDate($return_mode = 'string') {
         if (!$dates = SeminarDB::getFirstDate($this->id)) {
             return false;
         }
@@ -301,7 +302,7 @@ class Seminar
      *
      * @returns  mixed  a multidimensional array of seminar-dates
      */
-    function getUndecoratedData($filter = false)
+    public function getUndecoratedData($filter = false)
     {
 
         // Caching
@@ -377,7 +378,7 @@ class Seminar
         return $data[$sub_key];
     }
 
-    function getFormattedTurnus($short = FALSE)
+    public function getFormattedTurnus($short = FALSE)
     {
         // activate this with StEP 00077
         /* $cache = Cache::instance();
@@ -392,7 +393,7 @@ class Seminar
         // }
     }
 
-    function getFormattedTurnusDates($short = FALSE)
+    public function getFormattedTurnusDates($short = FALSE)
     {
         if ($cycles = $this->metadate->getCycles()) {
             $return_string = array();
@@ -408,7 +409,7 @@ class Seminar
             return FALSE;
     }
 
-    function getMetaDateCount()
+    public function getMetaDateCount()
     {
         return sizeof($this->metadate->cycles);
     }
@@ -419,17 +420,17 @@ class Seminar
      * @deprecated
      * @return number
      */
-    function getMetaDateType()
+    public function getMetaDateType()
     {
         return 1;
     }
 
-    function getMetaDateValue($key, $value_name)
+    public function getMetaDateValue($key, $value_name)
     {
         return $this->metadate->cycles[$key]->$value_name;
     }
 
-    function setMetaDateValue($key, $value_name, $value)
+    public function setMetaDateValue($key, $value_name, $value)
     {
         $this->metadate->cycles[$key]->$value_name = $value;
     }
@@ -442,7 +443,7 @@ class Seminar
      * @throws   Exception  if there is no such course
      * @return   boolean    always true
      */
-    function restore()
+    public function restore()
     {
         if ($this->course->id) {
             $this->course->restore();
@@ -461,11 +462,11 @@ class Seminar
      *
      * @return  array
      */
-    function getSettings() {
+    public function getSettings() {
         return $this->course->toArray();
     }
 
-    function store($trigger_chdate = true)
+    public function store($trigger_chdate = true)
     {
         // activate this with StEP 00077
         // $cache = Cache::instance();
@@ -496,7 +497,7 @@ class Seminar
         }
     }
 
-    function setStartSemester($start)
+    public function setStartSemester($start)
     {
         global $perm;
 
@@ -514,7 +515,7 @@ class Seminar
         return FALSE;
     }
 
-    function removeAndUpdateSingleDates()
+    public function removeAndUpdateSingleDates()
     {
         SeminarDB::removeOutRangedSingleDates($this->semester_start_time, $this->getEndSemesterVorlesEnde(), $this->id);
 
@@ -526,7 +527,7 @@ class Seminar
         NotificationCenter::postNotification("CourseDidChangeSchedule", $this);
     }
 
-    function getStartSemester()
+    public function getStartSemester()
     {
         return $this->semester_start_time;
     }
@@ -536,7 +537,7 @@ class Seminar
      * @param   end integer 0 (one Semester), -1 (eternal), or timestamp of last happening semester
      * @returns TRUE on success, FALSE on failure
      */
-    function setEndSemester($end)
+    public function setEndSemester($end)
     {
         global $perm;
 
@@ -598,14 +599,14 @@ class Seminar
      * getEndSemester
      * @returns 0 (one Semester), -1 (eternal), or TimeStamp of last Semester for this Seminar
      */
-    function getEndSemester()
+    public function getEndSemester()
     {
         if ($this->semester_duration_time == 0) return 0;                                       // seminar takes place only in the start-semester
         if ($this->semester_duration_time == -1) return -1;                                 // seminar takes place eternally
         return $this->semester_start_time + $this->semester_duration_time;  // seminar takes place between start~ and end-semester
     }
 
-    function getEndSemesterVorlesEnde()
+    public function getEndSemesterVorlesEnde()
     {
         if ($this->semester_duration_time == -1) {
             $very_last_semester = array_pop(Semester::getAll());
@@ -619,7 +620,7 @@ class Seminar
      *
      * @return  string  the name of the start-semester or false if there is no start-semester
      */
-    function getStartSemesterName()
+    public function getStartSemesterName()
     {
         return $this->course->start_semester->name;
     }
@@ -631,12 +632,12 @@ class Seminar
      *
      * @return mixed   an array of singledate-objects
      */
-    function readSingleDatesForCycle($metadate_id)
+    public function readSingleDatesForCycle($metadate_id)
     {
         return $this->metadate->readSingleDates($metadate_id, $this->filterStart, $this->filterEnd);
     }
 
-    function readSingleDates($force = FALSE, $filter = FALSE)
+    public function readSingleDates($force = FALSE, $filter = FALSE)
     {
         if (!$force) {
             if (is_array($this->irregularSingleDates)) {
@@ -659,7 +660,7 @@ class Seminar
         }
     }
 
-    function &getSingleDate($singleDateID, $cycle_id = '')
+    public function &getSingleDate($singleDateID, $cycle_id = '')
     {
         if ($cycle_id == '') {
             $this->readSingleDates();
@@ -670,7 +671,7 @@ class Seminar
         }
     }
 
-    function &getSingleDates($filter = false, $force = false, $include_deleted_dates = false)
+    public function &getSingleDates($filter = false, $force = false, $include_deleted_dates = false)
     {
         $this->readSingleDates($force, $filter);
         if (!$include_deleted_dates) {
@@ -691,12 +692,12 @@ class Seminar
         }
     }
 
-    function getCycles()
+    public function getCycles()
     {
         return $this->metadate->getCycles();
     }
 
-    function &getSingleDatesForCycle($metadate_id)
+    public function &getSingleDatesForCycle($metadate_id)
     {
         if (!$this->metadate->cycles[$metadate_id]->termine) {
             $this->metadate->readSingleDates($metadate_id, $this->filterStart, $this->filterEnd);
@@ -711,7 +712,7 @@ class Seminar
         return $this->metadate->getSingleDates($metadate_id, $this->filterStart, $this->filterEnd);
     }
 
-    function readIssues($force = false)
+    public function readIssues($force = false)
     {
         if (!is_array($this->issues) || $force) {
             $this->issues = array();
@@ -726,7 +727,7 @@ class Seminar
         }
     }
 
-    function addSingleDate(&$singledate)
+    public function addSingleDate(&$singledate)
     {
         // logging >>>>>>
         StudipLog::log("SEM_ADD_SINGLEDATE", $this->getId(), $singledate->toString(), 'SingleDateID: '.$singledate->getTerminID());
@@ -741,7 +742,7 @@ class Seminar
         return TRUE;
     }
 
-    function addIssue(&$issue)
+    public function addIssue(&$issue)
     {
         $this->readIssues();
         if ($issue instanceof Issue) {
@@ -760,7 +761,7 @@ class Seminar
         }
     }
 
-    function deleteSingleDate($date_id, $cycle_id = '')
+    public function deleteSingleDate($date_id, $cycle_id = '')
     {
         $this->readSingleDates();
         // logging >>>>>>
@@ -778,7 +779,7 @@ class Seminar
         }
     }
 
-    function cancelSingleDate($date_id, $cycle_id = '')
+    public function cancelSingleDate($date_id, $cycle_id = '')
     {
         if ($cycle_id) {
             return $this->deleteSingleDate($date_id, $cycle_id);
@@ -794,7 +795,7 @@ class Seminar
         return TRUE;
     }
 
-    function unDeleteSingleDate($date_id, $cycle_id = '')
+    public function unDeleteSingleDate($date_id, $cycle_id = '')
     {
         // logging >>>>>>
         StudipLog::log("SEM_UNDELETE_SINGLEDATE",$date_id, $this->getId(), 'Cycle_id: '.$cycle_id);
@@ -822,7 +823,7 @@ class Seminar
      *
      * @return mixed the array of stacked messages
      */
-    function getStackedMessages()
+    public function getStackedMessages()
     {
         if ( is_array( $this->message_stack ) ) {
             $ret = array();
@@ -864,7 +865,7 @@ class Seminar
      *
      * @return string a message-string
      */
-    function getNextMessage()
+    public function getNextMessage()
     {
         if ($this->messages[0]) {
             $ret = $this->messages[0];
@@ -880,7 +881,7 @@ class Seminar
      *
      * @param string $text the message to stack
      */
-    function createError($text)
+    public function createError($text)
     {
         $this->messages[] = 'error§'.$text.'§';
         $this->message_stack['error'][] = $text;
@@ -891,7 +892,7 @@ class Seminar
      *
      * @param string $text the message to stack
      */
-    function createInfo($text)
+    public function createInfo($text)
     {
         $this->messages[] = 'info§'.$text.'§';
         $this->message_stack['info'][] = $text;
@@ -902,7 +903,7 @@ class Seminar
      *
      * @param string $text the message to stack
      */
-    function createMessage($text)
+    public function createMessage($text)
     {
         $this->messages[] = 'msg§'.$text.'§';
         $this->message_stack['success'][] = $text;
@@ -914,7 +915,7 @@ class Seminar
      * @param mixed $messages array of pre-marked message-strings
      * @param bool returns true on success
      */
-    function appendMessages( $messages )
+    public function appendMessages( $messages )
     {
         if (!is_array($messages)) return false;
 
@@ -926,7 +927,7 @@ class Seminar
         return true;
     }
 
-    function addCycle($data = array())
+    public function addCycle($data = array())
     {
         $new_id = $this->metadate->addCycle($data);
         if($new_id){
@@ -953,7 +954,7 @@ class Seminar
      *
      * @return void
      */
-    function editCycle($data = array())
+    public function editCycle($data = array())
     {
         $cycle = $this->metadate->cycles[$data['cycle_id']];
         $new_start = mktime($data['start_stunde'], $data['start_minute']);
@@ -1067,7 +1068,7 @@ class Seminar
         }
     }
 
-    function deleteCycle($cycle_id)
+    public function deleteCycle($cycle_id)
     {
         // logging >>>>>>
         $cycle_info = $this->metadate->cycles[$cycle_id]->toString();
@@ -1077,7 +1078,7 @@ class Seminar
         return $this->metadate->deleteCycle($cycle_id);
     }
 
-    function setTurnus($turnus, $metadate_id = false)
+    public function setTurnus($turnus, $metadate_id = false)
     {
         if ($this->metadate->getTurnus($metadate_id) != $turnus) {
             $this->metadate->setTurnus($turnus, $metadate_id);
@@ -1090,12 +1091,12 @@ class Seminar
         return TRUE;
     }
 
-    function getTurnus($metadate_id = false)
+    public function getTurnus($metadate_id = false)
     {
         return $this->metadate->getTurnus($metadate_id);
     }
 
-    function bookRoomForSingleDate($singleDateID, $roomID, $cycle_id = '', $append_messages = true)
+    public function bookRoomForSingleDate($singleDateID, $roomID, $cycle_id = '', $append_messages = true)
     {
         if (!$roomID) {
             return false;
@@ -1122,7 +1123,7 @@ class Seminar
         return $return;
     }
 
-    function getStatOfNotBookedRooms($cycle_id)
+    public function getStatOfNotBookedRooms($cycle_id)
     {
         if (!isset($this->BookedRoomsStatTemp[$cycle_id])) {
             $this->BookedRoomsStatTemp[$cycle_id] = SeminarDB::getStatOfNotBookedRooms($cycle_id, $this->id, $this->filterStart, $this->filterEnd);
@@ -1135,12 +1136,12 @@ class Seminar
         */
     }
 
-    function getStatus()
+    public function getStatus()
     {
         return $this->status;
     }
 
-    function getBookedRoomsTooltip($cycle_id)
+    public function getBookedRoomsTooltip($cycle_id)
     {
         $stat = $this->getStatOfNotBookedRooms($cycle_id);
         $pattern = '%s , %s, %s-%s <br />';
@@ -1171,7 +1172,7 @@ class Seminar
         return $return;
     }
 
-    function getRequestStatus($cycle_id) {
+    public function getRequestStatus($cycle_id) {
         $request = RoomRequest::findByCycle($cycle_id);
         $result = array();
         if($request) {
@@ -1189,7 +1190,7 @@ class Seminar
         return $result;
     }
 
-    function getRequestsInfo($cycle_id)
+    public function getRequestsInfo($cycle_id)
     {
         $zahl =  SeminarDB::countRequestsForSingleDates($cycle_id, $this->id, $this->filterStart, $this->filterEnd);
         if ($zahl == 0) {
@@ -1203,7 +1204,7 @@ class Seminar
      * @param $cycle_id
      * @return string
      */
-    function getCycleColorClass($cycle_id)
+    public function getCycleColorClass($cycle_id)
     {
         $stat = $this->getStatOfNotBookedRooms($cycle_id);
         if (Config::get()->RESOURCES_ENABLE && Config::get()->RESOURCES_ENABLE_BOOKINGSTATUS_COLORING) {
@@ -1225,7 +1226,7 @@ class Seminar
         return $return;
     }
 
-    function &getIssues($force = false)
+    public function &getIssues($force = false)
     {
         $this->readIssues($force);
         $this->renumberIssuePrioritys();
@@ -1235,14 +1236,14 @@ class Seminar
         return $this->issues;
     }
 
-    function deleteIssue($issue_id)
+    public function deleteIssue($issue_id)
     {
         $this->issues[$issue_id]->delete();
         unset($this->issues[$issue_id]);
         return TRUE;
     }
 
-    function &getIssue($issue_id)
+    public function &getIssue($issue_id)
     {
         $this->readIssues();
         return $this->issues[$issue_id];
@@ -1257,7 +1258,7 @@ class Seminar
      * issue_id             the issue_id of the issue to be changed
      * new_priority     the new priority
      */
-    function changeIssuePriority($issue_id, $new_priority)
+    public function changeIssuePriority($issue_id, $new_priority)
     {
         /* REMARK:
          * This function only works, when an issue is moved ONE slote higher or lower
@@ -1277,7 +1278,7 @@ class Seminar
 
     }
 
-    function renumberIssuePrioritys()
+    public function renumberIssuePrioritys()
     {
         if (is_array($this->issues)) {
 
@@ -1294,12 +1295,12 @@ class Seminar
         }
     }
 
-    function autoAssignIssues($themen, $cycle_id)
+    public function autoAssignIssues($themen, $cycle_id)
     {
         $this->metadate->cycles[$cycle_id]->autoAssignIssues($themen, $this->filterStart, $this->filterEnd);
     }
 
-    function hasRoomRequest()
+    public function hasRoomRequest()
     {
         if (!$this->request_id) {
             $this->request_id = getSeminarRoomRequest($this->id);
@@ -1331,7 +1332,7 @@ class Seminar
      *
      * @return string the mapped text
      */
-    function getRoomRequestStatus()
+    public function getRoomRequestStatus()
     {
         // check if there is any room-request
         if (!$this->request_id) {
@@ -1359,13 +1360,13 @@ class Seminar
         return FALSE;
     }
 
-    function applyTimeFilter($start, $end)
+    public function applyTimeFilter($start, $end)
     {
         $this->filterStart = $start;
         $this->filterEnd = $end;
     }
 
-    function setFilter($timestamp)
+    public function setFilter($timestamp)
     {
         global $semester;
 
@@ -1381,12 +1382,12 @@ class Seminar
         }
     }
 
-    function registerCommand($command, $function)
+    public function registerCommand($command, $function)
     {
         $this->commands[$command] = $function;
     }
 
-    function processCommands()
+    public function processCommands()
     {
         global $cmd;
 
@@ -1405,7 +1406,7 @@ class Seminar
         }
     }
 
-    function getFreeTextPredominantRoom($cycle_id)
+    public function getFreeTextPredominantRoom($cycle_id)
     {
         if (!($room = $this->metadate->cycles[$cycle_id]->getFreeTextPredominantRoom($this->filterStart, $this->filterEnd))) {
             return FALSE;
@@ -1413,7 +1414,7 @@ class Seminar
         return $room;
     }
 
-    function getPredominantRoom($cycle_id, $list = FALSE)
+    public function getPredominantRoom($cycle_id, $list = FALSE)
     {
         if (!($rooms = $this->metadate->cycles[$cycle_id]->getPredominantRoom($this->filterStart, $this->filterEnd))) {
             return FALSE;
@@ -1425,7 +1426,7 @@ class Seminar
         }
     }
 
-    function getFormattedPredominantRooms($cycle_id, $link = true, $show = 3)
+    public function getFormattedPredominantRooms($cycle_id, $link = true, $show = 3)
     {
         if (!($rooms = $this->metadate->cycles[$cycle_id]->getPredominantRoom($this->filterStart, $this->filterEnd))) {
             return FALSE;
@@ -1456,7 +1457,7 @@ class Seminar
         return $roominfo;
     }
 
-    function checkFilter()
+    public function checkFilter()
     {
         global $cmd;
 
@@ -1497,7 +1498,7 @@ class Seminar
      *
      * @return boolean true on success
      */
-    function removeRequest($singledate_id,  $cycle_id = '')
+    public function removeRequest($singledate_id,  $cycle_id = '')
     {
         if ($cycle_id == '') {
             $this->irregularSingleDates[$singledate_id]->removeRequest();
@@ -1508,7 +1509,7 @@ class Seminar
         return TRUE;
     }
 
-    function hasDatesOutOfDuration($force = false)
+    public function hasDatesOutOfDuration($force = false)
     {
         if ($this->hasDatesOutOfDuration == -1 || $force) {
             $this->hasDatesOutOfDuration = SeminarDB::hasDatesOutOfDuration($this->getStartSemester(), $this->getEndSemesterVorlesEnde(), $this->id);
@@ -1516,12 +1517,12 @@ class Seminar
         return $this->hasDatesOutOfDuration;
     }
 
-    function getStartWeek($metadate_id = false)
+    public function getStartWeek($metadate_id = false)
     {
         return $this->metadate->getStartWoche($metadate_id);
     }
 
-    function setStartWeek($week, $metadate_id = false)
+    public function setStartWeek($week, $metadate_id = false)
     {
         if ($this->metadate->getStartWoche($metadate_id) == $week) {
             return FALSE;
@@ -1536,7 +1537,7 @@ class Seminar
     }
 
     // Funktion fuer die Ressourcenverwaltung
-    function getGroupedDates($singledate = null, $metadate = null)
+    public function getGroupedDates($singledate = null, $metadate = null)
     {
         $i = 0;
         $first_event = FALSE;
@@ -1677,7 +1678,7 @@ class Seminar
      *
      * @return string conatining room, responsible person, properties, current status and message / decline-message
      */
-    function getRoomRequestInfo()
+    public function getRoomRequestInfo()
     {
         $room_request = $this->getRoomRequestStatus();
         if ($room_request) {
@@ -1729,7 +1730,7 @@ class Seminar
         }
     }
 
-    function removeSeminarRequest()
+    public function removeSeminarRequest()
     {
         $request_id = RoomRequest::existsByCourse($this->getId());
         if ($request_id) {
@@ -1752,7 +1753,7 @@ class Seminar
      * @return array <description>
      */
 
-    function getNumberOfParticipants()
+    public function getNumberOfParticipants()
     {
         $args = func_get_args();
         array_unshift($args, $this->id);
@@ -1772,7 +1773,7 @@ class Seminar
      * @return array <description>
      */
 
-    function getNumberOfParticipantsBySeminarId($sem_id)
+    public function getNumberOfParticipantsBySeminarId($sem_id)
     {
         $db = DBManager::get();
         $stmt1 = $db->prepare("SELECT
@@ -1829,7 +1830,7 @@ class Seminar
      *
      * @return array     an array of IDs
      */
-    function getStudyAreas()
+    public function getStudyAreas()
     {
         $stmt = DBManager::get()->prepare("SELECT DISTINCT sem_tree_id ".
             "FROM seminar_sem_tree ".
@@ -1846,11 +1847,13 @@ class Seminar
      *
      * @return void
      */
-    function setStudyAreas($selected)
+    public function setStudyAreas($selected)
     {
         $old = $this->getStudyAreas();
         $removed = array_diff($old, $selected);
         $added = array_diff($selected, $old);
+        $count_removed = 0;
+        $count_added = 0;
         foreach($removed as $one){
             $count_removed += StudipSemTree::DeleteSemEntries($one, $this->getId());
         }
@@ -1867,7 +1870,7 @@ class Seminar
      * @return boolean    returns TRUE if this course is publicly visible,
      *                    FALSE otherwise
      */
-    function isPublic()
+    public function isPublic()
     {
         return get_config('ENABLE_FREE_ACCESS') && $this->read_level == 0;
     }
@@ -1876,7 +1879,7 @@ class Seminar
      * @return boolean  returns TRUE if this course is a studygroup,
      *                  FALSE otherwise
      */
-    function isStudygroup()
+    public function isStudygroup()
     {
         global $SEM_CLASS, $SEM_TYPE;
         return $SEM_CLASS[$SEM_TYPE[$this->status]["class"]]["studygroup_mode"];
@@ -1886,7 +1889,7 @@ class Seminar
      * @return int      returns default colour group for new members (shown in meine_seminare.php)
      *
      **/
-    function getDefaultGroup()
+    public function getDefaultGroup()
     {
         if ($this->isStudygroup()) {
             return 8;
@@ -1903,7 +1906,7 @@ class Seminar
      *                    otherwise an  error-message
      */
 
-    function delete()
+    public function delete()
     {
         $s_id = $this->id;
 
@@ -2024,6 +2027,7 @@ class Seminar
 
         if(get_config('ELEARNING_INTERFACE_ENABLE')){
             global $connected_cms;
+            $del_cms = 0;
             $cms_types = ObjectConnections::GetConnectedSystems($s_id);
             if(count($cms_types)){
                 foreach($cms_types as $system){
@@ -2082,7 +2086,7 @@ class Seminar
      *
      * @author Till Glöggler <tgloeggl@uos.de>
      */
-    function getDatesHTML($params = array())
+    public function getDatesHTML($params = array())
     {
         return $this->getDatesTemplate('dates/seminar_html.php', $params);
     }
@@ -2095,7 +2099,7 @@ class Seminar
      *
      * @author Till Glöggler <tgloeggl@uos.de>
      */
-    function getDatesExport($params = array())
+    public function getDatesExport($params = array())
     {
         return $this->getDatesTemplate('dates/seminar_export.php', $params);
     }
@@ -2108,7 +2112,7 @@ class Seminar
      *
      * @author Till Glöggler <tgloeggl@uos.de>
      */
-    function getDatesXML($params = array())
+    public function getDatesXML($params = array())
     {
         return $this->getDatesTemplate('dates/seminar_xml.php', $params);
     }
@@ -2122,7 +2126,7 @@ class Seminar
      *
      * @author Till Glöggler <tgloeggl@uos.de>
      */
-    function getDatesTemplate($template, $params = array())
+    public function getDatesTemplate($template, $params = array())
     {
         if (!$template instanceof Flexi_Template && is_string($template)) {
             $template = $GLOBALS['template_factory']->open($template);
@@ -2148,7 +2152,7 @@ class Seminar
      * on the field-names in the database
      * @return array
      */
-    function getData()
+    public function getData()
     {
         $data = $this->course->toArray();
         foreach($this->alias as $a => $o) {
@@ -2356,7 +2360,6 @@ class Seminar
      */
     public function deleteMember($user_id)
     {
-        $db = DBManager::get();
         $dozenten = $this->getMembers('dozent');
         if (count($dozenten) >= 2 || !$dozenten[$user_id]) {
             $query = "DELETE FROM seminar_user WHERE Seminar_id = ? AND user_id = ?";
@@ -2547,7 +2550,7 @@ class Seminar
      * @param string $user_id
      * @return integer 1 if successfull
      */
-    function addPreliminaryMember($user_id, $comment = '')
+    public function addPreliminaryMember($user_id, $comment = '')
     {
         $new_admission_member = new AdmissionApplication();
         $new_admission_member->user_id = $user_id;
@@ -2573,7 +2576,7 @@ class Seminar
      *
      * @return CourseSet courseset object or null
      */
-    function getCourseSet()
+    public function getCourseSet()
     {
         if ($this->course_set === null) {
             $this->course_set = CourseSet::getSetForCourse($this->id);
@@ -2589,7 +2592,7 @@ class Seminar
      *
      * @return boolean
      */
-    function isAdmissionEnabled()
+    public function isAdmissionEnabled()
     {
         $cs = $this->getCourseSet();
         return ($cs && $cs->isSeatDistributionEnabled());
@@ -2600,7 +2603,7 @@ class Seminar
      *
      * @return integer
      */
-    function getFreeAdmissionSeats()
+    public function getFreeAdmissionSeats()
     {
         if ($this->isAdmissionEnabled()) {
             return $this->course->getFreeSeats();
@@ -2614,7 +2617,7 @@ class Seminar
      *
      * @return boolean
      */
-    function isAdmissionLocked()
+    public function isAdmissionLocked()
     {
         $cs = $this->getCourseSet();
         return ($cs && $cs->hasAdmissionRule('LockedAdmission'));
@@ -2625,7 +2628,7 @@ class Seminar
      *
      * @return boolean
      */
-    function isPasswordProtected()
+    public function isPasswordProtected()
     {
         $cs = $this->getCourseSet();
         return ($cs && $cs->hasAdmissionRule('PasswordAdmission'));
@@ -2637,7 +2640,7 @@ class Seminar
      *
      * @return array assoc array with start_time end_time as keys timestamps as values
      */
-    function getAdmissionTimeFrame()
+    public function getAdmissionTimeFrame()
     {
         $cs = $this->getCourseSet();
         return ($cs && $cs->hasAdmissionRule('TimedAdmission')) ?
@@ -2651,7 +2654,7 @@ class Seminar
      * @param string $slot
      * @return StudipModule
      */
-    function getSlotModule($slot)
+    public function getSlotModule($slot)
     {
         $m = new Modules();
         $activated_slots = array_filter($m->getLocalModules($this->id, 'sem', $this->modules, $this->status));
@@ -2672,7 +2675,7 @@ class Seminar
      * @param string $which_end 'last' or 'first'
      * @return integer 1 if successfull
      */
-    function addToWaitlist($user_id, $which_end = 'last')
+    public function addToWaitlist($user_id, $which_end = 'last')
     {
         if (AdmissionApplication::exists(array($user_id, $this->id)) || CourseMember::find(array($this->id, $user_id))) {
             return false;
