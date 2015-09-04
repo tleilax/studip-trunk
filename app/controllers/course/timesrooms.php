@@ -394,7 +394,7 @@ class Course_TimesroomsController extends AuthenticatedController
         }
     }
 
-    public function saveStack_action($cycle_id)
+    public function saveStack_action($cycle_id = '')
     {
         $ids = $this->flash['ids'];
 
@@ -412,12 +412,100 @@ class Course_TimesroomsController extends AuthenticatedController
         }
     }
 
-    public function saveEditedStack($cycle_id)
+    public function saveEditedStack($cycle_id = '')
     {
-        /**
-         * TODO
-         */
-        PageLayout::postMessage(MessageBox::success(_('Die Änderungen wurden erfolgreich gespeichert!')));
+        $persons = Request::getArray('related_persons');
+        $action = Request::get('related_persons_action');
+        $groups = Request::getArray('related_groups');
+        $group_action = Request::get('related_groups_action');
+        $teacher_changed = false;
+        $groups_changed = false;
+
+        if (in_array($action, array('add', 'delete'))) {
+            foreach ($this->ids as $singledate) {
+                $singledate = new SingleDate($singledate);
+                if ($singledate->getSeminarID() === $this->course->id) {
+                    foreach ($persons as $user_id) {
+                        $singledate->{$action."RelatedPerson"}($user_id);
+                        $teacher_changed = true;
+                    }
+                }
+                $singledate->store();
+            }
+        } elseif($action === "set") {
+            foreach ($this->ids as $singledate) {
+                $singledate = new SingleDate($singledate);
+                if ($singledate->getSeminarID() === $this->course->id) {
+                    $singledate->clearRelatedPersons();
+                    foreach ($persons as $user_id) {
+                        $singledate->addRelatedPerson($user_id);
+                        $teacher_changed = true;
+                    }
+                }
+                $singledate->store();
+            }
+        }
+        if (in_array($group_action, array('add', 'delete'))) {
+            foreach ($this->ids as $singledate) {
+                $singledate = new SingleDate($singledate);
+                if ($singledate->getSeminarID() === $this->course->id) {
+                    foreach ($groups as $statusgruppe_id) {
+                        $singledate->{$group_action."RelatedGroup"}($statusgruppe_id);
+                        $groups_changed = true;
+                    }
+                }
+                $singledate->store();
+            }
+        } elseif($action === "set") {
+            foreach ($this->ids as $singledate) {
+                $singledate = new SingleDate($singledate);
+                if ($singledate->getSeminarID() === $this->course->id) {
+                    $singledate->clearRelatedGroups();
+                    foreach ($groups as $statusgruppe_id) {
+                        $singledate->addRelatedGroup($statusgruppe_id);
+                        $groups_changed = true;
+                    }
+                }
+                $singledate->store();
+            }
+        }
+        if ($teacher_changed) {
+            $this->course->createMessage(_("Zuständige Personen für die Termine wurden geändert."));
+        }
+        if ($groups_changed) {
+            $this->course->createMessage(_("Zugewiesene Gruppen für die Termine wurden geändert."));
+        }
+
+        foreach($this->ids as $termin_id) {
+            if ($cycle_id != '') {
+                $termin = $this->course->getSingleDate($termin_id, $cycle_id);
+            } else {
+                $termin = $this->course->getSingleDate($termin_id);
+            }
+
+            if (Request::option('action') == 'room') {
+                $termin->bookRoom(Request::option('room'));
+                if ($cycle_id != '') {
+                    $this->course->metadate->cycles[$cycle_id]->termine = null;
+                } else {
+                    $this->course->irregularSingleDates = null;
+                }
+            } else if (Request::option('action') == 'freetext') {
+                if ($termin->getFreeRoomText() != Request::get('freeRoomText')) {
+                    $termin->setFreeRoomText(Request::quoted('freeRoomText'));
+                    $termin->killAssign();
+                    $this->course->createMessage(sprintf(_("Der Termin %s wurde geändert, eine etwaige Raumbuchung wurden entfernt und stattdessen der angegebene Freitext eingetragen!"),
+                        '<b>'. $termin->toString() .'</b>'));
+                }
+            } else if (Request::option('action') == 'noroom') {
+                $termin->killAssign();
+            }
+
+            $termin->store();
+            $this->course->appendMessages($termin->getMessages());
+        }
+
+        $this->displayMessages();
         if (Request::get('fromDialog') == 'true') {
             $this->redirect('course/timesrooms/index#' . $cycle_id,
                 array('contentbox_open' => $cycle_id));

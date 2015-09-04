@@ -4,7 +4,8 @@
             <?= _('Regelmäßige Termine') ?>
         </h1>
         <nav>
-            <a data-dialog-button class="link-add" href="<?= $controller->link_for('course/timesrooms/createCycle', $editParams) ?>"
+            <a data-dialog-button class="link-add"
+               href="<?= $controller->link_for('course/timesrooms/createCycle', $editParams) ?>"
                data-dialog="size=50%"
                title="<?= _('Regelmäßigen Termin hinzufügen') ?>">
                 <?= _('Regelmäßigen Termin hinzufügen') ?>
@@ -15,9 +16,6 @@
     <? if (!empty($cycle_dates)) : ?>
 
         <? foreach ($cycle_dates as $metadate_id => $cycle) : ?>
-            <? if (!$roomRequest = $course->getDatesTemplate('dates/seminar_predominant_html', array('cycle_id' => $metadate_id))) : ?>
-                <? $roomRequest = _('keiner'); ?>
-            <? endif ?>
             <article id="<?= $metadate_id ?>"
                      class="<?= Request::get('contentbox_open') == $metadate_id ? 'open' : '' ?>">
                 <header <?= ($class = $course->getCycleColorClass($metadate_id)) ? 'class="' . $class . '"' : '' ?>>
@@ -31,7 +29,17 @@
                             <?= tooltipIcon($info, true); ?>
                         <? endif ?>
                         <span>
-                            <?= _('Raum') ?>: <?= $roomRequest ?>
+                            <?= _('Raum') ?>:
+                            <? if ($roomRequest = $course->getDatesTemplate('dates/seminar_predominant_html', array('cycle_id' => $metadate_id))) : ?>
+                                <?= $roomRequest ?>
+                                <? if ($infos = $course->getRequestStatus($metadate_id)): ?>
+                                    <a href="javascript:;" onClick="alert('<?=jsReady($infos['ausruf'], 'inline-single')?>');">
+                                        <?= Assets::img($infos['symbol'], tooltip2($infos['ausruf'], true)) ?>
+                                    </a>
+                                <? endif ?>
+                            <? else : ?>
+                                <?= _('keiner') ?>
+                            <? endif ?>
                         </span>
                         <span>
                             <?= _('Einzel-Raumanfrage') ?>: <?= htmlReady($course->getRequestsInfo($metadate_id)) ?>
@@ -51,7 +59,8 @@
 
                 <section>
                     <? $dates = $cycle['dates'] ?>
-                    <form class="studip-form" action="<?= $controller->url_for('course/timesrooms/stack/'. $metadate_id) ?>"
+                    <form class="studip-form"
+                          action="<?= $controller->url_for('course/timesrooms/stack/' . $metadate_id) ?>"
                           method="post" data-dialog="size=50%">
                         <table class="default nohover">
                             <colgroup>
