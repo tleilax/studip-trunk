@@ -51,15 +51,14 @@ class Course_TimesroomsController extends AuthenticatedController
         PageLayout::setTitle(sprintf(_('%sVerwaltung von Zeiten und Räumen'),
             isset($this->course) ? $this->course->getFullname() . ' - ' : ''));
 
-        if (isset($this->flash['question'])) {
-            PageLayout::addBodyElements($this->flash['question']);
-        }
         $_SESSION['raumzeitFilter'] = Request::quoted('newFilter');
+
         // bind linkParams for chosen semester and opened dates
         URLHelper::bindLinkParam('raumzeitFilter', $_SESSION['raumzeitFilter']);
         $GLOBALS['cmd'] = Request::option('cmd');
         $this->course->checkFilter();
 
+        $this->selection = raumzeit_get_semesters($this->course, new SemesterData(), $_SESSION['raumzeitFilter']);
 
         if (!Request::isXhr()) {
             $this->setSidebar();
@@ -815,8 +814,7 @@ class Course_TimesroomsController extends AuthenticatedController
     function setSidebar()
     {
         $widget = new SelectWidget(_('Semester'), $this->url_for('course/timesrooms/index', array('cmd' => 'applyFilter')), 'newFilter');
-        $selection = raumzeit_get_semesters($this->course, new SemesterData(), $_SESSION['raumzeitFilter']);
-        foreach ($selection as $item) {
+        foreach ($this->selection as $item) {
             $element = new SelectElement($item['value'], $item['linktext'], $item['is_selected']);
             $widget->addElement($element);
         }

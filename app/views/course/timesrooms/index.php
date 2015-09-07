@@ -7,6 +7,8 @@
         </header>
         <?= $this->render_partial('course/timesrooms/editSemester.php') ?>
     </section>
+<? else : ?>
+    <?= $this->render_partial('course/timesrooms/_select_semester_range.php') ?>
 <? endif ?>
 
 <? if ($show['regular']) : ?>
