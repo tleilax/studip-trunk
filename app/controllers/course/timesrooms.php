@@ -359,6 +359,8 @@ class Course_TimesroomsController extends AuthenticatedController
     public function stack_action($cycle_id = '')
     {
         $ids = Request::getArray('single_dates');
+        $_SESSION['_checked_dates'] = $ids;
+
         if (empty($ids)) {
             PageLayout::postMessage(MessageBox::error(_('Sie haben keine Termine ausgewählt!')));
             if (Request::get('fromDialog') == 'true') {
@@ -370,22 +372,22 @@ class Course_TimesroomsController extends AuthenticatedController
             }
             return;
         }
+
         switch (Request::get('method')) {
             case 'edit':
-                $this->editStack($ids, $cycle_id);
+                $this->editStack($cycle_id);
                 break;
             case 'preparecancel':
-                $this->prepareCancel($ids, $cycle_id);
+                $this->prepareCancel($cycle_id);
                 break;
             case 'delete':
-                $this->deleteStack($ids, $cycle_id);
+                $this->deleteStack($cycle_id);
         }
     }
 
-    public function editStack($ids, $cycle_id)
+    public function editStack($cycle_id)
     {
         $this->cycle_id = $cycle_id;
-        $this->flash['ids'] = $ids;
         $this->teachers = $this->course->getMembers('dozent');
         $this->gruppen = Statusgruppen::findBySeminar_id($this->course->id);
         $this->resList = ResourcesUserRoomsList::getInstance($GLOBALS['user']->id, true, false, true);
@@ -393,22 +395,24 @@ class Course_TimesroomsController extends AuthenticatedController
         $this->render_template('course/timesrooms/editStack');
     }
 
-    public function prepareCancel($ids, $cycle_id)
+    public function prepareCancel($cycle_id)
     {
         $this->cycle_id = $cycle_id;
-        $this->flash['ids'] = $ids;
         $this->editParams = array('fromDialog' => Request::get('fromDialog'));
         $this->render_template('course/timesrooms/cancelStack');
     }
 
-    public function deleteStack($ids, $cycle_id = '')
+    public function deleteStack($cycle_id = '')
     {
-        if (!empty($ids)) {
-            foreach ($ids as $id) {
+        if (!empty($_SESSION['_checked_dates'])) {
+            foreach ($_SESSION['_checked_dates'] as $id) {
                 $this->deleteDate($id, Request::get('sub_cmd'), $cycle_id);
             }
         }
         $this->displayMessages();
+
+        unset($_SESSION['_checked_dates']);
+        
         if (Request::get('fromDialog') == 'true') {
             $this->redirect($this->url_for('course/timesrooms/index#' . $cycle_id,
                 array('contentbox_open' => $cycle_id)));
@@ -420,8 +424,6 @@ class Course_TimesroomsController extends AuthenticatedController
 
     public function saveStack_action($cycle_id = '')
     {
-        $ids = $this->flash['ids'];
-        $this->ids = $ids;
         switch (Request::get('method')) {
             case 'edit':
                 $this->saveEditedStack($cycle_id);
@@ -430,7 +432,11 @@ class Course_TimesroomsController extends AuthenticatedController
                 $this->saveCanceledStack($cycle_id);
                 break;
         }
+
         $this->displayMessages();
+
+        unset($_SESSION['_checked_dates']);
+
         if (Request::get('fromDialog') == 'true') {
             $this->redirect($this->url_for('course/timesrooms/index#' . $cycle_id,
                 array('contentbox_open' => $cycle_id)));
@@ -444,10 +450,14 @@ class Course_TimesroomsController extends AuthenticatedController
     {
         $msg = _('Folgende Termine wurden gelöscht') . '<ul>';
         $deleted_dates = array();
-        foreach ($this->ids as $val) {
+
+        foreach ($_SESSION['_checked_dates'] as $val) {
             $termin = new SingleDate($val);
+            if($termin->isHoliday() || $termin->isExTermin()) {
+                continue;
+            }
             $msg .= sprintf('<li>%s</li>', $termin->toString());
-            if (Request::get('cancel_comment') !== null) {
+            if (Request::get('cancel_comment') != '') {
                 $this->course->cancelSingleDate($val, $cycle_id);
                 $termin->setComment(Request::get('cancel_comment'));
                 $termin->store();
@@ -462,6 +472,8 @@ class Course_TimesroomsController extends AuthenticatedController
                 }
             }
         }
+
+        $msg .= '</ul>';
         $this->course->createMessage($msg);
         if (Request::int('cancel_send_message') && count($deleted_dates)) {
             $snd_messages = raumzeit_send_cancel_message(Request::get('cancel_comment'), $deleted_dates);
@@ -481,7 +493,7 @@ class Course_TimesroomsController extends AuthenticatedController
         $groups_changed = false;
 
         if (in_array($action, array('add', 'delete'))) {
-            foreach ($this->ids as $singledate) {
+            foreach ($_SESSION['_checked_dates'] as $singledate) {
                 $singledate = new SingleDate($singledate);
                 if ($singledate->getSeminarID() === $this->course->id) {
                     foreach ($persons as $user_id) {
@@ -492,7 +504,7 @@ class Course_TimesroomsController extends AuthenticatedController
                 $singledate->store();
             }
         } elseif ($action === "set") {
-            foreach ($this->ids as $singledate) {
+            foreach ($_SESSION['_checked_dates'] as $singledate) {
                 $singledate = new SingleDate($singledate);
                 if ($singledate->getSeminarID() === $this->course->id) {
                     $singledate->clearRelatedPersons();
@@ -505,7 +517,7 @@ class Course_TimesroomsController extends AuthenticatedController
             }
         }
         if (in_array($group_action, array('add', 'delete'))) {
-            foreach ($this->ids as $singledate) {
+            foreach ($_SESSION['_checked_dates'] as $singledate) {
                 $singledate = new SingleDate($singledate);
                 if ($singledate->getSeminarID() === $this->course->id) {
                     foreach ($groups as $statusgruppe_id) {
@@ -516,7 +528,7 @@ class Course_TimesroomsController extends AuthenticatedController
                 $singledate->store();
             }
         } elseif ($action === "set") {
-            foreach ($this->ids as $singledate) {
+            foreach ($_SESSION['_checked_dates'] as $singledate) {
                 $singledate = new SingleDate($singledate);
                 if ($singledate->getSeminarID() === $this->course->id) {
                     $singledate->clearRelatedGroups();
@@ -535,7 +547,7 @@ class Course_TimesroomsController extends AuthenticatedController
             $this->course->createMessage(_("Zugewiesene Gruppen für die Termine wurden geändert."));
         }
 
-        foreach ($this->ids as $termin_id) {
+        foreach ($_SESSION['_checked_dates'] as $termin_id) {
             if ($cycle_id != '') {
                 $termin = $this->course->getSingleDate($termin_id, $cycle_id);
             } else {

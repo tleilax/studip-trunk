@@ -1,7 +1,8 @@
 <tr>
     <td>
         <label for="<?= htmlReady($termin->termin_id) ?>">
-            <input class="<?= $class_ids ?>" type="checkbox" id="<?= htmlReady($termin->termin_id) ?>" value="<?= htmlReady($termin->termin_id) ?>"
+            <input class="<?= $class_ids ?>" type="checkbox" id="<?= htmlReady($termin->termin_id) ?>"
+                   value="<?= htmlReady($termin->termin_id) ?>"
                    name="single_dates[]" <?= $termin->isExTermin() ? 'disabled' : '' ?> />
         </label>
     </td>
@@ -23,7 +24,8 @@
         <? if (count($dozenten)) : ?>
             <ul class="list-unstyled list-csv">
                 <? foreach ($dozenten as $key => $dozent) : ?>
-                    <li><?= htmlReady(User::find($dozent)->getFullName()) ?></li>
+                    <? $teacher = User::find($dozent) ?>
+                    <li><?=$teacher ? htmlReady($teacher->getFullname()) : '' ?></li>
                 <? endforeach ?>
             </ul>
         <? endif ?>
@@ -80,7 +82,8 @@
                 <? $warning[] = _('Dieser Termin hat eine Raumbuchung, welche mit dem Termin gelöscht wird.'); ?>
             <? endif ?>
 
-            <a <?= Request::isXhr() ? 'data-dialog="size=big"' : '' ?>  href="<?= $controller->url_for('course/timesrooms/deleteSingle/' . $termin->termin_id) ?>" <? !empty($warning) ? 'data-confirm="'.implode("\n", $warning).'"' : ''?>>
+            <a <?= Request::isXhr() ? 'data-dialog="size=big"' : '' ?>
+                href="<?= $controller->url_for('course/timesrooms/deleteSingle/' . $termin->termin_id) ?>" <? !empty($warning) ? 'data-confirm="' . implode("\n", $warning) . '"' : '' ?>>
                 <?= Assets::img('icons/blue/trash', array('title' => _('Termin löschen'))) ?>
             </a>
         <? else : ?>
@@ -92,7 +95,7 @@
             </a>
 
 
-            <a <?= Request::isXhr() ? 'data-dialog="size=big"' : '' ?> <? !empty($warning) ? 'data-confirm="'.implode("\n", $warning).'"' : ''?>
+            <a <?= Request::isXhr() ? 'data-dialog="size=big"' : '' ?> <? !empty($warning) ? 'data-confirm="' . implode("\n", $warning) . '"' : '' ?>
                 href="<?= $controller->url_for('course/timesrooms/undeleteSingle/' . $termin->termin_id, $editParams) ?>">
                 <?= Assets::img('icons/grey/decline/trash', tooltip2(_('Termin wiederherstellen'))) ?>
             </a>
