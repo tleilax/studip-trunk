@@ -1,4 +1,4 @@
-<? if (!Request::isXhr()) : ?>
+<? if (!Request::isXhr()): ?>
     <section class="contentbox clearfix">
         <header>
             <h1>

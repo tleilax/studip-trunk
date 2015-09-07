@@ -10,14 +10,14 @@
     </section>
 
     <section class="clearfix">
-        <div style="width: 100px; float: left">
+        <div style="display: inline-block">
             <label for="start_time">
                 <?= _('Startzeit') ?>
             </label>
             <input class="size-m has-time-picker" type="time" name="start_time" id="start_time"
                    value="<?= htmlReady(Request::get('start_time')) ?>" required>
         </div>
-        <div style="width: 100px; float: left">
+        <div style="display: inline-block">
             <label for="end_time">
                 <?= _('Endzeit') ?>
             </label>

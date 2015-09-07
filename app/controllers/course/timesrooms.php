@@ -19,6 +19,7 @@ require_once($GLOBALS['RELATIVE_PATH_RESOURCES'] . "/lib/ResourcesUserRoomsList.
 
 class Course_TimesroomsController extends AuthenticatedController
 {
+    protected $utf8decode_xhr = true;
 
     public function before_filter(&$action, &$args)
     {
@@ -253,8 +254,8 @@ class Course_TimesroomsController extends AuthenticatedController
             $this->course->appendMessages($termin->getMessages());
             $this->displayMessages();
         }
-        $this->redirect('course/timesrooms/index#' . $termin->metadate_id,
-            array('contentbox_open' => $termin->metadate_id));
+        $this->redirect($this->url_for('course/timesrooms/index#' . $termin->metadate_id,
+            array('contentbox_open' => $termin->metadate_id)));
     }
 
 
@@ -407,7 +408,7 @@ class Course_TimesroomsController extends AuthenticatedController
     {
         if (!empty($_SESSION['_checked_dates'])) {
             foreach ($_SESSION['_checked_dates'] as $id) {
-                if($this->course->unDeleteSingleDate($id)) {
+                if ($this->course->unDeleteSingleDate($id)) {
                     $termin = SingleDate::getInstance($id);
                     $this->course->createMessage(sprintf(_('Der Termin %s wurde wiederhergestellt!'), $termin->toString()));
                 }
@@ -607,8 +608,6 @@ class Course_TimesroomsController extends AuthenticatedController
      */
     public function createCycle_action($cycle_id = null)
     {
-        $this->set_content_type('text/html;charset=windows-1252');
-
         if ($this->flash['request']) {
             foreach (words('day start_time end_time description cycle startWeek teacher_sws fromDialog') as $value) {
                 Request::set($value, $this->flash['request'][$value]);
@@ -705,7 +704,7 @@ class Course_TimesroomsController extends AuthenticatedController
         $data['end_stunde'] = strftime('%H', strtotime(Request::get('end_time')));;
         $data['end_minute'] = strftime('%M', strtotime(Request::get('end_time')));;
         $data['sws'] = Request::get('teacher_sws');
-
+        $data['endWeek'] = Request::get('endWeek');
 
         $new_start = mktime($data['start_stunde'], $data['start_minute']);
         $new_end = mktime($data['end_stunde'], $data['end_minute']);
@@ -723,8 +722,15 @@ class Course_TimesroomsController extends AuthenticatedController
             $message = true;
         }
 
+
         if ($old_start == $new_start && $old_end == $new_end) {
             $same_time = true;
+        }
+
+        if ($cycle->end_offset != $data['endWeek']) {
+            $message = true;
+            $same_time = false;
+            $this->course->createMessage(_('Die Enwoche wurde geändert!.'));
         }
         if ($data['startWeek'] != $cycle->week_offset) {
             $this->course->setStartWeek($data['startWeek'], $cycle->metadate_id);
@@ -738,11 +744,13 @@ class Course_TimesroomsController extends AuthenticatedController
             $message = true;
             $same_time = false;
         }
+
         if (round(str_replace(',', '.', $data['sws']), 1) != $cycle->sws) {
             $cycle->sws = $data['sws'];
             $this->course->createMessage(_('Die Semesterwochenstunden für Dozenten des regelmäßigen Eintrags wurden geändert.'));
             $message = true;
         }
+
 
         $change_from = $cycle->toString();
         if ($this->course->metadate->editCycle($data)) {
@@ -848,16 +856,12 @@ class Course_TimesroomsController extends AuthenticatedController
         }
         $course = Seminar::GetInstance($course_id);
 
-        // The user meant actually to choose "1 Semester"
         if ($start_semester == $end_semester) {
             $end_semester = 0;
         }
 
-        // test, if start semester is before the end semester
-        // btw.: end_semester == 0 means a duration of one semester (ja logisch! :) )
         if ($end_semester != 0 && $end_semester != -1 && $start_semester->beginn >= $end_semester->beginn) {
             PageLayout::postMessage(MessageBox::error(_('Das Startsemester liegt nach dem Endsemester!')));
-            // Redirect
         } else {
 
             $course->setStartSemester($start_semester->beginn);
@@ -893,18 +897,10 @@ class Course_TimesroomsController extends AuthenticatedController
                 $this->relocate('course/timesrooms/index/' . $course_id);
             }
         } else {
-            $this->redirect('course/timesrooms/index', array('cid' => $course_id));
+            $this->redirect($this->url_for('course/timesrooms/index', array('cid' => $course_id)));
         }
 
     }
-
-    function set_course_action()
-    {
-        $this->redirect('course/timesrooms/index');
-
-        return;//die('course');
-    }
-
 
     private function displayMessages($messages = array())
     {

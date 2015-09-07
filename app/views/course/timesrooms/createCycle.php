@@ -23,7 +23,7 @@
         </select>
     </section>
     <section class="clearfix">
-        <div style="width: 150px; float: left">
+        <div style="display: inline-block">
             <label for="start_time">
                 <?= _('Startzeit') ?>
             </label>
@@ -31,7 +31,7 @@
                    value="<?= htmlReady(Request::get('start_time', !is_null($cycle) ? $cycle->getStartTime() : null)) ?>"
                    required>
         </div>
-        <div style="width: 150px; float: left">
+        <div style="display: inline-block">
             <label for="end_time">
                 <?= _('Endzeit') ?>
             </label>

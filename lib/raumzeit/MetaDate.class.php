@@ -188,7 +188,7 @@ class MetaDate
         if (isset($data['week_offset'])) $cycle->week_offset = (int)$data['week_offset'];
         if (isset($data['cycle'])) $cycle->cycle = (int)$data['cycle'];
         if (isset($data['sws'])) $cycle->sws = $data['sws'];
-
+        if (isset($data['endWeek'])) $cycle->end_offset = (int)$data['endWeek'];
         if (isset($data['day']) && isset($data['start_stunde']) && isset($data['start_minute']) && isset($data['end_stunde']) && isset($data['end_minute'])) {
 
             if (
@@ -252,7 +252,7 @@ class MetaDate
         $old_start = mktime($cycle->getStartStunde(), $cycle->getStartMinute());
         $old_end = mktime($cycle->getEndStunde(), $cycle->getEndMinute());
 
-        if (($new_start >= $old_start) && ($new_end <= $old_end) && ($data['day'] == $this->cycles[$data['cycle_id']]->day)) {
+        if (($new_start >= $old_start) && ($new_end <= $old_end) && ($data['day'] == $cycle->day) && ($data['endWeek'] == $cycle->end_offset)) {
             // Zeitraum wurde verkuerzt, Raumbuchungen bleiben erhalten...
             if ($this->setCycleData($data, $cycle)) {
                 $termine = $cycle->getSingleDates();
@@ -273,9 +273,7 @@ class MetaDate
             return sizeof($termine);
         } else {
             if ($this->setCycleData($data, $cycle)) {
-
                 // collect all existing themes (issues) for this cycle:
-
                 $issues = array();
                 $issue_objects = array();
                 $singledate_count = 0;
@@ -590,6 +588,7 @@ class MetaDate
                 $ret[$val['semester_id']] = $this->getVirtualSingleDatesForSemester($metadate_id, $val['vorles_beginn'], $val['vorles_ende'], $startAfterTimeStamp, $corr);
             }
         }
+
         return $ret;
     }
 
@@ -708,6 +707,7 @@ class MetaDate
                         $dates_to_delete[$key] = $val;
                         unset($existingSingleDates[$key]);
                     }
+
                     $dateExists = true;
                     if (isset($existingSingleDates[$key])) {
                         $dates[$key] = $val;
@@ -754,6 +754,15 @@ class MetaDate
 
         } while ($end_time < $sem_end);
 
+
+        foreach ($existingSingleDates as $id => $val) {
+            foreach (array_keys($dates) as $date) {
+                if($date != $id){
+                    $dates_to_delete[$id] = $val;
+                    unset($existingSingleDates[$id]);
+                }
+            }
+        }
         return array('dates' => $dates, 'dates_to_delete' => $dates_to_delete);
     }
 

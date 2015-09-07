@@ -1,7 +1,7 @@
 <form action="<?= $controller->url_for('course/timesrooms/set_semester/' . $course->id) ?>" method="post"
       class="studip-form" <?= Request::isXhr() ? 'data-dialog="size=big"' : '' ?>>
     <section>
-        <section <?= !Request::isXhr() ? 'style="float: left; width: 45%"' : '' ?>>
+        <section <?= !Request::isXhr() ? 'style="display: inline-block; width: 45%"' : '' ?>>
             <label for="startSemester"><?= _('Startsemester') ?>:</label>
             <select class="size-xl" name="startSemester" id="startSemester">
                 <? foreach ($semester as $sem) : ?>
@@ -12,7 +12,7 @@
                 <? endforeach; ?>
             </select>
         </section>
-        <section <?= !Request::isXhr() ? 'style="float: right; width: 45%"' : '' ?>>
+        <section <?= !Request::isXhr() ? 'style="display: inline-block; width: 48%"' : '' ?>>
             <label for="endSemester"><?= _('Dauer') ?>:</label>
             <select class="size-xl" name="endSemester" id="endSemester">
                 <option value="0"

@@ -9,14 +9,14 @@
     </section>
 
     <section class="clearfix">
-        <div style="width: 100px; float: left">
+        <div style="display: inline-block; width: 130px">
             <label for="start_time">
                 <?= _('Startzeit') ?>
             </label>
             <input class="size-m has-time-picker" type="time" name="start_time" id="start_time"
                    value="<?= $date_info->date ? strftime('%H:%M', $date_info->date) : '' ?>">
         </div>
-        <div style="width: 100px; float: left">
+        <div style="display: inline-block; width: 130px">
             <label for="end_time">
                 <?= _('Endzeit') ?>
             </label>
