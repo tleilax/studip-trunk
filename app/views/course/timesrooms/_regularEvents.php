@@ -15,31 +15,34 @@
 
     <? if (!empty($cycle_dates)) : ?>
 
-        <? foreach ($cycle_dates as $metadate_id => $cycle) : ?>
-            <article id="<?= $metadate_id ?>"
-                     class="<?= Request::get('contentbox_open') == $metadate_id ? 'open' : '' ?>">
-                <header <?= ($class = $course->getCycleColorClass($metadate_id)) ? 'class="' . $class . '"' : '' ?>>
-                    <h1>
-                        <a href="<?= ContentBoxHelper::href($metadate_id, array()) ?>">
-                            <?= htmlReady($cycle['name']) ?>
-                        </a>
-                    </h1>
-                    <nav>
-                        <? if ($info = $course->getBookedRoomsTooltip($metadate_id)) : ?>
-                            <?= tooltipIcon($info, true); ?>
-                        <? endif ?>
-                        <span>
-                            <?= _('Raum') ?>:
-                            <? if ($roomRequest = $course->getDatesTemplate('dates/seminar_predominant_html', array('cycle_id' => $metadate_id))) : ?>
-                                <?= $roomRequest ?>
-                                <? if ($infos = $course->getRequestStatus($metadate_id)): ?>
-                                    <a href="javascript:;" onClick="alert('<?=jsReady($infos['ausruf'], 'inline-single')?>');">
-                                        <?= Assets::img($infos['symbol'], tooltip2($infos['ausruf'], true)) ?>
-                                    </a>
-                                <? endif ?>
-                            <? else : ?>
-                                <?= _('keiner') ?>
+        <form class="studip-form" action="<?= $controller->url_for('course/timesrooms/stack/' . $metadate_id, $editParams) ?>" method="post" data-dialog="size=big">
+            <?= CSRFProtection::tokenTag()?>
+            <? foreach ($cycle_dates as $metadate_id => $cycle) : ?>
+                <article id="<?= $metadate_id ?>"
+                         class="<?= Request::get('contentbox_open') == $metadate_id ? 'open' : '' ?>">
+                    <header <?= ($class = $course->getCycleColorClass($metadate_id)) ? 'class="' . $class . '"' : '' ?>>
+                        <h1>
+                            <a href="<?= ContentBoxHelper::href($metadate_id, array()) ?>">
+                                <?= htmlReady($cycle['name']) ?>
+                            </a>
+                        </h1>
+                        <nav>
+                            <? if ($info = $course->getBookedRoomsTooltip($metadate_id)) : ?>
+                                <?= tooltipIcon($info, true); ?>
                             <? endif ?>
+                            <span>
+                            <?= _('Raum') ?>:
+                                <? if ($roomRequest = $course->getDatesTemplate('dates/seminar_predominant_html', array('cycle_id' => $metadate_id))) : ?>
+                                    <?= $roomRequest ?>
+                                    <? if ($infos = $course->getRequestStatus($metadate_id)): ?>
+                                        <a href="javascript:;"
+                                           onClick="alert('<?= jsReady($infos['ausruf'], 'inline-single') ?>');">
+                                            <?= Assets::img($infos['symbol'], tooltip2($infos['ausruf'], true)) ?>
+                                        </a>
+                                    <? endif ?>
+                                <? else : ?>
+                                    <?= _('keiner') ?>
+                                <? endif ?>
                         </span>
                         <span>
                             <?= _('Einzel-Raumanfrage') ?>: <?= htmlReady($course->getRequestsInfo($metadate_id)) ?>
@@ -50,18 +53,17 @@
                                data-dialog="size=big">
                                 <?= Assets::img('icons/blue/edit', tooltip2(_('Diesen Zeitraum bearbeiten'))) ?>
                             </a>
-                            <a href="#" data-dialog="size=big">
-                                <?= Assets::img('icons/blue/trash', tooltip2(_('Diesen Zeitraum löschen'))) ?>
-                            </a>
+                            <?= Assets::input('icons/blue/trash', tooltip2(_('Diesen Zeitraum löschen')) + array(
+                                    'formaction'   => $controller->url_for('course/timesrooms/deleteCycle/' . $metadate_id),
+                                    'data-confirm' => _('Soll dieser Zeitraum wirklich gelöscht werden?'),
+                                )) ?>
                         </span>
-                    </nav>
-                </header>
+                        </nav>
+                    </header>
 
-                <section>
-                    <? $dates = $cycle['dates'] ?>
-                    <form class="studip-form"
-                          action="<?= $controller->url_for('course/timesrooms/stack/' . $metadate_id, $editParams) ?>"
-                          method="post" data-dialog="size=big">
+                    <section>
+                        <? $dates = $cycle['dates'] ?>
+
                         <table class="default nohover">
                             <colgroup>
                                 <col width="30px">
@@ -104,11 +106,11 @@
                             </tr>
                             </tfoot>
                         </table>
-                    </form>
-                </section>
-            </article>
-        <? endforeach; ?>
 
+                    </section>
+                </article>
+            <? endforeach; ?>
+        </form>
     <? else : ?>
         <section>
             <p class="text-center">

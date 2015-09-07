@@ -252,12 +252,12 @@
         var url;
 
         // Predefine options
-        if ($(element).is('form,button')) {
+        if ($(element).is('form,button,input')) {
             url = $(element).attr('formaction') || $(element).closest('form').attr('action');
             options.method = $(element).closest('form').attr('method');
             options.data = $(element).closest('form').serializeArray();
 
-            if ($(element).is('button')) {
+            if ($(element).is('button, input')) {
                 options.data.push({
                     name: $(element).attr('name'),
                     value: $(element).val()

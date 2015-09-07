@@ -730,7 +730,7 @@ class Course_TimesroomsController extends AuthenticatedController
         if ($cycle->end_offset != $data['endWeek']) {
             $message = true;
             $same_time = false;
-            $this->course->createMessage(_('Die Enwoche wurde geändert!.'));
+            $this->course->createMessage(_('Die Endwoche wurde geändert!.'));
         }
         if ($data['startWeek'] != $cycle->week_offset) {
             $this->course->setStartWeek($data['startWeek'], $cycle->metadate_id);
@@ -779,6 +779,19 @@ class Course_TimesroomsController extends AuthenticatedController
             $this->course->createInfo('Sie haben keine Änderungen vorgenommen!');
         }
         $this->displayMessages();
+        $this->redirect('course/timesrooms/index');
+    }
+
+
+    public function deleteCycle_action($cycle_id)
+    {
+        CSRFProtection::verifyRequest();
+        $cycle = SeminarCycleDate::find($cycle_id);
+        $this->course->createMessage(sprintf(_('Der regelmäßige Eintrag "%s" wurde gelöscht.'), '<b>' . $cycle->toString() . '</b>'));
+        $this->course->deleteCycle($cycle_id);
+
+        $this->displayMessages();
+
         $this->redirect('course/timesrooms/index');
     }
 
@@ -941,6 +954,7 @@ class Course_TimesroomsController extends AuthenticatedController
 
     public function deleteDate($termin_id, $sub_cmd, $cycle_id)
     {
+
         $termin = SingleDate::getInstance($termin_id);
 
         if ($sub_cmd == 'cancel') {
