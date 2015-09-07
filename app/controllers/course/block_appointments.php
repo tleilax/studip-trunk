@@ -1,4 +1,5 @@
 <?php
+
 /**
  * block_appointments.php
  *
@@ -13,7 +14,6 @@
  * @category    Stud.IP
  * @package     admin
  */
-
 class Course_BlockAppointmentsController extends AuthenticatedController
 {
     /**
@@ -44,47 +44,48 @@ class Course_BlockAppointmentsController extends AuthenticatedController
         }
         $this->editParams = array('fromDialog' => Request::get('fromDialog'));
         $this->start_ts = strtotime('this monday');
+        $this->request = $this->flash['request'];
     }
 
 
     public function save_action($course_id)
     {
-        $this->flash['request'] = Request::getInstance();
-        $errors                 = array();
+        $errors = array();
 
         $start_day = strtotime(Request::get('block_appointments_start_day'));
-        $end_day   = strtotime(Request::get('block_appointments_end_day'));
+        $end_day = strtotime(Request::get('block_appointments_end_day'));
 
 
         if (!($start_day && $end_day && $start_day <= $end_day)) {
             $errors[] = _("Bitte geben Sie korrekte Werte für Start- und Enddatum an!");
         } else {
             $start_time = strtotime(Request::get('block_appointments_start_time'), $start_day);
-            $end_time   = strtotime(Request::get('block_appointments_end_time'), $end_day);
+            $end_time = strtotime(Request::get('block_appointments_end_time'), $end_day);
 
-            if (!($start_time && $end_time && $start_time < $end_time)) {
+            if (!($start_time && $end_time && (strtotime(Request::get('block_appointments_start_time')) < strtotime(Request::get('block_appointments_end_time'))))) {
                 $errors[] = _("Bitte geben Sie korrekte Werte für Start- und Endzeit an!");
             }
         }
 
 
-        $termin_typ     = (int)Request::int('block_appointments_termin_typ');
+        $termin_typ = (int)Request::int('block_appointments_termin_typ');
         $free_room_text = Request::get('block_appointments_room_text');
-        $date_count     = Request::int('block_appointments_date_count');
-        $days           = Request::getArray('block_appointments_days');
+        $date_count = Request::int('block_appointments_date_count');
+        $days = Request::getArray('block_appointments_days');
 
         if (!is_array($days)) {
             $errors[] = _("Bitte wählen Sie mindestens einen Tag aus!");
         }
 
         if (count($errors)) {
+            $this->flash['request'] = Request::getInstance();
             PageLayout::postMessage(MessageBox::error(_("Bitte korrigieren Sie Ihre Eingaben:"), $errors));
             $this->redirect('course/block_appointments/index');
             return;
         } else {
 
-            $dates    = array();
-            $delta    = $end_time - $start_time;
+            $dates = array();
+            $delta = $end_time - $start_time;
             $last_day = strtotime(Request::get('block_appointments_start_time'), $end_day);
 
             if (in_array('everyday', $days)) {
@@ -95,16 +96,16 @@ class Course_BlockAppointmentsController extends AuthenticatedController
             }
 
             $t = $start_time;
-            while($t <= $last_day) {
+            while ($t <= $last_day) {
                 if (in_array(date('N', $t), $days)) {
                     for ($i = 1; $i <= $date_count; $i++) {
                         $date = new SingleDate();
                         $date->setDateType($termin_typ);
                         $date->setFreeRoomText($free_room_text);
                         $date->setSeminarID($course_id);
-                        $date->date     = $t;
+                        $date->date = $t;
                         $date->end_time = $t + $delta;
-                        $dates[]        = $date;
+                        $dates[] = $date;
                     }
                 }
                 $t = strtotime('+1 day', $t);
@@ -136,7 +137,7 @@ class Course_BlockAppointmentsController extends AuthenticatedController
             }
         }
 
-        if(Request::get('fromDialog') == 'true') {
+        if (Request::get('fromDialog') == 'true') {
             $this->redirect('course/timesrooms/index');
         } else {
             $this->relocate('course/timesrooms/index');

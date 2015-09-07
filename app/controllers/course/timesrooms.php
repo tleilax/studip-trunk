@@ -382,6 +382,8 @@ class Course_TimesroomsController extends AuthenticatedController
                 break;
             case 'delete':
                 $this->deleteStack($cycle_id);
+            case 'undelete':
+                $this->unDeleteStack($cycle_id);
         }
     }
 
@@ -402,6 +404,30 @@ class Course_TimesroomsController extends AuthenticatedController
         $this->render_template('course/timesrooms/cancelStack');
     }
 
+    public function unDeleteStack($cycle_id = '')
+    {
+        if (!empty($_SESSION['_checked_dates'])) {
+            foreach ($_SESSION['_checked_dates'] as $id) {
+                if($this->course->unDeleteSingleDate($id)) {
+                    $termin = SingleDate::getInstance($id);
+                    $this->course->createMessage(sprintf(_('Der Termin %s wurde wiederhergestellt!'), $termin->toString()));
+                }
+            }
+        }
+
+        $this->displayMessages();
+
+        unset($_SESSION['_checked_dates']);
+
+        if (Request::get('fromDialog') == 'true') {
+            $this->redirect($this->url_for('course/timesrooms/index#' . $cycle_id,
+                array('contentbox_open' => $cycle_id)));
+        } else {
+            $this->relocate('course/timesrooms/index#' . $cycle_id,
+                array('contentbox_open' => $cycle_id));
+        }
+    }
+
     public function deleteStack($cycle_id = '')
     {
         if (!empty($_SESSION['_checked_dates'])) {
@@ -412,7 +438,7 @@ class Course_TimesroomsController extends AuthenticatedController
         $this->displayMessages();
 
         unset($_SESSION['_checked_dates']);
-        
+
         if (Request::get('fromDialog') == 'true') {
             $this->redirect($this->url_for('course/timesrooms/index#' . $cycle_id,
                 array('contentbox_open' => $cycle_id)));
@@ -453,7 +479,7 @@ class Course_TimesroomsController extends AuthenticatedController
 
         foreach ($_SESSION['_checked_dates'] as $val) {
             $termin = new SingleDate($val);
-            if($termin->isHoliday() || $termin->isExTermin()) {
+            if ($termin->isHoliday() || $termin->isExTermin()) {
                 continue;
             }
             $msg .= sprintf('<li>%s</li>', $termin->toString());

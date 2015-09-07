@@ -3,7 +3,7 @@
         <label for="<?= htmlReady($termin->termin_id) ?>">
             <input class="<?= $class_ids ?>" type="checkbox" id="<?= htmlReady($termin->termin_id) ?>"
                    value="<?= htmlReady($termin->termin_id) ?>"
-                   name="single_dates[]" <?= $termin->isExTermin() ? 'disabled' : '' ?> />
+                   name="single_dates[]"/>
         </label>
     </td>
     <td class="<?= $termin->hasRoom() ? 'green' : 'red' ?>">
@@ -25,7 +25,7 @@
             <ul class="list-unstyled list-csv">
                 <? foreach ($dozenten as $key => $dozent) : ?>
                     <? $teacher = User::find($dozent) ?>
-                    <li><?=$teacher ? htmlReady($teacher->getFullname()) : '' ?></li>
+                    <li><?= $teacher ? htmlReady($teacher->getFullname()) : '' ?></li>
                 <? endforeach ?>
             </ul>
         <? endif ?>
