@@ -382,6 +382,7 @@ class Course_TimesroomsController extends AuthenticatedController
                 break;
             case 'delete':
                 $this->deleteStack($cycle_id);
+                break;
             case 'undelete':
                 $this->unDeleteStack($cycle_id);
         }
@@ -954,7 +955,6 @@ class Course_TimesroomsController extends AuthenticatedController
 
     public function deleteDate($termin_id, $sub_cmd, $cycle_id)
     {
-
         $termin = SingleDate::getInstance($termin_id);
 
         if ($sub_cmd == 'cancel') {

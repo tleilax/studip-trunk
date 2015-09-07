@@ -14,10 +14,10 @@
     </header>
 
     <? if (!empty($cycle_dates)) : ?>
-
-        <form class="studip-form" action="<?= $controller->url_for('course/timesrooms/stack/' . $metadate_id, $editParams) ?>" method="post" data-dialog="size=big">
-            <?= CSRFProtection::tokenTag()?>
-            <? foreach ($cycle_dates as $metadate_id => $cycle) : ?>
+        <?= CSRFProtection::tokenTag() ?>
+        <? foreach ($cycle_dates as $metadate_id => $cycle) : ?>
+            <form class="studip-form" action="<?= $controller->url_for('course/timesrooms/stack/' . $metadate_id, $editParams) ?>"
+                  method="post" data-dialog="size=big">
                 <article id="<?= $metadate_id ?>"
                          class="<?= Request::get('contentbox_open') == $metadate_id ? 'open' : '' ?>">
                     <header <?= ($class = $course->getCycleColorClass($metadate_id)) ? 'class="' . $class . '"' : '' ?>>
@@ -47,7 +47,6 @@
                         <span>
                             <?= _('Einzel-Raumanfrage') ?>: <?= htmlReady($course->getRequestsInfo($metadate_id)) ?>
                         </span>
-
                         <span>
                             <a href="<?= $controller->url_for('course/timesrooms/createCycle/' . $metadate_id) ?>"
                                data-dialog="size=big">
@@ -55,12 +54,12 @@
                             </a>
                             <?= Assets::input('icons/blue/trash', tooltip2(_('Diesen Zeitraum löschen')) + array(
                                     'formaction'   => $controller->url_for('course/timesrooms/deleteCycle/' . $metadate_id),
+                                    'data-dialog'  => 'size=big',
                                     'data-confirm' => _('Soll dieser Zeitraum wirklich gelöscht werden?'),
                                 )) ?>
                         </span>
                         </nav>
                     </header>
-
                     <section>
                         <? $dates = $cycle['dates'] ?>
 
@@ -109,8 +108,9 @@
 
                     </section>
                 </article>
-            <? endforeach; ?>
-        </form>
+            </form>
+        <? endforeach; ?>
+
     <? else : ?>
         <section>
             <p class="text-center">
