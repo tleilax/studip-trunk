@@ -7,7 +7,7 @@
         </label>
     </td>
     <td class="<?= $termin->hasRoom() ? 'green' : 'red' ?>">
-        <? if ($termin->isExTermin() || $termin->isHoliday()) : ?>
+        <? if ($termin->isExTermin()) : ?>
             <span style="color: #666666">
                 <?= htmlReady($termin->toString()) ?>
             </span>
@@ -22,7 +22,7 @@
     <td>
         <? $dozenten = $termin->getRelatedPersons() ?>
         <? if (count($dozenten)) : ?>
-            <ul class="list-unstyled list-csv">
+            <ul class="list-unstyled list-csv" <?= $termin->isExTermin() ? 'style="color: #666666"' : ''?>>
                 <? foreach ($dozenten as $key => $dozent) : ?>
                     <? $teacher = User::find($dozent) ?>
                     <li><?= $teacher ? htmlReady($teacher->getFullname()) : '' ?></li>
@@ -38,10 +38,10 @@
         <? if ($termin->isExTermin() && ($comment = $termin->getComment())) : ?>
             <span style="font-style: italic; color: #666666"><?= _("(fällt aus)") ?></span>
             <?= tooltipIcon($termin->getComment(), false) ?>
-        <? elseif (($name = $termin->isHoliday()) && !is_null($termin->isExTermin())): ?>
-            <span style="color: #666666">
-                    (<?= htmlReady($name) ?>)
-                </span>
+        <? elseif (($name = $termin->isHoliday())): ?>
+            <span <?= $termin->isExTermin() ? 'style="color: #666666"': ''?>>
+                (<?= htmlReady($name) ?>)
+            </span>
         <? elseif ($room = $termin->getRoom()): ?>
             <?= htmlReady($room); ?>
             <?= $room_holiday ?: '' ?>

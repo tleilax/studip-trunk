@@ -42,7 +42,7 @@
             </span>
             <? endif ?>
         <? else : ?>
-            <?=$tpl['room']?>
+        <?=$tpl['room']?>
             <? if ($tpl['ausruf']) : ?>
                 <a href="javascript:;" onClick="alert('<?=jsReady($tpl['ausruf'], 'inline-single')?>')">
                     <?= Assets::img($tpl['symbol'], array('title' => $tpl['ausruf']))?>

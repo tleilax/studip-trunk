@@ -1193,7 +1193,7 @@ label.required:after {
 section.contentbox .studip-form div section {
   padding: 0;
 }
-section.contentbox article .studip-form section {
+section.contentbox .studip-form article section {
   margin-bottom: 15px;
   margin-top: 10px;
   padding: 0;
