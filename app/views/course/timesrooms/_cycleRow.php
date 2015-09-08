@@ -81,7 +81,7 @@
             <? if (Config::get()->RESOURCES_ENABLE && $termin->hasRoom()) : ?>
                 <? $warning[] = _('Dieser Termin hat eine Raumbuchung, welche mit dem Termin gelöscht wird.'); ?>
             <? endif ?>
-            <a <?= Request::isXhr() ? 'data-dialog="size=big;reload-on-close"' : '' ?>
+            <a <?= Request::isXhr() ? 'data-dialog="size=big"' : '' ?>
                 href="<?= $controller->url_for('course/timesrooms/deleteSingle/' . $termin->termin_id, array('cycle_id' => $termin->metadate_id)) ?>" <? !empty($warning) ? 'data-confirm="' . implode("\n", $warning) . '"' : '' ?>>
                 <?= Assets::img('icons/blue/trash', array('title' => _('Termin löschen'))) ?>
             </a>
@@ -94,7 +94,7 @@
             </a>
 
 
-            <a <?= Request::isXhr() ? 'data-dialog="size=big;reload-on-close"' : '' ?> <? !empty($warning) ? 'data-confirm="' . implode("\n", $warning) . '"' : '' ?>
+            <a <?= Request::isXhr() ? 'data-dialog="size=big"' : '' ?> <? !empty($warning) ? 'data-confirm="' . implode("\n", $warning) . '"' : '' ?>
                 href="<?= $controller->url_for('course/timesrooms/undeleteSingle/' . $termin->termin_id, $editParams) ?>">
                 <?= Assets::img('icons/grey/decline/trash', tooltip2(_('Termin wiederherstellen'))) ?>
             </a>

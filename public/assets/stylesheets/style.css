@@ -1255,8 +1255,9 @@ section.contentbox .studip-form article section table section {
 .studip-form select {
   border: 1px solid #a9b6cb;
   height: 26px;
-  padding-left: 10px;
-  padding-right: 10px;
+  padding: 5px 10px;
+  line-height: 130%;
+  margin: 0.8em 0.6em 0.8em 0;
   /* Darken border on focus */
 }
 .studip-form input[type="text"].multiple,

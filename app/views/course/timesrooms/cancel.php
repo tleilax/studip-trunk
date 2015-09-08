@@ -2,7 +2,7 @@
 <footer>
     <?= Studip\Button::createAccept(_('Übernehmen'), 'editDeletedSingleDate',
         array('formaction'  => $controller->url_for('course/timesrooms/saveComment/' . $termin->getTerminID()),
-              'data-dialog' => 'size=big;reload-on-close'
+              'data-dialog' => 'size=big'
         )) ?>
     <?= Studip\LinkButton::createCancel(_('Abbrechen'), '?#' . $termin_id) ?>
 </footer>

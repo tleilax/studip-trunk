@@ -6,12 +6,12 @@
         <nav>
             <a data-dialog-button class="link-add"
                href="<?= $controller->link_for('course/timesrooms/createSingleDate/' . $course_id, $editParams) ?>"
-               data-dialog="size=big;reload-on-close" title="<?= _('Neuen Einzeltermin') ?>">
+               data-dialog="size=big" title="<?= _('Neuen Einzeltermin') ?>">
                 <?= _('Neuen Einzeltermin') ?>
             </a>
             <a data-dialog-button class="link-add"
                href="<?= $controller->url_for('course/block_appointments/index/' . $course_id, $editParams) ?>"
-               data-dialog="size=big;reload-on-close"
+               data-dialog="size=big"
                title="<? _('Blocktermin hinzufügen') ?>">
                 <?= _('Neuen Blocktermin') ?>
             </a>
@@ -19,7 +19,7 @@
     </header>
     <? if (!empty($single_dates)) : ?>
         <form class="studip-form" action="<?= $controller->url_for('course/timesrooms/stack', $editParams) ?>"
-              data-dialog="size=big;reload-on-close"  method="post">
+              data-dialog="size=big"  method="post">
             <table class="default nohover">
                 <colgroup>
                     <col width="30px">

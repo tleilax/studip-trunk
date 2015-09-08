@@ -528,7 +528,7 @@ class Admin_CoursesController extends AuthenticatedController
                         'title'      => _('Zeiten / Räume'),
                         'url'        => 'dispatch.php/course/timesrooms/index?cid=%s',
                         'attributes' => array(
-                            'data-dialog' => 'size=big;reload-on-close'
+                            'data-dialog' => 'size=big'
                         ),
                         'params'     => array(
                             'newFilter' => $sem_filter,

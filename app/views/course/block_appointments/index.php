@@ -2,7 +2,7 @@
     <h1><?= _('Neuen Blocktermin anlegen') ?></h1>
 <? endif ?>
 
-<form <?= Request::isXhr() ? 'data-dialog="size=big;reload-on-close"' : '' ?>
+<form <?= Request::isXhr() ? 'data-dialog="size=big"' : '' ?>
     class="studip-form"
     action="<?= $controller->url_for('course/block_appointments/save/' . $course_id, $editParams) ?>"
     method="post">

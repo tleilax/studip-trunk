@@ -1,4 +1,4 @@
-<form action="<?= $controller->url_for('course/timesrooms/index', array('cmd' => 'applyFilter'))?>" method="post" class="studip-form" data-dialog="size=big;reload-on-close">
+<form action="<?= $controller->url_for('course/timesrooms/index', array('cmd' => 'applyFilter'))?>" method="post" class="studip-form" data-dialog="size=big">
     <section>
         <label for="newFilter">
             <?= _('Semester auswählen') ?>
