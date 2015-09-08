@@ -6,7 +6,7 @@
         <nav>
             <a data-dialog-button class="link-add"
                href="<?= $controller->link_for('course/timesrooms/createCycle', $editParams) ?>"
-               data-dialog="size=big"
+               data-dialog="size=big;reload-on-close"
                title="<?= _('Regelmäßigen Termin hinzufügen') ?>">
                 <?= _('Regelmäßigen Termin hinzufügen') ?>
             </a>
@@ -17,7 +17,7 @@
         <?= CSRFProtection::tokenTag() ?>
         <? foreach ($cycle_dates as $metadate_id => $cycle) : ?>
             <form class="studip-form" action="<?= $controller->url_for('course/timesrooms/stack/' . $metadate_id, $editParams) ?>"
-                  method="post" data-dialog="size=big">
+                  method="post" data-dialog="size=big;reload-on-close">
                 <article id="<?= $metadate_id ?>"
                          class="<?= Request::get('contentbox_open') == $metadate_id ? 'open' : '' ?>">
                     <header <?= ($class = $course->getCycleColorClass($metadate_id)) ? 'class="' . $class . '"' : '' ?>>
@@ -54,7 +54,7 @@
                             </a>
                             <?= Assets::input('icons/blue/trash', tooltip2(_('Diesen Zeitraum löschen')) + array(
                                     'formaction'   => $controller->url_for('course/timesrooms/deleteCycle/' . $metadate_id),
-                                    'data-dialog'  => 'size=big',
+                                    'data-dialog'  => 'size=big;reload-on-close',
                                     'data-confirm' => _('Soll dieser Zeitraum wirklich gelöscht werden?'),
                                 )) ?>
                         </span>

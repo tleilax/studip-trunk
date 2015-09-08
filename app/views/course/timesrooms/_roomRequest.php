@@ -10,7 +10,7 @@
                                   . 'eine Raumanfrage erstellen. Um für einen einzelnen Termin eine Raumanfrage zu erstellen, '
                                   . 'klappen Sie diesen auf und wählen dort Raumanfrage erstellen')) ?>
                 <a class="link-add" href="<?= URLHelper::getURL('dispatch.php/course/room_requests/edit/' . $course->id, array('new_room_request_type' => 'course')) ?>"
-                   data-dialog="size=big"
+                   data-dialog="size=big;reload-on-close"
                    title="<?= _('Neue Raumanfrage für die Veranstaltung erstellen') ?>">
                     <?= _('Neue Raumanfrage') ?>
                 </a>
@@ -24,7 +24,7 @@
                 <?= MessageBox::info(_('Für diese Veranstaltung liegt eine noch offene Raumanfrage vor.'), array(nl2br(htmlReady($roomRequests)))) ?>
                 <?= Studip\LinkButton::create(_('Raumanfrage bearbeiten'),
                     URLHelper::getURL('dispatch.php/course/room_requests/edit/' . $course->getId(), array('request_id' => $request_id)),
-                    array('data-dialog' => 'size=big')) ?>
+                    array('data-dialog' => 'size=big;reload-on-close')) ?>
                 <?= Studip\LinkButton::create(_('Raumanfrage zurückziehen'),
                     URLHelper::getURL('dispatch.php/course/room_requests/edit/' . $course->getId(), array('request_id' => $request_id)),
                     array()) ?>

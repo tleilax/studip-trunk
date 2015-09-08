@@ -1,7 +1,7 @@
 <form
     action="<?= $controller->url_for('course/timesrooms/' . ($cycle ? 'editCycle/' . $cycle->getMetaDateID() : 'saveCycle'), $editParams) ?>"
     class="studip-form" method="post"
-    <?= Request::isXhr() ? 'data-dialog="size=big"' : '' ?>>
+    <?= Request::isXhr() ? 'data-dialog="size=big;reload-on-close"' : '' ?>>
     <?= CSRFProtection::tokenTag() ?>
 
     <? if ($has_bookings) : ?>
@@ -103,6 +103,6 @@
 
     <footer data-dialog-button>
         <?= Studip\Button::createAccept(_('Speichern'), 'save') ?>
-        <?= Studip\LinkButton::create(_('Zurück zur Übersicht'), $controller->url_for('course/timesrooms/index'), array('data-dialog' => 'size=big')) ?>
+        <?= Studip\LinkButton::create(_('Zurück zur Übersicht'), $controller->url_for('course/timesrooms/index'), array('data-dialog' => 'size=big;reload-on-close')) ?>
     </footer>
 </form>

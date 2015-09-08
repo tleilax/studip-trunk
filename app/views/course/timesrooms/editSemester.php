@@ -1,5 +1,5 @@
 <form action="<?= $controller->url_for('course/timesrooms/set_semester/' . $course->id) ?>" method="post"
-      class="studip-form" <?= Request::isXhr() ? 'data-dialog="size=big"' : '' ?>>
+      class="studip-form" <?= Request::isXhr() ? 'data-dialog="size=big;reload-on-close"' : '' ?>>
     <section>
         <section <?= !Request::isXhr() ? 'style="display: inline-block; width: 45%"' : '' ?>>
             <label for="startSemester"><?= _('Startsemester') ?>:</label>

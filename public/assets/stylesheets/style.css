@@ -586,29 +586,11 @@ tr.sortable th.sortasc {
   background-image: url("../images/dreieck_up.png");
   padding-left: 17px;
 }
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  tr.sortable th.sortasc {
-    background-image: url("../images/dreieck_up@2x.png");
-    -webkit-background-size: 16px 16px;
-    -moz-background-size: 16px 16px;
-    -o-background-size: 16px 16px;
-    background-size: 16px 16px;
-  }
-}
 tr.sortable th.sortdesc {
   background-repeat: no-repeat;
   background-position: left center;
   background-image: url("../images/dreieck_down.png");
   padding-left: 17px;
-}
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  tr.sortable th.sortdesc {
-    background-image: url("../images/dreieck_down@2x.png");
-    -webkit-background-size: 16px 16px;
-    -moz-background-size: 16px 16px;
-    -o-background-size: 16px 16px;
-    background-size: 16px 16px;
-  }
 }
 /* styles for settings tables */
 .settings {
@@ -1019,16 +1001,6 @@ table.withdetails tr.open + tr.details > td > .detailscontainer {
   vertical-align: text-top;
   width: 16px;
 }
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .sortable-table .headerSortUp::after,
-  .sortable-table .tablesorter-headerDesc .tablesorter-header-inner::after {
-    background-image: url("../images/dreieck_down@2x.png");
-    -webkit-background-size: 16px 8px;
-    -moz-background-size: 16px 8px;
-    -o-background-size: 16px 8px;
-    background-size: 16px 8px;
-  }
-}
 .sortable-table .headerSortUp::after,
 .sortable-table .tablesorter-headerDesc .tablesorter-header-inner::after {
   vertical-align: inherit;
@@ -1043,16 +1015,6 @@ table.withdetails tr.open + tr.details > td > .detailscontainer {
   background-image: url("../images/dreieck_up.png");
   vertical-align: text-top;
   width: 16px;
-}
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .sortable-table .headerSortDown::after,
-  .sortable-table .tablesorter-headerAsc .tablesorter-header-inner::after {
-    background-image: url("../images/dreieck_up@2x.png");
-    -webkit-background-size: 16px 8px;
-    -moz-background-size: 16px 8px;
-    -o-background-size: 16px 8px;
-    background-size: 16px 8px;
-  }
 }
 .sortable-table .headerSortDown::after,
 .sortable-table .tablesorter-headerAsc .tablesorter-header-inner::after {
@@ -1742,8 +1704,8 @@ section.contentbox article .studip-form section {
   -moz-box-sizing: border-box;
   box-sizing: border-box;
   overflow: auto;
-  background: linear-gradient(90deg, white 30%, rgba(255, 255, 255, 0)), linear-gradient(90deg, rgba(255, 255, 255, 0), white 70%) 100% 0, radial-gradient(0 50%, farthest-side, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)), radial-gradient(100% 50%, farthest-side, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)) 100% 0;
-  background: linear-gradient(90deg, white 30%, rgba(255, 255, 255, 0)), linear-gradient(90deg, rgba(255, 255, 255, 0), white 70%) 100% 0, radial-gradient(farthest-side at 0 50%, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)), radial-gradient(farthest-side at 100% 50%, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)) 100% 0;
+  background: linear-gradient(90deg, #ffffff 30%, rgba(255, 255, 255, 0)), linear-gradient(90deg, rgba(255, 255, 255, 0), #ffffff 70%) 100% 0, radial-gradient(0 50%, farthest-side, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)), radial-gradient(100% 50%, farthest-side, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)) 100% 0;
+  background: linear-gradient(90deg, #ffffff 30%, rgba(255, 255, 255, 0)), linear-gradient(90deg, rgba(255, 255, 255, 0), #ffffff 70%) 100% 0, radial-gradient(farthest-side at 0 50%, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)), radial-gradient(farthest-side at 100% 50%, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)) 100% 0;
   background-repeat: no-repeat;
   background-size: 40px 100%, 40px 100%, 14px 100%, 14px 100%;
   /* Opera doesn't support this in the shorthand */
@@ -2333,15 +2295,6 @@ li#notification_container:hover .list {
   display: block;
   width: 168px;
   height: 57px;
-}
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .studip-logo {
-    background-image: url("../images/logos/studip-logo@2x.png");
-    -webkit-background-size: 168px 57px;
-    -moz-background-size: 168px 57px;
-    -o-background-size: 168px 57px;
-    background-size: 168px 57px;
-  }
 }
 #barTopStudip {
   position: absolute;
