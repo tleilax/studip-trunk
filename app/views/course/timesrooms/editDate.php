@@ -13,14 +13,14 @@
             <label for="start_time">
                 <?= _('Startzeit') ?>
             </label>
-            <input class="size-m has-time-picker" type="time" name="start_time" id="start_time"
+            <input class="size-l has-time-picker" type="time" name="start_time" id="start_time"
                    value="<?= $date_info->date ? strftime('%H:%M', $date_info->date) : '' ?>">
         </div>
         <div style="display: inline-block; width: 130px">
             <label for="end_time">
                 <?= _('Endzeit') ?>
             </label>
-            <input class="size-m has-time-picker" type="time" name="end_time" id="end_time"
+            <input class="size-l has-time-picker" type="time" name="end_time" id="end_time"
                    value="<?= $date_info->end_time ? strftime('%H:%M', $date_info->end_time) : '' ?>">
         </div>
     </section>

@@ -44,7 +44,7 @@ class Course_TimesroomsController extends AuthenticatedController
         if (Navigation::hasItem('course/admin/timesrooms')) {
             Navigation::activateItem('course/admin/timesrooms');
         }
-        $this->show = array('regular' => true, 'irregular' => true, 'roomRequest' => true);
+        $this->show = array('regular' => true, 'irregular' => true, 'roomRequest' => false);
 
 
         PageLayout::setHelpKeyword('Basis.Veranstaltungen');
@@ -89,7 +89,7 @@ class Course_TimesroomsController extends AuthenticatedController
 
         if ($course_id) {
             $this->course_id = $course_id;
-            $this->course = Seminar::getInstance($course_id);
+            $this->course = new Course($course_id);//Seminar::getInstance($course_id);
         }
 
         $this->semester = array_reverse(Semester::getAll());
@@ -99,44 +99,44 @@ class Course_TimesroomsController extends AuthenticatedController
         /**
          * Get Cycles
          */
-        $cycles = $this->course->metadate->getCycles();
-
-        $cycle_dates = array();
-        foreach ($cycles as $metadate_id => $cycle) {
-            $cycle_dates[$metadate_id]['name'] = $cycle->toString('long');
-            $dates = $this->course->getSingleDatesForCycle($metadate_id);
+        $cycles = $this->course->cycles;
+        $this->cycle_dates = array();
+        foreach($cycles as $cycle){
+            $dates = $cycle->getAllDates();
             foreach ($dates as $val) {
+                //echo '<pre>'; var_dump($val);die;
                 foreach ($this->semester as $sem) {
                     if ($_SESSION['raumzeitFilter'] != 'all' && $_SESSION['raumzeitFilter'] == $sem->id) {
                         continue;
                     }
-                    if (($sem->beginn <= $val->getStartTime()) && ($sem->ende >= $val->getStartTime())) {
-                        $cycle_dates[$metadate_id]['dates'][$sem->id][] = $val;
+                    if (($sem->beginn <= $val->date) && ($sem->ende >= $val->date)) {
+                        $this->cycle_dates[$cycle->metadate_id]['cycle'] = $cycle;
+                        $this->cycle_dates[$cycle->metadate_id]['dates'][$sem->id][] = $val;
                     }
                 }
             }
         }
-
-        $this->cycle_dates = $cycle_dates;
-
+        
+        $single_dates = array();
+        
         /**
          * GET Single Dates
          */
-        $_single_dates = $this->course->getSingleDates(true, true, true);
-
+        
+        $this->singel_dates = array();
+        $_single_dates = $this->course->getDatesWithExdates();
         $single_dates = array();
         foreach ($_single_dates as $id => $val) {
             foreach ($this->semester as $sem) {
                 if ($_SESSION['raumzeitFilter'] != 'all' && $_SESSION['raumzeitFilter'] == $sem->id) {
                     continue;
                 }
-                if (($sem->beginn <= $val->getStartTime()) && ($sem->ende >= $val->getStartTime())) {
-                    $single_dates[$sem->id][] = $val;
+                
+                if (($sem->beginn <= $val->date) && ($sem->ende >= $val->date) && !isset($val->metadate_id)) {
+                    $this->single_dates[$sem->id][] = $val;
                 }
             }
         }
-
-        $this->single_dates = $single_dates;
         $this->semesterFormParams = $semesterFormParams;
         $this->editParams = $editParams;
     }
@@ -156,12 +156,11 @@ class Course_TimesroomsController extends AuthenticatedController
 
         if ($course_id) {
             $this->course_id = $course_id;
-            $this->course = Seminar::getInstance($course_id);
+            $this->course = new Course($course_id);
         }
 
         $this->semester = array_reverse(Semester::getAll());
         $this->current_semester = Semester::findCurrent();
-        $this->cycles = $this->course->metadate->getCycles();
     }
 
     /**
@@ -680,9 +679,7 @@ class Course_TimesroomsController extends AuthenticatedController
             $this->redirect('course/timesrooms/createSingleDate');
             return;
         }
-
-
-    }
+   }
 
     /**
      * Save cycle
@@ -847,7 +844,7 @@ class Course_TimesroomsController extends AuthenticatedController
             include_once 'app/models/AdminCourseFilter.class.php';
 
             $list = new SelectorWidget();
-            $list->setUrl($this->url_for('/set_course'));
+            $list->setUrl($this->url_for('/index'));
             $list->setSelectParameterName('cid');
             foreach (AdminCourseFilter::get()->getCourses(false) as $seminar) {
                 $list->addElement(new SelectElement($seminar['Seminar_id'], $seminar['Name']), 'select-' . $seminar['Seminar_id']);

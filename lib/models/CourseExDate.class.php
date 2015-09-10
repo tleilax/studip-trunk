@@ -61,6 +61,14 @@ class CourseExDate extends SimpleORMap {
             'class_name'  => 'SeminarCycleDate',
             'foreign_key' => 'metadate_id'
         );
+        $config['has_one']['room_assignment'] = array(
+            'class_name'  => 'ResourceAssignment',
+            'foreign_key' => 'termin_id',
+            'assoc_foreign_key' => 'assign_user_id',
+            'on_delete' => 'delete',
+            'on_store' => 'store'
+        );
+        
         $dummy_relation = function () { return new SimpleCollection(); };
         $config['additional_fields']['topics']['get'] = $dummy_relation;
         $config['additional_fields']['statusgruppen']['get'] = $dummy_relation;

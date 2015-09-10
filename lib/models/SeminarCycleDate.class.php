@@ -78,6 +78,14 @@ class SeminarCycleDate extends SimpleORMap
             'on_store'   => 'store',
             'order_by'   => 'ORDER BY date'
         );
+        
+        $config['has_many']['exdates'] = array(
+            'class_name' => 'CourseExDate',
+            'on_delete'  => 'delete',
+            'on_store'   => 'store',
+            'order_by'   => 'ORDER BY date'
+        );
+        
         $config['additional_fields']['start_hour'] = array('get' => 'getTimeFraction', 'set' => 'setTimeFraction');
         $config['additional_fields']['start_minute'] = array('get' => 'getTimeFraction', 'set' => 'setTimeFraction');
         $config['additional_fields']['end_hour'] = array('get' => 'getTimeFraction', 'set' => 'setTimeFraction');
@@ -157,5 +165,26 @@ class SeminarCycleDate extends SimpleORMap
             $this->end_offset ? $this->end_offset: '',
             $this->description ? ' (' . $this->description . ')' : '');
         return $result;
+    }
+    
+    function getAllDates()
+    {
+        $exdates = $this->exdates;
+        $dates   = $this->dates;         
+        foreach($exdates as $exdate){
+            $all_data[] = $exdate;
+        }        
+        foreach($dates as $date){
+            $all_data[] = $date;
+        }
+        
+        usort($all_data, function($a, $b){
+            if ($a->date == $b->date) {
+                return 0;
+            }
+            return ($a->date < $b->date) ? -1 : 1;
+        });
+        
+        return $all_data;
     }
 }

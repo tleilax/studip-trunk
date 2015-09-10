@@ -1,4 +1,6 @@
-<tr>
+<? $is_exTermin = get_class($date) === 'CourseExDate' ? true : false ?>
+
+<tr class="<?= $is_exTermin ? 'content_title_red' : '' ?> ">
     <td>
         <label for="<?= htmlReady($termin->termin_id) ?>">
             <input class="<?= $class_ids ?>" type="checkbox" id="<?= htmlReady($termin->termin_id) ?>"
@@ -6,23 +8,25 @@
                    name="single_dates[]"/>
         </label>
     </td>
-    <td class="<?= $termin->hasRoom() ? 'green' : 'red' ?>">
-        <? if ($termin->isExTermin()) : ?>
+
+    <td class="<?= $termin->getRoom() !== null ? 'green' : 'red' ?>">
+        <? if (get_class($termin) === 'CourseExDate') : ?>
             <span style="color: #666666">
-                <?= htmlReady($termin->toString()) ?>
+                <?= htmlReady($termin->getFullname()) ?>
             </span>
         <? else : ?>
             <a class="load-in-new-row"
                href="<?= $controller->url_for('course/timesrooms/editDate/'
                                               . $termin->termin_id . ($termin->metadate_id ? '/' . $termin->metadate_id : ''), $editParams) ?>">
-                <?= htmlReady($termin->toString()) ?>
+                <?= htmlReady($termin->getFullname()) ?>
             </a>
         <? endif ?>
     </td>
+    
     <td>
-        <? $dozenten = $termin->getRelatedPersons() ?>
+        <? $dozenten = $termin->dozenten ?>
         <? if (count($dozenten)) : ?>
-            <ul class="list-unstyled list-csv" <?= $termin->isExTermin() ? 'style="color: #666666"' : ''?>>
+            <ul class="list-unstyled list-csv" <?= get_class($date) === 'CourseExDate' ? 'style="color: #666666"' : ''?>>
                 <? foreach ($dozenten as $key => $dozent) : ?>
                     <? $teacher = User::find($dozent) ?>
                     <li><?= $teacher ? htmlReady($teacher->getFullname()) : '' ?></li>
@@ -31,37 +35,35 @@
         <? endif ?>
     </td>
     <td>
-        <? if ($room_holiday = $termin->isHoliday()) : ?>
-            <? $room_holiday = sprintf('<span style="color: #666666">(%s)</span>', htmlReady($room_holiday)) ?>
+        <? if ($room_holiday = SemesterHoliday::isHoliday($termin->date,false)) : ?>
+            <? $room_holiday = sprintf('<span style="color: #666666">(%s)</span>', htmlReady($room_holiday['name'])) ?>
         <? endif ?>
 
-        <? if ($termin->isExTermin() && ($comment = $termin->getComment())) : ?>
+        <? if (get_class($termin) === 'CourseExDate' && ($comment = $termin->content)) : ?>
             <span style="font-style: italic; color: #666666"><?= _("(fällt aus)") ?></span>
-            <?= tooltipIcon($termin->getComment(), false) ?>
-        <? elseif (($name = $termin->isHoliday())): ?>
-            <span <?= $termin->isExTermin() ? 'style="color: #666666"': ''?>>
-                (<?= htmlReady($name) ?>)
+            <?= tooltipIcon($termin->content, false) ?>
+        <? elseif (($name = SemesterHoliday::isHoliday($termin->date, false))): ?>
+            <span <?= get_class($termin) === 'CourseExDate' ? 'style="color: #666666"': ''?>>
+                (<?= htmlReady($name['name']) ?>)
             </span>
-        <? elseif ($room = $termin->getRoom()): ?>
-            <?= htmlReady($room); ?>
-            <?= $room_holiday ?: '' ?>
-        <? elseif
-        ($freeTextRoom = $termin->getFreeRoomText()
-        ) : ?>
+        <? elseif ($room = $termin->getRoom()) : ?>
+            <?= htmlReady($room->name); ?>
+            <?= $room_holiday['name'] ?: '' ?>
+        <? elseif ($freeTextRoom = $termin->getRoomName() ) : ?>
             <?= sprintf('(%s)', htmlReady($freeTextRoom)) ?>
         <? else : ?>
             <?= _('Keine Raumangabe') ?>
             <?= $room_holiday ?: '' ?>
         <? endif ?>
 
-        <? if ($request = $termin->getRoomRequest()) : ?>
+        <? if ($request = RoomRequest::existsByDate($termin->id, true)) : ?>
             <? $msg_info = _('Für diesen Termin existiert eine Raumanfrage: ') . $request->getInfo() ?>
             <?= tooltipIcon($msg_info) ?>
         <? endif ?>
     </td>
     <td class="actions">
 
-        <? if (!$termin->isExTermin()) : ?>
+        <? if (get_class($termin) === 'CourseExDate') : ?>
             <a class="load-in-new-row"
                href="<?= $controller->url_for('course/timesrooms/editDate/'
                                               . $termin->termin_id . ($termin->metadate_id ? '/' . $termin->metadate_id : ''), $editParams) ?>">
@@ -69,7 +71,7 @@
             </a>
 
             <? $warning = array() ?>
-            <? if ($termin->getIssueIDs()) : ?>
+            <? if (!empty(CourseTopic::findByTermin_id($termin->id))) : ?>
                 <? if (Config::get()->RESOURCES_ENABLE_EXPERT_SCHEDULE_VIEW) : ?>
                     <? $warning[] = _('Diesem Termin ist im Ablaufplan ein Thema zugeordnet.
                         Titel und Beschreibung des Themas bleiben erhalten und können in der Expertenansicht des Ablaufplans einem anderen Termin wieder zugeordnet werden.'); ?>
@@ -78,7 +80,7 @@
                 <? endif ?>
             <? endif ?>
 
-            <? if (Config::get()->RESOURCES_ENABLE && $termin->hasRoom()) : ?>
+            <? if (Config::get()->RESOURCES_ENABLE && $termin->room_assignment) : ?>
                 <? $warning[] = _('Dieser Termin hat eine Raumbuchung, welche mit dem Termin gelöscht wird.'); ?>
             <? endif ?>
             <a <?= Request::isXhr() ? 'data-dialog="size=big"' : '' ?>
