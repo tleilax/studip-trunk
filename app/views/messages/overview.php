@@ -126,7 +126,7 @@ $actions->addLink(
     "#",
     'icons/16/blue/trash.png',
     array(
-        'onclick' => "jQuery('#bulk').submit(); return false;"
+        'onclick' => "if (window.confirm('Wirklich %s Nachrichten löschen?'.toLocaleString().replace('%s', jQuery('#bulk tbody :checked').length))) { jQuery('#bulk').submit(); } return false;"
     )
 );
 $sidebar->addWidget($actions);
