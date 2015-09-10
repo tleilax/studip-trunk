@@ -3,7 +3,7 @@
 
 jQuery(function ($) {
 
-    $(document).on('ready dialog-open dialog-update', function() {
+    $(document).on('ready dialog-open dialog-update', function () {
         $('#block_appointments_days input').click(function () {
             var clicked_id = parseInt(this.id.split('_').pop(), 10);
             if (clicked_id === 0 || clicked_id === 1) {
@@ -15,7 +15,21 @@ jQuery(function ($) {
                 $('#block_appointments_days_1').prop('checked', false);
             }
         });
+
+
+        $(".single_room").change(function () {
+            alert("Handler for .change() called.");
+        });
     });
+
+
+    $(document).on('change', 'select[name=room_sd]', function () {
+        $('input[type=radio][name=room][value=room]').prop('checked', true);
+    })
+
+    $(document).on('focus', 'input[name=freeRoomText_sd]', function () {
+        $('input[type=radio][name=room][value=freetext]').prop('checked', true);
+    })
 
     $(document).on('click', 'a.bookable_rooms_action', function (event) {
         var select = $(this).prev('select')[0];
@@ -34,10 +48,10 @@ jQuery(function ($) {
                     url: STUDIP.ABSOLUTE_URI_STUDIP + 'dispatch.php/resources/helpers/bookable_rooms',
                     data: {
                         rooms: _.pluck(select.options, 'value'),
-                        selected_dates : _.pluck($('input[name="singledate[]"]:checked'), 'value'),
+                        selected_dates: _.pluck($('input[name="singledate[]"]:checked'), 'value'),
                         singleDateID: $('input[name=singleDateID]').attr('value'),
                         new_date: _.map($('#startDate,#start_stunde,#start_minute,#end_stunde,#end_minute'), function (v) {
-                            return { name: v.id, value: v.value };
+                            return {name: v.id, value: v.value};
                         })
                     },
                     success: function (result) {
@@ -72,6 +86,9 @@ jQuery(function ($) {
 });
 
 STUDIP.Raumzeit = {
+    toggleRadio: function (radio_button) {
+
+    },
     toggleCheckboxes: function (cycle_id) {
         var checked = false;
         jQuery('table[data-cycleid=' + cycle_id + '] input[name^=singledate]').each(function () {

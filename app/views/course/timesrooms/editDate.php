@@ -98,7 +98,7 @@
                        id="room" <?= $date_info->resource_id ? 'checked' : '' ?> />
             </label>
 
-            <select name="room_sd" style="display: inline-block; margin-left: 40px" class="single_room size-m" onchange="jQuery('input[type=radio][name=room][value=room]').prop('checked', true)">
+            <select name="room_sd" style="display: inline-block; margin-left: 40px" class="single_room size-m">
                 <option value=""><?= _('Wählen Sie einen Raum aus') ?></option>
                 <? foreach ($resList->resources as $room_id => $room) : ?>
                     <option value="<?= $room_id ?>"
@@ -118,7 +118,6 @@
         </label>
         <input style="margin-left: 40px; display: inline-block" type="text" class="size-m"
                name="freeRoomText_sd"
-               onfocus="jQuery('input[type=radio][name=room][value=freetext]').prop('checked', true)"
                placeholder="<?= _('freie Ortsangabe (keine Raumbuchung):') ?>"
                value="<?= $date_info->raum ? htmlReady($date_info->raum) : '' ?>"/>
     </section>
