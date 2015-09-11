@@ -89,7 +89,7 @@ class Course_TimesroomsController extends AuthenticatedController
 
         if ($course_id) {
             $this->course_id = $course_id;
-            $this->course = new Course($course_id);//Seminar::getInstance($course_id);
+            $this->course = Course::find($course_id);
         }
 
         $this->semester = array_reverse(Semester::getAll());
@@ -99,12 +99,10 @@ class Course_TimesroomsController extends AuthenticatedController
         /**
          * Get Cycles
          */
-        $cycles = $this->course->cycles;
         $this->cycle_dates = array();
-        foreach($cycles as $cycle){
+        foreach($this->course->cycles as $cycle){
             $dates = $cycle->getAllDates();
             foreach ($dates as $val) {
-                //echo '<pre>'; var_dump($val);die;
                 foreach ($this->semester as $sem) {
                     if ($_SESSION['raumzeitFilter'] != 'all' && $_SESSION['raumzeitFilter'] == $sem->id) {
                         continue;
@@ -122,8 +120,7 @@ class Course_TimesroomsController extends AuthenticatedController
         /**
          * GET Single Dates
          */
-        
-        $this->singel_dates = array();
+        $this->single_dates = array();
         $_single_dates = $this->course->getDatesWithExdates();
         $single_dates = array();
         foreach ($_single_dates as $id => $val) {

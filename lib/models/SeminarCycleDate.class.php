@@ -171,6 +171,8 @@ class SeminarCycleDate extends SimpleORMap
     {
         $exdates = $this->exdates;
         $dates   = $this->dates;         
+        $all_data = array();
+        
         foreach($exdates as $exdate){
             $all_data[] = $exdate;
         }        
@@ -179,12 +181,8 @@ class SeminarCycleDate extends SimpleORMap
         }
         
         usort($all_data, function($a, $b){
-            if ($a->date == $b->date) {
-                return 0;
-            }
-            return ($a->date < $b->date) ? -1 : 1;
+            return $a->date - $b->date;
         });
-        
         return $all_data;
     }
 }

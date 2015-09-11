@@ -1,5 +1,4 @@
-<? $is_exTermin = get_class($date) === 'CourseExDate' ? true : false ?>
-
+<? $is_exTermin =  $termin instanceof CourseExDate ?>
 <tr class="<?= $is_exTermin ? 'content_title_red' : '' ?> ">
     <td>
         <label for="<?= htmlReady($termin->termin_id) ?>">
@@ -10,7 +9,7 @@
     </td>
 
     <td class="<?= $termin->getRoom() !== null ? 'green' : 'red' ?>">
-        <? if (get_class($termin) === 'CourseExDate') : ?>
+        <? if ($is_exTermin) : ?>
             <span style="color: #666666">
                 <?= htmlReady($termin->getFullname()) ?>
             </span>
@@ -26,7 +25,7 @@
     <td>
         <? $dozenten = $termin->dozenten ?>
         <? if (count($dozenten)) : ?>
-            <ul class="list-unstyled list-csv" <?= get_class($date) === 'CourseExDate' ? 'style="color: #666666"' : ''?>>
+            <ul class="list-unstyled list-csv" <?= $is_exTermin ? 'style="color: #666666"' : ''?>>
                 <? foreach ($dozenten as $key => $dozent) : ?>
                     <? $teacher = User::find($dozent) ?>
                     <li><?= $teacher ? htmlReady($teacher->getFullname()) : '' ?></li>
@@ -39,11 +38,11 @@
             <? $room_holiday = sprintf('<span style="color: #666666">(%s)</span>', htmlReady($room_holiday['name'])) ?>
         <? endif ?>
 
-        <? if (get_class($termin) === 'CourseExDate' && ($comment = $termin->content)) : ?>
+        <? if ($is_exTermin && ($comment = $termin->content)) : ?>
             <span style="font-style: italic; color: #666666"><?= _("(fällt aus)") ?></span>
             <?= tooltipIcon($termin->content, false) ?>
         <? elseif (($name = SemesterHoliday::isHoliday($termin->date, false))): ?>
-            <span <?= get_class($termin) === 'CourseExDate' ? 'style="color: #666666"': ''?>>
+            <span <?= $is_exTermin ? 'style="color: #666666"': ''?>>
                 (<?= htmlReady($name['name']) ?>)
             </span>
         <? elseif ($room = $termin->getRoom()) : ?>
@@ -63,7 +62,7 @@
     </td>
     <td class="actions">
 
-        <? if (get_class($termin) === 'CourseExDate') : ?>
+        <? if ($is_exTermin) : ?>
             <a class="load-in-new-row"
                href="<?= $controller->url_for('course/timesrooms/editDate/'
                                               . $termin->termin_id . ($termin->metadate_id ? '/' . $termin->metadate_id : ''), $editParams) ?>">

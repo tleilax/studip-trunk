@@ -115,7 +115,7 @@ class SemesterHoliday extends SimpleORMap
         $holiday_entry = false;
         foreach (SemesterHoliday::getAll() as $val) {
             if (($val->beginn <= $time) && ($val->ende >= $time)) {
-                $holiday_entry = array('name' => _('Ferien'), 'col' => 3);
+                $holiday_entry = array('name' => $val->name, 'col' => 3);
                 break;
             }
         }
