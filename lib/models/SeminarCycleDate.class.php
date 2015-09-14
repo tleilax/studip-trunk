@@ -185,4 +185,24 @@ class SeminarCycleDate extends SimpleORMap
         });
         return $all_data;
     }
+    
+    
+    /*
+     * TODO
+     * Das ganze dann noch in gut weil so geht es zwar ist aber blöd
+     */
+    function store(){
+        $metadate_id = $this->metadate_id;
+        $seminar_id = $this->seminar_id;
+        $course = new Course($seminar_id);
+        $store = parent::store();
+        if($store){
+            $meta = new MetaDate($seminar_id);
+            $meta->setSeminarStartTime($course->start_time);
+            $meta->setSeminarDurationTime($course->duration_time);
+            $meta->createSingleDates($metadate_id);
+        }
+        return $store;
+    }
+    
 }
