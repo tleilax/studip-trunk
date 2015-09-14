@@ -70,7 +70,8 @@
             </a>
 
             <? $warning = array() ?>
-            <? if (!empty(CourseTopic::findByTermin_id($termin->id))) : ?>
+            <? $course_topic = CourseTopic::findByTermin_id($termin->id)?>
+            <? if (!empty($course_topic)) : ?>
                 <? if (Config::get()->RESOURCES_ENABLE_EXPERT_SCHEDULE_VIEW) : ?>
                     <? $warning[] = _('Diesem Termin ist im Ablaufplan ein Thema zugeordnet.
                         Titel und Beschreibung des Themas bleiben erhalten und können in der Expertenansicht des Ablaufplans einem anderen Termin wieder zugeordnet werden.'); ?>
