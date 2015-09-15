@@ -14,14 +14,14 @@
             <label for="start_time">
                 <?= _('Startzeit') ?>
             </label>
-            <input class="size-m has-time-picker" type="time" name="start_time" id="start_time"
+            <input class="size-l has-time-picker" type="time" name="start_time" id="start_time"
                    value="<?= htmlReady(Request::get('start_time')) ?>" required>
         </div>
         <div style="display: inline-block">
             <label for="end_time">
                 <?= _('Endzeit') ?>
             </label>
-            <input class="size-m has-time-picker" type="time" name="end_time" id="end_time"
+            <input class="size-l has-time-picker" type="time" name="end_time" id="end_time"
                    value="<?= htmlReady(Request::get('end_time')) ?>" required>
         </div>
     </section>

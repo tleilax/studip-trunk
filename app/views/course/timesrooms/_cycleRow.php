@@ -66,7 +66,7 @@
             <a class="load-in-new-row"
                href="<?= $controller->url_for('course/timesrooms/editDate/'
                                               . $termin->termin_id . ($termin->metadate_id ? '/' . $termin->metadate_id : ''), $editParams) ?>">
-                <?= Assets::img('icons/blue/edit', tooltip2(_('Termin bearbeiten'))) ?>
+                <?= Assets::img('icons/grey/edit', tooltip2(_('Termin bearbeiten'))) ?>
             </a>
 
             <? $warning = array() ?>
@@ -83,23 +83,25 @@
             <? if (Config::get()->RESOURCES_ENABLE && $termin->room_assignment) : ?>
                 <? $warning[] = _('Dieser Termin hat eine Raumbuchung, welche mit dem Termin gelöscht wird.'); ?>
             <? endif ?>
-            <a <?= Request::isXhr() ? 'data-dialog="size=big"' : '' ?>
-                href="<?= $controller->url_for('course/timesrooms/deleteSingle/' . $termin->termin_id, array('cycle_id' => $termin->metadate_id)) ?>" <? !empty($warning) ? 'data-confirm="' . implode("\n", $warning) . '"' : '' ?>>
-                <?= Assets::img('icons/blue/trash', array('title' => _('Termin löschen'))) ?>
+            <a <?= Request::isXhr() ? 'data-dialog="size=big"' : '' ?> <? !empty($warning) ? 'data-confirm="' . implode("\n", $warning) . '"' : '' ?>
+                href="<?= $controller->url_for('course/timesrooms/undeleteSingle/' . $termin->termin_id, $editParams) ?>">
+                <?= Assets::img('icons/grey/decline/trash', tooltip2(_('Termin wiederherstellen'))) ?>
             </a>
+            
+            
         <? else : ?>
 
             <a class="load-in-new-row"
                href="<?= $controller->url_for('course/timesrooms/cancel/'
                                               . $termin->termin_id . ($termin->metadate_id ? '/' . $termin->metadate_id : ''), $editParams) ?>">
-                <?= Assets::img('icons/grey/edit', tooltip2(_('Termin bearbeiten'))) ?>
+                <?= Assets::img('icons/blue/edit', tooltip2(_('Termin bearbeiten'))) ?>
+            </a>
+            <a <?= Request::isXhr() ? 'data-dialog="size=big"' : '' ?>
+                href="<?= $controller->url_for('course/timesrooms/deleteSingle/' . $termin->termin_id, array('cycle_id' => $termin->metadate_id)) ?>" <? !empty($warning) ? 'data-confirm="' . implode("\n", $warning) . '"' : '' ?>>
+                <?= Assets::img('icons/blue/trash', array('title' => _('Termin löschen'))) ?>
             </a>
 
-
-            <a <?= Request::isXhr() ? 'data-dialog="size=big"' : '' ?> <? !empty($warning) ? 'data-confirm="' . implode("\n", $warning) . '"' : '' ?>
-                href="<?= $controller->url_for('course/timesrooms/undeleteSingle/' . $termin->termin_id, $editParams) ?>">
-                <?= Assets::img('icons/grey/decline/trash', tooltip2(_('Termin wiederherstellen'))) ?>
-            </a>
+            
 
         <? endif ?>
 

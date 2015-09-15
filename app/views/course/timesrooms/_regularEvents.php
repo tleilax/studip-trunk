@@ -128,7 +128,7 @@
     <? else : ?>
         <section>
             <p class="text-center">
-                <strong><?= sprintf(_('Kein Blocktermin für %s vorhanden'), htmlReady($course->name)) ?></strong>
+                <strong><?= sprintf(_('Keine regelmäßige Termine für %s vorhanden'), htmlReady($course->name)) ?></strong>
             </p>
         </section>
     <? endif; ?>
