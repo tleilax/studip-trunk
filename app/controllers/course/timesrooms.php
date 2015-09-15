@@ -25,12 +25,6 @@ class Course_TimesroomsController extends AuthenticatedController
     {
         parent::before_filter($action, $args);
 
-        if (Request::isXhr()) {
-            $this->set_layout($GLOBALS['template_factory']->open('layouts/dialog'));
-        } else {
-            $this->set_layout($GLOBALS['template_factory']->open('layouts/base'));
-        }
-
         $this->course_id = Request::get('cid', null);
 
         if (!$GLOBALS['perm']->have_studip_perm('tutor', $this->course_id)) {
