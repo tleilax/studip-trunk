@@ -10,7 +10,7 @@
 
     <td class="<?= $termin->getRoom() !== null ? 'green' : 'red' ?>">
         <? if ($is_exTermin) : ?>
-            <span style="color: #666666">
+            <span class="is_ex_termin">
                 <?= htmlReady($termin->getFullname()) ?>
             </span>
         <? else : ?>
@@ -23,26 +23,24 @@
     </td>
     
     <td>
-        <? $dozenten = $termin->dozenten ?>
-        <? if (count($dozenten)) : ?>
-            <ul class="list-unstyled list-csv" <?= $is_exTermin ? 'style="color: #666666"' : ''?>>
-                <? foreach ($dozenten as $key => $dozent) : ?>
-                    <? $teacher = User::find($dozent) ?>
-                    <li><?= $teacher ? htmlReady($teacher->getFullname()) : '' ?></li>
-                <? endforeach ?>
-            </ul>
-        <? endif ?>
+    <? if (count($termin->dozenten) > 0): ?>
+        <ul class="list-unstyled list-csv <? if ($is_exTermin) echo 'is_ex_termin'; ?>">
+        <? foreach ($termin->dozenten as $dozent) : ?>
+            <li><?= $dozent instanceof User ? htmlReady($dozent->getFullname()) : '' ?></li>
+        <? endforeach ?>
+        </ul>
+    <? endif; ?>
     </td>
     <td>
         <? if ($room_holiday = SemesterHoliday::isHoliday($termin->date,false)) : ?>
-            <? $room_holiday = sprintf('<span style="color: #666666">(%s)</span>', htmlReady($room_holiday['name'])) ?>
+            <? $room_holiday = sprintf('<span class="is_ex_termin">(%s)</span>', htmlReady($room_holiday['name'])) ?>
         <? endif ?>
 
         <? if ($is_exTermin && ($comment = $termin->content)) : ?>
-            <span style="font-style: italic; color: #666666"><?= _("(fällt aus)") ?></span>
+            <span class="is_ex_termin" style="font-style: italic"><?= _("(fällt aus)") ?></span>
             <?= tooltipIcon($termin->content, false) ?>
-        <? elseif (($name = SemesterHoliday::isHoliday($termin->date, false))): ?>
-            <span <?= $is_exTermin ? 'style="color: #666666"': ''?>>
+        <? elseif ($name = SemesterHoliday::isHoliday($termin->date, false)): ?>
+            <span <? if ($is_exTermin) echo 'class="is_ex_termin"'; ?>>
                 (<?= htmlReady($name['name']) ?>)
             </span>
         <? elseif ($room = $termin->getRoom()) : ?>
@@ -100,8 +98,6 @@
                 href="<?= $controller->url_for('course/timesrooms/deleteSingle/' . $termin->termin_id, array('cycle_id' => $termin->metadate_id)) ?>" <? !empty($warning) ? 'data-confirm="' . implode("\n", $warning) . '"' : '' ?>>
                 <?= Assets::img('icons/blue/trash', array('title' => _('Termin löschen'))) ?>
             </a>
-
-            
 
         <? endif ?>
 

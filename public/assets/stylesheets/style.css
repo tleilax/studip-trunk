@@ -5819,6 +5819,9 @@ body#wiki #main_content td.printcontent:last-child:not(:first-child) {
 #raumzeit a.bookable_rooms_action {
   display: none;
 }
+#raumzeit .is_ex_termin {
+  color: #636a71;
+}
 .opengraph {
   font-size: 0.8em;
   border: thin solid lightgrey;
