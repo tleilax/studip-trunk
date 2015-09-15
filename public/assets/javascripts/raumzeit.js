@@ -1,7 +1,8 @@
-/*jslint browser: true, white: true, undef: true, nomen: true, eqeqeq: true, plusplus: true, bitwise: true, newcap: true, immed: true, indent: 4, onevar: false */
-/*global window, $, jQuery, _, STUDIP */
+/*jslint browser: true */
+/*global jQuery, STUDIP */
 
-jQuery(function ($) {
+(function ($) {
+    'use strict';
 
     $(document).on('ready dialog-open dialog-update', function () {
         $('#block_appointments_days input').click(function () {
@@ -18,18 +19,17 @@ jQuery(function ($) {
 
 
         $(".single_room").change(function () {
-            alert("Handler for .change() called.");
+            window.alert("Handler for .change() called.");
         });
     });
 
-
     $(document).on('change', 'select[name=room_sd]', function () {
         $('input[type=radio][name=room][value=room]').prop('checked', true);
-    })
+    });
 
     $(document).on('focus', 'input[name=freeRoomText_sd]', function () {
         $('input[type=radio][name=room][value=freetext]').prop('checked', true);
-    })
+    });
 
     $(document).on('click', 'a.bookable_rooms_action', function (event) {
         var select = $(this).prev('select')[0];
@@ -78,12 +78,20 @@ jQuery(function ($) {
         }
         event.preventDefault();
     });
-    $('a.bookable_rooms_action').show();
 
     $(document).on('change', 'input[name="singledate[]"]', function () {
         STUDIP.Raumzeit.disableBookableRooms($('a.bookable_rooms_action'));
     });
-});
+
+    $(document).on('ready', function () {
+        $('a.bookable_rooms_action').show();
+    });
+
+    STUDIP.Dialog.handlers.header['X-Raumzeit-Update-Times'] = function (json) {
+        var info = $.parseJSON(json);
+        $('.course-admin #course-' + info.course_id + ' .raumzeit').html(info.html);
+    };
+}(jQuery, STUDIP));
 
 STUDIP.Raumzeit = {
     toggleRadio: function (radio_button) {

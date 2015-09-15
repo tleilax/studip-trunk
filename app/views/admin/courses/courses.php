@@ -145,7 +145,7 @@
     </thead>
     <tbody>
     <? foreach ($courses as $semid => $values) { ?>
-        <tr>
+        <tr id="course-<?= $semid ?>">
             <td>
                 <?=
                 CourseAvatar::getAvatar($semid)->is_customized()
@@ -180,14 +180,11 @@
                 </td>
             <? endif ?>
             <? if (in_array('room_time', $view_filter)) : ?>
-                <td>
-                    <? $sem_helper = new Seminar(Course::buildExisting(array('seminar_id' => $semid)));
-                    $_room  = $sem_helper->getDatesHTML(array(
+                <td class="raumzeit">
+                    <?= Seminar::GetInstance($semid)->getDatesHTML(array(
                         'semester_id' => $semester->id,
                         'show_room'   => true
-                    ));
-                    $_room  = $_room ? $_room : "nicht angegeben";?>
-                    <?= $_room ?>
+                    )) ?: _('nicht angegeben') ?>
                 </td>
             <? endif ?>
             <? if (in_array('teachers', $view_filter)) : ?>

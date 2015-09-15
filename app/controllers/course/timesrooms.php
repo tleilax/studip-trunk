@@ -14,8 +14,6 @@
  * @package     admin
  * @since       3.4
  */
-require_once 'app/controllers/authenticated_controller.php';
-require_once($GLOBALS['RELATIVE_PATH_RESOURCES'] . "/lib/ResourcesUserRoomsList.class.php");
 
 class Course_TimesroomsController extends AuthenticatedController
 {
@@ -54,9 +52,22 @@ class Course_TimesroomsController extends AuthenticatedController
         $this->course->checkFilter();
 
         $this->selection = raumzeit_get_semesters($this->course, new SemesterData(), $_SESSION['raumzeitFilter']);
-
+        
         if (!Request::isXhr()) {
             $this->setSidebar();
+        } elseif (Request::isXhr() && $this->flash['update-times']) {
+            $semester_id = $GLOBALS['user']->cfg->MY_COURSES_SELECTED_CYCLE;
+            if ($semester_id === 'all') {
+                $semester_id = '';
+            }
+            $this->response->add_header('X-Foo', 'bar');
+            $this->response->add_header('X-Raumzeit-Update-Times', json_encode(studip_utf8encode(array(
+                'course_id' => $this->course->id,
+                'html'      => Seminar::GetInstance($this->course->id)->getDatesHTML(array(
+                    'semester_id' => $semester_id,
+                    'show_room'   => true
+                )) ?: _('nicht angegeben'),
+            ))));
         }
     }
 
@@ -108,9 +119,9 @@ class Course_TimesroomsController extends AuthenticatedController
                 }
             }
         }
-        
+
         $single_dates = array();
-        
+
         /**
          * GET Single Dates
          */
@@ -122,7 +133,7 @@ class Course_TimesroomsController extends AuthenticatedController
                 if ($_SESSION['raumzeitFilter'] != 'all' && $_SESSION['raumzeitFilter'] == $sem->id) {
                     continue;
                 }
-                
+
                 if (($sem->beginn <= $val->date) && ($sem->ende >= $val->date) && !isset($val->metadate_id)) {
                     $this->single_dates[$sem->id][] = $val;
                 }
@@ -662,13 +673,11 @@ class Course_TimesroomsController extends AuthenticatedController
             } else {
                 $this->relocate('course/timesrooms/index');
             }
-            return;
         } else {
             $this->flash['request'] = Request::getInstance();
             $this->course->createError(_('Die regelmäßige Veranstaltungszeit konnte nicht hinzugefügt werden! Bitte überprüfen Sie Ihre Eingabe.'));
             $this->displayMessages();
             $this->redirect('course/timesrooms/createSingleDate');
-            return;
         }
    }
 
@@ -968,6 +977,26 @@ class Course_TimesroomsController extends AuthenticatedController
                 }
             }
         }
+    }
+
+    public function redirect($to)
+    {
+        $arguments = func_get_args();
+
+        if (Request::isXhr()) {
+            $url = call_user_func_array('parent::url_for', $arguments);
+
+            $url_chunk = Trails_Inflector::underscore(substr(get_class($this), 0, -10));
+            $index_url = $url_chunk . '/index';
+
+            $this->response->add_header('X-URLS', $index_url . ' ||| ' . $url);
+
+            if (strpos($url, $index_url) !== false) {
+                $this->flash['update-times'] = $this->course->id;
+            }
+        }
+
+        return call_user_func_array('parent::redirect', $arguments);
     }
 }
 
