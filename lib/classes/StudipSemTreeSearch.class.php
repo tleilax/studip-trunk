@@ -24,11 +24,6 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // +---------------------------------------------------------------------------+
 
-require_once('lib/classes/StudipSemTree.class.php');
-require_once('lib/visual.inc.php');
-require_once 'lib/functions.php';
-
-
 /**
 * Class to build search formular and execute search
 *
@@ -65,7 +60,7 @@ class StudipSemTreeSearch {
     var $search_result = array();
 
     function StudipSemTreeSearch($seminar_id,$form_name = "search_sem_tree", $auto_search = true){
-        $this->view = new DbView();
+        $this->view = DbView::getView('sem_tree');
         $this->form_name = $form_name;
         $this->tree = TreeAbstract::GetInstance("StudipSemTree", false);
         $this->seminar_id = $seminar_id;

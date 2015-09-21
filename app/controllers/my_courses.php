@@ -23,11 +23,8 @@
  * @category    Stud.IP
  * @since       3.1
  */
-require 'app/models/my_realm.php';
-require_once 'app/controllers/authenticated_controller.php';
 require_once 'lib/meine_seminare_func.inc.php';
 require_once 'lib/object.inc.php';
-require_once 'lib/modules/CoreDocuments.class.php';
 
 class MyCoursesController extends AuthenticatedController
 {
@@ -94,7 +91,7 @@ class MyCoursesController extends AuthenticatedController
 
         $this->sem_data = SemesterData::GetSemesterArray();
 
-        $sem = ($config_sem && $config_sem != '0' ? $config_sem : 'last');
+        $sem = ($config_sem && $config_sem != '0' ? $config_sem : Config::get()->MY_COURSES_DEFAULT_CYCLE);
         if (Request::option('sem_select')) {
             $sem = Request::get('sem_select', $sem);
         }
@@ -193,8 +190,8 @@ class MyCoursesController extends AuthenticatedController
 
         $setting_widget->addLink(_('Veranstaltung hinzufügen'), URLHelper::getLink('dispatch.php/search/courses'),'icons/16/blue/seminar.png');
         $sidebar->addWidget($setting_widget);
-        $this->setGroupingSelector($this->group_field);
         $this->setSemesterWidget($sem);
+        $this->setGroupingSelector($this->group_field);
     }
 
     public function set_open_group_action($id)
@@ -219,7 +216,6 @@ class MyCoursesController extends AuthenticatedController
             throw new AccessDeniedException();
         }
 
-        DBView::addView('sem_tree');
 
         $this->title = _('Meine Veranstaltungen') . ' - ' . _('Farbgruppierungen');
 
@@ -257,7 +253,7 @@ class MyCoursesController extends AuthenticatedController
             $add_query  = "LEFT JOIN seminar_user as su1 ON (su1.seminar_id=seminare.Seminar_id AND su1.status='dozent')";
         }
 
-        $dbv = new DbView();
+        $dbv = DbView::getView('sem_tree');
 
         $query = "SELECT seminare.VeranstaltungsNummer AS sem_nr, seminare.Name, seminare.Seminar_id,
                          seminare.status AS sem_status, seminar_user.gruppe, seminare.visible,

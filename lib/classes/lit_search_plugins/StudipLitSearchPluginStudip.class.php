@@ -24,8 +24,7 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // +---------------------------------------------------------------------------+
 
-require_once ("lib/classes/StudipLitCatElement.class.php");
-require_once ("lib/classes/lit_search_plugins/StudipLitSearchPluginAbstract.class.php");
+require_once 'StudipLitSearchPluginAbstract.class.php';
 
 /**
 *
@@ -41,7 +40,7 @@ class StudipLitSearchPluginStudip extends StudipLitSearchPluginAbstract{
     
     function StudipLitSearchPluginStudip(){
         parent::StudipLitSearchPluginAbstract();
-        $this->dbv = new DbView();
+        $this->dbv = DbView::getView('literatur');
         $rs = $this->dbv->get_query("view:LIT_GET_CATALOG_COUNT");
         $rs->next_record();
         $this->description = sprintf(_("Stud.IP Literaturkatalog. Inhalt des Kataloges: %s Einträge."), $rs->f(0));

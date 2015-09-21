@@ -47,8 +47,8 @@
 // +---------------------------------------------------------------------------+
 
 
-require_once ('lib/object.inc.php');
-require_once ('lib/user_visible.inc.php');
+require_once 'lib/object.inc.php';
+require_once 'lib/user_visible.inc.php';
 
 /**
  * This function creates the header line for studip-objects
@@ -177,7 +177,7 @@ function selectSem ($sem_id)
             if ($course['lesezugriff'] > 0 || !get_config('ENABLE_FREE_ACCESS')) {
                 // redirect to login page if user is not logged in
                 $auth->login_if($auth->auth["uid"] == "nobody");
-                throw new AccessDeniedException(_("Keine Berechtigung."));
+                throw new AccessDeniedException();
             }
         }
         $SessionSeminar = $course["Seminar_id"];
@@ -249,7 +249,7 @@ function selectInst ($inst_id)
     if (!get_config('ENABLE_FREE_ACCESS') && !$perm->have_perm('user')) {
         // redirect to login page if user is not logged in
         $auth->login_if($auth->auth["uid"] == "nobody");
-        throw new AccessDeniedException(_("Keine Berechtigung."));
+        throw new AccessDeniedException();
     }
 
     $SessionSeminar = $inst_id;
@@ -783,7 +783,7 @@ function TrackAccess ($id, $object_type = null)
 function get_sem_tree_path($seminar_id, $depth = false, $delimeter = ">")
 {
     $the_tree = TreeAbstract::GetInstance("StudipSemTree");
-    $view = new DbView();
+    $view = DbView::getView('sem_tree');
     $ret = null;
     $view->params[0] = $seminar_id;
     $rs = $view->get_query("view:SEMINAR_SEM_TREE_GET_IDS");
@@ -805,7 +805,7 @@ function get_sem_tree_path($seminar_id, $depth = false, $delimeter = ">")
 function get_range_tree_path($institut_id, $depth = false, $delimeter = ">")
 {
     $the_tree = TreeAbstract::GetInstance("StudipRangeTree");
-    $view = new DbView();
+    $view = DbView::getView('sem_tree');
     $ret = null;
     $view->params[0] = $institut_id;
     $rs = $view->get_query("view:TREE_ITEMS_OBJECT");
@@ -1043,7 +1043,7 @@ function get_seminar_tutor($seminar_id)
  */
 function get_seminar_sem_tree_entries($seminar_id)
 {
-    $view = new DbView();
+    $view = DbView::getView('sem_tree');
     $ret = null;
     $view->params[0] = $seminar_id;
     $rs = $view->get_query("view:SEMINAR_SEM_TREE_GET_IDS");
@@ -1962,7 +1962,7 @@ function reltime($timestamp, $verbose = true, $displayed_levels = 1, $tolerance 
  * @return String The filesize in human readable form.
  * @todo Allow "1,3 MB"
  */
-function relsize($size, $verbose = true, $displayed_levels = 1, $glue = ', ')
+function relsize($size, $verbose = true, $displayed_levels = 1, $glue = ', ', $truncate = false)
 {
     $units = array(
         'B' => 'Byte',
@@ -1980,18 +1980,38 @@ function relsize($size, $verbose = true, $displayed_levels = 1, $glue = ', ')
     foreach ($units as $short => $long) {
         $remainder = $size % 1024;
 
-        $template = sprintf('%%u %s%%s', $verbose ? $long : $short);
-        $result[] = sprintf($template, $remainder, ($verbose && $remainder !== 1) ? 's' : '');
+        $template = sprintf('%%.1f %s%%s', $verbose ? $long : $short);
+        $result[$template] = $remainder;
 
         $size = floor($size / 1024);
         if ($size == 0) {
             break;
         }
     }
-    if ($displayed_levels > 0) {
+
+    if ($displayed_levels == 1 && count($result) >=2 && !$truncate) {
+        $result = array_slice($result, -2);
+
+        $fraction = array_shift($result);
+        $template = key($result);
+        $size     = array_pop($result);
+
+        $result = array(
+            $template => $size + $fraction / 1024,
+        );
+    } elseif ($displayed_levels > 0) {
         $result = array_slice($result, -$displayed_levels);
     }
-    return implode($glue, array_reverse($result));
+
+    $display = array();
+    foreach ($result as $template => $size) {
+        if ($truncate || $size - floor($size) < 0.1) {
+            $template = str_replace('%.1f', '%u', $template);
+            $size     = (int)$size;
+        }
+        $display[] = sprintf($template, $size, ($verbose && $size !== 1) ? 's' : '');
+    }
+    return implode($glue, array_reverse($display));
 }
 
 /**
@@ -2060,7 +2080,7 @@ function match_route($requested_route, $current_route = '')
 }
 
 function studip_default_exception_handler($exception) {
-    require_once('lib/visual.inc.php');
+    require_once 'lib/visual.inc.php';
 
     // send exception to metrics backend
     if (class_exists('Metrics')) {

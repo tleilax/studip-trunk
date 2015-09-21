@@ -32,19 +32,8 @@
 // +---------------------------------------------------------------------------+
 
 
-require_once $GLOBALS['RELATIVE_PATH_EXTERN'].'/lib/ExternModule.class.php';
-require_once $GLOBALS['RELATIVE_PATH_EXTERN'].'/views/extern_html_templates.inc.php';
-require_once 'lib/classes/DataFieldEntry.class.php';
-require_once 'lib/visual.inc.php';
-require_once $GLOBALS['RELATIVE_PATH_EXTERN'].'/lib/extern_functions.inc.php';
+require_once $GLOBALS['RELATIVE_PATH_EXTERN'] . '/views/extern_html_templates.inc.php';
 require_once 'lib/dates.inc.php';
-require_once 'lib/classes/StudipSemSearch.class.php';
-require_once 'lib/classes/StudipSemTreeViewSimple.class.php';
-require_once 'lib/classes/StudipSemRangeTreeViewSimple.class.php';
-require_once 'lib/raumzeit/SingleDate.class.php';
-require_once 'lib/raumzeit/SeminarDB.class.php';
-require_once 'lib/raumzeit/MetaDate.class.php';
-
 
 class ExternModuleTemplateSemBrowse extends ExternModule {
 
@@ -533,7 +522,7 @@ class ExternModuleTemplateSemBrowse extends ExternModule {
             $inst_ids = $range_object->getAllObjectKids();
         }
         $inst_ids[] = $range_object->item_data['studip_object_id'];
-        $db_view = new DbView();
+        $db_view = DbView::getView('sem_tree');
         $db_view->params[0] = $inst_ids;
         $db_view->params[1] = ' AND c.visible=1';
         $db_view->params[1] .= (is_array($this->sem_browse_data['sem_status'])) ? " AND c.status IN('" . join("','",$this->sem_browse_data['sem_status']) ."')" : "";
@@ -1152,7 +1141,7 @@ class ExternModuleTemplateSemBrowse extends ExternModule {
         if (!$nameformat = $this->config->getValue('Main', 'nameformat')) {
             $nameformat = 'full_rev';
         }
-        $dbv = new DbView();
+        $dbv = DbView::getView('sem_tree');
         $query = "SELECT seminare.Seminar_id, VeranstaltungsNummer, seminare.status, seminare.Untertitel, seminare.Ort, seminare.art, seminare.Beschreibung, seminare.ects, IF(seminare.visible=0,CONCAT(seminare.Name, ' ". _("(versteckt)") ."'), seminare.Name) AS Name,
                 $add_fields" . $_fullname_sql[$nameformat] ." AS fullname, auth_user_md5.username, title_front, title_rear, Vorname, Nachname,
                 " . $dbv->sem_number_sql . " AS sem_number, " . $dbv->sem_number_end_sql . " AS sem_number_end, seminar_user.position AS position FROM seminare

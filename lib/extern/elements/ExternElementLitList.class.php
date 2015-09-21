@@ -37,9 +37,7 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // +---------------------------------------------------------------------------+
 
-require_once($GLOBALS['RELATIVE_PATH_EXTERN'].'/lib/ExternElement.class.php');
-require_once('lib/classes/StudipLitList.class.php');
-require_once($GLOBALS['RELATIVE_PATH_EXTERN'].'/elements/ExternElementTemplateGeneric.class.php');
+require_once 'ExternElementTemplateGeneric.class.php';
      
 class ExternElementLitList extends ExternElement {
 
@@ -143,7 +141,7 @@ class ExternElementLitList extends ExternElement {
         global $_fullname_sql;
         
         $content = array();
-        $dbv = new DbView();
+        $dbv = DbView::getView('literatur');
         if (is_array($args) && isset($args['user_id'])) {
             $tree = TreeAbstract::GetInstance("StudipLitList", $args['user_id']);
         } else {

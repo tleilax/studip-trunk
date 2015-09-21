@@ -5,13 +5,12 @@
 # Lifter010: TODO
 
 
-require_once 'lib/classes/cssClassSwitcher.inc.php';
 include_once 'vendor/idna_convert/idna_convert.class.php';
-include_once 'lib/classes/searchtypes/SQLSearch.class.php';
-include_once 'lib/classes/searchtypes/StandardSearch.class.php';
-include_once 'lib/classes/searchtypes/PermissionSearch.class.php';
-require_once 'lib/classes/Markup.class.php';
 require_once 'lib/wiki.inc.php';
+
+// Wrapper for formatted content (defined as a constant since it is used
+// in the unit test defined in tests/unit/lib/VisualTest.php as well).
+define('FORMATTED_CONTENT_WRAPPER', '<div class="formatted-content">%s</div>');
 
 /**
  * get_ampel_state is a helper function for get_ampel_write and get_ampel_read.
@@ -274,7 +273,9 @@ function formatReady($text, $trim=TRUE, $extern=FALSE, $wiki=FALSE, $show_commen
     // StudipFormat::markupLinks stores OpenGraph media preview URLs
     // Blubber and Forum plugins add media previews after formatReady returns
     OpenGraphURL::$tempURLStorage = array();
-    return Markup::apply(new StudipFormat(), $text, $trim);
+
+    return sprintf(FORMATTED_CONTENT_WRAPPER,
+                   Markup::apply(new StudipFormat(), $text, $trim));
 }
 
 /**

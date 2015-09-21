@@ -29,7 +29,7 @@ require '../lib/bootstrap.php';
 
 page_open(array("sess" => "Seminar_Session", "auth" => "Seminar_Auth", "perm" => "Seminar_Perm", "user" => "Seminar_User"));
 
-include ('lib/seminar_open.php'); // initialise Stud.IP-Session
+include 'lib/seminar_open.php'; // initialise Stud.IP-Session
 
 PageLayout::setHelpKeyword("Basis.VeranstaltungenVerwaltenAendernVonZeitenUndTerminen");
 
@@ -47,17 +47,12 @@ if (Request::option('seminar_id')) {
 
 $id = Request::option('seminar_id', $SessSemName[1]);
 
-require_once ('lib/classes/Seminar.class.php');
-require_once ('lib/raumzeit/raumzeit_functions.inc.php');
-require_once ('lib/dates.inc.php');
-require_once('lib/raumzeit.inc.php');
+require_once 'lib/raumzeit/raumzeit_functions.inc.php';
+require_once 'lib/dates.inc.php';
+require_once 'lib/raumzeit.inc.php';
 
 
 if (get_config('RESOURCES_ENABLE')) {
-    include_once ($GLOBALS['RELATIVE_PATH_RESOURCES'] ."/lib/ResourceObject.class.php");
-    include_once ($GLOBALS['RELATIVE_PATH_RESOURCES'] ."/lib/ResourcesUserRoomsList.class.php");
-    include_once ($GLOBALS['RELATIVE_PATH_RESOURCES'] ."/lib/VeranstaltungResourcesAssign.class.php");
-    include_once ($GLOBALS['RELATIVE_PATH_RESOURCES'] ."/lib/ResourceObjectPerms.class.php");
     $resList = ResourcesUserRoomsList::getInstance($user->id, true, false, true);
 
     // fetch the number of seats each room has
@@ -166,10 +161,6 @@ while ($tmp_first_date < $end_date) {
     $tmp_first_date = mktime($date['hours'], $date['minutes'], $date['seconds'], $date['mon'], $date['mday'] + 7 * $i, $date['year']);
 }
 $dozenten = $sem->getMembers('dozent');
-
-if ($perm->have_studip_perm("admin",$sem->getId())) {
-    $adminList = AdminList::getInstance()->getSelectTemplate($sem->getId());
-}
 
 // template-like output
 ?>
@@ -606,7 +597,7 @@ if ($GLOBALS['perm']->have_perm("admin")) {
     $list = new SelectorWidget();
     $list->setUrl("?#admin_top_links");
     $list->setSelectParameterName("cid");
-    foreach (AdminCourseFilter::get()->getCourses(false) as $seminar) {
+    foreach (AdminCourseFilter::get()->getCoursesForAdminWidget() as $seminar) {
         $list->addElement(new SelectElement($seminar['Seminar_id'], $seminar['Name']), 'select-' . $seminar['Seminar_id']);
     }
     $list->setSelection($id);

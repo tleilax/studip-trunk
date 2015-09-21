@@ -12,16 +12,9 @@
  * @category    Stud.IP
  * @package     admin
  */
-//uarg
-global $RELATIVE_PATH_RESOURCES;
-
-require_once 'lib/resources/lib/ResourcesUserRoomsList.class.php';
-require_once 'lib/resources/lib/CheckMultipleOverlaps.class.php';
-require_once 'app/controllers/authenticated_controller.php';
-
 class Resources_HelpersController extends AuthenticatedController
 {
-/**
+    /**
      * common tasks for all actions
      */
     function before_filter(&$action, &$args)
@@ -45,7 +38,7 @@ class Resources_HelpersController extends AuthenticatedController
         if (!getGlobalPerms($GLOBALS['user']->id) == 'admin') {
             $resList = new ResourcesUserRoomsList($GLOBALS['user']->id, false, false, false);
             if (!$resList->roomsExist()) {
-                throw new AccessDeniedException('');
+                throw new AccessDeniedException();
             }
         }
         $select_options = Request::optionArray('rooms');
@@ -122,7 +115,7 @@ class Resources_HelpersController extends AuthenticatedController
     {
         $r_perms = new ResourceObjectPerms($resource_id, $GLOBALS['user']->id);
         if (!$r_perms->havePerm('admin')) {
-            throw new AccessDeniedException('');
+            throw new AccessDeniedException();
         }
             $this->resource = new ResourceObject($resource_id);
             $title = sprintf(_("Nutzer von %s benachrichtigen"),htmlReady($this->resource->getName()));

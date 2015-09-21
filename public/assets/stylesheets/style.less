@@ -61,8 +61,22 @@
 @import "less/lists.less";
 @import "less/plus.less";
 @import "less/coursewizard.less";
+@import "less/smileys.less";
+@import "less/big-image-handler.less";
 
 @import "less/responsive.less";
+
+// Class for DOM elements that should only be visible to Screen readers
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    border: 0;
+}
 
 /* --- Standardvorgaben ----------------------------------------------------- */
 //TODO: the Body-Background color should be similar to A:link.toolbar and A:visited.toolbar for best effect!!
@@ -314,14 +328,6 @@ img.plugin_preview {
     border-top: 1px solid #D0D0D0;
 }
 
-/* --- textarea resizer ----------------------------------------------------- */
-.ui-resizable-handle.ui-resizable-s {
-    background: #eee url("@{image-path}/vendor/handle_background.png") no-repeat center;
-    bottom: 0;
-    cursor: s-resize;
-    height: 12px;
-}
-
 /* --- general style classes ------------------------------------------------ */
 .arrow_down {
     background: transparent top left no-repeat !important;
@@ -380,9 +386,6 @@ h1:hover, h2:hover, h3:hover, h4:hover {
     text-align: right;
     color: #444;
 }
-
-img.bookable_rooms_action { display: none; }
-
 
 pre.usercode {
     padding: 5px;

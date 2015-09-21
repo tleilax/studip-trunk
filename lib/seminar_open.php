@@ -30,8 +30,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  * transmitted as subject of the notification.
  */
 
-require_once 'lib/functions.php';
-
 //redirect the user where he want to go today....
 function startpage_redirect($page_code) {
     switch ($page_code) {
@@ -60,8 +58,6 @@ function startpage_redirect($page_code) {
     header ("location: $jump_page");
     exit;
 }
-
-require_once('lib/language.inc.php');
 
 global $i_page,
        $DEFAULT_LANGUAGE, $SessSemName, $SessionSeminar,
@@ -123,6 +119,12 @@ $course_id = Request::option('cid', $_SESSION['SessionSeminar']);
 if (isset($course_id)) {
     selectSem($course_id) || selectInst($course_id);
     unset($course_id);
+}
+
+if (Request::get("sober") && ($GLOBALS['user']->id === "nobody" || $GLOBALS['perm']->have_perm("root"))) {
+    //deactivate non-core-plugins:
+    URLHelper::bindLinkParam("sober", $sober);
+    PluginManager::$sober = true;
 }
 
 // load the default set of plugins

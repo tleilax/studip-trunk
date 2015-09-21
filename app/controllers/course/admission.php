@@ -13,9 +13,6 @@
  * @package     admin
  */
 
-require_once 'app/controllers/authenticated_controller.php';
-require_once 'lib/classes/admission/CourseSet.class.php';
-
 class Course_AdmissionController extends AuthenticatedController
 {
     /**
@@ -76,7 +73,7 @@ class Course_AdmissionController extends AuthenticatedController
             $list = new SelectorWidget();
             $list->setUrl("?#admin_top_links");
             $list->setSelectParameterName("cid");
-            foreach (AdminCourseFilter::get()->getCourses(false) as $seminar) {
+            foreach (AdminCourseFilter::get()->getCoursesForAdminWidget() as $seminar) {
                 $list->addElement(new SelectElement($seminar['Seminar_id'], $seminar['Name']), 'select-' . $seminar['Seminar_id']);
             }
             $list->setSelection($this->course_id);

@@ -38,9 +38,7 @@
 // +---------------------------------------------------------------------------+
 
 
-global $RELATIVE_PATH_CALENDAR;
-require_once('lib/classes/SemBrowse.class.php');
-require_once('lib/dates.inc.php');
+require_once 'lib/dates.inc.php';
 
 class ExternSemBrowse extends SemBrowse {
     
@@ -181,7 +179,7 @@ class ExternSemBrowse extends SemBrowse {
                 $sem_inst_query = " AND seminare.Institut_id IN ('".(implode("', '", $children))."')";
             }
 
-            $dbv = new DbView();
+            $dbv = DbView::getView('sem_tree');
             
             if (!$nameformat = $this->config->getValue("Main", "nameformat"))
                 $nameformat = "no_title_short";

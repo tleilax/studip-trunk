@@ -13,7 +13,6 @@
  * @since       2.4
  */
 
-require_once 'app/controllers/authenticated_controller.php';
 require_once 'lib/messaging.inc.php';
 
 class Settings_SettingsController extends AuthenticatedController
@@ -75,7 +74,7 @@ class Settings_SettingsController extends AuthenticatedController
         $this->config     = UserConfig::get($this->user->user_id);
         $this->validator  = new email_validation_class; # Klasse zum Ueberpruefen der Eingaben
         $this->validator->timeout = 10;
-        
+
         // Default auth plugin to standard
         if (!$this->user->auth_plugin) {
             $this->user->auth_plugin = 'standard';
@@ -107,7 +106,7 @@ class Settings_SettingsController extends AuthenticatedController
     {
         $ticket = Request::get('studipticket');
         if (!$ticket || !check_ticket($ticket)) {
-            throw new AccessDeniedException(_('Fehler beim Zugriff. Bitte versuchen Sie es erneut.'));
+            throw new InvalidSecurityTokenException();
         }
     }
 
@@ -194,7 +193,7 @@ class Settings_SettingsController extends AuthenticatedController
             'title'    => 'ALLOW_CHANGE_TITLE',
             'username' => 'ALLOW_CHANGE_USERNAME',
         );
-        
+
         if (isset($global_mapping[$attribute]) and !$GLOBALS[$global_mapping[$attribute]]) {
             return false;
         }
@@ -256,7 +255,7 @@ class Settings_SettingsController extends AuthenticatedController
             PageLayout::postMessage($box, $hash);
             return $this;
         }
-        
+
         throw new BadMethodCallException('Method "' . $method . '" does not exist.');
     }
 
@@ -298,14 +297,19 @@ class Settings_SettingsController extends AuthenticatedController
             $messaging->insert_message($message, $this->user->username, '____%system%____', null, null, true, '', $subject);
         }
 
-        if ($action === 'logout') {
-            $GLOBALS['sess']->delete();  
+        // Check whether the user should be logged out, the token is
+        // neccessary since the user could reload the page and will be logged
+        // out immediately after, resulting in a login/logout-loop.
+        $should_logout = $action === 'logout' && $this->flash['logout-token'] === Request::get('token');
+
+        if ($should_logout) {
+            $GLOBALS['sess']->delete();
             $GLOBALS['auth']->logout();
         }
-        
+
         parent::after_filter($action, $args);
-        
-        if ($action === 'logout') {
+
+        if ($should_logout) {
             $GLOBALS['user']->set_last_action(time() - 15 * 60);
         }
     }

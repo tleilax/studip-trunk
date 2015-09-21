@@ -38,13 +38,8 @@
 // +---------------------------------------------------------------------------+
 
 
-require_once($GLOBALS['RELATIVE_PATH_EXTERN'].'/lib/ExternModule.class.php');
-require_once($GLOBALS['RELATIVE_PATH_EXTERN'].'/views/extern_html_templates.inc.php');
-require_once('lib/classes/DataFieldEntry.class.php');
-require_once('lib/visual.inc.php');
-require_once($GLOBALS['RELATIVE_PATH_EXTERN'].'/lib/extern_functions.inc.php');
-require_once('lib/classes/SemBrowse.class.php');
-require_once('lib/dates.inc.php');
+require_once $GLOBALS['RELATIVE_PATH_EXTERN'] . '/views/extern_html_templates.inc.php';
+require_once 'lib/dates.inc.php';
 
 
 class ExternModuleTemplateLectures extends ExternModule {
@@ -314,7 +309,7 @@ class ExternSemBrowseTemplate extends SemBrowse {
             if (!$nameformat = $this->module->config->getValue("Main", "nameformat"))
                 $nameformat = "no_title_short";
 
-            $dbv = new DbView();
+            $dbv = DbView::getView('sem_tree');
 
             $query = "SELECT seminare.*
                 , Institute.Name AS Institut,Institute.Institut_id,

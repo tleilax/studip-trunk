@@ -5,12 +5,7 @@
 # Lifter003: TODO
 # Lifter010: TODO
 
-require_once ('lib/visual.inc.php');
-require_once 'lib/functions.php';
-require_once ('lib/dates.inc.php');
-require_once ('lib/classes/StudipSemSearch.class.php');
-require_once ('lib/classes/StudipSemTreeViewSimple.class.php');
-require_once ('lib/classes/StudipSemRangeTreeViewSimple.class.php');
+require_once 'lib/dates.inc.php';
 
 class SemBrowse {
 
@@ -204,7 +199,7 @@ class SemBrowse {
             $inst_ids = $range_object->getAllObjectKids();
         }
         $inst_ids[] = $range_object->item_data['studip_object_id'];
-        $db_view = new DbView();
+        $db_view = DbView::getView('sem_tree');
         $db_view->params[0] = $inst_ids;
         $db_view->params[1] = (is_object($GLOBALS['perm']) && $GLOBALS['perm']->have_perm(get_config('SEM_VISIBILITY_PERM'))) ? '' : ' AND c.visible=1';
         $db_view->params[1] .= (is_array($this->sem_browse_data['sem_status'])) ? " AND c.status IN('" . join("','",$this->sem_browse_data['sem_status']) ."')" : "";
@@ -348,13 +343,13 @@ class SemBrowse {
                 printf ("<table align=\"center\" cellspacing=\"10\"><tr><td nowrap align=\"center\"><a href=\"%s\"><b>%s</b><br><br>%s</a></td>",
                         URLHelper::getLink('?level=ev&cmd=qs&sset=0'),
                         _("Suche in Einrichtungen"),
-                        Assets::img('institute.jpg', tooltip2(_("Suche im Einrichtungsverzeichnis"))));
+                        Assets::img('institute-search.png', array('size' => '260@100', 'alt' =>_("Suche im Einrichtungsverzeichnis"))));
                 if ($this->show_class()){
                     SkipLinks::addLink(_("Suche im Vorlesungsverzeichnis"), URLHelper::getLink('dispatch.php/search/courses', array('level' => 'vv', 'cmd' => 'qs', 'sset' => '0')));
                     printf ("<td nowrap align=\"center\"><a href=\"%s\"><b>%s</b><br><br>%s</a></td>",
                             URLHelper::getLink('?level=vv&cmd=qs&sset=0'),
                             _("Suche im Vorlesungsverzeichnis"),
-                            Assets::img('kommentar.jpg', tooltip2(_("Suche im Vorlesungsverzeichnis"))));
+                        Assets::img('directory-search.png', array('size' => '260@100', 'alt' => _("Suche im Vorlesungsverzeichnis"))));
                 }
                 SkipLinks::addLink(_("Suche im Einrichtungsverzeichnis"), URLHelper::getLink('dispatch.php/search/courses', array('level' => 'ev', 'cmd' => 'qs', 'sset' => '0')));
                 printf ("</tr></table>");
@@ -729,7 +724,7 @@ class SemBrowse {
             $add_query = "";
         }
 
-        $dbv = new DbView();
+        $dbv = DbView::getView('sem_tree');
 
         $query = ("SELECT seminare.Seminar_id,VeranstaltungsNummer, seminare.status, IF(seminare.visible=0,CONCAT(seminare.Name, ' ". _("(versteckt)") ."'), seminare.Name) AS Name,
                 $add_fields" . $_fullname_sql['full'] ." AS fullname, auth_user_md5.username,

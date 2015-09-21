@@ -34,7 +34,7 @@ use Studip\Button, Studip\LinkButton;
         <br>
         <br>
     </div>
-    
+
     <? $gruppen = Course::find($sem->getId())->statusgruppen ?>
     <? if (count($gruppen) > 0) : ?>
     <div style="display: table-cell; width: 33%;">
@@ -70,7 +70,7 @@ use Studip\Button, Studip\LinkButton;
             <?= _("Raum:"); ?>
         </label>
 
-        <select name="room" onFocus="jQuery('input[type=radio][name=action][value=room]').attr('checked', 'checked')">
+        <select name="room" onFocus="jQuery('input[type=radio][name=action][value=room]').prop('checked', true)">
             <option value="">-- <?= _('Raum auswählen') ?> --</value>
             <? while ($res = $resList->next()) : ?>
                 <option value="<?= $res['resource_id'] ?>">
@@ -79,11 +79,9 @@ use Studip\Button, Studip\LinkButton;
             <? endwhile; ?>
         </select>
 
-        <?= Assets::img('icons/16/grey/room-clear.png', array(
-            'class'     => 'bookable_rooms_action',
-            'title'     => _("Nur buchbare Räume anzeigen"),
-            'data-name' => 'bulk_action'
-        )) ?>
+        <a href="#" class="bookable_rooms_action" data-name="bulk_action" title="<?=_("Nur buchbare Räume anzeigen")?>">
+            <?= Assets::img('icons/16/blue/room-clear.png') ?>
+        </a>
 
         <br>
         <br>
@@ -103,7 +101,7 @@ use Studip\Button, Studip\LinkButton;
         <? endif ?>
 
         <input type="text" name="freeRoomText" maxlength="255" value="<?= $tpl['freeRoomText'] ?>" style="margin-left: 25px; width: 90%;"
-            onFocus="jQuery('input[type=radio][name=action][value=freetext]').attr('checked', 'checked')">
+            onFocus="jQuery('input[type=radio][name=action][value=freetext]').prop('checked', true)">
         <br>
         <br>
 
@@ -125,7 +123,7 @@ use Studip\Button, Studip\LinkButton;
 </div>
 <br style="clear: both;"><br>
 
-    
+
 <div style="text-align: center">
     <div class="button-group">
         <?= Button::createAccept(_('Übernehmen')) ?>

@@ -1,7 +1,4 @@
-<?
-require_once 'app/models/my_realm.php';
-require_once 'app/controllers/authenticated_controller.php';
-
+<?php
 class MyStudygroupsController extends AuthenticatedController
 {
     public function before_filter(&$action, &$args)

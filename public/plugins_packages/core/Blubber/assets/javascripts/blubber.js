@@ -252,7 +252,7 @@ STUDIP.Blubber = {
             return;
         }
         STUDIP.Blubber.submittingEditedPostingStarted = true;
-        if (jQuery("#posting_" + id).attr("data-autor") === jQuery("#user_id").val()
+        if (jQuery("#posting_" + id).data("autor") === jQuery("#user_id").val()
                 || window.confirm(jQuery("#editing_question").text())) {
             STUDIP.Blubber.submittingEditedPostingStarted = false;
             jQuery.ajax({
@@ -392,7 +392,7 @@ STUDIP.Blubber = {
             + parseInt(jQuery("#stream_time").val(), 10);
         jQuery("#blubber_threads .posting .time").each(function () {
             var new_text = "";
-            var posting_time = parseInt(jQuery(this).attr("data-timestamp"), 10);
+            var posting_time = parseInt(jQuery(this).data("timestamp"), 10);
             var diff = now_seconds - posting_time;
             if (diff < 86400) {
                 if (diff < 2 * 60 * 60) {
@@ -403,17 +403,17 @@ STUDIP.Blubber = {
                         new_text = "Vor einer Minute".toLocaleString();
                     }
                     if (Math.floor(diff / 60) > 1) {
-                        new_text = _.template("Vor <%= distance %> Minuten".toLocaleString(), {distance: Math.floor(diff / 60)});
+                        new_text = _.template("Vor <%= distance %> Minuten".toLocaleString())({distance: Math.floor(diff / 60)});
                     }
                 } else {
-                    new_text = _.template("Vor <%= distance %> Stunden".toLocaleString(), {distance: Math.floor(diff / (60 * 60))});
+                    new_text = _.template("Vor <%= distance %> Stunden".toLocaleString())({distance: Math.floor(diff / (60 * 60))});
                 }
             } else {
                 if (Math.floor(diff / 86400) < 8) {
                     if (Math.floor(diff / 86400) === 1) {
                         new_text = "Vor einem Tag".toLocaleString();
                     } else {
-                        new_text = _.template("Vor <%= distance %> Tagen".toLocaleString(), {distance: Math.floor(diff / 86400)});
+                        new_text = _.template("Vor <%= distance %> Tagen".toLocaleString())({distance: Math.floor(diff / 86400)});
                     }
                 } else {
                     date = new Date(posting_time * 1000);
@@ -503,7 +503,7 @@ STUDIP.Blubber = {
         if (thread_id) {
             thread_id = thread_id.substr(thread_id.lastIndexOf("_") + 1);
         } else {
-            thread_id = jQuery(this).attr("data-thread_id");
+            thread_id = jQuery(this).data("thread_id");
             panel_open = true;
         }
         jQuery.ajax({
@@ -570,7 +570,7 @@ STUDIP.Blubber = {
 jQuery(STUDIP.Blubber.updateTimestamps);
 
 //initialize submit by pressing enter
-jQuery("#threadwriter > textarea").live("keydown", function (event) {
+jQuery(document).on("keydown", "#threadwriter > textarea", function (event) {
     if (event.keyCode === 13 && !event.altKey && !event.ctrlKey && !event.shiftKey) {
         if (jQuery('#user_id').val() !== "nobody") {
             STUDIP.Blubber.newPosting();
@@ -586,21 +586,21 @@ jQuery("#threadwriter > textarea").live("keydown", function (event) {
     }
 });
 //initialize submit by pressing enter
-jQuery("#threadwriter.globalstream textarea").live("keydown", function (event) {
+jQuery(document).on("keydown", "#threadwriter.globalstream textarea", function (event) {
     if (event.keyCode === 13 && !event.altKey && !event.ctrlKey && !event.shiftKey) {
         STUDIP.Blubber.prepareSubmitGlobalPosting();
         event.preventDefault();
     }
 });
 //initialize submit by pressing enter
-jQuery("#blubber_threads textarea.corrector").live("keydown", function (event) {
+jQuery(document).on("keydown", "#blubber_threads textarea.corrector", function (event) {
     if (event.keyCode === 13 && !event.altKey && !event.ctrlKey && !event.shiftKey) {
         STUDIP.Blubber.submitEditedPosting(this);
         event.preventDefault();
     }
 });
 //initialize submit by pressing enter
-jQuery(".writer > textarea").live("keydown", function (event) {
+jQuery(document).on("keydown", ".writer > textarea", function (event) {
     if (event.keyCode === 13 && !event.altKey && !event.ctrlKey && !event.shiftKey) {
         if (jQuery('#user_id').val() !== "nobody") {
             STUDIP.Blubber.write(this);
@@ -616,7 +616,7 @@ jQuery(".writer > textarea").live("keydown", function (event) {
     }
 });
 //initialize click-events on "show more" links to show more comments
-jQuery("#blubber_threads > li > ul.comments > li.more").live("click", function () {
+jQuery(document).on("click", "#blubber_threads > li > ul.comments > li.more", function () {
     var thread_id = jQuery(this).closest("li[id]").attr("id").split("_").pop(),
         li_more = this;
     jQuery(this).wrapInner('<span/>').find('span').showAjaxNotification()
@@ -636,11 +636,11 @@ jQuery("#blubber_threads > li > ul.comments > li.more").live("click", function (
         }
     });
 });
-jQuery("#blubber_threads a.edit").live("click", STUDIP.Blubber.startEditingComment);
-jQuery("#blubber_threads textarea.corrector").live("blur", function () {STUDIP.Blubber.submitEditedPosting(this);});
-jQuery("#blubber_threads .reshare_blubber, .blubber_contacts .want_to_share").live("click", STUDIP.Blubber.reshareBlubber);
-jQuery("#blubber_threads .thread.public .contextinfo, #blubber_threads .thread.public .open_reshare_context").live("click", STUDIP.Blubber.showPublicPanel);
-jQuery("#blubber_threads .thread.private .contextinfo").live("click", STUDIP.Blubber.showPrivatePanel);
+jQuery(document).on("click", "#blubber_threads a.edit", STUDIP.Blubber.startEditingComment);
+jQuery(document).on("blur", "#blubber_threads textarea.corrector", function () {STUDIP.Blubber.submitEditedPosting(this);});
+jQuery(document).on("click", "#blubber_threads .reshare_blubber, .blubber_contacts .want_to_share", STUDIP.Blubber.reshareBlubber);
+jQuery(document).on("click", "#blubber_threads .thread.public .contextinfo, #blubber_threads .thread.public .open_reshare_context", STUDIP.Blubber.showPublicPanel);
+jQuery(document).on("click", "#blubber_threads .thread.private .contextinfo", STUDIP.Blubber.showPrivatePanel);
 
 //initialize autoresizer, file-dropper and events
 jQuery(function () {
@@ -657,21 +657,21 @@ jQuery(function () {
     jQuery("#edit_stream select, #edit_stream input").bind("change", STUDIP.Blubber.update_streams_threadnumber);
     jQuery("#edit_stream td .checkicons").bind("click", function () {
         if (jQuery(this).closest("td").is(".selected")) {
-            jQuery(this).closest("td").removeClass("selected").find("input[type=checkbox]").removeAttr("checked");
+            jQuery(this).closest("td").removeClass("selected").find("input[type=checkbox]").prop("checked", false);
         } else {
-            jQuery(this).closest("td").addClass("selected").find("input[type=checkbox]").attr("checked", "checked");
+            jQuery(this).closest("td").addClass("selected").find("input[type=checkbox]").prop("checked", true);
         }
     });
     jQuery("#edit_stream td .label").bind("click", function () {
         if (!jQuery(this).closest("td").is(".selected")) {
-            jQuery(this).closest("td").addClass("selected").find("input[type=checkbox]").attr("checked", "checked");
+            jQuery(this).closest("td").addClass("selected").find("input[type=checkbox]").prop("checked", true);
         } else {
-            jQuery(this).closest("td").removeClass("selected").find("input[type=checkbox]").removeAttr("checked");
+            jQuery(this).closest("td").removeClass("selected").find("input[type=checkbox]").prop("checked", false);
         }
     });
     jQuery("#edit_stream .selector").bind("click", function () {
         if (!jQuery(this).closest("td").is(".selected")) {
-            jQuery(this).closest("td").addClass("selected").find("input[type=checkbox]").attr("checked", "checked");
+            jQuery(this).closest("td").addClass("selected").find("input[type=checkbox]").prop("checked", true);
         }
     });
     

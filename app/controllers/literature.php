@@ -16,7 +16,6 @@
  * @since    3.1
  */
 
-require_once 'app/controllers/authenticated_controller.php';
 require_once 'lib/msg.inc.php';
 
 class LiteratureController extends AuthenticatedController
@@ -36,7 +35,6 @@ class LiteratureController extends AuthenticatedController
             throw new AccessDeniedException(_('Die Literaturverwaltung ist nicht aktiviert.'));
         }
 
-        $this->attributes['text'] = array('style' => 'width:98%');
         $this->attributes['textarea'] = array('style' => 'width:98%','rows'=>2);
         $this->attributes['select'] = array();
         $this->attributes['date'] = array();
@@ -71,12 +69,10 @@ class LiteratureController extends AuthenticatedController
         //checking rights
         if (($o_type == "sem" && !$GLOBALS['perm']->have_studip_perm("tutor", $this->return_range)) ||
             (($_the_tree->range_type == "inst" || $_the_tree->range_type == "fak") && !$GLOBALS['perm']->have_studip_perm("autor", $this->return_range))){
-                throw new AccessDeniedException(_('Keine Berechtigung in diesem Bereich.'));
+                throw new AccessDeniedException();
         }
 
         PageLayout::setTitle(_("Literatur importieren"));
-        require_once ('lib/classes/StudipLitListViewAdmin.class.php');
-        require_once ('lib/classes/StudipLitClipBoard.class.php');
 
         $this->plugin_name  = Request::quoted('plugin_name');
         $plugin = array();
@@ -112,8 +108,6 @@ class LiteratureController extends AuthenticatedController
         }
         $_SESSION['_lit_range'] = $this->_range_id;
 
-        require_once ('lib/classes/StudipLitListViewAdmin.class.php');
-        require_once ('lib/classes/StudipLitClipBoard.class.php');
         require_once ("lib/classes/lit_import_plugins/StudipLitImportPluginAbstract.class.php");
         PageLayout::setHelpKeyword("Basis.LiteraturListen");
         PageLayout::setTitle(_("Verwaltung von Literaturlisten"));
@@ -225,7 +219,7 @@ class LiteratureController extends AuthenticatedController
         PageLayout::addStylesheet('print.css'); // use special stylesheet for printing
         $_range_id = Request::option('_range_id');
         if ($_range_id != $GLOBALS['user']->id && !$GLOBALS['perm']->have_studip_perm('user',$_range_id)){
-            throw new AccessDeniedException(_('Kein Zugriff auf diesen Bereich.'));
+            throw new AccessDeniedException();
         }
         $_the_tree = TreeAbstract::GetInstance("StudipLitList", $_range_id);
         $this->title = sprintf(_("Literatur %s"), $_the_tree->root_name);
@@ -284,10 +278,11 @@ class LiteratureController extends AuthenticatedController
             $hits = $_the_search->doSearch();
             if(!$_the_search->search_plugin->getNumError()) {
                 if($_the_search->getNumHits() == 0) {
-                    $_msg .= "info§" . sprintf(_("Ihre Suche ergab %s Treffer."), $_the_search->getNumHits()) . "§";
+                    $_msg = sprintf(_("Ihre Suche ergab %s Treffer."), $_the_search->getNumHits());
                 } else {
-                    $_msg .= "msg§" . sprintf(_("Ihre Suche ergab %s Treffer."), $_the_search->getNumHits()) . "§";
+                    $_msg = sprintf(_("Ihre Suche ergab %s Treffer."), $_the_search->getNumHits());
                 }
+                PageLayout::postMessage(MessageBox::info($_msg));
             }
             $_the_search->start_result = 1;
         }
@@ -313,7 +308,6 @@ class LiteratureController extends AuthenticatedController
             $_the_clipboard->insertElement($catalog_id);
         }
 
-        $_msg .= $_the_clipboard->msg;
         $_msg .= $_the_search->search_plugin->getError("msg");
 
         $this->msg = $_msg;

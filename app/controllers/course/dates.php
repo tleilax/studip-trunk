@@ -1,9 +1,6 @@
 <?php
 
-require_once 'app/controllers/authenticated_controller.php';
-
-require_once ('lib/classes/Seminar.class.php');
-require_once ('lib/raumzeit/raumzeit_functions.inc.php');
+require_once 'lib/raumzeit/raumzeit_functions.inc.php';
 
 class Course_DatesController extends AuthenticatedController
 {
@@ -20,6 +17,8 @@ class Course_DatesController extends AuthenticatedController
         } else {
             PageLayout::setTitle(_("Termine"));
         }
+
+        PageLayout::addSqueezePackage('tablesorter');
     }
 
     public function index_action()
@@ -47,8 +46,6 @@ class Course_DatesController extends AuthenticatedController
         Navigation::activateItem('/course/schedule/dates');
 
         object_set_visit_module("schedule");
-
-        PageLayout::addScript("jquery/jquery.tablesorter.js");
 
         $this->dates = Course::findCurrent()->getDatesWithExdates();
     }
@@ -81,7 +78,7 @@ class Course_DatesController extends AuthenticatedController
     public function add_topic_action()
     {
         if (!$GLOBALS['perm']->have_studip_perm("tutor", $_SESSION['SessionSeminar'])) {
-            throw new AccessDeniedException("Kein Zugriff");
+            throw new AccessDeniedException();
         }
         if (!Request::get("title")) {
             throw new Exception("Geben Sie einen Titel an.");
@@ -149,7 +146,7 @@ class Course_DatesController extends AuthenticatedController
     public function remove_topic_action()
     {
         if (!$GLOBALS['perm']->have_studip_perm("tutor", $_SESSION['SessionSeminar'])) {
-            throw new AccessDeniedException("Kein Zugriff");
+            throw new AccessDeniedException();
         }
         $topic = new CourseTopic(Request::option("issue_id"));
         $date = new CourseDate(Request::option("termin_id"));

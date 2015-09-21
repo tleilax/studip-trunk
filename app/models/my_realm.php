@@ -23,10 +23,8 @@
  * @since       3.1
  */
 
-require_once('lib/meine_seminare_func.inc.php');
-require_once('lib/object.inc.php');
-require_once('lib/functions.php');
-require_once('lib/classes/admission/CourseSet.class.php');
+require_once 'lib/meine_seminare_func.inc.php';
+require_once 'lib/object.inc.php';
 
 class MyRealmModel
 {
@@ -553,9 +551,8 @@ class MyRealmModel
             });
         }
         $courses = $courses->filter(function ($a) use ($min_sem, $max_sem) {
-            return ($a->end_time >= $min_sem['beginn'] && $a->end_time <= $max_sem['beginn'])
-            || ($a->end_time == -1 && $a->start_time <= $max_sem['beginn'])
-            || ($a->end_time > $max_sem['beginn'] &&  $a->start_time <= $min_sem['beginn']);
+            return $a->start_time <= $max_sem['beginn'] &&
+                   ($min_sem['beginn'] <= $a->start_time + $a->duration_time || $a->duration_time == -1);
         });
         $courses->orderBy($ordering);
 
@@ -588,11 +585,8 @@ class MyRealmModel
     {
         $sem_data  = SemesterData::GetSemesterArray();
         $semesters = array();
-        foreach ($sem_data as $sem_key => $one_sem) {
-            $current_sem = $sem_key;
-            if (!$one_sem['past']) break;
-        }
-
+        $current_sem = SemesterData::GetSemesterIndexById($_SESSION['_default_sem']);
+        
         if (isset($sem_data[$current_sem + 1])) {
             $max_sem = $current_sem + 1;
         } else {
@@ -947,7 +941,7 @@ class MyRealmModel
     public static function getSemTree($course_id, $depth = false)
     {
         $the_tree        = TreeAbstract::GetInstance("StudipSemTree");
-        $view            = new DbView();
+        $view            = DbView::getView('sem_tree');
         $ret             = null;
         $view->params[0] = $course_id;
         $rs              = $view->get_query("view:SEMINAR_SEM_TREE_GET_IDS");

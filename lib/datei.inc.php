@@ -27,13 +27,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 use Studip\Button, Studip\LinkButton;
 
-require_once('vendor/idna_convert/idna_convert.class.php');
-require_once('lib/classes/StudipDocumentTree.class.php');
-require_once('lib/raumzeit/IssueDB.class.php');
-
+require_once 'vendor/idna_convert/idna_convert.class.php';
 
 if ($GLOBALS['ZIP_USE_INTERNAL']) {
-    include_once('vendor/pclzip/pclzip.lib.php');
+    include_once 'vendor/pclzip/pclzip.lib.php';
 }
 
 function readfile_chunked($filename) {
@@ -2802,7 +2799,7 @@ function upload_recursively($range_id, $dir) {
         }
         // Verzeichnis erstellen
         $pos = strrpos($subdir, "/");
-        $name = addslashes(substr($subdir, $pos + 1, strlen($subdir) - $pos));
+        $name = substr($subdir, $pos + 1, strlen($subdir) - $pos);
         $dir_id = create_folder($name, "", $range_id);
         $count['subdirs']++;
         // Verzeichnis hochladen.

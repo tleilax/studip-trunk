@@ -13,9 +13,6 @@
  * @category    Stud.IP
  */
 
-require_once 'lib/classes/searchtypes/SeminarSearch.class.php';
-
-
 /**
  * This class provides a small and intuitive GUI-element for an instant search of
  * courses, persons, institutes or other items. Mainly the structure to include
@@ -321,6 +318,17 @@ class QuickSearch
     }
 
     /**
+     * Returns whether the underlying search type requires an extended
+     * layout.
+     *
+     * @return bool indicating whether an extended layout is required
+     */
+    public function hasExtendedLayout()
+    {
+        return $this->search->extendedLayout;
+    }
+
+    /**
      * last step: display everything and be happy!
      * comment: the Ajax-Result (for the javascript-instant-search) will be also displayed here,
      * but that does not need to concern you.
@@ -346,7 +354,7 @@ class QuickSearch
             $template->set_attribute('inputClass', $this->inputClass);
             $template->set_attribute('search_button_name', $this->search_button_name);
             $template->set_attribute('reset_button_name', $this->reset_button_name);
-            $template->set_attribute('extendedLayout', $this->search->extendedLayout);
+            $template->set_attribute('extendedLayout', $this->hasExtendedLayout());
             return $template->render();
 
         } else {
@@ -384,7 +392,7 @@ class QuickSearch
             $template->set_attribute('query_id', $query_id);
             $template->set_attribute('search_button_name', $this->search_button_name);
             $template->set_attribute('reset_button_name', $this->reset_button_name);
-            $template->set_attribute('extendedLayout', $this->search->extendedLayout);
+            $template->set_attribute('extendedLayout', $this->hasExtendedLayout());
             return $template->render();
         }
     }

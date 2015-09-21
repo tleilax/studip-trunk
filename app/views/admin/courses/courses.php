@@ -148,8 +148,8 @@
         <tr>
             <td>
                 <?=
-                CourseAvatar::getAvatar($course['seminar_id'])->is_customized()
-                    ? CourseAvatar::getAvatar($course['seminar_id'])->getImageTag(Avatar::SMALL, array('title' => tooltip2(trim($values["Name"]))))
+                CourseAvatar::getAvatar($semid)->is_customized()
+                    ? CourseAvatar::getAvatar($semid)->getImageTag(Avatar::SMALL, array('title' => tooltip2(trim($values["Name"]))))
                     : Assets::img('icons/20/blue/seminar.png', tooltip2(trim($values["Name"]))) ?>
             </td>
             <? if (in_array('number', $view_filter)) : ?>
@@ -181,8 +181,8 @@
             <? endif ?>
             <? if (in_array('room_time', $view_filter)) : ?>
                 <td>
-                    <? $sem = new Seminar($semid);
-                    $_room  = $sem->getDatesHTML(array(
+                    <? $sem_helper = new Seminar(Course::buildExisting(array('seminar_id' => $semid)));
+                    $_room  = $sem_helper->getDatesHTML(array(
                         'semester_id' => $semester->id,
                         'show_room'   => true
                     ));
@@ -257,8 +257,11 @@
                         case 16:
                             echo $this->render_partial('admin/courses/add_to_archive', compact('values', 'semid'));
                             break;
+                        case 17:
+                            echo $this->render_partial('admin/courses/admission_locked', compact('values', 'semid'));
+                            break;
                     }?>
-                <? elseif (!is_numeric($selected_action) && $actions[$selected_action]['multimode']) : ?>
+                <? elseif (!is_numeric($selected_action) && !$actions[$selected_action]['url']) : ?>
                     <? $plugin = PluginManager::getInstance()->getPlugin($selected_action) ?>
                     <? $template = $plugin->getAdminCourseActionTemplate($semid, $values) ?>
                     <?= $template ? $template->render() : "" ?>
@@ -266,7 +269,7 @@
                 else : ?>
                     <?=
                     \Studip\LinkButton::createEdit(
-                        _($actions[$selected_action]['title']),
+                        $actions[$selected_action]['title'],
                         URLHelper::getURL(sprintf($actions[$selected_action]['url'], $semid),
                             ($actions[$selected_action]['params'] ? $actions[$selected_action]['params'] : array())),
                         ($actions[$selected_action]['attributes'] ? $actions[$selected_action]['attributes'] : array())

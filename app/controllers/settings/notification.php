@@ -15,7 +15,6 @@
  */
 
 require_once 'settings.php';
-require_once 'lib/classes/ModulesNotification.class.php';
 
 class Settings_NotificationController extends Settings_SettingsController
 {
@@ -38,7 +37,7 @@ class Settings_NotificationController extends Settings_SettingsController
         }
 
         if (!$GLOBALS['auth']->is_authenticated() || $GLOBALS['perm']->have_perm('admin')) {
-            throw new AccessDeniedException(_('Sie dürfen diesen Bereich nicht betreten.'));
+            throw new AccessDeniedException();
         }
 
         PageLayout::setHelpKeyword('Basis.MyStudIPBenachrichtigung');
@@ -66,8 +65,7 @@ class Settings_NotificationController extends Settings_SettingsController
             $add_query = "LEFT JOIN seminar_user as su1 ON (su1.seminar_id=seminare.Seminar_id AND su1.status='dozent')";
         }
 
-        DBView::addView('sem_tree');
-        $dbv = new DbView();
+        $dbv = DbView::getView('sem_tree');
 
         $query = "SELECT seminare.VeranstaltungsNummer AS sem_nr, seminare.Name, seminare.Seminar_id,
                          seminare.status AS sem_status, seminar_user.gruppe, seminare.visible,

@@ -38,11 +38,7 @@ if (!$perm->is_fak_admin()){
     die;
 }
 
-require_once ('lib/visual.inc.php');
-require_once ('lib/classes/StudipSemTreeViewAdmin.class.php');
-require_once ('lib/classes/StudipSemSearch.class.php');
-
-include ('lib/seminar_open.php'); // initialise Stud.IP-Session
+include 'lib/seminar_open.php'; // initialise Stud.IP-Session
 
 PageLayout::setTitle($UNI_NAME_CLEAN . " - " . _("Veranstaltungshierachie bearbeiten"));
 Navigation::activateItem('/admin/locations/sem_tree');
@@ -50,7 +46,7 @@ Navigation::activateItem('/admin/locations/sem_tree');
 // Start of Output
 ob_start();
 
-$view = new DbView();
+$view = DbView::getView('sem_tree');
 $the_tree = new StudipSemTreeViewAdmin(Request::option('start_item_id'));
 $search_obj = new StudipSemSearch();
 

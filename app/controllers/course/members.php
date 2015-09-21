@@ -15,14 +15,10 @@
  * @since       2.5
  */
 
-require_once 'app/controllers/authenticated_controller.php';
 require_once 'app/models/members.php';
 require_once 'lib/messaging.inc.php'; //Funktionen des Nachrichtensystems
 
 require_once 'lib/admission.inc.php'; //Funktionen der Teilnehmerbegrenzung
-require_once 'lib/classes/searchtypes/MyCoursesSearch.class.php';
-require_once 'lib/functions.php'; //Funktionen der Teilnehmerbegrenzung
-require_once 'lib/language.inc.php'; //Funktionen der Teilnehmerbegrenzung
 require_once 'lib/export/export_studipdata_func.inc.php'; // Funktionne für den Export
 
 class Course_MembersController extends AuthenticatedController
@@ -242,7 +238,7 @@ class Course_MembersController extends AuthenticatedController
     {
         // Security Check
         if (!$this->is_tutor) {
-            throw new AccessDeniedException('Sie haben leider keine ausreichende Berechtigung, um auf diesen Bereich von Stud.IP zuzugreifen.');
+            throw new AccessDeniedException();
         }
 
         $course_member = CourseMember::find(array($this->course_id, $user_id));

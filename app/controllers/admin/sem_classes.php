@@ -7,7 +7,6 @@
  *  published by the Free Software Foundation; either version 2 of
  *  the License, or (at your option) any later version.
  */
-require_once 'app/controllers/authenticated_controller.php';
 
 class Admin_SemClassesController extends AuthenticatedController
 {
@@ -15,7 +14,7 @@ class Admin_SemClassesController extends AuthenticatedController
     {
         parent::before_filter($action, $args);
         if (!$GLOBALS['perm']->have_perm("root")) {
-            throw new AccessDeniedException(_("Kein Zugriff"));
+            throw new AccessDeniedException();
         }
         PageLayout::setHelpKeyword("Admins.SemClasses");
         PageLayout::setTitle("Veranstaltungskategorien");

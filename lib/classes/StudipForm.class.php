@@ -26,10 +26,6 @@
 
 use Studip\Button, Studip\LinkButton;
 
-require_once('lib/visual.inc.php');
-require_once 'lib/functions.php';
-
-
 /**
 * Class to build Studip HTML forms
 *
@@ -446,13 +442,21 @@ class StudipForm {
     }
 
     function getFormFieldCaption($name, $attributes = false){
+        $_name = $name;
         if (!isset($attributes['for'])) {
             $attributes['for'] = $this->form_name . '_' . $name;
         }
         if (isset($this->form_fields[$name]['caption'])) {
             $name = $this->form_fields[$name]['caption'];
         }
-        return "\n<label " . $this->getAttributes($attributes) . ">" . htmlReady($name) . "</label>";
+        $res = '<label ' . $this->getAttributes($attributes) . '>'.htmlReady($name);
+
+        if(!empty($this->form_fields[$_name]['info']) && $attributes['info']) {
+            $res .= $this->getFormFieldInfo($_name);
+        }
+
+        $res .= '</label>';
+        return $res;
     }
 
     function getFormFieldInfo($name){

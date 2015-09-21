@@ -9,9 +9,7 @@
  */
 
 require_once 'lib/sms_functions.inc.php';
-require_once 'lib/visual.inc.php';
 require_once 'lib/statusgruppe.inc.php';
-require_once 'app/controllers/authenticated_controller.php';
 
 class MessagesController extends AuthenticatedController {
 
@@ -37,9 +35,17 @@ class MessagesController extends AuthenticatedController {
     {
         Navigation::activateItem('/messaging/messages/inbox');
 
+
         if (Request::get("read_all")) {
             Message::markAllAs($GLOBALS['user']->id, 1);
             PageLayout::postMessage(MessageBox::success(_("Alle Nachrichten wurden als gelesen markiert.")));
+        }
+
+        if (Request::isPost()) {
+            foreach (Request::getArray("bulk") as $message_id) {
+                $this->delete_message($message_id);
+            }
+            PageLayout::postMessage(MessageBox::success(sprintf(_("%u Nachrichten wurden gelöscht"), count(Request::getArray("bulk")))));
         }
 
         $this->messages = $this->get_messages(
@@ -52,11 +58,19 @@ class MessagesController extends AuthenticatedController {
         $this->received   = true;
         $this->tags       = Message::getUserTags();
         $this->message_id = $message_id;
+        $this->settings   = UserConfig::get($GLOBALS['user']->id)->MESSAGING_SETTINGS;
     }
 
     public function sent_action($message_id = null)
     {
         Navigation::activateItem('/messaging/messages/sent');
+
+        if (Request::isPost()) {
+            foreach (Request::getArray("bulk") as $message_id) {
+                $this->delete_message($message_id);
+            }
+            PageLayout::postMessage(MessageBox::success(sprintf(_("%u Nachrichten wurden gelöscht"), count(Request::getArray("bulk")))));
+        }
 
         $this->messages = $this->get_messages(
             false,
@@ -68,6 +82,7 @@ class MessagesController extends AuthenticatedController {
         $this->received   = false;
         $this->tags       = Message::getUserTags();
         $this->message_id = $message_id;
+        $this->settings   = UserConfig::get($GLOBALS['user']->id)->MESSAGING_SETTINGS;
 
         $this->render_action("overview");
     }
@@ -86,13 +101,16 @@ class MessagesController extends AuthenticatedController {
             $this->output["more"] = 1;
             array_pop($messages);
         }
+        $this->settings   = UserConfig::get($GLOBALS['user']->id)->MESSAGING_SETTINGS;
         $template_factory = $this->get_template_factory();
         foreach ($messages as $message) {
             $this->output['messages'][] = $template_factory
                                             ->open("messages/_message_row.php")
                                             ->render(array('message'    => $message,
                                                            'controller' => $this,
-                                                           'received'   => (bool) Request::int("received")));
+                                                           'received'   => (bool) Request::int("received"),
+                                                           'settings'   => $this->settings
+                                                    ));
         }
 
         $this->render_json($this->output);
@@ -102,7 +120,7 @@ class MessagesController extends AuthenticatedController {
     {
         $this->message = new Message($message_id);
         if (!$this->message->permissionToRead()) {
-            throw new AccessDeniedException(_('Kein Zugriff'));
+            throw new AccessDeniedException();
         }
 
         PageLayout::setTitle(_('Betreff') . ': ' . $this->message['subject']);
@@ -366,7 +384,7 @@ class MessagesController extends AuthenticatedController {
         if (Request::isPost()) {
             $message = Message::find($message_id);
             if (!$message->permissionToRead()) {
-                throw new AccessDeniedException("Kein Zugriff");
+                throw new AccessDeniedException();
             }
             if (Request::get('add_tag')) {
                 $message->addTag(Request::get('add_tag'));
@@ -381,7 +399,7 @@ class MessagesController extends AuthenticatedController {
     {
         $message = Message::find($message_id);
         if (!$message->permissionToRead()) {
-            throw new AccessDeniedException("Kein Zugriff");
+            throw new AccessDeniedException();
         }
         if ($message && $message->permissionToRead($GLOBALS['user']->id)) {
             $this->msg = $message->toArray();
@@ -402,23 +420,29 @@ class MessagesController extends AuthenticatedController {
         }
     }
 
+    protected function delete_message($message_id)
+    {
+        $messageuser = new MessageUser(array($GLOBALS['user']->id, $message_id, "snd"));
+        $success = 0;
+        if (!$messageuser->isNew()) {
+            $messageuser['deleted'] = 1;
+            $success = $messageuser->store();
+        }
+        $messageuser = new MessageUser(array($GLOBALS['user']->id, $message_id, "rec"));
+        if (!$messageuser->isNew()) {
+            $messageuser['deleted'] = 1;
+            $success += $messageuser->store();
+        }
+        return $success;
+    }
+
     public function delete_action($message_id)
     {
         $message = Message::find($message_id);
 
         $ticket = Request::get('studip-ticket');
         if (Request::isPost() && $ticket && check_ticket($ticket)) {
-            $messageuser = new MessageUser(array($GLOBALS['user']->id, $message_id, "snd"));
-            $success = 0;
-            if (!$messageuser->isNew()) {
-                $messageuser['deleted'] = 1;
-                $success = $messageuser->store();
-            }
-            $messageuser = new MessageUser(array($GLOBALS['user']->id, $message_id, "rec"));
-            if (!$messageuser->isNew()) {
-                $messageuser['deleted'] = 1;
-                $success += $messageuser->store();
-            }
+            $success = $this->delete_message($message_id);
             if ($success) {
                 PageLayout::postMessage(MessageBox::success(_('Nachricht gelöscht!')));
             } else {
@@ -427,8 +451,8 @@ class MessagesController extends AuthenticatedController {
         }
 
         $redirect = $message->autor_id === $GLOBALS['user']->id
-                  ? $this->url_for('messages/sent')
-                  : $this->url_for('messages/overview');
+            ? $this->url_for('messages/sent')
+            : $this->url_for('messages/overview');
 
         $this->redirect($redirect);
     }
@@ -541,7 +565,7 @@ class MessagesController extends AuthenticatedController {
 
     public function upload_attachment_action() {
         if ($GLOBALS['user']->id === "nobody") {
-            throw new AccessDeniedException("Kein Zugriff");
+            throw new AccessDeniedException();
         }
         if (!$GLOBALS['ENABLE_EMAIL_ATTACHMENTS']) {
             throw new AccessDeniedException(_('Mailanhänge sind nicht erlaubt.'));

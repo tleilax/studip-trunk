@@ -14,9 +14,6 @@
  * @package     admin
  */
 
-require_once 'lib/resources/lib/RoomRequest.class.php';
-require_once 'app/controllers/authenticated_controller.php';
-
 class Course_RoomRequestsController extends AuthenticatedController
 {
     /**
@@ -65,10 +62,6 @@ class Course_RoomRequestsController extends AuthenticatedController
             $room_requests = RoomRequest::findBySQL(sprintf('seminar_id = %s ORDER BY seminar_id, metadate_id, termin_id', DbManager::get()->quote($this->course_id)));
             $this->room_requests = $room_requests;
             $this->request_id = Request::option('request_id');
-            //Admin-Liste für den Admin
-            if ($GLOBALS['perm']->have_studip_perm("admin",$this->course_id)) {
-                $this->adminList = AdminList::getInstance()->getSelectTemplate($this->course_id);
-            }
         }
     }
 

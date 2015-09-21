@@ -1,4 +1,4 @@
-/*jslint browser: true, devel: true, nomen: true, regexp: true, unparam: true, sloppy: true, todo: true */
+/*jslint browser: true, nomen: true, unparam: true, todo: true, regexp: true */
 /*global jQuery, STUDIP */
 
 /**
@@ -12,6 +12,8 @@
  * @todo        Handle file uploads <http://goo.gl/PnSra8>
  */
 (function ($, STUDIP) {
+    'use strict';
+
     /**
      * Tries to parse a given string into it's appropriate type.
      * Supports boolean, int and float.
@@ -133,6 +135,7 @@
 
     STUDIP.Dialog = {
         instances: {},
+        stack: [],
         hasInstance: function (id) {
             id = id || 'default';
             return this.instances.hasOwnProperty(id);
@@ -143,8 +146,11 @@
                 this.instances[id] = {
                     open: false,
                     element: $('<div>'),
-                    options: {}
+                    options: {},
+                    previous: this.stack[0] || false
                 };
+
+                this.stack.unshift(id);
             }
             return this.instances[id];
         },
@@ -152,11 +158,72 @@
             id = id || 'default';
             if (this.hasInstance(id)) {
                 delete this.instances[id];
+
+                var index = this.stack.indexOf(id);
+                this.stack.splice(index, 1);
             }
         },
         shouldOpen: function () {
             return $(window).innerWidth() >= 800 && $(window).innerHeight() >= 400;
+        },
+        handlers: {
+            header: {}
         }
+    };
+
+    // Handler for HTTP header X-Location: Relocate to another location
+    STUDIP.Dialog.handlers.header['X-Location'] = function (location, options) {
+        if (document.location.href === location) {
+            document.location.reload(true);
+        } else {
+            $(window).on('hashchange', function () {
+                document.location.reload(true);
+            }).on('unload', function () {
+                $(window).off('hashchange');
+            });
+        }
+
+        STUDIP.Dialog.close(options);
+        document.location = location;
+
+        return false;
+    };
+    // Handler for HTTP header X-Dialog-Execute: Execute arbitrary function
+    STUDIP.Dialog.handlers.header['X-Dialog-Execute'] = function (value, options, xhr) {
+        var chunks = value.trim().split('.'),
+            callback = window,
+            payload = xhr.getResponseHeader('Content-Type').match(/json/)
+                    ? $.parseJSON(xhr.responseText)
+                    : xhr.responseText;
+
+        $.each(chunks, function (index, chunk) {
+            if (!callback.hasOwnProperty(chunk)) {
+                throw 'Dialog: Undefined callback ' + value;
+            }
+            callback = callback[chunk];
+        });
+
+        if (typeof callback !== 'function') {
+            throw 'Dialog: Given callback is not a valid function';
+        }
+        return callback(payload, xhr);
+    };
+    // Handler for HTTP header X-Dialog-Close: Close the dialog
+    STUDIP.Dialog.handlers.header['X-Dialog-Close'] = function (value, options) {
+        STUDIP.Dialog.close(options);
+        return false;
+    };
+    // Handler for HTTP header X-Wikilink: Set the options' wiki link
+    STUDIP.Dialog.handlers.header['X-Wikilink'] = function (link, options) {
+        options.wiki_link = link;
+    };
+    // Handler for HTTP header X-Title: Set the dialog title
+    STUDIP.Dialog.handlers.header['X-Title'] = function (title, options) {
+        options.title = title || options.title;
+    };
+    // Handler for HTTP header X-No-Buttons: Decide whether to show dialog buttons
+    STUDIP.Dialog.handlers.header['X-No-Buttons'] = function (value, options) {
+        options.buttons = false;
     };
 
     // Creates a dialog from an anchor, a button or a form element.
@@ -173,7 +240,7 @@
             return;
         }
 
-        if (!$(element).is('a,button,form')) {
+        if (!$(element).is('a,button,form,input[type=image],input[type=submit]')) {
             throw 'Dialog.fromElement called on an unsupported element.';
         }
 
@@ -185,12 +252,14 @@
         var url;
 
         // Predefine options
-        if ($(element).is('form,button')) {
-            url = $(element).attr('formaction') || $(element).closest('form').attr('action');
+        if ($(element).is('form,button,input')) {
+            url = $(element).attr('formaction')
+                || $(element).closest('form').data('formaction')
+                || $(element).closest('form').attr('action');
             options.method = $(element).closest('form').attr('method');
             options.data = $(element).closest('form').serializeArray();
 
-            if ($(element).is('button')) {
+            if ($(element).is('button,input')) {
                 options.data.push({
                     name: $(element).attr('name'),
                     value: $(element).val()
@@ -198,6 +267,7 @@
             } else if ($(element).data().triggeredBy) {
                 options.data.push($(element).data().triggeredBy);
             }
+            $(element).closest('form').removeData('formaction');
         } else {
             url = $(element).attr('href');
         }
@@ -230,37 +300,25 @@
             data: options.data || {},
             headers: {'X-Dialog': true}
         }).done(function (response, status, xhr) {
+            var advance = true;
+
             // Trigger event
             $(options.origin || document).trigger('dialog-load', {xhr: xhr, options: options});
 
-            // Relocate if appropriate header is set
-            if (xhr.getResponseHeader('X-Location')) {
-                if (document.location.href === xhr.getResponseHeader('X-Location')) {
-                    document.location.reload(true);
-                } else {
-                    $(window).on('hashchange', function () {
-                        document.location.reload(true);
-                    }).on('unload', function () {
-                        $(window).off('hashchange');
-                    });
+            // Execute all defined header handlers
+            $.each(STUDIP.Dialog.handlers.header, function (header, handler) {
+                var value = xhr.getResponseHeader(header),
+                    result = true;
+                if (value !== null) {
+                    result = handler(value, options, xhr);
                 }
+                advance = advance && result !== false;
+                return result;
+            });
 
-                STUDIP.Dialog.close();
-                document.location = xhr.getResponseHeader('X-Location');
-
-                return;
+            if (advance) {
+                STUDIP.Dialog.show(response, options);
             }
-            // Close dialog if appropriate header is set
-            if (xhr.getResponseHeader('X-Dialog-Close')) {
-                STUDIP.Dialog.close(options);
-                return;
-            }
-
-            options.wiki_link = xhr.getResponseHeader('X-Wikilink');
-            options.title     = xhr.getResponseHeader('X-Title') || options.title;
-            options.buttons   = options.buttons && !xhr.getResponseHeader('X-No-Buttons');
-
-            STUDIP.Dialog.show(response, options);
         }).always(function () {
             if (STUDIP.Overlay) {
                 STUDIP.Overlay.hide();
@@ -289,16 +347,16 @@
 
         var scripts = $('<div>' + content + '</div>').filter('script'), // Extract scripts
             dialog_options = {},
+            instance = STUDIP.Dialog.getInstance(options.id),
+            previous = instance.previous !== false ? STUDIP.Dialog.getInstance(instance.previous) : false,
             width  = options.width || $('body').width() * 2 / 3,
-            height = options.height || $('body').height()  * 2 / 3,
+            height = options.height || $('body').height() * 2 / 3,
             temp,
-            helper,
-            instance = STUDIP.Dialog.getInstance(options.id);
+            helper;
 
         if (instance.open) {
             options.title = options.title || instance.element.dialog('option', 'title');
         }
-        instance.options = options;
 
         if (options['center-content']) {
             content = '<div class="studip-dialog-centered-helper">' + content + '</div>';
@@ -319,21 +377,52 @@
             height = Math.max(200, Math.min(helper.height() + 130, height));
             // Remove helper element
             helper.remove();
+        } else if (options.size && options.size === 'big') {
+            width  = $('body').width() * 0.9;
+            height = $('body').height() * 0.8;
+        } else if (options.size && options.size === 'small') {
+            width  = 300;
+            height = 200;
         } else if (options.size && options.size.match(/^\d+x\d+$/)) {
             temp = options.size.split('x');
             width = temp[0];
-            height = temp[2];
+            height = temp[1];
         } else if (options.size && !options.size.match(/\D/)) {
             width = height = options.size;
         }
 
+        // Ensure dimensions fit in viewport
+        width  = Math.min(width, $('body').width() * 0.95);
+        height = Math.min(height, $('body').height() * 0.9);
+        if (previous !== false && width > previous.dimensions.width && height > previous.dimensions.height) {
+            width = width > previous.dimensions.width ? previous.dimensions.width * 0.95 : width;
+            height = height > previous.dimensions.height ? previous.dimensions.height * 0.95 : height;
+        }
+
+        // Store options and dimensions
+        instance.options = options;
+        instance.dimensions = {
+            width: window.parseInt(width, 10),
+            height: window.parseInt(height, 10)
+        };
+
+        // Set dialog options
         dialog_options = $.extend(dialog_options, {
             width:   width,
             height:  height,
             buttons: {},
             title:   $('<div>').text(options.title || '').html(), // kinda like htmlReady()
             modal:   true,
-            resizable: 'resize' in options ? options.resize : true,
+            resizable: options.hasOwnProperty('resize') ? options.resize : true,
+            create: function (event) {
+                $(event.target).parent().css('position', 'fixed');
+            },
+            resizeStop: function (event, ui) {
+                var position = [Math.floor(ui.position.left) - $(window).scrollLeft(),
+                                Math.floor(ui.position.top) - $(window).scrollTop()];
+                $(event.target).parent().css('position', 'fixed');
+                $(event.target).dialog('option', 'position', position);
+            },
             open: function () {
                 var helpbar_element = $('.helpbar a[href*="docs.studip.de"]'),
                     tooltip = helpbar_element.text(),
@@ -369,11 +458,14 @@
             };
         }
 
-        // Trigger update event on document since options.origin might have been removed
-        $(document).trigger('dialog-update', {dialog: instance.element, options: options});
+        // Blur background
+        $('#layout_wrapper').css('filter', 'blur(' + STUDIP.Dialog.stack.length + 'px)');
 
         // Create/update dialog
         instance.element.dialog(dialog_options);
+
+        // Trigger update event on document since options.origin might have been removed
+        $(document).trigger('dialog-update', {dialog: instance.element, options: options});
     };
 
     // Closes the dialog for good
@@ -400,11 +492,14 @@
                 try {
                     instance.element.dialog('destroy');
                     instance.element.remove();
-                } catch (ignore) {
+                } catch (ignore_again) {
                 }
             }
 
             STUDIP.Dialog.removeInstance(options.id);
+
+            // Remove background blur
+            $('#layout_wrapper').css('filter', 'blur(' + STUDIP.Dialog.stack.length + 'px)');
         }
 
         if (options['reload-on-close']) {
@@ -415,8 +510,9 @@
     // Actual dialog handler
     function dialogHandler(event) {
         if (!event.isDefaultPrevented()) {
-            var options = $(this).data().dialog;
-            if (STUDIP.Dialog.fromElement(this, parseOptions(options))) {
+            var target = $(event.target).closest('[data-dialog]'),
+                options = target.data().dialog;
+            if (STUDIP.Dialog.fromElement(target, parseOptions(options))) {
                 event.preventDefault();
             }
         }
@@ -424,20 +520,33 @@
 
     function clickHandler(event) {
         if (!event.isDefaultPrevented()) {
-            var form  = $(this).closest('form');
+            var form   = $(event.target).closest('form'),
+                action = $(event.target).attr('formaction');
             form.data('triggeredBy', {
-                name: $(this).attr('name'),
-                value: $(this).val()
+                name: $(event.target).attr('name'),
+                value: $(event.target).val()
             });
+            if (action) {
+                form.data('formaction', action);
+            }
         }
     }
 
     // Handle links, buttons and forms
     $(document)
-        .on('click', 'a[data-dialog],button[data-dialog]', dialogHandler)
+        .on('click', 'a[data-dialog],button[data-dialog],input[type=image][data-dialog],input[type=submit][data-dialog]', dialogHandler)
         .on('click', 'form[data-dialog] :submit', clickHandler)
         .on('click', 'form[data-dialog] input[type=image]', clickHandler)
-        .on('submit', 'form[data-dialog]', dialogHandler)
+        .on('submit', 'form[data-dialog]', dialogHandler);
+
+    // Close dialog on click outside of it
+    $(document).on('click', '.ui-widget-overlay', function () {
+        if ($('.ui-dialog').length > 0 && STUDIP.Dialog.stack.length) {
+            STUDIP.Dialog.close({
+                id: STUDIP.Dialog.stack[0]
+            });
+        }
+    });
 
     // Extra: Expose parseOptions to STUDIP object
     STUDIP.parseOptions = parseOptions;
@@ -445,9 +554,9 @@
     // Legacy handler
     // TODO: Remove this after Stud.IP 3.2 or 3.3 has been released
     function legacyDialogHandler(event) {
-        var rel  = $(this).attr('rel');
+        var rel  = $(event.target).attr('rel');
         if (/\blightbox(\s|\[|$)/.test(rel)) {
-            if (STUDIP.Dialog.fromElement(this, parseOptions(rel, 'lightbox'))) {
+            if (STUDIP.Dialog.fromElement(event.target, parseOptions(rel, 'lightbox'))) {
                 event.preventDefault();
             }
         }

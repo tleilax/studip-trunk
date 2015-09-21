@@ -15,8 +15,6 @@
  * @package  smiley
  * @since    2.3
  */
-
-require_once 'app/controllers/authenticated_controller.php';
 require_once 'app/models/smiley.php';
 
 class SmileysController extends AuthenticatedController
@@ -32,10 +30,6 @@ class SmileysController extends AuthenticatedController
         parent::before_filter($action, $args);
 
         PageLayout::setTitle(_('Smiley-Übersicht'));
-        PageLayout::addSqueezePackage('smileys');
-
-        $this->set_layout(null);
-
 
         $this->favorites_activated = SmileyFavorites::isEnabled()
                                      && $GLOBALS['user']->id != nobody;
@@ -66,6 +60,9 @@ class SmileysController extends AuthenticatedController
         if (!$this->favorites_activated and $this->view == 'favorites') {
             $this->redirect('smileys');
         }
+
+        $title =  _('Smiley-Übersicht') . ' - ' . sprintf(_('%s Smileys vorhanden'), $this->statistics['count_all']);
+        PageLayout::setTitle($title);
 
         $this->smileys = $this->view == 'favorites'
                        ? Smiley::getByIds($this->favorites->get())

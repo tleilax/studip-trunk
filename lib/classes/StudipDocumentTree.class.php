@@ -24,10 +24,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // +---------------------------------------------------------------------------+
-require_once 'lib/functions.php';
 require_once 'lib/statusgruppe.inc.php';
-
-DbView::addView('core');
 
 /**
 * class to handle structure of the document folders
@@ -70,6 +67,8 @@ class StudipDocumentTree extends TreeAbstract {
     */ 
     function StudipDocumentTree($args)
     {
+        DbView::addView('core');
+
         $this->range_id = $args['range_id'];
         $this->entity_type = $args['entity_type'] ?: get_object_type($this->range_id);
         if ($args['get_root_name']) {
@@ -119,7 +118,7 @@ class StudipDocumentTree extends TreeAbstract {
     }
     
     function initSubfolders($parent_id){
-        $view = new DbView();
+        $view = DbView::getView('core');
         $view->params[0] = $parent_id;
         $db = $view->get_query("view:FOLDER_GET_DATA_BY_RANGE");
         $p = 0;

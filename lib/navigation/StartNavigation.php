@@ -20,7 +20,10 @@ class StartNavigation extends Navigation
      */
     public function __construct()
     {
-        parent::__construct(_('Start'), URLHelper::getLink('dispatch.php/start'));
+        $url = (is_object($GLOBALS['user']) && $GLOBALS['user']->id != 'nobody')
+             ? 'dispatch.php/start'
+             : 'index.php';
+        parent::__construct(_('Start'), $url);
     }
 
     public function initItem()
@@ -169,7 +172,6 @@ class StartNavigation extends Navigation
                 $navigation->addSubNavigation('hierarchy', new Navigation(_('Struktur'), 'resources.php#a', array('view' => 'resources')));
                 if ($perm->have_perm('admin') && get_config('RESOURCES_ALLOW_ROOM_REQUESTS')) {
                     if (getGlobalPerms($GLOBALS['user']->id) !== 'admin') {
-                        require_once 'lib/resources/lib/ResourcesUserRoomsList.class.php';
                         $resList = new ResourcesUserRoomsList($GLOBALS['user']->id, false, false);
                         $show_roomplanning = $resList->roomsExist();
                     } else {

@@ -23,26 +23,13 @@
  */
 
 // Imports
-require_once 'lib/functions.php';
-require_once 'lib/language.inc.php';
 require_once 'lib/admission.inc.php';   // remove user from waiting lists
 require_once 'lib/datei.inc.php';   // remove documents of user
 require_once 'lib/statusgruppe.inc.php';    // remove user from statusgroups
 require_once 'lib/dates.inc.php';   // remove appointments of user
 require_once 'lib/messaging.inc.php';   // remove messages send or recieved by user
-require_once 'lib/classes/DataFieldEntry.class.php';    // remove extra data of user
-require_once 'lib/classes/auth_plugins/StudipAuthAbstract.class.php';
 require_once 'lib/object.inc.php';
 require_once 'lib/log_events.inc.php';  // Event logging
-require_once 'app/models/studygroup.php';
-require_once 'vendor/phpass/PasswordHash.php';
-
-if (Config::get()->RESOURCES_ENABLE) {
-    include_once $GLOBALS['RELATIVE_PATH_RESOURCES'] . '/lib/DeleteResourcesUser.class.php';
-}
-if (Config::get()->ELEARNING_INTERFACE_ENABLE) {
-    require_once $GLOBALS['RELATIVE_PATH_ELEARNING_INTERFACE'] . '/ELearningUtils.class.php';
-}
 
 /**
  * Adapter to fake user_data property in UserManagement
@@ -1019,7 +1006,7 @@ class UserManagement
                 $this->msg .= "info§" . sprintf(_("%s Einträge aus den Terminen gelöscht."), $appkills) ."§";
             }
             // delete membership in group calendars
-            if (get_config('GROUP_CALENDAR_ENABLE')) {
+            if (get_config('CALENDAR_GROUP_ENABLE')) {
                 $membershipkills = CalendarUser::deleteBySQL('owner_id = :user_id OR user_id = :user_id',
                         array(':user_id' => $this->user_data['auth_user_md5.user_id']));
                 if ($membershipkills) {

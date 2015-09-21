@@ -78,7 +78,7 @@
                 old_count  = parseInt($('#notification_marker').text(), 10),
                 really_new = 0;
             $('#notification_list > ul > li').each(function () {
-                if (parseInt($(this).attr("data-timestamp"), 10) > parseInt($('#notification_marker').attr("data-lastvisit"), 10)) {
+                if (parseInt($(this).data("timestamp"), 10) > parseInt($('#notification_marker').data("lastvisit"), 10)) {
                     really_new += 1;
                 }
             });
@@ -124,14 +124,14 @@
             $.ajax({
                 'url': STUDIP.ABSOLUTE_URI_STUDIP + "dispatch.php/jsupdater/notifications_seen",
                 'success': function (time) {
-                    $("#notification_marker").removeClass("alert").attr("data-lastvisit", time);
+                    $("#notification_marker").removeClass("alert").data("lastvisit", time);
                 }
             });
         }
     };
 
-    $("#notification_list .mark_as_read").live('click', STUDIP.PersonalNotifications.markAsRead);
-    $("#notification_list").live('mouseenter', STUDIP.PersonalNotifications.setSeen);
+    $(document).on('click', '#notification_list .mark_as_read', STUDIP.PersonalNotifications.markAsRead);
+    $(document).on('mouseenter', '#notification_list', STUDIP.PersonalNotifications.setSeen);
 
     $(document).ready(function () {
         if ($("#notification_marker").length > 0) {

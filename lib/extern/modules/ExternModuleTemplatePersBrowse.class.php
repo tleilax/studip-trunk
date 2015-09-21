@@ -38,15 +38,9 @@
 // +---------------------------------------------------------------------------+
 
 
-require_once($GLOBALS['RELATIVE_PATH_EXTERN'].'/lib/ExternModule.class.php');
-require_once($GLOBALS['RELATIVE_PATH_EXTERN'].'/views/extern_html_templates.inc.php');
-require_once('lib/classes/DataFieldEntry.class.php');
-require_once('lib/visual.inc.php');
-require_once('lib/user_visible.inc.php');
-require_once('lib/dates.inc.php');
-require_once($GLOBALS['RELATIVE_PATH_EXTERN'].'/lib/extern_functions.inc.php');
-global $_fullname_sql;
-
+require_once $GLOBALS['RELATIVE_PATH_EXTERN'] . '/views/extern_html_templates.inc.php';
+require_once 'lib/user_visible.inc.php';
+require_once 'lib/dates.inc.php';
 
 class ExternModuleTemplatePersBrowse extends ExternModule {
 
@@ -223,7 +217,7 @@ class ExternModuleTemplatePersBrowse extends ExternModule {
         
         $db = new DB_Seminar();
         
-        $dbv = new DbView();
+        $dbv = DbView::getView('sem_tree');
         
         if ($module_params['initiale']) {
             if ($this->config->getValue('Main', 'onlylecturers')) {
@@ -387,7 +381,7 @@ class ExternModuleTemplatePersBrowse extends ExternModule {
             return array();
         }
         $db = new DB_Seminar();
-        $dbv = new DbView();
+        $dbv = DbView::getView('sem_tree');
         if ($this->config->getValue('Main', 'onlylecturers')) {
             $current_semester = get_sem_num(time());
                 $query = sprintf("SELECT COUNT(DISTINCT aum.user_id) as count_user, "
@@ -447,7 +441,7 @@ class ExternModuleTemplatePersBrowse extends ExternModule {
         $current_semester = get_sem_num(time());
         
         $db_count = new DB_Seminar();
-        $dbv = new DbView();
+        $dbv = DbView::getView('sem_tree');
         $mrks = str_repeat('?,', count($selected_item_ids) - 1) . '?';
         $query = "SELECT Institut_id, Name "
             . "FROM Institute "

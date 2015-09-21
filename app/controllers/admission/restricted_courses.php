@@ -13,9 +13,6 @@
  * @package     admin
  */
 
-require_once 'app/controllers/authenticated_controller.php';
-require_once 'lib/classes/admission/CourseSet.class.php';
-
 class Admission_RestrictedCoursesController extends AuthenticatedController
 {
     /**
@@ -23,11 +20,10 @@ class Admission_RestrictedCoursesController extends AuthenticatedController
      */
     function before_filter (&$action, &$args)
     {
-
         parent::before_filter($action, $args);
         PageLayout::setTitle(_('Teilnahmebeschränkte Veranstaltungen'));
         Navigation::activateItem('/tools/coursesets/restricted_courses');
-        PageLayout::addScript("jquery/jquery.tablesorter.js");
+        PageLayout::addSqueezePackage('tablesorter');
 
     }
 
@@ -38,7 +34,7 @@ class Admission_RestrictedCoursesController extends AuthenticatedController
     {
 
         $actions = new ActionsWidget();
-        $actions->addLink(_("Export"), $this->link_for('admission/restricted_courses', array('csv' => 1)), 'icons/16/blue/file-xls');
+        $actions->addLink(_("Export"), $this->link_for('admission/restricted_courses', array('csv' => 1)), 'icons/16/blue/export/file-excel.png');
         Sidebar::get()->addWidget($actions);
         Sidebar::get()->setImage('sidebar/admin-sidebar.png');
 

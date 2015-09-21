@@ -3,10 +3,17 @@
 <? if (is_object($GLOBALS['user']) && $GLOBALS['user']->id != 'nobody') : ?>
     <div id="footer">
         <? printf(_('Sie sind angemeldet als %s (%s)'),
-                  $GLOBALS['user']->username,
-                  $GLOBALS['user']->perms) ?>
+                  htmlReady($GLOBALS['user']->username),
+                  htmlReady($GLOBALS['user']->perms)) ?>
         |
         <?= strftime('%x, %X') ?>
+    <? if (Studip\ENV === 'development'): ?>
+        [
+            <?= sprintf('%u db queries', DBManager::get()->query_count) ?>
+            /
+            <?= relsize(memory_get_peak_usage(true), false) ?> mem
+        ]
+    <? endif; ?>
     </div>
 <? endif; ?>
 

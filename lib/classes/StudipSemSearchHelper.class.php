@@ -24,9 +24,6 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // +---------------------------------------------------------------------------+
 
-require_once('lib/classes/StudipSemTree.class.php');
-require_once('lib/classes/RangeTreeObject.class.php');
-
 class StudipSemSearchHelper {
     
     public static function GetQuickSearchFields(){
@@ -83,7 +80,8 @@ class StudipSemSearchHelper {
         $and_clause = "";
         $this->search_result = new DbSnapshot();
         $combination = $this->params['combination'];
-        $view = new DBView(); 
+
+        $view = DbView::getView('sem_tree');
 
         if (isset($this->params['sem']) && $this->params['sem'] != 'all'){
             $sem_number = (int)$this->params['sem'];

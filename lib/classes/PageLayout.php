@@ -76,6 +76,16 @@ class PageLayout
     private static $squeeze_packages = array();
 
     /**
+     * Compatibility lookup table (old file -> new file/squeeze package)
+     *
+     * This is used for often used but "deprecated" assets that got
+     * renamed or moved into a squeeze package.
+     */
+    private static $compatibility_lookup = array(
+        'jquery/jquery.tablesorter.js' => 'tablesorter', // @since 3.4
+    );
+
+    /**
      * Initialize default page layout. This should only be called once
      * from phplib_local.inc.php. Don't use this otherwise.
      */
@@ -249,6 +259,17 @@ class PageLayout
      */
     public static function addScript($source, $attributes = array())
     {
+        // Check for compatibility lookup entry and rename file resp.
+        // add according squeeze package (if lookup element does not
+        // end in '.js').
+        if (array_key_exists($source, self::$compatibility_lookup)) {
+            $source = self::$compatibility_lookup[$source];
+            if (!preg_match('/\.js$/', $source)) {
+                self::addSqueezePackage($source);
+                return;
+            }
+        }
+
         $attributes['src'] = Assets::javascript_path($source);
 
         self::addHeadElement('script', $attributes, '');
@@ -510,7 +531,7 @@ class PageLayout
      */
     public static function getSqueezePackages()
     {
-        return self::$squeeze_packages;
+        return array_unique(self::$squeeze_packages);
     }
 
     /**
@@ -579,6 +600,23 @@ class PageLayout
             }
         }
 
-        return array_merge($css, $javascripts);
+        $files = array_merge($css, $javascripts);
+
+        // When not in development mode, add the current version number to
+        // the assets file, so browser caches will be informed about an
+        // update
+        if (Studip\ENV !== 'development') {
+            $v = preg_replace('/^(\d+(?:\.\d+)*).*$/', '$1', $GLOBALS['SOFTWARE_VERSION']);
+            $files = array_map(function ($file) use ($v) {
+                if ($file['name'] === 'link') {
+                    $file['attributes']['href'] = URLHelper::getURL($file['attributes']['href'], compact('v'), true);
+                } else if ($file['name'] === 'script') {
+                    $file['attributes']['src'] = URLHelper::getURL($file['attributes']['src'], compact('v'), true);
+                }
+                return $file;
+            }, $files);
+        }
+
+        return $files;
     }
 }

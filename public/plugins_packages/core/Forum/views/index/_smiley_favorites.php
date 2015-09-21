@@ -2,7 +2,9 @@
 $sm = new SmileyFavorites($GLOBALS['user']->id);
 ?>
 <div class="smiley_favorites">
-    <a href="<?= URLHelper::getLink('dispatch.php/smileys') ?>" target="new"><?= _("Smileys") ?></a> |
+    <a href="<?= URLHelper::getLink('dispatch.php/smileys') ?>" data-dialog>
+        <?= _('Smileys') ?>
+    </a> |
     <a href="<?= format_help_url("Basis.VerschiedenesFormat") ?>" target="new"><?= _("Formatierungshilfen") ?></a>
     <br>
     <? $smileys = Smiley::getByIds($sm->get()) ?>
@@ -16,7 +18,7 @@ $sm = new SmileyFavorites($GLOBALS['user']->id);
             <br>
             <?= _('Sie haben noch keine Smiley-Favoriten.') ?><br>
             <br>
-            <a href="<?= URLHelper::getLink('dispatch.php/smileys') ?>" target="new">
+            <a href="<?= URLHelper::getLink('dispatch.php/smileys') ?>" data-dialog>
                 <?= _('Fügen Sie welche hinzu!') ?>
             </a>
         </span>

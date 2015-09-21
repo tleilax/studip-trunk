@@ -10,8 +10,6 @@
  * @since   Stud.IP 3.3
  */
 
-require_once 'app/controllers/authenticated_controller.php';
-
 class Institute_BasicdataController extends AuthenticatedController
 {
     /**
@@ -23,15 +21,7 @@ class Institute_BasicdataController extends AuthenticatedController
 
         // Ensure only admins gain access to this page
         if (!$GLOBALS['perm']->have_perm("admin")) {
-            throw new AccessDeniedException(_('Keine Berechtigung in diesem Bereich.'));
-        }
-
-        if (get_config('RESOURCES_ENABLE')) {
-            include_once $GLOBALS['RELATIVE_PATH_RESOURCES'] . '/lib/DeleteResourcesUser.class.php';
-        }
-
-        if (get_config('EXTERN_ENABLE')) {
-            require_once $GLOBALS['RELATIVE_PATH_EXTERN'] . '/lib/ExternConfig.class.php';
+            throw new AccessDeniedException();
         }
     }
 
@@ -61,7 +51,7 @@ class Institute_BasicdataController extends AuthenticatedController
 
         //  allow only inst-admin and root to view / edit
         if ($i_view && !$GLOBALS['perm']->have_studip_perm('admin', $i_view) && $i_view !== 'new') {
-            throw new AccessDeniedException(_('Sie sind nicht berechtigt, auf diesen Bereich zuzugreifen.'));
+            throw new AccessDeniedException();
         }
 
         //Change header_line if open object

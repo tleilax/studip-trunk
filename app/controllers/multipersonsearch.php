@@ -11,7 +11,6 @@
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
  */
-require_once 'app/controllers/authenticated_controller.php';
 
 class MultipersonsearchController extends AuthenticatedController {
 
@@ -68,7 +67,8 @@ class MultipersonsearchController extends AuthenticatedController {
     /**
      * Action which shows a js-enabled dialog form.
      */
-    public function js_form_action($name) {
+    public function js_form_action($name)
+    {
         $mp = MultiPersonSearch::load($name);
         $this->name = $name;
         $this->description = $mp->getDescription();
