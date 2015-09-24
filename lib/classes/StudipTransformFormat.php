@@ -110,14 +110,8 @@ class StudipTransformFormat extends TextFormat
     {
         $url = $matches[2];
         $intern = isLinkIntern($url);
-        $ogurl = new OpenGraphURL($url);
-        if (!$intern && ($ogurl->isNew() || $ogurl['last_update'] < time() - 86400)) {
-            $ogurl->fetch();
-            $ogurl['last_update'] = time();
-            $ogurl->store();
-        } elseif(!$ogurl->isNew()) {
-            $ogurl['chdate'] = time();
-            $ogurl->store();
+        if (!$intern) {
+            OpenGraphURL::fromURL($url)->store();
         }
         return $matches[0];
     }

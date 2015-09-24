@@ -24,8 +24,9 @@
  * @property string chdate database column
  * @property string mkdate database column
  */
-class OpenGraphURL extends SimpleORMap {
-
+class OpenGraphURL extends SimpleORMap
+{
+    const EXPIRES_DURATION = 86400; // = 24 * 60 * 60
     static public $tempURLStorage = array(); //place to store opengraph-urls from a text.
 
     protected static function configure($config = array())
@@ -34,6 +35,39 @@ class OpenGraphURL extends SimpleORMap {
         $config['serialized_fields']['data'] = 'JSONArrayObject';
         $config['default_values']['data'] = '';
         parent::configure($config);
+    }
+
+    public static function fromURL($url)
+    {
+        $og = self::findOneByUrl($url);
+        if (!$og) {
+            $og = new self();
+            $og->url = $url;
+        }
+        return $og;
+    }
+
+    public function __construct($id = null)
+    {
+        // Try to find matching id when an url is passed instead of an id.
+        // This is to ensure that no legacy code will immediately break.
+        if ($id !== null && !ctype_digit($id)) {
+            $temp = self::findOneByUrl($id);
+            if ($temp) {
+                $id = $temp->id;
+            }
+        }
+        parent::__construct($id);
+    }
+
+    public function store()
+    {
+        if ($this->isNew() || $this->last_update < time() - self::EXPIRES_DURATION) {
+            $this->fetch();
+            $this->last_update = time();
+        }
+
+        return parent::store();
     }
 
     /**
