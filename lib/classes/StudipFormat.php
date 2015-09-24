@@ -301,18 +301,30 @@ class StudipFormat extends TextFormat
         parent::__construct(self::getStudipMarkups());
 
         // StudipFormat::markupLinks stores OpenGraph media preview URLs
-        // Blubber and Forum plugins add media previews after formatReady returns
+        // Blubber and Forum plugins add media previews after formatReady
+        // returns
         $this->opengraph_collection = new OpenGraphURLCollection();
     }
 
+    /**
+     * Add an url to the opengraph collection. The url will only be added
+     * if it exists does not yet exists in the collection.
+     *
+     * @param String $url URL to add.
+     */
     public function addOpenGraphURL($url)
     {
-        $og = OpenGraphURL::findOneByUrl($url);
+        $og = OpenGraphURL::fromURL($url);
         if ($og && !$this->opengraph_collection->find($og->id)) {
             $this->opengraph_collection[] = $og;
         }
     }
 
+    /**
+     * Returns the collected opengraph urls.
+     *
+     * @return OpenGraphURLCollection Collection of opengraph urls
+     */
     public function getOpenGraphCollection()
     {
         return $this->opengraph_collection;

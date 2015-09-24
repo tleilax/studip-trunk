@@ -266,7 +266,9 @@ function quotes_encode($description,$author)
  * @param boolean $extern         (deprecated, has no effect)
  * @param boolean $wiki           (deprecated, has no effect)
  * @param string  $show_comments  (deprecated, has no effect)
- * @return string        HTML code computed by applying markup-rules.
+ * @return FormattedContent Object containing the HTML code computed by
+ *                          applying markup-rules (will convert itself to
+ *                          string if neccessary).
  */
 // TODO remove unused function arguments
 function formatReady($text, $trim=TRUE, $extern=FALSE, $wiki=FALSE, $show_comments='icon')
