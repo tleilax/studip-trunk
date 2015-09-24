@@ -27,7 +27,6 @@
 class OpenGraphURL extends SimpleORMap
 {
     const EXPIRES_DURATION = 86400; // = 24 * 60 * 60
-    static public $tempURLStorage = array(); //place to store opengraph-urls from a text.
 
     protected static function configure($config = array())
     {
