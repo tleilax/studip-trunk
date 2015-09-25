@@ -62,6 +62,7 @@ namespace {
 
     // Classes in /app
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/app/models');
+    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/app/models', 'Studip');
     // Special treatment for the Wysiwyg namespace
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/app/models/Wysiwyg', 'Studip\\Wysiwyg');
 
@@ -72,6 +73,11 @@ namespace {
         'MediaProxy'             => $GLOBALS['STUDIP_BASE_PATH'] . '/app/models/media_proxy.php',
         'MyRealmModel'           => $GLOBALS['STUDIP_BASE_PATH'] . '/app/models/my_realm.php',
         'StudygroupModel'        => $GLOBALS['STUDIP_BASE_PATH'] . '/app/models/studygroup.php',
+        'StudipPlugin'           => $GLOBALS['STUDIP_BASE_PATH'] . '/lib/plugins/core/StudIPPlugin.class.php',
+        'AbstractStudipPortalPlugin' => $GLOBALS['STUDIP_BASE_PATH'] . '/lib/plugins/core/AbstractStudIPPortalPlugin.class.php',
+        'AbstractStudipSystemPlugin' => $GLOBALS['STUDIP_BASE_PATH'] . '/lib/plugins/core/AbstractStudIPSystemPlugin.class.php',
+        'AbstractStudipHomepagePlugin' => $GLOBALS['STUDIP_BASE_PATH'] . '/lib/plugins/core/AbstractStudIPHomepagePlugin.class.php',
+        'AbstractStudipAdministrationPlugin' => $GLOBALS['STUDIP_BASE_PATH'] . '/lib/plugins/core/AbstractStudIPAdministrationPlugin.class.php',
     ));
 
     // Trails
@@ -182,7 +188,7 @@ namespace {
         }
     }
 
-    // Add paths to autoloader that were defined in config_local.inc.php and 
+    // Add paths to autoloader that were defined in config_local.inc.php and
     // may be optional
     if (Config::get()->RESOURCES_ENABLE) {
         StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/' . $GLOBALS['RELATIVE_PATH_RESOURCES'] . '/lib');
@@ -200,7 +206,6 @@ namespace {
     }
     if (Config::get()->ELEARNING_INTERFACE_ENABLE) {
         StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/' . $GLOBALS['RELATIVE_PATH_ELEARNING_INTERFACE']);
-        StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/' . $GLOBALS['RELATIVE_PATH_SOAP']);
     }
 
     // set dummy navigation until db is ready
