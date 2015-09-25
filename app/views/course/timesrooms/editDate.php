@@ -1,11 +1,11 @@
 <div style="width: 45%; float: left">
-
+<?//var_dump($date);die;?>
     <section>
         <label for="date">
             <?= _('Datum') ?>
         </label>
         <input class="size-m has-date-picker" type="text" name="date" id="date"
-               value="<?= $date_info->date ? strftime('%d.%m.%Y', $date_info->date) : '' ?>"/>
+               value="<?= $date->date ? strftime('%d.%m.%Y', $date->date) : '' ?>"/>
     </section>
 
     <section class="clearfix">
@@ -14,24 +14,23 @@
                 <?= _('Startzeit') ?>
             </label>
             <input class="size-l has-time-picker" type="time" name="start_time" id="start_time"
-                   value="<?= $date_info->date ? strftime('%H:%M', $date_info->date) : '' ?>">
+                   value="<?= $date->date ? strftime('%H:%M', $date->date) : '' ?>">
         </div>
         <div style="display: inline-block; width: 130px">
             <label for="end_time">
                 <?= _('Endzeit') ?>
             </label>
             <input class="size-l has-time-picker" type="time" name="end_time" id="end_time"
-                   value="<?= $date_info->end_time ? strftime('%H:%M', $date_info->end_time) : '' ?>">
+                   value="<?= $date->end_time ? strftime('%H:%M', $date->end_time) : '' ?>">
         </div>
     </section>
-
+    
     <section>
-
         <label id="course_type">
             <?= _('Art') ?>
         </label>
         <select class="size-m" name="course_type" id="course_type">
-            <? foreach ($types as $id => $value) : ?>
+            <? foreach ($GLOBALS['TERMIN_TYP'] as $id => $value) : ?>
                 <option value="<?= $id ?>"
                     <?= $date_info->date_typ == $id ? 'selected' : '' ?>>
                     <?= htmlReady($value['name']) ?>
@@ -40,7 +39,7 @@
         </select>
 
     </section>
-
+    
     <? if (!empty($dozenten)) : ?>
         <section style="margin: 15px 0">
             <p><strong><?= _('Durchführende Dozenten:') ?></strong></p>
@@ -49,7 +48,7 @@
                 <? foreach ($dozenten as $related_person => $dozent) : ?>
 
                     <? $related = false;
-                    if (in_array($related_person, $related_persons) !== false) :
+                    if (in_array($related_person, $related_persons) !== false || empty($related_persons)) :
                         $related = true;
                     endif ?>
 
@@ -95,14 +94,14 @@
         <section>
             <label class="horizontal">
                 <input style="display: inline;" type="radio" name="room" value="room"
-                       id="room" <?= $date_info->resource_id ? 'checked' : '' ?> />
+                       id="room" <?= $date->room_assignment->resource_id ? 'checked' : '' ?> />
             </label>
 
             <select name="room_sd" style="display: inline-block; margin-left: 40px" class="single_room size-m">
                 <option value=""><?= _('Wählen Sie einen Raum aus') ?></option>
                 <? foreach ($resList->resources as $room_id => $room) : ?>
                     <option value="<?= $room_id ?>"
-                        <?= $date_info->resource_id == $room_id ? 'selected' : '' ?>>
+                        <?= $date->room_assignment->resource_id == $room_id ? 'selected' : '' ?>>
                         <?= $room ?>
                     </option>
                 <? endforeach; ?>
@@ -113,19 +112,19 @@
 
     <section>
         <label class="horizontal">
-            <input type="radio" name="room" value="freetext" <?= $date_info->raum ? 'checked' : '' ?>
+            <input type="radio" name="room" value="freetext" <?= $date->raum ? 'checked' : '' ?>
                    style="display: inline"/>
         </label>
         <input style="margin-left: 40px; display: inline-block" type="text" class="size-m"
                name="freeRoomText_sd"
                placeholder="<?= _('freie Ortsangabe (keine Raumbuchung):') ?>"
-               value="<?= $date_info->raum ? htmlReady($date_info->raum) : '' ?>"/>
+               value="<?= $date->raum ? htmlReady($date->raum) : '' ?>"/>
     </section>
 
     <section>
         <label class="horizontal">
             <input type="radio" name="room" style="display:inline;" value="noroom"
-                <?= (!empty($date_info->resource_id) || !empty($date_info->raum) ? '' : 'checked') ?> />
+                <?= (!empty($date->room_assignment->resource_id) || !empty($date->raum) ? '' : 'checked') ?> />
             <span style="display: inline-block; margin-left: 40px"><?= _('kein Raum') ?></span>
         </label>
     </section>
@@ -136,7 +135,7 @@
         <ul class="termin_related groups">
             <? foreach ($gruppen as $index => $statusgruppe) : ?>
                 <? $related = false ?>
-                <? if (in_array($statusgruppe->getId(), $related_groups)) : ?>
+                <? if (in_array($statusgruppe->getId(), $related_groups) || empty($related_groups)) : ?>
                     <? $related = true; ?>
                 <? endif ?>
                 <li data-groupid="<?= htmlReady($statusgruppe->getId()) ?>" <?= $related ? '' : 'style="display: none"' ?>>

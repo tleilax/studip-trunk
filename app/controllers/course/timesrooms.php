@@ -158,7 +158,7 @@ class Course_TimesroomsController extends AuthenticatedController
 
         if ($course_id) {
             $this->course_id = $course_id;
-            $this->course = new Course($course_id);
+            $this->course = Course::find($course_id);
         }
 
         $this->semester = array_reverse(Semester::getAll());
@@ -172,29 +172,25 @@ class Course_TimesroomsController extends AuthenticatedController
      */
     public function editDate_action($termin_id, $metadate_id = null)
     {
-        if (!isset($metadate_id)) {
-            $dates = $this->course->getSingleDates(true, true, true);
-            $this->date_info = $dates[$termin_id];
-        } else {
-            $dates = $this->course->getSingleDatesForCycle($metadate_id);
-            $this->date_info = $dates[$termin_id];
+        $this->date = CourseDate::find($termin_id);
+        if(empty($this->date)){
+            $this->date = CourseExDate::find($termin_id);
         }
-        $this->termin_id = $termin_id;
-        $this->termin = SingleDate::getInstance($termin_id);
-        $this->resList = ResourcesUserRoomsList::getInstance($GLOBALS['user']->id, true, false, true);
-        $this->types = $GLOBALS['TERMIN_TYP'];
-
-        if ($request = RoomRequest::findByDate($this->termin->getSingleDateID())) {
+        
+        if ($request = RoomRequest::findByDate($this->date->id)) {
             $this->params = array('request_id' => $request->getId());
         } else {
-            $this->params = array('new_room_request_type' => 'date_' . $this->termin->getSingleDateID());
+            $this->params = array('new_room_request_type' => 'date_' . $this->date->id);
         }
-
         $this->params['fromDialog'] = Request::get('fromDialog');
+        $this->resList = ResourcesUserRoomsList::getInstance($GLOBALS['user']->id, true, false, true);
+        //UMSTELLEN AUF COURSE
         $this->dozenten = $this->course->getMembers('dozent');
-        $this->related_persons = $this->termin->getRelatedPersons();
-        $this->related_groups = $this->termin->getRelatedGroups();
         $this->gruppen = Statusgruppen::findBySeminar_id($this->course->id);
+        
+        $this->related_persons = User::findDozentenByTermin_id($this->date->id);
+        $this->related_groups = Statusgruppen::findByTermin_id($this->date->id);
+        
     }
 
 
@@ -345,8 +341,8 @@ class Course_TimesroomsController extends AuthenticatedController
     public function undeleteSingle_action($termin_id)
     {
         if ($this->course->unDeleteSingleDate($termin_id)) {
-            $termin = SingleDate::getInstance($termin_id);
-            $this->course->createMessage(sprintf(_('Der Termin %s wurde wiederhergestellt!'), $termin->toString()));
+            $termin = CourseDate::find($termin_id);
+            $this->course->createMessage(sprintf(_('Der Termin %s wurde wiederhergestellt!'), $termin->getFullname()));
             $this->displayMessages();
         }
         $params = array();
@@ -802,7 +798,10 @@ class Course_TimesroomsController extends AuthenticatedController
         if (Request::get('asDialog')) {
             $this->asDialog = true;
         }
-        $this->termin = SingleDate::getInstance($termin_id);
+        $this->termin = CourseDate::find($termin_id);
+        if(empty($this->termin)){
+            $this->termin = CourseExDate::find($termin_id);
+        }
     }
 
     /**
@@ -811,13 +810,16 @@ class Course_TimesroomsController extends AuthenticatedController
      */
     public function saveComment_action($termin_id)
     {
-        $termin = SingleDate::getInstance($termin_id);
-        $old_comment = $termin->getComment();
-        $termin->setComment(Request::get('cancel_comment'));
-        if ($termin->getComment() != $old_comment) {
-            $this->course->createMessage(sprintf(_('Der Kommtentar des gelöschten Termins %s wurde geändert.'), $termin->toString()));
+        $termin = CourseExDate::find($termin_id);
+        if (Request::get('cancel_comment')  != $termin->content) {
+            $termin->content = Request::get('cancel_comment');
+            if($termin->store()){
+                $this->course->createMessage(sprintf(_('Der Kommtentar des gelöschten Termins %s wurde geändert.'), $termin->getFullname));
+            } else {
+                $this->course->createInfo(sprintf(_('Der gelöschte Termin %s wurde nicht verändert.'), $termin->getFullname));
+            }
         } else {
-            $this->course->createInfo(sprintf(_('Der gelöschte Termin %s wurde nicht verändert.'), $termin->toString()));
+            $this->course->createInfo(sprintf(_('Der gelöschte Termin %s wurde nicht verändert.'), $termin->getFullname));
         }
         if (Request::int('cancel_send_message')) {
             $snd_messages = raumzeit_send_cancel_message(Request::get('cancel_comment'), $termin);
@@ -825,7 +827,6 @@ class Course_TimesroomsController extends AuthenticatedController
                 $this->course->createInfo(sprintf(_('Es wurden %s Benachrichtigungen gesendet.'), $snd_messages));
             }
         }
-        $termin->store();
         $this->displayMessages();
         $this->redirect($this->url_for('course/timesrooms/index#' . $termin->metadate_id, array('contentbox_open' => $termin->metadate_id)));
     }

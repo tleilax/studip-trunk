@@ -40,7 +40,7 @@
             <span class="is_ex_termin" style="font-style: italic"><?= _("(fällt aus)") ?></span>
             <?= tooltipIcon($termin->content, false) ?>
         <? elseif ($name = SemesterHoliday::isHoliday($termin->date, false)): ?>
-            <span <? if ($is_exTermin) echo 'class="is_ex_termin"'; ?>>
+            <span <?= $is_exTermin ?  'class="is_ex_termin"' : '' ?>>
                 (<?= htmlReady($name['name']) ?>)
             </span>
         <? elseif ($room = $termin->getRoom()) : ?>
@@ -62,9 +62,9 @@
 
         <? if ($is_exTermin) : ?>
             <a class="load-in-new-row"
-               href="<?= $controller->url_for('course/timesrooms/editDate/'
+               href="<?= $controller->url_for('course/timesrooms/cancel/'
                                               . $termin->termin_id . ($termin->metadate_id ? '/' . $termin->metadate_id : ''), $editParams) ?>">
-                <?= Assets::img('icons/grey/edit', tooltip2(_('Termin bearbeiten'))) ?>
+                <?= Assets::img('icons/grey/edit', tooltip2(_('Kommentar für den Termin bearbeiten'))) ?>
             </a>
 
             <? $warning = array() ?>
@@ -90,7 +90,7 @@
         <? else : ?>
 
             <a class="load-in-new-row"
-               href="<?= $controller->url_for('course/timesrooms/cancel/'
+               href="<?= $controller->url_for('course/timesrooms/editDate/'
                                               . $termin->termin_id . ($termin->metadate_id ? '/' . $termin->metadate_id : ''), $editParams) ?>">
                 <?= Assets::img('icons/blue/edit', tooltip2(_('Termin bearbeiten'))) ?>
             </a>

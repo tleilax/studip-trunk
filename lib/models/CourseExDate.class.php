@@ -53,6 +53,20 @@ class CourseExDate extends SimpleORMap {
             'class_name'  => 'User',
             'foreign_key' => 'autor_id'
         );
+        $config['has_and_belongs_to_many']['statusgruppen'] = array(
+            'class_name' => 'Statusgruppen',
+            'thru_table' => 'termin_related_groups',
+            'on_delete' => 'delete',
+            'on_store' => 'store'
+        );
+        $config['has_and_belongs_to_many']['dozenten'] = array(
+            'class_name' => 'User',
+            'thru_table' => 'termin_related_persons',
+            'foreign_key' => 'termin_id',
+            'thru_key' => 'range_id',
+            'on_delete' => 'delete',
+            'on_store' => 'store'
+        );
         $config['belongs_to']['course'] = array(
             'class_name'  => 'Course',
             'foreign_key' => 'range_id'
