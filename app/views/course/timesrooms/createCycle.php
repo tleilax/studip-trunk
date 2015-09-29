@@ -81,7 +81,6 @@
             <?= _('Endwoche') ?>
         </label>
         <select name="endWeek" id="endWeek" class="size-xl">
-            <? var_dump($cycle)?>
             <option value="0"><?=_('Ganzes Semester')?></option>
             <? foreach ($start_weeks as $value => $data) : ?>
                 <option

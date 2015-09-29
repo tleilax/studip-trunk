@@ -1,5 +1,5 @@
 <div style="width: 45%; float: left">
-<?//var_dump($date);die;?>
+    
     <section>
         <label for="date">
             <?= _('Datum') ?>
@@ -166,7 +166,7 @@
 
 <footer data-dialog-button style="text-align: center; clear: both">
     <?= Studip\Button::createAccept(_('Speichern'), 'save_dates',
-        array('formaction' => $controller->url_for('course/timesrooms/saveDate/' . $termin_id),
+        array('formaction' => $controller->url_for('course/timesrooms/saveDate/' . $date->termin_id),
               'data-dialog' => 'size=big')) ?>
     <?= Studip\LinkButton::create(_('Raumanfrage erstellen'), $controller->url_for('course/room_requests/edit/' . $course->id, $params),
         array('data-dialog' => 'size=big')) ?>

@@ -144,5 +144,21 @@ class CourseDate extends SimpleORMap {
             return '';
         }
     }
-
+    
+    /**
+     * Converts a CourseDate Entry to a CourseExDate Entry
+     * returns instance of the new CourseExDate or NULL
+     * @return Object CourseExDate
+     */
+    public function cancelDate()
+    {
+        $date = $this->toArray();
+        $ex_date = new CourseExDate();
+        $ex_date->setData($date);
+        if($ex_date->store()){
+            $this->delete();
+            return $ex_date;
+        }
+        return NULL;
+    }
 }
