@@ -53,8 +53,9 @@
             <?= $room_holiday ?: '' ?>
         <? endif ?>
 
-        <? if ($request = RoomRequest::existsByDate($termin->id, true)) : ?>
-            <? $msg_info = _('Für diesen Termin existiert eine Raumanfrage: ') . $request->getInfo() ?>
+        <? $room_request = RoomRequest::find(RoomRequest::existsByDate($termin->id, true))?>   
+        <? if (isset($room_request)) : ?>
+            <? $msg_info = _('Für diesen Termin existiert eine Raumanfrage: ') . $room_request->getInfo() ?>
             <?= tooltipIcon($msg_info) ?>
         <? endif ?>
     </td>

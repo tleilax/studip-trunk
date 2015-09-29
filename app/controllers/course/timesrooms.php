@@ -255,7 +255,7 @@ class Course_TimesroomsController extends AuthenticatedController
             $termin->raum = Request::quoted('freeRoomText_sd');
             ResourceAssignment::deleteBySQL('assign_user_id = :termin', 
                     array(':termin' => $termin->termin_id));
-            $this->course->createMessage(sprintf(_('Der Termin %s wurde geändert, etwaige Raumbuchung wurden entfernt und stattdessen der angegebene Freitext eingetragen!'), '<b>' . $termin->getFullname() . '</b>'));
+            $this->course->createMessage(sprintf(_('Der Termin %s wurde geändert, etwaige Raumbuchungen wurden entfernt und stattdessen der angegebene Freitext eingetragen!'), '<b>' . $termin->getFullname() . '</b>'));
         }
 
         if ($termin->store()) {
@@ -310,18 +310,18 @@ class Course_TimesroomsController extends AuthenticatedController
         $teachers = $this->course->getMembers('dozent');
         foreach (Request::getArray('related_teachers') as $dozent_id) {
             if (in_array($dozent_id, array_keys($teachers))) {
-               $releated_persons[] = User::find($dozent_id);
+               $related_persons[] = User::find($dozent_id);
             }
         }
-        if(isset($releated_persons)){
-            $termin->dozenten = $releated_persons;
+        if(isset($related_persons)){
+            $termin->dozenten = $related_persons;
         }
         
         foreach (Request::getArray('related_statusgruppen') as $statusgruppe_id) {
-            $releated_groups[] = Statusgruppen::find($statusgruppe_id);
+            $related_groups[] = Statusgruppen::find($statusgruppe_id);
         }
-        if(isset($releated_groups)){
-            $termin->statusgruppen = $releated_groups;
+        if(isset($related_groups)){
+            $termin->statusgruppen = $related_groups;
         }
         
         if (!Request::get('room') || Request::get('room') === 'nothing') {
@@ -622,7 +622,7 @@ class Course_TimesroomsController extends AuthenticatedController
                 if ($termin->getFreeRoomText() != Request::get('freeRoomText')) {
                     $termin->setFreeRoomText(Request::quoted('freeRoomText'));
                     $termin->killAssign();
-                    $this->course->createMessage(sprintf(_("Der Termin %s wurde geändert, eine etwaige Raumbuchung wurden entfernt und stattdessen der angegebene Freitext eingetragen!"),
+                    $this->course->createMessage(sprintf(_("Der Termin %s wurde geändert, etwaige Raumbuchungen wurden entfernt und stattdessen der angegebene Freitext eingetragen!"),
                         '<b>' . $termin->toString() . '</b>'));
                 }
             } else if (Request::option('action') == 'noroom') {

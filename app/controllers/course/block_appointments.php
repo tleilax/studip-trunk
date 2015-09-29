@@ -99,10 +99,10 @@ class Course_BlockAppointmentsController extends AuthenticatedController
             while ($t <= $last_day) {
                 if (in_array(date('N', $t), $days)) {
                     for ($i = 1; $i <= $date_count; $i++) {
-                        $date = new SingleDate();
-                        $date->setDateType($termin_typ);
-                        $date->setFreeRoomText($free_room_text);
-                        $date->setSeminarID($course_id);
+                        $date = new CourseDate();
+                        $date->range_id = $course_id;
+                        $date->date_typ = $termin_typ;
+                        $date->raum = $free_room_text;
                         $date->date = $t;
                         $date->end_time = $t + $delta;
                         $dates[] = $date;
@@ -119,7 +119,7 @@ class Course_BlockAppointmentsController extends AuthenticatedController
 
                 if (Request::submitted('save')) {
                     $dates_created = array_filter(array_map(function ($d) {
-                        return $d->store() ? $d->toString() : null;
+                        return $d->store() ? $d->getFullname() : null;
                     }, $dates));
                     if ($date_count > 1) {
                         $dates_created = array_count_values($dates_created);
