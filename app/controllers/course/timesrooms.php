@@ -29,6 +29,9 @@ class Course_TimesroomsController extends AuthenticatedController
             throw new Trails_Exception(400);
         }
 
+        /**
+         * @TODO: Wird das noch benötigt
+         */
         if ($this->course_id) {
             $this->course = Seminar::GetInstance($this->course_id);
         }
@@ -120,14 +123,13 @@ class Course_TimesroomsController extends AuthenticatedController
             }
         }
 
-        $single_dates = array();
 
         /**
          * GET Single Dates
          */
         $this->single_dates = array();
         $_single_dates = $this->course->getDatesWithExdates();
-        $single_dates = array();
+
         foreach ($_single_dates as $id => $val) {
             foreach ($this->semester as $sem) {
                 if ($_SESSION['raumzeitFilter'] != 'all' && $_SESSION['raumzeitFilter'] == $sem->id) {
@@ -170,9 +172,10 @@ class Course_TimesroomsController extends AuthenticatedController
      * @param      $termin_id
      * @param null $metadate_id
      */
-    public function editDate_action($termin_id, $metadate_id = null)
+    public function editDate_action($termin_id)
     {
         $this->date = CourseDate::find($termin_id);
+        $this->attributes = array();
         if(empty($this->date)){
             $this->date = CourseExDate::find($termin_id);
         }
@@ -182,7 +185,12 @@ class Course_TimesroomsController extends AuthenticatedController
         } else {
             $this->params = array('new_room_request_type' => 'date_' . $this->date->id);
         }
+
         $this->params['fromDialog'] = Request::get('fromDialog');
+        if(Request::int('fromDialog')) {
+            $this->attributes['data-dialog'] = 'size=big';
+        }
+
         $this->resList = ResourcesUserRoomsList::getInstance($GLOBALS['user']->id, true, false, true);
         //UMSTELLEN AUF COURSE
         $this->dozenten = $this->course->getMembers('dozent');

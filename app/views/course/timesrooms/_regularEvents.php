@@ -30,8 +30,9 @@
                 <? $roomRequest = _('keiner'); ?>
             <? endif ?>
 
+
             <form class="studip-form" action="<?= $controller->url_for('course/timesrooms/stack/' . $metadate_id, $editParams) ?>"
-                  method="post" data-dialog="size=big">
+                  method="post" <?= Request::isXhr() ? 'data-dialog="size=big"' : ''?>>
             <article id="<?= $metadate_id ?>"
                      class="<?= Request::get('contentbox_open') == $metadate_id ? 'open' : '' ?>">
                         

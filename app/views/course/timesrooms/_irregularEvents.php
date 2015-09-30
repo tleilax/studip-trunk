@@ -19,7 +19,7 @@
     </header>
     <? if (!empty($single_dates)) : ?>
         <form class="studip-form" action="<?= $controller->url_for('course/timesrooms/stack', $editParams) ?>"
-              data-dialog="size=big"  method="post">
+              <?= Request::isXhr() ? 'data-dialog="size=big"' : ''?>  method="post">
             <table class="default nohover">
                 <colgroup>
                     <col width="30px">

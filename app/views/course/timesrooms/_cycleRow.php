@@ -15,8 +15,7 @@
             </span>
         <? else : ?>
             <a class="load-in-new-row"
-               href="<?= $controller->url_for('course/timesrooms/editDate/'
-                                              . $termin->termin_id . ($termin->metadate_id ? '/' . $termin->metadate_id : ''), $editParams) ?>">
+               href="<?= $controller->url_for('course/timesrooms/editDate/' . $termin->termin_id, $editParams) ?>">
                 <?= htmlReady($termin->getFullname()) ?>
             </a>
         <? endif ?>
@@ -91,13 +90,12 @@
         <? else : ?>
 
             <a class="load-in-new-row"
-               href="<?= $controller->url_for('course/timesrooms/editDate/'
-                                              . $termin->termin_id . ($termin->metadate_id ? '/' . $termin->metadate_id : ''), $editParams) ?>">
+               href="<?= $controller->url_for('course/timesrooms/editDate/' . $termin->termin_id, $editParams) ?>">
                 <?= Assets::img('icons/blue/edit', tooltip2(_('Termin bearbeiten'))) ?>
             </a>
-            <a <?= Request::isXhr() ? 'data-dialog="size=big"' : '' ?>
+            <a data-confirm="<?= _('Wollen Sie diesen Termin wirklich löschen / ausfallen lassen?') ?>" <?= Request::isXhr() ? 'data-dialog="size=big"' : '' ?>
                 href="<?= $controller->url_for('course/timesrooms/deleteSingle/' . $termin->termin_id, array('cycle_id' => $termin->metadate_id)) ?>" <? !empty($warning) ? 'data-confirm="' . implode("\n", $warning) . '"' : '' ?>>
-                <?= Assets::img('icons/blue/trash', array('title' => _('Termin löschen'))) ?>
+                <?= Assets::img('icons/blue/trash', array('title' => _('Wollen Sie diesen Termin wirklich löschen / ausfallen lassen?'))) ?>
             </a>
 
         <? endif ?>
