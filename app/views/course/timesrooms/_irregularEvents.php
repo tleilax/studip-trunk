@@ -59,7 +59,7 @@
                         <select name="method" class="actionForAllIrregular">
                             <?= $this->render_partial('course/timesrooms/_stack_actions.php') ?>
                         </select>
-                        <?= Studip\Button::create('ausführen', 'run', array('class' => 'actionForAllIrregular')) ?>
+                        <?= Studip\Button::create('ausführen', 'run', array('class' => 'actionForAllIrregular', 'data-dialog' => 'size=big')) ?>
                     </td>
                 </tr>
                 </tfoot>

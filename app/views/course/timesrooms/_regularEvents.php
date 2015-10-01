@@ -115,7 +115,7 @@
                                     <select name="method" class="actionForAllRegular">
                                         <?= $this->render_partial('course/timesrooms/_stack_actions.php') ?>
                                     </select>
-                                    <?= Studip\Button::create('ausführen', 'run', array('class' => 'actionForAllRegular')) ?>
+                                    <?= Studip\Button::create('ausführen', 'run', array('class' => 'actionForAllRegular','data-dialog' => 'size=big')) ?>
                                 </td>
                             </tr>
                             </tfoot>
