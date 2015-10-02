@@ -23,8 +23,7 @@
         </select>
     </section>
 
-
-    <? if (count($gruppen)) : ?>
+     <? if (count($gruppen)) : ?>
         <section>
             <label for="related_groups">
                 <?= _('Betrifft die Gruppen') ?>
@@ -44,14 +43,13 @@
             <select id="related_groups" name="related_groups[]" multiple class="multiple"
                     aria-label="<?= _("Wählen Sie die Gruppen aus, für die die Termine gelten. Ist keine Gruppe ausgewählt, gilt der Termin für alle Nutzer und Gruppen der Veranstaltung.") ?>">
                 <? foreach ($gruppen as $gruppe) : ?>
-                    <option value="<?= htmlReady($gruppe->getId()) ?>"><?= htmlReady($gruppe['name']) ?></option>
+                    <option value="<?= htmlReady($gruppe->statusgruppe_id) ?>"><?= htmlReady($gruppe->name) ?></option>
                 <? endforeach ?>
             </select>
-            <!--<?= Button::create(_('Übernehmen'), 'related_groups_action_do') ?>-->
-            <br>
             <br>
         </section>
     <? endif ?>
+   
 
 
     <p><strong><?= _('Raumangaben') ?></strong></p>
@@ -89,7 +87,7 @@
         <label class="horizontal">
             <input type="radio" name="action" value="freetext" style="display: inline"/>
         </label>
-        <input type="text" name="freeRoomText" maxlength="255" value="<?= $tpl['freeRoomText'] ?>"
+        <input type="text" name="freeRoomText" maxlength="255" value="<?//= $tpl['freeRoomText'] ?>"
                class="size-m"
                placeholder="<?= $placerholder ?>"
                onFocus="jQuery('input[type=radio][name=action][value=freetext]').attr('checked', 'checked')"/>

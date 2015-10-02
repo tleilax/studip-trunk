@@ -218,6 +218,7 @@ class Course_TimesroomsController extends AuthenticatedController
         $termin = CourseDate::find($termin_id);
         $termin->date = strtotime(sprintf('%s %s:00', Request::get('date'), Request::get('start_time')));
         $termin->end_time = strtotime(sprintf('%s %s:00', Request::get('date'), Request::get('end_time')));
+        $termin->date_typ = Request::get('course_type');
         
         $related_groups = Request::get('related_statusgruppen');
         $termin->statusgruppen = array();
@@ -239,19 +240,24 @@ class Course_TimesroomsController extends AuthenticatedController
 
         // Set Room
         if (Request::option('room') == 'room') {
-            $room_id = Request::option('room_sd', 0);
-            if ($room_id != 0) {
+            $room_id = Request::option('room_sd', '0');
+            
+            if ($room_id != '0' && $room_id != $termin->room_assignment->resource_id) {
+                ResourceAssignment::deleteBySQL('assign_user_id = :termin', 
+                        array(':termin' => $termin->termin_id));
                 $resObj = new ResourceObject($room_id);
                 $termin->raum = '';
                 $room = new ResourceAssignment();
                 $room->assign_user_id = $termin->termin_id;
-                $room->resource_id = Request::get('room');
+                $room->resource_id = Request::get('room_sd');
                 $room->begin = $termin->date;
                 $room->end = $termin->end_time;
                 $room->repeat_end = $termin->end_time;
+                $termin->room_assignment = $room;
                 $this->course->createMessage(sprintf(_('Der Termin %s wurde geändert und der Raum %s gebucht, etwaige freie Ortsangaben wurden entfernt.'),
                     $termin->getFullname(), $resObj->getName()));
-            } else {
+                
+            } else if($room_id == '0'){
                 $this->course->createError(sprintf(_('Der angegebene Raum konnte für den Termin %s nicht gebucht werden!'), $termin->getFullname()));
             }
         } else if (Request::option('room') == 'noroom') {
@@ -265,7 +271,7 @@ class Course_TimesroomsController extends AuthenticatedController
                     array(':termin' => $termin->termin_id));
             $this->course->createMessage(sprintf(_('Der Termin %s wurde geändert, etwaige Raumbuchungen wurden entfernt und stattdessen der angegebene Freitext eingetragen!'), '<b>' . $termin->getFullname() . '</b>'));
         }
-
+        
         if ($termin->store()) {
             NotificationCenter::postNotification("CourseDidChangeSchedule", $this->course);
             $this->displayMessages();
@@ -556,89 +562,104 @@ class Course_TimesroomsController extends AuthenticatedController
         $group_action = Request::get('related_groups_action');
         $teacher_changed = false;
         $groups_changed = false;
-
+        foreach ($_SESSION['_checked_dates'] as $singledate_id) {
+            $singledate = CourseDate::find($singledate_id);
+            if (!isset($singledate)) {
+                $singledate = CourseExDate::find($singledate_id);
+            }
+            $singledates[] = $singledate;
+        }
+        
+        // Update related persons
         if (in_array($action, array('add', 'delete'))) {
-            foreach ($_SESSION['_checked_dates'] as $singledate) {
-                $singledate = new SingleDate($singledate);
-                if ($singledate->getSeminarID() === $this->course->id) {
+            foreach ($singledates as $key => $singledate) {
+                $dozenten = User::findDozentenByTermin_id($singledate->termin_id);
+                $dozenten_new = $dozenten;//array();
+                if ($singledate->range_id === $this->course->id) {
                     foreach ($persons as $user_id) {
-                        $singledate->{$action . "RelatedPerson"}($user_id);
-                        $teacher_changed = true;
+                        $is_in_list = false;
+                        foreach($dozenten as $user_key => $user){
+                            if($user->user_id == $user_id){
+                                $is_in_list = $user_key;
+                            }
+                        }
+                        if ($is_in_list !== false && $action === 'add'){
+                            $dozenten_new[] = User::find($user_id);
+                            $teacher_changed = true;
+                        } else if ($is_in_list !== false && $action === 'delete'){
+                            unset($dozenten_new[$is_in_list]);
+                            $teacher_changed = true;
+                        }
                     }
                 }
-                $singledate->store();
-            }
-        } elseif ($action === "set") {
-            foreach ($_SESSION['_checked_dates'] as $singledate) {
-                $singledate = new SingleDate($singledate);
-                if ($singledate->getSeminarID() === $this->course->id) {
-                    $singledate->clearRelatedPersons();
-                    foreach ($persons as $user_id) {
-                        $singledate->addRelatedPerson($user_id);
-                        $teacher_changed = true;
-                    }
-                }
-                $singledate->store();
+                $singledates[$key]->dozenten = $dozenten_new;
             }
         }
-        if (in_array($group_action, array('add', 'delete'))) {
-            foreach ($_SESSION['_checked_dates'] as $singledate) {
-                $singledate = new SingleDate($singledate);
-                if ($singledate->getSeminarID() === $this->course->id) {
-                    foreach ($groups as $statusgruppe_id) {
-                        $singledate->{$group_action . "RelatedGroup"}($statusgruppe_id);
-                        $groups_changed = true;
-                    }
-                }
-                $singledate->store();
-            }
-        } elseif ($action === "set") {
-            foreach ($_SESSION['_checked_dates'] as $singledate) {
-                $singledate = new SingleDate($singledate);
-                if ($singledate->getSeminarID() === $this->course->id) {
-                    $singledate->clearRelatedGroups();
-                    foreach ($groups as $statusgruppe_id) {
-                        $singledate->addRelatedGroup($statusgruppe_id);
-                        $groups_changed = true;
-                    }
-                }
-                $singledate->store();
-            }
-        }
+        
         if ($teacher_changed) {
             $this->course->createMessage(_("Zuständige Personen für die Termine wurden geändert."));
         }
+        
+        
+        if (in_array($group_action, array('add', 'delete'))) {
+            foreach ($singledates as $key => $singledate) {
+                $groups_db = Statusgruppen::findByTermin_id($singledate->termin_id);
+                $groups_new = $groups_db;
+                if ($singledate->range_id === $this->course->id) {
+                    foreach ($groups as $statusgruppe_id) {
+                        $is_in_list = false;
+                        foreach($groups_db as $group_key => $group){
+                            if($statusgruppe_id == $group->statusgruppe_id){
+                                $is_in_list = $group_key;
+                            }
+                        }
+                        if (!$is_in_list !== false && $group_action === 'add'){
+                            $groups_new[] = Statusgruppen::find($statusgruppe_id);
+                            $groups_changed = true;
+                        } else if ($is_in_list !== false && $group_action === 'delete'){
+                            unset($groups_new[$is_in_list]);
+                            $groups_changed = true;
+                        }
+                    }
+                }
+                $singledates[$key]->statusgruppen = $groups_new;
+            }
+        }
+        
         if ($groups_changed) {
             $this->course->createMessage(_("Zugewiesene Gruppen für die Termine wurden geändert."));
         }
 
-        foreach ($_SESSION['_checked_dates'] as $termin_id) {
-            if ($cycle_id != '') {
-                $termin = $this->course->getSingleDate($termin_id, $cycle_id);
-            } else {
-                $termin = $this->course->getSingleDate($termin_id);
-            }
-
+        foreach($singledates as $key => $singledate){
             if (Request::option('action') == 'room') {
-                $termin->bookRoom(Request::option('room'));
-                if ($cycle_id != '') {
-                    $this->course->metadate->cycles[$cycle_id]->termine = null;
-                } else {
-                    $this->course->irregularSingleDates = null;
-                }
+                $singledate->raum = '';
+                ResourceAssignment::deleteBySQL('assign_user_id = :termin', 
+                        array(':termin' => $singledate->termin_id));
+                $resObj = new ResourceObject($room_id);
+                $room = new ResourceAssignment();
+                $room->assign_user_id = $singledate->termin_id;
+                $room->resource_id = Request::get('room');
+                $room->begin = $singledate->date;
+                $room->end = $singledate->end_time;
+                $room->repeat_end = $singledate->end_time;
+                $singledates[$key]->room_assignment = $room;
             } else if (Request::option('action') == 'freetext') {
-                if ($termin->getFreeRoomText() != Request::get('freeRoomText')) {
-                    $termin->setFreeRoomText(Request::quoted('freeRoomText'));
-                    $termin->killAssign();
-                    $this->course->createMessage(sprintf(_("Der Termin %s wurde geändert, etwaige Raumbuchungen wurden entfernt und stattdessen der angegebene Freitext eingetragen!"),
-                        '<b>' . $termin->toString() . '</b>'));
-                }
+                ResourceAssignment::deleteBySQL('assign_user_id = :termin', 
+                        array(':termin' => $singledate->termin_id));
+                $singledates[$key]->raum = Request::get('freeRoomText');
+                $this->course->createMessage(sprintf(_("Der Termin %s wurde geändert, etwaige "
+                        . "Raumbuchungen wurden entfernt und stattdessen der angegebene Freitext"
+                        . " eingetragen!"),
+                        '<b>' . $singledate->getFullname() . '</b>'));
             } else if (Request::option('action') == 'noroom') {
-                $termin->killAssign();
+                ResourceAssignment::deleteBySQL('assign_user_id = :termin', 
+                        array(':termin' => $singledate->termin_id));
+                $singledates[$key]->raum = '';
             }
-
-            $termin->store();
-            $this->course->appendMessages($termin->getMessages());
+        }
+        
+        foreach($singledates as $singledate){
+            $singledate->store();
         }
     }
 

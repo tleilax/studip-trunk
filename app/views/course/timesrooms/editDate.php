@@ -32,7 +32,7 @@
         <select class="size-m" name="course_type" id="course_type">
             <? foreach ($GLOBALS['TERMIN_TYP'] as $id => $value) : ?>
                 <option value="<?= $id ?>"
-                    <?= $date_info->date_typ == $id ? 'selected' : '' ?>>
+                    <?= $date->date_typ == $id ? 'selected' : '' ?>>
                     <?= htmlReady($value['name']) ?>
                 </option>
             <? endforeach; ?>
