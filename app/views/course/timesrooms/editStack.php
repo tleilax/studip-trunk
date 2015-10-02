@@ -87,7 +87,7 @@
         <label class="horizontal">
             <input type="radio" name="action" value="freetext" style="display: inline"/>
         </label>
-        <input type="text" name="freeRoomText" maxlength="255" value="<?//= $tpl['freeRoomText'] ?>"
+        <input type="text" name="freeRoomText" maxlength="255" value="<?= $tpl['freeRoomText'] ?>"
                class="size-m"
                placeholder="<?= $placerholder ?>"
                onFocus="jQuery('input[type=radio][name=action][value=freetext]').attr('checked', 'checked')"/>

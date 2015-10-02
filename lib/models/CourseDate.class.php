@@ -159,6 +159,6 @@ class CourseDate extends SimpleORMap {
             $this->delete();
             return $ex_date;
         }
-        return NULL;
+        return null;
     }
 }

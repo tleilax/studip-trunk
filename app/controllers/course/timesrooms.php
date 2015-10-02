@@ -257,15 +257,15 @@ class Course_TimesroomsController extends AuthenticatedController
                 $this->course->createMessage(sprintf(_('Der Termin %s wurde geändert und der Raum %s gebucht, etwaige freie Ortsangaben wurden entfernt.'),
                     $termin->getFullname(), $resObj->getName()));
                 
-            } else if($room_id == '0'){
+            } elseif ($room_id == '0') {
                 $this->course->createError(sprintf(_('Der angegebene Raum konnte für den Termin %s nicht gebucht werden!'), $termin->getFullname()));
             }
-        } else if (Request::option('room') == 'noroom') {
+        } elseif (Request::option('room') == 'noroom') {
             $termin->raum = '';
             ResourceAssignment::deleteBySQL('assign_user_id = :termin', 
                     array(':termin' => $termin->termin_id));
             $this->course->createMessage(sprintf(_('Der Termin %s wurde geändert, etwaige freie Ortsangaben und Raumbuchungen wurden entfernt.'), '<b>' . $termin->getFullname() . '</b>'));
-        } else if (Request::option('room') == 'freetext') {
+        } elseif (Request::option('room') == 'freetext') {
             $termin->raum = Request::quoted('freeRoomText_sd');
             ResourceAssignment::deleteBySQL('assign_user_id = :termin', 
                     array(':termin' => $termin->termin_id));
@@ -402,10 +402,8 @@ class Course_TimesroomsController extends AuthenticatedController
 
     public function stack_action($cycle_id = '')
     {
-        $ids = Request::getArray('single_dates');
-        $_SESSION['_checked_dates'] = $ids;
-
-        if (empty($ids)) {
+        $_SESSION['_checked_dates'] = Request::getArray('single_dates');
+        if (empty($_SESSION['_checked_dates']) && isset($_SESSION['_checked_dates'])) {
             PageLayout::postMessage(MessageBox::error(_('Sie haben keine Termine ausgewählt!')));
             if (Request::get('fromDialog') == 'true') {
                 $this->redirect($this->url_for('course/timesrooms/index#' . $cycle_id,
@@ -451,17 +449,19 @@ class Course_TimesroomsController extends AuthenticatedController
 
     public function unDeleteStack($cycle_id = '')
     {
-        if (!empty($_SESSION['_checked_dates'])) {
-            foreach ($_SESSION['_checked_dates'] as $id) {
-                if ($this->course->unDeleteSingleDate($id)) {
-                    $termin = SingleDate::getInstance($id);
-                    $this->course->createMessage(sprintf(_('Der Termin %s wurde wiederhergestellt!'), $termin->toString()));
-                }
+        foreach ($_SESSION['_checked_dates'] as $id) {
+            $ex_termin = CourseExDate::find($id);
+            if ($ex_termin === null) {
+                continue;
+            }
+            $ex_termin->content = '';
+            $termin = $ex_termin->unCancelDate();
+            if ($termin !== null) {
+                $this->course->createMessage(sprintf(_('Der Termin %s wurde wiederhergestellt!'), 
+                        $termin->getFullname()));
             }
         }
-
         $this->displayMessages();
-
         unset($_SESSION['_checked_dates']);
 
         if (Request::get('fromDialog') == 'true') {
@@ -475,9 +475,17 @@ class Course_TimesroomsController extends AuthenticatedController
 
     public function deleteStack($cycle_id = '')
     {
-        if (!empty($_SESSION['_checked_dates'])) {
-            foreach ($_SESSION['_checked_dates'] as $id) {
-                $this->deleteDate($id, Request::get('sub_cmd'), $cycle_id);
+        foreach ($_SESSION['_checked_dates'] as $id) {
+            $termin = CourseDate::find($id);
+            if ($termin === null) {
+                $termin = CourseExDate::find($id);
+            }
+            if($termin->metadate_id && $termin instanceof CourseDate){
+                $this->deleteDate($id, 'cancel', $cycle_id);
+            } elseif ($termin->metadate_id === null || $termin->metadate_id === '') {
+                $this->deleteDate($id, 'delete', $cycle_id);
+            } elseif ($termin->metadate_id && $termin instanceof CoursExDate) {
+                //$this->deleteDate($id, 'delete', $cycle_id);
             }
         }
         $this->displayMessages();
@@ -523,27 +531,16 @@ class Course_TimesroomsController extends AuthenticatedController
         $deleted_dates = array();
 
         foreach ($_SESSION['_checked_dates'] as $val) {
-            $termin = new SingleDate($val);
-            if ($termin->isHoliday() || $termin->isExTermin()) {
+            $termin = CourseDate::find($val);
+            if ($termin === null) {
                 continue;
             }
-            $msg .= sprintf('<li>%s</li>', $termin->toString());
-            if (Request::get('cancel_comment') != '') {
-                $this->course->cancelSingleDate($val, $cycle_id);
-                $termin->setComment(Request::get('cancel_comment'));
-                $termin->store();
-                $deleted_dates[] = $termin;
-            } else {
-                if ($termin->isExTermin()) {
-                    if (!$termin->getMetadateId()) {
-                        $termin->delete();
-                    }
-                } else {
-                    $this->course->deleteSingleDate($val, $cycle_id);
-                }
+            $termin->content = trim(Request::get('cancel_comment', ''));
+            $new_ex_termin = $termin->cancelDate();
+            if ($new_ex_termin !== null) {
+                $msg .= sprintf('<li>%s</li>', $new_ex_termin->getFullname());
             }
         }
-
         $msg .= '</ul>';
         $this->course->createMessage($msg);
         if (Request::int('cancel_send_message') && count($deleted_dates)) {
@@ -1023,6 +1020,9 @@ class Course_TimesroomsController extends AuthenticatedController
         //delete singledate entry
         } else if($sub_cmd == 'delete') {
             $termin = CourseDate::find($termin_id);
+            if ($termin === null) {
+                $termin = CourseExDate::find($termin_id);
+            }
             $termin_room = $termin->getRoom();
             $termin_date = $termin->getFullname();
             if ($termin->delete()) {
