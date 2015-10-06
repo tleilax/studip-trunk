@@ -255,17 +255,6 @@ class SeminarCycleDate extends SimpleORMap
                         $update_count++;
                     }
                 }
-                // delete issues, that are not assigned to a single date because of to few dates
-                // (only if the schedule expert view is off)
-                if (!Config::get()->RESOURCES_ENABLES_EXPERT_SCHEDULE_VIEW) {
-                    if ($topic_count < count($topics)) {
-                        for ($i = $topic_count; $i < count($topics); $i++) {
-                            foreach ($topics[$i] as $topic) {
-                                $topic->delete();
-                            }
-                        }
-                    }
-                }
             }
             return $update_count;
         }
