@@ -1,5 +1,5 @@
 <form
-    action="<?= $controller->url_for('course/timesrooms/' . ($cycle ? 'editCycle/' . $cycle->getMetaDateID() : 'saveCycle'), $editParams) ?>"
+    action="<?= $controller->url_for('course/timesrooms/' . ($cycle ? 'editCycle/' . $cycle->id : 'saveCycle'), $editParams) ?>"
     class="studip-form" method="post"
     <?= Request::isXhr() ? 'data-dialog="size=big"' : '' ?>>
     <?= CSRFProtection::tokenTag() ?>
@@ -17,7 +17,7 @@
         <select class="size-xl" name="day" id="day">
             <? foreach (range(1, 6) + array(6 => 0) as $d) : ?>
                 <option
-                    value="<?= $d ?>"<?= (Request::int('day', !is_null($cycle) ? $cycle->getDay() : null) === $d) ? 'selected' : (!Request::get('day', !is_null($cycle) ? $cycle->getDay() : null) && $d == 1) ? 'selected' : '' ?>>
+                    value="<?= $d ?>"<?= (Request::int('day', !is_null($cycle) ? $cycle->weekday : null) === $d) ? 'selected' : (!Request::get('day', !is_null($cycle) ? $cycle->weekday : null) && $d == 1) ? 'selected' : '' ?>>
                     <?= getWeekday($d, false) ?></option>
             <? endforeach; ?>
         </select>
@@ -28,7 +28,7 @@
                 <?= _('Startzeit') ?>
             </label>
             <input class="size-l has-time-picker" type="time" name="start_time" id="start_time"
-                   value="<?= htmlReady(Request::get('start_time', !is_null($cycle) ? $cycle->getStartTime() : null)) ?>"
+                   value="<?= htmlReady(Request::get('start_time', !is_null($cycle) ? $cycle->start_time : null)) ?>"
                    required>
         </div>
         <div style="display: inline-block">
@@ -36,7 +36,7 @@
                 <?= _('Endzeit') ?>
             </label>
             <input class="size-l has-time-picker" type="time" name="end_time" id="end_time"
-                   value="<?= htmlReady(Request::get('end_time', !is_null($cycle) ? $cycle->getEndTime() : null)) ?>"
+                   value="<?= htmlReady(Request::get('end_time', !is_null($cycle) ? $cycle->end_time : null)) ?>"
                    required>
         </div>
     </section>
@@ -46,7 +46,7 @@
             <?= _('Beschreibung') ?>
         </label>
         <input class="size-xl" type="text" name="description" id="description"
-               value="<?= Request::get('description', !is_null($cycle) ? $cycle->getDescription() : null) ?>"/>
+               value="<?= Request::get('description', !is_null($cycle) ? $cycle->description : null) ?>"/>
     </section>
 
     <section>
@@ -90,8 +90,8 @@
             <? endforeach ?>
         </select>
     </section>
-
-    <section>
+ 
+   <section>
         <label for="teacher_sws">
             <?= _('SWS Dozent') ?>
         </label>

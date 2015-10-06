@@ -186,23 +186,316 @@ class SeminarCycleDate extends SimpleORMap
         return $all_data;
     }
     
-    
-    /*
-     * TODO
-     * Das ganze dann noch in gut weil so geht es zwar ist aber blöd
-     */
     function store(){
-        $metadate_id = $this->metadate_id;
-        $seminar_id = $this->seminar_id;
-        $course = new Course($seminar_id);
-        $store = parent::store();
-        if($store){
-            $meta = new MetaDate($seminar_id);
-            $meta->setSeminarStartTime($course->start_time);
-            $meta->setSeminarDurationTime($course->duration_time);
-            $meta->createSingleDates($metadate_id);
+        $metadate_id = isset($this->metadate_id) ? $this->metadate_id : false;
+        
+        //create new entry in seminare_cycle_date
+        if (!$metadate_id) {
+            $store = parent::store();
+            if ($store) {
+                
+                $new_dates = $this->createTerminSlots();
+                foreach ($new_dates as $date) {
+                    $date->store();
+                }
+            }
+            return $store;
         }
-        return $store;
+        //change existing cycledate, changes also corresponding single dates
+        else {
+            $old_cycle = SeminarCycleDate::find($this->metadate_id);
+            parent::store();
+            if ( (mktime($this->start_time) >= mktime($old_cycle->start_time) 
+                    && mktime($this->end_time) <= mktime($old_cycle->end_time) )
+                    && ($this->weekday == $old_cycle->weekday && $this->end_offset == $old_cycle->end_offset)) {
+                
+                $update_count = 0;
+                foreach($this->getAllDates() as $date){
+                    $tos = $date->date;
+                    $toe = $date->end_time;
+                    //Update future dates
+                    if ($toe > time()) {
+                        $date->date = mktime(date('G',strtotime($this->start_time)), date('i',strtotime($this->start_time)), 0, date('m', $tos), date('d', $tos), date('Y', $tos));
+                        $date->end_time = mktime(date('G',strtotime($this->end_time)), date('i',strtotime($this->end_time)), 0, date('m', $toe), date('d', $toe), date('Y', $toe));
+                    }
+                    if($date->isDirty()){
+                        $date->store();
+                        $update_count++;
+                    }
+                    
+                }
+                return $update_count;
+            } else {
+               //collect topics for existing future dates (CourseDate)
+                $topics = array();
+                foreach($this->getAllDates() as $date){
+                    if($date->end_time >= time()){
+                        $topics_tmp = CourseTopic::findByTermin_id($date->termin_id);
+                        if(!empty($topics_tmp)){
+                            $topics[] = $topics_tmp;
+                        }
+                        //uncomment below
+                        $date->delete();
+                    }
+                }
+                $new_dates = $this->createTerminSlots(time());
+                $topic_count = 0;
+                $update_count = 0;
+                foreach($new_dates as $semester_dates){
+                    foreach($semester_dates['dates'] as $date){
+                        if ($date instanceof CourseDate) {
+                            if(isset($topics[$topic_count])){
+                                $date->topics = $topics[$topic_count];
+                                $topic_count++;
+                            }
+                            $date->store();
+                        } else {
+                            $date->store();
+                        }
+                        $update_count++;
+                    }
+                }
+                // delete issues, that are not assigned to a single date because of to few dates
+                // (only if the schedule expert view is off)
+                if (!Config::get()->RESOURCES_ENABLES_EXPERT_SCHEDULE_VIEW) {
+                    if ($topic_count < count($topics)) {
+                        for ($i = $topic_count; $i < count($topics); $i++) {
+                            foreach ($topics[$i] as $topic) {
+                                $topic->delete();
+                            }
+                        }
+                    }
+                }
+            }
+            return $update_count;
+        }
+        return false;
     }
+    
+    /**
+     * generate single date objects for one cycle and all semester, existing dates are merged in
+     *
+     * @param mixed cycle id (string) or array with 'metadate_id' => string cycle id, 'startAfterTimeStamp' => int timestamp to override semester start
+     * @return array array of arrays, for each semester id  an array of two arrays of SingleDate objects: 'dates' => all new and surviving dates, 'dates_to_delete' => obsolete dates
+     */
+    function createTerminSlots($startAfterTimeStamp = 0)
+    {
+        $course = Course::find($this->seminar_id);
+        $ret = array();
+
+        $semester = new SemesterData;
+        $all_semester = $semester->getAllSemesterData();
+
+        // get the starting-point for creating singleDates for the choosen cycleData
+        foreach ($all_semester as $val) {
+            if (($course->start_time >= $val["beginn"]) && ($course->start_time <= $val["ende"])) {
+                $sem_begin = mktime(0, 0, 0, date("n", $val["vorles_beginn"]), date("j", $val["vorles_beginn"]), date("Y", $val["vorles_beginn"]));
+            }
+        }
+
+        // get the end-point
+        if ($course->duration_time == -1) {
+            foreach ($all_semester as $val) {
+                $sem_end = $val['vorles_ende'];
+            }
+        } else {
+            $i = 0;
+            foreach ($all_semester as $val) {
+                $i++;
+                $timestamp = $course->duration_time + $course->start_time;
+                if (($timestamp >= $val['beginn']) && ($timestamp <= $val['ende'])) {
+                    $sem_end = $val["vorles_ende"];
+                }
+            }
+        }
+
+        $passed = false;
+        foreach ($all_semester as $val) {
+            if ($sem_begin <= $val['vorles_beginn']) {
+                $passed = true;
+            }
+            if ($passed && ($sem_end >= $val['vorles_ende']) && ($startAfterTimeStamp <= $val['ende'])) {
+                // correction calculation, if the semester does not start on monday
+                $dow = date("w", $val['vorles_beginn']);
+                if ($dow <= 5)
+                    $corr = ($dow - 1) * -1;
+                elseif ($dow == 6)
+                    $corr = 2;
+                elseif ($dow == 0)
+                    $corr = 1;
+                else
+                    $corr = 0;
+                $ret[$val['semester_id']] = $this->createSemesterTerminSlots($val['vorles_beginn'], $val['vorles_ende'], $startAfterTimeStamp, $corr);
+            }
+        }
+
+        return $ret;
+    }
+
+
+    /**
+     * generate single date objects for one cycle and one semester, existing dates are merged in
+     *
+     * @param string cycle id
+     * @param int    timestamp of semester start
+     * @param int    timestamp of semester end
+     * @param int    alternative timestamp to start from
+     * @param int    correction calculation, if the semester does not start on monday (number of days?)
+     * @return array returns an array of two arrays of SingleDate objects: 'dates' => all new and surviving dates, 'dates_to_delete' => obsolete dates
+     */
+    function createSemesterTerminSlots($sem_begin, $sem_end, $startAfterTimeStamp, $corr)
+    {
+        $dates = array();
+        $dates_to_delete = array();
+
+        // The currently existing singledates for the by metadate_id denoted  regular time-entry
+        //$existingSingleDates =& $this->cycles[$metadate_id]->getSingleDates();
+        $existingSingleDates =& $this->getAllDates();
+        $start_woche = $this->week_offset;
+        $end_woche = $this->end_offset;
+
+        $turnus = $this->cycle;
+
+        // HolidayData is used to decide wether a date is during a holiday an should be created as an ex_termin.
+        // Additionally, it is used to show which type of holiday we've got.
+        $holiday = new HolidayData();
+
+        // This variable is used to check if a given singledate shall be created in a bi-weekly seminar.
+        if ($start_woche == -1) {
+            $start_woche = 0;
+        }
+        $week = 0;
+
+        // get the first presence date after sem_begin
+        $day_of_week = date('l', strtotime('Sunday + ' . $this->weekday . ' days'));
+        $stamp = strtotime('this ' . $day_of_week, $sem_begin);
+
+        if ($end_woche) {
+            $end_woche -= 1;
+            if ($end_woche < 0) $end_woche = 0;
+            $sem_end = strtotime(sprintf('+%u weeks %s', $end_woche, strftime('%d.%m.%Y', $stamp)));
+        }
+
+        $start = explode(':', $this->start_time);
+        
+        $start_time = mktime(
+            (int)$start[0],                                     // Hour
+            (int)$start[1],                                     // Minute
+            0,                                                  // Second
+            date("n", $stamp),                                  // Month
+            date("j", $stamp),                                  // Day
+            date("Y", $stamp));                                 // Year
+
+        $end = explode(':', $this->end_time);
+        $end_time = mktime(
+            (int)$end[0],                                       // Hour
+            (int)$end[1],                                       // Minute
+            0,                                                  // Second
+            date("n", $stamp),                                  // Month
+            date("j", $stamp),                                  // Day
+            date("Y", $stamp));                                 // Year
+
+        // loop through all possible singledates for this regular time-entry
+        do {
+
+            // if dateExists is true, the singledate will not be created. Default is of course to create the singledate
+            $dateExists = false;
+
+            // do not create singledates, if they are earlier then the chosen start-week
+            if ($start_woche > $week) {
+                $dateExists = true;
+            }
+            // bi-weekly check
+            if ($turnus > 0 && ($week - $start_woche) > 0 && (($week - $start_woche) % ($turnus + 1))) {
+                $dateExists = true;
+            }
+
+            /*
+             * We only create dates, which do not already exist, so we do not overwrite existing dates.
+             *
+             * Additionally, we delete singledates which are not needed any more (bi-weekly, changed start-week, etc.)
+             */
+            $date_values['range_id'] = $this->seminar_id;
+            $date_values['autor_id'] = $GLOBALS['user']->id;
+            $date_values['metadate_id'] = $this->metadate_id;
+            foreach ($existingSingleDates as $key => $val) {
+                // take only the singledate into account, that maps the current timepoint
+                if ($start_time > $startAfterTimeStamp && ($val->date == $start_time) && ($val->end_time == $end_time)) {
+
+                    // bi-weekly check
+                    if ($turnus > 0 && ($week - $start_woche) > 0 && (($week - $start_woche) % ($turnus + 1))) {
+                        $dates_to_delete[$key] = $val;
+                        unset($existingSingleDates[$key]);
+                    }
+
+                    // delete singledates if they are earlier than the chosen start-week
+                    if ($start_woche > $week) {
+                        $dates_to_delete[$key] = $val;
+                        unset($existingSingleDates[$key]);
+                    }
+
+                    $dateExists = true;
+                    if (isset($existingSingleDates[$key])) {
+                        $dates[$key] = $val;
+                    }
+                }
+            }
+
+            if ($start_time < $startAfterTimeStamp) {
+                $dateExists = true;
+            }
+
+            if (!$dateExists) {
+
+                
+                
+                $termin = new CourseDate();
+
+                $all_holiday = $holiday->getAllHolidays(); // fetch all Holidays
+                foreach ($all_holiday as $val2) {
+                    if (($val2["beginn"] <= $start_time) && ($start_time <= $val2["ende"])) {
+                        $termin = new CourseExDate();
+                        break;
+                    }
+                }
+
+                //check for calculatable holidays
+                if ($termin instanceof CourseDate) {
+                    $holy_type = SemesterHoliday::isHoliday($start_time, false);
+                    if ($holy_type["col"] == 3) {
+                        $termin = new CourseExDate();
+                    }
+                }
+            $date_values['date'] = $start_time;
+            $date_values['end_time'] = $end_time;
+            $date_values['date_type'] = 1;
+            $termin->setData($date_values);    
+            $dates[] = $termin;
+            }
+
+            //inc the week, create timestamps for the next singledate
+            $start_time = strtotime('+1 week', $start_time);
+            $end_time = strtotime('+1 week', $end_time);
+
+            $week++;
+
+        } while ($end_time < $sem_end);
+
+        /*
+        foreach ($existingSingleDates as $id => $val) {
+            foreach (array_keys($dates) as $date) {
+                if($date != $id){
+                    $dates_to_delete[$id] = $val;
+                    unset($existingSingleDates[$id]);
+                }
+            }
+        }*/
+        return array('dates' => $dates, 'dates_to_delete' => $dates_to_delete);
+    }
+    
+    
+    
+    
+    
     
 }

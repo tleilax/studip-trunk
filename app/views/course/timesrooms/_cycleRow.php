@@ -86,7 +86,6 @@
                 <?= Assets::img('icons/grey/decline/trash', tooltip2(_('Termin wiederherstellen'))) ?>
             </a>
             
-            
         <? else : ?>
 
             <a class="load-in-new-row"

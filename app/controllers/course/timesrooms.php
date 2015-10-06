@@ -672,17 +672,17 @@ class Course_TimesroomsController extends AuthenticatedController
         }
         $this->editParams = array('fromDialog' => Request::get('fromDialog'));
         if (!is_null($cycle_id)) {
-            $this->cycle = $this->course->metadate->cycles[$cycle_id];
+            $this->cycle = SeminarCycleDate::find($cycle_id);
             $this->has_bookings = false;
-
-            foreach ($this->cycle->getSingleDates() as $singleDate) {
-                if ($singleDate->getStarttime() > (time() - 3600) && $singleDate->hasRoom()) {
-                    $this->has_bookings = true;
-                    break;
-                }
+            foreach ($this->cycle->dates as $singleDate) {
+                $ids[] = $singleDate->termin_id;
+            }
+            
+            
+            if (!empty(ResourceAssignment::findBySQL('assign_user_id IN ('."'".implode("','",$ids)."'".')'))) {
+                $this->has_bookings = true;
             }
         }
-
         $this->start_weeks = $this->getStartWeeks();
     }
 
@@ -742,9 +742,32 @@ class Course_TimesroomsController extends AuthenticatedController
      */
     public function editCycle_action($cycle_id)
     {
-        $cycle = $this->course->metadate->cycles[$cycle_id];
+        $cycle = SeminarCycleDate::find($cycle_id);//  $this->course->metadate->cycles[$cycle_id];
+        
+        $startHour = strftime('%H', strtotime(Request::get('start_time')));
+        $startMinute = strftime('%M', strtotime(Request::get('start_time')));
+        $endHour = strftime('%H', strtotime(Request::get('end_time')));
+        $endMinute = strftime('%M', strtotime(Request::get('end_time')));
+
         // Prepare Request for saving Request
-        $data['cycle_id'] = $cycle_id;
+        $cycle->start_time = sprintf('%02u:%02u:00', $startHour, $startMinute);
+        $cycle->end_time = sprintf('%02u:%02u:00', $endHour, $endMinute); 
+        $cycle->weekday = Request::int('day');
+        $cycle->description = studip_utf8decode(Request::get('description'));
+        $cycle->sws = Request::get('teacher_sws');
+        $cycle->cycle = Request::get('cycle');
+        $cycle->week_offset = Request::get('startWeek');
+        $cycle->end_offset = Request::int('endWeek') != 0 ? Request::int('endWeek') : null;
+        if($cycle->isDirty()){
+            $cycle->chdate = time();
+            $cycle->store();
+        } else {
+            die('keine Änderungen');
+        }
+        $this->redirect('course/timesrooms/index');
+        return;
+        
+        /*
         $data['startWeek'] = Request::get('startWeek');
         $data['week_offset'] = Request::get('startWeek');
         $data['turnus'] = Request::get('cycle');
@@ -752,13 +775,14 @@ class Course_TimesroomsController extends AuthenticatedController
         $data['description'] = studip_utf8decode(Request::get('description'));
         $data['day'] = Request::int('day');
         $data['weekday'] = Request::int('day');
-        $data['start_stunde'] = strftime('%H', strtotime(Request::get('start_time')));;
-        $data['start_minute'] = strftime('%M', strtotime(Request::get('start_time')));;
-        $data['end_stunde'] = strftime('%H', strtotime(Request::get('end_time')));;
-        $data['end_minute'] = strftime('%M', strtotime(Request::get('end_time')));;
+        $data['start_stunde'] = strftime('%H', strtotime(Request::get('start_time')));
+        $data['start_minute'] = strftime('%M', strtotime(Request::get('start_time')));
+        $data['end_stunde'] = strftime('%H', strtotime(Request::get('end_time')));
+        $data['end_minute'] = strftime('%M', strtotime(Request::get('end_time')));
         $data['sws'] = Request::get('teacher_sws');
         $data['endWeek'] = Request::get('endWeek');
-
+        */ 
+       /*
         $new_start = mktime($data['start_stunde'], $data['start_minute']);
         $new_end = mktime($data['end_stunde'], $data['end_minute']);
         $old_start = mktime($cycle->getStartStunde(), $cycle->getStartMinute());
@@ -825,7 +849,11 @@ class Course_TimesroomsController extends AuthenticatedController
                 $message = true;
             }
         }
-        $cycle->storeCycleDate();
+         * 
+         */
+        $cycle->store();
+        
+        //WAS MACHT DAS HIER???
         $this->course->metadate->sortCycleData();
 
         if (!$message) {
@@ -840,9 +868,11 @@ class Course_TimesroomsController extends AuthenticatedController
     {
         CSRFProtection::verifyRequest();
         $cycle = SeminarCycleDate::find($cycle_id);
-        $this->course->createMessage(sprintf(_('Der regelmäßige Eintrag "%s" wurde gelöscht.'), '<b>' . $cycle->toString() . '</b>'));
-        $this->course->deleteCycle($cycle_id);
-
+        if($cycle !== null){
+            if($cycle->delete()){
+                $this->course->createMessage(sprintf(_('Der regelmäßige Eintrag "%s" wurde gelöscht.'), '<b>' . $cycle->toString() . '</b>'));
+            }
+        }
         $this->displayMessages();
 
         $this->redirect('course/timesrooms/index');
