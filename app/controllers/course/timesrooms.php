@@ -678,8 +678,8 @@ class Course_TimesroomsController extends AuthenticatedController
                 $ids[] = $singleDate->termin_id;
             }
             
-            
-            if (!empty(ResourceAssignment::findBySQL('assign_user_id IN ('."'".implode("','",$ids)."'".')'))) {
+            $bookings = ResourceAssignment::findBySQL('assign_user_id IN ('."'".implode("','",$ids)."'".')');
+            if (!empty($bookings)) {
                 $this->has_bookings = true;
             }
         }
