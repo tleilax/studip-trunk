@@ -293,12 +293,17 @@ img.plugin_preview {
     .flex-justify-content(space-between);
     margin: 0 -0.5em;
     section {
-        .flex-item(1 1 23em);
+        .flex-item(1);
         min-width: 23em;
         max-width: 100%;
         padding: 0 0.5em;
+
         &:empty {
             height: 0;
+        }
+
+        section {
+            padding: 0;
         }
     }
 }

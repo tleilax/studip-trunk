@@ -7444,17 +7444,20 @@ img.plugin_preview {
   margin: 0 -0.5em;
 }
 .grid section {
-  -webkit-box-flex: 1 1 23em;
-  -webkit-flex: 1 1 23em  ;
-  -ms-flex: 1 1 23em  ;
-  -moz-box-flex: 1 1 23em;
-  flex: 1 1 23em  ;
+  -webkit-box-flex: 1;
+  -webkit-flex: 1  ;
+  -ms-flex: 1  ;
+  -moz-box-flex: 1;
+  flex: 1  ;
   min-width: 23em;
   max-width: 100%;
   padding: 0 0.5em;
 }
 .grid section:empty {
   height: 0;
+}
+.grid section section {
+  padding: 0;
 }
 /* --- Veranstaltungsverwaltung --------------------------------------------- */
 .boxed-grid {
