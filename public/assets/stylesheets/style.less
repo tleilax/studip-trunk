@@ -287,6 +287,22 @@ img.plugin_preview {
 
 .user_form { width: 250px; }
 
+.grid {
+    .flex();
+    .flex-wrap(wrap);
+    .flex-justify-content(space-between);
+    margin: 0 -0.5em;
+    section {
+        .flex-item(1 1 23em);
+        min-width: 23em;
+        max-width: 100%;
+        padding: 0 0.5em;
+        &:empty {
+            height: 0;
+        }
+    }
+}
+
 /* --- Veranstaltungsverwaltung --------------------------------------------- */
 .boxed-grid {
     .flex();

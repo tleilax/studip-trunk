@@ -7429,6 +7429,33 @@ img.plugin_preview {
 .user_form {
   width: 250px;
 }
+.grid {
+  display: -ms-flexbox;
+  display: -webkit-box;
+  display: -webkit-box-flex;
+  display: -webkit-flex;
+  display: -moz-box;
+  display: flex;
+  -webkit-flex-wrap: wrap;
+  -ms-flex-wrap: wrap;
+  flex-wrap: wrap;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+  margin: 0 -0.5em;
+}
+.grid section {
+  -webkit-box-flex: 1 1 23em;
+  -webkit-flex: 1 1 23em  ;
+  -ms-flex: 1 1 23em  ;
+  -moz-box-flex: 1 1 23em;
+  flex: 1 1 23em  ;
+  min-width: 23em;
+  max-width: 100%;
+  padding: 0 0.5em;
+}
+.grid section:empty {
+  height: 0;
+}
 /* --- Veranstaltungsverwaltung --------------------------------------------- */
 .boxed-grid {
   display: -ms-flexbox;

@@ -8,17 +8,14 @@
         geben Sie bitte <span style="text-decoration: underline">immer</span> die gewünschten Eigenschaften mit an!')
     )) ?>
 
-<section class="clearfix">
-
-    <section style="float: left; width: 49%">
+<section class="grid">
+    <section>
         <h2><?= _('Art des Wunsches') ?></h2>
         <article>
             <?= htmlready($request->getTypeExplained(), 1, 1); ?>
         </article>
     </section>
-
-
-    <section style="float: right; width: 49%">
+    <section>
         <h2><?= _('Bearbeitungsstatus') ?></h2>
         <article>
             <? if ($request->isNew()) : ?>
@@ -30,11 +27,14 @@
     </section>
 </section>
 
+
+<div style="clear: both"></div>
+
 <?
 if ($request_resource_id = $request->getResourceId()) :
     $resObject = ResourceObject::Factory($request_resource_id);
     ?>
-    <section style="margin: 20px 0">
+    <section style="margin: 20px 0;">
         <h2><?= _('Gewünschter Raum') ?></h2>
 
         <p>
@@ -47,15 +47,15 @@ if ($request_resource_id = $request->getResourceId()) :
                 array('type'  => "image", 'style' => "vertical-align:middle", 'name' => "reset_resource_id",
                       'title' => _('den ausgewählten Raum löschen')
                 )) ?>
-            <?= tooltipIcon(_('Der ausgewählte Raum bietet folgende der wünschbaren Eigenschaften:') . " \n" . $resObject->getPlainProperties(TRUE)) ?>
+            <?= tooltipIcon(_('Der ausgewählte Raum bietet folgende der wünschbaren Eigenschaften:') . " \n" . $resObject->getPlainProperties(true)) ?>
         </p>
         <input type="hidden" name="selected_room" value="<?= htmlready($request_resource_id) ?>">
     </section>
 <? endif ?>
 
 
-<section style="margin: 20px 0" class="clearfix">
-    <section style="float: left; width: 49%;">
+<section class="grid">
+    <section>
         <h2>
             <?= _("Raumeigenschaften angeben:") ?>
         </h2>
@@ -164,8 +164,7 @@ if ($request_resource_id = $request->getResourceId()) :
             </section>
         <? endif ?>
     </section>
-
-    <section style="float: right; width: 49%;">
+    <section>
         <h2>
             <?= _('Raum suchen') ?>
         </h2>
@@ -213,7 +212,6 @@ if ($request_resource_id = $request->getResourceId()) :
     </section>
 </section>
 
-
 <? if ($is_resources_admin) : ?>
     <section>
         <h2><?= _('Benachrichtigungen') ?></h2>
@@ -240,3 +238,4 @@ if ($request_resource_id = $request->getResourceId()) :
         <textarea name="comment" cols="58" rows="4"
                   style="width:90%"><?= htmlReady($request->getComment()); ?></textarea>
 </section>
+
