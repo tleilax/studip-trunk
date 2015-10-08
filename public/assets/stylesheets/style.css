@@ -7429,7 +7429,7 @@ img.plugin_preview {
 .user_form {
   width: 250px;
 }
-.grid {
+.times-rooms-grid {
   display: -ms-flexbox;
   display: -webkit-box;
   display: -webkit-box-flex;
@@ -7443,7 +7443,7 @@ img.plugin_preview {
   justify-content: space-between;
   margin: 0 -0.5em;
 }
-.grid section {
+.times-rooms-grid section {
   -webkit-box-flex: 1;
   -webkit-flex: 1  ;
   -ms-flex: 1  ;
@@ -7453,10 +7453,10 @@ img.plugin_preview {
   max-width: 100%;
   padding: 0 0.5em;
 }
-.grid section:empty {
+.times-rooms-grid section:empty {
   height: 0;
 }
-.grid section section {
+.times-rooms-grid section section {
   padding: 0;
 }
 /* --- Veranstaltungsverwaltung --------------------------------------------- */

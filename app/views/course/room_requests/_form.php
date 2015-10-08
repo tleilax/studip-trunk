@@ -8,7 +8,7 @@
         geben Sie bitte <span style="text-decoration: underline">immer</span> die gewünschten Eigenschaften mit an!')
     )) ?>
 
-<section class="grid">
+<section class="times-rooms-grid ">
     <section>
         <h2><?= _('Art des Wunsches') ?></h2>
         <article>
@@ -54,7 +54,7 @@ if ($request_resource_id = $request->getResourceId()) :
 <? endif ?>
 
 
-<section class="grid">
+<section class="times-rooms-grid ">
     <section>
         <h2>
             <?= _("Raumeigenschaften angeben:") ?>
