@@ -93,40 +93,45 @@ if ($request_resource_id = $request->getResourceId()) :
                         <label for="<?= $prop['type'] ?>_<?= $index ?>">
                             <?= htmlReady($prop["name"]) ?>
                         </label>
-                        <?
-                        switch ($prop["type"]) {
-                            case "bool":
-                                echo sprintf('<input id="bool_%s" type="checkbox" name="request_property_val[%s]" %s><label for="bool_%s" class="horizontal">%s</label>',
-                                    $index, $prop["property_id"], ($request->getPropertyState($prop["property_id"])) ? "checked" : "", $index, htmlReady($prop["options"]));
-                                break;
-                            case "num":
-                                if ($prop["system"] == 2) {
-                                    echo sprintf('<input type="text" id="num_%s" name="request_property_val[%s]" value="%s">',
-                                        $index, $prop["property_id"], htmlReady($request->getPropertyState($prop["property_id"])));
-                                    if ($admission_turnout) {
-                                        echo sprintf('<br><input id="seats_are_admission_turnout" type="checkbox" name="seats_are_admission_turnout" %s><label for="seats_are_admission_turnout" class="horizontal">%s</label>',
-                                            ($request->getPropertyState($prop["property_id"]) == $admission_turnout && $admission_turnout > 0) ? "checked" : "", _('max. Teilnehmeranzahl übernehmen'));
-                                    }
-                                } else {
-                                    echo sprintf('<input id="num_%s" type="text" name="request_property_val[%s]" value="%s">',
-                                        $index, $prop["property_id"], htmlReady($request->getPropertyState($prop["property_id"])));
-                                }
-                                break;
-                            case "text";
-                                echo sprintf('<textarea id="text_%s" name="request_property_val[%s]" cols="30" rows="2" >%s</textarea>',
-                                    $index, $prop["property_id"], htmlReady($request->getPropertyState($prop["property_id"])));
-                                break;
-                            case "select";
-                                $options = explode(";", $prop["options"]);
-                                echo sprintf('<select id="select_%s" name="request_property_val[%s]">', $index, $prop["property_id"]);
-                                echo '<option value="">--</option>';
-                                foreach ($options as $a) {
-                                    echo sprintf('<option %s value="%s">%s</option>', ($request->getPropertyState($prop["property_id"]) == $a) ? "selected" : "", $a, htmlReady($a));
-                                }
-                                echo '</select>';
-                                break;
-                        }
-                        ?>
+
+                        <? if ($prop['type'] == 'bool') : ?>
+                            <input type="checkbox" id="bool_<?= $index ?>"
+                                   name="request_property_val[<?= $prop["property_id"] ?>]"
+                                <?= $request->getPropertyState($prop["property_id"]) ? "checked" : "" ?>>
+                            <label for="bool_<?= $index ?>" class="horizontal">
+                                <?= htmlReady($prop["options"]) ?>
+                            </label>
+                        <? elseif ($prop['type'] == 'num'): ?>
+                            <? if ($prop['system'] == 2) : ?>
+                                <input type="text" id="num_<?= $index ?>"
+                                       name="request_property_val[<?= $prop["property_id"] ?>]"
+                                       value="<?= htmlReady($request->getPropertyState($prop["property_id"])) ?>">
+                                <? if ($admission_turnout) : ?>
+                                    <br><input id="seats_are_admission_turnout" type="checkbox"
+                                               name="seats_are_admission_turnout"
+                                        <?= ($request->getPropertyState($prop["property_id"]) == $admission_turnout && $admission_turnout > 0) ? "checked" : "" ?>>
+                                    <label for="seats_are_admission_turnout"
+                                           class="horizontal"><?= _('max. Teilnehmeranzahl übernehmen') ?></label>
+                                <? endif ?>
+                            <? else : ?>
+                                <input id="num_<?= $index ?>" type="text"
+                                       name="request_property_val[<?= $prop["property_id"] ?>]"
+                                       value="<?= htmlReady($request->getPropertyState($prop["property_id"])) ?>">
+                            <? endif ?>
+                        <? elseif ($prop['type'] == 'text') : ?>
+                            <textarea id="text_<?= $index ?>" name="request_property_val[<?= $prop["property_id"] ?>]"
+                                      cols="30"
+                                      rows="2"><?= htmlReady($request->getPropertyState($prop["property_id"])) ?></textarea>
+                        <? else : ?>
+                            <? $options = explode(";", $prop["options"]); ?>
+                            <select id="select_<?= $index ?>" name="request_property_val[<?= $prop["property_id"] ?>]">
+                                <option value="">--</option>
+                                <? foreach ($options as $a) : ?>
+                                    <option <?= ($request->getPropertyState($prop["property_id"]) == $a) ? "selected" : "" ?>
+                                        value="<?= $a ?>"><?= htmlReady($a) ?></option>
+                                <? endforeach ?>
+                            </select>
+                        <? endif ?>
                     </section>
                 <? endforeach ?>
             <? endif ?>
@@ -137,7 +142,7 @@ if ($request_resource_id = $request->getResourceId()) :
             <select name="select_room_type" id="select_room_type">
                 <option value=""><?= _('bitte auswählen') ?></option>
                 <? foreach ($room_categories as $rc) : ?>
-                    <?= sprintf('<option value="%s">%s</option>', $rc["category_id"], htmlReady($rc["name"])) ?>
+                    <option value="<?= $rc["category_id"] ?>"><?= htmlReady($rc["name"]) ?></option>
                 <? endforeach ?>
             </select>
             <?= Assets::input("icons/blue/accept", array('type'  => "image",
