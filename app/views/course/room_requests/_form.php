@@ -96,17 +96,16 @@ if ($request_resource_id = $request->getResourceId()) :
                         <?
                         switch ($prop["type"]) {
                             case "bool":
-                                echo sprintf('<input id="bool_%s" type="checkbox" name="request_property_val[%s]" %s> %s',
-                                    $index, $prop["property_id"], ($request->getPropertyState($prop["property_id"])) ? "checked" : "", htmlReady($prop["options"]));
+                                echo sprintf('<input id="bool_%s" type="checkbox" name="request_property_val[%s]" %s><label for="bool_%s" class="horizontal">%s</label>',
+                                    $index, $prop["property_id"], ($request->getPropertyState($prop["property_id"])) ? "checked" : "", $index, htmlReady($prop["options"]));
                                 break;
                             case "num":
                                 if ($prop["system"] == 2) {
                                     echo sprintf('<input type="text" id="num_%s" name="request_property_val[%s]" value="%s">',
                                         $index, $prop["property_id"], htmlReady($request->getPropertyState($prop["property_id"])));
                                     if ($admission_turnout) {
-                                        echo sprintf('<br><input type="checkbox" name="seats_are_admission_turnout" %s>',
-                                            ($request->getPropertyState($prop["property_id"]) == $admission_turnout && $admission_turnout > 0) ? "checked" : "");
-                                        echo _('max. Teilnehmeranzahl übernehmen');
+                                        echo sprintf('<br><input id="seats_are_admission_turnout" type="checkbox" name="seats_are_admission_turnout" %s><label for="seats_are_admission_turnout" class="horizontal">%s</label>',
+                                            ($request->getPropertyState($prop["property_id"]) == $admission_turnout && $admission_turnout > 0) ? "checked" : "", _('max. Teilnehmeranzahl übernehmen'));
                                     }
                                 } else {
                                     echo sprintf('<input id="num_%s" type="text" name="request_property_val[%s]" value="%s">',
