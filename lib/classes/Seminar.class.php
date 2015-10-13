@@ -1231,7 +1231,9 @@ class Seminar
         $this->readIssues($force);
         $this->renumberIssuePrioritys();
         if (is_array($this->issues)) {
-            uasort($this->issues, 'myIssueSort');
+            uasort($this->issues, function ($a, $b) {
+                return $a->getPriority() - $b->getPriority();
+            });
         }
         return $this->issues;
     }
@@ -1455,38 +1457,6 @@ class Seminar
             }
         }
         return $roominfo;
-    }
-
-    public function checkFilter()
-    {
-        global $cmd;
-
-        $semester = new SemesterData();
-        if (isset($cmd) && ($cmd == 'applyFilter')) {
-            $_SESSION['raumzeitFilter'] = Request::quoted('newFilter');
-        }
-
-        if ($this->getEndSemester() == 0 && !$this->hasDatesOutOfDuration()) {
-            $_SESSION['raumzeitFilter'] = $this->getStartSemester();
-        }
-
-        /* Zeitfilter anwenden */
-        if ($_SESSION['raumzeitFilter'] == '') {
-            $_SESSION['raumzeitFilter'] = 'all';
-            /*
-            $raumzeitFilter = $semester->getCurrentSemesterData();
-            $raumzeitFilter = $raumzeitFilter['beginn'];
-            */
-        }
-
-        if ($_SESSION['raumzeitFilter'] != 'all') {
-            if (($_SESSION['raumzeitFilter'] < $this->getStartSemester()) || ($_SESSION['raumzeitFilter'] > $this->getEndSemesterVorlesEnde())) {
-                $_SESSION['raumzeitFilter'] = $this->getStartSemester();
-            }
-            $filterSemester = $semester->getSemesterDataByDate($_SESSION['raumzeitFilter']);
-            $this->applyTimeFilter($filterSemester['beginn'], $filterSemester['ende']);
-        }
-
     }
 
     /**
@@ -2133,10 +2103,11 @@ class Seminar
         }
 
         if ($params['semester_id']) {
-            // generate filter data
-            $filter = getFilterForSemester($params['semester_id']);
-            // apply filter
-            $this->applyTimeFilter($filter['filterStart'], $filter['filterEnd']);
+            $semester = Semester::find($params['semester_id']);
+            if ($semester) {
+                // apply filter
+                $this->applyTimeFilter($semester->beginn, $semester->ende);
+            }
         }
 
 

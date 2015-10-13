@@ -36,26 +36,29 @@ class Course_TimesroomsController extends AuthenticatedController
             $this->course = Seminar::GetInstance($this->course_id);
         }
 
-        if (Navigation::hasItem('course/admin/timesrooms')) {
-            Navigation::activateItem('course/admin/timesrooms');
+        if (Navigation::hasItem('course/admin/dates')) {
+            Navigation::activateItem('course/admin/dates');
         }
         $this->show = array('regular' => true, 'irregular' => true, 'roomRequest' => false);
 
-
         PageLayout::setHelpKeyword('Basis.Veranstaltungen');
         PageLayout::addSqueezePackage('raumzeit');
-        PageLayout::setTitle(sprintf(_('%sVerwaltung von Zeiten und Räumen'),
-            isset($this->course) ? $this->course->getFullname() . ' - ' : ''));
+
+        $title = _('Verwaltung von Zeiten und Räumen');
+        if ($this->course) {
+            $title = $this->course->getFullname() . ' - ' . $title;
+        }
+        PageLayout::setTitle($title);
 
         $_SESSION['raumzeitFilter'] = Request::quoted('newFilter');
 
         // bind linkParams for chosen semester and opened dates
         URLHelper::bindLinkParam('raumzeitFilter', $_SESSION['raumzeitFilter']);
-        $GLOBALS['cmd'] = Request::option('cmd');
-        $this->course->checkFilter();
+
+        $this->checkFilter();
 
         $this->selection = raumzeit_get_semesters($this->course, new SemesterData(), $_SESSION['raumzeitFilter']);
-        
+
         if (!Request::isXhr()) {
             $this->setSidebar();
         } elseif (Request::isXhr() && $this->flash['update-times']) {
@@ -63,7 +66,6 @@ class Course_TimesroomsController extends AuthenticatedController
             if ($semester_id === 'all') {
                 $semester_id = '';
             }
-            $this->response->add_header('X-Foo', 'bar');
             $this->response->add_header('X-Raumzeit-Update-Times', json_encode(studip_utf8encode(array(
                 'course_id' => $this->course->id,
                 'html'      => Seminar::GetInstance($this->course->id)->getDatesHTML(array(
@@ -80,19 +82,18 @@ class Course_TimesroomsController extends AuthenticatedController
         Helpbar::get()->addPlainText(_('Gelb'), _('Mindestens ein Termin hat keine Raumbuchung.'));
         Helpbar::get()->addPlainText(_('Grün'), _('Alle Termine haben eine Raumbuchung.'));
 
-        $editParams = array();
+        $editParams = array(
+            'fromDialog' => Request::isXhr() ? 'true' : 'false',
+        );
         $semesterFormParams = array(
             'formaction' => $this->url_for('course/timesrooms/setSemester/' . $this->course->id)
         );
 
         if (Request::isXhr()) {
             $this->show = array('regular' => true, 'irregular' => true, 'roomRequest' => false);
-            $asDialog['data-dialog'] = 'size=big"';
-            $semesterFormParams += $asDialog;
+
+            $semesterFormParams['data-dialog'] = 'size=big';
             $editParams['asDialog'] = true;
-            $editParams['fromDialog'] = 'true';
-        } else {
-            $editParams['fromDialog'] = 'false';
         }
 
         if ($course_id) {
@@ -103,19 +104,15 @@ class Course_TimesroomsController extends AuthenticatedController
         $this->semester = array_reverse(Semester::getAll());
         $this->current_semester = Semester::findCurrent();
 
-
-        /**
-         * Get Cycles
-         */
+        // Get Cycles
         $this->cycle_dates = array();
-        foreach($this->course->cycles as $cycle){
-            $dates = $cycle->getAllDates();
-            foreach ($dates as $val) {
+        foreach ($this->course->cycles as $cycle) {
+            foreach ($cycle->getAllDates() as $val) {
                 foreach ($this->semester as $sem) {
-                    if ($_SESSION['raumzeitFilter'] != 'all' && $_SESSION['raumzeitFilter'] == $sem->id) {
+                    if ($_SESSION['raumzeitFilter'] === $sem->id) {
                         continue;
                     }
-                    if (($sem->beginn <= $val->date) && ($sem->ende >= $val->date)) {
+                    if ($sem->beginn <= $val->date && $sem->ende >= $val->date) {
                         $this->cycle_dates[$cycle->metadate_id]['cycle'] = $cycle;
                         $this->cycle_dates[$cycle->metadate_id]['dates'][$sem->id][] = $val;
                     }
@@ -124,9 +121,7 @@ class Course_TimesroomsController extends AuthenticatedController
         }
 
 
-        /**
-         * GET Single Dates
-         */
+        // Get Single Dates
         $this->single_dates = array();
         $_single_dates = $this->course->getDatesWithExdates();
 
@@ -179,7 +174,7 @@ class Course_TimesroomsController extends AuthenticatedController
         if(empty($this->date)){
             $this->date = CourseExDate::find($termin_id);
         }
-        
+
         if ($request = RoomRequest::findByDate($this->date->id)) {
             $this->params = array('request_id' => $request->getId());
         } else {
@@ -1077,6 +1072,35 @@ class Course_TimesroomsController extends AuthenticatedController
         }
     }
 
+    private function checkFilter()
+    {
+        if (Request::option('cmd') == 'applyFilter') {
+            $_SESSION['raumzeitFilter'] = Request::quoted('newFilter');
+        }
+
+        if ($this->course->getEndSemester() == 0 && !$this->course->hasDatesOutOfDuration()) {
+            $_SESSION['raumzeitFilter'] = $this->course->getStartSemester();
+        }
+
+        /* Zeitfilter anwenden */
+        if ($_SESSION['raumzeitFilter'] == '') {
+            $_SESSION['raumzeitFilter'] = 'all';
+            /*
+            $raumzeitFilter = $semester->getCurrentSemesterData();
+            $raumzeitFilter = $raumzeitFilter['beginn'];
+            */
+        }
+
+        if ($_SESSION['raumzeitFilter'] != 'all') {
+            if (($_SESSION['raumzeitFilter'] < $this->course->getStartSemester()) || ($_SESSION['raumzeitFilter'] > $this->course->getEndSemesterVorlesEnde())) {
+                $_SESSION['raumzeitFilter'] = $this->course->getStartSemester();
+            }
+            $semester = new SemesterData();
+            $filterSemester = $semester->getSemesterDataByDate($_SESSION['raumzeitFilter']);
+            $this->course->applyTimeFilter($filterSemester['beginn'], $filterSemester['ende']);
+        }
+    }
+
     public function redirect($to)
     {
         $arguments = func_get_args();
@@ -1086,8 +1110,6 @@ class Course_TimesroomsController extends AuthenticatedController
 
             $url_chunk = Trails_Inflector::underscore(substr(get_class($this), 0, -10));
             $index_url = $url_chunk . '/index';
-
-            $this->response->add_header('X-URLS', $index_url . ' ||| ' . $url);
 
             if (strpos($url, $index_url) !== false) {
                 $this->flash['update-times'] = $this->course->id;

@@ -398,26 +398,16 @@ class MetaDate
         //TODO: Löschen eines MetaDate-Eintrages (CycleData);
     }
 
-    private function sortCycleDataHelper($a, $b)
-    {
-        if ($a->sorter == $b->sorter) {
-            if ($a->weekday == $b->weekday) {
-                if ($a->start_hour == $b->start_hour) {
-                    return 0;
-                }
-                return ($a->start_hour < $b->start_hour) ? -1 : 1;
-            }
-            return ($a->weekday < $b->weekday) ? -1 : 1;
-        }
-        return ($a->sorter < $b->sorter) ? -1 : 1;
-    }
-
     /**
      * sort cycledates by sorter column and date
      */
     function sortCycleData()
     {
-        uasort($this->cycles, array($this, 'sortCycleDataHelper'));
+        uasort($this->cycles, function ($a, $b) {
+            return $a->sorter - $b->sorter
+                ?: $a->weekday - $b->weekday
+                ?: $a->start_hour - $b->start_hour;
+        });
     }
 
     /**
@@ -440,21 +430,6 @@ class MetaDate
     function getCycles()
     {
         return $this->cycles;
-    }
-
-    /**
-     * returns old style metadata_dates array (more or less)
-     *
-     * @deprecated
-     * @return array
-     */
-    function getMetaDataAsArray()
-    {
-        $ret['turnus_data'] = $this->getCycleData();
-        $ret['art'] = $this->getArt();
-        $ret['start_woche'] = $this->getStartWoche();
-        $ret['turnus'] = $this->getTurnus();
-        return $ret;
     }
 
     /**
@@ -590,26 +565,6 @@ class MetaDate
         }
 
         return $ret;
-    }
-
-    /**
-     * create single dates for one cycle and one semester and store them in database, deleting obsolete ones
-     *
-     * @param string cycle id
-     * @param int    timestamp of semester start
-     * @param int    timestamp of semester end
-     * @param int    alternative timestamp to start from
-     * @param int    correction calculation, if the semester does not start on monday (number of days?)
-     */
-    function createSingleDatesForSemester($metadate_id, $sem_begin, $sem_end, $startAfterTimeStamp, $corr)
-    {
-        list($dates, $dates_to_delete) = array_values($this->getVirtualSingleDatesForSemester($metadate_id, $sem_begin, $sem_end, $startAfterTimeStamp, $corr));
-        foreach ($dates_to_delete as $d) $d->delete();
-        foreach ($dates as $d) {
-            if ($d->isUpdate()) continue; //vorhandene Termine nicht speichern wg. chdate
-            $d->store();
-        }
-        $this->store();//? who knows
     }
 
     /**
