@@ -4,7 +4,7 @@
             <?= _('Regelmäßige Termine') ?>
         </h1>
         <nav>
-            <a data-dialog-button class="link-add"
+            <a class="link-add"
                href="<?= $controller->link_for('course/timesrooms/createCycle', $editParams) ?>"
                data-dialog="size=big"
                title="<?= _('Regelmäßigen Termin hinzufügen') ?>">
@@ -128,7 +128,7 @@
     <? else : ?>
         <section>
             <p class="text-center">
-                <strong><?= sprintf(_('Keine regelmäßige Termine für %s vorhanden'), htmlReady($course->name)) ?></strong>
+                <strong><?= _('Keine regelmäßige Termine vorhanden') ?></strong>
             </p>
         </section>
     <? endif; ?>

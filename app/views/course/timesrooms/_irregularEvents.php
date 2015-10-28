@@ -4,12 +4,12 @@
             <?= _('Unregelmäßige Termine / Blocktermine') ?>
         </h1>
         <nav>
-            <a data-dialog-button class="link-add"
+            <a class="link-add"
                href="<?= $controller->link_for('course/timesrooms/createSingleDate/' . $course_id, $editParams) ?>"
                data-dialog="size=big" title="<?= _('Neuen Einzeltermin') ?>">
                 <?= _('Neuen Einzeltermin') ?>
             </a>
-            <a data-dialog-button class="link-add"
+            <a class="link-add"
                href="<?= $controller->url_for('course/block_appointments/index/' . $course_id, $editParams) ?>"
                data-dialog="size=big"
                title="<? _('Blocktermin hinzufügen') ?>">
@@ -69,7 +69,7 @@
         <section>
             <p class="text-center">
                 <strong>
-                    <?= sprintf(_('Keine unregelmäßigen Termine für %s vorhanden'), $course->name) ?>
+                    <?= _('Keine unregelmäßigen Termine vorhanden') ?>
                 </strong>
             </p>
         </section>
