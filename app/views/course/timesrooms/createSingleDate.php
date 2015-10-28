@@ -5,7 +5,7 @@
         <label for="date">
             <?= _('Datum') ?>
         </label>
-        <input class="size-xl has-date-picker" type="text" name="date" id="date"
+        <input class="has-date-picker" type="text" name="date" id="date"
                value="<?= htmlReady(Request::get('date')) ?>" required />
     </section>
 
@@ -14,14 +14,14 @@
             <label for="start_time">
                 <?= _('Startzeit') ?>
             </label>
-            <input class="size-l has-time-picker" type="time" name="start_time" id="start_time"
+            <input class="has-time-picker" type="time" name="start_time" id="start_time"
                    value="<?= htmlReady(Request::get('start_time')) ?>" required>
         </div>
         <div style="display: inline-block">
             <label for="end_time">
                 <?= _('Endzeit') ?>
             </label>
-            <input class="size-l has-time-picker" type="time" name="end_time" id="end_time"
+            <input class="has-time-picker" type="time" name="end_time" id="end_time"
                    value="<?= htmlReady(Request::get('end_time')) ?>" required>
         </div>
     </section>
@@ -30,7 +30,7 @@
             <label for="room">
                 <?= _('Raum') ?>
             </label>
-            <select name="room" id="room" class="size-l">
+            <select name="room" id="room">
                 <option value="nothing"><?= _("KEINEN Raum buchen") ?></option>
                 <? $resList->reset();
                 if ($resList->numberOfRooms()) : ?>
@@ -54,7 +54,7 @@
         <label for="freeRoomText">
             <?= _('Freie Ortsangabe') ?>
         </label>
-        <input value="<?= htmlReady(Request::get('freeRoomText')) ?>" class="size-xl" id="freeRoomText"
+        <input value="<?= htmlReady(Request::get('freeRoomText')) ?>" id="freeRoomText"
                name="freeRoomText" type="text" maxlength="255">
         <? if (Config::get()->RESOURCES_ENABLE) : ?>
             <small style="display: block"><?= _('(führt <em>nicht</em> zu einer Raumbuchung)') ?></small>
@@ -64,7 +64,7 @@
     <section>
         <label for="related_teachers"><?= _('Durchführende Lehrende') ?></label>
         <? if (count($teachers)) : ?>
-            <select id="related_teachers" name="related_teachers[]" multiple class="size-xl multiple">
+            <select id="related_teachers" name="related_teachers[]" multiple class="multiple">
                 <? foreach ($teachers as $dozent) : ?>
                     <option <?= in_array($dozent['user_id'], Request::getArray('related_teachers')) ? 'selected' : '' ?>
                         value="<?= $dozent['user_id'] ?>"><?= htmlReady($dozent['fullname']) ?></option>
@@ -77,7 +77,7 @@
         <section>
             <label for="related_statusgruppen"><?= _('Beteiligte Gruppen') ?></label>
 
-            <select id="related_statusgruppen" name="related_statusgruppen[]" multiple class="size-xl multiple">
+            <select id="related_statusgruppen" name="related_statusgruppen[]" multiple class="multiple">
                 <? foreach ($groups as $group) : ?>
                     <option <?= in_array($group->getId(), Request::getArray('related_statusgruppen')) ? 'selected' : '' ?>
                         value="<?= $group->getId() ?>"><?= htmlReady($group['name']) ?></option>
@@ -90,7 +90,7 @@
         <label for="dateType">
             <?= _('Art'); ?>
         </label>
-        <select class="size-xl" id="dateType" name="dateType">
+        <select id="dateType" name="dateType">
             <? foreach ($GLOBALS['TERMIN_TYP'] as $key => $val) : ?>
                 <option <?= Request::get('dateType') == $key ? 'selected' : '' ?>
                     value="<?= $key ?>"><?= htmlReady($val['name']) ?></option>

@@ -4,7 +4,7 @@
         <label for="date">
             <?= _('Datum') ?>
         </label>
-        <input class="size-m has-date-picker" type="text" name="date" id="date"
+        <input class="has-date-picker" type="text" name="date" id="date"
                value="<?= $date->date ? strftime('%d.%m.%Y', $date->date) : '' ?>"/>
     </section>
 
@@ -13,14 +13,14 @@
             <label for="start_time">
                 <?= _('Startzeit') ?>
             </label>
-            <input class="size-l has-time-picker" type="time" name="start_time" id="start_time"
+            <input class="has-time-picker" type="time" name="start_time" id="start_time"
                    value="<?= $date->date ? strftime('%H:%M', $date->date) : '' ?>">
         </div>
         <div style="display: inline-block; width: 130px">
             <label for="end_time">
                 <?= _('Endzeit') ?>
             </label>
-            <input class="size-l has-time-picker" type="time" name="end_time" id="end_time"
+            <input class="has-time-picker" type="time" name="end_time" id="end_time"
                    value="<?= $date->end_time ? strftime('%H:%M', $date->end_time) : '' ?>">
         </div>
     </section>
@@ -29,7 +29,7 @@
         <label id="course_type">
             <?= _('Art') ?>
         </label>
-        <select class="size-m" name="course_type" id="course_type">
+        <select name="course_type" id="course_type">
             <? foreach ($GLOBALS['TERMIN_TYP'] as $id => $value) : ?>
                 <option value="<?= $id ?>"
                     <?= $date->date_typ == $id ? 'selected' : '' ?>>
@@ -67,7 +67,7 @@
             <label for="add_teacher">
                 <?= _('Lehrenden auswählen') ?>
             </label>
-            <select id="add_teacher" name="teachers" class="size-m">
+            <select id="add_teacher" name="teachers">
                 <option value="none"><?= _('Dozent/in auswählen') ?></option>
                 <? foreach ($dozenten as $dozent) : ?>
                     <option
@@ -97,7 +97,7 @@
                        id="room" <?= $date->room_assignment->resource_id ? 'checked' : '' ?> />
             </label>
 
-            <select name="room_sd" style="display: inline-block; margin-left: 40px" class="single_room size-m">
+            <select name="room_sd" style="display: inline-block; margin-left: 40px" class="single_room">
                 <option value=""><?= _('Wählen Sie einen Raum aus') ?></option>
                 <? foreach ($resList->resources as $room_id => $room) : ?>
                     <option value="<?= $room_id ?>"
@@ -115,7 +115,7 @@
             <input type="radio" name="room" value="freetext" <?= $date->raum ? 'checked' : '' ?>
                    style="display: inline"/>
         </label>
-        <input style="margin-left: 40px; display: inline-block" type="text" class="size-m"
+        <input style="margin-left: 40px; display: inline-block" type="text"
                name="freeRoomText_sd"
                placeholder="<?= _('freie Ortsangabe (keine Raumbuchung):') ?>"
                value="<?= $date->raum ? htmlReady($date->raum) : '' ?>"/>

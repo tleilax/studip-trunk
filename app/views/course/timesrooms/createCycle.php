@@ -14,7 +14,7 @@
         <label for="day">
             <?= _('Starttag') ?>
         </label>
-        <select class="size-xl" name="day" id="day">
+        <select name="day" id="day">
             <? foreach (range(1, 6) + array(6 => 0) as $d) : ?>
                 <option
                     value="<?= $d ?>"<?= (Request::int('day', !is_null($cycle) ? $cycle->weekday : null) === $d) ? 'selected' : (!Request::get('day', !is_null($cycle) ? $cycle->weekday : null) && $d == 1) ? 'selected' : '' ?>>
@@ -27,7 +27,7 @@
             <label for="start_time">
                 <?= _('Startzeit') ?>
             </label>
-            <input class="size-l has-time-picker" type="time" name="start_time" id="start_time"
+            <input class="has-time-picker" type="time" name="start_time" id="start_time"
                    value="<?= htmlReady(Request::get('start_time', !is_null($cycle) ? $cycle->start_time : null)) ?>"
                    required>
         </div>
@@ -35,7 +35,7 @@
             <label for="end_time">
                 <?= _('Endzeit') ?>
             </label>
-            <input class="size-l has-time-picker" type="time" name="end_time" id="end_time"
+            <input class="has-time-picker" type="time" name="end_time" id="end_time"
                    value="<?= htmlReady(Request::get('end_time', !is_null($cycle) ? $cycle->end_time : null)) ?>"
                    required>
         </div>
@@ -45,7 +45,7 @@
         <label for="description">
             <?= _('Beschreibung') ?>
         </label>
-        <input class="size-xl" type="text" name="description" id="description"
+        <input type="text" name="description" id="description"
                value="<?= Request::get('description', !is_null($cycle) ? $cycle->description : null) ?>"/>
     </section>
 
@@ -53,7 +53,7 @@
         <label for="cycle">
             <?= _('Turnus') ?>
         </label>
-        <select name="cycle" id="cycle" class="size-xl">
+        <select name="cycle" id="cycle">
             <option
                 value="0"<?= Request::int('cycle', !is_null($cycle) ? $cycle->cycle : null) === 0 ? 'selected' : '' ?>><?= _("wöchentlich"); ?></option>
             <option
@@ -67,7 +67,7 @@
         <label for="startWeek">
             <?= _('Startwoche') ?>
         </label>
-        <select name="startWeek" id="startWeek" class="size-xl">
+        <select name="startWeek" id="startWeek">
             <? foreach ($start_weeks as $value => $data) : ?>
                 <option
                     value=<?= $value ?> <?= Request::get('startWeek', !is_null($cycle) ? $cycle->week_offset : null) == $value ? 'selected' : '' ?>>
@@ -80,7 +80,7 @@
         <label for="endWeek">
             <?= _('Endwoche') ?>
         </label>
-        <select name="endWeek" id="endWeek" class="size-xl">
+        <select name="endWeek" id="endWeek">
             <option value="0"><?=_('Ganzes Semester')?></option>
             <? foreach ($start_weeks as $value => $data) : ?>
                 <option
@@ -96,7 +96,7 @@
             <?= _('SWS Dozent') ?>
         </label>
         <input type="text" value="<?= htmlReady(Request::get('teacher_sws', !is_null($cycle) && $cycle->sws != 0 ? $cycle->sws : '')) ?>"
-               class="size-s" name="teacher_sws"
+               name="teacher_sws"
                id="teacher_sws"/>
     </section>
 

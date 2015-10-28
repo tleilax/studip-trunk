@@ -3,7 +3,7 @@
     <section>
         <section <?= !Request::isXhr() ? 'style="display: inline-block; width: 45%"' : '' ?>>
             <label for="startSemester"><?= _('Startsemester') ?>:</label>
-            <select class="size-xl" name="startSemester" id="startSemester">
+            <select name="startSemester" id="startSemester">
                 <? foreach ($semester as $sem) : ?>
                     <option
                         value="<?= $sem->semester_id ?>" <?= $sem->semester_id == $course->start_semester->semester_id ? 'selected' : '' ?>>
@@ -14,7 +14,7 @@
         </section>
         <section <?= !Request::isXhr() ? 'style="display: inline-block; width: 48%"' : '' ?>>
             <label for="endSemester"><?= _('Dauer') ?>:</label>
-            <select class="size-xl" name="endSemester" id="endSemester">
+            <select name="endSemester" id="endSemester">
                 <option value="0"
                     <?= (int)$course->duration_time == 0 ? 'selected' : '' ?>>
                     <?= _('ein Semester') ?></option>

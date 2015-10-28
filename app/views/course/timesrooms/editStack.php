@@ -5,7 +5,7 @@
     <section>
         <label for="related_persons"><?= _('Durchführende Dozenten') ?></label>
 
-        <select name="related_persons_action" class="size-m"
+        <select name="related_persons_action" 
                 aria-label="<?= _('Wählen Sie aus, ob Dozenten den ausgewählten regelmäßigen Terminen hinzugefügt, von diesen entfernt oder für diese Termine definiert werden sollen.') ?>">
             <option value="">-- <?= _('Aktion auswählen') ?> --</option>
             <option value="add"
@@ -28,7 +28,7 @@
             <label for="related_groups">
                 <?= _('Betrifft die Gruppen') ?>
             </label>
-            <select name="related_groups_action" class="size-m"
+            <select name="related_groups_action" 
                     aria-label="<?= _("Wählen Sie aus, ob Dozenten den ausgewählten regelmäßigen Terminen hinzugefügt, von diesen entfernt oder für diese Termine definiert werden sollen.") ?>">
                 <option value="">-- <?= _('Aktion auswählen') ?> --</option>
                 <option value="add"
@@ -60,8 +60,7 @@
                 <input style="display: inline" type="radio" name="action" value="room" checked="checked" />
             </label>
 
-            <select name="room"
-                    onFocus="jQuery('input[type=radio][name=action][value=room]').attr('checked', 'checked')">
+            <select name="room" onFocus="jQuery('input[type=radio][name=action][value=room]').attr('checked', 'checked')">
                 <option value="">-- <?= _('Raum auswählen') ?> --</option>
                 <? while ($res = $resList->next()) : ?>
                     <option value="<?= $res['resource_id'] ?>">
@@ -88,7 +87,6 @@
             <input type="radio" name="action" value="freetext" style="display: inline"/>
         </label>
         <input type="text" name="freeRoomText" maxlength="255" value="<?= $tpl['freeRoomText'] ?>"
-               class="size-m"
                placeholder="<?= $placerholder ?>"
                onFocus="jQuery('input[type=radio][name=action][value=freetext]').attr('checked', 'checked')"/>
     </section>

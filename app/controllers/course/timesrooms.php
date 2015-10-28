@@ -85,15 +85,18 @@ class Course_TimesroomsController extends AuthenticatedController
         $editParams = array(
             'fromDialog' => Request::isXhr() ? 'true' : 'false',
         );
+
+        $linkAttributes = array();
+
         $semesterFormParams = array(
             'formaction' => $this->url_for('course/timesrooms/setSemester/' . $this->course->id)
         );
 
         if (Request::isXhr()) {
             $this->show = array('regular' => true, 'irregular' => true, 'roomRequest' => false);
-
             $semesterFormParams['data-dialog'] = 'size=big';
             $editParams['asDialog'] = true;
+            $linkAttributes['data-dialog'] = 'size=big';
         }
 
         if ($course_id) {
@@ -138,6 +141,7 @@ class Course_TimesroomsController extends AuthenticatedController
         }
         $this->semesterFormParams = $semesterFormParams;
         $this->editParams = $editParams;
+        $this->linkAttributes = $linkAttributes;
     }
 
     /**
@@ -193,12 +197,12 @@ class Course_TimesroomsController extends AuthenticatedController
         
         $this->related_persons = array();
         foreach(User::findDozentenByTermin_id($this->date->id) as $user){
-            $this->related_persons[] = $user->user_id; 
+            $this->related_persons[] = $user->user_id;
         }
         
         $this->related_groups = array();
         foreach(Statusgruppen::findByTermin_id($this->date->id) as $group){
-            $this->related_groups[] = $group->statusgruppe_id; 
+            $this->related_groups[] = $group->statusgruppe_id;
         }
     }
 
@@ -238,7 +242,7 @@ class Course_TimesroomsController extends AuthenticatedController
             $room_id = Request::option('room_sd', '0');
             
             if ($room_id != '0' && $room_id != $termin->room_assignment->resource_id) {
-                ResourceAssignment::deleteBySQL('assign_user_id = :termin', 
+                ResourceAssignment::deleteBySQL('assign_user_id = :termin',
                         array(':termin' => $termin->termin_id));
                 $resObj = new ResourceObject($room_id);
                 $termin->raum = '';
@@ -257,12 +261,12 @@ class Course_TimesroomsController extends AuthenticatedController
             }
         } elseif (Request::option('room') == 'noroom') {
             $termin->raum = '';
-            ResourceAssignment::deleteBySQL('assign_user_id = :termin', 
+            ResourceAssignment::deleteBySQL('assign_user_id = :termin',
                     array(':termin' => $termin->termin_id));
             $this->course->createMessage(sprintf(_('Der Termin %s wurde geändert, etwaige freie Ortsangaben und Raumbuchungen wurden entfernt.'), '<b>' . $termin->getFullname() . '</b>'));
         } elseif (Request::option('room') == 'freetext') {
             $termin->raum = Request::quoted('freeRoomText_sd');
-            ResourceAssignment::deleteBySQL('assign_user_id = :termin', 
+            ResourceAssignment::deleteBySQL('assign_user_id = :termin',
                     array(':termin' => $termin->termin_id));
             $this->course->createMessage(sprintf(_('Der Termin %s wurde geändert, etwaige Raumbuchungen wurden entfernt und stattdessen der angegebene Freitext eingetragen!'), '<b>' . $termin->getFullname() . '</b>'));
         }
@@ -452,7 +456,7 @@ class Course_TimesroomsController extends AuthenticatedController
             $ex_termin->content = '';
             $termin = $ex_termin->unCancelDate();
             if ($termin !== null) {
-                $this->course->createMessage(sprintf(_('Der Termin %s wurde wiederhergestellt!'), 
+                $this->course->createMessage(sprintf(_('Der Termin %s wurde wiederhergestellt!'),
                         $termin->getFullname()));
             }
         }
@@ -625,7 +629,7 @@ class Course_TimesroomsController extends AuthenticatedController
         foreach($singledates as $key => $singledate){
             if (Request::option('action') == 'room') {
                 $singledate->raum = '';
-                ResourceAssignment::deleteBySQL('assign_user_id = :termin', 
+                ResourceAssignment::deleteBySQL('assign_user_id = :termin',
                         array(':termin' => $singledate->termin_id));
                 $resObj = new ResourceObject($room_id);
                 $room = new ResourceAssignment();
@@ -636,7 +640,7 @@ class Course_TimesroomsController extends AuthenticatedController
                 $room->repeat_end = $singledate->end_time;
                 $singledates[$key]->room_assignment = $room;
             } else if (Request::option('action') == 'freetext') {
-                ResourceAssignment::deleteBySQL('assign_user_id = :termin', 
+                ResourceAssignment::deleteBySQL('assign_user_id = :termin',
                         array(':termin' => $singledate->termin_id));
                 $singledates[$key]->raum = Request::get('freeRoomText');
                 $this->course->createMessage(sprintf(_("Der Termin %s wurde geändert, etwaige "
@@ -644,7 +648,7 @@ class Course_TimesroomsController extends AuthenticatedController
                         . " eingetragen!"),
                         '<b>' . $singledate->getFullname() . '</b>'));
             } else if (Request::option('action') == 'noroom') {
-                ResourceAssignment::deleteBySQL('assign_user_id = :termin', 
+                ResourceAssignment::deleteBySQL('assign_user_id = :termin',
                         array(':termin' => $singledate->termin_id));
                 $singledates[$key]->raum = '';
             }
@@ -727,7 +731,7 @@ class Course_TimesroomsController extends AuthenticatedController
             $this->flash['request'] = Request::getInstance();
             $this->course->createError(_('Die regelmäßige Veranstaltungszeit konnte nicht hinzugefügt werden! Bitte überprüfen Sie Ihre Eingabe.'));
             $this->displayMessages();
-            $this->redirect('course/timesrooms/createSingleDate');
+            $this->redirect('course/timesrooms/createCycle');
         }
    }
 
@@ -746,7 +750,7 @@ class Course_TimesroomsController extends AuthenticatedController
 
         // Prepare Request for saving Request
         $cycle->start_time = sprintf('%02u:%02u:00', $startHour, $startMinute);
-        $cycle->end_time = sprintf('%02u:%02u:00', $endHour, $endMinute); 
+        $cycle->end_time = sprintf('%02u:%02u:00', $endHour, $endMinute);
         $cycle->weekday = Request::int('day');
         $cycle->description = studip_utf8decode(Request::get('description'));
         $cycle->sws = Request::get('teacher_sws');
@@ -776,7 +780,7 @@ class Course_TimesroomsController extends AuthenticatedController
         $data['end_minute'] = strftime('%M', strtotime(Request::get('end_time')));
         $data['sws'] = Request::get('teacher_sws');
         $data['endWeek'] = Request::get('endWeek');
-        */ 
+        */
        /*
         $new_start = mktime($data['start_stunde'], $data['start_minute']);
         $new_end = mktime($data['end_stunde'], $data['end_minute']);
@@ -844,7 +848,7 @@ class Course_TimesroomsController extends AuthenticatedController
                 $message = true;
             }
         }
-         * 
+         *
          */
         $cycle->store();
         

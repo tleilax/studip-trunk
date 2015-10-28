@@ -68,9 +68,8 @@
                             </a>
                             <?= Assets::input('icons/blue/trash', tooltip2(_('Diesen Zeitraum löschen')) + array(
                                     'formaction'   => $controller->url_for('course/timesrooms/deleteCycle/' . $metadate_id),
-                                    'data-dialog'  => 'size=big',
-                                    'data-confirm' => _('Soll dieser Zeitraum wirklich gelöscht werden?'),
-                                )) ?>
+                                    'data-confirm' => _('Soll dieser Zeitraum wirklich gelöscht werden?')
+                                ) + $linkAttributes) ?>
                         </span>
                         </nav>
                     </header>
