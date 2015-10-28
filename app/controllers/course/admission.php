@@ -15,6 +15,8 @@
 
 class Course_AdmissionController extends AuthenticatedController
 {
+    protected $utf8decode_xhr = true;
+
     /**
      * common tasks for all actions
      */
@@ -40,17 +42,7 @@ class Course_AdmissionController extends AuthenticatedController
         $this->user_id = $GLOBALS['user']->id;
         PageLayout::setHelpKeyword("Basis.VeranstaltungenVerwaltenZugangsberechtigungen");
         PageLayout::setTitle($this->course->getFullname()." - " ._("Verwaltung von Zugangsberechtigungen"));
-        if (Request::isXhr()) {
-            $this->set_layout(null);
-            $this->response->add_header('X-No-Buttons', 1);
-            $request = Request::getInstance();
-            foreach ($request as $key => $value) {
-                $request[$key] = studip_utf8decode($value);
-            }
-        } else {
-            $this->set_layout($GLOBALS['template_factory']->open('layouts/base'));
-        }
-        $this->set_content_type('text/html;charset=windows-1252');
+
         $lockrules = words('admission_turnout admission_type admission_endtime admission_binding passwort read_level write_level admission_prelim admission_prelim_txt admission_starttime admission_endtime_sem admission_disable_waitlist user_domain admission_binding admission_studiengang');
         foreach ($lockrules as $rule) {
             $this->is_locked[$rule] = LockRules::Check($this->course_id, $rule) ? 'disabled readonly' : '';
@@ -317,7 +309,12 @@ class Course_AdmissionController extends AuthenticatedController
                 PageLayout::postMessage(MessageBox::success(_("Die zugelassenen Nutzerdomänen wurden geändert.")));
             }
         }
-        $this->redirect($this->url_for('/index'));
+        if (Request::isXhr()) {
+            $this->response->add_header('X-Dialog-Close', 1);
+            $this->render_nothing();
+        } else {
+            $this->redirect($this->url_for('/index'));
+        }
     }
 
     function change_course_set_action()

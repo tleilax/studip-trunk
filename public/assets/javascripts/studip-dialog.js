@@ -196,6 +196,27 @@
                 ? $.parseJSON(xhr.responseText)
                 : xhr.responseText;
 
+        // Try to parse value as JSON (value might be {func: 'foo', payload: {}})
+        try {
+            value = $.parseJSON(value);
+        } catch (e) {
+            value = {func: value};
+        }
+
+        // Check for invalid call
+        if (!value.hasOwnProperty('func')) {
+            throw 'Dialog: Invalid value for X-Dialog-Execute';
+        }
+
+        // Populate payload if not set
+        if (!value.hasOwnProperty('payload')) {
+            value.payload = xhr.getResponseHeader('Content-Type').match(/json/)
+                          ? $.parseJSON(xhr.responseText)
+                          : xhr.responseText;
+        }
+
+        // Find callback
+        chunks = value.func.trim().split('.');
         $.each(chunks, function (index, chunk) {
             if (!callback.hasOwnProperty(chunk)) {
                 throw 'Dialog: Undefined callback ' + value;
@@ -203,10 +224,13 @@
             callback = callback[chunk];
         });
 
+        // Check callback
         if (typeof callback !== 'function') {
             throw 'Dialog: Given callback is not a valid function';
         }
-        return callback(payload, xhr);
+
+        // Execute callback
+        return callback(value.payload, xhr);
     };
     // Handler for HTTP header X-Dialog-Close: Close the dialog
     STUDIP.Dialog.handlers.header['X-Dialog-Close'] = function (value, options) {
