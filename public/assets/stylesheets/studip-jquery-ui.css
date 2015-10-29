@@ -295,7 +295,7 @@ input.ui-button {
 }
 .ui-buttonset .ui-button {
   margin-left: 0;
-  margin-right: -.3em;
+  margin-right: -0.3em;
 }
 /* workarounds */
 /* reset extra padding in Firefox, see h5bp.com/l */
@@ -676,8 +676,8 @@ button.ui-button::-moz-focus-inner {
   height: .8em;
 }
 .ui-slider-horizontal .ui-slider-handle {
-  top: -.3em;
-  margin-left: -.6em;
+  top: -0.3em;
+  margin-left: -0.6em;
 }
 .ui-slider-horizontal .ui-slider-range {
   top: 0;
@@ -694,9 +694,9 @@ button.ui-button::-moz-focus-inner {
   height: 100px;
 }
 .ui-slider-vertical .ui-slider-handle {
-  left: -.3em;
+  left: -0.3em;
   margin-left: 0;
-  margin-bottom: -.6em;
+  margin-bottom: -0.6em;
 }
 .ui-slider-vertical .ui-slider-range {
   left: 0;
@@ -1092,7 +1092,7 @@ input.ui-button {
 }
 .ui-buttonset .ui-button {
   margin-left: 0;
-  margin-right: -.3em;
+  margin-right: -0.3em;
 }
 /* workarounds */
 button.ui-button::-moz-focus-inner {
@@ -1448,8 +1448,8 @@ button.ui-button::-moz-focus-inner {
   height: .8em;
 }
 .ui-slider-horizontal .ui-slider-handle {
-  top: -.3em;
-  margin-left: -.6em;
+  top: -0.3em;
+  margin-left: -0.6em;
 }
 .ui-slider-horizontal .ui-slider-range {
   top: 0;
@@ -1466,9 +1466,9 @@ button.ui-button::-moz-focus-inner {
   height: 100px;
 }
 .ui-slider-vertical .ui-slider-handle {
-  left: -.3em;
+  left: -0.3em;
   margin-left: 0;
-  margin-bottom: -.6em;
+  margin-bottom: -0.6em;
 }
 .ui-slider-vertical .ui-slider-range {
   left: 0;
@@ -1583,9 +1583,9 @@ button.ui-button::-moz-focus-inner {
   position: absolute;
   z-index: 9999;
   max-width: 300px;
-  -webkit-box-shadow: 0 0 5px #a7abaf;
-  -moz-box-shadow: 0 0 5px #a7abaf;
-  box-shadow: 0 0 5px #a7abaf;
+  -webkit-box-shadow: 0 0 5px #a7aaaf;
+  -moz-box-shadow: 0 0 5px #a7aaaf;
+  box-shadow: 0 0 5px #a7aaaf;
 }
 /* Fades and background-images don't work well together in IE6, drop the image */
 * html .ui-tooltip {
@@ -1611,15 +1611,15 @@ body .ui-tooltip {
   font-size: 1em;
 }
 .ui-widget-content {
-  border: 1px solid #a7abaf;
+  border: 1px solid #a7aaaf;
   background: #ffffff url(../images/vendor/jquery-ui/ui-bg_inset-hard_100_fcfdfd_1x100.png) 50% bottom repeat-x;
-  color: #3c454e;
+  color: #3c434e;
 }
 .ui-widget-content a {
-  color: #3c454e;
+  color: #3c434e;
 }
 .ui-widget-header {
-  border: 1px solid #899bba;
+  border: 1px solid #899ab9;
   background: #7e92b0 url(../images/vendor/jquery-ui/ui-bg_gloss-wave_55_5c9ccc_500x100.png) 50% 50% repeat-x;
   color: #ffffff;
   font-weight: bold;
@@ -1634,7 +1634,7 @@ body .ui-tooltip {
 .ui-widget-content .ui-state-default,
 .ui-widget-header .ui-state-default {
   background: #e2e3e4;
-  border: 1px solid #d8dadc;
+  border: 1px solid #d8d9dc;
   color: #000;
   font-weight: bold;
 }
@@ -1653,7 +1653,7 @@ body .ui-tooltip {
 .ui-widget-content .ui-state-focus,
 .ui-widget-header .ui-state-focus {
   background: #28497c;
-  border: 1px solid #8a8f95;
+  border: 1px solid #8a8e95;
   color: #fff;
   font-weight: bold;
 }
@@ -1673,7 +1673,7 @@ body .ui-tooltip {
 .ui-widget-content .ui-state-active,
 .ui-widget-header .ui-state-active {
   background: #ffffff;
-  border: 1px solid #a7abaf;
+  border: 1px solid #a7aaaf;
   color: #000;
   font-weight: bold;
 }
@@ -1690,12 +1690,12 @@ body .ui-tooltip {
 .ui-widget-header .ui-state-highlight {
   border: 1px solid #ffbd33;
   background: #ffd785 url(../images/vendor/jquery-ui/ui-bg_flat_55_fbec88_40x100.png) 50% 50% repeat-x;
-  color: #3c454e;
+  color: #3c434e;
 }
 .ui-state-highlight a,
 .ui-widget-content .ui-state-highlight a,
 .ui-widget-header .ui-state-highlight a {
-  color: #3c454e;
+  color: #3c434e;
 }
 .ui-state-error,
 .ui-widget-content .ui-state-error,
@@ -2333,14 +2333,14 @@ body .ui-tooltip {
 }
 /* Overlays */
 .ui-widget-overlay {
-  background: #a7abaf url(../images/vendor/jquery-ui/ui-bg_flat_0_aaaaaa_40x100.png) 50% 50% repeat-x;
+  background: #a7aaaf url(../images/vendor/jquery-ui/ui-bg_flat_0_aaaaaa_40x100.png) 50% 50% repeat-x;
   opacity: .3;
   filter: alpha(opacity=30);
 }
 .ui-widget-shadow {
   margin: -8px 0 0 -8px;
   padding: 8px;
-  background: #a7abaf url(../images/vendor/jquery-ui/ui-bg_flat_0_aaaaaa_40x100.png) 50% 50% repeat-x;
+  background: #a7aaaf url(../images/vendor/jquery-ui/ui-bg_flat_0_aaaaaa_40x100.png) 50% 50% repeat-x;
   opacity: .3;
   filter: alpha(opacity=30);
   -moz-border-radius: 8px;
@@ -2370,7 +2370,7 @@ body .ui-tooltip {
   background: #fff;
 }
 .ui-widget-header {
-  background-color: #899bba;
+  background-color: #899ab9;
   background-image: none;
 }
 .ui-widget_columnl {
@@ -2387,7 +2387,7 @@ body .ui-tooltip {
   padding: 2%;
 }
 .ui-widget_head {
-  background-color: #899bba;
+  background-color: #899ab9;
   color: white;
   font-size: 1.3em;
   line-height: 30px;
@@ -2420,7 +2420,7 @@ body .ui-tooltip {
 .ui-state-active,
 .ui-widget-content .ui-state-active,
 .ui-widget-header .ui-state-active {
-  background-color: #899bba;
+  background-color: #899ab9;
   color: white;
 }
 .ui-datepicker-header .ui-icon {
@@ -2457,7 +2457,7 @@ body .ui-tooltip {
   background-image: none;
 }
 .ui-datepicker-calendar .ui-state-active {
-  color: #365a90;
+  color: #36598f;
 }
 .ui-datepicker-calendar .ui-state-active.ui-state-hover {
   color: white;
@@ -2633,7 +2633,7 @@ textarea.ui-resizable-handle.ui-resizable-s {
 }
 .ms-container .ms-selectable,
 .ms-container .ms-selection {
-  color: #3c454e;
+  color: #3c434e;
   width: 47%;
 }
 .ms-container .ms-selectable li.ms-elem-selectable,
@@ -2642,7 +2642,7 @@ textarea.ui-resizable-handle.ui-resizable-s {
 .ms-container .ms-selection li.ms-elem-selection {
   background: #fff;
   border-bottom-color: #e7ebf1;
-  color: #3c454e;
+  color: #3c434e;
   padding: 2px;
 }
 .ms-container .ms-selectable li,
@@ -2676,7 +2676,7 @@ textarea.ui-resizable-handle.ui-resizable-s {
 .ms-container .ms-selectable li.disabled,
 .ms-container .ms-selection li.disabled {
   background-color: #e7ebf1;
-  color: #3c454e;
+  color: #3c434e;
   cursor: not-allowed;
 }
 .ms-container .ms-selectable li[style*="background-image"],
@@ -2757,5 +2757,5 @@ textarea.ui-resizable-handle.ui-resizable-s {
   position: relative;
 }
 .ms-container .ms-optgroup-label {
-  color: #8a8f95;
+  color: #8a8e95;
 }

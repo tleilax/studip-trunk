@@ -719,7 +719,7 @@ table.default caption {
 table.default > caption {
   background-color: transparent;
   padding-top: 0px;
-  color: #3c454e;
+  color: #3c434e;
   font-size: 1.4em;
   text-align: left;
 }
@@ -760,7 +760,7 @@ table.default > tbody > tr:last-child > td {
   border-bottom: 1px solid #1f3f70;
 }
 table.default:not(.nohover) > tbody:not(.nohover) > tr:not(.nohover):hover > td:not(.nohover) {
-  background-color: rgba(109, 116, 122, 0.2);
+  background-color: rgba(109, 114, 122, 0.2);
 }
 table.default > tfoot > tr > td {
   background-color: #e7ebf1;
@@ -888,7 +888,7 @@ table.withdetails > tbody > tr:not(.details) > td:first-child > a {
   padding-left: 20px;
 }
 table.withdetails > tbody > tr.open > td {
-  background-color: rgba(109, 116, 122, 0.2);
+  background-color: rgba(109, 114, 122, 0.2);
 }
 table.withdetails > tbody > tr.open > td:first-child {
   background-image: url("../images/icons/blue/arr_1down.svg");
@@ -1004,12 +1004,10 @@ form.default select {
   -moz-box-sizing: border-box;
   box-sizing: border-box;
   border: 1px solid #c5c7ca;
-  color: #3c454e;
-  display: block;
+  color: #3c434e;
   max-width: 48em;
-  width: 100%;
-  margin-top: 1ex;
   padding: 5px;
+  width: 100%;
   -webkit-transition: all 0.3s ease-out;
   -moz-transition: all 0.3s ease-out;
   -o-transition: all 0.3s ease-out;
@@ -1057,6 +1055,17 @@ form.default label {
   margin-top: 1ex;
   max-width: 100%;
   text-indent: 0.25ex;
+}
+form.default label input[type=date],
+form.default label input[type=email],
+form.default label input[type=number],
+form.default label input[type=password],
+form.default label input[type=text],
+form.default label input[type=url],
+form.default label textarea,
+form.default label select {
+  display: block;
+  margin-top: 1ex;
 }
 form.default fieldset {
   -webkit-box-sizing: border-box;
@@ -1106,24 +1115,55 @@ form.default footer {
   padding-bottom: 5px;
 }
 form.default label.file-upload {
-  cursor: pointer;
-  padding-left: 30px;
-  background-image: url('../../../../assets/images/icons/blue/upload.svg');
+  background-image: url("../images/icons/blue/upload.svg");
+  -webkit-background-size: 16px 16px;
+  -moz-background-size: 16px 16px;
+  -o-background-size: 16px 16px;
+  background-size: 16px 16px;
   background-repeat: no-repeat;
   background-position: top left;
   background-size: 20px 20px;
+  cursor: pointer;
+  padding-left: 30px;
 }
 form.default label.file-upload input[type=file] {
   display: none;
 }
 form.default label.file-upload .filename {
   padding-left: 0.5em;
-  color: #8a8f95;
+  color: #8a8e95;
 }
-label.required:after {
-  color: red;
-  content: '*';
-  text-align: super;
+.js form.default.collapsable fieldset legend,
+form.default fieldset.collapsable legend {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  background-image: url("../images/icons/blue/arr_1down.svg");
+  -webkit-background-size: 20px 20px;
+  -moz-background-size: 20px 20px;
+  -o-background-size: 20px 20px;
+  background-size: 20px 20px;
+  background-position: 6px center;
+  background-repeat: no-repeat;
+  cursor: pointer;
+  padding-left: 20px;
+}
+.js form.default.collapsable fieldset.collapsed,
+form.default fieldset.collapsable.collapsed {
+  padding-bottom: 0;
+}
+.js form.default.collapsable fieldset.collapsed legend,
+form.default fieldset.collapsable.collapsed legend {
+  background-image: url("../images/icons/blue/arr_1right.svg");
+  -webkit-background-size: 20px 20px;
+  -moz-background-size: 20px 20px;
+  -o-background-size: 20px 20px;
+  background-size: 20px 20px;
+  margin-bottom: 0;
+}
+.js form.default.collapsable fieldset.collapsed *:not(legend),
+form.default fieldset.collapsable.collapsed *:not(legend) {
+  display: none;
 }
 .studip-checkbox {
   opacity: 0;
@@ -1218,7 +1258,7 @@ label.required:after {
   position: relative;
 }
 .css-tree ul:before {
-  border-left: 1px solid #8a8f95;
+  border-left: 1px solid #8a8e95;
   content: '';
   display: block;
   position: absolute;
@@ -1241,7 +1281,7 @@ label.required:after {
   height: 0;
   width: 8px;
   position: absolute;
-  border-top: 1px solid #8a8f95;
+  border-top: 1px solid #8a8e95;
   left: 0;
   top: 8px;
 }
@@ -1444,7 +1484,7 @@ label.required:after {
   text-align: right;
 }
 #footer {
-  color: #dfdfdf;
+  color: #ffffff;
   float: left;
   margin: 4px;
 }
@@ -1676,7 +1716,7 @@ label.required:after {
 #barBottommiddle,
 #barBottomright {
   background-color: #899ab9;
-  color: #fff;
+  color: #ffffff;
   height: 24px;
   line-height: 24px;
   padding: 0;
@@ -1751,13 +1791,13 @@ label.required:after {
 }
 #barBottomright a,
 #layout_footer a {
-  color: #dfdfdf;
+  color: #ffffff;
   margin: 0 6px;
   text-decoration: none;
 }
 #barBottomright a:hover,
 #layout_footer a:hover {
-  color: #fff;
+  color: #ececed;
 }
 #barBottomright ul,
 #layout_footer ul {
@@ -1925,8 +1965,8 @@ label.required:after {
   margin-top: 3px;
   height: 16px;
   font-size: 0.8em;
-  border: thin solid #cccccc;
-  color: #cccccc;
+  border: thin solid #ffffff;
+  color: #ffffff;
   text-align: center;
   line-height: 17px;
   vertical-align: text-bottom;
@@ -2199,7 +2239,7 @@ td.infoboxrahmen {
 }
 .sidebar {
   background: #fff;
-  border: 1px solid #8a8f95;
+  border: 1px solid #8a8e95;
   border-left: 0;
   display: inline-block;
   flex: 0 0 auto;
@@ -2207,7 +2247,7 @@ td.infoboxrahmen {
   position: relative;
 }
 .sidebar:before {
-  border-right: 2px solid #a7abaf;
+  border-right: 2px solid #a7aaaf;
   border-top: 2px solid transparent;
   border-bottom: 2px solid transparent;
   content: '';
@@ -2671,9 +2711,9 @@ select.sidebar-selectlist {
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
-  -webkit-box-shadow: 1px 1px 0 #8a8f95;
-  -moz-box-shadow: 1px 1px 0 #8a8f95;
-  box-shadow: 1px 1px 0 #8a8f95;
+  -webkit-box-shadow: 1px 1px 0 #8a8e95;
+  -moz-box-shadow: 1px 1px 0 #8a8e95;
+  box-shadow: 1px 1px 0 #8a8e95;
   background: #28497c;
   position: absolute;
   right: 12px;
@@ -3573,7 +3613,7 @@ form#quicksearch {
 input.quicksearchbox {
   background-color: #fff;
   border: 1px solid #485979;
-  color: #abb7ce;
+  color: #3c434e;
   font-size: 11px;
   padding-left: 2px;
   vertical-align: text-bottom;
@@ -3730,7 +3770,7 @@ div.clear {
 #tabs a,
 #tabs span.quiet,
 .smiley-tabs a {
-  color: #fff;
+  color: #ffffff;
   display: block;
   padding-left: 1.3em;
   padding-right: 1.3em;
@@ -4073,7 +4113,7 @@ a.hday {
   font-weight: bold;
 }
 span.kwmin {
-  color: #636a71;
+  color: #636971;
   font-weight: bold;
 }
 a.lightday {
@@ -4090,21 +4130,21 @@ a.lightsday {
 .precol1w {
   font-size: 12pt;
   font-weight: bold;
-  color: #6d747a;
+  color: #6d727a;
   text-align: center;
   vertical-align: top;
 }
 .precol2w {
   font-size: 8pt;
   font-weight: bold;
-  color: #6d747a;
+  color: #6d727a;
   text-align: center;
 }
 td.calhead,
 div.calhead {
   font-size: 18pt;
   font-weight: bold;
-  color: #6d747a;
+  color: #6d727a;
   text-align: center;
 }
 a:link.calhead {
@@ -4455,8 +4495,8 @@ table.calendar-week tbody tr td.calendar-category255,
 table.calendar-day tbody tr td.calendar-category255,
 table.calendar-week tbody tr td.calendar-course-category255,
 table.calendar-day tbody tr td.calendar-course-category255 {
-  background: linear-gradient(to right, #a7abaf, #c5c7ca) repeat-x #a7abaf;
-  border: solid 1px #a7abaf;
+  background: linear-gradient(to right, #a7aaaf, #c5c7ca) repeat-x #a7aaaf;
+  border: solid 1px #a7aaaf;
   vertical-align: top;
   font-size: 11px;
   color: #fff;
@@ -4466,7 +4506,7 @@ table.calendar-week tbody tr td.calendar-category255 div:first-child,
 table.calendar-day tbody tr td.calendar-category255 div:first-child,
 table.calendar-week tbody tr td.calendar-course-category255 div:first-child,
 table.calendar-day tbody tr td.calendar-course-category255 div:first-child {
-  background-color: #a7abaf;
+  background-color: #a7aaaf;
   overflow: hidden;
 }
 table.calendar-week tbody tr td.calendar-course-category256,
@@ -4537,7 +4577,7 @@ a.Calendar-course-event-text7 {
 }
 a.calendar-event-text255,
 a.Calendar-course-event-text255 {
-  color: #a7abaf;
+  color: #a7aaaf;
 }
 .calendar-tooltip {
   display: none;
@@ -5022,7 +5062,7 @@ div.index_container div.index_main nav div.login_link a {
 }
 div.index_container div.index_main nav div.login_link a p {
   font-size: 0.5em;
-  color: #6d747a;
+  color: #6d727a;
 }
 /* --- news --------------------------------------------------- */
 #news_dialog_content {
@@ -5547,7 +5587,7 @@ a.bookable_rooms_action {
 #main,
 #choices {
   width: 99%;
-  border: 1px solid #8a8f95;
+  border: 1px solid #8a8e95;
 }
 .studip-widget-wrapper {
   margin: 0 0 20px;
@@ -6120,7 +6160,7 @@ div.available-widgets .studip-widget {
   bottom: 0;
 }
 .modal-overlay-local {
-  background-color: rgba(109, 116, 122, 0.5);
+  background-color: rgba(109, 114, 122, 0.5);
   position: absolute;
 }
 .modal-overlay-ajax {
@@ -7783,7 +7823,7 @@ div.info {
   cursor: auto;
 }
 .length-hint {
-  color: #6d747a;
+  color: #6d727a;
 }
 .length-hint:before {
   content: '(';
