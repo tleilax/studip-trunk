@@ -1,11 +1,11 @@
-<form method="post" action="<?= $controller->url_for('course/timesrooms/saveStack/'. $cycle_id, $editParams) ?>" class="studip-form"
+<form method="post" action="<?= $controller->url_for('course/timesrooms/saveStack/' . $cycle_id, $editParams) ?>" class="studip-form"
       data-dialog="size=big">
-    <input type="hidden" name="method" value="edit"/>
+    <input type="hidden" name="method" value="edit" />
 
     <section>
         <label for="related_persons"><?= _('Durchführende Dozenten') ?></label>
 
-        <select name="related_persons_action" 
+        <select name="related_persons_action"
                 aria-label="<?= _('Wählen Sie aus, ob Dozenten den ausgewählten regelmäßigen Terminen hinzugefügt, von diesen entfernt oder für diese Termine definiert werden sollen.') ?>">
             <option value="">-- <?= _('Aktion auswählen') ?> --</option>
             <option value="add"
@@ -23,12 +23,12 @@
         </select>
     </section>
 
-     <? if (count($gruppen)) : ?>
+    <? if (count($gruppen)) : ?>
         <section>
             <label for="related_groups">
                 <?= _('Betrifft die Gruppen') ?>
             </label>
-            <select name="related_groups_action" 
+            <select name="related_groups_action"
                     aria-label="<?= _("Wählen Sie aus, ob Dozenten den ausgewählten regelmäßigen Terminen hinzugefügt, von diesen entfernt oder für diese Termine definiert werden sollen.") ?>">
                 <option value="">-- <?= _('Aktion auswählen') ?> --</option>
                 <option value="add"
@@ -49,7 +49,6 @@
             <br>
         </section>
     <? endif ?>
-   
 
 
     <p><strong><?= _('Raumangaben') ?></strong></p>
@@ -84,16 +83,16 @@
 
     <section>
         <label class="horizontal">
-            <input type="radio" name="action" value="freetext" style="display: inline"/>
+            <input type="radio" name="action" value="freetext" style="display: inline" />
         </label>
         <input type="text" name="freeRoomText" maxlength="255" value="<?= $tpl['freeRoomText'] ?>"
                placeholder="<?= $placerholder ?>"
-               onFocus="jQuery('input[type=radio][name=action][value=freetext]').attr('checked', 'checked')"/>
+               onFocus="jQuery('input[type=radio][name=action][value=freetext]').attr('checked', 'checked')" />
     </section>
     <? if (Config::get()->RESOURCES_ENABLE) : ?>
         <section>
             <label class="horizontal">
-                <input type="radio" name="action" value="noroom" style="display:inline"/>
+                <input type="radio" name="action" value="noroom" style="display:inline" />
                 <?= _('kein Raum') ?>
             </label>
         </section>
@@ -108,6 +107,8 @@
 
     <footer data-dialog-button>
         <?= Studip\Button::createAccept(_('Änderungen speichern'), 'save') ?>
-        <?= Studip\LinkButton::create(_('Zurück zur Übersicht'), $controller->url_for('course/timesrooms/index'), array('data-dialog' => 'size=big')) ?>
+        <? if (Request::get('fromDialog') == 'true') : ?>
+            <?= Studip\LinkButton::create(_('Zurück zur Übersicht'), $controller->url_for('course/timesrooms/index'), array('data-dialog' => 'size=big')) ?>
+        <? endif ?>
     </footer>
 </form>

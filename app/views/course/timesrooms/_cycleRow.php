@@ -1,5 +1,5 @@
 <? $is_exTermin =  $termin instanceof CourseExDate ?>
-<tr class="<?= $is_exTermin ? 'content_title_red' : '' ?> ">
+<tr>
     <td>
         <label for="<?= htmlReady($termin->termin_id) ?>">
             <input class="<?= $class_ids ?>" type="checkbox" id="<?= htmlReady($termin->termin_id) ?>"

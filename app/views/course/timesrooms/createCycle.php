@@ -46,7 +46,7 @@
             <?= _('Beschreibung') ?>
         </label>
         <input type="text" name="description" id="description"
-               value="<?= Request::get('description', !is_null($cycle) ? $cycle->description : null) ?>"/>
+               value="<?= Request::get('description', !is_null($cycle) ? $cycle->description : null) ?>" />
     </section>
 
     <section>
@@ -81,27 +81,29 @@
             <?= _('Endwoche') ?>
         </label>
         <select name="endWeek" id="endWeek">
-            <option value="0"><?=_('Ganzes Semester')?></option>
+            <option value="0"><?= _('Ganzes Semester') ?></option>
             <? foreach ($start_weeks as $value => $data) : ?>
                 <option
-                    value=<?= $value+1 ?> <?= Request::get('endWeek', ($cycle ? $cycle->end_offset : null)) == $value+1 ? 'selected' : '' ?>>
+                    value=<?= $value + 1 ?> <?= Request::get('endWeek', ($cycle ? $cycle->end_offset : null)) == $value + 1 ? 'selected' : '' ?>>
                     <?= htmlReady($data['text']) ?>
                 </option>
             <? endforeach ?>
         </select>
     </section>
- 
-   <section>
+
+    <section>
         <label for="teacher_sws">
             <?= _('SWS Dozent') ?>
         </label>
         <input type="text" value="<?= htmlReady(Request::get('teacher_sws', !is_null($cycle) && $cycle->sws != 0 ? $cycle->sws : '')) ?>"
                name="teacher_sws"
-               id="teacher_sws"/>
+               id="teacher_sws" />
     </section>
 
     <footer data-dialog-button>
         <?= Studip\Button::createAccept(_('Speichern'), 'save') ?>
-        <?= Studip\LinkButton::create(_('Zurück zur Übersicht'), $controller->url_for('course/timesrooms/index'), array('data-dialog' => 'size=big')) ?>
+        <? if (Request::get('fromDialog') == 'true') : ?>
+            <?= Studip\LinkButton::create(_('Zurück zur Übersicht'), $controller->url_for('course/timesrooms/index'), array('data-dialog' => 'size=big')) ?>
+        <? endif ?>
     </footer>
 </form>

@@ -1,25 +1,24 @@
-#raumzeit {
-    ul.termin_related {
+ul.termin_related {
+    padding: 0;
+    margin: 5px 0 10px 0;
+    li {
         padding: 0;
-        margin: 5px 0 10px 0;
-        li {
-            padding: 0;
-            margin: 0;
-            list-style: none;
-            position: relative;
-            width: 325px;
-        }
-    }
-
-    div.at_least_one_teacher {
+        margin: 0;
+        list-style: none;
+        position: relative;
         width: 325px;
     }
+}
 
-    a.bookable_rooms_action {
-        display: none;
-    }
+div.at_least_one_teacher {
+    width: 325px;
+}
 
-    .is_ex_termin {
-        color: @dark-gray-color-80;
-    }
+a.bookable_rooms_action {
+    display: none;
+}
+
+.is_ex_termin {
+    color: @dark-gray-color-80;
+    text-decoration: line-through;
 }

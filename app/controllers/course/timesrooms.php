@@ -23,19 +23,18 @@ class Course_TimesroomsController extends AuthenticatedController
     {
         parent::before_filter($action, $args);
 
-        $this->course_id = Request::get('cid', null);
+        if (Request::get('cid')) {
+            $this->course = Seminar::GetInstance(Request::get('cid'));
+        }
+
+        if(!$this->course) {
+            throw new Trails_Exception(404, _('Es wurd keine Veranstaltung ausgewählt!'));
+        }
 
         if (!$GLOBALS['perm']->have_studip_perm('tutor', $this->course_id)) {
             throw new Trails_Exception(400);
         }
-
-        /**
-         * @TODO: Wird das noch benötigt
-         */
-        if ($this->course_id) {
-            $this->course = Seminar::GetInstance($this->course_id);
-        }
-
+        
         if (Navigation::hasItem('course/admin/dates')) {
             Navigation::activateItem('course/admin/dates');
         }
@@ -45,9 +44,8 @@ class Course_TimesroomsController extends AuthenticatedController
         PageLayout::addSqueezePackage('raumzeit');
 
         $title = _('Verwaltung von Zeiten und Räumen');
-        if ($this->course) {
-            $title = $this->course->getFullname() . ' - ' . $title;
-        }
+        $title = $this->course->getFullname() . ' - ' . $title;
+
         PageLayout::setTitle($title);
 
         $_SESSION['raumzeitFilter'] = Request::quoted('newFilter');
@@ -186,7 +184,8 @@ class Course_TimesroomsController extends AuthenticatedController
         }
 
         $this->params['fromDialog'] = Request::get('fromDialog');
-        if(Request::int('fromDialog')) {
+
+        if(Request::get('fromDialog') == true) {
             $this->attributes['data-dialog'] = 'size=big';
         }
 
