@@ -715,7 +715,7 @@ class Course_TimesroomsController extends AuthenticatedController
         $cycle->start_time = sprintf('%02u:%02u:00', $startHour, $startMinute);
         $cycle->end_time = sprintf('%02u:%02u:00', $endHour, $endMinute);
 
-        if ($cycle->store()) {
+        if ($cycle->store(true)) {
             $cycle_info = $cycle->toString();
             NotificationCenter::postNotification("CourseDidChangeSchedule", $this);
             StudipLog::log("SEM_ADD_CYCLE", $this->course->id, NULL, $cycle_info);

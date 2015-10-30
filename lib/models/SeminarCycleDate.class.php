@@ -186,17 +186,17 @@ class SeminarCycleDate extends SimpleORMap
         return $all_data;
     }
     
-    function store(){
+    function store($new_cycle = false){
         $metadate_id = isset($this->metadate_id) ? $this->metadate_id : false;
-        
         //create new entry in seminare_cycle_date
-        if (!$metadate_id) {
+        if ($new_cycle) {
             $store = parent::store();
             if ($store) {
-                
                 $new_dates = $this->createTerminSlots();
-                foreach ($new_dates as $date) {
-                    $date->store();
+                foreach($new_dates as $semester_dates) {
+                    foreach ($semester_dates['dates'] as $date) {
+                        $date->store();
+                    }
                 }
             }
             return $store;
