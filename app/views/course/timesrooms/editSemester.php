@@ -1,8 +1,12 @@
 <form action="<?= $controller->url_for('course/timesrooms/set_semester/' . $course->id) ?>" method="post"
-      class="studip-form" <?= Request::isXhr() ? 'data-dialog="size=big"' : '' ?>>
-    <section>
-        <section <?= !Request::isXhr() ? 'style="display: inline-block; width: 45%"' : '' ?>>
-            <label for="startSemester"><?= _('Startsemester') ?>:</label>
+      class="default" <?= Request::isXhr() ? 'data-dialog="size=big"' : '' ?>>
+
+    <? if (!Request::isXhr()) : ?>
+    <fieldset>
+        <legend><?= _('Allgemeine Einstellungen') ?></legend>
+        <? endif ?>
+        <label for="startSemester">
+            <?= _('Startsemester') ?>
             <select name="startSemester" id="startSemester">
                 <? foreach ($semester as $sem) : ?>
                     <option
@@ -11,9 +15,10 @@
                     </option>
                 <? endforeach; ?>
             </select>
-        </section>
-        <section <?= !Request::isXhr() ? 'style="display: inline-block; width: 48%"' : '' ?>>
-            <label for="endSemester"><?= _('Dauer') ?>:</label>
+        </label>
+
+        <label for="endSemester">
+            <?= _('Dauer') ?>
             <select name="endSemester" id="endSemester">
                 <option value="0"
                     <?= (int)$course->duration_time == 0 ? 'selected' : '' ?>>
@@ -30,19 +35,18 @@
                     <?= (int)$course->duration_time == -1 ? 'selected' : '' ?>>
                     <?= _('unbegrenzt') ?></option>
             </select>
-        </section>
-    </section>
-    <? if (!Request::isXhr()) : ?>
-        <footer>
+        </label>
+        <? if (!Request::isXhr()) : ?>
+        <footer style="margin-top: 1ex">
             <?= Studip\Button::createAccept(_('Semester speichern'), 'save', $semesterFormParams) ?>
             <? if (Request::isXhr()) : ?>
                 <?= Studip\Button::createAccept(_('Semester speichern & schließen'), 'save_close', $semesterFormParams) ?>
             <? endif ?>
         </footer>
-    <? else : ?>
-        <div data-dialog-button>
-            <?= Studip\Button::createAccept(_('Semester speichern'), 'save_close') ?>
-        </div>
-    <? endif ?>
-
+    </fieldset>
+<? else : ?>
+    <div data-dialog-button>
+        <?= Studip\Button::createAccept(_('Semester speichern'), 'save_close') ?>
+    </div>
+<? endif ?>
 </form>

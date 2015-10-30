@@ -6,19 +6,19 @@
         <nav>
             <a class="link-add"
                href="<?= $controller->link_for('course/timesrooms/createSingleDate/' . $course_id, $editParams) ?>"
-               data-dialog="size=big" title="<?= _('Neuen Einzeltermin') ?>">
+               data-dialog="size=600" title="<?= _('Neuen Einzeltermin') ?>">
                 <?= _('Neuen Einzeltermin') ?>
             </a>
             <a class="link-add"
                href="<?= $controller->url_for('course/block_appointments/index/' . $course_id, $editParams) ?>"
-               data-dialog="size=big"
+               data-dialog="size=600"
                title="<? _('Blocktermin hinzufügen') ?>">
                 <?= _('Neuen Blocktermin') ?>
             </a>
         </nav>
     </header>
     <? if (!empty($single_dates)) : ?>
-        <form class="studip-form" action="<?= $controller->url_for('course/timesrooms/stack', $editParams) ?>"
+        <form class="default collapsable" action="<?= $controller->url_for('course/timesrooms/stack', $editParams) ?>"
               <?= Request::isXhr() ? 'data-dialog="size=big"' : ''?>  method="post">
             <table class="default nohover">
                 <colgroup>

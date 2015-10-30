@@ -6,7 +6,7 @@
         <nav>
             <a class="link-add"
                href="<?= $controller->link_for('course/timesrooms/createCycle', $editParams) ?>"
-               data-dialog="size=big"
+               data-dialog="size=600"
                title="<?= _('Regelmäßigen Termin hinzufügen') ?>">
                 <?= _('Regelmäßigen Termin hinzufügen') ?>
             </a>
@@ -31,7 +31,7 @@
             <? endif ?>
 
 
-            <form class="studip-form" action="<?= $controller->url_for('course/timesrooms/stack/' . $metadate_id, $editParams) ?>"
+            <form class="default collapsable" action="<?= $controller->url_for('course/timesrooms/stack/' . $metadate_id, $editParams) ?>"
                   method="post" <?= Request::isXhr() ? 'data-dialog="size=big"' : ''?>>
             <article id="<?= $metadate_id ?>"
                      class="<?= Request::get('contentbox_open') == $metadate_id ? 'open' : '' ?>">

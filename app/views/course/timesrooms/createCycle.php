@@ -1,6 +1,6 @@
 <form
     action="<?= $controller->url_for('course/timesrooms/' . ($cycle ? 'editCycle/' . $cycle->id : 'saveCycle'), $editParams) ?>"
-    class="studip-form" method="post"
+    class="default" method="post"
     <?= Request::isXhr() ? 'data-dialog="size=big"' : '' ?>>
     <?= CSRFProtection::tokenTag() ?>
 
@@ -10,50 +10,40 @@
     <? endif ?>
 
 
-    <section>
-        <label for="day">
-            <?= _('Starttag') ?>
-        </label>
-        <select name="day" id="day">
+    <label>
+        <?= _('Starttag') ?>
+        <select name="day">
             <? foreach (range(1, 6) + array(6 => 0) as $d) : ?>
                 <option
                     value="<?= $d ?>"<?= (Request::int('day', !is_null($cycle) ? $cycle->weekday : null) === $d) ? 'selected' : (!Request::get('day', !is_null($cycle) ? $cycle->weekday : null) && $d == 1) ? 'selected' : '' ?>>
-                    <?= getWeekday($d, false) ?></option>
+                    <?= getWeekday($d, false) ?>
+                </option>
             <? endforeach; ?>
         </select>
-    </section>
-    <section class="clearfix">
-        <div style="display: inline-block">
-            <label for="start_time">
-                <?= _('Startzeit') ?>
-            </label>
-            <input class="has-time-picker" type="time" name="start_time" id="start_time"
-                   value="<?= htmlReady(Request::get('start_time', !is_null($cycle) ? $cycle->start_time : null)) ?>"
-                   required>
-        </div>
-        <div style="display: inline-block">
-            <label for="end_time">
-                <?= _('Endzeit') ?>
-            </label>
-            <input class="has-time-picker" type="time" name="end_time" id="end_time"
-                   value="<?= htmlReady(Request::get('end_time', !is_null($cycle) ? $cycle->end_time : null)) ?>"
-                   required>
-        </div>
-    </section>
+    </label>
+    <label>
+        <?= _('Startzeit') ?>
+        <input class="has-time-picker" type="text" name="start_time"
+               value="<?= htmlReady(Request::get('start_time', !is_null($cycle) ? $cycle->start_time : null)) ?>"
+               required>
+    </label>
 
-    <section>
-        <label for="description">
-            <?= _('Beschreibung') ?>
-        </label>
-        <input type="text" name="description" id="description"
-               value="<?= Request::get('description', !is_null($cycle) ? $cycle->description : null) ?>" />
-    </section>
+    <label>
+        <?= _('Endzeit') ?>
+        <input class="has-time-picker" type="text" name="end_time"
+               value="<?= htmlReady(Request::get('end_time', !is_null($cycle) ? $cycle->end_time : null)) ?>"
+               required>
+    </label>
 
-    <section>
-        <label for="cycle">
-            <?= _('Turnus') ?>
-        </label>
-        <select name="cycle" id="cycle">
+    <label>
+        <?= _('Beschreibung') ?>
+        <input type="text" name="description"
+               value="<?= Request::get('description', !is_null($cycle) ? $cycle->description : null) ?>">
+    </label>
+
+    <label>
+        <?= _('Turnus') ?>
+        <select name="cycle">
             <option
                 value="0"<?= Request::int('cycle', !is_null($cycle) ? $cycle->cycle : null) === 0 ? 'selected' : '' ?>><?= _("wöchentlich"); ?></option>
             <option
@@ -61,13 +51,11 @@
             <option
                 value="2"<?= Request::int('cycle', !is_null($cycle) ? $cycle->cycle : null) == 2 ? 'selected' : '' ?>><?= _("dreiwöchentlich") ?></option>
         </select>
-    </section>
+    </label>
 
-    <section>
-        <label for="startWeek">
-            <?= _('Startwoche') ?>
-        </label>
-        <select name="startWeek" id="startWeek">
+    <label>
+        <?= _('Startwoche') ?>
+        <select name="startWeek">
             <? foreach ($start_weeks as $value => $data) : ?>
                 <option
                     value=<?= $value ?> <?= Request::get('startWeek', !is_null($cycle) ? $cycle->week_offset : null) == $value ? 'selected' : '' ?>>
@@ -75,12 +63,11 @@
                 </option>
             <? endforeach ?>
         </select>
-    </section>
-    <section>
-        <label for="endWeek">
-            <?= _('Endwoche') ?>
-        </label>
-        <select name="endWeek" id="endWeek">
+    </label>
+
+    <label>
+        <?= _('Endwoche') ?>
+        <select name="endWeek">
             <option value="0"><?= _('Ganzes Semester') ?></option>
             <? foreach ($start_weeks as $value => $data) : ?>
                 <option
@@ -89,16 +76,13 @@
                 </option>
             <? endforeach ?>
         </select>
-    </section>
-
-    <section>
-        <label for="teacher_sws">
-            <?= _('SWS Dozent') ?>
-        </label>
+    </label>
+    <label for="teacher_sws">
+        <?= _('SWS Dozent') ?>
         <input type="text" value="<?= htmlReady(Request::get('teacher_sws', !is_null($cycle) && $cycle->sws != 0 ? $cycle->sws : '')) ?>"
                name="teacher_sws"
-               id="teacher_sws" />
-    </section>
+               id="teacher_sws">
+    </label>
 
     <footer data-dialog-button>
         <?= Studip\Button::createAccept(_('Speichern'), 'save') ?>

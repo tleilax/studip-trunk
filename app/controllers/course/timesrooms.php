@@ -185,8 +185,10 @@ class Course_TimesroomsController extends AuthenticatedController
 
         $this->params['fromDialog'] = Request::get('fromDialog');
 
-        if(Request::get('fromDialog') == true) {
+        if(Request::get('fromDialog') == "true") {
             $this->attributes['data-dialog'] = 'size=big';
+        } else {
+            $this->attributes['fromDialog'] = 'false';
         }
 
         $this->resList = ResourcesUserRoomsList::getInstance($GLOBALS['user']->id, true, false, true);

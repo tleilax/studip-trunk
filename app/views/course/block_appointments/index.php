@@ -3,115 +3,98 @@
 <? endif ?>
 
 <form <?= Request::isXhr() ? 'data-dialog="size=big"' : '' ?>
-    class="studip-form"
+    class="default collapsable"
     action="<?= $controller->url_for('course/block_appointments/save/' . $course_id, $editParams) ?>"
     method="post">
 
-    <fieldset class="clearfix">
+    <fieldset>
         <legend><?= _('Die Veranstaltung findet in folgendem Zeitraum statt') ?></legend>
-        <section style="float: left; width:50%">
-            <label for="block_appointments_start_day">
-                <?= _('Startdatum') ?>
-            </label>
+        <label for="block_appointments_start_day">
+            <?= _('Startdatum') ?>
             <input type="text" class="size-m has-date-picker" id="block_appointments_start_day"
-                   name="block_appointments_start_day" value="<?= $request['block_appointments_start_day'] ?>"/>
-        </section>
-        <section style="float: right; width:50%">
-            <label for="block_appointments_end_day">
-                <?= _('Enddatum') ?>
-            </label>
+                   name="block_appointments_start_day" value="<?= $request['block_appointments_start_day'] ?>">
+        </label>
+        <label for="block_appointments_end_day">
+            <?= _('Enddatum') ?>
             <input type="text" class="size-m has-date-picker" id="block_appointments_end_day"
-                   name="block_appointments_end_day" value="<?= $request['block_appointments_end_day'] ?>"/>
-        </section>
-    </fieldset>
-
-    <fieldset class="clearfix">
-        <legend><?= _('Die Veranstaltung findet zu folgenden Zeiten statt') ?></legend>
-        <section style="float: left; width:50%">
-            <label for="block_appointments_start_time">
-                <?= _('Startzeit') ?>
-            </label>
-            
-            <input type="time" class="size-m has-time-picker" id="block_appointments_start_time"
-                   name="block_appointments_start_time" value="<?= $request['block_appointments_start_time'] ?>"/>
-        </section>
-        <section style="float: left; width:50%">
-            <label for="block_appointments_end_time">
-                <?= _('Endzeit') ?>
-            </label>
-            <input type="time" class="size-m has-time-picker" id="block_appointments_end_time"
-                   name="block_appointments_end_time" value="<?= $request['block_appointments_end_time'] ?>"/>
-        </section>
-        </section>
+                   name="block_appointments_end_day" value="<?= $request['block_appointments_end_day'] ?>">
+        </label>
     </fieldset>
 
     <fieldset>
+        <legend><?= _('Die Veranstaltung findet zu folgenden Zeiten statt') ?></legend>
+        <label for="block_appointments_start_time">
+            <?= _('Startzeit') ?>
+            <input type="text" class="size-m has-time-picker" id="block_appointments_start_time"
+                   name="block_appointments_start_time" value="<?= $request['block_appointments_start_time'] ?>">
+        </label>
+
+        <label for="block_appointments_end_time">
+            <?= _('Endzeit') ?>
+            <input type="text" class="size-m has-time-picker" id="block_appointments_end_time"
+                   name="block_appointments_end_time" value="<?= $request['block_appointments_end_time'] ?>">
+        </label>
+
+    </fieldset>
+
+    <fieldset class="collapsed">
         <legend><?= _('Weitere Daten') ?></legend>
-        <section>
-            <label for="block_appointments_termin_typ">
-                <?= _('Art der Termine') ?>
-            </label>
+        <label for="block_appointments_termin_typ">
+            <?= _('Art der Termine') ?>
             <select clas="size-l" name="block_appointments_termin_typ" id="block_appointments_termin_typ">
                 <? foreach ($GLOBALS['TERMIN_TYP'] as $key => $value) : ?>
-                    <option value="<?= $key ?>" <?= $request['block_appointments_termin_typ'] == $key ? 'selected' : '' ?>>
+                    <option
+                        value="<?= $key ?>" <?= $request['block_appointments_termin_typ'] == $key ? 'selected' : '' ?>>
                         <?= htmlReady($value['name']) ?>
                     </option>
                 <? endforeach ?>
             </select>
-        </section>
-        <section>
-            <label for="block_appointments_room_text">
-                <?= _('freie Ortsangabe') ?>
-            </label>
+        </label>
+        <label for="block_appointments_room_text">
+            <?= _('freie Ortsangabe') ?>
             <input type="text" name="block_appointments_room_text" id="block_appointments_room_text"
-                   value="<?= $request['block_appointments_room_text'] ?>"/>
-        </section>
+                   value="<?= $request['block_appointments_room_text'] ?>">
+        </label>
     </fieldset>
 
-    <fieldset>
+    <fieldset class="collapsed">
         <legend><?= _('Mehrere Termine parallel anlegen') ?></legend>
-
-        <section>
-            <label for="block_appointments_date_count">
-                <?= _('Anzahl') ?>
-            </label>
+        <label for="block_appointments_date_count">
+            <?= _('Anzahl') ?>
             <select name="block_appointments_date_count" id="block_appointments_date_count" class="size-s">
                 <? foreach (range(1, 5) as $day) : ?>
-                    <option value="<?= $day ?>" <?= $request['block_appointments_date_count'] == $day ? 'selected' : '' ?>><?= $day ?></option>
+                    <option
+                        value="<?= $day ?>" <?= $request['block_appointments_date_count'] == $day ? 'selected' : '' ?>><?= $day ?></option>
                 <? endforeach ?>
             </select>
-        </section>
+        </label>
+
     </fieldset>
 
-    <fieldset id="block_appointments_days">
+    <fieldset class="collapsed" id="block_appointments_days">
         <legend><?= _('Die Veranstaltung findet an folgenden Tagen statt') ?></legend>
-        <div>
+        <label for="block_appointments_days_0" class="horizontal" style="font-weight:normal">
             <input <?= !is_array($request['block_appointments_day']) ? '' : (in_array('everyday', $request['block_appointments_days']) ? 'checked ' : '') ?>
                 class="block_appointments_days"
-                name="block_appointments_days[]" id="block_appointments_days_0" type="checkbox" value="everyday"/>
-            <label for="block_appointments_days_0" class="horizontal" style="font-weight:normal">
-                <?= _('Jeden Tag') ?>
-            </label>
-        </div>
-        <div>
+                name="block_appointments_days[]" id="block_appointments_days_0" type="checkbox" value="everyday">
+            <?= _('Jeden Tag') ?>
+        </label>
+
+        <label for="block_appointments_days_1" class="horizontal" style="font-weight:normal">
             <input <?= !is_array($request['block_appointments_day']) ? '' : (in_array('everyday', $request['block_appointments_days']) ? 'checked ' : '') ?>
                 class="block_appointments_days"
-                name="block_appointments_days[]" id="block_appointments_days_1" type="checkbox" value="weekdays"/>
-            <label for="block_appointments_days_1" class="horizontal" style="font-weight:normal">
-                <?= _('Mo-Fr') ?>
-            </label>
-        </div>
+                name="block_appointments_days[]" id="block_appointments_days_1" type="checkbox" value="weekdays">
+            <?= _('Mo-Fr') ?>
+        </label>
         <? foreach (range(0, 6) as $d) : ?>
             <? $id = 2 + $d ?>
-            <div>
+            <label for="block_appointments_days_<?= $id ?>" class="horizontal" style="font-weight: normal">
                 <input <?= !is_array($request['block_appointments_day']) ? '' : (in_array('everyday', $request['block_appointments_days']) ? 'checked ' : '') ?>
                     class="block_appointments_days"
                     name="block_appointments_days[]" id="block_appointments_days_<?= $id ?>" type="checkbox"
-                    value="<?= $d + 1 ?>"/>
-                <label for="block_appointments_days_<?= $id ?>" class="horizontal" style="font-weight: normal">
-                    <?= strftime('%A', strtotime("+$d day", $start_ts)) ?>
-                </label>
-            </div>
+                    value="<?= $d + 1 ?>">
+                <?= strftime('%A', strtotime("+$d day", $start_ts)) ?>
+            </label>
         <? endforeach ?>
     </fieldset>
 

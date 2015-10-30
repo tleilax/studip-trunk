@@ -1,12 +1,5 @@
 <? if (!Request::isXhr()): ?>
-    <section class="contentbox clearfix">
-        <header>
-            <h1>
-                <?= _('Allgemeine Einstellungen') ?>
-            </h1>
-        </header>
-        <?= $this->render_partial('course/timesrooms/editSemester.php') ?>
-    </section>
+    <?= $this->render_partial('course/timesrooms/editSemester.php') ?>
 <? else : ?>
     <?= $this->render_partial('course/timesrooms/_select_semester_range.php') ?>
 <? endif ?>
