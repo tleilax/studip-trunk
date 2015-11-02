@@ -213,7 +213,7 @@ class Admin_RoleController extends AuthenticatedController
                 $this->users = $this->search_user($username);
 
                 if (count($this->users) === 0) {
-                    $this->error = _('Es wurde kein Benutzer gefunden.');
+                    $this->error = _('Es wurde keine Person gefunden.');
                     $this->username = $username;
                 }
             }
@@ -523,7 +523,7 @@ class Admin_RoleController extends AuthenticatedController
         $views->addLink(_('Rollen verwalten'),
                           $this->url_for('admin/role'))
                 ->setActive($action === 'index');
-        $views->addLink(_('Benutzerzuweisungen bearbeiten'),
+        $views->addLink(_('Personenzuweisungen bearbeiten'),
                           $this->url_for('admin/role/assign_role'))
                 ->setActive($action === 'assign_role');
         $views->addLink(_('Pluginzuweisungen bearbeiten'),

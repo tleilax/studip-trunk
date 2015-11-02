@@ -14,10 +14,10 @@
                                 'default_subject' => $subject))
                     ?>" data-dialog>
                         <?= Assets::img('icons/16/blue/inbox.png',
-                                tooltip2(sprintf(_('Nachricht an alle %s versenden'), 'vorläufig akzeptierten NutzerInnen')))?>
+                                tooltip2(sprintf(_('Nachricht an alle %s versenden'), 'vorläufig akzeptierten Nutzer/-innen')))?>
                     </a>
             </span>
-            <?= _('Vorläufig akzeptierte TeilnehmerInnen') ?>
+            <?= _('Vorläufig akzeptierte Teilnehmende') ?>
         </caption>
         <colgroup>
             <? if (!$is_locked) : ?>
@@ -71,7 +71,7 @@
                     <a style="position: relative" href="<?= $controller->url_for(sprintf('profile?username=%s',$accept['username'])) ?>">
                     <?= Avatar::getAvatar($accept['user_id'], $accept['username'])->getImageTag(Avatar::SMALL,
                             array('style' => 'margin-right: 5px','title' => htmlReady($fullname))); ?>
-                    <?= $accept['mkdate'] >= $last_visitdate ? Assets::img('red_star.png',
+                    <?= $accept['mkdate'] >= $last_visitdate ? Assets::img('red_star',
                         array('style' => 'position: absolute; margin: 0px 0px 0px -15px')) : '' ?>
                     <?= htmlReady($fullname) ?>
                     </a>

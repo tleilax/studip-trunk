@@ -11,7 +11,6 @@
 @import "less/links.less";
 @import "less/tables.less";
 @import "less/forms.less";
-@import "less/studip-form.less";
 @import "less/content.less";
 @import "less/css_tree.less";
 
@@ -65,6 +64,9 @@
 @import "less/big-image-handler.less";
 
 @import "less/responsive.less";
+
+@import "less/deprecated.less";
+
 
 // Class for DOM elements that should only be visible to Screen readers
 .sr-only {
@@ -402,7 +404,6 @@ h1:hover, h2:hover, h3:hover, h4:hover {
     color: #000;
     display: none;
     font-size: 11px;
-    height: 15px;
     padding: 4px 10px;
 
     p { margin: 0; }
@@ -542,16 +543,6 @@ div.info { padding-left: 1%; }
     cursor: auto;
 }
 
-.length-hint {
-    color: @light-gray-color;
-    &:before {
-        content: '(';
-    }
-    &:after {
-        content: ')';
-    }
-}
-
 .svg-input {
     input {
         display: none;
@@ -559,4 +550,27 @@ div.info { padding-left: 1%; }
     svg, img {
         cursor: pointer;
     }
+}
+
+// calculate difference in images and apply filter
+.recolor() {
+    filter:
+    hue-rotate(unit(hsvhue(@base-color)-hsvhue(#28497c), deg))
+    saturate(100 + hsvsaturation(@base-color)-hsvsaturation(#28497c))
+    brightness(100 + hsvvalue(@base-color)-hsvvalue(#28497c));
+}
+
+.recolor-reset() {
+    filter:
+    hue-rotate(unit(hsvhue(#28497c)-hsvhue(@base-color), deg))
+    saturate(100% - hsvsaturation(@base-color)+hsvsaturation(#28497c))
+    brightness(100% - hsvvalue(@base-color)+hsvvalue(#28497c));
+}
+
+#barTopMenu li a, div#layout-sidebar div.sidebar-image img {
+    .recolor;
+}
+
+.recolor {
+    .recolor();
 }

@@ -93,14 +93,14 @@
             <th><?= _('Raum/Zeit') ?></th>
         <? endif ?>
         <? if (in_array('teachers', $view_filter)) : ?>
-            <th><?= _('DozentIn') ?></th>
+            <th><?= _('Lehrende') ?></th>
         <? endif ?>
         <? if (in_array('members', $view_filter)) : ?>
             <th <?= ($sortby == 'teilnehmer') ? sprintf('class="sort%s"', strtolower($sortFlag)) : '' ?>>
                 <a href="<?=
                 URLHelper::getLink('', array('sortby'   => 'teilnehmer',
                                              'sortFlag' => strtolower($sortFlag))) ?>">
-                    <abbr title="<?= _('Teilnehmer/-innen') ?>">
+                    <abbr title="<?= _('Teilnehmende') ?>">
                         <?= _('TN') ?>
                     </abbr>
                 </a>
@@ -201,14 +201,14 @@
             <? endif ?>
             <? if (in_array('members', $view_filter)) : ?>
                 <td style="text-align: center;">
-                    <a title="<?=_('TeilnehmerInnen')?>" href="<?= URLHelper::getLink('dispatch.php/course/members', array('cid' => $semid))?>">
-                        <?= $values["teilnehmer"] ?>
+                    <a title="<?=_('Teilnehmende')?>" href="<?= URLHelper::getLink('dispatch.php/course/members', array('cid' => $semid))?>">
+                        <?= $values["Teilnehmende"] ?>
                     </a>
                 </td>
             <? endif ?>
             <? if (in_array('waiting', $view_filter)) : ?>
                 <td style="text-align: center;">
-                    <a title="<?=_('TeilnehmerInnen auf der Warteliste')?>" href="<?= URLHelper::getLink('dispatch.php/course/members', array('cid' => $semid))?>">
+                    <a title="<?=_('Teilnehmende auf der Warteliste')?>" href="<?= URLHelper::getLink('dispatch.php/course/members', array('cid' => $semid))?>">
                         <?= $values["waiting"] ?>
                     </a>
                 </td>

@@ -18,7 +18,7 @@
                 <? if (Config::get()->ALLOW_DOZENT_VISIBILITY) : ?>
                     <? $infotext .= _("Um die Studiengruppe sichtbar zu machen, wählen Sie den Punkt \"Sichtbarkeit\" im Administrationsbereich der Veranstaltung."); ?>
                 <? else : ?>
-                    <? $infotext .= _("Um die Studiengruppe sichtbar zu machen, wenden Sie sich an eineN der zuständigen AdministratorInnen."); ?>
+                    <? $infotext .= _("Um die Studiengruppe sichtbar zu machen, wenden Sie sich an die Admins."); ?>
                 <? endif ?>
                 <?= _("[versteckt]") ?>
                 <?= tooltipicon($infotext) ?>
@@ -59,7 +59,7 @@
 
             <? elseif ($group["binding"]) : ?>
                 <a href="<?= URLHelper::getLink('', array('auswahl' => $group['seminar_id'], 'cmd' => 'no_kill')) ?>">
-                    <?= Assets::img('icons/20/grey/decline/door-leave.png', tooltip2(_("Das Abonnement ist bindend. Bitte wenden Sie sich an die Dozentin oder den Dozenten."))) ?>
+                    <?= Assets::img('icons/20/grey/decline/door-leave.png', tooltip2(_("Die Teilnahme ist bindend. Bitte wenden Sie sich an die Lehrenden."))) ?>
                 </a>
             <?
             else : ?>
