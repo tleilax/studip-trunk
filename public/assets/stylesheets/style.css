@@ -1234,6 +1234,18 @@ form.default .length-hint-wrapper > * {
   -moz-box-flex: 1;
   flex: 1 0 100%;
 }
+form.default.inline label {
+  display: inline;
+  max-width: inherit;
+  vertical-align: middle;
+  width: auto;
+}
+form.default.inline input,
+form.default.inline textarea,
+form.default.inline select,
+form.default.inline button {
+  display: inline-block;
+}
 .studip-checkbox {
   opacity: 0;
   position: absolute;
@@ -5487,6 +5499,24 @@ td.schedule-adminbind > span {
   background-color: #000000;
   opacity: 0.5;
   position: absolute;
+}
+ul.studygroup-gallery {
+  list-style: none;
+  padding-left: 15px;
+}
+ul.studygroup-gallery li {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  vertical-align: top;
+  text-align: center;
+  margin: 5px;
+  width: 150px;
+  height: 150px;
+  display: inline-blocK;
+}
+ul.studygroup-gallery li section {
+  margin: 0 auto;
 }
 div.wikitoc {
   font-size: 1em;
