@@ -393,6 +393,8 @@ class Admin_RoleController extends AuthenticatedController
      */
     public function remove_user_action($role_id, $user_id)
     {
+        CSRFProtection::verifyUnsafeRequest();
+
         $role = self::getRole($role_id);
         $ids  = $this->getUsers($role_id, $user_id);
 
@@ -410,27 +412,68 @@ class Admin_RoleController extends AuthenticatedController
         $this->redirect('admin/role/show_role/' . $role_id);
     }
 
-    public function add_plugin_action($role_id, $plugin_id)
+    /**
+     *
+     */
+    public function add_plugin_action($role_id)
     {
+        PageLayout::setTitle(_('Plugins zur Rolle hinzufügen'));
+
         if (Request::isPost()) {
-            
-        }
+            CSRFProtection::verifyUnsafeRequest();
 
-        $plugins = PluginManager::getInstance()->getPluginInfos();
-        $assigned = array();
+            $plugin_ids = Request::intArray('plugin_ids');
 
-        foreach ($plugins as $plugin) {
-            if ($this->check_role_access($plugin, $role_id)) {
-                $assigned[] = $plugin['id'];
+            if (count($plugin_ids) > 0) {
+                foreach ($plugin_ids as $id) {
+                    RolePersistence::assignPluginRoles($id, array($role_id));
+                }
+
+                $template = ngettext('Der Rolle wurde ein weiteres Plugin hinzugefügt.',
+                                     'Der Rolle wurden %u weitere Plugins hinzugefügt.',
+                                     count($plugin_ids));
+                $message = sprintf($template, count($plugin_ids));
+                PageLayout::postMessage(MessageBox::success($message));
             }
+
+            $this->redirect('admin/role/show_role/' . $role_id);
         }
 
-        $this->plugins  = $plugins;
-        $this->assigned = $assigned;
+        $this->role_id = $role_id;
+
+        $plugins    = PluginManager::getInstance()->getPluginInfos();
+        $controller = $this;
+
+        $this->plugins = array_filter($plugins, function ($plugin) use ($controller, $role_id) {
+            return !$controller->check_role_access($plugin, $role_id);
+        });
     }
 
     /**
-     * 
+     *
+     */
+    public function remove_plugin_action($role_id, $plugin_id)
+    {
+        CSRFProtection::verifyUnsafeRequest();
+
+        $role = self::getRole($role_id);
+        $ids  = $this->getPlugins($role_id, $plugin_id);
+
+        foreach ($ids as $id) {
+            RolePersistence::deleteAssignedPluginRoles($id, array($role_id));
+        }
+
+        $template = ngettext('Einem Plugin wurde die Rolle entzogen.',
+                             '%u Plugins wurde die Rolle entzogen.',
+                             count($ids));
+        $message = sprintf($template, count($ids));
+        PageLayout::postMessage(MessageBox::success($message));
+
+        $this->redirect('admin/role/show_role/' . $role_id);
+    }
+
+    /**
+     *
      */
     private function getUsers($role_id, $user_id)
     {
@@ -449,7 +492,21 @@ class Admin_RoleController extends AuthenticatedController
     }
 
     /**
-     * 
+     *
+     */
+    private function getPlugins($role_id, $plugin_id)
+    {
+        // From form
+        if (Request::getInstance()->offsetExists('ids')) {
+            return Request::optionArray('ids');
+        }
+
+        // From url
+        return array($plugin_id);
+    }
+
+    /**
+     *
      */
     protected function getMultiPersonSearch($role_id)
     {
