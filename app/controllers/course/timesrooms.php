@@ -34,7 +34,7 @@ class Course_TimesroomsController extends AuthenticatedController
         if (!$GLOBALS['perm']->have_studip_perm('tutor', $this->course_id)) {
             throw new Trails_Exception(400);
         }
-        
+
         if (Navigation::hasItem('course/admin/dates')) {
             Navigation::activateItem('course/admin/dates');
         }

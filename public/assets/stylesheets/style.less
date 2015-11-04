@@ -47,6 +47,7 @@
 @import "less/schedule.less";
 @import "less/study-area-selection.less";
 @import "less/tour.less";
+@import "less/studygroup.less";
 @import "less/wiki.less";
 @import "less/raumzeit.less";
 @import "less/opengraph.less";
@@ -426,7 +427,6 @@ h1:hover, h2:hover, h3:hover, h4:hover {
     color: #000;
     display: none;
     font-size: 11px;
-    height: 15px;
     padding: 4px 10px;
 
     p { margin: 0; }
@@ -566,16 +566,6 @@ div.info { padding-left: 1%; }
     cursor: auto;
 }
 
-.length-hint {
-    color: @light-gray-color;
-    &:before {
-        content: '(';
-    }
-    &:after {
-        content: ')';
-    }
-}
-
 .svg-input {
     input {
         display: none;
@@ -588,9 +578,9 @@ div.info { padding-left: 1%; }
 // calculate difference in images and apply filter
 .recolor() {
     filter:
-    hue-rotate(unit(hsvhue(@base-color)-hsvhue(#28497c), deg))
-    saturate(100 + hsvsaturation(@base-color)-hsvsaturation(#28497c))
-    brightness(100 + hsvvalue(@base-color)-hsvvalue(#28497c));
+    hue-rotate(unit((hsvhue(@base-color) - hsvhue(#28497c)), deg))
+    saturate((100 + hsvsaturation(@base-color)-hsvsaturation(#28497c)))
+    brightness((100 + hsvvalue(@base-color)-hsvvalue(#28497c)));
 }
 
 .recolor-reset() {

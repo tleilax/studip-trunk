@@ -992,6 +992,30 @@ table.withdetails tr.open + tr.details > td > .detailscontainer {
 .sortable-table .tablesorter-headerUnSorted:not(.sorter-false) .tablesorter-header-inner {
   margin-right: 15px;
 }
+table#schedule_data {
+  width: 100%;
+  table-layout: fixed;
+}
+table#schedule_data thead tr td {
+  text-align: center;
+  vertical-align: top;
+  background-color: #e7ebf1;
+  padding-right: 2px;
+  padding: 0px;
+}
+table#schedule_data thead tr td:first-child {
+  width: 40px;
+}
+table#schedule_data thead tr:first-child td:first-child {
+  background-color: inherit;
+}
+table#schedule_data tbody td:first-child {
+  text-align: right;
+  vertical-align: top;
+  background-color: #e7ebf1;
+  padding-right: 2px;
+  padding: 0px;
+}
 form.default input[type=date],
 form.default input[type=email],
 form.default input[type=number],
@@ -1044,6 +1068,7 @@ form.default select.size-l {
   max-width: 100%;
 }
 form.default input[type=date],
+form.default input[type=time],
 form.default input[type=number] {
   max-width: 8em;
 }
@@ -1134,13 +1159,17 @@ form.default label.file-upload .filename {
   color: #8a8e95;
 }
 form.default .hgroup {
-  max-width: 48em;
   display: -ms-flexbox;
   display: -webkit-box;
   display: -webkit-box-flex;
   display: -webkit-flex;
   display: -moz-box;
   display: flex;
+  -webkit-align-items: flex-start;
+  -ms-flex-align: flex-start;
+  -moz-box-align: flex-start;
+  align-items: flex-start;
+  max-width: 48em;
 }
 form.default .hgroup.size-s {
   max-width: 8em;
@@ -1148,7 +1177,7 @@ form.default .hgroup.size-s {
 form.default .hgroup.size-l {
   max-width: 100%;
 }
-form.default .hgroup * {
+form.default .hgroup > * {
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
@@ -1158,10 +1187,10 @@ form.default .hgroup * {
   -moz-box-flex: 1;
   flex: 1 0 auto;
 }
-form.default .hgroup *:not(:first-child) {
+form.default .hgroup > *:not(:first-child) {
   margin-left: 3px;
 }
-form.default .hgroup *:not(:last-child) {
+form.default .hgroup > *:not(:last-child) {
   margin-right: 3px;
 }
 form.default .hgroup label {
@@ -1210,6 +1239,43 @@ form.default fieldset.collapsable.collapsed legend {
 .js form.default.collapsable fieldset.collapsed *:not(legend),
 form.default fieldset.collapsable.collapsed *:not(legend) {
   display: none;
+}
+form.default .length-hint {
+  color: #6d727a;
+  text-align: right;
+}
+form.default .length-hint-wrapper {
+  display: -ms-flexbox;
+  display: -webkit-box;
+  display: -webkit-box-flex;
+  display: -webkit-flex;
+  display: -moz-box;
+  display: flex;
+  -webkit-flex-wrap: wrap;
+  -ms-flex-wrap: wrap;
+  flex-wrap: wrap;
+}
+form.default .length-hint-wrapper > * {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  -webkit-box-flex: 1;
+  -webkit-flex: 1 0 100%;
+  -ms-flex: 1 0 100%;
+  -moz-box-flex: 1;
+  flex: 1 0 100%;
+}
+form.default.inline label {
+  display: inline;
+  max-width: inherit;
+  vertical-align: middle;
+  width: auto;
+}
+form.default.inline input,
+form.default.inline textarea,
+form.default.inline select,
+form.default.inline button {
+  display: inline-block;
 }
 .studip-checkbox {
   opacity: 0;
@@ -1292,6 +1358,11 @@ form.default fieldset.collapsable.collapsed *:not(legend) {
 }
 .formatted-content {
   display: inline;
+}
+.formatted-content tt {
+  background-color: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(0, 0, 0, 0.5);
+  padding: 0 0.5ex;
 }
 .css-tree,
 .css-tree ul {
@@ -5494,6 +5565,24 @@ td.schedule-adminbind > span {
   opacity: 0.5;
   position: absolute;
 }
+ul.studygroup-gallery {
+  list-style: none;
+  padding-left: 15px;
+}
+ul.studygroup-gallery li {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  vertical-align: top;
+  text-align: center;
+  margin: 5px;
+  width: 150px;
+  height: 150px;
+  display: inline-blocK;
+}
+ul.studygroup-gallery li section {
+  margin: 0 auto;
+}
 div.wikitoc {
   font-size: 1em;
   margin-bottom: 5px;
@@ -7145,7 +7234,7 @@ label[for="responsive-toggle"]:before {
 .studip-form input[type="time"].size-xs,
 .studip-form input[type="tel"].size-xs,
 .studip-form input[type="url"].size-xs {
-  width: calc(9%);
+  width: calc(10% - 1px);
 }
 .studip-form input[type="text"].size-s,
 .studip-form input[type="number"].size-s,
@@ -7158,7 +7247,7 @@ label[for="responsive-toggle"]:before {
 .studip-form input[type="time"].size-s,
 .studip-form input[type="tel"].size-s,
 .studip-form input[type="url"].size-s {
-  width: calc(24%);
+  width: calc(25% - 1px);
 }
 .studip-form input[type="text"],
 .studip-form input[type="number"],
@@ -7182,7 +7271,7 @@ label[for="responsive-toggle"]:before {
 .studip-form input[type="time"].size-m,
 .studip-form input[type="tel"].size-m,
 .studip-form input[type="url"].size-m {
-  width: calc(49%);
+  width: calc(50% - 1px);
 }
 .studip-form input[type="text"].size-l,
 .studip-form input[type="number"].size-l,
@@ -7195,7 +7284,7 @@ label[for="responsive-toggle"]:before {
 .studip-form input[type="time"].size-l,
 .studip-form input[type="tel"].size-l,
 .studip-form input[type="url"].size-l {
-  width: calc(74%);
+  width: calc(75% - 1px);
 }
 .studip-form input[type="text"].size-xl,
 .studip-form input[type="number"].size-xl,
@@ -7208,7 +7297,7 @@ label[for="responsive-toggle"]:before {
 .studip-form input[type="time"].size-xl,
 .studip-form input[type="tel"].size-xl,
 .studip-form input[type="url"].size-xl {
-  width: calc(99%);
+  width: calc(100% - 1px);
 }
 .studip-form select,
 .studip-form textarea,
@@ -7631,7 +7720,7 @@ img.plugin_preview {
   color: #000;
 }
 .boxed-grid img {
-  height: calc(80%);
+  height: calc(100% - 20px);
   position: absolute;
   top: 10px;
   right: 10px;
@@ -7720,7 +7809,6 @@ h4:hover .arrow_right {
   color: #000;
   display: none;
   font-size: 11px;
-  height: 15px;
   padding: 4px 10px;
 }
 .error p {
@@ -7867,15 +7955,6 @@ div.info {
 }
 .no-js #enrollment ul {
   cursor: auto;
-}
-.length-hint {
-  color: #6d727a;
-}
-.length-hint:before {
-  content: '(';
-}
-.length-hint:after {
-  content: ')';
 }
 .svg-input input {
   display: none;
