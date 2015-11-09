@@ -36,3 +36,34 @@ ini_set('include_path', $inc_path);
 require_once 'varstream.php';
 
 define("TEST_FIXTURES_PATH", dirname(dirname(__FILE__)) . "/fixtures/");
+
+require 'lib/classes/StudipAutoloader.php';
+require 'lib/functions.php';
+
+$STUDIP_BASE_PATH = realpath(dirname(__FILE__) . '/../..');
+
+StudipAutoloader::register();
+StudipAutoloader::addAutoloadPath($STUDIP_BASE_PATH . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR . 'activities');
+StudipAutoloader::addAutoloadPath($STUDIP_BASE_PATH . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR . 'models');
+StudipAutoloader::addAutoloadPath($STUDIP_BASE_PATH . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR . 'classes');
+StudipAutoloader::addAutoloadPath($STUDIP_BASE_PATH . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR . 'exceptions');
+StudipAutoloader::addAutoloadPath($STUDIP_BASE_PATH . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR . 'classes' . DIRECTORY_SEPARATOR . 'sidebar');
+StudipAutoloader::addAutoloadPath($STUDIP_BASE_PATH . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR . 'classes' . DIRECTORY_SEPARATOR . 'helpbar');
+StudipAutoloader::addAutoloadPath($STUDIP_BASE_PATH . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR . 'plugins' . DIRECTORY_SEPARATOR . 'engine');
+StudipAutoloader::addAutoloadPath($STUDIP_BASE_PATH . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR . 'plugins' . DIRECTORY_SEPARATOR . 'core');
+StudipAutoloader::addAutoloadPath($STUDIP_BASE_PATH . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR . 'plugins' . DIRECTORY_SEPARATOR . 'db');
+
+// load config-variables
+StudipFileloader::load('config/config_local.inc.php', $GLOBALS);
+
+require_once 'vendor/yaml/lib/sfYamlParser.php';
+$yaml = new \sfYamlParser();
+$config = $yaml->parse(file_get_contents(dirname(__FILE__) .'/../unit.suite.yml'));
+
+// connect to database if configured
+if (isset($config['modules']['config']['Db'])) {
+    DBManager::getInstance()->setConnection('studip',
+        $config['modules']['config']['Db']['dsn'],
+        $config['modules']['config']['Db']['user'],
+        $config['modules']['config']['Db']['password']);
+}

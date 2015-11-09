@@ -42,7 +42,35 @@ class CoreLiterature implements StudipModule {
 
     function getNotificationObjects($course_id, $since, $user_id)
     {
-        return null;
+        $items = array();
+        $type = get_object_type($course_id, array('sem', 'inst', 'fak'));
+        
+        // only show new participants for seminars, not for institutes
+        if ($type != 'sem') return $items;
+
+        $stmt = DBManager::get()->prepare('SELECT lc.dc_title, llc.*, ll.name as listname, sem.Name, sem.Seminar_id, '.
+            $GLOBALS['_fullname_sql']['full'] .' as fullname
+            FROM lit_list_content as llc
+            join lit_list as ll using (list_id)
+            join lit_catalog as lc using(catalog_id)
+            join seminare as sem ON (range_id = Seminar_id)
+            join auth_user_md5 on(llc.user_id = auth_user_md5.user_id)
+            WHERE range_id = ?
+                AND lit_list_content.chdate > ?');
+        
+        $stmt->execute(array($course_id, $since));
+        
+        while ($row = $stmt->fetch()) {
+            $summary = sprintf('%s wurde in die Literaturliste %s der Veranstaltung "%s" hinzugefügt',
+                $row['dc_title'], $row['listname'], $row['Name']);
+
+            $items[] = new ContentElement(
+                'Studiengruppe: Neuer Literaturlisteneintrag', $summary, '', $row['user_id'], $row['fullname'],
+                URLHelper::getLink('seminar_main.php?auswahl='. $row['Seminar_id'] .'&redirect_to=dispatch.php/course/member'),
+                $row['mkdate']
+            );
+        } 
+        return $items;
     }
 
     /** 
