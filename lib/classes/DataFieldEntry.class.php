@@ -159,7 +159,7 @@ abstract class DataFieldEntry
      *
      * @return unknown
      */
-    function store()
+    public function store()
     {
         $st = DBManager::get()->prepare("SELECT content FROM datafields_entries "
             . "WHERE datafield_id = ? AND range_id = ? AND sec_range_id = ?");
@@ -315,7 +315,7 @@ abstract class DataFieldEntry
      * @param unknown_type $name
      * @return unknown
      */
-    function getHTML($name = '', $variables = array())
+    public function getHTML($name = '', $variables = array())
     {
         $variables = array_merge(array(
             'name'      => $name,
@@ -384,7 +384,7 @@ abstract class DataFieldEntry
      *
      * @return unknown
      */
-    function numberOfHTMLFields()
+    public function numberOfHTMLFields()
     {
         return 1;
     }
@@ -394,7 +394,7 @@ abstract class DataFieldEntry
      *
      * @return unknown
      */
-    function getRangeID()
+    public function getRangeID()
     {
         if(is_array($this->rangeID))
         {
@@ -412,7 +412,7 @@ abstract class DataFieldEntry
      *
      * @return unknown
      */
-    function getSecondRangeID()
+    public function getSecondRangeID()
     {
         if(is_array($this->rangeID))
         {
@@ -430,7 +430,7 @@ abstract class DataFieldEntry
      *
      * @return boolean
      */
-    function isVisible()
+    public function isVisible()
     {
         $users_own_range = ($this->getRangeID() == $GLOBALS['user']->id ? $GLOBALS['user']->id : '');
         return $this->structure->accessAllowed($GLOBALS['perm'], $GLOBALS['user']->id, $users_own_range);
@@ -441,7 +441,7 @@ abstract class DataFieldEntry
      *
      * @return boolean
      */
-    function isEditable()
+    public function isEditable()
     {
         return $this->structure->editAllowed($GLOBALS['perm']->get_perm());
     }
