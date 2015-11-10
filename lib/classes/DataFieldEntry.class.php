@@ -21,8 +21,6 @@
  */
 abstract class DataFieldEntry
 {
-    protected $html_template = '%1$s';
-
     public $value;
     public $structure;
     public $rangeID;
@@ -56,8 +54,9 @@ abstract class DataFieldEntry
      */
     public static function getDataFieldEntries($range_id, $object_type = '', $object_class_hint = '')
     {
-        if(! $range_id)
+        if (!$range_id) {
             return false; // we necessarily need a range ID
+        }
 
         $parameters = array();
         if(is_array($range_id)) {
@@ -133,27 +132,6 @@ abstract class DataFieldEntry
         return $entries;
     }
 
-    // @static
-    //hmm wird das irgendwo gebraucht (und wenn ja wozu)?
-    /*
-    public static function getDataFieldEntriesBySecondRangeID ($secRangeID) {
-        $db = new DB_Seminar;
-        $query  = "SELECT *, a.datafield_id AS id ";
-        $query .= "FROM datafields a JOIN datafields_entries b ON a.datafield_id=b.datafield_id ";
-        $query .= "AND sec_range_id = '$secRangeID'";
-        $db->query($query);
-        while ($db->next_record()) {
-            $data = array('datafield_id' => $db->f('id'), 'name' => $db->f('name'), 'type' => $db->f('type'),
-            'typeparam' => $db->f('typeparam'), 'object_type' => $db->f('object_type'), 'object_class' => $db->f('object_class'),
-            'edit_perms' => $db->f('edit_perms'), 'priority' => $db->f('priority'), 'view_perms' => $db->f('view_perms'));
-            $struct = new DataFieldStructure($data);
-            $entry = DataFieldEntry::createDataFieldEntry($struct, array($db->f('range_id'), $secRangeID), $db->f('content'));
-            $entries[$db->f("id")] = $entry;
-        }
-        return $entries;
-    }
-    */
-
     /**
      * Enter description here...
      *
@@ -189,32 +167,25 @@ abstract class DataFieldEntry
      */
     public static function removeAll($range_id)
     {
-        if(is_array($range_id))
-        {
+        if (is_array($range_id)) {
             list ($rangeID, $secRangeID) = $range_id;
-        }
-        else
-        {
+        } else {
             $rangeID = $range_id;
             $secRangeID = "";
         }
-        if($rangeID && ! $secRangeID)
-        {
+
+        if ($rangeID && !$secRangeID) {
             $where = "range_id = ?";
             $param = array($rangeID);
-        }
-        if($rangeID && $secRangeID)
-        {
+        } elseif ($rangeID && $secRangeID) {
             $where = "range_id = ? AND sec_range_id = ?";
             $param = array($rangeID , $secRangeID);
-        }
-        if(! $rangeID && $secRangeID)
-        {
+        } elseif (!$rangeID && $secRangeID) {
             $where = "sec_range_id = ?";
             $param = array($secRangeID);
         }
-        if($where)
-        {
+
+        if ($where) {
             $st = DBManager::get()->prepare("DELETE FROM datafields_entries WHERE $where");
             $ret = $st->execute($param);
             return $ret;
@@ -241,18 +212,17 @@ abstract class DataFieldEntry
      */
     public static function createDataFieldEntry($structure, $rangeID = '', $value = '')
     {
-        if(! is_object($structure))
+        if(! is_object($structure)) {
             return false;
+        }
+
         $type = $structure->getType();
-        if(in_array($type, DataFieldEntry::getSupportedTypes()))
-        {
-            $entry_class = 'DataField' . ucfirst($type) . 'Entry';
-            return new $entry_class($structure, $rangeID, $value);
-        }
-        else
-        {
+        if (!in_array($type, DataFieldEntry::getSupportedTypes())) {
             return false;
         }
+
+        $entry_class = 'DataField' . ucfirst($type) . 'Entry';
+        return new $entry_class($structure, $rangeID, $value);
     }
 
     /**
@@ -274,8 +244,9 @@ abstract class DataFieldEntry
      */
     public function getDisplayValue($entities = true)
     {
-        if($entities)
+        if ($entities) {
             return htmlReady($this->getValue());
+        }
         return $this->getValue();
     }
 
@@ -373,10 +344,8 @@ abstract class DataFieldEntry
      */
     public function isValid()
     {
-        if(!trim($this->getValue()) && $this->structure->getIsRequired())
-           return false;
-        else
-           return true;
+        return trim($this->getValue())
+            || !$this->structure->getIsRequired();
     }
 
     /**
@@ -396,15 +365,10 @@ abstract class DataFieldEntry
      */
     public function getRangeID()
     {
-        if(is_array($this->rangeID))
-        {
-            list ($rangeID, ) = $this->rangeID;
+        if (is_array($this->rangeID)) {
+            return reset($this->rangeID);
         }
-        else
-        {
-            $rangeID = $this->rangeID;
-        }
-        return $rangeID;
+        return $this->rangeID;
     }
 
     /**
@@ -414,15 +378,11 @@ abstract class DataFieldEntry
      */
     public function getSecondRangeID()
     {
-        if(is_array($this->rangeID))
-        {
+        if (is_array($this->rangeID)) {
             list (, $secRangeID) = $this->rangeID;
+            return $secRangeID;
         }
-        else
-        {
-            $secRangeID = "";
-        }
-        return $secRangeID;
+        return '';
     }
 
     /**
@@ -432,8 +392,9 @@ abstract class DataFieldEntry
      */
     public function isVisible()
     {
-        $users_own_range = ($this->getRangeID() == $GLOBALS['user']->id ? $GLOBALS['user']->id : '');
-        return $this->structure->accessAllowed($GLOBALS['perm'], $GLOBALS['user']->id, $users_own_range);
+        return $this->structure->accessAllowed($GLOBALS['perm'],
+                                               $GLOBALS['user']->id,
+                                               $this->getRangeID() == $GLOBALS['user']->id);
     }
 
     /**
