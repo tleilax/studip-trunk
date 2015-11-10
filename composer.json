@@ -4,5 +4,11 @@
     },
     "require-dev": {
         "codeception/codeception": "*"
+    },
+
+    "autoload": {
+        "psr-4": {
+            "Studip\\Activity\\": "lib/activities/"
+        }
     }
 }

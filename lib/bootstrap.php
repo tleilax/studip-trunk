@@ -14,6 +14,9 @@ namespace Studip {
 }
 // use default namespace for the remaining lines
 namespace {
+
+    require_once '../composer/autoload.php';
+
     //software version - please leave it as it is!
     $SOFTWARE_VERSION = '3.4.alpha-svn';
 

@@ -10,9 +10,6 @@
  * the License, or (at your option) any later version.
  */
 
-require_once 'vendor/autoload.php';
-
-
 class ActivityFeed extends StudIPPlugin implements PortalPlugin
 {
     public function getPluginName()
