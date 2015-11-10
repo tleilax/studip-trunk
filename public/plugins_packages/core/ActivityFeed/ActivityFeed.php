@@ -10,9 +10,8 @@
  * the License, or (at your option) any later version.
  */
 
-require_once 'lib/activities/SystemContext.php';
-require_once 'lib/activities/Stream.php';
-require_once 'lib/activities/Filter.php';
+require_once 'vendor/autoload.php';
+
 
 class ActivityFeed extends StudIPPlugin implements PortalPlugin
 {
@@ -26,9 +25,11 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
         //PageLayout::addScript($this->getPluginUrl() . '/js/ActivityFeed.js');
         PageLayout::addStylesheet($this->getPluginURL(). '/css/style.css');
 
+
         $observer_id = $GLOBALS['user']->id ;
         $context = new \Studip\Activity\SystemContext();
         $stream = new \Studip\Activity\Stream($observer_id, $context, new Studip\Activity\Filter());
+
 
         $template_factory = new Flexi_TemplateFactory(__DIR__ . '/templates');
         $template = $template_factory->open('stream');
