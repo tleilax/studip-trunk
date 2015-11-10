@@ -39,7 +39,13 @@ class Admin_DatafieldsController extends AuthenticatedController
 
         // set navigation
         Navigation::activateItem('/admin/config/datafields');
-        PageLayout::setTitle(_("Verwaltung von generischen Datenfeldern"));
+        PageLayout::setTitle(_('Verwaltung von generischen Datenfeldern'));
+
+        // Set variables used by (almost) all actions
+        $this->allclasses   = DataFieldStructure::getDataClass();
+        $this->class_filter = Request::option('class_filter', null);
+
+        $this->createSidebar($action);
     }
 
     /**
@@ -49,14 +55,9 @@ class Admin_DatafieldsController extends AuthenticatedController
      */
     public function index_action($class = null)
     {
-        $class_filter = Request::option('class_filter', null);
-        if ($class_filter == '-1') {
-            $class_filter = null;
-        }
-
-        if (!is_null($class_filter)) {
+        if ($this->class_filter) {
             $this->datafields_list = array(
-                $class_filter => DataFieldStructure::getDataFieldStructures($class_filter),
+                $this->class_filter => DataFieldStructure::getDataFieldStructures($this->class_filter),
             );
         } else {
             $this->datafields_list = array(
@@ -70,12 +71,9 @@ class Admin_DatafieldsController extends AuthenticatedController
         }
 
         // set variables for view
-        $this->class_filter = $class_filter;
-        $this->allclasses = DataFieldStructure::getDataClass();
         $this->current_class = $class;
         $this->allclass = array_keys($this->allclasses);
         $this->edit_id = Request::option('edit_id');
-
     }
 
     /**
@@ -100,28 +98,17 @@ class Admin_DatafieldsController extends AuthenticatedController
                 $struct->setIsUserfilter(Request::int('is_userfilter'));
                 $struct->store();
 
-                $this->flash['success'] = _('Die Änderungen am generischen Datenfeld wurden übernommen.');
+                PageLayout::postSuccess(_('Die Änderungen am generischen Datenfeld wurden übernommen.'));
                 $this->redirect('admin/datafields/index/'.$struct->getObjectType().'#item_'.$datafield_id);
             } else {
-                $this->flash['error'] = _("Es wurde keine Bezeichnung eingetragen!");
+                PageLayout::postError(_('Es wurde keine Bezeichnung eingetragen!'));
             }
 
-        }
-
-        //save changes
-        if (Request::submitted('save')) {
-            $struct = new DataFieldStructure(compact('datafield_id'));
-            $struct->load();
-            $struct->setTypeParam(Request::get('typeparam'));
-            $struct->store();
-            $this->flash['success'] = _('Die Parameter wurden übernommen.');
-            $this->redirect('admin/datafields/index/'.$struct->getObjectType().'#item_'.$datafield_id);
         }
 
         // set variables for view
         $struct = new DataFieldStructure(compact('datafield_id'));
         $struct->load();
-        $this->allclasses = DataFieldStructure::getDataClass();
         $this->item = $struct;
         $this->datafield_id = $struct->getID();
         $this->type = $struct->getType();
@@ -146,28 +133,27 @@ class Admin_DatafieldsController extends AuthenticatedController
                 $struct->setPriority(Request::get('priority'));
                 $struct->setType(Request::get('datafield_typ'));
                 $struct->setIsUserfilter(Request::int('is_userfilter'));
-                if(in_array($type, array('sem')))
-                {
+                if ($type === 'sem') {
                     $struct->setDescription(Request::get('description'));
                     $struct->setIsRequired(Request::get('is_required'));
                 }
                 $struct->store();
 
-                $this->flash['success'] = _('Das neue generische Datenfeld wurde angelegt.');
+                PageLayout::postSuccess(_('Das neue generische Datenfeld wurde angelegt.'));
                 $this->redirect('admin/datafields/index/'.$struct->getObjectType().'#item_'.$struct->getID());
             } else {
-                $this->flash['error'] = _('Es wurde keine Bezeichnung eingetragen!');
+                PageLayout::postError(_('Es wurde keine Bezeichnung eingetragen!'));
             }
         }
 
-        if (Request::submitted('auswaehlen')) {
-            $type = Request::get('datafield_type');
-        }
+        $type = $type ?: Request::get('datafield_typ');
 
-        $this->allclasses = DataFieldStructure::getDataClass();
-        $this->object_type = DataFieldStructure::getDataClass();
-        $this->type_name = $this->object_type[$type];
+        $this->type_name  = $this->allclasses[$type];
         $this->object_typ = $type;
+
+        if (!$this->object_typ) {
+            $this->render_action('type_select');
+        }
     }
 
     /**
@@ -178,19 +164,73 @@ class Admin_DatafieldsController extends AuthenticatedController
      */
     public function delete_action($datafield_id)
     {
-
         $struct = new DataFieldStructure(compact('datafield_id'));
         $struct->load();
         $type = $struct->getObjectType();
         $name = $struct->getName();
         if (Request::int('delete') == 1) {
             $struct->remove();
-            $this->flash['success'] = _('Das Datenfeld wurde erfolgreich gelöscht!');
+
+            PageLayout::postSuccess(_('Das Datenfeld wurde erfolgreich gelöscht!'));
         } elseif (!Request::get('back')) {
             $this->datafield_id = $datafield_id;
             $this->flash['delete'] = compact('datafield_id', 'name');
         }
 
         $this->redirect('admin/datafields/index/'.$type.'#'.$type);
+    }
+
+    /**
+     * Configures a datafield
+     *
+     * @param String $datafield_id Datafield id
+     */
+    public function config_action($datafield_id)
+    {
+        $struct = new DataFieldStructure(compact('datafield_id'));
+        $struct->load();
+
+        if (Request::get('typeparam')) {
+            $struct->setTypeParam(Request::get('typeparam'));
+        }
+
+        if (Request::isPost() && Request::submitted('store')) {
+            $struct->store();
+
+            PageLayout::postSuccess(_('Die Parameter wurden übernommen.'));
+
+            $this->redirect('admin/datafields/index/'.$struct->getObjectType().'#item_'.$datafield_id);
+        }
+
+        $this->struct = $struct;
+
+        if (Request::submitted('preview')) {
+            $this->preview = DataFieldEntry::createDataFieldEntry($struct);
+            $this->render_action('preview');
+        }
+    }
+
+    /**
+     * Creates the sidebar.
+     *
+     * @param String $action Currently called action
+     */
+    private function createSidebar($action)
+    {
+        $sidebar = Sidebar::Get();
+        $sidebar->setImage('sidebar/admin-sidebar.png');
+        $sidebar->setTitle(_('Datenfelder'));
+
+        $actions = new ActionsWidget();
+        $actions->addLink(_('Neues Datenfeld anlegen'),
+                          $this->url_for('admin/datafields/new/' . $this->class_filter),
+                          'icons/blue/add.svg')
+                ->asDialog();
+        $sidebar->addWidget($actions);
+
+        $filter = new SelectWidget(_('Filter'), $this->url_for('admin/datafields'), 'class_filter');
+        $filter->addElement(new SelectElement('', _('alle anzeigen')));
+        $filter->setOptions($this->allclasses, $this->class_filter);
+        $sidebar->addWidget($filter);
     }
 }

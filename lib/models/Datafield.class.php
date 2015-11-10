@@ -20,6 +20,7 @@
  * @property string object_class database column
  * @property string edit_perms database column
  * @property string view_perms database column
+ * @property string self_perms database column
  * @property string priority database column
  * @property string mkdate database column
  * @property string chdate database column
