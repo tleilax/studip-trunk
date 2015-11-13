@@ -8,7 +8,7 @@ require_once __DIR__ . '/studip_cli_env.inc.php';
 
 $old_engine = 'MyISAM';
 $engine = 'InnoDB';
-$ignore_tables=array('opengraphdata', 'search_index');
+$ignore_tables=array();
 $sql = "SELECT CONCAT('ALTER TABLE `".$DB_STUDIP_DATABASE."`.`', TABLE_NAME, '` ENGINE=".$engine.";') as query FROM `information_schema`.TABLES WHERE TABLE_SCHEMA='".$DB_STUDIP_DATABASE."' AND ENGINE='".$old_engine."' AND TABLE_NAME NOT IN ('".implode("', '", $ignore_tables)."')";
 
 $db = DBManager::get();
