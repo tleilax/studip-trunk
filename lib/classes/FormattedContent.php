@@ -34,27 +34,11 @@ class FormattedContent
      * Returns the formatted content (optionally with the opengraph data
      * included).
      *
-     * @param bool $include_open_graph Append the rendered opengraph data
-     *                                 (optional, defaults to false)
      * @return String containg the formatted content as html
      */
-    public function getContent($include_open_graph = false)
+    public function getContent()
     {
-        $result = $this->formatted_content;
-        if ($include_open_graph) {
-            $result .= $this->getOpenGraphURLCollection()->render();
-        }
-        return $result;
-    }
-
-    /**
-     * Return the detected opengraph urls as a collection.
-     *
-     * @return OpenGraphURLCollection Collected opengraph urls
-     */
-    public function getOpenGraphURLCollection()
-    {
-        return $this->format->getOpenGraphCollection();
+        return $this->formatted_content;
     }
 
     /**

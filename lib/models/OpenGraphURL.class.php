@@ -108,9 +108,10 @@ class OpenGraphURL extends SimpleORMap
      */
     public function fetch()
     {
-        if (!get_config('OPENGRAPH_ENABLE')) {
+        if (!Config::get()->OPENGRAPH_ENABLE) {
             return;
         }
+
         $response = parse_link($this['url']);
         if ($response['response_code'] == 200 && strpos($response['Content-Type'],'html') !== false) {
             if (preg_match('/(?<=charset=)[^;]*/i', $response['Content-Type'], $match)) {
@@ -190,7 +191,7 @@ class OpenGraphURL extends SimpleORMap
      */
     public function render()
     {
-        if (!get_config('OPENGRAPH_ENABLE') || !$this->getValue('is_opengraph')) {
+        if (!Config::get()->OPENGRAPH_ENABLE || !$this->getValue('is_opengraph')) {
             return '';
         }
         $template = $GLOBALS['template_factory']->open('shared/opengraphinfo_wide.php');

@@ -34,7 +34,7 @@ class OpenGraphURLCollection extends SimpleORMapCollection
     public function render($with_wrapper = true)
     {
         if (!Config::Get()->OPENGRAPH_ENABLE || count($this) === 0) {
-            return '';
+            return 'foo #' . count($this);
         }
 
         $rendered_urls = $this->sendMessage('render');

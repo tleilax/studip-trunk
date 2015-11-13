@@ -207,7 +207,7 @@ class BlubberPosting extends SimpleORMap {
 
     public function getOpenGraphURLs()
     {
-        return $this->getContent()->getOpenGraphURLCollection();
+        return OpenGraph::extract($this->description);
     }
 
     /**
