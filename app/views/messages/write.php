@@ -1,4 +1,4 @@
-<form name="write_message" action="<?= URLHelper::getLink("dispatch.php/messages/send") ?>" method="post" style="margin-left: auto; margin-right: auto;" data-dialog="<?=($answer_to ? 'reload-on-close' : '')?>">
+<form name="write_message" action="<?= URLHelper::getLink("dispatch.php/messages/send") ?>" method="post" style="margin-left: auto; margin-right: auto;" data-dialog="<?=($answer_to ? 'reload-on-close' : '')?>" data-secure="#adressees > li:eq(1), .files > li:eq(1)">
     <? $message_id = Request::option("message_id") ?: md5(uniqid("neWMesSagE")) ?>
     <input type="hidden" name="message_id" id="message_id" value="<?= htmlReady($message_id) ?>">
     <input type="hidden" name="answer_to" value="<?= htmlReady($answer_to) ?>">
@@ -32,7 +32,9 @@
             . "username LIKE :input OR Vorname LIKE :input "
             . "OR CONCAT(Vorname,' ',Nachname) LIKE :input "
             . "OR CONCAT(Nachname,' ',Vorname) LIKE :input "
-            . "OR Nachname LIKE :input OR {$GLOBALS['_fullname_sql']['full_rev']} LIKE :input "
+            . "OR CONCAT(Nachname,', ',Vorname) LIKE :input "
+            . "OR Nachname LIKE :input OR "
+            . "OR Vorname LIKE :input"
             . " ORDER BY fullname ASC",
             _("Nutzer suchen"), "user_id");
         $mps = MultiPersonSearch::get("add_adressees")
@@ -63,7 +65,7 @@
     <div>
         <label>
             <h4><?= _("Nachricht") ?></h4>
-            <textarea style="width: 100%; height: 200px;" name="message_body" class="add_toolbar" data-secure><?= htmlReady($default_message['message'],false) ?></textarea>
+            <textarea style="width: 100%; height: 200px;" name="message_body" class="add_toolbar"><?= htmlReady($default_message['message'],false) ?></textarea>
         </label>
     </div>
     <div>

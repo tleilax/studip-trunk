@@ -38,12 +38,7 @@
 // +---------------------------------------------------------------------------+
 
 
-if (version_compare(PHP_VERSION, '5.2', '<'))
-{
-  require_once('vendor/phpxmlrpc/xmlrpc.inc');
-  require_once('vendor/phpxmlrpc/jsonrpc.inc');
-  require_once('vendor/phpxmlrpc/json_extension_api.inc');
-}
+require_once 'lib/statusgruppe.inc.php';
 
 /**
 * Returns all statusgruppen for the given range.

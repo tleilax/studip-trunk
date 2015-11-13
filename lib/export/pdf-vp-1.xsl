@@ -279,7 +279,7 @@ MitarbeiterInnen
 				</fo:block>
 			</xsl:if>
 			<fo:block text-align="justify" font-size="12pt">
-				<fo:inline font-weight="bold">DozentIn: </fo:inline>
+				<fo:inline font-weight="bold">Lehrende: </fo:inline>
 				<xsl:for-each select="dozenten/dozent">
 					<xsl:if test="position() &gt; 1">
 						<xsl:text>, </xsl:text>
@@ -342,7 +342,7 @@ MitarbeiterInnen
 			<xsl:if test="teilnehmerzahl">
 				<xsl:for-each select="teilnehmerzahl">
 					<fo:block>
-						<fo:inline font-weight="bold"><xsl:value-of select="@key"/> TeilnehmerInnenzahl: </fo:inline>
+						<fo:inline font-weight="bold"><xsl:value-of select="@key"/> Anzahl Teilnehmende: </fo:inline>
 						<xsl:value-of select="."/>
 					</fo:block>
 				</xsl:for-each>

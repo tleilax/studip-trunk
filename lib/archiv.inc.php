@@ -185,7 +185,7 @@ function dump_sem($sem_id, $print_view = false)
     $dumpRow(_('VeranstaltungsNummer:'), htmlReady($seminar['VeranstaltungsNummer']));
     $dumpRow(_('ECTS-Punkte:'), htmlReady($seminar['ects']));
     $dumpRow(_('Beschreibung:'), $seminar['Beschreibung'], true);
-    $dumpRow(_('TeilnehmerInnen:'), $seminar['teilnehmer'], true);
+    $dumpRow(_('Teilnehmende:'), $seminar['teilnehmende'], true);
     $dumpRow(_('Voraussetzungen:'), $seminar['vorrausetzungen'], true);
     $dumpRow(_('Lernorganisation:'), $seminar['lernorga'], true);
     $dumpRow(_('Leistungsnachweis:'), $seminar['leistungsnachweis'], true);
@@ -214,7 +214,7 @@ function dump_sem($sem_id, $print_view = false)
     //Studienbereiche
     if (isset($SEM_TYPE[$seminar['status']]) && $SEM_CLASS[$SEM_TYPE[$seminar['status']]['class']]['bereiche']) {
         $sem_path = get_sem_tree_path($sem_id) ?: array();
-        $dumpRow(_('Studienbereich(e):'), implode('<br>', array_map('htmlReady', $sem_path)));
+        $dumpRow(_('Studienbereiche') . ':', implode('<br>', array_map('htmlReady', $sem_path)));
     }
 
     $iid = $seminar['Institut_id'];
@@ -239,14 +239,14 @@ function dump_sem($sem_id, $print_view = false)
     }
 
     //Teilnehmeranzahl
-    $dumpRow(_('max. TeilnehmerInnenanzahl:'), $seminar['admission_turnout']);
+    $dumpRow(_('max. Personenanzahl:'), $seminar['admission_turnout']);
 
     //Statistikfunktionen
     $query = "SELECT COUNT(*) FROM seminar_user WHERE Seminar_id = ?";
     $statement = DBManager::get()->prepare($query);
     $statement->execute(array($sem_id));
     $count = $statement->fetchColumn();
-    $dumpRow(_('Anzahl der angemeldeten TeilnehmerInnen:'), $count);
+    $dumpRow(_('Anzahl der angemeldeten Personen:'), $count);
 
     // number of postings for all forum-modules in this seminar
     $count = 0;

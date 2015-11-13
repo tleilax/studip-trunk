@@ -37,7 +37,7 @@
                     <?= _('von Stud.IP erstellt') ?>, 
                     <?= strftime($time_format_string_short, (int)$post['mkdate']) ?>
                 <? else : ?>
-                <a href="<?= URLHelper::getLink('about.php?username='. get_username($post['user_id'])) ?>">
+                <a href="<?= URLHelper::getLink('dispatch.php/profile', array('username' =>  get_username($post['user_id']))) ?>">
                     <?= Avatar::getAvatar($post['user_id'])->getImageTag(Avatar::SMALL,
                         array('title' => get_username($post['user_id']))) ?>
 
@@ -176,7 +176,7 @@
             <? if (!$post['anonymous'] || $post['user_id'] == $GLOBALS['user']->id || $GLOBALS['perm']->have_perm('root')): ?>
             <dt>
                 <? if ($post['user_id'] != 'nobody' && $post['user_id']) : ?>
-                <a href="<?= URLHelper::getLink('about.php?username='. get_username($post['user_id'])) ?>">
+                <a href="<?= URLHelper::getLink('dispatch.php/profile', array('username' => get_username($post['user_id']))) ?>">
                     <?= Avatar::getAvatar($post['user_id'])->getImageTag(Avatar::MEDIUM,
                         array('title' => get_username($post['user_id']))) ?>
                 </a>
@@ -200,7 +200,7 @@
                         <?= Assets::img('icons/16/black/community.png', array('title' => _('Offline'))) ?>
                     <? endif ?>
 
-                    <a href="<?= URLHelper::getLink('about.php?username='. get_username($post['user_id'])) ?>">
+                    <a href="<?= URLHelper::getLink('dispatch.php/profile', array('username' => get_username($post['user_id'])))?>">
                         <span class="username" data-profile="<?= $post['topic_id'] ?>">
                             <?= htmlReady(get_fullname($post['user_id'])) ?>
                         </span>

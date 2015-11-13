@@ -31,7 +31,7 @@ class EventLog
         return array(
             'course'    => _('Veranstaltung'),
             'institute' => _('Einrichtung'),
-            'user'      => _('BenutzerIn'),
+            'user'      => _('Nutzer/-in'),
             'resource'  => _('Ressource'),
             'other'     => _('Sonstige (von Aktion abhängig)')
         );
@@ -69,7 +69,7 @@ class EventLog
         }
 
         if (isset($object_id)) {
-            $filter[] = "(:object_id IN (affected_range_id, coaffected_range_id))";
+            $filter[] = "(:object_id IN (affected_range_id, coaffected_range_id, user_id))";
             $parameters[':object_id'] = $object_id;
         }
 

@@ -35,19 +35,25 @@
     <label for="wizard-name">
         <?= _('Name') ?>
     </label>
-    <input type="text" name="name" id="wizard-name" size="75" maxlength="254" value="<?= $values['name'] ?>"/>
+    <input type="text" name="name" id="wizard-name" size="75" maxlength="254" value="<?= htmlReady($values['name']) ?>"/>
 </section>
 <section>
     <label for="wizard-number">
         <?= _('Veranstaltungsnummer') ?>
     </label>
-    <input type="text" name="number" id="wizard-number" size="20" maxlength="99" value="<?= $values['number'] ?>"/>
+    <input type="text" name="number" id="wizard-number" size="20" maxlength="99" value="<?= htmlReady($values['number']) ?>"/>
+</section>
+<section>
+    <label for="wizard-description">
+        <?= _('Beschreibung') ?>
+    </label>
+    <textarea name="description" id="wizard-description" cols="75" rows="4"><?= htmlReady($values['description']) ?></textarea>
 </section>
 <section class="required">
     <label for="wizard-home-institute">
         <?= _('Heimateinrichtung') ?>
     </label>
-    <select name="institute" id="wizard-home-institute" onchange="STUDIP.CourseWizard.getLecturerSearch()"
+    <select name="institute" id="wizard-home-institute"
             data-ajax-url="<?= URLHelper::getLink('dispatch.php/course/wizard/ajax') ?>">
         <?php
         $fak_id = '';
@@ -91,7 +97,7 @@
 </section>
 <section class="required" for="lecturer_id_parameter">
     <label for="lecturer_id_2">
-        <?= _('Dozent/-innen') ?>
+        <?= _('Lehrende') ?>
     </label>
     <div id="wizard-lecturersearch">
         <?= $lsearch ?>
@@ -139,3 +145,26 @@
     </div>
 </section>
 <?php endif ?>
+<section for="tutor_id_parameter">
+    <label for="tutor_id_2">
+        <?= _('Tutor/-in') ?>
+    </label>
+    <div id="wizard-tutorsearch">
+        <?= $tsearch ?>
+    </div>
+    <?php if ($values['tutor_id_parameter']) : ?>
+        <?= Assets::input('icons/yellow/arr_2down.svg',
+            array('name' => 'add_tutor', 'value' => '1')) ?>
+    <?php endif ?>
+    <div id="wizard-tutors">
+        <div class="description<?= count($values['tutors']) ? '' : ' hidden-js' ?>">
+            <?= _('bereits zugeordnet:') ?>
+        </div>
+        <?php foreach ($values['tutors'] as $id => $assigned) : ?>
+            <?php if ($user = User::find($id)) : ?>
+                <?= $this->render_partial('basicdata/_user',
+                    array('class' => 'tutor', 'inputname' => 'tutors', 'user' => $user)) ?>
+            <?php endif ?>
+        <?php endforeach ?>
+    </div>
+</section>

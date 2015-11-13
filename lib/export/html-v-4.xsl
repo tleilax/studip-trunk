@@ -155,7 +155,7 @@
 		</xsl:if>
 		<tr>
 			<td bgcolor="#EEEEEE">
-				<b>DozentIn: </b>
+				<b>Lehrende: </b>
 			</td>
 			<td bgcolor="#EEEEEE">
 				<xsl:for-each select="dozenten/dozent">
@@ -268,7 +268,7 @@
 			<xsl:for-each select="teilnehmerzahl">
 				<tr>
 					<td bgcolor="#EEEEEE">
-						<b><xsl:value-of select="@key"/> TeilnehmerInnenzahl: </b>
+						<b><xsl:value-of select="@key"/> Anzahl Teilnehmende: </b>
 					</td>
 					<td bgcolor="#EEEEEE">
 						<xsl:value-of select="."/>

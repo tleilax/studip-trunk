@@ -11,7 +11,6 @@
 @import "less/links.less";
 @import "less/tables.less";
 @import "less/forms.less";
-@import "less/studip-form.less";
 @import "less/content.less";
 @import "less/css_tree.less";
 
@@ -48,6 +47,7 @@
 @import "less/schedule.less";
 @import "less/study-area-selection.less";
 @import "less/tour.less";
+@import "less/studygroup.less";
 @import "less/wiki.less";
 @import "less/raumzeit.less";
 @import "less/opengraph.less";
@@ -65,6 +65,9 @@
 @import "less/big-image-handler.less";
 
 @import "less/responsive.less";
+
+@import "less/deprecated.less";
+
 
 // Class for DOM elements that should only be visible to Screen readers
 .sr-only {
@@ -193,8 +196,6 @@ div.selectbox fieldset {
 .text-top    { vertical-align: text-top !important; }
 
 /* --- index.php anpassungen an den boxen zur vereinheitlichung ------------- */
-div.index_container { margin: 0; }
-
 table.index_box {
     border-collapse: collapse;
     margin-bottom: 1em;
@@ -288,33 +289,70 @@ img.plugin_preview {
 .user_form { width: 250px; }
 
 /* --- Veranstaltungsverwaltung --------------------------------------------- */
-.click_me {
-    div {
+.boxed-grid {
+    .flex();
+    .flex-wrap(wrap);
+    .flex-justify-content(space-between);
+
+    margin: 0 -0.5em;
+
+    &, li {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    li {
+        .flex-item(1 1 23em);
+        display: block;
+        min-width: 23em;
+        max-width: 100%;
+        padding: 0 0.5em;
+
+        &:empty {
+            height: 0;
+        }
+    }
+
+    a {
+        .box-sizing(border-box);
         background-color: @content-color-20;
         border: 1px solid #D0D0D0;
-        float: left;
-        height: 10em;
-        margin: 0.5em;
+        display: block;
+        height: 11em;
+        margin: 0 0 1em;
         overflow: hidden;
         padding: 1em;
-        min-width: 21.5em;
-        max-width: 21.5em;
-        width: 21.5em;
+        position: relative;
 
         &:hover {
             background-color: #F2F2F2;
-            border: 1px solid #A4A4A4;
-            float: left;
-            margin: 0.5em;
-            padding: 1em;
+            border-color: #A4A4A4;
 
             p { color: #000; }
         }
     }
-    p { color: #666; }
-}
+    img {
+        height: calc(100% - 20px);
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        bottom: 10px;
+        opacity: 0.1;
+    }
 
-.click_head { font-size: 2em; }
+
+    h3 {
+        color: inherit;
+        font-size: 2em;
+        font-weight: normal;
+        margin: 0;
+        padding: 0;
+    }
+    p {
+        color: #666;
+    }
+}
 
 .smashbox_kategorie {
     font-weight: bold;
@@ -365,7 +403,6 @@ h1:hover, h2:hover, h3:hover, h4:hover {
     color: #000;
     display: none;
     font-size: 11px;
-    height: 15px;
     padding: 4px 10px;
 
     p { margin: 0; }
@@ -505,16 +542,6 @@ div.info { padding-left: 1%; }
     cursor: auto;
 }
 
-.length-hint {
-    color: @light-gray-color;
-    &:before {
-        content: '(';
-    }
-    &:after {
-        content: ')';
-    }
-}
-
 .svg-input {
     input {
         display: none;
@@ -522,4 +549,27 @@ div.info { padding-left: 1%; }
     svg, img {
         cursor: pointer;
     }
+}
+
+// calculate difference in images and apply filter
+.recolor() {
+    filter:
+    hue-rotate(unit((hsvhue(@base-color) - hsvhue(#28497c)), deg))
+    saturate((100 + hsvsaturation(@base-color)-hsvsaturation(#28497c)))
+    brightness((100 + hsvvalue(@base-color)-hsvvalue(#28497c)));
+}
+
+.recolor-reset() {
+    filter:
+    hue-rotate(unit(hsvhue(#28497c)-hsvhue(@base-color), deg))
+    saturate(100% - hsvsaturation(@base-color)+hsvsaturation(#28497c))
+    brightness(100% - hsvvalue(@base-color)+hsvvalue(#28497c));
+}
+
+#barTopMenu li a, div#layout-sidebar div.sidebar-image img {
+    .recolor;
+}
+
+.recolor {
+    .recolor();
 }

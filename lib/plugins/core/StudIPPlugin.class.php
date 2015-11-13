@@ -181,44 +181,55 @@ abstract class StudIPPlugin {
      */
     protected function addStylesheet($filename)
     {
-        if (substr($filename, -5) === '.less') {
-            $less_file = $GLOBALS['ABSOLUTE_PATH_STUDIP']
-                       . $this->getPluginPath() . '/'
-                       . $filename;
-            $css_file  = $GLOBALS['ABSOLUTE_PATH_STUDIP']
-                       . $this->getPluginPath() . '/'
-                       . substr($filename, 0, -5) . '.css';
-
-            if (!file_exists($css_file) || (filemtime($css_file) < filemtime($less_file))) {
-                $less  = '';
-                // Load mixins and change relative to absolute filenames 
-                foreach (file($GLOBALS['ABSOLUTE_PATH_STUDIP'] . 'assets/stylesheets/mixins.less') as $mixin) {
-                    if (!preg_match('/@import(.*?) "(.*)";/', $mixin, $match)) {
-                        continue;
-                    }
-                    $less .= sprintf('@import%s "%s";' . "\n", 
-                                     $match[1],
-                                     $GLOBALS['ABSOLUTE_PATH_STUDIP'] . '/assets/stylesheets/' . $match[2]);
-                }
-                // Add adjusted image paths
-                $less .= sprintf('@image-path: "%s";', Assets::url('images')) . "\n";
-                $less .= '@icon-path: "@{image-path}/icons/16";' . "\n";
-                // Add actual less styles
-                $less .= file_get_contents($less_file);
-
-                // Compile them
-                require_once 'vendor/mishal-iless/lib/ILess/Autoloader.php';
-                ILess_Autoloader::register();
-                $parser = new ILess_Parser();
-                $parser->setVariables(array(
-                    'image-path' => '"' . Assets::url('images') . '"',
-                ));
-                $parser->parseString($less);
-                $css = $parser->getCSS();
-                file_put_contents($css_file, $css);
-            }
-            $filename  = substr($filename, 0, -5) . '.css';
+        if (substr($filename, -5) !== '.less') {
+            $url = $this->getPluginURL() . '/' . $filename;
+            PageLayout::addStylesheet($url);
+            return;
         }
-        PageLayout::addStylesheet($this->getPluginURL() . '/' . $filename);
+
+        // Create absolute path to less file
+        $less_file = $GLOBALS['ABSOLUTE_PATH_STUDIP']
+                   . $this->getPluginPath() . '/'
+                   . $filename;
+
+        // Fail if file does not exist
+        if (!file_exists($less_file)) {
+            throw new Exception('Could not locate LESS file "' . $filename . '"');
+        }
+
+        // Get plugin version from metadata
+        $metadata = $this->getMetadata();
+        $plugin_version = $metadata['version'];
+
+        // Get plugin id (or parent plugin id if any)
+        $plugin_id = $this->plugin_info['depends'] ?: $this->getPluginId();
+
+        // Get asset file from storage
+        $asset = Assets\Storage::getFactory()->createCSSFile($less_file, array(
+            'plugin_id'      => $this->plugin_info['depends'] ?: $this->getPluginId(),
+            'plugin_version' => $metadata['version'],
+        ));
+
+        // Compile asset if neccessary
+        if ($asset->isNew()) {
+            $less = file_get_contents($less_file);
+            $css  = Assets\Compiler::compileLESS($less, array(
+                'plugin-path' => $this->getPluginURL(),
+            ));
+
+            $asset->setContent($css);
+        }
+
+        // Include asset in page by reference or directly
+        $download_uri = $asset->getDownloadLink();
+        if ($download_uri === false) {
+            PageLayout::addStyle($asset->getContent());
+        } else {
+            PageLayout::addHeadElement('link', [
+                'rel'  => 'stylesheet',
+                'href' => $download_uri,
+                'type' => 'text/css',
+            ]);
+        }
     }
 }

@@ -21,7 +21,7 @@ table.header, .table_header { //normale Tabellenheader
 
 
 table.links1 { background-color: #fff; }
-table.logintable { 
+table.logintable {
     background-image: url("@{image-path}/login.jpg");
     background-size: 750px 350px;
     h1 {
@@ -48,7 +48,7 @@ table.logintable {
 
 table.toolbar {
   .gradient-bar(false);
-} 
+}
 td.toolbar, td.printhead {
   .gradient-bar();
 }
@@ -114,62 +114,6 @@ td.tree-elbow-line, td.tree-elbow-end {
     }
 }
 
-/* Zebra styles for tables */
-tr.hover_odd {
-    background-color: #eeeeee;
-    &:hover { background-color: #ced8f2; }
-}
-tr.hover_even {
-    background-color: #f8f8f8;
-    &:hover { background-color: #b7c2e2; }
-}
-
-.table_row_odd { background-color: #eeeeee; }
-.table_row_even { background-color: #f8f8f8; }
-
-
-table.zebra, table.zebra-hover { // bg color alternates with tr
-    > tbody > tr {
-        background-color: @alternating-color-odd;
-        &:nth-child(2n+1) { background-color: @alternating-color-even; }
-
-        .zebra &{ // Don't insert a blank between & and { as it would lead to a wrong rule; seems to be a bug in lessc
-            background-color: @content-color-20;
-            &:nth-child(2n+1) { background-color: #f3f5f8; }
-        }
-    }
-}
-table.zebra-hover {
-    > tbody > tr:hover {
-        background-color: @alternating-highlight-color-odd;
-        &:nth-child(2n+1) { background-color: @alternating-highlight-color-even; }
-
-        .zebra &{ // See above
-            background-color: #b7c2e2;
-            &:nth-child(2n+1) { background-color: #ced8f2; }
-        }
-    }
-}
-table.zebra-big, table.zebra-big-hover { // bg color alternates with tbody
-    > tbody {
-        > tr { background-color: @alternating-color-odd; }
-        &:nth-child(2n+1) > tr { background-color: @alternating-color-even; }
-    }
-}
-table.zebra-big-hover {
-    > tbody {
-        > tr:hover { background-color: @alternating-highlight-color-odd; }
-        &:nth-child(2n+1) > tr:hover { background-color: @alternating-highlight-color-even; }
-    }
-}
-
-table.zebra-horizontal > tbody > tr > td {
-    background-color: @alternating-color-odd;
-    &:nth-child(2n+1) {
-        background-color: @alternating-color-even;
-    }
-}
-
 /* --- table.collapsable ---------------------------------------------------- */
 // TODO: This is pretty hard to understand and should be replaced with an easier,
 // better structured solution
@@ -191,10 +135,10 @@ table.zebra-horizontal > tbody > tr > td {
             display: block;
         }
     }
-    .empty .toggle-indicator a { 
+    .empty .toggle-indicator a {
         .retina-background-icon('grey/arr_1right.png');
  }
-    .collapsed .toggle-indicator a { 
+    .collapsed .toggle-indicator a {
         .retina-background-icon('blue/arr_1right.png');
     }
     td.label-cell, .toggle-indicator a, .empty .toggle-indicator { padding-left: 20px; }
@@ -217,7 +161,7 @@ table.zebra-horizontal > tbody > tr > td {
 }
 
 /* --- Sonstige ------------------------------------------------------------- */
-.gruppe0 { background-color: #fff !important; }
+.gruppe0 { background-color: @activity-color-80 !important; }
 .gruppe1 { background-color: @red !important; }
 .gruppe2 { background-color: @orange-80 !important; }
 .gruppe3 { background-color: @orange-40 !important; }
@@ -225,7 +169,7 @@ table.zebra-horizontal > tbody > tr > td {
 .gruppe5 { background-color: @green-40 !important; }
 .gruppe6 { background-color: @content-color-60 !important; }
 .gruppe7 { background-color: @base-color-60 !important; }
-.gruppe8 { background-color: @black !important; }
+.gruppe8 { background-color: @violet !important; }
 #my_seminars, #settings-notifications {
     .gruppe0, .gruppe1, .gruppe2, .gruppe3, .gruppe4,
     .gruppe5, .gruppe6, .gruppe7, .gruppe9 {
@@ -432,7 +376,7 @@ table.default {
     > caption {
         background-color: transparent;
         padding-top: 0px;
-        color: #444;
+        color: @base-gray;
         font-size: 1.4em;
         text-align: left;
 
@@ -482,13 +426,15 @@ table.default {
         }
     }
     // Hover effect
-    &:not(.nohover) > tbody:not(.nohover) > tr:not(.nohover):hover > td {
+    &:not(.nohover) > tbody:not(.nohover) > tr:not(.nohover):hover > td:not(.nohover) {
         background-color: fadeout(@light-gray-color, 80%);
     }
     > tfoot {
         > tr > td {
             background-color: @content-color-20;
             border-top: 1px solid @brand-color-darker;
+            padding-left: 10px;
+            padding-right: 10px;
         }
     }
     .actions {
@@ -499,6 +445,9 @@ table.default {
         }
     }
     > caption .actions {
+        input, select {
+            font-size: 0.7em;
+        }
         border-left: 1px solid @brand-color-darker;
         margin-bottom: -5px;
         padding-bottom: 7px;
@@ -507,14 +456,14 @@ table.default {
     td.actions, th.actions {
         float: none;
     }
-    
+
     > caption {
         .caption-container {
             .flex();
             .flex-align-items(stretch);
             .flex-justify-content(space-between);
             margin-bottom: -5px;
-        }  
+        }
         .caption-content {
             .flex-grow(1);
             border-right: 1px solid @brand-color-darker;
@@ -563,7 +512,7 @@ table.default {
         padding-left: 5px;
         vertical-align: middle;
     }
-    
+
     &.has-form {
         input[type=text], textarea {
             .box-sizing(border-box);
@@ -624,7 +573,7 @@ table.withdetails {
 .sortable-table {
     .header, .tablesorter-header:not(.sorter-false) {
         white-space: nowrap;
-        
+
         color: @base-color;
         &:hover {
             color: @active-color;
@@ -632,18 +581,52 @@ table.withdetails {
         }
     }
     .headerSortUp, .tablesorter-headerDesc .tablesorter-header-inner {
-        .retina-image-after('dreieck_down.png', 'dreieck_down@2x.png', 16px, 8px);
+        .retina-image-after('dreieck_down.png', 'dreieck_down@2x.png', 16px, 16px);
         &::after {
             vertical-align: inherit;
         }
     }
     .headerSortDown, .tablesorter-headerAsc .tablesorter-header-inner {
-        .retina-image-after('dreieck_up.png', 'dreieck_up@2x.png', 16px, 8px);
+        .retina-image-after('dreieck_up.png', 'dreieck_up@2x.png', 16px, 16px);
         &::after {
             vertical-align: inherit;
         }
     }
     .tablesorter-headerUnSorted:not(.sorter-false) .tablesorter-header-inner {
         margin-right: 15px;
+    }
+}
+
+// Schedule table
+table#schedule_data {
+    width: 100%;
+    table-layout: fixed;
+    thead {
+        tr {
+            td {
+                text-align: center;
+                vertical-align: top;
+                background-color: @content-color-20;
+                padding-right: 2px;
+                padding: 0px;
+                &:first-child {
+                    width: 40px;
+                }
+            }
+            &:first-child {
+                td:first-child {
+                    background-color: inherit;
+                }
+            }
+        }
+    }
+    tbody {
+        td:first-child {
+            text-align: right;
+            vertical-align: top;
+            background-color: @content-color-20;
+            padding-right: 2px;
+            padding: 0px;
+        }
     }
 }

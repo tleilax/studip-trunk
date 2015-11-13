@@ -236,8 +236,14 @@ class AdminCourseFilter
             'table' => "auth_user_md5",
             'on' => "dozenten.user_id = dozentendata.user_id"
         );
-        $this->settings['query']['where']['search'] = "CONCAT(seminare.VeranstaltungsNummer, ' ', seminare.name, ' ', dozentendata.Nachname) LIKE :search";
+        $this->settings['query']['where']['search'] = "(CONCAT(seminare.VeranstaltungsNummer, ' ', seminare.name, ' ', dozentendata.Nachname) LIKE :search
+            OR CONCAT(dozentendata.Nachname, ', ', dozentendata.Vorname) LIKE :search
+            OR CONCAT(dozentendata.Vorname, ' ', dozentendata.Nachname) LIKE :search
+            OR dozentendata.Vorname LIKE :search
+            OR dozentendata.Nachname LIKE :search
+        )";
         $this->settings['parameter']['search'] = "%".$text."%";
+
         return $this;
     }
 
@@ -288,6 +294,9 @@ class AdminCourseFilter
     public function getCourses($grouped = true)
     {
         NotificationCenter::postNotification("AdminCourseFilterWillQuery", $this);
+        if (empty($this->settings['query']['where'])) {
+            return array();
+        }
         $statement = DBManager::get()->prepare($this->createQuery());
         $statement->execute($this->settings['parameter']);
         $_SESSION['AdminCourseFilter_settings'] = $this->settings;
@@ -300,6 +309,9 @@ class AdminCourseFilter
     public function countCourses()
     {
         NotificationCenter::postNotification("AdminCourseFilterWillQuery", $this);
+        if (empty($this->settings['query']['where'])) {
+            return 0;
+        }
         return DBManager::get()->fetchColumn($this->createQuery(true), $this->settings['parameter']);
     }
 
@@ -360,6 +372,7 @@ class AdminCourseFilter
         if (!$only_count) {
             $query .= " GROUP BY seminare.Seminar_id ORDER BY ".$this->settings['query']['orderby'].($this->settings['query']['orderby'] !== "seminare.name" ? ", seminare.name" : "");
         }
+
         return $query;
     }
 

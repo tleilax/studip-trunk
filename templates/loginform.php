@@ -18,13 +18,13 @@ $(function () {
         background-color: transparent;
     }
 </style>
-<div class="index_container" style="width: 750px; padding-top: 30px; margin: 0  auto !important;">
+<div class="index_container">
 <? if ($loginerror): ?>
     <!-- failed login code -->
     <?= MessageBox::error(
             _('Bei der Anmeldung trat ein Fehler auf!'),
             array($error_msg,
-                  sprintf(_('Bitte wenden Sie sich bei Problemen an: <a href="%1$s">%1$s</a>'),
+                  sprintf(_('Bitte wenden Sie sich bei Problemen an: <a href="mailto:%1$s">%1$s</a>'),
                           $GLOBALS['UNI_CONTACT']))) ?>
 <? endif; ?>
 <table class="index_box logintable" style="border:0px solid white; box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.5);">

@@ -75,6 +75,8 @@ class Admin_CoursesController extends AuthenticatedController
         PageLayout::setTitle(_("Verwaltung von Veranstaltungen und Einrichtungen"));
         Sidebar::Get()->setTitle(_('Veranstaltungsadministration'));
 
+        // Add admission functions.
+        PageLayout::addSqueezePackage('admission');
     }
 
     /**
@@ -94,8 +96,9 @@ class Admin_CoursesController extends AuthenticatedController
         // Get the view filter
         $this->view_filter = $this->getFilterConfig();
 
-        $sortFlag = (Request::get('sortFlag') == 'asc') ? 'DESC' : 'ASC';
-
+        if (Request::get('sortFlag')) {
+            $GLOBALS['user']->cfg->store('MEINE_SEMINARE_SORT_FLAG', Request::get('sortFlag') == 'asc' ? 'DESC' : 'ASC');
+        }
         if (Request::option('sortby')) {
             $GLOBALS['user']->cfg->store('MEINE_SEMINARE_SORT', Request::option('sortby'));
         }
@@ -106,11 +109,11 @@ class Admin_CoursesController extends AuthenticatedController
         }
 
         $this->sortby = $GLOBALS['user']->cfg->MEINE_SEMINARE_SORT;
-        $this->sortFlag = $sortFlag;
+        $this->sortFlag = $GLOBALS['user']->cfg->MEINE_SEMINARE_SORT_FLAG ?: 'ASC';
 
         $this->courses = $this->getCourses(array(
-            'sortby'      => $GLOBALS['user']->cfg->MEINE_SEMINARE_SORT,
-            'sortFlag'    => $sortFlag,
+            'sortby'      => $this->sortby,
+            'sortFlag'    => $this->sortFlag,
             'view_filter' => $this->view_filter,
             'typeFilter'  => $config_my_course_type_filter
         ));
@@ -563,7 +566,7 @@ class Admin_CoursesController extends AuthenticatedController
                                 'title' => _('Raumanfragen'),
                                 'url'   => 'dispatch.php/course/room_requests/index?cid=%s');
         }
-        
+
         foreach (PluginManager::getInstance()->getPlugins("AdminCourseAction") as $plugin) {
             $actions[get_class($plugin)] = array(
                 'name'      => $plugin->getPluginName(),
@@ -592,9 +595,9 @@ class Admin_CoursesController extends AuthenticatedController
             'name'        => _('Name'),
             'type'        => _('Veranstaltungstyp'),
             'room_time'   => _('Raum/Zeit'),
-            'teachers'    => _('DozentIn'),
-            'members'     => _('TeilnehmerInnen'),
-            'waiting'     => _('TeilnehmerInnen auf Warteliste'),
+            'teachers'    => _('Lehrende'),
+            'members'     => _('Teilnehmende'),
+            'waiting'     => _('Personen auf Warteliste'),
             'preliminary' => _('Vorläufige Anmeldungen'),
             'contents'    => _('Inhalt')
         );
@@ -683,7 +686,7 @@ class Admin_CoursesController extends AuthenticatedController
                     );
 
                     $seminars[$seminar_id]['teacher_search'] = MultiPersonSearch::get("add_member_dozent" . $seminar_id)
-                        ->setTitle(_('Mehrere DozentInnen hinzufügen'))
+                        ->setTitle(_('Mehrere Lehrende hinzufügen'))
                         ->setSearchObject($dozentUserSearch)
                         ->setDefaultSelectedUser(array_keys($dozenten))
                         ->setDataDialogStatus(Request::isXhr())

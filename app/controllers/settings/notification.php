@@ -42,8 +42,7 @@ class Settings_NotificationController extends Settings_SettingsController
 
         PageLayout::setHelpKeyword('Basis.MyStudIPBenachrichtigung');
         PageLayout::setTitle(_('Benachrichtigung über neue Inhalte anpassen'));
-        PageLayout::setTabNavigation('/links/settings');
-        Navigation::activateItem('/links/settings/notification');
+        Navigation::activateItem('/settings/notification');
         SkipLinks::addIndex(_('Benachrichtigung über neue Inhalte anpassen'), 'layout_content', 100);
 
         Sidebar::get()->setImage('sidebar/seminar-sidebar.png');
@@ -85,7 +84,7 @@ class Settings_NotificationController extends Settings_SettingsController
         $seminars = $statement->fetchAll(PDO::FETCH_ASSOC);
 
         if (!count($seminars)) {
-            $message = sprintf(_('Sie haben zur Zeit keine Veranstaltungen abonniert, an denen Sie teilnehmen können. Bitte nutzen Sie %s<b>Veranstaltung suchen / hinzufügen</b>%s um neue Veranstaltungen aufzunehmen.'),
+            $message = sprintf(_('Sie haben zur Zeit keine Veranstaltungen belegt. Bitte nutzen Sie %s<b>Veranstaltung suchen / hinzufügen</b>%s um sch für Veranstaltungen anzumdelden.'),
                                '<a href="' . URLHelper::getLink('dispatch.php/search/courses') . '">', '</a>');
             PageLayout::postMessage(MessageBox::info($message));
             $this->set_layout($GLOBALS['template_factory']->open('layouts/base_without_infobox'));
