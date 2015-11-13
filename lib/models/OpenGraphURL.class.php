@@ -100,11 +100,17 @@ class OpenGraphURL extends SimpleORMap
     }
 
     /**
-     * Fetches information from the url by getting the contents of the webpage,
-     * parse the webpage and extract the information from the opengraph meta-tags.
-     * If the site doesn't have any opengraph-metatags it is in fact no opengraph
-     * node and thus no data will be stored in the database. Only $url['is_opengraph'] === '0'
-     * indicates that the site is no opengraph node at all.
+     * Fetches information from the url by getting the contents of the
+     * webpage, parse the webpage and extract the information from the
+     * opengraph meta-tags.
+     * If the site doesn't have any opengraph-metatags it is in fact no
+     * opengraph node and thus no data will be stored in the database.
+     * Only $url['is_opengraph'] === '0' indicates that the site is no
+     * opengraph node at all.
+     *
+     * @todo The combination of parse_link() and the following request
+     *       leads to two requests for the open graph data. This should
+     *       be fixed due to performance reasons.
      */
     public function fetch()
     {

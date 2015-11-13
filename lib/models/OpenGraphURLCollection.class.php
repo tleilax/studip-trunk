@@ -34,11 +34,15 @@ class OpenGraphURLCollection extends SimpleORMapCollection
     public function render($with_wrapper = true)
     {
         if (!Config::Get()->OPENGRAPH_ENABLE || count($this) === 0) {
-            return 'foo #' . count($this);
+            return '';
         }
 
         $rendered_urls = $this->sendMessage('render');
         $rendered_urls = array_filter($rendered_urls);
+
+        if (count($rendered_urls) === 0) {
+            return '';
+        }
 
         if ($with_wrapper) {
             $template = $GLOBALS['template_factory']->open('shared/opengraph-container.php');
@@ -47,7 +51,7 @@ class OpenGraphURLCollection extends SimpleORMapCollection
         } else {
             $result = implode("\n", $rendered_urls);
         }
-        
+
         return $result;
     }
 }
