@@ -14,8 +14,8 @@
                 <?= htmlReady($termin->getFullname()) ?>
             </span>
         <? else : ?>
-            <a class="load-in-new-row"
-               href="<?= $controller->url_for('course/timesrooms/editDate/' . $termin->termin_id, $editParams) ?>">
+        <a class="load-in-new-row <?= $termin->id == Request::get('singleDateID') ? 'load-in-new-row-open' : ''?>"
+           href="<?= $controller->url_for('course/timesrooms/editDate/' . $termin->termin_id, $editParams) ?>">
                 <?= htmlReady($termin->getFullname()) ?>
             </a>
         <? endif ?>

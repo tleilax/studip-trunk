@@ -114,6 +114,20 @@ jQuery(function ($) {
         $(this).closest('.loaded-details').prev().find('a.load-in-new-row').click();
         return false;
     });
+    
+    $( document ).on('ready', function() {
+        var openelements = document.getElementsByClassName('load-in-new-row-open');
+        var firstElement = '';
+        for (var i = 0; i < openelements.length; i++) {
+            if (firstElement === ''){
+                firstElement = openelements[i];
+            }
+            openelements[i].click();
+        }
+        if (firstElement !== ''){
+            $(document).scrollTo(firstElement);
+        }
+    });
 
 });
 

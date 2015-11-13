@@ -140,6 +140,9 @@ class Course_TimesroomsController extends AuthenticatedController
         $this->semesterFormParams = $semesterFormParams;
         $this->editParams = $editParams;
         $this->linkAttributes = $linkAttributes;
+        
+        
+        //$this->editDate_action('a50d328cce19bd2dd268426846c88ac8');
     }
 
     /**
