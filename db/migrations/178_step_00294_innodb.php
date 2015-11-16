@@ -15,6 +15,9 @@ class StEP00294InnoDB extends Migration
         return 'Converts the Stud.IP database tables to InnoDB engine';
     }
 
+    /**
+     * Convert all tables to InnoDB engine, using Barracuda format if supported.
+     */
     public function up()
     {
         global $DB_STUDIP_DATABASE;
@@ -24,10 +27,10 @@ class StEP00294InnoDB extends Migration
 
         // Get version of database system (MySQL/MariaDB/Percona)
         $data = DBManager::get()->fetchFirst("SELECT VERSION() AS version");
-        $version = $data['version'][0];
+        $version = $data[0];
 
         // lit_catalog has fulltext indices which InnoDB doesn't support in older versions.
-        if (version_compare($version, '5.6' '<')) {
+        if (version_compare($version, '5.6', '<')) {
             $ignore_tables[] = 'lit_catalog';
         }
 
@@ -44,10 +47,11 @@ class StEP00294InnoDB extends Migration
         }
 
         // Use Barracuda format if database supports it (5.5 upwards).
-        if (version_compare($version, '5.5' '>=')) {
+        if (version_compare($version, '5.5', '>=')) {
             // Generate necessary conversion SQL queries.
             $query = "SELECT CONCAT('ALTER TABLE `" . $DB_STUDIP_DATABASE . "`.`', TABLE_NAME, '` ROW_FORMAT=COMPACT;') AS query
                 FROM `information_schema`.TABLES WHERE TABLE_SCHEMA='" . $DB_STUDIP_DATABASE . "'
+                    AND ENGINE='InnoDB'
                     AND ROW_FORMAT NOT IN ('Compact', 'Compressed')";
             $sql = DBManager::get()->fetchAll($query);
 
@@ -59,7 +63,20 @@ class StEP00294InnoDB extends Migration
 
     }
 
+    /**
+     * Convert all databases back to MyISAM engine.
+     */
     public function down()
     {
+        // Generate necessary conversion SQL queries.
+        $query = "SELECT CONCAT('ALTER TABLE `" . $DB_STUDIP_DATABASE . "`.`', TABLE_NAME, '` ENGINE=MyISAM;') AS query
+            FROM `information_schema`.TABLES WHERE TABLE_SCHEMA='" . $DB_STUDIP_DATABASE . "'
+                AND ENGINE='InnoDB'";
+        $sql = DBManager::get()->fetchAll($query);
+
+        // Now execute the generated queries.
+        foreach ($sql as $q) {
+            DBManager::get()->execute($q['query']);
+        }
     }
 }
