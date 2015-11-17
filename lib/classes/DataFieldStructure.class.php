@@ -7,7 +7,6 @@
  * @author   Jan-Hendrik Willms <tleilax+studip@gmail.com>
  * @license  GPL2 or any later version
  */
-
 class DataFieldStructure
 {
     protected static $permission_masks = array(
@@ -216,9 +215,8 @@ class DataFieldStructure
      * @param    integer    the user class mask
      * @return string       a string consisting of a comma separated list of
      *                      permissions
-     * @static
      */
-    public function getReadableUserClass($class)
+    public static function getReadableUserClass($class)
     {
         $result = array();
         foreach (self::$permission_masks as $perm => $mask) {
@@ -234,41 +232,37 @@ class DataFieldStructure
      * Returns a collection of structures of datafields filtered by objectType,
      * objectClass and unassigned objectClasses.
      *
-     * @param    type           <description>
-     * @param    type           <description>
-     * @param    boolean    <description>
-     * @return array        <description>
-     * @static
+     * @param mixed  $objectType       Object type
+     * @param String $objectClass      Object class
+     * @param bool   $includeNullClass Should the object class "null" be
+     *                                 included 
+     * @return array of DataFieldStructure instances
      */
-    public function getDataFieldStructures($objectType = null, $objectClass = '', $includeNullClass = false)
+    public static function getDataFieldStructures($objectType = null, $objectClass = '', $includeNullClass = false)
     {
-        $expr = $params = array();
-        if (isset($objectType)) {
-            $expr[] = "object_type = :object_type";
-            $params[':object_type'] = $objectType;
+        $conditions = array();
+        $parameters = array();
+
+        if ($objectType !== null) {
+            $conditions[] = 'object_type = ?';
+            $parameters[] = $objectType;
         }
 
         if ($objectClass) {
-            $expr[] = "(object_class & :object_class" .
-                        ($includeNullClass ? ' OR object_class IS NULL)' : ')');
-            $params[':object_class'] = $objectClass;
+            $condition = array('object_class & ?');
+            if ($includeNullClass) {
+                $condition[] = 'object_class IS NULL';
+            }
+
+            $conditions[] = '(' . implode(' OR ', $condition) . ')';
+            $parameters[] = $objectClass;
         }
 
-        $expr = empty($expr) ? '' : 'WHERE ' . join(' AND ', $expr);
+        $where = implode(' AND ', $conditions) ?: '1';
 
-        $query = "SELECT *
-                  FROM datafields
-                  {$expr}
-                  ORDER BY priority, name";
-        $statement = DBManager::get()->prepare($query);
-        $statement->execute($params);
-
-        $ret = array();
-        while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
-            $ret[$row['datafield_id']] = new self($row);
-        }
-
-        return $ret;
+        return Datafield::findAndMapBySQL(function (Datafield $entry) {
+            return new DataFieldStructure($entry->toArray());
+        }, $where, $parameters);
     }
 
 
