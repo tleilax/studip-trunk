@@ -21,8 +21,8 @@
         <col width="6%">
         <col width="6%">
         <col width="5%">
-        <col width="5%">
-        <col width="5%">
+        <col width="1%">
+        <col width="48">
     </colgroup>
     <caption>
         <?= _('Verwaltung von generischen Datenfeldern') ?>
@@ -42,8 +42,12 @@
             <th rowspan="2"><?= _('Beschreibung') ?></th>
             <th rowspan="2"><?= _('Anmelderegel') ?></th>
             <th rowspan="2"><?= _('Position') ?></th>
-            <th rowspan="2"><?= _('Einträge') ?></th>
-            <th rowspan="2" class="actions"><?= _('Aktionen') ?></th>
+            <th rowspan="2">
+                <abbr title="<?= _('Einträge') ?>">
+                    #
+                </abbr>
+            </th>
+            <th rowspan="2" class="actions"></th>
         </tr>
         <tr>
             <th style="word-wrap: nowrap">

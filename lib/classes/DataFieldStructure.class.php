@@ -1,28 +1,29 @@
 <?php
-# Lifter002: TODO
-# Lifter007: TODO
-# Lifter003: TEST
-# Lifter010: TODO
 /**
  *  DataFieldStructure.class.php
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * @author          Martin Gieseking    <mgieseki@uos.de>
- * @author          Marcus Lunzenauer <mlunzena@uos.de>
- * @license         http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
- * @category        Stud.IP
+ * @author   Martin Gieseking <mgieseki@uos.de>
+ * @author   Marcus Lunzenauer <mlunzena@uos.de>
+ * @author   Jan-Hendrik Willms <tleilax+studip@gmail.com>
+ * @license  GPL2 or any later version
  */
 
 class DataFieldStructure
 {
+    protected static $permission_masks = array(
+        'user'   => 1,
+        'autor'  => 2,
+        'tutor'  => 4,
+        'dozent' => 8,
+        'admin'  => 16,
+        'root'   => 32,
+        'self'   => 64,
+    );
+
     private $data;
     private $numEntries = null;
 
-    public function __construct($data = array())
+    public function __construct(array $data = array())
     {
         $this->data = $data ?: array();
 
@@ -97,7 +98,6 @@ class DataFieldStructure
         return $this->data['description'];
     }
 
-
     public function setID($v)
     {
         $this->data['datafield_id'] = $v;
@@ -111,7 +111,7 @@ class DataFieldStructure
     public function setType($v)
     {
         $this->data['type'] = $v;
-        if (!in_array($v, array('selectbox', 'selectboxmultiple', 'radio', 'combo'))) {
+        if (!in_array($v, words('selectbox selectboxmultiple radio combo'))) {
             $this->setTypeParam('');
         }
     }
@@ -169,23 +169,6 @@ class DataFieldStructure
         return $this->numEntries;
     }
 
-
-    /**
-     * Returns an HTML fragment used for editing select boxes
-     *
-     * @param    string  the name of this datafield
-     * @return string    the HTML fragment
-     */
-    public function getHTMLEditor($name)
-    {
-        $ret = '';
-        if (in_array($this->getType(), array('selectbox', 'selectboxmultiple', 'radio', 'combo'))) {
-            $content = $this->getTypeParam();
-            $ret = "<textarea name=\"$name\" cols=\"20\" rows=\"8\" wrap=\"off\">" . htmlReady($content) . "</textarea>";
-        }
-        return $ret;
-    }
-
     /**
      * Returns the count of entries for this datafield.
      *
@@ -193,12 +176,8 @@ class DataFieldStructure
      */
     public function numberOfUsedEntries()
     {
-        $id = $this->data['datafield_id'];
-
-        $query = "SELECT COUNT(range_id) FROM datafields_entries WHERE datafield_id = ?";
-        $statement = DBManager::get()->prepare($query);
-        $statement->execute(array($id));
-        return $this->numEntries = $statement->fetchColumn();
+        $this->numEntries = DatafieldEntryModel::countBySQL('datafield_id = ?', array($this->getID()));
+        return $this->numEntries;
     }
 
     /**
@@ -228,16 +207,7 @@ class DataFieldStructure
      */
     public static function permMask($perm)
     {
-        static $masks = array(
-            'user'   => 1,
-            'autor'  => 2,
-            'tutor'  => 4,
-            'dozent' => 8,
-            'admin'  => 16,
-            'root'   => 32,
-            'self'   => 64,
-        );
-        return $masks[$perm];
+        return self::$permission_masks[$perm];
     }
 
     /**
@@ -250,20 +220,10 @@ class DataFieldStructure
      */
     public function getReadableUserClass($class)
     {
-        static $classes = array(
-            1  => 'user',
-            2  => 'autor',
-            4  => 'tutor',
-            8  => 'dozent',
-            16 => 'admin',
-            32 => 'root',
-            64 => 'self'
-        );
-        
         $result = array();
-        foreach ($classes as $key=>$val) {
-            if ($class & $key) {
-                $result[] = $val;
+        foreach (self::$permission_masks as $perm => $mask) {
+            if ($class & $mask) {
+                $result[] = $perm;
             }
         }
         return implode(', ', $result);
@@ -305,7 +265,7 @@ class DataFieldStructure
 
         $ret = array();
         while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
-            $ret[$row['datafield_id']] = new DataFieldStructure($row);
+            $ret[$row['datafield_id']] = new self($row);
         }
 
         return $ret;
@@ -316,62 +276,39 @@ class DataFieldStructure
     public function load()
     {
         if ($this->getID()) {
-            $query = "SELECT * FROM datafields WHERE datafield_id = ?";
-            $statement = DBManager::get()->prepare($query);
-            $statement->execute(array($this->getID()));
-            $this->data = $statement->fetch(PDO::FETCH_ASSOC);
+            $this->data = Datafield::find($this->getID())->toArray();
         }
     }
 
     public function store()
     {
-        $data = $this->data;
-        $db = DbManager::get();
-
-        $query = "SELECT * FROM datafields WHERE datafield_id = ?";
-        $statement = $db->prepare($query);
-        $statement->execute(array($data['datafield_id']));
-        $row = $statement->fetch(PDO::FETCH_ASSOC);
-
-        if ($row['datafield_id']) {
-            $data = array_merge($row, $data);
+        if (!in_array($this->data['type'], words('selectbox selectboxmultiple radio combo'))) {
+            $this->data['typeparam'] = '';
         }
 
-        if (!in_array($data['type'], array('selectbox', 'selectboxmultiple', 'radio', 'combo'))) {
-            $data['typeparam'] = '';
-        }
+        $entry = Datafield::find($this->getId());
+        $entry->name          = $this->data['name'];
+        $entry->object_type   = $this->data['object_type'];
+        $entry->object_class  = (int)$this->data['object_class'] ?: null;
+        $entry->edit_perms    = $this->data['edit_perms'];
+        $entry->priority      = (int)$this->data['priority'];
+        $entry->view_perms    = $this->data['view_perms'];
+        $entry->type          = (string)$this->data['type'];
+        $entry->typeparam     = (string)$this->data['typeparam'];
+        $entry->is_required   = (bool)$this->data['is_required'];
+        $entry->is_userfilter = (bool)$this->data['is_userfilter'];
+        $entry->description   = (string)$this->data['description'];        
 
-        $data['object_class'] = (int)$data['object_class'] ?: null;
-        if ($row['datafield_id']) {
-            $st = $db->prepare("UPDATE datafields ".
-                            "SET name=?, object_type=?, ".
-                            "object_class=?, edit_perms=?, priority=?, ".
-                            "view_perms=?, type=?, typeparam=?, is_required=?, is_userfilter=?, description=?, chdate=UNIX_TIMESTAMP() WHERE datafield_id=?");
-        } else {
-            $st = $db->prepare("INSERT INTO datafields ".
-                            "SET name=?, object_type=?, ".
-                            "object_class=?, edit_perms=?, priority=?, ".
-                            "view_perms=?, type=?, typeparam=?, is_required=?, is_userfilter=?, description=?, chdate=UNIX_TIMESTAMP(), mkdate=UNIX_TIMESTAMP(), datafield_id=?");
-        }
-        $st->execute(array($data['name'], $data['object_type'],
-                           $data['object_class'], $data['edit_perms'], (int)$data['priority'],
-                           $data['view_perms'], (string)$data['type'],
-                           (string)$data['typeparam'],
-                           (bool)$data['is_required'], (bool)$data['is_userfilter'],
-                           (string)$data['description'], $data['datafield_id']));
-
-        return $st->rowCount();
+        return $entry->store();
     }
 
 
-    public function remove($id = '') {
+    public function remove($id = '')
+    {
         if (!$id) {
             $id = $this->getID();
         }
-        $query = "DELETE FROM datafields WHERE datafield_id = ?";
-        $statement = DBManager::get()->prepare($query);
-        $statement->execute(array($id));
-        return $statement->rowCount() > 0;
+        return Datafield::find($id)->delete();
     }
 
 
@@ -382,7 +319,7 @@ class DataFieldStructure
             return true;
         }
 
-        # permission ist high enough
+        # permission is sufficient
         if ($perm->have_perm($this->getViewPerms())) {
             return true;
         }
@@ -402,8 +339,8 @@ class DataFieldStructure
             $this->load();
         }
 
-        $user_perms     = DataFieldStructure::permMask($userPerms);
-        $required_perms = DataFieldStructure::permMask($this->getEditPerms());
+        $user_perms     = self::permMask($userPerms);
+        $required_perms = self::permMask($this->getEditPerms());
 
         return $user_perms >= $required_perms;
     }

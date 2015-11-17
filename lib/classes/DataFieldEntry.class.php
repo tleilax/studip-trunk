@@ -1,47 +1,61 @@
 <?php
-# Lifter002: TODO
-# Lifter007: TODO
-# Lifter003: TEST
-# Lifter010: TODO
-/*
-* DataFieldEntry.class.php - <short-description>
-*
-* Copyright (C) 2005 - Martin Gieseking  <mgieseki@uos.de>
-* Copyright (C) 2007 - Marcus Lunzenauer <mlunzena@uos.de>
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License as
-* published by the Free Software Foundation; either version 2 of
-* the License, or (at your option) any later version.
-*/
-
 /**
- * Enter description here...
+ * DataFieldEntry.class.php - <short-description>
  *
+ * @author  Martin Gieseking <mgieseki@uos.de>
+ * @author  Marcus Lunzenauer <mlunzena@uos.de>
+ * @author  Jan-Hendrik Willms <tleilax+studip@gmail.com>
+ * @license GPL2 or any later version
  */
 abstract class DataFieldEntry
 {
-    public $value;
-    public $structure;
-    public $rangeID;
+    protected static $supported_types = array(
+        'bool',
+        'textline',
+        'textarea',
+        'selectbox',
+        'selectboxmultiple',
+        'date',
+        'time',
+        'email',
+        'phone',
+        'radio',
+        'combo',
+        'link',
+    );
 
     /**
-     * Enter description here...
+     * Returns all supported datafield types
      *
-     * @param unknown_type $structure
-     * @param unknown_type $rangeID
-     * @param unknown_type $value
+     * @return array of supported types
      */
-    public function __construct($structure = null, $rangeID = '', $value = null)
+    public static function getSupportedTypes()
     {
-        $this->structure = $structure;
-        $this->rangeID   = $rangeID;
-        $this->value     = $value;
+        return self::$supported_types;
     }
 
-    public function getDescription()
+    /**
+     * Factory method that returns the appropriate datafield object
+     * for the given parameters.
+     *
+     * @param DataFieldStructure $structure Underlying structure
+     * @param String             $rangeID   Range id
+     * @param mixed              $value     Value of the entry
+     * @return DataFieldEntry instance of appropriate type
+     */
+    public static function createDataFieldEntry($structure, $rangeID = '', $value = '')
     {
-        return $this->structure->getDescription();
+        if (!$structure instanceof DataFieldStructure) {
+            return false;
+        }
+
+        $type = $structure->getType();
+        if (!in_array($type, self::getSupportedTypes())) {
+            return false;
+        }
+
+        $entry_class = 'DataField' . ucfirst($type) . 'Entry';
+        return new $entry_class($structure, $rangeID, $value);
     }
 
     /**
@@ -78,7 +92,7 @@ abstract class DataFieldEntry
         if($object_type) {
             switch ($object_type) {
                 case 'sem':
-                    if($object_class_hint) {
+                    if ($object_class_hint) {
                         $object_class = SeminarCategories::GetByTypeId($object_class_hint);
                     } else {
                         $object_class = SeminarCategories::GetBySeminarId($rangeID);
@@ -88,7 +102,7 @@ abstract class DataFieldEntry
                     break;
                 case 'inst':
                 case 'fak':
-                    if($object_class_hint) {
+                    if ($object_class_hint) {
                         $object_class = $object_class_hint;
                     } else {
                         $query = "SELECT type FROM Institute WHERE Institut_id = ?";
@@ -124,7 +138,7 @@ abstract class DataFieldEntry
             $rs->execute($parameters);
 
             $entries = array();
-            while($data = $rs->fetch(PDO::FETCH_ASSOC)) {
+            while ($data = $rs->fetch(PDO::FETCH_ASSOC)) {
                 $struct = new DataFieldStructure($data);
                 $entries[$data['datafield_id']] = DataFieldEntry::createDataFieldEntry($struct, $range_id, $data['content']);
             }
@@ -133,37 +147,12 @@ abstract class DataFieldEntry
     }
 
     /**
-     * Enter description here...
+     * Removes all datafields from a given range_id (and secondary range 
+     * id if passed as array)
      *
-     * @return unknown
-     */
-    public function store()
-    {
-        $st = DBManager::get()->prepare("SELECT content FROM datafields_entries "
-            . "WHERE datafield_id = ? AND range_id = ? AND sec_range_id = ?");
-        $ok = $st->execute(array($this->structure->getID(), (string)$this->getRangeID() , (string)$this->getSecondRangeID()));
-        if ($ok) {
-            $old_value = $st->fetchColumn();
-        }
-
-        $query = "INSERT INTO datafields_entries (content, datafield_id, range_id, sec_range_id, mkdate, chdate)
-                     VALUES (?,?,?,?,UNIX_TIMESTAMP(), UNIX_TIMESTAMP())
-                     ON DUPLICATE KEY UPDATE content=?, chdate=UNIX_TIMESTAMP()";
-        $st = DBManager::get()->prepare($query);
-        $ret = $st->execute(array($this->getValue() , $this->structure->getID() , $this->getRangeID() , $this->getSecondRangeID() , $this->getValue()));
-
-        if ($ret) {
-            NotificationCenter::postNotification('DatafieldDidUpdate', $this, array('changed' => $st->rowCount(), 'old_value' => $old_value));
-        }
-
-        return $ret;
-    }
-
-    /**
-     * Enter description here...
-     *
-     * @param unknown_type $range_id
-     * @return unknown
+     * @param mixed $range_id Range id (or array with range id and secondary
+     *                        range id)
+     * @return int representing the number of deleted entries
      */
     public static function removeAll($range_id)
     {
@@ -174,59 +163,87 @@ abstract class DataFieldEntry
             $secRangeID = "";
         }
 
-        if ($rangeID && !$secRangeID) {
-            $where = "range_id = ?";
-            $param = array($rangeID);
-        } elseif ($rangeID && $secRangeID) {
-            $where = "range_id = ? AND sec_range_id = ?";
-            $param = array($rangeID , $secRangeID);
-        } elseif (!$rangeID && $secRangeID) {
-            $where = "sec_range_id = ?";
-            $param = array($secRangeID);
+        if (!$rangeID && !$secRangeID) {
+            return;
         }
 
-        if ($where) {
-            $st = DBManager::get()->prepare("DELETE FROM datafields_entries WHERE $where");
-            $ret = $st->execute($param);
-            return $ret;
+        $conditions = array();
+        $parameters = array();
+
+        if ($rangeID) {
+            $conditions[] = 'range_id = ?';
+            $parameters[] = $rangeID;
         }
+        if ($secRangeID) {
+            $conditions[] = 'sec_range_id = ?';
+            $parameters[] = $secRangeID;
+        }
+
+        $where = implode(' AND ', $conditions);
+
+        return DataFieldEntry::deleteBySQL($where, $parameters);
     }
 
+    public $value;
+    public $structure;
+    public $rangeID;
+
     /**
-     * Enter description here...
+     * Constructs this datafield
      *
-     * @return array() of supported types
+     * @param DataFieldStructure $structure Underlying structure
+     * @param String             $rangeID   Range id
+     * @param mixed              $value     Value
      */
-    public static function getSupportedTypes()
+    public function __construct($structure = null, $rangeID = '', $value = null)
     {
-        return array("bool" , "textline" , "textarea" , "selectbox" , "selectboxmultiple", "date" , "time" , "email" , "phone" , "radio" , "combo" , "link");
+        $this->structure = $structure;
+        $this->rangeID   = $rangeID;
+        $this->value     = $value;
     }
 
     /**
-     * "statische" Methode: liefert neues Datenfeldobjekt zu gegebenem Typ
+     * Stores this datafield entry
      *
-     * @param unknown_type $structure
-     * @param unknown_type $rangeID
-     * @param unknown_type $value
-     * @return unknown
+     * @return int representing the number of changed entries
      */
-    public static function createDataFieldEntry($structure, $rangeID = '', $value = '')
+    public function store()
     {
-        if(! is_object($structure)) {
-            return false;
+        $where = 'datafield_id = ? AND range_id = ? AND sec_range_id = ?';
+        $parameters = array(
+            $this->structure->getID(),
+            (string)$this->structure->getRangeID(),
+            (string)$this->structure->getSecondRangeID(),
+        );
+        $entry = DatafieldEntryModel::findBySQL($where, $parameters);
+
+        $old_value = $entry->content;
+
+        $entry->content = $this->getValue();
+        $result = $entry->store();
+
+        if ($result) {
+            NotificationCenter::postNotification('DatafieldDidUpdate', $this, array(
+                'changed'   => $result,
+                'old_value' => $old_value,
+            ));
         }
 
-        $type = $structure->getType();
-        if (!in_array($type, DataFieldEntry::getSupportedTypes())) {
-            return false;
-        }
-
-        $entry_class = 'DataField' . ucfirst($type) . 'Entry';
-        return new $entry_class($structure, $rangeID, $value);
+        return $result;
     }
 
     /**
-     * Enter description here...
+     * Returns the description of this datafield
+     * 
+     * @return String containing the description
+     */
+    public function getDescription()
+    {
+        return $this->structure->getDescription();
+    }
+
+    /**
+     * Returns the type of this datafield
      *
      * @return string type of entry
      */
@@ -237,10 +254,10 @@ abstract class DataFieldEntry
     }
 
     /**
-     * Enter description here...
+     * Returns the display/rendered value of this datafield
      *
-     * @param unknown_type $entities
-     * @return unknown
+     * @param bool $entities Should html entities be encoded (defaults to true)
+     * @return String containg the rendered value
      */
     public function getDisplayValue($entities = true)
     {
@@ -251,9 +268,9 @@ abstract class DataFieldEntry
     }
 
     /**
-     * Enter description here...
+     * Returns the value of the datafield
      *
-     * @return unknown
+     * @return mixed containing the value
      */
     public function getValue()
     {
@@ -261,9 +278,9 @@ abstract class DataFieldEntry
     }
 
     /**
-     * Enter description here...
+     * Returns the name of the datafield
      *
-     * @return string name
+     * @return String containing the name
      */
     public function getName()
     {
@@ -271,9 +288,9 @@ abstract class DataFieldEntry
     }
 
     /**
-     * Enter description here...
+     * Returns the id of the datafield
      *
-     * @return unknown
+     * @return String containing the id
      */
     public function getId()
     {
@@ -281,10 +298,11 @@ abstract class DataFieldEntry
     }
 
     /**
-     * Enter description here...
+     * Returns the according input elements as html for this datafield
      *
-     * @param unknown_type $name
-     * @return unknown
+     * @param String $name      Name prefix of the associated input
+     * @param Array  $variables Additional variables
+     * @return String containing the required html
      */
     public function getHTML($name = '', $variables = array())
     {
@@ -298,19 +316,19 @@ abstract class DataFieldEntry
     }
 
     /**
-     * Enter description here...
+     * Sets the value
      *
-     * @param unknown_type $v
+     * @param mixed $value The value
      */
-    public function setValue($v)
+    public function setValue($value)
     {
-        $this->value = $v;
+        $this->value = $value;
     }
 
     /**
-     * Enter description here...
+     * Sets the value from a post request
      *
-     * @param unknown_type $submitted_value
+     * @param mixed $submitted_value The value from request
      */
     public function setValueFromSubmit($submitted_value)
     {
@@ -318,29 +336,29 @@ abstract class DataFieldEntry
     }
 
     /**
-     * Enter description here...
+     * Sets the range id
      *
-     * @param unknown_type $v
+     * @param String $range_id Range id
      */
-    public function setRangeID($v)
+    public function setRangeID($range_id)
     {
-        $this->rangeID = $v;
+        $this->rangeID = $range_id;
     }
 
     /**
-     * Enter description here...
+     * Sets the secondary range id
      *
-     * @param unknown_type $v
+     * @param String $sec_range_id Secondary range id
      */
-    public function setSecondRangeID($v)
+    public function setSecondRangeID($sec_range_id)
     {
-        $this->rangeID = array(is_array($this->rangeID) ? $this->rangeID[0] : $this->rangeID , $v);
+        $this->rangeID = array($this->getRangeID(), $sec_range_id);
     }
 
     /**
-     * Enter description here...
+     * Returns whether the datafield contents are valid
      *
-     * @return boolean
+     * @return boolean indicating whether the datafield contents are valid
      */
     public function isValid()
     {
@@ -349,9 +367,9 @@ abstract class DataFieldEntry
     }
 
     /**
-     * Enter description here...
+     * Returns the number of html fields this datafield uses for input.
      *
-     * @return unknown
+     * @return int representing the number of html fields
      */
     public function numberOfHTMLFields()
     {
@@ -359,9 +377,9 @@ abstract class DataFieldEntry
     }
 
     /**
-     * Enter description here...
+     * Returns the range id
      *
-     * @return unknown
+     * @return String containing the range id
      */
     public function getRangeID()
     {
@@ -372,9 +390,9 @@ abstract class DataFieldEntry
     }
 
     /**
-     * Enter description here...
+     * Returns the secondary range id
      *
-     * @return unknown
+     * @return String containing the secondary range id
      */
     public function getSecondRangeID()
     {
@@ -386,9 +404,9 @@ abstract class DataFieldEntry
     }
 
     /**
-     * Enter description here...
+     * Returns whether the datafield is visible for the current user
      *
-     * @return boolean
+     * @return boolean indicating whether the datafield is visible
      */
     public function isVisible()
     {
@@ -398,9 +416,9 @@ abstract class DataFieldEntry
     }
 
     /**
-     * Enter description here...
+     * Returns whether the datafield is editable for the current user
      *
-     * @return boolean
+     * @return boolean indicating whether the datafield is editable
      */
     public function isEditable()
     {

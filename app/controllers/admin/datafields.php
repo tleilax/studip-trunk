@@ -73,7 +73,6 @@ class Admin_DatafieldsController extends AuthenticatedController
         // set variables for view
         $this->current_class = $class;
         $this->allclass = array_keys($this->allclasses);
-        $this->edit_id = Request::option('edit_id');
     }
 
     /**

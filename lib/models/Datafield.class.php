@@ -36,7 +36,8 @@ class Datafield extends SimpleORMap
     {
         $config['db_table'] = 'datafields';
         $config['has_many']['entries'] = array(
-            'class_name' => 'DatafieldEntryModel'
+            'class_name' => 'DatafieldEntryModel',
+            'on_delete' => 'delete',
         );
         parent::configure($config);
     }
