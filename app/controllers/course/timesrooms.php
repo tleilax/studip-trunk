@@ -104,13 +104,13 @@ class Course_TimesroomsController extends AuthenticatedController
 
         $this->semester = array_reverse(Semester::getAll());
         $this->current_semester = Semester::findCurrent();
-
         // Get Cycles
         $this->cycle_dates = array();
         foreach ($this->course->cycles as $cycle) {
             foreach ($cycle->getAllDates() as $val) {
                 foreach ($this->semester as $sem) {
-                    if ($_SESSION['raumzeitFilter'] === $sem->id) {
+                    if ($_SESSION['raumzeitFilter'] === $sem->id 
+                            || ($sem->beginn != $_SESSION['raumzeitFilter'] && $_SESSION['raumzeitFilter'] !== 'all')) {
                         continue;
                     }
                     if ($sem->beginn <= $val->date && $sem->ende >= $val->date) {
@@ -128,7 +128,8 @@ class Course_TimesroomsController extends AuthenticatedController
 
         foreach ($_single_dates as $id => $val) {
             foreach ($this->semester as $sem) {
-                if ($_SESSION['raumzeitFilter'] != 'all' && $_SESSION['raumzeitFilter'] == $sem->id) {
+                if ($_SESSION['raumzeitFilter'] == $sem->id
+                        || ($sem->beginn != $_SESSION['raumzeitFilter'] && $_SESSION['raumzeitFilter'] !== 'all')) {
                     continue;
                 }
 
@@ -140,9 +141,6 @@ class Course_TimesroomsController extends AuthenticatedController
         $this->semesterFormParams = $semesterFormParams;
         $this->editParams = $editParams;
         $this->linkAttributes = $linkAttributes;
-        
-        
-        //$this->editDate_action('a50d328cce19bd2dd268426846c88ac8');
     }
 
     /**
@@ -959,7 +957,7 @@ class Course_TimesroomsController extends AuthenticatedController
             $end_semester = -1;
         }
         $course = Seminar::GetInstance($course_id);
-
+        //var_dump($course->seminar_id);die;
         if ($start_semester == $end_semester) {
             $end_semester = 0;
         }
@@ -974,7 +972,7 @@ class Course_TimesroomsController extends AuthenticatedController
             } else {
                 $course->setEndSemester($end_semester);
             }
-            $course->removeAndUpdateSingleDates();
+            //$course->removeAndUpdateSingleDates();
 
 
             // If the new duration includes the current semester, we set the semester-chooser to the current semester
@@ -988,7 +986,18 @@ class Course_TimesroomsController extends AuthenticatedController
         }
 
         $course->store();
-
+        
+        SeminarCycleDate::removeOutRangedSingleDates($course->getStartSemester(), $course->getEndSemesterVorlesEnde(), $course->id);
+        $cycles = SeminarCycleDate::findBySeminar_id($course->seminar_id);
+        foreach($cycles as $cycle){
+            $new_dates = $cycle->createTerminSlots($start_semester->beginn);
+            foreach($new_dates as $semester_id => $dates){
+                foreach($dates['dates'] as $date){
+                    $date->store();
+                }
+            }
+        }
+        
         $messages = $course->getStackedMessages();
         foreach ($messages as $type => $msg) {
             PageLayout::postMessage(MessageBox::$type($msg['title'], $msg['details']));

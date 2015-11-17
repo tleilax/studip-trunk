@@ -436,8 +436,6 @@ class SeminarCycleDate extends SimpleORMap
 
             if (!$dateExists) {
 
-                
-                
                 $termin = new CourseDate();
 
                 $all_holiday = $holiday->getAllHolidays(); // fetch all Holidays
@@ -470,21 +468,48 @@ class SeminarCycleDate extends SimpleORMap
 
         } while ($end_time < $sem_end);
 
-        /*
-        foreach ($existingSingleDates as $id => $val) {
-            foreach (array_keys($dates) as $date) {
-                if($date != $id){
-                    $dates_to_delete[$id] = $val;
-                    unset($existingSingleDates[$id]);
-                }
-            }
-        }*/
         return array('dates' => $dates, 'dates_to_delete' => $dates_to_delete);
     }
     
-    
-    
-    
-    
+    // removes all singleDates which are NOT between $start and $end
+    static function removeOutRangedSingleDates($start, $end, $seminar_id)
+    {
+        $query = "SELECT termin_id
+                  FROM termine
+                  WHERE range_id = ? AND (`date` NOT BETWEEN ? AND ?)
+                    AND NOT (metadate_id IS NULL OR metadate_id = '')";
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute(array($seminar_id, $start, $end));
+        $ids = $statement->fetchAll(PDO::FETCH_COLUMN);
+
+        foreach ($ids as $id) {
+            $termin = new SingleDate($id);
+            $termin->delete();
+            unset($termin);
+        }
+
+        if (count($ids) > 0) {
+            // remove all assigns for the dates in question
+            $query = "SELECT assign_id FROM resources_assign WHERE assign_user_id IN (?)";
+            $statement = DBManager::get()->prepare($query);
+            $statement->execute(array($ids));
+
+            while ($id = $statement->fetchColumn()) {
+                AssignObject::Factory($assign_id)->delete();
+            }
+        }
+
+        // $query = "DELETE FROM termine
+        //           WHERE range_id = ? AND (`date` NOT BETWEEN ? AND ?)
+        //             AND NOT (metadate_id IS NULL OR metadate_id = '')";
+        // $statement = DBManager::get()->prepare($query);
+        // $statement->execute(array($seminar_id, $start, $end));
+
+        $query = "DELETE FROM ex_termine
+                  WHERE range_id = ? AND (`date` NOT BETWEEN ? AND ?)
+                    AND NOT (metadate_id IS NULL OR metadate_id = '')";
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute(array($seminar_id, $start, $end));
+    }
     
 }
