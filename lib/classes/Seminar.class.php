@@ -133,7 +133,7 @@ class Seminar
             $field = $this->alias[$field];
         }
         if ($field == 'metadate') {
-            $this->_metadate = $value;
+            return $this->_metadate = $value;
         }
         return $this->course->$field = $value;
     }

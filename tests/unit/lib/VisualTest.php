@@ -22,7 +22,8 @@ class VisualFunctionsTest extends PHPUnit_Framework_TestCase
     public function setUp()
     {
         static $config = array(
-            'LOAD_EXTERNAL_MEDIA' => 'allow'
+            'LOAD_EXTERNAL_MEDIA' => 'allow',
+            'OPENGRAPH_ENABLE'    => false,
         );
 
         Config::set(new Config($config));
