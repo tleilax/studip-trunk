@@ -36,7 +36,7 @@
 class StudipAuthLdap extends StudipAuthAbstract {
     
     var $anonymous_bind = true;
-    
+
     var $host;
     var $base_dn;
     var $protocol_version;
