@@ -270,7 +270,7 @@ function InsertPersonStatusgruppe ($user_id, $statusgruppe_id, $is_institute_gro
 function MakeDatafieldsDefault($user_id, $statusgruppe_id, $default = 'default_value')
 {
     global $auth;
-    $fields = DataFieldStructure::getDataFieldStructures('userinstrole');
+    $fields = DataField::getDataFields('userinstrole');
 
     $query = "SELECT datafield_id FROM datafields WHERE object_type = 'userinstrole'";
     $ids = DBManager::get()->query($query)->fetchAll(PDO::FETCH_COLUMN);
@@ -917,9 +917,9 @@ function get_role_data_recursive($roles, $user_id, &$default_entries, $filter = 
                     $value = $entry->getDisplayValue();
                 }
 
-                $name = $entry->structure->getName();
+                $name = $entry->getName();
                 if ($role['user_there']) {
-                    $view = (DataFieldStructure::permMask($auth->auth['perm']) >= DataFieldStructure::permMask($entry->structure->getViewPerms()));
+                    $view = (DataField::permMask($auth->auth['perm']) >= DataField::permMask($entry->getModel()->getViewPerms()));
                     $show_star = false;
                     if (!$view && ($user_id == $user->id)) {
                         $view = true;

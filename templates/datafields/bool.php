@@ -1,5 +1,5 @@
-<input type="hidden" name="<?= $name ?>[<?= $structure->getID() ?>]" value="0">
-<input type="checkbox" name="<?= $name ?>[<?= $structure->getID()?>]"
-       value="1" id="<?= $name ?>_<?= $structure->getID() ?>"
+<input type="hidden" name="<?= $name ?>[<?= $model->id ?>]" value="0">
+<input type="checkbox" name="<?= $name ?>[<?= $model->id ?>]"
+       value="1" id="<?= $name ?>_<?= $model->id ?>"
        <? if ($value) echo 'checked'; ?>
-       <? if ($structure->getIsRequired()) echo 'required'; ?>>
+       <? if ($model->is_required) echo 'required'; ?>>

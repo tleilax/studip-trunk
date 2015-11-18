@@ -4,7 +4,7 @@ use Studip\Button, Studip\LinkButton;
 
 ?>
 
-<form action="<?= $controller->url_for('admin/datafields/edit/' . $item->getID()) ?>" method="post"
+<form action="<?= $controller->url_for('admin/datafields/edit/' . $item->id) ?>" method="post"
       class="default">
     <?= CSRFProtection::tokenTag() ?>
 
@@ -16,7 +16,7 @@ use Studip\Button, Studip\LinkButton;
 
             <input type="text" name="datafield_name" id="datafield_name"
                    required size="60" maxlength="254"
-                   value="<?= htmlReady($item->getName()) ?>">
+                   value="<?= htmlReady($item->name) ?>">
         </label>
 
         <label>
@@ -24,7 +24,7 @@ use Studip\Button, Studip\LinkButton;
 
             <select name="datafield_type" id="datafield_type">
             <? foreach (DataFieldEntry::getSupportedTypes() as $param): ?>
-                <option <? if ($item->getType() === $param) echo 'selected'; ?>>
+                <option <? if ($item->type === $param) echo 'selected'; ?>>
                      <?= htmlReady($param) ?>
                 </option>
             <? endforeach; ?>
@@ -32,24 +32,24 @@ use Studip\Button, Studip\LinkButton;
         </label>
 
         <label>
-        <? if ($item->getObjectType() === 'sem'): ?>
+        <? if ($item->object_type === 'sem'): ?>
             <?= _('Veranstaltungskategorie') ?>:
 
             <select name="object_class[]" id="object_class">
                 <option value="NULL"><?= _('alle') ?></option>
             <? foreach (SemClass::getClasses() as $key => $val): ?>
-                <option value="<?= $key ?>" <? if ($item->getObjectClass() === $key) echo 'selected'; ?>>
+                <option value="<?= $key ?>" <? if ($item->object_class === $key) echo 'selected'; ?>>
                     <?= htmlReady($val['name']) ?>
                 </option>
             <? endforeach; ?>
             </select>
-        <? elseif ($item->getObjectType() === 'inst'): ?>
+        <? elseif ($item->object_type === 'inst'): ?>
             <?= _('Einrichtungstyp') ?>:
 
             <select name="object_class[]" id="object_class">
                 <option value="NULL"><?= _('alle') ?></option>
             <? foreach ($GLOBALS['INST_TYPE'] as $key => $val): ?>
-                <option value="<?= $key ?>" <? if ($item->getObjectClass() == $key) echo 'selected'; ?>>
+                <option value="<?= $key ?>" <? if ($item->object_class == $key) echo 'selected'; ?>>
                     <?= htmlReady($val['name']) ?>
                 </option>
             <? endforeach; ?>
@@ -60,7 +60,7 @@ use Studip\Button, Studip\LinkButton;
             <select multiple size="<?= count($controller->user_status) ?>" name="object_class[]" id="object_class">
                 <option value="NULL"><?= _('alle') ?></option>
             <? foreach ($controller->user_status as $key => $value): ?>
-                <option value="<?= $value ?>" <? if ($item->getObjectClass() & DataFieldStructure::permMask($key)) echo 'selected'; ?>>
+                <option value="<?= $value ?>" <? if ($item->object_class & DataField::permMask($key)) echo 'selected'; ?>>
                     <?= $key ?>
                 </option>
             <? endforeach; ?>
@@ -69,11 +69,11 @@ use Studip\Button, Studip\LinkButton;
         </label>
 
         <label>
-            <?= _('benötigter Status') ?>
+            <?= _('Benötigter Status zum Bearbeiten') ?>
 
             <select name="edit_perms" id="edit_perms">
             <? foreach (array_keys($controller->user_status) as $key): ?>
-                <option <? if ($item->getEditPerms() === $key) echo 'selected'; ?>>
+                <option <? if ($item->edit_perms === $key) echo 'selected'; ?>>
                     <?= $key ?>
                 </option>
             <? endforeach; ?>
@@ -81,18 +81,29 @@ use Studip\Button, Studip\LinkButton;
         </label>
 
         <label>
-            <?= _('Sichtbarkeit') ?>
+            <?= _('Sichtbarkeit') ?> (<?= _('für andere') ?>)
 
             <select name="visibility_perms" id="visibility_perms">
-                <option value="all" <? if ($item->getViewPerms() == 'all') echo 'selected'; ?>>
+                <option value="all" <? if ($item->view_perms == 'all') echo 'selected'; ?>>
                     <?= _('alle') ?>
                 </option>
             <? foreach (array_keys($controller->user_status) as $key): ?>
-                <option <? if ($item->getViewPerms() === $key) echo 'selected'; ?>>
+                <option <? if ($item->view_perms === $key) echo 'selected'; ?>>
                     <?= $key ?>
                 </option>
             <? endforeach; ?>
             </select>
+        </label>
+
+        <label>
+            <?= _('Systemfeld') ?>
+            <?= tooltipIcon(_('Nur für die Person selbst sichtbar, wenn der '
+                            . 'benötigte Status zum Bearbeiten oder die '
+                            . 'Sichtbarkeit ausreichend ist')) ?>
+
+            <input type="hidden" name="system" value="0">
+            <input type="checkbox" name="system" value="1"
+                   <? if ($item->system) echo 'checked'; ?>>
         </label>
 
         <label>
@@ -100,37 +111,37 @@ use Studip\Button, Studip\LinkButton;
 
             <input type="text" name="priority" id="priority"
                    maxlength="10" size="5"
-                   value="<?= $item->getPriority() ?>">
+                   value="<?= $item->priority ?>">
            </td>
         </label>
 
-    <? if ($item->getObjectType() === 'sem'): ?>
+    <? if ($item->object_type === 'sem'): ?>
         <label>
             <?= _('Eintrag verpflichtend') ?>:
 
             <input type="checkbox" name="is_required" id="is_required" value="1"
-                   <? if ($item->getIsRequired()) echo 'checked'; ?>>
+                   <? if ($item->is_required) echo 'checked'; ?>>
         </label>
 
         <label>
             <?= _('Beschreibung') ?>:
 
-            <textarea name="description" id="description"><?= htmlReady($item->getDescription()) ?></textarea>
+            <textarea name="description" id="description"><?= htmlReady($item->description) ?></textarea>
         </label>
     <? endif; ?>
     
-    <? if ($item->getObjectType() === 'user'): ?>
+    <? if ($item->object_type === 'user'): ?>
         <label>
             <?= _('Mögliche Bedingung für Anmelderegel') ?>:
 
             <input type="checkbox" name="is_userfilter" id="is_userfilter" value="1"
-                   <? if ($item->getIsUserfilter()) echo 'checked'; ?>>
+                   <? if ($item->is_userfilter) echo 'checked'; ?>>
         </label>
     <? endif; ?>
     </fieldset>
 
     <footer data-dialog-button>
         <?= Button::createAccept(_('Übernehmen'), 'uebernehmen', array('title' => _('Änderungen übernehmen')))?>
-        <?= LinkButton::createCancel(_('Abbrechen'), $controller->url_for('admin/datafields/index/'.$item->getType().'#'.$item->getType()), array('title' => _('Zurück zur Übersicht')))?>
+        <?= LinkButton::createCancel(_('Abbrechen'), $controller->url_for('admin/datafields/index/'.$item->type.'#'.$item->type), array('title' => _('Zurück zur Übersicht')))?>
     </footer>
 </form>

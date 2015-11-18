@@ -514,7 +514,7 @@ use Studip\Button, Studip\LinkButton;
     <? if ($entry->isVisible()) : ?>
         <tr>
             <td>
-                <label for="datafields_<?= $entry->structure->getID() ?>">
+                <label for="datafields_<?= $entry->getID() ?>">
                     <?= htmlReady($entry->getName()) ?>:
                 </label>
             </td>

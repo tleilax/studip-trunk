@@ -1,12 +1,12 @@
 <div style="white-space: nowrap;">
-    <input type="text" name="<?= $name ?>[<?= $structure->getID() ?>][]"
+    <input type="text" name="<?= $name ?>[<?= $model->id ?>][]"
            maxlength="2" size="1"
            value="<? if ($value) echo date('d', $timestamp); ?>"
            title="<?= _('Tag') ?>"
-           <? if ($structure->getIsRequired()) echo 'required'; ?>>.
+           <? if ($model->is_required) echo 'required'; ?>>.
 
-    <select name="<?= $name ?>[<?= $structure->getID() ?>][]" title="<?= _('Monat') ?>"
-            <? if ($structure->getIsRequired()) echo 'required'; ?>>
+    <select name="<?= $name ?>[<?= $model->id ?>][]" title="<?= _('Monat') ?>"
+            <? if ($model->is_required) echo 'required'; ?>>
         <option value=""></option>
     <? for ($i = 0; $i < 12; $i += 1): ?>
         <option value="<?= $i + 1 ?>"
@@ -16,9 +16,9 @@
     <? endfor;?>
     </select>
 
-    <input type="text" name="<?= $name ?>[<?= $structure->getID() ?>][]"
+    <input type="text" name="<?= $name ?>[<?= $model->id ?>][]"
            maxlength="4" size="3"
            value="<? if ($value) echo date('Y', $timestamp); ?>"
            title="<?= _('Jahr') ?>"
-           <? if ($structure->getIsRequired()) echo 'required'; ?>>
+           <? if ($model->is_required) echo 'required'; ?>>
 </div>

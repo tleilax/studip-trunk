@@ -590,7 +590,7 @@ class Course_MembersController extends AuthenticatedController
         if (!Request::isXhr()) {
             Navigation::activateItem('/course/members/view');
         }
-        $datafields = DataFieldStructure::getDataFieldStructures('user', (1 | 2 | 4 | 8), true);
+        $datafields = DataField::getDataFields('user', 1 | 2 | 4 | 8, true);
         foreach ($datafields as $df) {
             if ($df->accessAllowed($perm) && in_array($df->getId(), $GLOBALS['TEILNEHMER_IMPORT_DATAFIELDS'])) {
                 $accessible_df[] = $df;
@@ -624,7 +624,7 @@ class Course_MembersController extends AuthenticatedController
         $datafield_id = null;
 
         if (Request::get('csv_import_format') && !in_array(Request::get('csv_import_format'), words('realname username'))) {
-            foreach (DataFieldStructure::getDataFieldStructures('user', (1 | 2 | 4 | 8), true) as $df) {
+            foreach (DataField::getDataFields('user', 1 | 2 | 4 | 8, true) as $df) {
                 if ($df->accessAllowed($perm) && in_array($df->getId(), $GLOBALS['TEILNEHMER_IMPORT_DATAFIELDS']) && $df->getId() == Request::quoted('csv_import_format')) {
                     $datafield_id = $df->getId();
                     break;

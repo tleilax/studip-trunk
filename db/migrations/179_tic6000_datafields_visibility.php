@@ -15,14 +15,17 @@ class Tic6000DatafieldsVisibility extends Migration
     public function up()
     {
         $query = "ALTER TABLE `datafields`
-                    ADD COLUMN `self_perms` ENUM('all','user','autor','tutor','dozent','admin','root')
-                        NULL DEFAULT NULL AFTER `view_perms`";
+                    ADD COLUMN `system` UNSINGED TINYINT(1) NOT NULL DEFAULT 0";
         DBManager::get()->exec($query);
+
+        SimpleORMap::expireTableScheme();
     }
 
     public function down()
     {
-        $query = "ALTER TABLE `datafields` DROP COLUMN `self_perms`";
+        $query = "ALTER TABLE `datafields` DROP COLUMN `system`";
         DBManager::get()->exec($query);
+
+        SimpleORMap::expireTableScheme();
     }
 }

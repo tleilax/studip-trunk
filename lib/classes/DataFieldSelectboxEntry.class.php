@@ -58,7 +58,7 @@ class DataFieldSelectboxEntry extends DataFieldEntry
 
     protected function getParams()
     {
-        $params = explode("\n", $this->structure->getTypeParam());
+        $params = explode("\n", $this->model->typeparam);
         $params = array_map('trim', $params);
 
         $ret = array();

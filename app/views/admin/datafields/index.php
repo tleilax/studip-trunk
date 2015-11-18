@@ -35,17 +35,20 @@
                 <?= _('Typ') ?>
                 <?= tooltipIcon(_('Veranstaltungskategorie, Einrichtungstyp bzw. Nutzerstatus')) ?>
             </th>
-            <th colspan="3" style="text-align: center">
+            <th colspan="2" style="text-align: center">
                 <?= _('benötigter Status') ?>
+            </th>
+            <th rowspan="2">
+                <?= _('Systemfeld') ?>
+                <?= tooltipIcon(_('Für die Person nur sichtbar, wenn der Status zum Bearbeiten '
+                                . ' oder für die Sichtbarkeit ausreichend ist')) ?>
             </th>
             <th rowspan="2"><?= _('Pflichtfeld') ?></th>
             <th rowspan="2"><?= _('Beschreibung') ?></th>
             <th rowspan="2"><?= _('Anmelderegel') ?></th>
             <th rowspan="2"><?= _('Position') ?></th>
             <th rowspan="2">
-                <abbr title="<?= _('Einträge') ?>">
-                    #
-                </abbr>
+                <abbr title="<?= _('Einträge') ?>">#</abbr>
             </th>
             <th rowspan="2" class="actions"></th>
         </tr>
@@ -57,10 +60,6 @@
             <th style="word-wrap: nowrap">
                 <?= _('Öffentlich') ?>
                 <?= tooltipIcon(_('Gibt den Status an, ab dem das Datenfeld für andere sichtbar ist')) ?>
-            </th>
-            <th style="word-wrap: nowrap">
-                <?= _('Sichtbar') ?>
-                <?= tooltipIcon(_('Gibt den Status an, ab dem das Datenfeld für sich selbst sichtbar ist')) ?>
             </th>
         </tr>
     </thead>
@@ -80,32 +79,38 @@
     <? foreach ($data as $input => $val): ?>
         <tr>
             <td>
-                <a name="item_<?= $val->getID() ?>"></a>
-                <?= htmlReady($val->getName()) ?>
+                <a name="item_<?= $val->id ?>"></a>
+                <?= htmlReady($val->name) ?>
             </td>
             <td>
-            <? if (in_array($val->getType(), words('selectbox selectboxmultiple radio combo'))): ?>
-                <a data-dialog="size=auto" href="<?= $controller->url_for('admin/datafields/config/'. $val->getID()) ?>">
+            <? if (in_array($val->type, words('selectbox selectboxmultiple radio combo'))): ?>
+                <a data-dialog="size=auto" href="<?= $controller->url_for('admin/datafields/config/'. $val->id) ?>">
                     <?= Assets::img('icons/16/blue/edit.png', array('class'=> 'text-top', 'title' => 'Einträge bearbeiten')) ?>
                 </a>
             <? endif; ?>
-                 <span><?= htmlReady($val->getType()) ?></span>
+                 <span><?= htmlReady($val->type) ?></span>
             </td>
             <td>
             <? if ($key === 'sem'): ?>
-                <?= $val->getObjectClass() !== null ? htmlReady($GLOBALS['SEM_CLASS'][$val->getObjectClass()]['name']) : _('alle')?>
+                <?= $val->object_class !== null ? htmlReady($GLOBALS['SEM_CLASS'][$val->object_class]['name']) : _('alle')?>
             <? elseif ($key == 'inst'): ?>
-                <?=  $val->getObjectClass() !== null ? htmlReady($GLOBALS['INST_TYPE'][$val->getObjectClass()]['name']) : _('alle')?>
+                <?=  $val->object_class !== null ? htmlReady($GLOBALS['INST_TYPE'][$val->object_class]['name']) : _('alle')?>
             <? else: ?>
-                <?= $val->getObjectClass() !== null ? DataFieldStructure::getReadableUserClass($val->getObjectClass()) : _('alle')?>
+                <?= $val->object_class !== null ? DataField::getReadableUserClass($val->object_class) : _('alle')?>
             <? endif; ?>
             </td>
-            <td><?= $val->getEditPerms() ?></td>
-            <td><?= $val->getViewPerms() ?></td>
-            <td>???</td>
+            <td><?= $val->edit_perms ?></td>
+            <td><?= $val->view_perms ?></td>
+            <td>
+            <? if ($val->system): ?>
+                <?= Assets::img('icons/grey/checkbox-checked.svg', tooltip2(_('Ja'))) ?>
+            <? else: ?>
+                <?= Assets::img('icons/grey/checkbox-unchecked.svg', tooltip2(_('Nein'))) ?>
+            <? endif; ?>                
+            </td>
             <td>
             <? if ($key === 'sem'): ?>
-                <? if ($val->getIsRequired()): ?>
+                <? if ($val->is_required): ?>
                     <?= Assets::img('icons/grey/checkbox-checked.svg', tooltip2(_('Ja'))) ?>
                 <? else: ?>
                     <?= Assets::img('icons/grey/checkbox-unchecked.svg', tooltip2(_('Nein'))) ?>
@@ -114,7 +119,7 @@
             </td>
             <td>
             <? if ($key === 'sem'): ?>
-                <? if (trim($val->getDescription())): ?>
+                <? if (trim($val->description)): ?>
                     <?= Assets::img('icons/grey/checkbox-checked.svg', tooltip2(_('Ja'))) ?>
                 <? else: ?>
                     <?= Assets::img('icons/grey/checkbox-unchecked.svg', tooltip2(_('Nein'))) ?>
@@ -123,20 +128,20 @@
             </td>
             <td>
             <? if ($key === 'user'): ?>
-                <? if ($val->getIsUserFilter()): ?>
+                <? if ($val->is_userfilter): ?>
                     <?= Assets::img('icons/grey/checkbox-checked.svg', tooltip2(_('Ja'))) ?>
                 <? else: ?>
                     <?= Assets::img('icons/grey/checkbox-unchecked.svg', tooltip2(_('Nein'))) ?>
                 <? endif; ?>
             <? endif; ?>
             </td>
-            <td><?= $val->getPriority() ?></td>
-            <td><?= $val->getCachedNumEntries() ?></td>
+            <td><?= $val->priority ?></td>
+            <td><?= count($val->entries) ?></td>
             <td class="actions">
-                <a href="<?=$controller->url_for('admin/datafields/edit/'.$val->getID())?>" data-dialog>
+                <a href="<?=$controller->url_for('admin/datafields/edit/' . $val->id)?>" data-dialog>
                     <?= Assets::img('icons/16/blue/edit.png', array('title' => 'Datenfeld ändern')) ?>
                 </a>
-                <a href="<?=$controller->url_for('admin/datafields/delete/'.$val->getID())?>">
+                <a href="<?=$controller->url_for('admin/datafields/delete/' . $val->id)?>">
                     <?= Assets::img('icons/16/blue/trash.png', array('title' => 'Datenfeld löschen')) ?>
                 </a>
             </td>

@@ -719,19 +719,18 @@ if ($form == 5 && Request::isPost()) {
     $sem_datafields = Request::quotedArray('sem_datafields');
     if (!empty($sem_datafields)) {
         foreach ($sem_datafields as $id => $df_values) {
-            $struct = new DataFieldStructure(array("datafield_id"=>$id));
-            $struct->load();
+            $struct = DataField::find($id);
             $entry  = DataFieldEntry::createDataFieldEntry($struct);
             $entry->setValueFromSubmit($df_values);
             $_SESSION['sem_create_data']['sem_datafields'][$id] = array('name'=>$entry->getName(), 'type'=>$entry->getType(), 'value'=> $entry->getValue());
         }
     }
     //check if required datafield was not filled out
-    $dataFieldStructures = DataFieldStructure::getDataFieldStructures('sem', $_SESSION['sem_create_data']['sem_class'], true);
+    $dataFieldStructures = DataField::getDataFields('sem', $_SESSION['sem_create_data']['sem_class'], true);
     foreach ((array)$dataFieldStructures as $id=>$struct) {
-        if ($struct->accessAllowed($perm) && $perm->have_perm($struct->getEditPerms()) && $struct->getIsRequired() ) {
+        if ($struct->accessAllowed($perm) && $perm->have_perm($struct->edit_perms) && $struct->is_required) {
             if (! trim($sem_datafields[$id]))
-                $errormsg = $errormsg."error§".sprintf(_("Das Feld %s wurde nicht ausgefüllt"), htmlReady($struct->getName()))."§";
+                $errormsg = $errormsg."error§".sprintf(_("Das Feld %s wurde nicht ausgefüllt"), htmlReady($struct->name))."§";
         }
     }
 
@@ -1839,7 +1838,9 @@ if (($form == 6) && (Request::submitted('jump_next')))
             //Store the additional datafields
             if (is_array($_SESSION['sem_create_data']["sem_datafields"])) {
                 foreach ($_SESSION['sem_create_data']['sem_datafields'] as $id=>$val) {
-                    $struct = new DataFieldStructure(array("datafield_id"=>$id, 'type'=>$val['type'], 'name'=>$val['name']));
+                    $struct = new DataField($id);
+                    $struct->type = $val['type'];
+                    $struct->name = $val['name'];
                     $entry  = DataFieldEntry::createDataFieldEntry($struct, $_SESSION['sem_create_data']['sem_id'], $val['value']);
                     if ($entry->isValid())
                         $entry->store();
@@ -3530,22 +3531,22 @@ elseif ($level == 5) {
                         <?
                         }
                         //add the free adminstrable datafields
-                        $dataFieldStructures = DataFieldStructure::getDataFieldStructures('sem', $_SESSION['sem_create_data']['sem_class'], true);
+                        $dataFieldStructures = DataField::getDataFields('sem', $_SESSION['sem_create_data']['sem_class'], true);
                         foreach ((array)$dataFieldStructures as $id=>$struct) {
                             if ($struct->accessAllowed($perm)) {
                                 ?>
                                 <tr <? $cssSw->switchClass() ?>>
                                     <td class="<?= $cssSw->getClass() ?>" width="10%" align="right">
-                                        <?=htmlReady($struct->getName()) ?>
+                                        <?=htmlReady($struct->name) ?>
 
-                                        <?if($struct->getIsRequired() && $perm->have_perm($struct->getEditPerms())):?>
+                                        <?if($struct->is_required && $perm->have_perm($struct->edit_perms)):?>
                                             <font color="red" size=+2>*</font>
                                         <?endif;?>
                                     </td>
                                     <td class="<?= $cssSw->getClass() ?>" width="90%" colspan=3>
                                         <div style="width:33.8em; float:left;">
                                             <?
-                                            if ($perm->have_perm($struct->getEditPerms())) {
+                                            if ($perm->have_perm($struct->edit_perms)) {
                                                 $entry = DataFieldEntry::createDataFieldEntry($struct, '', stripslashes($_SESSION['sem_create_data']["sem_datafields"][$id]['value']));
                                                 print "&nbsp;&nbsp;".$entry->getHTML("sem_datafields");
 
@@ -3557,8 +3558,8 @@ elseif ($level == 5) {
                                             }
                                             ?>
                                         </div>
-                                        <?if ($perm->have_perm($struct->getEditPerms()) && $struct->getDescription())
-                                            echo tooltipIcon(_($struct->getDescription()));
+                                        <?if ($perm->have_perm($struct->edit_perms) && $struct->description)
+                                            echo tooltipIcon(_($struct->description));
                                         ?>
                                     </td>
                                 </tr>

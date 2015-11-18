@@ -84,6 +84,17 @@ use Studip\Button, Studip\LinkButton;
         </label>
 
         <label>
+            <?= _('Systemfeld') ?>
+            <?= tooltipIcon(_('Nur für die Person selbst sichtbar, wenn der '
+                            . 'benötigte Status zum Bearbeiten oder die '
+                            . 'Sichtbarkeit ausreichend ist')) ?>
+
+            <input type="hidden" name="system" value="0">
+            <input type="checkbox" name="system" value="1"
+                   <? if ($this->flash['request']['system']) echo 'checked'; ?>>
+        </label>
+
+        <label>
             <?= _('Position') ?>
 
             <input type="text" name="priority"

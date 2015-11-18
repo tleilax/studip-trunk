@@ -1,6 +1,6 @@
-<select name="<?= $name ?>[<?= $structure->getID() ?>]" id="<?= $name ?>_<?= $structure->getID() ?>"
+<select name="<?= $name ?>[<?= $model->id ?>]" id="<?= $name ?>_<?= $model->id ?>"
         <? if ($multiple) echo 'multiple'; ?>
-        <? if ($structure->getIsRequired()) echo 'required'; ?>>
+        <? if ($model->is_required) echo 'required'; ?>>
 <? foreach ($type_param as $pkey => $pval): ?>
     <option value="<?= $is_assoc ? (string)$pkey : $pval ?>"
             <? if ($value === ($is_assoc ? (string)$pkey : $pval)) echo 'selected'; ?>>

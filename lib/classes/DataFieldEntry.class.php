@@ -38,24 +38,20 @@ abstract class DataFieldEntry
      * Factory method that returns the appropriate datafield object
      * for the given parameters.
      *
-     * @param DataFieldStructure $structure Underlying structure
-     * @param String             $rangeID   Range id
-     * @param mixed              $value     Value of the entry
+     * @param DataField $datafield Underlying structure
+     * @param String    $rangeID   Range id
+     * @param mixed     $value     Value of the entry
      * @return DataFieldEntry instance of appropriate type
      */
-    public static function createDataFieldEntry($structure, $rangeID = '', $value = '')
+    public static function createDataFieldEntry(DataField $datafield, $rangeID = '', $value = '')
     {
-        if (!$structure instanceof DataFieldStructure) {
-            return false;
-        }
-
-        $type = $structure->getType();
+        $type = $datafield->type;
         if (!in_array($type, self::getSupportedTypes())) {
             return false;
         }
 
         $entry_class = 'DataField' . ucfirst($type) . 'Entry';
-        return new $entry_class($structure, $rangeID, $value);
+        return new $entry_class($datafield, $rangeID, $value);
     }
 
     /**
@@ -120,7 +116,7 @@ abstract class DataFieldEntry
                 case 'user':
                 case 'userinstrole':
                 case 'usersemdata':
-                    $object_class = is_object($GLOBALS['perm']) ? DataFieldStructure::permMask($GLOBALS['perm']->get_perm($rangeID)) : 0;
+                    $object_class = is_object($GLOBALS['perm']) ? DataField::permMask($GLOBALS['perm']->get_perm($rangeID)) : 0;
                     $clause2 = "((object_class & :object_class) OR object_class IS NULL)";
                     $parameters[':object_class'] = (int) $object_class;
                     break;
@@ -139,8 +135,8 @@ abstract class DataFieldEntry
 
             $entries = array();
             while ($data = $rs->fetch(PDO::FETCH_ASSOC)) {
-                $struct = new DataFieldStructure($data);
-                $entries[$data['datafield_id']] = DataFieldEntry::createDataFieldEntry($struct, $range_id, $data['content']);
+                $datafield = DataField::find($data['datafield_id']);
+                $entries[$data['datafield_id']] = DataFieldEntry::createDataFieldEntry($datafield, $range_id, $data['content']);
             }
         }
         return $entries;
@@ -185,21 +181,21 @@ abstract class DataFieldEntry
     }
 
     public $value;
-    public $structure;
+    public $model;
     public $rangeID;
 
     /**
      * Constructs this datafield
      *
-     * @param DataFieldStructure $structure Underlying structure
-     * @param String             $rangeID   Range id
-     * @param mixed              $value     Value
+     * @param DataField $datafield Underlying model
+     * @param String    $rangeID   Range id
+     * @param mixed     $value     Value
      */
-    public function __construct($structure = null, $rangeID = '', $value = null)
+    public function __construct(DataField $datafield = null, $rangeID = '', $value = null)
     {
-        $this->structure = $structure;
-        $this->rangeID   = $rangeID;
-        $this->value     = $value;
+        $this->model   = $datafield;
+        $this->rangeID = $rangeID;
+        $this->value   = $value;
     }
 
     /**
@@ -211,9 +207,9 @@ abstract class DataFieldEntry
     {
         $where = 'datafield_id = ? AND range_id = ? AND sec_range_id = ?';
         $parameters = array(
-            $this->structure->getID(),
-            (string)$this->structure->getRangeID(),
-            (string)$this->structure->getSecondRangeID(),
+            $this->model->id,
+            (string)$this->getRangeID(),
+            (string)$this->getSecondRangeID(),
         );
         $entry = DatafieldEntryModel::findBySQL($where, $parameters);
 
@@ -233,13 +229,23 @@ abstract class DataFieldEntry
     }
 
     /**
+     * Returns the underlying model
+     *
+     * @return DataField model
+     */
+    public function getModel()
+    {
+        return $this->model;
+    }
+
+    /**
      * Returns the description of this datafield
      * 
      * @return String containing the description
      */
     public function getDescription()
     {
-        return $this->structure->getDescription();
+        return $this->model->description;
     }
 
     /**
@@ -284,7 +290,7 @@ abstract class DataFieldEntry
      */
     public function getName()
     {
-        return $this->structure->getName();
+        return $this->model->name;
     }
 
     /**
@@ -294,7 +300,7 @@ abstract class DataFieldEntry
      */
     public function getId()
     {
-        return $this->structure->getID();
+        return $this->model->id;
     }
 
     /**
@@ -307,9 +313,9 @@ abstract class DataFieldEntry
     public function getHTML($name = '', $variables = array())
     {
         $variables = array_merge(array(
-            'name'      => $name,
-            'structure' => $this->structure,
-            'value'     => $this->value,
+            'name'  => $name,
+            'model' => $this->model,
+            'value' => $this->value,
         ), $variables);
 
         return $GLOBALS['template_factory']->render('datafields/' . $this->template, $variables);
@@ -363,7 +369,7 @@ abstract class DataFieldEntry
     public function isValid()
     {
         return trim($this->getValue())
-            || !$this->structure->getIsRequired();
+            || !$this->model->is_required;
     }
 
     /**
@@ -410,9 +416,9 @@ abstract class DataFieldEntry
      */
     public function isVisible()
     {
-        return $this->structure->accessAllowed($GLOBALS['perm'],
-                                               $GLOBALS['user']->id,
-                                               $this->getRangeID() == $GLOBALS['user']->id);
+        return $this->model->accessAllowed($GLOBALS['perm'],
+                                           $GLOBALS['user']->id,
+                                           $this->getRangeID());
     }
 
     /**
@@ -422,6 +428,54 @@ abstract class DataFieldEntry
      */
     public function isEditable()
     {
-        return $this->structure->editAllowed($GLOBALS['perm']->get_perm());
+        return $this->model->editAllowed($GLOBALS['perm']->get_perm());
     }
+
+    /**
+     * Returns a human readable string describing the view permissions
+     * 
+     * @return String containing the descriptons of the view permissions
+     */
+    public function getPermsDescription()
+    {
+        if ($this->model->view_perms === 'all') {
+            return _('sichtbar für alle');
+        }
+        return sprintf(_('sichtbar nur für Sie und alle %s'),
+                       $this->prettyPrintViewPerms());
+    }
+
+    /**
+     * Generates a full status description depending on the the perms
+     *
+     * @return string
+     */
+    protected function prettyPrintViewPerms()
+    {
+        switch ($this->model->view_perms) {
+            case 'all':
+                return _('alle');
+                break;
+            case 'root':
+                return _('Systemadministrator/-innen');
+                break;
+            case 'admin':
+                return _('Administrator/-innen');
+                break;
+            case 'dozent':
+                return _('Lehrenden');
+                break;
+            case 'tutor':
+                return _('Tutor/-innen');
+                break;
+            case 'autor':
+                return _('Studierenden');
+                break;
+            case 'user':
+                return _('Nutzer/-innen');
+                break;
+        }
+        return '';
+    }
+
 }

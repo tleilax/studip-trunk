@@ -1,4 +1,4 @@
-<input type="url" name="<?= $name ?>[<?= $structure->getID() ?>]"
-       value="<?= htmlReady($value) ?>" id="<?= $name ?>_<?= $structure->getID() ?>"
+<input type="url" name="<?= $name ?>[<?= $model->id ?>]"
+       value="<?= htmlReady($value) ?>" id="<?= $name ?>_<?= $model->id ?>"
        size="30" placeholder="http://"
-       <? if ($structure->getIsRequired()) echo 'required'; ?>>
+       <? if ($model->is_required) echo 'required'; ?>>

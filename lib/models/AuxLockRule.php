@@ -161,7 +161,7 @@ class AuxLockRule extends SimpleORMap
      {
          if (strlen($fieldID) == 32) {
              if (!array_key_exists($fieldID, $this->datafieldCache)) {
-                 $this->datafieldCache[$fieldID] = Datafield::find($fieldID);
+                 $this->datafieldCache[$fieldID] = DataField::find($fieldID);
              }
              if (isset($this->datafieldCache[$fieldID])) {
                  if ($this->datafieldCache[$fieldID]->object_type == 'usersemdata') {

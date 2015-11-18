@@ -49,7 +49,7 @@ class DataFieldComboEntry extends DataFieldEntry
 
     protected function getParameters()
     {
-        $parameters = explode("\n", $this->structure->getTypeParam());
+        $parameters = explode("\n", $this->model->typeparam);
         $parameters = array_map('trim', $parameters);
         return $parameters;
     }

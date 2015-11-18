@@ -45,7 +45,9 @@ class Settings_DetailsController extends Settings_SettingsController
     {
         //add the free administrable datafields
         $userEntries = DataFieldEntry::getDataFieldEntries($this->user->user_id);
-        $userEntries = array_filter($userEntries, function ($entry) { return $entry->isVisible(); });
+        $userEntries = array_filter($userEntries, function ($entry) {
+            return $entry->isVisible();
+        });
 
         $this->locked_info     = LockRules::CheckLockRulePermission($this->user->user_id)
                                ? LockRules::getObjectRule($this->user->user_id)->description
