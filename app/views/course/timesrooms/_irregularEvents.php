@@ -6,14 +6,14 @@
         <nav>
             <a class="link-add"
                href="<?= $controller->link_for('course/timesrooms/createSingleDate/' . $course_id, $editParams) ?>"
-               data-dialog="size=600" title="<?= _('Neuen Einzeltermin') ?>">
-                <?= _('Neuen Einzeltermin') ?>
+               data-dialog="size=600" title="<?= _('Einzeltermin hinzufügen') ?>">
+                <?= _('Neuer Einzeltermin') ?>
             </a>
             <a class="link-add"
                href="<?= $controller->url_for('course/block_appointments/index/' . $course_id, $editParams) ?>"
                data-dialog="size=600"
-               title="<? _('Blocktermin hinzufügen') ?>">
-                <?= _('Neuen Blocktermin') ?>
+               title="<?= _('Blocktermin hinzufügen') ?>">
+                <?= _('Neuer Blocktermin') ?>
             </a>
         </nav>
     </header>
@@ -51,7 +51,7 @@
                             <input data-proxyfor=".ids-irregular" type="checkbox"
                                    id="checkAllIrregular" data-activates=".actionForAllIrregular">
                             <label for="checkAllIrregular" class="horizontal">
-                                <?= _('alle Auswählen') ?>
+                                <?= _('Alle auswählen') ?>
                             </label>
                         </section>
                     </td>

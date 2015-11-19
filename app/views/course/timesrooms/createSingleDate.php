@@ -24,7 +24,7 @@
         <label>
             <?= _('Raum') ?>
             <select name="room">
-                <option value="nothing"><?= _("KEINEN Raum buchen") ?></option>
+                <option value="nothing"><?= _('<em>Keinen</em> Raum buchen') ?></option>
                 <? $resList->reset();
                 if ($resList->numberOfRooms()) : ?>
                     <? while ($res = $resList->next()) : ?>
@@ -35,7 +35,7 @@
                     <? endwhile ?>
                 <? endif ?>
             </select>
-            <a href="#" class="bookable_rooms_action" title="<?= _("Nur buchbare Räume anzeigen") ?>">
+            <a href="#" class="bookable_rooms_action" title="<?= _('Nur buchbare Räume anzeigen') ?>">
                 <?= Assets::img('icons/16/blue/room-clear.png') ?>
             </a>
         </label>

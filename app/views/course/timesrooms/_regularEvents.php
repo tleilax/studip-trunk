@@ -106,7 +106,7 @@
                                         <input data-proxyfor=".ids-regular" type="checkbox"
                                                id="checkAllRegular" data-activates=".actionForAllRegular">
                                         <label for="checkAllRegular" class="horizontal">
-                                            <?= _('alle Auswählen') ?>
+                                            <?= _('Alle auswählen') ?>
                                         </label>
                                     </section>
                                 </td>
@@ -114,7 +114,7 @@
                                     <select name="method" class="actionForAllRegular">
                                         <?= $this->render_partial('course/timesrooms/_stack_actions.php') ?>
                                     </select>
-                                    <?= Studip\Button::create('ausführen', 'run', array('class' => 'actionForAllRegular','data-dialog' => 'size=big')) ?>
+                                    <?= Studip\Button::create('Ausführen', 'run', array('class' => 'actionForAllRegular','data-dialog' => 'size=big')) ?>
                                 </td>
                             </tr>
                             </tfoot>

@@ -22,7 +22,7 @@
             <select name="endSemester" id="endSemester">
                 <option value="0"
                     <?= (int)$course->duration_time == 0 ? 'selected' : '' ?>>
-                    <?= _('ein Semester') ?></option>
+                    <?= _('Ein Semester') ?></option>
                 <? foreach ($semester as $sem) : ?>
                     <? if ($sem->beginn >= $course->start_semester->beginn) : ?>
                         <option value="<?= $sem->semester_id ?>"
@@ -33,7 +33,7 @@
                 <? endforeach; ?>
                 <option value="-1"
                     <?= (int)$course->duration_time == -1 ? 'selected' : '' ?>>
-                    <?= _('unbegrenzt') ?></option>
+                    <?= _('Unbegrenzt') ?></option>
             </select>
         </label>
         <? if (!Request::isXhr()) : ?>

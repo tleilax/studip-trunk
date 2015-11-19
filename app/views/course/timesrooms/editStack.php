@@ -29,19 +29,19 @@
                 <?= _('Betrifft die Gruppen') ?>
             </label>
             <select name="related_groups_action"
-                    aria-label="<?= _("Wählen Sie aus, ob Dozenten den ausgewählten regelmäßigen Terminen hinzugefügt, von diesen entfernt oder für diese Termine definiert werden sollen.") ?>">
+                    aria-label="<?= _('Wählen Sie aus, ob Dozenten den ausgewählten regelmäßigen Terminen hinzugefügt, von diesen entfernt oder für diese Termine definiert werden sollen.') ?>">
                 <option value="">-- <?= _('Aktion auswählen') ?> --</option>
                 <option value="add"
-                        title="<?= _("Die ausgewählten Dozenten werden den ausgewählten Terminen hinzugefügt. Die zuvor schon durchführenden Dozenten bleiben aber weiterhin zusätzlich eingetragen.") ?>">
-                    ... <?= _("hinzufügen") ?></option>
+                        title="<?= _('Die ausgewählten Dozenten werden den ausgewählten Terminen hinzugefügt. Die zuvor schon durchführenden Dozenten bleiben aber weiterhin zusätzlich eingetragen.') ?>">
+                    ... <?= _('hinzufügen') ?></option>
                 <option value="delete"
                         title="<?= _("Die ausgewählten Dozenten leiten nicht die ausgewählten Termine. Andere Dozenten bleiben bestehen.") ?>">
-                    ... <?= _("entfernen") ?></option>
+                    ... <?= _('entfernen') ?></option>
             </select>
             <br>
 
             <select id="related_groups" name="related_groups[]" multiple class="multiple"
-                    aria-label="<?= _("Wählen Sie die Gruppen aus, für die die Termine gelten. Ist keine Gruppe ausgewählt, gilt der Termin für alle Nutzer und Gruppen der Veranstaltung.") ?>">
+                    aria-label="<?= _('Wählen Sie die Gruppen aus, für die die Termine gelten. Ist keine Gruppe ausgewählt, gilt der Termin für alle Nutzer und Gruppen der Veranstaltung.') ?>">
                 <? foreach ($gruppen as $gruppe) : ?>
                     <option value="<?= htmlReady($gruppe->statusgruppe_id) ?>"><?= htmlReady($gruppe->name) ?></option>
                 <? endforeach ?>
@@ -75,10 +75,10 @@
 
         </section>
 
-        <? $placerholder = _('freie Ortsangabe (keine Raumbuchung):') ?>
+        <? $placerholder = _('Freie Ortsangabe (keine Raumbuchung):') ?>
     <? else : ?>
 
-        <? $placerholder = _('freie Ortsangabe:') ?>
+        <? $placerholder = _('Freie Ortsangabe:') ?>
     <? endif ?>
 
     <section>
@@ -93,7 +93,7 @@
         <section>
             <label class="horizontal">
                 <input type="radio" name="action" value="noroom" style="display:inline" />
-                <?= _('kein Raum') ?>
+                <?= _('Kein Raum') ?>
             </label>
         </section>
     <? endif ?>
@@ -101,7 +101,7 @@
     <section>
         <label class="horizontal">
             <input type="radio" style="display: inline" name="action" value="nochange" checked="checked" />
-            <?= _('keine Änderungen an den Raumangaben vornehmen') ?>
+            <?= _('Keine Änderungen an den Raumangaben vornehmen') ?>
         </label>
     </section>
 

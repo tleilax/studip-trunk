@@ -51,7 +51,7 @@
             </select>
         </label>
         <label for="block_appointments_room_text">
-            <?= _('freie Ortsangabe') ?>
+            <?= _('Freie Ortsangabe') ?>
             <input type="text" name="block_appointments_room_text" id="block_appointments_room_text"
                    value="<?= $request['block_appointments_room_text'] ?>">
         </label>

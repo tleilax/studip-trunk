@@ -28,7 +28,7 @@ class Course_TimesroomsController extends AuthenticatedController
         }
 
         if(!$this->course) {
-            throw new Trails_Exception(404, _('Es wurd keine Veranstaltung ausgewählt!'));
+            throw new Trails_Exception(404, _('Es wurde keine Veranstaltung ausgewählt!'));
         }
 
         if (!$GLOBALS['perm']->have_studip_perm('tutor', $this->course_id)) {
@@ -595,7 +595,7 @@ class Course_TimesroomsController extends AuthenticatedController
         }
         
         if ($teacher_changed) {
-            $this->course->createMessage(_("Zuständige Personen für die Termine wurden geändert."));
+            $this->course->createMessage(_('Zuständige Personen für die Termine wurden geändert.'));
         }
         
         
@@ -625,7 +625,7 @@ class Course_TimesroomsController extends AuthenticatedController
         }
         
         if ($groups_changed) {
-            $this->course->createMessage(_("Zugewiesene Gruppen für die Termine wurden geändert."));
+            $this->course->createMessage(_('Zugewiesene Gruppen für die Termine wurden geändert.'));
         }
 
         foreach($singledates as $key => $singledate){
@@ -645,9 +645,9 @@ class Course_TimesroomsController extends AuthenticatedController
                 ResourceAssignment::deleteBySQL('assign_user_id = :termin',
                         array(':termin' => $singledate->termin_id));
                 $singledates[$key]->raum = Request::get('freeRoomText');
-                $this->course->createMessage(sprintf(_("Der Termin %s wurde geändert, etwaige "
-                        . "Raumbuchungen wurden entfernt und stattdessen der angegebene Freitext"
-                        . " eingetragen!"),
+                $this->course->createMessage(sprintf(_('Der Termin %s wurde geändert, etwaige '
+                        . 'Raumbuchungen wurden entfernt und stattdessen der angegebene Freitext'
+                        . ' eingetragen!'),
                         '<b>' . $singledate->getFullname() . '</b>'));
             } else if (Request::option('action') == 'noroom') {
                 ResourceAssignment::deleteBySQL('assign_user_id = :termin',
@@ -763,7 +763,7 @@ class Course_TimesroomsController extends AuthenticatedController
             $cycle->chdate = time();
             $cycle->store();
         } else {
-            die('keine Änderungen');
+            die('Keine Änderungen');
         }
         $this->redirect('course/timesrooms/index');
         return;
@@ -1043,7 +1043,7 @@ class Course_TimesroomsController extends AuthenticatedController
 
         while ($tmp_first_date < $end_date) {
 
-            $start_weeks[$i]['text'] = ($i + 1) . '. ' . _("Semesterwoche") . ' (' . _("ab") . ' ' . strftime("%d.%m.%Y", $tmp_first_date) . ')';
+            $start_weeks[$i]['text'] = sprintf('%s. Semesterwoche (ab %s)', $i + 1, strftime('%d.%m.%Y', $tmp_first_date));
             $start_weeks[$i]['selected'] = ($this->course->getStartWeek() == $i);
             $i++;
             $tmp_first_date = strtotime(sprintf('+%u weeks %s', $i, $_tmp_first_date));
@@ -1070,8 +1070,8 @@ class Course_TimesroomsController extends AuthenticatedController
             if ($termin->delete()) {
                 if (Request::get('approveDelete')) {
                     if (Config::get()->RESOURCES_ENABLE_EXPERT_SCHEDULE_VIEW) {
-                        $this->course->createMessage(sprintf(_('Sie haben den Termin %s gelöscht, dem ein Thema zugeorndet war.
-                    Sie können das Thema in der %sExpertenansicht des Ablaufplans%s einem anderen Termin (z.B. einem Ausweichtermin) zuordnen.'),
+                        $this->course->createMessage(sprintf(_('Sie haben den Termin %s gelöscht, dem ein Thema zugeorndet war.'
+                                . ' Sie können das Thema in der %sExpertenansicht des Ablaufplans%s einem anderen Termin (z.B. einem Ausweichtermin) zuordnen.'),
                             $termin_date, '<a href="' . URLHelper::getLink('themen.php?cmd=changeViewMode&newFilter=expert') . '">', '</a>'));
                     } else {
                         if ($room) {
@@ -1083,7 +1083,7 @@ class Course_TimesroomsController extends AuthenticatedController
                     }
                 } // no approval needed, delete unquestioned
                 else {
-                    $this->course->createMessage(sprintf(_("Der Termin %s wurde gelöscht!"), $termin_date));
+                    $this->course->createMessage(sprintf(_('Der Termin %s wurde gelöscht!'), $termin_date));
                 }
             }
         }

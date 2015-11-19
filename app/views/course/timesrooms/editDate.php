@@ -50,14 +50,14 @@
                style="display: inline">
         <input style="margin-left: 40px; display: inline-block" type="text"
                name="freeRoomText_sd"
-               placeholder="<?= _('freie Ortsangabe (keine Raumbuchung)') ?>"
+               placeholder="<?= _('Freie Ortsangabe (keine Raumbuchung)') ?>"
                value="<?= $date->raum ? htmlReady($date->raum) : '' ?>">
     </label>
 
     <label>
         <input type="radio" name="room" style="display:inline;" value="noroom"
             <?= (!empty($date->room_assignment->resource_id) || !empty($date->raum) ? '' : 'checked') ?>>
-        <span style="display: inline-block; margin-left: 40px"><?= _('kein Raum') ?></span>
+        <span style="display: inline-block; margin-left: 40px"><?= _('Kein Raum') ?></span>
     </label>
 
 </fieldset>

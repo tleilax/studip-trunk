@@ -45,11 +45,11 @@
         <?= _('Turnus') ?>
         <select name="cycle">
             <option
-                value="0"<?= Request::int('cycle', !is_null($cycle) ? $cycle->cycle : null) === 0 ? 'selected' : '' ?>><?= _("wöchentlich"); ?></option>
+                value="0"<?= Request::int('cycle', !is_null($cycle) ? $cycle->cycle : null) === 0 ? 'selected' : '' ?>><?= _("Wöchentlich"); ?></option>
             <option
-                value="1"<?= Request::int('cycle', !is_null($cycle) ? $cycle->cycle : null) == 1 ? 'selected' : '' ?>><?= _("zweiwöchentlich") ?></option>
+                value="1"<?= Request::int('cycle', !is_null($cycle) ? $cycle->cycle : null) == 1 ? 'selected' : '' ?>><?= _("Zweiwöchentlich") ?></option>
             <option
-                value="2"<?= Request::int('cycle', !is_null($cycle) ? $cycle->cycle : null) == 2 ? 'selected' : '' ?>><?= _("dreiwöchentlich") ?></option>
+                value="2"<?= Request::int('cycle', !is_null($cycle) ? $cycle->cycle : null) == 2 ? 'selected' : '' ?>><?= _("Dreiwöchentlich") ?></option>
         </select>
     </label>
 
