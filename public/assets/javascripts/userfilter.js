@@ -8,12 +8,27 @@
 STUDIP.UserFilter = {
 
     configureCondition: function (targetId, targetUrl) {
-        STUDIP.Dialog.fromURL(targetUrl, {
-            title: 'Bedingung konfigurieren'.toLocaleString(),
-            size: Math.min(Math.round(0.9 * $(window).width()), 850) + 'x400',
-            method: 'post',
-            id: 'configurecondition'
-        });
+        var loading = 'Wird geladen'.toLocaleString();
+        var title = 'Bedingung konfigurieren'.toLocaleString();
+        $('<div id="' + targetId + '" title="'+title+'">' + loading + '</div>')
+            .dialog({
+                draggable: false,
+                modal: true,
+                resizable: false,
+                position: ['center', 200],
+                width: 0.7 * $(window).width(),
+                close: function () {
+                    $('#' + targetId).remove();
+                },
+                open: function () {
+                    $('#' + targetId).empty();
+                    $('<img/>', {
+                        src: STUDIP.ASSETS_URL + 'images/ajax_indicator_small.gif'
+                    }).appendTo('#' + targetId);
+                    $('#' + targetId).append(loading);
+                    $('#' + targetId).load(targetUrl);
+                }
+            });
         return false;
     },
 
@@ -50,14 +65,16 @@ STUDIP.UserFilter = {
                 $('#' + containerId).find('.userfilter').append(result);
             }
         });
-        STUDIP.Dialog.close({id: 'configurecondition'});
+        $('#condition').remove();
     },
 
     getConditionFieldConfiguration: function (element, targetUrl) {
         var target = $(element).parent();
-        $.ajax(targetUrl, {
+        $.ajax({
+            type: 'post',
             url: targetUrl,
             data: { 'fieldtype': $(element).val() },
+            dataType: 'html',
             success: function (data, textStatus, jqXHR) {
                 target.children('.conditionfield_compare_op').remove();
                 target.children('.conditionfield_value').remove();
@@ -72,7 +89,9 @@ STUDIP.UserFilter = {
 
     addConditionField: function (targetId, targetUrl) {
         $.ajax({
+            type: 'post',
             url: targetUrl,
+            dataType: 'html',
             success: function (data, textStatus, jqXHR) {
                 $('#' + targetId).append(data);
             },

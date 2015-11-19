@@ -13,7 +13,7 @@ use Studip\Button, Studip\LinkButton;
     ?>
 </a>
 <br/><br/>
-<div class="submit_wrapper" data-dialog-button>
+<div class="submit_wrapper">
     <?= Button::createAccept(_('Speichern'), 'submit', array('onclick' => "STUDIP.UserFilter.addCondition('".$containerId."', '".$controller->url_for('userfilter/filter/add')."');")) ?>
-    <?= Button::createCancel(_('Abbrechen')) ?>
+    <?= Button::createCancel(_('Abbrechen'), 'cancel', array('onclick' => '$("#condition").remove()')) ?>
 </div>

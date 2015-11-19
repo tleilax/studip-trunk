@@ -10,13 +10,6 @@ use PluginAsset as AssetModel;
  */
 class PluginAssetFactory implements AssetFactory
 {
-    /**
-     * Restores or create a css file based on the given information.
-     *
-     * @param String $filename Filename of the original file
-     * @param Array  $metadata Potential metadata
-     * @return Assets\PluginAsset
-     */
     public function createCSSFile($filename, array $metadata = array())
     {
         $hash = md5(implode('|', array(
@@ -38,8 +31,6 @@ class PluginAssetFactory implements AssetFactory
             $asset->size        = null;
             $asset->store();
         }
-        $file = new PluginAsset($asset);
-        $file->setOriginalFilename($filename);
-        return $file;
+        return new PluginAsset($asset);
     }
 }

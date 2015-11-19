@@ -30,9 +30,7 @@ class ForumHelpers {
     static function do_highlight($text, $highlight)
     {
         foreach ($highlight as $hl) {
-            $text = preg_replace('/' . preg_quote(htmlReady($hl), '/') . '/i',
-                                 '<span class="highlight">$0</span>',
-                                 $text);
+            $text = str_ireplace(htmlReady($hl), '<span class="highlight">'. htmlReady($hl) .'</span>', $text);
         }
         return $text;
     }
@@ -47,9 +45,7 @@ class ForumHelpers {
      */
     function highlight($text, $highlight)
     {
-        if (empty($highlight)) {
-            return $text;
-        }
+        if (empty($highlight)) return $text;
 
         $data = array();
         $treffer = array();

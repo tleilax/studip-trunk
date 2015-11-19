@@ -18,7 +18,7 @@ $(function () {
         background-color: transparent;
     }
 </style>
-<div class="index_container">
+<div class="index_container" style="width: 750px; padding-top: 30px; margin: 0  auto !important;">
 <? if ($loginerror): ?>
     <!-- failed login code -->
     <?= MessageBox::error(

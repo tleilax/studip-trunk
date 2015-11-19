@@ -12,7 +12,7 @@ use ILess\Parser;
 /**
  * Wrapper class for the assets compilation. Supports LESS
  * complilation by now.
- *
+ * 
  * Currently uses ILess by mishal <https://github.com/mishal/iless>.
  *
  * @author  Jan-Hendrik Willms <tleilax+studip@gmail.com>
@@ -23,27 +23,83 @@ class Compiler
 {
     const CACHE_KEY_LESS = '/assets/less-prefix';
 
+    private static $factory = null;
+
     /**
-     * Compiles a less string. This method will add all neccessary imports
+     * Returns an instance of the compiler.
+     *
+     * @return LESS\Compiler instance
+     */
+    public static function getInstance()
+    {
+        if (self::$factory === null) {
+            $factory = new PluginAssetFactory();
+            self::setFactory($factory);
+        }
+        return new self();
+    }
+
+    /**
+     * Sets a file factory to use. If no file factory will be set,
+     * the default PluginAssetFactory will be used.
+     *
+     * @param LESS\FileFactory $factory The factory
+     */
+    public static function setFactory(AssetFactory $factory = null)
+    {
+        self::$factory = $factory;
+    }
+
+    private $parser;
+    private $metadata = array();
+
+    /**
+     * Private constructor.
+     */
+    private function __construct()
+    {
+    }
+
+    /**
+     * Set metadata for the compiler.
+     *
+     * @param Array $metadata The metdata as an associative array
+     */
+    public function setMetaData(array $metadata)
+    {
+        $this->metadata = $metadata;
+    }
+
+    /**
+     * Compiles a less file. This method will add all neccessary imports
      * and variables for Stud.IP so almost all mixins and variables of the
      * core system can be used. This includes colors and icons.
      *
-     * @param String $less      LESS content to compile
-     * @param Array  $variables Additional variables for the LESS compilation
-     * @return String containing the generated CSS
+     * @param String $filename LESS file to compile
+     * @return LESS\File file containing the generated CSS
+     * @throws RuntimeException when the LESS file does not exist
      */
-    public static function compileLESS($less, $variables = array())
+    public function compileLESS($filename)
     {
-        $less = self::getLESSPrefix() . $less;
+        if (!file_exists($filename)) {
+            $message = sprintf('Unable to locate less file "%s"',
+                               $filename);
+            throw new RuntimeException($message);
+        }
 
-        $variables['image_path'] = '"' . Assets::url('images') . '"';
+        $file = self::$factory->createCSSFile($filename, $this->metadata);
+        $file->setOriginalFilename($filename);
+        if ($file->isNew()) {
+            $less  = $this->getLESSPrefix();
+            $less .= file_get_contents($filename);
 
-        $parser = self::getLESSParser();
-        $parser->setVariables($variables);
-        $parser->parseString($less);
-        $css = $parser->getCSS();
+            $parser = $this->getLESSParser();
+            $parser->parseString($less);
+            $css = $parser->getCSS();
 
-        return $css;
+            $file->setContent($css);
+        }
+        return $file;
     }
 
     /**
@@ -51,13 +107,17 @@ class Compiler
      *
      * @return ILess\Parser instance
      */
-    private static function getLESSParser()
+    private function getLESSParser()
     {
-        Autoloader::register();
+        Autoloader::register(); 
 
-        return new Parser([
+        $parser = new Parser([
             'strictMath' => true,
-        ]);;
+        ]);
+        $parser->setVariables(array(
+            'image-path' => '"' . Assets::url('images') . '"',
+        ));
+        return $parser;
     }
 
     /**
@@ -68,7 +128,7 @@ class Compiler
      *
      * @return String containing the neccessary prefix
      */
-    private static function getLESSPrefix()
+    private function getLESSPrefix()
     {
         $cache = StudipCacheFactory::getCache();
 

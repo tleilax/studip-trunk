@@ -136,7 +136,13 @@ $commentable = $GLOBALS['perm']->have_perm("autor") ? true : (bool) $commentable
         <? endif ?>
         </div>
         <div class="content">
-            <?= $thread->getContent() ?>
+            <?
+            $content = $thread['description'];
+            if ($thread['name'] && strpos($thread['description'], $thread['name']) === false) {
+                $content = $thread['name']."\n".$content;
+            }
+            ?>
+            <?= BlubberPosting::format($content) ?>
         </div>
         <div class="additional_tags"><? foreach ($thread->getTags() as $tag) : ?>
                 <? if (stripos($content, "#".$tag) === false) : ?>
@@ -144,7 +150,14 @@ $commentable = $GLOBALS['perm']->have_perm("autor") ? true : (bool) $commentable
                     <a href="<?= $link ?>"><?= htmlReady("#".$tag) ?></a>
                 <? endif ?>
             <? endforeach ?></div>
-        <?= $thread->getOpenGraphURLs()->render() ?>
+        <div class="opengraph_area"><?
+            if (count(OpenGraphURL::$tempURLStorage)) {
+                $og = new OpenGraphURL(OpenGraphURL::$tempURLStorage[0]);
+                if (!$og->isNew()) {
+                    echo $og->render();
+                }
+            }
+            ?></div>
     </div>
     <ul class="comments"><?
         $postings = $thread->getChildren(0, 4);

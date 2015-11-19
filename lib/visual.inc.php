@@ -269,8 +269,11 @@ function quotes_encode($description,$author)
  * @return string        HTML code computed by applying markup-rules.
  */
 // TODO remove unused function arguments
-function formatReady($text, $trim=TRUE, $extern=FALSE, $wiki=FALSE, $show_comments='icon')
-{
+function formatReady($text, $trim=TRUE, $extern=FALSE, $wiki=FALSE, $show_comments='icon'){
+    // StudipFormat::markupLinks stores OpenGraph media preview URLs
+    // Blubber and Forum plugins add media previews after formatReady returns
+    OpenGraphURL::$tempURLStorage = array();
+
     return sprintf(FORMATTED_CONTENT_WRAPPER,
                    Markup::apply(new StudipFormat(), $text, $trim));
 }

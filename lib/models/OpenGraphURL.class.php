@@ -24,15 +24,10 @@
  * @property string chdate database column
  * @property string mkdate database column
  */
-class OpenGraphURL extends SimpleORMap
-{
-    const EXPIRES_DURATION = 86400; // = 24 * 60 * 60
+class OpenGraphURL extends SimpleORMap {
 
-    /**
-     * Configures this model.
-     *
-     * @param Array $config Configuration array
-     */
+    static public $tempURLStorage = array(); //place to store opengraph-urls from a text.
+
     protected static function configure($config = array())
     {
         $config['db_table'] = 'opengraphdata';
@@ -42,88 +37,22 @@ class OpenGraphURL extends SimpleORMap
     }
 
     /**
-     * Create an instance of this model given url. Differs from findOneByURL
-     * insofar that it will return a new object with the given url set
-     * instead of null.
-     *
-     * @param String $url URL to find
-     * @return OpenGraphURL Either existing instance or a new instance for
-     *                      the given url
+     * Fetches information from the url by getting the contents of the webpage,
+     * parse the webpage and extract the information from the opengraph meta-tags.
+     * If the site doesn't have any opengraph-metatags it is in fact no opengraph
+     * node and thus no data will be stored in the database. Only $url['is_opengraph'] === '0'
+     * indicates that the site is no opengraph node at all.
      */
-    public static function fromURL($url)
-    {
-        $og = self::findOneByUrl($url);
-        if (!$og) {
-            $og = new self();
-            $og->url = $url;
-        }
-        return $og;
-    }
-
-    /**
-     * Constructor of the object. Provides a fallback if a url is passed
-     * instead of the usually expected numeric id in order to not break
-     * backward compatibility.
-     * But this constructor will fail miserably if a url is passed that
-     * is not in the database. This was chosen by design to encourage the
-     * correct use of an id.
-     *
-     * @param mixed $id Numeric id, existing url or null
-     */
-    public function __construct($id = null)
-    {
-        // Try to find matching id when an url is passed instead of an id.
-        // This is to ensure that no legacy code will immediately break.
-        if ($id !== null && !ctype_digit($id)) {
-            $temp = self::findOneByUrl($id);
-            if ($temp) {
-                $id = $temp->id;
-            }
-        }
-        parent::__construct($id);
-    }
-
-    /**
-     * Stores the object and fetches the opengraph information when either
-     * the object is new or outdated.
-     *
-     * @return int Number of updated records
-     */
-    public function store()
-    {
-        if ($this->isNew() || $this->last_update < time() - self::EXPIRES_DURATION) {
-            $this->fetch();
-            $this->last_update = time();
-        }
-
-        return parent::store();
-    }
-
-    /**
-     * Fetches information from the url by getting the contents of the
-     * webpage, parse the webpage and extract the information from the
-     * opengraph meta-tags.
-     * If the site doesn't have any opengraph-metatags it is in fact no
-     * opengraph node and thus no data will be stored in the database.
-     * Only $url['is_opengraph'] === '0' indicates that the site is no
-     * opengraph node at all.
-     *
-     * @todo The combination of parse_link() and the following request
-     *       leads to two requests for the open graph data. This should
-     *       be fixed due to performance reasons.
-     */
-    public function fetch()
-    {
-        if (!Config::get()->OPENGRAPH_ENABLE) {
+    public function fetch() {
+        if (!get_config("OPENGRAPH_ENABLE")) {
             return;
         }
-
         $response = parse_link($this['url']);
         if ($response['response_code'] == 200 && strpos($response['Content-Type'],'html') !== false) {
             if (preg_match('/(?<=charset=)[^;]*/i', $response['Content-Type'], $match)) {
                 $currentEncoding = $match[0];
             } else {
-                $currentEncoding = 'ISO-8859-1';
+                $currentEncoding = "ISO-8859-1";
             }
 
             $context = stream_context_create(array(
@@ -147,14 +76,13 @@ class OpenGraphURL extends SimpleORMap
             $data = array();
             foreach ($metatags as $tag) {
                 $key = false;
-                if ($tag->hasAttribute('property')
-                    && strpos($tag->getAttribute('property'), 'og:') === 0)
-                {
+                if ($tag->hasAttribute('property') &&
+                        strpos($tag->getAttribute('property'), 'og:') === 0) {
                     $key = strtolower(substr($tag->getAttribute('property'), 3));
                 }
-                if (!$key && $tag->hasAttribute('name')
-                    && strpos($tag->getAttribute('name'), 'og:') === 0)
-                {
+                if (!$key &&
+                        $tag->hasAttribute('name') &&
+                        strpos($tag->getAttribute('name'), 'og:') === 0) {
                     $key = strtolower(substr($tag->getAttribute('name'), 3));
                 }
                 if ($key) {
@@ -178,8 +106,7 @@ class OpenGraphURL extends SimpleORMap
             if (!$this['description'] && $isOpenGraph) {
                 foreach ($metatags as $tag) {
                     if (stripos($tag->getAttribute('name'), "description") !== false
-                        || stripos($tag->getAttribute('property'), "description") !== false)
-                    {
+                            || stripos($tag->getAttribute('property'), "description") !== false) {
                         $this['description'] = studip_utf8decode($tag->getAttribute('content'));
                     }
                 }
@@ -192,16 +119,14 @@ class OpenGraphURL extends SimpleORMap
     /**
      * Renders a small box with the information of the opengraph url. Used in
      * blubber and in the forum.
-     *
-     * @return string html output of the box.
+     * @return string : html output of the box.
      */
-    public function render()
-    {
-        if (!Config::get()->OPENGRAPH_ENABLE || !$this->getValue('is_opengraph')) {
-            return '';
+    public function render() {
+        if (!get_config("OPENGRAPH_ENABLE") || !$this->getValue('is_opengraph')) {
+            return "";
         }
-        $template = $GLOBALS['template_factory']->open('shared/opengraphinfo_wide.php');
-        $template->og = $this;
+        $template = $GLOBALS['template_factory']->open("shared/opengraphinfo_wide.php");
+        $template->set_attribute('og', $this);
         return $template->render();
     }
 
@@ -209,36 +134,30 @@ class OpenGraphURL extends SimpleORMap
      * Returns an array with all audiofiles that are provided by the opengraph-node.
      * Each array-entry is an array itself with the url as first parameter and the
      * content-type (important for <audio/> tags) as the second.
-     *
      * @return array(array($url, $content_type), ...)
      */
-    public function getAudioFiles()
-    {
-        return $this->getMediaFiles('audio');
+    public function getAudioFiles() {
+        return $this->getMediaFiles("audio");
     }
 
     /**
      * Returns an array with all videofiles that are provided by the opengraph-node.
      * Each array-entry is an array itself with the url as first parameter and the
      * content-type (important for <video/> tags) as the second.
-     *
      * @return array(array($url, $content_type), ...)
      */
-    public function getVideoFiles()
-    {
-        return $this->getMediaFiles('video');
+    public function getVideoFiles() {
+        return $this->getMediaFiles("video");
     }
 
     /**
      * Returns an array with all mediafiles that are provided by the opengraph-node.
      * Each array-entry is an array itself with the url as first parameter and the
      * content-type (important for <audio/> or <video/> tags) as the second.
-     *
-     * @param string $type "audio" or "video"
+     * @param string $type: "audio" or "video"
      * @return array(array($url, $content_type), ...)
      */
-    protected function getMediaFiles($type)
-    {
+    protected function getMediaFiles($type) {
         $files = array();
         $media = array();
         $secure_media = array();

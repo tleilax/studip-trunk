@@ -6,11 +6,6 @@ use Studip;
 use URLHelper;
 
 /**
- * Default asset implementation
- *
- * Will store the asset in Stud.IP's upload folders and the neccessary
- * metadata in the database.
- *
  * @author  Jan-Hendrik Willms <tleilax+studip@gmail.com>
  * @license GPL2 or any later version
  * @since   Stud.IP 3.4
@@ -79,11 +74,9 @@ class PluginAsset implements Asset
      */
     public function getDownloadLink()
     {
-        $link = 'assets.php/css/' . $this->model->id;
-        if (Studip\ENV === 'development') {
-            $link .= '#' . $this->model->filename;
-        }
-        return URLHelper::getLink($link, array(), true);
+        return URLHelper::getLink('assets.php/css/' . $this->model->id, array(
+            'f' => $this->model->filename,
+        ), true);
     }
 
     /**

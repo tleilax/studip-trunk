@@ -7,7 +7,7 @@ use Studip\Button, Studip\LinkButton;
         background-color: transparent;
     }   
 </style>
-<div class="index_container">
+<div class="index_container" style="width: 750px; margin: 0 auto !important">
 <?if (sizeof($messages)):?>
 <table width="100%">
     <?=parse_msg_array($messages, '', 1, false)?>
