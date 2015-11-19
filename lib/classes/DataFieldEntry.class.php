@@ -229,13 +229,13 @@ abstract class DataFieldEntry
     }
 
     /**
-     * Returns the underlying model
+     * Returns whether this datafield is required
      *
-     * @return DataField model
+     * @return bool indicating whether the datafield is required or not
      */
-    public function getModel()
+    public function isRequired()
     {
-        return $this->model;
+        return $this->model->is_required;
     }
 
     /**
@@ -412,13 +412,17 @@ abstract class DataFieldEntry
     /**
      * Returns whether the datafield is visible for the current user
      *
+     * @param bool $test_deep
      * @return boolean indicating whether the datafield is visible
      */
-    public function isVisible()
+    public function isVisible($test_ownership = true)
     {
-        return $this->model->accessAllowed($GLOBALS['perm'],
-                                           $GLOBALS['user']->id,
-                                           $this->getRangeID());
+        if ($test_ownership) {
+            return $this->model->accessAllowed($GLOBALS['perm'],
+                                               $GLOBALS['user']->id,
+                                               $this->getRangeID());
+        }
+        return $this->model->accessAllowed($GLOBALS['perm']);
     }
 
     /**

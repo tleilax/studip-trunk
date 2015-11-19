@@ -145,12 +145,27 @@ class DataField extends SimpleORMap
         return implode(', ', $result);
     }
 
+    /**
+     * Converts a camel cased field to it's snake case equivalent.
+     *
+     * @param String $field Field name as camel case
+     * @return String containing the snake cased equivalent
+     */
     private function convertLegacyFields($field)
     {
         $field = preg_replace('/(?<=[a-z])([A-Z])/', '_$1', $field);
         return strtolower($field);
     }
 
+    /**
+     * Specialized getter for values. Will try to obtain the value
+     * and if an error occurs, convert it to snake case and try again.
+     *
+     * @param String $field Field name
+     * @return mixed Contents of the variable with the key "$field"
+     * @throws InvalidArgumentException when the field is invalid
+     * @todo This should be removed after a while (today is 2015-11-19)
+     */
     public function getValue($field)
     {
         try {
@@ -161,6 +176,17 @@ class DataField extends SimpleORMap
         }
     }
 
+    /**
+     * Specialized setter for values. Will try to set the value first
+     * and if an error occurs, convert the field name to snake case and try
+     * again.
+     *
+     * @param String $field Field name
+     * @param mixed  $value Field value
+     * @return mixed Whatever SimpleORMap::setValue() might return
+     * @throws InvalidArgumentException when the field is invalid
+     * @todo This should be removed after a while (today is 2015-11-19)
+     */
     public function setValue($field, $value)
     {
         try {
@@ -171,16 +197,25 @@ class DataField extends SimpleORMap
         }
     }
 
-    // public function __call($method, array $arguments)
-    // {
-    //     if (substr($method, 0, 3) === 'get') {
-    //         return $this->getValue(substr($method, 3));
-    //     }
-    //     if (substr($method, 0, 3) === 'set') {
-    //         return $this->setValue(substr($method, 3), $arguments[0]);
-    //     }
-    //     throw new BadMethodCallException('Call to undefined method ' . __CLASS__ . '::' . $method);
-    // }
+    /**
+     * Legacy handler for access via [get|set]VariableName().
+     *
+     * @param String $method    Called method
+     * @param Array  $arguments Given arguments
+     * @return mixed Return value of the getter/setter
+     * @throws BadMethodCallException when the method does not match a
+     *                                valid pattern
+     */
+    public function __call($method, array $arguments)
+    {
+        if (substr($method, 0, 3) === 'get') {
+            return $this->getValue(substr($method, 3));
+        }
+        if (substr($method, 0, 3) === 'set') {
+            return $this->setValue(substr($method, 3), $arguments[0]);
+        }
+        throw new BadMethodCallException('Call to undefined method ' . __CLASS__ . '::' . $method);
+    }
 
     /**
      * Sets the type and adjusts type param as well.
@@ -206,13 +241,11 @@ class DataField extends SimpleORMap
      */
     public function accessAllowed($perm, $watcher = '', $user = '')
     {
-        # everybody may see the information
-        if ($this->view_perms === 'all') {
-            return true;
-        }
+        $user_perms = self::permMask($perm->getPerm());
+        $required_perms = self::permMask($this->view_perms);
 
         # permission is sufficient
-        if ($perm->have_perm($this->view_perms)) {
+        if ($user_perms >= $required_perms) {
             return true;
         }
 

@@ -131,32 +131,27 @@ class ProfileModel
     {
         $institutes = UserModel::getUserInstitute($this->current_user->user_id);
 
-        foreach($institutes as $id =>$inst_result) {
+        foreach ($institutes as $id =>$inst_result) {
 
             if($inst_result['visible'] == 1) {
                 $entries = DataFieldEntry::getDataFieldEntries(array($this->current_user->user_id, $inst_result['Institut_id']));
 
                 if (!empty($entries)) {
                     foreach ($entries as $entry) {
-                        $perms = $entry->getModel()->view_perms;
+                        $view = $entry->isVisible(false);
+                        $show_star = false;
 
-                        if($perms) {
-                            $view = DataField::permMask($this->user->perms) >= DataField::permMask($perms);
-                            $show_star = false;
+                        if (!$view && $entry->isVisible()) {
+                            $view = true;
+                            $show_star = true;
+                        }
 
-                            if (!$view && ($this->current_user->user_id == $this->user->user_id)) {
-                                $view = true;
-                                $show_star = true;
-                            }
-
-                            if (trim($entry->getValue()) && $view) {
-                                $institutes[$id]['datafield'][] = array(
-                                    'name'  => $entry->getName(),
-                                    'value' => $entry->getDisplayValue()
-                                );
-
-                                if ($show_star) $institutes[$id]['datafield'][]['show_star'] = true;
-                            }
+                        if (trim($entry->getValue()) && $view) {
+                            $institutes[$id]['datafield'][] = array(
+                                'name'      => $entry->getName(),
+                                'value'     => $entry->getDisplayValue(),
+                                'show_star' => $show_star,
+                            );
                         }
                     }
                 }
@@ -180,9 +175,9 @@ class ProfileModel
         $short_datafields = array();
         $long_datafields  = array();
         foreach (DataFieldEntry::getDataFieldEntries($this->current_user->user_id, 'user') as $entry) {
-            if (($entry->getModel()->accessAllowed($this->perm, $this->user->user_id, $this->current_user->user_id)
-                    && Visibility::verify($entry->getID(), $this->current_user->user_id))
-                            && $entry->getDisplayValue()) {
+            if ($entry->isVisible() && $entry->getDisplayValue()
+                && Visibility::verify($entry->getID(), $this->current_user->user_id))
+            {
                 if ($entry instanceof DataFieldTextareaEntry) {
                     $long_datafields[] = $entry;
                 } else {
