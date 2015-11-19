@@ -4355,7 +4355,6 @@ table.calendar-week {
 .calendar-day-event-title {
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 .calendar-day-event-title a {
   color: #fff;
@@ -5135,8 +5134,8 @@ h3.eval {
 }
 div.index_container {
   width: 750px;
-  padding-top: 15px;
-  margin: 0  auto;
+  padding-top: 30px;
+  margin: 0 auto;
 }
 div.index_container div.index_main {
   background: url('../images/startseite.jpg') no-repeat left top;
@@ -5653,19 +5652,102 @@ a.bookable_rooms_action {
   color: #636971;
   text-decoration: line-through;
 }
-.opengraph {
-  font-size: 0.8em;
-  border: thin solid lightgrey;
-  padding: 10px;
-  margin-top: 10px;
-  min-height: 120px;
-  margin-left: auto;
-  margin-right: auto;
+.opengraph-area {
+  margin: 10px auto 5px;
   max-width: 700px;
 }
+.opengraph-area .switcher {
+  list-style: none;
+  text-align: right;
+}
+.opengraph-area .switcher li {
+  border-top: thin solid #d8d9dc;
+  display: inline-block;
+  padding: 5px;
+}
+.opengraph-area .switcher li:first-child {
+  border-left: thin solid #d8d9dc;
+}
+.opengraph-area .switcher li:last-child {
+  border-right: thin solid #d8d9dc;
+}
+.opengraph-area .switcher .switch-left,
+.opengraph-area .switcher .switch-right {
+  font: 0/0 a;
+  color: transparent;
+  text-shadow: none;
+  background-color: transparent;
+  border: 0;
+  width: 20px;
+  height: 20px;
+  background-position: center;
+  background-repeat: no-repeat;
+  padding: 0;
+}
+.opengraph-area .switcher .switch-left:not([disabled]),
+.opengraph-area .switcher .switch-right:not([disabled]) {
+  cursor: pointer;
+}
+.opengraph-area .switcher .switch-left {
+  background-image: url("../images/icons/blue/arr_1left.svg");
+  -webkit-background-size: 16px 16px;
+  -moz-background-size: 16px 16px;
+  -o-background-size: 16px 16px;
+  background-size: 16px 16px;
+}
+.opengraph-area .switcher .switch-left[disabled] {
+  background-image: url("../images/icons/grey/arr_1left.svg");
+  -webkit-background-size: 16px 16px;
+  -moz-background-size: 16px 16px;
+  -o-background-size: 16px 16px;
+  background-size: 16px 16px;
+}
+.opengraph-area .switcher .switch-right {
+  background-image: url("../images/icons/blue/arr_1right.svg");
+  -webkit-background-size: 16px 16px;
+  -moz-background-size: 16px 16px;
+  -o-background-size: 16px 16px;
+  background-size: 16px 16px;
+}
+.opengraph-area .switcher .switch-right[disabled] {
+  background-image: url("../images/icons/grey/arr_1right.svg");
+  -webkit-background-size: 16px 16px;
+  -moz-background-size: 16px 16px;
+  -o-background-size: 16px 16px;
+  background-size: 16px 16px;
+}
+.js .opengraph-area .opengraph.hidden,
+.js .opengraph-area:not(.handled) .opengraph:not(:first-of-type) {
+  display: none;
+}
+.opengraph {
+  *zoom: 1;
+  font-size: 0.8em;
+  border: 1px solid #d8d9dc;
+  padding: 10px;
+  min-height: 120px;
+}
+.opengraph:before,
+.opengraph:after {
+  display: table;
+  content: "";
+  line-height: 0;
+}
+.opengraph:after {
+  clear: both;
+}
 .opengraph .flash-embedder {
+  display: -ms-flexbox;
+  display: -webkit-box;
+  display: -webkit-box-flex;
+  display: -webkit-flex;
+  display: -moz-box;
   display: flex;
+  -webkit-justify-content: center;
   justify-content: center;
+  -webkit-align-items: center;
+  -ms-flex-align: center;
+  -moz-box-align: center;
   align-items: center;
   width: 100%;
   height: 100px;
@@ -5674,41 +5756,42 @@ a.bookable_rooms_action {
   background-size: 100% auto;
 }
 .opengraph .flash-embedder .play {
-  background-color: rgba(0, 0, 0, 0.7);
+  -webkit-border-radius: 100px;
+  -moz-border-radius: 100px;
   border-radius: 100px;
+  -webkit-transition: background-color 300ms;
+  -moz-transition: background-color 300ms;
+  -o-transition: background-color 300ms;
+  transition: background-color 300ms;
+  background-color: rgba(0, 0, 0, 0.7);
   padding: 10px;
-  transition: background-color 0.3s;
 }
 .opengraph .flash-embedder:hover .play {
   background-color: #000000;
-  transition: background-color 0.3s;
 }
 .opengraph .video .flash-embedder {
   height: 200px;
 }
-.opengraph .audio {
-  text-align: center;
-}
 .opengraph a.info {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  color: black;
   display: block;
   word-break: normal !important;
-  color: black;
 }
 .opengraph a.info:hover {
   color: black;
 }
-.opengraph .info_image {
-  transition: margin, padding, width, height;
-  transition-duration: 100ms;
-  float: left;
+.opengraph .image {
   width: 120px;
   height: 120px;
-  margin: 0px;
-  margin-right: 10px;
-  padding: 0px;
-  background-size: auto 100%;
-  background-position: center center;
+  background-size: contain;
+  background-position: left center;
   background-repeat: no-repeat;
+  display: inline-block;
+  float: left;
+  margin-right: 10px;
 }
 #sort1,
 #sort0,
@@ -5995,7 +6078,7 @@ div.available-widgets .studip-widget {
 .pagination .next a {
   background-image: url("../images/icons/16/blue/arr_1right.png");
 }
-#rulelist div {
+#rulelist div.admissionrule {
   display: list-item;
   list-style-type: disc;
   margin-left: 25px;
@@ -6432,6 +6515,17 @@ option.faculty {
 }
 option.sub_institute {
   padding-left: 15px;
+}
+div#wizard-lecturers,
+div#wizard-deputies,
+div#wizard-tutors {
+  margin-top: 5px;
+  margin-left: 25px;
+}
+div#wizard-lecturersdiv.description,
+div#wizard-deputiesdiv.description,
+div#wizard-tutorsdiv.description {
+  font-style: italic;
 }
 div#assigned {
   float: left;
@@ -7532,9 +7626,6 @@ ul.clean > li {
   vertical-align: text-top !important;
 }
 /* --- index.php anpassungen an den boxen zur vereinheitlichung ------------- */
-div.index_container {
-  margin: 0;
-}
 table.index_box {
   border-collapse: collapse;
   margin-bottom: 1em;

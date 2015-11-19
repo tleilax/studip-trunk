@@ -93,6 +93,7 @@ $message_types = array('msg' => "success", 'error' => "error", 'info' => "info")
                             ->setDataDialogStatus(Request::isXhr())
                             ->setJSFunctionOnSubmit(Request::isXhr() ? 'jQuery(this).closest(".ui-dialog-content").dialog("close");' : false)
                             ->setExecuteURL($controller->url_for('course/basicdata/add_member/' . $course_id))
+                            ->addQuickfilter(sprintf(_('%s der Einrichtung'), get_title_for_status('dozent', 2)), $lecturersOfInstitute)
                             ->render() ?>
                     </span>
             <? endif; ?>
@@ -222,10 +223,12 @@ $message_types = array('msg' => "success", 'error' => "error", 'info' => "info")
                 <?= MultiPersonSearch::get('add_member_tutor' . $course_id)
                         ->setTitle(_('Mehrere TutorInnen hinzufügen'))
                         ->setSearchObject($tutorUserSearch)
-                        ->setDefaultSelectedUser(array_keys($tutoren))
+                        ->setDefaultSelectedUser(array_merge(array_keys($dozenten), array_keys($tutoren)))
                         ->setDataDialogStatus(Request::isXhr())
                         ->setJSFunctionOnSubmit(Request::isXhr() ? 'jQuery(this).closest(".ui-dialog-content").dialog("close");' : false)
                         ->setExecuteURL($controller->url_for('course/basicdata/add_member/' . $course_id . '/tutor'))
+                        ->addQuickfilter(sprintf(_('%s der Einrichtung'), get_title_for_status('dozent', 2)), $lecturersOfInstitute)
+                        ->addQuickfilter(sprintf(_('%s der Einrichtung'), get_title_for_status('tutor', 2)), $tutorsOfInstitute)
                         ->render() ?>
                 </span>
             <? endif; ?>

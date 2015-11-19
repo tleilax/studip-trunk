@@ -60,10 +60,6 @@ if ($auth->is_authenticated() && $user->id != 'nobody') {
  * *   L O G I N - P A G E   ( N O B O D Y - U S E R )   * *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-require_once 'lib/functions.php';
-require_once 'lib/visual.inc.php';
-// -- hier muessen Seiten-Initialisierungen passieren --
-
 PageLayout::setHelpKeyword("Basis.Startseite"); // set keyword for new help
 PageLayout::setTitle(_("Startseite"));
 Navigation::activateItem('/start');
@@ -72,7 +68,6 @@ PageLayout::setTabNavigation(NULL); // disable display of tabs
 // Start of Output
 include 'lib/include/html_head.inc.php'; // Output of html head
 include 'lib/include/header.php';
-include 'lib/include/deprecated_tabs_layout.php';
 
 $index_nobody_template = $GLOBALS['template_factory']->open('index_nobody');
 
@@ -87,7 +82,7 @@ if (Request::get('logout'))
     $index_nobody_template->set_attribute('logout', true);
 }
 
-echo '<div><div class="index_container" style="width: 750px; margin: 0 auto !important;">';
+echo '<div><div class="index_container">';
 echo $index_nobody_template->render();
 
 $layout = $GLOBALS['template_factory']->open('shared/index_box');
