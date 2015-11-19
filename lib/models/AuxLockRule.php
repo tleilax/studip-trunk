@@ -171,9 +171,8 @@ class AuxLockRule extends SimpleORMap
                      $field = current(DatafieldEntryModel::findByModel(User::find($member->user_id), $fieldID));
                  }
                  if ($field) {
-                     $structure = new DataFieldStructure($field->datafield->toArray());
                      $range_id = $field->sec_range_id ? array($field->range_id, $field->sec_range_id) : $field->range_id;
-                     $typed_df = DataFieldEntry::createDataFieldEntry($structure, $range_id, $field->getValue('content'));
+                     $typed_df = DataFieldEntry::createDataFieldEntry($field->datafield, $range_id, $field->getValue('content'));
                      return array($field->name => $typed_df);
                  }
              }
