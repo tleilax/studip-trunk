@@ -42,20 +42,19 @@ class UserPrivacy
      * Returns all the categorys and it's items
      * @return array categorys and it's items
      */
-    function getProfileSettings()
+    public function getProfileSettings()
     {
         if (!isset($this->profileSettings)) {
-            // if the default categories have not been created, do this now 
+            // if the default categories have not been created, do this now
             if (User_Visibility_Settings::countBySQL('user_id = ? AND category = 0', array($this->userid)) == 0) {
-                Visibility::createDefaultCategories($this->userid); 
+                Visibility::createDefaultCategories($this->userid);
             }
-            
             $this->profileSettings = User_Visibility_Settings::findBySQL("user_id = ? AND parent_id = 0 AND identifier <> 'plugins'", array($this->userid));
             foreach ($this->profileSettings as $i => $vis) {
                 $vis->loadChildren();
-                // remap child settings to default categories 
-                if ($vis->category == 1) { 
-                    $idmap[$vis->identifier] = $vis; 
+                // remap child settings to default categories
+                if ($vis->category == 1) {
+                    $idmap[$vis->identifier] = $vis;
                     unset($this->profileSettings[$i]);
                 }
             }
@@ -144,7 +143,7 @@ class UserPrivacy
      * Returns all Arguments for the SettingsPage
      * @return array Arguments for the SettingsPage
      */
-    function getHTMLArgs()
+    public function getHTMLArgs()
     {
         $privacy_states = VisibilitySettings::getInstance();
         $result['header_colspan'] = $privacy_states->count() + 1;
@@ -158,4 +157,3 @@ class UserPrivacy
         return $result;
     }
 }
-?>

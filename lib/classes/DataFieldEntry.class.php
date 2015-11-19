@@ -424,11 +424,13 @@ abstract class DataFieldEntry
     /**
      * Returns whether the datafield is editable for the current user
      *
+     * @param mixed $perms Perms to test against (optional, defaults to logged
+     *                     in user's perms)
      * @return boolean indicating whether the datafield is editable
      */
-    public function isEditable()
+    public function isEditable($perms = null)
     {
-        return $this->model->editAllowed($GLOBALS['perm']->get_perm());
+        return $this->model->editAllowed($perms ?: $GLOBALS['perm']->get_perm());
     }
 
     /**
