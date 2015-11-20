@@ -43,7 +43,7 @@
                 (<?= htmlReady($name['name']) ?>)
             </span>
         <? elseif ($room = $termin->getRoom()) : ?>
-            <?= htmlReady($room->name); ?>
+            <?= $room->getFormattedLink() ?>
             <?= $room_holiday['name'] ?: '' ?>
         <? elseif ($freeTextRoom = $termin->getRoomName() ) : ?>
             <?= sprintf('(%s)', htmlReady($freeTextRoom)) ?>
