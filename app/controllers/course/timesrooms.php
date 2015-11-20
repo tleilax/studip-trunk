@@ -217,8 +217,26 @@ class Course_TimesroomsController extends AuthenticatedController
     public function saveDate_action($termin_id)
     {
         $termin = CourseDate::find($termin_id);
-        $termin->date = strtotime(sprintf('%s %s:00', Request::get('date'), Request::get('start_time')));
-        $termin->end_time = strtotime(sprintf('%s %s:00', Request::get('date'), Request::get('end_time')));
+        $date = strtotime(sprintf('%s %s:00', Request::get('date'), Request::get('start_time')));
+        $end_time = strtotime(sprintf('%s %s:00', Request::get('date'), Request::get('end_time')));
+        
+        //time changed for regular date. create normal singledate and cancel the regular date
+        if (($termin->metadate_id != '' || isset($termin->metadate_id)) 
+                && ($date != $termin->date || $end_time != $termin->end_time)) {
+            
+            $termin_values = $termin->toArray();
+            $termin_info = $termin->getFullname();
+            $termin->cancelDate();
+            PageLayout::postMessage(MessageBox::info(sprintf(_('Der Termin %s wurde aus der Liste der regelmäßigen Termine'
+                    . ' gelöscht und als unregelmäßiger Termin eingetragen, da Sie die Zeiten des Termins verändert haben,'
+                    . ' so dass dieser Termin nun nicht mehr regelmäßig ist.'), $termin_info)));
+            $termin = new CourseDate();
+            unset($termin_values['termin_id']);
+            unset($termin_values['metadate_id']);
+            $termin->setData($termin_values);
+        }
+        $termin->date = $date;
+        $termin->end_time = $end_time;
         $termin->date_typ = Request::get('course_type');
         
         $related_groups = Request::get('related_statusgruppen');
@@ -721,7 +739,6 @@ class Course_TimesroomsController extends AuthenticatedController
         if ($cycle->store()) {
             $cycle_info = $cycle->toString();
             NotificationCenter::postNotification("CourseDidChangeSchedule", $this);
-            StudipLog::log("SEM_ADD_CYCLE", $this->course->id, NULL, $cycle_info);
             $this->course->createMessage(sprintf(_('Die regelmäßige Veranstaltungszeit %s wurde hinzugefügt!'), $cycle_info));
             $this->displayMessages();
             if (Request::get('fromDialog') == 'true') {
@@ -763,105 +780,10 @@ class Course_TimesroomsController extends AuthenticatedController
             $cycle->chdate = time();
             $cycle->store();
         } else {
-            die('Keine Änderungen');
+            PageLayout::postMessage(MessageBox::info(_('Es wurden keine Änderungen vorgenommen')));
         }
         $this->redirect('course/timesrooms/index');
         return;
-        
-        /*
-        $data['startWeek'] = Request::get('startWeek');
-        $data['week_offset'] = Request::get('startWeek');
-        $data['turnus'] = Request::get('cycle');
-        $data['cycle'] = Request::get('cycle');
-        $data['description'] = studip_utf8decode(Request::get('description'));
-        $data['day'] = Request::int('day');
-        $data['weekday'] = Request::int('day');
-        $data['start_stunde'] = strftime('%H', strtotime(Request::get('start_time')));
-        $data['start_minute'] = strftime('%M', strtotime(Request::get('start_time')));
-        $data['end_stunde'] = strftime('%H', strtotime(Request::get('end_time')));
-        $data['end_minute'] = strftime('%M', strtotime(Request::get('end_time')));
-        $data['sws'] = Request::get('teacher_sws');
-        $data['endWeek'] = Request::get('endWeek');
-        */
-       /*
-        $new_start = mktime($data['start_stunde'], $data['start_minute']);
-        $new_end = mktime($data['end_stunde'], $data['end_minute']);
-        $old_start = mktime($cycle->getStartStunde(), $cycle->getStartMinute());
-        $old_end = mktime($cycle->getEndStunde(), $cycle->getEndMinute());
-
-        $same_time = false;
-
-        // only apply changes, if the user approved the change or
-        // the change does not need any approval
-        if ($data['description'] != $cycle->getDescription()) {
-            $this->course->createMessage(_('Die Beschreibung des regelmäßigen Eintrags wurde geändert.'));
-            $cycle->setDescription($data['description']);
-            $cycle->store();
-            $message = true;
-        }
-
-
-        if ($old_start == $new_start && $old_end == $new_end) {
-            $same_time = true;
-        }
-
-        if ($cycle->end_offset != $data['endWeek']) {
-            $message = true;
-            $same_time = false;
-            $this->course->createMessage(_('Die Endwoche wurde geändert!.'));
-        }
-        if ($data['startWeek'] != $cycle->week_offset) {
-            $this->course->setStartWeek($data['startWeek'], $cycle->metadate_id);
-            $message = true;
-        }
-        if ($data['turnus'] != $cycle->cycle) {
-            $this->course->setTurnus($data['turnus'], $cycle->metadate_id);
-            $message = true;
-        }
-        if ($data['day'] != $cycle->day) {
-            $message = true;
-            $same_time = false;
-        }
-
-        if (round(str_replace(',', '.', $data['sws']), 1) != $cycle->sws) {
-            $cycle->sws = $data['sws'];
-            $this->course->createMessage(_('Die Semesterwochenstunden für Dozenten des regelmäßigen Eintrags wurden geändert.'));
-            $message = true;
-        }
-
-
-        $change_from = $cycle->toString();
-        if ($this->course->metadate->editCycle($data)) {
-            if (!$same_time) {
-                // logging >>>>>>
-                StudipLog::log("SEM_CHANGE_CYCLE", $this->course->getId(), NULL, $change_from . ' -> ' . $cycle->toString());
-                NotificationCenter::postNotification("CourseDidChangeSchedule", $this->course);
-                // logging <<<<<<
-                $this->course->createMessage(sprintf(_('Die regelmäßige Veranstaltungszeit wurde auf "%s" für alle in der Zukunft liegenden Termine geändert!'),
-                    '<b>' . getWeekday($data['day']) . ', ' . $data['start_stunde'] . ':' . $data['start_minute'] . ' - ' .
-                    $data['end_stunde'] . ':' . $data['end_minute'] . '</b>'));
-                $message = true;
-            }
-        } else {
-            if (!$same_time) {
-                $this->course->createInfo(sprintf(_('Die regelmäßige Veranstaltungszeit wurde auf "%s" geändert, jedoch gab es keine Termine die davon betroffen waren.'),
-                    '<b>' . getWeekday($data['day']) . ', ' . $data['start_stunde'] . ':' . $data['start_minute'] . ' - ' .
-                    $data['end_stunde'] . ':' . $data['end_minute'] . '</b>'));
-                $message = true;
-            }
-        }
-         *
-         */
-        $cycle->store();
-        
-        //WAS MACHT DAS HIER???
-        $this->course->metadate->sortCycleData();
-
-        if (!$message) {
-            $this->course->createInfo('Sie haben keine Änderungen vorgenommen!');
-        }
-        $this->displayMessages();
-        $this->redirect('course/timesrooms/index');
     }
 
 
@@ -1057,17 +979,21 @@ class Course_TimesroomsController extends AuthenticatedController
         //cancel cycledate entry
         if ($sub_cmd == 'cancel') {
             $termin = CourseDate::find($termin_id);
+            $seminar_id = $termin->range_id;
             $room = $termin->getRoom();
             $termin->cancelDate();
+            log_event("SEM_DELETE_SINGLEDATE", $termin_id, $seminar_id, 'Cycle_id: ' . $cycle_id);
         //delete singledate entry
         } else if($sub_cmd == 'delete') {
             $termin = CourseDate::find($termin_id);
+            $seminar_id = $termin->range_id;
             if ($termin === null) {
                 $termin = CourseExDate::find($termin_id);
             }
             $termin_room = $termin->getRoom();
             $termin_date = $termin->getFullname();
             if ($termin->delete()) {
+                log_event("SEM_DELETE_SINGLEDATE", $termin_id, $seminar_id, 'appointment cancelled');
                 if (Request::get('approveDelete')) {
                     if (Config::get()->RESOURCES_ENABLE_EXPERT_SCHEDULE_VIEW) {
                         $this->course->createMessage(sprintf(_('Sie haben den Termin %s gelöscht, dem ein Thema zugeorndet war.'

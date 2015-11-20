@@ -186,8 +186,20 @@ class SeminarCycleDate extends SimpleORMap
         return $all_data;
     }
     
-    function store(){
-        $cycle = self::findByMetadate_id($this->metadate_id);
+    function delete()
+    {
+        $cycle_info = $this->toString();
+        $seminar_id = $this->seminar_id;
+        if (parent::delete()) {
+            StudipLog::log("SEM_DELETE_CYCLE", $seminar_id, NULL, $cycle_info);
+            return true;
+        }
+        return false;
+    }
+    
+    function store()
+    {
+        $cycle = parent::findByMetadate_id($this->metadate_id);
         //create new entry in seminare_cycle_date
         if (empty($cycle)) {
             $store = parent::store();
@@ -198,13 +210,19 @@ class SeminarCycleDate extends SimpleORMap
                         $date->store();
                     }
                 }
+                StudipLog::log("SEM_ADD_CYCLE", $this->seminar_id, NULL, $this->toString());
+                return $store;
+            } else {
+                return false;
             }
-            return $store;
+
         }
         //change existing cycledate, changes also corresponding single dates
         else {
             $old_cycle = SeminarCycleDate::find($this->metadate_id);
-            parent::store();
+            if (!parent::store()) {
+                return false;
+            }
             if ( (mktime($this->start_time) >= mktime($old_cycle->start_time) 
                     && mktime($this->end_time) <= mktime($old_cycle->end_time) )
                     && ($this->weekday == $old_cycle->weekday && $this->end_offset == $old_cycle->end_offset)) {
@@ -224,6 +242,7 @@ class SeminarCycleDate extends SimpleORMap
                     }
                     
                 }
+                StudipLog::log("SEM_CHANGE_CYCLE", $this->seminar_id, NULL, $old_cycle->toString() .' -> '. $this->toString());
                 return $update_count;
             } else {
                //collect topics for existing future dates (CourseDate)
@@ -256,6 +275,7 @@ class SeminarCycleDate extends SimpleORMap
                     }
                 }
             }
+            StudipLog::log("SEM_CHANGE_CYCLE", $this->seminar_id, NULL, $old_cycle->toString() .' -> '. $this->toString());
             return $update_count;
         }
         return false;
@@ -498,13 +518,7 @@ class SeminarCycleDate extends SimpleORMap
                 AssignObject::Factory($assign_id)->delete();
             }
         }
-
-        // $query = "DELETE FROM termine
-        //           WHERE range_id = ? AND (`date` NOT BETWEEN ? AND ?)
-        //             AND NOT (metadate_id IS NULL OR metadate_id = '')";
-        // $statement = DBManager::get()->prepare($query);
-        // $statement->execute(array($seminar_id, $start, $end));
-
+        
         $query = "DELETE FROM ex_termine
                   WHERE range_id = ? AND (`date` NOT BETWEEN ? AND ?)
                     AND NOT (metadate_id IS NULL OR metadate_id = '')";
