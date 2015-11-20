@@ -186,18 +186,18 @@ class SeminarCycleDate extends SimpleORMap
         return $all_data;
     }
     
-    function delete()
+    public function delete()
     {
         $cycle_info = $this->toString();
         $seminar_id = $this->seminar_id;
         if (parent::delete()) {
-            StudipLog::log("SEM_DELETE_CYCLE", $seminar_id, NULL, $cycle_info);
+            StudipLog::log('SEM_DELETE_CYCLE', $seminar_id, NULL, $cycle_info);
             return true;
         }
         return false;
     }
     
-    function store()
+    public function store()
     {
         $cycle = parent::findByMetadate_id($this->metadate_id);
         //create new entry in seminare_cycle_date
@@ -210,7 +210,7 @@ class SeminarCycleDate extends SimpleORMap
                         $date->store();
                     }
                 }
-                StudipLog::log("SEM_ADD_CYCLE", $this->seminar_id, NULL, $this->toString());
+                StudipLog::log('SEM_ADD_CYCLE', $this->seminar_id, NULL, $this->toString());
                 return $store;
             } else {
                 return false;
@@ -242,7 +242,7 @@ class SeminarCycleDate extends SimpleORMap
                     }
                     
                 }
-                StudipLog::log("SEM_CHANGE_CYCLE", $this->seminar_id, NULL, $old_cycle->toString() .' -> '. $this->toString());
+                StudipLog::log('SEM_CHANGE_CYCLE', $this->seminar_id, NULL, $old_cycle->toString() . ' -> ' . $this->toString());
                 return $update_count;
             } else {
                //collect topics for existing future dates (CourseDate)
@@ -275,7 +275,7 @@ class SeminarCycleDate extends SimpleORMap
                     }
                 }
             }
-            StudipLog::log("SEM_CHANGE_CYCLE", $this->seminar_id, NULL, $old_cycle->toString() .' -> '. $this->toString());
+            StudipLog::log('SEM_CHANGE_CYCLE', $this->seminar_id, NULL, $old_cycle->toString() .' -> ' . $this->toString());
             return $update_count;
         }
         return false;

@@ -157,24 +157,26 @@ class CourseDate extends SimpleORMap {
         unset($date['termin_id']);
         $ex_date->setData($date);
         if($ex_date->store()){
-            self::delete();
+            $this->delete();
             return $ex_date;
         }
         return null;
     }
     
-    function store()
+    public function store()
     {
         $old_entry = CourseDate::find($this->termin_id);
         if ($this->isNew() && !isset($this->metadate_id) && parent::store()) {
             log_event("SEM_ADD_SINGLEDATE", $this->range_id, $this->getFullname());
             return true;
-        } else if (!$this->isNew() && !isset($this->metadate_id) && parent::store()) {
+        }
+        if (!$this->isNew() && !isset($this->metadate_id) && parent::store()) {
             if ($old_entry->date != $this->date || $old_entry->end_time != $this->end_time) {
                 log_event("SINGLEDATE_CHANGE_TIME", $this->range_id, $old_entry->getFullname(), $old_entry->getFullname() . ' -> ' . $this->getFullname());
             }
             return true;
-        } else if(parent::store()){
+        }
+        if (parent::store()) {
             return true;
         }
         return false;
