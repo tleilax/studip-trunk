@@ -1,4 +1,4 @@
-<?//=var_dump($_activity)?>
+
 
 <?
 $actor = $_activity->getActor();

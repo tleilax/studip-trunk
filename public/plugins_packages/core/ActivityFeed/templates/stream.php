@@ -1,3 +1,4 @@
 <div class="stream-container">
-     <?= $this->render_partial_collection("_activity", $stream)?>
+     <?=var_dump($stream)?>
+     <?//= $this->render_partial_collection("_activity", $stream)?>
 </div>

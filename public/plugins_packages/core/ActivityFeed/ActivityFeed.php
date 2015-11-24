@@ -10,6 +10,7 @@
  * the License, or (at your option) any later version.
  */
 
+
 class ActivityFeed extends StudIPPlugin implements PortalPlugin
 {
     public function getPluginName()
@@ -24,8 +25,29 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
 
 
         $observer_id = $GLOBALS['user']->id ;
-        $context = new \Studip\Activity\SystemContext();
-        $stream = new \Studip\Activity\Stream($observer_id, $context, new Studip\Activity\Filter());
+        $contexts = array();
+        $system_context = new \Studip\Activity\SystemContext();
+
+        $contexts[] = $system_context;
+
+
+
+        $semesters   = MyRealmModel::getSelectedSemesters('all');
+        $min_sem_key = min($semesters);
+        $max_sem_key = max($semesters);
+
+        $courses = MyRealmModel::getCourses($min_sem_key, $max_sem_key);
+
+        foreach ($courses as $course) {
+            $contexts[] = new \Studip\Activity\CourseContext($course->seminar_id);
+
+        }
+
+
+        $filter = new Studip\Activity\Filter();
+
+        $stream = new \Studip\Activity\Stream($observer_id, $contexts, $filter);
+
 
 
         $template_factory = new Flexi_TemplateFactory(__DIR__ . '/templates');
@@ -44,4 +66,13 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
 
         return $template;
     }
+
+    /*
+    private function getCourses(){
+
+        $courses  = MyRealmModel::getPreparedCourses();
+
+
+        return $courses;
+    }*/
 }

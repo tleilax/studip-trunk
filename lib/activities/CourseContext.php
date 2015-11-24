@@ -29,9 +29,12 @@ class CourseContext implements Context
 
     private function addProvider($provider)
     {
-        $class_name = ucfirst($provider) . 'Provider';
 
-        $this->provider[] = new $class_name();
+        $class_name = 'Studip\Activity\\' . ucfirst($provider) . 'Provider';
+
+        $reflectionClass = new \ReflectionClass($class_name);
+        $this->provider[] =  $reflectionClass->newInstanceArgs();
+        //$this->provider[] = new $class_name();
     }
 
     private function getProviders()
@@ -80,8 +83,10 @@ class CourseContext implements Context
     function getActivities($observer_id, Filter $filter)
     {
         $providers = $this->getProviders();
+
+
         $activities = array_map(
-            function ($provider) {
+            function ($provider) use($observer_id, $filter) {
                 return $provider->getActivities($observer_id, $this, $filter);
             },
             $providers);
