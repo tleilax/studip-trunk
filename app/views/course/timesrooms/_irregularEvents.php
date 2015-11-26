@@ -1,16 +1,16 @@
-<section class="contentbox">
+<section class="contentbox timesrooms">
     <header>
         <h1>
             <?= _('Unregelmäßige Termine / Blocktermine') ?>
         </h1>
         <nav>
             <a class="link-add"
-               href="<?= $controller->link_for('course/timesrooms/createSingleDate/' . $course_id, $editParams) ?>"
+               href="<?= $controller->link_for('course/timesrooms/createSingleDate/' . $course->id, $editParams) ?>"
                data-dialog="size=600" title="<?= _('Einzeltermin hinzufügen') ?>">
                 <?= _('Neuer Einzeltermin') ?>
             </a>
             <a class="link-add"
-               href="<?= $controller->url_for('course/block_appointments/index/' . $course_id, $editParams) ?>"
+               href="<?= $controller->url_for('course/block_appointments/index/' . $course->id, $editParams) ?>"
                data-dialog="size=600"
                title="<?= _('Blocktermin hinzufügen') ?>">
                 <?= _('Neuer Blocktermin') ?>

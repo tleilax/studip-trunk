@@ -18,7 +18,3 @@
     <!--Raumanfrage-->
     <?= $this->render_partial('course/timesrooms/_roomRequest.php', array()) ?>
 <? endif; ?>
-
-   <script>
-        
-    </script>

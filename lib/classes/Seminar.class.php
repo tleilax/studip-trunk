@@ -1123,17 +1123,21 @@ class Seminar
         return $return;
     }
 
+    /**
+     * get StatOfNotBookedRooms returns an array:
+     * open:        number of rooms with no booking
+     * all:         number of singleDates, which can have a booking
+     * open_rooms:  array of singleDates which have no booking
+     *
+     * @param String $cycle_id Id of cycle
+     * @return array as described above
+     */
     public function getStatOfNotBookedRooms($cycle_id)
     {
         if (!isset($this->BookedRoomsStatTemp[$cycle_id])) {
             $this->BookedRoomsStatTemp[$cycle_id] = SeminarDB::getStatOfNotBookedRooms($cycle_id, $this->id, $this->filterStart, $this->filterEnd);
         }
         return $this->BookedRoomsStatTemp[$cycle_id];
-        /* get StatOfNotBookedRooms returns an array:
-         * open:        number of rooms with no booking
-         * all:         number of singleDates, which can have a booking
-         * open_rooms:  array of singleDates which have no booking
-        */
     }
 
     public function getStatus()
@@ -1193,11 +1197,10 @@ class Seminar
     public function getRequestsInfo($cycle_id)
     {
         $zahl =  SeminarDB::countRequestsForSingleDates($cycle_id, $this->id, $this->filterStart, $this->filterEnd);
-        if ($zahl == 0) {
-            return 'keine offen';
-        } else {
-            return $zahl.' noch offen';
+        if ($zahl > 0) {
+            return sprintf(_('%u noch offen'), $zahl);
         }
+        return _('keine offen');
     }
 
     /**
@@ -1206,24 +1209,23 @@ class Seminar
      */
     public function getCycleColorClass($cycle_id)
     {
-        $stat = $this->getStatOfNotBookedRooms($cycle_id);
         if (Config::get()->RESOURCES_ENABLE && Config::get()->RESOURCES_ENABLE_BOOKINGSTATUS_COLORING) {
             if (!$this->metadate->hasDates($cycle_id, $this->filterStart, $this->filterEnd)) {
-                $return = 'red';
-            } else {
-                if (($stat['open'] > 0) && ($stat['open'] == $stat['all'])) {
-                    $return = 'red';
-                } else if ($stat['open'] > 0) {
-                    $return = 'yellow ';
-                } else {
-                    $return = 'green ';
-                }
+                return 'red';
             }
-        } else {
-            $return = '';
+
+            $stat = $this->getStatOfNotBookedRooms($cycle_id);
+
+            if ($stat['open'] > 0 && $stat['open'] == $stat['all']) {
+                return 'red';
+            }
+            if ($stat['open'] > 0) {
+                return 'yellow ';
+            }
+            return 'green ';
         }
 
-        return $return;
+        return '';
     }
 
     public function &getIssues($force = false)

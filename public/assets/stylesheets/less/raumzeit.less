@@ -22,3 +22,17 @@ a.bookable_rooms_action {
     color: @dark-gray-color-80;
     text-decoration: line-through;
 }
+
+.contentbox.timesrooms {
+    article header {
+        &.red .tooltip-icon {
+            .icon-before('red/radiobutton-checked.svg');
+        }
+        &.yellow .tooltip-icon {
+            .icon-before('yellow/radiobutton-checked.svg');
+        }
+        &.green .tooltip-icon {
+            .icon-before('green/radiobutton-checked.svg');
+        }
+    }
+}

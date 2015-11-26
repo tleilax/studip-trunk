@@ -3092,7 +3092,7 @@ section.contentbox article header h1 a:before {
   -moz-transition: all 200ms ease 0s;
   -o-transition: all 200ms ease 0s;
   transition: all 200ms ease 0s;
-  vertical-align: bottom;
+  margin-top: 2px;
 }
 section.contentbox article header nav * {
   display: inline-block;
@@ -5651,6 +5651,48 @@ a.bookable_rooms_action {
 .is_ex_termin {
   color: #636971;
   text-decoration: line-through;
+}
+.contentbox.timesrooms article header.red .tooltip-icon::before {
+  background-repeat: no-repeat;
+  content: ' ';
+  display: inline-block;
+  height: 16px;
+  margin-right: 0;
+  background-image: url("../images/icons/red/radiobutton-checked.svg");
+  -webkit-background-size: 16px 16px;
+  -moz-background-size: 16px 16px;
+  -o-background-size: 16px 16px;
+  background-size: 16px 16px;
+  vertical-align: text-top;
+  width: 16px;
+}
+.contentbox.timesrooms article header.yellow .tooltip-icon::before {
+  background-repeat: no-repeat;
+  content: ' ';
+  display: inline-block;
+  height: 16px;
+  margin-right: 0;
+  background-image: url("../images/icons/yellow/radiobutton-checked.svg");
+  -webkit-background-size: 16px 16px;
+  -moz-background-size: 16px 16px;
+  -o-background-size: 16px 16px;
+  background-size: 16px 16px;
+  vertical-align: text-top;
+  width: 16px;
+}
+.contentbox.timesrooms article header.green .tooltip-icon::before {
+  background-repeat: no-repeat;
+  content: ' ';
+  display: inline-block;
+  height: 16px;
+  margin-right: 0;
+  background-image: url("../images/icons/green/radiobutton-checked.svg");
+  -webkit-background-size: 16px 16px;
+  -moz-background-size: 16px 16px;
+  -o-background-size: 16px 16px;
+  background-size: 16px 16px;
+  vertical-align: text-top;
+  width: 16px;
 }
 .opengraph-area {
   margin: 10px auto 5px;

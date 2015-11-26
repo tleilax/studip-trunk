@@ -23,17 +23,21 @@ class Course_TimesroomsController extends AuthenticatedController
     {
         parent::before_filter($action, $args);
 
-        if (Request::get('cid')) {
-            $this->course = Seminar::GetInstance(Request::get('cid'));
-        }
-
-        if(!$this->course) {
+        // Try to find a valid course
+        if ($action === 'index' && count($args) > 0 && $args[0]) {
+            $course_id = $args[0];
+        } elseif (Course::findCurrent()) {
+            $course_id = Course::findCurrent()->id;
+        } else {
             throw new Trails_Exception(404, _('Es wurde keine Veranstaltung ausgewählt!'));
         }
 
-        if (!$GLOBALS['perm']->have_studip_perm('tutor', $this->course_id)) {
+        if (!$GLOBALS['perm']->have_studip_perm('tutor', $course_id)) {
             throw new Trails_Exception(400);
         }
+
+        // Get seminar instance
+        $this->course = Seminar::getInstance($course_id);
 
         if (Navigation::hasItem('course/admin/dates')) {
             Navigation::activateItem('course/admin/dates');
@@ -97,11 +101,6 @@ class Course_TimesroomsController extends AuthenticatedController
             $linkAttributes['data-dialog'] = 'size=big';
         }
 
-        if ($course_id) {
-            $this->course_id = $course_id;
-            $this->course = Course::find($course_id);
-        }
-
         $this->semester = array_reverse(Semester::getAll());
         $this->current_semester = Semester::findCurrent();
         // Get Cycles
@@ -114,13 +113,24 @@ class Course_TimesroomsController extends AuthenticatedController
                         continue;
                     }
                     if ($sem->beginn <= $val->date && $sem->ende >= $val->date) {
-                        $this->cycle_dates[$cycle->metadate_id]['cycle'] = $cycle;
+                        if (!isset($this->cycle_dates[$cycle->metadate_id])) {
+                            $this->cycle_dates[$cycle->metadate_id] = array(
+                                'cycle'        => $cycle,
+                                'dates'        => array(),
+                                'room_request' => array(),
+                            );
+                        }
+                        if (!isset($this->cycle_dates[$cycle->metadate_id]['dates'][$sem->id])) {
+                            $this->cycle_dates[$cycle->metadate_id]['dates'][$sem->id] = array();
+                        }
                         $this->cycle_dates[$cycle->metadate_id]['dates'][$sem->id][] = $val;
+                        if ($val->getRoom()) {
+                            $this->cycle_dates[$cycle->metadate_id]['room_request'][] = $val->getRoom();
+                        }
                     }
                 }
             }
         }
-
 
         // Get Single Dates
         $this->single_dates = array();
@@ -145,20 +155,14 @@ class Course_TimesroomsController extends AuthenticatedController
 
     /**
      * Edit the start-semester of a course
-     * @param null $course_id
      * @throws Trails_DoubleRenderError
      */
-    public function editSemester_action($course_id = null)
+    public function editSemester_action()
     {
         if (!Request::isXhr()) {
             $this->redirect('course/timesrooms/index');
 
             return;
-        }
-
-        if ($course_id) {
-            $this->course_id = $course_id;
-            $this->course = Course::find($course_id);
         }
 
         $this->semester = array_reverse(Semester::getAll());
@@ -313,7 +317,7 @@ class Course_TimesroomsController extends AuthenticatedController
         $this->editParams = array('fromDialog' => Request::get('fromDialog'));
         $this->resList = ResourcesUserRoomsList::getInstance($GLOBALS['user']->id, true, false, true);
         $this->teachers = $this->course->getMembers('dozent');
-        $this->groups = Statusgruppen::findBySeminar_id($this->course_id);
+        $this->groups = Statusgruppen::findBySeminar_id($this->course->id);
     }
 
     /**
@@ -449,7 +453,7 @@ class Course_TimesroomsController extends AuthenticatedController
         }
     }
 
-    public function editStack($cycle_id)
+    protected function editStack($cycle_id)
     {
         $this->cycle_id = $cycle_id;
         $this->teachers = $this->course->getMembers('dozent');
@@ -459,14 +463,14 @@ class Course_TimesroomsController extends AuthenticatedController
         $this->render_template('course/timesrooms/editStack');
     }
 
-    public function prepareCancel($cycle_id)
+    protected function prepareCancel($cycle_id)
     {
         $this->cycle_id = $cycle_id;
         $this->editParams = array('fromDialog' => Request::get('fromDialog'));
         $this->render_template('course/timesrooms/cancelStack');
     }
 
-    public function unDeleteStack($cycle_id = '')
+    protected function unDeleteStack($cycle_id = '')
     {
         foreach ($_SESSION['_checked_dates'] as $id) {
             $ex_termin = CourseExDate::find($id);
@@ -492,7 +496,7 @@ class Course_TimesroomsController extends AuthenticatedController
         }
     }
 
-    public function deleteStack($cycle_id = '')
+    protected function deleteStack($cycle_id = '')
     {
         foreach ($_SESSION['_checked_dates'] as $id) {
             $termin = CourseDate::find($id);
@@ -862,7 +866,7 @@ class Course_TimesroomsController extends AuthenticatedController
             foreach (AdminCourseFilter::get()->getCourses(false) as $seminar) {
                 $list->addElement(new SelectElement($seminar['Seminar_id'], $seminar['Name']), 'select-' . $seminar['Seminar_id']);
             }
-            $list->setSelection($this->course_id);
+            $list->setSelection($this->course->id);
             Sidebar::Get()->addWidget($list);
         }
 
