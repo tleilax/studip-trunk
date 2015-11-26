@@ -3073,7 +3073,7 @@ section.contentbox article section article time {
   font-size: smaller;
   margin: 2px;
 }
-section.contentbox article header h1::before {
+section.contentbox article header h1 a::before {
   background-repeat: no-repeat;
   content: ' ';
   display: inline-block;
@@ -3087,12 +3087,12 @@ section.contentbox article header h1::before {
   vertical-align: text-top;
   width: 16px;
 }
-section.contentbox article header h1:before {
+section.contentbox article header h1 a:before {
   -webkit-transition: all 200ms ease 0s;
   -moz-transition: all 200ms ease 0s;
   -o-transition: all 200ms ease 0s;
   transition: all 200ms ease 0s;
-  vertical-align: middle;
+  vertical-align: bottom;
 }
 section.contentbox article header nav * {
   display: inline-block;
@@ -3150,14 +3150,14 @@ section.contentbox article.open > div {
 section.contentbox article.open footer {
   border-top-style: solid;
 }
-section.contentbox article.open header h1:before {
+section.contentbox article.open header h1 a::before {
   -webkit-transform: rotate(90deg);
   -moz-transform: rotate(90deg);
   -ms-transform: rotate(90deg);
   -o-transform: rotate(90deg);
   transform: rotate(90deg);
 }
-section.contentbox article.new header h1::before {
+section.contentbox article.new header h1 a::before {
   background-repeat: no-repeat;
   content: ' ';
   display: inline-block;

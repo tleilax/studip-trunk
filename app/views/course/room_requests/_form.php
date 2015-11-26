@@ -33,7 +33,7 @@
 <?
 if ($request_resource_id = $request->getResourceId()) :
     $resObject = ResourceObject::Factory($request_resource_id);
-    ?>
+?>
     <section style="margin: 20px 0;">
         <h2><?= _('Gewünschter Raum') ?></h2>
 
