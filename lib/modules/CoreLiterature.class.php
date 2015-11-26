@@ -55,8 +55,9 @@ class CoreLiterature implements StudipModule {
             join lit_catalog as lc using(catalog_id)
             join seminare as sem ON (range_id = Seminar_id)
             join auth_user_md5 on(llc.user_id = auth_user_md5.user_id)
+            JOIN user_info ON (auth_user_md5.user_id = user_info.user_id)
             WHERE range_id = ?
-                AND lit_list_content.chdate > ?');
+                AND llc.chdate > ?');
         
         $stmt->execute(array($course_id, $since));
         
