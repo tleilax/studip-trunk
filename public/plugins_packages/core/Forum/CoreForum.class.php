@@ -120,18 +120,20 @@ class CoreForum extends StudipPlugin implements ForumModule
                     get_fullname($post['user_id']),
                     $obj['name']
                 ); 
- 
-                $contents[] = new ContentElement(
-                    _('Forum: ') . $obj['name'],
-                    $summary,
-                    formatReady($post['content']),
-                    $post['user_id'],
-                    $post['author'],
-                    PluginEngine::getURL($this, array(), 'index/index/' . $post['topic_id'] 
-                            .'?cid='. $course_id
-                            .'#'. $post['topic_id']),
-                    $post['mkdate']
-                );
+
+                if ($post['user_id']) { // skip system-created entries like "Allgemeine Diskussionen"
+                    $contents[] = new ContentElement(
+                        _('Forum: ') . $obj['name'],
+                        $summary,
+                        formatReady($post['content']),
+                        $post['user_id'],
+                        $post['author'],
+                        PluginEngine::getURL($this, array(), 'index/index/' . $post['topic_id']
+                                .'?cid='. $course_id
+                                .'#'. $post['topic_id']),
+                        $post['mkdate']
+                    );
+                }
             }
         }
         

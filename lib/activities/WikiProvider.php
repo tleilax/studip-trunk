@@ -49,7 +49,7 @@ class WikiProvider implements ActivityProvider
 
     private function  wrapParticipantNotifications($notifications){
         return array_map(function ($n) {
-            return new Activity('participants_provider', $n->getSummary(), 'user', $n->getDate(), 'created', 'participants', $n->getUrl(), 'http://example.com/route', $n->getDate());
+            return new Activity('participants_provider', $n->getSummary(), 'user', $n->getCreatorid(), 'created', 'wiki', $n->getUrl(), 'http://example.com/route', $n->getDate());
         }, $notifications);
 
     }
