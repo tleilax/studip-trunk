@@ -13,12 +13,9 @@
 
 namespace Studip\Activity;
 
-\NotificationCenter::addObserver('ParticipantsProvider', 'participantObserver', 'AddUserToCourse');
-
 class ParticipantsProvider implements ActivityProvider
 {
-    public function getActivities($observer_id, Context $context, Filter $filter)
-    {
+    public function getActivities($observer_id, Context $context, Filter $filter) {
 
         $range_id = $this->contextToRangeId($context);
 
@@ -26,6 +23,7 @@ class ParticipantsProvider implements ActivityProvider
             return array();
         }
 
+        //TODO: that shouldn't be fix
         $now = time();
         $chdate = $now - 24 * 60 * 60 * 260;
 
@@ -33,7 +31,6 @@ class ParticipantsProvider implements ActivityProvider
         $sem_class = $course->getSemClass();
         $module = $sem_class->getModule('participants');
         $notifications = $module->getNotificationObjects($range_id, $chdate, $observer_id);
-
 
         return $this->wrapParticipantNotifications($notifications);
     }
