@@ -17,5 +17,6 @@ class WikiProvider implements ActivityProvider
 {
     public function getActivities($observer_id, Context $context, Filter $filter)
     {
+        return array('Wiki');
     }
 }
