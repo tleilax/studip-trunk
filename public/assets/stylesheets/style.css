@@ -2977,10 +2977,6 @@ section.contentbox header h1 {
   border-bottom: none;
   font-size: medium;
 }
-section.contentbox header h1 > a {
-  margin-left: -20px;
-  padding-left: 20px;
-}
 section.contentbox header h1 > a img,
 section.contentbox header h1 > a svg {
   vertical-align: text-bottom;
@@ -3039,15 +3035,6 @@ section.contentbox article > div {
 section.contentbox article div,
 section.contentbox article p {
   margin: 0;
-}
-section.contentbox article header.red {
-  border-left: 3px solid #d60000;
-}
-section.contentbox article header.yellow {
-  border-left: 3px solid #ffbd33;
-}
-section.contentbox article header.green {
-  border-left: 3px solid #6ead10;
 }
 section.contentbox article section {
   border-width: 0;
@@ -5651,6 +5638,15 @@ a.bookable_rooms_action {
 .is_ex_termin {
   color: #636971;
   text-decoration: line-through;
+}
+.contentbox.timesrooms article header.red {
+  border-left: 3px solid #d60000;
+}
+.contentbox.timesrooms article header.yellow {
+  border-left: 3px solid #ffbd33;
+}
+.contentbox.timesrooms article header.green {
+  border-left: 3px solid #6ead10;
 }
 .contentbox.timesrooms article header.red .tooltip-icon::before {
   background-repeat: no-repeat;
