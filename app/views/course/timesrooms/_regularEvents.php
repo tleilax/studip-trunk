@@ -16,7 +16,7 @@
 <? if (!empty($cycle_dates)) : ?>
     <? foreach ($cycle_dates as $metadate_id => $cycle) : ?>
 
-        <form class="collapsable" action="<?= $controller->url_for('course/timesrooms/stack/' . $metadate_id, $editParams) ?>"
+        <form class="default collapsable" action="<?= $controller->url_for('course/timesrooms/stack/' . $metadate_id, $editParams) ?>"
               method="post" <?= Request::isXhr() ? 'data-dialog="size=big"' : ''?>>
             <?= CSRFProtection::tokenTag() ?>
 
