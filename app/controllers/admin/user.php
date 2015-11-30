@@ -86,7 +86,7 @@ class Admin_UserController extends AuthenticatedController
         //Datafields
         $datafields = DataField::getDataFields("user");
         foreach ($datafields as $datafield) {
-            if ($datafield->accessAllowed($this->perm)) {
+            if ($datafield->accessAllowed()) {
                 $this->datafields[] = $datafield;
             }
         }
@@ -469,6 +469,8 @@ class Admin_UserController extends AuthenticatedController
             $umdetails = explode('§', str_replace(array('msg§', 'info§', 'error§'), '', substr($um->msg, 0, -1)));
             $details = array_reverse(array_merge((array)$details,(array)$umdetails));
             PageLayout::postMessage(MessageBox::info(_('Hinweise:'), $details));
+            
+            $this->redirect('admin/user/edit/' . $user_id);
         }
 
         //get user informations

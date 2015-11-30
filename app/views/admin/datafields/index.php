@@ -102,7 +102,9 @@
             <td><?= $val->edit_perms ?></td>
             <td><?= $val->view_perms ?></td>
             <td>
-            <? if ($val->system): ?>
+            <? if ($key !== 'user'): ?>
+                &nbsp;
+            <? elseif ($val->system): ?>
                 <?= Assets::img('icons/grey/checkbox-checked.svg', tooltip2(_('Ja'))) ?>
             <? else: ?>
                 <?= Assets::img('icons/grey/checkbox-unchecked.svg', tooltip2(_('Nein'))) ?>

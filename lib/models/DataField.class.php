@@ -234,14 +234,19 @@ class DataField extends SimpleORMap
     /**
      * Returns whether a user may access this datafield.
      *
-     * @param Seminar_Perm $perm    Permission object
-     * @param String       $watcher Current user
-     * @param String       $user    Associated user of the datafield
+     * @param String $perm    Permission of the user, optional defaults to
+     *                        current user
+     * @param String $watcher Current user
+     * @param String $user    Associated user of the datafield
      * @return bool indicating whether the datafield may be accessed.
      */
-    public function accessAllowed($perm, $watcher = '', $user = '')
+    public function accessAllowed($perm = null, $watcher = '', $user = '')
     {
-        $user_perms = self::permMask($perm->getPerm());
+        if ($perm === null) {
+            $perm = $GLOBALS['user']->perms;
+        }
+        
+        $user_perms = self::permMask($perm);
         $required_perms = self::permMask($this->view_perms);
 
         # permission is sufficient
@@ -252,7 +257,7 @@ class DataField extends SimpleORMap
         // user may see his own data if this either no system field
         // or the user may edit the field
         if ($watcher && $user && $user === $watcher &&
-            (!$this->system || $this->editAllowed($perm->get_perm())))
+            (!$this->system || $this->editAllowed($perm)))
         {
             return true;
         }

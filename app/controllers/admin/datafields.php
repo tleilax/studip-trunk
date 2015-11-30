@@ -88,19 +88,19 @@ class Admin_DatafieldsController extends AuthenticatedController
             $datafield = new DataField($datafield_id);
             if (Request::get('datafield_name')) {
                 $datafield->name          = Request::get('datafield_name');
-                $datafield->object_class  = array_sum(Request::getArray('object_class'));
+                $datafield->object_class  = array_sum(Request::getArray('object_class')) ?: null;
                 $datafield->edit_perms    = Request::get('edit_perms');
                 $datafield->view_perms    = Request::get('visibility_perms');
                 $datafield->system        = Request::int('system');
                 $datafield->priority      = Request::get('priority');
                 $datafield->type          = Request::get('datafield_type');
                 $datafield->is_required   = Request::get('is_required');
-                $datafield->description   = Request::get('description');
+                $datafield->description   = Request::get('description', $datafield->description);
                 $datafield->is_userfilter = Request::int('is_userfilter');
                 $datafield->store();
 
                 PageLayout::postSuccess(_('Die Änderungen am generischen Datenfeld wurden übernommen.'));
-                $this->redirect('admin/datafields/index/' . $datafield_id->object_type . '#item_'.$datafield_id);
+                $this->redirect('admin/datafields/index/' . $datafield->object_type . '#item_'.$datafield_id);
             } else {
                 PageLayout::postError(_('Es wurde keine Bezeichnung eingetragen!'));
             }
@@ -133,7 +133,7 @@ class Admin_DatafieldsController extends AuthenticatedController
                 $datafield->type          = Request::get('datafield_typ');
                 $datafield->is_userfilter = Request::int('is_userfilter');
                 if ($type === 'sem') {
-                    $datafield->description = Request::get('description');
+                    $datafield->description = Request::get('description', '');
                     $datafield->is_required = Request::int('is_required');
                 } else {
                     $datafield->description = '';

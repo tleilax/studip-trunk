@@ -58,7 +58,9 @@ use Studip\Button, Studip\LinkButton;
             <?= _('Nutzerstatus') ?>:
 
             <select multiple size="<?= count($controller->user_status) ?>" name="object_class[]" id="object_class">
-                <option value="NULL"><?= _('alle') ?></option>
+                <option value="0" <? if ($item->object_class === null) echo 'selected'; ?>>
+                    <?= _('alle') ?>
+                </option>
             <? foreach ($controller->user_status as $key => $value): ?>
                 <option value="<?= $value ?>" <? if ($item->object_class & DataField::permMask($key)) echo 'selected'; ?>>
                     <?= $key ?>
@@ -95,6 +97,7 @@ use Studip\Button, Studip\LinkButton;
             </select>
         </label>
 
+    <? if ($item->object_type === 'user'): ?>
         <label>
             <?= _('Systemfeld') ?>
             <?= tooltipIcon(_('Nur für die Person selbst sichtbar, wenn der '
@@ -105,6 +108,7 @@ use Studip\Button, Studip\LinkButton;
             <input type="checkbox" name="system" value="1"
                    <? if ($item->system) echo 'checked'; ?>>
         </label>
+    <? endif; ?>
 
         <label>
             <?= _('Position') ?>

@@ -138,7 +138,7 @@ class ProfileModel
 
                 if (!empty($entries)) {
                     foreach ($entries as $entry) {
-                        $view = $entry->isVisible(false);
+                        $view = $entry->isVisible(null, false);
                         $show_star = false;
 
                         if (!$view && $entry->isVisible()) {

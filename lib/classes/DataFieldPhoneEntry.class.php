@@ -102,12 +102,12 @@ class DataFieldPhoneEntry extends DataFieldEntry
     {
         $value = trim($this->value);
 
-        if (!$this->value) {
-            return  parent::isValid();
+        if (!$value) {
+            return parent::isValid();
         }
 
         return parent::isValid()
-            && preg_match('/^([1-9]\d*)?\n[1-9]\d+\n[1-9]\d+(-\d+)?$/', $this->value);
+            && preg_match('/^([1-9]\d*)?\n[1-9]\d+\n[1-9]\d+(-\d+)?$/', $value);
     }
 
     /**

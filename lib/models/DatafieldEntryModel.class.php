@@ -83,7 +83,7 @@ class DatafieldEntryModel extends SimpleORMap
         $ret = array();
         $c = 0;
         $df_entry = new DatafieldEntryModel();
-        $df = new Datafield();
+        $df = new DataField();
         while ($row = $st->fetch(PDO::FETCH_ASSOC)) {
             $ret[$c] = clone $df_entry;
             $ret[$c]->setData($row, true);
@@ -105,7 +105,7 @@ class DatafieldEntryModel extends SimpleORMap
     {
         $config['db_table'] = 'datafields_entries';
         $config['belongs_to']['datafield'] = array(
-            'class_name' => 'Datafield',
+            'class_name' => 'DataField',
             'foreign_key' => 'datafield_id'
         );
         $config['additional_fields']['name'] = array('datafield', 'name');

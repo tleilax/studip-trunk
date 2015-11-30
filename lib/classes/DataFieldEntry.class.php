@@ -205,13 +205,11 @@ abstract class DataFieldEntry
      */
     public function store()
     {
-        $where = 'datafield_id = ? AND range_id = ? AND sec_range_id = ?';
-        $parameters = array(
+        $entry = new DatafieldEntryModel(array(
             $this->model->id,
             (string)$this->getRangeID(),
             (string)$this->getSecondRangeID(),
-        );
-        $entry = DatafieldEntryModel::findBySQL($where, $parameters);
+        ));
 
         $old_value = $entry->content;
         $entry->content = $this->getValue();
@@ -429,14 +427,14 @@ abstract class DataFieldEntry
      * @param bool $test_deep
      * @return boolean indicating whether the datafield is visible
      */
-    public function isVisible($test_ownership = true)
+    public function isVisible($perm = null, $test_ownership = true)
     {
         if ($test_ownership) {
-            return $this->model->accessAllowed($GLOBALS['perm'],
+            return $this->model->accessAllowed($perm,
                                                $GLOBALS['user']->id,
                                                $this->getRangeID());
         }
-        return $this->model->accessAllowed($GLOBALS['perm']);
+        return $this->model->accessAllowed($perm);
     }
 
     /**

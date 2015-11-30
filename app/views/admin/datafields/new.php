@@ -83,6 +83,7 @@ use Studip\Button, Studip\LinkButton;
             </select>
         </label>
 
+    <? if ($object_typ === 'user') :?>
         <label>
             <?= _('Systemfeld') ?>
             <?= tooltipIcon(_('Nur für die Person selbst sichtbar, wenn der '
@@ -93,6 +94,7 @@ use Studip\Button, Studip\LinkButton;
             <input type="checkbox" name="system" value="1"
                    <? if ($this->flash['request']['system']) echo 'checked'; ?>>
         </label>
+    <? endif; ?>
 
         <label>
             <?= _('Position') ?>
