@@ -1,10 +1,10 @@
 <?php
 /**
- * DataFieldEntry.class.php - <short-description>
+ * DataFieldEntry.class.php
  *
- * @author  Martin Gieseking <mgieseki@uos.de>
- * @author  Marcus Lunzenauer <mlunzena@uos.de>
  * @author  Jan-Hendrik Willms <tleilax+studip@gmail.com>
+ * @author  Marcus Lunzenauer <mlunzena@uos.de>
+ * @author  Martin Gieseking <mgieseki@uos.de>
  * @license GPL2 or any later version
  */
 abstract class DataFieldEntry
@@ -143,7 +143,7 @@ abstract class DataFieldEntry
     }
 
     /**
-     * Removes all datafields from a given range_id (and secondary range 
+     * Removes all datafields from a given range_id (and secondary range
      * id if passed as array)
      *
      * @param mixed $range_id Range id (or array with range id and secondary
@@ -214,9 +214,13 @@ abstract class DataFieldEntry
         $entry = DatafieldEntryModel::findBySQL($where, $parameters);
 
         $old_value = $entry->content;
-
         $entry->content = $this->getValue();
-        $result = $entry->store();
+
+        if ($this->isEmpty()) {
+            $result = $entry->delete();
+        } else {
+            $result = $entry->store();
+        }
 
         if ($result) {
             NotificationCenter::postNotification('DatafieldDidUpdate', $this, array(
@@ -240,7 +244,7 @@ abstract class DataFieldEntry
 
     /**
      * Returns the description of this datafield
-     * 
+     *
      * @return String containing the description
      */
     public function getDescription()
@@ -362,6 +366,16 @@ abstract class DataFieldEntry
     }
 
     /**
+     * Checks if datafield is empty (was not set)
+     *
+     * @return bool true if empty, else false
+     */
+    public function isEmpty()
+    {
+        return $this->getValue() == '';
+    }
+
+    /**
      * Returns whether the datafield contents are valid
      *
      * @return boolean indicating whether the datafield contents are valid
@@ -439,7 +453,7 @@ abstract class DataFieldEntry
 
     /**
      * Returns a human readable string describing the view permissions
-     * 
+     *
      * @return String containing the descriptons of the view permissions
      */
     public function getPermsDescription()

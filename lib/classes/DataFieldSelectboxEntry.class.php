@@ -1,42 +1,35 @@
 <?php
-# Lifter002: TODO
-# Lifter007: TODO
-# Lifter003: TEST
-# Lifter010: TODO
-/*
-* DataFieldEntry.class.php - <short-description>
-*
-* Copyright (C) 2005 - Martin Gieseking  <mgieseki@uos.de>
-* Copyright (C) 2007 - Marcus Lunzenauer <mlunzena@uos.de>
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License as
-* published by the Free Software Foundation; either version 2 of
-* the License, or (at your option) any later version.
-*/
+# Lifter002: DONE
+# Lifter007: TEST
+
+/**
+ * @author  Jan-Hendrik Willms <tleilax+studip@gmail.com>
+ * @author  Marcus Lunzenauer <mlunzena@uos.de>
+ * @author  Martin Gieseking  <mgieseki@uos.de>
+ * @license GPL2 or any later version
+ */
 class DataFieldSelectboxEntry extends DataFieldEntry
 {
     protected $template = 'selectbox.php';
 
-    public function __construct($struct, $range_id, $value)
+    /**
+     * Constructs this datafield
+     *
+     * @param DataField $datafield Underlying model
+     * @param String    $rangeID   Range id
+     * @param mixed     $value     Value
+     */
+    public function __construct(DataField $struct, $range_id, $value)
     {
         parent::__construct($struct, $range_id, $value);
 
-        list($values, $is_assoc) = $this->getParams();
+        list($values, $is_assoc) = $this->getParameters();
         $this->is_assoc_param = $is_assoc;
         $this->type_param     = $values;
 
-        $this->init();
-    }
-
-    protected function init()
-    {
-        $is_assoc = $this->is_assoc_param;
-        $values   = $this->type_param;
-
-        reset($values);
-
         if ($this->getValue() === null) {
+            reset($values);
+
             if ($is_assoc) {
                 $this->setValue((string)key($values));
             } else {
@@ -45,6 +38,13 @@ class DataFieldSelectboxEntry extends DataFieldEntry
         }
     }
 
+    /**
+     * Returns the according input elements as html for this datafield
+     *
+     * @param String $name      Name prefix of the associated input
+     * @param Array  $variables Additional variables
+     * @return String containing the required html
+     */
     public function getHTML($name = '', $variables = array())
     {
         $variables = array_merge(array(
@@ -56,7 +56,12 @@ class DataFieldSelectboxEntry extends DataFieldEntry
         return parent::getHTML($name, $variables);
     }
 
-    protected function getParams()
+    /**
+     * Returns the individual type parameters.
+     *
+     * @return array containing the individual type parameters
+     */
+    protected function getParameters()
     {
         $params = explode("\n", $this->model->typeparam);
         $params = array_map('trim', $params);
@@ -77,13 +82,17 @@ class DataFieldSelectboxEntry extends DataFieldEntry
         return array($ret, $is_assoc);
     }
 
+    /**
+     * Returns the display/rendered value of this datafield
+     *
+     * @param bool $entities Should html entities be encoded (defaults to true)
+     * @return String containg the rendered value
+     */
     public function getDisplayValue($entities = true)
     {
         $value = $this->is_assoc_param
                ? $this->type_param[$this->getValue()]
                : $this->getValue();
-        return $entities
-            ? htmlReady($value)
-            : $value;
+        return $entities ? htmlReady($value) : $value;
     }
 }

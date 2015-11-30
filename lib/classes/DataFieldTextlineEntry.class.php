@@ -1,20 +1,13 @@
 <?php
-# Lifter002: TODO
-# Lifter007: TODO
-# Lifter003: TEST
-# Lifter010: TODO
-/*
-* DataFieldEntry.class.php - <short-description>
-*
-* Copyright (C) 2005 - Martin Gieseking  <mgieseki@uos.de>
-* Copyright (C) 2007 - Marcus Lunzenauer <mlunzena@uos.de>
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License as
-* published by the Free Software Foundation; either version 2 of
-* the License, or (at your option) any later version.
-*/
+# Lifter002: DONE
+# Lifter007: TEST
 
+/**
+ * @author  Jan-Hendrik Willms <tleilax+studip@gmail.com>
+ * @author  Marcus Lunzenauer <mlunzena@uos.de>
+ * @author  Martin Gieseking  <mgieseki@uos.de>
+ * @license GPL2 or any later version
+ */
 class DataFieldTextlineEntry extends DataFieldEntry
 {
     protected $template = 'textline.php';

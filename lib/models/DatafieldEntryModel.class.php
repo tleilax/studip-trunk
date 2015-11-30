@@ -117,7 +117,7 @@ class DatafieldEntryModel extends SimpleORMap
      *
      * @return DataFieldEntry
      */
-    function getTypedDatafield()
+    public function getTypedDatafield()
     {
         $range_id = $this->sec_range_id ? array($this->range_id, $this->sec_range_id) : $this->range_id;
         $df = DataFieldEntry::createDataFieldEntry($this->datafield, $range_id, $this->getValue('content'));
