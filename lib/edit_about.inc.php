@@ -525,7 +525,7 @@ class about extends messaging
      * together with their visibility settings in the form
      * $name => $visibility.
      */
-    function get_homepage_elements()
+    public function get_homepage_elements()
     {
         global $NOT_HIDEABLE_FIELDS;
 
