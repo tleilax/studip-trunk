@@ -122,6 +122,7 @@ class Icon
         }
 
         // DEPRECATED
+        // TODO at v3.6: remove this
         $this->deprecatedSize = $size;
     }
 
@@ -271,6 +272,8 @@ class Icon
 }
 
 
+// DEPRECATED
+// TODO remove this trait in v3.6
 trait DeprecatedIcon {
 
     protected $deprecatedSize = null;
