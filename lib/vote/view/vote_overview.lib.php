@@ -472,15 +472,15 @@ reset($votes);
         $html .="    <center>\n";
         if (($mode == VOTE_STATE_ACTIVE) && ($openID == ("openallactive"))) {
             $html .= "     <a href=\"".URLHelper::getLink("?showrangeID=$showrangeID")."\">";
-            $html .= Assets::img('icons/16/blue/arr_1up.png', tooltip2($label['arrow_close_all']));
+            $html .= Icon::create('arr_1up', 'clickable', ['title' => $label['arrow_close_all']])->asImg(16);
             $html .= "</a> \n";
         } elseif (($mode == VOTE_STATE_STOPPED) && ($openID == ("openallstopped"))) {
             $html .="     <a href=\"".URLHelper::getLink("?showrangeID=$showrangeID")."\">";
-            $html .= Assets::img('icons/16/blue/arr_1up.png', tooltip2($label["arrow_close_all"]));
+            $html .= Icon::create('arr_1up', 'clickable', ['title' => $label["arrow_close_all"]])->asImg(16);
             $html .= "</a> \n";
         } else {
             $html .="     <a href=\"".URLHelper::getLink("?showrangeID=$showrangeID&openID=openall".$mode."#openvote")."\">";
-            $html .= Assets::img('icons/16/blue/arr_1down.png', tooltip2($label["arrow_open_all"]));
+            $html .= Icon::create('arr_1down', 'clickable', ['title' => $label["arrow_open_all"]])->asImg(16);
             $html .= "</a> \n";
         }
         $html .="    </center></td>\n"

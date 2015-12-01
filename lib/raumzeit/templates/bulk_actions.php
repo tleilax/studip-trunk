@@ -80,7 +80,7 @@ use Studip\Button, Studip\LinkButton;
         </select>
 
         <a href="#" class="bookable_rooms_action" data-name="bulk_action" title="<?=_("Nur buchbare Räume anzeigen")?>">
-            <?= Assets::img('icons/16/blue/room-clear.png') ?>
+            <?= Icon::create('room-clear', 'clickable')->asImg(16) ?>
         </a>
 
         <br>

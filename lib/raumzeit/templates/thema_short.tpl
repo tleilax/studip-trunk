@@ -19,7 +19,7 @@
     </TD>
     <TD class="<?=$tpl['class']?>" align="right">
         <A href="<?= URLHelper::getLink('?cmd=deleteIssueID&issue_id='. $tpl['issue_id'] .'&sd_id='. $tpl['sd_id'] .'&cycle_id='. $tpl['cycle_id']) ?>">
-            <?=Assets::img('icons/16/blue/trash.png', array('class' => 'text-top')) ?>
+            <?=Icon::create('trash', 'clickable')->asImg(16, ['class' => 'text-top']) ?>
         </A>
     </TD>
 </TR>

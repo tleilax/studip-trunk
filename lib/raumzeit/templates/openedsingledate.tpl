@@ -76,7 +76,7 @@ use Studip\Button,
                                 <?= htmlReady(get_fullname($related_person)); ?>
 
                                 <a href="javascript:" onClick="STUDIP.Raumzeit.removeLecturer('<?= $related_person ?>')" style="position: absolute; right: 5px;">
-                                        <?= Assets::img('icons/16/blue/trash.png') ?>
+                                        <?= Icon::create('trash', 'clickable')->asImg(16) ?>
                                 </a>
                         </li>
                         <? endforeach ?>
@@ -94,7 +94,7 @@ use Studip\Button,
                 </select>
 
                 <a href="javascript:" onClick="STUDIP.Raumzeit.addLecturer()" title="<?= _('DozentIn hinzufügen') ?>">
-                    <?= Assets::img('icons/16/yellow/arr_2up.png') ?>
+                    <?= Icon::create('arr_2up', 'sort')->asImg(16) ?>
                 </a>
 
                 <!--
@@ -126,7 +126,7 @@ use Studip\Button,
                 </select>
 
                 <a href="#" class="bookable_rooms_action" title="<?=_("Nur buchbare Räume anzeigen")?>">
-                <?= Assets::img('icons/16/blue/room-clear.png') ?>
+                <?= Icon::create('room-clear', 'clickable')->asImg(16) ?>
                 </a>
 
                 <br>
@@ -175,7 +175,7 @@ use Studip\Button,
                         <li data-groupid="<?= htmlReady($statusgruppe->getId()) ?>" <?= $related ? '' : 'style="display: none"'?>>
                             <?= htmlReady($statusgruppe['name']) ?>
                             <a href="javascript:" onClick="STUDIP.Raumzeit.removeGroup('<?= $statusgruppe->getId() ?>')" style="position: absolute; right: 5px;">
-                                <?= Assets::img('icons/16/blue/trash.png') ?>
+                                <?= Icon::create('trash', 'clickable')->asImg(16) ?>
                             </a>
                         </li>
                         <? endforeach ?>
@@ -193,7 +193,7 @@ use Studip\Button,
                 </select>
 
                 <a href="javascript:" onClick="STUDIP.Raumzeit.addGroup()" title="<?= _('Gruppe hinzufügen') ?>">
-                    <?= Assets::img('icons/16/yellow/arr_2up.png') ?>
+                    <?= Icon::create('arr_2up', 'sort')->asImg(16) ?>
                 </a>
             </div>
             <br style="clear: both;"><br>

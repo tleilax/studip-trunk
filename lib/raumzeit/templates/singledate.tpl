@@ -65,7 +65,7 @@
                 </a>
             <? else : ?>
                 <a href="<?= URLHelper::getLink('?cmd=delete_singledate&sd_id='. $tpl['sd_id'] .'&cycle_id='. $tpl['cycle_id'] .'#'. $tpl['sd_id'])?>">
-                    <?= Assets::img('icons/16/blue/trash.png', array('class' => 'text-top', 'title' => _("Termin löschen")))?>
+                    <?= Icon::create('trash', 'clickable')->asImg(16, ['class' => 'text-top', 'title' => _("Termin löschen")])?>
                 </a>
             <? endif ?>
         <? elseif(!$cancelled_dates_locked) : ?>

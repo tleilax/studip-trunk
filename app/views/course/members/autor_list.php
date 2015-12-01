@@ -109,7 +109,7 @@
                 <td style="text-align: right">
                     <? if ($is_tutor) : ?>
                         <a data-dialog title='<?= _('Bemerkung hinzufügen') ?>' href="<?=$controller->url_for('course/members/add_comment', $autor['user_id']) ?>">
-                            <?= Assets::img('icons/16/blue/comment.png') ?>
+                            <?= Icon::create('comment', 'clickable')->asImg(16) ?>
                         </a>
                     <? endif ?>
                     <? if($user_id != $autor['user_id']) : ?>

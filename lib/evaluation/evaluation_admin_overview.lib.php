@@ -1691,7 +1691,7 @@ class EvalOverview {
                  ? _('Legen Sie fest, von wann bis wann alle eingehängten und kopierten Instanzen dieser Evaluationsvorlage in Stud.IP öffentlich sichtbar sein sollen.')
                  : _('Legen Sie fest, von wann bis wann die Evaluation in Stud.IP öffentlich sichtbar sein soll.');
         $html .= " ";
-        $html .= Assets::img('icons/16/grey/info-circle.png', tooltip2($tooltip) + array('class' => 'middle'));
+        $html .= Icon::create('info-circle', 'inactive', ['title' => $tooltip) + array('class' => 'middle'])->asImg(16);
         $html .= "</td></tr>";
         $html .= "<tr>";
 

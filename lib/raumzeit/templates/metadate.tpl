@@ -11,11 +11,11 @@ use Studip\Button,
                 <TD width="2%" align="right" valign="center" class="<?=$tpl['class']?>" style="height: 27px">
                     <? if (Request::option('cycle_id') == $tpl['md_id']) : ?>
                     <a href="<?= URLHelper::getLink('?#' . $tpl['md_id']) ?>">
-                        <?= Assets::img('icons/16/blue/arr_1down.png', array('class' => 'text-top')) ?>
+                        <?= Icon::create('arr_1down', 'clickable')->asImg(16, ['class' => 'text-top']) ?>
                     </a>
                     <? else : ?>
                     <a href="<?= URLHelper::getLink('?cycle_id=' . $tpl['md_id'] .'#'. $tpl['md_id']) ?>">
-                        <?= Assets::img('icons/16/blue/arr_1right.png', array('class' => 'text-top')) ?>
+                        <?= Icon::create('arr_1right', 'clickable')->asImg(16, ['class' => 'text-top']) ?>
                     </a>
                     <? endif ?>
                     </A>
@@ -37,7 +37,7 @@ use Studip\Button,
                     </FONT>
                     <? if ($tpl['ausruf']) { ?>
                     <a href="javascript:alert('<?=$tpl['ausruf']?>')">
-                        <?= Assets::img('icons/16/red/exclaim-circle.png', array('title' => _("Wichtige Informationen über Raumbuchungen anzeigen"))) ?>
+                        <?= Icon::create('exclaim-circle', 'attention', ['title' => _("Wichtige Informationen über Raumbuchungen anzeigen")])->asImg(16) ?>
                     </a>
                     <? } ?>
                     <? if ($tpl['room_request_ausruf']) { ?>
@@ -70,11 +70,11 @@ use Studip\Button,
                         <? endif;?>
 
                     <a href="<?= URLHelper::getLink('?editCycleId='. $tpl['md_id']) ?>" style="margin-right: 10px">
-                        <?=Assets::img('icons/16/blue/edit.png', array('class' => 'text-top', 'title' => _('Regelmäßigen Termin bearbeiten.'))) ?>
+                        <?=Icon::create('edit', 'clickable')->asImg(16, ['class' => 'text-top', 'title' => _('Regelmäßigen Termin bearbeiten.')]) ?>
                     </a>
 
                     <A href="<?= URLHelper::getLink('?cmd=deleteCycle&cycle_id='. $tpl['md_id']) ?>">
-                        <?=Assets::img('icons/16/blue/trash.png', array('class' => 'text-top', 'title' => _('Regelmäßige Zeit inklusive aller zugehörigen Termine löschen!'))) ?>
+                        <?=Icon::create('trash', 'clickable')->asImg(16, ['class' => 'text-top', 'title' => _('Regelmäßige Zeit inklusive aller zugehörigen Termine löschen!')]) ?>
                     </A>
                     <? } ?>
                 </TD>

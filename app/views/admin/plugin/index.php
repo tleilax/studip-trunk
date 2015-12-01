@@ -72,7 +72,7 @@ use Studip\Button, Studip\LinkButton;
                         <?= htmlReady($migrations[$pluginid]['schema_version']) ?>
                             <? if ($migrations[$pluginid]['schema_version'] < $migrations[$pluginid]['migration_top_version']) :?>
                                 <a href="<?= $controller->url_for('admin/plugin/migrate', $pluginid) ?>" title="<?= sprintf(_("Update auf Version %d verfügbar"), $migrations[$pluginid]['migration_top_version']) ?>">
-                                <?= Assets::img('icons/20/blue/new/plugin.png');?>
+                                <?= Icon::create('plugin+new', 'clickable')->asImg(20);?>
                                 </a>
                             <? endif; ?>
                         <? endif; ?>
@@ -89,7 +89,7 @@ use Studip\Button, Studip\LinkButton;
                     </td>
                     <td class="actions"  width="20">
                         <a href="<?= $controller->url_for('admin/role/assign_plugin_role', $pluginid) ?>">
-                            <?= Assets::img('icons/20/blue/edit.png', array('title' => _('Zugriffsrechte bearbeiten'))) ?>
+                            <?= Icon::create('edit', 'clickable', ['title' => _('Zugriffsrechte bearbeiten')])->asImg(20) ?>
                         </a>
                     </td>
                     <td class="actions" width="20">
@@ -106,14 +106,14 @@ use Studip\Button, Studip\LinkButton;
                     <td class="actions"  width="20">
                         <? if (!$plugin['depends'] && isset($update_info[$pluginid]['version']) && !$plugin['core']): ?>
                             <a href="<?= $controller->url_for('admin/plugin/download', $pluginid) ?>">
-                                <?= Assets::img('icons/20/blue/download.png', array('title' => _('Herunterladen'))) ?>
+                                <?= Icon::create('download', 'clickable', ['title' => _('Herunterladen')])->asImg(20) ?>
                             </a>
                         <? endif ?>
                     </td>
                     <td class="actions"  width="20">
                         <? if (!$plugin['depends'] && !$plugin['core']): ?>
                             <a href="<?= $controller->url_for('admin/plugin/ask_delete', $pluginid) ?>">
-                                <?= Assets::img('icons/20/blue/trash.png', array('title' => _('Deinstallieren'))) ?>
+                                <?= Icon::create('trash', 'clickable', ['title' => _('Deinstallieren')])->asImg(20) ?>
                             </a>
                         <? endif ?>
                     </td>

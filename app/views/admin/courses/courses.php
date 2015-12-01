@@ -150,7 +150,7 @@
                 <?=
                 CourseAvatar::getAvatar($semid)->is_customized()
                     ? CourseAvatar::getAvatar($semid)->getImageTag(Avatar::SMALL, array('title' => tooltip2(trim($values["Name"]))))
-                    : Assets::img('icons/20/blue/seminar.png', tooltip2(trim($values["Name"]))) ?>
+                    : Icon::create('seminar', 'clickable', ['title' => trim($values["Name"])])->asImg(20) ?>
             </td>
             <? if (in_array('number', $view_filter)) : ?>
                 <td>

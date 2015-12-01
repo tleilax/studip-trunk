@@ -2518,7 +2518,7 @@ elseif ($level == 2) {
                     $href = "?delete_doz=".get_username($key)."#anker";
                     echo "<td>";
                     echo "<a href='".URLHelper::getLink($href)."'>";
-                    echo Assets::img('icons/16/blue/trash.png');
+                    echo Icon::create('trash', 'clickable')->asImg(16);
                     echo "</a>";
                     echo "</td>";
 
@@ -2528,7 +2528,7 @@ elseif ($level == 2) {
                     {
                         $href = "?moveup_doz=".get_username($key)."&foo=".time()."#anker";
                         echo "<a href='".URLHelper::getLink($href)."'>";
-                        echo Assets::img('icons/16/yellow/arr_2up.png');
+                        echo Icon::create('arr_2up', 'sort')->asImg(16);
                         echo "</a>";
                     }
                     echo "</td>";
@@ -2538,7 +2538,7 @@ elseif ($level == 2) {
                     {
                         $href = "?movedown_doz=".get_username($key)."&foo=".time()."#anker";
                         echo "<a href='".URLHelper::getLink($href)."'>";
-                        echo Assets::img('icons/16/yellow/arr_2down.png');
+                        echo Icon::create('arr_2down', 'sort')->asImg(16);
                         echo "</a>";
                     }
                     echo "</td>";
@@ -2612,7 +2612,7 @@ elseif ($level == 2) {
 
                         $href = "?delete_dep=".get_username($key)."#anker";
                         echo "<a href='".URLHelper::getLink($href)."'>";
-                        echo Assets::img('icons/16/blue/trash.png');
+                        echo Icon::create('trash', 'clickable')->asImg(16);
                         echo "</a>";
                         echo "</td>";
                         echo "<td>";
@@ -2670,7 +2670,7 @@ elseif ($level == 2) {
 
                     $href = "?delete_tut=".get_username($key)."#anker";
                     echo "<a href='".URLHelper::getLink($href)."'>";
-                    echo Assets::img('icons/16/blue/trash.png');
+                    echo Icon::create('trash', 'clickable')->asImg(16);
                     echo "</a>";
                     echo "</td>";
 
@@ -2680,7 +2680,7 @@ elseif ($level == 2) {
                     {
                         $href = "?moveup_tut=".get_username($key)."&foo=".time()."#anker";
                         echo "<a href='".URLHelper::getLink($href)."'>";
-                        echo Assets::img('icons/16/yellow/arr_2up.png');
+                        echo Icon::create('arr_2up', 'sort')->asImg(16);
                         echo "</a>";
                     }
                     echo "</td>";
@@ -2690,7 +2690,7 @@ elseif ($level == 2) {
                     {
                         $href = "?movedown_tut=".get_username($key)."&foo=".time()."#anker";
                         echo "<a href='".URLHelper::getLink($href)."'>";
-                        echo Assets::img('icons/16/yellow/arr_2down.png');
+                        echo Icon::create('arr_2down', 'sort')->asImg(16);
                         echo "</a>";
                     }
                     echo "</td>";
@@ -2836,7 +2836,7 @@ elseif ($level == 2) {
                             </td>
                             <td class="<?= $cssSw->getClass() ?>" nowrap colspan=2 >
                                 <a href="<?= URLHelper::getLink('?delete_domain='.$domain_id) ?>">
-                                    <?= Assets::img('icons/16/blue/trash.png', array('class' => 'text-top', 'title' =>_('Nutzerdomäne aus der Liste löschen'))) ?>
+                                    <?= Icon::create('trash', 'clickable')->asImg(16, ['class' => 'text-top', 'title' =>_('Nutzerdomäne aus der Liste löschen')]) ?>
                                 </a>
                             </td>
                         </tr>
@@ -3002,7 +3002,7 @@ elseif ($level == 3) {
                 if ($_SESSION['sem_create_data']["turnus_count"]>1) {
                 ?>
                 &nbsp; <a href="<? echo URLHelper::getLink("?delete_turnus_field=".($i+1)) ?>">
-                    <?= Assets::img('icons/16/blue/trash.png', array('class' => 'text-top', 'title' =>_('Dieses Feld aus der Auswahl löschen')));
+                    <?= Icon::create('trash', 'clickable')->asImg(16, ['class' => 'text-top', 'title' =>_('Dieses Feld aus der Auswahl löschen')]);
                     }
                     echo  Termin_Eingabe_javascript(4, $i, 0, $ss,$sm,$es,$em);
 
@@ -3104,7 +3104,7 @@ elseif ($level == 3) {
                 {
                 ?>
                 &nbsp; <a href="<? echo URLHelper::getLink("?delete_term_field=".($i+1)) ?>">
-                    <?= Assets::img('icons/16/blue/trash.png', array('class' => 'text-top', 'title' =>_('Dieses Feld aus der Auswahl löschen')));
+                    <?= Icon::create('trash', 'clickable')->asImg(16, ['class' => 'text-top', 'title' =>_('Dieses Feld aus der Auswahl löschen')]);
                     }
                     echo  Termin_Eingabe_javascript (5, $i, 0, $ss, $sm, $es, $em);
                     }

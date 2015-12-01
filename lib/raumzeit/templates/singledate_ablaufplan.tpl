@@ -15,7 +15,7 @@ use Studip\Button, Studip\LinkButton;
     </TD>
     <TD width="1%" align="right" valign="bottom" class="<?=$tpl['class']?>" nowrap="nowrap">
         <A name="<?=$tpl['sd_id']?>" />
-        <?= Assets::img('icons/16/blue/date.png', array('class' => 'middle')) ?>
+        <?= Icon::create('date', 'clickable')->asImg(16, ['class' => 'middle']) ?>
     </TD>
     <TD nowrap="nowrap" class="<?=$tpl['class']?>" valign="bottom">
         <A class="tree" href="<?= URLHelper::getLink('?cmd='. ($_SESSION['issue_open'][$tpl['sd_id']] ? 'close' : 'open') .'&open_close_id='. $tpl['sd_id'] .'#'. $tpl['sd_id'])?>">
@@ -60,7 +60,7 @@ use Studip\Button, Studip\LinkButton;
                         <? foreach (PluginEngine::getPlugins('ForumModule') as $plugin) : ?>
                             <? if (get_class($plugin) == $forum_slot) : ?>
                                 <? if ($tpl['issue_id'] && $plugin->getLinkToThread($tpl['issue_id'])) : ?>
-                                    <?= Assets::img('icons/16/green/accept.png') ?>
+                                    <?= Icon::create('accept', 'accept')->asImg(16) ?>
                                     <?= _("Forenthema vorhanden") ?><br>
                                     <input type="hidden" name="forumFolder" value="on">
                                 <? else : ?>
@@ -73,7 +73,7 @@ use Studip\Button, Studip\LinkButton;
                         <?
                         if ($modules['documents']) :
                             if ($tpl['fileEntry']) : ?>
-                                <?= Assets::img('icons/16/green/accept.png') ?>
+                                <?= Icon::create('accept', 'accept')->asImg(16) ?>
                                 <?= _("Dateiordner vorhanden"); ?>
                                 <input type="hidden" name="fileFolder" value="on">
                             <? else :
@@ -118,11 +118,11 @@ use Studip\Button, Studip\LinkButton;
 <? elseif ($tpl['comment']) : ?>
 <tr style="height: 1.8em">
     <TD width="1%" align="right" valign="bottom" class="content_title_red" nowrap="nowrap">
-        <?= Assets::img('icons/16/blue/arr_1right.png', array('class' => 'middle')) ?>
+        <?= Icon::create('arr_1right', 'clickable')->asImg(16, ['class' => 'middle']) ?>
     </TD>
     <TD width="1%" align="right" valign="bottom" class="content_title_red" nowrap="nowrap">
         <A name="<?=$tpl['sd_id']?>" />
-        <?= Assets::img('icons/16/blue/date.png', array('class' => 'middle')) ?>
+        <?= Icon::create('date', 'clickable')->asImg(16, ['class' => 'middle']) ?>
     </TD>
     <TD nowrap="nowrap" class="content_title_red" valign="bottom">
                 <i><?= htmlReady($tpl['art']) ?>:&nbsp;</i>

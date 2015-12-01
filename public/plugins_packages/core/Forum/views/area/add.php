@@ -92,7 +92,7 @@
         </a><br>
         <?= _("am") ?> <?= strftime($time_format_string_short, (int)$entry['last_posting']['date']) ?>
         <a href="<?= PluginEngine::getLink('coreforum/index/index/'. $entry['last_posting']['topic_id']) ?>#<?= $entry['last_posting']['topic_id'] ?>" alt="<?= $infotext ?>" title="<?= $infotext ?>">
-            <?= Assets::img('icons/16/blue/link-intern.png', array('title' => $infotext = _("Direkt zum Beitrag..."), 'id' => 'tutorLatestAnswer')) ?>
+            <?= Icon::create('link-intern', 'clickable', ['title' => $infotext = _("Direkt zum Beitrag..."), 'id' => 'tutorLatestAnswer'])->asImg(16) ?>
         </a>
         <? else: ?>
         <br>

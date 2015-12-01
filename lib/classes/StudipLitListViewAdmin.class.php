@@ -585,13 +585,13 @@ class StudipLitListViewAdmin extends TreeView
             }
             if ($this->tree->isElement($item_id)){
                 $head .= ($this->clip_board->isInClipboard($this->tree->tree_data[$item_id]["catalog_id"]))
-                        ? Assets::img('icons/16/red/exclaim.png', tooltip2(_('Dieser Eintrag ist bereits in Ihrer Merkliste')))
+                        ? Icon::create('exclaim', 'attention', ['title' => _('Dieser Eintrag ist bereits in Ihrer Merkliste')])->asImg(16)
                         : "<a href=\"". URLHelper::getLink($this->getSelf("cmd=InClipboard&item_id=$item_id")) ."\">"
-                        . Assets::img('icons/16/blue/exclaim.png', tooltip2(_('Eintrag in Merkliste aufnehmen')))
+                        . Icon::create('exclaim', 'clickable', ['title' => _('Eintrag in Merkliste aufnehmen')])->asImg(16)
                         . "</a>";
             } else {
                 $head .= " <a href=\"". URLHelper::getLink($this->getSelf("cmd=InClipboard&item_id=$item_id")) . "\">";
-                $head .= Assets::img('icons/16/blue/exclaim.png', tooltip2(_('Komplette Liste in Merkliste aufnehmen')));
+                $head .= Icon::create('exclaim', 'clickable', ['title' => _('Komplette Liste in Merkliste aufnehmen')])->asImg(16);
                 $head .= "</a>";
             }
             $head .= "";
@@ -614,7 +614,7 @@ class StudipLitListViewAdmin extends TreeView
                                              : _('Alle Unterelemente öffnen')));
                 $head .= "</a>";
             } else {
-                $head .= Assets::img('icons/16/blue/folder-full.png', tooltip2(_('Dieses Element hat keine Unterelemente')));
+                $head .= Icon::create('folder-full', 'clickable', ['title' => _('Dieses Element hat keine Unterelemente')])->asImg(16);
             }
             if ($item_id != "root"){
                 $head .= " <a href=\"" . URLHelper::getLink($this->getSelf("cmd=ToggleVisibility&item_id={$item_id}")) . "\">";
@@ -625,7 +625,7 @@ class StudipLitListViewAdmin extends TreeView
                 $head . "</a>";
             }
         } else {
-            $head .= Assets::img('icons/16/blue/literature.png');
+            $head .= Icon::create('literature', 'clickable')->asImg(16);
         }
     return $head . "</td>";
     }
@@ -648,7 +648,7 @@ class StudipLitListViewAdmin extends TreeView
             $edit_name = "format";
             $rows = 2;
             $content .= "\n<tr><td class=\"table_row_odd\" style=\"border-left: 1px solid black;border-right: 1px solid black;\" ><b>". _("Formatierung der Liste bearbeiten:") . "</b>&nbsp;";
-            $content .= Assets::img('icons/16/grey/info-circle.png', tooltip2($this->format_info) + array('class' => 'text-top'));
+            $content .= Icon::create('info-circle', 'inactive', ['title' => $this->format_info) + array('class' => 'text-top'])->asImg(16);
             $content .= "</td></tr>";
             $content .= "<tr><td class=\"table_row_even\" align=\"center\" style=\"border-left: 1px solid black;border-right: 1px solid black;\"><textarea name=\"edit_{$edit_name}\" style=\"width:99%\" rows=\"$rows\">" . htmlReady($this->tree->tree_data[$this->edit_item_id][$edit_name])
                 . "</textarea></td></tr>";

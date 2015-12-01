@@ -75,21 +75,21 @@
           </td>
           <td style="font-size: smaller;">
             <? if ($log_action['active']): ?>
-              <?= Assets::img('icons/16/green/accept.png') ?>
+              <?= Icon::create('accept', 'accept')->asImg(16) ?>
             <? else: ?>
-              <?= Assets::img('icons/16/red/decline.png') ?>
+              <?= Icon::create('decline', 'attention')->asImg(16) ?>
             <? endif ?>
           </td>
           <td style="font-size: smaller; white-space: nowrap;">
             <? if ($log_action['expires'] > 0): ?>
               <?= $log_action['expires'] / 86400 ?> <?= _('Tage') ?>
             <? else: ?>
-              <?= Assets::img('icons/16/red/decline.png') ?>
+              <?= Icon::create('decline', 'attention')->asImg(16) ?>
             <? endif ?>
           </td>
           <td style="font-size: smaller;">
             <a href="<?= $controller->url_for('event_log/edit/'.$log_action['action_id']) ?>#edit">
-              <?= Assets::img('icons/16/blue/edit.png') ?>
+              <?= Icon::create('edit', 'clickable')->asImg(16) ?>
             </a>
           </td>
         <? endif ?>

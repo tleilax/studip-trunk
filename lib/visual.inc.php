@@ -676,7 +676,7 @@ function printcontent ($breite, $write = FALSE, $inhalt, $edit, $printout = TRUE
         if ($addon!="") {
             if (substr($addon,0,5)=="open:") { // es wird der öffnen-Pfeil mit Link ausgegeben
                 $print .= "</td><td valign=\"middle\" class=\"table_row_even\" nowrap><a href=\"".substr($addon,5)."\">";
-                $print .= Assets::img('icons/16/blue/arr_1left.png', tooltip2(_('Bewertungsbereich öffnen')));
+                $print .= Icon::create('arr_1left', 'clickable', ['title' => _('Bewertungsbereich öffnen')])->asImg(16);
                 $print .= "</a>&nbsp;";
             } else {              // es wird erweiterter Inhalt ausgegeben
                 $print .= "</td><td class=\"content_body_panel\" nowrap>";

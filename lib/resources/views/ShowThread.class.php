@@ -86,13 +86,13 @@ class ShowThread extends ShowTreeRow {
 
             //Daten vorbereiten
             if (!$resObject->getCategoryIconnr())
-                $icon = Assets::img('icons/16/grey/folder-full.png', array('class' => 'text-top'));
+                $icon = Icon::create('folder-full', 'inactive')->asImg(16, ['class' => 'text-top']);
             else
                 $icon = Assets::img('cont_res' . $resObject->getCategoryIconnr() . '.gif');
 
             if ($_SESSION['resources_data']["move_object"]) {
                 $temp  = "&nbsp;<a href=\"".URLHelper::getLink('?target_object='.$resObject->id)."#a\">";
-                $temp .= Assets::img('icons/16/yellow/arr_2right.png', tooltip2(_('Objekt in diese Ebene verschieben')));
+                $temp .= Icon::create('arr_2right', 'sort', ['title' => _('Objekt in diese Ebene verschieben')])->asImg(16);
                 $temp .= "</a>";
                 $icon = $temp . $icon;
             }

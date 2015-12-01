@@ -67,7 +67,7 @@
     <?= formatReady($message["message"]) ?>
 </div>
 <? if (count($message->attachments)) : ?>
-<h3><?= Assets::img("icons/20/grey/staple", array("class" => "text-bottom")) ?><?= _("Anhang") ?></h3>
+<h3><?= Icon::create('staple', 'inactive')->asImg(20, ["class" => "text-bottom"]) ?><?= _("Anhang") ?></h3>
 <ul class="message_attachments">
     <? foreach ($message->attachments as $attachment) : ?>
     <li>

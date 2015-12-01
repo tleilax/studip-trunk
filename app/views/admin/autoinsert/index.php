@@ -115,7 +115,7 @@ use Studip\Button, Studip\LinkButton;
             <?= $this->render_partial("admin/autoinsert/_status.php", array('status' => 'autor', 'auto_sem' => $auto_sem,'domains'=>$userdomains)) ?>
             <td align="right">
                 <a href="<?=$controller->url_for('admin/autoinsert/delete')?>/<?= $auto_sem['seminar_id'] ?>">
-                    <?= Assets::img('icons/16/blue/trash.png', array('title' => _('Veranstaltung entfernen'), 'class' => 'text-top')) ?>
+                    <?= Icon::create('trash', 'clickable', ['title' => _('Veranstaltung entfernen'), 'class' => 'text-top'])->asImg(16) ?>
                 </a>
             </td>
         </tr>

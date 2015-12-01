@@ -80,7 +80,7 @@
 
             <td style="text-align: right">
                 <a href="<?= URLHelper::getLink(sprintf('dispatch.php/my_courses/decline/%s', $wait['seminar_id']), array('cmd' => 'suppose_to_kill_admission')) ?>">
-                    <?= Assets::img('icons/20/grey/door-leave.png', tooltip2(_("aus der Veranstaltung abmelden"))) ?>
+                    <?= Icon::create('door-leave', 'inactive', ['title' => _("aus der Veranstaltung abmelden")])->asImg(20) ?>
                 </a>
             </td>
         </tr>

@@ -59,7 +59,7 @@
             <td>
             <? if (in_array($val->getType(), array('selectbox', 'selectboxmultiple', 'radio', 'combo'))): ?>
                 <a class="datafield_param_link" href="<?=$controller->url_for('admin/datafields/index/'. $current_class .'?edit_id='. $val->getID())?>">
-                    <?= Assets::img('icons/16/blue/edit.png', array('class'=> 'text-top', 'title' => 'Einträge bearbeiten')) ?>
+                    <?= Icon::create('edit', 'clickable')->asImg(16, ['class'=> 'text-top', 'title' => 'Einträge bearbeiten']) ?>
                 </a>
             <? endif; ?>
              <span><?= htmlReady($val->getType()) ?></span>
@@ -97,10 +97,10 @@
             <td><?= $val->getCachedNumEntries() ?></td>
             <td style="text-align: right;">
                 <a class="load-in-new-row" href="<?=$controller->url_for('admin/datafields/edit/'.$val->getID())?>">
-                    <?= Assets::img('icons/16/blue/edit.png', array('title' => 'Datenfeld ändern')) ?>
+                    <?= Icon::create('edit', 'clickable', ['title' => 'Datenfeld ändern'])->asImg(16) ?>
                 </a>
                 <a href="<?=$controller->url_for('admin/datafields/delete/'.$val->getID())?>">
-                    <?= Assets::img('icons/16/blue/trash.png', array('title' => 'Datenfeld löschen')) ?>
+                    <?= Icon::create('trash', 'clickable', ['title' => 'Datenfeld löschen'])->asImg(16) ?>
                 </a>
             </td>
         </tr>

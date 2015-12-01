@@ -14,7 +14,7 @@
             <div class="bread-crumbs">
         <? endif; ?>
                 <a href="<?= $controller->url_for('document/files/index/' . $last_crumb['id']) ?>">
-                    <?= Assets::img('icons/24/blue/folder-parent.png') ?>
+                    <?= Icon::create('folder-parent', 'clickable')->asImg(24) ?>
                 </a>
             <? if (count($breadcrumbs) > 1): ?>
                 <ul>
@@ -43,7 +43,7 @@
             </div>
 
             <div class="caption-actions">
-                <?= Assets::img('icons/16/black/stat.png', tooltip2(_('Speicherplatz'))) ?>
+                <?= Icon::create('stat', 'info', ['title' => _('Speicherplatz')])->asImg(16) ?>
                 <?= sprintf(_('%0.1f%% belegt'), $space_used / $space_total * 100) ?>
                 (<?= relsize($space_used, false) ?>
                 /<?= relsize($space_total, false) ?>)
@@ -82,7 +82,7 @@
             <td>&nbsp;</td>
             <td class="document-icon">
                 <a href="<?= $controller->url_for('document/files/index/' . $parent_id, $parent_page ) ?>">
-                    <?= Assets::img('icons/24/blue/arr_1up.png', tooltip2(_('Ein Verzeichnis nach oben wechseln'))) ?>
+                    <?= Icon::create('arr_1up', 'clickable', ['title' => _('Ein Verzeichnis nach oben wechseln')])->asImg(24) ?>
                 </a>
             </td>
             <td>
@@ -113,9 +113,9 @@
             <td class="document-icon" data-sort-value="0">
                 <a href="<?= $controller->url_for('document/files/index/' . $file->id) ?>">
                 <? if ($file->file->isEmpty()): ?>
-                    <?= Assets::img('icons/24/blue/folder-empty.png') ?>
+                    <?= Icon::create('folder-empty', 'clickable')->asImg(24) ?>
                 <? else: ?>
-                    <?= Assets::img('icons/24/blue/folder-full.png') ?>
+                    <?= Icon::create('folder-full', 'clickable')->asImg(24) ?>
                 <? endif; ?>
                 </a>
             </td>
@@ -175,7 +175,7 @@
                     <?= htmlReady($file->name) ?>
                 </a>
             <? if ($file->file->restricted): ?>
-                <?= Assets::img('icons/16/blue/lock-locked.png', array('class' => 'text-top') + tooltip2(_('Diese Datei ist nicht frei von Rechten Dritter.'))) ?>
+                <?= Icon::create('lock-locked', 'clickable')->asImg(16, ['class' => 'text-top') + tooltip2(_('Diese Datei ist nicht frei von Rechten Dritter.')]) ?>
             <? endif; ?>
             <? if ($file->description): ?>
                 <small><?= htmlReady($file->description) ?></small>

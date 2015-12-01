@@ -616,12 +616,12 @@ class StudipRangeTreeViewAdmin extends TreeView{
             $head .= "</td><td nowrap align=\"right\" valign=\"bottom\" class=\"printhead\">";
             if (!$this->tree->isFirstKid($item_id)){
                 $head .= "<a href=\"". URLHelper::getLink($this->getSelf("cmd=OrderItem&direction=up&item_id=$item_id")) .
-                "\">" . Assets::img('icons/16/yellow/arr_2up.png', array('class' => 'text-top', 'title' => _("Element nach oben verschieben"))) . " ".
+                "\">" . Icon::create('arr_2up', 'sort')->asImg(16, ['class' => 'text-top', 'title' => _("Element nach oben verschieben")]) . " ".
                 "</a>";
             }
             if (!$this->tree->isLastKid($item_id)){
                 $head .= "<a href=\"". URLHelper::getLink($this->getSelf("cmd=OrderItem&direction=down&item_id=$item_id")) .
-                "\">" . Assets::img('icons/16/yellow/arr_2down.png', array('class' => 'text-top', 'title' => _("Element nach unten verschieben"))) . " ".
+                "\">" . Icon::create('arr_2down', 'sort')->asImg(16, ['class' => 'text-top', 'title' => _("Element nach unten verschieben")]) . " ".
                 "</a>";
             }
             $head .= "&nbsp;";
@@ -691,12 +691,12 @@ class StudipRangeTreeViewAdmin extends TreeView{
                         . "<td class=\"table_header_bold\" width=\"10%\" align=\"right\">";
                 if ($cat_snap->pos && $cat_snap->getField("kategorie_id") != "new_entry"){
                     $content .= "<a href=\"". URLHelper::getLink($this->getSelf("cmd=OrderCat&direction=up&item_id=$item_id&cat_id=" . $cat_snap->getField("kategorie_id")))
-                            . "\">" . Assets::img('icons/16/yellow/arr_2up.png', array('class' => 'text-top', 'title' => _("Datenfeld nach oben"))) .
+                            . "\">" . Icon::create('arr_2up', 'sort')->asImg(16, ['class' => 'text-top', 'title' => _("Datenfeld nach oben")]) .
                             "</a>";
                 }
                 if ($cat_snap->pos != $cat_snap->numRows-1 && $cat_snap->getField("kategorie_id") != "new_entry"){
                     $content .= "<a href=\"". URLHelper::getLink($this->getSelf("cmd=OrderCat&direction=down&item_id=$item_id&cat_id=" . $cat_snap->getField("kategorie_id")))
-                            . "\">" . Assets::img('icons/16/yellow/arr_2down.png', array('class' => 'text-top', 'title' => _("Datenfeld nach unten"))) .
+                            . "\">" . Icon::create('arr_2down', 'sort')->asImg(16, ['class' => 'text-top', 'title' => _("Datenfeld nach unten")]) .
                             "</a>";
                 }
                 $content .= "</tr>";

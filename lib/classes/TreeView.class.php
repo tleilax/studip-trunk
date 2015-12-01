@@ -346,7 +346,7 @@ class TreeView {
                                  array('class' => 'text-top'));
             $head .= "</a>";
         } else {
-            $head .= Assets::img('icons/16/blue/folder-empty.png', tooltip2(_('Dieses Element hat keine Unterelemente')));
+            $head .= Icon::create('folder-empty', 'clickable', ['title' => _('Dieses Element hat keine Unterelemente')])->asImg(16);
         }
     return $head . "</td>";
     }

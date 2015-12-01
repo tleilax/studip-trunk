@@ -7,12 +7,12 @@
                 <?=
                 StudygroupAvatar::getAvatar($course['seminar_id'])->is_customized()
                     ? StudygroupAvatar::getAvatar($course['seminar_id'])->getImageTag(Avatar::SMALL, tooltip2($course['name']))
-                    : Assets::img('icons/20/blue/studygroup.png', tooltip2($course['name'])) ?>
+                    : Icon::create('studygroup', 'clickable', ['title' => $course['name']])->asImg(20) ?>
             <? else : ?>
                 <?=
                 CourseAvatar::getAvatar($course['seminar_id'])->is_customized()
                     ? CourseAvatar::getAvatar($course['seminar_id'])->getImageTag(Avatar::SMALL, tooltip2($course['name']))
-                    : Assets::img('icons/20/blue/seminar.png', tooltip2($course['name'])) ?>
+                    : Icon::create('seminar', 'clickable', ['title' => $course['name']])->asImg(20) ?>
             <? endif ?>
         </td>
         <? if($config_sem_number) :?>
@@ -94,7 +94,7 @@
             <?
             else : ?>
                 <a href="<?= URLHelper::getLink(sprintf('dispatch.php/my_courses/decline/%s', $course['seminar_id']), array('cmd' => 'suppose_to_kill')) ?>">
-                    <?= Assets::img('icons/20/grey/door-leave.png', tooltip2(_("aus der Veranstaltung abmelden"))) ?>
+                    <?= Icon::create('door-leave', 'inactive', ['title' => _("aus der Veranstaltung abmelden")])->asImg(20) ?>
                 </a>
             <? endif ?>
         </td>

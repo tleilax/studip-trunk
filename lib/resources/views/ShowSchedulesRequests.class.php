@@ -257,7 +257,7 @@ class ShowSchedulesRequests extends ShowSchedules{
                     <a href="<?= URLHelper::getLink('', array('quick_view' => $this->used_view,
                                                               'quick_view_mode' => $view_mode,
                                                               'time_range' => $_SESSION['resources_data']['schedule_time_range'] ? 'FALSE' : -1)) ?>">
-                        <?= Assets::img('icons/16/blue/arr_2up.png', array('class' => 'middle') + tooltip2(_('Frühere Belegungen anzeigen'))) ?>
+                        <?= Icon::create('arr_2up', 'clickable')->asImg(16, ['class' => 'middle') + tooltip2(_('Frühere Belegungen anzeigen')]) ?>
                     </a>
                 <? endif; ?>
                 </td>
@@ -293,7 +293,7 @@ class ShowSchedulesRequests extends ShowSchedules{
                     <a href="<?= URLHelper::getLink('', array('quick_view' => $this->used_view,
                                                               'quick_view_mode' => $view_mode,
                                                               'time_range' => $_SESSION['resources_data']['schedule_time_range'] ? 'FALSE' : 1)) ?>">
-                        <?= Assets::img('icons/16/blue/arr_2down.png', tooltip2(_('Spätere Belegungen anzeigen'))) ?>
+                        <?= Icon::create('arr_2down', 'clickable', ['title' => _('Spätere Belegungen anzeigen')])->asImg(16) ?>
                     </a>
                 <? endif; ?>
                 </td>

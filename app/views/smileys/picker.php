@@ -46,14 +46,14 @@
             <td>
             <? if ($page > 0): ?>
                 <a href="<?= $controller->url_for('smileys/picker/' . $view . '/0') ?>">
-                    <?= Assets::img('icons/16/blue/arr_eol-left') ?>
+                    <?= Icon::create('arr_eol-left', 'clickable')->asImg(16) ?>
                 </a>
                 <a href="<?= $controller->url_for('smileys/picker/' . $view . '/' . ($page - 1)) ?>">
-                    <?= Assets::img('icons/16/blue/arr_1left') ?>
+                    <?= Icon::create('arr_1left', 'clickable')->asImg(16) ?>
                 </a>
             <? else: ?>
-                <?= Assets::img('icons/16/grey/arr_eol-left') ?>
-                <?= Assets::img('icons/16/grey/arr_1left') ?>
+                <?= Icon::create('arr_eol-left', 'inactive')->asImg(16) ?>
+                <?= Icon::create('arr_1left', 'inactive')->asImg(16) ?>
             <? endif; ?>
             </td>
             <td style="text-align: center;">
@@ -62,14 +62,14 @@
             <td style="text-align: right;">
             <? if ($page < $pages): ?>
                 <a href="<?= $controller->url_for('smileys/picker/' . $view . '/' . ($page + 1)) ?>">
-                    <?= Assets::img('icons/16/blue/arr_1right') ?>
+                    <?= Icon::create('arr_1right', 'clickable')->asImg(16) ?>
                 </a>
                 <a href="<?= $controller->url_for('smileys/picker/' . $view . '/' . $pages) ?>">
-                    <?= Assets::img('icons/16/blue/arr_eol-right') ?>
+                    <?= Icon::create('arr_eol-right', 'clickable')->asImg(16) ?>
                 </a>
             <? else: ?>
-                <?= Assets::img('icons/16/grey/arr_1right') ?>
-                <?= Assets::img('icons/16/grey/arr_eol-right') ?>
+                <?= Icon::create('arr_1right', 'inactive')->asImg(16) ?>
+                <?= Icon::create('arr_eol-right', 'inactive')->asImg(16) ?>
             <? endif; ?>
             </td>
         </tr>

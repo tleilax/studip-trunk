@@ -4,7 +4,7 @@
             <div style="text-align: left; display: inline-block; width: 20%; white-space: nowrap;">
                 <a href="<?= $controller->url_for('calendar/single/year', array('atime' => strtotime('-1 year', $atime))) ?>">
                     <span style="vertical-align: middle;" <?= tooltip(_('ein Jahr zurück')) ?>>
-                        <?= Assets::img('icons/16/blue/arr_2left.png') ?>
+                        <?= Icon::create('arr_2left', 'clickable')->asImg(16) ?>
                     </span>
                     <?= strftime('%Y', strtotime('-1 year', $atime)) ?>
                 </a>
@@ -16,7 +16,7 @@
                 <a href="<?= $controller->url_for('calendar/single/year', array('atime' => strtotime('+1 year', $atime))) ?>">
                     <?= strftime('%Y', strtotime('+1 year', $atime)) ?>
                     <span style="vertical-align: middle;" <?= tooltip(_('ein Jahr vor')) ?>>
-                        <?= Assets::img('icons/16/blue/arr_2right.png') ?>
+                        <?= Icon::create('arr_2right', 'clickable')->asImg(16) ?>
                     </span>
                 </a>
             </div>

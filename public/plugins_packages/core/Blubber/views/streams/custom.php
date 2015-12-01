@@ -28,7 +28,7 @@
         <label title="<?= _("Datei hochladen") ?>" class="uploader">
             <input type="file" style="display: none;" multiple>
             <?= Assets::img('ajax-indicator-black.svg', array('class' => "text-bottom uploading", 'width' => "16px", 'height' => "16px")) ?>
-            <?= Assets::img('icons/16/blue/upload', array('class' => "text-bottom upload")) ?>
+            <?= Icon::create('upload', 'clickable')->asImg(16, ['class' => "text-bottom upload"]) ?>
         </label>
     </div>
     <div id="context_selector_title" style="display: none;"><?= _("Kontext auswählen") ?></div>
@@ -48,8 +48,8 @@
                         <?= _("Dein Beitrag wird allen angezeigt.") ?>
                     </td>
                     <td style="width: 15%">
-                        <?= Assets::img("icons/16/black/checkbox-checked", array('class' => "text-bottom check")) ?>
-                        <?= Assets::img("icons/16/black/checkbox-unchecked", array('class' => "text-bottom uncheck")) ?>
+                        <?= Icon::create('checkbox-checked', 'info')->asImg(16, ['class' => "text-bottom check"]) ?>
+                        <?= Icon::create('checkbox-unchecked', 'info')->asImg(16, ['class' => "text-bottom uncheck"]) ?>
                     </td>
                 </tr>
                 <tr>
@@ -58,7 +58,7 @@
                 <tr onMousedown="$('#context_type').val('private'); $('#threadwriter .context_selector').removeAttr('class').addClass('private context_selector'); $(this).parent().find('.selected').removeClass('selected'); $(this).addClass('selected'); ">
                     <td style="text-align: center;">
                         <label>
-                            <?= Assets::img("icons/32/black/group3", array('class' => "text-bottom")) ?>
+                            <?= Icon::create('group3', 'info')->asImg(32, ['class' => "text-bottom"]) ?>
                             <br>
                             <?= _("Privat") ?>
                         </label>
@@ -80,8 +80,8 @@
                         <?= _("Fügen Sie einzelne Personen mittels @Nutzernamen im Text der Nachricht oder der Kommentare hinzu.") ?>
                     </td>
                     <td style="width: 15%">
-                        <?= Assets::img("icons/16/black/checkbox-checked", array('class' => "text-bottom check")) ?>
-                        <?= Assets::img("icons/16/black/checkbox-unchecked", array('class' => "text-bottom uncheck")) ?>
+                        <?= Icon::create('checkbox-checked', 'info')->asImg(16, ['class' => "text-bottom check"]) ?>
+                        <?= Icon::create('checkbox-unchecked', 'info')->asImg(16, ['class' => "text-bottom uncheck"]) ?>
                     </td>
                 </tr>
                 <? $mycourses = BlubberPosting::getMyBlubberCourses() ?>
@@ -92,7 +92,7 @@
                 <tr onMousedown="$('#context_type').val('course'); $('#threadwriter .context_selector').removeAttr('class').addClass('seminar context_selector'); $(this).parent().find('.selected').removeClass('selected'); $(this).addClass('selected'); ">
                     <td style="text-align: center;">
                         <label>
-                            <?= Assets::img("icons/32/black/seminar", array('class' => "text-bottom")) ?>
+                            <?= Icon::create('seminar', 'info')->asImg(32, ['class' => "text-bottom"]) ?>
                             <br>
                             <?= _("Veranstaltung") ?>
                         </label>
@@ -109,8 +109,8 @@
                         </label>
                     </td>
                     <td style="width: 15%">
-                        <?= Assets::img("icons/16/black/checkbox-checked", array('class' => "text-bottom check")) ?>
-                        <?= Assets::img("icons/16/black/checkbox-unchecked", array('class' => "text-bottom uncheck")) ?>
+                        <?= Icon::create('checkbox-checked', 'info')->asImg(16, ['class' => "text-bottom check"]) ?>
+                        <?= Icon::create('checkbox-unchecked', 'info')->asImg(16, ['class' => "text-bottom uncheck"]) ?>
                     </td>
                 </tr>
                 <? endif ?>

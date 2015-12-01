@@ -39,7 +39,7 @@
     </div>
     <div id="sem-tree-assign-all" class="hidden-js hidden-no-js">
         <a href="" onclick="return STUDIP.CourseWizard.assignAllNodes()">
-            <?= Assets::img('icons/yellow/arr_2left.svg') ?>
+            <?= Icon::create('arr_2left', 'sort')->asImg() ?>
             <?= _('Alle Suchergebnisse zuweisen') ?>
         </a>
     </div>

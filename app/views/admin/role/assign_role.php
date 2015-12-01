@@ -77,7 +77,7 @@ use Studip\Button, Studip\LinkButton;
         <li>
               <?= htmlReady($assignedrole->getRolename()) ?>
               <?= tooltipIcon(join("\n", $assignedroles_institutes[$assignedrole->getRoleid()]))?>
-              <a href="<?= $controller->link_for('/assign_role_institutes/' . $assignedrole->getRoleid() . '/' . $currentuser->getUserid()) ?>" data-lightbox><?= Assets::img('icons/16/blue/edit.png') ?></a>
+              <a href="<?= $controller->link_for('/assign_role_institutes/' . $assignedrole->getRoleid() . '/' . $currentuser->getUserid()) ?>" data-lightbox><?= Icon::create('edit', 'clickable')->asImg(16) ?></a>
         </li>
         <? endif ?>
     <? endforeach ?>

@@ -14,9 +14,9 @@
         <?= (int)$value ?>
     <? elseif ($type === 'boolean'): ?>
         <?if ($value):?>
-            <?= Assets::img('icons/16/green/accept.png', array('title' => _('TRUE'))) ?>
+            <?= Icon::create('accept', 'accept', ['title' => _('TRUE')])->asImg(16) ?>
         <? else :?>
-            <?= Assets::img('icons/16/red/decline.png', array('title' => _('FALSE'))) ?>
+            <?= Icon::create('decline', 'attention', ['title' => _('FALSE')])->asImg(16) ?>
         <? endif; ?>
     <? endif; ?>
     </td>

@@ -27,7 +27,7 @@ if ($coursesets) {
         <td>
         <div style="width:100px;text-align:right;white-space: nowrap">
             <a class="load-in-new-row" href="<?= $controller->link_for('', array('course_set_details' => $courseset->getId())); ?>">
-                <?= Assets::img('icons/16/blue/info.png', array('title' => _('Weitere Informationen einblenden'))) ?>
+                <?= Icon::create('info', 'clickable', ['title' => _('Weitere Informationen einblenden')])->asImg(16) ?>
             </a>
             <? if ($courseset->isUserAllowedToEdit($GLOBALS['user']->id)) : ?>
             <a href="<?= $controller->link_for('admission/courseset/copy/'.$courseset->getId()); ?>">

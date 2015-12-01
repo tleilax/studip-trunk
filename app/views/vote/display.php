@@ -2,13 +2,13 @@
 <section class="contentbox">
     <header>
         <h1>
-            <?= Assets::img('icons/16/black/vote.png'); ?>
+            <?= Icon::create('vote', 'info')->asImg(16); ?>
             <?= _('Umfragen') ?>
         </h1>
         <nav>
         <? if ($admin): ?>
             <a href="<?= URLHelper::getLink('admin_vote.php', array('page' => 'overview')) ?>">
-                <?= Assets::img('icons/16/blue/admin.png'); ?>
+                <?= Icon::create('admin', 'clickable')->asImg(16); ?>
             </a>
         <? endif; ?>
         </nav>

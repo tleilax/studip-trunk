@@ -46,9 +46,9 @@
                     <td><?=formatReady($help_content->content)?></td>
                     <td>
                     <a href="<?=URLHelper::getURL('dispatch.php/help_content/edit/'.$help_content_id)?>" <?=tooltip(_('Hilfe-Text bearbeiten'))?> data-dialog="size=auto;reload-on-close">
-                    <?= Assets::img('icons/16/blue/edit.png') ?></a>
+                    <?= Icon::create('edit', 'clickable')->asImg(16) ?></a>
                     <a href="<?=URLHelper::getURL('dispatch.php/help_content/delete/'.$help_content_id)?>" <?=tooltip(_('Hilfe-Text löschen'))?> data-dialog="size=auto;reload-on-close">
-                    <?= Assets::img('icons/16/blue/trash.png') ?></a>
+                    <?= Icon::create('trash', 'clickable')->asImg(16) ?></a>
                     </td>
                     </tr>
                 <? endforeach ?>

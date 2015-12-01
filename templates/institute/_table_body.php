@@ -107,7 +107,7 @@ use Studip\Button, Studip\LinkButton;
         if ($structure["nachricht"]) {
             print "<td align=\"left\" width=\"1%%\"".(($admin_view) ? "" : " colspan=\"2\""). " nowrap>\n";
             printf("<a href=\"%s\" data-dialog>", URLHelper::getScriptLink("dispatch.php/messages/write?rec_uname=".$member['username']));
-            print Assets::img('icons/16/blue/mail.png', tooltip2(_('Nachricht an Benutzer verschicken')) + array('valign' => 'baseline'));
+            print Icon::create('mail', 'clickable', ['title' => _('Nachricht an Benutzer verschicken')) + array('valign' => 'baseline'])->asImg(16);
             print '</a>';
             print '</td>';
 
@@ -121,7 +121,7 @@ use Studip\Button, Studip\LinkButton;
                 } else {
                     echo '&nbsp;<a href="'.URLHelper::getLink('?cmd=removeFromInstitute&username='.$member['username']).'">';
                 }
-                echo Assets::img('icons/16/blue/trash.png', array('class' => 'text-top'));
+                echo Icon::create('trash', 'clickable')->asImg(16, ['class' => 'text-top']);
                 echo "</a>&nbsp\n</td>\n";
             } else {
                 echo '<td>&nbsp;</td>';
@@ -171,12 +171,12 @@ use Studip\Button, Studip\LinkButton;
                     if ($admin_view && !LockRules::Check($range_id, 'participants')) {
                         echo '<td>';
                         echo '<a href="'.URLHelper::getLink('dispatch.php/settings/statusgruppen/switch/' . $id . '?username='.$member['username']).'"><font size="-1">';
-                        echo Assets::img('icons/16/blue/edit.png');
+                        echo Icon::create('edit', 'clickable')->asImg(16);
                         echo '</font></a></td>';
 
                         echo '<td>';
                         echo '&nbsp;<a href="'.URLHelper::getLink('?cmd=removeFromGroup&username='.$member['username'].'&role_id='.$id).'">';
-                        echo Assets::img('icons/16/blue/trash.png', array('class' => 'text-top'));
+                        echo Icon::create('trash', 'clickable')->asImg(16, ['class' => 'text-top']);
                         echo '</a>&nbsp</td>';
                     }
                     elseif ($structure["nachricht"]) {

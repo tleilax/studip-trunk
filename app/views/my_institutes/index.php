@@ -46,7 +46,7 @@
                 <td style="width:1px"></td>
                 <td>
                     <?=
-                    (InstituteAvatar::getAvatar($instid)->getImageTag(Avatar::SMALL, tooltip2(htmlReady($values['name']))) != '' ? Assets::img('icons/20/blue/institute.png', tooltip2(htmlReady($values['name']))) :
+                    (InstituteAvatar::getAvatar($instid)->getImageTag(Avatar::SMALL, tooltip2(htmlReady($values['name']))) != '' ? Icon::create('institute', 'clickable', ['title' => htmlReady($values['name'])])->asImg(20) :
                         InstituteAvatar::getAvatar($instid)->getImageTag(Avatar::SMALL, tooltip2(htmlReady($values['name'])))) ?>
                 </td>
 
@@ -77,7 +77,7 @@
                 <td style="text-align: left; white-space: nowrap">
                     <? if (Config::get()->ALLOW_SELFASSIGN_INSTITUTE && $values['perms'] == 'user') : ?>
                         <a href="<?=$controller->url_for('my_institutes/decline_inst/'.$instid)?>">
-                            <?= Assets::img('icons/20/grey/door-leave.png', tooltip2(_("aus der Einrichtung austragen"))) ?>
+                            <?= Icon::create('door-leave', 'inactive', ['title' => _("aus der Einrichtung austragen")])->asImg(20) ?>
                         </a>
                     <? else : ?>
                         <?= Assets::img('blank.gif', array('size' => '20')) ?>

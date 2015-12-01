@@ -84,7 +84,7 @@ tatsächlich belegen wollen') ?>
                             <li class="<?= $id ?>">
                                 <?= $prios[$id]['name'] . '&nbsp;' . $prios[$id]['info'] ?>
                                 <input type="hidden" value="<?= $prio ?>" name="admission_prio[<?= $id ?>]"> <a class="<?=$id?> delete hidden-no-js" href="#"><?=
-                                Assets::img('icons/16/black/trash')
+                                Icon::create('trash', 'info')->asImg(16)
                                 ?></a>
                                 <?=
                                 Assets::input('icons/16/black/trash',
@@ -115,7 +115,7 @@ tatsächlich belegen wollen') ?>
     </table>
     <div class="icons" style="display: none">
     <a class="delete" href="#">
-        <?= Assets::img('icons/16/black/trash') ?>
+        <?= Icon::create('trash', 'info')->asImg(16) ?>
     </a>
     </div>
 

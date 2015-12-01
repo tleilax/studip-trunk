@@ -53,7 +53,7 @@
                 $tmp = sprintf(ngettext('Eine persönliche Ankündigung', '%s persönliche Ankündigungen', $news), $news);
                 $content .= sprintf('<a href="%s">%s</a> ',
                                     URLHelper::getLink('dispatch.php/profile', compact('username')),
-                                    Assets::img('icons/16/blue/news.png', tooltip2($tmp)));
+                                    Icon::create('news', 'clickable', ['title' => $tmp)])->asImg(16);
             } else {
                 $content .= Assets::img('blank.gif', array('width' => 16)) . ' ';
             }
@@ -63,7 +63,7 @@
                 $tmp = sprintf(ngettext('Eine Umfrage', '%s Umfragen', $vote), $vote);
                 $content .= sprintf('<a href="%s">%s</a> ',
                                     URLHelper::getLink('dispatch.php/profile', compact('username')),
-                                    Assets::img('icons/16/blue/vote.png', tooltip2($tmp)));
+                                    Icon::create('vote', 'clickable', ['title' => $tmp)])->asImg(16);
             } else {
                 $content .= Assets::img('blank.gif', array('width' => 16)) . ' ';
             }
@@ -73,7 +73,7 @@
                 $tmp = sprintf(ngettext('Ein Termin', '%s Termine', $termin), $termin);
                 $content .= sprintf('<a href="%s">%s</a> ',
                                     URLHelper::getLink('dispatch.php/profile#a', compact('username')),
-                                    Assets::img('icons/16/blue/schedule.png', tooltip2($tmp)));
+                                    Icon::create('schedule', 'clickable', ['title' => $tmp)])->asImg(16);
             } else {
                 $content .= Assets::img('blank.gif', array('width' => 16)) . ' ';
             }
@@ -83,7 +83,7 @@
                 $tmp = sprintf(ngettext('Eine Literaturangabe', '%s Literaturangaben', $lit), $lit);
                 $content .= sprintf('<a href="%s">%s</a> ',
                                     URLHelper::getLink('dispatch.php/profile', compact('username')),
-                                    Assets::img('icons/16/blue/literature.png', tooltip2($tmp)));
+                                    Icon::create('literature', 'clickable', ['title' => $tmp)])->asImg(16);
             } else {
                 $content .= Assets::img('blank.gif', array('width' => 16)) . ' ';
             }

@@ -5,7 +5,7 @@
             <?=
             CourseAvatar::getAvatar($group['seminar_id'])->is_customized()
                 ? CourseAvatar::getAvatar($group['seminar_id'])->getImageTag(Avatar::SMALL, tooltip2(htmlReady($group['name'])))
-                : Assets::img('icons/20/blue/studygroup.png', tooltip2(htmlReady($group['name']))) ?>
+                : Icon::create('studygroup', 'clickable', ['title' => htmlReady($group['name'])])->asImg(20) ?>
         </td>
         <td style="text-align: left">
             <a href="<?= URLHelper::getLink('seminar_main.php', array('auswahl' => $group['seminar_id'])) ?>"
@@ -64,7 +64,7 @@
             <?
             else : ?>
                 <a href="<?= URLHelper::getLink('', array('auswahl' => $group['seminar_id'], 'cmd' => 'suppose_to_kill')) ?>">
-                    <?= Assets::img('icons/20/grey/door-leave.png', tooltip2(_("aus der Studiengruppe abmelden"))) ?>
+                    <?= Icon::create('door-leave', 'inactive', ['title' => _("aus der Studiengruppe abmelden")])->asImg(20) ?>
                 </a>
             <? endif ?>
         </td>

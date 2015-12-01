@@ -890,7 +890,7 @@ if ($question) {
             }
             echo "\n" . '</select>';
             if ($config['FILESYSTEM_MULTICOPY_ENABLE'] && $open_cmd != 'm') {
-                echo "\n<a href=\"\" onClick=\"STUDIP.MultiSelect.create('#sem_move_id', 'Veranstaltungen'); $(this).hide(); return false\">".Assets::img("icons/16/blue/add.png", array('title' => _("Mehrere Veranstaltungen auswählen"), "class" => "middle"))."</a>";
+                echo "\n<a href=\"\" onClick=\"STUDIP.MultiSelect.create('#sem_move_id', 'Veranstaltungen'); $(this).hide(); return false\">".Icon::create('add', 'clickable', ['title' => _("Mehrere Veranstaltungen auswählen"), "class" => "middle"])->asImg(16)."</a>";
             }
             echo "\n</td>";
             echo "\n" . '<td class="blank">';
@@ -909,7 +909,7 @@ if ($question) {
             }
             echo "\n" . '</select>';
             if ($config['FILESYSTEM_MULTICOPY_ENABLE'] && $open_cmd != 'm') {
-                echo "\n<a href=\"\" onClick=\"STUDIP.MultiSelect.create('#inst_move_id', 'Institute'); $(this).hide(); return false\">".Assets::img("icons/16/blue/add.png", array('title' => _("Mehrere Einrichtungen auswählen"), "class" => "middle"))."</a>";
+                echo "\n<a href=\"\" onClick=\"STUDIP.MultiSelect.create('#inst_move_id', 'Institute'); $(this).hide(); return false\">".Icon::create('add', 'clickable', ['title' => _("Mehrere Einrichtungen auswählen"), "class" => "middle"])->asImg(16)."</a>";
             }
             echo "\n</td>";
             echo "\n" . '<td class="blank">';

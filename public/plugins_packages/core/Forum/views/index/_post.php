@@ -184,7 +184,7 @@
                 <? endif ?>
 
                 <? if ($post['user_id'] == 'nobody') : ?>
-                    <?= Assets::img('icons/16/black/community.png') ?>
+                    <?= Icon::create('community', 'info')->asImg(16) ?>
                     <span class="username" data-profile="<?= $post['topic_id'] ?>">
                         <?= htmlReady($post['author']) ?>
                     </span>
@@ -195,9 +195,9 @@
                     <? if ($status == 'available') : ?>
                         <img src="<?= $picturepath ?>/community.png" title="<?= _('Online') ?>">
                     <? elseif ($status == 'away') : ?>
-                        <?= Assets::img('icons/16/grey/community.png', array('title' => _('Abwesend'))) ?>
+                        <?= Icon::create('community', 'inactive', ['title' => _('Abwesend')])->asImg(16) ?>
                     <? elseif ($status == 'offline') : ?>
-                        <?= Assets::img('icons/16/black/community.png', array('title' => _('Offline'))) ?>
+                        <?= Icon::create('community', 'info', ['title' => _('Offline')])->asImg(16) ?>
                     <? endif ?>
 
                     <a href="<?= URLHelper::getLink('dispatch.php/profile', array('username' => get_username($post['user_id'])))?>">
@@ -234,7 +234,7 @@
                     
                 <!-- Permalink -->
                 <a href="<?= PluginEngine::getLink('coreforum/index/index/' . $post['topic_id'] .'#'. $post['topic_id']) ?>">
-                    <?= Assets::img('icons/16/blue/group.png', array('title' => _('Link zu diesem Beitrag'))) ?>
+                    <?= Icon::create('group', 'clickable', ['title' => _('Link zu diesem Beitrag')])->asImg(16) ?>
                 </a>
                 <br>
 

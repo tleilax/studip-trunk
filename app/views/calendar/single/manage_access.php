@@ -78,7 +78,7 @@
                         </td>
                         <td class="actions">
                             <a title="<?= _('Benutzer entfernen') ?>" onClick="STUDIP.CalendarDialog.removeUser(this);" href="<?= $controller->url_for('calendar/single/remove_user/' . $calendar->getRangeId() . $filter, array('user_id' => $user->user_id)) ?>">
-                                <?= Assets::img('icons/16/blue/remove/person.png') ?>
+                                <?= Icon::create('person+remove', 'clickable')->asImg(16) ?>
                             </a>
                         </td>
                     </tr>

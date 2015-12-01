@@ -20,7 +20,7 @@
             <? if (Request::get("tag")) : ?>
                 <?= ", "._("Schlagwort: ").htmlReady(ucfirst(Request::get("tag"))) ?>
                 <button onClick="if (window.confirm('<?= _("Schlagwort wirklich löschen?") ?>') { jQuery('#delete_tags_form').submit(); }" style="background: none; border: none; cursor: pointer;" title="<?= _("Schlagwort von allen Nachrichten entfernen.") ?>">
-                    <?= Assets::img("icons/20/blue/trash") ?>
+                    <?= Icon::create('trash', 'clickable')->asImg(20) ?>
                 </button>
             <? endif ?>
         </caption>
@@ -45,11 +45,11 @@
                 <tr>
                     <td colspan="8">
                         <? if (Request::int("offset") > 0) : ?>
-                        <a title="<?= _("zurück") ?>" href="<?= URLHelper::getLink("?", array('offset' => Request::int("offset") - $messageBufferCount > 0 ? Request::int("offset") - $messageBufferCount : null)) ?>"><?= Assets::img("icons/16/blue/arr_1left", array("class" => "text-bottom")) ?></a>
+                        <a title="<?= _("zurück") ?>" href="<?= URLHelper::getLink("?", array('offset' => Request::int("offset") - $messageBufferCount > 0 ? Request::int("offset") - $messageBufferCount : null)) ?>"><?= Icon::create('arr_1left', 'clickable')->asImg(16, ["class" => "text-bottom"]) ?></a>
                         <? endif ?>
                         <? if ($more) : ?>
                         <div style="float:right">
-                            <a title="<?= _("weiter") ?>" href="<?= URLHelper::getLink("?", array('offset' => Request::int("offset") + $messageBufferCount)) ?>"><?= Assets::img("icons/16/blue/arr_1right", array("class" => "text-bottom")) ?></a>
+                            <a title="<?= _("weiter") ?>" href="<?= URLHelper::getLink("?", array('offset' => Request::int("offset") + $messageBufferCount)) ?>"><?= Icon::create('arr_1right', 'clickable')->asImg(16, ["class" => "text-bottom"]) ?></a>
                         </div>
                         <? endif ?>
                     </td>
@@ -64,11 +64,11 @@
                 <tr>
                     <td colspan="7">
                         <? if (Request::int("offset") > 0) : ?>
-                            <a title="<?= _("zurück") ?>" href="<?= URLHelper::getLink("?", array('offset' => Request::int("offset") - $messageBufferCount > 0 ? Request::int("offset") - $messageBufferCount : null)) ?>"><?= Assets::img("icons/16/blue/arr_1left", array("class" => "text-bottom")) ?></a>
+                            <a title="<?= _("zurück") ?>" href="<?= URLHelper::getLink("?", array('offset' => Request::int("offset") - $messageBufferCount > 0 ? Request::int("offset") - $messageBufferCount : null)) ?>"><?= Icon::create('arr_1left', 'clickable')->asImg(16, ["class" => "text-bottom"]) ?></a>
                         <? endif ?>
                         <? if ($more) : ?>
                             <div style="float:right">
-                                <a title="<?= _("weiter") ?>" href="<?= URLHelper::getLink("?", array('offset' => Request::int("offset") + $messageBufferCount)) ?>"><?= Assets::img("icons/16/blue/arr_1right", array("class" => "text-bottom")) ?></a>
+                                <a title="<?= _("weiter") ?>" href="<?= URLHelper::getLink("?", array('offset' => Request::int("offset") + $messageBufferCount)) ?>"><?= Icon::create('arr_1right', 'clickable')->asImg(16, ["class" => "text-bottom"]) ?></a>
                             </div>
                         <? endif ?>
                     </td>
@@ -90,7 +90,7 @@
 
 
 <div style="display: none; background-color: rgba(255,255,255, 0.3); padding: 3px; border-radius: 5px; border: thin solid black;" id="move_handle">
-    <?= Assets::img("icons/20/blue/mail", array('class' => "text-bottom")) ?>
+    <?= Icon::create('mail', 'clickable')->asImg(20, ['class' => "text-bottom"]) ?>
     <span class="title"></span>
 </div>
 

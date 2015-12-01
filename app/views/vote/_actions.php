@@ -1,4 +1,4 @@
-<?= Assets::img('icons/16/blue/pause.png') ?>
-<?= Assets::img('icons/16/blue/remove/community.png') ?>
-<?= Assets::img('icons/16/blue/admin.png') ?>
-<?= Assets::img('icons/16/blue/trash.png') ?>
+<?= Icon::create('pause', 'clickable')->asImg(16) ?>
+<?= Icon::create('community+remove', 'clickable')->asImg(16) ?>
+<?= Icon::create('admin', 'clickable')->asImg(16) ?>
+<?= Icon::create('trash', 'clickable')->asImg(16) ?>

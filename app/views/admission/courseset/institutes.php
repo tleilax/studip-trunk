@@ -5,7 +5,7 @@
         $controller->url_for('admission/courseset/institutes', $courseset ? $courseset->getId() : '')."', '".
         $controller->url_for('admission/courseset/instcourses', $courseset ? $courseset->getId() : '')."', 'add')")) ?>
 <?= $instSearch ?>
-<?= Assets::img('icons/16/blue/search.png', array('title' => _("Suche starten")))?>
+<?= Icon::create('search', 'clickable', ['title' => _("Suche starten")])->asImg(16)?>
 
 <ul>
     <?php foreach ($selectedInstitutes as $institute => $data) { ?>

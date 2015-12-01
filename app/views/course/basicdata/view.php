@@ -144,7 +144,7 @@ $message_types = array('msg' => "success", 'error' => "error", 'info' => "info")
                         </a>
                     <? endif; ?>
                         <a href="<?= $controller->url_for('course/basicdata/deletedozent', $course_id, $dozent['user_id']) ?>" <?= $dialog_attr ?>>
-                            <?= Assets::img('icons/blue/trash.svg') ?>
+                            <?= Icon::create('trash', 'clickable')->asImg() ?>
                         </a>
                 <? endif; ?>
                     </td>
@@ -203,7 +203,7 @@ $message_types = array('msg' => "success", 'error' => "error", 'info' => "info")
                     <td class="actions">
                     <? if ($perm_dozent && !$dozent_is_locked): ?>
                         <a href="<?= $controller->url_for('course/basicdata/deletedeputy', $course_id, $deputy["user_id"]) ?>" <?= $dialog_attr ?>>
-                            <?= Assets::img('icons/blue/trash.svg') ?>
+                            <?= Icon::create('trash', 'clickable')->asImg() ?>
                         </a>
                     <? endif; ?>
                     </td>
@@ -279,7 +279,7 @@ $message_types = array('msg' => "success", 'error' => "error", 'info' => "info")
                         </a>
                     <? endif; ?>
                         <a href="<?= $controller->url_for('course/basicdata/deletetutor', $course_id, $tutor['user_id']) ?>" <?= $dialog_attr ?>>
-                            <?= Assets::img('icons/blue/trash.svg') ?>
+                            <?= Icon::create('trash', 'clickable')->asImg() ?>
                         </a>
                 <? endif; ?>
                     </td>

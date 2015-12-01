@@ -221,7 +221,7 @@ class ShowGroupSchedules extends ShowSemSchedules {
                 <td class="<? $cssSw->switchClass(); echo $cssSw->getClass() ?>" width="4%">&nbsp;</td>
                 <td class="<? echo $cssSw->getClass() ?>"  width="10%" align="left">&nbsp;
                     <a href="<?= URLHelper::getLink('?quick_view='.$this->used_view.'&quick_view_mode='.$view_mode.'&previous_day=1') ?>">
-                    <?= Assets::img("icons/16/blue/arr_2left.png", array('class' => "middle", 'alt' => "Vorherigen Tag anzeigen", 'title' => "Vorherigen Tag anzeigen")) ?>
+                    <?= Icon::create('arr_2left', 'clickable')->asImg(16, ['class' => "middle", 'alt' => "Vorherigen Tag anzeigen", 'title' => "Vorherigen Tag anzeigen"]) ?>
                     </a>
                 </td>
                 <td class="<? echo $cssSw->getClass() ?>" width="76%" align="center">
@@ -235,7 +235,7 @@ class ShowGroupSchedules extends ShowSemSchedules {
                 </td>
                 <td class="<? echo $cssSw->getClass() ?>" width="10%" align="center">&nbsp;
                     <a href="<?= URLHelper::getLink('?quick_view='.$this->used_view.'&quick_view_mode='.$view_mode.'&next_day=1') ?>">
-                    <?= Assets::img("icons/16/blue/arr_2right.png", array('class' => "middle", 'alt' => _("Nächsten Tag anzeigen"), 'title' => _("Nächsten Tag anzeigen"))) ?>
+                    <?= Icon::create('arr_2right', 'clickable')->asImg(16, ['class' => "middle", 'alt' => _("Nächsten Tag anzeigen"), 'title' => _("Nächsten Tag anzeigen")]) ?>
                 </td>
             </tr>
             <tr>
@@ -244,7 +244,7 @@ class ShowGroupSchedules extends ShowSemSchedules {
                     <a href="<?= URLHelper::getLink('', array('quick_view' => $this->used_view,
                                                               'quick_view_mode' => $view_mode,
                                                               'time_range' => $_SESSION['resources_data']['schedule_time_range'] ? 'FALSE' : -1)) ?>">
-                        <?= Assets::img('icons/16/blue/arr_2up.png', array('class' => 'middle') + tooltip2(_('Frühere Belegungen anzeigen'))) ?>
+                        <?= Icon::create('arr_2up', 'clickable')->asImg(16, ['class' => 'middle') + tooltip2(_('Frühere Belegungen anzeigen')]) ?>
                     </a>
                 <? endif; ?>
                 </td>
@@ -286,7 +286,7 @@ class ShowGroupSchedules extends ShowSemSchedules {
                     <a href="<?= URLHelper::getLink('', array('quick_view' => $this->used_view,
                                                               'quick_view_mode' => $view_mode,
                                                               'time_range' => $_SESSION['resources_data']['schedule_time_range'] ? 'FALSE' : 1)) ?>">
-                        <?= Assets::img('icons/16/blue/arr_2down.png', array('class' => 'middle') + tooltip2(_('Frühere Belegungen anzeigen'))) ?>
+                        <?= Icon::create('arr_2down', 'clickable')->asImg(16, ['class' => 'middle') + tooltip2(_('Frühere Belegungen anzeigen')]) ?>
                     </a>
                 <? endif; ?>
                 </td>

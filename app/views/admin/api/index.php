@@ -39,17 +39,17 @@
                 <a href="<?= $controller->url_for('admin/api/keys', $consumer->id) ?>"
                    data-dialog="size=auto"
                    title="<?= htmlReady(sprintf(_('Schlüssel anzeigen für Applikation "%s"'), $consumer->title)) ?>">
-                    <?= Assets::img('icons/16/blue/info-circle.png') ?>
+                    <?= Icon::create('info-circle', 'clickable')->asImg(16) ?>
                 </a>
                 <a href="<?= $controller->url_for('admin/api/edit', $consumer->id) ?>" title="<?= _('Applikation bearbeiten') ?>" data-dialog>
-                    <?= Assets::img('icons/16/blue/edit.png') ?>
+                    <?= Icon::create('edit', 'clickable')->asImg(16) ?>
                 </a>
                 <a href="<?= $controller->url_for('admin/api/permissions', $consumer->id) ?>" title="<?= _('Zugriffsberechtigungen verwalten') ?>">
-                    <?= Assets::img('icons/16/blue/admin.png') ?>
+                    <?= Icon::create('admin', 'clickable')->asImg(16) ?>
                 </a>
                 <a href="<?= $controller->url_for('admin/api/delete', $consumer->id) ?>"
                    title="<?= htmlReady(sprintf(_('Applikation "%s" entfernen'), $consumer->title)) ?>">
-                    <?= Assets::img('icons/16/blue/trash.png') ?>
+                    <?= Icon::create('trash', 'clickable')->asImg(16) ?>
                 </a>
             </td>
         </tr>

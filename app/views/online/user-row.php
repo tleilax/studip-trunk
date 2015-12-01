@@ -9,7 +9,7 @@
             <?= htmlReady($user['name']) ?>
         </a>
     <? foreach (StudipKing::is_king($user['user_id'], true) as $text) : ?>
-        <?= Assets::img('icons/16/yellow/crown.png', tooltip2($text)) ?>
+        <?= Icon::create('crown', 'sort', ['title' => $text])->asImg(16) ?>
     <? endforeach ?>
     </td>
     <td style="white-space: nowrap;">
@@ -18,12 +18,12 @@
     <td class="actions" nowrap="nowrap">
     <? if (class_exists("Blubber")) : ?>
         <a href="<?= URLHelper::getLink('plugins.php/blubber/streams/global', array('mention' => $user['username'])) ?>">
-            <?= Assets::img('icons/16/blue/blubber.png', array('title' => _('Blubber diesen Nutzer an'))) ?>
+            <?= Icon::create('blubber', 'clickable', ['title' => _('Blubber diesen Nutzer an')])->asImg(16) ?>
         </a>
     <? endif ?>
 
         <a href="<?= URLHelper::getLink('dispatch.php/messages/write', array('rec_uname' => $user['username'])) ?>" data-dialog="button">
-            <?= Assets::img('icons/16/blue/mail.png', array('title' => _('Nachricht an Benutzer verschicken'))) ?>
+            <?= Icon::create('mail', 'clickable', ['title' => _('Nachricht an Benutzer verschicken')])->asImg(16) ?>
         </a>
     <? if ($user['is_buddy']): ?>
         <a href="<?= $controller->url_for('online/buddy/remove?username=' . $user['username']) ?>">

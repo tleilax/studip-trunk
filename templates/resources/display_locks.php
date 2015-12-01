@@ -58,7 +58,7 @@ $inputs = array(
                             'class' => 'text-top',
                     )) ?>
                     <a href="<?= URLHelper::getLink('?kill_lock=' . $lock['lock_id']) ?>">
-                        <?= Assets::img('icons/16/blue/trash.png', array('class' => 'text-top', 'title' => _('Diesen Eintrag löschen'))) ?>
+                        <?= Icon::create('trash', 'clickable')->asImg(16, ['class' => 'text-top', 'title' => _('Diesen Eintrag löschen')]) ?>
                     </a>
                 </td>
             <? else: ?>
@@ -66,10 +66,10 @@ $inputs = array(
                 <td><?= date('d.m.Y H:i', $lock['lock_end']) ?></td>
                 <td style="text-align: right; vertical-align: bottom;">
                     <a href="<?= URLHelper::getLink('?edit_lock=' . $lock['lock_id']) ?>">
-                        <?= Assets::img('icons/16/blue/edit.png', array('class' => 'text-top') + tooltip2(_('Diesen Eintrag bearbeiten'))) ?>
+                        <?= Icon::create('edit', 'clickable')->asImg(16, ['class' => 'text-top') + tooltip2(_('Diesen Eintrag bearbeiten')]) ?>
                     </a>
                     <a href="<?= URLHelper::getLink('?kill_lock=' . $lock['lock_id']) ?>">
-                        <?= Assets::img('icons/16/blue/trash.png', array('class' => 'text-top') + tooltip2(_('Diesen Eintrag löschen'))) ?>
+                        <?= Icon::create('trash', 'clickable')->asImg(16, ['class' => 'text-top') + tooltip2(_('Diesen Eintrag löschen')]) ?>
                     </a>
                 </td>
             <? endif; ?>

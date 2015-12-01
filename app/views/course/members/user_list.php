@@ -27,7 +27,7 @@
                                 'course_id' => $course_id,
                                 'default_subject' => $subject)
                 ) ?>" data-dialog>
-                       <?= Assets::img('icons/16/blue/inbox.png', tooltip2(sprintf(_('Nachricht an alle %s versenden'), $status_groups['user']))) ?>
+                       <?= Icon::create('inbox', 'clickable', ['title' => sprintf(_('Nachricht an alle %s versenden'), $status_groups['user'])])->asImg(16) ?>
                 </a>
             </span>
             <? endif ?>

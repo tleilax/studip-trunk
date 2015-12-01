@@ -6,8 +6,8 @@
 <table class="default forum <?= ForumPerm::has('sort_category', $seminar_id) ? 'movable' : '' ?>" data-category-id="<?= $category_id ?>">
     <caption class="handle">
         <? if (ForumPerm::has('sort_category', $seminar_id)) : ?>
-            <?= Assets::img('icons/16/yellow/arr_2down.png') ?>
-            <?= Assets::img('icons/16/yellow/arr_2up.png') ?>
+            <?= Icon::create('arr_2down', 'sort')->asImg(16) ?>
+            <?= Icon::create('arr_2up', 'sort')->asImg(16) ?>
         <? endif ?>
 
         <? if (ForumPerm::has('edit_category', $seminar_id) || ForumPerm::has('remove_category', $seminar_id)) : ?>
@@ -19,14 +19,14 @@
                 <? if (ForumPerm::has('edit_category', $seminar_id)) : ?>
                 <a href="<?= PluginEngine::getLink('coreforum/index/?edit_category=' . $category_id) ?>"
                     onClick="javascript:STUDIP.Forum.editCategoryName('<?= $category_id ?>'); return false;">
-                    <?= Assets::img('icons/16/blue/edit.png', array('title' => 'Name der Kategorie ändern')) ?>
+                    <?= Icon::create('edit', 'clickable', ['title' => 'Name der Kategorie ändern'])->asImg(16) ?>
                 </a>
                 <? endif ?>
 
                 <? if(ForumPerm::has('remove_category', $seminar_id)) : ?>
                 <a href="<?= PluginEngine::getLink('coreforum/index/remove_category/' . $category_id) ?>"
                     onClick="STUDIP.Forum.deleteCategory('<?= $category_id ?>'); return false;">
-                    <?= Assets::img('icons/16/blue/trash.png', array('title' => 'Kategorie entfernen')) ?>
+                    <?= Icon::create('trash', 'clickable', ['title' => 'Kategorie entfernen'])->asImg(16) ?>
                 </a>
                 <? endif ?>
             <? endif ?>

@@ -1254,8 +1254,8 @@ function getShowPageInfobox($keyword, $latest_version)
         $extra = sprintf('<a href="%s">%s</a>',
                          URLHelper::getLink('?keyword=toc&view=edit'),
                          $toccont_empty
-                             ? Assets::img('icons/16/blue/add.png', tooltip2(_('erstellen')))
-                             : Assets::img('icons/16/blue/edit.png', tooltip2(_('bearbeiten'))));
+                             ? Icon::create('add', 'clickable', ['title' => _('erstellen')])->asImg(16)
+                             : Icon::create('edit', 'clickable', ['title' => _('bearbeiten'))])->asImg(16);
         $widget->setExtra($extra);
     }
 
@@ -1472,7 +1472,7 @@ function showWikiPage($keyword, $version, $special="", $show_comments="icon", $h
 
     if ($perm->have_studip_perm("autor", $SessSemName[1])) {
         if (!$latest_version) {
-            $edit  = Assets::img('icons/16/black/lock-locked.png');
+            $edit  = Icon::create('lock-locked', 'info')->asImg(16);
             $edit .= _("Ältere Version, nicht bearbeitbar!");
         } else {
             $edit="";
@@ -1696,7 +1696,7 @@ function showComboDiff($keyword, $db=NULL) {
                 $col=create_color($idx);
                 echo "<tr bgcolor=$col>";
                 echo "<td width=30 align=center valign=top>";
-                echo Assets::img('icons/16/grey/info-circle.png', tooltip2(_("Änderung von").' ' . get_fullname($last_author)));
+                echo Icon::create('info-circle', 'inactive', ['title' => _("Änderung von").' ' . get_fullname($last_author)])->asImg(16);
                 echo "</td>";
                 echo "<td><font size=-1>";
                 echo wikiReady($collect);

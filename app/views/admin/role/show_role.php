@@ -124,7 +124,7 @@ use Studip\Button, Studip\LinkButton;
                         htmlReady($role->getRolename())) ?>
             <div class="actions">
                 <a href="<?= $controller->url_for('admin/role/add_plugin/' . $roleid) ?>" data-dialog="size=auto">
-                    <?= Assets::img('icons/blue/add/plugin.svg') ?>
+                    <?= Icon::create('add+plugin', 'clickable')->asImg() ?>
                     <?= _('Plugins hinzufügen') ?>
                 </a>
             </div>

@@ -8,9 +8,9 @@
     <?= _('Sie haben noch keine Listen angelegt.') ?><br>
     <br>
 <? else : ?>
-    <?=Assets::img('icons/16/black/visibility-visible.png');?>&nbsp;
+    <?=Icon::create('visibility-visible', 'info')->asImg(16);?>&nbsp;
     <?=sprintf(_("%s öffentlich sichtbare Listen, insgesamt %s Einträge"),$list_count['visible'],$list_count['visible_entries']).'<br>'?>
-    <?=Assets::img('icons/16/black/visibility-invisible.png')?>&nbsp;
+    <?=Icon::create('visibility-invisible', 'info')->asImg(16)?>&nbsp;
     <?=sprintf(_("%s unsichtbare Listen, insgesamt %s Einträge"),$list_count['invisible'],$list_count['invisible_entries']).'<br>'?>
     <br>
 <? endif ?>
