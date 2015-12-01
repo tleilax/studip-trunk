@@ -146,7 +146,7 @@ class Assets
         $parts = explode('/', $source);
 
         if (($pos = array_search('icons', $parts)) !== false) {
-            return Icon::create($source, $opt);
+            return Icon::create2($source, $opt)->render();
         }
 
         $size = $opt['size'];
@@ -192,7 +192,7 @@ class Assets
             $source = substr($source, 6);
             $source = preg_replace('/\.png$/', '', $source);
 
-            return Icon::create($source, $opt)->render(Icon::SVG | Icon::INPUT);
+            return Icon::create2($source, $opt)->render(Icon::SVG | Icon::INPUT);
         }
 
         $size = $opt['size'];

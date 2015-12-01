@@ -15,7 +15,7 @@
         <? endif; ?>
         <? if ($perm && get_config('NEWS_RSS_EXPORT_ENABLE')): ?>
             <a data-dialog="size=auto;reload-on-close" title="<?=_('RSS-Feed konfigurieren') ?>" href="<?= $controller->link_for('news/rss_config/' . $range); ?>">
-                <?= Assets::img('icons/16/blue/add/rss.png') ?>
+                <?= Icon::create('rss+add')->asImg(16) ?>
             </a>
         <? endif; ?>
         <? if ($rss_id): ?>
