@@ -189,7 +189,7 @@ class MyCoursesController extends AuthenticatedController
                                      'icons/16/blue/add/seminar.png');
         }
 
-        $setting_widget->addLink(_('Veranstaltung hinzufügen'), URLHelper::getLink('dispatch.php/search/courses'),'icons/16/blue/seminar.png');
+        $setting_widget->addLink(_('Veranstaltung hinzufügen'), URLHelper::getLink('dispatch.php/search/courses'), Icon::create('seminar', 'clickable'));
         $sidebar->addWidget($setting_widget);
         $this->setGroupingSelector($this->group_field);
     }

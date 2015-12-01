@@ -85,6 +85,6 @@ $sidebar = Sidebar::Get();
 $sidebar->setTitle(PageLayout::getTitle());
 $sidebar->setImage('sidebar/plugin-sidebar.png');
 $links = new ActionsWidget();
-$links->addLink(_('Neue Kategorie anlegen'), '#', 'icons/16/blue/add.png', array('onClick' => 'STUDIP.sem_classes.add(); return false;'));
+$links->addLink(_('Neue Kategorie anlegen'), '#', Icon::create('add', 'clickable'), array('onClick' => 'STUDIP.sem_classes.add(); return false;'));
 $sidebar->addWidget($links);
 

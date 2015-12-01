@@ -128,5 +128,5 @@ use Studip\Button, Studip\LinkButton;
 $sidebar = Sidebar::Get();
 $sidebar->setTitle('Automatisiertes Eintragen');
 $links = new ActionsWidget();
-$links->addLink(_('Benutzergruppen manuell eintragen'), $controller->url_for('admin/autoinsert/manual'), 'icons/16/blue/visibility-visible.png');
+$links->addLink(_('Benutzergruppen manuell eintragen'), $controller->url_for('admin/autoinsert/manual'), Icon::create('visibility-visible', 'clickable'));
 $sidebar->addWidget($links);

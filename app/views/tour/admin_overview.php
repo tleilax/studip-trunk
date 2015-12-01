@@ -85,7 +85,7 @@ $widget->addLink(_('Übersicht'), URLHelper::getURL('dispatch.php/tour/admin_over
 $widget->addLink(_('Konflikte'), URLHelper::getURL('dispatch.php/tour/admin_conflicts'));
 $sidebar->addWidget($widget);
 $widget = new ActionsWidget();
-$widget->addLink(_('Tour erstellen'), URLHelper::getLink('dispatch.php/tour/admin_details'), 'icons/16/blue/add.png', array());
+$widget->addLink(_('Tour erstellen'), URLHelper::getLink('dispatch.php/tour/admin_details'), Icon::create('add', 'clickable'), array());
 $sidebar->addWidget($widget);
 $search = new SearchWidget('?apply_tour_filter=1');
 $search->addNeedle(_('Suchbegriff'), 'tour_searchterm');

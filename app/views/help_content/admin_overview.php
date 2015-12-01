@@ -72,7 +72,7 @@ $widget->addLink(_('Übersicht'), URLHelper::getURL('dispatch.php/help_content/ad
 $widget->addLink(_('Konflikte'), URLHelper::getURL('dispatch.php/help_content/admin_conflicts'));
 $sidebar->addWidget($widget);
 $widget = new ActionsWidget();
-$widget->addLink(_('Hilfe-Text erstellen'), URLHelper::getLink('dispatch.php/help_content/edit/new'), 'icons/16/blue/add.png', array('data-dialog'=>'size=auto;reload-on-close', 'target'=>'_blank'));
+$widget->addLink(_('Hilfe-Text erstellen'), URLHelper::getLink('dispatch.php/help_content/edit/new'), Icon::create('add', 'clickable'), array('data-dialog'=>'size=auto;reload-on-close', 'target'=>'_blank'));
 $sidebar->addWidget($widget);
 $search = new SearchWidget('?apply_help_content_filter=1');
 $search->addNeedle(_('Suchbegriff'), 'help_content_searchterm');

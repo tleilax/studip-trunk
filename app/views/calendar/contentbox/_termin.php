@@ -24,7 +24,7 @@
         <? if (count($themen)) : ?>
             <? foreach ($themen as $thema) : ?>
                 <h3>
-                    <?= Assets::img("icons/grey/20/topic", array('class' => "text-bottom")) ?>
+                    <?= Icon::create('topic')->asImg(20, ['class' => "text-bottom"]) ?>
                     <?= htmlReady($thema['title']) ?>
                 </h3>
                 <div>

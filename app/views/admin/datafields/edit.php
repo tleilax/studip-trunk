@@ -171,7 +171,7 @@ $sidebar->setImage('sidebar/admin-sidebar.png');
 $sidebar->setTitle(_('Datenfelder'));
 
 $actions = new ActionsWidget();
-$actions->addLink(_('Neues Datenfeld anlegen'),$controller->url_for('admin/datafields/new/'.$class_filter), 'icons/16/blue/add.png');
+$actions->addLink(_('Neues Datenfeld anlegen'),$controller->url_for('admin/datafields/new/'.$class_filter), Icon::create('add', 'clickable'));
 $sidebar->addWidget($actions);
 
 

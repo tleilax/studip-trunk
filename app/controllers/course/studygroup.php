@@ -124,7 +124,7 @@ class Course_StudygroupController extends AuthenticatedController {
             $awidget->setTitle($action);
             $awidget->addLink($infotext, $infolink, $icon, $infolink_options);
             if ($send_from_search_page) {
-                $awidget->addLink(_("zurück zur Suche"), URLHelper::getURL($send_from_search_page), 'icons/16/black/schedule.png');
+                $awidget->addLink(_("zurück zur Suche"), URLHelper::getURL($send_from_search_page), Icon::create('schedule', 'info'));
             }
             $sidebar->addWidget($awidget);
         }

@@ -140,8 +140,8 @@ $sidebar->setImage('sidebar/plugin-sidebar.png');
 
 if (get_config('PLUGINS_UPLOAD_ENABLE')) {
     $actions = new ActionsWidget();
-    $actions->addLink(_('Weitere Plugins installieren'), $controller->url_for('admin/plugin/search'), 'icons/16/blue/add.png');
-    $actions->addLink(_('Plugin von URL installieren'), $controller->url_for('admin/plugin/edit_automaticupdate'), 'icons/16/blue/download.png', array('data-dialog' => "true"));
+    $actions->addLink(_('Weitere Plugins installieren'), $controller->url_for('admin/plugin/search'), Icon::create('add', 'clickable'));
+    $actions->addLink(_('Plugin von URL installieren'), $controller->url_for('admin/plugin/edit_automaticupdate'), Icon::create('download', 'clickable'), array('data-dialog' => "true"));
     $sidebar->addWidget($actions);
 
     $widget = new SidebarWidget();

@@ -42,7 +42,7 @@ if ($section == 'index') {
             $abo_url = PluginEngine::getLink('coreforum/index/abo/' . $constraint['topic_id']);
         endif;
         
-        $actions->addLink($abo_text, $abo_url, 'icons/16/blue/link-intern.png');
+        $actions->addLink($abo_text, $abo_url, Icon::create('link-intern', 'clickable'));
     }
 
     if (ForumPerm::has('close_thread', $seminar_id) && $constraint['depth'] > 1) {
@@ -110,7 +110,7 @@ if ($section == 'index') {
     }
 
     if ($constraint['depth'] == 0 && ForumPerm::has('add_category', $seminar_id)) {
-        $actions->addLink(_('Neue Kategorie erstellen'), "#create", 'icons/16/blue/link-intern.png');
+        $actions->addLink(_('Neue Kategorie erstellen'), "#create", Icon::create('link-intern', 'clickable'));
     }
 }
 

@@ -134,12 +134,12 @@ class Course_DetailsController extends AuthenticatedController
                 if (!DBManager::Get()->fetchColumn($query, array($this->course->id,
                     $GLOBALS['user']->id))
                 ) {
-                    $links->addLink(_("Nur im Stundenplan vormerken"), URLHelper::getLink("dispatch.php/calendar/schedule/addvirtual/" . $this->course->id), 'icons/16/blue/info.png');
+                    $links->addLink(_("Nur im Stundenplan vormerken"), URLHelper::getLink("dispatch.php/calendar/schedule/addvirtual/" . $this->course->id), Icon::create('info', 'clickable'));
                 }
             }
 
             if ($this->send_from_search_page) {
-                $links->addLink(_("Zurück zur letzten Auswahl"), URLHelper::getLink($this->send_from_search_page), 'icons/16/blue/link-intern.png');
+                $links->addLink(_("Zurück zur letzten Auswahl"), URLHelper::getLink($this->send_from_search_page), Icon::create('link-intern', 'clickable'));
             }
 
             if ($links->hasElements()) {

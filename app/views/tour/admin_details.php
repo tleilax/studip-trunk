@@ -137,6 +137,6 @@
 $sidebar = Sidebar::get();
 if (count($tour->steps)) {
     $widget = new ActionsWidget();
-    $widget->addLink(_('Schritt hinzufügen'), URLHelper::getLink('dispatch.php/tour/edit_step/'.$tour->tour_id.'/'.(count($tour->steps)+1).'/new'), 'icons/16/blue/add.png', array('data-dialog' => 'size=auto;reload-on-close'));
+    $widget->addLink(_('Schritt hinzufügen'), URLHelper::getLink('dispatch.php/tour/edit_step/'.$tour->tour_id.'/'.(count($tour->steps)+1).'/new'), Icon::create('add', 'clickable'), array('data-dialog' => 'size=auto;reload-on-close'));
     $sidebar->addWidget($widget);
 }
