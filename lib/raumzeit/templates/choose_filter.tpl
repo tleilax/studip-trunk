@@ -23,7 +23,7 @@ if ( (!$tpl['forceShowAll']) && (sizeof($tpl['semester']) <= 2)) {
         if ( (($sem_index % 5) == 0)  && ($sem_index != 0)) { echo '</TR><TR><TD></TD><TD></TD>'; }
         if ($tpl['selected'] == $key) { ?>
             <TD class="table_header_bold" nowrap="nowrap" valign="middle" width="117" height="20">
-                <?= Icon::create('arr_1right', 'attention')->asImg(16, ['class' => 'text-top']) ?>
+                <?= Icon::create('arr_1right', 'attention')->asImg(['class' => 'text-top']) ?>
 				<FONT size="-1"><?=$val?></FONT>
             </TD>
     <? } else { ?>

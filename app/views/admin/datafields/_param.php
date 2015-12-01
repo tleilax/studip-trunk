@@ -8,6 +8,6 @@
     <?= Assets::input("icons/16/blue/accept.png", array('type' => "image", 'class' => "middle", 'name' => "save", 'title' => _('Änderungen speichern'))) ?>
     <?= Assets::input("icons/16/blue/question-circle.png", array('type' => "image", 'class' => "middle", 'name' => "preview", 'title' => _('preview'), 'style' => ($hidden ? "display:none;" : ""))); ?>
     <a class="cancel" href="<?= $controller->url_for('admin/datafields') ?>">
-        <?= Icon::create('decline', 'clickable', ['title' => _('Bearbeitung abbrechen')])->asImg(16) ?>
+        <?= Icon::create('decline', 'clickable', ['title' => _('Bearbeitung abbrechen')])->asImg() ?>
     </a>
 </form>

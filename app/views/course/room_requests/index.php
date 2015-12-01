@@ -26,18 +26,18 @@ echo $flash['message'];
         <td>
         <div style="width:100px;text-align:right;white-space: nowrap">
             <a class="load-in-new-row" href="<?= $controller->link_for('index/'.$course_id, array('request_id' => $rr->getId())) ?>">
-                <?= Icon::create('info', 'clickable', ['title' => _('Weitere Informationen einblenden')])->asImg(16) ?>
+                <?= Icon::create('info', 'clickable', ['title' => _('Weitere Informationen einblenden')])->asImg() ?>
             </a>
             <a href="<?= $controller->link_for('edit/'.$course_id, array('request_id' => $rr->getId())) ?>">
-                <?= Icon::create('edit', 'clickable', ['title' => _('Diese Anfrage bearbeiten')])->asImg(16) ?>
+                <?= Icon::create('edit', 'clickable', ['title' => _('Diese Anfrage bearbeiten')])->asImg() ?>
             </a>
             <? if (getGlobalPerms($GLOBALS['user']->id) == 'admin' || ($GLOBALS['perm']->have_perm('admin') && count(getMyRoomRequests(null, null, true, $rr->getId())))) : ?>
                 <a href="<?= URLHelper::getLink('resources.php', array('view' => 'edit_request', 'single_request' => $rr->getId())) ?>">
-                    <?= Icon::create('admin', 'clickable', ['title' => _('Diese Anfrage selbst auflösen')])->asImg(16) ?>
+                    <?= Icon::create('admin', 'clickable', ['title' => _('Diese Anfrage selbst auflösen')])->asImg() ?>
                 </a>
             <? endif ?>
             <a href="<?= $controller->link_for('delete/'.$course_id, array('request_id' => $rr->getId())) ?>">
-                <?= Icon::create('trash', 'clickable', ['title' => _('Diese Anfrage zurückziehen')])->asImg(16) ?>
+                <?= Icon::create('trash', 'clickable', ['title' => _('Diese Anfrage zurückziehen')])->asImg() ?>
             </a>
         </div>
         </td>

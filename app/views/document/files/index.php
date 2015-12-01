@@ -43,7 +43,7 @@
             </div>
 
             <div class="caption-actions">
-                <?= Icon::create('stat', 'info', ['title' => _('Speicherplatz')])->asImg(16) ?>
+                <?= Icon::create('stat', 'info', ['title' => _('Speicherplatz')])->asImg() ?>
                 <?= sprintf(_('%0.1f%% belegt'), $space_used / $space_total * 100) ?>
                 (<?= relsize($space_used, false) ?>
                 /<?= relsize($space_total, false) ?>)
@@ -175,7 +175,7 @@
                     <?= htmlReady($file->name) ?>
                 </a>
             <? if ($file->file->restricted): ?>
-                <?= Icon::create('lock-locked', 'clickable')->asImg(16, ['class' => 'text-top') + tooltip2(_('Diese Datei ist nicht frei von Rechten Dritter.')]) ?>
+              <?= Icon::create('lock-locked', 'clickable',['title' => _('Diese Datei ist nicht frei von Rechten Dritter.')])->asImg(['class' => 'text-top']) ?>
             <? endif; ?>
             <? if ($file->description): ?>
                 <small><?= htmlReady($file->description) ?></small>

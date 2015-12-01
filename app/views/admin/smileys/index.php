@@ -59,11 +59,11 @@
                     <a href="<?= $controller->url_for('admin/smileys/edit', $smiley->id, $view) ?>"
                        title="<?= htmlReady(sprintf(_('Smiley "%s" bearbeiten'), $smiley->name)) ?>"
                        data-dialog="size=auto">
-                        <?= Icon::create('edit', 'clickable')->asImg(16) ?>
+                        <?= Icon::create('edit', 'clickable')->asImg() ?>
                     </a>
                     <a href="<?= $controller->url_for('admin/smileys/delete', $smiley->id, $view) ?>"
                        title="<?= htmlReady(sprintf(_('Smiley "%s" löschen'), $smiley->name)) ?>">
-                        <?= Icon::create('trash', 'clickable')->asImg(16) ?>
+                        <?= Icon::create('trash', 'clickable')->asImg() ?>
                     </a>
                 </td>
             </tr>

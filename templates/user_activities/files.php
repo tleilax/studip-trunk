@@ -44,7 +44,7 @@
                     <b>
                         <a href="<?= URLHelper::getLink($section['link'],
                                                         array('auswahl' => $file['id'])) ?>">
-                            <?= Icon::create('files', 'clickable')->asImg(16) ?>
+                            <?= Icon::create('files', 'clickable')->asImg() ?>
                             <?= getHeaderLine($file['id']) ?>
                         </a>
                     </b>

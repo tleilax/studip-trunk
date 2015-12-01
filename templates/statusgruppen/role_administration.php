@@ -64,8 +64,8 @@
                             &nbsp;
                         </td>
                         <td class="content_seperator" width="1%" nowrap>
-                            <?= ($role->getSelfassign()) ? Icon::create('info-circle', 'inactive', ['title' => _("Personen können sich dieser Gruppe selbst zuordnen")])->asImg(16) : '' ?>
-                            <a href="<?= URLHelper::getLink('?cmd=sortByName&role_id='. $role_id ) ?>"><?= Icon::create('arr_eol-down', 'clickable')->asImg(16) ?></a>
+                            <?= ($role->getSelfassign()) ? Icon::create('info-circle', 'inactive', ['title' => _("Personen können sich dieser Gruppe selbst zuordnen")])->asImg() : '' ?>
+                            <a href="<?= URLHelper::getLink('?cmd=sortByName&role_id='. $role_id ) ?>"><?= Icon::create('arr_eol-down', 'clickable')->asImg() ?></a>
                         </td>
                     </tr>
                     <!-- Persons assigned to this role -->
@@ -87,7 +87,7 @@
                         <td class="<?= $cssSw->getClass() ?>" width="1%" nowrap style="padding-left: 6px;">
                             <? if ($pos < sizeof($persons)) : ?>
                             <a href="<?= URLHelper::getLink('?cmd=move_down&role_id='. $role_id .'&username='. $person['username']) ?>">
-                                <?= Icon::create('arr_2down', 'sort')->asImg(16) ?>
+                                <?= Icon::create('arr_2down', 'sort')->asImg() ?>
                             </a>
                             <? endif; ?>
                         </td>
@@ -95,7 +95,7 @@
                         <td class="<?= $cssSw->getClass() ?>" width="1%" nowrap style="padding-left: 4px;">
                             <? if ($pos > 1) : ?>
                             <a href="<?= URLHelper::getLink('?cmd=move_up&role_id='. $role_id .'&username='. $person['username']) ?>">
-                                <?= Icon::create('arr_2up', 'sort')->asImg(16) ?>
+                                <?= Icon::create('arr_2up', 'sort')->asImg() ?>
                             </a>
                             <? endif; ?>
                         </td>
@@ -116,7 +116,7 @@
 
                         <td class="<?= $cssSw->getClass() ?>" width="1%" colspan="2" align="right">
                             <a href="<?= URLHelper::getLink('?role_id='. $role_id .'&cmd=removePerson&username='. $person['username']) ?>">
-                            <?= Icon::create('trash', 'clickable')->asImg(16) ?>
+                            <?= Icon::create('trash', 'clickable')->asImg() ?>
                             </a>
                         </td>
                     </tr>

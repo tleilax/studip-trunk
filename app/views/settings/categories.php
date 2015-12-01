@@ -38,22 +38,22 @@
                 <th rowspan="2" style="text-align: right; vertical-align: middle;">
                 <? if ($index > 0): ?>
                     <a href="<?= $controller->url_for('settings/categories/swap', $category->id, $last->id) ?>">
-                        <?= Icon::create('arr_2up', 'sort')->asImg(16, ['class' => 'text-top', 'title' =>_('Kategorie nach oben verschieben')]) ?>
+                        <?= Icon::create('arr_2up', 'sort')->asImg(['class' => 'text-top', 'title' =>_('Kategorie nach oben verschieben')]) ?>
                     </a>
                 <? else: ?>
-                    <?= Icon::create('arr_2up', 'inactive')->asImg(16, ['class' => 'text-top']) ?>
+                    <?= Icon::create('arr_2up', 'inactive')->asImg(['class' => 'text-top']) ?>
                 <? endif; ?>
 
                 <? if ($index < $count - 1): ?>
                     <a href="<?= $controller->url_for('settings/categories/swap', $category->id, $categories[$index + 1]->id) ?>">
-                        <?= Icon::create('arr_2down', 'sort')->asImg(16, ['class' => 'text-top', 'title' =>_('Kategorie nach unten verschieben')]) ?>
+                        <?= Icon::create('arr_2down', 'sort')->asImg(['class' => 'text-top', 'title' =>_('Kategorie nach unten verschieben')]) ?>
                     </a>
                 <? else: ?>
-                    <?= Icon::create('arr_2down', 'inactive')->asImg(16, ['class' => 'text-top']) ?>
+                    <?= Icon::create('arr_2down', 'inactive')->asImg(['class' => 'text-top']) ?>
                 <? endif; ?>
 
                     <a href="<?= $controller->url_for('settings/categories/delete', $category->id) ?>">
-                        <?= Icon::create('trash', 'clickable')->asImg(16, ['class' => 'text-top', 'title' => _('Kategorie löschen')]) ?>
+                        <?= Icon::create('trash', 'clickable')->asImg(['class' => 'text-top', 'title' => _('Kategorie löschen')]) ?>
                     </a>
                 </th>
             </tr>

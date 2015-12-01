@@ -89,7 +89,7 @@
                 </td>
                 <td style="text-align: right">
                     <a data-dialog title='<?= _('Bemerkung hinzufügen') ?>' href="<?=$controller->url_for('course/members/add_comment', $accept['user_id']) ?>">
-                            <?= Icon::create('comment', 'clickable')->asImg(16) ?>
+                            <?= Icon::create('comment', 'clickable')->asImg() ?>
                     </a>
                     <? if($user_id != $accept['user_id']) : ?>
                         <a href="<?= URLHelper::getLink('dispatch.php/messages/write',

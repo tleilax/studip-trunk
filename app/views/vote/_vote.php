@@ -19,7 +19,7 @@
             </span>
             <? if ($admin): ?>
                 <a href="<?= URLHelper::getLink('admin_vote.php', array('page' => 'edit', 'type' => 'vote', 'voteID' => $vote->id)) ?>">
-                    <?= Icon::create('admin', 'clickable')->asImg(16) ?>
+                    <?= Icon::create('admin', 'clickable')->asImg() ?>
                 </a>
             <? endif; ?>
         </nav>

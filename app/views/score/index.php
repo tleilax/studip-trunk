@@ -53,7 +53,7 @@
                 $tmp = sprintf(ngettext('Eine persönliche Ankündigung', '%s persönliche Ankündigungen', $news), $news);
                 $content .= sprintf('<a href="%s">%s</a> ',
                                     URLHelper::getLink('dispatch.php/profile', compact('username')),
-                                    Icon::create('news', 'clickable', ['title' => $tmp)])->asImg(16);
+                                    Icon::create('news', 'clickable', ['title' => $tmp])->asImg());
             } else {
                 $content .= Assets::img('blank.gif', array('width' => 16)) . ' ';
             }
@@ -63,7 +63,7 @@
                 $tmp = sprintf(ngettext('Eine Umfrage', '%s Umfragen', $vote), $vote);
                 $content .= sprintf('<a href="%s">%s</a> ',
                                     URLHelper::getLink('dispatch.php/profile', compact('username')),
-                                    Icon::create('vote', 'clickable', ['title' => $tmp)])->asImg(16);
+                                    Icon::create('vote', 'clickable', ['title' => $tmp])->asImg());
             } else {
                 $content .= Assets::img('blank.gif', array('width' => 16)) . ' ';
             }
@@ -73,7 +73,7 @@
                 $tmp = sprintf(ngettext('Ein Termin', '%s Termine', $termin), $termin);
                 $content .= sprintf('<a href="%s">%s</a> ',
                                     URLHelper::getLink('dispatch.php/profile#a', compact('username')),
-                                    Icon::create('schedule', 'clickable', ['title' => $tmp)])->asImg(16);
+                                    Icon::create('schedule', 'clickable', ['title' => $tmp])->asImg());
             } else {
                 $content .= Assets::img('blank.gif', array('width' => 16)) . ' ';
             }
@@ -83,7 +83,7 @@
                 $tmp = sprintf(ngettext('Eine Literaturangabe', '%s Literaturangaben', $lit), $lit);
                 $content .= sprintf('<a href="%s">%s</a> ',
                                     URLHelper::getLink('dispatch.php/profile', compact('username')),
-                                    Icon::create('literature', 'clickable', ['title' => $tmp)])->asImg(16);
+                                    Icon::create('literature', 'clickable', ['title' => $tmp])->asImg());
             } else {
                 $content .= Assets::img('blank.gif', array('width' => 16)) . ' ';
             }

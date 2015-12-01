@@ -32,7 +32,7 @@
             $overview_url = URLHelper::getURL("plugins.php/blubber/streams/global");
     } ?>
     <a href="<?= URLHelper::getLink($overview_url) ?>">
-        <?= Icon::create('arr_1left', 'clickable')->asImg(16, ['class' => 'text-top']) ?>
+        <?= Icon::create('arr_1left', 'clickable')->asImg(['class' => 'text-top']) ?>
         <?= _('Zurück zur Übersicht') ?>
     </a>
 </p>

@@ -119,19 +119,19 @@
             <td><?= htmlReady($logs[$i]->schedule->title ?: $logs[$i]->schedule->task->name) ?></td>
             <td>
             <? if ($logs[$i]->duration == -1): ?>
-                <?= Icon::create('question', 'inactive', ['title' => _('Läuft noch')])->asImg(16) ?>
+                <?= Icon::create('question', 'inactive', ['title' => _('Läuft noch')])->asImg() ?>
             <? elseif ($logs[$i]->exception === null): ?>
-                <?= Icon::create('accept', 'accept', ['title' => _('Ja')])->asImg(16) ?>
+                <?= Icon::create('accept', 'accept', ['title' => _('Ja')])->asImg() ?>
             <? else: ?>
-                <?= Icon::create('decline', 'attention', ['title' => _('Nein')])->asImg(16) ?>
+                <?= Icon::create('decline', 'attention', ['title' => _('Nein')])->asImg() ?>
             <? endif; ?>
             </td>
             <td style="text-align: right">
                 <a data-dialog href="<?= $controller->url_for('admin/cronjobs/logs/display', $logs[$i]->log_id, $page) ?>">
-                    <?= Icon::create('admin', 'clickable', ['title' => _('Logeintrag anzeigen')])->asImg(16) ?>
+                    <?= Icon::create('admin', 'clickable', ['title' => _('Logeintrag anzeigen')])->asImg() ?>
                 </a>
                 <a href="<?= $controller->url_for('admin/cronjobs/logs/delete', $logs[$i]->log_id, $page) ?>">
-                    <?= Icon::create('trash', 'clickable', ['title' => _('Logeintrag löschen')])->asImg(16) ?>
+                    <?= Icon::create('trash', 'clickable', ['title' => _('Logeintrag löschen')])->asImg() ?>
                 </a>
             </td>
         </tr>

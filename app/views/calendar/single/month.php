@@ -6,13 +6,13 @@
                 <div style="text-align: left; display: inline-block; white-space: nowrap;">
                     <a style="padding-right: 2em;" href="<?= $controller->url_for('calendar/single/month', array('atime' => strtotime('-1 year', $atime))) ?>">
                         <span style="vertical-align: middle;" <?= tooltip(_('ein Jahr zurück')) ?>>
-                        <?= Icon::create('arr_2left', 'clickable')->asImg(16) ?>
+                        <?= Icon::create('arr_2left', 'clickable')->asImg() ?>
                         </span>
                         <?= strftime('%B %Y', strtotime('-1 year', $atime)) ?>
                     </a>
                     <a href="<?= $controller->url_for('calendar/single/month', array('atime' => strtotime('-1 month', $atime))) ?>">
                         <span style="vertical-align: middle;" <?= tooltip(_('einen Monat zurück')) ?>>
-                        <?= Icon::create('arr_1left', 'clickable', ['title' => _('einen Monat zurück')])->asImg(16) ?>
+                        <?= Icon::create('arr_1left', 'clickable', ['title' => _('einen Monat zurück')])->asImg() ?>
                         </span>
                         <?= strftime('%B %Y', strtotime('-1 month', $atime)) ?>
                     </a>
@@ -24,13 +24,13 @@
                     <a style="padding-right: 2em;" href="<?= $controller->url_for('calendar/single/month', array('atime' => strtotime('+1 month', $atime))) ?>">
                         <?= strftime('%B %Y', strtotime('+1 month', $atime)) ?>
                         <span style="vertical-align: middle;" <?= tooltip(_('einen Monat vor')) ?>>
-                        <?= Icon::create('arr_1right', 'clickable')->asImg(16) ?>
+                        <?= Icon::create('arr_1right', 'clickable')->asImg() ?>
                         </span>
                     </a>
                     <a href="<?= $controller->url_for('calendar/single/month', array('atime' => strtotime('+1 year', $atime))) ?>">
                         <?= strftime('%B %Y', strtotime('+1 year', $atime)) ?>
                         <span style="vertical-align: middle;" <?= tooltip(_('ein Jahr vor')) ?>>
-                        <?= Icon::create('arr_2right', 'clickable')->asImg(16) ?>
+                        <?= Icon::create('arr_2right', 'clickable')->asImg() ?>
                         </span>
                     </a>
                 </div>

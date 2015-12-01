@@ -56,7 +56,7 @@
         <? else: ?>
             <td><?= htmlReady($details['semester']) ?></td>
             <td>
-                <?= Icon::create('accept', 'inactive')->asImg(16, ['class' => 'text-top']) ?>
+                <?= Icon::create('accept', 'inactive')->asImg(['class' => 'text-top']) ?>
             </td>
         <? endif; ?>
         </tr>

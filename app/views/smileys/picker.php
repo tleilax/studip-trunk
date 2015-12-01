@@ -46,14 +46,14 @@
             <td>
             <? if ($page > 0): ?>
                 <a href="<?= $controller->url_for('smileys/picker/' . $view . '/0') ?>">
-                    <?= Icon::create('arr_eol-left', 'clickable')->asImg(16) ?>
+                    <?= Icon::create('arr_eol-left', 'clickable')->asImg() ?>
                 </a>
                 <a href="<?= $controller->url_for('smileys/picker/' . $view . '/' . ($page - 1)) ?>">
-                    <?= Icon::create('arr_1left', 'clickable')->asImg(16) ?>
+                    <?= Icon::create('arr_1left', 'clickable')->asImg() ?>
                 </a>
             <? else: ?>
-                <?= Icon::create('arr_eol-left', 'inactive')->asImg(16) ?>
-                <?= Icon::create('arr_1left', 'inactive')->asImg(16) ?>
+                <?= Icon::create('arr_eol-left', 'inactive')->asImg() ?>
+                <?= Icon::create('arr_1left', 'inactive')->asImg() ?>
             <? endif; ?>
             </td>
             <td style="text-align: center;">
@@ -62,14 +62,14 @@
             <td style="text-align: right;">
             <? if ($page < $pages): ?>
                 <a href="<?= $controller->url_for('smileys/picker/' . $view . '/' . ($page + 1)) ?>">
-                    <?= Icon::create('arr_1right', 'clickable')->asImg(16) ?>
+                    <?= Icon::create('arr_1right', 'clickable')->asImg() ?>
                 </a>
                 <a href="<?= $controller->url_for('smileys/picker/' . $view . '/' . $pages) ?>">
-                    <?= Icon::create('arr_eol-right', 'clickable')->asImg(16) ?>
+                    <?= Icon::create('arr_eol-right', 'clickable')->asImg() ?>
                 </a>
             <? else: ?>
-                <?= Icon::create('arr_1right', 'inactive')->asImg(16) ?>
-                <?= Icon::create('arr_eol-right', 'inactive')->asImg(16) ?>
+                <?= Icon::create('arr_1right', 'inactive')->asImg() ?>
+                <?= Icon::create('arr_eol-right', 'inactive')->asImg() ?>
             <? endif; ?>
             </td>
         </tr>

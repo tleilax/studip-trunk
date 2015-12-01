@@ -492,7 +492,7 @@ function getEvalPath(){
     $path .= "<a class=\"tree\" href=\""
         . URLHelper::getLink($this->getSelf("itemID=root"))
         . "\">"
-#       . Icon::create('arr_1right', 'attention')->asImg(16)
+#       . Icon::create('arr_1right', 'attention')->asImg()
 #       . "width=\"10\" hight=\"20\">"
 #       . "&nbsp;"
         . _("Evaluation")

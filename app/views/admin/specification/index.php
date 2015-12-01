@@ -38,10 +38,10 @@
         </td>
         <td class="actions">
             <a href="<?=$controller->url_for('admin/specification/edit/'.$rule['lock_id']) ?>">
-                <?= Icon::create('edit', 'clickable', ['title' => _('Regel bearbeiten')])->asImg(16) ?>
+                <?= Icon::create('edit', 'clickable', ['title' => _('Regel bearbeiten')])->asImg() ?>
             </a>
             <a href="<?=$controller->url_for('admin/specification/delete/'.$rule['lock_id'])?>">
-                <?= Icon::create('trash', 'clickable', ['title' => _('Regel löschen')])->asImg(16) ?>
+                <?= Icon::create('trash', 'clickable', ['title' => _('Regel löschen')])->asImg() ?>
             </a>
         </td>
     </tr>

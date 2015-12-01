@@ -39,7 +39,7 @@
             <? if ($allow_change): ?>
                 <input type="checkbox" name="userdomain_delete[]" value="<?= $domain->getID() ?>">
             <? else: ?>
-                <?= Icon::create('accept', 'inactive')->asImg(16, ['class' => 'text-top']) ?>
+                <?= Icon::create('accept', 'inactive')->asImg(['class' => 'text-top']) ?>
             <? endif; ?>
             </td>
         </tr>

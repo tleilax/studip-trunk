@@ -900,7 +900,7 @@ function printFormEnd ( ) {
 function image_if_true($option)
 {
     if ($option)
-        return Icon::create('decline', 'inactive')->asImg(16);
+        return Icon::create('decline', 'inactive')->asImg();
     else
         return Assets::img('blank.gif', array('size' => '16@16'));
 }

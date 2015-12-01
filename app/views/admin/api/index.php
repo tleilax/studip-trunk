@@ -39,17 +39,17 @@
                 <a href="<?= $controller->url_for('admin/api/keys', $consumer->id) ?>"
                    data-dialog="size=auto"
                    title="<?= htmlReady(sprintf(_('Schlüssel anzeigen für Applikation "%s"'), $consumer->title)) ?>">
-                    <?= Icon::create('info-circle', 'clickable')->asImg(16) ?>
+                    <?= Icon::create('info-circle', 'clickable')->asImg() ?>
                 </a>
                 <a href="<?= $controller->url_for('admin/api/edit', $consumer->id) ?>" title="<?= _('Applikation bearbeiten') ?>" data-dialog>
-                    <?= Icon::create('edit', 'clickable')->asImg(16) ?>
+                    <?= Icon::create('edit', 'clickable')->asImg() ?>
                 </a>
                 <a href="<?= $controller->url_for('admin/api/permissions', $consumer->id) ?>" title="<?= _('Zugriffsberechtigungen verwalten') ?>">
-                    <?= Icon::create('admin', 'clickable')->asImg(16) ?>
+                    <?= Icon::create('admin', 'clickable')->asImg() ?>
                 </a>
                 <a href="<?= $controller->url_for('admin/api/delete', $consumer->id) ?>"
                    title="<?= htmlReady(sprintf(_('Applikation "%s" entfernen'), $consumer->title)) ?>">
-                    <?= Icon::create('trash', 'clickable')->asImg(16) ?>
+                    <?= Icon::create('trash', 'clickable')->asImg() ?>
                 </a>
             </td>
         </tr>

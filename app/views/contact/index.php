@@ -53,10 +53,10 @@
                     </td>
                     <td class="actions">
                         <a title="<?= $filter ? _("Kontakt aus Gruppe entfernen") : _("Kontakt entfernen") ?>" href="<?= $controller->url_for('contact/remove/'.$filter, array('user' => $contact->username)) ?>">
-                            <?= Icon::create('person+remove', 'clickable')->asImg(16) ?>
+                            <?= Icon::create('person+remove', 'clickable')->asImg() ?>
                         </a>
                         <a title="<?= _("vCard herunterladen") ?>" href="<?= $controller->url_for('contact/vcard', array('user[]' => $contact->username)) ?>">
-                            <?= Icon::create('vcard', 'clickable')->asImg(16) ?>
+                            <?= Icon::create('vcard', 'clickable')->asImg() ?>
                         </a>
                     </td>
                 </tr>

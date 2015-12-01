@@ -29,7 +29,7 @@
  *     $url = Assets::image_path('blank.gif');
  *
  *     # construct html tag fot the download icon in blue
- *     $img = Icon::create('download', 'clickable')->asImg(16);
+ *     $img = Icon::create('download', 'clickable')->asImg();
  *
  * @package   studip
  *

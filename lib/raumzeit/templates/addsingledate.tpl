@@ -16,7 +16,7 @@ use Studip\Button,
         <TABLE cellpadding="2" cellspacing="0" border="0" width="100%">
             <TR>
                 <TD width="2%" align="right" valign="top" class="<?=$tpl['class']?>">
-                    <?= Icon::create('arr_1down', 'clickable')->asImg(16) ?>
+                    <?= Icon::create('arr_1down', 'clickable')->asImg() ?>
                 </TD>
                 <TD width="98%" nowrap class="<?=$tpl['class']?>" colspan="8">
                         <input type=text id="startDate" name="startDate" size=10 maxlength=10 value="<?= htmlReady(Request::get('date',_("Datum"))) ?>"> <?=_('um')?>
@@ -52,7 +52,7 @@ use Studip\Button,
                     </select>
 
                     <a href="#" class="bookable_rooms_action" title="<?=_("Nur buchbare Räume anzeigen")?>">
-                    <?= Icon::create('room-clear', 'clickable')->asImg(16) ?>
+                    <?= Icon::create('room-clear', 'clickable')->asImg() ?>
                     </a>
 
                     <br>

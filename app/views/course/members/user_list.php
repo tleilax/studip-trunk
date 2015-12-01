@@ -27,7 +27,7 @@
                                 'course_id' => $course_id,
                                 'default_subject' => $subject)
                 ) ?>" data-dialog>
-                       <?= Icon::create('inbox', 'clickable', ['title' => sprintf(_('Nachricht an alle %s versenden'), $status_groups['user'])])->asImg(16) ?>
+                       <?= Icon::create('inbox', 'clickable', ['title' => sprintf(_('Nachricht an alle %s versenden'), $status_groups['user'])])->asImg() ?>
                 </a>
             </span>
             <? endif ?>

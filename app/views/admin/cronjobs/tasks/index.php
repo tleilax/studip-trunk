@@ -43,25 +43,25 @@
             <td style="text-align: center;">
             <? if ($tasks[$i]->active): ?>
                 <a href="<?= $controller->url_for('admin/cronjobs/tasks/deactivate', $tasks[$i]->task_id, $page) ?>" data-behaviour="ajax-toggle">
-                    <?= Icon::create('checkbox-checked', 'clickable', ['title' => _('Aufgabe deaktivieren')])->asImg(16) ?>
+                    <?= Icon::create('checkbox-checked', 'clickable', ['title' => _('Aufgabe deaktivieren')])->asImg() ?>
                 </a>
             <? else: ?>
                 <a href="<?= $controller->url_for('admin/cronjobs/tasks/activate', $tasks[$i]->task_id, $page) ?>" data-behaviour="ajax-toggle">
-                    <?= Icon::create('checkbox-unchecked', 'clickable', ['title' => _('Aufgabe aktivieren')])->asImg(16) ?>
+                    <?= Icon::create('checkbox-unchecked', 'clickable', ['title' => _('Aufgabe aktivieren')])->asImg() ?>
                 </a>
             <? endif; ?>
             </td>
             <td style="text-align: right">
             <? if ($tasks[$i]->valid): ?>
                 <a data-dialog href="<?= $controller->url_for('admin/cronjobs/tasks/execute', $tasks[$i]->task_id) ?>">
-                    <?= Icon::create('play', 'clickable', ['title' => _('Aufgabe ausführen')])->asImg(16) ?>
+                    <?= Icon::create('play', 'clickable', ['title' => _('Aufgabe ausführen')])->asImg() ?>
                 </a>
             <? endif; ?>
                 <a href="<?= $controller->url_for('admin/cronjobs/logs/task', $tasks[$i]->task_id) ?>">
-                    <?= Icon::create('log', 'clickable', ['title' => _('Log anzeigen')])->asImg(16) ?>
+                    <?= Icon::create('log', 'clickable', ['title' => _('Log anzeigen')])->asImg() ?>
                 </a>
                 <a href="<?= $controller->url_for('admin/cronjobs/tasks/delete', $tasks[$i]->task_id, $page) ?>">
-                    <?= Icon::create('trash', 'clickable', ['title' => _('Aufgabe löschen')])->asImg(16) ?>
+                    <?= Icon::create('trash', 'clickable', ['title' => _('Aufgabe löschen')])->asImg() ?>
                 </a>
             </td>
         </tr>

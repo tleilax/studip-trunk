@@ -126,11 +126,11 @@
                                            'Aufgabe deaktiviert ist.'))) ?>
             <? elseif ($schedules[$i]->active): ?>
                 <a href="<?= $controller->url_for('admin/cronjobs/schedules/deactivate', $schedules[$i]->schedule_id, $page) ?>" data-behaviour="ajax-toggle">
-                    <?= Icon::create('checkbox-checked', 'clickable', ['title' => _('Cronjob deaktivieren')])->asImg(16) ?>
+                    <?= Icon::create('checkbox-checked', 'clickable', ['title' => _('Cronjob deaktivieren')])->asImg() ?>
                 </a>
             <? else: ?>
                 <a href="<?= $controller->url_for('admin/cronjobs/schedules/activate', $schedules[$i]->schedule_id, $page) ?>" data-behaviour="ajax-toggle">
-                    <?= Icon::create('checkbox-unchecked', 'clickable', ['title' => _('Cronjob aktivieren')])->asImg(16) ?>
+                    <?= Icon::create('checkbox-unchecked', 'clickable', ['title' => _('Cronjob aktivieren')])->asImg() ?>
                 </a>
             <? endif; ?>
             </td>
@@ -144,16 +144,16 @@
         <? endif; ?>
             <td style="text-align: right">
                 <a data-dialog href="<?= $controller->url_for('admin/cronjobs/schedules/display', $schedules[$i]->schedule_id) ?>">
-                    <?= Icon::create('admin', 'clickable', ['title' => _('Cronjob anzeigen')])->asImg(16) ?>
+                    <?= Icon::create('admin', 'clickable', ['title' => _('Cronjob anzeigen')])->asImg() ?>
                 </a>
                 <a href="<?= $controller->url_for('admin/cronjobs/schedules/edit', $schedules[$i]->schedule_id, $page) ?>">
-                    <?= Icon::create('edit', 'clickable', ['title' => _('Cronjob bearbeiten')])->asImg(16) ?>
+                    <?= Icon::create('edit', 'clickable', ['title' => _('Cronjob bearbeiten')])->asImg() ?>
                 </a>
                 <a href="<?= $controller->url_for('admin/cronjobs/logs/schedule', $schedules[$i]->schedule_id) ?>">
-                    <?= Icon::create('log', 'clickable', ['title' => _('Log anzeigen')])->asImg(16) ?>
+                    <?= Icon::create('log', 'clickable', ['title' => _('Log anzeigen')])->asImg() ?>
                 </a>
                 <a href="<?= $controller->url_for('admin/cronjobs/schedules/cancel', $schedules[$i]->schedule_id, $page) ?>">
-                    <?= Icon::create('trash', 'clickable', ['title' => _('Cronjob löschen')])->asImg(16) ?>
+                    <?= Icon::create('trash', 'clickable', ['title' => _('Cronjob löschen')])->asImg() ?>
                 </a>
             </td>
         </tr>

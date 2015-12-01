@@ -7,10 +7,10 @@
         <a href="#" onclick="return STUDIP.Admission.configureRule('<?= get_class($rule) ?>', '<?=
             $controller->url_for('admission/rule/configure', get_class($rule), $rule->getId()) ?>', '<?=
             $rule->getId() ?>')">
-            <?= Icon::create('edit', 'clickable')->asImg(16); ?></a>
+            <?= Icon::create('edit', 'clickable')->asImg(); ?></a>
         <a href="#" onclick="return STUDIP.Dialogs.showConfirmDialog('<?= 
                     _('Soll die Anmelderegel wirklich gelöscht werden?') ?>', 
                     'javascript:STUDIP.Admission.removeRule(\'rule_<?= $rule->getId() ?>\', \'rules\')')">
-            <?= Icon::create('trash', 'clickable')->asImg(16); ?></a>
+            <?= Icon::create('trash', 'clickable')->asImg(); ?></a>
     </span>
 </div>

@@ -34,7 +34,7 @@
             <th style="text-align: right;">
             <? if ($folder_id): ?>
                 <a href="<?= URLHelper::getLink('folder.php?cmd=tree#anker', array('open' => $folder_id)) ?>">
-                    <?= Icon::create('files', 'clickable', ['title' => _('Dateiordner vorhanden')])->asImg(16) ?>
+                    <?= Icon::create('files', 'clickable', ['title' => _('Dateiordner vorhanden')])->asImg() ?>
                 </a>
             <? endif; ?>
             <? if ($may_mail && $members > 0): ?>
@@ -42,7 +42,7 @@
                     <?= Assets::img('icons/16/blue/move_right/mail', tooltip2(_('Systemnachricht mit Emailweiterleitung an alle Gruppenmitglieder verschicken'))) ?>
                 </a>
                 <a href="<?= URLHelper::getLink('dispatch.php/messages/write', array('group_id' => $group_id, 'default_subject' => $subject)) ?>" data-dialog>
-                    <?= Icon::create('mail', 'clickable', ['title' => _('Systemnachricht an alle Gruppenmitglieder verschicken')])->asImg(16) ?>
+                    <?= Icon::create('mail', 'clickable', ['title' => _('Systemnachricht an alle Gruppenmitglieder verschicken')])->asImg() ?>
                 </a>
             <? endif; ?>
             </th>
@@ -68,12 +68,12 @@
             <td style="text-align: right;">
             <? if ($row['user_id'] == $GLOBALS['user']->id && $self_assign): ?>
                 <a href="<?= URLHelper::getLink('', array('delete_id' => $group_id)) ?>">
-                    <?= Icon::create('trash', 'clickable', ['title' => _('Aus dieser Gruppe austragen')])->asImg(16) ?>
+                    <?= Icon::create('trash', 'clickable', ['title' => _('Aus dieser Gruppe austragen')])->asImg() ?>
                 </a>
             <? endif; ?>
             <? if (($visio[$row['user_id']] || $rechte) && $row['user_id'] != $GLOBALS['user']->id): ?>
                 <a href="<?= URLHelper::getLink('dispatch.php/messages/write', array('rec_uname' => $row['username'])) ?>" data-dialog>
-                    <?= Icon::create('mail', 'clickable', ['title' => _('Systemnachricht an Benutzer verschicken')])->asImg(16) ?>
+                    <?= Icon::create('mail', 'clickable', ['title' => _('Systemnachricht an Benutzer verschicken')])->asImg() ?>
                 </a>
             <? endif; ?>
             </td>

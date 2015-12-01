@@ -16,7 +16,7 @@
         <td width="1%">
         <? if ($query['details']): ?>
             <a href="<?= URLHelper::getLink('?' . $query['details']) ?>">
-                <?= Icon::create('edit', 'clickable', ['title' => _('Bearbeiten')])->asImg(16) ?>
+                <?= Icon::create('edit', 'clickable', ['title' => _('Bearbeiten')])->asImg() ?>
             </a>
         <? endif; ?>
         </td>

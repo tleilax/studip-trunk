@@ -99,17 +99,17 @@ if (get_config('ELEARNING_INTERFACE_ENABLE'))
         {
             if ($msg["error"] != "")
             {
-                echo "<tr><td valign=\"middle\">" . Icon::create('decline', 'attention')->asImg(16, ['class' => 'text-top', 'title' => _('Fehler')]) . $msg["error"] . "</td></tr>";
+                echo "<tr><td valign=\"middle\">" . Icon::create('decline', 'attention')->asImg(['class' => 'text-top', 'title' => _('Fehler')]) . $msg["error"] . "</td></tr>";
                 $error_count++;
             }
             else
-                echo "<tr><td valign=\"middle\">" . Icon::create('accept', 'accept')->asImg(16, ['class' => 'text-top', 'title' => _('OK')]) . $msg["info"] . "</td></tr>";
+                echo "<tr><td valign=\"middle\">" . Icon::create('accept', 'accept')->asImg(['class' => 'text-top', 'title' => _('OK')]) . $msg["info"] . "</td></tr>";
         }
         echo "<tr><td><br></td></tr>";
         if ($error_count > 0)
         {
             $status_info = "error";
-            echo "<tr><td valign=\"middle\">" . Icon::create('decline', 'attention')->asImg(16, ['class' => 'text-top', 'title' => _('Fehler')]) . "<b>";
+            echo "<tr><td valign=\"middle\">" . Icon::create('decline', 'attention')->asImg(['class' => 'text-top', 'title' => _('Fehler')]) . "<b>";
             echo _("Beim Laden der Schnittstelle sind Fehler aufgetreten. ");
             if (ELearningUtils::isCMSActive($cms_select))
             {
@@ -119,7 +119,7 @@ if (get_config('ELEARNING_INTERFACE_ENABLE'))
             echo "</b></td></tr>";
         }
         else
-            echo "<tr><td valign=\"middle\">" . Icon::create('accept', 'accept')->asImg(16, ['class' => 'text-top', 'title' => _('OK'))) . "<b>" .sprintf( _("Die Schnittstelle zum %s-System ist korrekt konfiguriert."), $connected_cms[$cms_select]->getName(]) . "</b></td></tr>";
+            echo "<tr><td valign=\"middle\">" . Icon::create('accept', 'accept', ['title' =>  _('OK')])->asImg(['class' => 'text-top']) . "<b>" .sprintf( _("Die Schnittstelle zum %s-System ist korrekt konfiguriert."), $connected_cms[$cms_select]->getName()) . "</b></td></tr>";
         echo "</table>";
         echo "<br>\n";
         echo ELearningUtils::getCMSHeader($connected_cms[$cms_select]->getName());

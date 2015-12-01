@@ -9,10 +9,10 @@ use Studip\Button, Studip\LinkButton;
         <INPUT type="checkbox" name="themen[]" value="<?=$tpl['issue_id']?>"<?=$tpl['selected']?>>
         <? if ($_SESSION['issue_open'][$tpl['issue_id']]) { ?>
             <A href="<?= URLHelper::getLink('?cmd=close&open_close_id='. $tpl['issue_id'] .'#'. $tpl['issue_id']) ?>">
-                <?= Icon::create('arr_1down', 'clickable')->asImg(16, ['class' => 'text-bottom']) ?>
+                <?= Icon::create('arr_1down', 'clickable')->asImg(['class' => 'text-bottom']) ?>
         <? } else { ?>
             <A href="<?= URLHelper::getLink('?cmd=open&open_close_id='. $tpl['issue_id'] .'#'. $tpl['issue_id']) ?>">
-                <?= Icon::create('arr_1right', 'clickable')->asImg(16, ['class' => 'text-bottom']) ?>
+                <?= Icon::create('arr_1right', 'clickable')->asImg(['class' => 'text-bottom']) ?>
         <? } ?>
         </A>
     </TD>
@@ -30,16 +30,16 @@ use Studip\Button, Studip\LinkButton;
     <TD width="20%" align="right" class="table_header" nowrap>
         <? if (!$tpl['first']) { ?>
         <A href="<?= URLHelper::getLink('?newPriority='. ($tpl['priority'] - 1) .'&issueID='. $tpl['issue_id'] .'&cmd=changePriority') ?>">
-            <?= Icon::create('arr_2up', 'sort')->asImg(16, ['class' => 'text-bottom']) ?>
+            <?= Icon::create('arr_2up', 'sort')->asImg(['class' => 'text-bottom']) ?>
         </A>
         <? } ?>
         <? if (!$tpl['last']) { ?>
         <A href="<?= URLHelper::getLink('?newPriority='. ($tpl['priority'] + 1) .'&issueID='. $tpl['issue_id'] .'&cmd=changePriority') ?>">
-            <?= Icon::create('arr_2down', 'sort')->asImg(16, ['class' => 'text-bottom']) ?>
+            <?= Icon::create('arr_2down', 'sort')->asImg(['class' => 'text-bottom']) ?>
         </A>
         <? } ?>
         <A href="<?= URLHelper::getLink('?cmd=deleteIssue&issue_id='. $tpl['issue_id']) ?>">
-            <?= Icon::create('trash', 'clickable')->asImg(16, ['class' => 'text-bottom']) ?>
+            <?= Icon::create('trash', 'clickable')->asImg(['class' => 'text-bottom']) ?>
         </A>
     </TD>
 </TR>

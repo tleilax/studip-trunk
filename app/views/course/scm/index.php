@@ -3,7 +3,7 @@
 <section class="contentbox">
     <header>
         <h1>
-            <?= Icon::create('infopage', 'inactive')->asImg(16, ['class' => 'text-top']) ?>
+            <?= Icon::create('infopage', 'inactive')->asImg(['class' => 'text-top']) ?>
             <?= htmlReady($scm->tab_name) ?>
         </h1>
         <nav>
@@ -16,16 +16,16 @@
             </span>
             <? if ($priviledged): ?>
                 <a href="<?= $controller->url_for('course/scm/edit/' . $scm->id) ?>" title="<?= _('Bearbeiten') ?>" data-dialog>
-                    <?= Icon::create('admin', 'clickable')->asImg(16) ?>
+                    <?= Icon::create('admin', 'clickable')->asImg() ?>
                 </a>
                 <? if (count($scms) > 1): ?>
                     <? if ($scm->position != 0): ?>
                         <a href="<?= $controller->url_for('course/scm/move/' . $scm->id) ?>" title="<?= _('Diese Seite an die erste Position setzen') ?>">
-                            <?= Icon::create('arr_2up', 'clickable')->asImg(16) ?>
+                            <?= Icon::create('arr_2up', 'clickable')->asImg() ?>
                         </a>
                     <? endif; ?>
                     <a href="<?= $controller->url_for('course/scm/' . $scm->id . '?verify=delete') ?>" title="<?= _('Diese Seite löschen') ?>">
-                        <?= Icon::create('trash', 'clickable')->asImg(16) ?>
+                        <?= Icon::create('trash', 'clickable')->asImg() ?>
                     </a>
                 <? endif; ?>
             <? endif; ?>

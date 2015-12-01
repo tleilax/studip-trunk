@@ -21,7 +21,7 @@ $groups = Statusgruppen::findBySeminar_id($_SESSION['SessionSeminar']);
     </td>
 
     <td id="<?=$tpl['sd_id']?>" width="1%" align="right" class="<?=$tpl['class']?>" nowrap>
-        <?= Icon::create('date', 'inactive')->asImg(16, ['class' => 'middle']) ?>
+        <?= Icon::create('date', 'inactive')->asImg(['class' => 'middle']) ?>
     </td>
 
     <td nowrap class="<?=$tpl['class']?>">
@@ -53,7 +53,7 @@ $groups = Statusgruppen::findBySeminar_id($_SESSION['SessionSeminar']);
             if (get_class($plugin) == $forum_slot) :
                 if ($count = $plugin->getNumberOfPostingsForIssue($tpl['issue_id'])) : ?>
                 <a href="<?= $plugin->getLinkToThread($tpl['issue_id']) ?>">
-                    <?= Icon::create('forum', 'clickable', ['title' => sprintf(_('%u Foreneinträge vorhanden'), $count)])->asImg(16) ?>
+                    <?= Icon::create('forum', 'clickable', ['title' => sprintf(_('%u Foreneinträge vorhanden'), $count)])->asImg() ?>
                 </a>
             <? endif;
             endif;
@@ -65,7 +65,7 @@ $groups = Statusgruppen::findBySeminar_id($_SESSION['SessionSeminar']);
     <td width="1%" class="<?=$tpl['class']?>" nowrap="nowrap">
     <? if ($tpl['fileCountAll'] > 0) : ?>
         <a href="<?=URLHelper::getLink("folder.php?open=".$tpl['folder_id']."&cmd=tree#anker")?>">
-            <?= Icon::create('download', 'clickable', ['title' => sprintf(_('%u Dokument(e) vorhanden'), $tpl['fileCountAll'])])->asImg(16) ?>
+            <?= Icon::create('download', 'clickable', ['title' => sprintf(_('%u Dokument(e) vorhanden'), $tpl['fileCountAll'])])->asImg() ?>
         </a>
     <? endif; ?>
     </td>
@@ -127,11 +127,11 @@ $groups = Statusgruppen::findBySeminar_id($_SESSION['SessionSeminar']);
 <? else:    // Gelöschter Termin... ?>
 <tr style="height: 1.8em">
     <TD width="1%" align="right" valign="bottom" class="content_title_red" nowrap="nowrap">
-        <?= Icon::create('arr_1right', 'clickable')->asImg(16) ?>
+        <?= Icon::create('arr_1right', 'clickable')->asImg() ?>
     </TD>
     <TD width="1%" align="right" valign="bottom" class="content_title_red" nowrap="nowrap">
         <A name="<?=$tpl['sd_id']?>" />
-        <?= Icon::create('date', 'clickable')->asImg(16, ['class' => 'middle']) ?>
+        <?= Icon::create('date', 'clickable')->asImg(['class' => 'middle']) ?>
     </TD>
     <TD nowrap="nowrap" class="content_title_red" valign="bottom">
                 <i><?= htmlReady($tpl['art']) ?>:&nbsp;</i>

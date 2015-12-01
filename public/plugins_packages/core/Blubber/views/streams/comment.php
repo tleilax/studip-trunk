@@ -32,7 +32,7 @@ $author_url = $author->getURL();
             </span>
             <? if ($GLOBALS['perm']->have_studip_perm("tutor", $posting['Seminar_id']) or ($posting['user_id'] === $GLOBALS['user']->id)) : ?>
             <a href="#" class="edit" onClick="return false;" style="vertical-align: middle; opacity: 0.6;">
-                <?= Icon::create('tools', 'inactive', ['title' => _('Bearbeiten')) + array('size' => '14'])->asImg(16) ?>
+                <?= Icon::create('tools', 'inactive', ['title' => _('Bearbeiten')])->asImg(14) ?>
             </a>
             <? endif ?>
         </div>

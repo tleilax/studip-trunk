@@ -108,10 +108,10 @@
                                 <td><?= strftime("%d.%m.%y", $news['object']->date + $news['object']->expire) ?></td>
                                 <td>
                                     <a href="<?= URLHelper::getURL('dispatch.php/news/edit_news/' . $news['object']->news_id) ?>" rel="get_dialog" target="_blank" <?= tooltip(_('Ankündigung bearbeiten')) ?>>
-                                        <?= Icon::create('edit', 'clickable')->asImg(16) ?>
+                                        <?= Icon::create('edit', 'clickable')->asImg() ?>
                                     </a>
                                     <a href="<?= URLHelper::getURL('dispatch.php/news/edit_news/new/template/' . $news['object']->news_id) ?>" rel="get_dialog" target="_blank" aria-label="<?= _('Kopieren, um neue Ankündigung zu erstellen') ?>" <?= tooltip(_('Kopieren, um neue Ankündigung zu erstellen')) ?>>
-                                        <?= Icon::create('news+export', 'clickable')->asImg(16) ?>
+                                        <?= Icon::create('news+export', 'clickable')->asImg() ?>
                                     </a>
                                     <? if ($news['object']->havePermission('unassign', $news['range_id'])) : ?>
                                         <?= Assets::input('icons/16/blue/remove.png',

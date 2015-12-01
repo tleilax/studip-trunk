@@ -41,7 +41,7 @@ use Studip\Button, Studip\LinkButton;
             <td class="actions">
                 <? if (!$role->getSystemtype()): ?>
                     <a href="<?= $controller->url_for('admin/role/ask_remove_role', $role_id) ?>">
-                        <?= Icon::create('trash', 'clickable', ['title' => _('Rolle löschen')])->asImg(16) ?>
+                        <?= Icon::create('trash', 'clickable', ['title' => _('Rolle löschen')])->asImg() ?>
                     </a>
                 <? endif ?>
             </td>

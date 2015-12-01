@@ -12,7 +12,7 @@
                 <div>
                     <form onSubmit="STUDIP.Dates.addTopic(); return false;">
                         <input type="text" name="new_topic" id="new_topic" placeholder="<?= _("Thema hinzufügen") ?>">
-                        <a href="#" onClick="STUDIP.Dates.addTopic(); return false;"><?= Icon::create('add', 'clickable')->asImg(16, ['class' => "text-bottom"]) ?></a>
+                        <a href="#" onClick="STUDIP.Dates.addTopic(); return false;"><?= Icon::create('add', 'clickable')->asImg(['class' => "text-bottom"]) ?></a>
                     </form>
                     <script>
                         jQuery(function () {

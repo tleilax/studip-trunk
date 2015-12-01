@@ -13,7 +13,7 @@
     <li>
           <?= htmlReady($institute->name) ?>
           <a href="<?= $controller->link_for('/assign_role_institutes/' . $role->getRoleid() . '/' . $user->id, array('remove_institute' => $institute->id)) ?>" data-lightbox>
-              <?= Icon::create('trash', 'clickable')->asImg(16) ?>
+              <?= Icon::create('trash', 'clickable')->asImg() ?>
           </a>
     </li>
 <? endforeach ?>

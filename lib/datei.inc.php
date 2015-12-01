@@ -1412,7 +1412,7 @@ function link_form ($range_id, $updating=FALSE)
         }
     }
     if ($folder_system_data["linkerror"]==TRUE) {
-        $print.="<hr>".  Icon::create('accept', 'attention')->asImg(16, ['class' => 'text-top']) . "<font color=\"red\">";
+        $print.="<hr>".  Icon::create('accept', 'attention')->asImg(['class' => 'text-top']) . "<font color=\"red\">";
         $print.=_("&nbsp;FEHLER: unter der angegebenen Adresse wurde keine Datei gefunden.<br>&nbsp;Bitte kontrollieren Sie die Pfadangabe!");
         $print.="</font><hr>";
     }
@@ -1533,7 +1533,7 @@ function display_file_body($datei, $folder_id, $open, $change, $move, $upload, $
 
     if ($move == $datei["dokument_id"])
         $content.="<br>" . sprintf(_("Diese Datei wurde zum Verschieben / Kopieren markiert. Bitte wählen Sie das Einfügen-Symbol %s, um diese Datei in den gewünschten Ordner zu verschieben / kopieren. Wenn Sie diese Datei in eine andere Veranstaltung verschieben / kopieren möchten, wählen Sie die gewünschte Veranstaltung oben auf der Seite aus (sofern Sie Dozent oder Tutor in einer anderen Veranstaltung sind)."),
-                                   Icon::create('arr_2right', 'sort', ['title' => _("Klicken Sie dieses Symbol, um diese Datei in einen anderen Ordner einzufügen"))])->asImg(16);
+                                   Icon::create('arr_2right', 'sort', ['title' => _("Klicken Sie dieses Symbol, um diese Datei in einen anderen Ordner einzufügen")]))->asImg();
 
     $content.= "\n";
 
@@ -1657,12 +1657,12 @@ function display_file_line ($datei, $folder_id, $open, $change, $move, $upload, 
         $bewegeflaeche = "<span class=\"updown_marker\" id=\"pfeile_".$datei["dokument_id"]."\">";
         if (($position == "middle") || ($position == "bottom")) {
             $bewegeflaeche .= "<a href=\"".URLHelper::getLink('?open='.$datei['dokument_id'])."_mfu_\" title=\""._("Datei nach oben schieben").
-                "\">" . Icon::create('arr_2up', 'sort')->asImg(16, ['class' => 'text-top']) . "</a>";
+                "\">" . Icon::create('arr_2up', 'sort')->asImg(['class' => 'text-top']) . "</a>";
         }
         if (($position == "middle") || ($position == "top")) {
             $bewegeflaeche .= "<a href=\"".URLHelper::getLink('?open='.
                     $datei['dokument_id'])."_mfd_\" title=\""._("Datei nach unten schieben").
-                    "\">". Icon::create('arr_2down', 'sort')->asImg(16, ['class' => 'text-top']) . "</a>";
+                    "\">". Icon::create('arr_2down', 'sort')->asImg(['class' => 'text-top']) . "</a>";
         }
         $bewegeflaeche .= "</span>";
     }
@@ -1682,7 +1682,7 @@ function display_file_line ($datei, $folder_id, $open, $change, $move, $upload, 
         if (check_protected_download($datei["dokument_id"])) {
             print "<a href=\"".GetDownloadLink( $datei["dokument_id"], $datei["filename"], $type, "normal")."\" class=\"extern\">".GetFileIcon(getFileExtension($datei['filename']), true)."</a>";
         } else {
-            print Icon::create('info-circle', 'inactive')->asImg(16);
+            print Icon::create('info-circle', 'inactive')->asImg();
         }
         //Jetzt folgt der Link zum Aufklappen
         if ($open[$datei["dokument_id"]]) {
@@ -1722,7 +1722,7 @@ function display_file_line ($datei, $folder_id, $open, $change, $move, $upload, 
         $box = sprintf ("<input type=\"CHECKBOX\" %s name=\"download_ids[]\" value=\"%s\">",$checked , $datei["dokument_id"]);
         print $box;
       } else {
-        echo Icon::create('decline', 'inactive', ['title' => _("Diese Datei kann nicht als ZIP-Archiv heruntergeladen werden."), 'style' => 'padding-left:5px;'])->asImg(16);
+        echo Icon::create('decline', 'inactive', ['title' => _("Diese Datei kann nicht als ZIP-Archiv heruntergeladen werden."), 'style' => 'padding-left:5px;'])->asImg();
     }
     }
     print "</td></tr>";
@@ -1774,12 +1774,12 @@ function display_folder_body($folder_id, $open, $change, $move, $upload, $refres
 
     $content='';
     if ($super_folder){
-        $content .=  Icon::create('lock-locked', 'inactive')->asImg(16, ['class' => 'texttop']) . '&nbsp;'
+        $content .=  Icon::create('lock-locked', 'inactive')->asImg(['class' => 'texttop']) . '&nbsp;'
             . sprintf(_("Dieser Ordner ist nicht zugänglich, da der übergeordnete Ordner \"%s\" nicht lesbar oder nicht sichtbar ist!"), htmlReady($folder_tree->getValue($super_folder,'name')))
             . '<hr>';
     }
     if ($folder_tree->isExerciseFolder($folder_id)){
-        $content .=  Icon::create('edit', 'inactive')->asImg(16, ['class' => 'texttop']) . '&nbsp;'
+        $content .=  Icon::create('edit', 'inactive')->asImg(['class' => 'texttop']) . '&nbsp;'
                 . _("Dieser Ordner ist ein Hausaufgabenordner. Es können nur Dateien eingestellt werden.")
                 . (!$rechte ? _("Sie selbst haben folgende Dateien in diesen Ordner eingestellt:")
                 . '<br><b>' . htmlReady(join('; ', get_user_documents_in_folder($folder_id, $GLOBALS['user']->id))).'</b>' : '')
@@ -1844,7 +1844,7 @@ function display_folder_body($folder_id, $open, $change, $move, $upload, $refres
     if ($move == $result["folder_id"]){
         $content .= "<br>"
                   . sprintf(_("Dieser Ordner wurde zum Verschieben / Kopieren markiert. Bitte wählen Sie das Einfügen-Symbol %s, um ihn in den gewünschten Ordner zu verschieben."),
-                            Icon::create('arr_2right', 'sort', ['title' => _("Klicken Sie auf dieses Symbol, um diesen Ordner in einen anderen Ordner einzufügen."))])->asImg(16);
+                            Icon::create('arr_2right', 'sort', ['title' => _("Klicken Sie auf dieses Symbol, um diesen Ordner in einen anderen Ordner einzufügen.")]))->asImg();
         if ($rechte) {
             $content .= _("Wenn Sie den Ordner in eine andere Veranstaltung verschieben / kopieren möchten, wählen Sie die gewünschte Veranstaltung oben auf der Seite aus.");
         }
@@ -2071,12 +2071,12 @@ function display_folder ($folder_id, $open, $change, $move, $upload, $refresh=FA
         $bewegeflaeche = "<span class=\"updown_marker\" id=\"pfeile_".$folder_id."\">";
         if (($position == "middle") || ($position == "bottom")) {
             $bewegeflaeche .= "<a href=\"".URLHelper::getLink('?open='.$folder_id)."_mfou_\" title=\""._("Nach oben verschieben").
-                    "\">" . Icon::create('arr_2up', 'sort')->asImg(16, ['class' => 'text-top']) . "</a>";
+                    "\">" . Icon::create('arr_2up', 'sort')->asImg(['class' => 'text-top']) . "</a>";
         }
         if (($position == "middle") || ($position == "top")) {
             $bewegeflaeche .= "<a href=\"".URLHelper::getLink('?open='.
                     $folder_id)."_mfod_\" title=\""._("Nach unten verschieben").
-                    "\">" . Icon::create('arr_2down', 'sort')->asImg(16, ['class' => 'text-top']) . "</a>";
+                    "\">" . Icon::create('arr_2down', 'sort')->asImg(['class' => 'text-top']) . "</a>";
         }
         $bewegeflaeche .= "</span>";
     }
@@ -2094,7 +2094,7 @@ function display_folder ($folder_id, $open, $change, $move, $upload, $refresh=FA
         print "<td class=\"printhead\" valign=\"bottom\">";
         if ($move && ($move != $folder_id) && $folder_tree->isWritable($folder_id, $user->id) && (!$folder_tree->isFolder($move) || ($folder_tree->checkCreateFolder($folder_id, $user->id) && !$folder_tree->isExerciseFolder($folder_id, $user->id)))){
                 print "<a href=\"".URLHelper::getLink("?open=".$folder_id."_md_")."\">";
-                print Icon::create('arr_2right', 'sort')->asImg(16);
+                print Icon::create('arr_2right', 'sort')->asImg();
                 print "</a>&nbsp;";
         }
         if (($anchor_id == $folder_id) || (($move == $folder_id))) {
@@ -2112,7 +2112,7 @@ function display_folder ($folder_id, $open, $change, $move, $upload, $refresh=FA
         print "<td class=\"printhead\" valign=\"bottom\">";
         if ($move && ($move != $folder_id) && $folder_tree->isWritable($folder_id, $user->id) && (!$folder_tree->isFolder($move) || ($folder_tree->checkCreateFolder($folder_id, $user->id) && !$folder_tree->isExerciseFolder($folder_id, $user->id)))){
             print "&nbsp;<a href=\"".URLHelper::getLink("?open=".$folder_id."_md_")."\">";
-            print Icon::create('arr_2right', 'sort')->asImg(16);
+            print Icon::create('arr_2right', 'sort')->asImg();
             print "</a>&nbsp";
         }
         print "<a href=\"".URLHelper::getLink("?open=".$folder_id."#anker")."\" class=\"tree\" " .
@@ -2123,15 +2123,15 @@ function display_folder ($folder_id, $open, $change, $move, $upload, $refresh=FA
     $document_count = doc_count($folder_id);
 
     if ($document_count > 0) {
-        print Icon::create('folder-full', 'clickable')->asImg(16) . '&nbsp;';
+        print Icon::create('folder-full', 'clickable')->asImg() . '&nbsp;';
     } else {
-        print Icon::create('folder-empty', 'clickable')->asImg(16) . '&nbsp;';
+        print Icon::create('folder-empty', 'clickable')->asImg() . '&nbsp;';
     }
 
     //Pfeile, wenn Datei bewegt werden soll
     if ($move && ($folder_id != $move) && $folder_tree->isWritable($folder_id, $user->id) && (!$folder_tree->isFolder($move) || ($folder_tree->checkCreateFolder($folder_id, $user->id) && !$folder_tree->isExerciseFolder($folder_id, $user->id)))){
         print "</a><span class=\"move_arrows\"><a href=\"".URLHelper::getLink("?open=".$folder_id."_md_")."\">";
-        print Icon::create('arr_2right', 'sort')->asImg(16);
+        print Icon::create('arr_2right', 'sort')->asImg();
         print "</a></span>";
         if ($open[$folder_id])
             print "<a href=\"".URLHelper::getLink("?close=".$folder_id."#anker")."\" class=\"tree\" onClick=\"return STUDIP.Filesystem.changefolderbody('".$folder_id."')\">";
@@ -2201,15 +2201,15 @@ function display_folder ($folder_id, $open, $change, $move, $upload, $refresh=FA
 
     // Schloss, wenn Folder gelockt
     if ($folder_tree->isLockedFolder($folder_id)) {
-        print Icon::create('lock-locked', 'inactive', ['title' => _('Dieser Ordner ist gesperrt.')) + array('class' => 'text-bottom'])->asImg(16);
+        print Icon::create('lock-locked', 'inactive', ['title' => _('Dieser Ordner ist gesperrt.')])->asImg(['class' => 'text-bottom']);
     }
     //Wenn verdeckt durch gesperrten übergeordneten Ordner
     else if ( ($super_folder = $folder_tree->getNextSuperFolder($folder_id)) ) {
-        print Icon::create('lock-locked', 'inactive', ['title' => _('Dieser Ordner ist nicht zugänglich, da ein übergeordneter Ordner gesperrt ist.')) + array('class' => 'text-bottom'])->asImg(16);
+        print Icon::create('lock-locked', 'inactive', ['title' => _('Dieser Ordner ist nicht zugänglich, da ein übergeordneter Ordner gesperrt ist.')])->asImg(['class' => 'text-bottom']);
     }
     // Wenn es ein Hausaufgabenordner ist
     if ($folder_tree->isExerciseFolder($folder_id)) {
-        print Icon::create('edit', 'inactive', ['title' => _('Dieser Ordner ist ein Hausaufgabenordner. Es können nur Dateien eingestellt werden.')) + array('class' => 'text-bottom'])->asImg(16);
+        print Icon::create('edit', 'inactive', ['title' => _('Dieser Ordner ist ein Hausaufgabenordner. Es können nur Dateien eingestellt werden.')])->asImg(['class' => 'text-bottom']);
     }
 
     print "</td>";

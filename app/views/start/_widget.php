@@ -18,12 +18,12 @@
 
         <? if (isset($admin_url)): ?>
             <a href="<?= URLHelper::getLink($admin_url) ?>">
-                <?= Icon::create('admin', 'clickable', ['title' => $admin_title])->asImg(16) ?>
+                <?= Icon::create('admin', 'clickable', ['title' => $admin_title])->asImg() ?>
             </a>
         <? endif ?>
 
         <a href="<?= $controller->url_for('start/delete/' . $widget->widget_id) ?>">
-            <?= Icon::create('decline', 'clickable', ['title' => _('Entfernen')])->asImg(16) ?>
+            <?= Icon::create('decline', 'clickable', ['title' => _('Entfernen')])->asImg() ?>
         </a>
     </span>
     <span id="widgetName<?= $widget->widget_id ?>" class="widget-title">

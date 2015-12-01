@@ -25,17 +25,17 @@
         <th><?= $studycourse['count_user'] ?> </th>
         <th width="20">
             <? if ($studycourse['count_user'] > 0): ?><a href="<?=URLHelper::getLink("dispatch.php/messages/write?sp_id=".$studycourse['studiengang_id']."&emailrequest=1&default_subject="._("Informationen zum Studiengang:")." ". $studycourse['name']) ?>">
-                <?= Icon::create('mail', 'clickable', ['title' => _('Nachricht an alle Benutzer schicken'), 'class' => 'text-top'])->asImg(16) ?>
+                <?= Icon::create('mail', 'clickable', ['title' => _('Nachricht an alle Benutzer schicken'), 'class' => 'text-top'])->asImg() ?>
             </a><? endif;?>
         </th>
         <th width="20">
             <a href="<?=$controller->url_for('admin/studycourse/edit_profession/'.$studycourse['studiengang_id'])?>">
-                <?= Icon::create('edit', 'clickable', ['title' => _('Studiengang bearbeiten'), 'class' => 'text-top'])->asImg(16) ?>
+                <?= Icon::create('edit', 'clickable', ['title' => _('Studiengang bearbeiten'), 'class' => 'text-top'])->asImg() ?>
             </a>
         </th>
         <th width="20">
             <? if ($studycourse['count_user'] == 0): ?> <a href="<?=$controller->url_for('admin/studycourse/delete_profession/' . $studycourse['studiengang_id']) ?>">
-                <?= Icon::create('trash', 'clickable', ['title' => _('Studiengang löschen'), 'class' => 'text-top'])->asImg(16) ?>
+                <?= Icon::create('trash', 'clickable', ['title' => _('Studiengang löschen'), 'class' => 'text-top'])->asImg() ?>
             </a><? endif;?>
         </th>
     </tr>
@@ -46,7 +46,7 @@
            <?= htmlReady($degree['name']) ?>
         </td>
         <td><?= $degree['count_user'] ?></td>
-        <td><a href="<?=URLHelper::getLink("sms_send.php?sms_source_page=sms_box.php&prof_id=".$studycourse['studiengang_id']."&deg_id=".$degree['abschluss_id']."&emailrequest=1&subject="._("Informationen zum Studiengang:")." ". $studycourse['name'])." (".$degree['name'].")"?>"><?= Icon::create('mail', 'clickable', ['title' => 'Nachricht an alle Nutzer schicken'])->asImg(16) ?></a></td>
+        <td><a href="<?=URLHelper::getLink("sms_send.php?sms_source_page=sms_box.php&prof_id=".$studycourse['studiengang_id']."&deg_id=".$degree['abschluss_id']."&emailrequest=1&subject="._("Informationen zum Studiengang:")." ". $studycourse['name'])." (".$degree['name'].")"?>"><?= Icon::create('mail', 'clickable', ['title' => 'Nachricht an alle Nutzer schicken'])->asImg() ?></a></td>
         <td></td>
         <td></td>
     </tr>

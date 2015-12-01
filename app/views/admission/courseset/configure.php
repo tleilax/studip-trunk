@@ -77,7 +77,7 @@ if ($flash['error']) {
                             $controller->url_for('admission/courseset/institutes', $courseset ? $courseset->getId() : '')."', '".
                             $controller->url_for('admission/courseset/instcourses', $courseset ? $courseset->getId() : '')."', 'add')")) ?>
                     <?= $instSearch ?>
-                    <?= Icon::create('search', 'clickable', ['title' => _("Suche starten")])->asImg(16)?>
+                    <?= Icon::create('search', 'clickable', ['title' => _("Suche starten")])->asImg()?>
                 </div>
                 <i><?=  _('Sie haben noch keine Einrichtung ausgewählt. Benutzen Sie obige Suche, um dies zu tun.') ?></i>
                 <?php } else { ?>
@@ -108,7 +108,7 @@ if ($flash['error']) {
             <label class="caption">
                 <?= _('Filter auf Name/Nummer/Dozent:') ?><br>
                 <input style="display:inline-block" type="text" onKeypress="if (event.which==13) return STUDIP.Admission.getCourses('<?= $controller->url_for('admission/courseset/instcourses', $courseset ? $courseset->getId() : '') ?>')" value="<?= htmlReady($current_course_filter) ?>" name="course_filter" >
-                <?=Icon::create('search', 'clickable', ['title' => _("Veranstaltungen anzeigen"),'onClick' => "return STUDIP.Admission.getCourses('" . $controller->url_for('admission/courseset/instcourses', $courseset ? $courseset->getId() : '') ."')"])->asImg(16)?>
+                <?=Icon::create('search', 'clickable', ['title' => _("Veranstaltungen anzeigen"),'onClick' => "return STUDIP.Admission.getCourses('" . $controller->url_for('admission/courseset/instcourses', $courseset ? $courseset->getId() : '') ."')"])->asImg()?>
             </label>
             <div id="instcourses">
             <?= $coursesTpl; ?>

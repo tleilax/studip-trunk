@@ -141,7 +141,7 @@ use Studip\Button;
                             <!-- Trash  -->
                             <? if ($owner_perms || ($admin_perms && $perm == 'autor')) : ?>
                                 <a href="<?= URLHelper::getLink('?change_object_perms=' . $resObject->getId() . '&delete_user_perms=' . $user_id) ?>">
-                                    <?= Icon::create('trash', 'clickable', ['title' => _('Berechtigung löschen')])->asImg(16) ?>
+                                    <?= Icon::create('trash', 'clickable', ['title' => _('Berechtigung löschen')])->asImg() ?>
                                 </a>
                             <? else : ?>
                                 <?= Assets::img('icons/16/grey/decline/trash.png', tooltip2(_('Sie dürfen diese Berechtigung leider nicht löschen'))) ?>

@@ -8,7 +8,7 @@
             <li id="template_adressee" style="display: none;" class="adressee">
                 <input type="hidden" name="message_to[]" value="">
                 <span class="visual"></span>
-                <a class="remove_adressee"><?= Icon::create('trash', 'clickable')->asImg(16, ['class' => "text-bottom"]) ?></a>
+                <a class="remove_adressee"><?= Icon::create('trash', 'clickable')->asImg(['class' => "text-bottom"]) ?></a>
             </li>
             <? foreach ($default_message->getRecipients() as $user) : ?>
             <li style="padding: 0px;" class="adressee">
@@ -16,7 +16,7 @@
                 <span class="visual">
                     <?= htmlReady($user['fullname']) ?>
                 </span>
-                <a class="remove_adressee"><?= Icon::create('trash', 'clickable')->asImg(16, ['class' => "text-bottom"]) ?></a>
+                <a class="remove_adressee"><?= Icon::create('trash', 'clickable')->asImg(['class' => "text-bottom"]) ?></a>
             </li>
             <? endforeach ?>
         </ul>
@@ -112,7 +112,7 @@
                     <span class="icon"></span>
                     <span class="name"></span>
                     <span class="size"></span>
-                    <a class="remove_attachment"><?= Icon::create('trash', 'clickable')->asImg(16, ['class' => "text-bottom"]) ?></a>
+                    <a class="remove_attachment"><?= Icon::create('trash', 'clickable')->asImg(['class' => "text-bottom"]) ?></a>
                 </li>
                 <? if ($default_attachments) : ?>
                     <? foreach ($default_attachments as $a) : ?>
@@ -120,7 +120,7 @@
                     <span class="icon"><?=$a['icon']?></span>
                     <span class="name"><?=$a['name']?></span>
                     <span class="size"><?=$a['size']?></span>
-                    <a class="remove_attachment"><?= Icon::create('trash', 'clickable')->asImg(16, ['class' => "text-bottom"]) ?></a>
+                    <a class="remove_attachment"><?= Icon::create('trash', 'clickable')->asImg(['class' => "text-bottom"]) ?></a>
                     </li>
                     <? endforeach ?>
                 <? endif ?>

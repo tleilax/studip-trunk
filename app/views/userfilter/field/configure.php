@@ -24,6 +24,6 @@
     </select>
     <a href="#" onclick="return STUDIP.UserFilter.removeConditionField($(this).parent())"
         class="conditionfield_delete">
-        <?= Icon::create('trash', 'clickable')->asImg(16); ?></a>
+        <?= Icon::create('trash', 'clickable')->asImg(); ?></a>
 </div>
 <?php } ?>

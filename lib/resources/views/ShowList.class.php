@@ -99,7 +99,7 @@ class ShowList extends ShowTreeRow{
         } else {
             //Daten vorbereiten
             if (!$resObject->getCategoryIconnr())
-                $icon = Icon::create('folder-full', 'inactive')->asImg(16, ['class' => 'text-top']);
+                $icon = Icon::create('folder-full', 'inactive')->asImg(['class' => 'text-top']);
             else
                 $icon = Assets::img('cont_res' . $resObject->getCategoryIconnr() . '.gif');
 

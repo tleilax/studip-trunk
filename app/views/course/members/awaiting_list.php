@@ -12,7 +12,7 @@
                             array('filter' => $waiting_type,
                                 'course_id' => $course_id,
                                 'default_subject' => $subject))?>" data-dialog>
-                        <?= Icon::create('inbox', 'clickable', ['title' =>  _('Nachricht an alle Wartenden versenden')])->asImg(16)?>
+                        <?= Icon::create('inbox', 'clickable', ['title' =>  _('Nachricht an alle Wartenden versenden')])->asImg()?>
                     </a>
             </span>
         </caption>

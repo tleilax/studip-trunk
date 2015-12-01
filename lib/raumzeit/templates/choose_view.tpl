@@ -13,7 +13,7 @@
 <? foreach ($tpl['view'] as $key => $val) {
     if ($tpl['selected'] == $key) { ?>
         <TD class="table_header_bold" nowrap="nowrap" valign="middle">
-            <?= Icon::create('arr_1right', 'attention')->asImg(16, ['class' => 'text-top']) ?>
+            <?= Icon::create('arr_1right', 'attention')->asImg(['class' => 'text-top']) ?>
             <FONT size="-1"><?=$val?></FONT>
         </TD>
 <? } else { ?>

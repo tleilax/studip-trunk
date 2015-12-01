@@ -227,7 +227,7 @@ class ShowGroupSchedulesDaily extends ShowSemSchedules {
                     <a href="<?= URLHelper::getLink('', array('quick_view' => $this->used_view,
                                                               'quick_view_mode' => $view_mode,
                                                               'time_range' => $_SESSION['resources_data']['schedule_time_range'] ? 'FALSE' : -1)) ?>">
-                        <?= Icon::create('arr_2up', 'clickable')->asImg(16, ['class' => 'middle') + tooltip2(_('Frühere Belegungen anzeigen')]) ?>
+                           <?= Icon::create('arr_2up', 'clickable', ['title' => _('Frühere Belegungen anzeigen')])->asImg(['class' => 'middle']) ?>
                     </a>
                 <? endif; ?>
                 </td>
@@ -264,7 +264,7 @@ class ShowGroupSchedulesDaily extends ShowSemSchedules {
                     <a href="<?= URLHelper::getLink('', array('quick_view' => $this->used_view,
                                                               'quick_view_mode' => $view_mode, 
                                                               'time_range' => $_SESSION['resources_data']['schedule_time_range'] ? 'FALSE' : 1)) ?>">
-                        <?= Icon::create('arr_2down', 'clickable', ['title' => _('Spätere Belegungen anzeigen')])->asImg(16) ?>
+                        <?= Icon::create('arr_2down', 'clickable', ['title' => _('Spätere Belegungen anzeigen')])->asImg() ?>
                     </a>
                 <? endif; ?>
                 </td>

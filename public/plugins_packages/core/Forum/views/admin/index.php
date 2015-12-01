@@ -23,7 +23,7 @@ $infobox = array('picture' => 'sidebar/forum-sidebar.png', 'content' => $infobox
             <a class="tooltip2"></a>
             <b><?= htmlReady($categories[$category_id]) ?></b>
             <a href="javascript:STUDIP.Forum.paste('<?= $category_id ?>');" data-role="paste" style="display: none">
-                <?= Icon::create('arr_2left', 'sort')->asImg(16) ?>
+                <?= Icon::create('arr_2left', 'sort')->asImg() ?>
             </a>    
             <br>
 

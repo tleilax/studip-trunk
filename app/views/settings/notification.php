@@ -64,12 +64,12 @@
                     <a class="tree" style="font-weight:bold" name="<?= $id ?>"
                        href="<?= $controller->url_for('settings/notification/close', $id) ?>#<?= $id ?>"
                        <?= tooltip(_('Gruppierung schließen'), true) ?>>
-                       <?= Icon::create('arr_1down', 'clickable')->asImg(16) ?>
+                       <?= Icon::create('arr_1down', 'clickable')->asImg() ?>
                 <? else: ?>
                     <a class="tree" name="<?= $id ?>"
                         href="<?= $controller->url_for('settings/notification/open', $id) ?>#<?= $id ?>"
                        <?= tooltip(_('Gruppierung öffnen'), true) ?>>
-                       <?= Icon::create('arr_1right', 'clickable')->asImg(16) ?>
+                       <?= Icon::create('arr_1right', 'clickable')->asImg() ?>
                 <? endif; ?>
                         <?= htmlReady(my_substr(implode(' &gt; ', (array)$group_names[$id]), 0, 70)) ?>
                     </a>

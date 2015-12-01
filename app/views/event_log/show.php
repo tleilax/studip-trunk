@@ -45,7 +45,7 @@ use Studip\Button, Studip\LinkButton;
       </select>
 
       <a href="<?= $controller->url_for('event_log/show?action_id='.urlencode($action_id)) ?>">
-        <?= Icon::create('refresh', 'clickable', ['title' => _('neue Suche')])->asImg(16) ?>
+        <?= Icon::create('refresh', 'clickable', ['title' => _('neue Suche')])->asImg() ?>
       </a>
     <? else: ?>
       <select name="type">

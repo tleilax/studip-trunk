@@ -351,11 +351,11 @@ if ($preferred_plugin && in_array($preferred_plugin, $_search_plugins)){
         echo "\n<table width=\"99%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" align=\"center\"><tr><th align=\"left\">";
         if (is_array($_SESSION['_open']) && count($_SESSION['_open'])){
             echo "\n<a href=\"".URLHelper::getLink('?cmd=close_all')."\" class=\"tree\">";
-            echo Icon::create('arr_1down', 'clickable')->asImg(16, ['class' => 'text-top']);
+            echo Icon::create('arr_1down', 'clickable')->asImg(['class' => 'text-top']);
             echo " " . _("Alle Einträge zuklappen") . "</a>";
         } else {
             echo "\n<a href=\"".URLHelper::getLink('?cmd=open_all')."\" class=\"tree\">";
-            echo Icon::create('arr_1right', 'clickable')->asImg(16, ['class' => 'text-top']);
+            echo Icon::create('arr_1right', 'clickable')->asImg(['class' => 'text-top']);
             echo " " . _("Alle Einträge aufklappen") . "</a>";
         }
         echo "</tr></table>";
@@ -364,10 +364,10 @@ if ($preferred_plugin && in_array($preferred_plugin, $_search_plugins)){
             if ($element->getValue('catalog_id')){
                 if ($_SESSION['_anker_id'] == $element->getValue('catalog_id')){
                     $icon = "<a name=\"anker\">";
-                    $icon .= Icon::create('literature', 'inactive')->asImg(16, ['class' => 'text-top']);
+                    $icon .= Icon::create('literature', 'inactive')->asImg(['class' => 'text-top']);
                     $icon .= "</a>";
                 } else {
-                    $icon = Icon::create('literature', 'inactive')->asImg(16, ['class' => 'text-top']);
+                    $icon = Icon::create('literature', 'inactive')->asImg(['class' => 'text-top']);
                 }
                 $ampel = "";
                 if ($_SESSION['_check_plugin'] && isset($_SESSION['_lit_data'][$cid]['check_accession'][$_SESSION['_check_plugin']])){

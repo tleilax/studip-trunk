@@ -33,7 +33,7 @@
             </td>
             <td class="content_seperator" width="5%" nowrap><?= ($role->getSize()) ? sizeof($persons) .' '._("von").' '. $role->getSize() : '' ?>
             &nbsp;</td>
-            <td class="content_seperator" width="1%" nowrap><?= ($role->getSelfassign()) ? Icon::create('info-circle', 'inactive', ['title' => _("Personen können sich dieser Gruppe selbst zuordnen")])->asImg(16) : '' ?>
+            <td class="content_seperator" width="1%" nowrap><?= ($role->getSelfassign()) ? Icon::create('info-circle', 'inactive', ['title' => _("Personen können sich dieser Gruppe selbst zuordnen")])->asImg() : '' ?>
             </td>
         </tr>
         <!-- Persons assigned to this role -->

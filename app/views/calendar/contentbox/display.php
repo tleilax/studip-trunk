@@ -2,18 +2,18 @@
 <section class="contentbox">
     <header>
         <h1>
-            <?= Icon::create('schedule', 'info')->asImg(16) ?>
+            <?= Icon::create('schedule', 'info')->asImg() ?>
             <?= htmlReady($title) ?>
         </h1>
         <nav>
     <? if ($admin): ?>
         <? if ($isProfile): ?>
         <a href="<?= URLHelper::getLink('dispatch.php/calendar/single/edit/' . $termin->id, array('source_page' => 'dispatch.php/profile')) ?>">
-            <?= Icon::create('add', 'clickable')->asImg(16, ['class' => 'text-bottom']) ?>
+            <?= Icon::create('add', 'clickable')->asImg(['class' => 'text-bottom']) ?>
         </a>
         <? else: ?>
         <a href="<?= URLHelper::getLink("raumzeit.php", array('cid' => $range_id)) ?>">
-            <?= Icon::create('admin', 'clickable')->asImg(16, ['class' => 'text-bottom']) ?>
+            <?= Icon::create('admin', 'clickable')->asImg(['class' => 'text-bottom']) ?>
         </a>
         <? endif; ?>
     <? endif; ?>

@@ -46,7 +46,7 @@ SkipLinks::addIndex(_('Tagesansicht'), 'main_content', 100);
                         </td>
                         <td class="precol1w" style="text-align: center; width: <?= $width1 ?>%">
                             <a data-dialog="size=auto" title="<?= strftime(_('Neuer Tagestermin am %x'), $calendars[0]->getStart()) ?>" href="<?= $controller->url_for('calendar/group/edit/' . $range_id, array('atime' => $calendars[0]->getStart(), 'isdayevent' => '1')) ?>">
-                                <?= Icon::create('schedule', 'clickable')->asImg(16) ?>
+                                <?= Icon::create('schedule', 'clickable')->asImg() ?>
                             </a>
                         </td>
                         <? for ($i = $time + $start; $i < $time + $end; $i += $step_day) : ?>
@@ -109,7 +109,7 @@ SkipLinks::addIndex(_('Tagesansicht'), 'main_content', 100);
                         <td style="width: <?= $width2 ?>%;" class="precol1w"> </td>
                         <td width="<?= $width1 ?>%" class="precol1w" style="text-align: center;">
                             <a data-dialog="size=auto" title="<?= strftime(_('Neuer Tagestermin am %x'), $calendars[0]->getStart()) ?>" href="<?= $controller->url_for('calendar/group/edit/' . $range_id, array('atime' => $calendars[0]->getStart(), 'isdayevent' => '1')) ?>">
-                                <?= Icon::create('schedule', 'clickable')->asImg(16) ?>
+                                <?= Icon::create('schedule', 'clickable')->asImg() ?>
                             </a>
                         </td>
                         <? for ($i = $time + $start; $i < $time + $end; $i += $step_day) : ?>

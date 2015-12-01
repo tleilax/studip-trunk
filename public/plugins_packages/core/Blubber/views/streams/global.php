@@ -38,7 +38,7 @@
         <label title="<?= _("Datei hochladen") ?>" class="uploader">
             <input type="file" style="display: none;" multiple>
             <?= Assets::img('ajax-indicator-black.svg', array('class' => "text-bottom uploading", 'width' => "16px", 'height' => "16px")) ?>
-            <?= Icon::create('upload', 'clickable')->asImg(16, ['class' => "text-bottom upload"]) ?>
+            <?= Icon::create('upload', 'clickable')->asImg(['class' => "text-bottom upload"]) ?>
         </label>
     </div>
 
@@ -59,8 +59,8 @@
                         <?= _("Dein Beitrag wird allen angezeigt.") ?>
                     </td>
                     <td style="width: 15%">
-                        <?= Icon::create('checkbox-checked', 'info')->asImg(16, ['class' => "text-bottom check"]) ?>
-                        <?= Icon::create('checkbox-unchecked', 'info')->asImg(16, ['class' => "text-bottom uncheck"]) ?>
+                        <?= Icon::create('checkbox-checked', 'info')->asImg(['class' => "text-bottom check"]) ?>
+                        <?= Icon::create('checkbox-unchecked', 'info')->asImg(['class' => "text-bottom uncheck"]) ?>
                     </td>
                 </tr>
                 <tr>
@@ -89,8 +89,8 @@
                         <?= _("Fügen Sie einzelne Personen mittels @Nutzernamen im Text der Nachricht oder der Kommentare hinzu.") ?>
                     </td>
                     <td style="width: 15%">
-                        <?= Icon::create('checkbox-checked', 'info')->asImg(16, ['class' => "text-bottom check"]) ?>
-                        <?= Icon::create('checkbox-unchecked', 'info')->asImg(16, ['class' => "text-bottom uncheck"]) ?>
+                        <?= Icon::create('checkbox-checked', 'info')->asImg(['class' => "text-bottom check"]) ?>
+                        <?= Icon::create('checkbox-unchecked', 'info')->asImg(['class' => "text-bottom uncheck"]) ?>
                     </td>
                 </tr>
                 <? $mycourses = BlubberPosting::getMyBlubberCourses() ?>
@@ -118,8 +118,8 @@
                         </label>
                     </td>
                     <td style="width: 15%">
-                        <?= Icon::create('checkbox-checked', 'info')->asImg(16, ['class' => "text-bottom check"]) ?>
-                        <?= Icon::create('checkbox-unchecked', 'info')->asImg(16, ['class' => "text-bottom uncheck"]) ?>
+                        <?= Icon::create('checkbox-checked', 'info')->asImg(['class' => "text-bottom check"]) ?>
+                        <?= Icon::create('checkbox-unchecked', 'info')->asImg(['class' => "text-bottom uncheck"]) ?>
                     </td>
                 </tr>
                 <? endif ?>

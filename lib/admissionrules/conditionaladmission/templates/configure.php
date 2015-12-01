@@ -17,7 +17,7 @@
                 <?= $condition->toString() ?>
                 <a href="#" onclick="return STUDIP.UserFilter.removeConditionField($(this).parent())"
                     class="conditionfield_delete">
-                    <?= Icon::create('trash', 'clickable')->asImg(16); ?></a>
+                    <?= Icon::create('trash', 'clickable')->asImg(); ?></a>
                 <input type="hidden" name="conditions[]" value="<?= htmlReady(serialize($condition)) ?>"/>
             </div>
         <?php } ?>

@@ -28,7 +28,7 @@
             </a>
         <? if ($filter == $group_id): ?>
             <a href="<?= URLHelper::getLink('dispatch.php/messages/write?', compact('group_id')) ?>">
-                <?= Icon::create('mail', 'clickable', ['title' => _('Nachricht an alle Personen dieser Gruppe schicken')])->asImg(16) ?>
+                <?= Icon::create('mail', 'clickable', ['title' => _('Nachricht an alle Personen dieser Gruppe schicken')])->asImg() ?>
             </a>
         <? endif; ?>
         </td>

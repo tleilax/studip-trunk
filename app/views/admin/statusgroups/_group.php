@@ -16,13 +16,13 @@
         <span class="actions">
             <? if ($type['needs_self_assign']): ?>
                 <? if ($group->selfassign): ?>
-                    <?= Icon::create('lock-unlocked', 'inactive')->asImg(16) ?>
+                    <?= Icon::create('lock-unlocked', 'inactive')->asImg() ?>
                 <? else: ?>
-                    <?= Icon::create('lock-locked', 'inactive')->asImg(16) ?>
+                    <?= Icon::create('lock-locked', 'inactive')->asImg() ?>
                 <? endif; ?>
             <? endif; ?>
             <a data-dialog="size=auto" title="<?= _('Gruppe ändern') ?>" href="<?= $controller->url_for("admin/statusgroups/editGroup/{$group->id}") ?>">
-                <?= Icon::create('edit', 'clickable', ['title' => _('Gruppe ändern')])->asImg(16) ?>
+                <?= Icon::create('edit', 'clickable', ['title' => _('Gruppe ändern')])->asImg() ?>
             </a>
             <?= MultiPersonSearch::get("add_statusgroup" . $group->id)
                     ->setLinkText()
@@ -33,21 +33,21 @@
                     ->addQuickfilter(_("aktuelle Einrichtung"), $membersOfInstitute)
                     ->render() ?>
             <a data-dialog="size=auto" title="<?= _('Gruppe löschen') ?>" href="<?= $controller->url_for("admin/statusgroups/deleteGroup/{$group->id}") ?>">
-                <?= Icon::create('trash', 'clickable', ['title' => _('Gruppe löschen')])->asImg(16) ?>
+                <?= Icon::create('trash', 'clickable', ['title' => _('Gruppe löschen')])->asImg() ?>
             </a>
             <a data-dialog="size=auto" title="<?= _('Gruppe alphabetisch sortieren') ?>" href="<?= $controller->url_for("admin/statusgroups/sortAlphabetic/{$group->id}") ?>">
-                <?= Icon::create('arr_2down', 'clickable', ['title' => _('Gruppe alphabetisch sortieren')])->asImg(16) ?>
+                <?= Icon::create('arr_2down', 'clickable', ['title' => _('Gruppe alphabetisch sortieren')])->asImg() ?>
             </a>
         <? else: ?>
             <? if ($type['needs_self_assign']): ?>
                 <? if ($group->isMember() && $group->selfassign): ?>
                     <a href="<?= $group->path['leave'] ?>">
-                        <?= Icon::create('door-leave', 'clickable', ['title' => _('Gruppe verlassen')])->asImg(16) ?>
+                        <?= Icon::create('door-leave', 'clickable', ['title' => _('Gruppe verlassen')])->asImg() ?>
                     </a>
                 <? endif; ?>
                 <? if ($group->userMayJoin($user_id)): ?>
                     <a href="<?= $group->path['join'] ?>">
-                        <?= Icon::create('door-enter', 'clickable', ['title' => _('Gruppe beitreten')])->asImg(16) ?>
+                        <?= Icon::create('door-enter', 'clickable', ['title' => _('Gruppe beitreten')])->asImg() ?>
                     </a>
                 <? endif; ?>
             <? endif; ?>

@@ -40,7 +40,7 @@ if ($request_resource_id = $request->getResourceId()) :
         <?= _("verantwortlich:") ?>
         <a href="<?= $resObject->getOwnerLink() ?>"><?= htmlReady($resObject->getOwnerName()) ?></a>
         <?= Assets::input("icons/16/blue/trash.png", array('type' => "image", 'style' => "vertical-align:bottom", 'name' => "reset_resource_id", 'title' => _('den ausgewählten Raum löschen'))) ?>
-        <?= Icon::create('info-circle', 'inactive', ['title' => _('Der ausgewählte Raum bietet folgende der wünschbaren Eigenschaften:')." \n".$resObject->getPlainProperties(TRUE)])->asImg(16) ?>
+        <?= Icon::create('info-circle', 'inactive', ['title' => _('Der ausgewählte Raum bietet folgende der wünschbaren Eigenschaften:')." \n".$resObject->getPlainProperties(TRUE)])->asImg() ?>
          <input type="hidden" name="selected_room" value="<?= htmlready($request_resource_id)?>">
     </td>
 </tr>

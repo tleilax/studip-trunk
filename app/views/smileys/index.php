@@ -77,7 +77,7 @@ $data = array_filter($data);
                         <? if ($favorites_activated): ?>
                             <th class="actions">
                                 <abbr title="<?= _('Favorit') ?>">
-                                    <?= Icon::create('star', 'info')->asImg(16) ?>
+                                    <?= Icon::create('star', 'info')->asImg() ?>
                                 </abbr>
                             </th>
                         <? endif; ?>

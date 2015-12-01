@@ -16,15 +16,15 @@
                 <div class="helpbar-widget-admin-icons">
                 <? if ($widget->edit_link): ?>
                     <a href="<?=$widget->edit_link?>" data-dialog="size=auto;reload-on-close">
-                    <?= Icon::create('edit', 'info_alt')->asImg(16) ?></a>
+                    <?= Icon::create('edit', 'info_alt')->asImg() ?></a>
                 <? endif; ?>
                 <? if ($widget->delete_link): ?>
                     <a href="<?=$widget->delete_link?>" data-dialog="size=auto;reload-on-close">
-                    <?= Icon::create('trash', 'info_alt')->asImg(16) ?></a>
+                    <?= Icon::create('trash', 'info_alt')->asImg() ?></a>
                 <? endif; ?>
                 <? if ($widget->add_link): ?>
                     <a href="<?=$widget->add_link?>" data-dialog="size=auto;reload-on-close">
-                    <?= Icon::create('add', 'info_alt')->asImg(16) ?></a>
+                    <?= Icon::create('add', 'info_alt')->asImg() ?></a>
                 <? endif; ?>
                 </div>
             </li>

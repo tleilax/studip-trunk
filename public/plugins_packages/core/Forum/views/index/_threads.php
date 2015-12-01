@@ -90,7 +90,7 @@
                         <? if ($area_id != $parent['id']) : ?>
                         <div style="font-size: 16px; margin-bottom: 5px;">
                             <a href="<?= PluginEngine::getLink('coreforum/index/move_thread/'. $entry['topic_id'].'/'. $area_id) ?>">
-                            <?= Icon::create('arr_2right', 'sort')->asImg(16) ?>
+                            <?= Icon::create('arr_2right', 'sort')->asImg() ?>
                             <?= htmlReady($area['name_raw']) ?>
                             </a>
                         </div>
@@ -186,7 +186,7 @@
             <br>
             <?= _("am") ?> <?= strftime($time_format_string_short, (int)$entry['last_posting']['date']) ?>
             <a href="<?= PluginEngine::getLink('coreforum/index/index/'. $entry['last_posting']['topic_id']) ?>#<?= $entry['last_posting']['topic_id'] ?>" alt="<?= $infotext ?>" title="<?= $infotext ?>">
-                <?= Icon::create('link-intern', 'clickable', ['title' => $infotext = _("Direkt zum Beitrag...")])->asImg(16) ?>
+                <?= Icon::create('link-intern', 'clickable', ['title' => $infotext = _("Direkt zum Beitrag...")])->asImg() ?>
             </a>
             <? else: ?>
             <br>

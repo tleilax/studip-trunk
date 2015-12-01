@@ -380,23 +380,23 @@ if (!$have_config) {
 
                 echo "<td" . $css_switcher_2->getFullClass() . " width=\"5%\">";
                 echo '<a href="' . URLHelper::getLink('?com=info&config_id=' . $configuration['id']) . '">';
-                echo Icon::create('infopage', 'clickable')->asImg(16, ['class' => 'text-top', 'title' => _("weitere Informationen anzeigen")]);
+                echo Icon::create('infopage', 'clickable')->asImg(['class' => 'text-top', 'title' => _("weitere Informationen anzeigen")]);
                 echo "</a>\n</td>\n";
                 echo "<td" . $css_switcher_2->getFullClass() . " width=\"5%\">";
 
                 // Switching for the is_default option. Read the comment above.
                 if ($configuration["is_default"]) {
                     echo '<a href="' . URLHelper::getLink('?com=unset_default&config_id=' . $configuration['id']) . '#anker">';
-                    echo Icon::create('checkbox-checked', 'clickable')->asImg(16, ['class' => 'text-top', 'title' => _("Standard entziehen")]);
+                    echo Icon::create('checkbox-checked', 'clickable')->asImg(['class' => 'text-top', 'title' => _("Standard entziehen")]);
                 } else {
                     echo '<a href="' . URLHelper::getLink('?com=set_default&config_id=' . $configuration['id']) . '#anker">';
-                    echo Icon::create('checkbox-unchecked', 'clickable')->asImg(16, ['class' => 'text-top', 'title' => _("Standard zuweisen")]);
+                    echo Icon::create('checkbox-unchecked', 'clickable')->asImg(['class' => 'text-top', 'title' => _("Standard zuweisen")]);
                 }
 
                 echo "</a>\n</td>\n";
                 echo "<td" . $css_switcher_2->getFullClass() . " align=\"center\" width=\"5%\">\n";
                 echo '<a href="' . URLHelper::getLink('?com=delete_sec&config_id=' . $configuration['id']) . '#anker">';
-                echo  Icon::create('trash', 'clickable')->asImg(16, ['class' => 'text-top', 'title' => _("Konfiguration löschen")]) . "</a>\n</td>\n";
+                echo  Icon::create('trash', 'clickable')->asImg(['class' => 'text-top', 'title' => _("Konfiguration löschen")]) . "</a>\n</td>\n";
                 echo "<td" . $css_switcher_2->getFullClass() . " align=\"right\" width=\"20%\" ";
                 echo ">\n";
                 echo LinkButton::create(_("Konfiguration bearbeiten"), URLHelper::getURL('?com=edit&mod=' . $module_type['module'] . '&config_id=' . $configuration['id']));

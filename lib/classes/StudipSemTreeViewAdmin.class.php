@@ -463,7 +463,7 @@ class StudipSemTreeViewAdmin extends TreeView {
                                           : _('Alle Unterelemente öffnen')) +
                                  array('class' => 'text-top'));
         } else {
-            $head .= Icon::create('folder-empty', 'clickable', ['title' => _('Dieses Element hat keine Unterelemente')])->asImg(16);
+            $head .= Icon::create('folder-empty', 'clickable', ['title' => _('Dieses Element hat keine Unterelemente')])->asImg();
         }
         return $head . "</td>";
     }
@@ -746,12 +746,12 @@ class StudipSemTreeViewAdmin extends TreeView {
             $head .= "</td><td nowrap align=\"right\" valign=\"bottom\" class=\"printhead\">";
             if (!$this->tree->isFirstKid($item_id)){
                 $head .= "<a href=\"". URLHelper::getLink($this->getSelf("cmd=OrderItem&direction=up&item_id=$item_id")) .
-                "\">" .  Icon::create('arr_2up', 'sort')->asImg(16, ['class' => 'text-top', 'title' => _("Element nach oben")]) .
+                "\">" .  Icon::create('arr_2up', 'sort')->asImg(['class' => 'text-top', 'title' => _("Element nach oben")]) .
                 "</a>";
             }
             if (!$this->tree->isLastKid($item_id)){
                 $head .= "<a href=\"". URLHelper::getLink($this->getSelf("cmd=OrderItem&direction=down&item_id=$item_id")) .
-                "\">" . Icon::create('arr_2down', 'sort')->asImg(16, ['class' => 'text-top', 'title' => _("Element nach unten")]) .
+                "\">" . Icon::create('arr_2down', 'sort')->asImg(['class' => 'text-top', 'title' => _("Element nach unten")]) .
                 "</a>";
             }
             $head .= "&nbsp;";

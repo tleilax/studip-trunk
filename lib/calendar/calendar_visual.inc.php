@@ -27,11 +27,11 @@ function create_year_view(&$calendar)
     $out = "<table class=\"steelgroup0\" width=\"100%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\">\n";
     $out .= "<tr><td align=\"center\" width=\"10%\">\n";
     $out .= '<a href="' . URLHelper::getLink('', array('', 'cmd' => 'showyear', 'atime' => $year->getStart() - 1)) . '">';
-    $out .= Icon::create('arr_1left', 'clickable', ['title' => _("zurück")])->asImg(16). "&nbsp;</a></td>\n";
+    $out .= Icon::create('arr_1left', 'clickable', ['title' => _("zurück")])->asImg(). "&nbsp;</a></td>\n";
     $out .= "<td class=\"calhead\" align=\"center\" width=\"80%\">\n";
     $out .= "<font size=\"+2\"><b>" . $year->getYear() . "</b></font></td>\n";
     $out .= '<td align="center" width="10%"><a href="' . URLHelper::getLink('', array('', 'cmd' => 'showyear', 'atime' => $year->getEnd() + 1)) . '">';
-    $out .= Icon::create('arr_1right', 'clickable', ['title' => _("vor")])->asImg(16) . '&nbsp;</a></td>';
+    $out .= Icon::create('arr_1right', 'clickable', ['title' => _("vor")])->asImg() . '&nbsp;</a></td>';
     $out .= "</tr>\n";
     $out .= "<tr><td colspan=\"3\" class=\"blank\">";
     $out .= '<table class="steelgroup0" width="100%" border="0" ';

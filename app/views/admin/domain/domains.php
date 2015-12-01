@@ -36,11 +36,11 @@
     </td>
     <td class="actions">
       <a href="<?= $controller->url_for('admin/domain/edit?id='.$domain->getID()) ?>">
-        <?= Icon::create('edit', 'clickable', ['title' => _('bearbeiten')])->asImg(16) ?>
+        <?= Icon::create('edit', 'clickable', ['title' => _('bearbeiten')])->asImg() ?>
       </a>
       <? if (count($domain->getUsers()) == 0): ?>
         <a href="<?= $controller->url_for('admin/domain/delete?id='.$domain->getID()) ?>">
-          <?= Icon::create('trash', 'clickable', ['title' => _('löschen')])->asImg(16) ?>
+          <?= Icon::create('trash', 'clickable', ['title' => _('löschen')])->asImg() ?>
         </a>
       <? endif ?>
     </td>

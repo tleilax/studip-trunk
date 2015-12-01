@@ -61,32 +61,32 @@
             <td>
             <? if($config['closed']): ?>
                 <a href="<?= $controller->url_for('document/administration/activateDocumentArea', $config['id']) ?>" data-behaviour="ajax-toggle"> 
-                    <?= Icon::create('checkbox-checked', 'clickable', ['title' => _('Dateibereich öffnen')])->asImg(16) ?>
+                    <?= Icon::create('checkbox-checked', 'clickable', ['title' => _('Dateibereich öffnen')])->asImg() ?>
                 </a>
             <? else : ?>
                 <a data-dialog href="<?= $controller->url_for('document/administration/deactivateDocumentArea', $config['id']) ?>">
-                    <?= Icon::create('checkbox-unchecked', 'clickable', ['title' => _('Dateibereich sperren')])->asImg(16) ?>
+                    <?= Icon::create('checkbox-unchecked', 'clickable', ['title' => _('Dateibereich sperren')])->asImg() ?>
                 </a>
             <? endif; ?>
             </td>
             <td>
             <? if($config['forbidden']): ?>
                 <a href="<?= $controller->url_for('document/administration/activateUpload', $config['id']) ?>" data-behaviour="ajax-toggle">
-                    <?= Icon::create('checkbox-checked', 'clickable', ['title' => _('Upload aktivieren')])->asImg(16) ?>
+                    <?= Icon::create('checkbox-checked', 'clickable', ['title' => _('Upload aktivieren')])->asImg() ?>
                 </a>
             <? else : ?>
                 <a href="<?= $controller->url_for('document/administration/deactivateUpload', $config['id']) ?>" data-behaviour="ajax-toggle">
-                    <?= Icon::create('checkbox-unchecked', 'clickable', ['title' => _('Upload deaktivieren')])->asImg(16) ?>
+                    <?= Icon::create('checkbox-unchecked', 'clickable', ['title' => _('Upload deaktivieren')])->asImg() ?>
                 </a>
             <? endif;?>
             </td>
             <td class="actions">
                 <a data-dialog href="<?= $controller->url_for('document/administration/edit/'.$config['id']) ?>">
-                    <?= Icon::create('edit', 'clickable', ['title' => _('Konfiguration bearbeiten')])->asImg(16) ?>
+                    <?= Icon::create('edit', 'clickable', ['title' => _('Konfiguration bearbeiten')])->asImg() ?>
                 </a>
             <? if($config['name'] != 'default'): ?>
                 <a href="<?= $controller->url_for('document/administration/delete/'.$config['id']) ?>">
-                    <?= Icon::create('trash', 'clickable', ['title' => _('Konfiguration löschen')])->asImg(16) ?>
+                    <?= Icon::create('trash', 'clickable', ['title' => _('Konfiguration löschen')])->asImg() ?>
                 </a>
             <? endif; ?>
             </td>

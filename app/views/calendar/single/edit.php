@@ -396,7 +396,7 @@
                         <li>
                             <label>
                                 <input type="checkbox" name="del_exc_dates[]" value="<?= strftime('%d.%m.%Y', $exception) ?>" style="display: none;">
-                                <span><?= strftime('%x', $exception) ?><?= Icon::create('trash', 'clickable', ['title' => _('Ausnahme löschen'), 'style' => 'vertical-align: text-top;'])->asImg(16) ?></span>
+                                <span><?= strftime('%x', $exception) ?><?= Icon::create('trash', 'clickable', ['title' => _('Ausnahme löschen'), 'style' => 'vertical-align: text-top;'])->asImg() ?></span>
                             </label>
                             <input type="hidden" name="exc_dates[]" value="<?= strftime('%d.%m.%Y', $exception) ?>">
                         </li>

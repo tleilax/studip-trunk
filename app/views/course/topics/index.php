@@ -15,7 +15,7 @@
                     <? foreach ($topic->dates as $date) : ?>
                         <li>
                             <a href="<?= URLHelper::getLink("dispatch.php/course/dates/details/".$date->getId()) ?>" data-dialog="buttons=false">
-                                <?= Icon::create('date', 'clickable')->asImg(16, ['class' => "text-bottom"]) ?>
+                                <?= Icon::create('date', 'clickable')->asImg(['class' => "text-bottom"]) ?>
                                 <?= htmlReady($date->getFullName()) ?>
                             </a>
                         </li>
@@ -41,7 +41,7 @@
                                     <? if ($documents_activated && $folder) : ?>
                                         <li>
                                             <a href="<?= URLHelper::getLink("folder.php#anker", array('data[cmd]' => "tree", 'open' => $folder->getId())) ?>">
-                                                <?= Icon::create('folder-empty', 'clickable')->asImg(16, ['class' => "text-bottom"]) ?>
+                                                <?= Icon::create('folder-empty', 'clickable')->asImg(['class' => "text-bottom"]) ?>
                                                 <?= _("Dateiordner") ?>
                                             </a>
                                         </li>
@@ -51,7 +51,7 @@
                                     <? if ($forum_activated && ($link_to_thread = $topic->forum_thread_url)) : ?>
                                         <li>
                                             <a href="<?= URLHelper::getLink($link_to_thread) ?>">
-                                                <?= Icon::create('forum', 'clickable')->asImg(16, ['class' => "text-bottom"]) ?>
+                                                <?= Icon::create('forum', 'clickable')->asImg(['class' => "text-bottom"]) ?>
                                                 <?= _("Thema im Forum") ?>
                                             </a>
                                         </li>

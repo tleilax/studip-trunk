@@ -55,7 +55,7 @@ $max_columns = $em['max_cols'] ?: 1;
         <tr>
             <td align="center"<?= $settings['step_day'] < 3600 ? ' colspan="2"' : '' ?>>
                 <a href="<?= $controller->url_for('calendar/single/day', array('atime' => ($atime - (date('G', $atime) * 3600 - $start + 3600)))) ?>">
-                    <?= Icon::create('arr_1up', 'clickable', ['title' => _('zeig davor')])->asImg(16) ?>
+                    <?= Icon::create('arr_1up', 'clickable', ['title' => _('zeig davor')])->asImg() ?>
                 </a>
             </td>
             <td colspan="<?= $max_columns + 1 ?>">
@@ -71,7 +71,7 @@ $max_columns = $em['max_cols'] ?: 1;
         <tr>
             <td align="center"<?= $settings['step_day'] < 3600 ? ' colspan="2"' : '' ?>>
                 <a href="<?= $controller->url_for('calendar/single/day', array('atime' => ($atime + $end - date('G', $atime) * 3600 + 3600))) ?>">
-                    <?= Icon::create('arr_1down', 'clickable', ['title' => _('zeig danach')])->asImg(16) ?>
+                    <?= Icon::create('arr_1down', 'clickable', ['title' => _('zeig danach')])->asImg() ?>
                 </a>
             </td>
             <td colspan="<?= $max_columns + 1 ?>">

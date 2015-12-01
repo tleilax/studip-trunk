@@ -19,7 +19,7 @@ if (Config::get()->RESOURCES_ENABLE && Config::get()->RESOURCES_ENABLE_BOOKINGST
         <TABLE cellpadding="2" cellspacing="0" border="0" width="100%">
             <TR>
                 <TD width="2%" align="right" valign="top" class="<?=$class?>">
-                    <?= Icon::create('arr_1down', 'clickable')->asImg(16) ?>
+                    <?= Icon::create('arr_1down', 'clickable')->asImg() ?>
                 </TD>
                 <TD width="98%" nowrap class="<?=$class?>" colspan="8">
                     <FONT size="-1">

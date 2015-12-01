@@ -61,10 +61,10 @@
         </td>
         <td>
           <a href="<?= $controller->url_for('admin/webservice_access/edit/'.$rule->id.'#edit') ?>">
-            <?= Icon::create('edit', 'clickable', ['title' => _('bearbeiten')])->asImg(16) ?>
+            <?= Icon::create('edit', 'clickable', ['title' => _('bearbeiten')])->asImg() ?>
           </a>
           <a href="<?= $controller->url_for('admin/webservice_access/delete/'.$rule->id) ?>">
-              <?= Icon::create('trash', 'clickable', ['title' => _('löschen')])->asImg(16) ?>
+              <?= Icon::create('trash', 'clickable', ['title' => _('löschen')])->asImg() ?>
           </a>
         </td>
     <? endif;?>

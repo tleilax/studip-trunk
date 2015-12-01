@@ -71,10 +71,10 @@
             </td>
             <td class="actions">
                 <a data-dialog="size=auto" href="<?= $controller->url_for('admin/semester/edit/' . $semester->id) ?>">
-                    <?= Icon::create('edit', 'clickable', ['title' => _('Semesterangaben bearbeiten')])->asImg(16) ?>
+                    <?= Icon::create('edit', 'clickable', ['title' => _('Semesterangaben bearbeiten')])->asImg() ?>
                 </a>
             <? if ($semester->absolute_seminars_count): ?>
-                <?= Icon::create('trash', 'inactive', ['title' => _('Semester hat Veranstaltungen und kann daher nicht gelöscht werden.')])->asImg(16) ?>
+                <?= Icon::create('trash', 'inactive', ['title' => _('Semester hat Veranstaltungen und kann daher nicht gelöscht werden.')])->asImg() ?>
             <? else: ?>
                 <?= Assets::input('icons/16/blue/trash.png', tooltip2(_('Semester löschen')) + array(
                         'formaction'   => $controller->url_for('admin/semester/delete/' . $semester->id),

@@ -227,7 +227,7 @@ $themen =& $sem->getIssues(true);   // read again, so we have the actual sort or
                 <tr>
                     <td class="table_row_odd" colspan="3" align="center">
                         <a href="<?= URLHelper::getLink("?cmd=openAll") ?>">
-                            <?= Icon::create('arr_1down', 'clickable', ['title' => _('Alle Themen aufklappen')])->asImg(16) ?>
+                            <?= Icon::create('arr_1down', 'clickable', ['title' => _('Alle Themen aufklappen')])->asImg() ?>
                         </a>
                     </td>
                 </tr>

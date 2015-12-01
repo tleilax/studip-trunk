@@ -11,7 +11,7 @@
             <fieldset>
                 <legend><?= _("Datei hochladen") ?></legend>
                 <br>
-                <?= strlen($plugin["description"]) > 0 ? Icon::create('info-circle', 'inactive')->asImg(16) : '' ?>
+                <?= strlen($plugin["description"]) > 0 ? Icon::create('info-circle', 'inactive')->asImg() : '' ?>
                 <?= formatReady($plugin["description"]) ?><br>
                 <br>
                 <?= _("Wählen Sie mit <b>Durchsuchen</b> eine Datei von Ihrer Festplatte aus.") ?><br>

@@ -18,7 +18,7 @@
                 <td><?= htmlReady($seminar->getNumber()) ?></td>
                 <td>
                     <a href="<?= URLHelper::getLink('dispatch.php/course/details/', array('sem_id' => $seminar->getId())) ?>">
-                        <?= Icon::create('link-intern', 'clickable')->asImg(16) ?>
+                        <?= Icon::create('link-intern', 'clickable')->asImg() ?>
                         <?= htmlReady($seminar->getName()) ?>
                     </a>
                 </td>

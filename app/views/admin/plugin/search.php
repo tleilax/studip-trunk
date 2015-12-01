@@ -62,7 +62,7 @@ use Studip\Button, Studip\LinkButton;
                 </td>
                 <td class="plugin_score">
                     <? for ($i = 0; $i < $plugin['score']; ++$i): ?>
-                        <?= Icon::create('star', 'inactive')->asImg(16) ?>
+                        <?= Icon::create('star', 'inactive')->asImg() ?>
                     <? endfor ?>
                 </td>
                 <td class="plugin_install">

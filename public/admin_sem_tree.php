@@ -136,7 +136,7 @@ if ($the_tree->mode == "MoveItem" || $the_tree->mode == "CopyItem"){
         $text = _("Der Kopiermodus ist aktiviert. Bitte wählen Sie ein Einfügesymbol %s aus, um das Element <b>%s</b> an diese Stelle zu kopieren.%s");
     }
     $_msg .= "info§" . sprintf($text ,
-                                Icon::create('arr_2right', 'sort', ['title' => _('Einfügesymbol')])->asImg(16),
+                                Icon::create('arr_2right', 'sort', ['title' => _('Einfügesymbol')])->asImg(),
                                 htmlReady($the_tree->tree->tree_data[$the_tree->move_item_id]['name']),
                                 "<div align=\"right\">"
                                 .LinkButton::createCancel(_('Abbrechen'), $the_tree->getSelf("cmd=Cancel&item_id=$the_tree->move_item_id"), array('title' => _("Verschieben / Kopieren abbrechen")))
