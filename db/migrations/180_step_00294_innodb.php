@@ -35,7 +35,23 @@ class StEP00294InnoDB extends Migration
         }
 
         // Generate necessary conversion SQL queries.
-        $query = "SELECT CONCAT('ALTER TABLE `" . $DB_STUDIP_DATABASE . "`.`', TABLE_NAME, '` ENGINE=InnoDB;') AS query
+        $query = "SELECT CONCAT('ALTER TABLE `" . $DB_STUDIP_DATABASE . "`.`', TABLE_NAME, '`";
+        // Use Barracuda format if database supports it (5.5 upwards).
+        if (version_compare($version, '5.5', '>=')) {
+            // Get innodb_file_per_table setting
+            $data = DBManager::get()->fetchFirst("SHOW VARIABLES LIKE 'innodb_file_per_table'");
+            $file_per_table = $data[0];
+            if (in_array(strtolower($file_per_table), array('on', '1'))) {
+                // Check if Barracuda file format is enabled
+                $data = DBManager::get()->fetchFirst("SHOW VARIABLES LIKE 'innodb_file_format'");
+                $file_format = $data[0];
+                // All prerequisites fulfilled, use Barracuda format
+                if ($file_format == 'Barracuda') {
+                    $query .= " ROW_FORMAT=COMPACT";
+                }
+            }
+        }
+        $query .= " ENGINE=InnoDB;') AS query
             FROM `information_schema`.TABLES WHERE TABLE_SCHEMA='" . $DB_STUDIP_DATABASE . "'
                 AND ENGINE='MyISAM'
                 AND TABLE_NAME NOT IN (?)";
@@ -44,21 +60,6 @@ class StEP00294InnoDB extends Migration
         // Now execute the generated queries.
         foreach ($sql as $q) {
             DBManager::get()->execute($q['query']);
-        }
-
-        // Use Barracuda format if database supports it (5.5 upwards).
-        if (version_compare($version, '5.5', '>=')) {
-            // Generate necessary conversion SQL queries.
-            $query = "SELECT CONCAT('ALTER TABLE `" . $DB_STUDIP_DATABASE . "`.`', TABLE_NAME, '` ROW_FORMAT=COMPACT;') AS query
-                FROM `information_schema`.TABLES WHERE TABLE_SCHEMA='" . $DB_STUDIP_DATABASE . "'
-                    AND ENGINE='InnoDB'
-                    AND ROW_FORMAT NOT IN ('Compact', 'Compressed')";
-            $sql = DBManager::get()->fetchAll($query);
-
-            // Now execute the generated queries.
-            foreach ($sql as $q) {
-                DBManager::get()->execute($q['query']);
-            }
         }
 
     }
