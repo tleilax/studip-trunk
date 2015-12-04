@@ -595,7 +595,7 @@ class Admin_CoursesController extends AuthenticatedController
         if (get_config('RESOURCES_ALLOW_ROOM_REQUESTS')) {
             $actions[4] = array('name'  => 'Raumanfragen',
                                 'title' => _('Raumanfragen'),
-                                'url'   => 'dispatch.php/course/room_requests/index?cid=%s',
+                                'url'   => 'dispatch.php/course/room_requests/index?cid=%s&origin=admin_courses',
                                 'attributes' => array(
                                     'data-dialog' => 'size=big'
                                 ));

@@ -42,7 +42,7 @@ class Course_TimesroomsController extends AuthenticatedController
         if (Navigation::hasItem('course/admin/dates')) {
             Navigation::activateItem('course/admin/dates');
         }
-        $this->show = array('regular' => true, 'irregular' => true, 'roomRequest' => false);
+        $this->show = array('regular' => true, 'irregular' => true, 'roomRequest' => true);
 
         PageLayout::setHelpKeyword('Basis.Veranstaltungen');
         PageLayout::addSqueezePackage('raumzeit');

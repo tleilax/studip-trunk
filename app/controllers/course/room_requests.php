@@ -50,6 +50,11 @@ class Course_RoomRequestsController extends AuthenticatedController
      */
     function index_action()
     {
+        $this->url_params = array();
+        if (Request::get('origin') !== null) {
+            $this->url_params['origin'] = Request::get('origin');
+        }
+        
         $room_requests = RoomRequest::findBySQL(sprintf('seminar_id = %s ORDER BY seminar_id, metadate_id, termin_id', DbManager::get()->quote($this->course_id)));
         $this->room_requests = $room_requests;
         $this->request_id = Request::option('request_id');
@@ -115,7 +120,10 @@ class Course_RoomRequestsController extends AuthenticatedController
 
         $this->params = array('request_id' => $request->getId());
         $this->params['fromDialog'] = Request::get('fromDialog');
-
+        if (Request::get('origin') !== null) {
+            $this->params['origin'] = Request::get('origin');
+        }
+        
         if (Request::submitted('save') || Request::submitted('save_close')) {
             if (!($request->getSettedPropertiesCount() || $request->getResourceId())) {
                 PageLayout::postMessage(MessageBox::error(_("Die Anfrage konnte nicht gespeichert werden, da Sie mindestens einen Raum oder mindestens eine Eigenschaft (z.B. Anzahl der Sitzplätze) angeben müssen!")));
@@ -129,8 +137,10 @@ class Course_RoomRequestsController extends AuthenticatedController
                     if (!Request::isXhr()) {
                         $this->redirect('course/room_requests/index/' . $this->course_id);
                     } else {
-                        if (Request::get('fromDialog') == true) {
-                            $this->relocate('admin/courses');
+                        if (Request::get('fromDialog') == true && !isset($this->params['origin'])) {
+                            $this->relocate('course/room_requests/index/' . $this->course_id);
+                        } else if (isset($this->params['origin'])) {
+                            $this->relocate(str_replace('_', '/', $this->params['origin']) . '?cid=' . $this->course_id);
                         } else {
                             $this->relocate('course/room_requests/index/' . $this->course_id);
                         }
@@ -294,7 +304,10 @@ class Course_RoomRequestsController extends AuthenticatedController
     function new_action()
     {
         $options = array();
-
+        $this->url_params = array();
+        if (Request::get('origin') !== null) {
+            $this->url_params['origin'] = Request::get('origin');
+        }
         if (!RoomRequest::existsByCourse($this->course_id)) {
             $options[] = array('value' => 'course',
                                'name'  => _('alle regelmäßigen und unregelmäßigen Termine der Veranstaltung')

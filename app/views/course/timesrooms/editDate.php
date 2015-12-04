@@ -153,6 +153,7 @@
 <footer>
     <?= Studip\Button::createAccept(_('Speichern'), 'save_dates',
         array('formaction' => $controller->url_for('course/timesrooms/saveDate/' . $date->termin_id)) + $attributes) ?>
-    <?= Studip\LinkButton::create(_('Raumanfrage erstellen'), $controller->url_for('course/room_requests/edit/' . $course->id, $params),
+    <?= Studip\LinkButton::create(_('Raumanfrage erstellen'), $controller->url_for('course/room_requests/edit/' . $course->id, 
+            array_merge($params, array('origin' => 'course_timesrooms'))),
         array('data-dialog' => 'size=big')) ?>
 </footer>

@@ -2,7 +2,7 @@
     <h1><?= _("Raumanfrage erstellen") ?></h1>
 <? endif ?>
 <form method="POST" class="studip-form" name="new_room_request"
-      action="<?= $this->controller->link_for('edit/' . $course_id) ?>" <?= Request::isXhr() ? 'data-dialog="size=big"' : '' ?>>
+      action="<?= $this->controller->link_for('edit/' . $course_id, $url_params) ?>" <?= Request::isXhr() ? 'data-dialog="size=big"' : '' ?>>
     <?= CSRFProtection::tokenTag() ?>
     <? if (count($options)) : ?>
         <section>
