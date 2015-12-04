@@ -1,9 +1,10 @@
 /*jslint browser: true */
-/*global jQuery */
+/*global jQuery, STUDIP */
+
 /**
  * This file provides a set of global handlers.
  */
-(function ($) {
+(function ($, STUDIP) {
     'use strict';
 
     // Use a checkbox as a proxy for a set of other checkboxes. Define
@@ -100,15 +101,45 @@
     // Lets the user confirm a specific action (submit or click event).
     function confirmation_handler(event) {
         if (!event.isDefaultPrevented()) {
-            var element = $(event.target).closest('[data-confirm]'),
+            event.stopPropagation();
+            event.preventDefault();
+
+            var element  = $(event.target).closest('[data-confirm]'),
                 question = element.data().confirm
                         || element.attr('title')
                         || element.find('[title]:first').attr('title')
                         || 'Wollen Sie die Aktion wirklich ausführen?'.toLocaleString();
-            return window.confirm(question);
+
+            STUDIP.Dialog.show(question, {
+                title: 'Bitte bestätigen Sie die Aktion'.toLocaleString(),
+                size: 'fit',
+                wikilink: false,
+                dialogClass: 'studip-confirmation',
+                buttons: {
+                    accept: {
+                        text: 'Ja'.toLocaleString(),
+                        click: function () {
+                            STUDIP.Dialog.close();
+
+                            // We need to trigger the native event because for
+                            // some reason, jQuery's .trigger() won't always
+                            // work
+                            $(event.target).removeAttr('data-confirm').get(0)[event.type]();
+                        },
+                        'class': 'accept'
+                    },
+                    cancel: {
+                        text: 'Nein'.toLocaleString(),
+                        click: function () {
+                            STUDIP.Dialog.close();
+                        },
+                        'class': 'cancel'
+                    }
+                }
+            });
         }
     }
     $(document).on('click', 'a[data-confirm],input[data-confirm],button[data-confirm]', confirmation_handler);
     $(document).on('submit', 'form[data-confirm]', confirmation_handler);
 
-}(jQuery));
+}(jQuery, STUDIP));

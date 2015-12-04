@@ -31,23 +31,25 @@ class CourseMarkedEvent extends CourseEvent
     public static function getEventsByInterval($user_id, DateTime $start, dateTime $end)
     {
         $stmt = DBManager::get()->prepare('SELECT DISTINCT termine.* FROM schedule_seminare '
-                . 'INNER JOIN termine ON seminar_id = range_id '
-                . 'WHERE user_id = :user_id AND schedule_seminare.visible = 1 '
-                . 'AND date BETWEEN :start AND :end '
+                . 'INNER JOIN termine ON schedule_seminare.seminar_id = range_id '
+                . 'LEFT JOIN seminar_user ON seminar_user.seminar_id = range_id AND seminar_user.user_id= :user_id '
+                . 'WHERE schedule_seminare.user_id = :user_id AND schedule_seminare.visible = 1 '
+                . 'AND seminar_user.seminar_id IS NULL AND date BETWEEN :start AND :end '
                 . 'ORDER BY date ASC');
         $stmt->execute(array(
             ':user_id' => $user_id,
             ':start'   => $start->getTimestamp(),
             ':end'     => $end->getTimestamp()
         ));
-        $event_collection = new SimpleORMapCollection();
-        $event_collection->setClassName('Event');
+        $event_collection = array();
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
             $event = new CourseMarkedEvent();
             $event->setData($row);
             $event->setNew(false);
             $event_collection[] = $event;
         }
+        $event_collection = SimpleORMapCollection::createFromArray($event_collection, false);
+        $event_collection->setClassName('Event');
         return $event_collection;
     }
 
