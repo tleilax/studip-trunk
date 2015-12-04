@@ -167,16 +167,20 @@ class SeminarCycleDate extends SimpleORMap
         return $result;
     }
     
+    /**
+     * returns an sorted array with all dates and exdates for the cycledate entry 
+     * @return array of instances of dates or exdates
+     */
     function getAllDates()
     {
         $exdates = $this->exdates;
         $dates   = $this->dates;         
         $all_data = array();
         
-        foreach($exdates as $exdate){
+        foreach ($exdates as $exdate) {
             $all_data[] = $exdate;
         }        
-        foreach($dates as $date){
+        foreach ($dates as $date) {
             $all_data[] = $date;
         }
         
@@ -284,7 +288,7 @@ class SeminarCycleDate extends SimpleORMap
     /**
      * generate single date objects for one cycle and all semester, existing dates are merged in
      *
-     * @param mixed cycle id (string) or array with 'metadate_id' => string cycle id, 'startAfterTimeStamp' => int timestamp to override semester start
+     * @param startAfterTimeStamp => int timestamp to override semester start
      * @return array array of arrays, for each semester id  an array of two arrays of SingleDate objects: 'dates' => all new and surviving dates, 'dates_to_delete' => obsolete dates
      */
     function createTerminSlots($startAfterTimeStamp = 0)
@@ -491,7 +495,13 @@ class SeminarCycleDate extends SimpleORMap
         return array('dates' => $dates, 'dates_to_delete' => $dates_to_delete);
     }
     
-    // removes all singleDates which are NOT between $start and $end
+    /**
+     * removes all singleDates which are NOT between $start and $end
+     * 
+     * @param int    timestamp for start
+     * @param int    timestamp for end
+     * @param string seminar_id
+     */
     static function removeOutRangedSingleDates($start, $end, $seminar_id)
     {
         $query = "SELECT termin_id
@@ -525,5 +535,4 @@ class SeminarCycleDate extends SimpleORMap
         $statement = DBManager::get()->prepare($query);
         $statement->execute(array($seminar_id, $start, $end));
     }
-    
 }
