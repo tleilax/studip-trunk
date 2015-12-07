@@ -24,18 +24,19 @@ class Activity
     protected $mkdate;
     
     static $allowed_verbs = array(
-            'answered',
-            'attempted',
-            'attended',
-            'completed',
-            'created',
-            'experienced',
-            'failed',
-            'imported',
-            'interacted',
-            'passed',
-            'shared',
-            'voided');
+        'answered',
+        'attempted',
+        'attended',
+        'completed',
+        'created',
+        'experienced',
+        'failed',
+        'imported',
+        'interacted',
+        'passed',
+        'shared',
+        'voided'
+    );
 
 
     function __construct($provider, $description, $actor_type, $actor_id, $verb, $object_type, $object_url, $object_route, $mkdate)
@@ -121,6 +122,6 @@ class Activity
     
     function getMkdate()
     {
-        return time();
+        return $this->mkdate;
     }
 }

@@ -1,20 +1,30 @@
-
-
-<?
+<?php
 $actor = $_activity->getActor();
-if ($actor ['id'] == $GLOBALS ['user']->id)
+
+if ($actor ['id'] == $GLOBALS ['user']->id) {
     $direction = "right";
-else
+} else {
     $direction = "left";
+}
+
 $object = $_activity->getObject ();
+
+$description = $_activity->getDescription();
 
 ?>
 
-
-
 <section class="activity <?=$direction?>">
     <header>
-        <h1><?=sprintf(_("%s hat am %s ein %s %s "),User::find($actor['id'])->getFullname(), strftime('%x um %X Uhr', $_activity->getMkdate()) ,$object['objectType'], $_activity->getVerb())?></h1>
+        <h1>
+            <a href="<?= URLHelper::getURL($object['url']) ?>">
+                <?= htmlReady($description['title']) ?>
+                <? sprintf(_("%s hat %s %s "),
+                    User::find($actor['id'])->getFullname(),
+                    $object['objectType'],
+                    $_activity->getVerb())
+                ?>
+            </a>
+        </h1>
     </header>
     <section class="activity-content">
         <div class="activity-avatar-container">
@@ -22,13 +32,30 @@ $object = $_activity->getObject ();
             <?=Avatar::getAvatar($actor['id'])->getImageTag(Avatar::MEDIUM)?>
             </a>
         </div>
-            <section class="activity-description">
-                <?=$_activity->getDescription()?><br>
-                <b>Meinen Kontext habe ich leider schon vergessen :(</b><br>
-                <span class="activity-object-link">
-                <a href="<?=URLHelper::getURL($object['url'])?>"><?=_(sprintf("Direkt zum entsprechenden Aktivitätsobject \"%s\" springen", $object['objectType']))?></a>
+        <section class="activity-description">
+            <span class="activity-date">
+                <?= strftime('%x um %X Uhr', $_activity->getMkdate()) ?>
+            </span>
+
+            <span class="activity-details">
+                <?= $description['content'] ?>
+
+                <? if (false) : /* if (strlen($description['content']) > 100) : */?>
+                <span class="read-more">
+                    <a href="<?= URLHelper::getURL($object['url']) ?>">
+                        <?= _("Zum Eintrag springen und weiterlesen...") ?>
+                    </a>
                 </span>
-            </section>
+                <? endif ?>
+            </span>
+
+
+            <span class=".activity-object-link">
+                <a href="<?= URLHelper::getURL($object['url']) ?>">
+                    <?= _("Zum Eintrag springen und weiterlesen...") ?>
+                </a>
+            </span>
+        </section>
         <div class='clear'></div>
     </section>
 </section>

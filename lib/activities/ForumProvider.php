@@ -49,7 +49,20 @@ class ForumProvider implements ActivityProvider
 
     private function  wrapParticipantNotifications($notifications){
         return array_map(function ($n) {
-            return new Activity('participants_provider', $n->getSummary(), 'user', $n->getCreatorid(), 'created', 'forum', $n->getUrl(), 'http://example.com/route', $n->getDate());
+            return new Activity(
+                'forum_provider',
+                array(                                  // the description and summaray of the performed activity
+                    'title' => $n->getSummary(),
+                    'content' => $n->getContent()
+                ),
+                'user',                                 // who initiated the activity?
+                $n->getCreatorid(),                     // id of initiator
+                'created',                              // the type if the activity
+                'forum',                                // type of activity object
+                $n->getUrl(),                           // url to entity in Stud.IP
+                'http://example.com/route',             // url to entity as rest-route
+                $n->getDate()
+            );
         }, $notifications);
 
     }

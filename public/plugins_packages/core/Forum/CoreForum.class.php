@@ -129,7 +129,7 @@ class CoreForum extends StudipPlugin implements ForumModule
                         $post['user_id'],
                         $post['author'],
                         PluginEngine::getURL($this, array(), 'index/index/' . $post['topic_id']
-                                .'?cid='. $course_id
+                                .'?cid='. $course_id .'&highlight_topic='. $post['topic_id']
                                 .'#'. $post['topic_id']),
                         $post['mkdate']
                     );
