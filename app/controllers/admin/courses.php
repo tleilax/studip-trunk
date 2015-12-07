@@ -585,7 +585,7 @@ class Admin_CoursesController extends AuthenticatedController
             ),
             18 => array('name'       => _('Startsemester'),
                         'title'      => _('Startsemester'),
-                        'url'        => 'dispatch.php/course/timesrooms/editSemester?cid=%s',
+                        'url'        => 'dispatch.php/course/timesrooms/editSemester?cid=%s&origin=admin_courses',
                         'attributes' => array(
                             'data-dialog' => 'size=400'
                         )

@@ -1,4 +1,4 @@
-<form action="<?= $controller->url_for('course/timesrooms/set_semester/' . $course->id) ?>" method="post"
+<form action="<?= $controller->url_for('course/timesrooms/setSemester/' . $course->id, $params) ?>" method="post"
       class="default" <?= Request::isXhr() ? 'data-dialog="size=big"' : '' ?>>
 
     <? if (!Request::isXhr()) : ?>

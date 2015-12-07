@@ -1,6 +1,4 @@
-<? if (!Request::isXhr()): ?>
-    <?= $this->render_partial('course/timesrooms/editSemester.php') ?>
-<? else : ?>
+<? if (Request::isXhr()): ?>
     <?= $this->render_partial('course/timesrooms/_select_semester_range.php') ?>
 <? endif ?>
 
