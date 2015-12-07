@@ -41,14 +41,13 @@ class StEP00294InnoDB extends Migration
             // Get innodb_file_per_table setting
             $data = DBManager::get()->fetchFirst("SHOW VARIABLES LIKE 'innodb_file_per_table'");
             $file_per_table = $data[0];
-            if (in_array(strtolower($file_per_table), array('on', '1'))) {
-                // Check if Barracuda file format is enabled
-                $data = DBManager::get()->fetchFirst("SHOW VARIABLES LIKE 'innodb_file_format'");
-                $file_format = $data[0];
-                // All prerequisites fulfilled, use Barracuda format
-                if ($file_format == 'Barracuda') {
-                    $query .= " ROW_FORMAT=COMPACT";
-                }
+
+            // Check if Barracuda file format is enabled
+            $data = DBManager::get()->fetchFirst("SHOW VARIABLES LIKE 'innodb_file_format'");
+            $file_format = $data[0];
+
+            if (strtolower($file_per_table) == 'on' && strtolower($file_format) == 'barracuda') {
+                    $query .= " ROW_FORMAT=DYNAMIC";
             }
         }
         $query .= " ENGINE=InnoDB;') AS query
