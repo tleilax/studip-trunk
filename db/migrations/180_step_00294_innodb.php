@@ -6,7 +6,7 @@
  * @license GPL2 or any later version
  * @since   Stud.IP 3.4
  *
- * @see https://develop.studip.de/trac/ticket/5415
+ * @see https://develop.studip.de/trac/ticket/6180
  */
 class StEP00294InnoDB extends Migration
 {
