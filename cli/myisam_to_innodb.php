@@ -1,4 +1,4 @@
-#!/Applications/MAMP/bin/php/php5.6.10/bin/php
+#!/usr/bin/env php
 <?php
 require_once('/Users/thomashackl/PhpstormProjects/studip-innodb/cli/studip_cli_env.inc.php');
 
