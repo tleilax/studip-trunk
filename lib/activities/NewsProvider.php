@@ -29,7 +29,7 @@ class NewsProvider implements ActivityProvider
 
         // TODO: hier muss irgendwo noch das maxage gefilter werden.
 
-        return $this->wrapNews($news);
+        return $this->wrapNews($news, $context);
     }
 
     private function contextToRangeId(Context $context)
@@ -53,12 +53,53 @@ class NewsProvider implements ActivityProvider
         return $range_id;
     }
 
-
-    private function wrapNews($news)
+    private function getUrlForContext($news, $context)
     {
-        return array_map(function ($n) {
-            $description = sprintf(_("%s hat eine Ankündigung geschrieben"), $n->author);
-            return new Activity('news_provider', $description, 'user', $n->user_id, 'created', 'news', 'http://example.com/url', 'http://example.com/route', $n->mkdate);
+        if ($context instanceof CourseContext) {
+            return array(
+                \URLHelper::getUrl('dispatch.php/course/details/?sem_id=' . $context->getSeminarId()) => _('News im Kurs')
+            );
+        }
+
+        else if ($context instanceof InstituteContext) {
+            return array(
+                \URLHelper::getUrl('dispatch.php/institute/overview?auswahl=' . $context->getInstituteId()) => _('News in der Einrichtung')
+            );
+        }
+
+        else if ($context instanceof SystemContext) {
+            return array(
+                \URLHelper::getUrl('dispatch.php/start?contentbox_type=news&contentbox_open='. $news->getId() .'#'. $news->getId()) => _('News auf der Startseite')
+            );
+        }
+
+        else if ($context instanceof UserContext) {
+            #$range_id = $context->getUserId();
+            return array(
+                \URLHelper::getUrl('dispatch.php/profile?contentbox_type=news&contentbox_open='. $news->getId() .'#'. $news->getId()) => _('News auf der Profilseite')
+            );
+        }
+    }
+
+    private function wrapNews($news, $context)
+    {
+        return array_map(function ($n) use ($context) {
+            $description = array(
+                'title'   => sprintf(_("%s hat eine Ankündigung geschrieben."), $n->author),
+                'content' => formatReady($n->body)
+            );
+
+            return new Activity(
+                'news_provider',
+                $description,                           // the description and summaray of the performed activity
+                'user',                                 // who initiated the activity?
+                $n->user_id,                            // id of initiator
+                'created',                              // the type if the activity
+                'news',                                 // type of activity object
+                $this->getUrlForContext($n, $context),  // url to entity in Stud.IP
+                'http://example.com/route',             // url to entity as rest-route
+                $n->mkdate
+            );
         }, $news);
     }
 }

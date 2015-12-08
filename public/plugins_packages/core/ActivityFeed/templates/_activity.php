@@ -42,18 +42,13 @@ $description = $_activity->getDescription();
 
                 <? if (false) : /* if (strlen($description['content']) > 100) : */?>
                 <span class="read-more">
-                    <a href="<?= URLHelper::getURL($object['url']) ?>">
-                        <?= _("Zum Eintrag springen und weiterlesen...") ?>
-                    </a>
+                    <?= $this->render_partial("_urls", array('urls' => $object['url'])) ?>
                 </span>
                 <? endif ?>
             </span>
 
-
             <span class=".activity-object-link">
-                <a href="<?= URLHelper::getURL($object['url']) ?>">
-                    <?= _("Zum Eintrag springen und weiterlesen...") ?>
-                </a>
+                <?= $this->render_partial("_urls", array('urls' => $object['url'])) ?>
             </span>
         </section>
         <div class='clear'></div>

@@ -21,5 +21,5 @@
 </style>
 
 <div class="stream-container">
-     <?= $this->render_partial_collection("_activity", $stream)?>
+     <?= $this->render_partial_collection("_activity", $stream) ?>
 </div>

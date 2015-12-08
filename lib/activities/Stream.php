@@ -45,16 +45,14 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
 
         // deduplizieren + sortieren nach mkdate (immer wg. Timeline!)
         // TODO: deduplizieren fehlt noch
-        /*
-        usort($activities, function($a, $b) {
+
+        usort($this->activities, function($a, $b) {
             if ($a->getMkdate() == $b->getMkdate()) {
                 return 0;
             }
 
-            return ($a->getMkdate() > $b->getMkdate()) ? 1 : -1;
+            return ($a->getMkdate() > $b->getMkdate()) ? -1 : 1;
         });
-         *
-         */
     }
 
  /**

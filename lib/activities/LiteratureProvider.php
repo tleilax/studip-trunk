@@ -27,12 +27,15 @@ class LiteratureProvider implements ActivityProvider
         $now = time();
         $chdate = $now - 24 * 60 * 60 * 260;
 
-        $course = \Course::find($range_id);
-        $sem_class = $course->getSemClass();
-        $module = $sem_class->getModule('literature');
-        $notifications = $module->getNotificationObjects($range_id, $chdate, $observer_id);
+        if ($course = \Course::find($range_id)) {
+            $sem_class = $course->getSemClass();
+            $module = $sem_class->getModule('literature');
+            $notifications = $module->getNotificationObjects($range_id, $chdate, $observer_id);
 
-        return $this->wrapParticipantNotifications($notifications);
+            return $this->wrapParticipantNotifications($notifications);
+        }
+
+        return array();
     }
 
     private function contextToRangeId(Context $context){
