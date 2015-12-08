@@ -61,6 +61,9 @@ class CourseContext implements Context
                 }
             }
 
+            //news
+            $this->addProvider('news');
+
             //plugins
             $standard_plugins = \PluginManager::getInstance()->getPlugins("StandardPlugin", $this->seminar_id);
             foreach ($standard_plugins as $plugin) {
