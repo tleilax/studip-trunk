@@ -1,6 +1,6 @@
 #!/usr/bin/env php
 <?php
-require_once('/Users/thomashackl/PhpstormProjects/studip-innodb/cli/studip_cli_env.inc.php');
+require_once(__DIR__.'/studip_cli_env.inc.php');
 
 echo 'Migration starting at '.date('d.m.Y H:i:s').".\n";
 $start = microtime(true);
