@@ -111,10 +111,6 @@ class Activity
         return $this->provider;
     }
 
-    /*
-     * todo
-     */
-    
     function setMkdate($mkdate)
     {
        $this->mkdate = $mkdate;
@@ -123,5 +119,16 @@ class Activity
     function getMkdate()
     {
         return $this->mkdate;
+    }
+
+    /**
+     * Add a url to the list of urls
+     *
+     * @param type $url
+     * @param type $name
+     */
+    function addUrl($url, $name)
+    {
+        $this->object['url'][$url] = $name;
     }
 }

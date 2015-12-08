@@ -40,14 +40,10 @@ $description = $_activity->getDescription();
             <span class="activity-details">
                 <?= $description['content'] ?>
 
-                <? if (false) : /* if (strlen($description['content']) > 100) : */?>
-                <span class="read-more">
-                    <?= $this->render_partial("_urls", array('urls' => $object['url'])) ?>
-                </span>
-                <? endif ?>
+                <!-- TODO: fade out at the bottom to signalize further content -->
             </span>
 
-            <span class=".activity-object-link">
+            <span class="activity-object-link">
                 <?= $this->render_partial("_urls", array('urls' => $object['url'])) ?>
             </span>
         </section>

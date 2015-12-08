@@ -9,6 +9,20 @@
         overflow: hidden;
     }
 
+    .activity-object-link {
+        border-top: 1px solid #CCC;
+    }
+
+    .activity-object-link ul {
+        padding: 0px;
+    }
+
+    .activity-object-link ul li {
+        list-style-type: none;
+        display: inline;
+        padding-right: 15px;
+    }
+
     <? /*
     .activity-details .read-more {
         display: block;

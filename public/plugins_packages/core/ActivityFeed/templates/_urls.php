@@ -1,6 +1,10 @@
+<ul>
 <? foreach ($urls as $link => $name) : ?>
-<a href="<?= $link ?>">
-    <?= $name ?>
-</a>
+    <li>
+        <a href="<?= $link ?>">
+            <?= $name ?>
+        </a>
+    </li>
 <? endforeach; ?>
+</ul>
 

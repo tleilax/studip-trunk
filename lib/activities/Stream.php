@@ -53,6 +53,21 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
 
             return ($a->getMkdate() > $b->getMkdate()) ? -1 : 1;
         });
+
+        foreach ($this->activities as $key => $activity) {
+            // generate an id for the activity, considering some basic object parameters
+            $object = $activity->getObject();
+            $id = md5($activity->getProvider() . serialize($activity->getDescription()) . $activity->getVerb() . $object['objectType'] . $activity->getMkdate());
+
+            if ($new_activities[$id]) {
+                list($url, $name) = each($object['url']);
+                $new_activities[$id]->addUrl($url, $name);
+            } else {
+                $new_activities[$id] = $activity;
+            }
+        }
+
+        $this->activities = $new_activities;
     }
 
  /**
