@@ -764,17 +764,17 @@ class Course_TimesroomsController extends AuthenticatedController
 
         $this->editParams = array('fromDialog' => Request::get('fromDialog'));
 
-        if ($cycle_id !== null) {
-            $this->cycle = SeminarCycleDate::find($cycle_id);
+        $this->cycle = new SeminarCycleDate($cycle_id);
 
-            $ids = array_map(function ($item) {
-                return $item->termin_id;
-            }, $this->cycle->dates);
+        if ($this->cycle->isNew()) {
+            $this->has_bookings = false;
+        } else {
+            $ids = $this->cycle->dates->pluck('termin_id');
 
-            $count              = ResourceAssignment::countBySQL('assign_user_id IN (?)',
-                array($ids ?: ''));
+            $count = ResourceAssignment::countBySQL('assign_user_id IN (?)', array($ids ?: ''));
             $this->has_bookings = $count > 0;
         }
+
         $this->start_weeks = $this->getStartWeeks();
     }
 

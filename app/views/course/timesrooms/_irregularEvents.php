@@ -17,61 +17,87 @@
             </a>
         </nav>
     </header>
-    <? if (!empty($single_dates)) : ?>
-        <form class="default collapsable" action="<?= $controller->url_for('course/timesrooms/stack', $editParams) ?>"
-              <?= Request::isXhr() ? 'data-dialog="size=big"' : ''?>  method="post">
-            <table class="default nohover">
-                <colgroup>
-                    <col width="30px">
-                    <col width="30%">
-                    <col>
-                    <col width="20%">
-                    <col width="50px">
-                </colgroup>
 
-                <? foreach ($single_dates as $semester_id => $termine) : ?>
-                    <thead>
-                    <tr>
-                        <th colspan="5"><?= htmlReady(Semester::find($semester_id)->name) ?></th>
-                    </tr>
-                    </thead>
+<? if (!empty($single_dates)): ?>
+    <form class="default collapsable" action="<?= $controller->url_for('course/timesrooms/stack', $editParams) ?>"
+          <?= Request::isXhr() ? 'data-dialog="size=big"' : ''?>  method="post">
+
+    <? foreach ($single_dates as $semester_id => $termine) : ?>
+        <article id="singledate-<?= $semester_id ?>" class="<?= count($single_dates) === 1 ? 'open' :  ContentBoxHelper::classes('singledate-' . $semester_id) ?>">
+            <header>
+                <h1>
+                    <input type="checkbox" class="date-proxy"
+                           data-proxyfor="#singledate-<?= $semester_id ?> .ids-irregular">
+                    <a href="<?= ContentBoxHelper::href('singledate-' . $semester_id) ?>">
+                        <?= htmlReady(Semester::find($semester_id)->name) ?>
+                    </a>
+                </h1>
+                <nav>
+                    <?= sprintf(ngettext('%u Termin', '%u Termine', count($termine)),
+                                 count($termine)) ?>
+                </nav>
+            </header>
+            <section>
+                <table class="default nohover">
+                    <colgroup>
+                        <col width="30px">
+                        <col width="30%">
+                        <col>
+                        <col width="20%">
+                        <col width="50px">
+                    </colgroup>
+
                     <tbody>
-                    <? foreach ($termine as $termin) : ?>
-                        <?= $this->render_partial('course/timesrooms/_cycleRow.php', array('termin'    => $termin,
-                                                                                           'class_ids' => 'ids-irregular'
+                    <? foreach ($termine as $termin): ?>
+                        <?= $this->render_partial('course/timesrooms/_cycleRow.php', array(
+                                'termin'    => $termin,
+                                'class_ids' => 'ids-irregular',
                         )) ?>
-                    <? endforeach ?>
+                    <? endforeach; ?>
                     </tbody>
-                <? endforeach; ?>
+                </table>
+            </section>
+        </article>
+    <? endforeach; ?>
 
-                <tfoot>
+        <table class="default nohover">
+            <colgroup>
+                <col width="30px">
+                <col width="30%">
+                <col>
+                <col width="20%">
+                <col width="50px">
+            </colgroup>
+
+            <tfoot>
                 <tr>
                     <td colspan="2">
-                        <section style="margin: 0; padding: 0">
-                            <input data-proxyfor=".ids-irregular" type="checkbox"
-                                   id="checkAllIrregular" data-activates=".actionForAllIrregular">
-                            <label for="checkAllIrregular" class="horizontal">
-                                <?= _('Alle auswählen') ?>
-                            </label>
-                        </section>
+                        <label class="horizontal">
+                            <input type="checkbox" data-proxyfor=".date-proxy" 
+                                   data-activates=".actionForAllIrregular">
+                            <?= _('Alle auswählen') ?>
+                        </label>
                     </td>
-                    <td colspan="4" class="actions">
+                    <td colspan="3" class="actions">
                         <select name="method" class="actionForAllIrregular">
                             <?= $this->render_partial('course/timesrooms/_stack_actions.php') ?>
                         </select>
-                        <?= Studip\Button::create('ausführen', 'run', array('class' => 'actionForAllIrregular', 'data-dialog' => 'size=big')) ?>
+                        <?= Studip\Button::create(_('Ausführen'), 'run', array(
+                                'class' => 'actionForAllIrregular',
+                                'data-dialog' => 'size=big',
+                        )) ?>
                     </td>
                 </tr>
-                </tfoot>
-            </table>
-        </form>
-    <? else : ?>
-        <section>
-            <p class="text-center">
-                <strong>
-                    <?= _('Keine unregelmäßigen Termine vorhanden') ?>
-                </strong>
-            </p>
-        </section>
-    <? endif; ?>
+            </tfoot>
+        </table>
+    </form>
+<? else: ?>
+    <section>
+        <p class="text-center">
+            <strong>
+                <?= _('Keine unregelmäßigen Termine vorhanden') ?>
+            </strong>
+        </p>
+    </section>
+<? endif; ?>
 </section>

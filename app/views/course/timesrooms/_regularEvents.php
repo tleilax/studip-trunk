@@ -30,7 +30,7 @@
                     <? else: ?>
                         <?= tooltipIcon(_('Keine offenen Raumbuchungen')) ?>
                     <? endif; ?>
-                        <a href="<?= ContentBoxHelper::href($metadate_id, array()) ?>">
+                        <a href="<?= ContentBoxHelper::href($metadate_id) ?>">
                             <?= htmlReady($cycle['cycle']->toString('long')) ?>
                         </a>
                     </h1>
