@@ -118,7 +118,9 @@ jQuery(function ($) {
     $(document).on('ready', function() {
         var elements = $('.load-in-new-row-open');
         elements.click();
-        $(window).scrollTo(elements.first());
+        if (elements.length > 0) {
+            $(window).scrollTo(elements.first());
+        }
     });
 
 });
