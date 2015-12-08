@@ -42,7 +42,7 @@ class CourseContext implements Context
         if (!$this->provider) {
             $course = \Course::find($this->seminar_id);
 
-            $module_names = array('forum', 'participants', 'documents', 'literature', 'wiki');
+            $module_names = array('forum', 'participants', 'documents', 'literature', 'wiki', 'blubber');
 
             // get list of possible providers by checking the activated plugins and modules for the current seminar
             $modules = new \Modules();

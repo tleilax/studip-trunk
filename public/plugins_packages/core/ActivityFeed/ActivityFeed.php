@@ -24,7 +24,7 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
         PageLayout::addStylesheet($this->getPluginURL(). '/css/style.css');
 
 
-        $observer_id = $GLOBALS['user']->id ;
+        $observer_id = $GLOBALS['user']->id;
         $contexts = array();
         $system_context = new \Studip\Activity\SystemContext();
 
@@ -44,6 +44,15 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
         }
 
 
+        // institute_context should be done in a similar way
+
+        //TODO user_context (do we wanna add buddies as well?)
+        $contexts[] = new \Studip\Activity\UserContext($GLOBALS['user']->id);
+
+
+
+
+        // add filters
         $filter = new Studip\Activity\Filter();
 
         $stream = new \Studip\Activity\Stream($observer_id, $contexts, $filter);
