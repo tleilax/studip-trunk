@@ -108,6 +108,7 @@
                         || 'Wollen Sie die Aktion wirklich ausführen?'.toLocaleString();
 
             STUDIP.Dialog.show(question, {
+                id: 'confirmation-dialog',
                 title: 'Bitte bestätigen Sie die Aktion'.toLocaleString(),
                 size: 'fit',
                 wikilink: false,
@@ -116,7 +117,7 @@
                     accept: {
                         text: 'Ja'.toLocaleString(),
                         click: function () {
-                            STUDIP.Dialog.close();
+                            STUDIP.Dialog.close({id: 'confirmation-dialog'});
 
                             // We need to trigger the native event because for
                             // some reason, jQuery's .trigger() won't always
@@ -128,7 +129,7 @@
                     cancel: {
                         text: 'Nein'.toLocaleString(),
                         click: function () {
-                            STUDIP.Dialog.close();
+                            STUDIP.Dialog.close({id: 'confirmation-dialog'});
                         },
                         'class': 'cancel'
                     }
