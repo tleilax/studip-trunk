@@ -29,10 +29,7 @@
     }).on('ready dialog-update', function () {
         $(':checkbox[data-proxyfor]').each(function () {
             var proxied = $(this).data('proxyfor');
-
             // The following seems like a hack but works perfectly fine.
-            // The attribute needs to be changed so the previous event handler
-            // will work
             $(proxied).attr('data-proxiedby', true).data('proxiedby', this);
         }).trigger('update.proxy');
     });
@@ -43,7 +40,7 @@
     $(document).on('change', ':checkbox[data-activates]', function () {
         var activates = $(this).data('activates'),
             activated = $(this).prop('checked') || $(this).prop('indeterminate') || false;
-        $(activates).prop('disabled', !activated).trigger('update.proxy');
+        $(activates).attr('disabled', !activated).trigger('update.proxy');
     }).ready(function () {
         $(':checkbox[data-activates]').trigger('change');
     });
@@ -54,7 +51,7 @@
     $(document).on('change update.proxy', 'select[data-activates]', function () {
         var activates = $(this).data('activates'),
             disabled = $(this).is(':disabled') || $(this).val().length === 0;
-        $(activates).prop('disabled', disabled);
+        $(activates).attr('disabled', disabled);
     }).ready(function () {
         $('select[data-activates]').trigger('change');
     });
@@ -104,38 +101,25 @@
             event.stopPropagation();
             event.preventDefault();
 
-            var element  = $(event.target).closest('[data-confirm]'),
+            var element  = $(event.currentTarget).closest('[data-confirm]'),
                 question = element.data().confirm
                         || element.attr('title')
                         || element.find('[title]:first').attr('title')
                         || 'Wollen Sie die Aktion wirklich ausführen?'.toLocaleString();
 
-            STUDIP.Dialog.show(question, {
-                title: 'Bitte bestätigen Sie die Aktion'.toLocaleString(),
-                size: 'fit',
-                wikilink: false,
-                dialogClass: 'studip-confirmation',
-                buttons: {
-                    accept: {
-                        text: 'Ja'.toLocaleString(),
-                        click: function () {
-                            STUDIP.Dialog.close();
+            STUDIP.Dialog.confirm(question, function () {
+                var content = element.data().confirm;
 
-                            // We need to trigger the native event because for
-                            // some reason, jQuery's .trigger() won't always
-                            // work
-                            $(event.target).removeAttr('data-confirm').get(0)[event.type]();
-                        },
-                        'class': 'accept'
-                    },
-                    cancel: {
-                        text: 'Nein'.toLocaleString(),
-                        click: function () {
-                            STUDIP.Dialog.close();
-                        },
-                        'class': 'cancel'
-                    }
-                }
+                // We need to trigger the native event because for
+                // some reason, jQuery's .trigger() won't always
+                // work. Thus the data-confirm attribute will be removed
+                // so that the original event can be executed
+                element.removeAttr('data-confirm').get(0)[event.type]();
+
+                // Reapply the data-confirm attribute
+                window.setTimeout(function () {
+                    element.attr('data-confirm', content);
+                }, 0);
             });
         }
     }
