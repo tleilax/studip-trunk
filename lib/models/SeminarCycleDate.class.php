@@ -40,29 +40,33 @@ class SeminarCycleDate extends SimpleORMap
 
     /**
      * returns array of instances of SeminarCycleDates of the given seminar_id
+     *
      * @param string seminar_id: selected seminar to search for SeminarCycleDates
      * @return array of instances of SeminarCycleDates of the given seminar_id or
      *               an empty array
      */
-    static function findBySeminar($seminar_id)
+    public static function findBySeminar($seminar_id)
     {
         return self::findBySeminar_id($seminar_id, "ORDER BY sorter ASC, weekday ASC, start_time ASC");
     }
 
     /**
      * return instance of SeminarCycleDates of given termin_id
+     *
      * @param string termin_id: selected seminar to search for SeminarCycleDates
      * @return array
      */
-    static function findByTermin($termin_id)
+    public static function findByTermin($termin_id)
     {
-        return self::findOneBySql("metadate_id=(SELECT metadate_id FROM termine WHERE termin_id= ? "
-                                  . "UNION SELECT metadate_id FROM ex_termine WHERE termin_id = ? )", array($termin_id,
-                                                                                                            $termin_id
-        ));
+        return self::findOneBySql("metadate_id=(SELECT metadate_id FROM termine WHERE termin_id = ? "
+                                  . "UNION SELECT metadate_id FROM ex_termine WHERE termin_id = ? )", array($termin_id, $termin_id));
     }
 
-
+    /**
+     * Configures this model.
+     *
+     * @param Array $config Configuration array
+     */
     protected static function configure($config = array())
     {
         $config['db_table'] = 'seminar_cycle_dates';
@@ -78,14 +82,14 @@ class SeminarCycleDate extends SimpleORMap
             'on_store'   => 'store',
             'order_by'   => 'ORDER BY date'
         );
-        
+
         $config['has_many']['exdates'] = array(
             'class_name' => 'CourseExDate',
             'on_delete'  => 'delete',
             'on_store'   => 'store',
             'order_by'   => 'ORDER BY date'
         );
-        
+
         $config['additional_fields']['start_hour'] = array('get' => 'getTimeFraction', 'set' => 'setTimeFraction');
         $config['additional_fields']['start_minute'] = array('get' => 'getTimeFraction', 'set' => 'setTimeFraction');
         $config['additional_fields']['end_hour'] = array('get' => 'getTimeFraction', 'set' => 'setTimeFraction');
@@ -93,6 +97,12 @@ class SeminarCycleDate extends SimpleORMap
         parent::configure($config);
     }
 
+    /**
+     * Returns the time fraction for a given field.
+     *
+     * @param String $field Time fraction field
+     * @return String containing the time fraction
+     */
     protected function getTimeFraction($field)
     {
         if (in_array($field, array('start_hour', 'start_minute'))) {
@@ -105,6 +115,13 @@ class SeminarCycleDate extends SimpleORMap
         }
     }
 
+    /**
+     * Sets the time fraction for a given field.
+     *
+     * @param String $field Time fraction field
+     * @param mixed  $value Time fraction value as string or int
+     * @return String containing the time fraction
+     */
     protected function setTimeFraction($field, $value)
     {
         if ($field == 'start_hour') {
@@ -141,18 +158,18 @@ class SeminarCycleDate extends SimpleORMap
      * @param format string: "short"|"long"|"full"
      * @return formatted string
      */
-    function toString($format = 'short')
+    public function toString($format = 'short')
     {
         $template['short'] = '%s. %02s:%02s - %02s:%02s';
         $template['long'] = '%s: %02s:%02s - %02s:%02s, %s';
-        $template['full'] = '%s: %02s:%02s - %02s:%02s, ' . _("%s, ab der %s. Semesterwoche");
+        $template['full'] = '%s: %02s:%02s - %02s:%02s, ' . _('%s, ab der %s. Semesterwoche');
         if ($this->end_offset) {
             $template['full'] .= ' bis zur %s. Semesterwoche';
         } else {
             $template['full'] .= '%s';
         }
         $template['full'] .= '%s';
-        $cycles = array(_("wöchentlich"), _("zweiwöchentlich"), _("dreiwöchentlich"));
+        $cycles = array(_('wöchentlich'), _('zweiwöchentlich'), _('dreiwöchentlich'));
         $day = getWeekDay($this->weekday, $format == 'short');
         $result = sprintf($template[$format],
             $day,
@@ -166,132 +183,138 @@ class SeminarCycleDate extends SimpleORMap
             $this->description ? ' (' . $this->description . ')' : '');
         return $result;
     }
-    
+
     /**
-     * returns an sorted array with all dates and exdates for the cycledate entry 
+     * returns an sorted array with all dates and exdates for the cycledate entry
      * @return array of instances of dates or exdates
      */
-    function getAllDates()
+    public function getAllDates()
     {
-        $exdates = $this->exdates;
-        $dates   = $this->dates;         
-        $all_data = array();
-        
-        foreach ($exdates as $exdate) {
-            $all_data[] = $exdate;
-        }        
-        foreach ($dates as $date) {
-            $all_data[] = $date;
-        }
-        
-        usort($all_data, function($a, $b){
+        $dates = array_merge($this->exdates, $this->dates);
+
+        usort($dates, function ($a, $b) {
             return $a->date - $b->date;
         });
-        return $all_data;
+
+        return $dates;
     }
-    
+
+    /**
+     * Deletes the cycle.
+     *
+     * @return int number of affected rows
+     */
     public function delete()
     {
         $cycle_info = $this->toString();
         $seminar_id = $this->seminar_id;
-        if (parent::delete()) {
-            StudipLog::log('SEM_DELETE_CYCLE', $seminar_id, NULL, $cycle_info);
-            return true;
+        $result = parent::delete();
+
+        if ($result) {
+            StudipLog::log('SEM_DELETE_CYCLE', $seminar_id, null, $cycle_info);
         }
-        return false;
+
+        return $result;
     }
-    
+
+    /**
+     * Stores this cycle.
+     * @return int number of changed rows
+     */
     public function store()
     {
         $cycle = parent::findByMetadate_id($this->metadate_id);
         //create new entry in seminare_cycle_date
-        if (empty($cycle)) {
-            $store = parent::store();
-            if ($store) {
+        if ($cycle === null) {
+            $result = parent::store();
+            if ($result) {
                 $new_dates = $this->createTerminSlots();
-                foreach($new_dates as $semester_dates) {
+                foreach ($new_dates as $semester_dates) {
                     foreach ($semester_dates['dates'] as $date) {
-                        $date->store();
+                        $result += $date->store();
                     }
                 }
                 StudipLog::log('SEM_ADD_CYCLE', $this->seminar_id, NULL, $this->toString());
-                return $store;
-            } else {
-                return false;
+                return $result;
             }
-
+            return 0;
         }
+
         //change existing cycledate, changes also corresponding single dates
-        else {
-            $old_cycle = SeminarCycleDate::find($this->metadate_id);
-            if (!parent::store()) {
-                return false;
-            }
-            if ( (mktime($this->start_time) >= mktime($old_cycle->start_time) 
-                    && mktime($this->end_time) <= mktime($old_cycle->end_time) )
-                    && ($this->weekday == $old_cycle->weekday && $this->end_offset == $old_cycle->end_offset)) {
-                
-                $update_count = 0;
-                foreach($this->getAllDates() as $date){
-                    $tos = $date->date;
-                    $toe = $date->end_time;
-                    //Update future dates
-                    if ($toe > time()) {
-                        $date->date = mktime(date('G',strtotime($this->start_time)), date('i',strtotime($this->start_time)), 0, date('m', $tos), date('d', $tos), date('Y', $tos));
-                        $date->end_time = mktime(date('G',strtotime($this->end_time)), date('i',strtotime($this->end_time)), 0, date('m', $toe), date('d', $toe), date('Y', $toe));
-                    }
-                    if($date->isDirty()){
-                        $date->store();
-                        $update_count++;
-                    }
-                    
+        $old_cycle = SeminarCycleDate::find($this->metadate_id);
+        if (!parent::store()) {
+            return false;
+        }
+
+        if (mktime($this->start_time) >= mktime($old_cycle->start_time)
+            && mktime($this->end_time) <= mktime($old_cycle->end_time)
+            && $this->weekday == $old_cycle->weekday
+            && $this->end_offset == $old_cycle->end_offset)
+        {
+            $update_count = 0;
+            foreach ($this->getAllDates() as $date) {
+                $tos = $date->date;
+                $toe = $date->end_time;
+                //Update future dates
+                if ($toe > time()) {
+                    $date->date = mktime(date('G', strtotime($this->start_time)),
+                                         date('i',strtotime($this->start_time)),
+                                         0,
+                                         date('m', $tos), date('d', $tos), date('Y', $tos));
+                    $date->end_time = mktime(date('G',strtotime($this->end_time)),
+                                             date('i',strtotime($this->end_time)),
+                                             0,
+                                             date('m', $toe), date('d', $toe), date('Y', $toe));
                 }
-                StudipLog::log('SEM_CHANGE_CYCLE', $this->seminar_id, NULL, $old_cycle->toString() . ' -> ' . $this->toString());
-                return $update_count;
-            } else {
-               //collect topics for existing future dates (CourseDate)
-                $topics = array();
-                foreach($this->getAllDates() as $date){
-                    if($date->end_time >= time()){
-                        $topics_tmp = CourseTopic::findByTermin_id($date->termin_id);
-                        if(!empty($topics_tmp)){
-                            $topics[] = $topics_tmp;
-                        }
-                        //uncomment below
-                        $date->delete();
-                    }
-                }
-                $new_dates = $this->createTerminSlots(time());
-                $topic_count = 0;
-                $update_count = 0;
-                foreach($new_dates as $semester_dates){
-                    foreach($semester_dates['dates'] as $date){
-                        if ($date instanceof CourseDate) {
-                            if(isset($topics[$topic_count])){
-                                $date->topics = $topics[$topic_count];
-                                $topic_count++;
-                            }
-                            $date->store();
-                        } else {
-                            $date->store();
-                        }
-                        $update_count++;
-                    }
+                if ($date->isDirty()) {
+                    $date->store();
+                    $update_count++;
                 }
             }
-            StudipLog::log('SEM_CHANGE_CYCLE', $this->seminar_id, NULL, $old_cycle->toString() .' -> ' . $this->toString());
+            StudipLog::log('SEM_CHANGE_CYCLE', $this->seminar_id, NULL, $old_cycle->toString() . ' -> ' . $this->toString());
             return $update_count;
         }
-        return false;
+
+       //collect topics for existing future dates (CourseDate)
+        $topics = array();
+        foreach ($this->getAllDates() as $date) {
+            if ($date->end_time >= time()) {
+                $topics_tmp = CourseTopic::findByTermin_id($date->termin_id);
+                if (!empty($topics_tmp)) {
+                    $topics[] = $topics_tmp;
+                }
+                //uncomment below
+                $date->delete();
+            }
+        }
+
+        $new_dates = $this->createTerminSlots(time());
+        $topic_count = 0;
+        $update_count = 0;
+        foreach ($new_dates as $semester_dates) {
+            foreach ($semester_dates['dates'] as $date) {
+                if ($date instanceof CourseDate) {
+                    if (isset($topics[$topic_count])) {
+                        $date->topics = $topics[$topic_count];
+                        $topic_count++;
+                    }
+                }
+                $date->store();
+
+                $update_count++;
+            }
+        }
+        StudipLog::log('SEM_CHANGE_CYCLE', $this->seminar_id, NULL, $old_cycle->toString() .' -> ' . $this->toString());
+        return $update_count;
     }
-    
+
     /**
      * generate single date objects for one cycle and all semester, existing dates are merged in
      *
      * @param startAfterTimeStamp => int timestamp to override semester start
      * @return array array of arrays, for each semester id  an array of two arrays of SingleDate objects: 'dates' => all new and surviving dates, 'dates_to_delete' => obsolete dates
      */
-    function createTerminSlots($startAfterTimeStamp = 0)
+    public function createTerminSlots($startAfterTimeStamp = 0)
     {
         $course = Course::find($this->seminar_id);
         $ret = array();
@@ -356,7 +379,7 @@ class SeminarCycleDate extends SimpleORMap
      * @param int    correction calculation, if the semester does not start on monday (number of days?)
      * @return array returns an array of two arrays of SingleDate objects: 'dates' => all new and surviving dates, 'dates_to_delete' => obsolete dates
      */
-    function createSemesterTerminSlots($sem_begin, $sem_end, $startAfterTimeStamp, $corr)
+    public function createSemesterTerminSlots($sem_begin, $sem_end, $startAfterTimeStamp, $corr)
     {
         $dates = array();
         $dates_to_delete = array();
@@ -390,7 +413,7 @@ class SeminarCycleDate extends SimpleORMap
         }
 
         $start = explode(':', $this->start_time);
-        
+
         $start_time = mktime(
             (int)$start[0],                                     // Hour
             (int)$start[1],                                     // Minute
@@ -480,7 +503,7 @@ class SeminarCycleDate extends SimpleORMap
             $date_values['date'] = $start_time;
             $date_values['end_time'] = $end_time;
             $date_values['date_type'] = 1;
-            $termin->setData($date_values);    
+            $termin->setData($date_values);
             $dates[] = $termin;
             }
 
@@ -494,15 +517,15 @@ class SeminarCycleDate extends SimpleORMap
 
         return array('dates' => $dates, 'dates_to_delete' => $dates_to_delete);
     }
-    
+
     /**
      * removes all singleDates which are NOT between $start and $end
-     * 
+     *
      * @param int    timestamp for start
      * @param int    timestamp for end
      * @param string seminar_id
      */
-    static function removeOutRangedSingleDates($start, $end, $seminar_id)
+    public static function removeOutRangedSingleDates($start, $end, $seminar_id)
     {
         $query = "SELECT termin_id
                   FROM termine
@@ -528,7 +551,7 @@ class SeminarCycleDate extends SimpleORMap
                 AssignObject::Factory($assign_id)->delete();
             }
         }
-        
+
         $query = "DELETE FROM ex_termine
                   WHERE range_id = ? AND (`date` NOT BETWEEN ? AND ?)
                     AND NOT (metadate_id IS NULL OR metadate_id = '')";
