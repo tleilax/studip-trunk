@@ -178,16 +178,10 @@
             header: {}
         },
         disableScrolling: function () {
-            $('html,body').css({
-                overflow: 'hidden',
-                height: '100%'
-            });
+            $('html').css('overflow', 'hidden');
         },
         enableScrolling: function () {
-            $('html,body').css({
-                overflow: '',
-                height: ''
-            });
+            $('html').css('overflow', '');
         }
     };
 
@@ -517,7 +511,10 @@
         }
 
         // Blur background
-        $('#layout_wrapper').css('filter', 'blur(' + STUDIP.Dialog.stack.length + 'px)');
+        $('#layout_wrapper').css({
+            WebkitFilter: 'blur(' + STUDIP.Dialog.stack.length + 'px)',
+            filter: 'blur(' + STUDIP.Dialog.stack.length + 'px)'
+        });
 
         // Create/update dialog
         instance.element.dialog(dialog_options);
@@ -557,12 +554,50 @@
             STUDIP.Dialog.removeInstance(options.id);
 
             // Remove background blur
-            $('#layout_wrapper').css('filter', 'blur(' + STUDIP.Dialog.stack.length + 'px)');
+            $('#layout_wrapper').css({
+                WebkitFilter: 'blur(' + STUDIP.Dialog.stack.length + 'px)',
+                filter: 'blur(' + STUDIP.Dialog.stack.length + 'px)'
+            });
         }
 
         if (options['reload-on-close']) {
             window.location.reload();
         }
+    };
+
+    // Specialized confirmation dialog
+    STUDIP.Dialog.confirm = function (question, yes_callback, no_callback) {
+        STUDIP.Dialog.show(question, {
+            id: 'confirmation-dialog',
+            title: 'Bitte bestätigen Sie die Aktion'.toLocaleString(),
+            size: 'fit',
+            wikilink: false,
+            dialogClass: 'studip-confirmation',
+            buttons: {
+                accept: {
+                    text: 'Ja'.toLocaleString(),
+                    click: function () {
+                        STUDIP.Dialog.close({id: 'confirmation-dialog'});
+
+                        if ($.isFunction(yes_callback)) {
+                            yes_callback();
+                        }
+                    },
+                    'class': 'accept'
+                },
+                cancel: {
+                    text: 'Nein'.toLocaleString(),
+                    click: function () {
+                        STUDIP.Dialog.close({id: 'confirmation-dialog'});
+
+                        if ($.isFunction(no_callback)) {
+                            no_callback();
+                        }
+                    },
+                    'class': 'cancel'
+                }
+            }
+        });
     };
 
     // Actual dialog handler
