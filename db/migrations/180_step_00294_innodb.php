@@ -120,12 +120,18 @@ class StEP00294InnoDB extends Migration
              */
             if (version_compare($version, '5.6', '>=')) {
                 DBManager::get()->exec("ALTER TABLE `lit_catalog`
-                    ADD FULLTEXT(`dc_title`,`dc_creator`,`dc_contributor`,`dc_subject`),
-                    ADD FULLTEXT(`dc_title`),
-                    ADD FULLTEXT(`dc_creator`,`dc_contributor`),
-                    ADD FULLTEXT(`dc_subject`),
-                    ADD FULLTEXT(`dc_description`),
-                    ADD FULLTEXT(`dc_publisher`),
+                    ADD FULLTEXT(`dc_title`,`dc_creator`,`dc_contributor`,`dc_subject`)");
+                DBManager::get()->exec("ALTER TABLE `lit_catalog`
+                    ADD FULLTEXT(`dc_title`)");
+                DBManager::get()->exec("ALTER TABLE `lit_catalog`
+                    ADD FULLTEXT(`dc_creator`,`dc_contributor`)");
+                DBManager::get()->exec("ALTER TABLE `lit_catalog`
+                    ADD FULLTEXT(`dc_subject`)");
+                DBManager::get()->exec("ALTER TABLE `lit_catalog`
+                    ADD FULLTEXT(`dc_description`)");
+                DBManager::get()->exec("ALTER TABLE `lit_catalog`
+                    ADD FULLTEXT(`dc_publisher`)");
+                DBManager::get()->exec("ALTER TABLE `lit_catalog`
                     ADD FULLTEXT(`dc_identifier`)");
             }
 
