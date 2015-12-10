@@ -22,9 +22,7 @@ class Course_TimesroomsController extends AuthenticatedController
         parent::before_filter($action, $args);
 
         // Try to find a valid course
-        if ($action === 'index' && count($args) > 0 && $args[0]) {
-            $course_id = $args[0];
-        } elseif (Course::findCurrent()) {
+        if (Course::findCurrent()) {
             $course_id = Course::findCurrent()->id;
         } else {
             throw new Trails_Exception(404, _('Es wurde keine Veranstaltung ausgewählt!'));
@@ -86,7 +84,7 @@ class Course_TimesroomsController extends AuthenticatedController
      * @param mixed $course_id Id of the course (optional, defaults to
      *                         globally selected)
      */
-    public function index_action($course_id = null)
+    public function index_action()
     {
         Helpbar::get()->addPlainText(_('Rot'), _('Kein Termin hat eine Raumbuchung.'));
         Helpbar::get()->addPlainText(_('Gelb'), _('Mindestens ein Termin hat keine Raumbuchung.'));
