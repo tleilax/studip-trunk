@@ -997,11 +997,11 @@ function form($refresh = FALSE)
         $print.= "\n&nbsp;<input type=\"TEXT\" name=\"name\" style=\"width: 70%\" size=\"40\" maxlength\"255\"></label></td></tr>";
         $print.= "\n<tr><td class=\"table_row_even\" colspan=2 align=\"left\" valign=\"center\"><label><font size=-1>&nbsp;" . _("Beschreibung:") . "&nbsp;</font><br>";
         $print.= "\n&nbsp;<textarea name=\"description\" style=\"width: 70%\" COLS=40 ROWS=3 WRAP=PHYSICAL></textarea></label>&nbsp;</td></tr>";
-        $print.= "\n<tr><td class=\"content_seperator\" colspan=2 ><font size=-1>" . _("4. Klicken Sie auf <b>'absenden'</b>, um die Datei hochzuladen") . "</font></td></tr>";
+        $print.= "\n<tr><td class=\"content_seperator\" colspan=2 ><font size=-1>" . _("4. Klicken Sie auf <b>'Absenden'</b>, um die Datei hochzuladen") . "</font></td></tr>";
     } else if ($folder_system_data['zipupload']) {
-        $print.= "\n<tr><td class=\"content_seperator\" colspan=2 ><font size=-1>" . _("3. Klicken Sie auf <b>'absenden'</b>, um das Ziparchiv hochzuladen und in diesem Ordner zu entpacken.") . "</font></td></tr>";
+        $print.= "\n<tr><td class=\"content_seperator\" colspan=2 ><font size=-1>" . _("3. Klicken Sie auf <b>'Absenden'</b>, um das Ziparchiv hochzuladen und in diesem Ordner zu entpacken.") . "</font></td></tr>";
     } else {
-        $print.= "\n<tr><td class=\"content_seperator\" colspan=2 ><font size=-1>" . _("3. Klicken Sie auf <b>'absenden'</b>, um die Datei hochzuladen und damit die alte Version zu überschreiben.") . "</font></td></tr>";
+        $print.= "\n<tr><td class=\"content_seperator\" colspan=2 ><font size=-1>" . _("3. Klicken Sie auf <b>'Absenden'</b>, um die Datei hochzuladen und damit die alte Version zu überschreiben.") . "</font></td></tr>";
     }
     $print.= "\n<tr><td class=\"table_row_even\" colspan=2 align=\"center\" valign=\"center\">";
 
@@ -1446,9 +1446,9 @@ function link_form ($range_id, $updating=FALSE)
 
         $print.= "\n<tr><td class=\"table_row_even\" colspan=2 align=\"left\" valign=\"center\"><label><font size=-1>&nbsp;" . _("Beschreibung:") . "&nbsp;</font><br>";
         $print.= "\n&nbsp;<textarea name=\"description\" id=\"description\" style=\"width: 70%\" COLS=40 ROWS=3 WRAP=PHYSICAL>$description</textarea></label>&nbsp;</td></tr>";
-        $print.= "\n<tr><td class=\"content_seperator\"colspan=2 ><font size=-1>" . _("4. Klicken Sie auf <b>'absenden'</b>, um die Datei zu verlinken") . "</font></td></tr>";
+        $print.= "\n<tr><td class=\"content_seperator\"colspan=2 ><font size=-1>" . _("4. Klicken Sie auf <b>'Absenden'</b>, um die Datei zu verlinken") . "</font></td></tr>";
     } else
-        $print.= "\n<tr><td class=\"content_seperator\"colspan=2 ><font size=-1>" . _("2. Klicken Sie auf <b>'absenden'</b>, um die Datei hochzuladen und damit die alte Version zu überschreiben.") . "</font></td></tr>";
+        $print.= "\n<tr><td class=\"content_seperator\"colspan=2 ><font size=-1>" . _("2. Klicken Sie auf <b>'Absenden'</b>, um die Datei hochzuladen und damit die alte Version zu überschreiben.") . "</font></td></tr>";
     $print.= "\n<tr><td class=\"table_row_even\" colspan=2 align=\"center\" valign=\"center\">";
 
     $print .= '<div class="button-group">';
@@ -1797,14 +1797,18 @@ function display_folder_body($folder_id, $open, $change, $move, $upload, $refres
         }
         $content .=  '<hr>';
     }
-    if ($folder_tree->isGroupFolder($folder_id)){
-        $content .=  sprintf(_("Dieser Ordner gehört der Gruppe <b>%s</b>. Nur Mitglieder dieser Gruppe können diesen Ordner sehen."),
-        htmlReady(GetStatusgruppeName($result["range_id"]))) . '<hr>';
+    $is_group_folder = $folder_tree->isGroupFolder($folder_id);
+    if ($is_group_folder){
+        $content .=  sprintf(
+            _('Dieser Ordner gehört der Gruppe <b>%s</b>. Nur Mitglieder dieser Gruppe können diesen Ordner sehen.'
+                . ' Dieser Ordner kann nicht verschoben oder kopiert werden.'),
+            htmlReady(GetStatusgruppeName($result["range_id"]))
+        ) . '<hr>';
     }
     //Contentbereich erstellen
     if ($change == $folder_id) { //Aenderungsmodus, zweiter Teil
         $content .= '<textarea name="change_description"'
-            . ' style="width:98%" class="add_toolbar"'
+            . ' style="width:98%" class="add_toolbar wysiwyg"'
             . ' aria-label="Beschreibung des Ordners eingeben"'
             . ' rows="3">'
             . formatReady($result["description"])
@@ -1920,7 +1924,9 @@ function display_folder_body($folder_id, $open, $change, $move, $upload, $refres
                         )
                     )
                 ) {
-                    $edit.= LinkButton::create(_("Verschieben"), URLHelper::getURL("?open=".$folder_id."_m_#anker"));
+                    if (!$is_issue_folder && !$is_group_folder) {
+                        $edit.= LinkButton::create(_("Verschieben"), URLHelper::getURL("?open=".$folder_id."_m_#anker"));
+                    }
                 }
 
                 # Knopf: kopieren
@@ -1931,7 +1937,9 @@ function display_folder_body($folder_id, $open, $change, $move, $upload, $refres
                         && !$folder_tree->isExerciseFolder($folder_id, $user->id)
                     )
                 ) {
-                    $edit.= LinkButton::create(_("Kopieren"), URLHelper::getURL("?open=".$folder_id."_co_#anker"));
+                    if (!$is_issue_folder && !$is_group_folder) {
+                        $edit.= LinkButton::create(_("Kopieren"), URLHelper::getURL("?open=".$folder_id."_co_#anker"));
+                    }
                 }
             }
 
@@ -2030,14 +2038,13 @@ function display_folder ($folder_id, $open, $change, $move, $upload, $refresh=FA
     $query = "SELECT ". $_fullname_sql['full'] ." AS fullname , username, folder_id, a.range_id, a.user_id, name, a.description, a.mkdate, a.chdate FROM folder a LEFT JOIN auth_user_md5 USING (user_id) LEFT JOIN user_info USING (user_id) WHERE a.folder_id = '$folder_id' ORDER BY a.name, a.chdate";
     $result = $db->query($query)->fetch();
 
-    $depth = $folder_tree->getItemPath($folder_id);
-    $depth = count(explode(" / ", $depth));
-    print "<div id=\"folder_".(($depth > 3) ? $result['range_id'] : "root")."_".$countfolder."\"".($rechte ? " class=\"draggable_folder\"" : "").">";
+    $depth = count($folder_tree->getParents($folder_id));
+    print "<div id=\"folder_".($depth > 2 ? $result['range_id'] : "root")."_".$countfolder."\"".($rechte ? " class=\"draggable_folder\"" : "").">";
     print "<div style=\"display:none\" id=\"getmd5_fo".$result['range_id']."_".$countfolder."\">".$folder_id."</div>";
     print "<table cellpadding=0 border=0 cellspacing=0 width=\"100%\"><tr>";
 
     //Abzweigung, wenn Ordner ein Unterordner ist
-    if ($depth > 3) //Warum gerade 3, soll jeder selbst rausfinden
+    if ($depth > 2) // root > folder > subfolder
         print "<td class=\"tree-elbow-end\">" . Assets::img("datatree_2.gif") . "</td>";
     else
         print "<td></td>";
@@ -2067,7 +2074,7 @@ function display_folder ($folder_id, $open, $change, $move, $upload, $refresh=FA
     print "<table cellpadding=0 border=0 cellspacing=0 width=\"100%\" id=\"droppable_folder_$droppable_folder\"><tr>";
 
     // -> Pfeile zum Verschieben (bzw. die Ziehfläche)
-    if (($rechte) && ($depth > 3)) {
+    if (($rechte) && ($depth > 2)) {
         $bewegeflaeche = "<span class=\"updown_marker\" id=\"pfeile_".$folder_id."\">";
         if (($position == "middle") || ($position == "bottom")) {
             $bewegeflaeche .= "<a href=\"".URLHelper::getLink('?open='.$folder_id)."_mfou_\" title=\""._("Nach oben verschieben").
@@ -2918,25 +2925,32 @@ function get_upload_file_path ($document_id)
  * @param string MD5 id of the file
  * @return bool
  */
-function check_protected_download($document_id)
-{
+function check_protected_download($document_id) {
     $ok = true;
-    if(Config::GetInstance()->getValue('ENABLE_PROTECTED_DOWNLOAD_RESTRICTION')){
+    if (Config::GetInstance()->getValue('ENABLE_PROTECTED_DOWNLOAD_RESTRICTION')) {
         $doc = new StudipDocument($document_id);
-        if($doc->getValue('protected')){
+        if ($doc->getValue('protected')) {
             $ok = false;
             $range_id = $doc->getValue('seminar_id');
-            if(get_object_type($range_id) == 'sem'){
+
+            if (get_object_type($range_id) == 'sem') {
                 $seminar = Seminar::GetInstance($range_id);
                 $timed_admission = $seminar->getAdmissionTimeFrame();
-                if( $seminar->isPasswordProtected() ||
-                    $seminar->isAdmissionLocked()
-                    || ($timed_admission['end_time'] > 0 && $timed_admission['end_time'] < time())){
+
+                if ($seminar->isPasswordProtected() ||
+                        $seminar->isAdmissionLocked()
+                        || ($timed_admission['end_time'] > 0 && $timed_admission['end_time'] < time())) {
                     $ok = true;
+                } else if (StudygroupModel::isStudygroup($range_id)) {
+                    $studygroup = Seminar::GetInstance($range_id);
+                    if ($studygroup->admission_prelim == 1) {
+                        $ok = true;
+                    }
                 }
             }
         }
     }
+
     return $ok;
 }
 

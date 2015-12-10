@@ -29,7 +29,7 @@
             <? if ($config['is_default'] === '1'): ?>
                 <?= Icon::create('checkbox-checked', 'info', ['title' => _('Ja')])->asImg() ?>
             <? elseif ($config['is_default'] === '0'): ?>
-                <?= Icon::create('checkbox-checked', 'info', ['title' => _('Nein')])->asImg() ?>
+                <?= Icon::create('checkbox-unchecked', 'info', ['title' => _('Nein')])->asImg() ?>
             <? elseif ($config['is_default'] === null): ?>
                 <em>- <?= _('kein Eintrag vorhanden') ?> -</em>
             <? endif; ?>

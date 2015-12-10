@@ -1,9 +1,10 @@
 /*jslint browser: true */
-/*global jQuery */
+/*global jQuery, STUDIP */
+
 /**
  * This file provides a set of global handlers.
  */
-(function ($) {
+(function ($, STUDIP) {
     'use strict';
 
     // Use a checkbox as a proxy for a set of other checkboxes. Define
@@ -28,10 +29,7 @@
     }).on('ready dialog-update', function () {
         $(':checkbox[data-proxyfor]').each(function () {
             var proxied = $(this).data('proxyfor');
-
             // The following seems like a hack but works perfectly fine.
-            // The attribute needs to be changed so the previous event handler
-            // will work
             $(proxied).attr('data-proxiedby', true).data('proxiedby', this);
         }).trigger('update.proxy');
     });
@@ -42,7 +40,7 @@
     $(document).on('change', ':checkbox[data-activates]', function () {
         var activates = $(this).data('activates'),
             activated = $(this).prop('checked') || $(this).prop('indeterminate') || false;
-        $(activates).prop('disabled', !activated).trigger('update.proxy');
+        $(activates).attr('disabled', !activated).trigger('update.proxy');
     }).ready(function () {
         $(':checkbox[data-activates]').trigger('change');
     });
@@ -53,7 +51,7 @@
     $(document).on('change update.proxy', 'select[data-activates]', function () {
         var activates = $(this).data('activates'),
             disabled = $(this).is(':disabled') || $(this).val().length === 0;
-        $(activates).prop('disabled', disabled);
+        $(activates).attr('disabled', disabled);
     }).ready(function () {
         $('select[data-activates]').trigger('change');
     });
@@ -100,15 +98,32 @@
     // Lets the user confirm a specific action (submit or click event).
     function confirmation_handler(event) {
         if (!event.isDefaultPrevented()) {
-            var element = $(event.target).closest('[data-confirm]'),
+            event.stopPropagation();
+            event.preventDefault();
+
+            var element  = $(event.currentTarget).closest('[data-confirm]'),
                 question = element.data().confirm
                         || element.attr('title')
                         || element.find('[title]:first').attr('title')
                         || 'Wollen Sie die Aktion wirklich ausführen?'.toLocaleString();
-            return window.confirm(question);
+
+            STUDIP.Dialog.confirm(question, function () {
+                var content = element.data().confirm;
+
+                // We need to trigger the native event because for
+                // some reason, jQuery's .trigger() won't always
+                // work. Thus the data-confirm attribute will be removed
+                // so that the original event can be executed
+                element.removeAttr('data-confirm').get(0)[event.type]();
+
+                // Reapply the data-confirm attribute
+                window.setTimeout(function () {
+                    element.attr('data-confirm', content);
+                }, 0);
+            });
         }
     }
     $(document).on('click', 'a[data-confirm],input[data-confirm],button[data-confirm]', confirmation_handler);
     $(document).on('submit', 'form[data-confirm]', confirmation_handler);
 
-}(jQuery));
+}(jQuery, STUDIP));
