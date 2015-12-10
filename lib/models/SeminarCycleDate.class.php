@@ -190,7 +190,7 @@ class SeminarCycleDate extends SimpleORMap
      */
     public function getAllDates()
     {
-        $dates = array_merge($this->exdates, $this->dates);
+        $dates = array_merge($this->exdates->toArray(), $this->dates->toArray());
 
         usort($dates, function ($a, $b) {
             return $a->date - $b->date;
