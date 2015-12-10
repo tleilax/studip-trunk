@@ -50,9 +50,25 @@ class BlubberProvider implements ActivityProvider
         return $range_id;
     }
 
-    private function  wrapParticipantNotifications($notifications){
+    private function  wrapParticipantNotifications($notifications)
+    {
         return array_map(function ($n) {
-            return new Activity('participants_provider', $n->getSummary(), 'user', $n->getCreatorid(), 'created', 'blubber', $n->getUrl(), 'http://example.com/route', $n->getDate());
+            return new Activity(
+                'blubber_provider',
+                array(                                  // the description and summaray of the performed activity
+                    'title' => $n->getSummary(),
+                    'content' => $n->getContent()
+                ),
+                'user',                                 // who initiated the activity?
+                $n->getCreatorid(),                     // id of initiator
+                'created',                              // the type if the activity
+                'blubber',                         // type of activity object
+                array(                                  // url to entity in Stud.IP
+                    $n->getUrl() => _('Zum Blubberstream')
+                ),
+                'http://example.com/route',             // url to entity as rest-route
+                $n->getDate()
+            );
         }, $notifications);
 
     }
