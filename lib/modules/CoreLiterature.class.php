@@ -67,7 +67,7 @@ class CoreLiterature implements StudipModule {
 
             $items[] = new ContentElement(
                 'Studiengruppe: Neuer Literaturlisteneintrag', $summary, '', $row['user_id'], $row['fullname'],
-                URLHelper::getLink('seminar_main.php?auswahl='. $row['Seminar_id'] .'&redirect_to=dispatch.php/course/member'),
+                URLHelper::getLink('seminar_main.php?auswahl='. $row['Seminar_id'] .'&redirect_to=dispatch.php/course/literature'),
                 $row['mkdate']
             );
         } 
