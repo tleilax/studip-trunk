@@ -43,8 +43,10 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
 
         }
 
-
-        // institute_context should be done in a similar way
+        $institues = MyRealmModel::getMyInstitutes();
+        foreach($institues as $institute){
+            $contexts[] = new \Studip\Activity\InstituteContext($institute['institut_id']);
+        }
 
         //TODO user_context (do we wanna add buddies as well?)
         $contexts[] = new \Studip\Activity\UserContext($GLOBALS['user']->id);

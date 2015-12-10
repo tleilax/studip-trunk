@@ -34,7 +34,7 @@ class CourseContext implements Context
 
         $reflectionClass = new \ReflectionClass($class_name);
         $this->provider[] =  $reflectionClass->newInstanceArgs();
-        //$this->provider[] = new $class_name();
+
     }
 
     private function getProviders()
@@ -42,11 +42,13 @@ class CourseContext implements Context
         if (!$this->provider) {
             $course = \Course::find($this->seminar_id);
 
+            // todo check which modules are active globally
             $module_names = array('forum', 'participants', 'documents', 'literature', 'wiki', 'blubber');
 
             // get list of possible providers by checking the activated plugins and modules for the current seminar
             $modules = new \Modules();
             $activated_modules = $modules->getLocalModules($this->seminar_id, 'sem', false, $course->status);
+
 
             $sem_class = $GLOBALS['SEM_CLASS'][$GLOBALS['SEM_TYPE'][$course->status]['class']];
             if (!$sem_class) {

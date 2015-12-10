@@ -42,10 +42,13 @@ class UserContext implements Context
 
 
             $this->addProvider('blubber'); // todo: check if active for given user
+            $this->addProvider('news');
 
             if (get_config('LITERATURE_ENABLE')) {
                 $this->addProvider('literature');
             }
+
+
 
             $homepage_plugins = \PluginEngine::getPlugins('HomepagePlugin');
             foreach ($homepage_plugins as $plugin) {
