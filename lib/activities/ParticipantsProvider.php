@@ -59,7 +59,9 @@ class ParticipantsProvider implements ActivityProvider
                 $n->getCreatorid(),                     // id of initiator
                 'created',                              // the type if the activity
                 'participants',                         // type of activity object
-                $n->getUrl(),                           // url to entity in Stud.IP
+                array(                                  // url to entity in Stud.IP
+                    $n->getUrl() => _('Zur Teilnehmerseite der Veranstaltung')
+                ),
                 'http://example.com/route',             // url to entity as rest-route
                 $n->getDate()
             );

@@ -50,15 +50,15 @@ class DocumentsProvider implements ActivityProvider
     private function  wrapParticipantNotifications($notifications){
         return array_map(function ($n) {
             return new Activity(
-                'forum_provider',
+                'documents_provider',
                 array(                                  // the description and summaray of the performed activity
                     'title' => $n->getSummary(),
-                    'content' => ''//$n->getContent()
+                    'content' => $n->getContent()
                 ),
                 'user',                                 // who initiated the activity?
                 $n->getCreatorid(),                     // id of initiator
                 'created',                              // the type if the activity
-                'forum',                                // type of activity object
+                'document',                             // type of activity object
                 array(                                  // url to entity in Stud.IP
                     $n->getUrl() => _('Zum Dateibereich der Veranstaltung')
                 ),

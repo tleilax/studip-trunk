@@ -16,14 +16,13 @@ $description = $_activity->getDescription();
 <section class="activity <?=$direction?>">
     <header>
         <h1>
-            <a href="<?= URLHelper::getURL($object['url']) ?>">
-                <?= htmlReady($description['title']) ?>
-                <? sprintf(_("%s hat %s %s "),
-                    User::find($actor['id'])->getFullname(),
-                    $object['objectType'],
-                    $_activity->getVerb())
-                ?>
-            </a>
+            <? /* no link here, we do not know which one to use if multiple links are present */ ?>
+            <?= htmlReady($description['title']) ?>
+            <? sprintf(_("%s hat %s %s "),
+                User::find($actor['id'])->getFullname(),
+                $object['objectType'],
+                $_activity->getVerb())
+            ?>
         </h1>
     </header>
     <section class="activity-content">

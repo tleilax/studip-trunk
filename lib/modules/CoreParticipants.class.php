@@ -61,7 +61,7 @@ class CoreParticipants implements StudipModule {
 
             $items[] = new ContentElement(
                 'Studiengruppe: Neue/r Teilnehmer/in', $summary, '', $row['user_id'], $row['fullname'],
-                URLHelper::getLink('seminar_main.php?auswahl='. $row['Seminar_id'] .'&redirect_to=dispatch.php/course/member'),
+                URLHelper::getLink('seminar_main.php?auswahl='. $row['Seminar_id'] .'&redirect_to=dispatch.php/course/members'),
                 $row['mkdate']
             );
         }

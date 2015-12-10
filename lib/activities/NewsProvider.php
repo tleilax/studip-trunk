@@ -74,7 +74,6 @@ class NewsProvider implements ActivityProvider
         }
 
         else if ($context instanceof UserContext) {
-            #$range_id = $context->getUserId();
             return array(
                 \URLHelper::getUrl('dispatch.php/profile?contentbox_type=news&contentbox_open='. $news->getId() .'#'. $news->getId()) => _('News auf der Profilseite')
             );
