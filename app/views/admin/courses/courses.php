@@ -150,7 +150,7 @@
             <? if (Config::get()->ADMIN_COURSES_SHOW_COMPLETE): ?>
                 <a href="<?= $controller->url_for('admin/courses/toggle_complete/' . $semid) ?>"
                    class="course-completion <? if ($values['is_complete']) echo 'course-complete'; ?>">
-                       <?= _('Status "komplett" bearbeiten') ?>
+                       <?= _('Bearbeitungsstatus ändern') ?>
                 </a>
             <? else: ?>
                 <?=
