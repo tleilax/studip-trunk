@@ -56,7 +56,6 @@ class Course_BlockAppointmentsController extends AuthenticatedController
         $start_day = strtotime(Request::get('block_appointments_start_day'));
         $end_day = strtotime(Request::get('block_appointments_end_day'));
 
-
         if (!($start_day && $end_day && $start_day <= $end_day)) {
             $errors[] = _('Bitte geben Sie korrekte Werte für Start- und Enddatum an!');
         } else {

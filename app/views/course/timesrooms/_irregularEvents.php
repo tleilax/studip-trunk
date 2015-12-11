@@ -27,7 +27,8 @@
             <header>
                 <h1>
                     <input type="checkbox" class="date-proxy"
-                           data-proxyfor="#singledate-<?= $semester_id ?> .ids-irregular">
+                           data-proxyfor="#singledate-<?= $semester_id ?> .ids-irregular"
+                           data-activates=".actionForAllIrregular">
                     <a href="<?= ContentBoxHelper::href('singledate-' . $semester_id) ?>">
                         <?= htmlReady(Semester::find($semester_id)->name) ?>
                     </a>
