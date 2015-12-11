@@ -600,7 +600,8 @@ class Admin_CoursesController extends AuthenticatedController
                                     'data-dialog' => 'size=big'
                                 ));
         }
-
+        ksort($actions);
+        
         foreach (PluginManager::getInstance()->getPlugins("AdminCourseAction") as $plugin) {
             $actions[get_class($plugin)] = array(
                 'name'      => $plugin->getPluginName(),
@@ -853,7 +854,7 @@ class Admin_CoursesController extends AuthenticatedController
         $actions = $this->getActions();
         $sidebar = Sidebar::Get();
         $list = new SelectWidget(_('Aktionsbereich-Auswahl'), $this->url_for('admin/courses/set_action_type'), 'action_area');
-
+        
         foreach ($actions as $index => $action) {
             $list->addElement(new SelectElement($index, $action['name'], $selected_action == $index), 'action-aria-' . $index);
         }
