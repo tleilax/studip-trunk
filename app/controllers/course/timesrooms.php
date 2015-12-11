@@ -773,7 +773,14 @@ class Course_TimesroomsController extends AuthenticatedController
             $this->has_bookings = $count > 0;
         }
 
-        $this->start_weeks = $this->getStartWeeks();
+        $duration = $this->course->duration_time;
+        $this->start_weeks = $this->course->start_semester->getStartWeeks($duration);
+        array_walk($this->start_weeks, function (&$value, $key) {
+            $value = array(
+                'text'     => $value,
+                'selected' => $this->course->getStartWeek() == $key,
+            );
+        });
     }
 
     /**

@@ -213,6 +213,47 @@ class Semester extends SimpleORMap
     }
 
     /**
+     * Returns the start week dates for this semester (and other
+     * semesters if duration is > 0).
+     *
+     * @param mixed $duration Duration time (false to restrict to current
+     *                        semester, -1 for indefinite duration, otherwise
+     *                        the int value for the duration so that
+     *                        semester start + duration = end)
+     * @return array containing the start weeks
+     */
+    public function getStartWeeks($duration = false)
+    {
+        if ($duration === false) {
+            $end_semester = $this;
+        } elseif ($duration == -1) {
+            $end_semester = end(self::getAll());
+        } else {
+            $end_semester = self::findByTimestamp($this->beginn + $duration); 
+        }
+
+        $start_index     = SemesterData::GetSemesterIndexById($this->id);
+        $tmp_first_date  = getCorrectedSemesterVorlesBegin($start_index);
+        $_tmp_first_date = strftime('%d.%m.%Y', $tmp_first_date);
+        $end_date        = $end_semester->vorles_ende;
+
+        $i = 0;
+
+        $start_weeks = array();
+        while ($tmp_first_date < $end_date) {
+            $start_weeks[$i] = sprintf(_('%u. Semesterwoche (ab %s)'),
+                                       $i + 1,
+                                       strftime('%d.%m.%Y', $tmp_first_date));
+
+            $i += 1;
+
+            $tmp_first_date = strtotime(sprintf('+%u weeks %s', $i, $_tmp_first_date));
+        }
+
+        return $start_weeks;
+    }
+
+    /**
      * returns "Semesterwoche" for a given timestamp
      * @param integer $timestamp
      * @return number|boolean
@@ -235,7 +276,13 @@ class Semester extends SimpleORMap
         return false;
     }
 
-    function toArray($only_these_fields = null)
+    /**
+     * Returns an array representation of this semester.
+     *
+     * @param mixed $only_these_fields List of fields to extract
+     * @return array represenation
+     */
+    public function toArray($only_these_fields = null)
     {
         if (!isset($only_these_fields)) {
             $fields = array_flip(array_diff($this->known_slots, array_keys($this->relations)));
