@@ -29,13 +29,21 @@
             <td>
                 <? if ($boss['edit_about'] && $deputies_edit_about_enabled) : ?>
                     <a href="<?= URLHelper::getLink('dispatch.php/profile', array('username' => $boss['username'])) ?>">
-                        <?= Icon::create('person', 'clickable', ['title' => _('Personenangaben bearbeiten')])->asImg(20) ?>
+                        <?= Icon::create('person', 'clickable', ['title' => _('Personenangaben bearbeiten')])->asImg() ?>
                     </a>
                 <? endif ?>
                 <a href="<?= URLHelper::getLink('dispatch.php/messages/write',
                     array('filter' => 'send_sms_to_all',
                           'rec_uname' => $boss['username']))?>">
-                    <?= Icon::create('mail', 'clickable', ['title' => sprintf(_('Nachricht an %s senden'), htmlReady($boss['fullname']))])->asImg(20) ?>
+                    <?= Icon::create('mail', 'clickable', ['title' => sprintf(_('Nachricht an %s senden'), htmlReady($boss['fullname']))])->asImg() ?>
+                </a>
+                <a href="<?= URLHelper::getLink('dispatch.php/my_courses/delete_boss/'.
+                        $boss['user_id'])?>" data-confirm="<?=sprintf(
+                        _('Wollen Sie sich wirklich als Standardvertretung von %s austragen?'),
+                        $boss['fullname']) ?>">
+                    <?= Assets::img('icons/blue/trash.svg',
+                        tooltip2(sprintf(_('Mich als Standardvertretung von %s austragen'),
+                        htmlReady($boss['fullname'])))) ?>
                 </a>
             </td>
         </tr>
