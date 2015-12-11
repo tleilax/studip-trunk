@@ -4187,6 +4187,9 @@ table.attribute_table div[container]#deactivated_modules .plugin > div {
   -o-background-size: 16px 16px;
   background-size: 16px 16px;
 }
+.course-admin .course-completion.ajaxing {
+  background-image: url("../images/ajax_indicator_small.gif");
+}
 /* --- Styles fuer Terminkalender ------------------------------------------- */
 a.day {
   font-weight: bold;
