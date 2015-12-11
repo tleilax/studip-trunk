@@ -1032,43 +1032,6 @@ class Course_TimesroomsController extends AuthenticatedController
     }
 
     /**
-     * Returns the start weeks for the current course
-     *
-     * @return array containing the start weeks
-     */
-    private function getStartWeeks()
-    {
-        $all_semester = SemesterData::GetInstance()->getAllSemesterData();
-        if ($this->course->duration_time != -1) {
-            $end_index = SemesterData::GetSemesterIndexById($this->course->end_semester->id);
-        } else {
-            $end_index = array_pop(array_keys($all_semester));
-        }
-        $start_index     = SemesterData::GetSemesterIndexById($this->course->start_semester->id);
-        $tmp_first_date  = getCorrectedSemesterVorlesBegin($start_index);
-        $_tmp_first_date = strftime('%d.%m.%Y', $tmp_first_date);
-        $end_date        = $all_semester[$end_index]['vorles_ende'];
-
-        $i = 0;
-
-        $start_weeks = array();
-        while ($tmp_first_date < $end_date) {
-            $start_weeks[$i] = array(
-                'text'     => sprintf(_('%u. Semesterwoche (ab %s)'),
-                    $i + 1,
-                    strftime('%d.%m.%Y', $tmp_first_date)),
-                'selected' => $this->course->getStartWeek() == $i,
-            );
-
-            $i += 1;
-
-            $tmp_first_date = strtotime(sprintf('+%u weeks %s', $i, $_tmp_first_date));
-        }
-
-        return $start_weeks;
-    }
-
-    /**
      * Deletes a date.
      *
      * @param String $termin_id Id of the date

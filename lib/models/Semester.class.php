@@ -232,26 +232,49 @@ class Semester extends SimpleORMap
             $end_semester = self::findByTimestamp($this->beginn + $duration); 
         }
 
-        $start_index     = SemesterData::GetSemesterIndexById($this->id);
-        $tmp_first_date  = getCorrectedSemesterVorlesBegin($start_index);
-        $_tmp_first_date = strftime('%d.%m.%Y', $tmp_first_date);
-        $end_date        = $end_semester->vorles_ende;
+        $timestamp = $this->getCorrectedVorlesBegin();
+        $end_date  = $end_semester->vorles_ende;
 
         $i = 0;
 
         $start_weeks = array();
-        while ($tmp_first_date < $end_date) {
+        while ($timestamp < $end_date) {
             $start_weeks[$i] = sprintf(_('%u. Semesterwoche (ab %s)'),
                                        $i + 1,
-                                       strftime('%d.%m.%Y', $tmp_first_date));
+                                       strftime('%x', $timestamp));
 
             $i += 1;
 
-            $tmp_first_date = strtotime(sprintf('+%u weeks %s', $i, $_tmp_first_date));
+            $timestamp = strtotime('+1 week', $timestamp);
         }
 
         return $start_weeks;
     }
+
+    /**
+     * Returns the corrected begin of lectures which ensures that the begin
+     * is always on a monday.
+     *
+     * @return int unix timestamp of correct begin of lectures
+     */
+    public function getCorrectedVorlesBegin()
+    {
+        $dow = date('w', $this->vorles_beginn);
+
+        // Date is already on a monday
+        if ($dow == 1) {
+            return $this->vorles_beginn;
+        }
+
+        // Saturday or sunday: return next monday
+        if ($dow == 0 || $dow == 6) {
+            return strtotime('next monday', $this->vorles_beginn);
+        }
+
+        // Otherwise return last monday
+        return strtotime('last monday', $this->vorles_beginn);
+    }
+
 
     /**
      * returns "Semesterwoche" for a given timestamp
