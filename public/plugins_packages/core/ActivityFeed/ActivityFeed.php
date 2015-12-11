@@ -26,10 +26,11 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
 
         $observer_id = $GLOBALS['user']->id;
         $contexts = array();
+        /*
         $system_context = new \Studip\Activity\SystemContext();
 
         $contexts[] = $system_context;
-
+        */
 
 
         $semesters   = MyRealmModel::getSelectedSemesters('all');
@@ -43,6 +44,7 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
 
         }
 
+        /*
         $institues = MyRealmModel::getMyInstitutes();
         foreach($institues as $institute){
             $contexts[] = new \Studip\Activity\InstituteContext($institute['institut_id']);
@@ -50,7 +52,7 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
 
         //TODO user_context (do we wanna add buddies as well?)
         $contexts[] = new \Studip\Activity\UserContext($GLOBALS['user']->id);
-
+        */
 
 
 
@@ -58,6 +60,7 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
         $filter = new Studip\Activity\Filter();
 
         $filter->setMaxAge(time() - 14 * 86400); // set range of 2 weeks from today
+        $filter->setType('forum');
 
 
         $stream = new \Studip\Activity\Stream($observer_id, $contexts, $filter);

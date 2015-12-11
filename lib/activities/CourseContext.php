@@ -40,6 +40,8 @@ class CourseContext implements Context
     private function getProviders()
     {
         if (!$this->provider) {
+
+
             $course = \Course::find($this->seminar_id);
 
             // todo check which modules are active globally
@@ -83,6 +85,24 @@ class CourseContext implements Context
         return $this->provider;
     }
 
+    private function filterProviders($providers, Filter $filter){
+
+        $filtered_providers = array();
+        if(is_null($filter->getType())) {
+            $filtered_providers = $providers;
+        } else {
+            foreach($providers as $provider) {
+                $filtered_class = 'Studip\Activity\\' . ucfirst($filter->getType()) . 'Provider';
+                if($provider instanceof $filtered_class) {
+                    $filtered_providers[] =  $provider;
+                }
+            }
+        }
+
+        return $filtered_providers;
+
+    }
+
     function getSeminarId()
     {
         return $this->seminar_id;
@@ -90,8 +110,7 @@ class CourseContext implements Context
 
     function getActivities($observer_id, Filter $filter)
     {
-        $providers = $this->getProviders();
-
+        $providers = $this->filterProviders($this->getProviders(), $filter);
 
         $activities = array_map(
             function ($provider) use($observer_id, $filter) {
