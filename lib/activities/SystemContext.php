@@ -27,7 +27,7 @@ class SystemContext implements Context
         $providers = $this->getProviders();
 
         $activities = array_map(
-            function ($provider) use($self, $filter) {
+            function ($provider) use($self, $filter, $observer_id) {
                 return $provider->getActivities($observer_id, $self, $filter);
             },
             $providers);
@@ -39,7 +39,8 @@ class SystemContext implements Context
     {
         // system context only knows global news
         return array(
-            new NewsProvider()
+            new NewsProvider(),
+            new MessageProvider()
         );
     }
 }
