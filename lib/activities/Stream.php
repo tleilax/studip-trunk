@@ -43,9 +43,6 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
                                                   return $context->getActivities($observer_id, $filter);
                                               }, $contexts));
 
-        // deduplizieren + sortieren nach mkdate (immer wg. Timeline!)
-        // TODO: deduplizieren fehlt noch
-
         usort($this->activities, function($a, $b) {
             if ($a->getMkdate() == $b->getMkdate()) {
                 return 0;
@@ -53,6 +50,8 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
 
             return ($a->getMkdate() > $b->getMkdate()) ? -1 : 1;
         });
+
+        $new_activities = array();
 
         foreach ($this->activities as $key => $activity) {
             // generate an id for the activity, considering some basic object parameters
@@ -111,7 +110,7 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
      */
     public function count()
     {
-        return 2;
+        return sizeof($this->activities);
     }
 
 }

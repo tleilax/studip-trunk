@@ -35,10 +35,10 @@
 </style>
 
 <div class="stream-container">
-    <? if(is_array($stream)) : ?>
+    <? if(sizeof($stream) > 0) : ?>
         <?= $this->render_partial_collection("_activity", $stream) ?>
     <? else :?>
-        <?= _("Nada") ?>
+        <?= MessageBox::info(_('Keine Aktivitäten gefunden.')) ?>
     <? endif; ?>
 
 </div>

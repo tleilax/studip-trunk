@@ -22,7 +22,7 @@ class SystemContext implements Context
 
     public function getActivities($observer_id, Filter $filter)
     {
-        $self = $this; // oy vey
+        $self = $this;
 
         $providers = $this->getProviders();
 

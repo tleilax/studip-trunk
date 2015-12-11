@@ -19,9 +19,6 @@ class MessageProvider implements ActivityProvider
     {
         $activities = array();
 
-        $now = time();
-        $chdate = $now - (24 * 60 * 60 * 260);
-
         $messages_data = \DBManager::get()->prepare("
             SELECT message.*
             FROM message_user
@@ -33,7 +30,7 @@ class MessageProvider implements ActivityProvider
             ORDER BY message_user.mkdate DESC
         ");
 
-        $messages_data->execute(array($observer_id, $chdate));
+        $messages_data->execute(array($observer_id, $filter->getMaxAge()));
 
         while ($msg = $messages_data->fetch()) {
             $url = \URLHelper::getLink('dispatch.php/messages/read/' . $msg['message_id']);
