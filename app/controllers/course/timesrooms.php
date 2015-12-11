@@ -286,7 +286,8 @@ class Course_TimesroomsController extends AuthenticatedController
                 $room->begin             = $termin->date;
                 $room->end               = $termin->end_time;
                 $room->repeat_end        = $termin->end_time;
-                $termin->room_assignment = $room;
+                $room->store();
+
                 $this->course->createMessage(sprintf(_('Der Termin %s wurde geändert und der Raum %s gebucht, etwaige freie Ortsangaben wurden entfernt.'),
                     $termin->getFullname(), $resObj->getName()));
 
