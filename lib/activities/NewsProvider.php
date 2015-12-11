@@ -25,9 +25,7 @@ class NewsProvider implements ActivityProvider
 
         $observer_may_edit = \StudipNews::haveRangePermission('edit', $range_id, $observer_id);
 
-        $news = \StudipNews::GetNewsByRange($range_id, !$observer_may_edit, true);
-
-        // TODO: hier muss irgendwo noch das maxage gefilter werden.
+        $news = $this->filterNews(\StudipNews::GetNewsByRange($range_id, !$observer_may_edit, true), $filter);
 
         return $this->wrapNews($news, $context);
     }
@@ -51,6 +49,21 @@ class NewsProvider implements ActivityProvider
         }
 
         return $range_id;
+    }
+
+    private function filterNews($news, Filter $filter) {
+        if(is_null($filter->getMaxAge())) {
+            return $news;
+        } else {
+            $filtered_news = array();
+            foreach($news as $news_item) {
+                // is $news_item->date the suitable date to make that decision
+                if($news_item->date > $filter->getMaxAge()) {
+                    $filtered_news[] = $news_item;
+                }
+            }
+            return $filtered_news;
+        }
     }
 
     private function getUrlForContext($news, $context)
