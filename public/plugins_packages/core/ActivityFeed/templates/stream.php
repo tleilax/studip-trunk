@@ -35,5 +35,10 @@
 </style>
 
 <div class="stream-container">
-     <?= $this->render_partial_collection("_activity", $stream) ?>
+    <? if(is_array($stream)) : ?>
+        <?= $this->render_partial_collection("_activity", $stream) ?>
+    <? else :?>
+        <?= _("Nada") ?>
+    <? endif; ?>
+
 </div>

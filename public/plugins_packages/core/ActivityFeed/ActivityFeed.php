@@ -26,11 +26,10 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
 
         $observer_id = $GLOBALS['user']->id;
         $contexts = array();
-        /*
-        $system_context = new \Studip\Activity\SystemContext();
 
+        $system_context = new \Studip\Activity\SystemContext();
         $contexts[] = $system_context;
-        */
+
 
 
         $semesters   = MyRealmModel::getSelectedSemesters('all');
@@ -41,10 +40,9 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
 
         foreach ($courses as $course) {
             $contexts[] = new \Studip\Activity\CourseContext($course->seminar_id);
-
         }
 
-        /*
+
         $institues = MyRealmModel::getMyInstitutes();
         foreach($institues as $institute){
             $contexts[] = new \Studip\Activity\InstituteContext($institute['institut_id']);
@@ -52,7 +50,7 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
 
         //TODO user_context (do we wanna add buddies as well?)
         $contexts[] = new \Studip\Activity\UserContext($GLOBALS['user']->id);
-        */
+
 
 
 
