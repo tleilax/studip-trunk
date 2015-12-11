@@ -231,7 +231,7 @@ class SeminarCycleDate extends SimpleORMap
     {
         $cycle = parent::findByMetadate_id($this->metadate_id);
         //create new entry in seminare_cycle_date
-        if ($cycle === null) {
+        if (!$cycle) {
             $result = parent::store();
             if ($result) {
                 $new_dates = $this->createTerminSlots();
