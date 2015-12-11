@@ -731,7 +731,7 @@ class Course_TimesroomsController extends AuthenticatedController
                 $room->begin                        = $singledate->date;
                 $room->end                          = $singledate->end_time;
                 $room->repeat_end                   = $singledate->end_time;
-                $singledates[$key]->room_assignment = $room;
+                $room->store();
             } elseif (Request::option('action') == 'freetext') {
                 ResourceAssignment::deleteBySQL('assign_user_id = :termin',
                     array(':termin' => $singledate->termin_id));
