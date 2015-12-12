@@ -62,15 +62,15 @@ a.button, button.button {
     }
 }
 
-.button-with-icon(@icon, @hover-icon: @icon) {
+.button-with-icon(@icon, @role, @roleOnHover) {
     &:extend(.button-with-empty-icon);
     &:before {
         &:extend(.button-with-empty-icon:before);
-        .retina-background-icon(@icon);
+        .background-icon(@icon, @role);
     }
 
     &:hover:before {
-        .retina-background-icon(@hover-icon);
+        .background-icon(@icon, @roleOnHover);
     }
 }
 
