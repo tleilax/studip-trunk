@@ -19,10 +19,10 @@
     <div class="row writer">
         <div class="context_selector select" title="<?= _("Kontext der Nachricht auswählen") ?>">
             <? $width = "50" ?>
-            <?= Assets::img("icons/".$width."/blue/blubber", array('class' => "select click")) ?>
+            <?= Icon::create("blubber", "clickable")->asImg($width, array('class' => "select click")) ?>
             <?= Assets::img($plugin->getPluginURL()."/assets/images/public_blue.svg", array('class' => "public click", 'height' => $width."px")) ?>
-            <?= Assets::img("icons/".$width."/blue/group3", array('class' => "private click")) ?>
-            <?= Assets::img("icons/".$width."/blue/seminar", array('class' => "seminar click")) ?>
+            <?= Icon::create("group3",  "clickable")->asImg($width, array('class' => "private click")) ?>
+            <?= Icon::create("seminar", "clickable")->asImg($width, array('class' => "seminar click")) ?>
         </div>
         <textarea id="new_posting" placeholder="<?= _("Schreib was, frag was.") ?>" aria-label="<?= _("Schreib was, frag was.") ?>"><?= ($search ? htmlReady("#".$search)." " : "").(Request::get("mention") ? "@".htmlReady(Request::username("mention")).", " : "") ?></textarea>
         <label title="<?= _("Datei hochladen") ?>" class="uploader">
@@ -149,8 +149,8 @@ if ($streamAvatar->is_customized()) {
 }
 
 $actions = new ActionsWidget();
-$actions->addLink(_("Diesen Stream bearbeiten"), PluginEngine::getURL($plugin, array(), 'streams/edit/'.$stream->getId()), "icons/16/blue/edit");
-$actions->addLink(_("Diesen Stream löschen"), PluginEngine::getURL($plugin, array(), 'streams/delete/'.$stream->getId()), "icons/16/blue/trash", array('onclick' => "return window.confirm('"._("Wirklich löschen?")."');"));
+$actions->addLink(_("Diesen Stream bearbeiten"), PluginEngine::getURL($plugin, array(), 'streams/edit/'.$stream->getId()), Icon::create("edit", "clickable"));
+$actions->addLink(_("Diesen Stream löschen"), PluginEngine::getURL($plugin, array(), 'streams/delete/'.$stream->getId()), Icon::create("trash", "clickable"), array('onclick' => "return window.confirm('"._("Wirklich löschen?")."');"));
 $sidebar->addWidget($actions);
 
 $controller->addTagCloudWidgetToSidebar($tags, 'custom/' . $stream->getId());

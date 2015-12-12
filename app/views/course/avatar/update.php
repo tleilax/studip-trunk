@@ -49,8 +49,7 @@ $sidebar->setImage('sidebar/admin-sidebar.png');
 if ($avatar->is_customized()) {
     $actions = new ActionsWidget();
     $actions->addLink(_('Bild löschen'),
-                      $controller->link_for('course/avatar/delete', $course_id),
-                      'icons/16/black/trash.png',
+                      $controller->link_for('course/avatar/delete', $course_id), Icon::create('trash', 'info'),
                       array('onclick' => sprintf('return confirm(\'%s\');', _('Wirklich löschen?'))))->asDialog(false);
     $sidebar->addWidget($actions);
 }

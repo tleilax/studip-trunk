@@ -728,11 +728,11 @@ function listPages($mode, $sortby = NULL) {
         $widget = new ExportWidget();
         $widget->addLink(_('PDF-Ausgabe aller Wiki-Seiten'),
                          URLHelper::getLink('?keyword=' . urlencode($keyword) . '&view=exportall_pdf&version=' . $version . '&sortby=' . $sortby),
-                         'icons/16/blue/file-pdf.png',
+                         Icon::create('file-pdf', 'clickable'),
                          array('target' => '_blank'));
         $widget->addLink(_('Druckansicht aller Wiki-Seiten'),
                          URLHelper::getLink('?keyword=' . urlencode($keyword) . '&view=wikiprintall&version=' . $version),
-                         'icons/16/blue/print.png',
+                         Icon::create('print', 'clickable'),
                          array('target' => '_blank'));
         $sidebar->addWidget($widget);
     }
@@ -1278,7 +1278,7 @@ function getShowPageInfobox($keyword, $latest_version)
     $widget = new ViewsWidget();
     $widget->addLink(_('Standard'),
                      URLHelper::getLink('?keyword=' . urlencode($keyword) . '&view=show'),
-                     'icons/16/blue/wiki.png')
+                     Icon::create('wiki', 'clickable'))
            ->setActive(true);
     if (count($versions) >= 1) {
         $widget->addLink(_('Textänderungen anzeigen'),
@@ -1331,11 +1331,11 @@ function getShowPageInfobox($keyword, $latest_version)
     $widget = new ExportWidget();
     $widget->addLink(_('Druckansicht'),
                      URLHelper::getLink('?keyword=' . urlencode($keyword) . '&version=' . $version . '&view=wikiprint'),
-                     'icons/16/blue/print.png',
+                     Icon::create('print', 'clickable'),
                      array('target' => '_blank'));
     $widget->addLink(_('PDF-Ausgabe'),
                      URLHelper::getLink('?keyword=' . urlencode($keyword) . '&version=' . $version . '&view=export_pdf'),
-                     'icons/16/blue/file-pdf.png',
+                     Icon::create('file-pdf', 'clickable'),
                      array('target' => '_blank'));
     $sidebar->addWidget($widget);
 

@@ -120,7 +120,7 @@ if ($section === 'index' && ForumPerm::has('pdfexport', $seminar_id)) {
     $export = new ExportWidget();
     $export->addLink(_('Beiträge als PDF exportieren'),
                      $controller->url_for('index/pdfexport/' . $constraint['topic_id']),
-                     'icons/16/blue/file-pdf.png');
+                     Icon::create('file-pdf', 'clickable'));
     $sidebar->addWidget($export);
 }
 ?>

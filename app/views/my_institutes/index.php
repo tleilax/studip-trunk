@@ -98,20 +98,16 @@ $sidebar->setTitle(_('Meine Einrichtungen'));
 $links = new ActionsWidget();
 if ($reset) {
     $links->addLink(_('Alles als gelesen markieren'),
-                    $controller->url_for('my_institutes/tabularasa/' . time()),
-                    'icons/16/blue/accept.png');
+                    $controller->url_for('my_institutes/tabularasa/' . time()), Icon::create('accept', 'clickable'));
 }
 if ($GLOBALS['perm']->have_perm('dozent') && !empty($institutes)) {
     $links->addLink(_('Einrichtungsdaten bearbeiten'),
-                    URLHelper::getLink('dispatch.php/settings/statusgruppen'),
-                    'icons/16/blue/edit/institute.png' );
+                    URLHelper::getLink('dispatch.php/settings/statusgruppen'), Icon::create('institute+edit', 'clickable') );
 }
 if ($GLOBALS['perm']->have_perm('autor')) {
     $links->addLink(_('Einrichtungen suchen'),
-                    URLHelper::getLink('institut_browse.php'),
-                    'icons/16/blue/add/institute.png' );
+                    URLHelper::getLink('institut_browse.php'), Icon::create('institute+add', 'clickable') );
     $links->addLink(_('Studiendaten bearbeiten'),
-                    URLHelper::getLink('dispatch.php/settings/studies'),
-                    'icons/16/blue/person.png');
+                    URLHelper::getLink('dispatch.php/settings/studies'), Icon::create('person', 'clickable'));
 }
 $sidebar->addWidget($links);

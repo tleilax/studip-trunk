@@ -25,8 +25,7 @@ $sidebar->addWidget($actions, 'calendar/schedule/actions');
 
 $widget = new ExportWidget();
 $widget->addLink(_('Druckansicht'),
-                 $controller->url_for('calendar/schedule/index/'. implode(',', $days) .  '?printview=true&semester_id=' . $current_semester['semester_id']),
-                 'icons/16/blue/print.png',
+                 $controller->url_for('calendar/schedule/index/'. implode(',', $days) .  '?printview=true&semester_id=' . $current_semester['semester_id']), Icon::create('print', 'clickable'),
                  array('target' => '_blank'));
 $sidebar->addWidget($widget, 'calendar/schedule/print');
 

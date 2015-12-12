@@ -509,8 +509,7 @@ Navigation::activateItem('/tools/literature/overview');
 $sidebar = Sidebar::Get();
 $links = new ActionsWidget();
 $links->addLink(_("Druckansicht"),
-    URLHelper::getScriptLink("lit_overview_print_view.php"),
-    'icons/16/blue/print.png',
+    URLHelper::getScriptLink("lit_overview_print_view.php"), Icon::create('print', 'clickable'),
     array('class' => 'print_action', 'target' => '_blank'));
 $sidebar->addWidget($links);
 $layout = $GLOBALS['template_factory']->open('layouts/base');

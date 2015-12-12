@@ -110,21 +110,18 @@ $sidebar->setImage('sidebar/mail-sidebar.png');
 $actions = new ActionsWidget();
 $actions->addLink(
     _("Neue Nachricht schreiben"),
-    $controller->url_for('messages/write'),
-    'icons/16/blue/add/mail.png',
+    $controller->url_for('messages/write'), Icon::create('mail+add', 'clickable'),
     array('data-dialog' => 'width=650;height=600')
 );
 if (Navigation::getItem('/messaging/messages/inbox')->isActive() && $messages) {
     $actions->addLink(
         _('Alle als gelesen markieren'),
-        $controller->url_for('messages/overview', array('read_all' => 1)),
-        'icons/16/blue/accept.png'
+        $controller->url_for('messages/overview', array('read_all' => 1)), Icon::create('accept', 'clickable')
     );
 }
 $actions->addLink(
     _('Ausgewählte Nachrichten löschen'),
-    "#",
-    'icons/16/blue/trash.png',
+    "#", Icon::create('trash', 'clickable'),
     array(
         'onclick' => "if (window.confirm('Wirklich %s Nachrichten löschen?'.toLocaleString().replace('%s', jQuery('#bulk tbody :checked').length))) { jQuery('#bulk').submit(); } return false;"
     )
