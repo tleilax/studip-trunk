@@ -910,27 +910,27 @@ function display_exception(Exception $exception, $as_html = false, $deep = false
 function get_icon_for_mimetype($mime_type)
 {
     if (strpos($mime_type, 'image/') === 0) {
-        return 'file-pic.png';
+        return 'file-pic';
     }
     if (strpos($mime_type, 'audio/') === 0) {
-        return 'file-audio.png';
+        return 'file-audio';
     }
     if (strpos($mime_type, 'video/') === 0) {
-        return 'file-video.png';
+        return 'file-video';
     }
     if ($mime_type === 'application/pdf') {
-        return 'file-pdf.png';
+        return 'file-pdf';
     }
     if ($mime_type === 'application/vnd.ms-powerpoint') {
-        return 'file-presentation.png';
+        return 'file-presentation';
     }
 
     $parts = explode('/', $mime_type);
     if (reset($parts) === 'application' && in_array(end($parts), words('vnd.ms-excel msexcel x-msexcel x-ms-excel x-excel x-dos_ms_excel xls x-xls'))) {
-        return 'file-xls.png';
+        return 'file-xls';
     }
     if (reset($parts) === 'application' && in_array(end($parts), words('7z arj rar zip'))) {
-        return 'file-archive.png';
+        return 'file-archive';
     }
-    return 'file.png';
+    return 'fileg';
 }

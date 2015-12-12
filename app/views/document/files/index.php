@@ -167,7 +167,7 @@
         <? else: ?>
             <td class="document-icon" data-sort-value="1">
                 <a href="<?= $file->getDownloadLink(true) ?>">
-                    <?= Assets::img('icons/24/blue/'. get_icon_for_mimetype($file->file->mime_type)) ?>
+                    <?= Icon::create(get_icon_for_mimetype($file->file->mime_type), 'clickable')->asImg(24) ?>
                 </a>
             </td>
             <td>
