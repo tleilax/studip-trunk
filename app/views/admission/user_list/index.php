@@ -16,7 +16,7 @@ if ($userlists) {
     <?php foreach ($userlists as $list) { ?>
     <div id="userlist_<?= $list->getId() ?>">
         <a href="#" onclick="return STUDIP.Admission.toggleDetails('userlist_arrow_<?= $list->getId() ?>', 'userlist_details_<?= $list->getId() ?>')">
-            <?= Icon::create('arr_1right', 'clickable')->asImg(16, ["id" => 'userlist_arrow_'.$list->getId(), "align" => 'top', "rel" => Assets::image_path('icons/16/blue/arr_1down.png')]) ?>
+            <?= Icon::create('arr_1right', 'clickable')->asImg(16, ["id" => 'userlist_arrow_'.$list->getId(), "align" => 'top', "rel" => Icon::create('arr_1down', 'clickable')->asImagePath(16)]) ?>
             <?= htmlReady($list->getName()) ?>
         </a>
         <a href="<?= URLHelper::getURL('dispatch.php/admission/userlist/configure/'.$list->getId()); ?>">

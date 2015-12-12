@@ -56,7 +56,7 @@ echo $flash['message'];
 <? endif ?>
 <?
 $actions = new ActionsWidget();
-$actions->addLink(_('Neue Raumanfrage erstellen'), $controller->url_for('new/'.$course_id), Assets::image_path("icons/16/black/add"));
+$actions->addLink(_('Neue Raumanfrage erstellen'), $controller->url_for('new/'.$course_id), Icon::create('add', 'info'));
 Sidebar::get()->addWidget($actions);
 
 if ($GLOBALS['perm']->have_perm("admin")) {

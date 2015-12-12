@@ -19,7 +19,11 @@
                         <? endforeach; ?>
                     </select>
                 </label>
-                <input id="calendar-group-submit" name="calendar_group_submit" type="image" src="<?= Assets::image_path('icons/16/blue/accept.png') ?>" class="text-top">
+                <?= Icon::create('accept', 'clickable')
+                      ->asInput([
+                        'id' => "calendar-group-submit",
+                        'name' => "calendar_group_submit",
+                        'class' => "text-top"]) ?>
                 <span style="padding-left: 1em;">
                     <?= $mps->render() ?>
                 </span>
