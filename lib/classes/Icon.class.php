@@ -168,18 +168,6 @@ class Icon
                        $this->tag_options($this->prepareHTMLAttributes($size, $view_attributes)));
     }
 
-    // TODO
-    private function prepareHTMLAttributes($size, $attributes)
-    {
-        $size = $this->get_size($size);
-        return array_merge($this->attributes, $attributes, [
-            'src'    => $this->isStatic() ? $this->icon : $this->get_asset_svg(),
-            'alt'    => $this->attributes['alt'] ?: $this->attributes['title'] ?: basename($this->icon),
-            'width'  => $size,
-            'height' => $size
-        ]);
-    }
-
     /**
      * Renders the icon as a set of css background rules.
      *
@@ -198,6 +186,24 @@ class Icon
                        $this->get_asset_png($size),
                        $this->get_asset_svg(),
                        $this->get_size($size));
+    }
+
+    // TODO
+    public function asImagePath($size = null)
+    {
+        return $this->prepareHTMLAttributes($size, [])['src'];
+    }
+
+    // TODO
+    private function prepareHTMLAttributes($size, $attributes)
+    {
+        $size = $this->get_size($size);
+        return array_merge($this->attributes, $attributes, [
+            'src'    => $this->isStatic() ? $this->icon : $this->get_asset_svg(),
+            'alt'    => $this->attributes['alt'] ?: $this->attributes['title'] ?: basename($this->icon),
+            'width'  => $size,
+            'height' => $size
+        ]);
     }
 
     /**
