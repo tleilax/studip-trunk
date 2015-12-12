@@ -204,7 +204,7 @@ use Studip\Button, Studip\LinkButton;
         </td>
         <td colspan="2">
             <input class="user_form" name="pass_2" type="password" id="pass_2" onkeyup="jQuery('#pw_success').toggle( jQuery('#pass_1').val()==$('#pass_2').val() )">
-            <?= Assets::img('icons/16/green/accept.png', array('id' => 'pw_success', 'style' => 'display: none')) ?>
+            <?= Icon::create('accept', 'accept')->asImg(16, ["id" => 'pw_success', "style" => 'display: none']) ?>
         </td>
     </tr>
     <? endif; ?>

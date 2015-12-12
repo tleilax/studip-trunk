@@ -192,7 +192,7 @@ class ShowGroupSchedulesDaily extends ShowSemSchedules {
                             $sem_doz_names[] = $dozent['Nachname'];
                             if (++$c > 2) break;
                         }
-                        $add_info .= '(' . join(', ' , $sem_doz_names) . ')';
+                        $add_info .= '(' . join(', ', $sem_doz_names) . ')';
                     }
                     $schedule->addEvent($resource_to_show_id, $event->getName(get_config('RESOURCES_SCHEDULE_EXPLAIN_USER_NAME')), $event->getBegin(), $event->getEnd(),
                         URLHelper::getLink('?show_object='.$resource_id.'&cancel_edit_assign=1&quick_view='.$view.'&quick_view_mode='.$view_mode.'&edit_assign_object='.$event->getAssignId()), $add_info, $categories[$repeat_mode]);
@@ -207,7 +207,7 @@ class ShowGroupSchedulesDaily extends ShowSemSchedules {
             <tr>
                 <td class="<? $cssSw->switchClass(); echo $cssSw->getClass() ?>" width="4%">&nbsp;</td>
                 <td class="<? echo $cssSw->getClass() ?>"  width="10%" align="left">&nbsp;
-                    <a href="<? echo URLHelper::getLink('?quick_view='.$this->used_view.'&quick_view_mode='.$view_mode.'&previous_day=1')?>"><?= Assets::img("icons/16/blue/arr_2left.png", array('alt' => _("Vorherigen Tag anzeigen"), 'title' => _("Vorherigen Tag anzeigen"), "border" => 0)) ?></a>
+                    <a href="<? echo URLHelper::getLink('?quick_view='.$this->used_view.'&quick_view_mode='.$view_mode.'&previous_day=1')?>"><?= Icon::create('arr_2left', 'clickable', ['title' => _("Vorherigen Tag anzeigen")])->asImg(16, ["alt" => _("Vorherigen Tag anzeigen"), "border" => 0]) ?></a>
                 </td>
                 <td class="<? echo $cssSw->getClass() ?>" width="76%" align="center" style="font-weight:bold">
                 <? echo htmlReady(strftime('%A, %x (KW %V)', $start_time));
@@ -218,7 +218,7 @@ class ShowGroupSchedulesDaily extends ShowSemSchedules {
                 ?>
                 </td>
                 <td class="<? echo $cssSw->getClass() ?>" width="10%" align="center">&nbsp;
-                    <a href="<? echo URLHelper::getLink('?quick_view='.$this->used_view.'&quick_view_mode='.$view_mode.'&next_day=1')?>"><?= Assets::img("icons/16/blue/arr_2right.png", array('alt' => _("Nächsten Tag anzeigen"), 'title' => _("Nächsten Tag anzeigen"), "border" => 0)) ?></a>
+                    <a href="<? echo URLHelper::getLink('?quick_view='.$this->used_view.'&quick_view_mode='.$view_mode.'&next_day=1')?>"><?= Icon::create('arr_2right', 'clickable', ['title' => _("Nächsten Tag anzeigen")])->asImg(16, ["alt" => _("Nächsten Tag anzeigen"), "border" => 0]) ?></a>
                 </td>
             </tr>
             <tr>

@@ -146,21 +146,21 @@
             <td class="options">
             <? if ($full_access): ?>
                 <a href="<?= $controller->url_for('document/folder/edit/' . $file->id) ?>" data-dialog="size=auto" title="<?= _('Ordner bearbeiten') ?>">
-                    <?= Assets::img('icons/16/blue/edit.png', array('alt' => _('bearbeiten'))) ?>
+                    <?= Icon::create('edit', 'clickable')->asImg(16, ["alt" => _('bearbeiten')]) ?>
                 </a>
             <? endif; ?>
                 <a href="<?= $file->getDownloadLink() ?>" title="<?= _('Ordner herunterladen') ?>">
-                    <?= Assets::img('icons/16/blue/download.png', array('alt' => _('herunterladen'))) ?>
+                    <?= Icon::create('download', 'clickable')->asImg(16, ["alt" => _('herunterladen')]) ?>
                 </a>
             <? if ($full_access): ?>
                 <a href="<?= $controller->url_for('document/files/move/' . $file->id) ?>" data-dialog="size=auto" title="<?= _('Ordner verschieben') ?>">
-                    <?= Assets::img('icons/16/blue/move_right/folder-empty.png', array('alt' => _('verschieben'))) ?>
+                    <?= Icon::create('folder-empty+move_right', 'clickable')->asImg(16, ["alt" => _('verschieben')]) ?>
                 </a>
                  <a href="<?= $controller->url_for('document/files/copy/' . $file->id) ?>" data-dialog="size=auto" title="<?= _('Ordner kopieren') ?>">
-                    <?= Assets::img('icons/16/blue/add/folder-empty.png', array('alt' => _('kopieren'))) ?>
+                    <?= Icon::create('folder-empty+add', 'clickable')->asImg(16, ["alt" => _('kopieren')]) ?>
                 </a>
                 <a href="<?= $controller->url_for('document/folder/delete/' . $file->id) ?>" title="<?= _('Ordner löschen') ?>">
-                    <?= Assets::img('icons/16/blue/trash.png', array('alt' => _('löschen'))) ?>
+                    <?= Icon::create('trash', 'clickable')->asImg(16, ["alt" => _('löschen')]) ?>
                 </a>
             <? endif; ?>
             </td>
@@ -199,21 +199,21 @@
             <td class="options">
             <? if ($full_access): ?>
                 <a href="<?= $controller->url_for('document/files/edit/' . $file->id) ?>" data-dialog="size=auto" title="<?= _('Datei bearbeiten') ?>">
-                    <?= Assets::img('icons/16/blue/edit.png', array('alt' => _('bearbeiten'))) ?>
+                    <?= Icon::create('edit', 'clickable')->asImg(16, ["alt" => _('bearbeiten')]) ?>
                 </a>
             <? endif; ?>
                 <a href="<?= $file->getDownloadLink() ?>" title="<?= _('Datei herunterladen') ?>">
-                    <?= Assets::img('icons/16/blue/download.png', array('alt' => _('herunterladen'))) ?>
+                    <?= Icon::create('download', 'clickable')->asImg(16, ["alt" => _('herunterladen')]) ?>
                 </a>
             <? if ($full_access): ?>
                 <a href="<?= $controller->url_for('document/files/move/' . $file->id) ?>" data-dialog="size=auto" title="<?= _('Datei verschieben') ?>">
-                    <?= Assets::img('icons/16/blue/move_right/file.png', array('alt' => _('verschieben'))) ?>
+                    <?= Icon::create('file+move_right', 'clickable')->asImg(16, ["alt" => _('verschieben')]) ?>
                 </a>
                 <a href="<?= $controller->url_for('document/files/copy/' . $file->id) ?>" data-dialog="size=auto" title="<?= _('Datei kopieren') ?>">
-                    <?= Assets::img('icons/16/blue/add/file.png', array('alt' => _('kopieren'))) ?>
+                    <?= Icon::create('file+add', 'clickable')->asImg(16, ["alt" => _('kopieren')]) ?>
                 </a>
                 <a href="<?= $controller->url_for('document/files/delete/' . $file->id) ?>" title="<?= _('Datei löschen') ?>">
-                    <?= Assets::img('icons/16/blue/trash.png', array('alt' => _('löschen'))) ?>
+                    <?= Icon::create('trash', 'clickable')->asImg(16, ["alt" => _('löschen')]) ?>
                 </a>
             <? endif; ?>
             </td>

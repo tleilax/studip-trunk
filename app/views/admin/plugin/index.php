@@ -83,7 +83,7 @@ use Studip\Button, Studip\LinkButton;
                     <td class="actions" width="20">
                         <? if (in_array('StandardPlugin', $plugin['type'])): ?>
                             <a href="<?= $controller->url_for('admin/plugin/default_activation', $pluginid) ?>">
-                                <?= Assets::img('icons/20/blue/add/seminar.png', array('title' => _('In Veranstaltungen aktivieren'))) ?>
+                                <?= Icon::create('seminar+add', 'clickable', ['title' => _('In Veranstaltungen aktivieren')])->asImg(20) ?>
                             </a>
                         <? endif ?>
                     </td>
@@ -96,9 +96,9 @@ use Studip\Button, Studip\LinkButton;
                         <? if (!$plugin['depends'] && isset($update_info[$pluginid]['version']) && !$plugin['core']): ?>
                         <a href="<?= $controller->url_for('admin/plugin/edit_automaticupdate', $pluginid) ?>" data-dialog>
                             <? if ($plugin['automatic_update_url']) : ?>
-                                <?= Assets::img('icons/20/red/move_down/plugin', array('title' => _('Automatisches Update verwalten (eingerichtet)'))) ?>
+                                <?= Icon::create('plugin+move_down', 'attention', ['title' => _('Automatisches Update verwalten (eingerichtet)')])->asImg(20) ?>
                             <? else : ?>
-                                <?= Assets::img('icons/20/blue/move_down/plugin', array('title' => _('Automatisches Update verwalten'))) ?>
+                                <?= Icon::create('plugin+move_down', 'clickable', ['title' => _('Automatisches Update verwalten')])->asImg(20) ?>
                             <? endif ?>
                         </a>
                         <? endif ?>

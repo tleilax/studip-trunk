@@ -27,11 +27,11 @@
         </a>
     <? if ($user['is_buddy']): ?>
         <a href="<?= $controller->url_for('online/buddy/remove?username=' . $user['username']) ?>">
-            <?= Assets::img('icons/16/blue/remove/person.png', tooltip2(_('Aus den Kontakten entfernen'))) ?>
+            <?= Icon::create('person+remove', 'clickable', ['title' => _('Aus den Kontakten entfernen')])->asImg(16) ?>
         </a>
     <? else: ?>
         <a href="<?= $controller->url_for('online/buddy/add?username=' . $user['username']) ?>">
-            <?= Assets::img('icons/16/blue/add/person.png', tooltip2(_('Zu den Kontakten hinzufügen'))) ?>
+            <?= Icon::create('person+add', 'clickable', ['title' => _('Zu den Kontakten hinzufügen')])->asImg(16) ?>
         </a>
     <? endif; ?>
     </td>

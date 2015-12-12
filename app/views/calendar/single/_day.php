@@ -32,7 +32,7 @@ $max_columns = $em['max_cols'] ?: 1;
                 <div style="text-align: left; width: 20%; display: inline-block; white-space: nowrap;">
                     <a href="<?= $controller->url_for('calendar/single/day', array('atime' => strtotime('-1 day', $atime))) ?>">
                         <span style="vertical-align: middle;" <?= tooltip(_('einen Tag zurück')) ?>>
-                            <?= Assets::img('icons/16/blue/arr_1left.png', array('style' => 'vertical-align: text-top;')) ?>
+                            <?= Icon::create('arr_1left', 'clickable')->asImg(16, ["style" => 'vertical-align: text-top;']) ?>
                             <?= strftime(_('%x'), strtotime('-1 day', $calendar->getStart())) ?>
                         </span>
                     </a>
@@ -45,7 +45,7 @@ $max_columns = $em['max_cols'] ?: 1;
                     <a href="<?= $controller->url_for('calendar/single/day', array('atime' => strtotime('+1 day', $atime))) ?>">
                         <span style="vertical-align: middle;" <?= tooltip(_('einen Tag vor')) ?>>
                             <?= strftime(_('%x'), strtotime('+1 day', $calendar->getStart())) ?>
-                            <?= Assets::img('icons/16/blue/arr_1right.png', array('style' => 'vertical-align: text-top;')) ?>
+                            <?= Icon::create('arr_1right', 'clickable')->asImg(16, ["style" => 'vertical-align: text-top;']) ?>
                         </span>
                     </a>
                 </div>

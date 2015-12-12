@@ -84,7 +84,7 @@
         <td colspan="5" onClick="STUDIP.Forum.addArea('<?= $category_id ?>'); return false;" class="add_area">
             <a href="<?= PluginEngine::getLink('coreforum/index/index/?add_area=' . $category_id)?>#cat_<?= $category_id ?>"  title="<?= _('Neuen Bereich zu dieser Kategorie hinzufügen.') ?>">
                 <span><?= _('Bereich hinzufügen') ?></span>
-                <?= Assets::img('icons/16/blue/add.png', array('id' => 'tutorAddArea')) ?>
+                <?= Icon::create('add', 'clickable')->asImg(16, ["id" => 'tutorAddArea']) ?>
             </a>
         </td>
     </tr>

@@ -97,7 +97,7 @@
                                 <? $event_count_txt = sprintf(ngettext('1 Termin', '%s Termine', count($count_list[$iday])), count($count_list[$iday])) ?>
                                 </td>
                                 <td<?= $day_class ?> align="right">
-                                    <?= Assets::img('icons/16/blue/date.png', array('alt' => $event_count_txt, 'title' => $event_count_txt)); ?>
+                                    <?= Icon::create('date', 'clickable', ['title' => $event_count_txt])->asImg(16, ["alt" => $event_count_txt]); ?>
                                 </td>
                             </tr>
                         </table>

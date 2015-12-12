@@ -41,7 +41,7 @@
                 <a data-dialog="size=50%" href="<?= $controller->url_for(sprintf('course/details/index/%s', $course['seminar_id'])) ?>">
                     <? $params = tooltip2(_("Veranstaltungsdetails")); ?>
                     <? $params['style'] = 'cursor: pointer'; ?>
-                    <?= Assets::img('icons/20/grey/info-circle.png', $params) ?>
+                    <?= Icon::create('info-circle', 'inactive')->asImg(20, $params) ?>
                 </a>
             <? else : ?>
                 <?= Assets::img('blank.gif', array('width'  => 20, 'height' => 20)); ?>
@@ -89,7 +89,7 @@
 
             <? elseif ($values["binding"]) : ?>
                 <a href="<?= $controller->url_for('my_courses/decline_binding') ?>">
-                    <?= Assets::img('icons/20/grey/decline/door-leave.png', tooltip2(_("Die Teilnahme ist bindend. Bitte wenden Sie sich an die Lehrenden."))) ?>
+                    <?= Icon::create('door-leave+decline', 'inactive', ['title' => _("Die Teilnahme ist bindend. Bitte wenden Sie sich an die Lehrenden.")])->asImg(20) ?>
                 </a>
             <?
             else : ?>

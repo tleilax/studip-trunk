@@ -16,7 +16,7 @@ SkipLinks::addIndex(_('Tagesansicht'), 'main_content', 100);
             <td style="text-align: center; width: 10%; height: 40px;">
                 <div style="text-align: left; width: 20%; display: inline-block; white-space: nowrap;">
                     <a <?= tooltip(_('einen Tag zurück')) ?> href="<?= $controller->url_for('calendar/group/day', array('atime' => $atime - 86400)) ?>">
-                        <?= Assets::img('icons/16/blue/arr_1left.png', array('style' => 'vertical-align: text-top;')) ?>
+                        <?= Icon::create('arr_1left', 'clickable')->asImg(16, ["style" => 'vertical-align: text-top;']) ?>
                         <?= strftime(_('%x'), strtotime('-1 day', $calendars[0]->getStart())) ?>
                     </a>
                 </div>
@@ -27,7 +27,7 @@ SkipLinks::addIndex(_('Tagesansicht'), 'main_content', 100);
                 <div style="text-align: right; width: 20%; display: inline-block; white-space: nowrap;">
                     <a <?= tooltip(_('einen Tag vor')) ?> href="<?= $controller->url_for('calendar/group/day', array('atime' => $atime + 86400)) ?>">
                         <?= strftime(_('%x'), strtotime('+1 day', $calendars[0]->getStart())) ?>
-                        <?= Assets::img('icons/16/blue/arr_1right.png', array('style' => 'vertical-align: text-top;')) ?>
+                        <?= Icon::create('arr_1right', 'clickable')->asImg(16, ["style" => 'vertical-align: text-top;']) ?>
                     </a>
                 </div>
             </td>

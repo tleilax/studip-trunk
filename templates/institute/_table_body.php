@@ -13,9 +13,7 @@ use Studip\Button, Studip\LinkButton;
             ?>
             <th colspan="2" height="20">
                 <a data-dialog href="<?= URLHelper::getScriptLink("dispatch.php/messages/write", array('filter' => 'inst_status', 'who' => $key, 'default_subject' => $GLOBALS['SessSemName'][0], 'course_id' => $GLOBALS['SessSemName'][1])) ?>">
-                    <?= Assets::img('icons/16/blue/mail.png',
-                                    tooltip2(sprintf(_('Nachricht an alle Mitglieder mit dem Status %s verschicken'),
-                                                     $th_title))) ?>
+                    <?= Icon::create('mail', 'clickable', ['title' => sprintf(_('Nachricht an alle Mitglieder mit dem Status %s verschicken'),$th_title)])->asImg(16) ?>
                 </a>
             </th>
             <?
@@ -24,9 +22,7 @@ use Studip\Button, Studip\LinkButton;
             ?>
             <th colspan="2" height="20">
                 <a data-dialog href="<?= URLHelper::getScriptLink("dispatch.php/messages/write", array('group_id' => $role_id, 'default_subject' => $GLOBALS['SessSemName'][0])) ?>">
-                    <?= Assets::img('icons/16/blue/mail.png',
-                                    tooltip2(sprintf(_('Nachricht an alle Mitglieder der Gruppe %s verschicken'),
-                                                     $th_title))) ?>
+                    <?= Icon::create('mail', 'clickable', ['title' => sprintf(_('Nachricht an alle Mitglieder der Gruppe %s verschicken'),$th_title)])->asImg(16) ?>
                 </a>
             </th>
             <?

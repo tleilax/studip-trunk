@@ -16,7 +16,7 @@
         <tr>
             <td id="<?= $consumer->id ?>">
                 <a href="<?= $controller->url_for('admin/api/toggle', $consumer->id, $consumer->active ? 'off' : 'on') ?>">
-                    <?= Assets::img('icons/16/blue/checkbox-' . ($consumer->active ? '' : 'un') . 'checked') ?>
+                    <?= Icon::create('checkbox-' . ($consumer->active ? '' : 'un') . 'checked', 'clickable')->asImg() ?>
                 </a>
             </td>
             <td>
@@ -34,7 +34,8 @@
                     <?= htmlReady($consumer->contact) ?>
                 </a>
             </td>
-            <td><?= Assets::img('icons/16/blue/checkbox-' . ($consumer->commercial ? '' : 'un') . 'checked') ?></td>
+
+            <td><?= Icon::create('checkbox-' . ($consumer->commercial ? '' : 'un') . 'checked', 'clickable')->asImg() ?></td>
             <td class="actions">
                 <a href="<?= $controller->url_for('admin/api/keys', $consumer->id) ?>"
                    data-dialog="size=auto"

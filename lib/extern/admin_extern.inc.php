@@ -367,13 +367,13 @@ if (!$have_config) {
                 ?>
                 <td <?= $css_switcher_2->getFullClass() ?> width="5%">
                     <a href="<?= URLHelper::getLink('?com=download_config&config_id='. $configuration['id'] .'&module='. $module_type["module"]) ?>">
-                        <?= Assets::img('icons/16/blue/download.png', array('alt' => _("Konfigurationsdatei herunterladen"), 'title' => _("Konfigurationsdatei herunterladen"))) ?>
+                        <?= Icon::create('download', 'clickable', ['title' => _("Konfigurationsdatei herunterladen")])->asImg(16, ["alt" => _("Konfigurationsdatei herunterladen")]) ?>
                     </a>
                 </td>
 
                 <td <?= $css_switcher_2->getFullClass() ?> width="5%">
                     <a href="<?= URLHelper::getLink('?com=upload_config&config_id='. $configuration['id']) ?>">
-                        <?= Assets::img('icons/16/blue/upload.png', array('alt' => _("Konfigurationsdatei hochladen"), 'title' => _("Konfigurationsdatei hochladen"))) ?>
+                        <?= Icon::create('upload', 'clickable', ['title' => _("Konfigurationsdatei hochladen")])->asImg(16, ["alt" => _("Konfigurationsdatei hochladen")]) ?>
                     </a>
                 </td>
                 <?

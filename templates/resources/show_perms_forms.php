@@ -144,7 +144,7 @@ use Studip\Button;
                                     <?= Icon::create('trash', 'clickable', ['title' => _('Berechtigung löschen')])->asImg() ?>
                                 </a>
                             <? else : ?>
-                                <?= Assets::img('icons/16/grey/decline/trash.png', tooltip2(_('Sie dürfen diese Berechtigung leider nicht löschen'))) ?>
+                                <?= Icon::create('trash+decline', 'inactive', ['title' => _('Sie dürfen diese Berechtigung leider nicht löschen')])->asImg(16) ?>
                             <? endif; ?>
                         </td>
                     </tr>

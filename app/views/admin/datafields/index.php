@@ -80,17 +80,17 @@
             <td><?= $val->getViewPerms() ?></td>
             <td>
              <? if (in_array($key, array('sem'))): ?>
-              <?= Assets::img('icons/16/grey/'.($val->getIsRequired()?'accept.png':'decline.png'))?>
+              <?= Icon::create($val->getIsRequired() ? 'accept' : 'decline', 'inactive')->asImg() ?>
              <? endif; ?>
             </td>
              <td>
              <? if (in_array($key, array('sem'))): ?>
-              <?= Assets::img('icons/16/grey/'.(trim($val->getDescription())?'accept.png':'decline.png'))?>
+                 <?= Icon::create(trim($val->getDescription()) ? 'accept' : 'decline', 'inactive')->asImg() ?>
              <? endif; ?>
             </td>
             <td>
             <? if (in_array($key, array('user'))): ?>
-              <?= Assets::img('icons/16/grey/'.($val->getIsUserFilter()?'accept.png':'decline.png'))?>
+              <?= Icon::create($val->getIsUserFilter() ? 'accept' : 'decline', 'inactive')->asImg() ?>
              <? endif; ?>
             </td>
             <td><?= $val->getPriority() ?></td>

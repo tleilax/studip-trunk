@@ -15,8 +15,7 @@
                         'course_id' => $course_id,
                         'default_subject' => $subject))
                 ?>" data-dialog>
-                    <?= Assets::img('icons/16/blue/inbox.png',
-                            tooltip2(sprintf(_('Nachricht an alle %s versenden'), htmlReady($status_groups['autor'])))) ?>
+                    <?= Icon::create('inbox', 'clickable', ['title' => sprintf(_('Nachricht an alle %s versenden'),htmlReady($status_groups['autor']))])->asImg(16) ?>
                 </a>
            </span>
        <? endif ?>
@@ -119,15 +118,13 @@
                                     'default_subject' => $subject))
                                 ?>
                         " data-dialog>
-                            <?= Assets::img('icons/16/blue/mail.png',
-                                    tooltip2(sprintf(_('Nachricht an %s senden'), htmlReady($fullname)))) ?>
+                            <?= Icon::create('mail', 'clickable', ['title' => sprintf(_('Nachricht an %s senden'),htmlReady($fullname))])->asImg(16) ?>
                         </a>
                     <? endif ?>
                     <? if ($is_tutor && !$is_locked) : ?>
                         <a href="<?= $controller->url_for(sprintf('course/members/cancel_subscription/singleuser/autor/%s',
                                     $autor['user_id'])) ?>">
-                            <?= Assets::img('icons/16/blue/door-leave.png',
-                                    tooltip2(sprintf(_('%s austragen'), htmlReady($fullname)))) ?>
+                            <?= Icon::create('door-leave', 'clickable', ['title' => sprintf(_('%s austragen'),htmlReady($fullname))])->asImg(16) ?>
                         </a>
                     <? endif ?>
                 </td>

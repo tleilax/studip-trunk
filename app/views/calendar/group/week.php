@@ -13,7 +13,7 @@ SkipLinks::addIndex(_('Wochenansicht'), 'main_content', 100);
         <td colspan="<?= $colspan_2 ?>" style="vertical-align: middle; text-align: center;">
             <div style="text-align: left; width: 25%; display: inline-block; white-space: nowrap;">
                 <a <?= tooltip(_('eine Woche zurück')) ?> href="<?= $controller->url_for('calendar/group/week', array('atime' => mktime(12, 0, 0, date('n', $atime), date('j', $atime) - 7, date('Y', $atime)))) ?>">
-                    <?= Assets::img('icons/16/blue/arr_1left.png', array('style' => 'vertical-align: text-top;')) ?>
+                    <?= Icon::create('arr_1left', 'clickable')->asImg(16, ["style" => 'vertical-align: text-top;']) ?>
                     <?= strftime(_('%V. Woche'), strtotime('-1 week', $atime)) ?>
                 </a>
             </div>
@@ -23,7 +23,7 @@ SkipLinks::addIndex(_('Wochenansicht'), 'main_content', 100);
             <div style="width: 25%; text-align: right; display: inline-block; white-space: nowrap;">
                 <a <?= tooltip(_('eine Woche vor')) ?> href="<?= $controller->url_for('calendar/group/week', array('atime' => mktime(12, 0, 0, date('n', $atime), date('j', $atime) + 7, date('Y', $atime)))) ?>">
                     <?= strftime(_('%V. Woche'), strtotime('+1 week', $atime)) ?>
-                    <?= Assets::img('icons/16/blue/arr_1right.png', array('style' => 'vertical-align: text-top;')) ?>
+                    <?= Icon::create('arr_1right', 'clickable')->asImg(16, ["style" => 'vertical-align: text-top;']) ?>
                 </a>
             </div>
         </td>

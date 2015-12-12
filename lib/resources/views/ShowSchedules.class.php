@@ -193,19 +193,19 @@ class ShowSchedules {
                                 $date = new SingleDate($event->getAssignUserId());
                                 $dozenten = array_intersect_key($sem_obj->getMembers('dozent'), array_flip($date->getRelatedPersons()));
                                 $sem_doz_names = array_map(create_function('$a', 'return $a["Nachname"];'), array_slice($dozenten,0,3, true));
-                                $add_info = '(' . join(', ' , $sem_doz_names) . ')';
+                                $add_info = '(' . join(', ', $sem_doz_names) . ')';
                         }
                         if (!$print_view){
                             echo LinkButton::create(_('Eigenschaften'), URLHelper::getURL('?quick_view='
                                 . $view . '&quick_view_mode=' . $quick_view_mode . '&edit_assign_object=' . $event->getAssignId()));
                         } else {
-                            echo '<font size=-1>' . sprintf("%02d" , $num++) . '.';
+                            echo '<font size=-1>' . sprintf("%02d", $num++) . '.';
                         }
                         printf ("&nbsp;"
                                 ._("Belegung ist von <b>%s</b> bis <b>%s</b>, belegt von <b>%s</b>")
                                 ."</font><br>", strftime("%A, %d.%m.%Y %H:%M", $event->getBegin())
-                                , strftime("%A, %d.%m.%Y %H:%M", $event->getEnd())
-                                , $event->getName(get_config('RESOURCES_SCHEDULE_EXPLAIN_USER_NAME')) . $add_info);
+, strftime("%A, %d.%m.%Y %H:%M", $event->getEnd())
+, $event->getName(get_config('RESOURCES_SCHEDULE_EXPLAIN_USER_NAME')) . $add_info);
                     }
                     ?>
                 </td>
@@ -271,7 +271,7 @@ class ShowSchedules {
                 $date = new SingleDate($event->getAssignUserId());
                 $dozenten = array_intersect_key($sem_obj->getMembers('dozent'), array_flip($date->getRelatedPersons()));
                 $sem_doz_names = array_map(create_function('$a', 'return $a["Nachname"];'), array_slice($dozenten,0,3, true));
-                $add_info = '(' . join(', ' , $sem_doz_names) . ')';
+                $add_info = '(' . join(', ', $sem_doz_names) . ')';
             }
             $schedule->addEvent($event->getName(get_config('RESOURCES_SCHEDULE_EXPLAIN_USER_NAME')), $event->getBegin(), $event->getEnd(),
                         URLHelper::getLink('?cancel_edit_assign=1&quick_view=' . $view . '&quick_view_mode='.$view_mode.'&edit_assign_object='.$event->getAssignId()), $add_info, $categories[$repeat_mode]);
@@ -281,7 +281,7 @@ class ShowSchedules {
             <tr>
                 <td class="<? $cssSw->switchClass(); echo $cssSw->getClass() ?>" width="4%">&nbsp;</td>
                 <td class="<? echo $cssSw->getClass() ?> hidden"  width="10%" align="left">&nbsp;
-                    <a href="<? echo URLHelper::getLink('?quick_view='.$this->used_view.'&quick_view_mode='.$view_mode.'&previous_week=TRUE') ?> "><?= Assets::img("icons/16/blue/arr_2left.png", array('alt' => _("Vorherige Woche anzeigen"), 'title' => _("Vorherige Woche anzeigen"), 'border' => 0)) ?></a>
+                    <a href="<? echo URLHelper::getLink('?quick_view='.$this->used_view.'&quick_view_mode='.$view_mode.'&previous_week=TRUE') ?> "><?= Icon::create('arr_2left', 'clickable', ['title' => _("Vorherige Woche anzeigen")])->asImg(16, ["alt" => _("Vorherige Woche anzeigen"), "border" => 0]) ?></a>
                 </td>
                 <td class="<? echo $cssSw->getClass() ?>" width="76%" align="center" style="font-weight:bold">
                     <? printf(_("Anzeige der Woche vom %s bis %s (KW %s)"), strftime("%x", $start_time), strftime("%x", $end_time),strftime("%V", $start_time));?>
@@ -296,7 +296,7 @@ class ShowSchedules {
                     ?>
                 </td>
                 <td class="<? echo $cssSw->getClass() ?> hidden" width="10%" align="center">&nbsp;
-                    <a href="<? echo URLHelper::getLink('?quick_view='.$this->used_view.'&quick_view_mode='.$view_mode.'&next_week=TRUE')?>"><?= Assets::img("icons/16/blue/arr_2right.png", array('alt' => _("Nächste Woche anzeigen"), 'title' => _("Nächste Woche anzeigen"), 'border' => 0)) ?></a>
+                    <a href="<? echo URLHelper::getLink('?quick_view='.$this->used_view.'&quick_view_mode='.$view_mode.'&next_week=TRUE')?>"><?= Icon::create('arr_2right', 'clickable', ['title' => _("Nächste Woche anzeigen")])->asImg(16, ["alt" => _("Nächste Woche anzeigen"), "border" => 0]) ?></a>
                 </td>
             </tr>
             <tr>

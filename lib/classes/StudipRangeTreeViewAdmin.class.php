@@ -173,7 +173,7 @@ class StudipRangeTreeViewAdmin extends TreeView{
         $item_id = Request::option('item_id');
         if ($this->isItemAdmin($item_id)){
             $new_item_id = DbView::get_uniqid();
-            $this->tree->storeItem($new_item_id,$item_id,_("Neues Element") , $this->tree->getNumKids($item_id) +1);
+            $this->tree->storeItem($new_item_id,$item_id,_("Neues Element"), $this->tree->getNumKids($item_id) +1);
             $this->anchor = $new_item_id;
             $this->edit_item_id = $new_item_id;
             $this->open_ranges[$item_id] = true;
@@ -285,7 +285,7 @@ class StudipRangeTreeViewAdmin extends TreeView{
                 while($rs->next_record()){
                     $affected_rows += $this->tree->InsertItem(DbView::get_uniqid(),$item_id,mysql_escape_string($rs->f('name')),$priority++,'inst',$rs->f('Institut_id'));
                 }
-                $this->msg[$item_id] = "msg§" . sprintf(_("%s Elemente wurden eingefügt.") , $affected_rows);
+                $this->msg[$item_id] = "msg§" . sprintf(_("%s Elemente wurden eingefügt."), $affected_rows);
                 $this->mode = "";
                 $this->anchor = $item_id;
                 $this->open_items[$item_id] = true;
@@ -501,7 +501,7 @@ class StudipRangeTreeViewAdmin extends TreeView{
         if ($item_id == $this->edit_item_id )
             return $this->getEditItemContent();
         if ($item_id == $this->move_item_id){
-            $this->msg[$item_id] = "info§" . sprintf(_("Dieses Element wurde zum Verschieben markiert. Bitte wählen Sie ein Einfügesymbol %s aus, um das Element zu verschieben."), Assets::img("icons/16/yellow/arr_2right.png", array('alt' => "Einfügesymbol", 'title' => "Einfügesymbol")));
+            $this->msg[$item_id] = "info§" . sprintf(_("Dieses Element wurde zum Verschieben markiert. Bitte wählen Sie ein Einfügesymbol %s aus, um das Element zu verschieben."), Icon::create('arr_2right', 'sort', ['title' => "Einfügesymbol"])->asImg(16, ["alt" => "Einfügesymbol"]));
             }
         $content = "\n<table width=\"90%\" cellpadding=\"2\" cellspacing=\"2\" align=\"center\" style=\"font-size:10pt\">";
         $content .= $this->getItemMessage($item_id);
@@ -609,7 +609,7 @@ class StudipRangeTreeViewAdmin extends TreeView{
             && ($this->move_item_id != $item_id) && ($this->tree->tree_data[$this->move_item_id]['parent_id'] != $item_id)
             && !$this->tree->isChildOf($this->move_item_id,$item_id)){
             $head .= "<a href=\"" . URLHelper::getLink($this->getSelf("cmd=DoMoveItem&item_id=$item_id")) . "\">"
-            .  Assets::img("icons/16/yellow/arr_2right.png", array('alt' => "An dieser Stelle einfügen", 'title' => "An dieser Stelle einfügen"))."</a>&nbsp;";
+            .  Icon::create('arr_2right', 'sort', ['title' => "An dieser Stelle einfügen"])->asImg(16, ["alt" => "An dieser Stelle einfügen"])."</a>&nbsp;";
         }
         $head .= parent::getItemHead($item_id);
         if ($item_id != $this->start_item_id && $this->isParentAdmin($item_id) && $item_id != $this->edit_item_id){

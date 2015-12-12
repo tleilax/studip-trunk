@@ -11,15 +11,13 @@
         <tr>
             <th>
                 <a href="<?= URLHelper::getLink('?#anker', array('toggle_group' => $group_id, 'r' => rand())) ?>" class="tree">
-                    <?= Assets::img('icons/16/blue/'. ($open ? 'arr_1down' : 'arr_1right')) ?>
+                    <?= Icon::create($open ? 'arr_1down' : 'arr_1right', 'clickable')->asImg() ?>
                 </a>
             </th>
             <th style="font-weight: bold;">
             <? if ($may_assign): ?>
                 <a href="<?= URLHelper::getLink('?#anker', array('assign' => $group_id)) ?>">
-                    <?= Assets::img('icons/16/yellow/arr_2right', 
-                            array('style' => 'vertical-align:bottom')
-                            + tooltip2(_('In diese Gruppe eintragen'))) ?>
+                    <?= Icon::create('arr_2right', 'sort', ['title' => _('In diese Gruppe eintragen')])->asImg(["style" => 'vertical-align:bottom']) ?>
                 </a>
             <? endif; ?>
                 <a href="<?= URLHelper::getLink('?#anker', array('toggle_group' => $group_id, 'r' => rand())) ?>" class="tree">
@@ -39,7 +37,7 @@
             <? endif; ?>
             <? if ($may_mail && $members > 0): ?>
                 <a href="<?= URLHelper::getLink('dispatch.php/messages/write', array('emailrequest' => 1, 'group_id' => $group_id, 'default_subject' => $subject)) ?>" data-dialog>
-                    <?= Assets::img('icons/16/blue/move_right/mail', tooltip2(_('Systemnachricht mit Emailweiterleitung an alle Gruppenmitglieder verschicken'))) ?>
+                    <?= Icon::create('mail+move_right', 'clickable', ['title' => _('Systemnachricht mit Emailweiterleitung an alle Gruppenmitglieder verschicken')])->asImg(16) ?>
                 </a>
                 <a href="<?= URLHelper::getLink('dispatch.php/messages/write', array('group_id' => $group_id, 'default_subject' => $subject)) ?>" data-dialog>
                     <?= Icon::create('mail', 'clickable', ['title' => _('Systemnachricht an alle Gruppenmitglieder verschicken')])->asImg() ?>

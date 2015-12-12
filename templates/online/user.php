@@ -7,8 +7,7 @@
         <? if (!$is_buddy) : ?>
             <a href="<?= URLHelper::getLink('online.php', array('cmd' => 'add_user',
                                                                 'add_uname' => $tmp_online_uname)) ?>">
-                <?= Assets::img('icons/16/yellow/arr_2left.png', array('title' => _("zu den Buddies hinzufügen"),
-                                                       'style' => 'padding-right: 0.33em;', 'class' => 'middle')) ?>
+                <?= Icon::create('arr_2left', 'sort', ['title' => _("zu den Buddies hinzufügen")])->asImg(16, ["style" => 'padding-right: 0.33em;', "class" => 'middle']) ?>
             </a>
         <? else : ?>
             &nbsp;

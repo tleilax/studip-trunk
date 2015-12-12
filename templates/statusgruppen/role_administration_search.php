@@ -18,9 +18,7 @@
         <? endforeach; ?>
     </select>
     <a href="<?= URLHelper::getLink("?role_id=".Request::option('role_id')."&refresh=true#$anker") ?>">
-        <?= Assets::img('icons/16/blue/refresh.png', array(
-            'title' => _('neue Suche')
-        )) ?>
+        <?= Icon::create('refresh', 'clickable', ['title' => _('neue Suche')])->asImg(16) ?>
     </a>
     <br><br>
     <input type="hidden" name="cmd" value="addPersonsToRoleSearch">

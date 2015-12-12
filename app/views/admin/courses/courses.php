@@ -174,7 +174,7 @@
                     <a data-dialog="buttons=false;size=auto" href="<?= $controller->url_for(sprintf('course/details/index/%s', $semid)) ?>">
                         <? $params = tooltip2(_("Veranstaltungsdetails anzeigen")); ?>
                         <? $params['style'] = 'cursor: pointer'; ?>
-                        <?= Assets::img('icons/16/grey/info-circle.png', $params) ?>
+                        <?= Icon::create('info-circle', 'inactive')->asImg($params) ?>
                     </a>
                     <? if ($values["visible"] == 0) : ?>
                         <?= _("(versteckt)") ?>

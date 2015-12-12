@@ -5,10 +5,10 @@
             <?= $multiPerson ?>
             <? if ($filter): ?>
                 <a href="<?= $controller->url_for('contact/editGroup/'.$filter) ?>" data-dialog="size=auto" title="<?= _('Gruppe bearbeiten') ?>">
-                    <?= Assets::img('icons/16/blue/edit.svg') ?>
+                    <?= Icon::create('edit', 'clickable')->asImg(16) ?>
                 </a>
                 <a href="<?= $controller->url_for('contact/deleteGroup/'.$filter) ?>" data-dialog="size=auto"  title="<?= _('Gruppe löschen') ?>">
-                    <?= Assets::img('icons/16/blue/trash.svg') ?>
+                    <?= Icon::create('trash', 'clickable')->asImg(16) ?>
                 </a>
             <? endif; ?>
         </span>

@@ -46,7 +46,7 @@ if ($message) parse_msg($message);
                                 <?= Icon::create('forum', 'clickable', ['title' => _('Beiträge des Forums der Veranstaltung')])->asImg(20) ?>
                             </a>
                         <? else: ?>
-                            <?= Assets::img('icons/20/grey/forum', array('style' => 'visibility: hidden;')) ?>
+                            <?= Icon::create('forum', 'inactive')->asImg(20, ["style" => 'visibility: hidden;']) ?>
                         <? endif; ?>
 
                         <? if ($row['archiv_file_id']):
@@ -56,7 +56,7 @@ if ($message) parse_msg($message);
                                 <?= Icon::create('download', 'clickable', ['title' => _('Dateisammlung der Veranstaltung herunterladen')])->asImg(20) ?>
                             </a>
                         <? else: ?>
-                            <?= Assets::img('icons/20/grey/download', array('style' => 'visibility: hidden;')) ?>
+                            <?= Icon::create('download', 'inactive')->asImg(20, ["style" => 'visibility: hidden;']) ?>
                         <? endif; ?>
 
                         <? if ($row['wikidump']): ?>
@@ -64,7 +64,7 @@ if ($message) parse_msg($message);
                                 <?= Icon::create('wiki', 'clickable', ['title' => _('Beiträge des Wikis der Veranstaltung')])->asImg(20) ?>
                             </a>
                         <? else: ?>
-                            <?= Assets::img('icons/20/grey/wiki', array('style' => 'visibility: hidden;')) ?>
+                            <?= Icon::create('wiki', 'inactive')->asImg(20, ["style" => 'visibility: hidden;']) ?>
                         <? endif; ?>
                     </td>
                     <td style="text-align: center"><?= $row['status'] ?></td>

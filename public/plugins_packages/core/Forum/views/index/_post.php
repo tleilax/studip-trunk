@@ -57,9 +57,7 @@
                 <? $parent_topic = ForumEntry::getConstraints(ForumEntry::getParentTopicId($post['topic_id'])) ?>
 
                 <? if($constraint['closed']) : ?>
-                <?= Assets::img('icons/16/black/lock-locked.png', array(
-                    'title' => _('Dieses Thema wurde geschlossen. Sie können daher nicht auf diesen Beitrag antworten.')
-                )) ?>
+                <?= Icon::create('lock-locked', 'info', ['title' => _('Dieses Thema wurde geschlossen. Sie können daher nicht auf diesen Beitrag antworten.')])->asImg(16) ?>
                 <? endif ?>
 
                 <span data-edit-topic="<?= $post['topic_id'] ?>">
@@ -255,9 +253,7 @@
         
         <? if ($is_new): ?>
         <span class="new_posting">
-            <?= Assets::img('icons/16/red/new/forum.png', array(
-                'title' => _("Dieser Beitrag ist seit Ihrem letzten Besuch hinzugekommen.")
-            )) ?>
+            <?= Icon::create('forum+new', 'attention', ['title' => _("Dieser Beitrag ist seit Ihrem letzten Besuch hinzugekommen.")])->asImg(16) ?>
         </span>
         <? endif ?>  
     </span>

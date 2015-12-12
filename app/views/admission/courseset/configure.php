@@ -70,12 +70,7 @@ if ($flash['error']) {
             <?php } else { ?>
                 <?php if ($instSearch) { ?>
                 <div id="institutes">
-                    <?= Assets::img('icons/16/yellow/arr_2down.png', array(
-                        'alt' => _('Einrichtung hinzufügen'),
-                        'title' => _('Einrichtung hinzufügen'),
-                        'onclick' => "STUDIP.Admission.updateInstitutes($('#institute_id_1_realvalue').val(), '".
-                            $controller->url_for('admission/courseset/institutes', $courseset ? $courseset->getId() : '')."', '".
-                            $controller->url_for('admission/courseset/instcourses', $courseset ? $courseset->getId() : '')."', 'add')")) ?>
+                    <?= Icon::create('arr_2down', 'sort', ['title' => _('Einrichtung hinzufügen')])->asImg(16, ["alt" => _('Einrichtung hinzufügen'), "onclick" => "STUDIP.Admission.updateInstitutes($('#institute_id_1_realvalue').val(), '".$controller->url_for('admission/courseset/institutes',$courseset?$courseset->getId():'')."', '".$controller->url_for('admission/courseset/instcourses',$courseset?$courseset->getId():'')."', 'add')"]) ?>
                     <?= $instSearch ?>
                     <?= Icon::create('search', 'clickable', ['title' => _("Suche starten")])->asImg()?>
                 </div>

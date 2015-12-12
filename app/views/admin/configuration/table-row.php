@@ -23,8 +23,7 @@
     <td><?= htmlReady($type) ?></td>
     <td class="actions">
         <a data-dialog href="<?= $controller->url_for($linkchunk . $field) ?>">
-            <?= Assets::img('icons/16/blue/edit.png',
-                            tooltip2(_('Konfigurationsparameter bearbeiten'))) ?>
+            <?= Icon::create('edit', 'clickable', ['title' => _('Konfigurationsparameter bearbeiten')])->asImg(16) ?>
         </a>
     </td>
 </tr>

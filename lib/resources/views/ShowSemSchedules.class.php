@@ -164,7 +164,7 @@ class ShowSemSchedules extends ShowSchedules {
             $end_hour = 22;
         }
 
-        $schedule=new SemScheduleWeek($start_hour, $end_hour ,false , $start_time);
+        $schedule=new SemScheduleWeek($start_hour, $end_hour,false, $start_time);
         $num_rep_events = 0;
         $num_single_events = 0;
         if ($ActualObjectPerms->havePerm("autor"))
@@ -218,7 +218,7 @@ class ShowSemSchedules extends ShowSchedules {
             <tr>
                 <td class="<? $cssSw->switchClass(); echo $cssSw->getClass() ?>" width="4%">&nbsp;</td>
                 <td class="<? echo $cssSw->getClass() ?>"  width="10%" align="left">&nbsp;
-                    <a href="<? echo URLHelper::getLink('?quick_view='.$this->used_view.'&quick_view_mode='.$view_mode.'&previous_sem=1')?>"><?= Assets::img("icons/16/blue/arr_2left.png", array('alt' => _("Vorheriges Semester anzeigen"), 'title' => _("Vorheriges Semester anzeigen"), 'border' => 0)) ?></a>
+                    <a href="<? echo URLHelper::getLink('?quick_view='.$this->used_view.'&quick_view_mode='.$view_mode.'&previous_sem=1')?>"><?= Icon::create('arr_2left', 'clickable', ['title' => _("Vorheriges Semester anzeigen")])->asImg(16, ["alt" => _("Vorheriges Semester anzeigen"), "border" => 0]) ?></a>
                 </td>
                 <td class="<? echo $cssSw->getClass() ?>" width="76%" align="center">
                 <b>
@@ -230,7 +230,7 @@ class ShowSemSchedules extends ShowSchedules {
                 <br>
                 </td>
                 <td class="<? echo $cssSw->getClass() ?>" width="10%" align="center">&nbsp;
-                    <a href="<? echo URLHelper::getLink('?quick_view='.$this->used_view.'&quick_view_mode='.$view_mode.'&next_sem=1')?>"><?= Assets::img("icons/16/blue/arr_2right.png", array('alt' => _("Nächstes Semester anzeigen"), 'title' => _("Nächstes Semester anzeigen"), 'border' => 0)) ?></a>
+                    <a href="<? echo URLHelper::getLink('?quick_view='.$this->used_view.'&quick_view_mode='.$view_mode.'&next_sem=1')?>"><?= Icon::create('arr_2right', 'clickable', ['title' => _("Nächstes Semester anzeigen")])->asImg(16, ["alt" => _("Nächstes Semester anzeigen"), "border" => 0]) ?></a>
                 </td>
             </tr>
             <tr>

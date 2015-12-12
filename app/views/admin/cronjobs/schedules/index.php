@@ -121,9 +121,7 @@
             <td><?= htmlReady($schedules[$i]->title ?: $schedules[$i]->task->name) ?></td>
             <td style="text-align: center;">
             <? if (!$schedules[$i]->task->active): ?>
-                <?= Assets::img('icons/16/grey/checkbox-unchecked',
-                                tooltip2(_('Cronjob kann nicht aktiviert werden, da die zugehörige ' .
-                                           'Aufgabe deaktiviert ist.'))) ?>
+                <?= Icon::create('checkbox-unchecked', 'inactive', ['title' => _('Cronjob kann nicht aktiviert werden, da die zugehörige '.'Aufgabe deaktiviert ist.')])->asImg(16) ?>
             <? elseif ($schedules[$i]->active): ?>
                 <a href="<?= $controller->url_for('admin/cronjobs/schedules/deactivate', $schedules[$i]->schedule_id, $page) ?>" data-behaviour="ajax-toggle">
                     <?= Icon::create('checkbox-checked', 'clickable', ['title' => _('Cronjob deaktivieren')])->asImg() ?>

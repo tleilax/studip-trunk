@@ -119,7 +119,7 @@ function create_year_view(&$calendar)
 
                 if ($event_count_txt != '') {
                     $out .= "</td><td$day_class align=\"right\">";
-                    $out .= Assets::img("icons/16/blue/date.png", array('alt' => $event_count_txt, 'title' => $event_count_txt));
+                    $out .= Icon::create('date', 'clickable', ['title' => $event_count_txt])->asImg(16, ["alt" => $event_count_txt]);
                     $out .= "</td></tr></table>\n";
                 }
                 $out .= '</td>';
@@ -253,13 +253,13 @@ function info_icons(&$event)
     }
 
     if ($event->getType() == 'PUBLIC') {
-        $out .= Assets::img("icons/16/blue/visibility-visible.png", array('alt' => $event->toStringAccessibility(), 'title' => $event->toStringAccessibility(), 'border' => "0"));
+        $out .= Icon::create('visibility-visible', 'clickable', ['title' => $event->toStringAccessibility()])->asImg(16, ["alt" => $event->toStringAccessibility(), "border" => "0"]);
     } else if ($event->getType() == 'CONFIDENTIAL') {
-        $out .= Assets::img("icons/16/blue/visibility-invisible.png", array('alt' => $event->toStringAccessibility(), 'title' => $event->toStringAccessibility(), 'border' => "0"));
+        $out .= Icon::create('visibility-invisible', 'clickable', ['title' => $event->toStringAccessibility()])->asImg(16, ["alt" => $event->toStringAccessibility(), "border" => "0"]);
     }
 
     if ($event->getRepeat('rtype') != 'SINGLE') {
-        $out .= Assets::img("icons/16/blue/refresh.png", array('alt' => $event->toStringRecurrence(), 'title' => $event->toStringRecurrence(), 'border' => "0"));
+        $out .= Icon::create('refresh', 'clickable', ['title' => $event->toStringRecurrence()])->asImg(16, ["alt" => $event->toStringRecurrence(), "border" => "0"]);
     }
 
     if ($out != '') {

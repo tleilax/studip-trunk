@@ -11,7 +11,7 @@
         <tr>
             <th>
                 <a href="<?= URLHelper::getLink('?toggle_group=non_members#anker', array('r' => rand())) ?>" class="tree">
-                    <?= Assets::img('icons/16/blue/'. ($open ? 'arr_1down' : 'arr_1right')) ?>
+                    <?= Icon::create($open ? 'arr_1down' : 'arr_1right', 'clickable')->asImg() ?>
                 </a>
             </th>
             <th style="font-weight: bold;" colspan="2">
