@@ -207,7 +207,7 @@
                             <? foreach ($area_structure as $area_key => $area_data) : ?>
                                 <? if (count($area_options_selectable[$area_key])) : ?>
                                     <option disabled class="news_area_title"
-                                            style="background-image: url('<?=Assets::image_path('icons/16/white/'.$area_data['icon'])?>');">
+                                            style="background-image: url('<?= Icon::create($area_data['icon'], 'info_alt')->asImagePath() ?>');">
                                         <?=htmlReady($area_data['title'])?>
                                     </option>
                                     <? foreach ($area_options_selectable[$area_key] as $area_option_key => $area_option_title) : ?>
@@ -249,7 +249,7 @@
                             <? foreach ($area_structure as $area_key => $area_data) : ?>
                                 <? if (count($area_options_selected[$area_key])) : ?>
                                     <option disabled  class="news_area_title"
-                                            style="background-image: url('<?=Assets::image_path('icons/16/black/'.$area_data['icon'])?>');">
+                                            style="background-image: url('<?= Icon::create($area_data['icon'], 'info')->asImagePath() ?>');">
                                         <?=htmlReady($area_data['title'])?>
                                     </option>
                                     <? foreach ($area_options_selected[$area_key] as $area_option_key => $area_option_title) : ?>

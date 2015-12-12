@@ -62,7 +62,7 @@
                     <table class="default">
                         <? if (!$area_type) : ?>
                             <caption>
-                                <?= Assets::img('icons/32/grey/' . $area_data['icon'], array('class' => 'news_area_icon')) ?>
+                                <?= Icon::create($area_data['icon'], 'inactive')->asImg(32, ['class' => 'news_area_icon']) ?>
                                 <div class="news_area_title"><?= htmlReady($area_data['title']) ?></div>
                             </caption>
                         <? endif ?>
