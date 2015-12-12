@@ -556,10 +556,10 @@ class EvalOverview {
      */
     function createInfoBox($imgLogo) {
         /* Define infobox text ------------------------------------------------ */
-        $info1 = array("icon" => "icons/16/black/test.png",
+        $info1 = array("icon" => Icon::create('test', 'clickable'),
             "text" => _("Auf dieser Seite haben Sie eine Übersicht aller in dem ausgewählten Bereich existierenden Evaluationen sowie Ihrer eigenen Evaluationsvorlagen."));
 
-        $info2 = array("icon" => "icons/16/black/info.png",
+        $info2 = array("icon" => Icon::create('info', 'clickable'),
             "text" => _("Sie können eine Evaluation aufklappen und dann Bereichen zuordnen und ihre Laufzeit bestimmen."));
 
 

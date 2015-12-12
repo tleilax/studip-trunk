@@ -3,12 +3,12 @@ $infobox_content[] = array(
     'kategorie' => _('Informationen / Bedienungshinweise'),
     'eintrag'   => array(
         array(
-            'icon' => 'icons/16/black/info.png',
+            'icon' => Icon::create('info', 'clickable'),
             'text' => _('Sie befinden sich hier in der Administrationsansicht des Forums. '
                     . 'Mit den blauen Pfeilen können Sie einen oder mehrere Einträge auswählen, welche dann verschoben werden können. ')
         ),
         array(
-            'icon' => 'icons/16/black/info.png',
+            'icon' => Icon::create('info', 'clickable'),
             'text' => _('Sie sollten nicht mehr als 20 Einträge gleichzeitig auswählen, da das verschieben sonst sehr lange dauern kann.')
         )
     )

@@ -364,7 +364,7 @@ function printAnswerFields ( $answers ) {
 
     $html .= "</select>";
 
-    $html .= Button::create(_('Hinzufügen'), 'addAnswersButton' ,array('title' => _('Antwortfelder hinzufügen'))).'</td><td align=right>';
+    $html .= Button::create(_('Hinzufügen'), 'addAnswersButton',array('title' => _('Antwortfelder hinzufügen'))).'</td><td align=right>';
    
     if( count($answers) >= 10 && $auth->auth["jscript"])
         $html .= "(<a href=\"#markAll\" onClick=\"markAllAnswers(document.voteform.deleteCheckboxes);\" title=\""
@@ -440,24 +440,24 @@ function printRightRegion ( ) {
     $action_text3 = _("Wenn Sie zufrieden sind, klicken Sie auf 'speichern'.");
 
     /* -------------------------------------------------------- */
-    $action_array[] = array ( "icon" => "icons/16/black/info.png",
+    $action_array[] = array ( "icon" => Icon::create('info', 'clickable'),
                   "text" => $action_text1 );
 
     if( $type == "test" && $pageMode != MODE_RESTRICTED ) {
         $action_text1_extra =
         _("Deklarieren Sie mindestens eine Antwort als richtig, indem Sie einen Haken in die entsprechende Box setzen.");
-        $action_array[] = array( "icon" => "icons/16/black/checkbox-checked.png",
+        $action_array[] = array( "icon" => Icon::create('checkbox-checked', 'clickable'),
                      "text" => $action_text1_extra );
     }
 
     if( $pageMode != MODE_RESTRICTED )
-    $action_array[] = array ( "icon" => "icons/16/black/visibility-visible.png",
+    $action_array[] = array ( "icon" => Icon::create('visibility-visible', 'clickable'),
                   "text" => $action_text2 );
 
-    $action_array[] = array( "icon" => "icons/16/black/download.png",
+    $action_array[] = array( "icon" => Icon::create('download', 'clickable'),
                  "text" => $action_text3 );
 
-    $info_array[] = array( "icon" => "icons/16/black/info.png",
+    $info_array[] = array( "icon" => Icon::create('info', 'clickable'),
                "text" => $info_text );
 
     $infobox = array( array( "kategorie" => _("Information:" ),

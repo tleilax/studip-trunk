@@ -70,7 +70,7 @@ if ($adminList) {
         "eintrag"   =>
             array(
                 array(
-                      "icon" => "icons/16/black/link-intern.png",
+                      "icon" => Icon::create('link-intern', 'clickable'),
                       "text" => $adminList->render()
                 )
             )

@@ -26,11 +26,11 @@ $infobox_content = array(
         'kategorie' => _('Raumanfragen und gewünschte Raumeigenschaften'),
         'eintrag'   => array(
     array(
-        'icon' => 'icons/16/black/info.png',
+        'icon' => Icon::create('info', 'clickable'),
         'text' => _("Hier können Sie festlegen, welche Art von Raumanfrage Sie erstellen möchten.")
     ),
     array(
-            'icon' => 'icons/16/black/remove.png',
+            'icon' => Icon::create('remove', 'clickable'),
             'text' => '<a href="'.$controller->link_for('index/'.$course_id).'">'._('Anlegen abbrechen').'</a>'
         ))
     ),

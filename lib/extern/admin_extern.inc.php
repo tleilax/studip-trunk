@@ -442,22 +442,22 @@ if (sizeof($configurations)) {
     $info_content = array(
                                     array("kategorie" => "Information:",
                                                 "eintrag" => array(
-                                                    array("icon" => "icons/16/black/info.png",
+                                                    array("icon" => Icon::create('info', 'clickable'),
                                                                 "text" => $info_max_configs
                                                     ),
-                                                    array("icon" => "icons/16/black/checkbox-checked.png",
+                                                    array("icon" => Icon::create('checkbox-checked', 'clickable'),
                                                                 "text" => $info_is_default
                                                     ),
-                                                    array("icon" => "icons/16/black/info.png",
+                                                    array("icon" => Icon::create('info', 'clickable'),
                                                                 "text" => $info_no_default
                                                     )
                                     )),
                                     array("kategorie" => "Aktion:",
                                             "eintrag" => array(
-                                                    array("icon" => "icons/16/black/infopage.png",
+                                                    array("icon" => Icon::create('infopage', 'clickable'),
                                                                 "text" => $info_further_info,
                                                     ),
-                                                    array("icon" => "icons/16/black/checkbox-unchecked.png",
+                                                    array("icon" => Icon::create('checkbox-unchecked', 'clickable'),
                                                                 "text" => $info_set_default
                                                     ))
                                     ));
@@ -465,7 +465,7 @@ if (sizeof($configurations)) {
     $info_content = array(
                                     array("kategorie" => "Information:",
                                                 "eintrag" => array(
-                                                    array("icon" => "icons/16/black/info.png",
+                                                    array("icon" => Icon::create('info', 'clickable'),
                                                                 "text" => $info_max_configs
                                                     )
                                     )));

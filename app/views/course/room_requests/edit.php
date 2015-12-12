@@ -21,22 +21,22 @@ $infobox_content = array(
         'kategorie' => _('Raumanfragen und gewünschte Raumeigenschaften'),
         'eintrag'   => array(
     array(
-        'icon' => 'icons/16/black/info.png',
+        'icon' => Icon::create('info', 'clickable'),
         'text' => _("Hier können Sie Angaben zu gewünschten Raumeigenschaften machen.")
     ),
     array(
-        'icon' => 'icons/16/black/info.png',
+        'icon' => Icon::create('info', 'clickable'),
         'text' => $info_txt
     ),
     array(
-            'icon' => 'icons/16/black/remove.png',
+            'icon' => Icon::create('remove', 'clickable'),
             'text' => '<a href="'.$controller->link_for('index/'.$course_id).'">'._('Bearbeiten abbrechen').'</a>'
         ))
     ),
 );
 if (getGlobalPerms($GLOBALS['user']->id) == 'admin' || ($GLOBALS['perm']->have_perm('admin') && count(getMyRoomRequests(null, null, true, $request->getId())))) {
     $infobox_content[0]['eintrag'][] = array(
-            'icon' => 'icons/16/black/admin.png',
+            'icon' => Icon::create('admin', 'clickable'),
             'text' => '<a href="'.URLHelper::getLink('resources.php', array('view' => 'edit_request', 'single_request' => $request->getId())).'">'._('Raumanfrage auflösen').'</a>'
         );
 }

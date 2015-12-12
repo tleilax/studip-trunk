@@ -134,7 +134,7 @@ $infobox_content = array(
         'kategorie' => _('Aktionen:'),
         'eintrag'   => array(
             array(
-                'icon' => 'icons/16/black/plugin.png',
+                'icon' => Icon::create('plugin', 'clickable'),
                 'text' => '<a href="'.$controller->url_for('admin/plugin').'">'._('Verwaltung von Plugins').'</a>'
             )
         )
@@ -142,7 +142,7 @@ $infobox_content = array(
         'kategorie' => _('Links:'),
         'eintrag'   => array(
             array(
-                'icon' => 'icons/16/black/info.png',
+                'icon' => Icon::create('info', 'clickable'),
                 'text' => '<a href="http://plugins.studip.de/" target="_blank">'._('Alle Plugins im Plugin-Marktplatz').'</a>'
             )
         )
@@ -150,10 +150,10 @@ $infobox_content = array(
         'kategorie' => _('Hinweise:'),
         'eintrag'   => array(
             array(
-                "icon" => "icons/16/black/info.png",
+                "icon" => Icon::create('info', 'clickable'),
                 'text' => _('In der Liste "Empfohlene Plugins" finden Sie von anderen Betreibern empfohlene Plugins.')
             ), array(
-                "icon" => "icons/16/black/info.png",
+                "icon" => Icon::create('info', 'clickable'),
                 'text' => _('Alternativ können Plugins und Plugin-Updates auch als ZIP-Datei hochgeladen werden.')
             )
         )
