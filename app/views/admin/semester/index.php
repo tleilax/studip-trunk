@@ -76,10 +76,10 @@
             <? if ($semester->absolute_seminars_count): ?>
                 <?= Icon::create('trash', 'inactive', ['title' => _('Semester hat Veranstaltungen und kann daher nicht gelöscht werden.')])->asImg() ?>
             <? else: ?>
-                <?= Assets::input('icons/16/blue/trash.png', tooltip2(_('Semester löschen')) + array(
-                        'formaction'   => $controller->url_for('admin/semester/delete/' . $semester->id),
-                        'data-confirm' => _('Soll das Semester wirklich gelöscht werden?'),
-                )) ?>
+                <?= Icon::create('trash', 'clickable', ['title' => _('Semester löschen')])
+                        ->asInput(array(
+                            'formaction' => $controller->url_for('admin/semester/delete/'.$semester->id),
+                            'data-confirm' => _('Soll das Semester wirklich gelöscht werden?'),)) ?>
             <? endif; ?>
             </td>
         </tr>

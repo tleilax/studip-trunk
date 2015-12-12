@@ -412,7 +412,7 @@
                     </ul>
                     <input style="vertical-align: top; opacity: 0.8;" type="text" size="12" name="exc_date" id="exc-date" value="<?= strftime('%x', $atime) ?>">
                     <span style="vertical-align: top;" onclick="STUDIP.CalendarDialog.addException(); return false;">
-                        <?= Assets::input('icons/16/blue/add.png', array('class' => 'text-bottom', 'title' => _('Ausnahme hinzufügen'))) ?>
+                        <?= Icon::create('add', 'clickable', ['title' => _('Ausnahme hinzufügen')])->asInput(["class" => 'text-bottom']) ?>
                     </span>
                 </td>
             </tr>

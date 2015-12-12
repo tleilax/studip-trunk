@@ -274,7 +274,7 @@ class ShowSchedulesRequests extends ShowSchedules{
                     printf ("<option %s style=\"font-size:10px;\" value=\"single\">"._("nur Anfragen zu Einzelterminen")."</option>", ($_SESSION['resources_data']["show_repeat_mode_requests"] == "single") ? "selected" : "");
                     printf ("<option %s style=\"font-size:10px;\" value=\"repeated\">"._("nur Anfragen zu Wiederholungsterminen")."</option>", ($_SESSION['resources_data']["show_repeat_mode_requests"] == "repeated") ? "selected" : "");
                     print "</select>";
-                    print "&nbsp;".Assets::input("icons/16/green/accept.png", array('type' => "image", 'class' => "middle", 'name' => "send_schedule_repeat_mode", 'title' => _('Ansicht umschalten')));
+                    print "&nbsp;".Icon::create('accept', 'accept', ['title' => _('Ansicht umschalten')])->asInput(["type" => "image", "class" => "middle", "name" => "send_schedule_repeat_mode"]);
                     ?>
                 </td>
             </tr>

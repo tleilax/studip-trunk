@@ -1800,10 +1800,7 @@ class EvalOverview {
                 $startDate = ($startMode == "immediate") ? time() : $startDate;
 
                 $html .= "&nbsp;";
-                $html .= Assets::input('icons/16/blue/refresh.png', tooltip2(_('Endzeitpunkt neu berechnen')) + array(
-                             'name' => 'save2_button',
-                             'align' => 'middle',
-                         ));
+                $html .= Icon::create('refresh', 'clickable', ['title' => _('Endzeitpunkt neu berechnen')])->asInput(array('name'=>'save2_button','align'=>'middle',));
                 $html .= sprintf(_(" (<b>%s</b> um <b>%s</b> Uhr)"), strftime("%d.%m.%Y", $startDate + $timeSpan), strftime("%H:%M", $startDate + $timeSpan));
             }
             $html .= "</td></tr>";

@@ -867,9 +867,7 @@ if ($question) {
             if ($folder_tree->isFolder($folder_system_data["move"])) {
                 echo "\n" . '<td class="blank">&nbsp;</td>';
                 echo "\n" . '<td class="blank" width="60%" style="font-size:80%;">';
-                echo "\n" . Assets::input('icons/16/yellow/arr_2right.png',
-                                          tooltip2(_('Auf die obere Ebene verschieben / kopieren')) +
-                                          array('name' => 'move_to_top_folder', 'class' => 'middle'));
+                echo "\n" . Icon::create('arr_2right', 'sort', ['title' => _('Auf die obere Ebene verschieben / kopieren')])->asInput(array('name'=>'move_to_top_folder','class'=>'middle'));
                 echo '&nbsp;' . _("Auf die obere Ebene verschieben / kopieren") . '</td>';
                 echo "\n" . '<td class="blank">';
                 echo Button::create($button_name, "move_to_top_folder");
@@ -879,11 +877,7 @@ if ($question) {
             echo "\n" . '<div style="margin-left:25px;">';
             echo _("Veranstaltung") .':';
             echo '</div></td><td class="blank" width="60%" style="white-space: nowrap;">';
-            echo "\n" . Assets::input('icons/16/yellow/arr_2right.png',
-                                      tooltip2(_('In diese Veranstaltung verschieben / kopieren')) +
-                                      array('name' => 'move_to_sem',
-                                            'id' => 'move_to_sem_arrow',
-                                            'class' => 'middle'));
+            echo "\n" . Icon::create('arr_2right', 'sort', ['title' => _('In diese Veranstaltung verschieben / kopieren')])->asInput(array('name'=>'move_to_sem','id'=>'move_to_sem_arrow','class'=>'middle'));
             echo "\n" . '<select id="sem_move_id" name="sem_move_id[]" style="width:60%">';
             foreach ($my_sem as $id => $name){
                 echo "\n" . '<option value="'.$id.'">' . htmlReady(my_substr($name,0,70)) . '</option>';
@@ -900,9 +894,7 @@ if ($question) {
             echo "\n" . '<div style="margin-left:25px;">';
             echo _("Einrichtung").':';
             echo '</div></td><td class="blank" width="60%" style="white-space: nowrap;">';
-            echo "\n" . Assets::input('icons/16/yellow/arr_2right.png',
-                                      tooltip2(_('In diese Einrichtung verschieben / kopieren')) +
-                                      array('name' => 'move_to_inst', 'id' => 'move_to_inst_arrow', 'class' => 'middle'));
+            echo "\n" . Icon::create('arr_2right', 'sort', ['title' => _('In diese Einrichtung verschieben / kopieren')])->asInput(array('name'=>'move_to_inst','id'=>'move_to_inst_arrow','class'=>'middle'));
             echo "\n" . '<select id="inst_move_id" name="inst_move_id[]" style="width:60%">';
             foreach ($my_inst as $id => $name){
                 echo "\n" . '<option value="'.$id.'">' . htmlReady(my_substr($name,0,70)) . '</option>';

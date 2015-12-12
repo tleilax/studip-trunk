@@ -90,11 +90,10 @@ use Studip\Button, Studip\LinkButton;
                     <? endif ?>
                 </td>
                 <td class="actions">
-                    <?= Assets::input('icons/blue/trash.svg', array(
-                            'data-confirm' => _('Soll dieser Person wirklich die Rolle entzogen werden?'),
-                            'formaction' => $controller->url_for('admin/role/remove_user/' . $roleid . '/' . $user['user_id']),
-                            'title' => _('Rolle entziehen'),
-                    )) ?>
+                    <?= Icon::create('trash', 'clickable', ['title' => _('Rolle entziehen')])
+                            ->asInput([
+                                "data-confirm" => _('Soll dieser Person wirklich die Rolle entzogen werden?'),
+                                "formaction" => $controller->url_for('admin/role/remove_user/'.$roleid.'/'.$user['user_id'])]) ?>
                 </td>
             </tr>
         <? endforeach; ?>
@@ -172,11 +171,10 @@ use Studip\Button, Studip\LinkButton;
                 </td>
                 <td><?= implode(', ', $plugin['type']) ?></td>
                 <td class="actions">
-                    <?= Assets::input('icons/blue/trash.svg', array(
-                            'data-confirm' => _('Soll diesem Plugin wirklich die Rolle entzogen werden?'),
-                            'formaction' => $controller->url_for('admin/role/remove_plugin/' . $roleid . '/' . $plugin['id']),
-                            'title' => _('Rolle entziehen'),
-                    )) ?>
+                    <?= Icon::create('trash', 'clickable', ['title' => _('Rolle entziehen')])
+                            ->asInput([
+                                "data-confirm" => _('Soll diesem Plugin wirklich die Rolle entzogen werden?'),
+                                "formaction" => $controller->url_for('admin/role/remove_plugin/'.$roleid.'/'.$plugin['id'])]) ?>
                 </td>
             </tr>
         <? endforeach; ?>

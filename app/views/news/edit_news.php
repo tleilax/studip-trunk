@@ -94,14 +94,10 @@
                     <? endif ?>
                     <? if ($news['allow_comments']): ?>
                         <input type="hidden" name="news_allow_comments" value="1">
-                        <?= Assets::input('icons/16/blue/checkbox-checked.png', tooltip2(_('Kommentare sperren')) + array(
-                                'name' => 'comments_status_deny',
-                        )) ?>
+                        <?= Icon::create('checkbox-checked', 'clickable', ['title' => _('Kommentare sperren')])->asInput(array('name'=>'comments_status_deny',)) ?>
                         <?= _('Kommentare zulassen') ?>
                     <? else : ?>
-                        <?= Assets::input('icons/16/blue/checkbox-unchecked.png', tooltip2(_('Kommentare zulassen')) + array(
-                                'name' => 'comments_status_allow',
-                        )) ?>
+                        <?= Icon::create('checkbox-unchecked', 'clickable', ['title' => _('Kommentare zulassen')])->asInput(array('name'=>'comments_status_allow',)) ?>
                         <?= _('Kommentare zulassen') ?>
                     <? endif ?>
                     </td>
@@ -189,9 +185,7 @@
                             </option>
                         <? endforeach ?>
                         </select>
-                        <?= Assets::input('icons/16/blue/accept.png', tooltip2(_('Vorauswahl anwenden')) + array(
-                                'name' => 'area_search_preset',
-                        )) ?>
+                        <?= Icon::create('accept', 'clickable', ['title' => _('Vorauswahl anwenden')])->asInput(array('name'=>'area_search_preset',)) ?>
                     </td>
                 </tr>
                 <tr>
@@ -199,9 +193,7 @@
                         <label>
                         <input name="area_search_term" class="news_search_term" type="text" placeholder="<?=_('Suchen')?>"
                                aria-label="<?= _('Suchbegriff') ?>">
-                        <?= Assets::input('icons/16/blue/search.png', tooltip2(_('Suche starten')) + array(
-                                'name' => 'area_search',
-                        )) ?>
+                        <?= Icon::create('search', 'clickable', ['title' => _('Suche starten')])->asInput(array('name'=>'area_search',)) ?>
                         </label>
                     </td>
                 </tr>
@@ -233,13 +225,9 @@
                             <br>
                             <br>
                             <br>
-                            <?= Assets::input('icons/16/blue/arr_2right.png', tooltip2(_('In den Suchergebnissen markierte Bereiche der Ankündigung hinzufügen')) + array(
-                                    'name' => 'news_add_areas',
-                            )) ?>
+                            <?= Icon::create('arr_2right', 'clickable', ['title' => _('In den Suchergebnissen markierte Bereiche der Ankündigung hinzufügen')])->asInput(array('name'=>'news_add_areas',)) ?>
                             <br><br>
-                            <?= Assets::input('icons/16/blue/arr_2left.png', tooltip2(_('Bei den bereits ausgewählten Bereichen die markierten Bereiche entfernen')) + array(
-                                    'name' => 'news_remove_areas',
-                            )) ?>
+                            <?= Icon::create('arr_2left', 'clickable', ['title' => _('Bei den bereits ausgewählten Bereichen die markierten Bereiche entfernen')])->asInput(array('name'=>'news_remove_areas',)) ?>
                         </div>
                         <div class="news_area_selected">
                             <? foreach ($area_structure as $area_key => $area_data) :

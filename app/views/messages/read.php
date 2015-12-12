@@ -49,12 +49,12 @@
                         <a href="<?= URLHelper::getLink("?", array('tag' => $tag)) ?>" class="message-tag" title="<?= _("Alle Nachrichten zu diesem Schlagwort") ?>">
                             <?= htmlReady($tag) ?>
                         </a>
-                        <?= Assets::input('icons/16/blue/trash.png', array('class' => 'text-bottom', 'name' => 'remove_tag', 'value' => htmlReady($tag), 'title' => _("Schlagwort entfernen"))) ?>
+                        <?= Icon::create('trash', 'clickable', ['title' => _("Schlagwort entfernen")])->asInput(["class" => 'text-bottom', "name" => 'remove_tag', "value" => htmlReady($tag)]) ?>
                     </span>
                 <? endforeach ?>
                     <span>
                         <input type="text" name="add_tag" style="width: 50px; opacity: 0.8;">
-                        <?= Assets::input('icons/16/blue/add.png', array('class' => 'text-bottom', 'title' => _("Schlagwort hinzufügen"))) ?>
+                        <?= Icon::create('add', 'clickable', ['title' => _("Schlagwort hinzufügen")])->asInput(["class" => 'text-bottom']) ?>
                     </span>
                 </form>
             </td>

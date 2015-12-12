@@ -344,14 +344,8 @@ function printAnswerFields ( $answers ) {
     if( $pageMode != MODE_RESTRICTED ) {
         if( count($answers) > 1 ) {
         $html .= "<td align=center>";
-        $html .= Assets::input('icons/16/yellow/arr_2up.png', tooltip2(_('Antwort hochschieben')) + array(
-                     'name' => 'move_up[' . $i . ']',
-                     'align' => 'bottom',
-                 ));
-        $html .= Assets::input('icons/16/yellow/arr_2down.png', tooltip2(_('Antwort runterschieben')) + array(
-                     'name' => 'move_down[' . $i . ']',
-                     'align' => 'bottom',
-                 ));
+        $html .= Icon::create('arr_2up', 'sort', ['title' => _('Antwort hochschieben')])->asInput(array('name'=>'move_up['.$i.']','align'=>'bottom',));
+        $html .= Icon::create('arr_2down', 'sort', ['title' => _('Antwort runterschieben')])->asInput(array('name'=>'move_down['.$i.']','align'=>'bottom',));
         $html .= "</td>";
         }
         $html .= "<td align=center><input type=checkbox id=deleteCheckboxes name=\"deleteAnswers[$i]\"></td>";
@@ -640,10 +634,7 @@ function printRuntimeSettings ( $startMode = "manual",
 
     $startDate = ($startMode=="immediate") ? time() : $startDate;
 
-    $html .= Assets::input('icons/16/blue/refresh.png', tooltip2(_('Endzeitpunkt neu berechnen')) + array(
-                 'name' => 'updatetimespanbutton',
-                 'class' => 'middle',
-             ));
+    $html .= Icon::create('refresh', 'clickable', ['title' => _('Endzeitpunkt neu berechnen')])->asInput(array('name'=>'updatetimespanbutton','class'=>'middle',));
     $html .= sprintf( _(" (<b>%s</b> um <b>%s</b> Uhr)"),
               strftime( "%d.%m.%Y", $startDate + $timeSpan ),
               strftime( "%H:%M", $startDate + $timeSpan ) );

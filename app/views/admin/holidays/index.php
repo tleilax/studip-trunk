@@ -54,9 +54,7 @@
                 <a data-dialog="size=auto" href="<?= $controller->url_for('admin/holidays/edit/' . $holiday->id) ?>">
                     <?= Icon::create('edit', 'clickable', ['title' => _('Ferienangaben bearbeiten')])->asImg() ?>
                 </a>
-                <?= Assets::input('icons/16/blue/trash.png', tooltip2(_('Ferien löschen')) + array(
-                        'formaction' => $controller->url_for('admin/holidays/delete/' . $holiday->id),
-                )) ?>
+                <?= Icon::create('trash', 'clickable', ['title' => _('Ferien löschen')])->asInput(array('formaction'=>$controller->url_for('admin/holidays/delete/'.$holiday->id),)) ?>
             </td>
         </tr>
     <? endforeach; ?>

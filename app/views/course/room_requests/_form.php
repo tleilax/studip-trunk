@@ -39,7 +39,7 @@ if ($request_resource_id = $request->getResourceId()) :
         <b><?= htmlReady($resObject->getName()) ?></b>,
         <?= _("verantwortlich:") ?>
         <a href="<?= $resObject->getOwnerLink() ?>"><?= htmlReady($resObject->getOwnerName()) ?></a>
-        <?= Assets::input("icons/16/blue/trash.png", array('type' => "image", 'style' => "vertical-align:bottom", 'name' => "reset_resource_id", 'title' => _('den ausgewählten Raum löschen'))) ?>
+        <?= Icon::create('trash', 'clickable', ['title' => _('den ausgewählten Raum löschen')])->asInput(["type" => "image", "style" => "vertical-align:bottom", "name" => "reset_resource_id"]) ?>
         <?= Icon::create('info-circle', 'inactive', ['title' => _('Der ausgewählte Raum bietet folgende der wünschbaren Eigenschaften:')." \n".$resObject->getPlainProperties(TRUE)])->asImg() ?>
          <input type="hidden" name="selected_room" value="<?= htmlready($request_resource_id)?>">
     </td>
@@ -64,8 +64,8 @@ if ($request_resource_id = $request->getResourceId()) :
                                 );
                             }
                             print "</select>";
-                            print "&nbsp;".Assets::input("icons/16/blue/accept.png", array('type' => "image", 'style' => "vertical-align:bottom", 'name' => "send_room_type", 'value' => _("Raumtyp auswählen"), 'title' => _('Raumtyp auswählen')));
-                            print "&nbsp;&nbsp;".Assets::input("icons/16/blue/trash.png", array('type' => "image", 'style' => "vertical-align:bottom", 'name' => "reset_room_type", 'title' => _('alle Angaben zurücksetzen')))."<br><br>";
+                            print "&nbsp;".Icon::create('accept', 'clickable', ['title' => _('Raumtyp auswählen')])->asInput(["type" => "image", "style" => "vertical-align:bottom", "name" => "send_room_type", "value" => _("Raumtyp auswählen")]);
+                            print "&nbsp;&nbsp;".Icon::create('trash', 'clickable', ['title' => _('alle Angaben zurücksetzen')])->asInput(["type" => "image", "style" => "vertical-align:bottom", "name" => "reset_room_type"])."<br><br>";
                         }
 
                         print _("Folgende Eigenschaften sind wünschbar:")."<br><br>";
@@ -121,7 +121,7 @@ if ($request_resource_id = $request->getResourceId()) :
                             printf ("<option value=\"%s\">%s </option>", $rc["category_id"], htmlReady($rc["name"]));
                         }
                         print "</select>";
-                        print "&nbsp;".Assets::input("icons/16/blue/accept.png", array('type' => "image", 'style' => "vertical-align:bottom", 'name' => "send_room_type", 'value' => _("Raumtyp auswählen"), 'title' => _('Raumtyp auswählen')));
+                        print "&nbsp;".Icon::create('accept', 'clickable', ['title' => _('Raumtyp auswählen')])->asInput(["type" => "image", "style" => "vertical-align:bottom", "name" => "send_room_type", "value" => _("Raumtyp auswählen")]);
                     }
                     ?>
 
@@ -162,7 +162,7 @@ if ($request_resource_id = $request->getResourceId()) :
                         <br>
                         <?=_("Geben Sie zur Suche den Raumnamen ganz oder teilweise ein:"); ?>
                         <input type="text" size="30" maxlength="255" name="search_exp_room">
-                        <?= Assets::input("icons/16/blue/search.png", array('type' => "image", 'class' => "middle", 'name' => "search_room", 'title' => _('Suche starten'))) ?><br>
+                        <?= Icon::create('search', 'clickable', ['title' => _('Suche starten')])->asInput(["type" => "image", "class" => "middle", "name" => "search_room"]) ?><br>
                         <?
                     }
                     ?>
@@ -174,7 +174,7 @@ if ($request_resource_id = $request->getResourceId()) :
             <tr>
                 <td align="right">
                     <?=("passende Räume suchen")?>
-                    <?= Assets::input("icons/16/yellow/arr_2right.png", array('type' => "image", 'class' => "middle", 'name' => "search_properties", 'title' => _('passende Räume suchen'))) ?>
+                    <?= Icon::create('arr_2right', 'sort', ['title' => _('passende Räume suchen')])->asInput(["type" => "image", "class" => "middle", "name" => "search_properties"]) ?>
                 </td>
                 <td>
                     &nbsp;

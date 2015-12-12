@@ -26,18 +26,11 @@
     <br>
         <? else : // no users there ?>
     <?= _("kein Treffer") ?>
-    <?= Assets::input('icons/16/blue/refresh.png', tooltip2(_('neue Suche')) + array(
-            'valign' => 'bottom',
-            'name' => 'search',
-            'value' => _('Personen suchen'),
-    )) ?>
+    <?= Icon::create('refresh', 'clickable', ['title' => _('neue Suche')])->asInput(array('valign'=>'bottom','name'=>'search','value'=>_('Personen suchen'),)) ?>
         <? endif; // users there? ?>
     <? else : ?>
         <input type="text" name="search_exp" value="" style="width: 90%">
-        <?= Assets::input('icons/16/blue/search.png', tooltip2(_('Person suchen')) + array(
-                'name' => 'search',
-                'value' => _('Personen suchen'),
-        )) ?>
+        <?= Icon::create('search', 'clickable', ['title' => _('Person suchen')])->asInput(array('name'=>'search','value'=>_('Personen suchen'),)) ?>
         <br><br>
     <? endif;   ?>
     <input type="hidden" name="role_id" value="<?= Request::option('role_id') ?>">

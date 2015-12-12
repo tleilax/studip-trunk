@@ -110,7 +110,7 @@
                     ?>
                     <input type="hidden" name="search_sem_sem" value="<?= $search_semester_nr ?>">
                     <input type="hidden" name="search_sem_qs_choose" value="title_lecturer_number">
-                    <?= Assets::input("icons/16/white/search.png", array('type' => "image", 'class' => "quicksearchbutton", 'name' => "search_sem_do_search", 'value' => "OK", 'title' => sprintf(_('Nach Veranstaltungen suchen (%s)'), htmlready($search_semester_name)))) ?>
+                    <?= Icon::create('search', 'info_alt', ['title' => sprintf(_('Nach Veranstaltungen suchen (%s)'),htmlready($search_semester_name))])->asInput(["type" => "image", "class" => "quicksearchbutton", "name" => "search_sem_do_search", "value" => "OK"]) ?>
                 </form>
             </li>
         <? endif ?>

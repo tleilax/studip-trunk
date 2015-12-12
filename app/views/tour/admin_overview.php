@@ -59,9 +59,7 @@
                     <td>
                     <a href="<?=URLHelper::getURL('dispatch.php/tour/admin_details/'.$tour_id)?>" <?=tooltip(_('Tour bearbeiten'))?>>
                     <?= Icon::create('edit', 'clickable')->asImg() ?></a>
-                    <?= Assets::input('icons/16/blue/trash.png', tooltip2(_('Tour löschen')) + array(
-                            'name' => 'tour_remove_' . $tour_id,
-                    )) ?>
+                    <?= Icon::create('trash', 'clickable', ['title' => _('Tour löschen')])->asInput(array('name'=>'tour_remove_'.$tour_id,)) ?>
                     </td>
                     </tr>
                 <? endforeach ?>

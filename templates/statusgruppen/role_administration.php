@@ -79,9 +79,7 @@
                         </td>
 
                         <td class="<?= $cssSw->getClass() ?>" width="1%" nowrap>
-                            <?= Assets::input('icons/16/yellow/arr_eol-right.png', array(
-                                    'name' => 'do_person_sort[' . $person['username'] . ']'
-                            )) ?>
+                            <?= Icon::create('arr_eol-right', 'sort')->asInput(["name" => 'do_person_sort['.$person['username'].']']) ?>
                         </td>
 
                         <td class="<?= $cssSw->getClass() ?>" width="1%" nowrap style="padding-left: 6px;">

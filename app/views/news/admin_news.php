@@ -114,13 +114,11 @@
                                         <?= Icon::create('news+export', 'clickable')->asImg() ?>
                                     </a>
                                     <? if ($news['object']->havePermission('unassign', $news['range_id'])) : ?>
-                                        <?= Assets::input('icons/16/blue/remove.png',
-                                            tooltip2(_('Ankündigung aus diesem Bereich entfernen')) +
-                                            array('name' => 'news_remove_' . $news['object']->news_id . '_' . $news['range_id'])) ?>
+                                        <?= Icon::create('remove', 'clickable', ['title' => _('Ankündigung aus diesem Bereich entfernen')])
+                                                ->asInput(array('name' => 'news_remove_'.$news['object']->news_id.'_'.$news['range_id'])) ?>
                                     <? else : ?>
-                                        <?= Assets::input('icons/16/blue/trash.png',
-                                            tooltip2(_('Ankündigung löschen')) +
-                                            array('name' => 'news_remove_' . $news['object']->news_id . '_' . $news['range_id'])) ?>
+                                        <?= Icon::create('trash', 'clickable', ['title' => _('Ankündigung löschen')])
+                                                ->asInput(array('name' => 'news_remove_'.$news['object']->news_id.'_'.$news['range_id'])) ?>
                                     <? endif ?>
                                 </td>
                             </tr>

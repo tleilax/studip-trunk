@@ -629,9 +629,7 @@ class ShowToolsRequests
                                     <input type="text" name="search_rooms_limit_high" maxlength="2" size="1" style="font-size:8pt" value="<?=$_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["search_limit_high"]?>">
                                     <a href="<?=URLHelper::getLink('?inc_limit_high=1') ?>">+</a>
 
-                                    <?= Assets::input('icons/16/yellow/arr_2up.png', tooltip2('ausgewählten Bereich anzeigen') + array(
-                                            'name' => 'matching_rooms_limit_submit',
-                                    )) ?>
+                                    <?= Icon::create('arr_2up', 'sort', ['title' => 'ausgewählten Bereich anzeigen'])->asInput(array('name'=>'matching_rooms_limit_submit',)) ?>
                                 </font>
                             </td>
                         </tr>
