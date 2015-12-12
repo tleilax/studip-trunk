@@ -232,12 +232,11 @@
                 <? if (!empty($values['navigation'])) : ?>
                     <? foreach (MyRealmModel::array_rtrim($values['navigation']) as $key => $nav)  : ?>
                         <? if (isset($nav) && $nav->isVisible(true)) : ?>
-                            <? $image = $nav->getImage(); ?>
                             <a href="<?=
                             UrlHelper::getLink('seminar_main.php',
                                 array('auswahl'     => $semid,
                                       'redirect_to' => strtr($nav->getURL(), '?', '&'))) ?>" <?= $nav->hasBadgeNumber() ? 'class="badge" data-badge-number="' . intval($nav->getBadgeNumber()) . '"' : '' ?>>
-                                <?= Assets::img($image['src'], array_map("htmlready", $image)) ?>
+                                <?= $nav->getImage()->asImg(20, $nav->getLinkAttributes()) ?>
                             </a>
                         <? elseif (is_string($key)) : ?>
                             <?=

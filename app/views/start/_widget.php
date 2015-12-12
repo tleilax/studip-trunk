@@ -3,14 +3,14 @@
         <? if (isset($icons)): ?>
             <? foreach ($icons as $nav): ?>
                 <? if ($nav->isVisible(true)): ?>
-                    <? $attr = $nav->getImage() ?>
+                    <? $attr = $nav->getLinkAttributes() ?>
                     <a href="<?= URLHelper::getLink($nav->getURL()) ?>"
                         <? foreach ($attr as $key => $value): ?>
                             <? if ($key !== 'src'): ?>
                                 <?= $key ?>="<?= htmlReady($value) ?>"
                             <? endif ?>
                         <? endforeach ?>>
-                        <?= Assets::img($attr['src']) ?>
+                        <?= $nav->getImage() ?>
                     </a>
                 <? endif ?>
             <?endforeach ?>

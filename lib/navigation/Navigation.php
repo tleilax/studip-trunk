@@ -200,13 +200,8 @@ class Navigation implements IteratorAggregate
      */
     public function getImageTag()
     {
-        $image = $this->getImage();
-        if (is_array($image)) {
-            $attributes = array();
-            foreach ($image as $key => $value) {
-                $attributes[] = sprintf('%s="%s"', $key, htmlReady($value));
-            }
-            return '<img ' . implode(' ', $attributes) . '>';
+        if ($image = $this->getImage()) {
+            return $image->asImg($this->getLinkAttributes());
         } else {
             return '';
         }
@@ -325,7 +320,7 @@ class Navigation implements IteratorAggregate
      */
     public function isVisible($needs_image = false)
     {
-        if ($needs_image && !is_array($this->getImage())) {
+        if ($needs_image && !$this->getImage()) {
             return false;
         }
 
@@ -367,11 +362,14 @@ class Navigation implements IteratorAggregate
      */
     public function setImage($image, $options = array())
     {
-        if (isset($image)) {
+        $this->image = $image;
+        $this->setLinkAttributes($options);
+
+        // DEPRECATED
+        // TODO remove this case in v3.6
+        if (is_string($image)) {
             $options['src'] = Assets::image_path($image);
-            $this->image = $options;
-        } else {
-            $this->image = NULL;
+            $this->image = Icon::create2($options['src']);
         }
     }
 
@@ -386,12 +384,27 @@ class Navigation implements IteratorAggregate
      */
     public function setActiveImage($image, $options = array())
     {
-        if (isset($image)) {
+        $this->active_image = $image;
+        $this->setLinkAttributes($options);
+
+        // DEPRECATED
+        // TODO remove this case in v3.6
+        if (is_string($image)) {
             $options['src'] = Assets::image_path($image);
-            $this->active_image = $options;
-        } else {
-            $this->active_image = NULL;
+            $this->active_image = Icon::create2($options['src']);
         }
+    }
+
+    protected $link_attributes = [];
+
+    function setLinkAttributes($attributes)
+    {
+        $this->link_attributes = $attributes;
+    }
+
+    function getLinkAttributes()
+    {
+        return $this->link_attributes;
     }
 
     /**

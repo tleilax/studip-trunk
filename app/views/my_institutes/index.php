@@ -60,12 +60,11 @@
                     <? if (!empty($values['navigation'])) : ?>
                         <? foreach (MyRealmModel::array_rtrim($values['navigation']) as $key => $nav)  : ?>
                             <? if (isset($nav) && $nav->isVisible(true)) : ?>
-                                <? $image = $nav->getImage(); ?>
                                 <a href="<?=
                                 UrlHelper::getLink('dispatch.php/institute/overview',
                                     array('auswahl'     => $instid,
                                           'redirect_to' => strtr($nav->getURL(), '?', '&'))) ?>" <?= $nav->hasBadgeNumber() ? 'class="badge" data-badge-number="' . intval($nav->getBadgeNumber()) . '"' : '' ?>>
-                                    <?= Assets::img($image['src'], array_map("htmlready", $image)) ?>
+                                    <?= $nav->getImage()->asImg(20, $nav->getLinkAttributes()) ?>
                                 </a>
                             <? elseif (is_string($key)) : ?>
                                 <?= Assets::img('blank.gif', array('widtd' => 20, 'height' => 20)); ?>

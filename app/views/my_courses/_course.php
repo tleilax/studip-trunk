@@ -51,13 +51,11 @@
             <? if (!empty($course['navigation'])) : ?>
                 <? foreach (MyRealmModel::array_rtrim($course['navigation']) as $key => $nav)  : ?>
                     <? if (isset($nav) && $nav->isVisible(true)) : ?>
-                        <? $image = $nav->getImage(); ?>
-                        <? $image['width'] = "20px" ?>
                         <a href="<?=
                         UrlHelper::getLink('seminar_main.php',
                             array('auswahl'     => $course['seminar_id'],
                                   'redirect_to' => strtr($nav->getURL(), '?', '&'))) ?>" <?= $nav->hasBadgeNumber() ? 'class="badge" data-badge-number="' . intval($nav->getBadgeNumber()) . '"' : '' ?>>
-                            <?= Assets::img($image['src'], array_map("htmlready", $image)) ?>
+                            <?= $nav->getImage()->asImg(20, $nav->getLinkAttributes()) ?>
                         </a>
                     <? elseif (is_string($key)) : ?>
                         <?=
@@ -80,10 +78,7 @@
 
                 <? if ($adminnavigation) : ?>
                     <a href="<?= URLHelper::getLink($adminnavigation->getURL(), array('cid' => $course['seminar_id'])) ?>">
-                        <?
-                        $image = $adminnavigation->getImage();
-                        echo Assets::img($image['src'], array_map("htmlready", $image));
-                        ?>
+                        <?= $adminnavigation->getImage()->asImg(20, $adminnavigation->getLinkAttributes()) ?>
                     </a>
                 <? endif ?>
 
