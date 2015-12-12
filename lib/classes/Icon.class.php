@@ -200,12 +200,15 @@ class Icon
     // TODO
     private function prepareHTMLAttributes($size, $attributes)
     {
-        $size = $this->get_size($size);
-        return array_merge($this->attributes, $attributes, [
+        $dimensions = [];
+        if ($size !== false) {
+            $size = $this->get_size($size);
+            $dimensions = ['width'  => $size, 'height' => $size];
+        }
+
+        return array_merge($this->attributes, $attributes, $dimensions, [
             'src'    => $this->isStatic() ? $this->icon : $this->get_asset_svg(),
-            'alt'    => $this->attributes['alt'] ?: $this->attributes['title'] ?: basename($this->icon),
-            'width'  => $size,
-            'height' => $size
+            'alt'    => $this->attributes['alt'] ?: $this->attributes['title'] ?: basename($this->icon)
         ]);
     }
 
