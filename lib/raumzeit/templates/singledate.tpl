@@ -53,25 +53,22 @@
     <td width="20%" nowrap class="<?=$tpl['class']?>" align="right" style="padding: 0;">
         <? if (!$_LOCKED) : ?>
             <a href="<?= URLHelper::getLink('?cycle_id=' . $tpl['cycle_id'] . '&singleDateID='. $tpl['sd_id'] .'#'. $tpl['sd_id']) ?>" style="margin-right: 10px">
-                <?= Assets::img('icons/16/'. ($tpl['deleted'] ? 'grey' : 'blue') . '/edit.png', array(
-                    'class' => 'text-top',
-                    'title' => _("Termin bearbeiten"),
-                )) ?>
+                <?= Icon::create('edit', $tpl['deleted'] ? 'inactive' : 'clickable', ['title' => _("Termin bearbeiten")])->asImg(['class' => 'text-top']) ?>
             </a>
 
             <? if ($tpl['deleted']) : ?>
                 <a href="<?= URLHelper::getLink('?cmd=undelete_singledate&sd_id='. $tpl['sd_id'] .'&cycle_id='. $tpl['cycle_id'] .'#'. $tpl['sd_id'])?>">
-                    <?= Assets::img('icons/16/grey/decline/trash.png', array('class' => 'text-top', 'title' => _("Termin wiederherstellen")))?>
+                    <?= Icon::create('trash+decline', 'inactive', ['title' => _("Termin wiederherstellen")])->asImg(['class' => 'text-top']) ?>
                 </a>
             <? else : ?>
                 <a href="<?= URLHelper::getLink('?cmd=delete_singledate&sd_id='. $tpl['sd_id'] .'&cycle_id='. $tpl['cycle_id'] .'#'. $tpl['sd_id'])?>">
-                    <?= Icon::create('trash', 'clickable')->asImg(['class' => 'text-top', 'title' => _("Termin löschen")])?>
+                    <?= Icon::create('trash', 'clickable', ['title' => _("Termin löschen")])->asImg(['class' => 'text-top'])?>
                 </a>
             <? endif ?>
         <? elseif(!$cancelled_dates_locked) : ?>
             <? if (!$tpl['deleted']) : ?>
                 <a href="javascript:STUDIP.CancelDatesDialog.initialize('<?=UrlHelper::getScriptURL('dispatch.php/course/cancel_dates', array('termin_id' =>  $tpl['sd_id']))?>')">
-                    <?= Assets::img('icons/16/blue/visibility/calendar-visible.png', array('class' => 'text-top', 'title' => _("Termin ausfallen lassen")))?>
+                    <?= Icon::create('calendar-visible+visibility', 'clickable', ['title' => _("Termin ausfallen lassen")])->asImg(['class' => 'text-top'])?>
                 </a>
             <? endif ?>
         <? endif ?>

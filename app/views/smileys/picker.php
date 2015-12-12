@@ -4,13 +4,13 @@
         <? if ($favorites_activated && count($favorites->get()) > 0): ?>
             <td>
                 <a href="<?= $controller->url_for('smileys/picker/favorites') ?>">
-                    <?= Assets::img('icons/16/' . ($view === 'favorites' ? 'red' : 'blue') . '/star', tooltip2(_('Favoriten'))) ?>
+                    <?= Icon::create('star', $view === 'favorites' ? 'attention' : 'clickable', ['title' => _('Favoriten')]) ?>
                 </a>
             </td>
         <? endif; ?>
             <td style="text-align: right;">
                 <a href="<?= $controller->url_for('smileys/picker/all') ?>">
-                    <?= Assets::img('icons/16/' . ($view === 'all' ? 'red' : 'blue') . '/smiley', tooltip2(_('alle'))) ?>
+                    <?= Icon::create('smiley', $view === 'all' ? 'attention' : 'clickable', ['title' => _('alle')]) ?>
                 </a>
             </td>
         <? for ($i = 0; $i < 26; $i++):

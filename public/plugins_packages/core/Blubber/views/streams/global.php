@@ -29,10 +29,10 @@
     <div class="row writer">
         <div class="context_selector select" title="<?= _("Kontext der Nachricht auswählen") ?>">
             <? $width = "50" ?>
-            <?= Assets::img("icons/".$width."/blue/blubber", array('class' => "select click")) ?>
+            <?= Icon::create("blubber", "clickable")->asImg($width, ['class' => "select click"]) ?>
             <?= Assets::img($plugin->getPluginURL()."/assets/images/public_blue.svg", array('class' => "public click", 'height' => $width."px")) ?>
-            <?= Assets::img("icons/".$width."/blue/group3", array('class' => "private click")) ?>
-            <?= Assets::img("icons/".$width."/blue/seminar", array('class' => "seminar click")) ?>
+            <?= Icon::create("group3", "clickable")->asImg($width, ['class' => "private click"]) ?>
+            <?= Icon::create("seminar", "clickable")->asImg($width, ['class' => "seminar click"]) ?>
         </div>
         <textarea id="new_posting" placeholder="<?= _("Schreib was, frag was.") ?>" aria-label="<?= _("Schreib was, frag was.") ?>"><?= ($search ? htmlReady("#".$search)." " : "").(Request::get("mention") ? "@".htmlReady(Request::username("mention")).", " : "") ?></textarea>
         <label title="<?= _("Datei hochladen") ?>" class="uploader">

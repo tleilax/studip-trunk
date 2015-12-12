@@ -28,9 +28,7 @@ if ($userlists) {
                 sprintf(_('Soll die Nutzerliste %s wirklich gelöscht werden?'), htmlReady($list->getName())) ?>', '<?=
                 URLHelper::getURL('dispatch.php/admission/userlist/delete/'.
                 $list->getId(), array('really' => 1)) ?>')">
-            <?= Assets::img('icons/16/blue/trash.png',
-                array('alt' => _('Personenliste löschen'),
-                      'title' => _('Personenliste löschen'))); ?>
+            <?= Icon::create('trash', 'clickable', ['title' => _('Personenliste löschen')]) ?>
         </a>
     </div>
     <div id="userlist_details_<?= $list->getId() ?>" style="display: none; margin-left: 20px;">

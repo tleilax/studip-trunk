@@ -19,7 +19,7 @@
 <? } else { ?>
         <TD class="table_header" nowrap="nowrap" valign="middle">
             <A href="<?= URLHelper::getLink('themen.php?cmd=changeViewMode&newFilter=' . $key) ?>">
-                <?= Assets::img('icons/16/blue/arr_1right.png', array('align' => 'text-top')) ?>
+                <?= Icon::create('arr_1right', 'blue')->asImg(['align' => 'text-top']) ?>
                 <font color="#555555" size="-1"><?=$val?></font>
             </A>
         </TD>

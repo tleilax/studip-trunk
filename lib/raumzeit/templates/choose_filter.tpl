@@ -29,7 +29,7 @@ if ( (!$tpl['forceShowAll']) && (sizeof($tpl['semester']) <= 2)) {
     <? } else { ?>
             <TD class="table_header" nowrap="nowrap" valign="middle" width="117" height="20">
                 <a href="<?= URLHelper::getLink('?cmd=applyFilter&newFilter=' . $key) ?>">
-                    <?= Assets::img('icons/16/blue/arr_1right.png', array('align' => 'text-top')) ?>
+                    <?= Icon::create("arr_1right", "clickable")->asImg(['align' => 'text-top']) ?>
                     <font color="#555555" size="-1"><?=$val?></font>
                 </A>
             </TD>

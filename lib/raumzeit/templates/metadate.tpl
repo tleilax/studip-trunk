@@ -62,10 +62,10 @@ use Studip\Button,
                     <? if (!$_LOCKED) { ?>
                         <? if ($show_sorter) : ?>
                             <a href="<?=URLHelper::getLink('?cmd=moveCycle&direction=up&cycle_id='. $tpl['md_id']) ?>">
-                            <?= Assets::img('icons/16/yellow/arr_2up.png', array('align' => 'absmiddle'))?>
+                            <?= Icon::create('arr_2up.png', 'status-yellow')->asImg(['align' => 'absmiddle']) ?>
                             </a>
                             <a href="<?=URLHelper::getLink('?cmd=moveCycle&direction=down&cycle_id='. $tpl['md_id']) ?>">
-                            <?= Assets::img('icons/16/yellow/arr_2down.png', array('align' => 'absmiddle'))?>
+                            <?= Icon::create('arr_2down', 'status-yellow')->asImg(['align' => 'absmiddle']) ?>
                             </a>
                         <? endif;?>
 

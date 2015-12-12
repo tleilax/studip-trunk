@@ -38,10 +38,8 @@
         <table class="default nohover news_category_header">
             <thead><tr>
                 <th width="26">
-                    <?= Assets::input('icons/16/blue/' . ($news_isvisible['news_basic'] ? 'arr_1down' : 'arr_1right') . '.png',
-                                      tooltip2(_('Formular für Grunddaten der Ankündigung einblenden oder ausblenden')) + array(
-                                          'name' => 'toggle_news_basic',
-                    )) ?>
+                    <?= Icon::create($news_isvisible['news_basic'] ? 'arr_1down' : 'arr_1right', 'clickable', ['title' => _('Formular für Grunddaten der Ankündigung einblenden oder ausblenden')])
+                            ->asInput(['name' => 'toggle_news_basic']) ?>
                 </th>
                 <th><?=_("Grunddaten")?></th>
             </tr></thead>
@@ -113,10 +111,8 @@
         <thead>
             <tr>
                 <th width="26">
-                    <?= Assets::input('icons/16/blue/' . ($news_isvisible['news_comments'] ? 'arr_1down' : 'arr_1right') . '.png',
-                                      tooltip2(_('Formular für Kommentarverwaltung der Ankündigung einblenden oder ausblenden')) + array(
-                                          'name' => 'toggle_news_comments',
-                    ))?>
+                    <?= Icon::create($news_isvisible['news_comments'] ? 'arr_1down' : 'arr_1right', 'clickable', ['title' => _('Formular für Kommentarverwaltung der Ankündigung einblenden oder ausblenden')])
+                            ->asInput(['name' => 'toggle_news_comments']) ?>
                 </th>
                 <th>
                 <? if ($news['allow_comments']) : ?>
@@ -162,10 +158,8 @@
         <thead>
             <tr>
                 <th width="26">
-                    <?= Assets::input('icons/16/blue/' . ($news_isvisible['news_areas'] ? 'arr_1down' : 'arr_1right') . '.png',
-                                      tooltip2(_('Formular für Bereichszuordnungen der Ankündigung einblenden oder ausblenden')) + array(
-                                          'name' => 'toggle_news_areas',
-                    )) ?>
+                    <?= Icon::create($news_isvisible['news_areas'] ? 'arr_1down' : 'arr_1right', 'clickable', ['title' => _('Formular für Bereichszuordnungen der Ankündigung einblenden oder ausblenden')])
+                            ->asInput(['name' => 'toggle_news_areas']) ?>
                 </th>
                 <th colspan="2"><?=_('In weiteren Bereichen anzeigen')?></th>
             </tr>

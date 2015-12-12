@@ -620,12 +620,7 @@ function makeTableDataCellForm( $displayclass = "table_row_even",
     }
     else{
         $button .= "<a href=\"".URLHelper::getLink(VOTE_FILE_ADMIN, $linkparams)."\">";
-        $button .= Assets::img('icons/16/blue/visibility-' . $button_name . '.png',
-                               array(
-                                   'alt' => $button_name,
-                                   'title' => $button_tooltip,
-                                   'class' => 'middle'
-                               ));
+        $button .= Icon::create('visibility-' . $button_name, 'clickable', ['title' => $button_tooltip])->asImg(['class' => 'middle']);
     }
 
     $html.="     <td class=$displayclass width=\"93\" align=\"center\" style=\"vertical-align:middle;\">\n"

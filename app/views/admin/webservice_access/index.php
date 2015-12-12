@@ -44,7 +44,7 @@
         </td>
         <td>
         <?= Icon::create('accept', 'accept', ['title' => _('Änderungen speichern')])->asInput(["type" => "image", "class" => "middle", "name" => "ok"]) ?>
-        <?= Assets::input("iicons/16/red/decline", array('type' => "image", 'class' => "middle", 'name' => "cancel", 'title' => _('Abbrechen'))) ?>
+        <?= Icon::create('decline', 'attention', ['title' => _('Abbrechen')])->asInput(['type' => "image", 'class' => "middle", 'name' => "cancel"]) ?>
         </td>
     <? else : ?>
         <td>

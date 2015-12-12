@@ -89,7 +89,7 @@ use Studip\Button, Studip\LinkButton;
                 <? if (!$cancelled_dates_locked): ?>
                     <p>
                         <a href="javascript:STUDIP.CancelDatesDialog.initialize('<?= UrlHelper::getScriptURL('dispatch.php/course/cancel_dates', array('termin_id' =>  $tpl['sd_id'])) ?>');">
-                            <?= Assets::img('icons/16/blue/decline/date', array('class' => 'text-top')) ?>
+                            <?= Icon::create('date+decline', 'clickable')->asImg(['class' => 'text-top']) ?>
                             <?= _('Termin ausfallen lassen') ?>
                         </a>
                     </p>
