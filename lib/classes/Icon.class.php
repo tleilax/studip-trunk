@@ -302,6 +302,7 @@ trait DeprecatedIcon {
     public static function create2($source, $attributes = array())
     {
         // external icon
+        $source = str_replace(Assets::url('images/'), '', $source);
         if (strpos($source, 'http') === 0) {
             return new self($source, Icon::DEFAULT_SIZE, Icon::DEFAULT_ROLE, $attributes);
         }
