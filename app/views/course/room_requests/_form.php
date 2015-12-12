@@ -139,7 +139,7 @@ if ($request_resource_id = $request->getResourceId()) :
                             <? foreach ($search_result as $key => $val)  :?>
                                 <div>
                                 <label>
-                                <?=Assets::img('icons/16/' . $val['overlap_status'] . '/radiobutton-checked');?>
+                                <?= Icon::create('radiobutton-checked', $val['overlap_status'])->asImg() ?>
                                 <input type="radio" name="select_room" value="<?=$key?>">
                                 <?=htmlReady(my_substr($val['name'], 0, 50));?>
                                 </label>

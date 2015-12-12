@@ -27,16 +27,19 @@ class Icon
     protected $attributes = array();
 
     private static $roles_to_colors = [
-        'info'       => 'black',
-        'clickable'  => 'blue',
-        'link'       => 'blue',
-        'accept'     => 'green',
-        'inactive'   => 'grey',
-        'navigation' => 'lightblue',
-        'new'        => 'red',
-        'attention'  => 'red',
-        'info_alt'   => 'white',
-        'sort'       => 'yellow'
+        'info'          => 'black',
+        'clickable'     => 'blue',
+        'link'          => 'blue',
+        'accept'        => 'green',
+        'status-green'  => 'green',
+        'inactive'      => 'grey',
+        'navigation'    => 'lightblue',
+        'new'           => 'red',
+        'attention'     => 'red',
+        'status-red'    => 'red',
+        'info_alt'      => 'white',
+        'sort'          => 'yellow',
+        'status-yellow' => 'yellow'
     ];
 
     // return the color associated to a role
