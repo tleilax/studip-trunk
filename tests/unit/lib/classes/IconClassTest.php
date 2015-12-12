@@ -28,7 +28,7 @@ class IconClassTest extends PHPUnit_Framework_TestCase
     function testAssetsImgSVG()
     {
         $this->assertEquals(
-            '<img src="images/icons/blue/vote.svg" alt="vote" width="16" height="16">',
+            '<img width="16" height="16" src="images/icons/blue/vote.svg" alt="vote">',
             Assets::img('icons/blue/vote.svg')
         );
     }
@@ -36,7 +36,7 @@ class IconClassTest extends PHPUnit_Framework_TestCase
     function testAssetsImgSVGWithAddition()
     {
         $this->assertEquals(
-            '<img src="images/icons/blue/add/vote.svg" alt="vote" width="16" height="16">',
+            '<img width="16" height="16" src="images/icons/blue/add/vote.svg" alt="vote">',
             Assets::img('icons/blue/add/vote.svg')
         );
     }
@@ -44,7 +44,7 @@ class IconClassTest extends PHPUnit_Framework_TestCase
     function testAssetsImgWithDifferentSize()
     {
         $this->assertEquals(
-            '<img src="images/icons/blue/vote.svg" alt="vote" width="32" height="32">',
+            '<img width="32" height="32" src="images/icons/blue/vote.svg" alt="vote">',
             Assets::img('icons/blue/vote.svg', array('size' => 32))
         );
     }
@@ -52,7 +52,7 @@ class IconClassTest extends PHPUnit_Framework_TestCase
     function testAssetsImgPNG()
     {
         $this->assertEquals(
-            '<img src="images/icons/grey/info-circle.svg" alt="info-circle" width="16" height="16">',
+            '<img width="16" height="16" src="images/icons/grey/info-circle.svg" alt="info-circle">',
             Assets::img('icons/16/grey/info-circle.png')
         );
     }
@@ -60,7 +60,7 @@ class IconClassTest extends PHPUnit_Framework_TestCase
     function testAssetsImgPNGWithAddition()
     {
         $this->assertEquals(
-            '<img src="images/icons/grey/add/info-circle.svg" alt="info-circle" width="16" height="16">',
+            '<img width="16" height="16" src="images/icons/grey/add/info-circle.svg" alt="info-circle">',
             Assets::img('icons/16/grey/add/info-circle.png')
         );
     }
@@ -68,7 +68,7 @@ class IconClassTest extends PHPUnit_Framework_TestCase
     function testAssetsImgWithoutExtension()
     {
         $this->assertEquals(
-            '<img src="images/icons/black/staple.svg" alt="staple" width="20" height="20">',
+            '<img width="20" height="20" src="images/icons/black/staple.svg" alt="staple">',
             Assets::img('icons/20/black/staple')
         );
     }
@@ -76,7 +76,7 @@ class IconClassTest extends PHPUnit_Framework_TestCase
     function testAssetsImgWithTitleAttribute()
     {
         $this->assertEquals(
-            '<img title="Mit Anhang" src="images/icons/black/staple.svg" alt="Mit Anhang" width="20" height="20">',
+            '<img title="Mit Anhang" width="20" height="20" src="images/icons/black/staple.svg" alt="Mit Anhang">',
             Assets::img('icons/20/black/staple', array("title" => _("Mit Anhang")))
         );
     }
@@ -84,7 +84,7 @@ class IconClassTest extends PHPUnit_Framework_TestCase
     function testAssetsImgWithHspaceAttribute()
     {
         $this->assertEquals(
-            '<img hspace="3" src="images/icons/blue/arr_2left.svg" alt="arr_2left" width="16" height="16">',
+            '<img hspace="3" width="16" height="16" src="images/icons/blue/arr_2left.svg" alt="arr_2left">',
             Assets::img('icons/16/blue/arr_2left.png', array('hspace' => 3))
         );
     }
@@ -92,7 +92,7 @@ class IconClassTest extends PHPUnit_Framework_TestCase
     function testAssetsImgWithClassAttribute()
     {
         $this->assertEquals(
-            '<img class="text-bottom" src="images/icons/grey/staple.svg" alt="staple" width="20" height="20">',
+            '<img class="text-bottom" width="20" height="20" src="images/icons/grey/staple.svg" alt="staple">',
             Assets::img('icons/20/grey/staple', array('class' => 'text-bottom'))
         );
     }
@@ -100,7 +100,7 @@ class IconClassTest extends PHPUnit_Framework_TestCase
     function testAssetsImgWithClassAndTitleAttribute()
     {
         $this->assertEquals(
-            '<img title="Datei hochladen" class="text-bottom" src="images/icons/blue/upload.svg" alt="Datei hochladen" width="20" height="20">',
+            '<img title="Datei hochladen" class="text-bottom" width="20" height="20" src="images/icons/blue/upload.svg" alt="Datei hochladen">',
             Assets::img('icons/20/blue/upload', array('title' => _("Datei hochladen"), 'class' => "text-bottom"))
         );
     }
@@ -108,7 +108,7 @@ class IconClassTest extends PHPUnit_Framework_TestCase
     function testAssetsInput()
     {
         $this->assertEquals(
-            '<input type="image" title="Datei hochladen" class="text-bottom" src="images/icons/blue/upload.svg" alt="Datei hochladen" width="20" height="20">',
+            '<input type="image" title="Datei hochladen" class="text-bottom" width="20" height="20" src="images/icons/blue/upload.svg" alt="Datei hochladen">',
             Assets::input('icons/20/blue/upload', array('title' => _("Datei hochladen"), 'class' => "text-bottom"))
         );
     }
@@ -116,7 +116,7 @@ class IconClassTest extends PHPUnit_Framework_TestCase
     function testIconCreateAsImg()
     {
         $this->assertEquals(
-            '<img src="images/icons/blue/vote.svg" alt="vote" width="16" height="16">',
+            '<img width="16" height="16" src="images/icons/blue/vote.svg" alt="vote">',
             Icon::create('vote', 'link')->asImg()
         );
     }
@@ -124,7 +124,7 @@ class IconClassTest extends PHPUnit_Framework_TestCase
     function testIconCreateAsImgWithAddition()
     {
         $this->assertEquals(
-            '<img src="images/icons/blue/add/vote.svg" alt="vote" width="16" height="16">',
+            '<img width="16" height="16" src="images/icons/blue/add/vote.svg" alt="vote">',
             Icon::create('vote+add', 'link')->asImg()
         );
     }
@@ -132,7 +132,7 @@ class IconClassTest extends PHPUnit_Framework_TestCase
     function testIconCreateAsImgWithSize()
     {
         $this->assertEquals(
-            '<img src="images/icons/blue/add/vote.svg" alt="vote" width="20" height="20">',
+            '<img width="20" height="20" src="images/icons/blue/add/vote.svg" alt="vote">',
             Icon::create('vote+add', 'link')->asImg(20)
         );
     }
@@ -140,7 +140,7 @@ class IconClassTest extends PHPUnit_Framework_TestCase
     function testIconCreateAsImgWithTitle()
     {
         $this->assertEquals(
-            '<img title="Mit Anhang" src="images/icons/blue/vote.svg" alt="Mit Anhang" width="20" height="20">',
+            '<img title="Mit Anhang" width="20" height="20" src="images/icons/blue/vote.svg" alt="Mit Anhang">',
             Icon::create('vote', 'link', ['title' => _("Mit Anhang")])->asImg(20)
         );
     }
@@ -148,7 +148,7 @@ class IconClassTest extends PHPUnit_Framework_TestCase
     function testIconCreateAsImgWithHspace()
     {
         $this->assertEquals(
-            '<img hspace="3" src="images/icons/blue/arr_2left.svg" alt="arr_2left" width="16" height="16">',
+            '<img hspace="3" width="16" height="16" src="images/icons/blue/arr_2left.svg" alt="arr_2left">',
             Icon::create('arr_2left', 'link')->asImg(['hspace' => 3])
         );
     }
@@ -156,7 +156,7 @@ class IconClassTest extends PHPUnit_Framework_TestCase
     function testIconCreateAsImgWithClass()
     {
         $this->assertEquals(
-            '<img class="text-bottom" src="images/icons/black/staple.svg" alt="staple" width="20" height="20">',
+            '<img class="text-bottom" width="20" height="20" src="images/icons/black/staple.svg" alt="staple">',
             Icon::create('staple', 'info')->asImg(20, ['class' => 'text-bottom'])
         );
     }
@@ -164,7 +164,7 @@ class IconClassTest extends PHPUnit_Framework_TestCase
     function testIconCreateAsImgWithClassAndTitle()
     {
         $this->assertEquals(
-            '<img title="Datei hochladen" class="text-bottom" src="images/icons/red/upload.svg" alt="Datei hochladen" width="20" height="20">',
+            '<img title="Datei hochladen" class="text-bottom" width="20" height="20" src="images/icons/red/upload.svg" alt="Datei hochladen">',
             Icon::create('upload', 'new', ['title' => _("Datei hochladen")])
                 ->asImg(20, ['class' => 'text-bottom'])
         );
@@ -173,7 +173,7 @@ class IconClassTest extends PHPUnit_Framework_TestCase
     function testIconCreateAsInput()
     {
         $this->assertEquals(
-            '<input type="image" class="text-bottom" src="images/icons/blue/upload.svg" alt="upload" width="20" height="20">',
+            '<input type="image" class="text-bottom" width="20" height="20" src="images/icons/blue/upload.svg" alt="upload">',
             Icon::create('upload', 'link')->asInput(20, ['class' => 'text-bottom'])
         );
     }
