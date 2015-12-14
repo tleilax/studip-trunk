@@ -59,9 +59,17 @@
     </caption>
     <thead>
     <tr class="sortable">
-        <th width="2%">
+    <? if (Config::get()->ADMIN_COURSES_SHOW_COMPLETE): ?>
+        <th <? if ($sortby === 'completion') printf('class="sort%s"', strtolower($sortFlag)) ?>>
+            <a href="<?= URLHelper::getLink('', array('sortby' => 'completion', 'sortFlag' => strtolower($sortFlag))) ?>" class="course-completion">
+                <?= _('Bearbeitungsstatus') ?>
+            </a>
+        </th>
+    <? else: ?>
+        <th>
             &nbsp;
         </th>
+    <? endif; ?>
         <? if (in_array('number', $view_filter)) : ?>
             <th <?= ($sortby == 'VeranstaltungsNummer') ? sprintf('class="sort%s"', strtolower($sortFlag)) : '' ?>>
                 <a href="<?=
@@ -145,12 +153,19 @@
     </thead>
     <tbody>
     <? foreach ($courses as $semid => $values) { ?>
-        <tr>
+        <tr id="course-<?= $semid ?>">
             <td>
+            <? if (Config::get()->ADMIN_COURSES_SHOW_COMPLETE): ?>
+                <a href="<?= $controller->url_for('admin/courses/toggle_complete/' . $semid) ?>"
+                   class="course-completion <? if ($values['is_complete']) echo 'course-complete'; ?>">
+                       <?= _('Bearbeitungsstatus ändern') ?>
+                </a>
+            <? else: ?>
                 <?=
                 CourseAvatar::getAvatar($semid)->is_customized()
                     ? CourseAvatar::getAvatar($semid)->getImageTag(Avatar::SMALL, array('title' => tooltip2(trim($values["Name"]))))
                     : Assets::img('icons/20/blue/seminar.png', tooltip2(trim($values["Name"]))) ?>
+            <? endif; ?>
             </td>
             <? if (in_array('number', $view_filter)) : ?>
                 <td>

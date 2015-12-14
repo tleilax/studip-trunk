@@ -129,13 +129,13 @@ class Admin_CoursesController extends AuthenticatedController
         }, array_values($this->courses), array_keys($this->courses));
 
 
-        $this->all_lock_rules = array_merge(
+        $this->all_lock_rules = new SimpleCollection(array_merge(
             array(array(
                 'name'    => '--' . _("keine Sperrebene") . '--',
                 'lock_id' => 'none'
             )),
             LockRule::findAllByType('sem')
-        );
+        ));
         $this->aux_lock_rules = array_merge(
             array(array(
                 'name'    => '--' . _("keine Zusatzangaben") . '--',
@@ -508,6 +508,18 @@ class Admin_CoursesController extends AuthenticatedController
         $this->redirect('admin/courses/index');
     }
 
+    public function toggle_complete_action($course_id)
+    {
+        $course = Course::find($course_id);
+        $course->is_complete = !$course->is_complete;
+        $course->store();
+
+        if (Request::isXhr()) {
+            $this->render_json((bool)$course->is_complete);
+        } else {
+            $this->redirect('admin/courses/index#course-' . $course_id);
+        }
+    }
 
     /**
      * Return a specifically action oder all available actions
@@ -649,6 +661,8 @@ class Admin_CoursesController extends AuthenticatedController
         $filter->filterByInstitute($inst_ids);
         if ($params['sortby'] === "status") {
             $filter->orderBy(sprintf('sem_classes.name %s, sem_types.name %s, VeranstaltungsNummer', $params['sortFlag'], $params['sortFlag'], $params['sortFlag']), $params['sortFlag']);
+        } elseif ($params['sortby'] === 'completion') {
+            $filter->orderBy('is_complete', $params['sortFlag']);
         } elseif($params['sortby']) {
             $filter->orderBy($params['sortby'], $params['sortFlag']);
         }
