@@ -23,12 +23,15 @@ class ForumProvider implements ActivityProvider
             return array();
         }
 
-        $course = \Course::find($range_id);
-        $sem_class = $course->getSemClass();
-        $module = $sem_class->getModule('forum');
-        $notifications = $module->getNotificationObjects($range_id, $filter->getMaxAge(), $observer_id);
+        if ($course = \Course::find($range_id)) {
+            $sem_class = $course->getSemClass();
+            $module = $sem_class->getModule('forum');
+            $notifications = $module->getNotificationObjects($range_id, $filter->getMaxAge(), $observer_id);
 
-        return $this->wrapParticipantNotifications($notifications);
+            return $this->wrapParticipantNotifications($notifications);
+        }
+
+        return array();
     }
 
     private function contextToRangeId(Context $context){
