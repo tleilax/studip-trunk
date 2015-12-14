@@ -51,6 +51,10 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
             return ($a->getMkdate() > $b->getMkdate()) ? -1 : 1;
         });
 
+        if ($filter->getLimit()) {
+            $this->activities = array_slice($this->activities, 0, $filter->getLimit());
+        }
+
         $new_activities = array();
 
         foreach ($this->activities as $key => $activity) {

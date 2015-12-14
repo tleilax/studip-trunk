@@ -16,7 +16,10 @@ namespace Studip\Activity;
 
 class Filter
 {
-    var $age, $type;
+    private
+        $age,
+        $type,
+        $limit;
 
     function setMaxAge($age) {
         $this->age = $age;
@@ -32,5 +35,15 @@ class Filter
 
     function getType() {
         return $this->type;
+    }
+
+    function getLimit()
+    {
+        return $this->limit;
+    }
+
+    function setLimit($limit)
+    {
+        $this->limit = $limit;
     }
 }

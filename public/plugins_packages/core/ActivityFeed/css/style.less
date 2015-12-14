@@ -1,0 +1,109 @@
+.stream-container {
+    padding: 5px;
+    margin: 5px;
+    max-height: 400px;
+    overflow-y: scroll;
+
+    .activity {
+        border: 1px solid #d0d7e3;
+        width: 95%;
+        margin: 10px 2px;
+        border-radius: 4px;
+        box-shadow: 1px 1px 8px #d8d8d8;
+    }
+
+    .activity header {
+        background-color:#e7ebf1;
+        color: #28497c;
+        padding: 2px;
+        display: flex;
+        border-top-right-radius: 3px;
+        border-top-left-radius: 3px;
+    }
+
+    .activity header h1 {
+        padding: 5px;
+        margin: 0;
+        color: #28497c;
+        border-bottom: none;
+        font-size: medium;
+        flex-grow: 1;
+
+    }
+
+    .activity header nav {
+        padding: 5px;
+        margin: 0;
+        color: #28497c;
+        text-align: right;
+    }
+
+    .left {
+        float: left;
+    }
+
+    .right {
+        float: right;
+    }
+
+    .activity-content{
+        padding: 5px;
+        background-color: white;
+
+        border-bottom-right-radius: 3px;
+        border-bottom-left-radius: 3px;
+    }
+
+    .activity-description {
+        margin-left: 90px;
+
+    }
+
+    .activity-avatar-container{
+        float:left;
+        vertical-align:middle;
+    }
+
+    .activity-avatar-container img{
+        vertical-align:middle;
+        width:80px;
+        height:80px;
+
+    }
+    .clear {
+        clear: both;
+    }
+
+    .activity-date, .activity-details, .activity-object-link {
+        display: block;
+    }
+
+    .activity-details {
+        max-height: 200px;
+        overflow: hidden;
+    }
+
+    .activity-object-link {
+        border-top: 1px solid #CCC;
+    }
+
+    .activity-object-link ul {
+        padding: 0px;
+    }
+
+    .activity-object-link ul li {
+        list-style-type: none;
+        display: inline;
+        padding-right: 15px;
+    }
+
+    /*
+    .activity-details .read-more {
+        display: block;
+        padding-top: 6em;
+        background: -moz-linear-gradient(to bottom, transparent, white);
+        background: -webkit-gradient(linear, 0 0, 0 100%, from(transparent), to(white));
+        margin-top: -6em;
+    }
+     */
+}

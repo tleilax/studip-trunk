@@ -21,7 +21,7 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
     public function getPortalTemplate()
     {
         //PageLayout::addScript($this->getPluginUrl() . '/js/ActivityFeed.js');
-        PageLayout::addStylesheet($this->getPluginURL(). '/css/style.css');
+        $this->addStylesheet('css/style.less');
 
 
         $observer_id = $GLOBALS['user']->id;
@@ -57,7 +57,8 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
         // add filters
         $filter = new Studip\Activity\Filter();
 
-        $filter->setMaxAge(time() - 256 * 86400); // set range of 2 weeks from today
+        $filter->setMaxAge(time() - 2 * 256 * 86400); // set range of 2 weeks from today
+        $filter->setLimit(20);
         #$filter->setType('forum');
 
 
