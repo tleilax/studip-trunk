@@ -46,7 +46,7 @@ class WikiProvider implements ActivityProvider
     private function  wrapParticipantNotifications($notifications){
         return array_map(function ($n) {
             return new Activity(
-                'forum_provider',
+                'wiki_provider',
                 array(                                  // the description and summaray of the performed activity
                     'title' => $n->getSummary(),
                     'content' => $n->getContent()
@@ -54,7 +54,7 @@ class WikiProvider implements ActivityProvider
                 'user',                                 // who initiated the activity?
                 $n->getCreatorid(),                     // id of initiator
                 'created',                              // the type if the activity
-                'forum',                                // type of activity object
+                'wiki',                                 // type of activity object
                 array(                                  // url to entity in Stud.IP
                     $n->getUrl() => _('Zum Wiki der Veranstaltung')
                 ),
