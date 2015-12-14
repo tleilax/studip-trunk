@@ -14,7 +14,7 @@
 
 namespace Studip\Activity;
 
-class InstituteContext implements Context
+class InstituteContext extends Context
 {
     private
         $institute_id;
@@ -24,29 +24,19 @@ class InstituteContext implements Context
         $this->institute_id = $institute_id;
     }
 
-    private function addProvider($provider)
-    {
-        $class_name = 'Studip\Activity\\' . ucfirst($provider) . 'Provider';
-
-        $reflectionClass = new \ReflectionClass($class_name);
-        $this->provider[] =  $reflectionClass->newInstanceArgs();
-    }
-
-    private function getProviders()
+    private function getProvider()
     {
         if (!$this->provider) {
             $institute = \Institute::find($this->institute_id);
 
             // todo check which modules are active globally
-            $module_names = array('participants');
+            $module_names = array('forum', 'participants', 'documents', 'literature', 'wiki');
 
             // get list of possible providers by checking the activated plugins and modules for the current institute
+            $modules = new \Modules();
+            $activated_modules = $modules->getLocalModules($institute->institut_id, 'inst', $institute->modules, $institute->type ? : 1);
 
-            $Modules = new \Modules();
-            $activated_modules = $Modules->getLocalModules($institute->institut_id, 'inst', $institute->modules, $institute->type ? : 1);
 
-
-            //todo review this...
             $sem_class = $GLOBALS['SEM_CLASS'][$GLOBALS['SEM_TYPE'][1]['class']];
             if (!$sem_class) {
                 $sem_class = \SemClass::getDefaultSemClass();
@@ -55,13 +45,16 @@ class InstituteContext implements Context
             // check modules
             foreach ($module_names as $name) {
                 if (($activated_modules[$name] || $sem_class->isSlotMandatory($name))
-                    && $sem_class->isModuleAllowed($sem_class->getSlotModule($name))) {
+                        && $sem_class->isModuleAllowed($sem_class->getSlotModule($name))) {
                     $this->addProvider($name);
                 }
             }
 
             //news
             $this->addProvider('news');
+
+            // add blubber-provider
+            $this->addProvider('blubber');
 
             //plugins
             $standard_plugins = \PluginManager::getInstance()->getPlugins("StandardPlugin", $this->institute_id);
@@ -84,8 +77,7 @@ class InstituteContext implements Context
 
     public function getActivities($observer_id, Filter $filter)
     {
-        $providers = $this->getProviders();
-
+        $providers = $this->filterProvider($this->getProvider(), $filter);
 
         $activities = array_map(
             function ($provider) use($observer_id, $filter) {

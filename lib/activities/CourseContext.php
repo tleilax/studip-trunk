@@ -14,38 +14,23 @@
 
 namespace Studip\Activity;
 
-require_once 'lib/activities/Context.php';
-
-class CourseContext implements Context
+class CourseContext extends Context
 {
     private
-        $seminar_id,
-        $provider;
+        $seminar_id;
 
     function __construct($seminar_id)
     {
         $this->seminar_id = $seminar_id;
     }
 
-    private function addProvider($provider)
-    {
-
-        $class_name = 'Studip\Activity\\' . ucfirst($provider) . 'Provider';
-
-        $reflectionClass = new \ReflectionClass($class_name);
-        $this->provider[] =  $reflectionClass->newInstanceArgs();
-
-    }
-
-    private function getProviders()
+    private function getProvider()
     {
         if (!$this->provider) {
-
-
             $course = \Course::find($this->seminar_id);
 
             // todo check which modules are active globally
-            $module_names = array('forum', 'participants', 'documents', 'literature', 'wiki', 'blubber');
+            $module_names = array('forum', 'participants', 'documents', 'literature', 'wiki');
 
             // get list of possible providers by checking the activated plugins and modules for the current seminar
             $modules = new \Modules();
@@ -85,32 +70,14 @@ class CourseContext implements Context
         return $this->provider;
     }
 
-    private function filterProviders($providers, Filter $filter){
-
-        $filtered_providers = array();
-        if(is_null($filter->getType())) {
-            $filtered_providers = $providers;
-        } else {
-            foreach($providers as $provider) {
-                $filtered_class = 'Studip\Activity\\' . ucfirst($filter->getType()) . 'Provider';
-                if($provider instanceof $filtered_class) {
-                    $filtered_providers[] =  $provider;
-                }
-            }
-        }
-
-        return $filtered_providers;
-
-    }
-
     function getSeminarId()
     {
         return $this->seminar_id;
     }
 
-    function getActivities($observer_id, Filter $filter)
+    public function getActivities($observer_id, Filter $filter)
     {
-        $providers = $this->filterProviders($this->getProviders(), $filter);
+        $providers = $this->filterProvider($this->getProvider(), $filter);
 
         $activities = array_map(
             function ($provider) use($observer_id, $filter) {

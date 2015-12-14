@@ -14,11 +14,10 @@
 
 namespace Studip\Activity;
 
-class UserContext implements Context
+class UserContext extends Context
 {
     private
-        $user_id,
-        $provider;
+        $user_id;
 
     function __construct($user_id)
     {
@@ -30,25 +29,16 @@ class UserContext implements Context
         return $this->user_id;
     }
 
-    private function addProvider($provider){
-        $class_name = 'Studip\Activity\\' . ucfirst($provider) . 'Provider';
-        $reflectionClass = new \ReflectionClass($class_name);
-        $this->provider[] =  $reflectionClass->newInstanceArgs();
-    }
-
-    private function getProvider(){
+    private function getProviders()
+    {
 
         if (!$this->provider) {
-
-
             $this->addProvider('blubber'); // todo: check if active for given user
             $this->addProvider('news');
 
             if (get_config('LITERATURE_ENABLE')) {
                 $this->addProvider('literature');
             }
-
-
 
             $homepage_plugins = \PluginEngine::getPlugins('HomepagePlugin');
             foreach ($homepage_plugins as $plugin) {
@@ -66,7 +56,7 @@ class UserContext implements Context
 
     public function getActivities($observer_id, Filter $filter)
     {
-        $providers = $this->getProvider();
+        $providers = $this->filterProvider($this->getProviders(), $filter);
 
         $activities = array_map(
             function ($provider) use($observer_id, $filter) {

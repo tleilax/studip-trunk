@@ -14,17 +14,13 @@
 
 namespace Studip\Activity;
 
-class SystemContext implements Context
+class SystemContext extends Context
 {
-    function __construct()
-    {
-    }
-
     public function getActivities($observer_id, Filter $filter)
     {
         $self = $this;
 
-        $providers = $this->getProviders();
+        $providers = $this->filterProvider($this->getProvider(), $filter);
 
         $activities = array_map(
             function ($provider) use($self, $filter, $observer_id) {
@@ -35,12 +31,11 @@ class SystemContext implements Context
         return array_flatten($activities);
     }
 
-    private function getProviders()
+    private function getProvider()
     {
-        // system context only knows global news
-        return array(
-            new NewsProvider(),
-            new MessageProvider()
-        );
+        $this->addProvider('news');
+        $this->addProvider('message');
+
+        return $this->provider;
     }
 }

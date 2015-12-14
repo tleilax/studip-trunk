@@ -14,7 +14,38 @@
 
 namespace Studip\Activity;
 
-interface Context
+abstract class Context
 {
-    function getActivities($observer_id, Filter $filter);
+    protected
+        $provider;
+
+    abstract function getActivities($observer_id, Filter $filter);
+
+    protected function addProvider($provider)
+    {
+        $class_name = 'Studip\Activity\\' . ucfirst($provider) . 'Provider';
+
+        $reflectionClass = new \ReflectionClass($class_name);
+        $this->provider[] =  $reflectionClass->newInstanceArgs();
+    }
+
+    protected function filterProvider($providers, Filter $filter)
+    {
+        $filtered_providers = array();
+
+        if (is_null($filter->getType())) {
+            $filtered_providers = $providers;
+        } else {
+            foreach($providers as $provider) {
+                $filtered_class = 'Studip\Activity\\' . ucfirst($filter->getType()) . 'Provider';
+
+                if ($provider instanceof $filtered_class) {
+                    $filtered_providers[] =  $provider;
+                }
+            }
+        }
+
+        return $filtered_providers;
+
+    }
 }
