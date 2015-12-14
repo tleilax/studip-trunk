@@ -83,7 +83,7 @@ class MyCoursesController extends AuthenticatedController
         $group_field                  = $GLOBALS['user']->cfg->MY_COURSES_GROUPING;
         $deputies_enabled             = Config::get()->DEPUTIES_ENABLE;
         $default_deputies_enabled     = Config::get()->DEPUTIES_DEFAULTENTRY_ENABLE;
-        $deputies_edit_about_enabledt = Config::get()->DEPUTIES_EDIT_ABOUT_ENABLE;
+        $deputies_edit_about_enabled  = Config::get()->DEPUTIES_EDIT_ABOUT_ENABLE;
         $studygroups_enabled          = Config::get()->MY_COURSES_ENABLE_STUDYGROUPS;
         $this->config_sem_number      = Config::get()->IMPORTANT_SEMNUMBER;
         $sem_create_perm              = (in_array(Config::get()->SEM_CREATE_PERM, array('root', 'admin',
@@ -135,7 +135,7 @@ class MyCoursesController extends AuthenticatedController
         $this->order                        = $order;
         $this->order_by                     = $order_by;
         $this->default_deputies_enabled     = $default_deputies_enabled;
-        $this->deputies_edit_about_enabledt = $deputies_edit_about_enabledt;
+        $this->deputies_edit_about_enabled  = $deputies_edit_about_enabled;
         $this->my_bosses                    = $default_deputies_enabled ? getDeputyBosses($GLOBALS['user']->id) : array();
 
         // Check for new contents
@@ -628,6 +628,24 @@ class MyCoursesController extends AuthenticatedController
         }
 
         return false;
+    }
+
+    /**
+     * Remove yourself as default deputy of the given boss.
+     * @param $boss_id
+     */
+    public function delete_boss_action($boss_id)
+    {
+        if (deleteDeputy($GLOBALS['user']->id, $boss_id)) {
+            PageLayout::postSuccess(
+                sprintf(_('Sie wurden als Standardvertretung von %s entfernt.'),
+                User::find($boss_id)->getFullname()));
+        } else {
+            PageLayout::postError(
+                sprintf(_('Sie konnten nicht als Standardvertretung von %s entfernt werden.'),
+                User::find($boss_id)->getFullname()));
+        }
+        $this->redirect($this->url_for('my_courses'));
     }
 
     /**
