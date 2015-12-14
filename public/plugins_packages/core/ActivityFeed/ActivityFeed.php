@@ -15,7 +15,7 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
 {
     public function getPluginName()
     {
-        return _('Meine Aktivitäten');
+        return _('Aktivitäten');
     }
 
     public function getPortalTemplate()
