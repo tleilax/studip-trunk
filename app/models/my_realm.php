@@ -575,9 +575,9 @@ class MyRealmModel
 
     public static function getDeputieGroup($range_id)
     {
-        $query     = "SELECT gruppe FROM deputies WHERE range_id = ?";
+        $query     = "SELECT gruppe FROM deputies WHERE range_id = ? AND user_id=?";
         $statement = DBManager::get()->prepare($query);
-        $statement->execute(array($range_id));
+        $statement->execute(array($range_id, $GLOBALS['user']->id));
         return $statement->fetch(PDO::FETCH_COLUMN);
     }
 
@@ -593,8 +593,14 @@ class MyRealmModel
             $max_sem = $current_sem;
         }
 
+        if (isset($sem_data[$current_sem + 2])) {
+            $after_next_sem = $current_sem + 2;
+        } else {
+            $after_next_sem = $max_sem;
+        }
+
         // Get the needed semester
-        if ($sem != 'all' && $sem != 'current' && $sem != 'future' && $sem != 'last') {
+        if (!in_array($sem, array('all', 'current', 'future', 'last', 'lastandnext'))) {
             $semesters[] = SemesterData::GetSemesterIndexById($sem);
         } else {
             switch ($sem) {
@@ -609,8 +615,13 @@ class MyRealmModel
                     $semesters[] = $current_sem - 1;
                     $semesters[] = $current_sem;
                     break;
+                case 'lastandnext':
+                    $semesters[] = $current_sem - 1;
+                    $semesters[] = $current_sem;
+                    $semesters[] = $max_sem;
+                    break;
                 default:
-                    $semesters = array_keys($sem_data);;
+                    $semesters = array_keys($sem_data);
                     break;
             }
         }
