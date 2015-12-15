@@ -927,9 +927,9 @@ class Course_TimesroomsController extends AuthenticatedController
     private function setSidebar()
     {
         $actions = new ActionsWidget();
-        $actions->addLink(_('Startsemester'), $this->url_for('course/timesrooms/editSemester'), 'icons/blue/date')->asDialog('size=400');
+        $actions->addLink(_('Startsemester ändern'), $this->url_for('course/timesrooms/editSemester'), 'icons/blue/date')->asDialog('size=400');
         Sidebar::Get()->addWidget($actions);
-        $widget = new SelectWidget(_('Semester'), $this->url_for('course/timesrooms/index', array('cmd' => 'applyFilter')), 'newFilter');
+        $widget = new SelectWidget(_('Semesterfilter'), $this->url_for('course/timesrooms/index', array('cmd' => 'applyFilter')), 'newFilter');
         foreach ($this->selection as $item) {
             $element = new SelectElement($item['value'],
                 $item['linktext'],
