@@ -1,6 +1,6 @@
 <?php
 $room_request_filter = function ($date) {
-    return !$date->room_request->isNew() && $date->room_request->closed < 2;
+    return $date->room_request && !$date->room_request->isNew() && $date->room_request->closed < 2;
 };
 ?>
 
@@ -90,7 +90,7 @@ $room_request_filter = function ($date) {
                 <tr>
                     <td colspan="2">
                         <label class="horizontal">
-                            <input type="checkbox" data-proxyfor=".date-proxy" 
+                            <input type="checkbox" data-proxyfor=".date-proxy"
                                    data-activates=".actionForAllIrregular">
                             <?= _('Alle auswählen') ?>
                         </label>

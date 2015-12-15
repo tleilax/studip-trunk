@@ -22,7 +22,7 @@
             </a>
     <? endif ?>
     </td>
-    
+
     <td>
     <? if (count($termin->dozenten) > 0): ?>
         <ul class="list-unstyled list-csv <? if ($is_exTermin) echo 'is_ex_termin'; ?>">
@@ -54,7 +54,7 @@
         <?= $room_holiday ?: '' ?>
     <? endif ?>
 
-    <? $room_request = RoomRequest::find(RoomRequest::existsByDate($termin->id, true))?>   
+    <? $room_request = RoomRequest::find(RoomRequest::existsByDate($termin->id, true))?>
     <? if (isset($room_request)) : ?>
         <? $msg_info = _('Für diesen Termin existiert eine Raumanfrage: ') . $room_request->getInfo() ?>
         <?= tooltipIcon($msg_info) ?>
@@ -79,14 +79,14 @@
             <? endif ?>
         <? endif ?>
 
-        <? if (Config::get()->RESOURCES_ENABLE && $termin->room_assignment) : ?>
+        <? if (Config::get()->RESOURCES_ENABLE && $termin->getRoom()) : ?>
             <? $warning[] = _('Dieser Termin hat eine Raumbuchung, welche mit dem Termin gelöscht wird.'); ?>
         <? endif ?>
         <a <?= Request::isXhr() ? 'data-dialog="size=big"' : '' ?> <? !empty($warning) ? 'data-confirm="' . implode("\n", $warning) . '"' : '' ?>
             href="<?= $controller->url_for('course/timesrooms/undeleteSingle/' . $termin->termin_id, $editParams) ?>">
             <?= Assets::img('icons/grey/decline/trash', tooltip2(_('Diesen Termin wiederherstellen'))) ?>
         </a>
-        
+
     <? else: ?>
 
         <a class="load-in-new-row"

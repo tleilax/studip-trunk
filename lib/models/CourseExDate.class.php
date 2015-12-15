@@ -71,20 +71,6 @@ class CourseExDate extends SimpleORMap
             'class_name'  => 'User',
             'foreign_key' => 'autor_id'
         );
-        $config['has_and_belongs_to_many']['statusgruppen'] = array(
-            'class_name' => 'Statusgruppen',
-            'thru_table' => 'termin_related_groups',
-            'on_delete' => 'delete',
-            'on_store' => 'store'
-        );
-        $config['has_and_belongs_to_many']['dozenten'] = array(
-            'class_name' => 'User',
-            'thru_table' => 'termin_related_persons',
-            'foreign_key' => 'termin_id',
-            'thru_key' => 'range_id',
-            'on_delete' => 'delete',
-            'on_store' => 'store'
-        );
         $config['belongs_to']['course'] = array(
             'class_name'  => 'Course',
             'foreign_key' => 'range_id'
@@ -93,18 +79,14 @@ class CourseExDate extends SimpleORMap
             'class_name'  => 'SeminarCycleDate',
             'foreign_key' => 'metadate_id'
         );
-        $config['has_one']['room_assignment'] = array(
-            'class_name'  => 'ResourceAssignment',
-            'foreign_key' => 'termin_id',
-            'assoc_foreign_key' => 'assign_user_id',
-            'on_delete' => 'delete',
-            'on_store' => 'store'
-        );
 
         $dummy_relation = function () { return new SimpleCollection(); };
+        $dummy_null = function () { return null; };
         $config['additional_fields']['topics']['get'] = $dummy_relation;
         $config['additional_fields']['statusgruppen']['get'] = $dummy_relation;
         $config['additional_fields']['dozenten']['get'] = $dummy_relation;
+        $config['additional_fields']['room_assignment']['get'] = $dummy_null;
+        $config['additional_fields']['room_request']['get'] = $dummy_null;
         $config['default_values']['date_typ'] = 1;
         parent::configure($config);
     }
