@@ -1,3 +1,9 @@
+<?php
+$room_request_filter = function ($date) {
+    return !$date->room_request->isNew() && $date->room_request->closed < 2;
+};
+?>
+
 <section class="contentbox timesrooms">
     <header>
         <h1>
@@ -34,8 +40,18 @@
                     </a>
                 </h1>
                 <nav>
-                    <?= sprintf(ngettext('%u Termin', '%u Termine', count($termine)),
-                                 count($termine)) ?>
+                    <span>
+                        <?= sprintf(ngettext('%u Termin', '%u Termine', count($termine)),
+                                     count($termine)) ?>
+                    </span>
+                    <span>
+                        <?= _('Einzel-Raumanfrage') ?>:
+                    <? if (($rr_count = count($termine->filter($room_request_filter))) > 0): ?>
+                        <?= sprintf(_('%u noch offen'), $rr_count) ?>
+                    <? else: ?>
+                        <?= _('keine offen') ?>
+                    <? endif; ?>
+                    </span>
                 </nav>
             </header>
             <section>

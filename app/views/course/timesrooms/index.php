@@ -1,3 +1,8 @@
+<? if ($show['roomRequest']) : ?>
+    <!--Raumanfragen-->
+    <?= $this->render_partial('course/timesrooms/_roomRequestInfo.php') ?>
+<? endif; ?>
+
 <? if (Request::isXhr()): ?>
     <?= $this->render_partial('course/timesrooms/_select_semester_range.php') ?>
 <? endif ?>

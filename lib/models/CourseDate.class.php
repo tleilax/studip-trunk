@@ -120,6 +120,11 @@ class CourseDate extends SimpleORMap
             'assoc_foreign_key' => 'assign_user_id',
             'on_delete' => 'delete',
         );
+        $config['has_one']['room_request'] = array(
+            'class_name'        => 'RoomRequest',
+            'assoc_foreign_key' => 'termin_id',
+            'ondelete'          => 'delete',
+        );
         $config['default_values']['date_typ'] = 1;
         parent::configure($config);
     }
