@@ -932,5 +932,5 @@ function get_icon_for_mimetype($mime_type)
     if (reset($parts) === 'application' && in_array(end($parts), words('7z arj rar zip'))) {
         return 'file-archive';
     }
-    return 'fileg';
+    return 'file';
 }
