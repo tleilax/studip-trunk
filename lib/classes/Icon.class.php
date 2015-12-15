@@ -174,7 +174,7 @@ class Icon
     /**
      * Renders the icon as a set of css background rules.
      *
-     * TODO
+     * @param mixed $size Size of the icon
      * @return String containing the html representation for css backgrounds
      */
     public function asCSS($size = null)
@@ -191,13 +191,24 @@ class Icon
                        $this->get_size($size));
     }
 
-    // TODO
+    /**
+     * Returns the path to the icon file itself.
+     *
+     * @param mixed $size Size of the icon
+     * @return String containing the path to the icon file
+     */
     public function asImagePath($size = null)
     {
         return $this->prepareHTMLAttributes($size, [])['src'];
     }
 
-    // TODO
+    /**
+     * Prepares the html attributes for use.
+     *
+     * @param int   $size       Size of the icon
+     * @param array $attributes Additional attributes
+     * @return Array containing the merged attributes
+     */
     private function prepareHTMLAttributes($size, $attributes)
     {
         $dimensions = [];
@@ -207,8 +218,9 @@ class Icon
         }
 
         return array_merge($this->attributes, $attributes, $dimensions, [
-            'src'    => $this->isStatic() ? $this->icon : $this->get_asset_svg(),
-            'alt'    => $this->attributes['alt'] ?: $this->attributes['title'] ?: basename($this->icon)
+            'src' => $this->isStatic() ? $this->icon : $this->get_asset_svg(),
+            'alt' => $this->attributes['alt'] ?: $this->attributes['title'] ?: 
+basename($this->icon)
         ]);
     }
 
