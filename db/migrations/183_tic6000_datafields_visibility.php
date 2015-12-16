@@ -15,7 +15,7 @@ class Tic6000DatafieldsVisibility extends Migration
     public function up()
     {
         $query = "ALTER TABLE `datafields`
-                    ADD COLUMN `system` UNSINGED TINYINT(1) NOT NULL DEFAULT 0";
+                    ADD COLUMN `system` UNSIGNED TINYINT(1) NOT NULL DEFAULT 0";
         DBManager::get()->exec($query);
 
         SimpleORMap::expireTableScheme();
