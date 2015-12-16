@@ -17,8 +17,12 @@
 class Course_BlockAppointmentsController extends AuthenticatedController
 {
     protected $utf8decode_xhr = true;
+
     /**
-     * common tasks for all actions
+     * Common tasks for all actions
+     *
+     * @param String $action Called action
+     * @param Array  $args   Possible arguments
      */
     public function before_filter(&$action, &$args)
     {
@@ -38,6 +42,9 @@ class Course_BlockAppointmentsController extends AuthenticatedController
         PageLayout::setTitle(Course::findCurrent()->getFullname() . " - " . _('Blockveranstaltungstermine anlegen'));
     }
 
+    /**
+     * Display the block appointments
+     */
     public function index_action()
     {
         if (!Request::isXhr()) {
@@ -48,7 +55,11 @@ class Course_BlockAppointmentsController extends AuthenticatedController
         $this->request = $this->flash['request'];
     }
 
-
+    /**
+     * Saves the block appointments of a course
+     *
+     * @param String $course_id Id of the course
+     */
     public function save_action($course_id)
     {
         $errors = array();
@@ -116,7 +127,6 @@ class Course_BlockAppointmentsController extends AuthenticatedController
                     //TODO
                 }
 
-
                 if (Request::submitted('save')) {
                     $dates_created = array_filter(array_map(function ($d) {
                         return $d->store() ? $d->getFullname() : null;
@@ -142,12 +152,5 @@ class Course_BlockAppointmentsController extends AuthenticatedController
         } else {
             $this->relocate('course/timesrooms/index');
         }
-    }
-
-    public function render_json($data)
-    {
-        $this->set_content_type('application/json;charset=utf-8');
-
-        return $this->render_text(json_encode($data));
     }
 }

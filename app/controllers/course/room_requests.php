@@ -16,9 +16,12 @@
 class Course_RoomRequestsController extends AuthenticatedController
 {
     /**
-     * common tasks for all actions
+     * Common tasks for all actions
+     *
+     * @param String $action Called action
+     * @param Array  $args   Possible arguments
      */
-    function before_filter(&$action, &$args)
+    public function before_filter(&$action, &$args)
     {
         global $perm;
 
@@ -48,7 +51,7 @@ class Course_RoomRequestsController extends AuthenticatedController
     /**
      * Display the list of room requests
      */
-    function index_action()
+    public function index_action()
     {
         $this->url_params = array();
         if (Request::get('origin') !== null) {
@@ -75,7 +78,11 @@ class Course_RoomRequestsController extends AuthenticatedController
         }
     }
 
-
+    /**
+     * Show information about a request
+     *
+     * @param String $request_id Id of the request
+     */
     public function info_action($request_id)
     {
         $request = RoomRequest::find($request_id);
@@ -87,7 +94,7 @@ class Course_RoomRequestsController extends AuthenticatedController
     /**
      * edit one room requests
      */
-    function edit_action()
+    public function edit_action()
     {
         Helpbar::get()->addPlainText(_('Information'), _('Hier können Sie Angaben zu gewünschten Raumeigenschaften machen.'));
         if (Request::option('new_room_request_type')) {
@@ -191,7 +198,10 @@ class Course_RoomRequestsController extends AuthenticatedController
         }
     }
 
-    function edit_dialog_action()
+    /**
+     * edit one room requests in a dialog
+     */
+    public function edit_dialog_action()
     {
         if (Request::isXhr()) {
             $request = Request::getInstance();
@@ -270,10 +280,12 @@ class Course_RoomRequestsController extends AuthenticatedController
         }
     }
 
+    /**
+     * show assistent
+     */
     function index_assi_action()
     {
         if (Request::isXhr() && $this->course_id == '-') {
-            $this->response->add_header('Content-Type', 'text/html; charset=windows-1252');
             $sem_create_data =& $_SESSION['sem_create_data'];
             $options = array();
             if (Request::option('delete_room_request_type')) {
@@ -301,7 +313,7 @@ class Course_RoomRequestsController extends AuthenticatedController
     /**
      * create a new room requests
      */
-    function new_action()
+    public function new_action()
     {
         $options = array();
         $this->url_params = array();
@@ -334,9 +346,9 @@ class Course_RoomRequestsController extends AuthenticatedController
     }
 
     /**
-     * delete one room requests
+     * delete one room request
      */
-    function delete_action()
+    public function delete_action()
     {
         $request = RoomRequest::find(Request::option('request_id'));
         if (!$request) {
@@ -363,7 +375,7 @@ class Course_RoomRequestsController extends AuthenticatedController
      * handle common tasks for the romm request form
      * (set properties, searching etc.)
      */
-    static function process_form($request, $admission_turnout = null)
+    public static function process_form($request, $admission_turnout = null)
     {
         if (Request::submitted('room_request_form')) {
             CSRFProtection::verifyUnsafeRequest();
@@ -446,7 +458,14 @@ class Course_RoomRequestsController extends AuthenticatedController
         return compact('search_result', 'search_by_properties', 'request', 'admission_turnout');
     }
 
-    function link_for($to = '', $params = array())
+    /**
+     * Specialized link_for for this controller's actions.
+     *
+     * @param String $to     Target location (optional, defaults to current
+     *                       action)
+     * @param Array  $params Optional additional parameters (defaults to none)
+     */
+    public function link_for($to = '', $params = array())
     {
         $whereto = 'course/room_requests/';
         if ($to === '') {
@@ -456,5 +475,4 @@ class Course_RoomRequestsController extends AuthenticatedController
         }
         return parent::link_for($whereto, $params);
     }
-
 }
