@@ -520,7 +520,11 @@ class MyRealmModel
         $ordering          = '';
         // create ordering
         if (!$order_by) {
-            $ordering .= 'name asc';
+            if (Config::get()->IMPORTANT_SEMNUMBER) {
+                $ordering = 'veranstaltungsnummer asc, name asc';
+            } else {
+                $ordering .= 'name asc';
+            }
         } else {
             $ordering .= $order_by . ' ' . $order;
         }
@@ -575,9 +579,9 @@ class MyRealmModel
 
     public static function getDeputieGroup($range_id)
     {
-        $query     = "SELECT gruppe FROM deputies WHERE range_id = ?";
+        $query     = "SELECT gruppe FROM deputies WHERE range_id = ? AND user_id=?";
         $statement = DBManager::get()->prepare($query);
-        $statement->execute(array($range_id));
+        $statement->execute(array($range_id, $GLOBALS['user']->id));
         return $statement->fetch(PDO::FETCH_COLUMN);
     }
 
@@ -600,7 +604,7 @@ class MyRealmModel
         }
 
         // Get the needed semester
-        if (!in_array($sem, array('all', 'current', 'future', 'nexttwo', 'last', 'lastandnext'))) {
+        if (!in_array($sem, array('all', 'current', 'future', 'last', 'lastandnext'))) {
             $semesters[] = SemesterData::GetSemesterIndexById($sem);
         } else {
             switch ($sem) {
@@ -610,11 +614,6 @@ class MyRealmModel
                 case 'future':
                     $semesters[] = $current_sem;
                     $semesters[] = $max_sem;
-                    break;
-                case 'nexttwo':
-                    $semesters[] = $current_sem;
-                    $semesters[] = $max_sem;
-                    $semesters[] = $after_next_sem;
                     break;
                 case 'last':
                     $semesters[] = $current_sem - 1;

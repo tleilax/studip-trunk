@@ -49,21 +49,11 @@ class DataFieldPhoneEntry extends DataFieldEntry
         list($country, $area, $phone) = $this->getNumberParts();
 
         if ($country || $area || $phone) {
-            $number = '';
-
             if ($country) {
-                $number .= "+$country";
+                $country = "+$country";
             }
-            if ($area) {
-                $area = "(0)$area";
-                if ($phone) {
-                    $area .= '/';
-                }
-                $number .= " $area";
-            }
-            $number .= $phone;
 
-            return $number;
+            return "$country $area $phone";
         }
 
         return '';
