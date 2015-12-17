@@ -30,7 +30,7 @@ class StEP00294InnoDB extends Migration
         $innodb = false;
         foreach ($engines as $e) {
             // InnoDB is found and enabled.
-            if ($e['Engine'] == 'InnoDB' && in_array($e['Support'], array('DEFAULT', 'YES'))) {
+            if ($e['Engine'] == 'InnoDB' && in_array(strtolower($e['Support']), array('default', 'yes'))) {
                 $innodb = true;
                 break;
             }
