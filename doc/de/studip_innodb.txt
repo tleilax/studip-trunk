@@ -20,6 +20,14 @@ und es kann ab Version 5.7.9 auch über die Systemvariable innodb_default_row_for
 Tabellen Barracuda (DYNAMIC) verwendet werden soll. Ältere Versionen müssen dies beim Anlegen der Tabelle explizit
 im CREATE TABLE-Query angeben ("ROW_FORMAT=DYNAMIC").
 
+Für nachträgliche Änderungen an den Datenbanktabellen gibt es im cli-Ordner die beiden php-Skripten
+
+- myisam_to_innodb.php
+- antelope_to_barracuda.php
+
+Diese können Sie jederzeit ausführen und so die Änderungen auch nach Updates des Datenbankservers oder Einstellung der
+entsprechenden Variablen nachziehen. Bereits konvertierte Datenbanktabellen bleiben völlig unberührt.
+
 2. FULLTEXT-Index
 =================
 Die Tabelle lit_catalog in der Stud.IP-Datenbank verwendet FULLTEXT-Indizes, um eine Suche zu ermöglichen. Diese werden
