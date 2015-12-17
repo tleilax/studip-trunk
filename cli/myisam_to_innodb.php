@@ -8,7 +8,7 @@ $start = microtime(true);
 global $DB_STUDIP_DATABASE;
 
 // Tables to ignore on engine conversion.
-$ignore_tables = array();
+$ignore_tables = array('');
 
 // Check if InnoDB is enabled in database server.
 $engines = DBManager::get()->fetchAll("SHOW ENGINES");

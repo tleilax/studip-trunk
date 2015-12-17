@@ -58,7 +58,7 @@ if ($innodb) {
             // Prepare query for table conversion.
             $stmt = DBManager::get()->prepare("ALTER TABLE :database.:table ROW_FORMAT=:newformat");
             $stmt->bindParam(':database', $DB_STUDIP_DATABASE, StudipPDO::PARAM_COLUMN);
-            $stmt->bindParam(':newformat', $rowformat, StudipPDO::PARAM_COLUMN);
+            $stmt->bindParam(':newformat', $newformat, StudipPDO::PARAM_COLUMN);
 
             if (count($tables) > 0) {
 
