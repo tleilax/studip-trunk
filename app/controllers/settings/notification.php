@@ -42,7 +42,7 @@ class Settings_NotificationController extends Settings_SettingsController
 
         PageLayout::setHelpKeyword('Basis.MyStudIPBenachrichtigung');
         PageLayout::setTitle(_('Benachrichtigung über neue Inhalte anpassen'));
-        Navigation::activateItem('/settings/notification');
+        Navigation::activateItem('/profile/settings/notification');
         SkipLinks::addIndex(_('Benachrichtigung über neue Inhalte anpassen'), 'layout_content', 100);
 
         Sidebar::get()->setImage('sidebar/seminar-sidebar.png');
@@ -100,6 +100,7 @@ class Settings_NotificationController extends Settings_SettingsController
         foreach ($seminars as $seminar) {
             $my_sem[$seminar['Seminar_id']] = array(
                 'obj_type'       => "sem",
+                'sem_nr'         => $seminar['sem_nr'],
                 'name'           => $seminar['Name'],
                 'visible'        => $seminar['visible'],
                 'gruppe'         => $seminar['gruppe'],
@@ -110,6 +111,7 @@ class Settings_NotificationController extends Settings_SettingsController
             if ($group_field){
                 fill_groups($groups, $seminar[$group_field], array(
                     'seminar_id' => $seminar['Seminar_id'],
+                    'sem_nr'     => $seminar['sem_nr'],
                     'name'       => $seminar['Name'],
                     'gruppe'     => $seminar['gruppe']
                 ));

@@ -16,7 +16,7 @@ STUDIP.CalendarDialog = {
             'type': "post"
         });
         jQuery(form).closest(".ui-dialog-content").dialog("close");
-        STUDIP.Dialog.fromURL(jQuery("#calendar-open-manageaccess").attr("action"));
+        STUDIP.Dialog.fromURL(jQuery("#calendar-open-manageaccess").attr("href"));
         return false;
     },
     
@@ -57,6 +57,10 @@ STUDIP.CalendarDialog = {
 
 jQuery(document).on('click', 'td.calendar-day-edit, td.calendar-day-event', function (event) {
     var elem = jQuery(this).find('a').first();
-    STUDIP.Dialog.fromURL(elem.attr('href'), {size: 'auto', title: elem.attr('title')});
-    event.preventDefault();
+    if (_.isString(elem.attr('href'))) {
+        STUDIP.Dialog.fromURL(elem.attr('href'), {title: elem.attr('title')});
+        event.preventDefault();
+    } else {
+        return false;
+    }
 });

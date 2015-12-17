@@ -12,7 +12,7 @@
                 <div>
                     <form onSubmit="STUDIP.Dates.addTopic(); return false;">
                         <input type="text" name="new_topic" id="new_topic" placeholder="<?= _("Thema hinzufügen") ?>">
-                        <a href="#" onClick="STUDIP.Dates.addTopic(); return false;"><?= Assets::img("icons/16/blue/add", array('class' => "text-bottom")) ?></a>
+                        <a href="#" onClick="STUDIP.Dates.addTopic(); return false;"><?= Icon::create('add', 'clickable')->asImg(['class' => "text-bottom"]) ?></a>
                     </form>
                     <script>
                         jQuery(function () {
@@ -64,10 +64,14 @@
 <div style="text-align: center;" data-dialog-button>
     <div class="button-group">
         <? if (!$dates_locked && $GLOBALS['perm']->have_studip_perm("tutor", $_SESSION['SessionSeminar'])) : ?>
-        <?= \Studip\LinkButton::create(_("Termin bearbeiten"), URLHelper::getURL("raumzeit.php#".$date->getId(), array('raumzeitFilter' => "all", 'cycle_id' => $date['metadate_id'], 'singleDateID' => $date->getId()))) ?>
+            <?= \Studip\LinkButton::create(_("Termin bearbeiten"), 
+                    URLHelper::getUrl('dispatch.php/course/timesrooms', 
+                            array('contentbox_open' => $date['metadate_id'], 'singleDateID' => $date->getId()))) ?>
         <? endif ?>
         <? if (!$cancelled_dates_locked && $GLOBALS['perm']->have_studip_perm("tutor", $_SESSION['SessionSeminar'])) : ?>
-            <?= \Studip\LinkButton::create(_("Ausfallen lassen"), URLHelper::getURL("dispatch.php/course/cancel_dates", array('termin_id' => $date->getId())), array('data-dialog' => '')) ?>
+            <?= \Studip\LinkButton::create(_("Ausfallen lassen"), 
+                    URLHelper::getURL("dispatch.php/course/cancel_dates", 
+                            array('termin_id' => $date->getId())), array('data-dialog' => '')) ?>
         <? endif ?>
     </div>
 </div>

@@ -223,7 +223,7 @@ class Course_MembersController extends AuthenticatedController
         $results = SimpleCollection::createFromArray($members)->pluck('email');
 
         if (!empty($results)) {
-            return sprintf('<a href="mailto:%s">%s</a>', htmlReady(join(',', $results)), Assets::img('icons/16/blue/move_right/mail.png', tooltip2(sprintf('E-Mail an alle %s versenden', $textStatus))));
+            return sprintf('<a href="mailto:%s">%s</a>', htmlReady(join(',', $results)), Icon::create('mail+move_right', 'clickable', ['title' => sprintf('E-Mail an alle %s versenden',$textStatus)])->asImg(16));
         } else {
             return null;
         }
@@ -596,13 +596,12 @@ class Course_MembersController extends AuthenticatedController
 
     public function import_autorlist_action()
     {
-        global $perm;
         if (!Request::isXhr()) {
             Navigation::activateItem('/course/members/view');
         }
-        $datafields = DataFieldStructure::getDataFieldStructures('user', (1 | 2 | 4 | 8), true);
+        $datafields = DataField::getDataFields('user', 1 | 2 | 4 | 8, true);
         foreach ($datafields as $df) {
-            if ($df->accessAllowed($perm) && in_array($df->getId(), $GLOBALS['TEILNEHMER_IMPORT_DATAFIELDS'])) {
+            if ($df->accessAllowed() && in_array($df->getId(), $GLOBALS['TEILNEHMER_IMPORT_DATAFIELDS'])) {
                 $accessible_df[] = $df;
             }
         }
@@ -612,13 +611,11 @@ class Course_MembersController extends AuthenticatedController
 
     /**
      * Old version of CSV import (copy and paste from teilnehmer.php
-     * @global Object $perm
      * @return type
      * @throws AccessDeniedException
      */
     public function set_autor_csv_action()
     {
-        global $perm;
         // Security Check
         if (!$this->is_tutor) {
             throw new AccessDeniedException('Sie haben leider keine ausreichende Berechtigung, um auf diesen Bereich von Stud.IP zuzugreifen.');
@@ -634,8 +631,8 @@ class Course_MembersController extends AuthenticatedController
         $datafield_id = null;
 
         if (Request::get('csv_import_format') && !in_array(Request::get('csv_import_format'), words('realname username'))) {
-            foreach (DataFieldStructure::getDataFieldStructures('user', (1 | 2 | 4 | 8), true) as $df) {
-                if ($df->accessAllowed($perm) && in_array($df->getId(), $GLOBALS['TEILNEHMER_IMPORT_DATAFIELDS']) && $df->getId() == Request::quoted('csv_import_format')) {
+            foreach (DataField::getDataFields('user', 1 | 2 | 4 | 8, true) as $df) {
+                if ($df->accessAllowed() && in_array($df->getId(), $GLOBALS['TEILNEHMER_IMPORT_DATAFIELDS']) && $df->getId() == Request::quoted('csv_import_format')) {
                     $datafield_id = $df->getId();
                     break;
                 }
@@ -1378,7 +1375,7 @@ class Course_MembersController extends AuthenticatedController
                 'filter' => 'all',
                 'emailrequest' => 1
             ));
-            $widget->addLink(_('Nachricht an alle (Rundmail)'), $url, 'icons/16/blue/inbox.png', array('data-dialog' => "buttons"));
+            $widget->addLink(_('Nachricht an alle (Rundmail)'), $url, Icon::create('inbox', 'clickable'), array('data-dialog' => "buttons"));
 
             if ($this->is_dozent) {
                 if (!$this->dozent_is_locked) {
@@ -1416,7 +1413,7 @@ class Course_MembersController extends AuthenticatedController
                         ->addQuickfilter(sprintf(_('%s der Einrichtung'), $this->status_groups['dozent']), $membersOfInstitute)
                         ->setNavigationItem('/course/members/view')
                         ->render();
-                    $element = LinkElement::fromHTML($mp, 'icons/16/blue/add/community.png');
+                    $element = LinkElement::fromHTML($mp, Icon::create('community+add', 'clickable'));
                     $widget->addElement($element);
                 }
                 if (!$this->tutor_is_locked) {
@@ -1453,7 +1450,7 @@ class Course_MembersController extends AuthenticatedController
                         ->addQuickfilter(sprintf(_('%s der Einrichtung'), $this->status_groups['tutor']), $membersOfInstitute)
                         ->setNavigationItem('/course/members/view')
                         ->render();
-                    $element = LinkElement::fromHTML($mp, 'icons/16/blue/add/community.png');
+                    $element = LinkElement::fromHTML($mp, Icon::create('community+add', 'clickable'));
                     $widget->addElement($element);
                 }
             }
@@ -1488,7 +1485,7 @@ class Course_MembersController extends AuthenticatedController
                     ->addQuickfilter(sprintf(_('%s der Einrichtung'), $this->status_groups['autor']), $membersOfInstitute)
                     ->setNavigationItem('/course/members/view')
                     ->render();
-                $element = LinkElement::fromHTML($mp, 'icons/16/blue/add/community.png');
+                $element = LinkElement::fromHTML($mp, Icon::create('community+add', 'clickable'));
                 $widget->addElement($element);
 
                 // add "add person to waitlist" to sidebar
@@ -1512,14 +1509,13 @@ class Course_MembersController extends AuthenticatedController
                         ->addQuickfilter(_('Mitglieder der Einrichtung'), $membersOfInstitute)
                         ->setNavigationItem('/course/members/view')
                         ->render();
-                    $element = LinkElement::fromHTML($mp, 'icons/16/blue/add/community.png');
+                    $element = LinkElement::fromHTML($mp, Icon::create('community+add', 'clickable'));
                     $widget->addElement($element);
                 }
             }
 
             $widget->addLink(_('Teilnehmerliste importieren'),
-                             $this->url_for('course/members/import_autorlist'),
-                             'icons/16/blue/add/community.png');
+                             $this->url_for('course/members/import_autorlist'), Icon::create('community+add', 'clickable'));
 
             $sidebar->addWidget($widget);
 
@@ -1531,24 +1527,20 @@ class Course_MembersController extends AuthenticatedController
                 // create csv-export link
                 $csvExport = export_link($this->course_id, "person", sprintf('%s %s', htmlReady($this->status_groups['autor']), htmlReady($this->course_title)), 'csv', 'csv-teiln', '', _('Teilnehmendenliste als csv-Dokument exportieren'), 'passthrough');
                 $widget->addLink(_('Teilnehmendenliste als CSV-Dokument exportieren'),
-                                 $this->parseHref($csvExport),
-                                 'icons/16/blue/file-office.png');
+                                 $this->parseHref($csvExport), Icon::create('file-office', 'clickable'));
                 // create csv-export link
                 $rtfExport = export_link($this->course_id, "person", sprintf('%s %s', htmlReady($this->status_groups['autor']), htmlReady($this->course_title)), 'rtf', 'rtf-teiln', '', _('Teilnehmendenliste als rtf-Dokument exportieren'), 'passthrough');
                 $widget->addLink(_('Teilnehmendenliste als rtf-Dokument exportieren'),
-                                 $this->parseHref($rtfExport),
-                                 'icons/16/blue/file-text.png');
+                                 $this->parseHref($rtfExport), Icon::create('file-text', 'clickable'));
 
                 if (count($this->awaiting) > 0) {
                     $awaiting_rtf = export_link($this->course_id, "person", sprintf('%s %s', _("Warteliste"), htmlReady($this->course_title)), "rtf", "rtf-warteliste", $this->waiting_type, _("Warteliste als Textdokument (.rtf) exportieren"), 'passthrough');
                     $widget->addLink(_('Warteliste als rtf-Dokument exportieren'),
-                                     $this->parseHref($awaiting_rtf),
-                                     'icons/16/blue/export/file-office.png');
+                                     $this->parseHref($awaiting_rtf), Icon::create('file-office+export', 'clickable'));
 
                     $awaiting_csv = export_link($this->course_id, "person", sprintf('%s %s', _("Warteliste"), htmlReady($this->course_title)), "csv", "csv-warteliste", $this->waiting_type, _("Warteliste als Tabellendokument (.csv) exportieren"), 'passthrough');
                     $widget->addLink(_('Warteliste als csv-Dokument exportieren'),
-                                     $this->parseHref($awaiting_csv),
-                                     'icons/16/blue/export/file-text.png');
+                                     $this->parseHref($awaiting_csv), Icon::create('file-text+export', 'clickable'));
                 }
 
                 $sidebar->addWidget($widget);

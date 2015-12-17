@@ -31,16 +31,22 @@ class Calendar_CalendarController extends AuthenticatedController
         URLHelper::bindLinkParam('atime', $this->atime);
         $this->atime = Request::int('atime', time());
         $this->category = Request::int('category');
+        $this->declined = Request::int('declined');
         $this->last_view = Request::option('last_view',
                 $this->settings['view']);
         $this->action = $action;
-        $this->restrictions =
-                $this->category ? array('STUDIP_CATEGORY' => $this->category) : null;
+        $this->restrictions = array(
+            'STUDIP_CATEGORY'     => $this->category ?: null,
+            // hide events with status 3 (CalendarEvent::PARTSTAT_DECLINED)
+            'STUDIP_GROUP_STATUS' => $this->declined ? null : array(0,1,2,5)
+        );
         if ($this->category) {
             URLHelper::bindLinkParam('category', $this->category);
         }
+        if ($this->declined) {
+            URLHelper::bindLinkParam('declined', $this->declined);
+        }
         $self = Request::option('self');
-     //   var_dump($_SESSION['SessSemName'], $self); exit;
         if (!$self && $_SESSION['SessSemName']['class'] == 'sem') {
             $this->range_id = Request::option('cid');
             Navigation::activateItem('/course/calendar');
@@ -75,7 +81,7 @@ class Calendar_CalendarController extends AuthenticatedController
     {
         $tmpl_factory = $this->get_template_factory();
 
-        $filters = new SidebarWidget();
+        $filters = new OptionsWidget();
         $filters->setTitle('Auswahl');
 
         $tmpl = $tmpl_factory->open('calendar/single/_jump_to');
@@ -83,7 +89,7 @@ class Calendar_CalendarController extends AuthenticatedController
         $tmpl->action = $this->action;
         $tmpl->action_url = $this->url_for('calendar/single/jump_to');
         $filters->addElement(new WidgetElement($tmpl->render()));
-
+        
         $tmpl = $tmpl_factory->open('calendar/single/_select_category');
         $tmpl->action_url = $this->url_for();
         $tmpl->category = $this->category;
@@ -96,6 +102,10 @@ class Calendar_CalendarController extends AuthenticatedController
             $tmpl->action_url = $this->url_for('calendar/group/switch');
             $tmpl->view = $this->action;
             $filters->addElement(new WidgetElement($tmpl->render()));
+            $filters->addCheckbox(_('Abgelehnte Termine anzeigen'),
+                    Request::option('declined'),
+                    $this->url_for('', array('declined' => 1)),
+                    $this->url_for('', array('declined' => 0)));
         }
         Sidebar::get()->addWidget($filters);
     }
@@ -125,7 +135,7 @@ class Calendar_CalendarController extends AuthenticatedController
         $this->event = $this->calendar->getEvent($event_id);
         
         if ($this->event->isNew()) {
-            $this->event = $this->calendar->getNewEvent();
+         //   $this->event = $this->calendar->getNewEvent();
             if (Request::get('isdayevent')) {
                 $this->event->setStart(mktime(0, 0, 0, date('n', $this->atime),
                         date('j', $this->atime), date('Y', $this->atime)));
@@ -138,7 +148,6 @@ class Calendar_CalendarController extends AuthenticatedController
             $this->event->setAuthorId($GLOBALS['user']->id);
             $this->event->setEditorId($GLOBALS['user']->id);
             $this->event->setAccessibility('PRIVATE');
-            $this->attendees = array($this->event);
             if (!Request::isXhr()) {
                 PageLayout::setTitle($this->getTitle($this->calendar, _('Neuer Termin')));
             }
@@ -147,11 +156,20 @@ class Calendar_CalendarController extends AuthenticatedController
             // show information in dialog instead
             if (!$this->event->havePermission(Event::PERMISSION_WRITABLE)
                     || $this->event instanceof CourseEvent) {
-                $this->redirect($this->url_for('calendar/single/event/' . implode('/',
-                        array($this->range_id, $this->event->event_id))));
+                if ($this->event->attendees->count() > 1) {
+                    if ($this->event->group_status) {
+                        $this->redirect($this->url_for('calendar/single/edit_status/' . implode('/',
+                            array($this->range_id, $this->event->event_id))));
+                    } else {
+                        $this->redirect($this->url_for('calendar/single/event/' . implode('/',
+                            array($this->range_id, $this->event->event_id))));
+                    }
+                } else {
+                    $this->redirect($this->url_for('calendar/single/event/' . implode('/',
+                            array($this->range_id, $this->event->event_id))));
+                }
                 return null;
             }
-            $this->attendees = $this->event->getAttendees();
             if (!Request::isXhr()) {
                 PageLayout::setTitle($this->getTitle($this->calendar, _('Termin bearbeiten')));
             }
@@ -159,6 +177,7 @@ class Calendar_CalendarController extends AuthenticatedController
         
         if (get_config('CALENDAR_GROUP_ENABLE')
                 && $this->calendar->getRange() == Calendar::RANGE_USER) {
+            /*
             $search_obj = new SQLSearch("SELECT auth_user_md5.user_id, {$GLOBALS['_fullname_sql']['full_rev']} as fullname, username, perms "
                 . "FROM calendar_user "
                 . "LEFT JOIN auth_user_md5 ON calendar_user.owner_id = auth_user_md5.user_id "
@@ -172,6 +191,30 @@ class Calendar_CalendarController extends AuthenticatedController
                 . "OR Nachname LIKE :input OR {$GLOBALS['_fullname_sql']['full_rev']} LIKE :input "
                 . ") ORDER BY fullname ASC",
                 _('Person suchen'), 'user_id');
+             * 
+             */
+            
+            
+            // SEMBBS
+            // Eintrag von Terminen bereits ab PERMISSION_READABLE
+            $search_obj = new SQLSearch('SELECT DISTINCT auth_user_md5.user_id, '
+                . $GLOBALS['_fullname_sql']['full_rev'] . ' as fullname, username, perms '
+                . 'FROM calendar_user '
+                . 'LEFT JOIN auth_user_md5 ON calendar_user.owner_id = auth_user_md5.user_id '
+                . 'LEFT JOIN user_info ON (auth_user_md5.user_id = user_info.user_id) '
+                . 'WHERE calendar_user.user_id = '
+                . DBManager::get()->quote($GLOBALS['user']->id)
+                . ' AND calendar_user.permission >= ' . Event::PERMISSION_READABLE
+                . ' AND (username LIKE :input OR Vorname LIKE :input '
+                . "OR CONCAT(Vorname,' ',Nachname) LIKE :input "
+                . "OR CONCAT(Nachname,' ',Vorname) LIKE :input "
+                . 'OR Nachname LIKE :input OR '
+                . $GLOBALS['_fullname_sql']['full_rev'] . ' LIKE :input '
+                . ') ORDER BY fullname ASC',
+                _('Nutzer suchen'), 'user_id');
+            // SEMBBS
+            
+            
             $this->quick_search = QuickSearch::get('user_id', $search_obj)
                     ->fireJSFunctionOnSelect('STUDIP.Messages.add_adressee');
             
@@ -216,6 +259,119 @@ class Calendar_CalendarController extends AuthenticatedController
             } else {
                 PageLayout::postMessage(MessageBox::success(_('Der Termin wurde gespeichert.')));
                 $this->relocate('calendar/single/' . $this->last_view, array('atime' => $this->atime));
+            }
+        }
+        
+        $this->createSidebar('edit', $this->calendar);
+        $this->createSidebarFilter();
+    }
+    
+    public function edit_status_action($range_id, $event_id)
+    {
+        global $user;
+        
+        $this->range_id = $range_id ?: $this->range_id;
+        $this->calendar = new SingleCalendar($this->range_id);
+        $this->event = $this->calendar->getEvent($event_id);
+        $stored = false;
+        $old_status = $this->event->group_status;
+        
+        if (Request::submitted('store')) {
+            
+            if ($this->event->isNew()
+                || !get_config('CALENDAR_GROUP_ENABLE')
+                || !$this->calendar->havePermission(Calendar::PERMISSION_OWN)
+                || !$this->calendar->getRange() == Calendar::RANGE_USER
+                || !$this->event->havePermission(Event::PERMISSION_READABLE)) {
+                throw new AccessDeniedException();
+            }
+            
+            $status = Request::int('status', 1);
+            if ($status > 0 && $status < 6) {
+                $this->event->group_status = $status;
+                $stored = $this->event->store();
+            }
+
+            if ($stored !== false) {
+                if ($stored === 0) {
+                    if (Request::isXhr()) {
+                        header('X-Dialog-Close: 1');
+                        exit;
+                    } else {
+                        PageLayout::postMessage(MessageBox::success(_('Der Teilnahmestatus wurde nicht geändert.')));
+                        $this->relocate('calendar/single/' . $this->last_view, array('atime' => $this->atime));
+                    }
+                } else {
+                    // send message to organizer...
+                    if ($this->event->author_id != $user->id) {
+                        setTempLanguage($this->event->author_id);
+                        $message = new messaging();
+                        $msg_text = sprintf(_('%s hat den Terminvorschlag für "%s" am %s von %s auf %s geändert.'),
+                                get_fullname(), $this->event->getTitle(),
+                                strftime('%c', $this->event->getStart()),
+                                $this->event->toStringGroupStatus($old_status), $this->event->toStringGroupStatus());
+                        if ($status == CalendarEvent::PARTSTAT_DELEGATED) {
+                            $msg_text .= "\n"
+                                    . sprintf(_('Der Termin wird akzeptiert, aber %s nimmt nicht selbst am Termin teil.'),
+                                    get_fullname());
+                        }
+                        $subject = sprintf(_('Terminvorschlag am %s von %s %s'),
+                                strftime('%c', $this->event->getStart()), get_fullname(), $this->event->toStringGroupStatus());
+                        $msg_text .= "\n\n**" . _('Beginn:') . '** ';
+                        if ($this->event->isDayEvent()) {
+                            $msg_text .= strftime('%x ', $this->event->getStart());
+                            $msg_text .= _('ganztägig');
+                        } else {
+                            $msg_text .= strftime('%c', $this->event->getStart());
+                        }
+                        $msg_text .= "\n**" . _('Ende:') . '** ';
+                        if ($this->event->isDayEvent()) {
+                            $msg_text .= strftime('%x ', $this->event->getEnd());
+                        } else {
+                            $msg_text .= strftime('%c', $this->event->getEnd());
+                        }
+                        $msg_text .= "\n**" . _('Zusammenfassung:') . '** ' . $this->event->getTitle() . "\n";
+                        if ($event_data = $this->event->getDescription()) {
+                            $msg_text .= '**' . _('Beschreibung:') . "** $event_data\n";
+                        }
+                        if ($event_data = $this->event->toStringCategories()) {
+                            $msg_text .= '**' . _('Kategorie:') . "** $event_data\n";
+                        }
+                        if ($event_data = $this->event->toStringPriority()) {
+                            $msg_text .= '**' . _('Priorität:') . "** $event_data\n";
+                        }
+                        if ($event_data = $this->event->toStringAccessibility()) {
+                            $msg_text .= '**' . _('Zugriff:') . "** $event_data\n";
+                        }
+                        if ($event_data = $this->event->toStringRecurrence()) {
+                            $msg_text .= '**' . _('Wiederholung:') . "** $event_data\n";
+                        }
+                        $member = array();
+                        foreach ($this->event->attendees as $attendee) {
+                            if ($attendee->range_id == $this->event->getAuthorId()) {
+                                $member[] = $attendee->user->getFullName()
+                                    . ' ('. _('Organisator') . ')';
+                            } else {
+                                $member[] = $attendee->user->getFullName()
+                                        . ' (' . $this->event->toStringGroupStatus($attendee->group_status)
+                                        . ')';
+                            }
+                        }
+                        $msg_text .= '**' . _('Teilnehmer:') . '** ' . implode(', ', $member);
+                        $msg_text .= "\n\n" . _('Hier kommen Sie direkt zum Termin in Ihrem Kalender:') . "\n";
+                        $msg_text .= $GLOBALS['ABSOLUTE_URI_STUDIP']
+                                . URLHelper::getURL('dispatch.php/calendar/edit/'
+                                . $this->event->getAuthorId() . '/' . $this->event->event_id);
+                        $message->insert_message(
+                                addslashes($msg_text),
+                                array(get_username($this->event->getAuthorId())),
+                                $this->event->range_id,
+                                '', '', '', '', addslashes($subject));
+                        restoreLanguage();
+                    }
+                    PageLayout::postMessage(MessageBox::success(_('Der Teilnahmestatus wurde gespeichert.')));
+                    $this->relocate('calendar/single/' . $this->last_view, array('atime' => $this->atime));
+                }
             }
         }
         

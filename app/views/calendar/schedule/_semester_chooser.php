@@ -1,4 +1,6 @@
-<form method="get" action="<?= $controller->url_for('calendar/schedule/index') ?>">
+<form method="post" action="<?= $controller->url_for(
+    isset($inst_mode) && $inst_mode == true ? 'calendar/instschedule/index' : 'calendar/schedule/index'
+) ?>">
     <select name="semester_id" onchange="jQuery(this).closest('form').submit();">
     <? foreach ($semesters as $semester) : ?>
         <? if ($semester['ende'] > time() - strtotime('1year 1day')) : ?>
@@ -10,6 +12,6 @@
     <? endforeach ?>
     </select>
     <noscript>
-        <?= Assets::input("icons/16/green/accept.png", array('type' => "image", 'class' => "middle", 'title' => _('auswählen'))) ?>
+        <?= Icon::create('accept', 'accept', ['title' => _('auswählen')])->asInput(["type" => "image", "class" => "middle"]) ?>
     </noscript>
 </form>

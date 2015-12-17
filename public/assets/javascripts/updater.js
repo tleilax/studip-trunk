@@ -257,7 +257,7 @@
     // Start js updater if global settings says so
     $(window).on('load', function () {
         if (STUDIP.jsupdate_enable) {
-            STUDIP.JSUpdater.start();
+            STUDIP.JSUpdater.stop();
         }
     });
     

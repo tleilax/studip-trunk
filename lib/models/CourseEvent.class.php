@@ -79,14 +79,14 @@ class CourseEvent extends CourseDate implements Event
             ':end'     => $end->getTimestamp()
         ));
        $event_collection = array();
-        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
-            $event = new CourseEvent();
-            $event->setData($row);
-            $event->setNew(false);
-            // related persons (dozenten) or groups
-            if (self::checkRelated($event, $user_id)) {
-                $event_collection[] = $event;
-            }
+       foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+           $event = new CourseEvent();
+           $event->setData($row);
+           $event->setNew(false);
+           // related persons (dozenten) or groups
+           if (self::checkRelated($event, $user_id)) {
+               $event_collection[] = $event;
+           }
         }
         $event_collection = SimpleORMapCollection::createFromArray($event_collection, false);
         $event_collection->setClassName('Event');

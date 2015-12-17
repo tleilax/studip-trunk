@@ -1,4 +1,5 @@
 section.contentbox {
+
     border-color: @content-color-40;
     border-style: solid;
     border-width: 1px;
@@ -32,9 +33,10 @@ section.contentbox {
         }
 
         nav {
-            vertical-align: middle;
-            margin-right: 4px;
+            vertical-align: text-top;
+            padding: 2px 5px 0 5px;
             text-align: right;
+            line-height: inherit;
             * {
                 padding: 3px;
                 padding-left: 2px;
@@ -69,20 +71,19 @@ section.contentbox {
         border-width: 1px;
         margin: 10px;
 
-        > p, > section, > footer, > div {
-            padding: 0 10px 0 10px;
-            max-height: 0px;
-            opacity: 0;
-            overflow: auto;
-            .transition(opacity 0.3s);
-        }
-
         div, p {
             margin: 0;
         }
 
         section {
             border-width: 0;
+            margin-top: 0;
+            margin-bottom: 0;
+            padding: 0;
+
+            article {
+                border: none;
+            }
 
             header {
                 background: transparent;
@@ -105,16 +106,26 @@ section.contentbox {
 
         header {
             h1 a {
-                .icon-before('blue/arr_1right.png');
+                .icon('before', "arr_1right", 'clickable');
                 &:before {
                     .transition(all 200ms ease 0s);
-                    vertical-align: bottom;
+                    margin-top: 2px;
                 }
             }
             nav {
                 * {
                     display: inline-block;
                     vertical-align: middle;
+                }
+
+                span {
+                    &:last-child {
+                        border-right: none;
+                        padding-right: 0px;
+                    }
+                    display: inline-block;
+                    border-right: 1px solid @content-color;
+                    padding: 0px 5px;
                 }
             }
         }
@@ -149,6 +160,13 @@ section.contentbox {
             }
         }
 
+        &:not(.open) header ~ * {
+            max-height: 0px;
+            opacity: 0;
+            overflow: auto;
+            .transition(opacity 0.3s);
+        }
+
         &.open {
             > p, > section, > footer, > div {
                 max-height: none;
@@ -167,7 +185,7 @@ section.contentbox {
 
         &.new {
             header h1 a {
-                .icon-before('red/arr_1right.png');
+                .icon('before', "arr_1right", 'new');
             }
         }
     }

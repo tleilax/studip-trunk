@@ -124,7 +124,13 @@
                         <? endforeach; ?>
                     </select>
                     <? if ($calendar->getPermissionByUser($GLOBALS['user']->id) == Calendar::PERMISSION_OWN) : ?>
+                    <? $info = _('Private und vertrauliche Termine sind nur für Sie sichtbar.') ?>
+                    
+                    <? /* SEMBBS nur private und vertrauliche Termine
                     <? $info = _('Private und vertrauliche Termine sind nur für Sie sichtbar. Öffentliche Termine werden auf ihrer internen Homepage auch anderen Nutzern bekanntgegeben.') ?>
+                     * 
+                     */ ?>
+                    
                     <? elseif ($calendar->getRange() == Calendar::RANGE_SEM) : ?>
                     <? $info = _('In Veranstaltungskalendern können nur private Termine angelegt werden.') ?>
                     <? elseif ($calendar->getRange() == Calendar::RANGE_INST) : ?>
@@ -396,7 +402,7 @@
                         <li>
                             <label>
                                 <input type="checkbox" name="del_exc_dates[]" value="<?= strftime('%d.%m.%Y', $exception) ?>" style="display: none;">
-                                <span><?= strftime('%x', $exception) ?><?= Assets::img('icons/16/blue/trash.png', array('title' => _('Ausnahme löschen'), 'style' => 'vertical-align: text-top;')) ?></span>
+                                <span><?= strftime('%x', $exception) ?><?= Icon::create('trash', 'clickable', ['title' => _('Ausnahme löschen'), 'style' => 'vertical-align: text-top;'])->asImg() ?></span>
                             </label>
                             <input type="hidden" name="exc_dates[]" value="<?= strftime('%d.%m.%Y', $exception) ?>">
                         </li>
@@ -412,7 +418,7 @@
                     </ul>
                     <input style="vertical-align: top; opacity: 0.8;" type="text" size="12" name="exc_date" id="exc-date" value="<?= strftime('%x', $atime) ?>">
                     <span style="vertical-align: top;" onclick="STUDIP.CalendarDialog.addException(); return false;">
-                        <?= Assets::input('icons/16/blue/add.png', array('class' => 'text-bottom', 'title' => _('Ausnahme hinzufügen'))) ?>
+                        <?= Icon::create('add', 'clickable', ['title' => _('Ausnahme hinzufügen')])->asInput(["class" => 'text-bottom']) ?>
                     </span>
                 </td>
             </tr>

@@ -20,8 +20,7 @@ use Studip\Button,
             <span class="required"><?= _('Titel') ?></span>
             <input required id="tab_name" type="text" name="tab_name"
                    value="<?= htmlReady($scm->tab_name) ?>"
-                   placeholder="<?= _('Titel der Informationsseite') ?>"
-                   maxlength="20">
+                   placeholder="<?= _('Titel der Informationsseite') ?>">
         </label>
 
         <label>
@@ -36,7 +35,7 @@ use Studip\Button,
 
         <label>
             <?= _('Inhalt') ?>
-            <textarea style="width: 100%;" class="add_toolbar" name="content"><?= htmlReady($scm->content) ?></textarea>
+            <textarea style="width: 100%;" class="add_toolbar wysiwyg" name="content"><?= htmlReady($scm->content) ?></textarea>
         </label>
     </fieldset>
 

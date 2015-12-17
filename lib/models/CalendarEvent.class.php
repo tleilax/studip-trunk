@@ -27,6 +27,12 @@
  */
 class CalendarEvent extends SimpleORMap implements Event
 {
+    const PARTSTAT_TENTATIVE = 1;
+    const PARTSTAT_ACCEPTED = 2;
+    const PARTSTAT_DECLINED = 3;
+    const PARTSTAT_DELEGATED = 4;
+    const PARTSTAT_NEEDS_ACTION = 5;
+    
     private $properties = null;
     private $permission_user_id = null;
 
@@ -52,6 +58,11 @@ class CalendarEvent extends SimpleORMap implements Event
             'on_delete' => 'delete',
             'on_store' => 'store'
         );
+        $config['has_many']['attendees'] = array(
+            'class_name' => 'CalendarEvent',
+            'foreign_key' => 'event_id',
+            'assoc_foreign_key' => 'event_id'
+        );
         $config['additional_fields']['type'] = true;
         $config['additional_fields']['name'] = true;
         $config['additional_fields']['author_id'] = true;
@@ -59,10 +70,23 @@ class CalendarEvent extends SimpleORMap implements Event
         $config['additional_fields']['title'] = true;
         $config['additional_fields']['start'] = true;
         $config['additional_fields']['end'] = true;
+        $config['additional_fields']['owner']['get'] = 'getOwner';
 
         parent::configure($config);
     }
 
+    public function getOwner()
+    {
+        if ($this->user) {
+            return $this->user;
+        } else if ($this->course) {
+            return $this->course;
+        } else if ($this->institute) {
+            return $this->institute;
+        }
+        return null;
+    }
+    
     public static function deleteBySQL($where, $params = array())
     {
         $ret = parent::deleteBySQL($where, $params);
@@ -121,7 +145,31 @@ class CalendarEvent extends SimpleORMap implements Event
         }
         return $as_array ? $categories : implode(', ', $categories);
     }
-
+    
+    /**
+     * Returns the name of the group status.
+     * Returns an empty string status is unknown.
+     *
+     * @return string All categories as list.
+     */
+    public function toStringGroupStatus($status = null)
+    {
+        if (is_null($status)) {
+            $status = $this->group_status;
+        }
+        switch ($status) {
+            case CalendarEvent::PARTSTAT_TENTATIVE :
+                return _('abwartend');
+            case CalendarEvent::PARTSTAT_ACCEPTED :
+                return _('angenommen');
+            case CalendarEvent::PARTSTAT_DECLINED :
+                return _('abgelehnt');
+            case CalendarEvent::PARTSTAT_DELEGATED :
+                return _('angenommen (keine Teilnahme)');
+        }
+        return '';
+    }
+    
     /**
      * Returns all values that defines a recurrence rule or a single value
      * named by $index.
@@ -653,7 +701,7 @@ class CalendarEvent extends SimpleORMap implements Event
     {
         return $this->event->end - $this->event->start;
     }
-        
+
     /**
      * Returns the location.
      * Without permission or the location is not set an empty string is returned.
@@ -851,27 +899,24 @@ class CalendarEvent extends SimpleORMap implements Event
      */
     public function getAccessibilityOptions($permission)
     {
-        if ($this->getType() != 'user') {
-            $options = array('PRIVATE' => _('privat'));
-        } else {
-            switch ($permission) {
-                case Calendar::PERMISSION_OWN :
-                case Calendar::PERMISSION_ADMIN :
-                    $options = array(
-                        'PUBLIC' => _('öffentlich'),
-                        'PRIVATE' => _('privat'),
-                        'CONFIDENTIAL' => _('vertraulich')
-                    );
-                    break;
-                case Calendar::PERMISSION_WRITABLE :
-                    $options = array(
-                        'PRIVATE' => _('privat'),
-                        'CONFIDENTIAL' => _('vertraulich')
-                    );
-                    break;
-                default :
-                    $options = array();
-            }
+        switch ($permission) {
+            case Calendar::PERMISSION_OWN :
+            case Calendar::PERMISSION_ADMIN :
+                $options = array(
+                    // SEMBBS nur private und vertrauliche Termine
+                    // 'PUBLIC' => _('öffentlich'),
+                    'PRIVATE' => _('privat'),
+                    'CONFIDENTIAL' => _('vertraulich')
+                );
+                break;
+            case Calendar::PERMISSION_WRITABLE :
+                $options = array(
+                    'PRIVATE' => _('privat'),
+                    'CONFIDENTIAL' => _('vertraulich')
+                );
+                break;
+            default :
+                $options = array();
         }
         return $options;
     }
@@ -991,7 +1036,8 @@ class CalendarEvent extends SimpleORMap implements Event
                 'DTSTAMP' => time(),
                 'EVENT_TYPE' => 'cal',
                 'STUDIP_AUTHOR_ID' => $this->event->author_id,
-                'STUDIP_EDITOR_ID' => $this->event->editor_id);
+                'STUDIP_EDITOR_ID' => $this->event->editor_id,
+                'STUDIP_GROUP_STATUS' => $this->group_status);
         }
         return $this->properties;
     }
@@ -1039,7 +1085,8 @@ class CalendarEvent extends SimpleORMap implements Event
             ':end'      => $end->getTimestamp()
         ));
         $i = 0;
-        $event_collection = array();
+        $event_collection = new SimpleORMapCollection();
+        $event_collection->setClassName('Event');
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
             $event_collection[$i] = new CalendarEvent();
             $event_collection[$i]->setData($row);
@@ -1050,8 +1097,6 @@ class CalendarEvent extends SimpleORMap implements Event
             $event_collection[$i]->event = $event;
             $i++;
         }
-        $event_collection = SimpleORMapCollection::createFromArray($event_collection, false);
-        $event_collection->setClassName('Event');
         return $event_collection;
     }
 
@@ -1075,9 +1120,21 @@ class CalendarEvent extends SimpleORMap implements Event
         }
         if (!$permissions[$user_id][$this->event_id]) {
             if ($user_id == $this->event->author_id) {
-                $permissions[$user_id][$this->event_id] = Event::PERMISSION_WRITABLE;
-            } else if ($user_id == $this->range_id) {
-                $permissions[$user_id][$this->event_id] = Event::PERMISSION_WRITABLE;
+                $permissions[$user_id][$this->event_id] = Event::PERMISSION_OWN;
+            } else
+            
+            // SEMBBS
+            // Admins dürfen alle Termine löschen
+            if ($GLOBALS['perm']->have_perm('admin')) {
+                $permissions[$user_id][$this->event_id] = Event::PERMISSION_DELETABLE;
+            }
+            
+            else if ($user_id == $this->range_id) {
+                if ($this->group_status) {
+                    $permissions[$user_id][$this->event_id] = Event::PERMISSION_READABLE;
+                } else {
+                    $permissions[$user_id][$this->event_id] = Event::PERMISSION_DELETABLE;
+                }
             } else {
                 switch ($this->getType()) {
                     case 'user':
@@ -1194,9 +1251,5 @@ class CalendarEvent extends SimpleORMap implements Event
     {
         return $this->event->editor;
     }
-
-    public function getAttendees()
-    {
-        return self::findByEvent_id($this->event_id);
-    }
+    
 }

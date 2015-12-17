@@ -76,7 +76,7 @@ class StreamsController extends PluginController {
             throw new AccessDeniedException();
         }
         PageLayout::setTitle($GLOBALS['SessSemName']["header_line"]." - ".$this->plugin->getDisplayTitle());
-        Navigation::getItem("/course/blubberforum")->setImage('icons/16/black/blubber.png');
+        Navigation::getItem("/course/blubberforum")->setImage(Icon::create('blubber', 'info'));
         Navigation::activateItem("/course/blubberforum");
         $coursestream = BlubberStream::getCourseStream($_SESSION['SessionSeminar']);
         $this->tags = $coursestream->fetchTags();
@@ -257,8 +257,8 @@ class StreamsController extends PluginController {
         $thread->store();
 
         BlubberPosting::$mention_posting_id = $thread->getId();
-        StudipTransformFormat::addStudipMarkup("mention1", '@\"[^\n\"]*\"', "", "BlubberPosting::mention");
-        StudipTransformFormat::addStudipMarkup("mention2", '@[^\s]*[\d\w_]+', "", "BlubberPosting::mention");
+        StudipTransformFormat::addStudipMarkup("mention1", '(?:^|\W)(@\"[^\n\"]*\")', "", "BlubberPosting::mention");
+        StudipTransformFormat::addStudipMarkup("mention2", '(?:^|\W)(@[^\s]*[\d\w_]+)', "", "BlubberPosting::mention");
         $content = transformBeforeSave(studip_utf8decode(Request::get("content")));
 
         if (strpos($content, "\n") !== false) {
@@ -658,7 +658,7 @@ class StreamsController extends PluginController {
         }
 
         if ($this->thread['context_type'] === "course") {
-            Navigation::getItem("/course/blubberforum")->setImage('icons/16/black/blubber');
+            Navigation::getItem("/course/blubberforum")->setImage(Icon::create('blubber', 'info'));
             Navigation::activateItem('/course/blubberforum');
         } elseif($this->thread['context_type'] === "public") {
             if (Navigation::hasItem('/profile')) {

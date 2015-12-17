@@ -141,6 +141,10 @@
             return this.instances.hasOwnProperty(id);
         },
         getInstance: function (id) {
+            if (this.stack.length === 0) {
+                this.disableScrolling();
+            }
+
             id = id || 'default';
             if (!this.hasInstance(id)) {
                 this.instances[id] = {
@@ -162,12 +166,22 @@
                 var index = this.stack.indexOf(id);
                 this.stack.splice(index, 1);
             }
+
+            if (this.stack.length === 0) {
+                this.enableScrolling();
+            }
         },
         shouldOpen: function () {
             return $(window).innerWidth() >= 800 && $(window).innerHeight() >= 400;
         },
         handlers: {
             header: {}
+        },
+        disableScrolling: function () {
+            $('html').css('overflow', 'hidden');
+        },
+        enableScrolling: function () {
+            $('html').css('overflow', '');
         }
     };
 
@@ -190,8 +204,11 @@
     };
     // Handler for HTTP header X-Dialog-Execute: Execute arbitrary function
     STUDIP.Dialog.handlers.header['X-Dialog-Execute'] = function (value, options, xhr) {
-        var chunks,
-            callback = window;
+        var chunks = value.trim().split('.'),
+            callback = window,
+            payload = xhr.getResponseHeader('Content-Type').match(/json/)
+                ? $.parseJSON(xhr.responseText)
+                : xhr.responseText;
 
         // Try to parse value as JSON (value might be {func: 'foo', payload: {}})
         try {
@@ -395,10 +412,11 @@
             helper.css({
                 position: 'absolute',
                 left: '-10000px',
-                top: '-10000px'
+                top: '-10000px',
+                width: 'auto'
             }).appendTo('body');
-            // Hide buttons so they do not account to width or height
-            $('[data-dialog-button]', helper).hide();
+            // Prevent buttons from wrapping
+            $('[data-dialog-button]', helper).css('white-space', 'nowrap');
             // Calculate width and height
             // TODO: The value of 113 shouldn't be hardcoded
             width  = Math.min(helper.outerWidth(true) + dialog_margin, width);
@@ -408,7 +426,7 @@
                 height = Math.max(200, height);
             }
             // Remove helper element
-           helper.remove();
+//            helper.remove();
         } else if (options.size && options.size === 'big') {
             width  = $('body').width() * 0.9;
             height = $('body').height() * 0.8;
@@ -452,7 +470,7 @@
             },
             resizeStop: function (event, ui) {
                 var position = [Math.floor(ui.position.left) - $(window).scrollLeft(),
-                                Math.floor(ui.position.top) - $(window).scrollTop()];
+                    Math.floor(ui.position.top) - $(window).scrollTop()];
                 $(event.target).parent().css('position', 'fixed');
                 $(event.target).dialog('option', 'position', position);
             },
@@ -494,7 +512,10 @@
         }
 
         // Blur background
-        $('#layout_wrapper').css('filter', 'blur(' + STUDIP.Dialog.stack.length + 'px)');
+        $('#layout_wrapper').css({
+            WebkitFilter: 'blur(' + STUDIP.Dialog.stack.length + 'px)',
+            filter: 'blur(' + STUDIP.Dialog.stack.length + 'px)'
+        });
 
         // Create/update dialog
         instance.element.dialog(dialog_options);
@@ -534,12 +555,50 @@
             STUDIP.Dialog.removeInstance(options.id);
 
             // Remove background blur
-            $('#layout_wrapper').css('filter', 'blur(' + STUDIP.Dialog.stack.length + 'px)');
+            $('#layout_wrapper').css({
+                WebkitFilter: 'blur(' + STUDIP.Dialog.stack.length + 'px)',
+                filter: 'blur(' + STUDIP.Dialog.stack.length + 'px)'
+            });
         }
 
         if (options['reload-on-close']) {
             window.location.reload();
         }
+    };
+
+    // Specialized confirmation dialog
+    STUDIP.Dialog.confirm = function (question, yes_callback, no_callback) {
+        STUDIP.Dialog.show(question, {
+            id: 'confirmation-dialog',
+            title: 'Bitte bestätigen Sie die Aktion'.toLocaleString(),
+            size: 'fit',
+            wikilink: false,
+            dialogClass: 'studip-confirmation',
+            buttons: {
+                accept: {
+                    text: 'Ja'.toLocaleString(),
+                    click: function () {
+                        STUDIP.Dialog.close({id: 'confirmation-dialog'});
+
+                        if ($.isFunction(yes_callback)) {
+                            yes_callback();
+                        }
+                    },
+                    'class': 'accept'
+                },
+                cancel: {
+                    text: 'Nein'.toLocaleString(),
+                    click: function () {
+                        STUDIP.Dialog.close({id: 'confirmation-dialog'});
+
+                        if ($.isFunction(no_callback)) {
+                            no_callback();
+                        }
+                    },
+                    'class': 'cancel'
+                }
+            }
+        });
     };
 
     // Actual dialog handler

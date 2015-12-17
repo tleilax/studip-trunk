@@ -59,9 +59,17 @@
     </caption>
     <thead>
     <tr class="sortable">
-        <th width="2%">
+    <? if (Config::get()->ADMIN_COURSES_SHOW_COMPLETE): ?>
+        <th <? if ($sortby === 'completion') printf('class="sort%s"', strtolower($sortFlag)) ?>>
+            <a href="<?= URLHelper::getLink('', array('sortby' => 'completion', 'sortFlag' => strtolower($sortFlag))) ?>" class="course-completion">
+                <?= _('Bearbeitungsstatus') ?>
+            </a>
+        </th>
+    <? else: ?>
+        <th>
             &nbsp;
         </th>
+    <? endif; ?>
         <? if (in_array('number', $view_filter)) : ?>
             <th <?= ($sortby == 'VeranstaltungsNummer') ? sprintf('class="sort%s"', strtolower($sortFlag)) : '' ?>>
                 <a href="<?=
@@ -145,12 +153,19 @@
     </thead>
     <tbody>
     <? foreach ($courses as $semid => $values) { ?>
-        <tr>
+        <tr id="course-<?= $semid ?>">
             <td>
+            <? if (Config::get()->ADMIN_COURSES_SHOW_COMPLETE): ?>
+                <a href="<?= $controller->url_for('admin/courses/toggle_complete/' . $semid) ?>"
+                   class="course-completion <? if ($values['is_complete']) echo 'course-complete'; ?>">
+                       <?= _('Bearbeitungsstatus ändern') ?>
+                </a>
+            <? else: ?>
                 <?=
                 CourseAvatar::getAvatar($semid)->is_customized()
                     ? CourseAvatar::getAvatar($semid)->getImageTag(Avatar::SMALL, array('title' => tooltip2(trim($values["Name"]))))
-                    : Assets::img('icons/20/blue/seminar.png', tooltip2(trim($values["Name"]))) ?>
+                    : Icon::create('seminar', 'clickable', ['title' => trim($values["Name"])])->asImg(20) ?>
+            <? endif; ?>
             </td>
             <? if (in_array('number', $view_filter)) : ?>
                 <td>
@@ -164,10 +179,10 @@
                     <a href="<?= URLHelper::getLink('seminar_main.php', array('auswahl' => $semid)) ?>">
                         <?= htmlReady(trim($values['Name'])) ?>
                     </a>
-                    <a data-dialog="buttons=false;size=auto" href="<?= $controller->url_for(sprintf('course/details/index/%s', $semid)) ?>">
+                    <a data-dialog="buttons=false" href="<?= $controller->url_for(sprintf('course/details/index/%s', $semid)) ?>">
                         <? $params = tooltip2(_("Veranstaltungsdetails anzeigen")); ?>
                         <? $params['style'] = 'cursor: pointer'; ?>
-                        <?= Assets::img('icons/16/grey/info-circle.png', $params) ?>
+                        <?= Icon::create('info-circle', 'inactive')->asImg($params) ?>
                     </a>
                     <? if ($values["visible"] == 0) : ?>
                         <?= _("(versteckt)") ?>
@@ -180,14 +195,11 @@
                 </td>
             <? endif ?>
             <? if (in_array('room_time', $view_filter)) : ?>
-                <td>
-                    <? $sem_helper = new Seminar(Course::buildExisting(array('seminar_id' => $semid)));
-                    $_room  = $sem_helper->getDatesHTML(array(
+                <td class="raumzeit">
+                    <?= Seminar::GetInstance($semid)->getDatesHTML(array(
                         'semester_id' => $semester->id,
                         'show_room'   => true
-                    ));
-                    $_room  = $_room ? $_room : "nicht angegeben";?>
-                    <?= $_room ?>
+                    )) ?: _('nicht angegeben') ?>
                 </td>
             <? endif ?>
             <? if (in_array('teachers', $view_filter)) : ?>
@@ -202,7 +214,7 @@
             <? if (in_array('members', $view_filter)) : ?>
                 <td style="text-align: center;">
                     <a title="<?=_('Teilnehmende')?>" href="<?= URLHelper::getLink('dispatch.php/course/members', array('cid' => $semid))?>">
-                        <?= $values["Teilnehmende"] ?>
+                        <?= $values["teilnehmer"] ?>
                     </a>
                 </td>
             <? endif ?>
@@ -225,12 +237,11 @@
                 <? if (!empty($values['navigation'])) : ?>
                     <? foreach (MyRealmModel::array_rtrim($values['navigation']) as $key => $nav)  : ?>
                         <? if (isset($nav) && $nav->isVisible(true)) : ?>
-                            <? $image = $nav->getImage(); ?>
                             <a href="<?=
                             UrlHelper::getLink('seminar_main.php',
                                 array('auswahl'     => $semid,
                                       'redirect_to' => strtr($nav->getURL(), '?', '&'))) ?>" <?= $nav->hasBadgeNumber() ? 'class="badge" data-badge-number="' . intval($nav->getBadgeNumber()) . '"' : '' ?>>
-                                <?= Assets::img($image['src'], array_map("htmlready", $image)) ?>
+                                <?= $nav->getImage()->asImg(20, $nav->getLinkAttributes()) ?>
                             </a>
                         <? elseif (is_string($key)) : ?>
                             <?=

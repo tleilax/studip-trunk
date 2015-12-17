@@ -147,7 +147,7 @@ class AdminCourseFilter
             )
         );
         $this->settings['query']['where'] = array();
-        $this->settings['query']['orderby'] = "seminare.name";
+        $this->settings['query']['orderby'] = Config::get()->IMPORTANT_SEMNUMBER ? "seminare.veranstaltungsnummer, seminare.name" : "seminare.name";
     }
 
     /**
@@ -236,7 +236,7 @@ class AdminCourseFilter
             'table' => "auth_user_md5",
             'on' => "dozenten.user_id = dozentendata.user_id"
         );
-        $this->settings['query']['where']['search'] = "(CONCAT(seminare.VeranstaltungsNummer, ' ', seminare.name, ' ', dozentendata.Nachname) LIKE :search
+        $this->settings['query']['where']['search'] = "(CONCAT(seminare.VeranstaltungsNummer, ' ', seminare.name, ' ', seminare.Untertitel, ' ', dozentendata.Nachname) LIKE :search
             OR CONCAT(dozentendata.Nachname, ', ', dozentendata.Vorname) LIKE :search
             OR CONCAT(dozentendata.Vorname, ' ', dozentendata.Nachname) LIKE :search
             OR dozentendata.Vorname LIKE :search
@@ -259,7 +259,7 @@ class AdminCourseFilter
         if (!in_array($flag, words('ASC DESC'))) {
             throw new Exception("Sortierreihenfolge undefiniert.");
         }
-        if (in_array($attribute, words('VeranstaltungsNummer Name status teilnehmer waiting prelim'))) {
+        if (in_array($attribute, words('VeranstaltungsNummer Name status teilnehmer waiting prelim is_complete'))) {
             $this->settings['query']['orderby'] = $attribute . ' ' . $flag;
         }
         return $this;

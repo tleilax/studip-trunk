@@ -171,27 +171,6 @@ function getTemplateDataForSingleDate($val, $cycle_id = '') {
     return $tpl;
 }
 
-/*
- * used by Seminar.class.php
- *
- * user defined sort function for issues
- */
-function myIssueSort($a, $b) {
-    if ($a->getPriority() == $b->getPriority()) {
-        return 0;
-    }
-    return ($a->getPriority() < $b->getPriority()) ? -1 : 1;
-}
-
-function sort_termine($a, $b) {
-    if ($a->getStartTime() == $b->getStartTime()) return 0;
-    if ($a->getStartTime() > $b->getStartTime()) {
-        return 1;
-    } else {
-        return -1;
-    }
-}
-
 function getAllSortedSingleDates(&$sem) {
     $turnus = $sem->getFormattedTurnusDates();
 
@@ -201,101 +180,11 @@ function getAllSortedSingleDates(&$sem) {
     }
 
     $termine = array_merge($termine, $sem->getSingleDates(true, false, true));
-    uasort ($termine, 'sort_termine');
+    uasort ($termine, function ($a, $b) {
+        return $a->getStartTime() - $b->getStartTime();
+    });
 
     return $termine;
-}
-
-function getFilterForSemester($semester_id) {
-    $semester = new SemesterData();
-    if ($val = $semester->getSemesterData($semester_id)) {
-        return array('filterStart' => $val['beginn'], 'filterEnd' => $val['ende']);
-    } else {
-        return FALSE;
-    }
-}
-
-function raumzeit_parse_messages($msgs) {
-    $first = true;
-    foreach ($msgs as $msg) {
-        if ($first) {
-            $meldungen['kategorie'] = _("Statusmeldungen:");
-        }
-
-        $zw = explode('§', $msg);
-
-        switch ($zw[0]) {
-            case 'info':
-                $pic = 'icons/16/grey/exclaim.png';
-                $color = '#000000';
-                break;
-
-            case 'error':
-                $pic = 'icons/16/red/decline.png';
-                $color = '#FF2020';
-                break;
-
-            case 'msg':
-                $pic = 'icons/16/green/accept.png';
-                $color = '#008000';
-                break;
-        }
-
-        $meldungen['eintrag'][] = array (
-                'icon' => $pic,
-                'text' => '<font color="'.$color.'">'.$zw[1].'</font>'
-                );
-
-        $first = false;
-    }
-
-    return $meldungen;
-}
-
-function raumzeit_get_semesters(&$sem, &$semester, $filter) {
-    // this function works like raumzeit_get_semester_chooser() but it
-    // returns a data structure for a selectionlist template instead of html code
-
-    $all_semester = $semester->getAllSemesterData();
-    $passed = false;
-    $semester_chooser['all'] = _("Alle Semester");
-    foreach ($all_semester as $val) {
-        if ($sem->getStartSemester() <= $val['vorles_beginn']) $passed = true;
-        if ($passed && ($sem->getEndSemesterVorlesEnde() >= $val['vorles_ende'])) {
-            $semester_chooser[$val['beginn']] = $val['name'];
-        }
-    }
-
-    if (sizeof($semester_chooser) == 2 && !$sem->hasDatesOutOfDuration(true)) {
-        unset($semester_chooser['all']);
-        foreach ($semester_chooser as $beginn => $trash) {
-            $_SESSION['raumzeitFilter'] = $beginn;
-            $filter = $beginn;
-            $selected = $beginn;
-            break;
-        }
-    }
-
-    $selected = $filter;
-
-    $i = 0;
-    foreach ($semester_chooser as $key => $val) {
-
-        // add text and link for each semester
-        $selectionlist[$i]["url"]  = '?cmd=applyFilter&newFilter='.$key;
-        $selectionlist[$i]["value"]  = $key;
-        $selectionlist[$i]["linktext"] = $val;
-
-        // set "selected" status
-        if ($selected == $key) {
-            $selectionlist[$i]["is_selected"] = true;
-        } else {
-            $selectionlist[$i]["is_selected"] = false;
-        }
-        $i++;
-    }
-
-    return $selectionlist;
 }
 
 /**

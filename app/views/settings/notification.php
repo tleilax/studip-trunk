@@ -64,12 +64,12 @@
                     <a class="tree" style="font-weight:bold" name="<?= $id ?>"
                        href="<?= $controller->url_for('settings/notification/close', $id) ?>#<?= $id ?>"
                        <?= tooltip(_('Gruppierung schließen'), true) ?>>
-                       <?= Assets::img('icons/16/blue/arr_1down.png') ?>
+                       <?= Icon::create('arr_1down', 'clickable')->asImg() ?>
                 <? else: ?>
                     <a class="tree" name="<?= $id ?>"
                         href="<?= $controller->url_for('settings/notification/open', $id) ?>#<?= $id ?>"
                        <?= tooltip(_('Gruppierung öffnen'), true) ?>>
-                       <?= Assets::img('icons/16/blue/arr_1right.png') ?>
+                       <?= Icon::create('arr_1right', 'clickable')->asImg() ?>
                 <? endif; ?>
                         <?= htmlReady(my_substr(implode(' &gt; ', (array)$group_names[$id]), 0, 70)) ?>
                     </a>
@@ -82,6 +82,7 @@
                 <td class="gruppe<?= $seminars[$member['seminar_id']]['gruppe'] ?>">&nbsp;</td>
                 <td>
                     <a href="<?= URLHelper::getLink('seminar_main.php', array('auswahl' => $member['seminar_id'])) ?>">
+                        <?= Config::get()->IMPORTANT_SEMNUMBER ? htmlReady($seminars[$member['seminar_id']]['sem_nr']) : '' ?>
                         <?= htmlReady(my_substr($seminars[$member['seminar_id']]['name'], 0, 70)) ?>
                     </a>
                 <? if (!$seminars[$member['seminar_id']]['visible']): ?>
