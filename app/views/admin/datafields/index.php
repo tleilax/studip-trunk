@@ -124,8 +124,7 @@
                 <?= Assets::img('icons/grey/checkbox-unchecked.svg', tooltip2(_('Nein'))) ?>
             <? endif; ?>
             </td>
-        <? endif; ?>
-        <? if ($key === 'sem'): ?>
+        <? elseif ($key === 'sem'): ?>
             <td>
             <? if ($val->is_required): ?>
                 <?= Assets::img('icons/grey/checkbox-checked.svg', tooltip2(_('Ja'))) ?>
@@ -140,6 +139,8 @@
                 <?= Assets::img('icons/grey/checkbox-unchecked.svg', tooltip2(_('Nein'))) ?>
             <? endif; ?>
             </td>
+        <? else: ?>
+            <td colspan="2"></td>
         <? endif; ?>
             <td><?= $val->priority ?></td>
             <td><?= count($val) ?></td>
