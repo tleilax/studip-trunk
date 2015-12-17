@@ -205,7 +205,7 @@ class Admin_DatafieldsController extends AuthenticatedController
         $this->struct = $datafield;
 
         if (Request::submitted('preview')) {
-            $this->preview = DataFieldEntry::createDataFieldEntry($struct);
+            $this->preview = DataFieldEntry::createDataFieldEntry($datafield);
             $this->render_action('preview');
         }
     }

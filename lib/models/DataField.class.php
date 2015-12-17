@@ -94,7 +94,7 @@ class DataField extends SimpleORMap implements Countable
 
         $where = implode(' AND ', $conditions) ?: '1';
 
-        return self::findBySQL($where, $parameters);
+        return self::findBySQL($where . " ORDER BY priority ASC, name ASC", $parameters);
     }
 
     /**

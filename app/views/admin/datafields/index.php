@@ -12,17 +12,15 @@
 <table class="collapsable default">
     <colgroup>
         <col>
-        <col width="15%">
-        <col width="8%">
-        <col width="9%">
-        <col width="9%">
-        <col width="9%">
+        <col width="20%">
+        <col width="10%">
+        <col width="10%">
+        <col width="10%">
+        <col width="10%">
         <col width="6%">
         <col width="6%">
-        <col width="6%">
-        <col width="5%">
-        <col width="1%">
-        <col width="48">
+        <col width="2%">
+        <col width="48px">
     </colgroup>
     <caption>
         <?= _('Verwaltung von generischen Datenfeldern') ?>
@@ -38,14 +36,7 @@
             <th colspan="2" style="text-align: center">
                 <?= _('benötigter Status') ?>
             </th>
-            <th rowspan="2">
-                <?= _('Systemfeld') ?>
-                <?= tooltipIcon(_('Für die Person nur sichtbar, wenn der Status zum Bearbeiten '
-                                . ' oder für die Sichtbarkeit ausreichend ist')) ?>
-            </th>
-            <th rowspan="2"><?= _('Pflichtfeld') ?></th>
-            <th rowspan="2"><?= _('Beschreibung') ?></th>
-            <th rowspan="2"><?= _('Anmelderegel') ?></th>
+            <th colspan="2" rowspan="2"></th>
             <th rowspan="2"><?= _('Position') ?></th>
             <th rowspan="2">
                 <abbr title="<?= _('Einträge') ?>">#</abbr>
@@ -53,11 +44,11 @@
             <th rowspan="2" class="actions"></th>
         </tr>
         <tr>
-            <th style="word-wrap: nowrap">
+            <th style="white-space: nowrap">
                 <?= _('Änderbar') ?>
                 <?= tooltipIcon(_('Gibt den Status an, ab dem das Datenfeld änderbar ist')) ?>
             </th>
-            <th style="word-wrap: nowrap">
+            <th style="white-space: nowrap">
                 <?= _('Öffentlich') ?>
                 <?= tooltipIcon(_('Gibt den Status an, ab dem das Datenfeld für andere sichtbar ist')) ?>
             </th>
@@ -66,7 +57,11 @@
 <? foreach ($datafields_list as $key => $data): ?>
     <tbody class="<? if ($current_class !== $key && !$class_filter) echo 'collapsed'; ?> <? if (empty($datafields_list[$key])) echo 'empty'; ?>">
         <tr class="table_header header-row">
-            <th class="toggle-indicator" colspan="12">
+        <? if (in_array($key, words('sem user'))): ?>
+            <th class="toggle-indicator" colspan="5">
+        <? else: ?>
+            <th class="toggle-indicator" colspan="10">
+        <? endif; ?>
             <? if (empty($datafields_list[$key])): ?>
                 <?= sprintf(_('Datenfelder für %s'), $allclasses[$key]) ?>
             <? else: ?>
@@ -75,6 +70,19 @@
                 </a>
             <? endif; ?>
             </th>
+        <? if ($key === 'sem'): ?>
+            <th><?= _('Pflichtfeld') ?></th>
+            <th><?= _('Beschreibung') ?></th>
+            <th colspan="3"></th>
+        <? elseif ($key === 'user'): ?>
+            <th style="white-space: nowrap;">
+                <?= _('System') ?>
+                <?= tooltipIcon(_('Für die Person nur sichtbar, wenn der Status zum Bearbeiten '
+                                . ' oder für die Sichtbarkeit ausreichend ist')) ?>
+            </th>
+            <th><?= _('Anmelderegel') ?></th>
+            <th colspan="3"></th>
+        <? endif; ?>
         </tr>
     <? foreach ($data as $input => $val): ?>
         <tr>
@@ -101,42 +109,38 @@
             </td>
             <td><?= $val->edit_perms ?></td>
             <td><?= $val->view_perms ?></td>
+        <? if ($key === 'user'): ?>
             <td>
-            <? if ($key !== 'user'): ?>
-                &nbsp;
-            <? elseif ($val->system): ?>
+            <? if ($val->system): ?>
                 <?= Assets::img('icons/grey/checkbox-checked.svg', tooltip2(_('Ja'))) ?>
             <? else: ?>
                 <?= Assets::img('icons/grey/checkbox-unchecked.svg', tooltip2(_('Nein'))) ?>
             <? endif; ?>
             </td>
             <td>
-            <? if ($key === 'sem'): ?>
-                <? if ($val->is_required): ?>
-                    <?= Assets::img('icons/grey/checkbox-checked.svg', tooltip2(_('Ja'))) ?>
-                <? else: ?>
-                    <?= Assets::img('icons/grey/checkbox-unchecked.svg', tooltip2(_('Nein'))) ?>
-                <? endif; ?>
+            <? if ($val->is_userfilter): ?>
+                <?= Assets::img('icons/grey/checkbox-checked.svg', tooltip2(_('Ja'))) ?>
+            <? else: ?>
+                <?= Assets::img('icons/grey/checkbox-unchecked.svg', tooltip2(_('Nein'))) ?>
+            <? endif; ?>
+            </td>
+        <? endif; ?>
+        <? if ($key === 'sem'): ?>
+            <td>
+            <? if ($val->is_required): ?>
+                <?= Assets::img('icons/grey/checkbox-checked.svg', tooltip2(_('Ja'))) ?>
+            <? else: ?>
+                <?= Assets::img('icons/grey/checkbox-unchecked.svg', tooltip2(_('Nein'))) ?>
             <? endif; ?>
             </td>
             <td>
-            <? if ($key === 'sem'): ?>
-                <? if (trim($val->description)): ?>
-                    <?= Assets::img('icons/grey/checkbox-checked.svg', tooltip2(_('Ja'))) ?>
-                <? else: ?>
-                    <?= Assets::img('icons/grey/checkbox-unchecked.svg', tooltip2(_('Nein'))) ?>
-                <? endif; ?>
+            <? if (trim($val->description)): ?>
+                <?= Assets::img('icons/grey/checkbox-checked.svg', tooltip2(_('Ja'))) ?>
+            <? else: ?>
+                <?= Assets::img('icons/grey/checkbox-unchecked.svg', tooltip2(_('Nein'))) ?>
             <? endif; ?>
             </td>
-            <td>
-            <? if ($key === 'user'): ?>
-                <? if ($val->is_userfilter): ?>
-                    <?= Assets::img('icons/grey/checkbox-checked.svg', tooltip2(_('Ja'))) ?>
-                <? else: ?>
-                    <?= Assets::img('icons/grey/checkbox-unchecked.svg', tooltip2(_('Nein'))) ?>
-                <? endif; ?>
-            <? endif; ?>
-            </td>
+        <? endif; ?>
             <td><?= $val->priority ?></td>
             <td><?= count($val) ?></td>
             <td class="actions">
