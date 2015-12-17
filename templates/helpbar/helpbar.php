@@ -10,7 +10,7 @@
         <? foreach ($widgets as $index => $widget): ?>
             <li>
             <? if ($widget->icon): ?>
-                <?= Assets::img($widget->icon, array('class' => 'helpbar-widget-icon')) ?>
+                <?= is_string($widget->icon) ? Assets::img($widget->icon, array('class' => 'helpbar-widget-icon')) : $widget->icon->asImg(['class' => 'helpbar-widget-icon']) ?>
             <? endif; ?>
                 <?= $widget->render(array('base_class' => 'helpbar'))?>
                 <div class="helpbar-widget-admin-icons">
