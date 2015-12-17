@@ -204,8 +204,11 @@
     };
     // Handler for HTTP header X-Dialog-Execute: Execute arbitrary function
     STUDIP.Dialog.handlers.header['X-Dialog-Execute'] = function (value, options, xhr) {
-        var chunks,
-            callback = window;
+        var chunks = value.trim().split('.'),
+            callback = window,
+            payload = xhr.getResponseHeader('Content-Type').match(/json/)
+                ? $.parseJSON(xhr.responseText)
+                : xhr.responseText;
 
         // Try to parse value as JSON (value might be {func: 'foo', payload: {}})
         try {
@@ -409,10 +412,11 @@
             helper.css({
                 position: 'absolute',
                 left: '-10000px',
-                top: '-10000px'
+                top: '-10000px',
+                width: 'auto'
             }).appendTo('body');
-            // Hide buttons so they do not account to width or height
-            $('[data-dialog-button]', helper).hide();
+            // Prevent buttons from wrapping
+            $('[data-dialog-button]', helper).css('white-space', 'nowrap');
             // Calculate width and height
             // TODO: The value of 113 shouldn't be hardcoded
             width  = Math.min(helper.outerWidth(true) + dialog_margin, width);
@@ -422,7 +426,7 @@
                 height = Math.max(200, height);
             }
             // Remove helper element
-            helper.remove();
+//            helper.remove();
         } else if (options.size && options.size === 'big') {
             width  = $('body').width() * 0.9;
             height = $('body').height() * 0.8;
@@ -466,7 +470,7 @@
             },
             resizeStop: function (event, ui) {
                 var position = [Math.floor(ui.position.left) - $(window).scrollLeft(),
-                                Math.floor(ui.position.top) - $(window).scrollTop()];
+                    Math.floor(ui.position.top) - $(window).scrollTop()];
                 $(event.target).parent().css('position', 'fixed');
                 $(event.target).dialog('option', 'position', position);
             },

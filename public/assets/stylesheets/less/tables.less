@@ -50,7 +50,7 @@ table.toolbar {
   .gradient-bar(false);
 }
 td.toolbar, td.printhead {
-  .gradient-bar();
+    .gradient-bar();
 }
 
 td {
@@ -134,6 +134,7 @@ td.tree-elbow-line, td.tree-elbow-end {
             cursor: pointer;
             display: block;
         }
+
     }
     .empty .toggle-indicator a {
         .background-icon('arr_1right', 'inactive');
@@ -141,12 +142,17 @@ td.tree-elbow-line, td.tree-elbow-end {
     .collapsed .toggle-indicator a {
         .background-icon('arr_1right', 'clickable');
     }
-    td.label-cell, .toggle-indicator a, .empty .toggle-indicator { padding-left: 20px; }
-    > .collapsed > tr {
-        display: none;
+    td.label-cell, .toggle-indicator a, .empty .toggle-indicator {
+        padding-left: 20px;
     }
-    .collapsed .header-row {
-        display: table-row !important;
+    > .collapsed {
+        tr:not(.header-row) {
+            display: none;
+        }
+        .toggle-indicator ~ * {
+            overflow: hidden;
+            text-indent: 200%;
+        }
     }
 }
 * + html .collapsable .collapsed .header-row { display: inline-block !important; } // IE-Hack
@@ -381,20 +387,20 @@ table.default {
         text-align: left;
 
         header {
-           > h2 {
-               border: 0;
-               font-size: inherit;
-               font-weight: normal;
-               margin: 0;
-               padding: 0;
-           }
-           > p {
-               font-size: 0.7em;
-               font-weight: normal;
-               margin: 0;
-               padding: 0;
-           }
-       }
+            > h2 {
+                border: 0;
+                font-size: inherit;
+                font-weight: normal;
+                margin: 0;
+                padding: 0;
+            }
+            > p {
+                font-size: 0.7em;
+                font-weight: normal;
+                margin: 0;
+                padding: 0;
+            }
+        }
     }
     > thead {
         > tr > th {

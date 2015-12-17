@@ -12,7 +12,7 @@
             <?= Icon::create('add', 'clickable')->asImg(['class' => 'text-bottom']) ?>
         </a>
         <? else: ?>
-        <a href="<?= URLHelper::getLink("raumzeit.php", array('cid' => $range_id)) ?>">
+        <a href="<?= URLHelper::getLink("dispatch.php/course/timesrooms", array('cid' => $range_id)) ?>">
             <?= Icon::create('admin', 'clickable')->asImg(['class' => 'text-bottom']) ?>
         </a>
         <? endif; ?>

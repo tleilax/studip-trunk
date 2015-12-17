@@ -83,7 +83,7 @@ class MyCoursesController extends AuthenticatedController
         $group_field                  = $GLOBALS['user']->cfg->MY_COURSES_GROUPING;
         $deputies_enabled             = Config::get()->DEPUTIES_ENABLE;
         $default_deputies_enabled     = Config::get()->DEPUTIES_DEFAULTENTRY_ENABLE;
-        $deputies_edit_about_enabledt = Config::get()->DEPUTIES_EDIT_ABOUT_ENABLE;
+        $deputies_edit_about_enabled  = Config::get()->DEPUTIES_EDIT_ABOUT_ENABLE;
         $studygroups_enabled          = Config::get()->MY_COURSES_ENABLE_STUDYGROUPS;
         $this->config_sem_number      = Config::get()->IMPORTANT_SEMNUMBER;
         $sem_create_perm              = (in_array(Config::get()->SEM_CREATE_PERM, array('root', 'admin',
@@ -117,7 +117,6 @@ class MyCoursesController extends AuthenticatedController
 
         $this->group_field = $group_field === 'not_grouped' ? 'sem_number' : $group_field;
 
-
         // Needed parameters for selecting courses
         $params = array('group_field'         => $this->group_field,
                         'order_by'            => $order_by,
@@ -135,7 +134,7 @@ class MyCoursesController extends AuthenticatedController
         $this->order                        = $order;
         $this->order_by                     = $order_by;
         $this->default_deputies_enabled     = $default_deputies_enabled;
-        $this->deputies_edit_about_enabledt = $deputies_edit_about_enabledt;
+        $this->deputies_edit_about_enabled  = $deputies_edit_about_enabled;
         $this->my_bosses                    = $default_deputies_enabled ? getDeputyBosses($GLOBALS['user']->id) : array();
 
         // Check for new contents
@@ -278,6 +277,7 @@ class MyCoursesController extends AuthenticatedController
         while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
             $my_sem[$row['Seminar_id']] = array(
                 'obj_type'       => 'sem',
+                'sem_nr'         => $row['sem_nr'],
                 'name'           => $row['Name'],
                 'visible'        => $row['visible'],
                 'gruppe'         => $row['gruppe'],
@@ -288,6 +288,7 @@ class MyCoursesController extends AuthenticatedController
             if ($group_field) {
                 fill_groups($groups, $row[$group_field], array(
                     'seminar_id' => $row['Seminar_id'],
+                    'sem_nr'     => $row['sem_nr'],
                     'name'       => $row['Name'],
                     'gruppe'     => $row['gruppe']
                 ));
@@ -443,7 +444,7 @@ class MyCoursesController extends AuthenticatedController
 
             if (Request::get('cmd') == 'suppose_to_kill') {
                 // check course admission
-                list(,$admission_end_time) = array_values($current_seminar->getAdmissionTimeFrame());
+                list(,$admission_end_time) = @array_values($current_seminar->getAdmissionTimeFrame());
 
                 $admission_enabled = $current_seminar->isAdmissionEnabled();
                 $admission_locked   = $current_seminar->isAdmissionLocked();
@@ -630,7 +631,8 @@ class MyCoursesController extends AuthenticatedController
      * Remove yourself as default deputy of the given boss.
      * @param $boss_id
      */
-    public function delete_boss_action($boss_id) {
+    public function delete_boss_action($boss_id)
+    {
         if (deleteDeputy($GLOBALS['user']->id, $boss_id)) {
             PageLayout::postSuccess(
                 sprintf(_('Sie wurden als Standardvertretung von %s entfernt.'),

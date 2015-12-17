@@ -512,7 +512,11 @@ class MyRealmModel
         $ordering          = '';
         // create ordering
         if (!$order_by) {
-            $ordering .= 'name asc';
+            if (Config::get()->IMPORTANT_SEMNUMBER) {
+                $ordering = 'veranstaltungsnummer asc, name asc';
+            } else {
+                $ordering .= 'name asc';
+            }
         } else {
             $ordering .= $order_by . ' ' . $order;
         }
@@ -567,9 +571,9 @@ class MyRealmModel
 
     public static function getDeputieGroup($range_id)
     {
-        $query     = "SELECT gruppe FROM deputies WHERE range_id = ?";
+        $query     = "SELECT gruppe FROM deputies WHERE range_id = ? AND user_id=?";
         $statement = DBManager::get()->prepare($query);
-        $statement->execute(array($range_id));
+        $statement->execute(array($range_id, $GLOBALS['user']->id));
         return $statement->fetch(PDO::FETCH_COLUMN);
     }
 
@@ -585,8 +589,14 @@ class MyRealmModel
             $max_sem = $current_sem;
         }
 
+        if (isset($sem_data[$current_sem + 2])) {
+            $after_next_sem = $current_sem + 2;
+        } else {
+            $after_next_sem = $max_sem;
+        }
+
         // Get the needed semester
-        if ($sem != 'all' && $sem != 'current' && $sem != 'future' && $sem != 'last') {
+        if (!in_array($sem, array('all', 'current', 'future', 'last', 'lastandnext'))) {
             $semesters[] = SemesterData::GetSemesterIndexById($sem);
         } else {
             switch ($sem) {
@@ -601,8 +611,13 @@ class MyRealmModel
                     $semesters[] = $current_sem - 1;
                     $semesters[] = $current_sem;
                     break;
+                case 'lastandnext':
+                    $semesters[] = $current_sem - 1;
+                    $semesters[] = $current_sem;
+                    $semesters[] = $max_sem;
+                    break;
                 default:
-                    $semesters = array_keys($sem_data);;
+                    $semesters = array_keys($sem_data);
                     break;
             }
         }
@@ -665,6 +680,7 @@ class MyRealmModel
                 $_course['modules']        = $modules->getLocalModules($course->id, 'sem', $course->modules, $course->status);
                 $_course['name']           = $course->name;
                 $_course['temp_name']      = $course->name;
+                $_course['number']         = $course->veranstaltungsnummer;
                 $_course['is_deputy']      = $is_deputy;
                 if ($show_semester_name && $course->duration_time != 0 && !$course->getSemClass()->offsetGet('studygroup_mode')) {
                     $_course['name'] .= ' (' . $course->getFullname('sem-duration-name') . ')';
@@ -703,7 +719,11 @@ class MyRealmModel
         if ($group_field == 'sem_number' && !$params['order_by']) {
             foreach ($sem_courses as $index => $courses) {
                 uasort($courses, function ($a, $b) {
-                    return $a['gruppe'] == $b['gruppe'] ? strcmp($a['temp_name'], $b['temp_name']) : $a['gruppe'] - $b['gruppe'];
+                    if (Config::get()->IMPORTANT_SEMNUMBER) {
+                        return $a['gruppe'] == $b['gruppe'] ? strcmp($a['number'], $b['number']) : $a['gruppe'] - $b['gruppe'];
+                    } else {
+                        return $a['gruppe'] == $b['gruppe'] ? strcmp($a['temp_name'], $b['temp_name']) : $a['gruppe'] - $b['gruppe'];
+                    }
                 });
                 $sem_courses[$index] = $courses;
             }

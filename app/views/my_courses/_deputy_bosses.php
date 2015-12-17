@@ -34,10 +34,10 @@
                 <? endif ?>
                 <a href="<?= URLHelper::getLink('dispatch.php/messages/write',
                     array('filter' => 'send_sms_to_all',
-                          'rec_uname' => $boss['username']))?>">
+                          'rec_uname' => $boss['username']))?>" data-dialog>
                     <?= Icon::create('mail', 'clickable', ['title' => sprintf(_('Nachricht an %s senden'), htmlReady($boss['fullname']))])->asImg() ?>
                 </a>
-                <a href="<?= URLHelper::getLink('dispatch.php/my_courses/delete_boss/'.
+                <a href="<?= $controller->url_for('my_courses/delete_boss',
                         $boss['user_id'])?>" data-confirm="<?=sprintf(
                         _('Wollen Sie sich wirklich als Standardvertretung von %s austragen?'),
                         $boss['fullname']) ?>">

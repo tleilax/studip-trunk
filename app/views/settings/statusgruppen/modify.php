@@ -35,8 +35,7 @@
                         <td align="left">
                             <?= $entry->getName() ?>
                         </td>
-                    <? if ($entry->structure->editAllowed($GLOBALS['auth']->auth['perm'])
-                           && ($entry->getValue() != 'default_value') && !$locked): ?>
+                    <? if ($entry->isEditable() && ($entry->getValue() != 'default_value') && !$locked): ?>
                         <td>
                             <?= $entry->getHTML('datafields') ?>
                         </td>
@@ -50,7 +49,7 @@
                             <?= $default_entries[$id]->getDisplayValue() ?>
                         </td>
                         <td style="text-align:right">
-                        <? if ($entry->structure->editAllowed($GLOBALS['auth']->auth['perm']) && !$locked): ?>
+                        <? if ($entry->isEditable() && !$locked): ?>
                             <a href="<?= $controller->url_for('settings/statusgruppen/default', $inst_id, $role_id, $id, false) ?>">                            <?= Icon::create('checkbox-checked', 'clickable', ['title' => _('Diese Daten NICHT von den Standarddaten übernehmen')])->asImg(16, ["class" => 'text-top']) ?>
                             </a>
                         <? endif; ?>
