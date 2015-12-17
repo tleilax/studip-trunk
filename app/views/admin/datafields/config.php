@@ -13,7 +13,7 @@
 
     <footer data-dialog-button>
         <?= Studip\Button::createAccept(_('Speichern'), 'store') ?>
-        <?= Studip\Button::create(_('Vorschau'), 'preview') ?>
+        <?= Studip\Button::create(_('Vorschau'), 'preview', ['data-dialog' => 'size=auto']) ?>
         <?= Studip\LinkButton::createCancel(_('Abbrechen'), $controller->url_for('admin/datafields/index/' . $struct->getObjectType() . '#' . $struct->getObjectType())) ?>
     </footer>
 </form>
