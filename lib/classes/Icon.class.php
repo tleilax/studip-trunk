@@ -26,6 +26,10 @@ class Icon
     protected $role;
     protected $attributes = array();
 
+
+    /**
+     * This is the magical Role to Color mapping.
+     */
     private static $roles_to_colors = [
         'info'          => 'black',
         'clickable'     => 'blue',
@@ -46,13 +50,13 @@ class Icon
     private static function roleToColor($role)
     {
         if (!isset(self::$roles_to_colors[$role])) {
-            throw new \BadMethodCallException('Unknown role: "' . $role . '"');
+            throw new \InvalidArgumentException('Unknown role: "' . $role . '"');
         }
         return self::$roles_to_colors[$role];
     }
 
-    // return the roles associated to a color
-    private static function colorToRole($color)
+    // return the roles! associated to a color
+    private static function colorToRoles($color)
     {
         static $colors_to_roles;
 
@@ -63,17 +67,25 @@ class Icon
         }
 
         if (!isset($colors_to_roles[$color])) {
-            throw new \BadMethodCallException('Unknown color: "' . $color . '"');
+            throw new \InvalidArgumentException('Unknown color: "' . $color . '"');
         }
 
         return $colors_to_roles[$color];
     }
 
     /**
+     * Create a new Icon object.
+     *
+     * This is just a factory method. You could easily just call the
+     * constructor instead.
+     *
      * @param String $shape      Shape of the icon, may contain a mixed definition
      *                           like 'seminar+add'
-     * @param String $role       Role of the icon
-     * @param Array  $attributes Additional attributes like 'title' TODO
+     * @param String $role       Role of the icon, defaults to Icon::DEFAULT_ROLE
+     * @param Array $attributes  Additional attributes like 'title';
+     *                           only use semantic ones describing
+     *                           this icon regardless of its later
+     *                           rendering in a view
      * @return Icon object
      */
     public static function create($shape, $role = Icon::DEFAULT_ROLE, $attributes = array())
@@ -84,23 +96,21 @@ class Icon
             $role = Icon::DEFAULT_ROLE;
         }
 
-        return new self($shape, null, $role, $attributes);
+        return new self($shape, $role, $attributes);
     }
 
     /**
      * Constructor of the object.
      *
-     * @param String $source Name of the icon, may contain a mixed definition
-     *                       like 'icons/16/blue/add/seminar.png' due to
-     *                       compatibility issues with Assets::img().
-     * @param int    $size   Size of the icon, defaults to fixed default icon
-     *                       size
-     * @param String $role   Role of the icon, defaults to fixed default icon role
-     * @param Array  $attributes Additional attributes to pass the rendered
-     *                           output
-     * @param bool   $static Defines whether the icon is static (not from assets folder)
+     * @param String $shape      Shape of the icon, may contain a mixed definition
+     *                           like 'seminar+add'
+     * @param String $role       Role of the icon, defaults to Icon::DEFAULT_ROLE
+     * @param Array $attributes  Additional attributes like 'title';
+     *                           only use semantic ones describing
+     *                           this icon regardless of its later
+     *                           rendering in a view
      */
-    public function __construct($icon, $size = Icon::DEFAULT_SIZE, $role = Icon::DEFAULT_ROLE, $attributes = array())
+    public function __construct($icon, $role = Icon::DEFAULT_ROLE, $attributes = array())
     {
 
         // only defined roles
@@ -112,7 +122,10 @@ class Icon
         if ($non_semantic = array_filter(array_keys($attributes), function ($attr) {
             return !in_array($attr, ['title']);
         })) {
-#            throw new \InvalidArgumentException('Creating an Icon with non-semantic attributes:' . json_encode($non_semantic));
+            // DEPRECATED
+            // TODO starting with the v3.6 the following line should
+            // be enabled to prevent non-semantic attributes in this position
+            # throw new \InvalidArgumentException('Creating an Icon with non-semantic attributes:' . json_encode($non_semantic));
         }
 
         $this->icon       = $icon;
@@ -123,14 +136,11 @@ class Icon
             $this->icon = preg_replace('/\.(?:png|svg)$/', '', $icon);
             $this->icon = join('/', array_reverse(explode('+', $this->icon)));
         }
-
-        // DEPRECATED
-        // TODO at v3.6: remove this
-        $this->deprecatedSize = $size;
     }
 
     /**
-     * Function to be called whenever the object is converted to string.
+     * Function to be called whenever the object is converted to
+     * string. Internally the same as calling Icon::asImg
      *
      * @return String representation
      */
@@ -142,9 +152,11 @@ class Icon
     /**
      * Renders the icon inside an img html tag.
      *
-     * @param int $size               Defines the size in px of the rendered icon
-     * @param Array $view_attributes  Additional attributes to pass the rendered output
-     * @return String containing      the html representation for the icon.
+     * @param int   $size             Optional; Defines the dimension in px of the rendered icon; FALSE prevents any
+     *                                width or height attributes
+     * @param Array $view_attributes  Optional; Additional attributes to pass
+     *                                into the rendered output
+     * @return String containing the html representation for the icon.
      */
     public function asImg($size = null, $view_attributes = [])
     {
@@ -158,9 +170,11 @@ class Icon
     /**
      * Renders the icon inside an input html tag.
      *
-     * @param int $size               Defines the size in px of the rendered icon
-     * @param Array $view_attributes  Additional attributes to pass the rendered output
-     * @return String containing      the html representation for the icon.
+     * @param int   $size             Optional; Defines the dimension in px of the rendered icon; FALSE prevents any
+     *                                width or height attributes
+     * @param Array $view_attributes  Optional; Additional attributes to pass
+     *                                into the rendered output
+     * @return String containing the html representation for the icon.
      */
     public function asInput($size = null, $view_attributes = [])
     {
@@ -174,7 +188,7 @@ class Icon
     /**
      * Renders the icon as a set of css background rules.
      *
-     * @param mixed $size Size of the icon
+     * @param int $size  Optional; Defines the size in px of the rendered icon
      * @return String containing the html representation for css backgrounds
      */
     public function asCSS($size = null)
@@ -192,10 +206,10 @@ class Icon
     }
 
     /**
-     * Returns the path to the icon file itself.
+     * Returns a path to the SVG matching the icon.
      *
-     * @param mixed $size Size of the icon
-     * @return String containing the path to the icon file
+     * @param int $size  Defines the size in px of the rendered icon
+     * @return String containing the html representation for css backgrounds
      */
     public function asImagePath($size = null)
     {
@@ -203,7 +217,8 @@ class Icon
     }
 
     /**
-     * Prepares the html attributes for use.
+     * Prepares the html attributes for use assembling HTML attributes
+     * from given shape, role, size, semantic and view attributes
      *
      * @param int   $size       Size of the icon
      * @param array $attributes Additional attributes
@@ -219,8 +234,7 @@ class Icon
 
         return array_merge($this->attributes, $attributes, $dimensions, [
             'src' => $this->isStatic() ? $this->icon : $this->get_asset_svg(),
-            'alt' => $this->attributes['alt'] ?: $this->attributes['title'] ?: 
-basename($this->icon)
+            'alt' => $this->attributes['alt'] ?: $this->attributes['title'] ?: basename($this->icon)
         ]);
     }
 
@@ -263,11 +277,12 @@ basename($this->icon)
      */
     protected function get_size($size)
     {
+        // DEPRECATED
+        // TODO remove deprecatedSize in v3.6
         $size = $size ?: $this->deprecatedSize ?: Icon::DEFAULT_SIZE;
         if (isset($this->attributes['size'])) {
             list($size, $temp) = explode('@', $this->attributes['size'], 2);
             unset($this->attributes['size']);
-#            $this->deprecatedSize = $size;
         }
         return (int)$size;
     }
@@ -288,7 +303,7 @@ basename($this->icon)
         return join(' ', $result);
     }
 
-    // TODO
+    // an icon is static if it starts with 'http'
     private function isStatic()
     {
         return strpos($this->icon, 'http') === 0;
@@ -319,7 +334,7 @@ trait DeprecatedIcon {
         // external icon
         $source = str_replace(Assets::url('images/'), '', $source);
         if (strpos($source, 'http') === 0) {
-            return new self($source, Icon::DEFAULT_SIZE, Icon::DEFAULT_ROLE, $attributes);
+            return new self($source, Icon::DEFAULT_ROLE, $attributes);
         }
 
         $opts = self::rearrange($source,
@@ -327,9 +342,14 @@ trait DeprecatedIcon {
 
         $opts['source'] = preg_replace('/\.(png|svg)$/', '', $opts['icon']);
 
-        $role = current(self::colorToRole($opts['color']));
+        // use the very first role matching this color
+        $role = current(self::colorToRoles($opts['color']));
 
-        return new Icon($opts['source'], $opts['size'], $role, $attributes);
+        $icon = new Icon($opts['source'], $role, $attributes);
+
+        $icon->deprecatedSize = $opts['size'];
+
+        return $icon;
     }
 
     /**
@@ -348,7 +368,7 @@ trait DeprecatedIcon {
         if ($type & Icon::CSS_BACKGROUND) {
             return $this->asCSS();
         }
-        throw new Exception('Unknown type');
+        throw new \Exception('Unknown type');
     }
 
 

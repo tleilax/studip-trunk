@@ -28,8 +28,9 @@
  *     # construct the URL for the image "blank.gif"
  *     $url = Assets::image_path('blank.gif');
  *
- *     # construct html tag fot the download icon in blue
- *     $img = Icon::create('download', 'clickable')->asImg();
+ *     # DEPRECATED use class Icon instead
+ *     # construct html tag for the download icon in blue
+ *     $img = Assets::img('icons/16/blue/download.png');
  *
  * @package   studip
  *
@@ -136,6 +137,9 @@ class Assets
      * * full path, like "/my_images/image.gif"
      * * file name, like "rss.png", that gets expanded to "/images/rss.png"
      * * file name without extension, like "logo", that gets expanded to "/images/logo.png"
+     *
+     * Do not use this to render icons. Use the more appropiate class
+     * Icon for this.
      */
     static function img($source, $opt = array())
     {
@@ -178,6 +182,9 @@ class Assets
      * * full path, like "/my_images/image.gif"
      * * file name, like "rss.png", that gets expanded to "/images/rss.png"
      * * file name without extension, like "logo", that gets expanded to "/images/logo.png"
+     *
+     * Do not use this to render icons. Use the more appropiate class
+     * Icon for this.
      */
     static function input($source, $opt = array())
     {
