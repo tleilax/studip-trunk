@@ -108,7 +108,7 @@
                 <?= Assets::img('icons/grey/checkbox-checked.svg', tooltip2(_('Ja'))) ?>
             <? else: ?>
                 <?= Assets::img('icons/grey/checkbox-unchecked.svg', tooltip2(_('Nein'))) ?>
-            <? endif; ?>                
+            <? endif; ?>
             </td>
             <td>
             <? if ($key === 'sem'): ?>
@@ -138,7 +138,7 @@
             <? endif; ?>
             </td>
             <td><?= $val->priority ?></td>
-            <td><?= count($val->entries) ?></td>
+            <td><?= count($val) ?></td>
             <td class="actions">
                 <a href="<?=$controller->url_for('admin/datafields/edit/' . $val->id)?>" data-dialog>
                     <?= Assets::img('icons/16/blue/edit.png', array('title' => 'Datenfeld ändern')) ?>

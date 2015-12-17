@@ -30,7 +30,7 @@
  * @property string description database column
  * @property SimpleORMapCollection entries has_many DatafieldEntryModel
  */
-class DataField extends SimpleORMap
+class DataField extends SimpleORMap implements Countable
 {
     protected static $permission_masks = array(
         'user'   => 1,
@@ -69,7 +69,7 @@ class DataField extends SimpleORMap
      * @param mixed  $objectType       Object type
      * @param String $objectClass      Object class
      * @param bool   $includeNullClass Should the object class "null" be
-     *                                 included 
+     *                                 included
      * @return array of DataField instances
      */
     public static function getDataFields($objectType = null, $objectClass = '', $includeNullClass = false)
@@ -245,7 +245,7 @@ class DataField extends SimpleORMap
         if ($perm === null) {
             $perm = $GLOBALS['user']->perms;
         }
-        
+
         $user_perms = self::permMask($perm);
         $required_perms = self::permMask($this->view_perms);
 
@@ -278,5 +278,15 @@ class DataField extends SimpleORMap
         $required_perms = self::permMask($this->edit_perms);
 
         return $user_perms >= $required_perms;
+    }
+
+    /**
+     * Specialized count method that returns the number of concrete entries.
+     *
+     * @return int number of entries
+     */
+    public function count()
+    {
+        return DatafieldEntryModel::countBySQL('datafield_id = ?', array($this->id));
     }
 }
