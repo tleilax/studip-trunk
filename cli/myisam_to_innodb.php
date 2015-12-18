@@ -7,15 +7,12 @@ $start = microtime(true);
 
 global $DB_STUDIP_DATABASE;
 
-// Tables to ignore on engine conversion.
-$ignore_tables = array('');
-
 // Check if InnoDB is enabled in database server.
 $engines = DBManager::get()->fetchAll("SHOW ENGINES");
 $innodb = false;
 foreach ($engines as $e) {
     // InnoDB is found and enabled.
-    if ($e['Engine'] == 'InnoDB' && in_array($e['Support'], array('DEFAULT', 'YES'))) {
+            if ($e['Engine'] == 'InnoDB' && in_array(strtolower($e['Support']), array('default', 'yes'))) {
         $innodb = true;
         break;
     }
@@ -26,23 +23,44 @@ if ($innodb) {
     $data = DBManager::get()->fetchFirst("SELECT VERSION() AS version");
     $version = $data[0];
 
-    // lit_catalog has fulltext indices which InnoDB doesn't support in older versions.
-    if (version_compare($version, '5.6', '<')) {
-        echo "\tFound MySQL in version < 5.6, lit_catalog will NOT be converted to InnoDB.\n";
-        $ignore_tables[] = 'lit_catalog';
-    }
+    // Tables to ignore on engine conversion.
+    $ignore_tables = array();
+
+
+
 
     // Fetch all tables that need to be converted.
     $tables = DBManager::get()->fetchFirst("SELECT TABLE_NAME
         FROM `information_schema`.TABLES
         WHERE TABLE_SCHEMA=:database AND ENGINE=:oldengine
-            AND TABLE_NAME NOT IN (:ignore)
         ORDER BY TABLE_NAME",
         array(
             ':database' => $DB_STUDIP_DATABASE,
             ':oldengine' => 'MyISAM',
-            ':ignore' => $ignore_tables
         ));
+
+            /*
+             * lit_catalog needs fulltext indices which InnoDB doesn't support
+             * in older versions.
+             */
+            if (version_compare($version, '5.6', '<')) {
+                $stmt_fulltext = DBManager::get()->prepare("SHOW INDEX FROM :database.:table WHERE Index_type = 'FULLTEXT'");
+                foreach ($tables as $k => $t) {
+                    $stmt_fulltext->bindParam(':table', $t, StudipPDO::PARAM_COLUMN);
+                    $stmt_fulltext->bindParam(':database', $DB_STUDIP_DATABASE, StudipPDO::PARAM_COLUMN);
+                    $stmt_fulltext->execute();
+                    if ($stmt_fulltext->fetch()) {
+                        $ignore_tables[] = $t;
+                        unset($tables[$k]);
+                    }
+                }
+                if (count($ignore_tables)) {
+                    echo 'The following tables needs fulltext indices '.
+                        'which are not supported for InnoDB in your database '.
+                        'version, so the tables will be left untouched: ' . join(',', $ignore_tables) . "\n";
+                }
+            }
+
 
     // Use Barracuda format if database supports it (5.5 upwards).
     if (version_compare($version, '5.5', '>=')) {
@@ -90,27 +108,6 @@ if ($innodb) {
         echo "\tConversion of table " . $t . " took " . $human_local_duration . ".\n";
     }
 
-    /*
-     * On MySQL 5.6 and up, lit_catalog was converted to InnoDB. In order
-     * to keep the literature search working, we now need several fulltext
-     * indices on this table.
-     */
-    if (version_compare($version, '5.6', '>=')) {
-        DBManager::get()->exec("ALTER TABLE `lit_catalog`
-            ADD FULLTEXT(`dc_title`,`dc_creator`,`dc_contributor`,`dc_subject`)");
-        DBManager::get()->exec("ALTER TABLE `lit_catalog`
-            ADD FULLTEXT(`dc_title`)");
-        DBManager::get()->exec("ALTER TABLE `lit_catalog`
-            ADD FULLTEXT(`dc_creator`,`dc_contributor`)");
-        DBManager::get()->exec("ALTER TABLE `lit_catalog`
-            ADD FULLTEXT(`dc_subject`)");
-        DBManager::get()->exec("ALTER TABLE `lit_catalog`
-            ADD FULLTEXT(`dc_description`)");
-        DBManager::get()->exec("ALTER TABLE `lit_catalog`
-            ADD FULLTEXT(`dc_publisher`)");
-        DBManager::get()->exec("ALTER TABLE `lit_catalog`
-            ADD FULLTEXT(`dc_identifier`)");
-    }
 
     $end = microtime(true);
 
