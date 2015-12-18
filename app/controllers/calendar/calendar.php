@@ -177,8 +177,10 @@ class Calendar_CalendarController extends AuthenticatedController
         
         if (get_config('CALENDAR_GROUP_ENABLE')
                 && $this->calendar->getRange() == Calendar::RANGE_USER) {
-            /*
-            $search_obj = new SQLSearch("SELECT auth_user_md5.user_id, {$GLOBALS['_fullname_sql']['full_rev']} as fullname, username, perms "
+            
+            $search_obj = SQLSearch::get("SELECT DISTINCT auth_user_md5.user_id, "
+                . "{$GLOBALS['_fullname_sql']['full_rev_username']} as fullname, "
+                . "auth_user_md5.perms, auth_user_md5.username "
                 . "FROM calendar_user "
                 . "LEFT JOIN auth_user_md5 ON calendar_user.owner_id = auth_user_md5.user_id "
                 . "LEFT JOIN user_info ON (auth_user_md5.user_id = user_info.user_id) "
@@ -191,12 +193,10 @@ class Calendar_CalendarController extends AuthenticatedController
                 . "OR Nachname LIKE :input OR {$GLOBALS['_fullname_sql']['full_rev']} LIKE :input "
                 . ") ORDER BY fullname ASC",
                 _('Person suchen'), 'user_id');
-             * 
-             */
-            
             
             // SEMBBS
             // Eintrag von Terminen bereits ab PERMISSION_READABLE
+            /*
             $search_obj = new SQLSearch('SELECT DISTINCT auth_user_md5.user_id, '
                 . $GLOBALS['_fullname_sql']['full_rev'] . ' as fullname, username, perms '
                 . 'FROM calendar_user '
@@ -213,10 +213,13 @@ class Calendar_CalendarController extends AuthenticatedController
                 . ') ORDER BY fullname ASC',
                 _('Nutzer suchen'), 'user_id');
             // SEMBBS
+             * 
+             */
             
             
             $this->quick_search = QuickSearch::get('user_id', $search_obj)
-                    ->fireJSFunctionOnSelect('STUDIP.Messages.add_adressee');
+                    ->fireJSFunctionOnSelect('STUDIP.Messages.add_adressee')
+                    ->withButton();
             
       //      $default_selected_user = array($this->calendar->getRangeId());
             $this->mps = MultiPersonSearch::get('add_adressees')
