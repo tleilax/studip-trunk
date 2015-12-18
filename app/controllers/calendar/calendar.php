@@ -24,27 +24,23 @@ class Calendar_CalendarController extends AuthenticatedController
     {
         parent::before_filter($action, $args);
         PageLayout::setHelpKeyword('Basis.Terminkalender');
-        $this->settings = UserConfig::get($GLOBALS['user']->id)->getValue('CALENDAR_SETTINGS');
+        $this->settings = UserConfig::get($GLOBALS['user']->id)->CALENDAR_SETTINGS;
         if (!is_array($this->settings)) {
             $this->settings = Calendar::getDefaultUserSettings();
         }
         URLHelper::bindLinkParam('atime', $this->atime);
         $this->atime = Request::int('atime', time());
         $this->category = Request::int('category');
-        $this->declined = Request::int('declined');
         $this->last_view = Request::option('last_view',
                 $this->settings['view']);
         $this->action = $action;
         $this->restrictions = array(
             'STUDIP_CATEGORY'     => $this->category ?: null,
             // hide events with status 3 (CalendarEvent::PARTSTAT_DECLINED)
-            'STUDIP_GROUP_STATUS' => $this->declined ? null : array(0,1,2,5)
+            'STUDIP_GROUP_STATUS' => $this->settings['show_declined'] ? null : array(0,1,2,5)
         );
         if ($this->category) {
             URLHelper::bindLinkParam('category', $this->category);
-        }
-        if ($this->declined) {
-            URLHelper::bindLinkParam('declined', $this->declined);
         }
         $self = Request::option('self');
         if (!$self && $_SESSION['SessSemName']['class'] == 'sem') {
@@ -103,9 +99,11 @@ class Calendar_CalendarController extends AuthenticatedController
             $tmpl->view = $this->action;
             $filters->addElement(new WidgetElement($tmpl->render()));
             $filters->addCheckbox(_('Abgelehnte Termine anzeigen'),
-                    Request::option('declined'),
-                    $this->url_for('', array('declined' => 1)),
-                    $this->url_for('', array('declined' => 0)));
+                    $this->settings['show_declined'],
+                    $this->url_for($this->base . 'show_declined',
+                            array('show_declined' => 1)),
+                    $this->url_for($this->base . 'show_declined',
+                            array('show_declined' => 0)));
         }
         Sidebar::get()->addWidget($filters);
     }
@@ -421,6 +419,18 @@ class Calendar_CalendarController extends AuthenticatedController
         $this->range_id = $this->range_id ?: $GLOBALS['user']->id;
         $this->redirect($this->url_for($this->base . $action,
                 array('atime' => $atime, 'range_id' => $this->range_id)));
+    }
+    
+    public function show_declined_action ()
+    {
+        $config = UserConfig::get($GLOBALS['user']->id);
+        $this->settings['show_declined'] = Request::int('show_declined') ? '1' : '0';
+     //   var_dump($this->settings); exit;
+        $config->store('CALENDAR_SETTINGS', $this->settings);
+        $action = Request::option('action', 'week');
+        $this->range_id = $this->range_id ?: $GLOBALS['user']->id;
+        $this->redirect($this->url_for($this->base . $action,
+                array('range_id' => $this->range_id)));
     }
     
     protected function storeEventData(CalendarEvent $event, SingleCalendar $calendar)
