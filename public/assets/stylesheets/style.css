@@ -383,11 +383,12 @@ td.tree-elbow-end svg {
 .collapsable .empty .toggle-indicator {
   padding-left: 20px;
 }
-.collapsable > .collapsed > tr {
+.collapsable > .collapsed tr:not(.header-row) {
   display: none;
 }
-.collapsable .collapsed .header-row {
-  display: table-row !important;
+.collapsable > .collapsed .toggle-indicator ~ * {
+  overflow: hidden;
+  text-indent: 200%;
 }
 * + html .collapsable .collapsed .header-row {
   display: inline-block !important;
@@ -819,7 +820,7 @@ table.default > caption .caption-actions {
   align-self: flex-end;
 }
 table.default > tbody.toggleable.toggled .toggle-switch {
-  background-image: url("../images/icons//blue/arr_1right.svg");
+  background-image: url("../images/icons/blue/arr_1right.svg");
   -webkit-background-size: 16px 16px;
   -moz-background-size: 16px 16px;
   -o-background-size: 16px 16px;
@@ -834,7 +835,7 @@ table.default > tbody.toggleable .toggle-switch {
   text-shadow: none;
   background-color: transparent;
   border: 0;
-  background-image: url("../images/icons//blue/arr_1down.svg");
+  background-image: url("../images/icons/blue/arr_1down.svg");
   -webkit-background-size: 16px 16px;
   -moz-background-size: 16px 16px;
   -o-background-size: 16px 16px;
@@ -3012,23 +3013,6 @@ section.contentbox article {
   border-width: 1px;
   margin: 10px;
 }
-section.contentbox article > p,
-section.contentbox article > section,
-section.contentbox article > footer,
-section.contentbox article > div {
-  max-height: 0px;
-  opacity: 0;
-  overflow: auto;
-  -webkit-transition: opacity 0.3s;
-  -moz-transition: opacity 0.3s;
-  -o-transition: opacity 0.3s;
-  transition: opacity 0.3s;
-}
-section.contentbox article > p,
-section.contentbox article > footer,
-section.contentbox article > div {
-  padding: 0 10px 0 10px;
-}
 section.contentbox article div,
 section.contentbox article p {
   margin: 0;
@@ -3119,6 +3103,15 @@ section.contentbox article footer article.comment time {
   float: right;
   font-size: 0.8em;
   color: #c5c7ca;
+}
+section.contentbox article:not(.open) header ~ * {
+  max-height: 0px;
+  opacity: 0;
+  overflow: auto;
+  -webkit-transition: opacity 0.3s;
+  -moz-transition: opacity 0.3s;
+  -o-transition: opacity 0.3s;
+  transition: opacity 0.3s;
 }
 section.contentbox article.open > p,
 section.contentbox article.open > section,
@@ -3756,8 +3749,7 @@ input.quicksearchbox {
   border: 0;
   width: 29px;
   height: 20px;
-  background-image: url("../images/icons/16/white/search.png");
-  background-image: none, url("../images/icons/white/search.svg");
+  background-image: url("../images/icons/white/search.svg");
   -webkit-background-size: 16px 16px;
   -moz-background-size: 16px 16px;
   -o-background-size: 16px 16px;

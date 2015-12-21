@@ -84,9 +84,9 @@ class Admin_UserController extends AuthenticatedController
         }
 
         //Datafields
-        $datafields = DataFieldStructure::getDataFieldStructures("user");
+        $datafields = DataField::getDataFields("user");
         foreach ($datafields as $datafield) {
-            if ($datafield->accessAllowed($this->perm)) {
+            if ($datafield->accessAllowed()) {
                 $this->datafields[] = $datafield;
             }
         }
@@ -96,7 +96,7 @@ class Admin_UserController extends AuthenticatedController
             //suche mit datafields
             foreach ($datafields as $id => $datafield) {
                 if (strlen($request[$id]) > 0
-                    && !(in_array($datafield->getType(), words('selectbox radio')) && $request[$id] === '---ignore---')) {
+                    && !(in_array($datafield->type, words('selectbox radio')) && $request[$id] === '---ignore---')) {
                     $search_datafields[$id] = $request[$id];
                 }
             }
@@ -469,6 +469,8 @@ class Admin_UserController extends AuthenticatedController
             $umdetails = explode('§', str_replace(array('msg§', 'info§', 'error§'), '', substr($um->msg, 0, -1)));
             $details = array_reverse(array_merge((array)$details,(array)$umdetails));
             PageLayout::postMessage(MessageBox::info(_('Hinweise:'), $details));
+            
+            $this->redirect('admin/user/edit/' . $user_id);
         }
 
         //get user informations
@@ -486,7 +488,7 @@ class Admin_UserController extends AuthenticatedController
         $this->student_institutes = UserModel::getUserInstitute($user_id, true);
         $this->institutes = UserModel::getUserInstitute($user_id);
         $this->available_institutes = Institute::getMyInstitutes();
-        $this->datafields = DataFieldStructure::getDataFieldStructures("user");
+//        $this->datafields = DataField::getDataFields('user');
         $this->userfields = DataFieldEntry::getDataFieldEntries($user_id, 'user');
         $this->userdomains = UserDomain::getUserDomainsForUser($user_id);
         if (LockRules::CheckLockRulePermission($user_id) && LockRules::getObjectRule($user_id)->description) {
@@ -839,9 +841,8 @@ class Admin_UserController extends AuthenticatedController
             //change datafields
             $datafields = Request::getArray('datafields');
             foreach ($datafields as $id => $data) {
-                $struct = new DataFieldStructure(array("datafield_id" => $id));
-                $struct->load();
-                $entry  = DataFieldEntry::createDataFieldEntry($struct, array($user_id, $institute_id));
+                $datafield = DataField::find($id);
+                $entry  = DataFieldEntry::createDataFieldEntry($datafield, array($user_id, $institute_id));
                 $entry->setValueFromSubmit($data);
                 if ($entry->isValid()) {
                     $entry->store();
@@ -957,16 +958,16 @@ class Admin_UserController extends AuthenticatedController
         if (in_array('Standard', $GLOBALS['STUDIP_AUTH_PLUGIN'])) {
             $actions->addLink(_('Neue Person anlegen'),
                               $this->url_for('admin/user/new'),
-                              'icons/16/blue/add/person.png')
+                              Icon::create('person+add', 'clickable'))
                     ->asDialog();
         }
         $actions->addLink(_('Neuen Personenaccount vorläufig anlegen'),
                           $this->url_for('admin/user/new/prelim'),
-                          'icons/16/blue/add/date.png')
+                          Icon::create('date+add', 'clickable'))
                 ->asDialog();
         $actions->addLink(_('Personenaccounts zusammenführen'),
                           $this->url_for('admin/user/migrate/' . (($this->user && is_array($this->user)) ? $this->user['user_id'] : '')),
-                          'icons/16/blue/new/persons.png');
+                          Icon::create('persons+new', 'clickable'));
 
         $search = new SearchWidget();
         $search->addNeedle(_('Person suchen'),
@@ -982,7 +983,7 @@ class Admin_UserController extends AuthenticatedController
             $export = new ExportWidget();
             $export->addLink(_('Suchergebnis exportieren'),
                              $this->url_for('admin/user?export=1'),
-                             'icons/16/blue/move_right/persons.png');
+                             Icon::create('persons+move_right', 'clickable'));
             $sidebar->addWidget($export);
         }
 
@@ -995,28 +996,28 @@ class Admin_UserController extends AuthenticatedController
 
         $user_actions->addLink(_('Nachricht an Person verschicken'),
                                URLHelper::getLink('dispatch.php/messages/write?rec_uname=' . $this->user['username']),
-                               'icons/16/blue/mail.png')
+                               Icon::create('mail', 'clickable'))
                      ->asDialog();
 
         if ($this->user['locked']) {
             $user_actions->addLink(_('Personenaccount entsperren'),
                                    $this->url_for('admin/user/unlock/' . $this->user['user_id']),
-                                   'icons/16/blue/lock-unlocked.png');
+                                   Icon::create('lock-unlocked', 'clickable'));
         }
         if ($this->user['auth_plugin'] !== 'preliminary' && ($GLOBALS['perm']->have_perm('root') || $GLOBALS['perm']->is_fak_admin() || !in_array($this->user['perms'], words('root admin')))) {
             if (!StudipAuthAbstract::CheckField('auth_user_md5.password', $this->user['auth_plugin'])) {
                 $user_actions->addLink(_('Neues Passwort setzen'),
                                        $this->url_for('admin/user/change_password/' . $this->user['user_id']),
-                                       'icons/16/blue/key.png');
+                                       Icon::create('key', 'clickable'));
             }
             $user_actions->addLink(_('Person löschen'),
                                    $this->url_for('admin/user/delete/' . $this->user['user_id'] . '/edit'),
-                                   'icons/16/blue/trash.png');
+                                   Icon::create('trash', 'clickable'));
         }
         if (get_config('MAIL_NOTIFICATION_ENABLE') && CourseMember::findOneBySQL("user_id = ? AND notification <> 0", array($this->user['user_id']))) {
             $user_actions->addLink(_('Benachrichtigungen zurücksetzen'),
-                $this->url_for('admin/user/reset_notification/' . $this->user['user_id']),
-                'icons/16/blue/refresh.png');
+                                   $this->url_for('admin/user/reset_notification/' . $this->user['user_id']),
+                                   Icon::create('refresh', 'clickable'));
         }
 
         $sidebar->insertWidget($user_actions, 'actions', 'user_actions');
@@ -1031,16 +1032,16 @@ class Admin_UserController extends AuthenticatedController
               ->setActive(true);
         $views->addLink(_('Zum Profil'),
                         URLHelper::getLink('dispatch.php/profile?username=' . $this->user['username']),
-                        'icons/16/blue/person.png');
+                        Icon::create('person', 'clickable'));
 
         if ($GLOBALS['perm']->have_perm('root')) {
             $views->addLink(_('Datei- und Aktivitätsübersicht'),
                             URLHelper::getLink('user_activities.php?username=' . $this->user['username']),
-                            'icons/16/blue/vcard.png');
+                            Icon::create('vcard', 'clickable'));
             if (Config::get()->LOG_ENABLE) {
                 $views->addLink(_('Personeneinträge im Log'),
                                 URLHelper::getLink('dispatch.php/event_log/show?search=' . $this->user['username'] .'&type=user&object_id=' .$this->user['user_id']),
-                                'icons/16/blue/log.png');
+                                Icon::create('log', 'clickable'));
             }
         }
         $sidebar->insertWidget($views, 'user_actions', 'views');

@@ -90,7 +90,7 @@
                             <label><?= $entry->getName() ?>:</label>
                         </td>
                         <td>
-                        <? if (!$entry->structure->editAllowed($GLOBALS['user']->perms) || $locked): ?>
+                        <? if (!$entry->isEditable() || $locked): ?>
                             <?= $entry->getDisplayValue() ?>
                         <? else: ?>
                             <?= $entry->getHTML('datafields') ?>
@@ -110,7 +110,7 @@
                         </td>
                         <td>
                         <? if ($institute['externdefault']) : ?>
-                            <?= Assets::img('icons/16/grey/accept', array('class' => 'text-top'));?>
+                            <?= Icon::create('accept', 'inactive')->asImg(['class' => 'text-top']);?>
                             <input type="hidden" name="default_institute" value="1">
                         <? else : ?>
                             <input type="checkbox" id="default_institute" name="default_institute" value="1"

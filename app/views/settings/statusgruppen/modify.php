@@ -35,16 +35,13 @@
                         <td align="left">
                             <?= $entry->getName() ?>
                         </td>
-                    <? if ($entry->structure->editAllowed($GLOBALS['auth']->auth['perm'])
-                           && ($entry->getValue() != 'default_value') && !$locked): ?>
+                    <? if ($entry->isEditable() && ($entry->getValue() != 'default_value') && !$locked): ?>
                         <td>
                             <?= $entry->getHTML('datafields') ?>
                         </td>
                         <td style="text-align: right">
                             <a href="<?= $controller->url_for('settings/statusgruppen/default', $inst_id, $role_id, $id, true) ?>">
-                                <?= Assets::img('icons/16/blue/checkbox-unchecked',
-                                                array('class' => 'text-top',
-                                                      'title' =>_('Diese Daten von den Standarddaten übernehmen'))) ?>
+                                <?= Icon::create('checkbox-unchecked', 'clickable', ['title' => _('Diese Daten von den Standarddaten übernehmen')])->asImg(16, ["class" => 'text-top']) ?>
                             </a>
                         </td>
                     <? elseif ($entry->getValue() == 'default_value'): ?>
@@ -52,10 +49,8 @@
                             <?= $default_entries[$id]->getDisplayValue() ?>
                         </td>
                         <td style="text-align:right">
-                        <? if ($entry->structure->editAllowed($GLOBALS['auth']->auth['perm']) && !$locked): ?>
-                            <a href="<?= $controller->url_for('settings/statusgruppen/default', $inst_id, $role_id, $id, false) ?>">                            <?= Assets::img('icons/16/blue/checkbox-checked',
-                                                array('class' => 'text-top',
-                                                      'title' =>_('Diese Daten NICHT von den Standarddaten übernehmen'))) ?>
+                        <? if ($entry->isEditable() && !$locked): ?>
+                            <a href="<?= $controller->url_for('settings/statusgruppen/default', $inst_id, $role_id, $id, false) ?>">                            <?= Icon::create('checkbox-checked', 'clickable', ['title' => _('Diese Daten NICHT von den Standarddaten übernehmen')])->asImg(16, ["class" => 'text-top']) ?>
                             </a>
                         <? endif; ?>
                         </td>

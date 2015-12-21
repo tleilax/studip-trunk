@@ -165,8 +165,8 @@ class Admin_CoursesController extends AuthenticatedController
         if ($this->sem_create_perm) {
             $actions = new ActionsWidget();
             $actions->addLink(_('Neue Veranstaltung anlegen'),
-                URLHelper::getLink('dispatch.php/course/wizard'),
-                'icons/16/blue/add/seminar.png')->asDialog('size=50%');
+                              URLHelper::getLink('dispatch.php/course/wizard'),
+                              Icon::create('seminar+add', 'clickable'))->asDialog('size=50%');
             $sidebar->addWidget($actions, 'links');
         }
 
@@ -180,8 +180,8 @@ class Admin_CoursesController extends AuthenticatedController
             }
             $export = new ExportWidget();
             $export->addLink(_('Als Excel exportieren'),
-                URLHelper::getLink('dispatch.php/admin/courses/export_csv', $params),
-                'icons/16/blue/file-excel.png');
+                             URLHelper::getLink('dispatch.php/admin/courses/export_csv', $params),
+                             Icon::create('file-excel', 'clickable'));
             $sidebar->addWidget($export);
         }
     }
@@ -341,6 +341,9 @@ class Admin_CoursesController extends AuthenticatedController
     }
 
 
+    /**
+     * Lock or unlock courses
+     */
     public function set_locked_action()
     {
         $admission_locked = Request::getArray('admission_locked');
@@ -405,7 +408,7 @@ class Admin_CoursesController extends AuthenticatedController
                     $errors[] = $course->name;
                 } else {
                     $result = true;
-                    log_event($visibility ? 'SEM_VISIBLE' : 'SEM_INVISIBLE', $course->id);
+                    StudipLog::log($visibility ? 'SEM_VISIBLE' : 'SEM_INVISIBLE', $course->id);
                 }
             }
 
@@ -533,7 +536,7 @@ class Admin_CoursesController extends AuthenticatedController
     }
 
     /**
-     * Return a specifically action oder all available actions
+     * Return a specifically action or all available actions
      * @param null $selected
      * @return array
      */
