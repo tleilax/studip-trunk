@@ -10,7 +10,12 @@
  */
 class StEP00294InnoDB extends Migration
 {
-    function description()
+
+    /**
+     * Describe what the migration does: convert tables to InnoDB.
+     * @return string
+     */
+    public function description()
     {
         return 'Converts the Stud.IP database tables to InnoDB engine';
     }
@@ -140,7 +145,7 @@ class StEP00294InnoDB extends Migration
     }
 
     /**
-     * Convert all databases back to MyISAM engine.
+     * Convert all database tables back to MyISAM engine.
      */
     public function down()
     {
