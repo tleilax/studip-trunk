@@ -287,7 +287,7 @@ class CalendarWriteriCalendar extends CalendarWriter
             }
         }
     //    if ($event->isGroupEvent()) {
-        if ($event->attendees->count() > 1) {
+        if ($event instanceof CalendarEvent && $event->attendees->count() > 1) {
             $result .= $this->_exportGroupEventProperties($event);
         }
         //  $result .= 'DTSTAMP:' . $this->_exportDateTime(time()) . $this->newline;

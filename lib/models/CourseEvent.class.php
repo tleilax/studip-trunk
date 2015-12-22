@@ -67,6 +67,7 @@ class CourseEvent extends CourseDate implements Event
         $stmt = DBManager::get()->prepare('SELECT termine.* FROM seminar_user '
                 . 'INNER JOIN termine ON seminar_id = range_id '
                 . 'WHERE user_id = :user_id '
+                . 'AND bind_calendar = 1 '
                 . 'AND date BETWEEN :start AND :end '
                 . "AND (IFNULL(metadate_id, '') = '' "
                 . 'OR metadate_id NOT IN ( '

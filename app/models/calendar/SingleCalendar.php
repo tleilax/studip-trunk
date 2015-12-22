@@ -142,11 +142,11 @@ class SingleCalendar
             }
             return $stored;
         } else {
-            if ($event->isNew()) {
+            if (in_array($this->getRangeId(), $attendee_ids)) {
                 // set default status if the organizer is an attendee...
-                if (in_array($this->getRangeId(), $attendee_ids)) {
-                    $event->group_status = CalendarEvent::PARTSTAT_TENTATIVE;
-                }
+                $event->group_status = CalendarEvent::PARTSTAT_TENTATIVE;
+            }
+            if ($event->isNew()) {
                 return $this->storeAttendeeEvents($event, $attendee_ids);
             } else {
                 if ($event->havePermission(Event::PERMISSION_WRITABLE)) {
@@ -175,9 +175,10 @@ class SingleCalendar
                 
                 // SEMBBS
                 // Gruppentermine können ab Calendar::PERMISSION_READABLE angelegt werden
-                if ($attendee_calendar->havePermission(Calendar::PERMISSION_READABLE)) {
+                // if ($attendee_calendar->havePermission(Calendar::PERMISSION_READABLE)) {
                     
-            //    if ($attendee_calendar->havePermission(Calendar::PERMISSION_WRITABLE)) {
+                if ($attendee_calendar->havePermission(Calendar::PERMISSION_WRITABLE)
+                        || Config::get()->CALENDAR_GRANT_ALL_INSERT) {
                     $attendee_event = new CalendarEvent(
                             array($attendee_calendar->getRangeId(), $event->event_id));
                     $attendee_event->event = $event->event;

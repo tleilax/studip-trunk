@@ -61,7 +61,7 @@
                                     (<?= $group_status[$attendee->group_status] ?>)
                                 <? endif; ?>
                             </span>
-                            <a class="remove_adressee"><?= Assets::img("icons/16/blue/trash", array('class' => "text-bottom")) ?></a>
+                            <a class="remove_adressee"><?= Icon::create('trash', 'link', array('class' => 'text-bottom', 'title' => _('Teilnehmer entfernen')))->asImg(16) ?></a>
                         </li>
                         <? endif; ?>
                     <? endforeach ?>

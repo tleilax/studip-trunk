@@ -4,7 +4,6 @@ if ($settings['step_day'] >= 3600) {
 } else {
     $rowspan_precol = ' rowspan="' . 3600 / $settings['step_day'] . '"';
 }
-
 ?>
 <tr>
     <td class="precol1w" <?= $rowspan_precol ? ' colspan="2"' : '' ?>><?= _("Tag") ?></td>

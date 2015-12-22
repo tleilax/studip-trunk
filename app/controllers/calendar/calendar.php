@@ -24,7 +24,7 @@ class Calendar_CalendarController extends AuthenticatedController
     {
         parent::before_filter($action, $args);
         PageLayout::setHelpKeyword('Basis.Terminkalender');
-        $this->settings = UserConfig::get($GLOBALS['user']->id)->CALENDAR_SETTINGS;
+        $this->settings = $GLOBALS['user']->cfg->CALENDAR_SETTINGS;
         if (!is_array($this->settings)) {
             $this->settings = Calendar::getDefaultUserSettings();
         }
@@ -91,8 +91,8 @@ class Calendar_CalendarController extends AuthenticatedController
         $tmpl->category = $this->category;
         $filters->addElement(new WidgetElement($tmpl->render()));
 
-        if (get_config('CALENDAR_GROUP_ENABLE')
-                || get_config('CALENDAR_COURSE_ENABLE')) {
+        if (Config::get()->CALENDAR_GROUP_ENABLE
+                || Config::get()->CALENDAR_COURSE_ENABLE) {
             $tmpl = $tmpl_factory->open('calendar/single/_select_calendar');
             $tmpl->range_id = $this->range_id;
             $tmpl->action_url = $this->url_for('calendar/group/switch');
@@ -173,24 +173,40 @@ class Calendar_CalendarController extends AuthenticatedController
             }
         }
         
-        if (get_config('CALENDAR_GROUP_ENABLE')
+        if (Config::get()->CALENDAR_GROUP_ENABLE
                 && $this->calendar->getRange() == Calendar::RANGE_USER) {
             
-            $search_obj = SQLSearch::get("SELECT DISTINCT auth_user_md5.user_id, "
-                . "{$GLOBALS['_fullname_sql']['full_rev_username']} as fullname, "
-                . "auth_user_md5.perms, auth_user_md5.username "
-                . "FROM calendar_user "
-                . "LEFT JOIN auth_user_md5 ON calendar_user.owner_id = auth_user_md5.user_id "
-                . "LEFT JOIN user_info ON (auth_user_md5.user_id = user_info.user_id) "
-                . 'WHERE calendar_user.user_id = '
-                . DBManager::get()->quote($GLOBALS['user']->id)
-                . ' AND calendar_user.permission > ' . Event::PERMISSION_READABLE
-                . ' AND (username LIKE :input OR Vorname LIKE :input '
-                . "OR CONCAT(Vorname,' ',Nachname) LIKE :input "
-                . "OR CONCAT(Nachname,' ',Vorname) LIKE :input "
-                . "OR Nachname LIKE :input OR {$GLOBALS['_fullname_sql']['full_rev']} LIKE :input "
-                . ") ORDER BY fullname ASC",
-                _('Person suchen'), 'user_id');
+            if (Config::get()->CALENDAR_GRANT_ALL_INSERT) {
+                $search_obj = SQLSearch::get("SELECT DISTINCT auth_user_md5.user_id, "
+                    . "{$GLOBALS['_fullname_sql']['full_rev_username']} as fullname, "
+                    . "auth_user_md5.perms, auth_user_md5.username "
+                    . "FROM auth_user_md5 "
+                    . "LEFT JOIN user_info ON (auth_user_md5.user_id = user_info.user_id) "
+                    . 'WHERE auth_user_md5.user_id <> ' . DBManager::get()->quote($GLOBALS['user']->id)
+                    . ' AND (username LIKE :input OR Vorname LIKE :input '
+                    . "OR CONCAT(Vorname,' ',Nachname) LIKE :input "
+                    . "OR CONCAT(Nachname,' ',Vorname) LIKE :input "
+                    . "OR Nachname LIKE :input OR {$GLOBALS['_fullname_sql']['full_rev']} LIKE :input "
+                    . ") ORDER BY fullname ASC",
+                    _('Person suchen'), 'user_id');
+            } else {
+                $search_obj = SQLSearch::get("SELECT DISTINCT auth_user_md5.user_id, "
+                    . "{$GLOBALS['_fullname_sql']['full_rev_username']} as fullname, "
+                    . "auth_user_md5.perms, auth_user_md5.username "
+                    . "FROM calendar_user "
+                    . "LEFT JOIN auth_user_md5 ON calendar_user.owner_id = auth_user_md5.user_id "
+                    . "LEFT JOIN user_info ON (auth_user_md5.user_id = user_info.user_id) "
+                    . 'WHERE calendar_user.user_id = '
+                    . DBManager::get()->quote($GLOBALS['user']->id)
+                    . ' AND calendar_user.permission > ' . Event::PERMISSION_READABLE
+                    . ' AND auth_user_md5.user_id <> ' . DBManager::get()->quote($GLOBALS['user']->id)
+                    . ' AND (username LIKE :input OR Vorname LIKE :input '
+                    . "OR CONCAT(Vorname,' ',Nachname) LIKE :input "
+                    . "OR CONCAT(Nachname,' ',Vorname) LIKE :input "
+                    . "OR Nachname LIKE :input OR {$GLOBALS['_fullname_sql']['full_rev']} LIKE :input "
+                    . ") ORDER BY fullname ASC",
+                    _('Person suchen'), 'user_id');
+            }
             
             // SEMBBS
             // Eintrag von Terminen bereits ab PERMISSION_READABLE
@@ -280,7 +296,7 @@ class Calendar_CalendarController extends AuthenticatedController
         if (Request::submitted('store')) {
             
             if ($this->event->isNew()
-                || !get_config('CALENDAR_GROUP_ENABLE')
+                || !Config::get()->CALENDAR_GROUP_ENABLE
                 || !$this->calendar->havePermission(Calendar::PERMISSION_OWN)
                 || !$this->calendar->getRange() == Calendar::RANGE_USER
                 || !$this->event->havePermission(Event::PERMISSION_READABLE)) {
@@ -554,7 +570,7 @@ class Calendar_CalendarController extends AuthenticatedController
                     Request::getArray('del_exc_dates'));
             $event->setExceptions($this->parseExceptions($exceptions));
             // if this is a group event, store event in the calendars of each attendee
-            if (get_config('CALENDAR_GROUP_ENABLE')) {
+            if (Config::get()->CALENDAR_GROUP_ENABLE) {
                 $attendee_ids = Request::optionArray('attendees');
                 return $calendar->storeEvent($event, $attendee_ids);
             } else {
@@ -563,6 +579,13 @@ class Calendar_CalendarController extends AuthenticatedController
         }
     }
     
+    /**
+     * Parses a string with exception dates from input form and returns an array
+     * with all dates as unix timestamp identified by an internally used pattern.
+     * 
+     * @param string $exc_dates
+     * @return array An array of unix timestamps.
+     */
     protected function parseExceptions($exc_dates) {
         $matches = array();
         $dates = array();
@@ -578,6 +601,13 @@ class Calendar_CalendarController extends AuthenticatedController
         return $dates;
     }
     
+    /**
+     * Parses a string as date time in the format "j.n.Y H:i:s" and returns the
+     * corresponding unix time stamp.
+     * 
+     * @param string $dt_string The date time string.
+     * @return int A unix time stamp
+     */
     protected function parseDateTime($dt_string)
     {
         $dt_array = date_parse_from_format('j.n.Y H:i:s', $dt_string);
