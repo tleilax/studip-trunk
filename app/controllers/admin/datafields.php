@@ -168,7 +168,7 @@ class Admin_DatafieldsController extends AuthenticatedController
     {
         $datafield = DataField::find($datafield_id);
         $type = $datafield->object_type;
-        $name = $datafield->$name;
+        $name = $datafield->name;
         if (Request::int('delete') == 1) {
             $datafield->delete();
 
@@ -224,7 +224,7 @@ class Admin_DatafieldsController extends AuthenticatedController
         $actions = new ActionsWidget();
         $actions->addLink(_('Neues Datenfeld anlegen'),
                           $this->url_for('admin/datafields/new/' . $this->class_filter),
-                          'icons/blue/add.svg')
+                          Icon::create('add', 'clickable'))
                 ->asDialog();
         $sidebar->addWidget($actions);
 

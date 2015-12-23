@@ -215,6 +215,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
                                                             'name' => $rs['Field'],
                                                             'null' => $rs['Null'],
                                                             'default' => $rs['Default'],
+                                                            'type' => $rs['Type'],
                                                             'extra' => $rs['Extra']
                                                             );
                 if ($rs['Key'] == 'PRI'){
@@ -1023,11 +1024,6 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
         if(self::TableScheme($this->db_table)) {
             $this->db_fields = self::$schemes[$this->db_table]['db_fields'];
             $this->pk = self::$schemes[$this->db_table]['pk'];
-            foreach ($this->db_fields as $field => $meta) {
-                if (!isset($this->default_values[$field])) {
-                    $this->default_values[$field] = $meta['default'];
-                }
-            }
         }
     }
 
@@ -1291,6 +1287,35 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
     }
 
     /**
+     * returns default value for column
+     *
+     * @param string $field name of column
+     * @return mixed the default value
+     */
+     function getDefaultValue($field)
+     {
+         $default_value = null;
+         if (!isset($this->default_values[$field])) {
+             if (!in_array($field, $this->pk)) {
+                 $meta = $this->db_fields[$field];
+                 if (isset($meta['default'])) {
+                     $default_value = $meta['default'];
+                 } elseif ($meta['null'] == 'NO') {
+                     if (strpos($meta['type'], 'text') !== false || strpos($meta['type'], 'char') !== false) {
+                         $default_value = '';
+                     }
+                     if (strpos($meta['type'], 'int') !== false) {
+                         $default_value = 0;
+                     }
+                 }
+             }
+         } else {
+             $default_value = $this->default_values[$field];
+         }
+         return $default_value;
+     }
+
+    /**
      * sets value of a column
      *
      * @throws InvalidArgumentException if column could not be found
@@ -1398,14 +1423,19 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
     function __isset($field)
     {
         $field = strtolower($field);
-        return isset($this->content[$field]);
+        if (in_array($field, $this->known_slots)) {
+            $value = $this->getValue($field);
+            return $value instanceOf SimpleORMapCollection ? count($value) : !is_null($value);
+        } else {
+            return false;
+    }
     }
     /**
      * ArrayAccess: Check whether the given offset exists.
      */
     public function offsetExists($offset)
     {
-        return array_key_exists($offset, $this->content);
+        return in_array(strtolower($offset), $this->known_slots);
     }
 
     /**
@@ -1509,7 +1539,9 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
             }
         }
         if ($reset) {
-            $this->content_db = $this->content;
+            foreach (array_keys($this->db_fields) as $field) {
+                $this->content_db[$field] = $this->content[$field];
+            }
             $this->applyCallbacks('after_initialize');
         }
         return $count;
@@ -1644,17 +1676,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
                     }
                 }
                 if ($value === null && $meta['null'] == 'NO') {
-                    $default_value = $this->default_values[$field];
-                    if ($default_value === null) {
-                        throw new UnexpectedValueException($this->db_table . '.' . $field . ' must not be null.');
-                    }
-                    if ($default_value instanceof Closure) {
-                      $value = call_user_func_array($default_value, array($this, $field));
-                    } elseif (method_exists($this, $default_value)) {
-                        $value = call_user_func(array($this, $default_value), $field);
-                    } else {
-                        $value = $default_value;
-                    }
+                    throw new UnexpectedValueException($this->db_table . '.' . $field . ' must not be null.');
                 }
                 if (is_float($value)) {
                     $value = str_replace(',','.', $value);
@@ -1834,7 +1856,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
     }
 
     /**
-     * init internal content arrays with nulls
+     * init internal content arrays with nulls or defaults
      *
      * @throws UnexpectedValueException if there is an unmatched alias
      */
@@ -1842,7 +1864,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
     {
         $this->content = array();
         foreach (array_keys($this->db_fields) as $field) {
-            $this->content[$field] = null;
+            $this->content[$field] = $this->getDefaultValue($field);
             $this->content_db[$field] = null;
         }
         foreach ($this->alias_fields as $alias => $field) {
@@ -1945,11 +1967,6 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
                 $p = (array)$params($this);
                 $records = call_user_func_array($to_call, count($p) ? $p : array(null));
                 $result = is_array($records) ? $records[0] : $records;
-                if (!$result && $options['type'] === 'has_one') {
-                    $result = new $options['class_name'];
-                    $foreign_key_value = call_user_func($options['assoc_func_params_func'], $this);
-                    call_user_func($options['assoc_foreign_key_setter'], $result, $foreign_key_value);
-                }
                 $this->relations[$relation] = $result;
             }
         }

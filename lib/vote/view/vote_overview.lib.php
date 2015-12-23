@@ -184,7 +184,7 @@ function printSearchResults($rangeAR,$searchString){
  * @param $range    array An array with alle accessable rangeIDs [0] and the titles [1]
  * @param $sarchRange   string The ID of the range to display
  */
-function printSelections($range,$sarchRange = "",$safeguard = NULL)
+function printSelections($range,$sarchRange = "",$safeguard = NULL, $referer = "")
 {
     global $rangemode,$label,$showrangeID;
 
@@ -198,10 +198,10 @@ function printSelections($range,$sarchRange = "",$safeguard = NULL)
           . "   <tr><td>".$safeguard."</td></tr><tr>\n";
 
     // create new vote/test
-    $html .= makeNewVoteSelectForm(VOTE_FILE_ADMIN."?page=edit");
+    $html .= makeNewVoteSelectForm(VOTE_FILE_ADMIN."?page=edit", $referer);
     $html .="    </tr>\n"
           . "    <tr>\n";
-    $html .= makeCopyVoteSelectForm(VOTE_FILE_ADMIN . "?page=edit");
+    $html .= makeCopyVoteSelectForm(VOTE_FILE_ADMIN . "?page=edit", $referer);
     // background-image
 
     $html.="    </tr>\n"
@@ -642,12 +642,13 @@ function makeTableDataCellForm( $displayclass = "table_row_even",
  * @param
  * @return
 */
-function makeNewVoteSelectForm($action){
+function makeNewVoteSelectForm($action, $referer = ""){
     global $rangemode, $label,$range, $showrangeID;
     $arraysize = count($range);
     $html = "    <td class=\"table_row_even\" style=\"vertical-align:middle;\" nowrap>\n"
           . "     <form action=\"".URLHelper::getLink($action)."\" method=post><br>&nbsp;\n"
           .       CSRFProtection::tokenTag()
+          . "     <input type=\"HIDDEN\" name=\"referer\" value=\"".$referer."\">"
 
           // vote/test selection
           . "     <select name=\"type\" style=\"vertical-align:middle;\">"
@@ -764,20 +765,21 @@ function makeArrow($timestmp ,$open, $displayclass, $mode, $voteID = NULL)
     global $label, $showrangeID;
 
     switch ($mode){
-     case "new":
-            $icon = "icons/16/yellow/arr_1";
+    case "new":
+        $icon_role = "status-yellow";
         break;
-     case "active":
-            $icon = "icons/16/green/arr_1";
+    case "active":
+        $icon_role = "status-green";
         break;
-     case "stopped":
-            $icon = "icons/16/red/arr_1";
+    case "stopped":
+        $icon_role = "status-red";
         break;
     }
+
     if ($open == "open") {
-        $icon .= "down.png";
+        $icon = "arr_1down";
     } else {
-        $icon .= "right.png";
+        $icon = "arr_1right";
     }
 
     $html = "    <td class=\"".$displayclass."\" nowrap width=\"10\">\n";
@@ -790,13 +792,13 @@ function makeArrow($timestmp ,$open, $displayclass, $mode, $voteID = NULL)
         $html.= "         <a href=\"".URLHelper::getLink($oclink)."\" title=\"".$label["arrow_closethis"]."\">\n";
 
 
-    $html.= Assets::img($icon, array('class' => 'middle'));
+    $html.= Icon::create($icon, $icon_role)->asImg(['class' => 'middle']);
     $html.= "</a>\n"
          .  "    </td>\n";
     return $html;
 }
 
-function makeCopyVoteSelectForm($action) {
+function makeCopyVoteSelectForm($action, $referer) {
     global $showrangeID;
     $st = DBManager::get()->prepare("SELECT vote_id,type,title FROM vote WHERE author_id=? ORDER BY chdate");
     $st->execute(array($GLOBALS['user']->id));
@@ -805,6 +807,7 @@ function makeCopyVoteSelectForm($action) {
         $html = '<td class="table_row_even" style="vertical-align:middle;" nowrap>' . "\n"
             . '<form action="' . URLHelper::getLink($action) . '" method="post"><br>&nbsp;' . "\n"
             . CSRFProtection::tokenTag() . "\n"
+            . '<input type="hidden" name="referer" value="'.$referer.'" />'
             . '<select name="makecopy" style="vertical-align:middle;">' . "\n";
         foreach ($votes  as $vote) {
             $html .= sprintf('<option value="%s">%s (%s)</option>' . "\n",
