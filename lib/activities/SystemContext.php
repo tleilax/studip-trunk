@@ -35,6 +35,7 @@ class SystemContext extends Context
     {
         $this->addProvider('news');
         $this->addProvider('message');
+        $this->addProvider('blubber');
 
         return $this->provider;
     }

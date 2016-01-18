@@ -18,8 +18,7 @@ class Filter
 {
     private
         $age,
-        $type,
-        $limit;
+        $type;
 
     function setMaxAge($age) {
         $this->age = $age;
@@ -35,15 +34,5 @@ class Filter
 
     function getType() {
         return $this->type;
-    }
-
-    function getLimit()
-    {
-        return $this->limit;
-    }
-
-    function setLimit($limit)
-    {
-        $this->limit = $limit;
     }
 }

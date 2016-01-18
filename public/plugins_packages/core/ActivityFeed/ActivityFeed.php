@@ -43,8 +43,8 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
         }
 
 
-        $institues = MyRealmModel::getMyInstitutes();
-        foreach($institues as $institute){
+        $institutes = MyRealmModel::getMyInstitutes();
+        foreach($institutes as $institute){
             $contexts[] = new \Studip\Activity\InstituteContext($institute['institut_id']);
         }
 
@@ -58,7 +58,6 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
         $filter = new Studip\Activity\Filter();
 
         $filter->setMaxAge(time() - 2 * 256 * 86400); // set range of 2 weeks from today
-        $filter->setLimit(20);
         #$filter->setType('forum');
 
 
@@ -69,6 +68,8 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
         $template_factory = new Flexi_TemplateFactory(__DIR__ . '/templates');
         $template = $template_factory->open('stream');
         $template->stream = $stream;
+
+
 
         /*
         $navigation = new Navigation('', '#');
@@ -83,12 +84,4 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
         return $template;
     }
 
-    /*
-    private function getCourses(){
-
-        $courses  = MyRealmModel::getPreparedCourses();
-
-
-        return $courses;
-    }*/
 }
