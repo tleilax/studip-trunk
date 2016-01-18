@@ -33,7 +33,7 @@ $description = $_activity->getDescription();
         </div>
         <section class="activity-description">
             <span class="activity-date">
-                <?= strftime('%x um %X Uhr', $_activity->getMkdate()) ?>
+                <?= strftime('%d.%m.%Y um %X Uhr', $_activity->getMkdate()) ?>
             </span>
 
             <span class="activity-details">
