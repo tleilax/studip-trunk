@@ -376,8 +376,7 @@ class Calendar_CalendarController extends AuthenticatedController
                         }
                         $msg_text .= '**' . _('Teilnehmer:') . '** ' . implode(', ', $member);
                         $msg_text .= "\n\n" . _('Hier kommen Sie direkt zum Termin in Ihrem Kalender:') . "\n";
-                        $msg_text .= $GLOBALS['ABSOLUTE_URI_STUDIP']
-                                . URLHelper::getURL('dispatch.php/calendar/edit/'
+                        $msg_text .= URLHelper::getURL('dispatch.php/calendar/single/edit/'
                                 . $this->event->getAuthorId() . '/' . $this->event->event_id);
                         $message->insert_message(
                                 addslashes($msg_text),
