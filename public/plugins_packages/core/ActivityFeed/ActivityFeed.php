@@ -13,6 +13,7 @@
 
 class ActivityFeed extends StudIPPlugin implements PortalPlugin
 {
+    
     public function getPluginName()
     {
         return _('Aktivitäten');
@@ -20,6 +21,7 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
 
     public function getPortalTemplate()
     {
+        global $perm;
         //PageLayout::addScript($this->getPluginUrl() . '/js/ActivityFeed.js');
         $this->addStylesheet('css/style.less');
 
@@ -44,8 +46,10 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
 
 
         $institutes = MyRealmModel::getMyInstitutes();
-        foreach($institutes as $institute){
-            $contexts[] = new \Studip\Activity\InstituteContext($institute['institut_id']);
+        if(!$perm->have_perm('root') || !is_null($institutes)){
+            foreach($institutes as $institute){
+                $contexts[] = new \Studip\Activity\InstituteContext($institute['institut_id']);
+            }
         }
 
         //TODO user_context (do we wanna add buddies as well?)
@@ -63,13 +67,9 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
 
         $stream = new \Studip\Activity\Stream($observer_id, $contexts, $filter);
 
-
-
         $template_factory = new Flexi_TemplateFactory(__DIR__ . '/templates');
         $template = $template_factory->open('stream');
         $template->stream = $stream;
-
-
 
         /*
         $navigation = new Navigation('', '#');
