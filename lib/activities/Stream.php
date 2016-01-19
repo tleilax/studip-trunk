@@ -1,23 +1,21 @@
 <?php
 
 /**
- * File - description
+ * Stream.php - represents a set of activities
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License
- * version 3 as published by the Free Software Foundation.
+ * version 2 as published by the Free Software Foundation.
  *
  * @author      Till Glöggler <tgloeggl@uos.de>
  * @author      André Klaßen <klassen@elan-ev.de>
- * @license     https://www.gnu.org/licenses/agpl-3.0.html AGPL version 3
+ * @license     https://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  */
 
 namespace Studip\Activity;
 
 class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
 {
-
-    // TODO
     private $activities;
 
     function __construct($observer_id, $contexts, Filter $filter)
@@ -70,11 +68,12 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
         $this->activities = $new_activities;
     }
 
- /**
+    /**
      * ArrayAccess: Check whether the given offset exists.
      */
     public function offsetExists($offset)
     {
+        return isset($this->activities[$offset]);
     }
 
     /**
@@ -82,7 +81,7 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
      */
     public function offsetGet($offset)
     {
-
+        return $this->activities[$offset];
     }
 
     /**
@@ -90,15 +89,17 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
      */
     public function offsetSet($offset, $value)
     {
-
+        $this->activities[$offset] = $value;
     }
+
     /**
      * ArrayAccess: unset the value at the given offset (not applicable)
      */
     public function offsetUnset($offset)
     {
-
+        unset($this->activities[$offset]);
     }
+
     /**
      * IteratorAggregate
      */
@@ -106,6 +107,7 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
     {
         return new \ArrayIterator($this->activities);
     }
+
     /**
      * Countable
      */
