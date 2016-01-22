@@ -26,11 +26,11 @@ class MessageProvider implements ActivityProvider
             WHERE message_user.user_id = ?
                 AND message_user.deleted = 0
                 AND snd_rec = 'snd'
-                AND message_user.mkdate >= ?
+                AND message_user.mkdate BETWEEN ? AND ?
             ORDER BY message_user.mkdate DESC
         ");
 
-        $messages_data->execute(array($observer_id, $filter->getMaxAge()));
+        $messages_data->execute(array($observer_id, $filter->getStartDate(), $filter->getEndDate()));
 
         while ($msg = $messages_data->fetch()) {
             $url = \URLHelper::getLink('dispatch.php/messages/read/' . $msg['message_id']);

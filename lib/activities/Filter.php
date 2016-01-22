@@ -17,15 +17,27 @@ namespace Studip\Activity;
 class Filter
 {
     private
-        $age,
+        $start_date,
+        $end_date,
         $type;
 
-    function setMaxAge($age) {
-        $this->age = $age;
+
+
+    function setStartDate($start_date){
+
+        $this->start_date = $start_date;
     }
 
-    function getMaxAge() {
-        return $this->age;
+    function getStartDate(){
+        return $this->start_date;
+    }
+
+    function setEndDate($end_date){
+        $this->end_date = $end_date;
+    }
+
+    function getEndDate(){
+        return $this->end_date;
     }
 
     function setType($type) {

@@ -36,7 +36,7 @@ class CoreParticipants implements StudipModule {
         return array('members' => $navigation);
     }
 
-    function getNotificationObjects($course_id, $since, $user_id)
+    function getNotificationObjects($course_id, $since, $from, $user_id)
     {
         $items = array();
         $type = get_object_type($course_id, array('sem', 'inst', 'fak'));
@@ -51,9 +51,9 @@ class CoreParticipants implements StudipModule {
             JOIN user_info USING (user_id)
             JOIN seminare USING (Seminar_id)
             WHERE Seminar_id = ? 
-                AND seminar_user.mkdate > ?');
+                AND seminar_user.mkdate BETWEEN ? AND ?');
         
-        $stmt->execute(array($course_id, $since));
+        $stmt->execute(array($course_id, $since, $from));
         
         while ($row = $stmt->fetch()) {
             $summary = sprintf('%s ist der Veranstaltung "%s" beigetreten.',

@@ -36,7 +36,7 @@ class CoreWiki implements StudipModule {
         }
     }
     
-    function getNotificationObjects($course_id, $since, $user_id)
+    function getNotificationObjects($course_id, $since, $from, $user_id)
     {
         $items = array();
         $type = get_object_type($course_id, array('sem', 'inst', 'fak'));
@@ -49,7 +49,7 @@ class CoreWiki implements StudipModule {
                 JOIN seminar_user ON (range_id = Seminar_id)
                 JOIN seminare USING (Seminar_id)
                 WHERE seminar_user.user_id = ? AND Seminar_id = ? 
-                    AND wiki.chdate > ?';
+                    AND wiki.chdate BETWEEN ? AND ?';
         } else {
             $query = 'SELECT wiki.*, Institute.Name, '. $GLOBALS['_fullname_sql']['full'] .' as fullname
                 FROM wiki
@@ -58,7 +58,7 @@ class CoreWiki implements StudipModule {
                 JOIN user_inst ON (range_id = Institut_id)
                 JOIN Institute USING (Institut_id)
                 WHERE user_inst.user_id = ? AND Institut_id = ? 
-                    AND wiki.chdate > ?';
+                    AND wiki.chdate BETWEEN ? AND ?';
         }
         
         $wikipage_stmt = DBManager::get()->prepare("SELECT * FROM wiki
@@ -66,7 +66,7 @@ class CoreWiki implements StudipModule {
                 AND version = ?");
         
         $stmt = DBManager::get()->prepare($query);
-        $stmt->execute(array($user_id, $course_id, $since));
+        $stmt->execute(array($user_id, $course_id, $since, $from));
         
         while ($row = $stmt->fetch()) {
             // use correct text depending on type of object

@@ -61,8 +61,8 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
         // add filters
         $filter = new Studip\Activity\Filter();
 
-        $filter->setMaxAge(time() - 2 * 256 * 86400); // set range of 2 weeks from today
-        #$filter->setType('forum');
+        $filter->setStartDate(time() - 3 * 256 * 86400); // set range of 2 weeks from today
+        $filter->setEndDate(time());
 
 
         $stream = new \Studip\Activity\Stream($observer_id, $contexts, $filter);

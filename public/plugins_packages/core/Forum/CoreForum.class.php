@@ -105,12 +105,12 @@ class CoreForum extends StudipPlugin implements ForumModule
     }
 
     /* interface method */
-    function getNotificationObjects($course_id, $since, $user_id)
+    function getNotificationObjects($course_id, $since, $from, $user_id)
     {
         $this->setupAutoload();
         
         if (ForumPerm::has('view', $course_id, $user_id)) {
-            $postings = ForumEntry::getLatestSince($course_id, $since);
+            $postings = ForumEntry::getLatestSince($course_id, $since, $from);
             
             $contents = array();
             foreach ($postings as $post) {

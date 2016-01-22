@@ -26,7 +26,7 @@ class ParticipantsProvider implements ActivityProvider
         if ($course = \Course::find($range_id)) {
             $sem_class = $course->getSemClass();
             $module = $sem_class->getModule('participants');
-            $notifications = $module->getNotificationObjects($range_id, $filter->getMaxAge(), $observer_id);
+            $notifications = $module->getNotificationObjects($range_id, $filter->getStartDate(), $filter->getEndDate(), $observer_id);
 
             return $this->wrapParticipantNotifications($notifications);
         }
@@ -50,7 +50,7 @@ class ParticipantsProvider implements ActivityProvider
         return array_map(function ($n) {
             return new Activity(
                 'participants_provider',
-                array(                                  // the description and summaray of the performed activity
+                array(                                  // the description and summary of the performed activity
                     'title' => $n->getSummary(),
                     'content' => $n->getContent()
                 ),

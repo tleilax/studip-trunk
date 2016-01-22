@@ -40,7 +40,7 @@ class CoreLiterature implements StudipModule {
         }
     }
 
-    function getNotificationObjects($course_id, $since, $user_id)
+    function getNotificationObjects($course_id, $since, $from, $user_id)
     {
         $items = array();
         $type = get_object_type($course_id, array('sem', 'inst', 'fak'));
@@ -57,9 +57,9 @@ class CoreLiterature implements StudipModule {
             join auth_user_md5 on(llc.user_id = auth_user_md5.user_id)
             JOIN user_info ON (auth_user_md5.user_id = user_info.user_id)
             WHERE range_id = ?
-                AND llc.chdate > ?');
+                AND llc.chdate BETWEEN ? AND ?');
         
-        $stmt->execute(array($course_id, $since));
+        $stmt->execute(array($course_id, $since, $from));
         
         while ($row = $stmt->fetch()) {
             $summary = sprintf('%s wurde in die Literaturliste %s der Veranstaltung "%s" hinzugefügt',

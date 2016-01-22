@@ -26,7 +26,7 @@ class LiteratureProvider implements ActivityProvider
         if ($course = \Course::find($range_id)) {
             $sem_class = $course->getSemClass();
             $module = $sem_class->getModule('literature');
-            $notifications = $module->getNotificationObjects($range_id, $filter->getMaxAge(), $observer_id);
+            $notifications = $module->getNotificationObjects($range_id, $filter->getStartDate(), $filter->getEndDate(), $observer_id);
 
             return $this->wrapParticipantNotifications($notifications);
         }

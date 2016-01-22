@@ -26,7 +26,7 @@ class CoreDocuments implements StudipModule {
         return array('files' => $navigation);
     }
 
-    function getNotificationObjects($course_id, $since, $user_id)
+    function getNotificationObjects($course_id, $since, $from, $user_id)
     {
         $items = array();
         $type = get_object_type($course_id, array('sem', 'inst', 'fak'));
@@ -39,7 +39,7 @@ class CoreDocuments implements StudipModule {
                 JOIN seminar_user USING (Seminar_id)
                 JOIN seminare USING (Seminar_id)
                 WHERE seminar_user.user_id = ? AND Seminar_id = ? 
-                    AND dokumente.chdate > ?';
+                    AND dokumente.chdate BETWEEN ? AND ?';
         } else {
             $query = 'SELECT dokumente.*, Institute.Name, '. $GLOBALS['_fullname_sql']['full'] .' as fullname
                 FROM dokumente
@@ -52,7 +52,7 @@ class CoreDocuments implements StudipModule {
         }
 
         $stmt = DBManager::get()->prepare($query);
-        $stmt->execute(array($user_id, $course_id, $since));
+        $stmt->execute(array($user_id, $course_id, $since, $from));
         
         while ($row = $stmt->fetch()) {
             $folder_tree = TreeAbstract::GetInstance('StudipDocumentTree', array('range_id' => $row['seminar_id']));

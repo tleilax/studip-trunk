@@ -48,7 +48,7 @@ class CoreElearningInterface implements StudipModule {
         }
     }
 
-    function getNotificationObjects($course_id, $since, $user_id)
+    function getNotificationObjects($course_id, $since, $from, $user_id)
     {
         return null;
     }

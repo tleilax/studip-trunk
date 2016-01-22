@@ -42,7 +42,7 @@ class CoreScm implements StudipModule {
         }
     }
  
-    function getNotificationObjects($course_id, $since, $user_id)
+    function getNotificationObjects($course_id, $since, $from, $user_id)
     {
         $items = array();
         $type = get_object_type($course_id, array('sem', 'inst', 'fak'));
@@ -55,7 +55,7 @@ class CoreScm implements StudipModule {
                 JOIN seminar_user ON (range_id = Seminar_id)
                 JOIN seminare USING (Seminar_id)
                 WHERE seminar_user.user_id = ? AND Seminar_id = ? 
-                    AND scm.chdate > ?';
+                    AND scm.chdate BETWEEN ? AND ?';
         } else {
             $query = 'SELECT scm.*, Institute.Name, '. $GLOBALS['_fullname_sql']['full'] .' as fullname
                 FROM scm
@@ -64,11 +64,11 @@ class CoreScm implements StudipModule {
                 JOIN user_inst ON (range_id = Institut_id)
                 JOIN Institute USING (Institut_id)
                 WHERE user_inst.user_id = ? AND Institut_id = ? 
-                    AND scm.chdate > ?';
+                    AND scm.chdate BETWEEN ? AND ?';
         }
         
         $stmt = DBManager::get()->prepare($query);
-        $stmt->execute(array($user_id, $course_id, $since));
+        $stmt->execute(array($user_id, $course_id, $since, $from));
         
         while ($row = $stmt->fetch()) {
             // use correct text depending on type of object

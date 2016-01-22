@@ -52,13 +52,13 @@ class NewsProvider implements ActivityProvider
     }
 
     private function filterNews($news, Filter $filter) {
-        if(is_null($filter->getMaxAge())) {
+        if(is_null($filter->getStartDate())) {
             return $news;
         } else {
             $filtered_news = array();
             foreach($news as $news_item) {
                 // is $news_item->date the suitable date to make that decision
-                if($news_item->date > $filter->getMaxAge()) {
+                if($news_item->date > $filter->getStartDate()) {
                     $filtered_news[] = $news_item;
                 }
             }

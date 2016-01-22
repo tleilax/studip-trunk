@@ -726,15 +726,15 @@ class ForumEntry {
      *
      * @return array list of postings
      */
-    function getLatestSince($parent_id, $since)
+    function getLatestSince($parent_id, $since, $from)
     {
         $constraint = ForumEntry::getConstraints($parent_id);
 
         $stmt = DBManager::get()->prepare("SELECT SQL_CALC_FOUND_ROWS * FROM forum_entries
             WHERE lft > ? AND rgt < ? AND seminar_id = ?
-                AND mkdate >= ?
+                AND mkdate BETWEEN ? AND ?
             ORDER BY name ASC");
-        $stmt->execute(array($constraint['lft'], $constraint['rgt'], $constraint['seminar_id'], $since));
+        $stmt->execute(array($constraint['lft'], $constraint['rgt'], $constraint['seminar_id'], $since, $from));
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }

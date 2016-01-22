@@ -46,7 +46,7 @@ class Blubber extends StudIPPlugin implements StandardPlugin, SystemPlugin {
                 }
                 $last_check = $data['Blubber']['last_check'] ? $data['Blubber']['last_check'] : (time() - 5 * 60);
 
-                $new_postings = $stream->fetchNewPostings($last_check);
+                $new_postings = $stream->fetchNewPostings($last_check, time());
 
                 $factory = new Flexi_TemplateFactory($this->getPluginPath()."/views");
                 foreach ($new_postings as $new_posting) {
@@ -184,9 +184,9 @@ class Blubber extends StudIPPlugin implements StandardPlugin, SystemPlugin {
      * @param string $user_id
      * @return array of type ContentElement
      */
-    public function getNotificationObjects($course_id, $since, $user_id)
+    public function getNotificationObjects($course_id, $since, $from, $user_id)
     {
-        $blubber = BlubberStream::getCourseStream($course_id)->fetchNewPostings($since);
+        $blubber = BlubberStream::getCourseStream($course_id)->fetchNewPostings($since, $from);
         $contents = array();
         foreach ($blubber as $blubb) {
             $contents[] = new ContentElement(
