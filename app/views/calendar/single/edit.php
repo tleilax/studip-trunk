@@ -438,7 +438,9 @@
     </div>
 </form>
 <script>
-    jQuery('#start-date').datepicker();
+    jQuery('#start-date').datepicker({
+        altField: '#end-date'
+    });
     jQuery('#end-date').datepicker();
     jQuery('#exp-date').datepicker();
     jQuery('#exc-date').datepicker();
