@@ -75,6 +75,12 @@ class CalendarEvent extends SimpleORMap implements Event
         parent::configure($config);
     }
 
+    /**
+     * Returns the owner of this event as an object of type User, Course
+     * or Institute.
+     * 
+     * @return object
+     */
     public function getOwner()
     {
         if ($this->user) {
@@ -159,13 +165,13 @@ class CalendarEvent extends SimpleORMap implements Event
         }
         switch ($status) {
             case CalendarEvent::PARTSTAT_TENTATIVE :
-                return _('abwartend');
+                return _('Abwartend');
             case CalendarEvent::PARTSTAT_ACCEPTED :
-                return _('angenommen');
+                return _('Angenommen');
             case CalendarEvent::PARTSTAT_DECLINED :
-                return _('abgelehnt');
+                return _('Abgelehnt');
             case CalendarEvent::PARTSTAT_DELEGATED :
-                return _('angenommen (keine Teilnahme)');
+                return _('Angenommen (keine Teilnahme)');
         }
         return '';
     }
@@ -510,7 +516,7 @@ class CalendarEvent extends SimpleORMap implements Event
                 break;
             default:
                 $type = 'single';
-                $text = _("Der Termin wird nicht wiederholt.");
+                $text = _('Der Termin wird nicht wiederholt.');
         }
         return $only_type ? $type : $text;
     }
@@ -529,13 +535,13 @@ class CalendarEvent extends SimpleORMap implements Event
         }
         switch ($this->event->priority) {
             case 1:
-                return _("hoch");
+                return _('Hoch');
             case 2:
-                return _("mittel");
+                return _('Mittel');
             case 3:
-                return _("niedrig");
+                return _('Niedrig');
             default:
-                return _("keine Angabe");
+                return _('Keine Angabe');
         }
     }
 
@@ -551,11 +557,11 @@ class CalendarEvent extends SimpleORMap implements Event
                 $this->permission_user_id)) {
             switch ($this->event->class) {
                 case 'PUBLIC':
-                    return _('öffentlich');
+                    return _('Öffentlich');
                 case 'CONFIDENTIAL':
-                    return _('vertraulich');
+                    return _('Vertraulich');
                 default:
-                    return _('privat');
+                    return _('Privat');
             }
         }
         return '';
@@ -904,15 +910,15 @@ class CalendarEvent extends SimpleORMap implements Event
             case Calendar::PERMISSION_ADMIN :
                 $options = array(
                     // SEMBBS nur private und vertrauliche Termine
-                    // 'PUBLIC' => _('öffentlich'),
-                    'PRIVATE' => _('privat'),
-                    'CONFIDENTIAL' => _('vertraulich')
+                    'PUBLIC' => _('Öffentlich'),
+                    'PRIVATE' => _('Privat'),
+                    'CONFIDENTIAL' => _('Vertraulich')
                 );
                 break;
             case Calendar::PERMISSION_WRITABLE :
                 $options = array(
-                    'PRIVATE' => _('privat'),
-                    'CONFIDENTIAL' => _('vertraulich')
+                    'PRIVATE' => _('Privat'),
+                    'CONFIDENTIAL' => _('Vertraulich')
                 );
                 break;
             default :
@@ -1100,17 +1106,39 @@ class CalendarEvent extends SimpleORMap implements Event
         return $event_collection;
     }
 
+    /**
+     * Sets the user_id to check his permission.
+     * 
+     * @param string $user_id The id of the user.
+     */
     public function setPermissionUser($user_id)
     {
         $this->permission_user_id = $user_id;
     }
 
+    /**
+     * Checks the permission of the user previously set with
+     * CalendarEvent::setPermissisonUser or given by second argument.
+     * Returns true if the user have the at least the given permission.
+     * 
+     * @param int $permission
+     * @param string $user_id
+     * @return boolean
+     */
     public function havePermission($permission, $user_id = null)
     {
         $perm = $this->getPermission($user_id);
         return $perm >= $permission;
     }
 
+    /**
+     * Returns the permission of the given user or the user set by
+     * CalendarEvent::setPermssionUser previously.
+     * 
+     * @staticvar array $permissions
+     * @param string $user_id The user's id.
+     * @return int The permission.
+     */
     public function getPermission($user_id = null)
     {
         static $permissions = array();
@@ -1125,11 +1153,14 @@ class CalendarEvent extends SimpleORMap implements Event
             
             // SEMBBS
             // Admins dürfen alle Termine löschen
+            /*
             if ($GLOBALS['perm']->have_perm('admin')) {
                 $permissions[$user_id][$this->event_id] = Event::PERMISSION_DELETABLE;
-            }
+            } else 
+             * 
+             */
             
-            else if ($user_id == $this->range_id) {
+            if ($user_id == $this->range_id) {
                 if ($this->group_status) {
                     $permissions[$user_id][$this->event_id] = Event::PERMISSION_READABLE;
                 } else {
@@ -1158,6 +1189,12 @@ class CalendarEvent extends SimpleORMap implements Event
         return $permissions[$user_id][$this->event_id];
     }
 
+    /**
+     * Get the user's permission for this event in the actual calendar.
+     * 
+     * @param string $user_id The user id.
+     * @return int The permission.
+     */
     private function getUserCalendarPermission($user_id)
     {
         $permission = Event::PERMISSION_FORBIDDEN;
@@ -1195,6 +1232,13 @@ class CalendarEvent extends SimpleORMap implements Event
         return $permission;
     }
 
+    /**
+     * Get the user's permission for this event in the actual calendar if the
+     * owner is a course.
+     * 
+     * @param string $user_id The user's id.
+     * @return int The permission.
+     */
     private function getCourseCalendarPermission($user_id)
     {
         global $perm;
@@ -1219,6 +1263,13 @@ class CalendarEvent extends SimpleORMap implements Event
         return $permission;
     }
 
+    /**
+     * Get the user's permission for this event in the actual calendar if the
+     * owner is an institute.
+     * 
+     * @param string $user_id The user's id.
+     * @return int The permssion.
+     */
     private function getInstituteCalendarPermission($user_id)
     {
         global $perm;
@@ -1242,11 +1293,21 @@ class CalendarEvent extends SimpleORMap implements Event
         return $permission;
     }
 
+    /**
+     * Returns the user id of the event's author.
+     * 
+     * @return string The user id of the author.
+     */
     public function getAuthor()
     {
         return $this->event->author;
     }
 
+    /**
+     * Returns teh user id of the event's last editor.
+     * 
+     * @return string The uder id og the editor.
+     */
     public function getEditor()
     {
         return $this->event->editor;

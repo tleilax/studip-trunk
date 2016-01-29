@@ -91,12 +91,12 @@ class Admin_DatafieldsController extends AuthenticatedController
                 $datafield->object_class  = array_sum(Request::getArray('object_class')) ?: null;
                 $datafield->edit_perms    = Request::get('edit_perms');
                 $datafield->view_perms    = Request::get('visibility_perms');
-                $datafield->system        = Request::int('system');
-                $datafield->priority      = Request::get('priority');
+                $datafield->system        = Request::int('system') ?: 0;
+                $datafield->priority      = Request::int('priority') ?: 0;
                 $datafield->type          = Request::get('datafield_type');
-                $datafield->is_required   = Request::get('is_required');
+                $datafield->is_required   = Request::int('is_required') ?: 0;
                 $datafield->description   = Request::get('description', $datafield->description);
-                $datafield->is_userfilter = Request::int('is_userfilter');
+                $datafield->is_userfilter = Request::int('is_userfilter') ?: 0;
                 $datafield->store();
 
                 PageLayout::postSuccess(_('Die Änderungen am generischen Datenfeld wurden übernommen.'));
@@ -128,15 +128,16 @@ class Admin_DatafieldsController extends AuthenticatedController
                 $datafield->object_class  = array_sum(Request::getArray('object_class'));
                 $datafield->edit_perms    = Request::get('edit_perms');
                 $datafield->view_perms    = Request::get('visibility_perms');
-                $datafield->system        = Request::int('system');
-                $datafield->priority      = Request::get('priority');
+                $datafield->system        = Request::int('system') ?: 0;
+                $datafield->priority      = Request::int('priority') ?: 0;
                 $datafield->type          = Request::get('datafield_typ');
-                $datafield->is_userfilter = Request::int('is_userfilter');
+                $datafield->is_userfilter = Request::int('is_userfilter') ?: 0;
                 if ($type === 'sem') {
                     $datafield->description = Request::get('description', '');
-                    $datafield->is_required = Request::int('is_required');
+                    $datafield->is_required = Request::int('is_required') ?: 0;
                 } else {
                     $datafield->description = '';
+                    $datafield->is_required = Request::int('is_required') ?: 0;
                 }
                 $datafield->store();
 
@@ -168,7 +169,7 @@ class Admin_DatafieldsController extends AuthenticatedController
     {
         $datafield = DataField::find($datafield_id);
         $type = $datafield->object_type;
-        $name = $datafield->$name;
+        $name = $datafield->name;
         if (Request::int('delete') == 1) {
             $datafield->delete();
 
@@ -224,7 +225,7 @@ class Admin_DatafieldsController extends AuthenticatedController
         $actions = new ActionsWidget();
         $actions->addLink(_('Neues Datenfeld anlegen'),
                           $this->url_for('admin/datafields/new/' . $this->class_filter),
-                          'icons/blue/add.svg')
+                          Icon::create('add', 'clickable'))
                 ->asDialog();
         $sidebar->addWidget($actions);
 

@@ -178,6 +178,7 @@ class Course_AdmissionController extends AuthenticatedController
                         }
                         if ($num_moved) {
                             PageLayout::postMessage(MessageBox::success(sprintf(_("%s vorläufige Teilnehmer wurden entfernt."), $num_moved)));
+                            $this->course->resetRelation('admission_applicants');
                         }
                     }
                 }
@@ -275,6 +276,7 @@ class Course_AdmissionController extends AuthenticatedController
                         $num_moved += $applicant->delete();
                     }
                     if ($num_moved) {
+                        $this->course->resetRelation('admission_applicants');
                         PageLayout::postMessage(MessageBox::success(sprintf(_("%s Wartende wurden entfernt."), $num_moved)));
                     }
                 }
@@ -361,6 +363,7 @@ class Course_AdmissionController extends AuthenticatedController
                         $num_moved += $applicant->delete();
                     }
                     if ($num_moved) {
+                        $this->course->resetRelation('admission_applicants');
                         PageLayout::postMessage(MessageBox::success(sprintf(_("%s Wartende wurden entfernt."), $num_moved)));
                     }
                 }

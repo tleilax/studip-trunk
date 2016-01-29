@@ -28,7 +28,7 @@ use Studip\Button, Studip\LinkButton;
 <? if (isset($currentuser)): ?>
     <form action="<?= $controller->url_for('admin/role/save_role', $currentuser->getUserid()) ?>" method="POST">
         <?= CSRFProtection::tokenTag() ?>
-        <input type="hidden" name="ticket" value="<?= get_ticket() ?>">
+        <input type="hidden" name="studip_ticket" value="<?= get_ticket() ?>">
         <table class="default nohover">
             <tr>
                 <th style="text-align: center;">
@@ -77,7 +77,7 @@ use Studip\Button, Studip\LinkButton;
         <li>
               <?= htmlReady($assignedrole->getRolename()) ?>
               <?= tooltipIcon(join("\n", $assignedroles_institutes[$assignedrole->getRoleid()]))?>
-              <a href="<?= $controller->link_for('/assign_role_institutes/' . $assignedrole->getRoleid() . '/' . $currentuser->getUserid()) ?>" data-lightbox><?= Icon::create('edit', 'clickable')->asImg() ?></a>
+              <a href="<?= $controller->link_for('/assign_role_institutes/' . $assignedrole->getRoleid() . '/' . $currentuser->getUserid()) ?>" data-dialog><?= Icon::create('edit', 'clickable')->asImg() ?></a>
         </li>
         <? endif ?>
     <? endforeach ?>

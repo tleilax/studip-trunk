@@ -65,7 +65,7 @@ class Step00296AppointmentRequests extends Migration
      * perform this migration
      */
     public function up()
-    {
+    {/*
         $model = new CourseMember();
         $meta_data = $model->getTableMetadata();
 
@@ -74,6 +74,8 @@ class Step00296AppointmentRequests extends Migration
             $db->exec("ALTER TABLE `seminar_user` ADD `bind_calendar` TINYINT( 1 ) NOT NULL DEFAULT '1'");
         }
         $this->insertConfig($this->options_new);
+     * 
+     */
     }
     
     /**

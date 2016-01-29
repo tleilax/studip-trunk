@@ -38,10 +38,19 @@ class Course_TimesroomsController extends AuthenticatedController
         if (Navigation::hasItem('course/admin/dates')) {
             Navigation::activateItem('course/admin/dates');
         }
+        $this->locked = false;
+
+        if(LockRules::Check($this->course->id, 'room_time')) {
+            $this->locked       = true;
+            $this->lock_rules   = LockRules::getObjectRule($this->course->id);
+            PageLayout::postInfo(_('Diese Seite ist für die Bearbeitung gesperrt. Sie können die Daten einsehen, jedoch nicht verändern.')
+                     . ($this->lock_rules['description'] ? '<br>' . formatLinks($this->lock_rules['description']) : ''));
+        }
+
         $this->show = array(
             'regular'     => true,
             'irregular'   => true,
-            'roomRequest' => true,
+            'roomRequest' => !$this->locked && Config::get()->RESOURCES_ENABLE && Config::get()->RESOURCES_ALLOW_ROOM_REQUESTS,
         );
 
         PageLayout::setHelpKeyword('Basis.Veranstaltungen');
@@ -249,15 +258,16 @@ class Course_TimesroomsController extends AuthenticatedController
         ) {
             $termin_values = $termin->toArray();
             $termin_info   = $termin->getFullname();
+            
             $termin->cancelDate();
             PageLayout::postInfo(sprintf(_('Der Termin %s wurde aus der Liste der regelmäßigen Termine'
                                            . ' gelöscht und als unregelmäßiger Termin eingetragen, da Sie die Zeiten des Termins verändert haben,'
                                            . ' so dass dieser Termin nun nicht mehr regelmäßig ist.'), $termin_info));
 
             $termin = new CourseDate();
-            unset($termin_values['termin_id']);
             unset($termin_values['metadate_id']);
             $termin->setData($termin_values);
+            $termin->setId($termin->getNewId());
         }
         $termin->date     = $date;
         $termin->end_time = $end_time;
@@ -326,6 +336,7 @@ class Course_TimesroomsController extends AuthenticatedController
      */
     public function createSingleDate_action()
     {
+        PageLayout::setTitle(Course::findCurrent()->getFullname() . " - " . _('Einzeltermin anlegen'));
         $this->restoreRequest(words('date start_time end_time room related_teachers related_statusgruppen freeRoomText dateType fromDialog'));
 
         $this->editParams = array('fromDialog' => Request::get('fromDialog'));
@@ -765,6 +776,7 @@ class Course_TimesroomsController extends AuthenticatedController
      */
     public function createCycle_action($cycle_id = null)
     {
+        PageLayout::setTitle(Course::findCurrent()->getFullname() . " - " . _('Regelmäßige Termine anlegen'));
         $this->restoreRequest(words('day start_time end_time description cycle startWeek teacher_sws fromDialog'));
 
         $this->editParams = array('fromDialog' => Request::get('fromDialog'));
@@ -825,8 +837,7 @@ class Course_TimesroomsController extends AuthenticatedController
 
             $this->course->createMessage(sprintf(_('Die regelmäßige Veranstaltungszeit %s wurde hinzugefügt!'), $cycle_info));
             $this->displayMessages();
-
-            if (Request::get('fromDialog') == 'true') {
+            if (Request::get('fromDialog')) {
                 $this->redirect('course/timesrooms/index');
             } else {
                 $this->relocate('course/timesrooms/index');
@@ -866,7 +877,11 @@ class Course_TimesroomsController extends AuthenticatedController
             PageLayout::postInfo(_('Es wurden keine Änderungen vorgenommen'));
         }
 
-        $this->redirect('course/timesrooms/index');
+        if (Request::get('fromDialog')) {
+            $this->redirect('course/timesrooms/index');
+        } else {
+            $this->relocate('course/timesrooms/index');
+        }
     }
 
     /**
@@ -893,8 +908,10 @@ class Course_TimesroomsController extends AuthenticatedController
      */
     public function cancel_action($termin_id)
     {
+        $this->params = array();
         if (Request::get('asDialog')) {
             $this->asDialog = true;
+            $this->params['data-dialog'] = 'size=big';
         }
         $this->termin = CourseDate::find($termin_id) ?: CourseExDate::find($termin_id);
     }
@@ -907,6 +924,10 @@ class Course_TimesroomsController extends AuthenticatedController
     public function saveComment_action($termin_id)
     {
         $termin = CourseExDate::find($termin_id);
+
+        if(is_null($termin)) {
+            $termin = CourseDate::find($termin_id);
+        }
         if (Request::get('cancel_comment') != $termin->content) {
             $termin->content = Request::get('cancel_comment');
             if ($termin->store()) {
@@ -932,9 +953,12 @@ class Course_TimesroomsController extends AuthenticatedController
      */
     private function setSidebar()
     {
-        $actions = new ActionsWidget();
-        $actions->addLink(_('Startsemester ändern'), $this->url_for('course/timesrooms/editSemester'), 'icons/blue/date')->asDialog('size=400');
-        Sidebar::Get()->addWidget($actions);
+        if(!$this->locked) {
+            $actions = new ActionsWidget();
+            $actions->addLink(_('Startsemester ändern'), $this->url_for('course/timesrooms/editSemester'), Icon::create('date', 'clickable'))->asDialog('size=400');
+            Sidebar::Get()->addWidget($actions);
+        }
+
         $widget = new SelectWidget(_('Semesterfilter'), $this->url_for('course/timesrooms/index', array('cmd' => 'applyFilter')), 'newFilter');
         foreach ($this->selection as $item) {
             $element = new SelectElement($item['value'],
@@ -1067,7 +1091,7 @@ class Course_TimesroomsController extends AuthenticatedController
                         $this->course->createMessage(sprintf(_('Sie haben den Termin %s gelöscht, dem ein Thema zugeorndet war.'
                                                                . ' Sie können das Thema in der %sExpertenansicht des Ablaufplans%s einem anderen Termin (z.B. einem Ausweichtermin) zuordnen.'),
                             $termin_date, '<a href="' . URLHelper::getLink('themen.php?cmd=changeViewMode&newFilter=expert') . '">', '</a>'));
-                    } elseif ($room) {
+                    } elseif ($termin_room) {
                         $this->course->createMessage(sprintf(_('Der Termin %s wurde gelöscht! Die Buchung für den Raum %s wurde gelöscht.'),
                             $termin_date, $termin_room));
                     } else {

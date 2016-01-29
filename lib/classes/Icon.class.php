@@ -22,7 +22,7 @@ class Icon
     const DEFAULT_COLOR = 'blue';
     const DEFAULT_ROLE = 'clickable';
 
-    protected $icon;
+    protected $shape;
     protected $role;
     protected $attributes = array();
 
@@ -33,7 +33,6 @@ class Icon
     private static $roles_to_colors = [
         'info'          => 'black',
         'clickable'     => 'blue',
-        'link'          => 'blue',
         'accept'        => 'green',
         'status-green'  => 'green',
         'inactive'      => 'grey',
@@ -110,7 +109,7 @@ class Icon
      *                           this icon regardless of its later
      *                           rendering in a view
      */
-    public function __construct($icon, $role = Icon::DEFAULT_ROLE, $attributes = array())
+    public function __construct($shape, $role = Icon::DEFAULT_ROLE, array $attributes = array())
     {
 
         // only defined roles
@@ -128,14 +127,36 @@ class Icon
             # throw new \InvalidArgumentException('Creating an Icon with non-semantic attributes:' . json_encode($non_semantic));
         }
 
-        $this->icon       = $icon;
+        $this->shape      = $shape;
         $this->role       = $role;
         $this->attributes = $attributes;
+    }
 
-        if (!$this->isStatic()) {
-            $this->icon = preg_replace('/\.(?:png|svg)$/', '', $icon);
-            $this->icon = join('/', array_reverse(explode('+', $this->icon)));
-        }
+    /**
+     * Returns the `shape` -- the string describing the shape of this instance.
+     * @return String  the shape of this Icon
+     */
+    public function getShape()
+    {
+        return $this->shape;
+    }
+
+    /**
+     * Returns the `role` -- the string describing the role of this instance.
+     * @return String  the role of this Icon
+     */
+    public function getRole()
+    {
+        return $this->role;
+    }
+
+    /**
+     * Returns the semantic `attributes` of this instance, e.g. the title of this Icon
+     * @return Array  the semantic attribiutes of the Icon
+     */
+    public function getAttributes()
+    {
+        return $this->attributes;
     }
 
     /**
@@ -193,9 +214,9 @@ class Icon
      */
     public function asCSS($size = null)
     {
-        if ($this->isStatic()) {
+        if (self::isStatic($this->shape)) {
             return sprintf('background-image:url(%1$s);background-size:%2$upx %2$upx;',
-                           $this->icon,
+                           $this->shapeToPath($this->shape),
                            $this->get_size($size));
         }
 
@@ -208,12 +229,47 @@ class Icon
     /**
      * Returns a path to the SVG matching the icon.
      *
-     * @param int $size  Defines the size in px of the rendered icon
      * @return String containing the html representation for css backgrounds
      */
-    public function asImagePath($size = null)
+    public function asImagePath()
     {
-        return $this->prepareHTMLAttributes($size, [])['src'];
+        return $this->prepareHTMLAttributes(false, [])['src'];
+    }
+
+    /**
+     * Returns a new Icon with a changed shape
+     * @param mixed  $shape  New value of `shape`
+     * @return Icon  A new Icon with a new `shape`
+     */
+    public function copyWithShape($shape)
+    {
+        $clone = clone $this;
+        $clone->shape = $shape;
+        return $clone;
+    }
+
+    /**
+     * Returns a new Icon with a changed role
+     * @param mixed  $role  New value of `role`
+     * @return Icon  A new Icon with a new `role`
+     */
+    public function copyWithRole($role)
+    {
+        $clone = clone $this;
+        $clone->role = $role;
+        return $clone;
+    }
+
+    /**
+     * Returns a new Icon with new attributes
+     * @param mixed  $attributes  New value of `attributes`
+     * @return Icon  A new Icon with a new `attributes`
+     */
+    public function copyWithAttributes($attributes)
+    {
+        $clone = clone $this;
+        $clone->attributes = $attributes;
+        return $clone;
     }
 
     /**
@@ -232,10 +288,20 @@ class Icon
             $dimensions = ['width'  => $size, 'height' => $size];
         }
 
-        return array_merge($this->attributes, $attributes, $dimensions, [
-            'src' => $this->isStatic() ? $this->icon : $this->get_asset_svg(),
-            'alt' => $this->attributes['alt'] ?: $this->attributes['title'] ?: basename($this->icon)
+        $result = array_merge($this->attributes, $attributes, $dimensions, [
+            'src' => self::isStatic($this->shape) ? $this->shape : $this->get_asset_svg(),
+            'alt' => $this->attributes['alt'] ?: $this->attributes['title'] ?: basename($this->shape)
         ]);
+
+        $classNames = 'icon-role-' . $this->role;
+
+        if (!self::isStatic($this->shape)) {
+            $classNames .= ' icon-shape-' . $this->shape;
+        }
+
+        $result['class'] = isset($result['class']) ? $result['class'] . ' ' . $classNames : $classNames;
+
+        return $result;
     }
 
     /**
@@ -245,7 +311,7 @@ class Icon
      */
     protected function get_asset_svg()
     {
-        return Assets::url('images/icons/' . self::roleToColor($this->role) . '/' . $this->icon . '.svg');
+        return Assets::url('images/icons/' . self::roleToColor($this->role) . '/' . $this->shapeToPath($this->shape) . '.svg');
     }
 
 
@@ -264,7 +330,7 @@ class Icon
             $size *= 2;
         }
 
-        return Assets::url('images/icons/' . $size . '/' . $color . '/' . $this->icon . '.png');
+        return Assets::url('images/icons/' . $size . '/' . $color . '/' . $this->shapeToPath($this->shape) . '.png');
     }
 
     /**
@@ -304,9 +370,17 @@ class Icon
     }
 
     // an icon is static if it starts with 'http'
-    private function isStatic()
+    private static function isStatic($shape)
     {
-        return strpos($this->icon, 'http') === 0;
+        return strpos($shape, 'http') === 0;
+    }
+
+    // transforms a shape w/ possible additions (`shape+addition`) to a path `(addition/)?shape`
+    private function shapeToPath()
+    {
+        return self::isStatic($this->shape)
+            ? $this->shape :
+            join('/', array_reverse(explode('+', preg_replace('/\.(?:png|svg)$/', '', $this->shape))));
     }
 }
 
@@ -329,23 +403,27 @@ trait DeprecatedIcon {
      *                           output
      * @return Icon object
      */
-    public static function create2($source, $attributes = array())
+    public static function create2($source, $attributes = [])
     {
-        // external icon
         $source = str_replace(Assets::url('images/'), '', $source);
+
+        // external icon
         if (strpos($source, 'http') === 0) {
             return new self($source, Icon::DEFAULT_ROLE, $attributes);
         }
 
-        $opts = self::rearrange($source,
-                                ['size' => Icon::DEFAULT_SIZE, 'color' => Icon::DEFAULT_COLOR]);
+        $opts = self::rearrange($source);
 
-        $opts['source'] = preg_replace('/\.(png|svg)$/', '', $opts['icon']);
+        $shape = $opts['icon'][0];
+
+        if (count($opts['icon']) === 2) {
+            $shape = $opts['icon'][1] . '+' . $shape;
+        }
 
         // use the very first role matching this color
         $role = current(self::colorToRoles($opts['color']));
 
-        $icon = new Icon($opts['source'], $role, $attributes);
+        $icon = new Icon($shape, $role, $attributes);
 
         $icon->deprecatedSize = $opts['size'];
 
@@ -381,25 +459,15 @@ trait DeprecatedIcon {
      * @param mixed $extra    Extra icon to apply to the icon, defaults to none
      * @return Array with the guessed values
      */
-    protected static function rearrange($input, $defaults = array(), $extra = false)
+    protected static function rearrange($input)
     {
-        if (!is_array($input)) {
-            $input = str_replace(Assets::url('images/'), '', $input);
-            if (strpos($input, 'http') !== false) {
-                return false;
-            }
-            $input = preg_replace('~^icons/~S', '', $input);
-            $input = preg_replace('/\.png$/S', '', $input);
-            $input = explode('/', $input);
-        }
-        
-        $result = array_merge(array(
-            'size' => Icon::DEFAULT_SIZE,
-            'color' => Icon::DEFAULT_COLOR,
-            'icon' => array(),
-        ), $defaults); 
+        $input = str_replace(Assets::url('images/'), '', $input);
+        $input = preg_replace('~^icons/~', '', $input);
+        $input = preg_replace('/\.(png|svg)$/', '', $input);
 
-        foreach ($input as $chunk) {
+        $result = [ 'size' => Icon::DEFAULT_SIZE, 'color' => Icon::DEFAULT_COLOR, 'icon' => [] ];
+
+        foreach (explode('/', $input) as $chunk) {
             if (is_int($chunk) || ctype_digit($chunk)) {
                 $result['size'] = $chunk;
             } elseif (in_array($chunk, self::$icon_colors)) {
@@ -408,13 +476,6 @@ trait DeprecatedIcon {
                 $result['icon'][] = $chunk;
             }
         }
-
-        if (count($result['icon']) === 1 && $extra) {
-            array_unshift($result['icon'], $extra);
-        }
-
-        $result['icon'] = join('/', $result['icon']);
-        
         return $result;
     }
 

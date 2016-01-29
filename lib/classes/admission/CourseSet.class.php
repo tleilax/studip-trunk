@@ -228,14 +228,14 @@ class CourseSet
         if ($this->algorithm) {
             // Call pre-distribution hooks on all assigned rules.
             foreach ($this->admissionRules as &$rule) {
-                $rule->beforeSeatDistribution();
+                $rule->beforeSeatDistribution($this);
             }
             $this->algorithm->run($this);
             // Mark as "seats distributed".
             $this->setAlgorithmRun(true);
             // Call post-distribution hooks on all assigned rules.
             foreach ($this->admissionRules as &$rule) {
-                $rule->afterSeatDistribution();
+                $rule->afterSeatDistribution($this);
             }
             AdmissionPriority::unsetAllPriorities($this->getId());
         }
@@ -613,8 +613,13 @@ class CourseSet
             $this->chdate = $data['chdate'];
         }
         // Load institute assigments.
-        $stmt = DBManager::get()->prepare(
-            "SELECT institute_id FROM `courseset_institute` WHERE set_id=?");
+        $stmt = DBManager::get()->prepare("
+            SELECT courseset_institute.institute_id
+            FROM `courseset_institute`
+                INNER JOIN Institute ON (courseset_institute.institute_id = Institute.Institut_id)
+            WHERE courseset_institute.set_id = ?
+            ORDER BY Institute.Name ASC
+        ");
         $stmt->execute(array($this->id));
         $this->institutes = array();
         while ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
@@ -984,7 +989,10 @@ class CourseSet
     {
         global $perm;
 
-        if ($this->getUserId() != '' && ($perm->have_perm('root', $user_id) || $this->getUserId() == $user_id)) {
+        if ($this->getUserId() == '') {
+            return false;
+        }
+        if ($perm->have_perm('root', $user_id) || $this->getUserId() == $user_id) {
             return true;
         }
         if (count($this->institutes) == 0 && count($this->courses) == 1 && $perm->have_studip_perm('tutor', current($this->getCourses()), $user_id)) {

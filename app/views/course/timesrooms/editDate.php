@@ -2,17 +2,17 @@
     <legend><?= _('Zeitangaben') ?></legend>
     <label>
         <?= _('Datum') ?>
-        <input class="has-date-picker" type="text" name="date"
+        <input class="has-date-picker size-s" type="text" name="date"
                value="<?= $date->date ? strftime('%d.%m.%Y', $date->date) : '' ?>">
     </label>
     <label>
         <?= _('Startzeit') ?>
-        <input class="has-time-picker" type="text" name="start_time"
+        <input class="has-time-picker-select size-s" type="text" name="start_time"
                value="<?= $date->date ? strftime('%H:%M', $date->date) : '' ?>">
     </label>
     <label>
         <?= _('Endzeit') ?>
-        <input class="has-time-picker" type="text" name="end_time"
+        <input class="has-time-picker-select size-s" type="text" name="end_time"
                value="<?= $date->end_time ? strftime('%H:%M', $date->end_time) : '' ?>">
     </label>
     <label id="course_type">
@@ -153,7 +153,10 @@
 <footer>
     <?= Studip\Button::createAccept(_('Speichern'), 'save_dates',
         array('formaction' => $controller->url_for('course/timesrooms/saveDate/' . $date->termin_id)) + $attributes) ?>
-    <?= Studip\LinkButton::create(_('Raumanfrage erstellen'), $controller->url_for('course/room_requests/edit/' . $course->id, 
+
+    <? if (Request::isXhr() && !$locked && Config::get()->RESOURCES_ENABLE && Config::get()->RESOURCES_ALLOW_ROOM_REQUESTS): ?>
+        <?= Studip\LinkButton::create(_('Raumanfrage erstellen'), $controller->url_for('course/room_requests/edit/' . $course->id,
             array_merge($params, array('origin' => 'course_timesrooms'))),
-        array('data-dialog' => 'size=big')) ?>
+            array('data-dialog' => 'size=big')) ?>
+    <? endif ?>
 </footer>

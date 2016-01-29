@@ -39,7 +39,8 @@
 
 <?= $news ?>
 <?= $dates ?>
-<?= $votes ?>
+<?= $evaluations ?>
+<?= $questionnaires ?>
 
 <?
 // display plugins

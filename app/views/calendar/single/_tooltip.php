@@ -48,10 +48,10 @@
                 && get_config('CALENDAR_GROUP_ENABLE')
                 && $calendar->getRange() == Calendar::RANGE_USER) : ?>
             <? $group_status = array(
-                    CalendarEvent::PARTSTAT_TENTATIVE => _('abwartend'),
-                    CalendarEvent::PARTSTAT_ACCEPTED => _('angenommen'),
-                    CalendarEvent::PARTSTAT_DECLINED => _('abgelehnt'),
-                    CalendarEvent::PARTSTAT_DELEGATED => _('angenommen (keine Teilnahme)'),
+                    CalendarEvent::PARTSTAT_TENTATIVE => _('Abwartend'),
+                    CalendarEvent::PARTSTAT_ACCEPTED => _('Angenommen'),
+                    CalendarEvent::PARTSTAT_DECLINED => _('Abgelehnt'),
+                    CalendarEvent::PARTSTAT_DELEGATED => _('Angenommen (keine Teilnahme)'),
                     CalendarEvent::PARTSTAT_NEEDS_ACTION => _('')) ?>
             <? $show_members = $event->attendees->findOneBy('range_id',
                     $calendar->getRangeId(), '!=') ?>

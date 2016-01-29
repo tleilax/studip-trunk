@@ -129,8 +129,11 @@ class Institute_OverviewController extends AuthenticatedController
 
         // Fetch  votes
         if (get_config('VOTE_ENABLE')) {
-            $response = $this->relay('vote/display/' . $this->institute_id);
-            $this->votes = $response->body;
+            $response = $this->relay('evaluation/display/' . $this->institute_id . '/institute');
+            $this->evaluations = $response->body;
+
+            $response = $this->relay('questionnaire/widget/' . $this->institute_id . '/institute');
+            $this->questionnaires = $response->body;
         }
 
         // Fetch dates

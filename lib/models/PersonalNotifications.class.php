@@ -13,7 +13,7 @@
  *      $url_of_wiki_page, //when user A clicks this URL he/she should jump directly to the changed wiki-page
  *      "User B changed wiki-page xyz", //a small text that describes the notification
  *      "wiki_page_1234", //an (optional) html-id of the content of the wiki page. If the user is looking at the content already, the notification will disappear automatically
- *      Assets::image_path("icons/40/blue/wiki"), //an (optional) icon that is displayed next to the notification-text
+ *      Icon::create('wiki', 'clickable'), //an (optional) icon that is displayed next to the notification-text
  * );
  *
  * Appearing to the user, deleting by the user and so on of the notification is
@@ -45,7 +45,6 @@ class PersonalNotifications extends SimpleORMap
     protected static function configure($config = array())
     {
         $config['db_table'] = 'personal_notifications';
-        $config['default_values']['text'] = '';
         $config['additional_fields']['more_unseen'] = array(
             'get' => false,
             'set' => false,
@@ -114,7 +113,8 @@ class PersonalNotifications extends SimpleORMap
      * @param null|string $html_id : id in the html-document. If user reaches
      *   this html-element the notification will be marked as read, so the user
      *   does not need to handle the information twice. Optional. Default: null
-     * @param string $avatar : URL of an image for the notification. Best size: 40px x 40px
+     * @param Icon|string $avatar : either an Icon or a URL of an
+     *   image for the notification. Best size: 40px x 40px
      * @return boolean : true on success
      */
     public static function add($user_ids, $url, $text, $html_id = null, $avatar = null)
@@ -129,7 +129,7 @@ class PersonalNotifications extends SimpleORMap
         $notification['html_id'] = $html_id;
         $notification['url']     = $url;
         $notification['text']    = $text;
-        $notification['avatar']  = $avatar;
+        $notification['avatar']  = $avatar instanceof Icon ? $avatar->asImagePath(40) : $avatar;
         $notification->store();
 
 

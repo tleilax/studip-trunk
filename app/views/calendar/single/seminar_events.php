@@ -26,7 +26,7 @@
                         <? if ($config_sem_number) : ?>
                             <th class=<?= ($order_by == 'veranstaltungsnummer') ? ($order == 'desc') ? 'sortdesc' : 'sortasc' : '' ?>>
                                 <a href="<?= $controller->url_for(sprintf('my_courses/index/veranstaltungsnummer/%s', $_order)) ?>">
-                                    <?= _("Nr.") ?>
+                                    <?= _('Nr.') ?>
                                 </a>
                             </th>
                         <? endif ?>
@@ -73,7 +73,7 @@
                         <td>
                             <? if (!$sem_class['studygroup_mode']) : ?>
                                 <a data-dialog href="<?= $controller->url_for(sprintf('course/details/index/%s', $course['seminar_id'])) ?>">
-                                    <? $params = tooltip2(_("Veranstaltungsdetails")); ?>
+                                    <? $params = tooltip2(_('Veranstaltungsdetails')); ?>
                                     <? $params['style'] = 'cursor: pointer'; ?>
                                     <?= Icon::create('info-circle', 'inactive')->asImg(20, $params) ?>
                                 </a>

@@ -8,10 +8,10 @@
 <? $show_members_visiter = true; ?>
 <? if ($show_members && $show_members_visiter) : ?>
     <? $group_status = array(
-        CalendarEvent::PARTSTAT_TENTATIVE => _('abwartend'),
-        CalendarEvent::PARTSTAT_ACCEPTED => _('angenommen'),
-        CalendarEvent::PARTSTAT_DECLINED => _('abgelehnt'),
-        CalendarEvent::PARTSTAT_DELEGATED => _('angenommen (keine Teilnahme)'),
+        CalendarEvent::PARTSTAT_TENTATIVE => _('Abwartend'),
+        CalendarEvent::PARTSTAT_ACCEPTED => _('Angenommen'),
+        CalendarEvent::PARTSTAT_DECLINED => _('Abgelehnt'),
+        CalendarEvent::PARTSTAT_DELEGATED => _('Angenommen (keine Teilnahme)'),
         CalendarEvent::PARTSTAT_NEEDS_ACTION => _('')) ?>
     <div>
         <b><?= _('Teilnehmer:') ?></b>

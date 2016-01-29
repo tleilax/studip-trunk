@@ -1,33 +1,34 @@
-<h1><?= _('Mitglieder') ?></h1>
+<h3><?= htmlReady($title) ?></h3>
 
 <ul class="studygroup-gallery">
-    <? foreach ($cmembers as $user_id => $m) : ?>
+    <? foreach ($members as $user_id => $m) : ?>
+        <? $fullname = $m instanceof CourseMember ? $m->user->getFullname('no_title_rev') : $m['fullname']?>
         <? ($last_visitdate <= $m['mkdate'] && $GLOBALS['perm']->have_studip_perm('tutor', $sem_id))
             ? $options = array('style' => 'border: 3px solid rgb(255, 100, 100);'
                 . 'border: 1px solid rgba(255, 0, 0, 0.5)')
             : $options = array() ?>
-        <? $this->m = $m ?>
         <li>
-
-            <section>
+            <div>
                 <a href="<?= $controller->url_for('profile', array('username' => $m['username'])) ?>">
-                    <?= Avatar::getAvatar($user_id)->getImageTag(Avatar::MEDIUM, $options) ?>
-                    <div>
-                         <?= htmlReady($m['fullname']) ?>
-                        <? if (isset($moderators[$user_id])) : ?>
-                            <p><em><?= _("GruppengründerIn") ?></em></p>
-                        <? elseif (isset($tutors[$user_id])) : ?>
-                            <p><em><?= _("ModeratorIn") ?></em></p>
-                        <? endif ?>
-                    </div>
+                    <?= Avatar::getAvatar($m['user_id'])->getImageTag(Avatar::MEDIUM, $options) ?>
                 </a>
+            </div>
+
+            <div>
+                <a href="<?= $controller->url_for('messages/write', array('rec_uname' => $m['username'])) ?>"
+                   data-dialog="size=50%">
+                    <?= Icon::create('mail', 'clickable', ['title' => _('Nachricht schreiben')])->asImg(20) ?>
+                </a>
+                <? if (($GLOBALS['perm']->have_studip_perm('tutor', $sem_id) && $m['status'] != 'dozent') || $GLOBALS['perm']->have_studip_perm('admin', $sem_id)) : ?>
+                    <?= $this->render_partial('course/studygroup/_members_options.php', compact('m')) ?>
+                <? endif ?>
+            </div>
+
+            <div style="font-size: 0.8em;">
+                <a href="<?= $controller->url_for('profile', array('username' => $m['username'])) ?>">
+                    <?= $fullname ? htmlReady($fullname) : _("unbekannt") ?>
+                </a>
+            </div>
         </li>
     <? endforeach ?>
 </ul>
-
-<? if ($anzahl > 20) : ?>
-    <div style="text-align:right; padding-top: 2px; padding-bottom: 2px; margin-top:1.5em">
-        <?= $GLOBALS['template_factory']->render('shared/pagechooser',
-            array("perPage" => 20, "num_postings" => $anzahl, "page" => $page, "pagelink" => 'dispatch.php/course/studygroup/members/' . $sem_id . '/%s')) ?>
-    </div>
-<? endif; ?>

@@ -32,7 +32,7 @@
                     <li id="template_adressee" style="display: none;" class="adressee">
                         <input type="hidden" name="attendees[]" value="">
                         <span class="visual"></span>
-                        <a class="remove_adressee"><?= Icon::create('trash', 'clickable')->asImg(['class' => "text-bottom"]) ?></a>
+                        <a class="remove_adressee"><?= Icon::create('trash', 'clickable')->asImg(16, ['class' => 'text-bottom']) ?></a>
                     </li>
                     <? if ($event->isNew()) : ?>
                     <li style="padding: 0px;" class="adressee">
@@ -40,14 +40,14 @@
                         <span class="visual">
                             <a href="<?= URLHelper::getLink('dispatch.php/profile', array('username' => $event->owner->username), true) ?>"><?= htmlReady($event->owner->getFullname()) ?></a>
                         </span>
-                        <a class="remove_adressee"><?= Icon::create('trash', 'clickable')->asImg(['class' => "text-bottom"]) ?></a>
+                        <a class="remove_adressee"><?= Icon::create('trash', 'clickable')->asImg(16, ['class' => 'text-bottom']) ?></a>
                     </li>
                     <? endif; ?>
                     <? $group_status = array(
-                        CalendarEvent::PARTSTAT_TENTATIVE => _('abwartend'),
-                        CalendarEvent::PARTSTAT_ACCEPTED => _('angenommen'),
-                        CalendarEvent::PARTSTAT_DECLINED => _('abgelehnt'),
-                        CalendarEvent::PARTSTAT_DELEGATED => _('angenommen (keine Teilnahme)'),
+                        CalendarEvent::PARTSTAT_TENTATIVE => _('Abwartend'),
+                        CalendarEvent::PARTSTAT_ACCEPTED => _('Angenommen'),
+                        CalendarEvent::PARTSTAT_DECLINED => _('Abgelehnt'),
+                        CalendarEvent::PARTSTAT_DELEGATED => _('Angenommen (keine Teilnahme)'),
                         CalendarEvent::PARTSTAT_NEEDS_ACTION => _('')) ?>
                     <? foreach ($event->attendees as $attendee) : ?>
                         <? if ($attendee->owner) : ?>
@@ -61,7 +61,7 @@
                                     (<?= $group_status[$attendee->group_status] ?>)
                                 <? endif; ?>
                             </span>
-                            <a class="remove_adressee"><?= Icon::create('trash', 'link', array('class' => 'text-bottom', 'title' => _('Teilnehmer entfernen')))->asImg(16) ?></a>
+                            <a class="remove_adressee"><?= Icon::create('trash', 'clickable', array('title' => _('Teilnehmer entfernen')))->asImg(16, ['class' => 'text-bottom']) ?></a>
                         </li>
                         <? endif; ?>
                     <? endforeach ?>

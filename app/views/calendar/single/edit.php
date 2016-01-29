@@ -4,7 +4,7 @@
         <?= $messagebox ?>
     <? endforeach ?>
 <? else : ?>
-    <? SkipLinks::addIndex(_("Termine anlegen/bearbeiten"), 'main_content', 100); ?>
+    <? SkipLinks::addIndex(_('Termine anlegen/bearbeiten'), 'main_content', 100); ?>
 <? endif; ?>
 <form data-dialog="" method="post" action="<?= $controller->url_for($base . 'edit/' . $range_id . '/' . $event->event_id) ?>">
 <?= CSRFProtection::tokenTag() ?>
@@ -39,15 +39,17 @@
                     </label>
                     <span style="white-space: nowrap;">
                         <label><?= _('Uhrzeit') ?>
-                            <input style="text-align: right;" type="text" name="start_hour" value="<?= date('G', $event->getStart()) ?>" size="2" maxlength="2">
+                            <input style="text-align: right;" type="text" name="start_hour" value="<?= date('G', $event->getStart()) ?>" size="2" maxlength="2"<?= $event->isDayEvent() ? ' disabled' : '' ?>>
                         </label> :
-                        <input style="text-align: right;" type="text" name="start_minute" value="<?= date('i', $event->getStart()) ?>" size="2" maxlength="2">
+                        <input style="text-align: right;" type="text" name="start_minute" value="<?= date('i', $event->getStart()) ?>" size="2" maxlength="2"<?= $event->isDayEvent() ? ' disabled' : '' ?>>
                     </span>
-                    <label style="white-space: nowrap;"><?= _('ganztägig') ?>
-                        <input type="checkbox" name="isdayevent" value="1" <?= $event->isDayEvent() ? 'checked' : '' ?>>
+                    <label style="white-space: nowrap;"><?= _('Ganztägig') ?>
+                        <input type="checkbox" name="isdayevent" value="1" <?= $event->isDayEvent() ? 'checked' : '' ?> onChange="jQuery(this).closest('tbody').find('input[size=\'2\']').prop('disabled', function (i,val) { return !val; });
+                        ">
                     </label>
                 </td>
             </tr>
+            <tr>
                 <td>
                     <label for="end-date" class="required">
                         <?= _('Ende') ?>:
@@ -59,12 +61,14 @@
                     </label>
                     <span style="white-space: nowrap;">
                         <label><?= _('Uhrzeit') ?>
-                            <input style="text-align: right;" type="text" name="end_hour" value="<?= date('G', $event->getEnd()) ?>" size="2" maxlength="2">
+                            <input style="text-align: right;" type="text" name="end_hour" value="<?= date('G', $event->getEnd()) ?>" size="2" maxlength="2"<?= $event->isDayEvent() ? ' disabled' : '' ?>>
                         </label> :
-                        <input style="text-align: right;" type="text" name="end_minute" value="<?= date('i', $event->getEnd()) ?>" size="2" maxlength="2">
+                        <input style="text-align: right;" type="text" name="end_minute" value="<?= date('i', $event->getEnd()) ?>" size="2" maxlength="2"<?= $event->isDayEvent() ? ' disabled' : '' ?>>
                     </span>
                 </td>
             </tr>
+        </tbody>
+        <tbody>
             <tr>
                 <td>
                     <label for="summary" class="required">
@@ -148,7 +152,7 @@
                     </label>
                 </td>
                 <td colspan="2">
-                    <? $priority_names = array(_('keine Angabe'), _('hoch'), _('mittel'), _('niedrig')) ?>
+                    <? $priority_names = array(_('Keine Angabe'), _('Hoch'), _('Mittel'), _('Niedrig')) ?>
                     <select name="priority" id="priority" size="1">
                         <? foreach ($priority_names as $key => $priority) : ?>
                         <option value="<?= $key ?>"<?= $key == $event->getPriority() ? ' selected' : '' ?>><?= $priority ?></option>
@@ -202,7 +206,7 @@
                         <li>
                             <input type="radio" class="rec-select" id="rec-none" name="recurrence" value="single"<?= $event->getRecurrence('rtype') == 'SINGLE' ? ' checked' : '' ?>>
                             <label class="rec-label" for="rec-none">
-                                <?= _('keine') ?>
+                                <?= _('Keine') ?>
                             </label>
                             <div class="rec-content" id="rec-content-none">
                                 <?= _('Der Termin wird nicht wiederholt.') ?>
@@ -211,7 +215,7 @@
                         <li>
                             <input type="radio" class="rec-select" id="rec-daily" name="recurrence" value="daily"<?= $event->getRecurrence('rtype') == 'DAILY' ? ' checked' : '' ?>>
                             <label class="rec-label" for="rec-daily">
-                                <?= _('täglich') ?>
+                                <?= _('Täglich') ?>
                             </label>
                             <div class="rec-content" id="rec-content-daily">
                                 <div>
@@ -239,7 +243,7 @@
                                 '7' => _('Sonntag')) ?>
                             <input type="radio" class="rec-select" id="rec-weekly" name="recurrence" value="weekly"<?= $event->getRecurrence('rtype') == 'WEEKLY' ? ' checked' : '' ?>>
                             <label class="rec-label" for="rec-weekly">
-                                <?= _('wöchentlich') ?>
+                                <?= _('Wöchentlich') ?>
                             </label>
                             <div class="rec-content" id="rec-content-weekly">
                                 <div>
@@ -260,11 +264,11 @@
                         </li>
                         <li>
                             <? $mdays = array(
-                                '1' => _('ersten'),
-                                '2' => _('zweiten'),
-                                '3' => _('dritten'),
-                                '4' => _('vierten'),
-                                '5' => _('letzten')) ?>
+                                '1' => _('Ersten'),
+                                '2' => _('Zweiten'),
+                                '3' => _('Dritten'),
+                                '4' => _('Vierten'),
+                                '5' => _('Letzten')) ?>
                             <? $mdays_options = '' ?>
                             <? $mday_selected = $event->getRecurrence('sinterval') ?>
                             <? foreach ($mdays as $key => $mday) :
@@ -285,7 +289,7 @@
                             endforeach; ?>
                             <input type="radio" class="rec-select" id="rec-monthly" name="recurrence" value="monthly"<?= $event->getRecurrence('rtype') == 'MONTHLY' ? ' checked' : '' ?>>
                             <label class="rec-label" for="rec-monthly">
-                                <?= _('monatlich') ?>
+                                <?= _('Monatlich') ?>
                             </label>
                             <div class="rec-content" id="rec-content-monthly">
                                 <div>
@@ -332,7 +336,7 @@
                             endforeach; ?>
                             <input type="radio" class="rec-select" id="rec-yearly" name="recurrence" value="yearly"<?= $event->getRecurrence('rtype') == 'YEARLY' ? ' checked' : '' ?>>
                             <label class="rec-label" for="rec-yearly">
-                                <?= _('jährlich') ?>
+                                <?= _('Jährlich') ?>
                             </label>
                             <div class="rec-content" id="rec-content-yearly">
                                 <div>
@@ -363,7 +367,7 @@
                         <label>
                             <? $checked = (!$event->getRecurrence('expire') || $event->getRecurrence('expire') >= Calendar::CALENDAR_END) && !$event->getRecurrence('count') ?>
                             <input type="radio" name="exp_c" value="never"<?= $checked ? ' checked' : '' ?>>
-                            <?= _('nie') ?>
+                            <?= _('Nie') ?>
                         </label>
                     </div>
                     <div>
@@ -371,7 +375,7 @@
                         <input type="radio" name="exp_c" value="date"<?= $checked ? ' checked' : '' ?>>
                         <label>
                             <? $exp_date = $event->getRecurrence('expire') != Calendar::CALENDAR_END ? $event->getRecurrence('expire') : $event->getEnd() ?>
-                            <?= sprintf(_('am: %s'),
+                            <?= sprintf(_('Am: %s'),
                                     '<input type="text" size="12" name="exp_date" id="exp-date" value="'
                                     . strftime('%x', $exp_date) . '">') ?>
                         </label>
@@ -381,7 +385,7 @@
                         <input type="radio" name="exp_c" value="count"<?= $checked ? ' checked' : '' ?>>
                         <label>
                             <? $exp_count = $event->getRecurrence('count') ?: '10' ?>
-                            <?= sprintf(_('nach %s Wiederholungen'),
+                            <?= sprintf(_('Nach %s Wiederholungen'),
                                     '<input type="text" size="5" name="exp_count" value="'
                                     . $exp_count . '">') ?>
                         </label>
@@ -402,23 +406,15 @@
                         <li>
                             <label>
                                 <input type="checkbox" name="del_exc_dates[]" value="<?= strftime('%d.%m.%Y', $exception) ?>" style="display: none;">
-                                <span><?= strftime('%x', $exception) ?><?= Icon::create('trash', 'clickable', ['title' => _('Ausnahme löschen'), 'style' => 'vertical-align: text-top;'])->asImg() ?></span>
+                                <span><?= strftime('%x', $exception) ?><?= Icon::create('trash', 'clickable', ['title' => _('Ausnahme löschen')])->asImg(16, ['style' => 'vertical-align: text-top;']) ?></span>
                             </label>
                             <input type="hidden" name="exc_dates[]" value="<?= strftime('%d.%m.%Y', $exception) ?>">
                         </li>
                         <? endforeach; ?>
-                    <? /*
-                    <select name="exc_dates" id="exc-dates" size="5" style="width: 10em;" multiple>
-                        <? foreach ($event->getExceptions() as $exception) : ?>
-                        <option value="<?= strftime('%d.%m.%Y', $exception) ?>"><?= strftime('%x', $exception) ?></option>
-                        <? endforeach; ?>
-                    </select>
-                     * 
-                     */?>
                     </ul>
                     <input style="vertical-align: top; opacity: 0.8;" type="text" size="12" name="exc_date" id="exc-date" value="<?= strftime('%x', $atime) ?>">
                     <span style="vertical-align: top;" onclick="STUDIP.CalendarDialog.addException(); return false;">
-                        <?= Icon::create('add', 'clickable', ['title' => _('Ausnahme hinzufügen')])->asInput(["class" => 'text-bottom']) ?>
+                        <?= Icon::create('add', 'clickable', ['title' => _('Ausnahme hinzufügen')])->asInput(['class' => 'text-bottom']) ?>
                     </span>
                 </td>
             </tr>
