@@ -9,7 +9,7 @@
  *  the License, or (at your option) any later version.
  */
 
-class CoreStudygroupParticipants implements StudipModule {
+class CoreStudygroupParticipants implements StudipModule, Activities {
     
     function getIconNavigation($course_id, $last_visit, $user_id) {
         $navigation = new Navigation(_('TeilnehmerInnen'), "seminar_main.php?auswahl=".$course_id."&redirect_to=dispatch.php/course/members/index");
@@ -24,7 +24,7 @@ class CoreStudygroupParticipants implements StudipModule {
         return array('members' => $navigation);
     }
 
-    function getNotificationObjects($course_id, $since, $from, $user_id)
+    function getActivityObjects($course_id, $user_id, $filter)
     {
         $items = array();
 
@@ -37,7 +37,7 @@ class CoreStudygroupParticipants implements StudipModule {
             WHERE Seminar_id = ? 
                 AND seminar_user.mkdate BETWEEN ? AND ?');
         
-        $stmt->execute(array($course_id, $since, $from));
+        $stmt->execute(array($course_id, $filter->getStartDate(), $filter->getEndDate()));
         
         while ($row = $stmt->fetch()) {
             $summary = sprintf('%s ist der Studiengruppe "%s" beigetreten.',

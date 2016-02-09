@@ -61,7 +61,7 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
         // add filters
         $filter = new Studip\Activity\Filter();
 
-        $filter->setStartDate(time() - 3 * 256 * 86400); // set range of 2 weeks from today
+        $filter->setStartDate(time() - 540 * 86400); // set range of 2 weeks from today
         $filter->setEndDate(time());
 
 

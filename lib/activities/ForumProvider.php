@@ -26,7 +26,7 @@ class ForumProvider implements ActivityProvider
         if ($course = \Course::find($range_id)) {
             $sem_class = $course->getSemClass();
             $module = $sem_class->getModule('forum');
-            $notifications = $module->getNotificationObjects($range_id, $filter->getStartDate(), $filter->getEndDate(), $observer_id);
+            $notifications = $module->getActivityObjects($range_id, $observer_id, $filter);
 
             return $this->wrapParticipantNotifications($notifications);
         }

@@ -9,7 +9,7 @@
  *  the License, or (at your option) any later version.
  */
 
-class CoreLiterature implements StudipModule {
+class CoreLiterature implements StudipModule, Activities {
     
     function getIconNavigation($course_id, $last_visit, $user_id) {
         if (get_config('LITERATURE_ENABLE')) {
@@ -40,7 +40,7 @@ class CoreLiterature implements StudipModule {
         }
     }
 
-    function getNotificationObjects($course_id, $since, $from, $user_id)
+    function getActivityObjects($course_id, $user_id, $filter)
     {
         $items = array();
         $type = get_object_type($course_id, array('sem', 'inst', 'fak'));
@@ -59,7 +59,7 @@ class CoreLiterature implements StudipModule {
             WHERE range_id = ?
                 AND llc.chdate BETWEEN ? AND ?');
         
-        $stmt->execute(array($course_id, $since, $from));
+        $stmt->execute(array($course_id, $filter->getStartDate(), $filter->getEndDate()));
         
         while ($row = $stmt->fetch()) {
             $summary = sprintf('%s wurde in die Literaturliste %s der Veranstaltung "%s" hinzugefügt',

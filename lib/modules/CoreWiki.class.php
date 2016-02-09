@@ -9,7 +9,7 @@
  *  the License, or (at your option) any later version.
  */
 
-class CoreWiki implements StudipModule {
+class CoreWiki implements StudipModule, Activities {
     
     function getIconNavigation($course_id, $last_visit, $user_id) {
         if (get_config('WIKI_ENABLE')) {
@@ -36,7 +36,7 @@ class CoreWiki implements StudipModule {
         }
     }
     
-    function getNotificationObjects($course_id, $since, $from, $user_id)
+    function getActivityObjects($course_id, $user_id, $filter)
     {
         $items = array();
         $type = get_object_type($course_id, array('sem', 'inst', 'fak'));
@@ -66,7 +66,7 @@ class CoreWiki implements StudipModule {
                 AND version = ?");
         
         $stmt = DBManager::get()->prepare($query);
-        $stmt->execute(array($user_id, $course_id, $since, $from));
+        $stmt->execute(array($user_id, $course_id, $filter->getStartDate(), $filter->getEndDate()));
         
         while ($row = $stmt->fetch()) {
             // use correct text depending on type of object

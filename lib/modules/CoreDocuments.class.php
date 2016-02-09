@@ -9,7 +9,7 @@
  *  the License, or (at your option) any later version.
  */
 
-class CoreDocuments implements StudipModule {
+class CoreDocuments implements StudipModule, Activities {
     
     function getIconNavigation($course_id, $last_visit, $user_id) {
         $navigation = new Navigation(_('Dateibereich'), "seminar_main.php?auswahl=$course_id&redirect_to=folder.php");
@@ -26,7 +26,7 @@ class CoreDocuments implements StudipModule {
         return array('files' => $navigation);
     }
 
-    function getNotificationObjects($course_id, $since, $from, $user_id)
+    function getActivityObjects($course_id, $user_id, $filter)
     {
         $items = array();
         $type = get_object_type($course_id, array('sem', 'inst', 'fak'));
@@ -52,7 +52,7 @@ class CoreDocuments implements StudipModule {
         }
 
         $stmt = DBManager::get()->prepare($query);
-        $stmt->execute(array($user_id, $course_id, $since, $from));
+        $stmt->execute(array($user_id, $course_id, $filter->getStartDate(), $filter->getEndDate()));
         
         while ($row = $stmt->fetch()) {
             $folder_tree = TreeAbstract::GetInstance('StudipDocumentTree', array('range_id' => $row['seminar_id']));
