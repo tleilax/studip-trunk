@@ -19,9 +19,8 @@ class Filter
     private
         $start_date,
         $end_date,
-        $type;
-
-
+        $type,
+        $verb;
 
     function setStartDate($start_date){
 
@@ -46,5 +45,15 @@ class Filter
 
     function getType() {
         return $this->type;
+    }
+
+    function getVerb()
+    {
+        return $this->verb;
+    }
+
+    function setVerb($verb)
+    {
+        $this->verb = $verb;
     }
 }

@@ -26,9 +26,7 @@ class ForumProvider implements ActivityProvider
         if ($course = \Course::find($range_id)) {
             $sem_class = $course->getSemClass();
             $module = $sem_class->getModule('forum');
-            $notifications = $module->getActivityObjects($range_id, $observer_id, $filter);
-
-            return $this->wrapParticipantNotifications($notifications);
+            return $module->getActivityObjects($range_id, $observer_id, $filter);
         }
 
         return array();
@@ -45,28 +43,4 @@ class ForumProvider implements ActivityProvider
 
         return $range_id;
     }
-
-    private function  wrapParticipantNotifications($notifications){
-        return array_map(function ($n) {
-            return new Activity(
-                'forum_provider',
-                array(                                  // the description and summaray of the performed activity
-                    'title' => $n->getSummary(),
-                    'content' => $n->getContent()
-                ),
-                'user',                                 // who initiated the activity?
-                $n->getCreatorid(),                     // id of initiator
-                'created',                              // the type if the activity
-                'forum',                                // type of activity object
-                array(                                  // url to entity in Stud.IP
-                    $n->getUrl() => _('Zum Forum der Veranstaltung')
-                ),
-                'http://example.com/route',             // url to entity as rest-route
-                $n->getDate()
-            );
-        }, $notifications);
-
-    }
-
-
 }
