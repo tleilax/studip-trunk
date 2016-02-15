@@ -131,4 +131,16 @@ class Activity
     {
         $this->object['url'][$url] = $name;
     }
+
+    function asArray()
+    {
+        return array(
+            'actor'       => $this->actor,
+            'description' => $this->description,
+            'provider'    => $this->dprovider,
+            'object'      => $this->object,
+            'verb'        => $this->verb,
+            'mkdate'      => $this->mkdate
+        );
+    }
 }

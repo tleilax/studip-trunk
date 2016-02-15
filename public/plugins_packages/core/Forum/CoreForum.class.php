@@ -155,7 +155,7 @@ class CoreForum extends StudipPlugin implements ForumModule
                         array(                                                  // url to entity in Stud.IP
                             $url => _('Zum Forum der Veranstaltung')
                         ),
-                        'http://example.com/route',                             // url to entity as rest-route
+                        \URLHelper::getURL('api.php/forum_entry/' . $post['topic_id'], true),   // url to entity as rest-route
                         $post['mkdate']
                     );
                 }

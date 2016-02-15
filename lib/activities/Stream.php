@@ -116,4 +116,14 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
         return sizeof($this->activities);
     }
 
+    public function asArray()
+    {
+        $activities = array();
+
+        foreach ($this as $key => $activity) {
+            $activities[$key] = $activity->asArray();
+        }
+
+        return $activities;
+    }
 }
