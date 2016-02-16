@@ -21,10 +21,12 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
 
     public function getPortalTemplate()
     {
+        $this->addStylesheet('css/style.less');
+        PageLayout::addScript($this->getPluginUrl() . '/javascript/activityfeed.js');
+
+        /*
         global $perm;
         //PageLayout::addScript($this->getPluginUrl() . '/js/ActivityFeed.js');
-        $this->addStylesheet('css/style.less');
-
 
         $observer_id = $GLOBALS['user']->id;
         $contexts = array();
@@ -71,6 +73,8 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
         $template = $template_factory->open('stream');
         $template->stream = $stream;
 
+        */
+
         /*
         $navigation = new Navigation('', '#');
         $navigation->setImage('icons/16/blue/edit.png', array(
@@ -80,6 +84,11 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
 
         $template->icons = array($navigation);
         */
+
+        $template_factory = new Flexi_TemplateFactory(__DIR__ . '/templates');
+        $template = $template_factory->open('activity_feed');
+
+        $template->user_id = $GLOBALS['user']->id;
 
         return $template;
     }
