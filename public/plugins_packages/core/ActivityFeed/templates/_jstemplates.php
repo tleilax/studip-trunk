@@ -63,7 +63,7 @@
     <ul>
     <% _.each(urls, function(name, link) { %>
         <li>
-            <a href="<%- link %>">
+            <a href="<%= link %>">
                 <%- name %>
             </a>
         </li>
