@@ -85,15 +85,14 @@ class Activity extends \RESTAPI\RouteMap
         // set etag for preventing resending the same stuff over and over again
         $this->etag(md5(serialize($stream)));
 
-        return $stream->asArray();
+        $data = $stream->asArray();
 
-        /*
-        $template_factory = new Flexi_TemplateFactory(__DIR__ . '/templates');
-        $template = $template_factory->open('stream');
-        $template->stream = $stream;
+        foreach ($data as $key => $act) {
+            if ($data[$key]['actor']['objectType'] == 'user') {
+                $data[$key]['actor']['details'] = User::getMiniUser($this, new \User($data[$key]['actor']['id']));
+            }
+        }
 
-        return $template;
-         * 
-         */
+        return $data;
     }
 }

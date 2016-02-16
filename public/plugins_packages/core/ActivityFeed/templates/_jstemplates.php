@@ -1,7 +1,23 @@
 <script type="text/template" class="activity_stream">
     <% if (num_entries > 0) {
+        var last_date;
+
         _.each(stream, function(act) { %>
-            <%= activity({activity: act}) %>
+            <%
+            var new_date = new Date(act.mkdate * 1000);
+            var new_date_string = ('0' + new_date.getDate()).slice(-2) + '.'
+                                + ('0' + new_date.getMonth()).slice(-2) + '.'
+                                + new_date.getFullYear();
+
+            if (last_date !=  new_date_string) { %>
+                <% last_date = new_date_string; %>
+                <span class="activity-day"><%- last_date %></span>
+            <% } %>
+            <%= activity({
+                    activity      : act,
+                    user_id       : user_id,
+                    activity_urls : activity_urls
+                }) %>
         <% });
     } else { %>
         <?= MessageBox::info(_('Keine Aktivitäten gefunden.')) ?>
@@ -9,89 +25,48 @@
 </script>
 
 <script type="text/template" class="activity">
-    <section class="activity left">
+    <% console.log(activity) %>
+    <section class="activity <% if (activity.actor.id == user_id) { %>right<% } else { %>left<% } %>">
         <header>
             <h1>
                 <%- activity.description.title %>
             </h1>
         </header>
-    </section>
-    <section class="activity-content">
-        <!-- TODO: Avatar-URL mitliefern (von der Rest-Route) -->
+        <section class="activity-content">
+            <!-- TODO: Avatar-URL mitliefern (von der Rest-Route) -->
+            <div class="activity-avatar-container">
+                <a href="<%- STUDIP.URLHelper.resolveURL('dispatch.php/profile?username=' + activity.actor.details.name) %>">
+                    <img src="<%- activity.actor.details.avatar_medium  %>">
+                </a>
+            </div>
+            <section class="activity-description">
+                <span class="activity-date">
+                    <%- new Date(activity.mkdate * 1000).toLocaleString() %>
+                </span>
+
+                <span class="activity-details">
+                    <%= activity.description.content %>
+
+                    <!-- TODO: fade out at the bottom to signalize further content -->
+                </span>
+
+                <span class="activity-object-link">
+                    <%= activity_urls({urls: activity.object.url}) %>
+                </span>
+            </section>
+            <div class='clear'></div>
+        </section>
     </section>
 </script>
 
-<?php
-/*
-    <? $dateformat = '%d.%m.%Y';?>
-    <div class="stream-container">
-        <? if(sizeof($stream) > 0) : ?>
-            <? foreach($stream as $activity) : ?>
-                <? if($x != strftime($dateformat, $activity->getMkdate())) :?>
-                    <span class="activity-day"><?=strftime($dateformat, $activity->getMkdate())?></span>
-                    <? $x = strftime($dateformat, $activity->getMkdate()); ?>
-                <?endif;?>
-                <?= $this->render_partial("_activity", array('_activity' => $activity)) ?>
-            <? endforeach; ?>
-        <? else :?>
-            <?= MessageBox::info(_('Keine Aktivitäten gefunden.')) ?>
-        <? endif; ?>
-    </div>
-*/
-?>
-
-<?php
-/*
-$actor = $_activity->getActor();
-
-if ($actor ['id'] == $GLOBALS ['user']->id) {
-    $direction = "right";
-} else {
-    $direction = "left";
-}
-
-$object = $_activity->getObject ();
-
-$description = $_activity->getDescription();
-
-?>
-
-<section class="activity <?=$direction?>">
-    <header>
-        <h1>
-            <? // no link here, we do not know which one to use if multiple links are present ?>
-            <?= htmlReady($description['title']) ?>
-            <? sprintf(_("%s hat %s %s "),
-                User::find($actor['id'])->getFullname(),
-                $object['objectType'],
-                $_activity->getVerb())
-            ?>
-        </h1>
-    </header>
-    <section class="activity-content">
-        <div class="activity-avatar-container">
-            <a href="<?= URLHelper::getURL(sprintf('dispatch.php/profile?username=%s',User::find($actor['id'])->username))?>">
-            <?=Avatar::getAvatar($actor['id'])->getImageTag(Avatar::MEDIUM)?>
+<script type="text/template" class="activity-urls">
+    <ul>
+    <% _.each(urls, function(name, link) { %>
+        <li>
+            <a href="<%- link %>">
+                <%- name %>
             </a>
-        </div>
-        <section class="activity-description">
-            <span class="activity-date">
-                <?= strftime('%d.%m.%Y um %X Uhr', $_activity->getMkdate()) ?>
-            </span>
-
-            <span class="activity-details">
-                <?= $description['content'] ?>
-
-                <!-- TODO: fade out at the bottom to signalize further content -->
-            </span>
-
-            <span class="activity-object-link">
-                <?= $this->render_partial("_urls", array('urls' => $object['url'])) ?>
-            </span>
-        </section>
-        <div class='clear'></div>
-    </section>
-</section>
-<div class='clear'></div>
- */
-?>
+        </li>
+    <% }) %>
+    </ul>
+</script>

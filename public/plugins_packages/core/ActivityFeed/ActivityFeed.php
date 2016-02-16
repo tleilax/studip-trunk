@@ -24,67 +24,6 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
         $this->addStylesheet('css/style.less');
         PageLayout::addScript($this->getPluginUrl() . '/javascript/activityfeed.js');
 
-        /*
-        global $perm;
-        //PageLayout::addScript($this->getPluginUrl() . '/js/ActivityFeed.js');
-
-        $observer_id = $GLOBALS['user']->id;
-        $contexts = array();
-
-        $system_context = new \Studip\Activity\SystemContext();
-        $contexts[] = $system_context;
-
-
-
-        $semesters   = MyRealmModel::getSelectedSemesters('all');
-        $min_sem_key = min($semesters);
-        $max_sem_key = max($semesters);
-
-        $courses = MyRealmModel::getCourses($min_sem_key, $max_sem_key);
-
-        foreach ($courses as $course) {
-            $contexts[] = new \Studip\Activity\CourseContext($course->seminar_id);
-        }
-
-
-        $institutes = MyRealmModel::getMyInstitutes();
-        if(!$perm->have_perm('root') || !is_null($institutes)){
-            foreach($institutes as $institute){
-                $contexts[] = new \Studip\Activity\InstituteContext($institute['institut_id']);
-            }
-        }
-
-        //TODO user_context (do we wanna add buddies as well?)
-        $contexts[] = new \Studip\Activity\UserContext($GLOBALS['user']->id);
-
-
-
-
-        // add filters
-        $filter = new Studip\Activity\Filter();
-
-        $filter->setStartDate(time() - 2 * 86400); // set range of 2 weeks from today
-        $filter->setEndDate(time());
-
-
-        $stream = new \Studip\Activity\Stream($observer_id, $contexts, $filter);
-
-        $template_factory = new Flexi_TemplateFactory(__DIR__ . '/templates');
-        $template = $template_factory->open('stream');
-        $template->stream = $stream;
-
-        */
-
-        /*
-        $navigation = new Navigation('', '#');
-        $navigation->setImage('icons/16/blue/edit.png', array(
-                                  'title' => _('Konfigurieren'),
-                                  'onclick' => "ActivityFeed.openDialog('". PluginEngine::getLink($this, array(), 'configuration') ."'); return false;"
-                              ));
-
-        $template->icons = array($navigation);
-        */
-
         $template_factory = new Flexi_TemplateFactory(__DIR__ . '/templates');
         $template = $template_factory->open('activity_feed');
 
