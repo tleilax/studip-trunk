@@ -25,7 +25,6 @@
 </script>
 
 <script type="text/template" class="activity">
-    <% console.log(activity) %>
     <section class="activity <% if (activity.actor.id == user_id) { %>right<% } else { %>left<% } %>">
         <header>
             <h1>
