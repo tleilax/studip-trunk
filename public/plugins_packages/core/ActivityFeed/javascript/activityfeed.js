@@ -3,20 +3,20 @@
         user_id : null,
         
         init: function() {
-            STUDIP.ActivityFeed.loadFeed(Math.floor(Date.now() / 1000) - (24 * 3600 * 10), Math.floor(Date.now() / 1000), false);
+            STUDIP.ActivityFeed.loadFeed(Math.floor(Date.now() / 1000) - (24 * 3600 * 10), Math.floor(Date.now() / 1000), '' ,false);
         },
         
         getTemplate: _.memoize(function(name) {
             return _.template($("script." + name).html());
         }),
         
-        loadFeed: function(from, to, append) {
+        loadFeed: function(from, to, filtertype, append) {
             if (STUDIP.ActivityFeed.user_id === null) {
                 console.log('Could not retrieve activities, no valid user id found!');
                 return;
             }
-            
-            $.ajax(STUDIP.URLHelper.resolveURL('api.php/user/' + STUDIP.ActivityFeed.user_id + '/activitystream?start=' + from + '&end=' + to), {
+
+            $.ajax(STUDIP.URLHelper.resolveURL('api.php/user/' + STUDIP.ActivityFeed.user_id + '/activitystream?start=' + from + '&end=' + to + '&filtertype=' + filtertype), {
                 success: function(data) {
                     var stream        = STUDIP.ActivityFeed.getTemplate('activity_stream');
                     var activity      = STUDIP.ActivityFeed.getTemplate('activity');

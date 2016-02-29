@@ -77,8 +77,17 @@ class Activity extends \RESTAPI\RouteMap
         $start = \Request::int('start', strtotime("-2 days"));
         $end   = \Request::int('end',   time());
 
+        $filtertype = \Request::get('filtertype', '');
+
+
         $filter->setStartDate($start);
         $filter->setEndDate($end);
+
+        if(!empty($filtertype)) {
+            $filter->setType($filtertype);
+        }
+
+
 
         $stream = new \Studip\Activity\Stream($user_id, $contexts, $filter);
 
