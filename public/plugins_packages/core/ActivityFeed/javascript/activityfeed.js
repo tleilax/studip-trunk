@@ -1,9 +1,11 @@
 (function($, STUDIP) {
     STUDIP.ActivityFeed = {
         user_id : null,
+        start_date : null,
+        end_date : null,
         
         init: function() {
-            STUDIP.ActivityFeed.loadFeed(Math.floor(Date.now() / 1000) - (24 * 3600 * 10), Math.floor(Date.now() / 1000), '' ,false);
+            STUDIP.ActivityFeed.loadFeed(STUDIP.ActivityFeed.start_date, STUDIP.ActivityFeed.end_date, '' ,false);
         },
         
         getTemplate: _.memoize(function(name) {
@@ -36,6 +38,11 @@
                     }));
                 }
             });
+        },
+
+        update : function(html) {
+            jQuery('#afeed').replaceWith(html);
+
         }
     };    
 })(jQuery, STUDIP);

@@ -1,6 +1,9 @@
+<div id="afeed">
 <script>
     jQuery(document).ready(function() {
         STUDIP.ActivityFeed.user_id = '<?= $user_id ?>';
+        STUDIP.ActivityFeed.start_date = '<?= strtotime($start_date) ?>';
+        STUDIP.ActivityFeed.end_date = '<?= strtotime($end_date) ?>';
         STUDIP.ActivityFeed.init();
     });
 </script>
@@ -13,3 +16,4 @@
 </div>
 
 <?= $this->render_partial('_jstemplates'); ?>
+</div>
