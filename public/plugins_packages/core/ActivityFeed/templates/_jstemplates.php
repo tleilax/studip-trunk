@@ -6,9 +6,8 @@
             <%
             var new_date = new Date(act.mkdate * 1000);
             var new_date_string = ('0' + new_date.getDate()).slice(-2) + '.'
-                                + ('0' + new_date.getMonth()).slice(-2) + '.'
+                                + ('0' + (new_date.getMonth()+1)).slice(-2) + '.'
                                 + new_date.getFullYear();
-
             if (last_date !=  new_date_string) { %>
                 <% last_date = new_date_string; %>
                 <span class="activity-day"><%- last_date %></span>

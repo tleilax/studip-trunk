@@ -86,8 +86,6 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
         $navigation->setImage('icons/16/blue/edit.png', tooltip2(_('Konfigurieren')) + array('data-dialog' => 'size=auto'));
         $template->icons = array($navigation);
 
-
-
         header('X-Dialog-Close: 1');
         header('X-Dialog-Execute: STUDIP.ActivityFeed.update');
 
@@ -103,14 +101,15 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
 
         $filter = WidgetHelper::getWidgetUserConfig($GLOBALS['user']->id, 'ACTIVITY_FILTER');
 
-        if(is_array($filter)){
+
+        if(!empty($filter)){
             $start_date = date('Y-m-d',$filter['start_date']);
             $end_date = date('Y-m-d',$filter['end_date']);
         } else {
             $start_date =  date('Y-m-d', strtotime("-4 week"));
             $end_date =  date('Y-m-d');
-
         }
+
 
         $template->start_date = $start_date;
         $template->end_date = $end_date;
