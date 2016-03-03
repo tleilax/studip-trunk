@@ -20,6 +20,8 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
 
     function __construct($observer_id, $contexts, Filter $filter)
     {
+        // TODO: validate that filter object has only timestamp at 00:00:00 o'clock
+
         if (!is_array($contexts)) {
             $contexts = array($contexts);
         }
@@ -35,9 +37,6 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
         }
 
         $cached_activities = self::getCachedActivities($observer_id, $filter, $contexts);
-
-
-        //var_dump($cached_activities);
 
         $new_activities = array();
 
@@ -57,9 +56,7 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
                     }
                 }
             }
-
         }
-
 
         $this->activities = $new_activities;
     }
@@ -130,7 +127,7 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
 
 
         $end_date = new \DateTime();
-        $end_date->setTimestamp(($filter->getEndDate()-(24*3600)));
+        $end_date->setTimestamp($filter->getEndDate());
 
         $start_date = new \DateTime();
         $start_date->setTimestamp($filter->getStartDate());
@@ -138,51 +135,81 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
         $diff = $end_date->diff($start_date);
         $ret = array();
 
-        for($i=1; $i<=$diff->days; $i++) {
-            date_sub($end_date, date_interval_create_from_date_string('1 day'));
+        $ranges = array();
+
+        // step 1 - detect ranges to speed up collection of data
+        for($i = 1; $i <= $diff->days; $i++) {
             $cachekey = 'activities_' . $observer_id . '_' . $end_date->format('Y-m-d');
 
             $tmp_stmp = $end_date->getTimestamp();
 
             $cached_activities = unserialize($cache->read($cachekey));
 
-            if ($cached_activities) {
-
+            // if there are cache entries and it is NOT the current day, return cached actvities
+            if ($cached_activities !== false && date('Y-m-d') !=  $end_date->format('Y-m-d')) {
                 $ret[$cachekey] = $cached_activities;
-
             } else {
+                $end_date_timestamp = $end_date->getTimestamp();
 
-                $filter2 = new Filter();
-                $filter2->setStartDate($tmp_stmp);
-                $filter2->setEndDate($tmp_stmp + ((23 * 3600) + 35999));
-
-
-                // load all activities
-                $activities = array_flatten(array_map(
-                    function ($context) use ($observer_id, $filter2) {
-                        return $context->getActivities($observer_id, $filter2);
-                    }, $contexts));
-
-
-                $new_activities = array();
-
-                foreach ($activities as $key => $activity) {
-                    // generate an id for the activity, considering some basic object parameters
-                    $object = $activity->getObject();
-                    $id = md5($activity->getProvider() . serialize($activity->getDescription()) . $activity->getVerb() . $object['objectType'] . $activity->getMkdate());
-
-                    if ($new_activities[$id]) {
-                        list($url, $name) = each($object['url']);
-                        $new_activities[$id]->addUrl($url, $name);
-                    } else {
-                        $new_activities[$id] = $activity;
-                    }
+                if ($ranges[$previous_date]) {
+                    $ranges[$end_date_timestamp] = $ranges[$previous_date];
+                    unset($ranges[$previous_date]);
+                } else {
+                    $ranges[$end_date_timestamp] = $end_date_timestamp;
                 }
+            }
 
-                $cache->write($cachekey, serialize($new_activities));
-                $ret[$cachekey] = $new_activities;
+            // go to the day before the current end_date and set it as new end_date
+            $previous_date = $end_date->getTimestamp();
+            date_sub($end_date, date_interval_create_from_date_string('1 day'));
+        }
+
+        // step 2 - get data for ranges
+        foreach ($ranges as $from => $to) {
+            $filter2 = new Filter();
+            $filter2->setStartDate($from);
+            $filter2->setEndDate($to + 86399); // 23 hours, 59 minutes and 59 seconds
+
+            // load all activities
+            $activities = array_flatten(array_map(
+                function ($context) use ($observer_id, $filter2) {
+                    return $context->getActivities($observer_id, $filter2);
+                }, $contexts));
+
+
+            $new_activities = array();
+
+            foreach ($activities as $key => $activity) {
+                // generate an id for the activity, considering some basic object parameters
+                $object = $activity->getObject();
+                $id = md5($activity->getProvider() . serialize($activity->getDescription()) . $activity->getVerb() . $object['objectType'] . $activity->getMkdate());
+
+                if ($new_activities[$id]) {
+                    list($url, $name) = each($object['url']);
+                    $new_activities[date('Y-m-d', $activity->getMkdate())][$id]->addUrl($url, $name);
+                } else {
+                    $new_activities[date('Y-m-d', $activity->getMkdate())][$id] = $activity;
+                }
+            }
+
+            foreach ($new_activities as $date => $tmp_activities) {
+                $cachekey = 'activities_' . $observer_id . '_' . $date;
+
+                // sort activites by their mkdate
+                usort($tmp_activities, function($a, $b) {
+                    if ($a->getMkdate() == $b->getMkdate()) {
+                        return 0;
+                    }
+
+                    return ($a->getMkdate() > $b->getMkdate()) ? -1 : 1;
+                });
+
+                // write activites to cache
+                $cache->write($cachekey, serialize($tmp_activities));
+                $ret[$cachekey] = $tmp_activities;
             }
         }
+
         return $ret;
     }
 }
