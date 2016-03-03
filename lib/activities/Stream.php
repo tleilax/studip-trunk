@@ -210,6 +210,10 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
             }
         }
 
-        return $ret;
+        // finally sort the activite-list by day
+        ksort($ret, SORT_NATURAL);
+
+        // after ksort the array is in the wrong order
+        return array_reverse($ret);
     }
 }
