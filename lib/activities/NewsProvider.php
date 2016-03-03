@@ -110,7 +110,7 @@ class NewsProvider implements ActivityProvider
                 'news',                                 // type of activity object
                 $this->getUrlForContext($n, $context),  // url to entity in Stud.IP
                 'http://example.com/route',             // url to entity as rest-route
-                $n->mkdate
+                $n->chdate
             );
         }, $news);
     }

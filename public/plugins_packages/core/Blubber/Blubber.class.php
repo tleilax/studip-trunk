@@ -100,12 +100,12 @@ class Blubber extends StudIPPlugin implements StandardPlugin, SystemPlugin {
             Navigation::insertItem("/community/blubber", $nav, "online");
             Navigation::getItem("/community")->setURL($nav->getURL());
         }
-        
-        if (Navigation::hasItem("/profile") && 
-                $this->isActivated(get_userid(Request::username('username', 
+
+        if (Navigation::hasItem("/profile") &&
+                $this->isActivated(get_userid(Request::username('username',
                 $GLOBALS['auth']->auth['uname'])), 'user')) {
-            $nav = new AutoNavigation(_("Blubber"), PluginEngine::getURL($this, 
-                array('user_id' => get_userid(Request::get("username"))), 
+            $nav = new AutoNavigation(_("Blubber"), PluginEngine::getURL($this,
+                array('user_id' => get_userid(Request::get("username"))),
                 "streams/profile"));
             Navigation::addItem("/profile/blubber", $nav);
         }
@@ -196,7 +196,7 @@ class Blubber extends StudIPPlugin implements StandardPlugin, SystemPlugin {
                 $blubb['user_id'],
                 get_fullname($blubb['user_id']),
                 PluginEngine::getURL($this, array(), 'streams/thread/'.$blubb['root_id']),
-                $blubb['mkdate']
+                $blubb['chdate']
             );
         }
         return $contents;

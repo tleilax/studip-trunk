@@ -26,10 +26,10 @@ class CoreForum extends StudipPlugin implements ForumModule
      * This method dispatches all actions.
      *
      * @param string $unconsumed_path  part of the dispatch path that was not consumed
-     */    
+     */
     public function perform($unconsumed_path) {
         $this->setupAutoload();
-        
+
         // Add JS and StyleSheet to header
         PageLayout::addScript($this->getPluginURL() . '/javascript/forum.js');
         PageLayout::addStylesheet($this->getPluginURL() . '/stylesheets/forum.css');
@@ -46,14 +46,14 @@ class CoreForum extends StudipPlugin implements ForumModule
             });
         }
     }
-    
+
     /* interface method */
     public function getTabNavigation($course_id)
     {
         if (!$this->isActivated($course_id)) {
             return;
         }
-        
+
         $this->setupAutoload();
 
         $navigation = new Navigation(_('Forum'), PluginEngine::getURL($this, array(), 'index'));
@@ -84,7 +84,7 @@ class CoreForum extends StudipPlugin implements ForumModule
         }
 
         $this->setupAutoload();
-        
+
         if ($GLOBALS['perm']->have_studip_perm('user', $course_id)) {
             $num_entries = ForumVisit::getCount($course_id, ForumVisit::getVisit($course_id));
             $text = ForumHelpers::getVisitText($num_entries, $course_id);
@@ -155,13 +155,13 @@ class CoreForum extends StudipPlugin implements ForumModule
                         array(                                                  // url to entity in Stud.IP
                             $url => _('Zum Forum der Veranstaltung')
                         ),
-                        \URLHelper::getURL('api.php/forum_entry/' . $post['topic_id'], true),   // url to entity as rest-route
+                        \URLHelper::getURL('api.php/forum_entry/' . $post['topic_id'], NULL, true),   // url to entity as rest-route
                         $post['mkdate']
                     );
                 }
             }
         }
-        
+
         return $activities;
     }
 
@@ -193,7 +193,7 @@ class CoreForum extends StudipPlugin implements ForumModule
     function getLinkToThread($issue_id)
     {
         $this->setupAutoload();
-        
+
         if ($topic_id = ForumIssue::getThreadIdForIssue($issue_id)) {
             return PluginEngine::getLink($this, array(), '/index/index/' . $topic_id);
         }
@@ -204,21 +204,21 @@ class CoreForum extends StudipPlugin implements ForumModule
     function setThreadForIssue($issue_id, $title, $content)
     {
         $this->setupAutoload();
-        
+
         ForumIssue::setThreadForIssue($GLOBALS['SessSemName'][1], $issue_id, $title, $content);
     }
 
     function getNumberOfPostingsForUser($user_id, $seminar_id = null)
     {
         $this->setupAutoload();
-        
+
         return ForumEntry::countUserEntries($user_id, $seminar_id);
     }
 
     function getNumberOfPostingsForIssue($issue_id)
     {
         $this->setupAutoload();
-        
+
         $topic_id = ForumIssue::getThreadIdForIssue($issue_id);
 
         return $topic_id ? ForumEntry::countEntries($topic_id) : 0;
@@ -227,14 +227,14 @@ class CoreForum extends StudipPlugin implements ForumModule
     function getNumberOfPostingsForSeminar($seminar_id)
     {
         $this->setupAutoload();
-        
+
         return floor(ForumEntry::countEntries($seminar_id));
     }
 
     function getNumberOfPostings()
     {
         $this->setupAutoload();
-        
+
         return ForumEntry::countAllEntries();
     }
 
@@ -252,28 +252,28 @@ class CoreForum extends StudipPlugin implements ForumModule
     function getTopTenSeminars()
     {
         $this->setupAutoload();
-        
+
         return ForumEntry::getTopTenSeminars();
     }
 
     function migrateUser($user_from, $user_to)
     {
         $this->setupAutoload();
-        
+
         return ForumEntry::migrateUser($user_from, $user_to);
     }
 
     function deleteContents($seminar_id)
     {
         $this->setupAutoload();
-        
+
         return ForumEntry::delete($seminar_id);
     }
 
     function getDump($seminar_id)
     {
         $this->setupAutoload();
-        
+
         return ForumEntry::getDump($seminar_id);
     }
 

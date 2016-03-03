@@ -20,7 +20,8 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
 
     function __construct($observer_id, $contexts, Filter $filter)
     {
-        // TODO: validate that filter object has only timestamp at 00:00:00 o'clock
+        // TODO: validate that the filter object has only timestamp at 00:00:00 o'clock
+        // TODO: validate that the filter object has dates in a correct order and does not exceed a certain range
 
         if (!is_array($contexts)) {
             $contexts = array($contexts);
