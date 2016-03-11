@@ -142,6 +142,18 @@ class CourseExDate extends SimpleORMap
     }
 
     /**
+     * Returns the full qualified name of this date
+     * raumzeit_send_cancel_message needs the toString()-Method in this class
+     *
+     * @deprecated since version 3.4
+     * @return String containing the full name of this date
+     */#
+    public function toString()
+    {
+        return $this->getFullname();
+    }
+
+    /**
      * Converts a CourseExDate Entry to a CourseDate Entry
      * returns instance of the new CourseDate or NULL
      * @return Object CourseDate
@@ -156,7 +168,7 @@ class CourseExDate extends SimpleORMap
         $date = new CourseDate();
         $date->setData($ex_date);
         $date->setId($date->getNewId());
-        
+
         if ($date->store()) {
             log_event('SEM_UNDELETE_SINGLEDATE', $this->termin_id, $this->range_id, 'Cycle_id: ' . $this->metadate_id);
             $this->delete();
