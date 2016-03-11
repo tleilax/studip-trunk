@@ -29,7 +29,7 @@ class UserContext extends Context
         return $this->user_id;
     }
 
-    private function getProviders()
+    protected function getProvider()
     {
 
         if (!$this->provider) {
@@ -53,19 +53,4 @@ class UserContext extends Context
         return $this->provider;
 
     }
-
-    public function getActivities($observer_id, Filter $filter)
-    {
-        $providers = $this->filterProvider($this->getProviders(), $filter);
-
-        $activities = array_map(
-            function ($provider) use($observer_id, $filter) {
-                return $provider->getActivities($observer_id, $this, $filter);
-            },
-            $providers);
-
-        return array_flatten($activities);
-
-    }
-
 }

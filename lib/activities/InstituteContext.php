@@ -24,7 +24,7 @@ class InstituteContext extends Context
         $this->institute_id = $institute_id;
     }
 
-    private function getProvider()
+    protected function getProvider()
     {
         if (!$this->provider) {
             $institute = \Institute::find($this->institute_id);
@@ -74,18 +74,4 @@ class InstituteContext extends Context
     {
         return $this->institute_id;
     }
-
-    public function getActivities($observer_id, Filter $filter)
-    {
-        $providers = $this->filterProvider($this->getProvider(), $filter);
-
-        $activities = array_map(
-            function ($provider) use($observer_id, $filter) {
-                return $provider->getActivities($observer_id, $this, $filter);
-            },
-            $providers);
-
-        return array_flatten($activities);
-    }
-
 }

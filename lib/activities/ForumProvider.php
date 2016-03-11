@@ -19,10 +19,6 @@ class ForumProvider implements ActivityProvider
 
         $range_id = $this->contextToRangeId($context);
 
-        if (!\StudipNews::haveRangePermission('view', $range_id, $observer_id)) {
-            return array();
-        }
-
         if ($course = \Course::find($range_id)) {
             $sem_class = $course->getSemClass();
             $module = $sem_class->getModule('forum');

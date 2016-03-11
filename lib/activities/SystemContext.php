@@ -16,22 +16,7 @@ namespace Studip\Activity;
 
 class SystemContext extends Context
 {
-    public function getActivities($observer_id, Filter $filter)
-    {
-        $self = $this;
-
-        $providers = $this->filterProvider($this->getProvider(), $filter);
-
-        $activities = array_map(
-            function ($provider) use($self, $filter, $observer_id) {
-                return $provider->getActivities($observer_id, $self, $filter);
-            },
-            $providers);
-
-        return array_flatten($activities);
-    }
-
-    private function getProvider()
+    protected function getProvider()
     {
         $this->addProvider('news');
         $this->addProvider('message');

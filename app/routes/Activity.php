@@ -36,7 +36,7 @@ class Activity extends \RESTAPI\RouteMap
      */
     public function getActivities($user_id)
     {
-        // only root can retrieve any stream
+        // only root can retrieve arbitrary streams
         if (!$GLOBALS['perm']->have_perm('root')
                 && $GLOBALS['user']->id != $user_id) {
             $this->error(401);

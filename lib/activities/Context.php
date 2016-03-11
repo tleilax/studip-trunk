@@ -19,7 +19,21 @@ abstract class Context
     protected
         $provider;
 
-    abstract function getActivities($observer_id, Filter $filter);
+    abstract protected function getProvider();
+
+    public function getActivities($observer_id, Filter $filter)
+    {
+        $providers = $this->filterProvider($this->getProvider(), $filter);
+
+        $activities = array_map(
+            function ($provider) use($observer_id, $filter) {
+                return $provider->getActivities($observer_id, $this, $filter);
+            },
+            $providers);
+
+        return array_flatten($activities);
+
+    }
 
     protected function addProvider($provider)
     {

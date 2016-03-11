@@ -24,7 +24,7 @@ class CourseContext extends Context
         $this->seminar_id = $seminar_id;
     }
 
-    private function getProvider()
+    protected function getProvider()
     {
         if (!$this->provider) {
             $course = \Course::find($this->seminar_id);
@@ -74,18 +74,4 @@ class CourseContext extends Context
     {
         return $this->seminar_id;
     }
-
-    public function getActivities($observer_id, Filter $filter)
-    {
-        $providers = $this->filterProvider($this->getProvider(), $filter);
-
-        $activities = array_map(
-            function ($provider) use($observer_id, $filter) {
-                return $provider->getActivities($observer_id, $this, $filter);
-            },
-            $providers);
-
-        return array_flatten($activities);
-    }
-
 }
