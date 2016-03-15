@@ -85,6 +85,13 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
     protected $alias_fields = array();
 
     /**
+     * multi-language fields
+     * name => boolean
+     * @var array $i18n_fields
+     */
+    protected $i18n_fields = array();
+
+    /**
      * additional computed fields
      * name => callable
      * @var array $additional_fields
@@ -1521,6 +1528,17 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
     }
 
     /**
+     * check if given column is a multi-language field
+     * @param string $field
+     * @return boolean
+     */
+    function isI18nField($field)
+    {
+        $field = strtolower($field);
+        return isset($this->i18n_fields[$field]);
+    }
+
+    /**
      * set multiple column values
      * if second param is set, existing data in object will be
      * discarded and dirty state is cleared,
@@ -1645,6 +1663,22 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
                     . join(" AND ", $where_query);
             $rs = DBManager::get()->query($query)->fetchAll(PDO::FETCH_ASSOC);
             if (isset($rs[0])) {
+                if (count($this->i18n_fields) && count($this->pk) === 1) {
+                    $query = 'SELECT field, lang, value FROM i18n WHERE object_id = ? AND `table` = ?';
+                    $st = DBManager::get()->prepare($query);
+                    $st->execute(array($this->content[$this->pk[0]], $this->db_table));
+                    $values = $st->fetchAll(PDO::FETCH_ASSOC | PDO::FETCH_GROUP);
+
+                    foreach ($this->db_fields as $field => $meta) {
+                        if ($this->isI18nField($field)) {
+                            $lang = array();
+                            foreach ((array) $values[$field] as $row) {
+                                $lang[$row['lang']] = $row['value'];
+                            }
+                            $rs[0][$field] = new I18NString($rs[0][$meta['name']], $lang);
+                        }
+                    }
+                }
                 if ($this->setData($rs[0], true)){
                     $this->setNew(false);
                     return true;
@@ -1700,6 +1734,17 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
                 }
                 if (is_float($value)) {
                     $value = str_replace(',', '.', $value);
+                }
+                if ($value instanceof I18NString) {
+                    if ($this->isI18nField($field)) {
+                        $query = 'DELETE FROM i18n WHERE object_id = ? AND `table` = ? AND field = ?';
+                        DBManager::get()->execute($query, array($this->id, $this->db_table, $field));
+                        $query = 'INSERT INTO i18n VALUES(?, ?, ?, ?, ?)';
+                        foreach ($value->toArray() as $lang => $text) {
+                            DBManager::get()->execute($query, array($this->id, $this->db_table, $field, $lang, $text));
+                        }
+                    }
+                    $value = $value->original();
                 }
                 $this->content[$field] = $value;
                 $query_part[] = "`$field` = " . DBManager::get()->quote($value) . " ";
@@ -1929,6 +1974,8 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
         $field = strtolower($field);
         if ($this->content[$field] === null || $this->content_db[$field] === null) {
             return $this->content[$field] !== $this->content_db[$field];
+        } else if ($this->content[$field] instanceof I18NString || $this->content_db[$field] instanceof I18NString) {
+            return $this->content[$field] != $this->content_db[$field];
         } else {
             return (string)$this->content[$field] !== (string)$this->content_db[$field];
         }

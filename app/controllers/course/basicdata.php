@@ -38,6 +38,7 @@ class Course_BasicdataController extends AuthenticatedController
             'name' => "course_name",
             'must' => true,
             'type' => 'text',
+            'i18n' => true,
             'value' => $data['name'],
             'locked' => LockRules::Check($course_id, 'Name')
         );
@@ -406,7 +407,11 @@ class Course_BasicdataController extends AuthenticatedController
                     } else {
                         // format of input element name is "course_xxx"
                         $varname = substr($field['name'], 7);
-                        $req_value = Request::get($field['name']);
+                        if ($field['i18n']) {
+                            $req_value = Request::i18n($field['name']);
+                        } else {
+                            $req_value = Request::get($field['name']);
+                        }
 
                         if ($varname === "name" && !$req_value) {
                             $this->msg[] = array("error", _("Name der Veranstaltung darf nicht leer sein."));
