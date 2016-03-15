@@ -69,36 +69,38 @@
 
     // Display a visible hint that indicates how many characters the user may
     // input if the element has a maxlength restriction.
-    $(document).on('focus', 'form.default input[maxlength]', function () {
-        var counter = $(this).data('maxlength-counter'),
-            width   = $(this).outerWidth(true),
-            wrap;
-        if (counter === undefined) {
-            wrap = $('<div class="length-hint-wrapper">').width(width);
+    $(document).on('ready dialog-update', function () {
+        $('form.default input[maxlength]:not(.no-hint)').each(function () {
+            if ($(this).data('length-hint')) {
+                return;
+            }
+
+            var width = $(this).outerWidth(true),
+                hint  = $('<div class="length-hint">').hide(),
+                wrap  = $('<div class="length-hint-wrapper">').width(width);
+
             $(this).wrap(wrap);
 
-            counter = $('<div class="length-hint">').hide();
-            counter.text('Zeichen verbleibend: '.toLocaleString());
-            counter.width(width);
+            hint.text('Zeichen verbleibend: '.toLocaleString());
 
-            counter.append('<span class="length-hint-counter">');
-            counter.insertAfter(this);
+            hint.append('<span class="length-hint-counter">');
+            hint.insertBefore(this);
 
-            $(this).data('maxlength-counter', counter);
-            window.setTimeout(function () {
-                $(this).focus();
-            }.bind(this), 0);
-        }
-        counter.finish().show('blind', {direction: 'up'}, 300);
-    }).on('blur', 'form.default input[maxlength]', function () {
-        var counter = $(this).data('maxlength-counter');
-        counter.finish().hide('blind', {direction: 'up'}, 300);
-    }).on('focus propertychange keyup', 'form.default input[maxlength]', function () {
-        var counter = $(this).data('maxlength-counter'),
-            count   = $(this).val().length,
-            max     = parseInt($(this).attr('maxlength'), 10);
+            $(this).focus(function () {
+                hint.finish().show('slide', {direction: 'down'}, 300);
+            }).blur(function () {
+                hint.finish().hide('slide', {direction: 'down'}, 300);
+            }).on('focus propertychange change keyup', function () {
+                var count = $(this).val().length,
+                    max   = parseInt($(this).attr('maxlength'), 10);
 
-        counter.find('.length-hint-counter').text(max - count);
+                hint.find('.length-hint-counter').text(max - count);
+            });
+
+            $(this).data('length-hint', true);
+
+            $(this).trigger('change');
+        });
     });
 
 }(jQuery, STUDIP));

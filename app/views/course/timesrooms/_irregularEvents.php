@@ -1,4 +1,5 @@
 <?php
+// in den Controller
 $room_request_filter = function ($date) {
     return $date->room_request && !$date->room_request->isNew() && $date->room_request->closed < 2;
 };
@@ -12,12 +13,12 @@ $room_request_filter = function ($date) {
         <? if(!$locked) : ?>
         <nav>
             <a class="link-add"
-               href="<?= $controller->link_for('course/timesrooms/createSingleDate/' . $course->id, $editParams) ?>"
+               href="<?= $controller->link_for('course/timesrooms/createSingleDate/' . $course->id, $linkAttributes) ?>"
                data-dialog="size=600" title="<?= _('Einzeltermin hinzufügen') ?>">
                 <?= _('Neuer Einzeltermin') ?>
             </a>
             <a class="link-add"
-               href="<?= $controller->url_for('course/block_appointments/index/' . $course->id, $editParams) ?>"
+               href="<?= $controller->url_for('course/block_appointments/index/' . $course->id, $linkAttributes) ?>"
                data-dialog="size=600"
                title="<?= _('Blocktermin hinzufügen') ?>">
                 <?= _('Neuer Blocktermin') ?>
@@ -25,12 +26,11 @@ $room_request_filter = function ($date) {
         </nav>
         <? endif ?>
     </header>
-
 <? if (!empty($single_dates)): ?>
-    <form class="default collapsable" action="<?= $controller->url_for('course/timesrooms/stack', $editParams) ?>"
-          <?= Request::isXhr() ? 'data-dialog="size=big"' : ''?>  method="post">
-
-    <? foreach ($single_dates as $semester_id => $termine) : ?>
+    <form class="default collapsable" action="<?= $controller->url_for('course/timesrooms/stack', $linkAttributes) ?>"
+    <?= Request::isXhr() ? 'data-dialog="size=big"' : ''?> method="post">
+        <?= CSRFProtection::tokenTag() ?>
+        <? foreach ($single_dates as $semester_id => $termine) : ?>
         <article id="singledate-<?= $semester_id ?>" class="<?= count($single_dates) === 1 ? 'open' :  ContentBoxHelper::classes('singledate-' . $semester_id) ?>">
             <header>
                 <h1>
@@ -48,14 +48,16 @@ $room_request_filter = function ($date) {
                         <?= sprintf(ngettext('%u Termin', '%u Termine', count($termine)),
                                      count($termine)) ?>
                     </span>
-                    <span>
-                        <?= _('Einzel-Raumanfrage') ?>:
-                    <? if (($rr_count = count($termine->filter($room_request_filter))) > 0): ?>
-                        <?= sprintf(_('%u noch offen'), $rr_count) ?>
-                    <? else: ?>
-                        <?= _('keine offen') ?>
-                    <? endif; ?>
-                    </span>
+                    <?php if (Config::get()->RESOURCES_ALLOW_ROOM_REQUESTS) : ?>
+                        <span>
+                            <?= _('Einzel-Raumanfrage') ?>:
+                            <? if (($rr_count = count($termine->filter($room_request_filter))) > 0): ?>
+                                <?= sprintf(_('%u noch offen'), $rr_count) ?>
+                            <? else: ?>
+                                <?= _('keine offen') ?>
+                            <? endif; ?>
+                        </span>
+                    <?php endif ?>
                 </nav>
             </header>
             <section>
@@ -102,7 +104,7 @@ $room_request_filter = function ($date) {
                         </label>
                     </td>
                     <td colspan="3" class="actions">
-                        <select name="method" class="actionForAllIrregular">
+                        <select name="method" class="datesBulkActions actionForAllIrregular">
                             <?= $this->render_partial('course/timesrooms/_stack_actions.php') ?>
                         </select>
                         <?= Studip\Button::create(_('Ausführen'), 'run', array(

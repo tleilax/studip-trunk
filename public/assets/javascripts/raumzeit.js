@@ -87,40 +87,36 @@
         $('.course-admin #course-' + info.course_id + ' .raumzeit').html(info.html);
     };
 
-    $(document).on('dialog-update', function() {
-        $('#edit-cycle').on('change', function() {
-            var $start = $('input[name=start_time]', this);
-            var $end   = $('input[name=end_time]', this);
-
-            // check if new time exceeds the current one and add security question if necessary
-            if ($start.val() < $start.attr('value')
-                    || $end.val() > $end.attr('value')) {
-                $(this).attr('data-confirm', 'Wenn Sie die regelmäßige Zeit ändern, '
-                    + 'verlieren Sie die Raumbuchungen für alle in der Zukunft liegenden Termine! '
-                    + 'Sind Sie sicher, dass Sie die regelmäßige Zeit ändern möchten?'.toLocaleString());
-            } else {
-                // remove security question - not necessary (any more)
-                $(this).attr('data-confirm', null);
+    $(document).on('change', '.datesBulkActions', function () {
+        var $button = $(this).next('button');
+        if ($(this).val() === 'delete') {
+            $button.attr('data-confirm', 'Wollen Sie die gewünschten Termine wirklich löschen?'.toLocaleString());
+        } else {
+            if ($button.attr('data-confirm')) {
+                $button.removeAttr('data-confirm');
             }
-        });
+        }
+    });
+
+    $(document).on('change', '#edit-cycle', function () {
+        var start = $('input[name=start_time]', this)[0],
+            end = $('input[name=end_time]', this)[0],
+            changed = start.defaultValue
+                && end.defaultValue
+                && (start.value !== start.defaultValue || end.value !== end.defaultValue);
+        // check if new time exceeds the current one and add security question if necessary
+        if (changed && (start.value < start.defaultValue || end.value > end.defaultValue)) {
+            $(this).attr('data-confirm', 'Wenn Sie die regelmäßige Zeit ändern, '
+                + 'verlieren Sie die Raumbuchungen für alle in der Zukunft liegenden Termine! '
+                + 'Sind Sie sicher, dass Sie die regelmäßige Zeit ändern möchten?'.toLocaleString());
+        } else {
+            // remove security question - not necessary (any more)
+            $(this).attr('data-confirm', null);
+        }
     });
 }(jQuery, STUDIP));
 
 STUDIP.Raumzeit = {
-    toggleRadio: function (radio_button) {
-
-    },
-    toggleCheckboxes: function (cycle_id) {
-        var checked = false;
-        jQuery('table[data-cycleid=' + cycle_id + '] input[name^=singledate]').each(function () {
-            if (jQuery(this).prop('checked')) {
-                checked = true;
-            }
-        });
-
-        jQuery('table[data-cycleid=' + cycle_id + '] input[name*=singledate]').prop('checked', !checked);
-    },
-
     addLecturer: function () {
         jQuery('select[name=teachers] option:selected').each(function () {
             var lecturer_id = jQuery(this).val();
@@ -137,19 +133,8 @@ STUDIP.Raumzeit = {
     },
 
     removeLecturer: function (lecturer_id) {
-        if (jQuery('ul.teachers li:visible').size() > 1) {
-            jQuery('li[data-lecturerid=' + lecturer_id + ']').hide();
-            //jQuery('li[data-lecturerid=' + lecturer_id + '] input').val('0');
-            jQuery('select[name=teachers] option[value=' + lecturer_id + ']').show();
-        } else {
-            if (jQuery('div.at_least_one_teacher').size() === 0) {
-                jQuery('ul.teachers').before('<div class="at_least_one_teacher" style="display: none"><i>' + 'Jeder Termin muss mindestens eine Person haben, die ihn durchführt!'.toLocaleString() + '</i><div>');
-                jQuery('div.at_least_one_teacher').slideDown().delay(3000).fadeOut(400, function () {
-                    jQuery(this).remove();
-                });
-                jQuery('li[data-lecturerid=' + lecturer_id + ']').effect('shake', 100);
-            }
-        }
+        jQuery('li[data-lecturerid=' + lecturer_id + ']').hide();
+        jQuery('select[name=teachers] option[value=' + lecturer_id + ']').show();
 
         STUDIP.Raumzeit.addFormLecturers();
     },

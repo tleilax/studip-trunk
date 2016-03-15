@@ -883,8 +883,16 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
                 unset($this->content_db[$alias]);
                 unset($this->content[$field]);
                 unset($this->content_db[$field]);
-                $this->content[$field] = $content_value;
-                $this->content_db[$field] = $content_db_value;
+                if (is_object($content_value)) {
+                    $this->content[$field] = clone $content_value;
+                } else {
+                    $this->content[$field] = $content_value;
+                }
+                if (is_object($content_db_value)) {
+                    $this->content_db[$field] = clone $content_db_value;
+                } else {
+                    $this->content_db[$field] = $content_db_value;
+                }
                 $this->content[$alias] =& $this->content[$field];
                 $this->content_db[$alias] =& $this->content_db[$field];
             }
@@ -1167,7 +1175,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
             $fields = array_intersect($only_these_fields, $fields);
         }
         foreach($fields as $field) {
-            $ret[$field] = $this->content[$field];
+            $ret[$field] = (string)$this->content[$field];
         }
         return $ret;
     }
@@ -1309,7 +1317,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
                          $default_value = '';
                      }
                      if (strpos($meta['type'], 'int') !== false) {
-                         $default_value = 0;
+                         $default_value = '0';
                      }
                  }
              }
@@ -1544,7 +1552,12 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
         }
         if ($reset) {
             foreach (array_keys($this->db_fields) as $field) {
-                $this->content_db[$field] = $this->content[$field];
+                if (isset($this->serialized_fields[$field])
+                && $this->content[$field] instanceof $this->serialized_fields[$field]) {
+                    $this->content_db[$field] = clone $this->content[$field];
+                } else {
+                    $this->content_db[$field] = $this->content[$field];
+                }
             }
             $this->applyCallbacks('after_initialize');
         }
@@ -1872,8 +1885,9 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
     {
         $this->content = array();
         foreach (array_keys($this->db_fields) as $field) {
-            $this->content[$field] = $this->getDefaultValue($field);
+            $this->content[$field] = null;
             $this->content_db[$field] = null;
+            $this->setValue($field, $this->getDefaultValue($field));
         }
         foreach ($this->alias_fields as $alias => $field) {
             if (isset($this->db_fields[$field])) {

@@ -8,22 +8,22 @@ option {
 }
 
 div {
-  &#wizard-lecturers, &#wizard-deputies, &#wizard-tutors {
+  &#wizard-participating, &#wizard-lecturers, &#wizard-deputies, &#wizard-tutors {
     margin-top: 5px;
     margin-left: 25px;
-    &div.description {
+    div.description {
       font-style: italic;
     }
   }
   &#assigned {
     float:left;
     padding-right: 10px;
-    width: 45%;
+    width: ~"calc(50% - 10px)";
   }
   &#studyareas {
     border-left: 1px solid #666666;
     float: left;
     padding-left: 10px;
-    width: 45%;
+    width: ~"calc(50% - 20px)";
   }
 }

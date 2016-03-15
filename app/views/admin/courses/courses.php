@@ -206,10 +206,7 @@
             <? if (in_array('teachers', $view_filter)) : ?>
                 <td>
                     <?= $this->render_partial_collection('my_courses/_dozent', $values['dozenten']) ?>
-                <? if ($values['teacher_search']): ?>
-                    <br>
-                    <?= $values['teacher_search']->render() ?>
-                <? endif; ?>
+
                 </td>
             <? endif ?>
             <? if (in_array('members', $view_filter)) : ?>
@@ -280,7 +277,7 @@
                         <?= $template->render() ?>
                     <? else : ?>
                         <?=
-                        \Studip\LinkButton::createEdit(
+                        \Studip\LinkButton::create(
                             $actions[$selected_action]['title'],
                             URLHelper::getURL(sprintf($actions[$selected_action]['url'], $semid),
                                 ($actions[$selected_action]['params'] ? $actions[$selected_action]['params'] : array())),
@@ -289,7 +286,7 @@
                     <? endif ?>
                 <? else : ?>
                     <?=
-                    \Studip\LinkButton::createEdit(
+                    \Studip\LinkButton::create(
                         $actions[$selected_action]['title'],
                         URLHelper::getURL(sprintf($actions[$selected_action]['url'], $semid),
                             ($actions[$selected_action]['params'] ? $actions[$selected_action]['params'] : array())),

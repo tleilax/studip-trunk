@@ -47,12 +47,12 @@ class Course_BlockAppointmentsController extends AuthenticatedController
      */
     public function index_action()
     {
-        if (!Request::isXhr()) {
+        if (!Request::isXhr() && Navigation::hasItem('/course/admin/timesrooms')) {
             Navigation::activateItem('/course/admin/timesrooms');
         }
-        $this->editParams = array('fromDialog' => Request::get('fromDialog'));
-        $this->start_ts = strtotime('this monday');
-        $this->request = $this->flash['request'];
+        $this->linkAttributes   = array('fromDialog' => Request::int('fromDialog') ? 1 : 0);
+        $this->start_ts         = strtotime('this monday');
+        $this->request          = $this->flash['request'];
     }
 
     /**
@@ -147,7 +147,7 @@ class Course_BlockAppointmentsController extends AuthenticatedController
             }
         }
 
-        if (Request::get('fromDialog') == 'true') {
+        if (Request::int('fromDialog')) {
             $this->redirect('course/timesrooms/index');
         } else {
             $this->relocate('course/timesrooms/index');

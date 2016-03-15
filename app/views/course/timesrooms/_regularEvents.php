@@ -6,7 +6,7 @@
         <? if(!$locked) : ?>
             <nav>
                 <a class="link-add"
-                   href="<?= $controller->link_for('course/timesrooms/createCycle', $editParams) ?>"
+                   href="<?= $controller->link_for('course/timesrooms/createCycle', $linkAttributes) ?>"
                    data-dialog="size=600"
                    title="<?= _('Regelmäßigen Termin hinzufügen') ?>">
                     <?= _('Regelmäßigen Termin hinzufügen') ?>
@@ -18,7 +18,7 @@
 <? if (!empty($cycle_dates)) : ?>
     <? foreach ($cycle_dates as $metadate_id => $cycle) : ?>
 
-        <form class="default collapsable" action="<?= $controller->url_for('course/timesrooms/stack/' . $metadate_id, $editParams) ?>"
+        <form class="default collapsable" action="<?= $controller->url_for('course/timesrooms/stack/' . $metadate_id, $linkAttributes) ?>"
               method="post" <?= Request::isXhr() ? 'data-dialog="size=big"' : ''?>>
             <?= CSRFProtection::tokenTag() ?>
 
@@ -46,19 +46,21 @@
                                 <?= _('keiner') ?>
                             <? endif; ?>
                             </span>
-                            <span>
-                                <?= _('Einzel-Raumanfrage') ?>:
-                                <?= htmlReady($course->getRequestsInfo($metadate_id)) ?>
-                            </span>
+                            <?php if (Config::get()->RESOURCES_ALLOW_ROOM_REQUESTS) : ?>
+                                <span>
+                                    <?= _('Einzel-Raumanfrage') ?>:
+                                    <?= htmlReady($course->getRequestsInfo($metadate_id)) ?>
+                                </span>
+                            <?php endif ?>
 
                             <span>
-                                <a href="<?= $controller->url_for('course/timesrooms/createCycle/' . $metadate_id) ?>"
+                                <a href="<?= $controller->url_for('course/timesrooms/createCycle/' . $metadate_id, $linkAttributes) ?>"
                                    data-dialog="size=600">
                                     <?= Icon::create('edit', 'clickable', ['title' => _('Diesen Zeitraum bearbeiten')])->asImg() ?>
                                 </a>
                                 <?= Icon::create('trash', 'clickable', ['title' => _('Diesen Zeitraum löschen')])
-                                        ->asInput(['formaction' => $controller->url_for('course/timesrooms/deleteCycle/' . $metadate_id),
-                                                   'data-confirm' => _('Soll dieser Zeitraum wirklich gelöscht werden?')] + $linkAttributes) ?>
+                                        ->asInput(['formaction' => $controller->url_for('course/timesrooms/deleteCycle/' . $metadate_id, $linkAttributes),
+                                                   'data-confirm' => _('Soll dieser Zeitraum wirklich gelöscht werden?')]) ?>
                             </span>
                         <? endif ?>
                     </nav>
@@ -99,7 +101,7 @@
                                         </label>
                                     </td>
                                     <td colspan="3" class="actions">
-                                        <select name="method" class="actionForAllRegular_<?= $metadate_id ?>">
+                                        <select name="method" class="datesBulkActions actionForAllRegular_<?= $metadate_id ?>">
                                             <?= $this->render_partial('course/timesrooms/_stack_actions.php') ?>
                                         </select>
                                         <?= Studip\Button::create(_('Ausführen'), 'run', array('class' => 'actionForAllRegular','data-dialog' => 'size=big')) ?>

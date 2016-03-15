@@ -1,10 +1,10 @@
 <form id="edit-cycle"
-    action="<?= $controller->url_for('course/timesrooms/' . ($cycle->isNew() ? 'saveCycle' : 'editCycle/' . $cycle->id), $editParams) ?>"
+    action="<?= $controller->url_for('course/timesrooms/' . ($cycle->isNew() ? 'saveCycle' : 'editCycle/' . $cycle->id), $linkAttributes) ?>"
     class="default" method="post"
-    <?= Request::isXhr() ? 'data-dialog="size=big"' : '' ?>>
+    <?= Request::int('fromDialog') ? 'data-dialog="size=big"' : '' ?>>
     <?= CSRFProtection::tokenTag() ?>
 
-    <label class="col3">
+    <label class="col-2">
         <?= _('Starttag') ?>
         <select name="day">
             <? foreach (array(1, 2, 3, 4, 5, 6, 0) as $d): ?>
@@ -16,14 +16,14 @@
         </select>
     </label>
 
-    <label class="col3">
+    <label class="col-2">
         <?= _('Startzeit') ?>
         <input class="size-s studip-timepicker" type="text" name="start_time"
                value="<?= htmlReady(Request::get('start_time', $cycle->start_time)) ?>"
                required placeholder="HH:mm">
     </label>
 
-    <label class="col3">
+    <label class="col-2">
         <?= _('Endzeit') ?>
         <input class="size-s studip-timepicker" type="text" name="end_time"
                value="<?= htmlReady(Request::get('end_time', $cycle->end_time)) ?>"
@@ -79,10 +79,12 @@
         <?= _('Endwoche') ?>
         <select name="endWeek">
             <? if (isset($end_semester_weeks['ende'])) : ?>
+                <? $selected = $cycle->end_offset ? : end($end_semester_weeks['ende'])['value'];?>
                 <? foreach ($end_semester_weeks['ende'] as $end_sem_week) : ?>
                     <option value="<?= $end_sem_week['value'] ?>"
-                        <?= (Request::get('endWeek', $cycle->end_offset) == $end_sem_week['value']) ? 'selected' : '' ?>>
-                            <?= htmlReady($end_sem_week['label']) ?></option>
+                        <?= (Request::get('endWeek', $selected) == $end_sem_week['value']) ? 'selected' : '' ?>>
+                        <?= htmlReady($end_sem_week['label']) ?>
+                    </option>
                 <? endforeach; ?>
             <? endif; ?>
 
@@ -97,7 +99,7 @@
                 <optgroup label="<?= htmlReady($semester) ?>">
                     <? foreach ($weeks as $value => $label) : ?>
                         <option value="<?= $value  ?>"
-                            <?= (Request::get('endWeek', $cycle->end_offset) == $value) ? 'selected' : '' ?>>
+                            <?= (Request::get('endWeek', $selected) == $value) ? 'selected' : '' ?>>
                                 <?= htmlReady($label) ?>
                         </option>
                     <? endforeach; ?>
@@ -107,14 +109,14 @@
     </label>
 
     <label>
-        <?= _('SWS Dozent') ?>
+        <?= _('SWS Lehrende') ?>
         <input type="text" name="teacher_sws" class="size-s"
                value="<?= $cycle->sws ? htmlReady(Request::get('teacher_sws', $cycle->sws)) :'' ?>">
     </label>
 
     <footer data-dialog-button>
         <?= Studip\Button::createAccept(_('Speichern'), 'save') ?>
-        <? if (Request::get('fromDialog') == 'true'): ?>
+        <? if (Request::int('fromDialog')): ?>
             <?= Studip\LinkButton::create(_('Zurück zur Übersicht'), $controller->url_for('course/timesrooms/index'), array('data-dialog' => 'size=big')) ?>
         <? endif; ?>
     </footer>
