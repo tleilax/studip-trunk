@@ -70,7 +70,7 @@ class InstituteContext extends Context
         return $this->provider;
     }
 
-    function getInstituteId()
+    function getRangeId()
     {
         return $this->institute_id;
     }

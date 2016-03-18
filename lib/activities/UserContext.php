@@ -24,7 +24,7 @@ class UserContext extends Context
         $this->user_id = $user_id;
     }
 
-    function getUserId()
+    function getRangeId()
     {
         return $this->user_id;
     }

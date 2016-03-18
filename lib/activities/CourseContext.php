@@ -70,7 +70,7 @@ class CourseContext extends Context
         return $this->provider;
     }
 
-    function getSeminarId()
+    function getRangeId()
     {
         return $this->seminar_id;
     }

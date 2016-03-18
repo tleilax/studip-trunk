@@ -24,4 +24,8 @@ class SystemContext extends Context
 
         return $this->provider;
     }
+
+    public function getRangeId() {
+        return 'studip';
+    }
 }

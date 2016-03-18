@@ -15,28 +15,15 @@ namespace Studip\Activity;
 
 class ForumProvider implements ActivityProvider
 {
-    public function getActivities($observer_id, Context $context, Filter $filter) {
-
-        $range_id = $this->contextToRangeId($context);
-
-        if ($course = \Course::find($range_id)) {
+    public function getActivities($observer_id, Context $context, Filter $filter)
+    {
+        // TODO: forum provider should only react to contextes where a forum is allowed
+        if ($course = \Course::find($context->getRangeId())) {
             $sem_class = $course->getSemClass();
             $module = $sem_class->getModule('forum');
             return $module->getActivityObjects($range_id, $observer_id, $filter);
         }
 
         return array();
-    }
-
-    private function contextToRangeId(Context $context){
-        if ($context instanceof CourseContext) {
-            $range_id = $context->getSeminarId();
-        }
-
-        else if ($context instanceof InstituteContext) {
-            $range_id = $context->getInstituteId();
-        }
-
-        return $range_id;
     }
 }

@@ -13,7 +13,7 @@
 
 namespace Studip\Activity;
 
-class NewsProvider implements ActivityProvider
+class NewsProvider extends Provider implements ActivityProvider
 {
     public function getActivities($observer_id, Context $context, Filter $filter)
     {
@@ -28,27 +28,6 @@ class NewsProvider implements ActivityProvider
         $news = $this->filterNews(\StudipNews::GetNewsByRange($range_id, !$observer_may_edit, true), $filter);
 
         return $this->wrapNews($news, $context);
-    }
-
-    private function contextToRangeId(Context $context)
-    {
-        if ($context instanceof CourseContext) {
-            $range_id = $context->getSeminarId();
-        }
-
-        else if ($context instanceof InstituteContext) {
-            $range_id = $context->getInstituteId();
-        }
-
-        else if ($context instanceof SystemContext) {
-            $range_id = 'studip';
-        }
-
-        else if ($context instanceof UserContext) {
-            $range_id = $context->getUserId();
-        }
-
-        return $range_id;
     }
 
     private function filterNews($news, Filter $filter) {
