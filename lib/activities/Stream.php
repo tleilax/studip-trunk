@@ -21,6 +21,7 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
     function __construct($observer_id, $contexts, Filter $filter)
     {
         // TODO: validate that the filter object has only timestamp at 00:00:00 o'clock
+        // ----> Do not filter here, filter in Activity-Plugin to allow calls precise to one second via internal API
         // TODO: validate that the filter object has dates in a correct order and does not exceed a certain range
 
         if (!is_array($contexts)) {
@@ -37,6 +38,10 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
             throw new \InvalidArgumentException();
         }
 
+        $this->activites = Activity::findBySQL('mkdate >= ? AND mkdate <= ? ORDER BY mkdate DESC',
+                array($filter->getStartDate(), $filter->getEndDate()));
+
+        /*
         $cached_activities = self::getCachedActivities($observer_id, $filter, $contexts);
 
         $new_activities = array();
@@ -60,6 +65,8 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
         }
 
         $this->activities = $new_activities;
+         *
+         */
     }
 
     /**

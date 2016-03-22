@@ -14,7 +14,7 @@
 
 namespace Studip\Activity;
 
-class Activity
+class Activity extends \SimpleORMap
 {
     protected $actor;
     protected $description;
@@ -29,6 +29,8 @@ class Activity
         'attended',
         'completed',
         'created',
+        'deleted',
+        'edited',
         'experienced',
         'failed',
         'imported',
@@ -38,15 +40,25 @@ class Activity
         'voided'
     );
 
-
-    function __construct($provider, $description, $actor_type, $actor_id, $verb, $object_type, $object_url, $object_route, $mkdate)
+    protected static function configure($config = array())
     {
-        $this->setProvider($provider);
-        $this->setDescription($description);
-        $this->setActor($actor_type, $actor_id);
-        $this->setVerb($verb);
-        $this->setObject($object_type, $object_url, $object_route);
-        $this->setMkdate($mkdate);
+        $config['db_table'] = 'activities';
+
+        parent::configure($config);
+    }
+
+    public static function get($provider, $description, $actor_type, $actor_id, $verb, $object_type, $object_url, $object_route, $mkdate)
+    {
+        $activity = new Activity();
+
+        $activity->setProvider($provider);
+        $activity->setDescription($description);
+        $activity->setActor($actor_type, $actor_id);
+        $activity->setVerb($verb);
+        $activity->setObject($object_type, $object_url, $object_route);
+        $activity->setMkdate($mkdate);
+
+        return $activity;
     }
 
     function setDescription($description)

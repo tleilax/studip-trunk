@@ -932,6 +932,8 @@ class ForumEntry {
         $parent_id = ForumEntry::getParentTopicId($topic_id);
         DBManager::get()->exec("UPDATE forum_entries SET latest_chdate = UNIX_TIMESTAMP()
             WHERE topic_id = '" . $parent_id . "'");
+
+         NotificationCenter::postNotification('ForumAfterUpdate', $topic_id, $name, $content);
     }
 
     /**

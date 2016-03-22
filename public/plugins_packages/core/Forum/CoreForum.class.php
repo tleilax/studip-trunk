@@ -19,6 +19,9 @@ require_once 'lib/activities/Activity.php';
 
 // Notifications
 NotificationCenter::addObserver('CoreForum', 'overviewDidClear', "OverviewDidClear");
+NotificationCenter::addObserver('ForumActivity', 'newEntry', 'ForumAfterInsert');
+NotificationCenter::addObserver('ForumActivity', 'updateEntry', 'ForumAfterUpdate');
+NotificationCenter::addObserver('ForumActivity', 'deleteEntry', 'ForumBeforeDelete');
 
 class CoreForum extends StudipPlugin implements ForumModule
 {
@@ -104,67 +107,6 @@ class CoreForum extends StudipPlugin implements ForumModule
 
         return $navigation;
     }
-
-    /* interface method */
-    function getActivityObjects($course_id, $user_id, $filter)
-    {
-        $this->setupAutoload();
-
-        if (ForumPerm::has('view', $course_id, $user_id)) {
-            $postings = ForumEntry::getLatestSince($course_id, $filter->getStartDate(), $filter->getEndDate());
-
-            $activities = array();
-            foreach ($postings as $post) {
-                $obj = get_object_name($course_id, 'sem');
-                $verb = ($post['depth'] == 3)  ? 'answered' : 'created';
-
-                if ($verb == 'created') {
-                    if ($post['depth'] == 1) {
-                        $summary = sprintf(_('%s hat im Forum der Veranstaltung "%s" einen Bereich erstellt.'),
-                            get_fullname($post['user_id']),
-                            $obj['name']
-                        );
-                    } else {
-                        $summary = sprintf(_('%s hat im Forum der Veranstaltung "%s" ein Thema erstellt.'),
-                            get_fullname($post['user_id']),
-                            $obj['name']
-                        );
-                    }
-                } else {
-                    $summary = sprintf(_('%s hat im Forum der Veranstaltung "%s" auf ein Thema geantwortet.'),
-                        get_fullname($post['user_id']),
-                        $obj['name']
-                    );
-                }
-
-                if ($post['user_id']) { // skip system-created entries like "Allgemeine Diskussionen"
-                    $url = PluginEngine::getURL($this, array(), 'index/index/' . $post['topic_id']
-                                .'?cid='. $course_id .'&highlight_topic='. $post['topic_id']
-                                .'#'. $post['topic_id']);
-
-                    $activities[] = new Studip\Activity\Activity(
-                        'forum_provider',
-                        array(                                                  // the description and summaray of the performed activity
-                            'title'   => $summary,
-                            'content' => formatReady($post['content'])
-                        ),
-                        'user',                                                 // who initiated the activity?
-                        $post['user_id'],                                       // id of initiator
-                        $verb,                                                  // the type if the activity
-                        'forum',                                                // type of activity object
-                        array(                                                  // url to entity in Stud.IP
-                            $url => _('Zum Forum der Veranstaltung')
-                        ),
-                        \URLHelper::getURL('api.php/forum_entry/' . $post['topic_id'], NULL, true),   // url to entity as rest-route
-                        $post['mkdate']
-                    );
-                }
-            }
-        }
-
-        return $activities;
-    }
-
 
     /**
      * This method is called, whenever an user clicked to clear the visit timestamps
