@@ -25,14 +25,16 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
         PageLayout::addScript($this->getPluginUrl() . '/javascript/activityfeed.js');
 
         $filter = WidgetHelper::getWidgetUserConfig($GLOBALS['user']->id, 'ACTIVITY_FILTER');
+
         //use filter iff user explicitly chooses one for each session, default otherwise
         $filter='';
+
         if(is_array($filter)){
-            $start_date = date('Y-m-d',$filter['start_date']);
-            $end_date = date('Y-m-d',$filter['end_date']);
+            $start_date = date('Y-m-d', $filter['start_date']);
+            $end_date   = date('Y-m-d', $filter['end_date']);
         } else {
             $start_date =  date('Y-m-d', strtotime("-4 week"));
-            $end_date =  date('Y-m-d');
+            $end_date   =  date('Y-m-d', strtotime('+1 day'));
         }
 
 

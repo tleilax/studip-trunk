@@ -46,7 +46,7 @@ class Activity extends \RESTAPI\RouteMap
 
         // create system context
         $system_context = new \Studip\Activity\SystemContext();
-        $contexts[] = $system_context;
+        ## $contexts[] = $system_context;
 
 
         // create courses and institutes context
@@ -64,12 +64,12 @@ class Activity extends \RESTAPI\RouteMap
         $institutes = \MyRealmModel::getMyInstitutes();
         if(!$GLOBALS['perm']->have_perm('root') || !is_null($institutes)){
             foreach($institutes as $institute){
-                $contexts[] = new \Studip\Activity\InstituteContext($institute['institut_id']);
+                ## $contexts[] = new \Studip\Activity\InstituteContext($institute['institut_id']);
             }
         }
 
         // #TODO: user_context (do we wanna add buddies as well?)
-        $contexts[] = new \Studip\Activity\UserContext($GLOBALS['user']->id);
+        ##  $contexts[] = new \Studip\Activity\UserContext($GLOBALS['user']->id);
 
         // add filters
         $filter = new \Studip\Activity\Filter();

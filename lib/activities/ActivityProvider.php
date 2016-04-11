@@ -15,5 +15,5 @@ namespace Studip\Activity;
 
 interface ActivityProvider
 {
-    function getActivities($observer_id, Context $context, Filter $filter);
+    function getActivityDetails(&$activity);
 }

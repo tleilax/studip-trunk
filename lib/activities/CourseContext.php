@@ -30,7 +30,8 @@ class CourseContext extends Context
             $course = \Course::find($this->seminar_id);
 
             // todo check which modules are active globally
-            $module_names = array('forum', 'participants', 'documents', 'literature', 'wiki');
+            ## $module_names = array('forum', 'participants', 'documents', 'literature', 'wiki');
+            $module_names = array('forum');
 
             // get list of possible providers by checking the activated plugins and modules for the current seminar
             $modules = new \Modules();
@@ -51,10 +52,10 @@ class CourseContext extends Context
             }
 
             //news
-            $this->addProvider('news');
+            ## $this->addProvider('news');
 
             // add blubber-provider
-            $this->addProvider('blubber');
+            ## $this->addProvider('blubber');
 
             //plugins
             $standard_plugins = \PluginManager::getInstance()->getPlugins("StandardPlugin", $this->seminar_id);
@@ -68,6 +69,47 @@ class CourseContext extends Context
         }
 
         return $this->provider;
+    }
+
+    function hasProvider($type)
+    {
+        ## TODO: cache loaded provider
+
+        $module_names = array('forum', 'participants', 'documents', 'literature', 'wiki');
+
+        // return provider if it is a module
+        if (in_array($type, $module_names) !== false) {
+            $course = \Course::find($this->seminar_id);
+
+            // todo check which modules are active globally
+            ## $module_names = array('forum', 'participants', 'documents', 'literature', 'wiki');
+            // $module_names = array('forum');
+
+            // get list of possible providers by checking the activated plugins and modules for the current seminar
+            $modules = new \Modules();
+            $activated_modules = $modules->getLocalModules($this->seminar_id, 'sem', false, $course->status);
+
+            $sem_class = $GLOBALS['SEM_CLASS'][$GLOBALS['SEM_TYPE'][$course->status]['class']];
+            if (!$sem_class) {
+                $sem_class = \SemClass::getDefaultSemClass();
+            }
+
+            // check modules
+            if (($activated_modules[$type] || $sem_class->isSlotMandatory($type))
+                    && $sem_class->isModuleAllowed($sem_class->getSlotModule($type))) {
+                return true;
+            }            
+        }
+
+        //plugins
+        $standard_plugins = \PluginManager::getInstance()->getPlugins("StandardPlugin", $this->seminar_id);
+        foreach ($standard_plugins as $plugin) {
+            if (!$sem_class->isSlotModule(get_class($plugin))) {
+                if ($plugin instanceof \Studip\ActivityProvider) {
+                    return $plugin;
+                }
+            }
+        }
     }
 
     function getRangeId()

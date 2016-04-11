@@ -16,16 +16,6 @@ namespace Studip\Activity;
 
 class Activity extends \SimpleORMap
 {
-    protected $actor,
-        $description,
-        $provider,
-        $object_id,
-        $object_type,
-        $object_url,
-        $object_route,
-        $verb,
-        $mkdate;
-    
     static $allowed_verbs = array(
         'answered',
         'attempted',
@@ -50,46 +40,17 @@ class Activity extends \SimpleORMap
         parent::configure($config);
     }
 
-    public static function get($provider, $description, $actor_type, $actor_id, $verb, $object_id, $object_type, $object_url, $object_route, $mkdate)
+    public static function get($data)
     {
         $activity = new Activity();
-
-        $activity->setProvider($provider);
-        $activity->setDescription($description);
-        $activity->setActor($actor_type, $actor_id);
-        $activity->setVerb($verb);
-        $activity->setObject($object_id, $object_type, $object_url, $object_route);
-        $activity->setMkdate($mkdate);
+        $activity->setData($data);
 
         return $activity;
     }
 
-    function setDescription($description)
-    {
-        $this->description = $description;
-    }
-
-    function getDescription()
-    {
-        return $this->description;
-    }
-
     function __toString()
     {
-        return $this->description;
-    }
-
-    function setActor($objectType, $id)
-    {
-        $this->actor = array(
-            'objectType' => $objectType,
-            'id'         => $id
-        );
-    }
-
-    function getActor()
-    {
-        return $this->actor;
+        return $this->title .', '. $this->content;
     }
 
     function setVerb($verb)
@@ -98,51 +59,7 @@ class Activity extends \SimpleORMap
             throw new \InvalidArgumentException("That verb is not allowed.");
         }
 
-        $this->verb = $verb;
-    }
-
-    function getVerb()
-    {
-        return $this->verb;
-    }
-
-    function setObject($object_id, $object_type, $object_url, $object_route)
-    {
-        $this->object_id    = $object_id;
-        $this->object_type  = $object_type;
-        $this->object_url   = $object_url;
-        $this->object_route = $object_route;
-        
-    }
-
-    function getObject()
-    {
-        return array(
-            'id'         => $this->object_id,
-            'objectType' => $this->object_type,
-            'url'        => $this->object_url,
-            'route'      => $this->object_route
-        );
-    }
-
-    function setProvider($provider)
-    {
-        $this->provider = $provider;
-    }
-
-    function getProvider()
-    {
-        return $this->provider;
-    }
-
-    function setMkdate($mkdate)
-    {
-       $this->mkdate = $mkdate;
-    }
-    
-    function getMkdate()
-    {
-        return $this->mkdate;
+        $this->content['verb'] = $verb;
     }
 
     /**
@@ -154,17 +71,5 @@ class Activity extends \SimpleORMap
     function addUrl($url, $name)
     {
         $this->object_url[$url] = $name;
-    }
-
-    function asArray()
-    {
-        return array(
-            'actor'       => $this->actor,
-            'description' => $this->description,
-            'provider'    => $this->dprovider,
-            'object'      => $this->object,
-            'verb'        => $this->verb,
-            'mkdate'      => $this->mkdate
-        );
     }
 }

@@ -38,8 +38,21 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
             throw new \InvalidArgumentException();
         }
 
-        $this->activites = Activity::findBySQL('mkdate >= ? AND mkdate <= ? ORDER BY mkdate DESC',
+        ## TODO: filter context as well
+        $this->activities = Activity::findBySQL('mkdate >= ? AND mkdate <= ? ORDER BY mkdate DESC',
                 array($filter->getStartDate(), $filter->getEndDate()));
+
+        
+        foreach ($this->activities as $activity) {
+            \ForumActivity::getAtivityDetails($activity);
+            // call_user_func($activity->provider .'::getActivityDetails', $activity);
+
+            print_r($activity->asArray());
+        }
+
+        die;
+
+        echo json_encode($this->activities);die;
 
         /*
         $cached_activities = self::getCachedActivities($observer_id, $filter, $contexts);
@@ -122,13 +135,13 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
         $activities = array();
 
         foreach ($this as $key => $activity) {
-            $activities[$key] = $activity->asArray();
+            $activities[$key] = $activity->toArray();
         }
 
         return $activities;
     }
 
-
+    /*
     static function getCachedActivities($observer_id, $filter, $contexts) {
 
         $cache =\StudipCacheFactory::getCache();
@@ -224,4 +237,6 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
         // after ksort the array is in the wrong order
         return array_reverse($ret);
     }
+     * 
+     */
 }

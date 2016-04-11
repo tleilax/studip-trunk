@@ -18,10 +18,8 @@ class AddActivities extends Migration {
             `actor_id` varchar(255) COLLATE latin1_german1_ci NOT NULL,
             `verb` enum('answered','attempted','attended','completed','created','deleted','edited','experienced','failed','imported','interacted','passed','shared','voided') COLLATE latin1_german1_ci NOT NULL,
             `title` varchar(255) COLLATE latin1_german1_ci NOT NULL,
-            `content` text COLLATE latin1_german1_ci NOT NULL,
-            `object_type` int(11) NOT NULL,
-            `object_url` text COLLATE latin1_german1_ci NOT NULL COMMENT 'json',
-            `object_route` text COLLATE latin1_german1_ci NOT NULL COMMENT 'json',
+            `content` text COLLATE latin1_german1_ci NULL,
+            `object_type` varchar(255) COLLATE latin1_german1_ci NOT NULL,
             `mkdate` int(11) NOT NULL,
             PRIMARY KEY (`id`)
         )");
