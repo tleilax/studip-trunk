@@ -12,7 +12,7 @@ class AddActivities extends Migration {
         $db->exec("CREATE TABLE `activities` (
             `id` int(11) NOT NULL AUTO_INCREMENT,
             `object_id` varchar(255) COLLATE latin1_german1_ci NOT NULL,
-            `context` enum('system','course','institute','user','fun') COLLATE latin1_german1_ci NOT NULL,
+            `context` enum('system','course','institute','user') COLLATE latin1_german1_ci NOT NULL,
             `provider` varchar(255) COLLATE latin1_german1_ci NOT NULL,
             `actor_type` varchar(255) COLLATE latin1_german1_ci NOT NULL,
             `actor_id` varchar(255) COLLATE latin1_german1_ci NOT NULL,
