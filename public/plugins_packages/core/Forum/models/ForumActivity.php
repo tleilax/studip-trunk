@@ -90,7 +90,7 @@ class ForumActivity
 
         $obj = get_object_name($course_id, 'sem');
         
-        $url = PluginEngine::getURL($this, array(), 'index/index/' . $post['topic_id']
+        $url = PluginEngine::getURL('CoreForum', array(), 'index/index/' . $post['topic_id']
                     .'?cid='. $course_id .'&highlight_topic='. $post['topic_id']
                     .'#'. $post['topic_id']);
 
@@ -98,11 +98,12 @@ class ForumActivity
             'forum_provider',
             array(                                                  // the description and summaray of the performed activity
                 'title'   => sprintf($summary, get_fullname($post['user_id']), $obj['name']),
-                'content' => $content ?: formatReady($post['content'])
+                'content' => NULL
             ),
             'user',                                                 // who initiated the activity?
             $post['user_id'],                                       // id of initiator
             $verb,                                                  // the type if the activity
+            $post['topic_id'],                                      // the id of the referenced object
             'forum',                                                // type of activity object
             array(                                                  // url to entity in Stud.IP
                 $url => _('Zum Forum der Veranstaltung')

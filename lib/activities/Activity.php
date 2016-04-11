@@ -16,12 +16,15 @@ namespace Studip\Activity;
 
 class Activity extends \SimpleORMap
 {
-    protected $actor;
-    protected $description;
-    protected $provider;
-    protected $object;
-    protected $verb;
-    protected $mkdate;
+    protected $actor,
+        $description,
+        $provider,
+        $object_id,
+        $object_type,
+        $object_url,
+        $object_route,
+        $verb,
+        $mkdate;
     
     static $allowed_verbs = array(
         'answered',
@@ -47,7 +50,7 @@ class Activity extends \SimpleORMap
         parent::configure($config);
     }
 
-    public static function get($provider, $description, $actor_type, $actor_id, $verb, $object_type, $object_url, $object_route, $mkdate)
+    public static function get($provider, $description, $actor_type, $actor_id, $verb, $object_id, $object_type, $object_url, $object_route, $mkdate)
     {
         $activity = new Activity();
 
@@ -55,7 +58,7 @@ class Activity extends \SimpleORMap
         $activity->setDescription($description);
         $activity->setActor($actor_type, $actor_id);
         $activity->setVerb($verb);
-        $activity->setObject($object_type, $object_url, $object_route);
+        $activity->setObject($object_id, $object_type, $object_url, $object_route);
         $activity->setMkdate($mkdate);
 
         return $activity;
@@ -103,14 +106,23 @@ class Activity extends \SimpleORMap
         return $this->verb;
     }
 
-    function setObject($object_type, $url, $route)
+    function setObject($object_id, $object_type, $object_url, $object_route)
     {
-        $this->object = array('objectType' => $object_type, 'url' => $url, 'route' => $route);
+        $this->object_id    = $object_id;
+        $this->object_type  = $object_type;
+        $this->object_url   = $object_url;
+        $this->object_route = $object_route;
+        
     }
 
     function getObject()
     {
-        return $this->object;
+        return array(
+            'id'         => $this->object_id,
+            'objectType' => $this->object_type,
+            'url'        => $this->object_url,
+            'route'      => $this->object_route
+        );
     }
 
     function setProvider($provider)
@@ -141,7 +153,7 @@ class Activity extends \SimpleORMap
      */
     function addUrl($url, $name)
     {
-        $this->object['url'][$url] = $name;
+        $this->object_url[$url] = $name;
     }
 
     function asArray()
