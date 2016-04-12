@@ -53,4 +53,9 @@ class UserContext extends Context
         return $this->provider;
 
     }
+
+    protected function getContextType()
+    {
+        return 'user';
+    }
 }

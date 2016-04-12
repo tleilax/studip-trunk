@@ -26,6 +26,11 @@ class SystemContext extends Context
     }
 
     public function getRangeId() {
-        return 'studip';
+        return 'system';
+    }
+
+    protected function getContextType()
+    {
+        return 'system';
     }
 }

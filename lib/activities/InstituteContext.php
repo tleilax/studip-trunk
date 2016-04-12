@@ -74,4 +74,9 @@ class InstituteContext extends Context
     {
         return $this->institute_id;
     }
+
+    protected function getContextType()
+    {
+        return 'institute';
+    }
 }

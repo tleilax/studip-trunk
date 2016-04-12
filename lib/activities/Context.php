@@ -20,6 +20,8 @@ abstract class Context
         $provider;
 
     abstract protected function getProvider();
+    abstract public function getRangeId();
+    abstract protected function getContextType();
 
     public function getActivities($observer_id, Filter $filter)
     {
@@ -28,7 +30,7 @@ abstract class Context
 
 
         $this->activities = Activity::findBySQL('context = ? AND context_id = ?  AND mkdate >= ? AND mkdate <= ? ORDER BY mkdate DESC',
-            array($this->context, $this->context_id,$filter->getStartDate(), $filter->getEndDate()));
+            array($this->getContextType(), $this->getRangeId(), $filter->getStartDate(), $filter->getEndDate()));
 
 
 
