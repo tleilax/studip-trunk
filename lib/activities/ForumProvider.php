@@ -10,6 +10,10 @@
  * @author      Till Glöggler <tgloeggl@uos.de>
  * @license     https://www.gnu.org/licenses/agpl-3.0.html AGPL version 3
  */
+
+
+namespace Studip\Activity;
+
 class ForumProvider implements ActivityProvider
 {
     /**
@@ -17,7 +21,7 @@ class ForumProvider implements ActivityProvider
      *
      * @param object $activity the acitivty to fill with details, passed by reference
      */
-    public static function getActivityDetails(&$activity)
+    public function getActivityDetails(&$activity)
     {
         if ($activity->provider != 'forum_provider') {
             throw new InvalidArgumentException('the passed activity is not a forum activity!');

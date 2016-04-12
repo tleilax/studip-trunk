@@ -34,6 +34,16 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
             }
         }
 
+
+        $activities = array_flatten(array_map(
+            function ($context) use ($observer_id, $filter) {
+                return $context->getActivities($observer_id, $filter);
+            }, $contexts));
+
+
+        var_dump($activities);
+        die;
+
         if (!$filter instanceof Filter) {
             throw new \InvalidArgumentException();
         }

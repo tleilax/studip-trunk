@@ -25,10 +25,19 @@ abstract class Context
     {
         $providers = $this->filterProvider($this->getProvider(), $filter);
 
+
+
+        $this->activities = Activity::findBySQL('context = ? AND context_id = ?  AND mkdate >= ? AND mkdate <= ? ORDER BY mkdate DESC',
+            array($this->context, $this->context_id,$filter->getStartDate(), $filter->getEndDate()));
+
+
+
         $activities = array_map(
             function ($provider) use($observer_id, $filter) {
                 //todo rewrite getactivities
-                return $provider->getActivities($observer_id, $this, $filter);
+
+
+               // return $provider->getActivityDetails($activity);
             },
             $providers);
 
