@@ -27,6 +27,7 @@ abstract class Context
 
         $activities = array_map(
             function ($provider) use($observer_id, $filter) {
+                //todo rewrite getactivities
                 return $provider->getActivities($observer_id, $this, $filter);
             },
             $providers);
