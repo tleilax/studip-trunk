@@ -97,8 +97,9 @@ class ForumActivity
 
         $activity = Studip\Activity\Activity::get(
             array(
-                'provider'     => 'CoreForum',
+                'provider'     => 'forum',
                 'context'      => ($type == 'sem') ? 'course' : 'institute',
+                'context_id'   => $post['seminar_id'],
                 'title'        => sprintf($summary, get_fullname($post['user_id']), $obj['name']),
                 'content'      => NULL,
                 'actor_type'   => 'user',                                       // who initiated the activity?
@@ -106,12 +107,6 @@ class ForumActivity
                 'verb'         => $verb,                                        // the activity type
                 'object_id'    => $post['topic_id'],                            // the id of the referenced object
                 'object_type'  => 'forum',                                      // type of activity object
-                /*'object_url'   => array(                                        // url to entity in Stud.IP
-                    $url => _('Zum Forum der Veranstaltung')
-                ),
-                'object_route' => \URLHelper::getURL('api.php/forum_entry/' . $post['topic_id'], NULL, true),   // url to entity as rest-route
-                 * 
-                 */
                 'mkdate'       => $post['mkdate']
             )
         );

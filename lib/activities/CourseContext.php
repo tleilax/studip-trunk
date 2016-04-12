@@ -37,6 +37,7 @@ class CourseContext extends Context
             $modules = new \Modules();
             $activated_modules = $modules->getLocalModules($this->seminar_id, 'sem', false, $course->status);
 
+            print_r($activated_modules);die;
 
             $sem_class = $GLOBALS['SEM_CLASS'][$GLOBALS['SEM_TYPE'][$course->status]['class']];
             if (!$sem_class) {
@@ -62,7 +63,7 @@ class CourseContext extends Context
             foreach ($standard_plugins as $plugin) {
                 if (!$sem_class->isSlotModule(get_class($plugin))) {
                     if ($plugin instanceof \Studip\ActivityProvider) {
-                        $this->provider[] = $plugin;
+                        $this->provider[$plugin->getPluginName()] = $plugin;
                     }
                 }
             }

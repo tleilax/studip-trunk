@@ -27,21 +27,14 @@ abstract class Context
     {
         $providers = $this->filterProvider($this->getProvider(), $filter);
 
-
-
-        $this->activities = Activity::findBySQL('context = ? AND context_id = ?  AND mkdate >= ? AND mkdate <= ? ORDER BY mkdate DESC',
+        $activities = Activity::findBySQL('context = ? AND context_id = ?  AND mkdate >= ? AND mkdate <= ? ORDER BY mkdate DESC',
             array($this->getContextType(), $this->getRangeId(), $filter->getStartDate(), $filter->getEndDate()));
 
-
-
-        $activities = array_map(
-            function ($provider) use($observer_id, $filter) {
-                //todo rewrite getactivities
-
-
-               // return $provider->getActivityDetails($activity);
-            },
-            $providers);
+        foreach ($activities as $activity) {
+            if (isset($providers[$activity->provider])) {                        // provider is available
+                $providers[$activity->provider]->getActivityDetails($activity);
+            }
+        }
 
         return array_flatten($activities);
 
@@ -52,7 +45,7 @@ abstract class Context
         $class_name = 'Studip\Activity\\' . ucfirst($provider) . 'Provider';
 
         $reflectionClass = new \ReflectionClass($class_name);
-        $this->provider[] =  $reflectionClass->newInstanceArgs();
+        $this->provider[$provider] =  $reflectionClass->newInstanceArgs();
     }
 
     protected function filterProvider($providers, Filter $filter)

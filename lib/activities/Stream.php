@@ -34,123 +34,48 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
             }
         }
 
-
-        $activities = array_flatten(array_map(
-            function ($context) use ($observer_id, $filter) {
-                return $context->getActivities($observer_id, $filter);
-            }, $contexts));
-
-
-        var_dump($activities);
-        die;
-
         if (!$filter instanceof Filter) {
             throw new \InvalidArgumentException();
         }
 
-        ## TODO: filter context as well
-        $this->activities = Activity::findBySQL('mkdate >= ? AND mkdate <= ? ORDER BY mkdate DESC',
-                array($filter->getStartDate(), $filter->getEndDate()));
 
-        
-        foreach ($this->activities as $activity) {
-            \ForumActivity::getAtivityDetails($activity);
-            // call_user_func($activity->provider .'::getActivityDetails', $activity);
+        $activities = array_flatten(array_map(
+            function ($context) use ($observer_id, $filter) {
+                return $context->getActivities($observer_id, $filter);
+            }, $contexts)
+        );
 
-            print_r($activity->asArray());
-        }
-
-        die;
-
-
-        // re-integrate this
-        // step 2 - get data for ranges
-
-        /*
-        foreach ($ranges as $from => $to) {
-            $filter2 = new Filter();
-            $filter2->setStartDate($from);
-            $filter2->setEndDate($to + 86399); // 23 hours, 59 minutes and 59 seconds
-
-            // load all activities
-            $activities = array_flatten(array_map(
-                function ($context) use ($observer_id, $filter2) {
-                    return $context->getActivities($observer_id, $filter2);
-                }, $contexts));
-
-
-            $new_activities = array();
-
-            foreach ($activities as $key => $activity) {
-                // generate an id for the activity, considering some basic object parameters
-                $object = $activity->getObject();
-                $id = md5($activity->getProvider() . serialize($activity->getDescription()) . $activity->getVerb() . $object['objectType'] . $activity->getMkdate());
-
-                if ($new_activities[$id]) {
-                    list($url, $name) = each($object['url']);
-                    $new_activities[date('Y-m-d', $activity->getMkdate())][$id]->addUrl($url, $name);
-                } else {
-                    $new_activities[date('Y-m-d', $activity->getMkdate())][$id] = $activity;
-                }
-            }
-
-            foreach ($new_activities as $date => $tmp_activities) {
-                $cachekey = 'activities_' . $observer_id . '_' . $date;
-
-                // sort activites by their mkdate
-                usort($tmp_activities, function($a, $b) {
-                    if ($a->getMkdate() == $b->getMkdate()) {
-                        return 0;
-                    }
-
-                    return ($a->getMkdate() > $b->getMkdate()) ? -1 : 1;
-                });
-
-                // write activites to cache
-                $cache->write($cachekey, serialize($tmp_activities));
-                $ret[$cachekey] = $tmp_activities;
-            }
-        }
-
-        // finally sort the activite-list by day
-        ksort($ret, SORT_NATURAL);
-
-        // after ksort the array is in the wrong order
-        return array_reverse($ret);
-
-        */
-
-
-
-
-        echo json_encode($this->activities);die;
-
-        /*
-        $cached_activities = self::getCachedActivities($observer_id, $filter, $contexts);
 
         $new_activities = array();
 
-        foreach ( $cached_activities as $activities) {
+        foreach ($activities as $key => $activity) {
+            // generate an id for the activity, considering some basic object parameters
+            $id = md5($activity->provider . $activity->title . $activity->content .
+                    $activity->verb . $activity->object_type . $activity->mkdate);
 
-            if(!empty($activities)) {
-                foreach ( $activities as $key => $activity) {
-                    // generate an id for the activity, considering some basic object parameters
-                    $object = $activity->getObject();
-                    $id = md5($activity->getProvider() . serialize($activity->getDescription()) . $activity->getVerb() . $object['objectType'] . $activity->getMkdate());
-
-                    if ($new_activities[$id]) {
-                        list($url, $name) = each($object['url']);
-                        $new_activities[$id]->addUrl($url, $name);
-                    } else {
-                        $new_activities[$id] = $activity;
-                    }
-                }
+            if ($new_activities[$id]) {
+                list($url, $name) = each($activity->object_url);
+                $new_activities[$id]->addUrl($url, $name);
+            } else {
+                $new_activities[$id] = $activity;
             }
         }
 
-        $this->activities = $new_activities;
-         *
-         */
+        // sort activites by their mkdate
+        usort($new_activities, function($a, $b) {
+            if ($a->getMkdate() == $b->getMkdate()) {
+                return 0;
+            }
+
+            return ($a->getMkdate() > $b->getMkdate()) ? -1 : 1;
+        });
+
+
+        // finally sort the activite-list by day
+        ksort($new_activities, SORT_NATURAL);
+
+        // after ksort the array is in the wrong order
+        $this->activities = array_reverse($new_activities);
     }
 
     /**
@@ -206,7 +131,7 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
         $activities = array();
 
         foreach ($this as $key => $activity) {
-            $activities[$key] = $activity->toArray();
+            $activities[$key] = $activity->asArray();
         }
 
         return $activities;

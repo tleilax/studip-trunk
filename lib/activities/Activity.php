@@ -16,7 +16,11 @@ namespace Studip\Activity;
 
 class Activity extends \SimpleORMap
 {
-    static $allowed_verbs = array(
+    public
+        $object_url,
+        $object_route;
+
+    private static $allowed_verbs = array(
         'answered',
         'attempted',
         'attended',
@@ -48,12 +52,12 @@ class Activity extends \SimpleORMap
         return $activity;
     }
 
-    function __toString()
+    public function __toString()
     {
         return $this->title .', '. $this->content;
     }
 
-    function setVerb($verb)
+    public function setVerb($verb)
     {
         if (!in_array($verb, self::$allowed_verbs)) {
             throw new \InvalidArgumentException("That verb is not allowed.");
@@ -68,8 +72,18 @@ class Activity extends \SimpleORMap
      * @param type $url
      * @param type $name
      */
-    function addUrl($url, $name)
+    public function addUrl($url, $name)
     {
         $this->object_url[$url] = $name;
+    }
+
+    public function asArray()
+    {
+        $data = $this->toArray();
+
+        $data['object_url'] = $this->object_url;
+        $data['object_route'] = $this->object_route;
+
+        return $data;
     }
 }

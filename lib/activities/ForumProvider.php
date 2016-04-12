@@ -23,19 +23,16 @@ class ForumProvider implements ActivityProvider
      */
     public function getActivityDetails(&$activity)
     {
-        if ($activity->provider != 'forum_provider') {
-            throw new InvalidArgumentException('the passed activity is not a forum activity!');
-        }
-
-        $post = ForumEntry::getEntry($activity->object_id);
+        ## TODO: if entry does not exist, clear out activity...
+        $post = \ForumEntry::getEntry($activity->object_id);
 
         $activity->content = $post['content'];
 
-        $url = PluginEngine::getURL('CoreForum', array(), 'index/index/' . $post['topic_id']
+        $url = \PluginEngine::getURL('CoreForum', array(), 'index/index/' . $post['topic_id']
                     .'?cid='. $post['seminar_id'] .'&highlight_topic='. $post['topic_id']
                     .'#'. $post['topic_id']);
 
-        $route = URLHelper::getURL('api.php/forum_entry/' . $post['topic_id'], NULL, true);
+        $route = \URLHelper::getURL('api.php/forum_entry/' . $post['topic_id'], NULL, true);
 
         $activity->object_url = array(
             $url => _('Zum Forum der Veranstaltung')
