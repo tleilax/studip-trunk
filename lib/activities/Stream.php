@@ -63,11 +63,11 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
 
         // sort activites by their mkdate
         usort($new_activities, function($a, $b) {
-            if ($a->getMkdate() == $b->getMkdate()) {
+            if ($a->mkdate == $b->mkdate) {
                 return 0;
             }
 
-            return ($a->getMkdate() > $b->getMkdate()) ? -1 : 1;
+            return ($a->mkdate > $b->mkdate) ? -1 : 1;
         });
 
 
