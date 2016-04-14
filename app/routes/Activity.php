@@ -95,12 +95,23 @@ class Activity extends \RESTAPI\RouteMap
         $this->etag(md5(serialize($stream)));
 
         $data = $stream->asArray();
-
         foreach ($data as $key => $act) {
-            if ($data[$key]['actor']['objectType'] == 'user') {
-                $data[$key]['actor']['details'] = User::getMiniUser($this, new \User($data[$key]['actor']['id']));
+
+            $actor = array(
+                        'type' => $data[$key]['actor_type'],
+                        'id'   => $data[$key]['actor_id']);
+
+            if ($data[$key]['actor_type'] == 'user') {
+                $actor['details'] = User::getMiniUser($this, new \User($data[$key]['actor']['id']));
             }
+            
+            unset($data[$key]['actor_type']);
+            unset($data[$key]['actor_id']);
+
+
+            $data[$key]['actor'] = $actor;
         }
+
 
         return $data;
     }

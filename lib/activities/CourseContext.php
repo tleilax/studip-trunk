@@ -36,19 +36,21 @@ class CourseContext extends Context
             // get list of possible providers by checking the activated plugins and modules for the current seminar
             $modules = new \Modules();
             $activated_modules = $modules->getLocalModules($this->seminar_id, 'sem', false, $course->status);
-
-            print_r($activated_modules);die;
-
+        
             $sem_class = $GLOBALS['SEM_CLASS'][$GLOBALS['SEM_TYPE'][$course->status]['class']];
             if (!$sem_class) {
                 $sem_class = \SemClass::getDefaultSemClass();
             }
 
             // check modules
+
             foreach ($module_names as $name) {
                 if (($activated_modules[$name] || $sem_class->isSlotMandatory($name))
                         && $sem_class->isModuleAllowed($sem_class->getSlotModule($name))) {
-                    $this->addProvider($name);
+                    # todo check if module is active or not
+                    if($modules->checkLocal($name, $this->seminar_id)){
+                        $this->addProvider($name);
+                    }
                 }
             }
 

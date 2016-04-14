@@ -1,4 +1,5 @@
 <script type="text/template" class="activity_stream">
+    <%- activity.id %>
     <% if (num_entries > 0) {
         var last_date;
 
@@ -27,7 +28,7 @@
     <section class="activity <% if (activity.actor.id == user_id) { %>right<% } else { %>left<% } %>">
         <header>
             <h1>
-                <%- activity.description.title %>
+                <%- activity.title %>
             </h1>
         </header>
         <section class="activity-content">
@@ -43,13 +44,13 @@
                 </span>
 
                 <span class="activity-details">
-                    <%= activity.description.content %>
+                    <%= activity.content %>
 
                     <!-- TODO: fade out at the bottom to signalize further content -->
                 </span>
 
                 <span class="activity-object-link">
-                    <%= activity_urls({urls: activity.object.url}) %>
+                    <%= activity_urls({urls: activity.object_url}) %>
                 </span>
             </section>
             <div class='clear'></div>
