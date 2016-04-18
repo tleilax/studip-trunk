@@ -19,7 +19,6 @@ class SystemContext extends Context
     protected function getProvider()
     {
         $this->addProvider('news');
-        $this->addProvider('message');
         $this->addProvider('blubber');
 
         return $this->provider;
