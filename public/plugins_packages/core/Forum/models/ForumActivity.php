@@ -90,10 +90,6 @@ class ForumActivity
         $type     = get_object_type($range_id);
 
         $obj = get_object_name($range_id, $type);
-        
-        $url = PluginEngine::getURL('CoreForum', array(), 'index/index/' . $post['topic_id']
-                    .'?cid='. $course_id .'&highlight_topic='. $post['topic_id']
-                    .'#'. $post['topic_id']);
 
         $activity = Studip\Activity\Activity::get(
             array(

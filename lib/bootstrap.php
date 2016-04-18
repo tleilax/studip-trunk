@@ -218,6 +218,9 @@ namespace {
     // set up default page layout
     PageLayout::initialize();
 
+    // init notification observers
+    ActivityObserver::initialize();
+
     //Besser hier globale Variablen definieren...
     $GLOBALS['_fullname_sql'] = array();
     $GLOBALS['_fullname_sql']['full'] = "TRIM(CONCAT(title_front,' ',Vorname,' ',Nachname,IF(title_rear!='',CONCAT(', ',title_rear),'')))";
