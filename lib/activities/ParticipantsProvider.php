@@ -15,57 +15,66 @@ namespace Studip\Activity;
 
 class ParticipantsProvider implements ActivityProvider
 {
-    public function getActivities($observer_id, Context $context, Filter $filter) {
 
-        $range_id = $this->contextToRangeId($context);
+    public function postActivity($event, $course_id, $user_id)
+    {
 
-        if (!\StudipNews::haveRangePermission('view', $range_id, $observer_id)) {
-            return array();
+        $course = \Course::find($course_id);
+
+        if($event == 'UserDidEnterCourse') {
+            $verb = 'created';
+            $summary = _('%s wurde in die Veranstaltung "%s" eingetragen.');
+            $summary = sprintf($summary, get_fullname($user_id), $course->name);
+        } elseif($event == 'UserDidLeaveCourse') {
+            $verb = 'experienced';
+            $summary = _('%s wurde aus der Veranstaltung "%s" ausgetragen.');
+            $summary = sprintf($summary, get_fullname($user_id), $course->name);
         }
 
-        if ($course = \Course::find($range_id)) {
-            $sem_class = $course->getSemClass();
-            $module = $sem_class->getModule('participants');
-            $notifications = $module->getActivityObjects($range_id, $observer_id, $filter);
+        $type     = get_object_type($course_id);
 
-            return $this->wrapParticipantNotifications($notifications);
-        }
+        $activity = Activity::get(
+            array(
+                'provider'     => 'participants',
+                'context'      => ($type == 'sem') ? 'course' : 'institute',
+                'context_id'   => $course_id,
+                'title'        => $summary,
+                'content'      => NULL,
+                'actor_type'   => 'user',                                       // who initiated the activity?
+                'actor_id'     => $user_id,                                     // id of initiator
+                'verb'         => $verb,                                        // the activity type
+                'object_id'    => $course_id,                                   // the id of the referenced object
+                'object_type'  => 'participants',                               // type of activity object
+                'mkdate'       =>  strtotime('now')
+            )
+        );
 
-        return array();
+        $activity->store();
+
+
     }
 
-    private function contextToRangeId(Context $context){
-        if ($context instanceof CourseContext) {
-            $range_id = $context->getSeminarId();
-        }
 
-        else if ($context instanceof InstituteContext) {
-            $range_id = $context->getInstituteId();
-        }
+    /**
+     * get the details for the passed activity
+     *
+     * @param object $activity the activity to fill with details, passed by reference
+     */
+    public function getActivityDetails(&$activity)
+    {
 
-        return $range_id;
-    }
 
-    private function  wrapParticipantNotifications($notifications){
-        return array_map(function ($n) {
-            return new Activity(
-                'participants_provider',
-                array(                                  // the description and summary of the performed activity
-                    'title' => $n->getSummary(),
-                    'content' => $n->getContent()
-                ),
-                'user',                                 // who initiated the activity?
-                $n->getCreatorid(),                     // id of initiator
-                'created',                              // the type if the activity
-                'participants',                         // type of activity object
-                array(                                  // url to entity in Stud.IP
-                    $n->getUrl() => _('Zur Teilnehmerseite der Veranstaltung')
-                ),
-                'http://example.com/route',             // url to entity as rest-route
-                $n->getDate()
-            );
-        }, $notifications);
+        $activity->content = $activity->title;
 
+        $url = \URLHelper::getUrl("dispatch.php/course/members/index?cid=/{$activity->context_id}", array('cid' => null));
+
+        $route = \URLHelper::getURL('api.php/course/' . $activity->context_id, NULL, true);
+
+        $activity->object_url = array(
+            $url => _('Zur Veranstaltung')
+        );
+
+        $activity->object_route = $route;
     }
 
 

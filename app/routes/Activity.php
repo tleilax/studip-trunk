@@ -95,6 +95,8 @@ class Activity extends \RESTAPI\RouteMap
         $this->etag(md5(serialize($stream)));
 
         $data = $stream->asArray();
+
+
         foreach ($data as $key => $act) {
 
             $actor = array(

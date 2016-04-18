@@ -16,5 +16,8 @@ class ActivityObserver
     public static function initialize()
     {
         NotificationCenter::addObserver('Studip\Activity\MessageProvider', 'postActivity','MessageDidSend');
+        NotificationCenter::addObserver('\Studip\Activity\ParticipantsProvider', 'postActivity','UserDidEnterCourse');
+        NotificationCenter::addObserver('\Studip\Activity\ParticipantsProvider', 'postActivity','UserDidLeaveCourse');
+
     }
 }
