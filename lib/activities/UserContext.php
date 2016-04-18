@@ -33,7 +33,7 @@ class UserContext extends Context
     {
 
         if (!$this->provider) {
-            ## $this->addProvider('blubber'); // todo: check if active for given user
+            $this->addProvider('blubber'); // todo: check if active for given user
             ## $this->addProvider('news');
             $this->addProvider('message');
 

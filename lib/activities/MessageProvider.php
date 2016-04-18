@@ -25,7 +25,7 @@ class MessageProvider implements ActivityProvider
         ## TODO: if entry does not exist, clear out activity...
         $message = \Message::find($activity->object_id);
 
-        $activity->content = $message->message;
+        $activity->content = formatReady($message->message);
 
         $url = \URLHelper::getUrl("dispatch.php/messages/read/{$message->id}", array('cid' => null));
 
@@ -45,6 +45,7 @@ class MessageProvider implements ActivityProvider
         $username     = get_username($data['user_id']);
 
         // activity for sender
+        /*
         $activity = Activity::get(
             array(
                 'provider'     => 'message',
@@ -62,6 +63,8 @@ class MessageProvider implements ActivityProvider
         );
 
         $activity->store();
+         *
+         */
 
         foreach ($data['rec_id'] as $rec_id) {
             # $rec_username = get_username($rec_id);
@@ -75,7 +78,7 @@ class MessageProvider implements ActivityProvider
                     'title'        => sprintf('Sie haben eine Nachricht von %s erhalten.', $username),
                     'content'      => NULL,
                     'actor_type'   => 'user',                                   // who initiated the activity?
-                    'actor_id'     => $data['user_id'],                                  // id of initiator
+                    'actor_id'     => $data['user_id'],                         // id of initiator
                     'verb'         => 'created',                                // the activity type
                     'object_id'    => $message_id,                              // the id of the referenced object
                     'object_type'  => 'message',                                // type of activity object

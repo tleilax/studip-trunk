@@ -178,31 +178,6 @@ class Blubber extends StudIPPlugin implements StandardPlugin, SystemPlugin {
     }
 
     /**
-     * Needed function to return notification-objects.
-     * @param string $course_id
-     * @param int $since
-     * @param string $user_id
-     * @return array of type ContentElement
-     */
-    public function getActivityObjects($course_id, $user_id, $filter)
-    {
-        $blubber = BlubberStream::getCourseStream($course_id)->fetchNewPostings($filter->getStartDate(), $filter->getEndDate());
-        $contents = array();
-        foreach ($blubber as $blubb) {
-            $contents[] = new ContentElement(
-                $blubb['name'],
-                $blubb['name'],
-                $blubb['description'],
-                $blubb['user_id'],
-                get_fullname($blubb['user_id']),
-                PluginEngine::getURL($this, array(), 'streams/thread/'.$blubb['root_id']),
-                $blubb['chdate']
-            );
-        }
-        return $contents;
-    }
-
-    /**
      * Returns no template, because this plugin doesn't want to insert an
      * info-template in the course-overview.
      * @param string $course_id

@@ -26,7 +26,7 @@ class ForumProvider implements ActivityProvider
         ## TODO: if entry does not exist, clear out activity...
         $post = \ForumEntry::getEntry($activity->object_id);
 
-        $activity->content = $post['content'];
+        $activity->content = formatReady($post['content']);
 
         $url = \PluginEngine::getURL('CoreForum', array(), 'index/index/' . $post['topic_id']
                     .'?cid='. $post['seminar_id'] .'&highlight_topic='. $post['topic_id']

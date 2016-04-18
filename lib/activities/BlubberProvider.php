@@ -13,59 +13,55 @@
 
 namespace Studip\Activity;
 
+require_once 'public/plugins_packages/core/Blubber/models/BlubberPosting.class.php';
+
 class BlubberProvider implements ActivityProvider
 {
-    public function getActivities($observer_id, Context $context, Filter $filter) {
-
-        $range_id = $this->contextToRangeId($context);
-
-        if (!\StudipNews::haveRangePermission('view', $range_id, $observer_id)) {
-            return array();
-        }
-
-        if ($course = \Course::find($range_id)) {
-            $sem_class = $course->getSemClass();
-            $module = $sem_class->getModule('blubber');
-            $notifications = $module->getActivityObjects($range_id, $observer_id, $filter);
-
-            return $this->wrapParticipantNotifications($notifications);
-        }
-
-        return array();
-    }
-
-    private function contextToRangeId(Context $context){
-        if ($context instanceof CourseContext) {
-            $range_id = $context->getSeminarId();
-        }
-
-        else if ($context instanceof InstituteContext) {
-            $range_id = $context->getInstituteId();
-        }
-
-        return $range_id;
-    }
-
-    private function  wrapParticipantNotifications($notifications)
+    /**
+     * get the details for the passed activity
+     *
+     * @param object $activity the acitivty to fill with details, passed by reference
+     */
+    public function getActivityDetails(&$activity)
     {
-        return array_map(function ($n) {
-            return new Activity(
-                'blubber_provider',
-                array(                                  // the description and summaray of the performed activity
-                    'title' => $n->getSummary(),
-                    'content' => $n->getContent()
-                ),
-                'user',                                 // who initiated the activity?
-                $n->getCreatorid(),                     // id of initiator
-                'created',                              // the type if the activity
-                'blubber',                         // type of activity object
-                array(                                  // url to entity in Stud.IP
-                    $n->getUrl() => _('Zum Blubberstream')
-                ),
-                'http://example.com/route',             // url to entity as rest-route
-                $n->getDate()
-            );
-        }, $notifications);
+        ## TODO: if entry does not exist, clear out activity...
+        $blubb = \BlubberPosting::find($activity->object_id);
 
+        $activity->content = formatReady($blubb->description);
+
+        $url = \PluginEngine::getURL('Blubber', array(), 'streams/thread/'.$activity->object_id);
+
+        $route = \URLHelper::getURL('api.php/blubber/posting/' . $activity->object_id, NULL, true);
+
+        $activity->object_url = array(
+            $url => _('Zum Blubberstream')
+        );
+
+        $activity->object_route = $route;
+    }
+
+    public static function postActivity($event, $blubb)
+    {
+        ## TODO: switch on $blubb['context']
+
+        foreach($blubb->getRelatedUsers() as $context_id)  {    // context: private
+            $activity = Activity::get(
+                array(
+                    'provider'     => 'blubber',
+                    'context'      => 'user',
+                    'context_id'   => $context_id,
+                    'title'        => 'Blubber: '. $blubb['name'],   ## TODO: list all recipients??
+                    'content'      => NULL,
+                    'actor_type'   => 'user',                                       // who initiated the activity?
+                    'actor_id'     => $blubb['user_id'],                            // id of initiator
+                    'verb'         => 'created',                                    // the activity type
+                    'object_id'    => $blubb['topic_id'],                           // the id of the referenced object
+                    'object_type'  => 'blubber',                                    // type of activity object
+                    'mkdate'       => $blubb['chdate']
+                )
+            );
+
+            $activity->store();
+        }
     }
 }
