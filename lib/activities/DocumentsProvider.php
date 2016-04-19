@@ -44,6 +44,7 @@ class DocumentsProvider implements ActivityProvider
     {
 
         $document_info = $document->toArray();
+        
         $user_id = $document_info['user_id'];
         $file_name = $document_info['name'];
         $course_id = $document_info['seminar_id'];
@@ -58,6 +59,11 @@ class DocumentsProvider implements ActivityProvider
         } elseif($event == 'DocumentDidUpdate') {
             $verb = 'edited';
             $summary = _('Die Datei %s wurde von %s  in der Veranstaltung "%s" aktualisiert.');
+            $summary = sprintf($summary,$file_name, get_fullname($user_id), $course->name);
+            $mkdate = $document_info['chdate'];
+        } elseif($event == 'DocumentDidDelete') {
+            $verb = 'voided';
+            $summary = _('Die Datei %s wurde von %s in der Veranstaltung "%s" gelöscht.');
             $summary = sprintf($summary,$file_name, get_fullname($user_id), $course->name);
             $mkdate = $document_info['chdate'];
         }
@@ -81,5 +87,5 @@ class DocumentsProvider implements ActivityProvider
 
         $activity->store();
     }
-    
+
 }
