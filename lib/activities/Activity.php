@@ -54,7 +54,7 @@ class Activity extends \SimpleORMap
 
     public function __toString()
     {
-        return $this->title .', '. $this->content;
+        return $this->content;
     }
 
     public function setVerb($verb)

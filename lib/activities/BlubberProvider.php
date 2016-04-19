@@ -50,7 +50,6 @@ class BlubberProvider implements ActivityProvider
                     'provider'     => 'blubber',
                     'context'      => 'user',
                     'context_id'   => $context_id,
-                    'title'        => 'Blubber: '. $blubb['name'],   ## TODO: list all recipients??
                     'content'      => NULL,
                     'actor_type'   => 'user',                                       // who initiated the activity?
                     'actor_id'     => $blubb['user_id'],                            // id of initiator

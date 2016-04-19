@@ -96,7 +96,6 @@ class ForumActivity
                 'provider'     => 'forum',
                 'context'      => ($type == 'sem') ? 'course' : 'institute',
                 'context_id'   => $post['seminar_id'],
-                'title'        => sprintf($summary, get_fullname($post['user_id']), $obj['name']),
                 'content'      => NULL,
                 'actor_type'   => 'user',                                       // who initiated the activity?
                 'actor_id'     => $post['user_id'],                             // id of initiator

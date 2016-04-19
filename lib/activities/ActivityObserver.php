@@ -18,7 +18,10 @@ class ActivityObserver
         NotificationCenter::addObserver('Studip\Activity\MessageProvider', 'postActivity','MessageDidSend');
         NotificationCenter::addObserver('Studip\Activity\BlubberProvider', 'postActivity', 'PostingHasSaved');
 
+        // Notifications for ParticipantsProvider
         NotificationCenter::addObserver('\Studip\Activity\ParticipantsProvider', 'postActivity','UserDidEnterCourse');
         NotificationCenter::addObserver('\Studip\Activity\ParticipantsProvider', 'postActivity','UserDidLeaveCourse');
+        NotificationCenter::addObserver('\Studip\Activity\ParticipantsProvider', 'postActivity','CourseDidGetMember');
+
     }
 }

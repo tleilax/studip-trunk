@@ -50,7 +50,7 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
 
         foreach ($activities as $key => $activity) {
             // generate an id for the activity, considering some basic object parameters
-            $id = md5($activity->provider . $activity->title . $activity->content .
+            $id = md5($activity->provider . $activity->content .
                     $activity->verb . $activity->object_type . $activity->mkdate);
 
             if ($new_activities[$id]) {

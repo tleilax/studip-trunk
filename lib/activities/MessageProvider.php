@@ -75,7 +75,6 @@ class MessageProvider implements ActivityProvider
                     'provider'     => 'message',
                     'context'      => 'user',
                     'context_id'   => $rec_id,
-                    'title'        => sprintf('Sie haben eine Nachricht von %s erhalten.', $username),
                     'content'      => NULL,
                     'actor_type'   => 'user',                                   // who initiated the activity?
                     'actor_id'     => $data['user_id'],                         // id of initiator

@@ -29,6 +29,10 @@ class ParticipantsProvider implements ActivityProvider
             $verb = 'experienced';
             $summary = _('%s wurde aus der Veranstaltung "%s" ausgetragen.');
             $summary = sprintf($summary, get_fullname($user_id), $course->name);
+        } elseif ($event = "CourseDidGetMember") {
+            $verb = 'experienced';
+            $summary = _('%s wurde in die Veranstaltung "%s" eingetragen.');
+            $summary = sprintf($summary, get_fullname($user_id), $course->name);
         }
 
         $type     = get_object_type($course_id);
@@ -38,8 +42,7 @@ class ParticipantsProvider implements ActivityProvider
                 'provider'     => 'participants',
                 'context'      => ($type == 'sem') ? 'course' : 'institute',
                 'context_id'   => $course_id,
-                'title'        => $summary,
-                'content'      => NULL,
+                'content'      => $summary,
                 'actor_type'   => 'user',                                       // who initiated the activity?
                 'actor_id'     => $user_id,                                     // id of initiator
                 'verb'         => $verb,                                        // the activity type
@@ -50,8 +53,6 @@ class ParticipantsProvider implements ActivityProvider
         );
 
         $activity->store();
-
-
     }
 
 
@@ -64,7 +65,7 @@ class ParticipantsProvider implements ActivityProvider
     {
 
 
-        $activity->content = $activity->title;
+        $activity->content = $activity->content;
 
         $url = \URLHelper::getUrl("dispatch.php/course/members/index?cid=/{$activity->context_id}", array('cid' => null));
 
