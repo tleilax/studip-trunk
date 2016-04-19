@@ -15,56 +15,71 @@ namespace Studip\Activity;
 
 class DocumentsProvider implements ActivityProvider
 {
-    public function getActivities($observer_id, Context $context, Filter $filter) {
 
-        $range_id = $this->contextToRangeId($context);
+    /**
+     * get the details for the passed activity
+     *
+     * @param object $activity the activity to fill with details, passed by reference
+     */
+    public function getActivityDetails(&$activity)
+    {
 
-        if (!\StudipNews::haveRangePermission('view', $range_id, $observer_id)) {
-            return array();
-        }
 
-        if ($course = \Course::find($range_id)) {
-            $sem_class = $course->getSemClass();
-            $module = $sem_class->getModule('documents');
-            $notifications = $module->getActivityObjects($range_id, $observer_id, $filter);
+        $activity->content = $activity->content;
 
-            return $this->wrapParticipantNotifications($notifications);
-        }
 
-        return array();
+        //TODO Fix URLs
+        $url = \URLHelper::getUrl("dispatch.php/course/members/index?cid=/{$activity->context_id}", array('cid' => null));
+        $route = \URLHelper::getURL('api.php/course/' . $activity->context_id, NULL, true);
+
+        $activity->object_url = array(
+            $url => _('Zur Veranstaltung')
+        );
+
+        $activity->object_route = $route;
     }
 
-    private function contextToRangeId(Context $context){
-        if ($context instanceof CourseContext) {
-            $range_id = $context->getSeminarId();
+
+    public function postActivity($event, $document)
+    {
+
+        $document_info = $document->toArray();
+        $user_id = $document_info['user_id'];
+        $file_name = $document_info['name'];
+        $course_id = $document_info['seminar_id'];
+
+        $course = \Course::find($course_id);
+
+        if($event == 'DocumentDidCreate') {
+            $verb = 'created';
+            $summary = _('Die Datei %s wurde von %s in der Veranstaltung "%s" hochgeladen.');
+            $summary = sprintf($summary,$file_name, get_fullname($user_id), $course->name);
+            $mkdate = $document_info['mkdate'];
+        } elseif($event == 'DocumentDidUpdate') {
+            $verb = 'edited';
+            $summary = _('Die Datei %s wurde von %s  in der Veranstaltung "%s" aktualisiert.');
+            $summary = sprintf($summary,$file_name, get_fullname($user_id), $course->name);
+            $mkdate = $document_info['chdate'];
         }
 
-        else if ($context instanceof InstituteContext) {
-            $range_id = $context->getInstituteId();
-        }
+        $type     = get_object_type($course_id);
 
-        return $range_id;
+        $activity = Activity::get(
+            array(
+                'provider'     => 'documents',
+                'context'      => ($type == 'sem') ? 'course' : 'institute',
+                'context_id'   => $course_id,
+                'content'      => $summary,
+                'actor_type'   => 'user',                                       // who initiated the activity?
+                'actor_id'     => $user_id,                                     // id of initiator
+                'verb'         => $verb,                                        // the activity type
+                'object_id'    => $course_id,                                   // the id of the referenced object
+                'object_type'  => 'documents',                                  // type of activity object
+                'mkdate'       =>  $mkdate
+            )
+        );
+
+        $activity->store();
     }
-
-    private function  wrapParticipantNotifications($notifications){
-        return array_map(function ($n) {
-            return new Activity(
-                'documents_provider',
-                array(                                  // the description and summaray of the performed activity
-                    'title' => $n->getSummary(),
-                    'content' => $n->getContent()
-                ),
-                'user',                                 // who initiated the activity?
-                $n->getCreatorid(),                     // id of initiator
-                'created',                              // the type if the activity
-                'document',                             // type of activity object
-                array(                                  // url to entity in Stud.IP
-                    $n->getUrl() => _('Zum Dateibereich der Veranstaltung')
-                ),
-                'http://example.com/route',             // url to entity as rest-route
-                $n->getDate()
-            );
-        }, $notifications);
-    }
-
+    
 }

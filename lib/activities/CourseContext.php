@@ -31,7 +31,7 @@ class CourseContext extends Context
 
             // todo check which modules are active globally
             ## $module_names = array('forum', 'participants', 'documents', 'literature', 'wiki');
-            $module_names = array('forum', 'participants');
+            $module_names = array('forum', 'participants', 'documents');
 
             // get list of possible providers by checking the activated plugins and modules for the current seminar
             $modules = new \Modules();
