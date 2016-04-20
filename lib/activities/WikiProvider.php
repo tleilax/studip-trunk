@@ -28,8 +28,8 @@ class WikiProvider implements ActivityProvider
 
         $activity->content = $activity->content;
 
-        $url = \URLHelper::getUrl("wiki.php?cid=/{$activity->context_id}&keyword={$activity->object_id}");
-        $route = \URLHelper::getURL('api.php/course/' . $activity->context_id . 'wiki/' . $activity->object_id, NULL, true);
+        $url = \URLHelper::getUrl("wiki.php?cid={$activity->context_id}&keyword={$activity->object_id}");
+        $route = \URLHelper::getURL('api.php/course/' . $activity->context_id . '/wiki/' . $activity->object_id, NULL, true);
 
         $activity->object_url = array(
             $url => _('Zum Wiki der Veranstaltung')
