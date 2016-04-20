@@ -33,6 +33,11 @@ class ActivityObserver
         NotificationCenter::addObserver('\Studip\Activity\WikiProvider', 'postActivity','WikiPageDidDelete');
         NotificationCenter::addObserver('\Studip\Activity\WikiProvider', 'postActivity','WikiPageDidUpdate');
 
+        //Notifications for ScheduleProvider (Course)
+        NotificationCenter::addObserver('\Studip\Activity\ScheduleProvider', 'postActivity','CourseDidChangeSchedule');
+
+
+
 
     }
 }
