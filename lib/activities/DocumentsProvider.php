@@ -28,12 +28,12 @@ class DocumentsProvider implements ActivityProvider
         $activity->content = $activity->content;
 
 
-        //TODO Fix URLs
-        $url = \URLHelper::getUrl("dispatch.php/course/members/index?cid=/{$activity->context_id}", array('cid' => null));
-        $route = \URLHelper::getURL('api.php/course/' . $activity->context_id, NULL, true);
+        //TODO Fix URL
+        $url = \URLHelper::getUrl("folder.php?cid=/{$activity->context_id}&cmd=tree");
+        $route = \URLHelper::getURL('api.php/file/' . $activity->object_id . '/content', NULL, true);
 
         $activity->object_url = array(
-            $url => _('Zur Veranstaltung')
+            $url => _('Zum Dateibereich der Veranstaltung')
         );
 
         $activity->object_route = $route;
@@ -44,10 +44,12 @@ class DocumentsProvider implements ActivityProvider
     {
 
         $document_info = $document->toArray();
-        
+
         $user_id = $document_info['user_id'];
         $file_name = $document_info['name'];
         $course_id = $document_info['seminar_id'];
+        $file_id = $document_info['dokument_id'];
+
 
         $course = \Course::find($course_id);
 
@@ -79,7 +81,7 @@ class DocumentsProvider implements ActivityProvider
                 'actor_type'   => 'user',                                       // who initiated the activity?
                 'actor_id'     => $user_id,                                     // id of initiator
                 'verb'         => $verb,                                        // the activity type
-                'object_id'    => $course_id,                                   // the id of the referenced object
+                'object_id'    => $file_id,                                   // the id of the referenced object
                 'object_type'  => 'documents',                                  // type of activity object
                 'mkdate'       =>  $mkdate
             )
