@@ -9,7 +9,7 @@
  *  the License, or (at your option) any later version.
  */
 
-class CoreLiterature implements StudipModule, Activities {
+class CoreLiterature implements StudipModule {
     
     function getIconNavigation($course_id, $last_visit, $user_id) {
         if (get_config('LITERATURE_ENABLE')) {
@@ -38,40 +38,6 @@ class CoreLiterature implements StudipModule, Activities {
         } else {
             return null;
         }
-    }
-
-    function getActivityObjects($course_id, $user_id, $filter)
-    {
-        $items = array();
-        $type = get_object_type($course_id, array('sem', 'inst', 'fak'));
-        
-        // only show new participants for seminars, not for institutes
-        if ($type != 'sem') return $items;
-
-        $stmt = DBManager::get()->prepare('SELECT lc.dc_title, llc.*, ll.name as listname, sem.Name, sem.Seminar_id, '.
-            $GLOBALS['_fullname_sql']['full'] .' as fullname
-            FROM lit_list_content as llc
-            join lit_list as ll using (list_id)
-            join lit_catalog as lc using(catalog_id)
-            join seminare as sem ON (range_id = Seminar_id)
-            join auth_user_md5 on(llc.user_id = auth_user_md5.user_id)
-            JOIN user_info ON (auth_user_md5.user_id = user_info.user_id)
-            WHERE range_id = ?
-                AND llc.chdate BETWEEN ? AND ?');
-        
-        $stmt->execute(array($course_id, $filter->getStartDate(), $filter->getEndDate()));
-        
-        while ($row = $stmt->fetch()) {
-            $summary = sprintf('%s wurde in die Literaturliste %s der Veranstaltung "%s" hinzugefügt',
-                $row['dc_title'], $row['listname'], $row['Name']);
-
-            $items[] = new ContentElement(
-                'Studiengruppe: Neuer Literaturlisteneintrag', $summary, '', $row['user_id'], $row['fullname'],
-                URLHelper::getLink('seminar_main.php?auswahl='. $row['Seminar_id'] .'&redirect_to=dispatch.php/course/literature'),
-                $row['mkdate']
-            );
-        } 
-        return $items;
     }
 
     /** 

@@ -9,7 +9,7 @@
  *  the License, or (at your option) any later version.
  */
 
-class CoreParticipants implements StudipModule, Activities {
+class CoreParticipants implements StudipModule {
     
     function getIconNavigation($course_id, $last_visit, $user_id) {
         $navigation = new Navigation(_('TeilnehmerInnen'), "seminar_main.php?auswahl=".$course_id."&redirect_to=dispatch.php/course/members");
@@ -34,39 +34,6 @@ class CoreParticipants implements StudipModule, Activities {
         }
 
         return array('members' => $navigation);
-    }
-
-    function getActivityObjects($course_id, $user_id, $filter)
-    {
-        $items = array();
-        $type = get_object_type($course_id, array('sem', 'inst', 'fak'));
-        
-        // only show new participants for seminars, not for institutes
-        if ($type != 'sem') return $items;
-
-        $stmt = DBManager::get()->prepare('SELECT seminar_user.*, seminare.Name, seminare.status,
-            '. $GLOBALS['_fullname_sql']['full'] .' as fullname
-            FROM seminar_user
-            JOIN auth_user_md5 USING (user_id)
-            JOIN user_info USING (user_id)
-            JOIN seminare USING (Seminar_id)
-            WHERE Seminar_id = ? 
-                AND seminar_user.mkdate BETWEEN ? AND ?');
-        
-        $stmt->execute(array($course_id, $filter->getStartDate(), $filter->getEndDate()));
-        
-        while ($row = $stmt->fetch()) {
-            $summary = sprintf('%s ist der Veranstaltung "%s" beigetreten.',
-                $row['fullname'], $row['Name']);
-
-            $items[] = new ContentElement(
-                'Studiengruppe: Neue/r Teilnehmer/in', $summary, '', $row['user_id'], $row['fullname'],
-                URLHelper::getLink('seminar_main.php?auswahl='. $row['Seminar_id'] .'&redirect_to=dispatch.php/course/members'),
-                $row['mkdate']
-            );
-        }
-        
-        return $items;
     }
 
     /** 
