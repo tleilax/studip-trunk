@@ -11,33 +11,31 @@
  * @license     https://www.gnu.org/licenses/agpl-3.0.html AGPL version 3
  */
 
+namespace Studip\Activity;
+
 class ActivityObserver
 {
     public static function initialize()
     {
-        NotificationCenter::addObserver('Studip\Activity\MessageProvider', 'postActivity','MessageDidSend');
-        NotificationCenter::addObserver('Studip\Activity\BlubberProvider', 'postActivity', 'PostingHasSaved');
+        \NotificationCenter::addObserver('Studip\Activity\MessageProvider', 'postActivity','MessageDidSend');
+        \NotificationCenter::addObserver('Studip\Activity\BlubberProvider', 'postActivity', 'PostingHasSaved');
 
         // Notifications for ParticipantsProvider
-        NotificationCenter::addObserver('\Studip\Activity\ParticipantsProvider', 'postActivity','UserDidEnterCourse');
-        NotificationCenter::addObserver('\Studip\Activity\ParticipantsProvider', 'postActivity','UserDidLeaveCourse');
-        NotificationCenter::addObserver('\Studip\Activity\ParticipantsProvider', 'postActivity','CourseDidGetMember');
+        \NotificationCenter::addObserver('\Studip\Activity\ParticipantsProvider', 'postActivity','UserDidEnterCourse');
+        \NotificationCenter::addObserver('\Studip\Activity\ParticipantsProvider', 'postActivity','UserDidLeaveCourse');
+        \NotificationCenter::addObserver('\Studip\Activity\ParticipantsProvider', 'postActivity','CourseDidGetMember');
 
         //Notifications for DocumentsProvider
-        NotificationCenter::addObserver('\Studip\Activity\DocumentsProvider', 'postActivity','DocumentDidCreate');
-        NotificationCenter::addObserver('\Studip\Activity\DocumentsProvider', 'postActivity','DocumentDidUpdate');
-        NotificationCenter::addObserver('\Studip\Activity\DocumentsProvider', 'postActivity','DocumentDidDelete');
+        \NotificationCenter::addObserver('\Studip\Activity\DocumentsProvider', 'postActivity','DocumentDidCreate');
+        \NotificationCenter::addObserver('\Studip\Activity\DocumentsProvider', 'postActivity','DocumentDidUpdate');
+        \NotificationCenter::addObserver('\Studip\Activity\DocumentsProvider', 'postActivity','DocumentDidDelete');
 
         //Notifications for WikiProvider
-        NotificationCenter::addObserver('\Studip\Activity\WikiProvider', 'postActivity','WikiPageDidCreate');
-        NotificationCenter::addObserver('\Studip\Activity\WikiProvider', 'postActivity','WikiPageDidDelete');
-        NotificationCenter::addObserver('\Studip\Activity\WikiProvider', 'postActivity','WikiPageDidUpdate');
+        \NotificationCenter::addObserver('\Studip\Activity\WikiProvider', 'postActivity','WikiPageDidCreate');
+        \NotificationCenter::addObserver('\Studip\Activity\WikiProvider', 'postActivity','WikiPageDidDelete');
+        \NotificationCenter::addObserver('\Studip\Activity\WikiProvider', 'postActivity','WikiPageDidUpdate');
 
         //Notifications for ScheduleProvider (Course)
-        NotificationCenter::addObserver('\Studip\Activity\ScheduleProvider', 'postActivity','CourseDidChangeSchedule');
-
-
-
-
+        \NotificationCenter::addObserver('\Studip\Activity\ScheduleProvider', 'postActivity','CourseDidChangeSchedule');
     }
 }

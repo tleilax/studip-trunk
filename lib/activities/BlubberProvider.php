@@ -65,7 +65,7 @@ class BlubberProvider implements ActivityProvider
     {
         switch($blubb['context_type']) {
             case 'private':
-                foreach($related_users as $context_id) {
+                foreach($blubb->getRelatedUsers() as $context_id) {
                     self::doPostActivity('user', $context_id, $blubb);
                 }
             break;

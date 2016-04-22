@@ -95,3 +95,11 @@ class WikiProvider implements ActivityProvider
     }
 
 }
+
+
+/*
+ *
+ * do_diff($old_page['body'], $row['body'])
+ * wikiReady($row['body'])
+ *
+ */

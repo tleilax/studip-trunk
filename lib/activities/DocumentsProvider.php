@@ -23,14 +23,10 @@ class DocumentsProvider implements ActivityProvider
      */
     public function getActivityDetails(&$activity)
     {
-
-
         $activity->content = $activity->content;
 
-
-        //TODO Fix URL
-        $url = \URLHelper::getUrl("folder.php?cid=/{$activity->context_id}&cmd=tree");
-        $route = \URLHelper::getURL('api.php/file/' . $activity->object_id . '/content', NULL, true);
+        $url = \URLHelper::getUrl("folder.php?cid={$activity->context_id}&cmd=tree");
+        $route = \URLHelper::getURL('api.php/file/' . $activity->object_id, NULL, true);
 
         $activity->object_url = array(
             $url => _('Zum Dateibereich der Veranstaltung')
@@ -42,7 +38,6 @@ class DocumentsProvider implements ActivityProvider
 
     public function postActivity($event, $document)
     {
-
         $document_info = $document->toArray();
 
         $user_id = $document_info['user_id'];

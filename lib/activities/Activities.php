@@ -10,6 +10,9 @@
  * @author      Till Glöggler <tgloeggl@uos.de>
  * @license     https://www.gnu.org/licenses/agpl-3.0.html AGPL version 3
  */
+
+namespace Studip\Activity;
+
 interface Activities
 {
     function getActivityObjects($course_id, $user_id, $filter);
