@@ -15,5 +15,6 @@ namespace Studip\Activity;
 
 interface ActivityProvider
 {
-    function getActivityDetails(&$activity);
+    public function getActivityDetails(&$activity);
+    public static function getLexicalField();
 }

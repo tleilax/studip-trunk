@@ -40,27 +40,49 @@ class BlubberProvider implements ActivityProvider
         $activity->object_route = $route;
     }
 
+    private static function doPostActivity($context, $context_id, $blubb)
+    {
+        $activity = Activity::get(
+            array(
+                'provider'     => 'blubber',
+                'context'      => $context,
+                'context_id'   => $context_id,
+                'title'        => '',
+                'content'      => NULL,
+                'actor_type'   => 'user',                                       // who initiated the activity?
+                'actor_id'     => $blubb['user_id'],                            // id of initiator
+                'verb'         => 'created',                                    // the activity type
+                'object_id'    => $blubb['topic_id'],                           // the id of the referenced object
+                'object_type'  => 'blubber',                                    // type of activity object
+                'mkdate'       => $blubb['chdate']
+            )
+        );
+
+        $activity->store();
+    }
+
     public static function postActivity($event, $blubb)
     {
-        ## TODO: switch on $blubb['context']
+        switch($blubb['context_type']) {
+            case 'private':
+                foreach($related_users as $context_id) {
+                    self::doPostActivity('user', $context_id, $blubb);
+                }
+            break;
 
-        foreach($blubb->getRelatedUsers() as $context_id)  {    // context: private
-            $activity = Activity::get(
-                array(
-                    'provider'     => 'blubber',
-                    'context'      => 'user',
-                    'context_id'   => $context_id,
-                    'content'      => NULL,
-                    'actor_type'   => 'user',                                       // who initiated the activity?
-                    'actor_id'     => $blubb['user_id'],                            // id of initiator
-                    'verb'         => 'created',                                    // the activity type
-                    'object_id'    => $blubb['topic_id'],                           // the id of the referenced object
-                    'object_type'  => 'blubber',                                    // type of activity object
-                    'mkdate'       => $blubb['chdate']
-                )
-            );
+            case 'course':
+                self::doPostActivity('course', $blubb['Seminar_id'], $blubb);
+            break;
 
-            $activity->store();
+            case 'public':
+                self::doPostActivity('system', 'system', $blubb);
+            break;
         }
     }
+
+    public static function getLexicalField()
+    {
+        return _('eine Blubbernachricht');
+    }
+
 }

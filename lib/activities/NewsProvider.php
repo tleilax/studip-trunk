@@ -13,7 +13,7 @@
 
 namespace Studip\Activity;
 
-class NewsProvider extends Provider implements ActivityProvider
+class NewsProvider implements ActivityProvider
 {
     public function getActivities($observer_id, Context $context, Filter $filter)
     {
@@ -93,4 +93,15 @@ class NewsProvider extends Provider implements ActivityProvider
             );
         }, $news);
     }
+
+    public function getActivityDetails(&$activity)
+    {
+        
+    }
+
+    public static function getLexicalField()
+    {
+        _('eine Neuigkeit');
+    }
+
 }

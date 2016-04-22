@@ -34,6 +34,7 @@ class Activity extends \SimpleORMap
         'interacted',
         'passed',
         'shared',
+        'sent',
         'voided'
     );
 
@@ -85,5 +86,34 @@ class Activity extends \SimpleORMap
         $data['object_route'] = $this->object_route;
 
         return $data;
+    }
+
+    /**
+     * returns a format string as placeholder for the object in question
+     * (in a grammatical / lexical sense)
+     *
+     * @return type
+     */
+    public function verbToText()
+    {
+        $translation = array(
+            'answered'    => _('beantwortete %s'),
+            'attempted'   => _('versuchte %s'),
+            'attended'    => _('nahm teil an %s'),
+            'completed'   => _('beendete %s'),
+            'created'     => _('erstellte %s'),
+            'deleted'     => _('löschte %s'),
+            'edited'      => _('bearbeitete %s'),
+            'experienced' => _('erlebte %s'),
+            'failed'      => _('verfehlte %s'),
+            'imported'    => _('importierte %s'),
+            'interacted'  => _('interagierte mit %s'),
+            'passed'      => _('bestand %s'),
+            'shared'      => _('teilte %s'),
+            'sent'        => _('sendete %s'),
+            'voided'      => _('löschte %s')
+        );
+
+        return ($translation[$this->verb]);
     }
 }

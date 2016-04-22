@@ -88,4 +88,10 @@ class WikiProvider implements ActivityProvider
 
         $activity->store();
     }
+
+    public static function getLexicalField()
+    {
+        return _('eine Wikiseite');
+    }
+
 }

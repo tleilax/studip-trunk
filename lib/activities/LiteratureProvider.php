@@ -67,4 +67,15 @@ class LiteratureProvider implements ActivityProvider
         }, $notifications);
 
     }
+
+    public function getActivityDetails(&$activity)
+    {
+        
+    }
+
+    public static function getLexicalField()
+    {
+        _('einen Literatureintrag');
+    }
+
 }

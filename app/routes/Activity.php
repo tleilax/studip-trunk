@@ -23,6 +23,24 @@ class Activity extends \RESTAPI\RouteMap
     public static function before()
     {
         require_once 'lib/activities/Filter.php';
+        require_once 'lib/activities/Context.php';
+        require_once 'lib/activities/SystemContext.php';
+        require_once 'lib/activities/CourseContext.php';
+        require_once 'lib/activities/InstituteContext.php';
+        require_once 'lib/activities/UserContext.php';
+        require_once 'lib/activities/Stream.php';
+        require_once 'lib/activities/Activity.php';
+
+        require_once 'lib/activities/ActivityProvider.php';
+        require_once 'lib/activities/BlubberProvider.php';
+        require_once 'lib/activities/DocumentsProvider.php';
+        require_once 'lib/activities/ForumProvider.php';
+        require_once 'lib/activities/LiteratureProvider.php';
+        require_once 'lib/activities/MessageProvider.php';
+        require_once 'lib/activities/NewsProvider.php';
+        require_once 'lib/activities/ParticipantsProvider.php';
+        require_once 'lib/activities/ScheduleProvider.php';
+        require_once 'lib/activities/WikiProvider.php';
     }
 
     /**

@@ -132,6 +132,48 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
 
         foreach ($this as $key => $activity) {
             $activities[$key] = $activity->asArray();
+
+            // add i18n auto generated title prefix
+            ## TODO: switch between actor-types
+            $title = '';
+
+            $class = '\\Studip\\Activity\\' . ucfirst($activity->provider) . 'Provider';
+            $object_text = $class::getLexicalField();
+
+            switch ($activity->context) {
+                case 'course':
+                    $obj = get_object_name($activity->context_id, 'sem');
+
+                    $title = get_username($activity->actor_id) .' '
+                        . sprintf($activity->verbToText(),
+                            $object_text . sprintf(_(' im Kurs "%s"'), $obj['name'])
+                        );
+                break;
+
+                case 'institute':
+                    $obj = get_object_name($activity->context_id);
+
+                    $title = get_username($activity->actor_id) .' '
+                        . sprintf($activity->verbToText(), 
+                            $object_text . sprintf(_(' in der Einrichtung "%s"'), $obj['name'])
+                        );
+                break;
+
+                case 'system':
+                    $title = get_username($activity->actor_id) .' '
+                        . sprintf($activity->verbToText(), _('allen')) .' '
+                        . $object_text;
+                break;
+
+                case 'user':
+                    $title = get_username($activity->actor_id) .' '
+                        . sprintf($activity->verbToText(), get_username($activity->context_id)) .' '
+                        . $object_text;
+                break;
+
+            }
+
+            $activities[$key]['title'] = $title;
         }
 
         return $activities;

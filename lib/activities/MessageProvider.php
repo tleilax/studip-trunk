@@ -55,7 +55,7 @@ class MessageProvider implements ActivityProvider
                 'content'      => NULL,
                 'actor_type'   => 'user',                                       // who initiated the activity?
                 'actor_id'     => $data['user_id'],                             // id of initiator
-                'verb'         => 'created',                                    // the activity type
+                'verb'         => 'sent',                                    // the activity type
                 'object_id'    => $message_id,                                  // the id of the referenced object
                 'object_type'  => 'message',                                    // type of activity object
                 'mkdate'       => time()
@@ -78,7 +78,7 @@ class MessageProvider implements ActivityProvider
                     'content'      => NULL,
                     'actor_type'   => 'user',                                   // who initiated the activity?
                     'actor_id'     => $data['user_id'],                         // id of initiator
-                    'verb'         => 'created',                                // the activity type
+                    'verb'         => 'sent',                                // the activity type
                     'object_id'    => $message_id,                              // the id of the referenced object
                     'object_type'  => 'message',                                // type of activity object
                     'mkdate'       => time()
@@ -87,6 +87,11 @@ class MessageProvider implements ActivityProvider
         }
 
         $activity->store();
+    }
+
+    public static function getLexicalField()
+    {
+        return _('eine Nachricht');
     }
 
 }

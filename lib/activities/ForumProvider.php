@@ -40,4 +40,10 @@ class ForumProvider implements ActivityProvider
 
         $activity->object_route = $route;
     }
+
+    public static function getLexicalField()
+    {
+        return _('einen Forenbeitrag');
+    }
+
 }
