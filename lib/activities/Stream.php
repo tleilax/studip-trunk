@@ -156,7 +156,7 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
                 break;
 
                 case 'institute':
-                    $obj = get_object_name($activity->context_id);
+                    $obj = get_object_name($activity->context_id, 'inst');
 
                     $title = $actor .' '
                         . sprintf($activity->verbToText(),
