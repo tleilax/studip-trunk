@@ -29,8 +29,8 @@ class InstituteContext extends Context
         if (!$this->provider) {
             $institute = \Institute::find($this->institute_id);
 
-            // todo check which modules are active globally
-            $module_names = array('forum', 'participants', 'documents', 'literature', 'wiki');
+            // todo check which modules are active globally (participantprovider isn't suitable here?)
+            $module_names = array('forum', 'documents', 'wiki');
 
             // get list of possible providers by checking the activated plugins and modules for the current institute
             $modules = new \Modules();
@@ -61,7 +61,7 @@ class InstituteContext extends Context
             foreach ($standard_plugins as $plugin) {
                 if (!$sem_class->isSlotModule(get_class($plugin))) {
                     if ($plugin instanceof \Studip\ActivityProvider) {
-                        $this->provider[] = $plugin;
+                        $this->provider[$plugin->getPluginName()] = $plugin;
                     }
                 }
             }
