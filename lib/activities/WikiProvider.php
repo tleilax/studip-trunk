@@ -24,18 +24,27 @@ class WikiProvider implements ActivityProvider
      */
     public function getActivityDetails(&$activity)
     {
+        if($activity->context == "course") {
+            $url = \URLHelper::getUrl("wiki.php?cid={$activity->context_id}&keyword={$activity->object_id}");
+            $route = \URLHelper::getURL('api.php/course/' . $activity->context_id . '/wiki/' . $activity->object_id, NULL, true);
 
+            $activity->object_url = array(
+                $url => _('Zum Wiki der Veranstaltung')
+            );
 
-        $activity->content = $activity->content;
+            $activity->object_route = $route;
 
-        $url = \URLHelper::getUrl("wiki.php?cid={$activity->context_id}&keyword={$activity->object_id}");
-        $route = \URLHelper::getURL('api.php/course/' . $activity->context_id . '/wiki/' . $activity->object_id, NULL, true);
+        } elseif($activity->context == "institute") {
+            $url = \URLHelper::getUrl("wiki.php?cid={$activity->context_id}&keyword={$activity->object_id}");
+            $route= null;
 
-        $activity->object_url = array(
-            $url => _('Zum Wiki der Veranstaltung')
-        );
+            $activity->object_url = array(
+                $url => _('Zum Wiki der Einrichtung')
+            );
 
-        $activity->object_route = $route;
+            $activity->object_route = $route;
+
+        }
     }
 
 
@@ -48,25 +57,29 @@ class WikiProvider implements ActivityProvider
         $type     = get_object_type($range_id);
         if($type == 'sem') {
             $course = \Course::find($range_id);
+        } else {
+            $course = \Institute::find($range_id);
         }
 
 
         $user_id = $GLOBALS['user']->id;
         $mkdate = strtotime('now');
+        $context_clean = ($type == 'sem') ? _("Veranstaltung") : _("Einrichtung");
+
 
         if($event == 'WikiPageDidCreate') {
             $verb = 'created';
-            $summary = _('Die WikiSeite %s wurde von %s in der Veranstaltung "%s" angelegt.');
-            $summary = sprintf($summary,$keyword, get_fullname($user_id), $course->name);
+            $summary = _('Die WikiSeite %s wurde von %s in der %s "%s" angelegt.');
+            $summary = sprintf($summary,$keyword, get_fullname($user_id), $context_clean , $course->name);
 
         } elseif($event == 'WikiPageDidUpdate') {
             $verb = 'edited';
-            $summary = _('Die WikiSeite %s wurde von %s  in der Veranstaltung "%s" aktualisiert.');
-            $summary = sprintf($summary,$keyword, get_fullname($user_id), $course->name);
+            $summary = _('Die WikiSeite %s wurde von %s  in der %s "%s" aktualisiert.');
+            $summary = sprintf($summary,$keyword, get_fullname($user_id), $context_clean, $course->name);
         } elseif($event == 'WikiPageDidDelete') {
             $verb = 'voided';
-            $summary = _('Die WikiSeite %s wurde von %s in der Veranstaltung "%s" gelöscht.');
-            $summary = sprintf($summary,$keyword, get_fullname($user_id), $course->name);
+            $summary = _('Die WikiSeite %s wurde von %s in der %s "%s" gelöscht.');
+            $summary = sprintf($summary,$keyword, get_fullname($user_id), $context_clean, $course->name);
         }
 
 
