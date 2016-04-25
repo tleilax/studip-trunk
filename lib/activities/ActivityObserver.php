@@ -32,6 +32,7 @@ class ActivityObserver
 
         //Notifications for NewsProvider
         \NotificationCenter::addObserver('\Studip\Activity\NewsProvider', 'postActivity','NewsDidCreate');
+        \NotificationCenter::addObserver('\Studip\Activity\NewsProvider', 'postActivity','NewsDidUpdate');
 
         //Notifications for WikiProvider
         \NotificationCenter::addObserver('\Studip\Activity\WikiProvider', 'postActivity','WikiPageDidCreate');

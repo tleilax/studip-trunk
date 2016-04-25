@@ -15,18 +15,18 @@ namespace Studip\Activity;
 
 class NewsProvider implements ActivityProvider
 {
-    private function getUrlForContext($news, $context)
+    private function getUrlForContext($news, $activity)
     {
-        switch ($context) {
+        switch ($activity->context) {
             case 'course':
                 return array(
-                    \URLHelper::getUrl('dispatch.php/course/details/?sem_id=' . $context->getSeminarId()) => _('News im Kurs')
+                    \URLHelper::getUrl('dispatch.php/course/details/?sem_id=' . $activity->object_id) => _('News im Kurs')
                 );
             break;
 
             case 'institute':
                 return array(
-                    \URLHelper::getUrl('dispatch.php/institute/overview?auswahl=' . $context->getInstituteId()) => _('News in der Einrichtung')
+                    \URLHelper::getUrl('dispatch.php/institute/overview?auswahl=' . $activity->object_id) => _('News in der Einrichtung')
                 );
             break;
 
@@ -38,7 +38,8 @@ class NewsProvider implements ActivityProvider
 
             case 'user':
                 return array(
-                    \URLHelper::getUrl('dispatch.php/profile?contentbox_type=news&contentbox_open='. $news->getId() .'#'. $news->getId()) => _('News auf der Profilseite')
+                    \URLHelper::getUrl('dispatch.php/profile/?username='. get_username($activity->object_id)
+                        . '&contentbox_type=news&contentbox_open='. $news->getId() .'#'. $news->getId()) => _('News auf der Profilseite')
                 );
             break;
         }
@@ -48,31 +49,35 @@ class NewsProvider implements ActivityProvider
     {
         $news = new \StudipNews($news_id);
 
-        // var_dump($news->news_ranges);die;
+        // delete any old activities for this id
+        $activities = Activity::findBySql('object_id = ?', array($news->id));
 
+        foreach ($activities as $activity) {
+            $activity->delete();
+        }
+
+        // iterate over every news-range and create approbriate activity
         foreach ($news->news_ranges as $range) {
-            #var_dump($range->toArray());
+            $context_id = $range->range_id;
 
             switch ($range->type) {
                 case 'user':   $context = 'user';break;
                 case 'inst':   $context = 'institute';break;
                 case 'sem':    $context = 'course';break;
-                case 'global': $context = 'system';break;
+                case 'global': $context = 'system'; $context_id = 'system';break;
             }
-
-            $context_id = $range->range_id;
 
             $activity = Activity::get(
                 array(
                     'provider'     => 'news',
-                    'context'      => 'system',
-                    'context_id'   => 'system',
+                    'context'      => $context,
+                    'context_id'   => $context_id,
                     'content'      => NULL,
-                    'actor_type'   => 'user',                                       // who initiated the activity?
-                    'actor_id'     => $news['user_id'],                             // id of initiator
-                    'verb'         => 'created',                                    // the activity type
-                    'object_id'    => $news->id,                                     // the id of the referenced object
-                    'object_type'  => 'news',                                       // type of activity object
+                    'actor_type'   => 'user',                                   // who initiated the activity?
+                    'actor_id'     => $news->user_id,                           // id of initiator
+                    'verb'         => 'created',                                // the activity type
+                    'object_id'    => $news->id,                                // the id of the referenced object
+                    'object_type'  => 'news',                                   // type of activity object
                     'mkdate'       => $mkdate
                 )
             );
@@ -88,7 +93,7 @@ class NewsProvider implements ActivityProvider
         $activity->content = '<b>' . htmlReady($news->topic)
             .'</b><br>'. formatReady($news->body);
 
-        $url = self::getUrlForContext($news, $activity->context);
+        $url = self::getUrlForContext($news, $activity);
         $route = \URLHelper::getURL('api.php/news/' . $news->id, NULL, true);
 
         $activity->object_url = $url;

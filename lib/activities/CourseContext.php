@@ -57,10 +57,10 @@ class CourseContext extends Context
             }
 
             //news
-            ## $this->addProvider('news');
+            $this->addProvider('news');
 
             // add blubber-provider
-            ## $this->addProvider('blubber');
+            $this->addProvider('blubber');
 
             //plugins
             $standard_plugins = \PluginManager::getInstance()->getPlugins("StandardPlugin", $this->seminar_id);

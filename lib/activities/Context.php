@@ -30,14 +30,15 @@ abstract class Context
         $activities = Activity::findBySQL('context = ? AND context_id = ?  AND mkdate >= ? AND mkdate <= ? ORDER BY mkdate DESC',
             array($this->getContextType(), $this->getRangeId(), $filter->getStartDate(), $filter->getEndDate()));
 
-        foreach ($activities as $activity) {
+        foreach ($activities as $key => $activity) {
             if (isset($providers[$activity->provider])) {                        // provider is available
                 $providers[$activity->provider]->getActivityDetails($activity);
+            } else {
+                unset($activities[$key]);
             }
         }
 
         return array_flatten($activities);
-
     }
 
     protected function addProvider($provider)
