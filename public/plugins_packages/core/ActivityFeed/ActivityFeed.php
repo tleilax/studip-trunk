@@ -8,12 +8,14 @@
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
+ *
+ * @author      Till Glöggler <tgloeggl@uos.de>
  */
 
 
 class ActivityFeed extends StudIPPlugin implements PortalPlugin
 {
-    
+
     public function getPluginName()
     {
         return _('Aktivitäten');

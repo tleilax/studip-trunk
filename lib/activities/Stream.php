@@ -138,6 +138,7 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
 
             $class       = '\\Studip\\Activity\\' . ucfirst($activity->provider) . 'Provider';
             $object_text = $class::getLexicalField();
+
             if (in_array($activity->actor_id, array('____%system%____', 'system')) !== false) {
                 $actor = _('Stud.IP');
             } else {
@@ -182,103 +183,4 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
 
         return $activities;
     }
-
-    /*
-    static function getCachedActivities($observer_id, $filter, $contexts) {
-
-        $cache =\StudipCacheFactory::getCache();
-
-
-        $end_date = new \DateTime();
-        $end_date->setTimestamp($filter->getEndDate());
-
-        $start_date = new \DateTime();
-        $start_date->setTimestamp($filter->getStartDate());
-
-        $diff = $end_date->diff($start_date);
-        $ret = array();
-
-        $ranges = array();
-
-        // step 1 - detect ranges to speed up collection of data
-        for($i = 1; $i <= $diff->days; $i++) {
-            $cachekey = 'activities_' . $observer_id . '_' . $end_date->format('Y-m-d');
-
-            $tmp_stmp = $end_date->getTimestamp();
-
-            $cached_activities = unserialize($cache->read($cachekey));
-
-            // if there are cache entries and it is NOT the current day, return cached actvities
-            if ($cached_activities !== false && date('Y-m-d') !=  $end_date->format('Y-m-d')) {
-                $ret[$cachekey] = $cached_activities;
-            } else {
-                $end_date_timestamp = $end_date->getTimestamp();
-
-                if ($ranges[$previous_date]) {
-                    $ranges[$end_date_timestamp] = $ranges[$previous_date];
-                    unset($ranges[$previous_date]);
-                } else {
-                    $ranges[$end_date_timestamp] = $end_date_timestamp;
-                }
-            }
-
-            // go to the day before the current end_date and set it as new end_date
-            $previous_date = $end_date->getTimestamp();
-            date_sub($end_date, date_interval_create_from_date_string('1 day'));
-        }
-
-        // step 2 - get data for ranges
-        foreach ($ranges as $from => $to) {
-            $filter2 = new Filter();
-            $filter2->setStartDate($from);
-            $filter2->setEndDate($to + 86399); // 23 hours, 59 minutes and 59 seconds
-
-            // load all activities
-            $activities = array_flatten(array_map(
-                function ($context) use ($observer_id, $filter2) {
-                    return $context->getActivities($observer_id, $filter2);
-                }, $contexts));
-
-
-            $new_activities = array();
-
-            foreach ($activities as $key => $activity) {
-                // generate an id for the activity, considering some basic object parameters
-                $object = $activity->getObject();
-                $id = md5($activity->getProvider() . serialize($activity->getDescription()) . $activity->getVerb() . $object['objectType'] . $activity->getMkdate());
-
-                if ($new_activities[$id]) {
-                    list($url, $name) = each($object['url']);
-                    $new_activities[date('Y-m-d', $activity->getMkdate())][$id]->addUrl($url, $name);
-                } else {
-                    $new_activities[date('Y-m-d', $activity->getMkdate())][$id] = $activity;
-                }
-            }
-
-            foreach ($new_activities as $date => $tmp_activities) {
-                $cachekey = 'activities_' . $observer_id . '_' . $date;
-
-                // sort activites by their mkdate
-                usort($tmp_activities, function($a, $b) {
-                    if ($a->getMkdate() == $b->getMkdate()) {
-                        return 0;
-                    }
-
-                    return ($a->getMkdate() > $b->getMkdate()) ? -1 : 1;
-                });
-
-                // write activites to cache
-                $cache->write($cachekey, serialize($tmp_activities));
-                $ret[$cachekey] = $tmp_activities;
-            }
-        }
-
-        // finally sort the activite-list by day
-        ksort($ret, SORT_NATURAL);
-
-        // after ksort the array is in the wrong order
-        return array_reverse($ret);
-    }
-     *
-     */
 }

@@ -15,93 +15,89 @@ namespace Studip\Activity;
 
 class NewsProvider implements ActivityProvider
 {
-    public function getActivities($observer_id, Context $context, Filter $filter)
-    {
-        $range_id = $this->contextToRangeId($context);
-
-        if (!\StudipNews::haveRangePermission('view', $range_id, $observer_id)) {
-            return array();
-        }
-
-        $observer_may_edit = \StudipNews::haveRangePermission('edit', $range_id, $observer_id);
-
-        $news = $this->filterNews(\StudipNews::GetNewsByRange($range_id, !$observer_may_edit, true), $filter);
-
-        return $this->wrapNews($news, $context);
-    }
-
-    private function filterNews($news, Filter $filter) {
-        if(is_null($filter->getStartDate())) {
-            return $news;
-        } else {
-            $filtered_news = array();
-            foreach($news as $news_item) {
-                // is $news_item->date the suitable date to make that decision
-                if($news_item->date > $filter->getStartDate()) {
-                    $filtered_news[] = $news_item;
-                }
-            }
-            return $filtered_news;
-        }
-    }
-
     private function getUrlForContext($news, $context)
     {
-        if ($context instanceof CourseContext) {
-            return array(
-                \URLHelper::getUrl('dispatch.php/course/details/?sem_id=' . $context->getSeminarId()) => _('News im Kurs')
-            );
-        }
+        switch ($context) {
+            case 'course':
+                return array(
+                    \URLHelper::getUrl('dispatch.php/course/details/?sem_id=' . $context->getSeminarId()) => _('News im Kurs')
+                );
+            break;
 
-        else if ($context instanceof InstituteContext) {
-            return array(
-                \URLHelper::getUrl('dispatch.php/institute/overview?auswahl=' . $context->getInstituteId()) => _('News in der Einrichtung')
-            );
-        }
+            case 'institute':
+                return array(
+                    \URLHelper::getUrl('dispatch.php/institute/overview?auswahl=' . $context->getInstituteId()) => _('News in der Einrichtung')
+                );
+            break;
 
-        else if ($context instanceof SystemContext) {
-            return array(
-                \URLHelper::getUrl('dispatch.php/start?contentbox_type=news&contentbox_open='. $news->getId() .'#'. $news->getId()) => _('News auf der Startseite')
-            );
-        }
+            case 'system':
+                return array(
+                    \URLHelper::getUrl('dispatch.php/start?contentbox_type=news&contentbox_open='. $news->getId() .'#'. $news->getId()) => _('News auf der Startseite')
+                );
+            break;
 
-        else if ($context instanceof UserContext) {
-            return array(
-                \URLHelper::getUrl('dispatch.php/profile?contentbox_type=news&contentbox_open='. $news->getId() .'#'. $news->getId()) => _('News auf der Profilseite')
-            );
+            case 'user':
+                return array(
+                    \URLHelper::getUrl('dispatch.php/profile?contentbox_type=news&contentbox_open='. $news->getId() .'#'. $news->getId()) => _('News auf der Profilseite')
+                );
+            break;
         }
     }
 
-    private function wrapNews($news, $context)
+    public function postActivity($event, $news_id)
     {
-        return array_map(function ($n) use ($context) {
-            $description = array(
-                'title'   => sprintf(_("%s hat eine Ankündigung geschrieben."), $n->author),
-                'content' => formatReady($n->body)
+        $news = new \StudipNews($news_id);
+
+        // var_dump($news->news_ranges);die;
+
+        foreach ($news->news_ranges as $range) {
+            #var_dump($range->toArray());
+
+            switch ($range->type) {
+                case 'user':   $context = 'user';break;
+                case 'inst':   $context = 'institute';break;
+                case 'sem':    $context = 'course';break;
+                case 'global': $context = 'system';break;
+            }
+
+            $context_id = $range->range_id;
+
+            $activity = Activity::get(
+                array(
+                    'provider'     => 'news',
+                    'context'      => 'system',
+                    'context_id'   => 'system',
+                    'content'      => NULL,
+                    'actor_type'   => 'user',                                       // who initiated the activity?
+                    'actor_id'     => $news['user_id'],                             // id of initiator
+                    'verb'         => 'created',                                    // the activity type
+                    'object_id'    => $news->id,                                     // the id of the referenced object
+                    'object_type'  => 'news',                                       // type of activity object
+                    'mkdate'       => $mkdate
+                )
             );
 
-            return new Activity(
-                'news_provider',
-                $description,                           // the description and summaray of the performed activity
-                'user',                                 // who initiated the activity?
-                $n->user_id,                            // id of initiator
-                'created',                              // the type if the activity
-                'news',                                 // type of activity object
-                $this->getUrlForContext($n, $context),  // url to entity in Stud.IP
-                'http://example.com/route',             // url to entity as rest-route
-                $n->chdate
-            );
-        }, $news);
+            $activity->store();
+        }
     }
 
     public function getActivityDetails(&$activity)
     {
-        
+        $news = new \StudipNews($activity->object_id);
+
+        $activity->content = '<b>' . htmlReady($news->topic)
+            .'</b><br>'. formatReady($news->body);
+
+        $url = self::getUrlForContext($news, $activity->context);
+        $route = \URLHelper::getURL('api.php/news/' . $news->id, NULL, true);
+
+        $activity->object_url = $url;
+        $activity->object_route = $route;
     }
 
     public static function getLexicalField()
     {
-        _('eine Neuigkeit');
+        return _('eine Neuigkeit');
     }
 
 }

@@ -64,7 +64,7 @@ class Activity extends \RESTAPI\RouteMap
 
         // create system context
         $system_context = new \Studip\Activity\SystemContext();
-        ## $contexts[] = $system_context;
+        $contexts[] = $system_context;
 
 
         // create courses and institutes context
@@ -124,7 +124,7 @@ class Activity extends \RESTAPI\RouteMap
             if ($data[$key]['actor_type'] == 'user') {
                 $actor['details'] = User::getMiniUser($this, new \User($data[$key]['actor']['id']));
             }
-            
+
             unset($data[$key]['actor_type']);
             unset($data[$key]['actor_id']);
 

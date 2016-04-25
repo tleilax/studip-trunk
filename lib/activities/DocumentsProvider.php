@@ -8,6 +8,7 @@
  * version 3 as published by the Free Software Foundation.
  *
  * @author      André Klaßen <klassen@elan-ev.de>
+ * @author      Till Glöggler <tgloeggl@uos.de>
  * @license     https://www.gnu.org/licenses/agpl-3.0.html AGPL version 3
  */
 
@@ -23,8 +24,6 @@ class DocumentsProvider implements ActivityProvider
      */
     public function getActivityDetails(&$activity)
     {
-        $activity->content = $activity->content;
-
         $url = \URLHelper::getUrl("folder.php?cid={$activity->context_id}&cmd=tree&open={$activity->object_id}");
         $route = \URLHelper::getURL('api.php/file/' . $activity->object_id, NULL, true);
 
