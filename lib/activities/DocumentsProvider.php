@@ -25,7 +25,7 @@ class DocumentsProvider implements ActivityProvider
     {
         $activity->content = $activity->content;
 
-        $url = \URLHelper::getUrl("folder.php?cid={$activity->context_id}&cmd=tree");
+        $url = \URLHelper::getUrl("folder.php?cid={$activity->context_id}&cmd=tree&open={$activity->object_id}");
         $route = \URLHelper::getURL('api.php/file/' . $activity->object_id, NULL, true);
 
         $activity->object_url = array(

@@ -74,8 +74,7 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
         // finally sort the activite-list by day
         ksort($new_activities, SORT_NATURAL);
 
-        // after ksort the array is in the wrong order
-        $this->activities = array_reverse($new_activities);
+        $this->activities = $new_activities;
     }
 
     /**
@@ -137,14 +136,19 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
             ## TODO: switch between actor-types
             $title = '';
 
-            $class = '\\Studip\\Activity\\' . ucfirst($activity->provider) . 'Provider';
+            $class       = '\\Studip\\Activity\\' . ucfirst($activity->provider) . 'Provider';
             $object_text = $class::getLexicalField();
+            if (in_array($activity->actor_id, array('____%system%____', 'system')) !== false) {
+                $actor = _('Stud.IP');
+            } else {
+                $actor = get_fullname($activity->actor_id);
+            }
 
             switch ($activity->context) {
                 case 'course':
                     $obj = get_object_name($activity->context_id, 'sem');
 
-                    $title = get_fullname($activity->actor_id) .' '
+                    $title = $actor .' '
                         . sprintf($activity->verbToText(),
                             $object_text . sprintf(_(' im Kurs "%s"'), $obj['name'])
                         );
@@ -153,20 +157,20 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
                 case 'institute':
                     $obj = get_object_name($activity->context_id);
 
-                    $title = get_fullname($activity->actor_id) .' '
-                        . sprintf($activity->verbToText(), 
+                    $title = $actor .' '
+                        . sprintf($activity->verbToText(),
                             $object_text . sprintf(_(' in der Einrichtung "%s"'), $obj['name'])
                         );
                 break;
 
                 case 'system':
-                    $title = get_fullname($activity->actor_id) .' '
+                    $title = $actor .' '
                         . sprintf($activity->verbToText(), _('allen')) .' '
                         . $object_text;
                 break;
 
                 case 'user':
-                    $title = get_fullname($activity->actor_id) .' '
+                    $title = $actor .' '
                         . sprintf($activity->verbToText(), get_fullname($activity->context_id)) .' '
                         . $object_text;
                 break;
