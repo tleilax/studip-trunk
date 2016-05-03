@@ -70,19 +70,15 @@ class WikiProvider implements ActivityProvider
         if($event == 'WikiPageDidCreate') {
             $verb = 'created';
             $summary = _('Die WikiSeite %s wurde von %s in der %s "%s" angelegt.');
-            $summary = sprintf($summary,$keyword, get_fullname($user_id), $context_clean , $course->name);
-
         } elseif($event == 'WikiPageDidUpdate') {
             $verb = 'edited';
             $summary = _('Die WikiSeite %s wurde von %s  in der %s "%s" aktualisiert.');
-            $summary = sprintf($summary,$keyword, get_fullname($user_id), $context_clean, $course->name);
         } elseif($event == 'WikiPageDidDelete') {
             $verb = 'voided';
             $summary = _('Die WikiSeite %s wurde von %s in der %s "%s" gelöscht.');
-            $summary = sprintf($summary,$keyword, get_fullname($user_id), $context_clean, $course->name);
         }
 
-
+        $summary = sprintf($summary, $keyword, get_fullname($user_id), $context_clean , $course->name);
 
         $activity = Activity::get(
             array(
@@ -93,8 +89,8 @@ class WikiProvider implements ActivityProvider
                 'actor_type'   => 'user',                                       // who initiated the activity?
                 'actor_id'     => $user_id,                                     // id of initiator
                 'verb'         => $verb,                                        // the activity type
-                'object_id'    => $keyword,                                   // the id of the referenced object
-                'object_type'  => 'wiki',                                  // type of activity object
+                'object_id'    => $keyword,                                     // the id of the referenced object
+                'object_type'  => 'wiki',                                       // type of activity object
                 'mkdate'       =>  $mkdate
             )
         );
@@ -108,11 +104,3 @@ class WikiProvider implements ActivityProvider
     }
 
 }
-
-
-/*
- *
- * do_diff($old_page['body'], $row['body'])
- * wikiReady($row['body'])
- *
- */

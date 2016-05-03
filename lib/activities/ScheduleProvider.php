@@ -61,7 +61,7 @@ class ScheduleProvider implements ActivityProvider
         // TODO: @andre: Was, falls es eine anderes Event ist?
         if($event == 'CourseDidChangeSchedule') {
             $verb = 'edited';
-            $summary = _('Der Ablaufplan in der Veranstaltung "%s" von %s aktualisiert.');
+            $summary = _('Der Ablaufplan wurde in der Veranstaltung "%s" von %s aktualisiert.');
             $summary = sprintf($summary, $course->name, get_fullname($user_id));
         }
 
@@ -87,7 +87,7 @@ class ScheduleProvider implements ActivityProvider
 
     public static function getLexicalField()
     {
-        _('einen Eintrag im Ablaufplan');
+        return _('einen Eintrag im Ablaufplan');
     }
 
 }
