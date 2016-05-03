@@ -1,15 +1,9 @@
 <?php
 
 /**
- * Stream.php - represents a set of activities
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Affero General Public License
- * version 2 as published by the Free Software Foundation.
- *
  * @author      Till Glöggler <tgloeggl@uos.de>
  * @author      André Klaßen <klassen@elan-ev.de>
- * @license     https://www.gnu.org/licenses/gpl-2.0.html GPL version 2
+ * @license     GPL 2 or later
  */
 
 namespace Studip\Activity;

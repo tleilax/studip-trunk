@@ -2,14 +2,9 @@
 namespace RESTAPI\Routes;
 
 /**
- * File - description
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Affero General Public License
- * version 2 or later as published by the Free Software Foundation.
- *
  * @author      Till Glöggler <tgloeggl@uos.de>
- * @license     https://www.gnu.org/licenses/gpl-2.0.html GPL version 2 or later
+ * @author      André Klaßen <klassen@elan-ev.de>
+ * @license     GPL 2 or later
  *
  * @condition user_id ^[a-f0-9]{32}$
  */
