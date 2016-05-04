@@ -31,7 +31,7 @@ $commentable = $GLOBALS['perm']->have_perm("autor") ? true : (bool) $commentable
                 if ($key > 0) {
                     $title .= ", ";
                 }
-                $title .= get_fullname($user_id);
+                $title .= htmlReady(get_fullname($user_id, 'no_title'));
             }
         }
         ?>
@@ -42,7 +42,7 @@ $commentable = $GLOBALS['perm']->have_perm("autor") ? true : (bool) $commentable
                     if ($key > 0) {
                         echo ", ";
                     }
-                    echo get_fullname($user_id);
+                    echo htmlReady(get_fullname($user_id, 'no_title'));
                 } ?>
                 <? if (count($related_users) > 3) : ?>
                     , ...
@@ -94,9 +94,9 @@ $commentable = $GLOBALS['perm']->have_perm("autor") ? true : (bool) $commentable
             <? endif ?>
             <span class="reshare_link">
         <? if (!in_array($GLOBALS['user']->id, $sharing_user_ids) && $GLOBALS['user']->id !== $thread['user_id']) : ?>
-            <?= Assets::img("icons/16/blue/blubber", array('class' => "text-bottom reshare_blubber", 'title' => _("Diesen Blubber weitersagen"))) ?>
+            <?= Icon::create('blubber', 'clickable')->asImg(['class' => "text-bottom reshare_blubber", 'title' => _("Diesen Blubber weitersagen")]) ?>
         <? elseif($GLOBALS['user']->id !== $thread['user_id']) : ?>
-            <a href="#" class="open_reshare_context"><?= Assets::img("icons/16/grey/blubber", array('class' => "text-bottom", 'title' => _("Weitergesagt von diesen Personen"))) ?></a>
+            <a href="#" class="open_reshare_context"><?= Icon::create('blubber', 'inactive')->asImg(['class' => "text-bottom", 'title' => _("Weitergesagt von diesen Personen")]) ?></a>
         <? endif ?>
         </span>
         </div>
@@ -120,9 +120,10 @@ $commentable = $GLOBALS['perm']->have_perm("autor") ? true : (bool) $commentable
                 </span>
             </a>
             <? if (($thread['Seminar_id'] !== $thread['user_id'] && $GLOBALS['perm']->have_studip_perm("tutor", $thread['Seminar_id']))
-                or ($thread['user_id'] === $GLOBALS['user']->id)) : ?>
+                or ($thread['user_id'] === $GLOBALS['user']->id)
+                or $GLOBALS['perm']->have_perm("root")) : ?>
                 <a href="#" class="edit icon" onClick="return false;">
-                    <?= Assets::img('icons/16/grey/tools.png', tooltip2(_('Bearbeiten')) + array('size' => 14)) ?>
+                    <?= Icon::create('tools', 'inactive', ['title' => _('Bearbeiten')])->asImg(14) ?>
                 </a>
             <? endif ?>
         </div>
@@ -136,13 +137,7 @@ $commentable = $GLOBALS['perm']->have_perm("autor") ? true : (bool) $commentable
         <? endif ?>
         </div>
         <div class="content">
-            <?
-            $content = $thread['description'];
-            if ($thread['name'] && strpos($thread['description'], $thread['name']) === false) {
-                $content = $thread['name']."\n".$content;
-            }
-            ?>
-            <?= BlubberPosting::format($content) ?>
+            <?= $thread->getContent() ?>
         </div>
         <div class="additional_tags"><? foreach ($thread->getTags() as $tag) : ?>
                 <? if (stripos($content, "#".$tag) === false) : ?>
@@ -150,14 +145,7 @@ $commentable = $GLOBALS['perm']->have_perm("autor") ? true : (bool) $commentable
                     <a href="<?= $link ?>"><?= htmlReady("#".$tag) ?></a>
                 <? endif ?>
             <? endforeach ?></div>
-        <div class="opengraph_area"><?
-            if (count(OpenGraphURL::$tempURLStorage)) {
-                $og = new OpenGraphURL(OpenGraphURL::$tempURLStorage[0]);
-                if (!$og->isNew()) {
-                    echo $og->render();
-                }
-            }
-            ?></div>
+        <?= $thread->getOpenGraphURLs()->render() ?>
     </div>
     <ul class="comments"><?
         $postings = $thread->getChildren(0, 4);
@@ -181,7 +169,7 @@ $commentable = $GLOBALS['perm']->have_perm("autor") ? true : (bool) $commentable
                        style="display: none;"
                        multiple>
                 <?= Assets::img('ajax-indicator-black.svg', array('class' => "text-bottom uploading", 'width' => "16px", 'height' => "16px")) ?>
-                <?= Assets::img('icons/16/blue/upload', array('class' => "text-bottom upload")) ?>
+                <?= Icon::create('upload', 'clickable')->asImg(['class' => "text-bottom upload"]) ?>
             </label>
         </div>
     <? endif ?>

@@ -1340,7 +1340,7 @@ function search_range($search_str = false, $search_user = false, $show_sem = tru
         $_hidden = _('(versteckt)');
         $query = "SELECT s.Seminar_id, IF(s.visible = 0, CONCAT(s.Name, ' {$_hidden}'), s.Name) AS Name %s
                   FROM user_inst AS a
-                  LEFT JOIN seminare AS s USING (Institut_id) %s
+                  JOIN seminare AS s USING (Institut_id) %s
                   WHERE a.user_id = ? AND a.inst_perms = 'admin' AND s.Name LIKE CONCAT('%%', ?, '%%')
                   ORDER BY start_time";
         $query = $show_sem
@@ -1359,7 +1359,7 @@ function search_range($search_str = false, $search_user = false, $show_sem = tru
 
         $query = "SELECT b.Institut_id, b.Name
                   FROM user_inst AS a
-                  LEFT JOIN Institute AS b USING (Institut_id)
+                  JOIN Institute AS b USING (Institut_id)
                   WHERE a.user_id = ? AND a.inst_perms = 'admin'
                     AND a.institut_id != b.fakultaets_id AND b.Name LIKE CONCAT('%', ?, '%')
                   ORDER BY Name";
@@ -1375,11 +1375,11 @@ function search_range($search_str = false, $search_user = false, $show_sem = tru
             $_hidden = _('(versteckt)');
             $query = "SELECT s.Seminar_id, IF(s.visible = 0, CONCAT(s.Name, ' {$_hidden}'), s.Name) AS Name %s
                       FROM user_inst AS a
-                      LEFT JOIN Institute AS b ON (a.Institut_id = b.Institut_id AND b.Institut_id = b.fakultaets_id)
-                      LEFT JOIN Institute AS c ON (c.fakultaets_id = b.Institut_id AND c.fakultaets_id != c.Institut_id)
-                      LEFT JOIN seminare AS s ON (s.Institut_id = c.Institut_id) %s
+                      JOIN Institute AS b ON (a.Institut_id = b.Institut_id AND b.Institut_id = b.fakultaets_id)
+                      JOIN Institute AS c ON (c.fakultaets_id = b.Institut_id AND c.fakultaets_id != c.Institut_id)
+                      JOIN seminare AS s ON (s.Institut_id = c.Institut_id) %s
                       WHERE a.user_id = ? AND a.inst_perms = 'admin'
-                        AND NOT ISNULL(b.Institut_id) AND s.Name LIKE CONCAT('%%', ?, '%%')
+                        AND s.Name LIKE CONCAT('%%', ?, '%%')
                       ORDER BY start_time DESC, Name";
             $query = $show_sem
                    ? sprintf($query, $show_sem_sql1, $show_sem_sql2)
@@ -1397,10 +1397,10 @@ function search_range($search_str = false, $search_user = false, $show_sem = tru
 
             $query = "SELECT c.Institut_id, c.Name
                       FROM user_inst AS a
-                      LEFT JOIN Institute AS b ON (a.Institut_id = b.Institut_id AND b.Institut_id = b.fakultaets_id)
-                      LEFT JOIN Institute AS c ON (c.fakultaets_id = b.institut_id AND c.fakultaets_id != c.institut_id)
+                      JOIN Institute AS b ON (a.Institut_id = b.Institut_id AND b.Institut_id = b.fakultaets_id)
+                      JOIN Institute AS c ON (c.fakultaets_id = b.institut_id AND c.fakultaets_id != c.institut_id)
                       WHERE a.user_id = ? AND a.inst_perms = 'admin'
-                        AND NOT ISNULL(b.Institut_id) AND c.Name LIKE CONCAT('%', ?, '%')
+                        AND c.Name LIKE CONCAT('%', ?, '%')
                       ORDER BY Name";
             $statement = DBManager::get()->prepare($query);
             $statement->execute(array($user->id, $search_str));
@@ -1413,9 +1413,9 @@ function search_range($search_str = false, $search_user = false, $show_sem = tru
 
             $query = "SELECT b.Institut_id, b.Name
                       FROM user_inst AS a
-                      LEFT JOIN Institute AS b ON (a.Institut_id = b.Institut_id AND b.Institut_id = b.fakultaets_id)
+                      JOIN Institute AS b ON (a.Institut_id = b.Institut_id AND b.Institut_id = b.fakultaets_id)
                       WHERE a.user_id = ? AND a.inst_perms = 'admin'
-                        AND NOT ISNULL(b.Institut_id) AND b.Name LIKE CONCAT('%', ?, '%')
+                        AND b.Name LIKE CONCAT('%', ?, '%')
                       ORDER BY Name";
             $statement = DBManager::get()->prepare($query);
             $statement->execute(array($user->id, $search_str));
@@ -1431,7 +1431,7 @@ function search_range($search_str = false, $search_user = false, $show_sem = tru
         $_hidden = _('(versteckt)');
         $query = "SELECT s.Seminar_id, IF(s.visible = 0, CONCAT(s.Name, ' {$_hidden}'), s.Name) AS Name %s
                   FROM seminar_user AS a
-                  LEFT JOIN seminare AS s USING (Seminar_id) %s
+                  JOIN seminare AS s USING (Seminar_id) %s
                   WHERE a.user_id = ? AND a.status IN ('tutor', 'dozent')
                   ORDER BY start_time DESC, Name";
         $query = $show_sem
@@ -1451,7 +1451,7 @@ function search_range($search_str = false, $search_user = false, $show_sem = tru
         $query = "SELECT Institut_id, b.Name,
                          IF (Institut_id = fakultaets_id, 'fak', 'inst') AS type
                   FROM user_inst AS a
-                  LEFT JOIN Institute AS b USING (Institut_id)
+                  JOIN Institute AS b USING (Institut_id)
                   WHERE a.user_id = ? AND a.inst_perms IN ('dozent','tutor')
                   ORDER BY Name";
         $statement = DBManager::get()->prepare($query);
@@ -2134,4 +2134,49 @@ function studip_default_exception_handler($exception) {
         echo 'Error: ' . htmlReady($e->getMessage());
     }
     exit;
+}
+
+/**
+ * Converts a string to camelCase.
+ *
+ * @param String $string  The string that should be converted
+ * @param bool   $ucfirst Uppercase the very first character as well
+ *                        (optional, defaults to false)
+ * @return String containing the converted input string
+ */
+function strtocamelcase($string, $ucfirst = false) {
+    $string = strtolower($string);
+    $chunks = preg_split('/\W+/', $string);
+    $chunks = array_map('ucfirst', $chunks);
+
+    if (!$ucfirst && count($chunks) > 0) {
+        $chunks[0] = strtolower($chunks[0]);
+    }
+
+    return implode($chunks);
+}
+
+/**
+ * Converts a string to snake_case.
+ *
+ * @param String $string  The string that should be converted
+ * @return String containing the converted input string
+ */
+function strtosnakecase($string) {
+    $string = preg_replace('/\W+/', '_', $string);
+    $string = preg_replace('/(?<!^)[A-Z]/', '_$0', $string);
+    $string = strtolower($string);
+    return $string;
+}
+
+/**
+ * fetch number of rows for a table
+ * for innodb this is not exact, but much faster than count(*)
+ *
+ * @param string $table  name of database table
+ * @return int number of rows
+ */
+function count_table_rows($table) {
+    $stat = DbManager::get()->fetchOne("SHOW TABLE STATUS LIKE ?", array($table));
+    return (int)$stat['Rows'];
 }

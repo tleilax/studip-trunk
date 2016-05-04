@@ -105,7 +105,7 @@ class Admin_DomainController extends AuthenticatedController
         if (count($domain->getUsers()) == 0) {
             $domain->delete();
         } else {
-            $this->message = MessageBox::error(_('Domänen, denen noch Nutzer zugewiesen sind, können nicht gelöscht werden.'));
+            $this->message = MessageBox::error(_('Domänen, denen noch Personen zugewiesen sind, können nicht gelöscht werden.'));
         }
 
         $this->domains = UserDomain::getUserDomains();
@@ -120,7 +120,7 @@ class Admin_DomainController extends AuthenticatedController
         $sidebar = Sidebar::Get();
         $sidebar->setImage('sidebar/admin-sidebar.png');
         $actions = new ActionsWidget();
-        $actions->addLink(_('Neue Nutzerdomäne anlegen'), $this->url_for('admin/domain/new'), 'icons/16/blue/add.png');
+        $actions->addLink(_('Neue Nutzerdomäne anlegen'), $this->url_for('admin/domain/new'), Icon::create('add', 'clickable'));
         $sidebar->addWidget($actions);
     }
 }

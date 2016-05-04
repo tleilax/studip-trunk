@@ -13,7 +13,7 @@ require_once 'app/models/ical_export.php';
 
 class iCalController extends StudipController
 {
-    
+
     function before_filter(&$action, &$args) {
         // allow only "word" characters in arguments
         $this->validate_args($args);
@@ -23,7 +23,7 @@ class iCalController extends StudipController
      * Handles the download the calendar data as iCalendar for the
      * user identified by $key.
      *
-     * 
+     *
      * @global Seminar_User $user
      * @global Seminar_Perm $perm
      * @param string $key
@@ -55,15 +55,18 @@ class iCalController extends StudipController
 
             $extype = 'ALL_EVENTS';
             $export = new CalendarExport(new CalendarWriterICalendar());
-            $export->exportFromDatabase($user_id, 0, 2114377200, 'ALL_EVENTS');
+            $export->exportFromDatabase($user_id, strtotime('-4 week'), 2114377200, 'ALL_EVENTS');
 
-            if ($GLOBALS['_calendar_error']->getMaxStatus(ERROR_CRITICAL)) {
+            if ($GLOBALS['_calendar_error']->getMaxStatus(ErrorHandler::ERROR_CRITICAL)) {
                 $this->set_status(500);
                 $this->render_nothing();
                 return;
             }
             $content = join($export->getExport());
-            $this->response->add_header('Content-Type', 'text/calendar');
+            if (stripos($_SERVER['HTTP_USER_AGENT'], 'google-calendar') !== false) {
+                $content = str_replace(array('CLASS:PRIVATE','CLASS:CONFIDENTIAL'), 'CLASS:PUBLIC', $content);
+            }
+            $this->response->add_header('Content-Type', 'text/calendar;charset=utf-8');
             $this->response->add_header('Content-Disposition', 'attachment; filename="studip.ics"');
             $this->response->add_header('Content-Transfer-Encoding', 'binary');
             $this->response->add_header('Pragma', 'public');

@@ -183,6 +183,23 @@ class Markup
     }
 
     /**
+     * Call HTMLPurifier to filter the HTML code (if the source is detected
+     * to contain HTML, returns the argument unchanged otherwise). The HTML
+     * marker is restored afterwards, if it was present.
+     *
+     * @param   string  $dirty_html  Unsafe or 'uncleaned' HTML code.
+     * @return  string              Clean and safe HTML code.
+     */
+    public static function purifyHtml($html)
+    {
+        if (self::isHtml($html)) {
+            $html = self::markAsHtml(self::purify($html));
+        }
+
+        return $html;
+    }
+
+    /**
      * Create HTML purifier instance with Stud.IP-specific configuration.
      * @return HTMLPurifier A new instance of the HTML purifier.
      */
@@ -227,8 +244,10 @@ class Markup
         //
         $config->set('HTML.Allowed', '
             a[class|href|target|rel]
+            blockquote
             br
             caption
+            div[class|style]
             em
             h1
             h2
@@ -260,6 +279,7 @@ class Markup
         $config->set('Attr.AllowedFrameTargets', array('_blank'));
         $config->set('Attr.AllowedRel', array('nofollow'));
         $config->set('Attr.AllowedClasses', array(
+            'author',
             'content',
             'link-extern',
             'wiki-link',

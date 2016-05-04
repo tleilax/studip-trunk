@@ -34,7 +34,7 @@ class Admission_RestrictedCoursesController extends AuthenticatedController
     {
 
         $actions = new ActionsWidget();
-        $actions->addLink(_("Export"), $this->link_for('admission/restricted_courses', array('csv' => 1)), 'icons/16/blue/export/file-excel.png');
+        $actions->addLink(_("Export"), $this->link_for('admission/restricted_courses', array('csv' => 1)), Icon::create('file-excel+export', 'clickable'));
         Sidebar::get()->addWidget($actions);
         Sidebar::get()->setImage('sidebar/admin-sidebar.png');
 
@@ -89,9 +89,9 @@ class Admission_RestrictedCoursesController extends AuthenticatedController
                 $row[] = $course['course_name'];
                 $row[] = (int)$course['admission_turnout'];
                 $row[] = $course['count_teilnehmer'] + $course['count_prelim'];
+                $row[] = (int)$course['count_claiming'];
                 $row[] = (int)$course['count_prelim'];
                 $row[] = (int)$course['count_waiting'];
-                $row[] = (int)$course['count_claiming'];
                 $row[] = $course['distribution_time'] ? strftime('%x %R', $course['distribution_time']) : '';
                 $row[] = $course['start_time'] ? strftime('%x %R', $course['start_time']) : '';
                 $row[] = $course['end_time'] ? strftime('%x %R', $course['end_time']) : '';

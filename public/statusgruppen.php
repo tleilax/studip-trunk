@@ -259,17 +259,17 @@ if ($rechte) {
     if (groupmail($SessSemName[1], 'all')) {
         $actions->addLink(_('Nachricht an alle (Rundmail)'), 
                           URLHelper::getLink('dispatch.php/messages/write?course_id=' . $SessSemName[1] . '&emailrequest=1&default_subject=' . rawurlencode($SessSemName[0]) . '&filter=all'),
-                          'icons/16/blue/mail.png')->asDialog();
+                          Icon::create('mail', 'clickable'))->asDialog();
     }
     if (groupmail($SessSemName[1], 'prelim')) {
         $actions->addLink(_('Nachricht an alle Teilnehmer auf der Warteliste'),
                           URLHelper::getLink('dispatch.php/messages/write?course_id=' . $SessSemName[1] . '&emailrequest=1&default_subject=' . rawurlencode($SessSemName[0]) . '&filter=prelim'),
-                          'icons/16/blue/mail.png')->asDialog();
+                          Icon::create('mail', 'clickable'))->asDialog();
     }
     if (groupmail($SessSemName[1], 'waiting')) {
         $actions->addLink(_('Nachricht an alle vorläufigen Teilnehmer'),
                           URLHelper::getLink('dispatch.php/messages/write?course_id=' . $SessSemName[1] . '&emailrequest=1&default_subject=' . rawurlencode($SessSemName[0]) . '&filter=waiting'),
-                          'icons/16/blue/mail.png')->asDialog();
+                          Icon::create('mail', 'clickable'))->asDialog();
     }
     $sidebar->addWidget($actions);
 
@@ -279,11 +279,11 @@ if ($rechte) {
         $widget = new ExportWidget();
 
         $tmp = export_link($SessSemName[1], 'person', _('Gruppenliste') . ' ' . $SessSemName[0], 'rtf', 'rtf-gruppen', 'status',  _('Gruppen exportieren als rtf Dokument'), 'passthrough');
-        $element = LinkElement::fromHTML($tmp, 'icons/16/blue/export/file-text.png');
+        $element = LinkElement::fromHTML($tmp, Icon::create('file-text+export', 'clickable'));
         $widget->addElement($element);
 
         $tmp = export_link($SessSemName[1], 'person', _('Gruppenliste') . ' ' . $SessSemName[0], 'csv', 'csv-gruppen', 'status',  _('Gruppen exportieren als csv Dokument'), 'passthrough');
-        $element = LinkElement::fromHTML($tmp, 'icons/16/blue/export/file-office.png');
+        $element = LinkElement::fromHTML($tmp, Icon::create('file-office+export', 'clickable'));
         $widget->addElement($element);
 
         $sidebar->addWidget($widget);

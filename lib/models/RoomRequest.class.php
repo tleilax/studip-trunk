@@ -53,6 +53,11 @@ class RoomRequest extends SimpleORMap
             'class_name'  => 'CourseDate',
             'foreign_key' => 'termin_id'
         );
+        $config['belongs_to']['resource'] = array(
+            'class_name' => 'ResourceObject',
+            'foreign_key' => 'resource_id',
+            'assoc_func' => 'Factory'
+        );
         parent::configure($config);
     }
 
@@ -463,6 +468,9 @@ class RoomRequest extends SimpleORMap
         }
         $this->closed = (int)$this->closed;
         if ($this->resource_id || $this->getSettedPropertiesCount()) {
+            if (!$this->category_id && $this->resource) {
+                $this->category_id = $this->resource->category_id;
+            }
             if ($this->isNew() && !$this->getId()) {
                 $this->setId($this->getNewId());
             }
@@ -594,15 +602,15 @@ class RoomRequest extends SimpleORMap
         }
         $requestData[] = '';
 
-        $requestData[] = sprintf(_('Bearbeitung durch den/die RaumadministratorIn: %s'), $this->getStatusExplained());
+        $requestData[] = sprintf(_('Bearbeitung durch: %s'), $this->getStatusExplained());
         $requestData[] = '';
 
         // if the room-request has been declined, show the decline-notice placed by the room-administrator
         if ($this->getClosed() == 3) {
-            $requestData[] = _('Nachricht RaumadministratorIn') . ':';
+            $requestData[] = _('Nachricht Raumadminstration') . ':';
             $requestData[] = $this->getReplyComment();
         } else {
-            $requestData[] = _('Nachricht an den/die RaumadministratorIn') . ':';
+            $requestData[] = _('Nachricht an Raumadministration') . ':';
             $requestData[] = $this->getComment();
         }
         return join("\n", $requestData);

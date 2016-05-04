@@ -40,7 +40,7 @@ class BrowseNavigation extends Navigation
 
         parent::__construct($coursetext, $courselink);
         if (!$_SESSION['SessionSeminar']) {
-            $this->setImage('icons/lightblue/seminar.svg', array('title' => $courseinfo));
+            $this->setImage(Icon::create('seminar', 'navigation', ["title" => $courseinfo]));
         }
     }
 
@@ -88,6 +88,11 @@ class BrowseNavigation extends Navigation
             if (!$perm->have_perm('admin')) {
                 $navigation = new Navigation(_('Meine Einrichtungen'), 'dispatch.php/my_institutes');
                 $this->addSubNavigation('my_institutes', $navigation);
+
+                if (RolePersistence::isAssignedRole($GLOBALS['user']->id, "DedicatedAdmin")) {
+                    $navigation = new Navigation(_('Administration'), 'dispatch.php/admin/courses');
+                    $this->addSubNavigation('admincourses', $navigation);
+                }
             }
 
         }

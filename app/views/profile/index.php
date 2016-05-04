@@ -21,21 +21,21 @@
             <?if (!$user->isFriendOf($current_user)) : ?>
                 <br>
                 <a href="<?= URLHelper::getLink($controller->url_for('profile/add_buddy?username=' . $current_user->username)) ?>">
-                    <?=Assets::img('icons/16/blue/person.png', array('title' =>_("zu den Kontakten hinzufügen"), 'class' => 'middle'))?>
+                    <?=Icon::create('person', 'clickable', ['title' =>_("zu den Kontakten hinzufügen"), 'class' => 'middle'])->asImg()?>
                     <?=_("zu den Kontakten hinzufügen")?>
                 </a>
             <? endif?>
 
                 <br>
                 <a  href="<?=URLHelper::getLink('dispatch.php/messages/write', array('rec_uname'=>$current_user->username))?>" data-dialog="button">
-                    <?=Assets::img('icons/16/blue/mail.png', array('title' => _("Nachricht an Nutzer verschicken"), 'class' => 'middle')) ?>
+                    <?=Icon::create('mail', 'clickable', ['title' => _("Nachricht an Nutzer verschicken"), 'class' => 'middle'])->asImg() ?>
                     <?= _('Nachricht schreiben') ?>
                 </a>
                 
             <? if (class_exists('Blubber')): ?>
                 <br>
                 <a href="<?= URLHelper::getLink('plugins.php/blubber/streams/global', array('mention' => $current_user->username)) ?>">
-                    <?= Assets::img('icons/16/blue/blubber.png', array('title' => _('Blubber diesen Nutzer an'), 'class' => 'middle')) ?>
+                    <?= Icon::create('blubber', 'clickable', ['title' => _('Blubber diesen Nutzer an'), 'class' => 'middle'])->asImg() ?>
                     <?= _('Anblubbern') ?>
                 </a>
             <? endif; ?>
@@ -43,14 +43,14 @@
 
             <br>
             <a href="<?=$controller->link_for("contact/vcard", array('user[]' => $current_user->username))?>">
-                <?=Assets::img('icons/16/blue/vcard.png', array('title' => _("vCard herunterladen"), 'class' => 'middle'))?>
+                <?=Icon::create('vcard', 'clickable', ['title' => _("vCard herunterladen"), 'class' => 'middle'])->asImg()?>
                 <?=_("vCard herunterladen")?>
             </a>
 
         <? if ($current_user->username != $user->username && $perm->have_perm('root')): ?>
             <br>
             <a href="<?=URLHelper::getLink('dispatch.php/admin/user/edit/'.$current_user->user_id)?>">
-                <?=Assets::img('icons/16/blue/edit', array('title' => _('Diese Person bearbeiten'), 'class' => 'middle'))?>
+                <?=Icon::create('edit', 'clickable', ['title' => _('Diese Person bearbeiten'), 'class' => 'middle'])->asImg()?>
                 <?=_('Dieses Konto bearbeiten')?>
             </a>
         <? endif; ?>
@@ -141,7 +141,7 @@
 
             <? if($has_denoted_fields): ?>
                 <br>
-                * Diese Felder sind nur für Sie und AdministratorInnen sichtbar.<br>
+                * Diese Felder sind nur für Sie und Admins sichtbar.<br>
             <?endif?>
                <br>
             <? if (isset($kings)): ?>
@@ -164,7 +164,9 @@
 
 <?= $dates ?>
 
-<?= $votes ?>
+<?= $evaluations ?>
+
+<?= $questionnaires ?>
 
 <? if(!empty($ausgabe_inhalt)) : ?>
 <? foreach($ausgabe_inhalt as $key => $inhalt) :?>
@@ -183,25 +185,25 @@
     <?= $this->render_partial("profile/seminare") ?>
 <? endif?>
 
-<?if($show_lit && $lit_list) :?>
+<?if ($show_lit && $lit_list) :?>
 <section class="contentbox">
     <header>
         <h1><?= _('Literaturlisten') ?></h1>
     </header>
     <section>
-        <?= formatReady($lit_list) ?>
+        <?= $lit_list ?>
     </section>
 </section>
 <?endif?>
 
-<? if(!empty($longDatafields)) :?>
+<? if (!empty($longDatafields)) :?>
     <? foreach ($longDatafields as $name => $entry) : ?>
         <section class="contentbox">
         <header>
             <h1><?= htmlReady($name .' '. $entry['visible']) ?></h1>
         </header>
         <section>
-            <?= formatReady($entry['content']) ?>
+            <?= $entry['content'] ?>
         </section>
     </section>
     <? endforeach ?>

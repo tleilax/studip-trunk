@@ -128,3 +128,28 @@ table.attribute_table {
         display: none;
     }
 }
+
+.course-admin {
+    .course-completion {
+        .hide-text();
+        .square(16px);
+        background-repeat: no-repeat;
+        display: block;
+    }
+
+    th .course-completion {
+        .retina-background-icon('blue/radiobutton-checked.svg');
+    }
+
+    td .course-completion {
+        .retina-background-icon('red/radiobutton-checked.svg');
+
+        &.course-complete {
+            .background-icon('radiobutton-checked', 'status-green');
+        }
+
+        &.ajaxing {
+            background-image: url("@{image-path}/ajax_indicator_small.gif");
+        }
+    }
+}

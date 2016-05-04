@@ -27,6 +27,12 @@
  */
 class CalendarEvent extends SimpleORMap implements Event
 {
+    const PARTSTAT_TENTATIVE = 1;
+    const PARTSTAT_ACCEPTED = 2;
+    const PARTSTAT_DECLINED = 3;
+    const PARTSTAT_DELEGATED = 4;
+    const PARTSTAT_NEEDS_ACTION = 5;
+    
     private $properties = null;
     private $permission_user_id = null;
 
@@ -52,6 +58,11 @@ class CalendarEvent extends SimpleORMap implements Event
             'on_delete' => 'delete',
             'on_store' => 'store'
         );
+        $config['has_many']['attendees'] = array(
+            'class_name' => 'CalendarEvent',
+            'foreign_key' => 'event_id',
+            'assoc_foreign_key' => 'event_id'
+        );
         $config['additional_fields']['type'] = true;
         $config['additional_fields']['name'] = true;
         $config['additional_fields']['author_id'] = true;
@@ -59,10 +70,29 @@ class CalendarEvent extends SimpleORMap implements Event
         $config['additional_fields']['title'] = true;
         $config['additional_fields']['start'] = true;
         $config['additional_fields']['end'] = true;
+        $config['additional_fields']['owner']['get'] = 'getOwner';
 
         parent::configure($config);
     }
 
+    /**
+     * Returns the owner of this event as an object of type User, Course
+     * or Institute.
+     * 
+     * @return object
+     */
+    public function getOwner()
+    {
+        if ($this->user) {
+            return $this->user;
+        } else if ($this->course) {
+            return $this->course;
+        } else if ($this->institute) {
+            return $this->institute;
+        }
+        return null;
+    }
+    
     public static function deleteBySQL($where, $params = array())
     {
         $ret = parent::deleteBySQL($where, $params);
@@ -121,7 +151,31 @@ class CalendarEvent extends SimpleORMap implements Event
         }
         return $as_array ? $categories : implode(', ', $categories);
     }
-
+    
+    /**
+     * Returns the name of the group status.
+     * Returns an empty string status is unknown.
+     *
+     * @return string All categories as list.
+     */
+    public function toStringGroupStatus($status = null)
+    {
+        if (is_null($status)) {
+            $status = $this->group_status;
+        }
+        switch ($status) {
+            case CalendarEvent::PARTSTAT_TENTATIVE :
+                return _('Abwartend');
+            case CalendarEvent::PARTSTAT_ACCEPTED :
+                return _('Angenommen');
+            case CalendarEvent::PARTSTAT_DECLINED :
+                return _('Abgelehnt');
+            case CalendarEvent::PARTSTAT_DELEGATED :
+                return _('Angenommen (keine Teilnahme)');
+        }
+        return '';
+    }
+    
     /**
      * Returns all values that defines a recurrence rule or a single value
      * named by $index.
@@ -462,7 +516,7 @@ class CalendarEvent extends SimpleORMap implements Event
                 break;
             default:
                 $type = 'single';
-                $text = _("Der Termin wird nicht wiederholt.");
+                $text = _('Der Termin wird nicht wiederholt.');
         }
         return $only_type ? $type : $text;
     }
@@ -481,13 +535,13 @@ class CalendarEvent extends SimpleORMap implements Event
         }
         switch ($this->event->priority) {
             case 1:
-                return _("hoch");
+                return _('Hoch');
             case 2:
-                return _("mittel");
+                return _('Mittel');
             case 3:
-                return _("niedrig");
+                return _('Niedrig');
             default:
-                return _("keine Angabe");
+                return _('Keine Angabe');
         }
     }
 
@@ -503,11 +557,11 @@ class CalendarEvent extends SimpleORMap implements Event
                 $this->permission_user_id)) {
             switch ($this->event->class) {
                 case 'PUBLIC':
-                    return _('öffentlich');
+                    return _('Öffentlich');
                 case 'CONFIDENTIAL':
-                    return _('vertraulich');
+                    return _('Vertraulich');
                 default:
-                    return _('privat');
+                    return _('Privat');
             }
         }
         return '';
@@ -855,15 +909,16 @@ class CalendarEvent extends SimpleORMap implements Event
             case Calendar::PERMISSION_OWN :
             case Calendar::PERMISSION_ADMIN :
                 $options = array(
-                    'PUBLIC' => _('öffentlich'),
-                    'PRIVATE' => _('privat'),
-                    'CONFIDENTIAL' => _('vertraulich')
+                    // SEMBBS nur private und vertrauliche Termine
+                    'PUBLIC' => _('Öffentlich'),
+                    'PRIVATE' => _('Privat'),
+                    'CONFIDENTIAL' => _('Vertraulich')
                 );
                 break;
             case Calendar::PERMISSION_WRITABLE :
                 $options = array(
-                    'PRIVATE' => _('privat'),
-                    'CONFIDENTIAL' => _('vertraulich')
+                    'PRIVATE' => _('Privat'),
+                    'CONFIDENTIAL' => _('Vertraulich')
                 );
                 break;
             default :
@@ -987,7 +1042,8 @@ class CalendarEvent extends SimpleORMap implements Event
                 'DTSTAMP' => time(),
                 'EVENT_TYPE' => 'cal',
                 'STUDIP_AUTHOR_ID' => $this->event->author_id,
-                'STUDIP_EDITOR_ID' => $this->event->editor_id);
+                'STUDIP_EDITOR_ID' => $this->event->editor_id,
+                'STUDIP_GROUP_STATUS' => $this->group_status);
         }
         return $this->properties;
     }
@@ -1050,17 +1106,39 @@ class CalendarEvent extends SimpleORMap implements Event
         return $event_collection;
     }
 
+    /**
+     * Sets the user_id to check his permission.
+     * 
+     * @param string $user_id The id of the user.
+     */
     public function setPermissionUser($user_id)
     {
         $this->permission_user_id = $user_id;
     }
 
+    /**
+     * Checks the permission of the user previously set with
+     * CalendarEvent::setPermissisonUser or given by second argument.
+     * Returns true if the user have the at least the given permission.
+     * 
+     * @param int $permission
+     * @param string $user_id
+     * @return boolean
+     */
     public function havePermission($permission, $user_id = null)
     {
         $perm = $this->getPermission($user_id);
         return $perm >= $permission;
     }
 
+    /**
+     * Returns the permission of the given user or the user set by
+     * CalendarEvent::setPermssionUser previously.
+     * 
+     * @staticvar array $permissions
+     * @param string $user_id The user's id.
+     * @return int The permission.
+     */
     public function getPermission($user_id = null)
     {
         static $permissions = array();
@@ -1070,9 +1148,24 @@ class CalendarEvent extends SimpleORMap implements Event
         }
         if (!$permissions[$user_id][$this->event_id]) {
             if ($user_id == $this->event->author_id) {
-                $permissions[$user_id][$this->event_id] = Event::PERMISSION_WRITABLE;
-            } else if ($user_id == $this->range_id) {
-                $permissions[$user_id][$this->event_id] = Event::PERMISSION_WRITABLE;
+                $permissions[$user_id][$this->event_id] = Event::PERMISSION_OWN;
+            } else
+            
+            // SEMBBS
+            // Admins dürfen alle Termine löschen
+            /*
+            if ($GLOBALS['perm']->have_perm('admin')) {
+                $permissions[$user_id][$this->event_id] = Event::PERMISSION_DELETABLE;
+            } else 
+             * 
+             */
+            
+            if ($user_id == $this->range_id) {
+                if ($this->group_status) {
+                    $permissions[$user_id][$this->event_id] = Event::PERMISSION_READABLE;
+                } else {
+                    $permissions[$user_id][$this->event_id] = Event::PERMISSION_DELETABLE;
+                }
             } else {
                 switch ($this->getType()) {
                     case 'user':
@@ -1096,6 +1189,12 @@ class CalendarEvent extends SimpleORMap implements Event
         return $permissions[$user_id][$this->event_id];
     }
 
+    /**
+     * Get the user's permission for this event in the actual calendar.
+     * 
+     * @param string $user_id The user id.
+     * @return int The permission.
+     */
     private function getUserCalendarPermission($user_id)
     {
         $permission = Event::PERMISSION_FORBIDDEN;
@@ -1133,6 +1232,13 @@ class CalendarEvent extends SimpleORMap implements Event
         return $permission;
     }
 
+    /**
+     * Get the user's permission for this event in the actual calendar if the
+     * owner is a course.
+     * 
+     * @param string $user_id The user's id.
+     * @return int The permission.
+     */
     private function getCourseCalendarPermission($user_id)
     {
         global $perm;
@@ -1157,6 +1263,13 @@ class CalendarEvent extends SimpleORMap implements Event
         return $permission;
     }
 
+    /**
+     * Get the user's permission for this event in the actual calendar if the
+     * owner is an institute.
+     * 
+     * @param string $user_id The user's id.
+     * @return int The permssion.
+     */
     private function getInstituteCalendarPermission($user_id)
     {
         global $perm;
@@ -1180,18 +1293,24 @@ class CalendarEvent extends SimpleORMap implements Event
         return $permission;
     }
 
+    /**
+     * Returns the user id of the event's author.
+     * 
+     * @return string The user id of the author.
+     */
     public function getAuthor()
     {
         return $this->event->author;
     }
 
+    /**
+     * Returns teh user id of the event's last editor.
+     * 
+     * @return string The uder id og the editor.
+     */
     public function getEditor()
     {
         return $this->event->editor;
     }
-
-    public function getAttendees()
-    {
-        return self::findByEvent_id($this->event_id);
-    }
+    
 }

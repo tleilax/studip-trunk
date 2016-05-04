@@ -2,8 +2,8 @@
     <tr>
         <td colspan="3" style="text-align: center; vertical-align: middle;">
             <div style="text-align: left; display: inline-block; width: 20%; white-space: nowrap;">
-                <a <?= tooltip(_('ein Jahr zurück')) ?> href="<?= $controller->url_for('calendar/group/year', array('atime' => strtotime('-1 year', $atime))) ?>">
-                    <?= Assets::img('icons/16/blue/arr_2left.png', array('style' => 'vertical-align: text-bottom;')) ?>
+                <a href="<?= $controller->url_for('calendar/group/year', array('atime' => strtotime('-1 year', $atime))) ?>">
+                    <?= Icon::create('arr_2left', 'clickable', ['title' => _('Ein Jahr zurück')])->asImg(16, ['style' => 'vertical-align: text-bottom;']) ?>
                     <?= strftime('%Y', strtotime('-1 year', $atime)) ?>
                 </a>
             </div>
@@ -11,9 +11,9 @@
                 <?= date('Y', $calendars[0]->getStart()) ?>
             </div>
             <div style="text-align: right; display: inline-block; width: 20%; white-space: nowrap;">
-                <a <?= tooltip(_('ein Jahr vor')) ?> href="<?= $controller->url_for('calendar/group/year', array('atime' => strtotime('+1 year', $atime))) ?>">
+                <a href="<?= $controller->url_for('calendar/group/year', array('atime' => strtotime('+1 year', $atime))) ?>">
                     <?= strftime('%Y', strtotime('+1 year', $atime)) ?>
-                    <?= Assets::img('icons/16/blue/arr_2right.png', array('style' => 'vertical-align: text-bottom;')) ?>
+                    <?= Icon::create('arr_2right', 'clickable', ['title' => _('Ein Jahr vor')])->asImg(16, ['style' => 'vertical-align: text-bottom;']) ?>
                 </a>
             </div>
         </td>
@@ -58,7 +58,7 @@
                                 <td<?= $day_class ?>>
                             <? endif; ?>
                             <? $tooltip = $this->render_partial('calendar/group/_tooltip_year',
-                                    array('aday' => $aday, 'calendars' => $calendars, 'count_list' => $count_list)) ?> 
+                                    array('aday' => $aday, 'calendars' => $calendars, 'count_lists' => $count_lists)) ?> 
                             <? if (trim($tooltip)) : ?>
                                 <table style="width: 100%;">
                                     <tr>
@@ -92,7 +92,7 @@
                             <? if (trim($tooltip)) : ?>
                                         </td>
                                 <td<?= $day_class ?> style="text-align: right;" data-tooltip="">
-                                    <?= Assets::img('icons/16/blue/date.png', array('alt' => $event_count_txt, 'title' => $event_count_txt)); ?>
+                                    <?= Icon::create('date', 'clickable', ['title' => $event_count_txt])->asImg(16, ["alt" => $event_count_txt]); ?>
                                     <?= $tooltip ?>
                                 </td>
                             </tr>

@@ -56,7 +56,7 @@ class StudipNavigation extends Navigation
 
             // calendar and schedule page
             $this->addSubNavigation('calendar', new CalendarNavigation());
-            
+
             // search page
             $this->addSubNavigation('search', new SearchNavigation());
         }
@@ -73,11 +73,12 @@ class StudipNavigation extends Navigation
 
         // resource managment, if it is enabled
         if (get_config('RESOURCES_ENABLE')) {
+            require_once 'lib/resources/resourcesFunc.inc.php';
             //TODO: suboptimal, es sollte eine ResourcesNavigation geben
             $navigation = new Navigation(_('Ressourcen'), 'resources.php', array('view' => 'resources'));
 
-            if (is_object($user) && $perm->have_perm('admin')) {
-                $navigation->setImage('icons/lightblue/resources.svg', array('title' => _('Zur Ressourcenverwaltung')));
+            if (is_object($user) && (getGlobalPerms($user->id)=='admin' || checkAvailableResources($user->id))) {
+                $navigation->setImage(Icon::create('resources', 'navigation', ["title" => _('Zur Ressourcenverwaltung')]));
             }
 
             $this->addSubNavigation('resources', $navigation);
@@ -86,46 +87,19 @@ class StudipNavigation extends Navigation
         // quick links
         $links = new Navigation('Links');
 
-        // settings
-        if (is_object($user) && $perm->have_perm('autor')) {
-            $navigation = new Navigation(_('Einstellungen'));
-
-            $navigation->addSubNavigation('general', new Navigation(_('Allgemeines'), 'dispatch.php/settings/general'));
-            $navigation->addSubNavigation('privacy', new Navigation(_('Privatsphäre'), 'dispatch.php/settings/privacy'));
-            $navigation->addSubNavigation('messaging', new Navigation(_('Nachrichten'), 'dispatch.php/settings/messaging'));
-
-            if (get_config('CALENDAR_ENABLE')) {
-                $navigation->addSubNavigation('calendar_new', new Navigation(_('Terminkalender'), 'dispatch.php/settings/calendar'));
-            }
-
-            if (!$perm->have_perm('admin') and get_config('MAIL_NOTIFICATION_ENABLE')) {
-                $navigation->addSubNavigation('notification', new Navigation(_('Benachrichtigung'), 'dispatch.php/settings/notification'));
-            }
-
-            if (isDefaultDeputyActivated() && $perm->get_perm() == 'dozent') {
-                $navigation->addSubNavigation('deputies', new Navigation(_('Standardvertretung'), 'dispatch.php/settings/deputies'));
-            }
-
-            if (Config::Get()->API_ENABLED) {
-                $navigation->addSubNavigation('api', new Navigation(_('API-Berechtigungen'), 'dispatch.php/api/authorizations'));
-            }
-
-            $links->addSubNavigation('settings', $navigation);
-        }
-
         // login / logout
         if (is_object($user) && $user->id != 'nobody') {
             $links->addSubNavigation('logout', new Navigation(_('Logout'), 'logout.php'));
         } else {
             if (in_array('CAS', $GLOBALS['STUDIP_AUTH_PLUGIN'])) {
-                $links->addSubNavigation('login_cas', new Navigation(_('Login CAS'), 'index.php?again=yes&sso=cas'));
+                $links->addSubNavigation('login_cas', new Navigation(_('Login CAS'), Request::url(), array('again' => 'yes', 'sso' => 'cas')));
             }
 
             if (in_array('Shib', $GLOBALS['STUDIP_AUTH_PLUGIN'])) {
-                $links->addSubNavigation('login_shib', new Navigation(_('Login Shibboleth'), 'index.php?again=yes&sso=shib'));
+                $links->addSubNavigation('login_shib', new Navigation(_('Login Shibboleth'), Request::url(), array('again' => 'yes', 'sso' => 'shib')));
             }
 
-            $links->addSubNavigation('login', new Navigation(_('Login'), 'index.php?again=yes'));
+            $links->addSubNavigation('login', new Navigation(_('Login'), Request::url(), array('again' => 'yes')));
         }
 
         $this->addSubNavigation('links', $links);

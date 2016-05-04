@@ -83,7 +83,7 @@ class MyCoursesController extends AuthenticatedController
         $group_field                  = $GLOBALS['user']->cfg->MY_COURSES_GROUPING;
         $deputies_enabled             = Config::get()->DEPUTIES_ENABLE;
         $default_deputies_enabled     = Config::get()->DEPUTIES_DEFAULTENTRY_ENABLE;
-        $deputies_edit_about_enabledt = Config::get()->DEPUTIES_EDIT_ABOUT_ENABLE;
+        $deputies_edit_about_enabled  = Config::get()->DEPUTIES_EDIT_ABOUT_ENABLE;
         $studygroups_enabled          = Config::get()->MY_COURSES_ENABLE_STUDYGROUPS;
         $this->config_sem_number      = Config::get()->IMPORTANT_SEMNUMBER;
         $sem_create_perm              = (in_array(Config::get()->SEM_CREATE_PERM, array('root', 'admin',
@@ -117,7 +117,6 @@ class MyCoursesController extends AuthenticatedController
 
         $this->group_field = $group_field === 'not_grouped' ? 'sem_number' : $group_field;
 
-
         // Needed parameters for selecting courses
         $params = array('group_field'         => $this->group_field,
                         'order_by'            => $order_by,
@@ -135,7 +134,7 @@ class MyCoursesController extends AuthenticatedController
         $this->order                        = $order;
         $this->order_by                     = $order_by;
         $this->default_deputies_enabled     = $default_deputies_enabled;
-        $this->deputies_edit_about_enabledt = $deputies_edit_about_enabledt;
+        $this->deputies_edit_about_enabled  = $deputies_edit_about_enabled;
         $this->my_bosses                    = $default_deputies_enabled ? getDeputyBosses($GLOBALS['user']->id) : array();
 
         // Check for new contents
@@ -164,33 +163,29 @@ class MyCoursesController extends AuthenticatedController
 
         $sidebar = Sidebar::get();
         $sidebar->setImage('sidebar/seminar-sidebar.png');
+        $this->setSemesterWidget($sem);
         $setting_widget = new ActionsWidget();
 
         if ($new_contents) {
             $setting_widget->addLink(_('Alles als gelesen markieren'),
-                                     $this->url_for('my_courses/tabularasa/' . $sem . '/', time()),
-                                     'icons/16/blue/accept.png');
+                                     $this->url_for('my_courses/tabularasa/' . $sem . '/', time()), Icon::create('accept', 'clickable'));
         }
         $setting_widget->addLink(_('Farbgruppierung ändern'),
-                                 URLHelper::getLink($this->settings_url),
-                                 'icons/16/blue/group4.png',
+                                 URLHelper::getLink($this->settings_url), Icon::create('group4', 'clickable'),
                                  array('data-dialog' => ''));
 
         if (Config::get()->MAIL_NOTIFICATION_ENABLE) {
             $setting_widget->addLink(_('Benachrichtigungen anpassen'),
-                                     URLHelper::getLink('dispatch.php/settings/notification'),
-                                     'icons/16/blue/mail.png');
+                                     URLHelper::getLink('dispatch.php/settings/notification'), Icon::create('mail', 'clickable'));
         }
 
         if ($sem_create_perm == 'dozent' && $GLOBALS['perm']->have_perm('dozent')) {
             $setting_widget->addLink(_('Neue Veranstaltung anlegen'),
-                                     URLHelper::getLink('dispatch.php/course/wizard'),
-                                     'icons/16/blue/add/seminar.png');
+                                     URLHelper::getLink('dispatch.php/course/wizard'), Icon::create('seminar+add', 'clickable'));
         }
 
-        $setting_widget->addLink(_('Veranstaltung hinzufügen'), URLHelper::getLink('dispatch.php/search/courses'),'icons/16/blue/seminar.png');
+        $setting_widget->addLink(_('Veranstaltung hinzufügen'), URLHelper::getLink('dispatch.php/search/courses'), Icon::create('seminar', 'clickable'));
         $sidebar->addWidget($setting_widget);
-        $this->setSemesterWidget($sem);
         $this->setGroupingSelector($this->group_field);
     }
 
@@ -282,6 +277,7 @@ class MyCoursesController extends AuthenticatedController
         while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
             $my_sem[$row['Seminar_id']] = array(
                 'obj_type'       => 'sem',
+                'sem_nr'         => $row['sem_nr'],
                 'name'           => $row['Name'],
                 'visible'        => $row['visible'],
                 'gruppe'         => $row['gruppe'],
@@ -292,6 +288,7 @@ class MyCoursesController extends AuthenticatedController
             if ($group_field) {
                 fill_groups($groups, $row[$group_field], array(
                     'seminar_id' => $row['Seminar_id'],
+                    'sem_nr'     => $row['sem_nr'],
                     'name'       => $row['Name'],
                     'gruppe'     => $row['gruppe']
                 ));
@@ -409,7 +406,7 @@ class MyCoursesController extends AuthenticatedController
         if ($GLOBALS['perm']->have_perm('admin')) {
             throw new AccessDeniedException();
         }
-        PageLayout::postMessage(MessageBox::error(_('Das Abonnement ist bindend. Bitte wenden Sie sich an die Dozentin oder den Dozenten.')));
+        PageLayout::postMessage(MessageBox::error(_('Die Anmeldung ist verbindlich. Bitte wenden Sie sich an die Lehrenden.')));
         $this->redirect('my_courses/index');
     }
 
@@ -423,7 +420,7 @@ class MyCoursesController extends AuthenticatedController
         $ticket_check    = Seminar_Session::check_ticket(Request::option('studipticket'));
         if (LockRules::Check($course_id, 'participants')) {
             $lockdata = LockRules::getObjectRule($course_id);
-            PageLayout::postMessage(MessageBox::error(sprintf(_("Sie können das Abonnement der Veranstaltung <b>%s</b> nicht aufheben."),
+            PageLayout::postMessage(MessageBox::error(sprintf(_("Sie können sich nicht von der Veranstaltung <b>%s</b> abmelden."),
                 htmlReady($current_seminar->name))));
             if ($lockdata['description']) PageLayout::postMessage(MessageBox::info(formatLinks($lockdata['description'])));
             $this->redirect('my_courses/index');
@@ -439,7 +436,7 @@ class MyCoursesController extends AuthenticatedController
 
             if ($current_seminar->admission_binding && Request::get('cmd') != 'suppose_to_kill_admission' && !LockRules::Check($current_seminar->getId(), 'participants')) {
                 PageLayout::postMessage(MessageBox::error(sprintf(_("Die Veranstaltung <b>%s</b> ist als <b>bindend</b> angelegt.
-                    Wenn Sie sich austragen wollen, müssen Sie sich an die Dozentin oder den Dozenten der Veranstaltung wenden."),
+                    Wenn Sie sich abmelden wollen, müssen Sie sich an die Lehrende der Veranstaltung wenden."),
                     htmlReady($current_seminar->name))));
                 $this->redirect('my_courses/index');
                 return;
@@ -447,24 +444,24 @@ class MyCoursesController extends AuthenticatedController
 
             if (Request::get('cmd') == 'suppose_to_kill') {
                 // check course admission
-                list(,$admission_end_time) = array_values($current_seminar->getAdmissionTimeFrame());
+                list(,$admission_end_time) = @array_values($current_seminar->getAdmissionTimeFrame());
 
                 $admission_enabled = $current_seminar->isAdmissionEnabled();
                 $admission_locked   = $current_seminar->isAdmissionLocked();
 
                 if ($admission_enabled || $admission_locked || (int)$current_seminar->admission_prelim == 1) {
-                    $message = sprintf(_('Wollen Sie das Abonnement der teilnahmebeschränkten Veranstaltung "%s" wirklich aufheben? Sie verlieren damit die Berechtigung für die Veranstaltung und müssen sich ggf. neu anmelden!'), $current_seminar->name);
+                    $message = sprintf(_('Wollen Sie sich von der teilnahmebeschränkten Veranstaltung "%s" wirklich abmelden? Sie verlieren damit die Berechtigung für die Veranstaltung und müssen sich ggf. neu anmelden!'), $current_seminar->name);
                 } else if (isset($admission_end_time) && $admission_end_time < time()) {
-                    $message = sprintf(_('Wollen Sie das Abonnement der Veranstaltung "%s" wirklich aufheben? Der Anmeldzeitraum ist abgelaufen und Sie können sich nicht wieder anmelden!'), $current_seminar->name);
+                    $message = sprintf(_('Wollen Sie sich von der teilnahmebeschränkten Veranstaltung "%s" wirklich abmelden? Der Anmeldzeitraum ist abgelaufen und Sie können sich nicht wieder anmelden!'), $current_seminar->name);
                 } else {
-                    $message = sprintf(_('Wollen Sie das Abonnement der Veranstaltung "%s" wirklich aufheben?'), $current_seminar->name);
+                    $message = sprintf(_('Wollen Sie sich von der Veranstaltung "%s" wirklich abmelden?'), $current_seminar->name);
                 }
                 $this->flash['cmd'] = 'kill';
             } else {
                 if (admission_seminar_user_get_position($GLOBALS['user']->id, $course_id) === false) {
-                    $message = sprintf(_('Wollen Sie den Eintrag auf der Anmeldeliste der Veranstaltung "%s" wirklich aufheben?'), $current_seminar->name);
+                    $message = sprintf(_('Wollen Sie sich von der Anmeldeliste der Veranstaltung "%s" wirklich abmelden?'), $current_seminar->name);
                 } else {
-                    $message = sprintf(_('Wollen Sie den Eintrag auf der Warteliste der Veranstaltung "%s" wirklich aufheben? Sie verlieren damit die bereits erreichte Position und müssen sich ggf. neu anmelden!'), $current_seminar->name);
+                    $message = sprintf(_('Wollen Sie sich von der Warteliste der Veranstaltung "%s" wirklich abmelden? Sie verlieren damit die bereits erreichte Position und müssen sich ggf. neu anmelden!'), $current_seminar->name);
                 }
                 $this->flash['cmd'] = 'kill_admission';
             }
@@ -481,7 +478,7 @@ class MyCoursesController extends AuthenticatedController
                 $statement = DBManager::get()->prepare($query);
                 $statement->execute(array($GLOBALS['user']->id, $course_id));
                 if ($statement->rowCount() == 0) {
-                    PageLayout::postMessage(MessageBox::error(_('In der ausgewählten Veranstaltung wurde der/die gewünschte TeilnehmerIn nicht gefunden und konnte daher nicht ausgetragen werden.')));
+                    PageLayout::postMessage(MessageBox::error(_('In der ausgewählten Veranstaltung wurde die gesuchten Personen nicht gefunden und konnte daher nicht ausgetragen werden.')));
                 } else {
                     // LOGGING
                     StudipLog::log('SEM_USER_DEL', $course_id, $GLOBALS['user']->id, 'Hat sich selbst ausgetragen');
@@ -494,8 +491,7 @@ class MyCoursesController extends AuthenticatedController
                     // Are successor available
                     update_admission($course_id);
 
-                    PageLayout::postMessage(MessageBox::success(sprintf(_("Das Abonnement der Veranstaltung <b>%s</b> wurde aufgehoben.
-                        Sie sind nun nicht mehr als TeilnehmerIn dieser Veranstaltung im System registriert."),
+                    PageLayout::postMessage(MessageBox::success(sprintf(_("Erfolgreich von Veranstaltung <b>%s</b> abgemeldet."),
                         htmlReady($current_seminar->name))));
                 }
             } else {
@@ -629,6 +625,24 @@ class MyCoursesController extends AuthenticatedController
         }
 
         return false;
+    }
+
+    /**
+     * Remove yourself as default deputy of the given boss.
+     * @param $boss_id
+     */
+    public function delete_boss_action($boss_id)
+    {
+        if (deleteDeputy($GLOBALS['user']->id, $boss_id)) {
+            PageLayout::postSuccess(
+                sprintf(_('Sie wurden als Standardvertretung von %s entfernt.'),
+                User::find($boss_id)->getFullname()));
+        } else {
+            PageLayout::postError(
+                sprintf(_('Sie konnten nicht als Standardvertretung von %s entfernt werden.'),
+                User::find($boss_id)->getFullname()));
+        }
+        $this->redirect($this->url_for('my_courses'));
     }
 
     /**

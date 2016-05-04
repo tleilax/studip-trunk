@@ -20,7 +20,7 @@
             <td width="80%" class="sem_class_name">
                 <div>
                     <span class="name"><?= htmlReady($sem_class['name']) ?></span>
-                    <a href="#" class="sem_class_edit" onClick="jQuery(this).closest('td').children().toggle().find('input:visible').focus(); return false;"><?= Assets::img("icons/16/blue/edit", array('class' => "text-bottom")) ?></a>
+                    <a href="#" class="sem_class_edit" onClick="jQuery(this).closest('td').children().toggle().find('input:visible').focus(); return false;"><?= Icon::create('edit', 'clickable')->asImg(['class' => "text-bottom"]) ?></a>
                 </div>
                 <div class="name_input" style="display: none;">
                     <input id="sem_class_name" type="text" value="<?= htmlReady($sem_class['name']) ?>" onBlur="jQuery(this).closest('td').children().toggle().find('.name').text(this.value);">
@@ -35,7 +35,7 @@
                 <div>
                     <span class="description"><?= htmlReady($sem_class['description']) ?></span>
                     <a href="#" class="sem_class_edit" onClick="jQuery(this).closest('td').children().toggle().find('input:visible').focus(); return false;">
-                        <?= Assets::img('icons/16/blue/edit', array('class' => 'text-bottom')) ?></a>
+                        <?= Icon::create('edit', 'clickable')->asImg(['class' => 'text-bottom']) ?></a>
                 </div>
                 <div class="description_input" style="display: none;">
                     <input id="sem_class_description" type="text" value="<?= htmlReady($sem_class['description']) ?>" onBlur="jQuery(this).closest('td.sem_class_name').children().toggle().find('.description').text(this.value);" style="width: 80%;">
@@ -55,11 +55,11 @@
                 <div class="add">
                     <div style="display: none; margin-left: 37px;">
                         <input type="text" id="new_sem_type" onBlur="if (!this.value) jQuery(this).closest('.add').children().toggle();">
-                        <a href="" onClick="STUDIP.admin_sem_class.add_sem_type(); return false;"><?= Assets::img("icons/16/yellow/arr_2up", array('class' => "text-bottom", "title" => _("hinzufügen"))) ?></a>
+                        <a href="" onClick="STUDIP.admin_sem_class.add_sem_type(); return false;"><?= Icon::create('arr_2up', 'sort')->asImg(['class' => "text-bottom", "title" => _("hinzufügen")]) ?></a>
                     </div>
                     <div style="margin-left: 21px;">
                         <a href="#" onClick="jQuery(this).closest('.add').children().toggle(); jQuery('#new_sem_type').focus(); return false;">
-                            <?= Assets::img("icons/16/blue/add", array('class' => "text-bottom", "title" => _("Veranstaltungstyp hinzufügen"))) ?>
+                            <?= Icon::create('add', 'clickable')->asImg(['class' => "text-bottom", "title" => _("Veranstaltungstyp hinzufügen")]) ?>
                         </a>
                     </div>
                 </div>
@@ -158,7 +158,11 @@
             <td><label for="show_browse"><?= _("Zeige im Veranstaltungsbaum an.") ?></label></td>
             <td><input type="checkbox" id="show_browse" value="1"<?= $sem_class['show_browse'] ? " checked" : "" ?>></td>
         </tr>
-
+		<tr class="sub">
+            <td><label for="show_raumzeit"><?= _("Zeige Raum-Zeit-Seite an.") ?></label></td>
+            <td><input type="checkbox" id="show_raumzeit" value="1"<?= $sem_class['show_raumzeit'] ? " checked" : "" ?>></td>
+        </tr>
+        
         <tr>
             <td colspan="2"><h3><?= _("Sonstiges") ?></h3></td>
         </tr>
@@ -287,13 +291,13 @@
 <div id="sem_type_delete_question" style="display: none;">
     <p class="info"><?= _("Wirklich den Veranstaltungstyp löschen?") ?></p>
     <input type="hidden" id="sem_type_for_deletion">
-    <?= Studip\LinkButton::create(_("löschen"), array('onclick' => "STUDIP.admin_sem_class.delete_sem_type(); return false;")) ?>
-    <?= Studip\LinkButton::create(_("abbrechen"), array('onclick' => "jQuery(this).closest('#sem_type_delete_question').dialog('close'); return false;")) ?>
+    <?= Studip\LinkButton::create(_("Löschen"), array('onclick' => "STUDIP.admin_sem_class.delete_sem_type(); return false;")) ?>
+    <?= Studip\LinkButton::create(_("Abbrechen"), array('onclick' => "jQuery(this).closest('#sem_type_delete_question').dialog('close'); return false;")) ?>
 </div>
 
 
 
 <?
 $sidebar = Sidebar::Get();
-$sidebar->setTitle(_(PageLayout::getTitle()));
+$sidebar->setTitle(PageLayout::getTitle());
 $sidebar->setImage('sidebar/plugin-sidebar.png');

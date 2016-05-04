@@ -492,7 +492,7 @@ function getEvalPath(){
     $path .= "<a class=\"tree\" href=\""
         . URLHelper::getLink($this->getSelf("itemID=root"))
         . "\">"
-#       . Assets::img("icons/16/red/arr_1right.png")
+#       . Icon::create('arr_1right', 'attention')->asImg()
 #       . "width=\"10\" hight=\"20\">"
 #       . "&nbsp;"
         . _("Evaluation")
@@ -1213,7 +1213,7 @@ function execCommandUpdateItem ( $no_delete = false ){
     $title = Request::get('title');
     if ($title == "" && $mode != QUESTION_BLOCK)
         $title = _("Kein Titel angegeben.");
-    $text = trim(Request::get('text'));
+    $text = Studip\Markup::purifyHtml(trim(Request::get('text')));
 
     switch ($mode){
      case ROOT_BLOCK:
@@ -2370,7 +2370,7 @@ function createTitleInput($mode = ROOT_BLOCK){
 
     $td = new HTML ("td");
 
-    $textarea = "<br><textarea class=\"add_toolbar\" name=\"text\" rows=\"4\" "
+    $textarea = "<br><textarea class=\"add_toolbar wysiwyg\" name=\"text\" rows=\"4\" "
         . "style=\"vertical-align:top; width: 100%;\">";
     $textarea .=($text)
             ? $text

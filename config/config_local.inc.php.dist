@@ -4,7 +4,7 @@
 you find here the basic system settings. You shouldn't have to touch much of them...
 please note the CONFIG.INC.PHP for the indivual settings of your installation!*/
 
-$UNI_NAME_CLEAN = 'Stud.IP 3.2';                           //the clean-name of your master-faculty (e.g. University of Göttingen), without html-entities (used for mail-system)
+$UNI_NAME_CLEAN = 'Stud.IP 3.4';                           //the clean-name of your master-faculty (e.g. University of Göttingen), without html-entities (used for mail-system)
 $STUDIP_INSTALLATION_ID='demo-installation';      //unique identifier for installation
 
 
@@ -86,6 +86,9 @@ if ($ASSETS_URL[0] === '/') {
 // absolute filesystem path to the plugin packages
 $PLUGINS_PATH = $ABSOLUTE_PATH_STUDIP . 'plugins_packages';
 
+// absolute filesystem path to the plugin assets
+$PLUGIN_ASSETS_PATH = $STUDIP_BASE_PATH . '/data/assets_cache';
+
 // path to uploaded documents (wwwrun needs write-perm there)
 $UPLOAD_PATH = $STUDIP_BASE_PATH . "/data/upload_doc";
 
@@ -137,8 +140,6 @@ $CACHE_IS_SESSION_STORAGE = false;                 //store session data in cache
 ----------------------------------------------------------------
 enable or disable the Stud.IP internal modules, set and basic settings*/
 
-$CALENDAR_DRIVER = "MySQL";                                 //calendar driver: database to use (MySQL in default installation)*/
-
 $XSLT_ENABLE = TRUE;
 $FOP_ENABLE = TRUE;
 $FOP_SH_CALL = "/usr/local/fop-0.20.5rc/fop.sh";                        //path to fop
@@ -169,14 +170,14 @@ $ELEARNING_INTERFACE_MODULES = array(
                         "password" => "<password>",
                         "client" => "<ilias client id>"),
         "types" => array(
-                   "webr" => array("name" => "ILIAS-Link", "icon" => "icons/16/grey/learnmodule.png"),
-                   "htlm" => array("name" => "HTML-Lerneinheit", "icon" => "icons/16/grey/learnmodule.png"),
-                   "sahs" => array("name" => "SCORM/AICC-Lerneinheit", "icon" => "icons/16/grey/learnmodule.png"),
-                   "lm" => array("name" => "ILIAS-Lerneinheit", "icon" => "icons/16/grey/learnmodule.png"),
-                   "glo" => array("name" => "ILIAS-Glossar", "icon" => "icons/16/grey/learnmodule.png"),
-                   "tst" => array("name" => "ILIAS-Test", "icon" => "icons/16/grey/learnmodule.png"),
-                   "svy" => array("name" => "ILIAS-Umfrage", "icon" => "icons/16/grey/learnmodule.png"),
-                   "exc" => array("name" => "ILIAS-Übung", "icon" => "icons/16/grey/learnmodule.png")
+                   "webr" => array("name" => "ILIAS-Link", "icon" => "learnmodule"),
+                   "htlm" => array("name" => "HTML-Lerneinheit", "icon" => "learnmodule"),
+                   "sahs" => array("name" => "SCORM/AICC-Lerneinheit", "icon" => "learnmodule"),
+                   "lm" => array("name" => "ILIAS-Lerneinheit", "icon" => "learnmodule"),
+                   "glo" => array("name" => "ILIAS-Glossar", "icon" => "learnmodule"),
+                   "tst" => array("name" => "ILIAS-Test", "icon" => "learnmodule"),
+                   "svy" => array("name" => "ILIAS-Umfrage", "icon" => "learnmodule"),
+                   "exc" => array("name" => "ILIAS-Übung", "icon" => "learnmodule")
                    ),
         "global_roles" => array(4,5,14), // put here the ilias role-ids for User, Guest and Anonymous
         "roles" =>  array(
@@ -217,7 +218,7 @@ $ELEARNING_INTERFACE_MODULES["pmwiki-farm"] =   array(
               "api-key" => "<api-key for wiki webservices>",
             ),
                         "types" =>  array(
-              "wiki" => array("name" => "PmWiki-Lernmodul", "icon" => "assets/images/icons/16/grey/learnmodule.png"),
+              "wiki" => array("name" => "PmWiki-Lernmodul", "icon" => "learnmodule"),
             )
 );
 
@@ -300,9 +301,6 @@ $ENABLE_EMAIL_ATTACHMENTS = TRUE;                               // enable attach
 this are some settings to activate some special features, special
 behaviour of some features and other advanced options. Change on your
 own risk :) */
-
-$ALLOW_GROUPING_SEMINARS = TRUE;            //if true, administrators can group seminars - students
-                                            //will only be able to register for one of the grouped seminars
 
 $ALLOW_SELFASSIGN_STUDYCOURSE = TRUE;       //if true, students are allowed to set or change
                                             //their studycourse (studiengang)
@@ -534,7 +532,6 @@ $ALLOW_CHANGE_TITLE = TRUE;                 //if true, users are allowed to chan
 $ENABLE_SELF_REGISTRATION = TRUE;               //should it be possible for an user to register himself
 
 $ENABLE_REQUEST_NEW_PASSWORD_BY_USER = TRUE;            //if true, users are able to request a new password themselves
-$REQUEST_NEW_PASSWORD_SECRET = 'jh*d ajshHuwd7z237zd hGfaMhlf'; // if the above feature is used, set this to somthing different!!!
 $PHPASS_USE_PORTABLE_HASH = false;           //use portable (less secure) hashing algo for passwords
 
 $ENABLE_FREE_ACCESS = TRUE;                 //if true, courses with public access are available

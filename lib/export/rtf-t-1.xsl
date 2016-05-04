@@ -11,7 +11,7 @@
 \par</xsl:text>
 				<xsl:if test="personen">
 			<xsl:text>
-\par\fs28 TeilnehmerInnenliste
+\par\fs28 Teilnehmendenliste
 \par
 \par\trowd \trgaph70\trleft-70\trbrdrt\brdrs\brdrw10 \trbrdrl\brdrs\brdrw10 \trbrdrb\brdrs\brdrw10 \trbrdrr\brdrs\brdrw10 \trbrdrh\brdrs\brdrw10 \trbrdrv\brdrs\brdrw10 \clvertalt\clbrdrt\brdrs\brdrw10 \clbrdrl\brdrs\brdrw10 \clbrdrb\brdrs\brdrw10 \clbrdrr
 \brdrs\brdrw10 \cltxlrtb \cellx2233\clvertalt\clbrdrt\brdrs\brdrw10 \clbrdrl\brdrs\brdrw10 \clbrdrb\brdrs\brdrw10 \clbrdrr\brdrs\brdrw10 \cltxlrtb \cellx4536\clvertalt\clbrdrt\brdrs\brdrw10 \clbrdrl\brdrs\brdrw10 \clbrdrb\brdrs\brdrw10 \clbrdrr
@@ -60,9 +60,9 @@
 					<xsl:value-of select="titel"/>
 					<xsl:text> </xsl:text>
 				</xsl:if>
-				<xsl:value-of select="vorname"/>
-				<xsl:text> </xsl:text>
 				<xsl:value-of select="nachname"/>
+				<xsl:text>, </xsl:text>
+				<xsl:value-of select="vorname"/>
 				<xsl:if test="titel2">
 					<xsl:text> </xsl:text>
 					<xsl:value-of select="titel2"/>

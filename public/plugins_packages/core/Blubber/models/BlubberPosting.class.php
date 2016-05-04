@@ -21,6 +21,9 @@ class BlubberPosting extends SimpleORMap {
     //regexp for hashtags
     static public $hashtags_regexp = "(^|\s)\#([\w\d_\.\-\?!\+=%]*[\w\d])";
 
+    // Storage for formatted content for performance reasons
+    protected $formatted_content = null;
+
     /**
      * Special format-function that adds hashtags to the common formatReady-markup.
      * @param string $text : original text with studip-markup plus hashtags
@@ -30,6 +33,7 @@ class BlubberPosting extends SimpleORMap {
         StudipFormat::addStudipMarkup("blubberhashtag", BlubberPosting::$hashtags_regexp, null, "BlubberPosting::markupHashtags");
         $output = formatReady($text);
         StudipFormat::removeStudipMarkup("blubberhashtag");
+
         return $output;
     }
 
@@ -57,7 +61,7 @@ class BlubberPosting extends SimpleORMap {
      * @return string
      */
     static public function mention($markup, $matches) {
-        $mention = $matches[0];
+        $mention = $matches[1];
         $posting = new BlubberPosting(self::$mention_posting_id);
         $username = stripslashes(substr($mention, 1));
         if ($username[0] !== '"') {
@@ -97,7 +101,7 @@ class BlubberPosting extends SimpleORMap {
                 'topic_id' => $posting['root_id'],
                 'extern' => is_a($user, "BlubberExternalContact") ? 1 : 0
             ));
-            return '['.$user->getName().']'.$user->getURL().' ';
+            return str_replace($matches[1], '['.$user->getName().']'.$user->getURL().' ', $matches[0]);
         } else {
             return $markup->quote($matches[0]);
         }
@@ -182,6 +186,28 @@ class BlubberPosting extends SimpleORMap {
         $this->db_table = "blubber";
         $this->registerCallback('after_store', 'synchronizeHashtags');
         parent::__construct($id);
+    }
+
+    /**
+     * @return String containing the formatted content
+     */
+    public function getContent()
+    {
+        if ($this->formatted_content === null) {
+            $content = $this->description;
+            if ($this->isThread() && $this->name && strpos($this->description, $this->name) === false) {
+                $content = $this->name . "\n" . $content;
+            }
+
+            $this->formatted_content = self::format($content);
+        }
+
+        return $this->formatted_content;
+    }
+
+    public function getOpenGraphURLs()
+    {
+        return OpenGraph::extract($this->description);
     }
 
     /**

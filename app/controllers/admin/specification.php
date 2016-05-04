@@ -57,13 +57,13 @@ class Admin_SpecificationController extends AuthenticatedController
         $user_field = 'user';
         $semdata_field = 'usersemdata';
         $this->semFields = AuxLockRules::getSemFields();
-        $this->entries_user = DataFieldStructure::getDataFieldStructures($user_field);
-        $this->entries_semdata = DataFieldStructure::getDataFieldStructures($semdata_field);
+        $this->entries_user = DataField::getDataFields($user_field);
+        $this->entries_semdata = DataField::getDataFields($semdata_field);
         $this->rule = (is_null($id)) ? false : AuxLockRules::getLockRuleByID($id);
 
         if ($GLOBALS['perm']->have_perm('root') && count($this->entries_semdata) == 0) {
             $this->flash['info'] = sprintf(_('Sie müssen zuerst im Bereich %sDatenfelder%s in der Kategorie '
-            .'<i>Datenfelder für Nutzer-Zusatzangaben in Veranstaltungen</i> einen neuen Eintrag erstellen.'),
+            .'<i>Datenfelder für Personenzusatzangaben in Veranstaltungen</i> einen neuen Eintrag erstellen.'),
             '<a href="' . URLHelper::getLink('dispatch.php/admin/datafields') . '">', '</a>');
         }
 

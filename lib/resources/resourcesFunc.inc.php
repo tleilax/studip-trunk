@@ -743,6 +743,8 @@ function search_administrable_objects($search_string='', $user_id='', $sem=TRUE)
         $search_sql['user']     = "username LIKE CONCAT('%', :needle, '%') OR
                                    Vorname LIKE CONCAT('%', :needle, '%') OR
                                    Nachname LIKE CONCAT('%', :needle, '%') OR
+                                   CONCAT(Nachname, ', ', Vorname) LIKE CONCAT('%', :needle, '%') OR
+                                   CONCAT(Vorname, ' ', Nachname) LIKE CONCAT('%', :needle, '%') OR
                                    auth_user_md5.user_id = :needle";
         $search_sql['institut'] = "Name LIKE CONCAT('%', :needle, '%') OR
                                    Institute.Institut_id = :needle";
@@ -999,6 +1001,8 @@ function search_admin_user ($search_string='')
               WHERE username LIKE CONCAT('%', :needle, '%')
                  OR Vorname LIKE CONCAT('%', :needle, '%')
                  OR Nachname LIKE CONCAT('%', :needle, '%')
+                 OR CONCAT(Nachname, ', ', Vorname) LIKE CONCAT('%', :needle, '%')
+                 OR CONCAT(Vorname, ' ', Nachname) LIKE CONCAT('%', :needle, '%')
                  OR a.user_id = :needle
               ORDER BY Nachname";
     $statement = DBManager::get()->prepare($query);
@@ -1016,7 +1020,6 @@ search_objects searches in all objects
 function search_objects($search_string = '', $user_id = '', $sem = TRUE)
 {
     global $_fullname_sql;
-
     $queries = array();
 
     //Alle Personen...
@@ -1029,6 +1032,8 @@ function search_objects($search_string = '', $user_id = '', $sem = TRUE)
                   WHERE username LIKE CONCAT('%', :needle, '%')
                      OR Vorname LIKE CONCAT('%', :needle, '%')
                      OR Nachname LIKE CONCAT('%', :needle, '%')
+                     OR CONCAT(Nachname, ', ', Vorname) LIKE CONCAT('%', :needle, '%')
+                     OR CONCAT(Vorname, ' ', Nachname) LIKE CONCAT('%', :needle, '%')
                      OR user_id = :needle
                   ORDER BY Nachname";
 
@@ -1109,4 +1114,15 @@ function getResourcesCategories()
 {
     $query = "SELECT * FROM resources_categories ORDER BY name";
     return DBManager::get()->query($query)->fetchAll(PDO::FETCH_ASSOC);
+}
+
+/**
+ * Checks if current user has global access to resource occupation plans.
+ * @return bool
+ */
+function hasGlobalOccupationAccess()
+{
+    return (Config::get()-> RESOURCES_ALLOW_VIEW_RESOURCE_OCCUPATION ||
+        $GLOBALS['perm']->have_perm('admin') ||
+        getGlobalPerms($GLOBALS['user']->id) == 'admin');
 }

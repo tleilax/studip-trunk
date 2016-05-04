@@ -22,7 +22,7 @@
 
     .ui-dialog-titlebar-close {
         .square(32px);
-        background: @brand-color-darker;
+        background: inherit;
         border: 0;
         line-height:32px;
         margin-top:-16px;
@@ -31,14 +31,14 @@
 
         &:hover {
             .square(32px);
-            background: @brand-color-darker;
+            background: inherit;
             border: 0;
             margin-top:-16px;
             padding: 0;
         }
         .ui-icon {
             .square(16px);
-            .retina-background-icon('white/decline.png');
+            .background-icon('decline', 'info_alt');
             background-position: 0;
             display:inline-block;
             margin: 0;
@@ -48,7 +48,7 @@
             top: 1px;
 
             &:hover{
-                .retina-background-icon('white/decline.png');
+              .background-icon('decline', 'info_alt');
             }
         }
     }
@@ -71,13 +71,16 @@
             &.accept, &.cancel {
                 padding-right: 23px;
             }
+            &:last-child {
+                margin-right: 0;
+            }
 
             &.accept {
-              .button-with-icon("blue/accept.png", "white/accept.png");
+              .button-with-icon("accept", "clickable", "info_alt");
             }
 
             &.cancel {
-                .button-with-icon("blue/decline.png", "white/decline.png");
+              .button-with-icon("decline", "clickable", "info_alt");
             }
 
             &:before {
@@ -93,7 +96,7 @@
     }
 }
 .ui-dialog-titlebar-wiki {
-    .retina-background-icon('white/question-circle.png', 24);
+    .background-icon('question-circle', 'info_alt', 24);
     background-position: center;
     background-repeat: no-repeat;
     display: inline-block;
@@ -148,3 +151,32 @@
     }
 }
 
+// Confirmation dialog (like createQuestion)
+.ui-dialog.studip-confirmation {
+    min-width: 30em;
+
+    .ui-dialog-titlebar {
+        background-color: @yellow;
+        color: black;
+        text-align: left;
+    }
+    .ui-dialog-titlebar-close .ui-icon {
+        &, &:hover {
+            .background-icon('decline', 'clickable');
+        }
+    }
+
+    .ui-dialog-content {
+        .box-sizing(border-box);
+        .background-icon('question-circle-full', 'status-yellow');
+        background-position: 12px 8px;
+        background-repeat: no-repeat;
+        background-size: 32px 32px;
+        font-weight: bold;
+        padding: 15px 15px 15px 55px;
+        text-align: left;
+    }
+    .ui-dialog-buttonset > * {
+        display: inline-block;
+    }
+}

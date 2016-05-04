@@ -44,7 +44,7 @@ class Admin_BannerController extends AuthenticatedController
             'url'     => _('URL'),
             'seminar' => _('Veranstaltung'),
             'inst'    => _('Einrichtung'),
-            'user'    => _('Benutzer'),
+            'user'    => _('Person'),
             'none'    => _('Kein Verweis'),
         );
 
@@ -156,7 +156,7 @@ class Admin_BannerController extends AuthenticatedController
                 break;
                 case 'user':
                     if (User::findByUsername($target) === null) {
-                        $errors[] = _('Der angegebene Benutzername existiert nicht.');
+                        $errors[] = _('Der angegebene Username existiert nicht.');
                     }
                 break;
                 case 'seminar':
@@ -424,8 +424,8 @@ class Admin_BannerController extends AuthenticatedController
         $sidebar->setImage('sidebar/admin-sidebar.png');
 
         $actions = new ActionsWidget();
-        $actions->addLink(_('Übersicht'), $this->url_for('admin/banner'),'icons/16/blue/visibility-visible.png');
-        $actions->addLink(_('Neues Banner anlegen'), $this->url_for('admin/banner/new'),'icons/16/blue/add.png');
+        $actions->addLink(_('Übersicht'), $this->url_for('admin/banner'), Icon::create('visibility-visible', 'clickable'));
+        $actions->addLink(_('Neues Banner anlegen'), $this->url_for('admin/banner/new'), Icon::create('add', 'clickable'));
 
         $sidebar->addWidget($actions);
     }

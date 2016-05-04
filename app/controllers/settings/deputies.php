@@ -32,8 +32,7 @@ class Settings_DeputiesController extends Settings_SettingsController
 
         PageLayout::setHelpKeyword('Basis.MyStudIPDeputies');
         PageLayout::setTitle(_('Standardvertretung'));
-        Navigation::activateItem('/links/settings/deputies');
-        PageLayout::setTabNavigation('/links/settings');
+        Navigation::activateItem('/profile/settings/deputies');
         SkipLinks::addIndex(_('Standardvertretung'), 'main_content', 100);
 
         $this->edit_about_enabled = get_config('DEPUTIES_EDIT_ABOUT_ENABLE');
@@ -89,7 +88,7 @@ class Settings_DeputiesController extends Settings_SettingsController
             ->setSearchObject($this->search)
             ->setNavigationItem('/links/settings/deputies')
             ->render();
-        $element = LinkElement::fromHTML($mp, 'icons/16/blue/add/community.png');
+        $element = LinkElement::fromHTML($mp, Icon::create('community+add', 'clickable'));
         $actions->addElement($element);
         Sidebar::Get()->addWidget($actions);
     }

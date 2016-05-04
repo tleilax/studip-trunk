@@ -98,6 +98,49 @@ class SemClass implements ArrayAccess
     }
 
     /**
+     * Generates a dummy SemClass for institutes of this type (as defined in config.inc.php).
+     * @param integer $type   institute type
+     * @return SemClass
+     */
+    static public function getDefaultInstituteClass($type)
+    {
+        global $INST_MODULES;
+
+        // fall back to 'default' if modules are not defined
+        $type = isset($INST_MODULES[$type]) ? $type : 'default';
+
+        $data = array(
+            'name'                => 'Generierte Standardinstitutsklasse',
+            'visible'             => 1,
+            'overview'            => 'CoreOverview', // always available
+            'admin'               => 'CoreAdmin'     // always available
+        );
+        $slots = array(
+            'forum'               => 'CoreForum',
+            'documents'           => 'CoreDocuments',
+            'literature'          => 'CoreLiterature',
+            'scm'                 => 'CoreScm',
+            'wiki'                => 'CoreWiki',
+            'resources'           => 'CoreResources',
+            'calendar'            => 'CoreCalendar',
+            'elearning_interface' => 'CoreElearningInterface',
+            'personal'            => 'personal'
+        );
+        $modules = array(
+            'CoreOverview'        => array('activated' => 1, 'sticky' => 1),
+            'CoreAdmin'           => array('activated' => 1, 'sticky' => 1)
+        );
+
+        foreach ($slots as $slot => $module) {
+            $data[$slot] = $module;
+            $modules[$module] = array('activated' => (int) $INST_MODULES[$type][$slot], 'sticky' => 0);
+        }
+        $data['modules'] = json_encode($modules);
+
+        return new SemClass($data);
+    }
+
+    /**
      * Constructor can be set with integer of sem_class_id or an array of
      * the old $SEM_CLASS style.
      * @param integer | array $data
@@ -344,6 +387,7 @@ class SemClass implements ArrayAccess
                 "title_autor_plural = :title_autor_plural, " .
                 "admission_prelim_default = :admission_prelim_default, " .
                 "admission_type_default = :admission_type_default, " .
+                "show_raumzeit = :show_raumzeit, " .
                 "chdate = UNIX_TIMESTAMP() " .
             "WHERE id = :id ".
         "");
@@ -397,7 +441,8 @@ class SemClass implements ArrayAccess
                 ? $this->data['title_autor_plural']
                 : null,
             'admission_prelim_default' => (int)$this->data['admission_prelim_default'],
-            'admission_type_default' => (int)$this->data['admission_type_default']
+            'admission_type_default' => (int)$this->data['admission_type_default'],
+            'show_raumzeit' => (int) $this->data['show_raumzeit']
         ));
     }
 

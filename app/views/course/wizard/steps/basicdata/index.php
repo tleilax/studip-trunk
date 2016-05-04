@@ -3,8 +3,8 @@
         <?= _('Grunddaten') ?>
     </h1>
 </header>
-<section class="required">
-    <label for="wizard-coursetype">
+<section>
+    <label for="wizard-coursetype" class="required">
         <?= _('Typ') ?>
     </label>
     <select name="coursetype" id="wizard-coursetype">
@@ -19,8 +19,8 @@
         <?php } ?>
     </select>
 </section>
-<section class="required">
-    <label for="wizard-start-time">
+<section>
+    <label for="wizard-start-time" class="required">
         <?= _('Semester') ?>
     </label>
     <select name="start_time" id="wizard-start-time" >
@@ -31,23 +31,29 @@
         <?php } ?>
     </select>
 </section>
-<section class="required">
-    <label for="wizard-name">
+<section>
+    <label for="wizard-name" class="required">
         <?= _('Name') ?>
     </label>
-    <input type="text" name="name" id="wizard-name" size="75" maxlength="254" value="<?= $values['name'] ?>"/>
+    <input type="text" name="name" id="wizard-name" size="75" maxlength="254" value="<?= htmlReady($values['name']) ?>"/>
 </section>
 <section>
     <label for="wizard-number">
         <?= _('Veranstaltungsnummer') ?>
     </label>
-    <input type="text" name="number" id="wizard-number" size="20" maxlength="99" value="<?= $values['number'] ?>"/>
+    <input type="text" name="number" id="wizard-number" size="20" maxlength="99" value="<?= htmlReady($values['number']) ?>"/>
 </section>
-<section class="required">
-    <label for="wizard-home-institute">
+<section>
+    <label for="wizard-description">
+        <?= _('Beschreibung') ?>
+    </label>
+    <textarea name="description" id="wizard-description" cols="75" rows="4"><?= htmlReady($values['description']) ?></textarea>
+</section>
+<section>
+    <label for="wizard-home-institute" class="required">
         <?= _('Heimateinrichtung') ?>
     </label>
-    <select name="institute" id="wizard-home-institute" onchange="STUDIP.CourseWizard.getLecturerSearch()"
+    <select name="institute" id="wizard-home-institute"
             data-ajax-url="<?= URLHelper::getLink('dispatch.php/course/wizard/ajax') ?>">
         <?php
         $fak_id = '';
@@ -63,8 +69,7 @@
             </option>
         <?php endforeach ?>
     </select>
-    <?= Assets::input('icons/yellow/arr_2right.svg',
-        array('name' => 'select_institute', 'value' => '1', 'class' => 'hidden-js')) ?>
+    <?= Icon::create('arr_2right', 'sort')->asInput(["name" => 'select_institute', "value" => '1', "class" => 'hidden-js']) ?>
 </section>
 <section>
     <label for="part_inst_id_1">
@@ -74,8 +79,7 @@
         <?= $instsearch ?>
     </div>
     <?php if ($values['part_inst_id_parameter']) : ?>
-        <?= Assets::input('icons/yellow/arr_2down.svg',
-            array('name' => 'add_part_inst', 'value' => '1')) ?>
+        <?= Icon::create('arr_2down', 'sort')->asInput(["name" => 'add_part_inst', "value" => '1']) ?>
     <?php endif ?>
     <div id="wizard-participating">
         <div class="description<?= count($values['participating']) ? '' : ' hidden-js' ?>">
@@ -89,18 +93,17 @@
         <?php endforeach ?>
     </div>
 </section>
-<section class="required" for="lecturer_id_parameter">
-    <label for="lecturer_id_2">
-        <?= _('Dozent/-innen') ?>
+<section >
+    <label for="lecturer_id_2" class="required">
+        <?= _('Lehrende') ?>
     </label>
     <div id="wizard-lecturersearch">
         <?= $lsearch ?>
     </div>
     <?php if ($values['lecturer_id_parameter']) : ?>
-        <?= Assets::input('icons/yellow/arr_2down.svg',
-            array('name' => 'add_lecturer', 'value' => '1')) ?>
+        <?= Icon::create('arr_2down', 'sort')->asInput(["name" => 'add_lecturer', "value" => '1']) ?>
     <?php endif ?>
-    <div id="wizard-lecturers">
+    <div id="wizard-lecturers" data-ajax-url="<?= $ajax_url ?>" data-default-enabled="<?= $default_deputies_enabled ?>">
         <div class="description<?= count($values['lecturers']) ? '' : ' hidden-js' ?>">
             <?= _('bereits zugeordnet:') ?>
         </div>
@@ -121,14 +124,13 @@
         <?= $dsearch ?>
     </div>
     <?php if ($values['deputy_id_parameter']) : ?>
-        <?= Assets::input('icons/yellow/arr_2down.svg',
-            array('name' => 'add_deputy', 'value' => '1')) ?>
+        <?= Icon::create('arr_2down', 'sort')->asInput(["name" => 'add_deputy', "value" => '1']) ?>
     <?php endif ?>
     <div id="wizard-deputies">
         <div class="description<?= count($values['deputies']) ? '' : ' hidden-js' ?>">
             <?= _('bereits zugeordnet:') ?>
         </div>
-        <?php foreach ($values['deputies'] as $id) : ?>
+        <?php foreach ($values['deputies'] as $id => $assigned) : ?>
             <?php if ($user = User::find($id)) : ?>
                 <?php if (!in_array($id, array_keys($values['lecturers']))) : ?>
                     <?= $this->render_partial('basicdata/_user',
@@ -139,3 +141,25 @@
     </div>
 </section>
 <?php endif ?>
+<section for="tutor_id_parameter">
+    <label for="tutor_id_2">
+        <?= _('Tutor/-in') ?>
+    </label>
+    <div id="wizard-tutorsearch">
+        <?= $tsearch ?>
+    </div>
+    <?php if ($values['tutor_id_parameter']) : ?>
+        <?= Icon::create('arr_2down', 'sort')->asInput(["name" => 'add_tutor', "value" => '1']) ?>
+    <?php endif ?>
+    <div id="wizard-tutors">
+        <div class="description<?= count($values['tutors']) ? '' : ' hidden-js' ?>">
+            <?= _('bereits zugeordnet:') ?>
+        </div>
+        <?php foreach ($values['tutors'] as $id => $assigned) : ?>
+            <?php if ($user = User::find($id)) : ?>
+                <?= $this->render_partial('basicdata/_user',
+                    array('class' => 'tutor', 'inputname' => 'tutors', 'user' => $user)) ?>
+            <?php endif ?>
+        <?php endforeach ?>
+    </div>
+</section>

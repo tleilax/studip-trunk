@@ -10,7 +10,7 @@ $sem = Seminar::getInstance($show_entry['id']);
     <?= CSRFProtection::tokenTag() ?>
     <b><?= _("Farbe des Termins") ?>:</b>
     <? foreach ($GLOBALS['PERS_TERMIN_KAT'] as $data) : ?>
-    <span style="background-color: <?= $data['color'] ?>; vertical-align: middle; padding-top: 3px;">
+    <span style="background-color: <?= $data['color'] ?>; vertical-align: middle; padding: 3px">
         <input type="radio" name="entry_color" value="<?= $data['color'] ?>" <?= ($data['color'] == $show_entry['color']) ? 'checked="checked"' : '' ?>>
     </span>
     <? endforeach ?>
@@ -39,7 +39,7 @@ $sem = Seminar::getInstance($show_entry['id']);
     <b><?= _("Veranstaltungszeiten") ?>:</b><br>
     <?= $sem->getDatesHTML(array('show_room' => true)) ?><br>
 
-    <?= Assets::img('icons/16/blue/link-intern.png') ?>
+    <?= Icon::create('link-intern', 'clickable')->asImg() ?>
     <? if ($show_entry['type'] == 'virtual') : ?>
     <a href="<?= URLHelper::getLink('dispatch.php/course/details/?sem_id='. $show_entry['id']) ?>"><?=_("Zur Veranstaltung") ?></a><br>
     <? else : ?>

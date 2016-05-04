@@ -105,7 +105,7 @@ class Calendar
                     'statusgruppe_id IN(?) AND user_id IN(?)',
                     array($sg_groups, $calendar_owners));
             foreach ($sg_users as $sg_user) {
-                $groups[] = $sg_user->group;
+                $groups[$sg_user->group->id] = $sg_user->group;
             }
         }
         return $groups;
@@ -175,14 +175,15 @@ class Calendar
     public static function getDefaultUserSettings($index = null)
     {
         $default = array(
-            'view' => 'week',
-            'start' => '9',
-            'end' => '20',
-            'step_day' => '900',
-            'step_week' => '1800',
-            'type_week' => 'LONG',
-            'step_week_group' => '3600',
-            'step_day_group' => '3600'
+            'view'              => 'week',
+            'start'             => '9',
+            'end'               => '20',
+            'step_day'          => '900',
+            'step_week'         => '1800',
+            'type_week'         => 'LONG',
+            'step_week_group'   => '3600',
+            'step_day_group'    => '3600',
+            'show_declined'     => '0'
         );
         return (is_null($index) ? $default : $default[$index]);
     }

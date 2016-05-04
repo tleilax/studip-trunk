@@ -17,6 +17,213 @@
 class Course_BasicdataController extends AuthenticatedController
 {
     public $msg = array();
+    protected $utf8decode_xhr = true;
+
+    /**
+     * Set up the list of input fields. Some fields may be locked for
+     * some reasons (lock rules, insufficient permissions etc.). This
+     * method does not return anything, it just sets up $this->attributes
+     * and $this->descriptions.
+     *
+     * @param Seminar $sem
+     */
+    private function setupInputFields($sem)
+    {
+        $course_id = $sem->getId();
+        $data = $sem->getData();
+
+        $this->attributes = array();
+        $this->attributes[] = array(
+            'title' => _("Name der Veranstaltung"),
+            'name' => "course_name",
+            'must' => true,
+            'type' => 'text',
+            'value' => $data['name'],
+            'locked' => LockRules::Check($course_id, 'Name')
+        );
+        $this->attributes[] = array(
+            'title' => _("Untertitel der Veranstaltung"),
+            'name' => "course_subtitle",
+            'type' => 'text',
+            'value' => $data['subtitle'],
+            'locked' => LockRules::Check($course_id, 'Untertitel')
+        );
+
+        $sem_types = array();
+        if ($GLOBALS['perm']->have_perm("admin")) {
+            foreach (SemClass::getClasses() as $sc) {
+                if (!$sc['course_creation_forbidden']) {
+                    foreach ($sc->getSemTypes() as $st) {
+                        $sem_types[$st['id']] = $st['name'] . ' (' . $sc['name'] . ')';
+                    }
+                }
+            }
+        } else {
+            $sc = $sem->getSemClass();
+            foreach($sc->getSemTypes() as $st) {
+                $sem_types[$st['id']] = $st['name'] . ' (' . $sc['name'] . ')';
+            }
+        }
+        if (!isset($sem_types[$data['status']])) {
+            $sem_types[$data['status']] = $sem->getSemType()->offsetGet('name');
+        }
+        $this->attributes[] = array(
+            'title' => _("Typ der Veranstaltung"),
+            'name' => "course_status",
+            'must' => true,
+            'type' => 'select',
+            'value' => $data['status'],
+            'locked' => LockRules::Check($course_id, 'status'),
+            'choices' => $sem_types
+        );
+        $this->attributes[] = array(
+            'title' => _("Art der Veranstaltung"),
+            'name' => "course_form",
+            'type' => 'text',
+            'value' => $data['form'],
+            'locked' => LockRules::Check($course_id, 'art')
+        );
+        $this->attributes[] = array(
+            'title' => _("Veranstaltungs-Nummer"),
+            'name' => "course_seminar_number",
+            'type' => 'text',
+            'value' => $data['seminar_number'],
+            'locked' => LockRules::Check($course_id, 'VeranstaltungsNummer')
+        );
+        $this->attributes[] = array(
+            'title' => _("ECTS-Punkte"),
+            'name' => "course_ects",
+            'type' => 'text',
+            'value' => $data['ects'],
+            'locked' => LockRules::Check($course_id, 'ects')
+        );
+        $this->attributes[] = array(
+            'title' => _("max. Teilnehmerzahl"),
+            'name' => "course_admission_turnout",
+            'must' => false,
+            'type' => 'number',
+            'value' => $data['admission_turnout'],
+            'locked' => LockRules::Check($course_id, 'admission_turnout'),
+            'min' => '0'
+        );
+        $this->attributes[] = array(
+            'title' => _("Beschreibung"),
+            'name' => "course_description",
+            'type' => 'textarea',
+            'value' => $data['description'],
+            'locked' => LockRules::Check($course_id, 'Beschreibung')
+        );
+
+        $this->institutional = array();
+        $institutes = Institute::getMyInstitutes();
+        $this->institutional[] = array(
+            'title' => _("Heimat-Einrichtung"),
+            'name' => "course_institut_id",
+            'must' => true,
+            'type' => 'select',
+            'value' => $data['institut_id'],
+            'choices' => $this->instituteChoices($institutes),
+            'locked' => LockRules::Check($course_id, 'Institut_id')
+        );
+
+        $institutes = Institute::getInstitutes();
+        $sem_institutes = $sem->getInstitutes();
+        $this->institutional[] = array(
+            'title' => _("beteiligte Einrichtungen"),
+            'name' => "related_institutes[]",
+            'type' => 'multiselect',
+            'value' => array_diff($sem_institutes, array($sem->institut_id)),
+            'choices' => $this->instituteChoices($institutes),
+            'locked' => LockRules::Check($course_id, 'seminar_inst')
+        );
+
+        $this->descriptions = array();
+        $this->descriptions[] = array(
+            'title' => _("Teilnehmde"),
+            'name' => "course_participants",
+            'type' => 'textarea',
+            'value' => $data['participants'],
+            'locked' => LockRules::Check($course_id, 'teilnehmer')
+        );
+        $this->descriptions[] = array(
+            'title' => _("Voraussetzungen"),
+            'name' => "course_requirements",
+            'type' => 'textarea',
+            'value' => $data['requirements'],
+            'locked' => LockRules::Check($course_id, 'voraussetzungen')
+        );
+        $this->descriptions[] = array(
+            'title' => _("Lernorganisation"),
+            'name' => "course_orga",
+            'type' => 'textarea',
+            'value' => $data['orga'],
+            'locked' => LockRules::Check($course_id, 'lernorga')
+        );
+        $this->descriptions[] = array(
+            'title' => _("Leistungsnachweis"),
+            'name' => "course_leistungsnachweis",
+            'type' => 'textarea',
+            'value' => $data['leistungsnachweis'],
+            'locked' => LockRules::Check($course_id, 'leistungsnachweis')
+        );
+        $this->descriptions[] = array(
+            'title' => _("Ort") .
+                "<br><span style=\"font-size: 0.8em\"><b>" .
+                _("Achtung:") .
+                "&nbsp;</b>" .
+                _("Diese Ortsangabe wird nur angezeigt, wenn keine " .
+                  "Angaben aus Zeiten oder Sitzungsterminen gemacht werden können.") .
+                "</span>",
+            'name' => "course_location",
+            'type' => 'textarea',
+            'value' => $data['location'],
+            'locked' => LockRules::Check($course_id, 'Ort')
+        );
+
+        $datenfelder = DataFieldEntry::getDataFieldEntries($course_id, 'sem', $data["status"]);
+        if ($datenfelder) {
+            foreach($datenfelder as $datenfeld) {
+                if ($datenfeld->isVisible()) {
+                    $locked = !$datenfeld->isEditable()
+                              || LockRules::Check($course_id, $datenfeld->getID());
+                    $desc = $locked ? _('Diese Felder werden zentral durch die zuständigen Administratoren erfasst.') : $datenfeld->getDescription();
+                    $this->descriptions[] = array(
+                        'title' => $datenfeld->getName(),
+                        'must' =>  $datenfeld->isRequired(),
+                        'name' => "datafield_".$datenfeld->getID(),
+                        'type' => "datafield",
+                        'html_value' => $datenfeld->getHTML("datafields"),
+                        'display_value' => $datenfeld->getDisplayValue(),
+                        'locked' => $locked,
+                        'description' => $desc
+                    );
+                }
+            }
+        }
+        $this->descriptions[] = array(
+            'title' => _("Sonstiges"),
+            'name' => "course_misc",
+            'type' => 'textarea',
+            'value' => $data['misc'],
+            'locked' => LockRules::Check($course_id, 'Sonstiges')
+        );
+    }
+
+    /**
+     * Helper function to populate the list of institute choices.
+     *
+     * @param array $institutes
+     */
+    private function instituteChoices($institutes)
+    {
+        $result = array();
+        foreach ($institutes as $inst) {
+            $indent = $inst['is_fak'] ? '' : '    ';
+            $result[$inst['Institut_id']] = $indent . $inst['Name'];
+        }
+
+        return $result;
+    }
 
     /**
      * Zeigt die Grunddaten an. Man beachte, dass eventuell zuvor eine andere
@@ -59,135 +266,17 @@ class Course_BasicdataController extends AuthenticatedController
         $sem = Seminar::getInstance($this->course_id);
         $data = $sem->getData();
 
-        //Erster Reiter des Akkordions: Grundeinstellungen
-        $this->attributes = array();
-        $this->attributes[] = array(
-            'title' => _("Name der Veranstaltung"),
-            'name' => "course_name",
-            'must' => true,
-            'type' => 'text',
-            'value' => $data['name'],
-            'locked' => LockRules::Check($this->course_id, 'Name')
-        );
-        $this->attributes[] = array(
-            'title' => _("Untertitel der Veranstaltung"),
-            'name' => "course_subtitle",
-            'type' => 'text',
-            'value' => $data['subtitle'],
-            'locked' => LockRules::Check($this->course_id, 'Untertitel')
-        );
-        $sem_types = array();
-        if ($perm->have_perm("admin")) {
-            foreach (SemClass::getClasses() as $sc) {
-                foreach ($sc->getSemTypes() as $st) {
-                    if (!$sc['course_creation_forbidden']) {
-                        $sem_types[$st['id']] = $st['name'] . ' (' . $sc['name'] . ')';
-                    }
-                }
-            }
-        } else {
-            $sc = $sem->getSemClass();
-            foreach($sc->getSemTypes() as $st) {
-                $sem_types[$st['id']] = $st['name'] . ' (' . $sc['name'] . ')';
-            }
-        }
-        if (!isset($sem_types[$data['status']])) {
-            $sem_types[$data['status']] = $sem->getSemType()->offsetGet('name');
-        }
-        $this->attributes[] = array(
-            'title' => _("Typ der Veranstaltung"),
-            'name' => "course_status",
-            'must' => true,
-            'type' => 'select',
-            'value' => $data['status'],
-            'locked' => LockRules::Check($this->course_id, 'status'),
-            'choices' => array_map('htmlReady', $sem_types)
-        );
-        $this->attributes[] = array(
-            'title' => _("Art der Veranstaltung"),
-            'name' => "course_form",
-            'type' => 'text',
-            'value' => $data['form'],
-            'locked' => LockRules::Check($this->course_id, 'art')
-        );
-        $this->attributes[] = array(
-            'title' => _("Veranstaltungs-Nummer"),
-            'name' => "course_seminar_number",
-            'type' => 'text',
-            'value' => $data['seminar_number'],
-            'locked' => LockRules::Check($this->course_id, 'VeranstaltungsNummer')
-        );
-        $this->attributes[] = array(
-            'title' => _("ECTS-Punkte"),
-            'name' => "course_ects",
-            'type' => 'text',
-            'value' => $data['ects'],
-            'locked' => LockRules::Check($this->course_id, 'ects')
-        );
-        $this->attributes[] = array(
-            'title' => _("max. Teilnehmerzahl"),
-            'name' => "course_admission_turnout",
-            'must' => false,
-            'type' => 'number',
-            'value' => $data['admission_turnout'],
-            'locked' => LockRules::Check($this->course_id, 'admission_turnout'),
-            'min' => '0'
-        );
-        $this->attributes[] = array(
-            'title' => _("Beschreibung"),
-            'name' => "course_description",
-            'type' => 'textarea',
-            'value' => $data['description'],
-            'locked' => LockRules::Check($this->course_id, 'Beschreibung')
-        );
+        //Erster, zweiter und vierter Reiter des Akkordions: Grundeinstellungen
+        $this->setupInputFields($sem);
 
-
-        //Zweiter Reiter: Institute
-        $this->institutional = array();
-        $institute = Institute::getMyInstitutes();
-        $choices = array();
-        foreach ($institute as $inst) {
-            //$choices[$inst['Institut_id']] = $inst['Name'];
-            $choices[$inst['Institut_id']] =
-                ($inst['is_fak'] ? "<span style=\"font-weight: bold\">" : "&nbsp;&nbsp;&nbsp;&nbsp;") .
-                htmlReady($inst['Name']) .
-                ($inst['is_fak'] ? "</span>" : "");
-        }
-        $this->institutional[] = array(
-            'title' => _("Heimat-Einrichtung"),
-            'name' => "course_institut_id",
-            'must' => true,
-            'type' => 'select',
-            'value' => $data['institut_id'],
-            'choices' => $choices,
-            'locked' => LockRules::Check($this->course_id, 'Institut_id')
-        );
-        $institute = Institute::getInstitutes();
-        $choices = array();
-        foreach ($institute as $inst) {
-            $choices[$inst['Institut_id']] =
-                ($inst['is_fak'] ? "<span style=\"font-weight: bold\">" : "&nbsp;&nbsp;&nbsp;&nbsp;") .
-                htmlReady($inst['Name']) .
-                ($inst['is_fak'] ? "</span>" : "");
-        }
         $sem_institutes = $sem->getInstitutes();
-        $inst = array_flip($sem_institutes);
-        unset($inst[$sem->institut_id]);
-        $inst = array_flip($inst);
-        $this->institutional[] = array(
-            'title' => _("beteiligte Einrichtungen"),
-            'name' => "related_institutes[]",
-            'type' => 'multiselect',
-            'value' => $inst,
-            'choices' => $choices,
-            'locked' => LockRules::Check($this->course_id, 'seminar_inst')
-        );
-
         $this->dozent_is_locked = LockRules::Check($this->course_id, 'dozent');
         $this->tutor_is_locked = LockRules::Check($this->course_id, 'tutor');
 
         //Dritter Reiter: Personal
         $this->dozenten = $sem->getMembers('dozent');
+        $instUsers = new SimpleCollection(InstituteMember::findByInstituteAndStatus($sem->getInstitutId(), 'dozent'));
+        $this->lecturersOfInstitute = $instUsers->pluck('user_id');
 
         if (SeminarCategories::getByTypeId($sem->status)->only_inst_user) {
             $search_template = "user_inst_not_already_in_sem";
@@ -232,77 +321,9 @@ class Course_BasicdataController extends AuthenticatedController
                                  )
                             );
         $this->tutor_title = get_title_for_status('tutor', 1, $sem->status);
-
-
-        //Vierter Reiter: Beschreibungen (darunter Datenfelder)
-        $this->descriptions[] = array(
-            'title' => _("Teilnehmer/-innen"),
-            'name' => "course_participants",
-            'type' => 'textarea',
-            'value' => $data['participants'],
-            'locked' => LockRules::Check($this->course_id, 'teilnehmer')
-        );
-        $this->descriptions[] = array(
-            'title' => _("Voraussetzungen"),
-            'name' => "course_requirements",
-            'type' => 'textarea',
-            'value' => $data['requirements'],
-            'locked' => LockRules::Check($this->course_id, 'voraussetzungen')
-        );
-        $this->descriptions[] = array(
-            'title' => _("Lernorganisation"),
-            'name' => "course_orga",
-            'type' => 'textarea',
-            'value' => $data['orga'],
-            'locked' => LockRules::Check($this->course_id, 'lernorga')
-        );
-        $this->descriptions[] = array(
-            'title' => _("Leistungsnachweis"),
-            'name' => "course_leistungsnachweis",
-            'type' => 'textarea',
-            'value' => $data['leistungsnachweis'],
-            'locked' => LockRules::Check($this->course_id, 'leistungsnachweis')
-        );
-        $this->descriptions[] = array(
-            'title' => _("Ort") .
-                "<br><span style=\"font-size: 0.8em\"><b>" .
-                _("Achtung:") .
-                "&nbsp;</b>" .
-                _("Diese Ortsangabe wird nur angezeigt, wenn keine " .
-                  "Angaben aus Zeiten oder Sitzungsterminen gemacht werden können.") .
-                "</span>",
-            'name' => "course_location",
-            'type' => 'textarea',
-            'value' => $data['location'],
-            'locked' => LockRules::Check($this->course_id, 'Ort')
-        );
-
-        $datenfelder = DataFieldEntry::getDataFieldEntries($this->course_id, 'sem', $data["status"]);
-        if ($datenfelder) {
-            foreach($datenfelder as $datenfeld) {
-                if ($datenfeld->isVisible()) {
-                    $locked = !$datenfeld->isEditable()
-                              || LockRules::Check($this->course_id, $datenfeld->getID());
-                    $this->descriptions[] = array(
-                        'title' => $datenfeld->getName(),
-                        'must' =>  $datenfeld->structure->getIsRequired(),
-                        'name' => "datafield_".$datenfeld->getID(),
-                        'type' => "datafield",
-                        'html_value' => $datenfeld->getHTML("datafields"),
-                        'display_value' => $datenfeld->getDisplayValue(),
-                        'locked' => $locked,
-                        'description' => (!$datenfeld->isEditable()?("Diese Felder werden zentral durch die zuständigen Administratoren erfasst."):$datenfeld->getDescription() )
-                    );
-                }
-            }
-        }
-        $this->descriptions[] = array(
-            'title' => _("Sonstiges"),
-            'name' => "course_misc",
-            'type' => 'textarea',
-            'value' => $data['misc'],
-            'locked' => LockRules::Check($this->course_id, 'Sonstiges')
-        );
+        $instUsers = new SimpleCollection(InstituteMember::findByInstituteAndStatus($sem->getInstitutId(), 'tutor'));
+        $this->tutorsOfInstitute = $instUsers->pluck('user_id');
+        unset($instUsers);
 
         $this->perm_dozent = $perm->have_studip_perm("dozent", $this->course_id);
         $this->mkstring = $data['mkdate'] ? date("d.m.Y, G:i", $data['mkdate']) : _("unbekannt");
@@ -317,19 +338,19 @@ class Course_BasicdataController extends AuthenticatedController
 
         $widget = new ActionsWidget();
         $widget->addLink(_('Bild ändern'),
-            $this->url_for('course/avatar/update', $course_id),
-            'icons/16/blue/edit.png');
+                         $this->url_for('course/avatar/update', $course_id),
+                         Icon::create('edit', 'clickable'));
         if ($this->deputies_enabled) {
             if (isDeputy($user->id, $this->course_id)) {
                 $newstatus = 'dozent';
-                $text = _('Dozent/-in werden');
+                $text = _('Lehrende werden');
             } else if (in_array($user->id, array_keys($this->dozenten)) && sizeof($this->dozenten) > 1) {
                 $newstatus = 'deputy';
                 $text = _('Vertretung werden');
             }
             $widget->addLink($text,
-                $this->url_for('course/basicdata/switchdeputy', $this->course_id, $newstatus),
-                'icons/blue/persons.svg');
+                             $this->url_for('course/basicdata/switchdeputy', $this->course_id, $newstatus),
+                             Icon::create('persons', 'clickable'));
         }
         $sidebar->addWidget($widget);
         // Entry list for admin upwards.
@@ -358,43 +379,50 @@ class Course_BasicdataController extends AuthenticatedController
         $old_settings = $sem->getSettings();
         //Seminar-Daten:
         if ($perm->have_studip_perm("tutor", $sem->getId())) {
+            $this->setupInputFields($sem);
             $changemade = false;
-            foreach (Request::getInstance() as $req_name => $req_value) {
-                if (substr($req_name, 0, 7) === "course_") {
-                    $varname = substr($req_name, 7);
-                    if ($varname === "name" && !$req_value) {
-                        $this->msg[] = array("error", _("Name der Veranstaltung darf nicht leer sein."));
-                    } elseif ($sem->{$varname} != $req_value) {
-                        $sem->{$varname} = $req_value;
-                        $changemade = true;
-                    }
-                }
-            }
-            //seminar_inst:
-            if (!LockRules::Check($course_id, 'seminar_inst') &&
-                $sem->setInstitutes(Request::optionArray('related_institutes'))) {
-                $changemade = true;
-            }
-            //Datenfelder:
             $invalid_datafields = array();
             $all_fields_types = DataFieldEntry::getDataFieldEntries($sem->id, 'sem', $sem->status);
-            foreach (Request::getArray('datafields') as $datafield_id => $datafield_value) {
-                $datafield = $all_fields_types[$datafield_id];
-                $valueBefore = $datafield->getValue();
-                $datafield->setValueFromSubmit($datafield_value);
-                if ($valueBefore != $datafield->getValue()) {
-                    if ($datafield->isValid()) {
-                        $datafield->store();
-                        $changemade = true;
+            $datafield_values = Request::getArray('datafields');
+
+            foreach (array_merge($this->attributes, $this->institutional, $this->descriptions) as $field) {
+                if (!$field['locked']) {
+                    if ($field['type'] == 'datafield') {
+                        $datafield_id = substr($field['name'], 10);
+                        $datafield = $all_fields_types[$datafield_id];
+                        $datafield->setValueFromSubmit($datafield_values[$datafield_id]);
+                        if ($datafield->isValid()) {
+                            if ($datafield->store()) {
+                                $changemade = true;
+                            }
+                        } else {
+                            $invalid_datafields[] = $datafield->getName();
+                        }
+                    } else if ($field['type'] == 'multiselect') {
+                        // only related_institutes supported for now
+                        if ($sem->setInstitutes(Request::optionArray('related_institutes'))) {
+                            $changemade = true;
+                        }
                     } else {
-                        $invalid_datafields[] = $datafield->getName();
+                        // format of input element name is "course_xxx"
+                        $varname = substr($field['name'], 7);
+                        $req_value = Request::get($field['name']);
+
+                        if ($varname === "name" && !$req_value) {
+                            $this->msg[] = array("error", _("Name der Veranstaltung darf nicht leer sein."));
+                        } else if ($field['type'] == 'select' && !isset($field['choices'][$req_value])) {
+                            // illegal value - just ignore this
+                        } else if ($sem->{$varname} != $req_value) {
+                            $sem->{$varname} = $req_value;
+                            $changemade = true;
+                        }
                     }
                 }
             }
-
+            //Datenfelder:
             if (count($invalid_datafields)) {
-                $message = ngettext(_('%s der Veranstaltung wurde falsch angegeben'),
-                                    _('%s der Veranstaltung wurden falsch angegeben'),
+                $message = ngettext('%s der Veranstaltung wurde falsch angegeben',
+                                    '%s der Veranstaltung wurden falsch angegeben',
                                     count($invalid_datafields));
                 $message .= ', ' . _('bitte korrigieren Sie dies unter "Beschreibungen"') . '.';
                 $message = sprintf($message, join(', ', array_map('htmlReady', $invalid_datafields)));
@@ -690,13 +718,27 @@ class Course_BasicdataController extends AuthenticatedController
         $course = Seminar::getInstance($course_id);
         switch($newstatus) {
             case 'dozent':
-                if ($course->addMember($GLOBALS['user']->id, 'dozent')) {
+                $dozent = new CourseMember();
+                $dozent->seminar_id = $course_id;
+                $dozent->user_id = $GLOBALS['user']->id;
+                $dozent->status = 'dozent';
+                $dozent->comment = '';
+                if ($dozent->store()) {
                     deleteDeputy($GLOBALS['user']->id, $course_id);
+                    PageLayout::postSuccess(sprintf(_('Sie wurden als %s eingetragen.'),
+                        get_title_for_status('dozent', 1)));
+                } else {
+                    PageLayout::postError(sprintf(_('Sie konnten nicht als %s eingetragen werden.'),
+                        get_title_for_status('dozent', 1)));
                 }
                 break;
             case 'deputy':
+                $dozent = Course::find($course_id)->members->findOneBy('user_id', $GLOBALS['user']->id);
                 if (addDeputy($GLOBALS['user']->id, $course_id)) {
-                    $course->deleteMember($GLOBALS['user']->id);
+                    $dozent->delete();
+                    PageLayout::postSuccess(_('Sie wurden als Vertretung eingetragen.'));
+                } else {
+                    PageLayout::postError(_('Sie konnten nicht als Vertretung eingetragen werden.'));
                 }
                 break;
         }

@@ -1,14 +1,12 @@
 <?
 # Lifter010: TODO
 use Studip\Button, Studip\LinkButton;
-
 ?>
-<?= $this->render_partial('admin/role/status_message') ?>
 
 <? if ($delete_role): ?>
     <?= $GLOBALS['template_factory']->render('shared/question',
         array('question' => sprintf(_('Wollen Sie wirklich die Rolle "%s" löschen?'), $roles[$delete_role]->getRolename()),
-              'approvalLink' => $controller->url_for('admin/role/remove_role', $delete_role).'?ticket='.get_ticket(),
+              'approvalLink' => $controller->url_for('admin/role/remove_role', $delete_role).'?studip_ticket='.get_ticket(),
               'disapprovalLink' => $controller->url_for('admin/role'))) ?>
 <? endif ?>
 
@@ -43,7 +41,7 @@ use Studip\Button, Studip\LinkButton;
             <td class="actions">
                 <? if (!$role->getSystemtype()): ?>
                     <a href="<?= $controller->url_for('admin/role/ask_remove_role', $role_id) ?>">
-                        <?= Assets::img('icons/16/blue/trash.png', array('title' => _('Rolle löschen'))) ?>
+                        <?= Icon::create('trash', 'clickable', ['title' => _('Rolle löschen')])->asImg() ?>
                     </a>
                 <? endif ?>
             </td>
@@ -51,15 +49,3 @@ use Studip\Button, Studip\LinkButton;
     <? endforeach ?>
 </tbody>
 </table>
-
-<h3>
-    <?= _('Neue Rolle anlegen') ?>
-</h3>
-
-<form action="<?= $controller->url_for('admin/role/create_role') ?>" method="POST">
-    <?= CSRFProtection::tokenTag() ?>
-    <input type="hidden" name="ticket" value="<?= get_ticket() ?>">
-    Name: <input type="text" name="name" size="25" value="">
-    <?= Button::create(_('Anlegen'), 'createrolebtn', array('title' => _('Rolle anlegen')))?>
-</form>
-

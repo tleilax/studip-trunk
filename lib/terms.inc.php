@@ -51,7 +51,7 @@ function check_terms($userid, $_language_path) {
 <table align="center" border="0" cellpadding="1" cellspacing="0">
     <tr>
         <td class="table_header_bold">
-            <?= Assets::img('icons/16/white/door-enter.png') ?>
+            <?= Icon::create('door-enter', 'info_alt')->asImg() ?>
             <b><?=_("Nutzungsbedingungen")?></b>
         </td>
     </tr>
@@ -64,7 +64,7 @@ function check_terms($userid, $_language_path) {
             <li><?=_("Zugriff auf Ihre Daten von jedem internetfähigen Rechner weltweit,")?></li>
             <li><?=_("Anzeige neuer Mitteilungen oder Dateien seit Ihrem letzten Besuch,")?></li>
             <li><?=_("Ein eigenes Profil im System,")?></li>
-            <li><?=_("die Möglichkeit anderen TeilnehmerInnen Nachrichten zu schicken oder mit ihnen zu chatten,")?></li>
+            <li><?=_("die Möglichkeit anderen Personen Nachrichten zu schicken oder mit ihnen zu chatten,")?></li>
             <li><?=_("und vieles mehr.")?></li>
         </ul>
         <p><?=_("Mit der Anmeldung werden die nachfolgenden Nutzungsbedingungen akzeptiert:")?></p>

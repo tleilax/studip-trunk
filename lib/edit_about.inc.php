@@ -26,7 +26,6 @@
 
 require_once('lib/messaging.inc.php');
 require_once('lib/log_events.inc.php');
-require_once('lib/vote/VoteDB.class.php');
 require_once('lib/evaluation/classes/db/EvaluationDB.class.php');
 
 function edit_email($user, $email, $force=False) {
@@ -156,50 +155,6 @@ function edit_email($user, $email, $force=False) {
     }
     return array(True, $msg);
 }
-
-/*
-function parse_datafields($user_id) {
-    global $datafield_id, $datafield_type, $datafield_content;
-    global $my_about;
-
-    if (is_array($datafield_id)) {
-        $ffCount = 0; // number of processed form fields
-        foreach ($datafield_id as $i=>$id) {
-            $struct = new DataFieldStructure($zw = array("datafield_id"=>$id, 'type'=>$datafield_type[$i]));
-            $entry  = DataFieldEntry::createDataFieldEntry($struct, $user_id);
-            $numFields = $entry->numberOfHTMLFields(); // number of form fields used by this datafield
-            if ($datafield_type[$i] == 'bool' && $datafield_content[$ffCount] != $id) { // unchecked checkbox?
-                $entry->setValue('');
-                $ffCount -= $numFields;  // unchecked checkboxes are not submitted by GET/POST
-            }
-            elseif ($numFields == 1)
-                $entry->setValue($datafield_content[$ffCount]);
-            else
-                $entry->setValue(array_slice($datafield_content, $ffCount, $numFields));
-            $ffCount += $numFields;
-
-            $entry->structure->load();
-            if ($entry->isValid()) {
-                $entry->store();
-            }   else {
-                $invalidEntries[$struct->getID()] = $entry;
-            }
-        }
-        // change visibility of role data
-            foreach ($group_id as $groupID)
-            setOptionsOfStGroup($groupID, $u_id, ($visible[$groupID] == '0') ? '0' : '1');
-        $my_about->msg .= 'msg§'. _("Die Daten wurden gespeichert!").'§';
-        if (is_array($invalidEntries)) {
-            foreach ($invalidEntries as $field) {
-                $name = $field->structure->getName();
-                $my_about->msg .= 'error§'. sprintf(_("Fehlerhafte Eingabe im Datenfeld %s (wurde nicht gespeichert)!"), "<b>$name</b>") .'§';
-            }
-        }
-    }
-
-    return $invalidEntries;
-}
-*/
 
 // class definition
 class about extends messaging
@@ -569,7 +524,7 @@ class about extends messaging
      * together with their visibility settings in the form
      * $name => $visibility.
      */
-    function get_homepage_elements()
+    public function get_homepage_elements()
     {
         global $NOT_HIDEABLE_FIELDS;
 
@@ -598,9 +553,9 @@ class about extends messaging
         }
         // Votes
         if (Config::get()->VOTE_ENABLE) {
-            $voteDB = new VoteDB();
-            $activeVotes  = $voteDB->getActiveVotes($this->auth_user['user_id']);
-            $stoppedVotes = $voteDB->getStoppedVisibleVotes($this->auth_user['user_id']);
+            //$voteDB = new VoteDB();
+            $activeVotes  = Questionnaire::countBySQL("user_id = ? AND visible = '1'", array($this->auth_user['user_id']));
+            $stoppedVotes = Questionnaire::countBySQL("user_id = ? AND visible = '0'", array($this->auth_user['user_id']));
         }
         // Evaluations
         $evalDB = new EvaluationDB();
@@ -608,7 +563,7 @@ class about extends messaging
         // Literature
         $lit_list = StudipLitList::GetListsByRange($this->auth_user['user_id']);
         // Free datafields
-        $data_fields = DataFieldEntry::getDataFieldEntries($this->auth_user['user_id']);
+        $data_fields = DataFieldEntry::getDataFieldEntries($this->auth_user['user_id'], 'user');
         // Homepage plugins
         //$homepageplugins = PluginEngine::getPlugins('HomepagePlugin');
         // Deactivate plugin visibility settings because they aren't working now.
@@ -644,7 +599,7 @@ class about extends messaging
         if (Config::get()->CALENDAR_ENABLE && $dates && !$NOT_HIDEABLE_FIELDS[$this->auth_user['perms']]['dates'])
             $homepage_elements["termine"] = array("name" => _("Termine"), "visibility" => $homepage_visibility["termine"] ?: get_default_homepage_visibility($this->auth_user['user_id']), "extern" => true, 'category' => 'Allgemeine Daten');
         if (Config::get()->VOTE_ENABLE && ($activeVotes || $stoppedVotes || $activeEvals) && !$NOT_HIDEABLE_FIELDS[$this->auth_user['perms']]['votes'])
-            $homepage_elements["votes"] = array("name" => _("Umfragen"), "visibility" => $homepage_visibility["votes"] ?: get_default_homepage_visibility($this->auth_user['user_id']), 'category' => 'Allgemeine Daten');
+            $homepage_elements["votes"] = array("name" => _("Fragebögen"), "visibility" => $homepage_visibility["votes"] ?: get_default_homepage_visibility($this->auth_user['user_id']), 'category' => 'Allgemeine Daten');
         
         $query = "SELECT 1
                   FROM user_inst
@@ -667,10 +622,17 @@ class about extends messaging
             $homepage_elements["publi"] = array("name" => _("Publikationen"), "visibility" => $homepage_visibility["publi"] ?: get_default_homepage_visibility($this->auth_user['user_id']), "extern" => true, 'category' => 'Private Daten');
         if ($my_data["schwerp"] && !$NOT_HIDEABLE_FIELDS[$this->auth_user['perms']]['schwerp'])
             $homepage_elements["schwerp"] = array("name" => _("Arbeitsschwerpunkte"), "visibility" => $homepage_visibility["schwerp"] ?: get_default_homepage_visibility($this->auth_user['user_id']), "extern" => true, 'category' => 'Private Daten');
+
         if ($data_fields) {
             foreach ($data_fields as $key => $field) {
-                if ($field->structure->accessAllowed($GLOBALS['perm']) && !$NOT_HIDEABLE_FIELDS[$this->auth_user['perms']][$key]) {
-                    $homepage_elements[$key] = array("name" => _($field->structure->data['name']), "visibility" => $homepage_visibility[$key] ?: get_default_homepage_visibility($this->auth_user['user_id']), "extern" => true, 'category' => 'Zusätzliche Datenfelder');
+                if ($field->getValue() && $field->isEditable($this->auth_user['perms']) && !$NOT_HIDEABLE_FIELDS[$this->auth_user['perms']][$key]) {
+                    $homepage_elements[$key] = array(
+                        'name'       => $field->getName(),
+                        'visibility' => $homepage_visibility[$key]
+                                     ?: get_default_homepage_visibility($this->auth_user['user_id']),
+                        'extern'     => true,
+                        'category'   => 'Zusätzliche Datenfelder'
+                    );
                 }
             }
         }

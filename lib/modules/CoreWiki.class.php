@@ -14,7 +14,7 @@ class CoreWiki implements StudipModule {
     function getIconNavigation($course_id, $last_visit, $user_id) {
         if (get_config('WIKI_ENABLE')) {
             $navigation = new Navigation(_('Wiki'), "seminar_main.php?auswahl=".$course_id."&redirect_to=wiki.php");
-            $navigation->setImage('icons/16/grey/wiki.png');
+            $navigation->setImage(Icon::create('wiki', 'inactive'));
             return $navigation;
         } else {
             return null;
@@ -24,8 +24,8 @@ class CoreWiki implements StudipModule {
     function getTabNavigation($course_id) {
         if (get_config('WIKI_ENABLE')) {
             $navigation = new Navigation(_('Wiki'));
-            $navigation->setImage('icons/16/white/wiki.png');
-            $navigation->setActiveImage('icons/16/black/wiki.png');
+            $navigation->setImage(Icon::create('wiki', 'info_alt'));
+            $navigation->setActiveImage(Icon::create('wiki', 'info'));
 
             $navigation->addSubNavigation('show', new Navigation(_('WikiWikiWeb'), 'wiki.php?view=show'));
             $navigation->addSubNavigation('listnew', new Navigation(_('Neue Seiten'), 'wiki.php?view=listnew'));
@@ -44,7 +44,7 @@ class CoreWiki implements StudipModule {
         return array(
             'summary' => _('Gemeinsames asynchrones Erstellen und Bearbeiten von Texten'),
             'description' => _('Im Wiki-Web oder kurz "Wiki" können '.
-                'verschiedene AutorInnen gemeinsam Texte, Konzepte und andere '.
+                'verschiedene Autor/-innen gemeinsam Texte, Konzepte und andere '.
                 'schriftliche Arbeiten erstellen und gestalten, dies '.
                 'allerdings nicht gleichzeitig. Texte können individuell '.
                 'bearbeitet und die Änderungen gespeichert werden. Das '.
@@ -63,7 +63,7 @@ class CoreWiki implements StudipModule {
                             Löschfunktion für die aktuellste Seiten-Version;
                             Keine gleichzeitige Bearbeitung desselben Textes möglich, nur nacheinander'),
             'descriptionshort' => _('Gemeinsames asynchrones Erstellen und Bearbeiten von Texten'),
-            'descriptionlong' => _('Im Wiki-Web oder kurz "Wiki" können verschiedene AutorInnen gemeinsam Texte, '.
+            'descriptionlong' => _('Im Wiki-Web oder kurz "Wiki" können verschiedene Autor/-innen gemeinsam Texte, '.
                                     'Konzepte und andere schriftliche Arbeiten erstellen und gestalten. Dies '.
                                     'allerdings nicht gleichzeitig. Texte können individuell bearbeitet und '.
                                     'gespeichert werden. Das Besondere im Wiki ist, dass Studierende und Lehrende '.
@@ -73,7 +73,7 @@ class CoreWiki implements StudipModule {
                                     'gelöscht werden (nur Lehrende). Eine Druckansicht und eine Exportmöglichkeit als '.
                                     'PDF-Datei ist integriert.'),
             'category' => _('Kommunikation und Zusammenarbeit'),
-            'icon' => 'icons/16/black/wiki.png',
+            'icon' => Icon::create('wiki', 'info'),
             'screenshots' => array(
                 'path' => 'plus/screenshots/Wiki-Web',
                 'pictures' => array(

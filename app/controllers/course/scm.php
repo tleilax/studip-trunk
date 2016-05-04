@@ -79,8 +79,7 @@ class Course_ScmController extends StudipController
         if ($GLOBALS['perm']->have_studip_perm('tutor', $GLOBALS['SessSemName'][1])) {
             $widget = new ActionsWidget();
             $widget->addLink(_('Neuen Eintrag anlegen'),
-                             URLHelper::getLink('dispatch.php/course/scm/create'),
-                             'icons/16/blue/add.png')
+                             URLHelper::getLink('dispatch.php/course/scm/create'), Icon::create('add', 'clickable'))
                    ->asDialog();
             Sidebar::get()->addWidget($widget);
         }
@@ -155,7 +154,7 @@ class Course_ScmController extends StudipController
             $scm = new StudipScmEntry($id);
 
             $scm->tab_name = Request::get('tab_name_template') ?: Request::get('tab_name');
-            $scm->content  = Request::get('content');
+            $scm->content  = Studip\Markup::purifyHtml(Request::get('content'));
             $scm->user_id  = $GLOBALS['user']->id;
             $scm->range_id = $GLOBALS['SessSemName'][1];
 

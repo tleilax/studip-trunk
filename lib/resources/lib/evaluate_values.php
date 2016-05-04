@@ -404,7 +404,7 @@ if ($change_object_schedules) {
     $select_change_resource = is_array($_REQUEST['select_change_resource'])
                             ? Request::optionArray('select_change_resource')
                             : Request::option('select_change_resource');
-    if ($ObjectPerms->havePerm("admin") && Request::submitted('send_change_resource') && !empty($select_change_resource)) {
+    if ($ObjectPerms->havePerm("tutor") && Request::submitted('send_change_resource') && !empty($select_change_resource)) {
         if (!is_array($select_change_resource)) {
             $ChangeObjectPerms = ResourceObjectPerms::Factory($select_change_resource);
             if ($ChangeObjectPerms->havePerm("tutor")) {
@@ -651,12 +651,12 @@ if ($change_object_schedules) {
                                         $msg -> addMsg(22);
                                     }
                             break;
-                            case "w" : if ((($changeAssign->getRepeatEnd() - $changeAssign->getBegin()) / (60 * 60 * 24 *7) / $changeAssign->getRepeatInterval()) > 50) {
+                            case "w" : if ((($changeAssign->getRepeatEnd() - $changeAssign->getBegin()) / (60 * 60 * 24 *7) / $changeAssign->getRepeatInterval()) > 500) {
                                         $illegal_dates=TRUE;
                                         $msg -> addMsg(23);
                                     }
                             break;
-                            case "d" : if ((int)(($changeAssign->getRepeatEnd() - $changeAssign->getBegin()) / (60 * 60 * 24) / $changeAssign->getRepeatInterval()) > 100) {
+                            case "d" : if ((int)(($changeAssign->getRepeatEnd() - $changeAssign->getBegin()) / (60 * 60 * 24) / $changeAssign->getRepeatInterval()) > 1000) {
                                         $illegal_dates=TRUE;
                                         $msg -> addMsg(24);
                                     }
@@ -853,13 +853,10 @@ if ((Request::quoted('add_type')) || (Request::option('delete_type')) || (Reques
                 Request::option('delete_type')
             ));
         }
-        $resource_is_room = Request::int('resource_is_room', 0);
+        $resource_is_room = Request::submitted('resource_is_room');
         //$insert_type_description = Request::quoted('insert_type_description');
         if (Request::quoted('add_type') && Request::submitted('_add_type')) {
             $id=md5(uniqid("Sommer2002",1));
-            if ($resource_is_room) {
-                $resource_is_room = 1;
-            }
             $query = "INSERT INTO resources_categories
                         (category_id, name, is_room)
                       VALUES (?, ?, ?)";
@@ -1400,7 +1397,7 @@ if (Request::submitted('start_multiple_mode') || (Request::option('single_reques
 
     $_SESSION['resources_data']["requests_working_pos"] = 0;
     $_SESSION['resources_data']["skip_closed_requests"] = TRUE;
-    if(Request::quoted('resolve_requests_mode') == "one_res"){
+    if(Request::option('resolve_requests_mode') == "one_res"){
         $_SESSION['resources_data']['resolve_requests_one_res'] = Request::quoted('resolve_requests_one_res');
     } else {
         $_SESSION['resources_data']['resolve_requests_one_res'] = null;
@@ -1409,13 +1406,13 @@ if (Request::submitted('start_multiple_mode') || (Request::option('single_reques
     //filter the requests
     foreach($requests as $key => $val) {
         if (!$val["closed"] && !(Request::option('resolve_requests_no_time') && !$val['have_times'])) {
-            if ($resolve_requests_mode == "sem") {
+            if (Request::option('resolve_requests_mode') == "sem") {
                 if ($val["my_sem"])
                     $selected_requests[$key] = TRUE;
-            } elseif ($resolve_requests_mode == "res") {
+            } elseif (Request::option('resolve_requests_mode') == "res") {
                 if ($val["my_res"])
                     $selected_requests[$key] = TRUE;
-            } elseif (Request::quoted('resolve_requests_mode') == "one_res") {
+            } elseif (Request::option('resolve_requests_mode') == "one_res") {
                 if ($val["resource_id"] == Request::quoted('resolve_requests_one_res'))
                     $selected_requests[$key] = TRUE;
             } else {
@@ -1450,10 +1447,8 @@ if (Request::submitted('start_multiple_mode') || (Request::option('single_reques
                            termine AS t
                       WHERE rq.request_id IN (?) AND t.date > UNIX_TIMESTAMP()
                         AND ((t.range_id = rq.seminar_id AND IFNULL(rq.termin_id, '') = '')
-                             OR (IFNULL(rq.termin_id, '') != '' AND rq.termin_id = t.termin_id))";
-            if ($order) {
-                $query .= " ORDER BY {$order}";
-            }
+                             OR (IFNULL(rq.termin_id, '') != '' AND rq.termin_id = t.termin_id))
+                      ORDER BY t.date ASC";
             $statement = DBManager::get()->prepare($query);
             $statement->execute(array(
                array_keys($selected_requests) ?: ''
@@ -1913,9 +1908,10 @@ if (Request::submitted('inc_request') || Request::submitted('dec_request')
         //add the matching ressources to selection
         if (getGlobalPerms($user->id) != "admin")
             $resList = new ResourcesUserRoomsList ($user->id, FALSE, FALSE);
-        $matching_resources = $reqObj->searchRooms(FALSE, TRUE, $_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["search_limit_low"], $_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["search_limit_high"], TRUE, (is_object($resList)) ? array_keys($resList->getRooms()) : FALSE);
-        if ($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["search_limit_high"]  > ($reqObj->last_search_result_count + $_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["search_limit_low"]))
-            $_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["search_limit_high"] = $_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["search_limit_low"] + $reqObj->last_search_result_count;
+        $matching_resources = $reqObj->searchRooms(FALSE, TRUE, 0, 0, TRUE, (is_object($resList)) ? array_keys($resList->getRooms()) : FALSE);
+        if ($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["search_limit_high"] > $reqObj->last_search_result_count) {
+            $_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["search_limit_high"] = $reqObj->last_search_result_count;
+        }
 
         foreach ($matching_resources as $key => $val) {
             if (!$_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["considered_resources"][$key])
@@ -2037,7 +2033,7 @@ if (Request::submitted('inc_request') || Request::submitted('dec_request')
                 if (count($overlaps)) {
                     $events_count = sizeof($event_zw);
                     foreach ($overlaps as $overlap_room_id => $overlap_events_count) {
-                        if ($overlap_events_count >= round($events_count * Config::get()->RESOURCES_ALLOW_SINGLE_ASSIGN_PERCENTAGE / 100)) {
+                        if ($overlap_events_count && $overlap_events_count >= round($events_count * Config::get()->RESOURCES_ALLOW_SINGLE_ASSIGN_PERCENTAGE / 100)) {
                             if ($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["considered_resources"][$overlap_room_id]['type'] == 'matching') {
                                 $red_flag_rooms[$overlap_room_id]++;
                             }
@@ -2046,10 +2042,12 @@ if (Request::submitted('inc_request') || Request::submitted('dec_request')
                 }
 
             }  // Ende: gruppierte Termine durchlaufen
+            // move all red_flag_rooms to the end of the list
             $current_group_count = count($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["groups"]);
-            foreach ($red_flag_rooms as $overlap_room_id => $overlap_group_count) {
-                if ($overlap_group_count == $current_group_count) {
+            foreach ($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["considered_resources"] as $overlap_room_id => $val) {
+                if (isset($red_flag_rooms[$overlap_room_id]) && $red_flag_rooms[$overlap_room_id] == $current_group_count) {
                     unset($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["considered_resources"][$overlap_room_id]);
+                    $_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["considered_resources"][$overlap_room_id] = $val;
                 }
             }
             $_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["detected_overlaps"] = $result;

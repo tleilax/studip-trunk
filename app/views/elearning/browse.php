@@ -81,11 +81,11 @@ if (Config::get()->ELEARNING_INTERFACE_ENABLE)
     checkObjectModule("elearning_interface");
 
     $infobox = array    (array ("kategorie"  => _("Information:"),
-            "eintrag" => array  (array (    "icon" => "icons/16/black/info.png",
+            "eintrag" => array  (array (    "icon" => Icon::create('info', 'clickable'),
                                     "text"  => sprintf(_("Auf dieser Seite können Sie nach Lernmodulen im angebundenen ILIAS-System suchen.")) ) ) ) );
 
     $infobox[1]["kategorie"] = _("Aktionen:");
-    $infobox[1]["eintrag"][] = array (  "icon" => "icons/16/black/learnmodule.png" ,
+    $infobox[1]["eintrag"][] = array (  "icon" => Icon::create('learnmodule', 'clickable'),
                                     "text"  => sprintf(_("Geben Sie einen Suchbegriff ein und klicken Sie auf 'Suchen'. Die Suche bezieht sich auf den ausgewählten Suchbereich.")));
 
     ?>
@@ -197,7 +197,7 @@ else
     // Start of Output
     include ('lib/include/html_head.inc.php'); // Output of html head
     include ('lib/include/header.php');   // Output of Stud.IP head
-    parse_window ("error§" . _("Die Schnittstelle für die Integration von Lernmodulen ist nicht aktiviert. Damit Lernmodule verwendet werden können, muss die Verbindung zu einem LCM-System in der Konfigurationsdatei von Stud.IP hergestellt werden. Wenden Sie sich bitte an den/die AdministratorIn."), "§",
+    parse_window ("error§" . _("Die Schnittstelle für die Integration von Lernmodulen ist nicht aktiviert. Damit Lernmodule verwendet werden können, muss die Verbindung zu einem LCM-System in der Konfigurationsdatei von Stud.IP hergestellt werden. Wenden Sie sich bitte an die Admins."), "§",
                 _("E-Learning-Schnittstelle nicht eingebunden"));
 }
 include ('lib/include/html_end.inc.php');

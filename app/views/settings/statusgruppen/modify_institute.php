@@ -15,7 +15,7 @@
             <?= CSRFProtection::tokenTag() ?>
             <input type="hidden" name="name" value="<?= htmlReady($institute['Name']) ?>">
 
-            <table class="default settings" style="width:90%">
+            <table class="default" style="width:90%">
                 <colgroup>
                     <col width="50%">
                     <col width="50%">
@@ -90,7 +90,7 @@
                             <label><?= $entry->getName() ?>:</label>
                         </td>
                         <td>
-                        <? if ($locked): ?>
+                        <? if (!$entry->isEditable() || $locked): ?>
                             <?= $entry->getDisplayValue() ?>
                         <? else: ?>
                             <?= $entry->getHTML('datafields') ?>
@@ -110,7 +110,7 @@
                         </td>
                         <td>
                         <? if ($institute['externdefault']) : ?>
-                            <?= Assets::img('icons/16/grey/accept', array('class' => 'text-top'));?>
+                            <?= Icon::create('accept', 'inactive')->asImg(['class' => 'text-top']);?>
                             <input type="hidden" name="default_institute" value="1">
                         <? else : ?>
                             <input type="checkbox" id="default_institute" name="default_institute" value="1"

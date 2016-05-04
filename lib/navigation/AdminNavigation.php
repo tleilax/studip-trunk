@@ -23,7 +23,7 @@ class AdminNavigation extends Navigation
     {
         parent::__construct(_('Admin'));
 
-        $this->setImage('icons/lightblue/admin.svg', array('title' => _('Zu Ihrer Administrationsseite')));
+        $this->setImage(Icon::create('admin', 'navigation', ["title" => _('Zu Ihrer Administrationsseite')]));
     }
 
     /**
@@ -75,7 +75,7 @@ class AdminNavigation extends Navigation
         $navigation->addSubNavigation('groups', new Navigation(_('Funktionen / Gruppen'), 'dispatch.php/admin/statusgroups?type=inst'));
 
         if (Config::get()->VOTE_ENABLE) {
-            $navigation->addSubNavigation('vote', new Navigation(_('Umfragen und Tests'), 'admin_vote.php?view=vote_inst'));
+            $navigation->addSubNavigation('questionnaires', new Navigation(_('Fragebögen'), 'dispatch.php/questionnaire/courseoverview'));
             $navigation->addSubNavigation('evaluation', new Navigation(_('Evaluationen'), 'admin_evaluation.php?view=eval_inst'));
         }
 

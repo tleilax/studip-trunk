@@ -99,7 +99,7 @@ class ShowList extends ShowTreeRow{
         } else {
             //Daten vorbereiten
             if (!$resObject->getCategoryIconnr())
-                $icon = Assets::img('icons/16/grey/folder-full.png', array('class' => 'text-top'));
+                $icon = Icon::create('folder-full', 'inactive')->asImg(['class' => 'text-top']);
             else
                 $icon = Assets::img('cont_res' . $resObject->getCategoryIconnr() . '.gif');
 
@@ -143,9 +143,9 @@ class ShowList extends ShowTreeRow{
             //clipboard in/out
             if ((is_object($clipObj)) && $simple_perms && $resObject->getCategoryId())
                 if ($clipObj->isInClipboard($resObject->getId()))
-                    $zusatz .= " <a href=\"".URLHelper::getLink('?clip_out='.$resObject->getId().$link_add)."\">" . Assets::img("icons/16/blue/remove/resources.png", array('alt' => _("Aus der Merkliste entfernen"), 'title' => _("Aus der Merkliste entfernen"))) . "</a>";
+                    $zusatz .= " <a href=\"".URLHelper::getLink('?clip_out='.$resObject->getId().$link_add)."\">" . Icon::create('resources+remove', 'clickable', ['title' => _("Aus der Merkliste entfernen")])->asImg(16, ["alt" => _("Aus der Merkliste entfernen")]) . "</a>";
                 else
-                    $zusatz .= " <a href=\"".URLHelper::getLink('?clip_in='.$resObject->getId().$link_add)."\">" . Assets::img("icons/16/blue/add/resources.png", array('alt' => _("In Merkliste aufnehmen"), 'title' => _("In Merkliste aufnehmen"))) . "</a>";
+                    $zusatz .= " <a href=\"".URLHelper::getLink('?clip_in='.$resObject->getId().$link_add)."\">" . Icon::create('resources+add', 'clickable', ['title' => _("In Merkliste aufnehmen")])->asImg(16, ["alt" => _("In Merkliste aufnehmen")]) . "</a>";
 
             $new=TRUE;
 
@@ -162,12 +162,14 @@ class ShowList extends ShowTreeRow{
 
 
                 if ($resObject->getCategoryId()) {
-                    if ($view_mode == 'no_nav') {
-                        $edit .= LinkButton::create(_('Belegung'), URLHelper::getURL('?show_object=' . $resObject->id
-                            . '&quick_view=view_schedule&quick_view_mode=' . $view_mode));
-                    } else {
-                        $edit .= LinkButton::create(_('Belegung'), URLHelper::getURL('?show_object=' . $resObject->id
-                            . '&view=view_schedule'));
+                    if (ResourceObject::isScheduleViewAllowed($resObject->getId())) {
+                        if ($view_mode == 'no_nav') {
+                            $edit .= LinkButton::create(_('Belegung'), URLHelper::getURL('?show_object=' . $resObject->id
+                                . '&quick_view=view_schedule&quick_view_mode=' . $view_mode));
+                        } else {
+                            $edit .= LinkButton::create(_('Belegung'), URLHelper::getURL('?show_object=' . $resObject->id
+                                . '&view=view_schedule'));
+                        }
                     }
                 }
                 if ($simple_perms && $resObject->isRoom()) {
@@ -269,8 +271,11 @@ class ShowList extends ShowTreeRow{
             $query = "SELECT a.resource_id, COUNT(a.resource_id) AS resource_id_count
                       FROM resources_objects_properties AS a
                       LEFT JOIN resources_objects AS b USING (resource_id)
-                      LEFT JOIN resources_categories USING (category_id)
-                      WHERE ";
+                      LEFT JOIN resources_categories USING (category_id)";
+            if (!hasGlobalOccupationAccess()) {
+                $query .= " LEFT JOIN `resources_user_resources` AS rur ON (rur.`resource_id` = b.`resource_id`)";
+            }
+            $query .= " WHERE ";
 
             $conditions = array();
             $i = 0;
@@ -316,7 +321,12 @@ class ShowList extends ShowTreeRow{
             }
             if ($search_array['resources_search_range']) {
                 $query .= " AND b.resource_id IN (:resource_ids)";
-                $parameters[':resource_ids'] = $resource_ids ?: '';
+                $parameters[':resource_ids'] = $search_only ?: '';
+            }
+
+            if (!hasGlobalOccupationAccess()) {
+                $query .= " AND (b.`owner_id`=:user OR rur.`user_id`=:user)";
+                $parameters[':user'] = $GLOBALS['user']->id;
             }
 
             $query .= " GROUP BY a.resource_id
@@ -327,8 +337,13 @@ class ShowList extends ShowTreeRow{
         } else {
             $query = "SELECT resource_id
                       FROM resources_objects AS ro
-                      LEFT JOIN resources_categories USING (category_id)
-                      WHERE ro.name LIKE CONCAT('%', :needle, '%')";
+                      LEFT JOIN resources_categories USING (category_id)";
+
+            if (!hasGlobalOccupationAccess()) {
+                $query .= " LEFT JOIN `resources_user_resources` USING (`resource_id`)";
+            }
+            $query .= " WHERE ro.name LIKE CONCAT('%', :needle, '%')";
+
             $parameters[':needle'] = $search_array['search_exp'];
 
             if ($this->supress_hierachy_levels) {
@@ -341,6 +356,12 @@ class ShowList extends ShowTreeRow{
                 $query .= " AND ro.resource_id IN (:resource_ids)";
                 $parameters[':resource_ids'] = $search_only ?: '';
             }
+
+            if (!hasGlobalOccupationAccess()) {
+                $query .= " AND (ro.`owner_id`=:user OR `user_id`=:user)";
+                $parameters[':user'] = $GLOBALS['user']->id;
+            }
+
             $query .= " ORDER BY ro.name";
         }
 

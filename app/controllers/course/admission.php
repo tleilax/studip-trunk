@@ -35,7 +35,7 @@ class Course_AdmissionController extends AuthenticatedController
         if (!get_object_type($this->course_id, array('sem')) ||
             SeminarCategories::GetBySeminarId($this->course_id)->studygroup_mode ||
             !$perm->have_studip_perm("tutor", $this->course_id)) {
-            throw new Trails_Exception(400);
+            throw new Trails_Exception(403);
         }
 
         $this->course = Course::find($this->course_id);
@@ -52,6 +52,7 @@ class Course_AdmissionController extends AuthenticatedController
         }
         update_admission($this->course->id);
         PageLayout::addSqueezePackage('admission');
+        URLHelper::addLinkParam('return_to_dialog', Request::get('return_to_dialog'));
     }
 
     /**
@@ -59,6 +60,7 @@ class Course_AdmissionController extends AuthenticatedController
      */
     function index_action()
     {
+        URLHelper::addLinkParam('return_to_dialog', Request::isDialog());
         $this->sidebar = Sidebar::get();
         $this->sidebar->setImage("sidebar/seminar-sidebar.png");
         if ($GLOBALS['perm']->have_perm('admin')) {
@@ -176,6 +178,7 @@ class Course_AdmissionController extends AuthenticatedController
                         }
                         if ($num_moved) {
                             PageLayout::postMessage(MessageBox::success(sprintf(_("%s vorläufige Teilnehmer wurden entfernt."), $num_moved)));
+                            $this->course->resetRelation('admission_applicants');
                         }
                     }
                 }
@@ -266,13 +269,14 @@ class Course_AdmissionController extends AuthenticatedController
                     $num_moved = 0;
                     foreach ($removed_applicants as $applicant) {
                         setTempLanguage($applicant->user_id);
-                        $message_body = sprintf(_('Die Warteliste der Veranstaltung **%s** wurde von einem/r DozentIn oder AdministratorIn deaktiviert, Sie sind damit __nicht__ zugelassen worden.'),  $this->course->name);
+                        $message_body = sprintf(_('Die Warteliste der Veranstaltung **%s** wurde deaktiviert, Sie sind damit __nicht__ zugelassen worden.'),  $this->course->name);
                         $message_title = sprintf(_("Statusänderung %s"), $this->course->name);
                         messaging::sendSystemMessage($applicant->user_id, $message_title, $message_body);
                         restoreLanguage();
                         $num_moved += $applicant->delete();
                     }
                     if ($num_moved) {
+                        $this->course->resetRelation('admission_applicants');
                         PageLayout::postMessage(MessageBox::success(sprintf(_("%s Wartende wurden entfernt."), $num_moved)));
                     }
                 }
@@ -309,12 +313,7 @@ class Course_AdmissionController extends AuthenticatedController
                 PageLayout::postMessage(MessageBox::success(_("Die zugelassenen Nutzerdomänen wurden geändert.")));
             }
         }
-        if (Request::isXhr()) {
-            $this->response->add_header('X-Dialog-Close', 1);
-            $this->render_nothing();
-        } else {
-            $this->redirect($this->url_for('/index'));
-        }
+        $this->redirect($this->url_for('/index'));
     }
 
     function change_course_set_action()
@@ -335,7 +334,14 @@ class Course_AdmissionController extends AuthenticatedController
             if ($this->course->getNumWaiting() && !Request::submitted('change_course_set_unassign_yes')) {
                 $question = sprintf(_("In dieser Veranstaltung existiert eine Warteliste. Die bestehende Warteliste mit %s Einträgen wird gelöscht. Sind sie sicher?"), $this->course->getNumWaiting());
             }
-            if (!$question && ($cs = CourseSet::getSetForCourse($this->course_id))) {
+            $cs = CourseSet::getSetForCourse($this->course_id);
+            if ($cs) {
+                $priorities = AdmissionPriority::getPrioritiesByCourse($cs->getId(), $this->course_id);
+                if (count($priorities) && !Request::submitted('change_course_set_unassign_yes')) {
+                    $question = sprintf(_("In dieser Veranstaltung existiert eine Anmeldeliste (Platzverteilung am %s). Die bestehende Anmeldeliste mit %s Einträgen wird gelöscht. Sind sie sicher?"), strftime('%x %R', $cs->getSeatDistributionTime()), count($priorities));
+                }
+            }
+            if (!$question && $cs) {
                 CourseSet::removeCourseFromSet($cs->getId(), $this->course_id);
                 $cs->load();
                 if (!in_array($this->course_id, $cs->getCourses())) {
@@ -350,13 +356,14 @@ class Course_AdmissionController extends AuthenticatedController
                     $num_moved = 0;
                     foreach ($this->course->admission_applicants->findBy('status', 'awaiting') as $applicant) {
                         setTempLanguage($applicant->user_id);
-                        $message_body = sprintf(_('Die Warteliste der Veranstaltung **%s** wurde von einem/r DozentIn oder AdministratorIn deaktiviert, Sie sind damit __nicht__ zugelassen worden.'),  $this->course->name);
+                        $message_body = sprintf(_('Die Warteliste der Veranstaltung **%s** wurde deaktiviert, Sie sind damit __nicht__ zugelassen worden.'),  $this->course->name);
                         $message_title = sprintf(_("Statusänderung %s"), $this->course->name);
                         messaging::sendSystemMessage($applicant->user_id, $message_title, $message_body);
                         restoreLanguage();
                         $num_moved += $applicant->delete();
                     }
                     if ($num_moved) {
+                        $this->course->resetRelation('admission_applicants');
                         PageLayout::postMessage(MessageBox::success(sprintf(_("%s Wartende wurden entfernt."), $num_moved)));
                     }
                 }
@@ -461,7 +468,7 @@ class Course_AdmissionController extends AuthenticatedController
                 $this->redirect($response->headers['Location']);
             }
         } else {
-            throw new Trails_Exception(400);
+            throw new Trails_Exception(403);
         }
     }
 
@@ -476,13 +483,13 @@ class Course_AdmissionController extends AuthenticatedController
                 $this->redirect($response->headers['Location']);
             }
         } else {
-            throw new Trails_Exception(400);
+            throw new Trails_Exception(403);
         }
     }
 
     function after_filter($action, $args)
     {
-        if (Request::isXhr()) {
+        if (Request::isXhr() && !Request::get('return_to_dialog')) {
             foreach ($this->response->headers as $k => $v) {
                 if ($k === 'Location') {
                     $this->response->headers['X-Location'] = $v;

@@ -133,7 +133,7 @@
 		<xsl:if test="untertitel">
 				Untertitel: <xsl:value-of select="untertitel"/>
 		</xsl:if>
-				DozentIn: <xsl:for-each select="dozenten/dozent">
+				Lehrende: <xsl:for-each select="dozenten/dozent">
 					<xsl:if test="position() &gt; 1">
 						<xsl:text>, </xsl:text>
 					</xsl:if>
@@ -165,7 +165,7 @@
 					Teilnahme: <xsl:value-of select="teilnehmer"/>
 		</xsl:if>
 		<xsl:if test="teilnehmerzahl">	<xsl:for-each select="teilnehmerzahl"><xsl:text>
-					</xsl:text><xsl:value-of select="@key"/> TeilnehmerInnenzahl: <xsl:text>						</xsl:text><xsl:value-of select="."/>
+					</xsl:text><xsl:value-of select="@key"/> Anzahl Teilnehmende: <xsl:text>						</xsl:text><xsl:value-of select="."/>
 		</xsl:for-each></xsl:if>
 		<xsl:if test="voraussetzung">
 					Voraussetzungen: <xsl:value-of select="voraussetzung"/>

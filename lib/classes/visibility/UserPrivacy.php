@@ -21,6 +21,11 @@ class UserPrivacy
     private $userid;
 
     /**
+     * @var int Username that owns the privacy settings
+     */
+    private $username;
+
+    /**
      * @var array Privacysettingstree
      */
     private $profileSettings;
@@ -33,8 +38,10 @@ class UserPrivacy
     {
         if ($userid == null) {
             $this->userid = $GLOBALS['user']->user_id;
+            $this->username = $GLOBALS['user']->username;
         } else {
             $this->userid = $userid;
+            $this->username = User::find($userid)->username;
         }
     }
 
@@ -42,14 +49,24 @@ class UserPrivacy
      * Returns all the categorys and it's items
      * @return array categorys and it's items
      */
-    function getProfileSettings()
+    public function getProfileSettings()
     {
         if (!isset($this->profileSettings)) {
-            $this->profileSettings = User_Visibility_Settings::findBySQL("user_id = ? AND parent_id = 0 AND identifier <> 'plugins'", array($this->userid));
-            foreach ($this->profileSettings as $vis) {
-                $vis->loadChildren();
+            // if the default categories have not been created, do this now
+            if (User_Visibility_Settings::countBySQL('user_id = ? AND category = 0', array($this->userid)) == 0) {
+                Visibility::createDefaultCategories($this->userid);
             }
-            $about = new about($GLOBALS['user']->username, '');
+            $this->profileSettings = User_Visibility_Settings::findBySQL("user_id = ? AND parent_id = 0 AND identifier <> 'plugins'", array($this->userid));
+            foreach ($this->profileSettings as $i => $vis) {
+                $vis->loadChildren();
+                // remap child settings to default categories
+                if ($vis->category == 1) {
+                    $idmap[$vis->identifier] = $vis;
+                    unset($this->profileSettings[$i]);
+                }
+            }
+
+            $about = new about($this->username, '');
             $elements = $about->get_homepage_elements();
 
             foreach ($elements as $key => $element) {
@@ -57,11 +74,13 @@ class UserPrivacy
                     if ($vis->name === $element['category']) {
                         foreach ($vis->children as $child) {
                             if ($child->identifier === $key) {
+                                $child->setDisplayed();
+                                $child->name = $element['name'];
                                 break 2;
                             }
                         }
 
-                        $child = new User_Visibility_Settings();
+                        $child = $idmap[$key] ?: new User_Visibility_Settings();
                         $child->setData(array(
                             'user_id'    => $this->userid,
                             'parent_id'  => $vis->id,
@@ -132,7 +151,7 @@ class UserPrivacy
      * Returns all Arguments for the SettingsPage
      * @return array Arguments for the SettingsPage
      */
-    function getHTMLArgs()
+    public function getHTMLArgs()
     {
         $privacy_states = VisibilitySettings::getInstance();
         $result['header_colspan'] = $privacy_states->count() + 1;
@@ -146,4 +165,3 @@ class UserPrivacy
         return $result;
     }
 }
-?>

@@ -100,7 +100,7 @@
                 </td>
                 <td colspan="2">
                     <textarea name="hobby" id="hobbies" style="width:100%;height:100px;"
-                              class="add_toolbar"
+                              class="add_toolbar wysiwyg"
                               <? if (!$controller->shallChange('user_info.hobby')) echo 'disabled'; ?>
                     ><?= htmlReady($user->hobby) ?></textarea>
                 </td>
@@ -112,7 +112,7 @@
                 </td>
                 <td colspan="2">
                     <textarea id="lebenslauf" name="lebenslauf" style="width:100%;height:100px;"
-                              class="add_toolbar"
+                              class="add_toolbar wysiwyg"
                               <? if (!$controller->shallChange('user_info.lebenslauf')) echo 'disabled'; ?>
                     ><?= htmlReady($user->lebenslauf) ?></textarea>
                 </td>
@@ -125,7 +125,7 @@
                 </td>
                 <td colspan="2">
                     <textarea id="schwerp" name="schwerp" style="width:100%;height:100px;"
-                              class="add_toolbar"
+                              class="add_toolbar wysiwyg"
                               <? if (!$controller->shallChange('user_info.schwerp')) echo 'disabled'; ?>
                     ><?= htmlReady($user->schwerp) ?></textarea>
                 </td>
@@ -137,7 +137,7 @@
                 </td>
                 <td colspan="2">
                     <textarea id="publi" name="publi" style="width:100%;height:100px;"
-                              class="add_toolbar"
+                              class="add_toolbar wysiwyg"
                               <? if (!$controller->shallChange('user_info.publi')) echo 'disabled'; ?>
                     ><?= htmlReady($user->publi) ?></textarea>
                 </td>
@@ -147,9 +147,9 @@
     <? if (count($user_entries) > 0): ?>
         <tbody>
             <tr>
-                <td colspan="3">
+                <th colspan="3">
                     <?= _('Zusätzliche Datenfelder') ?>
-                </td>
+                </th>
             </tr>
         <? foreach ($user_entries as $id => $entry): ?>
             <tr>
@@ -159,13 +159,16 @@
             <? else: ?>
                 <td>
             <? endif; ?>
-                    <? if ($entry->isEditable() && !LockRules::check($user->user_id, $entry->getId()) && $entry->numberOfHTMLFields() == 1) : ?>
+                <? if ($entry->isEditable() && !LockRules::check($user->user_id, $entry->getId()) && $entry->numberOfHTMLFields() == 1) : ?>
                     <label for="datafields_<?= $entry->getId() ?>">
-                    <? endif ?>
+                <? endif ?>
                     <?= htmlReady($entry->getName()) ?>
-                    <? if ($entry->isEditable() && !LockRules::check($user->user_id, $entry->getId()) && $entry->numberOfHTMLFields() == 1) : ?>
+                <? if ($entry->isEditable() && !LockRules::check($user->user_id, $entry->getId()) && $entry->numberOfHTMLFields() == 1) : ?>
                     </label>
-                    <? endif ?>
+                <? endif ?>
+                <? if (!$entry->isVisible($user->perms)): ?>
+                    <?= tooltipIcon(_('Systemfeld (für die Person selbst nicht sichtbar)'), true) ?>
+                <? endif; ?>
                 </td>
                 <td colspan="2">
                 <? if ($entry->isEditable() && !LockRules::check($user->user_id, $entry->getId())): ?>

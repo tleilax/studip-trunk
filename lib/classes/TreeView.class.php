@@ -115,6 +115,9 @@ class TreeView {
     {
         $this->tree_class_name = $tree_class_name;
         $this->tree            = TreeAbstract::GetInstance($tree_class_name, $args);
+        // TODO Die Logik hinter forumgrau2 und forumgraurunt2 muss
+        // komplett erneuert werden; dann können auch Instanzen der
+        // Klasse "Icon" verwendet werden.
         $this->pic_open        = $this->use_aging
                                ? 'forumgraurunt2.png'
                                : 'icons/16/blue/arr_1down.png';
@@ -339,14 +342,10 @@ class TreeView {
             $head .= "<a href=\"";
             $head .= ($this->open_ranges[$item_id]) ? URLHelper::getLink($this->getSelf("close_range={$item_id}")) : URLHelper::getLink($this->getSelf("open_range={$item_id}"));
             $head .= "\">";
-            $head .= Assets::img('icons/16/blue/folder-full.png',
-                                 tooltip2($this->open_ranges[$item_id]
-                                          ? _('Alle Unterelemente schließen')
-                                          : _('Alle Unterelemente öffnen')) + 
-                                 array('class' => 'text-top'));
+            $head .= Icon::create('folder-full', 'clickable', ['title' => $this->open_ranges[$item_id]?_('Alle Unterelemente schließen'):_('Alle Unterelemente öffnen')])->asImg(16, ['class' => 'text-top']);
             $head .= "</a>";
         } else {
-            $head .= Assets::img('icons/16/blue/folder-empty.png', tooltip2(_('Dieses Element hat keine Unterelemente')));
+            $head .= Icon::create('folder-empty', 'clickable', ['title' => _('Dieses Element hat keine Unterelemente')])->asImg();
         }
     return $head . "</td>";
     }

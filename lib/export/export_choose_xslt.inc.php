@@ -92,7 +92,7 @@ if (!CheckParamXSLT())
     $infobox = array(
     array ("kategorie"  => _("Information:"),
         "eintrag" => array  (
-                        array ( "icon" => "icons/16/black/info.png",
+                        array ( "icon" => Icon::create('info', 'clickable'),
                                 "text"  => _("Die Parameter, mit denen diese Seite aufgerufen wurde, sind fehlerhaft oder unvollständig.")
                              )
                         )
@@ -221,14 +221,14 @@ elseif ($page == 2)  // Seite 3 : Download der Dateien
     $export_pagecontent .= CSRFProtection::tokenTag();
 
     $xml_printimage = '<a href="'. GetDownloadLink($xml_file_id, $xml_filename, 2) . '">';
-    $xml_printimage.= Assets::img($export_icon['xml'], array('class' => 'text-top'));
+    $xml_printimage.= Icon::create($export_icon['xml'], 'clickable')->asImg(['class' => 'text-top']);
     $xml_printimage.= '</a>';
     $xml_printlink = '<a href="' . GetDownloadLink($xml_file_id, $xml_filename, 2) . '">' . htmlReady($xml_filename) . '</a>';
     $xml_printdesc = _("XML-Daten");
     $xml_printcontent = _("In dieser Datei sind die Daten als XML-Tags gespeichert. Diese Tags können mit einem XSLT-Script verarbeitet werden.") . "<br>";
 
     $xslt_printimage = '<a href="' . GetDownloadLink( $xslt_files[$choose]['file'], $xslt_files[$choose]['name'] . '.xsl', 3). '">';
-    $xslt_printimage.= Assets::img($export_icon['xslt'], array('class' => 'text-top'));
+    $xslt_printimage.= Icon::create($export_icon['xslt'], 'clickable')->asImg(['class' => 'text-top']);
     $xslt_printimage.= '</a>';
     $xslt_printlink = '<a href="'.GetDownloadLink( $xslt_files[$choose]['file'], $xslt_files[$choose]['name'] . '.xsl', 3).'">' . $xslt_files[$choose]['name'] . '.xsl</a>';
     $xslt_printdesc = _("XSLT-Datei");
@@ -262,7 +262,7 @@ elseif ($page == 2)  // Seite 3 : Download der Dateien
     $infobox = array    (
     array ("kategorie"  => _("Information:"),
         "eintrag" => array  (
-                        array ( "icon" => "icons/16/black/info.png",
+                        array ( "icon" => Icon::create('info', 'clickable'),
                                 "text"  => sprintf(_("Diese Seite bereitet die Datenausgabe vor. %s Schritt 3/3 %s"), "<br><i>", "</i>")
                              )
                         )
@@ -272,12 +272,12 @@ elseif ($page == 2)  // Seite 3 : Download der Dateien
     $infobox[1]["kategorie"] = _("Aktionen:");
 
     $infobox[1]["eintrag"][] = array (
-        "icon" => "icons/16/black/download.png" ,
+        "icon" => Icon::create('download', 'clickable'),
         "text"  => _("Sie können sich die XML-Daten und das XSLT-Skript herunterladen.")
     );
 
     if ($XSLT_ENABLE) {
-        $infobox[1]["eintrag"][] = array (  "icon" => "icons/16/black/info.png" ,
+        $infobox[1]["eintrag"][] = array (  "icon" => Icon::create('info', 'clickable'),
                                     "text"  => _("Wenn Sie auf 'weiter' klicken, wird mit dem installierten XSLT-Prozessor die Ausgabedatei erzeugt.")
                                 );
     }

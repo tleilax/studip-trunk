@@ -88,7 +88,7 @@ if (!CheckParamRUN())
     $infobox = array(
     array ("kategorie"  => _("Information:"),
         "eintrag" => array  (
-                        array ( "icon" => "icons/16/black/info.png",
+                        array ( "icon" => Icon::create('info', 'clickable'),
                                 "text"  => _("Die Parameter, mit denen diese Seite aufgerufen wurde, sind fehlerhaft.")
                              )
                         )
@@ -138,7 +138,7 @@ else
 
     if ($o_mode == "passthrough")
     {
-        header("Location: " . GetDownloadLink($result_file, $xslt_filename .'.'. $format, 2));
+        header("Location: " . GetDownloadLink($result_file, $xslt_filename .'.'. $format, 2, 'force'));
         unlink( $TMP_PATH . "/export/" . $xml_file_id);
     } else {
 
@@ -171,14 +171,14 @@ else
 
 
         $xml_printimage = ' <a href="' . GetDownloadLink($xml_file_id, $xml_filename, 2) . '" target="_blank">';
-        $xml_printimage.= Assets::img($export_icon['xml'], array('class' => 'text-top'));
+        $xml_printimage.= Icon::create($export_icon['xml'], 'clickable')->asImg(['class' => 'text-top']);
         $xml_printimage.= '</a>';
         $xml_printlink = ' <a href="'. GetDownloadLink($xml_file_id, $xml_filename, 2) . '" class="tree">' . htmlReady($xml_filename) . '</a>';
         $xml_printdesc = _("XML-Daten");
         $xml_printcontent = _("In dieser Datei sind die Daten als XML-Tags gespeichert. Diese Tags können mit einem XSLT-Script verarbeitet werden.") . '<br>';
 
         $xslt_printimage = ' <a href="'. GetDownloadLink($xslt_files[$choose]['file'], $xslt_files[$choose]['name'].'.xsl', 3) . '">';
-        $xslt_printimage.= Assets::img($export_icon['xslt'], array('class' => 'text-top'));
+        $xslt_printimage.= Icon::create($export_icon['xslt'], 'clickable')->asImg(['class' => 'text-top']);
         $xslt_printimage.= '</a>';
         $xslt_printlink = ' <a href="' . GetDownloadLink($xslt_files[$choose]['file'], $xslt_files[$choose]['name'].'.xsl', 3) .  '" class="tree"> ' . $xslt_files[$choose]['name'] . '.xsl</a>';
         $xslt_printdesc = _("XSLT-Datei");
@@ -186,7 +186,7 @@ else
 
         if ($xslt_process) {
             $result_printimage = '<a href="'. GetDownloadLink($result_file, $xslt_filename .'.'. $format, 2) . '">';
-            $result_printimage.= Assets::img($export_icon[$format], array('class' => 'text-top'));
+            $result_printimage.= Icon::create($export_icon[$format], 'clickable')->asImg(['class' => 'text-top']);
             $result_printimage.= '</a>';
             $result_printlink = '<a href="'. GetDownloadLink($result_file, $xslt_filename .'.'. $format, 2) . '" class="tree"> ' . htmlReady($xslt_filename) . '.' . htmlReady($format) . '</a>';
             $result_printdesc = _("Ausgabe-Datei");

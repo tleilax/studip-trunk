@@ -37,7 +37,7 @@ jQuery(function ($) {
     // hidden, the editor does not function properly; therefore attach to
     // visible textareas only
     function replaceVisibleTextareas() {
-        $('textarea.add_toolbar').each(function() {
+        $('textarea.wysiwyg').each(function() {
             var editor = CKEDITOR.dom.element.get(this).getEditor();
             if (!editor && $(this).is(':visible')) {
                 replaceTextarea(this);
@@ -80,10 +80,12 @@ jQuery(function ($) {
                     attributes: ['!href', 'target', 'rel'],
                     classes: 'link-extern'
                 },
+                blockquote: {},
                 br: {},
                 caption: {},
                 em: {},
                 div: {
+                    classes: 'author', // needed for quotes
                     // only allow left margin and horizontal text alignment to
                     // be set in divs
                     // - margin-left should only be settable in multiples of
@@ -108,7 +110,9 @@ jQuery(function ($) {
                 },
                 li: {},
                 ol: {},
-                p: {},
+                p: {
+                    styles: ['text-align']
+                },
                 pre: {},
                 span: {
                     // note that 'wiki-links' are currently set as a span due
@@ -153,7 +157,7 @@ jQuery(function ($) {
             width: textareaWidth,
             skin: 'studip,' + STUDIP.ASSETS_URL + 'stylesheets/ckeditor-skin/',
             // NOTE codemirror crashes when not explicitely loaded in CKEditor 4.4.7
-            extraPlugins: 'codemirror,magicline,studip-floatbar,studip-settings,studip-wiki'
+            extraPlugins: 'codemirror,confighelper,magicline,studip-floatbar,studip-quote,studip-settings,studip-wiki'
                 // only enable uploads in courses with a file section
                 + ($('li#nav_course_files').length > 0 ? ',studip-upload' : ''),
             enterMode: CKEDITOR.ENTER_BR,
@@ -313,7 +317,8 @@ jQuery(function ($) {
                     "&#x2299", // ⊙ CIRCLED DOT OPERATOR
                 ]
             ),
-            on: { pluginsLoaded: onPluginsLoaded }
+            on: { pluginsLoaded: onPluginsLoaded },
+            title: false
         }); // CKEDITOR.replace(textarea[0], {
 
         CKEDITOR.on('instanceReady', function (event) {

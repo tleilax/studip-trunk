@@ -35,7 +35,7 @@
 
     .nav-label {
         .hide-text();
-        .icon-before('white/arr_1right.svg', 24);
+        .icon('before', 'arr_1right', 'info_alt', 24);
         &:before {
             .transition(transform 300ms);
             vertical-align: text-bottom;
@@ -51,7 +51,7 @@
 }
 
 label[for="responsive-toggle"] {
-    .icon-before('white/hamburger-icon.svg', 20);
+    .icon('before', 'hamburger-icon', 'info_alt', 20);
     &:before {
         background-position: left 3px;
     }
@@ -69,7 +69,7 @@ label[for="responsive-toggle"] {
     position: fixed;
     top: @header-bar-container-height; // + 1px white border
     bottom: 0;
-    left: -(@responsive-menu-width + @responsive-menu-shadow-width);
+    left: (-@responsive-menu-width - @responsive-menu-shadow-width);
 
     .box-sizing(border-box);
     max-width: @responsive-menu-width;
@@ -124,10 +124,10 @@ label[for="responsive-toggle"] {
         }
     }
     input:checked + label {
-        .icon-before('white/arr_1down.svg', 24);
+        .icon('before', 'arr_1down', 'info_alt', 24);
     }
     .csstransforms & input:checked + label {
-        .icon-before('white/arr_1right.svg', 24);
+        .icon('before', 'arr_1right', 'info_alt', 24);
         &:before {
             .rotate(90deg);
         }
@@ -143,7 +143,7 @@ label[for="responsive-toggle"] {
 
 // Responsive sidebar menu (small hamburger menu to the right)
 #barBottomright #sidebar-menu {
-    .icon-before('white/hamburger-icon-small.svg', 20);
+    .icon('before', 'hamburger-icon-small', 'info_alt', 20);
     cursor: pointer;
     display: none;
     margin: 0 5px;
@@ -177,8 +177,25 @@ label[for="responsive-toggle"] {
         }
     }
 
-    #barBottomright #sidebar-menu {
-        display: inline-block;
+    #barBottomright {
+        #sidebar-menu {
+            display: inline-block;
+        }
+        .list {
+            @width: 300px;
+            @arrow-height: 10px;
+
+            margin-top: 2px;
+            width: @width;
+            max-width: @width;
+
+            &.below {
+                left: (-@width + @arrow-height * 2);
+                &:before {
+                    left: (@width - @arrow-height - 2);
+                }
+            }
+        }
     }
     #responsive-container {
         display: block;
@@ -205,7 +222,7 @@ label[for="responsive-toggle"] {
 
         position: fixed;
         top: @header-bar-container-height;
-        right: -(@responsive-menu-width + @responsive-menu-shadow-width);
+        right: (-@responsive-menu-width - @responsive-menu-shadow-width);
         bottom: 0;
 
         height: 100%;

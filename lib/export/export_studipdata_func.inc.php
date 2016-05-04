@@ -560,19 +560,19 @@ function export_teilis($inst_id, $ex_sem_id = "no")
         if (!in_array($filter, words('awaiting claiming'))) {
             if (!$SEM_CLASS[$SEM_TYPE[$SessSemName['art_num']]['class']]['workgroup_mode']) {
                 $gruppe = array(
-                    'dozent'   => _('DozentInnen'),
-                    'tutor'    => _('TutorInnen'),
-                    'autor'    => _('AutorInnen'),
-                    'user'     => _('LeserInnen'),
-                    'accepted' => _('Vorläufig akzeptierte TeilnehmerInnen')
+                    'dozent'   => _('Lehrende'),
+                    'tutor'    => _('Tutor/-innen'),
+                    'autor'    => _('Studierende'),
+                    'user'     => _('Leser/-innen'),
+                    'accepted' => _('Vorläufig akzeptierte Personen')
                 );
             } else {
                 $gruppe = array(
-                    'dozent'   => _('LeiterInnen'),
+                    'dozent'   => _('Leitung'),
                     'tutor'    => _('Mitglieder'),
-                    'autor'    => _('AutorInnen'),
-                    'user'     => _('LeserInnen'),
-                    'accepted' => _('Vorläufig akzeptierte TeilnehmerInnen')
+                    'autor'    => _('Autor/-innen'),
+                    'user'     => _('Leser/-innen'),
+                    'accepted' => _('Vorläufig akzeptierte Personen')
                 );
             }
         } else {
@@ -797,6 +797,9 @@ function export_pers($inst_id)
             if ($val == '') {
                 $val = $key;
             }
+            if (strtolower($key) == 'email') {
+                $row[$key] = get_visible_email($row['user_id']);
+            }
             if ($row[$key] != '') {
                 $data_object .= xml_tag($val, $row[$key]);
             }
@@ -814,7 +817,10 @@ function export_pers($inst_id)
     }
 
     $data_object .= xml_close_tag( $xml_groupnames_person['group']);
-    output_data($data_object, $o_mode);
+
+    if ($data_found) {
+        output_data($data_object, $o_mode);
+    }
 }
 
 /**
@@ -877,7 +883,7 @@ function export_datafields($range_id, $childgroup_tag, $childobject_tag, $object
     $localEntries = DataFieldEntry::getDataFieldEntries($range_id, $object_type, $object_class_hint);
     if(is_array($localEntries )){
         foreach ($localEntries as $entry){
-            if ($entry->structure->accessAllowed($GLOBALS['perm'], $GLOBALS['user']->id) && $entry->getDisplayValue()) {
+            if ($entry->isVisible() && $entry->getDisplayValue()) {
                 if (!$d_fields) $ret .= xml_open_tag( $childgroup_tag );
                 $ret .= xml_open_tag($childobject_tag , $entry->getName());
                 $ret .= xml_escape($entry->getDisplayValue(false));

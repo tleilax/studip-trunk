@@ -87,18 +87,18 @@ if (Request::get('folderzip')) {
     }
 }
 
-if (Request::get('zipnewest')) {
+if (Request::get('zipnewest') !== NULL) {
     //Abfrage der neuen Dateien
     $folder_tree = TreeAbstract::GetInstance('StudipDocumentTree', array('range_id' => $SessSemName[1]));
     $query = "SELECT range_id, dokument_id, url
               FROM dokumente
               WHERE seminar_id = ? AND user_id != ?
-                AND GREATEST(mkdate, IFNULL(chdate, 0)) > IFNULL(?, UNIX_TIMESTAMP())";
+                AND GREATEST(mkdate, IFNULL(chdate, 0)) > ?";
     $statement = DBManager::get()->prepare($query);
     $statement->execute(array(
         $SessSemName[1],
         $user->id,
-        Request::get('zipnewest') ?: null,
+        Request::int('zipnewest'),
     ));
     $download_ids = $statement->fetchAll(PDO::FETCH_ASSOC);
 
@@ -867,9 +867,7 @@ if ($question) {
             if ($folder_tree->isFolder($folder_system_data["move"])) {
                 echo "\n" . '<td class="blank">&nbsp;</td>';
                 echo "\n" . '<td class="blank" width="60%" style="font-size:80%;">';
-                echo "\n" . Assets::input('icons/16/yellow/arr_2right.png',
-                                          tooltip2(_('Auf die obere Ebene verschieben / kopieren')) +
-                                          array('name' => 'move_to_top_folder', 'class' => 'middle'));
+                echo "\n" . Icon::create('arr_2right', 'sort', ['title' => _('Auf die obere Ebene verschieben / kopieren')])->asInput(array('name'=>'move_to_top_folder','class'=>'middle'));
                 echo '&nbsp;' . _("Auf die obere Ebene verschieben / kopieren") . '</td>';
                 echo "\n" . '<td class="blank">';
                 echo Button::create($button_name, "move_to_top_folder");
@@ -879,18 +877,14 @@ if ($question) {
             echo "\n" . '<div style="margin-left:25px;">';
             echo _("Veranstaltung") .':';
             echo '</div></td><td class="blank" width="60%" style="white-space: nowrap;">';
-            echo "\n" . Assets::input('icons/16/yellow/arr_2right.png',
-                                      tooltip2(_('In diese Veranstaltung verschieben / kopieren')) +
-                                      array('name' => 'move_to_sem',
-                                            'id' => 'move_to_sem_arrow',
-                                            'class' => 'middle'));
-            echo "\n" . '<select id="sem_move_id" name="sem_move_id[]" style="width:60%">';
+            echo "\n" . Icon::create('arr_2right', 'sort', ['title' => _('In diese Veranstaltung verschieben / kopieren')])->asInput(array('name'=>'move_to_sem','id'=>'move_to_sem_arrow','class'=>'middle'));
+            echo "\n" . '<select id="sem_move_id" name="sem_move_id[]" style="width:90%">';
             foreach ($my_sem as $id => $name){
                 echo "\n" . '<option value="'.$id.'">' . htmlReady(my_substr($name,0,70)) . '</option>';
             }
             echo "\n" . '</select>';
             if ($config['FILESYSTEM_MULTICOPY_ENABLE'] && $open_cmd != 'm') {
-                echo "\n<a href=\"\" onClick=\"STUDIP.MultiSelect.create('#sem_move_id', 'Veranstaltungen'); $(this).hide(); return false\">".Assets::img("icons/16/blue/add.png", array('title' => _("Mehrere Veranstaltungen auswählen"), "class" => "middle"))."</a>";
+                echo "\n<a href=\"\" onClick=\"STUDIP.MultiSelect.create('#sem_move_id', 'Veranstaltungen'); $(this).hide(); return false\">".Icon::create('add', 'clickable', ['title' => _("Mehrere Veranstaltungen auswählen"), "class" => "middle"])->asImg()."</a>";
             }
             echo "\n</td>";
             echo "\n" . '<td class="blank">';
@@ -900,16 +894,14 @@ if ($question) {
             echo "\n" . '<div style="margin-left:25px;">';
             echo _("Einrichtung").':';
             echo '</div></td><td class="blank" width="60%" style="white-space: nowrap;">';
-            echo "\n" . Assets::input('icons/16/yellow/arr_2right.png',
-                                      tooltip2(_('In diese Einrichtung verschieben / kopieren')) +
-                                      array('name' => 'move_to_inst', 'id' => 'move_to_inst_arrow', 'class' => 'middle'));
-            echo "\n" . '<select id="inst_move_id" name="inst_move_id[]" style="width:60%">';
+            echo "\n" . Icon::create('arr_2right', 'sort', ['title' => _('In diese Einrichtung verschieben / kopieren')])->asInput(array('name'=>'move_to_inst','id'=>'move_to_inst_arrow','class'=>'middle'));
+            echo "\n" . '<select id="inst_move_id" name="inst_move_id[]" style="width:90%">';
             foreach ($my_inst as $id => $name){
                 echo "\n" . '<option value="'.$id.'">' . htmlReady(my_substr($name,0,70)) . '</option>';
             }
             echo "\n" . '</select>';
             if ($config['FILESYSTEM_MULTICOPY_ENABLE'] && $open_cmd != 'm') {
-                echo "\n<a href=\"\" onClick=\"STUDIP.MultiSelect.create('#inst_move_id', 'Institute'); $(this).hide(); return false\">".Assets::img("icons/16/blue/add.png", array('title' => _("Mehrere Einrichtungen auswählen"), "class" => "middle"))."</a>";
+                echo "\n<a href=\"\" onClick=\"STUDIP.MultiSelect.create('#inst_move_id', 'Institute'); $(this).hide(); return false\">".Icon::create('add', 'clickable', ['title' => _("Mehrere Einrichtungen auswählen"), "class" => "middle"])->asImg()."</a>";
             }
             echo "\n</td>";
             echo "\n" . '<td class="blank">';
@@ -940,7 +932,7 @@ if ($question) {
 
     if ($folder_system_data["cmd"]=="all") {
         print "<p class=\"info\">";
-        printf (_("Hier sehen Sie alle Dateien, die zu dieser %s eingestellt wurden. Wenn Sie eine neue Datei einstellen möchten, wählen Sie bitte die Ordneransicht und öffnen den Ordner, in den Sie die Datei einstellen wollen."), $SessSemName["art_generic"]);
+        printf (_("Hier sehen Sie alle Dateien, die zu dieser %s eingestellt wurden. Um eine neue Datei hoch zu laden, wählen Sie bitte links die Ordneransicht."), $SessSemName["art_generic"]);
         print "</p>";
     }
 
@@ -949,10 +941,10 @@ if ($question) {
     $query = "SELECT COUNT(*)
               FROM dokumente
               WHERE seminar_id = ? AND user_id != ? AND url=''
-              AND range_id NOT IN(?) AND GREATEST(mkdate, IFNULL(chdate, 0)) > IFNULL(?, UNIX_TIMESTAMP())";
+              AND range_id NOT IN(?) AND GREATEST(mkdate, IFNULL(chdate, 0)) > ?";
     $statement = DBManager::get()->prepare($query);
     $statement->execute(array(
-        $range_id, $user->id, $folder_tree->getUnreadableFolders($user->id) ?: '', $lastvisit ?: null
+        $range_id, $user->id, $folder_tree->getUnreadableFolders($user->id) ?: '', $lastvisit
     ));
     $result = $statement->fetchColumn();
     if ($result > 0) {
@@ -1290,7 +1282,7 @@ if ($rechte) {
     $actions = new ActionsWidget();
     $actions->addLink(_('Neuer Ordner'),
                       URLHelper::getLink('dispatch.php/folder/create/' . $range_id . '/' . $SessSemName['class']),
-                      'icons/16/blue/add/folder-empty.png',
+                      Icon::create('folder-empty+add', 'clickable'),
                       array('data-dialog' => 'size=auto'));
     $sidebar->addWidget($actions);
 }

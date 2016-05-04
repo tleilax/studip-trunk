@@ -4,7 +4,7 @@ $width2 = 0;
 $cols = ceil(($settings['end'] - $settings['start'] + 1) * 3600 / $settings['step_week_group']) + 1;
 $start = $settings['start'] * 3600;
 $end = ($settings['end'] + 1) * 3600;
-$wlength = sizeof($calendars[0]) - 1;
+$wlength = count($calendars[0]) - 1;
 // add skip link
 SkipLinks::addIndex(_('Wochenansicht'), 'main_content', 100);
 ?>
@@ -12,18 +12,18 @@ SkipLinks::addIndex(_('Wochenansicht'), 'main_content', 100);
     <tr>
         <td colspan="<?= $colspan_2 ?>" style="vertical-align: middle; text-align: center;">
             <div style="text-align: left; width: 25%; display: inline-block; white-space: nowrap;">
-                <a <?= tooltip(_('eine Woche zurück')) ?> href="<?= $controller->url_for('calendar/group/week', array('atime' => mktime(12, 0, 0, date('n', $atime), date('j', $atime) - 7, date('Y', $atime)))) ?>">
-                    <?= Assets::img('icons/16/blue/arr_1left.png', array('style' => 'vertical-align: text-top;')) ?>
-                    <?= strftime(_('%V. Woche'), strtotime('-1 week', $atime)) ?>
+                <a href="<?= $controller->url_for('calendar/group/week', array('atime' => mktime(12, 0, 0, date('n', $atime), date('j', $atime) - 7, date('Y', $atime)))) ?>">
+                    <?= Icon::create('arr_1left', 'clickable', ['title' => _('Eine Woche zurück')])->asImg(16, ['style' => 'vertical-align: text-top;']) ?>
+                    <?= sprintf(_('%u. Woche'), strftime('%V'), strtotime('-1 week', $atime)) ?>
                 </a>
             </div>
             <div style="display: inline-block; text-align: center;" class="calhead">
                 <? printf(_("%s. Woche vom %s bis %s"), strftime("%V", $calendars[0][0]->getStart()), strftime("%x", $calendars[0][0]->getStart()), strftime("%x", $calendars[0][$wlength]->getEnd())) ?>
             </div>
             <div style="width: 25%; text-align: right; display: inline-block; white-space: nowrap;">
-                <a <?= tooltip(_('eine Woche vor')) ?> href="<?= $controller->url_for('calendar/group/week', array('atime' => mktime(12, 0, 0, date('n', $atime), date('j', $atime) + 7, date('Y', $atime)))) ?>">
-                    <?= strftime(_('%V. Woche'), strtotime('+1 week', $atime)) ?>
-                    <?= Assets::img('icons/16/blue/arr_1right.png', array('style' => 'vertical-align: text-top;')) ?>
+                <a href="<?= $controller->url_for('calendar/group/week', array('atime' => mktime(12, 0, 0, date('n', $atime), date('j', $atime) + 7, date('Y', $atime)))) ?>">
+                    <?= sprintf(_('%u. Woche'), strftime('%V', strtotime('+1 week', $atime))) ?>
+                    <?= Icon::create('arr_1right', 'clickable', ['title' => _('Eine Woche vor')])->asImg(16, ["style" => 'vertical-align: text-top;']) ?>
                 </a>
             </div>
         </td>
@@ -51,7 +51,7 @@ SkipLinks::addIndex(_('Wochenansicht'), 'main_content', 100);
                 <? foreach ($calendars[0] as $day) : ?>
                     <td class="precol1w" style="text-align: center; width: <?= $width1 ?>%;">
                         <a data-dialog="size=auto" title="<?= strftime(_('Neuer Tagestermin am %x'), $day->getStart()) ?>" href="<?= $controller->url_for('calendar/group/edit/' . $range_id, array('atime' => $day->getStart(), 'isdayevent' => '1')) ?>">
-                            <?= Assets::img('icons/16/blue/schedule.png') ?>
+                            <?= Icon::create('schedule', 'clickable')->asImg() ?>
                         </a>
                     </td>
                     <? for ($i = $day->getStart() + $start; $i < $day->getStart() + $end; $i += 3600 * ceil($settings['step_week_group'] / 3600)) : ?>
@@ -89,32 +89,32 @@ SkipLinks::addIndex(_('Wochenansicht'), 'main_content', 100);
 
                     // display day events
                     $js_events = array(); ?>
-                    <? for ($i = 0; $i < sizeof($adapted['day_events']); $i++) : ?>
+                    <? for ($i = 0; $i < count($adapted['day_events']); $i++) : ?>
                         <? $js_events[] = $day->events[$adapted['day_map'][$i]]; ?>
                     <? endfor; ?>
-                    <? if ($day->havePermission(Calendar::PERMISSION_WRITABLE)) : ?>
-                        <td <?= sizeof($js_events) ? 'data-tooltip ' : '' ?>style="text-align: right; width: <?= $width1 ?>%" class="calendar-day-edit <?= $css_class ?><?= sizeof($js_events) ? ' calendar-group-events' : '' ?>">
+                    <? if (count($js_events) && $day->havePermission(Calendar::PERMISSION_WRITABLE)) : ?>
+                        <td <?= count($js_events) ? 'data-tooltip ' : '' ?>style="text-align: right; width: <?= $width1 ?>%" class="calendar-day-edit <?= $css_class ?><?= count($js_events) ? ' calendar-group-events' : '' ?>">
                         <?= $this->render_partial('calendar/group/_tooltip', array('calendar' => $day, 'events' => $js_events)) ?>
                         <a title="<?= strftime(_('Neuer Tagestermin am %x'), $day->getStart()) ?>" href="<?= $controller->url_for('calendar/group/edit/' . $range_id, array('atime' => $day->getStart(), 'isdayevent' => '1', 'user_id' => $day->getRangeId())) ?>">+</a>
                     <? else : ?>
-                        <td <?= sizeof($js_events) ? 'data-tooltip ' : '' ?>style="text-align: right; width: <?= $width1 ?>%" class="<?= $css_class ?><?= sizeof($js_events) ? ' calendar-group-events' : '' ?>"
+                        <td <?= count($js_events) ? 'data-tooltip ' : '' ?>style="text-align: right; width: <?= $width1 ?>%" class="<?= $css_class ?><?= count($js_events) ? ' calendar-group-events' : '' ?>">
                         <?= $this->render_partial('calendar/group/_tooltip', array('calendar' => $day, 'events' => $js_events)) ?>
                     <? endif;?>
                     </td>
 
                     <? for ($i = $start + $day->getStart(); $i < $end + $day->getStart(); $i += $settings['step_week_group']) : ?>
                         <? $js_events = array(); ?>
-                        <? for ($j = 0; $j < sizeof($adapted['events']); $j++) : ?>
+                        <? for ($j = 0; $j < count($adapted['events']); $j++) : ?>
                             <? if (($adapted['events'][$j]->getStart() <= $i && $adapted['events'][$j]->getEnd() > $i) || ($adapted['events'][$j]->getStart() > $i && $adapted['events'][$j]->getStart() < $i + $settings['step_week_group'])) : ?>
                                 <? $js_events[] = $day->events[$adapted['map'][$j]]; ?>
                             <? endif ?>
                         <? endfor ?>
                         <? if ($day->havePermission(Calendar::PERMISSION_WRITABLE)) : ?>
-                            <td <?= sizeof($js_events) ? 'data-tooltip ' : '' ?>style="text-align: right; width: <?= $width1 ?>%" class="calendar-day-edit <?= $css_class ?><?= sizeof($js_events) ? ' calendar-group-events' : '' ?>">
+                            <td <?= count($js_events) ? 'data-tooltip ' : '' ?>style="text-align: right; width: <?= $width1 ?>%" class="calendar-day-edit <?= $css_class ?><?= count($js_events) ? ' calendar-group-events' : '' ?>">
                                 <?= $this->render_partial('calendar/group/_tooltip', array('calendar' => $day, 'events' => $js_events)) ?>
                                 <a title="<?= strftime(_('Neuer Termin um %R Uhr'), $i) ?>" href="<?= $controller->url_for('calendar/group/edit/' . $range_id, array('atime' => $i, 'user_id' => $day->getRangeId())) ?>">+</a>
                         <? else : ?>
-                            <td <?= sizeof($js_events) ? 'data-tooltip ' : '' ?>style="text-align: right; width: <?= $width1 ?>%" class="<?= $css_class ?><?= sizeof($js_events) ? ' calendar-group-events' : '' ?>">
+                            <td <?= count($js_events) ? 'data-tooltip ' : '' ?>style="text-align: right; width: <?= $width1 ?>%" class="<?= $css_class ?><?= count($js_events) ? ' calendar-group-events' : '' ?>">
                                 <?= $this->render_partial('calendar/group/_tooltip', array('calendar' => $day, 'events' => $js_events)) ?>
                         <? endif; ?>
                         </td>
@@ -129,7 +129,7 @@ SkipLinks::addIndex(_('Wochenansicht'), 'main_content', 100);
                 <? foreach ($calendars[0] as $day) : ?>
                     <td style="width:<?= $width1 ?>%; text-align: center;" class="precol1w">
                         <a data-dialog="size=auto" title="<?= strftime(_('Neuer Tagestermin am %x'), $day->getStart()) ?>" href="<?= $controller->url_for('calendar/group/edit/' . $range_id, array('atime' => $atime, 'isdayevent' => '1')) ?>">
-                            <?= Assets::img('icons/16/blue/schedule.png') ?>
+                            <?= Icon::create('schedule', 'clickable')->asImg() ?>
                         </a>
                     </td>
                     <? for ($i = $day->getStart() + $start; $i < $day->getStart() + $end; $i += 3600 * ceil($settings['step_week_group'] / 3600)) : ?>

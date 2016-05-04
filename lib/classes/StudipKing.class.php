@@ -138,14 +138,16 @@ class StudipKing {
 
     private static function votes_kings()
     {
-        return self::select_kings("SELECT author_id AS id, COUNT(*) AS num FROM vote ".
-            "LEFT JOIN vote_user ON (vote.vote_id = vote_user.vote_id) ".
-            "GROUP BY author_id");
+        return self::select_kings("SELECT questionnaires.user_id AS id, COUNT(*) AS num
+            FROM questionnaires
+                LEFT JOIN questionnaire_questions ON (questionnaires.questionnaire_id = questionnaire_questions.questionnaire_id)
+                LEFT JOIN questionnaire_answers ON (questionnaire_questions.question_id = questionnaire_answers.question_id)
+            GROUP BY questionnaires.user_id");
     }
 
     private static function voter_kings()
     {
-        return self::select_kings("SELECT user_id AS id, COUNT(*) AS num FROM vote_user GROUP BY user_id");
+        return self::select_kings("SELECT user_id AS id, COUNT(*) AS num FROM questionnaire_answers GROUP BY user_id");
     }
 
     private static function news_kings()
@@ -156,14 +158,13 @@ class StudipKing {
     private static function textual_representation($type, $amount)
     {
         $alt_text = array(
-            'files'            => "%d hochgeladene Dateien",
-            'forum'            => "%d Forums-Beiträge",
-            'wiki'             => "%d Wiki-Beiträge",
-            'voter'            => "%d abgegebene Stimmen",
-            'votes'            => "%d bekommene Stimmen",
-            'news'             => "%d eingestellte Ankündigungen"
+            'files'            => _('%d hochgeladene Dateien'),
+            'forum'            => _('%d Forums-Beiträge'),
+            'wiki'             => _('%d Wiki-Beiträge'),
+            'voter'            => _('%d abgegebene Stimmen'),
+            'votes'            => _('%d bekommene Stimmen'),
+            'news'             => _('%d eingestellte Ankündigungen')
         );
-        return sprintf(_($alt_text[$type]), $amount);
+        return sprintf($alt_text[$type], $amount);
     }
 }
-

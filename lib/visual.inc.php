@@ -103,17 +103,17 @@ function get_ampel_write ($mein_status, $admission_status, $write_level, $print=
 
     switch ($ampel_state["access"]) {
         case 0 :
-            $color = 'icons/16/green/accept.png';
+            $icon = Icon::create('accept', 'accept');
             break;
         case 1 :
-            $color = 'icons/16/black/exclaim.png';
+            $icon = Icon::create('exclaim', 'info');
             break;
         case 2 :
-            $color = 'icons/16/red/decline.png';
+            $icon = Icon::create('decline', 'attention');
             break;
     }
 
-    $ampel_status = Assets::img($color) . ' ' . $ampel_state["text"];
+    $ampel_status = $icon->asImg() . ' ' . $ampel_state["text"];
 
     if ($print == TRUE) {
         echo $ampel_status;
@@ -191,17 +191,17 @@ function get_ampel_read ($mein_status, $admission_status, $read_level, $print="T
 
     switch ($ampel_state["access"]) {
         case 0 :
-            $color = 'icons/16/green/accept.png';
+            $icon = Icon::create('accept', 'accept');
             break;
         case 1 :
-            $color = 'icons/16/black/exclaim.png';
+            $icon = Icon::create('exclaim', 'info');
             break;
         case 2 :
-            $color = 'icons/16/red/decline.png';
+            $icon = Icon::create('decline', 'attention');
             break;
     }
 
-    $ampel_status = Assets::img($color) . " ". $ampel_state["text"];
+    $ampel_status = $icon->asImg() . ' ' . $ampel_state["text"];
 
     if ($print == TRUE) {
         echo $ampel_status;
@@ -269,11 +269,8 @@ function quotes_encode($description,$author)
  * @return string        HTML code computed by applying markup-rules.
  */
 // TODO remove unused function arguments
-function formatReady($text, $trim=TRUE, $extern=FALSE, $wiki=FALSE, $show_comments='icon'){
-    // StudipFormat::markupLinks stores OpenGraph media preview URLs
-    // Blubber and Forum plugins add media previews after formatReady returns
-    OpenGraphURL::$tempURLStorage = array();
-
+function formatReady($text, $trim=TRUE, $extern=FALSE, $wiki=FALSE, $show_comments='icon')
+{
     return sprintf(FORMATTED_CONTENT_WRAPPER,
                    Markup::apply(new StudipFormat(), $text, $trim));
 }
@@ -310,7 +307,8 @@ function formatLinks($text, $nl2br=TRUE){
  * @return string        HTML code computed by applying markup-rules.
  */
 function wikiReady($text, $trim=TRUE){
-    return Markup::apply(new WikiFormat(), $text, $trim);
+    return sprintf(FORMATTED_CONTENT_WRAPPER,
+                   Markup::apply(new WikiFormat(), $text, $trim));
 }
 
 /**
@@ -431,12 +429,9 @@ function isURL($url) {
 
 function isLinkIntern($url) {
     $pum = @parse_url(TransformInternalLinks($url));
-    if (!isset($pum['port'])) {
-        $pum['port'] = '';
-    }
-    return ($pum['scheme'] === 'http' || $pum['scheme'] === 'https')
-        && ( $pum['host'] == $_SERVER['HTTP_HOST']
-            || $pum['host'] . ':' . $pum['port'] == $_SERVER['HTTP_HOST'] )
+    return in_array($pum['scheme'], array('https', 'http', NULL), true)
+        && in_array($pum['host'], array($_SERVER['SERVER_NAME'], NULL), true)
+        && in_array($pum['port'], array($_SERVER['SERVER_PORT'], NULL), true)
         && strpos($pum['path'], $GLOBALS['CANONICAL_RELATIVE_PATH_STUDIP']) === 0;
 }
 
@@ -678,7 +673,7 @@ function printcontent ($breite, $write = FALSE, $inhalt, $edit, $printout = TRUE
         if ($addon!="") {
             if (substr($addon,0,5)=="open:") { // es wird der öffnen-Pfeil mit Link ausgegeben
                 $print .= "</td><td valign=\"middle\" class=\"table_row_even\" nowrap><a href=\"".substr($addon,5)."\">";
-                $print .= Assets::img('icons/16/blue/arr_1left.png', tooltip2(_('Bewertungsbereich öffnen')));
+                $print .= Icon::create('arr_1left', 'clickable', ['title' => _('Bewertungsbereich öffnen')])->asImg();
                 $print .= "</a>&nbsp;";
             } else {              // es wird erweiterter Inhalt ausgegeben
                 $print .= "</td><td class=\"content_body_panel\" nowrap>";
@@ -706,17 +701,17 @@ function printcontent ($breite, $write = FALSE, $inhalt, $edit, $printout = TRUE
     $infobox = array    (
     array  ("kategorie"  => "Information:",
             "eintrag" => array  (
-                            array    (  "icon" => "icons/16/black/search.png",
+                            array    (  "icon" => Icon::create('search', 'info'),
                                     "text"  => "Um weitere Veranstaltungen bitte Blabla"
                                     ),
-                            array    (  "icon" => "icons/16/black/info.png",
+                            array    (  "icon" => Icon::create('search', 'info'),
                                     "text"  => "um Verwaltung  Veranstaltungen bitte Blabla"
                                     )
             )
         ),
     array  ("kategorie" => "Aktionen:",
                "eintrag" => array   (
-                            array ( "icon" => "icons/16/black/info.png",
+                            array ( "icon" => Icon::create('search', 'info'),
                                     "text"  => "es sind noch 19 Veranstaltungen vorhanden."
                                     )
             )
@@ -835,8 +830,8 @@ function TransformInternalLinks($str){
 * creates a modal dialog ensuring that the user is really aware about the action to perform
 *
 * @param   string $question          question of the modal dialog
-* @param   string $approveParams     an array of params for a link to be used on approval
-* @param   string $disapproveParams  an array of params for a link to be used on disapproval
+* @param   array  $approveParams     an array of params for a link to be used on approval
+* @param   array  $disapproveParams  an array of params for a link to be used on disapproval
 * @param   string $baseUrl           if set, this url is used, PHP_SELF otherwise
 *
 * @return  string $dialog            text which contains the dialog
@@ -845,8 +840,8 @@ function TransformInternalLinks($str){
 function createQuestion($question, $approveParams, $disapproveParams = array(), $baseUrl = '?') {
     $template = $GLOBALS['template_factory']->open('shared/question');
 
-    $template->set_attribute('approvalLink', URLHelper::getURL($baseUrl, $approveParams ));
-    $template->set_attribute('disapprovalLink', URLHelper::getURL($baseUrl, $disapproveParams ));
+    $template->set_attribute('approvalLink', URLHelper::getURL($baseUrl, (array)$approveParams));
+    $template->set_attribute('disapprovalLink', URLHelper::getURL($baseUrl, (array)$disapproveParams));
     $template->set_attribute('question', $question);
 
     return $template->render();
@@ -856,8 +851,8 @@ function createQuestion($question, $approveParams, $disapproveParams = array(), 
 * creates a modal dialog ensuring that the user is really aware about the action to perform with formulars
 *
 * @param   string $question          question of the modal dialog
-* @param   string $approveParams     an array of params for a link to be used on approval
-* @param   string $disapproveParams  an array of params for a link to be used on disapproval
+* @param   array  $approveParams     an array of params for a link to be used on approval
+* @param   array  $disapproveParams  an array of params for a link to be used on disapproval
 * @param   string $baseUrl           if set, this url is used, PHP_SELF otherwise
 *
 * @return  string $dialog            text which contains the dialog
@@ -866,8 +861,8 @@ function createQuestion2($question, $approveParams, $disapproveParams = array(),
     $template = $GLOBALS['template_factory']->open('shared/question2');
 
     $template->set_attribute('approvalLink', $baseUrl);
-    $template->set_attribute('approvParams', $approveParams);
-    $template->set_attribute('disapproveParams', $disapproveParams);
+    $template->set_attribute('approvParams', (array)$approveParams);
+    $template->set_attribute('disapproveParams', (array)$disapproveParams);
     $template->set_attribute('question', $question);
 
     return $template->render();
@@ -912,27 +907,27 @@ function display_exception(Exception $exception, $as_html = false, $deep = false
 function get_icon_for_mimetype($mime_type)
 {
     if (strpos($mime_type, 'image/') === 0) {
-        return 'file-pic.png';
+        return 'file-pic';
     }
     if (strpos($mime_type, 'audio/') === 0) {
-        return 'file-audio.png';
+        return 'file-audio';
     }
     if (strpos($mime_type, 'video/') === 0) {
-        return 'file-video.png';
+        return 'file-video';
     }
     if ($mime_type === 'application/pdf') {
-        return 'file-pdf.png';
+        return 'file-pdf';
     }
     if ($mime_type === 'application/vnd.ms-powerpoint') {
-        return 'file-presentation.png';
+        return 'file-presentation';
     }
 
     $parts = explode('/', $mime_type);
     if (reset($parts) === 'application' && in_array(end($parts), words('vnd.ms-excel msexcel x-msexcel x-ms-excel x-excel x-dos_ms_excel xls x-xls'))) {
-        return 'file-xls.png';
+        return 'file-xls';
     }
     if (reset($parts) === 'application' && in_array(end($parts), words('7z arj rar zip'))) {
-        return 'file-archive.png';
+        return 'file-archive';
     }
-    return 'file.png';
+    return 'file';
 }

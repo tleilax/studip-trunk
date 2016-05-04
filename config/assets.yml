@@ -57,9 +57,11 @@ javascripts:
 
     - javascripts/vendor/lodash.underscore-3.10.1.js
     - javascripts/l10n.js
+    - javascripts/vendor/chartist.min.js
     - javascripts/init.js
 
     - javascripts/studip-ui.js
+    - javascripts/studip-helper-attributes.js
 
     - *header
     - *sidebar
@@ -86,17 +88,15 @@ javascripts:
     - javascripts/schedule.js
     - javascripts/skip_links.js
     - javascripts/forms.js
-    - javascripts/room_request_dialog.js
     - javascripts/calendar_dialog.js
     - javascripts/old_upload.js
     - javascripts/drag_and_drop_upload.js
-    - javascripts/status_group.js
     - javascripts/sem_classes.js
     - javascripts/cronjobs.js
     - javascripts/register.js
     - javascripts/contentbox.js
     - javascripts/dates.js
-    - javascripts/tour.js
+    - javascripts/questionnaire.js
     - javascripts/tables.js
     - javascripts/start.js
     - javascripts/responsive.js
@@ -104,12 +104,12 @@ javascripts:
     - javascripts/coursewizard.js
     - javascripts/smiley.js
     - javascripts/big-image-handler.js
+    - javascripts/opengraph.js
 
     - javascripts/studip-secure-forms.js
     - javascripts/studip-css.js
     - javascripts/studip-tooltip.js
     - javascripts/studip-scroll.js
-    - javascripts/studip-helper-attributes.js
     - javascripts/studip-selection-helper.js
     - javascripts/studip-cache.js
     - javascripts/application.js
@@ -150,6 +150,7 @@ css:
     # filename : media
     studip-jquery-ui.css: screen, print
     jshighlight_tomorrow.css: screen, print
+    chartist.min.css: screen, print
     style.css:  screen
     print.css:  print
 

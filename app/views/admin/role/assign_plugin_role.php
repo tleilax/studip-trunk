@@ -1,13 +1,9 @@
 <?
 # Lifter010: TODO
 use Studip\Button, Studip\LinkButton;
-
 ?>
-<?= $this->render_partial('admin/role/status_message') ?>
 
-<h3>
-    <?= _('Rollenverwaltung für Plugins') ?>
-</h3>
+<h3><?= _('Rollenverwaltung für Plugins') ?></h3>
 
 <form action="<?= $controller->url_for('admin/role/assign_plugin_role') ?>" style="margin-bottom: 1em;" method="POST">
     <?= CSRFProtection::tokenTag() ?>
@@ -25,7 +21,7 @@ use Studip\Button, Studip\LinkButton;
 <? if ($pluginid): ?>
     <form action="<?= $controller->url_for('admin/role/save_plugin_role', $pluginid) ?>" method="POST">
         <?= CSRFProtection::tokenTag() ?>
-        <input type="hidden" name="ticket" value="<?= get_ticket() ?>">
+        <input type="hidden" name="studip_ticket" value="<?= get_ticket() ?>">
         <table class="default nohover">
             <tr>
                 <th style="text-align: center;"><?= _('Gegenwärtig zugewiesene Rollen') ?></th>
@@ -44,10 +40,10 @@ use Studip\Button, Studip\LinkButton;
                     </select>
                 </td>
                 <td style="text-align: center;">
-                    <?= Assets::input("icons/16/yellow/arr_2left.png", array('type' => "image", 'class' => "middle", 'name' => "assign_role", 'title' => _('Markierte Rollen dem Plugin zuweisen'))) ?>
+                    <?= Icon::create('arr_2left', 'sort', ['title' => _('Markierte Rollen dem Plugin zuweisen')])->asInput(["type" => "image", "class" => "middle", "name" => "assign_role"]) ?>
                     <br>
                     <br>
-                    <?= Assets::input("icons/16/yellow/arr_2right.png", array('type' => "image", 'class' => "middle", 'name' => "remove_role", 'title' => _('Markierte Rollen entfernen'))) ?>
+                    <?= Icon::create('arr_2right', 'sort', ['title' => _('Markierte Rollen entfernen')])->asInput(["type" => "image", "class" => "middle", "name" => "remove_role"]) ?>
                 </td>
                 <td>
                     <select multiple name="rolesel[]" size="10" style="width: 300px;">

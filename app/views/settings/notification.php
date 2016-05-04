@@ -1,7 +1,7 @@
 <? use Studip\Button, Studip\LinkButton; ?>
 
 <?
-    function module_icon($area, $color = 'black')
+    function module_icon($area)
     {
         $mapping = array(
             'documents'           => 'files',
@@ -12,7 +12,7 @@
             'participants'        => 'persons',
             'plugins'             => 'plugin'
         );
-        return sprintf('icons/16/%s/%s.png', $color, $mapping[$area] ?: $area);
+        return $mapping[$area] ?: $area;
     }
 ?>
 
@@ -33,7 +33,8 @@
                 <th colspan="2"><?= _('Veranstaltung') ?></th>
             <? foreach ($modules as $name => $data): ?>
                 <th>
-                    <?= Assets::img(module_icon($name), array('class' => 'middle', 'title' => $data['name'])) ?>
+                    <?= Icon::create(module_icon($name), 'info', ['title' => $data['name']])
+                            ->asImg(['class' => 'middle']) ?>
                 </th>
             <? endforeach; ?>
                 <th><?= _('Alle') ?></th>
@@ -64,12 +65,12 @@
                     <a class="tree" style="font-weight:bold" name="<?= $id ?>"
                        href="<?= $controller->url_for('settings/notification/close', $id) ?>#<?= $id ?>"
                        <?= tooltip(_('Gruppierung schließen'), true) ?>>
-                       <?= Assets::img('icons/16/blue/arr_1down.png') ?>
+                       <?= Icon::create('arr_1down', 'clickable')->asImg() ?>
                 <? else: ?>
                     <a class="tree" name="<?= $id ?>"
                         href="<?= $controller->url_for('settings/notification/open', $id) ?>#<?= $id ?>"
                        <?= tooltip(_('Gruppierung öffnen'), true) ?>>
-                       <?= Assets::img('icons/16/blue/arr_1right.png') ?>
+                       <?= Icon::create('arr_1right', 'clickable')->asImg() ?>
                 <? endif; ?>
                         <?= htmlReady(my_substr(implode(' &gt; ', (array)$group_names[$id]), 0, 70)) ?>
                     </a>
@@ -82,6 +83,7 @@
                 <td class="gruppe<?= $seminars[$member['seminar_id']]['gruppe'] ?>">&nbsp;</td>
                 <td>
                     <a href="<?= URLHelper::getLink('seminar_main.php', array('auswahl' => $member['seminar_id'])) ?>">
+                        <?= Config::get()->IMPORTANT_SEMNUMBER ? htmlReady($seminars[$member['seminar_id']]['sem_nr']) : '' ?>
                         <?= htmlReady(my_substr($seminars[$member['seminar_id']]['name'], 0, 70)) ?>
                     </a>
                 <? if (!$seminars[$member['seminar_id']]['visible']): ?>

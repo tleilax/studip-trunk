@@ -603,11 +603,21 @@ function listPages($mode, $sortby = NULL) {
         $selfurl = "?view=listall";
         $sort = "ORDER by lastchange DESC"; // default sort order for "all pages"
         $nopages = _("In dieser Veranstaltung wurden noch keine WikiSeiten angelegt.");
+
+        // help texts
+        $help = _('Zeigt eine tabellarische Übersicht aller Wiki-Seiten an.');
+        Helpbar::get()->ignoreDatabaseContents();
+        Helpbar::get()->addPlainText('', $help);
     } else if ($mode=="new") {
         $lastlogindate = object_get_visit($SessSemName[1], "wiki");
         $selfurl = "?view=listnew";
         $sort = "ORDER by lastchange"; // default sort order for "new pages"
         $nopages = _("Seit Ihrem letzten Login gab es keine Änderungen.");
+
+        // help texts
+        $help = _('Zeigt eine tabellarische Übersicht neu erstellter bzw. bearbeiteter Wiki-Seiten an.');
+        Helpbar::get()->ignoreDatabaseContents();
+        Helpbar::get()->addPlainText('', $help);
     } else {
         throw new InvalidArgumentException(_('Fehler! Falscher Anzeigemodus:') . $mode);
     }
@@ -728,11 +738,11 @@ function listPages($mode, $sortby = NULL) {
         $widget = new ExportWidget();
         $widget->addLink(_('PDF-Ausgabe aller Wiki-Seiten'),
                          URLHelper::getLink('?keyword=' . urlencode($keyword) . '&view=exportall_pdf&version=' . $version . '&sortby=' . $sortby),
-                         'icons/16/blue/file-pdf.png',
+                         Icon::create('file-pdf', 'clickable'),
                          array('target' => '_blank'));
         $widget->addLink(_('Druckansicht aller Wiki-Seiten'),
                          URLHelper::getLink('?keyword=' . urlencode($keyword) . '&view=wikiprintall&version=' . $version),
-                         'icons/16/blue/print.png',
+                         Icon::create('print', 'clickable'),
                          array('target' => '_blank'));
         $sidebar->addWidget($widget);
     }
@@ -996,13 +1006,18 @@ function wikiEdit($keyword, $wikiData, $user_id, $backpage=NULL)
 
     printcontent(0, 0, $cont, '');
 
-    Helpbar::get()->setVariables(array(
-        'help_link' => format_help_url('Basis.VerschiedenesFormat'),
-    ));
-
     end_blank_table();
     echo "</td>"; // end of content area
     showPageFrameEnd();
+
+    // help texts
+    Helpbar::get()->ignoreDatabaseContents();
+
+    $help = _('Der Editor dient zum Einfügen und Ändern von beliebigem Text.');
+    Helpbar::get()->addPlainText('', $help);
+
+    $tip = _('Links entstehen automatisch aus Wörtern, die von zwei paar eckigen Klammern umgeben sind (Beispiel: [nop][[[/nop]%%Schlüsselwort%%[nop]]][/nop]');
+    Helpbar::get()->addPlainText(_('Tip'), $tip, Icon::create('info-circle'));
 }
 
 /**
@@ -1146,7 +1161,6 @@ function printAllWikiPages($range_id, $header) {
 *
 **/
 function getAllWikiPages($range_id, $header, $fullhtml=TRUE) {
-
     $query = "SELECT DISTINCT keyword FROM wiki WHERE range_id = ? ORDER BY keyword DESC";
     $statement = DBManager::get()->prepare($query);
     $statement->execute(array($range_id));
@@ -1254,13 +1268,13 @@ function getShowPageInfobox($keyword, $latest_version)
         $extra = sprintf('<a href="%s">%s</a>',
                          URLHelper::getLink('?keyword=toc&view=edit'),
                          $toccont_empty
-                             ? Assets::img('icons/16/blue/add.png', tooltip2(_('erstellen')))
-                             : Assets::img('icons/16/blue/edit.png', tooltip2(_('bearbeiten'))));
+                             ? Icon::create('add', 'clickable', ['title' => _('erstellen')])->asImg()
+                             : Icon::create('edit', 'clickable', ['title' => _('bearbeiten')])->asImg());
         $widget->setExtra($extra);
     }
 
     $element = new WidgetElement($toccont_empty ? _('Keine QuickLinks vorhanden') : $toccont);
-    $element->icon = 'icons/16/blue/link-intern.png';
+    $element->icon = Icon::create('link-intern', 'clickable');
     $widget->addElement($element);
     $sidebar->addWidget($widget);
 
@@ -1278,12 +1292,12 @@ function getShowPageInfobox($keyword, $latest_version)
     $widget = new ViewsWidget();
     $widget->addLink(_('Standard'),
                      URLHelper::getLink('?keyword=' . urlencode($keyword) . '&view=show'),
-                     'icons/16/blue/wiki.png')
+                     Icon::create('wiki', 'clickable'))
            ->setActive(true);
     if (count($versions) >= 1) {
         $widget->addLink(_('Textänderungen anzeigen'),
                          URLHelper::getLink('?keyword=' . urlencode($keyword) . '&view=diff'));
-        $widget->addLink(_('Text mit AutorInnenzuordnung anzeigen'),
+        $widget->addLink(_('Text mit Autor/-innenzuordnung anzeigen'),
                          URLHelper::getLink('?keyword=' . urlencode($keyword) . '&view=combodiff'));
     }
     $sidebar->addWidget($widget);
@@ -1331,11 +1345,11 @@ function getShowPageInfobox($keyword, $latest_version)
     $widget = new ExportWidget();
     $widget->addLink(_('Druckansicht'),
                      URLHelper::getLink('?keyword=' . urlencode($keyword) . '&version=' . $version . '&view=wikiprint'),
-                     'icons/16/blue/print.png',
+                     Icon::create('print', 'clickable'),
                      array('target' => '_blank'));
     $widget->addLink(_('PDF-Ausgabe'),
                      URLHelper::getLink('?keyword=' . urlencode($keyword) . '&version=' . $version . '&view=export_pdf'),
-                     'icons/16/blue/file-pdf.png',
+                     Icon::create('file-pdf', 'clickable'),
                      array('target' => '_blank'));
     $sidebar->addWidget($widget);
 
@@ -1361,7 +1375,7 @@ function getDiffPageInfobox($keyword) {
         $widget->addLink(_('Textänderungen anzeigen'),
                          URLHelper::getLink('?keyword=' . urlencode($keyword) . '&view=diff'))
                ->setActive(Request::option('view') === 'diff');
-        $widget->addLink(_('Text mit AutorInnenzuordnung anzeigen'),
+        $widget->addLink(_('Text mit Autor/-innenzuordnung anzeigen'),
                          URLHelper::getLink('?keyword=' . urlencode($keyword) . '&view=combodiff'))
                ->setActive(Request::option('view') === 'combodiff');
     }
@@ -1472,7 +1486,7 @@ function showWikiPage($keyword, $version, $special="", $show_comments="icon", $h
 
     if ($perm->have_studip_perm("autor", $SessSemName[1])) {
         if (!$latest_version) {
-            $edit  = Assets::img('icons/16/black/lock-locked.png');
+            $edit  = Icon::create('lock-locked', 'info')->asImg();
             $edit .= _("Ältere Version, nicht bearbeitbar!");
         } else {
             $edit="";
@@ -1602,6 +1616,11 @@ function showDiffs($keyword, $versions_since) {
 
     getDiffPageInfobox($keyword);
     showPageFrameEnd();
+
+    // help texts
+    $help = _('Die Ansicht zeigt den Verlauf der Textänderungen einer Wiki-Seite.');
+    Helpbar::get()->ignoreDatabaseContents();
+    Helpbar::get()->addPlainText('', $help);
 }
 
 /////////////////////////////////////////////////
@@ -1631,7 +1650,6 @@ function toDiffLineArray($lines, $who) {
 }
 
 function showComboDiff($keyword, $db=NULL) {
-
     global $SessSemName;
 
     $version2=getLatestVersion($keyword, $SessSemName[1]);
@@ -1682,7 +1700,7 @@ function showComboDiff($keyword, $db=NULL) {
     }
     echo "<tr><td class=\"table_row_even\" colspan=2>";
     echo "<p><font size=-1>&nbsp;<br>";
-    echo _("Legende der AutorInnenfarben:");
+    echo _("Legende der Autor/-innenfarben:");
     echo "<table cellpadding=6 cellspacing=6>$content</table>\n";
     echo "</p>";
     echo "<table cellpadding=0 cellspacing=0 width=\"100%\">";
@@ -1696,7 +1714,7 @@ function showComboDiff($keyword, $db=NULL) {
                 $col=create_color($idx);
                 echo "<tr bgcolor=$col>";
                 echo "<td width=30 align=center valign=top>";
-                echo Assets::img('icons/16/grey/info-circle.png', tooltip2(_("Änderung von").' ' . get_fullname($last_author)));
+                echo Icon::create('info-circle', 'inactive', ['title' => _("Änderung von").' ' . get_fullname($last_author)])->asImg();
                 echo "</td>";
                 echo "<td><font size=-1>";
                 echo wikiReady($collect);
@@ -1714,6 +1732,14 @@ function showComboDiff($keyword, $db=NULL) {
     echo "</table>     ";
     getDiffPageInfobox($keyword);
     showPageFrameEnd();
+
+    // help texts
+    $help = array(
+        _('Die Ansicht zeigt den Verlauf der Textänderungen einer Wiki-Seite '.
+          'mit einer Übersicht, welche Autor/-innen welche Textänderungen ' .
+          'vorgenommen haben.'));
+    Helpbar::get()->ignoreDatabaseContents();
+    Helpbar::get()->addPlainText('', $help);
 }
 
 function create_color($index) {

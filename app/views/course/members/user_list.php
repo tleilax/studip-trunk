@@ -1,7 +1,7 @@
 <? use \Studip\Button; ?>
 <a name="users"></a>
 
-<form action="<?= $controller->url_for('course/members/edit_user/') ?>" method="post" data-dialog="size=auto">
+<form action="<?= $controller->url_for('course/members/edit_user/') ?>" method="post" data-dialog="">
     <?= CSRFProtection::tokenTag() ?>
     <table class="default collapsable">
         <colgroup>
@@ -20,14 +20,14 @@
             <?= $status_groups['user'] ?>
             <? if($is_tutor) :?>
             <span class="actions">
-                <?= $controller->getEmailLinkByStatus('user', $users) ?>
                 <a href="<?= URLHelper::getLink('dispatch.php/messages/write', array(
-                                'filter' => 'send_sms_to_all',
-                                'who' => 'user',
-                                'course_id' => $course_id,
-                                'default_subject' => $subject)
+                    'filter' => 'send_sms_to_all',
+                    'emailrequest' => 1,
+                    'who' => 'user',
+                    'course_id' => $course_id,
+                    'default_subject' => $subject)
                 ) ?>" data-dialog>
-                       <?= Assets::img('icons/16/blue/inbox.png', tooltip2(sprintf(_('Nachricht an alle %s versenden'), $status_groups['user']))) ?>
+                       <?= Icon::create('inbox', 'clickable', ['title' => sprintf(_('Nachricht mit Mailweiterleitung an alle %s versenden'), $status_groups['user'])])->asImg() ?>
                 </a>
             </span>
             <? endif ?>
@@ -70,12 +70,10 @@
                 <? endif ?>
                 <td style="text-align: right"><?= (++$nr < 10) ? sprintf('%02d', $nr) : $nr ?></td>
                 <td>
-                    <a style="position: relative" href="<?= $controller->url_for(sprintf('profile?username=%s',$leser['username'])) ?>">
-                    <?= Avatar::getAvatar($leser['user_id'],$leser['username'])->getImageTag(Avatar::SMALL,
-                            array('style' => 'margin-right: 5px','title' => htmlReady($fullname))); ?>
-                    <?= $leser['mkdate'] >= $last_visitdate ? Assets::img('red_star.png',
-                        array('style' => 'position: absolute; margin: 0px 0px 0px -15px')) : '' ?>
-                    <?= htmlReady($fullname) ?>
+                    <a href="<?= $controller->url_for(sprintf('profile?username=%s',$leser['username'])) ?>" <? if ($leser['mkdate'] >= $last_visitdate) echo 'class="new-member"'; ?>>
+                        <?= Avatar::getAvatar($leser['user_id'],$leser['username'])->getImageTag(Avatar::SMALL,
+                                array('style' => 'margin-right: 5px','title' => htmlReady($fullname))); ?>
+                        <?= htmlReady($fullname) ?>
                     </a>
                 </td>
                 <? if($is_tutor) : ?>
@@ -91,21 +89,20 @@
                 <td style="text-align: right">
                     <? if($user_id != $leser['user_id']) : ?>
                     <a href="<?= URLHelper::getLink('dispatch.php/messages/write',
-                                array('filter' => 'send_sms_to_all',
+                            array('filter' => 'send_sms_to_all',
+                                'emailrequest' => 1,
                                 'rec_uname' => $leser['username'],
                                 'default_subject' => $subject))
                             ?>
                     " data-dialog>
-                        <?= Assets::img('icons/16/blue/mail.png',
-                                tooltip2(sprintf(_('Nachricht an %s senden'), htmlReady($fullname)))) ?>
+                        <?= Icon::create('mail', 'clickable', ['title' => sprintf(_('Nachricht mit Mailweiterleitung an %s senden'),htmlReady($fullname))])->asImg(16) ?>
                     </a>
                     <? endif ?>
 
                     <? if ($is_tutor) : ?>
                     <a href="<?= $controller->url_for(sprintf('course/members/cancel_subscription/singleuser/user/%s',
                                 $leser['user_id'])) ?>">
-                        <?= Assets::img('icons/16/blue/door-leave.png',
-                                tooltip2(sprintf(_('%s austragen'), htmlReady($fullname)))) ?>
+                        <?= Icon::create('door-leave', 'clickable', ['title' => sprintf(_('%s austragen'),htmlReady($fullname))])->asImg(16) ?>
                     </a>
                     <? endif ?>
                 </td>

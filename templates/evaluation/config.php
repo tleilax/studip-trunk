@@ -53,19 +53,16 @@ $graphtypes = array(
     <input type="hidden" name="template_id" value="<?= $templates['template_id'] ?>">
     <input type="hidden" name="eval_id" value="<?= $eval_id ?>">
 
-    <table class="default zebra">
+    <table class="default">
+        <caption>
+            <?= _('Auswertungskonfiguration') ?>
+        </caption>
         <colgroup>
             <col width="50%">
             <col width="25%">
             <col width="25%">
         </colgroup>
         <thead>
-            <tr>
-                <th class="table_header_bold" colspan="3">
-                    <?= Assets::img('icons/16/white/test.png') ?>
-                    <?= _('Auswertungskonfiguration') ?>
-                </th>
-            </tr>
             <tr>
                 <th><?= _('Optionen') ?></th>
                 <th style="text-align: center;"><?= _('Ja') ?></th>
@@ -129,11 +126,11 @@ $infobox = array(
             'kategorie' => _('Information:'),
             'eintrag'   => array(
                 array(
-                    'icon' => 'icons/16/black/vote.png',
+                    'icon' => Icon::create('vote', 'clickable'),
                     'text' => _('Auf dieser Seite können Sie die Auswertung Ihrer Evaluation konfigurieren.')
                 ),
                 array(
-                    'icon' => 'icons/16/black/info.png',
+                    'icon' => Icon::create('info', 'clickable'),
                     'text' => _('Wählen Sie Ihre Einstellungen und drücken Sie auf "Template speichern". '
                                .'Anschließend kommen Sie mit dem Button unten links zurück zu Ihrer Evaluation.')
                 ),

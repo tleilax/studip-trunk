@@ -13,7 +13,7 @@ class CoreSchedule implements StudipModule {
     
     function getIconNavigation($course_id, $last_visit, $user_id) {
         $navigation = new Navigation(_('Ablaufplan'), URLHelper::getURL("seminar_main.php", array('auswahl' => $course_id, 'redirect_to' => "dispatch.php/course/dates")));
-        $navigation->setImage('icons/16/grey/schedule.png');
+        $navigation->setImage(Icon::create('schedule', 'inactive'));
         return $navigation;
     }
     
@@ -26,8 +26,8 @@ class CoreSchedule implements StudipModule {
         }
         
         $navigation = new Navigation(_('Ablaufplan'));
-        $navigation->setImage('icons/16/white/schedule.png');
-        $navigation->setActiveImage('icons/16/black/schedule.png');
+        $navigation->setImage(Icon::create('schedule', 'info_alt'));
+        $navigation->setActiveImage(Icon::create('schedule', 'info'));
 
         $navigation->addSubNavigation('dates', new Navigation(_('Termine'), "dispatch.php/course/dates"));
         $navigation->addSubNavigation('topics', new Navigation(_('Themen'), "dispatch.php/course/topics"));
@@ -60,7 +60,7 @@ class CoreSchedule implements StudipModule {
                                     'und sonstige Veranstaltungstermine auf. Zur besseren Orientierung und zur ' .
                                     'inhaltlichen Einstimmung der Studierenden können Lehrende den Terminen ' .
                                     'Themen hinzufügen, die z. B. eine Kurzbeschreibung der Inhalte darstellen.'),          
-            'icon' => 'icons/16/black/schedule.png',
+            'icon' => Icon::create('schedule', 'info'),
             'screenshots' => array(
                 'path' => 'plus/screenshots/Ablaufplan',
                 'pictures' => array(

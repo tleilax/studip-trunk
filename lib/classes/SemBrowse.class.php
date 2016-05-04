@@ -25,7 +25,7 @@ class SemBrowse {
 
         $this->group_by_fields = array( array('name' => _("Semester"), 'group_field' => 'sem_number'),
                                         array('name' => _("Bereich"), 'group_field' => 'bereich'),
-                                        array('name' => _("DozentIn"), 'group_field' => 'fullname', 'unique_field' => 'username'),
+                                        array('name' => _("Lehrende"), 'group_field' => 'fullname', 'unique_field' => 'username'),
                                         array('name' => _("Typ"), 'group_field' => 'status'),
                                         array('name' => _("Einrichtung"), 'group_field' => 'Institut', 'unique_field' => 'Institut_id'));
 
@@ -291,7 +291,7 @@ class SemBrowse {
         echo "<td class=\"table_row_even\" align=\"left\" width=\"35%\">";
         echo $this->search_obj->getSearchField("comment", array('id' => 'search_sem_comment', 'style' => 'width:100%;font-size:10pt;'));
         echo "</td><td class=\"table_row_even\" align=\"right\" width=\"15%\">&nbsp;</td><td class=\"table_row_even\" align=\"left\" width=\"35%\">&nbsp; </td></tr>\n";
-        echo "<tr><td class=\"table_row_even\" align=\"right\" width=\"15%\"><label for=\"search_sem_lecturer\">" . _("DozentIn:") . "</label> </td>";
+        echo "<tr><td class=\"table_row_even\" align=\"right\" width=\"15%\"><label for=\"search_sem_lecturer\">" . _("Lehrende:") . "</label> </td>";
         echo "<td class=\"table_row_even\" align=\"left\" width=\"35%\">";
         echo $this->search_obj->getSearchField("lecturer", array('id' => 'search_sem_lecturer', 'style' => 'width:100%;font-size:10pt;'));
         echo "</td><td class=\"table_row_even\" align=\"right\" width=\"15%\"><label for=\"search_sem_combination\">" . _("Verknüpfung:") . "</label> </td>";
@@ -464,7 +464,7 @@ class SemBrowse {
                                                                                              'send_from_search_page' => $send_from_search));
                         echo '<td width="66%" colspan="2">';
                         echo '<a href="' . $send_from_search_link . '">';
-                        if (Config::get()->IMPORTANT_SEMNUMBER) {
+                        if (Config::get()->IMPORTANT_SEMNUMBER && $seminar_number) {
                             echo htmlReady($seminar_number) ." ";
                         }
                         echo htmlReady($sem_name) . '</a><br>';
@@ -792,6 +792,9 @@ class SemBrowse {
                 $name = str_replace("ä","ae",$name);
                 $name = str_replace("ö","oe",$name);
                 $name = str_replace("ü","ue",$name);
+                if (Config::get()->IMPORTANT_SEMNUMBER && key($sem_data[$seminar_id]['VeranstaltungsNummer'])) {
+                    $name = key($sem_data[$seminar_id]['VeranstaltungsNummer']).' '.$name;
+                }
                 $group_by_data[$group_field]['Seminar_id'][$seminar_id] = $name;
             }
             uasort($group_by_data[$group_field]['Seminar_id'], 'strnatcmp');

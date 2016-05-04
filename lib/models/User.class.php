@@ -263,7 +263,7 @@ class User extends AuthUserMd5
             return $this->vorname . ' ' . $this->nachname;
         }
         if ($format == 'no_title_rev') {
-            return $this->nachname . ' ' . $this->vorname;
+            return $this->nachname . ', ' . $this->vorname;
         }
         if ($concat === null) {
             $concat = function() {return join('', func_get_args());};
@@ -371,5 +371,20 @@ class User extends AuthUserMd5
     public function toRawArray($only_these_fields = null)
     {
         return array_merge($this->info->toRawArray($only_these_fields), parent::toRawArray($only_these_fields));
+    }
+
+    /**
+     * @param string $relation
+     */
+    public function initRelation($relation)
+    {
+        parent::initRelation($relation);
+        if ($relation == 'info' && is_null($this->relations['info'])) {
+            $options = $this->getRelationOptions($relation);
+            $result = new $options['class_name'];
+            $foreign_key_value = call_user_func($options['assoc_func_params_func'], $this);
+            call_user_func($options['assoc_foreign_key_setter'], $result, $foreign_key_value);
+            $this->relations[$relation] = $result;
+        }
     }
 }

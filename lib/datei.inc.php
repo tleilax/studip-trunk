@@ -33,20 +33,28 @@ if ($GLOBALS['ZIP_USE_INTERNAL']) {
     include_once 'vendor/pclzip/pclzip.lib.php';
 }
 
-function readfile_chunked($filename) {
-   $chunksize = 1024 * 1024; // how many bytes per chunk
-   $bytes = 0;
-   $handle = fopen($filename, 'rb');
-   if ($handle === false) {
-       return false;
-   }
-   while (!feof($handle)) {
-       $buffer = fread($handle, $chunksize);
-       $bytes += strlen($buffer);
-       echo $buffer;
-   }
-   fclose($handle);
-   return $bytes; // return num. bytes delivered like readfile() does.
+function readfile_chunked($filename, $start = null, $end = null) {
+    if (isset($start) && $start < $end) {
+        $chunksize = 1024 * 1024; // how many bytes per chunk
+        $bytes = 0;
+        $handle = fopen($filename, 'rb');
+        if ($handle === false) {
+            return false;
+        }
+        fseek($handle, $start);
+        while (!feof($handle) && ($p = ftell($handle)) <= $end) {
+            if ($p + $chunksize > $end) {
+                $chunksize = $end - $p + 1;
+            }
+            $buffer = fread($handle, $chunksize);
+            $bytes += strlen($buffer);
+            echo $buffer;
+        }
+        fclose($handle);
+        return $bytes; // return num. bytes delivered like readfile() does.
+    } else {
+        return readfile($filename);
+    }
 }
 
 function parse_header($header){
@@ -997,11 +1005,11 @@ function form($refresh = FALSE)
         $print.= "\n&nbsp;<input type=\"TEXT\" name=\"name\" style=\"width: 70%\" size=\"40\" maxlength\"255\"></label></td></tr>";
         $print.= "\n<tr><td class=\"table_row_even\" colspan=2 align=\"left\" valign=\"center\"><label><font size=-1>&nbsp;" . _("Beschreibung:") . "&nbsp;</font><br>";
         $print.= "\n&nbsp;<textarea name=\"description\" style=\"width: 70%\" COLS=40 ROWS=3 WRAP=PHYSICAL></textarea></label>&nbsp;</td></tr>";
-        $print.= "\n<tr><td class=\"content_seperator\" colspan=2 ><font size=-1>" . _("4. Klicken Sie auf <b>'absenden'</b>, um die Datei hochzuladen") . "</font></td></tr>";
+        $print.= "\n<tr><td class=\"content_seperator\" colspan=2 ><font size=-1>" . _("4. Klicken Sie auf <b>'Absenden'</b>, um die Datei hochzuladen") . "</font></td></tr>";
     } else if ($folder_system_data['zipupload']) {
-        $print.= "\n<tr><td class=\"content_seperator\" colspan=2 ><font size=-1>" . _("3. Klicken Sie auf <b>'absenden'</b>, um das Ziparchiv hochzuladen und in diesem Ordner zu entpacken.") . "</font></td></tr>";
+        $print.= "\n<tr><td class=\"content_seperator\" colspan=2 ><font size=-1>" . _("3. Klicken Sie auf <b>'Absenden'</b>, um das Ziparchiv hochzuladen und in diesem Ordner zu entpacken.") . "</font></td></tr>";
     } else {
-        $print.= "\n<tr><td class=\"content_seperator\" colspan=2 ><font size=-1>" . _("3. Klicken Sie auf <b>'absenden'</b>, um die Datei hochzuladen und damit die alte Version zu überschreiben.") . "</font></td></tr>";
+        $print.= "\n<tr><td class=\"content_seperator\" colspan=2 ><font size=-1>" . _("3. Klicken Sie auf <b>'Absenden'</b>, um die Datei hochzuladen und damit die alte Version zu überschreiben.") . "</font></td></tr>";
     }
     $print.= "\n<tr><td class=\"table_row_even\" colspan=2 align=\"center\" valign=\"center\">";
 
@@ -1080,7 +1088,7 @@ function getFileExtension($str) {
  * @return Can the given file be uploaded to Stud.IP?
  */
 function validate_upload($the_file, $real_file_name='') {
-    global $UPLOAD_TYPES, $msg, $SessSemName, $user, $auth, $i_page;
+    global $UPLOAD_TYPES, $msg, $SessSemName, $user, $auth;
 
     $the_file_size = $the_file['size'];
     $the_file_name = $the_file['name'];
@@ -1088,7 +1096,7 @@ function validate_upload($the_file, $real_file_name='') {
     if (!$the_file) { # haben wir eine Datei?
         $emsg.= "error§" . _("Sie haben keine Datei zum Hochladen ausgewählt!") . "§";
     } else { # pruefen, ob der Typ stimmt
-        if ($i_page == "dispatch.php/messages/upload_attachment") {
+        if (match_route("dispatch.php/messages/upload_attachment")) {
             if (!$GLOBALS["ENABLE_EMAIL_ATTACHMENTS"] == true)
                     $emsg.= "error§" . _("Dateianhänge für Nachrichten sind in dieser Installation nicht erlaubt!") . "§";
             $active_upload_type = "attachments";
@@ -1412,7 +1420,7 @@ function link_form ($range_id, $updating=FALSE)
         }
     }
     if ($folder_system_data["linkerror"]==TRUE) {
-        $print.="<hr>".  Assets::img('icons/16/red/accept.png', array('class' => 'text-top')) . "<font color=\"red\">";
+        $print.="<hr>".  Icon::create('accept', 'attention')->asImg(['class' => 'text-top']) . "<font color=\"red\">";
         $print.=_("&nbsp;FEHLER: unter der angegebenen Adresse wurde keine Datei gefunden.<br>&nbsp;Bitte kontrollieren Sie die Pfadangabe!");
         $print.="</font><hr>";
     }
@@ -1446,9 +1454,9 @@ function link_form ($range_id, $updating=FALSE)
 
         $print.= "\n<tr><td class=\"table_row_even\" colspan=2 align=\"left\" valign=\"center\"><label><font size=-1>&nbsp;" . _("Beschreibung:") . "&nbsp;</font><br>";
         $print.= "\n&nbsp;<textarea name=\"description\" id=\"description\" style=\"width: 70%\" COLS=40 ROWS=3 WRAP=PHYSICAL>$description</textarea></label>&nbsp;</td></tr>";
-        $print.= "\n<tr><td class=\"content_seperator\"colspan=2 ><font size=-1>" . _("4. Klicken Sie auf <b>'absenden'</b>, um die Datei zu verlinken") . "</font></td></tr>";
+        $print.= "\n<tr><td class=\"content_seperator\"colspan=2 ><font size=-1>" . _("4. Klicken Sie auf <b>'Absenden'</b>, um die Datei zu verlinken") . "</font></td></tr>";
     } else
-        $print.= "\n<tr><td class=\"content_seperator\"colspan=2 ><font size=-1>" . _("2. Klicken Sie auf <b>'absenden'</b>, um die Datei hochzuladen und damit die alte Version zu überschreiben.") . "</font></td></tr>";
+        $print.= "\n<tr><td class=\"content_seperator\"colspan=2 ><font size=-1>" . _("2. Klicken Sie auf <b>'Absenden'</b>, um die Datei hochzuladen und damit die alte Version zu überschreiben.") . "</font></td></tr>";
     $print.= "\n<tr><td class=\"table_row_even\" colspan=2 align=\"center\" valign=\"center\">";
 
     $print .= '<div class="button-group">';
@@ -1533,7 +1541,7 @@ function display_file_body($datei, $folder_id, $open, $change, $move, $upload, $
 
     if ($move == $datei["dokument_id"])
         $content.="<br>" . sprintf(_("Diese Datei wurde zum Verschieben / Kopieren markiert. Bitte wählen Sie das Einfügen-Symbol %s, um diese Datei in den gewünschten Ordner zu verschieben / kopieren. Wenn Sie diese Datei in eine andere Veranstaltung verschieben / kopieren möchten, wählen Sie die gewünschte Veranstaltung oben auf der Seite aus (sofern Sie Dozent oder Tutor in einer anderen Veranstaltung sind)."),
-                                   Assets::img('icons/16/yellow/arr_2right.png', tooltip2(_("Klicken Sie dieses Symbol, um diese Datei in einen anderen Ordner einzufügen"))));
+                                   Icon::create('arr_2right', 'sort', ['title' => _("Klicken Sie dieses Symbol, um diese Datei in einen anderen Ordner einzufügen")])->asImg());
 
     $content.= "\n";
 
@@ -1657,12 +1665,12 @@ function display_file_line ($datei, $folder_id, $open, $change, $move, $upload, 
         $bewegeflaeche = "<span class=\"updown_marker\" id=\"pfeile_".$datei["dokument_id"]."\">";
         if (($position == "middle") || ($position == "bottom")) {
             $bewegeflaeche .= "<a href=\"".URLHelper::getLink('?open='.$datei['dokument_id'])."_mfu_\" title=\""._("Datei nach oben schieben").
-                "\">" . Assets::img('icons/16/yellow/arr_2up.png', array('class' => 'text-top')) . "</a>";
+                "\">" . Icon::create('arr_2up', 'sort')->asImg(['class' => 'text-top']) . "</a>";
         }
         if (($position == "middle") || ($position == "top")) {
             $bewegeflaeche .= "<a href=\"".URLHelper::getLink('?open='.
                     $datei['dokument_id'])."_mfd_\" title=\""._("Datei nach unten schieben").
-                    "\">". Assets::img('icons/16/yellow/arr_2down.png', array('class' => 'text-top')) . "</a>";
+                    "\">". Icon::create('arr_2down', 'sort')->asImg(['class' => 'text-top']) . "</a>";
         }
         $bewegeflaeche .= "</span>";
     }
@@ -1671,7 +1679,7 @@ function display_file_line ($datei, $folder_id, $open, $change, $move, $upload, 
     if ($change == $datei["dokument_id"]) {
         print "<span id=\"file_".$datei["dokument_id"]."_header\" style=\"font-weight: bold\"><a href=\"".URLHelper::getLink("?close=".$datei["dokument_id"]."#anker")."\" class=\"tree\"";
         print ' name="anker"></a>';
-        print GetFileIcon(getFileExtension($datei['filename']), true);
+        print GetFileIcon(getFileExtension($datei['filename']))->asImg();
         print "<input style=\"font-size: 8pt; width: 50%;\" type=\"text\" size=\"20\" maxlength=\"255\" name=\"change_name\" aria-label=\"Ordnername eingeben\" value=\"".htmlReady($datei["name"])."\"></b>";
     } else {
         if (($move == $datei["dokument_id"]) ||  ($upload == $datei["dokument_id"]) || ($anchor_id == $datei["dokument_id"])) {
@@ -1680,9 +1688,9 @@ function display_file_line ($datei, $folder_id, $open, $change, $move, $upload, 
         $type = ($datei['url'] != '')? 6 : 0;
         // LUH Spezerei:
         if (check_protected_download($datei["dokument_id"])) {
-            print "<a href=\"".GetDownloadLink( $datei["dokument_id"], $datei["filename"], $type, "normal")."\" class=\"extern\">".GetFileIcon(getFileExtension($datei['filename']), true)."</a>";
+            print "<a href=\"".GetDownloadLink( $datei["dokument_id"], $datei["filename"], $type, "normal")."\" class=\"extern\">".GetFileIcon(getFileExtension($datei['filename']))->asImg()."</a>";
         } else {
-            print Assets::img('icons/16/grey/info-circle.png');
+            print Icon::create('info-circle', 'inactive')->asImg();
         }
         //Jetzt folgt der Link zum Aufklappen
         if ($open[$datei["dokument_id"]]) {
@@ -1722,7 +1730,7 @@ function display_file_line ($datei, $folder_id, $open, $change, $move, $upload, 
         $box = sprintf ("<input type=\"CHECKBOX\" %s name=\"download_ids[]\" value=\"%s\">",$checked , $datei["dokument_id"]);
         print $box;
       } else {
-        echo Assets::img('icons/16/grey/decline.png', array('title' => _("Diese Datei kann nicht als ZIP-Archiv heruntergeladen werden."), 'style' => 'padding-left:5px;'));
+        echo Icon::create('decline', 'inactive', ['title' => _("Diese Datei kann nicht als ZIP-Archiv heruntergeladen werden."), 'style' => 'padding-left:5px;'])->asImg();
     }
     }
     print "</td></tr>";
@@ -1774,12 +1782,12 @@ function display_folder_body($folder_id, $open, $change, $move, $upload, $refres
 
     $content='';
     if ($super_folder){
-        $content .=  Assets::img('icons/16/grey/lock-locked.png', array('class' => 'texttop')) . '&nbsp;'
+        $content .=  Icon::create('lock-locked', 'inactive')->asImg(['class' => 'texttop']) . '&nbsp;'
             . sprintf(_("Dieser Ordner ist nicht zugänglich, da der übergeordnete Ordner \"%s\" nicht lesbar oder nicht sichtbar ist!"), htmlReady($folder_tree->getValue($super_folder,'name')))
             . '<hr>';
     }
     if ($folder_tree->isExerciseFolder($folder_id)){
-        $content .=  Assets::img('icons/16/grey/edit.png', array('class' => 'texttop')) . '&nbsp;'
+        $content .=  Icon::create('edit', 'inactive')->asImg(['class' => 'texttop']) . '&nbsp;'
                 . _("Dieser Ordner ist ein Hausaufgabenordner. Es können nur Dateien eingestellt werden.")
                 . (!$rechte ? _("Sie selbst haben folgende Dateien in diesen Ordner eingestellt:")
                 . '<br><b>' . htmlReady(join('; ', get_user_documents_in_folder($folder_id, $GLOBALS['user']->id))).'</b>' : '')
@@ -1797,17 +1805,21 @@ function display_folder_body($folder_id, $open, $change, $move, $upload, $refres
         }
         $content .=  '<hr>';
     }
-    if ($folder_tree->isGroupFolder($folder_id)){
-        $content .=  sprintf(_("Dieser Ordner gehört der Gruppe <b>%s</b>. Nur Mitglieder dieser Gruppe können diesen Ordner sehen."),
-        htmlReady(GetStatusgruppeName($result["range_id"]))) . '<hr>';
+    $is_group_folder = $folder_tree->isGroupFolder($folder_id);
+    if ($is_group_folder){
+        $content .=  sprintf(
+            _('Dieser Ordner gehört der Gruppe <b>%s</b>. Nur Mitglieder dieser Gruppe können diesen Ordner sehen.'
+                . ' Dieser Ordner kann nicht verschoben oder kopiert werden.'),
+            htmlReady(GetStatusgruppeName($result["range_id"]))
+        ) . '<hr>';
     }
     //Contentbereich erstellen
     if ($change == $folder_id) { //Aenderungsmodus, zweiter Teil
         $content .= '<textarea name="change_description"'
-            . ' style="width:98%" class="add_toolbar"'
+            . ' style="width:98%" class="add_toolbar wysiwyg"'
             . ' aria-label="Beschreibung des Ordners eingeben"'
             . ' rows="3">'
-            . formatReady($result["description"])
+            . htmlReady($result["description"])
             . '</textarea>';
 
         if($rechte){
@@ -1844,7 +1856,7 @@ function display_folder_body($folder_id, $open, $change, $move, $upload, $refres
     if ($move == $result["folder_id"]){
         $content .= "<br>"
                   . sprintf(_("Dieser Ordner wurde zum Verschieben / Kopieren markiert. Bitte wählen Sie das Einfügen-Symbol %s, um ihn in den gewünschten Ordner zu verschieben."),
-                            Assets::img('icons/16/yellow/arr_2right.png', tooltip2(_("Klicken Sie auf dieses Symbol, um diesen Ordner in einen anderen Ordner einzufügen."))));
+                            Icon::create('arr_2right', 'sort', ['title' => _("Klicken Sie auf dieses Symbol, um diesen Ordner in einen anderen Ordner einzufügen.")])->asImg());
         if ($rechte) {
             $content .= _("Wenn Sie den Ordner in eine andere Veranstaltung verschieben / kopieren möchten, wählen Sie die gewünschte Veranstaltung oben auf der Seite aus.");
         }
@@ -1920,7 +1932,9 @@ function display_folder_body($folder_id, $open, $change, $move, $upload, $refres
                         )
                     )
                 ) {
-                    $edit.= LinkButton::create(_("Verschieben"), URLHelper::getURL("?open=".$folder_id."_m_#anker"));
+                    if (!$is_issue_folder && !$is_group_folder) {
+                        $edit.= LinkButton::create(_("Verschieben"), URLHelper::getURL("?open=".$folder_id."_m_#anker"));
+                    }
                 }
 
                 # Knopf: kopieren
@@ -1931,7 +1945,9 @@ function display_folder_body($folder_id, $open, $change, $move, $upload, $refres
                         && !$folder_tree->isExerciseFolder($folder_id, $user->id)
                     )
                 ) {
-                    $edit.= LinkButton::create(_("Kopieren"), URLHelper::getURL("?open=".$folder_id."_co_#anker"));
+                    if (!$is_issue_folder && !$is_group_folder) {
+                        $edit.= LinkButton::create(_("Kopieren"), URLHelper::getURL("?open=".$folder_id."_co_#anker"));
+                    }
                 }
             }
 
@@ -2030,14 +2046,13 @@ function display_folder ($folder_id, $open, $change, $move, $upload, $refresh=FA
     $query = "SELECT ". $_fullname_sql['full'] ." AS fullname , username, folder_id, a.range_id, a.user_id, name, a.description, a.mkdate, a.chdate FROM folder a LEFT JOIN auth_user_md5 USING (user_id) LEFT JOIN user_info USING (user_id) WHERE a.folder_id = '$folder_id' ORDER BY a.name, a.chdate";
     $result = $db->query($query)->fetch();
 
-    $depth = $folder_tree->getItemPath($folder_id);
-    $depth = count(explode(" / ", $depth));
-    print "<div id=\"folder_".(($depth > 3) ? $result['range_id'] : "root")."_".$countfolder."\"".($rechte ? " class=\"draggable_folder\"" : "").">";
+    $depth = count($folder_tree->getParents($folder_id));
+    print "<div id=\"folder_".($depth > 2 ? $result['range_id'] : "root")."_".$countfolder."\"".($rechte ? " class=\"draggable_folder\"" : "").">";
     print "<div style=\"display:none\" id=\"getmd5_fo".$result['range_id']."_".$countfolder."\">".$folder_id."</div>";
     print "<table cellpadding=0 border=0 cellspacing=0 width=\"100%\"><tr>";
 
     //Abzweigung, wenn Ordner ein Unterordner ist
-    if ($depth > 3) //Warum gerade 3, soll jeder selbst rausfinden
+    if ($depth > 2) // root > folder > subfolder
         print "<td class=\"tree-elbow-end\">" . Assets::img("datatree_2.gif") . "</td>";
     else
         print "<td></td>";
@@ -2067,16 +2082,16 @@ function display_folder ($folder_id, $open, $change, $move, $upload, $refresh=FA
     print "<table cellpadding=0 border=0 cellspacing=0 width=\"100%\" id=\"droppable_folder_$droppable_folder\"><tr>";
 
     // -> Pfeile zum Verschieben (bzw. die Ziehfläche)
-    if (($rechte) && ($depth > 3)) {
+    if (($rechte) && ($depth > 2)) {
         $bewegeflaeche = "<span class=\"updown_marker\" id=\"pfeile_".$folder_id."\">";
         if (($position == "middle") || ($position == "bottom")) {
             $bewegeflaeche .= "<a href=\"".URLHelper::getLink('?open='.$folder_id)."_mfou_\" title=\""._("Nach oben verschieben").
-                    "\">" . Assets::img('icons/16/yellow/arr_2up.png', array('class' => 'text-top')) . "</a>";
+                    "\">" . Icon::create('arr_2up', 'sort')->asImg(['class' => 'text-top']) . "</a>";
         }
         if (($position == "middle") || ($position == "top")) {
             $bewegeflaeche .= "<a href=\"".URLHelper::getLink('?open='.
                     $folder_id)."_mfod_\" title=\""._("Nach unten verschieben").
-                    "\">" . Assets::img('icons/16/yellow/arr_2down.png', array('class' => 'text-top')) . "</a>";
+                    "\">" . Icon::create('arr_2down', 'sort')->asImg(['class' => 'text-top']) . "</a>";
         }
         $bewegeflaeche .= "</span>";
     }
@@ -2094,7 +2109,7 @@ function display_folder ($folder_id, $open, $change, $move, $upload, $refresh=FA
         print "<td class=\"printhead\" valign=\"bottom\">";
         if ($move && ($move != $folder_id) && $folder_tree->isWritable($folder_id, $user->id) && (!$folder_tree->isFolder($move) || ($folder_tree->checkCreateFolder($folder_id, $user->id) && !$folder_tree->isExerciseFolder($folder_id, $user->id)))){
                 print "<a href=\"".URLHelper::getLink("?open=".$folder_id."_md_")."\">";
-                print Assets::img('icons/16/yellow/arr_2right.png');
+                print Icon::create('arr_2right', 'sort')->asImg();
                 print "</a>&nbsp;";
         }
         if (($anchor_id == $folder_id) || (($move == $folder_id))) {
@@ -2112,7 +2127,7 @@ function display_folder ($folder_id, $open, $change, $move, $upload, $refresh=FA
         print "<td class=\"printhead\" valign=\"bottom\">";
         if ($move && ($move != $folder_id) && $folder_tree->isWritable($folder_id, $user->id) && (!$folder_tree->isFolder($move) || ($folder_tree->checkCreateFolder($folder_id, $user->id) && !$folder_tree->isExerciseFolder($folder_id, $user->id)))){
             print "&nbsp;<a href=\"".URLHelper::getLink("?open=".$folder_id."_md_")."\">";
-            print Assets::img('icons/16/yellow/arr_2right.png');
+            print Icon::create('arr_2right', 'sort')->asImg();
             print "</a>&nbsp";
         }
         print "<a href=\"".URLHelper::getLink("?open=".$folder_id."#anker")."\" class=\"tree\" " .
@@ -2123,15 +2138,15 @@ function display_folder ($folder_id, $open, $change, $move, $upload, $refresh=FA
     $document_count = doc_count($folder_id);
 
     if ($document_count > 0) {
-        print Assets::img('icons/16/blue/folder-full.png') . '&nbsp;';
+        print Icon::create('folder-full', 'clickable')->asImg() . '&nbsp;';
     } else {
-        print Assets::img('icons/16/blue/folder-empty.png') . '&nbsp;';
+        print Icon::create('folder-empty', 'clickable')->asImg() . '&nbsp;';
     }
 
     //Pfeile, wenn Datei bewegt werden soll
     if ($move && ($folder_id != $move) && $folder_tree->isWritable($folder_id, $user->id) && (!$folder_tree->isFolder($move) || ($folder_tree->checkCreateFolder($folder_id, $user->id) && !$folder_tree->isExerciseFolder($folder_id, $user->id)))){
         print "</a><span class=\"move_arrows\"><a href=\"".URLHelper::getLink("?open=".$folder_id."_md_")."\">";
-        print Assets::img('icons/16/yellow/arr_2right.png');
+        print Icon::create('arr_2right', 'sort')->asImg();
         print "</a></span>";
         if ($open[$folder_id])
             print "<a href=\"".URLHelper::getLink("?close=".$folder_id."#anker")."\" class=\"tree\" onClick=\"return STUDIP.Filesystem.changefolderbody('".$folder_id."')\">";
@@ -2201,15 +2216,15 @@ function display_folder ($folder_id, $open, $change, $move, $upload, $refresh=FA
 
     // Schloss, wenn Folder gelockt
     if ($folder_tree->isLockedFolder($folder_id)) {
-        print Assets::img('icons/16/grey/lock-locked.png', tooltip2(_('Dieser Ordner ist gesperrt.')) + array('class' => 'text-bottom'));
+        print Icon::create('lock-locked', 'inactive', ['title' => _('Dieser Ordner ist gesperrt.')])->asImg(['class' => 'text-bottom']);
     }
     //Wenn verdeckt durch gesperrten übergeordneten Ordner
     else if ( ($super_folder = $folder_tree->getNextSuperFolder($folder_id)) ) {
-        print Assets::img('icons/16/grey/lock-locked.png', tooltip2(_('Dieser Ordner ist nicht zugänglich, da ein übergeordneter Ordner gesperrt ist.')) + array('class' => 'text-bottom'));
+        print Icon::create('lock-locked', 'inactive', ['title' => _('Dieser Ordner ist nicht zugänglich, da ein übergeordneter Ordner gesperrt ist.')])->asImg(['class' => 'text-bottom']);
     }
     // Wenn es ein Hausaufgabenordner ist
     if ($folder_tree->isExerciseFolder($folder_id)) {
-        print Assets::img('icons/16/grey/edit.png', tooltip2(_('Dieser Ordner ist ein Hausaufgabenordner. Es können nur Dateien eingestellt werden.')) + array('class' => 'text-bottom'));
+        print Icon::create('edit', 'inactive', ['title' => _('Dieser Ordner ist ein Hausaufgabenordner. Es können nur Dateien eingestellt werden.')])->asImg(['class' => 'text-bottom']);
     }
 
     print "</td>";
@@ -2248,15 +2263,14 @@ function getLinkPath($file_id)
     return $statement->fetchColumn() ?: false;
 }
 
-function GetFileIcon($ext, $with_img_tag = false){
-    $extension = strtolower($ext);
+function GetFileIcon($ext){
     //Icon auswaehlen
-    switch ($extension){
+    switch (strtolower($ext)){
         case 'rtf':
         case 'doc':
         case 'docx':
         case 'odt':
-            $icon = 'icons/16/blue/file-text.png';
+            $icon = 'file-text';
         break;
         case 'xls':
         case 'xlsx':
@@ -2265,16 +2279,16 @@ function GetFileIcon($ext, $with_img_tag = false){
         case 'ppt':
         case 'pptx':
         case 'odp':
-            $icon = 'icons/16/blue/file-office.png';
+            $icon = 'file-office';
         break;
         case 'zip':
         case 'tgz':
         case 'gz':
         case 'bz2':
-            $icon = 'icons/16/blue/file-archive.png';
+            $icon = 'file-archive';
         break;
         case 'pdf':
-            $icon = 'icons/16/blue/file-pdf.png';
+            $icon = 'file-pdf';
         break;
         case 'gif':
         case 'jpg':
@@ -2282,13 +2296,13 @@ function GetFileIcon($ext, $with_img_tag = false){
         case 'jpeg':
         case 'png':
         case 'bmp':
-            $icon = 'icons/16/blue/file-pic.png';
+            $icon = 'file-pic';
         break;
         default:
-            $icon = 'icons/16/blue/file-generic.png';
+            $icon = 'file-generic';
         break;
     }
-    return ($with_img_tag ? (string)Assets::img($icon) : $icon);
+    return Icon::create($icon, 'clickable');
 }
 
 /**
@@ -2918,25 +2932,32 @@ function get_upload_file_path ($document_id)
  * @param string MD5 id of the file
  * @return bool
  */
-function check_protected_download($document_id)
-{
+function check_protected_download($document_id) {
     $ok = true;
-    if(Config::GetInstance()->getValue('ENABLE_PROTECTED_DOWNLOAD_RESTRICTION')){
+    if (Config::GetInstance()->getValue('ENABLE_PROTECTED_DOWNLOAD_RESTRICTION')) {
         $doc = new StudipDocument($document_id);
-        if($doc->getValue('protected')){
+        if ($doc->getValue('protected')) {
             $ok = false;
             $range_id = $doc->getValue('seminar_id');
-            if(get_object_type($range_id) == 'sem'){
+
+            if (get_object_type($range_id) == 'sem') {
                 $seminar = Seminar::GetInstance($range_id);
                 $timed_admission = $seminar->getAdmissionTimeFrame();
-                if( $seminar->isPasswordProtected() ||
-                    $seminar->isAdmissionLocked()
-                    || ($timed_admission['end_time'] > 0 && $timed_admission['end_time'] < time())){
+
+                if ($seminar->isPasswordProtected() ||
+                        $seminar->isAdmissionLocked()
+                        || ($timed_admission['end_time'] > 0 && $timed_admission['end_time'] < time())) {
                     $ok = true;
+                } else if (StudygroupModel::isStudygroup($range_id)) {
+                    $studygroup = Seminar::GetInstance($range_id);
+                    if ($studygroup->admission_prelim == 1) {
+                        $ok = true;
+                    }
                 }
             }
         }
     }
+
     return $ok;
 }
 

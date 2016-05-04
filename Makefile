@@ -7,9 +7,9 @@ STYLES = public/assets/stylesheets
 JAVA   = $(shell which java)
 
 ifneq ($(wildcard $(JLESSC)),)
-	LESSC = $(JLESSC)
+	LESSC = $(JLESSC) -sm=on
 else
-	LESSC = $(PLESSC)
+	LESSC = $(PLESSC) -sm=on
 endif
 
 ifneq ($(wildcard $(CODECEPT_VENDOR)),)
@@ -33,7 +33,7 @@ test: force_update
 	$(RUN_TESTS)
 
 # recipe to compile all .less files to CSS
-less: $(STYLES)/style.css $(STYLES)/statusgroups.css $(STYLES)/studip-jquery-ui.css
+less: $(STYLES)/style.css $(STYLES)/print.css  $(STYLES)/statusgroups.css $(STYLES)/studip-jquery-ui.css
 
 $(STYLES)/style.css: $(wildcard $(STYLES)/less/*.less)
 $(STYLES)/studip-jquery-ui.css: $(wildcard $(STYLES)/less/jquery-ui/*.less)

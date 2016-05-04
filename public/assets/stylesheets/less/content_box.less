@@ -10,10 +10,6 @@ section.contentbox {
         .flex-wrap(wrap);
         .flex-justify-content(space-between);
         
-        h1, nav {
-            .flex-grow(1);
-        }
-        
         padding: 2px;
         background-color: @content-color-20;
 
@@ -24,24 +20,17 @@ section.contentbox {
             border-bottom: none;
             font-size: medium;
             > a {
-                margin-left: -20px;
-                padding-left: 20px;
                 img, svg {
-                    vertical-align: text-bottom;
                     margin-right: 5px;
                 }
             }
         }
 
         nav {
-            vertical-align: middle;
-            margin-right: 4px;
             text-align: right;
-            * {
-                padding: 3px;
-                padding-left: 2px;
-                padding-right: 0px;
-            }
+            padding: 2px;
+            display: flex;
+            align-items: center;
         }
     }
     
@@ -65,18 +54,22 @@ section.contentbox {
         border-bottom: none;
     }
 
-    article {
+    > article {
         border-color: @content-color-40;
         border-style: solid;
         border-width: 1px;
         margin: 10px;
 
         > p, > section, > footer, > div {
-            padding: 0 10px 0 10px;
             max-height: 0px;
             opacity: 0;
             overflow: auto;
             .transition(opacity 0.3s);
+        }
+
+
+        > p, > footer, > div {
+            padding: 0 10px 0 10px;
         }
 
         div, p {
@@ -85,6 +78,13 @@ section.contentbox {
 
         section {
             border-width: 0;
+            margin-top: 0;
+            margin-bottom: 0;
+            padding: 0;
+
+            article {
+                border: none;
+            }
 
             header {
                 background: transparent;
@@ -98,6 +98,10 @@ section.contentbox {
                 }
             }
 
+            > article {
+                padding: 5px;
+            }
+
             article time {
                 float: right;
                 font-size: smaller;
@@ -106,17 +110,34 @@ section.contentbox {
         }
 
         header {
-            h1 {
-                .icon-before('blue/arr_1right.png');
+            h1 a {
+                .icon('before', "arr_1right", 'clickable');
                 &:before {
                     .transition(all 200ms ease 0s);
-                    vertical-align: middle;
+                    margin-right: 2px;
                 }
+                display: flex;
+                align-items: center;
             }
             nav {
                 * {
                     display: inline-block;
                     vertical-align: middle;
+                }
+
+                span {
+                    &:last-child {
+                        border-right: none;
+                        padding-right: 0px;
+                    }
+                    display: inline-block;
+                    border-right: 1px solid @content-color;
+                    padding: 0px 5px;
+                }
+                a {
+                    padding-left: 5px;
+                    align-items: center;
+                    display: flex;
                 }
             }
         }
@@ -150,27 +171,34 @@ section.contentbox {
                 }
             }
         }
-    }
 
-    article.open {
-        > p, > section, > footer, > div {
-            max-height: none;
-            opacity: 1;
+        &:not(.open) header ~ * {
+            max-height: 0px;
+            opacity: 0;
+            overflow: auto;
             .transition(opacity 0.3s);
         }
 
-        footer {
-            border-top-style: solid;
+        &.open {
+            > p, > section, > footer, > div {
+                max-height: none;
+                opacity: 1;
+                .transition(opacity 0.3s);
+            }
+
+            footer {
+                border-top-style: solid;
+            }
+
+            header h1 a::before {
+                .rotate(90deg);
+            }
         }
 
-        header h1:before {
-            .rotate(90deg);
-        }
-    }
-
-    article.new {
-        header h1 {
-            .icon-before('red/arr_1right.png');
+        &.new {
+            header h1 a {
+                .icon('before', "arr_1right", 'new');
+            }
         }
     }
 }

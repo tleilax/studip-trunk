@@ -15,7 +15,7 @@ use Studip\Button,
 <input type="hidden" name="change_schedule_repeat_interval" value="<? echo $resAssign->getRepeatInterval() ?>">
 <input type="hidden" name="change_schedule_repeat_quantity" value="<? echo $resAssign->getRepeatQuantity() ?>">
 
-<table class="zebra" border="0" cellpadding="2" cellspacing="0" width="99%" align="center">
+<table class="default">
     <tbody>
         <tr>
             <td colspan="3" align="center">
@@ -34,7 +34,7 @@ use Studip\Button,
 
             <? if ($lockedAssign) : ?>
                 <br>
-                <?= Assets::img('icons/16/grey/info-circle.png') ?>
+                <?= Icon::create('info-circle', 'inactive')->asImg() ?>
                 <? if ($owner_type == "sem") : ?>
                     <?= sprintf ( _("Diese Belegung ist ein regelmäßiger Termin der Veranstaltung %s, die in diesem Raum stattfindet."),
                         ($perm->have_studip_perm("user", $seminarID)) ?
@@ -44,8 +44,8 @@ use Studip\Button,
                     <? if ($perm->have_studip_perm("tutor", $seminarID)) : ?>
                         <br>
                         <?= sprintf(_("Um die Belegung zu verändern, ändern Sie diese auf der Seite %sZeiten / Räume%s der Veranstaltung"),
-                                    Assets::img('icons/16/black/schedule.png') . "&nbsp;" .
-                                    "<a href=\"raumzeit.php?cid=". $seminarID ."\" onClick=\"return check_opener(this)\">",
+                                    Icon::create('schedule', 'info')->asImg() . "&nbsp;" .
+                                    "<a href=" . URLHelper::getURL("dispatch.php/course/timesrooms", array('cid' => $seminarID)) . "onClick=\"return check_opener(this)\">",
                                     "</a>");
                         ?>
                     <? endif; ?>
@@ -58,8 +58,8 @@ use Studip\Button,
                     <? if ($perm->have_studip_perm("tutor", $seminarID)) : ?>
                         <br>
                         <?= sprintf(_("Um die Belegung zu verändern, ändern Sie bitte den Termin auf der Seite %sZeiten / Räume%s der Veranstaltung"),
-                                   Assets::img('icons/16/black/schedule.png') . "&nbsp;" .
-                                   "<a href=\"raumzeit.php?cid=" . $seminarID . "#irregular_dates\" onClick=\"return check_opener(this)\">",
+                                   Icon::create('schedule', 'info')->asImg() . "&nbsp;" .
+                                   "<a href=" . URLHelper::getURL("dispatch.php/course/timesrooms", array('cid' => $seminarID)) ." onClick=\"return check_opener(this)\">",
                                    "</a>");
                         ?>
                     <? endif ?>
@@ -234,7 +234,7 @@ use Studip\Button,
                 <?=_("begrenzte Anzahl der Wiederholungen:")?><br>
                 <?
                 if (!$lockedAssign) :
-                    printf (_("max. %s Mal wiederholen"), "&nbsp;<input name=\"change_schedule_repeat_quantity\" value=\"".(($resAssign->getRepeatQuantity() != -1) ? $resAssign->getRepeatQuantity() : "")."\" size=\"2\" maxlength=\"2\">&nbsp;");
+                    printf (_("max. %s Mal wiederholen"), "&nbsp;<input name=\"change_schedule_repeat_quantity\" value=\"".(($resAssign->getRepeatQuantity() != -1) ? $resAssign->getRepeatQuantity() : "")."\" size=\"4\" maxlength=\"4\">&nbsp;");
                     if ($resAssign->getRepeatQuantity() == -1): ?>
                         <input type="hidden" name="change_schedule_repeat_quantity_infinity" value="TRUE">
                     <? endif; ?>

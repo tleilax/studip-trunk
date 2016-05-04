@@ -67,6 +67,7 @@ class CourseEvent extends CourseDate implements Event
         $stmt = DBManager::get()->prepare('SELECT termine.* FROM seminar_user '
                 . 'INNER JOIN termine ON seminar_id = range_id '
                 . 'WHERE user_id = :user_id '
+                . 'AND bind_calendar = 1 '
                 . 'AND date BETWEEN :start AND :end '
                 . "AND (IFNULL(metadate_id, '') = '' "
                 . 'OR metadate_id NOT IN ( '
@@ -78,26 +79,25 @@ class CourseEvent extends CourseDate implements Event
             ':start'   => $start->getTimestamp(),
             ':end'     => $end->getTimestamp()
         ));
-        $event_collection = new SimpleORMapCollection();
-        $event_collection->setClassName('Event');
-        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
-            $event = new CourseEvent();
-            $event->setData($row);
-            $event->setNew(false);
-            // related persons (dozenten) or groups
-            if (self::checkRelated($event, $user_id)) {
-                $event_collection[] = $event;
-            }
+       $event_collection = array();
+       foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+           $event = new CourseEvent();
+           $event->setData($row);
+           $event->setNew(false);
+           // related persons (dozenten) or groups
+           if (self::checkRelated($event, $user_id)) {
+               $event_collection[] = $event;
+           }
         }
+        $event_collection = SimpleORMapCollection::createFromArray($event_collection, false);
+        $event_collection->setClassName('Event');
         return $event_collection;
     }
-    
-    // 
     
     /**
      * Checks if given user is the responsible lecturer or is member of a
      * related group
-     * 
+     *
      * @global object $perm The globa perm object.
      * @param CourseEvent $event The course event to check against.
      * @param string $user_id The id of the user.
@@ -212,7 +212,7 @@ class CourseEvent extends CourseDate implements Event
         if ($this->havePermission(Event::PERMISSION_READABLE)) {
             $description = trim($this->cycle->description) ?: '';
             if (sizeof($this->topics)) {
-                $title = implode(', ', $this->topics->pluck('title'));
+                $title = $this->course->name.": ".implode(', ', $this->topics->pluck('title'));
             } else {
                 $title = $this->course->name;
             }

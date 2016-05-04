@@ -291,6 +291,8 @@ class StudipFormat extends TextFormat
         unset(self::$studip_rules[$name]);
     }
 
+    private $opengraph_collection;
+
     /**
      * Initializes a new StudipFormat instance.
      */
@@ -326,13 +328,13 @@ class StudipFormat extends TextFormat
     protected static function markupText($markup, $matches, $contents)
     {
         static $tag = array(
-            '**' => 'b',
-            '%%' => 'i',
+            '**' => 'strong',
+            '%%' => 'em',
             '__' => 'u',
             '##' => 'tt',
             '&gt;&gt;' => 'sup',
             '&lt;&lt;' => 'sub',
-            '{-' => 'strike',
+            '{-' => 's',
             '[admin_msg]' => 'i'
         );
 
@@ -365,8 +367,8 @@ class StudipFormat extends TextFormat
     protected static function markupTextSimple($markup, $matches)
     {
         static $tag = array(
-            '*' => 'b',
-            '%' => 'i',
+            '*' => 'strong',
+            '%' => 'em',
             '_' => 'u',
             '#' => 'tt',
             '+' => 'big',
@@ -625,30 +627,25 @@ class StudipFormat extends TextFormat
      */
     protected static function markupLinks($markup, $matches)
     {
-        if ($markup->isInsideOf('htmlAnchor')
-            || $markup->isInsideOf('htmlImg')
-        ) {
+        if ($markup->isInsideOf('htmlAnchor') || $markup->isInsideOf('htmlImg')) {
             return $matches[0];
         }
 
-        $url = $matches[2];
-        $title = $matches[1] ? $matches[1] : $url;
+        $url   = $matches[2];
+        $title = $matches[1] ?: $url;
 
         $intern = isLinkIntern($url);
-        if (!$intern) {
-            OpenGraphURL::$tempURLStorage[] = $url;
-        }
 
         $url = TransformInternalLinks($url);
 
         $linkmarkup = clone $markup;
-        $linkmarkup->removeMarkup("links");
-        $linkmarkup->removeMarkup("wiki-links");
+        $linkmarkup->removeMarkup('links');
+        $linkmarkup->removeMarkup('wiki-links');
 
         return sprintf('<a class="%s" href="%s"%s>%s</a>',
-            $intern ? "link-intern" : "link-extern",
+            $intern ? 'link-intern' : 'link-extern',
             $url,
-            $intern ? "" : ' target="_blank"',
+            $intern ? '' : ' target="_blank"',
             $linkmarkup->format($title)
         );
     }

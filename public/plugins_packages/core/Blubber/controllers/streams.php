@@ -76,7 +76,7 @@ class StreamsController extends PluginController {
             throw new AccessDeniedException();
         }
         PageLayout::setTitle($GLOBALS['SessSemName']["header_line"]." - ".$this->plugin->getDisplayTitle());
-        Navigation::getItem("/course/blubberforum")->setImage('icons/16/black/blubber.png');
+        Navigation::getItem("/course/blubberforum")->setImage(Icon::create('blubber', 'info'));
         Navigation::activateItem("/course/blubberforum");
         $coursestream = BlubberStream::getCourseStream($_SESSION['SessionSeminar']);
         $this->tags = $coursestream->fetchTags();
@@ -256,10 +256,7 @@ class StreamsController extends PluginController {
         $thread['description'] = studip_utf8decode(Request::get("content"));
         $thread->store();
 
-        BlubberPosting::$mention_posting_id = $thread->getId();
-        StudipTransformFormat::addStudipMarkup("mention1", '@\"[^\n\"]*\"', "", "BlubberPosting::mention");
-        StudipTransformFormat::addStudipMarkup("mention2", '@[^\s]*[\d\w_]+', "", "BlubberPosting::mention");
-        $content = transformBeforeSave(studip_utf8decode(Request::get("content")));
+        $content = $this->transformMentions($thread['description'], $thread);
 
         if (strpos($content, "\n") !== false) {
             $thread['name'] = substr($content, 0, strpos($content, "\n"));
@@ -322,8 +319,9 @@ class StreamsController extends PluginController {
     public function get_source_action() {
         $posting = new BlubberPosting(Request::get("topic_id"));
         $thread = new BlubberPosting($posting['root_id']);
-        if (($thread['context_type'] === "course" && !$GLOBALS['perm']->have_studip_perm("autor", $posting['Seminar_id']))
-                or ($thread['context_type'] === "private" && !$thread->isRelated())) {
+        if ((($thread['context_type'] === "course" && !$GLOBALS['perm']->have_studip_perm("autor", $posting['Seminar_id']))
+                or ($thread['context_type'] === "private" && !$thread->isRelated()))
+                && !$GLOBALS['perm']->have_perm("root")) {
             throw new AccessDeniedException();
         }
         $this->render_text($posting['description']);
@@ -340,15 +338,15 @@ class StreamsController extends PluginController {
         $posting = new BlubberPosting(Request::get("topic_id"));
         $thread = new BlubberPosting($posting['root_id']);
         if (($posting['user_id'] !== $GLOBALS['user']->id)
-                && (!$GLOBALS['perm']->have_studip_perm("tutor", $posting['Seminar_id']))) {
+                && (!$GLOBALS['perm']->have_studip_perm("tutor", $posting['Seminar_id']))
+                && !$GLOBALS['perm']->have_perm("root")) {
             throw new AccessDeniedException();
         }
         $old_content = $posting['description'];
         $messaging = new messaging();
-        BlubberPosting::$mention_posting_id = $posting->getId();
-        StudipTransformFormat::addStudipMarkup("mention1", '@\"[^\n\"]*\"', "", "BlubberPosting::mention");
-        StudipTransformFormat::addStudipMarkup("mention2", '@[^\s]*[\d\w_]+', "", "BlubberPosting::mention");
-        $new_content = transformBeforeSave(studip_utf8decode(Request::get("content")));
+
+        $new_content = studip_utf8decode(Request::get('content'));
+        $new_content = $this->transformMentions($new_content, $posting);
 
         if ($new_content && $old_content !== $new_content) {
             $posting['description'] = $new_content;
@@ -454,10 +452,8 @@ class StreamsController extends PluginController {
             $posting['description'] = studip_utf8decode(Request::get("content"));
             $posting->store();
 
-            BlubberPosting::$mention_posting_id = $posting->getId();
-            StudipTransformFormat::addStudipMarkup("mention1", '@\"[^\n\"]*\"', null, "BlubberPosting::mention");
-            StudipTransformFormat::addStudipMarkup("mention2", '@[^\s]*[\d\w_]+', null, "BlubberPosting::mention");
-            $content = transformBeforeSave(studip_utf8decode(Request::get("content")));
+            $content = studip_utf8decode(Request::get("content"));
+            $content = $this->transformMentions($content, $posting);
             $posting['description'] = $content;
             $posting->store();
 
@@ -658,7 +654,7 @@ class StreamsController extends PluginController {
         }
 
         if ($this->thread['context_type'] === "course") {
-            Navigation::getItem("/course/blubberforum")->setImage('icons/16/black/blubber');
+            Navigation::getItem("/course/blubberforum")->setImage(Icon::create('blubber', 'info'));
             Navigation::activateItem('/course/blubberforum');
         } elseif($this->thread['context_type'] === "public") {
             if (Navigation::hasItem('/profile')) {
@@ -964,5 +960,23 @@ class StreamsController extends PluginController {
             }
             Sidebar::get()->addWidget($cloud, 'tagcloud');
         }
+    }
+
+    private function transformMentions($content, BlubberPosting $source)
+    {
+        BlubberPosting::$mention_posting_id = $source->getId();
+        StudipTransformFormat::addStudipMarkup(
+            'mention1',
+            '(?:^|\W)(@\"[^\n\"]*\")',
+            '',
+            'BlubberPosting::mention'
+        );
+        StudipTransformFormat::addStudipMarkup(
+            'mention2',
+            '(?:^|\W)(@[^\s]*[\d\w_]+)',
+            '',
+            'BlubberPosting::mention'
+        );
+        return transformBeforeSave($content);
     }
 }

@@ -1,16 +1,31 @@
-/*jslint browser: true, white: true, undef: true, nomen: true, eqeqeq: true, plusplus: true, bitwise: true, newcap: true, immed: true, indent: 4, onevar: false */
-/*global window, $, jQuery, _, Notificon */
+/*jslint browser: true, nomen: true, unparam: true, newcap: true */
+/*global Notification, jQuery, STUDIP, _, Notificon */
 
 (function ($) {
+    'use strict';
 
     var stack = {},
         originalTitle,
         favicon_url,
-        audio_notification = false
+        audio_notification = false,
         directlydeleted = [];
 
-    var process_notifications = function (notifications) {
-        var ul        = $('<ul/>'),
+    // Wrapper function that creates a desktop notification from given data
+    function create_desktop_notification(data) {
+        var notification = new Notification(STUDIP.STUDIP_SHORT_NAME, {
+            body: data.text,
+            icon: data.avatar,
+            tag: data.id
+        });
+        notification.addEventListener('click', function () {
+            location.href = STUDIP.URLHelper.getURL('dispatch.php/jsupdater/mark_notification_read/' + this.tag);
+        });
+    }
+
+    // Handler for all notifications received by an ajax request
+    function process_notifications(notifications) {
+        var cache = STUDIP.Cache.getInstance('desktop.notifications'),
+            ul        = $('<ul/>'),
             changed   = false,
             new_stack = {};
 
@@ -24,22 +39,26 @@
                     $("#" + notification.html_id).bind("mouseenter", STUDIP.PersonalNotifications.isVisited);
                 }
 
-                changed = (changed || !(id in stack));
+                changed = (changed || !stack.hasOwnProperty(id));
 
-                if (typeof Notification !== "undefined" && Notification.permission === "granted") {
-                    if (typeof sessionStorage !== "undefined" && !sessionStorage['desktop.notification.exists.' + notification.id]) {
-                        // If it's okay let's create a notification
-                        var message = new Notification(STUDIP.STUDIP_SHORT_NAME, {
-                            "body": notification.text,
-                            "icon": notification.avatar,
-                            "tag": notification.id
-                        });
-                        message.addEventListener("click", function () {
-                            location.href = STUDIP.ABSOLUTE_URI_STUDIP + "dispatch.php/jsupdater/mark_notification_read/" + this.tag;
-                        });
-                        sessionStorage['desktop.notification.exists.' + notification.id] = 1;
-                    }
+                // Check if notifications should be sent (depends on the
+                // Notification itself and session storage)
+                if (Notification === undefined || Notification.permission === 'denied' || cache.has(notification.id)) {
+                    return;
                 }
+
+                // If it's okay let's create a notification
+                if (Notification.permission === 'granted') {
+                    create_desktop_notification(notification);
+                } else {
+                    Notification.requestPermission(function (permission) {
+                        if (permission === 'granted') {
+                            create_desktop_notification(notification);
+                        }
+                    });
+                }
+
+                cache.set(id, true);
             }
         });
 
@@ -49,7 +68,7 @@
         }
         STUDIP.PersonalNotifications.update();
         directlydeleted = [];
-    };
+    }
 
     STUDIP.PersonalNotifications = {
         newNotifications: function () {},
@@ -60,9 +79,8 @@
             return false;
         },
         sendReadInfo: function (id, notification) {
-            $.ajax({
-                'url': STUDIP.ABSOLUTE_URI_STUDIP + "dispatch.php/jsupdater/mark_notification_read/" + id,
-                'success': function () {
+            $.get(STUDIP.URLHelper.getURL('dispatch.php/jsupdater/mark_notification_read/' + id))
+                .then(function () {
                     if (notification) {
                         notification.toggle('blind', 'fast', function () {
                             delete stack[id];
@@ -70,8 +88,7 @@
                             $(this).remove();
                         });
                     }
-                }
-            });
+                });
         },
         update: function () {
             var count      = _.values(stack).length,
@@ -121,12 +138,10 @@
             }
             $('#notification_marker').data('seen', true);
 
-            $.ajax({
-                'url': STUDIP.ABSOLUTE_URI_STUDIP + "dispatch.php/jsupdater/notifications_seen",
-                'success': function (time) {
+            $.get(STUDIP.URLHelper.getURL('dispatch.php/jsupdater/notifications_seen'))
+                .then(function (time) {
                     $("#notification_marker").removeClass("alert").data("lastvisit", time);
-                }
-            });
+                });
         }
     };
 

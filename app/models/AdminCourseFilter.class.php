@@ -119,23 +119,21 @@ class AdminCourseFilter
 
         $this->settings['query']['select'] = array(
             'Institut' => "Institute.Name",
-            'teilnehmer' => "COUNT(seminar_user.user_id)",
+            'teilnehmer' => "(SELECT COUNT(seminar_id)
+                          FROM seminar_user
+                          WHERE seminar_id = seminare.Seminar_id AND status != 'dozent' AND status != 'tutor')",
             'prelim' => "(SELECT COUNT(seminar_id)
                           FROM admission_seminar_user
                           WHERE seminar_id = seminare.Seminar_id AND status = 'accepted')",
             'waiting' => "(SELECT COUNT(seminar_id)
                           FROM admission_seminar_user
                           WHERE seminar_id = seminare.Seminar_id AND status = 'awaiting')",
-            'course_set' => "(SELECT set_id FROM seminar_courseset WHERE seminar_id = seminare.Seminar_id)"
+            'course_set' => "(SELECT set_id FROM seminar_courseset WHERE seminar_id = seminare.Seminar_id LIMIT 1)"
         );
         $this->settings['query']['joins'] = array(
             'Institute' => array(
                 'join' => "INNER JOIN",
                 'on' => "seminare.Institut_id = Institute.Institut_id"
-            ),
-            'seminar_user' => array(
-                'join' => "LEFT JOIN",
-                'on' => "seminare.seminar_id=seminar_user.seminar_id AND seminar_user.status != 'dozent' and seminar_user.status != 'tutor'"
             ),
             'sem_types' => array(
                 'join' => "LEFT JOIN",
@@ -147,7 +145,7 @@ class AdminCourseFilter
             )
         );
         $this->settings['query']['where'] = array();
-        $this->settings['query']['orderby'] = "seminare.name";
+        $this->settings['query']['orderby'] = Config::get()->IMPORTANT_SEMNUMBER ? "seminare.veranstaltungsnummer, seminare.name" : "seminare.name";
     }
 
     /**
@@ -236,8 +234,14 @@ class AdminCourseFilter
             'table' => "auth_user_md5",
             'on' => "dozenten.user_id = dozentendata.user_id"
         );
-        $this->settings['query']['where']['search'] = "CONCAT(seminare.VeranstaltungsNummer, ' ', seminare.name, ' ', dozentendata.Nachname) LIKE :search";
+        $this->settings['query']['where']['search'] = "(CONCAT_WS(' ', seminare.VeranstaltungsNummer, seminare.name, seminare.Untertitel, dozentendata.Nachname) LIKE :search
+            OR CONCAT(dozentendata.Nachname, ', ', dozentendata.Vorname) LIKE :search
+            OR CONCAT_WS(' ', dozentendata.Vorname, dozentendata.Nachname) LIKE :search
+            OR dozentendata.Vorname LIKE :search
+            OR dozentendata.Nachname LIKE :search
+        )";
         $this->settings['parameter']['search'] = "%".$text."%";
+
         return $this;
     }
 
@@ -253,7 +257,7 @@ class AdminCourseFilter
         if (!in_array($flag, words('ASC DESC'))) {
             throw new Exception("Sortierreihenfolge undefiniert.");
         }
-        if (in_array($attribute, words('VeranstaltungsNummer Name status teilnehmer waiting prelim'))) {
+        if (in_array($attribute, words('VeranstaltungsNummer Name status teilnehmer waiting prelim is_complete'))) {
             $this->settings['query']['orderby'] = $attribute . ' ' . $flag;
         }
         return $this;
@@ -366,6 +370,7 @@ class AdminCourseFilter
         if (!$only_count) {
             $query .= " GROUP BY seminare.Seminar_id ORDER BY ".$this->settings['query']['orderby'].($this->settings['query']['orderby'] !== "seminare.name" ? ", seminare.name" : "");
         }
+
         return $query;
     }
 

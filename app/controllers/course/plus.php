@@ -169,7 +169,7 @@ class Course_PlusController extends AuthenticatedController
             }
 
             if ($key == 'Sonstiges') continue;
-            $widget->addCheckbox(_($key), $_SESSION['plus']['Kategorie'][$key],
+            $widget->addCheckbox($key, $_SESSION['plus']['Kategorie'][$key],
                 URLHelper::getLink('?', array(md5('cat_' . $key) => 1, 'displaystyle' => 'category')), URLHelper::getLink('?', array(md5('cat_' . $key) => 0, 'displaystyle' => 'category')));
 
         }
@@ -184,22 +184,18 @@ class Course_PlusController extends AuthenticatedController
 
         if ($_SESSION['plus']['View'] == 'openall') {
             $widget->addLink(_("Alles zuklappen"),
-                URLHelper::getLink('?', array('mode' => 'closeall')),
-                'icons/16/blue/assessment.png');
+                URLHelper::getLink('?', array('mode' => 'closeall')), Icon::create('assessment', 'clickable'));
         } else {
             $widget->addLink(_("Alles aufklappen"),
-                URLHelper::getLink('?', array('mode' => 'openall')),
-                'icons/16/blue/assessment.png');
+                URLHelper::getLink('?', array('mode' => 'openall')), Icon::create('assessment', 'clickable'));
         }
 
         if ($_SESSION['plus']['displaystyle'] == 'category') {
             $widget->addLink(_("Alphabetische Anzeige ohne Kategorien"),
-                    URLHelper::getLink('?', array('displaystyle' => 'alphabetical')),
-                    'icons/16/blue/assessment.png');
+                    URLHelper::getLink('?', array('displaystyle' => 'alphabetical')), Icon::create('assessment', 'clickable'));
         } else {
             $widget->addLink(_("Anzeige nach Kategorien"),
-                    URLHelper::getLink('?', array('displaystyle' => 'category')),
-                    'icons/16/blue/assessment.png');
+                    URLHelper::getLink('?', array('displaystyle' => 'category')), Icon::create('assessment', 'clickable'));
         }
 
         $sidebar->addWidget($widget, "aktion");
@@ -219,8 +215,8 @@ class Course_PlusController extends AuthenticatedController
         foreach (PluginEngine::getPlugins('StandardPlugin') as $plugin) {
 
             if ((!$this->sem_class && !$plugin->isCorePlugin())
-                || ($this->sem_class && !$this->sem_class->isModuleMandatory($plugin->getPluginname())
-                    && $this->sem_class->isModuleAllowed($plugin->getPluginname())
+                || ($this->sem_class && !$this->sem_class->isModuleMandatory(get_class($plugin))
+                    && $this->sem_class->isModuleAllowed(get_class($plugin))
                     && !$this->sem_class->isSlotModule(get_class($plugin)))
             ) {
 

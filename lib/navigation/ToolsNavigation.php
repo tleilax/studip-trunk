@@ -28,7 +28,7 @@ class ToolsNavigation extends Navigation
     {
         parent::__construct(_('Tools'));
 
-        $this->setImage('icons/lightblue/tools.svg', array('title' => _('Tools')));
+        $this->setImage(Icon::create('tools', 'navigation', ["title" => _('Tools')]));
     }
 
     /**
@@ -49,8 +49,8 @@ class ToolsNavigation extends Navigation
 
         // votes and tests, evaluations
         if (get_config('VOTE_ENABLE')) {
-            $navigation = new Navigation(_('Umfragen und Tests'), 'admin_vote.php', array('page' => 'overview', 'showrangeID' => $username));
-            $this->addSubNavigation('vote', $navigation);
+            $navigation = new Navigation(_('Fragebögen'), URLHelper::getURL("dispatch.php/questionnaire/overview"));
+            $this->addSubNavigation('questionnaire', $navigation);
 
             $navigation = new Navigation(_('Evaluationen'), 'admin_evaluation.php', array('rangeID' => $username));
             $this->addSubNavigation('evaluation', $navigation);
@@ -88,7 +88,7 @@ class ToolsNavigation extends Navigation
             $navigation = new Navigation(_('Anmeldesets'), 'dispatch.php/admission/courseset/index');
             $this->addSubNavigation('coursesets', $navigation);
             $navigation->addSubNavigation('sets', new Navigation(_('Anmeldesets verwalten'), 'dispatch.php/admission/courseset/index'));
-            $navigation->addSubNavigation('userlists', new Navigation(_('Nutzerlisten'), 'dispatch.php/admission/userlist/index'));
+            $navigation->addSubNavigation('userlists', new Navigation(_('Personenlisten'), 'dispatch.php/admission/userlist/index'));
             $navigation->addSubNavigation('restricted_courses', new Navigation(_('teilnahmebeschränkte Veranstaltungen'), 'dispatch.php/admission/restricted_courses'));
         }
 

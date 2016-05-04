@@ -63,9 +63,9 @@ class ExternElementMainLecturedetails extends ExternElementMain {
             "name" => "",
             "order" => "|0|1|2|3|4|5|6|7|8|9|10|11|12|13|14|15",
             "visible" => "|1|1|1|1|1|1|1|1|1|1|1|1|1|1|1|1",
-            "aliases" => "|"._("Untertitel:")." |"._("DozentIn:")." |"._("Veranstaltungsart:")
+            "aliases" => "|"._("Untertitel:")." |"._("Lehrende")." |"._("Veranstaltungsart:")
                 ." |"._("Veranstaltungstyp:")." |"._("Beschreibung:")." |"._("Ort:")." |"._("Semester:")
-                ." |"._("Zeiten:")." |"._("Veranstaltungsnummer:")." |"._("TeilnehmerInnen:")
+                ." |"._("Zeiten:")." |"._("Veranstaltungsnummer:")." |"._("Teilnehmende:")
                 ." |"._("Voraussetzungen:")." |"._("Lernorganisation:")." |"._("Leistungsnachweis:")
                 ." |"._("Bereichseinordnung:")." |"._("Sonstiges:")." |"._("ECTS-Punkte:"),
             "aliaspredisc" => _("Vorbesprechung:") . " ",

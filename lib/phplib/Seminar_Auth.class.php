@@ -120,7 +120,7 @@ class Seminar_Auth
                 # Check for user supplied automatic login procedure
                 if ($uid = $this->auth_preauth()) {
                     $this->auth["uid"] = $uid;
-                    $sess->regenerate_session_id(array('auth', '_language'));
+                    $sess->regenerate_session_id(array('auth', '_language', 'phpCAS'));
                     $sess->freeze();
                     return true;
                 }
@@ -287,7 +287,7 @@ class Seminar_Auth
 
             // then do login
             if (($authplugin = StudipAuthAbstract::GetInstance($provider))) {
-                $authplugin->authenticateUser("", "", "");
+                $authplugin->authenticateUser('', '');
                 if ($authplugin->getUser()) {
                     $user = $authplugin->getStudipUser($authplugin->getUser());
                     $this->auth["jscript"] = true;
@@ -313,7 +313,7 @@ class Seminar_Auth
     function auth_loginform()
     {
         if (Request::isXhr()) {
-            if (isset($_SERVER['HTTP_X_DIALOG'])) {
+            if (Request::isDialog()) {
                 header('X-Location: ' . URLHelper::getURL($_SERVER['REQUEST_URI']));
                 page_close();
                 die();

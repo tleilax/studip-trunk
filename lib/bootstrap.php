@@ -18,7 +18,7 @@ namespace {
     require_once __DIR__ . '/../composer/autoload.php';
 
     //software version - please leave it as it is!
-    $SOFTWARE_VERSION = '3.4.alpha-svn';
+    $SOFTWARE_VERSION = '3.5.alpha-svn';
 
     global $PHP_SELF, $STUDIP_BASE_PATH;
 
@@ -54,6 +54,7 @@ namespace {
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/classes/searchtypes');
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/classes/sidebar');
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/classes/visibility');
+    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/classes/coursewizardsteps');
 
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/calendar');
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/exceptions');
@@ -82,6 +83,7 @@ namespace {
         'AbstractStudipSystemPlugin' => $GLOBALS['STUDIP_BASE_PATH'] . '/lib/plugins/core/AbstractStudIPSystemPlugin.class.php',
         'AbstractStudipHomepagePlugin' => $GLOBALS['STUDIP_BASE_PATH'] . '/lib/plugins/core/AbstractStudIPHomepagePlugin.class.php',
         'AbstractStudipAdministrationPlugin' => $GLOBALS['STUDIP_BASE_PATH'] . '/lib/plugins/core/AbstractStudIPAdministrationPlugin.class.php',
+        'messaging'              => $GLOBALS['STUDIP_BASE_PATH'] . '/lib/messaging.inc.php'
     ));
 
     // Trails
@@ -106,6 +108,7 @@ namespace {
         'PasswordHash' => $GLOBALS['STUDIP_BASE_PATH'] . '/vendor/phpass/PasswordHash.php',
         'TCPDF'        => $GLOBALS['STUDIP_BASE_PATH'] . '/vendor/tcpdf/tcpdf.php',
     ));
+    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/vendor/mishal-iless/lib/ILess', 'ILess');
 
     // sample the request time and number of db queries every tenth time
     register_shutdown_function(function ($timer) {
@@ -194,20 +197,22 @@ namespace {
 
     // Add paths to autoloader that were defined in config_local.inc.php and
     // may be optional
-    if (Config::get()->RESOURCES_ENABLE) {
-        StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/' . $GLOBALS['RELATIVE_PATH_RESOURCES'] . '/lib');
-        require_once $GLOBALS['RELATIVE_PATH_RESOURCES'] . '/resourcesFunc.inc.php';
-        require_once $GLOBALS['RELATIVE_PATH_RESOURCES'] . '/lib/list_assign.inc.php';
-    }
+    
+    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/' . $GLOBALS['RELATIVE_PATH_RESOURCES'] . '/lib');
+    require_once $GLOBALS['RELATIVE_PATH_RESOURCES'] . '/resourcesFunc.inc.php';
+    require_once $GLOBALS['RELATIVE_PATH_RESOURCES'] . '/lib/list_assign.inc.php';
+
     if (Config::get()->EXTERN_ENABLE) {
         StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/' . $GLOBALS['RELATIVE_PATH_EXTERN'] . '/lib');
         require_once $GLOBALS['STUDIP_BASE_PATH'] . '/' . $GLOBALS['RELATIVE_PATH_EXTERN'] . '/extern_config.inc.php';
         require_once $GLOBALS['STUDIP_BASE_PATH'] . '/' . $GLOBALS['RELATIVE_PATH_EXTERN'] . '/lib/extern_functions.inc.php';
     }
+
     if (Config::get()->CALENDAR_ENABLE) {
         StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/' . $GLOBALS['RELATIVE_PATH_CALENDAR'] . '/lib');
         require_once $GLOBALS['STUDIP_BASE_PATH'] . '/' . $GLOBALS['RELATIVE_PATH_CALENDAR'] . '/calendar_func.inc.php';
     }
+
     if (Config::get()->ELEARNING_INTERFACE_ENABLE) {
         StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/' . $GLOBALS['RELATIVE_PATH_ELEARNING_INTERFACE']);
     }

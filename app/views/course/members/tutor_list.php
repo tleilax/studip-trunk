@@ -7,16 +7,15 @@
         <caption>
         <? if($is_tutor) : ?>
             <span class="actions">
-                    <?=$controller->getEmailLinkByStatus('tutor', $tutoren)?>
-                        <a href="<?= URLHelper::getLink('dispatch.php/messages/write',
-                                array('filter' => 'send_sms_to_all',
-                                    'who' => 'tutor',
-                                    'course_id' => $course_id,
-                                    'default_subject' => $subject))
-                        ?>" data-dialog>
-                            <?= Assets::img('icons/16/blue/inbox.png',
-                                tooltip2(sprintf(_('Nachricht an alle %s versenden'), $status_groups['tutor'])))?>
-                        </a>
+                <a href="<?= URLHelper::getLink('dispatch.php/messages/write',
+                        array('filter' => 'send_sms_to_all',
+                            'who' => 'tutor',
+                            'emailrequest' => 1,
+                            'course_id' => $course_id,
+                            'default_subject' => $subject))
+                ?>" data-dialog>
+                    <?= Icon::create('inbox', 'clickable', ['title' => sprintf(_('Nachricht mit Mailweiterleitung an alle %s versenden'),$status_groups['tutor'])])->asImg(16)?>
+                </a>
             </span>
         <? endif ?>
             <?= $status_groups['tutor'] ?>
@@ -29,11 +28,7 @@
         <col>
         <? if($is_dozent) : ?>
             <col width="15%">
-            <? if($semAdmissionEnabled) :?>
-            <col width="40%">
-            <? else :?>
-            <col width="25%">
-            <?endif ?>
+            <col width="35%">
         <? endif ?>
         <col width="80">
     </colgroup>
@@ -76,12 +71,10 @@
                 <? endif ?>
                 <td style="text-align: right"><?= (++$nr < 10) ? sprintf('%02d', $nr) : $nr ?></td>
                 <td>
-                    <a style="position: relative" href="<?= $controller->url_for(sprintf('profile?username=%s',$tutor['username'])) ?>">
-                    <?= Avatar::getAvatar($tutor['user_id'], $tutor['username'])->getImageTag(Avatar::SMALL,
-                            array('style' => 'margin-right: 5px', 'title' => htmlReady($fullname))); ?>
-                    <?= $tutor['mkdate'] >= $last_visitdate ? Assets::img('red_star.png',
-                        array('style' => 'position: absolute; margin: 0px 0px 0px -15px')) : '' ?>
-                    <?= htmlReady($fullname) ?>
+                    <a href="<?= $controller->url_for(sprintf('profile?username=%s',$tutor['username'])) ?>" <? if ($tutor['mkdate'] >= $last_visitdate) echo 'class="new-member"'; ?>>
+                        <?= Avatar::getAvatar($tutor['user_id'], $tutor['username'])->getImageTag(Avatar::SMALL,
+                                array('style' => 'margin-right: 5px', 'title' => htmlReady($fullname))); ?>
+                        <?= htmlReady($fullname) ?>
                     </a>
                     <? if ($is_tutor && $tutor['comment'] != '') : ?>
                         <?= tooltipIcon(sprintf('<strong>%s</strong><br>%s', _('Bemerkung'), htmlReady($tutor['comment'])), false, true) ?>
@@ -100,24 +93,23 @@
                 <td style="text-align: right">
                     <? if ($is_tutor) : ?>
                         <a data-dialog title='<?= _('Bemerkung hinzufügen') ?>' href="<?=$controller->url_for('course/members/add_comment', $tutor['user_id']) ?>">
-                            <?= Assets::img('icons/16/blue/comment.png') ?>
+                            <?= Icon::create('comment', 'clickable')->asImg() ?>
                         </a>
                     <? endif ?>
                     <? if($user_id != $tutor['user_id']) : ?>
                     <a href="<?= URLHelper::getLink('dispatch.php/messages/write',
-                                array('filter' => 'send_sms_to_all',
+                            array('filter' => 'send_sms_to_all',
+                                'emailrequest' => 1,
                                 'rec_uname' => $tutor['username'],
                                 'default_subject' => $subject))
                             ?>
                     " data-dialog>
-                        <?= Assets::img('icons/16/blue/mail.png',
-                              tooltip2(sprintf(_('Nachricht an %s senden'), htmlReady($fullname)))) ?>
+                        <?= Icon::create('mail', 'clickable', ['title' => sprintf(_('Nachricht mit Mailweiterleitung an %s senden'),htmlReady($fullname))])->asImg(16) ?>
                     </a>
                     <? endif ?>
                     <? if ($is_dozent && !$tutor_is_locked && $user_id != $tutor['user_id'] && count($tutoren) >= 1) : ?>
                     <a href="<?= $controller->url_for(sprintf('course/members/cancel_subscription/singleuser/tutor/%s', $tutor['user_id'])) ?>">
-                        <?= Assets::img('icons/16/blue/door-leave.png',
-                                tooltip2(sprintf(_('%s austragen'), htmlReady($fullname)))) ?>
+                        <?= Icon::create('door-leave', 'clickable', ['title' => sprintf(_('%s austragen'),htmlReady($fullname))])->asImg(16) ?>
                     </a>
                     <? endif ?>
                 </td>

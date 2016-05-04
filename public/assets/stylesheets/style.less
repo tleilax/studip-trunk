@@ -11,7 +11,6 @@
 @import "less/links.less";
 @import "less/tables.less";
 @import "less/forms.less";
-@import "less/studip-form.less";
 @import "less/content.less";
 @import "less/css_tree.less";
 
@@ -34,7 +33,7 @@
 @import "less/skiplinks.less";
 @import "less/tabs.less";
 @import "less/tooltip.less";
-@import "less/vote.less";
+@import "less/questionnaire.less";
 
 @import "less/admin.less";
 @import "less/calendar.less";
@@ -48,6 +47,7 @@
 @import "less/schedule.less";
 @import "less/study-area-selection.less";
 @import "less/tour.less";
+@import "less/studygroup.less";
 @import "less/wiki.less";
 @import "less/raumzeit.less";
 @import "less/opengraph.less";
@@ -66,6 +66,9 @@
 
 @import "less/responsive.less";
 
+@import "less/deprecated.less";
+
+
 // Class for DOM elements that should only be visible to Screen readers
 .sr-only {
     position: absolute;
@@ -81,7 +84,7 @@
 /* --- Standardvorgaben ----------------------------------------------------- */
 //TODO: the Body-Background color should be similar to A:link.toolbar and A:visited.toolbar for best effect!!
 html, body { height: 100%; }
-html { overflow-y: scroll; }
+html { overflow-y: auto; }
 body {
     #gradient > .vertical(@brand-color-light, @brand-color-darker);
     background-color: @brand-color-darker;
@@ -166,21 +169,22 @@ ul.clean {
 }
 
 /* --- StudipForm selectbox control------------------------------------------ */
-div.selectbox {
+.selectbox {
     background-color:#ffffff;
-    border:1px solid;
+    border:1px solid @base-color;
     margin-top:5px;
     margin-bottom:5px;
     padding:5px;
     max-height:200px;
     overflow:auto;
+
+    fieldset {
+        border:none;
+        margin:0px;
+        padding:0px;
+    }
 }
 
-div.selectbox fieldset {
-    border:none;
-    margin:0px;
-    padding:0px;
-}
 
 .minor {
     color: gray;
@@ -193,8 +197,6 @@ div.selectbox fieldset {
 .text-top    { vertical-align: text-top !important; }
 
 /* --- index.php anpassungen an den boxen zur vereinheitlichung ------------- */
-div.index_container { margin: 0; }
-
 table.index_box {
     border-collapse: collapse;
     margin-bottom: 1em;
@@ -287,6 +289,27 @@ img.plugin_preview {
 
 .user_form { width: 250px; }
 
+.times-rooms-grid {
+    .flex();
+    .flex-wrap(wrap);
+    .flex-justify-content(space-between);
+    margin: 0 -0.5em;
+    section {
+        .flex-item(1);
+        min-width: 23em;
+        max-width: 100%;
+        padding: 0 0.5em;
+
+        &:empty {
+            height: 0;
+        }
+
+        section {
+            padding: 0;
+        }
+    }
+}
+
 /* --- Veranstaltungsverwaltung --------------------------------------------- */
 .boxed-grid {
     .flex();
@@ -368,18 +391,18 @@ img.plugin_preview {
 /* --- general style classes ------------------------------------------------ */
 .arrow_down {
     background: transparent top left no-repeat !important;
-    .retina-background-icon('blue/arr_1down.png') !important;
+    .background-icon('arr_1down', 'clickable') !important;
 }
 .arrow_right {
     background: transparent top left no-repeat !important;
-    .retina-background-icon('blue/arr_1right.png') !important;
+    .background-icon('arr_1right', 'clickable') !important;
 }
 h1:hover, h2:hover, h3:hover, h4:hover {
     .arrow_down  {
-        .retina-background-icon('red/arr_1down.png');
+        .background-icon('arr_1down', 'attention');
     }
     .arrow_right {
-        .retina-background-icon('red/arr_1right.png');
+        .background-icon('arr_1right', 'attention');
     }
 }
 
@@ -402,7 +425,6 @@ h1:hover, h2:hover, h3:hover, h4:hover {
     color: #000;
     display: none;
     font-size: 11px;
-    height: 15px;
     padding: 4px 10px;
 
     p { margin: 0; }
@@ -542,16 +564,6 @@ div.info { padding-left: 1%; }
     cursor: auto;
 }
 
-.length-hint {
-    color: @light-gray-color;
-    &:before {
-        content: '(';
-    }
-    &:after {
-        content: ')';
-    }
-}
-
 .svg-input {
     input {
         display: none;
@@ -559,4 +571,32 @@ div.info { padding-left: 1%; }
     svg, img {
         cursor: pointer;
     }
+}
+
+// course members
+a.new-member {
+    .icon('after', 'star', 'attention', 8px);
+}
+
+// calculate difference in images and apply filter
+.recolor() {
+    filter:
+    hue-rotate(unit((hsvhue(@base-color) - hsvhue(#28497c)), deg))
+    saturate((100 + hsvsaturation(@base-color)-hsvsaturation(#28497c)))
+    brightness((100 + hsvvalue(@base-color)-hsvvalue(#28497c)));
+}
+
+.recolor-reset() {
+    filter:
+    hue-rotate(unit(hsvhue(#28497c)-hsvhue(@base-color), deg))
+    saturate(100% - hsvsaturation(@base-color)+hsvsaturation(#28497c))
+    brightness(100% - hsvvalue(@base-color)+hsvvalue(#28497c));
+}
+
+#barTopMenu li a, div#layout-sidebar div.sidebar-image img {
+    .recolor;
+}
+
+.recolor {
+    .recolor();
 }

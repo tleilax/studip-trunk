@@ -1,6 +1,10 @@
 <?php
 namespace RESTAPI\Consumer;
-use AuthUserMd5, DBManager, DBManagerException, PDO;
+
+use AuthUserMd5;
+use DBManager;
+use DBManagerException;
+use PDO;
 
 /**
  * Base consumer class for the rest api
@@ -12,7 +16,7 @@ use AuthUserMd5, DBManager, DBManagerException, PDO;
  * @license GPL 2 or later
  * @since   Stud.IP 3.0
  */
-abstract class Base extends \SimpleOrMap
+abstract class Base extends \SimpleORMap
 {
     /**
      * Each consumer type has to implement a detect feature which
@@ -25,6 +29,18 @@ abstract class Base extends \SimpleOrMap
     abstract public static function detect();
 
     /* Concrete */
+
+    /**
+     * Configures the model.
+     *
+     * @param array $config Configuration array
+     */
+    protected static function configure($config = [])
+    {
+        $config['db_table'] = 'api_consumers';
+
+        parent::configure($config);
+    }
 
     /**
      * Stores all known consumer types
@@ -116,11 +132,13 @@ abstract class Base extends \SimpleOrMap
      *
      * @param mixed $type Name of the type (optional; defaults to all types)
      * @param mixed $request_type Type of request (optional; defaults to any)
+     * @param mixed $request_body Request body to use (optional, should be
+     *                            removed when Stud.IP requires PHP >= 5.6)
      * @return mixed Either the detected consumer or false if no consumer
      *               was detected
      * @throws Exception if type is invalid
      */
-    public static function detectConsumer($type = null, $request_type = null)
+    public static function detectConsumer($type = null, $request_type = null, $request_body = null)
     {
         $needles = $type === null
                  ? array_keys(self::$known_types)
@@ -130,7 +148,7 @@ abstract class Base extends \SimpleOrMap
                 throw new Exception('Trying to detect consumer of unkown type "' . $needle . '"');
             }
             $consumer_class = self::$known_types[$needle];
-            if ($consumer = $consumer_class::detect($request_type)) {
+            if ($consumer = $consumer_class::detect($request_type, $request_body)) {
                 return $consumer;
             }
         }
@@ -152,8 +170,6 @@ abstract class Base extends \SimpleOrMap
      */
     public function __construct($id = null, $user = null)
     {
-        $this->db_table = 'api_consumers';
-
         parent::__construct($id);
 
         if ($user !== null) {

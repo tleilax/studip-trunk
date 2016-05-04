@@ -5,7 +5,7 @@
 <? endif; ?>
 <form id="calendar-manage-access" data-dialog="" method="post" action="<?= $controller->url_for('calendar/single/store_permissions/' . $calendar->getRangeId()) ?>">
     <? CSRFProtection::tokenTag() ?>
-    <? $perms = array(1 => _('keine'), 2 => _('lesen'), 4 => _('schreiben')) ?>
+    <? $perms = array(1 => _('Keine'), 2 => _('Lesen'), 4 => _('Schreiben')) ?>
     <table class="default">
         <caption>
             <?= htmlReady($title) ?>
@@ -19,7 +19,11 @@
                         <? endforeach; ?>
                     </select>
                 </label>
-                <input id="calendar-group-submit" name="calendar_group_submit" type="image" src="<?= Assets::image_path('icons/16/blue/accept.png') ?>" class="text-top">
+                <?= Icon::create('accept', 'clickable')
+                      ->asInput([
+                        'id' => "calendar-group-submit",
+                        'name' => "calendar_group_submit",
+                        'class' => "text-top"]) ?>
                 <span style="padding-left: 1em;">
                     <?= $mps->render() ?>
                 </span>
@@ -60,17 +64,17 @@
                             <label>
                                 <input type="radio" name="perm[<?= $user->user_id ?>]" value="<?= Calendar::PERMISSION_FORBIDDEN ?>"
                                        <?= $user->permission < Calendar::PERMISSION_READABLE ? ' checked' : '' ?>>
-                                <?= _('keine') ?>
+                                <?= _('Keine') ?>
                             </label>
                             <label>
                                 <input type="radio" name="perm[<?= $user->user_id ?>]" value="<?= Calendar::PERMISSION_READABLE ?>"
                                     <?= $user->permission == Calendar::PERMISSION_READABLE ? ' checked' : '' ?>>
-                                <?= _('lesen') ?>
+                                <?= _('Lesen') ?>
                             </label>
                             <label>
                                 <input type="radio" name="perm[<?= $user->user_id ?>]" value="<?= Calendar::PERMISSION_WRITABLE ?>"
                                     <?= $user->permission == Calendar::PERMISSION_WRITABLE ? ' checked' : '' ?>>
-                                <?= _('schreiben') ?>
+                                <?= _('Schreiben') ?>
                             </label>
                         </td>
                         <td>
@@ -78,7 +82,7 @@
                         </td>
                         <td class="actions">
                             <a title="<?= _('Benutzer entfernen') ?>" onClick="STUDIP.CalendarDialog.removeUser(this);" href="<?= $controller->url_for('calendar/single/remove_user/' . $calendar->getRangeId() . $filter, array('user_id' => $user->user_id)) ?>">
-                                <?= Assets::img('icons/16/blue/remove/person.png') ?>
+                                <?= Icon::create('person+remove', 'clickable')->asImg() ?>
                             </a>
                         </td>
                     </tr>

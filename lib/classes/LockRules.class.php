@@ -169,11 +169,11 @@ class LockRules {
         $attributes['sem']['art'] = array('name' => _("Veranstaltungstyp"), 'group' => 'basic');
         $attributes['sem']['ects'] = array('name' => _("ECTS-Punkte"), 'group' => 'basic');
         $attributes['sem']['admission_turnout'] = array('name' => _("Teilnehmerzahl"), 'group' => 'basic');
-        $attributes['sem']['dozent'] = array('name' => _("DozentInnen"), 'group' => 'personnel');
-        $attributes['sem']['tutor'] = array('name' => _("TutorInnen"), 'group' => 'personnel');
+        $attributes['sem']['dozent'] = array('name' => _("Lehrende"), 'group' => 'personnel');
+        $attributes['sem']['tutor'] = array('name' => _("Tutor/-innen"), 'group' => 'personnel');
         $attributes['sem']['institut_id'] = array('name' => _("Heimateinrichtung"), 'group' => 'personnel');
         $attributes['sem']['sem_tree'] = array('name' => _("Studienbereiche"), 'group' => 'personnel');
-        $attributes['sem']['participants'] = array('name' => _("Teilnehmer hinzufügen/löschen"), 'group' => 'personnel');
+        $attributes['sem']['participants'] = array('name' => _("Personen hinzufügen/löschen"), 'group' => 'personnel');
         $attributes['sem']['groups'] = array('name' => _("Gruppen hinzufügen/löschen"), 'group' => 'personnel');
         $attributes['sem']['sonstiges'] = array('name' => _("Sonstiges"), 'group' => 'misc');
         $attributes['sem']['teilnehmer'] = array('name' => _("Beschreibung des Teilnehmerkreises"), 'group' => 'misc');
@@ -182,7 +182,7 @@ class LockRules {
         $attributes['sem']['leistungsnachweis'] = array('name' => _("Leistungsnachweis"), 'group' => 'misc');
         $attributes['sem']['room_time'] = array('name' => _("Zeiten/Räume"), 'group' => 'room_time');
         $attributes['sem']['cancelled_dates'] = array('name' => _("Termine ausfallen lassen"), 'group' => 'room_time');
-        $attributes['sem']['admission_endtime'] = array('name' => _("Zeit/Datum des Losverfahrens/Kontingentierung"), 'group' => 'access');
+        $attributes['sem']['admission_endtime'] = array('name' => _("Zeit/Datum der Platzverteilung/Kontingentierung"), 'group' => 'access');
         $attributes['sem']['admission_disable_waitlist'] = array('name' => _("Aktivieren/Deaktivieren der Warteliste"), 'group' => 'access');
         $attributes['sem']['admission_binding'] = array('name' => _("Verbindlichkeit der Anmeldung"), 'group' => 'access');
         $attributes['sem']['admission_type'] = array('name' => _("Typ des Anmeldeverfahrens"), 'group' => 'access');
@@ -227,7 +227,7 @@ class LockRules {
         $attributes['user']['schwerp'] = array('name' => _("Publikationen"), 'group' => 'misc');
         $attributes['user']['institute_data'] = array('name' => _("Einrichtungsdaten"), 'group' => 'misc');
 
-        foreach(DataFieldStructure::getDataFieldStructures($type) as $df_id => $df) {
+        foreach(DataField::getDataFields($type) as $df_id => $df) {
             $attributes[$type][$df_id] = array('name' => $df->data['name'], 'group' => 'misc');
         }
 

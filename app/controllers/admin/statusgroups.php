@@ -13,6 +13,8 @@
  * @category    Stud.IP
  */
 
+require_once 'lib/statusgruppe.inc.php';
+
 class Admin_StatusgroupsController extends AuthenticatedController
 {
     /**
@@ -44,6 +46,8 @@ class Admin_StatusgroupsController extends AuthenticatedController
         ));
 
         $this->setType();
+        // Check if the viewing user should get the admin interface
+        $this->tutor = $this->type['edit']($this->user_id);
     }
 
     /**
@@ -51,28 +55,35 @@ class Admin_StatusgroupsController extends AuthenticatedController
      */
     public function index_action()
     {
+        $lockrule = LockRules::getObjectRule($_SESSION['SessionSeminar']);
+        $this->is_locked = LockRules::Check($_SESSION['SessionSeminar'], 'groups');
+        if ($lockrule->description && $this->is_locked) {
+            PageLayout::postMessage(MessageBox::info(formatLinks($lockrule->description)));
+        }
         // Setup sidebar.
         $sidebar = Sidebar::get();
         $sidebar->setImage('sidebar/group-sidebar.png');
-
-        $widget = new ActionsWidget();
-        $widget->addLink(_('Neue Gruppe anlegen'),
-                         $this->url_for('admin/statusgroups/editGroup'),
-                         'icons/16/blue/add/group3.png')
-               ->asDialog('size=auto');
-        $widget->addLink(_('Gruppenreihenfolge ändern'),
-                         $this->url_for('admin/statusgroups/sortGroups'),
-                         'icons/16/blue/arr_2down.png')
-               ->asDialog();
-        $sidebar->addWidget($widget);
-
+        if ($this->tutor) {
+            $widget = new ActionsWidget();
+            $widget->addLink(_('Neue Gruppe anlegen'),
+                             $this->url_for('admin/statusgroups/editGroup'),
+                             Icon::create('group3+add', 'clickable'))
+                   ->asDialog('size=auto');
+            $widget->addLink(_('Gruppenreihenfolge ändern'),
+                             $this->url_for('admin/statusgroups/sortGroups'),
+                             Icon::create('arr_2down', 'clickable'))
+                   ->asDialog();
+            $sidebar->addWidget($widget);
+        }
         // Collect all groups
         $this->loadGroups();
 
-        // Check if the viewing user should get the admin interface
-        $this->tutor = $this->type['edit']($this->user_id);
         $this->membersOfInstitute = Institute::find($_SESSION['SessionSeminar'])->members->orderBy('nachname')->pluck('user_id');
-        
+        $this->not_assigned = array_diff(
+            $this->membersOfInstitute,
+            GetAllSelected($_SESSION['SessionSeminar'])
+        );
+
         // Create multiperson search type
         $query = "SELECT auth_user_md5.user_id, CONCAT({$GLOBALS['_fullname_sql']['full']}, ' (', auth_user_md5.username, ')') as fullname
                   FROM auth_user_md5
@@ -98,11 +109,14 @@ class Admin_StatusgroupsController extends AuthenticatedController
             $group = new Statusgruppen($group_id);
             if ($group->isNew()) {
                 $group->range_id = $_SESSION['SessionSeminar'];
+            } else {
+                DataFieldEntry::removeAll(array('', $group->statusgruppe_id));
             }
+
             $group->name       = Request::get('name');
             $group->name_w     = Request::get('name_w');
             $group->name_m     = Request::get('name_m');
-            $group->size       = Request::int('size');
+            $group->size       = Request::int('size', 0);
             $group->range_id   = Request::option('range_id', $group->range_id);
             $group->position   = Request::int('position', $group->position);
             $group->selfassign = Request::int('selfassign', 0);
@@ -125,7 +139,7 @@ class Admin_StatusgroupsController extends AuthenticatedController
     /**
      * Interface to sort groups
      */
-    public function sortGroups_action() 
+    public function sortGroups_action()
     {
         $this->check('edit');
 
@@ -146,29 +160,29 @@ class Admin_StatusgroupsController extends AuthenticatedController
      *
      * @param string group id
      */
-    public function memberAdd_action($group_id = null) 
+    public function memberAdd_action($group_id)
     {
+        $this->check('edit');
+
         $mp = MultiPersonSearch::load("add_statusgroup" . $group_id);
         $this->group = new Statusgruppen($group_id);
         $countAdded = 0;
         foreach ($mp->getAddedUsers() as $a) {
-            if (!$this->group->isMember(new User($a))) {
-                $new_user = new StatusgruppeUser(array($group_id, $a));
-                $new_user->store();
+            if (InsertPersonStatusgruppe($a, $group_id)) {
                 $this->type['after_user_add']($a);
                 $countAdded++;
             }
         }
 
         if ($countAdded > 0) {
-            $message = sprintf(ngettext(_('Es wurde eine Person hinzugefügt.'),
-                                        _('Es wurden %u MitgliederInnen hinzugefügt.'),
+            $message = sprintf(ngettext('Es wurde eine Person hinzugefügt.',
+                                        'Es wurden %u Personen hinzugefügt.',
                                         $countAdded),
                                $countAdded);
             PageLayout::postMessage(MessageBox::success($message));
         }
 
-        $this->redirect('admin/statusgroups');
+        $this->redirect('admin/statusgroups#group-' . $group_id);
     }
 
     /**
@@ -187,7 +201,7 @@ class Admin_StatusgroupsController extends AuthenticatedController
         $this->group->moveUser($user_id, $pos);
         $this->type['after_user_move']($user_id);
         $this->users = $this->group->members;
-        $this->afterFilter();
+        $this->renderGroupOrRedirect($group);
     }
 
     /**
@@ -203,7 +217,7 @@ class Admin_StatusgroupsController extends AuthenticatedController
         if (Request::submitted('confirm')) {
             $this->group->removeUser($user_id);
             $this->type['after_user_delete']($user_id);
-            $this->afterFilter();
+            $this->renderGroupOrRedirect($group_id);
         }
     }
 
@@ -224,6 +238,8 @@ class Admin_StatusgroupsController extends AuthenticatedController
 
             //remove users
             $this->group->removeAllUsers();
+            //remove datafields
+            DataFieldEntry::removeAll(array('', $this->group->statusgruppe_id));
 
             //goodbye group
             $this->group->delete();
@@ -241,7 +257,7 @@ class Admin_StatusgroupsController extends AuthenticatedController
         if (Request::submitted('confirm')) {
             CSRFProtection::verifySecurityToken();
             $this->group->sortMembersAlphabetic();
-            $this->redirect('admin/statusgroups/index');
+            $this->redirect('admin/statusgroups/index#group-' . $group_id);
         }
     }
 
@@ -287,12 +303,12 @@ class Admin_StatusgroupsController extends AuthenticatedController
     /*
      * Renders an action (ajax) or redirects to the statusgroup index page (no ajax).
      */
-    private function afterFilter()
+    private function renderGroupOrRedirect($group_id)
     {
         if (Request::isXhr()) {
             $this->render_action('_members');
         } else {
-            $this->redirect('admin/statusgroups');
+            $this->redirect('admin/statusgroups#group-' . $group_id);
         }
     }
 
@@ -339,10 +355,11 @@ class Admin_StatusgroupsController extends AuthenticatedController
                 'name' => _('Institut'),
                 'after_user_add' => function ($user_id) {
                     $newInstUser = new InstituteMember(array($user_id, $_SESSION['SessionSeminar']));
-                    if ($newInstUser->isNew()) {
+                    if ($newInstUser->isNew() || $newInstUser->inst_perms == 'user') {
                         $user = new User($user_id);
                         $newInstUser->inst_perms = $user->perms;
                         if ($newInstUser->store()) {
+                            checkExternDefaultForUser($user->id);
                             StudipLog::INST_USER_ADD($_SESSION['SessionSeminar'], $user->id, $user->perms);
                         }
                     }

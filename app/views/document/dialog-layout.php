@@ -8,9 +8,9 @@ $formatnumber = function ($number, $digits = 0) {
     <aside>
         <div class="document-dialog-icon">
         <? if ($icon): ?>
-            <?= Assets::img($icon) ?>
+            <?= $icon->asImg(100) ?>
         <? else: ?>
-            <?= Assets::img('icons/100/lightblue/file-generic.png') ?>
+            <?= Icon::create('file-generic', 'navigation')->asImg(100) ?>
         <? endif; ?>
         </div>
     <? if ($entry): ?>

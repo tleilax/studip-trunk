@@ -32,7 +32,7 @@ $sidebar->addWidget($widget);
 
 if ($sem_browse_obj->show_result && count($_SESSION['sem_browse_data']['search_result'])){
     $actions = new ActionsWidget();
-    $actions->addLink(_("Download des Ergebnisses"), URLHelper::getURL("dispatch.php/search/courses/export_results"), 'icons/16/blue/file-office.png');
+    $actions->addLink(_("Download des Ergebnisses"), URLHelper::getURL("dispatch.php/search/courses/export_results"), Icon::create('file-office', 'clickable'));
     $sidebar->addWidget($actions);
 
     $group_by_links = "";
@@ -70,7 +70,7 @@ if ($sem_browse_obj->show_result && count($_SESSION['sem_browse_data']['search_r
         $toplist_switcher->addLink(
             $toplist_names[$i],
             URLHelper::getURL("?", array('choose_toplist' => $i)),
-            $_SESSION['sem_portal']["toplist"] == $i ? "icons/16/red/arr_1right" : null
+            $_SESSION['sem_portal']["toplist"] == $i ? Icon::create("arr_1right", "attention") : null
         );
     }
     $sidebar->addWidget($toplist_switcher);

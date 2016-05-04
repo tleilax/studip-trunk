@@ -28,10 +28,10 @@ class StudipSemSearchHelper {
     
     public static function GetQuickSearchFields(){
         return array(   'all' =>_("alles"),
-                        'title_lecturer_number' => _("Titel") . ',' . _("DozentIn") . ',' . _("Nummer"), 
+                        'title_lecturer_number' => _("Titel") . ',' . _("Lehrende") . ',' . _("Nummer"), 
                         'title' => _("Titel"),
                         'sub_title' => _("Untertitel"),
-                        'lecturer' => _("DozentIn"),
+                        'lecturer' => _("Lehrende"),
                         'number' => _("Nummer"),
                         'comment' => _("Kommentar"),
                         'scope' => _("Bereich"));
@@ -140,6 +140,8 @@ class StudipSemSearchHelper {
             $view->params[0] = "%".trim($this->params['lecturer'])."%";
             $view->params[1] = "%".trim($this->params['lecturer'])."%";
             $view->params[2] = "%".trim($this->params['lecturer'])."%";
+            $view->params[3] = "%".trim($this->params['lecturer'])."%";
+            $view->params[4] = "%".trim($this->params['lecturer'])."%";
             $result = $view->get_query("view:SEM_SEARCH_LECTURER");
 
             $lecturers = array();

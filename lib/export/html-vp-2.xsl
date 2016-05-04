@@ -258,7 +258,7 @@
 		</xsl:if>
 		<tr>
 			<td>
-				<b>DozentIn: </b>
+				<b>Lehrende: </b>
 			</td>
 			<td>
 				<xsl:for-each select="dozenten/dozent">
@@ -361,7 +361,7 @@
 			<xsl:for-each select="teilnehmerzahl">
 				<tr>
 					<td>
-						<b><xsl:value-of select="@key"/> TeilnehmerInnenzahl: </b>
+						<b><xsl:value-of select="@key"/> Anzahl Teilnehmende: </b>
 					</td>
 					<td>
 						<xsl:value-of select="."/>

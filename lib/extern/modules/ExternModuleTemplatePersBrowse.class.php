@@ -218,7 +218,7 @@ class ExternModuleTemplatePersBrowse extends ExternModule {
         $db = new DB_Seminar();
         
         $dbv = DbView::getView('sem_tree');
-        
+
         if ($module_params['initiale']) {
             if ($this->config->getValue('Main', 'onlylecturers')) {
                 $current_semester = get_sem_num(time());
@@ -233,7 +233,8 @@ class ExternModuleTemplatePersBrowse extends ExternModule {
                 . "AND ((%s) = %s OR ((%s) <= %s  AND ((%s) >= %s OR (%s) = -1))) "
                 . "AND ui.Institut_id IN ('%s') "
                 . "AND ui.inst_perms = 'dozent' "
-                . "AND ui.externdefault = 1 ",
+                . "AND ui.externdefault = 1 "
+                . "AND " . get_ext_vis_query(),
                 substr($module_params['initiale'], 0, 1),
                 $dbv->sem_number_sql,
                 $current_semester,
@@ -251,7 +252,8 @@ class ExternModuleTemplatePersBrowse extends ExternModule {
                     . "WHERE LOWER(LEFT(TRIM(aum.Nachname), 1)) = LOWER('%s') "
                     . "AND ui.inst_perms IN('%s') "
                     . "AND ui.Institut_id IN ('%s') "
-                    . "AND ui.externdefault = 1 ",
+                    . "AND ui.externdefault = 1 "
+                    . "AND " . get_ext_vis_query(),
                     substr($module_params['initiale'], 0, 1),
                     implode("','", $this->config->getValue('Main', 'instperms')),
                     implode("','", $selected_item_ids));
@@ -263,11 +265,13 @@ class ExternModuleTemplatePersBrowse extends ExternModule {
                 // get only users with status dozent in an visible seminar in the current semester
                 $query = sprintf("SELECT ui.Institut_id, ui.user_id "
                     . "FROM user_inst ui "
+                    . "INNER JOIN auth_user_md5 aum USING (user_id) "
                     . "LEFT JOIN seminar_user su USING(user_id) "
                     . "LEFT JOIN seminare s USING (seminar_id) "
                     . "WHERE ui.Institut_id = '%s' "
                     . "AND ui.inst_perms = 'dozent' "
                     . "AND ui.externdefault = 1 "
+                    . "AND " . get_ext_vis_query()
                     . "AND su.status = 'dozent' "
                     . "AND s.visible = 1 "
                     . "AND ((%s) = %s OR ((%s) <= %s  AND ((%s) >= %s OR (%s) = -1))) ",
@@ -283,9 +287,11 @@ class ExternModuleTemplatePersBrowse extends ExternModule {
                 // get only users with the given status
                 $query = sprintf("SELECT ui.Institut_id, ui.user_id "
                     . "FROM user_inst ui "
+                    . "INNER JOIN auth_user_md5 aum USING (user_id) "
                     . "WHERE ui.Institut_id = '%s' "
                     . "AND ui.inst_perms IN('%s') "
-                    . "AND ui.externdefault = 1 ",
+                    . "AND ui.externdefault = 1 "
+                    . "AND " . get_ext_vis_query(),
                     $module_params['item_id'],
                     implode("','", $this->config->getValue('Main', 'instperms')));
             }
@@ -305,16 +311,17 @@ class ExternModuleTemplatePersBrowse extends ExternModule {
         if (sizeof($user_list) == 0) {
             return array();
         }
-        
+
         $query = sprintf(
             "SELECT ui.Institut_id, ui.raum, ui.sprechzeiten, ui.Telefon, "
             . "inst_perms,  i.Name, aum.Email, aum.user_id, username, "
             . "%s AS fullname, aum.Nachname, aum.Vorname "
             . "FROM user_inst ui "
             . "LEFT JOIN Institute i USING(Institut_id) "
-            . "LEFT JOIN auth_user_md5 aum USING(user_id)"
+            . "LEFT JOIN auth_user_md5 aum USING(user_id) "
             . "LEFT JOIN user_info uin USING(user_id) "
             . "WHERE CONCAT(ui.user_id, ui.Institut_id) IN ('%s') "
+            . "AND " . get_ext_vis_query()
             . "ORDER BY aum.Nachname ",
             $GLOBALS['_fullname_sql'][$nameformat],
             implode("','", $user_list));
@@ -332,7 +339,7 @@ class ExternModuleTemplatePersBrowse extends ExternModule {
             $content['PERSONS']['PERSON'][$j]['INSTNAME'] = ExternModule::ExtHtmlReady($db->f('Name'));
             $content['PERSONS']['PERSON'][$j]['PHONE'] = ExternModule::ExtHtmlReady($db->f('Telefon'));
             $content['PERSONS']['PERSON'][$j]['ROOM'] = ExternModule::ExtHtmlReady($db->f('raum'));
-            $content['PERSONS']['PERSON'][$j]['EMAIL'] = ExternModule::ExtHtmlReady($db->f('Email'));
+            $content['PERSONS']['PERSON'][$j]['EMAIL'] = ExternModule::ExtHtmlReady(get_visible_email($db->f('user_id')));
             $content['PERSONS']['PERSON'][$j]['EMAIL-LOCAL'] = array_shift(explode('@', $content['PERSONS']['PERSON'][$j]['EMAIL']));
             $content['PERSONS']['PERSON'][$j]['EMAIL-DOMAIN'] = array_pop(explode('@', $content['PERSONS']['PERSON'][$j]['EMAIL']));
             $content['PERSONS']['PERSON'][$j]['OFFICEHOURS'] = ExternModule::ExtHtmlReady($db->f('sprechzeiten'));
@@ -395,6 +402,7 @@ class ExternModuleTemplatePersBrowse extends ExternModule {
                 . "AND TRIM(aum.Nachname) != '' "
                 . "AND ui.Institut_id IN ('%s') "
                 . "AND ui.externdefault = 1 "
+                . "AND " . get_ext_vis_query()
                 . "GROUP BY initiale",
                 $dbv->sem_number_sql,
                 $current_semester,
@@ -464,6 +472,7 @@ class ExternModuleTemplatePersBrowse extends ExternModule {
                     . "WHERE ui.Institut_id = '%s' "
                     . "AND su.status = 'dozent' "
                     . "AND ui.externdefault = 1 "
+                    . "AND " . get_ext_vis_query()
                     . "AND ui.inst_perms = 'dozent' "
                     . "AND ((%s) = %s OR ((%s) <= %s  AND ((%s) >= %s OR (%s) = -1)))",
                     $row['Institut_id'],
@@ -478,9 +487,11 @@ class ExternModuleTemplatePersBrowse extends ExternModule {
                 // get only users with the given status
                 $query = sprintf("SELECT COUNT(DISTINCT(ui.user_id)) AS count_user "
                     . "FROM user_inst ui "
+                    . "INNER JOIN auth_user_md5 aum USING (user_id) "
                     . "WHERE ui.Institut_id = '%s' "
                     . "AND ui.inst_perms IN('%s') "
-                    . "AND ui.externdefault = 1 ",
+                    . "AND ui.externdefault = 1 "
+                    . "AND " . get_ext_vis_query(),
                     $row['Institut_id'],
                     implode("','", $this->config->getValue('Main', 'instperms')));
             }

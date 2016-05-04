@@ -36,32 +36,64 @@ require_once 'lib/raumzeit/raumzeit_functions.inc.php'; // Helper-Funktionen
 function getWeekday($day_num, $short = TRUE) {
     switch ($day_num) {
         case 0:
-            $short ? $day = _("So") : $day = _("Sonntag");
+            $day = $short ? _("So") : _("Sonntag");
             break;
         case 1:
-            $short ? $day = _("Mo") : $day = _("Montag");
+            $day = $short ? _("Mo") : _("Montag");
             break;
         case 2:
-            $short ? $day = _("Di") : $day = _("Dienstag");
+            $day = $short ? _("Di") : _("Dienstag");
             break;
         case 3:
-            $short ? $day = _("Mi") : $day = _("Mittwoch");
+            $day = $short ? _("Mi") : _("Mittwoch");
             break;
         case 4:
-            $short ? $day = _("Do") : $day = _("Donnerstag");
+            $day = $short ? _("Do") : _("Donnerstag");
             break;
         case 5:
-            $short ? $day = _("Fr") : $day = _("Freitag");
+            $day = $short ? _("Fr") : _("Freitag");
             break;
         case 6:
-            $short ? $day = _("Sa") : $day = _("Samstag");
+            $day = $short ? _("Sa") : _("Samstag");
             break;
     }
 
     // return i18n of day
-    return _($day);
+    return $day;
 }
 
+/**
+ * getMonthName returns the localized name of a certain month in
+ * either the abbreviated form (default) or as the actual name.
+ *
+ * @param int  $month Month number
+ * @param bool $short Display the abbreviated version or the actual
+ *                    name of the month (defaults to abbreviated)
+ * @return String Month name
+ * @throws Exception when passed an invalid month number
+ */
+function getMonthName($month, $short = true) {
+    $month = (int)$month;
+
+    $months = [
+         1 => [_('Januar'),    _('Jan.')],
+         2 => [_('Februar'),   _('Feb.')],
+         3 => [_('März'),      _('März')],
+         4 => [_('April'),     _('Apr.')],
+         5 => [_('Mai'),       _('Mai')],
+         6 => [_('Juni'),      _('Juni')],
+         7 => [_('Juli'),      _('Juli')],
+         8 => [_('August'),    _('Aug.')],
+         9 => [_('September'), _('Sep.')],
+        10 => [_('Oktober'),   _('Okt.')],
+        11 => [_('November'),  _('Nov.')],
+        12 => [_('Dezember'),  _('Dez.')],
+    ];
+    if (!isset($months[$month])) {
+        throw new Exception("Invalid month '{$month}'");
+    }
+    return $months[$month][(int)$short];
+}
 
 function leadingZero($num) {
     if ($num == '') return '00';
@@ -183,7 +215,7 @@ function shrink_dates($dates) {
         }
 
         if ((!$dates[$i]["conjuncted"]) || (!$dates[$i+1]["conjuncted"])) {
-            $return_string .= ' ' . getWeekday(date('w', $dates[$i]['start_time'])) .'.';
+            $return_string .= ' ' . strftime('%A', $dates[$i]['start_time']) .'.';
             $return_string .= date (" d.m.", $dates[$i]["start_time"]);
         }
 
@@ -312,32 +344,6 @@ function get_semester($seminar_id, $start_sem_only=FALSE)
         }
     }
     return $return_string;
-}
-
-
-function getCorrectedSemesterVorlesBegin ($semester_num) {
-    $all_semester = SemesterData::GetInstance()->getAllSemesterData();
-
-    $vorles_beginn=$all_semester[$semester_num]["vorles_beginn"];
-
-    //correct the vorles_beginn to match monday, if necessary
-    $dow = date("w", $vorles_beginn);
-
-    if ($dow <= 5)
-        $corr = ($dow -1) * -1;
-    elseif ($dow == 6)
-        $corr = 2;
-    elseif ($dow == 0)
-        $corr = 1;
-    else
-        $corr = 0;
-
-    if ($corr) {
-        $vorles_beginn_uncorrected = $vorles_beginn;
-        $vorles_beginn = mktime(date("G",$vorles_beginn), date("i",$vorles_beginn), 0, date("n",$vorles_beginn), date("j",$vorles_beginn)+$corr,  date("Y",$vorles_beginn));
-    }
-
-    return $vorles_beginn;
 }
 
 /*
@@ -602,9 +608,9 @@ function Termin_Eingabe_javascript ($t = 0, $n = 0, $atime=0, $ss = '', $sm = ''
     $txt .= "<a href=\"javascript:window.open('";
     $txt .= "termin_eingabe_dispatch.php?mcount={$km}&element_switch={$t}&c={$n}{$at}{$q}{$bla}', 'kalender', 'dependent=yes $sb, width=$kx, height=$ky');void(0);";
     $txt .= '">';
-    $txt .= Assets::img('popupcalendar.png',
-                        tooltip2(_('Für eine Eingabehilfe zur einfacheren Terminwahl bitte hier klicken.')) +
-                        array('class' => 'middle'));
+    $txt .= Icon::create('schedule', 'clickable', 
+                         tooltip2(_('Für eine Eingabehilfe zur einfacheren Terminwahl bitte hier klicken.')) +
+                         array('class' => 'middle'));
     $txt .= '</a>';
 
     return  $txt;
@@ -624,7 +630,7 @@ function getFormattedRooms($rooms, $link = false)
 
     if (is_array($rooms)) {
         foreach ($rooms as $room_id => $count) {
-            if ($room_id) {
+            if ($room_id && Config::get()->RESOURCES_ENABLE) {
                 $resObj =& ResourceObject::Factory($room_id);
                 if ($link) {
                     $room_list[] = $resObj->getFormattedLink(TRUE, TRUE, TRUE,

@@ -30,22 +30,26 @@ class StartNavigation extends Navigation
     {
         parent::initItem();
 
-        if (is_object($GLOBALS['user']) && $GLOBALS['user']->id != 'nobody') {
+        if (stripos($_SERVER['REQUEST_URI'], "web_migrate.php") === false && is_object($GLOBALS['user']) && $GLOBALS['user']->id != 'nobody') {
             if (WidgetHelper::hasWidget($GLOBALS['user']->id, 'News')) {
                 $news = StudipNews::CountUnread();
             }
 
             if (Config::get()->VOTE_ENABLE && WidgetHelper::hasWidget($GLOBALS['user']->id, 'Evaluations')) {
-                $query = "SELECT COUNT(IF(chdate > IFNULL(b.visitdate, :threshold) AND a.author_id != :user_id AND a.state != 'stopvis', vote_id, NULL))
-                          FROM vote a
-                          LEFT JOIN object_user_visits b ON (b.object_id = vote_id AND b.user_id = :user_id AND b.type = 'vote')
-                          WHERE a.range_id = 'studip' AND a.state IN ('active', 'stopvis')
-                          GROUP BY a.range_id";
-                $statement = DBManager::get()->prepare($query);
-                $statement->bindValue(':user_id', $GLOBALS['user']->id);
-                $statement->bindValue(':threshold', ($threshold = Config::get()->NEW_INDICATOR_THRESHOLD) ? strtotime("-{$threshold} days 0:00:00") : 0);
-                $statement->execute();
-                $vote = (int)$statement->fetchColumn();
+                $threshold = Config::get()->NEW_INDICATOR_THRESHOLD ? strtotime("-{".Config::get()->NEW_INDICATOR_THRESHOLD."} days 0:00:00") : 0;
+                $statement = DBManager::get()->prepare("
+                    SELECT COUNT(*)
+                    FROM questionnaire_assignments
+                        INNER JOIN questionnaires ON (questionnaires.questionnaire_id = questionnaire_assignments.questionnaire_id)
+                    WHERE questionnaire_assignments.range_id = 'start'
+                        AND questionnaires.visible = 1
+                        AND questionnaires.startdate IS NOT NULL
+                        AND questionnaires.startdate > UNIX_TIMESTAMP()
+                        AND questionnaires.startdate > :threshold
+                        AND (questionnaires.stopdate IS NULL OR questionnaires.stopdate <= UNIX_TIMESTAMP())
+                ");
+                $statement->execute(array('threshold' => $threshold));
+                $vote = (int) $statement->fetchColumn();
 
                 $query = "SELECT COUNT(IF(chdate > IFNULL(b.visitdate, :threshold) AND d.author_id != :user_id, a.eval_id, NULL))
                           FROM eval_range a
@@ -69,11 +73,11 @@ class StartNavigation extends Navigation
         }
         if ($vote) {
             $homeinfo .= ' - ';
-            $homeinfo .= sprintf(ngettext('%u neue Umfrage', '%u neue Umfragen', $vote), $vote);
+            $homeinfo .= sprintf(ngettext('%u neuer Fragebogen', '%u neue Fragebögen', $vote), $vote);
         }
         $this->setBadgeNumber($vote + $news);
 
-        $this->setImage('icons/lightblue/home.svg', array('title' => $homeinfo));
+        $this->setImage(Icon::create('home', 'navigation', ["title" => $homeinfo]));
     }
 
     /**
@@ -198,7 +202,7 @@ class StartNavigation extends Navigation
         // community
         $navigation = new Navigation(_('Community'));
         $navigation->addSubNavigation('online', new Navigation(_('Wer ist online?'), 'dispatch.php/online'));
-        $navigation->addSubNavigation('contacts', new Navigation(_('Meine Kontakte'), 'contact.php', array('view' => 'alpha')));
+        $navigation->addSubNavigation('contacts', new Navigation(_('Meine Kontakte'), 'dispatch.php/contact'));
         // study groups
         if (get_config('STUDYGROUPS_ENABLE')) {
             $navigation->addSubNavigation('browse',new Navigation(_('Studiengruppen'), 'dispatch.php/studygroup/browse'));
@@ -243,7 +247,7 @@ class StartNavigation extends Navigation
         $navigation->addSubNavigation('news', new Navigation(_('Ankündigungen'), 'dispatch.php/news/admin_news'));
 
         if (get_config('VOTE_ENABLE')) {
-            $navigation->addSubNavigation('vote', new Navigation(_('Umfragen und Tests'), 'admin_vote.php', array('page' => 'overview', 'showrangeID' => $username)));
+            $navigation->addSubNavigation('vote', new Navigation(_('Umfragen und Tests'), 'dispatch.php/questionnaire/overview'));
             $navigation->addSubNavigation('evaluation',new Navigation(_('Evaluationen'), 'admin_evaluation.php', array('rangeID' => $username)));
         }
 

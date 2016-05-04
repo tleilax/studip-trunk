@@ -19,9 +19,6 @@
     background-color: #dfe2e9;
     border-left: 1px solid #ccc;
 }
-.content_title_yellow { background-image: url("@{image-path}/plastic_yellow.jpg"); }
-.content_title_green { background-image: url("@{image-path}/plastic_green.jpg"); }
-.content_title_red { background-image: url("@{image-path}/plastic_red.jpg"); }
 
 .content_seperator, .content_seperator td  { 
   background-color: #adadad;
@@ -44,4 +41,11 @@
 // to that instead.
 .formatted-content {
     display: inline;
+}
+
+// Emphasize tt tags a little bit so ##monospace## blocks will stick out.
+.formatted-content tt {
+  background-color: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(0, 0, 0, 0.5);
+  padding: 0 0.5ex;
 }

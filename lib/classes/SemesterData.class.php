@@ -53,10 +53,9 @@ class SemesterData
     static function GetSemesterIndexById($semester_id)
     {
         $index = false;
-        foreach(SemesterData::GetSemesterArray() as $i => $sem){
+        foreach(SemesterData::getAllSemesterData() as $i => $sem){
             if($sem['semester_id'] == $semester_id) {
-                $index = $i;
-                break;
+                $index = $i + 1;
             }
         }
         return $index;

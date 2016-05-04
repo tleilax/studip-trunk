@@ -56,8 +56,8 @@ if ($auth->is_authenticated() && $user->id != "nobody") {
     $auth->logout();
 ?>
 
-<table width="100%" align="center" border=0 cellpadding=0 cellspacing=0>
-<tr><td class="table_header_bold"><?= Assets::img('icons/16/white/door-enter.png') ?><b>&nbsp;<?=_("Nutzungsbedingungen")?></b></td></tr>
+<table width="100%" align="center" border=0 cellpadding=5 cellspacing=0>
+<tr><td class="table_header_bold"><?= Icon::create('door-enter', 'info_alt')->asImg() ?><b>&nbsp;<?=_("Nutzungsbedingungen")?></b></td></tr>
 <tr><td class="blank">
 <br><br>
 <?=_("Stud.IP ist ein Open Source Projekt und steht unter der Gnu General Public License (GPL). Das System befindet sich in der ständigen Weiterentwicklung.")?>
@@ -71,7 +71,7 @@ if ($auth->is_authenticated() && $user->id != "nobody") {
         <li><?=_("Zugriff auf Ihre Daten von jedem internetfähigen Rechner weltweit,")?>
         <li><?=_("Anzeige neuer Mitteilungen oder Dateien seit Ihrem letzten Besuch,")?>
         <li><?=_("Eine eigenes Profil im System,")?>
-        <li><?=_("die Möglichkeit anderen TeilnehmerInnen Nachrichten zu schicken oder mit ihnen zu chatten,")?>
+        <li><?=_("die Möglichkeit anderen Personen Nachrichten zu schicken oder mit ihnen zu chatten,")?>
         <li><?=_("und vieles mehr.")?></li></blockquote><br>
     </ul>
 

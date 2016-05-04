@@ -49,12 +49,12 @@
                         <a href="<?= URLHelper::getLink("?", array('tag' => $tag)) ?>" class="message-tag" title="<?= _("Alle Nachrichten zu diesem Schlagwort") ?>">
                             <?= htmlReady($tag) ?>
                         </a>
-                        <?= Assets::input('icons/16/blue/trash.png', array('class' => 'text-bottom', 'name' => 'remove_tag', 'value' => htmlReady($tag), 'title' => _("Schlagwort entfernen"))) ?>
+                        <?= Icon::create('trash', 'clickable', ['title' => _("Schlagwort entfernen")])->asInput(["class" => 'text-bottom', "name" => 'remove_tag', "value" => htmlReady($tag)]) ?>
                     </span>
                 <? endforeach ?>
                     <span>
                         <input type="text" name="add_tag" style="width: 50px; opacity: 0.8;">
-                        <?= Assets::input('icons/16/blue/add.png', array('class' => 'text-bottom', 'title' => _("Schlagwort hinzufügen"))) ?>
+                        <?= Icon::create('add', 'clickable', ['title' => _("Schlagwort hinzufügen")])->asInput(["class" => 'text-bottom']) ?>
                     </span>
                 </form>
             </td>
@@ -67,12 +67,12 @@
     <?= formatReady($message["message"]) ?>
 </div>
 <? if (count($message->attachments)) : ?>
-<h3><?= Assets::img("icons/20/grey/staple", array("class" => "text-bottom")) ?><?= _("Anhang") ?></h3>
+<h3><?= Icon::create('staple', 'inactive')->asImg(20, ["class" => "text-bottom"]) ?><?= _("Anhang") ?></h3>
 <ul class="message_attachments">
     <? foreach ($message->attachments as $attachment) : ?>
     <li>
         <? $mime_type = get_mime_type($attachment['filename']) ?>
-        <h4><a href="<?= GetDownloadLink($attachment->getId(), $attachment['filename'], 7, 'force') ?>"><?= GetFileIcon(substr($attachment['filename'], strrpos($attachment["filename"], ".") + 1), true) ?><?= htmlReady($attachment['name']) ?></a></h4>
+        <h4><a href="<?= GetDownloadLink($attachment->getId(), $attachment['filename'], 7, 'force') ?>"><?= GetFileIcon(substr($attachment['filename'], strrpos($attachment["filename"], ".") + 1))->asImg() ?><?= htmlReady($attachment['name']) ?></a></h4>
         <? if (substr($mime_type, 0, 5) === "image") : ?>
         <div><img src="<?= GetDownloadLink($attachment->getId(), $attachment['filename'], 7, 'normal') ?>" style="max-width: 400px;"></div>
         <? endif ?>

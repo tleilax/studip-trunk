@@ -1,13 +1,9 @@
 <?
 # Lifter010: TODO
 use Studip\Button, Studip\LinkButton;
-
 ?>
-<?= $this->render_partial('admin/role/status_message') ?>
 
-<h3>
-    <?= _('Rollenverwaltung für Benutzer') ?>
-</h3>
+<h3><?= _('Rollenverwaltung für Benutzer') ?></h3>
 
 <form action="<?= $controller->url_for('admin/role/assign_role') ?>" style="margin-bottom: 1em;" method="POST">
     <?= CSRFProtection::tokenTag() ?>
@@ -32,7 +28,7 @@ use Studip\Button, Studip\LinkButton;
 <? if (isset($currentuser)): ?>
     <form action="<?= $controller->url_for('admin/role/save_role', $currentuser->getUserid()) ?>" method="POST">
         <?= CSRFProtection::tokenTag() ?>
-        <input type="hidden" name="ticket" value="<?= get_ticket() ?>">
+        <input type="hidden" name="studip_ticket" value="<?= get_ticket() ?>">
         <table class="default nohover">
             <tr>
                 <th style="text-align: center;">
@@ -53,10 +49,10 @@ use Studip\Button, Studip\LinkButton;
                     </select>
                 </td>
                 <td style="text-align: center;">
-                    <?= Assets::input("icons/16/yellow/arr_2left.png", array('type' => "image", 'class' => "middle", 'name' => "assign_role", 'title' => _('Markierte Rollen dem Benutzer zuweisen'))) ?>
+                    <?= Icon::create('arr_2left', 'sort', ['title' => _('Markierte Rollen dem Benutzer zuweisen')])->asInput(["type" => "image", "class" => "middle", "name" => "assign_role"]) ?>
                     <br>
                     <br>
-                    <?= Assets::input("icons/16/yellow/arr_2right.png", array('type' => "image", 'class' => "middle", 'name' => "remove_role", 'title' => _('Markierte Rollen entfernen'))) ?>
+                    <?= Icon::create('arr_2right', 'sort', ['title' => _('Markierte Rollen entfernen')])->asInput(["type" => "image", "class" => "middle", "name" => "remove_role"]) ?>
                 </td>
                 <td>
                     <select size="10" name="rolesel[]" multiple style="width: 300px;">
@@ -72,20 +68,37 @@ use Studip\Button, Studip\LinkButton;
         </table>
     </form>
     
-     <h3>
+    <h3>
         <?= _('Einrichtungszuordnungen') ?>
     </h3>
-    <ul>
-    <? foreach ($assignedroles as $assignedrole): ?>
-        <? if (!$assignedrole->getSystemtype()) : ?>
-        <li>
-              <?= htmlReady($assignedrole->getRolename()) ?>
-              <?= tooltipIcon(join("\n", $assignedroles_institutes[$assignedrole->getRoleid()]))?>
-              <a href="<?= $controller->link_for('/assign_role_institutes/' . $assignedrole->getRoleid() . '/' . $currentuser->getUserid()) ?>" data-lightbox><?= Assets::img('icons/16/blue/edit.png') ?></a>
-        </li>
-        <? endif ?>
-    <? endforeach ?>
-    </ul>
+
+    <table class="default">
+        <thead>
+            <tr>
+                <th><?= _('Rolle')?> </th>
+                <th><?= _('Einrichtungen')?> </th>
+                <th><?= _('Aktionen')?> </th>
+            </tr>
+        </thead>
+        <tbody>
+            <? foreach ($assignedroles as $assignedrole) : ?>
+                <? if(!$assignedrole->getSystemtype()) : ?>
+                    <tr>
+                        <td>
+                            <?= htmlReady($assignedrole->getRolename()) ?>
+                        </td>
+                        <td>
+                            <?= htmlReady(join(",\n", $assignedroles_institutes[$assignedrole->getRoleid()]))?>
+                        </td>
+                        <td>
+                            <a href="<?= $controller->link_for('/assign_role_institutes/' . $assignedrole->getRoleid() . '/' . $currentuser->getUserid()) ?>" data-dialog><?= Icon::create('edit', 'clickable')->asImg(array('title' => _('Einrichtungszuordnung bearbeiten'))) ?></a>
+                        </td>
+                    </tr>
+                <? endif ?>
+            <? endforeach ?>
+        </tbody>
+    </table>
+
     <h3>
         <?= _('Implizit zugewiesene Systemrollen') ?>
     </h3>

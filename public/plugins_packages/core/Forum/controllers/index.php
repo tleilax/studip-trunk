@@ -9,8 +9,6 @@
  * the License, or (at your option) any later version.
  */
 
-use \Studip\Markup;
-
 class IndexController extends ForumController
 {
     /* * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -41,7 +39,7 @@ class IndexController extends ForumController
     function index_action($topic_id = null, $page = null)
     {
         $nav = Navigation::getItem('course/forum2');
-        $nav->setImage('icons/16/black/forum.png');
+        $nav->setImage(Icon::create('forum', 'info'));
         Navigation::activateItem('course/forum2/index');
 
         // check, if the root entry is present
@@ -170,7 +168,7 @@ class IndexController extends ForumController
     function newest_action($page = null)
     {
         $nav = Navigation::getItem('course/forum2');
-        $nav->setImage('icons/16/black/forum.png');
+        $nav->setImage(Icon::create('forum', 'info'));
         Navigation::activateItem('course/forum2/newest');
         
         // set page to which we shall jump
@@ -208,7 +206,7 @@ class IndexController extends ForumController
     function latest_action($page = null)
     {
         $nav = Navigation::getItem('course/forum2');
-        $nav->setImage('icons/16/black/forum.png');
+        $nav->setImage(Icon::create('forum', 'info'));
         Navigation::activateItem('course/forum2/latest');
         
         // set page to which we shall jump
@@ -246,7 +244,7 @@ class IndexController extends ForumController
     function favorites_action($page = null)
     {
         $nav = Navigation::getItem('course/forum2');
-        $nav->setImage('icons/16/black/forum.png');
+        $nav->setImage(Icon::create('forum', 'info'));
         Navigation::activateItem('course/forum2/favorites');
 
         // set page to which we shall jump
@@ -286,7 +284,7 @@ class IndexController extends ForumController
         ForumPerm::check('search', $this->getId());
         
         $nav = Navigation::getItem('course/forum2');
-        $nav->setImage('icons/16/black/forum.png');
+        $nav->setImage(Icon::create('forum', 'info'));
         Navigation::activateItem('course/forum2/index');
 
         // set page to which we shall jump
@@ -390,7 +388,7 @@ class IndexController extends ForumController
             'seminar_id'  => $this->getId(),
             'user_id'     => $GLOBALS['user']->id,
             'name'        => Request::get('name') ?: '',
-            'content'     => Request::get('content'),
+            'content'     => Studip\Markup::purifyHtml(Request::get('content')),
             'author'      => $fullname,
             'author_host' => getenv('REMOTE_ADDR'),
             'anonymous'   => Config::get()->FORUM_ANONYMOUS_POSTINGS ? Request::get('anonymous') ? : 0 : 0
@@ -452,10 +450,10 @@ class IndexController extends ForumController
     {
         if (Request::isXhr()) {
             $name    = studip_utf8decode(Request::get('name', _('Kein Titel')));
-            $content = studip_utf8decode(Request::get('content', _('Keine Beschreibung')));
+            $content = Studip\Markup::purifyHtml(studip_utf8decode(Request::get('content', _('Keine Beschreibung'))));
         } else {
             $name    = Request::get('name', _('Kein Titel'));
-            $content = Request::get('content', _('Keine Beschreibung'));
+            $content = Studip\Markup::purifyHtml(Request::get('content', _('Keine Beschreibung')));
         }
 
         ForumPerm::check('add_entry', $this->getId(), $topic_id);
@@ -721,9 +719,7 @@ class IndexController extends ForumController
         $this->flash['new_entry_title'] = $topic['name'];
 
         $author = $topic['anonymous'] ? _('Anonym') : $topic['author'];
-        $content = '[quote=' . $author . ']' . PHP_EOL
-            . $topic['content'] . PHP_EOL
-            . '[/quote]' . PHP_EOL;
+        $content = quotes_encode($topic['content'], $author);
 
         $this->flash['new_entry_content'] = $content;
 
@@ -859,7 +855,7 @@ class IndexController extends ForumController
             $this->constraint = ForumEntry::getConstraints($topic_id);
             $this->render_template('index/_abo_link');
         } else {
-            $this->flash['messages'] = array('success' => _('Ihr Abonnement wurde aufgehoben.'));
+            $this->flash['messages'] = array('success' => _('Abonnement aufgehoben.'));
             $this->redirect(PluginEngine::getLink('coreforum/index/index/' . $topic_id));
         }
     }

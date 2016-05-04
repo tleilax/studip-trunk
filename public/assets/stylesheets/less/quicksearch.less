@@ -6,7 +6,7 @@ form#quicksearch {
 input.quicksearchbox {
     background-color: #fff;
     border: 1px solid #485979;
-    color: #abb7ce;
+    color: @contrast-content-gray;
     font-size: 11px;
     padding-left: 2px;
     vertical-align: text-bottom;
@@ -40,12 +40,7 @@ input.quicksearchbox {
         border: 0;
         width: 29px;
         height: 20px;
-        background-image: url("../images/icons/16/white/search.png");
-        background-image: none, url("../images/icons/white/search.svg");
-        -webkit-background-size: 16px 16px;
-        -moz-background-size: 16px 16px;
-        -o-background-size: 16px 16px;
-        background-size: 16px 16px;
+        .background-icon('search', 'info_alt');
         background-position: center 3px;
         background-repeat: no-repeat;
         vertical-align: top;
@@ -58,7 +53,7 @@ input.quicksearchbox {
         max-height: 275px;
         overflow-y: auto;
         overflow-x: hidden;
-        z-index: 2;
+        z-index: 99999;
     }
 
     .ui-menu-item {
@@ -77,4 +72,7 @@ input.quicksearchbox {
     margin-right: 10px;
     padding: 0;
     vertical-align: text-bottom;
+}
+.ui-autocomplete {
+    z-index: 99999;
 }

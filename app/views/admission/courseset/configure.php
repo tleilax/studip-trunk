@@ -70,14 +70,9 @@ if ($flash['error']) {
             <?php } else { ?>
                 <?php if ($instSearch) { ?>
                 <div id="institutes">
-                    <?= Assets::img('icons/16/yellow/arr_2down.png', array(
-                        'alt' => _('Einrichtung hinzufügen'),
-                        'title' => _('Einrichtung hinzufügen'),
-                        'onclick' => "STUDIP.Admission.updateInstitutes($('#institute_id_1_realvalue').val(), '".
-                            $controller->url_for('admission/courseset/institutes', $courseset ? $courseset->getId() : '')."', '".
-                            $controller->url_for('admission/courseset/instcourses', $courseset ? $courseset->getId() : '')."', 'add')")) ?>
+                    <?= Icon::create('arr_2down', 'sort', ['title' => _('Einrichtung hinzufügen')])->asImg(16, ["alt" => _('Einrichtung hinzufügen'), "onclick" => "STUDIP.Admission.updateInstitutes($('#institute_id_1_realvalue').val(), '".$controller->url_for('admission/courseset/institutes',$courseset?$courseset->getId():'')."', '".$controller->url_for('admission/courseset/instcourses',$courseset?$courseset->getId():'')."', 'add')"]) ?>
                     <?= $instSearch ?>
-                    <?= Assets::img('icons/16/blue/search.png', array('title' => _("Suche starten")))?>
+                    <?= Icon::create('search', 'clickable', ['title' => _("Suche starten")])->asImg()?>
                 </div>
                 <i><?=  _('Sie haben noch keine Einrichtung ausgewählt. Benutzen Sie obige Suche, um dies zu tun.') ?></i>
                 <?php } else { ?>
@@ -86,8 +81,8 @@ if ($flash['error']) {
             <?php } ?>
             </div>
         <? else : ?>
-            <? foreach (array_keys($selectedInstitutes) as $institute) : ?>
-                <?= htmlReady($myInstitutes[$institute]['Name']) ?>
+            <? foreach (SimpleCollection::createFromArray($selectedInstitutes)->orderBy('Name') as $institute) : ?>
+                <?= htmlReady($institute['Name']) ?>
                 <br>
             <?  endforeach ?>
         <?  endif ?>
@@ -108,7 +103,7 @@ if ($flash['error']) {
             <label class="caption">
                 <?= _('Filter auf Name/Nummer/Dozent:') ?><br>
                 <input style="display:inline-block" type="text" onKeypress="if (event.which==13) return STUDIP.Admission.getCourses('<?= $controller->url_for('admission/courseset/instcourses', $courseset ? $courseset->getId() : '') ?>')" value="<?= htmlReady($current_course_filter) ?>" name="course_filter" >
-                <?=Assets::img('icons/16/blue/search.png', array('title' => _("Veranstaltungen anzeigen"),'onClick' => "return STUDIP.Admission.getCourses('" . $controller->url_for('admission/courseset/instcourses', $courseset ? $courseset->getId() : '') ."')"))?>
+                <?=Icon::create('search', 'clickable', ['title' => _("Veranstaltungen anzeigen"),'onClick' => "return STUDIP.Admission.getCourses('" . $controller->url_for('admission/courseset/instcourses', $courseset ? $courseset->getId() : '') ."')"])->asImg()?>
             </label>
             <div id="instcourses">
             <?= $coursesTpl; ?>
@@ -117,7 +112,7 @@ if ($flash['error']) {
                 <div>
                         <?= LinkButton::create(_('Ausgewählte Veranstaltungen konfigurieren'),
                             $controller->url_for('admission/courseset/configure_courses/' . $courseset->getId()),
-                            array('data-dialog' => 'width=90%')
+                            array('data-dialog' => 'size=big')
                             ); ?>
                         <? if ($num_applicants = $courseset->getNumApplicants()) :?>
                         <?= LinkButton::create(sprintf(_('Liste der Anmeldungen (%s Nutzer)'), $num_applicants),
@@ -135,10 +130,14 @@ if ($flash['error']) {
             <? if (count($courseIds) > 100) :?>
                 <?= sprintf(_("%s zugewiesene Veranstaltungen"), count($courseIds)) ?>
             <? else : ?>
-                <? foreach ($courseIds as $course_id) : ?>
-                    <?= htmlReady(Course::find($course_id)->name) ?>
-                    <br>
-                <?  endforeach ?>
+            <?
+            Course::findEachMany(function($c) {
+                echo htmlReady($c->getFullname('number-name-semester'));
+                echo '<br>';
+            },
+                $courseIds,
+                'ORDER BY start_time,VeranstaltungsNummer,Name');
+            ?>
             <? endif ?>
         <? endif ?>
     </fieldset>
@@ -176,7 +175,7 @@ if ($flash['error']) {
 
     <? if ($courseset && $courseset->getSeatDistributionTime()) :?>
         <label class="caption">
-            <?= _('Nutzerlisten zuordnen:') ?>
+            <?= _('Personenlisten zuordnen:') ?>
             </label>
             <?php if ($myUserlists) { ?>
                 <?php
@@ -190,7 +189,7 @@ if ($flash['error']) {
                 <?php } ?>
 
             <?php } else { ?>
-                <i><?=  _('Sie haben noch keine Nutzerlisten angelegt.') ?></i>
+                <i><?=  _('Sie haben noch keine Personenlisten angelegt.') ?></i>
             <?php
             }?>
             <? if ($courseset) : ?>
@@ -220,7 +219,7 @@ if ($flash['error']) {
     </fieldset>
         <div class="submit_wrapper" data-dialog-button>
             <?= CSRFProtection::tokenTag() ?>
-            <?= Button::createAccept(_('Speichern'), 'submit') ?>
+            <?= Button::createAccept(_('Speichern'), 'submit', $instant_course_set_view ? array('data-dialog' => '') : array()) ?>
             <?= LinkButton::createCancel(_('Abbrechen'), $controller->url_for('admission/courseset')) ?>
         </div>
 

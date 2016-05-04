@@ -1,4 +1,4 @@
-<table class="zebra" border="0" celpadding="2" cellspacing="0" width="99%" align="center">
+<table class="default">
     <colgroup>
         <col width="4%">
         <col width="36%">
@@ -27,7 +27,7 @@
             <td>&nbsp;</td>
             <td colspan="2">
                 <b><?= _('Beschreibung:') ?></b><br>
-                <?= htmlReady($this->resObject->getDescription()) ?>
+                <?= formatReady($this->resObject->getDescription()) ?>
             </td>
         </tr>
         <tr>

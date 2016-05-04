@@ -9,7 +9,7 @@
 *
 * @access       public
 * @package      studip_core
-* @modulegroup  library
+* @modulegroup      library
 * @module       config.inc.php
 */
 
@@ -75,8 +75,8 @@ you find here the indivdual settings for your installation.
 $UNI_URL = "http://www.studip.de";
 $UNI_LOGIN_ADD='';
 $UNI_LOGOUT_ADD=sprintf(_("Und hier geht's zur %sStud.IP Portalseite%s&nbsp;"), "<a href=\"http://www.studip.de\"><b>", "</b></a>");
-$UNI_CONTACT = "studip-users@lists.sourceforge.net";
-$UNI_INFO = "Kontakt:\nStud.IP Crew c/o data-quest Suchi & Berg GmbH\nFriedländer Weg 20a\n37085 Göttingen\nTel. 0551-3819850\nFax 0551-3819853\nstudip@data-quest.de";
+$UNI_CONTACT = "<please insert your general contact mail-adress here>";
+$UNI_INFO = "Stud.IP 3.3 - Studienbegleitender Internetsupport von Präsenzlehre";
 
 
 /* $SEM_CLASS and $SEM_TYPE configuration moved to database
@@ -85,13 +85,13 @@ $UNI_INFO = "Kontakt:\nStud.IP Crew c/o data-quest Suchi & Berg GmbH\nFriedlände
 
 // define default names for status groups
 $DEFAULT_TITLE_FOR_STATUS = array(
-    'dozent'   => array(_('DozentIn'), _('DozentInnen')),
+    'dozent'   => array(_('Lehrende'), _('Lehrende')),
     'deputy'   => array(_('Vertretung'), _('Vertretungen')),
-    'tutor'    => array(_('TutorIn'), _('TutorInnen')),
-    'autor'    => array(_('AutorIn'), _('AutorInnen')),
-    'user'     => array(_('LeserIn'), _('LeserInnen')),
-    'accepted' => array(_('Vorläufig akzeptierte TeilnehmerIn'),
-                        _('Vorläufig akzeptierte TeilnehmerInnen')));
+    'tutor'    => array(_('Tutor/-in'), _('Tutor/-innen')),
+    'autor'    => array(_('Studierende'), _('Studierende')),
+    'user'     => array(_('Leser/-in'), _('Leser/-innen')),
+    'accepted' => array(_('Vorläufig akzeptierte Person'),
+                        _('Vorläufig akzeptierte Personen')));
 
 
 /*
@@ -101,7 +101,7 @@ the "is_module" flag specifies an entry which represents a "Studienmodul", if th
 plugin interface is used
 */
 $SEM_TREE_TYPES[0] = array("name" => "", "editable" => true); //default type, must be present
-$SEM_TREE_TYPES[1] = array("name" => _("Studienmodul") , "editable" => true, "is_module" => true);
+//$SEM_TREE_TYPES[1] = array("name" => _("Studienmodul") , "editable" => true, "is_module" => true);
 
 
 /* Set the allowed and prohibited file types for the types given above.
@@ -114,16 +114,16 @@ $SEM_TREE_TYPES[1] = array("name" => _("Studienmodul") , "editable" => true, "is
 */
 
 $UPLOAD_TYPES=array(    "default" =>
-                        array(  "type"=>"allow",
-                                "file_types" => array ("exe"),
-                        "file_sizes" => array ( "root" => 7 * 1048576,
-                                    "admin" => 7 * 1048576,
-                                    "dozent" => 7 * 1048576,
-                                    "tutor" => 7 * 1048576,
-                                                    "autor" => 7 * 1048576,
-                                                    "nobody" => 1.38 * 1048576
-                                                )
-                            ),
+                array(  "type"=>"allow",
+                        "file_types" => array ("exe"),
+                        "file_sizes" => array ( "root" => 30 * 1048576,
+                                    "admin" => 30 * 1048576,
+                                    "dozent" => 30 * 1048576,
+                                    "tutor" => 30 * 1048576,
+                                    "autor" => 7 * 1048576,
+                                    "nobody" => 1.38 * 1048576
+                                    )
+                ),
 // rules for futher course-types can be added below (please adhere exactly to the structure given above)
         );
 
@@ -136,16 +136,16 @@ $UPLOAD_TYPES=array(    "default" =>
 */
 
 $UPLOAD_TYPES["attachments"] =
-                        array(  "type"=>"allow",
-                                "file_types" => array ("exe"),
+                array(  "type" => "allow",
+                        "file_types" => array ("exe"),
                         "file_sizes" => array ( "root" => 7 * 1048576,
                                     "admin" => 7 * 1048576,
                                     "dozent" => 7 * 1048576,
                                     "tutor" => 7 * 1048576,
-                                                    "autor" => 7 * 1048576,
-                                                    "nobody" => 1.38 * 1048576
-                                                )
-                    );
+                                    "autor" => 7 * 1048576,
+                                    "nobody" => 1.38 * 1048576
+                                    )
+                );
 
 /* Set the allowed and prohibited file types for personal files (like in blubber-upload).
 *
@@ -172,12 +172,22 @@ $UPLOAD_TYPES["personalfiles"] =
 * define presets for the status-groups in courses (refers to the key of the $SEM_CLASS array above)
 * if none is given, the designations of $SEM_STATUS_GROUPS["default"] are used
 */
-$SEM_STATUS_GROUPS["default"] = array ("DozentInnen", "TutorInnen", "AutorInnen", "LeserInnen", "sonstige");    //the default. Don't delete this entry!
-$SEM_STATUS_GROUPS["2"] = array ("Projektleitung", "Koordination", "Forschung", "Verwaltung", "sonstige");
-$SEM_STATUS_GROUPS["3"] = array ("Organisatoren", "Mitglieder", "Ausschu&szlig;mitglieder", "sonstige");
-$SEM_STATUS_GROUPS["4"] = array ("Moderatoren des Forums","Mitglieder", "sonstige");
-$SEM_STATUS_GROUPS["5"] = array ("ArbeitsgruppenleiterIn", "Arbeitsgruppenmitglieder", "sonstige");
+$SEM_STATUS_GROUPS["default"] = array ("Lehrende", "Tutor/-innen", "Studierende", "Leser/-innen", "sonstige");    //the default. Don't delete this entry!
+$SEM_STATUS_GROUPS["2"] = array ("Organisatoren", "Mitglieder", "Ausschußmitglieder", "sonstige");
+$SEM_STATUS_GROUPS["3"] = array ("Moderatoren des Forums","Mitglieder", "sonstige");
 // ...can be continued accordingly
+
+/*
+ * define additional fields that can be shown in participant list view.
+ */
+
+$TEILNEHMER_VIEW[0] = array("field" => "user_picture",
+  "name" => _("Nutzerbilder"), "table" => "special", "export" => 0, "display"=> 1);
+$TEILNEHMER_VIEW[1] = array("field" => "geschlecht",
+  "name" => _("Geschlecht"), "table" => "datafields", "export" => 1, "display"=> 1);
+$TEILNEHMER_VIEW[2] = array("field" => "preferred_language",
+  "name" => _("Sprache"), "table" => "user_info", "export" => 1, "display"=> 1);
+
 
 /*
 * set allowed designations of institutes / divisions / administrative units
@@ -198,9 +208,9 @@ $INST_TYPE[8]=array("name"=>_("Arbeitsgruppe"));
 * if none is given, the designations of $INST_STATUS_GROUPS["default"] are used
 */
 
-$INST_STATUS_GROUPS["default"] = array ("DirektorIn", "HochschullehrerIn", "Lehrbeauftragte", "Zweitmitglied", "wiss. Hilfskraft","wiss. MitarbeiterIn",
-                                    "stud. Hilfskraft", "Frauenbeauftragte", "Internetbeauftragte(r)", "StudentIn", "techn. MitarbeiterIn", "Sekretariat / Verwaltung",
-                                    "stud. VertreterIn");
+$INST_STATUS_GROUPS["default"] = array ("Direktor/-in", "Lehrende", "Lehrbeauftragte", "Zweitmitglied", "wiss. Hilfskraft","wiss. Mitarbeiter/-in",
+                                    "stud. Hilfskraft", "Frauenbeauftragte", "Internetbeauftragte(r)", "Studierende", "techn. Mitarbeiter/-in", "Sekretariat / Verwaltung",
+                                    "stud. Vertreter/-in");
 // ...can be continued accordingly
 
 
@@ -226,36 +236,35 @@ $INST_MODULES["default"] = array(
 * while editing dates as templates for the description of regular turnus meetings.
 */
 
-$TERMIN_TYP[1]=array("name"=>_("Sitzung"), "sitzung"=>1, "color"=>"#2D2C64");
-$TERMIN_TYP[2]=array("name"=>_("Vorbesprechung"), "sitzung"=>0, "color"=>"#5C2D64");
-$TERMIN_TYP[3]=array("name"=>_("Klausur"), "sitzung"=>0,  "color"=>"#526416");
-$TERMIN_TYP[4]=array("name"=>_("Exkursion"), "sitzung"=>0, "color"=>"#505064");
-$TERMIN_TYP[5]=array("name"=>_("anderer Termin"), "sitzung"=>0, "color"=>"#41643F");
-$TERMIN_TYP[6]=array("name"=>_("Sondersitzung"), "sitzung"=>0, "color"=>"#64372C");
-$TERMIN_TYP[7]=array("name"=>_("Vorlesung"), "sitzung"=>1, "color"=>"#627C95");
+$TERMIN_TYP[1]=array("name"=>_("Sitzung"), "sitzung"=>1, "color"=>"#682c8b");
+$TERMIN_TYP[2]=array("name"=>_("Vorbesprechung"), "sitzung"=>0, "color"=>"#b02e7c");
+$TERMIN_TYP[3]=array("name"=>_("Klausur"), "sitzung"=>0, "color"=>"#129c94");
+$TERMIN_TYP[4]=array("name"=>_("Exkursion"), "sitzung"=>0, "color"=>"#f26e00");
+$TERMIN_TYP[5]=array("name"=>_("anderer Termin"), "sitzung"=>0, "color"=>"#008512");
+$TERMIN_TYP[6]=array("name"=>_("Sondersitzung"), "sitzung"=>0, "color"=>"#a85d45");
+$TERMIN_TYP[7]=array("name"=>_("Vorlesung"), "sitzung"=>1, "color"=>"#ca9eaf");
 // more types can be added here
 
 
 // Configure the categories for the personal calendar
-$PERS_TERMIN_KAT[1]=array("name"=>_("Sonstiges"), "color"=>"#41643F");
-$PERS_TERMIN_KAT[2]=array("name"=>_("Sitzung"), "color"=>"#2D2C64");
-$PERS_TERMIN_KAT[3]=array("name"=>_("Vorbesprechung"), "color"=>"#5C2D64");
-$PERS_TERMIN_KAT[4]=array("name"=>_("Klausur"), "color"=>"#526416");
-$PERS_TERMIN_KAT[5]=array("name"=>_("Exkursion"), "color"=>"#505064");
-$PERS_TERMIN_KAT[6]=array("name"=>_("Sondersitzung"), "color"=>"#64372C");
-$PERS_TERMIN_KAT[7]=array("name"=>_("Prüfung"), "color"=>"#64541E");
-$PERS_TERMIN_KAT[8]=array("name"=>_("Telefonat"), "color"=>"#48642B");
-$PERS_TERMIN_KAT[9]=array("name"=>_("Besprechung"), "color"=>"#957C29");
-$PERS_TERMIN_KAT[10]=array("name"=>_("Verabredung"), "color"=>"#956D42");
-$PERS_TERMIN_KAT[11]=array("name"=>_("Geburtstag"), "color"=>"#66954F");
-$PERS_TERMIN_KAT[12]=array("name"=>_("Familie"), "color"=>"#2C5964");
-$PERS_TERMIN_KAT[13]=array("name"=>_("Urlaub"), "color"=>"#951408");
-$PERS_TERMIN_KAT[14]=array("name"=>_("Reise"), "color"=>"#18645C");
-$PERS_TERMIN_KAT[15]=array("name"=>_("Vorlesung"), "color"=>"#627C95");
+$PERS_TERMIN_KAT[1]=array("name"=>_("Sonstiges"), "color"=>"#008512");
+$PERS_TERMIN_KAT[2]=array("name"=>_("Sitzung"), "color"=>"#682c8b");
+$PERS_TERMIN_KAT[3]=array("name"=>_("Vorbesprechung"), "color"=>"#b02e7c");
+$PERS_TERMIN_KAT[4]=array("name"=>_("Klausur"), "color"=>"#129c94");
+$PERS_TERMIN_KAT[5]=array("name"=>_("Exkursion"), "color"=>"#f26e00");
+$PERS_TERMIN_KAT[6]=array("name"=>_("Sondersitzung"), "color"=>"#a85d45");
+$PERS_TERMIN_KAT[7]=array("name"=>_("Prüfung"), "color"=>"#6ead10");
+$PERS_TERMIN_KAT[8]=array("name"=>_("Telefonat"), "color"=>"#d60000");
+$PERS_TERMIN_KAT[9]=array("name"=>_("Besprechung"), "color"=>"#ffbd33");
+$PERS_TERMIN_KAT[10]=array("name"=>_("Verabredung"), "color"=>"#66b570");
+$PERS_TERMIN_KAT[11]=array("name"=>_("Geburtstag"), "color"=>"#a480b9");
+$PERS_TERMIN_KAT[12]=array("name"=>_("Familie"), "color"=>"#d082b0");
+$PERS_TERMIN_KAT[13]=array("name"=>_("Urlaub"), "color"=>"#70c3bf");
+$PERS_TERMIN_KAT[14]=array("name"=>_("Reise"), "color"=>"#f7a866");
+$PERS_TERMIN_KAT[15]=array("name"=>_("Vorlesung"), "color"=>"#ca9eaf");
 // more categories can be added here
 
-
-//standardtimes for date-begin and date-end
+//standard times for date-begin and date-end
 $TIME_PRESETS = array ( //starthour, startminute, endhour, endminute
         array ('07','45','09','15'), // 07:45 - 09:15
         array ('09','30','11','00'), // 09:30 - 11:00
@@ -349,6 +358,7 @@ $LIT_IMPORT_PLUGINS[2] = array('name' => 'GenericXML', 'visual_name' => _("Einfa
         _("Jeder Abschnitt darf mehrfach vorkommen oder kann weggelassen werden, mindestens ein Titel pro Eintrag muss vorhanden sein."));
 $LIT_IMPORT_PLUGINS[3] = array('name' => 'CSV', 'visual_name' => _("CSV mit Semikolon als Trennzeichen"), 'description' => _("Exportieren Sie Ihre Literaturliste in eine mit Trennzeichen getrennte Datei (CSV). Wichtig hierbei ist die Verwendung des Semikolons als Trennzeichen. Folgende Formatierung wird dabei in jeder Zeile erwartet:").'[pre]'._("Titel;Verfasser oder Urheber;Verleger;Herausgeber;Thema und Stichworte;ISBN").'[/pre]');
 $LIT_IMPORT_PLUGINS[4] = array('name' => 'StudipLitList', 'visual_name' => _("Literaturliste im Stud.IP Format"), 'description' => _("Benutzen Sie die Export-Funktion innerhalb von Stud.IP, um eine Literaturliste im Stud.IP Format zu exportieren."));
+$LIT_IMPORT_PLUGINS[5] = array('name' => 'Citavi', 'visual_name' => _("Literaturliste im Stud.IP (Citavi) Format"), 'description' => _("Benutzen Sie die Export-Funktion von Citavi, um eine Literaturliste im Stud.IP Format zu exportieren."));
 
 // cofiguration for flash player
 $FLASHPLAYER_DEFAULT_CONFIG_MIN = "&amp;showstop=1&amp;showvolume=1&amp;bgcolor=A6B6C6&amp;bgcolor1=A6B6C6&amp;bgcolor2=7387AC&amp;playercolor=7387AC&amp;buttoncolor=254580&amp;buttonovercolor=E9EFFD&amp;slidercolor1=CAD7E1&amp;slidercolor2=A6B6C6&amp;sliderovercolor=E9EFFD&amp;loadingcolor=E9B21A&amp;buffer=5&amp;buffercolor=white&amp;buffershowbg=0&amp;playeralpha=90&amp;playertimeout=500&amp;shortcut=1&amp;phpstream=0&amp;onclick=playpause&amp;showloading=always";
@@ -375,4 +385,5 @@ $NOT_HIDEABLE_FIELDS = array(
     'root' => array()
 );
 //Add ids of datafields to use for import on teilnehmer.php
-$TEILNEHMER_IMPORT_DATAFIELDS = array('36908df6f81f7401d96856f69e522d20');
+$TEILNEHMER_IMPORT_DATAFIELDS = array();
+

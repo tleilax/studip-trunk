@@ -1,19 +1,22 @@
 /*jslint browser: true */
-/*global jQuery */
+/*global jQuery, STUDIP */
+
 /**
  * This file provides a set of global handlers.
  */
-(function ($) {
+(function ($, STUDIP) {
     'use strict';
 
     // Use a checkbox as a proxy for a set of other checkboxes. Define
     // proxied elements by a css selector in attribute "data-proxyfor".
-    $(document).on('change', ':checkbox[data-proxyfor]', function (event) {
+    $(document).on('change', ':checkbox[data-proxyfor]', function (event, force) {
         // Detect if event was triggered natively (triggered events have no
         // originalEvent)
-        if (event.originalEvent !== undefined) {
+        if (event.originalEvent !== undefined || !!force) {
             var proxied = $(this).data('proxyfor');
-            $(proxied).filter(':not(:disabled)').prop('checked', this.checked);
+            $(proxied).filter(':not(:disabled)')
+                      .prop('checked', this.checked)
+                      .filter('[data-proxyfor]').trigger('change', [true]);
         }
     }).on('update.proxy', ':checkbox[data-proxyfor]', function () {
         var proxied = $(this).data('proxyfor'),
@@ -28,10 +31,7 @@
     }).on('ready dialog-update', function () {
         $(':checkbox[data-proxyfor]').each(function () {
             var proxied = $(this).data('proxyfor');
-
             // The following seems like a hack but works perfectly fine.
-            // The attribute needs to be changed so the previous event handler
-            // will work
             $(proxied).attr('data-proxiedby', true).data('proxiedby', this);
         }).trigger('update.proxy');
     });
@@ -42,7 +42,7 @@
     $(document).on('change', ':checkbox[data-activates]', function () {
         var activates = $(this).data('activates'),
             activated = $(this).prop('checked') || $(this).prop('indeterminate') || false;
-        $(activates).prop('disabled', !activated).trigger('update.proxy');
+        $(activates).attr('disabled', !activated).trigger('update.proxy');
     }).ready(function () {
         $(':checkbox[data-activates]').trigger('change');
     });
@@ -53,7 +53,7 @@
     $(document).on('change update.proxy', 'select[data-activates]', function () {
         var activates = $(this).data('activates'),
             disabled = $(this).is(':disabled') || $(this).val().length === 0;
-        $(activates).prop('disabled', disabled);
+        $(activates).attr('disabled', disabled);
     }).ready(function () {
         $('select[data-activates]').trigger('change');
     });
@@ -97,52 +97,35 @@
         last_element = event.target;
     });
 
-    // Display a visible hint that indicates how many characters the user has
-    // already input into a text field or how many remaining characters he may
-    // input if the element has a maxlength restriction.
-    // By providing a css selector in the "data-length-hint" attribute you
-    // are able to specify a custom element for the character display. If none
-    // is provided or the selector does not point to a valid element, the
-    // display element is created next to the attributed element.
-    $(document).on('focus propertychange keyup', '[data-length-hint]', function () {
-        var selector = $(this).data().lengthHint,
-            counter  = $(selector),
-            count    = $(this).val().length,
-            max      = parseInt($(this).attr('maxlength'), 10),
-            element,
-            message;
-
-        if (max) {
-            count = max - count;
-        }
-
-        if (counter.length === 0) {
-            counter =  $(this).next('.length-hint').find('.length-hint-counter');
-        }
-
-        if (counter.length === 0) {
-            message = max
-                    ? "Zeichen verbleibend: ".toLocaleString()
-                    : "Eingegebene Zeichen: ".toLocaleString();
-            element = $('<span class="length-hint">').text(message);
-            counter = $('<span class="length-hint-counter">');
-            element.append(counter).insertAfter(this);
-        }
-
-        counter.text(count);
-    });
-
     // Lets the user confirm a specific action (submit or click event).
     function confirmation_handler(event) {
         if (!event.isDefaultPrevented()) {
-            var question = $(event.target).data().confirm
-                        || $(event.target).attr('title')
-                        || $(event.target).find('[title]:first').attr('title')
+            event.stopPropagation();
+            event.preventDefault();
+
+            var element  = $(event.currentTarget).closest('[data-confirm]'),
+                question = element.data().confirm
+                        || element.attr('title')
+                        || element.find('[title]:first').attr('title')
                         || 'Wollen Sie die Aktion wirklich ausführen?'.toLocaleString();
-            return window.confirm(question);
+
+            STUDIP.Dialog.confirm(question, function () {
+                var content = element.data().confirm;
+
+                // We need to trigger the native event because for
+                // some reason, jQuery's .trigger() won't always
+                // work. Thus the data-confirm attribute will be removed
+                // so that the original event can be executed
+                element.removeAttr('data-confirm').get(0)[event.type]();
+
+                // Reapply the data-confirm attribute
+                window.setTimeout(function () {
+                    element.attr('data-confirm', content);
+                }, 0);
+            });
         }
     }
     $(document).on('click', 'a[data-confirm],input[data-confirm],button[data-confirm]', confirmation_handler);
     $(document).on('submit', 'form[data-confirm]', confirmation_handler);
 
-}(jQuery));
+}(jQuery, STUDIP));

@@ -19,6 +19,7 @@ $translations = array(
     // public/assets/javascripts/application.js
     'Blenden Sie die restlichen Termine aus' => _('Blenden Sie die restlichen Termine aus'),
     'Blenden Sie die restlichen Termine ein' => _('Blenden Sie die restlichen Termine ein'),
+    'Schliessen' => _('Schliessen'),
     'Ihre Eingaben wurden bislang noch nicht gespeichert.' => _('Ihre Eingaben wurden bislang noch nicht gespeichert.'),
 
     // public/assets/javascripts/big-image-handler.js
@@ -33,6 +34,10 @@ $translations = array(
     'Samstag' => _('Samstag'),
     'Sonntag' => _('Sonntag'),
 
+    // public/assets/javascripts/file_system.js
+    'Objekt aufklappen' => _('Objekt aufklappen'),
+    'Objekt zuklappen' => _('Objekt zuklappen'),
+
     // public/assets/javascripts/forms.js
     'Bitte ändern Sie ihre Eingabe' => _('Bitte ändern Sie ihre Eingabe'),
     'Bitte wählen Sie einen Wert aus.' => _('Bitte wählen Sie einen Wert aus.'),
@@ -42,6 +47,7 @@ $translations = array(
     'Der eingegebene Wert darf nicht größer als $1 sein' => _('Der eingegebene Wert darf nicht größer als $1 sein'),
     'Der eingegebene Wert darf nicht kleiner als $1 sein' => _('Der eingegebene Wert darf nicht kleiner als $1 sein'),
     'Dies ist ein erforderliches Feld' => _('Dies ist ein erforderliches Feld'),
+    'Zeichen verbleibend: ' => _('Zeichen verbleibend: '),
 
     // public/assets/javascripts/messages.js
     'Sie haben nicht angegeben, wer die Nachricht empfangen soll!' => _('Sie haben nicht angegeben, wer die Nachricht empfangen soll!'),
@@ -67,7 +73,8 @@ $translations = array(
     // public/assets/javascripts/raumzeit.js
     'Nicht buchbare Räume:' => _('Nicht buchbare Räume:'),
     'Alle Räume anzeigen' => _('Alle Räume anzeigen'),
-    'Jeder Termin muss mindestens eine Person haben, die ihn durchführt!' => _('Jeder Termin muss mindestens eine Person haben, die ihn durchführt!'),
+    'Wollen Sie die gewünschten Termine wirklich löschen?' => _('Wollen Sie die gewünschten Termine wirklich löschen?'),
+    'Sind Sie sicher, dass Sie die regelmäßige Zeit ändern möchten?' => _('Sind Sie sicher, dass Sie die regelmäßige Zeit ändern möchten?'),
     'Nur buchbare Räume anzeigen' => _('Nur buchbare Räume anzeigen'),
 
     // public/assets/javascripts/register.js
@@ -91,14 +98,14 @@ $translations = array(
     // public/assets/javascripts/smiley-picker.js
     'Smileys' => _('Smileys'),
     'Zur Gesamtübersicht' => _('Zur Gesamtübersicht'),
-    'Schliessen' => _('Schliessen'),
 
     // public/assets/javascripts/studip-dialog.js
     'Schließen' => _('Schließen'),
+    'Bitte bestätigen Sie die Aktion' => _('Bitte bestätigen Sie die Aktion'),
+    'Ja' => _('Ja'),
+    'Nein' => _('Nein'),
 
     // public/assets/javascripts/studip-helper-attributes.js
-    'Zeichen verbleibend: ' => _('Zeichen verbleibend: '),
-    'Eingegebene Zeichen: ' => _('Eingegebene Zeichen: '),
     'Wollen Sie die Aktion wirklich ausführen?' => _('Wollen Sie die Aktion wirklich ausführen?'),
 
     // public/assets/javascripts/studip-jquery.multi-select.tweaks.js

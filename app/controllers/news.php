@@ -44,10 +44,19 @@ class NewsController extends StudipController
 
         $this->set_content_type('text/html; charset=windows-1252');
 
-        $this->area_structure = array('global' => array('title' => _('Stud.IP (systemweit)'), 'icon' => 'home.png'),
-                                      'inst' => array('title' => _('Einrichtungen'), 'icon' => 'institute.png'),
-                                      'sem' => array('title' => _('Veranstaltungen'), 'icon' => 'seminar.png'),
-                                      'user' => array('title' => _('Profile'), 'icon' => 'person.png'));
+        $this->area_structure = [
+            'global' => [
+                'title' => _('Stud.IP (systemweit)'),
+                'icon' => 'home'],
+            'inst' => [
+                'title' => _('Einrichtungen'),
+                'icon' => 'institute'],
+            'sem' => [
+                'title' => _('Veranstaltungen'),
+                'icon' => 'seminar'],
+            'user' => [
+                'title' => _('Profile'),
+                'icon' => 'person']];
     }
 
     /**
@@ -209,12 +218,12 @@ class NewsController extends StudipController
                 $this->area_options_selected = unserialize(studip_utf8decode(Request::get('news_selected_areas')));
                 $this->area_options_selectable = unserialize(studip_utf8decode(Request::get('news_selectable_areas')));
                 $topic = studip_utf8decode(Request::get('news_topic'));
-                $body = transformBeforeSave(studip_utf8decode(Request::get('news_body')));
+                $body = transformBeforeSave(Studip\Markup::purifyHtml(studip_utf8decode(Request::get('news_body'))));
             } else {
                 $this->area_options_selected = unserialize(Request::get('news_selected_areas'));
                 $this->area_options_selectable = unserialize(Request::get('news_selectable_areas'));
                 $topic = Request::get('news_topic');
-                $body = transformBeforeSave(Request::get('news_body'));
+                $body = transformBeforeSave(Studip\Markup::purifyHtml(Request::get('news_body')));
             }
             $date = $this->getTimeStamp(Request::get('news_startdate'), 'start');
             $expire = $this->getTimeStamp(Request::get('news_enddate'), 'end') ? $this->getTimeStamp(Request::get('news_enddate'), 'end') - $this->getTimeStamp(Request::get('news_startdate'), 'start') : '';
@@ -601,7 +610,7 @@ class NewsController extends StudipController
             $this->sidebar->addWidget($widget);
         }
         $widget = new ActionsWidget();
-        $widget->addLink(_('Ankündigung erstellen'), URLHelper::getLink('dispatch.php/news/edit_news/new'), 'icons/16/blue/add/news.png', array('rel'=>'get_dialog', 'target'=>'_blank'));
+        $widget->addLink(_('Ankündigung erstellen'), URLHelper::getLink('dispatch.php/news/edit_news/new'), Icon::create('news+add', 'clickable'), array('rel'=>'get_dialog', 'target'=>'_blank'));
         $this->sidebar->addWidget($widget);
     }
 

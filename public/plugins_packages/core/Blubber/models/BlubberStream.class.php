@@ -26,6 +26,7 @@ class BlubberStream extends SimpleORMap {
 
     public $filter_threads = array();
     public $user_id = null;
+    public $max_age = null;
 
     static public function create($pool = array(), $filter = array()) {
         $stream = new BlubberStream();
@@ -61,6 +62,7 @@ class BlubberStream extends SimpleORMap {
         $stream['pool_courses'] = array();
         $stream['pool_groups'] = array();
         $stream['sort'] = "age";
+        $stream->max_age = strtotime('-1 year');
         $stream->user_id = $user_id;
         return $stream;
     }
@@ -241,6 +243,7 @@ class BlubberStream extends SimpleORMap {
      */
     public function fetchTags($since = null, $limit = null) {
         list($sql, $parameters) = $this->getThreadsSql();
+        $sql = strtr($sql, array('FROM blubber' => 'FROM blubber INNER JOIN blubber_tags bt1 USING(topic_id) '));
         $statement = DBManager::get()->prepare(
             "SELECT blubber_tags.tag, SUM(1) AS counter " .
             "FROM (".$sql.") AS threads " .
@@ -290,7 +293,7 @@ class BlubberStream extends SimpleORMap {
                 (count($filter_sql) ? implode(" AND ", $filter_sql)." " : "") .
             "GROUP BY blubber.topic_id " .
             "ORDER BY " . ($this['sort'] === "activity"
-                            ? "IF(blubber_reshares.chdate IS NULL OR MAX(comment.mkdate) > MAX(blubber_reshares.chdate), MAX(comment.mkdate), MAX(blubber_reshares.chdate)) DESC"
+                            ? "IF(MAX(blubber_reshares.chdate) IS NULL OR MAX(comment.mkdate) > MAX(blubber_reshares.chdate), MAX(comment.mkdate), MAX(blubber_reshares.chdate)) DESC"
                             : "blubber.mkdate DESC"
                           )." " .
             (($offset or $limit) ? "LIMIT ".(int) $offset.", ".(int) $limit." " : " ") .
@@ -422,6 +425,10 @@ class BlubberStream extends SimpleORMap {
         if (count($this->filter_threads) > 0) {
             $filter_sql[] = "blubber.topic_id IN (:filter_threads) ";
             $parameters['filter_threads'] = $this->filter_threads;
+        }
+        if ($this->max_age) {
+            $filter_sql[] = "blubber.mkdate > :max_age ";
+            $parameters['max_age'] = $this->max_age;
         }
         return array($pool_sql, $filter_sql, $parameters);
     }

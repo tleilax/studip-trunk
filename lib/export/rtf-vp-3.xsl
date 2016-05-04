@@ -205,7 +205,7 @@
 				<xsl:text>\par </xsl:text>
 			</xsl:if>
 			<xsl:text>
-\b DozentIn: \b0 </xsl:text><xsl:for-each select="dozenten/dozent">
+\b Lehrende: \b0 </xsl:text><xsl:for-each select="dozenten/dozent">
 				<xsl:if test="position() &gt; 1">
 					<xsl:text>, </xsl:text>
 				</xsl:if>
@@ -246,7 +246,7 @@
 			<xsl:if test="teilnehmerzahl">
 				<xsl:for-each select="teilnehmerzahl">
 				<xsl:text>
-\par\b </xsl:text><xsl:value-of select="@key"/><xsl:text> TeilnehmerInnenzahl: \b0 </xsl:text><xsl:value-of select="."/>
+\par\b </xsl:text><xsl:value-of select="@key"/><xsl:text> Anzahl Teilnehmende: \b0 </xsl:text><xsl:value-of select="."/>
 				</xsl:for-each>
 			</xsl:if>
 			<xsl:if test="voraussetzung">

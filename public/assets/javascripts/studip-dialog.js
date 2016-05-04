@@ -190,8 +190,11 @@
     };
     // Handler for HTTP header X-Dialog-Execute: Execute arbitrary function
     STUDIP.Dialog.handlers.header['X-Dialog-Execute'] = function (value, options, xhr) {
-        var chunks,
-            callback = window;
+        var chunks = value.trim().split('.'),
+            callback = window,
+            payload = xhr.getResponseHeader('Content-Type').match(/json/)
+                ? $.parseJSON(xhr.responseText)
+                : xhr.responseText;
 
         // Try to parse value as JSON (value might be {func: 'foo', payload: {}})
         try {
@@ -240,7 +243,9 @@
     };
     // Handler for HTTP header X-Title: Set the dialog title
     STUDIP.Dialog.handlers.header['X-Title'] = function (title, options) {
-        options.title = title || options.title;
+        if (title !== $('title').data().original) {
+            options.title = title || options.title;
+        }
     };
     // Handler for HTTP header X-No-Buttons: Decide whether to show dialog buttons
     STUDIP.Dialog.handlers.header['X-No-Buttons'] = function (value, options) {
@@ -266,7 +271,11 @@
         }
 
         options.origin = element;
-        options.title  = options.title || STUDIP.Dialog.getInstance(options.id).options.title || $(element).attr('title') || $(element).filter('a,button').text();
+        options.title  = options.title
+                      || STUDIP.Dialog.getInstance(options.id).options.title
+                      || $(element).attr('title')
+                      || $(element).find('[title]').first().attr('title')
+                      || $(element).filter('a,button').text();
         options.method = 'get';
         options.data   = {};
 
@@ -388,14 +397,26 @@
         instance.element.hide().html(content);
 
         // Adjust size if neccessary
-        if (options.size && options.size === 'auto') {
+        if (options.size && (options.size === 'auto' || options.size === 'fit')) {
             // Render off screen
-            helper = $('<div style="position:absolute;left:-1000px;top:-1000px;">').html(content).appendTo('body');
-            // Hide buttons so they do not account to width or height
-            $('[data-dialog-button]', helper).hide();
+            helper = $('<div class="ui-dialog">').addClass(options.dialogClass || dialog_options.dialogClass || '');
+            $('<div class="ui-dialog-content">').html(content).appendTo(helper);
+            helper.css({
+                position: 'absolute',
+                left: '-10000px',
+                top: '-10000px',
+                width: 'auto'
+            }).appendTo('body');
+            // Prevent buttons from wrapping
+            $('[data-dialog-button]', helper).css('white-space', 'nowrap');
             // Calculate width and height
-            width  = Math.max(300, Math.min(helper.outerWidth(true) + dialog_margin, width));
-            height = Math.max(200, Math.min(helper.height() + 130, height));
+            // TODO: The value of 113 shouldn't be hardcoded
+            width  = Math.min(helper.outerWidth(true) + dialog_margin, width);
+            height = Math.min(helper.outerHeight(true) + 113, height);
+            if (options.size === 'auto') {
+                width  = Math.max(300, width);
+                height = Math.max(200, height);
+            }
             // Remove helper element
             helper.remove();
         } else if (options.size && options.size === 'big') {
@@ -431,7 +452,8 @@
         dialog_options = $.extend(dialog_options, {
             width:   width,
             height:  height,
-            buttons: {},
+            dialogClass: options.dialogClass || dialog_options.dialogClass || '',
+            buttons: options.buttons || {},
             title:   $('<div>').text(options.title || '').html(), // kinda like htmlReady()
             modal:   true,
             resizable: options.hasOwnProperty('resize') ? options.resize : true,
@@ -440,7 +462,7 @@
             },
             resizeStop: function (event, ui) {
                 var position = [Math.floor(ui.position.left) - $(window).scrollLeft(),
-                                Math.floor(ui.position.top) - $(window).scrollTop()];
+                    Math.floor(ui.position.top) - $(window).scrollTop()];
                 $(event.target).parent().css('position', 'fixed');
                 $(event.target).dialog('option', 'position', position);
             },
@@ -450,7 +472,9 @@
                     link    = options.wiki_link || helpbar_element.attr('href'),
                     element = $('<a class="ui-dialog-titlebar-wiki" target="_blank">').attr('href', link).attr('title', tooltip);
 
-                $(this).siblings('.ui-dialog-titlebar').find('.ui-dialog-titlebar-close').before(element);
+                if (options.wikilink === undefined || options.wikilink !== false) {
+                    $(this).siblings('.ui-dialog-titlebar').find('.ui-dialog-titlebar-close').before(element);
+                }
 
                 instance.open = true;
                 // Execute scripts
@@ -466,7 +490,7 @@
         });
 
         // Create buttons
-        if (!options.hasOwnProperty('buttons') || options.buttons) {
+        if (!options.hasOwnProperty('buttons') || (options.buttons && !$.isPlainObject(options.buttons))) {
             dialog_options.buttons = extractButtons.call(this, instance.element);
             // Create 'close' button
             if (!dialog_options.buttons.hasOwnProperty('cancel')) {
@@ -480,7 +504,10 @@
         }
 
         // Blur background
-        $('#layout_wrapper').css('filter', 'blur(' + STUDIP.Dialog.stack.length + 'px)');
+        $('#layout_wrapper').css({
+            WebkitFilter: 'blur(' + STUDIP.Dialog.stack.length + 'px)',
+            filter: 'blur(' + STUDIP.Dialog.stack.length + 'px)'
+        });
 
         // Create/update dialog
         instance.element.dialog(dialog_options);
@@ -520,12 +547,50 @@
             STUDIP.Dialog.removeInstance(options.id);
 
             // Remove background blur
-            $('#layout_wrapper').css('filter', 'blur(' + STUDIP.Dialog.stack.length + 'px)');
+            $('#layout_wrapper').css({
+                WebkitFilter: 'blur(' + STUDIP.Dialog.stack.length + 'px)',
+                filter: 'blur(' + STUDIP.Dialog.stack.length + 'px)'
+            });
         }
 
         if (options['reload-on-close']) {
             window.location.reload();
         }
+    };
+
+    // Specialized confirmation dialog
+    STUDIP.Dialog.confirm = function (question, yes_callback, no_callback) {
+        STUDIP.Dialog.show(question, {
+            id: 'confirmation-dialog',
+            title: 'Bitte bestätigen Sie die Aktion'.toLocaleString(),
+            size: 'fit',
+            wikilink: false,
+            dialogClass: 'studip-confirmation',
+            buttons: {
+                accept: {
+                    text: 'Ja'.toLocaleString(),
+                    click: function () {
+                        STUDIP.Dialog.close({id: 'confirmation-dialog'});
+
+                        if ($.isFunction(yes_callback)) {
+                            yes_callback();
+                        }
+                    },
+                    'class': 'accept'
+                },
+                cancel: {
+                    text: 'Nein'.toLocaleString(),
+                    click: function () {
+                        STUDIP.Dialog.close({id: 'confirmation-dialog'});
+
+                        if ($.isFunction(no_callback)) {
+                            no_callback();
+                        }
+                    },
+                    'class': 'cancel'
+                }
+            }
+        });
     };
 
     // Actual dialog handler

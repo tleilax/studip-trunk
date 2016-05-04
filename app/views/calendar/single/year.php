@@ -3,9 +3,7 @@
         <td colspan="3" style="text-align: center; vertical-align: middle;">
             <div style="text-align: left; display: inline-block; width: 20%; white-space: nowrap;">
                 <a href="<?= $controller->url_for('calendar/single/year', array('atime' => strtotime('-1 year', $atime))) ?>">
-                    <span style="vertical-align: middle;" <?= tooltip(_('ein Jahr zurück')) ?>>
-                        <?= Assets::img('icons/16/blue/arr_2left.png') ?>
-                    </span>
+                    <?= Icon::create('arr_2left', 'clickable', ['title' => _('Ein Jahr zurück')])->asImg(16, ['style' => 'vertical-align: text-top;']) ?>
                     <?= strftime('%Y', strtotime('-1 year', $atime)) ?>
                 </a>
             </div>
@@ -15,9 +13,7 @@
             <div style="text-align: right; display: inline-block; width: 20%; white-space: nowrap;">
                 <a href="<?= $controller->url_for('calendar/single/year', array('atime' => strtotime('+1 year', $atime))) ?>">
                     <?= strftime('%Y', strtotime('+1 year', $atime)) ?>
-                    <span style="vertical-align: middle;" <?= tooltip(_('ein Jahr vor')) ?>>
-                        <?= Assets::img('icons/16/blue/arr_2right.png') ?>
-                    </span>
+                    <?= Icon::create('arr_2right', 'clickable', ['title' => _('Ein Jahr vor')])->asImg(16, ['style' => 'vertical-align: text-top;']) ?>
                 </a>
             </div>
         </td>
@@ -97,7 +93,7 @@
                                 <? $event_count_txt = sprintf(ngettext('1 Termin', '%s Termine', count($count_list[$iday])), count($count_list[$iday])) ?>
                                 </td>
                                 <td<?= $day_class ?> align="right">
-                                    <?= Assets::img('icons/16/blue/date.png', array('alt' => $event_count_txt, 'title' => $event_count_txt)); ?>
+                                    <?= Icon::create('date', 'clickable', ['title' => $event_count_txt])->asImg(16, ["alt" => $event_count_txt]); ?>
                                 </td>
                             </tr>
                         </table>

@@ -183,13 +183,10 @@ class Statusgruppen extends SimpleORMap
      */
     public function hasFolder()
     {
-        if (!$this->folderid) {
-            $query = "SELECT folder_id FROM folder WHERE range_id = ?";
-            $statement = DBManager::get()->prepare($query);
-            $statement->execute(array($this->id));
-            $this->folderid = $statement->fetchColumn();
-        }
-        return $this->folderid;
+        $query = "SELECT folder_id FROM folder WHERE range_id = ?";
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute(array($this->id));
+        return (bool) $statement->fetchColumn();
     }
 
     /**
@@ -323,6 +320,8 @@ class Statusgruppen extends SimpleORMap
             $assoc[$member->id] = $member->user->nachname."_".$member->user->vorname;
         }
         asort($assoc);
+
+        $i = 0;
         foreach ($assoc as $key => $value) {
             $statusgruppenuser = new StatusgruppeUser(explode('_', $key));
             $statusgruppenuser->position = $i++;
@@ -365,7 +364,7 @@ class Statusgruppen extends SimpleORMap
 
     public function store()
     {
-        if ($this->isNew()) {
+        if ($this->position === null) {
             $sql = "SELECT MAX(position) + 1 FROM statusgruppen WHERE range_id = ?";
             $stmt = DBManager::get()->prepare($sql);
             $stmt->execute(array($this->range_id));

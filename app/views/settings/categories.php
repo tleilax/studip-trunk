@@ -38,22 +38,22 @@
                 <th rowspan="2" style="text-align: right; vertical-align: middle;">
                 <? if ($index > 0): ?>
                     <a href="<?= $controller->url_for('settings/categories/swap', $category->id, $last->id) ?>">
-                        <?= Assets::img('icons/16/yellow/arr_2up', array('class' => 'text-top', 'title' =>_('Kategorie nach oben verschieben'))) ?>
+                        <?= Icon::create('arr_2up', 'sort')->asImg(['class' => 'text-top', 'title' =>_('Kategorie nach oben verschieben')]) ?>
                     </a>
                 <? else: ?>
-                    <?= Assets::img('icons/16/grey/arr_2up', array('class' => 'text-top')) ?>
+                    <?= Icon::create('arr_2up', 'inactive')->asImg(['class' => 'text-top']) ?>
                 <? endif; ?>
 
                 <? if ($index < $count - 1): ?>
                     <a href="<?= $controller->url_for('settings/categories/swap', $category->id, $categories[$index + 1]->id) ?>">
-                        <?= Assets::img('icons/16/yellow/arr_2down', array('class' => 'text-top', 'title' =>_('Kategorie nach unten verschieben'))) ?>
+                        <?= Icon::create('arr_2down', 'sort')->asImg(['class' => 'text-top', 'title' =>_('Kategorie nach unten verschieben')]) ?>
                     </a>
                 <? else: ?>
-                    <?= Assets::img('icons/16/grey/arr_2down', array('class' => 'text-top')) ?>
+                    <?= Icon::create('arr_2down', 'inactive')->asImg(['class' => 'text-top']) ?>
                 <? endif; ?>
 
                     <a href="<?= $controller->url_for('settings/categories/delete', $category->id) ?>">
-                        <?= Assets::img('icons/16/blue/trash', array('class' => 'text-top', 'title' => _('Kategorie löschen'))) ?>
+                        <?= Icon::create('trash', 'clickable')->asImg(['class' => 'text-top', 'title' => _('Kategorie löschen')]) ?>
                     </a>
                 </th>
             </tr>
@@ -63,7 +63,7 @@
                 </td>
                 <td colspan="2">
                     <textarea id="content<?= $index ?>" name="categories[<?= $category->id ?>][content]"
-                              class="resizable add_toolbar" style="width: 100%; height: 200px;"
+                              class="resizable add_toolbar wysiwyg" style="width: 100%; height: 200px;"
                               aria-label="<?= _('Inhalt der Kategorie:') ?>"
                     ><?= htmlReady($category->content) ?></textarea>
                 </td>
@@ -75,8 +75,8 @@
         <tbody>
             <tr>
                 <td colspan="4">
-                    <?= sprintf(ngettext(_('Es existiert zusätzlich eine Kategorie, die Sie nicht einsehen und bearbeiten können.'),
-                                         _('Es existiereren zusätzlich %s Kategorien, die Sie nicht einsehen und bearbeiten können.'),
+                    <?= sprintf(ngettext('Es existiert zusätzlich eine Kategorie, die Sie nicht einsehen und bearbeiten können.',
+                                         'Es existiereren zusätzlich %s Kategorien, die Sie nicht einsehen und bearbeiten können.',
                                          $hidden_count), $hidden_count) ?>
                 </td>
             </tr>

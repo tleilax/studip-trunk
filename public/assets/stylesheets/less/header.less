@@ -13,7 +13,7 @@
 
 #barBottomContainer {
     background-color: @brand-color-lighter;
-    border: 1px #1e3e70;
+    border: 1px @brand-color-darker;
 //    border-top-style: solid;
     border-bottom-style: solid;
     box-shadow: 0px 0px 15px rgba(0,0,0,0.3);
@@ -24,7 +24,6 @@
 }
 
 #barBottomContainer.fixed {
-  border-bottom: 1px solid #000;
   .translate(0, 0) !important; // We need !important due to the horizontal scroll handler
   position: fixed;
   top: 0px;
@@ -33,7 +32,7 @@
 
 #barBottomLeft, #barBottommiddle, #barBottomright {
     background-color: @brand-color-lighter;
-    color: #fff;
+    color: @contrast-content-white;
     height: 24px;
     line-height: 24px;
     padding: 0;
@@ -88,11 +87,11 @@
 
 #barBottomright, #layout_footer {
     a {
-        color: #dfdfdf;
+        color: @contrast-content-white;
         margin: 0 6px;
         text-decoration: none;
 
-        &:hover { color: #fff; }
+        &:hover { color: @contrast-content-hovergray; }
     }
     ul { 
         margin: 0;
@@ -158,9 +157,9 @@
 
         // Positions: below or left'ish or right'ish to the triggering element
         &.below {
-            left: -(@width / 2 - 9);
+            left: (-@width + @arrow-height * 2);
             &:before {
-                left: 50%;
+                left: (@width - @arrow-height - 2);
             }
         }
         &.left {
@@ -228,8 +227,8 @@
     margin-top: 3px;
     height: 16px;
     font-size: 0.8em;
-    border: thin solid #cccccc;
-    color: #cccccc;
+    border: thin solid @contrast-content-white;
+    color: @contrast-content-white;
     text-align: center;
     line-height: 17px;
     vertical-align: text-bottom;

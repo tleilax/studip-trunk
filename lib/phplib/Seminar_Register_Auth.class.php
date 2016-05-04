@@ -51,13 +51,17 @@ class Seminar_Register_Auth extends Seminar_Auth
             $register_template->set_attribute('geschlecht', Request::int('geschlecht', 0));
         }
         PageLayout::setHelpKeyword('Basis.AnmeldungRegistrierung');
-        $header_template = $GLOBALS['template_factory']->open('header');
-        $header_template->current_page = _('Registrierung');
+        PageLayout::setTitle(_('Registrierung'));
+        // $header_template = $GLOBALS['template_factory']->open('header');
+        // $header_template->current_page = _('Registrierung');
 
-        include 'lib/include/html_head.inc.php';
-        echo $header_template->render();
+        $layout = $GLOBALS['template_factory']->open('layouts/base.php');
+        $register_template->set_layout($layout);
+
+        // include 'lib/include/html_head.inc.php';
+        // echo $header_template->render();
         echo $register_template->render();
-        include 'lib/include/html_end.inc.php';
+        // include 'lib/include/html_end.inc.php';
     }
 
     /**
@@ -166,18 +170,7 @@ class Seminar_Register_Auth extends Seminar_Auth
         $new_user->auth_plugin = 'standard';
         $new_user->store();
         if ($new_user->user_id) {
-            // Abschicken der Bestaetigungsmail
-            $to = $Email;
-            $secret = self::get_validation_hash($new_user->id);
-            $url = $GLOBALS['ABSOLUTE_URI_STUDIP'] . "email_validation.php?secret=" . $secret;
-            $mail = new StudipMail();
-            $abuse = $mail->getReplyToEmail();
-            // include language-specific subject and mailbody
-            include_once("locale/$_language_path/LC_MAILS/register_mail.inc.php");
-            $mail->setSubject($subject)
-                ->addRecipient($to)
-                ->setBodyText($mailbody)
-                ->send();
+            self::sendValidationMail($new_user);
             $this->auth["perm"] = $new_user->perms;
             return $new_user->user_id;
         }
@@ -186,5 +179,46 @@ class Seminar_Register_Auth extends Seminar_Auth
     static function get_validation_hash($user_id)
     {
         return md5("$user_id:" . self::$magic);
+    }
+
+
+    /**
+     * Send a validation mail to the passed user
+     *
+     * @param User $user a user-object or id of the user
+     *                   to resend the validation mail for
+     * 
+     * @return void
+     */
+    public static function sendValidationMail($user){
+        global $_language_path;
+
+        // if no user-object is given interpret it as a user-id
+        if (is_string($user)) {
+            $user = new User($user);
+        }
+
+        // template-variables for the include partial
+        $Zeit     = date("H:i:s, d.m.Y", $user->mkdate);
+        $username = $user->username;
+        $Vorname  = $user->vorname;
+        $Nachname = $user->nachname;
+        $Email    = $user->email;
+
+        // (re-)send the confirmation mail
+        $to     = $user->email;
+        $secret = md5($user->user_id .':'. self::$magic);
+        $url    = $GLOBALS['ABSOLUTE_URI_STUDIP'] . "email_validation.php?secret=" . $secret;
+        $mail   = new StudipMail();
+        $abuse  = $mail->getReplyToEmail();
+
+        // include language-specific subject and mailbody
+        include_once("locale/$_language_path/LC_MAILS/register_mail.inc.php");
+
+        // send the mail
+        $mail->setSubject($subject)
+            ->addRecipient($to)
+            ->setBodyText($mailbody)
+            ->send();
     }
 }

@@ -27,13 +27,15 @@ require_once 'lib/object.inc.php';
 
 class Admin_CoursesController extends AuthenticatedController
 {
+    /**
+     * Common tasks for all actions
+     *
+     * @param String $action Called action
+     * @param Array  $args   Possible arguments
+     */
     public function before_filter(&$action, &$args)
     {
         parent::before_filter($action, $args);
-
-        if (!$GLOBALS['perm']->have_perm('admin')) {
-            throw new AccessDeniedException();
-        }
 
         Navigation::activateItem('/browse/my_courses/list');
 
@@ -74,7 +76,9 @@ class Admin_CoursesController extends AuthenticatedController
         PageLayout::setHelpKeyword("Basis.Veranstaltungen");
         PageLayout::setTitle(_("Verwaltung von Veranstaltungen und Einrichtungen"));
         Sidebar::Get()->setTitle(_('Veranstaltungsadministration'));
-
+        PageLayout::addSqueezePackage('raumzeit');
+        // Add admission functions.
+        PageLayout::addSqueezePackage('admission');
     }
 
     /**
@@ -87,7 +91,7 @@ class Admin_CoursesController extends AuthenticatedController
             : 'dozent';
 
         // get courses only if institutes available
-        $this->actions = self::getActions();
+        $this->actions = $this->getActions();
 
         $config_my_course_type_filter = $GLOBALS['user']->cfg->MY_COURSES_TYPE_FILTER;
 
@@ -102,7 +106,7 @@ class Admin_CoursesController extends AuthenticatedController
         }
 
         $this->selected_action = $GLOBALS['user']->cfg->MY_COURSES_ACTION_AREA;
-        if (is_null($this->selected_action)) {
+        if (is_null($this->selected_action) || (!is_numeric($this->selected_action) && !class_exists($this->selected_action))) {
             $this->selected_action = 1;
         }
 
@@ -116,7 +120,7 @@ class Admin_CoursesController extends AuthenticatedController
             'typeFilter'  => $config_my_course_type_filter
         ));
 
-        if (in_array('Inhalt', $this->view_filter)) {
+        if (in_array('contents', $this->view_filter)) {
             $this->nav_elements = MyRealmModel::calc_nav_elements(array($this->courses));
         }
         // get all available teacher for infobox-filter
@@ -127,13 +131,13 @@ class Admin_CoursesController extends AuthenticatedController
         }, array_values($this->courses), array_keys($this->courses));
 
 
-        $this->all_lock_rules = array_merge(
+        $this->all_lock_rules = new SimpleCollection(array_merge(
             array(array(
                 'name'    => '--' . _("keine Sperrebene") . '--',
                 'lock_id' => 'none'
             )),
             LockRule::findAllByType('sem')
-        );
+        ));
         $this->aux_lock_rules = array_merge(
             array(array(
                 'name'    => '--' . _("keine Zusatzangaben") . '--',
@@ -157,8 +161,8 @@ class Admin_CoursesController extends AuthenticatedController
         if ($this->sem_create_perm) {
             $actions = new ActionsWidget();
             $actions->addLink(_('Neue Veranstaltung anlegen'),
-                URLHelper::getLink('dispatch.php/course/wizard'),
-                'icons/16/blue/add/seminar.png')->asDialog('size=50%');
+                              URLHelper::getLink('dispatch.php/course/wizard'),
+                              Icon::create('seminar+add', 'clickable'))->asDialog('size=50%');
             $sidebar->addWidget($actions, 'links');
         }
 
@@ -172,8 +176,8 @@ class Admin_CoursesController extends AuthenticatedController
             }
             $export = new ExportWidget();
             $export->addLink(_('Als Excel exportieren'),
-                URLHelper::getLink('dispatch.php/admin/courses/export_csv', $params),
-                'icons/16/blue/file-excel.png');
+                             URLHelper::getLink('dispatch.php/admin/courses/export_csv', $params),
+                             Icon::create('file-excel', 'clickable'));
             $sidebar->addWidget($export);
         }
     }
@@ -204,7 +208,7 @@ class Admin_CoursesController extends AuthenticatedController
 
         $data = array();
         foreach ($courses as $course_id => $course) {
-            $sem = new Seminar($course_id);
+            $sem = new Seminar(Course::buildExisting($course));
             $row = array();
 
             if (in_array('number', $filter_config)) {
@@ -217,8 +221,8 @@ class Admin_CoursesController extends AuthenticatedController
 
             if (in_array('type', $filter_config)) {
                 $row['type'] = sprintf('%s: %s',
-                                       $course['sem_class_name'],
-                                       $GLOBALS['SEM_TYPE'][$course['status']]['name']);
+                                       $sem->getSemClass()['name'],
+                                       $sem->getSemType()['name']);
             }
 
             if (in_array('room_time', $filter_config)) {
@@ -230,12 +234,7 @@ class Admin_CoursesController extends AuthenticatedController
             }
 
             if (in_array('teachers', $filter_config)) {
-                $dozenten = array();
-                array_walk($course['dozenten'], function ($a) use (&$dozenten) {
-                    $user = User::findByUsername($a['username']);
-                    $dozenten[] = $user->getFullName();
-                });
-                $row['teachers'] = implode(', ', $dozenten);
+                $row['teachers'] = implode(', ', array_map(function ($d) {return $d['fullname'];}, $course['dozenten']));
             }
 
             if (in_array('members', $filter_config)) {
@@ -294,44 +293,53 @@ class Admin_CoursesController extends AuthenticatedController
      */
     public function set_lockrule_action()
     {
+        if (!$GLOBALS['perm']->have_perm("admin")) {
+            throw new AccessDeniedException();
+        }
         $result = false;
         $courses = Request::getArray('lock_sem');
+        $errors = array();
 
         if (!empty($courses)) {
             foreach ($courses as $course_id => $value) {
-                // force to pre selection
-                if (Request::get('lock_sem_all') && Request::submitted('all')) {
-                    $value = Request::get('lock_sem_all');
-                }
+                if ($GLOBALS['perm']->have_studip_perm("dozent", $course_id)) {
+                    // force to pre selection
+                    if (Request::get('lock_sem_all') && Request::submitted('all')) {
+                        $value = Request::get('lock_sem_all');
+                    }
 
-                $course = Course::find($course_id);
-                if ($value == 'none') {
-                    $value = null;
-                }
+                    $course = Course::find($course_id);
+                    if ($value == 'none') {
+                        $value = null;
+                    }
 
-                if ($course->lock_rule == $value) {
-                    continue;
-                }
+                    if ($course->lock_rule == $value) {
+                        continue;
+                    }
 
-                $course->setValue('lock_rule', $value);
-                if (!$course->store()) {
-                    PageLayout::postMessage(MessageBox::error(sprintf(_('Bei den folgenden Veranstaltungen ist ein
-                    Fehler aufgetreten')), $course->name));
-                    $this->redirect('admin/courses/index');
-
-                    return;
+                    $course->setValue('lock_rule', $value);
+                    if (!$course->store()) {
+                        $errors[] = $course->name;
+                    } else {
+                        $result = true;
+                    }
                 }
-                $result = true;
             }
 
             if ($result) {
-                PageLayout::postMessage(MessageBox::success(sprintf(_('Die gewünschten Änderungen wurden erfolgreich durchgeführt!'))));
+                PageLayout::postMessage(MessageBox::success(_('Die gewünschten Änderungen wurden erfolgreich durchgeführt!')));
+            }
+            if ($errors) {
+                PageLayout::postMessage(MessageBox::error(_('Bei den folgenden Veranstaltungen ist ein Fehler aufgetreten'), array_map('htmlReady', $errors)));
             }
         }
         $this->redirect('admin/courses/index');
     }
 
 
+    /**
+     * Lock or unlock courses
+     */
     public function set_locked_action()
     {
         $admission_locked = Request::getArray('admission_locked');
@@ -341,28 +349,30 @@ class Admin_CoursesController extends AuthenticatedController
         $course_set_id = CourseSet::getGlobalLockedAdmissionSetId();
 
         foreach($all_courses as $course_id){
-            $set = CourseSet::getSetForCourse($course_id);
+            if ($GLOBALS['perm']->have_studip_perm("dozent", $course_id)) {
+                $set = CourseSet::getSetForCourse($course_id);
 
-            if(!is_null($set)) {
-                if(!$set->hasAdmissionRule('LockedAdmission')) {
-                    continue;
-                }
+                if (!is_null($set)) {
+                    if (!$set->hasAdmissionRule('LockedAdmission')) {
+                        continue;
+                    }
 
-                if($set->hasAdmissionRule('LockedAdmission') && !isset($admission_locked[$course_id])) {
-                    if(CourseSet::removeCourseFromSet($set->getId(), $course_id)) {
-                        $log_msg = _('Veranstaltung wurde entsperrt');
+                    if ($set->hasAdmissionRule('LockedAdmission') && !isset($admission_locked[$course_id])) {
+                        if (CourseSet::removeCourseFromSet($set->getId(), $course_id)) {
+                            $log_msg = _('Veranstaltung wurde entsperrt');
+                        }
                     }
                 }
-            }
 
-            if(is_null($set) && isset($admission_locked[$course_id])) {
-                if(CourseSet::addCourseToSet($course_set_id, $course_id)) {
-                    $log_msg = sprintf(_('Veranstaltung wurde gesperrt, set_id: %s'), $course_set_id);
+                if (is_null($set) && isset($admission_locked[$course_id])) {
+                    if (CourseSet::addCourseToSet($course_set_id, $course_id)) {
+                        $log_msg = sprintf(_('Veranstaltung wurde gesperrt, set_id: %s'), $course_set_id);
+                    }
                 }
-            }
 
-            if ($log_msg) {
-                StudipLog::log('SEM_CHANGED_ACCESS', $course_id, NULL, $log_msg);
+                if ($log_msg) {
+                    StudipLog::log('SEM_CHANGED_ACCESS', $course_id, NULL, $log_msg);
+                }
             }
         }
 
@@ -379,30 +389,34 @@ class Admin_CoursesController extends AuthenticatedController
         $result = false;
         $visibilites = Request::getArray('visibility');
         $all_courses = Request::getArray('all_sem');
+        $errors = array();
 
         if (!empty($all_courses)) {
             foreach ($all_courses as $course_id) {
-                $course = Course::find($course_id);
+                if ($GLOBALS['perm']->have_studip_perm('tutor', $course_id)) {
+                    $course = Course::find($course_id);
 
-                $visibility = isset($visibilites[$course_id]) ? 1 : 0;
+                    $visibility = isset($visibilites[$course_id]) ? 1 : 0;
 
-                if ((int)$course->visible == $visibility) {
-                    continue;
+                    if ((int)$course->visible == $visibility) {
+                        continue;
+                    }
+
+                    $course->setValue('visible', $visibility);
+                    if (!$course->store()) {
+                        $errors[] = $course->name;
+                    } else {
+                        $result = true;
+                        StudipLog::log($visibility ? 'SEM_VISIBLE' : 'SEM_INVISIBLE', $course->id);
+                    }
                 }
-
-                $course->setValue('visible', $visibility);
-                if (!$course->store()) {
-                    PageLayout::postMessage(MessageBox::error(sprintf(_('Bei den folgenden Veranstaltungen ist ein
-                    Fehler aufgetreten')), $course->name));
-                    $this->redirect('admin/courses/index');
-
-                    return;
-                }
-                $result = true;
             }
 
             if ($result) {
-                PageLayout::postMessage(MessageBox::success(sprintf(_('Die Sichtbarkeit wurde bei den gewünschten Veranstatungen erfolgreich geändert!'))));
+                PageLayout::postMessage(MessageBox::success(_('Die Sichtbarkeit wurde bei den gewünschten Veranstatungen erfolgreich geändert!')));
+            }
+            if ($errors) {
+                PageLayout::postMessage(MessageBox::error(_('Bei den folgenden Veranstaltungen ist ein Fehler aufgetreten'), array_map('htmlReady', $errors)));
             }
         }
         $this->redirect('admin/courses/index');
@@ -416,37 +430,42 @@ class Admin_CoursesController extends AuthenticatedController
     {
         $result = false;
         $courses = Request::getArray('lock_sem');
-
+        $lock_sem_forced = Request::getArray('lock_sem_forced');
+        $errors = array();
         if (!empty($courses)) {
             foreach ($courses as $course_id => $value) {
-                // force to pre selection
-                if (Request::get('lock_sem_all') && Request::submitted('all')) {
-                    $value = Request::get('lock_sem_all');
+                if ($GLOBALS['perm']->have_studip_perm('tutor', $course_id)) {
+                    // force to pre selection
+                    if (Request::submitted('all')) {
+                        $value = Request::get('lock_sem_all');
+                        $value_forced = Request::int('aux_all_forced');
+                    } else {
+                        $value_forced = $lock_sem_forced[$course_id];
+                    }
+
+                    $course = Course::find($course_id);
+
+                    if (!$value) {
+                        $value_forced = 0;
+                    }
+
+                    $course->setValue('aux_lock_rule', $value);
+                    $course->setValue('aux_lock_rule_forced', $value_forced);
+
+                    $ok = $course->store();
+                    if ($ok === false) {
+                        $errors[] = $course->name;
+                    } elseif ($ok) {
+                        $result = true;
+                    }
                 }
-
-                $course = Course::find($course_id);
-
-                if ($value == 'none') {
-                    $value = null;
-                }
-
-                if ($course->aux_lock_rule == $value) {
-                    continue;
-                }
-
-                $course->setValue('aux_lock_rule', $value);
-                if (!$course->store()) {
-                    PageLayout::postMessage(MessageBox::error(sprintf(_('Bei den folgenden Veranstaltungen ist ein
-                    Fehler aufgetreten')), $course->name));
-                    $this->redirect('admin/courses/index');
-
-                    return;
-                }
-                $result = true;
             }
 
             if ($result) {
-                PageLayout::postMessage(MessageBox::success(sprintf(_('Die gewünschten Änderungen wurden erfolgreich durchgeführt!'))));
+                PageLayout::postMessage(MessageBox::success(_('Die gewünschten Änderungen wurden erfolgreich durchgeführt!')));
+            }
+            if ($errors) {
+                PageLayout::postMessage(MessageBox::error(_('Bei den folgenden Veranstaltungen ist ein Fehler aufgetreten'), array_map('htmlReady', $errors)));
             }
         }
         $this->redirect('admin/courses/index');
@@ -500,76 +519,135 @@ class Admin_CoursesController extends AuthenticatedController
         $this->redirect('admin/courses/index');
     }
 
+    /**
+     * Marks a course as complete/incomplete.
+     *
+     * @param String $course_id Id of the course
+     */
+    public function toggle_complete_action($course_id)
+    {
+        if (!$GLOBALS['perm']->have_studip_perm('tutor', $course_id)) {
+            throw new AccessDeniedException();
+        }
+        $course = Course::find($course_id);
+        $course->is_complete = !$course->is_complete;
+        $course->store();
+
+        if (Request::isXhr()) {
+            $this->render_json((bool)$course->is_complete);
+        } else {
+            $this->redirect('admin/courses/index#course-' . $course_id);
+        }
+    }
 
     /**
-     * Return a specifically action oder all available actions
+     * Return a specifically action or all available actions
      * @param null $selected
      * @return array
      */
-    private static function getActions($selected = null)
+    private function getActions($selected = null)
     {
         // array for the avaiable modules
+        $sem_filter = $this->semester ? $this->semester->beginn : 'all';
         $actions = array(
-            1  => array('name'       => _('Grunddaten'),
-                        'title'      => _('Grunddaten'),
-                        'url'        => 'dispatch.php/course/basicdata/view?cid=%s',
-                        'attributes' => array(
-                            'data-dialog' => 'size=50%'
-                        )),
-            2  => array('name'       => _('Studienbereiche'),
-                        'title'      => _('Studienbereiche'),
-                        'url'        => 'dispatch.php/course/study_areas/show/?cid=%s&from=admin/courses',
-                        'attributes' => array(
-                            'data-dialog' => 'size=50%'
-                        )),
-            3  => array('name'  => _('Zeiten / Räume'),
-                        'title' => _('Zeiten / Räume'),
-                        'url'   => 'raumzeit.php?cid=%s'),
-            8  => array('name'      => _('Sperrebene'),
-                        'title'     => _('Sperrebenen'),
-                        'url'       => 'dispatch.php/admin/courses/set_lockrule',
-                        'multimode' => true),
-            9  => array('name'      => _('Sichtbarkeit'),
-                        'title'     => _('Sichtbarkeit'),
-                        'url'       => 'dispatch.php/admin/courses/set_visibility',
-                        'multimode' => true),
-            10 => array('name'      => _('Zusatzangaben'),
-                        'title'     => _('Zusatzangaben'),
-                        'url'       => 'dispatch.php/admin/courses/set_aux_lockrule',
-                        'multimode' => true),
-            11 => array('name'  => _('Veranstaltung kopieren'),
-                        'title' => _('Kopieren'),
-                        'url'   => 'dispatch.php/course/wizard/copy/%s',
-                        'attributes' => array(
-                            'data-dialog' => 'size=50%'
-                        )),
-            14 => array('name'       => 'Zugangsberechtigungen',
-                        'title'      => _('Zugangsberechtigungen'),
-                        'url'        => 'dispatch.php/course/admission?cid=%s',
-                        'attributes' => array(
-                            'data-dialog' => 'size=50%'
-                        )),
-            16 => array('name'      => _('Archivieren'),
-                        'title'     => _('Archivieren'),
-                        'url'       => 'archiv_assi.php',
-                        'multimode' => true),
-            17  => array('name'      => _('Gesperrte Veranstaltungen'),
-                        'title'     => _('Einstellungen speichern'),
-                        'url'       => 'dispatch.php/admin/courses/set_locked',
-                        'multimode' => true),
+            1 => array(
+                'name'       => _('Grunddaten'),
+                'title'      => _('Grunddaten'),
+                'url'        => 'dispatch.php/course/basicdata/view?cid=%s',
+                'attributes' => ['data-dialog' => 'size=big'],
+            ),
+            2 => array(
+                'name'       => _('Studienbereiche'),
+                'title'      => _('Studienbereiche'),
+                'url'        => 'dispatch.php/course/study_areas/show/?cid=%s&from=admin/courses',
+                'attributes' => ['data-dialog' => 'size=big'],
+            ),
+            3 => array(
+                'name'       => _('Zeiten / Räume'),
+                'title'      => _('Zeiten / Räume'),
+                'url'        => 'dispatch.php/course/timesrooms/index?cid=%s',
+                'attributes' => ['data-dialog' => 'size=big'],
+                'params'     => array(
+                    'newFilter' => $sem_filter,
+                    'cmd'       => 'applyFilter'
+                ),
+            ),
+            8 => array(
+                'name'      => _('Sperrebene'),
+                'title'     => _('Sperrebenen'),
+                'url'       => 'dispatch.php/admin/courses/set_lockrule',
+                'multimode' => true
+            ),
+            9 => array(
+                'name'      => _('Sichtbarkeit'),
+                'title'     => _('Sichtbarkeit'),
+                'url'       => 'dispatch.php/admin/courses/set_visibility',
+                'multimode' => true
+            ),
+            10 => array(
+                'name'      => _('Zusatzangaben'),
+                'title'     => _('Zusatzangaben'),
+                'url'       => 'dispatch.php/admin/courses/set_aux_lockrule',
+                'multimode' => true
+            ),
+            11 => array(
+                'name'       => _('Veranstaltung kopieren'),
+                'title'      => _('Kopieren'),
+                'url'        => 'dispatch.php/course/wizard/copy/%s',
+                'attributes' => ['data-dialog' => 'size=big'],
+            ),
+            14 => array(
+                'name'       => 'Zugangsberechtigungen',
+                'title'      => _('Zugangsberechtigungen'),
+                'url'        => 'dispatch.php/course/admission?cid=%s',
+                'attributes' => ['data-dialog' => 'size=big'],
+            ),
+            16 => array(
+                'name'      => _('Archivieren'),
+                'title'     => _('Archivieren'),
+                'url'       => 'archiv_assi.php',
+                'multimode' => true
+            ),
+            17 => array(
+                'name'      => _('Gesperrte Veranstaltungen'),
+                'title'     => _('Einstellungen speichern'),
+                'url'       => 'dispatch.php/admin/courses/set_locked',
+                'multimode' => true
+            ),
+            18 => array(
+                'name'       => _('Startsemester'),
+                'title'      => _('Startsemester'),
+                'url'        => 'dispatch.php/course/timesrooms/editSemester?cid=%s&origin=admin_courses',
+                'attributes' => ['data-dialog' => 'size=400'],
+            ),
         );
-
-        if (get_config('RESOURCES_ALLOW_ROOM_REQUESTS')) {
-            $actions[4] = array('name'  => 'Raumanfragen',
-                                'title' => _('Raumanfragen'),
-                                'url'   => 'dispatch.php/course/room_requests/index?cid=%s');
+        if (!$GLOBALS['perm']->have_perm("admin")) {
+            unset($actions[8]);
+            if (!get_config('ALLOW_DOZENT_ARCHIV')) {
+                unset($actions[16]);
+            }
+        }
+        if (!$GLOBALS['perm']->have_perm("dozent")) {
+            unset($actions[11]);
+            unset($actions[16]);
         }
 
-        foreach (PluginManager::getInstance()->getPlugins("AdminCourseAction") as $plugin) {
+        if (Config::get()->RESOURCES_ENABLE && Config::get()->RESOURCES_ALLOW_ROOM_REQUESTS) {
+            $actions[4] = array(
+                'name'  => 'Raumanfragen',
+                'title' => _('Raumanfragen'),
+                'url'   => 'dispatch.php/course/room_requests/index?cid=%s&origin=admin_courses',
+                'attributes' => ['data-dialog' => 'size=big'],
+            );
+        }
+        ksort($actions);
+
+        foreach (PluginManager::getInstance()->getPlugins('AdminCourseAction') as $plugin) {
             $actions[get_class($plugin)] = array(
                 'name'      => $plugin->getPluginName(),
                 'title'     => $plugin->getPluginName(),
                 'url'       => $plugin->getAdminActionURL(),
+                'attributes' => ['data-dialog' => 'size=big'],
                 'multimode' => $plugin->useMultimode()
             );
         }
@@ -593,14 +671,20 @@ class Admin_CoursesController extends AuthenticatedController
             'name'        => _('Name'),
             'type'        => _('Veranstaltungstyp'),
             'room_time'   => _('Raum/Zeit'),
-            'teachers'    => _('DozentIn'),
-            'members'     => _('TeilnehmerInnen'),
-            'waiting'     => _('TeilnehmerInnen auf Warteliste'),
+            'teachers'    => _('Lehrende'),
+            'members'     => _('Teilnehmende'),
+            'waiting'     => _('Personen auf Warteliste'),
             'preliminary' => _('Vorläufige Anmeldungen'),
             'contents'    => _('Inhalt')
         );
     }
 
+    /**
+     * Returns all courses matching set criteria.
+     *
+     * @param Array $params Additional parameters
+     * @return Array of courses
+     */
     private function getCourses($params = array())
     {
         // Init
@@ -641,6 +725,8 @@ class Admin_CoursesController extends AuthenticatedController
         $filter->filterByInstitute($inst_ids);
         if ($params['sortby'] === "status") {
             $filter->orderBy(sprintf('sem_classes.name %s, sem_types.name %s, VeranstaltungsNummer', $params['sortFlag'], $params['sortFlag'], $params['sortFlag']), $params['sortFlag']);
+        } elseif ($params['sortby'] === 'completion') {
+            $filter->orderBy('is_complete', $params['sortFlag']);
         } elseif($params['sortby']) {
             $filter->orderBy($params['sortby'], $params['sortFlag']);
         }
@@ -661,51 +747,26 @@ class Admin_CoursesController extends AuthenticatedController
 
         if (!empty($seminars)) {
             foreach ($seminars as $seminar_id => $seminar) {
+                $seminars[$seminar_id]['seminar_id'] = $seminar_id;
                 $dozenten = $this->getTeacher($seminar_id);
                 $seminars[$seminar_id]['dozenten'] = $dozenten;
-
-                if (in_array('teachers',  $params['view_filter'])) {
-
-                    if (SeminarCategories::getByTypeId($seminar['status'])->only_inst_user) {
-                        $search_template = "user_inst_not_already_in_sem";
-                    } else {
-                        $search_template = "user_not_already_in_sem";
-                    }
-                    $sem_helper = new Seminar(Course::buildExisting($seminar));
-                    $dozentUserSearch = new PermissionSearch(
-                        $search_template,
-                        sprintf(_("%s suchen"), get_title_for_status('dozent', 1, $seminar['status'])),
-                        "user_id",
-                        array('permission' => 'dozent',
-                              'seminar_id' => $this->course_id,
-                              'sem_perm' => 'dozent',
-                              'institute' => $sem_helper->getInstitutes()
-                        )
-                    );
-
-                    $seminars[$seminar_id]['teacher_search'] = MultiPersonSearch::get("add_member_dozent" . $seminar_id)
-                        ->setTitle(_('Mehrere DozentInnen hinzufügen'))
-                        ->setSearchObject($dozentUserSearch)
-                        ->setDefaultSelectedUser(array_keys($dozenten))
-                        ->setDataDialogStatus(Request::isXhr())
-                        ->setExecuteURL(URLHelper::getLink('dispatch.php/course/basicdata/add_member/' . $seminar_id, array('from' => 'admin/courses')));
-                }
 
                 if (in_array('contents', $params['view_filter'])) {
                     $seminars[$seminar_id]['sem_class'] = $sem_types[$seminar['status']]->getClass();
                     $seminars[$seminar_id]['modules'] = $modules->getLocalModules($seminar_id, 'sem', $seminar['modules'], $seminar['status']);
                     $seminars[$seminar_id]['navigation'] = MyRealmModel::getAdditionalNavigations($seminar_id, $seminars[$seminar_id], $seminars[$seminar_id]['sem_class'], $GLOBALS['user']->id);
                 }
-
-                $seminars[$seminar_id]['admission_locked'] = false;
-                if($seminar['course_set']) {
-                    $set = new CourseSet($seminar['course_set']);
-                    if(!is_null($set) && $set->hasAdmissionRule('LockedAdmission')) {
-                        $seminars[$seminar_id]['admission_locked'] = 'locked';
-                    } else {
-                        $seminars[$seminar_id]['admission_locked'] = 'disable';
+                if ($this->selected_action == 17) {
+                    $seminars[$seminar_id]['admission_locked'] = false;
+                    if($seminar['course_set']) {
+                        $set = new CourseSet($seminar['course_set']);
+                        if(!is_null($set) && $set->hasAdmissionRule('LockedAdmission')) {
+                            $seminars[$seminar_id]['admission_locked'] = 'locked';
+                        } else {
+                            $seminars[$seminar_id]['admission_locked'] = 'disable';
+                        }
+                        unset($set);
                     }
-                    unset($set);
                 }
             }
         }
@@ -714,26 +775,23 @@ class Admin_CoursesController extends AuthenticatedController
     }
 
     /**
-     * TODO: SORM
      * Returns the teacher for a given cours
-     * @param $course_id
-     * @return array
+     *
+     * @param String $course_id Id of the course
+     * @return array of user infos [user_id, username, Nachname, fullname]
      */
     private function getTeacher($course_id)
     {
-        $query = "SELECT DISTINCT user_id, username, Nachname, CONCAT(Nachname, ', ', Vorname) as fullname
-                  FROM seminar_user
-                  LEFT JOIN auth_user_md5 USING (user_id)
-                  WHERE Seminar_id = ? AND status='dozent'
-                  ORDER BY position, Nachname ASC";
-
-        $teacher_statement = DBManager::get()->prepare($query);
-        $teacher_statement->execute(array($course_id));
-
-        $dozenten = array_map('reset', $teacher_statement->fetchAll(PDO::FETCH_GROUP | PDO::FETCH_ASSOC));
-        $teacher_statement->closeCursor();
-
-        return $dozenten;
+        $teachers   = CourseMember::findByCourseAndStatus($course_id, 'dozent');
+        $collection = SimpleCollection::createFromArray($teachers);
+        return $collection->map(function (CourseMember $teacher) {
+            return array(
+                'user_id'  => $teacher->user_id,
+                'username' => $teacher->username,
+                'Nachname' => $teacher->nachname,
+                'fullname' => $teacher->getUserFullname('no_title_rev'),
+            );
+        });
     }
 
 
@@ -762,7 +820,7 @@ class Admin_CoursesController extends AuthenticatedController
         $sidebar = Sidebar::Get();
         $list = new SelectWidget(_('Einrichtung'), $this->url_for('admin/courses/set_selection'), 'institute');
 
-        if ($GLOBALS['perm']->have_perm('root') || ($GLOBALS['perm']->have_perm('admin') && count($this->insts) > 1)) {
+        if ($GLOBALS['perm']->have_perm('root') || (count($this->insts) > 1)) {
             $list->addElement(new SelectElement(
                 'all',
                 $GLOBALS['perm']->have_perm('root') ? _('Alle') : _("Alle meine Einrichtungen"),
@@ -814,7 +872,7 @@ class Admin_CoursesController extends AuthenticatedController
      */
     private function setActionsWidget($selected_action = null)
     {
-        $actions = self::getActions();
+        $actions = $this->getActions();
         $sidebar = Sidebar::Get();
         $list = new SelectWidget(_('Aktionsbereich-Auswahl'), $this->url_for('admin/courses/set_action_type'), 'action_area');
 
@@ -893,7 +951,9 @@ class Admin_CoursesController extends AuthenticatedController
         $sidebar->addWidget($list, 'filter_teacher');
     }
 
-
+    /**
+     * Adds a search widget to the sidebar
+     */
     private function setSearchWiget()
     {
         $sidebar = Sidebar::Get();
@@ -902,6 +962,11 @@ class Admin_CoursesController extends AuthenticatedController
         $sidebar->addWidget($search, 'filter_search');
     }
 
+    /**
+     * Returns the filter configuration.
+     *
+     * @return array containing the filter configuration
+     */
     private function getFilterConfig()
     {
         $available_filters = array_keys($this->getViewFilters());
@@ -921,6 +986,12 @@ class Admin_CoursesController extends AuthenticatedController
         return $config;
     }
 
+    /**
+     * Sets the filter configuration.
+     *
+     * @param Array $config Filter configuration
+     * @return array containing the filter configuration
+     */
     private function setFilterConfig($config)
     {
         $config = $config ?: array_keys($this->getViewFilters());

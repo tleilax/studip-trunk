@@ -78,7 +78,7 @@ class ExternModuleTemplateSemBrowse extends ExternModule {
                 _("Ort"),
                 _("Art"),
                 _("Zeiten"),
-                _("DozentIn")
+                _("Lehrende")
         );
 
         $this->approved_params = array('start_item_id', 'sem', 'do_search', 'quick_search', 'show_result', 'title', 'sub_title', 'number', 'comment', 'lecturer', 'scope', 'combination', 'type', 'qs_choose', 'withkids', 'xls_export', 'group_by', 'start');
@@ -346,7 +346,7 @@ class ExternModuleTemplateSemBrowse extends ExternModule {
 
         $this->group_by_fields = array( array('name' => _("Semester"), 'group_field' => 'sem_number'),
                             array('name' => _("Bereich"), 'group_field' => 'bereich'),
-                            array('name' => _("DozentIn"), 'group_field' => 'fullname', 'unique_field' => 'username'),
+                            array('name' => _("Lehrende"), 'group_field' => 'fullname', 'unique_field' => 'username'),
                             array('name' => _("Typ"), 'group_field' => 'status'),
                             array('name' => _("Einrichtung"), 'group_field' => 'Institut', 'unique_field' => 'Institut_id'));
 
@@ -713,7 +713,7 @@ class ExternModuleTemplateSemBrowse extends ExternModule {
                             $info = kill_format(trim($tree->tree_data[$kid]['info']));
                         } else {
                             $info = '';
-                            $content[$count]['SUBLEVEL' . $level]['SUBLEVEL_NO_INFO_' . $level] = true;
+                            $content['SUBLEVEL_' . $level][$count]['SUBLEVEL_NO_INFO_' . $level] = true;
                         }
                 //  }
                     $level_content = array(

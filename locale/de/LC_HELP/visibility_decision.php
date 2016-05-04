@@ -44,7 +44,7 @@
   <td colspan=2>
   <ul>
   <li>Sie können Stud.IP aktiv nutzen und sich an Veranstaltungen, Foren etc. beteiligen
-  <li>TeilnehmerInnen-Listen von Veranstaltungen sind nur dann für die TeilnehmerInnen zugänglich, wenn alle einverstanden sind
+  <li>Teilnehmendenliste von Veranstaltungen sind nur dann für die Teilnehmenden zugänglich, wenn alle einverstanden sind
   <li>Sobald Sie im System aktiv werden - d.h. Forumsbeiträge verfassen, sich an nicht-anonymen Umfragen beteiligen, Mails verschicken etc. - wird Ihr Name dabei angegeben und es lässt sich nicht vermeiden, dass andere Nutzerinnen und Nutzer indirekt erkennen können, ob Sie sichtbar oder unsichtbar sind.
   </ul>
     </td></tr>
@@ -70,8 +70,8 @@ anderen zugänglich sind.</p>
 <td width="50%" valign="top">
 <p><b>Ich möchte unsichtbar sein und nehme Einschränkungen in der Nutzung in Kauf.</b>
 <p>Ich nehme damit zur Kenntnis, dass meine persönlichen Daten wie in den <a href="<?= URLHelper::getLink('datenschutz.php') ?>" class="link-intern" target="_blank">Erläuterungen zum Datenschutz</a>
-beschrieben und begründet dennoch AdministratorInnen und in Teilen den
-DozentInnen meiner Veranstaltungen zugänglich sind.
+beschrieben und begründet dennoch Administrator/-innen und, in Teilen, den
+Lehrenden meiner Veranstaltungen zugänglich sind.
 </tr>
 <tr>
     <td width=50% align=center valign=top><a href="<?=URLHelper::getLink('?vis_state=no&vis_cmd=apply')?>"><?= Assets::img('aus.png') ?><br>unsichtbar werden</a></td>

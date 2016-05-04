@@ -65,10 +65,10 @@ function AddNewStatusgruppe ($new_statusgruppe_name, $range_id, $new_statusgrupp
         $statusgruppe_id = MakeUniqueStatusgruppeID();
     }
 
-    $query = "SELECT position FROM statusgruppen WHERE range_id = ? ORDER BY position DESC";
+    $query = "SELECT position + 1 FROM statusgruppen WHERE range_id = ? ORDER BY position DESC";
     $statement = DBManager::get()->prepare($query);
     $statement->execute(array($range_id));
-    $position = 1 + $statement->fetchColumn();
+    $position = $statement->fetchColumn() ?: 0;
 
     $query = "INSERT INTO statusgruppen (statusgruppe_id, name, range_id, position, size,
                                          selfassign, calendar_group, mkdate, chdate)
@@ -252,7 +252,7 @@ function InsertPersonStatusgruppe ($user_id, $statusgruppe_id, $is_institute_gro
         return false;
     }
 
-    $position = CountMembersPerStatusgruppe($statusgruppe_id) + 1;
+    $position = CountMembersPerStatusgruppe($statusgruppe_id);
 
     $query = "INSERT INTO statusgruppe_user (statusgruppe_id, user_id, position)
               VALUES (?, ?, ?)";
@@ -269,19 +269,14 @@ function InsertPersonStatusgruppe ($user_id, $statusgruppe_id, $is_institute_gro
 
 function MakeDatafieldsDefault($user_id, $statusgruppe_id, $default = 'default_value')
 {
-    global $auth;
-    $fields = DataFieldStructure::getDataFieldStructures('userinstrole');
-
-    $query = "SELECT datafield_id FROM datafields WHERE object_type = 'userinstrole'";
-    $ids = DBManager::get()->query($query)->fetchAll(PDO::FETCH_COLUMN);
-
     $query = "REPLACE INTO datafields_entries (datafield_id, range_id, content, sec_range_id, mkdate, chdate)
               VALUES (?, ?, ?, ?, UNIX_TIMESTAMP(), UNIX_TIMESTAMP())";
     $insert = DBManager::get()->prepare($query);
 
-    foreach ($ids as $id) {
-        if ($fields[$id]->editAllowed($auth->auth['perm'])) {
-            $insert->execute(array($id, $user_id, $default, $statusgruppe_id));
+    $fields = DataField::getDataFields('userinstrole');
+    foreach ($fields as $field) {
+        if ($field->editAllowed($GLOBALS['auth']->auth['perm'])) {
+            $insert->execute(array($field->id, $user_id, $default, $statusgruppe_id));
         }
     }
 }
@@ -507,10 +502,10 @@ function SubSortStatusgruppe($insert_father, $insert_daughter) {
     if ($insert_father == '' || $insert_daughter == '') return FALSE;
     if (isVatherDaughterRelation($insert_father, $insert_daughter)) return FALSE;
 
-    $query = "SELECT MAX(position) FROM statusgruppen WHERE range_id = ?";
+    $query = "SELECT MAX(position) + 1 FROM statusgruppen WHERE range_id = ?";
     $statement = DBManager::get()->prepare($query);
     $statement-execute(array($insert_daughter));
-    $position = $statement->fetchColumn() + 1;
+    $position = $statement->fetchColumn() ?: 0;
 
     $query = "UPDATE statusgruppen SET position = ?, range_id = ? WHERE statusgruppe_id = ?";
     $statement = DBManager::get()->prepare($query);
@@ -885,7 +880,20 @@ function get_role_data_recursive($roles, $user_id, &$default_entries, $filter = 
     if (is_array($roles))
     foreach ($roles as $role_id => $role) {
 
-        $role['name'] = $role['role']->getName();
+        $the_user = User::find($user_id);
+
+        switch ($the_user->geschlecht) {
+            case 2:
+                $role['name'] = $role['role']->getName_w() ?: $role['role']->getName();
+                break;
+            case 1:
+                $role['name'] = $role['role']->getName_m() ?: $role['role']->getName();
+                break;
+            default:
+                $role['name'] = $role['role']->getName();
+                break;
+        }
+
         $out_zw = '';
 
         if ($pred != '') {
@@ -897,9 +905,9 @@ function get_role_data_recursive($roles, $user_id, &$default_entries, $filter = 
       $entries = DataFieldEntry::getDataFieldEntries(array($user_id, $role_id));
 
         if ($role['user_there']) {
-            $out_zw .= '<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'
+            $out_zw .= '<tr><td>'
                     .  Assets::img('forumgrau2.png')
-                    .  '&nbsp;</td><td colspan="2"><b>'. htmlReady($new_pred) .'</b></td></tr>';
+                    .  '</td><td colspan="2"><b>'. htmlReady($new_pred) .'</b></td></tr>';
             $zw = '<td %class%></td><td %class%><font size="-1">'. htmlReady($new_pred) .'</font></td>';
         }
 
@@ -917,9 +925,9 @@ function get_role_data_recursive($roles, $user_id, &$default_entries, $filter = 
                     $value = $entry->getDisplayValue();
                 }
 
-                $name = $entry->structure->getName();
+                $name = $entry->getName();
                 if ($role['user_there']) {
-                    $view = (DataFieldStructure::permMask($auth->auth['perm']) >= DataFieldStructure::permMask($entry->structure->getViewPerms()));
+                    $view = $entry->isVisible();
                     $show_star = false;
                     if (!$view && ($user_id == $user->id)) {
                         $view = true;
@@ -983,7 +991,7 @@ function sortStatusgruppeByName($statusgruppe_id)
               FROM statusgruppe_user
               LEFT JOIN auth_user_md5 USING (user_id)
               WHERE statusgruppe_id = ?
-              ORDER BY Nachname";
+              ORDER BY Nachname, Vorname";
     $statement = DBManager::get()->prepare($query);
     $statement->execute(array($statusgruppe_id));
     $users = $statement->fetchAll(PDO::FETCH_COLUMN);
@@ -994,7 +1002,7 @@ function sortStatusgruppeByName($statusgruppe_id)
     $update = DBManager::get()->prepare($query);
 
     foreach ($users as $index => $user_id) {
-        $update->execute(array($index + 1, $user_id, $statusgruppe_id));
+        $update->execute(array($index, $user_id, $statusgruppe_id));
     }
 }
 

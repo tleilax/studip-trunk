@@ -21,7 +21,7 @@ if (ForumPerm::has('search', $seminar_id)) {
     $search->addNeedle(_('Beiträge durchsuchen'), 'searchfor', true);
     $search->addFilter(_('Titel'), 'search_title');
     $search->addFilter(_('Inhalt'), 'search_content');
-    $search->addFilter(_('AutorIn'), 'search_author');
+    $search->addFilter(_('Autor/-in'), 'search_author');
     $sidebar->addWidget($search);
 }
 
@@ -42,7 +42,7 @@ if ($section == 'index') {
             $abo_url = PluginEngine::getLink('coreforum/index/abo/' . $constraint['topic_id']);
         endif;
         
-        $actions->addLink($abo_text, $abo_url, 'icons/16/blue/link-intern.png');
+        $actions->addLink($abo_text, $abo_url, Icon::create('link-intern', 'clickable'));
     }
 
     if (ForumPerm::has('close_thread', $seminar_id) && $constraint['depth'] > 1) {
@@ -52,7 +52,7 @@ if ($section == 'index') {
             $close = new LinkElement(
                 _('Thema schließen'), 
                 $close_url, 
-                'icons/16/blue/lock-locked.png',
+                Icon::create('lock-locked', 'clickable'),
                 array(
                     'onclick' => 'STUDIP.Forum.closeThreadFromThread(\'' . $constraint['topic_id'] . '\', '
                             . ForumHelpers::getPage() . '); return false;',
@@ -66,7 +66,7 @@ if ($section == 'index') {
             $open = new LinkElement(
                 _('Thema öffnen'),
                 $open_url,
-                'icons/16/blue/lock-unlocked.png',
+                Icon::create('lock-unlocked', 'clickable'),
                 array(
                     'onclick' => 'STUDIP.Forum.openThreadFromThread(\'' . $constraint['topic_id'] . '\', '
                                 . ForumHelpers::getPage() . '); return false;',
@@ -84,7 +84,7 @@ if ($section == 'index') {
             $emphasize = new LinkElement(
                 _('Thema hervorheben'),
                 $emphasize_url,
-                'icons/16/blue/staple.png',
+                Icon::create('staple', 'clickable'),
                 array(
                     'onclick' => 'STUDIP.Forum.makeThreadStickyFromThread(\'' . $constraint['topic_id'] . '\', '
                             . ForumHelpers::getPage() . '); return false;',
@@ -98,7 +98,7 @@ if ($section == 'index') {
             $emphasize = new LinkElement(
                 _('Hervorhebung aufheben'),
                 $unemphasize_url,
-                'icons/16/blue/staple.png',
+                Icon::create('staple', 'clickable'),
                 array(
                     'onclick' => 'STUDIP.Forum.makeThreadUnstickyFromThread(\'' . $constraint['topic_id'] . '\', '
                             . ForumHelpers::getPage() . '); return false;',
@@ -110,7 +110,7 @@ if ($section == 'index') {
     }
 
     if ($constraint['depth'] == 0 && ForumPerm::has('add_category', $seminar_id)) {
-        $actions->addLink(_('Neue Kategorie erstellen'), "#create", 'icons/16/blue/link-intern.png');
+        $actions->addLink(_('Neue Kategorie erstellen'), "#create", Icon::create('link-intern', 'clickable'));
     }
 }
 
@@ -120,7 +120,7 @@ if ($section === 'index' && ForumPerm::has('pdfexport', $seminar_id)) {
     $export = new ExportWidget();
     $export->addLink(_('Beiträge als PDF exportieren'),
                      $controller->url_for('index/pdfexport/' . $constraint['topic_id']),
-                     'icons/16/blue/file-pdf.png');
+                     Icon::create('file-pdf', 'clickable'));
     $sidebar->addWidget($export);
 }
 ?>
@@ -173,7 +173,7 @@ if ($section === 'index' && ForumPerm::has('pdfexport', $seminar_id)) {
 
 <!-- Erstellen eines neuen Elements (Kateogire, Thema, Beitrag) -->
 <? if ($constraint['depth'] == 0) : ?>
-    <div style="text-align: center">
+    <div style="clear: right; text-align: center">
         <div class="button-group">
             <? if (ForumPerm::has('abo', $seminar_id) && $section == 'index') : ?>
             <span id="abolink">
@@ -193,7 +193,7 @@ if ($section === 'index' && ForumPerm::has('pdfexport', $seminar_id)) {
 <? else : ?>
     <? if (!$flash['edit_entry'] && ForumPerm::has('add_entry', $seminar_id)) : ?>
     <? $constraint['depth'] == 1 ? $button_face = _('Neues Thema erstellen') : $button_face = _('Antworten') ?>
-    <div style="text-align: center">
+    <div style="clear: right; text-align: center">
         <div id="new_entry_button" <?= $this->flash['new_entry_title'] ? 'style="display: none"' : '' ?>>
             <div class="button-group">
                 <? if ($constraint['depth'] <= 1 || ($constraint['closed'] == 0)) : ?>

@@ -27,7 +27,7 @@ class Course_TopicsController extends AuthenticatedController
                 PageLayout::postMessage(MessageBox::success(_("Thema gelöscht.")));
             } else {
                 $topic['title'] = Request::get("title");
-                $topic['description'] = Request::get("description");
+                $topic['description'] = Studip\Markup::purifyHtml(Request::get("description"));
                 if ($topic->isNew()) {
                     $topic['seminar_id'] = $_SESSION['SessionSeminar'];
                 }
@@ -113,6 +113,17 @@ class Course_TopicsController extends AuthenticatedController
             $this->set_content_type('text/html;Charset=windows-1252');
             $this->response->add_header('X-Title', $topic_id ? _("Bearbeiten").": ".$this->topic['title'] : _("Neues Thema erstellen"));
         }
+    }
+
+    public function allow_public_action()
+    {
+        if (!$GLOBALS['perm']->have_studip_perm("tutor", $_SESSION['SessionSeminar'])) {
+            throw new AccessDeniedException();
+        }
+        $this->course = Course::findCurrent();
+        $this->course['public_topics'] = $this->course['public_topics'] ? 0 : 1;
+        $this->course->store();
+        $this->redirect("course/topics");
     }
 
     public function copy_action()

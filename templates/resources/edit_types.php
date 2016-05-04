@@ -8,7 +8,7 @@
 <form method="POST" action="<?= URLHelper::getLink() ?>#a">
 <?= CSRFProtection::tokenTag() ?>
 
-<table class="default zebra" style="margin: 0 1%; width: 98%;">
+<table class="default" style="margin: 0 1%; width: 98%;">
     <colgroup>
         <col width="4%">
         <col width="16%">
@@ -146,16 +146,10 @@
                             <? if (!$property['system']):  ?>
                                 <a href="<?= URLHelper::getLink('?delete_type_property_id=' . $property['property_id']
                                                                .'&delete_type_category_id='.$property['category_id']) ?>">
-                                    <?= Assets::img('icons/16/blue/trash.png', array(
-                                            'class' => 'text-top',
-                                            'title' => _('Eigenschaft löschen'))
-                                        ) ?>
+                                    <?= Icon::create('trash', 'clickable', ['title' => _('Eigenschaft löschen')])->asImg(16, ["class" => 'text-top']) ?>
                                 </a>
                             <? else: ?>
-                                <?= Assets::img('icons/16/grey/decline/trash.png', array(
-                                        'class' => 'text-top',
-                                        'title' => _('Löschen der Eigenschaft nicht möglich, Systemobjekt!'))
-                                    ) ?>
+                                <?= Icon::create('trash+decline', 'inactive', ['title' => _('Löschen der Eigenschaft nicht möglich, Systemobjekt!')])->asImg(16, ["class" => 'text-top']) ?>
                             <? endif; ?>
                             </td>
                         </tr>

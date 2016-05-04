@@ -34,7 +34,6 @@ STUDIP.CourseWizard = {
             wrapper.append(trash);
             $('#wizard-participating').append(wrapper);
         }
-        STUDIP.CourseWizard.getLecturerSearch();
     },
 
     /**
@@ -50,42 +49,9 @@ STUDIP.CourseWizard = {
         if (grandparent.children('div').length == 0) {
             grandparent.children('div.description').addClass('hidden-js');
         }
-        STUDIP.CourseWizard.getLecturerSearch();
         return false;
     },
 
-    /**
-     * Fetches a quicksearch input form via AJAX. This is necessary as the
-     * required QuickSearch needs an institute ID which is not known in
-     * advance and is provided by JS here.
-     */
-    getLecturerSearch: function()
-    {
-        var params = 'step=' + $('input[name="step"]').val() +
-            '&method=getSearch' +
-            '&parameter[coursetype]=' + $('select#wizard-coursetype option:selected').val();
-        params += '&parameter[inst][]=' + $('select#wizard-home-institute option:selected').val();
-        $('input[name^="participating["]').each(function () {
-            params += '&parameter[inst][]=' + $(this).attr('id');
-        });
-        $('input[name^="lecturers["]').each(function () {
-            params += '&parameter[lecturers][]=' + $(this).attr('id');
-        });
-        var target = $('div#wizard-lecturersearch');
-        var oldSearch = target.html();
-        $.ajax(
-            $('select#wizard-home-institute').data('ajax-url'),
-            {
-                data: params,
-                success: function (data, status, xhr) {
-                    target.html(data);
-                },
-                error: function (xhr, status, error) {
-                    alert(error);
-                }
-            }
-        );
-    },
 
     /**
      * Adds a new person to the course.
@@ -133,6 +99,8 @@ STUDIP.CourseWizard = {
     addLecturer: function(id, name)
     {
         STUDIP.CourseWizard.addPerson(id, name, 'lecturers', 'lecturer', 'wizard-lecturers', 'deputies');
+        // Add deputies if applicable.
+        STUDIP.CourseWizard.addDefaultDeputies(id);
     },
 
     /**
@@ -145,6 +113,38 @@ STUDIP.CourseWizard = {
         STUDIP.CourseWizard.addPerson(id, name, 'deputies', 'deputy', 'wizard-deputies', 'lecturers');
     },
 
+    addTutor: function(id, name)
+    {
+        STUDIP.CourseWizard.addPerson(id, name, 'tutors', 'tutor', 'wizard-tutors', 'lecturers');
+    },
+
+    /**
+     * Adds the default deputies of given user to the course.
+     * @param id Stud.IP user ID
+     */
+    addDefaultDeputies: function(id)
+    {
+        var lecturerDiv = $('#wizard-lecturers');
+        if ($('input[name="deputy_id_parameter"]').length > 0 && lecturerDiv.data('default-enabled') == '1') {
+            var params = 'step=' + $('input[name="step"]').val() +
+                '&method=getDefaultDeputies' +
+                '&parameter[]=' + id;
+            $.ajax(
+                lecturerDiv.data('ajax-url'),
+                {
+                    data: params,
+                    success: function (data, status, xhr) {
+                        if (data.length > 0) {
+                            for (var i = 0 ; i < data.length ; i++) {
+                                STUDIP.CourseWizard.addDeputy(data[i].id, data[i].name);
+                            }
+                        }
+                    }
+                }
+            )
+        }
+    },
+
     /**
      * Remove a person (lecturer or deputy) from the list.
      * @param id ID of the person to remove
@@ -155,7 +155,7 @@ STUDIP.CourseWizard = {
         var parent = $('input#' + id).parent();
         var grandparent = parent.parent();
         parent.remove();
-        if (grandparent.children('div').length == 0) {
+        if (grandparent.children('div[class!="description"]').length == 0) {
             grandparent.children('div.description').addClass('hidden-js');
         }
         return false;
@@ -257,6 +257,7 @@ STUDIP.CourseWizard = {
                             $('#studyareas li').not('.keep-node').addClass('css-tree-hidden');
                             STUDIP.CourseWizard.buildPartialTree(items, true, '');
                             $('#sem-tree-assign-all').removeClass('hidden-js');
+                            $('li.sem-tree-root input#root').prop('checked', true);
                         } else {
                             STUDIP.CourseWizard.resetSearch();
                             alert($('#studyareas').data('no-search-result'));
@@ -316,7 +317,6 @@ STUDIP.CourseWizard = {
                     var selected = false;
                 }
                 var node = STUDIP.CourseWizard.createTreeNode(items[i], assignable, selected);
-                node.addClass('css-tree-show');
                 parent.children('ul').append(node);
             } else {
                 node.removeClass('css-tree-hidden');
@@ -336,6 +336,7 @@ STUDIP.CourseWizard = {
                     node.children('input[name="studyareas[]"]').before(unassign);
                 }
             }
+            node.children('input#' + items[i].id).prop('checked', true);
             if (items[i].assignable) {
                 node.addClass('sem-tree-result');
             }
@@ -377,7 +378,9 @@ STUDIP.CourseWizard = {
                     attr('type', 'checkbox').
                     attr('id', values.id);
                 var label = $('<label>').
-                    attr('for', values.id);
+                    attr('for', values.id).
+                    attr('onclick', "return STUDIP.CourseWizard.getTreeChildren('" +
+                        values.id + "', true)");
                 // Build link for opening the current node.
                 var link = $('div#studyareas').data('forward-url');
                 if (link.indexOf('?') > -1) {
@@ -386,9 +389,7 @@ STUDIP.CourseWizard = {
                     link += '?open_node=' + values.id;
                 }
                 var openLink = $('<a>').
-                    attr('href', link).
-                    attr('onclick', "return STUDIP.CourseWizard.getTreeChildren('" +
-                        values.id + "', true)");
+                    attr('href', link);
                 openLink.html(values.name);
                 label.append(openLink);
                 item.append(input);
@@ -403,7 +404,7 @@ STUDIP.CourseWizard = {
                 }
             } else {
                 if ($('#assigned li.sem-tree-assigned-' + values.id).length > 0) {
-                    assignLink.css('display', 'none');
+                    assign.css('display', 'none');
                 }
                 item.html(item.html() + values.name);
                 item.addClass('tree-node');

@@ -14,8 +14,10 @@
  * @since       3.0
  */
 
-class PublicCoursesController extends StudipController
+class PublicCoursesController extends AuthenticatedController
 {
+    protected $allow_nobody = true;
+
     /**
      * Initializes the controller.
      *
@@ -24,12 +26,7 @@ class PublicCoursesController extends StudipController
      */
     public function before_filter(&$action, &$args)
     {
-        page_open(array('sess' => 'Seminar_Session',
-        'auth' => 'Seminar_Default_Auth',
-        'perm' => 'Seminar_Perm',
-        'user' => 'Seminar_User'));
-
-        include 'lib/seminar_open.php';
+        parent::before_filter($action, $args);
 
         if (!Config::get()->ENABLE_FREE_ACCESS) {
             throw new AccessDeniedException(_('Öffentliche Veranstaltungen sind nicht aktiviert.'));
@@ -39,8 +36,6 @@ class PublicCoursesController extends StudipController
 
         PageLayout::setTitle(_('Öffentliche Veranstaltungen'));
         PageLayout::setHelpKeyword('Basis.SymboleFreieVeranstaltungen');
-
-        $this->set_layout($GLOBALS['template_factory']->open('layouts/base'));
 
         // we are definitely not in an lexture or institute
         closeObject();
@@ -119,7 +114,7 @@ class PublicCoursesController extends StudipController
         $statement->execute(array($seminar_ids));
         while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
             $nav = new Navigation('files', 'folder.php?cmd=tree');
-            $nav->setImage('icons/16/grey/files.png', array('title' => sprintf(_('%s Dokumente'), $row['count'])));
+            $nav->setImage(Icon::create('files', 'inactive', ["title" => sprintf(_('%s Dokumente'),$row['count'])]));
             $seminars[$row['seminar_id']]['navigations']['files'] = $nav;
         }
 
@@ -134,7 +129,7 @@ class PublicCoursesController extends StudipController
         $statement->execute(array($seminar_ids));
         while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
             $nav = new Navigation('news', '');
-            $nav->setImage('icons/16/grey/news.png', array('title' => sprintf(_('%s Ankündigungen'), $row['count'])));
+            $nav->setImage(Icon::create('news', 'inactive', ["title" => sprintf(_('%s Ankündigungen'),$row['count'])]));
             $seminars[$row['range_id']]['navigations']['news'] = $nav;
         }
 
@@ -147,7 +142,7 @@ class PublicCoursesController extends StudipController
         $statement->execute(array($seminar_ids));
         while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
             $nav = new Navigation('scm', 'dispatch.php/course/scm');
-            $nav->setImage('icons/16/grey/infopage.png', array('title' => sprintf(_('%s Einträge'), $row['count'])));
+            $nav->setImage(Icon::create('infopage', 'inactive', ["title" => sprintf(_('%s Einträge'),$row['count'])]));
             $seminars[$row['range_id']]['navigations']['scm'] = $nav;
         }
 
@@ -160,7 +155,7 @@ class PublicCoursesController extends StudipController
         $statement->execute(array($seminar_ids));
         while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
             $nav = new Navigation('literature', 'dispatch.php/course/literatur');
-            $nav->setImage('icons/16/grey/literature.png', array('title' => sprintf(_('%s Literaturlisten'), $row['count'])));
+            $nav->setImage(Icon::create('literature', 'inactive', ["title" => sprintf(_('%s Literaturlisten'),$row['count'])]));
             $seminars[$row['range_id']]['navigations']['literature'] = $nav;
         }
 
@@ -173,7 +168,7 @@ class PublicCoursesController extends StudipController
         $statement->execute(array($seminar_ids));
         while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
             $nav = new Navigation('schedule', 'dispatch.php/course/dates');
-            $nav->setImage('icons/16/grey/schedule.png', array('title' => sprintf(_('%s Termine'), $row['count'])));
+            $nav->setImage(Icon::create('schedule', 'inactive', ["title" => sprintf(_('%s Termine'),$row['count'])]));
             $seminars[$row['range_id']]['navigations']['schedule'] = $nav;
         }
 
@@ -187,22 +182,24 @@ class PublicCoursesController extends StudipController
             $statement->execute(array($seminar_ids));
             while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
                 $nav = new Navigation('wiki', 'wiki.php');
-                $nav->setImage('icons/16/grey/wiki.png', array('title' => sprintf(_('%s WikiSeiten'), $row['count'])));
+                $nav->setImage(Icon::create('wiki', 'inactive', ["title" => sprintf(_('%s WikiSeiten'),$row['count'])]));
                 $seminars[$row['range_id']]['navigations']['wiki'] = $nav;
             }
         }
 
         // Votes
         if (Config::get()->VOTE_ENABLE) {
-            $query = "SELECT range_id, COUNT(vote_id) AS count
-                      FROM vote
-                      WHERE state IN ('active','stopvis') AND range_id IN (?)
-                      GROUP BY range_id";
+            $query = "SELECT questionnaire_assignments.range_id, COUNT(DISTINCT questionnaires.questionnaire_id) AS count
+                      FROM questionnaires
+                          INNER JOIN questionnaire_assignments ON (questionnaire_assignments.questionnaire_id = questionnaires.questionnaire_id)
+                      WHERE questionnaires.visible = '1'
+                          AND questionnaire_assignments.range_id IN (?)
+                      GROUP BY questionnaire_assignments.range_id ";
             $statement = DBManager::get()->prepare($query);
             $statement->execute(array($seminar_ids));
             while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
                 $nav = new Navigation('vote', '#vote');
-                $nav->setImage('icons/16/grey/vote.png', array('title' => sprintf(_('%s Umfrage(n)'), $row['count'])));
+                $nav->setImage(Icon::create('vote', 'inactive', ["title" => sprintf(_('%s Umfrage(n)'),$row['count'])]));
                 $seminars[$row['range_id']]['navigations']['vote'] = $nav;
             }
         }

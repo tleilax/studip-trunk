@@ -17,7 +17,7 @@
 <form method="post" data-topicid="<?= $post['topic_id'] ?>" action="<?= PluginEngine::getLink('coreforum/index/update_entry/' . $post['topic_id']) ?>">
     <?= CSRFProtection::tokenTag() ?>
     
-<div class="posting<?= $highlight_topic == $post['topic_id'] ? ' highlight' : '' ?>" style="position: relative;" id="forumposting_<?= htmlReady($post['topic_id']) ?>">
+<div class="real_posting posting<?= $highlight_topic == $post['topic_id'] ? ' highlight' : '' ?>" style="position: relative;" id="forumposting_<?= htmlReady($post['topic_id']) ?>">
     <a class="marked" href="<?= PluginEngine::getLink('coreforum/index/unset_favorite/'. $post['topic_id']) ?>"
             onClick="STUDIP.Forum.unsetFavorite('<?= $post['topic_id'] ?>'); return false;" title="<?= _('Beitrag nicht mehr merken') ?>"
             <?= ($post['fav']) ?: 'style="display: none;"' ?> data-topic-id="<?= $post['topic_id'] ?>">
@@ -57,9 +57,7 @@
                 <? $parent_topic = ForumEntry::getConstraints(ForumEntry::getParentTopicId($post['topic_id'])) ?>
 
                 <? if($constraint['closed']) : ?>
-                <?= Assets::img('icons/16/black/lock-locked.png', array(
-                    'title' => _('Dieses Thema wurde geschlossen. Sie können daher nicht auf diesen Beitrag antworten.')
-                )) ?>
+                <?= Icon::create('lock-locked', 'info', ['title' => _('Dieses Thema wurde geschlossen. Sie können daher nicht auf diesen Beitrag antworten.')])->asImg(16) ?>
                 <? endif ?>
 
                 <span data-edit-topic="<?= $post['topic_id'] ?>">
@@ -85,14 +83,14 @@
         <!-- Postinginhalt -->
         <div class="content">
             <span data-edit-topic="<?= $post['topic_id'] ?>" <?= $edit_posting == $post['topic_id'] ? '' : 'style="display: none;"' ?>>
-                <textarea data-textarea="<?= $post['topic_id'] ?>" data-reset="<?= htmlReady($post['content_raw']) ?>" name="content" class="add_toolbar"><?= htmlReady($post['content_raw']) ?></textarea>
+                <textarea data-textarea="<?= $post['topic_id'] ?>" data-reset="<?= htmlReady($post['content_raw']) ?>" name="content" class="add_toolbar wysiwyg"><?= htmlReady($post['content_raw']) ?></textarea>
             </span>
             
             <span data-show-topic="<?= $post['topic_id'] ?>" data-topic-content="<?= $post['topic_id'] ?>" <?= $edit_posting != $post['topic_id'] ? '' : 'style="display: none;"' ?>>
                 <?= ForumHelpers::highlight($post['content'], $highlight) ?>
+                <?= OpenGraph::extract($post['content'])->render() ?>
             </span>
         </div>
-        <div class="opengraph_area"><?= $post['opengraph'] ?></div>
 
         <!-- Buttons for this Posting -->
         <div class="buttons">
@@ -121,7 +119,7 @@
                 )) ?>
             <? endif ?>
 
-            <? if ($section == 'index') : ?>
+            <? if ($section == 'index' && $perms['edit']) : ?>
                 <?= Studip\LinkButton::create(_('Beitrag bearbeiten'), PluginEngine::getUrl('coreforum/index/index/' 
                       . $post['topic_id'] .'/?edit_posting=' . $post['topic_id']), array(
                           'onClick' => "STUDIP.Forum.editEntry('". $post['topic_id'] ."'); return false;",
@@ -184,7 +182,7 @@
                 <? endif ?>
 
                 <? if ($post['user_id'] == 'nobody') : ?>
-                    <?= Assets::img('icons/16/black/community.png') ?>
+                    <?= Icon::create('community', 'info')->asImg() ?>
                     <span class="username" data-profile="<?= $post['topic_id'] ?>">
                         <?= htmlReady($post['author']) ?>
                     </span>
@@ -195,12 +193,12 @@
                     <? if ($status == 'available') : ?>
                         <img src="<?= $picturepath ?>/community.png" title="<?= _('Online') ?>">
                     <? elseif ($status == 'away') : ?>
-                        <?= Assets::img('icons/16/grey/community.png', array('title' => _('Abwesend'))) ?>
+                        <?= Icon::create('community', 'inactive', ['title' => _('Abwesend')])->asImg() ?>
                     <? elseif ($status == 'offline') : ?>
-                        <?= Assets::img('icons/16/black/community.png', array('title' => _('Offline'))) ?>
+                        <?= Icon::create('community', 'info', ['title' => _('Offline')])->asImg() ?>
                     <? endif ?>
 
-                    <a href="<?= URLHelper::getLink('dipatch.php/profile', array('username' => get_username($post['user_id'])))?>">
+                    <a href="<?= URLHelper::getLink('dispatch.php/profile', array('username' => get_username($post['user_id'])))?>">
                         <span class="username" data-profile="<?= $post['topic_id'] ?>">
                             <?= htmlReady(get_fullname($post['user_id'])) ?>
                         </span>
@@ -234,7 +232,7 @@
                     
                 <!-- Permalink -->
                 <a href="<?= PluginEngine::getLink('coreforum/index/index/' . $post['topic_id'] .'#'. $post['topic_id']) ?>">
-                    <?= Assets::img('icons/16/blue/group.png', array('title' => _('Link zu diesem Beitrag'))) ?>
+                    <?= Icon::create('group', 'clickable', ['title' => _('Link zu diesem Beitrag')])->asImg() ?>
                 </a>
                 <br>
 
@@ -255,9 +253,7 @@
         
         <? if ($is_new): ?>
         <span class="new_posting">
-            <?= Assets::img('icons/16/red/new/forum.png', array(
-                'title' => _("Dieser Beitrag ist seit Ihrem letzten Besuch hinzugekommen.")
-            )) ?>
+            <?= Icon::create('forum+new', 'attention', ['title' => _("Dieser Beitrag ist seit Ihrem letzten Besuch hinzugekommen.")])->asImg(16) ?>
         </span>
         <? endif ?>  
     </span>

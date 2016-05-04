@@ -24,7 +24,7 @@ use Studip\Button, Studip\LinkButton;
     <? if (count($institutes)): ?>
         <tr>
             <td>
-                <strong><?= _('in Einrichtungen:') ?></strong>
+                <strong><?= _('Einrichtung:') ?></strong>
             </td>
             <td>
                 <select name="inst_id" style="min-width: 400px;">
@@ -42,15 +42,19 @@ use Studip\Button, Studip\LinkButton;
     <? if (count($courses)): ?>
         <tr>
             <td>
-                <strong><?= _('in Veranstaltungen:') ?></strong>
+                <strong><?= _('Veranstaltungen:') ?></strong>
             </td>
             <td>
                 <select name="sem_id" style="min-width: 400px;">
                     <option value="0">&nbsp;</option>
-                <? foreach ($courses as $course): ?>
-                    <option value="<?= $course['id'] ?>" <?= $course['id'] == $sem_id ? 'selected="selected"' : '' ?>>
-                        <?= htmlReady($course['name']) ?>
-                    </option>
+                <? foreach ($courses as $sem => $_courses): ?>
+                    <optgroup label="<?= htmlReady($sem)?>">
+                        <? foreach($_courses as $course) :?>
+                            <option value="<?= $course['id'] ?>" <?= $course['id'] == $sem_id ? 'selected="selected"' : '' ?>>
+                                <?= htmlReady($course['name']) ?>
+                            </option>
+                        <? endforeach?>
+                    </optgroup>
                 <? endforeach;?>
                 </select>
             </td>
@@ -128,7 +132,7 @@ use Studip\Button, Studip\LinkButton;
             </td>
             <td align="right">
                 <a href="<?= URLHelper::getLink('dispatch.php/messages/write', array('rec_uname' => $user['username'])) ?>" data-dialog>
-                    <?= Assets::img('icons/16/blue/mail.png', array('class' => 'text-top', 'title' => _('Nachricht an Benutzer verschicken'))) ?>
+                    <?= Icon::create('mail', 'clickable')->asImg(['class' => 'text-top', 'title' => _('Nachricht an Benutzer verschicken')]) ?>
                 </a>
             </td>
         </tr>
