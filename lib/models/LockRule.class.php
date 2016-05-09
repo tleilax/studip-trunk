@@ -75,7 +75,7 @@ class LockRule extends SimpleORMap
         $db = DBManager::get();
         $lock_rule_id = $db->query("SELECT lock_rule FROM user_info WHERE user_id = " . $db->quote($user_id))
                            ->fetchColumn();
-        return self::find($lock_rule_id);
+        return $lock_rule_id ? self::find($lock_rule_id) : null;
     }
 
     /**
