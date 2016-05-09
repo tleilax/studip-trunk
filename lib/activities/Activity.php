@@ -52,6 +52,7 @@ class Activity extends \SimpleORMap
         return $this->content;
     }
 
+
     public function setVerb($verb)
     {
         if (in_array($verb, self::$allowed_verbs) === false) {

@@ -21,7 +21,7 @@ class ParticipantsProvider implements ActivityProvider
             $summary = _('%s wurde in die Veranstaltung "%s" eingetragen.');
             $summary = sprintf($summary, get_fullname($user_id), $course->name);
         } elseif($event == 'UserDidLeaveCourse') {
-            $verb = 'experienced';
+            $verb = 'voided';
             $summary = _('%s wurde aus der Veranstaltung "%s" ausgetragen.');
             $summary = sprintf($summary, get_fullname($user_id), $course->name);
         } elseif ($event = "CourseDidGetMember") {
