@@ -60,6 +60,12 @@ class Course_StatusgroupsController extends AuthenticatedController
         // Set default sidebar image
         $sidebar = Sidebar::get();
         $sidebar->setImage('sidebar/person-sidebar.png');
+
+        $actions = new ActionsWidget();
+        $actions->addLink(_('Neue Gruppe anlegen'),
+            $this->url_for('course/statusgroups/edit'),
+            Icon::create('add', 'clickable'))->asDialog('size=auto');
+        $sidebar->addWidget($actions);
     }
 
     public function index_action()
@@ -119,37 +125,52 @@ class Course_StatusgroupsController extends AuthenticatedController
     }
 
     /**
-     * Allows editing of a given statusgroup.
+     * Allows editing of a given statusgroup or creating a new one.
      * @param String $group_id ID of the group to edit
      * @throws Trails_Exception 403 if access not allowed with current permission level.
      */
-    public function edit_action($group_id)
+    public function edit_action($group_id = '')
     {
         if ($this->is_tutor) {
-            $this->group = Statusgruppen::find($group_id);
+            if ($group_id) {
+                $this->group = Statusgruppen::find($group_id);
+            } else {
+                $this->group = new Statusgruppen();
+            }
         } else {
             throw new Trails_Exception(403);
         }
     }
 
     /**
-     * Saves changes to given statusgroup.
+     * Saves changes to given statusgroup or creates a new entry.
      * @param String $group_id ID of the group to edit
      * @throws Trails_Exception 403 if access not allowed with current permission level.
      */
-    public function save_action($group_id)
+    public function save_action($group_id = '')
     {
         if ($this->is_tutor) {
             CSRFProtection::verifyUnsafeRequest();
-            $group = Statusgruppen::find($group_id);
+            if ($group_id) {
+                $group = Statusgruppen::find($group_id);
+            } else {
+                $group = new Statusgruppen();
+            }
             $group->name = Request::get('name');
+            $group->range_id = $this->course_id;
             $group->size = Request::int('size');
             $group->selfassign = Request::int('selfassign', 0);
-            if ($group->isDirty()) {
+            if ($group->isNew() || $group->isDirty()) {
                 $group->store();
-                PageLayout::postSuccess(sprintf(
-                    _('Die Daten der Gruppe "%s" wurden gespeichert.'),
-                    $group->name));
+                if ($group->isNew()) {
+                    PageLayout::postSuccess(sprintf(
+                        _('Die Gruppe "%s" wurde angelegt.'),
+                        $group->name));
+                } else {
+                    PageLayout::postSuccess(sprintf(
+                        _('Die Daten der Gruppe "%s" wurden gespeichert.'),
+                        $group->name));
+                }
             } else {
                 PageLayout::postInfo(sprintf(
                     _('Es wurden keine Daten der Gruppe "%s" geändert.'),
