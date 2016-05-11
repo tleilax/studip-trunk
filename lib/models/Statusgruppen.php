@@ -44,6 +44,13 @@ class Statusgruppen extends SimpleORMap
             'on_delete'         => 'delete',
             'order_by'          => 'ORDER BY position ASC',
         );
+        $config['has_and_belongs_to_many']['dates'] = array(
+            'class_name' => 'CourseDate',
+            'thru_table' => 'termin_related_groups',
+            'order_by' => 'ORDER BY date',
+            'on_delete' => 'delete',
+            'on_store' => 'store'
+        );
         $config['belongs_to']['parent'] = array(
             'class_name' => 'Statusgruppen',
             'foreign_key' => 'range_id',
@@ -203,6 +210,27 @@ class Statusgruppen extends SimpleORMap
         if (!$this->hasFolder() && $set) {
             create_folder((_("Dateiordner der Gruppe:") . ' ' . $this->name), (_("Ablage für Ordner und Dokumente dieser Gruppe")), $this->id, 15);
         }
+    }
+
+    /**
+     * Finds CourseTopics assigned to this group via course dates.
+     * @return array
+     */
+    public function findTopics()
+    {
+        return CourseTopic::findBySQL("INNER JOIN `themen_termine` USING (`issue_id`)
+            INNER JOIN `termin_related_groups` USING (`termin_id`)
+            WHERE `termin_related_groups`.`statusgruppe_id` = ?", array($this->id));
+    }
+
+    /**
+     * Finds CourseDates assigned to this group.
+     * @return array
+     */
+    public function findDates()
+    {
+        return CourseDate::findBySQL("INNER JOIN `termin_related_groups` USING (`termin_id`)
+            WHERE `termin_related_groups`.`statusgruppe_id` = ?", array($this->id));
     }
 
     /**

@@ -105,6 +105,12 @@ class Course_StatusgroupsController extends AuthenticatedController
             $group['members'] = $this->sortGroupMembers($group['id'],
                 $allmembers->findBy('user_id', $groupmembers),
                 $this->sort_group, $this->sort_by, $this->order);
+            if ($dates = $g->findDates()) {
+                $group['dates'] = $dates;
+            }
+            if ($topics = $g->findTopics()) {
+                $group['topics'] = $topics;
+            }
             $this->groups[] = $group;
             $grouped_users = array_merge($grouped_users, $groupmembers);
         }
@@ -136,11 +142,21 @@ class Course_StatusgroupsController extends AuthenticatedController
     public function edit_action($group_id = '')
     {
         if ($this->is_tutor) {
+
+            // Fetch group with given ID or create a new one.
             if ($group_id) {
                 $this->group = Statusgruppen::find($group_id);
             } else {
                 $this->group = new Statusgruppen();
             }
+
+            // Check if course has regular times.
+            $this->cycles = SeminarCycleDate::findBySeminar_id($this->course_id);
+
+            // Check if course has single dates, not belonging to a regular cycle.
+            $dates = CourseDate::findBySeminar_id($this->course_id);
+            $this->singledates = array_filter($dates, function ($d) { return !((bool) $d->metadate_id); });
+
         } else {
             throw new Trails_Exception(403);
         }
@@ -164,22 +180,23 @@ class Course_StatusgroupsController extends AuthenticatedController
             $group->range_id = $this->course_id;
             $group->size = Request::int('size');
             $group->selfassign = Request::int('selfassign', 0);
-            if ($group->isNew() || $group->isDirty()) {
-                $group->store();
-                if ($group->isNew()) {
-                    PageLayout::postSuccess(sprintf(
-                        _('Die Gruppe "%s" wurde angelegt.'),
-                        $group->name));
-                } else {
-                    PageLayout::postSuccess(sprintf(
-                        _('Die Daten der Gruppe "%s" wurden gespeichert.'),
-                        $group->name));
-                }
+
+            // Set assigned dates.
+            if ($assigned_dates = Request::getArray('dates')) {
+                $group->dates = CourseDate::findMany($assigned_dates);
+            }
+
+            $group->store();
+            if ($group->isNew()) {
+                PageLayout::postSuccess(sprintf(
+                    _('Die Gruppe "%s" wurde angelegt.'),
+                    $group->name));
             } else {
-                PageLayout::postInfo(sprintf(
-                    _('Es wurden keine Daten der Gruppe "%s" geändert.'),
+                PageLayout::postSuccess(sprintf(
+                    _('Die Daten der Gruppe "%s" wurden gespeichert.'),
                     $group->name));
             }
+
             $this->relocate('course/statusgroups');
         } else {
             throw new Trails_Exception(403);
