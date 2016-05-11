@@ -65,9 +65,15 @@ class Course_StatusgroupsController extends AuthenticatedController
         $actions->addLink(_('Neue Gruppe anlegen'),
             $this->url_for('course/statusgroups/edit'),
             Icon::create('add', 'clickable'))->asDialog('size=auto');
+        $actions->addLink(_('Mehrere Gruppen anlegen'),
+            $this->url_for('course/statusgroups/batch'),
+            Icon::create('group2+add', 'clickable'))->asDialog('size=auto');
         $sidebar->addWidget($actions);
     }
 
+    /**
+     * Lists all available statusgroups.
+     */
     public function index_action()
     {
         Navigation::activateItem('/course/members/statusgroups');
@@ -82,10 +88,8 @@ class Course_StatusgroupsController extends AuthenticatedController
             CourseMember::findByCourseAndStatus($this->course_id, array('user', 'autor')));
 
         // Find all statusgroups for this course.
-        $groups = Statusgruppen::findBySeminar_id($this->course_id) ?: array();
-        usort($groups, function ($a, $b) {
-            return strnatcasecmp($a->name, $b->name);
-        });
+        $groups = SimpleCollection::createFromArray(
+            Statusgruppen::findBySeminar_id($this->course_id))->orderBy('position asc, name asc');
 
         // Helper array for collecting all group members.
         $grouped_users = array();
@@ -196,6 +200,187 @@ class Course_StatusgroupsController extends AuthenticatedController
             PageLayout::postSuccess(sprintf(
                 _('Die Gruppe "%s" wurde gelöscht.'),
                 $groupname));
+            $this->relocate('course/statusgroups');
+        } else {
+            throw new Trails_Exception(403);
+        }
+    }
+
+    /**
+     * Provides the possibility to batch create several groups at once.
+     */
+    public function batch_action()
+    {
+        if ($this->is_tutor) {
+            // Check if course has regular times.
+            $this->has_cycles = (count(SeminarCycleDate::findBySeminar_id($this->course_id)) > 0);
+
+            // Check if course has single dates, not belonging to a regular cycle.
+            $dates = CourseDate::findBySeminar_id($this->course_id);
+            $this->has_singledates = (count(array_filter($dates, function ($d) { return !((bool) $d->metadate_id); })) > 0);
+
+            // Check if course has topics.
+            $this->has_topics = (count(CourseTopic::findBySeminar_id($this->course_id)) > 0);
+        } else {
+            throw new Trails_Exception(403);
+        }
+    }
+
+    /**
+     * Batch creation of statusgroups according to given settings.
+     */
+    public function batch_create_action()
+    {
+        if ($this->is_tutor) {
+            CSRFProtection::verifyUnsafeRequest();
+
+            // Create a number of groups, sequentially named.
+            if (Request::option('mode') == 'numbering') {
+
+                $counter = 0;
+                for ($i = 1 ; $i <= Request::int('number') ; $i++) {
+                    $group = new Statusgruppen();
+                    $group->name = Request::get('prefix').' '.(Request::int('startnumber', 1) + $i);
+                    $group->range_id = $this->course_id;
+                    $group->size = Request::int('size', 0);
+                    if (Request::int('exclusive', 0)) {
+                        $group->selfassign = 2;
+                    } else if (Request::int('selfassign', 0)) {
+                        $group->selfassign = 2;
+                    }
+                    $group->store();
+                    $counter++;
+                }
+                PageLayout::postSuccess(sprintf(
+                    ngettext('Eine Gruppe wurde angelegt.', '%d Gruppen wurden angelegt.', $counter),
+                    $counter));
+
+            // Create groups by course metadata, like topics, dates or lecturers.
+            } else if (Request::option('mode') == 'coursedata') {
+
+                switch (Request::option('createmode')) {
+
+                    // Create groups per topic.
+                    case 'topics':
+                        $topics = SimpleCollection::createFromArray(
+                            CourseTopic::findBySeminar_id($this->course_id))->orderBy('priority');
+                        $counter = 0;
+
+                        foreach ($topics as $t) {
+                            $group = new Statusgruppen();
+                            $group->name = _('Thema:').' '.$t->title;
+                            $group->position = $t->priority;
+                            $group->range_id = $this->course_id;
+                            $group->size = Request::int('size', 0);
+                            if (Request::int('exclusive', 0)) {
+                                $group->selfassign = 2;
+                            } else if (Request::int('selfassign', 0)) {
+                                $group->selfassign = 2;
+                            }
+                            $group->store();
+
+                            // Connect group to dates that are assigned to the given topic.
+                            $dates = CourseDate::findByIssue_id($t->id);
+                            foreach ($dates as $d) {
+                                $d->statusgruppen->append($group);
+                                $d->store();
+                            }
+
+                            $counter++;
+                        }
+
+                        PageLayout::postSuccess(sprintf(
+                            ngettext('Eine Gruppe wurde angelegt.', '%d Gruppen wurden angelegt.', count($topics)),
+                            $counter));
+                        break;
+
+                    // Create groups per (regular and irregular) dates.
+                    case 'dates':
+
+                        // Find regular cycles first and create corresponding groups.
+                        $cycles = SimpleCollection::createFromArray(
+                            SeminarCycleDate::findBySeminar_id($this->course_id));
+
+                        $counter = 0;
+                        foreach ($cycles as $c) {
+                            $group = new Statusgruppen();
+                            $group->name = $c->toString();
+                            $group->position = $counter + 1;
+                            $group->range_id = $this->course_id;
+                            $group->size = Request::int('size', 0);
+                            if (Request::int('exclusive', 0)) {
+                                $group->selfassign = 2;
+                            } else if (Request::int('selfassign', 0)) {
+                                $group->selfassign = 2;
+                            }
+                            $group->store();
+
+                            // Connect group to dates that are assigned to the given cycle.
+                            foreach ($c->dates as $d) {
+                                $d->statusgruppen->append($group);
+                                $d->store();
+                            }
+
+                            $counter++;
+                        }
+
+                        // Now find irregular dates and create groups.
+                        $dates = CourseDate::findBySeminar_id($this->course_id);
+                        $singledates = array_filter($dates, function ($d) { return !((bool) $d->metadate_id); });
+                        foreach ($singledates as $d) {
+                            $group = new Statusgruppen();
+                            $group->name = $d->toString();
+                            $group->position = $counter + 1;
+                            $group->range_id = $this->course_id;
+                            $group->size = Request::int('size', 0);
+                            if (Request::int('exclusive', 0)) {
+                                $group->selfassign = 2;
+                            } else if (Request::int('selfassign', 0)) {
+                                $group->selfassign = 2;
+                            }
+                            $group->store();
+
+                            $d->statusgruppen->append($group);
+                            $d->store();
+
+                            $counter++;
+                        }
+
+                        PageLayout::postSuccess(sprintf(
+                            ngettext('Eine Gruppe wurde angelegt.', '%d Gruppen wurden angelegt.', $counter),
+                            $counter));
+                        break;
+
+
+                    // Create groups per lecturer.
+                    case 'lecturers':
+                        $lecturers = SimpleCollection::createFromArray(
+                            CourseMember::findByCourseAndStatus($this->course_id, 'dozent'))->orderBy('position');
+                        $counter = 0;
+
+                        foreach ($lecturers as $l) {
+                            $group = new Statusgruppen();
+                            $group->name = $l->getUserFullname('full');
+                            $group->position = $l->position;
+                            $group->range_id = $this->course_id;
+                            $group->size = Request::int('size', 0);
+                            if (Request::int('exclusive', 0)) {
+                                $group->selfassign = 2;
+                            } else if (Request::int('selfassign', 0)) {
+                                $group->selfassign = 2;
+                            }
+                            $group->store();
+                            $counter++;
+                        }
+
+                        PageLayout::postSuccess(sprintf(
+                            ngettext('Eine Gruppe wurde angelegt.', '%d Gruppen wurden angelegt.', count($lecturers)),
+                            $counter));
+                        break;
+                }
+
+            }
+
             $this->relocate('course/statusgroups');
         } else {
             throw new Trails_Exception(403);
