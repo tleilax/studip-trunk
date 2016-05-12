@@ -40,7 +40,12 @@ class DocumentsProvider implements ActivityProvider
         $activity->object_route = $route;
     }
 
-
+    /**
+     * posts an activity for a given notification event
+     *
+     * @param String $event a notication for an activiy
+     * @param Array  $document information which a relevant for the activity
+     */
     public function postActivity($event, $document)
     {
         $document_info = $document->toArray();

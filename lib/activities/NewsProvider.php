@@ -40,6 +40,12 @@ class NewsProvider implements ActivityProvider
         }
     }
 
+    /**
+     * posts an activity for a given notification event
+     *
+     * @param String $event a notication for an activiy
+     * @param String  $news_id  
+     */
     public function postActivity($event, $news_id)
     {
         $news = new \StudipNews($news_id);
@@ -81,6 +87,12 @@ class NewsProvider implements ActivityProvider
         }
     }
 
+
+    /**
+     * get the details for the passed activity
+     *
+     * @param object $activity the activity to fill with details, passed by reference
+     */
     public function getActivityDetails(&$activity)
     {
         $news = new \StudipNews($activity->object_id);

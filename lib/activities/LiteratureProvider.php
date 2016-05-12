@@ -12,6 +12,11 @@ class LiteratureProvider implements ActivityProvider
 {
 
 
+    /**
+     * get the details for the passed activity
+     *
+     * @param object $activity the activity to fill with details, passed by reference
+     */
     public function getActivityDetails(&$activity)
     {
         if($activity->context == "course") {
@@ -39,6 +44,13 @@ class LiteratureProvider implements ActivityProvider
         
     }
 
+
+    /**
+     * posts an activity for a given notification event
+     *
+     * @param String $event a notication for an activiy
+     * @param Array  $info information which a relevant for the activity
+     */
     public function postActivity($event, $info)
     {
 

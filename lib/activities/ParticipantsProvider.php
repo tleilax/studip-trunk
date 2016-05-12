@@ -11,6 +11,13 @@ namespace Studip\Activity;
 class ParticipantsProvider implements ActivityProvider
 {
 
+    /**
+     * posts an activity for a given notification event
+     *
+     * @param String $event a notication for an activiy
+     * @param String  $course_id
+     * @param String  $user_id
+     */
     public function postActivity($event, $course_id, $user_id)
     {
 
