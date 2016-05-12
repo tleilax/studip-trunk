@@ -10,63 +10,94 @@ namespace Studip\Activity;
 
 class LiteratureProvider implements ActivityProvider
 {
-    public function getActivities($observer_id, Context $context, Filter $filter) {
 
-        $range_id = $this->contextToRangeId($context);
-
-        if (!\StudipNews::haveRangePermission('view', $range_id, $observer_id)) {
-            return array();
-        }
-
-        if ($course = \Course::find($range_id)) {
-            $sem_class = $course->getSemClass();
-            $module = $sem_class->getModule('literature');
-            $notifications = $module->getActivityObjects($range_id, $observer_id, $filter);
-
-            return $this->wrapParticipantNotifications($notifications);
-        }
-
-        return array();
-    }
-
-    private function contextToRangeId(Context $context){
-        if ($context instanceof CourseContext) {
-            $range_id = $context->getSeminarId();
-        }
-
-        else if ($context instanceof InstituteContext) {
-            $range_id = $context->getInstituteId();
-        }
-
-        return $range_id;
-    }
-
-    private function  wrapParticipantNotifications($notifications){
-        return array_map(function ($n) {
-            return new Activity(
-                'literature_provider',
-                array(                                  // the description and summaray of the performed activity
-                    'title' => $n->getSummary(),
-                    'content' => $n->getContent()
-                ),
-                'user',                                 // who initiated the activity?
-                $n->getCreatorid(),                     // id of initiator
-                'created',                              // the type if the activity
-                'forum',                                // type of activity object
-                array(                                  // url to entity in Stud.IP
-                    $n->getUrl() => _('Zum Eintrag springen') // TODO check URL destination
-                ),
-                'http://example.com/route',             // url to entity as rest-route
-                $n->getDate()
-            );
-        }, $notifications);
-
-    }
 
     public function getActivityDetails(&$activity)
     {
+        if($activity->context == "course") {
+
+            $url = \URLHelper::getUrl("dispatch.php/course/literature?cid={$activity->context_id}&view=literatur_sem");
+            $route = null;
+
+            $activity->object_url = array(
+                $url => _('Zur Literatur der Veranstaltung')
+            );
+
+            $activity->object_route = $route;
+
+        } elseif($activity->context == "institute") {
+            $url = \URLHelper::getUrl("dispatch.php/course/literature?cid={$activity->context_id}&view=literatur_sem");
+            $route= null;
+
+            $activity->object_url = array(
+                $url => _('Zur Literatur der Einrichtung')
+            );
+
+            $activity->object_route = $route;
+
+        }
         
     }
+
+    public function postActivity($event, $info)
+    {
+
+        $range_id = $info['range_id'];
+        $name = $info['name'];
+        $type     = get_object_type($range_id);
+        $user_id = $GLOBALS['user']->id;
+        $mkdate = strtotime('now');
+
+
+        if($type == 'sem') {
+            $course = \Course::find($range_id);
+        } else {
+            $course = \Institute::find($range_id);
+        }
+
+        $context_clean = ($type == 'sem') ? _("Veranstaltung") : _("Einrichtung");
+
+
+        if($event == 'LitListDidUpdate') {
+            $verb = 'edited';
+            $summary = _('Die Literaturliste %s wurde von %s in der %s "%s" geändert.');
+        } elseif($event == 'LitListDidInsert') {
+            $verb = 'created';
+            $summary = _('Die Literaturliste %s wurde von %s in der %s "%s" erstellt.');
+        } elseif($event == 'LitListDidDelete') {
+            $verb = 'voided';
+            $summary = _('Die Literaturliste %s wurde von %s in der %s "%s" entfernt.');
+        } elseif($event == 'LitListElementDidUpdate') {
+            $verb = 'edited';
+            $summary = _('Es wurde %s von %s in eine Literaturliste in der %s "%s" geändert.');
+        } elseif($event == 'LitListElementDidInsert') {
+            $verb = 'created';
+            $summary = _('Es wurde %s von %s in eine Literaturliste der %s "%s" erstellt.');
+        } elseif($event == 'LitListElementDidDelete') {
+            $verb = 'voided';
+            $summary = _('Es wurde %s von %s aus einer Literaturliste in der %s "%s" entfernt.');
+        }
+
+        $summary = sprintf($summary, $name, get_fullname($user_id), $context_clean , $course->name);
+
+        $activity = Activity::get(
+            array(
+                'provider'     => 'literature',
+                'context'      => ($type == 'sem') ? 'course' : 'institute',
+                'context_id'   => $range_id,
+                'content'      => $summary,
+                'actor_type'   => 'user',                                       // who initiated the activity?
+                'actor_id'     => $user_id,                                     // id of initiator
+                'verb'         => $verb,                                        // the activity type
+                'object_id'    => $name,                                        // the id of the referenced object
+                'object_type'  => 'literaturelist',                             // type of activity object
+                'mkdate'       =>  $mkdate
+            )
+        );
+
+        $activity->store();
+    }
+
 
     public static function getLexicalField()
     {

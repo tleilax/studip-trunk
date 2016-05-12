@@ -24,8 +24,7 @@ class CourseContext extends Context
             $course = \Course::find($this->seminar_id);
 
             // todo check which modules are active globally
-            ## $module_names = array('forum', 'participants', 'documents', 'literature', 'wiki');
-            $module_names = array('forum', 'participants', 'documents', 'wiki', 'schedule');
+            $module_names = array('forum', 'participants', 'documents', 'wiki', 'schedule', 'literature');
 
             // get list of possible providers by checking the activated plugins and modules for the current seminar
             $modules = new \Modules();

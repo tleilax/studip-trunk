@@ -24,7 +24,7 @@ class InstituteContext extends Context
             $institute = \Institute::find($this->institute_id);
 
             // todo check which modules are active globally (participantprovider isn't suitable here?)
-            $module_names = array('forum', 'documents', 'wiki');
+            $module_names = array('forum', 'documents', 'wiki', 'literature');
 
             // get list of possible providers by checking the activated plugins and modules for the current institute
             $modules = new \Modules();
