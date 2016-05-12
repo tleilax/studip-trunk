@@ -14,9 +14,8 @@
  * @since       3.5
  */
 
-require_once 'app/models/members.php';
+require_once 'app/models/statusgroups.php';
 require_once 'lib/messaging.inc.php'; //Funktionen des Nachrichtensystems
-
 require_once 'lib/export/export_studipdata_func.inc.php'; // Funktionen für den Export
 
 class Course_StatusgroupsController extends AuthenticatedController
@@ -66,7 +65,7 @@ class Course_StatusgroupsController extends AuthenticatedController
             $this->url_for('course/statusgroups/edit'),
             Icon::create('add', 'clickable'))->asDialog('size=auto');
         $actions->addLink(_('Mehrere Gruppen anlegen'),
-            $this->url_for('course/statusgroups/batch'),
+            $this->url_for('course/statusgroups/create_groups'),
             Icon::create('group2+add', 'clickable'))->asDialog('size=auto');
         $sidebar->addWidget($actions);
     }
@@ -101,10 +100,18 @@ class Course_StatusgroupsController extends AuthenticatedController
                 'id' => $g->id,
                 'name' => $g->name,
             );
+
+            // Sort members alphabetically or by given criteria
             $groupmembers = $g->members->pluck('user_id');
-            $group['members'] = $this->sortGroupMembers($group['id'],
-                $allmembers->findBy('user_id', $groupmembers),
-                $this->sort_group, $this->sort_by, $this->order);
+            if ($this->sort_group == $g->id) {
+                $group['members'] = StatusgroupsModel::sortGroupMembers(
+                    $allmembers->findBy('user_id', $groupmembers),
+                    $this->sort_by, $this->order);
+            } else {
+                $group['members'] = StatusgroupsModel::sortGroupMembers(
+                    $allmembers->findBy('user_id', $groupmembers));
+            }
+
             if ($dates = $g->findDates()) {
                 $group['dates'] = $dates;
             }
@@ -120,13 +127,19 @@ class Course_StatusgroupsController extends AuthenticatedController
             return !in_array($m->user_id, $grouped_users);
         });
         if ($ungrouped) {
+
+            if ($this->sort_group == 'nogroup') {
+                $members = StatusgroupsModel::sortGroupMembers($ungrouped,
+                    $this->sort_by, $this->order);
+            } else {
+                $members = StatusgroupsModel::sortGroupMembers($ungrouped);
+            }
+
             // Create dummy entry for "no group" users.
             $no_group = array(
                 'id' => 'nogroup',
                 'name' => _('keiner Gruppe zugeordnet'),
-                'members' => $this->sortGroupMembers('nogroup',
-                    $ungrouped,
-                    $this->sort_group, $this->sort_by, $this->order)
+                'members' => $members
             );
 
             array_unshift($this->groups, $no_group);
@@ -171,7 +184,7 @@ class Course_StatusgroupsController extends AuthenticatedController
     {
         if ($this->is_tutor) {
             CSRFProtection::verifyUnsafeRequest();
-            $group = $this->updateGroup($group_id, Request::get('name'),
+            $group = StatusgroupsModel::updateGroup($group_id, Request::get('name'),
                 0, Request::int('size', 0),
                 Request::int('selfassign', 0),
                 Request::int('exclusive', 0),
@@ -217,7 +230,7 @@ class Course_StatusgroupsController extends AuthenticatedController
     /**
      * Provides the possibility to batch create several groups at once.
      */
-    public function batch_action()
+    public function create_groups_action()
     {
         if ($this->is_tutor) {
             // Check if course has regular times.
@@ -247,7 +260,7 @@ class Course_StatusgroupsController extends AuthenticatedController
 
                 $counter = 0;
                 for ($i = 0 ; $i < Request::int('number') ; $i++) {
-                    $group = $this->updateGroup('', Request::get('prefix').' '.
+                    $group = StatusgroupsModel::updateGroup('', Request::get('prefix').' '.
                         (Request::int('startnumber', 1) + $i),
                         $counter + 1, Request::int('size', 0),
                         Request::int('selfassign', 0),
@@ -271,7 +284,7 @@ class Course_StatusgroupsController extends AuthenticatedController
                         $counter = 0;
 
                         foreach ($topics as $t) {
-                            $group = $this->updateGroup('', _('Thema:').' '.$t->title,
+                            $group = StatusgroupsModel::updateGroup('', _('Thema:').' '.$t->title,
                                 $t->priority, Request::int('size', 0),
                                 Request::int('selfassign', 0),
                                 Request::int('exclusive', 0),
@@ -301,7 +314,7 @@ class Course_StatusgroupsController extends AuthenticatedController
 
                         $counter = 0;
                         foreach ($cycles as $c) {
-                            $group = $this->updateGroup('', $c->toString(),
+                            $group = StatusgroupsModel::updateGroup('', $c->toString(),
                                 $counter + 1, Request::int('size', 0),
                                 Request::int('selfassign', 0),
                                 Request::int('exclusive', 0),
@@ -320,7 +333,7 @@ class Course_StatusgroupsController extends AuthenticatedController
                         $dates = CourseDate::findBySeminar_id($this->course_id);
                         $singledates = array_filter($dates, function ($d) { return !((bool) $d->metadate_id); });
                         foreach ($singledates as $d) {
-                            $group = $this->updateGroup('', $d->toString(),
+                            $group = StatusgroupsModel::updateGroup('', $d->toString(),
                                 $counter + 1, Request::int('size', 0),
                                 Request::int('selfassign', 0),
                                 Request::int('exclusive', 0),
@@ -345,7 +358,7 @@ class Course_StatusgroupsController extends AuthenticatedController
                         $counter = 0;
 
                         foreach ($lecturers as $l) {
-                            $this->updateGroup('', $l->getUserFullname('full'),
+                            StatusgroupsModel::updateGroup('', $l->getUserFullname('full'),
                                 $l->position, Request::int('size', 0),
                                 Request::int('selfassign', 0),
                                 Request::int('exclusive', 0),
@@ -367,63 +380,76 @@ class Course_StatusgroupsController extends AuthenticatedController
         }
     }
 
-    private function sortGroupMembers($group_id, $members, $sort_group, $sort_by, $order)
+    public function batch_action_action()
     {
-        $sorting = 'nachname asc, vorname asc';
-        if ($group_id == $sort_group) {
-            $sorting = $sort_by.' '.$order.', '.$sorting;
-        }
+        if ($this->is_tutor) {
 
-        return $members->orderBy($sorting);
+            // Actions for selected groups.
+            if (Request::submitted('batch_groups') && Request::option('groups_action')) {
+                if ($groups = Request::getArray('groups')) {
+                    $this->groups = SimpleCollection::createFromArray(
+                        Statusgruppen::findMany($groups))->orderBy('position');
+                    switch (Request::option('groups_action')) {
+                        case 'edit':
+                            PageLayout::setTitle('Einstellungen bearbeiten');
+                            $this->edit = true;
+                            break;
+                        case 'delete':
+                            PageLayout::setTitle('Gruppe(n) löschen?');
+                            $this->askdelete = true;
+                            break;
+                        default:
+                            $this->relocate('course/statusgroups');
+                    }
+                } else {
+                    PageLayout::postError(_('Sie haben keine Gruppe ausgewählt.'));
+                }
+            // Actions for selected group members.
+            } else if (Request::submitted('batch_members') && Request::option('members_action')) {
+
+            // No action selected.
+            } else {
+                PageLayout::postError(_('Sie haben keine Aktion ausgewählt.'));
+            }
+
+        } else {
+            // Non-tutors may not access this.
+            throw new Trails_Exception(403);
+        }
     }
 
-    /**
-     * Creates or updates a statusgroup.
-     *
-     * @param string $id         ID of an existing group or empty if new group
-     * @param string $name       group name
-     * @param int    $position   position or null if automatic position after other groups
-     * @param int    $size       max number of members or 0 if unlimited
-     * @param int    $selfassign may users join this group by themselves?
-     * @param int    $exclusive  may users only join one of the exclusive groups?
-     * @param in     $makefolder create a document folder assigned to this group?
-     * @param array  $dates      dates assigned to this group
-     * @return Statusgruppen     The saved statusgroup.
-     * @throws Exception
-     */
-    private function updateGroup($id, $name, $position, $size, $selfassign, $exclusive, $makefolder, $dates = array())
+    public function batch_delete_groups_action()
     {
-        if ($id) {
-            $group = Statusgruppen::find($id);
+        if ($this->is_tutor) {
+            CSRFProtection::verifyUnsafeRequest();
+            $groups = Statusgruppen::findMany(Request::getArray('groups'));
+            foreach ($groups as $g) {
+                $g->delete();
+            }
+            PageLayout::postInfo('Die ausgewählten Gruppen wurden gelöscht.');
+            $this->relocate('course/statusgroups');
         } else {
-            $group = new Statusgruppen();
+            throw new Trails_Exception(403);
         }
-        $group->name = $name;
-        $group->position = $position;
-        $group->range_id = $this->course_id;
-        $group->size = $size;
-        if ($exclusive) {
-            $group->selfassign = 2;
-        } else if ($selfassign) {
-            $group->selfassign = 1;
+    }
+
+    public function batch_save_groups_action()
+    {
+        if ($this->is_tutor) {
+            CSRFProtection::verifyUnsafeRequest();
+            $groups = Statusgruppen::findMany(Request::getArray('groups'));
+            foreach ($groups as $g) {
+                StatusgroupsModel::updateGroup($g->id, $g->name, $g->position,
+                    Request::int('size', 0),
+                    Request::int('selfassign', 0),
+                    Request::int('exclusive', 0),
+                    false);
+            }
+            PageLayout::postInfo('Die Einstellungen der ausgewählten Gruppen wurden gespeichert.');
+            $this->relocate('course/statusgroups');
+        } else {
+            throw new Trails_Exception(403);
         }
-
-        // Set assigned dates.
-        if ($dates) {
-            $group->dates = CourseDate::findMany($dates);
-        }
-
-        $group->store();
-
-        /*
-         * Create document folder if requested (ID is needed here,
-         * so we do that after store()).
-         */
-        if (!$id && $makefolder) {
-            $group->updateFolder(true);
-        }
-
-        return $group;
     }
 
 }

@@ -18,7 +18,7 @@
         <section>
             <label>
                 <input type="checkbox" name="selfassign" value="1"<?= $group->selfassign ? ' checked' : '' ?>>
-                <?= _('Selbsteintrag') ?>
+                <?= _('Selbsteintrag erlaubt') ?>
             </label>
         </section>
         <section>
