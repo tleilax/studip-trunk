@@ -27,6 +27,19 @@
                 <?= _('Exklusiver Selbsteintrag (in nur eine Gruppe)') ?>
             </label>
         </section>
+        <?php if ($group->isNew()) : ?>
+            <section>
+                <label>
+                    <input type="checkbox" name="makefolder" value="1">
+                    <?= _('Dateiordner anlegen') ?>
+                </label>
+            </section>
+        <?php elseif ($group->hasFolder()) : ?>
+            <section>
+                <input type="checkbox" checked disabled>
+                <?= _('Zu dieser Gruppe gehört ein Dateiordner.')  ?>
+            </section>
+        <?php endif ?>
     </fieldset>
     <fieldset>
         <legend>

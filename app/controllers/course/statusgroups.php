@@ -171,23 +171,14 @@ class Course_StatusgroupsController extends AuthenticatedController
     {
         if ($this->is_tutor) {
             CSRFProtection::verifyUnsafeRequest();
-            if ($group_id) {
-                $group = Statusgruppen::find($group_id);
-            } else {
-                $group = new Statusgruppen();
-            }
-            $group->name = Request::get('name');
-            $group->range_id = $this->course_id;
-            $group->size = Request::int('size');
-            $group->selfassign = Request::int('selfassign', 0);
+            $group = $this->updateGroup($group_id, Request::get('name'),
+                0, Request::int('size', 0),
+                Request::int('selfassign', 0),
+                Request::int('exclusive', 0),
+                Request::int('makefolder', 0),
+                Request::getArray('dates'));
 
-            // Set assigned dates.
-            if ($assigned_dates = Request::getArray('dates')) {
-                $group->dates = CourseDate::findMany($assigned_dates);
-            }
-
-            $group->store();
-            if ($group->isNew()) {
+            if (!$group_id) {
                 PageLayout::postSuccess(sprintf(
                     _('Die Gruppe "%s" wurde angelegt.'),
                     $group->name));
@@ -255,17 +246,13 @@ class Course_StatusgroupsController extends AuthenticatedController
             if (Request::option('mode') == 'numbering') {
 
                 $counter = 0;
-                for ($i = 1 ; $i <= Request::int('number') ; $i++) {
-                    $group = new Statusgruppen();
-                    $group->name = Request::get('prefix').' '.(Request::int('startnumber', 1) + $i);
-                    $group->range_id = $this->course_id;
-                    $group->size = Request::int('size', 0);
-                    if (Request::int('exclusive', 0)) {
-                        $group->selfassign = 2;
-                    } else if (Request::int('selfassign', 0)) {
-                        $group->selfassign = 2;
-                    }
-                    $group->store();
+                for ($i = 0 ; $i < Request::int('number') ; $i++) {
+                    $group = $this->updateGroup('', Request::get('prefix').' '.
+                        (Request::int('startnumber', 1) + $i),
+                        $counter + 1, Request::int('size', 0),
+                        Request::int('selfassign', 0),
+                        Request::int('exclusive', 0),
+                        Request::int('makefolder', 0));
                     $counter++;
                 }
                 PageLayout::postSuccess(sprintf(
@@ -284,17 +271,11 @@ class Course_StatusgroupsController extends AuthenticatedController
                         $counter = 0;
 
                         foreach ($topics as $t) {
-                            $group = new Statusgruppen();
-                            $group->name = _('Thema:').' '.$t->title;
-                            $group->position = $t->priority;
-                            $group->range_id = $this->course_id;
-                            $group->size = Request::int('size', 0);
-                            if (Request::int('exclusive', 0)) {
-                                $group->selfassign = 2;
-                            } else if (Request::int('selfassign', 0)) {
-                                $group->selfassign = 2;
-                            }
-                            $group->store();
+                            $group = $this->updateGroup('', _('Thema:').' '.$t->title,
+                                $t->priority, Request::int('size', 0),
+                                Request::int('selfassign', 0),
+                                Request::int('exclusive', 0),
+                                Request::int('makefolder', 0));
 
                             // Connect group to dates that are assigned to the given topic.
                             $dates = CourseDate::findByIssue_id($t->id);
@@ -320,17 +301,11 @@ class Course_StatusgroupsController extends AuthenticatedController
 
                         $counter = 0;
                         foreach ($cycles as $c) {
-                            $group = new Statusgruppen();
-                            $group->name = $c->toString();
-                            $group->position = $counter + 1;
-                            $group->range_id = $this->course_id;
-                            $group->size = Request::int('size', 0);
-                            if (Request::int('exclusive', 0)) {
-                                $group->selfassign = 2;
-                            } else if (Request::int('selfassign', 0)) {
-                                $group->selfassign = 2;
-                            }
-                            $group->store();
+                            $group = $this->updateGroup('', $c->toString(),
+                                $counter + 1, Request::int('size', 0),
+                                Request::int('selfassign', 0),
+                                Request::int('exclusive', 0),
+                                Request::int('makefolder', 0));
 
                             // Connect group to dates that are assigned to the given cycle.
                             foreach ($c->dates as $d) {
@@ -345,17 +320,11 @@ class Course_StatusgroupsController extends AuthenticatedController
                         $dates = CourseDate::findBySeminar_id($this->course_id);
                         $singledates = array_filter($dates, function ($d) { return !((bool) $d->metadate_id); });
                         foreach ($singledates as $d) {
-                            $group = new Statusgruppen();
-                            $group->name = $d->toString();
-                            $group->position = $counter + 1;
-                            $group->range_id = $this->course_id;
-                            $group->size = Request::int('size', 0);
-                            if (Request::int('exclusive', 0)) {
-                                $group->selfassign = 2;
-                            } else if (Request::int('selfassign', 0)) {
-                                $group->selfassign = 2;
-                            }
-                            $group->store();
+                            $group = $this->updateGroup('', $d->toString(),
+                                $counter + 1, Request::int('size', 0),
+                                Request::int('selfassign', 0),
+                                Request::int('exclusive', 0),
+                                Request::int('makefolder', 0));
 
                             $d->statusgruppen->append($group);
                             $d->store();
@@ -376,17 +345,11 @@ class Course_StatusgroupsController extends AuthenticatedController
                         $counter = 0;
 
                         foreach ($lecturers as $l) {
-                            $group = new Statusgruppen();
-                            $group->name = $l->getUserFullname('full');
-                            $group->position = $l->position;
-                            $group->range_id = $this->course_id;
-                            $group->size = Request::int('size', 0);
-                            if (Request::int('exclusive', 0)) {
-                                $group->selfassign = 2;
-                            } else if (Request::int('selfassign', 0)) {
-                                $group->selfassign = 2;
-                            }
-                            $group->store();
+                            $this->updateGroup('', $l->getUserFullname('full'),
+                                $l->position, Request::int('size', 0),
+                                Request::int('selfassign', 0),
+                                Request::int('exclusive', 0),
+                                Request::int('makefolder', 0));
                             $counter++;
                         }
 
@@ -412,6 +375,55 @@ class Course_StatusgroupsController extends AuthenticatedController
         }
 
         return $members->orderBy($sorting);
+    }
+
+    /**
+     * Creates or updates a statusgroup.
+     *
+     * @param string $id         ID of an existing group or empty if new group
+     * @param string $name       group name
+     * @param int    $position   position or null if automatic position after other groups
+     * @param int    $size       max number of members or 0 if unlimited
+     * @param int    $selfassign may users join this group by themselves?
+     * @param int    $exclusive  may users only join one of the exclusive groups?
+     * @param in     $makefolder create a document folder assigned to this group?
+     * @param array  $dates      dates assigned to this group
+     * @return Statusgruppen     The saved statusgroup.
+     * @throws Exception
+     */
+    private function updateGroup($id, $name, $position, $size, $selfassign, $exclusive, $makefolder, $dates = array())
+    {
+        if ($id) {
+            $group = Statusgruppen::find($id);
+        } else {
+            $group = new Statusgruppen();
+        }
+        $group->name = $name;
+        $group->position = $position;
+        $group->range_id = $this->course_id;
+        $group->size = $size;
+        if ($exclusive) {
+            $group->selfassign = 2;
+        } else if ($selfassign) {
+            $group->selfassign = 1;
+        }
+
+        // Set assigned dates.
+        if ($dates) {
+            $group->dates = CourseDate::findMany($dates);
+        }
+
+        $group->store();
+
+        /*
+         * Create document folder if requested (ID is needed here,
+         * so we do that after store()).
+         */
+        if (!$id && $makefolder) {
+            $group->updateFolder(true);
+        }
+
+        return $group;
     }
 
 }
