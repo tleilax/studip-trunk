@@ -1,5 +1,5 @@
 <form action="<?= $controller->url_for('course/statusgroups/batch_action') ?>" method="post">
-<section class="contentbox statusgroups">
+<section class="contentbox course-statusgroups">
     <header>
         <h1>
             <?= _('Teilnehmende nach Gruppen') ?>
@@ -12,7 +12,7 @@
                     <?php if ($group['id'] != 'nogroup') : ?>
                     <input aria-label="<?= _('Gruppe auswählen') ?>"
                            type="checkbox" name="groups[]"
-                           class="groups" value="<?= $group['id'] ?>"
+                           class="groupselector" value="<?= $group['id'] ?>"
                            id="<?= $group['id'] ?>" style="float:left"/>
                     <?php endif ?>
                     <a href="<?= ContentBoxHelper::href($group['id'], array('contentbox_type' => 'news')) ?>">
@@ -156,23 +156,24 @@
         </article>
     <?php endforeach ?>
     <?php if (count($groups) > 1) : ?>
-        <footer style="text-align: left">
-            <label>
-                <input aria-label="<?= sprintf(_('Alle Gruppen auswählen')) ?>"
-                       type="checkbox" name="allgroups" value="1"
-                       data-proxyfor=":checkbox.groups">
-                <?= _('alle an/abwählen') ?>
-            </label>
-            <br/>
-            <label>
-                <?= _('Ausgewählte Gruppen') ?>:
-                <select name="groups_action">
-                    <option value="">-- <?= _('bitte auswählen') ?> --</option>
-                    <option value="edit"><?= _('Bearbeiten') ?></option>
-                    <option value="delete"><?= _('Löschen') ?></option>
-                </select>
-            </label>
-            <?= Studip\Button::create(_('Ausführen'), 'batch_groups', array('data-dialog' => 'size=auto')) ?>
+        <footer>
+            <div class="groupselection">
+                <label>
+                    <input aria-label="<?= sprintf(_('Alle Gruppen auswählen')) ?>"
+                           type="checkbox" name="allgroups" value="1"
+                           data-proxyfor=":checkbox.groupselector">
+                    <?= _('Alle auswählen') ?>
+                </label>
+            </div>
+            <div class="groupactions">
+                <label>
+                    <select name="groups_action">
+                        <option value="edit"><?= _('Bearbeiten') ?></option>
+                        <option value="delete"><?= _('Löschen') ?></option>
+                    </select>
+                </label>
+                <?= Studip\Button::create(_('Ausführen'), 'batch_groups', array('data-dialog' => 'size=auto')) ?>
+            </div>
         </footer>
     <?php endif ?>
 </section>

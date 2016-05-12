@@ -385,7 +385,7 @@ class Course_StatusgroupsController extends AuthenticatedController
         if ($this->is_tutor) {
 
             // Actions for selected groups.
-            if (Request::submitted('batch_groups') && Request::option('groups_action')) {
+            if (Request::submitted('batch_groups')) {
                 if ($groups = Request::getArray('groups')) {
                     $this->groups = SimpleCollection::createFromArray(
                         Statusgruppen::findMany($groups))->orderBy('position');
@@ -405,11 +405,8 @@ class Course_StatusgroupsController extends AuthenticatedController
                     PageLayout::postError(_('Sie haben keine Gruppe ausgewählt.'));
                 }
             // Actions for selected group members.
-            } else if (Request::submitted('batch_members') && Request::option('members_action')) {
+            } else if (Request::submitted('batch_members')) {
 
-            // No action selected.
-            } else {
-                PageLayout::postError(_('Sie haben keine Aktion ausgewählt.'));
             }
 
         } else {

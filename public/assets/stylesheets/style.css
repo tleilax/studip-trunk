@@ -6038,6 +6038,20 @@ a.bookable_rooms_action {
   float: left;
   margin-right: 10px;
 }
+section.course-statusgroups input.groupselector {
+  float: left;
+}
+section.course-statusgroups footer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 5px;
+  background-color: #e7ebf1;
+  border-top: 1px solid #000000;
+}
+section.course-statusgroups footer div.groupactions {
+  margin-left: auto;
+}
 #sort1,
 #sort0,
 #sort3 {
