@@ -16,7 +16,7 @@ class BlubberProvider implements ActivityProvider
     /**
      * get the details for the passed activity
      *
-     * @param object $activity the acitivty to fill with details, passed by reference
+     * @param object $activity the activity to fill with details, passed by reference
      */
     public function getActivityDetails(&$activity)
     {
@@ -36,6 +36,13 @@ class BlubberProvider implements ActivityProvider
         $activity->object_route = $route;
     }
 
+    /**
+     * creates an activity for a given context and blubb
+     *
+     * @param String $context
+     * @param String $context_id
+     * @param String  $blubb
+     */
     private static function doPostActivity($context, $context_id, $blubb)
     {
         $activity = Activity::get(
@@ -57,6 +64,12 @@ class BlubberProvider implements ActivityProvider
         $activity->store();
     }
 
+    /**
+     * posts an activity for a given notification event
+     *
+     * @param String $event a notication for an activity
+     * @param String  $blubb
+     */
     public static function postActivity($event, $blubb)
     {
         switch($blubb['context_type']) {

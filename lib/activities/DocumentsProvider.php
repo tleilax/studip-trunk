@@ -43,7 +43,7 @@ class DocumentsProvider implements ActivityProvider
     /**
      * posts an activity for a given notification event
      *
-     * @param String $event a notication for an activiy
+     * @param String $event a notification for an activity
      * @param Array  $document information which a relevant for the activity
      */
     public function postActivity($event, $document)

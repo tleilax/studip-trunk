@@ -14,7 +14,7 @@ class ForumProvider implements ActivityProvider
     /**
      * get the details for the passed activity
      *
-     * @param object $activity the acitivty to fill with details, passed by reference
+     * @param object $activity the activity to fill with details, passed by reference
      */
     public function getActivityDetails(&$activity)
     {

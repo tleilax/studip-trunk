@@ -43,7 +43,7 @@ class NewsProvider implements ActivityProvider
     /**
      * posts an activity for a given notification event
      *
-     * @param String $event a notication for an activiy
+     * @param String $event a notification for an activity
      * @param String  $news_id  
      */
     public function postActivity($event, $news_id)
@@ -79,7 +79,7 @@ class NewsProvider implements ActivityProvider
                     'verb'         => 'created',                                // the activity type
                     'object_id'    => $news->id,                                // the id of the referenced object
                     'object_type'  => 'news',                                   // type of activity object
-                    'mkdate'       => $mkdate
+                    'mkdate'       => strtotime('now')
                 )
             );
 

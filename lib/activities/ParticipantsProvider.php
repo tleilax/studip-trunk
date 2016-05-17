@@ -14,7 +14,7 @@ class ParticipantsProvider implements ActivityProvider
     /**
      * posts an activity for a given notification event
      *
-     * @param String $event a notication for an activiy
+     * @param String $event a notification for an activity
      * @param String  $course_id
      * @param String  $user_id
      */
