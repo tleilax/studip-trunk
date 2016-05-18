@@ -113,7 +113,7 @@ class LiteratureProvider implements ActivityProvider
 
     public static function getLexicalField()
     {
-        _('einen Literatureintrag');
+        return _('einen Literatureintrag');
     }
 
 }
