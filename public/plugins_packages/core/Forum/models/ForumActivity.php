@@ -45,7 +45,7 @@ class ForumActivity
     public static function updateEntry($event, $topic_id, $post)
     {
         $summary = _('%s hat im Forum der Veranstaltung "%s" einen Beitrag editiert.');
-        
+
         if ($post['user_id'] == $GLOBALS['user']->id) {
             $content = sprintf(_('%s hat seinen eigenen Beitrag vom %s editiert.'),
                     get_fullname($post['user_id']), date('d.m.y, H:i', $post['mkdate']));
@@ -102,7 +102,7 @@ class ForumActivity
                 'verb'         => $verb,                                        // the activity type
                 'object_id'    => $post['topic_id'],                            // the id of the referenced object
                 'object_type'  => 'forum',                                      // type of activity object
-                'mkdate'       => $post['mkdate']
+                'mkdate'       => $post['mkdate'] ?: time()
             )
         );
 
