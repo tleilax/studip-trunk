@@ -21,7 +21,7 @@ class NewsProvider implements ActivityProvider
 
             case 'institute':
                 return array(
-                    \URLHelper::getUrl('dispatch.php/institute/overview?auswahl=' . $activity->object_id) => _('News in der Einrichtung')
+                    \URLHelper::getUrl('dispatch.php/institute/overview?auswahl=' . $activity->context_id) => _('News in der Einrichtung')
                 );
             break;
 
@@ -48,8 +48,9 @@ class NewsProvider implements ActivityProvider
      */
     public function postActivity($event, $news_id)
     {
-        $news = new \StudipNews($news_id);
 
+        //todo @Till sollte $news_id wirklich schon die News sein?
+        $news = $news_id;
         // delete any old activities for this id
         $activities = Activity::findBySql('object_id = ?', array($news->id));
 
