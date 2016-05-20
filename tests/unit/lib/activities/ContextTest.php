@@ -44,7 +44,7 @@ class ContextTestCase extends PHPUnit_Framework_TestCase {
         $seminar_id = 'seminar_id';
         $context = new Studip\Activity\CourseContext($seminar_id);
 
-        $this->assertEquals($seminar_id, $context->getSeminarId());
+        $this->assertEquals($seminar_id, $context->getRangeId());
 
         $this->assertTrue(
             method_exists($context, 'getActivities'),
@@ -62,7 +62,7 @@ class ContextTestCase extends PHPUnit_Framework_TestCase {
         $inst_id = 'inst_id';
         $context = new Studip\Activity\InstituteContext($inst_id);
 
-        $this->assertEquals($inst_id, $context->getInstituteId());
+        $this->assertEquals($inst_id, $context->getRangeId());
 
         $this->assertTrue(
             method_exists($context, 'getActivities'),
@@ -80,7 +80,7 @@ class ContextTestCase extends PHPUnit_Framework_TestCase {
         $user_id = 'user_id';
         $context = new Studip\Activity\UserContext($user_id);
 
-        $this->assertEquals($user_id, $context->getUserId());
+        $this->assertEquals($user_id, $context->getRangeId());
 
         $this->assertTrue(
             method_exists($context, 'getActivities'),

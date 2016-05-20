@@ -13,11 +13,22 @@
  */
 
 
-class FakeContext implements Studip\Activity\Context
+class FakeContext extends \Studip\Activity\Context
 {
-    public function getActivities($observer_id, \Studip\Activity\Filter $filter)
+
+    protected function getProvider()
     {
-        return array(new Studip\Activity\Activity());
+        // TODO: Implement getProvider() method.
+    }
+
+    public function getRangeId()
+    {
+        // TODO: Implement getRangeId() method.
+    }
+
+    protected function getContextType()
+    {
+        // TODO: Implement getContextType() method.
     }
 }
 

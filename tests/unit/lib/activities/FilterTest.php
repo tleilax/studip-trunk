@@ -27,14 +27,26 @@ class FilterTestCase extends PHPUnit_Framework_TestCase
         $this->assertInstanceOf("\Studip\Activity\Filter", new \Studip\Activity\Filter());
     }
 
-    function test_set_max_age()
+    function test_set_end_date()
     {
-        $age = 5;
+
+        $enddate = 5;
 
         $filter = new Studip\Activity\Filter();
-        $filter->setMaxAge($age);
+        $filter->setEndDate($enddate);
 
-        $this->assertEquals($age, $filter->getMaxAge());
+        $this->assertEquals($enddate, $filter->getEndDate());
+    }
+
+    function test_set_start_date()
+    {
+
+        $startdate = 5;
+
+        $filter = new Studip\Activity\Filter();
+        $filter->setStartDate($startdate);
+
+        $this->assertEquals($startdate, $filter->getStartDate());
     }
 
     function test_set_type()

@@ -46,7 +46,7 @@ class ActivityProviderTestCase extends PHPUnit_Framework_TestCase
         );
 
         $this->assertTrue(
-            new \Studip\Activity\FileProvider() instanceof \Studip\Activity\ActivityProvider,
+            new \Studip\Activity\DocumentsProvider() instanceof \Studip\Activity\ActivityProvider,
             'FileProvider: Missing implementation of Interface ActivityProvider'
         );
 
