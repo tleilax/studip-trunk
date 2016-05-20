@@ -58,7 +58,6 @@ class ScheduleProvider implements ActivityProvider
         $user_id = $GLOBALS['user']->id;
         $mkdate = strtotime('now');
 
-        // TODO: @andre: Was, falls es eine anderes Event ist?
         if($event == 'CourseDidChangeSchedule') {
             $verb = 'edited';
             $summary = _('Der Ablaufplan wurde in der Veranstaltung "%s" von %s aktualisiert.');
@@ -76,8 +75,8 @@ class ScheduleProvider implements ActivityProvider
                 'actor_type'   => 'user',                                       // who initiated the activity?
                 'actor_id'     => $user_id,                                     // id of initiator
                 'verb'         => $verb,                                        // the activity type
-                'object_id'    => $range_id,                                   // the id of the referenced object
-                'object_type'  => 'schedule',                                  // type of activity object
+                'object_id'    => $range_id,                                    // the id of the referenced object
+                'object_type'  => 'schedule',                                   // type of activity object
                 'mkdate'       =>  $mkdate
             )
         );

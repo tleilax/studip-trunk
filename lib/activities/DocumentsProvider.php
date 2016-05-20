@@ -93,7 +93,7 @@ class DocumentsProvider implements ActivityProvider
                 'content'      => $summary,
                 'actor_type'   => 'user',                                       // who initiated the activity?
                 'actor_id'     => $user_id,                                     // id of initiator
-                'verb'         => $verb,                                        // the activity type
+                'verb'         => $verb,                                      // the activity type
                 'object_id'    => $file_id,                                   // the id of the referenced object
                 'object_type'  => 'documents',                                  // type of activity object
                 'mkdate'       =>  $mkdate

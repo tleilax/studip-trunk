@@ -296,7 +296,7 @@ class StudipLitList extends TreeAbstract {
         $this->view->params[] = array($list_id);
         $rs = $this->view->get_query("view:LIT_DEL_LIST_CONTENT_ALL");
         $deleted += $rs->affected_rows();
-        NotificationCenter::postNotification('LitListDidDelete', array('list_id' => $list_id));
+        NotificationCenter::postNotification('LitListDidDelete', array('list_id' => $list_id, 'range_id' => $this->range_id, 'name' => $this->tree_data[$list_id]['name']));
         return $deleted;
     }
 
