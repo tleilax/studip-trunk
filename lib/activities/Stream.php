@@ -12,12 +12,18 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
 {
     private $activities;
 
+    /**
+     * creates a stream representing the activities for the passed contexts,
+     * filter by time (if any)
+     *
+     * @param string $observer_id The user, the stream is intended for
+     * @param array $contexts All contexts that need to be considered
+     * @param \Studip\Activity\Filter $filter
+     *
+     * @throws \InvalidArgumentException
+     */
     function __construct($observer_id, $contexts, Filter $filter)
     {
-        // TODO: validate that the filter object has only timestamp at 00:00:00 o'clock
-        // ----> Do not filter here, filter in Activity-Plugin to allow calls precise to one second via internal API
-        // TODO: validate that the filter object has dates in a correct order and does not exceed a certain range
-
         if (!is_array($contexts)) {
             $contexts = array($contexts);
         }
@@ -119,6 +125,11 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
         return sizeof($this->activities);
     }
 
+    /**
+     * return representation of the current stream as an array
+     *
+     * @return array
+     */
     public function asArray()
     {
         $activities = array();
