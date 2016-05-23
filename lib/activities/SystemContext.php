@@ -10,6 +10,9 @@ namespace Studip\Activity;
 
 class SystemContext extends Context
 {
+    /**
+     * {@inheritdoc}
+     */
     protected function getProvider()
     {
         $this->addProvider('news');
@@ -18,10 +21,16 @@ class SystemContext extends Context
         return $this->provider;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getRangeId() {
         return 'system';
     }
 
+    /**
+     * {@inheritdoc}
+     */
     protected function getContextType()
     {
         return 'system';

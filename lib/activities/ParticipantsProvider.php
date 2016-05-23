@@ -80,6 +80,9 @@ class ParticipantsProvider implements ActivityProvider
         $activity->object_route = $route;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public static function getLexicalField()
     {
         return _('eine/n Teilnehmer/in');

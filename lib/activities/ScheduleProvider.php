@@ -84,6 +84,9 @@ class ScheduleProvider implements ActivityProvider
         $activity->store();
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public static function getLexicalField()
     {
         return _('einen Eintrag im Ablaufplan');

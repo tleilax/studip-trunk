@@ -104,7 +104,9 @@ class NewsProvider implements ActivityProvider
         $activity->object_url = $url;
         $activity->object_route = $route;
     }
-
+    /**
+     * {@inheritdoc}
+     */
     public static function getLexicalField()
     {
         return _('eine Neuigkeit');

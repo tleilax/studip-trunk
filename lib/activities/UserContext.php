@@ -13,16 +13,27 @@ class UserContext extends Context
     private
         $user_id;
 
+    /**
+     * create new user-context
+     *
+     * @param string $user_id
+     */
     function __construct($user_id)
     {
         $this->user_id = $user_id;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     function getRangeId()
     {
         return $this->user_id;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     protected function getProvider()
     {
 
@@ -49,6 +60,9 @@ class UserContext extends Context
 
     }
 
+    /**
+     * {@inheritdoc}
+     */
     protected function getContextType()
     {
         return 'user';

@@ -13,11 +13,19 @@ class InstituteContext extends Context
     private
         $institute_id;
 
+    /**
+     * create new institute-context
+     *
+     * @param string $institute_id
+     */
     function __construct($institute_id)
     {
         $this->institute_id = $institute_id;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     protected function getProvider()
     {
         if (!$this->provider) {
@@ -64,11 +72,17 @@ class InstituteContext extends Context
         return $this->provider;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     function getRangeId()
     {
         return $this->institute_id;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     protected function getContextType()
     {
         return 'institute';

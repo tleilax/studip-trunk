@@ -110,7 +110,9 @@ class LiteratureProvider implements ActivityProvider
         $activity->store();
     }
 
-
+    /**
+     * {@inheritdoc}
+     */
     public static function getLexicalField()
     {
         return _('einen Literatureintrag');

@@ -64,7 +64,10 @@ class MessageProvider implements ActivityProvider
 
         $activity->store();
     }
-
+    
+    /**
+     * {@inheritdoc}
+     */
     public static function getLexicalField()
     {
         return _('eine Nachricht');
