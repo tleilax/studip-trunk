@@ -11,6 +11,10 @@ namespace Studip\Activity;
 
 class ActivityObserver
 {
+    /**
+     * Register for Notifications the providers shall respond to
+     * 
+     */
     public static function initialize()
     {
         \NotificationCenter::addObserver('Studip\Activity\MessageProvider', 'postActivity','MessageDidSend');

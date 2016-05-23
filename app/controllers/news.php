@@ -448,12 +448,6 @@ class NewsController extends StudipController
 
                 $news->store();
 
-                if (!$id) {     // we create a fresh news
-                    NotificationCenter::postNotification('NewsDidCreate', $news->getId());
-                } else {        // we edited an existing news
-                    NotificationCenter::postNotification('NewsDidUpdate', $news->getId());
-                }
-
                 PageLayout::postMessage(MessageBox::success(_('Die Ankündigung wurde gespeichert.')));
                 // in fallback mode redirect to edit page with proper news id
                 if (!Request::isXhr() AND !$id)

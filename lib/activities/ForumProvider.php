@@ -36,6 +36,9 @@ class ForumProvider implements ActivityProvider
         $activity->object_route = $route;
     }
 
+    /**
+     *  {@inheritdoc}
+     */
     public static function getLexicalField()
     {
         return _('einen Forenbeitrag');

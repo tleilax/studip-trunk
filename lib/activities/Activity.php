@@ -32,6 +32,9 @@ class Activity extends \SimpleORMap
         'voided'
     );
 
+    /**
+     * {@inheritdoc}
+     */
     protected static function configure($config = array())
     {
         $config['db_table'] = 'activities';
@@ -39,6 +42,13 @@ class Activity extends \SimpleORMap
         parent::configure($config);
     }
 
+    /**
+     * create new activity from passed data
+     *
+     * @param Array $data  Array of data to used for new activity-object, key is the field name
+     * 
+     * @return \Studip\Activity\Activity
+     */
     public static function get($data)
     {
         $activity = new Activity();
@@ -47,12 +57,23 @@ class Activity extends \SimpleORMap
         return $activity;
     }
 
+    /**
+     * return a string representation for this activity
+     * 
+     * @return string
+     */
     public function __toString()
     {
         return $this->content;
     }
 
-
+    /**
+     * set one of the allowed verbs
+     *
+     * @param string $verb
+     * 
+     * @throws \InvalidArgumentException
+     */
     public function setVerb($verb)
     {
         if (in_array($verb, self::$allowed_verbs) === false) {
@@ -73,6 +94,11 @@ class Activity extends \SimpleORMap
         $this->object_url[$url] = $name;
     }
 
+    /**
+     * Return objet in an array representation
+     *
+     * @return Array
+     */
     public function asArray()
     {
         $data = $this->toArray();
@@ -87,7 +113,7 @@ class Activity extends \SimpleORMap
      * returns a format string as placeholder for the object in question
      * (in a grammatical / lexical sense)
      *
-     * @return type
+     * @return string
      */
     public function verbToText()
     {

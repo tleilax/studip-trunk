@@ -44,13 +44,10 @@ class NewsProvider implements ActivityProvider
      * posts an activity for a given notification event
      *
      * @param String $event a notification for an activity
-     * @param String  $news_id  
+     * @param String  $news_id
      */
-    public function postActivity($event, $news_id)
+    public function postActivity($event, $news)
     {
-
-        //todo @Till sollte $news_id wirklich schon die News sein?
-        $news = $news_id;
         // delete any old activities for this id
         $activities = Activity::findBySql('object_id = ?', array($news->id));
 
