@@ -25,7 +25,7 @@ class ActivityProviderTestCase extends PHPUnit_Framework_TestCase
     {
         $this->assertTrue(class_exists('\Studip\Activity\ForumProvider'));
         $this->assertTrue(class_exists('\Studip\Activity\NewsProvider'));
-        $this->assertTrue(class_exists('\Studip\Activity\FileProvider'));
+        $this->assertTrue(class_exists('\Studip\Activity\DocumentsProvider'));
         $this->assertTrue(class_exists('\Studip\Activity\WikiProvider'));
         $this->assertTrue(class_exists('\Studip\Activity\ParticipantsProvider'));
         $this->assertTrue(class_exists('\Studip\Activity\MessageProvider'));
