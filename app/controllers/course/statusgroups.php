@@ -185,7 +185,7 @@ class Course_StatusgroupsController extends AuthenticatedController
         if ($this->is_tutor) {
             CSRFProtection::verifyUnsafeRequest();
             $group = StatusgroupsModel::updateGroup($group_id, Request::get('name'),
-                0, Request::int('size', 0),
+                0, $this->course_id, Request::int('size', 0),
                 Request::int('selfassign', 0),
                 Request::int('exclusive', 0),
                 Request::int('makefolder', 0),
@@ -262,7 +262,7 @@ class Course_StatusgroupsController extends AuthenticatedController
                 for ($i = 0 ; $i < Request::int('number') ; $i++) {
                     $group = StatusgroupsModel::updateGroup('', Request::get('prefix').' '.
                         (Request::int('startnumber', 1) + $i),
-                        $counter + 1, Request::int('size', 0),
+                        $counter + 1, $this->course_id, Request::int('size', 0),
                         Request::int('selfassign', 0),
                         Request::int('exclusive', 0),
                         Request::int('makefolder', 0));
@@ -285,7 +285,7 @@ class Course_StatusgroupsController extends AuthenticatedController
 
                         foreach ($topics as $t) {
                             $group = StatusgroupsModel::updateGroup('', _('Thema:').' '.$t->title,
-                                $t->priority, Request::int('size', 0),
+                                $t->priority, $this->course_id, Request::int('size', 0),
                                 Request::int('selfassign', 0),
                                 Request::int('exclusive', 0),
                                 Request::int('makefolder', 0));
@@ -315,7 +315,7 @@ class Course_StatusgroupsController extends AuthenticatedController
                         $counter = 0;
                         foreach ($cycles as $c) {
                             $group = StatusgroupsModel::updateGroup('', $c->toString(),
-                                $counter + 1, Request::int('size', 0),
+                                $counter + 1, $this->course_id, Request::int('size', 0),
                                 Request::int('selfassign', 0),
                                 Request::int('exclusive', 0),
                                 Request::int('makefolder', 0));
@@ -334,7 +334,7 @@ class Course_StatusgroupsController extends AuthenticatedController
                         $singledates = array_filter($dates, function ($d) { return !((bool) $d->metadate_id); });
                         foreach ($singledates as $d) {
                             $group = StatusgroupsModel::updateGroup('', $d->toString(),
-                                $counter + 1, Request::int('size', 0),
+                                $counter + 1, $this->course_id, Request::int('size', 0),
                                 Request::int('selfassign', 0),
                                 Request::int('exclusive', 0),
                                 Request::int('makefolder', 0));
@@ -359,7 +359,7 @@ class Course_StatusgroupsController extends AuthenticatedController
 
                         foreach ($lecturers as $l) {
                             StatusgroupsModel::updateGroup('', $l->getUserFullname('full'),
-                                $l->position, Request::int('size', 0),
+                                $l->position, $this->course_id, Request::int('size', 0),
                                 Request::int('selfassign', 0),
                                 Request::int('exclusive', 0),
                                 Request::int('makefolder', 0));
@@ -436,7 +436,8 @@ class Course_StatusgroupsController extends AuthenticatedController
             CSRFProtection::verifyUnsafeRequest();
             $groups = Statusgruppen::findMany(Request::getArray('groups'));
             foreach ($groups as $g) {
-                StatusgroupsModel::updateGroup($g->id, $g->name, $g->position,
+                StatusgroupsModel::updateGroup($g->id, $g->name,
+                    $g->position, $this->course_id,
                     Request::int('size', 0),
                     Request::int('selfassign', 0),
                     Request::int('exclusive', 0),

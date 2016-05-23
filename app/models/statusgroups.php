@@ -22,6 +22,7 @@ class StatusgroupsModel
      * @param string $id         ID of an existing group or empty if new group
      * @param string $name       group name
      * @param int    $position   position or null if automatic position after other groups
+     * @param string $range_id   ID of the object this group belongs to
      * @param int    $size       max number of members or 0 if unlimited
      * @param int    $selfassign may users join this group by themselves?
      * @param int    $exclusive  may users only join one of the exclusive groups?
@@ -30,7 +31,7 @@ class StatusgroupsModel
      * @return Statusgruppen     The saved statusgroup.
      * @throws Exception
      */
-    public static function updateGroup($id, $name, $position, $size, $selfassign, $exclusive, $makefolder, $dates = array())
+    public static function updateGroup($id, $name, $position, $range_id, $size, $selfassign, $exclusive, $makefolder, $dates = array())
     {
         if ($id) {
             $group = Statusgruppen::find($id);
@@ -39,7 +40,7 @@ class StatusgroupsModel
         }
         $group->name = $name;
         $group->position = $position;
-        $group->range_id = $this->course_id;
+        $group->range_id = $range_id;
         $group->size = $size;
         if ($exclusive) {
             $group->selfassign = 2;
