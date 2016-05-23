@@ -13,11 +13,19 @@ class CourseContext extends Context
     private
         $seminar_id;
 
+    /**
+     * create new course-context
+     *
+     * @param string $seminar_id
+     */
     function __construct($seminar_id)
     {
         $this->seminar_id = $seminar_id;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     protected function getProvider()
     {
         if (!$this->provider) {
@@ -69,11 +77,17 @@ class CourseContext extends Context
         return $this->provider;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getRangeId()
     {
         return $this->seminar_id;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     protected function getContextType()
     {
         return 'course';

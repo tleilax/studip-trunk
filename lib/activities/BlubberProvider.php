@@ -89,6 +89,9 @@ class BlubberProvider implements ActivityProvider
         }
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public static function getLexicalField()
     {
         return _('eine Blubbernachricht');

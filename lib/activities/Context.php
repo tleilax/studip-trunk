@@ -13,10 +13,35 @@ abstract class Context
     protected
         $provider;
 
+    /**
+     * return array, listing all active providers in this context
+     *
+     * @return array
+     */
     abstract protected function getProvider();
+
+    /**
+     * get id denoting the context (user_id, course_id, institute_id, ...)
+     *
+     * @return string
+     */
     abstract public function getRangeId();
+
+    /**
+     * get type of context (f.e. user, system, course, institute, ...)
+     *
+     * @return string
+     */
     abstract protected function getContextType();
 
+    /**
+     * get list of activities as array for the current context
+     *
+     * @param string $observer_id
+     * @param \Studip\Activity\Filter $filter
+     *
+     * @return array
+     */
     public function getActivities($observer_id, Filter $filter)
     {
         $providers = $this->filterProvider($this->getProvider(), $filter);
@@ -35,6 +60,10 @@ abstract class Context
         return array_flatten($activities);
     }
 
+    /**
+     *
+     * @param type $provider
+     */
     protected function addProvider($provider)
     {
         $class_name = 'Studip\Activity\\' . ucfirst($provider) . 'Provider';
@@ -43,6 +72,12 @@ abstract class Context
         $this->provider[$provider] =  $reflectionClass->newInstanceArgs();
     }
 
+    /**
+     *
+     * @param type $providers
+     * @param \Studip\Activity\Filter $filter
+     * @return type
+     */
     protected function filterProvider($providers, Filter $filter)
     {
         $filtered_providers = array();
