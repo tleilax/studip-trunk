@@ -1,7 +1,7 @@
 <form class="default" action="<?= $controller->url_for('course/statusgroups/batch_move_members') ?>" method="post">
     <section>
         <label for="target_group">
-            <?= ngettext('In welche Gruppe soll die gewählten Person verschoben werden?',
+            <?= ngettext('In welche Gruppe soll die gewählte Person verschoben werden?',
                 sprintf('In welche Gruppe sollen die %u gewählten Personen verschoben werden?', count($members)),
                 count($members)) ?>
             <select name="target_group">

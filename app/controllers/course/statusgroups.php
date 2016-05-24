@@ -99,6 +99,8 @@ class Course_StatusgroupsController extends AuthenticatedController
             $group = array(
                 'id' => $g->id,
                 'name' => $g->name,
+                'size' => $g->size,
+                'selfassign' => $g->selfassign
             );
 
             // Sort members alphabetically or by given criteria
@@ -139,6 +141,8 @@ class Course_StatusgroupsController extends AuthenticatedController
             $no_group = array(
                 'id' => 'nogroup',
                 'name' => _('keiner Gruppe zugeordnet'),
+                'size' => 0,
+                'selfassign' => 0,
                 'members' => $members
             );
 
@@ -224,6 +228,62 @@ class Course_StatusgroupsController extends AuthenticatedController
                 _('Die Gruppe "%s" wurde gelöscht.'),
                 $groupname));
             $this->relocate('course/statusgroups');
+        } else {
+            throw new Trails_Exception(403);
+        }
+    }
+
+    /**
+     * Removes the given user from the given statusgroup.
+     *
+     * @param String $user_id user to remove
+     * @param String $group_id affected group
+     */
+    public function delete_member_action($user_id, $group_id)
+    {
+        if ($this->is_tutor || $user_id == $GLOBALS['user']->id) {
+            $g = Statusgruppen::find($group_id);
+            $s = StatusgruppeUser::find(array($group_id, $user_id));
+            $name = $s->user->getFullname();
+            if ($s->delete()) {
+                if ($user_id == $GLOBALS['user']->id) {
+                    PageLayout::postSuccess(sprintf(
+                        _('Sie wurden aus der Gruppe %s ausgetragen.'),
+                        $g->name));
+                } else {
+                    PageLayout::postSuccess(sprintf(
+                        _('%s wurde aus der Gruppe %s ausgetragen.'),
+                        $name, $g->name));
+                }
+            } else {
+                if ($user_id == $GLOBALS['user']->id) {
+                    PageLayout::postError(sprintf(
+                        _('Sie konnten nicht aus der Gruppe %s ausgetragen werden.'),
+                        $g->name));
+                } else {
+                    PageLayout::postSuccess(sprintf(
+                        _('%s konnte nicht aus der Gruppe %s ausgetragen werden.'),
+                        $name, $g->name));
+                }
+            }
+            $this->relocate('course/statusgroups');
+        } else {
+            throw new Trails_Exception(403);
+        }
+    }
+
+    public function move_member_action($user_id, $group_id)
+    {
+        if ($this->is_tutor) {
+            $this->source_group = $group_id;
+
+            $this->members = array($user_id);
+
+            // Find possible target groups.
+            $this->target_groups = SimpleCollection::createFromArray(
+                Statusgruppen::findByRange_id($this->course_id))
+                ->orderBy('position, name')
+                ->filter(function ($g) use ($group_id) { return $g->id != $group_id; });
         } else {
             throw new Trails_Exception(403);
         }
@@ -505,28 +565,60 @@ class Course_StatusgroupsController extends AuthenticatedController
     {
         if ($this->is_tutor) {
             CSRFProtection::verifyUnsafeRequest();
+            $success = 0;
+            $error = 0;
             $members = Request::getArray('members');
             foreach ($members as $m) {
+
+                $stored = false;
 
                 // Add user to target statusgroup (if not already in there).
                 if (!StatusgruppeUser::exists(array(Request::option('target_group'), $m))) {
                     $s = new StatusgruppeUser();
                     $s->user_id = $m;
                     $s->statusgruppe_id = Request::option('target_group');
-                    $s->store();
+                    if ($s->store()) {
+                        $stored = true;
+                    }
                 }
 
                 // Delete old group membership.
                 $source = Request::option('source');
-                if ($source != 'nogroup') {
+                if ($source != 'nogroup' && $stored) {
                     $old = StatusgruppeUser::find(array($source, $m));
-                    $old->delete();
+                    if ($old->delete()) {
+                        $success++;
+                    } else {
+                        $error++;
+                    }
                 }
             }
-            PageLayout::postSuccess(ngettext('Eine Person wurde in die Gruppe %s verschoben.',
-                sprintf('%u Personen wurden in die Gruppe %s verschoben.',
-                    count($members), Statusgruppen::find(Request::option('target_group'))->name),
-                count($members)));
+            $groupname = Statusgruppen::find(Request::option('target_group'))->name;
+
+            // Everything completed successfully => success message.
+            if ($success && !$error) {
+                PageLayout::postSuccess(sprintf(ngettext('%u Person wurde in die Gruppe %s verschoben.',
+                    '%u Personen wurden in die Gruppe %s verschoben.',
+                    $success), $success, $groupname));
+
+            // Some entries worked, some didn't => warning message.
+            } else if ($success && $error) {
+                PageLayout::postWarning(
+                    sprintf(ngettext('%u Person wurde in die Gruppe %s verschoben.',
+                    '%u Personen wurden in die Gruppe %s verschoben.',
+                    $success), $success, $groupname) . '<br>' .
+                    sprintf(ngettext('%u Person konnten nicht in die Gruppe %s verschoben werden.',
+                        '%u Personen konnten nicht in die Gruppe %s verschoben werden.',
+                        $error), $error, $groupname)
+                );
+
+            // All is lost => error message.
+            } else {
+                PageLayout::postError(sprintf(ngettext('%u Person konnten nicht in die Gruppe %s verschoben werden.',
+                    '%u Personen konnten nicht in die Gruppe %s verschoben werden.',
+                    $error), $error, $groupname));
+            }
+
             $this->relocate('course/statusgroups');
         } else {
             throw new Trails_Exception(403);
