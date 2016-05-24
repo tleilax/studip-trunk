@@ -1,11 +1,31 @@
+@import url(../mixins/colors.less);
+
 section.course-statusgroups {
 
-  input.groupselector {
-    float: left;
-  }
+  article {
 
-  td.memberactions {
-    text-align: right;
+    input.groupselector {
+      float: left;
+    }
+
+    section {
+
+      border-left: 5px solid @content-color-20;
+      border-right: 5px solid @content-color-20;
+
+      table {
+        td {
+          span.member-invisible {
+            font-style: italic;
+            color: @light-gray-color;
+          }
+
+          &.memberactions {
+            text-align: right;
+          }
+        }
+      }
+    }
   }
 
   footer {

@@ -6038,10 +6038,18 @@ a.bookable_rooms_action {
   float: left;
   margin-right: 10px;
 }
-section.course-statusgroups input.groupselector {
+section.course-statusgroups article input.groupselector {
   float: left;
 }
-section.course-statusgroups td.memberactions {
+section.course-statusgroups article section {
+  border-left: 5px solid #e7ebf1;
+  border-right: 5px solid #e7ebf1;
+}
+section.course-statusgroups article section table td span.member-invisible {
+  font-style: italic;
+  color: #6d727a;
+}
+section.course-statusgroups article section table td.memberactions {
   text-align: right;
 }
 section.course-statusgroups footer {
