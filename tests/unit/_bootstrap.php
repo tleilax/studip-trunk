@@ -66,4 +66,80 @@ if (isset($config['modules']['config']['Db'])) {
         $config['modules']['config']['Db']['dsn'],
         $config['modules']['config']['Db']['user'],
         $config['modules']['config']['Db']['password']);
+} else {
+    //DBManager::getInstance()->setConnection('studip', 'sqlite://'. $GLOBALS ,'', '');
+}
+
+// create "fake" cache class
+if (!class_exists('StudipArrayCache')) {
+    class StudipArrayCache implements StudipCache {
+        public $data = array();
+
+        function expire($key)
+        {
+            unset($this->data);
+        }
+
+        function read($key)
+        {
+            return $this->data[$key];
+        }
+
+        function write($name, $content, $expire = 43200)
+        {
+            return ($this->data[$name] = $content);
+        }
+    }
+}
+
+// SimpleORMapFake
+if (!class_exists('StudipTestHelper')) {
+    class StudipTestHelper
+    {
+        static function set_up_tables($tables)
+        {
+            // first step, set fake cache
+            $testconfig = new Config(array('cache_class' => 'StudipArrayCache'));
+            Config::set($testconfig);
+            StudipCacheFactory::setConfig($testconfig);
+
+            $GLOBALS['CACHING_ENABLE'] = true;
+
+            $cache = StudipCacheFactory::getCache(false);
+
+            // second step, expire table scheme
+            SimpleORMap::expireTableScheme();
+
+            $schemes = array();
+
+            foreach ($tables as $db_table) {
+                include TEST_FIXTURES_PATH."simpleormap/$db_table.php";
+                foreach ($result as $rs) {
+                    $db_fields[strtolower($rs['name'])] = array(
+                        'name'    => $rs['name'],
+                        'null'    => $rs['null'],
+                        'default' => $rs['default'],
+                        'type'    => $rs['type'],
+                        'extra'   => $rs['extra']
+                    );
+                    if ($rs['key'] == 'PRI'){
+                        $pk[] = strtolower($rs['name']);
+                    }
+                }
+                $schemes[$db_table]['db_fields'] = $db_fields;
+                $schemes[$db_table]['pk'] = $pk;
+            }
+
+            $cache->write('DB_TABLE_SCHEMES', serialize($schemes));
+        }
+
+        static function tear_down_tables()
+        {
+            SimpleORMap::expireTableScheme();
+            Config::set(null);
+
+            StudipCacheFactory::setConfig(null);
+            $GLOBALS['CACHING_ENABLE'] = false;
+        }
+    }
 }

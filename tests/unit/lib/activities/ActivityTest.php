@@ -14,12 +14,15 @@
 
 class ActivityTestCase extends PHPUnit_Framework_TestCase {
 
-
-    function setUp() {
+    function setUp()
+    {
+        StudipTestHelper::set_up_tables(array('activities'));
     }
 
 
-    function tearDown() {
+    function tearDown()
+    {
+        StudipTestHelper::tear_down_tables();
     }
 
 
@@ -80,6 +83,6 @@ class ActivityTestCase extends PHPUnit_Framework_TestCase {
         // url is the Stud.IP-URL to the object, route is the REST-API-Route to the object
         $url         = 'http://example.com/dispatch.php/forum/posting/1234';
 
-        $activity->addUrl($url);
+        $activity->addUrl($url, 'link');
     }
 }

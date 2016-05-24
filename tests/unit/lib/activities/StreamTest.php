@@ -30,16 +30,23 @@ class FakeContext extends \Studip\Activity\Context
     {
         // TODO: Implement getContextType() method.
     }
+
+    public function getActivities($observer_id, Studip\Activity\Filter $filter)
+    {
+        return array();
+    }
 }
 
 class Stream extends PHPUnit_Framework_TestCase
 {
 
-    function setUp() {
+    function setUp()
+    {
     }
 
 
-    function tearDown() {
+    function tearDown()
+    {
     }
 
 
@@ -82,8 +89,6 @@ class Stream extends PHPUnit_Framework_TestCase
     {
         $observer_id = 'observer_id';
         $stream = new \Studip\Activity\Stream($observer_id, array(new FakeContext(), new FakeContext()), new Studip\Activity\Filter());
-
-        $this->assertEquals(2, sizeof($stream));
 
         foreach ($stream as $activity) {
             $this->assertTrue(
