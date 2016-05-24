@@ -148,6 +148,32 @@
                         </tr>
                         <?php $i++; endforeach ?>
                     </tbody>
+                    <?php if (count($group['members']) > 1) : ?>
+                        <tfoot>
+                            <tr>
+                                <td colspan="4">
+                                    <label>
+                                        <input aria-label="<?= sprintf(_('Alle Mitglieder dieser Gruppe auswählen')) ?>"
+                                               type="checkbox" name="all" value="1"
+                                               data-proxyfor=":checkbox.groupmembers-<?= $group['id'] ?>">
+                                        <?= _('Alle Mitglieder dieser Gruppe auswählen') ?>
+                                    </label>
+                                </td>
+                                <td colspan="2" class="memberactions">
+                                    <label>
+                                        <select name="members_action[<?= $group['id'] ?>]">
+                                            <option value="move"><?= _('In andere Gruppe verschieben') ?></option>
+                                            <?php if ($group['id'] != 'nogroup') : ?>
+                                                <option value="delete"><?= _('Aus dieser Gruppe entfernen') ?></option>
+                                            <?php endif ?>
+                                        </select>
+                                    </label>
+                                    <?= Studip\Button::create(_('Ausführen'), 'batch_members['.$group['id'].']',
+                                        array('data-dialog' => 'size=auto')) ?>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    <?php endif ?>
                 </table>
                 <?php else : ?>
                     <?= MessageBox::info(_('Diese Gruppe hat keine Mitglieder.')) ?>
@@ -162,7 +188,7 @@
                     <input aria-label="<?= sprintf(_('Alle Gruppen auswählen')) ?>"
                            type="checkbox" name="allgroups" value="1"
                            data-proxyfor=":checkbox.groupselector">
-                    <?= _('Alle auswählen') ?>
+                    <?= _('Alle Gruppen auswählen') ?>
                 </label>
             </div>
             <div class="groupactions">

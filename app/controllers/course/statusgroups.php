@@ -177,6 +177,7 @@ class Course_StatusgroupsController extends AuthenticatedController
 
     /**
      * Saves changes to given statusgroup or creates a new entry.
+     *
      * @param String $group_id ID of the group to edit
      * @throws Trails_Exception 403 if access not allowed with current permission level.
      */
@@ -209,6 +210,7 @@ class Course_StatusgroupsController extends AuthenticatedController
 
     /**
      * Deletes the given statusgroup.
+     *
      * @param String $group_id ID of the group to delete
      * @throws Trails_Exception 403 if access not allowed with current permission level.
      */
@@ -229,6 +231,8 @@ class Course_StatusgroupsController extends AuthenticatedController
 
     /**
      * Provides the possibility to batch create several groups at once.
+     *
+     * @throws Trails_Exception 403 if access not allowed with current permission level.
      */
     public function create_groups_action()
     {
@@ -249,6 +253,8 @@ class Course_StatusgroupsController extends AuthenticatedController
 
     /**
      * Batch creation of statusgroups according to given settings.
+     *
+     * @throws Trails_Exception 403 if access not allowed with current permission level.
      */
     public function batch_create_action()
     {
@@ -380,6 +386,11 @@ class Course_StatusgroupsController extends AuthenticatedController
         }
     }
 
+    /**
+     * Batch action for several groups or group members at once.
+     *
+     * @throws Trails_Exception 403 if access not allowed with current permission level.
+     */
     public function batch_action_action()
     {
         if ($this->is_tutor) {
@@ -388,7 +399,7 @@ class Course_StatusgroupsController extends AuthenticatedController
             if (Request::submitted('batch_groups')) {
                 if ($groups = Request::getArray('groups')) {
                     $this->groups = SimpleCollection::createFromArray(
-                        Statusgruppen::findMany($groups))->orderBy('position');
+                        Statusgruppen::findMany($groups))->orderBy('position, name');
                     switch (Request::option('groups_action')) {
                         case 'edit':
                             PageLayout::setTitle('Einstellungen bearbeiten');
@@ -406,6 +417,31 @@ class Course_StatusgroupsController extends AuthenticatedController
                 }
             // Actions for selected group members.
             } else if (Request::submitted('batch_members')) {
+                // Which group is selected?
+                $group_id = key(Request::getArray('batch_members'));
+
+                // Get selected group members.
+                $group = Request::getArray('group');
+                $this->members = array_keys($group[$group_id]);
+
+                // Get selected action for group members.
+                $actions = Request::getArray('members_action');
+                $action = $actions[$group_id];
+
+                switch ($action) {
+                    case 'move':
+                        PageLayout::setTitle(_('Gruppenmitglieder verschieben'));
+
+                        $this->movemembers = true;
+                        $this->source_group = $group_id;
+                        // Find possible target groups.
+                        $this->target_groups = SimpleCollection::createFromArray(
+                            Statusgruppen::findByRange_id($this->course_id))
+                            ->orderBy('position, name')
+                            ->filter(function ($g) use ($group_id) { return $g->id != $group_id; });
+                        break;
+                    case 'delete':
+                }
 
             }
 
@@ -415,6 +451,11 @@ class Course_StatusgroupsController extends AuthenticatedController
         }
     }
 
+    /**
+     * Deletes several groups at once.
+     *
+     * @throws Trails_Exception 403 if access not allowed with current permission level.
+     */
     public function batch_delete_groups_action()
     {
         if ($this->is_tutor) {
@@ -423,13 +464,18 @@ class Course_StatusgroupsController extends AuthenticatedController
             foreach ($groups as $g) {
                 $g->delete();
             }
-            PageLayout::postInfo('Die ausgewählten Gruppen wurden gelöscht.');
+            PageLayout::postSuccess(_('Die ausgewählten Gruppen wurden gelöscht.'));
             $this->relocate('course/statusgroups');
         } else {
             throw new Trails_Exception(403);
         }
     }
 
+    /**
+     * Sets data for several groups at once.
+     *
+     * @throws Trails_Exception 403 if access not allowed with current permission level.
+     */
     public function batch_save_groups_action()
     {
         if ($this->is_tutor) {
@@ -443,7 +489,44 @@ class Course_StatusgroupsController extends AuthenticatedController
                     Request::int('exclusive', 0),
                     false);
             }
-            PageLayout::postInfo('Die Einstellungen der ausgewählten Gruppen wurden gespeichert.');
+            PageLayout::postSuccess(_('Die Einstellungen der ausgewählten Gruppen wurden gespeichert.'));
+            $this->relocate('course/statusgroups');
+        } else {
+            throw new Trails_Exception(403);
+        }
+    }
+
+    /**
+     * Moves selected group members to another group.
+     *
+     * @throws Trails_Exception 403 if access not allowed with current permission level.
+     */
+    public function batch_move_members_action()
+    {
+        if ($this->is_tutor) {
+            CSRFProtection::verifyUnsafeRequest();
+            $members = Request::getArray('members');
+            foreach ($members as $m) {
+
+                // Add user to target statusgroup (if not already in there).
+                if (!StatusgruppeUser::exists(array(Request::option('target_group'), $m))) {
+                    $s = new StatusgruppeUser();
+                    $s->user_id = $m;
+                    $s->statusgruppe_id = Request::option('target_group');
+                    $s->store();
+                }
+
+                // Delete old group membership.
+                $source = Request::option('source');
+                if ($source != 'nogroup') {
+                    $old = StatusgruppeUser::find(array($source, $m));
+                    $old->delete();
+                }
+            }
+            PageLayout::postSuccess(ngettext('Eine Person wurde in die Gruppe %s verschoben.',
+                sprintf('%u Personen wurden in die Gruppe %s verschoben.',
+                    count($members), Statusgruppen::find(Request::option('target_group'))->name),
+                count($members)));
             $this->relocate('course/statusgroups');
         } else {
             throw new Trails_Exception(403);

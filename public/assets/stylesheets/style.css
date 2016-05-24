@@ -6041,6 +6041,9 @@ a.bookable_rooms_action {
 section.course-statusgroups input.groupselector {
   float: left;
 }
+section.course-statusgroups td.memberactions {
+  text-align: right;
+}
 section.course-statusgroups footer {
   display: flex;
   flex-direction: row;
