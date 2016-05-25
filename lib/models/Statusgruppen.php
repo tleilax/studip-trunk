@@ -365,7 +365,9 @@ class Statusgruppen extends SimpleORMap
      */
     public function hasSpace()
     {
-        return $this->selfassign && ($this->size || count($this->members) < $this->size);
+        return $this->selfassign &&
+            ($this->selfassign_start <= mktime()) &&
+            ($this->size || count($this->members) < $this->size);
     }
 
     /**

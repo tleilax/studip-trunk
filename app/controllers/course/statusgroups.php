@@ -97,32 +97,23 @@ class Course_StatusgroupsController extends AuthenticatedController
         // Now build actual groups.
         $this->groups = array();
         foreach ($groups as $g) {
-            $group = array(
-                'id' => $g->id,
-                'name' => $g->name,
-                'size' => $g->size,
-                'selfassign' => $g->selfassign
-            );
 
-            // Sort members alphabetically or by given criteria
             $groupmembers = $g->members->pluck('user_id');
             if ($this->sort_group == $g->id) {
-                $group['members'] = StatusgroupsModel::sortGroupMembers(
+                $sorted = StatusgroupsModel::sortGroupMembers(
                     $allmembers->findBy('user_id', $groupmembers),
                     $this->sort_by, $this->order);
             } else {
-                $group['members'] = StatusgroupsModel::sortGroupMembers(
+                $sorted = StatusgroupsModel::sortGroupMembers(
                     $allmembers->findBy('user_id', $groupmembers));
             }
 
-            if ($dates = $g->findDates()) {
-                $group['dates'] = $dates;
-            }
-            if ($topics = $g->findTopics()) {
-                $group['topics'] = $topics;
-            }
-            $this->groups[] = $group;
+            $this->groups[] = array(
+                'group' => $g,
+                'members' => $sorted
+            );
             $grouped_users = array_merge($grouped_users, $groupmembers);
+
         }
 
         // Find course members who are in no group at all.
@@ -139,15 +130,16 @@ class Course_StatusgroupsController extends AuthenticatedController
             }
 
             // Create dummy entry for "no group" users.
-            $no_group = array(
-                'id' => 'nogroup',
-                'name' => _('keiner Gruppe zugeordnet'),
-                'size' => 0,
-                'selfassign' => 0,
+            $no_group = new StdClass();
+            $no_group->id = 'nogroup';
+            $no_group->name = _('keiner Gruppe zugeordnet');
+            $no_group->size = 0;
+            $no_group->selfassign = 0;
+            $this->no_group = array(
+                'group' => $no_group,
                 'members' => $members
             );
 
-            array_unshift($this->groups, $no_group);
         }
 
     }
@@ -314,6 +306,60 @@ class Course_StatusgroupsController extends AuthenticatedController
     }
 
     /**
+     * Adds the current user to the given group.
+     *
+     * @throws Trails_Exception 403 if current user may not join the given group.
+     */
+    public function join_action($group_id)
+    {
+
+        $g = Statusgruppen::find($group_id);
+
+        if ($g->userMayJoin($GLOBALS['user']->id)) {
+            $s = new StatusgruppeUser();
+            $s->user_id = $GLOBALS['user']->id;
+            $s->statusgruppe_id = $group_id;
+            if ($s->store()) {
+                PageLayout::postSuccess(sprintf(
+                    _('Sie wurden als Mitglied der Gruppe %s eingetragen.'), $g->name));
+            } else {
+                PageLayout::postSuccess(sprintf(
+                    _('Sie konnten nicht als Mitglied der Gruppe %s eingetragen werden.'), $g->name));
+            }
+        } else {
+            throw new Trails_Exception(403);
+        }
+
+        $this->relocate('course/statusgroups');
+    }
+
+    /**
+     * Removes the current user from the given group.
+     *
+     * @throws Trails_Exception 403 if current user may not join the given group.
+     */
+    public function leave_action($group_id)
+    {
+
+        $g = Statusgruppen::find($group_id);
+
+        if ($g->isMember($GLOBALS['user']->id)) {
+            $s = StatusgruppeUser::find(array($group_id, $GLOBALS['user']->id));
+            if ($s->delete()) {
+                PageLayout::postSuccess(sprintf(
+                    _('Sie wurden aus der Gruppe %s ausgetragen.'), $g->name));
+            } else {
+                PageLayout::postSuccess(sprintf(
+                    _('Sie konnten nicht aus der Gruppe %s ausgetragen werden.'), $g->name));
+            }
+        } else {
+            throw new Trails_Exception(403);
+        }
+
+        $this->relocate('course/statusgroups');
+    }
+
+    /**
      * Batch creation of statusgroups according to given settings.
      *
      * @throws Trails_Exception 403 if access not allowed with current permission level.
@@ -473,7 +519,7 @@ class Course_StatusgroupsController extends AuthenticatedController
 
                             // Check for diverging values on all groups.
                             foreach ($this->groups as $group) {
-                                $sizes[$group->size] == true;
+                                $sizes[$group->size] = true;
                                 if ($group->selfassign == 1) {
                                     $selfassign++;
                                 }
@@ -488,6 +534,7 @@ class Course_StatusgroupsController extends AuthenticatedController
 
                             // Get default group size
                             $this->size = max(array_keys($sizes));
+
                             // Only one entry => all groups have same size.
                             if (count($sizes) == 1) {
                                 $this->different_sizes = 0;
@@ -641,12 +688,16 @@ class Course_StatusgroupsController extends AuthenticatedController
 
                 // Delete old group membership.
                 $source = Request::option('source');
-                if ($source != 'nogroup' && $stored) {
-                    $old = StatusgruppeUser::find(array($source, $m));
-                    if ($old->delete()) {
-                        $success++;
+                if ($stored) {
+                    if ($source != 'nogroup') {
+                        $old = StatusgruppeUser::find(array($source, $m));
+                        if ($old->delete()) {
+                            $success++;
+                        } else {
+                            $error++;
+                        }
                     } else {
-                        $error++;
+                        $success++;
                     }
                 }
             }
@@ -670,7 +721,7 @@ class Course_StatusgroupsController extends AuthenticatedController
                 );
 
             // All is lost => error message.
-            } else {
+            } else if ($error) {
                 PageLayout::postError(sprintf(ngettext('%u Person konnten nicht in die Gruppe %s verschoben werden.',
                     '%u Personen konnten nicht in die Gruppe %s verschoben werden.',
                     $error), $error, $groupname));

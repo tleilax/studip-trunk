@@ -41,7 +41,9 @@ class StatusgroupsModel
         }
 
         $group->name = $name;
-        $group->position = $position;
+        if ($position) {
+            $group->position = $position;
+        }
         $group->range_id = $range_id;
         $group->size = $size;
         $group->selfassign = $selfassign;

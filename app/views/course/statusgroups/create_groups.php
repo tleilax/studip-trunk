@@ -81,6 +81,12 @@
         </section>
         <section>
             <label>
+                <?= _('Selbsteintrag erlaubt ab') ?>
+                <input type="text" size="20" name="selfassign_start" value="<?= date('d.m.Y H:i') ?>">
+            </label>
+        </section>
+        <section>
+            <label>
                 <input type="checkbox" name="makefolder" value="1">
                 <?= _('Dateiordner anlegen') ?>
             </label>
@@ -97,5 +103,6 @@
 <script type="text/javascript" language="JavaScript">
     //<!--
     $('.course-data').hide();
+    STUDIP.Statusgroups.initInputs();
     //-->
 </script>
