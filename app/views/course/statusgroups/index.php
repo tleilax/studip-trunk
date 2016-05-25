@@ -1,10 +1,5 @@
 <form action="<?= $controller->url_for('course/statusgroups/batch_action') ?>" method="post">
 <section class="contentbox course-statusgroups">
-    <header>
-        <h1>
-            <?= _('Teilnehmende nach Gruppen') ?>
-        </h1>
-    </header>
     <?php foreach ($groups as $group) : ?>
         <article class="<?= ContentBoxHelper::classes($group['id']) ?>" id="<?= $group['id'] ?>">
             <header>
@@ -185,7 +180,7 @@
                     <tfoot>
                         <tr>
                             <?php if (count($group['members']) > 1 && $is_tutor && !$is_locked) : ?>
-                                <td colspan="4">
+                                <td colspan="4" class="memberselect">
                                     <label>
                                         <input aria-label="<?= sprintf(_('Alle Mitglieder dieser Gruppe auswählen')) ?>"
                                                type="checkbox" name="all" value="1"

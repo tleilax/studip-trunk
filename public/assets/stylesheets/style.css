@@ -6042,14 +6042,25 @@ section.course-statusgroups article input.groupselector {
   float: left;
 }
 section.course-statusgroups article section {
-  border-left: 5px solid #e7ebf1;
-  border-right: 5px solid #e7ebf1;
+  border-left: 1px solid #e7ebf1;
+  border-right: 1px solid #e7ebf1;
 }
-section.course-statusgroups article section table td span.member-invisible {
+section.course-statusgroups article section table thead tr th {
+  background-color: #e7ebf1;
+}
+section.course-statusgroups article section table tbody tr td span.member-invisible {
   font-style: italic;
   color: #6d727a;
 }
-section.course-statusgroups article section table td.memberactions {
+section.course-statusgroups article section table tbody tr td.memberactions {
+  text-align: right;
+}
+section.course-statusgroups article section table tfoot tr td {
+  background-color: #e7ebf1;
+  padding-left: 5px;
+  padding-right: 0;
+}
+section.course-statusgroups article section table tfoot tr td.memberactions {
   text-align: right;
 }
 section.course-statusgroups footer {
@@ -6057,6 +6068,7 @@ section.course-statusgroups footer {
   flex-direction: row;
   align-items: center;
   padding: 5px;
+  padding-left: 18px;
   background-color: #e7ebf1;
   border-top: 1px solid #000000;
 }
