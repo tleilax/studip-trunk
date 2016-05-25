@@ -27,6 +27,13 @@
                 <?= _('Exklusiver Selbsteintrag (in nur eine Gruppe)') ?>
             </label>
         </section>
+        <section>
+            <label>
+                <?= _('Selbsteintrag erlaubt ab') ?>
+                <input type="text" size="20" name="selfassign_start" value="<?= $group->selfassign_start ?
+                    date('d.m.Y H:i', $group->selfassign_start) : date('d.m.Y H:i') ?>">
+            </label>
+        </section>
         <?php if ($group->isNew()) : ?>
             <section>
                 <label>
@@ -101,3 +108,8 @@
             array('data-dialog' => 'close')) ?>
     </footer>
 </form>
+<script type="text/javascript">
+    //<!--
+    STUDIP.Statusgroups.initInputs();
+    //-->
+</script>

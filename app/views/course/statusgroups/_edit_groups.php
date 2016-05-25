@@ -2,19 +2,30 @@
     <section>
         <label for="size">
             <?= _('Gruppengröße') ?>
+            <input type="number" name="size" value="<?= intval($size) ?>">
+            <?= $different_sizes ? '('._('verschiedene Werte').')' : '' ?>
         </label>
-        <input type="number" name="size" value="<?= intval($group->size) ?>">
     </section>
     <section>
         <label>
-            <input type="checkbox" name="selfassign" value="1"<?= $group->selfassign ? ' checked' : '' ?>>
+            <input type="checkbox" name="selfassign" value="1"<?= $selfassign == 1 ? ' checked' : '' ?>>
             <?= _('Selbsteintrag erlaubt') ?>
+            <?= $selfassign == -1 ? '<br>('._('verschiedene Werte').')' : '' ?>
         </label>
     </section>
     <section>
         <label>
-            <input type="checkbox" name="exclusive" value="1"<?= ($group->selfassign == 2) ? ' checked' : '' ?>>
+            <input type="checkbox" name="exclusive" value="1"<?= $exclusive == 1 ? ' checked' : '' ?>>
             <?= _('Exklusiver Selbsteintrag (in nur eine Gruppe)') ?>
+            <?= $exclusive == -1 ? '<br>('._('verschiedene Werte').')' : '' ?>
+        </label>
+    </section>
+    <section>
+        <label>
+            <?= _('Selbsteintrag erlaubt ab') ?>
+            <input type="text" size="20" name="selfassign_start" value="<?= $selfassign_start != -1 ?
+                $selfassign_start : date('d.m.Y H:i') ?>">
+            <?= $selfassign_start == -1 ? '('._('verschiedene Werte').')' : '' ?>
         </label>
     </section>
     <?php foreach ($groups as $g) : ?>
@@ -28,3 +39,8 @@
             array('data-dialog' => 'close')) ?>
     </footer>
 </form>
+<script type="text/javascript">
+    //<!--
+    STUDIP.Statusgroups.initInputs();
+    //-->
+</script>

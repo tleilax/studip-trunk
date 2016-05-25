@@ -24,6 +24,7 @@
  * @property string position database column
  * @property string size database column
  * @property string selfassign database column
+ * @property string selfassign_start database column
  * @property string mkdate database column
  * @property string chdate database column
  * @property string calendar_group database column
