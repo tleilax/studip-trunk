@@ -26,8 +26,8 @@ class StEP00299Statusgroups extends Migration
     public function up()
     {
         DBManager::get()->execute("ALTER TABLE `statusgruppen`
-            ADD `selfassign_start` INT NOT NULL DEFAULT '0'
-            AFTER `selfassign`");
+            ADD `selfassign_start` INT NOT NULL DEFAULT 0 AFTER `selfassign`,
+            ADD `selfassign_end` INT NOT NULL DEFAULT 0 AFTER `selfassign_start`");
     }
 
     /**

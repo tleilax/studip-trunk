@@ -34,6 +34,13 @@
                     date('d.m.Y H:i', $group->selfassign_start) : date('d.m.Y H:i') ?>">
             </label>
         </section>
+        <section>
+            <label>
+                <?= _('Selbsteintrag erlaubt bis') ?>
+                <input type="text" size="20" name="selfassign_end" value="<?= $group->selfassign_end ?
+                    date('d.m.Y H:i', $group->selfassign_end) : date('d.m.Y H:i') ?>">
+            </label>
+        </section>
         <?php if ($group->isNew()) : ?>
             <section>
                 <label>

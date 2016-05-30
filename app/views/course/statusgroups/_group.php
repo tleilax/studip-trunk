@@ -13,8 +13,44 @@
             </a>
         </h1>
         <nav>
+            <?php
+                if ($group->id != 'nogroup') {
+                    $info = $group->size > 0 ?
+                        sprintf(_('Diese Gruppe ist auf %u Mitglieder beschränkt.'), $group->size) :
+                        sprintf(_('Die Größe dieser Gruppe ist nicht beschränkt.'));
+                    if ($group->selfassign) {
+                        if ($group->selfassign == 1) {
+                            $info .= '<br>';
+                            $info .= _('Die Teilnehmenden dieser Veranstaltung können sich ' .
+                                'selbst in beliebig viele der Gruppen einteilen, bei denen ' .
+                                'kein Exklusiveintrag aktiviert ist.');
+                        } else if ($group->selfassign == 2) {
+                            $info .= '<br>';
+                            $info .= _('Die Teilnehmenden dieser Veranstaltung können sich ' .
+                                'in genau einer der Gruppen einteilen, bei denen der ' .
+                                'Exklusiveintrag aktiviert ist.');
+                        }
+                        if ($group->selfassign_start && $group->selfassign_end) {
+                            $info .= '<br>';
+                            $info .= sprintf(_('Der Eintrag ist möglich von %s bis %s.'),
+                                date('d.m.Y H:i', $group->selfassign_start),
+                                date('d.m.Y H:i', $group->selfassign_end));
+                        } else if ($group->selfassign_start && !$group->selfassign_end) {
+                            $info .= '<br>';
+                            $info .= sprintf(_('Der Eintrag ist möglich ab %s.'),
+                                date('d.m.Y H:i', $group->selfassign_start));
+                        } else if (!$group->selfassign_start && $group->selfassign_end) {
+                            $info .= '<br>';
+                            $info .= sprintf(_('Der Eintrag ist möglich bis %s.'),
+                                date('d.m.Y H:i', $group->selfassign_end));
+                        }
+                    }
+                    echo tooltipicon($info);
+                }
+            ?>
             <?php if ($is_tutor) : ?>
                 <?php if ($group->id != 'nogroup') : ?>
+                    <?= tooltipicon($info) ?>
                     <a href="<?= $controller->url_for('messages/write', array(
                         'group_id' => $group->id,
                         'default_subject' => $course_title
@@ -46,10 +82,16 @@
                         <?= Icon::create('arr_2right', 'clickable',
                             array('title' => sprintf(_('Mitglied von Gruppe %s werden'),
                                 htmlReady($group->name)))) ?></a>
-                <?php elseif ($group->id != 'nogroup' && $group->selfassign && $group->selfassign_start > mktime()) : ?>
+                <?php elseif ($group->id != 'nogroup' && $group->selfassign &&
+                    $group->selfassign_start > mktime()) : ?>
                         <?= Icon::create('arr_2right', 'inactive',
                             array('title' => sprintf(_('Der Eintrag in diese Gruppe ist möglich ab %s.'),
                                 date('d.m.Y H:i', $group->selfassign_start)))) ?>
+                <?php elseif ($group->id != 'nogroup' && $group->selfassign &&
+                    $group->selfassign_end && $group->selfassign_end < mktime()) : ?>
+                        <?= Icon::create('arr_2right', 'inactive',
+                            array('title' => sprintf(_('Der Eintrag in diese Gruppe war möglich bis %s.'),
+                                date('d.m.Y H:i', $group->selfassign_end)))) ?>
                 <?php elseif ($group->id != 'nogroup' && $group->isMember($GLOBALS['user']->id)) : ?>
                     <a href="<?= $controller->url_for('course/statusgroups/leave', $group->id) ?>">
                         <?= Icon::create('trash', 'clickable',

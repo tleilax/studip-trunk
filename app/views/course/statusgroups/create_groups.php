@@ -87,6 +87,12 @@
         </section>
         <section>
             <label>
+                <?= _('Selbsteintrag erlaubt bis') ?>
+                <input type="text" size="20" name="selfassign_end" value="">
+            </label>
+        </section>
+        <section>
+            <label>
                 <input type="checkbox" name="makefolder" value="1">
                 <?= _('Dateiordner anlegen') ?>
             </label>

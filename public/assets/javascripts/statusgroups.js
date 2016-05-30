@@ -48,9 +48,11 @@
                 $('input[name="exclusive"]').closest($('section')).hide();
                 $('input[name="selfassign_start"]').closest($('section')).hide();
             }
+            $('input[name="selfassign_end"]').datetimepicker();
             $('input[name="selfassign"]').on('click', function() {
                 $('input[name="exclusive"]').closest($('section')).toggle();
                 $('input[name="selfassign_start"]').closest($('section')).toggle();
+                $('input[name="selfassign_end"]').closest($('section')).toggle();
             });
         }
 

@@ -32,7 +32,7 @@ class StatusgroupsModel
      * @throws Exception
      */
     public static function updateGroup($id, $name, $position, $range_id, $size, $selfassign,
-                                       $selfassign_start, $makefolder, $dates = array())
+                                       $selfassign_start, $selfassign_end, $makefolder, $dates = array())
     {
         if ($id) {
             $group = Statusgruppen::find($id);
@@ -48,6 +48,7 @@ class StatusgroupsModel
         $group->size = $size;
         $group->selfassign = $selfassign;
         $group->selfassign_start = $selfassign ? $selfassign_start : 0;
+        $group->selfassign_end = $selfassign ? $selfassign_end : 0;
 
         // Set assigned dates.
         if ($dates) {

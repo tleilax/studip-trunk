@@ -60,14 +60,16 @@ class Course_StatusgroupsController extends AuthenticatedController
         $sidebar = Sidebar::get();
         $sidebar->setImage('sidebar/person-sidebar.png');
 
-        $actions = new ActionsWidget();
-        $actions->addLink(_('Neue Gruppe anlegen'),
-            $this->url_for('course/statusgroups/edit'),
-            Icon::create('add', 'clickable'))->asDialog('size=auto');
-        $actions->addLink(_('Mehrere Gruppen anlegen'),
-            $this->url_for('course/statusgroups/create_groups'),
-            Icon::create('group2+add', 'clickable'))->asDialog('size=auto');
-        $sidebar->addWidget($actions);
+        if (($this->is_tutor && !$this->tutor_is_locked) || ($this->is_dozent && !$this->dozent_is_locked)) {
+            $actions = new ActionsWidget();
+            $actions->addLink(_('Neue Gruppe anlegen'),
+                $this->url_for('course/statusgroups/edit'),
+                Icon::create('add', 'clickable'))->asDialog('size=auto');
+            $actions->addLink(_('Mehrere Gruppen anlegen'),
+                $this->url_for('course/statusgroups/create_groups'),
+                Icon::create('group2+add', 'clickable'))->asDialog('size=auto');
+            $sidebar->addWidget($actions);
+        }
     }
 
     /**
@@ -187,6 +189,7 @@ class Course_StatusgroupsController extends AuthenticatedController
                 0, $this->course_id, Request::int('size', 0),
                 Request::int('selfassign', 0) + Request::int('exclusive', 0),
                 strtotime(Request::get('selfassign_start', 'now')),
+                strtotime(Request::get('selfassign_end', 0)),
                 Request::int('makefolder', 0),
                 Request::getArray('dates'));
 
@@ -379,6 +382,7 @@ class Course_StatusgroupsController extends AuthenticatedController
                         $counter + 1, $this->course_id, Request::int('size', 0),
                         Request::int('selfassign', 0) + Request::int('exclusive', 0),
                         strtotime(Request::get('selfassign_start', 'now')),
+                        strtotime(Request::get('selfassign_end', 0)),
                         Request::int('makefolder', 0));
                     $counter++;
                 }
@@ -402,6 +406,7 @@ class Course_StatusgroupsController extends AuthenticatedController
                                 $t->priority, $this->course_id, Request::int('size', 0),
                                 Request::int('selfassign', 0) + Request::int('exclusive', 0),
                                 strtotime(Request::get('selfassign_start', 'now')),
+                                strtotime(Request::get('selfassign_end', 0)),
                                 Request::int('makefolder', 0));
 
                             // Connect group to dates that are assigned to the given topic.
@@ -432,6 +437,7 @@ class Course_StatusgroupsController extends AuthenticatedController
                                 $counter + 1, $this->course_id, Request::int('size', 0),
                                 Request::int('selfassign', 0) + Request::int('exclusive', 0),
                                 strtotime(Request::get('selfassign_start', 'now')),
+                                strtotime(Request::get('selfassign_end', 0)),
                                 Request::int('makefolder', 0));
 
                             // Connect group to dates that are assigned to the given cycle.
@@ -451,6 +457,7 @@ class Course_StatusgroupsController extends AuthenticatedController
                                 $counter + 1, $this->course_id, Request::int('size', 0),
                                 Request::int('selfassign', 0) + Request::int('exclusive', 0),
                                 strtotime(Request::get('selfassign_start', 'now')),
+                                strtotime(Request::get('selfassign_end', 0)),
                                 Request::int('makefolder', 0));
 
                             $d->statusgruppen->append($group);
@@ -476,6 +483,7 @@ class Course_StatusgroupsController extends AuthenticatedController
                                 $l->position, $this->course_id, Request::int('size', 0),
                                 Request::int('selfassign', 0) + Request::int('exclusive', 0),
                                 strtotime(Request::get('selfassign_start', 'now')),
+                                strtotime(Request::get('selfassign_end', 0)),
                                 Request::int('makefolder', 0));
                             $counter++;
                         }
@@ -516,6 +524,7 @@ class Course_StatusgroupsController extends AuthenticatedController
                             $selfassign = 0;
                             $exclusive = 0;
                             $selfassign_start = array();
+                            $selfassign_end = array();
 
                             // Check for diverging values on all groups.
                             foreach ($this->groups as $group) {
@@ -529,6 +538,9 @@ class Course_StatusgroupsController extends AuthenticatedController
                                 }
                                 if ($group->selfassign_start) {
                                     $selfassign_start[$group->selfassign_start] = true;
+                                }
+                                if ($group->selfassign_end) {
+                                    $selfassign_end[$group->selfassign_end] = true;
                                 }
                             }
 
@@ -562,10 +574,22 @@ class Course_StatusgroupsController extends AuthenticatedController
 
                             // Selfassign start time set for all selected groups?
                             if (count($selfassign_start) == 1) {
+                                // Just one entry, take it as value for all.
                                 $start = array_pop(array_keys($selfassign_start));
                                 $this->selfassign_start = $start ? date('d.m.Y H:i', $start) : date('d.m.Y H:i');
                             } else {
+                                // Different entries, mark this.
                                 $this->selfassign_start = -1;
+                            }
+
+                            // Selfassign end time set for all selected groups?
+                            if (count($selfassign_end) == 1) {
+                                // Just one entry, take it as value for all.
+                                $end = array_pop(array_keys($selfassign_end));
+                                $this->selfassign_end = $end ? date('d.m.Y H:i', $end) : date('d.m.Y H:i');
+                            } else {
+                                // Different entries, mark this.
+                                $this->selfassign_end = -1;
                             }
 
                             break;
@@ -651,6 +675,7 @@ class Course_StatusgroupsController extends AuthenticatedController
                     Request::int('size', 0),
                     Request::int('selfassign', 0) + Request::int('exclusive', 0),
                     strtotime(Request::get('selfassign_start', 'now')),
+                    strtotime(Request::get('selfassign_end', 0)),
                     false);
             }
             PageLayout::postSuccess(_('Die Einstellungen der ausgewählten Gruppen wurden gespeichert.'));

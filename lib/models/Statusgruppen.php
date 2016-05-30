@@ -367,7 +367,8 @@ class Statusgruppen extends SimpleORMap
     {
         return $this->selfassign &&
             ($this->selfassign_start <= mktime()) &&
-            ($this->size || count($this->members) < $this->size);
+            ($this->selfassign_end == 0 || $this->selfassign_end >= mktime()) &&
+            ($this->size == 0 || count($this->members) < $this->size);
     }
 
     /**

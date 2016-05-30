@@ -28,6 +28,14 @@
             <?= $selfassign_start == -1 ? '('._('verschiedene Werte').')' : '' ?>
         </label>
     </section>
+    <section>
+        <label>
+            <?= _('Selbsteintrag erlaubt bis') ?>
+            <input type="text" size="20" name="selfassign_end" value="<?= $selfassign_end != -1 ?
+                $selfassign_end : date('d.m.Y H:i') ?>">
+            <?= $selfassign_end == -1 ? '('._('verschiedene Werte').')' : '' ?>
+        </label>
+    </section>
     <?php foreach ($groups as $g) : ?>
         <input type="hidden" name="groups[]" value="<?= $g->id ?>">
     <?php endforeach ?>
