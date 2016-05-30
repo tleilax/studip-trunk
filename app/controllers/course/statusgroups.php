@@ -147,6 +147,43 @@ class Course_StatusgroupsController extends AuthenticatedController
     }
 
     /**
+     * Provides extended info about a status group, like maximum number of
+     * participants, selfassign, exclusive entry, selfassign start and end
+     * times.
+     *
+     * @param String $group_id The group to show info for.
+     */
+    public function groupinfo_action($group_id)
+    {
+        $group = Statusgruppen::find($group_id);
+        $this->info = array($group->size > 0 ?
+                    sprintf(_('Diese Gruppe ist auf **%u** Mitglieder beschränkt.'), $group->size) :
+                    sprintf(_('Die Größe dieser Gruppe ist nicht beschränkt.')));
+        if ($group->selfassign) {
+            if ($group->selfassign == 1) {
+                $this->info[] = _('Die Teilnehmenden dieser Veranstaltung können sich ' .
+                        'selbst in beliebig viele der Gruppen eintragen, bei denen ' .
+                        'kein Exklusiveintrag aktiviert ist.');
+            } else if ($group->selfassign == 2) {
+                $this->info[] = _('Die Teilnehmenden dieser Veranstaltung können sich ' .
+                        'in genau einer der Gruppen eintragen, bei denen der ' .
+                        'Exklusiveintrag aktiviert ist.');
+            }
+            if ($group->selfassign_start && $group->selfassign_end) {
+                $this->info[] .= sprintf(_('Der Eintrag ist möglich **von %s bis %s**.'),
+                        date('d.m.Y H:i', $group->selfassign_start),
+                        date('d.m.Y H:i', $group->selfassign_end));
+            } else if ($group->selfassign_start && !$group->selfassign_end) {
+                $this->info[] = sprintf(_('Der Eintrag ist möglich **ab %s**.'),
+                        date('d.m.Y H:i', $group->selfassign_start));
+            } else if (!$group->selfassign_start && $group->selfassign_end) {
+                $this->info[] = sprintf(_('Der Eintrag ist möglich **bis %s**.'),
+                        date('d.m.Y H:i', $group->selfassign_end));
+            }
+        }
+    }
+
+    /**
      * Allows editing of a given statusgroup or creating a new one.
      * @param String $group_id ID of the group to edit
      * @throws Trails_Exception 403 if access not allowed with current permission level.

@@ -13,39 +13,13 @@
             </a>
         </h1>
         <nav>
-            <?php
-                if ($group->id != 'nogroup') {
-                    $info .= '<p>'.($group->size > 0 ?
-                        sprintf(_('Diese Gruppe ist auf %u Mitglieder beschränkt.'), $group->size) :
-                        sprintf(_('Die Größe dieser Gruppe ist nicht beschränkt.'))).'</p>';
-                    if ($group->selfassign) {
-                        if ($group->selfassign == 1) {
-                            $info .= '<p>'._('Die Teilnehmenden dieser Veranstaltung können sich ' .
-                                'selbst in beliebig viele der Gruppen einteilen, bei denen ' .
-                                'kein Exklusiveintrag aktiviert ist.').'</p>';
-                        } else if ($group->selfassign == 2) {
-                            $info .= '<p>'._('Die Teilnehmenden dieser Veranstaltung können sich ' .
-                                'in genau einer der Gruppen einteilen, bei denen der ' .
-                                'Exklusiveintrag aktiviert ist.').'</p>';
-                        }
-                        if ($group->selfassign_start && $group->selfassign_end) {
-                            $info .= '<p>'.sprintf(_('Der Eintrag ist möglich von %s bis %s.'),
-                                date('d.m.Y H:i', $group->selfassign_start),
-                                date('d.m.Y H:i', $group->selfassign_end)).'</p>';
-                        } else if ($group->selfassign_start && !$group->selfassign_end) {
-                            $info .= '<p>'.sprintf(_('Der Eintrag ist möglich ab %s.'),
-                                date('d.m.Y H:i', $group->selfassign_start)).'</p>';
-                        } else if (!$group->selfassign_start && $group->selfassign_end) {
-                            $info .= '<p>'.sprintf(_('Der Eintrag ist möglich bis %s.'),
-                                date('d.m.Y H:i', $group->selfassign_end)).'</p>';
-                        }
-                    }
-                    echo tooltipicon($info);
-                }
-            ?>
+            <?php if ($group->id != 'nogroup') : ?>
+                <a href="<?= $controller->url_for('course/statusgroups/groupinfo', $group->id) ?>" data-dialog="size=auto">
+                    <?= Icon::create('info-circle', 'clickable',
+                            array('title' => sprintf(_('Informationen zu %s'), htmlReady($group->name)))) ?></a>
+            <?php endif ?>
             <?php if ($is_tutor) : ?>
                 <?php if ($group->id != 'nogroup') : ?>
-                    <?= tooltipicon($info) ?>
                     <a href="<?= $controller->url_for('messages/write', array(
                         'group_id' => $group->id,
                         'default_subject' => $course_title
@@ -74,22 +48,22 @@
             <?php else : ?>
                 <?php if ($group->id != 'nogroup' && $group->userMayJoin($GLOBALS['user']->id)) : ?>
                     <a href="<?= $controller->url_for('course/statusgroups/join', $group->id) ?>">
-                        <?= Icon::create('arr_2right', 'clickable',
+                        <?= Icon::create('door-enter', 'clickable',
                             array('title' => sprintf(_('Mitglied von Gruppe %s werden'),
                                 htmlReady($group->name)))) ?></a>
                 <?php elseif ($group->id != 'nogroup' && $group->selfassign &&
                     $group->selfassign_start > mktime()) : ?>
-                        <?= Icon::create('arr_2right', 'inactive',
+                        <?= Icon::create('door-enter', 'inactive',
                             array('title' => sprintf(_('Der Eintrag in diese Gruppe ist möglich ab %s.'),
                                 date('d.m.Y H:i', $group->selfassign_start)))) ?>
                 <?php elseif ($group->id != 'nogroup' && $group->selfassign &&
                     $group->selfassign_end && $group->selfassign_end < mktime()) : ?>
-                        <?= Icon::create('arr_2right', 'inactive',
+                        <?= Icon::create('door-enter', 'inactive',
                             array('title' => sprintf(_('Der Eintrag in diese Gruppe war möglich bis %s.'),
                                 date('d.m.Y H:i', $group->selfassign_end)))) ?>
                 <?php elseif ($group->id != 'nogroup' && $group->isMember($GLOBALS['user']->id)) : ?>
                     <a href="<?= $controller->url_for('course/statusgroups/leave', $group->id) ?>">
-                        <?= Icon::create('trash', 'clickable',
+                        <?= Icon::create('door-leave', 'clickable',
                             array('title' => sprintf(_('Aus Gruppe %s austragen'),
                                 htmlReady($group->name)))) ?></a>
                 <?php endif ?>
