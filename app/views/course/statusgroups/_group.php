@@ -15,34 +15,29 @@
         <nav>
             <?php
                 if ($group->id != 'nogroup') {
-                    $info = $group->size > 0 ?
+                    $info .= '<p>'.($group->size > 0 ?
                         sprintf(_('Diese Gruppe ist auf %u Mitglieder beschränkt.'), $group->size) :
-                        sprintf(_('Die Größe dieser Gruppe ist nicht beschränkt.'));
+                        sprintf(_('Die Größe dieser Gruppe ist nicht beschränkt.'))).'</p>';
                     if ($group->selfassign) {
                         if ($group->selfassign == 1) {
-                            $info .= '<br>';
-                            $info .= _('Die Teilnehmenden dieser Veranstaltung können sich ' .
+                            $info .= '<p>'._('Die Teilnehmenden dieser Veranstaltung können sich ' .
                                 'selbst in beliebig viele der Gruppen einteilen, bei denen ' .
-                                'kein Exklusiveintrag aktiviert ist.');
+                                'kein Exklusiveintrag aktiviert ist.').'</p>';
                         } else if ($group->selfassign == 2) {
-                            $info .= '<br>';
-                            $info .= _('Die Teilnehmenden dieser Veranstaltung können sich ' .
+                            $info .= '<p>'._('Die Teilnehmenden dieser Veranstaltung können sich ' .
                                 'in genau einer der Gruppen einteilen, bei denen der ' .
-                                'Exklusiveintrag aktiviert ist.');
+                                'Exklusiveintrag aktiviert ist.').'</p>';
                         }
                         if ($group->selfassign_start && $group->selfassign_end) {
-                            $info .= '<br>';
-                            $info .= sprintf(_('Der Eintrag ist möglich von %s bis %s.'),
+                            $info .= '<p>'.sprintf(_('Der Eintrag ist möglich von %s bis %s.'),
                                 date('d.m.Y H:i', $group->selfassign_start),
-                                date('d.m.Y H:i', $group->selfassign_end));
+                                date('d.m.Y H:i', $group->selfassign_end)).'</p>';
                         } else if ($group->selfassign_start && !$group->selfassign_end) {
-                            $info .= '<br>';
-                            $info .= sprintf(_('Der Eintrag ist möglich ab %s.'),
-                                date('d.m.Y H:i', $group->selfassign_start));
+                            $info .= '<p>'.sprintf(_('Der Eintrag ist möglich ab %s.'),
+                                date('d.m.Y H:i', $group->selfassign_start)).'</p>';
                         } else if (!$group->selfassign_start && $group->selfassign_end) {
-                            $info .= '<br>';
-                            $info .= sprintf(_('Der Eintrag ist möglich bis %s.'),
-                                date('d.m.Y H:i', $group->selfassign_end));
+                            $info .= '<p>'.sprintf(_('Der Eintrag ist möglich bis %s.'),
+                                date('d.m.Y H:i', $group->selfassign_end)).'</p>';
                         }
                     }
                     echo tooltipicon($info);
