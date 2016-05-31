@@ -3155,6 +3155,49 @@ section.contentbox > article.new header h1 a::before {
   -moz-box-shadow: black 0px 1px 3px;
   box-shadow: black 0px 1px 3px;
 }
+ul.actionmenu {
+  list-style-type: none;
+  padding-left: 3px;
+  position: relative;
+}
+ul.actionmenu li {
+  padding: 3px;
+  border: 1px solid #e7ebf1;
+}
+ul.actionmenu li ul {
+  display: none !important;
+  list-style-type: none;
+  z-index: 999;
+}
+ul.actionmenu li:hover {
+  background-color: #d0d7e3;
+  border: 1px solid #b8c2d5;
+}
+ul.actionmenu li:hover ul {
+  display: inline-block !important;
+  position: absolute;
+  right: 0;
+}
+ul.actionmenu li:hover ul li {
+  background-color: #e7ebf1;
+  border: 1px solid #e7ebf1;
+  border-bottom: 1px solid #b8c2d5;
+  padding: 3px;
+  text-align: right;
+  width: 200px;
+}
+ul.actionmenu li:hover ul li ul {
+  display: none !important;
+}
+ul.actionmenu li:hover ul li:hover {
+  background-color: #d0d7e3;
+  border: 1px solid #b8c2d5;
+}
+ul.actionmenu li:hover ul li:hover ul {
+  display: inline-block !important;
+  right: 206px;
+  top: 2em;
+}
 /* --- AJAX indicator ------------------------------------------------------- */
 #ajax_notification {
   background-color: #7387ac;

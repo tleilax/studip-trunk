@@ -20,23 +20,42 @@
             <?php endif ?>
             <?php if ($is_tutor) : ?>
                 <?php if ($group->id != 'nogroup') : ?>
-                    <a href="<?= $controller->url_for('messages/write', array(
-                        'group_id' => $group->id,
-                        'default_subject' => $course_title
-                    )) ?>" data-dialog="size=auto;">
-                        <?= Icon::create('mail', 'clickable',
-                            array('title' => sprintf(_('Nachricht an alle Mitglieder der Gruppe %s schicken'),
-                                htmlReady($group->name)))) ?></a>
-                    <a href="<?= $controller->url_for('course/statusgroups/edit', $group->id) ?>" data-dialog>
-                        <?= Icon::create('edit', 'clickable',
-                            array('title' => sprintf(_('Gruppe %s bearbeiten'),
-                                htmlReady($group->name)))) ?></a>
-                    <a href="<?= $controller->url_for('course/statusgroups/delete', $group->id) ?>"
-                       data-confirm="<?= sprintf(_('Soll die Gruppe %s wirklich gelöscht werden?'),
-                           htmlReady($group->name)) ?>">
-                        <?= Icon::create('trash', 'clickable',
-                            array('title' => sprintf(_('Gruppe %s löschen'),
-                                htmlReady($group->name)))) ?></a>
+                    <ul class="actionmenu">
+                        <li>
+                            <?= Icon::create('admin', 'clickable', array('title' => _('Aktionen'))) ?>
+                            <ul>
+                                <li>
+                                    <a href="<?= $controller->url_for('messages/write', array(
+                                        'group_id' => $group->id,
+                                        'default_subject' => $course_title
+                                    )) ?>" data-dialog="size=auto;">
+                                        <?= Icon::create('mail', 'clickable',
+                                            array('title' => sprintf(_('Nachricht an alle Mitglieder der Gruppe %s schicken'),
+                                                htmlReady($group->name)))) ?>
+                                        <?= _('Nachricht schicken') ?>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="<?= $controller->url_for('course/statusgroups/edit', $group->id) ?>" data-dialog>
+                                        <?= Icon::create('edit', 'clickable',
+                                            array('title' => sprintf(_('Gruppe %s bearbeiten'),
+                                                htmlReady($group->name)))) ?>
+                                        <?= _('Bearbeiten') ?>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="<?= $controller->url_for('course/statusgroups/delete', $group->id) ?>"
+                                       data-confirm="<?= sprintf(_('Soll die Gruppe %s wirklich gelöscht werden?'),
+                                           htmlReady($group->name)) ?>">
+                                        <?= Icon::create('trash', 'clickable',
+                                            array('title' => sprintf(_('Gruppe %s löschen'),
+                                                htmlReady($group->name)))) ?>
+                                        <?= _('Löschen') ?>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
                 <?php else : ?>
                     <a href="<?= $controller->url_for('messages/write', array(
                         'rec_uname' => $members->pluck('username'),
