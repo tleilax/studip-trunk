@@ -75,7 +75,7 @@ class Activity extends \RESTAPI\RouteMap
 
 
         $institutes = \MyRealmModel::getMyInstitutes();
-        if(!$GLOBALS['perm']->have_perm('root') || !is_null($institutes)){
+        if (!$GLOBALS['perm']->have_perm('root') && !empty($institutes)) {
             foreach($institutes as $institute){
                 $contexts[] = new \Studip\Activity\InstituteContext($institute['institut_id']);
             }
