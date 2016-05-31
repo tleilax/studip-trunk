@@ -25,11 +25,11 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
         $filter='';
 
         if(is_array($filter)){
-            $start_date = date('Y-m-d', $filter['start_date']);
-            $end_date   = date('Y-m-d', $filter['end_date']);
+            $start_date = date('d.m.Y', $filter['start_date']);
+            $end_date   = date('d.m.Y', $filter['end_date']);
         } else {
-            $start_date =  date('Y-m-d', strtotime("-4 week"));
-            $end_date   =  date('Y-m-d', strtotime('+1 day'));
+            $start_date =  date('d.m.Y', strtotime("-4 week"));
+            $end_date   =  date('d.m.Y', strtotime('+1 day'));
         }
 
 
@@ -75,8 +75,8 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
         $template = $template_factory->open('activity_feed');
 
         $template->user_id = $GLOBALS['user']->id;
-        $template->start_date = date('Y-m-d',$start_date);
-        $template->end_date = date('Y-m-d',$end_date);
+        $template->start_date = date('d.m.Y',$start_date);
+        $template->end_date = date('d.m.Y',$end_date);
 
 
         $navigation = new Navigation('', PluginEngine::getLink($this, array(), 'configuration'));
@@ -100,11 +100,11 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
 
 
         if(!empty($filter)){
-            $start_date = date('Y-m-d',$filter['start_date']);
-            $end_date = date('Y-m-d',$filter['end_date']);
+            $start_date = date('d.m.Y',$filter['start_date']);
+            $end_date = date('d.m.Y',$filter['end_date']);
         } else {
-            $start_date =  date('Y-m-d', strtotime("-4 week"));
-            $end_date =  date('Y-m-d');
+            $start_date =  date('d.m.Y', strtotime("-4 week"));
+            $end_date =  date('d.m.Y');
         }
 
 
