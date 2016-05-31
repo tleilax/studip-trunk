@@ -1,54 +1,56 @@
-@import url(../mixins/colors.less);
-
 @item-width: 200px;
 
-ul.actionmenu {
-  list-style-type: none;
-  padding-left: 3px;
-  position: relative;
+*, section.contentbox article header nav {
+  ul.actionmenu {
+    list-style-type: none;
+    padding-left: 3px;
+    position: relative;
 
-  li {
-    padding: 3px;
-    border: 1px solid @content-color-20;
-
-    ul {
-      display: none !important;
-      list-style-type: none;
-      z-index: 999;
-    }
-
-    &:hover {
-      background-color: @content-color-40;
-      border: 1px solid @content-color-60;
+    li {
+      padding: 3px;
+      border: 1px solid @content-color-20;
 
       ul {
-        display: inline-block !important;
-        position: absolute;
-        right: 0;
+        display: none;
+        list-style-type: none;
+        width: @item-width;
+        z-index: 999;
+      }
 
-        li {
-          background-color: @content-color-20;
-          border: 1px solid @content-color-20;
-          border-bottom: 1px solid @content-color-60;
-          padding: 3px;
-          text-align: right;
+      &:hover {
+        background-color: @content-color-40;
+        border: 1px solid @content-color-60;
+
+        ul {
+          display: inline-block;
+          position: absolute;
+          right: 0;
           width: @item-width;
 
-          ul {
-            display: none !important;
-          }
-
-          &:hover {
-            background-color: @content-color-40;
-            border: 1px solid @content-color-60;
+          li {
+            background-color: @content-color-20;
+            border: 1px solid @content-color-20;
+            border-bottom: 1px solid @content-color-60;
+            padding: 3px;
+            text-align: right;
+            width: @item-width;
 
             ul {
-              display: inline-block !important;
-              right: @item-width + 6px;
-              top: 2em;
+              display: none;
             }
-          }
 
+            &:hover {
+              background-color: @content-color-40;
+              border: 1px solid @content-color-60;
+
+              ul {
+                display: inline-block;
+                right: @item-width + 6px;
+                top: 2em;
+              }
+            }
+
+          }
         }
       }
     }

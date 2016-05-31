@@ -3155,30 +3155,37 @@ section.contentbox > article.new header h1 a::before {
   -moz-box-shadow: black 0px 1px 3px;
   box-shadow: black 0px 1px 3px;
 }
-ul.actionmenu {
+section.contentbox article header nav ul.actionmenu {
   list-style-type: none;
   padding-left: 3px;
   position: relative;
 }
-ul.actionmenu li {
+* ul.actionmenu li,
+section.contentbox article header nav ul.actionmenu li {
   padding: 3px;
   border: 1px solid #e7ebf1;
 }
-ul.actionmenu li ul {
-  display: none !important;
+* ul.actionmenu li ul,
+section.contentbox article header nav ul.actionmenu li ul {
+  display: none;
   list-style-type: none;
+  width: 200px;
   z-index: 999;
 }
-ul.actionmenu li:hover {
+* ul.actionmenu li:hover,
+section.contentbox article header nav ul.actionmenu li:hover {
   background-color: #d0d7e3;
   border: 1px solid #b8c2d5;
 }
-ul.actionmenu li:hover ul {
-  display: inline-block !important;
+* ul.actionmenu li:hover ul,
+section.contentbox article header nav ul.actionmenu li:hover ul {
+  display: inline-block;
   position: absolute;
   right: 0;
+  width: 200px;
 }
-ul.actionmenu li:hover ul li {
+* ul.actionmenu li:hover ul li,
+section.contentbox article header nav ul.actionmenu li:hover ul li {
   background-color: #e7ebf1;
   border: 1px solid #e7ebf1;
   border-bottom: 1px solid #b8c2d5;
@@ -3186,17 +3193,22 @@ ul.actionmenu li:hover ul li {
   text-align: right;
   width: 200px;
 }
-ul.actionmenu li:hover ul li ul {
-  display: none !important;
+* ul.actionmenu li:hover ul li ul,
+section.contentbox article header nav ul.actionmenu li:hover ul li ul {
+  display: none;
 }
-ul.actionmenu li:hover ul li:hover {
+* ul.actionmenu li:hover ul li:hover,
+section.contentbox article header nav ul.actionmenu li:hover ul li:hover {
   background-color: #d0d7e3;
   border: 1px solid #b8c2d5;
 }
-ul.actionmenu li:hover ul li:hover ul {
-  display: inline-block !important;
+* ul.actionmenu li:hover ul li:hover ul,
+section.contentbox article header nav ul.actionmenu li:hover ul li:hover ul {
+  display: inline-block;
+  position: absolute;
   right: 206px;
   top: 2em;
+  width: 200px;
 }
 /* --- AJAX indicator ------------------------------------------------------- */
 #ajax_notification {
