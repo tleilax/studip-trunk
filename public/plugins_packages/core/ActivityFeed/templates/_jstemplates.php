@@ -27,17 +27,34 @@
 <script type="text/template" class="activity">
     <section class="activity <% if (activity.actor.id == user_id) { %>right<% } else { %>left<% } %>">
         <header>
+            <span class="provider_circle">
+            <% if (activity.provider === 'blubber') { %>
+                <img src="<%- STUDIP.ASSETS_URL + 'images/icons/32/white/blubber.png'  %>">
+            <% } else if(activity.provider === 'documents') { %>
+                <img src="<%- STUDIP.ASSETS_URL + 'images/icons/32/white/files.png'  %>">
+            <% } else if(activity.provider === 'forum') { %>
+                <img src="<%- STUDIP.ASSETS_URL + 'images/icons/32/white/forum.png'  %>">
+            <% } else if(activity.provider === 'literature') { %>
+            <img src="<%- STUDIP.ASSETS_URL + 'images/icons/32/white/literature.png'  %>">
+            <% } else if(activity.provider === 'message') { %>
+                <img src="<%- STUDIP.ASSETS_URL + 'images/icons/32/white/mail.png'  %>">
+            <% } else if(activity.provider === 'news') { %>
+                <img src="<%- STUDIP.ASSETS_URL + 'images/icons/32/white/news.png'  %>">
+            <% } else if(activity.provider === 'participants') { %>
+                <img src="<%- STUDIP.ASSETS_URL + 'images/icons/32/white/persons.png'  %>">
+            <% } else if(activity.provider === 'schedule') { %>
+                <img src="<%- STUDIP.ASSETS_URL + 'images/icons/32/white/schedule.png'  %>">
+            <% } else if(activity.provider === 'wiki') { %>
+                <img src="<%- STUDIP.ASSETS_URL + 'images/icons/32/white/wiki.png'  %>">
+            <% } else { %>
+                <img src="<%- STUDIP.ASSETS_URL + 'images/icons/32/white/activity.png'  %>">
+            <% } %>
+            </span>
             <h1>
                 <%- activity.title %>
             </h1>
         </header>
         <section class="activity-content">
-            <!-- TODO: Avatar-URL mitliefern (von der Rest-Route) -->
-            <div class="activity-avatar-container">
-                <a href="<%- STUDIP.URLHelper.resolveURL('dispatch.php/profile?username=' + activity.actor.details.name) %>">
-                    <img src="<%- activity.actor.details.avatar_medium  %>">
-                </a>
-            </div>
             <section class="activity-description">
                 <span class="activity-date">
                     <%- new Date(activity.mkdate * 1000).toLocaleString() %>
@@ -45,16 +62,21 @@
 
                 <span class="activity-details">
                     <%= activity.content %>
-
-                    <!-- TODO: fade out at the bottom to signalize further content -->
-                </span>
-
-                <span class="activity-object-link">
-                    <%= activity_urls({urls: activity.object_url}) %>
                 </span>
             </section>
             <div class='clear'></div>
         </section>
+        <footer>
+                <span class="activity-object-link">
+                    <%= activity_urls({urls: activity.object_url}) %>
+                </span>
+                <span class="activity-avatar-container-footer">
+                    <a href="<%- STUDIP.URLHelper.resolveURL('dispatch.php/profile?username=' + activity.actor.details.name.username) %>">
+                        <img src="<%- activity.actor.details.avatar_small  %>">
+                    </a>
+                </span>
+        </footer>
+
     </section>
 </script>
 

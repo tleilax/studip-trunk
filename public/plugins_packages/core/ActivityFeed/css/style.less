@@ -8,24 +8,35 @@
 
     .activity {
         border: 1px solid #d0d7e3;
-        width: 95%;
+        width: 98%;
         margin: 10px 2px;
-        box-shadow: 1px 1px 8px #d8d8d8;
     }
 
     .activity header {
-        background-color:#e7ebf1;
+        //background-color:#e7ebf1;
         color: #28497c;
-        padding: 2px;
+        padding: 5px;
         display: flex;
+
+        .provider_circle {
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            background: @base-color;
+
+            img {
+                padding: 12px;
+                width: 24px;
+            }
+        }
     }
 
     .activity header h1 {
         padding: 5px;
-        margin: 0;
+        margin-top: 12px;
         color: #28497c;
         border-bottom: none;
-        font-size: medium;
+        font-size: 14px;
         flex-grow: 1;
 
     }
@@ -37,13 +48,6 @@
         text-align: right;
     }
 
-    .left {
-        float: left;
-    }
-
-    .right {
-        float: right;
-    }
 
     .activity-content{
         padding: 5px;
@@ -51,26 +55,16 @@
     }
 
     .activity-description {
-        margin-left: 90px;
+        margin-left: 54px;
 
     }
 
-    .activity-avatar-container{
-        float:left;
-        vertical-align:middle;
-    }
 
-    .activity-avatar-container img{
-        vertical-align:middle;
-        width:80px;
-        height:80px;
-
-    }
     .clear {
         clear: both;
     }
 
-    .activity-date, .activity-details, .activity-object-link {
+    .activity-date, .activity-details {
         display: block;
     }
 
@@ -79,9 +73,24 @@
         overflow: hidden;
     }
 
-    .activity-object-link {
-        border-top: 1px solid #CCC;
+    footer {
+        //border-top: 1px solid @light-gray-color-20;
+        padding: 5px;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        justify-content: space-between;
+        align-content: space-around;
+        align-items: center;
+
+
+        .activity-object-link, .activity-avatar-container-footer {
+            order: 0;
+            flex: 0 1 auto;
+            align-self: auto;
+        }
     }
+
 
     .activity-object-link ul {
         padding: 0px;
@@ -93,15 +102,6 @@
         padding-right: 15px;
     }
 
-    /*
-    .activity-details .read-more {
-        display: block;
-        padding-top: 6em;
-        background: -moz-linear-gradient(to bottom, transparent, white);
-        background: -webkit-gradient(linear, 0 0, 0 100%, from(transparent), to(white));
-        margin-top: -6em;
-    }
-    */
 
     .activity-day {
         color: gray;

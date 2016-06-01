@@ -80,7 +80,7 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
 
 
         $navigation = new Navigation('', PluginEngine::getLink($this, array(), 'configuration'));
-        $navigation->setImage('icons/16/blue/edit.png', tooltip2(_('Konfigurieren')) + array('data-dialog' => 'size=auto'));
+        $navigation->setImage('icons/16/blue/edit.png', tooltip2(_('Filter konfigurieren')) + array('data-dialog' => 'size=auto'));
         $template->icons = array($navigation);
 
         header('X-Dialog-Close: 1');
