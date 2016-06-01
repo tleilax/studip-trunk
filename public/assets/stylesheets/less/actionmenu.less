@@ -1,57 +1,63 @@
-@item-width: 200px;
+@shadow: 1px 1px 0 @dark-gray-color-60;
+@item-width: 150px;
 
+/* Structure for action submenus which open on hover */
 *, section.contentbox article header nav {
   ul.actionmenu {
     list-style-type: none;
-    padding-left: 3px;
+    padding: 3px;
     position: relative;
 
-    li {
+    &:hover {
+      background-color: white;
+      box-shadow: @shadow;
+      z-index: 999;
+    }
+
+    ul {
+      display: none;
+      background-color: white;
+      box-shadow: @shadow;
       padding: 3px;
-      border: 1px solid @content-color-20;
+      width: @item-width;
+    }
 
-      ul {
-        display: none;
-        list-style-type: none;
-        width: @item-width;
-        z-index: 999;
-      }
+    // Styling for submenus
+    li:hover {
+      // Position submenu to the left of the current entry
+      > ul {
+        display: block;
+        position: absolute;
+        right: @item-width;
+        top: 0;
 
-      &:hover {
-        background-color: @content-color-40;
-        border: 1px solid @content-color-60;
-
-        ul {
-          display: inline-block;
-          position: absolute;
-          right: 0;
+        li {
+          display: block;
           width: @item-width;
 
-          li {
-            background-color: @content-color-20;
-            border: 1px solid @content-color-20;
-            border-bottom: 1px solid @content-color-60;
-            padding: 3px;
+          a {
+            display: inline;
             text-align: right;
-            width: @item-width;
 
-            ul {
-              display: none;
+            img {
+              padding-left: 5px;
             }
-
-            &:hover {
-              background-color: @content-color-40;
-              border: 1px solid @content-color-60;
-
-              ul {
-                display: inline-block;
-                right: @item-width + 6px;
-                top: 2em;
-              }
-            }
-
           }
         }
+      }
+
+      &:not(:first-child) > ul {
+        top: 2em;
+      }
+    }
+
+    // First submenu is positioned directly under action icon
+    > li:hover {
+      > ul {
+        display: block;
+        position: absolute;
+        right: 0;
+        top: inherit;
       }
     }
   }

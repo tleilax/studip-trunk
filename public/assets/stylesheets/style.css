@@ -3155,60 +3155,58 @@ section.contentbox > article.new header h1 a::before {
   -moz-box-shadow: black 0px 1px 3px;
   box-shadow: black 0px 1px 3px;
 }
+/* Structure for action submenus which open on hover */
+* ul.actionmenu,
 section.contentbox article header nav ul.actionmenu {
   list-style-type: none;
-  padding-left: 3px;
+  padding: 3px;
   position: relative;
 }
-* ul.actionmenu li,
-section.contentbox article header nav ul.actionmenu li {
-  padding: 3px;
-  border: 1px solid #e7ebf1;
-}
-* ul.actionmenu li ul,
-section.contentbox article header nav ul.actionmenu li ul {
-  display: none;
-  list-style-type: none;
-  width: 200px;
+* ul.actionmenu:hover,
+section.contentbox article header nav ul.actionmenu:hover {
+  background-color: white;
+  box-shadow: 1px 1px 0 #8b8f95;
   z-index: 999;
 }
-* ul.actionmenu li:hover,
-section.contentbox article header nav ul.actionmenu li:hover {
-  background-color: #d0d7e3;
-  border: 1px solid #b8c2d5;
+* ul.actionmenu ul,
+section.contentbox article header nav ul.actionmenu ul {
+  display: none;
+  background-color: white;
+  box-shadow: 1px 1px 0 #8b8f95;
+  padding: 3px;
+  width: 150px;
 }
-* ul.actionmenu li:hover ul,
-section.contentbox article header nav ul.actionmenu li:hover ul {
-  display: inline-block;
+* ul.actionmenu li:hover > ul,
+section.contentbox article header nav ul.actionmenu li:hover > ul {
+  display: block;
+  position: absolute;
+  right: 150px;
+  top: 0;
+}
+* ul.actionmenu li:hover > ul li,
+section.contentbox article header nav ul.actionmenu li:hover > ul li {
+  display: block;
+  width: 150px;
+}
+* ul.actionmenu li:hover > ul li a,
+section.contentbox article header nav ul.actionmenu li:hover > ul li a {
+  display: inline;
+  text-align: right;
+}
+* ul.actionmenu li:hover > ul li a img,
+section.contentbox article header nav ul.actionmenu li:hover > ul li a img {
+  padding-left: 5px;
+}
+* ul.actionmenu li:hover:not(:first-child) > ul,
+section.contentbox article header nav ul.actionmenu li:hover:not(:first-child) > ul {
+  top: 2em;
+}
+* ul.actionmenu > li:hover > ul,
+section.contentbox article header nav ul.actionmenu > li:hover > ul {
+  display: block;
   position: absolute;
   right: 0;
-  width: 200px;
-}
-* ul.actionmenu li:hover ul li,
-section.contentbox article header nav ul.actionmenu li:hover ul li {
-  background-color: #e7ebf1;
-  border: 1px solid #e7ebf1;
-  border-bottom: 1px solid #b8c2d5;
-  padding: 3px;
-  text-align: right;
-  width: 200px;
-}
-* ul.actionmenu li:hover ul li ul,
-section.contentbox article header nav ul.actionmenu li:hover ul li ul {
-  display: none;
-}
-* ul.actionmenu li:hover ul li:hover,
-section.contentbox article header nav ul.actionmenu li:hover ul li:hover {
-  background-color: #d0d7e3;
-  border: 1px solid #b8c2d5;
-}
-* ul.actionmenu li:hover ul li:hover ul,
-section.contentbox article header nav ul.actionmenu li:hover ul li:hover ul {
-  display: inline-block;
-  position: absolute;
-  right: 206px;
-  top: 2em;
-  width: 200px;
+  top: inherit;
 }
 /* --- AJAX indicator ------------------------------------------------------- */
 #ajax_notification {
@@ -6073,7 +6071,7 @@ section.course-statusgroups article section table thead tr th {
 }
 section.course-statusgroups article section table tbody tr td span.member-invisible {
   font-style: italic;
-  color: #6d727a;
+  color: #6d737b;
 }
 section.course-statusgroups article section table tbody tr td.memberactions {
   text-align: right;

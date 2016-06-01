@@ -29,28 +29,28 @@
                                         'group_id' => $group->id,
                                         'default_subject' => $course_title
                                     )) ?>" data-dialog="size=auto;">
+                                        <?= _('Nachricht schicken') ?>
                                         <?= Icon::create('mail', 'clickable',
                                             array('title' => sprintf(_('Nachricht an alle Mitglieder der Gruppe %s schicken'),
                                                 htmlReady($group->name)))) ?>
-                                        <?= _('Nachricht schicken') ?>
                                     </a>
                                 </li>
                                 <li>
                                     <a href="<?= $controller->url_for('course/statusgroups/edit', $group->id) ?>" data-dialog>
+                                        <?= _('Bearbeiten') ?>
                                         <?= Icon::create('edit', 'clickable',
                                             array('title' => sprintf(_('Gruppe %s bearbeiten'),
                                                 htmlReady($group->name)))) ?>
-                                        <?= _('Bearbeiten') ?>
                                     </a>
                                 </li>
                                 <li>
                                     <a href="<?= $controller->url_for('course/statusgroups/delete', $group->id) ?>"
                                        data-confirm="<?= sprintf(_('Soll die Gruppe %s wirklich gelöscht werden?'),
                                            htmlReady($group->name)) ?>">
+                                        <?= _('Löschen') ?>
                                         <?= Icon::create('trash', 'clickable',
                                             array('title' => sprintf(_('Gruppe %s löschen'),
                                                 htmlReady($group->name)))) ?>
-                                        <?= _('Löschen') ?>
                                     </a>
                                 </li>
                             </ul>
