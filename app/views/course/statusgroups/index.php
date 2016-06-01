@@ -1,5 +1,8 @@
 <form action="<?= $controller->url_for('course/statusgroups/batch_action') ?>" method="post">
 <section class="contentbox course-statusgroups">
+    <header>
+        <h1><?= _('Teilnehmende nach Gruppen') ?></h1>
+    </header>
     <?php if ($no_group) : ?>
         <?= $this->render_partial('course/statusgroups/_group',
             array('group' => $no_group['group'], 'members' => $no_group['members'])) ?>
