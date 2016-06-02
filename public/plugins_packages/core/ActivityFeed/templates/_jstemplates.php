@@ -25,9 +25,9 @@
 </script>
 
 <script type="text/template" class="activity">
-    <section class="activity <% if (activity.actor.id == user_id) { %>right<% } else { %>left<% } %>">
+    <section class="activity">
         <header>
-            <span class="provider_circle">
+            <span class="provider_circle <% if (activity.actor.id == user_id) { %>right<% } else { %>left<% } %>">
             <% if (activity.provider === 'blubber') { %>
                 <img src="<%- STUDIP.ASSETS_URL + 'images/icons/32/white/blubber.png'  %>">
             <% } else if(activity.provider === 'documents') { %>
