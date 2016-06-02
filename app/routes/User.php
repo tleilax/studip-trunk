@@ -31,6 +31,7 @@ class User extends \RESTAPI\RouteMap
     public static function getNamesOfUser($user)
     {
         $name = array(
+            'username'  => $user->username,
             'formatted' => $user->getFullName(),
             'family'    => $user->nachname,
             'given'     => $user->vorname,

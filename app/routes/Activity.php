@@ -117,9 +117,9 @@ class Activity extends \RESTAPI\RouteMap
                         'id'   => $data[$key]['actor_id']);
 
             if ($data[$key]['actor_type'] == 'user') {
-                $actor['details'] = User::getMiniUser($this, new \User($data[$key]['actor']['id']));
+                $actor['details'] = User::getMiniUser($this, new \User($data[$key]['actor_id']));
             }
-
+            
             unset($data[$key]['actor_type']);
             unset($data[$key]['actor_id']);
 
