@@ -50,16 +50,22 @@
                 <img src="<%- STUDIP.ASSETS_URL + 'images/icons/32/white/activity.png'  %>">
             <% } %>
             </span>
-            <h1>
-                <%- activity.title %>
-            </h1>
+            <div class="activity-heading">
+                <a href="<%- STUDIP.URLHelper.resolveURL('dispatch.php/profile?username=' + activity.actor.details.name.username) %>">
+                    <img src="<%- activity.actor.details.avatar_small  %>">
+                </a>
+                <h3>
+                    <%- activity.title %>
+                </h3>
+            </div>
+            <div class="activity-date">
+                    Am <%- new Date(activity.mkdate * 1000).toLocaleString() %> Uhr
+            </div>
+
+
         </header>
         <section class="activity-content">
             <section class="activity-description">
-                <span class="activity-date">
-                    <%- new Date(activity.mkdate * 1000).toLocaleString() %>
-                </span>
-
                 <span class="activity-details">
                     <%= activity.content %>
                 </span>
@@ -67,14 +73,9 @@
             <div class='clear'></div>
         </section>
         <footer>
-                <span class="activity-object-link">
-                    <%= activity_urls({urls: activity.object_url}) %>
-                </span>
-                <span class="activity-avatar-container-footer">
-                    <a href="<%- STUDIP.URLHelper.resolveURL('dispatch.php/profile?username=' + activity.actor.details.name.username) %>">
-                        <img src="<%- activity.actor.details.avatar_small  %>">
-                    </a>
-                </span>
+            <span class="activity-object-link">
+                <%= activity_urls({urls: activity.object_url}) %>
+            </span>
         </footer>
 
     </section>

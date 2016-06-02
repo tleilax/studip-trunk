@@ -8,63 +8,72 @@
 
     .activity {
         border: 1px solid #d0d7e3;
-        width: 98%;
-        margin: 10px 2px;
+        width: 95%;
+        margin: 30px auto;
+
     }
 
     .activity header {
-        //background-color:#e7ebf1;
         color: #28497c;
         padding: 5px;
         display: flex;
+        position: relative;
+        flex-direction: column;
 
         .provider_circle {
             border-radius: 50%;
-            width: 48px;
-            height: 48px;
+            width: 42px;
+            height: 42px;
             background: @base-color;
+            position: absolute;
+            top: -20px;
+            left: -15px;
 
             img {
                 padding: 12px;
-                width: 24px;
+                width: 18px;
             }
         }
+
+        .activity-heading {
+            padding: 5px;
+            margin: 0 0 0 25px;
+            flex-grow: 1;
+            img {
+                display: inline;
+            }
+            h3 {
+                display: inline;
+                color: #28497c;
+                border-bottom: none;
+                font-size: 14px;
+                vertical-align: 6px;
+
+            }
+        }
+        .activity-date{
+            color: gray;
+            font-size: 0.75em ;
+            margin: 0 0 0 30px;
+            display: block;
+            flex-grow: 1;
+
+        }
     }
-
-    .activity header h1 {
-        padding: 5px;
-        margin-top: 12px;
-        color: #28497c;
-        border-bottom: none;
-        font-size: 14px;
-        flex-grow: 1;
-
-    }
-
-    .activity header nav {
-        padding: 5px;
-        margin: 0;
-        color: #28497c;
-        text-align: right;
-    }
-
 
     .activity-content{
         padding: 5px;
         background-color: white;
-    }
+        margin-left: 30px;
 
-    .activity-description {
-        margin-left: 54px;
 
     }
-
 
     .clear {
         clear: both;
     }
 
-    .activity-date, .activity-details {
+    .activity-details {
         display: block;
     }
 
@@ -74,7 +83,6 @@
     }
 
     footer {
-        //border-top: 1px solid @light-gray-color-20;
         padding: 5px;
         display: flex;
         flex-direction: row;
@@ -82,9 +90,9 @@
         justify-content: space-between;
         align-content: space-around;
         align-items: center;
+        margin-left: 30px;
 
-
-        .activity-object-link, .activity-avatar-container-footer {
+        .activity-object-link {
             order: 0;
             flex: 0 1 auto;
             align-self: auto;
