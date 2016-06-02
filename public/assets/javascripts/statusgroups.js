@@ -47,6 +47,7 @@
             if (!$('input[name="selfassign"]').attr('checked')) {
                 $('input[name="exclusive"]').closest($('section')).hide();
                 $('input[name="selfassign_start"]').closest($('section')).hide();
+                $('input[name="selfassign_end"]').closest($('section')).hide();
             }
             $('input[name="selfassign_end"]').datetimepicker();
             $('input[name="selfassign"]').on('click', function() {
