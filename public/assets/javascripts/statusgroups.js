@@ -61,6 +61,9 @@
     $(document).ready(function () {
         ajax_endpoint = $('meta[name="statusgroups-ajax-movable-endpoint"]').attr('content');
         STUDIP.Statusgroups.apply();
+        $('ul.actionmenu li label').on('click', function(e) {
+            $(this).parent().toggleClass('active');
+        });
     }).on('ready dialog-open dialog-update', function () {
         $('.nestable').nestable({
             rootClass: 'nestable'

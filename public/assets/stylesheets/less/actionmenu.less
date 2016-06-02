@@ -1,5 +1,5 @@
 @shadow: 1px 1px 0 @dark-gray-color-60;
-@item-width: 150px;
+@item-width: 180px;
 
 /* Structure for action submenus which open on hover */
 *, section.contentbox article header nav {
@@ -8,11 +8,6 @@
     padding: 2px;
     position: relative;
     text-align: left;
-
-    &:hover {
-      background-color: white;
-      box-shadow: @shadow;
-    }
 
     img, svg {
       height: 20px;
@@ -28,7 +23,7 @@
       z-index: 999;
 
       img, svg {
-        padding-right: 10px;
+        padding-right: 5px;
       }
 
     }
@@ -44,7 +39,7 @@
           ~ ul {
             display: block;
             position: absolute;
-            right: @item-width + 6px;
+            right: @item-width+6px;
             top: 0;
 
             li {
@@ -73,14 +68,22 @@
       }
     }
 
+    // The first submenu level is a bit different...
     > li {
+      padding: 2px;
+
+      &.active {
+        background-color: white;
+        box-shadow: @shadow;
+      }
+
       > input[type="checkbox"] {
         &:checked {
           // First submenu is positioned directly under action icon
           ~ ul {
             display: block;
             position: absolute;
-            right: 0;
+            right: 2px;
             top: inherit;
           }
         }

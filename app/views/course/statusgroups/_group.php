@@ -40,24 +40,41 @@
                                         <?= _('Nachricht schicken') ?>
                                     </a>
                                 </li>
-                                <li>
-                                    <a href="<?= $controller->url_for('course/statusgroups/edit', $group->id) ?>" data-dialog>
-                                        <?= Icon::create('edit', 'clickable',
-                                            array('title' => sprintf(_('Gruppe %s bearbeiten'),
-                                                htmlReady($group->name)))) ?>
-                                        <?= _('Bearbeiten') ?>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="<?= $controller->url_for('course/statusgroups/delete', $group->id) ?>"
-                                       data-confirm="<?= sprintf(_('Soll die Gruppe %s wirklich gelöscht werden?'),
-                                           htmlReady($group->name)) ?>">
-                                        <?= Icon::create('trash', 'clickable',
-                                            array('title' => sprintf(_('Gruppe %s löschen'),
-                                                htmlReady($group->name)))) ?>
-                                        <?= _('Löschen') ?>
-                                    </a>
-                                </li>
+                                <?php if (!$is_locked) : ?>
+                                    <li>
+                                        <?= MultiPersonSearch::get('add_statusgroup_member' . $group->id)
+                                            ->setTitle(_('Teilnehmende der Veranstaltung hinzufügen'))
+                                            ->setLinkText(_('Personen hinzufügen'))
+                                            ->setSearchObject($memberSearch)
+                                            ->setDefaultSelectedUser($group->members->pluck('user_id'))
+                                            ->setDataDialogStatus(Request::isXhr())
+                                            ->setJSFunctionOnSubmit(Request::isXhr() ?
+                                                'jQuery(this).closest(".ui-dialog-content").dialog("close");' : false)
+                                            ->setExecuteURL($controller->url_for('course/statusgroups/add_member/' .
+                                                $group->id))
+                                            ->addQuickfilter(_('keiner Gruppe zugeordnete Personen'),
+                                                $no_group ? $no_group['members']->pluck('user_id') : array())
+                                            ->render() ?>
+                                    </li>
+                                    <li>
+                                        <a href="<?= $controller->url_for('course/statusgroups/edit', $group->id) ?>" data-dialog>
+                                            <?= Icon::create('edit', 'clickable',
+                                                array('title' => sprintf(_('Gruppe %s bearbeiten'),
+                                                    htmlReady($group->name)))) ?>
+                                            <?= _('Bearbeiten') ?>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="<?= $controller->url_for('course/statusgroups/delete', $group->id) ?>"
+                                           data-confirm="<?= sprintf(_('Soll die Gruppe %s wirklich gelöscht werden?'),
+                                               htmlReady($group->name)) ?>">
+                                            <?= Icon::create('trash', 'clickable',
+                                                array('title' => sprintf(_('Gruppe %s löschen'),
+                                                    htmlReady($group->name)))) ?>
+                                            <?= _('Löschen') ?>
+                                        </a>
+                                    </li>
+                                <?php endif ?>
                             </ul>
                         </li>
                     </ul>

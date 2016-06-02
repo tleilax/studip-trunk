@@ -157,6 +157,15 @@ class Course_StatusgroupsController extends AuthenticatedController
 
         }
 
+        // Prepare search object for MultiPersonSearch.
+        $this->memberSearch = new PermissionSearch(
+            'user_in_sem',
+            _('Teilnehmende der Veranstaltung suchen'),
+            'user_id',
+            array('seminar_id' => $this->course_id,
+                'sem_perm' => array('user', 'autor')
+            )
+        );
     }
 
     /**
@@ -194,6 +203,63 @@ class Course_StatusgroupsController extends AuthenticatedController
                         date('d.m.Y H:i', $group->selfassign_end));
             }
         }
+    }
+
+    /**
+     * Adds selected persons to given group. user_ids to add come from a
+     * MultiPersonSearch object which was triggered in group actions.
+     *
+     * @param String $group_id
+     */
+    public function add_member_action($group_id)
+    {
+        $g = Statusgruppen::find($group_id);
+
+        // Get selected persons.
+        $mp = MultiPersonSearch::load('add_statusgroup_member' . $group_id);
+
+        $success = 0;
+        $fail = 0;
+
+        foreach ($mp->getAddedUsers() as $a) {
+            $s = new StatusgruppeUser();
+            $s->statusgruppe_id = $group_id;
+            $s->user_id = $a;
+            if ($s->store() !== false) {
+                $success++;
+            } else {
+                $fail++;
+            }
+        }
+
+        if ($success > 0 && $fail == 0) {
+            PageLayout::postSuccess(sprintf(ngettext(
+                '%u Person wurde zu %s hinzugefügt.',
+                '%u Personen wurden zu %s hinzugefügt.',
+                $success), $success, $g->name
+            ));
+        } else if ($success > 0 && $fail > 0) {
+            $successMsg = sprintf(ngettext(
+                '%u Person wurde zu %s hinzugefügt.',
+                '%u Personen wurden zu %s hinzugefügt.',
+                $success), $success, $g->name
+            );
+            $failMsg = sprintf(ngettext(
+                '%u Person konnte nicht zu %s hinzugefügt werden.',
+                '%u Personen konnten nicht zu %s hinzugefügt werden.',
+                $fail), $fail, $g->name
+            );
+            PageLayout::postWarning($successMsg . ' ' . $failMsg);
+        } else if ($success == 0 && $fail > 0) {
+            PageLayout::postError(sprintf(ngettext(
+                '%u Person konnte nicht zu %s hinzugefügt werden.',
+                '%u Personen konnten nicht zu %s hinzugefügt werden.',
+                $success), $success, $g->name
+            ));
+        }
+
+        $this->relocate('course/statusgroups');
+
     }
 
     /**
