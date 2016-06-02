@@ -3170,8 +3170,12 @@ section.contentbox article header nav ul.actionmenu svg {
   height: 20px;
   width: 20px;
 }
-* ul.actionmenu ul,
-section.contentbox article header nav ul.actionmenu ul {
+* ul.actionmenu li,
+section.contentbox article header nav ul.actionmenu li {
+  padding: 3px;
+}
+* ul.actionmenu li ul,
+section.contentbox article header nav ul.actionmenu li ul {
   display: none;
   background-color: white;
   box-shadow: 1px 1px 0 #8a8e95;
@@ -3179,57 +3183,44 @@ section.contentbox article header nav ul.actionmenu ul {
   width: 180px;
   z-index: 999;
 }
-* ul.actionmenu ul img,
-section.contentbox article header nav ul.actionmenu ul img,
-* ul.actionmenu ul svg,
-section.contentbox article header nav ul.actionmenu ul svg {
+* ul.actionmenu li ul img,
+section.contentbox article header nav ul.actionmenu li ul img,
+* ul.actionmenu li ul svg,
+section.contentbox article header nav ul.actionmenu li ul svg {
   padding-right: 5px;
 }
-* ul.actionmenu li,
-section.contentbox article header nav ul.actionmenu li {
-  padding-left: 5px;
-}
-* ul.actionmenu li > input[type="checkbox"],
-section.contentbox article header nav ul.actionmenu li > input[type="checkbox"] {
-  display: none;
-}
-* ul.actionmenu li > input[type="checkbox"]:checked ~ ul,
-section.contentbox article header nav ul.actionmenu li > input[type="checkbox"]:checked ~ ul {
+* ul.actionmenu li.active ul,
+section.contentbox article header nav ul.actionmenu li.active ul {
   display: block;
   position: absolute;
-  right: 186px;
-  top: 0;
+  right: 2px;
+  top: calc(2em + 1px);
 }
-* ul.actionmenu li > input[type="checkbox"]:checked ~ ul li,
-section.contentbox article header nav ul.actionmenu li > input[type="checkbox"]:checked ~ ul li {
-  display: block;
-  padding: 3px;
-  width: 180px;
+* ul.actionmenu > li span.title,
+section.contentbox article header nav ul.actionmenu > li span.title {
+  border: 0;
+  display: none;
+  font-weight: bold;
 }
-* ul.actionmenu li > input[type="checkbox"]:checked ~ ul li a,
-section.contentbox article header nav ul.actionmenu li > input[type="checkbox"]:checked ~ ul li a {
-  display: inline;
-  padding-left: 0;
-}
-* ul.actionmenu li:not(:first-child) > input[type="checkbox"]:checked ~ ul,
-section.contentbox article header nav ul.actionmenu li:not(:first-child) > input[type="checkbox"]:checked ~ ul {
-  top: 2em;
-}
-* ul.actionmenu > li,
-section.contentbox article header nav ul.actionmenu > li {
-  padding: 2px;
+* ul.actionmenu > li > img,
+section.contentbox article header nav ul.actionmenu > li > img,
+* ul.actionmenu > li > svg,
+section.contentbox article header nav ul.actionmenu > li > svg,
+* ul.actionmenu > li > a > img,
+section.contentbox article header nav ul.actionmenu > li > a > img,
+* ul.actionmenu > li > a > svg,
+section.contentbox article header nav ul.actionmenu > li > a > svg {
+  float: right;
 }
 * ul.actionmenu > li.active,
 section.contentbox article header nav ul.actionmenu > li.active {
   background-color: white;
   box-shadow: 1px 1px 0 #8a8e95;
+  width: 184px;
 }
-* ul.actionmenu > li > input[type="checkbox"]:checked ~ ul,
-section.contentbox article header nav ul.actionmenu > li > input[type="checkbox"]:checked ~ ul {
-  display: block;
-  position: absolute;
-  right: 2px;
-  top: inherit;
+* ul.actionmenu > li.active span.title,
+section.contentbox article header nav ul.actionmenu > li.active span.title {
+  display: inline;
 }
 /* --- AJAX indicator ------------------------------------------------------- */
 #ajax_notification {

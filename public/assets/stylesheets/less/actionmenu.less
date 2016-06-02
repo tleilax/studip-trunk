@@ -14,78 +14,50 @@
       width: 20px;
     }
 
-    ul {
-      display: none;
-      background-color: white;
-      box-shadow: @shadow;
-      padding: 5px;
-      width: @item-width;
-      z-index: 999;
-
-      img, svg {
-        padding-right: 5px;
-      }
-
-    }
-
     li {
-      padding-left: 5px;
+      padding: 3px;
 
-      > input[type="checkbox"] {
+      ul {
         display: none;
+        background-color: white;
+        box-shadow: @shadow;
+        padding: 5px;
+        width: @item-width;
+        z-index: 999;
 
-        &:checked {
-          // Position submenus to the left of the parent item.
-          ~ ul {
-            display: block;
-            position: absolute;
-            right: @item-width+6px;
-            top: 0;
-
-            li {
-              display: block;
-              padding: 3px;
-              width: @item-width;
-
-              a {
-                display: inline;
-                padding-left: 0;
-              }
-            }
-          }
+        img, svg {
+          padding-right: 5px;
         }
       }
 
-      // Submenus of non-first items need some vertical offset.
-      &:not(:first-child) {
-        > input[type="checkbox"] {
-          &:checked {
-            ~ ul {
-              top: 2em;
-            }
-          }
+      &.active {
+        ul {
+          display: block;
+          position: absolute;
+          right: 2px;
+          top: ~"calc(2em + 1px)";
         }
       }
     }
 
-    // The first submenu level is a bit different...
     > li {
-      padding: 2px;
+      span.title {
+        border: 0;
+        display: none;
+        font-weight: bold;
+      }
+
+      > img, > svg, > a > img, > a > svg {
+        float: right;
+      }
 
       &.active {
         background-color: white;
         box-shadow: @shadow;
-      }
+        width: @item-width+4px;
 
-      > input[type="checkbox"] {
-        &:checked {
-          // First submenu is positioned directly under action icon
-          ~ ul {
-            display: block;
-            position: absolute;
-            right: 2px;
-            top: inherit;
-          }
+        span.title {
+          display: inline;
         }
       }
     }

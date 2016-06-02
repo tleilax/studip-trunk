@@ -68,6 +68,18 @@ class Course_StatusgroupsController extends AuthenticatedController
                 Icon::create('group2+add', 'clickable'))->asDialog('size=auto');
             $sidebar->addWidget($actions);
         }
+        if (Config::get()->EXPORT_ENABLE && $this->is_tutor) {
+            include_once $GLOBALS['PATH_EXPORT'] . '/export_linking_func.inc.php';
+
+            $export = new ExportWidget();
+
+            // create csv-export link
+            $csvExport = export_link($this->course_id, "person", sprintf('%s %s', htmlReady($this->status_groups['autor']), htmlReady($this->course_title)), 'csv', 'csv-statusgroups', '', _('Gruppierte Teilnehmendenliste als csv-Dokument exportieren'), 'passthrough');
+            $export->addLink(_('Gruppierte Teilnehmendenliste als CSV-Dokument exportieren'),
+                $this->parseHref($csvExport), Icon::create('file-office', 'clickable'));
+
+            $sidebar->addWidget($export);
+        }
     }
 
     /**
@@ -856,6 +868,12 @@ class Course_StatusgroupsController extends AuthenticatedController
         } else {
             throw new Trails_Exception(403);
         }
+    }
+
+    private function parseHref($string)
+    {
+        $temp = preg_match('/href="(.*?)"/', $string, $match); // Yes, you're absolutely right - this IS horrible!
+        return $match[1];
     }
 
 }

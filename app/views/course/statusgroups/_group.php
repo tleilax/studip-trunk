@@ -24,10 +24,10 @@
                 <?php if ($group->id != 'nogroup') : ?>
                     <ul class="actionmenu">
                         <li>
-                            <input type="checkbox" id="<?= $group->id ?>-actions">
-                            <label for="<?= $group->id ?>-actions">
-                                <?= Icon::create('admin', 'clickable', array('title' => _('Aktionen'))) ?>
-                            </label>
+                            <span class="title">
+                                <?= _('Aktionen') ?>
+                            </span>
+                            <?= Icon::create('admin', 'clickable', array('title' => _('Aktionen'))) ?>
                             <ul>
                                 <li>
                                     <a href="<?= $controller->url_for('messages/write', array(
