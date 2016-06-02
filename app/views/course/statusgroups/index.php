@@ -3,14 +3,14 @@
     <header>
         <h1><?= _('Teilnehmende nach Gruppen') ?></h1>
     </header>
-    <?php if ($no_group) : ?>
-        <?= $this->render_partial('course/statusgroups/_group',
-            array('group' => $no_group['group'], 'members' => $no_group['members'])) ?>
-    <?php endif ?>
     <?php foreach ($groups as $group) : ?>
         <?= $this->render_partial('course/statusgroups/_group',
             array('group' => $group['group'], 'members' => $group['members'])) ?>
     <?php endforeach ?>
+    <?php if ($no_group) : ?>
+        <?= $this->render_partial('course/statusgroups/_group',
+            array('group' => $no_group['group'], 'members' => $no_group['members'])) ?>
+    <?php endif ?>
     <?php if (count($groups) > 1 && $is_tutor && !$is_locked) : ?>
         <footer>
             <div class="groupselection">

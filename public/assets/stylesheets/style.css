@@ -3159,50 +3159,69 @@ section.contentbox > article.new header h1 a::before {
 * ul.actionmenu,
 section.contentbox article header nav ul.actionmenu {
   list-style-type: none;
-  padding: 3px;
+  padding: 2px;
   position: relative;
+  text-align: left;
 }
 * ul.actionmenu:hover,
 section.contentbox article header nav ul.actionmenu:hover {
   background-color: white;
   box-shadow: 1px 1px 0 #8b8f95;
-  z-index: 999;
+}
+* ul.actionmenu img,
+section.contentbox article header nav ul.actionmenu img,
+* ul.actionmenu svg,
+section.contentbox article header nav ul.actionmenu svg {
+  height: 20px;
+  width: 20px;
 }
 * ul.actionmenu ul,
 section.contentbox article header nav ul.actionmenu ul {
   display: none;
   background-color: white;
   box-shadow: 1px 1px 0 #8b8f95;
+  padding: 5px;
+  width: 150px;
+  z-index: 999;
+}
+* ul.actionmenu ul img,
+section.contentbox article header nav ul.actionmenu ul img,
+* ul.actionmenu ul svg,
+section.contentbox article header nav ul.actionmenu ul svg {
+  padding-right: 10px;
+}
+* ul.actionmenu li,
+section.contentbox article header nav ul.actionmenu li {
+  padding-left: 5px;
+}
+* ul.actionmenu li > input[type="checkbox"],
+section.contentbox article header nav ul.actionmenu li > input[type="checkbox"] {
+  display: none;
+}
+* ul.actionmenu li > input[type="checkbox"]:checked ~ ul,
+section.contentbox article header nav ul.actionmenu li > input[type="checkbox"]:checked ~ ul {
+  display: block;
+  position: absolute;
+  right: 150px + 6px;
+  top: 0;
+}
+* ul.actionmenu li > input[type="checkbox"]:checked ~ ul li,
+section.contentbox article header nav ul.actionmenu li > input[type="checkbox"]:checked ~ ul li {
+  display: block;
   padding: 3px;
   width: 150px;
 }
-* ul.actionmenu li:hover > ul,
-section.contentbox article header nav ul.actionmenu li:hover > ul {
-  display: block;
-  position: absolute;
-  right: 150px;
-  top: 0;
-}
-* ul.actionmenu li:hover > ul li,
-section.contentbox article header nav ul.actionmenu li:hover > ul li {
-  display: block;
-  width: 150px;
-}
-* ul.actionmenu li:hover > ul li a,
-section.contentbox article header nav ul.actionmenu li:hover > ul li a {
+* ul.actionmenu li > input[type="checkbox"]:checked ~ ul li a,
+section.contentbox article header nav ul.actionmenu li > input[type="checkbox"]:checked ~ ul li a {
   display: inline;
-  text-align: right;
+  padding-left: 0;
 }
-* ul.actionmenu li:hover > ul li a img,
-section.contentbox article header nav ul.actionmenu li:hover > ul li a img {
-  padding-left: 5px;
-}
-* ul.actionmenu li:hover:not(:first-child) > ul,
-section.contentbox article header nav ul.actionmenu li:hover:not(:first-child) > ul {
+* ul.actionmenu li:not(:first-child) > input[type="checkbox"]:checked ~ ul,
+section.contentbox article header nav ul.actionmenu li:not(:first-child) > input[type="checkbox"]:checked ~ ul {
   top: 2em;
 }
-* ul.actionmenu > li:hover > ul,
-section.contentbox article header nav ul.actionmenu > li:hover > ul {
+* ul.actionmenu > li > input[type="checkbox"]:checked ~ ul,
+section.contentbox article header nav ul.actionmenu > li > input[type="checkbox"]:checked ~ ul {
   display: block;
   position: absolute;
   right: 0;
@@ -6059,6 +6078,16 @@ a.bookable_rooms_action {
   float: left;
   margin-right: 10px;
 }
+section.course-statusgroups article header h1 a {
+  display: inline;
+}
+section.course-statusgroups article header h1 a.no-contentbox-link::before {
+  background-image: none;
+  width: 0;
+}
+section.course-statusgroups article header h1 a img {
+  vertical-align: bottom;
+}
 section.course-statusgroups article input.groupselector {
   float: left;
 }
@@ -6084,20 +6113,17 @@ section.course-statusgroups article section table tfoot tr td {
 section.course-statusgroups article section table tfoot tr td.memberactions {
   text-align: right;
 }
+section.course-statusgroups article section div.statusgroup-no-members {
+  font-style: italic;
+  margin: 15px;
+}
 section.course-statusgroups footer {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  padding: 5px;
-  padding-left: 18px;
   background-color: #e7ebf1;
   border-top: 1px solid #000000;
-}
-section.course-statusgroups footer {
   font-size: medium;
-}
-section.course-statusgroups footer div.groupactions {
-  margin-left: auto;
+  padding: 5px;
+  padding-left: 18px;
+  text-align: left;
 }
 #sort1,
 #sort0,

@@ -11,46 +11,51 @@
                 <?= htmlReady($group->name) ?> (<?= count($members) .
                 ($group->size ? '/' . $group->size : '') ?>)
             </a>
+            <?php if ($group->id != 'nogroup') : ?>
+                <a class="no-contentbox-link"
+                        href="<?= $controller->url_for('course/statusgroups/groupinfo', $group->id) ?>"
+                        data-dialog="size=auto">
+                    <?= Icon::create('info-circle', 'clickable',
+                        array('title' => sprintf(_('Informationen zu %s'), htmlReady($group->name)))) ?></a>
+            <?php endif ?>
         </h1>
         <nav>
-            <?php if ($group->id != 'nogroup') : ?>
-                <a href="<?= $controller->url_for('course/statusgroups/groupinfo', $group->id) ?>" data-dialog="size=auto">
-                    <?= Icon::create('info-circle', 'clickable',
-                            array('title' => sprintf(_('Informationen zu %s'), htmlReady($group->name)))) ?></a>
-            <?php endif ?>
             <?php if ($is_tutor) : ?>
                 <?php if ($group->id != 'nogroup') : ?>
                     <ul class="actionmenu">
                         <li>
-                            <?= Icon::create('admin', 'clickable', array('title' => _('Aktionen'))) ?>
+                            <input type="checkbox" id="<?= $group->id ?>-actions">
+                            <label for="<?= $group->id ?>-actions">
+                                <?= Icon::create('admin', 'clickable', array('title' => _('Aktionen'))) ?>
+                            </label>
                             <ul>
                                 <li>
                                     <a href="<?= $controller->url_for('messages/write', array(
                                         'group_id' => $group->id,
                                         'default_subject' => $course_title
                                     )) ?>" data-dialog="size=auto;">
-                                        <?= _('Nachricht schicken') ?>
                                         <?= Icon::create('mail', 'clickable',
                                             array('title' => sprintf(_('Nachricht an alle Mitglieder der Gruppe %s schicken'),
                                                 htmlReady($group->name)))) ?>
+                                        <?= _('Nachricht schicken') ?>
                                     </a>
                                 </li>
                                 <li>
                                     <a href="<?= $controller->url_for('course/statusgroups/edit', $group->id) ?>" data-dialog>
-                                        <?= _('Bearbeiten') ?>
                                         <?= Icon::create('edit', 'clickable',
                                             array('title' => sprintf(_('Gruppe %s bearbeiten'),
                                                 htmlReady($group->name)))) ?>
+                                        <?= _('Bearbeiten') ?>
                                     </a>
                                 </li>
                                 <li>
                                     <a href="<?= $controller->url_for('course/statusgroups/delete', $group->id) ?>"
                                        data-confirm="<?= sprintf(_('Soll die Gruppe %s wirklich gelöscht werden?'),
                                            htmlReady($group->name)) ?>">
-                                        <?= _('Löschen') ?>
                                         <?= Icon::create('trash', 'clickable',
                                             array('title' => sprintf(_('Gruppe %s löschen'),
                                                 htmlReady($group->name)))) ?>
+                                        <?= _('Löschen') ?>
                                     </a>
                                 </li>
                             </ul>
@@ -223,25 +228,27 @@
                 <tfoot>
                 <tr>
                     <?php if (count($members) > 1 && $is_tutor && !$is_locked) : ?>
-                        <td colspan="4" class="memberselect">
-                            <label>
-                                <input aria-label="<?= sprintf(_('Alle Mitglieder dieser Gruppe auswählen')) ?>"
-                                       type="checkbox" name="all" value="1"
-                                       data-proxyfor=":checkbox.groupmembers-<?= $group->id ?>">
-                                <?= _('Alle Mitglieder dieser Gruppe auswählen') ?>
-                            </label>
-                        </td>
-                        <td colspan="2" class="memberactions">
-                            <label>
-                                <select name="members_action[<?= $group->id ?>]">
-                                    <option value="move"><?= _('In andere Gruppe verschieben') ?></option>
-                                    <?php if ($group->id != 'nogroup') : ?>
-                                        <option value="delete"><?= _('Aus dieser Gruppe entfernen') ?></option>
-                                    <?php endif ?>
-                                </select>
-                            </label>
-                            <?= Studip\Button::create(_('Ausführen'), 'batch_members['.$group->id.']',
-                                array('data-dialog' => 'size=auto')) ?>
+                        <td colspan="6">
+                            <div class="memberselect">
+                                <label>
+                                    <input aria-label="<?= sprintf(_('Alle Mitglieder dieser Gruppe auswählen')) ?>"
+                                           type="checkbox" name="all" value="1"
+                                           data-proxyfor=":checkbox.groupmembers-<?= $group->id ?>">
+                                    <?= _('Alle Mitglieder dieser Gruppe auswählen') ?>
+                                </label>
+                            </div>
+                            <div class="memberactions">
+                                <label>
+                                    <select name="members_action[<?= $group->id ?>]">
+                                        <option value="move"><?= _('In andere Gruppe verschieben') ?></option>
+                                        <?php if ($group->id != 'nogroup') : ?>
+                                            <option value="delete"><?= _('Aus dieser Gruppe entfernen') ?></option>
+                                        <?php endif ?>
+                                    </select>
+                                </label>
+                                <?= Studip\Button::create(_('Ausführen'), 'batch_members['.$group->id.']',
+                                    array('data-dialog' => 'size=auto')) ?>
+                            </div>
                         </td>
                     <?php elseif (!$is_tutor) : ?>
                         <td colspan="3">
@@ -252,7 +259,9 @@
                 </tfoot>
             </table>
         <?php else : ?>
-            <?= MessageBox::info(_('Diese Gruppe hat keine Mitglieder.')) ?>
+            <div class="statusgroup-no-members">
+                <?= _('Diese Gruppe hat keine Mitglieder.') ?>
+            </div>
         <?php endif ?>
     </section>
 </article>
