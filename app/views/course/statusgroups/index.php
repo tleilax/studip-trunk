@@ -17,13 +17,14 @@
                 <label>
                     <input aria-label="<?= sprintf(_('Alle Gruppen auswählen')) ?>"
                            type="checkbox" name="allgroups" value="1"
-                           data-proxyfor=":checkbox.groupselector">
+                           data-proxyfor=":checkbox.groupselector"
+                           data-activates="select#batch-groups-action">
                     <?= _('Alle Gruppen auswählen') ?>
                 </label>
             </div>
             <div class="groupactions">
                 <label>
-                    <select name="groups_action">
+                    <select name="groups_action" id="batch-groups-action" disabled>
                         <option value="edit"><?= _('Bearbeiten') ?></option>
                         <option value="delete"><?= _('Löschen') ?></option>
                     </select>

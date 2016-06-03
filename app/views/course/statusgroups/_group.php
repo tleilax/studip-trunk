@@ -27,7 +27,7 @@
                             <span class="title">
                                 <?= _('Aktionen') ?>
                             </span>
-                            <?= Icon::create('admin', 'clickable', array('title' => _('Aktionen'))) ?>
+                            <?= Icon::create('action', 'clickable', array('title' => _('Aktionen'))) ?>
                             <ul>
                                 <li>
                                     <a href="<?= $controller->url_for('messages/write', array(
@@ -250,13 +250,15 @@
                                 <label>
                                     <input aria-label="<?= sprintf(_('Alle Mitglieder dieser Gruppe auswählen')) ?>"
                                            type="checkbox" name="all" value="1"
-                                           data-proxyfor=":checkbox.groupmembers-<?= $group->id ?>">
+                                           data-proxyfor=":checkbox.groupmembers-<?= $group->id ?>"
+                                           data-activates="select#members-action-<?= $group->id ?>">
                                     <?= _('Alle Mitglieder dieser Gruppe auswählen') ?>
                                 </label>
                             </div>
                             <div class="memberactions">
                                 <label>
-                                    <select name="members_action[<?= $group->id ?>]">
+                                    <select name="members_action[<?= $group->id ?>]"
+                                            id="members-action-<?= $group->id ?>" disabled>
                                         <option value="move"><?= _('In andere Gruppe verschieben') ?></option>
                                         <?php if ($group->id != 'nogroup') : ?>
                                             <option value="delete"><?= _('Aus dieser Gruppe entfernen') ?></option>
