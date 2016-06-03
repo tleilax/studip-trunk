@@ -81,8 +81,13 @@ class Activity extends \RESTAPI\RouteMap
             }
         }
 
-        // #TODO: user_context (do we wanna add buddies as well?)
         $contexts[] = new \Studip\Activity\UserContext($GLOBALS['user']->id);
+        $contacts = \User::findCurrent()->contacts;
+
+        foreach ($contacts as $contact) {
+            $contexts[] = new \Studip\Activity\UserContext($contact->id);
+        }
+
 
         // add filters
         $filter = new \Studip\Activity\Filter();

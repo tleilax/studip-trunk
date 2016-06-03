@@ -36,8 +36,13 @@
                         activity_urls : activity_urls,
                         user_id       :  STUDIP.ActivityFeed.user_id
                     }));
+
+                    jQuery( ".provider_circle" ).click(function() {
+                        jQuery(this).parent().parent().children('.activity-content').toggle();
+                    });
                 }
             });
+
         },
 
         update : function(html) {
