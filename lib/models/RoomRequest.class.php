@@ -521,10 +521,12 @@ class RoomRequest extends SimpleORMap
         return parent::delete() || $properties_deleted;
     }
 
-    public function toArray()
+    public function toArray($only_these_fields = NULL)
     {
-        $ret = parent::toArray();
+        $ret = parent::toArray($only_these_fields);
+        if ($only_these_fields === null || isset($only_these_fields['properties'])) {
         $ret['properties'] = $this->getProperties();
+        }
         return $ret;
     }
 

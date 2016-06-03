@@ -217,8 +217,9 @@ class SimpleORMapCollection extends SimpleCollection
      * @param SimpleORMapCollection $a_collection
      * @param string $mode 'replace' or 'ignore'
      */
-    function merge(SimpleORMapCollection $a_collection, $mode = 'replace')
+    function merge(SimpleCollection $a_collection)
     {
+        $replace = func_get_arg(1);
         foreach ($a_collection as $element) {
             try {
                 $this[] = $element;
