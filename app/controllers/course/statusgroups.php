@@ -68,18 +68,6 @@ class Course_StatusgroupsController extends AuthenticatedController
                 Icon::create('group2+add', 'clickable'))->asDialog('size=auto');
             $sidebar->addWidget($actions);
         }
-        if (Config::get()->EXPORT_ENABLE && $this->is_tutor) {
-            include_once $GLOBALS['PATH_EXPORT'] . '/export_linking_func.inc.php';
-
-            $export = new ExportWidget();
-
-            // create csv-export link
-            $csvExport = export_link($this->course_id, "person", sprintf('%s %s', htmlReady($this->status_groups['autor']), htmlReady($this->course_title)), 'csv', 'csv-statusgroups', '', _('Gruppierte Teilnehmendenliste als csv-Dokument exportieren'), 'passthrough');
-            $export->addLink(_('Gruppierte Teilnehmendenliste als CSV-Dokument exportieren'),
-                $this->parseHref($csvExport), Icon::create('file-office', 'clickable'));
-
-            $sidebar->addWidget($export);
-        }
     }
 
     /**
@@ -741,6 +729,10 @@ class Course_StatusgroupsController extends AuthenticatedController
                             ->filter(function ($g) use ($group_id) { return $g->id != $group_id; });
                         break;
                     case 'delete':
+                        PageLayout::setTitle(_('Gruppenmitglieder entfernen'));
+                        $this->deletemembers = true;
+                        $this->source_group = Statusgruppen::find($group_id);
+                        break;
                 }
 
             }
@@ -852,14 +844,14 @@ class Course_StatusgroupsController extends AuthenticatedController
                     sprintf(ngettext('%u Person wurde in die Gruppe %s verschoben.',
                     '%u Personen wurden in die Gruppe %s verschoben.',
                     $success), $success, $groupname) . '<br>' .
-                    sprintf(ngettext('%u Person konnten nicht in die Gruppe %s verschoben werden.',
+                    sprintf(ngettext('%u Person konnte nicht in die Gruppe %s verschoben werden.',
                         '%u Personen konnten nicht in die Gruppe %s verschoben werden.',
                         $error), $error, $groupname)
                 );
 
             // All is lost => error message.
             } else if ($error) {
-                PageLayout::postError(sprintf(ngettext('%u Person konnten nicht in die Gruppe %s verschoben werden.',
+                PageLayout::postError(sprintf(ngettext('%u Person konnte nicht in die Gruppe %s verschoben werden.',
                     '%u Personen konnten nicht in die Gruppe %s verschoben werden.',
                     $error), $error, $groupname));
             }
@@ -870,10 +862,60 @@ class Course_StatusgroupsController extends AuthenticatedController
         }
     }
 
-    private function parseHref($string)
+    /**
+     * Removes selected group members from given group.
+     *
+     * @param String $group_id group to remove members from.
+     * @throws Trails_Exception 403 if access not allowed with current permission level.
+     */
+    public function batch_delete_members_action($group_id)
     {
-        $temp = preg_match('/href="(.*?)"/', $string, $match); // Yes, you're absolutely right - this IS horrible!
-        return $match[1];
+        if ($this->is_tutor) {
+            CSRFProtection::verifyUnsafeRequest();
+            $success = 0;
+            $error = 0;
+            $members = Request::getArray('members');
+            foreach ($members as $m) {
+
+                // Remove user from target statusgroup.
+                $s = StatusgruppeUser::find(array($group_id, $m));
+                if ($s->delete()) {
+                    $success++;
+                } else {
+                    $error++;
+                }
+
+            }
+            $groupname = Statusgruppen::find($group_id)->name;
+
+            // Everything completed successfully => success message.
+            if ($success && !$error) {
+                PageLayout::postSuccess(sprintf(ngettext('%u Person wurde aus der Gruppe %s entfernt.',
+                    '%u Personen wurden aus der Gruppe %s entfernt.',
+                    $success), $success, $groupname));
+
+            // Some entries worked, some didn't => warning message.
+            } else if ($success && $error) {
+                PageLayout::postWarning(
+                    sprintf(ngettext('%u Person wurde aus der Gruppe %s entfernt.',
+                        '%u Personen wurden aus der Gruppe %s entfernt.',
+                        $success), $success, $groupname) . '<br>' .
+                    sprintf(ngettext('%u Person konnte nicht aus der Gruppe %s entfernt werden.',
+                        '%u Personen konnten nicht aus der Gruppe %s entfernt werden.',
+                        $error), $error, $groupname)
+                );
+
+            // All is lost => error message.
+            } else if ($error) {
+                PageLayout::postError(sprintf(ngettext('%u Person konnte nicht aus der Gruppe %s entfernt werden.',
+                    '%u Personen konnten nicht aus der Gruppe %s entfernt werden.',
+                    $error), $error, $groupname));
+            }
+
+            $this->relocate('course/statusgroups');
+        } else {
+            throw new Trails_Exception(403);
+        }
     }
 
 }
