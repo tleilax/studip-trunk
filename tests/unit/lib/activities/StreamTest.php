@@ -31,7 +31,7 @@ class FakeContext extends \Studip\Activity\Context
         // TODO: Implement getContextType() method.
     }
 
-    public function getActivities($observer_id, Studip\Activity\Filter $filter)
+    public function getActivities(Studip\Activity\Filter $filter)
     {
         return array();
     }
@@ -60,14 +60,12 @@ class Stream extends PHPUnit_Framework_TestCase
      */
     function test_stream_wants_context()
     {
-        $observer_id = 'observer_id';
-        $stream = new \Studip\Activity\Stream($observer_id, '', new Studip\Activity\Filter());
+        $stream = new \Studip\Activity\Stream('', new Studip\Activity\Filter());
     }
 
     function test_stream_has_array_iterator()
     {
-        $observer_id = 'observer_id';
-        $stream = new \Studip\Activity\Stream($observer_id, new FakeContext(), new Studip\Activity\Filter());
+        $stream = new \Studip\Activity\Stream(new FakeContext(), new Studip\Activity\Filter());
 
         $this->assertTrue(
             $stream instanceof ArrayAccess,
@@ -87,8 +85,7 @@ class Stream extends PHPUnit_Framework_TestCase
 
     function test_stream_takes_more_than_one_context()
     {
-        $observer_id = 'observer_id';
-        $stream = new \Studip\Activity\Stream($observer_id, array(new FakeContext(), new FakeContext()), new Studip\Activity\Filter());
+        $stream = new \Studip\Activity\Stream(array(new FakeContext(), new FakeContext()), new Studip\Activity\Filter());
 
         foreach ($stream as $activity) {
             $this->assertTrue(

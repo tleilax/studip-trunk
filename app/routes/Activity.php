@@ -102,7 +102,7 @@ class Activity extends \RESTAPI\RouteMap
 
 
 
-        $stream = new \Studip\Activity\Stream($user_id, $contexts, $filter);
+        $stream = new \Studip\Activity\Stream($contexts, $filter);
 
         // set etag for preventing resending the same stuff over and over again
         $this->etag(md5(serialize($stream)));

@@ -16,13 +16,12 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
      * creates a stream representing the activities for the passed contexts,
      * filter by time (if any)
      *
-     * @param string $observer_id The user, the stream is intended for
      * @param array $contexts All contexts that need to be considered
      * @param \Studip\Activity\Filter $filter
      *
      * @throws \InvalidArgumentException
      */
-    function __construct($observer_id, $contexts, Filter $filter)
+    function __construct($contexts, Filter $filter)
     {
         if (!is_array($contexts)) {
             $contexts = array($contexts);
@@ -40,8 +39,8 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
 
 
         $activities = array_flatten(array_map(
-            function ($context) use ($observer_id, $filter) {
-                return $context->getActivities($observer_id, $filter);
+            function ($context) use ($filter) {
+                return $context->getActivities($filter);
             }, $contexts)
         );
 

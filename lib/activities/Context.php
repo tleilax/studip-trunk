@@ -37,12 +37,11 @@ abstract class Context
     /**
      * get list of activities as array for the current context
      *
-     * @param string $observer_id
      * @param \Studip\Activity\Filter $filter
      *
      * @return array
      */
-    public function getActivities($observer_id, Filter $filter)
+    public function getActivities(Filter $filter)
     {
         $providers = $this->filterProvider($this->getProvider(), $filter);
 
