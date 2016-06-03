@@ -33,7 +33,7 @@ class NewsProvider implements ActivityProvider
 
             case 'user':
                 return array(
-                    \URLHelper::getUrl('dispatch.php/profile/?username='. get_username($activity->object_id)
+                    \URLHelper::getUrl('dispatch.php/profile/?username='. get_username($activity->context_id)
                         . '&contentbox_type=news&contentbox_open='. $news->getId() .'#'. $news->getId()) => _('News auf der Profilseite')
                 );
             break;
@@ -44,7 +44,7 @@ class NewsProvider implements ActivityProvider
      * posts an activity for a given notification event
      *
      * @param String $event a notification for an activity
-     * @param String  $news_id
+     * @param String  $news
      */
     public function postActivity($event, $news)
     {
@@ -54,6 +54,8 @@ class NewsProvider implements ActivityProvider
         foreach ($activities as $activity) {
             $activity->delete();
         }
+
+        $mkdate = time();
 
         // iterate over every news-range and create approbriate activity
         foreach ($news->news_ranges as $range) {
@@ -77,7 +79,7 @@ class NewsProvider implements ActivityProvider
                     'verb'         => 'created',                                // the activity type
                     'object_id'    => $news->id,                                // the id of the referenced object
                     'object_type'  => 'news',                                   // type of activity object
-                    'mkdate'       => strtotime('now')
+                    'mkdate'       => $mkdate
                 )
             );
 

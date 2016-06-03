@@ -31,8 +31,7 @@ class ActivityObserver
         \NotificationCenter::addObserver('\Studip\Activity\DocumentsProvider', 'postActivity','DocumentDidDelete');
 
         //Notifications for NewsProvider
-        \NotificationCenter::addObserver('\Studip\Activity\NewsProvider', 'postActivity','NewsDidCreate');
-        \NotificationCenter::addObserver('\Studip\Activity\NewsProvider', 'postActivity','NewsDidUpdate');
+        \NotificationCenter::addObserver('\Studip\Activity\NewsProvider', 'postActivity','NewsDidStore');
 
         //Notifications for WikiProvider
         \NotificationCenter::addObserver('\Studip\Activity\WikiProvider', 'postActivity','WikiPageDidCreate');
