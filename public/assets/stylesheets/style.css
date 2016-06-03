@@ -3173,6 +3173,7 @@ section.contentbox article header nav ul.actionmenu svg {
 * ul.actionmenu li,
 section.contentbox article header nav ul.actionmenu li {
   padding: 3px;
+  width: 180px;
 }
 * ul.actionmenu li ul,
 section.contentbox article header nav ul.actionmenu li ul {
@@ -3196,21 +3197,21 @@ section.contentbox article header nav ul.actionmenu li.active ul {
   right: 2px;
   top: calc(2em + 1px);
 }
-* ul.actionmenu > li span.title,
-section.contentbox article header nav ul.actionmenu > li span.title {
+* ul.actionmenu > li,
+section.contentbox article header nav ul.actionmenu > li {
+  width: 20px;
+}
+* ul.actionmenu > li div,
+section.contentbox article header nav ul.actionmenu > li div {
   border: 0;
+  height: 20px;
+}
+* ul.actionmenu > li div.action-title,
+section.contentbox article header nav ul.actionmenu > li div.action-title {
   display: none;
   font-weight: bold;
-}
-* ul.actionmenu > li > img,
-section.contentbox article header nav ul.actionmenu > li > img,
-* ul.actionmenu > li > svg,
-section.contentbox article header nav ul.actionmenu > li > svg,
-* ul.actionmenu > li > a > img,
-section.contentbox article header nav ul.actionmenu > li > a > img,
-* ul.actionmenu > li > a > svg,
-section.contentbox article header nav ul.actionmenu > li > a > svg {
-  float: right;
+  padding-left: 5px;
+  width: 156px;
 }
 * ul.actionmenu > li.active,
 section.contentbox article header nav ul.actionmenu > li.active {
@@ -3218,9 +3219,9 @@ section.contentbox article header nav ul.actionmenu > li.active {
   box-shadow: 1px 1px 0 #8a8e95;
   width: 184px;
 }
-* ul.actionmenu > li.active span.title,
-section.contentbox article header nav ul.actionmenu > li.active span.title {
-  display: inline;
+* ul.actionmenu > li.active div.action-title,
+section.contentbox article header nav ul.actionmenu > li.active div.action-title {
+  display: inline-block;
 }
 /* --- AJAX indicator ------------------------------------------------------- */
 #ajax_notification {

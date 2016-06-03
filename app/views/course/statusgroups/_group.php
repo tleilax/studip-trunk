@@ -24,9 +24,9 @@
                 <?php if ($group->id != 'nogroup') : ?>
                     <ul class="actionmenu">
                         <li>
-                            <span class="title">
+                            <div class="action-title">
                                 <?= _('Aktionen') ?>
-                            </span>
+                            </div>
                             <?= Icon::create('action', 'clickable', array('title' => _('Aktionen'))) ?>
                             <ul>
                                 <li>
