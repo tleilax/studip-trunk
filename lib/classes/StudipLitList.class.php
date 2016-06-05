@@ -48,7 +48,7 @@ class StudipLitList extends TreeAbstract {
     * do not use directly, call TreeAbstract::GetInstance("StudipLitList", $range_id)
     * @access private
     */
-    function StudipLitList($range_id) {
+    function __construct($range_id) {
         DbView::addView('literatur');
 
         if ($GLOBALS['LIT_LIST_FORMAT_TEMPLATE']){
@@ -63,7 +63,7 @@ class StudipLitList extends TreeAbstract {
             $this->root_name = $object_name['type'] . ": " . $object_name['name'];
         }
         $this->cat_element = new StudipLitCatElement();
-        parent::TreeAbstract(); //calling the baseclass constructor
+        parent::__construct(); //calling the baseclass constructor
     }
 
     /**

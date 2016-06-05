@@ -47,7 +47,7 @@ class UserService extends AccessControlledService {
        return join("\n", $ret);
    }
 
-   function UserService() {
+   function __construct() {
        $this->add_api_method('create_user',
            array('', 'Studip_User'),
            'Studip_User',

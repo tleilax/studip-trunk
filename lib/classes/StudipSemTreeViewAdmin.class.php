@@ -49,10 +49,10 @@ class StudipSemTreeViewAdmin extends TreeView {
     *
     * @access public
     */
-    function StudipSemTreeViewAdmin($start_item_id = "root"){
+    function __construct($start_item_id = "root"){
         $this->start_item_id = ($start_item_id) ? $start_item_id : "root";
         $this->root_content = $GLOBALS['UNI_INFO'];
-        parent::TreeView("StudipSemTree"); //calling the baseclass constructor
+        parent::__construct("StudipSemTree"); //calling the baseclass constructor
         $this->studienmodulmanagement = PluginEngine::getPlugin('StudienmodulManagement');
         URLHelper::bindLinkParam("_marked_item", $this->marked_item);
         $this->marked_sem =& $_SESSION['_marked_sem'];

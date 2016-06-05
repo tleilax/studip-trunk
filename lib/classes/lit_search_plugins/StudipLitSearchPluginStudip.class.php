@@ -38,8 +38,8 @@ require_once 'StudipLitSearchPluginAbstract.class.php';
 class StudipLitSearchPluginStudip extends StudipLitSearchPluginAbstract{
 
 
-    function StudipLitSearchPluginStudip(){
-        parent::StudipLitSearchPluginAbstract();
+    function __construct(){
+        parent::__construct();
         $this->dbv = DbView::getView('literatur');
         $rs = $this->dbv->get_query("view:LIT_GET_CATALOG_COUNT");
         $rs->next_record();

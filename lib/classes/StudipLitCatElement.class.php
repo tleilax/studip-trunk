@@ -43,7 +43,7 @@ class StudipLitCatElement {
     var $classname = "StudipLitCatElement";
     var $persistent_slots = array("fields");
 
-    public function StudipLitCatElement($catalog_id = false, $with_form = false)
+    public function __construct($catalog_id = false, $with_form = false)
     {
         $this->dbv = DbView::getView('literatur');
         $this->init_form = $with_form;

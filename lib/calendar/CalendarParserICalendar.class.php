@@ -18,7 +18,7 @@
 
 class CalendarParserICalendar extends CalendarParser
 {
-
+    var $type  = '';
     var $count = null;
 
     function CalendarParserICalendar()

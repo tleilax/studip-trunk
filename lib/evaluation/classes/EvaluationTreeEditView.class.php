@@ -178,7 +178,7 @@ var $itemInstance;
  * @param  string  $itemID the item to display
  * @param  string  $evalID the evaluation of the item
  */
-function EvaluationTreeEditView ( $itemID = ROOT_BLOCK, $evalID = NULL ){
+function __construct( $itemID = ROOT_BLOCK, $evalID = NULL ){
     global $sess;
 
     $this->itemID = ($itemID) ? $itemID : ROOT_BLOCK;
