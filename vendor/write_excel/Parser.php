@@ -76,7 +76,7 @@ class Parser
 * @param integer $byte_order The byte order (Little endian or Big endian) of the architecture
                              (optional). 1 => big endian, 0 (default) => little endian. 
 */
-  function Parser($byte_order = 0)
+  function __construct($byte_order = 0)
     {
     $this->_current_char  = 0;        // The index of the character we are currently looking at.
     $this->_current_token = '';       // The token we are working on.

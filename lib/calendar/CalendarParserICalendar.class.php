@@ -21,10 +21,9 @@ class CalendarParserICalendar extends CalendarParser
     var $type  = '';
     var $count = null;
 
-    function CalendarParserICalendar()
+    function __construct()
     {
-
-        parent::CalendarParser();
+        parent::__construct();
         $this->type = 'iCalendar';
     }
 

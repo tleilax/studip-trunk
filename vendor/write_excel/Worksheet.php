@@ -55,9 +55,9 @@ class Worksheet extends BIFFwriter
     * @param mixed   &$url_format  The default format for hyperlinks
     * @param mixed   &$parser      The formula parser created for the Workbook
     */
-    function Worksheet($name,$index,&$activesheet,&$firstsheet,&$url_format,&$parser)
+    function __construct($name,$index,&$activesheet,&$firstsheet,&$url_format,&$parser)
     {
-        $this->BIFFwriter();     // It needs to call its parent's constructor explicitly
+        parent::__construct();
         $rowmax                = 65536; // 16384 in Excel 5
         $colmax                = 256;
         $strmax                = 255;

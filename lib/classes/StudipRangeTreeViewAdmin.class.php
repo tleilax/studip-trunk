@@ -65,10 +65,10 @@ class StudipRangeTreeViewAdmin extends TreeView{
     * calls the base class constructor, registers a session variable, calls the init function and the command parser
     * @access public
     */
-    function StudipRangeTreeViewAdmin(){
+    function __construct(){
 
         $this->root_content = $GLOBALS['UNI_INFO'];
-        parent::TreeView("StudipRangeTree"); //calling the baseclass constructor
+        parent::__construct("StudipRangeTree"); //calling the baseclass constructor
         $this->marked_item =& $_SESSION['_marked_item'];
 
         $this->initTreeStatus();
