@@ -187,7 +187,7 @@ class ExternSemBrowseTemplate extends SemBrowse {
     var $module;
     var $sem_types_position;
 
-    function ExternSemBrowseTemplate (&$module, $start_item_id) {
+    function __construct(&$module, $start_item_id) {
 
         global $SEM_TYPE,$SEM_CLASS;
         $semester = new SemesterData();
