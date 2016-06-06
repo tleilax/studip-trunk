@@ -198,6 +198,16 @@ class Statusgruppen extends SimpleORMap
     }
 
     /**
+     * Gets the folder assigned to this statusgroup.
+     *
+     * @return DocumentFolder|null
+     */
+    public function getFolder()
+    {
+        return DocumentFolder::findOneByRange_id($this->id);
+    }
+
+    /**
      * Delete or create a filder
      * 
      * @param boolean $set <b>true</b> Create a folder
@@ -219,19 +229,30 @@ class Statusgruppen extends SimpleORMap
      */
     public function findTopics()
     {
-        return CourseTopic::findBySQL("INNER JOIN `themen_termine` USING (`issue_id`)
-            INNER JOIN `termin_related_groups` USING (`termin_id`)
-            WHERE `termin_related_groups`.`statusgruppe_id` = ?", array($this->id));
+        $topics = array();
+        foreach ($this->dates as $d) {
+            foreach ($d->topics as $t) {
+                // Assign topics with ID as key so we get unique entries.
+                $topics[$t->id] = $t;
+            }
+        }
+        return $topics;
     }
 
     /**
-     * Finds CourseDates assigned to this group.
+     * Finds Lecturers assigned to this group via course dates.
      * @return array
      */
-    public function findDates()
+    public function findLecturers()
     {
-        return CourseDate::findBySQL("INNER JOIN `termin_related_groups` USING (`termin_id`)
-            WHERE `termin_related_groups`.`statusgruppe_id` = ?", array($this->id));
+        $lecturers = array();
+        foreach ($this->dates as $d) {
+            foreach ($d->dozenten as $d) {
+                // Assign topics with ID as key so we get unique entries.
+                $lecturers[$d->id] = $d;
+            }
+        }
+        return $lecturers;
     }
 
     /**

@@ -68,6 +68,31 @@ class Course_StatusgroupsController extends AuthenticatedController
                 Icon::create('group2+add', 'clickable'))->asDialog('size=auto');
             $sidebar->addWidget($actions);
         }
+        if (Config::get()->EXPORT_ENABLE && $this->is_tutor) {
+            include_once $GLOBALS['PATH_EXPORT'] . '/export_linking_func.inc.php';
+
+            $export = new ExportWidget();
+
+            // create csv-export link
+            $csvExport = export_link($this->course_id, 'person',
+                sprintf('%s %s', _('Gruppenliste'), htmlReady($this->course_title)),
+                'csv', 'csv-gruppen', 'status',
+                _('Gruppierte Teilnehmendenliste als csv-Dokument exportieren'),
+                'passthrough');
+            $export->addLink(_('Gruppen als CSV-Dokument exportieren'),
+                $this->parseHref($csvExport), Icon::create('file-office', 'clickable'));
+
+            // create rtf-export link
+            $csvExport = export_link($this->course_id, 'person',
+                sprintf('%s %s', _('Gruppenliste'), htmlReady($this->course_title)),
+                'rtf', 'rtf-gruppen', 'status',
+                _('Gruppierte Teilnehmendenliste als rtf-Dokument exportieren'),
+                'passthrough');
+            $export->addLink(_('Gruppen als RTF-Dokument exportieren'),
+                $this->parseHref($csvExport), Icon::create('file-text', 'clickable'));
+
+            $sidebar->addWidget($export);
+        }
     }
 
     /**
@@ -162,32 +187,13 @@ class Course_StatusgroupsController extends AuthenticatedController
      */
     public function groupinfo_action($group_id)
     {
-        $group = Statusgruppen::find($group_id);
-        $this->info = array($group->size > 0 ?
-                    sprintf(_('Diese Gruppe ist auf **%u** Mitglieder beschränkt.'), $group->size) :
-                    sprintf(_('Die Größe dieser Gruppe ist nicht beschränkt.')));
-        if ($group->selfassign) {
-            if ($group->selfassign == 1) {
-                $this->info[] = _('Die Teilnehmenden dieser Veranstaltung können sich ' .
-                        'selbst in beliebig viele der Gruppen eintragen, bei denen ' .
-                        'kein Exklusiveintrag aktiviert ist.');
-            } else if ($group->selfassign == 2) {
-                $this->info[] = _('Die Teilnehmenden dieser Veranstaltung können sich ' .
-                        'in genau einer der Gruppen eintragen, bei denen der ' .
-                        'Exklusiveintrag aktiviert ist.');
-            }
-            if ($group->selfassign_start && $group->selfassign_end) {
-                $this->info[] .= sprintf(_('Der Eintrag ist möglich **von %s bis %s**.'),
-                        date('d.m.Y H:i', $group->selfassign_start),
-                        date('d.m.Y H:i', $group->selfassign_end));
-            } else if ($group->selfassign_start && !$group->selfassign_end) {
-                $this->info[] = sprintf(_('Der Eintrag ist möglich **ab %s**.'),
-                        date('d.m.Y H:i', $group->selfassign_start));
-            } else if (!$group->selfassign_start && $group->selfassign_end) {
-                $this->info[] = sprintf(_('Der Eintrag ist möglich **bis %s**.'),
-                        date('d.m.Y H:i', $group->selfassign_end));
-            }
-        }
+        $this->group = Statusgruppen::find($group_id);
+
+        // Topics can be implicitly assigned via course dates.
+        $this->topics = $this->group->findTopics();
+
+        // Lecturers can be implicitly assigned via course dates.
+        $this->lecturers = $this->group->findLecturers();
     }
 
     /**
@@ -916,6 +922,12 @@ class Course_StatusgroupsController extends AuthenticatedController
         } else {
             throw new Trails_Exception(403);
         }
+    }
+
+    private function parseHref($string)
+    {
+        $temp = preg_match('/href="(.*?)"/', $string, $match); // Yes, you're absolutely right - this IS horrible!
+        return $match[1];
     }
 
 }
