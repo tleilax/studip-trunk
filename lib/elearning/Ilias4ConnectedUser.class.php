@@ -41,7 +41,7 @@ class Ilias4ConnectedUser extends Ilias3ConnectedUser
      * @access public
      * @return boolean returns false on error
      */
-    function newUser()
+    function newUser($ignore_encrypt_passwords = false)
     {
         global $connected_cms, $auth, $messages;
 

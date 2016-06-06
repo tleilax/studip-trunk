@@ -45,7 +45,7 @@ class Ilias3ConnectedCMS extends ConnectedCMS
     {
         global $ELEARNING_INTERFACE_MODULES, $RELATIVE_PATH_ELEARNING_INTERFACE, $RELATIVE_PATH_SOAP;
 
-        parent::ConnectedCMS($cms);
+        parent::__construct($cms);
 
         require_once($this->CLASS_PREFIX . "Soap.class.php");
         $classname = $this->CLASS_PREFIX . "Soap";

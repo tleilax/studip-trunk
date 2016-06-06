@@ -197,7 +197,7 @@ class ConnectedUser
     * @access public
     * @return boolean returns false
     */
-    function getLoginData()
+    function getLoginData($username)
     {
         return false;
     }

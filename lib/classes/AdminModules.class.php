@@ -42,7 +42,7 @@ require_once 'lib/dates.inc.php';
 class AdminModules extends ModulesNotification {
 
     public function __construct() {
-        parent::ModulesNotification();
+        parent::__construct();
         //please add here the special messages for modules you need consistency checks (defined below in this class)
         $this->registered_modules["forum"]["msg_warning"] = _("Wollen Sie wirklich das Forum deaktivieren?");
         //$this->registered_modules["forum"]["msg_pre_warning"] = _("Achtung: Beim Deaktivieren des Forums werden <b>%s</b> Postings ebenfalls gelöscht!");
@@ -101,14 +101,14 @@ class AdminModules extends ModulesNotification {
                                 Das Recht "Ordner erstellen" (f): Studierende können Unterordner anlegen'),
                 'icon' => Icon::create('files', 'info'),
                 'screenshots' => array(
-                    'path' => 'plus/screenshots/Dateiordnerberechtigung', 
-                    'pictures' => array( 
+                    'path' => 'plus/screenshots/Dateiordnerberechtigung',
+                    'pictures' => array(
                         0 => array(
-                            'source' => 'Ordner_zum_Hausaufgabenordner_umwandeln.jpg', 
+                            'source' => 'Ordner_zum_Hausaufgabenordner_umwandeln.jpg',
                             'title'  => _('Ordner zum Hausaufgabenordner umwandeln'),
                         )
                     )
-                ),              
+                ),
                 'description' => _('Mit den Einstellungen zur Dateiordnerberechtigung können Lehrende die Zugriffsrechte '.
                                     'für Ordner im Dateibereich verändern. Wird z. B. das Leserecht entfernt, entsteht ein '.
                                     'Hausaufgabenordner, in den Studierende Dateien zwar hochladen, aber nicht sehen können, '.

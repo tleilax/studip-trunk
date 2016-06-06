@@ -305,7 +305,7 @@ class RoomRequest extends SimpleORMap
 
     public function searchRooms($search_exp, $properties = FALSE, $limit_lower = 0, $limit_upper = 0, $only_rooms = TRUE, $permitted_resources = FALSE)
     {
-        $search_exp = mysql_escape_string($search_exp);
+        $search_exp = addslashes($search_exp);
         //create permitted resource clause
         if (is_array($permitted_resources)) {
             $permitted_resources_clause="AND a.resource_id IN ('".join("','",$permitted_resources)."')";

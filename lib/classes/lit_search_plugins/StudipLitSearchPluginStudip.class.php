@@ -65,7 +65,7 @@ class StudipLitSearchPluginStudip extends StudipLitSearchPluginAbstract{
         $search_values = $this->search_values;
         if (is_array($search_values)){
             for ($i = 0 ; $i < count($search_values); ++$i){
-                $term = mysql_escape_string($search_values[$i]['search_term']);
+                $term = addslashes($search_values[$i]['search_term']);
                 if (strlen($term)){
                     if ($search_values[$i]['search_truncate'] == "left"){
                         $term = '%' . $term;
