@@ -145,6 +145,20 @@ class ForumEntry {
         return str_replace('[/quote]', '', preg_replace("/\[quote=.*\]/U", "", $description));
     }
 
+    /**
+     * Remove all quote blocks AND the quoted text from a forum post.
+     *
+     * @param String $string The string to remove the quote blocks from
+     * @return String the posting without the [quote]-blocks (not just tags!)
+     */
+    public static function removeQuotes($description)
+    {
+        if (strpos($description, '[quote') !== false) {
+            $description = preg_replace('/\[quote(=.*)\].*\[\/quote\]/is', '', $description);
+        }
+        return $description;
+    }
+
 
     /**
      * calls Stud.IP's kill_format and additionally removes any found smiley-tag
