@@ -13,7 +13,7 @@
             <label for="size">
                 <?= _('Gruppengröße') ?>
             </label>
-            <input type="number" name="size" value="<?= intval($group->size) ?>">
+            <input type="number" name="size" value="<?= intval($group->size) ?>" min="0">
         </section>
         <section>
             <label>

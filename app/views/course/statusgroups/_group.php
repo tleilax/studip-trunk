@@ -66,8 +66,7 @@
                                     </li>
                                     <li>
                                         <a href="<?= $controller->url_for('course/statusgroups/delete', $group->id) ?>"
-                                           data-confirm="<?= sprintf(_('Soll die Gruppe %s wirklich gelöscht werden?'),
-                                               htmlReady($group->name)) ?>">
+                                           data-confirm="<?= _('Soll die Gruppe wirklich gelöscht werden?') ?>">
                                             <?= Icon::create('trash', 'clickable',
                                                 array('title' => sprintf(_('Gruppe %s löschen'),
                                                     htmlReady($group->name)))) ?>

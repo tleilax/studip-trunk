@@ -227,25 +227,25 @@ class Course_StatusgroupsController extends AuthenticatedController
             PageLayout::postSuccess(sprintf(ngettext(
                 '%u Person wurde zu %s hinzugefügt.',
                 '%u Personen wurden zu %s hinzugefügt.',
-                $success), $success, $g->name
+                $success), $success, htmlReady($g->name)
             ));
         } else if ($success > 0 && $fail > 0) {
             $successMsg = sprintf(ngettext(
                 '%u Person wurde zu %s hinzugefügt.',
                 '%u Personen wurden zu %s hinzugefügt.',
-                $success), $success, $g->name
+                $success), $success, htmlReady($g->name)
             );
             $failMsg = sprintf(ngettext(
                 '%u Person konnte nicht zu %s hinzugefügt werden.',
                 '%u Personen konnten nicht zu %s hinzugefügt werden.',
-                $fail), $fail, $g->name
+                $fail), $fail, htmlReady($g->name)
             );
             PageLayout::postWarning($successMsg . ' ' . $failMsg);
         } else if ($success == 0 && $fail > 0) {
             PageLayout::postError(sprintf(ngettext(
                 '%u Person konnte nicht zu %s hinzugefügt werden.',
                 '%u Personen konnten nicht zu %s hinzugefügt werden.',
-                $success), $success, $g->name
+                $success), $success, htmlReady($g->name)
             ));
         }
 
@@ -303,11 +303,11 @@ class Course_StatusgroupsController extends AuthenticatedController
             if (!$group_id) {
                 PageLayout::postSuccess(sprintf(
                     _('Die Gruppe "%s" wurde angelegt.'),
-                    $group->name));
+                    htmlReady($group->name)));
             } else {
                 PageLayout::postSuccess(sprintf(
                     _('Die Daten der Gruppe "%s" wurden gespeichert.'),
-                    $group->name));
+                    htmlReady($group->name)));
             }
 
             $this->relocate('course/statusgroups');
@@ -330,7 +330,7 @@ class Course_StatusgroupsController extends AuthenticatedController
             $group->delete();
             PageLayout::postSuccess(sprintf(
                 _('Die Gruppe "%s" wurde gelöscht.'),
-                $groupname));
+                htmlReady($groupname)));
             $this->relocate('course/statusgroups');
         } else {
             throw new Trails_Exception(403);
@@ -353,21 +353,21 @@ class Course_StatusgroupsController extends AuthenticatedController
                 if ($user_id == $GLOBALS['user']->id) {
                     PageLayout::postSuccess(sprintf(
                         _('Sie wurden aus der Gruppe %s ausgetragen.'),
-                        $g->name));
+                        htmlReady($g->name)));
                 } else {
                     PageLayout::postSuccess(sprintf(
                         _('%s wurde aus der Gruppe %s ausgetragen.'),
-                        $name, $g->name));
+                        $name, htmlReady($g->name)));
                 }
             } else {
                 if ($user_id == $GLOBALS['user']->id) {
                     PageLayout::postError(sprintf(
                         _('Sie konnten nicht aus der Gruppe %s ausgetragen werden.'),
-                        $g->name));
+                        htmlReady($g->name)));
                 } else {
                     PageLayout::postSuccess(sprintf(
                         _('%s konnte nicht aus der Gruppe %s ausgetragen werden.'),
-                        $name, $g->name));
+                        $name, htmlReady($g->name)));
                 }
             }
             $this->relocate('course/statusgroups');
@@ -431,10 +431,10 @@ class Course_StatusgroupsController extends AuthenticatedController
             $s->statusgruppe_id = $group_id;
             if ($s->store()) {
                 PageLayout::postSuccess(sprintf(
-                    _('Sie wurden als Mitglied der Gruppe %s eingetragen.'), $g->name));
+                    _('Sie wurden als Mitglied der Gruppe %s eingetragen.'), htmlReady($g->name)));
             } else {
                 PageLayout::postSuccess(sprintf(
-                    _('Sie konnten nicht als Mitglied der Gruppe %s eingetragen werden.'), $g->name));
+                    _('Sie konnten nicht als Mitglied der Gruppe %s eingetragen werden.'), htmlReady($g->name)));
             }
         } else {
             throw new Trails_Exception(403);
@@ -457,10 +457,10 @@ class Course_StatusgroupsController extends AuthenticatedController
             $s = StatusgruppeUser::find(array($group_id, $GLOBALS['user']->id));
             if ($s->delete()) {
                 PageLayout::postSuccess(sprintf(
-                    _('Sie wurden aus der Gruppe %s ausgetragen.'), $g->name));
+                    _('Sie wurden aus der Gruppe %s ausgetragen.'), htmlReady($g->name)));
             } else {
                 PageLayout::postSuccess(sprintf(
-                    _('Sie konnten nicht aus der Gruppe %s ausgetragen werden.'), $g->name));
+                    _('Sie konnten nicht aus der Gruppe %s ausgetragen werden.'), htmlReady($g->name)));
             }
         } else {
             throw new Trails_Exception(403);
@@ -842,24 +842,24 @@ class Course_StatusgroupsController extends AuthenticatedController
             if ($success && !$error) {
                 PageLayout::postSuccess(sprintf(ngettext('%u Person wurde in die Gruppe %s verschoben.',
                     '%u Personen wurden in die Gruppe %s verschoben.',
-                    $success), $success, $groupname));
+                    $success), $success, htmlReady($groupname)));
 
             // Some entries worked, some didn't => warning message.
             } else if ($success && $error) {
                 PageLayout::postWarning(
                     sprintf(ngettext('%u Person wurde in die Gruppe %s verschoben.',
                     '%u Personen wurden in die Gruppe %s verschoben.',
-                    $success), $success, $groupname) . '<br>' .
+                    $success), $success, htmlReady($groupname)) . '<br>' .
                     sprintf(ngettext('%u Person konnte nicht in die Gruppe %s verschoben werden.',
                         '%u Personen konnten nicht in die Gruppe %s verschoben werden.',
-                        $error), $error, $groupname)
+                        $error), $error, htmlReady($groupname))
                 );
 
             // All is lost => error message.
             } else if ($error) {
                 PageLayout::postError(sprintf(ngettext('%u Person konnte nicht in die Gruppe %s verschoben werden.',
                     '%u Personen konnten nicht in die Gruppe %s verschoben werden.',
-                    $error), $error, $groupname));
+                    $error), $error, htmlReady($groupname)));
             }
 
             $this->relocate('course/statusgroups');

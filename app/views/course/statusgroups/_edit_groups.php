@@ -2,7 +2,7 @@
     <section>
         <label for="size">
             <?= _('Gruppengröße') ?>
-            <input type="number" name="size" value="<?= intval($size) ?>">
+            <input type="number" name="size" value="<?= intval($size) ?>" min="0">
             <?= $different_sizes ? '('._('verschiedene Werte').')' : '' ?>
         </label>
     </section>

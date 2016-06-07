@@ -20,13 +20,13 @@
             <label class="required">
                 <?= _('Anzahl anzulegender Gruppen') ?>
             </label>
-            <input type="number" name="number" value="5">
+            <input type="number" name="number" value="5" min="1">
         </section>
         <section class="numbering-data">
             <label>
                 <?= _('Beginne Nummerierung bei') ?>
             </label>
-            <input type="number" name="startnumber" value="1">
+            <input type="number" name="startnumber" value="1" min="0">
         </section>
         <section class="numbering-data">
             <label class="required">
@@ -65,7 +65,7 @@
             <label>
                 <?= _('Gruppengröße') ?>
             </label>
-            <input type="number" name="size" value="0">
+            <input type="number" name="size" value="0" min="0">
         </section>
         <section>
             <label>
