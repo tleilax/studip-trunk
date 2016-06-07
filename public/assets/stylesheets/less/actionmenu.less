@@ -1,15 +1,20 @@
 @import url(../mixins/colors.less);
 
-@shadow: 1px 1px 0 @dark-gray-color-60;
-@item-width: 180px;
+@shadow: 1px 1px 1px @dark-gray-color-60;
 
 /* Structure for action submenus which open on hover */
 *, section.contentbox article header nav {
   ul.actionmenu {
+    float: right;
     list-style-type: none;
     padding: 2px;
     position: relative;
     text-align: left;
+
+    &.positioncorrected {
+      position: absolute;
+      top: 4px;
+    }
 
     img, svg {
       height: 20px;
@@ -18,24 +23,27 @@
 
     li {
       padding: 3px;
-      width: @item-width;
+      white-space:nowrap;
 
       ul {
         display: none;
         background-color: white;
         box-shadow: @shadow;
+        list-style-type: none;
         padding: 5px;
-        width: @item-width;
         z-index: 999;
 
         img, svg {
           padding-right: 5px;
+          vertical-align: bottom;
         }
       }
 
       &.active {
         ul {
-          display: block;
+          align-items: stretch;
+          display: flex;
+          flex-direction: column;
           position: absolute;
           right: 2px;
           top: ~"calc(2em + 1px)";
@@ -54,7 +62,6 @@
           display: none;
           font-weight: bold;
           padding-left: 5px;
-          width: @item-width - 24px;
         }
 
       }
@@ -62,7 +69,18 @@
       &.active {
         background-color: white;
         box-shadow: @shadow;
-        width: @item-width+4px;
+        display: flex;
+        flex-direction: row;
+        flex: 1 0 auto;
+        padding: 3px;
+        padding-top: 4px;
+        width: inherit;
+
+        > img, > svg {
+          align-self: flex-end;
+          flex: 0 0 20px;
+          margin-left: auto;
+        }
 
         div.action-title {
           display: inline-block;

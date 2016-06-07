@@ -3139,10 +3139,16 @@ section.contentbox > article.new header h1 a::before {
 /* Structure for action submenus which open on hover */
 * ul.actionmenu,
 section.contentbox article header nav ul.actionmenu {
+  float: right;
   list-style-type: none;
   padding: 2px;
   position: relative;
   text-align: left;
+}
+* ul.actionmenu.positioncorrected,
+section.contentbox article header nav ul.actionmenu.positioncorrected {
+  position: absolute;
+  top: 4px;
 }
 * ul.actionmenu img,
 section.contentbox article header nav ul.actionmenu img,
@@ -3154,15 +3160,15 @@ section.contentbox article header nav ul.actionmenu svg {
 * ul.actionmenu li,
 section.contentbox article header nav ul.actionmenu li {
   padding: 3px;
-  width: 180px;
+  white-space: nowrap;
 }
 * ul.actionmenu li ul,
 section.contentbox article header nav ul.actionmenu li ul {
   display: none;
   background-color: white;
-  box-shadow: 1px 1px 0 #8a8e95;
+  box-shadow: 1px 1px 1px #8a8e95;
+  list-style-type: none;
   padding: 5px;
-  width: 180px;
   z-index: 999;
 }
 * ul.actionmenu li ul img,
@@ -3170,10 +3176,13 @@ section.contentbox article header nav ul.actionmenu li ul img,
 * ul.actionmenu li ul svg,
 section.contentbox article header nav ul.actionmenu li ul svg {
   padding-right: 5px;
+  vertical-align: bottom;
 }
 * ul.actionmenu li.active ul,
 section.contentbox article header nav ul.actionmenu li.active ul {
-  display: block;
+  align-items: stretch;
+  display: flex;
+  flex-direction: column;
   position: absolute;
   right: 2px;
   top: calc(2em + 1px);
@@ -3192,13 +3201,25 @@ section.contentbox article header nav ul.actionmenu > li div.action-title {
   display: none;
   font-weight: bold;
   padding-left: 5px;
-  width: 156px;
 }
 * ul.actionmenu > li.active,
 section.contentbox article header nav ul.actionmenu > li.active {
   background-color: white;
-  box-shadow: 1px 1px 0 #8a8e95;
-  width: 184px;
+  box-shadow: 1px 1px 1px #8a8e95;
+  display: flex;
+  flex-direction: row;
+  flex: 1 0 auto;
+  padding: 3px;
+  padding-top: 4px;
+  width: inherit;
+}
+* ul.actionmenu > li.active > img,
+section.contentbox article header nav ul.actionmenu > li.active > img,
+* ul.actionmenu > li.active > svg,
+section.contentbox article header nav ul.actionmenu > li.active > svg {
+  align-self: flex-end;
+  flex: 0 0 20px;
+  margin-left: auto;
 }
 * ul.actionmenu > li.active div.action-title,
 section.contentbox article header nav ul.actionmenu > li.active div.action-title {
@@ -6077,7 +6098,7 @@ section.course-statusgroups article section table thead tr th {
 }
 section.course-statusgroups article section table tbody tr td span.member-invisible {
   font-style: italic;
-  color: #6d737b;
+  color: #6d727a;
 }
 section.course-statusgroups article section table tbody tr td.memberactions {
   text-align: right;
