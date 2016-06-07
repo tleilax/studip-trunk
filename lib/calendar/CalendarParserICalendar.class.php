@@ -146,7 +146,7 @@ class CalendarParserICalendar extends CalendarParser
                             }
                             $properties[$tag] = implode(',', $categories);
                             break;
-                        
+
                         // Date fields
                         case 'DCREATED': // vCalendar property name for "CREATED"
                             $tag = "CREATED";
@@ -314,7 +314,7 @@ class CalendarParserICalendar extends CalendarParser
                     $properties['STUDIP_CATEGORY'] = $studip_categories[$properties['CATEGORIES']];
                     $properties['CATEGORIES'] = '';
                 }
-                 * 
+                 *
                  */
 
                 $this->components[] = $properties;
@@ -600,7 +600,7 @@ class CalendarParserICalendar extends CalendarParser
     function _qp_decode($value)
     {
 
-        return preg_replace("/=([0-9A-F]{2})/e", "chr(hexdec('\\1'))", $value);
+        return preg_replace_callback("/=([0-9A-F]{2})/", function ($m) {return chr(hexdec($m[1]));}, $value);
     }
 
     function _parseClientIdentifier(&$data)
@@ -620,7 +620,7 @@ class CalendarParserICalendar extends CalendarParser
         }
         return true;
     }
-    
+
     function getClientIdentifier($data = null)
     {
         if (!is_null($data)) {

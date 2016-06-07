@@ -82,7 +82,7 @@ class UserService extends AccessControlledService {
     * @return mixed if this method returns a Studip_Ws_Fault, further
     *               processing will be aborted
     */
-   function before_filter($name, &$args) {
+   function before_filter(&$name, &$args) {
        global $auth, $user, $perm;
 
        $auth = new Seminar_Auth();

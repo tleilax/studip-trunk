@@ -70,7 +70,7 @@ class Studip_Ws_Struct {
       }
 
       # store it
-      $elements[$name] =& new Studip_Ws_StructElement($name, $type, $options);
+      $elements[$name] = new Studip_Ws_StructElement($name, $type, $options);
 
       return;
     }

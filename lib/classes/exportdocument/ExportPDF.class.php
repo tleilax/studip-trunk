@@ -84,7 +84,7 @@ class ExportPDF extends TCPDF implements ExportDocument {
                 $endnote .= ($i+1).") ".htmlReady(substr($matches[1][$i], 1)).": ".htmlReady($matches[2][$i])."<br>";
             }
         }
-        $content = preg_replace("#\[comment(=.*)?\](.*)\[/comment\]#emsU", '$this->addEndnote("//1", "//2")', $content);
+        $content = preg_replace_callback("#\[comment(=.*)?\](.*)\[/comment\]#msU", function ($m) {return $this->addEndnote($m[1], $m[2]);}, $content);
         $content = formatReady($content, true, true, true, null);
         $content = str_replace("<table", "<table border=\"1\"", $content);
 
@@ -267,7 +267,7 @@ class ExportPDF extends TCPDF implements ExportDocument {
      */
     public function writeHTML ($html, $ln = true, $fill = false, $reseth = false, $cell = false, $align = '')
     {
-        $html = preg_replace('/src="(.*)"/Ue', "\$this->convertURL('\\1')", $html);
+        $html = preg_replace('/src="(.*)"/U', function ($m) {return $this->convertURL($m[1]);}, $html);
         parent::writeHTML($html, $ln, $fill, $reseth, $cell, $align);
     }
 

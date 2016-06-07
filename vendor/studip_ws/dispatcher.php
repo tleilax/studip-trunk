@@ -79,7 +79,7 @@ class Studip_Ws_Dispatcher {
       return FALSE;
     }
 
-    $service =& new $service_name();
+    $service = new $service_name();
 
     $api_methods = $service->get_api_methods();
 
