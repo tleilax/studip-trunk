@@ -5,25 +5,30 @@
     'use strict';
 
     STUDIP.ActionMenu = {
-        
+
     };
 
     $(document).ready(function () {
         // Open submenu trigger.
-        $('ul.actionmenu').find('li').on('click', function(e) {
+        $('ul.actionmenu').find('li > a, li > img, li > svg').on('click', function(e) {
+            var el = $(this).parent();
             // Hide all other open actionmenus.
-            $('ul.actionmenu').not($(this).parents('ul.actionmenu')).children('li').removeClass('active');
+            $('ul.actionmenu').not(el.parents('ul.actionmenu')).find('li.active').removeClass('active');
             $('ul.actionmenu').removeClass('positioncorrected');
             $('ul.actionmenu').css('left', '');
-            $(this).toggleClass('active');
-            var parent = $(this).parent();
+            el.toggleClass('active');
+            var parent = el.parent();
+
+
+            // First menu level is a bit different from others.
             if (parent.hasClass('actionmenu')) {
                 var td = parent.closest('td');
+                // Adjust menu top item width to match the children.
+                if (el.hasClass('active')) {
+                    // Get width of child li elements.
+                    var itemWidth = el.children('ul').children('li').width();
 
-                // Adjust menu top item width.
-                if ($(this).hasClass('active')) {
-                    var itemWidth = $(this).children('ul').children('li').width();
-                    $(this).children('div.action-title').width(itemWidth - 15);
+                    el.children('div.action-title').width(itemWidth - 15);
 
                     /*
                      * We need to check if we are inside a table because
@@ -36,6 +41,15 @@
                         parent.addClass('positioncorrected');
                         parent.css('left', '-' + (itemWidth - 55) + 'px');
                     }
+                }
+            } else {
+                // Get width of child li elements.
+                var itemWidth = el.closest('li.active').width();
+
+                if (el.hasClass('active')) {
+                    el.children('ul').css('right', (itemWidth + 10) + 'px');
+                } else {
+                    el.children('ul').css('right', '');
                 }
             }
         });
