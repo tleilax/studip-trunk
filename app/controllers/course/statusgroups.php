@@ -292,11 +292,26 @@ class Course_StatusgroupsController extends AuthenticatedController
     {
         if ($this->is_tutor) {
             CSRFProtection::verifyUnsafeRequest();
+
+            $warn = false;
+
+            /*
+             * Check if a valid end time was given.
+             */
+            if (Request::int('selfassign', 0)) {
+                $endtime = strtotime(Request::get('selfassign_end'), 'now');
+                $starttime = strtotime(Request::get('selfassign_start', 'now'));
+                if ($endtime <= $starttime) {
+                    $endtime = 0;
+                    $warn = true;
+                }
+            }
+
             $group = StatusgroupsModel::updateGroup($group_id, Request::get('name'),
                 0, $this->course_id, Request::int('size', 0),
                 Request::int('selfassign', 0) + Request::int('exclusive', 0),
                 strtotime(Request::get('selfassign_start', 'now')),
-                strtotime(Request::get('selfassign_end', 0)),
+                Request::get('selfassign_end') ? strtotime(Request::get('selfassign_end')) : 0,
                 Request::int('makefolder', 0),
                 Request::getArray('dates'));
 

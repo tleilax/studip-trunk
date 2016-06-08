@@ -30,18 +30,18 @@
         <section>
             <label>
                 <?= _('Selbsteintrag erlaubt ab') ?>
-                <input type="text" size="20" name="selfassign_start" value="<?= $group->selfassign_start ?
-                    date('d.m.Y H:i', $group->selfassign_start) : date('d.m.Y H:i') ?>">
+                <input type="text" size="20" name="selfassign_start" id="selfassign_start" value="<?= $group->selfassign_start ?
+                    date('d.m.Y H:i', $group->selfassign_start) : date('d.m.Y H:i') ?>" data-datetime-picker>
             </label>
         </section>
         <section>
             <label>
                 <?= _('Selbsteintrag erlaubt bis') ?>
                 <input type="text" size="20" name="selfassign_end" value="<?= $group->selfassign_end ?
-                    date('d.m.Y H:i', $group->selfassign_end) : date('d.m.Y H:i') ?>">
+                    date('d.m.Y H:i', $group->selfassign_end) : '' ?>" data-datetime-picker='{">":"#selfassign_start"}'>
             </label>
         </section>
-        <?php if ($group->isNew()) : ?>
+        <?php if ($group->isNew() || !$group->hasFolder()) : ?>
             <section>
                 <label>
                     <input type="checkbox" name="makefolder" value="1">

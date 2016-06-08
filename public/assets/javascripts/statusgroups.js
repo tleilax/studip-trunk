@@ -43,13 +43,13 @@
         },
 
         initInputs: function () {
-            $('input[name="selfassign_start"]').datetimepicker();
+            //$('input[name="selfassign_start"]').datetimepicker();
             if (!$('input[name="selfassign"]').attr('checked')) {
                 $('input[name="exclusive"]').closest($('section')).hide();
                 $('input[name="selfassign_start"]').closest($('section')).hide();
                 $('input[name="selfassign_end"]').closest($('section')).hide();
             }
-            $('input[name="selfassign_end"]').datetimepicker();
+            //$('input[name="selfassign_end"]').datetimepicker();
             $('input[name="selfassign"]').on('click', function() {
                 $('input[name="exclusive"]').closest($('section')).toggle();
                 $('input[name="selfassign_start"]').closest($('section')).toggle();

@@ -61,7 +61,7 @@ class StatusgroupsModel
          * Create document folder if requested (ID is needed here,
          * so we do that after store()).
          */
-        if (!$id && $makefolder) {
+        if (!$group->hasFolder() && $makefolder) {
             $group->updateFolder(true);
         }
 
