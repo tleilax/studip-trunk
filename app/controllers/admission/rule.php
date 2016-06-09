@@ -48,7 +48,24 @@ class Admission_RuleController extends AuthenticatedController {
         UserFilterField::getAvailableFilterFields();
         $this->ruleType = $ruleType;
         // Check if rule data has been given via request.
-        if (Request::get('rule')) {
+        if (Request::getArray('rules')) {
+            $rule_siblings = array();
+            $rules = Request::getArray('rules');
+            if (is_array($rules)) {
+                foreach($rules as $index => $rule) {
+                    $current_rule = unserialize($rule);
+                    if (($ruleType == get_class($current_rule)) && ($current_rule->getId() == Request::get('ruleId')))
+                        $this->rule = $current_rule;
+                    else
+                        $rule_siblings[$current_rule->getId()] = $current_rule;
+                }
+            }
+            if (!$this->rule)
+                if (in_array($ruleType, array_keys($this->ruleTypes))) {
+                    $this->rule = new $ruleType($ruleId);
+                }
+            $this->rule->setSiblings($rule_siblings);
+        } elseif (Request::get('rule')) {
             $rule = unserialize(Request::get('rule'));
             if ($ruleType == get_class($rule)) {
                 $this->rule = $rule;

@@ -53,6 +53,16 @@ abstract class AdmissionRule
     public $courseSetId = '';
 
     /**
+     * courseset siblings of this rule
+     */
+    public $siblings = array();
+
+    /**
+     * Are siblings set manually?
+     */
+    public $siblings_override = false;
+
+    /**
      * an array of AdmissionRules allowed to be combined with this rule
      *
      * @var array
@@ -374,6 +384,42 @@ abstract class AdmissionRule
      */
     public function __toString() {
         return $this->toString();
+    }
+
+    /**
+     * load sibling rules
+     *
+     */
+    public function loadSiblings() {
+        if ($this->siblings_override)
+            return false;
+        $this->siblings = array();
+        if ($this->courseSetId != '') {
+            $cs = new CourseSet($this->courseSetId);
+            foreach ($cs->getAdmissionRules() as $rule_id => $rule) {
+                if ($rule->getId() != $this->id) {
+                    $this->siblings[$rule_id] = $rule;
+                }
+            }
+        }
+    }
+    
+    /**
+     * get sibling rules
+     *
+     */
+    public function getSiblings() {
+        $this->loadSiblings();
+        return $this->siblings;
+    }
+    
+    /**
+     * set sibling rules
+     *
+     */
+    public function setSiblings($siblings = array()) {
+        $this->siblings_override = true;
+        $this->siblings = $siblings;
     }
 
     /**
