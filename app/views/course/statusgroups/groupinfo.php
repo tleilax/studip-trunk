@@ -24,31 +24,31 @@
         <?php endif ?>
         <?php if ($group->selfassign_start && $group->selfassign_end) : ?>
             <p>
-                <?= sprintf(_('Der Eintrag ist möglich **von %s bis %s**.'),
+                <?= formatReady(sprintf(_('Der Eintrag ist möglich **von %s bis %s**.'),
                     date('d.m.Y H:i', $group->selfassign_start),
-                    date('d.m.Y H:i', $group->selfassign_end)) ?>
+                    date('d.m.Y H:i', $group->selfassign_end))) ?>
             </p>
         <?php elseif ($group->selfassign_start && !$group->selfassign_end) : ?>
             <p>
-                <?= sprintf(_('Der Eintrag ist möglich **ab %s**.'),
-                    date('d.m.Y H:i', $group->selfassign_start)) ?>
+                <?= formatReady(sprintf(_('Der Eintrag ist möglich **ab %s**.'),
+                    date('d.m.Y H:i', $group->selfassign_start))) ?>
             </p>
         <?php elseif (!$group->selfassign_start && $group->selfassign_end) : ?>
             <p>
-                <?= sprintf(_('Der Eintrag ist möglich **bis %s**.'),
-                    date('d.m.Y H:i', $group->selfassign_end)) ?>
+                <?= formatReady(sprintf(_('Der Eintrag ist möglich **bis %s**.'),
+                    date('d.m.Y H:i', $group->selfassign_end))) ?>
             </p>
         <?php endif ?>
     <?php endif ?>
 
     <?php if ($folder = $group->getFolder()) : ?>
         <p>
-            <?= sprintf(_('Zu dieser Gruppe gehört ein [Dateiordner]%s .'),
+            <?= formatReady(sprintf(_('Zu dieser Gruppe gehört ein [Dateiordner]%s .'),
                 URLHelper::getURL('folder.php#anker', array(
                     'cid' => $course_id,
                     'data[cmd]' => 'tree',
                     'open' => $folder->id
-                ))) ?>
+                )))) ?>
         </p>
     <?php endif ?>
 
