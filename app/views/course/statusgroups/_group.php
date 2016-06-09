@@ -32,7 +32,7 @@
                                 <li>
                                     <a href="<?= $controller->url_for('messages/write', array(
                                         'group_id' => $group->id,
-                                        'default_subject' => $course_title
+                                        'default_subject' => htmlReady($course_title).' ('.htmlReady($group->name).')'
                                     )) ?>" data-dialog="size=auto;">
                                         <?= Icon::create('mail', 'clickable',
                                             array('title' => sprintf(_('Nachricht an alle Mitglieder der Gruppe %s schicken'),
@@ -80,7 +80,7 @@
                 <?php else : ?>
                     <a href="<?= $controller->url_for('messages/write', array(
                         'rec_uname' => $members->pluck('username'),
-                        'default_subject' => $course_title
+                        'default_subject' => htmlReady($course_title).' ('.htmlReady($group->name).')'
                     )) ?>" data-dialog="size=auto;">
                         <?= Icon::create('mail', 'clickable',
                             array('title' => _('Nachricht an alle nicht zugeordneten Personen schicken'))) ?></a>
@@ -182,38 +182,40 @@
                 <?php endforeach ?>
                 </tbody>
                 <tfoot>
-                <tr>
-                    <?php if (count($members) > 1 && $is_tutor && !$is_locked) : ?>
-                        <td colspan="6">
-                            <div class="memberselect">
-                                <label>
-                                    <input aria-label="<?= sprintf(_('Alle Mitglieder dieser Gruppe auswählen')) ?>"
-                                           type="checkbox" name="all" value="1"
-                                           data-proxyfor=":checkbox.groupmembers-<?= $group->id ?>"
-                                           data-activates="select#members-action-<?= $group->id ?>">
-                                    <?= _('Alle Mitglieder dieser Gruppe auswählen') ?>
-                                </label>
-                            </div>
-                            <div class="memberactions">
-                                <label>
-                                    <select name="members_action[<?= $group->id ?>]"
-                                            id="members-action-<?= $group->id ?>" disabled>
-                                        <option value="move"><?= _('In andere Gruppe verschieben') ?></option>
-                                        <?php if ($group->id != 'nogroup') : ?>
-                                            <option value="delete"><?= _('Aus dieser Gruppe entfernen') ?></option>
-                                        <?php endif ?>
-                                    </select>
-                                </label>
-                                <?= Studip\Button::create(_('Ausführen'), 'batch_members['.$group->id.']',
-                                    array('data-dialog' => 'size=auto')) ?>
-                            </div>
-                        </td>
-                    <?php elseif (!$is_tutor) : ?>
-                        <td colspan="3">
-                            <?= sprintf(_('+ %u unsichtbare Personen'), $invisible) ?>
-                        </td>
-                    <?php endif ?>
-                </tr>
+                    <tr>
+                        <?php if ($is_tutor) : ?>
+                            <td colspan="6">
+                                <?php if (!$is_locked) : ?>
+                                    <div class="memberselect">
+                                        <label>
+                                            <input aria-label="<?= sprintf(_('Alle Mitglieder dieser Gruppe auswählen')) ?>"
+                                                   type="checkbox" name="all" value="1"
+                                                   data-proxyfor=":checkbox.groupmembers-<?= $group->id ?>"
+                                                   data-activates="select#members-action-<?= $group->id ?>">
+                                            <?= _('Alle Mitglieder dieser Gruppe auswählen') ?>
+                                        </label>
+                                    </div>
+                                    <div class="memberactions">
+                                        <label>
+                                            <select name="members_action[<?= $group->id ?>]"
+                                                    id="members-action-<?= $group->id ?>" disabled>
+                                                <option value="move"><?= _('In andere Gruppe verschieben') ?></option>
+                                                <?php if ($group->id != 'nogroup') : ?>
+                                                    <option value="delete"><?= _('Aus dieser Gruppe entfernen') ?></option>
+                                                <?php endif ?>
+                                            </select>
+                                        </label>
+                                        <?= Studip\Button::create(_('Ausführen'), 'batch_members['.$group->id.']',
+                                            array('data-dialog' => 'size=auto')) ?>
+                                    </div>
+                                <?php endif ?>
+                            </td>
+                        <?php elseif (!$is_tutor) : ?>
+                            <td colspan="3">
+                                <?= sprintf(_('+ %u unsichtbare Personen'), $invisible) ?>
+                            </td>
+                        <?php endif ?>
+                    </tr>
                 </tfoot>
             </table>
         <?php else : ?>
