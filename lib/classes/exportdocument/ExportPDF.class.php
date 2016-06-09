@@ -243,7 +243,7 @@ class ExportPDF extends TCPDF implements ExportDocument {
      * @param string $ht string to print as title on document header
      * @param string $hs string to print on document header
      */
-    public function setHeaderData($ln = '', $lw = 0, $ht = '', $hs = '') {
+    public function setHeaderData($ln = '', $lw = 0, $ht = '', $hs = '', $tc = array(), $lc = array()) {
         $logo_path = get_config("PDF_LOGO");
         if (!$ln) {
             $ln = $logo_path ? $logo_path : '../../../../public/assets/images/logos/logoklein.png';
@@ -267,7 +267,7 @@ class ExportPDF extends TCPDF implements ExportDocument {
      */
     public function writeHTML ($html, $ln = true, $fill = false, $reseth = false, $cell = false, $align = '')
     {
-        $html = preg_replace('/src="(.*)"/U', function ($m) {return $this->convertURL($m[1]);}, $html);
+        $html = preg_replace_callback('/src="(.*)"/U', function ($m) {return $this->convertURL($m[1]);}, $html);
         parent::writeHTML($html, $ln, $fill, $reseth, $cell, $align);
     }
 
