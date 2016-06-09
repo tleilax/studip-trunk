@@ -17,7 +17,7 @@
  */
 
 
-class Error
+class CalendarError
 {
 
     var $status;

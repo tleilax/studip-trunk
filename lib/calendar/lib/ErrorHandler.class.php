@@ -69,7 +69,7 @@ class ErrorHandler
         if ($status === NULL)
             return $this->errors;
 
-        return $errors[$status];
+        return $this->errors[$status];
     }
 
     public function getAllErrors()
@@ -100,7 +100,7 @@ class ErrorHandler
 
     public function throwError($status, $message, $file = '', $line = '')
     {
-        $this->errors[$status][] = new Error($status, $message, $file, $line);
+        $this->errors[$status][] = new CalendarError($status, $message, $file, $line);
         $this->status |= $status;
         reset($this->errors[$status]);
         if ($status == ErrorHandler::ERROR_FATAL) {

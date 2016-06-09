@@ -27,7 +27,7 @@ class CalendarImportFile extends CalendarImport
      */
     public function __construct(&$parser, $file, $path = '')
     {
-        parent::CalendarImport($parser);
+        parent::__construct($parser);
         $this->file = $file;
         $this->path = $path;
     }

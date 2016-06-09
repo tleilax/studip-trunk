@@ -27,7 +27,7 @@ class CalendarExportFile extends CalendarExport
     {
         global $TMP_PATH;
 
-        parent::CalendarExport($writer);
+        parent::__construct($writer);
 
         if (!$file_name) {
             $this->tmp_file_name = $this->makeUniqueFilename();

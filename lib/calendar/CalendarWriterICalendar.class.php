@@ -25,7 +25,7 @@ class CalendarWriteriCalendar extends CalendarWriter
     public function __construct()
     {
 
-        parent::CalendarWriter();
+        parent::__construct();
         $this->default_filename_suffix = "ics";
         $this->format = "iCalendar";
     }
@@ -91,7 +91,7 @@ class CalendarWriteriCalendar extends CalendarWriter
         foreach ($event->getProperties() as $name => $value) {
             $params = array();
             $params_str = '';
-            
+
             if ($name === 'SUMMARY') {
                 $value = $event->getTitle();
             }
@@ -518,7 +518,7 @@ class CalendarWriteriCalendar extends CalendarWriter
 
         return implode(',', $exdates);
     }
-    
+
     private function _exportGroupEventProperties(Event $event)
     {
         $organizer = User::find($event->getAuthorId());
@@ -548,7 +548,7 @@ class CalendarWriteriCalendar extends CalendarWriter
                             . 'ROLE=REQ-PARTICIPANT;'
                             . 'CN="' . _('unbekannt') . '"')
                             . $this->newline;
-                     * 
+                     *
                      */
                 }
             } else {
@@ -581,7 +581,7 @@ class CalendarWriteriCalendar extends CalendarWriter
                 } else {
                     $attendee .= ';CN="' . _('unbekannt') . '"';
                 }
-                     * 
+                     *
                      */
                     $properties .= $this->_foldLine($attendee) . $this->newline;
                 }
@@ -598,7 +598,7 @@ class CalendarWriteriCalendar extends CalendarWriter
         $stmt->execute(array($user_id));
         return $stmt->fetchColumn();
     }
-    
+
     public function _exportCategories($event)
     {
         return implode(',' ,$event->toStringCategories(true));
