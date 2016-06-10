@@ -54,7 +54,7 @@
     <tfoot>
         <tr>
             <td colspan="4">
-                <form class="default" action="<?= $controller->url_for('course/archive/archive'); ?>">
+                <form class="default" action="<?= $controller->url_for('course/archive/archive'); ?>" method="post">
                     <? foreach ($courses as $course) : ?>
                         <input type="hidden" name="courseIds[]" value="<?= $course->id; ?>">
                     <? endforeach ?>

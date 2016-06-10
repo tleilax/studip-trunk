@@ -41,6 +41,30 @@ class Course_ArchiveController extends AuthenticatedController
     }
     
     
+    /**
+        A helper method that creates an HTML table out of the course's data.
+        This method exists for compatibility reasons with public/archiv.php
+        (which displays the output created here).
+    */
+    private function createArchivedCourseHTMLTable($course = null)
+    {
+        $table = '<table class="default">'
+               . '<caption>' . $course->name . '</caption>'
+               . '<tbody>'
+               . '<tr><th>' . _("Untertitel") . ':</th><td>' . $course->untertitel . '</td></tr>'
+               //. '<tr><th>' . _("Zeit") . ':</th><td>' . INSERT_ZEIT_HERE . '</td></tr>'
+               . '<tr><th>' . _("Semester") . ':</th><td>' . $course->start_semester . '</td></tr>' //TODO: check if start_semester is right
+               . '<tr><th>' . _("Erster Temin") . ':</th><td>' . $course->untertitel . '</td></tr>'
+               //. '<tr><th>' . _("Vorbesprechung") . ':</th><td>' . INSERT_VORBESPRECHUNG_HERE . '</td></tr>'
+               . '<tr><th>' . _("Ort") . ':</th><td>' . $course->ort . '</td></tr>'
+               . '<tr><th>' . _("Semester") . ':</th><td>' . $course->start_semester . '</td></tr>'
+               . '<tr><th>' . _("Typ der Veranstaltung") . ':</th><td>'
+                    . $course->start_semester . '</td></tr>';
+        
+        $table .= '</tbody></table>';
+        return $table;
+    }
+    
     
     /**
         This action collects all required data about the course.
@@ -57,7 +81,7 @@ class Course_ArchiveController extends AuthenticatedController
             throw new AccessDeniedException();
         }
         
-        //TODO: enable navigation items, depending wheter the user
+        //TODO: enable navigation items, depending whether the user
         // is in the admin role or not.
         
         
@@ -131,6 +155,44 @@ class Course_ArchiveController extends AuthenticatedController
         
         //now create ArchivedCourse objects out of the Course objects:
         
+        foreach ($courses as $course) {
+            $archivedCourse = new ArchivedCourse();
+            $archivedCourse->id = $course->id;
+            $archivedCourse->name = $course->name;
+            $archivedCourse->untertitel = $course->untertitel;
+            $archivedCourse->beschreibung = $course->beschreibung;
+            $archivedCourse->start_time = $course->start_time;
+            $archivedCourse->semester = $course->end_semester; //TODO: maybe start_semester is better
+            $archivedCourse->heimat_inst_id = $course->home_institut->id;
+            $archivedCourse->institute = $course->institutes;
+            
+            //get "dozenten":
+            $archivedCourse->dozenten = $course->members->filter(
+                                function ($member) {
+                                    return $member['status'] === "dozent"; 
+                                }
+                            );
+            
+            $archivedCourse->fakultaet = $course->home_institut->faculty;
+            
+
+            //dump is an HTML table with the seminar data
+            $archivedCourse->dump = $this->createArchivedCourseHTMLTable($course);
+
+            //TODO:
+            //$archivedCourse->archiv_file_id = 
+            //$archivedCourse->archiv_protected_file_id = 
+            $archivedCourse->mkdate = time();
+            //$archivedCourse->forumdump = 
+            //$archivedCourse->wikidump = 
+            $archivedCourse->studienbereiche = $course->study_areas;
+            $archivedCourse->veranstaltungsnummer = $course->veranstaltungsnummer;
+            $archivedCourse->members = $course->members;
+            $archivedCourse->home_institut = $course->home_institut;
+            
+            
+            
+        }
         
     }
 }
