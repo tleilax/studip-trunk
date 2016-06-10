@@ -106,6 +106,7 @@ javascripts:
     - javascripts/smiley.js
     - javascripts/big-image-handler.js
     - javascripts/opengraph.js
+    - javascripts/i18n_input.js
 
     - javascripts/studip-secure-forms.js
     - javascripts/studip-css.js

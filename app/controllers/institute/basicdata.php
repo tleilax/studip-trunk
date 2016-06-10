@@ -167,7 +167,7 @@ class Institute_BasicdataController extends AuthenticatedController
         $create_institute = $i_id === 'new';
         
         $institute = new Institute($create_institute ? null : $i_id);
-        $institute->name            = trim(Request::get('Name', $institute->name));
+        $institute->name            = Request::i18n('Name', $institute->name);
         $institute->fakultaets_id   = Request::option('Fakultaet', $institute->fakultaets_id);
         $institute->strasse         = Request::get('strasse', $institute->strasse);
         // Beware: Despite the name, this contains both zip code AND city name

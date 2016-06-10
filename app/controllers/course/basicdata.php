@@ -46,6 +46,7 @@ class Course_BasicdataController extends AuthenticatedController
             'title' => _("Untertitel der Veranstaltung"),
             'name' => "course_subtitle",
             'type' => 'text',
+            'i18n' => true,
             'value' => $data['subtitle'],
             'locked' => LockRules::Check($course_id, 'Untertitel')
         );
@@ -81,6 +82,7 @@ class Course_BasicdataController extends AuthenticatedController
             'title' => _("Art der Veranstaltung"),
             'name' => "course_form",
             'type' => 'text',
+            'i18n' => true,
             'value' => $data['form'],
             'locked' => LockRules::Check($course_id, 'art')
         );
@@ -111,6 +113,7 @@ class Course_BasicdataController extends AuthenticatedController
             'title' => _("Beschreibung"),
             'name' => "course_description",
             'type' => 'textarea',
+            'i18n' => true,
             'value' => $data['description'],
             'locked' => LockRules::Check($course_id, 'Beschreibung')
         );
