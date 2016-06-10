@@ -16,6 +16,9 @@
 
 //rewrite of /public/archiv_assi.php
 
+require_once('lib/archiv.inc.php'); //needed in archive_action
+
+
 /**
     Course_ArchiveController is a controller that allows users
     who have the required permissions to archive a course.
@@ -91,7 +94,7 @@ class Course_ArchiveController extends AuthenticatedController
         $tcourse = Course::find($courseId);
         if ($tcourse == false) {
             //course not found!
-            throw new Exception(_("Veranstaltung nicht gefunden!"));
+            throw new Exception(_('Veranstaltung nicht gefunden!'));
         }
         
         
@@ -109,7 +112,7 @@ class Course_ArchiveController extends AuthenticatedController
         }
         
         //set page title with the area of Stud.IP and the course's name:
-        PageLayout::setTitle(_("Archivieren von Veranstaltungen"));
+        PageLayout::setTitle(_('Archivieren von Veranstaltungen'));
         
         //get list of "dozenten" for each course:
         $this->dozenten = array();
@@ -139,16 +142,33 @@ class Course_ArchiveController extends AuthenticatedController
         global $perm;
         
         //now pick the courses IDs:
-        $courseIds = Request::option('courseIds[]');
+        $courseIds = Request::getArray('courseIds');
         
         //check if the user has the required permission
         //to archive all selected courses:
+        
+        $this->deletedCourses = array();
         foreach ($courseIds as $courseId) {
             if (!$this->userHasPermission($courseId)) {
                 //no permission for one of the selected courses: access denied!
                 throw new AccessDeniedException();
             }
+            // to be replaced when archive.inc.php is replaced:
+            in_archiv($courseId);
+            
+            $course = Course::find($courseId);
+            if($course != null) {
+                $course->delete();
+                $this->deletedCourses[] = $course;
+            } else {
+                throw new Exception(_("Veranstaltung nicht in Datenbank gefunden!"));
+            }
+            
         }
+        
+        
+        /*
+        // enable the following code when archive.inc.php is replaced, too
         
         //get all courses:
         $courses = Course::findMany($courseIds);
@@ -156,6 +176,8 @@ class Course_ArchiveController extends AuthenticatedController
         //now create ArchivedCourse objects out of the Course objects:
         
         foreach ($courses as $course) {
+            in_archiv($course->id);
+        }
             $archivedCourse = new ArchivedCourse();
             $archivedCourse->id = $course->id;
             $archivedCourse->name = $course->name;
@@ -193,6 +215,6 @@ class Course_ArchiveController extends AuthenticatedController
             
             
         }
-        
+        */
     }
 }
