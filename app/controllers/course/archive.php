@@ -81,8 +81,9 @@ class Course_ArchiveController extends AuthenticatedController
         global $perm;
         
         /*
-            NOTE: confirm_action will be called with an array in HTTP POST
-            that is called archiv_sem and which has the following form:
+            NOTE: confirm_action will be called from admin/courses
+            with an array in HTTP POST that is called archiv_sem, 
+            having the following form:
             [ "_id_courseID", "_id_courseID", "on", "_id_courseID", ...]
             
             Every courseID followed by "on" is an ID of a course
@@ -115,9 +116,9 @@ class Course_ArchiveController extends AuthenticatedController
         //get the course object: TODO: resolve multiple course-IDs (to archive more than one course)
         
         
-        
-        //tcourse is only temporary until the whole code can handle an array of courses
         $this->courses = Course::findMany($courseIds);
+        
+        //should be handled by the previous controller (admin/courses for example):
         /*if ($this->courses == false) {
             //courses not found!
             throw new Exception(_('Veranstaltungen nicht gefunden!'));
@@ -136,10 +137,10 @@ class Course_ArchiveController extends AuthenticatedController
             }
         }
         
-        //set page title with the area of Stud.IP and the course's name:
+        //set the page title with the area of Stud.IP:
         PageLayout::setTitle(_('Archivieren von Veranstaltungen'));
         
-        //get list of "dozenten" for each course:
+        //get the list of "dozenten" for each course:
         $this->dozenten = array();
         
         foreach ($this->courses as $course) {
@@ -178,8 +179,10 @@ class Course_ArchiveController extends AuthenticatedController
                 //no permission for one of the selected courses: access denied!
                 throw new AccessDeniedException();
             }
+            
             // to be replaced when archive.inc.php is replaced:
             in_archiv($courseId);
+            
             
             $course = Course::find($courseId);
             if($course != null) {
@@ -193,7 +196,7 @@ class Course_ArchiveController extends AuthenticatedController
         
         
         /*
-        // enable the following code when archive.inc.php is replaced, too
+        // enable the following code when archive.inc.php is replaced
         
         //get all courses:
         $courses = Course::findMany($courseIds);
