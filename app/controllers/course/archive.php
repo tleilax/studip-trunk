@@ -72,11 +72,34 @@ class Course_ArchiveController extends AuthenticatedController
     /**
         This action collects all required data about the course.
     */
-    public function confirm_action($courseId = null)
+    public function confirm_action()
     {
+        
         //TODO: make it possible to archive more than one course at a time!
         
         global $perm;
+        
+        /*
+            NOTE: confirm_action will be called with an array in HTTP POST
+            that is called archiv_sem and which has the following form:
+            [ "_id_courseID", "_id_courseID", "on", "_id_courseID", ...]
+            
+            Every courseID followed by "on" is an ID of a course
+            that was selected for archiving.
+        */
+        
+        //check the archiv_sem array and extract the relevant course IDs:
+        $courseIds = array();
+        
+        $archiv_sem = Request::getArray('archiv_sem');
+        
+        for($i = 0; $i < count($archiv_sem); $i++) {
+            if(($i > 0) && $archiv_sem[$i] == 'on') {
+                //the previous array item is a relevant course ID:
+                $id = explode('_', $archiv_sem[$i-1])[2];
+                $courseIds[] = $id;
+            }
+        }
         //check if the user has the required permission
         //to archive the selected course:
         if (!$this->userHasPermission($courseId)) {
@@ -90,15 +113,16 @@ class Course_ArchiveController extends AuthenticatedController
         
         //get the course object: TODO: resolve multiple course-IDs (to archive more than one course)
         
+        
+        
         //tcourse is only temporary until the whole code can handle an array of courses
-        $tcourse = Course::find($courseId);
-        if ($tcourse == false) {
-            //course not found!
-            throw new Exception(_('Veranstaltung nicht gefunden!'));
+        $this->courses = Course::findMany($courseIds);
+        if ($this->courses == false) {
+            //courses not found!
+            throw new Exception(_('Veranstaltungen nicht gefunden!'));
         }
         
         
-        $this->courses = array($tcourse); //temporary workaround
         
         //activate navigation elements if they exist:
         if ($perm->have_perm('admin')) {
