@@ -609,7 +609,6 @@ class Admin_CoursesController extends AuthenticatedController
             16 => array(
                 'name'      => _('Archivieren'),
                 'title'     => _('Archivieren'),
-                //'url'       => 'archiv_assi.php',
                 'url'       => 'dispatch.php/course/archive/confirm',
                 'multimode' => true
             ),

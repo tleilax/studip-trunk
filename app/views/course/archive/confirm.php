@@ -1,3 +1,4 @@
+<? if ($courses) : ?>
 <?= MessageBox::info(_('Sie sind im Begriff, die aufgelistete(n) Veranstaltung(en) zu archivieren. Dieser Schritt kann nicht rückgängig gemacht werden!')); ?>
 <table class="default withdetails">
     <caption><?= $_SESSION['SessSemName']["header_line"] ?></caption>
@@ -9,7 +10,7 @@
     </thead>
     <tbody>
         <? foreach ($courses as $course) : ?>
-        <tr class="open">
+        <tr class="">
             <td>
                 <a onclick="jQuery(this).closest('tr').toggleClass('open'); return false;" href="">
                     <?= htmlReady($course->name); ?>
@@ -54,14 +55,18 @@
     <tfoot>
         <tr>
             <td colspan="4">
-                <form class="default" action="<?= $controller->url_for('course/archive/archive'); ?>" method="post">
+                <form class="default" action="<?= $controller->url_for('course/archive/archive'); ?>" method="post" data-dialog>
                     <? foreach ($courses as $course) : ?>
                         <input type="hidden" name="courseIds[]" value="<?= $course->id; ?>">
                     <? endforeach ?>
-                    <?= \Studip\Button::create(_('Archivieren')); ?>
+                    <div data-dialog-button>
+                        <?= \Studip\Button::create(_('Archivieren')); ?>
+                    </div>
                 </form>
             </td>
         </tr>
     </tfoot>
 </table>
-
+<? else : ?>
+<?= MessageBox::error(_('Es wurde keine Veranstaltung ausgewählt!')); ?>
+<? endif ?>

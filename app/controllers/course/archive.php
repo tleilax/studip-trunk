@@ -74,7 +74,8 @@ class Course_ArchiveController extends AuthenticatedController
     */
     public function confirm_action()
     {
-        
+        //TODO: check in the preceding controller (admin/courses) if at least 
+        //      one course is selected!
         //TODO: make it possible to archive more than one course at a time!
         
         global $perm;
@@ -117,10 +118,10 @@ class Course_ArchiveController extends AuthenticatedController
         
         //tcourse is only temporary until the whole code can handle an array of courses
         $this->courses = Course::findMany($courseIds);
-        if ($this->courses == false) {
+        /*if ($this->courses == false) {
             //courses not found!
             throw new Exception(_('Veranstaltungen nicht gefunden!'));
-        }
+        }*/
         
         
         
