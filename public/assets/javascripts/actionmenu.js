@@ -41,6 +41,9 @@
                         parent.addClass('positioncorrected');
                         parent.css('left', '-' + (itemWidth - 55) + 'px');
                     }
+
+                    // Set a indicator for open action menu on document
+                    $('body').addClass('actionmenu-open');
                 }
             } else {
                 // Get width of child li elements.
@@ -51,6 +54,20 @@
                 } else {
                     el.children('ul').css('right', '');
                 }
+            }
+        });
+
+        // Close open actionmenus on clicking anywhere in the document.
+        $(document).on('click', function(event) {
+            /*
+             * Execute only for elements not inside an action menu.
+             * We are using the "actionmenu-open" class as indicator
+             * if anything needs to be done. That should save some
+             * checks.
+             */
+            if ($('body').hasClass('actionmenu-open') && $(event.target).parents('ul.actionmenu').length == 0) {
+                $('ul.actionmenu').find('li.active').removeClass('active');
+                $('body').removeClass('actionmenu-open');
             }
         });
     });
