@@ -45,12 +45,12 @@ class ConditionalAdmission extends AdmissionRule
      * Are condition groups allowed?
      */
     public $conditiongroups_allowed = false;
-    
+
     /**
      * courseset siblings of this rule
      */
     public $siblings = array();
-    
+
     public $allowed_combinations = array('ParticipantRestrictedAdmission', 'LimitedAdmission','ConditionalAdmission','TimedAdmission','PasswordAdmission','CourseMemberAdmission');
 
     // --- OPERATIONS ---
@@ -96,7 +96,8 @@ class ConditionalAdmission extends AdmissionRule
     /**
      * Deletes the admission rule and all associated data.
      */
-    public function delete() {
+    public function delete() 
+    {
         parent::delete();
         // Delete rule data.
         $stmt = DBManager::get()->prepare("DELETE FROM `conditionaladmissions`
@@ -147,6 +148,7 @@ class ConditionalAdmission extends AdmissionRule
     {
         return $this->conditions;
     }
+
     /**
      * Gets all grouped conditiongroups.
      *
@@ -156,7 +158,7 @@ class ConditionalAdmission extends AdmissionRule
     {
         return $this->conditiongroups;
     }
-    
+
     /**
      * Gets all grouped conditiongroups.
      *
@@ -166,7 +168,7 @@ class ConditionalAdmission extends AdmissionRule
     {
         return $this->ungrouped_conditions;
     }
-    
+
     /**
      * Gets quota for given conditiongroup.
      *
@@ -181,19 +183,21 @@ class ConditionalAdmission extends AdmissionRule
      * Gets some text that describes what this AdmissionRule (or respective
      * subclass) does.
      */
-    public static function getDescription() {
-        return _("Über eine Menge von Bedingungen kann festgelegt werden, ".
-            "wer zur Anmeldung zu den Veranstaltungen des Anmeldesets ".
-            "zugelassen ist. Es muss nur eine der Bedingungen erfüllt sein, ".
-            "innerhalb einer Bedingung müssen aber alle Datenfelder ".
-            "zutreffen.");
+    public static function getDescription()
+    {
+        return _('Über eine Menge von Bedingungen kann festgelegt werden, '.
+            'wer zur Anmeldung zu den Veranstaltungen des Anmeldesets '.
+            'zugelassen ist. Es muss nur eine der Bedingungen erfüllt sein, '.
+            'innerhalb einer Bedingung müssen aber alle Datenfelder '.
+            'zutreffen.');
     }
 
     /**
      * Return this rule's name.
      */
-    public static function getName() {
-        return _("Bedingte Anmeldung");
+    public static function getName()
+    {
+        return _('Bedingte Anmeldung');
     }
 
     /**
@@ -201,7 +205,8 @@ class ConditionalAdmission extends AdmissionRule
      *
      * @return String
      */
-    public function getTemplate() {
+    public function getTemplate()
+    {
         // Open generic admission rule template.
         $tpl = $GLOBALS['template_factory']->open('admission/rules/configure');
         $tpl->set_attribute('rule', $this);
@@ -217,7 +222,8 @@ class ConditionalAdmission extends AdmissionRule
      * Helper function for loading data from DB. Generic AdmissionRule data is
      * loaded with the parent load() method.
      */
-    public function load() {
+    public function load()
+    {
         // Load basic data.
         $stmt = DBManager::get()->prepare("SELECT *
             FROM `conditionaladmissions` WHERE `rule_id`=? LIMIT 1");
@@ -248,11 +254,13 @@ class ConditionalAdmission extends AdmissionRule
      *
      * @return Boolean
      */
-    public function conditiongroupsAllowed() {
+    public function conditiongroupsAllowed()
+    {
         foreach ($this->getSiblings() as $rule) {
             if (get_class($rule) == 'ParticipantRestrictedAdmission') {
-                if ($rule->getDistributionTime() > time()) 
+                if ($rule->getDistributionTime() > time()) {
                     $this->conditiongroups_allowed = true;
+                }
             }
         }
         return $this->conditiongroups_allowed;
@@ -262,10 +270,13 @@ class ConditionalAdmission extends AdmissionRule
      * Removes condition groups and sets all conditions as ungrouped.
      *
      */
-    public function removeConditionGroups() {
-       foreach ($this->conditiongroups as $conditiongroup_id => $conditions)
-           foreach ($conditions as $condition_id => $condition)
+    public function removeConditionGroups()
+    {
+       foreach ($this->conditiongroups as $conditiongroup_id => $conditions) {
+           foreach ($conditions as $condition_id => $condition) {
                $this->ungrouped_conditions[$condition_id] = $condition;
+           }
+       }
        $this->conditiongroups = array();
     }
 
@@ -281,11 +292,12 @@ class ConditionalAdmission extends AdmissionRule
             $this->ungrouped_conditions[$conditionId]->delete();
             unset($this->ungrouped_conditions[$conditionId]);
         } else {
-            foreach ($this->conditiongroups as $conditiongroup_id => $conditions)
+            foreach ($this->conditiongroups as $conditiongroup_id => $conditions) {
                 if (isset($conditions[$conditionId])) {
                     $this->conditiongroups[$conditiongroup_id]->conditions[$conditionId]->delete();
                     unset($this->conditiongroups[$conditiongroup_id]->conditions[$conditionId]);
                 }
+            }
         }
         return $this;
     }
@@ -301,7 +313,8 @@ class ConditionalAdmission extends AdmissionRule
      * @return Array Array with conditions that have failed. If array
      *               is empty, everything's all right.
      */
-    function ruleApplies($userId, $courseId) {
+    public function ruleApplies($userId, $courseId)
+    {
         $failed = array();
         // Check for rule validity time frame.
         if ($this->checkTimeFrame()) {
@@ -338,7 +351,8 @@ class ConditionalAdmission extends AdmissionRule
      * @param Array $data
      * @return AdmissionRule This object.
      */
-    public function setAllData($data) {
+    public function setAllData($data)
+    {
         UserFilterField::getAvailableFilterFields();
         parent::setAllData($data);
         $this->conditions = array();
@@ -350,10 +364,12 @@ class ConditionalAdmission extends AdmissionRule
             $this->addCondition($condition, $data['conditiongroup_'.$condition->getId()], $data['quota_'.$data['conditiongroup_'.$condition->getId()]]);
         }
         foreach ($this->getConditiongroups() as $conditiongroup_id => $conditions) {
-            if (strlen(conditiongroup_id) < 32) {
-                $group = md5(uniqid('conditiongroups'.microtime(), true));
+            if (strlen($conditiongroup_id) < 32) {
+                $group = md5(uniqid('conditiongroups' . microtime(), true));
+
                 $this->conditiongroups[$group] = $this->conditiongroups[$conditiongroup_id];
                 unset($this->conditiongroups[$conditiongroup_id]);
+
                 $this->quota[$group] = $this->quota[$conditiongroup_id];
                 unset($this->quota[$conditiongroup_id]);
             }
@@ -365,7 +381,8 @@ class ConditionalAdmission extends AdmissionRule
     /**
      * Helper function for storing data to DB.
      */
-    public function store() {
+    public function store()
+    {
         // Store rule data.
         $stmt = DBManager::get()->prepare("INSERT INTO `conditionaladmissions`
             (`rule_id`, `message`, `start_time`, `end_time`, `mkdate`, `chdate`)
@@ -415,35 +432,40 @@ class ConditionalAdmission extends AdmissionRule
             $parameters[] = '';
             $parameters[] = time();
         }
-                    foreach ($this->conditiongroups as $conditiongroup_id => $conditions) {
-                        $groupqueries[] = "(?, ?)";
-                        $groupparameters[] = $conditiongroup_id;
-                        $groupparameters[] = $this->quota[$conditiongroup_id];
-                        foreach ($conditions as $condition) {
-                            // Store each group of conditions...
-                            $condition->store();
-                            $queries[] = "(?, ?, ?, ?)";
-                            $parameters[] = $this->id;
-                            $parameters[] = $condition->getId();
-                            $parameters[] = $conditiongroup_id;
-                            $parameters[] = time();
-                        }
-                    }
+
+        foreach ($this->conditiongroups as $conditiongroup_id => $conditions) {
+            $groupqueries[] = "(?, ?)";
+            $groupparameters[] = $conditiongroup_id;
+            $groupparameters[] = $this->quota[$conditiongroup_id];
+            foreach ($conditions as $condition) {
+                // Store each group of conditions...
+                $condition->store();
+                $queries[] = "(?, ?, ?, ?)";
+                $parameters[] = $this->id;
+                $parameters[] = $condition->getId();
+                $parameters[] = $conditiongroup_id;
+                $parameters[] = time();
+            }
+        }
+
         // Store all assignments between rule and condition.
-        $stmt = DBManager::get()->prepare("INSERT INTO `admission_condition`
-            (`rule_id`, `filter_id`, `conditiongroup_id`, `mkdate`)
-            VALUES ".implode(",", $queries)." ON DUPLICATE KEY UPDATE
-            `filter_id`=VALUES(`filter_id`), `conditiongroup_id`=VALUES(`conditiongroup_id`)");
-        $stmt->execute($parameters);
+        if (count($queries) > 0) {
+            $stmt = DBManager::get()->prepare("INSERT INTO `admission_condition`
+                (`rule_id`, `filter_id`, `conditiongroup_id`, `mkdate`)
+                VALUES " . implode(',', $queries) . " ON DUPLICATE KEY UPDATE
+                `filter_id`=VALUES(`filter_id`), `conditiongroup_id`=VALUES(`conditiongroup_id`)");
+            $stmt->execute($parameters);
+        }
+
         // Store all assignments between condition and conditiongroup.
-        if (count($groupqueries)) {
+        if (count($groupqueries) > 0) {
             $stmt = DBManager::get()->prepare("INSERT INTO `admission_conditiongroup`
                 (`conditiongroup_id`, `quota`)
-                VALUES ".implode(",", $groupqueries)." ON DUPLICATE KEY UPDATE
+                VALUES " . implode(',', $groupqueries) . " ON DUPLICATE KEY UPDATE
                 `quota`=VALUES(`quota`)");
             $stmt->execute($groupparameters);
         }
-        
+
         return $this;
     }
 
@@ -452,7 +474,8 @@ class ConditionalAdmission extends AdmissionRule
      *
      * @return String
      */
-    public function toString() {
+    public function toString()
+    {
         $factory = new Flexi_TemplateFactory(dirname(__FILE__).'/templates/');
         $tpl = $factory->open('info');
         $tpl->set_attribute('rule', $this);
@@ -480,23 +503,26 @@ class ConditionalAdmission extends AdmissionRule
         $no_quota = 0;
         foreach ($data['conditions'] as $ser_con) {
             $condition = unserialize($ser_con);
-            if ($data['conditiongroup_'.$condition->getId()])
+            if ($data['conditiongroup_'.$condition->getId()]) {
                 $grouped++;
-            else
+            } else {
                 $ungrouped++;
-            $quota[$data['conditiongroup_'.$condition->getId()]] = $data['quota_'.$data['conditiongroup_'.$condition->getId()]];
-            if (!$quota[$data['conditiongroup_'.$condition->getId()]])
+            }
+            $quota[$data['conditiongroup_' . $condition->getId()]] = $data['quota_' . $data['conditiongroup_' . $condition->getId()]];
+            if (!$quota[$data['conditiongroup_' . $condition->getId()]]) {
                 $no_quota++;
+            }
         }
         foreach ($quota as $id => $part) {
             $quota_total += $part;
         }
-        if ($grouped && $ungrouped)
+        if ($grouped && $ungrouped) {
             $errors[] = sprintf(_('Es müssen entweder alle Bedingungen Teil einer Gruppe sein, oder keine. %s Bedingungen sind keiner Gruppe zugeordnet.'), $ungrouped);
-        elseif ($grouped && ($quota_total !== 100))
+        } elseif ($grouped && $quota_total !== 100) {
             $errors[] = _('Die Gesamtsumme der Kontingente muss 100 Prozent betragen.');
-        elseif ($grouped && $no_quota)
+        } elseif ($grouped && $no_quota) {
             $errors[] = sprintf(_('Für %s Gruppen muss noch ein Kontingent festgelegt werden.'), $no_quota);
+        }
         return $errors;
     }
 
@@ -531,12 +557,3 @@ class ConditionalAdmission extends AdmissionRule
     }
 
 } /* end of class ConditionalAdmission */
-/*
- CREATE TABLE IF NOT EXISTS `admission_conditiongroup` (
-         `conditiongroup_id` varchar(32) COLLATE latin1_german1_ci NOT NULL,
-         `quota` int(11) NOT NULL,
-         PRIMARY KEY (`conditiongroup_id`)
- ) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_german1_ci;
-ALTER TABLE `admission_condition` ADD `conditiongroup_id` VARCHAR(32) NOT NULL DEFAULT '' AFTER `filter_id`;
-*/
-?>

@@ -2,7 +2,7 @@
 <?php
 
 /**
- * SubjectCondition.class.php
+ * SubjectConditionAny.class.php
  * 
  * All conditions concerning the study subject in Stud.IP can be specified here.
  * 
@@ -16,7 +16,7 @@
  * @category    Stud.IP
  */
 
-require_once(realpath(dirname(__FILE__).'/..').'/UserFilterField.class.php');
+require_once realpath(__DIR__ . '/..') . '/UserFilterField.class.php';
 
 class SubjectConditionAny extends UserFilterField
 {
@@ -32,7 +32,8 @@ class SubjectConditionAny extends UserFilterField
     /**
      * @see UserFilterField::__construct
      */
-    public function __construct($fieldId='') {
+    public function __construct($fieldId = '')
+    {
         parent::__construct($fieldId);
         $this->validCompareOperators = array(
             '!=' => ' '
@@ -47,9 +48,7 @@ class SubjectConditionAny extends UserFilterField
      */
     public function getName()
     {
-        return _("Alle Studienfächer");
+        return _('Alle Studienfächer');
     }
 
 } /* end of class SubjectCondition */
-
-?>

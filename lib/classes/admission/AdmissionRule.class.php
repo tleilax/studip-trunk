@@ -71,7 +71,8 @@ abstract class AdmissionRule
 
     // --- OPERATIONS ---
 
-    public function __construct($ruleId='', $courseSetId = '') {
+    public function __construct($ruleId = '', $courseSetId = '')
+    {
         $this->id = $ruleId;
         $this->courseSetId = $courseSetId;
     }
@@ -82,7 +83,8 @@ abstract class AdmissionRule
      *
      * @param CourseSet $courseset Current courseset.
      */
-    public function afterSeatDistribution(&$courseset) {
+    public function afterSeatDistribution(&$courseset)
+    {
         return true;
     }
 
@@ -92,7 +94,8 @@ abstract class AdmissionRule
      * @return True if the rule is valid because the time frame applies,
      *         otherwise false.
      */
-    public function checkTimeFrame() {
+    public function checkTimeFrame()
+    {
         $valid = true;
         // Start time given, but still in the future.
         if ($this->startTime && $this->startTime > time()) {
@@ -108,7 +111,8 @@ abstract class AdmissionRule
     /**
      * Deletes the admission rule and all associated data.
      */
-    public function delete() {
+    public function delete()
+    {
         // Delete rule assignment to coursesets.
         $stmt = DBManager::get()->prepare("DELETE FROM `courseset_rule`
             WHERE `rule_id`=?");
@@ -120,7 +124,8 @@ abstract class AdmissionRule
      *
      * @param  String tableName
      */
-    public function generateId($tableName) {
+    public function generateId($tableName)
+    {
         do {
             $newid = md5(uniqid(get_class($this).microtime(), true));
             $db = DBManager::get()->query("SELECT `rule_id`
@@ -146,7 +151,8 @@ abstract class AdmissionRule
      * @param  bool $activeOnly Show only active rules.
      * @return Array
      */
-    public static function getAvailableAdmissionRules($activeOnly=true) {
+    public static function getAvailableAdmissionRules($activeOnly = true)
+    {
         $rules = array();
         $where = ($activeOnly ? " WHERE `active`=1" : "");
         $data = DBManager::get()->query("SELECT * FROM `admissionrules`".$where.
@@ -194,7 +200,8 @@ abstract class AdmissionRule
      * @return Array Start and end templates which wrap input form fragments
      *               from subclasses.
      */
-    public static final function getInputFrame() {
+    public static final function getInputFrame()
+    {
         return array(
             $GLOBALS['template_factory']->open('admission/rules/input_start')->render(),
             $GLOBALS['template_factory']->open('admission/rules/input_end')->render()
@@ -205,7 +212,8 @@ abstract class AdmissionRule
      * Gets some text that describes what this AdmissionRule (or respective
      * subclass) does.
      */
-    public static function getDescription() {
+    public static function getDescription()
+    {
         return _("Legt eine Regel fest, die erfüllt sein muss, um sich ".
             "erfolgreich zu einer Menge von Veranstaltungen anmelden zu ".
             "können.");
@@ -238,7 +246,8 @@ abstract class AdmissionRule
     /**
      * Return this rule's name.
      */
-    public static function getName() {
+    public static function getName()
+    {
         return _("Anmelderegel");
     }
 
@@ -257,14 +266,16 @@ abstract class AdmissionRule
      *
      * @return String
      */
-    public function getTemplate() {
+    public function getTemplate()
+    {
         return '';
     }
 
     /**
      * Internal helper function for loading rule definition from database.
      */
-    public function load() {
+    public function load()
+    {
     }
 
     /**
@@ -273,7 +284,8 @@ abstract class AdmissionRule
      *
      * @param CourseSet The courseset this rule belongs to.
      */
-    public function beforeSeatDistribution(&$courseset) {
+    public function beforeSeatDistribution(&$courseset)
+    {
         return true;
     }
 
@@ -298,7 +310,8 @@ abstract class AdmissionRule
      * @param Array $data
      * @return AdmissionRule This object.
      */
-    public function setAllData($data) {
+    public function setAllData($data)
+    {
         if ($data['start_date'] && !$data['start_time']) {
             $data['start_time'] = strtotime($data['start_date']);
         }
@@ -329,7 +342,8 @@ abstract class AdmissionRule
      * @param  String newMessage A new message text.
      * @return AdmissionRule This object
      */
-    public function setMessage($newMessage) {
+    public function setMessage($newMessage)
+    {
         $this->message = $newMessage;
         return $this;
     }
@@ -340,7 +354,8 @@ abstract class AdmissionRule
      * @param  Integer newStartTime
      * @return UserFilter
      */
-    public function setStartTime($newStartTime) {
+    public function setStartTime($newStartTime)
+    {
         $this->startTime = $newStartTime;
         return $this;
     }
@@ -348,7 +363,8 @@ abstract class AdmissionRule
     /**
      * Helper function for storing rule definition to database.
      */
-    public function store() {
+    public function store()
+    {
     }
 
     /**
@@ -390,9 +406,11 @@ abstract class AdmissionRule
      * load sibling rules
      *
      */
-    public function loadSiblings() {
-        if ($this->siblings_override)
+    public function loadSiblings()
+    {
+        if ($this->siblings_override) {
             return false;
+        }
         $this->siblings = array();
         if ($this->courseSetId != '') {
             $cs = new CourseSet($this->courseSetId);
@@ -408,7 +426,8 @@ abstract class AdmissionRule
      * get sibling rules
      *
      */
-    public function getSiblings() {
+    public function getSiblings()
+    {
         $this->loadSiblings();
         return $this->siblings;
     }
@@ -417,7 +436,8 @@ abstract class AdmissionRule
      * set sibling rules
      *
      */
-    public function setSiblings($siblings = array()) {
+    public function setSiblings($siblings = array())
+    {
         $this->siblings_override = true;
         $this->siblings = $siblings;
     }
@@ -443,5 +463,3 @@ abstract class AdmissionRule
     }
 
 } /* end of abstract class AdmissionRule */
-
-?>

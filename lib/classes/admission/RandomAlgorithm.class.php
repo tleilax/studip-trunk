@@ -15,7 +15,8 @@
  * @since       3.0
  */
 
-class RandomAlgorithm extends AdmissionAlgorithm {
+class RandomAlgorithm extends AdmissionAlgorithm
+{
 
     /**
      * Runs the algorithm, thus distributing course seats.
@@ -24,7 +25,8 @@ class RandomAlgorithm extends AdmissionAlgorithm {
      * that seats shall be distributed for.
      * @see CourseSet
      */
-    public function run($courseSet) {
+    public function run($courseSet)
+    {
         if ($courseSet->hasAdmissionRule('LimitedAdmission')) {
             return $this->distributeByPriorities($courseSet);
         } else {
@@ -401,5 +403,3 @@ class RandomAlgorithm extends AdmissionAlgorithm {
     }
 
 }
-
-?>
