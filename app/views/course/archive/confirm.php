@@ -1,7 +1,10 @@
 <? if ($courses) : ?>
-<?= MessageBox::info(_('Sie sind im Begriff, die aufgelistete(n) Veranstaltung(en) zu archivieren. Dieser Schritt kann nicht rückgängig gemacht werden!')); ?>
+    <? if(count($courses) == 1) : ?>
+        <?= MessageBox::info(_('Sie sind im Begriff, die folgende Veranstaltung zu archivieren. Dieser Schritt kann nicht rückgängig gemacht werden!')); ?>
+    <? else : ?>
+        <?= MessageBox::info(_('Sie sind im Begriff, die aufgelisteten Veranstaltungen zu archivieren. Dieser Schritt kann nicht rückgängig gemacht werden!')); ?>
+    <? endif ?>
 <table class="default withdetails">
-    <caption><?= $_SESSION['SessSemName']["header_line"] ?></caption>
     <thead>
         <tr>
             <th><?= _('Name der Veranstaltung'); ?></th>
@@ -10,7 +13,7 @@
     </thead>
     <tbody>
         <? foreach ($courses as $course) : ?>
-        <tr class="">
+        <tr <? if (count($courses) == 1) : ?>class="open"<? endif ?> >
             <td>
                 <a onclick="jQuery(this).closest('tr').toggleClass('open'); return false;" href="">
                     <?= htmlReady($course->name); ?>
@@ -21,7 +24,7 @@
             </td>
         </tr>
         <tr class="details nohover">
-            <td style="display:none;">
+            <td>
                 <div class="detailscontainer">
                     <dl class="default nohover">
                         <dt><?= _('Untertitel') . ':'; ?></dt>

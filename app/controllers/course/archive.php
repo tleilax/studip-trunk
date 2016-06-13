@@ -95,28 +95,41 @@ class Course_ArchiveController extends AuthenticatedController
         
         $archiv_sem = Request::getArray('archiv_sem');
         
-        for($i = 0; $i < count($archiv_sem); $i++) {
-            if(($i > 0) && $archiv_sem[$i] == 'on') {
-                //the previous array item is a relevant course ID:
-                $id = explode('_', $archiv_sem[$i-1])[2];
-                $courseIds[] = $id;
+        /*
+            $archiv_sem may be empty. If this controller is called
+            out of a course the POST parameter archiv_sem won't be set.
+            So we can skip a lot of code if we check for its existence first.
+        */
+        if($archiv_sem) {
+            
+            for($i = 0; $i < count($archiv_sem); $i++) {
+                if(($i > 0) && $archiv_sem[$i] == 'on') {
+                    //the previous array item is a relevant course ID:
+                    $id = explode('_', $archiv_sem[$i-1])[2];
+                    $courseIds[] = $id;
+                }
+                //check if the user has the required permission
+                //to archive the selected course:
+                if (!$this->userHasPermission($id)) {
+                    //no permission: access denied!
+                    throw new AccessDeniedException();
+                }
+            }
+            $this->courses = Course::findMany($courseIds);
+            //TODO: enable navigation items, depending whether the user
+            // is in the admin role or not.
+        } else {
+            /*
+                $archiv_sem is empty: We check the current course now.
+            */
+            
+            $currentCourse = Course::findCurrent();
+            if($currentCourse) {
+                $this->courses[] = $currentCourse;
             }
         }
-        //check if the user has the required permission
-        //to archive the selected course:
-        if (!$this->userHasPermission($courseId)) {
-            //no permission: access denied!
-            throw new AccessDeniedException();
-        }
-        
-        //TODO: enable navigation items, depending whether the user
-        // is in the admin role or not.
         
         
-        //get the course object: TODO: resolve multiple course-IDs (to archive more than one course)
-        
-        
-        $this->courses = Course::findMany($courseIds);
         
         //should be handled by the previous controller (admin/courses for example):
         /*if ($this->courses == false) {
@@ -140,22 +153,25 @@ class Course_ArchiveController extends AuthenticatedController
         //set the page title with the area of Stud.IP:
         PageLayout::setTitle(_('Archivieren von Veranstaltungen'));
         
-        //get the list of "dozenten" for each course:
-        $this->dozenten = array();
         
-        foreach ($this->courses as $course) {
-            /*$course->dozenten = $course->members->filter(
-                                function ($member) {
-                                    return $member['status'] === "dozent"; 
-                                }
-                            );
-            */
-            //cannot add attributes to course directly. TODO: resolve that problem!
-            $this->dozenten[$course->id] = $course->members->filter(
-                                function ($member) {
-                                    return $member['status'] === "dozent"; 
-                                }
-                            );
+        if($this->courses) {
+            //get the list of "dozenten" for each course (if any course):
+            $this->dozenten = array();
+            
+            foreach ($this->courses as $course) {
+                /*$course->dozenten = $course->members->filter(
+                                    function ($member) {
+                                        return $member['status'] === "dozent"; 
+                                    }
+                                );
+                */
+                //cannot add attributes to course directly. TODO: resolve that problem!
+                $this->dozenten[$course->id] = $course->members->filter(
+                                    function ($member) {
+                                        return $member['status'] === "dozent"; 
+                                    }
+                                );
+            }
         }
     }
     
@@ -187,7 +203,10 @@ class Course_ArchiveController extends AuthenticatedController
             $course = Course::find($courseId);
             if($course != null) {
                 $course->delete();
-                $this->deletedCourses[] = $course;
+                $archivedCourse = ArchivedCourse::find($courseId);
+                if($archivedCourse != null) {
+                    $this->archivedCourses[] = $archivedCourse;
+                }
             } else {
                 throw new Exception(_("Veranstaltung nicht in Datenbank gefunden!"));
             }

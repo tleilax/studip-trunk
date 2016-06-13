@@ -607,10 +607,10 @@ class Admin_CoursesController extends AuthenticatedController
                 'attributes' => ['data-dialog' => 'size=big'],
             ),
             16 => array(
-                'name'      => _('Archivieren'),
-                'title'     => _('Archivieren'),
-                'url'       => 'dispatch.php/course/archive/confirm',
-                'multimode' => true
+                'name'       => _('Archivieren'),
+                'title'      => _('Archivieren'),
+                'url'        => 'dispatch.php/course/archive/confirm',
+                'multimode'  => true
             ),
             17 => array(
                 'name'      => _('Gesperrte Veranstaltungen'),
