@@ -4,96 +4,97 @@
 
 /* Structure for action submenus which open on hover */
 *, section.contentbox article header nav {
-  ul.actionmenu {
-    float: right;
-    list-style-type: none;
-    padding: 2px;
-    position: relative;
-    text-align: left;
-
-    &.positioncorrected {
-      position: absolute;
-      top: 4px;
-    }
-
-    img, svg {
-      height: 20px;
-      width: 20px;
-    }
-
-    li {
-      padding: 3px;
-      white-space:nowrap;
-
-      ul {
-        display: none;
-        background-color: white;
-        box-shadow: @shadow;
+    ul.actionmenu {
+        cursor: pointer;
+        float: right;
         list-style-type: none;
-        padding: 5px;
-        position: absolute;
-        z-index: 999;
+        padding: 2px;
+        position: relative;
+        text-align: left;
+
+        &.positioncorrected {
+            position: absolute;
+            top: 4px;
+        }
 
         img, svg {
-          padding-right: 5px;
-          vertical-align: bottom;
+            height: 20px;
+            width: 20px;
         }
-      }
 
-      &.active {
-        position: relative;
+        li {
+            padding: 3px;
+            white-space:nowrap;
 
-        > ul {
-          align-items: stretch;
-          display: flex;
-          flex-direction: column;
-          position: absolute;
-          right: 2px;
-          top: 0;
+            ul {
+                display: none;
+                background-color: white;
+                box-shadow: @shadow;
+                list-style-type: none;
+                padding: 5px;
+                position: absolute;
+                z-index: 999;
+
+                img, svg {
+                    padding-right: 5px;
+                    vertical-align: bottom;
+                }
+            }
+
+            &.active {
+                position: relative;
+
+                > ul {
+                    align-items: stretch;
+                    display: flex;
+                    flex-direction: column;
+                    position: absolute;
+                    right: 2px;
+                    top: 0;
+                }
+            }
         }
-      }
+
+        > li {
+            width: 20px;
+
+            div {
+                border: 0;
+                height: 20px;
+
+                &.action-title {
+                    display: none;
+                    font-weight: bold;
+                    padding-left: 5px;
+                }
+
+            }
+
+            &.active {
+                background-color: white;
+                box-shadow: @shadow;
+                display: flex;
+                flex-direction: row;
+                flex: 1 0 auto;
+                padding: 3px;
+                padding-top: 4px;
+                width: inherit;
+
+                > img, > svg {
+                    align-self: flex-end;
+                    flex: 0 0 20px;
+                    margin-left: auto;
+                }
+
+                div.action-title {
+                    display: inline-block;
+                }
+
+                > ul {
+                    right: 0;
+                    top: ~"calc(2em - 1px)";
+                }
+            }
+        }
     }
-
-    > li {
-      width: 20px;
-
-      div {
-        border: 0;
-        height: 20px;
-
-        &.action-title {
-          display: none;
-          font-weight: bold;
-          padding-left: 5px;
-        }
-
-      }
-
-      &.active {
-        background-color: white;
-        box-shadow: @shadow;
-        display: flex;
-        flex-direction: row;
-        flex: 1 0 auto;
-        padding: 3px;
-        padding-top: 4px;
-        width: inherit;
-
-        > img, > svg {
-          align-self: flex-end;
-          flex: 0 0 20px;
-          margin-left: auto;
-        }
-
-        div.action-title {
-          display: inline-block;
-        }
-
-        > ul {
-          right: 0;
-          top: ~"calc(2em - 1px)";
-        }
-      }
-    }
-  }
 }

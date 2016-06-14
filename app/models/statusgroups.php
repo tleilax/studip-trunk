@@ -34,11 +34,7 @@ class StatusgroupsModel
     public static function updateGroup($id, $name, $position, $range_id, $size, $selfassign,
                                        $selfassign_start, $selfassign_end, $makefolder, $dates = array())
     {
-        if ($id) {
-            $group = Statusgruppen::find($id);
-        } else {
-            $group = new Statusgruppen();
-        }
+        $group = new Statusgruppen($id);
 
         $group->name = $name;
         if ($position) {
@@ -83,7 +79,7 @@ class StatusgroupsModel
     {
         $sorting = 'nachname asc, vorname asc';
         if ($sort_by && $order) {
-            $sorting = $sort_by.' '.$order.', '.$sorting;
+            $sorting = $sort_by . ' ' . $order . ', ' . $sorting;
         }
 
         return $members->orderBy($sorting);

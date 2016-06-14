@@ -3151,6 +3151,7 @@ section.contentbox > article.new header h1 a::before {
 /* Structure for action submenus which open on hover */
 * ul.actionmenu,
 section.contentbox article header nav ul.actionmenu {
+  cursor: pointer;
   float: right;
   list-style-type: none;
   padding: 2px;
@@ -3178,7 +3179,7 @@ section.contentbox article header nav ul.actionmenu li {
 section.contentbox article header nav ul.actionmenu li ul {
   display: none;
   background-color: white;
-  box-shadow: 1px 1px 1px #8a8e95;
+  box-shadow: 1px 1px 1px #8b8f95;
   list-style-type: none;
   padding: 5px;
   position: absolute;
@@ -3222,7 +3223,7 @@ section.contentbox article header nav ul.actionmenu > li div.action-title {
 * ul.actionmenu > li.active,
 section.contentbox article header nav ul.actionmenu > li.active {
   background-color: white;
-  box-shadow: 1px 1px 1px #8a8e95;
+  box-shadow: 1px 1px 1px #8b8f95;
   display: flex;
   flex-direction: row;
   flex: 1 0 auto;
@@ -6139,7 +6140,7 @@ section.course-statusgroups article section table thead tr th {
 }
 section.course-statusgroups article section table tbody tr td span.member-invisible {
   font-style: italic;
-  color: #6d727a;
+  color: #6d737b;
 }
 section.course-statusgroups article section table tbody tr td.memberactions {
   text-align: right;
