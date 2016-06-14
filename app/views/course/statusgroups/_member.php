@@ -30,55 +30,47 @@
         </td>
     <?php endif ?>
     <td class="memberactions">
-        <ul class="actionmenu">
-            <li>
-                <div class="action-title">
-                    <?= _('Aktionen') ?>
-                </div>
-                <?= Icon::create('action', 'clickable', array('title' => _('Aktionen'))) ?>
-                <ul>
-                    <?php if ($is_tutor || $m->user_id != $GLOBALS['user']->id) : ?>
-                        <li>
-                            <a href="<?= $controller->url_for('messages/write', array(
-                                'rec_uname' => $m->user->username,
-                                'default_subject' => $course_title
-                            )) ?>" data-dialog="size=auto;">
-                                <?= Icon::create('mail', 'clickable',
-                                    array('title' => sprintf(_('Nachricht an %s schicken'),
-                                        $m->user->getFullname()))) ?>
-                                <?= _('Nachricht schicken') ?>
-                            </a>
-                        </li>
-                    <?php endif ?>
-                    <?php if ($is_tutor) : ?>
-                        <li>
-                            <a href="<?= $controller->url_for('course/statusgroups/move_member',
-                                $m->user_id, $group->id) ?>" data-dialog="size=auto;">
-                                <?= Icon::create('person+move_right', 'clickable',
-                                    array('title' => sprintf(_('%s in eine andere Gruppe verschieben'),
-                                        $m->user->getFullname()))) ?>
-                                <?= _('In eine andere Gruppe verschieben') ?>
-                            </a>
-                        </li>
-                    <?php endif ?>
-                    <?php if ($group->id != 'nogroup' &&
-                        ($is_tutor || $m->user_id == $GLOBALS['user']->id)) : ?>
-                        <li>
-                            <a href="<?= $controller->url_for('course/statusgroups/delete_member',
-                                $m->user_id, $group->id) ?>"
-                               data-confirm="<?= sprintf(
-                                   _('Soll %s wirklich aus der Gruppe %s entfernt werden?'),
-                                   htmlReady($m->getUserFullname()), htmlReady($group->name)) ?>">
-                                <?= Icon::create('trash', 'clickable',
-                                    array('title' => sprintf(_('%s aus Gruppe %s entfernen'),
-                                        $m->getUserFullname(),
-                                        $group->name))) ?>
-                                <?= _('Aus der Gruppe entfernen') ?>
-                            </a>
-                        </li>
-                    <?php endif ?>
-                </ul>
-            </li>
-        </ul>
+        <?= ActionMenu::get()
+                ->condition($is_tutor || $m->user_id !== $GLOBALS['user']->id)
+                ->addLink(
+                    $controller->url_for('messages/write', [
+                        'rec_uname'       => $m->user->username,
+                        'default_subject' => $course_title,
+                    ]),
+                    _('Nachricht schicken'),
+                    Icon::create('mail', 'clickable', [
+                        'title' => sprintf(_('Nachricht an %s schicken'), $m->user->getFullname()),
+                    ]),
+                    ['data-dialog' => 'size=auto']
+                )
+                ->condition($is_tutor)
+                ->addLink(
+                    $controller->url_for('course/statusgroups/move_member', $m->user_id, $group->id),
+                    _('In eine andere Gruppe verschieben'),
+                    Icon::create('person+move_right', 'clickable', [
+                        'title' => sprintf(
+                            _('%s in eine andere Gruppe verschieben'),
+                            $m->user->getFullname()
+                        ),
+                    ]),
+                    ['data-dialog' => 'size=auto']
+                )
+                ->condition($group->id !== 'nogroup' && ($is_tutor || $m->user_id === $GLOBALS['user']->id))
+                ->addLink(
+                    $controller->url_for('course/statusgroups/delete_member', $m->user_id, $group->id),
+                    _('Aus der Gruppe entfernen'),
+                    Icon::create('trash', 'clickable', [
+                        'title' => sprintf(
+                            _('%s aus Gruppe %s entfernen'),
+                            $m->getUserFullname(),
+                            $group->name
+                        ),
+                    ]),
+                    ['data-confirm' => sprintf(
+                        _('Soll %s wirklich aus der Gruppe %s entfernt werden?'),
+                        $m->getUserFullname(),
+                        $group->name
+                    )]
+                ) ?>
     </td>
 </tr>
