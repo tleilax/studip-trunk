@@ -52,7 +52,7 @@
         </p>
     <?php endif ?>
 
-    <?php if ($group->dates) : ?>
+    <?php if ($group->dates->count() > 0) : ?>
         <p>
             <?= _('Zugeordnete Termine:') ?>
             <ul>
