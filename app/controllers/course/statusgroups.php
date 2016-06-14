@@ -277,7 +277,7 @@ class Course_StatusgroupsController extends AuthenticatedController
      */
     public function save_action($group_id = '')
     {
-        if (!$this->is_tutor) {
+        if ($this->is_tutor) {
             CSRFProtection::verifyUnsafeRequest();
 
             $warn = false;
