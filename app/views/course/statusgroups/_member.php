@@ -3,7 +3,7 @@
         <td>
             <input aria-label="<?= _('Mitglieder auswählen') ?>"
                    type="checkbox" name="group[<?= $group->id ?>][<?= $m->user_id ?>]"
-                   class="groupmembers-<?= $group->id ?>" value="1" />
+                   class="groupmembers-<?= $group->id ?>" value="1">
         </td>
     <?php endif ?>
     <td>
@@ -71,8 +71,8 @@
                                    htmlReady($m->getUserFullname()), htmlReady($group->name)) ?>">
                                 <?= Icon::create('trash', 'clickable',
                                     array('title' => sprintf(_('%s aus Gruppe %s entfernen'),
-                                        htmlReady($m->getUserFullname()),
-                                        htmlReady($group->name)))) ?>
+                                        $m->getUserFullname(),
+                                        $group->name))) ?>
                                 <?= _('Aus der Gruppe entfernen') ?>
                             </a>
                         </li>

@@ -49,7 +49,7 @@
                                             ->setDefaultSelectedUser($group->members->pluck('user_id'))
                                             ->setDataDialogStatus(Request::isXhr())
                                             ->setJSFunctionOnSubmit(Request::isXhr() ?
-                                                'jQuery(this).closest(".ui-dialog-content").dialog("close");' : false)
+                                                'STUDIP.Dialog.close();' : false)
                                             ->setExecuteURL($controller->url_for('course/statusgroups/add_member/' .
                                                 $group->id))
                                             ->addQuickfilter(_('keiner Gruppe zugeordnete Personen'),
@@ -92,12 +92,12 @@
                             array('title' => sprintf(_('Mitglied von Gruppe %s werden'),
                                 htmlReady($group->name)))) ?></a>
                 <?php elseif ($group->id != 'nogroup' && $group->selfassign &&
-                    $group->selfassign_start > mktime()) : ?>
+                    $group->selfassign_start > time()) : ?>
                         <?= Icon::create('door-enter', 'inactive',
                             array('title' => sprintf(_('Der Eintrag in diese Gruppe ist möglich ab %s.'),
                                 date('d.m.Y H:i', $group->selfassign_start)))) ?>
                 <?php elseif ($group->id != 'nogroup' && $group->selfassign &&
-                    $group->selfassign_end && $group->selfassign_end < mktime()) : ?>
+                    $group->selfassign_end && $group->selfassign_end < time()) : ?>
                         <?= Icon::create('door-enter', 'inactive',
                             array('title' => sprintf(_('Der Eintrag in diese Gruppe war möglich bis %s.'),
                                 date('d.m.Y H:i', $group->selfassign_end)))) ?>
@@ -116,12 +116,13 @@
                 <colgroup>
                     <col width="20">
                     <?php if($is_tutor) : ?>
+                        <?php $cols = 5 ?>
                         <?php if (!$is_locked) : ?>
                             <col width="20">
+                            <?php $cols = 6 ?>
                         <?php endif ?>
                         <col>
                         <col width="15%">
-                        <?php $cols = 6 ?>
                         <col width="35%">
                     <?php else : ?>
                         <col>
@@ -177,14 +178,14 @@
                 <?php $i = 1; $invisible = 0; foreach ($members as $m) : ?>
                     <?php if ($is_tutor || $m->user_id == $GLOBALS['user']->id || $m->visible != 'no') : ?>
                         <?= $this->render_partial('course/statusgroups/_member',
-                            array('m' => $m, 'i' => $i, 'is_tutor' => $is_tutor, 'is_locked' => $is_locked)); $i++ ?>
+                            array('m' => $m, 'i' => $i++, 'is_tutor' => $is_tutor, 'is_locked' => $is_locked)); ?>
                     <?php else : $invisible++; endif ?>
                 <?php endforeach ?>
                 </tbody>
                 <tfoot>
                     <tr>
                         <?php if ($is_tutor) : ?>
-                            <td colspan="6">
+                            <td colspan="<?= $cols ?>">
                                 <?php if (!$is_locked) : ?>
                                     <div class="memberselect">
                                         <label>
@@ -211,7 +212,7 @@
                                 <?php endif ?>
                             </td>
                         <?php elseif (!$is_tutor) : ?>
-                            <td colspan="3">
+                            <td colspan="<?= $cols ?>">
                                 <?= sprintf(_('+ %u unsichtbare Personen'), $invisible) ?>
                             </td>
                         <?php endif ?>

@@ -79,17 +79,16 @@
     <?php if ($lecturers = $group->findLecturers()) : ?>
         <p>
             <?= sprintf(_('Zugeordnete %s:'), get_title_for_status('dozent', 2)) ?>
-        <ul>
-            <?php foreach ($lecturers as $l) : ?>
-                <li><?= htmlReady($l->getFullname()) ?></li>
-            <?php endforeach ?>
-        </ul>
+            <ul>
+                <?php foreach ($lecturers as $l) : ?>
+                    <li><?= htmlReady($l->getFullname()) ?></li>
+                <?php endforeach ?>
+            </ul>
         </p>
     <?php endif ?>
 </section>
 
 <footer data-dialog-button>
     <?= Studip\LinkButton::createCancel(_('Schließen'),
-        $controller->url_for('course/statusgroups'),
-        array('data-dialog' => 'close')) ?>
+        $controller->url_for('course/statusgroups')) ?>
 </footer>

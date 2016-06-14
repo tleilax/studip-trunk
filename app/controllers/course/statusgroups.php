@@ -34,20 +34,10 @@ class Course_StatusgroupsController extends AuthenticatedController
         $this->course_id = $course->id;
         $this->course_title = $course->getFullname();
 
-        // Check dozent-perms
-        if ($perm->have_studip_perm('dozent', $this->course_id)) {
-            $this->is_dozent = true;
-        }
-
-        // Check tutor-perms
-        if ($perm->have_studip_perm('tutor', $this->course_id)) {
-            $this->is_tutor = true;
-        }
-
-        // Check autor-perms
-        if ($perm->have_studip_perm('autor', $this->course_id)) {
-            $this->is_autor = true;
-        }
+        // Check perms
+        $this->is_dozent = $perm->have_studip_perm('dozent', $this->course_id);
+        $this->is_tutor  = $perm->have_studip_perm('tutor', $this->course_id);
+        $this->is_autor  = $perm->have_studip_perm('autor', $this->course_id);
 
         // Check lock rules
         $this->is_locked = LockRules::Check($this->course_id, 'participants');
@@ -260,22 +250,19 @@ class Course_StatusgroupsController extends AuthenticatedController
      */
     public function edit_action($group_id = '')
     {
-        Statusgruppen::expireTableScheme();
         if ($this->is_tutor) {
 
             // Fetch group with given ID or create a new one.
-            if ($group_id) {
-                $this->group = Statusgruppen::find($group_id);
-            } else {
-                $this->group = new Statusgruppen();
-            }
+            $this->group = new Statusgruppen($group_id);
 
             // Check if course has regular times.
             $this->cycles = SeminarCycleDate::findBySeminar_id($this->course_id);
 
             // Check if course has single dates, not belonging to a regular cycle.
             $dates = CourseDate::findBySeminar_id($this->course_id);
-            $this->singledates = array_filter($dates, function ($d) { return !((bool) $d->metadate_id); });
+            $this->singledates = array_filter($dates, function ($d) {
+                return !((bool) $d->metadate_id);
+            });
 
         } else {
             throw new Trails_Exception(403);
@@ -290,7 +277,7 @@ class Course_StatusgroupsController extends AuthenticatedController
      */
     public function save_action($group_id = '')
     {
-        if ($this->is_tutor) {
+        if (!$this->is_tutor) {
             CSRFProtection::verifyUnsafeRequest();
 
             $warn = false;
@@ -380,7 +367,7 @@ class Course_StatusgroupsController extends AuthenticatedController
                         _('Sie konnten nicht aus der Gruppe %s ausgetragen werden.'),
                         htmlReady($g->name)));
                 } else {
-                    PageLayout::postSuccess(sprintf(
+                    PageLayout::postError(sprintf(
                         _('%s konnte nicht aus der Gruppe %s ausgetragen werden.'),
                         $name, htmlReady($g->name)));
                 }
@@ -417,14 +404,16 @@ class Course_StatusgroupsController extends AuthenticatedController
     {
         if ($this->is_tutor) {
             // Check if course has regular times.
-            $this->has_cycles = (count(SeminarCycleDate::findBySeminar_id($this->course_id)) > 0);
+            $this->has_cycles = count(SeminarCycleDate::findBySeminar_id($this->course_id)) > 0;
 
             // Check if course has single dates, not belonging to a regular cycle.
             $dates = CourseDate::findBySeminar_id($this->course_id);
-            $this->has_singledates = (count(array_filter($dates, function ($d) { return !((bool) $d->metadate_id); })) > 0);
+            $this->has_singledates = count(array_filter($dates, function ($d) {
+                return !((bool) $d->metadate_id);
+            })) > 0;
 
             // Check if course has topics.
-            $this->has_topics = (count(CourseTopic::findBySeminar_id($this->course_id)) > 0);
+            $this->has_topics = count(CourseTopic::findBySeminar_id($this->course_id)) > 0;
         } else {
             throw new Trails_Exception(403);
         }
@@ -448,7 +437,7 @@ class Course_StatusgroupsController extends AuthenticatedController
                 PageLayout::postSuccess(sprintf(
                     _('Sie wurden als Mitglied der Gruppe %s eingetragen.'), htmlReady($g->name)));
             } else {
-                PageLayout::postSuccess(sprintf(
+                PageLayout::postError(sprintf(
                     _('Sie konnten nicht als Mitglied der Gruppe %s eingetragen werden.'), htmlReady($g->name)));
             }
         } else {
@@ -474,7 +463,7 @@ class Course_StatusgroupsController extends AuthenticatedController
                 PageLayout::postSuccess(sprintf(
                     _('Sie wurden aus der Gruppe %s ausgetragen.'), htmlReady($g->name)));
             } else {
-                PageLayout::postSuccess(sprintf(
+                PageLayout::postError(sprintf(
                     _('Sie konnten nicht aus der Gruppe %s ausgetragen werden.'), htmlReady($g->name)));
             }
         } else {
@@ -509,7 +498,7 @@ class Course_StatusgroupsController extends AuthenticatedController
                     $counter++;
                 }
                 PageLayout::postSuccess(sprintf(
-                    ngettext('Eine Gruppe wurde angelegt.', '%d Gruppen wurden angelegt.', $counter),
+                    ngettext('Eine Gruppe wurde angelegt.', '%u Gruppen wurden angelegt.', $counter),
                     $counter));
 
             // Create groups by course metadata, like topics, dates or lecturers.
@@ -542,7 +531,7 @@ class Course_StatusgroupsController extends AuthenticatedController
                         }
 
                         PageLayout::postSuccess(sprintf(
-                            ngettext('Eine Gruppe wurde angelegt.', '%d Gruppen wurden angelegt.', count($topics)),
+                            ngettext('Eine Gruppe wurde angelegt.', '%u Gruppen wurden angelegt.', count($topics)),
                             $counter));
                         break;
 
@@ -589,7 +578,7 @@ class Course_StatusgroupsController extends AuthenticatedController
                         }
 
                         PageLayout::postSuccess(sprintf(
-                            ngettext('Eine Gruppe wurde angelegt.', '%d Gruppen wurden angelegt.', $counter),
+                            ngettext('Eine Gruppe wurde angelegt.', '%u Gruppen wurden angelegt.', $counter),
                             $counter));
                         break;
 
@@ -611,7 +600,7 @@ class Course_StatusgroupsController extends AuthenticatedController
                         }
 
                         PageLayout::postSuccess(sprintf(
-                            ngettext('Eine Gruppe wurde angelegt.', '%d Gruppen wurden angelegt.', count($lecturers)),
+                            ngettext('Eine Gruppe wurde angelegt.', '%u Gruppen wurden angelegt.', count($lecturers)),
                             $counter));
                         break;
                 }
@@ -716,7 +705,7 @@ class Course_StatusgroupsController extends AuthenticatedController
 
                             break;
                         case 'delete':
-                            PageLayout::setTitle('Gruppe(n) löschen?');
+                            PageLayout::setTitle(_('Gruppe(n) löschen?'));
                             $this->askdelete = true;
                             break;
                         default:

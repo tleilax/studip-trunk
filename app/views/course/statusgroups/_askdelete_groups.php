@@ -17,7 +17,6 @@
     <footer data-dialog-button>
         <?= Studip\Button::createAccept(_('Löschen'), 'submit') ?>
         <?= Studip\LinkButton::createCancel(_('Abbrechen'),
-            $controller->url_for('course/statusgroups'),
-            array('data-dialog' => 'close')) ?>
+            $controller->url_for('course/statusgroups')) ?>
     </footer>
 </form>

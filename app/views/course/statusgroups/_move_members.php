@@ -1,8 +1,10 @@
 <form class="default" action="<?= $controller->url_for('course/statusgroups/batch_move_members') ?>" method="post">
     <section>
         <label for="target_group">
-            <?= ngettext('In welche Gruppe soll die gewählte Person verschoben werden?',
-                sprintf('In welche Gruppe sollen die %u gewählten Personen verschoben werden?', count($members)),
+            <?= sprintf(ngettext(
+                    'In welche Gruppe soll die gewählte Person verschoben werden?',
+                    'In welche Gruppe sollen die %u gewählten Personen verschoben werden?',
+                    count($members)),
                 count($members)) ?>
             <select name="target_group">
                 <?php foreach ($target_groups as $g) : ?>
@@ -19,7 +21,6 @@
     <footer data-dialog-button>
         <?= Studip\Button::createAccept(_('Verschieben'), 'submit') ?>
         <?= Studip\LinkButton::createCancel(_('Abbrechen'),
-            $controller->url_for('course/statusgroups'),
-            array('data-dialog' => 'close')) ?>
+            $controller->url_for('course/statusgroups')) ?>
     </footer>
 </form>

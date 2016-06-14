@@ -23,7 +23,7 @@
         </section>
         <section>
             <label>
-                <input type="checkbox" name="exclusive" value="1"<?= ($group->selfassign == 2) ? ' checked' : '' ?>>
+                <input type="checkbox" name="exclusive" value="1"<?= $group->selfassign == 2 ? ' checked' : '' ?>>
                 <?= _('Exklusiver Selbsteintrag (in nur eine Gruppe)') ?>
             </label>
         </section>
@@ -80,7 +80,7 @@
                                         <label for="<?= $d->id ?>">
                                             <input type="checkbox" name="dates[]" value="<?= $d->id ?>" id="<?= $d->id?>"
                                             <?= $group->dates->find($d->id) ? ' checked' : '' ?>>
-                                            <?= $d->getFullname() ?>
+                                            <?= htmlReady($d->getFullname()) ?>
                                         </label>
                                     <?php endforeach ?>
                                 </section>
@@ -97,7 +97,7 @@
                             <label for="<?= $s->id ?>">
                                 <input type="checkbox" name="dates[]" value="<?= $s->id ?>" id="<?= $s->id?>"
                                     <?= $group->dates->find($s->id) ? ' checked' : '' ?>>
-                                <?= $s->getFullname() ?>
+                                <?= htmlReady($s->getFullname()) ?>
                             </label>
                         <?php endforeach ?>
                     </section>
@@ -111,8 +111,7 @@
     <footer data-dialog-button>
         <?= Studip\Button::createAccept(_('Speichern'), 'submit') ?>
         <?= Studip\LinkButton::createCancel(_('Abbrechen'),
-            $controller->url_for('course/statusgroups'),
-            array('data-dialog' => 'close')) ?>
+            $controller->url_for('course/statusgroups')) ?>
     </footer>
 </form>
 <script type="text/javascript">
