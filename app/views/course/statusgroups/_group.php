@@ -22,61 +22,58 @@
         <nav>
             <?php if ($is_tutor) : ?>
                 <?php if ($group->id != 'nogroup') : ?>
-                    <ul class="actionmenu">
-                        <li>
-                            <div class="action-title">
-                                <?= _('Aktionen') ?>
-                            </div>
-                            <?= Icon::create('action', 'clickable', array('title' => _('Aktionen'), 'class' => 'action-icon')) ?>
-                            <ul>
-                                <li>
-                                    <a href="<?= $controller->url_for('messages/write', array(
-                                        'group_id' => $group->id,
-                                        'default_subject' => htmlReady($course_title).' ('.htmlReady($group->name).')'
-                                    )) ?>" data-dialog="size=auto;">
-                                        <?= Icon::create('mail', 'clickable',
-                                            array('title' => sprintf(_('Nachricht an alle Mitglieder der Gruppe %s schicken'),
-                                                htmlReady($group->name)))) ?>
-                                        <?= _('Nachricht schicken') ?>
-                                    </a>
-                                </li>
-                                <?php if (!$is_locked) : ?>
-                                    <li>
-                                        <?= MultiPersonSearch::get('add_statusgroup_member' . $group->id)
-                                            ->setTitle(_('Teilnehmende der Veranstaltung hinzufügen'))
-                                            ->setLinkText(_('Personen hinzufügen'))
-                                            ->setSearchObject($memberSearch)
-                                            ->setDefaultSelectedUser($group->members->pluck('user_id'))
-                                            ->setDataDialogStatus(Request::isXhr())
-                                            ->setJSFunctionOnSubmit(Request::isXhr() ?
+                    <?= ActionMenu::get()
+                          ->addLink(
+                              $controller->url_for('messages/write', [
+                                  'group_id' => $group->id,
+                                  'default_subject' => htmlReady($course_title . ' (' . $group->name . ')'),
+                              ]),
+                              _('Nachricht schicken'),
+                              Icon::create('mail', 'clickable', [
+                                  'title' => sprintf(
+                                      _('Nachricht an alle Mitglieder der Gruppe %s schicken'),
+                                      $group->name
+                                  ),
+                              ]),
+                              ['data-dialog' => 'size=auto']
+                          )
+                          ->conditionAll(!$is_locked)
+                          ->addMultiPersonSearch(
+                              MultiPersonSearch::get('add_statusgroup_member' . $group->id)
+                                  ->setTitle(_('Teilnehmende der Veranstaltung hinzufügen'))
+                                  ->setLinkText(_('Personen hinzufügen'))
+                                  ->setSearchObject($memberSearch)
+                                  ->setDefaultSelectedUser($group->members->pluck('user_id'))
+                                  ->setDataDialogStatus(Request::isXhr())
+                                  ->setJSFunctionOnSubmit(Request::isXhr() ?
                                                 'STUDIP.Dialog.close();' : false)
-                                            ->setExecuteURL($controller->url_for('course/statusgroups/add_member/' .
+                                   ->setExecuteURL($controller->url_for('course/statusgroups/add_member/' .
                                                 $group->id))
-                                            ->addQuickfilter(_('keiner Gruppe zugeordnete Personen'),
+                                  ->addQuickfilter(_('keiner Gruppe zugeordnete Personen'),
                                                 $no_group ? $no_group['members']->pluck('user_id') : array())
-                                            ->render() ?>
-                                    </li>
-                                    <li>
-                                        <a href="<?= $controller->url_for('course/statusgroups/edit', $group->id) ?>" data-dialog>
-                                            <?= Icon::create('edit', 'clickable',
-                                                array('title' => sprintf(_('Gruppe %s bearbeiten'),
-                                                    htmlReady($group->name)))) ?>
-                                            <?= _('Bearbeiten') ?>
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href="<?= $controller->url_for('course/statusgroups/delete', $group->id) ?>"
-                                           data-confirm="<?= _('Soll die Gruppe wirklich gelöscht werden?') ?>">
-                                            <?= Icon::create('trash', 'clickable',
-                                                array('title' => sprintf(_('Gruppe %s löschen'),
-                                                    htmlReady($group->name)))) ?>
-                                            <?= _('Löschen') ?>
-                                        </a>
-                                    </li>
-                                <?php endif ?>
-                            </ul>
-                        </li>
-                    </ul>
+                          )
+                          ->addLink(
+                              $controller->url_for('course/statusgroups/edit', $group->id),
+                              _('Bearbeiten'),
+                              Icon::create('edit', 'clickable', [
+                                  'title' => sprintf(
+                                      _('Gruppe %s bearbeiten'),
+                                      $group->name
+                                   )
+                              ]),
+                              ['data-dialog' => null]
+                          )
+                          ->addLink(
+                              $controller->url_for('course/statusgroups/delete', $group->id),
+                              _('Löschen'),
+                              Icon::create('trash', 'clickable', [
+                                  'title' => sprintf(
+                                      _('Gruppe %s löschen'),
+                                      $group->name
+                                   )
+                              ]),
+                              ['data-confirm' => _('Soll die Gruppe wirklich gelöscht werden?')]
+                          ) ?>
                 <?php else : ?>
                     <a href="<?= $controller->url_for('messages/write', array(
                         'rec_uname' => $members->pluck('username'),
