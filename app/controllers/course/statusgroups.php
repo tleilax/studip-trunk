@@ -77,19 +77,19 @@ class Course_StatusgroupsController extends AuthenticatedController
             $csvExport = export_link($this->course_id, 'person',
                 sprintf('%s %s', _('Gruppenliste'), htmlReady($this->course_title)),
                 'csv', 'csv-gruppen', 'status',
-                _('Gruppierte Teilnehmendenliste als csv-Dokument exportieren'),
+                _('Gruppen als CSV-Dokument exportieren'),
                 'passthrough');
-            $export->addLink(_('Gruppen als CSV-Dokument exportieren'),
-                $this->parseHref($csvExport), Icon::create('file-office', 'clickable'));
+            $element = LinkElement::fromHTML($csvExport, Icon::create('file-office', 'clickable'));
+            $export->addElement($element);
 
             // create rtf-export link
-            $csvExport = export_link($this->course_id, 'person',
+            $rtfExport = export_link($this->course_id, 'person',
                 sprintf('%s %s', _('Gruppenliste'), htmlReady($this->course_title)),
                 'rtf', 'rtf-gruppen', 'status',
-                _('Gruppierte Teilnehmendenliste als rtf-Dokument exportieren'),
+                _('Gruppen als RTF-Dokument exportieren'),
                 'passthrough');
-            $export->addLink(_('Gruppen als RTF-Dokument exportieren'),
-                $this->parseHref($csvExport), Icon::create('file-text', 'clickable'));
+            $element = LinkElement::fromHTML($rtfExport, Icon::create('file-text', 'clickable'));
+            $export->addElement($element);
 
             $sidebar->addWidget($export);
         }
@@ -938,11 +938,4 @@ class Course_StatusgroupsController extends AuthenticatedController
             throw new Trails_Exception(403);
         }
     }
-
-    private function parseHref($string)
-    {
-        $temp = preg_match('/href="(.*?)"/', $string, $match); // Yes, you're absolutely right - this IS horrible!
-        return $match[1];
-    }
-
 }
