@@ -20,7 +20,7 @@
                 </a>
             </td>
             <td>
-                
+                <?= htmlReady($lastActivities[$course->id]); ?>
             </td>
         </tr>
         <tr class="details nohover">

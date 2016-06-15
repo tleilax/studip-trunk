@@ -1,6 +1,6 @@
 <?php
 
-/*
+/**
  * archive.php - contains Course_ArchiveController
  *
  * This program is free software; you can redistribute it and/or
@@ -27,6 +27,7 @@ require_once('lib/archiv.inc.php'); //needed in archive_action
 */
 class Course_ArchiveController extends AuthenticatedController
 {
+    
     /**
         This method checks if the current user has the required
         permissions to archive a course.
@@ -155,22 +156,18 @@ class Course_ArchiveController extends AuthenticatedController
         
         
         if($this->courses) {
-            //get the list of "dozenten" for each course (if any course):
+            //get the list of "dozenten" and the last activity for each course (if any course):
             $this->dozenten = array();
+            $this->lastActivities = array();
             
             foreach ($this->courses as $course) {
-                /*$course->dozenten = $course->members->filter(
-                                    function ($member) {
-                                        return $member['status'] === "dozent"; 
-                                    }
-                                );
-                */
                 //cannot add attributes to course directly. TODO: resolve that problem!
                 $this->dozenten[$course->id] = $course->members->filter(
                                     function ($member) {
                                         return $member['status'] === "dozent"; 
                                     }
                                 );
+                $this->lastActivities[$course->id] = date("d.m.Y, G:i", lastActivity($course->id));
             }
         }
     }

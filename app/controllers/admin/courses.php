@@ -25,6 +25,9 @@
 require_once 'lib/meine_seminare_func.inc.php';
 require_once 'lib/object.inc.php';
 
+require_once 'lib/archiv.inc.php'; //for lastActivity in getCourses() method
+
+
 class Admin_CoursesController extends AuthenticatedController
 {
     /**
@@ -183,6 +186,13 @@ class Admin_CoursesController extends AuthenticatedController
                              URLHelper::getLink('dispatch.php/admin/courses/export_csv', $params),
                              Icon::create('file-excel', 'clickable'));
             $sidebar->addWidget($export);
+            
+            //add the last activity for each Course object:
+            $this->lastActivities = array();
+            foreach ($this->courses as &$course) {
+                $course['lastActivity'] = date("d.m.Y, G:i", lastActivity($course['seminar_id']));
+            }
+
         }
     }
 
@@ -251,6 +261,10 @@ class Admin_CoursesController extends AuthenticatedController
 
             if (in_array('preliminary', $filter_config)) {
                 $row['preliminary'] = $course['prelim'];
+            }
+            
+            if (in_array('last_activity', $filter_config)) {
+                $row['last_activity'] = $course['lastActivity'];
             }
 
             $data[$course_id] = $row;
@@ -671,16 +685,17 @@ class Admin_CoursesController extends AuthenticatedController
     private function getViewFilters()
     {
         return array(
-            'number'      => _('Nr.'),
-            'name'        => _('Name'),
-            'type'        => _('Veranstaltungstyp'),
-            'room_time'   => _('Raum/Zeit'),
-            'semester'    => _('Semester'),
-            'teachers'    => _('Lehrende'),
-            'members'     => _('Teilnehmende'),
-            'waiting'     => _('Personen auf Warteliste'),
-            'preliminary' => _('Vorläufige Anmeldungen'),
-            'contents'    => _('Inhalt')
+            'number'        => _('Nr.'),
+            'name'          => _('Name'),
+            'type'          => _('Veranstaltungstyp'),
+            'room_time'     => _('Raum/Zeit'),
+            'semester'      => _('Semester'),
+            'teachers'      => _('Lehrende'),
+            'members'       => _('Teilnehmende'),
+            'waiting'       => _('Personen auf Warteliste'),
+            'preliminary'   => _('Vorläufige Anmeldungen'),
+            'contents'      => _('Inhalt'),
+            'last_activity' => _('letzte Aktivität')
         );
     }
 
@@ -775,7 +790,7 @@ class Admin_CoursesController extends AuthenticatedController
                 }
             }
         }
-
+        
         return $seminars;
     }
 
