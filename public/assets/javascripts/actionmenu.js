@@ -1,75 +1,36 @@
-/*jslint browser: true, white: true, undef: true, nomen: true, eqeqeq: true, plusplus: true, bitwise: true, newcap: true, immed: true, indent: 4, onevar: false */
-/*global window, $, jQuery, _ */
+/*jslint browser: true, indent: 4 */
+/*global jQuery */
 
-(function ($, STUDIP) {
+(function ($) {
     'use strict';
 
-    STUDIP.ActionMenu = {
+    // Open action menu on click on the icon
+    $(document).on('click', '.action-menu-icon', function (event) {
+        var menu = $(this).closest('.action-menu');
 
-    };
+        // Close other menus (and remove contentbox overflow handling)
+        if (!menu.is('.active')) {
+            $('.action-menu').removeClass('active')
+                .parents().removeClass('force-visible-overflow');
+        }
 
-    $(document).ready(function () {
-        // Open submenu trigger.
-        $('ul.actionmenu').find('li > a, li > img, li > svg').on('click', function(e) {
-            var el = $(this).parent();
-            // Hide all other open actionmenus.
-            $('ul.actionmenu').not(el.parents('ul.actionmenu')).find('li.active').removeClass('active');
-            $('ul.actionmenu').removeClass('positioncorrected');
-            $('ul.actionmenu').css('left', '');
-            el.toggleClass('active');
-            var parent = el.parent();
+        // Open menu (and force visibility on contentbox parent elements)
+        $(this).closest('.action-menu').toggleClass('active')
+            .filter('.active').parents().filter(function () {
+                return $(this).is('p, section, div')
+                    && $(this).parent().is('section.contentbox > article');
+            }).addClass('force-visible-overflow');
 
-
-            // First menu level is a bit different from others.
-            if (parent.hasClass('actionmenu')) {
-                var td = parent.closest('td');
-                // Adjust menu top item width to match the children.
-                if (el.hasClass('active')) {
-                    // Get width of child li elements.
-                    var itemWidth = el.children('ul').children('li').width();
-
-                    el.children('div.action-title').width(itemWidth - 15);
-
-                    /*
-                     * We need to check if we are inside a table because
-                     * then the positioning must be changed if we do not
-                     * want the td to grow along with the menu.
-                     */
-                    if (td.length > 0) {
-                        td.css('position', 'relative');
-                        td.css('height', '35px');
-                        parent.addClass('positioncorrected');
-                        parent.css('left', '-' + (itemWidth - 55) + 'px');
-                    }
-
-                    // Set a indicator for open action menu on document
-                    $('body').addClass('actionmenu-open');
-                }
-            } else {
-                // Get width of child li elements.
-                var itemWidth = el.closest('li.active').width();
-
-                if (el.hasClass('active')) {
-                    el.children('ul').css('right', (itemWidth + 10) + 'px');
-                } else {
-                    el.children('ul').css('right', '');
-                }
-            }
-        });
-
-        // Close open actionmenus on clicking anywhere in the document.
-        $(document).on('click', function(event) {
-            /*
-             * Execute only for elements not inside an action menu.
-             * We are using the "actionmenu-open" class as indicator
-             * if anything needs to be done. That should save some
-             * checks.
-             */
-            if ($('body').hasClass('actionmenu-open') && $(event.target).parents('ul.actionmenu').length == 0) {
-                $('ul.actionmenu').find('li.active').removeClass('active');
-                $('body').removeClass('actionmenu-open');
-            }
-        });
+        // Stop event so the following close event will not be fired
+        event.stopPropagation();
     });
 
-}(jQuery, STUDIP));
+    // Close action menu on click outside
+    $(document).on('click', function (event) {
+        if ($(event.target).closest('.action-menu.active').length === 0) {
+            $('.action-menu').removeClass('active')
+                .parents().removeClass('force-visible-overflow');
+        }
+    });
+
+}(jQuery));

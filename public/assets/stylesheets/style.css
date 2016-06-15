@@ -3026,7 +3026,8 @@ section.contentbox > article header h1 a:before {
   transition: all 200ms ease 0s;
   margin-right: 2px;
 }
-section.contentbox > article header nav * {
+section.contentbox > article header nav a,
+section.contentbox > article header nav span {
   display: inline-block;
   vertical-align: middle;
 }
@@ -3148,105 +3149,62 @@ section.contentbox > article.new header h1 a::before {
   -moz-box-shadow: black 0px 1px 3px;
   box-shadow: black 0px 1px 3px;
 }
-/* Structure for action submenus which open on hover */
-* ul.actionmenu,
-section.contentbox article header nav ul.actionmenu {
-  cursor: pointer;
-  float: right;
-  list-style-type: none;
-  padding: 2px;
+.action-menu {
   position: relative;
-  text-align: left;
 }
-* ul.actionmenu.positioncorrected,
-section.contentbox article header nav ul.actionmenu.positioncorrected {
-  position: absolute;
-  top: 4px;
-}
-* ul.actionmenu img,
-section.contentbox article header nav ul.actionmenu img,
-* ul.actionmenu svg,
-section.contentbox article header nav ul.actionmenu svg {
-  height: 20px;
+.action-menu .action-menu-icon,
+.action-menu .action-menu-item img,
+.action-menu .action-menu-item svg,
+.action-menu .action-menu-no-icon {
   width: 20px;
-}
-* ul.actionmenu li,
-section.contentbox article header nav ul.actionmenu li {
-  padding: 3px;
-  white-space: nowrap;
-}
-* ul.actionmenu li ul,
-section.contentbox article header nav ul.actionmenu li ul {
-  display: none;
-  background-color: white;
-  box-shadow: 1px 1px 1px #8b8f95;
-  list-style-type: none;
-  padding: 5px;
-  position: absolute;
-  z-index: 999;
-}
-* ul.actionmenu li ul img,
-section.contentbox article header nav ul.actionmenu li ul img,
-* ul.actionmenu li ul svg,
-section.contentbox article header nav ul.actionmenu li ul svg {
-  padding-right: 5px;
+  height: 20px;
+  display: inline-block;
   vertical-align: bottom;
 }
-* ul.actionmenu li.active,
-section.contentbox article header nav ul.actionmenu li.active {
+.action-menu .action-menu-icon {
+  cursor: pointer;
   position: relative;
+  z-index: 3;
 }
-* ul.actionmenu li.active > ul,
-section.contentbox article header nav ul.actionmenu li.active > ul {
-  align-items: stretch;
-  display: flex;
-  flex-direction: column;
+.action-menu .action-menu-content {
   position: absolute;
-  right: 2px;
-  top: 0;
-}
-* ul.actionmenu > li,
-section.contentbox article header nav ul.actionmenu > li {
-  width: 20px;
-}
-* ul.actionmenu > li div,
-section.contentbox article header nav ul.actionmenu > li div {
-  border: 0;
-  height: 20px;
-}
-* ul.actionmenu > li div.action-title,
-section.contentbox article header nav ul.actionmenu > li div.action-title {
-  display: none;
-  font-weight: bold;
-  padding-left: 5px;
-}
-* ul.actionmenu > li.active,
-section.contentbox article header nav ul.actionmenu > li.active {
-  background-color: white;
+  top: -4px;
+  right: -4px;
+  padding: 4px 28px 4px 8px;
+  z-index: 2;
+  background: white;
   box-shadow: 1px 1px 1px #8b8f95;
-  display: flex;
-  flex-direction: row;
-  flex: 1 0 auto;
-  padding: 3px;
-  padding-top: 4px;
-  width: inherit;
+  text-align: left;
+  white-space: nowrap;
 }
-* ul.actionmenu > li.active > img,
-section.contentbox article header nav ul.actionmenu > li.active > img,
-* ul.actionmenu > li.active > svg,
-section.contentbox article header nav ul.actionmenu > li.active > svg {
-  align-self: flex-end;
-  flex: 0 0 20px;
-  margin-left: auto;
+.action-menu .action-menu-title {
+  font-weight: bold;
+  margin: 0.2em 0 0.3em;
 }
-* ul.actionmenu > li.active div.action-title,
-section.contentbox article header nav ul.actionmenu > li.active div.action-title {
-  display: inline-block;
+.action-menu .action-menu-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
-* ul.actionmenu > li.active > ul,
-section.contentbox article header nav ul.actionmenu > li.active > ul {
-  right: 0;
-  top: calc(2em - 1px);
+.action-menu .action-menu-item {
+  padding: 3px 0;
+}
+.action-menu .action-menu-item a {
+  padding-left: 0;
+}
+.action-menu .action-menu-item img,
+.action-menu .action-menu-item svg,
+.action-menu .action-menu-item .action-menu-no-icon {
+  margin: 0 0.25em;
+}
+.action-menu:not(.active) .action-menu-content {
+  display: none;
+}
+.action-menu:not(.active) .action-menu-icon {
+  z-index: 1;
+}
+.force-visible-overflow {
+  overflow: visible !important;
 }
 /* --- AJAX indicator ------------------------------------------------------- */
 #ajax_notification {

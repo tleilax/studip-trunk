@@ -11,19 +11,24 @@ $attributes = function (array $attributes) {
     return implode(' ', $result);
 };
 ?>
-<ul class="actionmenu">
-    <li>
-        <div class="action-title">
+<nav class="action-menu">
+    <?= Icon::create('action', 'clickable', [
+            'title' => _('Aktionen'),
+            'class' => 'action-menu-icon',
+    ]) ?>
+    <div class="action-menu-content">
+        <div class="action-menu-title">
             <?= _('Aktionen') ?>
         </div>
-        <?= Icon::create('action', 'clickable', ['title' => _('Aktionen'), 'class' => 'action-icon']) ?>
-        <ul>
+        <ul class="action-menu-list">
         <? foreach ($actions as $action): ?>
-            <li>
+            <li class="action-menu-item">
             <? if ($action['type'] === 'link'): ?>
                 <a href="<?= $action['link'] ?>" <?= $attributes($action['attributes']) ?>>
                 <? if ($action['icon']): ?>
                     <?= $action['icon'] ?>
+                <? else: ?>
+                    <span class="action-menu-no-icon"></span>
                 <? endif; ?>
                     <?= htmlReady($action['label']) ?>
                 </a>
@@ -33,5 +38,5 @@ $attributes = function (array $attributes) {
             </li>
         <? endforeach; ?>
         </ul>
-    </li>
-</ul>
+    </div>
+</nav>
