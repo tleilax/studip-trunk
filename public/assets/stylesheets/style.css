@@ -3203,6 +3203,12 @@ section.contentbox > article.new header h1 a::before {
 .action-menu:not(.active) .action-menu-icon {
   z-index: 1;
 }
+.no-js .action-menu:hover .action-menu-content {
+  display: initial;
+}
+.no-js .action-menu:hover .action-menu-icon {
+  z-index: 3;
+}
 .force-visible-overflow {
   overflow: visible !important;
 }
