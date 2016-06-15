@@ -16,18 +16,41 @@ class Search_ArchiveController extends AuthenticatedController
     public function index_action()
     {
         PageLayout::setTitle(_("Suche im Veranstaltungsarchiv"));
-        if(Request::get('searchPerfomed')) {
+        if(Request::get('searchRequested')) {
             /* 
                 A search form was sent here:
                 We have to make lookups in the database.
             */
             
             
+            /*
             if(Request::get('courseName')) {
-                //courseName is presend and not empty
+                //courseName is present and not empty:
                 $this->courseName = Request::get('courseName');
+                
+                
             }
+            */
             
+            
+            if(Request::get('courseAllFields')) {
+                $this->courseAllFields = Request::get('courseAllFields');
+                $queryParameters = array('criteria' => $this->courseAllFields);
+                //get courses where at least one field matches the search criteria
+                
+                $sql = "name LIKE CONCAT('%', :criteria, '%') "
+                    . "OR untertitel LIKE CONCAT('%', :criteria, '%') "
+                    . "OR beschreibung LIKE CONCAT('%', :criteria, '%') "
+                    . "OR dozenten LIKE CONCAT('%', :criteria, '%') "
+                    . "OR institute LIKE CONCAT('%', :criteria, '%') "
+                    . "OR semester LIKE CONCAT('%', :criteria, '%') ";
+                
+                $this->foundCourses = ArchivedCourse::findBySQL($sql, $queryParameters);
+                    /*
+                        TODO: order-by-Klausel, da Sortierung geändert werden kann 
+                        durch Klick auf Tabellenkopf.
+                    */
+            }
         }
     }
     
