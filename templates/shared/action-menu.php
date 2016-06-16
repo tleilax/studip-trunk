@@ -12,7 +12,7 @@ $attributes = function (array $attributes) {
 };
 ?>
 <nav class="action-menu">
-    <?= Icon::create('action', 'clickable', [
+    <?= Icon::create('mobile-sidebar', 'clickable', [
             'title' => _('Aktionen'),
             'class' => 'action-menu-icon',
     ]) ?>
