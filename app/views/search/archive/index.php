@@ -1,3 +1,7 @@
+<? if ($errorMessage) : ?>
+    <?= MessageBox::error($errorMessage); ?>
+<? endif ?>
+
 <p><?= _('Bitte geben Sie hier ihren Suchbegriff ein') . ':'; ?></p>
 <form class="default" method="post" action="<?= URLHelper::getLink(); ?>">
     <label>
@@ -77,7 +81,9 @@
     <? endforeach ?>
     </table>
 <? else : ?>
-    <? if ($searchRequested) : ?>
-        <?= MessageBox::info(_('Es wurde keine Veranstaltung gefunden!')); ?>
+    <? if (!$errorMessage) : ?>
+        <? if ($searchRequested) : ?>
+            <?= MessageBox::info(_('Es wurde keine Veranstaltung gefunden!')); ?>
+        <? endif ?>
     <? endif ?>
 <? endif ?>

@@ -26,17 +26,27 @@ class Search_ArchiveController extends AuthenticatedController
             
             $this->searchRequested = true;
             
-            if(Request::get('searchField')) {
+            //read parameters from HTTP POST, if they exist:
+            $this->onlyMyCourses = Request::get('onlyMyCourses', false);
+            $this->searchField = trim(Request::get('searchField', '')); //strip whitespaces here
+            echo 'strlen($this->searchField) = ' . strlen($this->searchField);
+            echo 'empty($this->searchField) = ' . empty($this->searchField);
+            
+            //mb_strlen is used for unicode compatibility
+            if(mb_strlen($this->searchField) < 4) {
+                //search keyword too short
+                $this->errorMessage = sprintf(_('Suchbegriff muss mindestens %s Zeichen lang sein!'), 4);
+            }
+            else
+            {
                 
-                $this->searchField = Request::get('searchField');
-                
-                if(Request::get('onlyMyCourses', false)) {
+                if($this->onlyMyCourses) {
                     /*
                         If the user wants to see only his courses 
                         we have to filter the courses:
                     */
                     
-                    $this->onlyMyCourses = true;
+                    
                     
                     $user = User::findCurrent();
                     
@@ -53,7 +63,6 @@ class Search_ArchiveController extends AuthenticatedController
                 }
                 else
                 {
-                    $this->searchField = Request::get('searchField');
                     $queryParameters = array('criteria' => $this->searchField);
                     //get courses where at least one field matches the search criteria
                     
@@ -72,5 +81,4 @@ class Search_ArchiveController extends AuthenticatedController
             }
         }
     }
-    
 }
