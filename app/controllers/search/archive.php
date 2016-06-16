@@ -29,8 +29,6 @@ class Search_ArchiveController extends AuthenticatedController
             //read parameters from HTTP POST, if they exist:
             $this->onlyMyCourses = Request::get('onlyMyCourses', false);
             $this->searchField = trim(Request::get('searchField', '')); //strip whitespaces here
-            echo 'strlen($this->searchField) = ' . strlen($this->searchField);
-            echo 'empty($this->searchField) = ' . empty($this->searchField);
             
             //mb_strlen is used for unicode compatibility
             if(mb_strlen($this->searchField) < 4) {
