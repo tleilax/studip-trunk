@@ -121,6 +121,20 @@ class Statusgruppen extends SimpleORMap
     }
 
     /**
+     * Find all groups belonging to the given range_id that may be joined
+     * by the given user.
+     *
+     * @param String $range_id range_id the groups shall belong to
+     * @param String $user_id user to check
+     * @return array
+     */
+    public static function findJoinableGroups($range_id, $user_id)
+    {
+        $groups = self::findByRange_id($range_id);
+        return array_filter($groups, function ($g) use ($user_id) { return $g->userMayJoin($user_id); });
+    }
+
+    /**
      * Produces an array of all statusgroups a user is in
      * 
      * @param string $user_id The user_id

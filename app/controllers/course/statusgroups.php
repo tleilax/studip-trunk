@@ -44,45 +44,6 @@ class Course_StatusgroupsController extends AuthenticatedController
 
         PageLayout::setTitle(sprintf('%s - %s', Course::findCurrent()->getFullname(), _('Gruppen')));
 
-        // Set default sidebar image
-        $sidebar = Sidebar::get();
-        $sidebar->setImage('sidebar/person-sidebar.png');
-
-        if (!$this->is_locked) {
-            $actions = new ActionsWidget();
-            $actions->addLink(_('Neue Gruppe anlegen'),
-                $this->url_for('course/statusgroups/edit'),
-                Icon::create('add', 'clickable'))->asDialog('size=auto');
-            $actions->addLink(_('Mehrere Gruppen anlegen'),
-                $this->url_for('course/statusgroups/create_groups'),
-                Icon::create('group2+add', 'clickable'))->asDialog('size=auto');
-            $sidebar->addWidget($actions);
-        }
-        if (Config::get()->EXPORT_ENABLE && $this->is_tutor) {
-            include_once $GLOBALS['PATH_EXPORT'] . '/export_linking_func.inc.php';
-
-            $export = new ExportWidget();
-
-            // create csv-export link
-            $csvExport = export_link($this->course_id, 'person',
-                sprintf('%s %s', _('Gruppenliste'), htmlReady($this->course_title)),
-                'csv', 'csv-gruppen', 'status',
-                _('Gruppen als CSV-Dokument exportieren'),
-                'passthrough');
-            $element = LinkElement::fromHTML($csvExport, Icon::create('file-office', 'clickable'));
-            $export->addElement($element);
-
-            // create rtf-export link
-            $rtfExport = export_link($this->course_id, 'person',
-                sprintf('%s %s', _('Gruppenliste'), htmlReady($this->course_title)),
-                'rtf', 'rtf-gruppen', 'status',
-                _('Gruppen als RTF-Dokument exportieren'),
-                'passthrough');
-            $element = LinkElement::fromHTML($rtfExport, Icon::create('file-text', 'clickable'));
-            $export->addElement($element);
-
-            $sidebar->addWidget($export);
-        }
     }
 
     /**
@@ -109,6 +70,13 @@ class Course_StatusgroupsController extends AuthenticatedController
         // Helper array for collecting all group members.
         $grouped_users = array();
 
+        /*
+         * Check if the current user may join any group at all. This is needed
+         * for deciding if a Sidebar action for joining a group will be
+         * displayed.
+         */
+        $joinable = false;
+
         // Now build actual groups.
         $this->groups = array();
         foreach ($groups as $g) {
@@ -128,6 +96,10 @@ class Course_StatusgroupsController extends AuthenticatedController
                 'members' => $sorted
             );
             $grouped_users = array_merge($grouped_users, $groupmembers);
+
+            if (!$this->is_tutor && $g->userMayJoin($GLOBALS['user']->id)) {
+                $joinable = true;
+            }
 
         }
 
@@ -166,6 +138,58 @@ class Course_StatusgroupsController extends AuthenticatedController
                 'sem_perm' => array('user', 'autor')
             )
         );
+
+        /*
+         * Setup sidebar.
+         */
+        $sidebar = Sidebar::get();
+        // Set default sidebar image
+        $sidebar->setImage('sidebar/person-sidebar.png');
+
+        if ($this->is_tutor) {
+            if (!$this->is_locked) {
+                $actions = new ActionsWidget();
+                $actions->addLink(_('Neue Gruppe anlegen'),
+                    $this->url_for('course/statusgroups/edit'),
+                    Icon::create('add', 'clickable'))->asDialog('size=auto');
+                $actions->addLink(_('Mehrere Gruppen anlegen'),
+                    $this->url_for('course/statusgroups/create_groups'),
+                    Icon::create('group2+add', 'clickable'))->asDialog('size=auto');
+                $sidebar->addWidget($actions);
+            }
+            if (Config::get()->EXPORT_ENABLE) {
+                include_once $GLOBALS['PATH_EXPORT'] . '/export_linking_func.inc.php';
+
+                $export = new ExportWidget();
+
+                // create csv-export link
+                $csvExport = export_link($this->course_id, 'person',
+                    sprintf('%s %s', _('Gruppenliste'), htmlReady($this->course_title)),
+                    'csv', 'csv-gruppen', 'status',
+                    _('Gruppen als CSV-Dokument exportieren'),
+                    'passthrough');
+                $element = LinkElement::fromHTML($csvExport, Icon::create('file-office', 'clickable'));
+                $export->addElement($element);
+
+                // create rtf-export link
+                $rtfExport = export_link($this->course_id, 'person',
+                    sprintf('%s %s', _('Gruppenliste'), htmlReady($this->course_title)),
+                    'rtf', 'rtf-gruppen', 'status',
+                    _('Gruppen als RTF-Dokument exportieren'),
+                    'passthrough');
+                $element = LinkElement::fromHTML($rtfExport, Icon::create('file-text', 'clickable'));
+                $export->addElement($element);
+
+                $sidebar->addWidget($export);
+            }
+        // Current user may join at least one group => show sidebar action.
+        } else if ($joinable) {
+            $actions = new ActionsWidget();
+            $actions->addLink(_('In eine Gruppe eintragen'),
+                $this->url_for('course/statusgroups/joinables'),
+                    Icon::create('door-enter', 'clickable'))->asDialog('size=auto');
+            $sidebar->addWidget($actions);
+        }
     }
 
     /**
@@ -184,6 +208,17 @@ class Course_StatusgroupsController extends AuthenticatedController
 
         // Lecturers can be implicitly assigned via course dates.
         $this->lecturers = $this->group->findLecturers();
+    }
+
+    /**
+     * Shows a list of all groups that can be joined by current user
+     * and allows the user to select one.
+     */
+    public function joinables_action()
+    {
+        $this->joinables = SimpleCollection::createFromArray(
+            Statusgruppen::findJoinableGroups($this->course_id, $GLOBALS['user']->id))
+            ->orderBy('position asc, name asc');
     }
 
     /**
@@ -424,8 +459,19 @@ class Course_StatusgroupsController extends AuthenticatedController
      *
      * @throws Trails_Exception 403 if current user may not join the given group.
      */
-    public function join_action($group_id)
+    public function join_action($group_id = '')
     {
+
+        // group_id can also be given per request.
+        if (!$group_id) {
+            CSRFProtection::verifyUnsafeRequest();
+            $group_id = Request::option('target_group');
+
+            // Safety check if no group_id at all.
+            if (!$group_id) {
+                throw new Trails_Exception(400);
+            }
+        }
 
         $g = Statusgruppen::find($group_id);
 
