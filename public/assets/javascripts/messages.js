@@ -288,6 +288,15 @@ jQuery(function () {
 
     /*********** dragging the messages to the tags ***********/
 
+    jQuery("#messages > tbody").on("mouseover touchstart", function () {
+        if (Modernizr.mq("screen and (max-width:800px)")
+                || jQuery("#messages-tags ul > li").length === 0) {
+            jQuery("#messages > tbody > tr").draggable("disable");
+        } else {
+            jQuery("#messages > tbody > tr").draggable("enable");
+        }
+    });
+
     jQuery("#messages > tbody > tr").draggable({
         //cursor: "move",
         distance: 10,
@@ -307,6 +316,7 @@ jQuery(function () {
             jQuery('#messages-tags').removeClass('dragging');
         }
     });
+    jQuery("#messages > tbody").trigger("touchstart");
     jQuery('.widget-links li:has(.tag)').each(STUDIP.Messages.createDroppable);
 
     jQuery(document).on("click", ".adressee .remove_adressee", STUDIP.Messages.remove_adressee);
