@@ -79,8 +79,9 @@
                         'rec_uname' => $members->pluck('username'),
                         'default_subject' => htmlReady($course_title).' ('.htmlReady($group->name).')'
                     )) ?>" data-dialog="size=auto;">
-                        <?= Icon::create('mail', 'clickable',
-                            array('title' => _('Nachricht an alle nicht zugeordneten Personen schicken'))) ?></a>
+                        <?= Icon::create('mail', 'clickable', [
+                                'title' => _('Nachricht an alle nicht zugeordneten Personen schicken')
+                        ])->asImg(20) ?></a>
                 <?php endif ?>
             <?php else : ?>
                 <?php if ($group->id != 'nogroup' && $group->userMayJoin($GLOBALS['user']->id)) : ?>
