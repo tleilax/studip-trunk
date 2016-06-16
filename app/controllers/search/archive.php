@@ -13,59 +13,64 @@
 
 class Search_ArchiveController extends AuthenticatedController
 {
+    
     public function index_action()
     {
-        PageLayout::setTitle(_("Suche im Veranstaltungsarchiv"));
+        PageLayout::setTitle(_('Suche im Veranstaltungsarchiv'));
+        
         if(Request::get('searchRequested')) {
             /* 
                 A search form was sent here:
                 We have to make lookups in the database.
             */
             
+            $this->searchRequested = true;
             
-            /*
-            if(Request::get('courseName')) {
-                //courseName is present and not empty:
-                $this->courseName = Request::get('courseName');
+            if(Request::get('searchField')) {
                 
+                $this->searchField = Request::get('searchField');
                 
-            }
-            */
-            
-            
-            if(Request::get('courseAllFields')) {
-                $this->courseAllFields = Request::get('courseAllFields');
-                $queryParameters = array('criteria' => $this->courseAllFields);
-                //get courses where at least one field matches the search criteria
-                
-                $sql = "name LIKE CONCAT('%', :criteria, '%') "
-                    . "OR untertitel LIKE CONCAT('%', :criteria, '%') "
-                    . "OR beschreibung LIKE CONCAT('%', :criteria, '%') "
-                    . "OR dozenten LIKE CONCAT('%', :criteria, '%') "
-                    . "OR institute LIKE CONCAT('%', :criteria, '%') "
-                    . "OR semester LIKE CONCAT('%', :criteria, '%') ";
-                
-                $this->foundCourses = ArchivedCourse::findBySQL($sql, $queryParameters);
+                if(Request::get('onlyMyCourses', false)) {
                     /*
-                        TODO: order-by-Klausel, da Sortierung geändert werden kann 
-                        durch Klick auf Tabellenkopf.
+                        If the user wants to see only his courses 
+                        we have to filter the courses:
                     */
+                    
+                    $this->onlyMyCourses = true;
+                    
+                    $user = User::findCurrent();
+                    
+                    $allUserEntries = ArchivedCourseMember::findBySQL(
+                        "user_id = :userId", array('userId' => $user->id));
+                    
+                    $this->foundCourses = array();
+                    
+                    foreach($allUserEntries as $userEntry) {
+                        
+                        $this->foundCourses[] = $userEntry->course;
+                    }
+                    
+                }
+                else
+                {
+                    $this->searchField = Request::get('searchField');
+                    $queryParameters = array('criteria' => $this->searchField);
+                    //get courses where at least one field matches the search criteria
+                    
+                    $sql = "name LIKE CONCAT('%', :criteria, '%') "
+                        . "OR untertitel LIKE CONCAT('%', :criteria, '%') "
+                        . "OR beschreibung LIKE CONCAT('%', :criteria, '%') "
+                        . "OR dozenten LIKE CONCAT('%', :criteria, '%') "
+                        . "OR institute LIKE CONCAT('%', :criteria, '%') "
+                        . "OR semester LIKE CONCAT('%', :criteria, '%') "
+                        
+                        //order:
+                        . "ORDER BY start_time DESC, name DESC ";
+                    
+                    $this->foundCourses = ArchivedCourse::findBySQL($sql, $queryParameters);
+                }
             }
         }
     }
     
-    public function dump_action()
-    {
-    
-    }
-    
-    public function forum_action()
-    {
-    
-    }
-    
-    public function wiki_action()
-    {
-    
-    }
 }
