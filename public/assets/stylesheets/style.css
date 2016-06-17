@@ -3150,21 +3150,16 @@ section.contentbox > article.new header h1 a::before {
   box-shadow: black 0px 1px 3px;
 }
 .action-menu {
-  position: relative;
-}
-.action-menu .action-menu-icon,
-.action-menu .action-menu-item img,
-.action-menu .action-menu-item svg,
-.action-menu .action-menu-no-icon {
-  width: 20px;
-  height: 20px;
   display: inline-block;
-  vertical-align: bottom;
+  position: relative;
+  text-align: right;
 }
 .action-menu .action-menu-icon {
-  cursor: pointer;
-  position: relative;
+  width: 20px;
+  height: 20px;
   z-index: 3;
+  position: relative;
+  cursor: pointer;
 }
 .action-menu .action-menu-content {
   position: absolute;
@@ -3197,6 +3192,13 @@ section.contentbox > article.new header h1 a::before {
 .action-menu .action-menu-item .action-menu-no-icon {
   margin: 0 0.25em;
 }
+.action-menu .action-menu-item img,
+.action-menu .action-menu-no-icon {
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+  vertical-align: bottom;
+}
 .action-menu:not(.active) .action-menu-content {
   display: none;
 }
@@ -3208,6 +3210,85 @@ section.contentbox > article.new header h1 a::before {
 }
 .no-js .action-menu:hover .action-menu-icon {
   z-index: 3;
+}
+html.csstransforms .action-menu .action-menu-icon div {
+  width: 5px;
+  height: 5px;
+  -webkit-transform: translate(-2.5px, 0);
+  -moz-transform: translate(-2.5px, 0);
+  -ms-transform: translate(-2.5px, 0);
+  -o-transform: translate(-2.5px, 0);
+  transform: translate(-2.5px, 0);
+  -webkit-transition: all 0.25s ease-in-out;
+  -moz-transition: all 0.25s ease-in-out;
+  -o-transition: all 0.25s ease-in-out;
+  transition: all 0.25s ease-in-out;
+  display: block;
+  position: absolute;
+  background: #28497c;
+  border-radius: 50%;
+  opacity: 1;
+  left: 50%;
+}
+html.csstransforms .action-menu .action-menu-icon div:nth-child(1) {
+  top: 0px;
+}
+html.csstransforms .action-menu .action-menu-icon div:nth-child(2) {
+  top: 10px;
+  -webkit-transform: translate(-2.5px, -2.5px);
+  -moz-transform: translate(-2.5px, -2.5px);
+  -ms-transform: translate(-2.5px, -2.5px);
+  -o-transform: translate(-2.5px, -2.5px);
+  transform: translate(-2.5px, -2.5px);
+}
+html.csstransforms .action-menu .action-menu-icon div:nth-child(3) {
+  bottom: 0;
+}
+html.csstransforms .action-menu.active .action-menu-icon div,
+html.no-js .action-menu:hover .action-menu-icon div {
+  border-radius: 0;
+}
+html.csstransforms .action-menu.active .action-menu-icon div:nth-child(1),
+html.no-js .action-menu:hover .action-menu-icon div:nth-child(1) {
+  left: 0;
+  -webkit-transform: rotate(45deg) translate(5.5px, 5.5px);
+  -moz-transform: rotate(45deg) translate(5.5px, 5.5px);
+  -ms-transform: rotate(45deg) translate(5.5px, 5.5px);
+  -o-transform: rotate(45deg) translate(5.5px, 5.5px);
+  transform: rotate(45deg) translate(5.5px, 5.5px);
+  width: 100%;
+}
+html.csstransforms .action-menu.active .action-menu-icon div:nth-child(2),
+html.no-js .action-menu:hover .action-menu-icon div:nth-child(2) {
+  opacity: 0;
+}
+html.csstransforms .action-menu.active .action-menu-icon div:nth-child(3),
+html.no-js .action-menu:hover .action-menu-icon div:nth-child(3) {
+  left: 0;
+  -webkit-transform: rotate(-45deg) translate(5px, -5px);
+  -moz-transform: rotate(-45deg) translate(5px, -5px);
+  -ms-transform: rotate(-45deg) translate(5px, -5px);
+  -o-transform: rotate(-45deg) translate(5px, -5px);
+  transform: rotate(-45deg) translate(5px, -5px);
+  width: 100%;
+}
+html:not(.csstransforms) .action-menu .action-menu-icon {
+  background-image: url("../images/icons/blue/mobile-sidebar.svg");
+  -webkit-background-size: 20px 20px;
+  -moz-background-size: 20px 20px;
+  -o-background-size: 20px 20px;
+  background-size: 20px 20px;
+}
+html:not(.csstransforms) .action-menu .action-menu-icon div {
+  display: none;
+}
+html:not(.csstransforms) .action-menu.active .action-menu-icon,
+html.no-js:not(.csstransforms) .action-menu:hover .action-menu-icon {
+  background-image: url("../images/icons/blue/decline.svg");
+  -webkit-background-size: 20px 20px;
+  -moz-background-size: 20px 20px;
+  -o-background-size: 20px 20px;
+  background-size: 20px 20px;
 }
 .force-visible-overflow {
   overflow: visible !important;

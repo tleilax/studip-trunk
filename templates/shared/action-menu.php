@@ -12,10 +12,11 @@ $attributes = function (array $attributes) {
 };
 ?>
 <nav class="action-menu">
-    <?= Icon::create('mobile-sidebar', 'clickable', [
-            'title' => _('Aktionen'),
-            'class' => 'action-menu-icon',
-    ]) ?>
+    <div class="action-menu-icon" title="<?= _('Aktionen') ?>">
+        <div></div>
+        <div></div>
+        <div></div>
+    </div>
     <div class="action-menu-content">
         <div class="action-menu-title">
             <?= _('Aktionen') ?>
