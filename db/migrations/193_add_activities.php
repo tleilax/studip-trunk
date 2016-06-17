@@ -1,12 +1,15 @@
 <?php
 
-class AddActivities extends Migration {
+class AddActivities extends Migration
+{
 
-    function description() {
+    public function description() 
+    {
         return 'add table for activities';
     }
 
-    function up() {
+    public function up()
+    {
         $db = DBManager::get();
 
         $db->exec("CREATE TABLE `activities` (
@@ -25,7 +28,8 @@ class AddActivities extends Migration {
         )");
     }
 
-    function down() {
+    public function down()
+    {
         $db = DBManager::get();
 
         $db->exec("DROP TABLE `activities`");

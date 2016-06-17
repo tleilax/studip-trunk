@@ -21,7 +21,7 @@ class ForumActivity
      */
     public static function newEntry($event, $topic_id, $post)
     {
-        $verb = ($post['depth'] == 3)  ? 'answered' : 'created';
+        $verb = $post['depth'] == 3 ? 'answered' : 'created';
 
         if ($verb == 'created') {
             if ($post['depth'] == 1) {
@@ -47,12 +47,18 @@ class ForumActivity
         $summary = _('%s hat im Forum der Veranstaltung "%s" einen Beitrag editiert.');
 
         if ($post['user_id'] == $GLOBALS['user']->id) {
-            $content = sprintf(_('%s hat seinen eigenen Beitrag vom %s editiert.'),
-                    get_fullname($post['user_id']), date('d.m.y, H:i', $post['mkdate']));
+            $content = sprintf(
+                _('%s hat seinen eigenen Beitrag vom %s editiert.'),
+                get_fullname($post['user_id']),
+                date('d.m.y, H:i', $post['mkdate'])
+            );
         } else {
-            $content = sprintf(_('%s hat den Beitrag von %s vom %s editiert.'),
-                    get_fullname($post['user_id']), get_fullname($GLOBALS['user']->id),
-                    date('d.m.y, H:i', $post['mkdate']));
+            $content = sprintf(
+                _('%s hat den Beitrag von %s vom %s editiert.'),
+                get_fullname($post['user_id']),
+                get_fullname($GLOBALS['user']->id),
+                date('d.m.y, H:i', $post['mkdate'])
+            );
         }
 
         self::post($post, 'edited', $summary, $content);
@@ -69,13 +75,18 @@ class ForumActivity
         $summary = _('%s hat im Forum der Veranstaltung "%s" einen Beitrag gelöscht.');
 
         if ($post['user_id'] == $GLOBALS['user']->id) {
-            $content = sprintf(_('%s hat seinen Beitrag vom %s gelöscht.'),
-                    get_fullname($GLOBALS['user']->id),
-                    date('d.m.y, H:i', $post['mkdate']));
+            $content = sprintf(
+                _('%s hat seinen Beitrag vom %s gelöscht.'),
+                get_fullname($GLOBALS['user']->id),
+                date('d.m.y, H:i', $post['mkdate'])
+            );
         } else {
-            $content = sprintf(_('%s hat den Beitrag von %s vom %s gelöscht.'),
-                    get_fullname($post['user_id']), get_fullname($GLOBALS['user']->id),
-                    date('d.m.y, H:i', $post['mkdate']));
+            $content = sprintf(
+                _('%s hat den Beitrag von %s vom %s gelöscht.'),
+                get_fullname($post['user_id']),
+                get_fullname($GLOBALS['user']->id),
+                date('d.m.y, H:i', $post['mkdate'])
+            );
         }
 
         self::post($post, 'deleted', $summary, $content);
@@ -84,7 +95,9 @@ class ForumActivity
     private static function post($post, $verb, $summary, $content = null)
     {
         // skip system-created entries like "Allgemeine Diskussionen"
-        if (!$post['user_id']) return;
+        if (!$post['user_id']) {
+            return;
+        }
 
         $range_id = $post['seminar_id'];
         $type     = get_object_type($range_id);
@@ -94,14 +107,14 @@ class ForumActivity
         $activity = Studip\Activity\Activity::get(
             array(
                 'provider'     => 'forum',
-                'context'      => ($type == 'sem') ? 'course' : 'institute',
+                'context'      => $type === 'sem' ? 'course' : 'institute',
                 'context_id'   => $post['seminar_id'],
-                'content'      => NULL,
-                'actor_type'   => 'user',                                       // who initiated the activity?
-                'actor_id'     => $post['user_id'],                             // id of initiator
-                'verb'         => $verb,                                        // the activity type
-                'object_id'    => $post['topic_id'],                            // the id of the referenced object
-                'object_type'  => 'forum',                                      // type of activity object
+                'content'      => null,
+                'actor_type'   => 'user',             // who initiated the activity?
+                'actor_id'     => $post['user_id'],   // id of initiator
+                'verb'         => $verb,              // the activity type
+                'object_id'    => $post['topic_id'],  // the id of the referenced object
+                'object_type'  => 'forum',            // type of activity object
                 'mkdate'       => $post['mkdate'] ?: time()
             )
         );

@@ -13,15 +13,10 @@
 
 class ActivityProviderTestCase extends PHPUnit_Framework_TestCase
 {
-    function setUp() {
-    }
+    public function setUp() {}
+    public function tearDown() {}
 
-
-    function tearDown() {
-    }
-
-
-    function test_class_should_exist()
+    public function test_class_should_exist()
     {
         $this->assertTrue(class_exists('\Studip\Activity\ForumProvider'));
         $this->assertTrue(class_exists('\Studip\Activity\NewsProvider'));
@@ -33,7 +28,7 @@ class ActivityProviderTestCase extends PHPUnit_Framework_TestCase
         $this->assertTrue(class_exists('\Studip\Activity\BlubberProvider'));
     }
 
-    function test_providers_implement_interface()
+    public function test_providers_implement_interface()
     {
         $this->assertTrue(
             new \Studip\Activity\ForumProvider() instanceof \Studip\Activity\ActivityProvider,

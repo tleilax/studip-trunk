@@ -16,42 +16,42 @@ class Filter
         $type,
         $verb;
 
-    function setStartDate($start_date)
+    public function setStartDate($start_date)
     {
         $this->start_date = $start_date;
     }
 
-    function getStartDate()
+    public function getStartDate()
     {
         return $this->start_date;
     }
 
-    function setEndDate($end_date)
+    public function setEndDate($end_date)
     {
         $this->end_date = $end_date;
     }
 
-    function getEndDate()
+    public function getEndDate()
     {
         return $this->end_date;
     }
 
-    function setType($type)
+    public function setType($type)
     {
         $this->type = $type;
     }
 
-    function getType()
+    public function getType()
     {
         return $this->type;
     }
 
-    function getVerb()
+    public function getVerb()
     {
         return $this->verb;
     }
 
-    function setVerb($verb)
+    public function setVerb($verb)
     {
         $this->verb = $verb;
     }

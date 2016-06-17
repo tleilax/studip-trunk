@@ -39,18 +39,10 @@ class FakeContext extends \Studip\Activity\Context
 
 class Stream extends PHPUnit_Framework_TestCase
 {
+    public function setUp() {}
+    public function tearDown() {}
 
-    function setUp()
-    {
-    }
-
-
-    function tearDown()
-    {
-    }
-
-
-    function test_class_should_exist()
+    public function test_class_should_exist()
     {
         $this->assertTrue(class_exists('\Studip\Activity\Stream'));
     }
@@ -58,12 +50,12 @@ class Stream extends PHPUnit_Framework_TestCase
     /**
      * @expectedException InvalidArgumentException
      */
-    function test_stream_wants_context()
+    public function test_stream_wants_context()
     {
         $stream = new \Studip\Activity\Stream('', new Studip\Activity\Filter());
     }
 
-    function test_stream_has_array_iterator()
+    public function test_stream_has_array_iterator()
     {
         $stream = new \Studip\Activity\Stream(new FakeContext(), new Studip\Activity\Filter());
 
@@ -83,7 +75,7 @@ class Stream extends PHPUnit_Framework_TestCase
         );
     }
 
-    function test_stream_takes_more_than_one_context()
+    public function test_stream_takes_more_than_one_context()
     {
         $stream = new \Studip\Activity\Stream(array(new FakeContext(), new FakeContext()), new Studip\Activity\Filter());
 

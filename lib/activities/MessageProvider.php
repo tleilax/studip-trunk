@@ -42,7 +42,6 @@ class MessageProvider implements ActivityProvider
      */
     public static function postActivity($event, $message_id, $data)
     {
-
         foreach ($data['rec_id'] as $rec_id) {
 
             // activity for receipent
@@ -52,11 +51,11 @@ class MessageProvider implements ActivityProvider
                     'context'      => 'user',
                     'context_id'   => $rec_id,
                     'content'      => NULL,
-                    'actor_type'   => 'user',                                   // who initiated the activity?
-                    'actor_id'     => $data['user_id'],                         // id of initiator
-                    'verb'         => 'sent',                                   // the activity type
-                    'object_id'    => $message_id,                              // the id of the referenced object
-                    'object_type'  => 'message',                                // type of activity object
+                    'actor_type'   => 'user',           // who initiated the activity?
+                    'actor_id'     => $data['user_id'], // id of initiator
+                    'verb'         => 'sent',           // the activity type
+                    'object_id'    => $message_id,      // the id of the referenced object
+                    'object_type'  => 'message',        // type of activity object
                     'mkdate'       => time()
                 )
             );

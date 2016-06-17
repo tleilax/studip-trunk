@@ -3,15 +3,15 @@
         user_id : null,
         start_date : null,
         end_date : null,
-        
+
         init: function() {
             STUDIP.ActivityFeed.loadFeed(STUDIP.ActivityFeed.start_date, STUDIP.ActivityFeed.end_date, '' ,false);
         },
-        
+
         getTemplate: _.memoize(function(name) {
             return _.template($("script." + name).html());
         }),
-        
+
         loadFeed: function(from, to, filtertype, append) {
             if (STUDIP.ActivityFeed.user_id === null) {
                 console.log('Could not retrieve activities, no valid user id found!');
@@ -37,8 +37,8 @@
                         user_id       :  STUDIP.ActivityFeed.user_id
                     }));
 
-                    jQuery( ".provider_circle" ).click(function() {
-                        jQuery(this).parent().parent().children('.activity-content').toggle();
+                    $('.provider_circle').click(function() {
+                        $(this).parent().parent().children('.activity-content').toggle();
                     });
                 }
             });
@@ -46,9 +46,9 @@
         },
 
         update : function(html) {
-            jQuery('#afeed').replaceWith(html);
+            $('#afeed').replaceWith(html);
 
         }
-    };    
+    };
 })(jQuery, STUDIP);
 

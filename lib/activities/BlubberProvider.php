@@ -52,11 +52,11 @@ class BlubberProvider implements ActivityProvider
                 'context_id'   => $context_id,
                 'title'        => '',
                 'content'      => NULL,
-                'actor_type'   => 'user',                                       // who initiated the activity?
-                'actor_id'     => $blubb['user_id'],                            // id of initiator
-                'verb'         => 'created',                                    // the activity type
-                'object_id'    => $blubb['topic_id'],                           // the id of the referenced object
-                'object_type'  => 'blubber',                                    // type of activity object
+                'actor_type'   => 'user',             // who initiated the activity?
+                'actor_id'     => $blubb['user_id'],  // id of initiator
+                'verb'         => 'created',          // the activity type
+                'object_id'    => $blubb['topic_id'], // the id of the referenced object
+                'object_type'  => 'blubber',          // type of activity object
                 'mkdate'       => $blubb['chdate']
             )
         );
@@ -74,7 +74,7 @@ class BlubberProvider implements ActivityProvider
     {
         switch($blubb['context_type']) {
             case 'private':
-                foreach($blubb->getRelatedUsers() as $context_id) {
+                foreach ($blubb->getRelatedUsers() as $context_id) {
                     self::doPostActivity('user', $context_id, $blubb);
                 }
             break;

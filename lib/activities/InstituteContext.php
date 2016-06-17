@@ -10,15 +10,14 @@ namespace Studip\Activity;
 
 class InstituteContext extends Context
 {
-    private
-        $institute_id;
+    private $institute_id;
 
     /**
      * create new institute-context
      *
      * @param string $institute_id
      */
-    function __construct($institute_id)
+    public function __construct($institute_id)
     {
         $this->institute_id = $institute_id;
     }
@@ -75,7 +74,7 @@ class InstituteContext extends Context
     /**
      * {@inheritdoc}
      */
-    function getRangeId()
+    public function getRangeId()
     {
         return $this->institute_id;
     }

@@ -14,20 +14,20 @@
 
 class FilterTestCase extends PHPUnit_Framework_TestCase
 {
-    function setUp() {}
-    function tearDown() {}
+    public function setUp() {}
+    public function tearDown() {}
 
-    function test_class_should_exist()
+    public function test_class_should_exist()
     {
         $this->assertTrue(class_exists('\Studip\Activity\Filter'));
     }
 
-    function test_create()
+    public function test_create()
     {
         $this->assertInstanceOf("\Studip\Activity\Filter", new \Studip\Activity\Filter());
     }
 
-    function test_set_end_date()
+    public function test_set_end_date()
     {
 
         $enddate = 5;
@@ -38,7 +38,7 @@ class FilterTestCase extends PHPUnit_Framework_TestCase
         $this->assertEquals($enddate, $filter->getEndDate());
     }
 
-    function test_set_start_date()
+    public function test_set_start_date()
     {
 
         $startdate = 5;
@@ -49,7 +49,7 @@ class FilterTestCase extends PHPUnit_Framework_TestCase
         $this->assertEquals($startdate, $filter->getStartDate());
     }
 
-    function test_set_type()
+    public function test_set_type()
     {
         $type = 'forum';
 

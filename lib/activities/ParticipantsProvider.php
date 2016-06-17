@@ -20,14 +20,13 @@ class ParticipantsProvider implements ActivityProvider
      */
     public function postActivity($event, $course_id, $user_id)
     {
-
         $course = \Course::find($course_id);
 
-        if($event == 'UserDidEnterCourse') {
+        if ($event == 'UserDidEnterCourse') {
             $verb = 'created';
             $summary = _('%s wurde in die Veranstaltung "%s" eingetragen.');
             $summary = sprintf($summary, get_fullname($user_id), $course->name);
-        } elseif($event == 'UserDidLeaveCourse') {
+        } elseif ($event == 'UserDidLeaveCourse') {
             $verb = 'voided';
             $summary = _('%s wurde aus der Veranstaltung "%s" ausgetragen.');
             $summary = sprintf($summary, get_fullname($user_id), $course->name);
@@ -37,7 +36,7 @@ class ParticipantsProvider implements ActivityProvider
             $summary = sprintf($summary, get_fullname($user_id), $course->name);
         }
 
-        $type     = get_object_type($course_id);
+        $type = get_object_type($course_id);
 
         $activity = Activity::get(
             array(
@@ -45,18 +44,17 @@ class ParticipantsProvider implements ActivityProvider
                 'context'      => ($type == 'sem') ? 'course' : 'institute',
                 'context_id'   => $course_id,
                 'content'      => $summary,
-                'actor_type'   => 'user',                                       // who initiated the activity?
-                'actor_id'     => $GLOBALS['user']->id,                                     // id of initiator
-                'verb'         => $verb,                                        // the activity type
-                'object_id'    => $course_id,                                   // the id of the referenced object
-                'object_type'  => 'participants',                               // type of activity object
-                'mkdate'       =>  strtotime('now')
+                'actor_type'   => 'user',               // who initiated the activity?
+                'actor_id'     => $GLOBALS['user']->id, // id of initiator
+                'verb'         => $verb,                // the activity type
+                'object_id'    => $course_id,           // the id of the referenced object
+                'object_type'  => 'participants',       // type of activity object
+                'mkdate'       =>  time(),
             )
         );
 
         $activity->store();
     }
-
 
     /**
      * get the details for the passed activity
@@ -65,8 +63,6 @@ class ParticipantsProvider implements ActivityProvider
      */
     public function getActivityDetails(&$activity)
     {
-
-
         $activity->content = $activity->content;
 
         $url = \URLHelper::getUrl("dispatch.php/course/members/index?cid=/{$activity->context_id}", array('cid' => null));

@@ -12,18 +12,12 @@
  * @license     https://www.gnu.org/licenses/agpl-3.0.html AGPL version 3
  */
 
-class ContextTestCase extends PHPUnit_Framework_TestCase {
+class ContextTestCase extends PHPUnit_Framework_TestCase
+{
+    public function setUp() {}
+    public function tearDown() {}
 
-
-    function setUp() {
-    }
-
-
-    function tearDown() {
-    }
-
-
-    function test_class_should_exist()
+    public function test_class_should_exist()
     {
         $this->assertTrue(class_exists('\Studip\Activity\CourseContext'));
         $this->assertTrue(class_exists('\Studip\Activity\InstituteContext'));
@@ -31,7 +25,7 @@ class ContextTestCase extends PHPUnit_Framework_TestCase {
         $this->assertTrue(class_exists('\Studip\Activity\SystemContext'));
     }
 
-    function test_create()
+    public function test_create()
     {
         $this->assertInstanceOf("\Studip\Activity\CourseContext",    new \Studip\Activity\CourseContext('1234'));
         $this->assertInstanceOf("\Studip\Activity\InstituteContext", new \Studip\Activity\InstituteContext('1234'));
@@ -39,7 +33,7 @@ class ContextTestCase extends PHPUnit_Framework_TestCase {
         $this->assertInstanceOf("\Studip\Activity\SystemContext",    new \Studip\Activity\SystemContext());
     }
 
-    function test_course_context()
+    public function test_course_context()
     {
         $seminar_id = 'seminar_id';
         $context = new Studip\Activity\CourseContext($seminar_id);
@@ -57,7 +51,7 @@ class ContextTestCase extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_institute_context()
+    public function test_institute_context()
     {
         $inst_id = 'inst_id';
         $context = new Studip\Activity\InstituteContext($inst_id);
@@ -75,7 +69,7 @@ class ContextTestCase extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_user_context()
+    public function test_user_context()
     {
         $user_id = 'user_id';
         $context = new Studip\Activity\UserContext($user_id);
@@ -93,7 +87,7 @@ class ContextTestCase extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_system_context()
+    public function test_system_context()
     {
         $context = new Studip\Activity\SystemContext();
 

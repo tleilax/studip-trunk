@@ -10,15 +10,14 @@ namespace Studip\Activity;
 
 class UserContext extends Context
 {
-    private
-        $user_id;
+    private $user_id;
 
     /**
      * create new user-context
      *
      * @param string $user_id
      */
-    function __construct($user_id)
+    public function __construct($user_id)
     {
         $this->user_id = $user_id;
     }
@@ -26,7 +25,7 @@ class UserContext extends Context
     /**
      * {@inheritdoc}
      */
-    function getRangeId()
+    public function getRangeId()
     {
         return $this->user_id;
     }
@@ -57,7 +56,6 @@ class UserContext extends Context
         }
 
         return $this->provider;
-
     }
 
     /**

@@ -74,11 +74,11 @@ class NewsProvider implements ActivityProvider
                     'context'      => $context,
                     'context_id'   => $context_id,
                     'content'      => NULL,
-                    'actor_type'   => 'user',                                   // who initiated the activity?
-                    'actor_id'     => $news->user_id,                           // id of initiator
-                    'verb'         => 'created',                                // the activity type
-                    'object_id'    => $news->id,                                // the id of the referenced object
-                    'object_type'  => 'news',                                   // type of activity object
+                    'actor_type'   => 'user',         // who initiated the activity?
+                    'actor_id'     => $news->user_id, // id of initiator
+                    'verb'         => 'created',      // the activity type
+                    'object_id'    => $news->id,      // the id of the referenced object
+                    'object_type'  => 'news',         // type of activity object
                     'mkdate'       => $mkdate
                 )
             );

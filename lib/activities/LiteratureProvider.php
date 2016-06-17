@@ -10,8 +10,6 @@ namespace Studip\Activity;
 
 class LiteratureProvider implements ActivityProvider
 {
-
-
     /**
      * get the details for the passed activity
      *
@@ -19,7 +17,7 @@ class LiteratureProvider implements ActivityProvider
      */
     public function getActivityDetails(&$activity)
     {
-        if($activity->context == "course") {
+        if ($activity->context == "course") {
 
             $url = \URLHelper::getUrl("dispatch.php/course/literature?cid={$activity->context_id}&view=literatur_sem");
             $route = null;
@@ -30,7 +28,7 @@ class LiteratureProvider implements ActivityProvider
 
             $activity->object_route = $route;
 
-        } elseif($activity->context == "institute") {
+        } elseif ($activity->context == "institute") {
             $url = \URLHelper::getUrl("dispatch.php/course/literature?cid={$activity->context_id}&view=literatur_sem");
             $route= null;
 
@@ -39,9 +37,7 @@ class LiteratureProvider implements ActivityProvider
             );
 
             $activity->object_route = $route;
-
         }
-        
     }
 
 
@@ -53,15 +49,13 @@ class LiteratureProvider implements ActivityProvider
      */
     public function postActivity($event, $info)
     {
-
         $range_id = $info['range_id'];
         $name = $info['name'];
-        $type     = get_object_type($range_id);
+        $type = get_object_type($range_id);
         $user_id = $GLOBALS['user']->id;
-        $mkdate = strtotime('now');
+        $mkdate = time();
 
-
-        if($type == 'sem') {
+        if ($type == 'sem') {
             $course = \Course::find($range_id);
         } else {
             $course = \Institute::find($range_id);
@@ -70,22 +64,22 @@ class LiteratureProvider implements ActivityProvider
         $context_clean = ($type == 'sem') ? _("Veranstaltung") : _("Einrichtung");
 
 
-        if($event == 'LitListDidUpdate') {
+        if ($event == 'LitListDidUpdate') {
             $verb = 'edited';
             $summary = _('Die Literaturliste %s wurde von %s in der %s "%s" geändert.');
-        } elseif($event == 'LitListDidInsert') {
+        } elseif ($event == 'LitListDidInsert') {
             $verb = 'created';
             $summary = _('Die Literaturliste %s wurde von %s in der %s "%s" erstellt.');
-        } elseif($event == 'LitListDidDelete') {
+        } elseif ($event == 'LitListDidDelete') {
             $verb = 'voided';
             $summary = _('Die Literaturliste %s wurde von %s in der %s "%s" entfernt.');
-        } elseif($event == 'LitListElementDidUpdate') {
+        } elseif ($event == 'LitListElementDidUpdate') {
             $verb = 'edited';
             $summary = _('Es wurde %s von %s in eine Literaturliste in der %s "%s" geändert.');
-        } elseif($event == 'LitListElementDidInsert') {
+        } elseif ($event == 'LitListElementDidInsert') {
             $verb = 'created';
             $summary = _('Es wurde %s von %s in eine Literaturliste der %s "%s" erstellt.');
-        } elseif($event == 'LitListElementDidDelete') {
+        } elseif ($event == 'LitListElementDidDelete') {
             $verb = 'voided';
             $summary = _('Es wurde %s von %s aus einer Literaturliste in der %s "%s" entfernt.');
         }
@@ -98,11 +92,11 @@ class LiteratureProvider implements ActivityProvider
                 'context'      => ($type == 'sem') ? 'course' : 'institute',
                 'context_id'   => $range_id,
                 'content'      => $summary,
-                'actor_type'   => 'user',                                       // who initiated the activity?
-                'actor_id'     => $user_id,                                     // id of initiator
-                'verb'         => $verb,                                        // the activity type
-                'object_id'    => $name,                                        // the id of the referenced object
-                'object_type'  => 'literaturelist',                             // type of activity object
+                'actor_type'   => 'user',           // who initiated the activity?
+                'actor_id'     => $user_id,         // id of initiator
+                'verb'         => $verb,            // the activity type
+                'object_id'    => $name,            // the id of the referenced object
+                'object_type'  => 'literaturelist', // type of activity object
                 'mkdate'       =>  $mkdate
             )
         );

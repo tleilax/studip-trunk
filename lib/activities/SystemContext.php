@@ -24,7 +24,8 @@ class SystemContext extends Context
     /**
      * {@inheritdoc}
      */
-    public function getRangeId() {
+    public function getRangeId()
+    {
         return 'system';
     }
 

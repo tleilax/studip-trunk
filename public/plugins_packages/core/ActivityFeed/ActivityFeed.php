@@ -4,11 +4,8 @@
  * @author      Till Glöggler <tgloeggl@uos.de>
  * @license     GPL 2 or later
  */
-
-
 class ActivityFeed extends StudIPPlugin implements PortalPlugin
 {
-
     public function getPluginName()
     {
         return _('Aktivitäten');
@@ -22,16 +19,15 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
         $filter = WidgetHelper::getWidgetUserConfig($GLOBALS['user']->id, 'ACTIVITY_FILTER');
 
         //use filter iff user explicitly chooses one for each session, default otherwise
-        $filter='';
+        $filter = '';
 
-        if(is_array($filter)){
+        if (is_array($filter)) {
             $start_date = date('d.m.Y', $filter['start_date']);
             $end_date   = date('d.m.Y', $filter['end_date']);
         } else {
-            $start_date =  date('d.m.Y', strtotime("-4 week"));
-            $end_date   =  date('d.m.Y', strtotime('+1 day'));
+            $start_date = date('d.m.Y', strtotime('-4 week'));
+            $end_date   = date('d.m.Y', strtotime('+1 day'));
         }
-
 
         $template_factory = new Flexi_TemplateFactory(__DIR__ . '/templates');
         $template = $template_factory->open('activity_feed');
@@ -40,34 +36,29 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
         $template->start_date = $start_date;
         $template->end_date = $end_date;
 
-
         $navigation = new Navigation('', PluginEngine::getLink($this, array(), 'configuration'));
-        $navigation->setImage('icons/16/blue/edit.png', tooltip2(_('Konfigurieren')) + array('data-dialog' => 'size=auto'));
+        $navigation->setImage(
+            Icon::create('edit', 'clickable'),
+            tooltip2(_('Konfigurieren')) + array('data-dialog' => 'size=auto')
+        );
 
         $template->icons = array($navigation);
 
         return $template;
     }
 
-
     public function save_action()
     {
-
-        if (get_config('ACTIVITY_FILTER') === NULL) {
+        if (get_config('ACTIVITY_FILTER') === null) {
             Config::get()->create('ACTIVITY_FILTER', array('range' => 'user', 'type' => 'array', 'description' => 'Filtereinstellungen des Aktivitäten-Widgets'));
         }
-
 
         $start_date = strtotime(Request::get('start_date'));
         $end_date = strtotime(Request::get('end_date'));
 
         //TODO CHECK IF end_date is greater than start_date
-
-
         $filter['start_date'] = $start_date;
         $filter['end_date'] = $end_date;
-
-
 
         WidgetHelper::addWidgetUserConfig($GLOBALS['user']->id, 'ACTIVITY_FILTER', $filter);
 
@@ -78,9 +69,11 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
         $template->start_date = date('d.m.Y',$start_date);
         $template->end_date = date('d.m.Y',$end_date);
 
-
         $navigation = new Navigation('', PluginEngine::getLink($this, array(), 'configuration'));
-        $navigation->setImage('icons/16/blue/edit.png', tooltip2(_('Filter konfigurieren')) + array('data-dialog' => 'size=auto'));
+        $navigation->setImage(
+            Icon::create('edit', 'clickable'),
+            tooltip2(_('Filter konfigurieren')) + array('data-dialog' => 'size=auto')
+        );
         $template->icons = array($navigation);
 
         header('X-Dialog-Close: 1');
@@ -88,7 +81,6 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
 
         echo studip_utf8encode($template->render());
     }
-
 
     public function configuration_action()
     {
@@ -98,15 +90,13 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
 
         $filter = WidgetHelper::getWidgetUserConfig($GLOBALS['user']->id, 'ACTIVITY_FILTER');
 
-
-        if(!empty($filter)){
+        if (!empty($filter)) {
             $start_date = date('d.m.Y',$filter['start_date']);
             $end_date = date('d.m.Y',$filter['end_date']);
         } else {
-            $start_date =  date('d.m.Y', strtotime("-4 week"));
+            $start_date =  date('d.m.Y', strtotime('-4 week'));
             $end_date =  date('d.m.Y');
         }
-
 
         $template->start_date = $start_date;
         $template->end_date = $end_date;

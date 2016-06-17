@@ -10,8 +10,7 @@ namespace Studip\Activity;
 
 abstract class Context
 {
-    protected
-        $provider;
+    protected $provider;
 
     /**
      * return array, listing all active providers in this context
@@ -84,7 +83,7 @@ abstract class Context
         if (is_null($filter->getType())) {
             $filtered_providers = $providers;
         } else {
-            foreach($providers as $provider) {
+            foreach ($providers as $provider) {
                 $filtered_class = 'Studip\Activity\\' . ucfirst($filter->getType()) . 'Provider';
 
                 if ($provider instanceof $filtered_class) {
@@ -94,6 +93,5 @@ abstract class Context
         }
 
         return $filtered_providers;
-
     }
 }

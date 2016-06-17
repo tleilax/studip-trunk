@@ -29,25 +29,25 @@
         <header>
             <span class="provider_circle <% if (activity.actor.id == user_id) { %>right<% } else { %>left<% } %>">
             <% if (activity.provider === 'blubber') { %>
-                <img src="<%- STUDIP.ASSETS_URL + 'images/icons/32/white/blubber.png'  %>">
+                <?= Icon::create('blubber', 'info_alt')->asImg(32) ?>
             <% } else if(activity.provider === 'documents') { %>
-                <img src="<%- STUDIP.ASSETS_URL + 'images/icons/32/white/files.png'  %>">
+                <?= Icon::create('files', 'info_alt')->asImg(32) ?>
             <% } else if(activity.provider === 'forum') { %>
-                <img src="<%- STUDIP.ASSETS_URL + 'images/icons/32/white/forum.png'  %>">
+                <?= Icon::create('forum', 'info_alt')->asImg(32) ?>
             <% } else if(activity.provider === 'literature') { %>
-            <img src="<%- STUDIP.ASSETS_URL + 'images/icons/32/white/literature.png'  %>">
+                <?= Icon::create('literature', 'info_alt')->asImg(32) ?>
             <% } else if(activity.provider === 'message') { %>
-                <img src="<%- STUDIP.ASSETS_URL + 'images/icons/32/white/mail.png'  %>">
+                <?= Icon::create('mail', 'info_alt')->asImg(32) ?>
             <% } else if(activity.provider === 'news') { %>
-                <img src="<%- STUDIP.ASSETS_URL + 'images/icons/32/white/news.png'  %>">
+                <?= Icon::create('news', 'info_alt')->asImg(32) ?>
             <% } else if(activity.provider === 'participants') { %>
-                <img src="<%- STUDIP.ASSETS_URL + 'images/icons/32/white/persons.png'  %>">
+                <?= Icon::create('persons', 'info_alt')->asImg(32) ?>
             <% } else if(activity.provider === 'schedule') { %>
-                <img src="<%- STUDIP.ASSETS_URL + 'images/icons/32/white/schedule.png'  %>">
+                <?= Icon::create('schedule', 'info_alt')->asImg(32) ?>
             <% } else if(activity.provider === 'wiki') { %>
-                <img src="<%- STUDIP.ASSETS_URL + 'images/icons/32/white/wiki.png'  %>">
+                <?= Icon::create('wiki', 'info_alt')->asImg(32) ?>
             <% } else { %>
-                <img src="<%- STUDIP.ASSETS_URL + 'images/icons/32/white/activity.png'  %>">
+                <?= Icon::create('activity', 'info_alt')->asImg(32) ?>
             <% } %>
             </span>
             <div class="activity-heading">
@@ -59,7 +59,7 @@
                 </h3>
             </div>
             <div class="activity-date">
-                    Am <%- new Date(activity.mkdate * 1000).toLocaleString() %> Uhr
+                <?= _('Am <%- new Date(activity.mkdate * 1000).toLocaleString() %> Uhr') ?>
             </div>
 
 

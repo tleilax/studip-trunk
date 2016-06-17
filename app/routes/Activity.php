@@ -10,34 +10,6 @@ namespace RESTAPI\Routes;
  */
 class Activity extends \RESTAPI\RouteMap
 {
-
-
-    /**
-     * required code before processing the route
-     */
-    public static function before()
-    {
-        require_once 'lib/activities/Filter.php';
-        require_once 'lib/activities/Context.php';
-        require_once 'lib/activities/SystemContext.php';
-        require_once 'lib/activities/CourseContext.php';
-        require_once 'lib/activities/InstituteContext.php';
-        require_once 'lib/activities/UserContext.php';
-        require_once 'lib/activities/Stream.php';
-        require_once 'lib/activities/Activity.php';
-
-        require_once 'lib/activities/ActivityProvider.php';
-        require_once 'lib/activities/BlubberProvider.php';
-        require_once 'lib/activities/DocumentsProvider.php';
-        require_once 'lib/activities/ForumProvider.php';
-        require_once 'lib/activities/LiteratureProvider.php';
-        require_once 'lib/activities/MessageProvider.php';
-        require_once 'lib/activities/NewsProvider.php';
-        require_once 'lib/activities/ParticipantsProvider.php';
-        require_once 'lib/activities/ScheduleProvider.php';
-        require_once 'lib/activities/WikiProvider.php';
-    }
-
     /**
      * List activities for an user
      *
@@ -50,8 +22,7 @@ class Activity extends \RESTAPI\RouteMap
     public function getActivities($user_id)
     {
         // only root can retrieve arbitrary streams
-        if (!$GLOBALS['perm']->have_perm('root')
-                && $GLOBALS['user']->id != $user_id) {
+        if (!$GLOBALS['perm']->have_perm('root') && $GLOBALS['user']->id != $user_id) {
             $this->error(401);
         }
 
@@ -73,7 +44,6 @@ class Activity extends \RESTAPI\RouteMap
             $contexts[] = new \Studip\Activity\CourseContext($course->seminar_id);
         }
 
-
         $institutes = \MyRealmModel::getMyInstitutes();
         if (!$GLOBALS['perm']->have_perm('root') && !empty($institutes)) {
             foreach($institutes as $institute){
@@ -88,24 +58,20 @@ class Activity extends \RESTAPI\RouteMap
             $contexts[] = new \Studip\Activity\UserContext($contact->id);
         }
 
-
         // add filters
         $filter = new \Studip\Activity\Filter();
 
-        $start = \Request::int('start', strtotime("-2 days"));
+        $start = \Request::int('start', strtotime('-2 days'));
         $end   = \Request::int('end',   time());
 
         $filtertype = \Request::get('filtertype', '');
 
-
         $filter->setStartDate($start);
         $filter->setEndDate($end);
 
-        if(!empty($filtertype)) {
+        if (!empty($filtertype)) {
             $filter->setType($filtertype);
         }
-
-
 
         $stream = new \Studip\Activity\Stream($contexts, $filter);
 
@@ -114,24 +80,21 @@ class Activity extends \RESTAPI\RouteMap
 
         $data = $stream->asArray();
 
-
         foreach ($data as $key => $act) {
-
             $actor = array(
-                        'type' => $data[$key]['actor_type'],
-                        'id'   => $data[$key]['actor_id']);
+                'type' => $data[$key]['actor_type'],
+                'id'   => $data[$key]['actor_id']
+            );
 
             if ($data[$key]['actor_type'] == 'user') {
                 $actor['details'] = User::getMiniUser($this, new \User($data[$key]['actor_id']));
             }
-            
+
             unset($data[$key]['actor_type']);
             unset($data[$key]['actor_id']);
 
-
             $data[$key]['actor'] = $actor;
         }
-
 
         return $data;
     }

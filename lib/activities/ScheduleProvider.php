@@ -10,8 +10,6 @@ namespace Studip\Activity;
 
 class ScheduleProvider implements ActivityProvider
 {
-
-
     /**
      * get the details for the passed activity
      *
@@ -19,8 +17,6 @@ class ScheduleProvider implements ActivityProvider
      */
     public function getActivityDetails(&$activity)
     {
-
-
         $activity->content = $activity->content;
 
         //todo fix url and route
@@ -42,29 +38,25 @@ class ScheduleProvider implements ActivityProvider
      */
     public function postActivity($event, $info)
     {
-
         $info = $info->toArray();
 
         $range_id = $info['seminar_id'];
 
         //todo info to store in acitvity
 
-        $type     = get_object_type($range_id);
-        if($type == 'sem') {
+        $type = get_object_type($range_id);
+        if ($type == 'sem') {
             $course = \Course::find($range_id);
         }
 
-
         $user_id = $GLOBALS['user']->id;
-        $mkdate = strtotime('now');
+        $mkdate = time();
 
-        if($event == 'CourseDidChangeSchedule') {
+        if ($event == 'CourseDidChangeSchedule') {
             $verb = 'edited';
             $summary = _('Der Ablaufplan wurde in der Veranstaltung "%s" von %s aktualisiert.');
             $summary = sprintf($summary, $course->name, get_fullname($user_id));
         }
-
-
 
         $activity = Activity::get(
             array(
@@ -72,11 +64,11 @@ class ScheduleProvider implements ActivityProvider
                 'context'      => ($type == 'sem') ? 'course' : 'institute',
                 'context_id'   => $range_id,
                 'content'      => $summary,
-                'actor_type'   => 'user',                                       // who initiated the activity?
-                'actor_id'     => $user_id,                                     // id of initiator
-                'verb'         => $verb,                                        // the activity type
-                'object_id'    => $range_id,                                    // the id of the referenced object
-                'object_type'  => 'schedule',                                   // type of activity object
+                'actor_type'   => 'user',     // who initiated the activity?
+                'actor_id'     => $user_id,   // id of initiator
+                'verb'         => $verb,      // the activity type
+                'object_id'    => $range_id,  // the id of the referenced object
+                'object_type'  => 'schedule', // type of activity object
                 'mkdate'       =>  $mkdate
             )
         );

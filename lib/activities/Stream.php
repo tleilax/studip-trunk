@@ -21,7 +21,7 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
      *
      * @throws \InvalidArgumentException
      */
-    function __construct($contexts, Filter $filter)
+    public function __construct($contexts, Filter $filter)
     {
         if (!is_array($contexts)) {
             $contexts = array($contexts);
@@ -68,7 +68,6 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
 
             return ($a->mkdate > $b->mkdate) ? -1 : 1;
         });
-
 
         // finally sort the activite-list by day
         ksort($new_activities, SORT_NATURAL);
