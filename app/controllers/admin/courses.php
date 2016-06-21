@@ -27,6 +27,59 @@ require_once 'lib/object.inc.php';
 
 class Admin_CoursesController extends AuthenticatedController
 {
+    
+    private function buildSidebar($courseTypeFilterConfig = null)
+    {
+        /*
+            TIC6701: Depending on the elements the user has selected
+            some of the following elements may not be presented
+            in the sidebar.
+            
+            To find out what elements the user has selected we're
+            accessing the user configuration and check if the
+            right configuration keys are stored in there.
+        */
+        $userSelectedElements = UserConfig::get(User::findCurrent()->id)->getValue('ADMIN_COURSES_SIDEBAR_ACTIVE_ELEMENTS')['active'];
+        if($userSelectedElements) {
+            // The array of selected elements is a JSON array: decode it!
+            $userSelectedElements = json_decode($userSelectedElements);
+            
+            //now check what's inside the array:
+            if(in_array('search', $userSelectedElements)) {
+                $this->setSearchWiget();
+            }
+            if(in_array('institute', $userSelectedElements)) {
+                $this->setInstSelector();
+            }
+            if(in_array('semester', $userSelectedElements)) {
+                $this->setSemesterSelector();
+            }
+            if(in_array('courseType', $userSelectedElements)) {
+                $this->setCourseTypeWidget($courseTypeFilterConfig);
+            }
+            if(in_array('teacher', $userSelectedElements)) {
+                $this->setTeacherWidget();
+            }
+            if(in_array('actionArea', $userSelectedElements)) {
+                $this->setActionsWidget($this->selected_action);
+            }
+            if(in_array('viewFilter', $userSelectedElements)) {
+                $this->setViewWidget($this->view_filter);
+            }
+        } else {
+            /*
+                The user hasn't made a selection of sidebar elements.
+                So the default selection is shown:
+            */
+            $this->setSearchWiget();
+            $this->setInstSelector();
+            $this->setSemesterSelector();
+            $this->setCourseTypeWidget($courseTypeFilterConfig);
+            $this->setViewWidget($this->view_filter);
+        }
+    }
+    
+    
     /**
      * Common tasks for all actions
      *
@@ -153,25 +206,30 @@ class Admin_CoursesController extends AuthenticatedController
 
         $sidebar = Sidebar::get();
         $sidebar->setImage("sidebar/seminar-sidebar.png");
-
-
-        $this->setSearchWiget();
-        $this->setInstSelector();
-        $this->setSemesterSelector();
-        $this->setTeacherWidget();
-        $this->setCourseTypeWidget($config_my_course_type_filter);
-        $this->setActionsWidget($this->selected_action);
-
+        
+        /*
+            TIC6701: The following was moved to the top
+            so that it is always on the same spot.
+        */
+        
+        //the "new course" action:
         if ($GLOBALS['perm']->have_perm($this->sem_create_perm)) {
             $actions = new ActionsWidget();
             $actions->addLink(_('Neue Veranstaltung anlegen'),
                               URLHelper::getLink('dispatch.php/course/wizard'),
                               Icon::create('seminar+add', 'clickable'))->asDialog('size=50%');
+            //for TIC6701:
+            $actions->addLink(
+                _('Diese Seitenleiste konfigurieren'),
+                URLHelper::getLink('dispatch.php/admin/courses/sidebar'),
+                Icon::create('', 'clickable')
+                )->asDialog();
+            
+            
             $sidebar->addWidget($actions, 'links');
         }
-
-        $this->setViewWidget($this->view_filter);
-
+        
+        //"export as Excel":
         if ($this->sem_create_perm) {
             $params = array();
 
@@ -184,8 +242,124 @@ class Admin_CoursesController extends AuthenticatedController
                              Icon::create('file-excel', 'clickable'));
             $sidebar->addWidget($export);
         }
+        
+        
+        $this->buildSidebar($config_my_course_type_filter);
+        
     }
-
+    
+    
+    /**
+        The sidebar action is responsible for showing a dialog
+        that lets the user configure the sidebar.
+    */
+    public function sidebar_action()
+    {
+        if(Request::get('updateConfig', false)) {
+            /*
+                The user has changed the configuration.
+                Collect the activated elements:
+            */
+            
+            $searchActive = Request::get('searchActive', true);
+            $instituteActive = Request::get('instituteActive', true);
+            $semesterActive = Request::get('semesterActive', true);
+            $courseTypeActive = Request::get('courseTypeActive', true);
+            $teacherActive = Request::get('teacherActive', false);
+            $actionAreaActive = Request::get('actionAreaActive', false);
+            $viewFilterActive = Request::get('viewFilterActive', true);
+            
+            //check for the standard configuration:
+            if($searchActive and $instituteActive and $semesterActive and $courseTypeActive
+                and (!$teacherActive) and (!$actionAreaActive) and $viewFilterActive) {
+                /*
+                    It is the standard configuration:
+                    Remove the entry from the user configuration table,
+                    if it exists.
+                */
+                
+                $userConfig = UserConfig::get(User::findCurrent()->id);
+                $userConfig->delete('ADMIN_COURSES_SIDEBAR_ACTIVE_ELEMENTS');
+                
+            } else {
+                /*
+                    It's not the standard configuration:
+                    Update or create an entry for the current user
+                    in the user configuration table.
+                */
+                $activeArray = array();
+                if($searchActive) {
+                    $activeArray[] = 'search';
+                }
+                if($instituteActive) {
+                    $activeArray[] = 'institute';
+                }
+                if($semesterActive) {
+                    $activeArray[] = 'semester';
+                }
+                if($courseTypeActive) {
+                    $activeArray[] = 'courseType';
+                }
+                if($teacherActive) {
+                    $activeArray[] = 'teacher';
+                }
+                if($actionAreaActive) {
+                    $activeArray[] = 'actionArea';
+                }
+                if($viewFilterActive) {
+                    $activeArray[] = 'viewFilter';
+                }
+                
+                //the array is filled: now convert it to JSON:
+                $activeArray = json_encode($activeArray);
+                
+                //store the configuration value:
+                $userConfig = UserConfig::get(User::findCurrent()->id);
+                try {
+                    $entry = $userConfig->create(
+                        'ADMIN_COURSES_SIDEBAR_ACTIVE_ELEMENTS',
+                        array('active' => $activeArray)
+                    );
+                } catch (InvalidArgumentException $e) {
+                    // the entry already exists in the database: update it:
+                    $entry = $userConfig->store(
+                        'ADMIN_COURSES_SIDEBAR_ACTIVE_ELEMENTS',
+                        array('active' => $activeArray)
+                    );
+                }
+                
+                /*
+                    We're done: redirect to the index page
+                    to see the new sidebar in all of its glory!
+                */
+                $this->redirect('admin/courses/index');
+            }
+        } else {
+            /*
+                The user accesses the page to check the current configuration.
+            */
+            
+            $userSelectedElements = UserConfig::get(User::findCurrent()->id)->getValue('ADMIN_COURSES_SIDEBAR_ACTIVE_ELEMENTS')['active'];
+            if($userSelectedElements) {
+                // The array of selected elements is a JSON array: decode it!
+                $this->userSelectedElements = json_decode($userSelectedElements);
+            } else {
+                /*
+                    The user hasn't got his own sidebar configuration:
+                    Use the default settings.
+                */
+                $this->userSelectedElements = [
+                    'search',
+                    'institute',
+                    'semester',
+                    'courseType',
+                    'viewFilter'
+                    ];
+            }
+        }
+    }
+    
+    
     /**
      * Export action
      */
