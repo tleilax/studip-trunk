@@ -24,6 +24,7 @@
  */
 require_once 'lib/meine_seminare_func.inc.php';
 require_once 'lib/object.inc.php';
+require_once 'lib/archiv.inc.php'; //for lastActivity in getCourses method
 
 class Admin_CoursesController extends AuthenticatedController
 {
@@ -863,16 +864,17 @@ class Admin_CoursesController extends AuthenticatedController
     private function getViewFilters()
     {
         return array(
-            'number'      => _('Nr.'),
-            'name'        => _('Name'),
-            'type'        => _('Veranstaltungstyp'),
-            'room_time'   => _('Raum/Zeit'),
-            'semester'    => _('Semester'),
-            'teachers'    => _('Lehrende'),
-            'members'     => _('Teilnehmende'),
-            'waiting'     => _('Personen auf Warteliste'),
-            'preliminary' => _('Vorläufige Anmeldungen'),
-            'contents'    => _('Inhalt')
+            'number'        => _('Nr.'),
+            'name'          => _('Name'),
+            'type'          => _('Veranstaltungstyp'),
+            'room_time'     => _('Raum/Zeit'),
+            'semester'      => _('Semester'),
+            'teachers'      => _('Lehrende'),
+            'members'       => _('Teilnehmende'),
+            'waiting'       => _('Personen auf Warteliste'),
+            'preliminary'   => _('Vorläufige Anmeldungen'),
+            'contents'      => _('Inhalt'),
+            'last_activity' => _('letzte Aktivität'),
         );
     }
 
@@ -939,7 +941,7 @@ class Admin_CoursesController extends AuthenticatedController
             $sem_types = SemType::getTypes();
             $modules = new Modules();
         }
-
+        
         $seminars = array_map('reset', $courses);
 
         if (!empty($seminars)) {
@@ -952,6 +954,10 @@ class Admin_CoursesController extends AuthenticatedController
                     $seminars[$seminar_id]['sem_class'] = $sem_types[$seminar['status']]->getClass();
                     $seminars[$seminar_id]['modules'] = $modules->getLocalModules($seminar_id, 'sem', $seminar['modules'], $seminar['status']);
                     $seminars[$seminar_id]['navigation'] = MyRealmModel::getAdditionalNavigations($seminar_id, $seminars[$seminar_id], $seminars[$seminar_id]['sem_class'], $GLOBALS['user']->id);
+                }
+                //TIC6701: last activity:
+                if (in_array('last_activity', $params['view_filter'])) {
+                    $seminars[$seminar_id]['last_activity'] = lastActivity($seminar_id);
                 }
                 if ($this->selected_action == 17) {
                     $seminars[$seminar_id]['admission_locked'] = false;
