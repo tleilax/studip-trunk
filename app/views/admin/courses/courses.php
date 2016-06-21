@@ -11,7 +11,7 @@
         <col width="2%">
     <? if (in_array('number', $view_filter)) : ?>
         <? $colspan++ ?>
-        <col width="5%">
+        <col width="8%">
     <? endif ?>
     <? if (in_array('name', $view_filter)) : ?>
         <? $colspan++ ?>
@@ -27,7 +27,7 @@
     <? endif ?>
     <? if (in_array('semester', $view_filter)) : ?>
         <? $colspan++ ?>
-        <col width="6%">
+        <col width="10%">
     <? endif ?>
     <? if (in_array('teachers', $view_filter)) : ?>
         <? $colspan++ ?>
@@ -35,7 +35,7 @@
     <? endif ?>
     <? if (in_array('members', $view_filter)) : ?>
         <? $colspan++ ?>
-        <col width="5%">
+        <col width="3%">
     <? endif ?>
     <? if (in_array('waiting', $view_filter)) : ?>
         <? $colspan++ ?>
@@ -47,13 +47,9 @@
     <? endif ?>
     <? if (in_array('contents', $view_filter)) : ?>
         <? $colspan++ ?>
-        <col width="7%">
+        <col width="8%">
     <? endif ?>
-    <? if (in_array('last_activity', $view_filter)) : ?>
-        <? $colspan++ ?>
-        <col width="10%">
-    <? endif ?>
-        <col width="5%">
+        <col width="15%">
     </colgroup>
     <caption>
         <? if (!$GLOBALS['user']->cfg->MY_COURSES_SELECTED_CYCLE || ($GLOBALS['user']->cfg->MY_COURSES_SELECTED_CYCLE === "all")) : ?>
@@ -147,11 +143,6 @@
         <? if (in_array('contents', $view_filter)) : ?>
             <th style="width: <?= $nav_elements * 27 ?>px">
                 <?= _('Inhalt') ?>
-            </th>
-        <? endif ?>
-        <? if (in_array('last_activity', $view_filter)) : ?>
-            <th style="width: <?= $nav_elements * 27 ?>px">
-                <?= _('letzte Aktivität') ?>
             </th>
         <? endif ?>
         <th style="text-align: center" class="actions">
@@ -294,13 +285,6 @@
                         <? echo ' ' ?>
                     <? endforeach ?>
                 <? endif ?>
-                </td>
-            <? endif ?>
-            <? if (in_array('last_activity', $view_filter)) : ?>
-                <td style="text-align: center;">
-                    <span title="<?=_('Datum der letzten Aktivität in dieser Veranstaltung')?>">
-                        <?= htmlReady($values['lastActivity']); ?>
-                    </span>
                 </td>
             <? endif ?>
             <td style="text-align: right;" class="actions">
