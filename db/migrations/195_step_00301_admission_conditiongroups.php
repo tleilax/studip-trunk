@@ -23,14 +23,14 @@ class Step00301AdmissionConditiongroups extends Migration
      * perform this migration
      */
     public function up()
-    {        
+    {
         DBManager::get()->exec('CREATE TABLE IF NOT EXISTS `admission_conditiongroup` (
-            `conditiongroup_id` varchar(32) COLLATE latin1_german1_ci NOT NULL,
+            `conditiongroup_id` varchar(32) NOT NULL,
             `quota` int(11) NOT NULL,
             PRIMARY KEY (`conditiongroup_id`)
-            ) DEFAULT CHARSET=latin1 COLLATE=latin1_german1_ci;');
-        
-        DBManager::get()->exec('ALTER TABLE `admission_condition` ADD `conditiongroup_id` VARCHAR( 32 ) NOT NULL AFTER `filter_id` ;');
+            ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC');
+
+        DBManager::get()->exec("ALTER TABLE `admission_condition` ADD `conditiongroup_id` VARCHAR( 32 ) NOT NULL DEFAULT '' AFTER `filter_id`");
     }
 
     /**
