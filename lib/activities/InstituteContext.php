@@ -30,7 +30,6 @@ class InstituteContext extends Context
         if (!$this->provider) {
             $institute = \Institute::find($this->institute_id);
 
-            // todo check which modules are active globally (participantprovider isn't suitable here?)
             $module_names = array('forum', 'documents', 'wiki', 'literature');
 
             // get list of possible providers by checking the activated plugins and modules for the current institute
@@ -47,15 +46,15 @@ class InstituteContext extends Context
             foreach ($module_names as $name) {
                 if (($activated_modules[$name] || $sem_class->isSlotMandatory($name))
                         && $sem_class->isModuleAllowed($sem_class->getSlotModule($name))) {
-                    $this->addProvider($name);
+                    $this->addProvider('Studip\Activity\\'. ucfirst($name) .'Provider');
                 }
             }
 
             //news
-            $this->addProvider('news');
+            $this->addProvider('Studip\Activity\NewsProvider');
 
             // add blubber-provider
-            $this->addProvider('blubber');
+            $this->addProvider('Studip\Activity\BlubberProvider');
 
             //plugins
             $standard_plugins = \PluginManager::getInstance()->getPlugins("StandardPlugin", $this->institute_id);

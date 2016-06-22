@@ -15,8 +15,8 @@ class SystemContext extends Context
      */
     protected function getProvider()
     {
-        $this->addProvider('news');
-        $this->addProvider('blubber');
+        $this->addProvider('Studip\Activity\NewsProvider');
+        $this->addProvider('Studip\Activity\BlubberProvider');
 
         return $this->provider;
     }

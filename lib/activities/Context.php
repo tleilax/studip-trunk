@@ -59,15 +59,15 @@ abstract class Context
     }
 
     /**
+     * Add a provider to this context
      *
-     * @param type $provider
+     * @param string $provider    the name for the provider
+     * @param string $class_name  the class that belongs to the provider
      */
-    protected function addProvider($provider)
+    protected function addProvider($class_name)
     {
-        $class_name = 'Studip\Activity\\' . ucfirst($provider) . 'Provider';
-
         $reflectionClass = new \ReflectionClass($class_name);
-        $this->provider[$provider] =  $reflectionClass->newInstanceArgs();
+        $this->provider[$class_name] =  $reflectionClass->newInstanceArgs();
     }
 
     /**
@@ -84,7 +84,8 @@ abstract class Context
             $filtered_providers = $providers;
         } else {
             foreach ($providers as $provider) {
-                $filtered_class = 'Studip\Activity\\' . ucfirst($filter->getType()) . 'Provider';
+                // $filtered_class = 'Studip\Activity\\' . ucfirst($filter->getType()) . 'Provider';
+                $filtered_class = $filter->getType();
 
                 if ($provider instanceof $filtered_class) {
                     $filtered_providers[] =  $provider;

@@ -37,12 +37,12 @@ class UserContext extends Context
     {
 
         if (!$this->provider) {
-            $this->addProvider('blubber'); // todo: check if active for given user
-            $this->addProvider('news');
-            $this->addProvider('message');
+            $this->addProvider('Studip\Activity\NewsProvider');
+            $this->addProvider('Studip\Activity\BlubberProvider');
+            $this->addProvider('Studip\Activity\MessageProvider');
 
             if (get_config('LITERATURE_ENABLE')) {
-                $this->addProvider('literature');
+                $this->addProvider('Studip\Activity\LiteratureProvider');
             }
 
             $homepage_plugins = \PluginEngine::getPlugins('HomepagePlugin');

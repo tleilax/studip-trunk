@@ -76,7 +76,7 @@ class WikiProvider implements ActivityProvider
 
         $activity = Activity::get(
             array(
-                'provider'     => 'wiki',
+                'provider'     => __CLASS__,
                 'context'      => $type === 'sem' ? 'course' : 'institute',
                 'context_id'   => $range_id,
                 'content'      => $summary,

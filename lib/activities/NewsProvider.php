@@ -70,7 +70,7 @@ class NewsProvider implements ActivityProvider
 
             $activity = Activity::get(
                 array(
-                    'provider'     => 'news',
+                    'provider'     => __CLASS__,
                     'context'      => $context,
                     'context_id'   => $context_id,
                     'content'      => NULL,

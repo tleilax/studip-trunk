@@ -40,7 +40,7 @@ class ParticipantsProvider implements ActivityProvider
 
         $activity = Activity::get(
             array(
-                'provider'     => 'participants',
+                'provider'     => __CLASS__,
                 'context'      => ($type == 'sem') ? 'course' : 'institute',
                 'context_id'   => $course_id,
                 'content'      => $summary,

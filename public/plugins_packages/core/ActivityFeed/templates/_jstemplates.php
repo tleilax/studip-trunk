@@ -28,23 +28,25 @@
     <section class="activity">
         <header>
             <span class="provider_circle <% if (activity.actor.id == user_id) { %>right<% } else { %>left<% } %>">
-            <% if (activity.provider === 'blubber') { %>
+            <% var treffer = activity.provider.match(/.*\\(.*)Provider/) %>
+            <% var provider = treffer[1].toLowerCase(); %>
+            <% if (provider === 'blubber') { %>
                 <?= Icon::create('blubber', 'info_alt')->asImg(32) ?>
-            <% } else if(activity.provider === 'documents') { %>
+            <% } else if(provider === 'documents') { %>
                 <?= Icon::create('files', 'info_alt')->asImg(32) ?>
-            <% } else if(activity.provider === 'forum') { %>
+            <% } else if(provider === 'forum') { %>
                 <?= Icon::create('forum', 'info_alt')->asImg(32) ?>
-            <% } else if(activity.provider === 'literature') { %>
+            <% } else if(provider === 'literature') { %>
                 <?= Icon::create('literature', 'info_alt')->asImg(32) ?>
-            <% } else if(activity.provider === 'message') { %>
+            <% } else if(provider === 'message') { %>
                 <?= Icon::create('mail', 'info_alt')->asImg(32) ?>
-            <% } else if(activity.provider === 'news') { %>
+            <% } else if(provider === 'news') { %>
                 <?= Icon::create('news', 'info_alt')->asImg(32) ?>
-            <% } else if(activity.provider === 'participants') { %>
+            <% } else if(provider === 'participants') { %>
                 <?= Icon::create('persons', 'info_alt')->asImg(32) ?>
-            <% } else if(activity.provider === 'schedule') { %>
+            <% } else if(provider === 'schedule') { %>
                 <?= Icon::create('schedule', 'info_alt')->asImg(32) ?>
-            <% } else if(activity.provider === 'wiki') { %>
+            <% } else if(provider === 'wiki') { %>
                 <?= Icon::create('wiki', 'info_alt')->asImg(32) ?>
             <% } else { %>
                 <?= Icon::create('activity', 'info_alt')->asImg(32) ?>

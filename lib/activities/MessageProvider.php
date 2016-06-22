@@ -17,7 +17,6 @@ class MessageProvider implements ActivityProvider
      */
     public function getActivityDetails(&$activity)
     {
-        ## TODO: if entry does not exist, clear out activity...
         $message = \Message::find($activity->object_id);
 
         $activity->content = formatReady($message->message);
@@ -47,7 +46,7 @@ class MessageProvider implements ActivityProvider
             // activity for receipent
             $activity = Activity::get(
                 array(
-                    'provider'     => 'message',
+                    'provider'     => __CLASS__,
                     'context'      => 'user',
                     'context_id'   => $rec_id,
                     'content'      => NULL,

@@ -18,7 +18,6 @@ class ForumProvider implements ActivityProvider
      */
     public function getActivityDetails(&$activity)
     {
-        ## TODO: if entry does not exist, clear out activity...
         $post = \ForumEntry::getEntry($activity->object_id);
 
         $activity->content = formatReady($post['content']);

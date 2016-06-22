@@ -46,7 +46,7 @@ class BlubberProvider implements ActivityProvider
     {
         $activity = Activity::get(
             array(
-                'provider'     => 'blubber',
+                'provider'     => __CLASS__,
                 'context'      => $context,
                 'context_id'   => $context_id,
                 'title'        => '',

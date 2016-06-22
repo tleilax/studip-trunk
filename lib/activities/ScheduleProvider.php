@@ -19,7 +19,6 @@ class ScheduleProvider implements ActivityProvider
     {
         $activity->content = $activity->content;
 
-        //todo fix url and route
         $url = \URLHelper::getUrl("dispatch.php/course/dates?cid={$activity->context_id}");
         $route = \URLHelper::getURL('api.php/course/' . $activity->context_id . '/events', NULL, true);
 
@@ -42,8 +41,6 @@ class ScheduleProvider implements ActivityProvider
 
         $range_id = $info['seminar_id'];
 
-        //todo info to store in acitvity
-
         $type = get_object_type($range_id);
         if ($type == 'sem') {
             $course = \Course::find($range_id);
@@ -60,7 +57,7 @@ class ScheduleProvider implements ActivityProvider
 
         $activity = Activity::get(
             array(
-                'provider'     => 'schedule',
+                'provider'     => __CLASS__,
                 'context'      => ($type == 'sem') ? 'course' : 'institute',
                 'context_id'   => $range_id,
                 'content'      => $summary,

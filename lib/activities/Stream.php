@@ -129,10 +129,10 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
             $activities[$key] = $activity->asArray();
 
             // add i18n auto generated title prefix
-            ## TODO: switch between actor-types
             $title = '';
 
-            $class       = '\\Studip\\Activity\\' . ucfirst($activity->provider) . 'Provider';
+            // $class       = '\\Studip\\Activity\\' . ucfirst($activity->provider) . 'Provider';
+            $class       = $activity->provider;
             $object_text = $class::getLexicalField();
 
             if (in_array($activity->actor_id, array('____%system%____', 'system')) !== false) {

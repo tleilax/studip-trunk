@@ -31,7 +31,6 @@ class CourseContext extends Context
         if (!$this->provider) {
             $course = \Course::find($this->seminar_id);
 
-            // todo check which modules are active globally
             $module_names = array('forum', 'participants', 'documents', 'wiki', 'schedule', 'literature');
 
             // get list of possible providers by checking the activated plugins
@@ -48,18 +47,18 @@ class CourseContext extends Context
             foreach ($module_names as $name) {
                 if (($activated_modules[$name] || $sem_class->isSlotMandatory($name))
                         && $sem_class->isModuleAllowed($sem_class->getSlotModule($name))) {
-                    # todo check if module is active or not
+
                     if ($modules->checkLocal($name, $this->seminar_id)) {
-                        $this->addProvider($name);
+                        $this->addProvider('Studip\Activity\\'. ucfirst($name) .'Provider');
                     }
                 }
             }
 
             //news
-            $this->addProvider('news');
+            $this->addProvider('Studip\Activity\NewsProvider');
 
             // add blubber-provider
-            $this->addProvider('blubber');
+            $this->addProvider('Studip\Activity\BlubberProvider');
 
             //plugins
             $standard_plugins = \PluginManager::getInstance()->getPlugins("StandardPlugin", $this->seminar_id);

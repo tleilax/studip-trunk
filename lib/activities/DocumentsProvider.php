@@ -81,7 +81,7 @@ class DocumentsProvider implements ActivityProvider
 
         $activity = Activity::get(
             array(
-                'provider'     => 'documents',
+                'provider'     => __CLASS__,
                 'context'      => ($type == 'sem') ? 'course' : 'institute',
                 'context_id'   => $course_id,
                 'content'      => $summary,

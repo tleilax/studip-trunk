@@ -106,7 +106,7 @@ class ForumActivity
 
         $activity = Studip\Activity\Activity::get(
             array(
-                'provider'     => 'forum',
+                'provider'     => __CLASS__,
                 'context'      => $type === 'sem' ? 'course' : 'institute',
                 'context_id'   => $post['seminar_id'],
                 'content'      => null,
