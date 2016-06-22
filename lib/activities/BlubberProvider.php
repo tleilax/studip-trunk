@@ -20,7 +20,6 @@ class BlubberProvider implements ActivityProvider
      */
     public function getActivityDetails(&$activity)
     {
-        ## TODO: if entry does not exist, clear out activity...
         $blubb = \BlubberPosting::find($activity->object_id);
 
         $activity->content = formatReady($blubb->description);
