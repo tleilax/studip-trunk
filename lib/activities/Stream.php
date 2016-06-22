@@ -47,7 +47,7 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
 
         $new_activities = array();
 
-        foreach ($activities as $key => $activity) {
+        foreach ($activities as $activity) {
             // generate an id for the activity, considering some basic object parameters
             $id = md5($activity->provider . $activity->content .
                     $activity->verb . $activity->object_type . $activity->mkdate);
@@ -62,15 +62,8 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
 
         // sort activites by their mkdate
         usort($new_activities, function($a, $b) {
-            if ($a->mkdate == $b->mkdate) {
-                return 0;
-            }
-
-            return ($a->mkdate > $b->mkdate) ? -1 : 1;
+            return $b->mkdate - $a->mkdate;
         });
-
-        // finally sort the activite-list by day
-        ksort($new_activities, SORT_NATURAL);
 
         $this->activities = $new_activities;
     }
