@@ -31,7 +31,14 @@ abstract class Context
      *
      * @return string
      */
-    abstract protected function getContextType();
+    abstract public function getContextType();
+
+        /**
+     * get type of context (f.e. user, system, course, institute, ...)
+     *
+     * @return string
+     */
+    abstract public function getContextFullname($format = 'default');
 
     /**
      * get list of activities as array for the current context
@@ -42,19 +49,19 @@ abstract class Context
      */
     public function getActivities(Filter $filter)
     {
-        $providers = $this->filterProvider($this->getProvider(), $filter);
-
         $activities = Activity::findBySQL('context = ? AND context_id = ?  AND mkdate >= ? AND mkdate <= ? ORDER BY mkdate DESC',
             array($this->getContextType(), $this->getRangeId(), $filter->getStartDate(), $filter->getEndDate()));
-
-        foreach ($activities as $key => $activity) {
-            if (isset($providers[$activity->provider])) {                        // provider is available
-                $providers[$activity->provider]->getActivityDetails($activity);
-            } else {
-                unset($activities[$key]);
+        if (count($activities)) {
+            $providers = $this->filterProvider($this->getProvider(), $filter);
+            foreach ($activities as $key => $activity) {
+                if (isset($providers[$activity->provider])) {                        // provider is available
+                    $providers[$activity->provider]->getActivityDetails($activity);
+                    $activity->setContextObject($this);
+                } else {
+                    unset($activities[$key]);
+                }
             }
         }
-
         return array_flatten($activities);
     }
 

@@ -10,16 +10,16 @@ namespace Studip\Activity;
 
 class InstituteContext extends Context
 {
-    private $institute_id;
+    private $institute;
 
     /**
      * create new institute-context
      *
      * @param string $institute_id
      */
-    public function __construct($institute_id)
+    public function __construct($institute)
     {
-        $this->institute_id = $institute_id;
+        $this->institute = $institute;
     }
 
     /**
@@ -28,26 +28,17 @@ class InstituteContext extends Context
     protected function getProvider()
     {
         if (!$this->provider) {
-            $institute = \Institute::find($this->institute_id);
+            $institute = $this->institute;
 
             $module_names = array('forum', 'documents', 'wiki', 'literature');
 
             // get list of possible providers by checking the activated plugins and modules for the current institute
             $modules = new \Modules();
-            $activated_modules = $modules->getLocalModules($institute->institut_id, 'inst', $institute->modules, $institute->type ? : 1);
-
-
-            $sem_class = $GLOBALS['SEM_CLASS'][$GLOBALS['SEM_TYPE'][1]['class']];
-            if (!$sem_class) {
-                $sem_class = \SemClass::getDefaultSemClass();
-            }
+            $activated_modules = array_keys(array_filter($modules->getLocalModules($institute->institut_id, 'inst', $institute->modules, $institute->type ? : 1)));
 
             // check modules
-            foreach ($module_names as $name) {
-                if (($activated_modules[$name] || $sem_class->isSlotMandatory($name))
-                        && $sem_class->isModuleAllowed($sem_class->getSlotModule($name))) {
-                    $this->addProvider('Studip\Activity\\'. ucfirst($name) .'Provider');
-                }
+            foreach (array_intersect($module_names, $activated_modules) as $name) {
+                $this->addProvider('Studip\Activity\\'. ucfirst($name) .'Provider');
             }
 
             //news
@@ -56,8 +47,10 @@ class InstituteContext extends Context
             // add blubber-provider
             $this->addProvider('Studip\Activity\BlubberProvider');
 
+            $sem_class = \SemClass::getDefaultInstituteClass($institute->type ?: 1);
+
             //plugins
-            $standard_plugins = \PluginManager::getInstance()->getPlugins("StandardPlugin", $this->institute_id);
+            $standard_plugins = \PluginManager::getInstance()->getPlugins("StandardPlugin", $institute->id);
             foreach ($standard_plugins as $plugin) {
                 if (!$sem_class->isSlotModule(get_class($plugin))) {
                     if ($plugin instanceof \Studip\ActivityProvider) {
@@ -75,14 +68,22 @@ class InstituteContext extends Context
      */
     public function getRangeId()
     {
-        return $this->institute_id;
+        return $this->institute->id;
     }
 
     /**
      * {@inheritdoc}
      */
-    protected function getContextType()
+    public function getContextType()
     {
         return 'institute';
+    }
+
+        /**
+     * {@inheritdoc}
+     */
+    public function getContextFullname($format = 'default')
+    {
+        return $this->institute->getFullname($format);
     }
 }

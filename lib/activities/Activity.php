@@ -14,6 +14,8 @@ class Activity extends \SimpleORMap
         $object_url,
         $object_route;
 
+    private $context_object;
+
     const GC_MAX_DAYS = 366; // Garbage collector removes activities after 366 days
 
     private static $allowed_verbs = array(
@@ -104,6 +106,16 @@ class Activity extends \SimpleORMap
         return $this->object_route;
     }
 
+    public function setContextObject(Context $context)
+    {
+        $this->context_object = $context;
+    }
+
+    public function getContextObject()
+    {
+        return $this->context_object;
+    }
+
     /**
      * returns a format string as placeholder for the object in question
      * (in a grammatical / lexical sense)
@@ -146,3 +158,4 @@ class Activity extends \SimpleORMap
         );
     }
 }
+

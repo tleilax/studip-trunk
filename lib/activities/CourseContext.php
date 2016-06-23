@@ -11,16 +11,16 @@ namespace Studip\Activity;
 class CourseContext extends Context
 {
     private
-        $seminar_id;
+        $course;
 
     /**
      * create new course-context
      *
      * @param string $seminar_id
      */
-    function __construct($seminar_id)
+    function __construct($course)
     {
-        $this->seminar_id = $seminar_id;
+        $this->course = $course;
     }
 
     /**
@@ -29,29 +29,18 @@ class CourseContext extends Context
     protected function getProvider()
     {
         if (!$this->provider) {
-            $course = \Course::find($this->seminar_id);
+            $course = $this->course;
 
             $module_names = array('forum', 'participants', 'documents', 'wiki', 'schedule', 'literature');
 
             // get list of possible providers by checking the activated plugins
             // and modules for the current seminar
             $modules = new \Modules();
-            $activated_modules = $modules->getLocalModules($this->seminar_id, 'sem', false, $course->status);
-
-            $sem_class = $GLOBALS['SEM_CLASS'][$GLOBALS['SEM_TYPE'][$course->status]['class']];
-            if (!$sem_class) {
-                $sem_class = \SemClass::getDefaultSemClass();
-            }
+            $activated_modules = array_keys(array_filter($modules->getLocalModules($course->id, 'sem', $course->modules, $course->status ?: 1)));
 
             // check modules
-            foreach ($module_names as $name) {
-                if (($activated_modules[$name] || $sem_class->isSlotMandatory($name))
-                        && $sem_class->isModuleAllowed($sem_class->getSlotModule($name))) {
-
-                    if ($modules->checkLocal($name, $this->seminar_id)) {
-                        $this->addProvider('Studip\Activity\\'. ucfirst($name) .'Provider');
-                    }
-                }
+            foreach (array_intersect($module_names, $activated_modules) as $name) {
+                $this->addProvider('Studip\Activity\\'. ucfirst($name) .'Provider');
             }
 
             //news
@@ -61,10 +50,10 @@ class CourseContext extends Context
             $this->addProvider('Studip\Activity\BlubberProvider');
 
             //plugins
-            $standard_plugins = \PluginManager::getInstance()->getPlugins("StandardPlugin", $this->seminar_id);
+            $standard_plugins = \PluginManager::getInstance()->getPlugins("StandardPlugin", $course->id);
             foreach ($standard_plugins as $plugin) {
-                if (!$sem_class->isSlotModule(get_class($plugin))) {
-                    if ($plugin instanceof \Studip\ActivityProvider) {
+                if (!$course->getSemClass()->isSlotModule(get_class($plugin))) {
+                    if ($plugin instanceof \Studip\Activity\ActivityProvider) {
                         $this->provider[$plugin->getPluginName()] = $plugin;
                     }
                 }
@@ -79,14 +68,22 @@ class CourseContext extends Context
      */
     public function getRangeId()
     {
-        return $this->seminar_id;
+        return $this->course->id;
     }
 
     /**
      * {@inheritdoc}
      */
-    protected function getContextType()
+    public function getContextType()
     {
         return 'course';
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getContextFullname($format = 'default')
+    {
+        return $this->course->getFullname($format);
     }
 }

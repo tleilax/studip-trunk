@@ -32,8 +32,16 @@ class SystemContext extends Context
     /**
      * {@inheritdoc}
      */
-    protected function getContextType()
+    public function getContextType()
     {
         return 'system';
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getContextFullname($format = 'default')
+    {
+        return _('Stud.IP');
     }
 }

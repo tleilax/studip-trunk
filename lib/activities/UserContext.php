@@ -10,16 +10,16 @@ namespace Studip\Activity;
 
 class UserContext extends Context
 {
-    private $user_id;
+    private $user;
 
     /**
      * create new user-context
      *
      * @param string $user_id
      */
-    public function __construct($user_id)
+    public function __construct($user)
     {
-        $this->user_id = $user_id;
+        $this->user = $user;
     }
 
     /**
@@ -27,7 +27,7 @@ class UserContext extends Context
      */
     public function getRangeId()
     {
-        return $this->user_id;
+        return $this->user->id;
     }
 
     /**
@@ -47,7 +47,7 @@ class UserContext extends Context
 
             $homepage_plugins = \PluginEngine::getPlugins('HomepagePlugin');
             foreach ($homepage_plugins as $plugin) {
-                if ($plugin->isActivated($this->user_id, 'user')) {
+                if ($plugin->isActivated($this->user->id, 'user')) {
                     if ($plugin instanceof \Studip\ActivityProvider) {
                         $this->provider[] = $plugin;
                     }
@@ -59,10 +59,18 @@ class UserContext extends Context
     }
 
     /**
-     * {@inheritdoc}
-     */
-    protected function getContextType()
+    * {@inheritdoc}
+    */
+    public function getContextType()
     {
         return 'user';
+    }
+
+    /**
+    * {@inheritdoc}
+    */
+    public function getContextFullname($format = 'default')
+    {
+        return $this->user->getFullname($format);
     }
 }

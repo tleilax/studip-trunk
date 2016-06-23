@@ -140,23 +140,20 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
             } else {
                 $actor = get_fullname($activity->actor_id);
             }
+            $context_name = $activity->getContextObject()->getContextFullname();
 
             switch ($activity->context) {
                 case 'course':
-                    $obj = get_object_name($activity->context_id, 'sem');
-
                     $title = $actor .' '
                         . sprintf($activity->verbToText(),
-                            $object_text . sprintf(_(' im Kurs "%s"'), $obj['name'])
+                            $object_text . sprintf(_(' im Kurs "%s"'), $context_name)
                         );
                 break;
 
                 case 'institute':
-                    $obj = get_object_name($activity->context_id, 'inst');
-
                     $title = $actor .' '
                         . sprintf($activity->verbToText(),
-                            $object_text . sprintf(_(' in der Einrichtung "%s"'), $obj['name'])
+                            $object_text . sprintf(_(' in der Einrichtung "%s"'), $context_name)
                         );
                 break;
 
@@ -168,7 +165,7 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
 
                 case 'user':
                     $title = $actor .' '
-                        . sprintf($activity->verbToText(), get_fullname($activity->context_id)) .' '
+                        . sprintf($activity->verbToText(), $context_name) .' '
                         . $object_text;
                 break;
 
