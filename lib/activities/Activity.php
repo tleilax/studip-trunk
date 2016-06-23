@@ -89,7 +89,7 @@ class Activity extends \SimpleORMap
      *
      * @return Array
      */
-    function getUrlList()
+    public function getUrlList()
     {
         return $this->object_url ?: array();
     }
@@ -99,7 +99,7 @@ class Activity extends \SimpleORMap
      *
      * @return string
      */
-    function getRoute()
+    public function getRoute()
     {
         return $this->object_route;
     }
