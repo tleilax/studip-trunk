@@ -37,13 +37,20 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
             throw new \InvalidArgumentException();
         }
 
+        //fetch avaible contextes in given timespan
+        $available_contexts = \DbManager::get()->fetchGroupedPairs(
+            "SELECT DISTINCT context,context_id FROM activities WHERE mkdate BETWEEN ? AND ?",
+            array($filter->getStartDate(), $filter->getEndDate()));
 
-        $activities = array_flatten(array_map(
-            function ($context) use ($filter) {
-                return $context->getActivities($filter);
-            }, $contexts)
-        );
-
+        //fetch activities only for contextes with known activities
+        $activities = array_flatten(array_values(array_filter(array_map(
+            function ($context) use ($filter, $available_contexts) {
+                if (isset($available_contexts[$context->getContextType()])
+                    && in_array($context->getRangeId(), $available_contexts[$context->getContextType()])) {
+                        return $context->getActivities($filter);
+                }
+            }, $contexts))
+        ));
 
         $new_activities = array();
 
