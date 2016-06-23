@@ -121,12 +121,12 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
      *
      * @return array
      */
-    public function asArray()
+    public function toArray()
     {
         $activities = array();
 
         foreach ($this as $key => $activity) {
-            $activities[$key] = $activity->asArray();
+            $activities[$key] = $activity->toArray();
 
             // add i18n auto generated title prefix
             $title = '';

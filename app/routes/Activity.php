@@ -78,7 +78,7 @@ class Activity extends \RESTAPI\RouteMap
         // set etag for preventing resending the same stuff over and over again
         $this->etag(md5(serialize($stream)));
 
-        $data = $stream->asArray();
+        $data = $stream->toArray();
 
         foreach ($data as $key => $act) {
             $actor = array(

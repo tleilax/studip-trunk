@@ -84,9 +84,9 @@ class Activity extends \SimpleORMap
      *
      * @return Array
      */
-    public function asArray()
+    public function toArray()
     {
-        $data = $this->toArray();
+        $data = parent::toArray();
 
         $data['object_url'] = $this->object_url;
         $data['object_route'] = $this->object_route;
