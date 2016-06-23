@@ -60,7 +60,6 @@ class BlubberProvider implements ActivityProvider
             )
         );
 
-        $activity->store();
     }
 
     /**

@@ -40,13 +40,15 @@ class Activity extends \SimpleORMap
     protected static function configure($config = array())
     {
         $config['db_table'] = 'activities';
+        $config['additional_fields']['object_url'] = ['get' => 'getUrlList'];
+        $config['additional_fields']['object_route'] = ['get' => 'getRoute'];
 
         parent::configure($config);
     }
 
     /**
      * return a string representation for this activity
-     * 
+     *
      * @return string
      */
     public function __toString()
@@ -58,7 +60,7 @@ class Activity extends \SimpleORMap
      * set one of the allowed verbs
      *
      * @param string $verb
-     * 
+     *
      * @throws \InvalidArgumentException
      */
     public function setVerb($verb)
@@ -82,18 +84,24 @@ class Activity extends \SimpleORMap
     }
 
     /**
-     * Return objet in an array representation
+     * Return assoc array of urls
+     * [[url => description]]
      *
      * @return Array
      */
-    public function toArray()
+    function getUrlList()
     {
-        $data = parent::toArray();
+        return $this->object_url ?: array();
+    }
 
-        $data['object_url'] = $this->object_url;
-        $data['object_route'] = $this->object_route;
-
-        return $data;
+    /**
+     * Return api route of the content object
+     *
+     * @return string
+     */
+    function getRoute()
+    {
+        return $this->object_route;
     }
 
     /**

@@ -70,7 +70,6 @@ class ScheduleProvider implements ActivityProvider
             )
         );
 
-        $activity->store();
     }
 
     /**

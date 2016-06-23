@@ -89,7 +89,6 @@ class WikiProvider implements ActivityProvider
             )
         );
 
-        $activity->store();
     }
 
     /**

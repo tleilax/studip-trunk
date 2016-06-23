@@ -53,7 +53,6 @@ class ParticipantsProvider implements ActivityProvider
             )
         );
 
-        $activity->store();
     }
 
     /**

@@ -104,7 +104,7 @@ class ForumActivity
 
         $obj = get_object_name($range_id, $type);
 
-        $activity = Studip\Activity\Activity::get(
+        $activity = Studip\Activity\Activity::create(
             array(
                 'provider'     => __CLASS__,
                 'context'      => $type === 'sem' ? 'course' : 'institute',
@@ -119,6 +119,5 @@ class ForumActivity
             )
         );
 
-        $activity->store();
     }
 }

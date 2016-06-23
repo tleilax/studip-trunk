@@ -94,7 +94,6 @@ class DocumentsProvider implements ActivityProvider
             )
         );
 
-        $activity->store();
     }
 
     /**

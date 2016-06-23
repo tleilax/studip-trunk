@@ -83,7 +83,6 @@ class NewsProvider implements ActivityProvider
                 )
             );
 
-            $activity->store();
         }
     }
 

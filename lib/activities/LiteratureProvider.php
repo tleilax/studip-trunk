@@ -101,7 +101,6 @@ class LiteratureProvider implements ActivityProvider
             )
         );
 
-        $activity->store();
     }
 
     /**

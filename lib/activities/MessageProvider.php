@@ -60,9 +60,8 @@ class MessageProvider implements ActivityProvider
             );
         }
 
-        $activity->store();
     }
-    
+
     /**
      * {@inheritdoc}
      */
