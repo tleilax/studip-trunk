@@ -14,6 +14,8 @@ class Activity extends \SimpleORMap
         $object_url,
         $object_route;
 
+    const GC_MAX_DAYS = 366; // Garbage collector removes activities after 366 days
+
     private static $allowed_verbs = array(
         'answered',
         'attempted',
@@ -121,5 +123,18 @@ class Activity extends \SimpleORMap
         );
 
         return ($translation[$this->verb]);
+    }
+
+     /**
+     * Garbage collector for the activities.
+     * Removes all activites older than GC_MAX_DAYS (default: 366).
+     */
+    public static function doGarbageCollect()
+    {
+        $stmt = DBManager::get()->prepare('DELETE FROM activities WHERE mkdate < ?');
+
+        $stmt->execute(array(
+            time() - self::GC_MAX_DAYS * 24 * 60 * 60)
+        );
     }
 }

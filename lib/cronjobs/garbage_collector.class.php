@@ -67,6 +67,8 @@ class GarbageCollectorJob extends CronJob
 
         PersonalNotifications::doGarbageCollect();
 
+        Activity::doGarbageCollect();
+
         // Remove old plugin assets
         PluginAsset::deleteBySQL('chdate < ?', array(time() - PluginAsset::CACHE_DURATION));
 
