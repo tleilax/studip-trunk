@@ -139,7 +139,7 @@ class Activity extends \SimpleORMap
      */
     public static function doGarbageCollect()
     {
-        $stmt = DBManager::get()->prepare('DELETE FROM activities WHERE mkdate < ?');
+        $stmt = \DBManager::get()->prepare('DELETE FROM activities WHERE mkdate < ?');
 
         $stmt->execute(array(
             time() - self::GC_MAX_DAYS * 24 * 60 * 60)
