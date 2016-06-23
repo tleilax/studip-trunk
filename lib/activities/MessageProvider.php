@@ -15,7 +15,7 @@ class MessageProvider implements ActivityProvider
      *
      * @param object $activity the acitivty to fill with details, passed by reference
      */
-    public function getActivityDetails(&$activity)
+    public function getActivityDetails($activity)
     {
         $message = \Message::find($activity->object_id);
 

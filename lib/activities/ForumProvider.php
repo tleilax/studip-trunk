@@ -16,7 +16,7 @@ class ForumProvider implements ActivityProvider
      *
      * @param object $activity the activity to fill with details, passed by reference
      */
-    public function getActivityDetails(&$activity)
+    public function getActivityDetails($activity)
     {
         $post = \ForumEntry::getEntry($activity->object_id);
 

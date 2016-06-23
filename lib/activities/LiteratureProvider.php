@@ -15,7 +15,7 @@ class LiteratureProvider implements ActivityProvider
      *
      * @param object $activity the activity to fill with details, passed by reference
      */
-    public function getActivityDetails(&$activity)
+    public function getActivityDetails($activity)
     {
         if ($activity->context == "course") {
 

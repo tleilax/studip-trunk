@@ -16,7 +16,7 @@ interface ActivityProvider
      *
      * @param Studip\Activity\Activity $activity
      */
-    public function getActivityDetails(&$activity);
+    public function getActivityDetails($activity);
 
     /**
      * Human readable name for the current provider to be used in the activity-title

@@ -15,7 +15,7 @@ class WikiProvider implements ActivityProvider
      *
      * @param object $activity the activity to fill with details, passed by reference
      */
-    public function getActivityDetails(&$activity)
+    public function getActivityDetails($activity)
     {
         if ($activity->context == "course") {
             $url = \URLHelper::getUrl("wiki.php?cid={$activity->context_id}&keyword={$activity->object_id}");

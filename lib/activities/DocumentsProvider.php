@@ -16,7 +16,7 @@ class DocumentsProvider implements ActivityProvider
      *
      * @param object $activity the activity to fill with details, passed by reference
      */
-    public function getActivityDetails(&$activity)
+    public function getActivityDetails($activity)
     {
         if ($activity->context == "course") {
             $url = \URLHelper::getUrl("folder.php?cid={$activity->context_id}&cmd=tree&open={$activity->object_id}");

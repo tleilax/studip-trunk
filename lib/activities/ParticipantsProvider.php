@@ -61,7 +61,7 @@ class ParticipantsProvider implements ActivityProvider
      *
      * @param object $activity the activity to fill with details, passed by reference
      */
-    public function getActivityDetails(&$activity)
+    public function getActivityDetails($activity)
     {
         $activity->content = $activity->content;
 
