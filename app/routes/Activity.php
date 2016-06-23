@@ -28,35 +28,27 @@ class Activity extends \RESTAPI\RouteMap
 
         $contexts = array();
 
+        $user = \User::find($user_id);
+
         // create system context
         $system_context = new \Studip\Activity\SystemContext();
         $contexts[] = $system_context;
 
+        $contexts[] = new \Studip\Activity\UserContext($user);
+        $user->contacts->each(function($another_user) use (&$contexts) {
+            $contexts[] = new \Studip\Activity\UserContext($another_user);
+        });
 
-        // create courses and institutes context
-        $semesters   = \MyRealmModel::getSelectedSemesters('all');
-        $min_sem_key = min($semesters);
-        $max_sem_key = max($semesters);
-
-        $courses = \MyRealmModel::getCourses($min_sem_key, $max_sem_key);
-
-        foreach ($courses as $course) {
-            $contexts[] = new \Studip\Activity\CourseContext($course->seminar_id);
-        }
-
-        $institutes = \MyRealmModel::getMyInstitutes();
-        if (!$GLOBALS['perm']->have_perm('root') && !empty($institutes)) {
-            foreach($institutes as $institute){
-                $contexts[] = new \Studip\Activity\InstituteContext($institute['institut_id']);
+        if (!in_array($user->perms, ['admin','root'])) {
+            // create courses and institutes context
+            foreach (\Course::findMany($user->course_memberships->pluck('seminar_id')) as $course) {
+                    $contexts[] = new \Studip\Activity\CourseContext($course);
+            }
+            foreach (\Institute::findMany($user->institute_memberships->pluck('institut_id')) as $institute) {
+                $contexts[] = new \Studip\Activity\InstituteContext($institute);
             }
         }
 
-        $contexts[] = new \Studip\Activity\UserContext($GLOBALS['user']->id);
-        $contacts = \User::findCurrent()->contacts;
-
-        foreach ($contacts as $contact) {
-            $contexts[] = new \Studip\Activity\UserContext($contact->id);
-        }
 
         // add filters
         $filter = new \Studip\Activity\Filter();
@@ -75,10 +67,9 @@ class Activity extends \RESTAPI\RouteMap
 
         $stream = new \Studip\Activity\Stream($contexts, $filter);
 
-        // set etag for preventing resending the same stuff over and over again
-        $this->etag(md5(serialize($stream)));
-
         $data = $stream->toArray();
+        // set etag for preventing resending the same stuff over and over again
+        $this->etag(md5(serialize($data)));
 
         foreach ($data as $key => $act) {
             $actor = array(
