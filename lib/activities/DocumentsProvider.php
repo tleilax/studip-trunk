@@ -79,7 +79,7 @@ class DocumentsProvider implements ActivityProvider
         }
 
 
-        $activity = Activity::get(
+        $activity = Activity::create(
             array(
                 'provider'     => __CLASS__,
                 'context'      => ($type == 'sem') ? 'course' : 'institute',

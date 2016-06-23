@@ -55,7 +55,7 @@ class ScheduleProvider implements ActivityProvider
             $summary = sprintf($summary, $course->name, get_fullname($user_id));
         }
 
-        $activity = Activity::get(
+        $activity = Activity::create(
             array(
                 'provider'     => __CLASS__,
                 'context'      => ($type == 'sem') ? 'course' : 'institute',

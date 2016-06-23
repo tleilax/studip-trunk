@@ -44,7 +44,7 @@ class BlubberProvider implements ActivityProvider
      */
     private static function doPostActivity($context, $context_id, $blubb)
     {
-        $activity = Activity::get(
+        $activity = Activity::create(
             array(
                 'provider'     => __CLASS__,
                 'context'      => $context,

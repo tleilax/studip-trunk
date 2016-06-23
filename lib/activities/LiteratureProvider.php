@@ -86,7 +86,7 @@ class LiteratureProvider implements ActivityProvider
 
         $summary = sprintf($summary, $name, get_fullname($user_id), $context_clean , $course->name);
 
-        $activity = Activity::get(
+        $activity = Activity::create(
             array(
                 'provider'     => __CLASS__,
                 'context'      => ($type == 'sem') ? 'course' : 'institute',

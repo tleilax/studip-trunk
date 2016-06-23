@@ -38,7 +38,7 @@ class ParticipantsProvider implements ActivityProvider
 
         $type = get_object_type($course_id);
 
-        $activity = Activity::get(
+        $activity = Activity::create(
             array(
                 'provider'     => __CLASS__,
                 'context'      => ($type == 'sem') ? 'course' : 'institute',

@@ -68,7 +68,7 @@ class NewsProvider implements ActivityProvider
                 case 'global': $context = 'system'; $context_id = 'system';break;
             }
 
-            $activity = Activity::get(
+            $activity = Activity::create(
                 array(
                     'provider'     => __CLASS__,
                     'context'      => $context,

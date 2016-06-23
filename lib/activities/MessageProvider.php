@@ -44,7 +44,7 @@ class MessageProvider implements ActivityProvider
         foreach ($data['rec_id'] as $rec_id) {
 
             // activity for receipent
-            $activity = Activity::get(
+            $activity = Activity::create(
                 array(
                     'provider'     => __CLASS__,
                     'context'      => 'user',

@@ -43,28 +43,13 @@ class Activity extends \SimpleORMap
     }
 
     /**
-     * create new activity from passed data
-     *
-     * @param Array $data  Array of data to used for new activity-object, key is the field name
-     * 
-     * @return \Studip\Activity\Activity
-     */
-    public static function get($data)
-    {
-        $activity = new Activity();
-        $activity->setData($data);
-
-        return $activity;
-    }
-
-    /**
      * return a string representation for this activity
      * 
      * @return string
      */
     public function __toString()
     {
-        return $this->content;
+        return $this->content['content'];
     }
 
     /**
