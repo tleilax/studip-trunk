@@ -17,9 +17,10 @@ class UserContext extends Context
      *
      * @param string $user_id
      */
-    public function __construct($user)
+    public function __construct($user, $observer)
     {
         $this->user = $user;
+        $this->observer = $observer;
     }
 
     /**

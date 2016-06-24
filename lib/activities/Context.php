@@ -10,7 +10,10 @@ namespace Studip\Activity;
 
 abstract class Context
 {
-    protected $provider;
+    protected
+        $provider,
+        $observer;
+
 
     /**
      * return array, listing all active providers in this context
@@ -33,12 +36,22 @@ abstract class Context
      */
     abstract public function getContextType();
 
-        /**
+    /**
      * get type of context (f.e. user, system, course, institute, ...)
      *
      * @return string
      */
     abstract public function getContextFullname($format = 'default');
+
+    /**
+     * Return user for who wants to watch his and related activities
+     * 
+     * @return object  a user object
+     */
+    public function getObserver()
+    {
+        return $this->observer;
+    }
 
     /**
      * get list of activities as array for the current context
@@ -55,8 +68,10 @@ abstract class Context
             $providers = $this->filterProvider($this->getProvider(), $filter);
             foreach ($activities as $key => $activity) {
                 if (isset($providers[$activity->provider])) {                        // provider is available
-                    $providers[$activity->provider]->getActivityDetails($activity);
                     $activity->setContextObject($this);
+                    if (!$providers[$activity->provider]->getActivityDetails($activity)) {
+                        unset($activities[$key]);
+                    }
                 } else {
                     unset($activities[$key]);
                 }

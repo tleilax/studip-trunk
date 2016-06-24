@@ -18,6 +18,13 @@ class DocumentsProvider implements ActivityProvider
      */
     public function getActivityDetails($activity)
     {
+        $document = \StudipDocument::find($activity->object_id);
+
+        // check, if current observer has access to document
+        if (!$document || !$document->checkAccess($activity->getContextObject()->getObserver()->id)) {
+            return false;
+        }
+
         if ($activity->context == "course") {
             $url = \URLHelper::getUrl("folder.php?cid={$activity->context_id}&cmd=tree&open={$activity->object_id}");
             $route = \URLHelper::getURL('api.php/file/' . $activity->object_id, NULL, true);
@@ -35,6 +42,8 @@ class DocumentsProvider implements ActivityProvider
         }
 
         $activity->object_route = $route;
+
+        return true;
     }
 
     /**

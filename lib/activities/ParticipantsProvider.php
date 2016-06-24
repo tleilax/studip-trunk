@@ -73,6 +73,8 @@ class ParticipantsProvider implements ActivityProvider
         );
 
         $activity->object_route = $route;
+
+        return true;
     }
 
     /**

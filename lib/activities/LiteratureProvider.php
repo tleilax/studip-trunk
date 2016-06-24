@@ -38,6 +38,8 @@ class LiteratureProvider implements ActivityProvider
 
             $activity->object_route = $route;
         }
+
+        return true;
     }
 
 

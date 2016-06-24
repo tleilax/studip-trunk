@@ -18,9 +18,10 @@ class CourseContext extends Context
      *
      * @param string $seminar_id
      */
-    function __construct($course)
+    function __construct($course, $observer)
     {
         $this->course = $course;
+        $this->observer = $observer;
     }
 
     /**

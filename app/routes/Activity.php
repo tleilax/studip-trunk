@@ -31,21 +31,21 @@ class Activity extends \RESTAPI\RouteMap
         $user = \User::find($user_id);
 
         // create system context
-        $system_context = new \Studip\Activity\SystemContext();
+        $system_context = new \Studip\Activity\SystemContext($user);
         $contexts[] = $system_context;
 
-        $contexts[] = new \Studip\Activity\UserContext($user);
-        $user->contacts->each(function($another_user) use (&$contexts) {
-            $contexts[] = new \Studip\Activity\UserContext($another_user);
+        $contexts[] = new \Studip\Activity\UserContext($user, $user);
+        $user->contacts->each(function($another_user) use (&$contexts, $user) {
+            $contexts[] = new \Studip\Activity\UserContext($another_user, $user);
         });
 
         if (!in_array($user->perms, ['admin','root'])) {
             // create courses and institutes context
             foreach (\Course::findMany($user->course_memberships->pluck('seminar_id')) as $course) {
-                    $contexts[] = new \Studip\Activity\CourseContext($course);
+                    $contexts[] = new \Studip\Activity\CourseContext($course, $user);
             }
             foreach (\Institute::findMany($user->institute_memberships->pluck('institut_id')) as $institute) {
-                $contexts[] = new \Studip\Activity\InstituteContext($institute);
+                $contexts[] = new \Studip\Activity\InstituteContext($institute, $user);
             }
         }
 

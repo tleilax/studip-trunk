@@ -104,6 +104,8 @@ class NewsProvider implements ActivityProvider
 
         $activity->object_url = $url;
         $activity->object_route = $route;
+
+        return true;
     }
     /**
      * {@inheritdoc}

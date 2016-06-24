@@ -19,6 +19,13 @@ class MessageProvider implements ActivityProvider
     {
         $message = \Message::find($activity->object_id);
 
+        if (in_array($activity->getContextObject()->getObserver()->id,
+                $message->receivers->map(function($m) {
+                    return $m['user_id']; 
+                })) === false) {
+            return false;
+        }
+
         $activity->content = formatReady($message->message);
 
         $url = \URLHelper::getUrl("dispatch.php/messages/read/{$message->id}", array('cid' => null));
@@ -30,6 +37,8 @@ class MessageProvider implements ActivityProvider
         );
 
         $activity->object_route = $route;
+
+        return true;
     }
 
 

@@ -11,6 +11,16 @@ namespace Studip\Activity;
 class SystemContext extends Context
 {
     /**
+     * create new user-context
+     *
+     * @param string $user_id
+     */
+    public function __construct($observer)
+    {
+        $this->observer = $observer;
+    }
+
+    /**
      * {@inheritdoc}
      */
     protected function getProvider()

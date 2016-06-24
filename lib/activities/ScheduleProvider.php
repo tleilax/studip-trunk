@@ -27,6 +27,8 @@ class ScheduleProvider implements ActivityProvider
         );
 
         $activity->object_route = $route;
+
+        return true;
     }
 
     /**

@@ -17,9 +17,10 @@ class InstituteContext extends Context
      *
      * @param string $institute_id
      */
-    public function __construct($institute)
+    public function __construct($institute, $observer)
     {
         $this->institute = $institute;
+        $this->observer = $observer;
     }
 
     /**
