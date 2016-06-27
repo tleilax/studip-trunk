@@ -211,7 +211,7 @@ class UserConfig extends Config
         }
 
         // Check if entry is default and if so, delete it
-        if (Config::get()->getValue($field) === $value) {
+        if (Config::get()->getValue($field) == $value) {
             $entry->delete();
             return 1;
         }
@@ -246,7 +246,7 @@ class UserConfig extends Config
         $entry = UserConfigEntry::findByFieldAndUser($field, $this->user_id);
         if($entry !== null) {
             if($ret = $entry->delete()) {
-                unset($this->data[$field]);
+                $this->data[$field] = Config::get()->$field;
             }
             return $ret;
         } else {
