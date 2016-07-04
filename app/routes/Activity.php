@@ -26,6 +26,10 @@ class Activity extends \RESTAPI\RouteMap
             $this->error(401);
         }
 
+        // failsafe einbauen - falls es keine älteren Aktivitäten mehr im System gibt, Abbruch!
+        
+
+
         $contexts = array();
 
         $user = \User::find($user_id);
@@ -53,8 +57,8 @@ class Activity extends \RESTAPI\RouteMap
         // add filters
         $filter = new \Studip\Activity\Filter();
 
-        $start = \Request::int('start', strtotime('-2 days'));
-        $end   = \Request::int('end',   time());
+        // $start = \Request::int('start', strtotime('-2 days'));
+        // $end   = \Request::int('end',   time());
 
         $filtertype = \Request::get('filtertype', '');
 

@@ -157,5 +157,17 @@ class Activity extends \SimpleORMap
             time() - self::GC_MAX_DAYS * 24 * 60 * 60)
         );
     }
-}
 
+    public static function getOldestActivity()
+    {
+        $cache = StudipCacheFactory::getCache();
+        $cache_key = 'activity/oldest_activity';
+
+        if (!$activity = unserialize($cache->read($cache_key))) {
+            $activity = self::findBySQL('WHERE 1 ORDER BY mkdate ASC LIMIT 1');
+            $cache->write($cache_key, serialize($activity));
+        }
+
+        return $activity;
+    }
+}
