@@ -28,7 +28,7 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
             $start_date = date('d.m.Y', strtotime('-4 week'));
             $end_date   = date('d.m.Y', strtotime('+1 day'));
         }
-
+        
         $template_factory = new Flexi_TemplateFactory(__DIR__ . '/templates');
         $template = $template_factory->open('activity_feed');
 

@@ -27,7 +27,8 @@ class Activity extends \RESTAPI\RouteMap
         }
 
         // failsafe einbauen - falls es keine älteren Aktivitäten mehr im System gibt, Abbruch!
-        
+        $oldest_activity = \Studip\Activity\Activity::getOldestActivity();
+        $max_age = array_pop($oldest_activity)->mkdate;
 
 
         $contexts = array();
@@ -57,23 +58,62 @@ class Activity extends \RESTAPI\RouteMap
         // add filters
         $filter = new \Studip\Activity\Filter();
 
-        // $start = \Request::int('start', strtotime('-2 days'));
-        // $end   = \Request::int('end',   time());
+        $start = \Request::int('start', strtotime('-1 days'));
+        $end   = \Request::int('end',   time());
 
+
+        $scrollfrom = \Request::int('scrollfrom', false);
         $filtertype = \Request::get('filtertype', '');
 
-        $filter->setStartDate($start);
-        $filter->setEndDate($end);
 
         if (!empty($filtertype)) {
             $filter->setType($filtertype);
         }
 
-        $stream = new \Studip\Activity\Stream($contexts, $filter);
+        if ($scrollfrom) {
 
-        $data = $stream->toArray();
+            if ($scrollfrom > $max_age){
+                $end = $scrollfrom;
+                $start = strtotime('-1day', $end);
+
+                do {
+                    $filter->setStartDate($start);
+                    $filter->setEndDate($end);
+                    $data = $this->getStreamData($contexts, $filter);
+                    $start = strtotime('-1 day', $start);
+                } while (empty($data) && $start >= $max_age);
+
+            } else {
+                $data = false;
+            }
+        } else {
+
+            $filter->setStartDate($start);
+            $filter->setEndDate($end);
+            $data = $this->getStreamData($contexts, $filter);
+
+        }
+
         // set etag for preventing resending the same stuff over and over again
         $this->etag(md5(serialize($data)));
+        $data = array_values(array_slice($data, $this->offset, $this->limit, true));
+
+        return $this->paginated($data, count($data), compact('user_id'));
+    }
+
+    /**
+     *  private helper function to get stream data for given contexts and filter
+     *
+     * @param $contexts
+     * @param $filter
+     * @return array
+     */
+
+    private function getStreamData($contexts, $filter)
+    {
+        $stream = new \Studip\Activity\Stream($contexts, $filter);
+        $data = $stream->toArray();
+
 
         foreach ($data as $key => $act) {
             $actor = array(
@@ -93,5 +133,6 @@ class Activity extends \RESTAPI\RouteMap
         }
 
         return $data;
+
     }
 }

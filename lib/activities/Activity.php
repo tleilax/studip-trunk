@@ -117,7 +117,7 @@ class Activity extends \SimpleORMap
     }
 
     /**
-     * returns a format string as placeholder for the object in question
+     * Returns a format string as placeholder for the object in question
      * (in a grammatical / lexical sense)
      *
      * @return string
@@ -145,7 +145,7 @@ class Activity extends \SimpleORMap
         return ($translation[$this->verb]);
     }
 
-     /**
+    /**
      * Garbage collector for the activities.
      * Removes all activites older than GC_MAX_DAYS (default: 366).
      */
@@ -156,18 +156,30 @@ class Activity extends \SimpleORMap
         $stmt->execute(array(
             time() - self::GC_MAX_DAYS * 24 * 60 * 60)
         );
+
+        //Expire Cache
+        \StudipCacheFactory::getCache()->expire('activity/oldest_activity');
     }
 
+    /**
+     * Returns the oldest existing activity
+     *
+     * @return Array
+     */
     public static function getOldestActivity()
     {
-        $cache = StudipCacheFactory::getCache();
+        $cache = \StudipCacheFactory::getCache();
         $cache_key = 'activity/oldest_activity';
 
         if (!$activity = unserialize($cache->read($cache_key))) {
-            $activity = self::findBySQL('WHERE 1 ORDER BY mkdate ASC LIMIT 1');
+
+
+            $activity = self::findBySQL('1 ORDER BY mkdate ASC LIMIT 1');
             $cache->write($cache_key, serialize($activity));
         }
 
         return $activity;
     }
+
+
 }
