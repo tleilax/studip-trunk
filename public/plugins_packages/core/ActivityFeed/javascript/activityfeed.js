@@ -76,7 +76,6 @@
 
 
                     if ($('#stream-container').height() < STUDIP.ActivityFeed.maxheight) {
-                        console.log('jetzatlet');
                         STUDIP.ActivityFeed.loadFeed('');
                     }
                 }
