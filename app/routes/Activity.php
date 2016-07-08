@@ -71,15 +71,21 @@ class Activity extends \RESTAPI\RouteMap
         }
 
         if ($scrollfrom) {
+            // shorten "watch-window" by one second to prevent duplication of activities
+            $scrollfrom -= 1;
 
             if ($scrollfrom > $max_age){
                 $end = $scrollfrom;
-                $start = strtotime('-1day', $end);
+                $start = strtotime('-1 day', $end);
 
                 do {
                     $filter->setStartDate($start);
                     $filter->setEndDate($end);
+
                     $data = $this->getStreamData($contexts, $filter);
+
+                    // move "watch-window" back one day at a time
+                    $end = strtotime('-1 day', $end);
                     $start = strtotime('-1 day', $start);
                 } while (empty($data) && $start >= $max_age);
 
@@ -96,9 +102,8 @@ class Activity extends \RESTAPI\RouteMap
 
         // set etag for preventing resending the same stuff over and over again
         $this->etag(md5(serialize($data)));
-        $data = array_values(array_slice($data, $this->offset, $this->limit, true));
 
-        return $this->paginated($data, count($data), compact('user_id'));
+        return $data;
     }
 
     /**
