@@ -61,17 +61,17 @@ class WikiProvider implements ActivityProvider
 
         $user_id = $GLOBALS['user']->id;
         $mkdate = time();
-        $context_clean = ($type == 'sem') ? _('Veranstaltung') : _('Einrichtung');
+        $context_clean = ($type == 'sem') ? _('in der Veranstaltung') : _('in der Einrichtung');
 
         if ($event == 'WikiPageDidCreate') {
             $verb = 'created';
-            $summary = _('Die Wiki-Seite %s wurde von %s in der %s "%s" angelegt.');
+            $summary = _('Die Wiki-Seite %s wurde von %s %s "%s" angelegt.');
         } elseif ($event == 'WikiPageDidUpdate') {
             $verb = 'edited';
-            $summary = _('Die Wiki-Seite %s wurde von %s  in der %s "%s" aktualisiert.');
+            $summary = _('Die Wiki-Seite %s wurde von %s %s "%s" aktualisiert.');
         } elseif ($event == 'WikiPageDidDelete') {
             $verb = 'voided';
-            $summary = _('Die Wiki-Seite %s wurde von %s in der %s "%s" gelöscht.');
+            $summary = _('Die Wiki-Seite %s wurde von %s %s "%s" gelöscht.');
         }
 
         $summary = sprintf($summary, $keyword, get_fullname($user_id), $context_clean , $course->name);

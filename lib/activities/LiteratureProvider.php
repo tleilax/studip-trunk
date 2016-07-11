@@ -63,27 +63,27 @@ class LiteratureProvider implements ActivityProvider
             $course = \Institute::find($range_id);
         }
 
-        $context_clean = ($type == 'sem') ? _("Veranstaltung") : _("Einrichtung");
+        $context_clean = ($type == 'sem') ? _("in der Veranstaltung") : _("in der Einrichtung");
 
 
         if ($event == 'LitListDidUpdate') {
             $verb = 'edited';
-            $summary = _('Die Literaturliste %s wurde von %s in der %s "%s" geändert.');
+            $summary = _('Die Literaturliste %s wurde von %s %s "%s" geändert.');
         } elseif ($event == 'LitListDidInsert') {
             $verb = 'created';
-            $summary = _('Die Literaturliste %s wurde von %s in der %s "%s" erstellt.');
+            $summary = _('Die Literaturliste %s wurde von %s %s "%s" erstellt.');
         } elseif ($event == 'LitListDidDelete') {
             $verb = 'voided';
-            $summary = _('Die Literaturliste %s wurde von %s in der %s "%s" entfernt.');
+            $summary = _('Die Literaturliste %s wurde von %s %s "%s" entfernt.');
         } elseif ($event == 'LitListElementDidUpdate') {
             $verb = 'edited';
-            $summary = _('Es wurde %s von %s in eine Literaturliste in der %s "%s" geändert.');
+            $summary = _('Es wurde %s von %s in eine Literaturliste %s "%s" geändert.');
         } elseif ($event == 'LitListElementDidInsert') {
             $verb = 'created';
-            $summary = _('Es wurde %s von %s in eine Literaturliste der %s "%s" erstellt.');
+            $summary = _('Es wurde %s von %s in eine Literaturliste %s "%s" erstellt.');
         } elseif ($event == 'LitListElementDidDelete') {
             $verb = 'voided';
-            $summary = _('Es wurde %s von %s aus einer Literaturliste in der %s "%s" entfernt.');
+            $summary = _('Es wurde %s von %s aus einer Literaturliste %s "%s" entfernt.');
         }
 
         $summary = sprintf($summary, $name, get_fullname($user_id), $context_clean , $course->name);

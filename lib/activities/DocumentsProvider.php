@@ -68,21 +68,21 @@ class DocumentsProvider implements ActivityProvider
             $course = \Institute::find($course_id );
         }
 
-        $context_clean = ($type == 'sem') ? _("Veranstaltung") : _("Einrichtung");
+        $context_clean = ($type == 'sem') ? _("in der Veranstaltung") : _("in der Einrichtung");
 
         if ($event == 'DocumentDidCreate') {
             $verb = 'created';
-            $summary = _('Die Datei %s wurde von %s in der %s "%s" hochgeladen.');
+            $summary = _('Die Datei %s wurde von %s %s "%s" hochgeladen.');
             $summary = sprintf($summary,$file_name, get_fullname($user_id),$context_clean ,$course->name);
             $mkdate = $document_info['mkdate'];
         } elseif ($event == 'DocumentDidUpdate') {
             $verb = 'edited';
-            $summary = _('Die Datei %s wurde von %s  in der %s "%s" aktualisiert.');
+            $summary = _('Die Datei %s wurde von %s %s "%s" aktualisiert.');
             $summary = sprintf($summary,$file_name, get_fullname($user_id), $context_clean ,$course->name);
             $mkdate = $document_info['chdate'];
         } elseif ($event == 'DocumentDidDelete') {
             $verb = 'voided';
-            $summary = _('Die Datei %s wurde von %s in der %s "%s" gelöscht.');
+            $summary = _('Die Datei %s wurde von %s %s "%s" gelöscht.');
             $summary = sprintf($summary,$file_name, get_fullname($user_id),$context_clean ,$course->name);
             $mkdate = $document_info['chdate'];
         }
