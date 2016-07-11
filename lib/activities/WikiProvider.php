@@ -65,13 +65,13 @@ class WikiProvider implements ActivityProvider
 
         if ($event == 'WikiPageDidCreate') {
             $verb = 'created';
-            $summary = _('Die Wiki Seite %s wurde von %s in der %s "%s" angelegt.');
+            $summary = _('Die Wiki-Seite %s wurde von %s in der %s "%s" angelegt.');
         } elseif ($event == 'WikiPageDidUpdate') {
             $verb = 'edited';
-            $summary = _('Die Wiki Seite %s wurde von %s  in der %s "%s" aktualisiert.');
+            $summary = _('Die Wiki-Seite %s wurde von %s  in der %s "%s" aktualisiert.');
         } elseif ($event == 'WikiPageDidDelete') {
             $verb = 'voided';
-            $summary = _('Die Wiki Seite %s wurde von %s in der %s "%s" gelöscht.');
+            $summary = _('Die Wiki-Seite %s wurde von %s in der %s "%s" gelöscht.');
         }
 
         $summary = sprintf($summary, $keyword, get_fullname($user_id), $context_clean , $course->name);
@@ -98,6 +98,6 @@ class WikiProvider implements ActivityProvider
      */
     public static function getLexicalField()
     {
-        return _('eine Wikiseite');
+        return _('eine Wiki-Seite');
     }
 }
