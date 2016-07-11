@@ -18,6 +18,7 @@
                     STUDIP.ActivityFeed.loadFeed('');
                 }
             });
+
         },
 
         getTemplate: _.memoize(function(name) {
@@ -67,9 +68,6 @@
                         user_id       :  STUDIP.ActivityFeed.user_id
                     }));
 
-                    $('.provider_circle').click(function() {
-                        $(this).parent().parent().children('.activity-content').toggle();
-                    });
 
                     STUDIP.ActivityFeed.initial = false;
                     STUDIP.ActivityFeed.polling = false;
@@ -78,6 +76,11 @@
                     if ($('#stream-container').height() < STUDIP.ActivityFeed.maxheight) {
                         STUDIP.ActivityFeed.loadFeed('');
                     }
+
+
+                    $('.provider_circle').unbind( "click" ).click(function() {
+                        $(this).parent().parent().children('.activity-content').toggle();
+                    });
                 }
             });
 
