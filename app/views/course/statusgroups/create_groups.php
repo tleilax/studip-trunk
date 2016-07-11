@@ -5,7 +5,7 @@
         </legend>
         <label>
             <input type="radio" name="mode" value="numbering" checked onclick="$('.numbering-data').show();$('.course-data').hide();">
-            <?= _('Erzeuge n Gruppen mit Namenspräfix') ?>
+            <?= _('Erzeuge beliebig viele Gruppen mit Namenspräfix') ?>
         </label>
         <label>
             <input type="radio" name="mode" value="coursedata" onclick="$('.numbering-data').hide();$('.course-data').show();">

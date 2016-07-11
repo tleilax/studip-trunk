@@ -675,7 +675,7 @@ class Course_StatusgroupsController extends AuthenticatedController
                         Statusgruppen::findMany($groups))->orderBy('position, name');
                     switch (Request::option('groups_action')) {
                         case 'edit':
-                            PageLayout::setTitle('Einstellungen bearbeiten');
+                            PageLayout::setTitle(_('Einstellungen bearbeiten'));
                             $this->edit = true;
                             $sizes = array();
                             $selfassign = 0;

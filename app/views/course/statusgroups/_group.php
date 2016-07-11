@@ -49,7 +49,7 @@
                                                 'STUDIP.Dialog.close();' : false)
                                    ->setExecuteURL($controller->url_for('course/statusgroups/add_member/' .
                                                 $group->id))
-                                  ->addQuickfilter(_('keiner Gruppe zugeordnete Personen'),
+                                  ->addQuickfilter(_('Keiner Gruppe zugeordnete Personen'),
                                                 $no_group ? $no_group['members']->pluck('user_id') : array())
                           )
                           ->addLink(
