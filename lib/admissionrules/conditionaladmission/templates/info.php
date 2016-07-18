@@ -46,7 +46,7 @@ if ($rule->getStartTime() && $rule->getEndTime()) {
             </li>
         <? endif; ?>
         <li>
-            <ul id="conditiongroup">
+            <ul id="conditiongroup_<?= $conditiongroup_id?>">
             <? foreach ($conditions as $condition): ?>
                 <li id="condition_<?= $condition->getId() ?>">
                     <i><?= $condition->toString() ?></i>

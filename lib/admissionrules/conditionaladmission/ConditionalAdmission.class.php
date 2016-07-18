@@ -412,9 +412,6 @@ class ConditionalAdmission extends AdmissionRule
             $current->delete();
             $groups[] = $entry['conditiongroup_id'];
         }
-        /*DBManager::get()->exec("DELETE FROM `admission_conditiongroup`
-         WHERE `conditiongroup_id` IN ('".
-                 implode("', '", $groups)."')");*/
         DBManager::get()->exec("DELETE FROM `admission_condition`
             WHERE `rule_id`='".$this->id."' AND `filter_id` NOT IN ('".
                     implode("', '", $keys)."')");
