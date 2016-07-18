@@ -37,7 +37,11 @@ class Admin_CoursesController extends AuthenticatedController
     {
         parent::before_filter($action, $args);
 
-        Navigation::activateItem('/browse/my_courses/list');
+        if ($GLOBALS['perm']->have_perm('admin')) {
+            Navigation::activateItem('/browse/my_courses/list');
+        } else {
+            Navigation::activateItem('/browse/admincourses');
+        }
 
         // we are defintely not in an lecture or institute
         closeObject();
@@ -158,7 +162,7 @@ class Admin_CoursesController extends AuthenticatedController
         $this->setCourseTypeWidget($config_my_course_type_filter);
         $this->setActionsWidget($this->selected_action);
 
-        if ($this->sem_create_perm) {
+        if ($GLOBALS['perm']->have_perm($this->sem_create_perm)) {
             $actions = new ActionsWidget();
             $actions->addLink(_('Neue Veranstaltung anlegen'),
                               URLHelper::getLink('dispatch.php/course/wizard'),
@@ -293,7 +297,7 @@ class Admin_CoursesController extends AuthenticatedController
      */
     public function set_lockrule_action()
     {
-        if (!$GLOBALS['perm']->have_perm("admin")) {
+        if (!$GLOBALS['perm']->have_perm('admin')) {
             throw new AccessDeniedException();
         }
         $result = false;
@@ -302,7 +306,7 @@ class Admin_CoursesController extends AuthenticatedController
 
         if (!empty($courses)) {
             foreach ($courses as $course_id => $value) {
-                if ($GLOBALS['perm']->have_studip_perm("dozent", $course_id)) {
+                if ($GLOBALS['perm']->have_studip_perm('dozent', $course_id)) {
                     // force to pre selection
                     if (Request::get('lock_sem_all') && Request::submitted('all')) {
                         $value = Request::get('lock_sem_all');
@@ -349,7 +353,7 @@ class Admin_CoursesController extends AuthenticatedController
         $course_set_id = CourseSet::getGlobalLockedAdmissionSetId();
 
         foreach($all_courses as $course_id){
-            if ($GLOBALS['perm']->have_studip_perm("dozent", $course_id)) {
+            if ($GLOBALS['perm']->have_studip_perm('dozent', $course_id)) {
                 $set = CourseSet::getSetForCourse($course_id);
 
                 if (!is_null($set)) {
@@ -621,13 +625,13 @@ class Admin_CoursesController extends AuthenticatedController
                 'attributes' => ['data-dialog' => 'size=400'],
             ),
         );
-        if (!$GLOBALS['perm']->have_perm("admin")) {
+        if (!$GLOBALS['perm']->have_perm('admin')) {
             unset($actions[8]);
             if (!get_config('ALLOW_DOZENT_ARCHIV')) {
                 unset($actions[16]);
             }
         }
-        if (!$GLOBALS['perm']->have_perm("dozent")) {
+        if (!$GLOBALS['perm']->have_perm('dozent')) {
             unset($actions[11]);
             unset($actions[16]);
         }
@@ -671,6 +675,7 @@ class Admin_CoursesController extends AuthenticatedController
             'name'        => _('Name'),
             'type'        => _('Veranstaltungstyp'),
             'room_time'   => _('Raum/Zeit'),
+            'semester'    => _('Semester'),
             'teachers'    => _('Lehrende'),
             'members'     => _('Teilnehmende'),
             'waiting'     => _('Personen auf Warteliste'),

@@ -27,12 +27,12 @@ jQuery(function ($) {
             is: function (s, table, cell, $cell) {
                 var c = table.config,
                     p = c.parserMetadataName || 'sortValue';
-                return $cell.data()[p] !== undefined;
+                return $(cell).data(p) !== undefined;
             },
             format: function (s, table, cell) {
                 var c = table.config,
                     p = c.parserMetadataName || 'sortValue';
-                return $(cell).data()[p];
+                return $(cell).data(p);
             },
             type: 'numeric'
         });

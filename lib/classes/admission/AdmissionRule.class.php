@@ -62,13 +62,6 @@ abstract class AdmissionRule
      */
     public $siblings_override = false;
 
-    /**
-     * an array of AdmissionRules allowed to be combined with this rule
-     *
-     * @var array
-     */
-    public $allowed_combinations = array();
-
     // --- OPERATIONS ---
 
     public function __construct($ruleId = '', $courseSetId = '')
@@ -83,7 +76,7 @@ abstract class AdmissionRule
      *
      * @param CourseSet $courseset Current courseset.
      */
-    public function afterSeatDistribution(&$courseset)
+    public function afterSeatDistribution($courseset)
     {
         return true;
     }
@@ -284,7 +277,7 @@ abstract class AdmissionRule
      *
      * @param CourseSet The courseset this rule belongs to.
      */
-    public function beforeSeatDistribution(&$courseset)
+    public function beforeSeatDistribution($courseset)
     {
         return true;
     }
@@ -421,7 +414,7 @@ abstract class AdmissionRule
             }
         }
     }
-    
+
     /**
      * get sibling rules
      *
@@ -431,7 +424,7 @@ abstract class AdmissionRule
         $this->loadSiblings();
         return $this->siblings;
     }
-    
+
     /**
      * set sibling rules
      *
@@ -453,7 +446,7 @@ abstract class AdmissionRule
         if (is_object($admission_rule)) {
             $admission_rule = get_class($admission_rule);
         }
-        return in_array($admission_rule, $this->allowed_combinations);
+        return AdmissionRuleCompatibility::exists(array(get_class($this), $admission_rule));
     }
 
     public function __clone()

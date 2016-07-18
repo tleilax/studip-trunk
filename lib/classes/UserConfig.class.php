@@ -34,8 +34,9 @@ class UserConfig extends Config
      * @param string $user_id
      * @return UserConfig
      */
-    public static function get($user_id)
+    public static function get()
     {
+        $user_id = func_get_arg(0);
         if (self::$instances[$user_id] === null) {
             $config = new UserConfig($user_id);
             self::$instances[$user_id] = $config;
@@ -50,8 +51,9 @@ class UserConfig extends Config
      * @param string $user_id
      * @param UserConfig $my_instance
      */
-    public static function set($user_id, $my_instance)
+    public static function set()
     {
+        list ($user_id, $my_instance) = func_get_args();
         self::$instances[$user_id] = $my_instance;
     }
 
@@ -200,7 +202,6 @@ class UserConfig extends Config
      */
     function store($field, $value)
     {
-
         $entry = UserConfigEntry::findByFieldAndUser($field, $this->user_id);
         if($entry === null) {
             $entry = new UserConfigEntry();
@@ -208,8 +209,15 @@ class UserConfig extends Config
             $entry->field = $field;
             $entry->comment = '';
         }
-        $metadata = Config::get()->getMetadata($field);
 
+        // Check if entry is default and if so, delete it
+        if (Config::get()->getValue($field) == $value) {
+            $entry->delete();
+            return 1;
+        }
+
+        // Otherwise convert it to an appropriate format and store it
+        $metadata = Config::get()->getMetadata($field);
         switch ($metadata['type']) {
             case 'integer':
             case 'boolean':
@@ -238,7 +246,7 @@ class UserConfig extends Config
         $entry = UserConfigEntry::findByFieldAndUser($field, $this->user_id);
         if($entry !== null) {
             if($ret = $entry->delete()) {
-                unset($this->data[$field]);
+                $this->data[$field] = Config::get()->$field;
             }
             return $ret;
         } else {

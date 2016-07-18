@@ -130,7 +130,7 @@ class Settings_SettingsController extends AuthenticatedController
      *                  (Array)
      * @return String Generated url
      */
-    public function url_for($to/*, ...*/)
+    public function url_for($to = ''/*, ...*/)
     {
         $arguments  = func_get_args();
         $parameters = is_array(end($arguments)) ? array_pop($arguments) : array();
@@ -240,7 +240,7 @@ class Settings_SettingsController extends AuthenticatedController
      */
     public function __call($method, $arguments)
     {
-        if (preg_match('/^report(Error|Info|Success)(WithDetails)?$/', $method, $match)) {
+        if (preg_match('/^report(Error|Warning|Info|Success)(WithDetails)?$/', $method, $match)) {
             $hash    = md5($method . serialize($arguments));
             $type    = strtolower($match[1]);
             $details = empty($match[2]) ? false : array_pop($arguments);

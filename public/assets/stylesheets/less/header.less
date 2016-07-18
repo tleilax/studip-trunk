@@ -1,88 +1,44 @@
 /* --- header.css ----------------------------------------------------------- */
-#wrap2 {
-    position: absolute;
-    top: 150px;
-}
-
-#barBottom {
-    background-color: @brand-color-lighter;
-    left: 0;
-    position: absolute;
-    top: 100px;
-}
-
 #barBottomContainer {
     background-color: @brand-color-lighter;
     border: 1px @brand-color-darker;
-//    border-top-style: solid;
+    color: @contrast-content-white;
     border-bottom-style: solid;
     box-shadow: 0px 0px 15px rgba(0,0,0,0.3);
     height: 24px;
     margin-bottom: 5px;
-    position: relative;
     width: 100%;
-}
+    display: flex;
+    &.fixed {
+        .translate(0, 0) !important; // We need !important due to the horizontal scroll handler
+        position: fixed;
+        top: 0px;
+        z-index: 10000;
+    }
+    > div {
+        display: flex;
+        align-items: center;
+        flex: 0 1 auto;
+    }
 
-#barBottomContainer.fixed {
-  .translate(0, 0) !important; // We need !important due to the horizontal scroll handler
-  position: fixed;
-  top: 0px;
-  z-index: 10000;
-}
+    #barBottomLeft {
+        padding: 0 15px;
+        // Adds an arrow at the end
+        #arrow > .right(12px, @brand-color-lighter, 0);
+        z-index: 2;
+    }
 
-#barBottomLeft, #barBottommiddle, #barBottomright {
-    background-color: @brand-color-lighter;
-    color: @contrast-content-white;
-    height: 24px;
-    line-height: 24px;
-    padding: 0;
-    vertical-align: middle;
-}
-
-#barBottomLeft {
-    float: left;
-    padding-left: 15px;
-    padding-right: 15px;
-    white-space: nowrap;
-
-    // Adds an arrow at the end
-    #arrow > .right(12px, @brand-color-lighter, 0);
-    z-index: 2;
-}
-
-#barBottommiddle {
-    overflow: hidden;
-    padding-left: 30px;
-    z-index: 1;
-
-    &:before {
-        // Adds the fading background to the left
+    #barBottomArrow {
         #gradient > .horizontal(@brand-color-light, @brand-color-lighter);
-        content: "";
-        position: absolute;
-        height: 100%;
-        margin-left: -30px;
-        width: 25px;
-    }
-}
-
-#barBottomright {
-    position: absolute;
-    top: 0;
-    right: 0;
-    white-space: nowrap;
-
-    &:before {
-        #gradient > .horizontal(fadeout(@brand-color-lighter, 100%), @brand-color-lighter);
-        background-color: fadeout(@brand-color-lighter, 100%);
-        content: "";
-        left: -40px;
-        height: 24px;
-        position: absolute;
-        width: 40px;
+        width: 30px;
     }
 
-    ul { padding-left: 0; }
+    #barBottommiddle {
+        z-index: 1;
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+    }
 }
 
 #barBottomright, #layout_footer {
@@ -90,32 +46,66 @@
         color: @contrast-content-white;
         margin: 0 6px;
         text-decoration: none;
-
         &:hover { color: @contrast-content-hovergray; }
     }
-    ul { 
-        margin: 0;
-        float: right;
-    }
-    li {
-        display: inline-block;
-        height: 24px;
-        line-height: 24px;
+    > ul {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
         list-style-type: none;
-        vertical-align: text-bottom;
+        height: 100%;
+        padding: 0;
+        > li {
+            margin: 0 2px;
+        }
     }
 }
 
-// "Generic" (for elements in #barBottomright) list style
-#barBottomright {
-    li {
-        position: relative;  // So the list can be properly aligned
-        &:hover .list {
-            display: block;
-            .item { opacity: 1; }
+#notification_marker {
+    .border-radius(2px);
+    .transition(all 1s);
+    width: 18px;
+    height: 16px;
+    font-size: 0.8em;
+    border: thin solid @contrast-content-white;
+    color: @contrast-content-white;
+    text-align: center;
+    line-height: 17px;
+    vertical-align: text-bottom;
+    background-color: @brand-color-lighter;
+    
+    &.alert {
+        border: thin solid white;
+        background-color: @public_course_bgcolor;
+        color: white;
+    }
+}
+
+#notification_container {
+    position: relative;
+    .avatar {
+        float: left;
+        margin-right: 10px;
+        margin-left: 0px;
+        background-position: center center;
+        background-size: 100%;
+        width: 40px;
+        height: 40px;
+    }
+    .list, li&:hover .list { display: none; }
+    &.hoverable:hover {
+        .list { display: block; }
+    }
+    #notification_list {
+        z-index: 1001;
+        margin-top: 8px;
+        ul {
+            width: 100%;
+            padding: 2px;
         }
-        &.active > a {
-            color: #fff;
+        .more {
+            font-size: 0.8em;
+            text-align: center;
         }
     }
     .list {
@@ -137,7 +127,7 @@
         max-width: @width;
         padding: 4px;
         .box-shadow(0 0 8px rgba(0, 0, 0, 0.5));
-        
+
 
         // Without this, buttons or message boxes would appear on top of the list
         z-index: 2;
@@ -152,20 +142,20 @@
             left: 0;
             right: 0;
             height: @arrow-height;
-            opacity: 0;
+        }
+
+        &:before {
+            left: 379px;
         }
 
         // Positions: below or left'ish or right'ish to the triggering element
         &.below {
-            left: (-@width + @arrow-height * 2);
-            &:before {
-                left: (@width - @arrow-height - 2);
-            }
+            left: ((-@width) + 30px);
         }
         &.left {
             right: 0px;
             &:before {
-                left: auto; 
+                left: auto;
                 right: 4px;
             }
         }
@@ -182,12 +172,11 @@
             line-height: 20px;
             display: block;
             height: auto;
-            opacity: 0;
             .transition(~"background-color 0.5s, opacity 0.8s");
             padding-top: @padding;
             padding-bottom: @padding;
             white-space: normal;
-            
+
             &:hover { background-color: #ffffff; }
 
             // First child: no top-border and but rounded corners
@@ -217,52 +206,6 @@
             &.hidden { visibility: hidden; }
         }
         .item:hover .options.hidden { visibility: visible; }
-    }
-}
-
-#notification_marker {
-    .border-radius(2px);
-    .transition(all 1s);
-    width: 18px;
-    margin-top: 3px;
-    height: 16px;
-    font-size: 0.8em;
-    border: thin solid @contrast-content-white;
-    color: @contrast-content-white;
-    text-align: center;
-    line-height: 17px;
-    vertical-align: text-bottom;
-    background-color: @brand-color-lighter;
-    
-    &.alert {
-        border: thin solid white;
-        background-color: @public_course_bgcolor;
-        color: white;
-    }
-}
-
-#notification_container {
-    .avatar {
-        float: left;
-        margin-right: 10px;
-        margin-left: 0px;
-        background-position: center center;
-        background-size: 100%;
-        width: 40px;
-        height: 40px;
-    }
-    .list, li&:hover .list { display: none; }
-    &.hoverable:hover {
-        .list { display: block; }
-    }
-    #notification_list {
-        ul {
-            width: 100%;
-        }
-        .more {
-            font-size: 0.8em;
-            text-align: center;
-        }
     }
 }
 #barTopFont {
@@ -318,7 +261,7 @@
         // Adds an arrow at the end
         #arrow > .right(12px, @public_course_bgcolor, 0);
     }
-    #barBottommiddle:before { 
+    #barBottomArrow {
         // Adds the fading background to the left
         #gradient > .horizontal(darken(@public_course_bgcolor, 10%), @public_course_bgcolor);
     }

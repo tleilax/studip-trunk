@@ -111,7 +111,7 @@ class TreeView {
     * @param    string  $tree_class_name    name of used tree class
     * @param    mixed   $args               argument passed to the tree class
     */
-    public function TreeView($tree_class_name,$args = null)
+    public function __construct($tree_class_name,$args = null)
     {
         $this->tree_class_name = $tree_class_name;
         $this->tree            = TreeAbstract::GetInstance($tree_class_name, $args);
@@ -120,10 +120,10 @@ class TreeView {
         // Klasse "Icon" verwendet werden.
         $this->pic_open        = $this->use_aging
                                ? 'forumgraurunt2.png'
-                               : 'icons/16/blue/arr_1down.png';
+                               : 'icons/blue/arr_1down.svg';
         $this->pic_close       = $this->use_aging
                                ? 'forumgrau2.png'
-                               : 'icons/16/blue/arr_1right.png';
+                               : 'icons/blue/arr_1right.svg';
 
         URLHelper::bindLinkParam('open_ranges', $this->open_ranges);
         URLHelper::bindLinkParam('open_items', $this->open_items);

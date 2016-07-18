@@ -25,13 +25,17 @@
         <? $colspan++ ?>
         <col width="30%">
     <? endif ?>
+    <? if (in_array('semester', $view_filter)) : ?>
+        <? $colspan++ ?>
+        <col width="10%">
+    <? endif ?>
     <? if (in_array('teachers', $view_filter)) : ?>
         <? $colspan++ ?>
-        <col width="15%">
+        <col width="10%">
     <? endif ?>
     <? if (in_array('members', $view_filter)) : ?>
         <? $colspan++ ?>
-        <col width="5%">
+        <col width="3%">
     <? endif ?>
     <? if (in_array('waiting', $view_filter)) : ?>
         <? $colspan++ ?>
@@ -100,6 +104,13 @@
         <? if (in_array('room_time', $view_filter)) : ?>
             <th><?= _('Raum/Zeit') ?></th>
         <? endif ?>
+        <? if (in_array('semester', $view_filter)) : ?>
+            <th <?= ($sortby == 'start_time') ? sprintf('class="sort%s"', strtolower($sortFlag)) : '' ?>>
+                <a href="<?= URLHelper::getLink('', array('sortby'   => 'start_time', 'sortFlag' => strtolower($sortFlag))) ?>">
+                    <?= _('Semester') ?>
+                </a>
+            </th>
+        <? endif ?>
         <? if (in_array('teachers', $view_filter)) : ?>
             <th><?= _('Lehrende') ?></th>
         <? endif ?>
@@ -143,9 +154,13 @@
         <? if (count($courses) > 10): ?>
             <tr>
                 <th colspan="<?= $colspan ?>" style="text-align: right">
-                    <?= Studip\Button::createAccept(is_string($actions[$selected_action]['multimode'])
-                        ? $actions[$selected_action]['multimode']
-                        : $actions[$selected_action]['title'], 'save_action') ?>
+                    <? if (is_a($actions[$selected_action]['multimode'], "\\Studip\\Button")) : ?>
+                        <?= $actions[$selected_action]['multimode'] ?>
+                    <? else : ?>
+                        <?= Studip\Button::createAccept(is_string($actions[$selected_action]['multimode'])
+                            ? $actions[$selected_action]['multimode']
+                            : $actions[$selected_action]['title'], 'save_action') ?>
+                    <? endif ?>
                 </th>
             </tr>
         <? endif; ?>
@@ -156,25 +171,29 @@
         <tr id="course-<?= $semid ?>">
             <td>
             <? if (Config::get()->ADMIN_COURSES_SHOW_COMPLETE): ?>
-                <a href="<?= $controller->url_for('admin/courses/toggle_complete/' . $semid) ?>"
-                   class="course-completion <? if ($values['is_complete']) echo 'course-complete'; ?>"
-                   title="<?= _('Bearbeitungsstatus ändern') ?>">
-                       <?= _('Bearbeitungsstatus ändern') ?>
-                </a>
+                <? if ($GLOBALS['perm']->have_studip_perm('tutor', $semid)) : ?>
+                    <a href="<?= $controller->url_for('admin/courses/toggle_complete/' . $semid) ?>"
+                       class="course-completion <? if ($values['is_complete']) echo 'course-complete'; ?>"
+                       title="<?= _('Bearbeitungsstatus ändern') ?>">
+                           <?= _('Bearbeitungsstatus ändern') ?>
+                    </a>
+                <? else : ?>
+                    <?= Icon::create('radiobutton-checked', $values['is_complete'] ? 'status-green' : 'status-red', ['title' => _('Bearbeitungsstatus kann nicht von Ihnen geändert werden.')])->asImg() ?>
+                <? endif ?>
             <? else: ?>
                 <?=
                 CourseAvatar::getAvatar($semid)->is_customized()
-                    ? CourseAvatar::getAvatar($semid)->getImageTag(Avatar::SMALL, array('title' => htmlReady(trim($values["Name"]))))
-                    : Icon::create('seminar', 'clickable', ['title' => htmlReady(trim($values["Name"]))])->asImg(20) ?>
+                    ? CourseAvatar::getAvatar($semid)->getImageTag(Avatar::SMALL, array('title' => htmlReady(trim($values['Name']))))
+                    : Icon::create('seminar', 'clickable', ['title' => htmlReady(trim($values['Name']))])->asImg(20) ?>
             <? endif; ?>
             </td>
             <? if (in_array('number', $view_filter)) : ?>
                 <td>
-                    <? if ($GLOBALS['perm']->have_studip_perm("autor", $semid)) : ?>
+                    <? if ($GLOBALS['perm']->have_studip_perm('autor', $semid)) : ?>
                         <a href="<?= URLHelper::getLink('seminar_main.php', array('auswahl' => $semid)) ?>">
                     <? endif ?>
                         <?= htmlReady($values["VeranstaltungsNummer"]) ?>
-                    <? if ($GLOBALS['perm']->have_studip_perm("autor", $semid)) : ?>
+                    <? if ($GLOBALS['perm']->have_studip_perm('autor', $semid)) : ?>
                         </a>
                     <? endif ?>
                 </td>
@@ -211,6 +230,15 @@
                     )) ?: _('nicht angegeben') ?>
                 </td>
             <? endif ?>
+            <? if (in_array('semester', $view_filter)) : ?>
+                <td>
+                    <?= htmlReady(Seminar::GetInstance($semid)->start_semester->name) ?>
+
+                    <? if ((int)$values['duration_time'] > 0) : ?>
+                        <?= sprintf(' - %s', htmlReady(Seminar::GetInstance($semid)->end_semester->name)) ?>
+                    <? endif?>
+                </td>
+            <? endif?>
             <? if (in_array('teachers', $view_filter)) : ?>
                 <td>
                     <?= $this->render_partial_collection('my_courses/_dozent', $values['dozenten']) ?>
@@ -261,7 +289,7 @@
             <? endif ?>
             <td style="text-align: right;" class="actions">
                 <? if ($actions[$selected_action]['multimode'] && is_numeric($selected_action)) : ?>
-                    <? if ($GLOBALS['perm']->have_studip_perm("tutor", $semid)) : ?>
+                    <? if ($GLOBALS['perm']->have_studip_perm('tutor', $semid)) : ?>
                         <? switch ($selected_action) {
                             case 8 :
                                 echo $this->render_partial('admin/courses/lock.php', compact('values', 'semid'));
@@ -285,7 +313,7 @@
                     <? $template = $plugin->getAdminCourseActionTemplate($semid, $values) ?>
                     <? if ($template) : ?>
                         <?= $template->render() ?>
-                    <? elseif($GLOBALS['perm']->have_studip_perm("tutor", $semid)) : ?>
+                    <? elseif ($GLOBALS['perm']->have_studip_perm('tutor', $semid)) : ?>
                         <?=
                         \Studip\LinkButton::create(
                             $actions[$selected_action]['title'],
@@ -294,14 +322,25 @@
                             ($actions[$selected_action]['attributes'] ? $actions[$selected_action]['attributes'] : array())
                         ) ?>
                     <? endif ?>
-                <? elseif($GLOBALS['perm']->have_studip_perm("tutor", $semid)) : ?>
-                    <?=
-                    \Studip\LinkButton::create(
-                        $actions[$selected_action]['title'],
-                        URLHelper::getURL(sprintf($actions[$selected_action]['url'], $semid),
-                            ($actions[$selected_action]['params'] ? $actions[$selected_action]['params'] : array())),
-                        ($actions[$selected_action]['attributes'] ? $actions[$selected_action]['attributes'] : array())
+                <? elseif ($GLOBALS['perm']->have_studip_perm('tutor', $semid)) : ?>
+                    <? $lockrules = array(
+                        '2' => "sem_tree",
+                        '3' => "room_time",
+                        '11' => "seminar_copy",
+                        '14' => "admission_type",
+                        '16' => "seminar_archive",
+                        '17' => "admission_type",
+                        '18' => 'room_time'
                     ) ?>
+                    <? if ($GLOBALS['perm']->have_studip_perm("admin", $semid) || !isset($lockrules[$selected_action]) || !LockRules::Check($semid, $lockrules[$selected_action])) : ?>
+                        <?=
+                        \Studip\LinkButton::create(
+                            $actions[$selected_action]['title'],
+                            URLHelper::getURL(sprintf($actions[$selected_action]['url'], $semid),
+                                ($actions[$selected_action]['params'] ? $actions[$selected_action]['params'] : array())),
+                            ($actions[$selected_action]['attributes'] ? $actions[$selected_action]['attributes'] : array())
+                        ) ?>
+                    <? endif ?>
                 <? endif ?>
             </td>
         </tr>
@@ -311,11 +350,15 @@
     <tfoot>
         <tr>
             <td colspan="<?= $colspan ?>" style="text-align: right">
-                <?= Studip\Button::createAccept(
-                    is_string($actions[$selected_action]['multimode'])
-                        ? $actions[$selected_action]['multimode']
-                        : $actions[$selected_action]['title'],
-                    $actions[$selected_action]['name']) ?>
+                <? if (is_a($actions[$selected_action]['multimode'], "\\Studip\\Button")) : ?>
+                    <?= $actions[$selected_action]['multimode'] ?>
+                <? else : ?>
+                    <?= Studip\Button::createAccept(
+                        is_string($actions[$selected_action]['multimode'])
+                            ? $actions[$selected_action]['multimode']
+                            : $actions[$selected_action]['title'],
+                        $actions[$selected_action]['name']) ?>
+                <? endif ?>
             </td>
         </tr>
     </tfoot>

@@ -79,9 +79,8 @@ class BrowseNavigation extends Navigation
 
             if (Config::get()->MY_COURSES_ENABLE_STUDYGROUPS && !$GLOBALS['perm']->have_perm('admin')) {
                 $navigation = new Navigation(_('Meine Studiengruppen'), 'dispatch.php/my_studygroups');
-                $navigation->addSubNavigation('index', new Navigation(_('Meine Studiengruppen'), 'dispatch.php/my_studygroups'));
                 $navigation->addSubNavigation('all', new Navigation(_('Studiengruppensuche'), 'dispatch.php/studygroup/browse'));
-                $navigation->addSubNavigation('new', new Navigation(_('Neue Studiengruppe anlegen'), 'dispatch.php/course/wizard?studygroup=1'));
+                $navigation->addSubNavigation('index', new Navigation(_('Meine Studiengruppen'), 'dispatch.php/my_studygroups'));
                 $this->addSubNavigation('my_studygroups', $navigation);
             }
 
@@ -89,7 +88,7 @@ class BrowseNavigation extends Navigation
                 $navigation = new Navigation(_('Meine Einrichtungen'), 'dispatch.php/my_institutes');
                 $this->addSubNavigation('my_institutes', $navigation);
 
-                if (RolePersistence::isAssignedRole($GLOBALS['user']->id, "DedicatedAdmin")) {
+                if (RolePersistence::isAssignedRole($GLOBALS['user']->id, 'DedicatedAdmin')) {
                     $navigation = new Navigation(_('Administration'), 'dispatch.php/admin/courses');
                     $this->addSubNavigation('admincourses', $navigation);
                 }

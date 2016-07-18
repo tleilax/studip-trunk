@@ -212,8 +212,11 @@ class Settings_StatusgruppenController extends Settings_SettingsController
 
                 if ($statement->rowCount() == 1) {
                     log_event('INST_USER_ADD', $range_id, $this->user->user_id, $globalperms);
+                    NotificationCenter::postNotification('UserInstitutionDidCreate', $range_id, $this->user->user_id);
                 } else if ($statement->rowCount() == 2) {
                     log_event('INST_USER_STATUS', $range_id, $this->user->user_id, $globalperms);
+                    NotificationCenter::postNotification('UserInstitutionPermDidUpdate', $id, $this->user->user_id);
+
                 }
 
                 checkExternDefaultForUser($this->user->user_id);
@@ -317,6 +320,7 @@ class Settings_StatusgruppenController extends Settings_SettingsController
      */
     public function store_action($type, $id)
     {
+        CSRFProtection::verifyUnsafeRequest();
         $changed = false;
         $success = [];
         $errors  = [];
@@ -338,6 +342,7 @@ class Settings_StatusgruppenController extends Settings_SettingsController
                     ));
 
                     log_event('INST_USER_STATUS', $id, $this->user->user_id, $perms .' -> '. $status);
+                    NotificationCenter::postNotification('UserInstitutionPermDidUpdate', $id, $this->user->user_id);
 
                     $success[] = _('Der Status wurde geändert!');
                 }
@@ -360,7 +365,7 @@ class Settings_StatusgruppenController extends Settings_SettingsController
                     $changed = true;
                     $success[] = sprintf(
                         _('Ihre Daten an der Einrichtung %s wurden geändert.'),
-                        Request::get('name')
+                        htmlReady(Request::get('name'))
                     );
 
                     setTempLanguage($this->user->user_id);
@@ -398,13 +403,13 @@ class Settings_StatusgruppenController extends Settings_SettingsController
                             $changed = true;
                             $success[] = sprintf(
                                 _('Ihre Daten an der Einrichtung %s wurden geändert'),
-                                Institute::find($id)->name
+                                htmlReady(Institute::find($id)->name)
                             );
                         }
                     } else {
                         $errors[] = sprintf(_('Fehlerhafter Eintrag im Feld <em>%s</em>: %s (Eintrag wurde nicht gespeichert)'),
-                                            $entry->getName(),
-                                            $entry->getDisplayValue());
+                                            htmlReady($entry->getName()),
+                                            $entry->getDisplayValue(true));
                     }
                 }
             }
@@ -422,7 +427,7 @@ class Settings_StatusgruppenController extends Settings_SettingsController
                 $message[] = '';
                 $message[] = _('Bei der Verarbeitung sind allerdings folgende Fehler aufgetreten');
                 $details = $errors;
-                $type = 'Info';
+                $type = 'Warning';
             }
         }  elseif (count($errors) === 1) {
             $message = $errors;
@@ -438,6 +443,6 @@ class Settings_StatusgruppenController extends Settings_SettingsController
             ]);
         }
 
-        $this->redirect('settings/statusgruppen#' . $id);
+        $this->redirect('settings/statusgruppen');
     }
 }

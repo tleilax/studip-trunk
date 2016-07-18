@@ -25,7 +25,6 @@ class ConditionalAdmission extends AdmissionRule
      */
     public $conditions = array();
 
-
     /**
      * Grouped conditions that must be fulfilled for successful admission.
      */
@@ -50,8 +49,6 @@ class ConditionalAdmission extends AdmissionRule
      * courseset siblings of this rule
      */
     public $siblings = array();
-
-    public $allowed_combinations = array('ParticipantRestrictedAdmission', 'LimitedAdmission','ConditionalAdmission','TimedAdmission','PasswordAdmission','CourseMemberAdmission');
 
     // --- OPERATIONS ---
 
@@ -96,7 +93,7 @@ class ConditionalAdmission extends AdmissionRule
     /**
      * Deletes the admission rule and all associated data.
      */
-    public function delete() 
+    public function delete()
     {
         parent::delete();
         // Delete rule data.
@@ -554,3 +551,4 @@ class ConditionalAdmission extends AdmissionRule
     }
 
 } /* end of class ConditionalAdmission */
+

@@ -48,7 +48,7 @@ class StudipSemTree extends TreeAbstract {
     * do not use directly, call TreeAbstract::GetInstance("StudipRangeTree")
     * @access private
     */
-    function StudipSemTree($args) {
+    function __construct($args) {
         DbView::addView('sem_tree');
 
         $this->root_name = $GLOBALS['UNI_NAME_CLEAN'];
@@ -75,7 +75,7 @@ class StudipSemTree extends TreeAbstract {
             $this->sem_status[] = -1;
         }
 
-        parent::TreeAbstract(); //calling the baseclass constructor
+        parent::__construct(); //calling the baseclass constructor
         if (isset($args['build_index']) ){
             $this->buildIndex();
         }
@@ -233,6 +233,8 @@ class StudipSemTree extends TreeAbstract {
         $rs = $view->get_query("view:SEM_TREE_INS_ITEM");
         // Logging
         log_event("STUDYAREA_ADD",$item_id);
+        NotificationCenter::postNotification("StudyAreaDidCreate", $item_id, $GLOBALS['user']->id); 
+
         return $rs->affected_rows();
     }
 
@@ -240,6 +242,8 @@ class StudipSemTree extends TreeAbstract {
         $view = new DbView();
         $view->params = array($item_name,$item_info,$type,$item_id);
         $rs = $view->get_query("view:SEM_TREE_UPD_ITEM");
+        NotificationCenter::postNotification("StudyAreaDidUpdate", $item_id, $GLOBALS['user']->id); 
+
         return $rs->affected_rows();
     }
 
@@ -254,6 +258,7 @@ class StudipSemTree extends TreeAbstract {
         // Logging
         foreach ($items_to_delete as $item_id) {
             log_event("STUDYAREA_DELETE",$item_id);
+            NotificationCenter::postNotification("StudyAreaDidDelete", $item_id, $GLOBALS['user']->id);
          }
         return $deleted;
     }
