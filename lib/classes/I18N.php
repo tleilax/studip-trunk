@@ -2,12 +2,21 @@
 
 /**
  * Translation class
+ *
+ * Automatic generation of inputs and textareas for i18n
  */
 class I18N
 {
+
     /**
      * Create a set of HTML input elements for this form element in text form.
      * One element will be generated for each configured content language.
+     *
+     * @param $name HTML name of the Inputfild
+     * @param $value Value (Needs to be an i18n input string)
+     * @param array $attributes Additional attributes of the input
+     * @return string Crafted input
+     * @throws i18nException If given value was not an i18n Object
      */
     public static function input($name, $value, $attributes = array())
     {
@@ -58,6 +67,12 @@ class I18N
     /**
      * Create a set of HTML textarea elements for this form element in text form.
      * One element will be generated for each configured content language.
+     *
+     * @param $name HTML name of the Textarea
+     * @param $value Value (Needs to be an i18n input string)
+     * @param array $attributes Additional attributes of the input
+     * @return string Crafted textarea
+     * @throws i18nException If given value was not an i18n Object
      */
     public static function textarea($name, $value, $attributes = array())
     {
