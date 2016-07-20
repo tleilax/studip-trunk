@@ -7074,6 +7074,7 @@ select.i18n {
   padding-left: 28px !important;
   background-repeat: no-repeat;
   background-position: left 2px center;
+  -webkit-appearance: none;
 }
 select.i18n option {
   background-repeat: no-repeat;
