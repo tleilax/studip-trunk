@@ -55,4 +55,17 @@ class I18NString
     {
         return $this->lang;
     }
+
+    /**
+     * Trim all language strings
+     *
+     * @param string $symbols All symbols to trim. Default only spaces
+     */
+    public function trim($symbols = " ") {
+        foreach ($this->lang as &$lang) {
+            $lang = trim($lang, $symbols);
+            $this->base = trim($this->base);
+        }
+        return ($this);
+    }
 }
