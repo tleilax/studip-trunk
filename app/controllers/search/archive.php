@@ -18,6 +18,18 @@ class Search_ArchiveController extends AuthenticatedController
     {
         PageLayout::setTitle(_('Suche im Veranstaltungsarchiv'));
         
+        $sidebar = Sidebar::get();
+        
+        $search = new SearchWidget(URLHelper::getUrl('dispatch.php/search/archive'));
+        
+        $search->addNeedle(
+            _('Suche im Veranstaltungsarchiv'),
+            'archivedCourse',
+            _('Name der archivierten Veranstaltung')
+        );
+        
+        $sidebar->addWidget($search);
+        
         if(Request::get('searchRequested')) {
             /* 
                 A search form was sent here:

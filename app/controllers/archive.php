@@ -53,6 +53,21 @@ class ArchiveController extends AuthenticatedController
     }
     
     
+    private function buildSidebar()
+    {
+        $sidebar = Sidebar::get();
+        
+        $search = new SearchWidget(URLHelper::getUrl('dispatch.php/search/archive'));
+        
+        $search->addNeedle(
+            _('Suche im Veranstaltungsarchiv'),
+            'archivedCourse',
+            _('Name der archivierten Veranstaltung')
+        );
+        
+        $sidebar->addWidget($search);
+    }
+    
     /**
         To avoid code duplication this method is called from
         overview_action, forum_action and wiki_action, because
@@ -74,6 +89,7 @@ class ArchiveController extends AuthenticatedController
         PageLayout::setTitle(_('Veranstaltungsarchiv'));
         $this->findArchivedCourse($courseId);
         Navigation::activateItem('archive/overview');
+        $this->buildSidebar();
     }
     
     
@@ -82,6 +98,7 @@ class ArchiveController extends AuthenticatedController
         PageLayout::setTitle(_('Veranstaltungsarchiv'));
         $this->findArchivedCourse($courseId);
         Navigation::activateItem('archive/forum');
+        $this->buildSidebar();
     }
     
     
@@ -90,6 +107,7 @@ class ArchiveController extends AuthenticatedController
         PageLayout::setTitle(_('Veranstaltungsarchiv'));
         $this->findArchivedCourse($courseId);
         Navigation::activateItem('archive/wiki');
+        $this->buildSidebar();
     }
     
     
