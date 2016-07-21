@@ -68,4 +68,39 @@ class I18NString
         }
         return ($this);
     }
+
+    /**
+     * Stores the i18n String manually in the database
+     *
+     * @param $object_id The objects primary key
+     * @param $table The table the object is stores in
+     * @param $field The fieldname
+     */
+    public function store($object_id, $table, $field) {
+        $db = DBManager::get();
+
+        // Find pk
+        $pk = $db->fetchColumn("SHOW INDEX FROM $table WHERE Key_name = 'PRIMARY'", null, 4);
+
+        /* Replace base value */
+        $baseSQL = $db->prepare("UPDATE `$table` SET `$field` = ? WHERE `$pk` = ?");
+        $baseSQL->execute(array($this->base, $object_id));
+
+        /* Replace translations */
+        $i18nSQL = $baseSQL = $db->prepare("REPLACE INTO `i18n` (`object_id`, `table`, `field`, `lang`, `value`) VALUES (?,?,?,?,?)");
+        foreach ($this->lang as $lang => $value) {
+            $i18nSQL->execute(array($object_id, $table, $field, $lang, $value));
+        }
+    }
+
+
+    public static function load($object_id, $table, $field) {
+        $db = DBManager::get();
+
+        // Find pk
+        $pk = $db->fetchColumn("SHOW INDEX FROM $table WHERE Key_name = 'PRIMARY'", null, 4);
+        $base = $db->fetchColumn("SELECT `$field` FROM `$table` WHERE $pk = ?", array($object_id));
+        $lang = $db->fetchPairs("SELECT `lang`, `value` FROM `i18n` WHERE `object_id` = ? AND `table` = ? AND `field` = ?", array($object_id, $table, $field));
+        return new self($base, $lang);
+    }
 }
