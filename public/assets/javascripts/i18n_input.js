@@ -17,7 +17,7 @@ STUDIP.i18n = {
             languages.each(function(id, lang) {
                 select.append($('<option>', {text: $(lang).data().lang_desc}).css('background-image', $(lang).css('background-image')));
             });
-            $(this).append(select);
+            $(this).prepend(select);
             languages.css('background-image', '').not(':eq(0)').hide();
         });
     }
