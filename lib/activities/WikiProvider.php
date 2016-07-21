@@ -61,20 +61,31 @@ class WikiProvider implements ActivityProvider
 
         $user_id = $GLOBALS['user']->id;
         $mkdate = time();
-        $context_clean = ($type == 'sem') ? _('in der Veranstaltung') : _('in der Einrichtung');
 
         if ($event == 'WikiPageDidCreate') {
             $verb = 'created';
-            $summary = _('Die Wiki-Seite %s wurde von %s %s "%s" angelegt.');
+            if ($type == 'sem') {
+                $summary = _('Die Wiki-Seite %s wurde von %s in der Veranstaltung "%s" angelegt.');
+            } else {
+                $summary = _('Die Wiki-Seite %s wurde von %s in der Einrichtung "%s" angelegt.');
+            }
         } elseif ($event == 'WikiPageDidUpdate') {
             $verb = 'edited';
-            $summary = _('Die Wiki-Seite %s wurde von %s %s "%s" aktualisiert.');
+            if ($type == 'sem') {
+                $summary = _('Die Wiki-Seite %s wurde von %s in der Veranstaltung "%s" aktualisiert.');
+            } else {
+                $summary = _('Die Wiki-Seite %s wurde von %s in der Einrichtung "%s" aktualisiert.');
+            }
         } elseif ($event == 'WikiPageDidDelete') {
             $verb = 'voided';
-            $summary = _('Die Wiki-Seite %s wurde von %s %s "%s" gelöscht.');
+            if ($type == 'sem') {
+                $summary = _('Die Wiki-Seite %s wurde von %s in der Veranstaltung "%s" gelöscht.');
+            } else {
+                $summary = _('Die Wiki-Seite %s wurde von %s in der Einrichtung "%s" gelöscht.');
+            }
         }
 
-        $summary = sprintf($summary, $keyword, get_fullname($user_id), $context_clean , $course->name);
+        $summary = sprintf($summary, $keyword, get_fullname($user_id), $course->name);
 
         $activity = Activity::create(
             array(

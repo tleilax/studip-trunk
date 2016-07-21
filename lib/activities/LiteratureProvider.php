@@ -63,30 +63,51 @@ class LiteratureProvider implements ActivityProvider
             $course = \Institute::find($range_id);
         }
 
-        $context_clean = ($type == 'sem') ? _("in der Veranstaltung") : _("in der Einrichtung");
-
-
         if ($event == 'LitListDidUpdate') {
             $verb = 'edited';
-            $summary = _('Die Literaturliste %s wurde von %s %s "%s" geändert.');
+            if ($type == 'sem') {
+                $summary = _('Die Literaturliste %s wurde von %s in der Veranstaltung "%s" geändert.');
+            } else {
+                $summary = _('Die Literaturliste %s wurde von %s in der Einrichtung "%s" geändert.');
+            }
         } elseif ($event == 'LitListDidInsert') {
             $verb = 'created';
-            $summary = _('Die Literaturliste %s wurde von %s %s "%s" erstellt.');
+            if ($type == 'sem') {
+                $summary = _('Die Literaturliste %s wurde von %s in der Veranstaltung "%s" erstellt.');
+            } else {
+                $summary = _('Die Literaturliste %s wurde von %s in der Einrichtung "%s" erstellt.');
+            }
         } elseif ($event == 'LitListDidDelete') {
             $verb = 'voided';
-            $summary = _('Die Literaturliste %s wurde von %s %s "%s" entfernt.');
+            if ($type == 'sem') {
+                $summary = _('Die Literaturliste %s wurde von %s in der Veranstaltung "%s" entfernt.');
+            } else {
+                $summary = _('Die Literaturliste %s wurde von %s in der Einrichtung "%s" entfernt.');
+            }
         } elseif ($event == 'LitListElementDidUpdate') {
             $verb = 'edited';
-            $summary = _('Es wurde %s von %s in eine Literaturliste %s "%s" geändert.');
+            if ($type == 'sem') {
+                $summary = _('Es wurde %s von %s in eine Literaturliste in der Veranstaltung "%s" geändert.');
+            } else {
+                $summary = _('Es wurde %s von %s in eine Literaturliste in der Einrichtung "%s" geändert.');
+            }
         } elseif ($event == 'LitListElementDidInsert') {
             $verb = 'created';
-            $summary = _('Es wurde %s von %s in eine Literaturliste %s "%s" erstellt.');
+            if ($type == 'sem') {
+                $summary = _('Es wurde %s von %s in eine Literaturliste in der Veranstaltung "%s" erstellt.');
+            } else {
+                $summary = _('Es wurde %s von %s in eine Literaturliste in der Einrichtung "%s" erstellt.');
+            }
         } elseif ($event == 'LitListElementDidDelete') {
             $verb = 'voided';
-            $summary = _('Es wurde %s von %s aus einer Literaturliste %s "%s" entfernt.');
+            if ($type == 'sem') {
+                $summary = _('Es wurde %s von %s aus einer Literaturliste in der Veranstaltung "%s" entfernt.');
+            } else {
+                $summary = _('Es wurde %s von %s aus einer Literaturliste in der Einrichtung "%s" entfernt.');
+            }
         }
 
-        $summary = sprintf($summary, $name, get_fullname($user_id), $context_clean , $course->name);
+        $summary = sprintf($summary, $name, get_fullname($user_id), $course->name);
 
         $activity = Activity::create(
             array(
