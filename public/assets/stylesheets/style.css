@@ -7071,10 +7071,11 @@ div.i18n_group.single_lang textarea {
 }
 select.i18n {
   width: auto !important;
-  padding-left: 28px !important;
   background-repeat: no-repeat;
   background-position: left 2px center;
   -webkit-appearance: none;
+  padding: 0px 2px 0px 28px !important;
+  height: 22px;
 }
 select.i18n option {
   background-repeat: no-repeat;
