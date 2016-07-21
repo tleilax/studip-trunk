@@ -161,12 +161,11 @@ class Course_ArchiveController extends AuthenticatedController
             $this->lastActivities = array();
             
             foreach ($this->courses as $course) {
-                //cannot add attributes to course directly. TODO: resolve that problem!
                 $this->dozenten[$course->id] = $course->members->filter(
-                                    function ($member) {
-                                        return $member['status'] === "dozent"; 
-                                    }
-                                );
+                    function ($member) {
+                        return $member['status'] === "dozent"; 
+                    }
+                );
                 $this->lastActivities[$course->id] = date("d.m.Y, G:i", lastActivity($course->id));
             }
         }
