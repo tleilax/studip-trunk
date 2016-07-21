@@ -1261,6 +1261,11 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
     {
         $field = strtolower($field);
         if (in_array($field, $this->known_slots)) {
+
+            // Load i18n if not already done by restore
+            if ($this->i18n_fields[$field] && !$this->content[$field] instanceof I18NString) {
+                $this->content[$field] = I18NString::load($this->id, $this->db_table, $field);
+            }
             if (!in_array($field, $this->reserved_slots) && !$this->additional_fields[$field]['get'] && method_exists($this, 'get' . $field)) {
                 return call_user_func(array($this, 'get' . $field));
             }
