@@ -15,7 +15,7 @@ class NewsProvider implements ActivityProvider
         switch ($activity->context) {
             case 'course':
                 return array(
-                    \URLHelper::getUrl('dispatch.php/course/overview/?cid=' . $activity->context_id . '&contentbox_type=news&contentbox_open=' . $activity->object_id) => _('Ankündigungen im Kurs')
+                    \URLHelper::getUrl('dispatch.php/course/overview/?cid=' . $activity->context_id . '&contentbox_type=news&contentbox_open=' . $activity->object_id) => _('Ankündigungen in der Veranstaltung')
                 );
             break;
 
