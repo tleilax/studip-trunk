@@ -27,7 +27,7 @@ class I18N
         $languages = $GLOBALS['CONTENT_LANGUAGES'];
         $base_lang = key($languages);
 
-        $result .= "<div class='i18n_group ".(count($GLOBALS['CONTENT_LANGUAGES']) <= 1 ? 'single_lang' : '')."'>";
+        $result .= "<div class='i18n_group normal-input ".(count($GLOBALS['CONTENT_LANGUAGES']) <= 1 ? 'single_lang' : '')."'>";
         foreach ($languages as $locale => $lang) {
             if ($locale === $base_lang) {
                 $attr = array(
@@ -46,7 +46,7 @@ class I18N
                 'class' => $attributes['class'] . ' i18n',
                 'style' => sprintf('%s background-image: url(%s);', $attributes['style'],
                                    Assets::image_path('languages/' . $lang['picture'])),
-                'data-lang_desc' => $lang['name']
+                'data-lang_desc' => $lang['name'],
             );
 
             $result .= '<input type="text"';
@@ -79,7 +79,7 @@ class I18N
         $languages = $GLOBALS['CONTENT_LANGUAGES'];
         $base_lang = key($languages);
 
-        $result .= "<div class='i18n_group ".(count($GLOBALS['CONTENT_LANGUAGES']) <= 1 ? 'single_lang' : '')."'>";
+        $result .= "<div class='i18n_group textarea-input ".(count($GLOBALS['CONTENT_LANGUAGES']) <= 1 ? 'single_lang' : '')."'>";
         foreach ($languages as $locale => $lang) {
             if ($locale === $base_lang) {
                 $attr = array(
