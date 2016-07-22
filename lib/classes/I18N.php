@@ -25,7 +25,7 @@ class I18N
         }
 
         $languages = $GLOBALS['CONTENT_LANGUAGES'];
-        $base_lang = key($languages);
+        $base_lang = $GLOBALS['DEFAULT_LANGUAGE'];
 
         $result .= "<div class='i18n_group ".(count($GLOBALS['CONTENT_LANGUAGES']) <= 1 ? 'single_lang' : '')."'>";
         foreach ($languages as $locale => $lang) {
@@ -77,7 +77,7 @@ class I18N
     public static function textarea($name, $value, $attributes = array())
     {
         $languages = $GLOBALS['CONTENT_LANGUAGES'];
-        $base_lang = key($languages);
+        $base_lang = $GLOBALS['DEFAULT_LANGUAGE'];
 
         $result .= "<div class='i18n_group ".(count($GLOBALS['CONTENT_LANGUAGES']) <= 1 ? 'single_lang' : '')."'>";
         foreach ($languages as $locale => $lang) {
