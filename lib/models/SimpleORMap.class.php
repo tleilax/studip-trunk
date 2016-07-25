@@ -797,8 +797,12 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
         if (count($this->notification_map)) {
             $this->registerCallback(array_keys($this->notification_map), 'cbNotificationMapper');
         }
-        if (count($this->i18n_fields)) {
-            $this->registerCallback(['before_store', 'after_delete'], 'cbI18N');
+        if (I18N::isEnabled()) {
+            if (count($this->i18n_fields)) {
+                $this->registerCallback(['before_store', 'after_delete'], 'cbI18N');
+            }
+        } else {
+            $this->i18n_fields = array();
         }
 
         $this->known_slots = array_merge(array_keys($this->db_fields), array_keys($this->alias_fields), array_keys($this->additional_fields), array_keys($this->relations));
