@@ -18,20 +18,17 @@
 
 class CalendarParserICalendar extends CalendarParser
 {
+    public $type = '';
+    protected $count = null;
 
-    var $count = null;
-
-    function CalendarParserICalendar()
+    public function __construct()
     {
-
-        parent::CalendarParser();
+        parent::__construct();
         $this->type = 'iCalendar';
     }
 
-    function getCount($data)
+    public function getCount($data)
     {
-        global $_calendar_error;
-
         $matches = array();
         if (is_null($this->count)) {
             // Unfold any folded lines
@@ -50,7 +47,7 @@ class CalendarParserICalendar extends CalendarParser
      * @param String $data  The data to parse
      *
      */
-    function parse($data, $ignore)
+    public function parse($data, $ignore)
     {
         global $_calendar_error, $PERS_TERMIN_KAT;
 
@@ -147,7 +144,7 @@ class CalendarParserICalendar extends CalendarParser
                             }
                             $properties[$tag] = implode(',', $categories);
                             break;
-                        
+
                         // Date fields
                         case 'DCREATED': // vCalendar property name for "CREATED"
                             $tag = "CREATED";
@@ -264,7 +261,7 @@ class CalendarParserICalendar extends CalendarParser
 
                         // Geo fields
                         case 'GEO':
-                            $floats = split(';', $value);
+                            $floats = explode(';', $value);
                             $value['latitude'] = floatval($floats[0]);
                             $value['longitude'] = floatval($floats[1]);
                             $properties[$tag] = $value;
@@ -315,7 +312,7 @@ class CalendarParserICalendar extends CalendarParser
                     $properties['STUDIP_CATEGORY'] = $studip_categories[$properties['CATEGORIES']];
                     $properties['CATEGORIES'] = '';
                 }
-                 * 
+                 *
                  */
 
                 $this->components[] = $properties;
@@ -333,7 +330,7 @@ class CalendarParserICalendar extends CalendarParser
     /**
      * Parse a UTC Offset field
      */
-    function _parseUtcOffset($text)
+    private function _parseUtcOffset($text)
     {
         $offset = 0;
         if (preg_match('/(\+|-)([0-9]{2})([0-9]{2})([0-9]{2})?/', $text, $matches)) {
@@ -352,9 +349,9 @@ class CalendarParserICalendar extends CalendarParser
     /**
      * Parse a Time Period field
      */
-    function _parsePeriod($text)
+    private function _parsePeriod($text)
     {
-        $matches = split('/', $text);
+        $matches = explode('/', $text);
 
         $start = $this->_parseDateTime($matches[0]);
 
@@ -368,9 +365,9 @@ class CalendarParserICalendar extends CalendarParser
     /**
      * Parse a DateTime field
      */
-    function _parseDateTime($text)
+    private function _parseDateTime($text)
     {
-        $dateParts = split('T', $text);
+        $dateParts = explode('T', $text);
         if (count($dateParts) != 2 && !empty($text)) {
             // not a date time field but may be just a date field
             if (!$date = $this->_parseDate($text)) {
@@ -397,7 +394,7 @@ class CalendarParserICalendar extends CalendarParser
     /**
      * Parse a Time field
      */
-    function _parseTime($text)
+    private function _parseTime($text)
     {
         if (preg_match('/([0-9]{2})([0-9]{2})([0-9]{2})(Z)?/', $text, $matches)) {
             $time['hour'] = intval($matches[1]);
@@ -417,9 +414,9 @@ class CalendarParserICalendar extends CalendarParser
     /**
      * Parse a Date field
      */
-    function _parseDate($text)
+    private function _parseDate($text)
     {
-        if (strlen(trim($text)) != 8) {
+        if (strlen(trim($text)) !== 8) {
             return false;
         }
 
@@ -433,7 +430,7 @@ class CalendarParserICalendar extends CalendarParser
     /**
      * Parse a Duration Value field
      */
-    function _parseDuration($text)
+    private function _parseDuration($text)
     {
         if (preg_match('/([+]?|[-])P(([0-9]+W)|([0-9]+D)|)(T(([0-9]+H)|([0-9]+M)|([0-9]+S))+)?/', trim($text), $matches)) {
             // weeks
@@ -465,17 +462,20 @@ class CalendarParserICalendar extends CalendarParser
         }
     }
 
-    function _parsePriority($value)
+    private function _parsePriority($value)
     {
         $value = intval($value);
-        if ($value > 0 && $value < 5)
+        if ($value > 0 && $value < 5) {
             return 1;
+        }
 
-        if ($value == 5)
+        if ($value == 5) {
             return 2;
+        }
 
-        if ($value > 5 && $value < 10)
+        if ($value > 5 && $value < 10) {
             return 3;
+        }
 
         return 0;
     }
@@ -483,7 +483,7 @@ class CalendarParserICalendar extends CalendarParser
     /**
      * Parse a Recurrence field
      */
-    function _parseRecurrence($text)
+    private function _parseRecurrence($text)
     {
         global $_calendar_error;
 
@@ -554,7 +554,7 @@ class CalendarParserICalendar extends CalendarParser
         return $r_rule;
     }
 
-    function _parseByDay($text)
+    private function _parseByDay($text)
     {
         global $_calendar_error;
 
@@ -580,31 +580,32 @@ class CalendarParserICalendar extends CalendarParser
         return $wdays ? array('wdays' => $wdays, 'sinterval' => $sinterval) : false;
     }
 
-    function _parseByMonthDay($text)
+    private function _parseByMonthDay($text)
     {
         $days = explode(',', $text);
-        if (sizeof($days) > 1 || ((int) $days[0]) < 0)
+        if (sizeof($days) > 1 || ((int) $days[0]) < 0) {
             return false;
+        }
 
         return $days[0];
     }
 
-    function _parseByMonth($text)
+    private function _parseByMonth($text)
     {
         $months = explode(',', $text);
-        if (sizeof($months) > 1)
+        if (sizeof($months) > 1) {
             return false;
+        }
 
         return $months[0];
     }
 
-    function _qp_decode($value)
+    private function _qp_decode($value)
     {
-
-        return preg_replace("/=([0-9A-F]{2})/e", "chr(hexdec('\\1'))", $value);
+        return preg_replace_callback("/=([0-9A-F]{2})/", function ($m) {return chr(hexdec($m[1]));}, $value);
     }
 
-    function _parseClientIdentifier(&$data)
+    private function _parseClientIdentifier(&$data)
     {
         global $_calendar_error;
 
@@ -621,8 +622,8 @@ class CalendarParserICalendar extends CalendarParser
         }
         return true;
     }
-    
-    function getClientIdentifier($data = null)
+
+    public function getClientIdentifier($data = null)
     {
         if (!is_null($data)) {
             $this->_parseClientIdentifier($data);
@@ -632,4 +633,3 @@ class CalendarParserICalendar extends CalendarParser
     }
 
 }
-

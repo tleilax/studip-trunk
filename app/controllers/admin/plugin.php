@@ -38,14 +38,14 @@ class Admin_PluginController extends AuthenticatedController
 
         $this->plugin_admin = new PluginAdministration();
 
+        if (Request::int('reset_filter')) {
+            $GLOBALS['user']->cfg->delete('PLUGINADMIN_DISPLAY_SETTINGS');
+        }
         // Extract display settings
         $settings = $current = $GLOBALS['user']->cfg->PLUGINADMIN_DISPLAY_SETTINGS;
-        if (Request::int('reset_filter')) {
-            $settings = Config::get()->PLUGINADMIN_DISPLAY_SETTINGS;
-        } else {
-            foreach ($settings as $key => $value) {
-                $settings[$key] = Request::option($key, $settings[$key]) ?: null;
-            }
+
+        foreach ((array)$settings as $key => $value) {
+            $settings[$key] = Request::option($key, $settings[$key]) ?: null;
         }
 
         if ($settings !== $current) {
@@ -141,6 +141,11 @@ class Admin_PluginController extends AuthenticatedController
 
         // update enabled/disabled status and position if set
         foreach ($plugins as $plugin){
+            // Skip plugins that are currently not visible due to filter settings
+            if (!Request::submittedSome('position_' . $plugin['id'], 'enabled_' . $plugin['id'])) {
+                continue;
+            }
+
             $enabled = Request::int('enabled_' . $plugin['id'], 0);
             $navpos = Request::int('position_' . $plugin['id']);
 

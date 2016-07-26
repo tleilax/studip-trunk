@@ -185,6 +185,7 @@ class CourseSet
      * Deletes the course set and all associated data.
      */
     public function delete() {
+        NotificationCenter::postNotification('CourseSetWillDelete', $this->id, $GLOBALS['user']->id);
         // Delete institute associations.
         $stmt = DBManager::get()->prepare("DELETE FROM `courseset_institute`
             WHERE `set_id`=?");
@@ -217,6 +218,7 @@ class CourseSet
         }
         //Delete priorities
         AdmissionPriority::unsetAllPriorities($this->getId());
+        NotificationCenter::postNotification('CourseSetDidDelete', $this->id, $GLOBALS['user']->id);
     }
 
     /**
@@ -243,9 +245,14 @@ class CourseSet
 
     public function setAlgorithmRun($state)
     {
+        NotificationCenter::postNotification('CourseSetAlgorithmWillStart', $state, $this->getId());
         $this->hasAlgorithmRun = (bool)$state;
         $db = DbManager::get();
-        return $db->execute("UPDATE coursesets SET algorithm_run = ? WHERE set_id = ?", array($this->hasAlgorithmRun, $this->getId()));
+        $ok = $db->execute("UPDATE coursesets SET algorithm_run = ? WHERE set_id = ?", array($this->hasAlgorithmRun, $this->getId()));
+        if ($ok) {
+            NotificationCenter::postNotification('CourseSetAlgorithmDidStart', $state, $this->getId());
+        }
+        return $ok;
     }
 
     /**
@@ -505,7 +512,7 @@ class CourseSet
                  AND seminar_id IN(?)", array($this->getCourses()));
         $semester = Semester::findByTimestamp($timestamp);
         if (!$semester) {
-            $semester = Semester::findCurrent();
+            $semester = $_SESSION['_default_sem'] ? Semester::find($_SESSION['_default_sem']) : Semester::findCurrent();
         }
         return $semester->id;
     }
@@ -1002,7 +1009,7 @@ class CourseSet
             return true;
         }
         if ($perm->have_perm('admin', $user_id) || ($perm->have_perm('dozent', $user_id) && get_config('ALLOW_DOZENT_COURSESET_ADMIN'))) {
-            foreach ($this->getInstituteIds() as $one) {
+            foreach (array_keys($this->getInstituteIds()) as $one) {
                 if ($perm->have_studip_perm('dozent', $one, $user_id)) {
                     return true;
                 }

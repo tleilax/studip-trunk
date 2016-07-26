@@ -46,7 +46,7 @@ class EditResourceData {
     var $used_view;     //the used view
 
     //Konstruktor
-    function EditResourceData ($resource_id) {
+    function __construct($resource_id) {
         $this->resObject = ResourceObject::Factory($resource_id);
     }
 
@@ -69,7 +69,7 @@ class EditResourceData {
     //private
     function selectProperties()
     {
-        $query = "SELECT rp.property_id, rp.name, rp.type, rp.options, rp.system, rop.state
+        $query = "SELECT rp.property_id, rp.name, rp.type, rp.options, rp.system, rop.state, rcp.protected
                   FROM resources_properties AS rp
                   LEFT JOIN resources_categories_properties AS rcp USING (property_id)
                   LEFT JOIN resources_objects AS ro USING (category_id)

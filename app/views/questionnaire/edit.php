@@ -10,7 +10,7 @@
         <legend><?= _("Fragebogen") ?></legend>
         <label>
             <?= _("Titel des Fragebogens") ?>
-            <input type="text" name="questionnaire[title]" value="<?= htmlReady($questionnaire['title']) ?>" class="size-l">
+            <input type="text" name="questionnaire[title]" value="<?= htmlReady($questionnaire['title']) ?>" class="size-l" required>
         </label>
     </fieldset>
 
@@ -55,9 +55,9 @@
         <label>
             <?= _("Ergebnisse an Teilnehmer") ?>
             <select name="questionnaire[resultvisibility]">
-                <option value="always"<?= $questionnaire['editanswers'] === "always" ? " selected" : "" ?>><?= _("Wenn sie geantwortet haben.") ?></option>
-                <option value="afterending"<?= $questionnaire['editanswers'] === "afterending" ? " selected" : "" ?>><?= _("Nach Ende der Befragung.") ?></option>
-                <option value="never"<?= $questionnaire['editanswers'] === "never" ? " selected" : "" ?>><?= _("Niemals.") ?></option>
+                <option value="always"<?= $questionnaire['resultvisibility'] === "always" ? " selected" : "" ?>><?= _("Wenn sie geantwortet haben.") ?></option>
+                <option value="afterending"<?= $questionnaire['resultvisibility'] === "afterending" ? " selected" : "" ?>><?= _("Nach Ende der Befragung.") ?></option>
+                <option value="never"<?= $questionnaire['resultvisibility'] === "never" ? " selected" : "" ?>><?= _("Niemals.") ?></option>
             </select>
         </label>
 

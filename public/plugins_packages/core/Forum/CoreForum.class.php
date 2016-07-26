@@ -20,6 +20,8 @@ require_once 'models/ForumEntry.php';
 
 // Notifications
 NotificationCenter::addObserver('CoreForum', 'overviewDidClear', "OverviewDidClear");
+NotificationCenter::addObserver('CoreForum', 'removeAbosForUserAndCourse', 'UserDidLeaveCourse');
+
 NotificationCenter::addObserver('ForumActivity', 'newEntry', 'ForumAfterInsert');
 NotificationCenter::addObserver('ForumActivity', 'updateEntry', 'ForumAfterUpdate');
 NotificationCenter::addObserver('ForumActivity', 'deleteEntry', 'ForumBeforeDelete');
@@ -116,12 +118,25 @@ class CoreForum extends StudipPlugin implements ForumModule
      * @param object $notification
      * @param string $user_id
      */
-    function overviewDidClear($notification, $user_id)
+    public static function overviewDidClear($notification, $user_id)
     {
         $stmt = DBManager::get()->prepare("UPDATE forum_visits
             SET visitdate = UNIX_TIMESTAMP(), last_visitdate = UNIX_TIMESTAMP()
             WHERE user_id = ?");
         $stmt->execute(array($user_id));
+    }
+
+    /**
+     * This method is called whenever a user is removed from a course and thus
+     * the forum abos will be removed.
+     *
+     * @param object $notification
+     * @param string $course_id
+     * @param string $user_id
+     */
+    public static function removeAbosForUserAndCourse($notification, $course_id, $user_id)
+    {
+        ForumAbo::removeForCourseAndUser($course_id, $user_id);
     }
 
     function getInfoTemplate($course_id)

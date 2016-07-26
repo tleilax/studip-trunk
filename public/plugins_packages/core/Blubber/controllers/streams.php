@@ -15,7 +15,7 @@ class StreamsController extends PluginController {
 
     protected $max_threads = 10; //how many threads should be displayed in infinity-scroll-stream before it should reload
 
-    function before_filter($action, $args)
+    function before_filter(&$action, &$args)
     {
         parent::before_filter($action, $args);
         $this->assets_url = $this->plugin->getPluginURL() . '/assets/';
@@ -903,6 +903,20 @@ class StreamsController extends PluginController {
         }
         $this->thread = new BlubberPosting($thread_id);
         $success = $this->thread->reshare();
+
+        $template = $this->get_template_factory()->open("streams/_blubber.php");
+        $template->set_attributes($this->get_assigned_variables());
+        $template->set_layout(null);
+        $output = $template->render();
+        $this->render_text($output);
+    }
+
+    public function unshare_action($thread_id) {
+        if (!Request::isPost()) {
+            throw new Exception("Wrong method for this action - use POST instead");
+        }
+        $this->thread = new BlubberPosting($thread_id);
+        $success = $this->thread->unreshare();
 
         $template = $this->get_template_factory()->open("streams/_blubber.php");
         $template->set_attributes($this->get_assigned_variables());

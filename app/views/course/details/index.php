@@ -32,6 +32,34 @@
                 </tr>
             <? endif ?>
                 <tr>
+                    <td>
+                        <strong><?= _('Aktuelle Anzahl der Teilnehmenden') ?></strong>
+                    </td>
+                    <td><?= $course->getNumParticipants() ?></td>
+                </tr>
+            <? if ($course->admission_turnout) : ?>
+                <tr>
+                    <td>
+                        <strong>
+                        <? if ($sem->isAdmissionEnabled()) : ?>
+                            <?= _('maximale Teilnehmeranzahl') ?>
+                        <? else : ?>
+                            <?= _('erwartete Teilnehmeranzahl') ?>
+                        <? endif ?>
+                        </strong>
+                    </td>
+                    <td><?= htmlReady($course->admission_turnout) ?></td>
+                </tr>
+            <? endif ?>
+            <? if ($sem->isAdmissionEnabled() && $course->getNumWaiting()) : ?>
+                <tr>
+                    <td>
+                        <strong><?= _('Wartelisteneinträge') ?></strong>
+                    </td>
+                    <td><?= $course->getNumWaiting() ?></td>
+                </tr>
+            <? endif ?>
+                <tr>
                     <td><strong><?= _("Heimat-Einrichtung") ?></strong></td>
                     <td>
                         <a href="<?= URLHelper::getScriptLink("dispatch.php/institute/overview", array('auswahl' => $course->institut_id)) ?>">
@@ -196,41 +224,28 @@
 
     <section class="contentbox">
         <header>
-            <h1><?= _('Teilnehmerzahlen') ?></h1>
-        </header>
-        <table class="default">
-            <colgroup>
-                <col width="40%">
-            </colgroup>
-            <tbody>
-            <tr>
-                <td><?= _("Aktuelle Anzahl der Teilnehmenden") ?></td>
-                <td><?= sprintf('%s', $course->getNumParticipants()) ?></td>
-            </tr>
-            <? if ($course->admission_turnout) : ?>
-                <tr>
-                    <td><?= $sem->isAdmissionEnabled() ? _("maximale Teilnehmeranzahl") : _("erwartete Teilnehmeranzahl")?></td>
-                    <td><?= sprintf('%s', $course->admission_turnout) ?></td>
-                </tr>
-            <? endif ?>
-            <? if ($sem->isAdmissionEnabled() && $course->getNumWaiting()) : ?>
-                <tr>
-                    <td><?= _("Wartelisteneinträge")?></td>
-                    <td><?= sprintf('%s', $course->getNumWaiting()) ?></td>
-                </tr>
-            <? endif ?>
-            </tbody>
-        </table>
-    </section>
-
-    <section class="contentbox">
-        <header>
             <h1><?= _('Zeiten') ?></h1>
         </header>
         <section>
             <?= $sem->getDatesHTML() ?>
         </section>
     </section>
+
+    <? if ($course['public_topics'] && count($course->topics)) : ?>
+        <section class="contentbox">
+            <header>
+                <h1><?= _("Themen") ?></h1>
+            </header>
+            <section>
+                <? foreach ($course->topics as $key => $topic) {
+                    if ($key > 0) {
+                        echo ", ";
+                    }
+                    echo " ".htmlReady($topic['title']);
+                } ?>
+            </section>
+        </section>
+    <? endif ?>
 
     <section class="contentbox">
         <header>
@@ -359,22 +374,6 @@
                     <li><?= htmlReady($domain->getName()) ?></li>
                 <? endforeach ?>
             </ul>
-        </section>
-    <? endif ?>
-
-    <? if ($course['public_topics'] && count($course->topics)) : ?>
-        <section class="contentbox">
-            <header>
-                <h1><?= _("Themen") ?></h1>
-            </header>
-            <section>
-                <? foreach ($course->topics as $key => $topic) {
-                    if ($key > 0) {
-                        echo ", ";
-                    }
-                    echo " ".htmlReady($topic['title']);
-                } ?>
-            </section>
         </section>
     <? endif ?>
 
