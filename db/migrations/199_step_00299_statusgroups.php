@@ -17,7 +17,7 @@ class StEP00299Statusgroups extends Migration
      */
     public function description()
     {
-        return 'Adds a column for selfassign start time to table statusgruppen';
+        return 'Adds columns for selfassign start and end time to table statusgruppen';
     }
 
     /**

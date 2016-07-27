@@ -1978,6 +1978,9 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
         if ($this->relations[$relation] === null) {
             $options = $this->getRelationOptions($relation);
             $to_call = array($options['class_name'], $options['assoc_func']);
+            if (!is_callable($to_call)) {
+                throw new RuntimeException('assoc_func: ' . join('::', $to_call) . ' is not callable.' );
+            }
             $params = $options['assoc_func_params_func'];
             if ($options['type'] === 'has_many') {
                 $records = function($record) use ($to_call, $params, $options) {$p = (array)$params($record); return call_user_func_array($to_call, array_merge(count($p) ? $p : array(null), array($options['order_by'])));};
@@ -2145,5 +2148,23 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
              $this->content[$field] = new $object_type($value);
          }
          return $this->content[$field];
+     }
+
+     /**
+      * Cleans up this object. This essentially reset all relations of
+      * this object and marks them as unused so that the garbage collector may
+      * remove the objects.
+      *
+      * Use this function when you ran into memory problems and need to free
+      * some memory;
+      */
+     public function cleanup()
+     {
+         foreach ($this->relations as $relation => $object) {
+             if ($object instanceof SimpleORMap || $object instanceof SimpleORMapCollection) {
+                 $this->relations[$relation]->cleanup();
+             }
+             $this->resetRelation($relation);
+         }
      }
 }
