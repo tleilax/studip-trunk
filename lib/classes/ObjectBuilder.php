@@ -40,7 +40,7 @@ class ObjectBuilder
      * @throws UnexpectedValueException when the object is not of the expected
      *                                  type
      */
-    public static function buildFromArray($data, $expected_class = null)
+    public static function build($data, $expected_class = null)
     {
         // Decode data string to array if neccessary
         if (!is_array($data)) {
@@ -79,11 +79,11 @@ class ObjectBuilder
             // Recursively extract objects from value
             $value = $data[$property->name];
             if (self::isSerializedObject($value)) {
-                $value = self::buildFromArray($value);
+                $value = self::build($value);
             } elseif (is_array($value)) {
                 foreach ($value as $index => $item) {
                     if (self::isSerializedObject($item)) {
-                        $value[$index] = self::buildFromArray($item);
+                        $value[$index] = self::build($item);
                     }
                 }
             }
@@ -104,16 +104,16 @@ class ObjectBuilder
     /**
      * Restores a collection of objects that have previously been converted
      * to a arrays. This essentially iterates over the passed array and
-     * invokes buildFromArray() on each item.
+     * invokes build() on each item.
      *
      * @param array $array Associative array or json encoded string
      * @param mixed $expected_class Expected class name of objects (optional)
      * @return array as collection of objects
      * @throws InvalidArgumentException when either the data contains no
      *         objects or an object is not of the expected type
-     * @see ObjectBuilder::buildFromArray
+     * @see ObjectBuilder::build
      */
-    public static function buildManyFromArray($array, $expected_class = null)
+    public static function buildMany($array, $expected_class = null)
     {
         if ($array === null || !is_array($array)) {
             throw new InvalidArgumentException(
@@ -123,7 +123,7 @@ class ObjectBuilder
 
         $result = [];
         foreach ($array as $index => $row) {
-            $result[$index] = self::buildFromArray($row, $expected_class);
+            $result[$index] = self::build($row, $expected_class);
         }
         return $result;
     }
@@ -151,7 +151,7 @@ class ObjectBuilder
      * @throws InvalidArgumentException when given object is actually not an
      *         object
      */
-    public static function convertToArray($object)
+    public static function export($object)
     {
         // Check if variable is actually an object
         if (!is_object($object)) {
@@ -183,11 +183,11 @@ class ObjectBuilder
 
             // Recursively convert (nested) objects
             if (is_object($value)) {
-                $value = self::convertToArray($value);
+                $value = self::export($value);
             } elseif (is_array($value)) {
                 foreach ($value as $index => $item) {
                     if (is_object($item)) {
-                        $value[$index] = self::convertToArray($item);
+                        $value[$index] = self::export($item);
                     }
                 }
             }
@@ -200,5 +200,20 @@ class ObjectBuilder
         $variables[self::OBJECT_IDENTIFIER] = get_class($object);
 
         return $variables;
+    }
+
+    /**
+     * Returns the exported object as a JSON encoded string.
+     * This is just a convenience method that saves you from wrapping the
+     * call to export() in studip_json_encode() every single time.
+     *
+     * @param mixed $object Arbitrary object
+     * @return string containing the serialized object as a JSON string
+     * @throws InvalidArgumentException when given object is actually not an
+     *         object
+     */
+    public static function exportAsJson($object)
+    {
+        return studip_json_encode(self::export($object));
     }
 }

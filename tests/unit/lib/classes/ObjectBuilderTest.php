@@ -56,8 +56,8 @@ class ObjectBuilderTest extends PHPUnit_Framework_TestCase
 
     public function testEqualityAfterEncodeAndDecode()
     {
-        $converted_object = ObjectBuilder::convertToArray($this->object);
-        $restored_object  = ObjectBuilder::buildFromArray($converted_object);
+        $converted_object = ObjectBuilder::export($this->object);
+        $restored_object  = ObjectBuilder::build($converted_object);
 
         $this->assertEquals($this->object, $restored_object);
     }
@@ -66,7 +66,7 @@ class ObjectBuilderTest extends PHPUnit_Framework_TestCase
     {
         $this->assertInstanceOf(
             ObjectBuilderTestMock::class,
-            ObjectBuilder::buildFromArray(
+            ObjectBuilder::build(
                 $this->simple_array_definition,
                 'ObjectBuilderTestMock'
             )
@@ -75,7 +75,7 @@ class ObjectBuilderTest extends PHPUnit_Framework_TestCase
         // Derived classes
         $this->assertInstanceOf(
             ObjectBuilderTestMock::class,
-            ObjectBuilder::buildFromArray(
+            ObjectBuilder::build(
                 $this->another_simple_array_definition,
                 'AnotherObjectBuilderTestMock'
             )
@@ -87,7 +87,7 @@ class ObjectBuilderTest extends PHPUnit_Framework_TestCase
      */
     public function testExceptionOnExpectedType()
     {
-        $this->assertInstanceOf(ObjectBuilderTestMock::class, ObjectBuilder::buildFromArray([
+        $this->assertInstanceOf(ObjectBuilderTestMock::class, ObjectBuilder::build([
             ObjectBuilder::OBJECT_IDENTIFIER => 'AnotherObjectBuilderTestMock',
         ], 'FooBar'));
     }
@@ -97,7 +97,7 @@ class ObjectBuilderTest extends PHPUnit_Framework_TestCase
      */
     public function testExceptionOnNull()
     {
-        ObjectBuilder::buildFromArray(null);
+        ObjectBuilder::build(null);
     }
 
     public function testChangedPublicProperties()
@@ -105,7 +105,7 @@ class ObjectBuilderTest extends PHPUnit_Framework_TestCase
         $object_a = new ObjectBuilderTestMock();
         $object_a->foo = 'bar';
 
-        $this->assertEquals($object_a, ObjectBuilder::buildFromArray([
+        $this->assertEquals($object_a, ObjectBuilder::build([
             ObjectBuilder::OBJECT_IDENTIFIER => 'ObjectBuilderTestMock',
             'foo' => 'bar',
         ]));
@@ -113,7 +113,7 @@ class ObjectBuilderTest extends PHPUnit_Framework_TestCase
 
     public function testChangedNonPublicProperties()
     {
-        $this->assertEquals($this->changed_object, ObjectBuilder::buildFromArray([
+        $this->assertEquals($this->changed_object, ObjectBuilder::build([
             ObjectBuilder::OBJECT_IDENTIFIER => 'ObjectBuilderTestMock',
             'foo' => 'bar',
             'bar' => 23,
@@ -124,21 +124,31 @@ class ObjectBuilderTest extends PHPUnit_Framework_TestCase
     public function testMinimalFootprint()
     {
         $this->assertEquals(
-            ObjectBuilder::convertToArray(new ObjectBuilderTestMock()),
+            ObjectBuilder::export(new ObjectBuilderTestMock()),
             $this->simple_array_definition
         );
     }
 
     public function testJsonInput()
     {
-        $object_from_array = ObjectBuilder::buildFromArray(
+        $object_from_array = ObjectBuilder::build(
             $this->simple_array_definition
         );
-        $object_from_json  = ObjectBuilder::buildFromArray(
+        $object_from_json  = ObjectBuilder::build(
             json_encode($this->simple_array_definition)
         );
 
         $this->assertEquals($object_from_array, $object_from_json);
+    }
+
+    public function testJsonOutput()
+    {
+        $json = ObjectBuilder::exportAsJson($this->object);
+
+        $this->assertEquals($json, sprintf(
+            '{"%s":"ObjectBuilderTestMock"}',
+            ObjectBuilder::OBJECT_IDENTIFIER
+        ));
     }
 
     /**
@@ -146,24 +156,24 @@ class ObjectBuilderTest extends PHPUnit_Framework_TestCase
      */
     public function testInvalidJsonInput()
     {
-        ObjectBuilder::buildFromArray(
+        ObjectBuilder::build(
             json_encode($this->simple_array_definition) . 'brokenJSON'
         );
     }
 
     public function testJsonCompatibility()
     {
-        $array_before    = ObjectBuilder::convertToArray($this->object);
+        $array_before    = ObjectBuilder::export($this->object);
         $json            = json_encode($array_before);
         $array_after     = json_decode($json, true);
-        $restored_object = ObjectBuilder::buildFromArray($array_after);
+        $restored_object = ObjectBuilder::build($array_after);
 
         $this->assertEquals($this->object, $restored_object);
     }
 
     public function testSleep()
     {
-        $array = ObjectBuilder::convertToArray($this->another_changed_object);
+        $array = ObjectBuilder::export($this->another_changed_object);
 
         $this->assertArrayHasKey('foo', $array);
         $this->assertArraySubset(['foo' => 23], $array);
@@ -174,7 +184,7 @@ class ObjectBuilderTest extends PHPUnit_Framework_TestCase
 
     public function testWakeup()
     {
-        $restored_object = ObjectBuilder::buildFromArray([
+        $restored_object = ObjectBuilder::build([
             ObjectBuilder::OBJECT_IDENTIFIER => 'AnotherObjectBuilderTestMock',
         ]);
 
@@ -186,7 +196,7 @@ class ObjectBuilderTest extends PHPUnit_Framework_TestCase
         $object = new ObjectBuilderTestMock();
         $object->foo = ['a', 'b', 'c'];
 
-        $restored_object = ObjectBuilder::buildFromArray(array_merge(
+        $restored_object = ObjectBuilder::build(array_merge(
             $this->simple_array_definition,
             ['foo' => ['a', 'b', 'c']]
         ));
@@ -199,7 +209,7 @@ class ObjectBuilderTest extends PHPUnit_Framework_TestCase
         $object = new ObjectBuilderTestMock();
         $object->foo = new ObjectBuilderTestMock();
 
-        $restored_object = ObjectBuilder::buildFromArray(array_merge(
+        $restored_object = ObjectBuilder::build(array_merge(
             $this->simple_array_definition,
             ['foo' => $this->simple_array_definition]
         ));
@@ -212,7 +222,7 @@ class ObjectBuilderTest extends PHPUnit_Framework_TestCase
         $object = new ObjectBuilderTestMock();
         $object->foo = [new ObjectBuilderTestMock()];
 
-        $restored_object = ObjectBuilder::buildFromArray(array_merge(
+        $restored_object = ObjectBuilder::build(array_merge(
             $this->simple_array_definition,
             ['foo' => [$this->simple_array_definition]]
         ));
@@ -222,7 +232,7 @@ class ObjectBuilderTest extends PHPUnit_Framework_TestCase
 
     public function testManyObjects()
     {
-        $restored = ObjectBuilder::buildManyFromArray([
+        $restored = ObjectBuilder::buildMany([
             $this->simple_array_definition,
             $this->another_simple_array_definition,
         ]);

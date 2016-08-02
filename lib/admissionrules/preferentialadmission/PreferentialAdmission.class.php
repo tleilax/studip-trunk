@@ -399,7 +399,7 @@ class PreferentialAdmission extends AdmissionRule
         $this->conditions = array();
         if ($data['conditions']) {
             foreach ($data['conditions'] as $condition) {
-                $this->addCondition(ObjectBuilder::buildFromArray($condition, 'UserFilter'));
+                $this->addCondition(ObjectBuilder::build($condition, 'UserFilter'));
             }
         }
         return $this;

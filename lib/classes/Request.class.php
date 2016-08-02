@@ -573,7 +573,7 @@ class Request implements ArrayAccess, IteratorAggregate
     public static function getObject($param, $expected_class = null, $allow_null = true)
     {
         try {
-            return ObjectBuilder::buildFromArray(Request::get($param), $expected_class);
+            return ObjectBuilder::build(Request::get($param), $expected_class);
         } catch (Exception $e) {
             if ($allow_null) {
                 return null;
@@ -599,7 +599,7 @@ class Request implements ArrayAccess, IteratorAggregate
     {
         try {
             $request = self::getInstance();
-            return ObjectBuilder::buildManyFromArray($request[$param] ?: null, $expected_class);
+            return ObjectBuilder::build($request[$param] ?: null, $expected_class);
         } catch (Exception $e) {
             if ($allow_null) {
                 return [];
