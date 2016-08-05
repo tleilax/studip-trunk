@@ -14,6 +14,7 @@ namespace Studip {
 }
 // use default namespace for the remaining lines
 namespace {
+
     //software version - please leave it as it is!
     $SOFTWARE_VERSION = '3.5.alpha-svn';
 
@@ -45,6 +46,7 @@ namespace {
 
     // Specialized folders
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/classes/admission');
+    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/classes/admission/userfilter');
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/classes/auth_plugins');
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/classes/exportdocument');
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/classes/helpbar');
@@ -60,6 +62,7 @@ namespace {
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/navigation');
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/phplib');
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/raumzeit');
+    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/activities', 'Studip\\Activity');
 
     // Classes in /app
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/app/models');
@@ -218,6 +221,9 @@ namespace {
 
     // set up default page layout
     PageLayout::initialize();
+
+    // init notification observers
+    Studip\Activity\ActivityObserver::initialize();
 
     //Besser hier globale Variablen definieren...
     $GLOBALS['_fullname_sql'] = array();

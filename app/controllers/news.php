@@ -213,15 +213,15 @@ class NewsController extends StudipController
         // if form sent, get news data by post vars
         if (Request::get('news_isvisible')) {
             // visible categories, selected areas, topic, and body are utf8 encoded when sent via ajax
-            $this->news_isvisible = unserialize((Request::get('news_isvisible')));
+            $this->news_isvisible = studip_json_decode(Request::get('news_isvisible'));
             if (Request::isXhr()) {
-                $this->area_options_selected = unserialize(studip_utf8decode(Request::get('news_selected_areas')));
-                $this->area_options_selectable = unserialize(studip_utf8decode(Request::get('news_selectable_areas')));
+                $this->area_options_selected = studip_json_decode(Request::get('news_selected_areas'));
+                $this->area_options_selectable = studip_json_decode(Request::get('news_selectable_areas'));
                 $topic = studip_utf8decode(Request::get('news_topic'));
                 $body = transformBeforeSave(Studip\Markup::purifyHtml(studip_utf8decode(Request::get('news_body'))));
             } else {
-                $this->area_options_selected = unserialize(Request::get('news_selected_areas'));
-                $this->area_options_selectable = unserialize(Request::get('news_selectable_areas'));
+                $this->area_options_selected = studip_json_decode(Request::get('news_selected_areas'));
+                $this->area_options_selectable = studip_json_decode(Request::get('news_selectable_areas'));
                 $topic = Request::get('news_topic');
                 $body = transformBeforeSave(Studip\Markup::purifyHtml(Request::get('news_body')));
             }
@@ -442,9 +442,12 @@ class NewsController extends StudipController
                     $msg = sprintf(_('Ihre Ankündigung "%s" wurde von %s verändert.'), $news->getValue('topic'), get_fullname() . ' ('.get_username().')'). "\n";
                     $msg_object->insert_message($msg, get_username($news->getValue('user_id')) , "____%system%____", FALSE, FALSE, "1", FALSE, _("Systemnachricht:")." "._("Ankündigung geändert"));
                     restoreLanguage();
-                } else
+                } else {
                     $news->setValue('chdate_uid', '');
+                }
+
                 $news->store();
+
                 PageLayout::postMessage(MessageBox::success(_('Die Ankündigung wurde gespeichert.')));
                 // in fallback mode redirect to edit page with proper news id
                 if (!Request::isXhr() AND !$id)
@@ -739,4 +742,3 @@ class NewsController extends StudipController
         $this->rss_id = StudipNews::GetRssIdFromRangeId($range_id);
     }
 }
-
