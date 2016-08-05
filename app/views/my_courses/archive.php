@@ -81,7 +81,7 @@ $sidebar->setTitle(_('Meine archivierten Veranstaltungen'));
 
 $links = new LinksWidget();
 $links->setTitle(_('Aktionen'));
-$links->addLink(_('Suche im Archiv'),URLHelper::getLink('archiv.php'), Icon::create('search', 'info'));
+$links->addLink(_('Suche im Archiv'),URLHelper::getLink('dispatch.php/search/archive'), Icon::create('search', 'info'));
 
 $sidebar->addWidget($links, 'actions');
 ?>
