@@ -454,5 +454,4 @@ abstract class AdmissionRule
         $this->id = md5(uniqid(get_class($this)));
         $this->courseSetId = null;
     }
-
 } /* end of abstract class AdmissionRule */

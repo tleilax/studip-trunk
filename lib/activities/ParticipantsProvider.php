@@ -30,10 +30,6 @@ class ParticipantsProvider implements ActivityProvider
             $verb = 'voided';
             $summary = _('%s wurde aus der Veranstaltung "%s" ausgetragen.');
             $summary = sprintf($summary, get_fullname($user_id), $course->name);
-        } elseif ($event = "CourseDidGetMember") {
-            $verb = 'experienced';
-            $summary = _('%s wurde in die Veranstaltung "%s" eingetragen.');
-            $summary = sprintf($summary, get_fullname($user_id), $course->name);
         }
 
         $type = get_object_type($course_id);

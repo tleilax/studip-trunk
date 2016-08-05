@@ -19,6 +19,17 @@
                 }
             });
 
+
+            $(document).on('click', '.provider_circle', function () {
+                $(this).parent().parent().children('.activity-content').toggle();
+            }).on('click', '#toggle-all-activities,#toggle-user-activities', function () {
+                var toggled = $(this).is(':not(.toggled)');
+                $(this).toggleClass('toggled', toggled);
+
+                STUDIP.ActivityFeed.setToggleStatus();
+
+                return false;
+            });
         },
 
         getTemplate: _.memoize(function(name) {
@@ -68,6 +79,7 @@
                         user_id       :  STUDIP.ActivityFeed.user_id
                     }));
 
+                    STUDIP.ActivityFeed.setToggleStatus();
 
                     STUDIP.ActivityFeed.initial = false;
                     STUDIP.ActivityFeed.polling = false;
@@ -76,11 +88,6 @@
                     if ($('#stream-container').height() < STUDIP.ActivityFeed.maxheight) {
                         STUDIP.ActivityFeed.loadFeed('');
                     }
-
-
-                    $('.provider_circle').unbind( "click" ).click(function() {
-                        $(this).parent().parent().children('.activity-content').toggle();
-                    });
                 }
             });
 
@@ -89,6 +96,17 @@
         update : function(html) {
             $('#afeed').replaceWith(html);
 
+        },
+
+        setToggleStatus: function() {
+            var show_details = $('#toggle-all-activities').is('.toggled'),
+                show_own     = $('#toggle-user-activities').is('.toggled');
+
+            // update toggle status fir activity contents
+            $('.activity-content').toggle(show_details);
+
+            // update toggle status for user's own activities
+            $('.activity:has(.provider_circle.right)').toggle(show_own);
         }
     };
 })(jQuery, STUDIP);
