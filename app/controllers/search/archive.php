@@ -24,13 +24,13 @@ class Search_ArchiveController extends AuthenticatedController
         
         $search->addNeedle(
             _('Suche im Veranstaltungsarchiv'),
-            'archivedCourse',
+            'archivedCourseName',
             _('Name der archivierten Veranstaltung')
         );
         
         $sidebar->addWidget($search);
         
-        if(Request::get('searchRequested')) {
+        if(Request::get('archivedCourseName')) {
             /* 
                 A search form was sent here:
                 We have to make lookups in the database.
@@ -40,10 +40,10 @@ class Search_ArchiveController extends AuthenticatedController
             
             //read parameters from HTTP POST, if they exist:
             $this->onlyMyCourses = Request::get('onlyMyCourses', false);
-            $this->searchField = trim(Request::get('searchField', '')); //strip whitespaces here
+            $this->archivedCourseName = trim(Request::get('archivedCourseName', '')); //strip whitespaces here
             
             //mb_strlen is used for unicode compatibility
-            if(mb_strlen($this->searchField) < 4) {
+            if(mb_strlen($this->archivedCourseName) < 4) {
                 //search keyword too short
                 $this->errorMessage = sprintf(_('Suchbegriff muss mindestens %s Zeichen lang sein!'), 4);
             }
@@ -73,7 +73,7 @@ class Search_ArchiveController extends AuthenticatedController
                 }
                 else
                 {
-                    $queryParameters = array('criteria' => $this->searchField);
+                    $queryParameters = array('criteria' => $this->archivedCourseName);
                     //get courses where at least one field matches the search criteria
                     
                     $sql = "name LIKE CONCAT('%', :criteria, '%') "

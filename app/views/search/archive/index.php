@@ -6,8 +6,8 @@
 <form class="default" method="post" action="<?= URLHelper::getLink(); ?>">
     <label>
         <?= _('Suche nach') . ':'; ?>
-        <input type="text" minlength="4" maxlength="255" name="searchField"
-            value="<?= htmlReady($searchField) ?>">
+        <input type="text" minlength="4" maxlength="255" name="archivedCourseName"
+            value="<?= htmlReady($archivedCourseName) ?>">
     </label>
     <label>
         <?= _('Nur Veranstaltungen anzeigen, an denen ich teilgenommen habe') . ':'; ?>
