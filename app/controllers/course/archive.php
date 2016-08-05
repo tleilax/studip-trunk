@@ -21,9 +21,9 @@ require_once('lib/archiv.inc.php'); //needed in archive_action
 
 /**
     Course_ArchiveController is a controller that allows users
-    who have the required permissions to archive a course.
+    which have the required permissions to archive a course.
     
-    It replaces the old script at /public/archiv_assi.php.
+    This controller replaces the old script at /public/archiv_assi.php.
 */
 class Course_ArchiveController extends AuthenticatedController
 {
@@ -48,7 +48,9 @@ class Course_ArchiveController extends AuthenticatedController
     /**
         A helper method that creates an HTML table out of the course's data.
         This method exists for compatibility reasons with public/archiv.php
-        (which displays the output created here).
+        which creates the same output.
+        This method might become useful when public/archiv.php
+        is converted to a Trails controller.
     */
     private function createArchivedCourseHTMLTable($course = null)
     {
@@ -75,10 +77,6 @@ class Course_ArchiveController extends AuthenticatedController
     */
     public function confirm_action()
     {
-        //TODO: check in the preceding controller (admin/courses) if at least 
-        //      one course is selected!
-        //TODO: make it possible to archive more than one course at a time!
-        
         global $perm;
         
         /*
@@ -131,12 +129,12 @@ class Course_ArchiveController extends AuthenticatedController
         }
         
         
-        
-        //should be handled by the previous controller (admin/courses for example):
-        /*if ($this->courses == false) {
-            //courses not found!
-            throw new Exception(_('Veranstaltungen nicht gefunden!'));
-        }*/
+        //check if at least one course was selected:
+        if ($this->courses == false) {
+            //courses not found: display the "no course selected" message
+            //from the view.
+            return;
+        }
         
         
         

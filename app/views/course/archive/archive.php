@@ -14,7 +14,7 @@
     ]);
 </script>
 
-<p>Die folgenden Veranstaltungen wurden erfolgreich archiviert:</p>
+<p><?= _('Die folgenden Veranstaltungen wurden erfolgreich archiviert') . ':' ?></p>
 <table class="default">
     <tr>
         <th><?= _('Name der Veranstaltung') ?></th>
