@@ -394,7 +394,7 @@ class Course_StatusgroupsController extends AuthenticatedController
                 } else {
                     PageLayout::postSuccess(sprintf(
                         _('%s wurde aus der Gruppe %s ausgetragen.'),
-                        $name, htmlReady($g->name)));
+                        htmlReady($name), htmlReady($g->name)));
                 }
             } else {
                 if ($user_id == $GLOBALS['user']->id) {
@@ -404,7 +404,7 @@ class Course_StatusgroupsController extends AuthenticatedController
                 } else {
                     PageLayout::postError(sprintf(
                         _('%s konnte nicht aus der Gruppe %s ausgetragen werden.'),
-                        $name, htmlReady($g->name)));
+                        htmlReady($name), htmlReady($g->name)));
                 }
             }
             $this->relocate('course/statusgroups');
@@ -948,24 +948,24 @@ class Course_StatusgroupsController extends AuthenticatedController
             if ($success && !$error) {
                 PageLayout::postSuccess(sprintf(ngettext('%u Person wurde aus der Gruppe %s entfernt.',
                     '%u Personen wurden aus der Gruppe %s entfernt.',
-                    $success), $success, $groupname));
+                    $success), $success, htmlReady($groupname)));
 
             // Some entries worked, some didn't => warning message.
             } else if ($success && $error) {
                 PageLayout::postWarning(
                     sprintf(ngettext('%u Person wurde aus der Gruppe %s entfernt.',
                         '%u Personen wurden aus der Gruppe %s entfernt.',
-                        $success), $success, $groupname) . '<br>' .
+                        $success), $success, htmlReady($groupname)) . '<br>' .
                     sprintf(ngettext('%u Person konnte nicht aus der Gruppe %s entfernt werden.',
                         '%u Personen konnten nicht aus der Gruppe %s entfernt werden.',
-                        $error), $error, $groupname)
+                        $error), $error, htmlReady($groupname))
                 );
 
             // All is lost => error message.
             } else if ($error) {
                 PageLayout::postError(sprintf(ngettext('%u Person konnte nicht aus der Gruppe %s entfernt werden.',
                     '%u Personen konnten nicht aus der Gruppe %s entfernt werden.',
-                    $error), $error, $groupname));
+                    $error), $error, htmlReady($groupname)));
             }
 
             $this->relocate('course/statusgroups');
