@@ -34,12 +34,12 @@
                 ->condition($is_tutor || $m->user_id !== $GLOBALS['user']->id)
                 ->addLink(
                     $controller->url_for('messages/write', [
-                        'rec_uname'       => $m->user->username,
+                        'rec_uname'       => $m->username,
                         'default_subject' => $course_title,
                     ]),
                     _('Nachricht schicken'),
                     Icon::create('mail', 'clickable', [
-                        'title' => sprintf(_('Nachricht an %s schicken'), $m->user->getFullname()),
+                        'title' => sprintf(_('Nachricht an %s schicken'), $m->getUserFullname()),
                     ]),
                     ['data-dialog' => 'size=auto']
                 )
@@ -50,7 +50,7 @@
                     Icon::create('person+move_right', 'clickable', [
                         'title' => sprintf(
                             _('%s in eine andere Gruppe verschieben'),
-                            $m->user->getFullname()
+                            $m->getUserFullname()
                         ),
                     ]),
                     ['data-dialog' => 'size=auto']
