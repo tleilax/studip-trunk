@@ -415,7 +415,7 @@ use Studip\Button, Studip\LinkButton;
             <label for="new_inst"><?= _('Neue Einrichtung') ?></label>
         </td>
         <td colspan="2">
-            <select name="new_inst" id="new_inst">
+            <select name="new_inst" id="new_inst" class="select2">
                 <option selected="selected" value="none">
                     <?= _('-- Bitte Einrichtung auswählen --') ?>
                 </option>

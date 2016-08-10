@@ -400,6 +400,10 @@ jQuery(document).on('click', '.course-admin td .course-completion', function () 
 });
 
 
+jQuery(document).on('ready dialog-update', function () {
+    $('select.select2').select2();
+});
+
 jQuery(document).on('dialog-update', function (event) {
     jQuery('.add_toolbar').addToolbar();
 
