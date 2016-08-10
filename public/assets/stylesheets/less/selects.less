@@ -11,11 +11,13 @@ select {
     background-color: inherit;
     font-size: 1em;
     vertical-align: bottom;
+    &::-ms-expand {
+        display: none;
+    }
+
 
     border: @select-border;
     border-radius: @select-border-radius;
-    height: 28px;
-    line-height: 28px;
     overflow: hidden;
     padding: 1px 20px 1px 8px;
     padding-right: 20px;
@@ -31,6 +33,11 @@ select {
         .background-icon('arr_1up', 'clickable', 10);
         border: @select-border-focus;
     }
+    
+    &:not([multiple]) {
+        height: 28px;
+        line-height: 28px;
+    }
 }
 
 @import (inline)  "../vendor/select2-4.0.3.css";
@@ -40,6 +47,36 @@ select {
     .select2-selection--multiple {
         border: @select-border;
         border-radius: @select-border-radius;
+
+        .select2-selection__rendered {
+            .flex();
+            .flex-direction-row();
+            .flex-wrap(nowrap);
+            > * {
+                .flex-item(1, 1, auto);
+            }
+            .select2-selection__content {
+                order: 1;
+            }
+            .select2-selection__clear {
+                order: 2;
+            }
+        }
+
+        .select2-selection__content {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .select2-selection__clear {
+            .background-icon('decline', 'clickable', 10);
+            background-position: right center;
+            background-repeat: no-repeat;
+            color: transparent;
+            display: inline-block;
+            float: none;
+            width: 15px;
+        }
     }
     .select2-selection__arrow {
         .background-icon('arr_1down', 'clickable', 10);
@@ -60,6 +97,7 @@ select {
             .background-icon('arr_1up', 'clickable', 10);
         }
     }
+    
 }
 
 .nested-select .select2-results > ul > li {

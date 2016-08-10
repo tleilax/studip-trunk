@@ -6942,8 +6942,6 @@ select {
   vertical-align: bottom;
   border: 1px solid #c5c7ca;
   border-radius: 0;
-  height: 28px;
-  line-height: 28px;
   overflow: hidden;
   padding: 1px 20px 1px 8px;
   padding-right: 20px;
@@ -6958,6 +6956,9 @@ select {
   background-position: right 4px center;
   background-repeat: no-repeat;
 }
+select::-ms-expand {
+  display: none;
+}
 select:focus {
   background-image: url("../images/icons/blue/arr_1up.svg");
   -webkit-background-size: 10px 10px;
@@ -6965,6 +6966,10 @@ select:focus {
   -o-background-size: 10px 10px;
   background-size: 10px 10px;
   border: 1px solid #28497c;
+}
+select:not([multiple]) {
+  height: 28px;
+  line-height: 28px;
 }
 .select2-container {
   box-sizing: border-box;
@@ -7455,6 +7460,59 @@ select:focus {
 .select2-container--default .select2-selection--multiple {
   border: 1px solid #c5c7ca;
   border-radius: 0;
+}
+.select2-container--default .select2-selection--single .select2-selection__rendered,
+.select2-container--default .select2-selection--multiple .select2-selection__rendered {
+  display: -ms-flexbox;
+  display: -webkit-box;
+  display: -webkit-box-flex;
+  display: -webkit-flex;
+  display: -moz-box;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  -moz-box-direction: normal;
+  -moz-box-orient: horizontal;
+  -webkit-box-orient: horizontal;
+  flex-direction: row;
+  -webkit-flex-wrap: nowrap;
+  -ms-flex-wrap: nowrap;
+  flex-wrap: nowrap;
+}
+.select2-container--default .select2-selection--single .select2-selection__rendered > *,
+.select2-container--default .select2-selection--multiple .select2-selection__rendered > * {
+  -webkit-box-flex: 1;
+  -webkit-flex: 1 1 auto;
+  -ms-flex: 1 1 auto;
+  -moz-box-flex: 1;
+  flex: 1 1 auto;
+}
+.select2-container--default .select2-selection--single .select2-selection__rendered .select2-selection__content,
+.select2-container--default .select2-selection--multiple .select2-selection__rendered .select2-selection__content {
+  order: 1;
+}
+.select2-container--default .select2-selection--single .select2-selection__rendered .select2-selection__clear,
+.select2-container--default .select2-selection--multiple .select2-selection__rendered .select2-selection__clear {
+  order: 2;
+}
+.select2-container--default .select2-selection--single .select2-selection__content,
+.select2-container--default .select2-selection--multiple .select2-selection__content {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.select2-container--default .select2-selection--single .select2-selection__clear,
+.select2-container--default .select2-selection--multiple .select2-selection__clear {
+  background-image: url("../images/icons/blue/decline.svg");
+  -webkit-background-size: 10px 10px;
+  -moz-background-size: 10px 10px;
+  -o-background-size: 10px 10px;
+  background-size: 10px 10px;
+  background-position: right center;
+  background-repeat: no-repeat;
+  color: transparent;
+  display: inline-block;
+  float: none;
+  width: 15px;
 }
 .select2-container--default .select2-selection__arrow {
   background-image: url("../images/icons/blue/arr_1down.svg");

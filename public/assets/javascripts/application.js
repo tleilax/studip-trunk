@@ -414,6 +414,9 @@ jQuery(document).on('ready dialog-update', function () {
                     $(container).addClass(option_classes);
                 }
                 return data.text;
+            },
+            templateSelection: function (data, container) {
+                return $('<span class="select2-selection__content">').text(data.text);
             }
         });
     });
