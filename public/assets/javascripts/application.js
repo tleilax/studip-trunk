@@ -401,7 +401,24 @@ jQuery(document).on('click', '.course-admin td .course-completion', function () 
 
 
 jQuery(document).on('ready dialog-update', function () {
-    $('select.select2').select2();
+    $('select.nested-select').each(function () {
+        var select_classes = $(this).attr('class');
+        $(this).select2({
+            adaptDropdownCssClass: function (c) {
+                return select_classes;
+            },
+            allowClear: true,
+            templateResult: function (data, container) {
+                if (data.element) {
+                    var option_classes = $(data.element).attr('class');
+                    $(container).addClass(option_classes);
+                }
+                return data.text;
+            }
+        });
+    });
+}).on('change', 'select', function () {
+    $(this).blur();
 });
 
 jQuery(document).on('dialog-update', function (event) {

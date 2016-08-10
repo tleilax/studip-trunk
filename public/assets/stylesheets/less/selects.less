@@ -1,0 +1,72 @@
+@select-border: 1px solid @light-gray-color-40;
+@select-border-focus: 1px solid @brand-color-dark;
+@select-border-radius: 0;
+
+select {
+    // Reset appearance
+    .box-sizing(border-box);
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-color: inherit;
+    font-size: 1em;
+    vertical-align: bottom;
+
+    border: @select-border;
+    border-radius: @select-border-radius;
+    height: 28px;
+    line-height: 28px;
+    overflow: hidden;
+    padding: 1px 20px 1px 8px;
+    padding-right: 20px;
+    position: relative;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    .background-icon('arr_1down', 'clickable', 10);
+    background-position: right 4px center;
+    background-repeat: no-repeat;
+
+    &:focus {
+        .background-icon('arr_1up', 'clickable', 10);
+        border: @select-border-focus;
+    }
+}
+
+@import (inline)  "../vendor/select2-4.0.3.css";
+
+.select2-container--default {
+    .select2-selection--single,
+    .select2-selection--multiple {
+        border: @select-border;
+        border-radius: @select-border-radius;
+    }
+    .select2-selection__arrow {
+        .background-icon('arr_1down', 'clickable', 10);
+        background-position: right 4px center;
+        background-repeat: no-repeat;
+
+        b {
+            visibility: hidden;
+        }
+    }
+    
+    &.select2-container--open {
+        .select2-selection--single,
+        .select2-selection--multiple {
+            border: @select-border-focus;
+        }
+        .select2-selection__arrow {
+            .background-icon('arr_1up', 'clickable', 10);
+        }
+    }
+}
+
+.nested-select .select2-results > ul > li {
+    &:not(.nested-item) {
+        font-weight: bold;
+    }
+    &.nested-item {
+        text-indent: 1em;
+    }
+}

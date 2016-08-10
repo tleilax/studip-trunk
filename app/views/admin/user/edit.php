@@ -367,13 +367,11 @@ use Studip\Button, Studip\LinkButton;
             <label for="new_student_inst"><?= _('Neue Einrichtung') ?></label>
         </td>
         <td colspan="2">
-            <select name="new_student_inst" id="new_student_inst">
-                <option selected value="none">
-                    <?= _('-- Bitte Einrichtung auswählen --') ?>
-                </option>
+            <select name="new_student_inst" id="new_student_inst" class="nested-select" data-placeholder="<?= _('Bitte Einrichtung auswählen') ?>">
+                <option></option>
             <? foreach ($available_institutes as $i) : ?>
                 <? if (!isset($institutes[$i['Institut_id']])) : ?>
-                <option style="<?= $i['is_fak'] ? 'font-weight:bold;' : 'padding-left:10px;' ?>" value="<?= $i['Institut_id'] ?>">
+                <option <? if (!$i['is_fak']) echo 'class="nested-item"'; ?> value="<?= htmlReady($i['Institut_id']) ?>">
                     <?= htmlReady(my_substr($i['Name'], 0, 70)) ?>
                 </option>
                 <? endif; ?>
@@ -415,14 +413,12 @@ use Studip\Button, Studip\LinkButton;
             <label for="new_inst"><?= _('Neue Einrichtung') ?></label>
         </td>
         <td colspan="2">
-            <select name="new_inst" id="new_inst" class="select2">
-                <option selected="selected" value="none">
-                    <?= _('-- Bitte Einrichtung auswählen --') ?>
-                </option>
+            <select name="new_inst" id="new_inst" class="nested-select" data-placeholder="<?= _('Bitte Einrichtung auswählen ') ?>" data-allow-clear="true">
+                <option></option>
             <? foreach ($available_institutes as $i) : ?>
                 <? if (!isset($institutes[$i['Institut_id']])
                  && (!($i['is_fak'] && $user['perms'] == 'admin') || $GLOBALS['perm']->have_perm('root'))) : ?>
-                <option style="<?= $i['is_fak'] ? 'font-weight:bold;' : 'padding-left:10px;' ?>" value="<?= $i['Institut_id'] ?>">
+                <option <? if (!$i['is_fak']) echo 'class="nested-item"'; ?> value="<?= htmlReady($i['Institut_id']) ?>">
                     <?= htmlReady(my_substr($i['Name'], 0, 70)) ?>
                 </option>
                 <? else: ?>
