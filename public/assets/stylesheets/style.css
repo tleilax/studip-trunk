@@ -6971,6 +6971,9 @@ select:not([multiple]):not([size]) {
   height: 30px;
   line-height: 30px;
 }
+select.has-no-value:not(:focus) {
+  color: #8b8f95;
+}
 .select2-container {
   box-sizing: border-box;
   display: inline-block;
@@ -7512,6 +7515,7 @@ select:not([multiple]):not([size]) {
 }
 .select2-container--default .select2-selection--single .select2-selection__rendered .select2-selection__content,
 .select2-container--default .select2-selection--multiple .select2-selection__rendered .select2-selection__content {
+  font-weight: normal;
   order: 1;
 }
 .select2-container--default .select2-selection--single .select2-selection__rendered .select2-selection__clear,

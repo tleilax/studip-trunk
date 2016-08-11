@@ -422,20 +422,42 @@ jQuery(document).on('ready dialog-update', function () {
             placeholder: placeholder,
             templateResult: function (data, container) {
                 if (data.element) {
-                    var option_classes = $(data.element).attr('class');
+                    var option_classes = $(data.element).attr('class'),
+                        element_data   = $(data.element).data();
                     $(container).addClass(option_classes);
+
+                    // Allow text color changes (calendar needs this)
+                    if (element_data.textColor) {
+                        $(container).css('color', element_data.textColor);
+                    }
                 }
                 return data.text;
             },
             templateSelection: function (data, container) {
-                return $('<span class="select2-selection__content">').text(data.text);
+                var result       = $('<span class="select2-selection__content">').text(data.text),
+                    element_data = $(data.element).data();
+                if (element_data && element_data.textColor) {
+                    result.css('color', element_data.textColor);
+                }
+
+                return result;
             }
         });
 
         $(this).next().andSelf().wrapAll('<div class="select2-wrapper">')
     });
+
+    // Unfortunately, this code needs to be duplicated because jQuery
+    // namespacing kind of sucks. If the below change handler is namespaced
+    // and we trigger that namespaced event here, still all change handlers
+    // will execute (which is bad due to $(select).change(form.submit())).
+    $('select').each(function () {
+        $(this).toggleClass('has-no-value', this.value === '').blur();
+    });
 }).on('change', 'select', function () {
-    $(this).blur();
+    $(this).toggleClass('has-no-value', this.value === '').blur();
+}).on('dialog-close', function (event, data) {
+    $('select.nested-select:not(:has(optgroup))', data.dialog).select2('close');
 });
 
 jQuery(document).on('dialog-update', function (event) {

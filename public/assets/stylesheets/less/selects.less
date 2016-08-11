@@ -43,6 +43,10 @@ select {
         height: @select-height-default;
         line-height: @select-height-default;
     }
+    
+    &.has-no-value:not(:focus) {
+        color: @dark-gray-color-60;
+    }
 }
 
 @import (inline)  "../vendor/select2-4.0.3.css";
@@ -90,6 +94,7 @@ select {
                 .flex-item(1, 1, auto);
             }
             .select2-selection__content {
+                font-weight: normal; // Reset due to form.default label = bold
                 order: 1;
             }
             .select2-selection__clear {
