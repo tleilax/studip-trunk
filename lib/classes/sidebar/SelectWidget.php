@@ -85,7 +85,9 @@ class SelectWidget extends SidebarWidget
     protected function hasNestedElements()
     {
         foreach ($this->elements as $element) {
-            if ($element->isHeader() || $element->getIndentLevel() > 0) {
+            if ($element instanceof SelectElement
+                && ($element->isHeader() || $element->getIndentLevel() > 0))
+            {
                 return true;
             }
         }
