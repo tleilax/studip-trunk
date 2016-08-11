@@ -2,7 +2,7 @@
 <? foreach ($params as $key => $value): ?>
     <input type="hidden" name="<?= htmlReady($key) ?>" value="<?= htmlReady($value) ?>">
 <? endforeach; ?>
-    <select class="sidebar-selectlist nested-select <?= $class ?>" name="<?= htmlReady($name) ?>" <? if ($size) printf('size="%u"', $size); ?> <?= $attributes ?>>
+    <select class="sidebar-selectlist <?= $class ?> <? if ($__is_nested): ?>nested-select<? endif; ?>" name="<?= htmlReady($name) ?>" <? if ($size) printf('size="%u"', $size); ?> <?= $attributes ?>>
     <? foreach ($elements as $element): ?>
         <? if ($element instanceof SelectElement): ?>
             <option value="<?= htmlReady($element->getId()) ?>" <? if ($element->isActive()) echo 'selected'; ?> class="<? if ($element->getIndentLevel()): ?>nested-item nested-item-level-<?= $element->getIndentLevel() + 1 ?><? endif; ?> <? if ($element->isHeader()): ?>nested-item-header<? endif; ?>">
