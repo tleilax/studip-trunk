@@ -6937,7 +6937,7 @@ select {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
-  background-color: inherit;
+  background-color: #fff;
   font-size: 1em;
   vertical-align: bottom;
   border: 1px solid #c5c7ca;
@@ -6967,7 +6967,7 @@ select:focus {
   background-size: 10px 10px;
   border: 1px solid #28497c;
 }
-select:not([multiple]) {
+select:not([multiple]):not([size]) {
   height: 28px;
   line-height: 28px;
 }
@@ -7537,11 +7537,23 @@ select:not([multiple]) {
   -o-background-size: 10px 10px;
   background-size: 10px 10px;
 }
-.nested-select .select2-results > ul > li:not(.nested-item) {
+.nested-select .select2-results > ul > li.nested-item-header {
   font-weight: bold;
 }
-.nested-select .select2-results > ul > li.nested-item {
-  text-indent: 1em;
+.nested-select .select2-results > ul > li.nested-item.nested-level-1 {
+  text-indent: 2ex;
+}
+.nested-select .select2-results > ul > li.nested-item.nested-level-2 {
+  text-indent: 4ex;
+}
+.nested-select .select2-results > ul > li.nested-item.nested-level-3 {
+  text-indent: 6ex;
+}
+.nested-select .select2-results > ul > li.nested-item.nested-level-4 {
+  text-indent: 8ex;
+}
+.nested-select.institute-list .select2-results > ul > li:not(.nested-item) {
+  font-weight: bold;
 }
 .plus .element_header {
   display: inline-block;

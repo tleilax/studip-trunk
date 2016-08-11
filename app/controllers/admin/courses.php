@@ -834,7 +834,12 @@ class Admin_CoursesController extends AuthenticatedController
     private function setInstSelector()
     {
         $sidebar = Sidebar::Get();
-        $list = new SelectWidget(_('Einrichtung'), $this->url_for('admin/courses/set_selection'), 'institute');
+        $list = new SelectWidget(
+            _('Einrichtung'),
+            $this->url_for('admin/courses/set_selection'),
+            'institute'
+        );
+        $list->class = 'institute-list';
 
         if ($GLOBALS['perm']->have_perm('root') || (count($this->insts) > 1)) {
             $list->addElement(new SelectElement(

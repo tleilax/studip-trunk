@@ -8,7 +8,7 @@ select {
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
-    background-color: inherit;
+    background-color: #fff;
     font-size: 1em;
     vertical-align: bottom;
     &::-ms-expand {
@@ -34,7 +34,7 @@ select {
         border: @select-border-focus;
     }
     
-    &:not([multiple]) {
+    &:not([multiple]):not([size]) {
         height: 28px;
         line-height: 28px;
     }
@@ -100,11 +100,28 @@ select {
     
 }
 
-.nested-select .select2-results > ul > li {
-    &:not(.nested-item) {
-        font-weight: bold;
+.nested-select {
+    .select2-results > ul > li {
+        &.nested-item-header {
+            font-weight: bold;
+        }
+        &.nested-item.nested-level-1 {
+            text-indent: 2ex;
+        }
+        &.nested-item.nested-level-2 {
+            text-indent: 4ex;
+        }
+        &.nested-item.nested-level-3 {
+            text-indent: 6ex;
+        }
+        &.nested-item.nested-level-4 {
+            text-indent: 8ex;
+        }
     }
-    &.nested-item {
-        text-indent: 1em;
+    
+    &.institute-list {
+        .select2-results > ul > li:not(.nested-item) {
+            font-weight: bold;
+        }
     }
 }

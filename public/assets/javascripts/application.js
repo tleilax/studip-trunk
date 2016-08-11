@@ -401,13 +401,13 @@ jQuery(document).on('click', '.course-admin td .course-completion', function () 
 
 
 jQuery(document).on('ready dialog-update', function () {
-    $('select.nested-select').each(function () {
+    $('select.nested-select:not(:has(optgroup))').each(function () {
         var select_classes = $(this).attr('class');
         $(this).select2({
-            adaptDropdownCssClass: function (c) {
+            adaptDropdownCssClass: function () {
                 return select_classes;
             },
-            allowClear: true,
+            allowClear: $(this).is(':not([required])'),
             templateResult: function (data, container) {
                 if (data.element) {
                     var option_classes = $(data.element).attr('class');

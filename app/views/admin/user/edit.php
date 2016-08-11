@@ -371,7 +371,7 @@ use Studip\Button, Studip\LinkButton;
                 <option></option>
             <? foreach ($available_institutes as $i) : ?>
                 <? if (!isset($institutes[$i['Institut_id']])) : ?>
-                <option <? if (!$i['is_fak']) echo 'class="nested-item"'; ?> value="<?= htmlReady($i['Institut_id']) ?>">
+                <option class="<?= $i['is_fak'] ? 'nested-item-header' : 'nested-item' ?>" value="<?= htmlReady($i['Institut_id']) ?>">
                     <?= htmlReady(my_substr($i['Name'], 0, 70)) ?>
                 </option>
                 <? endif; ?>
@@ -413,12 +413,12 @@ use Studip\Button, Studip\LinkButton;
             <label for="new_inst"><?= _('Neue Einrichtung') ?></label>
         </td>
         <td colspan="2">
-            <select name="new_inst" id="new_inst" class="nested-select" data-placeholder="<?= _('Bitte Einrichtung auswählen ') ?>" data-allow-clear="true">
+            <select name="new_inst" id="new_inst" class="nested-select" data-placeholder="<?= _('Bitte Einrichtung auswählen ') ?>">
                 <option></option>
             <? foreach ($available_institutes as $i) : ?>
                 <? if (!isset($institutes[$i['Institut_id']])
                  && (!($i['is_fak'] && $user['perms'] == 'admin') || $GLOBALS['perm']->have_perm('root'))) : ?>
-                <option <? if (!$i['is_fak']) echo 'class="nested-item"'; ?> value="<?= htmlReady($i['Institut_id']) ?>">
+                <option class="<?= $i['is_fak'] ? 'nested-item-header' : 'nested-item' ?>" value="<?= htmlReady($i['Institut_id']) ?>">
                     <?= htmlReady(my_substr($i['Name'], 0, 70)) ?>
                 </option>
                 <? else: ?>
