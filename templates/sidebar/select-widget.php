@@ -5,13 +5,13 @@
     <select class="sidebar-selectlist nested-select <?= $class ?>" name="<?= htmlReady($name) ?>" <? if ($size) printf('size="%u"', $size); ?> <?= $attributes ?>>
     <? foreach ($elements as $element): ?>
         <? if ($element instanceof SelectElement): ?>
-            <option value="<?= htmlReady($element->getId()) ?>" <? if ($element->isActive()) echo 'selected'; ?> <? if ($element->getIndentLevel()): ?>class="nested-item nested-item-level-<?= $element->getIndentLevel() + 1 ?>"<? endif; ?>>
+            <option value="<?= htmlReady($element->getId()) ?>" <? if ($element->isActive()) echo 'selected'; ?> class="<? if ($element->getIndentLevel()): ?>nested-item nested-item-level-<?= $element->getIndentLevel() + 1 ?><? endif; ?> <? if ($element->isHeader()): ?>nested-item-header<? endif; ?>">
                 <?= htmlReady(my_substr($element->getLabel(), 0, $max_length)) ?>
             </option>
-        <? elseif(count($element->getElements()) > 0): ?>
+        <? elseif (count($element->getElements()) > 0): ?>
             <optgroup label="<?= htmlReady($element->getLabel() ) ?>">
             <? foreach ($element->getElements() as $option): ?>
-                <option value="<?= htmlReady($option->getId()) ?>" <? if ($option->isActive()) echo 'selected'; ?> <? if ($element->getIndentLevel()): ?>class="nested-item nested-item-level-<?= $element->getIndentLevel() + 1 ?>"<? endif; ?>>
+                <option value="<?= htmlReady($option->getId()) ?>" <? if ($option->isActive()) echo 'selected'; ?> class="<? if ($element->getIndentLevel()): ?>nested-item nested-item-level-<?= $element->getIndentLevel() + 1 ?><? endif; ?>  <? if ($element->isHeader()): ?>nested-item-header<? endif; ?>">">
                     <?= htmlReady(my_substr($option->getLabel(), 0, $max_length)) ?>
                 </option>
             <? endforeach; ?>

@@ -844,7 +844,7 @@ class Admin_CoursesController extends AuthenticatedController
         if ($GLOBALS['perm']->have_perm('root') || (count($this->insts) > 1)) {
             $list->addElement(new SelectElement(
                 'all',
-                $GLOBALS['perm']->have_perm('root') ? _('Alle') : _("Alle meine Einrichtungen"),
+                $GLOBALS['perm']->have_perm('root') ? _('Alle') : _('Alle meine Einrichtungen'),
                 $GLOBALS['user']->cfg->MY_INSTITUTES_DEFAULT === 'all'),
                 'select-all'
             );
@@ -854,15 +854,14 @@ class Admin_CoursesController extends AuthenticatedController
             $list->addElement(
                 new SelectElement(
                     $institut['Institut_id'],
-                    (!$institut['is_fak'] ? " " : "") . $institut['Name'],
+                    (!$institut['is_fak'] ? ' ' : '') . $institut['Name'],
                     $GLOBALS['user']->cfg->MY_INSTITUTES_DEFAULT === $institut['Institut_id']
                 ),
                 'select-' . $institut['Name']
             );
         }
 
-
-        $sidebar->addWidget($list, "filter_institute");
+        $sidebar->addWidget($list, 'filter_institute');
     }
 
     /**
@@ -873,7 +872,7 @@ class Admin_CoursesController extends AuthenticatedController
         $semesters = array_reverse(Semester::getAll());
         $sidebar = Sidebar::Get();
         $list = new SelectWidget(_('Semester'), $this->url_for('admin/courses/set_selection'), 'sem_select');
-        $list->addElement(new SelectElement("all", _("Alle")), 'sem_select-all');
+        $list->addElement(new SelectElement('all', _('Alle')), 'sem_select-all');
         foreach ($semesters as $semester) {
             $list->addElement(new SelectElement(
                 $semester->id,
@@ -882,7 +881,7 @@ class Admin_CoursesController extends AuthenticatedController
             ), 'sem_select-' . $semester->id);
         }
 
-        $sidebar->addWidget($list, "filter_semester");
+        $sidebar->addWidget($list, 'filter_semester');
     }
 
 
@@ -930,17 +929,26 @@ class Admin_CoursesController extends AuthenticatedController
                 continue;
             }
 
-            $list->addElement(new SelectElement(
+            $element = new SelectElement(
                 $class_id,
                 $class['name'],
                 $selected === $class_id
-            ), 'course-type-' . $class_id);
+            );
+            $list->addElement(
+                $element->setAsHeader(),
+                'course-type-' . $class_id
+            );
+
             foreach ($class->getSemTypes() as $id => $result) {
-                $list->addElement(new SelectElement(
+                $element = new SelectElement(
                     $class_id . '_' . $id,
-                    ' ' . $result['name'],
+                    $result['name'],
                     $selected === $class_id . '_' . $id
-                ), 'course-type-' . $class_id . '_' . $id);
+                );
+                $list->addElement(
+                    $element->setIndentLevel(1),
+                    'course-type-' . $class_id . '_' . $id
+                );
             }
         }
         $sidebar->addWidget($list, 'filter-course-type');
