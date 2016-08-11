@@ -854,7 +854,7 @@ class Admin_CoursesController extends AuthenticatedController
             $list->addElement(
                 new SelectElement(
                     $institut['Institut_id'],
-                    (!$institut['is_fak'] ? "  " : "") . $institut['Name'],
+                    (!$institut['is_fak'] ? " " : "") . $institut['Name'],
                     $GLOBALS['user']->cfg->MY_INSTITUTES_DEFAULT === $institut['Institut_id']
                 ),
                 'select-' . $institut['Name']
@@ -917,13 +917,33 @@ class Admin_CoursesController extends AuthenticatedController
         $this->types = array();
         $this->selected = $selected;
 
-        $this->render_template('admin/courses/filters/course_type_filter.php', null);
-        $html = $this->response->body;
-        $this->erase_response();
-        $widget = new SidebarWidget();
-        $widget->setTitle(_('Veranstaltungstyp-Filter'));
-        $widget->addElement(new WidgetElement($html));
-        $sidebar->addWidget($widget, 'filter_coursetypes');
+        $list = new SelectWidget(
+            _('Veranstaltungstyp-Filter'),
+            $this->url_for('admin/courses/set_course_type'),
+            'course-type'
+        );
+        $list->addElement(new SelectElement(
+            'all', _('Alle'), $selected === 'all'
+        ), 'course-type-all');
+        foreach ($GLOBALS['SEM_CLASS'] as $class_id => $class) {
+            if ($class['studygroup_mode']) {
+                continue;
+            }
+
+            $list->addElement(new SelectElement(
+                $class_id,
+                $class['name'],
+                $selected === $class_id
+            ), 'course-type-' . $class_id);
+            foreach ($class->getSemTypes() as $id => $result) {
+                $list->addElement(new SelectElement(
+                    $class_id . '_' . $id,
+                    ' ' . $result['name'],
+                    $selected === $class_id . '_' . $id
+                ), 'course-type-' . $class_id . '_' . $id);
+            }
+        }
+        $sidebar->addWidget($list, 'filter-course-type');
     }
 
     /**

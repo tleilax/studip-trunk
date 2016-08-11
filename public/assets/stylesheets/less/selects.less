@@ -1,6 +1,8 @@
 @select-border: 1px solid @light-gray-color-40;
 @select-border-focus: 1px solid @brand-color-dark;
 @select-border-radius: 0;
+@select-height-default: 30px;
+@select-arrow-size: 10;
 
 select {
     // Reset appearance
@@ -10,7 +12,7 @@ select {
     appearance: none;
     background-color: #fff;
     font-size: 1em;
-    vertical-align: bottom;
+    vertical-align: baseline;
     &::-ms-expand {
         display: none;
     }
@@ -20,33 +22,65 @@ select {
     border-radius: @select-border-radius;
     overflow: hidden;
     padding: 1px 20px 1px 8px;
-    padding-right: 20px;
     position: relative;
     text-overflow: ellipsis;
     white-space: nowrap;
 
-    .background-icon('arr_1down', 'clickable', 10);
+    // Allow all other paddings to be overwritten but the right padding
+    // to ensure the icon is always clearly visible
+    padding-right: 20px !important;
+
+    .background-icon('arr_1down', 'clickable', @select-arrow-size);
     background-position: right 4px center;
     background-repeat: no-repeat;
 
     &:focus {
-        .background-icon('arr_1up', 'clickable', 10);
+        .background-icon('arr_1up', 'clickable', @select-arrow-size);
         border: @select-border-focus;
     }
     
     &:not([multiple]):not([size]) {
-        height: 28px;
-        line-height: 28px;
+        height: @select-height-default;
+        line-height: @select-height-default;
     }
 }
 
 @import (inline)  "../vendor/select2-4.0.3.css";
+
+// The wrapper is neccessary for the validation error messages to appear
+// at the correct position
+.select2-wrapper {
+    display: inline-block;
+    position: relative;
+}
+
+// Resets select2's styles on the hidden select element itself and
+// position it exactly over the newly created select2.
+.select2-hidden-accessible {
+    .box-sizing(border-box);
+    border: initial !important;
+    clip: initial !important;
+    height: initial !important;
+    margin: initial !important;
+    padding: initial !important;
+    opacity: 0;
+    width: initial !important;
+
+    pointer-events: none; // Ignore all user interaction with this element
+
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
 
 .select2-container--default {
     .select2-selection--single,
     .select2-selection--multiple {
         border: @select-border;
         border-radius: @select-border-radius;
+        height: @select-height-default;
 
         .select2-selection__rendered {
             .flex();
@@ -69,7 +103,7 @@ select {
         }
 
         .select2-selection__clear {
-            .background-icon('decline', 'clickable', 10);
+            .background-icon('decline', 'clickable', @select-arrow-size);
             background-position: right center;
             background-repeat: no-repeat;
             color: transparent;
@@ -79,7 +113,7 @@ select {
         }
     }
     .select2-selection__arrow {
-        .background-icon('arr_1down', 'clickable', 10);
+        .background-icon('arr_1down', 'clickable', @select-arrow-size);
         background-position: right 4px center;
         background-repeat: no-repeat;
 
@@ -94,7 +128,7 @@ select {
             border: @select-border-focus;
         }
         .select2-selection__arrow {
-            .background-icon('arr_1up', 'clickable', 10);
+            .background-icon('arr_1up', 'clickable', @select-arrow-size);
         }
     }
     
@@ -105,7 +139,7 @@ select {
         &.nested-item-header {
             font-weight: bold;
         }
-        &.nested-item.nested-level-1 {
+        &.nested-item, &.nested-item.nested-level-1 {
             text-indent: 2ex;
         }
         &.nested-item.nested-level-2 {
@@ -119,9 +153,7 @@ select {
         }
     }
     
-    &.institute-list {
-        .select2-results > ul > li:not(.nested-item) {
-            font-weight: bold;
-        }
+    &.institute-list .select2-results > ul > li:not(.nested-item) {
+        font-weight: bold;
     }
 }

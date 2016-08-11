@@ -402,12 +402,24 @@ jQuery(document).on('click', '.course-admin td .course-completion', function () 
 
 jQuery(document).on('ready dialog-update', function () {
     $('select.nested-select:not(:has(optgroup))').each(function () {
-        var select_classes = $(this).attr('class');
+        var select_classes = $(this).attr('class'),
+            placeholder    = undefined,
+            option         = $('<option>');
+
+        if ($('.is-placeholder', this).length > 0) {
+            placeholder = $('.is-placeholder', this).text();
+
+            option.attr('selected', $(this).val() === '');
+            $('.is-placeholder', this).replaceWith(option);
+        }
+
         $(this).select2({
             adaptDropdownCssClass: function () {
                 return select_classes;
             },
-            allowClear: $(this).is(':not([required])'),
+            allowClear: placeholder !== undefined,
+            minimumResultsForSearch: $(this).closest('.sidebar').length > 0 ? 15 : 10,
+            placeholder: placeholder,
             templateResult: function (data, container) {
                 if (data.element) {
                     var option_classes = $(data.element).attr('class');
@@ -419,6 +431,8 @@ jQuery(document).on('ready dialog-update', function () {
                 return $('<span class="select2-selection__content">').text(data.text);
             }
         });
+
+        $(this).next().andSelf().wrapAll('<div class="select2-wrapper">')
     });
 }).on('change', 'select', function () {
     $(this).blur();

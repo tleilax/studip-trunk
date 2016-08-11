@@ -6939,15 +6939,15 @@ select {
   appearance: none;
   background-color: #fff;
   font-size: 1em;
-  vertical-align: bottom;
+  vertical-align: baseline;
   border: 1px solid #c5c7ca;
   border-radius: 0;
   overflow: hidden;
   padding: 1px 20px 1px 8px;
-  padding-right: 20px;
   position: relative;
   text-overflow: ellipsis;
   white-space: nowrap;
+  padding-right: 20px !important;
   background-image: url("../images/icons/blue/arr_1down.svg");
   -webkit-background-size: 10px 10px;
   -moz-background-size: 10px 10px;
@@ -6968,8 +6968,8 @@ select:focus {
   border: 1px solid #28497c;
 }
 select:not([multiple]):not([size]) {
-  height: 28px;
-  line-height: 28px;
+  height: 30px;
+  line-height: 30px;
 }
 .select2-container {
   box-sizing: border-box;
@@ -7456,10 +7456,33 @@ select:not([multiple]):not([size]) {
 .select2-container--classic.select2-container--open .select2-dropdown {
   border-color: #5897fb; }
 
+.select2-wrapper {
+  display: inline-block;
+  position: relative;
+}
+.select2-hidden-accessible {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  border: initial !important;
+  clip: initial !important;
+  height: initial !important;
+  margin: initial !important;
+  padding: initial !important;
+  opacity: 0;
+  width: initial !important;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
 .select2-container--default .select2-selection--single,
 .select2-container--default .select2-selection--multiple {
   border: 1px solid #c5c7ca;
   border-radius: 0;
+  height: 30px;
 }
 .select2-container--default .select2-selection--single .select2-selection__rendered,
 .select2-container--default .select2-selection--multiple .select2-selection__rendered {
@@ -7540,6 +7563,7 @@ select:not([multiple]):not([size]) {
 .nested-select .select2-results > ul > li.nested-item-header {
   font-weight: bold;
 }
+.nested-select .select2-results > ul > li.nested-item,
 .nested-select .select2-results > ul > li.nested-item.nested-level-1 {
   text-indent: 2ex;
 }
