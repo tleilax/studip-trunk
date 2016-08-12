@@ -130,8 +130,6 @@
                 wrapper        = $('<div class="select2-wrapper">'),
                 placeholder;
 
-            wrapper.width($(this).width());
-
             if ($('.is-placeholder', this).length > 0) {
                 placeholder = $('.is-placeholder', this).text();
 
@@ -170,6 +168,7 @@
                 }
             });
 
+            wrapper.width($(this).next().width());
             $(this).next().andSelf().wrapAll(wrapper);
         });
 
