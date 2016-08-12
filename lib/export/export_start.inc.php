@@ -88,7 +88,7 @@ foreach ($faculties as $faculty) {
 }
 
 if ($perm->have_perm("root")) {
-    $export_pagecontent .= "<option style=\"font-weight:bold;\" value=\"root\">Alle Einrichtungen";
+    $export_pagecontent .= "<option class=\"nested-item-header\" value=\"root\">Alle Einrichtungen";
 }
 
 $export_pagecontent .= "</select><br><br>";

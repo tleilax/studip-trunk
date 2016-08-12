@@ -5488,12 +5488,12 @@ select.news_area_options {
   width: 100%;
   height: 116px;
 }
-option.news_area_title {
-  padding-left: 26px;
-  font-weight: bold;
-  color: #000000;
+optgroup.news_area_title {
+  text-indent: 26px;
   background-repeat: no-repeat;
-  background-color: #d1d1d1;
+}
+optgroup.news_area_title option {
+  text-indent: 6px;
 }
 input.news_search_term {
   width: 45%;
@@ -6947,6 +6947,11 @@ select {
   position: relative;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+select::-ms-expand {
+  display: none;
+}
+select:not([multiple]) {
   padding-right: 20px !important;
   background-image: url("../images/icons/blue/arr_1down.svg");
   -webkit-background-size: 10px 10px;
@@ -6956,20 +6961,22 @@ select {
   background-position: right 4px center;
   background-repeat: no-repeat;
 }
-select::-ms-expand {
-  display: none;
-}
-select:focus {
+select:not([multiple]):focus {
   background-image: url("../images/icons/blue/arr_1up.svg");
   -webkit-background-size: 10px 10px;
   -moz-background-size: 10px 10px;
   -o-background-size: 10px 10px;
   background-size: 10px 10px;
-  border: 1px solid #28497c;
 }
 select:not([multiple]):not([size]) {
   height: 30px;
   line-height: 30px;
+}
+select[multiple] {
+  padding-right: 8px;
+}
+select:focus {
+  border: 1px solid #28497c;
 }
 select.has-no-value:not(:focus) {
   color: #8b8f95;

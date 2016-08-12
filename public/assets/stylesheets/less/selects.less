@@ -26,22 +26,30 @@ select {
     text-overflow: ellipsis;
     white-space: nowrap;
 
-    // Allow all other paddings to be overwritten but the right padding
-    // to ensure the icon is always clearly visible
-    padding-right: 20px !important;
+    &:not([multiple]) {
+        // Allow all other paddings to be overwritten but the right padding
+        // to ensure the icon is always clearly visible
+        padding-right: 20px !important;
 
-    .background-icon('arr_1down', 'clickable', @select-arrow-size);
-    background-position: right 4px center;
-    background-repeat: no-repeat;
+        .background-icon('arr_1down', 'clickable', @select-arrow-size);
+        background-position: right 4px center;
+        background-repeat: no-repeat;
 
-    &:focus {
-        .background-icon('arr_1up', 'clickable', @select-arrow-size);
-        border: @select-border-focus;
+        &:focus {
+            .background-icon('arr_1up', 'clickable', @select-arrow-size);
+        }
+
+        &:not([size]) {
+            height: @select-height-default;
+            line-height: @select-height-default;
+        }
+    }
+    &[multiple] {
+        padding-right: 8px;
     }
 
-    &:not([multiple]):not([size]) {
-        height: @select-height-default;
-        line-height: @select-height-default;
+    &:focus {
+        border: @select-border-focus;
     }
 
     &.has-no-value:not(:focus) {
