@@ -399,67 +399,6 @@ jQuery(document).on('click', '.course-admin td .course-completion', function () 
     return false;
 });
 
-
-jQuery(document).on('ready dialog-update', function () {
-    $('select.nested-select:not(:has(optgroup))').each(function () {
-        var select_classes = $(this).attr('class'),
-            placeholder    = undefined,
-            option         = $('<option>');
-
-        if ($('.is-placeholder', this).length > 0) {
-            placeholder = $('.is-placeholder', this).text();
-
-            option.attr('selected', $(this).val() === '');
-            $('.is-placeholder', this).replaceWith(option);
-        }
-
-        $(this).select2({
-            adaptDropdownCssClass: function () {
-                return select_classes;
-            },
-            allowClear: placeholder !== undefined,
-            minimumResultsForSearch: $(this).closest('.sidebar').length > 0 ? 15 : 10,
-            placeholder: placeholder,
-            templateResult: function (data, container) {
-                if (data.element) {
-                    var option_classes = $(data.element).attr('class'),
-                        element_data   = $(data.element).data();
-                    $(container).addClass(option_classes);
-
-                    // Allow text color changes (calendar needs this)
-                    if (element_data.textColor) {
-                        $(container).css('color', element_data.textColor);
-                    }
-                }
-                return data.text;
-            },
-            templateSelection: function (data, container) {
-                var result       = $('<span class="select2-selection__content">').text(data.text),
-                    element_data = $(data.element).data();
-                if (element_data && element_data.textColor) {
-                    result.css('color', element_data.textColor);
-                }
-
-                return result;
-            }
-        });
-
-        $(this).next().andSelf().wrapAll('<div class="select2-wrapper">')
-    });
-
-    // Unfortunately, this code needs to be duplicated because jQuery
-    // namespacing kind of sucks. If the below change handler is namespaced
-    // and we trigger that namespaced event here, still all change handlers
-    // will execute (which is bad due to $(select).change(form.submit())).
-    $('select').each(function () {
-        $(this).toggleClass('has-no-value', this.value === '').blur();
-    });
-}).on('change', 'select', function () {
-    $(this).toggleClass('has-no-value', this.value === '').blur();
-}).on('dialog-close', function (event, data) {
-    $('select.nested-select:not(:has(optgroup))', data.dialog).select2('close');
-});
-
 jQuery(document).on('dialog-update', function (event) {
     jQuery('.add_toolbar').addToolbar();
 
