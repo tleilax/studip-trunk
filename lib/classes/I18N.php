@@ -12,8 +12,8 @@ class I18N
      * Create a set of HTML input elements for this form element in text form.
      * One element will be generated for each configured content language.
      *
-     * @param $name HTML name of the Inputfild
-     * @param $value Value (Needs to be an i18n input string)
+     * @param string $name HTML name of the Inputfild
+     * @param I18NString $value (Needs to be an i18n input string)
      * @param array $attributes Additional attributes of the input
      * @return string Crafted input
      * @throws i18nException If given value was not an i18n Object
@@ -25,9 +25,9 @@ class I18N
         }
 
         $languages = $GLOBALS['CONTENT_LANGUAGES'];
-        $base_lang = key($languages);
+        $base_lang = $GLOBALS['DEFAULT_LANGUAGE'];
 
-        $result .= "<div class='i18n_group normal-input ".(count($GLOBALS['CONTENT_LANGUAGES']) <= 1 ? 'single_lang' : '')."'>";
+        $result = "<div class=\"i18n_group " . (!self::isEnabled() ? 'single_lang' : '') . "\">";
         foreach ($languages as $locale => $lang) {
             if ($locale === $base_lang) {
                 $attr = array(
@@ -46,7 +46,7 @@ class I18N
                 'class' => $attributes['class'] . ' i18n',
                 'style' => sprintf('%s background-image: url(%s);', $attributes['style'],
                                    Assets::image_path('languages/' . $lang['picture'])),
-                'data-lang_desc' => $lang['name'],
+                'data-lang_desc' => $lang['name']
             );
 
             $result .= '<input type="text"';
@@ -68,8 +68,8 @@ class I18N
      * Create a set of HTML textarea elements for this form element in text form.
      * One element will be generated for each configured content language.
      *
-     * @param $name HTML name of the Textarea
-     * @param $value Value (Needs to be an i18n input string)
+     * @param string $name HTML name of the Textarea
+     * @param I18NString $value (Needs to be an i18n input string)
      * @param array $attributes Additional attributes of the input
      * @return string Crafted textarea
      * @throws i18nException If given value was not an i18n Object
@@ -77,9 +77,9 @@ class I18N
     public static function textarea($name, $value, $attributes = array())
     {
         $languages = $GLOBALS['CONTENT_LANGUAGES'];
-        $base_lang = key($languages);
+        $base_lang = $GLOBALS['DEFAULT_LANGUAGE'];
 
-        $result .= "<div class='i18n_group textarea-input ".(count($GLOBALS['CONTENT_LANGUAGES']) <= 1 ? 'single_lang' : '')."'>";
+        $result = "<div class=\"i18n_group " . (!self::isEnabled() ? 'single_lang' : '') . "\">";
         foreach ($languages as $locale => $lang) {
             if ($locale === $base_lang) {
                 $attr = array(
@@ -109,9 +109,19 @@ class I18N
                     $result .= sprintf(' %s="%s"', $key, htmlReady($val));
                 }
             }
-            $result .= ">$text</textarea>\n";
+            $result .= '>' . htmlReady($text) . "</textarea>\n";
         }
         $result .= "</div>";
         return $result;
+    }
+
+    /**
+     * is more than the default language configured
+     *
+     * @return bool
+     */
+    public static function isEnabled()
+    {
+        return count($GLOBALS['CONTENT_LANGUAGES']) > 1;
     }
 }
