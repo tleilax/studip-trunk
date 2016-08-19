@@ -16,16 +16,13 @@ class I18N
      * @param I18NString $value (Needs to be an i18n input string)
      * @param array $attributes Additional attributes of the input
      * @return string Crafted input
-     * @throws i18nException If given value was not an i18n Object
      */
     public static function input($name, $value, $attributes = array())
     {
-        if (!($value instanceof I18NString)) {
-            throw new i18nException("Given input seems to be no i18n String. Check declaration in SimpleORMap Subclass!");
-        }
 
         $languages = $GLOBALS['CONTENT_LANGUAGES'];
         $base_lang = $GLOBALS['DEFAULT_LANGUAGE'];
+        $value instanceOf I18NString or $value = new I18NString($value);
 
         $result = "<div class=\"i18n_group " . (!self::isEnabled() ? 'single_lang' : '') . "\">";
         foreach ($languages as $locale => $lang) {
@@ -78,6 +75,7 @@ class I18N
     {
         $languages = $GLOBALS['CONTENT_LANGUAGES'];
         $base_lang = $GLOBALS['DEFAULT_LANGUAGE'];
+        $value instanceOf I18NString or $value = new I18NString($value);
 
         $result = "<div class=\"i18n_group " . (!self::isEnabled() ? 'single_lang' : '') . "\">";
         foreach ($languages as $locale => $lang) {
