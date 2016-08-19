@@ -91,7 +91,13 @@ class Lvgruppen_LvgruppenController extends MVVController
             PageLayout::postInfo(_('Es wurden keine Lehrveranstaltungsgruppen gefunden.'));
         }
                 
-        $this->count = Lvgruppe::getCount($filter, $this->semester_filter);
+        $this->count = count(Lvgruppe::getAllEnriched(
+                $this->sortby,
+                $this->order,
+                Lvgruppe::getFilterSql($filter, true, $author_sql),
+                null,
+                null,
+                $this->semester_filter));
         
         $helpbar = Helpbar::get();
         $widget = new HelpbarWidget();
@@ -105,11 +111,7 @@ class Lvgruppen_LvgruppenController extends MVVController
         $this->setSidebar();
         $sidebar = Sidebar::get();
         $widget  = new ActionsWidget();
-        if (MvvPerm::havePermCreate('Lvgruppe')) {
-            $widget->addLink(_('Neue Lehrveranstaltungsgruppe anlegen'),
-                    $this->url_for('/lvgruppe'),
-                    Icon::create('file+add', 'clickable'));
-        }
+        
         $widget->addLink( _('Lehrveranstaltungsgruppen mit Zuordnungen exportieren'),
                 $this->url_for('/export_xls'),
                 Icon::create('download', 'clickable'));
