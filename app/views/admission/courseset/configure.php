@@ -81,8 +81,8 @@ if ($flash['error']) {
             <?php } ?>
             </div>
         <? else : ?>
-            <? foreach (array_keys($selectedInstitutes) as $institute) : ?>
-                <?= htmlReady($myInstitutes[$institute]['Name']) ?>
+            <? foreach (SimpleCollection::createFromArray($selectedInstitutes)->orderBy('Name') as $institute) : ?>
+                <?= htmlReady($institute['Name']) ?>
                 <br>
             <?  endforeach ?>
         <?  endif ?>
@@ -130,10 +130,14 @@ if ($flash['error']) {
             <? if (count($courseIds) > 100) :?>
                 <?= sprintf(_("%s zugewiesene Veranstaltungen"), count($courseIds)) ?>
             <? else : ?>
-                <? foreach ($courseIds as $course_id) : ?>
-                    <?= htmlReady(Course::find($course_id)->name) ?>
-                    <br>
-                <?  endforeach ?>
+            <?
+            Course::findEachMany(function($c) {
+                echo htmlReady($c->getFullname('number-name-semester'));
+                echo '<br>';
+            },
+                $courseIds,
+                'ORDER BY start_time,VeranstaltungsNummer,Name');
+            ?>
             <? endif ?>
         <? endif ?>
     </fieldset>
@@ -216,7 +220,13 @@ if ($flash['error']) {
         <div class="submit_wrapper" data-dialog-button>
             <?= CSRFProtection::tokenTag() ?>
             <?= Button::createAccept(_('Speichern'), 'submit', $instant_course_set_view ? array('data-dialog' => '') : array()) ?>
-            <?= LinkButton::createCancel(_('Abbrechen'), $controller->url_for('admission/courseset')) ?>
+            <?php if (Request::option('is_copy')) : ?>
+                <?= LinkButton::createCancel(_('Abbrechen'),
+                    URLHelper::getURL('dispatch.php/admission/courseset/delete/' . $courseset->getId(),
+                    array('really' => 1))) ?>
+            <?php else : ?>
+                <?= LinkButton::createCancel(_('Abbrechen'), $controller->url_for('admission/courseset')) ?>
+            <?php endif ?>
         </div>
 
 </form>

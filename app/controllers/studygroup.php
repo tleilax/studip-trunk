@@ -20,14 +20,14 @@ class StudygroupController extends AuthenticatedController
     public function before_filter(&$action, &$args)
     {
         parent::before_filter($action, $args);
-        
+
         PageLayout::setTitle(_('Studiengruppen suchen'));
         Navigation::activateItem('/community/studygroups/browse');
         PageLayout::setHelpKeyword('Basis.SuchenStudiengruppen');
         // add skip link
         SkipLinks::addIndex(Navigation::getItem('/community/studygroups/browse')->getTitle(), 'layout_content', 100);
 
-        Sidebar::get()->setImage('sidebar/studygroup-sidebar.png');
+        $this->setupSidebar();
     }
 
     /**
@@ -37,32 +37,33 @@ class StudygroupController extends AuthenticatedController
      * @param $page
      * @param $sort
      */
-    function browse_action($page = 1, $sort = "founded_asc")
+    function browse_action($page = 1, $sort = "founded_desc")
     {
         $this->sort = preg_replace('/\\W/', '', $sort);
         $this->page = intval($page);
-        $this->userid = $GLOBALS['auth']->auth['uid'];
+        $this->user = $GLOBALS['user'];
         $this->search = Request::get("searchtext");
         $reset = false;
-        if (Request::get('action') == 'deny') {
+        if (Request::int('reset-search')) {
             unset($this->flash['searchterm']);
             unset($this->flash['info']);
+            $this->search = null;
             $this->page = 1;
-            $this->sort = "founded_asc";
+            $this->sort = "founded_desc";
             $reset = true;
         }
 
-        $this->lower_bound = ($this->page - 1) * get_config('ENTRIES_PER_PAGE');
+        $this->lower_bound = ($this->page - 1) * Config::get()->ENTRIES_PER_PAGE;
         list ($this->sort_type, $this->sort_order) = explode('_', $this->sort);
 
         if (empty($this->search) && isset($this->flash['searchterm']))  {
             $this->search = $this->flash['searchterm'];
         }
         if (!empty($this->search)) {
-            $groups = StudygroupModel::getAllGroups($this->sort, $this->lower_bound, get_config('ENTRIES_PER_PAGE'), $this->search);
+            $groups = StudygroupModel::getAllGroups($this->sort, $this->lower_bound, get_config('ENTRIES_PER_PAGE'), $this->search, Request::get('closedGroups'));
             $this->flash['searchterm'] = $this->search;
             $this->flash->keep('searchterm');
-            $this->anzahl = StudygroupModel::countGroups($this->search);
+            $this->anzahl = StudygroupModel::countGroups($this->search, Request::get('closedGroups'));
             $this->groups = $groups;
         }
         // let the user know that there is no studygroup for the searchterm
@@ -76,10 +77,28 @@ class StudygroupController extends AuthenticatedController
                 }
             }
             $this->anzahl = StudygroupModel::countGroups();
-            $this->groups = StudygroupModel::getAllGroups($this->sort, $this->lower_bound, get_config('ENTRIES_PER_PAGE'));
+            $this->groups = StudygroupModel::getAllGroups($this->sort, $this->lower_bound, get_config('ENTRIES_PER_PAGE'), Request::get('closedGroups'));
         } elseif (!$check || $this->groups) {
             unset($this->flash['info']);
             if($this->page < 1 || $this->page > ceil($this->anzahl/get_config('ENTRIES_PER_PAGE'))) $this->page = 1;
         }
+    }
+
+    private function setupSidebar()
+    {
+        $sidebar = Sidebar::get();
+        $sidebar->setImage('sidebar/studygroup-sidebar.png');
+
+        $actions = new ActionsWidget();
+        $actions->addLink(_('Neue Studiengruppe anlegen'),
+                          URLHelper::getLink('dispatch.php/course/wizard', ['studygroup' => 1]),
+                          Icon::create('add', 'clickable'))
+                ->asDialog();
+        $sidebar->addWidget($actions);
+
+        $search = new SearchWidget($this->url_for('studygroup/browse'));
+        $search->addNeedle(_('Suchbegriff'), 'searchtext', true);
+        $search->addFilter(_('Geschlossene Studiengruppen'), 'closedGroups');
+        $sidebar->addWidget($search);
     }
 }

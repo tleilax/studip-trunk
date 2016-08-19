@@ -30,12 +30,6 @@
                         . ' finden Sie rechts neben diesem Textfeld.') ?>"><?= htmlReady($this->flash['new_entry_content']) ?></textarea>
             </div>
 
-            <dl class="postprofile">
-                <dt>
-                    <?= $this->render_partial('index/_smiley_favorites', array('textarea_id' => 'new_entry')) ?>
-                </dt>
-            </dl>
-
             <div class="buttons">
                 <div class="button-group">
                     <?= Studip\Button::createAccept(_('Beitrag erstellen'), array('tabindex' => '3')) ?>
@@ -55,11 +49,16 @@
                 </div>
             </div>
         </div>
-
-        <?= $this->render_partial('index/_preview', array('preview_id' => 'new_entry_preview')) ?>
+        <dl class="postprofile">
+            <dt>
+                <?= $this->render_partial('index/_smiley_favorites', array('textarea_id' => 'new_entry')) ?>
+            </dt>
+        </dl>
 
         <input type="hidden" name="parent" value="<?= $topic_id ?>">
         <input type="text" name="nixda" style="display: none;">
     </form>
+
+    <?= $this->render_partial('index/_preview', array('preview_id' => 'new_entry_preview')) ?>
     <br>
 </div>

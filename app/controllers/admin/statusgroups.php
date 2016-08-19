@@ -79,6 +79,10 @@ class Admin_StatusgroupsController extends AuthenticatedController
         $this->loadGroups();
 
         $this->membersOfInstitute = Institute::find($_SESSION['SessionSeminar'])->members->orderBy('nachname')->pluck('user_id');
+        $this->not_assigned = array_diff(
+            $this->membersOfInstitute,
+            GetAllSelected($_SESSION['SessionSeminar'])
+        );
 
         // Create multiperson search type
         $query = "SELECT auth_user_md5.user_id, CONCAT({$GLOBALS['_fullname_sql']['full']}, ' (', auth_user_md5.username, ')') as fullname
@@ -105,7 +109,10 @@ class Admin_StatusgroupsController extends AuthenticatedController
             $group = new Statusgruppen($group_id);
             if ($group->isNew()) {
                 $group->range_id = $_SESSION['SessionSeminar'];
+            } else {
+                DataFieldEntry::removeAll(array('', $group->statusgruppe_id));
             }
+
             $group->name       = Request::get('name');
             $group->name_w     = Request::get('name_w');
             $group->name_m     = Request::get('name_m');
@@ -231,6 +238,8 @@ class Admin_StatusgroupsController extends AuthenticatedController
 
             //remove users
             $this->group->removeAllUsers();
+            //remove datafields
+            DataFieldEntry::removeAll(array('', $this->group->statusgruppe_id));
 
             //goodbye group
             $this->group->delete();

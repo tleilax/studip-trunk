@@ -52,9 +52,6 @@
 
 label[for="responsive-toggle"] {
     .icon('before', 'hamburger-icon', 'info_alt', 20);
-    &:before {
-        background-position: left 3px;
-    }
 }
 
 #responsive-toggle:checked + #responsive-navigation {
@@ -151,10 +148,19 @@ label[for="responsive-toggle"] {
 }
 
 
+@media screen and (min-width: @small-screen-width) {
+    .responsive-visible {
+        display: none;
+    }
+}
+
 @media screen and (max-width: @small-screen-width) {
-    #header, #barTopFont, #barTopMenu, #barBottomLeft .current_page, #barBottommiddle,
-    #tabs, .sidebar-image, #sidebar-navigation, #quicksearch, #layout_footer {
+    #header, #barTopFont, #barTopMenu, #barBottomLeft .current_page, #barBottommiddle, #barBottomLeft, #barBottomArrow,
+    #tabs, .sidebar-image, #sidebar-navigation, #quicksearch, #layout_footer, li#quicksearch_item {
         display: none !important;
+    }
+    .responsive-hidden {
+        display: none;
     }
     #notification_marker {
         display: inline-block;
@@ -171,15 +177,46 @@ label[for="responsive-toggle"] {
 
     #barBottomright, #barBottomright ul {
         .box-sizing(border-box);
+        flex: 1;
+    }
 
-        > li {
-            line-height: @header-bar-container-height;
+    #barBottomright {
+        flex: 1 !important;
+        #sidebar-menu {
+            display: inline-block;
+        }
+        .list {
+            @width: 300px;
+            @arrow-height: 10px;
+
+            margin-top: 2px;
+            width: @width;
+            max-width: @width;
+
+            &.below {
+                left: (-@width + @arrow-height * 2);
+                &:before {
+                    left: (@width - @arrow-height - 2);
+                }
+            }
+        }
+    }
+    #notification_list {
+        width: 100% !important;
+        position: absolute !important;
+        left: 0 !important;
+        box-sizing: border-box !important;
+        max-width: inherit !important;
+        &:before {
+            display: none !important;
+            opacity: 0;
         }
     }
 
-    #barBottomright #sidebar-menu {
-        display: inline-block;
+    #notification_container {
+        position: inherit !important;
     }
+
     #responsive-container {
         display: block;
     }
@@ -191,6 +228,10 @@ label[for="responsive-toggle"] {
 
     #layout_page, #layout_container, #barBottomContainer, #flex-header, #layout_content {
         min-width: inherit !important;
+    }
+
+    #layout_content {
+        margin: 0px 4px;
     }
 
     .visible-sidebar {
@@ -208,7 +249,6 @@ label[for="responsive-toggle"] {
         right: (-@responsive-menu-width - @responsive-menu-shadow-width);
         bottom: 0;
 
-        height: 100%;
         width: @responsive-menu-width;
 
         overflow: hidden;

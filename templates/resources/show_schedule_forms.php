@@ -19,6 +19,17 @@ use Studip\Button,
     <tbody>
         <tr>
             <td colspan="3" align="center">
+            <? if (!empty($_SESSION['assign_object_has_holidays'][$resAssign->id])) : ?>
+        		<?  $holidays = "<br>" . htmlReady(implode(', ', $_SESSION['assign_object_has_holidays'][$resAssign->id])) . "<br>";    	        
+        	        if (count($_SESSION['assign_object_has_holidays'][$resAssign->id]) > 1) {
+        	            $msg = sprintf(_("Die Belegung überschneidet sich mit folgenden Feiertagen: %s Wollen Sie die Belegung dennoch speichern?"), $holidays);
+        	        } else {
+        	            $msg = sprintf(_("Die Belegung überschneidet sich mit folgendem Feiertag: %s Wollen Sie die Belegung dennoch speichern?"), $holidays);
+        	        }
+                ?>                
+                <?= MessageBox::error($msg . "<br>". Button::createAccept(_('JA!'), 'ignore_holidays') . ' ' . Button::createCancel(_('NEIN!'), 'no_ignore_holidays')) ?>
+            <? endif; ?>
+            
             <? if ($resAssign->isNew()) : ?>
                 <?= MessageBox::info(_("Sie erstellen eine neue Belegung")) ?>
             <? endif; ?>
@@ -234,7 +245,7 @@ use Studip\Button,
                 <?=_("begrenzte Anzahl der Wiederholungen:")?><br>
                 <?
                 if (!$lockedAssign) :
-                    printf (_("max. %s Mal wiederholen"), "&nbsp;<input name=\"change_schedule_repeat_quantity\" value=\"".(($resAssign->getRepeatQuantity() != -1) ? $resAssign->getRepeatQuantity() : "")."\" size=\"2\" maxlength=\"2\">&nbsp;");
+                    printf (_("max. %s Mal wiederholen"), "&nbsp;<input name=\"change_schedule_repeat_quantity\" value=\"".(($resAssign->getRepeatQuantity() != -1) ? $resAssign->getRepeatQuantity() : "")."\" size=\"4\" maxlength=\"4\">&nbsp;");
                     if ($resAssign->getRepeatQuantity() == -1): ?>
                         <input type="hidden" name="change_schedule_repeat_quantity_infinity" value="TRUE">
                     <? endif; ?>

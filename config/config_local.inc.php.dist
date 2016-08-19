@@ -4,7 +4,7 @@
 you find here the basic system settings. You shouldn't have to touch much of them...
 please note the CONFIG.INC.PHP for the indivual settings of your installation!*/
 
-$UNI_NAME_CLEAN = 'Stud.IP 3.3';                           //the clean-name of your master-faculty (e.g. University of Göttingen), without html-entities (used for mail-system)
+$UNI_NAME_CLEAN = 'Stud.IP 3.4';                           //the clean-name of your master-faculty (e.g. University of Göttingen), without html-entities (used for mail-system)
 $STUDIP_INSTALLATION_ID='demo-installation';      //unique identifier for installation
 
 
@@ -139,8 +139,6 @@ $CACHE_IS_SESSION_STORAGE = false;                 //store session data in cache
 /*Stud.IP modules
 ----------------------------------------------------------------
 enable or disable the Stud.IP internal modules, set and basic settings*/
-
-$CALENDAR_DRIVER = "MySQL";                                 //calendar driver: database to use (MySQL in default installation)*/
 
 $XSLT_ENABLE = TRUE;
 $FOP_ENABLE = TRUE;
@@ -293,19 +291,18 @@ $MAIL_VALIDATE_BOX = TRUE;                              //check for valid mail a
 
 $MESSAGING_FORWARD_AS_EMAIL = TRUE;                         //enable to forward every internal message to the user-mail (the user is able to deactivate this function in his personal settings)
 $MESSAGING_FORWARD_DEFAULT = 1;                             //the default setting: if 1, the user has to switch it on; if 2, every message will be forwarded; if 3 every message will be forwarded on request of the sender
+$MESSAGING_FORWARD_USE_REPLYTO = FALSE;                     //send forwarded messages as system user and add reply-to header
 
 $ENABLE_EMAIL_TO_STATUSGROUP = TRUE;                                // enable to send messages to whole status groups
 
 $ENABLE_EMAIL_ATTACHMENTS = TRUE;                               // enable attachment functions for internal and external messages
+$MAIL_ATTACHMENTS_MAX_SIZE = 10;                             //maximum size of attachments in MB
 
 /*advanced system settings
 ----------------------------------------------------------------
 this are some settings to activate some special features, special
 behaviour of some features and other advanced options. Change on your
 own risk :) */
-
-$ALLOW_GROUPING_SEMINARS = TRUE;            //if true, administrators can group seminars - students
-                                            //will only be able to register for one of the grouped seminars
 
 $ALLOW_SELFASSIGN_STUDYCOURSE = TRUE;       //if true, students are allowed to set or change
                                             //their studycourse (studiengang)
@@ -537,11 +534,23 @@ $ALLOW_CHANGE_TITLE = TRUE;                 //if true, users are allowed to chan
 $ENABLE_SELF_REGISTRATION = TRUE;               //should it be possible for an user to register himself
 
 $ENABLE_REQUEST_NEW_PASSWORD_BY_USER = TRUE;            //if true, users are able to request a new password themselves
-$REQUEST_NEW_PASSWORD_SECRET = 'jh*d ajshHuwd7z237zd hGfaMhlf'; // if the above feature is used, set this to somthing different!!!
 $PHPASS_USE_PORTABLE_HASH = false;           //use portable (less secure) hashing algo for passwords
 
 $ENABLE_FREE_ACCESS = TRUE;                 //if true, courses with public access are available
 
+// Login ip range check
+$ENABLE_ADMIN_IP_CHECK = false;
+$ENABLE_ROOT_IP_CHECK = false;
+$LOGIN_IP_RANGES =
+    [
+        'V4' => [
+            ['start' => '', 'end' => ''],
+        ]
+        ,
+        'V6' => [
+            ['start' => '', 'end' => ''],
+        ]
+    ];
 
 /*path generation
 -----------------------------------------------------------------

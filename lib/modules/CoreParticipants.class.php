@@ -27,46 +27,9 @@ class CoreParticipants implements StudipModule {
             $navigation->addSubNavigation('additional', new Navigation(_('Zusatzangaben'), 'dispatch.php/course/members/additional'));
         }
 
-        $navigation->addSubNavigation('view_groups', new Navigation(_('Funktionen / Gruppen'), 'statusgruppen.php?view=statusgruppe_sem'));
-
-        if ($GLOBALS['perm']->have_studip_perm('tutor', $course_id) && !LockRules::check($course_id, 'groups')) {
-            $navigation->addSubNavigation('edit_groups', new Navigation(_('Funktionen / Gruppen verwalten'), 'admin_statusgruppe.php?new_sem=TRUE&range_id=' .$course_id));
-        }
+        $navigation->addSubNavigation('statusgroups', new Navigation(_('Gruppen'), 'dispatch.php/course/statusgroups'));
 
         return array('members' => $navigation);
-    }
-
-    function getNotificationObjects($course_id, $since, $user_id)
-    {
-        $items = array();
-        $type = get_object_type($course_id, array('sem', 'inst', 'fak'));
-        
-        // only show new participants for seminars, not for institutes
-        if ($type != 'sem') return $items;
-
-        $stmt = DBManager::get()->prepare('SELECT seminar_user.*, seminare.Name, seminare.status,
-            '. $GLOBALS['_fullname_sql']['full'] .' as fullname
-            FROM seminar_user
-            JOIN auth_user_md5 USING (user_id)
-            JOIN user_info USING (user_id)
-            JOIN seminare USING (Seminar_id)
-            WHERE Seminar_id = ? 
-                AND seminar_user.mkdate > ?');
-        
-        $stmt->execute(array($course_id, $since));
-        
-        while ($row = $stmt->fetch()) {
-            $summary = sprintf('%s ist der Veranstaltung "%s" beigetreten.',
-                $row['fullname'], $row['Name']);
-
-            $items[] = new ContentElement(
-                'Studiengruppe: Neue/r Teilnehmer/in', $summary, '', $row['user_id'], $row['fullname'],
-                URLHelper::getLink('seminar_main.php?auswahl='. $row['Seminar_id'] .'&redirect_to=dispatch.php/course/member'),
-                $row['mkdate']
-            );
-        }
-        
-        return $items;
     }
 
     /** 

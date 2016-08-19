@@ -20,17 +20,16 @@ require_once('app/models/calendar/SingleCalendar.php');
 
 class CalendarExport
 {
-
-    private $_writer;
-    private $export;
+    protected $_writer;
+    protected $export;
     private $count;
 
-    function CalendarExport(&$writer)
+    public function __construct(&$writer)
     {
         $this->_writer = $writer;
     }
 
-    function exportFromDatabase($range_id = null, $start = 0, $end = Calendar::CALENDAR_END, $event_types = null, $except = NULL)
+    public function exportFromDatabase($range_id = null, $start = 0, $end = Calendar::CALENDAR_END, $event_types = null, $except = NULL)
     {
         global $_calendar_error, $user;
 
@@ -45,18 +44,12 @@ class CalendarExport
         foreach ($calendar->events as $event) {
             $this->_export($this->_writer->write($event));
         }
-        $this->count = sizeof($events);
+        $this->count = sizeof($calendar->events);
 
-        if ($this->count == 0) {
-            $message =  _('Es wurden keine Termine exportiert.');
-        } else {
-            $message = sprintf(ngettext('Es wurde 1 Termin exportiert', 'Es wurden %s Termine exportiert', $export_driver->getCount()), $export_driver->getCount());
-        }
-        
         $this->_export($this->_writer->writeFooter());
     }
 
-    function exportFromObjects($events)
+    public function exportFromObjects($events)
     {
         global $_calendar_error;
 
@@ -77,32 +70,20 @@ class CalendarExport
         $this->_export($this->_writer->writeFooter());
     }
 
-    function _export($exp)
+    public function _export($exp)
     {
         if (sizeof($exp)) {
             $this->export[] = $exp;
         }
     }
 
-    function getExport()
+    public function getExport()
     {
-
         return $this->export;
     }
 
-    function getCount()
+    public function getCount()
     {
-
         return $this->count;
     }
-
-    /*
-    function setClientIdentifier($client_id)
-    {
-        $this->_writer->client_identifier = $client_id;
-    }
-     * 
-     */
-     
-
 }

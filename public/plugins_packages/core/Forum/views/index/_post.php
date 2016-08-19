@@ -17,7 +17,7 @@
 <form method="post" data-topicid="<?= $post['topic_id'] ?>" action="<?= PluginEngine::getLink('coreforum/index/update_entry/' . $post['topic_id']) ?>">
     <?= CSRFProtection::tokenTag() ?>
     
-<div class="posting<?= $highlight_topic == $post['topic_id'] ? ' highlight' : '' ?>" style="position: relative;" id="forumposting_<?= htmlReady($post['topic_id']) ?>">
+<div class="real_posting posting<?= $highlight_topic == $post['topic_id'] ? ' highlight' : '' ?>" style="position: relative;" id="forumposting_<?= htmlReady($post['topic_id']) ?>">
     <a class="marked" href="<?= PluginEngine::getLink('coreforum/index/unset_favorite/'. $post['topic_id']) ?>"
             onClick="STUDIP.Forum.unsetFavorite('<?= $post['topic_id'] ?>'); return false;" title="<?= _('Beitrag nicht mehr merken') ?>"
             <?= ($post['fav']) ?: 'style="display: none;"' ?> data-topic-id="<?= $post['topic_id'] ?>">
@@ -88,7 +88,7 @@
             
             <span data-show-topic="<?= $post['topic_id'] ?>" data-topic-content="<?= $post['topic_id'] ?>" <?= $edit_posting != $post['topic_id'] ? '' : 'style="display: none;"' ?>>
                 <?= ForumHelpers::highlight($post['content'], $highlight) ?>
-                <?= OpenGraph::extract($post['content'])->render() ?>
+                <?= OpenGraph::extract(formatReady(ForumEntry::removeQuotes($post['content_raw'])))->render() ?>
             </span>
         </div>
 

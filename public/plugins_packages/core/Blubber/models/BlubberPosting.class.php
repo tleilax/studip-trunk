@@ -101,7 +101,7 @@ class BlubberPosting extends SimpleORMap {
                 'topic_id' => $posting['root_id'],
                 'extern' => is_a($user, "BlubberExternalContact") ? 1 : 0
             ));
-            return '['.$user->getName().']'.$user->getURL().' ';
+            return str_replace($matches[1], '['.$user->getName().']'.$user->getURL().' ', $matches[0]);
         } else {
             return $markup->quote($matches[0]);
         }
@@ -386,10 +386,12 @@ class BlubberPosting extends SimpleORMap {
      * @return integer: 1 if posting successfully stored, else 0.
      */
     public function store() {
+        $is_new = $this->isNew();
+
         NotificationCenter::postNotification("PostingWillSave", $this);
         $success = parent::store();
         if ($success) {
-            NotificationCenter::postNotification("PostingHasSaved", $this);
+            NotificationCenter::postNotification("PostingHasSaved", $this, $is_new);
         }
         return $success;
     }
@@ -548,12 +550,12 @@ class BlubberPosting extends SimpleORMap {
      */
     public function unreshare($user_id = null, $external_user = 0) {
         $user_id or $user_id = $GLOBALS['user']->id;
-        $unshare = DBManager::get()->prepare(
-            "DELETE FROM blubber_reshares " .
-            "WHERE topic_id = :topic_id " .
-                "AND user_id = :user_id ",
-                "AND external_contact = :external_contact " .
-        "");
+        $unshare = DBManager::get()->prepare("
+            DELETE FROM blubber_reshares 
+            WHERE topic_id = :topic_id 
+                AND user_id = :user_id 
+                AND external_contact = :external_contact 
+        ");
         $success = $unshare->execute(array(
             'topic_id' => $this['root_id'],
             'user_id' => $user_id,

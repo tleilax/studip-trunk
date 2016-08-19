@@ -49,7 +49,7 @@ ShowThread, stellt Struktur mit Hilfe von printThread dar
 class ShowThread extends ShowTreeRow {
     var $lines;     //Uebersichtsarray der Struktur;
 
-    function ShowThread() {
+    function __construct() {
     }
 
     function showThreadLevel ($root_id, $level=0, $lines='')
@@ -145,7 +145,7 @@ class ShowThread extends ShowTreeRow {
                     $content.= "<input type=\"hidden\" name=\"change_structure_object\" value=\"".$resObject->getId()."\">";
                     $open="open";
                 } else {
-                    $content=htmlReady($resObject->getDescription());
+                    $content=formatReady($resObject->getDescription());
                 }
                 if ($_SESSION['resources_data']["move_object"] == $resObject->id) {
                     $content .= '<br>';

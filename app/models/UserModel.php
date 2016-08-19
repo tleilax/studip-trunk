@@ -64,20 +64,23 @@ class UserModel
     /**
      * Return the studycourses of an user.
      *
-     * @param md5 $user_id
+     * @param string $user_id
      * @return array() list of studycourses
      */
     public static function getUserStudycourse($user_id)
     {
-        $sql = "SELECT s.name AS fach, a.name AS abschluss, us.studiengang_id AS fach_id, "
-             . "us.abschluss_id AS abschluss_id, us.semester "
-             . "FROM user_studiengang AS us "
-             . "LEFT JOIN studiengaenge AS s ON us.studiengang_id = s.studiengang_id "
-             . "LEFT JOIN abschluss AS a ON us.abschluss_id = a.abschluss_id "
-             . "WHERE user_id=? ORDER BY fach";
-        $db = DBManager::get()->prepare($sql);
-        $db->execute(array($user_id));
-        return $db->fetchAll(PDO::FETCH_ASSOC);
+        $user_scs = array();
+        foreach (UserStudyCourse::findByUser($user_id) as $u_stc) {
+            $user_scs[] = [
+                'fach'         => $u_stc->studycourse_name,
+                'abschluss'    => $u_stc->degree_name,
+                'fach_id'      => $u_stc->fach_id,
+                'abschluss_id' => $u_stc->abschluss_id,
+                'semester'     => $u_stc->semester,
+                'version_id'   => $u_stc->version_id
+            ];
+        }
+        return $user_scs;
     }
 
     /**
@@ -121,11 +124,16 @@ class UserModel
      */
     public static function getUsers($username = NULL, $vorname = NULL, $nachname = NULL,
                                     $email = NULL, $inaktiv = NULL, $perms = NULL,
-                                    $locked = NULL, $datafields= NULL, $userdomains = NULL, $auth_plugins = NULL,$sort = NULL, $order = 'DESC')
+                                    $locked = NULL, $datafields= NULL, $userdomains = NULL,
+                                    $auth_plugins = NULL,$sort = NULL, $order = 'DESC', $degree = NULL,
+                                    $studycourse = NULL, $institute = NULL)
     {
+
         // keine suchkriterien
         if (empty($username) && empty($email) && empty($vorname) && empty($nachname)
-            && empty($locked) && empty($inaktiv) && empty($datafields)) {
+            && empty($locked) && empty($inaktiv) && empty($datafields) && empty($degree) && empty($studycourse)
+            && empty($institute)
+        ) {
             return 0;
         }
 
@@ -147,6 +155,8 @@ class UserModel
                 ."LEFT JOIN user_info ui ON (au.user_id = ui.user_id) "
                 ."LEFT JOIN user_userdomains uud ON (au.user_id = uud.user_id) "
                 ."LEFT JOIN userdomains uds USING (userdomain_id) "
+                ."LEFT JOIN user_studiengang us ON us.user_id = au.user_id "
+                ."LEFT JOIN user_inst uis ON uis.user_id = au.user_id "
                 ."WHERE 1 ";
 
         if ($username) {
@@ -205,6 +215,19 @@ class UserModel
                 $query .= "AND userdomain_id = " . $db->quote($userdomains) . " ";
             }
         }
+
+        if($degree) {
+            $query .= "AND us.abschluss_id = " . $db->quote($degree). " ";
+        }
+
+        if($studycourse) {
+            $query .= "AND us.fach_id = " . $db->quote($studycourse). " ";
+        }
+
+        if($institute) {
+            $query .= "AND uis.Institut_id = " . $db->quote($institute) . " ";
+        }
+
         $query .= " GROUP BY au.user_id ";
         //sortieren
         switch ($sort) {
@@ -232,6 +255,7 @@ class UserModel
             default:
                 $query .= " ORDER BY au.username {$order}";
         }
+
 
         //ergebnisse zurückgeben
         return $db->query($query)->fetchAll(PDO::FETCH_ASSOC);
@@ -274,6 +298,7 @@ class UserModel
         $old = self::getInstitute($user_id, $inst_id);
         if ($old['inst_perms'] != $values['inst_perms']) {
             log_event("INST_USER_STATUS", $inst_id, $user_id, $old['inst_perms'] .' -> '. $values['inst_perms']);
+            NotificationCenter::postNotification('UserInstitutionPermDidUpdate', $inst_id, $user_id); 
         }
 
         //change values
@@ -337,7 +362,7 @@ class UserModel
             $statement->execute(array($new_id, $old_id));
 
             // Studiengänge
-            self::removeDoubles('user_studiengang', 'studiengang_id', $new_id, $old_id);
+            self::removeDoubles('user_studiengang', 'fach_id', $new_id, $old_id);
             $query = "UPDATE IGNORE user_studiengang SET user_id = ? WHERE user_id = ?";
             $statement = DBManager::get()->prepare($query);
             $statement->execute(array($new_id, $old_id));

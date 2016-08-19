@@ -28,6 +28,9 @@
     // Reset json memory, used to delay polling if consecutive requests always
     // return the same result
     function resetJSONMemory(json) {
+        if (json.hasOwnProperty('server_timestamp')) {
+            delete json.server_timestamp;
+        }
         json = JSON.stringify(json);
         if (json !== lastJsonResult) {
             currentDelayFactor = 0;
@@ -212,15 +215,6 @@
             $(document).on('mousemove', userActivityHandler);
             $(window).on('blur focus', windowActivityHandler);
             registerNextPoll();
-
-            if (typeof Notification !== "undefined" && Notification.permission !== 'denied') {
-                Notification.requestPermission(function (permission) {
-                    // Whatever the user answers, we make sure we store the information
-                    if (!('permission' in Notification)) {
-                        Notification.permission = permission;
-                    }
-                });
-            }
         }
         active = true;
     };

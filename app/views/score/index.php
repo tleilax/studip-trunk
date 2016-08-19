@@ -3,7 +3,7 @@
         <span class="actions" style="font-size: 0.9em;">
             <?= _('Ihre Punkte:') ?>
             <strong><?= number_format($this->current_user_score, 0, ',', '.') ?></strong>
-            (<?= Score::getTitel($this->current_user_score, $this->current_user->geschlecht) ?>)
+            <div class="responsive-hidden">(<?= Score::getTitel($this->current_user_score, $this->current_user->geschlecht) ?>)</div>
         </span>
         <?= _('Stud.IP-Rangliste')?>
     </caption>
@@ -11,20 +11,20 @@
         <col width="3%">
         <col width="1%">
         <col width="50%">
+        <col class="responsive-hidden" width="15%">
         <col width="15%">
-        <col width="15%">
-        <col width="15%">
-        <col width="1%">
+        <col class="responsive-hidden" width="15%">
+        <col class="responsive-hidden" width="1%">
     </colgroup>
     <thead>
         <tr>
-            <th><?= _('Platz') ?></th>
-            <th>&nbsp;</th>
+            <th><div class="responsive-hidden"><?= _('Platz') ?></div></th>
+            <th></th>
             <th><?= _('Name') ?></th>
-            <th>&nbsp;</th>
+            <th class="responsive-hidden" ></th>
             <th><?= _('Punkte') ?></th>
-            <th><?= _('Titel') ?></th>
-            <th>&nbsp;</th>
+            <th class="responsive-hidden" ><?= _('Titel') ?></th>
+            <th class="responsive-hidden" ></th>
         </tr>
     </thead>
     <tbody>
@@ -44,16 +44,18 @@
                 <?= Icon::create('crown', 'sort', ['title' => $text])->asImg(16, ["alt" => $text, "class" => 'text-top']) ?>
             <? endforeach ?>
             </td>
-            <td>
+            <td class="responsive-hidden" >
             <?
             $content = Assets::img('blank.gif', array('width' => 16)) . ' ';
 
             // News
             if ($news = $person['newscount']) {
                 $tmp = sprintf(ngettext('Eine persönliche Ankündigung', '%s persönliche Ankündigungen', $news), $news);
-                $content .= sprintf('<a href="%s">%s</a> ',
-                                    URLHelper::getLink('dispatch.php/profile', compact('username')),
-                                    Icon::create('news', 'clickable', ['title' => $tmp])->asImg());
+                $content .= sprintf(
+                    '<a href="%s">%s</a> ',
+                    URLHelper::getLink('dispatch.php/profile?username=' . $person['username']),
+                    Icon::create('news', 'clickable', ['title' => $tmp])->asImg()
+                );
             } else {
                 $content .= Assets::img('blank.gif', array('width' => 16)) . ' ';
             }
@@ -61,9 +63,11 @@
             // Votes
             if ($vote = $person['votecount']) {
                 $tmp = sprintf(ngettext('Eine Umfrage', '%s Umfragen', $vote), $vote);
-                $content .= sprintf('<a href="%s">%s</a> ',
-                                    URLHelper::getLink('dispatch.php/profile', compact('username')),
-                                    Icon::create('vote', 'clickable', ['title' => $tmp])->asImg());
+                $content .= sprintf(
+                    '<a href="%s">%s</a> ',
+                    URLHelper::getLink('dispatch.php/profile?username=' . $person['username'] . '#questionnaire_area'),
+                    Icon::create('vote', 'clickable', ['title' => $tmp])->asImg()
+                );
             } else {
                 $content .= Assets::img('blank.gif', array('width' => 16)) . ' ';
             }
@@ -71,9 +75,11 @@
             // Termine
             if ($termin = $person['eventcount']) {
                 $tmp = sprintf(ngettext('Ein Termin', '%s Termine', $termin), $termin);
-                $content .= sprintf('<a href="%s">%s</a> ',
-                                    URLHelper::getLink('dispatch.php/profile#a', compact('username')),
-                                    Icon::create('schedule', 'clickable', ['title' => $tmp])->asImg());
+                $content .= sprintf(
+                    '<a href="%s">%s</a> ',
+                    URLHelper::getLink('dispatch.php/profile?username=' . $person['username'] . '#a'),
+                    Icon::create('schedule', 'clickable', ['title' => $tmp])->asImg()
+                );
             } else {
                 $content .= Assets::img('blank.gif', array('width' => 16)) . ' ';
             }
@@ -81,9 +87,11 @@
             // Literaturangaben
             if ($lit = $person['litcount']) {
                 $tmp = sprintf(ngettext('Eine Literaturangabe', '%s Literaturangaben', $lit), $lit);
-                $content .= sprintf('<a href="%s">%s</a> ',
-                                    URLHelper::getLink('dispatch.php/profile', compact('username')),
-                                    Icon::create('literature', 'clickable', ['title' => $tmp])->asImg());
+                $content .= sprintf(
+                    '<a href="%s">%s</a> ',
+                    URLHelper::getLink('dispatch.php/profile?username=' . $person['username']),
+                    Icon::create('literature', 'clickable', ['title' => $tmp])->asImg()
+                );
             } else {
                 $content .= Assets::img('blank.gif', array('width' => 16)) . ' ';
             }
@@ -92,8 +100,8 @@
             ?>
             </td>
             <td><?= number_format($person['score'], 0, ',', '.') ?></td>
-            <td><?= Score::getTitel($person['score'], $person['geschlecht']) ?></td>
-            <td style="text-align: right">
+            <td class="responsive-hidden" ><?= Score::getTitel($person['score'], $person['geschlecht']) ?></td>
+            <td class="responsive-hidden"  style="text-align: right">
             <? if($person['user_id'] == $GLOBALS['user']->id): ?>
                 <a href="<?= $controller->url_for('score/unpublish') ?>">
                     <?= Icon::create('trash', 'clickable', ['title' => _('Ihren Wert von der Liste löschen')])->asImg(16, ["class" => 'text-top']) ?>

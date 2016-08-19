@@ -32,6 +32,34 @@
                 </tr>
             <? endif ?>
                 <tr>
+                    <td>
+                        <strong><?= _('Aktuelle Anzahl der Teilnehmenden') ?></strong>
+                    </td>
+                    <td><?= $course->getNumParticipants() ?></td>
+                </tr>
+            <? if ($course->admission_turnout) : ?>
+                <tr>
+                    <td>
+                        <strong>
+                        <? if ($sem->isAdmissionEnabled()) : ?>
+                            <?= _('maximale Teilnehmeranzahl') ?>
+                        <? else : ?>
+                            <?= _('erwartete Teilnehmeranzahl') ?>
+                        <? endif ?>
+                        </strong>
+                    </td>
+                    <td><?= htmlReady($course->admission_turnout) ?></td>
+                </tr>
+            <? endif ?>
+            <? if ($sem->isAdmissionEnabled() && $course->getNumWaiting()) : ?>
+                <tr>
+                    <td>
+                        <strong><?= _('Wartelisteneinträge') ?></strong>
+                    </td>
+                    <td><?= $course->getNumWaiting() ?></td>
+                </tr>
+            <? endif ?>
+                <tr>
                     <td><strong><?= _("Heimat-Einrichtung") ?></strong></td>
                     <td>
                         <a href="<?= URLHelper::getScriptLink("dispatch.php/institute/overview", array('auswahl' => $course->institut_id)) ?>">
@@ -157,7 +185,7 @@
     <? if ($count_lecturers) : ?>
         <section class="contentbox">
             <header>
-                <h1><?= get_title_for_status('dozent', $count_lecturers) ?></h1>
+                <h1><?= get_title_for_status('dozent', $count_lecturers, $course->status) ?></h1>
             </header>
             <section>
                 <ul class="list-csv">
@@ -178,7 +206,7 @@
     <? if ($count_tutors) : ?>
         <section class="contentbox">
             <header>
-                <h1><?= get_title_for_status('tutor', $count_tutors) ?></h1>
+                <h1><?= get_title_for_status('tutor', $count_tutors, $course->status) ?></h1>
             </header>
             <section>
                 <ul class="list-csv">
@@ -202,6 +230,22 @@
             <?= $sem->getDatesHTML() ?>
         </section>
     </section>
+
+    <? if ($course['public_topics'] && count($course->topics)) : ?>
+        <section class="contentbox">
+            <header>
+                <h1><?= _("Themen") ?></h1>
+            </header>
+            <section>
+                <? foreach ($course->topics as $key => $topic) {
+                    if ($key > 0) {
+                        echo ", ";
+                    }
+                    echo " ".htmlReady($topic['title']);
+                } ?>
+            </section>
+        </section>
+    <? endif ?>
 
     <section class="contentbox">
         <header>
@@ -267,6 +311,27 @@
         </section>
     <? endif ?>
 
+    <?
+    // Ausgabe der Modulzuordnung MVV
+    if ($mvv_pathes) : ?>
+        <section class="contentbox">
+            <header>
+                <h1><?= _('Modulzuordnungen') ?></h1>
+            </header>
+            <section>
+                <ul class="list-unstyled">
+                    <? foreach ($mvv_pathes as $mvv_path) : ?>
+                    <li>
+                        <a data-dialog href="<?= URLHelper::getScriptLink('plugins.php/mvvplugin/search/module/overview/' . reset(array_keys($mvv_path)) . '/', array('sem_select' => $mvv_end_semester_id)) ?>">
+                            <?= htmlReady(implode(' > ', reset(array_values($mvv_path)))) ?>
+                        </a>
+                    </li>
+                    <? endforeach; ?>
+                </ul>
+            </section>
+        </section>
+    <? endif; ?>
+
     <? if ($course->beschreibung) : ?>
         <section class="contentbox">
             <header>
@@ -294,22 +359,29 @@
         </section>
     <? endif ?>
 
-    <? if ($course->admission_prelim == 1) : ?>
+    <? if ($course->admission_prelim == 1 || $course->admission_binding == 1) : ?>
         <section class="contentbox">
             <header>
                 <h1><?= _('Anmeldemodus') ?></h1>
             </header>
-            <section>
-                <p><?= _("Die Auswahl der Teilnehmenden wird nach der Eintragung manuell vorgenommen.") ?></p>
-                <? if ($course->admission_prelim_txt) : ?>
-                    <p><?= formatReady($course->admission_prelim_txt) ?></p>
-                <? else : ?>
-                        <p><?=
-                            _("Nutzer/-innen, die sich für diese Veranstaltung eintragen möchten,
-                    erhalten nähere Hinweise und können sich dann noch gegen eine Teilnahme entscheiden.")?>
-                        </p>
-                <? endif ?>
-            </section>
+            <? if ($course->admission_prelim == 1) : ?>
+                <section>
+                    <p><?= _("Die Auswahl der Teilnehmenden wird nach der Eintragung manuell vorgenommen.") ?></p>
+                    <? if ($course->admission_prelim_txt) : ?>
+                        <p><?= formatReady($course->admission_prelim_txt) ?></p>
+                    <? else : ?>
+                            <p><?=
+                                _("Nutzer/-innen, die sich für diese Veranstaltung eintragen möchten,
+                        erhalten nähere Hinweise und können sich dann noch gegen eine Teilnahme entscheiden.")?>
+                            </p>
+                    <? endif ?>
+                </section>
+            <? endif ?>
+            <? if ($course->admission_binding == 1) : ?>
+                <section>
+                    <p><?= _("Die Anmeldung ist verbindlich, Teilnehmende können sich nicht selbst austragen.") ?></p>
+                </section>
+            <? endif ?>
         </section>
     <? endif ?>
 
@@ -325,35 +397,6 @@
             </ul>
         </section>
     <? endif ?>
-
-    <section class="contentbox">
-        <header>
-            <h1><?= _('Teilnehmerzahlen') ?></h1>
-        </header>
-        <table class="default">
-            <colgroup>
-                <col width="40%">
-            </colgroup>
-            <tbody>
-            <tr>
-                <td><?= _("Aktuelle Anzahl der Teilnehmenden") ?></td>
-                <td><?= sprintf('%s', $course->getNumParticipants()) ?></td>
-            </tr>
-            <? if ($course->admission_turnout) : ?>
-                <tr>
-                    <td><?= $sem->isAdmissionEnabled() ? _("maximale Teilnehmeranzahl") : _("erwartete Teilnehmeranzahl")?></td>
-                    <td><?= sprintf('%s', $course->admission_turnout) ?></td>
-                </tr>
-            <? endif ?>
-            <? if ($sem->isAdmissionEnabled() && $course->getNumWaiting()) : ?>
-                <tr>
-                    <td><?= _("Wartelisteneinträge")?></td>
-                    <td><?= sprintf('%s', $course->getNumWaiting()) ?></td>
-                </tr>
-            <? endif ?>
-            </tbody>
-        </table>
-    </section>
 
 
 <? if (Request::get('from')) : ?>

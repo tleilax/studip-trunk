@@ -30,7 +30,7 @@
                 <col>
                 <col width="15%">
                 <? $cols = 6 ?>
-                <col width="25%">
+                <col width="35%">
                 <? $cols_foot = 6?>
             <? else : ?>
                 <col>
@@ -89,7 +89,7 @@
                    <? endif ?>
                     </a>
                     <? if ($is_tutor && $autor['comment'] != '') : ?>
-                        <?= tooltipIcon(sprintf('<strong>%s</strong><br>%s', _('Bemerkung'), htmlReady($autor['comment'])), false, true) ?>
+                        <?= tooltipHtmlIcon(sprintf('<strong>%s</strong><br>%s', _('Bemerkung'), htmlReady($autor['comment']))) ?>
                     <? endif ?>
                 </td>
                 <? if ($is_tutor) : ?>

@@ -278,23 +278,29 @@ class Course_TimesroomsController extends AuthenticatedController
             $termin->dozenten = User::findMany($related_users);
         }
 
+        
+
+        
         // Set Room
         $singledate = new SingleDate($termin);
         if (Request::option('room') == 'room') {
             $room_id = Request::option('room_sd');
-
+            
             if ($room_id && ($room_id != $termin->room_assignment->resource_id 
-                    || $date < $termin->getPristineValue('date') 
-                    || $end_time > $termin->getPristineValue('end_time'))) 
+                    || $time_changed )) 
                 {
-                    
+                
+                if (!is_null($termin->room_assignment->resource_id)) {
+                    $singledate->resource_id = $room_id;
+                }
+                
                 if ($resObj = $singledate->bookRoom($room_id)) {
                     $messages = $singledate->getMessages();
                     if (isset($messages['error'])) {
                         $singledate->killAssign();
                     }
                     $this->course->appendMessages($messages);
-                } else {
+                } else if (!$singledate->ex_termin) {
                     $this->course->createError(sprintf(_("Der angegebene Raum konnte für den Termin %s nicht gebucht werden!"),
                                                        '<b>' . $singledate->toString() . '</b>'));
                 }
@@ -710,7 +716,7 @@ class Course_TimesroomsController extends AuthenticatedController
                         if ($resObj = $date->bookRoom(Request::option('room'))) {
                             $messages = $date->getMessages();
                             $this->course->appendMessages($messages);
-                        } else {
+                        } else if (!$date->ex_termin) {
                             $this->course->createError(sprintf(_("Der angegebene Raum konnte für den Termin %s nicht gebucht werden!"),
                                                                '<strong>' . $date->toString() . '</strong>'));
                         }
@@ -719,7 +725,7 @@ class Course_TimesroomsController extends AuthenticatedController
                     $date->setFreeRoomText(Request::get('freeRoomText'));
                     $date->store();
                     $date->killAssign();
-                    $date->course->createMessage(sprintf(_("Der Termin %s wurde geändert, etwaige Raumbuchung wurden entfernt und stattdessen der angegebene Freitext eingetragen!"),
+                    $this->course->createMessage(sprintf(_("Der Termin %s wurde geändert, etwaige Raumbuchung wurden entfernt und stattdessen der angegebene Freitext eingetragen!"),
                                                          '<strong>' . $date->toString() . '</strong>'));
                 } elseif (Request::option('action') == 'noroom') {
                     $date->killAssign();

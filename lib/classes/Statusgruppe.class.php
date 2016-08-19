@@ -34,6 +34,8 @@ class Statusgruppe {
 
     var $statusgruppe_id;
     var $name = '';
+    var $name_m = '';
+    var $name_w = '';
     var $range_id = '';
     var $position = 0;
     var $size = 0;
@@ -44,7 +46,7 @@ class Statusgruppe {
     private $has_folder;
     private $is_sem;
 
-    function Statusgruppe($statusgruppe_id = '') {
+    function __construct($statusgruppe_id = '') {
         if ($statusgruppe_id == '') {
             $this->new = true;
             $this->statusgruppe_id = md5(uniqid(rand()));
@@ -62,7 +64,7 @@ class Statusgruppe {
   {
     if (substr($method, 0, 3) == 'get') {
         $variable = strtolower(substr($method, 3, strlen($method) -3));
-        if (isset($this->$variable)) {
+        if (property_exists($this, $variable)) {
             return $this->$variable;
         } else {
             throw new Exception(__CLASS__ ."::$method() does not exist!");
@@ -388,6 +390,8 @@ class Statusgruppe {
 
         $statusgruppe->statusgruppe_id = $data['statusgruppe_id'];
         $statusgruppe->name = $data['name'];
+        $statusgruppe->name_m = $data['name_m'];
+        $statusgruppe->name_w = $data['name_w'];
         $statusgruppe->range_id = $data['range_id'];
         $statusgruppe->position = $data['position'];
         $statusgruppe->size = $data['size'];

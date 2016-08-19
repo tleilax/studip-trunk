@@ -25,7 +25,7 @@
             <col width="20">
             <col>
             <col width="15%">
-            <col width="40%">
+            <col width="35%">
             <col width="80">
         </colgroup>
         <thead>
@@ -74,7 +74,7 @@
                         <?= htmlReady($fullname) ?>
                     </a>
                     <? if ($accept['comment'] != '') : ?>
-                        <?= tooltipIcon(sprintf('<strong>%s</strong><br>%s', _('Bemerkung'), htmlReady($accept['comment'])), false, true) ?>
+                        <?= tooltipHtmlIcon(sprintf('<strong>%s</strong><br>%s', _('Bemerkung'), htmlReady($accept['comment']))) ?>
                     <? endif ?>
                 </td>
                 <td>

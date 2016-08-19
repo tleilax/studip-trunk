@@ -22,6 +22,8 @@ class SelectWidget extends SidebarWidget
         $this->setUrl($url);
         $this->setSelectParameterName($name);
         $this->setRequestMethod($method);
+
+        $this->template_variables['max_length'] = 30;
     }
 
     public function setUrl($url)
@@ -36,6 +38,11 @@ class SelectWidget extends SidebarWidget
 
         $this->template_variables['url']    = URLHelper::getLink($url);
         $this->template_variables['params'] = $query_params;
+    }
+
+    public function setMaxLength($length)
+    {
+        $this->template_variables['max_length'] = $length;
     }
 
     public function setSelectParameterName($name)
@@ -70,7 +77,20 @@ class SelectWidget extends SidebarWidget
         }
         $this->template_variables['attributes'] = implode(' ', $attributes) ?: '';
 
+        $variables['__is_nested'] = $this->hasNestedElements();
 
         return parent::render($variables);
+    }
+
+    protected function hasNestedElements()
+    {
+        foreach ($this->elements as $element) {
+            if ($element instanceof SelectElement
+                && ($element->isHeader() || $element->getIndentLevel() > 0))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }

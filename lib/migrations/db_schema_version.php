@@ -44,7 +44,7 @@ class DBSchemaVersion extends SchemaVersion
      *
      * @param string $domain domain name (optional)
      */
-    function DBSchemaVersion ($domain = 'studip')
+    function __construct($domain = 'studip')
     {
         $this->domain = $domain;
         $this->version = 0;
@@ -103,5 +103,7 @@ class DBSchemaVersion extends SchemaVersion
             $this->domain,
             $this->version
         ));
+        NotificationCenter::postNotification('SchemaVersionDidUpdate', $this->domain, $version); 
+
     }
 }

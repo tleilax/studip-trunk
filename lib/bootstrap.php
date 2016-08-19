@@ -14,8 +14,9 @@ namespace Studip {
 }
 // use default namespace for the remaining lines
 namespace {
+
     //software version - please leave it as it is!
-    $SOFTWARE_VERSION = '3.4.alpha-svn';
+    $SOFTWARE_VERSION = '3.5.alpha-svn';
 
     global $PHP_SELF, $STUDIP_BASE_PATH;
 
@@ -45,6 +46,7 @@ namespace {
 
     // Specialized folders
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/classes/admission');
+    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/classes/admission/userfilter');
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/classes/auth_plugins');
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/classes/exportdocument');
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/classes/helpbar');
@@ -60,6 +62,7 @@ namespace {
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/navigation');
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/phplib');
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/raumzeit');
+    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/activities', 'Studip\\Activity');
 
     // Classes in /app
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/app/models');
@@ -79,6 +82,7 @@ namespace {
         'AbstractStudipSystemPlugin' => $GLOBALS['STUDIP_BASE_PATH'] . '/lib/plugins/core/AbstractStudIPSystemPlugin.class.php',
         'AbstractStudipHomepagePlugin' => $GLOBALS['STUDIP_BASE_PATH'] . '/lib/plugins/core/AbstractStudIPHomepagePlugin.class.php',
         'AbstractStudipAdministrationPlugin' => $GLOBALS['STUDIP_BASE_PATH'] . '/lib/plugins/core/AbstractStudIPAdministrationPlugin.class.php',
+        'messaging'              => $GLOBALS['STUDIP_BASE_PATH'] . '/lib/messaging.inc.php'
     ));
 
     // Trails
@@ -180,13 +184,13 @@ namespace {
      */
     class DB_Seminar extends DB_Sql
     {
-        function DB_Seminar($query = false)
+        public function __construct($query = false)
         {
             $this->Host = $GLOBALS['DB_STUDIP_HOST'];
             $this->Database = $GLOBALS['DB_STUDIP_DATABASE'];
             $this->User = $GLOBALS['DB_STUDIP_USER'];
             $this->Password = $GLOBALS['DB_STUDIP_PASSWORD'];
-            parent::DB_Sql($query);
+            parent::__construct($query);
         }
     }
 
@@ -217,6 +221,9 @@ namespace {
 
     // set up default page layout
     PageLayout::initialize();
+
+    // init notification observers
+    Studip\Activity\ActivityObserver::initialize();
 
     //Besser hier globale Variablen definieren...
     $GLOBALS['_fullname_sql'] = array();

@@ -9,7 +9,7 @@ use Studip\Button, Studip\LinkButton;
     <?= MessageBox::info($flash['info']) ?>
 <? endif ?>
 
-<form action="<?= $controller->url_for('admin/specification/edit') ?><?= ($rule) ? '/' . $rule['lock_id'] : '' ?>" method="post">
+<form action="<?= $controller->url_for('admin/specification/edit'.(($rule) ? '/' . $rule['lock_id'] : '')) ?>" method="post">
     <?= CSRFProtection::tokenTag() ?>
     <table class="nohover default">
     <caption>
@@ -48,7 +48,8 @@ use Studip\Button, Studip\LinkButton;
             <th colspan="3"><b><?= _("Zusatzinformationen") ?></b></th>
         </tr>
         <? foreach ($entries_semdata as $id => $entry) : ?>
-          <?= $this->render_partial('admin/specification/_field', array_merge(compact('rule', 'id'), array('name' => $entry->name), array('required' => true))) ?>
+            <?= $this->render_partial('admin/specification/_field', 
+                    array_merge(compact('rule'), array('id' => $entry->datafield_id,'name' => $entry->name), array('required' => true))) ?>
         <? endforeach ?>
         <? endif ?>
         <? if (count($semFields) > 0) : ?>
@@ -58,7 +59,7 @@ use Studip\Button, Studip\LinkButton;
             <th colspan="3"><b><?= _("Veranstaltungsinformationen") ?></b></th>
         </tr>
         <? foreach ($semFields as $id => $name) : ?>
-          <?= $this->render_partial('admin/specification/_field', compact('rule', 'id', 'name')) ?>
+            <?= $this->render_partial('admin/specification/_field', compact('rule', 'id', 'name')) ?>
         <? endforeach ?>
         <? endif ?>
         <? if(count($entries_user) > 0) : ?>
@@ -68,7 +69,8 @@ use Studip\Button, Studip\LinkButton;
             <th colspan="3"><b><?= _("Personenbezogene Informationen") ?></b></th>
         </tr>
         <? foreach ($entries_user as $id => $entry) : ?>
-          <?= $this->render_partial('admin/specification/_field', array_merge(compact('rule', 'id'), array('name' => $entry->name))) ?>
+            <?= $this->render_partial('admin/specification/_field', 
+                    array_merge(compact('rule'), array('id' => $entry->datafield_id,'name' => $entry->name))) ?>
         <? endforeach ?>
         <? endif ?>
     </tbody>

@@ -124,10 +124,10 @@ class Evaluation extends EvaluationObject {
     * @param    object   $parentObject   The parent object if exists
     * @param    integer  $loadChildren   See const EVAL_LOAD_*_CHILDREN
     */
-   function Evaluation ($objectID = "", $parentObject = null, 
+   function __construct($objectID = "", $parentObject = null,
                         $loadChildren = EVAL_LOAD_NO_CHILDREN) {
     /* Set default values ------------------------------------------------- */
-    parent::EvaluationObject ($objectID, $parentObject, $loadChildren);
+    parent::__construct($objectID, $parentObject, $loadChildren);
     $this->setAuthorEmail ("mail@AlexanderWillner.de");
     $this->setAuthorName ("Alexander Willner");
     $this->instanceof = INSTANCEOF_EVAL;
@@ -446,10 +446,11 @@ class Evaluation extends EvaluationObject {
      $this->mkdate = $creationdate;
    }
 
-   /**umber);s ($filepointer, SEPERATOR);SEPERATOR);TOR);        $number .= 
-($this->getPosition () + 1).".";        $this->exportHeader ($filepointer);      
-          _("Kann nicht in die Datei schreiben."));    * @access  private    * 
-@param   integer  $changedate  The changedate.    * @throws  error
+   /**
+    * Sets the changedate
+    * @access  private
+    * @param   integer  $changedate  The changedate.
+    * @throws  error
     */
    function setChangedate ($changedate) {
      $this->chdate = $changedate;

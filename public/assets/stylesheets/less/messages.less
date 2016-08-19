@@ -75,3 +75,29 @@ a.message-tag {
     margin: 3px;
     padding: 10px;
 }
+
+.responsive_author {
+  margin: 0;
+  font-size: 0.8em;
+  color: @base-gray;
+}
+
+.message-search-wrapper {
+    .flex();
+    .flex-justify-content(flex-start);
+
+    > * {
+        margin-right: 1em;
+    }
+}
+ul.message-options {
+   list-style: none;
+   margin: 1em 0 0;
+   padding: 0;
+   text-align: center;
+
+   > li {
+       display: inline-block;
+       min-width: 70px;
+   }
+}

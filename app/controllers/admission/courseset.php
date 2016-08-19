@@ -16,6 +16,7 @@
 
 require_once 'app/models/courseset.php';
 require_once 'app/models/rule_administration.php';
+require_once 'lib/admission.inc.php';
 
 class Admission_CoursesetController extends AuthenticatedController {
 
@@ -50,9 +51,12 @@ class Admission_CoursesetController extends AuthenticatedController {
         PageLayout::addSqueezePackage('admission');
         $this->set_content_type('text/html;charset=windows-1252');
 
-        $views = new ViewsWidget();
-        $views->setTitle(_('Aktionen'));
-        $views->addLink(_('Anmeldeset anlegen'),$this->url_for('admission/courseset/configure'))->setActive($action == 'configure');
+        $views = new ActionsWidget();
+        $views->addLink(
+            _('Anmeldeset anlegen'),
+            $this->url_for('admission/courseset/configure'),
+            Icon::create('add', 'clickable')
+        )->setActive($action == 'configure');
         Sidebar::Get()->addWidget($views);
 
     }
@@ -159,7 +163,7 @@ class Admission_CoursesetController extends AuthenticatedController {
                 $this->selectedInstitutes = array();
                 $allCourses = array();
                 $selectedCourses = array();
-                $this->selectedSemester = Semester::findCurrent()->semester_id;
+                $this->selectedSemester = $_SESSION['_default_sem'] ?: Semester::findCurrent()->semester_id;
             }
             Config::get()->AJAX_AUTOCOMPLETE_DISABLED = false;
             $this->instSearch = QuickSearch::get("institute_id", new StandardSearch("Institut_id"))
@@ -185,7 +189,7 @@ class Admission_CoursesetController extends AuthenticatedController {
                     $this->selectedSemester = $this->courseset->getSemester();
                 }
             } else {
-                $this->selectedSemester = Semester::findCurrent()->semester_id;
+                $this->selectedSemester = $_SESSION['_default_sem'] ?: Semester::findCurrent()->semester_id;
                 $this->selectedInstitutes = $this->myInstitutes;
                 $allCourses = CoursesetModel::getInstCourses(array_keys($this->myInstitutes), $coursesetId, array(), $this->selectedSemester, $this->onlyOwnCourses);
                 $selectedCourses = array();
@@ -231,6 +235,9 @@ class Admission_CoursesetController extends AuthenticatedController {
             if ($this->flash['private']) {
                 $this->courseset->setPrivate($this->flash['private']);
             }
+            if ($this->flash['semester']) {
+                $this->selectedSemester = $this->flash['semester'];
+            }
         }
         // Fetch all lists with special user chances.
         $this->myUserlists = AdmissionUserList::getUserLists($GLOBALS['user']->id);
@@ -270,6 +277,7 @@ class Admission_CoursesetController extends AuthenticatedController {
             $this->flash['userlists'] = Request::getArray('userlists');
             $this->flash['infotext'] = Request::get('infotext');
             $this->flash['private'] = (bool) Request::get('private');
+            $this->flash['semester'] = Request::option('semester');
             if (Request::submitted('add_institute')) {
                 $this->flash['institutes'] = array_merge($this->flash['institutes'], array(Request::option('institute_id')));
             } else {
@@ -305,11 +313,13 @@ class Admission_CoursesetController extends AuthenticatedController {
                 $courseset->setInfoText(Request::get('infotext'));
             }
             $courseset->clearAdmissionRules();
-            foreach (Request::getArray('rules') as $serialized) {
-                $rule = unserialize($serialized);
+            foreach (Request::getManyObjects('rules', 'AdmissionRule') as $rule) {
                 $courseset->addAdmissionRule($rule);
             }
             $courseset->store();
+            if (Request::submitted('semester')) {
+                $_SESSION['_default_sem'] = Request::option('semester');
+            }
             PageLayout::postMessage(MessageBox::success(sprintf(_("Das Anmeldeset: %s wurde gespeichert"), htmlReady($courseset->getName()))));
             if ($this->instant_course_set_view) {
                 $this->redirect($this->url_for('course/admission'));
@@ -613,7 +623,8 @@ class Admission_CoursesetController extends AuthenticatedController {
                 PageLayout::postMessage(MessageBox::info(sprintf(_("Der Gültigkeitszeitraum der Regel %s endet in der Vergangenheit!"), $rule->getName())));
             }
         }
-        $this->redirect($this->url_for('/configure/' . $cloned_courseset->getId()));
+        $this->redirect(URLHelper::getURL('dispatch.php/admission/courseset/configure/' .
+            $cloned_courseset->getId(), array('is_copy' => 1)));
     }
 
     /**

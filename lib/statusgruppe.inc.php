@@ -84,7 +84,7 @@ function AddNewStatusgruppe ($new_statusgruppe_name, $range_id, $new_statusgrupp
         Request::get('is_cal_group') ? 1 : 0,
     ));
     if ($statement->rowCount() && $new_doc_folder) {
-        create_folder(mysql_escape_string(_("Dateiordner der Gruppe:") . ' ' . $new_statusgruppe_name), mysql_escape_string(_("Ablage für Ordner und Dokumente dieser Gruppe")), $statusgruppe_id, 15);
+        create_folder(addslashes(_("Dateiordner der Gruppe:") . ' ' . $new_statusgruppe_name), addslashes(_("Ablage für Ordner und Dokumente dieser Gruppe")), $statusgruppe_id, 15);
     }
     return $statusgruppe_id;
 }
@@ -237,7 +237,7 @@ function EditStatusgruppe ($new_statusgruppe_name, $new_statusgruppe_size, $edit
     ));
 
     if ($new_doc_folder) {
-        create_folder(mysql_escape_string(_("Dateiordner der Gruppe:") . ' '. $new_statusgruppe_name), mysql_escape_string(_("Ablage für Ordner und Dokumente dieser Gruppe")), $edit_id, 15);
+        create_folder(addslashes(_("Dateiordner der Gruppe:") . ' '. $new_statusgruppe_name), addslashes(_("Ablage für Ordner und Dokumente dieser Gruppe")), $edit_id, 15);
     }
 }
 
@@ -880,7 +880,20 @@ function get_role_data_recursive($roles, $user_id, &$default_entries, $filter = 
     if (is_array($roles))
     foreach ($roles as $role_id => $role) {
 
-        $role['name'] = $role['role']->getName();
+        $the_user = User::find($user_id);
+
+        switch ($the_user->geschlecht) {
+            case 2:
+                $role['name'] = $role['role']->getName_w() ?: $role['role']->getName();
+                break;
+            case 1:
+                $role['name'] = $role['role']->getName_m() ?: $role['role']->getName();
+                break;
+            default:
+                $role['name'] = $role['role']->getName();
+                break;
+        }
+
         $out_zw = '';
 
         if ($pred != '') {

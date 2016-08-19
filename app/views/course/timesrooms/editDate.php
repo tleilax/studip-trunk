@@ -72,7 +72,7 @@
             <ul class="termin_related teachers">
                 <? foreach ($dozenten as $related_person => $dozent) : ?>
                     <? $related = true; ?>
-                    <? if (in_array($related_person, $related_persons) !== false) : ?>
+                    <? if (in_array($related_person, $related_persons)) : ?>
                         <? $related = false ?>
                     <? endif ?>
                     <li data-lecturerid="<?= $related_person ?>" <?= !$related ? '' : 'style="display: none"' ?>>

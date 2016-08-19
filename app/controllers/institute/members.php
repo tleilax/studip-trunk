@@ -28,7 +28,6 @@ class Institute_MembersController extends AuthenticatedController
 
         $this->admin_view = $GLOBALS['perm']->have_perm('admin') && Request::option('admin_view') !== null;
 
-        PageLayout::addScript('jquery/jquery.multi-select.js');
         PageLayout::addScript('multi_person_search.js');
     }
 
@@ -124,7 +123,7 @@ class Institute_MembersController extends AuthenticatedController
 
         $cmd = Request::option('cmd');
         $role_id = Request::option('role_id');
-        $username = Request::get('username');
+        $username = Request::username('username');
         if ($cmd == 'removeFromGroup' && $GLOBALS['perm']->have_studip_perm('admin', $this->inst_id)) {
             $query = "DELETE FROM statusgruppe_user
                       WHERE statusgruppe_id = ? AND user_id = ?";
@@ -157,11 +156,11 @@ class Institute_MembersController extends AuthenticatedController
             }
 
             log_event('INST_USER_DEL', $this->inst_id, $del_user_id);
+            NotificationCenter::postNotification('UserInstitutionDidDelete', $this->inst_id, $del_user_id);
             checkExternDefaultForUser($del_user_id);
         }
 
         // Jemand soll ans Institut...
-        $ins_id = Request::option('ins_id');
         $this->mp = MultiPersonSearch::load("inst_member_add" . $this->inst_id);
         $additionalCheckboxes = $this->mp->getAdditionalOptionArray();
 
@@ -177,12 +176,12 @@ class Institute_MembersController extends AuthenticatedController
 
                 $query = "SELECT inst_perms FROM user_inst WHERE Institut_id = ? AND user_id = ?";
                 $statement = DBManager::get()->prepare($query);
-                $statement->execute(array($ins_id, $u_id));
+                $statement->execute(array($this->inst_id, $u_id));
                 $inst_perms = $statement->fetchColumn();
 
                 if ($inst_perms && $inst_perms != 'user') {
                     // der Admin hat Tomaten auf den Augen, der Mitarbeiter sitzt schon im Institut
-                    my_error("<b>" . _("Die Person ist bereits in der Einrichtung eingetragen. Um Rechte etc. zu ändern folgen Sie dem Link zu den Nutzerdaten der Person!") . "</b>");
+                    PageLayout::postMessage(MessageBox::error(_("Die Person ist bereits in der Einrichtung eingetragen. Um Rechte etc. zu ändern folgen Sie dem Link zu den Nutzerdaten der Person!")));
                 } else {  // mal nach dem globalen Status sehen
                     $query = "SELECT {$GLOBALS['_fullname_sql']['full']} AS fullname, perms
                               FROM auth_user_md5
@@ -216,7 +215,7 @@ class Institute_MembersController extends AuthenticatedController
 
                                 $query = "SELECT Name FROM Institute WHERE Institut_id = ?";
                                 $statement = DBManager::get()->prepare($query);
-                                $statement->execute(array($ins_id));
+                                $statement->execute(array($this->inst_id));
                                 $instname = $statement->fetchColumn();
 
                                 $vorname = $Fullname;
@@ -227,7 +226,7 @@ class Institute_MembersController extends AuthenticatedController
                                           INNER JOIN auth_user_md5 USING (user_id)
                                           WHERE Institut_id = ? AND inst_perms IN (?)";
                                 $statement = DBManager::get()->prepare($query);
-                                $statement->execute(array($ins_id, $in));
+                                $statement->execute(array($this->inst_id, $in));
 
                                 while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
                                     $user_language = getUserLanguagePath($row['user_id']);
@@ -250,7 +249,7 @@ class Institute_MembersController extends AuthenticatedController
                                                         WHERE Institut_id = ? AND Institut_id != fakultaets_id
                                                     )";
                                     $statement = DBManager::get()->prepare($query);
-                                    $statement->execute(array($notin, $ins_id));
+                                    $statement->execute(array($notin, $this->inst_id));
 
                                     while($row = $statement->fetch(PDO::FETCH_ASSOC)) {
                                         $user_language = getUserLanguagePath($row['user_id']);
@@ -263,15 +262,17 @@ class Institute_MembersController extends AuthenticatedController
                                 PageLayout::postMessage(MessageBox::info(sprintf(_("Es wurden ingesamt %s Mails an die %s der Einrichtung geschickt."),$mails_sent,$wem)));
                             }
 
-                            log_event('INST_USER_ADD', $ins_id ,$u_id, 'admin');
+                            log_event('INST_USER_ADD', $this->inst_id ,$u_id, 'admin');
 
                             // als admin aufnehmen
                             $query = "INSERT INTO user_inst (user_id, Institut_id, inst_perms)
                                       VALUES (?, ?, 'admin')";
                             $statement = DBManager::get()->prepare($query);
-                            $statement->execute(array($u_id, $ins_id));
+                            $statement->execute(array($u_id, $this->inst_id));
 
                             PageLayout::postMessage(MessageBox::info(sprintf(_("%s wurde als \"admin\" in die Einrichtung aufgenommen."), $Fullname)));
+                            NotificationCenter::postNotification('UserInstitutionDidCreate', $this->inst_id, $u_id);
+
                         } else {
                             PageLayout::postMessage(MessageBox::error(_("Sie haben keine Berechtigung einen Admin zu berufen!")));
                         }
@@ -283,19 +284,23 @@ class Institute_MembersController extends AuthenticatedController
                                       SET inst_perms = ?
                                       WHERE user_id = ? AND Institut_id = ?";
                             $statement = DBManager::get()->prepare($query);
-                            $statement->execute(array($perms, $u_id, $ins_id));
+                            $statement->execute(array($perms, $u_id, $this->inst_id));
 
-                            log_event('INST_USER_STATUS', $ins_id ,$u_id, $perms);
+                            log_event('INST_USER_STATUS', $this->inst_id ,$u_id, $perms);
+                            NotificationCenter::postNotification('UserInstitutionPermDidUpdate', $this->inst_id, $u_id); 
+
                         } else {
                             $query = "INSERT INTO user_inst (user_id, Institut_id, inst_perms)
                                       VALUES (?, ?, ?)";
                             $statement = DBManager::get()->prepare($query);
-                            $statement->execute(array($u_id, $ins_id, $perms));
+                            $statement->execute(array($u_id, $this->inst_id, $perms));
 
-                            log_event('INST_USER_ADD', $ins_id ,$u_id, $perms);
+                            log_event('INST_USER_ADD', $this->inst_id ,$u_id, $perms);
                         }
                         if ($statement->rowCount()) {
                             PageLayout::postMessage(MessageBox::info(sprintf(_("%s wurde als \"%s\" in die Einrichtung aufgenommen. Um Rechte etc. zu ändern folgen Sie dem Link zu den Nutzerdaten der Person!"), $Fullname, $perms)));
+                            NotificationCenter::postNotification('UserInstitutionDidCreate', $this->inst_id, $u_id);
+
                         } else {
                             PageLayout::postMessage(MessageBox::error(sprintf(_("%s konnte nicht in die Einrichtung aufgenommen werden!"), $Fullname)));
                         }
@@ -303,7 +308,6 @@ class Institute_MembersController extends AuthenticatedController
                 }
                 checkExternDefaultForUser($u_id);
             }
-            $this->inst_id=$ins_id;
             $this->mp->clearSession();
         }
 
@@ -333,16 +337,6 @@ class Institute_MembersController extends AuthenticatedController
 
             if ($this->admin_view) {
                 if (!LockRules::Check($this->inst_id, 'participants')) {
-                    // Der Admin will neue Sklaven ins Institut berufen...
-                    $query = "SELECT DISTINCT auth_user_md5.user_id, {$GLOBALS['_fullname_sql']['full_rev_username']} AS fullname
-                              FROM auth_user_md5
-                              LEFT JOIN user_info USING (user_id)
-                              LEFT JOIN user_inst ON user_inst.user_id = auth_user_md5.user_id AND Institut_id = :ins_id
-                              WHERE perms NOT IN ('user', 'root')
-                                AND (user_inst.inst_perms = 'user' OR user_inst.inst_perms IS NULL)
-                                AND (Vorname LIKE :input OR Nachname LIKE :input OR username LIKE :input)
-                              ORDER BY Nachname, Vorname";
-                    $InstituteUser = new SQLSearch($query, _('Nutzer eintragen'), 'user_id');
                     $search_obj = new SQLSearch("SELECT auth_user_md5.user_id, {$GLOBALS['_fullname_sql']['full_rev']} as fullname, username, perms "
                         . "FROM auth_user_md5 "
                         . "LEFT JOIN user_info ON (auth_user_md5.user_id = user_info.user_id) "
@@ -353,27 +347,15 @@ class Institute_MembersController extends AuthenticatedController
                         . "OR Nachname LIKE :input OR {$GLOBALS['_fullname_sql']['full_rev']} LIKE :input "
                         . " ORDER BY fullname ASC",
                         _("Nutzer suchen"), "user_id");
-                    $query = "SELECT user_id , {$GLOBALS['_fullname_sql']['full_rev']} as fullname
-                              FROM statusgruppe_user
-                              LEFT JOIN auth_user_md5 USING (user_id)
-                              LEFT JOIN user_info USING (user_id)
-                              LEFT JOIN user_inst USING (user_id)
-                              WHERE Institut_id = :inst_id
-                                AND inst_perms != 'user'
-                            ORDER BY fullname ASC";
-                    $statement = DBManager::get()->prepare($query);
-                    $statement->bindValue(':inst_id', $this->inst_id);
-                    $statement->execute();
 
-                    $defaultSelectedUser = array_unique(array_map(function ($member) {
-                        return $member['user_id'];
-                    }, $statement->fetchAll(PDO::FETCH_ASSOC)));
+
+                    $defaultSelectedUser = new SimpleCollection(InstituteMember::findByInstituteAndStatus($this->inst_id, words('autor tutor dozent admin')));
                     URLHelper::setBaseURL($GLOBALS['ABSOLUTE_URI_STUDIP']);
                     $this->mp = MultiPersonSearch::get("inst_member_add" . $this->inst_id)
                     ->setLinkText(_("Mitarbeiter/-innen hinzufügen"))
-                    ->setDefaultSelectedUser($defaultSelectedUser)
+                    ->setDefaultSelectedUser($defaultSelectedUser->pluck('user_id'))
                     ->setTitle(_('Personen in die Einrichtung eintragen'))
-                    ->setExecuteURL(URLHelper::getLink("dispatch.php/institute/members", array('admin_view' => 1, 'ins_id' => $this->inst_id)))
+                    ->setExecuteURL(URLHelper::getLink("dispatch.php/institute/members", array('admin_view' => 1)))
                     ->setSearchObject($search_obj)
                     ->setAdditionalHTML('<p><strong>' . _('Nur bei Zuordnung eines Admins:') .' </strong> <label>Benachrichtigung der <input name="additional[]" value="admins" type="checkbox">' . _('Admins') .'</label>
                                          <label><input name="additional[]" value="dozenten" type="checkbox">' . _('Dozenten') . '</label></p>')
@@ -381,40 +363,40 @@ class Institute_MembersController extends AuthenticatedController
                 }
             }
 
+            $default_fields = array(
+                'raum'         => _('Raum'),
+                'sprechzeiten' => _('Sprechzeiten'),
+                'telefon'      => _('Telefon'),
+                'email'        => _('E-Mail'),
+                'homepage'     => _('Homepage')
+            );
+
             $this->datafields_list = DataField::getDataFields('userinstrole');
 
-            $dview = array();
             if ($this->extend == 'yes') {
-                if (is_array($GLOBALS['INST_ADMIN_DATAFIELDS_VIEW']['extended'])) {
-                    $dview = $GLOBALS['INST_ADMIN_DATAFIELDS_VIEW']['extended'];
-                }
-                else $dview = array();
+                $dview = $GLOBALS['INST_ADMIN_DATAFIELDS_VIEW']['extended'];
             } else {
-                if(is_array($GLOBALS['INST_ADMIN_DATAFIELDS_VIEW']['default'])) {
-                    $dview = $GLOBALS['INST_ADMIN_DATAFIELDS_VIEW']['default'];
-                }
-                else $dview = array();
+                $dview = $GLOBALS['INST_ADMIN_DATAFIELDS_VIEW']['default'];
             }
 
-            if (!is_array($dview) || sizeof($dview) == 0) {
-                $this->struct = array (
-                    "raum" => array("name" => _("Raum"), "width" => "10%"),
-                    "sprechzeiten" => array("name" => _("Sprechzeiten"), "width" => "10%"),
-                    "telefon" => array("name" => _("Telefon"), "width" => "10%"),
-                    "email" => array("name" => _("E-Mail"), "width" => "10%")
-                );
-
+            if (empty($dview)) {
+                $dview = array('raum', 'sprechzeiten', 'telefon', 'email');
                 if ($this->extend == 'yes') {
-                    $this->struct["homepage"] = array("name" => _("Homepage"), "width" => "10%");
+                    $dview[] = 'homepage';
                 }
-            } else {
-                foreach ($this->datafields_list as $entry) {
-                    if (in_array($entry->id, $dview) === TRUE) {
-                        $this->struct[$entry->id] = array (
-                            'name' => $entry->name,
-                            'width' => '10%'
-                        );
-                    }
+            }
+
+            foreach ($default_fields as $key => $name) {
+                if (in_array($key, $dview)) {
+                    $this->struct[$key] = array('name' => $name, 'width' => '10%');
+                }
+            }
+            foreach ($this->datafields_list as $entry) {
+                if (in_array($entry->id, $dview) === TRUE) {
+                    $this->struct[$entry->id] = array (
+                        'name' => $entry->name,
+                        'width' => '10%'
+                    );
                 }
             }
 
@@ -547,18 +529,14 @@ class Institute_MembersController extends AuthenticatedController
                 } // switch
             }
 
-            // StEP 154: Nachricht an alle Mitglieder der Gruppe; auch auf der inst_members.php
-            if ($this->admin_view OR $GLOBALS['perm']->have_studip_perm('autor', $GLOBALS['SessSemName'][1])) {
-                $nachricht['nachricht'] = array(
+            $this->table_structure = array_merge((array)$this->table_structure, (array)$this->struct);
+
+            if ($this->admin_view || $GLOBALS['perm']->have_studip_perm('autor', $GLOBALS['SessSemName'][1])) {
+                $this->table_structure['actions'] = array(
                     "name" => _("Aktionen"),
                     "width" => "5%"
                 );
             }
-
-            $this->table_structure = array_merge((array)$this->table_structure, (array)$this->struct);
-            $this->table_structure = array_merge((array)$this->table_structure, (array)$nachricht);
-
-            $this->colspan = sizeof($this->table_structure)+1;
 
             if ($this->show == "funktion") {
                 $all_statusgruppen = $this->groups;
@@ -599,7 +577,6 @@ class Institute_MembersController extends AuthenticatedController
 
                     if (count($institut_members) > 0) {
                         $template = $GLOBALS['template_factory']->open('institute/_table_body.php');
-                        $template->colspan = $this->colspan;
                         $template->th_title = _("keiner Funktion zugeordnet");
                         $template->members = $institut_members;
                         $template->range_id = $this->auswahl;
@@ -649,8 +626,6 @@ class Institute_MembersController extends AuthenticatedController
                         $template = $GLOBALS['template_factory']->open('institute/_table_body.php');
                         $template->mail_status = true;
                         $template->key = $key;
-                        $template->group_colspan = $this->colspan - 2;
-                        $template->colspan = $this->colspan;
                         $template->th_title = $permission;
                         $template->members = $institut_members;
                         $template->range_id = $this->auswahl;
@@ -748,7 +723,6 @@ class Institute_MembersController extends AuthenticatedController
 
                     if (count($institut_members) > 0) {
                         $template = $GLOBALS['template_factory']->open('institute/_table_body.php');
-                        $template->colspan = $this->colspan;
                         $template->members = $institut_members;
                         $template->range_id = $this->auswahl;
                         $template->struct = $this->struct;
@@ -818,10 +792,8 @@ class Institute_MembersController extends AuthenticatedController
                 // StEP 154: Nachricht an alle Mitglieder der Gruppe
                 if ($GLOBALS['perm']->have_studip_perm('autor', $GLOBALS['SessSemName'][1]) AND $GLOBALS["ENABLE_EMAIL_TO_STATUSGROUP"] == true) {
                     $template->mail_gruppe = true;
-                    $template->group_colspan = $this->colspan - 2;
                 }
                 $template->role_id = $role_id;
-                $template->colspan = $this->colspan;
                 $template->th_title = $zw_title;
                 $template->members = $institut_members;
                 $template->range_id = $this->auswahl;

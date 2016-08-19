@@ -27,21 +27,26 @@ class BasicDataWizardStep implements CourseWizardStep
      */
     public function getStepTemplate($values, $stepnumber, $temp_id)
     {
-        // We only need our own stored values here.
-        $values = $values[__CLASS__];
         // Load template from step template directory.
-        $factory = new Flexi_TemplateFactory($GLOBALS['STUDIP_BASE_PATH'].'/app/views/course/wizard/steps');
-        if ($values['studygroup']) {
+        $factory = new Flexi_TemplateFactory($GLOBALS['STUDIP_BASE_PATH'] . '/app/views/course/wizard/steps');
+        if ($values[__CLASS__]['studygroup']) {
             $tpl = $factory->open('basicdata/index_studygroup');
-            $values['lecturers'][$GLOBALS['user']->id] = 1;
+            $values[__CLASS__]['lecturers'][$GLOBALS['user']->id] = 1;
         } else {
             $tpl = $factory->open('basicdata/index');
         }
+        if ($this->setupTemplateAttributes($tpl, $values, $stepnumber, $temp_id)) {
+            return $tpl->render();
+        }
+    }
 
+    protected function setupTemplateAttributes($tpl, $values, $stepnumber, $temp_id)
+    {
+        // We only need our own stored values here.
+        $values = $values[__CLASS__];
         // Get all available course types and their categories.
         $typestruct = array();
-        foreach (SemType::getTypes() as $type)
-        {
+        foreach (SemType::getTypes() as $type) {
             $class = $type->getClass();
             // Creates a studygroup.
             if ($values['studygroup']) {
@@ -81,24 +86,26 @@ class BasicDataWizardStep implements CourseWizardStep
                 $semesters[] = $s;
             }
         }
-        if (count($semesters) > 0) {
+        if ($values['studygroup'] || count($semesters) > 0) {
             $tpl->set_attribute('semesters', array_reverse($semesters));
             // If no semester is set, use current as selected default.
             if (!$values['start_time']) {
                 $values['start_time'] = Semester::findCurrent()->beginn;
             }
         } else {
-            PageLayout::postError(formatReady(_('Veranstaltungen können nur ' .
+            $message = sprintf(_('Veranstaltungen können nur ' .
                 'im aktuellen oder in zukünftigen Semestern angelegt werden. ' .
                 'Leider wurde kein passendes Semester gefunden. Bitte wenden ' .
-                'Sie sich an [die Stud.IP-Administration]' .
-                URLHelper::getLink('dispatch.php/siteinfo/show') . ' .')));
+                'Sie sich an [die Stud.IP-Administration]%s .'),
+                URLHelper::getLink('dispatch.php/siteinfo/show')
+            );
+            PageLayout::postError(formatReady($message));
             return false;
         }
 
         // Get all allowed home institutes (my own).
         $institutes = Institute::getMyInstitutes();
-        if (count($institutes) > 0) {
+        if ($values['studygroup'] || count($institutes) > 0) {
             $tpl->set_attribute('institutes', $institutes);
             if (!$values['institute']) {
                 if ($GLOBALS['user']->cfg->MY_INSTITUTES_DEFAULT && Request::isXhr()) {
@@ -108,12 +115,14 @@ class BasicDataWizardStep implements CourseWizardStep
                 }
             }
         } else {
-            PageLayout::postError(formatReady(_('Um Veranstaltungen ' .
+            $message = sprintf(_('Um Veranstaltungen ' .
                 'anlegen zu können, muss Ihr Account der Einrichtung, ' .
                 'für die Sie eine Veranstaltung anlegen möchten, zugeordnet ' .
                 'werden. Bitte wenden Sie sich an [die ' .
-                'Stud.IP-Administration]' .
-                URLHelper::getLink('dispatch.php/siteinfo/show') . ' .')));
+                'Stud.IP-Administration]%s .'),
+                URLHelper::getLink('dispatch.php/siteinfo/show')
+            );
+            PageLayout::postError(formatReady($message));
             return false;
         }
 
@@ -162,7 +171,7 @@ class BasicDataWizardStep implements CourseWizardStep
             // Add your own default deputies if applicable.
             if ($deputies && Config::get()->DEPUTIES_DEFAULTENTRY_ENABLE) {
                 $values['deputies'] = array_merge($values['deputies'] ?: array(),
-                    array_keys(getDeputies($GLOBALS['user']->id)));
+                    array_flip(array_keys(getDeputies($GLOBALS['user']->id))));
             }
         }
         // Add lecturer from my courses filter.
@@ -171,7 +180,7 @@ class BasicDataWizardStep implements CourseWizardStep
             // Add this lecturer's default deputies if applicable.
             if ($deputies && Config::get()->DEPUTIES_DEFAULTENTRY_ENABLE) {
                 $values['deputies'] = array_merge($values['deputies'] ?: array(),
-                    array_keys(getDeputies($GLOBALS['user']->cfg->ADMIN_COURSES_TEACHERFILTER)));
+                    array_flip(array_keys(getDeputies($GLOBALS['user']->cfg->ADMIN_COURSES_TEACHERFILTER))));
             }
         }
         if (!$values['lecturers']) {
@@ -215,7 +224,12 @@ class BasicDataWizardStep implements CourseWizardStep
         $tpl->set_attribute('lsearch', $lsearch);
         $tpl->set_attribute('tsearch', $tsearch);
         $tpl->set_attribute('values', $values);
-        return $tpl->render();
+        // AJAX URL needed for default deputy checking.
+        $tpl->set_attribute('ajax_url', $values['ajax_url'] ?: URLHelper::getLink('dispatch.php/course/wizard/ajax'));
+        $tpl->set_attribute('default_deputies_enabled',
+            ($deputies && Config::get()->DEPUTIES_DEFAULTENTRY_ENABLE) ? 1 : 0);
+
+        return $tpl;
     }
 
     /**
@@ -244,6 +258,11 @@ class BasicDataWizardStep implements CourseWizardStep
             $values['lecturers'][Request::option('lecturer_id')] = true;
             unset($values['lecturer_id']);
             unset($values['lecturer_id_parameter']);
+            // Add default deputies if applicable.
+            if (Config::get()->DEPUTIES_ENABLE && Config::get()->DEPUTIES_DEFAULTENTRY_ENABLE) {
+                $values['deputies'] = array_merge($values['deputies'] ?: array(),
+                    array_flip(array_keys(Request::option('lecturer_id'))));
+            }
         }
         // Remove a lecturer.
         if ($remove = array_keys(Request::getArray('remove_lecturer'))) {
@@ -335,7 +354,6 @@ class BasicDataWizardStep implements CourseWizardStep
         }
         $values = $values[__CLASS__];
         $seminar = new Seminar($course);
-        $semclass = $seminar->getSemClass();
 
         if (isset($source)) {
             $course->setData($source->toArray('untertitel ort sonstiges art teilnehmer vorrausetzungen lernorga leistungsnachweis ects admission_turnout modules'));
@@ -354,6 +372,8 @@ class BasicDataWizardStep implements CourseWizardStep
         $course->veranstaltungsnummer = $values['number'];
         $course->beschreibung = $values['description'];
         $course->institut_id = $values['institute'];
+
+        $semclass = $seminar->getSemClass();
         $course->visible = $semclass['visible'];
         $course->admission_prelim = $semclass['admission_prelim_default'];
         $course->lesezugriff = $semclass['default_read_level'] ?: 1;
@@ -362,6 +382,7 @@ class BasicDataWizardStep implements CourseWizardStep
         // Studygroups: access and description.
         if (in_array($values['coursetype'], studygroup_sem_types())) {
             $course->visible = 1;
+            $course->duration_time = -1;
             switch ($values['access']) {
                 case 'all':
                     $course->admission_prelim = 0;
@@ -378,9 +399,11 @@ class BasicDataWizardStep implements CourseWizardStep
         }
         if ($course->store()) {
             StudipLog::log('SEM_CREATE', $course->id, null, 'Veranstaltung mit Assistent angelegt');
+            $institutes = array($values['institute']);
             if (isset($values['participating']) && is_array($values['participating'])) {
-                $seminar->setInstitutes(array_keys($values['participating']));
+                $institutes = array_merge($institutes, array_keys($values['participating']));
             }
+            $seminar->setInstitutes($institutes);
             if (isset($values['lecturers']) && is_array($values['lecturers'])) {
                 foreach (array_keys($values['lecturers']) as $user_id) {
                     $seminar->addMember($user_id, 'dozent');
@@ -447,6 +470,29 @@ class BasicDataWizardStep implements CourseWizardStep
         }
         $values[__CLASS__] = $data;
         return $values;
+    }
+
+    /**
+     * Fetches the default deputies for a given person if the necessary
+     * config options are set.
+     * @param $user_id user whose default deputies to get
+     * @return Array Default deputy user_ids.
+     */
+    public function getDefaultDeputies($user_id)
+    {
+        if (Config::get()->DEPUTIES_ENABLE && Config::get()->DEPUTIES_DEFAULTENTRY_ENABLE) {
+            $deputies = getDeputies($user_id, 'full_rev_username');
+            $result = array();
+            foreach ($deputies as $d) {
+                $result[] = array(
+                    'id' => $d['user_id'],
+                    'name' => $d['fullname']
+                );
+            }
+            return $result;
+        } else {
+            return array();
+        }
     }
 
     public function getSearch($course_type, $institute_ids, $exclude_lecturers = array(),$exclude_tutors = array())

@@ -205,7 +205,7 @@
         if (!data.tooltipObject) {
             // If tooltip has not yet been created (first hover), obtain it's
             // contents and create the actual tooltip object.
-            content = data.tooltip || $(this).attr('title') || $(this).find('.tooltip-content').remove().html();
+            content = $('<div/>').text(data.tooltip || $(this).attr('title')).html() || $(this).find('.tooltip-content').remove().html();
             $(this).attr('title', '');
 
             tooltip = new STUDIP.Tooltip(x, y, content);

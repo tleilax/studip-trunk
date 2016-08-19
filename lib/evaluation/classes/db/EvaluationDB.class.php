@@ -78,9 +78,9 @@ class EvaluationDB extends EvaluationObjectDB {
    * Constructor
    * @access   public
    */
-  function EvaluationDB () {
+  function __construct () {
     /* Set default values -------------------------------------------------- */
-    parent::EvaluationObjectDB ();
+    parent::__construct();
     $this->instanceof = INSTANCEOF_EVALDBOBJECT;
     /* --------------------------------------------------------------------- */
   }
@@ -151,6 +151,8 @@ class EvaluationDB extends EvaluationObjectDB {
     $startdate = $evalObject->getStartdate();
     $stopdate  = $evalObject->getStopdate();
     $timespan  = $evalObject->getTimespan();
+
+    $evalObject->setChangedate(time());
 
     /* save evaluation ----------------------------------------------------- */
     if ($this->exists ($evalObject->getObjectID ())) {

@@ -1,47 +1,37 @@
-<? use Studip\Button, Studip\LinkButton; ?>
-<?
-if ($inst_id != '' && $inst_id != '0') {
-    // add skip links
-    SkipLinks::addIndex(_("Mitarbeiterliste"), 'list_institute_members');
-    ?>
-    <table class="default" id="list_institute_members" border="0" width="99%" cellpadding="0" cellspacing="0"
-           align="center">
+<?php
+SkipLinks::addIndex(_('Mitarbeiterliste'), 'list_institute_members');    
+?>
+
+<? if ($inst_id): ?>
+    <table class="default" id="list_institute_members">
         <caption><?= _('Mitarbeiterinnen und Mitarbeiter') ?></caption>
         <colgroup>
-            <?
-            foreach ($table_structure as $key => $field) {
-                if ($key != 'statusgruppe') {
-                    printf("<col width=\"%s\">", $field["width"]);
-                }
-            }
-            ?>
+        <? foreach ($table_structure as $key => $field): ?>
+            <? if ($key !== 'statusgruppe'): ?>
+                <col width="<?= $field['width'] ?>">
+            <? endif; ?>
+        <? endforeach; ?>
         </colgroup>
         <thead>
-        <tr>
-            <?
-            $begin = TRUE;
-            foreach ($table_structure as $key => $field) {
-                if ($begin) {
-                    printf("<th width=\"%s\">", $field["width"]);
-                    $begin = FALSE;
-                } else
-                    printf("<th width=\"%s\" align=\"left\" valign=\"bottom\" " . ($key == 'nachricht' ? 'colspan="2"' : '') . ">", $field["width"]);
-
-                if ($field["link"]) {
-                    printf("<a href=\"%s\">", URLHelper::getLink($field["link"]));
-                    printf("<font size=\"-1\"><b>%s&nbsp;</b></font>\n", htmlReady($field["name"]));
-                    echo "</a>\n";
-                } else
-                    printf("<font size=\"-1\" color=\"black\"><b>%s&nbsp;</b></font>\n", htmlReady($field["name"]));
-                echo "</td>\n";
-            }
-            ?>
-        </tr>
+            <tr>
+            <? foreach ($table_structure as $key => $field): ?>
+                <th <? if ($class === 'actions') echo 'class="actions"'; ?>>
+                <? if ($field['link']): ?>
+                    <a href="<?= URLHelper::getLink($field['link']) ?>">
+                        <?= htmlReady($field['name']) ?>
+                    </a>
+                <? else: ?>
+                    <?= htmlReady($field['name']) ?>
+                <? endif; ?>
+                </th>
+            <? endforeach; ?>
+            </tr>
         </thead>
         <?= $table_content ?>
     </table>
-<?
-}
+<? endif; ?>
+
+<?php
 $sidebar = Sidebar::get();
 $sidebar->setImage('sidebar/person-sidebar.png');
 $widget = new ViewsWidget();

@@ -218,10 +218,12 @@ $MAIL_VALIDATE_BOX = FALSE;                              //check for valid mail 
 
 $MESSAGING_FORWARD_AS_EMAIL = TRUE;                         //enable to forward every internal message to the user-mail (the user is able to deactivate this function in his personal settings)
 $MESSAGING_FORWARD_DEFAULT = 3;                             //the default setting: if 1, the user has to switch it on; if 2, every message will be forwarded; if 3 every message will be forwarded on request of the sender
+$MESSAGING_FORWARD_USE_REPLYTO = FALSE;                     //send forwarded messages as system user and add reply-to header
 
 $ENABLE_EMAIL_TO_STATUSGROUP = TRUE;                                // enable to send messages to whole status groups
 
 $ENABLE_EMAIL_ATTACHMENTS = TRUE;                               // enable attachment functions for internal and external messages
+$MAIL_ATTACHMENTS_MAX_SIZE = 10;                             //maximum size of attachments in MB
 
 /*advanced system settings
 ----------------------------------------------------------------
@@ -461,6 +463,19 @@ $PHPASS_USE_PORTABLE_HASH = true;
 
 $ENABLE_FREE_ACCESS = TRUE;                         //if true, courses with public access are available
 
+// Login ip range check
+$ENABLE_ADMIN_IP_CHECK = false;
+$ENABLE_ROOT_IP_CHECK = false;
+$LOGIN_IP_RANGES =
+    [
+        'V4' => [
+            ['start' => '', 'end' => ''],
+        ]
+        ,
+        'V6' => [
+            ['start' => '', 'end' => ''],
+        ]
+    ];
 
 /*path generation
 -----------------------------------------------------------------

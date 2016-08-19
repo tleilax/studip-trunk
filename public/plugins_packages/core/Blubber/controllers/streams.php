@@ -15,7 +15,7 @@ class StreamsController extends PluginController {
 
     protected $max_threads = 10; //how many threads should be displayed in infinity-scroll-stream before it should reload
 
-    function before_filter($action, $args)
+    function before_filter(&$action, &$args)
     {
         parent::before_filter($action, $args);
         $this->assets_url = $this->plugin->getPluginURL() . '/assets/';
@@ -256,10 +256,7 @@ class StreamsController extends PluginController {
         $thread['description'] = studip_utf8decode(Request::get("content"));
         $thread->store();
 
-        BlubberPosting::$mention_posting_id = $thread->getId();
-        StudipTransformFormat::addStudipMarkup("mention1", '(?:^|\W)(@\"[^\n\"]*\")', "", "BlubberPosting::mention");
-        StudipTransformFormat::addStudipMarkup("mention2", '(?:^|\W)(@[^\s]*[\d\w_]+)', "", "BlubberPosting::mention");
-        $content = transformBeforeSave(studip_utf8decode(Request::get("content")));
+        $content = $this->transformMentions($thread['description'], $thread);
 
         if (strpos($content, "\n") !== false) {
             $thread['name'] = substr($content, 0, strpos($content, "\n"));
@@ -347,10 +344,9 @@ class StreamsController extends PluginController {
         }
         $old_content = $posting['description'];
         $messaging = new messaging();
-        BlubberPosting::$mention_posting_id = $posting->getId();
-        StudipTransformFormat::addStudipMarkup("mention1", '@\"[^\n\"]*\"', "", "BlubberPosting::mention");
-        StudipTransformFormat::addStudipMarkup("mention2", '@[^\s]*[\d\w_]+', "", "BlubberPosting::mention");
-        $new_content = transformBeforeSave(studip_utf8decode(Request::get("content")));
+
+        $new_content = studip_utf8decode(Request::get('content'));
+        $new_content = $this->transformMentions($new_content, $posting);
 
         if ($new_content && $old_content !== $new_content) {
             $posting['description'] = $new_content;
@@ -456,10 +452,8 @@ class StreamsController extends PluginController {
             $posting['description'] = studip_utf8decode(Request::get("content"));
             $posting->store();
 
-            BlubberPosting::$mention_posting_id = $posting->getId();
-            StudipTransformFormat::addStudipMarkup("mention1", '@\"[^\n\"]*\"', null, "BlubberPosting::mention");
-            StudipTransformFormat::addStudipMarkup("mention2", '@[^\s]*[\d\w_]+', null, "BlubberPosting::mention");
-            $content = transformBeforeSave(studip_utf8decode(Request::get("content")));
+            $content = studip_utf8decode(Request::get("content"));
+            $content = $this->transformMentions($content, $posting);
             $posting['description'] = $content;
             $posting->store();
 
@@ -917,6 +911,20 @@ class StreamsController extends PluginController {
         $this->render_text($output);
     }
 
+    public function unshare_action($thread_id) {
+        if (!Request::isPost()) {
+            throw new Exception("Wrong method for this action - use POST instead");
+        }
+        $this->thread = new BlubberPosting($thread_id);
+        $success = $this->thread->unreshare();
+
+        $template = $this->get_template_factory()->open("streams/_blubber.php");
+        $template->set_attributes($this->get_assigned_variables());
+        $template->set_layout(null);
+        $output = $template->render();
+        $this->render_text($output);
+    }
+
     public function public_panel_action() {
         $thread_id = Request::option("thread_id");
         $this->thread = new BlubberPosting($thread_id);
@@ -966,5 +974,23 @@ class StreamsController extends PluginController {
             }
             Sidebar::get()->addWidget($cloud, 'tagcloud');
         }
+    }
+
+    private function transformMentions($content, BlubberPosting $source)
+    {
+        BlubberPosting::$mention_posting_id = $source->getId();
+        StudipTransformFormat::addStudipMarkup(
+            'mention1',
+            '(?:^|\W)(@\"[^\n\"]*\")',
+            '',
+            'BlubberPosting::mention'
+        );
+        StudipTransformFormat::addStudipMarkup(
+            'mention2',
+            '(?:^|\W)(@[^\s]*[\d\w_]+)',
+            '',
+            'BlubberPosting::mention'
+        );
+        return transformBeforeSave($content);
     }
 }

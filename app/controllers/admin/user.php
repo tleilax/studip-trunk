@@ -114,7 +114,8 @@ class Admin_UserController extends AuthenticatedController
             //Daten abrufen
             $this->users = UserModel::getUsers($request['username'], $request['vorname'],
                 $request['nachname'], $request['email'], $inaktiv, $request['perm'],
-                $request['locked'], $search_datafields, $request['userdomains'], $request['auth_plugins'], $this->sortby,  $this->order);
+                $request['locked'], $search_datafields, $request['userdomains'], $request['auth_plugins'],
+                $this->sortby,  $this->order, $request['degree'], $request['studycourse'], $request['institute']);
 
             // Fehler abfangen
             if ($this->users === 0) {
@@ -151,11 +152,14 @@ class Admin_UserController extends AuthenticatedController
                 }
             }
         }
+        $this->degrees = Abschluss::findBySQL('1 order by name');
+        $this->studycourses = Fach::findBySQL('1 order by name');
         $this->userdomains = UserDomain::getUserDomains();
+        $this->institutes = Institute::getInstitutes();
         $this->available_auth_plugins = UserModel::getAvailableAuthPlugins();
 
         //show datafields search
-        if ($advanced || $request['auth_plugins'] || $request['userdomains'] || count($search_datafields) > 0) {
+        if ($advanced || $request['auth_plugins'] || $request['userdomains'] || $request['degree'] || $request['institute'] || $request['studycourse'] || count($search_datafields) > 0) {
             $this->advanced = true;
         }
     }
@@ -371,28 +375,69 @@ class Admin_UserController extends AuthenticatedController
                 if (Request::option('new_studiengang') == 'none' || Request::option('new_abschluss') == 'none') {
                     $details[] = _('<b>Der Studiengang wurde nicht hinzugefügt.</b> Bitte geben Sie Fach und Abschluss ein.');
                 } else {
-                    $db = DbManager::get()->prepare("INSERT IGNORE INTO user_studiengang "
-                                                   ."(user_id, studiengang_id, abschluss_id, semester) "
-                                                   ."VALUES (?,?,?,?)");
-                    $db->execute(array($user_id, Request::option('new_studiengang'), Request::option('new_abschluss'), Request::option('fachsem')));
-                    $details[] = _('Der Studiengang wurde hinzugefügt.');
+                    $user_stc = UserStudyCourse::find([
+                        $user_id,
+                        Request::option('new_studiengang'),
+                        Request::option('new_abschluss')
+                    ]);
+                    if (!$user_stc) {
+                        UserStudyCourse::create([
+                            'user_id'      => $user_id,
+                            'fach_id'      => Request::option('new_studiengang'),
+                            'semester'     => Request::int('fachsem'),
+                            'abschluss_id' => Request::option('new_abschluss')
+                        ]);
+                        $details[] = _('Der Studiengang wurde hinzugefügt.');
+                    } else {
+                        $user_stc->semester = Request::int('fachsem');
+                        if ($user_stc->store()) {
+                            $details[] = _('Der Studiengang wurde geändert.');
+                        } else {
+                            $details[] = _('Der Studiengang wurde nicht geändert.');
+                        }
+                    }
+                }
+            }
+            
+            // change version of studiengang if module management is enabled
+            if (PluginEngine::getPlugin('MVVPlugin') && in_array($editPerms[0], array('autor', 'tutor', 'dozent'))) {
+                $change_versions = Request::getArray('change_version');
+                foreach ($change_versions as $fach_id => $abschluesse) {
+                    foreach ($abschluesse as $abschluss_id => $version_id) {
+                        $version = reset(StgteilVersion::findByFachAbschluss(
+                                $fach_id, $abschluss_id, $version_id));
+                        if ($version && $version->hasPublicStatus('genehmigt')) {
+                            $user_stc = UserStudyCourse::find(array(
+                                $user_id,
+                                $fach_id,
+                                $abschluss_id));
+                            if ($user_stc) {
+                                $user_stc->version_id = $version->getId();
+                                $any_change = $user_stc->store() != false;
+                            }
+                        }
+                    }
+                }
+                if ($any_change) {
+                    $details[] = _('Die Versionen der Studiengänge wurden geändert.');
                 }
             }
 
             //change institute for studiendaten
             if (in_array($editPerms[0], array('autor', 'tutor', 'dozent'))
-                    && Request::option('new_student_inst') != 'none'
+                    && Request::option('new_student_inst')
                     && Request::option('new_student_inst') != Request::option('new_inst')
                     && $GLOBALS['perm']->have_studip_perm("admin", Request::option('new_student_inst'))) {
                 log_event('INST_USER_ADD', Request::option('new_student_inst'), $user_id, 'user');
                 $db = DbManager::get()->prepare("INSERT IGNORE INTO user_inst (user_id, Institut_id, inst_perms) "
                                                ."VALUES (?,?,'user')");
                 $db->execute(array($user_id, Request::option('new_student_inst')));
+                NotificationCenter::postNotification('UserInstitutionDidCreate', Request::option('new_student_inst'), $user_id);
                 $details[] = _('Die Einrichtung wurde hinzugefügt.');
             }
 
             //change institute
-            if (Request::option('new_inst') != 'none'
+            if (Request::option('new_inst')
                     && Request::option('new_student_inst') != Request::option('new_inst')
                     && $editPerms[0] != 'root'
                     && $GLOBALS['perm']->have_studip_perm("admin", Request::option('new_inst'))) {
@@ -400,6 +445,7 @@ class Admin_UserController extends AuthenticatedController
                 $db = DbManager::get()->prepare("REPLACE INTO user_inst (user_id, Institut_id, inst_perms) "
                                                ."VALUES (?,?,?)");
                 $db->execute(array($user_id, Request::option('new_inst'), $editPerms[0]));
+                NotificationCenter::postNotification('UserInstitutionDidUpdate', Request::option('new_inst'), $user_id);
                 checkExternDefaultForUser($user_id);
                 $details[] = _('Die Einrichtung wurde hinzugefügt.');
             } elseif (Request::option('new_inst') != 'none' && Request::option('new_student_inst') == Request::option('new_inst') && $editPerms[0] != 'root') {
@@ -469,7 +515,7 @@ class Admin_UserController extends AuthenticatedController
             $umdetails = explode('§', str_replace(array('msg§', 'info§', 'error§'), '', substr($um->msg, 0, -1)));
             $details = array_reverse(array_merge((array)$details,(array)$umdetails));
             PageLayout::postMessage(MessageBox::info(_('Hinweise:'), $details));
-            
+
             $this->redirect('admin/user/edit/' . $user_id);
         }
 
@@ -567,7 +613,11 @@ class Admin_UserController extends AuthenticatedController
                 //new user is added to an institute
                 if (Request::get('institute')
                     && $perm->have_studip_perm('admin', Request::get('institute'))
-                    && $UserManagement->user_data['auth_user_md5.perms'] != 'root') {
+                    && $UserManagement->user_data['auth_user_md5.perms'] != 'root'
+                    && ($UserManagement->user_data['auth_user_md5.perms'] != 'admin'
+                        || ($perm->is_fak_admin() && !Institute::find(Request::get('institute'))->isFaculty())
+                        || $perm->have_perm('root'))
+                    ) {
 
                     //log
                     log_event('INST_USER_ADD', Request::option('institute'), $user_id, $UserManagement->user_data['auth_user_md5.perms']);
@@ -575,6 +625,7 @@ class Admin_UserController extends AuthenticatedController
                     //insert into database
                     $db = DBManager::get()->prepare("INSERT INTO user_inst (user_id, Institut_id, inst_perms) VALUES (?, ?, ?)");
                     $check = $db->execute(array($user_id, Request::option('institute'), $UserManagement->user_data['auth_user_md5.perms']));
+                    NotificationCenter::postNotification('UserInstitutionDidCreate', Request::option('institute'), $user_id);
                     checkExternDefaultForUser($user_id);
 
                     //send email, if new user is an admin
@@ -873,9 +924,12 @@ class Admin_UserController extends AuthenticatedController
      */
     public function delete_studycourse_action($user_id, $fach_id, $abschlus_id)
     {
-        $db = DBManager::get()->prepare("DELETE FROM user_studiengang WHERE user_id = ? AND studiengang_id = ? AND abschluss_id = ?");
-        $db->execute(array($user_id, $fach_id, $abschlus_id));
-        if ($db->rowCount() == 1) {
+        $user_stc = UserStudyCourse::find([$user_id, $fach_id, $abschlus_id]);
+        $deleted = false;
+        if ($user_stc) {
+            $deleted = $user_stc->delete();
+        }
+        if ($deleted) {
             PageLayout::postMessage(MessageBox::success(_('Die Zuordnung zum Studiengang wurde gelöscht.')));
         } else {
             PageLayout::postMessage(MessageBox::error(_('Die Zuordnung zum Studiengang konnte nicht gelöscht werden.')));
@@ -905,6 +959,7 @@ class Admin_UserController extends AuthenticatedController
             $db->execute(array($user_id, $institut_id));
             if ($db->rowCount() == 1) {
                 log_event('INST_USER_DEL', $institut_id, $user_id);
+                NotificationCenter::postNotification('UserInstitutionDidDelete', $institut_id , $user_id);
                 checkExternDefaultForUser($user_id);
                 if (UserConfig::get($user_id)->MY_INSTITUTES_DEFAULT == $institut_id) {
                     UserConfig::get($user_id)->delete('MY_INSTITUTES_DEFAULT');
@@ -959,16 +1014,16 @@ class Admin_UserController extends AuthenticatedController
         $actions = new ActionsWidget();
 
         if (in_array('Standard', $GLOBALS['STUDIP_AUTH_PLUGIN'])) {
-            $actions->addLink(_('Neue Person anlegen'),
+            $actions->addLink(_('Neues Konto anlegen'),
                               $this->url_for('admin/user/new'),
                               Icon::create('person+add', 'clickable'))
                     ->asDialog();
         }
-        $actions->addLink(_('Neuen Personenaccount vorläufig anlegen'),
+        $actions->addLink(_('Vorläufiges Konto anlegen'),
                           $this->url_for('admin/user/new/prelim'),
                           Icon::create('date+add', 'clickable'))
                 ->asDialog();
-        $actions->addLink(_('Personenaccounts zusammenführen'),
+        $actions->addLink(_('Konten zusammenführen'),
                           $this->url_for('admin/user/migrate/' . (($this->user && is_array($this->user)) ? $this->user['user_id'] : '')),
                           Icon::create('persons+new', 'clickable'));
 

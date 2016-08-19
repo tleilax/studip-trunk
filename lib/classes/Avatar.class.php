@@ -84,7 +84,9 @@ class Avatar {
      *
      * @return mixed     the user's avatar.
      */
-    static function getAvatar($user_id, $username = NULL) {
+    static function getAvatar($id) {
+        $user_id = $id;
+        $username = @func_get_arg(1);
         return new Avatar($user_id, $username);
     }
 
@@ -141,7 +143,8 @@ class Avatar {
      *
      * @return void
      */
-    protected function __construct($user_id, $username = NULL) {
+    protected function __construct() {
+        list($user_id, $username) = func_get_args();
         $this->user_id = $user_id;
         $this->username = $username;
     }
@@ -319,7 +322,8 @@ class Avatar {
         }
 
         set_error_handler(array(__CLASS__, 'error_handler'));
-
+        
+        NotificationCenter::postNotification('AvatarWillCreate', $this->user_id); 
         copy($filename, $this->getCustomAvatarPath(Avatar::ORIGINAL));
         $this->resize(Avatar::NORMAL, $filename);
         $this->resize(Avatar::NORMAL, $filename, true);
@@ -327,6 +331,7 @@ class Avatar {
         $this->resize(Avatar::MEDIUM, $filename, true);
         $this->resize(Avatar::SMALL,  $filename);
         $this->resize(Avatar::SMALL,  $filename, true);
+        NotificationCenter::postNotification('AvatarDidCreate', $this->user_id); 
         
         restore_error_handler();
     }
@@ -338,6 +343,7 @@ class Avatar {
      */
     function reset() {
         if ($this->is_customized()) {
+            NotificationCenter::postNotification('AvatarWillDelete', $this->user_id); 
             @unlink($this->getCustomAvatarPath(Avatar::ORIGINAL));
             @unlink($this->getCustomAvatarPath(Avatar::NORMAL));
             @unlink($this->getCustomAvatarPath(Avatar::SMALL));
@@ -345,6 +351,7 @@ class Avatar {
             @unlink($this->getCustomAvatarPath(Avatar::NORMAL, 'png', true));
             @unlink($this->getCustomAvatarPath(Avatar::SMALL, 'png', true));
             @unlink($this->getCustomAvatarPath(Avatar::MEDIUM, 'png', true));
+            NotificationCenter::postNotification('AvatarDidDelete', $this->user_id);
         }
     }
 

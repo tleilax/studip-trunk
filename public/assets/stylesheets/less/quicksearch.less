@@ -1,6 +1,7 @@
 /* --- Quicksearch ---------------------------------------------------------- */
 form#quicksearch {
-    display: inline;
+    display: flex;
+    align-items: center;
 }
 
 input.quicksearchbox {
@@ -8,12 +9,8 @@ input.quicksearchbox {
     border: 1px solid #485979;
     color: @contrast-content-gray;
     font-size: 11px;
-    padding-left: 2px;
-    vertical-align: text-bottom;
     width: 130px;
-    margin-top: 3px;
-    height: 14px;
-    line-height: 1em;
+    height: 16px;
 }
 
 .quicksearch_frame {
@@ -53,7 +50,7 @@ input.quicksearchbox {
         max-height: 275px;
         overflow-y: auto;
         overflow-x: hidden;
-        z-index: 2;
+        z-index: 99999;
     }
 
     .ui-menu-item {
@@ -69,7 +66,10 @@ input.quicksearchbox {
 }
 .quicksearchbutton {
     border: 0;
-    margin-right: 10px;
+    margin-left: 6px;
     padding: 0;
     vertical-align: text-bottom;
+}
+.ui-autocomplete {
+    z-index: 99999;
 }

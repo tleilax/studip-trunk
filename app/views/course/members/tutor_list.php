@@ -28,11 +28,7 @@
         <col>
         <? if($is_dozent) : ?>
             <col width="15%">
-            <? if($semAdmissionEnabled) :?>
-            <col width="40%">
-            <? else :?>
-            <col width="25%">
-            <?endif ?>
+            <col width="35%">
         <? endif ?>
         <col width="80">
     </colgroup>
@@ -81,7 +77,7 @@
                         <?= htmlReady($fullname) ?>
                     </a>
                     <? if ($is_tutor && $tutor['comment'] != '') : ?>
-                        <?= tooltipIcon(sprintf('<strong>%s</strong><br>%s', _('Bemerkung'), htmlReady($tutor['comment'])), false, true) ?>
+                        <?= tooltipHtmlIcon(sprintf('<strong>%s</strong><br>%s', _('Bemerkung'), htmlReady($tutor['comment']))) ?>
                     <? endif ?>
                 </td>
                 <? if($is_dozent) : ?>
