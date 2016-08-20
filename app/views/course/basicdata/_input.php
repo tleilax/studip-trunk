@@ -1,8 +1,14 @@
 <?php
 # Lifter010: TODO
 $is_locked = $input['locked'] ? 'disabled readonly' : '';
+$is_locked_array = $input['locked'] ? array('disabled' => true, 'readonly' => true) : array();
+$is_required_array = $input['must'] ? array('required' => true) : array();
 if ($input['type'] === "text") : ?>
-    <input <?=$is_locked ?> type="text" name="<?= $input['name'] ?>" value="<?= htmlReady($input['value']) ?>" <? if ($input['must']) echo 'required'; ?>>
+    <? if ($input['i18n']) : ?>
+        <?= I18N::input($input['name'], $input['value'], $is_locked_array + $is_required_array) ?>
+    <? else : ?>
+        <input <?=$is_locked ?> type="text" name="<?= $input['name'] ?>" value="<?= htmlReady($input['value']) ?>" <? if ($input['must']) echo 'required'; ?>>
+    <? endif ?>
 <? endif;
 
 if ($input['type'] === "number") : ?>
@@ -10,27 +16,41 @@ if ($input['type'] === "number") : ?>
 <? endif; 
 
 if ($input['type'] === "textarea") : ?>
-    <textarea <?=$is_locked ?> name="<?= $input['name'] ?>" <? if ($input['must']) echo 'required'; ?>><?=
-        htmlReady($input['value'])
-    ?></textarea>
-<? endif;
-
-if ($input['type'] === "select") : ?>
-    <? if (!$input['choices'][$input['value']]) : ?>
-        <?= _("Keine Änderung möglich") ?>
+    <? if ($input['i18n']) : ?>
+        <?= I18N::textarea($input['name'], $input['value'], $is_required_array) ?>
     <? else : ?>
-    <select <?=$is_locked ?> name="<?= $input['name'] ?>" <? if ($input['must']) echo 'required'; ?>>
-    <? if ($input['choices']) : foreach ($input['choices'] as $choice_value => $choice_name) : ?>
-        <option value="<?= htmlReady($choice_value) ?>"<?
-            if ($choice_value == $input['value']) print " selected"
-            ?>><?= htmlReady($choice_name) ?></option>
-    <? endforeach; endif; ?>
-    </select>
+        <textarea <?=$is_locked ?> name="<?= $input['name'] ?>" <? if ($input['must']) echo 'required'; ?>><?=
+            htmlReady($input['value'])
+            ?></textarea>
     <? endif ?>
 <? endif;
 
+if ($input['type'] === "select") : ?>
+    <? if (!$input['choices'][$input['value']] && !(isset($input['changable'])  && $input['changable'])): ?>
+        <?= _("Keine Änderung möglich") ?>
+    <? else: ?>
+    <select <?=$is_locked ?> name="<?= $input['name'] ?>" <? if ($input['must']) echo 'required'; ?>>
+<? foreach ($input['choices'] as $choice_value => $choice_name): ?>
+    <? if (is_array($choice_name)): ?>
+        <optgroup label="<?= htmlReady($choice_value) ?>">
+        <? foreach ($choice_name as $c_v => $c_n): ?>
+            <option value="<?= htmlReady($c_v) ?>" <? if (in_array($c_v, (array)$input['value'])) echo 'selected'; ?>>
+                <?= htmlReady($c_n) ?>
+            </option>
+        <? endforeach; ?>
+        </optgroup>
+    <? else: ?>
+        <option value="<?= htmlReady($choice_value) ?>" <? if (in_array($choice_value, (array)$input['value'])) echo 'selected'; ?>>
+            <?= htmlReady($choice_name) ?>
+        </option>
+    <? endif; ?>
+<? endforeach; ?>
+    </select>
+    <? endif; ?>
+<? endif;
+
 if ($input['type'] === "multiselect") : ?>
-    <select <?=$is_locked ?> name="<?= $input['name'] ?>" multiple size="8" <? if ($input['must']) echo 'required'; ?>>
+    <select <?=$is_locked ?> name="<?= $input['name'] ?>" multiple class="nested-select" <? if ($input['must']) echo 'required'; ?>>
     <? if ($input['choices']) : foreach ($input['choices'] as $choice_value => $choice_name) : ?>
         <option value="<?= htmlReady($choice_value) ?>"<?=
             in_array($choice_value, is_array($input['value']) ? $input['value'] : array($input['value']))
@@ -40,11 +60,30 @@ if ($input['type'] === "multiselect") : ?>
     </select>
 <? endif;
 
-if ($input['type'] === "datafield"):?>
+if ($input['type'] === 'nested-select'): ?>
+<? if (isset($input['changable']) && !$input['changable']): ?>
+        <?= _("Keine Änderung möglich") ?>
+<? else: ?>
+    <select <?= $is_locked ?> name="<?= $input['name'] ?>" class="nested-select" <? if ($input['must']) echo 'required'; ?> <? if ($input['multiple']) echo 'multiple'; ?>>
+    <? foreach ($input['choices'] as $outer_id => $group): ?>
+        <option value="<?= htmlReady($outer_id) ?>" class="nested-item-header" <? if (in_array($outer_id, (array)$input['value'])) echo 'selected'; ?>>
+            <?= htmlReady($group['label']) ?>
+        </option>
+      <? foreach ($group['children'] as $inner_id => $inner_label): ?>
+        <option value="<?= htmlReady($inner_id) ?>" class="nested-item" <? if (in_array($inner_id, (array)$input['value'])) echo 'selected'; ?>>
+            <?= htmlReady($inner_label) ?>
+        </option>
+      <? endforeach; ?>
+    <? endforeach; ?>
+    </select>
+<? endif; 
+endif; 
+
+if ($input['type'] === 'datafield'): ?>
     <div style="padding-right:0.5em;">
-        <?=$input['locked'] ? $input['display_value'] : $input['html_value'];?>
+        <?= $input['locked'] ? $input['display_value'] : $input['html_value'] ?>
     </div>
-    <?if($input['description']):?>
+    <?if ($input['description']): ?>
         <?=tooltipIcon($input['description'])?>
-    <?endif?>
-<?endif?>
+    <? endif; ?>
+<? endif;
