@@ -26,6 +26,9 @@ require_once 'lib/meine_seminare_func.inc.php';
 require_once 'lib/object.inc.php';
 require_once 'lib/archiv.inc.php'; //for lastActivity in getCourses method
 
+require_once 'lib/archiv.inc.php'; //for lastActivity in getCourses() method
+
+
 class Admin_CoursesController extends AuthenticatedController
 {
     
@@ -375,6 +378,10 @@ class Admin_CoursesController extends AuthenticatedController
                     'viewFilter'
                     ];
             }
+            
+            //add the last activity for each Course object:
+            $this->lastActivities = array();
+            
         }
     }
     
@@ -444,6 +451,10 @@ class Admin_CoursesController extends AuthenticatedController
 
             if (in_array('preliminary', $filter_config)) {
                 $row['preliminary'] = $course['prelim'];
+            }
+            
+            if (in_array('last_activity', $filter_config)) {
+                $row['last_activity'] = $course['lastActivity'];
             }
 
             $data[$course_id] = $row;
@@ -800,10 +811,10 @@ class Admin_CoursesController extends AuthenticatedController
                 'attributes' => ['data-dialog' => 'size=big'],
             ),
             16 => array(
-                'name'      => _('Archivieren'),
-                'title'     => _('Archivieren'),
-                'url'       => 'archiv_assi.php',
-                'multimode' => true
+                'name'       => _('Archivieren'),
+                'title'      => _('Archivieren'),
+                'url'        => 'dispatch.php/course/archive/confirm',
+                'multimode'  => true
             ),
             17 => array(
                 'name'      => _('Gesperrte Veranstaltungen'),
@@ -817,7 +828,18 @@ class Admin_CoursesController extends AuthenticatedController
                 'url'        => 'dispatch.php/course/timesrooms/editSemester?cid=%s&origin=admin_courses',
                 'attributes' => ['data-dialog' => 'size=400'],
             ),
+            19 => array(
+                'name'       => _('LV-Gruppen'),
+                'title'      => _('LV-Gruppen'),
+                'url'        => 'plugins.php/mvvplugin/lvgselector?cid=%s&from=admin/courses',
+                'attributes' => ['data-dialog' => 'size=big'],
+            ),
         );
+
+        if (!PluginEngine::getPlugin('MVVPlugin') || !PluginEngine::getPlugin('MVVPlugin')->isVisible()) {
+            unset($actions[19]);
+        }
+
         if (!$GLOBALS['perm']->have_perm('admin')) {
             unset($actions[8]);
             if (!get_config('ALLOW_DOZENT_ARCHIV')) {
@@ -973,7 +995,7 @@ class Admin_CoursesController extends AuthenticatedController
                 }
             }
         }
-
+        
         return $seminars;
     }
 
@@ -1021,12 +1043,17 @@ class Admin_CoursesController extends AuthenticatedController
     private function setInstSelector()
     {
         $sidebar = Sidebar::Get();
-        $list = new SelectWidget(_('Einrichtung'), $this->url_for('admin/courses/set_selection'), 'institute');
+        $list = new SelectWidget(
+            _('Einrichtung'),
+            $this->url_for('admin/courses/set_selection'),
+            'institute'
+        );
+        $list->class = 'institute-list';
 
         if ($GLOBALS['perm']->have_perm('root') || (count($this->insts) > 1)) {
             $list->addElement(new SelectElement(
                 'all',
-                $GLOBALS['perm']->have_perm('root') ? _('Alle') : _("Alle meine Einrichtungen"),
+                $GLOBALS['perm']->have_perm('root') ? _('Alle') : _('Alle meine Einrichtungen'),
                 $GLOBALS['user']->cfg->MY_INSTITUTES_DEFAULT === 'all'),
                 'select-all'
             );
@@ -1036,15 +1063,14 @@ class Admin_CoursesController extends AuthenticatedController
             $list->addElement(
                 new SelectElement(
                     $institut['Institut_id'],
-                    (!$institut['is_fak'] ? "  " : "") . $institut['Name'],
+                    (!$institut['is_fak'] ? ' ' : '') . $institut['Name'],
                     $GLOBALS['user']->cfg->MY_INSTITUTES_DEFAULT === $institut['Institut_id']
                 ),
                 'select-' . $institut['Name']
             );
         }
 
-
-        $sidebar->addWidget($list, "filter_institute");
+        $sidebar->addWidget($list, 'filter_institute');
     }
 
     /**
@@ -1055,7 +1081,7 @@ class Admin_CoursesController extends AuthenticatedController
         $semesters = array_reverse(Semester::getAll());
         $sidebar = Sidebar::Get();
         $list = new SelectWidget(_('Semester'), $this->url_for('admin/courses/set_selection'), 'sem_select');
-        $list->addElement(new SelectElement("all", _("Alle")), 'sem_select-all');
+        $list->addElement(new SelectElement('all', _('Alle')), 'sem_select-all');
         foreach ($semesters as $semester) {
             $list->addElement(new SelectElement(
                 $semester->id,
@@ -1064,7 +1090,7 @@ class Admin_CoursesController extends AuthenticatedController
             ), 'sem_select-' . $semester->id);
         }
 
-        $sidebar->addWidget($list, "filter_semester");
+        $sidebar->addWidget($list, 'filter_semester');
     }
 
 
@@ -1099,13 +1125,42 @@ class Admin_CoursesController extends AuthenticatedController
         $this->types = array();
         $this->selected = $selected;
 
-        $this->render_template('admin/courses/filters/course_type_filter.php', null);
-        $html = $this->response->body;
-        $this->erase_response();
-        $widget = new SidebarWidget();
-        $widget->setTitle(_('Veranstaltungstyp-Filter'));
-        $widget->addElement(new WidgetElement($html));
-        $sidebar->addWidget($widget, 'filter_coursetypes');
+        $list = new SelectWidget(
+            _('Veranstaltungstyp-Filter'),
+            $this->url_for('admin/courses/set_course_type'),
+            'course-type'
+        );
+        $list->addElement(new SelectElement(
+            'all', _('Alle'), $selected === 'all'
+        ), 'course-type-all');
+        foreach ($GLOBALS['SEM_CLASS'] as $class_id => $class) {
+            if ($class['studygroup_mode']) {
+                continue;
+            }
+
+            $element = new SelectElement(
+                $class_id,
+                $class['name'],
+                $selected === $class_id
+            );
+            $list->addElement(
+                $element->setAsHeader(),
+                'course-type-' . $class_id
+            );
+
+            foreach ($class->getSemTypes() as $id => $result) {
+                $element = new SelectElement(
+                    $class_id . '_' . $id,
+                    $result['name'],
+                    $selected === $class_id . '_' . $id
+                );
+                $list->addElement(
+                    $element->setIndentLevel(1),
+                    'course-type-' . $class_id . '_' . $id
+                );
+            }
+        }
+        $sidebar->addWidget($list, 'filter-course-type');
     }
 
     /**

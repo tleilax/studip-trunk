@@ -522,22 +522,30 @@ function get_my_obj_values (&$my_obj, $user_id)
         $statement = DBManager::get()->prepare("
             SELECT my.object_id,
                    COUNT(questionnaires.questionnaire_id) as count,
-                   COUNT(IF(questionnaires.startdate < UNIX_TIMESTAMP()
-                        AND (questionnaire.stopdate IS NULL OR questionnaire.stopdate > UNIX_TIMESTAMP())
-                        AND questionnaires.chdate IFNULL(b.visitdate, :threshold), questionnaires.questionnaire_id, NULL)) AS neue,
-                   MAX(IF(IF(questionnaires.startdate < UNIX_TIMESTAMP()
-                        AND (questionnaire.stopdate IS NULL OR questionnaire.stopdate > UNIX_TIMESTAMP())
-                        AND questionnaires.chdate IFNULL(b.visitdate, :threshold, chdate, 0)) AS last_modified
+                   COUNT(IF(
+                        questionnaires.startdate < UNIX_TIMESTAMP()
+                        AND (questionnaires.stopdate IS NULL OR questionnaires.stopdate > UNIX_TIMESTAMP())
+                        AND questionnaires.chdate >= IFNULL(b.visitdate, :threshold), 
+                        questionnaires.questionnaire_id, 
+                        NULL
+                   )) AS neue,
+                   MAX(IF(
+                       questionnaires.startdate < UNIX_TIMESTAMP()
+                       AND (questionnaires.stopdate IS NULL OR questionnaires.stopdate > UNIX_TIMESTAMP())
+                       AND questionnaires.chdate >= IFNULL(b.visitdate, :threshold), 
+                       questionnaires.chdate, 
+                       0
+                   )) AS last_modified
             FROM questionnaires
-                INNER JOIN questionnaire_assign USING (questionnaire_id)
-                INNER JOIN `myobj_".$user_id."` AS my ON (my.object_id = questionnaire_assign.range_id AND questionnaire_assign.range_type = 'course')
-                LEFT JOIN object_user_visits b ON (b.object_id = questionnaires.questionnaire_id AND b.user_id = :user_id AND b.type 'vote')
+                INNER JOIN questionnaire_assignments USING (questionnaire_id)
+                INNER JOIN `myobj_".$user_id."` AS my ON (my.object_id = questionnaire_assignments.range_id AND questionnaire_assignments.range_type = 'course')
+                LEFT JOIN object_user_visits b ON (b.object_id = questionnaires.questionnaire_id AND b.user_id = :user_id AND b.type = 'vote')
             WHERE questionnaires.visible = '1'
             GROUP BY my.object_id ORDER BY NULL
         ");
         $statement->execute(array(
             'user_id' => $user_id,
-            'treshold' => $threshold
+            'threshold' => $threshold
         ));
 
         while($row = $statement->fetch(PDO::FETCH_ASSOC)) {
