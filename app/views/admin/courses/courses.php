@@ -1,8 +1,5 @@
 <? $colspan = 2 ?>
 <? if ($actions[$selected_action]['multimode']) : ?>
-    <? if ($selected_action == 16) : ?>
-        <?= MessageBox::error(_('Achtung: Das Archivieren ist ein Schritt, der nicht rückgängig gemacht werden kann!')) ?>
-    <? endif ?>
     <form action="<?= URLHelper::getLink($actions[$selected_action]['url']) ?>" method="post">
 <? endif ?>
 <?= CSRFProtection::tokenTag() ?>
@@ -46,6 +43,10 @@
         <col width="5%">
     <? endif ?>
     <? if (in_array('contents', $view_filter)) : ?>
+        <? $colspan++ ?>
+        <col width="8%">
+    <? endif ?>
+    <? if (in_array('last_activity', $view_filter)) : ?>
         <? $colspan++ ?>
         <col width="8%">
     <? endif ?>
@@ -143,6 +144,11 @@
         <? if (in_array('contents', $view_filter)) : ?>
             <th style="width: <?= $nav_elements * 27 ?>px">
                 <?= _('Inhalt') ?>
+            </th>
+        <? endif ?>
+        <? if (in_array('last_activity', $view_filter)) : ?>
+            <th style="width: <?= $nav_elements * 27 ?>px">
+                <?= _('letzte Aktivität') ?>
             </th>
         <? endif ?>
         <th style="text-align: center" class="actions">
@@ -287,6 +293,13 @@
                 <? endif ?>
                 </td>
             <? endif ?>
+            <? if (in_array('last_activity', $view_filter)) : ?>
+                <td style="text-align: center;">
+                    <span title="<?=_('Datum der letzten Aktivität in dieser Veranstaltung')?>">
+                        <?= htmlReady(date('d.m.Y', $values['last_activity'])); ?>
+                    </span>
+                </td>
+            <? endif ?>
             <td style="text-align: right;" class="actions">
                 <? if ($actions[$selected_action]['multimode'] && is_numeric($selected_action)) : ?>
                     <? if ($GLOBALS['perm']->have_studip_perm('tutor', $semid)) : ?>
@@ -357,7 +370,8 @@
                         is_string($actions[$selected_action]['multimode'])
                             ? $actions[$selected_action]['multimode']
                             : $actions[$selected_action]['title'],
-                        $actions[$selected_action]['name']) ?>
+                        $actions[$selected_action]['name'],
+                        $selected_action == 16 ? array('data-dialog' => 1) : null) ?>
                 <? endif ?>
             </td>
         </tr>

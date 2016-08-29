@@ -45,15 +45,14 @@
             <tr>
                 <td><strong><?= _("Durchführende Dozenten") ?></strong></td>
                 <td>
-                    <? $dozenten = $date->dozenten ?>
+                    <? $dozenten = $date->dozenten->pluck('user_id') ?>
                     <? if ($GLOBALS['perm']->have_studip_perm("tutor", $date['range_id'])) : ?>
                         <? $course_dozenten = array_map(function ($m) { return $m->user; }, (Course::findCurrent()->getMembersWithStatus("dozent"))) ?>
                         <?
                             $related_doz = array();
-                            foreach ($dozenten as $dozent) {
-                                if (in_array($dozent, $course_dozenten) !== false) {
-                                    $dozent_id = $dozent['user_id'];
-                                    $related_doz[$dozent_id] = true;
+                            foreach ($course_dozenten as $dozent) {
+                                if (in_array($dozent->user_id, $dozenten) !== false || count($dozenten) == 0) {
+                                    $related_doz[$dozent->user_id] = true;
                                 }
                             }
                         ?>
@@ -112,7 +111,6 @@
                                }
                             }
                         ?>
-
                         <ul class="termin_related groups clean" style="width: 319px">
                         <? foreach ($course_groups as $group) : ?>
                             <? $group_id = $group['id']; ?>

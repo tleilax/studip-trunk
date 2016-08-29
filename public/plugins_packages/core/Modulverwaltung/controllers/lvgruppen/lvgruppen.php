@@ -91,7 +91,13 @@ class Lvgruppen_LvgruppenController extends MVVController
             PageLayout::postInfo(_('Es wurden keine Lehrveranstaltungsgruppen gefunden.'));
         }
                 
-        $this->count = Lvgruppe::getCount($filter, $this->semester_filter);
+        $this->count = count(Lvgruppe::getAllEnriched(
+                $this->sortby,
+                $this->order,
+                Lvgruppe::getFilterSql($filter, true, $author_sql),
+                null,
+                null,
+                $this->semester_filter));
         
         $helpbar = Helpbar::get();
         $widget = new HelpbarWidget();
@@ -105,11 +111,7 @@ class Lvgruppen_LvgruppenController extends MVVController
         $this->setSidebar();
         $sidebar = Sidebar::get();
         $widget  = new ActionsWidget();
-        if (MvvPerm::havePermCreate('Lvgruppe')) {
-            $widget->addLink(_('Neue Lehrveranstaltungsgruppe anlegen'),
-                    $this->url_for('/lvgruppe'),
-                    Icon::create('file+add', 'clickable'));
-        }
+        
         $widget->addLink( _('Lehrveranstaltungsgruppen mit Zuordnungen exportieren'),
                 $this->url_for('/export_xls'),
                 Icon::create('download', 'clickable'));
@@ -240,7 +242,7 @@ class Lvgruppen_LvgruppenController extends MVVController
             }
         }
         if (!Request::isPost()) {
-            $this->flash_set('dialog', sprintf(_('Wollen Sie wirklich die Lehrveranstaltungsgruppe "%s" loeschen?'),
+            $this->flash_set('dialog', sprintf(_('Wollen Sie wirklich die Lehrveranstaltungsgruppe "%s" löschen?'),
                             $lvgruppe->getDisplayName()),
                     '/delete/'
                     . $lvgruppe->getId(),
@@ -331,33 +333,66 @@ class Lvgruppen_LvgruppenController extends MVVController
      */
     private function sidebar_filter()
     {
-        $template_factory = $this->get_template_factory();
-        $template = $template_factory->open('shared/filter');
 
-        // Semester
-        $template->set_attribute('semester', array_reverse(Semester::getAll()));
-        $template->set_attribute('selected_semester', $this->semester_filter);
-        $template->set_attribute('default_semester',
-                Semester::findCurrent()->semester_id);
-        $template->set_attribute('semester_caption', _('Verwendung in Semester:'));
-
-        // Fachbereiche
-        $template->set_attribute('fachbereiche',
-                Lvgruppe::getAllAssignedInstitutes('name', 'ASC'));
-        $template->set_attribute('selected_fachbereich',
-                $this->filter['mvv_modul_inst.institut_id']);
-        $template->set_attribute('fachbereich_caption', _('Verwendet von Fachbereich:'));
-
-        $template->set_attribute('action',
-                $this->url_for('/set_filter'));
-        $template->set_attribute('action_reset',
-                $this->url_for('/reset_filter'));
-
+        if (!empty($this->filter['mvv_modul_inst.institut_id'])) {
+            if (is_array($this->filter['mvv_modul_inst.institut_id'])) {
+                $selected_fachbereich = $this->filter['mvv_modul_inst.institut_id'][0];
+            } else {
+                $selected_fachbereich = $this->filter['mvv_modul_inst.institut_id'];
+            }
+        } else {
+            $selected_fachbereich = '';
+        }
+        
         $sidebar = Sidebar::get();
-        $widget  = new SidebarWidget();
-        $widget->setTitle(_('Filter'));
-        $widget->addElement(new WidgetElement($template->render()));
-        $sidebar->addWidget($widget, 'filter');
+        
+        $widget = new SelectWidget(_('Verwendung in Semester:'),
+            $this->url_for('/set_filter', array('fachbereich_filter' => $selected_fachbereich)), 'semester_filter');
+        
+        $widget->addElement(new SelectElement('all', _('Alle')), 'sem_select-all');
+        
+        foreach (array_reverse(Semester::getAll()) as $semester) {
+            
+                $widget->addElement(
+                    new SelectElement(
+                        $semester->semester_id, $semester->name,
+                        $this->semester_filter === $semester->semester_id),
+                        'select-' . $semester->name
+                    );
+        
+        }
+        $sidebar->addWidget($widget, 'semester_filter');
+        
+        $perm_institutes = MvvPerm::getOwnInstitutes();
+        if ($perm_institutes !== false) {
+            $widget = new SelectWidget(_('Verwendet von Fachbereich:'),
+                $this->url_for('/set_filter', array('semester_filter' => $this->semester_filter)), 'fachbereich_filter');
+             
+            $widget->class = 'institute-list';
+            
+            $widget->addElement(
+                new SelectElement("",_('-- Einrichtung wählen --')), 'select-none');
+            
+            
+            
+            foreach (Lvgruppe::getAllAssignedInstitutes('name', 'ASC') as $institut) {
+                if (!(count($perm_institutes) == 0
+                    || in_array($institut->institut_id, $perm_institutes))) continue;
+                
+                $widget->addElement(
+                    new SelectElement(
+                        $institut->institut_id,
+                        ($institut->institut_id != $institut->fakultaets_id ? ' ' : '') . $institut->name,
+                        $institut->institut_id === $selected_fachbereich
+                        ),
+                    'select-' . $institut->name
+                    );
+            
+            }
+                    
+            $sidebar->addWidget($widget, 'fachbereich_filter');
+        }
+        
     }
 
     /**

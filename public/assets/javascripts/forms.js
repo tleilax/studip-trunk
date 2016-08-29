@@ -8,6 +8,24 @@
 (function ($, STUDIP) {
     'use strict';
 
+    $.extend($.expr[':'], {
+        invalid : function (elem, index, match) {
+            var invalids = document.querySelectorAll(':invalid'),
+                result = false,
+                len = invalids.length || 0,
+                i;
+
+            for (i = 0; i < len; i += 1) {
+                if (elem === invalids[i]) {
+                    result = true;
+                    break;
+                }
+            }
+
+            return result;
+        }
+    });
+
     STUDIP.Forms = {
         initialize : function () {
             $("input[required],textarea[required]").attr('aria-required', true);
@@ -15,48 +33,13 @@
                 $(this).data('message', $(this).attr('title'));
             });
 
-            //localized messages
-            $.tools.validator.localize('de', {
-                '*'          : 'Bitte ändern Sie ihre Eingabe'.toLocaleString(),
-                ':radio'     : 'Bitte wählen Sie einen Wert aus.'.toLocaleString(),
-                ':email'     : 'Bitte geben Sie gültige E-Mail-Adresse ein'.toLocaleString(),
-                ':number'    : 'Bitte geben Sie eine Zahl ein'.toLocaleString(),
-                ':url'       : 'Bitte geben Sie eine gültige Web-Adresse ein'.toLocaleString(),
-                '[max]'      : 'Der eingegebene Wert darf nicht größer als $1 sein'.toLocaleString(),
-                '[min]'      : 'Der eingegebene Wert darf nicht kleiner als $1 sein'.toLocaleString(),
-                '[required]' : 'Dies ist ein erforderliches Feld'.toLocaleString()
-            });
-
-            $('form').validator({
-                position   : 'bottom left',
-                offset     : [8, 0],
-                message    : '<div><div class="arrow"/></div>',
-                lang       : 'de',
-                inputEvent : 'change'
-            });
-
-            $('form').bind("onBeforeValidate", function () {
-                $("input").each(function () {
-                    $(this).removeAttr('aria-invalid');
-                });
-            });
-
-            $('form').bind("onFail", function (e, errors) {
-                $.each(errors, function () {
-                    this.input.attr('aria-invalid', 'true');
-                    // get the fieldset that contains the invalid input
-                    var fieldset = $(this.input).closest('fieldset');
-                    // toggle the collapsed class if the fieldset is currently collapsed
-                    if (fieldset.hasClass('collapsed')) {
-                        fieldset.toggleClass('collapsed');
-                    }
-                    $.scrollTo(this.input);
-                });
-            });
-
             // for browsers supporting native HTML5 form validation:
             // add invalid-handler to every input and textarea on the page
             $('input, textarea').on('invalid', function() {
+                $(this).attr('aria-invalid', 'true').change(function () {
+                    $(this).removeAttr('aria-invalid');
+                });
+
                 // get the fieldset that contains the invalid input
                 var fieldset = $(this).closest('fieldset');
                 // toggle the collapsed class if the fieldset is currently collapsed
@@ -65,6 +48,7 @@
                 }
             });
 
+            // TODO: This handler will probably called multiple times
             $(document).on("change", "form.default label.file-upload input[type=file]", function (ev) {
                 var selected_file = ev.target.files[0],
                     filename;
@@ -153,55 +137,103 @@
     });
     $.fn.select2.defaults.set('language', 'de');
 
+    function createSelect2(element) {
+        if ($(element).data('select2')) {
+            return;
+        }
+
+        var select_classes = $(element).removeClass('select2-awaiting').attr('class'),
+            option         = $('<option>'),
+            width          = $(element).outerWidth(true),
+            cloned         = $(element).clone().css('opacity', 0).appendTo('body'),
+            wrapper        = $('<div class="select2-wrapper">').css('display', cloned.css('display')),
+            placeholder;
+
+        cloned.remove();
+        $(wrapper).add(element).css('width', width);
+
+        if ($('.is-placeholder', element).length > 0) {
+            placeholder = $('.is-placeholder', element).text();
+
+            option.attr('selected', $(element).val() === '');
+            $('.is-placeholder', element).replaceWith(option);
+        }
+
+        $(element).select2({
+            adaptDropdownCssClass: function () {
+                return select_classes;
+            },
+            allowClear: placeholder !== undefined,
+            minimumResultsForSearch: $(element).closest('.sidebar').length > 0 ? 15 : 10,
+            placeholder: placeholder,
+            templateResult: function (data, container) {
+                if (data.element) {
+                    var option_classes = $(data.element).attr('class'),
+                        element_data   = $(data.element).data();
+                    $(container).addClass(option_classes);
+
+                    // Allow text color changes (calendar needs this)
+                    if (element_data.textColor) {
+                        $(container).css('color', element_data.textColor);
+                    }
+                }
+                return data.text;
+            },
+            templateSelection: function (data, container) {
+                var result       = $('<span class="select2-selection__content">').text(data.text),
+                    element_data = $(data.element).data();
+                if (element_data && element_data.textColor) {
+                    result.css('color', element_data.textColor);
+                }
+
+                return result;
+            },
+            width: 'style'
+        });
+
+        $(element).next().andSelf().wrapAll(wrapper);
+    }
+
     $(document).on('ready dialog-update', function () {
-        $('select.nested-select:not(:has(optgroup))').each(function () {
-            var select_classes = $(this).attr('class'),
-                option         = $('<option>'),
-                wrapper        = $('<div class="select2-wrapper">'),
-                placeholder;
+        // Well, this is really nasty: Select2 can't determine the select
+        // element's width if it is hidden (by itself or by it's parent).
+        // This is due to the fact that elements are not rendered when hidden
+        // (which seems pretty obvious when you think about it) but elements
+        // only have a width when they are rendered (pretty obvious as well).
+        //
+        // Thus, we need to handle the visible elements first and apply
+        // select2 directly.
+        $('select.nested-select:not(:has(optgroup)):visible').each(function () {
+            createSelect2(this);
+        });
 
-            $(this).css('width', $(this).outerWidth(true));
-
-            if ($('.is-placeholder', this).length > 0) {
-                placeholder = $('.is-placeholder', this).text();
-
-                option.attr('selected', $(this).val() === '');
-                $('.is-placeholder', this).replaceWith(option);
-            }
-
-            $(this).select2({
-                adaptDropdownCssClass: function () {
-                    return select_classes;
-                },
-                allowClear: placeholder !== undefined,
-                minimumResultsForSearch: $(this).closest('.sidebar').length > 0 ? 15 : 10,
-                placeholder: placeholder,
-                templateResult: function (data, container) {
-                    if (data.element) {
-                        var option_classes = $(data.element).attr('class'),
-                            element_data   = $(data.element).data();
-                        $(container).addClass(option_classes);
-
-                        // Allow text color changes (calendar needs this)
-                        if (element_data.textColor) {
-                            $(container).css('color', element_data.textColor);
-                        }
+        // The hidden need a little more love. The only, almost sane-ish
+        // solution seems to be to attach a mutation observer to the closest
+        // visible element from the requested select element and observe style,
+        // class and attribute changes in order to detect when the select
+        // element itself will become visible. Pretty straight forward, huh?
+        $('select.nested-select:not(:has(optgroup)):hidden:not(.select2-awaiting)').each(function () {
+            var observer = new window.MutationObserver(function (mutations) {
+                mutations.forEach(function (mutation) {
+                    if ($('select.select2-awaiting', mutation.target).length > 0) {
+                        $('select.select2-awaiting', mutation.target).removeClass('select2-awaiting').each(function () {
+                            createSelect2(this);
+                        });
+                        observer.disconnect();
+                        observer = null;
                     }
-                    return data.text;
-                },
-                templateSelection: function (data, container) {
-                    var result       = $('<span class="select2-selection__content">').text(data.text),
-                        element_data = $(data.element).data();
-                    if (element_data && element_data.textColor) {
-                        result.css('color', element_data.textColor);
-                    }
-
-                    return result;
-                },
-                width: 'style'
+                });
+            });
+            observer.observe($(this).closest(':visible')[0], {
+                attributeOldValue: true,
+                attributes: true,
+                attributeFilter: ['style', 'class'],
+                characterData: false,
+                childList: true,
+                subtree: false
             });
 
-            $(this).next().andSelf().wrapAll(wrapper);
+            $(this).addClass('select2-awaiting');
         });
 
         // Unfortunately, this code needs to be duplicated because jQuery
@@ -214,7 +246,12 @@
     }).on('change', 'select:not([multiple])', function () {
         $(this).toggleClass('has-no-value', this.value === '').blur();
     }).on('dialog-close', function (event, data) {
-        $('select.nested-select:not(:has(optgroup))', data.dialog).select2('close');
+        $('select.nested-select:not(:has(optgroup))', data.dialog).each(function () {
+            if (!$(this).data('select2')) {
+                return;
+            }
+            $(this).select2('close');
+        });
     });
 
 }(jQuery, STUDIP));

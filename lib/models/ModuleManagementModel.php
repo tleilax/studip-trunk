@@ -14,8 +14,6 @@
  * @since       3.5
  */
 
-require_once 'InvalidValuesException.php';
-
 abstract class ModuleManagementModel extends SimpleORMap
 {
 
@@ -24,15 +22,6 @@ abstract class ModuleManagementModel extends SimpleORMap
     private static $language = null;
     protected static $perm_object = null;
     public $object_real_name = '';
-
-    /**
-     *
-     * @param string $id primary key of table
-     */
-    function __construct($id = null)
-    {
-        parent::__construct($id);
-    }
 
     /**
      * Returns a collection of a MVV object type found by search term optionally

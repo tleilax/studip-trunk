@@ -272,15 +272,13 @@ class Course_TimesroomsController extends AuthenticatedController
 
         $related_users    = Request::get('related_teachers');
         $dozenten         = $this->course->getMembers('dozent');
+        
         $termin->dozenten = array();
         $related_users    = explode(',', $related_users);
         if (!empty($related_users) && count($dozenten) !== count($related_users)) {
             $termin->dozenten = User::findMany($related_users);
         }
 
-        
-
-        
         // Set Room
         $singledate = new SingleDate($termin);
         if (Request::option('room') == 'room') {
@@ -368,23 +366,18 @@ class Course_TimesroomsController extends AuthenticatedController
         $termin->autor_id  = $GLOBALS['user']->id;
         $termin->date_typ  = Request::get('dateType');
 
-        $teachers = $this->course->getMembers('dozent');
-        foreach (Request::getArray('related_teachers') as $dozent_id) {
-            if (in_array($dozent_id, array_keys($teachers))) {
-                $related_persons[] = User::find($dozent_id);
-            }
+        $current_count = CourseMember::countByCourseAndStatus($this->course->id, 'dozent');
+        $related_ids   = Request::optionArray('related_teachers');
+        if ($related_ids && count($related_ids) !== $current_count) {
+            $termin->dozenten = User::findMany($related_ids);
         }
-        if (isset($related_persons)) {
-            $termin->dozenten = $related_persons;
+        
+        $groups = Statusgruppen::findBySeminar_id($this->course->id);
+        $related_groups = Request::getArray('related_statusgruppen');
+        if ($related_groups && count($related_groups) !== count($groups)) {
+            $related_groups = Statusgruppen::findMany($related_groups);
         }
-
-        foreach (Request::getArray('related_statusgruppen') as $statusgruppe_id) {
-            $related_groups[] = Statusgruppen::find($statusgruppe_id);
-        }
-        if (isset($related_groups)) {
-            $termin->statusgruppen = $related_groups;
-        }
-
+        
         if (!Request::get('room') || Request::get('room') === 'nothing') {
             $termin->raum = Request::get('freeRoomText');
             $termin->store();

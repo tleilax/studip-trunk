@@ -27,7 +27,7 @@ class Step00302Modulverwaltung extends Migration
                     pluginpath = 'core/Modulverwaltung',
                     pluginname = 'Modulverwaltung',
                     plugintype = 'SystemPlugin',
-                    enabled = 'no',
+                    enabled = 'yes',
                     navigationpos = '1'");
             $plugin_id = $db->lastInsertId();
             $db->exec("INSERT IGNORE INTO roles_plugins (roleid, pluginid)
@@ -195,7 +195,7 @@ class Step00302Modulverwaltung extends Migration
                 `fassung_typ` varchar(32) DEFAULT NULL,
                 `version` varchar(120) NOT NULL DEFAULT '1',
                 `dauer` varchar(50) DEFAULT NULL,
-                `kapazitaet` varchar(50) DEFAULT NULL,
+                `kapazitaet` varchar(50) NOT NULL DEFAULT '',
                 `kp` int(11) DEFAULT NULL,
                 `wl_selbst` int(11) DEFAULT NULL,
                 `wl_pruef` int(11) DEFAULT NULL,
