@@ -414,17 +414,6 @@ class Seminar
         return sizeof($this->metadate->cycles);
     }
 
-    /**
-     * always 1 since Stud.IP 1.6
-     *
-     * @deprecated
-     * @return number
-     */
-    public function getMetaDateType()
-    {
-        return 1;
-    }
-
     public function getMetaDateValue($key, $value_name)
     {
         return $this->metadate->cycles[$key]->$value_name;
@@ -517,7 +506,11 @@ class Seminar
 
     public function removeAndUpdateSingleDates()
     {
-        SeminarDB::removeOutRangedSingleDates($this->semester_start_time, $this->getEndSemesterVorlesEnde(), $this->id);
+        SeminarCycleDate::removeOutRangedSingleDates(
+            $this->semester_start_time,
+            $this->getEndSemesterVorlesEnde(),
+            $this->id
+        );
 
         foreach ($this->metadate->cycles as $key => $val) {
             $this->metadate->cycles[$key]->readSingleDates();
@@ -557,7 +550,11 @@ class Seminar
                 // logging <<<<<<
                 $this->semester_duration_time = -1;
                 $this->metadate->setSeminarDurationTime(-1);
-                SeminarDB::removeOutRangedSingleDates($this->semester_start_time, $this->getEndSemesterVorlesEnde(), $this->id);
+                SeminarCycleDate::removeOutRangedSingleDates(
+                    $this->semester_start_time,
+                    $this->getEndSemesterVorlesEnde(),
+                    $this->id
+                );
             } else {                                    // the seminar takes place  between the selected start~ and end-semester
                 // logging >>>>>>
                 StudipLog::log("SEM_SET_ENDSEMESTER", $this->getId(), $end);
@@ -2198,7 +2195,7 @@ class Seminar
     public function addMember($user_id, $status = 'autor', $force = false)
     {
 
-        if (in_array(get_global_perm($user_id), array("admin", "root"))) {
+        if (in_array($GLOBALS['perm']->get_perm($user_id), array("admin", "root"))) {
             $this->createError(_("Admin und Root dürfen nicht Mitglied einer Veranstaltung sein."));
             return false;
         }

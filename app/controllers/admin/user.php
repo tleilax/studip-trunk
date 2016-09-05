@@ -94,10 +94,10 @@ class Admin_UserController extends AuthenticatedController
         //wenn suche durchgeführt
         if (isset($request)) {
             //suche mit datafields
-            foreach ($datafields as $id => $datafield) {
-                if (strlen($request[$id]) > 0
-                    && !(in_array($datafield->type, words('selectbox radio')) && $request[$id] === '---ignore---')) {
-                    $search_datafields[$id] = $request[$id];
+            foreach ($this->datafields as $datafield) {
+                if (strlen($request[$datafield->id]) > 0
+                    && !(in_array($datafield->type, words('selectbox radio')) && $request[$datafield->id] === '---ignore---')) {
+                    $search_datafields[$datafield->id] = $request[$datafield->id];
                 }
             }
 
@@ -124,6 +124,7 @@ class Admin_UserController extends AuthenticatedController
                 PageLayout::postMessage(MessageBox::info(_('Es wurden keine Personen mit diesen Suchkriterien gefunden.')));
             } else {
                 $_SESSION['admin']['user']['results'] = true;
+                PageLayout::postMessage(MessageBox::info(sprintf(_('Es wurden %s Personen mit diesen Suchkriterien gefunden.'), count($this->users))));
             }
             if (is_array($this->users) && Request::submitted('export')) {
                 $tmpname = md5(uniqid('tmp'));
@@ -398,7 +399,7 @@ class Admin_UserController extends AuthenticatedController
                     }
                 }
             }
-            
+
             // change version of studiengang if module management is enabled
             if (PluginEngine::getPlugin('MVVPlugin') && in_array($editPerms[0], array('autor', 'tutor', 'dozent'))) {
                 $change_versions = Request::getArray('change_version');
@@ -428,7 +429,7 @@ class Admin_UserController extends AuthenticatedController
                     && Request::option('new_student_inst')
                     && Request::option('new_student_inst') != Request::option('new_inst')
                     && $GLOBALS['perm']->have_studip_perm("admin", Request::option('new_student_inst'))) {
-                log_event('INST_USER_ADD', Request::option('new_student_inst'), $user_id, 'user');
+                StudipLog::log('INST_USER_ADD', Request::option('new_student_inst'), $user_id, 'user');
                 $db = DbManager::get()->prepare("INSERT IGNORE INTO user_inst (user_id, Institut_id, inst_perms) "
                                                ."VALUES (?,?,'user')");
                 $db->execute(array($user_id, Request::option('new_student_inst')));
@@ -441,7 +442,7 @@ class Admin_UserController extends AuthenticatedController
                     && Request::option('new_student_inst') != Request::option('new_inst')
                     && $editPerms[0] != 'root'
                     && $GLOBALS['perm']->have_studip_perm("admin", Request::option('new_inst'))) {
-                log_event('INST_USER_ADD', Request::option('new_inst'), $user_id, $editPerms[0]);
+                StudipLog::log('INST_USER_ADD', Request::option('new_inst'), $user_id, $editPerms[0]);
                 $db = DbManager::get()->prepare("REPLACE INTO user_inst (user_id, Institut_id, inst_perms) "
                                                ."VALUES (?,?,?)");
                 $db->execute(array($user_id, Request::option('new_inst'), $editPerms[0]));
@@ -620,7 +621,7 @@ class Admin_UserController extends AuthenticatedController
                     ) {
 
                     //log
-                    log_event('INST_USER_ADD', Request::option('institute'), $user_id, $UserManagement->user_data['auth_user_md5.perms']);
+                    StudipLog::log('INST_USER_ADD', Request::option('institute'), $user_id, $UserManagement->user_data['auth_user_md5.perms']);
 
                     //insert into database
                     $db = DBManager::get()->prepare("INSERT INTO user_inst (user_id, Institut_id, inst_perms) VALUES (?, ?, ?)");
@@ -958,7 +959,7 @@ class Admin_UserController extends AuthenticatedController
             $db = DBManager::get()->prepare("DELETE FROM user_inst WHERE user_id = ? AND Institut_id = ?");
             $db->execute(array($user_id, $institut_id));
             if ($db->rowCount() == 1) {
-                log_event('INST_USER_DEL', $institut_id, $user_id);
+                StudipLog::log('INST_USER_DEL', $institut_id, $user_id);
                 NotificationCenter::postNotification('UserInstitutionDidDelete', $institut_id , $user_id);
                 checkExternDefaultForUser($user_id);
                 if (UserConfig::get($user_id)->MY_INSTITUTES_DEFAULT == $institut_id) {

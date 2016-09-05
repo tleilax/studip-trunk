@@ -25,7 +25,6 @@
 // +---------------------------------------------------------------------------+
 
 require_once('lib/messaging.inc.php');
-require_once('lib/log_events.inc.php');
 require_once('lib/evaluation/classes/db/EvaluationDB.class.php');
 
 function edit_email($user, $email, $force=False) {
@@ -151,7 +150,7 @@ function edit_email($user, $email, $force=False) {
         $statement->execute(array($user->validation_key, $user->user_id));
 
         $msg.= "info§<b>" . sprintf(_('An Ihre neue E-Mail-Adresse <b>%s</b> wurde ein Aktivierungslink geschickt, dem Sie folgen müssen bevor Sie sich das nächste mal einloggen können.'), $email). '</b>§';
-        log_event("USER_NEWPWD",$user->user_id); // logging
+        StudipLog::log("USER_NEWPWD",$user->user_id); // logging
     }
     return array(True, $msg);
 }
@@ -577,9 +576,6 @@ class about extends messaging
         if (Config::get()->ENABLE_SKYPE_INFO) {
             if ($GLOBALS['user']->cfg->getValue('SKYPE_NAME') && !$NOT_HIDEABLE_FIELDS[$this->auth_user['perms']]['skype_name']) {
                 $homepage_elements["skype_name"] = array("name" => _("Skype Name"), "visibility" => $homepage_visibility["skype_name"] ?: get_default_homepage_visibility($this->auth_user['user_id']), 'category' => 'Private Daten');
-                if ($GLOBALS['user']->cfg->getValue('SKYPE_ONLINE_STATUS')) {
-                    $homepage_elements["skype_online_status"] = array("name" => _("Skype Online Status"), "visibility" => $homepage_visibility["skype_online_status"] ?: get_default_homepage_visibility($this->auth_user['user_id']), 'category' => 'Private Daten');
-                }
             }
         }
         if ($my_data["privatnr"] && !$NOT_HIDEABLE_FIELDS[$this->auth_user['perms']]['Private Daten_phone'])

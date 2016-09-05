@@ -131,7 +131,7 @@ class UserModel
 
         // keine suchkriterien
         if (empty($username) && empty($email) && empty($vorname) && empty($nachname)
-            && empty($locked) && empty($inaktiv) && empty($datafields) && empty($degree) && empty($studycourse)
+            && empty($locked) && empty($inaktiv) && empty($datafields) && empty($degree) && empty($studycourse) && empty($userdomains)
             && empty($institute)
         ) {
             return 0;
@@ -297,8 +297,8 @@ class UserModel
         //logging
         $old = self::getInstitute($user_id, $inst_id);
         if ($old['inst_perms'] != $values['inst_perms']) {
-            log_event("INST_USER_STATUS", $inst_id, $user_id, $old['inst_perms'] .' -> '. $values['inst_perms']);
-            NotificationCenter::postNotification('UserInstitutionPermDidUpdate', $inst_id, $user_id); 
+            StudipLog::log("INST_USER_STATUS", $inst_id, $user_id, $old['inst_perms'] .' -> '. $values['inst_perms']);
+            NotificationCenter::postNotification('UserInstitutionPermDidUpdate', $inst_id, $user_id);
         }
 
         //change values

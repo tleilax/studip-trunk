@@ -28,10 +28,15 @@ class BlubberProvider implements ActivityProvider
 
         $activity->content = formatReady($blubb->description);
 
+        if ($blubb->context_type == 'course') {
+            $params = ['cid' => $blubb->seminar_id];
+        } else {
+            $params = ['username' => get_username($blubb->seminar_id)];
+        }
         $url = \PluginEngine::getURL(
             'Blubber',
-            [],
-            'streams/thread/' . $blubb->parent_id . '#posting_' . $activity->object_id,
+            $params,
+            'streams/thread/' . $blubb->root_id . '#posting_' . $activity->object_id,
             true
         );
 

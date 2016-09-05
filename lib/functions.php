@@ -535,27 +535,6 @@ function my_substr($what, $start, $end)
 }
 
 /**
- * The function gives the global perm of an user
- *
- * It ist recommended to use $auth->auth["perm"] for this query,
- * but the function is useful, if you want to query an user_id from another user
- * (which ist not the current user)
- *
- * @deprecated   use $GLOBALS['perm']->get_perm($user_id)
- *
- * @param string $user_id if omitted, current user_id is used
- *
- * @return string  the perm level or an error msg
- *
- */
-function get_global_perm($user_id = "")
-{
-    global $perm;
-    $status = $perm->get_perm($user_id);
-    return (!$status) ? _("Fehler!") : $status;
-}
-
-/**
  * Returns permission for given range_id and user_id
  *
  * Function works for Veranstaltungen, Einrichtungen, Fakultaeten.
@@ -875,34 +854,6 @@ function check_and_set_date($tag, $monat, $jahr, $stunde, $minute, &$arr, $field
     return $check;
 }
 
-/**
- * writes an entry into the studip configuration table
- *
- * @deprecated
- * @param string $key the key for the config entry
- * @param string $val the value that should be set
- * @param array  $arr an array with key=>value to write into config
- *
- * @return bool  true if date was valid, else false
- */
-function write_config ($key, $val, $arr = null)
-{
-    if (is_null($arr)) {
-        $arr[$key] = $val;
-    }
-    $config = Config::get();
-    if (is_array($arr)) {
-        foreach ($arr as $key => $val) {
-            if (isset($config->$key)) {
-                $config->store($key, $val);
-            } else {
-                $config->create($key, array('value' => $val, 'type' => 'string'));
-            }
-            $GLOBALS[$key] = $config->$key;
-        }
-    }
-
-}
 
 /**
  * gets an entry from the studip configuration table

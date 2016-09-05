@@ -87,10 +87,8 @@ class Lvgruppen_LvgruppenController extends MVVController
                 $this->semester_filter);
         if (!empty($this->filter)) {
             $this->search_result['Lvgruppe'] = $this->lvgruppen->pluck('id');
-        } else if (sizeof($this->lvgruppen) == 0) {
-            PageLayout::postInfo(_('Es wurden keine Lehrveranstaltungsgruppen gefunden.'));
         }
-                
+        
         $this->count = count(Lvgruppe::getAllEnriched(
                 $this->sortby,
                 $this->order,
@@ -287,6 +285,7 @@ class Lvgruppen_LvgruppenController extends MVVController
         }
 
         $this->response->add_header('Content-type', 'application/vnd.ms-excel');
+        $this->response->add_header('Content-Disposition', 'attachment; filename="lvgruppen.xls"');
         $this->render_template('lvgruppen/lvgruppen/export_xls', null);
     }
 

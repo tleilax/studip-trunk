@@ -83,12 +83,12 @@ class Studiengaenge_StudiengaengeController extends MVVController
         if (!empty($this->filter)) {
             $this->search_result['Studiengang'] = $this->studiengaenge->pluck('id');
         }
-
+    
         if (count($this->studiengaenge) == 0) {
             if (sizeof($this->filter) || $this->search_term) {
-                PageLayout::postInfo(_('Es wurden keine Studiengänge gefunden.'));
+                $this->msg = _('Es wurden keine Studiengänge gefunden.');
             } else {
-                PageLayout::postInfo(_('Es wurden noch keine Studiengänge angelegt.'));
+                $this->msg =_('Es wurden noch keine Studiengänge angelegt.');
             }
         }
 
@@ -882,7 +882,7 @@ class Studiengaenge_StudiengaengeController extends MVVController
             } else {
                 $content = studip_utf8encode($template->render());
                 $this->response->add_header('Content-type', 'application/msword');
-                $this->response->add_header('Content-Disposition', 'attachment; filename="' . $studiengang->getDisplayName() . '.doc"');
+                $this->response->add_header('Content-Disposition', 'attachment; filename="' . FileHelper::sanitizeFilename($studiengang->getDisplayName()). '.doc"');
                 $this->render_text($content);
             }
         }
