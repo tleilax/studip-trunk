@@ -49,12 +49,38 @@ class Course_FilesController extends AuthenticatedController
     }
     
     
+    private function loadFiles($courseId = null, $flat = false)
+    {
+        if(!$courseId) {
+            return;
+        }
+        
+        //get all files of the course
+        $this->files = null;
+        
+        $path = Request::get('path', '/'); //file system hierarchy path
+        
+        //for early development stage we MUST check which class is available:
+        if(class_exists('StudipDocument')) {
+            $this->files = StudipDocument::findByCourseId($courseId);
+        } elseif(class_exists('File')) {
+            //TO BE DESIGNED
+        } else {
+        
+        }
+    }
     
     
-    public function index_action()
+    /**
+        Displays the files in tree view
+    **/
+    public function tree_action()
     {
         if(Navigation::hasItem('/course/files_new')) {
             Navigation::activateItem('/course/files_new');
+        }
+        if(Navigation::hasItem('/course/files_new/tree')) {
+            Navigation::activateItem('/course/files_new/tree');
         }
         
         $course = Course::find(Request::get('cid'));
@@ -64,22 +90,42 @@ class Course_FilesController extends AuthenticatedController
             return; //DEVELOPMENT STAGE CODE!
         }
         
+        $this->buildSidebar();
         PageLayout::setTitle($course->name . ' - ' . _('Dateien'));
         
-        $this->buildSidebar();
-        
-        //get all files of the course
-        $this->files = null;
-        
-        $path = Request::get('path', '/'); //file system hierarchy path
-        
-        //for early development stage we MUST check which class is available:
-        if(class_exists('StudipDocument')) {
-            $this->files = StudipDocument::findByCourseId($course->id);
-        } elseif(class_exists('File')) {
-            //TO BE DESIGNED
-        } else {
-        
+        $this->loadFiles($course->id);
+    }
+    
+    
+    /**
+        Displays the files in flat view
+    **/
+    public function flat_action()
+    {
+        if(Navigation::hasItem('/course/files_new')) {
+            Navigation::activateItem('/course/files_new');
         }
+        if(Navigation::hasItem('/course/files_new/flat')) {
+            Navigation::activateItem('/course/files_new/flat');
+        }
+        
+        $course = Course::find(Request::get('cid'));
+        if(!$course) {
+            //TODO: throw exception
+            
+            return; //DEVELOPMENT STAGE CODE!
+        }
+        
+        $this->buildSidebar();
+        PageLayout::setTitle($course->name . ' - ' . _('Dateien'));
+        
+        $this->loadFiles($course->id, true);
+    }
+    
+    
+    
+    public function index_action()
+    {
+        $this->redirect('course/files/tree');
     }
 }

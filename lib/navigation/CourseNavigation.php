@@ -123,10 +123,16 @@ class CourseNavigation extends Navigation
                 }
             }
             //new files controller (/course/files):
-            $newFilesNavigation = new Navigation(_('Dateien (neu)'), 'dispatch.php/course/files/');
+            $newFilesNavigation = new Navigation(_('Dateien (neu)'), 'dispatch.php/course/files');
             $newFilesNavigation->setImage(Icon::create('files', 'info_alt'));
             $newFilesNavigation->setActiveImage(Icon::create('files', 'info'));
+            $treeNavigation = new Navigation(_('Baumansicht'), 'dispatch.php/course/files/tree');
+            $newFilesNavigation->addSubNavigation('tree', $treeNavigation);
+            $flatNavigation = new Navigation(_('Flache Ansicht'), 'dispatch.php/course/files/flat');
+            $newFilesNavigation->addSubNavigation('flat', $flatNavigation);
+            
             $this->addSubNavigation('files_new', $newFilesNavigation);
+            
         }
         
         
