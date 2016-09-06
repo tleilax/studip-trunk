@@ -123,9 +123,11 @@ class Course_FilesController extends AuthenticatedController
     }
     
     
-    
     public function index_action()
     {
         $this->redirect('course/files/tree');
     }
+    
+    
+    
 }
