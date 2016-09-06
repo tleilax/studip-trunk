@@ -122,8 +122,14 @@ class CourseNavigation extends Navigation
                     $this->addSubNavigation($nav_name, $navigation);
                 }
             }
+            //new files controller (/course/files):
+            $newFilesNavigation = new Navigation(_('Dateien (neu)'), 'dispatch.php/course/files/');
+            $newFilesNavigation->setImage(Icon::create('files', 'info_alt'));
+            $newFilesNavigation->setActiveImage(Icon::create('files', 'info'));
+            $this->addSubNavigation('files_new', $newFilesNavigation);
         }
-
+        
+        
         // schedule
         if (($modules['schedule'] || $sem_class->isSlotMandatory("schedule")) 
                 && $sem_class->isModuleAllowed($sem_class->getSlotModule("schedule"))) {
