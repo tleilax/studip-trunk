@@ -16,17 +16,20 @@ class MessagesController extends AuthenticatedController {
     protected $number_of_displayed_messages = 50;
     protected $utf8decode_xhr = true;
 
-    function before_filter (&$action, &$args)
+    function before_filter(&$action, &$args)
     {
         parent::before_filter($action, $args);
 
         PageLayout::setTitle(_("Nachrichten"));
         PageLayout::setHelpKeyword("Basis.InteraktionNachrichten");
 
-        if (Request::isXhr()&& Request::isGet()) {
+        // The default body and/or subject passed via GET url parameters
+        // should not be utf8decoded and thus need to be restored in their
+        // pristine values
+        if (Request::isXhr() && Request::isGet()) {
             $request = Request::getInstance();
-            foreach(words('default_body default_subject') as $key) {
-                $request[$key] = Request::removeMagicQuotes($_GET[$key]);
+            foreach (words('default_body default_subject') as $key) {
+                $request[$key] = $_GET[$key];
             }
         }
     }
