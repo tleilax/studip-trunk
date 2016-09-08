@@ -25,8 +25,16 @@
             <tbody>
                 <? foreach ($memberships as $membership): ?>
                     <tr>
-                        <td><?= htmlReady($membership->course->veranstaltungsnummer) ?></td>
-                        <td><?= htmlReady($membership->course->getFullName('type-name')) ?></td>
+                        <td>
+                            <a href="<?= URLHelper::getLink('seminar_main.php', ['auswahl' => $course->id]) ?>">
+                                <?= htmlReady($membership->course->veranstaltungsnummer) ?>
+                            </a>
+                        </td>
+                        <td>
+                            <a href="<?= URLHelper::getLink('seminar_main.php', ['auswahl' => $course->id]) ?>">
+                                <?= htmlReady($membership->course->getFullName('type-name')) ?>
+                            </a>
+                        </td>
                         <td><?= htmlReady($membership->status) ?></td>
                         <td style="text-align: center"><?= htmlReady($membership->position) ?></td>
                     </tr>

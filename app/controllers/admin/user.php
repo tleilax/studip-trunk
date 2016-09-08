@@ -1024,7 +1024,11 @@ class Admin_UserController extends AuthenticatedController
         $this->redirect('admin/user/edit/' . $user_id);
     }
     
-    
+    /**
+     * Show user activities
+     * @param $user_id
+     * @throws Exception
+     */
     public function activities_action($user_id)
     {
         $this->user     = User::find($user_id);
@@ -1110,15 +1114,27 @@ class Admin_UserController extends AuthenticatedController
         }
     }
     
-    
-    public function list_files_action($user_id, $course_id)
+    /**
+     * List files for course or institute
+     * @param $user_id
+     * @param $course_id
+     */
+    public function list_files_action($user_id, $range_id)
     {
-        $this->user   = User::find($user_id);
-        $this->files  = StudipDocument::findBySQL('user_id = ? AND seminar_id = ? ORDER BY name', [$user_id, $course_id]);
-        $this->course = Course::find($course_id);
-        PageLayout::setTitle(sprintf(_('Dateiübersicht für %s'), $this->course->getFullname()));
+        $this->user  = User::find($user_id);
+        $this->files = StudipDocument::findBySQL('user_id = ? AND seminar_id = ? ORDER BY name', [$user_id, $range_id]);
+        
+        $this->range = Course::find($range_id);
+        if (is_null($this->range)) {
+            $this->range = Institute::find($range_id);
+        }
+        PageLayout::setTitle(sprintf(_('Dateiübersicht für %s'), $this->range->getFullname()));
     }
     
+    /**
+     * Show file details
+     * @param $file_id
+     */
     public function file_details_action($file_id)
     {
         $file        = StudipDocument::find($file_id);
@@ -1240,7 +1256,7 @@ class Admin_UserController extends AuthenticatedController
      * @param $user_id
      * @param string $course_id
      */
-    public function download_user_documents_action($user_id, $course_id = '')
+    public function download_user_files_action($user_id, $course_id = '')
     {
         $query      = "SELECT dokument_id FROM dokumente WHERE user_id = ?";
         $parameters = [$user_id];
@@ -1343,7 +1359,7 @@ class Admin_UserController extends AuthenticatedController
         
         if ($this->action == 'activities') {
             $user_actions->addLink(_('Alle Dateien als ZIP herunterladen'),
-                $this->url_for('admin/user/download_user_documents/' . $this->user['user_id']),
+                $this->url_for('admin/user/download_user_files/' . $this->user['user_id']),
                 Icon::create('folder-full', 'clickable'));
         }
         
@@ -1361,9 +1377,6 @@ class Admin_UserController extends AuthenticatedController
             Icon::create('person', 'clickable'));
         
         if ($GLOBALS['perm']->have_perm('root')) {
-            $views->addLink(_('Datei- und Aktivitätsübersicht'),
-                URLHelper::getLink('user_activities.php?username=' . $this->user['username']),
-                Icon::create('vcard', 'clickable'));
             $views->addLink(_('Datei- und Aktivitätsübersicht'),
                 $this->url_for('admin/user/activities/' . $this->user['user_id']),
                 Icon::create('vcard', 'clickable'))

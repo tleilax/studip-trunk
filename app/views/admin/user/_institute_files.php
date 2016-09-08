@@ -6,7 +6,7 @@
             </a>
         </h1>
     </header>
-    
+
     <section>
         <table class="default">
             <colgroup>
@@ -39,15 +39,14 @@
                                 <?
                                 $actionMenu = ActionMenu::get();
                                 $actionMenu->addLink($controller->url_for('admin/user/list_files/' . $user['user_id'] . '/' . $institute['Institut_id']),
-                                    _('Dateien auflisten'),
-                                    Icon::create('folder-full', 'clickable'),
-                                    ['data-dialog' => 'size=50%']);
-                                $actionMenu->addLink($controller->url_for('admin/user/download/' . $institute['Institut_id']),
-                                    _('Dateien als ZIP herunterladen'),
-                                    Icon::create('download', 'clickable'));
-                                
+                                        _('Dateien auflisten'),
+                                        Icon::create('folder-full', 'clickable'),
+                                        ['data-dialog' => 'size=50%']);
+                                $actionMenu->addLink($controller->url_for('admin/user/download_user_files/' . $user['user_id'] . '/' . $institute['Institut_id']),
+                                        _('Dateien als ZIP herunterladen'),
+                                        Icon::create('download', 'clickable'));
+
                                 ?>
-                                
                                 <?= $actionMenu->render() ?>
                             <? endif ?>
                         </td>

@@ -41,19 +41,19 @@
                                 <?
                                 $actionMenu = ActionMenu::get();
                                 $actionMenu->addLink($controller->url_for('admin/user/list_files/' . $user['user_id'] . '/' . $data['course']->id),
-                                    _('Dateien auflisten'),
-                                    Icon::create('folder-full', 'clickable'),
-                                    ['data-dialog' => 'size=50%']);
-                                $actionMenu->addLink($controller->url_for('admin/user/download/' . $data['course']->id),
-                                    _('Dateien als ZIP herunterladen'),
-                                    Icon::create('download', 'clickable'));
-                                
+                                        _('Dateien auflisten'),
+                                        Icon::create('folder-full', 'clickable'),
+                                        ['data-dialog' => 'size=50%']);
+                                $actionMenu->addLink($controller->url_for('admin/user/download_user_files/' . $user['user_id'] . '/' . $data['course']->id),
+                                        _('Dateien als ZIP herunterladen'),
+                                        Icon::create('download', 'clickable'));
+
                                 ?>
-                                
+
                                 <?= $actionMenu->render() ?>
                             <? endif ?>
                         </td>
-                    
+
                     </tr>
                 <? endforeach; ?>
             </tbody>
