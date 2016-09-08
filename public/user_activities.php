@@ -286,7 +286,7 @@ foreach ($queries as $index => $query) {
 $details = false;
 if ($_SESSION['_user_activities']['details'] == 'files') {
     $files = array();
-
+    
     // Seminar
     $query = "SELECT s.Seminar_id AS id, seminar_user.status, IF(s.visible = 0,CONCAT(s.Name, ' ', :hidden), s.Name) AS Name,
                      COUNT(dokument_id) AS numdok, sd1.name AS startsem, IF(s.duration_time = -1, :unlimited, sd2.name) AS endsem
