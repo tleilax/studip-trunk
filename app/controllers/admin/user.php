@@ -70,10 +70,12 @@ class Admin_UserController extends AuthenticatedController
             $request = $_SESSION['admin']['user'];
         }
         
-        // Inaktivität für die suche anpassen
-        $inaktiv = [$request['inaktiv'], $request['inaktiv_tage']];
-        if (empty($request['inaktiv_tage']) && $request['inaktiv'] != 'nie') {
-            $inaktiv = null;
+        if (!empty($request)) {
+            // Inaktivität für die suche anpassen
+            $inaktiv = [$request['inaktiv'], $request['inaktiv_tage']];
+            if (empty($request['inaktiv_tage']) && $request['inaktiv'] != 'nie') {
+                $inaktiv = null;
+            }
         }
         
         //Datafields
@@ -85,7 +87,7 @@ class Admin_UserController extends AuthenticatedController
         }
         
         //wenn suche durchgeführt
-        if (isset($request)) {
+        if (!empty($request)) {
             //suche mit datafields
             foreach ($this->datafields as $datafield) {
                 if (strlen($request[$datafield->id]) > 0
@@ -154,7 +156,12 @@ class Admin_UserController extends AuthenticatedController
         $this->available_auth_plugins = UserModel::getAvailableAuthPlugins();
         
         //show datafields search
-        if ($advanced || $request['auth_plugins'] || $request['userdomains'] || $request['degree'] || $request['institute'] || $request['studycourse'] || count($search_datafields) > 0) {
+        if ($advanced
+            || count($search_datafields) > 0
+            || (!empty($request)
+                && ($request['auth_plugins'] || $request['userdomains'] || $request['degree'] || $request['institute'] || $request['studycourse'])
+            )
+        ) {
             $this->advanced = true;
         }
     }
@@ -1031,42 +1038,76 @@ class Admin_UserController extends AuthenticatedController
         
         
         $this->queries = $this->getActivities($user_id);
+        $memberships   = CourseMember::findByUser($user_id);
         
-        // get course documents
-        $courses    = [];
-        $files      = StudipDocument::findByUser_id($user_id);
-        $institutes = [];
-        if (count($files)) {
-            foreach ($files as $file) {
-                if (!is_null($file->institute)) {
-                    if (!isset($institutes[$file->course->id])) {
-                        $institutes[$file->institute->id]['institute'] = $file->institute;
-                    }
-                    $institutes[$file->seminar_id]['files'] = $file;
-                    continue;
+        $courses        = [];
+        $course_files   = [];
+        $closed_courses = [];
+        $this->sections = [];
+        
+        foreach ($memberships as $membership) {
+            // count files for course
+            $count = StudipDocument::countBySql('user_id = ? AND seminar_id =?', [$user_id, $membership->seminar_id]);
+            
+            if ($count) {
+                if (!isset($course_files[$membership->seminar_id])) {
+                    $course_files[$membership->course->id]['course'] = $membership->course;
                 }
+                $course_files[$membership->course->id]['files'] = $count;
+            }
+            // check for closed courses
+            $closed_course
+                = $closed_course = DBManager::get()->fetchColumn('SELECT COUNT(sc.seminar_id) FROM seminar_courseset sc 
+                  INNER JOIN courseset_rule cr ON cr.set_id=sc.set_id AND cr.type="ParticipantRestrictedAdmission" 
+                  WHERE sc.seminar_id =?', [$membership->seminar_id]);
+            
+            if ((int)$closed_course) {
+                $closed_courses[$membership->course->id] = $membership;
+            } else {
+                $courses[$membership->course->id] = $membership;
+            }
+        }
+        
+        $institutes = Institute::getMyInstitutes($user_id);
+        if (!empty($institutes)) {
+            foreach ($institutes as $index => $institute) {
+                $count = StudipDocument::countBySql('user_id = ? AND seminar_id =?', [$user_id, $institute['Institut_id']]);
                 
-                if (!is_null($file->course)) {
-                    if (!isset($courses[$file->course->id])) {
-                        $courses[$file->course->id]['course'] = $file->course;
-                    }
-                    $courses[$file->course->id]['files'][$file->id] = $file;
-                    continue;
+                if ($count) {
+                    $institutes[$index]['files'] = $count;
+                } else {
+                    unset($institutes[$index]);
                 }
             }
         }
-        $this->institutes = $institutes;
-        $this->courses    = $courses;
         
-        /**
-         * SELECT i.Institut_id AS id, inst_perms AS status, i.Name, COUNT(dokument_id) AS numdok
-         * FROM dokumente d
-         * INNER JOIN Institute i ON (i.Institut_id = d.seminar_id)
-         * LEFT JOIN user_inst  ON (d.seminar_id = user_inst.institut_id AND user_inst.user_id = :user_id)
-         * WHERE d.user_id = :user_id
-         * GROUP BY i.Institut_id
-         * ORDER BY numdok DESC
-         */
+        
+        if (!empty($course_files)) {
+            $this->sections['course_files'] = $course_files;
+        }
+        if (!empty($institutes)) {
+            $this->sections['institutes'] = $institutes;
+        }
+        if (!empty($courses)) {
+            $this->sections['courses'] = $courses;
+        }
+        if (!empty($courses)) {
+            $this->sections['closed_courses'] = $closed_courses;
+        }
+        
+        // waiting list
+        $seminar_wait = AdmissionApplication::findByUser($user_id);
+        
+        if (count($seminar_wait)) {
+            $this->sections['seminar_wait'] = $seminar_wait;
+        }
+        
+        // priorities
+        $priorities = DBManager::get()->fetchAll('SELECT * FROM `priorities` WHERE `user_id` = ?', [$user_id]);
+        
+        if (!empty($priorities)) {
+            $this->sections['priorities'] = $priorities;
+        }
     }
     
     
@@ -1194,6 +1235,11 @@ class Admin_UserController extends AuthenticatedController
     }
     
     
+    /**
+     * Download documents
+     * @param $user_id
+     * @param string $course_id
+     */
     public function download_user_documents_action($user_id, $course_id = '')
     {
         $query      = "SELECT dokument_id FROM dokumente WHERE user_id = ?";
@@ -1220,6 +1266,9 @@ class Admin_UserController extends AuthenticatedController
         
     }
     
+    /**
+     * Init sidebar
+     */
     public function addSidebar()
     {
         $sidebar = Sidebar::Get();

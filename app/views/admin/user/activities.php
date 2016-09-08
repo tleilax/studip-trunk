@@ -13,13 +13,6 @@
                 <td <? if (!$query['value']) echo 'style="color:#888;"'; ?>>
                     <?= htmlReady($query['value']) ?>
                 </td>
-                <td width="1%">
-                    <? if ($query['details']): ?>
-                        <a href="<?= URLHelper::getLink('?' . $query['details']) ?>">
-                            <?= Icon::create('infopage', 'clickable', ['title' => _('Details anzeigen')])->asImg() ?>
-                        </a>
-                    <? endif; ?>
-                </td>
             </tr>
         <? endforeach; ?>
     </table>
