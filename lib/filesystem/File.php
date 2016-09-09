@@ -82,11 +82,14 @@ class File extends SimpleORMap
     {
         $newpath = $this->getPath();
 
+        if (!is_dir(pathinfo($newpath, PATHINFO_DIRNAME))) {
+            mkdir(pathinfo($newpath, PATHINFO_DIRNAME));
+        }
         if (is_uploaded_file($path_to_file)) {
-            if (!@move_uploaded_file($path_to_file, $newpath)) {
+            if (!move_uploaded_file($path_to_file, $newpath)) {
                 return false;
             }
-        } else if (!@copy($path_to_file, $newpath)) {
+        } else if (!copy($path_to_file, $newpath)) {
             return false;
         }
         return true;

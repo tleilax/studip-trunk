@@ -70,14 +70,14 @@ class Moadb extends Migration
 
         //top folder courses
         $institute_folders = array();
-        foreach ($db->query("SELECT i.institut_id as range_id,i.name FROM `folder` f INNER JOIN `Institute` i ON i.institut_id = f.range_id OR MD5(CONCAT(i.institut_id, 'top_folder')) = f.range_id group by i.institut_id") as $folder) {
+        foreach ($db->query("SELECT i.institut_id as new_range_id,i.name FROM `folder` f INNER JOIN `Institute` i ON i.institut_id = f.range_id OR MD5(CONCAT(i.institut_id, 'top_folder')) = f.range_id group by i.institut_id") as $folder) {
             $folder['folder_id'] = md5(uniqid('folders', true));
-            $folder['parent_id'] = '';
+            $folder['range_id'] = '';
             $folder['user_id'] = $GLOBALS['user']->id;
             $folder['description'] = 'virtual top folder';
             $folder['mkdate'] = $folder['chdate'] = time();
-            $this->migrateFolder($folder, $folder['range_id'], 'institute', 'StandardFolder');
-            $institute_folders[$folder['range_id']] = $folder['folder_id'];
+            $this->migrateFolder($folder, $folder['new_range_id'], 'institute', 'StandardFolder');
+            $institute_folders[$folder['new_range_id']] = $folder['folder_id'];
         }
         //aka Allgemeiner Dateiordner
         foreach ($db->query("SELECT f.*, i.institut_id as seminar_id FROM `folder` f INNER JOIN `Institute` i ON i.institut_id = f.range_id") as $folder) {
@@ -100,14 +100,14 @@ class Moadb extends Migration
             $this->migrateFolder($folder, $folder['seminar_id'], 'user', 'StandardFolder');
         }
         $seminar_folders = array();
-        foreach ($db->query("SELECT s.seminar_id as range_id,s.name FROM `folder` f INNER JOIN `seminare` s ON s.Seminar_id = f.range_id OR MD5(CONCAT(s.Seminar_id, 'top_folder')) = f.range_id group by s.Seminar_id") as $folder) {
+        foreach ($db->query("SELECT s.seminar_id as new_range_id,s.name FROM `folder` f INNER JOIN `seminare` s ON s.Seminar_id = f.range_id OR MD5(CONCAT(s.Seminar_id, 'top_folder')) = f.range_id group by s.Seminar_id") as $folder) {
             $folder['folder_id'] = md5(uniqid('folders', true));
-            $folder['parent_id'] = '';
+            $folder['range_id'] = '';
             $folder['user_id'] = $GLOBALS['user']->id;
             $folder['description'] = 'virtual top folder';
             $folder['mkdate'] = $folder['chdate'] = time();
-            $this->migrateFolder($folder, $folder['range_id'], 'course', 'StandardFolder');
-            $seminar_folders[$folder['range_id']] = $folder['folder_id'];
+            $this->migrateFolder($folder, $folder['new_range_id'], 'course', 'StandardFolder');
+            $seminar_folders[$folder['new_range_id']] = $folder['folder_id'];
         }
         //aka Allgemeiner Dateiordner
         foreach ($db->query("SELECT f.*, s.Seminar_id as seminar_id FROM `folder` f INNER JOIN `seminare` s ON s.Seminar_id = f.range_id") as $folder) {

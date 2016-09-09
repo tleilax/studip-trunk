@@ -43,4 +43,45 @@ class FileRef extends SimpleORMap
             File::deleteBySQL("id = ?", $this->file_id);
         }
     }
+
+    public function getDownloadURL($dltype = 'normal')
+    {
+        $mode = Config::get()->SENDFILE_LINK_MODE ?: 'normal';
+        $link = array();
+        $type = '0';
+        $file_name = $this->file->name;
+        $file_id = $this->id;
+        switch($mode) {
+            case 'rewrite':
+                $link[] = 'download/';
+                switch ($dltype) {
+                    case 'zip':
+                        $link[] = 'zip/';
+                        break;
+                    case 'force':
+                    case 'force_download':
+                        $link[] = 'force_download/';
+                        break;
+                    case 'normal':
+                    default:
+                        $link[] = 'normal/';
+                }
+                $link[] = $type . '/';
+                $link[] = '/' . $file_name;
+                break;
+
+            case 'normal':
+            default:
+                $link[] = 'sendfile.php?';
+                if ($dltype == 'zip'){
+                    $link[] = 'zip=1&';
+                } elseif ($dltype == 'force_download' || $dltype == 'force') {
+                    $link[] = 'force_download=1&';
+                }
+                $link[] = 'type='.$type;
+                $link[] = '&file_id=' . $file_id;
+                $link[] = '&file_name=' . $file_name;
+        }
+        return URLHelper::getScriptURL(implode('', $link));
+    }
 }

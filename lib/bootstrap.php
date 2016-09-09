@@ -54,7 +54,7 @@ namespace {
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/classes/sidebar');
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/classes/visibility');
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/classes/coursewizardsteps');
-
+    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/filesystem');
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/calendar');
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/exceptions');
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/files');
@@ -196,7 +196,7 @@ namespace {
 
     // Add paths to autoloader that were defined in config_local.inc.php and
     // may be optional
-    
+
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/' . $GLOBALS['RELATIVE_PATH_RESOURCES'] . '/lib');
     require_once $GLOBALS['RELATIVE_PATH_RESOURCES'] . '/resourcesFunc.inc.php';
     require_once $GLOBALS['RELATIVE_PATH_RESOURCES'] . '/lib/list_assign.inc.php';

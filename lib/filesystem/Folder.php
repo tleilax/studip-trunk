@@ -54,6 +54,8 @@ class Folder extends SimpleORMap
             'class_name' => 'Message',
             'foreign_key' => 'range_id',
         );
+        $config['serialized_fields']['data_content'] = 'JSONArrayObject';
+
         $config['notification_map']['after_create'] = 'FolderDidCreate';
         $config['notification_map']['after_store'] = 'FolderDidUpdate';
         $config['notification_map']['before_create'] = 'FolderWillCreate';
@@ -63,10 +65,31 @@ class Folder extends SimpleORMap
         parent::configure($config);
     }
 
+    public static function createTopFolder($range_id, $range_type)
+    {
+        $data = [
+            'parent_id' => '',
+            'range_id' => $range_id,
+            'range_type' => $range_type,
+            'description' => 'virtual top folder',
+            'name' => '',
+            'data_content' => '',
+            'folder_type' => 'StandardFolder'
+        ];
+        return self::create($data);
+    }
+
+    public static function findTopFolder($range_id)
+    {
+        return self::findOneBySQL("range_id = ? AND parent_id=''", [$range_id]);
+    }
 
     public function getTypedFolder()
     {
-
+        if (class_exists($this->folder_type)) {
+            return new $this->folder_type($this);
+        }
+        throw new InvalidValuesException('class: ' . $this->folder_type . ' not found');
     }
 
     public function linkFile($file_or_id, $description = '', $license = 'UnknownLicense')
@@ -89,6 +112,23 @@ class Folder extends SimpleORMap
         return $fileref->delete();
     }
 
+    public function getParents() {
+        $path = array();
+        $current = $this;
+        while ($current) {
+                $path[] = $current;
+            if (!$current->parent_id) {
+                break;
+            }
+            $current = $current->parentfolder;
+        }
+        $path = array_reverse($path);
+        return $path;
+    }
 
+    public function getPath($delimiter = '/')
+    {
+        return join($delimiter, SimpleCollection::createFromArray($this->getParents())->pluck('name'));
+    }
 
 }
