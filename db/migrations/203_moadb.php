@@ -2,6 +2,13 @@
 /**
  * @author  André Noack <noack@data-quest.de>
  * @license GPL2 or any later version
+ *
+*/
+/*
+truncate table folders;
+truncate table files;
+truncate table file_refs;
+truncate table file_urls;
 */
 class Moadb extends Migration
 {
@@ -61,13 +68,68 @@ class Moadb extends Migration
                 ) ENGINE=InnoDB");
 
 
-        foreach ($db->query("SELECT f.*, s.Seminar_id as seminar_id FROM `folder` f INNER JOIN `seminare` s ON s.Seminar_id = f.range_id") as $folder) {
-            $folder['range_id'] = $folder['folder_id'];
-            $this->migrateFolder($folder, $folder['seminar_id'], 'sem', 'StandardFolder');
+        //top folder courses
+        $institute_folders = array();
+        foreach ($db->query("SELECT i.institut_id as range_id,i.name FROM `folder` f INNER JOIN `Institute` i ON i.institut_id = f.range_id OR MD5(CONCAT(i.institut_id, 'top_folder')) = f.range_id group by i.institut_id") as $folder) {
+            $folder['folder_id'] = md5(uniqid('folders', true));
+            $folder['parent_id'] = '';
+            $folder['user_id'] = $GLOBALS['user']->id;
+            $folder['description'] = 'virtual top folder';
+            $folder['mkdate'] = $folder['chdate'] = time();
+            $this->migrateFolder($folder, $folder['range_id'], 'institute', 'StandardFolder');
+            $institute_folders[$folder['range_id']] = $folder['folder_id'];
         }
+        //aka Allgemeiner Dateiordner
+        foreach ($db->query("SELECT f.*, i.institut_id as seminar_id FROM `folder` f INNER JOIN `Institute` i ON i.institut_id = f.range_id") as $folder) {
+            $folder['range_id'] = $institute_folders[$folder['seminar_id']];
+            $this->migrateFolder($folder, $folder['seminar_id'], 'institute', 'StandardFolder');
+        }
+        //other top folders
+        foreach ($db->query("SELECT f.*, i.institut_id as seminar_id FROM `folder` f INNER JOIN `Institute` i ON MD5(CONCAT(i.institut_id, 'top_folder')) = f.range_id") as $folder) {
+            $folder['range_id'] = $institute_folders[$folder['seminar_id']];
+            $this->migrateFolder($folder, $folder['seminar_id'], 'institute', 'StandardFolder');
+        }
+        unset($institute_folders);
+        //Blubber folders
+        foreach ($db->query("SELECT f.*, a.user_id AS seminar_id, CONCAT_WS(' ', vorname,nachname) as name
+                            FROM `folder` f
+                            INNER JOIN `auth_user_md5` a ON a.user_id = f.range_id") as $folder) {
+            $folder['range_id'] = '';
+            $folder['description'] = 'virtual top folder';
+            $folder['name'] = 'virtual top folder';
+            $this->migrateFolder($folder, $folder['seminar_id'], 'user', 'StandardFolder');
+        }
+        $seminar_folders = array();
+        foreach ($db->query("SELECT s.seminar_id as range_id,s.name FROM `folder` f INNER JOIN `seminare` s ON s.Seminar_id = f.range_id OR MD5(CONCAT(s.Seminar_id, 'top_folder')) = f.range_id group by s.Seminar_id") as $folder) {
+            $folder['folder_id'] = md5(uniqid('folders', true));
+            $folder['parent_id'] = '';
+            $folder['user_id'] = $GLOBALS['user']->id;
+            $folder['description'] = 'virtual top folder';
+            $folder['mkdate'] = $folder['chdate'] = time();
+            $this->migrateFolder($folder, $folder['range_id'], 'course', 'StandardFolder');
+            $seminar_folders[$folder['range_id']] = $folder['folder_id'];
+        }
+        //aka Allgemeiner Dateiordner
+        foreach ($db->query("SELECT f.*, s.Seminar_id as seminar_id FROM `folder` f INNER JOIN `seminare` s ON s.Seminar_id = f.range_id") as $folder) {
+            $folder['range_id'] = $seminar_folders[$folder['seminar_id']];
+            $this->migrateFolder($folder, $folder['seminar_id'], 'course', 'StandardFolder');
+        }
+        //other top folders
         foreach ($db->query("SELECT f.*, s.Seminar_id as seminar_id FROM `folder` f INNER JOIN `seminare` s ON MD5(CONCAT(s.Seminar_id, 'top_folder')) = f.range_id") as $folder) {
-            $folder['range_id'] = $folder['folder_id'];
-            $this->migrateFolder($folder, $folder['seminar_id'], 'sem', 'StandardFolder');
+            $folder['range_id'] = $seminar_folders[$folder['seminar_id']];
+            if (!$folder['range_id'] ) throw new Exception($folder['seminar_id']);
+            $this->migrateFolder($folder, $folder['seminar_id'], 'course', 'StandardFolder');
+        }
+
+        //group folder
+        foreach ($db->query("SELECT f.*, s.range_id AS seminar_id FROM `folder` f INNER JOIN `statusgruppen` s ON s.statusgruppe_id = f.range_id") as $folder) {
+            $folder['range_id'] = $seminar_folders[$folder['seminar_id']];
+            $this->migrateFolder($folder, $folder['seminar_id'], 'coursegroup', 'CourseGroupFolder');
+        }
+        //issue folder
+        foreach ($db->query("SELECT f.*, t.seminar_id AS seminar_id FROM `folder` f INNER JOIN `themen` t ON t.issue_id = f.range_id") as $folder) {
+            $folder['range_id'] = $seminar_folders[$folder['seminar_id']];
+            $this->migrateFolder($folder, $folder['seminar_id'], 'coursetopic', 'CourseTopicFolder');
         }
 
     }
@@ -77,7 +139,7 @@ class Moadb extends Migration
         $db = DBManager::get();
         $insert_folder = $db->prepare("INSERT INTO `folders` (`id`, `user_id`, `parent_id`, `range_id`, `range_type`, `folder_type`, `name`, `data_content`, `description`, `mkdate`, `chdate`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
-        $insert_folder->execute(array($folder['folder_id'], $folder['user_id'], $folder['range_id'], $range_id, $range_type, $folder_type, $folder['name'], '', (string)$folder['description'], $folder['mkdate'], $folder['chdate']));
+        $insert_folder->execute(array($folder['folder_id'], $folder['user_id'], $folder['range_id'], $range_id, $range_type, $folder_type, $folder['name'], isset($folder['permission']) && $folder['permission'] != 7 ? json_encode(['permission' => $folder['permission']]): '', (string)$folder['description'], $folder['mkdate'], $folder['chdate']));
         $subfolders = $db->fetchAll("SELECT * FROM folder WHERE range_id = ?", array($folder['folder_id']));
         foreach ($subfolders as $one) {
             $this->migrateFolder($one, $range_id, $range_type, $folder_type);
