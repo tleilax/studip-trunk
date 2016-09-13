@@ -104,14 +104,18 @@ class Admin_UserController extends AuthenticatedController
             if (Request::int('toggle')) {
                 $this->order = $this->order == 'desc' ? 'asc' : 'desc';
             }
-            $request['vorname']  = ($request['vorname']) ? $request['vorname'] : null;
-            $request['nachname'] = ($request['nachname']) ? $request['nachname'] : null;
+            
+            $request['vorname']    = ($request['vorname']) ? $request['vorname'] : null;
+            $request['nachname']   = ($request['nachname']) ? $request['nachname'] : null;
+            $request['inaktiv']    = $inaktiv;
+            $request['datafields'] = $search_datafields;
+            $request['sort']       = $this->sortby;
+            $request['order']      = $this->order;
+            
             
             //Daten abrufen
-            $this->users = UserModel::getUsers($request['username'], $request['vorname'],
-                $request['nachname'], $request['email'], $inaktiv, $request['perm'],
-                $request['locked'], $search_datafields, $request['userdomains'], $request['auth_plugins'],
-                $this->sortby, $this->order, $request['degree'], $request['studycourse'], $request['institute']);
+            $this->users = User::search($request);
+            
             
             // Fehler abfangen
             if ($this->users === 0) {
@@ -153,7 +157,7 @@ class Admin_UserController extends AuthenticatedController
         $this->studycourses           = Fach::findBySQL('1 order by name');
         $this->userdomains            = UserDomain::getUserDomains();
         $this->institutes             = Institute::getInstitutes();
-        $this->available_auth_plugins = UserModel::getAvailableAuthPlugins();
+        $this->available_auth_plugins = User::getAvailableAuthPlugins();
         
         //show datafields search
         if ($advanced
@@ -176,10 +180,10 @@ class Admin_UserController extends AuthenticatedController
     {
         //deleting one user
         if (!is_null($user_id)) {
-            $user = UserModel::getUser($user_id);
+            $user = User::find($user_id);
             
             //check user
-            if (empty($user)) {
+            if (!count($user)) {
                 PageLayout::postError(_('Fehler! Zu löschende Person ist nicht vorhanden.'));
                 //antwort ja
             } elseif (!empty($user) && Request::submitted('delete')) {
@@ -201,10 +205,10 @@ class Admin_UserController extends AuthenticatedController
                 //delete
                 if ($umanager->deleteUser(Request::option('documents', false))) {
                     $details = explode('§', str_replace(['msg§', 'info§', 'error§'], '', substr($umanager->msg, 0, -1)));
-                    PageLayout::postSuccess(htmlReady(sprintf(_('"%s %s (%s)" wurde erfolgreich gelöscht.'), $user['Vorname'], $user['Nachname'], $user['username'])), $details);
+                    PageLayout::postSuccess(htmlReady(sprintf(_('"%s (%s)" wurde erfolgreich gelöscht.'), $user->getFullName(), $user->username)), $details);
                 } else {
                     $details = explode('§', str_replace(['msg§', 'info§', 'error§'], '', substr($umanager->msg, 0, -1)));
-                    PageLayout::postError(htmlReady(sprintf(_('Fehler! "%s %s (%s)" konnte nicht gelöscht werden.'), $user['Vorname'], $user['Nachname'], $user['username'])), $details);
+                    PageLayout::postError(htmlReady(sprintf(_('Fehler! "%s (%s)" konnte nicht gelöscht werden.'), $user->getFullName(), $user->username)), $details);
                 }
                 
                 //reavtivate messages
@@ -216,7 +220,7 @@ class Admin_UserController extends AuthenticatedController
             } elseif (!empty($user) && !Request::submitted('back')) {
                 
                 $this->flash['delete'] = [
-                    'question' => sprintf(_('Wollen Sie "%s %s (%s)" wirklich löschen?'), $user['Vorname'], $user['Nachname'], $user['username']),
+                    'question' => sprintf(_('Wollen Sie "%s (%s)" wirklich löschen?'), $user->getFullName(), $user->username),
                     'action'   => ($parent != '') ? $this->url_for('admin/user/delete/' . $user_id . '/' . $parent) : $this->url_for('admin/user/delete/' . $user_id),
                 ];
             }
@@ -232,7 +236,6 @@ class Admin_UserController extends AuthenticatedController
             }
             
             if (Request::submitted('delete')) {
-                
                 CSRFProtection::verifyUnsafeRequest();
                 
                 //deactivate message
@@ -243,7 +246,7 @@ class Admin_UserController extends AuthenticatedController
                 }
                 
                 foreach ($user_ids as $i => $user_id) {
-                    $users[$i] = UserModel::getUser($user_id);
+                    $users[$i] = User::find($user_id);
                     //preparing delete
                     $umanager = new UserManagement();
                     $umanager->getFromDatabase($user_id);
@@ -251,16 +254,10 @@ class Admin_UserController extends AuthenticatedController
                     //delete
                     if ($umanager->deleteUser(Request::option('documents', false))) {
                         $details = explode('§', str_replace(['msg§', 'info§', 'error§'], '', substr($umanager->msg, 0, -1)));
-                        PageLayout::postSuccess(htmlReady(sprintf(_('"%s %s (%s)" wurde erfolgreich gelöscht'),
-                            $users[$i]['Vorname'],
-                            $users[$i]['Nachname'],
-                            $users[$i]['username'])), $details);
+                        PageLayout::postSuccess(htmlReady(sprintf(_('"%s (%s)" wurde erfolgreich gelöscht'), $users[$i]->getFullName(), $users[$i]->username)), $details);
                     } else {
                         $details = explode('§', str_replace(['msg§', 'info§', 'error§'], '', substr($umanager->msg, 0, -1)));
-                        PageLayout::postError(htmlReady(sprintf(_('Fehler! "%s %s (%s)" konnte nicht gelöscht werden'),
-                            $users[$i]['Vorname'],
-                            $users[$i]['Nachname'],
-                            $users[$i]['username'])), $details);
+                        PageLayout::postError(htmlReady(sprintf(_('Fehler! "%s (%s)" konnte nicht gelöscht werden'), $users[$i]->getFullName(), $users[$i]->username)), $details);
                     }
                 }
                 
@@ -271,14 +268,10 @@ class Admin_UserController extends AuthenticatedController
                 
                 //sicherheitsabfrage
             } elseif (!Request::submitted('back')) {
-                $users = [];
-                foreach ($user_ids as $user_id) {
-                    $users[] = UserModel::getUser($user_id);
-                }
                 $this->flash['delete'] = [
                     'question' => _('Wollen Sie folgende Personen wirklich löschen?'),
                     'action'   => $this->url_for('admin/user/delete'),
-                    'users'    => $users,
+                    'users'    => $user_ids,
                 ];
             }
         }
@@ -299,7 +292,7 @@ class Admin_UserController extends AuthenticatedController
      */
     public function edit_action($user_id = null)
     {
-        global $perm, $auth;
+        global $auth;
         
         //check submitted user_id
         if (is_null($user_id)) {
@@ -314,7 +307,7 @@ class Admin_UserController extends AuthenticatedController
         }
         
         //get user
-        $this->user = UserModel::getUser($user_id, null, true);
+        $this->user = User::find($user_id);
         
         // Änderungen speichern
         if (Request::submitted('edit')) {
@@ -349,7 +342,7 @@ class Admin_UserController extends AuthenticatedController
             }
             
             //change password
-            if (($perm->have_perm('root') && Config::get()->ALLOW_ADMIN_USERACCESS) && (Request::get('pass_1') != '' || Request::get('pass_2') != '')) {
+            if (($GLOBALS['perm']->have_perm('root') && Config::get()->ALLOW_ADMIN_USERACCESS) && (Request::get('pass_1') != '' || Request::get('pass_2') != '')) {
                 if (Request::get('pass_1') == Request::get('pass_2')) {
                     if (strlen(Request::get('pass_1')) < 4) {
                         $details[] = _("Das Passwort ist zu kurz. Es sollte mindestens 4 Zeichen lang sein.");
@@ -436,7 +429,7 @@ class Admin_UserController extends AuthenticatedController
                 && $GLOBALS['perm']->have_studip_perm("admin", Request::option('new_student_inst'))
             ) {
                 StudipLog::log('INST_USER_ADD', Request::option('new_student_inst'), $user_id, 'user');
-                $db = DbManager::get()->prepare("INSERT IGNORE INTO user_inst (user_id, Institut_id, inst_perms) "
+                $db = DBManager::get()->prepare("INSERT IGNORE INTO user_inst (user_id, Institut_id, inst_perms) "
                                                 . "VALUES (?,?,'user')");
                 $db->execute([$user_id, Request::option('new_student_inst')]);
                 NotificationCenter::postNotification('UserInstitutionDidCreate', Request::option('new_student_inst'), $user_id);
@@ -450,7 +443,7 @@ class Admin_UserController extends AuthenticatedController
                 && $GLOBALS['perm']->have_studip_perm("admin", Request::option('new_inst'))
             ) {
                 StudipLog::log('INST_USER_ADD', Request::option('new_inst'), $user_id, $editPerms[0]);
-                $db = DbManager::get()->prepare("REPLACE INTO user_inst (user_id, Institut_id, inst_perms) "
+                $db = DBManager::get()->prepare("REPLACE INTO user_inst (user_id, Institut_id, inst_perms) "
                                                 . "VALUES (?,?,?)");
                 $db->execute([$user_id, Request::option('new_inst'), $editPerms[0]]);
                 NotificationCenter::postNotification('UserInstitutionDidUpdate', Request::option('new_inst'), $user_id);
@@ -499,8 +492,8 @@ class Admin_UserController extends AuthenticatedController
                 }
             }
             
-            if ($perm->have_perm('root') && Request::get('lock_rule')) {
-                $st = DbManager::get()->prepare("UPDATE user_info SET lock_rule=? WHERE user_id=?");
+            if ($GLOBALS['perm']->have_perm('root') && Request::get('lock_rule')) {
+                $st = DBManager::get()->prepare("UPDATE user_info SET lock_rule=? WHERE user_id=?");
                 $st->execute([(Request::option('lock_rule') == 'none' ? '' : Request::option('lock_rule')), $user_id]);
                 if ($st->rowCount()) {
                     $details[] = _("Die Sperrebene wurde geändert.");
@@ -527,26 +520,37 @@ class Admin_UserController extends AuthenticatedController
             $this->redirect('admin/user/edit/' . $user_id);
         }
         
-        //get user informations
-        $this->user   = UserModel::getUser($user_id, null, true);
-        $this->perm   = $perm;
-        $this->prelim = $this->user['auth_plugin'] == 'preliminary';
+        
+        $this->prelim = $this->user->auth_plugin == 'preliminary';
         if ($this->prelim) {
             $this->available_auth_plugins['preliminary'] = _("vorläufig");
         }
         foreach ($GLOBALS['STUDIP_AUTH_PLUGIN'] as $ap) {
             $this->available_auth_plugins[strtolower($ap)] = $ap;
         }
-        $this->about                = new about($this->user['username'], '');
-        $this->studycourses         = UserModel::getUserStudycourse($user_id);
-        $this->student_institutes   = UserModel::getUserInstitute($user_id, true);
-        $this->institutes           = UserModel::getUserInstitute($user_id);
-        $this->available_institutes = Institute::getMyInstitutes();
-        $this->userfields           = DataFieldEntry::getDataFieldEntries($user_id, 'user');
-        $this->userdomains          = UserDomain::getUserDomainsForUser($user_id);
+        
+        if (count($this->user->institute_memberships)) {
+            $this->student_institutes = $this->user->institute_memberships->filter(function ($a) {
+                return $a->inst_perms == 'user';
+            });
+            $this->institutes         = $this->user->institute_memberships->filter(function ($a) {
+                return $a->inst_perms != 'user';
+            });
+        }
+        
+        $this->available_auth_plugins = User::getAvailableAuthPlugins();
+        $this->available_institutes   = Institute::getMyInstitutes();
+        $this->userfields             = DataFieldEntry::getDataFieldEntries($user_id, 'user');
+        $this->userdomains            = UserDomain::getUserDomainsForUser($user_id);
         if (LockRules::CheckLockRulePermission($user_id) && LockRules::getObjectRule($user_id)->description) {
             PageLayout::postMessage(MessageBox::info(formatLinks(LockRules::getObjectRule($user_id)->description)));
         }
+        
+        $user_domains      = UserDomain::getUserDomainsForUser($this->user->user_id);
+        $all_domains       = UserDomain::getUserDomains();
+        $this->domains     = array_diff($all_domains, $user_domains);
+        $this->faecher     = Fach::findBySQL('1 ORDER BY name');
+        $this->abschluesse = Abschluss::findBySQL('1 ORDER BY name');
     }
     
     /*
@@ -813,9 +817,9 @@ class Admin_UserController extends AuthenticatedController
             $new_id = Request::option('new_id');
             
             //check existing users
-            if (UserModel::check($old_id) && UserModel::check($new_id)) {
+            if (User::exists($old_id) && User::exists($new_id)) {
                 $identity = Request:: get('convert_ident');
-                $details  = UserModel::convert($old_id, $new_id, $identity);
+                $details  = User::convert($old_id, $new_id, $identity);
                 
                 //delete old user
                 if (Request::get('delete_old')) {
@@ -892,40 +896,71 @@ class Admin_UserController extends AuthenticatedController
      */
     public function edit_institute_action($user_id, $institute_id)
     {
-        if (Request::submitted('uebernehmen') && $GLOBALS['perm']->have_studip_perm("admin", $institute_id)) {
-            //standard-values
-            $values = [];
-            foreach (words('inst_perms visible raum sprechzeiten Telefon Fax') as $param) {
-                $values[$param] = Request::get(strtolower($param), '');
-            }
-            foreach (words('externdefault visible') as $param) {
-                $values[$param] = Request::int($param, 0);
-            }
-            
-            //change datafields
-            $datafields = Request::getArray('datafields');
-            foreach ($datafields as $id => $data) {
-                $datafield = DataField::find($id);
-                $entry     = DataFieldEntry::createDataFieldEntry($datafield, [$user_id, $institute_id]);
-                $entry->setValueFromSubmit($data);
-                if ($entry->isValid()) {
-                    $entry->store();
+        $this->user = User::find($user_id);
+        if (count($this->user->institute_memberships)) {
+            $institute = null;
+            $this->user->institute_memberships->filter(function ($a) use ($institute_id, &$institute) {
+                if ($a->institut_id === $institute_id) {
+                    $institute = $a;
                 }
-            }
-            
-            //store to database
-            UserModel::setInstitute($user_id, $institute_id, $values);
-            
-            //output
-            PageLayout::postSuccess(_('Die Einrichtungsdaten der Person wurden geändert.'));
-            $this->redirect('admin/user/edit/' . $user_id);
+            });
         }
         
-        $this->user       = UserModel::getUser($user_id, null, true);
-        $this->institute  = UserModel::getInstitute($user_id, $institute_id);
-        $about            = new about($this->user['username'], '');
-        $this->perms      = $about->allowedInstitutePerms();
-        $this->datafields = DataFieldEntry::getDataFieldEntries([$user_id, $institute_id], 'userinstrole');
+        $this->institute   = $institute;
+        $this->faecher     = StudyCourse::findBySQL('1 ORDER BY name');
+        $this->abschluesse = Abschluss::findBySQL('1 ORDER by name');
+        $this->perms       = $this->user->getInstitutePerms();
+        $this->datafields  = DataFieldEntry::getDataFieldEntries([$user_id, $institute_id], 'userinstrole');
+    }
+    
+    /**
+     * Set user institute information
+     * @param $user_id
+     * @param $institute_id
+     */
+    public function store_user_institute_action($user_id, $institute_id)
+    {
+        CSRFProtection::verifyRequest();
+        
+        $inst_membership = InstituteMember::findOneBySQL('user_id = ? AND institut_id = ?', [$user_id, $institute_id]);
+        
+        $values = [];
+        foreach (words('inst_perms visible raum sprechzeiten Telefon Fax') as $param) {
+            $values[$param] = Request::get(strtolower($param), '');
+        }
+        foreach (words('externdefault visible') as $param) {
+            $values[$param] = Request::int($param, 0);
+        }
+        
+        //change datafields
+        $datafields = Request::getArray('datafields');
+        foreach ($datafields as $id => $data) {
+            $datafield = DataField::find($id);
+            $entry     = DataFieldEntry::createDataFieldEntry($datafield, [$user_id, $institute_id]);
+            $entry->setValueFromSubmit($data);
+            if ($entry->isValid()) {
+                $entry->store();
+            }
+        }
+        
+        $old_membership = $inst_membership;
+        if ($old_membership->inst_perms != Request::get('inst_perms')) {
+            StudipLog::log('INST_USER_STATUS', $institute_id, $user_id, $old_membership->inst_perms . ' -> ' . Request::get('inst_perms'));
+            NotificationCenter::postNotification('UserInstitutionPermDidUpdate', $institute_id, $user_id);
+        }
+        
+        $inst_membership->inst_perms    = strtolower(Request::get('inst_perm', ''));
+        $inst_membership->visible       = Request::int('visible', 0);
+        $inst_membership->sprechzeiten  = Request::get('sprechzeiten', '');
+        $inst_membership->telefon       = Request::get('telefon', '');
+        $inst_membership->fax           = Request::get('fax', '');
+        $inst_membership->externdefault = Request::int('externdefault', 0);
+        $inst_membership->store();
+        
+        //output
+        PageLayout::postSuccess(_('Die Einrichtungsdaten der Person wurden geändert.'));
+        $this->relocate('admin/user/edit/' . $user_id);
+        return;
     }
     
     /**
@@ -1042,7 +1077,13 @@ class Admin_UserController extends AuthenticatedController
         
         
         $this->queries = $this->getActivities($user_id);
-        $memberships   = CourseMember::findByUser($user_id);
+        
+        $memberships = DBManager::get()->fetchAll("SELECT seminar_user.*, seminare.Name as course_name
+                             FROM seminar_user
+                             LEFT JOIN seminare USING (seminar_id)
+                             WHERE user_id = ? ORDER BY seminare.start_time DESC, seminare.Name",
+            [$user_id],
+            'CourseMember::buildExisting');
         
         $courses        = [];
         $course_files   = [];
@@ -1050,41 +1091,56 @@ class Admin_UserController extends AuthenticatedController
         $this->sections = [];
         
         foreach ($memberships as $membership) {
-            // count files for course
-            $count = StudipDocument::countBySql('user_id = ? AND seminar_id =?', [$user_id, $membership->seminar_id]);
-            
-            if ($count) {
-                if (!isset($course_files[$membership->seminar_id])) {
-                    $course_files[$membership->course->id]['course'] = $membership->course;
-                }
-                $course_files[$membership->course->id]['files'] = $count;
-            }
-            // check for closed courses
-            $closed_course
-                = $closed_course = DBManager::get()->fetchColumn('SELECT COUNT(sc.seminar_id) FROM seminar_courseset sc 
-                  INNER JOIN courseset_rule cr ON cr.set_id=sc.set_id AND cr.type="ParticipantRestrictedAdmission" 
-                  WHERE sc.seminar_id =?', [$membership->seminar_id]);
-            
-            if ((int)$closed_course) {
-                $closed_courses[$membership->course->id] = $membership;
-            } else {
-                $courses[$membership->course->id] = $membership;
-            }
-        }
-        
-        $institutes = Institute::getMyInstitutes($user_id);
-        if (!empty($institutes)) {
-            foreach ($institutes as $index => $institute) {
-                $count = StudipDocument::countBySql('user_id = ? AND seminar_id =?', [$user_id, $institute['Institut_id']]);
+            if (!Request::get('view') || Request::get('view') === 'files') {
+                // count files for course
+                $count = StudipDocument::countBySql('user_id = ? AND seminar_id =?', [$user_id, $membership->seminar_id]);
                 
                 if ($count) {
-                    $institutes[$index]['files'] = $count;
+                    if (!isset($course_files[$membership->seminar_id])) {
+                        $course_files[$membership->course->start_semester->name][$membership->course->id]['course'] = $membership->course;
+                    }
+                    $course_files[$membership->course->start_semester->name][$membership->course->id]['files'] = $count;
+                }
+            }
+            if (in_array(Request::get('view'), words('courses closed_courses'))) {
+                // check for closed courses
+                $closed_course
+                    = $closed_course = DBManager::get()->fetchColumn('SELECT COUNT(sc.seminar_id) FROM seminar_courseset sc
+                  INNER JOIN courseset_rule cr ON cr.set_id=sc.set_id AND cr.type="ParticipantRestrictedAdmission"
+                  WHERE sc.seminar_id =?', [$membership->seminar_id]);
+                
+                if ((int)$closed_course) {
+                    $closed_courses[$membership->course->start_semester->name][$membership->course->id] = $membership;
                 } else {
-                    unset($institutes[$index]);
+                    $courses[$membership->course->start_semester->name][$membership->course->id] = $membership;
                 }
             }
         }
         
+        if (!Request::get('view') || Request::get('view') === 'files') {
+            $institutes = Institute::getMyInstitutes($user_id);
+            if (!empty($institutes)) {
+                foreach ($institutes as $index => $institute) {
+                    $count = StudipDocument::countBySql('user_id = ? AND seminar_id =?', [$user_id, $institute['Institut_id']]);
+                    
+                    if ($count) {
+                        $institutes[$index]['files'] = $count;
+                    } else {
+                        unset($institutes[$index]);
+                    }
+                }
+            }
+        }
+        
+        if (Request::get('view') == 'seminar_wait') {
+            // waiting list
+            $seminar_wait = AdmissionApplication::findByUser($user_id);
+        }
+        
+        if (Request::get('view') == 'priorities') {
+            // priorities
+            $priorities = DBManager::get()->fetchAll('SELECT * FROM `priorities` WHERE `user_id` = ?', [$user_id]);
+        }
         
         if (!empty($course_files)) {
             $this->sections['course_files'] = $course_files;
@@ -1093,21 +1149,16 @@ class Admin_UserController extends AuthenticatedController
             $this->sections['institutes'] = $institutes;
         }
         if (!empty($courses)) {
+            
             $this->sections['courses'] = $courses;
         }
         if (!empty($courses)) {
             $this->sections['closed_courses'] = $closed_courses;
         }
         
-        // waiting list
-        $seminar_wait = AdmissionApplication::findByUser($user_id);
-        
         if (count($seminar_wait)) {
             $this->sections['seminar_wait'] = $seminar_wait;
         }
-        
-        // priorities
-        $priorities = DBManager::get()->fetchAll('SELECT * FROM `priorities` WHERE `user_id` = ?', [$user_id]);
         
         if (!empty($priorities)) {
             $this->sections['priorities'] = $priorities;
@@ -1152,7 +1203,7 @@ class Admin_UserController extends AuthenticatedController
                   FROM seminar_user
                   WHERE user_id = ?
                   GROUP BY user_id",
-            'details' => "details=seminar",
+            'details' => "courses",
         ];
         $queries[] = [
             'desc'    => _('Eingetragen in geschlossenen Veranstaltungen (dozent / tutor / autor / user)'),
@@ -1163,7 +1214,7 @@ class Admin_UserController extends AuthenticatedController
                   INNER JOIN courseset_rule cr ON cr.set_id=sc.set_id AND cr.type='ParticipantRestrictedAdmission'
                   WHERE user_id = ?
                   GROUP BY user_id",
-            'details' => "details=seminar_closed",
+            'details' => "closed_courses",
         ];
         $queries[] = [
             'desc'    => _("Eingetragen in Wartelisten (wartend / vorläufig akzeptiert)"),
@@ -1171,7 +1222,7 @@ class Admin_UserController extends AuthenticatedController
                   FROM admission_seminar_user
                   WHERE user_id = ?
                   GROUP BY user_id",
-            'details' => "details=seminar_wait",
+            'details' => "seminar_wait",
         ];
         $queries[] = [
             'desc'    => _("Eingetragen in Anmeldelisten"),
@@ -1179,7 +1230,7 @@ class Admin_UserController extends AuthenticatedController
                   FROM priorities
                   WHERE user_id = ?
                   GROUP BY user_id",
-            'details' => "details=seminar_claiming",
+            'details' => "priorities",
         ];
         $queries[] = [
             'desc'  => _("Eingetragen in Einrichtungen (admin / dozent / tutor / autor)"),
@@ -1219,7 +1270,7 @@ class Admin_UserController extends AuthenticatedController
                   FROM dokumente
                   WHERE user_id = ?
                   GROUP BY user_id",
-            'details' => "details=files",
+            'details' => "files",
         ];
         $queries[] = [
             'desc'    => _("Gesamtgröße der hochgeladenen Dateien (MB)"),
@@ -1227,7 +1278,7 @@ class Admin_UserController extends AuthenticatedController
                   FROM dokumente
                   WHERE user_id = ? AND (url IS NULL OR url = '')
                   GROUP BY user_id",
-            'details' => "details=files",
+            'details' => "files",
         ];
         
         foreach (PluginEngine::getPlugins('ForumModule') as $plugin) {
@@ -1303,7 +1354,7 @@ class Admin_UserController extends AuthenticatedController
             Icon::create('date+add', 'clickable'))
                 ->asDialog();
         $actions->addLink(_('Konten zusammenführen'),
-            $this->url_for('admin/user/migrate/' . (($this->user && is_array($this->user)) ? $this->user['user_id'] : '')),
+            $this->url_for('admin/user/migrate/' . (($this->user && is_array($this->user)) ? $this->user->user_id : '')),
             Icon::create('persons+new', 'clickable'));
         
         $search = new SearchWidget();
@@ -1324,15 +1375,15 @@ class Admin_UserController extends AuthenticatedController
             $sidebar->addWidget($export);
         }
         
-        if (!$this->user || !is_array($this->user)) {
+        if (!$this->user) {
             return;
         }
         
         $user_actions = new ActionsWidget();
-        $user_actions->setTitle(sprintf(_('Aktionen für "%s"'), $this->user['username']));
+        $user_actions->setTitle(sprintf(_('Aktionen für "%s"'), $this->user->username));
         
         $user_actions->addLink(_('Nachricht an Person verschicken'),
-            URLHelper::getLink('dispatch.php/messages/write?rec_uname=' . $this->user['username']),
+            URLHelper::getLink('dispatch.php/messages/write?rec_uname=' . $this->user->username),
             Icon::create('mail', 'clickable'))
                      ->asDialog();
         
@@ -1341,25 +1392,26 @@ class Admin_UserController extends AuthenticatedController
                 $this->url_for('admin/user/unlock/' . $this->user['user_id']),
                 Icon::create('lock-unlocked', 'clickable'));
         }
-        if ($this->user['auth_plugin'] !== 'preliminary' && ($GLOBALS['perm']->have_perm('root') || $GLOBALS['perm']->is_fak_admin() || !in_array($this->user['perms'], words('root admin')))) {
-            if (!StudipAuthAbstract::CheckField('auth_user_md5.password', $this->user['auth_plugin'])) {
+        
+        if ($this->user->auth_plugin !== 'preliminary' && ($GLOBALS['perm']->have_perm('root') || $GLOBALS['perm']->is_fak_admin() || !in_array($this->user->perms, words('root admin')))) {
+            if (!StudipAuthAbstract::CheckField('auth_user_md5.password', $this->user->auth_plugin)) {
                 $user_actions->addLink(_('Neues Passwort setzen'),
-                    $this->url_for('admin/user/change_password/' . $this->user['user_id']),
+                    $this->url_for('admin/user/change_password/' . $this->user->user_id),
                     Icon::create('key', 'clickable'));
             }
             $user_actions->addLink(_('Person löschen'),
-                $this->url_for('admin/user/delete/' . $this->user['user_id'] . '/edit'),
+                $this->url_for('admin/user/delete/' . $this->user->user_id . '/edit'),
                 Icon::create('trash', 'clickable'));
         }
-        if (Config::get()->MAIL_NOTIFICATION_ENABLE && CourseMember::findOneBySQL("user_id = ? AND notification <> 0", [$this->user['user_id']])) {
+        if (Config::get()->MAIL_NOTIFICATION_ENABLE && CourseMember::findOneBySQL("user_id = ? AND notification <> 0", [$this->user->user_id])) {
             $user_actions->addLink(_('Benachrichtigungen zurücksetzen'),
-                $this->url_for('admin/user/reset_notification/' . $this->user['user_id']),
+                $this->url_for('admin/user/reset_notification/' . $this->user->user_id),
                 Icon::create('refresh', 'clickable'));
         }
         
         if ($this->action == 'activities') {
             $user_actions->addLink(_('Alle Dateien als ZIP herunterladen'),
-                $this->url_for('admin/user/download_user_files/' . $this->user['user_id']),
+                $this->url_for('admin/user/download_user_files/' . $this->user->user_id),
                 Icon::create('folder-full', 'clickable'));
         }
         
@@ -1370,22 +1422,22 @@ class Admin_UserController extends AuthenticatedController
             $this->url_for('admin/user'))
               ->setActive(false);
         $views->addLink(_('Person verwalten'),
-            $this->url_for('admin/user/edit/' . $this->user['user_id']))
+            $this->url_for('admin/user/edit/' . $this->user->user_id))
               ->setActive($this->action == 'edit');
         $views->addLink(_('Zum Profil'),
-            URLHelper::getLink('dispatch.php/profile?username=' . $this->user['username']),
+            URLHelper::getLink('dispatch.php/profile?username=' . $this->user->username),
             Icon::create('person', 'clickable'));
         
         if ($GLOBALS['perm']->have_perm('root')) {
             $views->addLink(_('Datei- und Aktivitätsübersicht'),
-                $this->url_for('admin/user/activities/' . $this->user['user_id']),
+                $this->url_for('admin/user/activities/' . $this->user->user_id),
                 Icon::create('vcard', 'clickable'))
                   ->setActive($this->action == 'activities');
             
             
             if (Config::get()->LOG_ENABLE) {
                 $views->addLink(_('Personeneinträge im Log'),
-                    URLHelper::getLink('dispatch.php/event_log/show?search=' . $this->user['username'] . '&type=user&object_id=' . $this->user['user_id']),
+                    URLHelper::getLink('dispatch.php/event_log/show?search=' . $this->user->username . '&type=user&object_id=' . $this->user->user_id),
                     Icon::create('log', 'clickable'));
             }
         }
