@@ -88,7 +88,7 @@ class Course_FilesController extends AuthenticatedController
     /**
         Displays the files in flat view
     **/
-    public function flat_action()
+    public function flat_action($topFolder = '')
     {
         if(Navigation::hasItem('/course/files_new')) {
             Navigation::activateItem('/course/files_new');
@@ -103,11 +103,15 @@ class Course_FilesController extends AuthenticatedController
 
             return; //DEVELOPMENT STAGE CODE!
         }
-
+        
+        if (!$topFolder) {
+            $this->topFolder = Folder::findTopFolder($course->id);
+        } else {
+            $this->topFolder = Folder::find($topFolder);
+        }
+        
         $this->buildSidebar();
-        PageLayout::setTitle($course->name . ' - ' . _('Dateien'));
-
-        $this->loadFiles($course->id, true);
+        PageLayout::setTitle($course->getFullname() . ' - ' . _('Dateien'));
     }
 
 

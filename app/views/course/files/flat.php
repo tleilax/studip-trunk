@@ -1,19 +1,44 @@
 <h1>STUB File view</h1>
 <ul>
-<?
-//for early development stage we MUST check which class is available:
-if(class_exists('StudipDocument')) : ?>
-<? foreach ($files as $file) : ?>
-<li>
-    <?= htmlReady($file->name) ?>
-    <a href="<?= URLHelper::getLink('dispatch.php/file/delete', 'fileId' => $file->id) ?>">
-        <?= Icon::create('trash', 'clickable')->asImg('12px') ?>
-    </a>
-</li>
-<? endforeach ?>    
-<? elseif(class_exists('File')) : ?>
-<? foreach ($files as $file) : ?>
-<li><?= 'TO BE DESIGNED' ?></li>
+
+<? foreach ($topfolder->file_refs as $fileref) : ?>
+    <li>
+    <div>
+        <a href="<?=$fileref->getDownloadURL()?>"><?=htmlReady($fileref->file->name)?></a>
+        <a href="<?= URLHelper::getLink('dispatch.php/file/edit', ['fileId' => $fileref->id]) ?>"
+            data-dialog="reload-on-close">
+            <?= Icon::create('edit', 'clickable')->asImg('12px') ?>
+        </a>
+        <a href="<?= URLHelper::getLink('dispatch.php/file/link', ['fileId' => $fileref->id]) ?>"
+            data-dialog="reload-on-close">
+            <?= Icon::create('group', 'clickable')->asImg('12px') ?>
+        </a>
+        <a href="<?= URLHelper::getLink('dispatch.php/file/delete', ['fileId' => $fileref->id]) ?>"
+            data-dialog="reload-on-close">
+            <?= Icon::create('trash', 'clickable')->asImg('12px') ?>
+        </a>
+    </div>
+    </li>
 <? endforeach ?>
-<? endif ?>
-</ul>
+
+<? foreach ($topfolder->subfolders as $folder) : ?>
+    <? foreach ($folder->file_refs as $fileref) : ?>
+    <li>
+    <div>
+        <a href="<?=$fileref->getDownloadURL()?>"><?=htmlReady($fileref->file->name)?></a>
+        <a href="<?= URLHelper::getLink('dispatch.php/file/edit', ['fileId' => $fileref->id]) ?>"
+            data-dialog="reload-on-close">
+            <?= Icon::create('edit', 'clickable')->asImg('12px') ?>
+        </a>
+        <a href="<?= URLHelper::getLink('dispatch.php/file/link', ['fileId' => $fileref->id]) ?>"
+            data-dialog="reload-on-close">
+            <?= Icon::create('group', 'clickable')->asImg('12px') ?>
+        </a>
+        <a href="<?= URLHelper::getLink('dispatch.php/file/delete', ['fileId' => $fileref->id]) ?>"
+            data-dialog="reload-on-close">
+            <?= Icon::create('trash', 'clickable')->asImg('12px') ?>
+        </a>
+    </div>
+    </li>
+    <? endforeach ?>
+<? endforeach ?>
