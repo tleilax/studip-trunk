@@ -18,6 +18,8 @@ class FolderController extends AuthenticatedController
     
     public function new_action()
     {
+        global $perm;
+        
         //get ID of course, institute, user etc.
         
         $courseId = Request::get('cid');
@@ -27,6 +29,8 @@ class FolderController extends AuthenticatedController
         
         $folderName = Request::get('folderName');
         $parentFolderId = Request::get('parentFolderId');
+        
+        $currentUser = User::findCurrent();
         
         if($folderName and $parentFolderId) {
             //if $folderName and $parentFolderId are present
@@ -47,7 +51,7 @@ class FolderController extends AuthenticatedController
                 $rangeId = $userId;
             } else {
                 //The user wants to add a folder to his own file area.
-                $rangeId = User::findCurrent()->id;
+                $rangeId = $currentUser->id;
             }
             
             //get parent folder:
@@ -68,39 +72,75 @@ class FolderController extends AuthenticatedController
                 return;
             }
             
-            $folder = new Folder();
-            $folder->parent_id = $parentFolder->id;
-            $folder->range_id = $rangeId;
-            $folder->user_id = User::findCurrent()->id;
-            if($courseId) {
-                $folder->range_type = 'course';
-            } elseif($instituteId) {
-                $folder->range_type = 'institute';
-            } elseif($messageId) {
-                $folder->range_type = 'message';
-            } else {
-                //in case of $userId or anything else
-                $folder->range_type = 'user';
+            if(($parentFolder->user_id == $currentUser->id) or $perm->have_perm('admin')) {
+                //current user may create a new folder in the parent folder
+                
+                $folder = new Folder();
+                $folder->parent_id = $parentFolder->id;
+                $folder->range_id = $rangeId;
+                $folder->user_id = $currentUser->id;
+                if($courseId) {
+                    $folder->range_type = 'course';
+                } elseif($instituteId) {
+                    $folder->range_type = 'institute';
+                } elseif($messageId) {
+                    $folder->range_type = 'message';
+                } else {
+                    //in case of $userId or anything else
+                    $folder->range_type = 'user';
+                }
+                $folder->name = studip_utf8decode($folderName);
+                $folder->description = studip_utf8decode($folderDescription);
+                
+                $folder->store();
+                
+                PageLayout::postSuccess('Ordner wurde erstellt!');
             }
-            $folder->name = studip_utf8decode($folderName);
-            $folder->description = studip_utf8decode($folderDescription);
-            
-            $folder->store();
-            
-            PageLayout::postSuccess('Ordner wurde erstellt!');
         }
     }
     
     
     public function edit_action()
     {
-    
+        global $perm;
+        
+        //we need the folder-ID of the folder that is to be edited:
+        $folderId = Request::get('folderId');
+        if(!$folderId) {
+            PageLayout::postError(_('Ordner-ID nicht gefunden!'));
+            return;
+        }
+        
+        $this->folder = Folder::find($folderId);
+        if(!$this->folder) {
+            PageLayout::postError(_('Ordner nicht gefunden!'));
+            return;
+        }
+        
+        $currentUser = User::findCurrent();
+        
+        //permission check: is the current user the owner of the folder
+        //or is the current user an admin?
+        if(($folder->user_id == $currentUser->id) or $perm->have_perm('admin')) {
+            //update edited fields (that should only be present when the form was sent)
+            $folderName = Request::get('folderName');
+            if($folderName) {
+                $this->folder->name = $folderName;
+            }
+            
+            if($folderDescription) {
+                $this->folder->description = $folderDescription;
+            }
+        } else {
+            //current user isn't permitted to change this folder:
+            PageLayout::postError(_('Sie sind nicht dazu berechtigt, diesen Ordner zu bearbeiten!'));
+        }
     }
     
     
     public function move_action()
     {
-        //TODO
+        
     }
     
     
