@@ -131,6 +131,49 @@ class FileController extends AuthenticatedController
     }
     
     
+    public function copy_action()
+    {
+        $fileId = Request::get('fileId');
+        $destinationFolderId = Request::get('destinationId');
+        
+        if(!$fileId) {
+            PageLayout::postError(_('Datei-ID nicht gesetzt!'));
+            return;
+        }
+        
+        $this->file = File::find($fileId);
+        if(!$this->file) {
+            PageLayout::postError(_('Datei nicht gefunden!'));
+            return;
+        }
+        
+        if($destinationFolderId) {
+            //form was sent
+            $this->destinationFolder = Folder::find($destinationFolderId);
+            
+            if(!$this->destinationFolder) {
+                PageLayout::postError(_('Zielordner nicht gefunden!'));
+                return;
+            }
+            
+            //destination folder is present. We now have to check,
+            //if the current user is the owner of the file (by looking at the folder
+            //where the file resides).
+            //If so, we just make a new reference to that file.
+            //If the current usern isn't the owner of the file we must copy the file
+            //and its content.
+            
+            global $perm;
+            
+            //TODO: get folder of file
+            
+            //TODO: get file contents if the file is not owned by the current user
+            
+            //TODO: link file if the file is owned by the current user
+            
+        }
+    }
+    
     public function move_action()
     {
         $fileId = Reuqest::get('fileId');
