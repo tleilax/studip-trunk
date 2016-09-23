@@ -57,11 +57,11 @@ class MyRealmModel
                 }
                 $nav = new Navigation('files');
                 if ($result['neue']) {
-                    $nav->setURL(sprintf('folder.php?cmd=all'));
+                    $nav->setURL(URLHelper::getURL('dispatch.php/course/files/flat', ['select' => 'new']));
                     $nav->setImage(Icon::create('files+new', 'attention', ["title" => sprintf('%s %s, %s %s',$result['count'],_('Dokument(e)'),$result['neue'],_('neue'))]));
                     $nav->setBadgeNumber($result['neue']);
                 } else {
-                    $nav->setURL('folder.php?cmd=tree');
+                    $nav->setURL(URLHelper::getURL('dispatch.php/course/files/tree'));
                     $nav->setImage(Icon::create('files', 'inactive', ["title" => sprintf('%s %s',$result['count'],_('Dokument(e)'))]));
                 }
                 return $nav;
