@@ -268,7 +268,7 @@ namespace {
             }
         }
     }
-    $mail_transporter->default_charset = 'WINDOWS-1252';
+    $mail_transporter->default_charset = 'UTF-8';
     $mail_transporter->SetBulkMail((int)$GLOBALS['MAIL_BULK_DELIVERY']);
     StudipMail::setDefaultTransporter($mail_transporter);
     unset($mail_transporter);

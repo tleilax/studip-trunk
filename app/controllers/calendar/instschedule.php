@@ -97,7 +97,7 @@ class Calendar_InstscheduleController extends AuthenticatedController
             PageLayout::addStylesheet('print.css');
 
             // remove all stylesheets that are not used for printing to have a more reasonable printing preview
-            PageLayout::addHeadElement('script', array(), "$('head link[media=screen]').remove();");            
+            PageLayout::addHeadElement('script', array(), "$('head link[media=screen]').remove();");
         } else {
             PageLayout::addStylesheet('print.css', array('media' => 'print'));
         }
@@ -137,7 +137,7 @@ class Calendar_InstscheduleController extends AuthenticatedController
      */
     function groupedentry_action($start, $end, $seminars, $day)
     {
-        $this->response->add_header('Content-Type', 'text/html; charset=windows-1252');
+        $this->response->add_header('Content-Type', 'text/html; charset=utf-8');
 
         // strucutre of an id: seminar_id-cycle_id
         // we do not need the cycle id here, so we trash it.

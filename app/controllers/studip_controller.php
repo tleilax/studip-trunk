@@ -15,7 +15,7 @@ abstract class StudipController extends Trails_Controller
 {
     protected $with_session = false; //do we need to have a session for this controller
     protected $allow_nobody = true; //should 'nobody' allowed for this controller or redirected to login?
-    protected $encoding = "windows-1252";
+    protected $encoding = "utf-8";
     protected $utf8decode_xhr = false; //uf8decode request parameters from XHR ?
 
     function before_filter(&$action, &$args)
