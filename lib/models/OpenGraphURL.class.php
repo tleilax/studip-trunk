@@ -126,7 +126,7 @@ class OpenGraphURL extends SimpleORMap
             if (preg_match('/(?<=charset=)[^;]*/i', $response['Content-Type'], $match)) {
                 $currentEncoding = $match[0];
             } else {
-                $currentEncoding = 'ISO-8859-1';
+                $currentEncoding = 'UTF-8';
             }
 
             $context = stream_context_create(array(

@@ -484,5 +484,4 @@ $LOGIN_IP_RANGES =
 
 
 //create the html-version of $UNI_NAME clean
-$UNI_NAME = htmlspecialchars($UNI_NAME_CLEAN, ENT_QUOTES, 'cp1252');
-
+$UNI_NAME = htmlspecialchars($UNI_NAME_CLEAN, ENT_QUOTES);

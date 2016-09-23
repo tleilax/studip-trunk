@@ -327,8 +327,8 @@ class Markup
     public static function htmlReady(
         $text, $trim = true, $br = false, $double_encode = true
     ) {
-        $text = htmlspecialchars($text, ENT_QUOTES, 'cp1252', $double_encode);
-        $text = preg_replace('/&amp;#([1-9]{1,1}[0-9]{2,});/', '&#$1;', $text);
+        $text = htmlspecialchars($text, ENT_QUOTES, 'utf-8', $double_encode);
+        $text = preg_replace('/&amp;#([1-9]{1,1}[0-9]{2,});/u', '&#$1;', $text);
         if ($trim) {
             $text = trim($text);
         }
@@ -340,7 +340,7 @@ class Markup
 
     public static function removeHTML($html) {
         $config = self::createDefaultPurifier();
-        $config->set('Core.Encoding', 'ISO-8859-1');
+        $config->set('Core.Encoding', 'UTF-8');
         $config->set('HTML.Allowed', 'a[href],img[alt|src],br');
         $config->set('AutoFormat.Custom', array('Unlinkify'));
 

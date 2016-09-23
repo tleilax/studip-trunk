@@ -135,7 +135,7 @@ function transformBeforeSave($text){
 * @return   string
 */
 function decodeHTML ($string) {
-    return html_entity_decode($string, ENT_QUOTES, 'cp1252');
+    return html_entity_decode($string, ENT_QUOTES);
 }
 
 /**
