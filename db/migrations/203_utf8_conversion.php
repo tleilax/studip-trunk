@@ -84,13 +84,33 @@ class Utf8Conversion extends Migration
                 $table_data = $db->query("SHOW FULL COLUMNS FROM `{$data[0]}`")->fetchAll();
 
                 foreach ($table_data as $column) {
-                    if (mb_strpos($column['Collation'], '_bin') !== false) {    // if we hav a bin column, preserve it
-                        $change_query[] = ' CHANGE `'. $column[0] .'` `'. $column[0] .'` '
-                               .  $column[1] . ' CHARACTER SET utf8 COLLATE utf8_bin';
-                    } else if ($column['Collation']) {                          // only convert if there is a collation at all (int f.e. has no collation!)
-                        $change_query[] = ' CHANGE `'. $column[0] .'` `'. $column[0] .'` '
-                               .  $column[1] . ' CHARACTER SET utf8 COLLATE utf8_unicode_ci';
+                    $collation = false;
+
+                    // convert index columns to latin1_bin to save space and speed things up
+                    if (mb_strpos($column['Type'], 'varchar') !== false) {
+                        $matches = array();
+                        preg_match('/varchar\((.*)\)/', $column['Type'], $matches);
+
+                        if ((int)$matches[1] <= 32) {
+                            $charset = 'latin1';
+                            $collation = 'latin1_bin';
+                        }
                     }
+
+                    if (!$collation) {
+                        if (mb_strpos($column['Collation'], '_bin') !== false) {    // if we hav a bin column, preserve it
+                            $charset = 'utf8';
+                            $collation = 'utf8_bin';
+                        } else if ($column['Collation']) {                          // only convert if there is a collation at all (int f.e. has no collation!)
+                            $charset = 'utf8';
+                            $collation = 'utf8_unicode_ci';
+                        }
+                    }
+
+                    if ($collation) {
+                        $change_query[] = ' CHANGE `'. $column[0] .'` `'. $column[0] .'` '
+                           .  $column[1] . ' CHARACTER SET '. $charset .' COLLATE ' . $collation;
+                   }
                 }
 
                 // do all changes at once, or multi-column-indexes will prevent conversion
