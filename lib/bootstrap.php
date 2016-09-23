@@ -156,7 +156,8 @@ namespace {
     DBManager::getInstance()
         ->setConnection('studip',
             'mysql:host=' . $GLOBALS['DB_STUDIP_HOST'] .
-            ';dbname=' . $GLOBALS['DB_STUDIP_DATABASE'],
+            ';dbname=' . $GLOBALS['DB_STUDIP_DATABASE'] .
+            ';charset=utf8',
             $GLOBALS['DB_STUDIP_USER'],
             $GLOBALS['DB_STUDIP_PASSWORD']);
 
@@ -166,7 +167,8 @@ namespace {
             DBManager::getInstance()
                 ->setConnection('studip-slave',
                     'mysql:host=' . $GLOBALS['DB_STUDIP_SLAVE_HOST'] .
-                    ';dbname=' . $GLOBALS['DB_STUDIP_SLAVE_DATABASE'],
+                    ';dbname=' . $GLOBALS['DB_STUDIP_SLAVE_DATABASE'] .
+                    ';charset=utf8',
                     $GLOBALS['DB_STUDIP_SLAVE_USER'],
                     $GLOBALS['DB_STUDIP_SLAVE_PASSWORD']);
         } catch (PDOException $exception) {

@@ -15,6 +15,7 @@ php_flag short_open_tag On
 php_flag session.use_trans_sid Off
 php_flag magic_quotes_gpc On
 php_value default_charset utf-8
+php_value mbstring.internal_encoding utf-8
 
 #PHP Konstanten sind hier nicht verfügbar
 # 22519 = E_ALL & ~(E_NOTICE|E_DEPRECATED) PHP 5.3.x
