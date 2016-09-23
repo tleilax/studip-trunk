@@ -10,7 +10,7 @@
  * @author      Moritz Strohm <strohm@data-quest.de>
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
- * @since       3.6
+ * @since       4.0
  */
 
 

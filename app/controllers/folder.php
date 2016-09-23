@@ -1,86 +1,38 @@
 <?php
+/**
+ * folder.php - controller for one folder
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * @author      Moritz Strohm <strohm@data-quest.de>
+ * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
+ * @category    Stud.IP
+ * @since       4.0
+ */
+ 
 class FolderController extends AuthenticatedController
 {
-    public function create_action($id, $type)
+    
+    public function new_action()
     {
-        checkObject();
-        checkObjectModule('documents');
-        object_set_visit_module('documents');
-        
-        if (!$GLOBALS['rechte']) {
-            throw new AccessDeniedException();
-        }
-
-        PageLayout::setTitle(_('Neuen Ordner erstellen'));
-        
-        $options = array();
-        $options[md5('new_top_folder')]  = _('Namen auswählen oder wie Eingabe') . ' -->';
-        
-        $query = "SELECT SUM(1) FROM folder WHERE range_id = ?";
-        $statement = DBManager::get()->prepare($query);
-        $statement->execute(array($id));
-        if ($statement->fetchColumn() == 0) {
-            $options[$id] = _('Allgemeiner Dateiordner');
-        }
-
-        if ($type === 'sem'){
-            $query = "SELECT statusgruppe_id AS id, statusgruppen.name AS name
-                      FROM statusgruppen
-                      LEFT JOIN folder ON (statusgruppe_id = folder.range_id)
-                      WHERE statusgruppen.range_id = ? AND folder_id IS NULL
-                      ORDER BY position";
-            $statement = DBManager::get()->prepare($query);
-            $statement->execute(array($id));
-            $statement->setFetchMode(PDO::FETCH_ASSOC);
-
-            foreach ($statement as $row) {
-                $options[$row['id']] = sprintf(_('Dateiordner der Gruppe: %s'), $row['name']);
-            }
-
-            $issues = array();
-            $shown_dates = array();
-
-            $query = "SELECT themen_termine.issue_id, termine.date, folder.name, termine.termin_id, date_typ
-                      FROM termine
-                      LEFT JOIN themen_termine USING (termin_id)
-                      LEFT JOIN folder ON (themen_termine.issue_id = folder.range_id)
-                      WHERE termine.range_id = ? AND folder.folder_id IS NULL
-                      ORDER BY termine.date, name";
-            $statement = DBManager::get()->prepare($query);
-            $statement->execute(array($id));
-            $statement->setFetchMode(PDO::FETCH_ASSOC);
-
-            foreach ($statement as $row) {
-                if ($row['name']) {
-                    continue;
-                }
-
-                $name = sprintf(_('Ordner für %s [%s]'),
-                                date('d.m.Y', $row['date']),
-                                $GLOBALS['TERMIN_TYP'][$row['date_typ']]['name']);
-
-                if ($row['issue_id']) {
-                    if (!$issues[$row['issue_id']]) {
-                        $issues[$row['issue_id']] = new Issue(array('issue_id' => $row['issue_id']));
-                    }
-                    $name .= ', ' . my_substr($issues[$row['issue_id']]->toString(), 0, 20);
-                    $option_id = $row['issue_id'];
-                } else {
-                    $option_id = $row['termin_id'];
-                }
-
-                $options[$option_id] = $name;
-            }
-
-        }
-        $this->options = $options;
-        $this->id      = $id;
+        //TODO
     }
     
-    public function after_filter($action, $args)
+    public function edit_action()
     {
-        if (Request::isXhr()) {
-            $this->response->add_header('X-Title', PageLayout::getTitle());
-        }
+    
+    }
+    
+    public function move_action()
+    {
+        //TODO
+    }
+    
+    public function delete_action()
+    {
+        //TODO
     }
 }
