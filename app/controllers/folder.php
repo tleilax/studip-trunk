@@ -140,12 +140,84 @@ class FolderController extends AuthenticatedController
     
     public function move_action()
     {
+        global $perm;
+        
+        //we need the IDs of the folder and the target parent folder.
+        //these should only be present when the form was sent.
+        
+        $folderId = Request::get('folderId');
+        if(!$folderId) {
+            PageLayout::postError(_('Ordner-ID nicht gefunden!'));
+            return;
+        }
+        
+        $targetFolderId = Request::get('targetFolderId');
+        if(!$targetFolderId) {
+            PageLayout::postError(_('Zielordner-ID nicht gefunden!'));
+        }
+        
+        $this->folder = Folder::find($folderId);
+        if(!$this->folder) {
+            PageLayout::postError(_('Ordner nicht gefunden!'));
+            return;
+        }
+        
+        $this->targetFolder = Folder::find($targetFolderId);
+        if(!$this->targetFolder) {
+            PageLayout::postError(_('Zielordner nicht gefunden!'));
+            return;
+        }
+        
+        $currentUser = User::findCurrent();
+        
+        //ok, all data are present... now we have to check the permissions:
+        
+        if(($this->folder->user_id == $currentUser->id) or $perm->have_perm('admin')) {
+            //ok, first step was successfull...
+            if(($this->targetFolder->user_id == $currentUser->id) or $perm->have_perm('admin')) {
+                //second step was successfull as well => we can move the folder
+                
+                $this->folder->parent_id = $this->targetFolder->id;
+                $this->folder->store();
+            } else {
+                //not permitted to create subfolder in target folder:
+                PageLayout::postError(_('Sie sind nicht dazu berechtigt, im Zielordner einen Ordner einzufügen!'));
+            }
+        } else {
+                //not permitted to change folder:
+                PageLayout::postError(_('Sie sind nicht dazu berechtigt, den Ordner zu verschieben!'));
+        }
         
     }
     
     
     public function delete_action()
     {
-        //TODO
+        global $perm;
+        
+        //we need the ID of the folder:
+        $folderId = Request::get('folderId');
+        if(!$folderId) {
+            PageLayout::postError(_('Ordner-ID nicht gefunden!'));
+            return;
+        }
+        
+        $this->folder = Folder::find($folderId);
+        if(!$this->folder) {
+            PageLayout::postError(_('Ordner nicht gefunden!'));
+            return;
+        }
+        
+        //ok, check permissions:
+        
+        $currentUser = User::findCurrent();
+        
+        if(($this->folder->user_id == $currentUser->id) or $perm->have_perm('admin')) {
+            $this->folder->delete();
+            PageLayout::postSuccess(_('Ordner wurde gelöscht!'));
+        } else {
+            //not permitted to delete the folder:
+            PageLayout::postError(_('Sie sind nicht dazu berechtigt, diesen Ordner zu löschen!'));
+        }
     }
 }
