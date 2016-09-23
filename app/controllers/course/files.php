@@ -38,7 +38,7 @@ class Course_FilesController extends AuthenticatedController
         if($userRights['w'] and $userRights['x']) {
             $actions->addLink(
                 _('Neuer Ordner'),
-                $this->link_for('/createfolder'),
+                URLHelper::getUrl('dispatch.php/folder/new'),
                 Icon::create('folder-empty+add', 'clickable'),
                 array('data-dialog' => 'size=auto')
             );
@@ -46,7 +46,7 @@ class Course_FilesController extends AuthenticatedController
         }
         $actions->addLink(
             _('Neue Datei'),
-            $this->link_for('/upload', ['topfolder' => $this->topfolder->id]),
+            URLHelper::getUrl('dispatch.php/file/upload', ['topfolder' => $this->topfolder->id]),
             Icon::create('file+add', 'clickable'),
             array('data-dialog' => 'size=auto')
         );

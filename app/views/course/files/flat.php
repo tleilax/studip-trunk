@@ -1,6 +1,7 @@
 <h1>STUB File view</h1>
 <ul>
 
+<? if($topfolder->file_refs): ?>
 <? foreach ($topfolder->file_refs as $fileref) : ?>
     <li>
     <div>
@@ -20,7 +21,9 @@
     </div>
     </li>
 <? endforeach ?>
+<? endif ?>
 
+<? if($topfolger->subfolders): ?>
 <? foreach ($topfolder->subfolders as $folder) : ?>
     <? foreach ($folder->file_refs as $fileref) : ?>
     <li>
@@ -42,3 +45,4 @@
     </li>
     <? endforeach ?>
 <? endforeach ?>
+<? endif ?>

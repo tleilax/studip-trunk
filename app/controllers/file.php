@@ -52,7 +52,9 @@ class FileController extends AuthenticatedController
                         array_map('htmlready', $storedFiles)
                     );
                 }
-                return $this->redirect($this->url_for('/tree/' . $folder->id));
+                
+                //DEVELOPMENT STAGE ONLY:
+                return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/tree/'));
             }
         }
         $this->folder_id = Request::option('topfolder');
@@ -156,7 +158,7 @@ class FileController extends AuthenticatedController
     
     public function delete_action()
     {
-        $fileId = Reuqest::get('fileId');
+        $fileId = Request::get('fileId');
         
         if($fileId) {
             $file = File::find($fileId);
