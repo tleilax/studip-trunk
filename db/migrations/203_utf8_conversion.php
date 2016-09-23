@@ -134,6 +134,8 @@ class Utf8Conversion extends Migration
 
         // drop helper-function
         $db->exec("DROP FUNCTION entity_decode");
+
+        SimpleORMap::expireTableScheme();
     }
 
     public function down()
