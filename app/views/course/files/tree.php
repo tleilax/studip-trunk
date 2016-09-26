@@ -1,6 +1,6 @@
 <h1>STUB File view</h1>
 <h2>
-    <?foreach ($topfolder->getParents() as $parent) : ?>
+    <?foreach ($topFolder->getParents() as $parent) : ?>
         <a href="<?=$controller->link_for('/tree/' . $parent->id)?>">
             <?=htmlReady($parent->name)?> /
         </a>
@@ -8,13 +8,13 @@
 </h2>
 <ul>
 
-<? foreach ($topfolder->subfolders as $folder) : ?>
+<? foreach ($topFolder->subfolders as $folder) : ?>
 <li>
     <div><a href="<?=$controller->link_for('/tree/' . $folder->id)?>"><?= htmlready($folder->name)?></a></div>
  </li>
 <? endforeach ?>
     <ul>
-    <? foreach ($topfolder->file_refs as $fileref) : ?>
+    <? foreach ($topFolder->file_refs as $fileref) : ?>
         <li>
         <div>
             <a href="<?=$fileref->getDownloadURL()?>"><?=htmlReady($fileref->file->name)?></a>

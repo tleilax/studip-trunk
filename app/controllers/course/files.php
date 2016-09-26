@@ -59,7 +59,7 @@ class Course_FilesController extends AuthenticatedController
     /**
         Displays the files in tree view
     **/
-    public function tree_action($topfolder = '')
+    public function tree_action($topFolder = '')
     {
         if(Navigation::hasItem('/course/files_new')) {
             Navigation::activateItem('/course/files_new');
@@ -74,10 +74,10 @@ class Course_FilesController extends AuthenticatedController
 
             return; //DEVELOPMENT STAGE CODE!
         }
-        if (!$topfolder) {
-            $this->topfolder = Folder::findTopFolder($course->id);
+        if (!$topFolder) {
+            $this->topFolder = Folder::findTopFolder($course->id);
         } else {
-            $this->topfolder = Folder::find($topfolder);
+            $this->topFolder = Folder::find($topFolder);
         }
         $this->buildSidebar();
         PageLayout::setTitle($course->getFullname() . ' - ' . _('Dateien'));
