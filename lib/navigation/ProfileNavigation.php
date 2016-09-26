@@ -146,8 +146,15 @@ class ProfileNavigation extends Navigation
                 $title = _('Dateibereich');
             }
             
-            $navigation = new Navigation($title, 'dispatch.php/document/files');
+            $navigation = new Navigation($title, 'dispatch.php/userfiles');
             $this->addSubNavigation('files', $navigation);
+            
+            $filesSubNav = new Navigation(_('Baumansicht'), 'dispatch.php/userfiles/tree');
+            $navigation->addSubNavigation('tree', $filesSubNav);
+            
+            $filesSubNav = new Navigation(_('Flache Ansicht'), 'dispatch.php/userfiles/flat');
+            $navigation->addSubNavigation('flat', $filesSubNav);
+            
         }
     }
 }
