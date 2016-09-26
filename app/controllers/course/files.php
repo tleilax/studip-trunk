@@ -46,7 +46,7 @@ class Course_FilesController extends AuthenticatedController
         }
         $actions->addLink(
             _('Neue Datei'),
-            URLHelper::getUrl('dispatch.php/file/upload', ['topfolder' => $this->topfolder->id]),
+            URLHelper::getUrl('dispatch.php/file/upload', ['topfolder' => $this->topFolder->id]),
             Icon::create('file+add', 'clickable'),
             array('data-dialog' => 'size=auto')
         );
@@ -69,18 +69,42 @@ class Course_FilesController extends AuthenticatedController
         }
 
         $course = Course::findCurrent();
+        $institute = null;
         if(!$course) {
-            //TODO: throw exception
-
-            return; //DEVELOPMENT STAGE CODE!
+            $institute = Institute::findCurrent();
         }
         if (!$topFolder) {
-            $this->topFolder = Folder::findTopFolder($course->id);
+            if($course) {
+                $this->topFolder = Folder::findTopFolder($course->id);
+            } else {
+                $this->topFolder = Folder::findTopFolder($institute->id);
+            }
+            
         } else {
             $this->topFolder = Folder::find($topFolder);
         }
+        
+        if(!$this->topFolder) {
+            //create top folder:
+            $this->topFolder = new Folder();
+            //$this->topFolder->user_id = ;
+            if($course) {
+                $this->topFolder->range_id = $course->id;
+            } elseif($institute) {
+                $this->topFolder->range_id = $institute->id;
+            } else {
+                PageLayout::postError(_('Fehler beim Erstellen des Hauptordners: Zugehöriges Datenbankobjekt nicht gefunden!'));
+                return;
+            }
+            $this->topFolder->store();
+        }
+        
         $this->buildSidebar();
-        PageLayout::setTitle($course->getFullname() . ' - ' . _('Dateien'));
+        if($course) {
+            PageLayout::setTitle($course->getFullname() . ' - ' . _('Dateien'));
+        } elseif($institute) {
+            PageLayout::setTitle($institute->getFullname() . ' - ' . _('Dateien'));
+        }
 
     }
 
@@ -108,6 +132,14 @@ class Course_FilesController extends AuthenticatedController
             $this->topFolder = Folder::findTopFolder($course->id);
         } else {
             $this->topFolder = Folder::find($topFolder);
+        }
+        
+        if(!$this->topFolder) {
+            //create top folder:
+            $this->topFolder = new Folder();
+            //$this->topFolder->user_id = $user->id;
+            $this->topFolder->range_id = $course->id;
+            $this->topFolder->store();
         }
         
         $this->buildSidebar();
