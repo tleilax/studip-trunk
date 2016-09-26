@@ -12,6 +12,19 @@
  * @copyright   2016 Stud.IP Core-Group
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
+ *
+ *
+ * @property string id database column
+ * @property string user_id database column: owner of folder
+ * @property string parent_id database column: parent folder
+ * @property string range_id database column: user-ID, course-ID, institute-ID etc.
+ * @property string range_type database column: 'course', 'inst', 'user', ...
+ * @property string folder_type database column
+ * @property string name database column: folder name
+ * @property string data_content database column
+ * @property string description database column
+ * @property string mkdate database column
+ * @property string chdate database column
  */
 class Folder extends SimpleORMap
 {
