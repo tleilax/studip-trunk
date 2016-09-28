@@ -188,7 +188,7 @@ abstract class StudipController extends Trails_Controller
                     continue;
                 }
 
-                if ($class_type->name instanceof SimpleORMap) {
+                if (is_a($class_type->name, 'SimpleORMap', true)) {
                     $types[$i] = 'sorm';
                     $class_infos[$i] = [
                         'model' => $class_type->name,
