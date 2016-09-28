@@ -251,14 +251,6 @@ abstract class StudipController extends Trails_Controller
         $params = [];
         if (is_array(end($args))) {
             $params = array_pop($args);
-
-            // Map any sorm objects to their ids
-            $params = array_map(function ($param) {
-                if (is_object($param) && $param instanceof SimpleORMap) {
-                    return $param->id;
-                }
-                return $param;
-            });
         }
 
         //preserve fragment
@@ -278,6 +270,14 @@ abstract class StudipController extends Trails_Controller
         if ($to[0] === '/') {
             $to = $this->controller_path() . $to;
         }
+
+        // Map any sorm objects to their ids
+        $args = array_map(function ($arg) {
+            if (is_object($arg) && $arg instanceof SimpleORMap) {
+                return $arg->id;
+            }
+            return $arg;
+        }, $args);
 
         // Restore arguments
         $args[0] = $to;
@@ -499,9 +499,9 @@ abstract class StudipController extends Trails_Controller
      */
     protected function controller_path()
     {
-        $class = $this->parent_controller ?: $this;
+        $class = get_class($this->parent_controller ?: $this);
         $controller = mb_substr($class, 0, -mb_strlen('Controller'));
         $controller = strtosnakecase($controller);
-        return str_replace('_', '/', $controller);
+        return preg_replace('/_+/', '/', $controller);
     }
 }
