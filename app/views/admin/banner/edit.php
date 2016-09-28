@@ -1,7 +1,7 @@
 <? use Studip\Button, Studip\LinkButton; ?>
 <h3><?= _('Banner editieren') ?></h3>
 
-<form action="<?= $controller->url_for('admin/banner/edit', $banner['ad_id']) ?>" method="post" enctype="multipart/form-data">
+<form action="<?= $controller->edit($banner) ?>" method="post" enctype="multipart/form-data">
     <?= CSRFProtection::tokenTag() ?>
     <table class="default">
         <tbody>

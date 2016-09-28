@@ -53,13 +53,13 @@
                 <a class="load-in-new-row" href="<?= $controller->url_for('admin/banner/info',  $banner["ad_id"]) ?>?path=<?= urlencode($banner['banner_path']) ?>">
                     <?= Icon::create('info', 'clickable', ['title' => _('Eigenschaften')])->asImg() ?>
                 </a>
-                <a href="<?= $controller->url_for('admin/banner/edit', $banner["ad_id"]) ?>?path=<?= urlencode($banner['banner_path']) ?>">
+                <a href="<?= $controller->edit($banner, ['path' => $banner->banner_path]) ?>">
                     <?= Icon::create('edit', 'clickable', ['title' => _('Banner bearbeiten')])->asImg() ?>
                 </a>
-                <a href="<?= $controller->url_for('admin/banner/reset', $banner['ad_id']) ?>">
+                <a href="<?= $controller->reset($banner) ?>">
                     <?= Icon::create('refresh', 'clickable', ['title' => _('Klicks/Views zurücksetzen')])->asImg() ?>
                 </a>
-                <a href="<?= $controller->url_for('admin/banner/delete', $banner['ad_id']) ?>">
+                <a href="<?= $controller->delete($banner) ?>">
                     <?= Icon::create('trash', 'clickable', ['title' => _('Banner löschen')])->asImg() ?>
                 </a>
             </td>
