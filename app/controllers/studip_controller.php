@@ -17,6 +17,7 @@ abstract class StudipController extends Trails_Controller
     protected $allow_nobody = true; //should 'nobody' allowed for this controller or redirected to login?
     protected $encoding = "windows-1252";
     protected $utf8decode_xhr = false; //uf8decode request parameters from XHR ?
+    protected $_autobind = false;
 
     function before_filter(&$action, &$args)
     {
@@ -150,20 +151,55 @@ abstract class StudipController extends Trails_Controller
 
     /**
      * Validate arguments based on a list of given types. The types are:
-     * 'int', 'float', 'option' and 'string'. If the list of types is NULL
+     * 'int', 'float', 'option'. If the list of types is NULL
      * or shorter than the argument list, 'option' is assumed for all
      * remaining arguments. 'option' differs from Request::option() in
      * that it also accepts the charaters '-' and ',' in addition to all
      * word charaters.
      *
+     * Since Stud.IP 4.0 it is also possible to directly inject
+     * SimpleORMap objects. If types is NULL, the signature of the called
+     * action is analyzed and any type hint that matches a sorm class
+     * will be used to create an object using the argument as the id
+     * that is passed to the object's constructor.
+     *
+     * If $_autobind is set to true, the created object is also assigned
+     * to the controller so that it is available in a view.
+     *
      * @param array   an array of arguments to the action
      * @param array   list of argument types (optional)
      */
-    function validate_args(&$args, $types = NULL)
+    public function validate_args(&$args, $types = NULL)
     {
-        foreach ($args as $i => &$arg) {
-            $type = isset($types[$i]) ? $types[$i] : 'option';
+        $class_infos = [];
 
+        if ($types === null) {
+            $types = array_fill(0, count($args), 'option');
+        }
+
+        if ($this->has_action($this->current_action)) {
+            $reflection = new \ReflectionMethod($this, $this->current_action . '_action');
+            $parameters = $reflection->getParameters();
+            $parameters = array_slice($parameters, 0, count($args));
+            foreach ($parameters as $i => $parameter) {
+                $class_type = $parameter->getClass();
+
+                if (!$class_type || !class_exists($class_type->name)) {
+                    continue;
+                }
+
+                if ($class_type->name instanceof SimpleORMap) {
+                    $types[$i] = 'sorm';
+                    $class_infos[$i] = [
+                        'model' => $class_type->name,
+                        'var'   => $parameter->getName(),
+                    ];
+                }
+            }
+        }
+
+        foreach ($args as $i => &$arg) {
+            $type = $types[$i] ?: 'option';
             switch ($type) {
                 case 'int':
                     $arg = (int) $arg;
@@ -177,6 +213,19 @@ abstract class StudipController extends Trails_Controller
                     if (preg_match('/[^\\w,-]/', $arg)) {
                         throw new Trails_Exception(400);
                     }
+                    break;
+
+                case 'sorm':
+                    $info = $class_infos[$i];
+
+                    $arg = new $info['model']($arg);
+                    if ($this->_autobind) {
+                        $this->{$info['var']} = $arg;
+                    }
+                    break;
+
+                default:
+                    throw new Trails_Exception(500, 'Unknown type "' . $type . '"');
             }
         }
 

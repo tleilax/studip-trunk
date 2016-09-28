@@ -16,6 +16,8 @@
 
 class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
 {
+    const ID_SEPARATOR = '_';
+    
     /**
      * table row data
      * @var array $content
@@ -209,7 +211,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
                 $config['alias_fields']['id'] = $config['pk'][0];
             } else {
                 $config['additional_fields']['id'] = array('get' => '_getId',
-                                                           'set' => '_setId');
+                                                           'set' => 'setId');
             }
         }
         if (isset($config['additional_fields'])) {
@@ -846,16 +848,9 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
      */
     protected function _getId($field)
     {
-        return is_null($this->getId()) ? null : join('_',$this->getId());
-    }
-
-    /**
-     * sets internal used id value (multiple keys concatenated with _)
-     *
-     */
-    protected function _setId($field, $value)
-    {
-        return $this->setId(explode('_', $value));
+        return is_null($this->getId())
+             ? null
+             : implode(self::ID_SEPARATOR, $this->getId());
     }
 
     /**
@@ -1111,10 +1106,10 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
      * @throws InvalidArgumentException if given key is not complete
      * @return boolean
      */
-    function setId($id)
+    public function setId($id)
     {
         if (!is_array($id)){
-            $id = array($id);
+            $id = explode(self::ID_SEPARATOR, $id);
         }
         if (count($this->pk) != count($id)){
             throw new InvalidArgumentException("Invalid ID, Primary Key {$this->db_table} is " .join(",",$this->pk));
