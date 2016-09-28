@@ -143,6 +143,7 @@ $rules = [
     'getAllChildIDs' => false,
 
     'AutoInsert::existSeminars' => false,
+    'ZebraTable' => 'No longer neccessary. Use #{table.default} instead.',
 ];
 
 
