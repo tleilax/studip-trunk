@@ -197,22 +197,44 @@ abstract class StudipController extends Trails_Controller
     public function url_for($to = ''/* , ... */)
     {
         $args = func_get_args();
+
+        // Extract parameters (if any)
+        $params = [];
         if (is_array(end($args))) {
             $params = array_pop($args);
-        } else {
-            $params = array();
+
+            // Map any sorm objects to their ids
+            $params = array_map(function ($param) {
+                if (is_object($param) && $param instanceof SimpleORMap) {
+                    return $param->id;
+                }
+                return $param;
+            });
         }
+
         //preserve fragment
         list($to, $fragment) = explode('#', $to);
+
+        // Try to create route if none given
         if (!$to) {
-            $to = '/' . ($this->parent_controller ? $this->parent_controller->current_action : $this->current_action);
+            $to  = '/';
+            $to .= $this->parent_controller
+                 ? $this->parent_controller->current_action
+                 : $this->current_action;
         }
+
+        // Create url for a specific action
+        // TODO: This seems odd. You kinda specify an absolute path
+        //       to receive a relative url. Meh...
         if ($to[0] === '/') {
-            $prefix = str_replace('_', '/', mb_strtolower(mb_strstr(get_class($this->parent_controller ? $this->parent_controller : $this), 'Controller', true)));
-            $to = $prefix . $to;
+            $to = $this->controller_path() . $to;
         }
+
+        // Restore arguments
         $args[0] = $to;
-        $url = call_user_func_array("parent::url_for", $args);
+        $url = call_user_func_array('parent::url_for', $args);
+
+        // Restore fragment (if any)
         if ($fragment) {
             $url .= '#' . $fragment;
         }
@@ -230,7 +252,7 @@ abstract class StudipController extends Trails_Controller
      *
      * @return string  a URL to this route
      */
-    function link_for($to = ''/* , ... */)
+    public function link_for($to = ''/* , ... */)
     {
         return htmlReady(call_user_func_array(array($this, 'url_for'), func_get_args()));
     }
@@ -390,9 +412,11 @@ abstract class StudipController extends Trails_Controller
      * @param string $action Name of the action
      * @return true if action is defined, false otherwise
      */
-    protected function has_action($action)
+    public function has_action($action)
     {
-        return method_exists($this, $action . '_action');
+        return method_exists($this, $action . '_action')
+            || ($this->parent_controller
+                && $this->parent_controller->has_action($action));
     }
 
     /**
@@ -426,8 +450,9 @@ abstract class StudipController extends Trails_Controller
      */
     protected function controller_path()
     {
-        $class = mb_substr(__STATIC__, 0, -mb_strlen('Controller'));
-        $controller = strtosnakecase($class);
+        $class = $this->parent_controller ?: $this;
+        $controller = mb_substr($class, 0, -mb_strlen('Controller'));
+        $controller = strtosnakecase($controller);
         return str_replace('_', '/', $controller);
     }
 }
