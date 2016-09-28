@@ -356,4 +356,78 @@ abstract class StudipController extends Trails_Controller
         return $template->render();
     }
 
+    /**
+     * Magic methods that intercepts all unknown method calls.
+     * If a method is called that matches an action on this controller,
+     * an url to that action is generated.
+     *
+     * Basically, this:
+     *
+     *    <code>$controller->url_for('foo/bar/baz/' . $param)</code>
+     *
+     * is equal to calling this on the Foo_BarController:
+     *
+     *    <code>$controller->baz($param)</code>
+     *
+     * @param String $method    Called method name
+     * @param array  $argumetns Provided arguments
+     * @return url to the requested action
+     * @throws Trails_UnknownAction if no action matches the method
+     */
+    public function __call($method, $arguments)
+    {
+        if (!$this->has_action($method)) {
+            throw new Trails_UnknownAction("Unknown action '{$method}'");
+        }
+
+        array_unshift($arguments, $method);
+        return call_user_func_array([$this, 'action_url'], $arguments);
+    }
+
+    /**
+     * Returns whether this controller has the specificed action.
+     *
+     * @param string $action Name of the action
+     * @return true if action is defined, false otherwise
+     */
+    protected function has_action($action)
+    {
+        return method_exists($this, $action . '_action');
+    }
+
+    /**
+     * Generates the url for an action on this controller without the
+     * neccessity to provide the full "path" to the action (since it
+     * is implicitely known).
+     *
+     * Basically, this:
+     *
+     *    <code>$controller->url_for('foo/bar/baz/' . $param)</code>
+     *
+     * is equal to calling this on the Foo_BarController:
+     *
+     *    <code>$controller->action_url('baz/' . $param)</code>
+     *
+     * @param string $action Name of the action
+     * @return url to the requested action
+     */
+    public function action_url($action)
+    {
+        $arguments = func_get_args();
+        array_unshift($arguments, $this->controller_path());
+
+        return call_user_func_array([$this, 'url_for'], $arguments);
+    }
+
+    /**
+     * Returns the url path to this controller.
+     *
+     * @return url path to this controller
+     */
+    protected function controller_path()
+    {
+        $class = mb_substr(__STATIC__, 0, -mb_strlen('Controller'));
+        $controller = strtosnakecase($class);
+        return str_replace('_', '/', $controller);
+    }
 }
