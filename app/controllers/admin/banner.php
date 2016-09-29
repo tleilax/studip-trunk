@@ -206,7 +206,6 @@ class Admin_BannerController extends AuthenticatedController
                         ->defaultValue($banner['target'], $institut_name['name'])
                         ->render();
         }
-        $this->banner = $banner;
     }
 
     /**

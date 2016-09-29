@@ -220,7 +220,7 @@ abstract class StudipController extends Trails_Controller
 
                     $arg = new $info['model']($arg);
                     if ($this->_autobind) {
-                        $this->{$info['var']} = $arg;
+                        $this->{$info['var']} =& $arg;
                     }
                     break;
 
