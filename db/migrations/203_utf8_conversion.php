@@ -4,7 +4,7 @@ class Utf8Conversion extends Migration
 {
     public function description()
     {
-        return 'Convert database to utf8_unicode_ci';
+        return 'Convert database to utf8mb4';
     }
 
     public function up()
@@ -21,14 +21,14 @@ class Utf8Conversion extends Migration
 
         // create a helper-function in MySQL
         $pdo->exec("
-        CREATE FUNCTION entity_decode(txt TEXT CHARSET utf8) RETURNS TEXT
-            CHARSET utf8
+        CREATE FUNCTION entity_decode(txt TEXT CHARSET utf8mb4) RETURNS TEXT
+            CHARSET utf8mb4
                 NO SQL
                 DETERMINISTIC
             BEGIN
 
-                DECLARE tmp TEXT    CHARSET utf8 DEFAULT txt;
-                DECLARE entity  TEXT CHARSET utf8;
+                DECLARE tmp TEXT    CHARSET utf8mb4 DEFAULT txt;
+                DECLARE entity  TEXT CHARSET utf8mb4;
                 DECLARE pos1    INT DEFAULT 1;
                 DECLARE pos2    INT;
                 DECLARE codepoint   INT;
@@ -49,7 +49,7 @@ class Utf8Conversion extends Migration
             2) AS UNSIGNED);
                             IF codepoint > 31 THEN
                                 SET tmp = CONCAT(LEFT(tmp, pos1 - 1), CHAR(codepoint
-            USING utf8), SUBSTRING(tmp, pos2 + 1));
+            USING utf8mb4), SUBSTRING(tmp, pos2 + 1));
                             END IF;
                         END IF;
                     END IF;
@@ -66,12 +66,8 @@ class Utf8Conversion extends Migration
 
         // convert database to utf-8
         $db->exec("ALTER DATABASE `{$GLOBALS['DB_STUDIP_DATABASE']}`
-            CHARACTER SET utf8 COLLATE utf8_unicode_ci");
+            CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
         echo "<pre>\n";
-
-        // fix to long index in opengraphdata before trying to convert it
-        $db->exec("ALTER TABLE `opengraphdata`
-            DROP INDEX `url`;");
 
         // convert tables and columns to utf-8
         foreach($db->query("SHOW TABLES")->fetchAll() as $data) {
@@ -99,11 +95,11 @@ class Utf8Conversion extends Migration
 
                     if (!$collation) {
                         if (mb_strpos($column['Collation'], '_bin') !== false) {    // if we hav a bin column, preserve it
-                            $charset = 'utf8';
-                            $collation = 'utf8_bin';
+                            $charset = 'utf8mb4';
+                            $collation = 'utf8mb4_bin';
                         } else if ($column['Collation']) {                          // only convert if there is a collation at all (int f.e. has no collation!)
-                            $charset = 'utf8';
-                            $collation = 'utf8_unicode_ci';
+                            $charset = 'utf8mb4';
+                            $collation = 'utf8mb4_unicode_ci';
                         }
                     }
 
@@ -124,9 +120,10 @@ class Utf8Conversion extends Migration
                 }
 
                 // change default encoding of table itself
-                $db->exec($query = "ALTER TABLE `{$data[0]}` CHARACTER SET utf8 COLLATE utf8_unicode_ci");
+                $db->exec($query = "ALTER TABLE `{$data[0]}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
 
             } catch (PDOException $e) {
+                echo $query ."\n";
                 echo $e->getMessage();
                 echo "\n\n";
             }
