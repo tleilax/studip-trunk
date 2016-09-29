@@ -126,7 +126,7 @@ namespace {
     require_once 'lib/language.inc.php';
     require_once 'lib/visual.inc.php';
     require_once 'lib/deputies_functions.inc.php';
-    
+
     //setup default logger
     Log::get()->setHandler($GLOBALS['TMP_PATH'] . '/studip.log');
     if (Studip\ENV == 'development') {
@@ -157,7 +157,7 @@ namespace {
         ->setConnection('studip',
             'mysql:host=' . $GLOBALS['DB_STUDIP_HOST'] .
             ';dbname=' . $GLOBALS['DB_STUDIP_DATABASE'] .
-            ';charset=utf8',
+            ';charset=utf8mb4',
             $GLOBALS['DB_STUDIP_USER'],
             $GLOBALS['DB_STUDIP_PASSWORD']);
 
@@ -168,7 +168,7 @@ namespace {
                 ->setConnection('studip-slave',
                     'mysql:host=' . $GLOBALS['DB_STUDIP_SLAVE_HOST'] .
                     ';dbname=' . $GLOBALS['DB_STUDIP_SLAVE_DATABASE'] .
-                    ';charset=utf8',
+                    ';charset=utf8mb4',
                     $GLOBALS['DB_STUDIP_SLAVE_USER'],
                     $GLOBALS['DB_STUDIP_SLAVE_PASSWORD']);
         } catch (PDOException $exception) {
@@ -197,7 +197,7 @@ namespace {
 
     // Add paths to autoloader that were defined in config_local.inc.php and
     // may be optional
-    
+
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/' . $GLOBALS['RELATIVE_PATH_RESOURCES'] . '/lib');
     require_once $GLOBALS['RELATIVE_PATH_RESOURCES'] . '/resourcesFunc.inc.php';
     require_once $GLOBALS['RELATIVE_PATH_RESOURCES'] . '/lib/list_assign.inc.php';
