@@ -69,7 +69,7 @@ function getHeaderLine($id, $object_name = null)
     $header_line = $object_name['type'];
     if ($object_name['name']) $header_line.=": ";
     if (mb_strlen($object_name['name']) > 60){
-            $header_line .= studip_substr($object_name['name'], 0, 60);
+            $header_line .= mb_substr($object_name['name'], 0, 60);
             $header_line .= "... ";
     } else {
         $header_line .= $object_name['name'];
@@ -529,7 +529,8 @@ function my_substr($what, $start, $end)
     $what_length = mb_strlen($what);
     // adding 5 because: mb_strlen("[...]") == 5
     if ($what_length > $length + 5) {
-        $what=studip_substr($what, $start, round(($length / 3) * 2))."[...]".studip_substr($what, $what_length - round($length / 3), $what_length);
+        $what = mb_substr($what, $start, round(($length / 3) * 2))
+              . "[...]" . mb_substr($what, $what_length - round($length / 3), $what_length);
     }
     return $what;
 }
@@ -1637,37 +1638,6 @@ function get_title_for_status($type, $count, $sem_type = NULL)
     }
 
     return ngettext($title[0], $title[1], $count);
-}
-
-/**
- * Stud.IP encoding aware version of good ol' mb_substr(), treats numeric HTML-ENTITIES as one character
- * use only if really necessary
- *
- * @param string  $string string to shorten
- * @param integer $offset position to start with
- * @param integer $length maximum length
- *
- * @return string  the part of the string
- * @deprecated
- */
-function studip_substr($string, $offset, $length = false)
-{
-    return mb_substr($string, $offset, $length);
-}
-
-/**
- * Stud.IP encoding aware version of good ol' mb_strlen(), treats numeric HTML-ENTITIES as one character
- * use only if really necessary
- *
- * @param string $string the string to measure
- *
- * @return integer  the number of characters in string
- *
- * @deprecated
- */
-function studip_strlen($string)
-{
-    return mb_strlen($string);
 }
 
 /**
