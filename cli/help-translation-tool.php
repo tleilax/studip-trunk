@@ -54,7 +54,6 @@ function po_unescape($string) {
         '\\n' => "\n",
     );
     $string = str_replace(array_keys($replaces), array_values($replaces), $string);
-    $string = studip_utf8decode($string);
     return $string;
 }
 
@@ -65,7 +64,6 @@ function po_unescape($string) {
  * @return String Processed string
  */
 function po_stringify($string) {
-    $string = studip_utf8encode($string);
     $string = str_replace("\r", '', $string);
     $chunks = explode("\n", $string);
 

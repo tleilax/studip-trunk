@@ -785,7 +785,7 @@ if ($_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest') {
         }
     }
     $output = ob_get_clean();
-    print studip_utf8encode($output);
+    print $output;
     page_close();
     die();
 }

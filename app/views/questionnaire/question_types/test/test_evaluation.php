@@ -34,8 +34,8 @@ $users = array_unique($users);
     <?= Request::isAjax() ? 'jQuery(document).one("dialog-open", function () {' : 'jQuery(function () {' ?>
 
         var data = {
-            labels: <?= json_encode(studip_utf8encode($data['options'])) ?>,
-            series: [<?= json_encode(studip_utf8encode($results)) ?>]
+            labels: <?= json_encode($data['options']) ?>,
+            series: [<?= json_encode($results) ?>]
         };
         <? if ($vote['questiondata']['multiplechoice']) : ?>
             new Chartist.Bar('#questionnaire_<?= $vote->getId() ?>_chart', data, { onlyInteger: true, axisY: { onlyInteger: true } });
@@ -96,4 +96,3 @@ $users = array_unique($users);
     <? endforeach ?>
     </tbody>
 </table>
-

@@ -1,7 +1,7 @@
 <?php
 /**
  * wysiwyg.php - Provide web services for the WYSIWYG editor.
- * 
+ *
  **
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -100,14 +100,14 @@ class WysiwygController extends \AuthenticatedController
     /**
      * Store or retrieve settings.
      *
-     * Settings are further subdivided into groups. For example: global, 
+     * Settings are further subdivided into groups. For example: global,
      * seminar- and user-specific settings (see below).
      *
      * HTTP GET
      * returns a JSON object with current settings.
      *
      * HTTP PUT
-     * expects a JSON object with settings to store and returns 
+     * expects a JSON object with settings to store and returns
      * updated settings as a JSON object. Some settings are read-only,
      * others can only be set if the user has the necessary access level.
      *
@@ -177,13 +177,13 @@ class WysiwygController extends \AuthenticatedController
      * The difference of seminar's settings for a user and user's settings
      * for a seminar:
      *
-     *   A seminar's teacher may want to set the upload directory for each user 
-     *   to a separate one, which should not be overwritable by a user, in 
-     *   order to make sure that users cannot see other users uploads (there 
+     *   A seminar's teacher may want to set the upload directory for each user
+     *   to a separate one, which should not be overwritable by a user, in
+     *   order to make sure that users cannot see other users uploads (there
      *   are other ways to do this, but it's just an example).
      *
-     *   A user might want to have a specific upload directory in order to 
-     *   collaborate better with other users in the same seminar (e.g. when 
+     *   A user might want to have a specific upload directory in order to
+     *   collaborate better with other users in the same seminar (e.g. when
      *   students form a study group).
      *
      *   For example the ELMO module needs such settings.
@@ -211,7 +211,7 @@ class WysiwygController extends \AuthenticatedController
      *   }
      * }
      *
-     * When accessing a sub-resource that resource's branch of the JSON scheme 
+     * When accessing a sub-resource that resource's branch of the JSON scheme
      * will be returned.
      */
     public function settings_action()
@@ -235,13 +235,13 @@ class WysiwygController extends \AuthenticatedController
         } catch (WysiwygHttpException $e) {
             $this->set_status($e->getCode());
             $this->set_content_type('text/plain; charset=utf-8');
-            $this->render_text(studip_utf8encode($e->getMessage()));
+            $this->render_text($e->getMessage());
         }
     }
 
     /**
      * Set WYSIWYG settings for a specific group.
-     * 
+     *
      * Dummy implementation: Currently only accepts setting the
      * disabled flag for wysiwyg/settings/users/current.
      *
@@ -289,8 +289,8 @@ class WysiwygController extends \AuthenticatedController
     /**
      * Return WYSIWYG settings for a specific group.
      *
-     * @param $group string The requested settings group: 'user', 'seminar', 
-     * 'global' or 'all'. If the group is set to 'all' then all levels will be 
+     * @param $group string The requested settings group: 'user', 'seminar',
+     * 'global' or 'all'. If the group is set to 'all' then all levels will be
      * returned. If the group is unknown an error will be thrown.
      *
      * @return object Settings for the requested group.
@@ -407,7 +407,7 @@ class WysiwygController extends \AuthenticatedController
      * returned unchanged.
      *
      * @param mixed $data Data to convert.
-     * 
+     *
      * @return mixed Converted data.
      */
     private function objectToArray($data)

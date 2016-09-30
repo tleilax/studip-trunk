@@ -7,7 +7,7 @@
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
- * 
+ *
  * @author      Peter Thienel <thienel@data-quest.de>
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
@@ -16,17 +16,17 @@
 
 class Studiengang extends ModuleManagementModelTreeItem
 {
-    
+
     private $count_dokumente;
     private $count_faecher;
     private $institut_name;
     private $kategorie_name;
     private $count_module;
-    
+
     protected static function configure($config = array())
     {
         $config['db_table'] = 'mvv_studiengang';
-        
+
         $config['belongs_to']['abschluss'] = array(
             'class_name' => 'Abschluss',
             'foreign_key' => 'abschluss_id'
@@ -68,7 +68,7 @@ class Studiengang extends ModuleManagementModelTreeItem
             'foreign_key' => 'institut_id',
             'assoc_foreign_key' => 'institut_id'
         );
-        
+
         $config['additional_fields']['count_dokumente']['get'] =
             function($stg) { return $stg->count_dokumente; };
         $config['additional_fields']['count_faecher']['get'] =
@@ -79,19 +79,19 @@ class Studiengang extends ModuleManagementModelTreeItem
             function($stg) { return $stg->institut_name; };
         $config['additional_fields']['kategorie_name']['get'] =
             function($stg) { return $stg->kategorie_name; };
-        
+
         parent::configure($config);
     }
-    
+
     public function __construct($id = null)
     {
         parent::__construct($id);
         $this->object_real_name = _('Studiengang');
     }
-    
+
     /**
      * Retrieves all Studiengaenge by given Abschluss.
-     * 
+     *
      * @param string $abschluss_id The id of an Abschluss.
      * @return SimpleORMapCollection A collection of Studiengaenge.
      */
@@ -101,10 +101,10 @@ class Studiengang extends ModuleManagementModelTreeItem
                 . 'FROM mvv_studiengang ms '
                 . 'WHERE ms.abschluss_id = ?', array($abschluss_id));
     }
-    
+
     /**
      * Retrieves all Studiengaenge by a given combination of Fach/Abschluss.
-     * 
+     *
      * @param string $fach_id The id of a Fach.
      * @param string $abschluss_id The id of an Abschluss.
      * @return SimpleORMapCollection A collection of Studiengaenge.
@@ -118,12 +118,12 @@ class Studiengang extends ModuleManagementModelTreeItem
                 . 'WHERE ms.abschluss_id = ? AND mst.fach_id = ?',
                 array($abschluss_id, $fach_id));
     }
-    
+
     /**
      * Retrieves all Studiengaenge by given Fachbereich. The Fachbereich is an
      * institute assigned to the fach of a Studiengangteil which is assigned to
-     * Studiengaenge. 
-     * 
+     * Studiengaenge.
+     *
      * @param string $fachbereich_id The id of an institute.
      * @return SimpleORMapCollection A collection of Studiengaenge.
      */
@@ -142,10 +142,10 @@ class Studiengang extends ModuleManagementModelTreeItem
                 . 'GROUP BY studiengang_id '
                 . 'ORDER BY name', array($fachbereich_id));
     }
-    
+
     /**
      * Retrieves all Studiengänge ba given Abschluss-Kategorie.
-     * 
+     *
      * @param string $kategorie_id The id of an Abschluss-Kategorie.
      * @return SimpleORMapCollection A collection of Studiengaenge.
      */
@@ -161,13 +161,13 @@ class Studiengang extends ModuleManagementModelTreeItem
                 . 'GROUP BY studiengang_id '
                 . 'ORDER BY name', array($kategorie_id));
     }
-    
+
     /**
      * Retrieves all Studiengange by a given combination of Abschluss-Kategorie
      * and Fachbereich.
      * The Fachbereich is an institute assigned to the fach of a Studiengangteil
-     * which is assigned to Studiengaenge. 
-     * 
+     * which is assigned to Studiengaenge.
+     *
      * @param string $kategorie_id The id of an Abschluss-Kategorie.
      * @param string $fachbereich_id The id of an institute.
      * @return SimpleORMapCollection A collection of Studiengaenge.
@@ -186,10 +186,10 @@ class Studiengang extends ModuleManagementModelTreeItem
                 . 'GROUP BY studiengang_id '
                 . 'ORDER BY name', array($kategorie_id, $fachbereich_id));
     }
-    
+
     /**
      * Retrieves all Studiengaenge the given Studiengangteil is assigned to.
-     * 
+     *
      * @param string $stgteil_id The id of a Studiengangteil.
      * @return SimpleORMapCollection A collection of Studiengangteile.
      */
@@ -200,13 +200,13 @@ class Studiengang extends ModuleManagementModelTreeItem
                 . 'LEFT JOIN mvv_stg_stgteil mss USING(studiengang_id) '
                 . 'WHERE mss.stgteil_id = ? ', array($stgteil_id));
     }
-    
+
     /**
      * Retrieves all Studiengaenge the given Module are assigned to.
      * The assignment is done via Studiengangabschnitte, Studiengangteil-
      * Versionen and Studiengangteil.
      * Optionallay restricted to public visible Studiengaenge.
-     * 
+     *
      * @param array $modul_ids An array of Modul ids.
      * @param boolean $only_public If true retrieve only public visible ones.
      * @return SimpleORMapCollection A collection of Studiengaenge.
@@ -241,13 +241,13 @@ class Studiengang extends ModuleManagementModelTreeItem
                     array($modul_ids));
         }
     }
-    
+
     /**
      * Returns an array with all studiengaenge filtered by Fachbereich and
      * Abschluss-Kategorie. The associated array contains only the name and
      * the id of the Studiengang with the id as key.
      * The content is utf8 encoded.
-     * 
+     *
      * @param string $fachbereich_id The id of the Fachbereich
      * @param string $kategorie_id The id of the Abschluss-Kategorie
      * @return array The array with studiengaenge. Empty if no Studiengang
@@ -269,17 +269,16 @@ class Studiengang extends ModuleManagementModelTreeItem
         $stmt = DBManager::get()->prepare($query);
         $stmt->execute(array($kategorie_id, $fachbereich_id));
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $studiengang) {
-            $studiengaenge[$studiengang['studiengang_id']] =
-                    array_map('studip_utf8encode', $studiengang);
+            $studiengaenge[$studiengang['studiengang_id']] = $studiengang;
         }
         return $studiengaenge;
     }
-    
+
     /**
      * Returns all or a specified (by row count and offset) number of
      * Studiengaenge sorted and filtered by given parameters and enriched with
      * some additional fields. This function is mainly used in the list view.
-     * 
+     *
      * @param string $sortby Field name to order by.
      * @param string $order ASC or DESC direction of order.
      * @param array $filter Key-value pairs of filed names and values
@@ -325,10 +324,10 @@ class Studiengang extends ModuleManagementModelTreeItem
                 . 'GROUP BY studiengang_id '
                 . 'ORDER BY ' . $sortby, array(), $row_count, $offset);
     }
-    
+
     /**
      * Returns the number of Studiengaenge optional filtered by $filter.
-     * 
+     *
      * @see ModuleManagementModel::getFilterSql()
      * @param array $filter Key-value pairs of filed names and values
      * to filter the result set.
@@ -353,11 +352,11 @@ class Studiengang extends ModuleManagementModelTreeItem
         $db = DBManager::get()->query($query);
         return $db->fetchColumn(0);
     }
-    
+
     /**
      * Retrieves the Studiengang and all related data and
      * some additional fields.
-     * 
+     *
      * @param string $studiengang_id The id of the studiengang.
      * @return object The Studiengang with additional data or a new Studiengang.
      */
@@ -381,16 +380,16 @@ class Studiengang extends ModuleManagementModelTreeItem
         }
         return self::get();
     }
-    
+
     public function getDisplayName()
     {
         return $this->name . ($this->kategorie_name ?
                 ' (' . $this->kategorie_name . ')' : '');
     }
-    
+
     /**
      * Returns all institutes assigned to studiengaenge.
-     * 
+     *
      * @see ModuleManagementModel::getFilterSql()
      * @param array $filter Key-value pairs of filed names and values
      * to filter the result set.
@@ -413,12 +412,12 @@ class Studiengang extends ModuleManagementModelTreeItem
                 . 'GROUP BY Institute.Institut_id '
                 . 'ORDER BY faculty_name, is_faculty DESC, name', array());
     }
-    
+
     /**
      * @see ModuleManagementModel::findBySearchTerm()
      */
     public static function findBySearchTerm($term, $filter = null)
-    {   
+    {
         $quoted_term = DBManager::get()->quote('%' . $term . '%');
         return parent::getEnrichedByQuery('SELECT ms.*, '
                 . 'a.name as `abschluss_name`, mak.name as `kategorie_name`, '
@@ -436,10 +435,10 @@ class Studiengang extends ModuleManagementModelTreeItem
                 . ' OR mst.zusatz LIKE ' . $quoted_term
                 . ' GROUP BY studiengang_id ORDER BY `name`');
     }
-    
+
     /**
      * Retrieves all Studiengaenge by given ids optionally filtered.
-     * 
+     *
      * @see ModuleManagementModel::getFilterSql()
      * @param array $studiengang_ids An array of Studiengang ids.
      * @param array $filter Key-value pairs of filed names and values
@@ -469,14 +468,14 @@ class Studiengang extends ModuleManagementModelTreeItem
                 . 'GROUP BY studiengang_id ORDER BY `name`',
                 array((array) $studiengang_ids));
     }
-    
+
     /**
      * Returns an array with all types of status found by given
      * studiengang ids as key and the number of associated Studiengaenge as
      * value.
-     * 
+     *
      * @param array $studiengang_ids
-     * @return array 
+     * @return array
      */
     public static function findStatusByIds($studiengang_ids = array())
     {
@@ -494,7 +493,7 @@ class Studiengang extends ModuleManagementModelTreeItem
                 . 'FROM mvv_studiengang GROUP BY stat');
             $stmt->execute();
         }
-        
+
         $result = array();
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $status) {
             $result[$status['stat']] = array(
@@ -504,10 +503,10 @@ class Studiengang extends ModuleManagementModelTreeItem
         }
         return $result;
     }
-    
+
     /**
      * Returns an array with ids of all Studiengaenge found by the given filter.
-     * 
+     *
      * @see ModuleManagementModel::getFilterSql()
      * @param array $filter Key-value pairs of filed names and values
      * to filter the result set.
@@ -531,14 +530,14 @@ class Studiengang extends ModuleManagementModelTreeItem
         $stmt->execute();
         return $stmt->fetchAll();
     }
-    
+
     /**
      * Returns an array with Modul ids from modules related to this Studiengang.
      * The relation is done via Studiengangteile, Studiengangteil-Versionen and
      * Studiengangteil-Abschnitte.
      * Optionally restricted to only public visible modules and filtered by an
      * array of Modul ids.
-     * 
+     *
      * @param boolean $only_public If true only public visible modules will
      * be retrieved.
      * @param array $modul_ids An array of module ids. Only the intersection of
@@ -576,7 +575,7 @@ class Studiengang extends ModuleManagementModelTreeItem
         $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
-    
+
     /**
      * @see ModuleManagementModel::getClassDisplayName
      */
@@ -584,41 +583,41 @@ class Studiengang extends ModuleManagementModelTreeItem
     {
         return _('Studiengang');
     }
-    
+
     /**
      * Returns the first semester this studiengang is active.
-     * 
+     *
      * @return object semester
      */
     public function getStartSem()
     {
         return Semester::find($this->sem);
     }
-    
+
     /**
      * Returns the last semester this studiengang is active.
-     * 
+     *
      * @return object semester
      */
     public function getEndSem()
     {
         return Semester::find($this->end);
     }
-    
+
     /**
      * @see ModuleManagementModel::getResponsibleInstitutes()
      */
     public function getResponsibleInstitutes()
-    {   
+    {
         if ($this->responsible_institute) {
             return array($this->responsible_institute);
         }
         return parent::getResponsibleInstitutes();
     }
-    
+
     /**
      * Returns whether this studiengang is active.
-     * 
+     *
      * @return boolean true if active
      */
     public function isActive()
@@ -634,7 +633,7 @@ class Studiengang extends ModuleManagementModelTreeItem
         }
         return $start_sem->beginn <= $time && $time <= $end_sem->ende;
     }
-    
+
     /**
      * @see MvvTreeItem::getTrailParentId()
      */
@@ -650,7 +649,7 @@ class Studiengang extends ModuleManagementModelTreeItem
     {
         return Abschluss::get($this->getTrailParentId());
     }
-    
+
     /**
      * @see MvvTreeItem::getChildren()
      */
@@ -658,7 +657,7 @@ class Studiengang extends ModuleManagementModelTreeItem
     {
         return StudiengangTeil::findByStudiengang($this->getId());
     }
-    
+
     /**
      * @see MvvTreeItem::getParents()
      */
@@ -667,7 +666,7 @@ class Studiengang extends ModuleManagementModelTreeItem
         $fachbereich = Fachbereich::find($this->institut_id);
         return array($fachbereich);
     }
-    
+
     /**
      * @see MvvTreeItem::hasChildren()
      */
@@ -675,7 +674,7 @@ class Studiengang extends ModuleManagementModelTreeItem
     {
         return count($this->getChildren()) > 0;
     }
-    
+
     public function validate()
     {
         $ret = parent::validate();

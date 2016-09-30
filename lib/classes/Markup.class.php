@@ -178,8 +178,7 @@ class Markup
         if ($purifier === NULL) {
             $purifier = self::createPurifier();
         }
-        return studip_utf8decode(
-            $purifier->purify(studip_utf8encode($dirty_html)));
+        return $purifier->purify($dirty_html);
     }
 
     /**

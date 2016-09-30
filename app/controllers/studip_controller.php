@@ -76,7 +76,7 @@ abstract class StudipController extends Trails_Controller
         if (Request::isXhr() && $this->utf8decode_xhr) {
             $request = Request::getInstance();
             foreach ($request as $key => $value) {
-                $request[$key] = studip_utf8decode($value);
+                $request[$key] = $value;
             }
         }
     }
@@ -281,7 +281,7 @@ abstract class StudipController extends Trails_Controller
     function render_json($data)
     {
         $this->set_content_type('application/json;charset=utf-8');
-        return $this->render_text(json_encode(studip_utf8encode($data)));
+        return $this->render_text(json_encode($data));
     }
 
     /**

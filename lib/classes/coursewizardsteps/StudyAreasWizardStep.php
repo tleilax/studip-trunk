@@ -226,7 +226,7 @@ class StudyAreasWizardStep implements CourseWizardStep
         foreach ($children as $c) {
             $level[] = array(
                 'id' => $c->sem_tree_id,
-                'name' => studip_utf8encode($c->getName()),
+                'name' => $c->getName(),
                 'has_children' => $c->hasChildren(),
                 'parent' => $parentId,
                 'assignable' => $c->isAssignable()
@@ -271,7 +271,7 @@ class StudyAreasWizardStep implements CourseWizardStep
             } else {
                 $data = array(
                     'id' => $c->id,
-                    'name' => $utf ? studip_utf8encode($c->name) : $c->name,
+                    'name' => $c->name,
                     'has_children' => $c->hasChildren(),
                     'parent' => $node->id,
                     'assignable' => $c->isAssignable(),

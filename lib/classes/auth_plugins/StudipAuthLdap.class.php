@@ -6,8 +6,8 @@
 // This file is part of Stud.IP
 // StudipAuthLdap.class.php
 // Stud.IP authentication against LDAP Server
-// 
-// Copyright (c) 2003 André Noack <noack@data-quest.de> 
+//
+// Copyright (c) 2003 André Noack <noack@data-quest.de>
 // Suchi & Berg GmbH <info@data-quest.de>
 // +---------------------------------------------------------------------------+
 // This program is free software; you can redistribute it and/or
@@ -31,39 +31,36 @@
 *
 * @access   public
 * @author   André Noack <noack@data-quest.de>
-* @package  
+* @package
 */
 class StudipAuthLdap extends StudipAuthAbstract {
-    
+
     var $anonymous_bind = true;
 
     var $host;
     var $base_dn;
-    var $protocol_version;
     var $username_attribute = 'uid';
     var $ldap_filter;
     var $bad_char_regex =  '/[^0-9_a-zA-Z]/';
-    var $decode_utf8_values = false;
-    var $send_utf8_credentials = false;
-    
+
     var $conn = null;
     var $user_data = null;
-    
+
     /**
     * Constructor
     *
-    * 
+    *
     * @access public
-    * 
+    *
     */
-    function __construct() 
+    function __construct()
     {
         //calling the baseclass constructor
         parent::__construct();
     }
-    
-    
-    function getLdapFilter($username) 
+
+
+    function getLdapFilter($username)
     {
         if (isset($this->ldap_filter)) {
             list($user, $domain) = explode('@', $username);
@@ -82,15 +79,12 @@ class StudipAuthLdap extends StudipAuthAbstract {
             $this->error_msg = _("Keine Verbindung zum LDAP Server möglich.");
             return false;
         }
-        if (!($r = ldap_set_option($this->conn,LDAP_OPT_PROTOCOL_VERSION,$this->protocol_version))){
+        if (!($r = ldap_set_option($this->conn, LDAP_OPT_PROTOCOL_VERSION, 3))){
             $this->error_msg = _("Setzen der LDAP Protokolversion fehlgeschlagen.");
             return false;
         }
         if ($this->start_tls) {
-            if ($this->protocol_version != 3) {
-                $this->error_msg = _("LDAP Protokolversion 3 wird für \"Start TLS\" benötigt.");
-                return false;
-            } elseif (!ldap_start_tls($this->conn)) {
+            if (!ldap_start_tls($this->conn)) {
                 $this->error_msg = _("\"Start TLS\" fehlgeschlagen.");
                 return false;
             }
@@ -101,9 +95,7 @@ class StudipAuthLdap extends StudipAuthAbstract {
     function getUserDn($username)
     {
         $user_dn = "";
-        if ($this->send_utf8_credentials){
-            $username = studip_utf8encode($username);
-        }
+
         if ($this->anonymous_bind){
             if (!($r = @ldap_bind($this->conn))){
                 $this->error_msg =_("Anonymer Bind fehlgeschlagen.") . $this->getLdapError();
@@ -130,12 +122,9 @@ class StudipAuthLdap extends StudipAuthAbstract {
         }
         return $user_dn;
     }
-                
+
     function doLdapBind($username, $password)
     {
-        if ($this->send_utf8_credentials){
-            $password = studip_utf8encode($password);
-        }
         if (!$this->doLdapConnect()){
             return false;
         }
@@ -163,13 +152,13 @@ class StudipAuthLdap extends StudipAuthAbstract {
         $this->user_data = $info[0];
         return true;
     }
-        
+
     /**
-    * 
     *
-    * 
+    *
+    *
     * @access private
-    * 
+    *
     */
     function isAuthenticated($username, $password)
     {
@@ -180,9 +169,9 @@ class StudipAuthLdap extends StudipAuthAbstract {
         ldap_unbind($this->conn);
         return true;
     }
-    
-    
-    
+
+
+
     function doLdapMap($map_params)
     {
         $ret = "";
@@ -192,22 +181,18 @@ class StudipAuthLdap extends StudipAuthAbstract {
                 $ret = base64_decode($ret);
             }
         }
-        return ($this->decode_utf8_values ? studip_utf8decode($ret) : $ret);
+        return $ret;
     }
-    
+
     function doLdapMapVorname($map_params)
     {
         $ret = "";
         $ldap_field = $this->user_data[$map_params[0]][$map_params[1]];
-        if ($this->decode_utf8_values) {
-            $ldap_field = studip_utf8decode($ldap_field);
-        }
+
         if ($ldap_field){
             $sn = $this->user_data['sn'][0];
-            if ($this->decode_utf8_values) {
-                $sn = studip_utf8decode($sn);
-            }
             $pos = mb_strpos($ldap_field, $sn);
+
             if ($pos !== false){
                 $ret = trim(mb_substr($ldap_field,0,$pos));
             }
@@ -228,12 +213,9 @@ class StudipAuthLdap extends StudipAuthAbstract {
             }
         }
     }
-    
+
     function isUsedUsername($username)
     {
-        if ($this->send_utf8_credentials) {
-            $username = studip_utf8encode($username);
-        }
         if (!$this->anonymous_bind){
             $this->error = _("Kann den Benutzernamen nicht überprüfen, anonymous_bind ist ausgeschaltet!");
             return false;
@@ -255,7 +237,7 @@ class StudipAuthLdap extends StudipAuthAbstract {
         }
         return true;
     }
-    
+
     function getLdapError()
     {
             return _("<br>LDAP Fehler: ") . ldap_error($this->conn) ." (#" . ldap_errno($this->conn) . ")";

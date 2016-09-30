@@ -1573,34 +1573,6 @@ function words($string)
 }
 
 /**
- * Encodes a string or array from Stud.IP encoding (WINDOWS-1252/ISO-8859-1 with numeric HTML-ENTITIES) to UTF-8
- *
- * @param mixed $data a string or an array with strings to encode in WINDOWS-1252/HTML-ENTITIES
- *
- * @return string  the string in UTF-8
- *
- * @deprecated
- */
-function studip_utf8encode($data)
-{
-    return $data;
-}
-
-/**
- * Encodes a string or array from UTF-8 to Stud.IP encoding (WINDOWS-1252/ISO-8859-1 with numeric HTML-ENTITIES)
- *
- * @param mixed $data a string in UTF-8 or an array with all strings encoded in utf-8
- *
- * @return string  the string in WINDOWS-1252/HTML-ENTITIES
- *
- * @deprecated
- */
-function studip_utf8decode($data)
-{
-    return $data;
-}
-
-/**
  * Special stud.ip version of json_decode() that also converts the data
  * from utf8 and creates an associative array by default (this differs
  * from the default behavior of json_decode() !).
@@ -1613,7 +1585,6 @@ function studip_utf8decode($data)
 function studip_json_decode($json, $assoc = true, $depth = 512, $options = 0)
 {
     $data = json_decode($json, $assoc, $depth, $options);
-    $data = studip_utf8decode($data);
 
     return $data;
 }
@@ -1628,7 +1599,6 @@ function studip_json_decode($json, $assoc = true, $depth = 512, $options = 0)
  */
 function studip_json_encode($data, $options = 0)
 {
-    $data = studip_utf8encode($data);
     $json = json_encode($data, $options);
 
     return $json;
@@ -1678,18 +1648,11 @@ function get_title_for_status($type, $count, $sem_type = NULL)
  * @param integer $length maximum length
  *
  * @return string  the part of the string
+ * @deprecated
  */
 function studip_substr($string, $offset, $length = false)
 {
-    if(!preg_match("'&#[0-9]+;'", $string)){
-        return mb_substr($string, $offset, $length);
-    }
-    $utf8string = studip_utf8encode($string);
-    if ($length === false) {
-        return studip_utf8decode(mb_substr($utf8string, $offset, mb_strlen($utf8string, 'UTF-8'), 'UTF-8'));
-    } else {
-        return studip_utf8decode(mb_substr($utf8string, $offset, $length, 'UTF-8'));
-    }
+    return mb_substr($string, $offset, $length);
 }
 
 /**

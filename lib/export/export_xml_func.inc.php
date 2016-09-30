@@ -148,5 +148,5 @@ function xml_footer()
 function xml_escape($string)
 {
     $string = preg_replace('/[\x00-\x08\x0b\x0c\x0e-\x1f]/', '', $string);
-    return htmlspecialchars(studip_utf8encode($string), ENT_QUOTES, 'UTF-8');
+    return htmlspecialchars($string, ENT_QUOTES, 'UTF-8');
 }

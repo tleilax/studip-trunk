@@ -195,7 +195,7 @@ abstract class RouteMap
         }
 
         if ($mediaType = $this->getRequestMediaType()) {
-            $this->data = studip_utf8decode($this->parseRequestBody($mediaType));
+            $this->data = $this->parseRequestBody($mediaType);
         }
     }
 

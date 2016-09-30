@@ -54,7 +54,7 @@ if ($navigation) {
         <? if (is_object($GLOBALS['perm']) && $GLOBALS['perm']->have_perm('autor') && PersonalNotifications::isActivated()) : ?>
         STUDIP.jsupdate_enable = true;
         <? endif ?>
-        STUDIP.URLHelper.parameters = <?= json_encode(studip_utf8encode(URLHelper::getLinkParams())) ?>;
+        STUDIP.URLHelper.parameters = <?= json_encode(URLHelper::getLinkParams()) ?>;
     </script>
     <?php
         // needs to be included in lib/include/html_head.inc.php as well

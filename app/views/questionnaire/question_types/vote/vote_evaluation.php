@@ -43,8 +43,8 @@ rsort($ordered_results);
     <script>
     <?= Request::isAjax() ? 'jQuery(document).add(".questionnaire_results").one("dialog-open", function () {' : 'jQuery(function () {' ?>
         var data = {
-            labels: <?= json_encode(studip_utf8encode($ordered_options)) ?>,
-            series: [<?= json_encode(studip_utf8encode($ordered_results)) ?>]
+            labels: <?= json_encode(ordered_options) ?>,
+            series: [<?= json_encode($ordered_results) ?>]
         };
         <? if ($vote['questiondata']['multiplechoice']) : ?>
             new Chartist.Bar('#questionnaire_<?= $vote->getId() ?>_chart', data, { onlyInteger: true, axisY: { onlyInteger: true } });

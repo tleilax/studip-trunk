@@ -23,14 +23,14 @@
 class TourController extends AuthenticatedController
 {
     protected $utf8decode_xhr = true;
-    
+
     /**
      * Callback function being called before an action is executed.
      */
     function before_filter(&$action, &$args)
     {
         parent::before_filter($action, $args);
-        
+
         $this->orientation_options = [
             'TL' => _('oben (links)'),
             'T'  => _('oben (mittig)'),
@@ -45,11 +45,11 @@ class TourController extends AuthenticatedController
             'R'  => _('rechts (mittig)'),
             'RB' => _('rechts (unten)'),
         ];
-        
+
         $this->help_admin = $GLOBALS['perm']->have_perm('root') || RolePersistence::isAssignedRole($GLOBALS['user']->id, 'Hilfe-Administrator(in)');
-        
+
     }
-    
+
     /**
      * sends tour object as json data
      *
@@ -63,7 +63,7 @@ class TourController extends AuthenticatedController
         if (!$this->tour->isVisible() OR (!$this->route)) {
             return $this->render_nothing();
         }
-        
+
         $this->user_visit = new HelpTourUser([$tour_id, $GLOBALS['user']->user_id]);
         if (($this->user_visit->step_nr > 1) && !$_SESSION['active_tour']['step_nr'] && ($this->tour->type == 'tour')) {
             $data['last_run']      = sprintf(_('Wollen Sie die Tour "%s" an der letzten Position fortsetzen?'), $this->tour->name);
@@ -113,7 +113,7 @@ class TourController extends AuthenticatedController
             }
             $_SESSION['active_tour']['next_route'] = $this->tour->steps[$next_first_step - 1]->route;
         }
-        
+
         $data['edit_mode']         = $this->help_admin;
         $data['step_count']        = count($this->tour->steps);
         $data['controls_position'] = 'BR';
@@ -123,9 +123,9 @@ class TourController extends AuthenticatedController
         $template->set_layout(null);
         $data['tour_html'] = $template->render();
         $this->set_content_type('application/json; charset=UTF-8');
-        return $this->render_text(json_encode(studip_utf8encode($data)));
+        return $this->render_text(json_encode($data));
     }
-    
+
     /**
      * sets session data for active tour
      *
@@ -165,7 +165,7 @@ class TourController extends AuthenticatedController
         }
         $this->render_nothing();
     }
-    
+
     /**
      * Administration page for tours
      *
@@ -178,13 +178,13 @@ class TourController extends AuthenticatedController
             throw new AccessDeniedException();
         }
         $GLOBALS['perm']->check('root');
-        
+
         // initialize
         PageLayout::setTitle(_('Verwalten von Touren'));
         PageLayout::setHelpKeyword('Basis.TourAdmin');
         // set navigation
         Navigation::activateItem('/admin/config/tour');
-        
+
         if (Request::get('tour_filter') == 'set') {
             $this->tour_searchterm = Request::option('tour_filter_term');
         }
@@ -212,7 +212,7 @@ class TourController extends AuthenticatedController
                 $this->delete_question = $this->delete_tour($tour_id);
             }
         }
-        
+
         // save settings
         if (Request::submitted('save_tour_settings')) {
             foreach ($this->tours as $tour_id => $tour) {
@@ -238,7 +238,7 @@ class TourController extends AuthenticatedController
         $search->addNeedle(_('Suchbegriff'), 'tour_searchterm', true);
         $sidebar->addWidget($search);
     }
-    
+
     /**
      * delete tour
      *
@@ -264,7 +264,7 @@ class TourController extends AuthenticatedController
         }
         return $output;
     }
-    
+
     /**
      * removes tour step
      *
@@ -290,7 +290,7 @@ class TourController extends AuthenticatedController
         }
         return $output;
     }
-    
+
     /**
      * delete tour step (ajax call)
      *
@@ -305,7 +305,7 @@ class TourController extends AuthenticatedController
         $this->tour = new HelpTour($tour_id);
         $this->render_text($this->delete_step($tour_id, $step_nr));
     }
-    
+
     /**
      * edit tour step
      *
@@ -392,7 +392,7 @@ class TourController extends AuthenticatedController
                 }
             }
         }
-        
+
         // prepare edit dialog
         $this->tour_id = $tour_id;
         if ($mode == 'new') {
@@ -410,7 +410,7 @@ class TourController extends AuthenticatedController
         }
         $this->mode = $mode;
     }
-    
+
     /**
      * Administration page for tour conflicts
      * @throws AccessDeniedException
@@ -422,16 +422,16 @@ class TourController extends AuthenticatedController
             throw new AccessDeniedException();
         }
         $GLOBALS['perm']->check('root');
-        
+
         // initialize
         PageLayout::setTitle(_('Versions-Konflikte der Touren'));
         PageLayout::setHelpKeyword('Basis.TourAdmin');
         // set navigation
         Navigation::activateItem('/admin/config/tour');
-        
+
         // load help content
         $this->conflicts = HelpTour::GetConflicts();
-        
+
         $this->diff_fields      = [
             'description'    => _('Beschreibung'),
             'studip_version' => _('Stud.IP-Version'),
@@ -446,7 +446,7 @@ class TourController extends AuthenticatedController
             'orientation' => _('Orientierung'),
         ];
     }
-    
+
     /**
      * resolves tour conflict
      *
@@ -460,7 +460,7 @@ class TourController extends AuthenticatedController
             throw new AccessDeniedException();
         }
         $GLOBALS['perm']->check('root');
-        
+
         $this->tour = new HelpTour($id);
         if ($mode == 'accept') {
             $this->tour->studip_version = $GLOBALS['SOFTWARE_VERSION'];
@@ -470,7 +470,7 @@ class TourController extends AuthenticatedController
         }
         $this->redirect('tour/admin_conflicts');
     }
-    
+
     /**
      * Administration page for single tour
      *
@@ -485,12 +485,12 @@ class TourController extends AuthenticatedController
         PageLayout::setTitle(_('Verwalten von Touren'));
         PageLayout::setHelpKeyword('Basis.TourAdmin');
         Navigation::activateItem('/admin/config/tour');
-        
+
         $this->tour = new HelpTour($tour_id);
         if ($tour_id AND $this->tour->isNew()) {
             throw new AccessDeniedException(_('Die Tour mit der angegebenen ID existiert nicht.'));
         }
-        
+
         foreach ($this->tour->steps as $step) {
             if (Request::option('delete_tour_step') == $step->step) {
                 $this->delete_question = $this->delete_step($this->tour->tour_id, $step->step);
@@ -508,7 +508,7 @@ class TourController extends AuthenticatedController
             $this->tour_startpage         = Request::get('tour_startpage');
         }
     }
-    
+
     /**
      * save tour data
      *
@@ -521,12 +521,12 @@ class TourController extends AuthenticatedController
         $GLOBALS['perm']->check('root');
         // initialize
         Navigation::activateItem('/admin/config/tour');
-        
+
         $this->tour = new HelpTour($tour_id);
         if ($tour_id AND $this->tour->isNew()) {
             throw new AccessDeniedException(_('Die Tour mit der angegebenen ID existiert nicht.'));
         }
-        
+
         if (Request::submitted('save_tour_details')) {
             CSRFProtection::verifySecurityToken();
             $this->tour->name        = trim(Request::get('tour_name'));

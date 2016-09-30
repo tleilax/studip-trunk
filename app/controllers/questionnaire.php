@@ -154,7 +154,7 @@ class QuestionnaireController extends AuthenticatedController
                         )
                     );
                     $this->response->add_header("X-Dialog-Close", 1);
-                    $this->response->add_header("X-Dialog-Execute", json_encode(studip_utf8encode($output)));
+                    $this->response->add_header("X-Dialog-Execute", json_encode($output));
                 } else {
                     PageLayout::postMessage($message);
                     if (Request::get("range_type") === "user") {
@@ -514,7 +514,7 @@ class QuestionnaireController extends AuthenticatedController
                     'html' => $this->render_template_as_string("questionnaire/_overview_questionnaire.php")
                 )
             );
-            $this->response->add_header("X-Dialog-Execute", json_encode(studip_utf8encode($output)));
+            $this->response->add_header("X-Dialog-Execute", json_encode($output));
         }
         PageLayout::setTitle(sprintf(_("Bereiche für Fragebogen: %s"), $this->questionnaire->title));
     }
@@ -560,4 +560,3 @@ class QuestionnaireController extends AuthenticatedController
         }
     }
 }
-
