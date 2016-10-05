@@ -208,6 +208,11 @@ class Course extends SimpleORMap
         $config['i18n_fields']['untertitel'] = true;
         $config['i18n_fields']['beschreibung'] = true;
         $config['i18n_fields']['art'] = true;
+        $config['i18n_fields']['teilnehmer'] = true;
+        $config['i18n_fields']['vorrausetzungen'] = true;
+        $config['i18n_fields']['lernorga'] = true;
+        $config['i18n_fields']['leistungsnachweis'] = true;
+        $config['i18n_fields']['ort'] = true;
         parent::configure($config);
     }
 
@@ -409,4 +414,5 @@ class Course extends SimpleORMap
 
         return $success;
     }
+
 }
