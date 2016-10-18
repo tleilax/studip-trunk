@@ -29,7 +29,7 @@ class MultipersonsearchController extends AuthenticatedController {
 
         $result = array();
         // execute searchobject if searchterm is at least 3 chars long
-        if (strlen($searchterm) >= 3) {
+        if (mb_strlen($searchterm) >= 3) {
             $mp = MultiPersonSearch::load($name);
             $searchObject = $mp->getSearchObject();
             $result = array_map(function ($r) {
@@ -123,8 +123,8 @@ class MultipersonsearchController extends AuthenticatedController {
         $this->selectedUsers = array();
         $this->search = Request::get("freesearch");
         $this->additionHTML = $mp->getAdditionHTML();
-        $previousSelectableUsers = unserialize(studip_utf8decode(Request::get('search_persons_selectable_hidden')));
-        $previousSelectedUsers = unserialize(studip_utf8decode(Request::get('search_persons_selected_hidden')));
+        $previousSelectableUsers = studip_json_decode(Request::get('search_persons_selectable_hidden'));
+        $previousSelectedUsers = studip_json_decode(Request::get('search_persons_selected_hidden'));
 
         // restore quickfilter
         $this->quickfilterIDs = $mp->getQuickfilterIds();

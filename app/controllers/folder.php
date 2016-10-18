@@ -1,31 +1,21 @@
 <?php
 class FolderController extends AuthenticatedController
 {
-    public function before_filter(&$action, &$args)
-    {
-        parent::before_filter($action, $args);
-        
-        if (Request::isXhr()) {
-            $this->set_layout(null);
-            $this->response->add_header('Content-Type', 'text/html;charset=windows-1252');
-        }
-    }
-
     public function create_action($id, $type)
     {
         checkObject();
         checkObjectModule('documents');
         object_set_visit_module('documents');
-        
+
         if (!$GLOBALS['rechte']) {
             throw new AccessDeniedException();
         }
 
         PageLayout::setTitle(_('Neuen Ordner erstellen'));
-        
+
         $options = array();
         $options[md5('new_top_folder')]  = _('Namen auswählen oder wie Eingabe') . ' -->';
-        
+
         $query = "SELECT SUM(1) FROM folder WHERE range_id = ?";
         $statement = DBManager::get()->prepare($query);
         $statement->execute(array($id));
@@ -85,12 +75,5 @@ class FolderController extends AuthenticatedController
         }
         $this->options = $options;
         $this->id      = $id;
-    }
-    
-    public function after_filter($action, $args)
-    {
-        if (Request::isXhr()) {
-            $this->response->add_header('X-Title', PageLayout::getTitle());
-        }
     }
 }

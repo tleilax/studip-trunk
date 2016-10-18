@@ -414,17 +414,6 @@ class Seminar
         return sizeof($this->metadate->cycles);
     }
 
-    /**
-     * always 1 since Stud.IP 1.6
-     *
-     * @deprecated
-     * @return number
-     */
-    public function getMetaDateType()
-    {
-        return 1;
-    }
-
     public function getMetaDateValue($key, $value_name)
     {
         return $this->metadate->cycles[$key]->$value_name;
@@ -517,7 +506,11 @@ class Seminar
 
     public function removeAndUpdateSingleDates()
     {
-        SeminarDB::removeOutRangedSingleDates($this->semester_start_time, $this->getEndSemesterVorlesEnde(), $this->id);
+        SeminarCycleDate::removeOutRangedSingleDates(
+            $this->semester_start_time,
+            $this->getEndSemesterVorlesEnde(),
+            $this->id
+        );
 
         foreach ($this->metadate->cycles as $key => $val) {
             $this->metadate->cycles[$key]->readSingleDates();
@@ -557,7 +550,11 @@ class Seminar
                 // logging <<<<<<
                 $this->semester_duration_time = -1;
                 $this->metadate->setSeminarDurationTime(-1);
-                SeminarDB::removeOutRangedSingleDates($this->semester_start_time, $this->getEndSemesterVorlesEnde(), $this->id);
+                SeminarCycleDate::removeOutRangedSingleDates(
+                    $this->semester_start_time,
+                    $this->getEndSemesterVorlesEnde(),
+                    $this->id
+                );
             } else {                                    // the seminar takes place  between the selected start~ and end-semester
                 // logging >>>>>>
                 StudipLog::log("SEM_SET_ENDSEMESTER", $this->getId(), $end);
@@ -1289,7 +1286,7 @@ class Seminar
     public function hasRoomRequest()
     {
         if (!$this->request_id) {
-            $this->request_id = getSeminarRoomRequest($this->id);
+            $this->request_id = RoomRequest::existsByCourse($this->is);
             if (!$this->request_id) return FALSE;
 
             $rD = new RoomRequest($this->request_id);
@@ -1889,9 +1886,9 @@ class Seminar
         }
 
         // user aus den Statusgruppen rauswerfen
-        $count = DeleteAllStatusgruppen($s_id);
+        $count = Statusgruppen::deleteBySQL('range_id = ?', [$s_id]);
         if ($count > 0) {
-            $this->createMessage(_("Einträge aus Funktionen / Gruppen gelöscht."));
+            $this->createMessage(sprintf(_('%s Funktionen/Gruppen gelöscht.'), $count));
         }
 
         // Alle Eintraege aus dem Vorlesungsverzeichnis rauswerfen
@@ -2198,7 +2195,7 @@ class Seminar
     public function addMember($user_id, $status = 'autor', $force = false)
     {
 
-        if (in_array(get_global_perm($user_id), array("admin", "root"))) {
+        if (in_array($GLOBALS['perm']->get_perm($user_id), array("admin", "root"))) {
             $this->createError(_("Admin und Root dürfen nicht Mitglied einer Veranstaltung sein."));
             return false;
         }
@@ -2263,7 +2260,8 @@ class Seminar
             if ($cs) {
                 $prio_delete = AdmissionPriority::unsetPriority($cs->getId(), $user_id, $this->getId());
             }
-            removeScheduleEntriesMarkedAsVirtual($user_id, $this->getId());
+            
+            CalendarScheduleModel::deleteSeminarEntries($user_id, $this->getId());
             NotificationCenter::postNotification("CourseDidGetMember", $this, $user_id);
             NotificationCenter::postNotification('UserDidEnterCourse', $this->id, $user_id);
             StudipLog::log('SEM_USER_ADD', $this->id, $user_id, $status, 'Wurde in die Veranstaltung eingetragen');
@@ -2339,7 +2337,12 @@ class Seminar
                     $statement->execute(array($termin_id, $user_id));
                 }
             }
-            RemovePersonStatusgruppeComplete(get_username($user_id), $this->id);
+
+            // Remove from associated status groups
+            foreach (Statusgruppen::findBySeminar_id($this->id) as $group) {
+                $group->removeUser($user_id, true);
+            }
+
             $this->createMessage(sprintf(_("Nutzer %s wurde aus der Veranstaltung entfernt."),
                 "<i>".htmlReady(get_fullname($user_id))."</i>"));
             NotificationCenter::postNotification("CourseDidChangeMember", $this, $user_id);

@@ -121,16 +121,16 @@ class SimpleCollection extends StudipArrayObject
                     break;
                 case '%=':
                     $comp_func = function($a) use ($args) {
-                        $a = strtolower(SimpleCollection::translitLatin1($a));
+                        $a = mb_strtolower(SimpleCollection::translitLatin1($a));
                         $args = array_map('SimpleCollection::translitLatin1', $args);
-                        $args = array_map('strtolower', $args);
+                        $args = array_map('mb_strtolower', $args);
                         return in_array($a, $args);
                     };
                 break;
                 case '*=':
                     $comp_func = function($a) use ($args) {
                         foreach ($args as $arg) {
-                            if (strpos($a, $arg) !== false) {
+                            if (mb_strpos($a, $arg) !== false) {
                                 return true;
                             }
                         }
@@ -140,7 +140,7 @@ class SimpleCollection extends StudipArrayObject
                 case '^=':
                     $comp_func = function($a) use ($args) {
                         foreach ($args as $arg) {
-                            if (strpos($a, $arg) === 0) {
+                            if (mb_strpos($a, $arg) === 0) {
                                 return true;
                             }
                         }
@@ -150,9 +150,9 @@ class SimpleCollection extends StudipArrayObject
                 case '$=':
                     $comp_func = function($a) use ($args) {
                         foreach ($args as $arg) {
-                            $found = strrpos($a, $arg);
+                            $found = mb_strrpos($a, $arg);
                             if ($found !== false && ($found
-                                + strlen($arg)) === strlen($a)) {
+                                + mb_strlen($arg)) === mb_strlen($a)) {
                                 return true;
                             }
                         }
@@ -614,11 +614,11 @@ class SimpleCollection extends StudipArrayObject
                     $value1 = $d1[$field];
                     $value2 = $d2[$field];
                 } else {
-                    $value1 = SimpleCollection::translitLatin1(substr($d1[$field], 0, 100));
-                    $value2 = SimpleCollection::translitLatin1(substr($d2[$field], 0, 100));
+                    $value1 = SimpleCollection::translitLatin1(mb_substr($d1[$field], 0, 100));
+                    $value2 = SimpleCollection::translitLatin1(mb_substr($d2[$field], 0, 100));
                 }
                 $ret = $sort_func($value1, $value2);
-                if (strtolower($dir) == 'desc') $ret = $ret * -1;
+                if (mb_strtolower($dir) == 'desc') $ret = $ret * -1;
             } while ($ret === 0 && next($sorter));
 
             return $ret;

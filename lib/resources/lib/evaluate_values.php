@@ -109,7 +109,7 @@ if ($view_mode)
 else //or... see above ;)
     $view_mode = $_SESSION['resources_data']["view_mode"];
 
-if (strpos($view, "openobject") !== FALSE) {
+if (mb_strpos($view, "openobject") !== FALSE) {
     $_SESSION['resources_data']["view_mode"] = "oobj";
     $view_mode = "oobj";
 }
@@ -678,6 +678,14 @@ if ($change_object_schedules) {
 
                     if ((Request::option('change_schedule_assign_user_id')) || (Request::get('change_schedule_user_free_name'))) {
                         $overlaps = $changeAssign->checkOverlap(FALSE);
+
+                        if (Request::submitted('ignore_holidays')) {
+                            $holidays = false;
+                            $storeAssign = true;
+                        } else {
+                            $holidays = $changeAssign->checkHoliday();
+                        }
+
                         $locks = $changeAssign->checkLock();
                     }
                     // show hint, that either a user or a free text must be provided
@@ -685,11 +693,12 @@ if ($change_object_schedules) {
                         $msg->addMsg(46);
                     }
 
-                    if ((!$overlaps) && (!$locks)) {
+                    if (!$overlaps && !$locks && !$holidays) {
                         if ($storeAssign && $changeAssign->create()) {
                             $_SESSION['resources_data']["actual_assign"]=$changeAssign->getId();
                             $msg->addMsg(3);
                             $_SESSION['new_assign_object']='';
+                            unset($_SESSION['assign_object_has_holidays'][$changeAssign->id]);
                         } else {
                             $_SESSION['new_assign_object']=serialize($changeAssign);  // store the submitted form-data
 
@@ -702,6 +711,11 @@ if ($change_object_schedules) {
                         if ($storeAssign) {
                             if ($overlaps) {  // add error message an store the submitted form-data
                                 $msg->addMsg(11);
+                                $_SESSION['new_assign_object']=serialize($changeAssign);
+                            }
+
+                            if ($holidays) {  // add error message an store the submitted form-data
+                                $_SESSION['assign_object_has_holidays'][$changeAssign->id] = $holidays;
                                 $_SESSION['new_assign_object']=serialize($changeAssign);
                             }
 
@@ -720,25 +734,37 @@ if ($change_object_schedules) {
                 else {
                     if ((Request::option('change_schedule_assign_user_id')) || (Request::get('change_schedule_user_free_name'))) {
                         $overlaps = $changeAssign->checkOverlap(FALSE);
+
+                        if (Request::submitted('ignore_holidays')) {
+                            $holidays = false;
+                            $storeAssign = true;
+                        } else {
+                            $holidays = $changeAssign->checkHoliday();
+                        }
+
                         $locks = $changeAssign->checkLock();
                     }
 
-                    if ((!$overlaps) && (!$locks)) {
-                        $changeAssign->chng_flag=TRUE;
+                    if (!$overlaps && !$locks && !$holidays) {
+                        $changeAssign->chng_flag = true;
                         if ($changeAssign->store()) {
                             $msg->addMsg(4);
                             $_SESSION['new_assign_object']='';
                         }
                         $_SESSION['resources_data']["actual_assign"]=$changeAssign->getId();
-                    } else {
-                        if ($overlaps)
+                        unset($_SESSION['assign_object_has_holidays'][$changeAssign->id]);
+                    } elseif (!$holidays) {
+                        if ($overlaps) {
                             $msg->addMsg(11);
+                        }
                         if ($locks) {
                             foreach ($locks as $val)
                                 $locks_txt.=date("d.m.Y, H:i",$val["lock_begin"])." - ".date("d.m.Y, H:i",$val["lock_end"])."<br>";
                             $msg->addMsg(44, array($locks_txt));
                         }
                         $changeAssign->restore();
+                    } else {  // add error message an store the submitted form-data
+                        $_SESSION['assign_object_has_holidays'][$changeAssign->id] = $holidays;
                     }
 
                 }
@@ -746,6 +772,11 @@ if ($change_object_schedules) {
         }
     } else {
         $msg->addMsg(1);
+    }
+
+    if (Request::submitted("no_ignore_holidays")) {
+        unset($_SESSION['assign_object_has_holidays'][$changeAssign->id]);
+        $changeAssign->restore();
     }
 }
 
@@ -762,6 +793,7 @@ if ($change_object_properties && Request::isPost()) {
 
         if (getGlobalPerms($user->id) == "admin") {
             $changeObject->setMultipleAssign(Request::int('change_multiple_assign'));
+            $changeObject->setRequestable(Request::int('change_requestable'));
         }
 
         //Properties loeschen
@@ -772,8 +804,8 @@ if ($change_object_properties && Request::isPost()) {
         $change_property_val = Request::getArray('change_property_val');
         if (is_array($change_property_val))
             foreach ($change_property_val as $key=>$val) {
-                if ((substr($val, 0, 4) == "_id_") && (substr($change_property_val[$key+1], 0, 4) != "_id_"))
-                    if ($changeObject->storeProperty(substr($val, 4, strlen($val)), $change_property_val[$key+1]))
+                if ((mb_substr($val, 0, 4) == "_id_") && (mb_substr($change_property_val[$key+1], 0, 4) != "_id_"))
+                    if ($changeObject->storeProperty(mb_substr($val, 4, mb_strlen($val)), $change_property_val[$key+1]))
                         $props_changed=TRUE;
             }
 
@@ -917,7 +949,7 @@ if ((Request::quoted('add_type')) || (Request::option('delete_type')) || (Reques
             $statement = DBManager::get()->prepare($query);
 
             foreach ($requestable as $key=>$val) {
-                if ((strpos($requestable[$key-1], "id1_")) &&  (strpos($requestable[$key], "id2_"))) {
+                if ((mb_strpos($requestable[$key-1], "id1_")) &&  (mb_strpos($requestable[$key], "id2_"))) {
                     if ($requestable[$key+1] == "on") {
                         $req_num = 1;
                     } else {
@@ -925,12 +957,36 @@ if ((Request::quoted('add_type')) || (Request::option('delete_type')) || (Reques
                     }
                     $statement->execute(array(
                         $req_num,
-                        substr($requestable[$key - 1], 5),
-                        substr($requestable[$key], 5)
+                        mb_substr($requestable[$key - 1], 5),
+                        mb_substr($requestable[$key], 5)
                     ));
                 }
             }
         }
+
+        $protected = Request::optionArray('protected');
+        if (is_array($protected)) {
+            $query = "UPDATE resources_categories_properties
+                      SET protected = ?
+                      WHERE category_id = ? AND property_id = ?";
+            $statement = DBManager::get()->prepare($query);
+
+            foreach ($protected as $key => $val) {
+                if (mb_strpos($protected[$key - 1], 'id1_') &&  mb_strpos($protected[$key], 'id2_')) {
+                    if ($protected[$key + 1] === 'on') {
+                        $req_num = 1;
+                    } else {
+                        $req_num = 0;
+                    }
+                    $statement->execute(array(
+                        $req_num,
+                        mb_substr($protected[$key - 1], 5),
+                        mb_substr($protected[$key], 5)
+                    ));
+                }
+            }
+        }
+
     } else {
         $msg->addMsg(25);
     }
@@ -957,14 +1013,15 @@ if (Request::submittedSome('_add_property', '_send_property_type') || Request::o
             $id = md5(uniqid('Regen2002', 1));
 
             $query = "INSERT INTO resources_properties
-                        (property_id, options, name, type)
-                      VALUES (?, ?, ?, ?)";
+                        (property_id, options, name, type, info_label)
+                      VALUES (?, ?, ?, ?, ?)";
             $statement = DBManager::get()->prepare($query);
             $statement->execute(array(
                 $id,
                 $options,
                 Request::get('add_property'),
-                Request::get('add_property_type')
+                Request::get('add_property_type'),
+                Request::get('info_label_visible', 0)
             ));
         }
 
@@ -973,9 +1030,10 @@ if (Request::submittedSome('_add_property', '_send_property_type') || Request::o
             $send_property_type = Request::optionArray('send_property_type');
             $send_property_select_opt = Request::getArray('send_property_select_opt');
             $send_property_bool_desc = Request::optionArray('send_property_bool_desc');
+            $info_label_visible = Request::optionArray('info_label_visible');
 
             $query = "UPDATE resources_properties
-                      SET name = ?, options = ?, type = ?
+                      SET name = ?, options = ?, type = ?, info_label = ?
                       WHERE property_id = ?";
             $statement = DBManager::get()->prepare($query);
 
@@ -994,6 +1052,7 @@ if (Request::submittedSome('_add_property', '_send_property_type') || Request::o
                     $change_property_name[$key],
                     $options,
                     $send_property_type[$key],
+                    $info_label_visible[$key],
                     $key
                 ));
             }
@@ -1035,16 +1094,64 @@ change settings
 //change settings
 if (Request::option('change_global_settings')) {
     if ($globalPerm == "admin") { //check for resources root or global root
-        write_config("RESOURCES_LOCKING_ACTIVE", Request::option('locking_active',false));
-        write_config("RESOURCES_ASSIGN_LOCKING_ACTIVE", Request::option('assign_locking_active',false));
-        write_config("RESOURCES_ALLOW_ROOM_REQUESTS", Request::option('allow_requests',false));
-        write_config("RESOURCES_ALLOW_CREATE_ROOMS", Request::option('allow_create_resources'));
-        write_config("RESOURCES_INHERITANCE_PERMS_ROOMS", Request::option('inheritance_rooms'));
-        write_config("RESOURCES_INHERITANCE_PERMS", Request::option('inheritance'));
-        write_config("RESOURCES_ENABLE_ORGA_CLASSIFY", Request::option('enable_orga_classify',false));
-        write_config("RESOURCES_ENABLE_ORGA_ADMIN_NOTICE", Request::option('enable_orga_admin_notice',false));
-        write_config("RESOURCES_ALLOW_SINGLE_ASSIGN_PERCENTAGE", Request::option('allow_single_assign_percentage'));
-        write_config("RESOURCES_ALLOW_SINGLE_DATE_GROUPING", Request::option('allow_single_date_grouping'));
+        $config = Config::get();
+
+        try {
+            $config->store('RESOURCES_LOCKING_ACTIVE', Request::option('locking_active',false));
+        } catch (InvalidArgumentException $e) {
+            $config->create('RESOURCES_LOCKING_ACTIVE', ['value' => Request::option('locking_active',false), 'type' => 'string']);
+        }
+        try {
+            $config->store('RESOURCES_ALLOW_ROOM_REQUESTS', Request::option('allow_requests',false));
+        } catch (InvalidArgumentException $e) {
+            $config->create('RESOURCES_ALLOW_ROOM_REQUESTS', ['value' => Request::option('allow_requests',false), 'type' => 'string']);
+        }
+        try {
+            $config->store('RESOURCES_ALLOW_REQUESTABLE_ROOM_REQUESTS', Request::option('allow_requestable_requests',false));
+        } catch (InvalidArgumentException $e) {
+            $config->create('RESOURCES_ALLOW_REQUESTABLE_ROOM_REQUESTS', ['value' => Request::option('allow_requestable_requests',false), 'type' => 'string']);
+        }
+        try {
+            $config->store('RESOURCES_DIRECT_ROOM_REQUESTS_ONLY', Request::option('direct_requests_only',false));
+        } catch (InvalidArgumentException $e) {
+            $config->create('RESOURCES_DIRECT_ROOM_REQUESTS_ONLY', ['value' => Request::option('direct_requests_only',false), 'type' => 'string']);
+        }
+        try {
+            $config->store('RESOURCES_ALLOW_CREATE_ROOMS', Request::option('allow_create_resources',false));
+        } catch (InvalidArgumentException $e) {
+            $config->create('RESOURCES_ALLOW_CREATE_ROOMS', ['value' => Request::option('allow_create_resources',false), 'type' => 'string']);
+        }
+        try {
+            $config->store('RESOURCES_INHERITANCE_PERMS_ROOMS', Request::option('inheritance_rooms',false));
+        } catch (InvalidArgumentException $e) {
+            $config->create('RESOURCES_INHERITANCE_PERMS_ROOMS', ['value' => Request::option('inheritance_rooms',false), 'type' => 'string']);
+        }
+        try {
+            $config->store('RESOURCES_INHERITANCE_PERMS', Request::option('inheritance',false));
+        } catch (InvalidArgumentException $e) {
+            $config->create('RESOURCES_INHERITANCE_PERMS', ['value' => Request::option('inheritance',false), 'type' => 'string']);
+        }
+        try {
+            $config->store('RESOURCES_ENABLE_ORGA_CLASSIFY', Request::option('enable_orga_classify',false));
+        } catch (InvalidArgumentException $e) {
+            $config->create('RESOURCES_ENABLE_ORGA_CLASSIFY', ['value' => Request::option('enable_orga_classify',false), 'type' => 'string']);
+        }
+        try {
+            $config->store('RESOURCES_ENABLE_ORGA_ADMIN_NOTICE', Request::option('enable_orga_admin_notice',false));
+        } catch (InvalidArgumentException $e) {
+            $config->create('RESOURCES_ENABLE_ORGA_ADMIN_NOTICE', ['value' => Request::option('enable_orga_admin_notice',false), 'type' => 'string']);
+        }
+        try {
+            $config->store('RESOURCES_ALLOW_SINGLE_ASSIGN_PERCENTAGE', Request::option('allow_single_assign_percentage',false));
+        } catch (InvalidArgumentException $e) {
+            $config->create('RESOURCES_ALLOW_SINGLE_ASSIGN_PERCENTAGE', ['value' => Request::option('allow_single_assign_percentage',false), 'type' => 'string']);
+        }
+        try {
+            $config->store('RESOURCES_ALLOW_SINGLE_DATE_GROUPING', Request::option('allow_single_date_grouping',false));
+        } catch (InvalidArgumentException $e) {
+            $config->create('RESOURCES_ALLOW_SINGLE_DATE_GROUPING', ['value' => Request::option('allow_single_date_grouping',false), 'type' => 'string']);
+        }
+        $config->store('RESOURCES_INHERITANCE_PERMS_ROOMS', Request::option('inheritance_rooms'));
     } else {
         $msg->addMsg(25);
     }
@@ -1262,8 +1369,8 @@ if ($view == "search") {
         $search_property_val = Request::quotedArray('search_property_val');
         if (is_array($search_property_val))
             foreach ($search_property_val as $key=>$val) {
-                if ((substr($val, 0, 4) == "_id_") && (substr($search_property_val[$key+1], 0, 4) != "_id_") && ($search_property_val[$key+1]))
-                    $_SESSION['resources_data']["search_array"]["properties"][substr($val, 4, strlen($val))]=$search_property_val[$key+1];
+                if ((mb_substr($val, 0, 4) == "_id_") && (mb_substr($search_property_val[$key+1], 0, 4) != "_id_") && ($search_property_val[$key+1]))
+                    $_SESSION['resources_data']["search_array"]["properties"][mb_substr($val, 4, mb_strlen($val))]=$search_property_val[$key+1];
         }
 
         //handle dates for searching resources that are free for this times
@@ -1507,7 +1614,6 @@ if (is_array($selected_resource_id)) {
 
 // save the assigments in db
 if (Request::submitted('save_state')) {
-    require_once ($RELATIVE_PATH_RESOURCES."/lib/RoomRequest.class.php");
     require_once ($RELATIVE_PATH_RESOURCES."/lib/VeranstaltungResourcesAssign.class.php");
     require_once ("lib/classes/Seminar.class.php");
 
@@ -1655,7 +1761,7 @@ if (Request::submitted('save_state')) {
             if ($skipped_termin_ids) {
                 foreach ($skipped_termin_ids as $key=>$val) {
                     $skipped_msg="<br>"._("Belegungszeit:")."&nbsp;".date("d.m.Y, H:i", $dates_with_request[$key]["begin"]).(($dates_with_request[$key]["end"]) ? " - ".date("H:i", $dates_with_request[$key]["end"]) : "");
-                    $skipped_msg.=sprintf("&nbsp;"._("Status:")."&nbsp;<font color=\"%s\">%s</font>", ($dates_with_request[$key]["closed"] == 0) ? "red" : "green", ($dates_with_request[$key]["closed"] == 0) ? _("noch nicht bearbeitet") : _("bereits bearbeitet"));
+                    $skipped_msg.=sprintf("&nbsp;"._("Status:")."&nbsp;<span style=\"color:%s\">%s</span>", ($dates_with_request[$key]["closed"] == 0) ? "red" : "green", ($dates_with_request[$key]["closed"] == 0) ? _("noch nicht bearbeitet") : _("bereits bearbeitet"));
                     $skipped_objects++;
                 }
             }
@@ -1733,8 +1839,6 @@ if (Request::submitted('suppose_decline_request')) {
 }
 
 if (Request::int('decline_request')) {
-    require_once ($RELATIVE_PATH_RESOURCES."/lib/RoomRequest.class.php");
-
     $reqObj = new RoomRequest($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["request_id"]);
 
     $_sendMessage['request_id'] = $reqObj->id;
@@ -1763,7 +1867,6 @@ if (Request::submitted('delete_request') || Request::quoted('approveDelete')) {
         }
 
     if(Request::quoted('approveDelete')){
-            require_once ($RELATIVE_PATH_RESOURCES."/lib/RoomRequest.class.php");
             $reqObj = new RoomRequest($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["request_id"]);//Request::quoted('request_id'));
             unset($_SESSION['resources_data']["requests_open"][$reqObj->getId()]);
             $reqObj->delete();
@@ -1866,7 +1969,6 @@ if (Request::get('reply_recipients') !== null) {
 if (Request::submitted('inc_request') || Request::submitted('dec_request')
     || $new_session_started || $marked_clip_ids || Request::submitted('save_state') || $auto_inc
     || $auto_dec || $_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["reload"]) {
-    require_once ($RELATIVE_PATH_RESOURCES."/lib/RoomRequest.class.php");
     require_once ($RELATIVE_PATH_RESOURCES."/lib/CheckMultipleOverlaps.class.php");
     require_once ($RELATIVE_PATH_RESOURCES."/lib/VeranstaltungResourcesAssign.class.php");
     require_once ($RELATIVE_PATH_RESOURCES."/lib/ResourcesUserRoomsList.class.php");
@@ -2287,4 +2389,3 @@ if (Request::option('edit_object')) {
 }
 
 ?>
-

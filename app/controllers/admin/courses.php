@@ -24,9 +24,273 @@
  */
 require_once 'lib/meine_seminare_func.inc.php';
 require_once 'lib/object.inc.php';
+require_once 'lib/archiv.inc.php'; //for lastActivity in getCourses method
+
+require_once 'lib/archiv.inc.php'; //for lastActivity in getCourses() method
+
 
 class Admin_CoursesController extends AuthenticatedController
 {
+
+    /**
+        This helper method retrieves the values when the user has searched courses
+        for a specific value of a datafield.
+    **/
+    private function getDatafieldFilters()
+    {
+        //first get the active datafields of the user:
+        $userConfig = UserConfig::get(User::findCurrent()->id);
+        $userSelectedElements = json_decode($userConfig->getValue('ADMIN_COURSES_SIDEBAR_ACTIVE_ELEMENTS'), true);
+
+        $activeDatafields = $userSelectedElements['datafields'];
+
+        if(!$activeDatafields) {
+            return array();
+        }
+
+        //Ok, we have a list of active datafields whose value may be searched for.
+        //We must check for the request parameters (df_$DATAFIELD_ID)
+        //and return their IDs with a value.
+
+        $searchedDatafields = array();
+
+        foreach($activeDatafields as $activeField) {
+            $requestParamValue = Request::get('df_'.$activeField);
+            if($requestParamValue) {
+                $searchedDatafields[$activeField] = $requestParamValue;
+            }
+        }
+
+        return $searchedDatafields;
+    }
+
+
+    /**
+        This method returns the appropriate widget for the given datafield.
+    **/
+    private function getDatafieldWidget(DataField $datafield)
+    {
+        if($datafield->accessAllowed()) {
+            //The current user is allowed to see this datafield.
+            //Now we must distinguish between the different types of data fields:
+
+            $type = $datafield->type;
+
+            if($type == 'bool') {
+                //bool fields just need a checkbox for the states TRUE and FALSE
+
+                $checkboxWidget = new OptionsWidget($datafield->name);
+                $checkboxWidget->addCheckbox(
+                    _('Feld gesetzt'),
+                    (bool)Request::get('df_'.$datafield->id, false),
+                    URLHelper::getLink(
+                        'dispatch.php/admin/courses/index',
+                        array('df_'.$datafield->id => '1')
+                    ),
+                    URLHelper::getLink(
+                        'dispatch.php/admin/courses/index'
+                    )
+                );
+
+                return $checkboxWidget;
+
+            } elseif(($type == 'selectbox') or ($type == 'radio')
+                or ($type == 'selectboxmultiple')) {
+                //these field's options are displayed as select box
+
+                $db = DBManager::get();
+
+                $statement = $db->prepare(
+                      'SELECT content FROM datafields_entries '
+                    . 'WHERE datafield_id = :datafieldId '
+                    . 'GROUP BY content;'
+                );
+
+                $statement->execute(array('datafieldId' => $datafield->id));
+                $result = $statement->fetchAll();
+
+
+                $options = array();
+                foreach($result as $row) {
+                    $options[$row[0]] = $row[0];
+                }
+
+                if($options) {
+                    $options = array_merge(
+                        array(' ' => _('(keine Auswahl)')),
+                        $options
+                    );
+                    $selectWidget = new OptionsWidget($datafield->name);
+                    $selectWidget->addSelect(
+                        '',
+                        '', //TODO
+                        'df_'.$datafield->id,
+                        $options,
+                        Request::get('df_'.$datafield->id)
+                    );
+                    return $selectWidget;
+                }
+
+                return null;
+
+            } else {
+                //all other fields get a text field
+
+                $textWidget = new SearchWidget();
+                $textWidget->setTitle($datafield->name);
+                $textWidget->addNeedle(
+                    '',
+                    'df_'.$datafield->id
+                );
+
+                return $textWidget;
+            }
+
+        }
+    }
+
+
+    private function buildSidebar($courseTypeFilterConfig = null)
+    {
+        /*
+            TIC6701: Depending on the elements the user has selected
+            some of the following elements may not be presented
+            in the sidebar.
+
+            To find out what elements the user has selected we're
+            accessing the user configuration and check if the
+            right configuration keys are stored in there.
+        */
+        $userConfig = UserConfig::get(User::findCurrent()->id);
+
+        $userSelectedElements = $userConfig->getValue('ADMIN_COURSES_SIDEBAR_ACTIVE_ELEMENTS');
+
+        $visibleElements = array();
+
+        if($userSelectedElements) {
+            /*
+                The array of user-selected elements is a JSON array:
+                Decode it and set the visibleElements array.
+            */
+            $visibleElements = json_decode($userSelectedElements, true);
+
+        } else {
+           /*
+                The user hasn't made a selection of sidebar elements.
+                So the default selection is set:
+            */
+
+            $visibleElements = [
+                'search' => true,
+                'institute' => true,
+                'semester' => true,
+                'courseType' => true,
+                'viewFilter' => true
+            ];
+        }
+
+        $sidebar = Sidebar::get();
+        $sidebar->setImage("sidebar/seminar-sidebar.png");
+
+        //navigation was already drawn!
+
+        /*
+            Order of elements:
+            * Navigation
+            * selected filters (configurable)
+            * selected actions widget
+            * actions
+            * view filter (configurable)
+            * export
+        */
+
+        /*
+            Now draw the configurable elements according
+            to the values inside the visibleElements array.
+        */
+        if($visibleElements['search']) {
+            $this->setSearchWiget();
+        }
+        if($visibleElements['institute']) {
+            $this->setInstSelector();
+        }
+        if($visibleElements['semester']) {
+            $this->setSemesterSelector();
+        }
+        if($visibleElements['courseType']) {
+            $this->setCourseTypeWidget($courseTypeFilterConfig);
+        }
+        if($visibleElements['teacher']) {
+            $this->setTeacherWidget();
+        }
+
+        //if there are datafields in the list, draw their input fields, too:
+        if($visibleElements['datafields']) {
+            //The datafields entry contains an array with datafield-IDs.
+            //We must fetch them from the database and show an appropriate widget
+            //for each datafield.
+
+            $visibleDatafieldIds = $visibleElements['datafields'];
+
+            $datafields = DataField::getDataFields('sem');
+
+            if($datafields) {
+                foreach($datafields as $datafield) {
+                    if(in_array($datafield->id, $visibleDatafieldIds)) {
+                        $widget = $this->getDatafieldWidget($datafield);
+
+                        if($widget) {
+                            $sidebar->addWidget($widget);
+                        }
+                    }
+                }
+            }
+        }
+
+
+        //this shall be visible in every case:
+        $this->setActionsWidget($this->selected_action);
+
+
+        //actions: always visible, too
+        if ($GLOBALS['perm']->have_perm($this->sem_create_perm)) {
+            $actions = new ActionsWidget();
+            $actions->addLink(_('Neue Veranstaltung anlegen'),
+                              URLHelper::getLink('dispatch.php/course/wizard'),
+                              Icon::create('seminar+add', 'clickable'))->asDialog('size=50%');
+            //for TIC6701:
+            $actions->addLink(
+                _('Diese Seitenleiste konfigurieren'),
+                URLHelper::getLink('dispatch.php/admin/courses/sidebar'),
+                Icon::create('admin', 'clickable')
+                )->asDialog();
+
+
+            $sidebar->addWidget($actions, 'links');
+        }
+
+        //the view filter's visibility is configurable:
+        if(in_array('viewFilter', $visibleElements)) {
+            $this->setViewWidget($this->view_filter);
+        }
+
+
+        //"export as Excel" is always visible:
+        if ($this->sem_create_perm) {
+            $params = array();
+
+            if ($GLOBALS['user']->cfg->ADMIN_COURSES_SEARCHTEXT) {
+                $params['search'] = $GLOBALS['user']->cfg->ADMIN_COURSES_SEARCHTEXT;
+            }
+            $export = new ExportWidget();
+            $export->addLink(_('Als Excel exportieren'),
+                             URLHelper::getLink('dispatch.php/admin/courses/export_csv', $params),
+                             Icon::create('file-excel', 'clickable'));
+            $sidebar->addWidget($export);
+        }
+    }
+
+
     /**
      * Common tasks for all actions
      *
@@ -49,7 +313,7 @@ class Admin_CoursesController extends AuthenticatedController
         //delete all temporary permission changes
         if (is_array($_SESSION)) {
             foreach (array_keys($_SESSION) as $key) {
-                if (strpos($key, 'seminar_change_view_') !== false) {
+                if (mb_strpos($key, 'seminar_change_view_') !== false) {
                     unset($_SESSION[$key]);
                 }
             }
@@ -121,7 +385,8 @@ class Admin_CoursesController extends AuthenticatedController
             'sortby'      => $this->sortby,
             'sortFlag'    => $this->sortFlag,
             'view_filter' => $this->view_filter,
-            'typeFilter'  => $config_my_course_type_filter
+            'typeFilter'  => $config_my_course_type_filter,
+            'datafields' => $this->getDatafieldFilters()
         ));
 
         if (in_array('contents', $this->view_filter)) {
@@ -151,40 +416,126 @@ class Admin_CoursesController extends AuthenticatedController
         );
 
 
-        $sidebar = Sidebar::get();
-        $sidebar->setImage("sidebar/seminar-sidebar.png");
+        //build the sidebar:
+        $this->buildSidebar($config_my_course_type_filter);
+
+    }
 
 
-        $this->setSearchWiget();
-        $this->setInstSelector();
-        $this->setSemesterSelector();
-        $this->setTeacherWidget();
-        $this->setCourseTypeWidget($config_my_course_type_filter);
-        $this->setActionsWidget($this->selected_action);
+    /**
+        The sidebar action is responsible for showing a dialog
+        that lets the user configure the sidebar.
+    */
+    public function sidebar_action()
+    {
+        if(Request::get('updateConfig', false)) {
+            /*
+                The user has changed the configuration.
+                Collect the activated elements:
+            */
 
-        if ($GLOBALS['perm']->have_perm($this->sem_create_perm)) {
-            $actions = new ActionsWidget();
-            $actions->addLink(_('Neue Veranstaltung anlegen'),
-                              URLHelper::getLink('dispatch.php/course/wizard'),
-                              Icon::create('seminar+add', 'clickable'))->asDialog('size=50%');
-            $sidebar->addWidget($actions, 'links');
-        }
+            $searchActive = Request::get('searchActive');
+            $instituteActive = Request::get('instituteActive');
+            $semesterActive = Request::get('semesterActive');
+            $courseTypeActive = Request::get('courseTypeActive');
+            $teacherActive = Request::get('teacherActive');
+            $viewFilterActive = Request::get('viewFilterActive');
+            $activeDatafields = Request::getArray('activeDatafields');
 
-        $this->setViewWidget($this->view_filter);
+            //echo "searchActive = " . $searchActive;
 
-        if ($this->sem_create_perm) {
-            $params = array();
+            //check for the standard configuration:
+            if($searchActive and $instituteActive and $semesterActive and $courseTypeActive
+                and (!$teacherActive) and (!$activeDatafields) and (!$actionAreaActive) and $viewFilterActive) {
+                /*
+                    It is the standard configuration:
+                    Remove the entry from the user configuration table,
+                    if it exists.
+                */
 
-            if ($GLOBALS['user']->cfg->ADMIN_COURSES_SEARCHTEXT) {
-                $params['search'] = $GLOBALS['user']->cfg->ADMIN_COURSES_SEARCHTEXT;
+                $userConfig = UserConfig::get(User::findCurrent()->id);
+                $userConfig->delete('ADMIN_COURSES_SIDEBAR_ACTIVE_ELEMENTS');
+                $this->redirect('admin/courses/index');
+
+            } else {
+                /*
+                    It's not the standard configuration:
+                    Update or create an entry for the current user
+                    in the user configuration table.
+                */
+                $activeArray = array();
+                if($searchActive) {
+                    $activeArray['search'] = true;
+                }
+                if($instituteActive) {
+                    $activeArray['institute'] = true;
+                }
+                if($semesterActive) {
+                    $activeArray['semester'] = true;
+                }
+                if($courseTypeActive) {
+                    $activeArray['courseType'] = true;
+                }
+                if($teacherActive) {
+                    $activeArray['teacher'] = true;
+                }
+                if($viewFilterActive) {
+                    $activeArray['viewFilter'] = true;
+                }
+
+                if($activeDatafields) {
+                    $activeArray['datafields'] = $activeDatafields;
+                }
+
+                //the array is filled: now convert it to JSON:
+                $activeArray = json_encode(studip_utf8encode($activeArray));
+
+                //store the configuration value:
+                $userConfig = UserConfig::get(User::findCurrent()->id);
+                $success = $userConfig->store(
+                    'ADMIN_COURSES_SIDEBAR_ACTIVE_ELEMENTS',
+                    $activeArray
+                );
+
+
+                /*
+                    We're done: redirect to the index page
+                    to see the new sidebar in all of its glory!
+                */
+                $this->redirect('admin/courses/index');
             }
-            $export = new ExportWidget();
-            $export->addLink(_('Als Excel exportieren'),
-                             URLHelper::getLink('dispatch.php/admin/courses/export_csv', $params),
-                             Icon::create('file-excel', 'clickable'));
-            $sidebar->addWidget($export);
+        } else {
+            /*
+                The user accesses the page to check the current configuration.
+            */
+
+            $this->datafields = DataField::getDataFields('sem');
+
+
+            $userSelectedElements = UserConfig::get(User::findCurrent()->id)->getValue('ADMIN_COURSES_SIDEBAR_ACTIVE_ELEMENTS');
+            if($userSelectedElements) {
+                // The array of selected elements is a JSON array: decode it!
+                $this->userSelectedElements = json_decode($userSelectedElements, true);
+            } else {
+                /*
+                    The user hasn't got his own sidebar configuration:
+                    Use the default settings.
+                */
+                $this->userSelectedElements = [
+                    'search' => true,
+                    'institute' => true,
+                    'semester' => true,
+                    'courseType' => true,
+                    'viewFilter' => true
+                    ];
+            }
+
+            //add the last activity for each Course object:
+            $this->lastActivities = array();
+
         }
     }
+
 
     /**
      * Export action
@@ -251,6 +602,10 @@ class Admin_CoursesController extends AuthenticatedController
 
             if (in_array('preliminary', $filter_config)) {
                 $row['preliminary'] = $course['prelim'];
+            }
+
+            if (in_array('last_activity', $filter_config)) {
+                $row['last_activity'] = $course['lastActivity'];
             }
 
             $data[$course_id] = $row;
@@ -607,10 +962,10 @@ class Admin_CoursesController extends AuthenticatedController
                 'attributes' => ['data-dialog' => 'size=big'],
             ),
             16 => array(
-                'name'      => _('Archivieren'),
-                'title'     => _('Archivieren'),
-                'url'       => 'archiv_assi.php',
-                'multimode' => true
+                'name'       => _('Archivieren'),
+                'title'      => _('Archivieren'),
+                'url'        => 'dispatch.php/course/archive/confirm',
+                'multimode'  => true
             ),
             17 => array(
                 'name'      => _('Gesperrte Veranstaltungen'),
@@ -624,7 +979,18 @@ class Admin_CoursesController extends AuthenticatedController
                 'url'        => 'dispatch.php/course/timesrooms/editSemester?cid=%s&origin=admin_courses',
                 'attributes' => ['data-dialog' => 'size=400'],
             ),
+            19 => array(
+                'name'       => _('LV-Gruppen'),
+                'title'      => _('LV-Gruppen'),
+                'url'        => 'plugins.php/mvvplugin/lvgselector?cid=%s&from=admin/courses',
+                'attributes' => ['data-dialog' => 'size=big'],
+            ),
         );
+
+        if (!PluginEngine::getPlugin('MVVPlugin') || !PluginEngine::getPlugin('MVVPlugin')->isVisible()) {
+            unset($actions[19]);
+        }
+
         if (!$GLOBALS['perm']->have_perm('admin')) {
             unset($actions[8]);
             if (!get_config('ALLOW_DOZENT_ARCHIV')) {
@@ -671,16 +1037,17 @@ class Admin_CoursesController extends AuthenticatedController
     private function getViewFilters()
     {
         return array(
-            'number'      => _('Nr.'),
-            'name'        => _('Name'),
-            'type'        => _('Veranstaltungstyp'),
-            'room_time'   => _('Raum/Zeit'),
-            'semester'    => _('Semester'),
-            'teachers'    => _('Lehrende'),
-            'members'     => _('Teilnehmende'),
-            'waiting'     => _('Personen auf Warteliste'),
-            'preliminary' => _('Vorläufige Anmeldungen'),
-            'contents'    => _('Inhalt')
+            'number'        => _('Nr.'),
+            'name'          => _('Name'),
+            'type'          => _('Veranstaltungstyp'),
+            'room_time'     => _('Raum/Zeit'),
+            'semester'      => _('Semester'),
+            'teachers'      => _('Lehrende'),
+            'members'       => _('Teilnehmende'),
+            'waiting'       => _('Personen auf Warteliste'),
+            'preliminary'   => _('Vorläufige Anmeldungen'),
+            'contents'      => _('Inhalt'),
+            'last_activity' => _('letzte Aktivität'),
         );
     }
 
@@ -709,6 +1076,28 @@ class Admin_CoursesController extends AuthenticatedController
         }
 
         $filter = AdminCourseFilter::get(true);
+
+        if($params['datafields']) {
+            //enable filtering by datafield values:
+            $filter->settings['query']['joins']['datafields_entries'] = array(
+                    'join' => "INNER JOIN",
+                    'on' => "seminare.seminar_id = datafields_entries.range_id"
+            );
+
+            //and use the where-clause for each datafield:
+
+            foreach($params['datafields'] as $fieldId => $fieldValue) {
+                $filter->where("datafields_entries.datafield_id = :fieldId "
+                    . "AND datafields_entries.content = :fieldValue",
+                    array(
+                        'fieldId' => $fieldId,
+                        'fieldValue' => $fieldValue
+                    )
+                );
+            }
+
+        }
+
         $filter->where("sem_classes.studygroup_mode = '0'");
 
         if (is_object($this->semester)) {
@@ -760,6 +1149,10 @@ class Admin_CoursesController extends AuthenticatedController
                     $seminars[$seminar_id]['sem_class'] = $sem_types[$seminar['status']]->getClass();
                     $seminars[$seminar_id]['modules'] = $modules->getLocalModules($seminar_id, 'sem', $seminar['modules'], $seminar['status']);
                     $seminars[$seminar_id]['navigation'] = MyRealmModel::getAdditionalNavigations($seminar_id, $seminars[$seminar_id], $seminars[$seminar_id]['sem_class'], $GLOBALS['user']->id);
+                }
+                //TIC6701: last activity:
+                if (in_array('last_activity', $params['view_filter'])) {
+                    $seminars[$seminar_id]['last_activity'] = lastActivity($seminar_id);
                 }
                 if ($this->selected_action == 17) {
                     $seminars[$seminar_id]['admission_locked'] = false;
@@ -823,12 +1216,17 @@ class Admin_CoursesController extends AuthenticatedController
     private function setInstSelector()
     {
         $sidebar = Sidebar::Get();
-        $list = new SelectWidget(_('Einrichtung'), $this->url_for('admin/courses/set_selection'), 'institute');
+        $list = new SelectWidget(
+            _('Einrichtung'),
+            $this->url_for('admin/courses/set_selection'),
+            'institute'
+        );
+        $list->class = 'institute-list';
 
         if ($GLOBALS['perm']->have_perm('root') || (count($this->insts) > 1)) {
             $list->addElement(new SelectElement(
                 'all',
-                $GLOBALS['perm']->have_perm('root') ? _('Alle') : _("Alle meine Einrichtungen"),
+                $GLOBALS['perm']->have_perm('root') ? _('Alle') : _('Alle meine Einrichtungen'),
                 $GLOBALS['user']->cfg->MY_INSTITUTES_DEFAULT === 'all'),
                 'select-all'
             );
@@ -838,15 +1236,14 @@ class Admin_CoursesController extends AuthenticatedController
             $list->addElement(
                 new SelectElement(
                     $institut['Institut_id'],
-                    (!$institut['is_fak'] ? "  " : "") . $institut['Name'],
+                    (!$institut['is_fak'] ? ' ' : '') . $institut['Name'],
                     $GLOBALS['user']->cfg->MY_INSTITUTES_DEFAULT === $institut['Institut_id']
                 ),
                 'select-' . $institut['Name']
             );
         }
 
-
-        $sidebar->addWidget($list, "filter_institute");
+        $sidebar->addWidget($list, 'filter_institute');
     }
 
     /**
@@ -857,7 +1254,7 @@ class Admin_CoursesController extends AuthenticatedController
         $semesters = array_reverse(Semester::getAll());
         $sidebar = Sidebar::Get();
         $list = new SelectWidget(_('Semester'), $this->url_for('admin/courses/set_selection'), 'sem_select');
-        $list->addElement(new SelectElement("all", _("Alle")), 'sem_select-all');
+        $list->addElement(new SelectElement('all', _('Alle')), 'sem_select-all');
         foreach ($semesters as $semester) {
             $list->addElement(new SelectElement(
                 $semester->id,
@@ -866,7 +1263,7 @@ class Admin_CoursesController extends AuthenticatedController
             ), 'sem_select-' . $semester->id);
         }
 
-        $sidebar->addWidget($list, "filter_semester");
+        $sidebar->addWidget($list, 'filter_semester');
     }
 
 
@@ -901,13 +1298,42 @@ class Admin_CoursesController extends AuthenticatedController
         $this->types = array();
         $this->selected = $selected;
 
-        $this->render_template('admin/courses/filters/course_type_filter.php', null);
-        $html = $this->response->body;
-        $this->erase_response();
-        $widget = new SidebarWidget();
-        $widget->setTitle(_('Veranstaltungstyp-Filter'));
-        $widget->addElement(new WidgetElement($html));
-        $sidebar->addWidget($widget, 'filter_coursetypes');
+        $list = new SelectWidget(
+            _('Veranstaltungstyp-Filter'),
+            $this->url_for('admin/courses/set_course_type'),
+            'course_type'
+        );
+        $list->addElement(new SelectElement(
+            'all', _('Alle'), $selected === 'all'
+        ), 'course-type-all');
+        foreach ($GLOBALS['SEM_CLASS'] as $class_id => $class) {
+            if ($class['studygroup_mode']) {
+                continue;
+            }
+
+            $element = new SelectElement(
+                $class_id,
+                $class['name'],
+                $selected == $class_id
+            );
+            $list->addElement(
+                $element->setAsHeader(),
+                'course-type-' . $class_id
+            );
+
+            foreach ($class->getSemTypes() as $id => $result) {
+                $element = new SelectElement(
+                    $class_id . '_' . $id,
+                    $result['name'],
+                    $selected === $class_id . '_' . $id
+                );
+                $list->addElement(
+                    $element->setIndentLevel(1),
+                    'course-type-' . $class_id . '_' . $id
+                );
+            }
+        }
+        $sidebar->addWidget($list, 'filter-course-type');
     }
 
     /**

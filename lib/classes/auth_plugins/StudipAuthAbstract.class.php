@@ -117,10 +117,10 @@ class StudipAuthAbstract {
             foreach($GLOBALS['STUDIP_AUTH_PLUGIN'] as $plugin) {
                 $plugin = "StudipAuth" . $plugin;
                 include_once "lib/classes/auth_plugins/" . $plugin . ".class.php";
-                self::$plugin_instances[strtoupper($plugin)] = new $plugin;
+                self::$plugin_instances[mb_strtoupper($plugin)] = new $plugin;
             }
         }
-        return ($plugin_name) ? self::$plugin_instances[strtoupper("StudipAuth" . $plugin_name)] : self::$plugin_instances;
+        return ($plugin_name) ? self::$plugin_instances[mb_strtoupper("StudipAuth" . $plugin_name)] : self::$plugin_instances;
     }
 
     /**
@@ -230,7 +230,7 @@ class StudipAuthAbstract {
     public static function CheckIPRange()
     {
         $ip = $_SERVER['REMOTE_ADDR'];
-        $version = substr_count($ip, ':') > 1 ? 'V6' : 'V4'; // valid ip v6 addresses have atleast two colons
+        $version = mb_substr_count($ip, ':') > 1 ? 'V6' : 'V4'; // valid ip v6 addresses have atleast two colons
         $method = 'CheckIPRange' . $version;
         if (is_array($GLOBALS['LOGIN_IP_RANGES'][$version])) {
             foreach ($GLOBALS['LOGIN_IP_RANGES'][$version] as $range) {
@@ -275,7 +275,7 @@ class StudipAuthAbstract {
         $start = inet_pton($range['start']);
         $end = inet_pton($range['end']);
 
-        return strlen($ipv6) === strlen($start)
+        return mb_strlen($ipv6) === mb_strlen($start)
         && $ipv6 >= $start && $ipv6 <= $end;
     }
 
@@ -292,9 +292,9 @@ class StudipAuthAbstract {
     */
     function __construct()
     {
-        $this->plugin_name = strtolower(substr(get_class($this),10));
+        $this->plugin_name = mb_strtolower(mb_substr(get_class($this),10));
         //get configuration array set in local inc
-        $config_var = $GLOBALS["STUDIP_AUTH_CONFIG_" . strtoupper($this->plugin_name)];
+        $config_var = $GLOBALS["STUDIP_AUTH_CONFIG_" . mb_strtoupper($this->plugin_name)];
         //assign each key in the config array as a member of the plugin object
         if (isset($config_var)) {
             foreach ($config_var as $key => $value) {
@@ -480,7 +480,7 @@ class StudipAuthAbstract {
     */
     function verifyUsername($username)
     {
-        if($this->username_case_insensitiv) $username = strtolower($username);
+        if($this->username_case_insensitiv) $username = mb_strtolower($username);
         if ($this->bad_char_regex){
             return preg_replace($this->bad_char_regex, '', $username);
         } else {

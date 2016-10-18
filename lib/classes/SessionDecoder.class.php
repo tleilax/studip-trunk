@@ -148,7 +148,7 @@ class SessionDecoder implements ArrayAccess, Countable, Iterator {
         $PS_UNDEF_MARKER = '!';
         $str = (string)$str;
 
-        $endptr = strlen($str);
+        $endptr = mb_strlen($str);
         $p = 0;
 
         $items = 0;
@@ -166,7 +166,7 @@ class SessionDecoder implements ArrayAccess, Countable, Iterator {
                 $has_value = true;
             }
              
-            $name = substr($str, $p, $q - $p);
+            $name = mb_substr($str, $p, $q - $p);
             $q++;
 
             $serialized = '';
@@ -181,7 +181,7 @@ class SessionDecoder implements ArrayAccess, Countable, Iterator {
                             do $q++;
                             while ( ($q < $endptr) && ($str[$q] != ';') );
                             $q++;
-                            $serialized .= substr($str, $p, $q - $p);
+                            $serialized .= mb_substr($str, $p, $q - $p);
                             if ($level == 0) break 2;
                             break;
                         case 'R': /* reference  */
@@ -197,7 +197,7 @@ class SessionDecoder implements ArrayAccess, Countable, Iterator {
                             for ($length=''; ($q < $endptr) && ($str[$q] != ':'); $q++) $length .= $str[$q];
                             $q+=2;
                             $q+= (int)$length + 2;
-                            $serialized .= substr($str, $p, $q - $p);
+                            $serialized .= mb_substr($str, $p, $q - $p);
                             if ($level == 0) break 2;
                             break;
                         case 'a': /* array */
@@ -206,11 +206,11 @@ class SessionDecoder implements ArrayAccess, Countable, Iterator {
                             while ( ($q < $endptr) && ($str[$q] != '{') );
                             $q++;
                             $level++;
-                            $serialized .= substr($str, $p, $q - $p);
+                            $serialized .= mb_substr($str, $p, $q - $p);
                             break;
                         case '}': /* end of array|object */
                             $q++;
-                            $serialized .= substr($str, $p, $q - $p);
+                            $serialized .= mb_substr($str, $p, $q - $p);
                             if (--$level == 0) break 2;
                             break;
                         default:

@@ -301,7 +301,7 @@ abstract class RouteMap
     {
         if ($contentType = $_SERVER['CONTENT_TYPE']) {
             $contentTypeParts = preg_split('/\s*[;,]\s*/', $contentType);
-            return strtolower($contentTypeParts[0]);
+            return mb_strtolower($contentTypeParts[0]);
         }
     }
 
@@ -375,13 +375,13 @@ abstract class RouteMap
                 if (preg_match('/^[^\s]/', $headline)) {
                     $lineIsHeader = preg_match('/([^:]+):\s*(.*)$/', $headline, $matches);
                     if ($lineIsHeader) {
-                        $tmpheaders[] = array('index' => strtolower(trim($matches[1])), 'value' => trim($matches[2]));
+                        $tmpheaders[] = array('index' => mb_strtolower(trim($matches[1])), 'value' => trim($matches[2]));
                     }
                 } else {
                     //noch zur letzten Zeile hinzuzählen
                     end($tmpheaders);
                     $lastkey = key($tmpheaders);
-                    $tmpheaders[$lastkey]['value'] .= " ".substr($headline, 1);
+                    $tmpheaders[$lastkey]['value'] .= " ".mb_substr($headline, 1);
                 }
             }
             foreach ($tmpheaders as $header) {
@@ -391,7 +391,7 @@ abstract class RouteMap
             $contentType = "";
             if (isset($headers['content-type'])) {
                 preg_match("/^([^;\s]*)/", $headers['content-type'], $matches);
-                $contentType = strtolower($matches[1]);
+                $contentType = mb_strtolower($matches[1]);
             }
             switch ($headers["transfer-encoding"]) {
                 case "quoted-printable":
@@ -409,7 +409,7 @@ abstract class RouteMap
             preg_match("/name=([^;\s]*)/i", $headers['content-disposition'], $matches);
             $name = str_replace(array("'", '"'), '', $matches[1]);
             if (!$contentType) {
-                $data[$name] = substr($body, 0, strlen($body) - 2);
+                $data[$name] = mb_substr($body, 0, mb_strlen($body) - 2);
             } else {
                 switch ($contentType) {
                     case 'application/json':
@@ -427,7 +427,7 @@ abstract class RouteMap
                         $filename = str_replace(array("'", '"'), '', $matches[1]);
                         $tmp_name = $GLOBALS['TMP_PATH']."/uploadfile_".md5(uniqid());
                         $handle = fopen($tmp_name, 'wb');
-                        $filesize = fwrite($handle, $body, (strlen($body) - 2));
+                        $filesize = fwrite($handle, $body, (mb_strlen($body) - 2));
                         fclose($handle);
                         $data['_FILES'][$name] = array(
                             'name' => $filename,
@@ -445,7 +445,7 @@ abstract class RouteMap
     {
         if ($contentType = $_SERVER['CONTENT_TYPE']) {
             foreach (preg_split('/\s*[;,]\s*/', $contentType) as $part) {
-                if (strtolower(substr($part, 0, 8)) === "boundary") {
+                if (mb_strtolower(mb_substr($part, 0, 8)) === "boundary") {
                     $part = explode("=", $part);
                     return $part[1];
                 }
@@ -528,12 +528,12 @@ abstract class RouteMap
             $params['charset'] = 'windows-1252';
         }
 
-        if (strpos($mime_type, 'charset') !== FALSE) {
+        if (mb_strpos($mime_type, 'charset') !== FALSE) {
             unset($params['charset']);
         }
 
         if (sizeof($params)) {
-            $mime_type .= strpos($mime_type, ';') !== FALSE ? ', ' : ';';
+            $mime_type .= mb_strpos($mime_type, ';') !== FALSE ? ', ' : ';';
             $ps = array();
             foreach ($params as $k => $v) {
                 $ps[] = $k . '=' . $v;

@@ -69,7 +69,7 @@
                 }
             };
 
-        $(document).on('ready', function () {
+        $(document).ready(function () {
             doc_height = $(document).height();
         });
 
@@ -90,12 +90,7 @@
     }
 
     // Engage
-    $(document).on('ready', function () {
+    $(document).ready(function () {
         STUDIP.Sidebar.setSticky();
     });
-
-    // Legacy: Expose STUDIP.Sidebar.setSticky as global stickySidebar
-    // function to not break stuff
-    // TODO Remove this after STUD.IP 3.5
-    window.stickySidebar = STUDIP.Sidebar.setSticky;
 }(jQuery, STUDIP));

@@ -338,8 +338,8 @@ class CalendarWriteriCalendar extends CalendarWriter
     public function _exportDateTime($value, $utc = false)
     {
 
-//      $TZOffset  = 3600 * substr(date('O', $value), 0, 3);
-//      $TZOffset += 60 * substr(date('O', $value), 3, 2);
+//      $TZOffset  = 3600 * mb_substr(date('O', $value), 0, 3);
+//      $TZOffset += 60 * mb_substr(date('O', $value), 3, 2);
         //transform local time in UTC
         if ($utc) {
             $value -= date('Z', $value);
@@ -610,17 +610,17 @@ class CalendarWriteriCalendar extends CalendarWriter
     public function _foldLine($line)
     {
         $line = preg_replace('/(\r\n|\n|\r)/', '\n', $line);
-        if (strlen($line) > 75) {
+        if (mb_strlen($line) > 75) {
             $foldedline = '';
             while (!empty($line)) {
-                $maxLine = substr($line, 0, 75);
-                $cutPoint = max(60, max(strrpos($maxLine, ';'), strrpos($maxLine, ':')) + 1);
+                $maxLine = mb_substr($line, 0, 75);
+                $cutPoint = max(60, max(mb_strrpos($maxLine, ';'), mb_strrpos($maxLine, ':')) + 1);
 
                 $foldedline .= ( empty($foldedline)) ?
-                        substr($line, 0, $cutPoint) :
-                        $this->newline . ' ' . substr($line, 0, $cutPoint);
+                        mb_substr($line, 0, $cutPoint) :
+                        $this->newline . ' ' . mb_substr($line, 0, $cutPoint);
 
-                $line = (strlen($line) <= $cutPoint) ? '' : substr($line, $cutPoint);
+                $line = (mb_strlen($line) <= $cutPoint) ? '' : mb_substr($line, $cutPoint);
             }
             return $foldedline;
         }

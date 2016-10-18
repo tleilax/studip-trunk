@@ -40,8 +40,6 @@ use Studip\Button, Studip\LinkButton;
 
 $perm->check('dozent');
 
-require_once 'lib/msg.inc.php';    //Ausgaben
-
 $checks=new StartupChecks;
 $list = $checks->getCheckList();
 
@@ -70,20 +68,20 @@ if ($problems_found > 1) {
 
 if ($problems_found) {
 ?>
-    <table width="100%" border=0 cellpadding=0 cellspacing=0>
+    <table class="default">
         <tr>
-             <td class="blank" colspan=2>
+             <td class="blank">
                 <?= MessageBox::info(_("Das Anlegen einer Veranstaltung ist leider zu diesem Zeitpunkt noch nicht möglich, 
                 da zunächst die folgenden Voraussetzungen geschaffen werden müssen.".$moreProbs), $problems); ?>
             </td>
         </tr>
-        <tr <? $cssSw->switchClass() ?>>
-            <td class="<? echo $cssSw->getClass() ?>" align="center" colspan=2>
+        <tr>
+            <td align="center">
                 <?= LinkButton::create(_('Aktualisieren'), URLHelper::getURL(''))?>
             </td>
         </tr>
         <tr>
-            <td class="blank" colspan=2>&nbsp;</td>
+            <td class="blank">&nbsp;</td>
         </tr>
     </table>
 <?php

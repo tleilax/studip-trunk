@@ -1,10 +1,10 @@
-/*jslint browser: true */
-/*global jQuery, STUDIP */
+/*jslint browser: true, nomen: true */
+/*global jQuery, STUDIP, _ */
 
-(function ($) {
+(function ($, STUDIP, _) {
     'use strict';
 
-    $(document).on('ready dialog-open dialog-update', function () {
+    function handleBlockAppointments() {
         $('#block_appointments_days input').click(function () {
             var clicked_id = parseInt(this.id.split('_').pop(), 10);
             if (clicked_id === 0 || clicked_id === 1) {
@@ -16,7 +16,10 @@
                 $('#block_appointments_days_1').prop('checked', false);
             }
         });
-    });
+    }
+
+    $(document).ready(handleBlockAppointments);
+    $(document).on('dialog-open dialog-update', handleBlockAppointments);
 
     $(document).on('change', 'select[name=room_sd]', function () {
         $('input[type=radio][name=room][value=room]').prop('checked', true);
@@ -27,8 +30,8 @@
     });
 
     $(document).on('click', 'a.bookable_rooms_action', function (event) {
-        var select = $(this).prev('select')[0];
-        var me = $(this);
+        var select = $(this).prev('select')[0],
+            me = $(this);
         if (select !== null && select !== undefined) {
             if (me.data('state') === 'enabled') {
                 STUDIP.Raumzeit.disableBookableRooms(me);
@@ -78,7 +81,7 @@
         STUDIP.Raumzeit.disableBookableRooms($('a.bookable_rooms_action'));
     });
 
-    $(document).on('ready', function () {
+    $(document).ready(function () {
         $('a.bookable_rooms_action').show();
     });
 
@@ -114,78 +117,4 @@
             $(this).attr('data-confirm', null);
         }
     });
-}(jQuery, STUDIP));
-
-STUDIP.Raumzeit = {
-    addLecturer: function () {
-        jQuery('select[name=teachers] option:selected').each(function () {
-            var lecturer_id = jQuery(this).val();
-            if (lecturer_id === 'none') {
-                return;
-            }
-
-            jQuery('li[data-lecturerid=' + lecturer_id + ']').show();
-            jQuery('select[name=teachers] option[value=' + lecturer_id + ']').hide();
-            jQuery('select[name=teachers] option[value=none]').prop('selected', true);
-        });
-
-        STUDIP.Raumzeit.addFormLecturers();
-    },
-
-    removeLecturer: function (lecturer_id) {
-        jQuery('li[data-lecturerid=' + lecturer_id + ']').hide();
-        jQuery('select[name=teachers] option[value=' + lecturer_id + ']').show();
-
-        STUDIP.Raumzeit.addFormLecturers();
-    },
-
-    addFormLecturers: function () {
-        var data = [];
-
-        jQuery('ul.teachers li:visible').each(function () {
-            data.push(jQuery(this).data('lecturerid'));
-        });
-
-        jQuery('input[name=related_teachers]').val(data.join(','));
-    },
-    addFormGroups: function () {
-        var data = [];
-        jQuery('ul.groups li:visible').each(function () {
-            data.push(jQuery(this).data('groupid'));
-        });
-        jQuery('input[name=related_statusgruppen]').val(data.join(','));
-    },
-    addGroup: function () {
-        jQuery('select[name=groups] option:selected').each(function () {
-            var statusgruppe_id = jQuery(this).val();
-            if (statusgruppe_id === 'none') {
-                return;
-            }
-
-            jQuery('li[data-groupid=' + statusgruppe_id + ']').show();
-            jQuery('select[name=groups] option[value=' + statusgruppe_id + ']').hide();
-            jQuery('select[name=groups] option[value=none]').prop('selected', true);
-        });
-
-        STUDIP.Raumzeit.addFormGroups();
-    },
-
-    removeGroup: function (statusgruppe_id) {
-        jQuery('li[data-groupid=' + statusgruppe_id + ']').hide();
-        jQuery('select[name=groups] option[value=' + statusgruppe_id + ']').show();
-
-        STUDIP.Raumzeit.addFormGroups();
-    },
-
-    disableBookableRooms: function (icon) {
-        var select = $(icon).prev('select')[0];
-        var me = $(icon);
-        select.title = '';
-        $(select).children('option').each(function () {
-            $(this).prop('disabled', false);
-        });
-
-        me.data('state', false);
-        me.attr('title', 'Nur buchbare Räume anzeigen'.toLocaleString());
-    }
-};
+}(jQuery, STUDIP, _));

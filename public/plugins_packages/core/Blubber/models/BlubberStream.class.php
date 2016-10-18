@@ -25,8 +25,20 @@ require_once __DIR__ . '/StreamAvatar.class.php';
 class BlubberStream extends SimpleORMap {
 
     public $filter_threads = array();
-    public $user_id = null;
     public $max_age = null;
+
+    protected static function configure($config = [])
+    {
+        $config['db_table'] = 'blubber_streams';
+
+        $config['registered_callbacks']['before_store'][] = 'serializeData';
+        $config['registered_callbacks']['after_store'][] = 'unserializeData';
+        $config['registered_callbacks']['after_initialize'][] = 'unserializeData';
+
+        $config['default_values']['user_id'] = $GLOBALS['user']->id;
+
+        parent::configure($config);
+    }
 
     static public function create($pool = array(), $filter = array()) {
         $stream = new BlubberStream();
@@ -101,18 +113,6 @@ class BlubberStream extends SimpleORMap {
         $stream = new BlubberStream();
         $stream->filter_threads = is_array($topic_id) ? $topic_id : array($topic_id);
         return $stream;
-    }
-
-    /**
-     * constructor
-     * @param string/null $id : id of blubber-stream
-     */
-    public function __construct($id = null) {
-        $this->db_table = "blubber_streams";
-        $this->registerCallback('before_store', 'serializeData');
-        $this->registerCallback('after_store after_initialize', 'unserializeData');
-        $this->user_id = $GLOBALS['user']->id;
-        parent::__construct($id);
     }
 
     /**
@@ -214,8 +214,8 @@ class BlubberStream extends SimpleORMap {
      * @param integer $since : unix-timestamp
      * @return array of \BlubberPosting
      */
-    public function fetchNewPostings($since) {
-        list($sql, $parameters) = $this->getNewPostingsSql($since);
+    public function fetchNewPostings($since, $from) {
+        list($sql, $parameters) = $this->getNewPostingsSql($since, $from);
         $statement = DBManager::get()->prepare($sql);
         $statement->execute($parameters);
         $posting_data = $statement->fetchAll(PDO::FETCH_ASSOC);
@@ -305,12 +305,14 @@ class BlubberStream extends SimpleORMap {
      * Returns an array with sql and parameter for a PDO-statement that fetches
      * all blubber-postings of this stream newer than $since.
      * @param integer $since : unix-timestamp
+     * @param integer $from : unix-timestamp
      * @return array : array(string $sql, array $parameter)
      */
-    protected function getNewPostingsSql($since) {
+    protected function getNewPostingsSql($since, $from) {
         list($pool_sql, $filter_sql, $parameters) = $this->getSqlParts();
-        $filter_sql[] = "comment.chdate > :since ";
+        $filter_sql[] = "comment.chdate BETWEEN :since AND :from ";
         $parameters['since'] = $since;
+        $parameters['from'] = $from;
 
         $sql =
             "SELECT comment.* " .

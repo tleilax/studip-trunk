@@ -279,7 +279,7 @@ class PreferentialAdmission extends AdmissionRule
                             if ($queryPart) {
                                 $queryPart .= " AND ";
                             }
-                            $queryPart .= "`studiengang_id`".$field->getCompareOperator()."?";
+                            $queryPart .= "`fach_id`".$field->getCompareOperator()."?";
                             $values[] = $field->getValue() ?: '';
                             break;
                         case 'SemesterOfStudyCondition':
@@ -399,7 +399,7 @@ class PreferentialAdmission extends AdmissionRule
         $this->conditions = array();
         if ($data['conditions']) {
             foreach ($data['conditions'] as $condition) {
-                $this->addCondition(unserialize($condition));
+                $this->addCondition(ObjectBuilder::build($condition, 'UserFilter'));
             }
         }
         return $this;

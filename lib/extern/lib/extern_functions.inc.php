@@ -91,8 +91,8 @@ function print_footer () {
 }
 
 function mila_extern ($string, $length) {
-    if ($length > 0 && strlen($string) > $length) 
-        $string = substr($string, 0, $length) . "... ";
+    if ($length > 0 && mb_strlen($string) > $length) 
+        $string = mb_substr($string, 0, $length) . "... ";
     
     return $string;
 }
@@ -218,7 +218,7 @@ function get_default_generic_datafields (&$default_config, $object_type) {
         foreach ($generic_datafields["ids"] as $datafield) {
             $default_config["genericdatafields"] .= "|" . $datafield;
             $default_config["visible"] .= "|0";
-            $default_config["order"] .= "|" . substr_count($default_config["order"], "|");
+            $default_config["order"] .= "|" . mb_substr_count($default_config["order"], "|");
             $default_config["aliases"] .= "|" . $generic_datafields["ids_names"][$datafield];
         }
 
@@ -337,8 +337,8 @@ function check_config($data, $type) {
 function indentJson($str) {
     $strOut = '';
     $identPos = 0;
-    for($loop = 0;$loop<= strlen($str) ;$loop++){
-        $_char = substr($str,$loop,1);
+    for($loop = 0;$loop<= mb_strlen($str) ;$loop++){
+        $_char = mb_substr($str,$loop,1);
         //part 1
         if($_char == '}' || $_char == ']'){
             $strOut .= "\n";

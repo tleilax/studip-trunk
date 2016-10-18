@@ -98,7 +98,7 @@ class Log
      */
     public static function get($name = '')
     {
-        $name = strlen($name) ? $name : 0;
+        $name = mb_strlen($name) ? $name : 0;
         if ($name === 0 && !isset(self::$instances[$name])) {
             self::set();
         }
@@ -118,7 +118,7 @@ class Log
      */
     public static function set($name = '', $log_handler = null)
     {
-        $name = strlen($name) ? $name : 0;
+        $name = mb_strlen($name) ? $name : 0;
         if (isset(self::$instances[$name])) {
             $old = self::$instances[$name];
         }
@@ -249,7 +249,7 @@ class Log
     public function __call($name, $arguments)
     {
         foreach ($this->log_level_names as $level_num => $level_name) {
-            if (stripos($level_name, $name) === 0) {
+            if (mb_stripos($level_name, $name) === 0) {
                 return $this->log($arguments[0], $level_num);
             }
         }

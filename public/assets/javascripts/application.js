@@ -115,7 +115,7 @@ jQuery(function ($) {
         return false;
     });
 
-    $(document).on('ready', function () {
+    $(document).ready(function () {
         var elements = $('.load-in-new-row-open');
         elements.click();
         if (elements.length > 0) {
@@ -245,81 +245,6 @@ jQuery(function ($) {
     });
 });
 
-/* Secure textareas by displaying a warning on page unload if there are
- unsaved changes */
-(function ($) {
-    function securityHandlerWindow(event) {
-        var message = 'Ihre Eingaben wurden bislang noch nicht gespeichert.'.toLocaleString();
-        event = event || window.event || {};
-        event.returnValue = message;
-        return message;
-    }
-
-    function submissionHandlerWindow() {
-        $(window).off('beforeunload', securityHandlerWindow);
-    }
-
-    $(document).on('change keyup', 'textarea[data-secure]', function () {
-        var secured = $(this).data('secured'),
-            changed = (this.value !== this.defaultValue),
-            action = null;
-
-        if (changed && !secured) {
-            action = 'on';
-        } else if (!changed && secured) {
-            action = 'off';
-        }
-
-        if (action !== null) {
-            // (at|de)tach before unload handler that will display the message
-            $(window)[action]('beforeunload', securityHandlerWindow);
-
-            // (at|de)tach submit handler that will remove the securityHandlerWindow
-            // on form submission
-            $(this).closest('form')[action]('submit', submissionHandlerWindow);
-
-            // Store current state
-            $(this).data('secured', action === 'on');
-        }
-
-        $(this).data('changed', changed);
-    });
-
-    function securityHandlerDialog(event, ui) {
-        var unchanged = true;
-        $('textarea[data-secure]', ui.dialog).each(function () {
-            unchanged = unchanged && this.value === this.defaultValue;
-        });
-
-        // If WYSIWYG editor is enabled, always assume that the text has been
-        // changed.
-        if ($('textarea.wysiwyg', ui.dialog).length > 0) {
-            unchanged = false;
-        }
-
-        if (!unchanged && !confirm('Ihre Eingaben wurden bislang noch nicht gespeichert.'.toLocaleString())) {
-            event.preventDefault();
-            event.stopPropagation();
-            return false;
-        }
-
-        submissionHandlerWindow();
-        return true;
-    }
-
-    $(document).on('dialog-update', function (event, ui) {
-        if ($('textarea[data-secure]', ui.dialog).length === 0) {
-            return;
-        }
-
-        $(ui.dialog).on('dialogbeforeclose', securityHandlerDialog)
-            .find('form:has(textarea[data-secure])').on('submit', function () {
-            $(this).closest('ui.dialog').off('dialogbeforeclose', securityHandlerDialog);
-        });
-    });
-
-}(jQuery));
-
 /* Copies a value from a select to another element*/
 jQuery(document).on('change', 'select[data-copy-to]', function () {
     var target = jQuery(this).data().copyTo,
@@ -333,7 +258,7 @@ jQuery(document).ready(function ($) {
 
 // Fix horizontal scroll issue on domready, window load and window resize.
 // This also makes the header and footer sticky regarding horizontal scrolling.
-jQuery(document).on('ready', function () {
+jQuery(document).ready(function () {
     var page_margin = ($('#layout_page').outerWidth(true) - $('#layout_page').width()) / 2,
         content_margin = $('#layout_content').outerWidth(true) - $('#layout_content').innerWidth(),
         sidebar_width = $('#layout-sidebar').outerWidth(true);
@@ -399,13 +324,14 @@ jQuery(document).on('click', '.course-admin td .course-completion', function () 
     return false;
 });
 
-
-jQuery(document).on('dialog-update', function (event) {
+jQuery(document).on('dialog-update', function (event, data) {
     jQuery('.add_toolbar').addToolbar();
 
+    STUDIP.Forms.initialize(data.dialog);
+
     /* notify MathJax about new content*/
-    if (typeof MathJax !== 'undefined') {
-        MathJax.Hub.Queue(["Typeset", MathJax.Hub, this.dialog]);
+    if (MathJax !== undefined) {
+        MathJax.Hub.Queue(['Typeset', MathJax.Hub, data.dialog[0]]);
     }
 });
 

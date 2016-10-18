@@ -765,7 +765,7 @@ function searchWiki($searchfor, $searchcurrentversions, $keyword, $localsearch) 
     $result=NULL;
 
     // check for invalid search string
-    if (strlen($searchfor)<3) {
+    if (mb_strlen($searchfor)<3) {
         $invalid_searchstring=1;
     } else if ($localsearch && !$keyword) {
         $invalid_searchstring=1;
@@ -886,8 +886,8 @@ function searchWiki($searchfor, $searchcurrentversions, $keyword, $localsearch) 
         $first_line=1; // don't print <br> before first hit
         print($tdheadleft);
         // find all occurences
-        while ($offset < strlen($result['body'])) {
-            $pos=stripos($result['body'], $searchfor,$offset);
+        while ($offset < mb_strlen($result['body'])) {
+            $pos=mb_stripos($result['body'], $searchfor,$offset);
             if ($pos===FALSE) break;
             $offset=$pos+1;
             if (($ignore_next_hits--)>0) {
@@ -898,7 +898,7 @@ function searchWiki($searchfor, $searchcurrentversions, $keyword, $localsearch) 
             }
             // show max 80 chars
             $fragment = '';
-            $split_fragment = preg_split('/('.preg_quote($searchfor,'/').')/i', substr($result['body'],max(0, $pos-40), 80), -1, PREG_SPLIT_DELIM_CAPTURE);
+            $split_fragment = preg_split('/('.preg_quote($searchfor,'/').')/i', mb_substr($result['body'],max(0, $pos-40), 80), -1, PREG_SPLIT_DELIM_CAPTURE);
             for ($i = 0; $i < count($split_fragment); ++$i) {
                 if ($i % 2) {
                     $fragment .= '<span style="background-color:#FFFF88">';
@@ -1529,7 +1529,7 @@ function showWikiPage($keyword, $version, $special="", $show_comments="icon", $h
             $cont=preg_replace("/\007\007/",$f,$cont,1);
         }
     }
-    $num_body_lines=substr_count($wikiData['body'], "\n");
+    $num_body_lines=mb_substr_count($wikiData['body'], "\n");
     if ($num_body_lines<15) {
         $cont .= "<p>";
         $cont .= str_repeat("&nbsp;<br>", 15-$num_body_lines);

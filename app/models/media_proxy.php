@@ -142,7 +142,7 @@ class MediaProxy
 
         while (!feof($handle)) {
             $buffer = fread($handle, 65536);
-            $length += strlen($buffer);
+            $length += mb_strlen($buffer);
 
             if ($cache) {
                 if ($length <= $this->cache_maxlength) {
@@ -172,13 +172,13 @@ class MediaProxy
         $response = parse_link($url);
 
         foreach ($response as $key => $value) {
-            $response[strtolower($key)] = $value;
+            $response[mb_strtolower($key)] = $value;
         }
         if ($response['response_code'] != 200) {
             throw new MediaProxyException($response['response']);
         } else if (!isset($response['content-type'])
             || !in_array(array_shift(explode('/', $response['content-type'])), words('image audio video'))
-            || stripos($response['content-type'], 'svg') !== false) {
+            || mb_stripos($response['content-type'], 'svg') !== false) {
             throw new MediaProxyException('HTTP/1.1 415 Unsupported Media Type');
         }
 

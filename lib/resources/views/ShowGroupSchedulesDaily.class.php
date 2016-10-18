@@ -38,13 +38,15 @@ require_once $GLOBALS['RELATIVE_PATH_RESOURCES'] . '/views/ShowSemSchedules.clas
 require_once $GLOBALS['RELATIVE_PATH_RESOURCES'] . '/views/SemGroupScheduleDayOfWeek.class.php';
 
 
-class ShowGroupSchedulesDaily extends ShowSemSchedules {
+class ShowGroupSchedulesDaily extends ShowSemSchedules
+{
 
     var $resources_groups;
     var $group_id;
 
     //Konstruktor
-    function __construct($group_id, $start_time, $resources_groups = null) {
+    public function __construct($group_id, $start_time, $resources_groups = null)
+    {
         $this->dow = false;
         $this->group_id = $group_id;
         parent::__construct(null, null, null);
@@ -54,38 +56,34 @@ class ShowGroupSchedulesDaily extends ShowSemSchedules {
         else $this->resources_groups = RoomGroups::GetInstance();
     }
 
-    function navigator ($print_view = false) {
-        global $cssSw, $view_mode,$view;
+    public function navigator ($print_view = false)
+    {
+        global $view_mode,$view;
         $start_time = $this->start_time;
-        if (!$print_view){
-        ?>
-        <table border="0" celpadding="2" cellspacing="0" width="99%" align="center">
+        if (!$print_view): ?>
         <form method="POST" name="schedule_form" action="<?echo URLHelper::getLink('?navigate=TRUE&quick_view='.$view.'&quick_view_mode='.$view_mode) ?>">
             <?= CSRFProtection::tokenTag() ?>
+        <table class="default">
+            <colgroup>
+                <col width="4%">
+                <col width="36%">
+                <col width="56%">
+                <col width="4%">
+            </colgroup>
             <tr>
-                <td class="<? $cssSw->switchClass(); echo $cssSw->getClass() ?>" width="4%">&nbsp;
-                </td>
-                <td class="<? echo $cssSw->getClass() ?>" width="96%" colspan="3"><font size=-1><b><?=_("Datum:")?></b></font>
-                </td>
+                <td>&nbsp;</td>
+                <td colspan="3"><b><?= _('Datum:') ?></b></td>
             </tr>
             <tr>
-                <td class="<? echo $cssSw->getClass() ?>" width="4%" rowspan="2">&nbsp;
-                </td>
-                <td class="<? echo $cssSw->getClass() ?>" width="40%" valign="middle">
-                    <!--CHANGE for Datepicker-->
-                    <input type="text" id="schedule_begin_date" name="schedule_begin_date" size="10" value="<?echo date("d",$start_time).'.'.date("m",$start_time).'.'.date("Y",$start_time);; ?>">
-                    <script>
-                        jQuery('#schedule_begin_date').datepicker();
-                    </script>                    
-                    <!--
-                    <input type="text" name="schedule_begin_day" size=2 maxlength=2 value="<?echo date("d",$start_time); ?>">.
-                    <input type="text" name="schedule_begin_month" size=2 maxlength=2 value="<?echo date("m",$start_time); ?>">.
-                    <input type="text" name="schedule_begin_year" size=4 maxlength=4 value="<?echo date("Y",$start_time); ?>">
-                    -->
+                <td rowspan="2">&nbsp;</td>
+                <td valign="middle">
+                    <input type="text" id="schedule_begin_date" name="schedule_begin_date"
+                           size="10" value="<?= date('d.m.Y', $start_time) ?>"
+                           class="has-date-picker">
                     <?= Button::create(_('Auswählen'), 'jump') ?><br>
                 </td>
-                <td class="<? echo $cssSw->getClass() ?>" width="60%" valign="bottom">
-                    <?= ($view_mode == 'oobj' ? _("Eine Ressourcengruppe auswählen") : _("Eine Raumgruppe auswählen")) ?>:<br>
+                <td valign="bottom">
+                    <?= $view_mode == 'oobj' ? _('Eine Ressourcengruppe auswählen') : _('Eine Raumgruppe auswählen') ?>:<br>
                     <select name="group_schedule_choose_group" onChange="document.schedule_form.submit()">
                     <? foreach($this->resources_groups->getAvailableGroups() as $gid) :
                         echo '<option value="'.$gid.'" '
@@ -96,21 +94,15 @@ class ShowGroupSchedulesDaily extends ShowSemSchedules {
                     </select>
                     <?= Button::create(_('Auswählen')) ?>
                 </td>
-                <td class="<? echo $cssSw->getClass() ?>" valign="middle">
-                    
-                </td>
-            </tr>
-            <tr>
-                <td class="<? echo $cssSw->getClass() ?>" colspan="4"><font size="-1">&nbsp;</font>
-                </td>
+                <td valign="middle">&nbsp;</td>
             </tr>
         </table>
-    <?
-        }
+    <? endif; 
     }
 
-    function showScheduleGraphical($print_view = false) {
-        global $RELATIVE_PATH_RESOURCES, $cssSw, $view_mode, $ActualObjectPerms;
+    public function showScheduleGraphical($print_view = false)
+    {
+        global $RELATIVE_PATH_RESOURCES, $view_mode, $ActualObjectPerms;
 
         $categories["na"] = 4;
         $categories["sd"] = 4;
@@ -124,10 +116,11 @@ class ShowGroupSchedulesDaily extends ShowSemSchedules {
 
 
          //select view to jump from the schedule
-         if ($view_mode == "oobj")
+         if ($view_mode == "oobj") {
             $view = "openobject_assign";
-         else
+         } else {
             $view = "edit_object_assign";
+         }
 
         $start_time = $this->start_time;
         $end_time = $this->end_time;
@@ -143,9 +136,9 @@ class ShowGroupSchedulesDaily extends ShowSemSchedules {
             $end_hour = 22;
         }
 
-        if ($this->resources_groups->getGroupCount($this->group_id)){
+        if ($this->resources_groups->getGroupCount($this->group_id)) {
 
-            $schedule=new SemGroupScheduleDayOfWeek($start_hour, $end_hour,$this->resources_groups->getGroupContent($this->group_id), $start_time, false);
+            $schedule = new SemGroupScheduleDayOfWeek($start_hour, $end_hour,$this->resources_groups->getGroupContent($this->group_id), $start_time, false);
 
             $schedule->add_link = "resources.php?cancel_edit_assign=1&quick_view=$view&quick_view_mode=".$view_mode."&add_ts=";
 
@@ -153,44 +146,55 @@ class ShowGroupSchedulesDaily extends ShowSemSchedules {
             $num_single_events = 0;
             $num = 1;
 
-            foreach ($this->resources_groups->getGroupContent($this->group_id) as $resource_to_show_id => $resource_id){
+            foreach ($this->resources_groups->getGroupContent($this->group_id) as $resource_to_show_id => $resource_id) {
                 //fill the schedule
-                $assign_events=new AssignEventList ($start_time, $end_time, $resource_id, '', '', TRUE, $_SESSION['resources_data']["show_repeat_mode"]);
+                $assign_events = new AssignEventList ($start_time, $end_time, $resource_id, '', '', TRUE, $_SESSION['resources_data']['show_repeat_mode']);
                 while ($event=$assign_events->nextEvent()) {
-                    $repeat_mode = $event->getRepeatMode(TRUE);
-                    if(in_array($repeat_mode, array('w','d','m','y'))){
+                    $repeat_mode = $event->getRepeatMode(true);
+                    if (in_array($repeat_mode, array('w','d','m','y'))) {
                         $assign = AssignObject::Factory($event->getAssignId());
                         switch($event->repeat_mode){
-                        case 'd':
-                            $add_info = '('.sprintf(_("täglich, %s bis %s"), strftime('%x',$assign->getBegin()), strftime('%x',$assign->getRepeatEnd())).')';
-                            break;
-                        case 'w':
-                        if($assign->getRepeatInterval() == 1) $add_info = '('._("wöchentlich").')';
-                        else  $add_info = '('.$assign->getRepeatInterval().'-'._("wöchentlich").')';
-                        break;
-                        case 'm':
-                            if($assign->getRepeatInterval() == 1) $add_info = '('._("monatlich").')';
-                            else  $add_info = '('.$assign->getRepeatInterval().'-'._("monatlich").')';
-                            break;
-                        case 'y':
-                            if($assign->getRepeatInterval() == 1) $add_info = '('._("jährlich").')';
-                            else  $add_info = '('.$assign->getRepeatInterval().'-'._("jährlich").')';
-                            break;
+                            case 'd':
+                                $add_info = '('.sprintf(_("täglich, %s bis %s"), strftime('%x',$assign->getBegin()), strftime('%x',$assign->getRepeatEnd())).')';
+                                break;
+                            case 'w':
+                                if($assign->getRepeatInterval() == 1) {
+                                    $add_info = '('._("wöchentlich").')';
+                                } else {
+                                    $add_info = '('.$assign->getRepeatInterval().'-'._("wöchentlich").')';
+                                }
+                                break;
+                            case 'm':
+                                if($assign->getRepeatInterval() == 1) {
+                                    $add_info = '('._("monatlich").')';
+                                } else {
+                                    $add_info = '('.$assign->getRepeatInterval().'-'._("monatlich").')';
+                                }
+                                break;
+                            case 'y':
+                                if($assign->getRepeatInterval() == 1) {
+                                    $add_info = '('._("jährlich").')';
+                                } else {
+                                    $add_info = '('.$assign->getRepeatInterval().'-'._("jährlich").')';
+                                }
+                                break;
                         }
                     } else {
                         $add_info = '';
                     }
-                    if (in_array($event->getOwnerType(), array('sem','date'))){
+                    if (in_array($event->getOwnerType(), array('sem','date'))) {
                         $sem_doz_names = array();
                         $c = 0;
-                        if ($event->getOwnerType() == 'sem'){
+                        if ($event->getOwnerType() == 'sem') {
                             $sem_obj = Seminar::GetInstance($event->getAssignUserId());
                         } else {
                             $sem_obj = Seminar::GetInstance(Seminar::GetSemIdByDateId($event->getAssignUserId()));
                         }
-                        foreach($sem_obj->getMembers('dozent') as $dozent){
+                        foreach ($sem_obj->getMembers('dozent') as $dozent) {
                             $sem_doz_names[] = $dozent['Nachname'];
-                            if (++$c > 2) break;
+                            if (++$c > 2) {
+                                break;
+                            }
                         }
                         $add_info .= '(' . join(', ', $sem_doz_names) . ')';
                     }
@@ -201,28 +205,42 @@ class ShowGroupSchedulesDaily extends ShowSemSchedules {
         } else {
             return;
         }
-        if(!$print_view){
+        if (!$print_view) {
+            $holiday = holiday($start_time);
+            if ($holiday['col'] < 3) {
+                $holiday = null;
+            }
         ?>
         <table border=0 celpadding=2 cellspacing=0 width="99%" align="center">
-            <tr>
-                <td class="<? $cssSw->switchClass(); echo $cssSw->getClass() ?>" width="4%">&nbsp;</td>
-                <td class="<? echo $cssSw->getClass() ?>"  width="10%" align="left">&nbsp;
-                    <a href="<? echo URLHelper::getLink('?quick_view='.$this->used_view.'&quick_view_mode='.$view_mode.'&previous_day=1')?>"><?= Icon::create('arr_2left', 'clickable', ['title' => _("Vorherigen Tag anzeigen")])->asImg(16, ["alt" => _("Vorherigen Tag anzeigen"), "border" => 0]) ?></a>
+            <colgroup>
+                <col width="4%">
+                <col width="10%">
+                <col width="76%">
+                <col width="10%">
+            </colgroup>
+            <tr <? if (!empty($holiday)) echo 'style="background-color: #ffb;"' ?>>
+                <td>&nbsp;</td>
+                <td align="left">
+                    <a href="<?= URLHelper::getLink('?quick_view='.$this->used_view.'&quick_view_mode='.$view_mode.'&previous_day=1')?>">
+                        <?= Icon::create('arr_2left', 'clickable', ['title' => _("Vorherigen Tag anzeigen")])->asImg(16, ["alt" => _("Vorherigen Tag anzeigen"), "border" => 0]) ?>
+                    </a>
                 </td>
-                <td class="<? echo $cssSw->getClass() ?>" width="76%" align="center" style="font-weight:bold">
-                <? echo htmlReady(strftime('%A, %x (KW %V)', $start_time));
-                ?>
-                <br>
-                <?php
-                $this->showSemWeekNumber($start_time);
-                ?>
+                
+                <td align="center" style="font-weight:bold;">
+                    <? echo htmlReady(strftime('%A, %x (KW %V)', $start_time));                    
+                        if (!empty($holiday)) echo " - ".htmlReady($holiday['name']);
+                    ?>
+                    <br>
+                    <? $this->showSemWeekNumber($start_time); ?>
                 </td>
-                <td class="<? echo $cssSw->getClass() ?>" width="10%" align="center">&nbsp;
-                    <a href="<? echo URLHelper::getLink('?quick_view='.$this->used_view.'&quick_view_mode='.$view_mode.'&next_day=1')?>"><?= Icon::create('arr_2right', 'clickable', ['title' => _("Nächsten Tag anzeigen")])->asImg(16, ["alt" => _("Nächsten Tag anzeigen"), "border" => 0]) ?></a>
+                <td align="center">
+                    <a href="<?= URLHelper::getLink('?quick_view='.$this->used_view.'&quick_view_mode='.$view_mode.'&next_day=1')?>">
+                        <?= Icon::create('arr_2right', 'clickable', ['title' => _("Nächsten Tag anzeigen")])->asImg(16, ["alt" => _("Nächsten Tag anzeigen"), "border" => 0]) ?>
+                    </a>
                 </td>
             </tr>
             <tr>
-                <td class="<? $cssSw->switchClass(); echo $cssSw->getClass() ?>" width="4%" align="center" valign="bottom">&nbsp;
+                <td align="center" valign="bottom">
                 <? if ((!$_SESSION['resources_data']["schedule_time_range"]) || ($_SESSION['resources_data']["schedule_time_range"] == 1)): ?>
                     <a href="<?= URLHelper::getLink('', array('quick_view' => $this->used_view,
                                                               'quick_view_mode' => $view_mode,
@@ -231,14 +249,11 @@ class ShowGroupSchedulesDaily extends ShowSemSchedules {
                     </a>
                 <? endif; ?>
                 </td>
-                <td class="<? echo $cssSw->getClass() ?>" width="76%" colspan="2">
-                    <?
-
-                    echo "&nbsp;<font size=-1>"._("Anzahl der Belegungen in diesem Zeitraum:")." ".$assign_events->numberOfEvents()."</font><br>";
-                    ?>
-                    &nbsp;
+                <td colspan="2">
+                    <?= _('Anzahl der Belegungen in diesem Zeitraum:') ?>
+                    <?= $assign_events->numberOfEvents() ?>
                 </td>
-                <td class="<? echo $cssSw->getClass() ?>" width="20%" nowrap>
+                <td nowrap>
                     <?
                     print "<select style=\"font-size:10px;\" name=\"show_repeat_mode\">";
                     printf ("<option style=\"font-size:10px;\" %s value=\"all\">"._("alle Belegungen")."</option>", ($_SESSION['resources_data']["show_repeat_mode"] == "all") ? "selected" : "");
@@ -250,16 +265,13 @@ class ShowGroupSchedulesDaily extends ShowSemSchedules {
                 </td>
             </tr>
             <tr>
-                <td class="<? echo $cssSw->getClass() ?>" width="4%">&nbsp;
-                </td>
-                <td class="<? echo $cssSw->getClass() ?>" width="96%" colspan="3">
-                    <?
-                    $schedule->showSchedule("html");
-                    ?>
+                <td>&nbsp;</td>
+                <td colspan="3">
+                    <? $schedule->showSchedule('html'); ?>
                 </td>
             </tr>
             <tr>
-                <td class="<? echo $cssSw->getClass() ?>" width="4%" align="center" valign="bottom">&nbsp;
+                <td align="center" valign="bottom">
                 <? if ((!$_SESSION['resources_data']['schedule_time_range']) || ($_SESSION['resources_data']['schedule_time_range'] == -1)): ?>
                     <a href="<?= URLHelper::getLink('', array('quick_view' => $this->used_view,
                                                               'quick_view_mode' => $view_mode, 
@@ -268,15 +280,11 @@ class ShowGroupSchedulesDaily extends ShowSemSchedules {
                     </a>
                 <? endif; ?>
                 </td>
-                <td class="<? echo $cssSw->getClass() ?>" width="20%" nowrap colspan="3">
-                &nbsp;
-                </td>
+                <td nowrap colspan="3">&nbsp;</td>
             </tr>
         </table>
         </form>
-    <?
-        } else {
-            ?>
+    <? } else { ?>
             <table border="0" cellpadding="0" cellspacing="0" width="100%" align="center">
             <tr>
                 <td align="center">
@@ -303,4 +311,3 @@ class ShowGroupSchedulesDaily extends ShowSemSchedules {
         }
     }
 }
-?>

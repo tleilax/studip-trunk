@@ -51,7 +51,7 @@ class Avatar {
     /**
      * This constant represents the maximal size of a user picture in bytes.
      */
-    const MAX_FILE_SIZE = 716800;
+    const MAX_FILE_SIZE = 10485760;
 
     /**
      * This constant holds the username and ID of the "nobody" avatar.
@@ -277,7 +277,7 @@ class Avatar {
 
             // get extension
             $pathinfo = pathinfo($_FILES[$userfile]['name']);
-            $ext = strtolower($pathinfo['extension']);
+            $ext = mb_strtolower($pathinfo['extension']);
 
             // passende Endung ?
             if (!in_array($ext, words('jpg jpeg gif png'))) {

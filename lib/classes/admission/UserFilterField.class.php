@@ -159,8 +159,8 @@ class UserFilterField
         foreach (glob(realpath(dirname(__FILE__).'/userfilter').'/*.class.php') as $file) {
             require_once($file);
             // Try to auto-calculate class name from file name.
-            $className = substr(basename($file), 0,
-                strpos(basename($file), '.class.php'));
+            $className = mb_substr(basename($file), 0,
+                mb_strpos(basename($file), '.class.php'));
             // Check if class is right.
             if (is_subclass_of($className, 'UserFilterField')) {
                 if ($className::$isParameterized) {
@@ -182,6 +182,16 @@ class UserFilterField
     public function getCompareOperator()
     {
         return $this->compareOperator;
+    }
+
+    /**
+     * Which compare operator is set?
+     *
+     * @return String
+     */
+    public function getCompareOperatorAsText()
+    {
+        return $this->getValidCompareOperators()[$this->compareOperator];
     }
 
     /**

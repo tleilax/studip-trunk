@@ -258,11 +258,11 @@ class StreamsController extends PluginController {
 
         $content = $this->transformMentions($thread['description'], $thread);
 
-        if (strpos($content, "\n") !== false) {
-            $thread['name'] = substr($content, 0, strpos($content, "\n"));
+        if (mb_strpos($content, "\n") !== false) {
+            $thread['name'] = mb_substr($content, 0, mb_strpos($content, "\n"));
             $thread['description'] = $content;
         } else {
-            if (strlen($content) > 255) {
+            if (mb_strlen($content) > 255) {
                 $thread['name'] = "";
             } else {
                 $thread['name'] = $content;
@@ -351,10 +351,10 @@ class StreamsController extends PluginController {
         if ($new_content && $old_content !== $new_content) {
             $posting['description'] = $new_content;
             if ($posting['topic_id'] === $posting['root_id']) {
-                if (strpos($new_content, "\n") !== false) {
-                    $posting['name'] = substr($new_content, 0, strpos($new_content, "\n"));
+                if (mb_strpos($new_content, "\n") !== false) {
+                    $posting['name'] = mb_substr($new_content, 0, mb_strpos($new_content, "\n"));
                 } else {
-                    if (strlen($new_content) > 255) {
+                    if (mb_strlen($new_content) > 255) {
                         $posting['name'] = "";
                     } else {
                         $posting['name'] = $new_content;
@@ -567,11 +567,11 @@ class StreamsController extends PluginController {
             $GLOBALS['msg'] = '';
             validate_upload($file);
             if ($GLOBALS['msg']) {
-                $output['errors'][] = $file['name'] . ': ' . decodeHTML(trim(substr($GLOBALS['msg'],6), '§'));
+                $output['errors'][] = $file['name'] . ': ' . decodeHTML(trim(mb_substr($GLOBALS['msg'],6), '§'));
                 continue;
             }
             if ($file['size']) {
-                $document['name'] = $document['filename'] = studip_utf8decode(strtolower($file['name']));
+                $document['name'] = $document['filename'] = studip_utf8decode(mb_strtolower($file['name']));
                 $document['user_id'] = $GLOBALS['user']->id;
                 $document['author_name'] = get_fullname();
                 $document['seminar_id'] = $context;
@@ -613,9 +613,9 @@ class StreamsController extends PluginController {
 
                 if ($success) {
                     $type = null;
-                    strpos($file['type'], 'image') === false || $type = "img";
-                    strpos($file['type'], 'video') === false || $type = "video";
-                    if (strpos($file['type'], 'audio') !== false || strpos($document['filename'], '.ogg') !== false) {
+                    mb_strpos($file['type'], 'image') === false || $type = "img";
+                    mb_strpos($file['type'], 'video') === false || $type = "video";
+                    if (mb_strpos($file['type'], 'audio') !== false || mb_strpos($document['filename'], '.ogg') !== false) {
                          $type = "audio";
                     }
                     if ($type) {
@@ -751,7 +751,7 @@ class StreamsController extends PluginController {
             $this->stream['name'] = Request::get("name");
             $this->stream['user_id'] = $GLOBALS['user']->id;
             $this->stream['sort'] = Request::get("sort");
-            $this->stream['defaultstream'] = Request::int("defaultstream");
+            $this->stream['defaultstream'] = Request::int("defaultstream", 0);
 
             //Pool-rules
             $this->stream['pool_courses'] = Request::get("pool_courses_check")
@@ -766,7 +766,7 @@ class StreamsController extends PluginController {
             if (is_array($this->stream['pool_hashtags'])) {
                 $this->stream['pool_hashtags'] = array_map(function ($tag) {
                     while ($tag[0] === "#") {
-                        $tag = substr($tag, 1);
+                        $tag = mb_substr($tag, 1);
                     }
                     return $tag;
                 }, $this->stream['pool_hashtags']);
@@ -788,7 +788,7 @@ class StreamsController extends PluginController {
             if (is_array($this->stream['filter_hashtags'])) {
                 $this->stream['filter_hashtags'] = array_map(function ($tag) {
                     while ($tag[0] === "#") {
-                        $tag = substr($tag, 1);
+                        $tag = mb_substr($tag, 1);
                     }
                     return $tag;
                 }, $this->stream['filter_hashtags']);
@@ -799,7 +799,7 @@ class StreamsController extends PluginController {
             if (is_array($this->stream['filter_nohashtags'])) {
                 $this->stream['filter_nohashtags'] = array_map(function ($tag) {
                     while ($tag[0] === "#") {
-                        $tag = substr($tag, 1);
+                        $tag = mb_substr($tag, 1);
                     }
                     return $tag;
                 }, $this->stream['filter_nohashtags']);
@@ -855,7 +855,7 @@ class StreamsController extends PluginController {
         if (is_array($stream['pool_hashtags'])) {
             $stream['pool_hashtags'] = array_map(function ($tag) {
                 while ($tag[0] === "#") {
-                    $tag = substr($tag, 1);
+                    $tag = mb_substr($tag, 1);
                 }
                 return $tag;
             }, $stream['pool_hashtags']);
@@ -877,7 +877,7 @@ class StreamsController extends PluginController {
         if (is_array($stream['filter_hashtags'])) {
             $stream['filter_hashtags'] = array_map(function ($tag) {
                 while ($tag[0] === "#") {
-                    $tag = substr($tag, 1);
+                    $tag = mb_substr($tag, 1);
                 }
                 return $tag;
             }, $stream['filter_hashtags']);
@@ -888,7 +888,7 @@ class StreamsController extends PluginController {
         if (is_array($stream['filter_nohashtags'])) {
             $stream['filter_nohashtags'] = array_map(function ($tag) {
                 while ($tag[0] === "#") {
-                    $tag = substr($tag, 1);
+                    $tag = mb_substr($tag, 1);
                 }
                 return $tag;
             }, $stream['filter_nohashtags']);
@@ -903,6 +903,20 @@ class StreamsController extends PluginController {
         }
         $this->thread = new BlubberPosting($thread_id);
         $success = $this->thread->reshare();
+
+        $template = $this->get_template_factory()->open("streams/_blubber.php");
+        $template->set_attributes($this->get_assigned_variables());
+        $template->set_layout(null);
+        $output = $template->render();
+        $this->render_text($output);
+    }
+
+    public function unshare_action($thread_id) {
+        if (!Request::isPost()) {
+            throw new Exception("Wrong method for this action - use POST instead");
+        }
+        $this->thread = new BlubberPosting($thread_id);
+        $success = $this->thread->unreshare();
 
         $template = $this->get_template_factory()->open("streams/_blubber.php");
         $template->set_attributes($this->get_assigned_variables());

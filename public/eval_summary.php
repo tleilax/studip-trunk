@@ -21,7 +21,6 @@
 require '../lib/bootstrap.php';
 
 require_once 'vendor/phplot/phplot.php';
-require_once 'lib/msg.inc.php';
 require_once 'lib/datei.inc.php';
 require_once 'lib/evaluation/evaluation.config.php';
 require_once EVAL_FILE_EVAL;
@@ -160,24 +159,26 @@ function do_graph($data, $evalquestion_id)
         array("black") //Border Colors
     );
 
-    $max_x = max(array_map('next',$data));
-    $graph->SetPlotAreaWorld(NULL, 0); // y-achse bei 0 starten
-    $graph->SetPrecisionY(0); //anzahl kommastellen y-achse
-    $graph->SetYTickIncrement($max_x < 10 ? 1 : round($max_x/10));
-    $graph->SetPlotBgColor(array(222,222,222));
-    $graph->SetDataType("text-data");
-    $graph->SetFileFormat(Config::get()->EVAL_AUSWERTUNG_GRAPH_FORMAT);
-    $graph->SetOutputFile($tmp_path_export."/evalsum".$evalquestion_id.$auth->auth["uid"].".".Config::get()->EVAL_AUSWERTUNG_GRAPH_FORMAT);
-    $graph->SetIsInline(true);
-    $graph->SetDataValues($data);
-    $graph->SetPlotType($type);
-    $graph->SetXLabelAngle(count($data) < 10 ? 0 : 90);
-    //$graph->SetShading(0); // kein 3D
-
-    $graph->SetLineWidth(1);
-    $graph->SetDrawXDataLabels(true);
-    //Draw it
-    $graph->DrawGraph();
+    if(!empty($data)) {
+        $max_x = max(array_map('next',$data));
+        $graph->SetPlotAreaWorld(NULL, 0); // y-achse bei 0 starten
+        $graph->SetPrecisionY(0); //anzahl kommastellen y-achse
+        $graph->SetYTickIncrement($max_x < 10 ? 1 : round($max_x/10));
+        $graph->SetPlotBgColor(array(222,222,222));
+        $graph->SetDataType("text-data");
+        $graph->SetFileFormat(Config::get()->EVAL_AUSWERTUNG_GRAPH_FORMAT);
+        $graph->SetOutputFile($tmp_path_export."/evalsum".$evalquestion_id.$auth->auth["uid"].".".Config::get()->EVAL_AUSWERTUNG_GRAPH_FORMAT);
+        $graph->SetIsInline(true);
+        $graph->SetDataValues($data);
+        $graph->SetPlotType($type);
+        $graph->SetXLabelAngle(count($data) < 10 ? 0 : 90);
+        //$graph->SetShading(0); // kein 3D
+    
+        $graph->SetLineWidth(1);
+        $graph->SetDrawXDataLabels(true);
+        //Draw it
+        $graph->DrawGraph();
+    }
 }
 
 function freetype_answers($parent_id, $anz_nutzer)
@@ -196,7 +197,7 @@ function freetype_answers($parent_id, $anz_nutzer)
     echo "        <tr><td colspan=\"2\" class=\"blank\"><font size=\"-1\"><b>"._("Antworten")."</b></font></td></tr>\n";
 
     $counter = 1;
-    while ($answer = $statement->fetchColumn()) {
+    while (false !== ($answer = $statement->fetchColumn())) {
         echo "      <tr>\n";
         echo "        <td width=\"1%\" valign=\"TOP\"><font size=\"-1\"><b>".$counter.".</b></font></td><td><font size=\"-1\">".formatReady($answer)."</font></td>\n";
         echo "      </tr>\n";
@@ -601,7 +602,7 @@ if ($ausgabeformat == 2) {
     PageLayout::removeStylesheet('style.css');
     PageLayout::addStylesheet('print.css');
 }
-$layout = $GLOBALS['template_factory']->open('layouts/base_without_infobox');
+$layout = $GLOBALS['template_factory']->open('layouts/base.php');
 
 $layout->content_for_layout = ob_get_clean();
 

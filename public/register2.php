@@ -25,22 +25,22 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 require '../lib/bootstrap.php';
 
-require_once('lib/msg.inc.php');
-
 $my_auth = ($GLOBALS['ENABLE_SELF_REGISTRATION'] ? "Seminar_Register_Auth" : "Seminar_Default_Auth");
 
 page_open(array("sess" => "Seminar_Session", "auth" => $my_auth, "perm" => "Seminar_Perm", "user" => "Seminar_User"));
 
 if (!$GLOBALS['ENABLE_SELF_REGISTRATION']){
-    include ('lib/include/html_head.inc.php'); // Output of html head
-    include ('lib/include/header.php');   // Output of Stud.IP head
-    include ('lib/include/deprecated_tabs_layout.php');
-    parse_window ("error§" . _("In dieser Installation ist die Möglichkeit zur Registrierung ausgeschaltet."), "§",
-                _("Registrierung ausgeschaltet"), 
-                '<div style="margin:10px">'.$UNI_LOGIN_ADD.'</div>'
-                ."<a href=\"index.php\"><b>&nbsp;" . sprintf(_("Hier%s geht es zur Startseite."), "</b></a>") . "<br>&nbsp;");
-page_close();
-die;
+    ob_start();
+    PageLayout::postError(_("Registrierung ausgeschaltet"),
+            [_("In dieser Installation ist die Möglichkeit zur Registrierung ausgeschaltet."),
+             '<a href="index.php">' . _("Hier geht es zur Startseite."). '</a>']);
+
+    $template = $GLOBALS['template_factory']->open('layouts/base.php');
+    $template->content_for_layout = ob_get_clean();
+    $template->infobox = $infobox ? array('content' => $infobox) : null;
+    echo $template->render();
+    page_close();
+    die;
 }
 if ($auth->auth["uid"] == "nobody") {
     $auth->logout();
@@ -58,9 +58,10 @@ PageLayout::setTitle(_("Registrierung erfolgreich"));
 // Start of Output
 include ('lib/include/html_head.inc.php'); // Output of html head
 include ('lib/include/header.php');   // Output of Stud.IP head
-include ('lib/include/deprecated_tabs_layout.php');
 
 ?>
+<div id="layout_page">
+
 <table width ="100%" border="0" cellspacing="0" cellpadding="5">
 <tr>
     <td class="table_header_bold"><b>&nbsp;<?=_("Herzlich Willkommen")?></b>
@@ -81,8 +82,7 @@ include ('lib/include/deprecated_tabs_layout.php');
 </tr>   
 </table>
 
+</div>
 <?php 
 include ('lib/include/html_end.inc.php');
 page_close();
-
-?>

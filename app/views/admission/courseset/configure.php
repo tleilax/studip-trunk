@@ -19,7 +19,7 @@ if ($flash['error']) {
 </div>
 <?= $this->render_partial('dialog/confirm_dialog') ?>
 <h1><?= $courseset ? _('Anmeldeset bearbeiten') : _('Anmeldeset anlegen') ?></h1>
-<form class="studip_form" action="<?= $controller->url_for(!$instant_course_set_view ? 'admission/courseset/save/' . ($courseset ? $courseset->getId() : '') : 'course/admission/save_courseset/' . $courseset->getId()) ?>" method="post">
+<form class="default" action="<?= $controller->url_for(!$instant_course_set_view ? 'admission/courseset/save/' . ($courseset ? $courseset->getId() : '') : 'course/admission/save_courseset/' . $courseset->getId()) ?>" method="post">
     <fieldset>
         <legend><?= _('Grunddaten') ?></legend>
         <label for="name" class="caption">
@@ -220,7 +220,13 @@ if ($flash['error']) {
         <div class="submit_wrapper" data-dialog-button>
             <?= CSRFProtection::tokenTag() ?>
             <?= Button::createAccept(_('Speichern'), 'submit', $instant_course_set_view ? array('data-dialog' => '') : array()) ?>
-            <?= LinkButton::createCancel(_('Abbrechen'), $controller->url_for('admission/courseset')) ?>
+            <?php if (Request::option('is_copy')) : ?>
+                <?= LinkButton::createCancel(_('Abbrechen'),
+                    URLHelper::getURL('dispatch.php/admission/courseset/delete/' . $courseset->getId(),
+                    array('really' => 1))) ?>
+            <?php else : ?>
+                <?= LinkButton::createCancel(_('Abbrechen'), $controller->url_for('admission/courseset')) ?>
+            <?php endif ?>
         </div>
 
 </form>

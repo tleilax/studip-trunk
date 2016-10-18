@@ -97,7 +97,7 @@ function getMonthName($month, $short = true) {
 
 function leadingZero($num) {
     if ($num == '') return '00';
-    if (strlen($num) < 2) {
+    if (mb_strlen($num) < 2) {
         return '0'.$num;
     } else {
         return $num;
@@ -146,19 +146,6 @@ function veranstaltung_beginn_from_metadata($reg_irreg, $sem_begin, $start_woche
     return $ret_time;
 }
 
-
-/*
-Die Funktion view_turnus zeigt in einer kompakten Ansicht den Turnus eines Seminars an.
-Angezeigt werden bei unregelmaessigen Veranstaltungen gruppierte Termine,
-wenn mehrere gleiche Termine an aufeinanderfolgenden Tagen liegen.
-Der Parameter short verkuerzt die Ansicht nochmals (fuer besonders platzsparende Ausgabe).
-Bei regelmaessigen Veranstaltungen werden die einzelen Zeiten ausgegeben, bei zweiwoechentlichem
-Turnus mit dem enstprechenden Zusatz. Short verkuerzt die Ansicht nochmals.
-*/
-function view_turnus ($seminar_id, $short = FALSE, $meta_data = false, $start_time = false) {
-
-  return Seminar::GetInstance($seminar_id)->getFormattedTurnus($short);
-}
 
 /*
  * The function shrink_dates expects an array of dates where the start_time and the end_time is noted
@@ -457,58 +444,6 @@ function isSchedule ($sem_id, $presence_dates_only = TRUE, $clearcache = FALSE)
 }
 
 
-//Checkt, ob bereits angelegte Termine ueber mehrere Semester laufen
-function isDatesMultiSem ($sem_id)
-{
-    //we load the first date
-    $query = "SELECT date FROM termine WHERE range_id = ? ORDER BY date LIMIT 1";
-    $statement = DBManager::get()->prepare($query);
-    $statement->execute(array($sem_id));
-    $first = $statement->fetchColumn();
-
-    //we load the last date
-    $query = "SELECT date FROM termine WHERE range_id = ? ORDER BY date DESC LIMIT 1";
-    $statement = DBManager::get()->prepare($query);
-    $statement->execute(array($sem_id));
-    $last = $statement->fetchColumn();
-
-    //then we check, if they are in the same semester
-    return get_sem_name($first) != get_sem_name($last);
-}
-
-/**
-* this functions extracts all the dates, which are corresponding to a metadate
-*
-* @param        string  seminar_id
-* @return       array   ["metadate_numer"]["termin_id"]
-*               "metadate_number" the numerber of the corresponding metadate. first metadate (in chronological order) is always 0
-*               "termin_id" the termin_id that are corresponding to the given metdat_number
-*
-*/
-function getMetadateCorrespondingDates ($sem_id, $presence_dates_only) {
-
-    $sem = Seminar::GetInstance($sem_id);
-    $types = getPresenceTypes();
-    foreach ($sem->getMetaDates() as $key=>$val) {
-        $termine = $sem->getSingleDatesForCycle($key);
-        foreach ($termine as $val) {
-            if ($presence_dates_only) {
-                foreach ($types as $tp) {
-                    if ($val->getDateType() == $tp) {
-                        $zw[$val->getSingleDateID()] = TRUE;
-                        break;
-                    }
-                }
-            } else {
-                $zw[$val->getSingleDateID()] = TRUE;
-            }
-        }
-        $result[] = $zw;
-        $zw = '';
-    }
-    return $result;
-}
-
 /**
 * this functions checks, if a date corresponds with a metadate
 *
@@ -526,20 +461,6 @@ function isMetadateCorrespondingDate ($termin_id, $begin = '', $end = '', $semin
     return false;
 }
 
-// get_csv_raumbelegung.php
-function getCorrespondingMetadates ($termin_id, $begin = '', $end = '', $seminar_id='')
-{
-    $termin = new SingleDate($termin_id);
-    if (!$termin->getMetaDateID()) return false;
-
-    if (!$seminar_id) {
-        $seminar_id = $termin->getRangeID();
-    }
-
-    $sem = new Seminar($seminar_id);
-    $turnus = $sem->getFormattedTurnusDates();
-    return $turnus[$termin->getMetaDateID()];
-}
 
 /**
 * a small helper funktion to get the type query for "Sitzungstermine"
@@ -577,43 +498,6 @@ function getPresenceTypes() {
     }
 
     return $types;
-}
-
-/**
-* TerminEingabeHilfe
-*
-* Liefert HTML-Code für Grafik und popup window für Kalender
-*
-* @param    int Werte von 1 bis 7, bestimmt welche Formularfeldnamen verwendet werden
-* @param    int counter wenn mehrere TerminFelder auf einer Seite
-* @param    string  ursprüngliche StartStunde
-* @param    string  ursprüngliche StartMinute
-* @param    string  ursprüngliche EndStunde
-* @param    string  ursprüngliche EndMinute
-* @return   string  html-code für popup window
-*
-*/
-function Termin_Eingabe_javascript ($t = 0, $n = 0, $atime=0, $ss = '', $sm = '', $es = '', $em = '', $bla = '') {
-    global $auth, $CANONICAL_RELATIVE_PATH_STUDIP, $RELATIVE_PATH_CALENDAR;
-
-    if (!$auth->auth["jscript"]) return '';
-
-    $km = ($auth->auth["xres"] > 650)? 8 : 6;
-    $kx = ($auth->auth["xres"] > 650)? 780 : 600;
-    $ky = ($auth->auth["yres"] > 490)? 500 : 480;
-    $sb = ($auth->auth["yres"] > 490)? '' : ',scrollbars=yes ';
-    $txt = '&nbsp;';
-    $at = ($atime)? '&atime='.$atime:'';
-    $q = ($ss !== '')? "&ss={$ss}&sm={$sm}&es={$es}&em={$em}":'';
-    $txt .= "<a href=\"javascript:window.open('";
-    $txt .= "termin_eingabe_dispatch.php?mcount={$km}&element_switch={$t}&c={$n}{$at}{$q}{$bla}', 'kalender', 'dependent=yes $sb, width=$kx, height=$ky');void(0);";
-    $txt .= '">';
-    $txt .= Icon::create('schedule', 'clickable', 
-                         tooltip2(_('Für eine Eingabehilfe zur einfacheren Terminwahl bitte hier klicken.')) +
-                         array('class' => 'middle'));
-    $txt .= '</a>';
-
-    return  $txt;
 }
 
 /**

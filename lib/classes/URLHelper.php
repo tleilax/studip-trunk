@@ -178,7 +178,6 @@ class URLHelper
 
         if (isset($query)) {
             parse_str($query, $query_params);
-            $query_params = Request::removeMagicQuotes($query_params);
             $link_params = array_merge($link_params, $query_params);
         }
 
@@ -188,7 +187,7 @@ class URLHelper
 
         $query_string = http_build_query($link_params);
 
-        if (strlen($query_string) || $url === '') {
+        if (mb_strlen($query_string) || $url === '') {
             $url .= '?'.$query_string;
         }
 

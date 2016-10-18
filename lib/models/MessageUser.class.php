@@ -37,6 +37,9 @@ class MessageUser extends SimpleORMap
             'class_name' => 'Message',
             'foreign_key' => 'message_id',
         );
+        $config['registered_callbacks']['after_store'][] = 'cleanUpTags';
+        $config['registered_callbacks']['after_delete'][] = 'cleanUpTags';
+
         parent::configure($config);
     }
 
@@ -50,13 +53,7 @@ class MessageUser extends SimpleORMap
         return self::findBySQL("message_id=? AND snd_rec='rec'", array($message_id));
     }
 
-    function __construct($id = null)
-    {
-        $this->registerCallback('after_store after_delete', 'cleanUp');
-        parent::__construct($id);
-    }
-
-    function cleanUp($callback)
+    function cleanUpTags($callback)
     {
         $query = "DELETE FROM message_tags
                       WHERE message_id = :message_id AND user_id = :user_id";

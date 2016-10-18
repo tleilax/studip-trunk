@@ -45,6 +45,10 @@ abstract class StudipController extends Trails_Controller
             include 'lib/seminar_open.php';
         }
 
+        // Set generic attribute that indicates whether the request was sent
+        // via ajax or not
+        $this->via_ajax = Request::isXhr();
+
         # Set base layout
         #
         # If your controller needs another layout, overwrite your controller's
@@ -190,12 +194,11 @@ abstract class StudipController extends Trails_Controller
      *
      * @return string  a URL to this route
      */
-    function url_for($to = ''/* , ... */)
+    public function url_for($to = ''/* , ... */)
     {
         $args = func_get_args();
-        if (is_array($args[1])) {
-            $params = $args[1];
-            unset($args[1]);
+        if (is_array(end($args))) {
+            $params = array_pop($args);
         } else {
             $params = array();
         }
@@ -205,7 +208,7 @@ abstract class StudipController extends Trails_Controller
             $to = '/' . ($this->parent_controller ? $this->parent_controller->current_action : $this->current_action);
         }
         if ($to[0] === '/') {
-            $prefix = str_replace('_', '/', strtolower(strstr(get_class($this->parent_controller ? $this->parent_controller : $this), 'Controller', true)));
+            $prefix = str_replace('_', '/', mb_strtolower(mb_strstr(get_class($this->parent_controller ? $this->parent_controller : $this), 'Controller', true)));
             $to = $prefix . $to;
         }
         $args[0] = $to;
@@ -268,75 +271,6 @@ abstract class StudipController extends Trails_Controller
     function rescue($exception)
     {
         throw $exception;
-    }
-
-    /**
-     * Spawns a new infobox variable on this object, if neccessary.
-     *
-     * @since Stud.IP 2.3
-     * @deprecated since Stud.IP 3.1 in favor of the sidebar
-     * */
-    protected function populateInfobox()
-    {
-        if (!isset($this->infobox)) {
-            $this->infobox = array(
-                'picture' => 'blank.gif',
-                'content' => array()
-            );
-        }
-    }
-
-    /**
-     * Sets the header image for the infobox.
-     *
-     * @param String $image Image to display, path is relative to :assets:/images
-     *
-     * @since Stud.IP 2.3
-     * @deprecated since Stud.IP 3.1 in favor of the sidebar
-     * */
-    function setInfoBoxImage($image)
-    {
-        // Trigger deprecated warning
-        trigger_error('Use Sidebar instead', E_USER_DEPRECATED);
-
-        $this->populateInfobox();
-
-        $this->infobox['picture'] = $image;
-    }
-
-    /**
-     * Adds an item to a certain category section of the infobox. Categories
-     * are created in the order this method is invoked. Multiple occurences of
-     * a category will add items to the category.
-     *
-     * @param String $category The item's category title used as the header
-     *                         above displayed category - write spoken not
-     *                         tech language ^^
-     * @param String $text     The content of the item, may contain html
-     * @param String $icon     Icon to display in front the item, path is
-     *                         relative to :assets:/images
-     *
-     * @since Stud.IP 2.3
-     * @deprecated since Stud.IP 3.1 in favor of the sidebar
-     * */
-    function addToInfobox($category, $text, $icon = 'blank.gif')
-    {
-        // Trigger deprecated warning
-        trigger_error('Use Sidebar instead', E_USER_DEPRECATED);
-
-        $this->populateInfobox();
-
-        $infobox = $this->infobox;
-
-        if (!isset($infobox['content'][$category])) {
-            $infobox['content'][$category] = array(
-                'kategorie' => $category,
-                'eintrag' => array(),
-            );
-        }
-        $infobox['content'][$category]['eintrag'][] = compact('icon', 'text');
-
-        $this->infobox = $infobox;
     }
 
     /**

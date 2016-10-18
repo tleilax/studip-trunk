@@ -1,56 +1,43 @@
-<br><b><?= _('Wo ich arbeite:') ?></b><br>
+<?php
+$fields = [
+    'raum'         => _('Raum'),
+    'sprechzeiten' => _('Sprechzeit'),
+    'telefon'      => _('Telefon'),
+    'fax'          => _('Fax'),
+];
+?>
+
+<br>
+<strong><?= _('Wo ich arbeite:') ?></strong><br>
 
 <ul>
-    <? foreach ($institutes as $inst_result): ?>
-        <li>
-            <a href="<?= URLHelper::getLink('dispatch.php/institute/overview', array('auswahl' => $inst_result['Institut_id'])) ?>">
-                <?= htmlReady($inst_result['Name']) ?>
-            </a>
-            <? if ($inst_result['raum'] != ''): ?>
-                <br>
-                <b><?= _('Raum:') ?></b>
-                <?= htmlReady($inst_result['raum']) ?>
-            <? endif; ?>
+<? foreach ($institutes as $institute): ?>
+    <li>
+        <a href="<?= $controller->link_for('institute/overview', ['auswahl' => $institute['institut_id']]) ?>">
+            <?= htmlReady($institute['institute_name']) ?>
+        </a>
+  <? foreach ($fields as $key => $label): ?>
+    <? if ($institute[$key]): ?>
+        <br>
+        <b><?= htmlReady($label) ?>:</b>
+        <?= htmlReady($institute[$key]) ?>
+    <? endif; ?>
+  <? endforeach; ?>
 
-            <? if ($inst_result['sprechzeiten'] != ''): ?>
-                <br>
-                <b><?= _('Sprechzeit:') ?></b>
-                <?= htmlReady($inst_result['sprechzeiten']) ?>
-            <? endif; ?>
+    <? if (!empty($institute['datafield'])): ?>
+        <? foreach ($institute['datafield'] as $datafield): ?>
+            <br>
+            <b><?= htmlReady($datafield['name']) ?>:</b>
+            <?= $datafield['value'] ?>
+            <? if ($datafield['show_star']): ?>*<? endif; ?>
+        <? endforeach; ?>
+    <? endif; ?>
 
-            <? if ($inst_result['Telefon'] != ''): ?>
-                <br>
-                <b><?= _('Telefon:') ?></b>
-                <?= htmlReady($inst_result['Telefon']) ?>
-            <? endif; ?>
-
-            <? if ($inst_result['Fax'] != ''): ?>
-                <br>
-                <b><?= _('Fax:') ?></b>
-                <?= htmlReady($inst_result['Fax']) ?>
-            <? endif; ?>
-
-            <? if (!empty($inst_result['datafield'])): ?>
-                <table cellspacing="0" cellpadding="0" border="0">
-                    <? foreach ($inst_result['datafield'] as $datafield): ?>
-                        <tr>
-                            <td style="padding-right: 5px"><?= htmlReady($datafield['name']) ?>:</td>
-                            <td>
-                                <?= $datafield['value'] ?>
-                                <? if ($datafield['show_star']) echo '*'; ?>
-                            </td>
-                        </tr>
-                    <? endforeach; ?>
-                </table>
-            <? endif; ?>
-
-            <? if (!empty($inst_result['role'])): ?> 
-                <table cellpadding="0" cellspacing="0" border="0"> 
-                    <?= $inst_result['role'] ?> 
-                </table> 
-            <? else: ?> 
-                <br> 
-            <? endif; ?>
-        </li>
-    <? endforeach; ?>
+    <? if (!empty($institute['role'])): ?>
+        <table cellpadding="0" cellspacing="0" border="0">
+            <?= $institute['role'] ?>
+        </table>
+    <? endif; ?>
+    </li>
+<? endforeach; ?>
 </ul>

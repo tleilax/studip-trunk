@@ -76,7 +76,7 @@ class Markup
             return true;
         }
         $trimmed = trim($text);
-        return $trimmed[0] === '<' && substr($trimmed, -1) === '>';
+        return $trimmed[0] === '<' && mb_substr($trimmed, -1) === '>';
     }
 
     public static function hasHtmlMarker($text)
@@ -548,7 +548,7 @@ function getParsedStudipUrl() {
 function isStudipMediaUrlPath($path) {
     list($path_head) = \explode('/', $path);
     $valid_paths = array('sendfile.php', 'download', 'assets', 'pictures');
-    return \strpos(\urldecode($path), '../') === false && \in_array($path_head, $valid_paths);
+    return \mb_strpos(\urldecode($path), '../') === false && \in_array($path_head, $valid_paths);
 }
 
 /**
@@ -599,7 +599,7 @@ namespace Studip\MarkupPrivate\Text;
  * @return boolean  TRUE if string starts with prefix.
  */
 function startsWith($string, $prefix) {
-    return \substr($string, 0, \strlen($prefix)) === $prefix;
+    return \mb_substr($string, 0, \mb_strlen($prefix)) === $prefix;
 }
 
 /**
@@ -611,7 +611,7 @@ function startsWith($string, $prefix) {
  * @return boolean  TRUE if string ends with suffix.
  */
 function endsWith($string, $suffix) {
-    return \substr($string, \strlen($string) - \strlen($suffix)) === $suffix;
+    return \mb_substr($string, \mb_strlen($string) - \mb_strlen($suffix)) === $suffix;
 }
 
 /**
@@ -625,5 +625,5 @@ function endsWith($string, $suffix) {
  * @return string String without prefix.
  */
 function removePrefix($string, $prefix) {
-    return startsWith($string, $prefix) ? \substr($string, \strlen($prefix)) : $string;
+    return startsWith($string, $prefix) ? \mb_substr($string, \mb_strlen($prefix)) : $string;
 }

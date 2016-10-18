@@ -46,7 +46,7 @@ class CoursesetModel {
                 $parameters = array_merge($parameters, array($currentSemester->beginn, $currentSemester->beginn, $GLOBALS['user']->id));
             }
             $courses = $db->fetchFirst($query, $parameters);
-        } elseif (strlen($filter) > 1) {
+        } elseif (mb_strlen($filter) > 1) {
             $courses = $db->fetchFirst("SELECT DISTINCT s.seminar_id FROM seminare s
                 INNER JOIN seminar_user su ON s.seminar_id=su.seminar_id AND su.status='dozent'
                 INNER JOIN auth_user_md5 aum USING(user_id)
@@ -142,8 +142,9 @@ class CoursesetModel {
             $num_sets = $cs_count_all_statement->fetchColumn();
 
             $my_inst['all'] = array(
-                    'name'    => _('alle'),
-                    'num_sets' => $num_sets
+                'name'     => _('alle'),
+                'is_fak'   => true,
+                'num_sets' => $num_sets
             );
             $top_insts = Institute::findBySQL('Institut_id = fakultaets_id ORDER BY Name');
         } else {

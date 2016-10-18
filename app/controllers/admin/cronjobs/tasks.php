@@ -42,13 +42,6 @@ class Admin_Cronjobs_TasksController extends AuthenticatedController
 
         Navigation::activateItem('/admin/config/cronjobs');
         PageLayout::setTitle(_('Cronjob-Verwaltung') . ' - ' . _('Aufgaben'));
-
-        if (Request::isXhr()) {
-            $this->set_layout(null);
-            $this->set_content_type('text/html;charset=windows-1252');
-        } else {
-            $this->set_layout($GLOBALS['template_factory']->open('layouts/base'));
-        }
     }
 
     /**
@@ -195,6 +188,8 @@ class Admin_Cronjobs_TasksController extends AuthenticatedController
     {
         $this->task = new CronjobTask($task_id);
 
+        PageLayout::setTitle(_('Cronjob-Aufgabe ausführen'));
+
         if (Request::isPost()) {
             $parameters = Request::getArray('parameters');
             $parameters = $parameters[$this->task->id];
@@ -203,7 +198,6 @@ class Admin_Cronjobs_TasksController extends AuthenticatedController
             $this->task->engage(null, $parameters);
             $this->result = ob_get_clean();
         } else {
-            header('X-Title: ' . _('Cronjob-Aufgabe ausführen'));
             $this->schedule = new CronjobSchedule();
         }
     }

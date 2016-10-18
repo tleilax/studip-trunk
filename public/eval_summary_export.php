@@ -43,7 +43,6 @@ $EVAL_AUSWERTUNG_GRAPH_FORMAT = Config::get()->EVAL_AUSWERTUNG_GRAPH_FORMAT ?: '
 include 'lib/seminar_open.php'; // initialise Stud.IP-Session
 
 // -- here you have to put initialisations for the current page
-require_once 'lib/msg.inc.php';
 require_once 'lib/datei.inc.php';
 require_once 'lib/evaluation/evaluation.config.php';
 require_once EVAL_FILE_EVAL;
@@ -224,7 +223,7 @@ function answers ($parent_id, $anz_nutzer, $question_type) {
 }
 
 function groups ($parent_id) {
-    global $cssSw, $ausgabeformat, $fo_file, $auth, $global_counter, $local_counter, $tmp_path_export, $pattern, $replace;
+    global $ausgabeformat, $fo_file, $auth, $global_counter, $local_counter, $tmp_path_export, $pattern, $replace;
 
     $query = "SELECT group_type FROM eval_group_template WHERE evalgroup_id = ?";
     $type_statement = DBManager::get()->prepare($query);

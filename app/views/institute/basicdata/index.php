@@ -7,10 +7,7 @@
 
         <label>
             <?= _('Name') ?>
-
-            <input type="text" name="Name"
-                   required value="<?= htmlReady(Request::get('Name', $institute->Name)) ?>"
-                   <? if (LockRules::Check($institute->id, 'name')) echo 'readonly disabled'; ?>>
+            <?= I18N::input('Name', $institute->Name, LockRules::Check($institute->id, 'name') ? array('readonly' => true, 'disabled' => true) : []); ?>
         </label>
 
         <label>
@@ -138,7 +135,7 @@
         <?= Studip\LinkButton::create(_('Löschen'),
                                       $controller->url_for('institute/basicdata/index/' . $i_view, array('i_trykill' => 1)),
                                       !$may_delete ? array('disabled' => '') : array()) ?>
-        <? if (!$may_delete && strlen($reason_txt) > 0): ?>
+        <? if (!$may_delete && mb_strlen($reason_txt) > 0): ?>
             <?= tooltipIcon($reason_txt, true) ?>
         <? endif; ?>
     <? else: ?>

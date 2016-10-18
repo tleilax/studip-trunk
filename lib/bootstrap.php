@@ -14,8 +14,9 @@ namespace Studip {
 }
 // use default namespace for the remaining lines
 namespace {
+
     //software version - please leave it as it is!
-    $SOFTWARE_VERSION = '3.5.alpha-svn';
+    $SOFTWARE_VERSION = '4.0.alpha-svn';
 
     global $PHP_SELF, $STUDIP_BASE_PATH;
 
@@ -45,6 +46,7 @@ namespace {
 
     // Specialized folders
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/classes/admission');
+    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/classes/admission/userfilter');
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/classes/auth_plugins');
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/classes/exportdocument');
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/classes/helpbar');
@@ -60,6 +62,9 @@ namespace {
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/navigation');
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/phplib');
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/raumzeit');
+    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/activities', 'Studip\\Activity');
+    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/evaluation/classes');
+    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/evaluation/classes/db');
 
     // Classes in /app
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/app/models');
@@ -70,16 +75,13 @@ namespace {
     // Messy file names
     StudipAutoloader::addClassLookups(array(
         'email_validation_class' => $GLOBALS['STUDIP_BASE_PATH'] . '/lib/phplib/email_validation.class.php',
-        'cssClassSwitcher'       => $GLOBALS['STUDIP_BASE_PATH'] . '/lib/classes/cssClassSwitcher.inc.php',
+        'messaging'              => $GLOBALS['STUDIP_BASE_PATH'] . '/lib/messaging.inc.php',
         'MediaProxy'             => $GLOBALS['STUDIP_BASE_PATH'] . '/app/models/media_proxy.php',
         'MyRealmModel'           => $GLOBALS['STUDIP_BASE_PATH'] . '/app/models/my_realm.php',
         'StudygroupModel'        => $GLOBALS['STUDIP_BASE_PATH'] . '/app/models/studygroup.php',
         'StudipPlugin'           => $GLOBALS['STUDIP_BASE_PATH'] . '/lib/plugins/core/StudIPPlugin.class.php',
-        'AbstractStudipPortalPlugin' => $GLOBALS['STUDIP_BASE_PATH'] . '/lib/plugins/core/AbstractStudIPPortalPlugin.class.php',
-        'AbstractStudipSystemPlugin' => $GLOBALS['STUDIP_BASE_PATH'] . '/lib/plugins/core/AbstractStudIPSystemPlugin.class.php',
-        'AbstractStudipHomepagePlugin' => $GLOBALS['STUDIP_BASE_PATH'] . '/lib/plugins/core/AbstractStudIPHomepagePlugin.class.php',
-        'AbstractStudipAdministrationPlugin' => $GLOBALS['STUDIP_BASE_PATH'] . '/lib/plugins/core/AbstractStudIPAdministrationPlugin.class.php',
-        'messaging'              => $GLOBALS['STUDIP_BASE_PATH'] . '/lib/messaging.inc.php'
+        'Migration'              => $GLOBALS['STUDIP_BASE_PATH'] . '/lib/migrations/migration.php',
+        'PluginAdministration'  => $GLOBALS['STUDIP_BASE_PATH'] . '/app/models/plugin_administration.php',
     ));
 
     // Trails
@@ -124,7 +126,7 @@ namespace {
     require_once 'lib/language.inc.php';
     require_once 'lib/visual.inc.php';
     require_once 'lib/deputies_functions.inc.php';
-
+    
     //setup default logger
     Log::get()->setHandler($GLOBALS['TMP_PATH'] . '/studip.log');
     if (Studip\ENV == 'development') {
@@ -206,7 +208,7 @@ namespace {
 
     if (Config::get()->CALENDAR_ENABLE) {
         StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/' . $GLOBALS['RELATIVE_PATH_CALENDAR'] . '/lib');
-        require_once $GLOBALS['STUDIP_BASE_PATH'] . '/' . $GLOBALS['RELATIVE_PATH_CALENDAR'] . '/calendar_func.inc.php';
+        require_once 'lib/calendar_functions.inc.php';
     }
 
     if (Config::get()->ELEARNING_INTERFACE_ENABLE) {
@@ -218,6 +220,9 @@ namespace {
 
     // set up default page layout
     PageLayout::initialize();
+
+    // init notification observers
+    Studip\Activity\ActivityObserver::initialize();
 
     //Besser hier globale Variablen definieren...
     $GLOBALS['_fullname_sql'] = array();
@@ -242,7 +247,7 @@ namespace {
     /*mail settings
     ----------------------------------------------------------------*/
     if ($GLOBALS['MAIL_TRANSPORT']) {
-        $mail_transporter_name = strtolower($GLOBALS['MAIL_TRANSPORT']) . '_message';
+        $mail_transporter_name = mb_strtolower($GLOBALS['MAIL_TRANSPORT']) . '_message';
     } else {
         $mail_transporter_name = 'smtp_message';
     }

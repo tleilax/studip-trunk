@@ -14,24 +14,7 @@
  */
 class Resources_HelpersController extends AuthenticatedController
 {
-    /**
-     * common tasks for all actions
-     */
-    function before_filter(&$action, &$args)
-    {
-        $this->current_action = $action;
-        parent::before_filter($action, $args);
-        if (Request::isXhr()) {
-            $this->set_layout(null);
-            $request = Request::getInstance();
-            foreach ($request as $key => $value) {
-                $request[$key] = studip_utf8decode($value);
-            }
-        } else {
-            $this->set_layout($GLOBALS['template_factory']->open('layouts/base'));
-        }
-        $this->set_content_type('text/html;charset=windows-1252');
-    }
+    protected $utf8decode_xhr = true;
 
     function bookable_rooms_action()
     {
@@ -42,7 +25,7 @@ class Resources_HelpersController extends AuthenticatedController
             }
         }
         $select_options = Request::optionArray('rooms');
-        $rooms = array_filter($select_options, function($v) {return strlen($v) === 32;});
+        $rooms = array_filter($select_options, function($v) {return mb_strlen($v) === 32;});
         $events = array();
         $dates = array();
         $timestamps = array();

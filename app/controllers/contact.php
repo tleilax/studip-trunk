@@ -83,7 +83,7 @@ class ContactController extends AuthenticatedController
         // Retrive first letter and store in that contactgroup
         $this->contacts = array();
         foreach ($contacts as $contact) {
-            $this->contacts[strtoupper(SimpleCollection::translitLatin1($contact->nachname[0]))][] = $contact;
+            $this->contacts[mb_strtoupper(SimpleCollection::translitLatin1($contact->nachname[0]))][] = $contact;
         }
 
         // Humans are a lot better with sorted results
@@ -124,6 +124,7 @@ class ContactController extends AuthenticatedController
 
     function remove_action($group = null)
     {
+        CSRFProtection::verifyRequest();
         $contact = Contact::find(array(User::findCurrent()->id, User::findByUsername(Request::username('user'))->id));
         if ($contact) {
             if ($group) {
@@ -159,11 +160,9 @@ class ContactController extends AuthenticatedController
 
     function deleteGroup_action()
     {
-        if (Request::submitted('delete')) {
-            CSRFProtection::verifyRequest();
-            $this->group->delete();
-            $this->redirect('contact/index');
-        }
+        CSRFProtection::verifyRequest();
+        $this->group->delete();
+        $this->redirect('contact/index');
     }
 
     function vcard_action($group = null)

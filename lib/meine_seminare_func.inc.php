@@ -95,8 +95,8 @@ function sort_groups($group_field, &$groups)
 
         case 'dozent_id':
         uksort($groups, create_function('$a,$b',
-                'return strnatcasecmp(str_replace(array("ä","ö","ü"), array("ae","oe","ue"), strtolower(get_fullname($a, "no_title_short"))),
-                                    str_replace(array("ä","ö","ü"), array("ae","oe","ue"), strtolower(get_fullname($b, "no_title_short"))));'));
+                'return strnatcasecmp(str_replace(array("ä","ö","ü"), array("ae","oe","ue"), mb_strtolower(get_fullname($a, "no_title_short"))),
+                                    str_replace(array("ä","ö","ü"), array("ae","oe","ue"), mb_strtolower(get_fullname($b, "no_title_short"))));'));
         break;
 
         default:
@@ -243,7 +243,7 @@ function fill_groups(&$groups, $group_key, $group_entry)
     if (is_null($group_key)){
         $group_key = 'not_grouped';
     }
-    $group_entry['name'] = str_replace(array("ä","ö","ü"), array("ae","oe","ue"), strtolower($group_entry['name']));
+    $group_entry['name'] = str_replace(array("ä","ö","ü"), array("ae","oe","ue"), mb_strtolower($group_entry['name']));
     if (!is_array($groups[$group_key]) || (is_array($groups[$group_key]) && !in_array($group_entry, $groups[$group_key]))){
         $groups[$group_key][$group_entry['seminar_id']] = $group_entry;
         return true;
@@ -294,7 +294,7 @@ function get_obj_clause($table_name, $range_field, $count_field, $if_clause,
     $type_sql = ($type) ? "='$type'" : "IN('sem','inst')";
     $object_field = ($object_field) ? $object_field : "my.object_id";
     $on_clause = " ON(my.object_id=a.{$range_field} $add_on) ";
-    if (strpos($table_name,'{ON_CLAUSE}') !== false){
+    if (mb_strpos($table_name,'{ON_CLAUSE}') !== false){
         $table_name = str_replace('{ON_CLAUSE}', $on_clause, $table_name);
     } else {
         $table_name .= $on_clause;
@@ -522,22 +522,30 @@ function get_my_obj_values (&$my_obj, $user_id)
         $statement = DBManager::get()->prepare("
             SELECT my.object_id,
                    COUNT(questionnaires.questionnaire_id) as count,
-                   COUNT(IF(questionnaires.startdate < UNIX_TIMESTAMP()
-                        AND (questionnaire.stopdate IS NULL OR questionnaire.stopdate > UNIX_TIMESTAMP())
-                        AND questionnaires.chdate IFNULL(b.visitdate, :threshold), questionnaires.questionnaire_id, NULL)) AS neue,
-                   MAX(IF(IF(questionnaires.startdate < UNIX_TIMESTAMP()
-                        AND (questionnaire.stopdate IS NULL OR questionnaire.stopdate > UNIX_TIMESTAMP())
-                        AND questionnaires.chdate IFNULL(b.visitdate, :threshold, chdate, 0)) AS last_modified
+                   COUNT(IF(
+                        questionnaires.startdate < UNIX_TIMESTAMP()
+                        AND (questionnaires.stopdate IS NULL OR questionnaires.stopdate > UNIX_TIMESTAMP())
+                        AND questionnaires.chdate >= IFNULL(b.visitdate, :threshold), 
+                        questionnaires.questionnaire_id, 
+                        NULL
+                   )) AS neue,
+                   MAX(IF(
+                       questionnaires.startdate < UNIX_TIMESTAMP()
+                       AND (questionnaires.stopdate IS NULL OR questionnaires.stopdate > UNIX_TIMESTAMP())
+                       AND questionnaires.chdate >= IFNULL(b.visitdate, :threshold), 
+                       questionnaires.chdate, 
+                       0
+                   )) AS last_modified
             FROM questionnaires
-                INNER JOIN questionnaire_assign USING (questionnaire_id)
-                INNER JOIN `myobj_".$user_id."` AS my ON (my.object_id = questionnaire_assign.range_id AND questionnaire_assign.range_type = 'course')
-                LEFT JOIN object_user_visits b ON (b.object_id = questionnaires.questionnaire_id AND b.user_id = :user_id AND b.type 'vote')
+                INNER JOIN questionnaire_assignments USING (questionnaire_id)
+                INNER JOIN `myobj_".$user_id."` AS my ON (my.object_id = questionnaire_assignments.range_id AND questionnaire_assignments.range_type = 'course')
+                LEFT JOIN object_user_visits b ON (b.object_id = questionnaires.questionnaire_id AND b.user_id = :user_id AND b.type = 'vote')
             WHERE questionnaires.visible = '1'
             GROUP BY my.object_id ORDER BY NULL
         ");
         $statement->execute(array(
             'user_id' => $user_id,
-            'treshold' => $threshold
+            'threshold' => $threshold
         ));
 
         while($row = $statement->fetch(PDO::FETCH_ASSOC)) {

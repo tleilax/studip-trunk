@@ -44,13 +44,6 @@ class Admin_Cronjobs_SchedulesController extends AuthenticatedController
         Navigation::activateItem('/admin/config/cronjobs');
         PageLayout::setTitle(_('Cronjob-Verwaltung') . ' - ' . _('Cronjobs'));
 
-        if (Request::isXhr()) {
-            $this->set_layout(null);
-            $this->set_content_type('text/html;Charset=windows-1252');
-        } else {
-            $this->set_layout($GLOBALS['template_factory']->open('layouts/base'));
-        }
-
         if (empty($_SESSION['cronjob-filter'])) {
             $_SESSION['cronjob-filter'] = array(
                 'where'  => '1',
@@ -112,11 +105,8 @@ class Admin_Cronjobs_SchedulesController extends AuthenticatedController
         }
 
         $title = sprintf(_('Cronjob "%s" anzeigen'), $this->schedule->title);
-        if (Request::isXhr()) {
-            header('X-Title: ' . $title);
-        } else {
-            PageLayout::setTitle($title);
-        }
+
+        PageLayout::setTitle($title);
     }
 
     /**
@@ -178,7 +168,7 @@ class Admin_Cronjobs_SchedulesController extends AuthenticatedController
                 $schedule->hour        = $this->extractCronItem($temp['hour']);
                 $schedule->day         = $this->extractCronItem($temp['day']);
                 $schedule->month       = $this->extractCronItem($temp['month']);
-                $schedule->day_of_week = strlen($temp['day_of_week']['value'])
+                $schedule->day_of_week = mb_strlen($temp['day_of_week']['value'])
                                        ? (int)$temp['day_of_week']['value']
                                        : null;
 
@@ -332,7 +322,7 @@ class Admin_Cronjobs_SchedulesController extends AuthenticatedController
 
         $this->redirect('admin/cronjobs/schedules/index/' . $page);
     }
-    
+
     /**
      * Runs a schedule and returns the output.
      *
@@ -358,5 +348,5 @@ class Admin_Cronjobs_SchedulesController extends AuthenticatedController
         $this->render_nothing();
     }
 
-    
+
 }

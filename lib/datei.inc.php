@@ -29,10 +29,6 @@ use Studip\Button, Studip\LinkButton;
 
 require_once 'vendor/idna_convert/idna_convert.class.php';
 
-if ($GLOBALS['ZIP_USE_INTERNAL']) {
-    include_once 'vendor/pclzip/pclzip.lib.php';
-}
-
 function readfile_chunked($filename, $start = null, $end = null) {
     if (isset($start) && $start < $end) {
         $chunksize = 1024 * 1024; // how many bytes per chunk
@@ -47,7 +43,7 @@ function readfile_chunked($filename, $start = null, $end = null) {
                 $chunksize = $end - $p + 1;
             }
             $buffer = fread($handle, $chunksize);
-            $bytes += strlen($buffer);
+            $bytes += mb_strlen($buffer);
             echo $buffer;
         }
         fclose($handle);
@@ -73,8 +69,8 @@ function parse_header($header){
         if(trim($header[$i]) == "") break;
         $matches = preg_match('/^\S+:/', $header[$i], $parts);
         if ($matches){
-            $key = trim(substr($parts[0],0,-1));
-            $value = trim(substr($header[$i], strlen($parts[0])));
+            $key = trim(mb_substr($parts[0],0,-1));
+            $value = trim(mb_substr($header[$i], mb_strlen($parts[0])));
             $ret[$key] = $value;
         } else {
             $ret[trim($header[$i])] = trim($header[$i]);
@@ -92,22 +88,22 @@ function parse_link($link, $level=0) {
 
     $url_parts = @parse_url( $link );
     //filter out localhost and reserved or private IPs
-    if (stripos($url_parts["host"], 'localhost') !== false
-        || stripos($url_parts["host"], 'loopback') !== false
+    if (mb_stripos($url_parts["host"], 'localhost') !== false
+        || mb_stripos($url_parts["host"], 'loopback') !== false
         || (filter_var($url_parts["host"], FILTER_VALIDATE_IP) !== false
-            && (strpos($url_parts["host"],'127') === 0
+            && (mb_strpos($url_parts["host"],'127') === 0
                 || filter_var($url_parts["host"], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false)
             )
         ) {
         return array('response' => 'HTTP/1.0 400 Bad Request', 'response_code' => 400);
     }
-    if (substr($link,0,6) == "ftp://") {
+    if (mb_substr($link,0,6) == "ftp://") {
         // Parsing an FTF-Adress
         $documentpath = $url_parts["path"];
 
-        if (strpos($url_parts["host"],"@")) {
-            $url_parts["pass"] .= "@".substr($url_parts["host"],0,strpos($url_parts["host"],"@"));
-            $url_parts["host"] = substr(strrchr($url_parts["host"],"@"),1);
+        if (mb_strpos($url_parts["host"],"@")) {
+            $url_parts["pass"] .= "@".mb_substr($url_parts["host"],0,mb_strpos($url_parts["host"],"@"));
+            $url_parts["host"] = mb_substr(mb_strrchr($url_parts["host"],"@"),1);
         }
 
         if (preg_match('/[^a-z0-9_.-]/i',$url_parts['host'])){ // exists umlauts ?
@@ -150,7 +146,7 @@ function parse_link($link, $level=0) {
         }
         $host = $url_parts["host"];
         $port = $url_parts["port"];
-        $scheme = strtolower($url_parts['scheme']);
+        $scheme = mb_strtolower($url_parts['scheme']);
         if (!in_array($scheme , words('http https'))) {
             return array('response' => 'HTTP/1.0 400 Bad Request', 'response_code' => 400);
         }
@@ -187,7 +183,7 @@ function parse_link($link, $level=0) {
             do {
                 $response .= fgets($socket, 128);
                 $info = stream_get_meta_data($socket);
-            } while (!feof($socket) && !$info['timed_out'] && strlen($response) < 1024);
+            } while (!feof($socket) && !$info['timed_out'] && mb_strlen($response) < 1024);
             fclose($socket);
         }
         $parsed_link = parse_header($response);
@@ -200,7 +196,7 @@ function parse_link($link, $level=0) {
             foreach ($header_parts as $part) {
                 $part = trim($part);
                 list($key, $value) = explode('=', $part, 2);
-                if (strtolower($key) === 'filename') {
+                if (mb_strtolower($key) === 'filename') {
                     $the_file_name = trim($value, '"');
                 }
             }
@@ -211,7 +207,7 @@ function parse_link($link, $level=0) {
         $location_header = $parsed_link["Location"]
                         ?: $parsed_link["location"];
         if (in_array($parsed_link["response_code"], array(300,301,302,303,305,307)) && $location_header) {
-            if (strpos($location_header, 'http') !== 0) {
+            if (mb_strpos($location_header, 'http') !== 0) {
                 $location_header = $url_parts['scheme'] . '://' . $url_parts['host'] . '/' . $location_header;
             }
             $parsed_link = parse_link($location_header, $level + 1);
@@ -270,7 +266,7 @@ function createSelectedZip ($file_ids, $perm_check = TRUE, $size_check = false) 
                     $filename = prepareFilename($file['filename'], FALSE, $tmp_full_path);
                     if (@copy(get_upload_file_path($file['dokument_id']), $tmp_full_path.'/'.$filename)) {
                         TrackAccess($file['dokument_id'],'dokument');
-                        $filelist[] = array_merge($file, array('path' => substr($tmp_full_path.'/'.$filename, strlen("$TMP_PATH/$zip_file_id/"))));
+                        $filelist[] = array_merge($file, array('path' => mb_substr($tmp_full_path.'/'.$filename, mb_strlen("$TMP_PATH/$zip_file_id/"))));
                     }
                 }
             }
@@ -389,7 +385,7 @@ function createTempFolder($folder_id, $tmp_full_path, $sem_id, $perm_check = TRU
         createTempFolder($row['folder_id'], $tmp_sub_full_path, $sem_id, $perm_check, true);
     }
     if ($in_recursion === false) {
-       array_walk($filelist, create_function('&$a', '$a["path"] = substr($a["path"], ' . (int)strlen($tmp_path) . ');'));
+       array_walk($filelist, create_function('&$a', '$a["path"] = mb_substr($a["path"], ' . (int)mb_strlen($tmp_path) . ');'));
        return $filelist;
     } else {
         return true;
@@ -799,7 +795,7 @@ function edit_item($item_id, $type, $name, $description, $protected = 0, $url = 
         $statement = DBManager::get()->prepare($query);
         $statement->execute(array(
             $description,
-            strlen($name) ? $name : null,
+            mb_strlen($name) ? $name : null,
             $item_id,
         ));
 
@@ -939,7 +935,7 @@ function form($refresh = FALSE)
                 foreach ($UPLOAD_TYPES[$SessSemName["art_num"]]["file_types"] as $ft) {
                     if ($i !=1)
                         $print.= ", ";
-                    $print.= strtoupper ($ft);
+                    $print.= mb_strtoupper ($ft);
                     $i++;
                     }
                 }
@@ -949,7 +945,7 @@ function form($refresh = FALSE)
                 foreach ($UPLOAD_TYPES[$SessSemName["art_num"]]["file_types"] as $ft) {
                     if ($i !=1)
                         $print.= ", ";
-                    $print.= strtoupper ($ft);
+                    $print.= mb_strtoupper ($ft);
                     $i++;
                     }
                 }
@@ -961,7 +957,7 @@ function form($refresh = FALSE)
                 foreach ($UPLOAD_TYPES["default"]["file_types"] as $ft) {
                     if ($i !=1)
                         $print.= ", ";
-                    $print.= strtoupper ($ft);
+                    $print.= mb_strtoupper ($ft);
                     $i++;
                     }
                 }
@@ -971,7 +967,7 @@ function form($refresh = FALSE)
                 foreach ($UPLOAD_TYPES["default"]["file_types"] as $ft) {
                     if ($i !=1)
                         $print.= ", ";
-                    $print.= strtoupper ($ft);
+                    $print.= mb_strtoupper ($ft);
                     $i++;
                     }
                 }
@@ -1042,20 +1038,26 @@ function prepareFilename($filename, $shorten = FALSE, $checkfolder = false) {
     $bad_characters = array (":", chr(92), "/", "\"", ">", "<", "*", "|", "?", " ", "(", ")", "&", "[", "]", "#", chr(36), "'", "*", ";", "^", "`", "{", "}", "|", "~", chr(255));
     $replacements = array ("", "", "", "", "", "", "", "", "", "_", "", "", "+", "", "", "", "", "", "", "-", "", "", "", "", "-", "", "");
 
+    //delete all ASCII control characters
+    for($i = 0; $i < 0x20; $i++) {
+        $bad_characters[] = chr($i);
+        $replacements[] = "";
+    }
+
     $filename=str_replace($bad_characters, $replacements, $filename);
 
     if ($filename{0} == ".")
-        $filename = substr($filename, 1, strlen($filename));
+        $filename = mb_substr($filename, 1, mb_strlen($filename));
 
     if ($shorten) {
         $ext = getFileExtension ($filename);
-        $filename = substr(substr($filename, 0, strrpos($filename,$ext)-1), 0, (30 - strlen($ext))).".".$ext;
+        $filename = mb_substr(mb_substr($filename, 0, mb_strrpos($filename,$ext)-1), 0, (30 - mb_strlen($ext))).".".$ext;
     }
     if ($checkfolder !== false) {
         $c = 0;
         $ext = getFileExtension($filename);
         if ($ext) {
-          $name = substr($filename, 0, strrpos($filename,$ext)-1);
+          $name = mb_substr($filename, 0, mb_strrpos($filename,$ext)-1);
         } else {
             $name = $filename;
 }
@@ -1068,11 +1070,11 @@ function prepareFilename($filename, $shorten = FALSE, $checkfolder = false) {
 
 //Diese Funktion dient zur Abfrage der Dateierweiterung
 function getFileExtension($str) {
-    $i = strrpos($str,".");
+    $i = mb_strrpos($str,".");
     if (!$i) { return ""; }
 
-    $l = strlen($str) - $i;
-    $ext = substr($str,$i+1,$l);
+    $l = mb_strlen($str) - $i;
+    $ext = mb_substr($str,$i+1,$l);
 
     return $ext;
 }
@@ -1088,17 +1090,19 @@ function getFileExtension($str) {
  * @return Can the given file be uploaded to Stud.IP?
  */
 function validate_upload($the_file, $real_file_name='') {
-    global $UPLOAD_TYPES, $msg, $SessSemName, $user, $auth;
+    global $UPLOAD_TYPES, $SessSemName;
 
     $the_file_size = $the_file['size'];
     $the_file_name = $the_file['name'];
-
+    $result = true;
     if (!$the_file) { # haben wir eine Datei?
-        $emsg.= "error§" . _("Sie haben keine Datei zum Hochladen ausgewählt!") . "§";
+        PageLayout::postError(_("Sie haben keine Datei zum Hochladen ausgewählt!"));
     } else { # pruefen, ob der Typ stimmt
         if (match_route("dispatch.php/messages/upload_attachment")) {
-            if (!$GLOBALS["ENABLE_EMAIL_ATTACHMENTS"] == true)
-                    $emsg.= "error§" . _("Dateianhänge für Nachrichten sind in dieser Installation nicht erlaubt!") . "§";
+            if (!$GLOBALS["ENABLE_EMAIL_ATTACHMENTS"] == true) {
+                PageLayout::postError(_("Dateianhänge für Nachrichten sind in dieser Installation nicht erlaubt!"));
+                $result = false;
+            }
             $active_upload_type = "attachments";
             $sem_status = $GLOBALS['perm']->get_perm();
         } else {
@@ -1119,11 +1123,13 @@ function validate_upload($the_file, $real_file_name='') {
         $max_filesize = $UPLOAD_TYPES[$active_upload_type]["file_sizes"][$sem_status];
 
         //Die Dateierweiterung von dem Original erfragen
-        $pext = strtolower(getFileExtension($real_file_name ? $real_file_name : $the_file_name));
+        $pext = mb_strtolower(getFileExtension($real_file_name ? $real_file_name : $the_file_name));
         if ($pext == "doc")
             $doc=TRUE;
 
         //Erweiterung mit Regelliste in config.inc.php vergleichen
+        $exts = '';
+        $errors = [];
         if ($UPLOAD_TYPES[$active_upload_type]["type"] == "allow") {
             $t=TRUE;
             $i=1;
@@ -1132,52 +1138,60 @@ function validate_upload($the_file, $real_file_name='') {
                     $t=FALSE;
                 if ($i !=1)
                     $exts.=",";
-                $exts.=" ".strtoupper($ft);
+                $exts.=" ".mb_strtoupper($ft);
                 $i++;
                 }
             if (!$t) {
                 if ($i==2)
-                    $emsg.= "error§" . sprintf(_("Die Datei konnte nicht übertragen werden: Sie dürfen den Dateityp %s nicht hochladen!"), trim($exts)) . "§";
+                    $errors[] = sprintf(_("Die Datei konnte nicht übertragen werden: Sie dürfen den Dateityp %s nicht hochladen!"), trim($exts));
                 else
-                    $emsg.= "error§" . sprintf(_("Die Datei konnte nicht übertragen werden: Sie dürfen die Dateitypen %s nicht hochladen!"), trim($exts)) . "§";
+                    $errors[] = sprintf(_("Die Datei konnte nicht übertragen werden: Sie dürfen die Dateitypen %s nicht hochladen!"), trim($exts));
                 if ($doc) {
                     $help_url = format_help_url("Basis.DateienUpload");
-                    $emsg.= "info§" . sprintf(_("%sHier%s bekommen Sie Hilfe zum Upload von Word-Dokumenten."), "<a target=\"_blank\" href=\"".$help_url."\">", "</a>") . "§";
+                    $errors[] = sprintf(_("%sHier%s bekommen Sie Hilfe zum Upload von Word-Dokumenten."), "<a target=\"_blank\" href=\"".$help_url."\">", "</a>");
                 }
                 }
         } else {
             $t=FALSE;
             $i=1;
+
             foreach ($UPLOAD_TYPES[$active_upload_type]["file_types"] as $ft) {
                 if ($pext == $ft)
                     $t=TRUE;
                 if ($i !=1)
                     $exts.=",";
-                $exts.=" ".strtoupper($ft);
+                $exts.=" ".mb_strtoupper($ft);
                 $i++;
                 }
             if (!$t) {
                 if ($i==2)
-                    $emsg.= "error§" . sprintf(_("Die Datei konnte nicht übertragen werden: Sie dürfen nur den Dateityp %s hochladen!"), trim($exts)) . "§";
+                    $errors[] =  sprintf(_("Die Datei konnte nicht übertragen werden: Sie dürfen nur den Dateityp %s hochladen!"), trim($exts));
                 else
-                    $emsg.= "error§" . sprintf(_("Die Datei konnte nicht übertragen werden: Sie dürfen nur die Dateitypen %s hochladen!"), trim($exts)) . "§";
+                    $errors[] =  sprintf(_("Die Datei konnte nicht übertragen werden: Sie dürfen nur die Dateitypen %s hochladen!"), trim($exts));
                 if ($doc) {
                     $help_url = format_help_url("Basis.DateienUpload");
-                    $emsg.= "info§" . sprintf(_("%sHier%s bekommen Sie Hilfe zum Upload von Word-Dokumenten."), "<a target=\"_blank\" href=\"".$help_url."\">", "</a>") . "§";
+                    $errors[] =  sprintf(_("%sHier%s bekommen Sie Hilfe zum Upload von Word-Dokumenten."), "<a target=\"_blank\" href=\"".$help_url."\">", "</a>");
                 }
             }
         }
 
+        if(!empty($errors)) {
+            $result = false;
+            PageLayout::postError(_('Bitte beachten Sie;'), $errors);
+        }
+
         //pruefen ob die Groesse stimmt.
         if ($the_file['error'] ===  UPLOAD_ERR_INI_SIZE || $the_file_size > $max_filesize) {
-            $emsg.= "error§" . sprintf(_("Die Datei konnte nicht übertragen werden: Die maximale Größe für einen Upload (%s Megabyte) wurde überschritten!"), $max_filesize / 1048576);
+            $result = false;
+            PageLayout::postError(sprintf(_("Die Datei konnte nicht übertragen werden: Die maximale Größe für einen Upload (%s Megabyte) wurde überschritten!"), $max_filesize / 1048576));
         } elseif ($the_file_size == 0) {
-            $emsg.= "error§" . _("Sie haben eine leere Datei zum Hochladen ausgewählt!") . "§";
+            $result = false;
+            PageLayout::postError(_("Sie haben eine leere Datei zum Hochladen ausgewählt!"));
         }
+
     }
 
-    if ($emsg) {
-        $msg .= $emsg;
+    if (!$result) {
         return false;
     } else {
         return true;
@@ -1187,7 +1201,7 @@ function validate_upload($the_file, $real_file_name='') {
 //der eigentliche Upload
 function upload($the_file, $refresh, $range_id)
 {
-    global $dokument_id, $msg;
+    global $dokument_id;
 
     if (!validate_upload($the_file)) {
         return FALSE;
@@ -1197,14 +1211,14 @@ function upload($the_file, $refresh, $range_id)
 
     $doc = StudipDocument::createWithFile($the_file['tmp_name'], $data);
     if ($doc === null) {
-        $msg.= "error§" . _("Dateiübertragung gescheitert!");
+        PageLayout::postError(_("Dateiübertragung gescheitert!"));
         return false;
     }
 
     // wird noch in folder.php gebraucht
     $dokument_id = $doc->getId();
 
-    $msg = "msg§" . _("Die Datei wurde erfolgreich auf den Server übertragen!");
+    PageLayout::postSuccess(_("Die Datei wurde erfolgreich auf den Server übertragen!"));
     return TRUE;
 }
 
@@ -1516,11 +1530,11 @@ function display_file_body($datei, $folder_id, $open, $change, $move, $upload, $
                 $flash_player = get_flash_player($datei['dokument_id'], $datei['filename'], $type);
                 $content = "<div style=\"margin-bottom: 10px; height: {$flash_player['height']}; width: {$flash_player['width']};\">" . $flash_player['player'] . '</div>';
             }
-        } else if (strpos($media_type, 'video/') === 0 || $media_type == 'application/ogg') {
+        } else if (mb_strpos($media_type, 'video/') === 0 || $media_type == 'application/ogg') {
             $content = '<div class="preview">' . formatReady('[video]' . $media_url) . '<div>';
-        } else if (strpos($media_type, 'audio/') === 0) {
+        } else if (mb_strpos($media_type, 'audio/') === 0) {
             $content = '<div class="preview">' . formatReady('[audio]' . $media_url) . '<div>';
-        } else if (strpos($media_type, 'image/') === 0) {
+        } else if (mb_strpos($media_type, 'image/') === 0) {
             $content = '<div class="preview">' . formatReady('[img]' . $media_url) . '<div>';
         }
         if ($datei["description"]) {
@@ -1560,7 +1574,7 @@ function display_file_body($datei, $folder_id, $open, $change, $move, $upload, $
 
             $edit .= LinkButton::createExtern(_("Herunterladen"), GetDownloadLink( $datei['dokument_id'], $datei['filename'], $type, 'force'));
 
-            $fext = getFileExtension(strtolower($datei['filename']));
+            $fext = getFileExtension(mb_strtolower($datei['filename']));
             if (($type != '6') && ($fext != 'zip') && ($fext != 'tgz') && ($fext != 'gz') && ($fext != 'bz2')) {
                 $edit .= LinkButton::createExtern(_("Als ZIP-Archiv"), GetDownloadLink( $datei['dokument_id'], $datei['filename'], $type, 'zip'));
             }
@@ -1810,7 +1824,7 @@ function display_folder_body($folder_id, $open, $change, $move, $upload, $refres
         $content .=  sprintf(
             _('Dieser Ordner gehört der Gruppe <b>%s</b>. Nur Mitglieder dieser Gruppe können diesen Ordner sehen.'
                 . ' Dieser Ordner kann nicht verschoben oder kopiert werden.'),
-            htmlReady(GetStatusgruppeName($result["range_id"]))
+            htmlReady(Statusgruppen::find($result['range_id'])->name)
         ) . '<hr>';
     }
     //Contentbereich erstellen
@@ -2265,7 +2279,7 @@ function getLinkPath($file_id)
 
 function GetFileIcon($ext){
     //Icon auswaehlen
-    switch (strtolower($ext)){
+    switch (mb_strtolower($ext)){
         case 'rtf':
         case 'doc':
         case 'docx':
@@ -2362,7 +2376,7 @@ function get_mime_type($filename)
         'webm' => 'video/webm',
     );
 
-    $extension = strtolower(getFileExtension($filename));
+    $extension = mb_strtolower(getFileExtension($filename));
 
     if (isset($mime_types[$extension])) {
         return $mime_types[$extension];
@@ -2479,8 +2493,6 @@ dies muss das aufrufende Script sicherstellen.
 
 function delete_folder($folder_id, $delete_subfolders = false)
 {
-    global $msg;
-
     if ($delete_subfolders){
         list($subfolders, $num_subfolders) = getFolderChildren($folder_id);
         if ($num_subfolders){
@@ -2512,16 +2524,16 @@ function delete_folder($folder_id, $delete_subfolders = false)
         $statement->execute(array($folder_id));
         if ($statement->rowCount()) {
             if ($deleted) {
-                $msg.="info§" . sprintf(_("Der Dateiordner <b>%s</b> und %s Dokument(e) wurden gelöscht"), htmlReady($foldername), $deleted) . "§";
+                PageLayout::postSuccess(sprintf(_("Der Dateiordner <b>%s</b> und %s Dokument(e) wurden gelöscht"), htmlReady($foldername), $deleted));
             } else {
-                $msg.="info§" . sprintf(_("Der Dateiordner <b>%s</b> wurde gelöscht"),htmlReady($foldername)) . "§";
+                PageLayout::postSuccess(sprintf(_("Der Dateiordner <b>%s</b> wurde gelöscht"),htmlReady($foldername)));
                 return TRUE;
             }
         } else {
             if ($deleted){
-                $msg.="error§" . sprintf(_("Probleme beim Löschen des Ordners <b>%s</b>. %u Dokument(e) wurden gelöscht"),htmlReady($foldername), $deleted) . "§";
+                PageLayout::postWarning(sprintf(_("Probleme beim Löschen des Ordners <b>%s</b>. %u Dokument(e) wurden gelöscht"),htmlReady($foldername), $deleted));
             }else{
-                $msg.="error§" . sprintf(_("Probleme beim Löschen des Ordners <b>%s</b>"),htmlReady($foldername)) . "§";
+                PageLayout::postError(sprintf(_("Probleme beim Löschen des Ordners <b>%s</b>"),htmlReady($foldername)));
             }
             return FALSE;
         }
@@ -2613,12 +2625,16 @@ function rmdirr($dirname){
 }
 
 function create_zip_from_file($file_name, $zip_file_name){
-    if (strtolower(substr($zip_file_name, -3)) != 'zip' ) $zip_file_name = $zip_file_name . '.zip';
     if ($GLOBALS['ZIP_USE_INTERNAL']){
-        $archiv = new PclZip($zip_file_name);
-        $v_list = $archiv->create($file_name, PCLZIP_OPT_REMOVE_ALL_PATH, PCLZIP_CB_PRE_ADD, 'pclzip_convert_filename_cb');
-        return $v_list;
+        $archive = Studip\ZipArchive::create($zip_file_name);
+        $localfilename = $archive->addFile($file_name);
+        $archive->close();
+        return [$localfilename];
     } else if (@file_exists($GLOBALS['ZIP_PATH']) || ini_get('safe_mode')){
+        if (mb_strtolower(mb_substr($zip_file_name, -3)) != 'zip' ) {
+            $zip_file_name = $zip_file_name . '.zip';
+        }
+
         exec($GLOBALS['ZIP_PATH'] . ' -q ' . $GLOBALS['ZIP_OPTIONS'] . " -j {$zip_file_name} $file_name", $output, $ret);
         return $ret;
     }
@@ -2627,13 +2643,17 @@ function create_zip_from_file($file_name, $zip_file_name){
     return false;
 }
 
-function create_zip_from_directory($fullpath, $zip_file_name){
-    if (strtolower(substr($zip_file_name, -3)) != 'zip' ) $zip_file_name = $zip_file_name . '.zip';
-    if ($GLOBALS['ZIP_USE_INTERNAL']){
-        $archiv = new PclZip($zip_file_name);
-        $v_list = $archiv->create($fullpath, PCLZIP_OPT_REMOVE_PATH, $fullpath, PCLZIP_CB_PRE_ADD, 'pclzip_convert_filename_cb');
-        return $v_list;
+function create_zip_from_directory($fullpath, $zip_file_name) {
+    if ($GLOBALS['ZIP_USE_INTERNAL']) {
+        $archive = Studip\ZipArchive::create($zip_file_name);
+        $added = $archive->addFromPath($fullpath);
+        $archive->close();
+        return $added;
     } else if (@file_exists($GLOBALS['ZIP_PATH']) || ini_get('safe_mode')){
+        if (mb_strtolower(mb_substr($zip_file_name, -3)) != 'zip' ) {
+            $zip_file_name = $zip_file_name . '.zip';
+        }
+
         //zip stuff
         $zippara = (ini_get('safe_mode')) ? ' -R ':' -r ';
         if (@chdir($fullpath)) {
@@ -2644,56 +2664,52 @@ function create_zip_from_directory($fullpath, $zip_file_name){
     }
 }
 
-function create_zip_from_newest_files() {
-    global $SessSemName;
-    $db = DBManager::get();
-    $result = $db->query("SELECT filename FROM dokumente WHERE chdate > ".object_get_visit($SessSemName[1], "documents")." OR mkdate > ".object_get_visit($SessSemName[1], "documents"))->fetchAll();
-}
-
-function unzip_file($file_name, $dir_name = '', $testonly = false){
-    $ret = true;
-    if ($GLOBALS['ZIP_USE_INTERNAL']){
-        $archive = new PclZip($file_name);
-        if ($testonly){
-            $prop = $archive->properties();
-            $ret = (!is_array($prop));
-        } else {
-            $ok = $archive->extract(PCLZIP_OPT_PATH, $dir_name, PCLZIP_CB_PRE_EXTRACT, 'pclzip_convert_filename_cb', PCLZIP_OPT_STOP_ON_ERROR);
-            $ret = (!is_array($ok));
+function extract_zip($file_name, $dir_name = '', $testonly = false) {
+    $ret = false;
+    if ($GLOBALS['ZIP_USE_INTERNAL']) {
+        if ($testonly) {
+            return Studip\ZipArchive::test($file_name);
         }
+
+        return Studip\ZipArchive::extractToPath($file_name, $dir_name);
     } else if (@file_exists($GLOBALS['UNZIP_PATH']) || ini_get('safe_mode')){
         if ($testonly){
             exec($GLOBALS['UNZIP_PATH'] . " -t -qq $file_name ", $output, $ret);
         } else {
             exec($GLOBALS['UNZIP_PATH'] . " -qq $file_name " . ($dir_name ? "-d $dir_name" : ""), $output, $ret);
         }
+        $ret = $ret === 0;
     }
     return $ret;
 }
 
-function upload_zip_item() {
-    global $msg;
+function unzip_file($file_name, $dir_name = '', $testonly = false) {
+    // This will recreate the old and very odd behaviour that unzip_file will
+    // return TRUE when the operation fails.
+    return !extract_zip($file_name, $dir_name, $testonly);
+}
 
+function upload_zip_item() {
     if(!$_FILES['the_file']['name']) {
-        $msg .= "error§" . _("Sie haben keine Datei zum Hochladen ausgewählt!") . "§";
+        PageLayout::postError(_("Sie haben keine Datei zum Hochladen ausgewählt!"));
         return FALSE;
     }
-    $ext = strtolower(getFileExtension($_FILES['the_file']['name']));
+    $ext = mb_strtolower(getFileExtension($_FILES['the_file']['name']));
     if($ext != "zip") {
-        $msg .= "error§" . _("Die Datei kann nicht entpackt werden: Sie dürfen nur den Dateityp .ZIP hochladen!") . "§";
+        PageLayout::postError(_("Die Datei kann nicht entpackt werden: Sie dürfen nur den Dateityp .ZIP hochladen!"));
         return FALSE;
     }
     $tmpname = md5(uniqid('zipupload',1));
     if (move_uploaded_file($_FILES['the_file']['tmp_name'], $GLOBALS['TMP_PATH'] . '/' . $tmpname)){
-        if(unzip_file($GLOBALS['TMP_PATH'] . '/' . $tmpname, false, true)) {
-            $msg .= "error§" . _("Die ZIP-Datei kann nicht geöffnet werden!") . "§";
+        if(!extract_zip($GLOBALS['TMP_PATH'] . '/' . $tmpname, false, true)) {
+            PageLayout::postError( _("Die ZIP-Datei kann nicht geöffnet werden!"));
             @unlink($GLOBALS['TMP_PATH'] . '/' . $tmpname);
             return FALSE;
         }
         $tmpdirname = $GLOBALS['TMP_PATH'] . '/' . md5(uniqid('zipupload',1));
         @mkdir($tmpdirname);
-        if (unzip_file($GLOBALS['TMP_PATH'] . '/' . $tmpname , $tmpdirname)){
-            $msg .= "error§" . _("Die ZIP-Datei kann nicht geöffnet werden!") . "§";
+        if (!extract_zip($GLOBALS['TMP_PATH'] . '/' . $tmpname , $tmpdirname)){
+            PageLayout::postError(_("Die ZIP-Datei kann nicht geöffnet werden!"));
             @rmdirr($tmpdirname);
             @unlink($GLOBALS['TMP_PATH'] . '/' . $tmpname);
             return FALSE;
@@ -2710,10 +2726,11 @@ function upload_zip_item() {
                 $errors[] = sprintf(_('Maximale Verzeichnistiefe von %u in Zip-Archiv erreicht.'),
                                     Config::get()->ZIP_UPLOAD_MAX_DIRS);
             }
-            $msg .= 'error§' . _('Bitte beachten Sie:') . '<br><ul><li>' . implode('</li><li>', $errors) . '</ul>§';
+            PageLayout::postError( _('Bitte beachten Sie:'), $errors);
+
         }
         if ($ret['files'] || $ret['subdirs']) {
-            $msg .= 'msg§' . sprintf(_("Es wurden %d Dateien und %d Ordner erfolgreich entpackt."),$ret['files'], $ret['subdirs'] ) . '§';
+            PageLayout::postSuccess(sprintf(_("Es wurden %d Dateien und %d Ordner erfolgreich entpackt."),$ret['files'], $ret['subdirs']));
             @rmdirr($tmpdirname);
             @unlink($GLOBALS['TMP_PATH'] . '/' . $tmpname);
             return (int)$ret['files'];
@@ -2721,7 +2738,7 @@ function upload_zip_item() {
     }
     @rmdirr($tmpdirname);
     @unlink($GLOBALS['TMP_PATH'] . '/' . $tmpname);
-    $msg .= "error§" . _("Die Datei konnte nicht entpackt werden. Möglicherweise ist sie zu groß.") . "§";
+    PageLayout::postError(_("Die Datei konnte nicht entpackt werden. Möglicherweise ist sie zu groß."));
     return false;
 }
 
@@ -2812,8 +2829,8 @@ function upload_recursively($range_id, $dir) {
             break;
         }
         // Verzeichnis erstellen
-        $pos = strrpos($subdir, "/");
-        $name = substr($subdir, $pos + 1, strlen($subdir) - $pos);
+        $pos = mb_strrpos($subdir, "/");
+        $name = mb_substr($subdir, $pos + 1, mb_strlen($subdir) - $pos);
         $dir_id = create_folder($name, "", $range_id);
         $count['subdirs']++;
         // Verzeichnis hochladen.
@@ -2850,18 +2867,6 @@ function upload_zip_file($dir_id, $file) {
     );
     $ret = StudipDocument::createWithFile($file, $data);
     return (int)$ret;
-}
-
-function pclzip_convert_filename_cb($p_event, &$p_header) {
-    if($p_event == PCLZIP_CB_PRE_EXTRACT){
-        $p_header['filename'] = iconv("IBM437", "ISO-8859-1", $p_header['filename']);
-        if (strpos($p_header['filename'], '../') !== false) {
-            return 0;
-        }
-    } elseif ($p_event == PCLZIP_CB_PRE_ADD) {
-        $p_header['stored_filename'] = iconv("ISO-8859-1", "IBM437", $p_header['stored_filename']);
-    }
-    return 1;
 }
 
 function get_flash_player ($document_id, $filename, $type) {
@@ -2915,7 +2920,7 @@ function get_upload_file_path ($document_id)
         return NULL;
     }
 
-    $directory = $UPLOAD_PATH.'/'.substr($document_id, 0, 2);
+    $directory = $UPLOAD_PATH.'/'.mb_substr($document_id, 0, 2);
 
     if (!file_exists($directory)) {
         mkdir($directory);

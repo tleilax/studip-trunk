@@ -55,7 +55,7 @@ class CalendarParserICalendar extends CalendarParser
         $studip_categories = array();
         $i = 1;
         foreach ($PERS_TERMIN_KAT as $cat) {
-            $studip_categories[strtolower($cat['name'])] = $i++;
+            $studip_categories[mb_strtolower($cat['name'])] = $i++;
         }
 
         // Unfold any folded lines
@@ -98,7 +98,7 @@ class CalendarParserICalendar extends CalendarParser
 
                     // skip seminar events
                     if ((!$this->import_sem) && $tag == 'UID') {
-                        if (strpos($value, 'Stud.IP-SEM') === 0) {
+                        if (mb_strpos($value, 'Stud.IP-SEM') === 0) {
                             continue 2;
                         }
                     }
@@ -106,7 +106,7 @@ class CalendarParserICalendar extends CalendarParser
                     if (!empty($parts[2])) {
                         preg_match_all('/;(([^;=]*)(=([^;]*))?)/', $parts[2], $param_parts);
                         foreach ($param_parts[2] as $key => $param_name)
-                            $params[strtoupper($param_name)] = strtoupper($param_parts[4][$key]);
+                            $params[mb_strtoupper($param_name)] = mb_strtoupper($param_parts[4][$key]);
 
                         if ($params['ENCODING']) {
                             switch ($params['ENCODING']) {
@@ -135,11 +135,11 @@ class CalendarParserICalendar extends CalendarParser
                             $categories = array();
                             $properties['STUDIP_CATEGORY'] = null;
                             foreach (explode(',', $value) as $category) {
-                                if (!$studip_categories[strtolower($category)]) {
+                                if (!$studip_categories[mb_strtolower($category)]) {
                                     $categories[] = $category;
                                 } else if (!$properties['STUDIP_CATEGORY']) {
                                     $properties['STUDIP_CATEGORY']
-                                            = $studip_categories[strtolower($category)];
+                                            = $studip_categories[mb_strtolower($category)];
                                 }
                             }
                             $properties[$tag] = implode(',', $categories);
@@ -416,13 +416,13 @@ class CalendarParserICalendar extends CalendarParser
      */
     private function _parseDate($text)
     {
-        if (strlen(trim($text)) !== 8) {
+        if (mb_strlen(trim($text)) !== 8) {
             return false;
         }
 
-        $date['year'] = intval(substr($text, 0, 4));
-        $date['month'] = intval(substr($text, 4, 2));
-        $date['mday'] = intval(substr($text, 6, 2));
+        $date['year'] = intval(mb_substr($text, 0, 4));
+        $date['month'] = intval(mb_substr($text, 4, 2));
+        $date['mday'] = intval(mb_substr($text, 6, 2));
 
         return $date;
     }

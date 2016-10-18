@@ -24,12 +24,6 @@ class Admin_BannerController extends AuthenticatedController
 
         URLHelper::removeLinkParam('cid');
 
-        // ajax
-        if (Request::isXhr()) {
-            $this->via_ajax = true;
-            $this->set_layout(null);
-        }
-
         // user must have root permission
         $GLOBALS['perm']->check('root');
 
@@ -127,7 +121,7 @@ class Admin_BannerController extends AuthenticatedController
             if (!$target && $target_type != 'none') {
                 $errors[] = _('Es wurde kein Verweisziel angegeben.');
             }
-            
+
             $startDate = explode('.',Request::get('start_date'));
             if (($x = $this->valid_date(Request::int('start_hour'), Request::int('start_minute'), $startDate[0],$startDate[1], $startDate[2])) == -1) {
                 $errors[] = _('Bitte geben Sie einen gültiges Startdatum ein.');
@@ -364,10 +358,10 @@ class Admin_BannerController extends AuthenticatedController
         }
 
         //Dateiendung bestimmen
-        $dot = strrpos($img_name, '.');
+        $dot = mb_strrpos($img_name, '.');
         if ($dot) {
-            $l   = strlen($img_name) - $dot;
-            $ext = strtolower(substr($img_name, $dot + 1, $l));
+            $l   = mb_strlen($img_name) - $dot;
+            $ext = mb_strtolower(mb_substr($img_name, $dot + 1, $l));
         }
 
         //passende Endung ?

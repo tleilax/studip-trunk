@@ -24,6 +24,7 @@
  * @property string position database column
  * @property string size database column
  * @property string selfassign database column
+ * @property string selfassign_start database column
  * @property string mkdate database column
  * @property string chdate database column
  * @property string calendar_group database column
@@ -35,6 +36,8 @@
  */
 class Statusgruppen extends SimpleORMap
 {
+    public $keep_children = false;
+
     protected static function configure($config = array())
     {
         $config['db_table'] = 'statusgruppen';
@@ -44,18 +47,38 @@ class Statusgruppen extends SimpleORMap
             'on_delete'         => 'delete',
             'order_by'          => 'ORDER BY position ASC',
         );
+        $config['has_and_belongs_to_many']['dates'] = array(
+            'class_name' => 'CourseDate',
+            'thru_table' => 'termin_related_groups',
+            'order_by'   => 'ORDER BY date',
+            'on_delete'  => 'delete', // TODO: This might cause trouble
+            'on_store'   => 'store'
+        );
         $config['belongs_to']['parent'] = array(
-            'class_name' => 'Statusgruppen',
+            'class_name'  => 'Statusgruppen',
             'foreign_key' => 'range_id',
         );
         $config['additional_fields']['children'] = true;
         parent::configure($config);
     }
 
+    public static function findAllByRangeId($range_id, $as_collection = false)
+    {
+        $groups = self::findBySQL('range_id IN (?)', [$range_id]);
+        if (count($groups) > 0) {
+            $ids = array_map(function ($group) { return $group->id; }, $groups);
+            $groups = array_merge($groups, self::findAllByRangeId($ids, false));
+        }
+
+        return $as_collection
+             ? SimpleCollection::createFromArray($groups)
+             : $groups;
+    }
+
     public function getChildren()
     {
         $result = Statusgruppen::findBySQL('range_id = ? ORDER BY position', array($this->id));
-        return $result ? : array();
+        return $result ?: array();
     }
 
     public function getDatafields() 
@@ -77,39 +100,33 @@ class Statusgruppen extends SimpleORMap
      * @param string The course id
      * @return array Statusgroups
      */
-    static public function findBySeminar_id($course_id)
+    public static function findBySeminar_id($course_id)
     {
-        return self::findBySQL("range_id = ?", array($course_id));
+        return self::findByRange_id($course_id);
     }
 
-    static public function findByTermin_id($termin_id)
+    public static function findByTermin_id($termin_id)
     {
-        $record = new Statusgruppen();
-        $db = DBManager::get();
-        $sql = "
-            SELECT *
-            FROM `" .  $record->db_table . "`
-                INNER JOIN termin_related_groups USING (statusgruppe_id)
-            WHERE termin_related_groups.termin_id = ?
-            ORDER BY name ASC
-        ";
-        $st = $db->prepare($sql);
-        $st->execute(array($termin_id));
-        $ret = array();
-        $c = 0;
-        while($row = $st->fetch(PDO::FETCH_ASSOC)) {
-            $ret[$c] = new Statusgruppen();
-            $ret[$c]->setData($row, true);
-            $ret[$c]->setNew(false);
-            ++$c;
-        }
-        return $ret;
+        return self::findBySQL('INNER JOIN termin_related_groups USING (statusgruppe_id) WHERE termin_id = ?', [$termin_id]);
     }
 
-    static public function findContactGroups($user_id = null)
+    public static function findContactGroups($user_id = null)
     {
-        $user_id || $user_id = $GLOBALS['user']->id;
-        return self::findBySQL("range_id = ?", array($user_id));
+        return self::findByRange_id($user_id ?: $GLOBALS['user']->id);
+    }
+
+    /**
+     * Find all groups belonging to the given range_id that may be joined
+     * by the given user.
+     *
+     * @param String $range_id range_id the groups shall belong to
+     * @param String $user_id user to check
+     * @return array
+     */
+    public static function findJoinableGroups($range_id, $user_id)
+    {
+        $groups = self::findByRange_id($range_id);
+        return array_filter($groups, function ($g) use ($user_id) { return $g->userMayJoin($user_id); });
     }
 
     /**
@@ -123,7 +140,9 @@ class Statusgruppen extends SimpleORMap
     public function getFullGenderedPaths($user_id, $seperator = " > ", $pre = "")
     {
         $result = array();
-        $name = $pre ? $pre . $seperator . $this->getGenderedName($user_id) : $this->getGenderedName($user_id);
+        $name = $pre
+              ? $pre . $seperator . $this->getGenderedName($user_id)
+              : $this->getGenderedName($user_id);
         if ($this->isMember($user_id)) {
             $result[] = $name;
         }
@@ -136,6 +155,26 @@ class Statusgruppen extends SimpleORMap
     }
 
     /**
+     * Produces string of all statusgroups a user is in (upwards from the
+     * current group)
+     * 
+     * @param string $user_id The user_id
+     * @param string $seperator The sign between the full paths
+     * @return array String of full gendered paths separated by given separator
+     */
+    public function getFullGenderedName($user_id, $seperator = ' > ')
+    {
+        $result = [$this->getGenderedName($user_id)];
+
+        $item = $this;
+        while ($item = $item->parent) {
+            array_unshift($result, $item->getGenderedName($user_id));
+        }
+
+        return implode($seperator, $result);
+    }
+
+    /**
      * Returns the gendered name of a statusgroup
      * 
      * @param string $user_id The user_id
@@ -143,15 +182,14 @@ class Statusgruppen extends SimpleORMap
      */
     public function getGenderedName($user_id)
     {
-
-// We have to have at least 1 name gendered
+        // We have to have at least 1 name gendered
         if ($this->name_m || $this->name_w) {
             $userinfo = new UserInfo($user_id);
             switch ($userinfo->geschlecht) {
                 case UserInfo::GENDER_FEMALE:
-                    return $this->name_w ? : $this->name;
+                    return $this->name_w ?: $this->name;
                 case UserInfo::GENDER_MALE:
-                    return $this->name_m ? : $this->name;
+                    return $this->name_m ?: $this->name;
             }
         }
         return $this->name;
@@ -190,7 +228,17 @@ class Statusgruppen extends SimpleORMap
     }
 
     /**
-     * Delete or create a filder
+     * Gets the folder assigned to this statusgroup.
+     *
+     * @return DocumentFolder|null
+     */
+    public function getFolder()
+    {
+        return DocumentFolder::findOneByRange_id($this->id);
+    }
+
+    /**
+     * Delete or create a folder
      * 
      * @param boolean $set <b>true</b> Create a folder
      * <b>false</b> Delete the folder
@@ -201,8 +249,45 @@ class Statusgruppen extends SimpleORMap
             delete_folder($this->hasFolder(), true);
         }
         if (!$this->hasFolder() && $set) {
-            create_folder((_("Dateiordner der Gruppe:") . ' ' . $this->name), (_("Ablage für Ordner und Dokumente dieser Gruppe")), $this->id, 15);
+            create_folder(
+                _('Dateiordner der Gruppe:') . ' ' . $this->name,
+                _('Ablage für Ordner und Dokumente dieser Gruppe'),
+                $this->id,
+                15
+            );
         }
+    }
+
+    /**
+     * Finds CourseTopics assigned to this group via course dates.
+     * @return array
+     */
+    public function findTopics()
+    {
+        $topics = array();
+        foreach ($this->dates as $d) {
+            foreach ($d->topics as $t) {
+                // Assign topics with ID as key so we get unique entries.
+                $topics[$t->id] = $t;
+            }
+        }
+        return $topics;
+    }
+
+    /**
+     * Finds Lecturers assigned to this group via course dates.
+     * @return array
+     */
+    public function findLecturers()
+    {
+        $lecturers = array();
+        foreach ($this->dates as $d) {
+            foreach ($d->dozenten as $d) {
+                // Assign topics with ID as key so we get unique entries.
+                $lecturers[$d->id] = $d;
+            }
+        }
+        return $lecturers;
     }
 
     /**
@@ -243,29 +328,25 @@ class Statusgruppen extends SimpleORMap
     }
 
     /**
-     * Remove one user of this group
+     * Remove one user from this group
      * 
      * @param string $user_id The user id
+     * @param bool   $deep    Remove user from children as well?
+     * @return bool
      */
-    public function removeUser($user_id)
+    public function removeUser($user_id, $deep = false)
     {
-        // For performance issues we do this manually
-        $db = DBManager::get();
-        // Get user's position for later resorting
-        $query = "SELECT position FROM statusgruppe_user WHERE statusgruppe_id = ? AND user_id = ?";
-        $statement = $db->prepare($query);
-        $statement->execute(array($this->id, $user_id));
-        $position = $statement->fetchColumn() ? : 0;
-
         // Delete user from statusgruppe
-        $query = "DELETE FROM statusgruppe_user WHERE statusgruppe_id = ? AND user_id = ?";
-        $statement = $db->prepare($query);
-        $statement->execute(array($this->id, $user_id));
+        $member = StatusgruppeUser::find([$this->id, $user_id]);
+        $result = $member !== null && $member->delete();
 
-        // Resort members
-        $query = "UPDATE statusgruppe_user SET position = position - 1 WHERE statusgruppe_id = ? AND position > ?";
-        $statement = $db->prepare($query);
-        $statement->execute(array($this->id, $position));
+        if ($deep) {
+            foreach ($this->children as $child) {
+                $child->removeUser($user_id, true);
+            }
+        }
+
+        return $result;
     }
 
     /**
@@ -282,8 +363,7 @@ class Statusgruppen extends SimpleORMap
             return false;
         }
         $user = new StatusgruppeUser(array($this->id, $user_id));
-        $user->store();
-        return true;
+        return $user->store();
     }
 
     /**
@@ -294,7 +374,9 @@ class Statusgruppen extends SimpleORMap
      */
     public function userMayJoin($user_id)
     {
-        return !$this->isMember($user_id) && $this->hasSpace() && ($this->selfAssign != 2 || !$this->userHasExclusiveGroup($user_id));
+        return !$this->isMember($user_id)
+            && $this->hasSpace()
+            && ($this->selfAssign != 2 || !$this->userHasExclusiveGroup($user_id));
     }
 
     /**
@@ -336,7 +418,10 @@ class Statusgruppen extends SimpleORMap
      */
     public function hasSpace()
     {
-        return $this->selfassign && ($this->size || count($this->members) < $this->size);
+        return $this->selfassign &&
+            ($this->selfassign_start <= time()) &&
+            ($this->selfassign_end == 0 || $this->selfassign_end >= time()) &&
+            ($this->size == 0 || count($this->members) < $this->size);
     }
 
     /**
@@ -373,4 +458,62 @@ class Statusgruppen extends SimpleORMap
         parent::store();
     }
 
+    /**
+     * Deletes a status group. Any associated child group will move upwards
+     * in the tree.
+     */
+    public function remove()
+    {
+        // get all child-statusgroups and put them as a child of the father, so they don't hang around without a parent
+        $children = $this->children->pluck('statusgruppe_id');
+        if (!empty($children)) {
+            $query = "UPDATE statusgruppen
+                      SET range_id = ?
+                      WHERE statusgruppe_id IN (?)";
+            $statement = DBManager::get()->prepare($query);
+            $statement->execute([$this->range_id, $children]);
+        }
+
+        $old = $this->keep_children;
+        $this->keep_children = true;
+
+        $result = $this->delete();
+
+        $this->keep_children = $old;
+
+        return $result;
+    }
+
+    /**
+     * Deletes a status group and all it's child groups.
+     *
+     * @return int number of deleted groups
+     */
+    public function delete()
+    {
+        $result = 0;
+        if (!$this->keep_children) {
+            foreach($this->children as $child) {
+                $result += $child->delete();
+            }
+            
+        }
+
+        // Resort groups
+        $query = "UPDATE statusgruppen
+                  SET position = position - 1
+                  WHERE range_id = ? AND position > ?";
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute([$this->range_id, $this->position]);
+
+        // Remove datafields
+        $query = "DELETE FROM datafields_entries
+                  WHERE range_id = ?";
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute([$this->id]);
+
+        $result += parent::delete();
+
+        return $result;
+    }
 }

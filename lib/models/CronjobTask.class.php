@@ -53,18 +53,10 @@ class CronjobTask extends SimpleORMap
             'on_delete'  => 'delete',
             'on_store'   => 'store'
         );
+
+        $config['registered_callbacks']['after_initialize'][] = 'loadClass';
+
         parent::configure($config);
-    }
-
-    /**
-     * The constructor sets the after_initialize callback which will load
-     * the associated php class.
-     */
-    public function __construct($id = null)
-    {
-        $this->registerCallback('after_initialize', 'loadClass');
-
-        parent::__construct($id);
     }
 
     /**
@@ -98,7 +90,7 @@ class CronjobTask extends SimpleORMap
      */
     public function isCore()
     {
-        return strpos($this->filename, 'plugins_packages') === false;
+        return mb_strpos($this->filename, 'plugins_packages') === false;
     }
 
     /**

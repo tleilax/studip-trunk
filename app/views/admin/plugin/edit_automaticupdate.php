@@ -1,5 +1,5 @@
 <?
-if (strpos($_SERVER['SERVER_NAME'], ':') !== false) {
+if (mb_strpos($_SERVER['SERVER_NAME'], ':') !== false) {
     list($_SERVER['SERVER_NAME'], $_SERVER['SERVER_PORT']) =
         explode(':', $_SERVER['SERVER_NAME']);
 }
@@ -20,7 +20,7 @@ if ($_SERVER['HTTPS'] == 'on' && $_SERVER['SERVER_PORT'] != 443 ||
         <?= $m ?>
     <? endforeach ?>
 </div>
-<form action="<?= $controller->url_for('admin/plugin/edit_automaticupdate/'.$plugin['id']) ?>" method="post" class="studip_form" data-dialog>
+<form action="<?= $controller->url_for('admin/plugin/edit_automaticupdate/'.$plugin['id']) ?>" method="post" class="default" data-dialog>
     <?= CSRFProtection::tokenTag() ?>
     <input type="hidden" name="studip_ticket" value="<?= get_ticket() ?>">
     <?= MessageBox::info(_("Sie können gitlab, github.com oder dem neuen Stud.IP-Plugin-Marktplatz mitteilen, dass Ihr Stud.IP per Webhook über Änderungen im Code des Plugins benachrichtigt werden soll.")) ?>

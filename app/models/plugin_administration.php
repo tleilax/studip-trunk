@@ -12,16 +12,8 @@
  */
 
 require_once 'lib/datei.inc.php';
-require_once 'lib/migrations/db_migration.php';
 require_once 'lib/migrations/db_schema_version.php';
 require_once 'lib/migrations/migrator.php';
-
-/**
- * Exception class used to report plugin install errors.
- */
-class PluginInstallationException extends Exception
-{
-}
 
 /**
  * Model code for plugin administration tasks.
@@ -46,7 +38,7 @@ class PluginAdministration
             throw new PluginInstallationException(_('Fehler beim Entpacken des Plugins (fehlende Schreibrechte?).'));
         }
 
-        if (unzip_file($filename, $packagedir)) {
+        if (!extract_zip($filename, $packagedir)) {
             rmdirr($packagedir);
             throw new PluginInstallationException(_('Fehler beim Entpacken des Plugins.'));
         } else {

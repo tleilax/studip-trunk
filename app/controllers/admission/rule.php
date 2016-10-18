@@ -14,27 +14,19 @@
  * @since       3.0
  */
 
-class Admission_RuleController extends AuthenticatedController {
+class Admission_RuleController extends AuthenticatedController
+{
+    protected $utf8decode_xhr = true;
 
     /**
      * @see AuthenticatedController::before_filter
      */
-    public function before_filter(&$action, &$args) {
+    public function before_filter(&$action, &$args)
+    {
         parent::before_filter($action, $args);
-        if (Request::isXhr()) {
-            $this->via_ajax = true;
-            $this->set_layout(null);
-            $request = Request::getInstance();
-            foreach ($request as $key => $value) {
-                $request[$key] = studip_utf8decode($value);
-            }
-        } else {
-            $layout = $GLOBALS['template_factory']->open('layouts/base');
-            $this->set_layout($layout);
-            PageLayout::setTitle(_('Anmeldesets'));
-            Navigation::activateItem('/tools/coursesets');
-        }
-        $this->set_content_type('text/html;charset=windows-1252');
+
+        PageLayout::setTitle(_('Anmeldesets'));
+        Navigation::activateItem('/tools/coursesets');
     }
 
     /**
@@ -43,20 +35,32 @@ class Admission_RuleController extends AuthenticatedController {
      * @param String $ruleType Class name of the rule to configure.
      * @param String $ruleId   Optional ID of an existing rule.
      */
-    public function configure_action($ruleType='', $ruleId='') {
+    public function configure_action($ruleType = '', $ruleId = '')
+    {
         $this->ruleTypes = AdmissionRule::getAvailableAdmissionRules();
         UserFilterField::getAvailableFilterFields();
         $this->ruleType = $ruleType;
         // Check if rule data has been given via request.
-        if (Request::get('rule')) {
-            $rule = unserialize(Request::get('rule'));
+        if (Request::getArray('rules')) {
+            $rule_siblings = array();
+            foreach (Request::getManyObjects('rules', 'AdmissionRule') as $rule) {
+                if ($ruleType == get_class($rule) && $rule->getId() == Request::get('ruleId')) {
+                    $this->rule = $rule;
+                } else {
+                    $rule_siblings[$rule->getId()] = $rule;
+                }
+            }
+            if (!$this->rule && in_array($ruleType, array_keys($this->ruleTypes))) {
+                $this->rule = new $ruleType($ruleId);
+            }
+            $this->rule->setSiblings($rule_siblings);
+        } elseif (Request::get('rule')) {
+            $rule = Request::getObject('rule', 'AdmissionRule');
             if ($ruleType == get_class($rule)) {
                 $this->rule = $rule;
             }
-        } else {
-            if (in_array($ruleType, array_keys($this->ruleTypes))) {
-                $this->rule = new $ruleType($ruleId);
-            }
+        } elseif (in_array($ruleType, array_keys($this->ruleTypes))) {
+            $this->rule = new $ruleType($ruleId);
         }
         if ($this->rule) {
             $this->ruleTemplate = $this->rule->getTemplate();
@@ -68,15 +72,13 @@ class Admission_RuleController extends AuthenticatedController {
      *
      * @param String $cs_id ID of a courseset the rule shall belong to.
      */
-    public function select_type_action($cs_id = '') {
+    public function select_type_action($cs_id = '')
+    {
         $this->ruleTypes = AdmissionRule::getAvailableAdmissionRules();
         $this->courseset = new CourseSet($cs_id);
         $this->courseset->clearAdmissionRules();
-        foreach (Request::getArray('rules') as $rule) {
-            $rule = unserialize($rule);
-            if ($rule instanceof AdmissionRule) {
-                $this->courseset->addAdmissionRule($rule);
-            }
+        foreach (Request::getManyObjects('rules', 'AdmissionRule') as $rule) {
+            $this->courseset->addAdmissionRule($rule);
         }
     }
 
@@ -86,7 +88,8 @@ class Admission_RuleController extends AuthenticatedController {
      * @param String $ruleType The class name of the configured rule.
      * @param String $ruleId   ID of the rule to save, or empty if this is a new rule.
      */
-    public function save_action($ruleType, $ruleId='') {
+    public function save_action($ruleType, $ruleId = '')
+    {
         CSRFProtection::verifyUnsafeRequest();
         $rules = AdmissionRule::getAvailableAdmissionRules();
         $this->rule = new $ruleType($ruleId);
@@ -113,12 +116,11 @@ class Admission_RuleController extends AuthenticatedController {
      *
      * @param String $ruleType Class name of the rule to check.
      */
-    public function validate_action($ruleType) {
+    public function validate_action($ruleType)
+    {
         $rules = AdmissionRule::getAvailableAdmissionRules();
         $rule = new $ruleType();
         $this->errors = $rule->validate(Request::getInstance());
     }
 
 }
-
-?>

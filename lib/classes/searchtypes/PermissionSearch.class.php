@@ -62,7 +62,7 @@ class PermissionSearch extends SQLSearch {
             $presets = $this->presets + $contextual_data;
         }
         foreach ($presets as $name => $value) {
-            if ($name !== "input" && strpos($sql, ":".$name) !== false) {
+            if ($name !== "input" && mb_strpos($sql, ":".$name) !== false) {
                 if (is_array($value)) {
                     if (count($value)) {
                         $sql = str_replace(":".$name, implode(',', array_map(array($db, 'quote'), $value)), $sql);
@@ -108,6 +108,17 @@ class PermissionSearch extends SQLSearch {
                             "OR CONCAT(auth_user_md5.Nachname, \", \", auth_user_md5.Vorname) LIKE :input " .
                             "OR auth_user_md5.username LIKE :input ) " .
                             "AND auth_user_md5.perms IN (:permission) ".
+                        "ORDER BY auth_user_md5.Nachname";
+            break;
+            case "user_in_sem":
+                $sql =  "SELECT DISTINCT $first_column, ".$GLOBALS['_fullname_sql']['full_rev_username']." AS fullname " .
+                        "FROM auth_user_md5 " .
+                        "JOIN seminar_user su ON su.user_id = auth_user_md5.user_id AND seminar_id=:seminar_id AND status IN (:sem_perm) " .
+                        " LEFT JOIN user_info ON auth_user_md5.user_id = user_info.user_id  " .
+                        "WHERE ( ".$GLOBALS['_fullname_sql']['full']." LIKE :input " .
+                            "OR CONCAT(auth_user_md5.Nachname, \" \", auth_user_md5.Vorname) LIKE :input " .
+                            "OR CONCAT(auth_user_md5.Nachname, \", \", auth_user_md5.Vorname) LIKE :input " .
+                            "OR auth_user_md5.username LIKE :input ) ".
                         "ORDER BY auth_user_md5.Nachname";
             break;
             case "user_inst":

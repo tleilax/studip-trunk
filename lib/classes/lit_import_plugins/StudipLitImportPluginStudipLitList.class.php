@@ -54,7 +54,7 @@ class StudipLitImportPluginStudipLitList extends StudipLitImportPluginAbstract {
             $lines = explode("\n",$data);
             $count = 0;
             foreach ($lines as $line) {
-                if (strlen($line)>0) {
+                if (mb_strlen($line)>0) {
                     $count++;
                     if ($count<3) continue;
                     $parts = explode("\t",$line);
@@ -79,7 +79,7 @@ class StudipLitImportPluginStudipLitList extends StudipLitImportPluginAbstract {
                     foreach ($_lit_search_plugins as $p) {
                         if ($p["link"]!="") {
                             $l = str_replace("{accession_number}","",$p["link"]);
-                            $pos = strpos ($parts[12], $l);
+                            $pos = mb_strpos ($parts[12], $l);
                             if (!($pos === false)) {
                                 $fields["lit_plugin"] = $p["name"];
                                 break;

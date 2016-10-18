@@ -31,10 +31,6 @@ class Admin_WebserviceAccessController extends AuthenticatedController
             throw new AccessDeniedException(_("Die Webservices sind in diesem System nicht aktiviert."));
         }
 
-
-        $layout = $template_factory->open('layouts/base');
-        $this->set_layout($layout);
-
         PageLayout::setTitle(_('Verwaltung der Zugriffsregeln für Webservices'));
         Navigation::activateItem('/admin/config/webservice_access');
 
@@ -92,7 +88,7 @@ class Admin_WebserviceAccessController extends AuthenticatedController
 
             $msg = array();
 
-            if (strlen($rule->api_key) < 5) {
+            if (mb_strlen($rule->api_key) < 5) {
                 $msg['error'][] = _("Bitte geben Sie einen API-Key mit min. 5 Zeichen an.");
             }
             foreach ($rule->ip_range as $key => $ip) {

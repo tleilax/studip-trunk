@@ -341,7 +341,7 @@ class ExternModule {
             $global_param = '';
         }
         if ($this->config->config["Main"]["incdata"]) {
-            if (strrpos($sri_link, '?')) {
+            if (mb_strrpos($sri_link, '?')) {
                 $link = $sri_link . ($global_param != '' ? '&' : '') . $global_param;
             } else {
                 $link = $sri_link . ($global_param != '' ? '?' : '') . $global_param;
@@ -412,7 +412,7 @@ class ExternModule {
         $plugin_manager = PluginManager::getInstance();
 
         foreach ($plugin_manager->getPluginInfos($plugin_type) as $plugin) {
-            $keyname = 'PLUGIN_' . strtoupper($plugin['name']);
+            $keyname = 'PLUGIN_' . mb_strtoupper($plugin['name']);
             $markers[$element_name][] = array("###$keyname###", $plugin['description']);
         }
     }
@@ -458,7 +458,7 @@ class ExternModule {
         }
         $query_parts = array();
         if (is_array($params)) {
-            $param_key = 'ext_' . strtolower($this->name);
+            $param_key = 'ext_' . mb_strtolower($this->name);
             foreach ($params as $name => $value) {
                 $query_parts[] = "{$param_key}[{$name}]=" . $value;
             }
@@ -517,7 +517,7 @@ class ExternModule {
     }
 
     function getModuleParams ($params = null) {
-        $param_key = 'ext_' . strtolower($this->name);
+        $param_key = 'ext_' . mb_strtolower($this->name);
         if (is_array($_REQUEST[$param_key])) {
             $ret = array();
             if (is_null($params)) {

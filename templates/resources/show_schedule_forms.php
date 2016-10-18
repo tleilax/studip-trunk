@@ -19,6 +19,17 @@ use Studip\Button,
     <tbody>
         <tr>
             <td colspan="3" align="center">
+            <? if (!empty($_SESSION['assign_object_has_holidays'][$resAssign->id])) : ?>
+        		<?  $holidays = "<br>" . htmlReady(implode(', ', $_SESSION['assign_object_has_holidays'][$resAssign->id])) . "<br>";    	        
+        	        if (count($_SESSION['assign_object_has_holidays'][$resAssign->id]) > 1) {
+        	            $msg = sprintf(_("Die Belegung überschneidet sich mit folgenden Feiertagen: %s Wollen Sie die Belegung dennoch speichern?"), $holidays);
+        	        } else {
+        	            $msg = sprintf(_("Die Belegung überschneidet sich mit folgendem Feiertag: %s Wollen Sie die Belegung dennoch speichern?"), $holidays);
+        	        }
+                ?>                
+                <?= MessageBox::error($msg . "<br>". Button::createAccept(_('JA!'), 'ignore_holidays') . ' ' . Button::createCancel(_('NEIN!'), 'no_ignore_holidays')) ?>
+            <? endif; ?>
+            
             <? if ($resAssign->isNew()) : ?>
                 <?= MessageBox::info(_("Sie erstellen eine neue Belegung")) ?>
             <? endif; ?>
@@ -137,7 +148,7 @@ use Studip\Button,
                 echo "<b>".date("d.m.Y",$resAssign->getRepeatEnd())."</b>";
             else :
             ?>  
-                <input name="changeRepeatTime" id="changeRepeatTime" value="<?if(strlen($resAssign->getRepeatEnd())> 0) :?><?=date('j.n.Y',$resAssign->getRepeatEnd())?><?endif;?>">
+                <input name="changeRepeatTime" id="changeRepeatTime" value="<?if(mb_strlen($resAssign->getRepeatEnd())> 0) :?><?=date('j.n.Y',$resAssign->getRepeatEnd())?><?endif;?>">
                 <? if (($resAssign->getRepeatMode() != "y") && ($resAssign->getRepeatMode() != "sd")) : ?>
                     <input type="CHECKBOX" <? printf ("%s", ($resAssign->isRepeatEndSemEnd()) ? "checked" : "") ?> name="change_schedule_repeat_sem_end"> <?=_("Ende der Vorlesungszeit")?>
                 <? endif;
@@ -324,7 +335,7 @@ use Studip\Button,
                 <?
             }
             $result = null;
-            if (strlen($search_exp_room) > 1 && Request::submitted('search_room')) {
+            if (mb_strlen($search_exp_room) > 1 && Request::submitted('search_room')) {
                 if (getGlobalPerms($user->id) != "admin")
                     $resList = new ResourcesUserRoomsList ($user->id, FALSE, FALSE);
 

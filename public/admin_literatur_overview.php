@@ -151,13 +151,6 @@ if ($preferred_plugin && in_array($preferred_plugin, $_search_plugins)){
 
 ?>
 <table width="100%" cellspacing=0 cellpadding=0 border=0>
-    <?
-    if ($msg) {
-        echo "<tr> <td class=\"blank\" colspan=2><br>";
-        parse_msg ($msg);
-        echo "</td></tr>";
-    }
-    ?>
     <tr>
         <td class="blank" colspan=2>&nbsp;
             <form name="choose_institute" action="<?=URLHelper::getLink('?send=1')?>" method="POST">
@@ -170,7 +163,7 @@ if ($preferred_plugin && in_array($preferred_plugin, $_search_plugins)){
                 </tr>
                 <tr>
                     <td class="table_row_even">
-                    <font size=-1><select name="_inst_id" size="1" style="vertical-align:middle">
+                        <select name="_inst_id" class="nested-select">
                     <?
                     // Prepare inner statement that obtains all institutes
                     // for a given faculty
@@ -227,13 +220,13 @@ if ($preferred_plugin && in_array($preferred_plugin, $_search_plugins)){
                     $statement->execute($parameters);
                     $institutes = $statement->fetchAll(PDO::FETCH_ASSOC);
 
-                    printf ("<option value=\"-1\">%s</option>\n", _("-- bitte Einrichtung auswählen --"));
+                    printf ("<option value=\"\" class=\"is-placeholder\">%s</option>\n", _("-- Bitte Einrichtung auswählen --"));
                     foreach ($institutes as $institute) {
-                        printf("<option value=\"%s\" style=\"%s\" %s>%s </option>\n",
+                        printf("<option value=\"%s\" class=\"%s\" %s>%s </option>\n",
                                $institute['Institut_id'],
-                               $institute['is_fak'] ? 'font-weight:bold;' : '',
+                               $institute['is_fak'] ? 'nested-item-header' : 'nested-item',
                                $institute['Institut_id'] == Request::option('_inst_id') ? ' selected ' : '',
-                               htmlReady(substr($institute['Name'], 0, 70)) . ' (' . $institute['anzahl'] . ')');
+                               htmlReady(mb_substr($institute['Name'], 0, 70)) . ' (' . $institute['anzahl'] . ')');
                         if ($institute['is_fak']) {
                             if ($institute['Institut_id'] == Request::option('_inst_id')){
                                 $_is_fak = true;
@@ -241,10 +234,10 @@ if ($preferred_plugin && in_array($preferred_plugin, $_search_plugins)){
 
                             $institute_statement->execute(array($institute['Institut_id']));
                             while ($row = $institute_statement->fetch(PDO::FETCH_ASSOC)) {
-                                printf("<option value=\"%s\" %s>&nbsp;&nbsp;&nbsp;&nbsp;%s </option>\n",
+                                printf("<option value=\"%s\" %s class=\"nested-item\">%s </option>\n",
                                        $row['Institut_id'],
                                        $row['Institut_id'] == Request::option('_inst_id') ? ' selected ' : '',
-                                       htmlReady(substr($row['Name'], 0, 70)) . ' (' . $row['anzahl'] . ')');
+                                       htmlReady(mb_substr($row['Name'], 0, 70)) . ' (' . $row['anzahl'] . ')');
                             }
                             $institute_statement->closeCursor();
                         }
@@ -451,13 +444,13 @@ if ($preferred_plugin && in_array($preferred_plugin, $_search_plugins)){
                         $estimated_p += $sem_data['admission_turnout'];
                         $participants += $sem_data['participants'];
                     }
-                    $content = substr($content,0,-2);
+                    $content = mb_substr($content,0,-2);
                     $content .= "<br>";
                     $content .= "<b>" . _("Dozenten:") . "</b>&nbsp;&nbsp;";
                     foreach ($_SESSION['_lit_data'][$cid]['doz_data'] as $doz_data){
                         $content .= '<a href="dispatch.php/profile?username=' . $doz_data['username'] . '">' . htmlReady($doz_data["Nachname"]) . "</a>, ";
                     }
-                    $content = substr($content,0,-2);
+                    $content = mb_substr($content,0,-2);
                     $content .= "<br>";
                     $content .= "<b>" . _("Teilnehmeranzahl (erwartet/angemeldet):") . "</b>&nbsp;&nbsp;";
                     $content .= ($estimated_p ? $estimated_p : _("unbekannt"));

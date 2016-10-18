@@ -40,7 +40,7 @@ STUDIP.Admission = {
             width: '450',
             title: 'Anmelderegel konfigurieren'.toLocaleString(),
             id: 'configurerule',
-            data: {rule : $('#rule_data_' + ruleId + ' input[name="rules[]"]').val()},
+            data: {ruleId : ruleId, rules : _.pluck($('#rules input[name="rules[]"]'), 'value')},
         });
 
         return false;
@@ -190,7 +190,7 @@ STUDIP.Admission = {
             'plugins': [ 'html_data', 'themes', 'types', 'checkbox', 'ui' ]
         };
         config.types = {'types': typesData};
-        $('#' + elementId).bind('loaded.jstree', function (event, data) {
+        $('#' + elementId).on('loaded.jstree', function (event, data) {
             // Show checked checkboxes.
             var checkedItems = $('#' + elementId).find('.jstree-checked');
             checkedItems.removeClass('jstree-unchecked');

@@ -20,7 +20,6 @@ class Document_ClosedController  extends AuthenticatedController
         parent::before_filter($action, $args);
         //Configurations for the Documentarea for this user
         $this->userConfig = DocUsergroupConfig::getUserConfig($GLOBALS['user']->id);
-        $this->set_layout($GLOBALS['template_factory']->open('layouts/base'));
         PageLayout::setTitle(_('Dateiverwaltung'));
         PageLayout::setHelpKeyword('Basis.Dateien');
         Navigation::activateItem('/document/files');
@@ -28,7 +27,7 @@ class Document_ClosedController  extends AuthenticatedController
 
     public function index_action()
     {
-        if (empty($this->userConfig) || strlen($this->userConfig['area_close_text']) == 0) {
+        if (empty($this->userConfig) || mb_strlen($this->userConfig['area_close_text']) == 0) {
             $this->message = _('keine Begründung');
         } else {
             $this->message = $this->userConfig['area_close_text'];

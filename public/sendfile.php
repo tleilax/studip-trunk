@@ -178,7 +178,7 @@ if ($type == 6) {
 } elseif ($type != 5){
     $filesize = @filesize($path_file);
 } else {
-    $filesize = strlen($the_data);
+    $filesize = mb_strlen($the_data);
 }
 // close session, download will mostly be a parallel action
 page_close();
@@ -194,13 +194,13 @@ if ($filesize && $type == 0 && !Request::int('zip')) {
         $c_start = $start;
         $c_end   = $end;
         list(, $range) = explode('=', $_SERVER['HTTP_RANGE'], 2);
-        if (strpos($range, ',') !== false) {
+        if (mb_strpos($range, ',') !== false) {
             header('HTTP/1.1 416 Requested Range Not Satisfiable');
             header("Content-Range: bytes $start-$end/$filesize");
             exit;
         }
         if ($range == '-') {
-            $c_start = $filesize - substr($range, 1);
+            $c_start = $filesize - mb_substr($range, 1);
         } else {
             $range  = explode('-', $range);
             $c_start = $range[0];

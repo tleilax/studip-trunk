@@ -12,203 +12,6 @@ require_once 'lib/wiki.inc.php';
 // in the unit test defined in tests/unit/lib/VisualTest.php as well).
 define('FORMATTED_CONTENT_WRAPPER', '<div class="formatted-content">%s</div>');
 
-/**
- * get_ampel_state is a helper function for get_ampel_write and get_ampel_read.
- * It checks if the new parameters lead to a "lower" trafficlight. If so, the new
- * level and the new text are set and returned.
- *
- * @param unknown_type $cur_ampel_state
- * @param unknown_type $new_level
- * @param unknown_type $new_text
- * @return
- */
-function get_ampel_state ($cur_ampel_state, $new_level, $new_text)
-{
-    if ($cur_ampel_state["access"] < $new_level) {
-        $cur_ampel_state["access"] = $new_level;
-        $cur_ampel_state["text"] = $new_text;
-    }
-    return $cur_ampel_state;
-}
-
-/**
- * get_ampel_write, waehlt die geeignete Grafik in der Ampel Ansicht
- * (fuer Berechtigungen) aus. Benoetigt den Status in der Veranstaltung
- * und auf der Anmeldeliste und den read_level der Veranstaltung
- *
- * @param unknown_type $mein_status
- * @param unknown_type $admission_status
- * @param unknown_type $write_level
- * @param unknown_type $print
- * @param unknown_type $start
- * @param unknown_type $ende
- * @param unknown_type $temporaly
- */
-function get_ampel_write ($mein_status, $admission_status, $write_level, $print="TRUE", $start = -1, $ende = -1, $temporaly = 0)
-{
-    global $perm;
-
-    $ampel_state["access"] = 0;     // the current "lowest" access-level. If already yellow, it can't be green again, etc.
-    $ampel_state["text"] = "";          // the text for the reason, why the "ampel" has the current color
-    /*
-     * 0 : green
-     * 1 : yellow
-     * 2 : red
-     */
-
-    if ($mein_status == "dozent" || $mein_status == "tutor" || $mein_status == "autor") { // in den Fällen darf ich auf jeden Fall schreiben
-        $ampel_state = get_ampel_state($ampel_state,0,"");
-        //echo $ampel_state["access"]."<br>";
-        //echo $ampel_state["text"]."<br>";
-    } else {
-        if ($temporaly != 0) {
-            $ampel_state = get_ampel_state($ampel_state,1,_("(Vorl. Eintragung)"));
-        }
-
-        if (($start != -1) && ($start > time())) {
-            $ampel_state = get_ampel_state($ampel_state,1,_("(Starttermin)"));
-        }
-
-        if (($ende != -1) && ($ende < time())) {
-            $ampel_state = get_ampel_state($ampel_state,2,_("(Beendet)"));
-        }
-
-        switch($write_level) {
-            case 0 : //Schreiben darf jeder
-                $ampel_state = get_ampel_state($ampel_state,0,"");
-            break;
-            case 1 : //Schreiben duerfen nur registrierte Stud.IP Teilnehmer
-                if ($perm->have_perm("autor"))
-                    $ampel_state = get_ampel_state($ampel_state,0,"");
-                else
-                    $ampel_state = get_ampel_state($ampel_state,2,_("(Registrierungsmail beachten!)"));
-            break;
-            case 2 : //Schreiben nur mit Passwort
-                if ($perm->have_perm("autor"))
-                    $ampel_state = get_ampel_state($ampel_state,1,_("(mit Passwort)"));
-                else
-                    $ampel_state = get_ampel_state($ampel_state,2,_("(Registrierungsmail beachten!)"));
-            break;
-            case 3 : //Schreiben nur nach Anmeldeverfaren
-                if ($perm->have_perm("autor"))
-                    if ($admission_status)
-                        $ampel_state = get_ampel_state($ampel_state,1,_("(Anmelde-/Warteliste)"));
-                    else
-                        $ampel_state = get_ampel_state($ampel_state,1, _("(Anmeldeverfahren)"));
-                else
-                    $ampel_state = get_ampel_state($ampel_state,2, _("(Registrierungsmail beachten!)"));
-            break;
-        }
-    }
-
-    switch ($ampel_state["access"]) {
-        case 0 :
-            $icon = Icon::create('accept', 'accept');
-            break;
-        case 1 :
-            $icon = Icon::create('exclaim', 'info');
-            break;
-        case 2 :
-            $icon = Icon::create('decline', 'attention');
-            break;
-    }
-
-    $ampel_status = $icon->asImg() . ' ' . $ampel_state["text"];
-
-    if ($print == TRUE) {
-        echo $ampel_status;
-    }
-    return $ampel_status;
-}
-
-/**
- * get_ampel_read, waehlt die geeignete Grafik in der Ampel Ansicht
- * (fuer Berechtigungen) aus. Benoetigt den Status in der Veranstaltung
- * und auf der Anmeldeliste und den read_level der Veranstaltung
- *
- * @param unknown_type $mein_status
- * @param unknown_type $admission_status
- * @param unknown_type $read_level
- * @param unknown_type $print
- * @param unknown_type $start
- * @param unknown_type $ende
- * @param unknown_type $temporaly
- */
-function get_ampel_read ($mein_status, $admission_status, $read_level, $print="TRUE", $start = -1, $ende = -1, $temporaly = 0)
-{
-    global $perm;
-
-    $ampel_state["access"] = 0;     // the current "lowest" access-level. If already yellow, it can't be green again, etc.
-    $ampel_state["text"] = "";          // the text for the reason, why the "ampel" has the current color
-    /*
-     * 0 : green
-     * 1 : yellow
-     * 2 : red
-     */
-
-    if ($mein_status) { // wenn ich im Seminar schon drin bin, darf ich auf jeden Fall lesen
-        $ampel_state = get_ampel_state($ampel_state,0,"");
-    } else {
-            if ($temporaly != 0) {
-                $ampel_state = get_ampel_state($ampel_state,1,_("(Vorl. Eintragung)"));
-            }
-
-            if (($start != -1) && ($start > time())) {
-                $ampel_state = get_ampel_state($ampel_state,1,_("(Starttermin)"));
-            }
-
-            if (($ende != -1) && ($ende < time())) {
-                $ampel_state = get_ampel_state($ampel_state,2,_("(Beendet)"));
-            }
-
-        switch($read_level){
-            case 0 :    //Lesen darf jeder
-                $ampel_state = get_ampel_state($ampel_state,0,"");
-            break;
-            case 1 :    //Lesen duerfen registrierte nur Stud.IP Teilnehmer
-                if ($perm->have_perm("autor"))
-                    $ampel_state = get_ampel_state($ampel_state,0,"");
-                else
-                    $ampel_state = get_ampel_state($ampel_state,2,_("(Registrierungsmail beachten!)"));
-            break;
-            case 2 :    //Lesen nur mit Passwort
-                if ($perm->have_perm("autor"))
-                    $ampel_state = get_ampel_state($ampel_state,1,_("(mit Passwort)"));
-                else
-                    $ampel_state = get_ampel_state($ampel_state,2,_("(Registrierungsmail beachten!)"));
-            break;
-            case 3 :    //Lesen nur nach Anmeldeverfaren
-                if ($perm->have_perm("autor"))
-                    if ($admission_status)
-                        $ampel_state = get_ampel_state($ampel_state,1,_("(Anmelde-/Warteliste)"));
-                    else
-                        $ampel_state = get_ampel_state($ampel_state,1,_("(Anmeldeverfahren)"));
-                else
-                    $ampel_state = get_ampel_state($ampel_state,2,_("(Registrierungsmail beachten!)"));
-            break;
-        }
-    }
-
-    switch ($ampel_state["access"]) {
-        case 0 :
-            $icon = Icon::create('accept', 'accept');
-            break;
-        case 1 :
-            $icon = Icon::create('exclaim', 'info');
-            break;
-        case 2 :
-            $icon = Icon::create('decline', 'attention');
-            break;
-    }
-
-    $ampel_status = $icon->asImg() . ' ' . $ampel_state["text"];
-
-    if ($print == TRUE) {
-        echo $ampel_status;
-    }
-    return $ampel_status;
-}
-
 //// Functions for processing marked-up text (Stud.IP markup, HTML, JS).
 
 use Studip\Markup;
@@ -250,7 +53,7 @@ function jsReady ($what, $target) {
 function quotes_encode($description,$author)
 {
     if (preg_match("/%%\[editiert von/",$description)) { // wurde schon mal editiert
-        $postmp = strpos($description,"%%[editiert von");
+        $postmp = mb_strpos($description,"%%[editiert von");
         $description = substr_replace($description," ",$postmp);
     }
     $description = "[quote=".$author."]\n".$description."\n[/quote]";
@@ -394,7 +197,7 @@ function kill_format ($text) {
                       '$1$2');
     $callback = function ($c) {
         return function ($m) use ($c) {
-            return $m[1] . substr(str_replace($c, ' ', $m[2]), 0, -1);
+            return $m[1] . mb_substr(str_replace($c, ' ', $m[2]), 0, -1);
         };
     };
     $pattern_callback = array(
@@ -433,7 +236,7 @@ function isLinkIntern($url) {
     return in_array($pum['scheme'], array('https', 'http', NULL), true)
         && in_array($pum['host'], array($_SERVER['SERVER_NAME'], NULL), true)
         && in_array($pum['port'], array($_SERVER['SERVER_PORT'], NULL), true)
-        && strpos($pum['path'], $GLOBALS['CANONICAL_RELATIVE_PATH_STUDIP']) === 0;
+        && mb_strpos($pum['path'], $GLOBALS['CANONICAL_RELATIVE_PATH_STUDIP']) === 0;
 }
 
 /**
@@ -519,12 +322,12 @@ function mila ($titel, $size = 60) {
 
     if ($auth->auth["jscript"] AND $size == 60) {
         //hier wird die maximale Laenge berechnet, nach der Abgeschnitten wird (JS dynamisch)
-        if (strlen ($titel) >$auth->auth["xres"] / 13)
-            $titel=substr($titel, 0, $auth->auth["xres"] / 13)."... ";
+        if (mb_strlen ($titel) >$auth->auth["xres"] / 13)
+            $titel=mb_substr($titel, 0, $auth->auth["xres"] / 13)."... ";
     }
     else {
-        if (strlen ($titel) >$size)
-            $titel=substr($titel, 0, $size)."... ";
+        if (mb_strlen ($titel) >$size)
+            $titel=mb_substr($titel, 0, $size)."... ";
     }
     return $titel;
 }
@@ -672,8 +475,8 @@ function printcontent ($breite, $write = FALSE, $inhalt, $edit, $printout = TRUE
     if ($edit) {
         $print .= "<br><br><div align=\"center\">$edit</div>";
         if ($addon!="") {
-            if (substr($addon,0,5)=="open:") { // es wird der öffnen-Pfeil mit Link ausgegeben
-                $print .= "</td><td valign=\"middle\" class=\"table_row_even\" nowrap><a href=\"".substr($addon,5)."\">";
+            if (mb_substr($addon,0,5)=="open:") { // es wird der öffnen-Pfeil mit Link ausgegeben
+                $print .= "</td><td valign=\"middle\" class=\"table_row_even\" nowrap><a href=\"".mb_substr($addon,5)."\">";
                 $print .= Icon::create('arr_1left', 'clickable', ['title' => _('Bewertungsbereich öffnen')])->asImg();
                 $print .= "</a>&nbsp;";
             } else {              // es wird erweiterter Inhalt ausgegeben
@@ -793,29 +596,53 @@ function tooltip2($text, $with_alt = TRUE, $with_popup = FALSE) {
 /**
  * returns a html-snippet with an icon and a tooltip on it
  *
- * @param type $text
+ * @param string $text tooltip text, html gets encoded
+ * @param bool $important render icon in "important" style
  */
-function tooltipIcon($text, $important = false, $html = false)
+function tooltipIcon($text, $important = false)
 {
     // render tooltip
+    $html = false;
     $template = $GLOBALS['template_factory']->open('shared/tooltip');
     return $template->render(compact('text', 'important', 'html'));
 }
 
 /**
-* detects internal links in a given string and convert used domain to the domain
-* actually used (only necessary if more than one domain exists)
-*
-* @param    string  text to convert
-* @return   string  text with convertes internal links
+ * returns a html-snippet with an icon and a tooltip on it
+ *
+ * @param string $text tooltip text, html is rendered as is
+ * @param bool $important render icon in "important" style
+ */
+function tooltipHtmlIcon($text, $important = false)
+{
+    // render tooltip
+    $html = true;
+    $template = $GLOBALS['template_factory']->open('shared/tooltip');
+    return $template->render(compact('text', 'important', 'html'));
+}
+
+/**
+ * detects internal links in a given string and convert used domain to the domain
+ * actually used (only necessary if more than one domain exists), relative URLs are
+ * converted to absolute URLs
+ *
+ * @param    string  $str URL/Link to convert
+ * @return   string  converted URL/Link
 */
 function TransformInternalLinks($str){
+    $str = trim($str);
+    if (mb_strpos($str, 'http') !== 0) {
+        if ($str[0] === '/') {
+            $str = mb_substr($str, mb_strlen($GLOBALS['CANONICAL_RELATIVE_PATH_STUDIP']));
+        }
+        $str = $GLOBALS['ABSOLUTE_URI_STUDIP'] . $str;
+    }
     if (is_array($GLOBALS['STUDIP_DOMAINS']) && count($GLOBALS['STUDIP_DOMAINS']) > 1) {
         if (!isset($GLOBALS['TransformInternalLinks_domainData'])){
             $domain_data['domains'] = '';
             foreach ($GLOBALS['STUDIP_DOMAINS'] as $studip_domain) $domain_data['domains'] .= '|' . preg_quote($studip_domain);
             $domain_data['domains'] = preg_replace("'\|[^/|]*'", '$0[^/]*?', $domain_data['domains']);
-            $domain_data['domains'] = substr($domain_data['domains'], 1);
+            $domain_data['domains'] = mb_substr($domain_data['domains'], 1);
             $domain_data['user_domain'] = preg_replace("'^({$domain_data['domains']})(.*)$'i", "\\1", $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
             $domain_data['user_domain_scheme'] = 'http' . (($_SERVER['HTTPS'] || $_SERVER['SERVER_PORT'] == 443) ? 's' : '') . '://';
             $GLOBALS['TransformInternalLinks_domainData'] = $domain_data;
@@ -907,13 +734,13 @@ function display_exception($exception, $as_html = false, $deep = false) {
  */
 function get_icon_for_mimetype($mime_type)
 {
-    if (strpos($mime_type, 'image/') === 0) {
+    if (mb_strpos($mime_type, 'image/') === 0) {
         return 'file-pic';
     }
-    if (strpos($mime_type, 'audio/') === 0) {
+    if (mb_strpos($mime_type, 'audio/') === 0) {
         return 'file-audio';
     }
-    if (strpos($mime_type, 'video/') === 0) {
+    if (mb_strpos($mime_type, 'video/') === 0) {
         return 'file-video';
     }
     if ($mime_type === 'application/pdf') {

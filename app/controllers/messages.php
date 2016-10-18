@@ -8,7 +8,6 @@
  * the License, or (at your option) any later version.
  */
 
-require_once 'lib/sms_functions.inc.php';
 require_once 'lib/statusgruppe.inc.php';
 
 class MessagesController extends AuthenticatedController {
@@ -16,17 +15,20 @@ class MessagesController extends AuthenticatedController {
     protected $number_of_displayed_messages = 50;
     protected $utf8decode_xhr = true;
 
-    function before_filter (&$action, &$args)
+    function before_filter(&$action, &$args)
     {
         parent::before_filter($action, $args);
 
         PageLayout::setTitle(_("Nachrichten"));
         PageLayout::setHelpKeyword("Basis.InteraktionNachrichten");
 
-        if (Request::isXhr()&& Request::isGet()) {
+        // The default body and/or subject passed via GET url parameters
+        // should not be utf8decoded and thus need to be restored in their
+        // pristine values
+        if (Request::isXhr() && Request::isGet()) {
             $request = Request::getInstance();
-            foreach(words('default_body default_subject') as $key) {
-                $request[$key] = Request::removeMagicQuotes($_GET[$key]);
+            foreach (words('default_body default_subject') as $key) {
+                $request[$key] = $_GET[$key];
             }
         }
     }
@@ -226,7 +228,7 @@ class MessagesController extends AuthenticatedController {
         if (Request::option('prof_id') && Request::option('deg_id') && $GLOBALS['perm']->have_perm('root')) {
             $query = "SELECT DISTINCT user_id,'rec' as snd_rec
             FROM user_studiengang
-            WHERE studiengang_id = ? AND abschluss_id = ?";
+            WHERE fach_id = ? AND abschluss_id = ?";
             $this->default_message->receivers = DBManager::get()->fetchAll($query, array(
                 Request::option('prof_id'),
                 Request::option('deg_id')
@@ -245,7 +247,7 @@ class MessagesController extends AuthenticatedController {
         if (Request::option('sp_id') && $GLOBALS['perm']->have_perm('root')) {
             $query = "SELECT DISTINCT user_id,'rec' as snd_rec
             FROM user_studiengang
-            WHERE studiengang_id = ?";
+            WHERE fach_id = ?";
             $this->default_message->receivers = DBManager::get()->fetchAll($query, array(
                 Request::option('sp_id')
             ), 'MessageUser::build');
@@ -269,7 +271,7 @@ class MessagesController extends AuthenticatedController {
                         $this->default_message['message'] = "[quote]\n".$old_message['message']."\n[/quote]";
                     }
                 }
-                $this->default_message['subject'] = substr($old_message['subject'], 0, 4) === "RE: " ? $old_message['subject'] : "RE: ".$old_message['subject'];
+                $this->default_message['subject'] = mb_substr($old_message['subject'], 0, 4) === "RE: " ? $old_message['subject'] : "RE: ".$old_message['subject'];
                 $user = new MessageUser();
                 $user->setData(array('user_id' => $old_message['autor_id'], 'snd_rec' => "rec"));
                 $this->default_message->receivers[] = $user;
@@ -633,15 +635,4 @@ class MessagesController extends AuthenticatedController {
         PageLayout::postMessage(MessageBox::success(_('Schlagwort gelöscht!')));
         $this->redirect($this->url_for('messages/overview'));
     }
-
-    function after_filter($action, $args)
-    {
-        if (Request::isXhr()) {
-            if (PageLayout::getTitle()) {
-                $this->response->add_header('X-Title', PageLayout::getTitle());
-            }
-        }
-        parent::after_filter($action, $args);
-    }
-
 }

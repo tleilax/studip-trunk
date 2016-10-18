@@ -34,12 +34,12 @@
 
         <label>
             <?= _("Startzeitpunkt (leer lassen für manuellen Start)") ?>
-            <input type="text" name="questionnaire[startdate]" value="<?= $questionnaire['startdate'] ? date("d.m.Y", $questionnaire['startdate']) : ($questionnaire->isNew() ? _("sofort") : "") ?>" class="date">
+            <input type="text" name="questionnaire[startdate]" value="<?= $questionnaire['startdate'] ? date("d.m.Y H:i", $questionnaire['startdate']) : ($questionnaire->isNew() ? _("sofort") : "") ?>" data-datetime-picker>
         </label>
 
         <label>
             <?= _("Endzeitpunkt (leer lassen für manuelles Ende)") ?>
-            <input type="text" name="questionnaire[stopdate]" value="<?= $questionnaire['stopdate'] ? date("d.m.Y", $questionnaire['stopdate']) : "" ?>" class="date">
+            <input type="text" name="questionnaire[stopdate]" value="<?= $questionnaire['stopdate'] ? date("d.m.Y H:i", $questionnaire['stopdate']) : "" ?>" data-datetime-picker>
         </label>
 
         <label>
@@ -55,20 +55,13 @@
         <label>
             <?= _("Ergebnisse an Teilnehmer") ?>
             <select name="questionnaire[resultvisibility]">
-                <option value="always"<?= $questionnaire['editanswers'] === "always" ? " selected" : "" ?>><?= _("Wenn sie geantwortet haben.") ?></option>
-                <option value="afterending"<?= $questionnaire['editanswers'] === "afterending" ? " selected" : "" ?>><?= _("Nach Ende der Befragung.") ?></option>
-                <option value="never"<?= $questionnaire['editanswers'] === "never" ? " selected" : "" ?>><?= _("Niemals.") ?></option>
+                <option value="always"<?= $questionnaire['resultvisibility'] === "always" ? " selected" : "" ?>><?= _("Wenn sie geantwortet haben.") ?></option>
+                <option value="afterending"<?= $questionnaire['resultvisibility'] === "afterending" ? " selected" : "" ?>><?= _("Nach Ende der Befragung.") ?></option>
+                <option value="never"<?= $questionnaire['resultvisibility'] === "never" ? " selected" : "" ?>><?= _("Niemals.") ?></option>
             </select>
         </label>
 
     </fieldset>
-
-    <script>
-        jQuery(function () {
-            jQuery("input[type=text].date").datepicker();
-        });
-    </script>
-
     <div data-dialog-button>
         <?= \Studip\Button::create(_("Speichern"), 'questionnaire_store') ?>
     </div>

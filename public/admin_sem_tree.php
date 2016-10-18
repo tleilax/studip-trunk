@@ -39,7 +39,6 @@ if (!$perm->is_fak_admin()){
 }
 
 include 'lib/seminar_open.php'; // initialise Stud.IP-Session
-include 'lib/msg.inc.php';
 
 PageLayout::setTitle($UNI_NAME_CLEAN . " - " . _("Veranstaltungshierachie bearbeiten"));
 Navigation::activateItem('/admin/locations/sem_tree');
@@ -76,16 +75,16 @@ if (is_array($_possible_open_items)) {
 
 if ($search_obj->search_done){
     if ($search_obj->search_result->numRows > 50){
-        $_msg = "error§" . _("Es wurden mehr als 50 Veranstaltungen gefunden! Bitte schränken Sie Ihre Suche weiter ein.");
+        PageLayout::postError(_("Es wurden mehr als 50 Veranstaltungen gefunden! Bitte schränken Sie Ihre Suche weiter ein."));
     } elseif ($search_obj->search_result->numRows > 0){
-        $_msg = "msg§" .sprintf(_("Es wurden %s Veranstaltungen gefunden, und in Ihre Merkliste eingefügt"),$search_obj->search_result->numRows);
+        PageLayout::postSuccess(sprintf(_("Es wurden %s Veranstaltungen gefunden, und in Ihre Merkliste eingefügt"),$search_obj->search_result->numRows));
         if (is_array($_SESSION['_marked_sem']) && count($_SESSION['_marked_sem'])){
             $_SESSION['_marked_sem'] = array_merge((array)$_SESSION['_marked_sem'], (array)$search_obj->search_result->getDistinctRows("seminar_id"));
         } else {
             $_SESSION['_marked_sem'] = $search_obj->search_result->getDistinctRows("seminar_id");
         }
     } else {
-        $_msg = "info§" . _("Es wurden keine Veranstaltungen gefunden, auf die Ihre Suchkriterien zutreffen.");
+        PageLayout::postInfo(_("Es wurden keine Veranstaltungen gefunden, auf die Ihre Suchkriterien zutreffen."));
     }
 }
 
@@ -100,7 +99,7 @@ if (Request::option('cmd') == "MarkList"){
                     unset($_SESSION['_marked_sem'][$sem_mark_list[$i]]);
                 }
             }
-            $_msg .= "msg§" . sprintf(_("%s Veranstaltung(en) wurde(n) aus Ihrer Merkliste entfernt."),$count_del);
+            PageLayout::postSuccess(sprintf(_("%s Veranstaltung(en) wurde(n) aus Ihrer Merkliste entfernt."),$count_del));
         } else {
             $tmp = explode("_",Request::quoted('mark_list_aktion'));
             $item_ids[0] = $tmp[1];
@@ -120,8 +119,9 @@ if (Request::option('cmd') == "MarkList"){
                 }
                 $_msg .= sprintf(_("%s Veranstaltung(en) in <b>" .htmlReady($the_tree->tree->tree_data[$item_ids[$i]]['name']) . "</b> eingetragen.<br>"), $count_ins);
             }
-            if ($_msg)
-                $_msg = "msg§" . $_msg;
+            if ($_msg) {
+                PageLayout::postSuccess($_msg);
+            }
             $the_tree->tree->init();
         }
     }
@@ -135,12 +135,12 @@ if ($the_tree->mode == "MoveItem" || $the_tree->mode == "CopyItem"){
     } else {
         $text = _("Der Kopiermodus ist aktiviert. Bitte wählen Sie ein Einfügesymbol %s aus, um das Element <b>%s</b> an diese Stelle zu kopieren.%s");
     }
-    $_msg .= "info§" . sprintf($text ,
-                                Icon::create('arr_2right', 'sort', ['title' => _('Einfügesymbol')])->asImg(),
-                                htmlReady($the_tree->tree->tree_data[$the_tree->move_item_id]['name']),
-                                "<div align=\"right\">"
-                                .LinkButton::createCancel(_('Abbrechen'), $the_tree->getSelf("cmd=Cancel&item_id=$the_tree->move_item_id"), array('title' => _("Verschieben / Kopieren abbrechen")))
-                                ."</div>");
+    PageLayout::postInfo(sprintf($text ,
+            Icon::create('arr_2right', 'sort', ['title' => _('Einfügesymbol')])->asImg(),
+            htmlReady($the_tree->tree->tree_data[$the_tree->move_item_id]['name']),
+            "<div align=\"right\">"
+            .LinkButton::createCancel(_('Abbrechen'), $the_tree->getSelf("cmd=Cancel&item_id=$the_tree->move_item_id"), array('title' => _("Verschieben / Kopieren abbrechen")))
+            ."</div>"));
 }
 
 
@@ -149,16 +149,7 @@ if ($the_tree->mode == "MoveItem" || $the_tree->mode == "CopyItem"){
 <table width="100%" border="0" cellpadding="2" cellspacing="0">
     <tr>
     <td class="blank" width="75%" align="left" valign="top">
-    <?
-if ($_msg)  {
-    echo "\n<table width=\"99%\" border=\"0\" cellpadding=\"2\" cellspacing=\"0\">";
-    parse_msg ($_msg,"§","blank",1,false);
-    echo "\n</table>";
-} else {
-    echo "<br><br>";
-}
-$the_tree->showSemTree();
-    ?>
+    <? $the_tree->showSemTree(); ?>
     </td>
     <td class="blank" align="left" valign="top">
     <div>
@@ -210,7 +201,7 @@ $the_tree->showSemTree();
     </p>
     <form action="<?=URLHelper::getLink($the_tree->getSelf("cmd=MarkList"))?>" method="post">
     <?= CSRFProtection::tokenTag() ?>
-    <select multiple size="20" name="sem_mark_list[]" style="font-size:8pt;width:100%">
+    <select multiple size="20" name="sem_mark_list[]" style="font-size:8pt;width:100%" class="nested-select">
     <?
     $cols = 50;
     if (is_array($_SESSION['_marked_sem']) && count($_SESSION['_marked_sem'])){
@@ -218,12 +209,14 @@ $the_tree->showSemTree();
         $entries = new DbSnapshot($view->get_query("view:SEMINAR_GET_SEMDATA"));
         $sem_data = $entries->getGroupedResult("seminar_id");
         $sem_number = -1;
-        foreach($sem_data as $seminar_id => $data){
+        foreach ($sem_data as $seminar_id => $data) {
             if (key($data['sem_number']) != $sem_number){
+                if ($sem_numer !== -1) {
+                    echo '</optgroup>';
+                }
+
                 $sem_number = key($data['sem_number']);
-                echo "\n<option value=\"0\" style=\"font-weight:bold;color:red;\">&nbsp;</option>";
-                echo "\n<option value=\"0\" style=\"font-weight:bold;color:red;\">" . $the_tree->tree->sem_dates[$sem_number]['name'] . ":</option>";
-                echo "\n<option value=\"0\" style=\"font-weight:bold;color:red;\">" . str_repeat("¯",floor($cols * .8)) . "</option>";
+                echo "\n<optgroup label=\"" . $the_tree->tree->sem_dates[$sem_number]['name'] . "\">";
             }
             $sem_name = key($data["Name"]);
             $sem_number_end = key($data["sem_number_end"]);
@@ -235,6 +228,7 @@ $the_tree->showSemTree();
             $tooltip = $sem_name . " (" . join(",",array_keys($data["doz_name"])) . ")";
             echo "\n<option value=\"$seminar_id\" " . tooltip($tooltip,false) . ">$line</option>";
         }
+        echo '</optgroup>';
     }
     ?>
     </select><br>&nbsp;<br><select name="mark_list_aktion" style="font-size:8pt;width:100%;">

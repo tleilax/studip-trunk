@@ -21,7 +21,7 @@ require_once 'settings.php';
 class Settings_DetailsController extends Settings_SettingsController
 {
     /**
-     * Set up this controller and define the infobox.
+     * Set up this controller
      *
      * @param String $action Name of the action to be invoked
      * @param Array  $args   Arguments to be passed to the action method
@@ -71,12 +71,6 @@ class Settings_DetailsController extends Settings_SettingsController
             if ($new_skype_name != $this->config->SKYPE_NAME) {
                 $this->config->store('SKYPE_NAME', $new_skype_name);
                 Visibility::updatePrivacySettingWithTest(Request::get('skype_name'), _("Skype Name"), "skype_name", 'privatedata', 1, $this->user->user_id);
-                $changed = true;
-            }
-
-            if (Request::int('skype_online_status') != $this->config->SKYPE_ONLINE_STATUS) {
-                $this->config->store('SKYPE_ONLINE_STATUS', Request::int('skype_online_status'));
-                Visibility::updatePrivacySettingWithTest(Request::int('skype_online_status'), _("Skype Online Status"), "skype_online_status", 'skype_name', 1, $this->user->user_id);
                 $changed = true;
             }
         }
@@ -153,9 +147,9 @@ class Settings_DetailsController extends Settings_SettingsController
         }
 
         if (count($errors) > 0) {
-            $this->reportErrorWithDetails(_('Bitte überprüfen Sie Ihre Eingaben.'), $errors);
+            PageLayout::portError(_('Bitte überprüfen Sie Ihre Eingaben.'), $errors);
         } else if ($this->user->store() || $changed || $datafields_changed) {
-            $this->reportSuccess(_('Daten im Lebenslauf u.a. wurden geändert.'));
+            PageLayout::postSuccess(_('Daten im Lebenslauf u.a. wurden geändert.'));
 
             setTempLanguage($this->user->user_id);
             $this->postPrivateMessage(_('Daten im Lebenslauf u.a. wurden geändert.'));

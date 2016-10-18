@@ -194,7 +194,10 @@ class Course_RoomRequestsController extends AuthenticatedController
             if ($request->isNew()) {
                 $widget->addElement(new WidgetElement(_('Dies ist eine neue Raumanfrage.')));
             } else {
-                $info_txt = '<p>' . sprintf(_('Erstellt von: %s'), htmlReady(User::find($request->user_id)->getFullname())) . '</p>';
+                $info_txt = '';
+                if($request->user) {
+                    $info_txt .= '<p>' . sprintf(_('Erstellt von: %s'), htmlReady($request->user->getFullname())) . '</p>';
+                }
                 $info_txt .= '<p>' . sprintf(_('Erstellt am: %s'), htmlReady(strftime('%x %H:%M', $request->mkdate))) . '</p>';
                 $info_txt .= '<p>' . sprintf(_('Letzte Änderung: %s'), htmlReady(strftime('%x %H:%M', $request->chdate))) . '</p>';
                 $widget->addElement(new WidgetElement($info_txt));
@@ -331,6 +334,13 @@ class Course_RoomRequestsController extends AuthenticatedController
                         $checker->checkOverlap($events, $check_result, "assign_id");
                     }
                     foreach ($tmp_search_result as $room_id => $name) {
+
+                        //show only rooms with the requestable property
+                        $raum_object = ResourceObject::Factory($room_id);
+                        if (Config::get()->RESOURCES_ALLOW_REQUESTABLE_ROOM_REQUESTS && !$raum_object->requestable) {
+                            continue;
+                        }
+
                         if (isset($check_result[$room_id])) {
                             $details = $check_result[$room_id];
                             if (count($details) >= round(count($events) * Config::get()->RESOURCES_ALLOW_SINGLE_ASSIGN_PERCENTAGE / 100)) {

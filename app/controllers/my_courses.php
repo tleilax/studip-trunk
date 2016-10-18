@@ -214,12 +214,12 @@ class MyCoursesController extends AuthenticatedController
 
         $this->title = _('Meine Veranstaltungen') . ' - ' . _('Farbgruppierungen');
 
+        PageLayout::setTitle($this->title);
+
         if (Request::isXhr()) {
             $this->set_layout(null);
             $this->response->add_header('Content-Type', 'text/html;charset=Windows-1252');
-            header('X-Title: ' . $this->title);
         } else {
-            PageLayout::setTitle($this->title);
             PageLayout::setHelpKeyword('Basis.VeranstaltungenOrdnen');
             Navigation::activateItem('/browse/my_courses/list');
         }
@@ -486,7 +486,9 @@ class MyCoursesController extends AuthenticatedController
                     NotificationCenter::postNotification('UserDidLeaveCourse', $course_id, $GLOBALS['user']->id);
 
                     // Delete from statusgroups
-                    RemovePersonStatusgruppeComplete(get_username(), $course_id);
+                    foreach (Statusgruppen::findBySeminar_id($course_id) as $group) {
+                        $group->removeUser($GLOBALS['user']->id, true);
+                    }
 
                     // Are successor available
                     update_admission($course_id);
@@ -676,11 +678,11 @@ class MyCoursesController extends AuthenticatedController
      */
     private function setSemesterWidget(&$sem)
     {
-        $semesters       = new SimpleCollection(Semester::getAll());
+        $semesters = new SimpleCollection(Semester::getAll());
         $semesters = $semesters->orderBy('beginn desc');
 
         $sidebar = Sidebar::Get();
-        
+
         $widget = new SelectWidget(_('Semesterfilter'), $this->url_for('my_courses/set_semester'), 'sem_select');
         $widget->setMaxLength(50);
         $widget->addElement(new SelectElement('current', _('Aktuelles Semester'), $sem == 'current'));
@@ -690,11 +692,11 @@ class MyCoursesController extends AuthenticatedController
         if (Config::get()->MY_COURSES_ENABLE_ALL_SEMESTERS) {
             $widget->addElement(new SelectElement('all', _('Alle Semester'), $sem == 'all'));
         }
-        
+
         if (!empty($semesters)) {
             $group = new SelectGroupElement(_('Semester auswählen'));
             foreach ($semesters as $semester) {
-                $group->addElement(new SelectElement($semester->id, htmlReady($semester->name), $sem == $semester->id));
+                $group->addElement(new SelectElement($semester->id, $semester->name, $sem == $semester->id));
             }
             $widget->addElement($group);
         }

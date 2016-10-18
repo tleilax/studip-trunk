@@ -5,9 +5,9 @@
 # Lifter010: TODO
 /**
 * ExternModuleTemplatePersBrowser.class.php
-* 
-* 
-* 
+*
+*
+*
 *
 * @author       Peter Thienel <thienel@data-quest.de>, Suchi & Berg GmbH <info@data-quest.de>
 * @access       public
@@ -19,7 +19,7 @@
 // +---------------------------------------------------------------------------+
 // This file is part of Stud.IP
 // ExternModuleTemplatePersBrowser.class.php
-// 
+//
 // Copyright (C) 2009 Peter Thienel <thienel@data-quest.de>,
 // Suchi & Berg GmbH <info@data-quest.de>
 // +---------------------------------------------------------------------------+
@@ -48,7 +48,7 @@ class ExternModuleTemplatePersBrowse extends ExternModule {
     private $approved_params = array();
     private $range_tree;
     private $global_markers = array();
-    
+
     /**
     *
     */
@@ -66,7 +66,7 @@ class ExternModuleTemplatePersBrowse extends ExternModule {
                 'TemplateListPersons' => 'TemplateGeneric',
                 'TemplateMain' => 'TemplateGeneric'
         );
-        
+
         $this->field_names = array
         (
                 _("Name"),
@@ -75,14 +75,14 @@ class ExternModuleTemplatePersBrowse extends ExternModule {
                 _("Email"),
                 _("Sprechzeiten")
         );
-        
+
         $this->approved_params = array('item_id', 'initiale');
-        
+
         $this->range_tree = TreeAbstract::GetInstance('StudipRangeTree');
-        
-        parent::ExternModule($range_id, $module_name, $config_id, $set_config, $global_id);
+
+        parent::__construct($range_id, $module_name, $config_id, $set_config, $global_id);
     }
-    
+
     public function setup () {
         $this->elements['LinkInternListCharacters']->real_name = _("Verlinkung der alpabetischen Liste zur Personenliste");
         $this->elements['LinkInternListCharacters']->link_module_type = array(16);
@@ -94,22 +94,22 @@ class ExternModuleTemplatePersBrowse extends ExternModule {
         $this->elements['TemplateListInstitutes']->real_name = _("Einrichtungsliste");
         $this->elements['TemplateListPersons']->real_name = _("Personenliste");
         $this->elements['TemplateListCharacters']->real_name = _("Liste mit Anfangsbuchstaben der Nachnamen");
-        
+
     }
-    
+
     public function toStringEdit ($open_elements = '', $post_vars = '', $faulty_values = '', $anker = '') {
-        
+
         $this->updateGenericDatafields('TemplateListPersons', 'user');
         $this->elements['TemplateMain']->markers = $this->getMarkerDescription('TemplateMain');
         $this->elements['TemplateListInstitutes']->markers = $this->getMarkerDescription('TemplateListInstitutes');
         $this->elements['TemplateListPersons']->markers = $this->getMarkerDescription('TemplateListPersons');
         $this->elements['TemplateListCharacters']->markers = $this->getMarkerDescription('TemplateListCharacters');
-        
+
         return parent::toStringEdit($open_elements, $post_vars, $faulty_values, $anker);
     }
-    
+
     public function getMarkerDescription ($element_name) {
-    
+
         $markers['TemplateMain'] = array(
             array('__GLOBAL__', _("Globale Variablen (gültig im gesamten Template).")),
             array('###CHARACTER###', ''),
@@ -120,7 +120,7 @@ class ExternModuleTemplatePersBrowse extends ExternModule {
             array('###LISTPERSONS###', _("Auflistung der gefundenen Personen")),
             array('<!-- END PERS_BROWSER -->', '')
         );
-        
+
         $markers['TemplateListInstitutes'] = array(
             array('<!-- BEGIN LIST_INSTITUTES -->', ''),
             array('<!-- BEGIN INSTITUTE -->', ''),
@@ -130,7 +130,7 @@ class ExternModuleTemplatePersBrowse extends ExternModule {
             array('<!-- END INSTITUTE -->', ''),
             array('<!-- END LIST_INSTITUTES -->', '')
         );
-        
+
         $markers['TemplateListCharacters'] = array(
             array('<!-- BEGIN LIST_CHARACTERS -->', ''),
             array('<!-- BEGIN CHARACTER -->', ''),
@@ -140,7 +140,7 @@ class ExternModuleTemplatePersBrowse extends ExternModule {
             array('<!-- END CHARACTER -->', ''),
             array('<!-- END LIST_CHARACTERS -->', '')
         );
-        
+
         $markers['TemplateListPersons'] = array(
             array('<!-- BEGIN LIST_PERSONS -->', ''),
             array('<!-- BEGIN NO-PERSONS -->', ''),
@@ -167,15 +167,15 @@ class ExternModuleTemplatePersBrowse extends ExternModule {
             array('<!-- END PERSONS -->', ''),
             array('<!-- END LIST_PERSONS -->', '')
         );
-    
+
         return $markers[$element_name];
     }
-    
+
     private function getContent ($args = null, $raw = false) {
         if ($raw) {
             $this->setRawOutput();
         }
-        
+
         if (trim($this->config->getValue('TemplateListInstitutes', 'template'))) {
             $content['PERS_BROWSER']['LISTINSTITUTES'] = $this->elements['TemplateListInstitutes']->toString(array('content' => $this->getContentListInstitutes(), 'subpart' => 'LIST_INSTITUTES'));
         }
@@ -189,18 +189,18 @@ class ExternModuleTemplatePersBrowse extends ExternModule {
         $content['__GLOBAL__'] = $this->global_markers;
         return $content;
     }
-    
+
     private function getContentListPersons () {
         if (!$nameformat = $this->config->getValue('Main', 'nameformat')) {
             $nameformat = 'full_rev';
         }
-        
+
         $selected_item_ids = $this->config->getValue('SelectInstitutes', 'institutesselected');
         // at least one institute has to be selected in the configuration
         if (!is_array($selected_item_ids)) {
             return array();
         }
-        
+
         $sort = $this->config->getValue('Main', 'sort');
         $query_order = '';
         foreach ($sort as $key => $position) {
@@ -212,13 +212,10 @@ class ExternModuleTemplatePersBrowse extends ExternModule {
             ksort($query_order, SORT_NUMERIC);
             $query_order = ' ORDER BY ' . implode(',', $query_order);
         }
-        
-        $module_params = $this->getModuleParams($this->approved_params);
-        
-        $db = new DB_Seminar();
-        
-        $dbv = DbView::getView('sem_tree');
 
+        $module_params = $this->getModuleParams($this->approved_params);
+
+        $dbv = DbView::getView('sem_tree');
         if ($module_params['initiale']) {
             if ($this->config->getValue('Main', 'onlylecturers')) {
                 $current_semester = get_sem_num(time());
@@ -235,7 +232,7 @@ class ExternModuleTemplatePersBrowse extends ExternModule {
                 . "AND ui.inst_perms = 'dozent' "
                 . "AND ui.externdefault = 1 "
                 . "AND " . get_ext_vis_query(),
-                substr($module_params['initiale'], 0, 1),
+                mb_substr($module_params['initiale'], 0, 1),
                 $dbv->sem_number_sql,
                 $current_semester,
                 $dbv->sem_number_sql,
@@ -254,7 +251,7 @@ class ExternModuleTemplatePersBrowse extends ExternModule {
                     . "AND ui.Institut_id IN ('%s') "
                     . "AND ui.externdefault = 1 "
                     . "AND " . get_ext_vis_query(),
-                    substr($module_params['initiale'], 0, 1),
+                    mb_substr($module_params['initiale'], 0, 1),
                     implode("','", $this->config->getValue('Main', 'instperms')),
                     implode("','", $selected_item_ids));
             }
@@ -298,17 +295,17 @@ class ExternModuleTemplatePersBrowse extends ExternModule {
         } else {
             return array();
         }
-            
-        $db->query($query);
-        
+
+        $rows = DBManager::get()->fetchAll($query);
+
         $user_list = array();
-        while ($db->next_record()) {
-            if (!isset($user_list[$db->f('user_id')])) {
-                $user_list[$db->f('user_id')] = $db->f('user_id') . $db->f('Institut_id');
+        foreach ($rows as $row) {
+            if (!isset($user_list[$row['user_id']])) {
+                $user_list[$row['user_id']] = $row['user_id'] . $row['Institut_id'];
             }
         }
-        
-        if (sizeof($user_list) == 0) {
+
+        if (count($user_list) === 0) {
             return array();
         }
 
@@ -325,29 +322,30 @@ class ExternModuleTemplatePersBrowse extends ExternModule {
             . "ORDER BY aum.Nachname ",
             $GLOBALS['_fullname_sql'][$nameformat],
             implode("','", $user_list));
-        $db->query($query);
-        
+
+        $rows = DBManager::get()->fetchAll($query);
+
         $j = 0;
-        while ($db->next_record()) {
-            $content['PERSONS']['PERSON'][$j]['FULLNAME'] = ExternModule::ExtHtmlReady($db->f('fullname'));
-            $content['PERSONS']['PERSON'][$j]['LASTNAME'] = ExternModule::ExtHtmlReady($db->f('Nachname'));
-            $content['PERSONS']['PERSON'][$j]['FIRSTNAME'] = ExternModule::ExtHtmlReady($db->f('Vorname'));
-            $content['PERSONS']['PERSON'][$j]['TITLEFRONT'] = ExternModule::ExtHtmlReady($db->f('title_front'));
-            $content['PERSONS']['PERSON'][$j]['TITLEREAR'] = ExternModule::ExtHtmlReady($db->f('title_rear'));
-            $content['PERSONS']['PERSON'][$j]['PERSONDETAIL-HREF'] = $this->elements['LinkInternPersondetails']->createUrl(array('link_args' => 'username=' . $db->f('username')));
-            $content['PERSONS']['PERSON'][$j]['USERNAME'] = $db->f('username');
-            $content['PERSONS']['PERSON'][$j]['INSTNAME'] = ExternModule::ExtHtmlReady($db->f('Name'));
-            $content['PERSONS']['PERSON'][$j]['PHONE'] = ExternModule::ExtHtmlReady($db->f('Telefon'));
-            $content['PERSONS']['PERSON'][$j]['ROOM'] = ExternModule::ExtHtmlReady($db->f('raum'));
-            $content['PERSONS']['PERSON'][$j]['EMAIL'] = ExternModule::ExtHtmlReady(get_visible_email($db->f('user_id')));
+        foreach ($rows as $row) {
+            $content['PERSONS']['PERSON'][$j]['FULLNAME'] = ExternModule::ExtHtmlReady($row['fullname']);
+            $content['PERSONS']['PERSON'][$j]['LASTNAME'] = ExternModule::ExtHtmlReady($row['Nachname']);
+            $content['PERSONS']['PERSON'][$j]['FIRSTNAME'] = ExternModule::ExtHtmlReady($row['Vorname']);
+            $content['PERSONS']['PERSON'][$j]['TITLEFRONT'] = ExternModule::ExtHtmlReady($row['title_front']);
+            $content['PERSONS']['PERSON'][$j]['TITLEREAR'] = ExternModule::ExtHtmlReady($row['title_rear']);
+            $content['PERSONS']['PERSON'][$j]['PERSONDETAIL-HREF'] = $this->elements['LinkInternPersondetails']->createUrl(array('link_args' => 'username=' . $row['username']));
+            $content['PERSONS']['PERSON'][$j]['USERNAME'] = $row['username'];
+            $content['PERSONS']['PERSON'][$j]['INSTNAME'] = ExternModule::ExtHtmlReady($row['Name']);
+            $content['PERSONS']['PERSON'][$j]['PHONE'] = ExternModule::ExtHtmlReady($row['Telefon']);
+            $content['PERSONS']['PERSON'][$j]['ROOM'] = ExternModule::ExtHtmlReady($row['raum']);
+            $content['PERSONS']['PERSON'][$j]['EMAIL'] = ExternModule::ExtHtmlReady(get_visible_email($row['user_id']));
             $content['PERSONS']['PERSON'][$j]['EMAIL-LOCAL'] = array_shift(explode('@', $content['PERSONS']['PERSON'][$j]['EMAIL']));
             $content['PERSONS']['PERSON'][$j]['EMAIL-DOMAIN'] = array_pop(explode('@', $content['PERSONS']['PERSON'][$j]['EMAIL']));
-            $content['PERSONS']['PERSON'][$j]['OFFICEHOURS'] = ExternModule::ExtHtmlReady($db->f('sprechzeiten'));
+            $content['PERSONS']['PERSON'][$j]['OFFICEHOURS'] = ExternModule::ExtHtmlReady($row['sprechzeiten']);
             $content['PERSONS']['PERSON'][$j]['PERSON-NO'] = $j + 1;
-            
+
             // generic data fields
             if (is_array($generic_datafields)) {
-                $localEntries = DataFieldEntry::getDataFieldEntries($db->f('user_id'), 'user');
+                $localEntries = DataFieldEntry::getDataFieldEntries($row['user_id'], 'user');
                 $k = 1;
                 foreach ($generic_datafields as $datafield) {
                     if (isset($localEntries[$datafield]) && is_object($localEntries[$datafield])) {
@@ -368,13 +366,13 @@ class ExternModuleTemplatePersBrowse extends ExternModule {
         if (!$module_params['initiale']) {
             $this->global_markers['INSTNAME'] = $content['PERSONS']['PERSON'][0]['INSTNAME'];
         } else {
-            $this->global_markers['CHARACTER'] = substr($module_params['initiale'], 0, 1);
+            $this->global_markers['CHARACTER'] = mb_substr($module_params['initiale'], 0, 1);
         }
-        
+
         return $content;
     }
-    
-    
+
+
     private function getContentListCharacters () {
         $selected_item_ids = $this->config->getValue('SelectInstitutes', 'institutesselected');
         // at least one institute has to be selected in the configuration
@@ -387,7 +385,6 @@ class ExternModuleTemplatePersBrowse extends ExternModule {
         if (!is_array($selected_item_ids)) {
             return array();
         }
-        $db = new DB_Seminar();
         $dbv = DbView::getView('sem_tree');
         if ($this->config->getValue('Main', 'onlylecturers')) {
             $current_semester = get_sem_num(time());
@@ -425,17 +422,18 @@ class ExternModuleTemplatePersBrowse extends ExternModule {
                 implode("','", $this->config->getValue('Main', 'instperms')),
                 implode("','", $selected_item_ids));
         }
-        
-        $db->query($query);
-        while ($db->next_record()) {
-            $content['LIST_CHARACTERS']['CHARACTER'][] = array(
-                'CHARACTER_USER' => ExternModule::ExtHtmlReady($db->f('initiale')),
-                'CHARACTER_COUNT_USER' => ExternModule::ExtHtmlReady($db->f('count_user')),
-                'URL_LIST_PERSONS' => $this->getLinkToModule('LinkInternListCharacters', array('initiale' => $db->f('initiale'))));
+
+        $rows = DBManager::get()->fetchAll($query);
+        foreach ($rows as $row) {
+            $content['LIST_CHARACTERS']['CHARACTER'][] = [
+                'CHARACTER_USER'       => ExternModule::ExtHtmlReady($row['initiale']),
+                'CHARACTER_COUNT_USER' => ExternModule::ExtHtmlReady($row['count_user']),
+                'URL_LIST_PERSONS'     => $this->getLinkToModule('LinkInternListCharacters', ['initiale' => $row['initiale']]),
+            ];
         }
         return $content;
     }
-    
+
     private function getContentListInstitutes () {
         $selected_item_ids = $this->config->getValue('SelectInstitutes', 'institutesselected');
         // at least one institute has to be selected in the configuration
@@ -443,12 +441,11 @@ class ExternModuleTemplatePersBrowse extends ExternModule {
             return array();
         }
         $content = array();
-        
+
         $first_levels = $this->range_tree->getKids('root');
     //  var_dump($first_levels);
         $current_semester = get_sem_num(time());
-        
-        $db_count = new DB_Seminar();
+
         $dbv = DbView::getView('sem_tree');
         $mrks = str_repeat('?,', count($selected_item_ids) - 1) . '?';
         $query = "SELECT Institut_id, Name "
@@ -495,12 +492,12 @@ class ExternModuleTemplatePersBrowse extends ExternModule {
                     $row['Institut_id'],
                     implode("','", $this->config->getValue('Main', 'instperms')));
             }
-            
-           
+
+
             $state = DBManager::get()->prepare($query);
             $state->execute($parameters);
             while ($row_count = $state->fetch(PDO::FETCH_ASSOC)) {
-            
+
                 if ($row_count['count_user'] > 0) {
                     $content['LIST_INSTITUTES']['INSTITUTE'][] = array(
                         'INSTITUTE_NAME' => ExternModule::ExtHtmlReady($row['Name']),
@@ -509,28 +506,28 @@ class ExternModuleTemplatePersBrowse extends ExternModule {
                 }
             }
         }
-        
+
         return $content;
     }
-    
+
     public function printout ($args) {
         if (!$language = $this->config->getValue("Main", "language"))
             $language = "de_DE";
         init_i18n($language);
-        
+
         echo $this->elements['TemplateMain']->toString(array('content' => $this->getContent($args), 'subpart' => 'PERS_BROWSE'));
-        
+
     }
-    
+
     public function printoutPreview () {
         if (!$language = $this->config->getValue("Main", "language"))
             $language = "de_DE";
         init_i18n($language);
-        
+
         echo $this->elements['TemplateMain']->toString(array('content' => $this->getContent(), 'subpart' => 'PERS_BROWSE', 'hide_markers' => FALSE));
-        
+
     }
-    
+
 }
 
 ?>

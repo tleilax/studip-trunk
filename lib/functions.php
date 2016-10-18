@@ -68,7 +68,7 @@ function getHeaderLine($id, $object_name = null)
     }
     $header_line = $object_name['type'];
     if ($object_name['name']) $header_line.=": ";
-    if (studip_strlen($object_name['name']) > 60){
+    if (mb_strlen($object_name['name']) > 60){
             $header_line .= studip_substr($object_name['name'], 0, 60);
             $header_line .= "... ";
     } else {
@@ -513,7 +513,7 @@ function select_group($sem_start_time)
  * The function shortens a string, but it uses the first 2/3 and the last 1/3
  *
  * The parts will be divided by a "[...]". The functions is to use like php's
- * substr function.
+ * mb_substr function.
  *
  * @param string  $what  the original string
  * @param integer $start start pos, 0 is the first pos
@@ -526,33 +526,12 @@ function select_group($sem_start_time)
 function my_substr($what, $start, $end)
 {
     $length=$end-$start;
-    $what_length = studip_strlen($what);
-    // adding 5 because: strlen("[...]") == 5
+    $what_length = mb_strlen($what);
+    // adding 5 because: mb_strlen("[...]") == 5
     if ($what_length > $length + 5) {
         $what=studip_substr($what, $start, round(($length / 3) * 2))."[...]".studip_substr($what, $what_length - round($length / 3), $what_length);
     }
     return $what;
-}
-
-/**
- * The function gives the global perm of an user
- *
- * It ist recommended to use $auth->auth["perm"] for this query,
- * but the function is useful, if you want to query an user_id from another user
- * (which ist not the current user)
- *
- * @deprecated   use $GLOBALS['perm']->get_perm($user_id)
- *
- * @param string $user_id if omitted, current user_id is used
- *
- * @return string  the perm level or an error msg
- *
- */
-function get_global_perm($user_id = "")
-{
-    global $perm;
-    $status = $perm->get_perm($user_id);
-    return (!$status) ? _("Fehler!") : $status;
 }
 
 /**
@@ -875,34 +854,6 @@ function check_and_set_date($tag, $monat, $jahr, $stunde, $minute, &$arr, $field
     return $check;
 }
 
-/**
- * writes an entry into the studip configuration table
- *
- * @deprecated
- * @param string $key the key for the config entry
- * @param string $val the value that should be set
- * @param array  $arr an array with key=>value to write into config
- *
- * @return bool  true if date was valid, else false
- */
-function write_config ($key, $val, $arr = null)
-{
-    if (is_null($arr)) {
-        $arr[$key] = $val;
-    }
-    $config = Config::get();
-    if (is_array($arr)) {
-        foreach ($arr as $key => $val) {
-            if (isset($config->$key)) {
-                $config->store($key, $val);
-            } else {
-                $config->create($key, array('value' => $val, 'type' => 'string'));
-            }
-            $GLOBALS[$key] = $config->$key;
-        }
-    }
-
-}
 
 /**
  * gets an entry from the studip configuration table
@@ -1083,11 +1034,11 @@ function get_seminars_user($user_id)
  */
 function StringToFloat($str)
 {
-    $str = substr((string)$str,0,13);
+    $str = mb_substr((string)$str,0,13);
     $locale = localeconv();
     $from = ($locale["thousands_sep"] ? $locale["thousands_sep"] : ',');
     $to = ($locale["decimal_point"] ? $locale["decimal_point"] : '.');
-    if(strstr($str, $from)){
+    if(mb_strstr($str, $from)){
         $conv_str = str_replace($from, $to, $str);
         $my_float = (float)$conv_str;
         if ($conv_str === (string)$my_float) return $my_float;
@@ -1171,7 +1122,8 @@ function get_users_online($active_time = 5, $name_format = 'full_rev')
 
     $query = "SELECT a.username AS temp, a.username, {$GLOBALS['_fullname_sql'][$name_format]} AS name,
                      ABS(CAST(UNIX_TIMESTAMP() AS SIGNED) - CAST(last_lifesign AS SIGNED)) AS last_action,
-                     a.user_id, IF(owner_id IS NOT NULL, 1, 0) AS is_buddy, " . get_vis_query('a', 'online') . " AS is_visible
+                     a.user_id, IF(owner_id IS NOT NULL, 1, 0) AS is_buddy, " . get_vis_query('a', 'online') . " AS is_visible,
+                     a.visible
               FROM user_online uo
               JOIN auth_user_md5 a ON (a.user_id = uo.user_id)
               LEFT JOIN user_info ON (user_info.user_id = uo.user_id)
@@ -1586,7 +1538,7 @@ function text_excerpt($text, $phrase, $radius = 100, $length = 200,
     return '';
   }
 
-  $found_pos = strpos(strtolower($text), strtolower($phrase));
+  $found_pos = mb_strpos(mb_strtolower($text), mb_strtolower($phrase));
 
   if ($found_pos === FALSE) {
     $start_pos = 0;
@@ -1595,17 +1547,17 @@ function text_excerpt($text, $phrase, $radius = 100, $length = 200,
     $start_pos = max($found_pos - $radius, 0);
   }
 
-  $end_pos = $start_pos + $length - strlen($excerpt_string);
+  $end_pos = $start_pos + $length - mb_strlen($excerpt_string);
   if ($start_pos !== 0) {
-    $end_pos -= strlen($excerpt_string);
+    $end_pos -= mb_strlen($excerpt_string);
   }
 
-  $end_pos = min($end_pos, strlen($text));
+  $end_pos = min($end_pos, mb_strlen($text));
 
   $prefix = $start_pos > 0 ? $excerpt_string : '';
-  $postfix = $end_pos < strlen($text) ? $excerpt_string : '';
+  $postfix = $end_pos < mb_strlen($text) ? $excerpt_string : '';
 
-  return $prefix.substr($text, $start_pos, $end_pos - $start_pos).$postfix;
+  return $prefix.mb_substr($text, $start_pos, $end_pos - $start_pos).$postfix;
 }
 
 /**
@@ -1716,6 +1668,40 @@ function studip_utf8decode($data)
 }
 
 /**
+ * Special stud.ip version of json_decode() that also converts the data
+ * from utf8 and creates an associative array by default (this differs
+ * from the default behavior of json_decode() !).
+ *
+ * @param String $json
+ * @param bool   $assoc
+ * @param int    $depth
+ * @param int    $options
+ */
+function studip_json_decode($json, $assoc = true, $depth = 512, $options = 0)
+{
+    $data = json_decode($json, $assoc, $depth, $options);
+    $data = studip_utf8decode($data);
+
+    return $data;
+}
+
+/**
+ * Special stud.ip version of json_decode() that also converts the data
+ * to utf8.
+ *
+ * @param mixed $data
+ * @param int   $options
+ * @param int   $depth
+ */
+function studip_json_encode($data, $options = 0)
+{
+    $data = studip_utf8encode($data);
+    $json = json_encode($data, $options);
+
+    return $json;
+}
+
+/**
  * Get the title used for the given status ('dozent', 'tutor' etc.) for the
  * specified SEM_TYPE. Alternative titles can be defined in the config.inc.php.
  *
@@ -1751,7 +1737,7 @@ function get_title_for_status($type, $count, $sem_type = NULL)
 }
 
 /**
- * Stud.IP encoding aware version of good ol' substr(), treats numeric HTML-ENTITIES as one character
+ * Stud.IP encoding aware version of good ol' mb_substr(), treats numeric HTML-ENTITIES as one character
  * use only if really necessary
  *
  * @param string  $string string to shorten
@@ -1763,7 +1749,7 @@ function get_title_for_status($type, $count, $sem_type = NULL)
 function studip_substr($string, $offset, $length = false)
 {
     if(!preg_match("'&#[0-9]+;'", $string)){
-        return substr($string, $offset, $length);
+        return mb_substr($string, $offset, $length);
     }
     $utf8string = studip_utf8encode($string);
     if ($length === false) {
@@ -1774,19 +1760,18 @@ function studip_substr($string, $offset, $length = false)
 }
 
 /**
- * Stud.IP encoding aware version of good ol' strlen(), treats numeric HTML-ENTITIES as one character
+ * Stud.IP encoding aware version of good ol' mb_strlen(), treats numeric HTML-ENTITIES as one character
  * use only if really necessary
  *
  * @param string $string the string to measure
  *
  * @return integer  the number of characters in string
+ *
+ * @deprecated
  */
 function studip_strlen($string)
 {
-    if(!preg_match("'&#[0-9]+;'", $string)){
-        return strlen($string);
-    }
-    return mb_strlen(studip_utf8encode($string), 'UTF-8');
+    return mb_strlen($string);
 }
 
 /**
@@ -1800,11 +1785,11 @@ function studip_strlen($string)
 function is_internal_url($url)
 {
     if (preg_match('%^[a-z]+:%', $url)) {
-        return strpos($url, $GLOBALS['ABSOLUTE_URI_STUDIP']) === 0;
+        return mb_strpos($url, $GLOBALS['ABSOLUTE_URI_STUDIP']) === 0;
     }
 
     if ($url[0] === '/') {
-        return strpos($url, $GLOBALS['CANONICAL_RELATIVE_PATH_STUDIP']) === 0;
+        return mb_strpos($url, $GLOBALS['CANONICAL_RELATIVE_PATH_STUDIP']) === 0;
     }
 
     return true;
@@ -2023,12 +2008,12 @@ function relsize($size, $verbose = true, $displayed_levels = 1, $glue = ', ', $t
  */
 function get_route($route = '')
 {
-    $route = substr(parse_url($route ?: $_SERVER['REQUEST_URI'], PHP_URL_PATH), strlen($GLOBALS['CANONICAL_RELATIVE_PATH_STUDIP']));
-    if (strpos($route, 'plugins.php/') !== false) {
+    $route = mb_substr(parse_url($route ?: $_SERVER['REQUEST_URI'], PHP_URL_PATH), mb_strlen($GLOBALS['CANONICAL_RELATIVE_PATH_STUDIP']));
+    if (mb_strpos($route, 'plugins.php/') !== false) {
         $trails = explode('plugins.php/', $route);
         $pieces = explode('/', $trails[1]);
         $route = 'plugins.php/' . $pieces[0] . ($pieces[1] ? '/' . $pieces[1] : '') . ($pieces[2] ? '/' . $pieces[2] : '');
-    } elseif (strpos($route, 'dispatch.php/') !== false) {
+    } elseif (mb_strpos($route, 'dispatch.php/') !== false) {
         $trails = explode('dispatch.php/', $route);
         $dispatcher = new StudipDispatcher();
         $pieces = explode('/', $trails[1]);
@@ -2039,8 +2024,8 @@ function get_route($route = '')
             }
         }
     }
-    while (substr($route, strlen($route)-6, 6) == '/index') {
-        $route = substr($route, 0, strlen($route)-6);
+    while (mb_substr($route, mb_strlen($route)-6, 6) == '/index') {
+        $route = mb_substr($route, 0, mb_strlen($route)-6);
     }
     return $route;
 }
@@ -2084,7 +2069,7 @@ function studip_default_exception_handler($exception) {
 
     // send exception to metrics backend
     if (class_exists('Metrics')) {
-        $exception_class = strtolower(
+        $exception_class = mb_strtolower(
             preg_replace(
                 '/(?<=\w)([A-Z])/',
                 '_\\1',
@@ -2145,12 +2130,12 @@ function studip_default_exception_handler($exception) {
  * @return String containing the converted input string
  */
 function strtocamelcase($string, $ucfirst = false) {
-    $string = strtolower($string);
+    $string = mb_strtolower($string);
     $chunks = preg_split('/\W+/', $string);
     $chunks = array_map('ucfirst', $chunks);
 
     if (!$ucfirst && count($chunks) > 0) {
-        $chunks[0] = strtolower($chunks[0]);
+        $chunks[0] = mb_strtolower($chunks[0]);
     }
 
     return implode($chunks);
@@ -2165,7 +2150,7 @@ function strtocamelcase($string, $ucfirst = false) {
 function strtosnakecase($string) {
     $string = preg_replace('/\W+/', '_', $string);
     $string = preg_replace('/(?<!^)[A-Z]/', '_$0', $string);
-    $string = strtolower($string);
+    $string = mb_strtolower($string);
     return $string;
 }
 

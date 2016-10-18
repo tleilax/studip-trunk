@@ -82,7 +82,7 @@ $template_multiple = Request::get('template_multiple',$template_multiple) ;
 $template_answers = Request::getArray('template_answers');
 $template_add_num_answers = Request::get('template_add_num_answers') ? Request::get('template_add_num_answers') : $template_add_num_answers;
 if( empty($template_answers) ) {
-    if( strstr( $command, "edit" ))
+    if( mb_strstr( $command, "edit" ))
    for( $i=0; $i<5; $i++ )
        $template_answers[$i] = $lib->makeNewAnswer();
     else
@@ -327,12 +327,7 @@ $tableA->attr ("cellspacing", "0");
 $tableA->attr ("cellpadding", "2");
 $tableA->attr ("width", "250");
 
-$trA = new HTM( "tr" );
-$tdA = new HTM( "td" );
-$tdA->attr( "class", "blank" );
-$tdA->html( $lib->createInfoBox($command) );
-$trA->cont( $tdA );
-$tableA->cont( $trA );
+$lib->createInfoBox();
 
 $trA = new HTM( "tr" );
 $tdA = new HTM( "td" );

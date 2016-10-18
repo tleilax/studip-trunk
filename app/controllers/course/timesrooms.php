@@ -93,13 +93,16 @@ class Course_TimesroomsController extends AuthenticatedController
             if ($semester_id === 'all') {
                 $semester_id = '';
             }
-            $this->response->add_header('X-Raumzeit-Update-Times', json_encode(studip_utf8encode(array(
-                                                                                                     'course_id' => $this->course->id,
-                                                                                                     'html'      => $this->course->getDatesHTML(array(
-                                                                                                                                                    'semester_id' => $semester_id,
-                                                                                                                                                    'show_room'   => true,
-                                                                                                                                                )) ?: _('nicht angegeben'),
-                                                                                                 ))));
+            $this->response->add_header(
+                'X-Raumzeit-Update-Times',
+                json_encode(studip_utf8encode([
+                    'course_id' => $this->course->id,
+                    'html'      => $this->course->getDatesHTML([
+                        'semester_id' => $semester_id,
+                        'show_room'   => true,
+                    ]) ?: _('nicht angegeben'),
+                ]))
+            );
         }
     }
 
@@ -216,12 +219,11 @@ class Course_TimesroomsController extends AuthenticatedController
             $this->resList = ResourcesUserRoomsList::getInstance($GLOBALS['user']->id, true, false, true);
         }
 
-        $this->dozenten = $this->course->getMembers('dozent');
-        $this->gruppen  = Statusgruppen::findBySeminar_id($this->course->id);
+        $this->teachers          = $this->course->getMembersWithStatus('dozent');
+        $this->assigned_teachers = $this->date->dozenten;
 
-        $this->related_persons = $this->date->dozenten->pluck('user_id');
-
-        $this->related_groups = $this->date->statusgruppen->pluck('statusgruppe_id');
+        $this->groups          = $this->course->statusgruppen;
+        $this->assigned_groups = $this->date->statusgruppen;
     }
 
 
@@ -242,9 +244,7 @@ class Course_TimesroomsController extends AuthenticatedController
 
         $time_changed = ($date != $termin->date || $end_time != $termin->end_time);
         //time changed for regular date. create normal singledate and cancel the regular date
-        if (($termin->metadate_id != '' || isset($termin->metadate_id))
-            && $time_changed
-        ) {
+        if ($termin->metadate_id && $time_changed) {
             $termin_values = $termin->toArray();
             $termin_info   = $termin->getFullname();
 
@@ -262,38 +262,30 @@ class Course_TimesroomsController extends AuthenticatedController
         $termin->end_time = $end_time;
         $termin->date_typ = Request::get('course_type');
 
-        $related_groups        = Request::get('related_statusgruppen');
-        $gruppen               = Statusgruppen::findBySeminar_id($this->course->id);
-        $termin->statusgruppen = array();
-        $related_groups        = explode(',', $related_groups);
-        if (!empty($related_groups) && count($gruppen) !== count($related_groups)) {
-            $termin->statusgruppen = Statusgruppen::findMany($related_groups);
-        }
+        // Set assigned teachers
+        $assigned_teachers = Request::optionArray('assigned_teachers');
+        $dozenten          = $this->course->getMembers('dozent');
+        $termin->dozenten  = count($dozenten) !== count($assigned_teachers)
+                          ? User::findMany($assigned_teachers)
+                          : [];
 
-        $related_users    = Request::get('related_teachers');
-        $dozenten         = $this->course->getMembers('dozent');
-        $termin->dozenten = array();
-        $related_users    = explode(',', $related_users);
-        if (!empty($related_users) && count($dozenten) !== count($related_users)) {
-            $termin->dozenten = User::findMany($related_users);
-        }
+        // Set assigned groups
+        $assigned_groups       = Request::optionArray('assigned_groups');
+        $termin->statusgruppen = Statusgruppen::findMany($assigned_groups);
 
-        
-
-        
         // Set Room
         $singledate = new SingleDate($termin);
         if (Request::option('room') == 'room') {
             $room_id = Request::option('room_sd');
-            
-            if ($room_id && ($room_id != $termin->room_assignment->resource_id 
-                    || $time_changed )) 
+
+            if ($room_id && ($room_id != $termin->room_assignment->resource_id
+                    || $time_changed ))
                 {
-                
+
                 if (!is_null($termin->room_assignment->resource_id)) {
                     $singledate->resource_id = $room_id;
                 }
-                
+
                 if ($resObj = $singledate->bookRoom($room_id)) {
                     $messages = $singledate->getMessages();
                     if (isset($messages['error'])) {
@@ -318,7 +310,7 @@ class Course_TimesroomsController extends AuthenticatedController
         if ($termin->store()) {
             NotificationCenter::postNotification('CourseDidChangeSchedule', $this->course);
         }
-        
+
         $this->displayMessages();
         $this->redirect($this->url_for('course/timesrooms/index', ['contentbox_open' => $termin->metadate_id]));
     }
@@ -368,21 +360,16 @@ class Course_TimesroomsController extends AuthenticatedController
         $termin->autor_id  = $GLOBALS['user']->id;
         $termin->date_typ  = Request::get('dateType');
 
-        $teachers = $this->course->getMembers('dozent');
-        foreach (Request::getArray('related_teachers') as $dozent_id) {
-            if (in_array($dozent_id, array_keys($teachers))) {
-                $related_persons[] = User::find($dozent_id);
-            }
-        }
-        if (isset($related_persons)) {
-            $termin->dozenten = $related_persons;
+        $current_count = CourseMember::countByCourseAndStatus($this->course->id, 'dozent');
+        $related_ids   = Request::optionArray('related_teachers');
+        if ($related_ids && count($related_ids) !== $current_count) {
+            $termin->dozenten = User::findMany($related_ids);
         }
 
-        foreach (Request::getArray('related_statusgruppen') as $statusgruppe_id) {
-            $related_groups[] = Statusgruppen::find($statusgruppe_id);
-        }
-        if (isset($related_groups)) {
-            $termin->statusgruppen = $related_groups;
+        $groups = Statusgruppen::findBySeminar_id($this->course->id);
+        $related_groups = Request::getArray('related_statusgruppen');
+        if ($related_groups && count($related_groups) !== count($groups)) {
+            $termin->statusgruppen = Statusgruppen::findMany($related_groups);
         }
 
         if (!Request::get('room') || Request::get('room') === 'nothing') {
@@ -781,14 +768,14 @@ class Course_TimesroomsController extends AuthenticatedController
                 $weeks        = $sem->getStartWeeks($sem_duration);
 
                 foreach ($this->start_weeks as $key => $week) {
-                    if (strpos($week, substr($weeks[0], -15)) !== false) {
+                    if (mb_strpos($week, mb_substr($weeks[0], -15)) !== false) {
                         $this->end_semester_weeks['start'][] = array('value' => $key, 'label' => sprintf(_('Anfang %s'), $sem->name));
                     }
-                    if (strpos($week, substr($weeks[count($weeks) - 1], -15)) !== false) {
+                    if (mb_strpos($week, mb_substr($weeks[count($weeks) - 1], -15)) !== false) {
                         $this->end_semester_weeks['ende'][] = array('value' => $key + 1, 'label' => sprintf(_('Ende %s'), $sem->name));
                     }
                     foreach ($weeks as $val) {
-                        if (strpos($week, substr($val, -15)) !== false) {
+                        if (mb_strpos($week, mb_substr($val, -15)) !== false) {
                             $this->clean_weeks[$sem->name][$key] = $val;
                         }
                     }
@@ -835,7 +822,7 @@ class Course_TimesroomsController extends AuthenticatedController
 
         if ($cycle->store()) {
             $cycle_info = $cycle->toString();
-            NotificationCenter::postNotification('CourseDidChangeSchedule', $this);
+            NotificationCenter::postNotification('CourseDidChangeSchedule', $this->course);
 
             $this->course->createMessage(sprintf(_('Die regelmäßige Veranstaltungszeit %s wurde hinzugefügt!'), $cycle_info));
             $this->displayMessages();
@@ -950,7 +937,8 @@ class Course_TimesroomsController extends AuthenticatedController
     {
         if (!$this->locked) {
             $actions = new ActionsWidget();
-            $actions->addLink(_('Startsemester ändern'), $this->url_for('course/timesrooms/editSemester'), Icon::create('date', 'clickable'))->asDialog('size=400');
+            $actions->addLink(sprintf(_('Startsemester ändern (%s)'), $this->course->start_semester->name),
+                              $this->url_for('course/timesrooms/editSemester'), Icon::create('date', 'clickable'))->asDialog('size=400');
             Sidebar::Get()->addWidget($actions);
         }
 
@@ -1060,7 +1048,7 @@ class Course_TimesroomsController extends AuthenticatedController
         $new_offset_value  = 0;
 
         foreach ($new_start_weeks as $value => $label) {
-            if (strpos($label, substr($old_offset_string, -15)) !== false) {
+            if (mb_strpos($label, mb_substr($old_offset_string, -15)) !== false) {
                 $new_offset_value = $value;
             }
         }
@@ -1139,10 +1127,10 @@ class Course_TimesroomsController extends AuthenticatedController
 
         if (Request::isXhr()) {
             $url       = call_user_func_array('parent::url_for', $arguments);
-            $url_chunk = Trails_Inflector::underscore(substr(get_class($this), 0, -10));
+            $url_chunk = Trails_Inflector::underscore(mb_substr(get_class($this), 0, -10));
             $index_url = $url_chunk . '/index';
 
-            if (strpos($url, $index_url) !== false) {
+            if (mb_strpos($url, $index_url) !== false) {
                 $this->flash['update-times'] = $this->course->id;
             }
         }

@@ -33,36 +33,31 @@ class ForumBulkMail extends Messaging {
      */
     function sendingEmail($rec_user_id, $snd_user_id, $message, $subject, $message_id)
     {
-        global $user;
-
-        $db4 = new DB_Seminar("SELECT user_id, Email FROM auth_user_md5 WHERE user_id = '$rec_user_id';");
-        $db4->next_record();
-
-        if ($to = $db4->f("Email")) {
+        $receiver = User::find($rec_user_id);
+        
+        if ($receiver && $receiver->email) {
             $rec_fullname = 'Sie';
 
-            setTempLanguage($db4->f("user_id"));
+            setTempLanguage($receiver->id);
 
             if (empty($this->bulk_mail[md5($message)][getenv('LANG')])) {
 
                 $title = "[Stud.IP - " . $GLOBALS['UNI_NAME_CLEAN'] . "] ".stripslashes(kill_format(str_replace(array("\r","\n"), '', $subject)));
 
                 if ($snd_user_id != "____%system%____") {
-                    $snd_fullname = get_fullname($snd_user_id);
-                    $db4->query("SELECT Email FROM auth_user_md5 WHERE user_id = '$user->id'");
-                    $db4->next_record();
-                    $reply_to = $db4->f("Email");
+                    $sender = User::find($snd_user_id);
+                    $reply_to = $sender->email;
                 }
 
                 $template = $GLOBALS['template_factory']->open('mail/text');
-                $template->set_attribute('message', kill_format(stripslashes($message)));
-                $template->set_attribute('rec_fullname', $rec_fullname);
+                $template->message      = kill_format(stripslashes($message));
+                $template->rec_fullname = $reciver->getFullname();
                 $mailmessage = $template->render();
 
                 $template = $GLOBALS['template_factory']->open('mail/html');
-                $template->set_attribute('lang', getUserLanguagePath($rec_user_id));
-                $template->set_attribute('message', stripslashes($message));
-                $template->set_attribute('rec_fullname', $rec_fullname);
+                $template->lang         = getUserLanguagePath($rec_user_id);
+                $template->message      = stripslashes($message);
+                $template->rec_fullname = $receiver->getFullname();
                 $mailhtml = $template->render();
 
                 $this->bulk_mail[md5($message)][getenv('LANG')] = array(
@@ -75,7 +70,7 @@ class ForumBulkMail extends Messaging {
                 );
             }
 
-            $this->bulk_mail[md5($message)][getenv('LANG')]['users'][$db4->f('user_id')] = $to;
+            $this->bulk_mail[md5($message)][getenv('LANG')]['users'][$receiver->id] = $receiver->email;
 
             restoreLanguage();
         }
@@ -103,7 +98,7 @@ class ForumBulkMail extends Messaging {
                 $mail->setReplyToEmail('')
                 ->setBodyText($data['text']);
 
-                if (strlen($data['reply_to'])) {
+                if (mb_strlen($data['reply_to'])) {
                     $mail->setSenderEmail($data['reply_to'])
                          ->setSenderName($snd_fullname);
                 }
@@ -114,8 +109,9 @@ class ForumBulkMail extends Messaging {
                 }
 
                 if($GLOBALS["ENABLE_EMAIL_ATTACHMENTS"]){
-                    foreach(get_message_attachments($data['message_id']) as $attachment){
-                        $mail->addStudipAttachment($attachment['dokument_id']);
+                    $message = Message::find($data['message_id']);
+                    foreach($message->attachments as $attachment){
+                        $mail->addStudipAttachment($attachment->id);
                     }
                 }
                 $mail->send();

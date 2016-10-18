@@ -76,7 +76,7 @@ class Course_StudygroupController extends AuthenticatedController
         global $perm;
         $studygroup = new Seminar($id);
         if (Request::isXhr()) {
-            header('X-Title: ' . _('Studiengruppendetails'));
+            PageLayout::setTitle(_('Studiengruppendetails'));
         } else {
             PageLayout::setTitle(getHeaderLine($id) . ' - ' . _('Studiengruppendetails'));
             PageLayout::setHelpKeyword('Basis.StudiengruppenAbonnieren');
@@ -102,10 +102,11 @@ class Course_StudygroupController extends AuthenticatedController
                 $send_from_search_page = Request::get('send_from_search_page');
             }
 
-            $icon = Icon::create('schedule', 'info');
+            $icon = Icon::create('schedule', 'clickable');
             if ($GLOBALS['perm']->have_studip_perm('autor', $studygroup->getId()) || $membership_requested) {
                 $action = _("Persönlicher Status:");
                 if ($membership_requested) {
+                    $icon = $icon->copyWithRole('info');
                     $infotext = _("Mitgliedschaft bereits beantragt!");
                 } else {
                     $infolink = URLHelper::getURL('seminar_main.php?auswahl=' . $studygroup->getId());
@@ -1002,12 +1003,12 @@ class Course_StudygroupController extends AuthenticatedController
         $perm->check("root");
         PageLayout::setHelpKeyword('Admin.Studiengruppen');
 
-        if (Request::quoted('institute') == 'invalid') {
-            $errors[] = _("Bitte wählen Sie eine Einrichtung aus, der die Studiengruppen zugeordnet werden sollen!");
+        if (!Request::get('institute')) {
+            $errors[] = _('Bitte wählen Sie eine Einrichtung aus, der die Studiengruppen zugeordnet werden sollen!');
         }
 
-        if (!Request::quoted('terms') || Request::quoted('terms') == 'invalid') {
-            $errors[] = _("Bitte tragen Sie Nutzungsbedingungen ein!");
+        if (!trim(Request::get('terms'))) {
+            $errors[] = _('Bitte tragen Sie Nutzungsbedingungen ein!');
         }
 
         if ($errors) {
@@ -1024,8 +1025,8 @@ class Course_StudygroupController extends AuthenticatedController
             }
 
             if (Request::get('institute')) {
-                $cfg->store('STUDYGROUP_DEFAULT_INST', Request::quoted('institute'));
-                $cfg->store('STUDYGROUP_TERMS', Request::quoted('terms'));
+                $cfg->store('STUDYGROUP_DEFAULT_INST', Request::get('institute'));
+                $cfg->store('STUDYGROUP_TERMS', Request::get('terms'));
                 $this->flash['success'] = _("Die Einstellungen wurden gespeichert!");
             } else {
                 $this->flash['error'] = _("Fehler beim Speichern der Einstellung!");
@@ -1071,7 +1072,7 @@ class Course_StudygroupController extends AuthenticatedController
     public function message_action($id)
     {
         $sem = Course::find($id);
-        if (studip_strlen($sem->getFullname()) > 32) {//cut subject if to long
+        if (mb_strlen($sem->getFullname()) > 32) {//cut subject if to long
             $subject = sprintf(_("[Studiengruppe: %s...]"), studip_substr($sem->getFullname(), 0, 30));
         } else {
             $subject = sprintf(_("[Studiengruppe: %s]"), $sem->getFullname());

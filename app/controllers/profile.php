@@ -28,9 +28,6 @@ class ProfileController extends AuthenticatedController
         URLHelper::removeLinkParam('cid');
         unset($_SESSION['SessionSeminar']);
 
-        $this->set_layout($GLOBALS['template_factory']->open('layouts/base_without_infobox'));
-
-
         Navigation::activateItem('/profile/index');
         URLHelper::addLinkParam('username', Request::username('username'));
         PageLayout::setHelpKeyword('Basis.Homepage');
@@ -81,9 +78,6 @@ class ProfileController extends AuthenticatedController
             }
         }
 
-        // Get Avatar
-        $this->avatar   = Avatar::getAvatar($this->current_user->user_id)->getImageTag(Avatar::NORMAL);
-
         // GetScroreList
         if (get_config('SCORE_ENABLE')) {
             if ($this->current_user->user_id === $GLOBALS['user']->id || $this->current_user->score) {
@@ -103,8 +97,6 @@ class ProfileController extends AuthenticatedController
         // skype informations
         if (get_config('ENABLE_SKYPE_INFO') && $this->profile->checkVisibility('skype_name')) {
             $this->skype_name   = UserConfig::get($this->current_user->user_id)->SKYPE_NAME;
-            $this->skype_status = UserConfig::get($this->current_user->user_id)->SKYPE_ONLINE_STATUS
-                                  && $this->profile->checkVisibility('skype_online_status');
         }
 
         // get generic datafield entries
@@ -112,13 +104,15 @@ class ProfileController extends AuthenticatedController
         $this->longDatafields   = $this->profile->getLongDatafields();
 
         // get working station of an user (institutes)
-        $this->institutes = $this->profile->getInstitutInformations();
+        $this->institutes = $this->getInstitutInformations();
 
         // get studying informations of an user
         if ($this->current_user->perms != 'dozent') {
-            $study_institutes = UserModel::getUserInstitute($this->current_user->user_id, true);
 
-            if (count($study_institutes) > 0 && $this->profile->checkVisibility('studying')) {
+            if (count($this->current_user->institute_memberships) > 0 && $this->profile->checkVisibility('studying')) {
+                $study_institutes = $this->current_user->institute_memberships->filter(function($a) {
+                    return $a->inst_perms == 'user';
+                });
                 $this->study_institutes = $study_institutes;
             }
         }
@@ -263,9 +257,55 @@ class ProfileController extends AuthenticatedController
         $current->contacts[] = $user;
         $current->store();
 
-        PageLayout::postMessage(MessageBox::success(_('Der Nutzer wurde zu Ihren Kontakten hinzugefügt.')));
+        PageLayout::postSuccess(_('Der Nutzer wurde zu Ihren Kontakten hinzugefügt.'));
         $this->redirect('profile/index?username=' . $username);
     }
 
+
+    private function getInstitutInformations()
+    {
+        $institutes = $this->current_user->institute_memberships->filter(function($member) {
+            return $member->inst_perms !== 'user'
+                && $member->visible;
+        });
+
+//        var_dump($institutes);die;
+
+        $institutes = $institutes->orderBy('priority asc');
+        $institutes = $institutes->toArray();
+
+        foreach ($institutes as $id => $institute) {
+            $entries = DataFieldEntry::getDataFieldEntries([
+                $this->current_user->user_id,
+                $institute['institut_id']
+            ]);
+
+            foreach ($entries as $entry) {
+                $view      = $entry->isVisible(null, false);
+                $show_star = false;
+
+                if (!$view && $entry->isVisible()) {
+                    $view      = true;
+                    $show_star = true;
+                }
+
+                if (trim($entry->getValue()) && $view) {
+                    $institutes[$id]['datafield'][] = array(
+                        'name'      => $entry->getName(),
+                        'value'     => $entry->getDisplayValue(),
+                        'show_star' => $show_star,
+                    );
+                }
+            }
+
+            $groups          = GetAllStatusgruppen($institute['institut_id'], $this->current_user->user_id);
+            $default_entries = $entries; 
+            $data            = get_role_data_recursive($groups, 
+$this->current_user->user_id, $default_entries);
+
+            $institutes[$id]['role'] = $data['standard'];
+        }
+        return $institutes;
+    }
 }
 

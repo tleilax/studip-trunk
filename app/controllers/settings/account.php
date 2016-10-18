@@ -19,7 +19,7 @@ require_once 'settings.php';
 class Settings_AccountController extends Settings_SettingsController
 {
     /**
-     * Set up this controller and define the infobox
+     * Set up this controller
      *
      * @param String $action Name of the action to be invoked
      * @param Array  $args   Arguments to be passed to the action method
@@ -139,36 +139,19 @@ class Settings_AccountController extends Settings_SettingsController
                 } else if ($email1 !== $email2) {
                     $errors[] = _('Die Wiederholung der E-Mail-Adresse stimmt nicht mit Ihrer Eingabe überein.');
                 } else {
-                    $result   = edit_email($this->user, $email1);
-                    $messages = explode('§', $result[1]);
-
-                    if ($result[0]) {
-                        $this->user->Email = $email1;
-
-                        if (count($messages) < 2) {
-                            $success[] = _('Ihre E-Mail-Adresse wurde geändert!');
-                        }
-                    }
-
-                    for ($i = 0; $i < count($messages); $i += 2) {
-                        $type = $messages[$i];
-                        if ($type === 'msg') {
-                            $type = 'success';
-                        } else if ($type === 'error') {
-                            $type = 'errors';
-                        }
-                        ${$type}[] = $messages[$i + 1];
+                    if ($this->user->changeEmail($email1)) {
+                        $this->user->email = $email1;
                     }
                 }
             }
         }
 
         if (count($errors) > 0) {
-            $this->reportErrorWithDetails(_('Bitte überprüfen Sie Ihre Eingaben:'), $errors);
+            PageLayout::postError(_('Bitte überprüfen Sie Ihre Eingaben:'), $errors);
         } else if ($this->user->store()) {
-            $this->reportSuccessWithDetails(_('Ihre Nutzerdaten wurden geändert.'), $success);
+            PageLayout::postSuccess(_('Ihre Nutzerdaten wurden geändert.'), $success);
             if (count($info) > 0) {
-                $this->reportInfoWithDetails(_('Bitte beachten Sie:'), $info);
+                PageLayout::postInfo(_('Bitte beachten Sie:'), $info);
             }
         }
 

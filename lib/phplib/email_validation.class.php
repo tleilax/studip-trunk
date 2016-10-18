@@ -37,15 +37,15 @@ class email_validation_class
             $separator=$string;
             $string=$this->next_token;
         }
-        for($character=0;$character<strlen($separator);$character++)
+        for($character=0;$character<mb_strlen($separator);$character++)
         {
-            if(GetType($position=strpos($string,$separator[$character]))=="integer")
+            if(GetType($position=mb_strpos($string,$separator[$character]))=="integer")
                 $found=(IsSet($found) ? min($found,$position) : $position);
         }
         if(IsSet($found))
         {
-            $this->next_token=substr($string,$found+1);
-            return(substr($string,0,$found));
+            $this->next_token=mb_substr($string,$found+1);
+            return(mb_substr($string,0,$found));
         }
         else
         {
@@ -70,11 +70,11 @@ class email_validation_class
             if(feof($connection))
                 return(0);
             $line.=fgets($connection,100);
-            $length=strlen($line);
+            $length=mb_strlen($line);
             if($length>=2
-            && substr($line,$length-2,2)=="\r\n")
+            && mb_substr($line,$length-2,2)=="\r\n")
             {
-                $line=substr($line,0,$length-2);
+                $line=mb_substr($line,0,$length-2);
                 if($this->debug)
                     $this->OutputDebug("S $line");
                 return($line);
@@ -91,7 +91,7 @@ class email_validation_class
 
     Function ValidateUsername($username)
     {
-        return(strtolower($username) != 'studip' && preg_match($this->username_regular_expression,$username)!=0);
+        return(mb_strtolower($username) != 'studip' && preg_match($this->username_regular_expression,$username)!=0);
     }
 
     Function ValidatePassword($password)
@@ -154,7 +154,7 @@ class email_validation_class
         else
         {
             if(strcmp($ip=@gethostbyname($domain),$domain)
-            && (strlen($this->exclude_address)==0
+            && (mb_strlen($this->exclude_address)==0
             || strcmp(@gethostbyname($this->exclude_address),$ip)))
                 $hosts[]=$domain;
         }
@@ -204,7 +204,7 @@ class email_validation_class
                     continue;
                 }
             }
-            if(strlen($this->exclude_address)
+            if(mb_strlen($this->exclude_address)
             && !strcmp(@gethostbyname($this->exclude_address),$ip))
             {
                 if($this->debug)

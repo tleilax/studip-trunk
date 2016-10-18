@@ -63,14 +63,14 @@ class BlubberPosting extends SimpleORMap {
     static public function mention($markup, $matches) {
         $mention = $matches[1];
         $posting = new BlubberPosting(self::$mention_posting_id);
-        $username = stripslashes(substr($mention, 1));
+        $username = stripslashes(mb_substr($mention, 1));
         if ($username[0] !== '"') {
             $user = BlubberUser::findByUsername($username);
             if (!$user) {
                 $user = BlubberExternalContact::findByEmail($username);
             }
         } else {
-            $name = substr($username, 1, strlen($username) -2);
+            $name = mb_substr($username, 1, mb_strlen($username) -2);
             $statement = DBManager::get()->prepare(
                 "SELECT user_id FROM auth_user_md5 WHERE CONCAT(Vorname, ' ', Nachname) = :name " .
             "");
@@ -160,32 +160,31 @@ class BlubberPosting extends SimpleORMap {
         return $statement->fetchAll(PDO::FETCH_COLUMN, 0);
     }
 
+    protected static function configure($config = [])
+    {
+        $config['db_table'] = 'blubber';
+        $config['additional_fields']['discussion_time'] = [
+            'get' => function($posting) {
+                if ($posting['topic_id'] === $posting['root_id']) {
+                    $db = DBManager::get();
+                    return $db->query(
+                        "SELECT GREATEST(MAX(blubber.mkdate),  IFNULL(MAX(blubber_reshares.chdate), 0)) " .
+                        "FROM blubber " .
+                            "LEFT JOIN blubber_reshares ON (blubber_reshares.topic_id = blubber.root_id) " .
+                        "WHERE root_id = ".$db->quote($posting->getId())." " .
+                        "GROUP BY blubber.root_id DESC " .
+                        "LIMIT 1 " .
+                    "")->fetch(PDO::FETCH_COLUMN, 0);
+                } else {
+                    return $posting['mkdate'];
+                }
+            },
+            'set' => false,
+        ];
 
-    /**
-     * Overrides the contructor of SimpleORMap and is used in the exact same way.
-     * Adds a virtual field to the posting giving the time of the newest comment
-     * to the thread (or the thread.mkdate if no comment exists).
-     * @param null|string $id
-     */
-    public function __construct($id = null) {
-        $this->additional_fields['discussion_time']['get'] = function($posting) {
-            if ($posting['topic_id'] === $posting['root_id']) {
-                $db = DBManager::get();
-                return $db->query(
-                    "SELECT GREATEST(MAX(blubber.mkdate),  IFNULL(MAX(blubber_reshares.chdate), 0)) " .
-                    "FROM blubber " .
-                        "LEFT JOIN blubber_reshares ON (blubber_reshares.topic_id = blubber.root_id) " .
-                    "WHERE root_id = ".$db->quote($posting->getId())." " .
-                    "GROUP BY blubber.root_id DESC " .
-                    "LIMIT 1 " .
-                "")->fetch(PDO::FETCH_COLUMN, 0);
-            } else {
-                return $posting['mkdate'];
-            }
-        };
-        $this->db_table = "blubber";
-        $this->registerCallback('after_store', 'synchronizeHashtags');
-        parent::__construct($id);
+        $config['registered_callbacks']['after_store'][] = 'synchronizeHashtags';
+
+        parent::configure($config);
     }
 
     /**
@@ -195,7 +194,7 @@ class BlubberPosting extends SimpleORMap {
     {
         if ($this->formatted_content === null) {
             $content = $this->description;
-            if ($this->isThread() && $this->name && strpos($this->description, $this->name) === false) {
+            if ($this->isThread() && $this->name && mb_strpos($this->description, $this->name) === false) {
                 $content = $this->name . "\n" . $content;
             }
 
@@ -386,10 +385,12 @@ class BlubberPosting extends SimpleORMap {
      * @return integer: 1 if posting successfully stored, else 0.
      */
     public function store() {
+        $is_new = $this->isNew();
+
         NotificationCenter::postNotification("PostingWillSave", $this);
         $success = parent::store();
         if ($success) {
-            NotificationCenter::postNotification("PostingHasSaved", $this);
+            NotificationCenter::postNotification("PostingHasSaved", $this, $is_new);
         }
         return $success;
     }
@@ -548,12 +549,12 @@ class BlubberPosting extends SimpleORMap {
      */
     public function unreshare($user_id = null, $external_user = 0) {
         $user_id or $user_id = $GLOBALS['user']->id;
-        $unshare = DBManager::get()->prepare(
-            "DELETE FROM blubber_reshares " .
-            "WHERE topic_id = :topic_id " .
-                "AND user_id = :user_id ",
-                "AND external_contact = :external_contact " .
-        "");
+        $unshare = DBManager::get()->prepare("
+            DELETE FROM blubber_reshares 
+            WHERE topic_id = :topic_id 
+                AND user_id = :user_id 
+                AND external_contact = :external_contact 
+        ");
         $success = $unshare->execute(array(
             'topic_id' => $this['root_id'],
             'user_id' => $user_id,

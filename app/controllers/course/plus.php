@@ -230,8 +230,8 @@ class Course_PlusController extends AuthenticatedController
                     $key = isset($info['displayname']) ? $info['displayname'] : $plugin->getPluginname();
 
 
-                    $list['Funktionen von A-Z'][strtolower($key)]['object'] = $plugin;
-                    $list['Funktionen von A-Z'][strtolower($key)]['type'] = 'plugin';
+                    $list['Funktionen von A-Z'][mb_strtolower($key)]['object'] = $plugin;
+                    $list['Funktionen von A-Z'][mb_strtolower($key)]['type'] = 'plugin';
 
                 } else {
 
@@ -245,8 +245,8 @@ class Course_PlusController extends AuthenticatedController
                         || !isset($_SESSION['plus'])
                     ) {
 
-                        $list[$cat][strtolower($key)]['object'] = $plugin;
-                        $list[$cat][strtolower($key)]['type'] = 'plugin';
+                        $list[$cat][mb_strtolower($key)]['object'] = $plugin;
+                        $list[$cat][mb_strtolower($key)]['type'] = 'plugin';
                     }
                 }
             }
@@ -270,9 +270,9 @@ class Course_PlusController extends AuthenticatedController
 
                 if($_SESSION['plus']['displaystyle'] != 'category'){
 
-                    $list['Funktionen von A-Z'][strtolower($val['name'])]['object'] = $val;
-                    $list['Funktionen von A-Z'][strtolower($val['name'])]['type'] = 'modul';
-                    $list['Funktionen von A-Z'][strtolower($val['name'])]['modulkey'] = $key;
+                    $list['Funktionen von A-Z'][mb_strtolower($val['name'])]['object'] = $val;
+                    $list['Funktionen von A-Z'][mb_strtolower($val['name'])]['type'] = 'modul';
+                    $list['Funktionen von A-Z'][mb_strtolower($val['name'])]['modulkey'] = $key;
 
                 } else {
 
@@ -284,9 +284,9 @@ class Course_PlusController extends AuthenticatedController
                         || !isset($_SESSION['plus'])
                     ) {
 
-                        $list[$cat][strtolower($val['name'])]['object'] = $val;
-                        $list[$cat][strtolower($val['name'])]['type'] = 'modul';
-                        $list[$cat][strtolower($val['name'])]['modulkey'] = $key;
+                        $list[$cat][mb_strtolower($val['name'])]['object'] = $val;
+                        $list[$cat][mb_strtolower($val['name'])]['type'] = 'modul';
+                        $list[$cat][mb_strtolower($val['name'])]['modulkey'] = $key;
                     }
                 }
             }
@@ -378,7 +378,7 @@ class Course_PlusController extends AuthenticatedController
                         }
                     } else {
                         // check, if the passed module is represented by a core-plugin
-                        if (strtolower(get_parent_class('core' . $key)) == 'studipplugin') {
+                        if (mb_strtolower(get_parent_class('core' . $key)) == 'studipplugin') {
                             $plugin = PluginEngine::getPlugin('core' . $key);
                             PluginManager::getInstance()->setPluginActivated(
                                 $plugin->getPluginId(),
@@ -476,10 +476,10 @@ class Course_PlusController extends AuthenticatedController
                         $changes = true;
                         // logging
                         if ($activated) {
-                            log_event('PLUGIN_ENABLE', $seminar_id, $plugin_id, $GLOBALS['user']->id);
+                            StudipLog::log('PLUGIN_ENABLE', $seminar_id, $plugin_id, $GLOBALS['user']->id);
                             NotificationCenter::postNotification('PluginForSeminarDidEnabled', $seminar_id, $plugin_id);
                         } else {
-                            log_event('PLUGIN_DISABLE', $seminar_id, $plugin_id, $GLOBALS['user']->id);
+                            StudipLog::log('PLUGIN_DISABLE', $seminar_id, $plugin_id, $GLOBALS['user']->id);
                             NotificationCenter::postNotification('PluginForSeminarDidDisabled', $seminar_id, $plugin_id);
                         }
                     }

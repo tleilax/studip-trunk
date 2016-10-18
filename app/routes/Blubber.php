@@ -54,7 +54,7 @@ class Blubber extends \RESTAPI\RouteMap
             $this->error(401);
         }
 
-        if (!strlen(trim($this->data['content']))) {
+        if (!mb_strlen(trim($this->data['content']))) {
             $this->error(400, 'No content provided');
         }
 
@@ -110,7 +110,7 @@ class Blubber extends \RESTAPI\RouteMap
             $this->error(401);
         }
 
-        if (!strlen(trim($this->data['content']))) {
+        if (!mb_strlen(trim($this->data['content']))) {
             $this->error(400, 'No content provided');
         }
 
@@ -220,7 +220,7 @@ class Blubber extends \RESTAPI\RouteMap
      */
     public function createNewBlubber()
     {
-        if (!strlen(trim($this->data['content']))) {
+        if (!mb_strlen(trim($this->data['content']))) {
             $this->error(400, 'No content provided');
         }
 
@@ -340,7 +340,7 @@ class Blubber extends \RESTAPI\RouteMap
      */
     public function createComment($blubber_id)
     {
-        if (!strlen(trim($this->data['content']))) {
+        if (!mb_strlen(trim($this->data['content']))) {
             $this->error(400, 'No content provided');
         }
 
@@ -384,7 +384,7 @@ class Blubber extends \RESTAPI\RouteMap
      */
     public function editBlubberPosting($blubber_id)
     {
-        if (!strlen(trim($this->data['content']))) {
+        if (!mb_strlen(trim($this->data['content']))) {
             $this->error(400, 'No content provided');
         }
 
@@ -466,7 +466,9 @@ class Blubber extends \RESTAPI\RouteMap
             'author'       => User::getMiniUser($this, $posting->getUser()),
             'context_type' => $posting['context_type'],
             'content'      => $posting['description'],
-            'content_html' => formatReady($posting['description'])
+            'content_html' => formatReady($posting['description']),
+            'mkdate'       => $posting['mkdate'],
+            'chdate'       => $posting['chdate']
         );
 
         if ($posting->isThread()) {
@@ -482,6 +484,10 @@ class Blubber extends \RESTAPI\RouteMap
                 'reshares'       => $sharer_ids,
                 'tags'           => $posting->getTags()
             ));
+            
+            if($posting['context_type'] == 'course') {
+                $result['course_id'] = $posting->seminar_id;
+            }
         }
 
         return $result;

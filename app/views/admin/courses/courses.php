@@ -1,8 +1,5 @@
 <? $colspan = 2 ?>
 <? if ($actions[$selected_action]['multimode']) : ?>
-    <? if ($selected_action == 16) : ?>
-        <?= MessageBox::error(_('Achtung: Das Archivieren ist ein Schritt, der nicht rückgängig gemacht werden kann!')) ?>
-    <? endif ?>
     <form action="<?= URLHelper::getLink($actions[$selected_action]['url']) ?>" method="post">
 <? endif ?>
 <?= CSRFProtection::tokenTag() ?>
@@ -49,6 +46,10 @@
         <? $colspan++ ?>
         <col width="8%">
     <? endif ?>
+    <? if (in_array('last_activity', $view_filter)) : ?>
+        <? $colspan++ ?>
+        <col width="8%">
+    <? endif ?>
         <col width="15%">
     </colgroup>
     <caption>
@@ -64,8 +65,8 @@
     <thead>
     <tr class="sortable">
     <? if (Config::get()->ADMIN_COURSES_SHOW_COMPLETE): ?>
-        <th <? if ($sortby === 'completion') printf('class="sort%s"', strtolower($sortFlag)) ?>>
-            <a href="<?= URLHelper::getLink('', array('sortby' => 'completion', 'sortFlag' => strtolower($sortFlag))) ?>" class="course-completion" title="<?= _('Bearbeitungsstatus') ?>">
+        <th <? if ($sortby === 'completion') printf('class="sort%s"', mb_strtolower($sortFlag)) ?>>
+            <a href="<?= URLHelper::getLink('', array('sortby' => 'completion', 'sortFlag' => mb_strtolower($sortFlag))) ?>" class="course-completion" title="<?= _('Bearbeitungsstatus') ?>">
                 <?= _('Bearbeitungsstatus') ?>
             </a>
         </th>
@@ -75,28 +76,28 @@
         </th>
     <? endif; ?>
         <? if (in_array('number', $view_filter)) : ?>
-            <th <?= ($sortby == 'VeranstaltungsNummer') ? sprintf('class="sort%s"', strtolower($sortFlag)) : '' ?>>
+            <th <?= ($sortby == 'VeranstaltungsNummer') ? sprintf('class="sort%s"', mb_strtolower($sortFlag)) : '' ?>>
                 <a href="<?=
                 URLHelper::getLink('', array('sortby'   => 'VeranstaltungsNummer',
-                                             'sortFlag' => strtolower($sortFlag))) ?>">
+                                             'sortFlag' => mb_strtolower($sortFlag))) ?>">
                     <?= _('Nr.') ?>
                 </a>
             </th>
         <? endif ?>
         <? if (in_array('name', $view_filter)) : ?>
-            <th <?= ($sortby == 'Name') ? sprintf('class="sort%s"', strtolower($sortFlag)) : '' ?>>
+            <th <?= ($sortby == 'Name') ? sprintf('class="sort%s"', mb_strtolower($sortFlag)) : '' ?>>
                 <a href="<?=
                 URLHelper::getLink('', array('sortby'   => 'Name',
-                                             'sortFlag' => strtolower($sortFlag))) ?>">
+                                             'sortFlag' => mb_strtolower($sortFlag))) ?>">
                     <?= _('Name') ?>
                 </a>
             </th>
         <? endif ?>
         <? if (in_array('type', $view_filter)) : ?>
-            <th <?= ($sortby == 'status') ? sprintf('class="sort%s"', strtolower($sortFlag)) : '' ?>>
+            <th <?= ($sortby == 'status') ? sprintf('class="sort%s"', mb_strtolower($sortFlag)) : '' ?>>
                 <a href="<?=
                 URLHelper::getLink('', array('sortby'   => 'status',
-                                             'sortFlag' => strtolower($sortFlag))) ?>">
+                                             'sortFlag' => mb_strtolower($sortFlag))) ?>">
                     <?= _("VA-Typ") ?>
                 </a>
             </th>
@@ -105,8 +106,8 @@
             <th><?= _('Raum/Zeit') ?></th>
         <? endif ?>
         <? if (in_array('semester', $view_filter)) : ?>
-            <th <?= ($sortby == 'start_time') ? sprintf('class="sort%s"', strtolower($sortFlag)) : '' ?>>
-                <a href="<?= URLHelper::getLink('', array('sortby'   => 'start_time', 'sortFlag' => strtolower($sortFlag))) ?>">
+            <th <?= ($sortby == 'start_time') ? sprintf('class="sort%s"', mb_strtolower($sortFlag)) : '' ?>>
+                <a href="<?= URLHelper::getLink('', array('sortby'   => 'start_time', 'sortFlag' => mb_strtolower($sortFlag))) ?>">
                     <?= _('Semester') ?>
                 </a>
             </th>
@@ -115,10 +116,10 @@
             <th><?= _('Lehrende') ?></th>
         <? endif ?>
         <? if (in_array('members', $view_filter)) : ?>
-            <th <?= ($sortby == 'teilnehmer') ? sprintf('class="sort%s"', strtolower($sortFlag)) : '' ?>>
+            <th <?= ($sortby == 'teilnehmer') ? sprintf('class="sort%s"', mb_strtolower($sortFlag)) : '' ?>>
                 <a href="<?=
                 URLHelper::getLink('', array('sortby'   => 'teilnehmer',
-                                             'sortFlag' => strtolower($sortFlag))) ?>">
+                                             'sortFlag' => mb_strtolower($sortFlag))) ?>">
                     <abbr title="<?= _('Teilnehmende') ?>">
                         <?= _('TN') ?>
                     </abbr>
@@ -126,23 +127,28 @@
             </th>
         <? endif ?>
         <? if (in_array('waiting', $view_filter)) : ?>
-            <th <? if ($sortby == 'waiting') printf('class="sort%s"', strtolower($sortFlag)); ?>>
+            <th <? if ($sortby == 'waiting') printf('class="sort%s"', mb_strtolower($sortFlag)); ?>>
                 <a href="<?= URLHelper::getLink('', array('sortby'   => 'waiting',
-                                                    'sortFlag' => strtolower($sortFlag))) ?>">
+                                                    'sortFlag' => mb_strtolower($sortFlag))) ?>">
                     <?= _('Warteliste') ?>
                 </a>
             </th>
         <? endif ?>
         <? if (in_array('preliminary', $view_filter)) : ?>
-            <th <?= ($sortby == 'prelim') ? sprintf('class="sort%s"', strtolower($sortFlag)) : '' ?>>
+            <th <?= ($sortby == 'prelim') ? sprintf('class="sort%s"', mb_strtolower($sortFlag)) : '' ?>>
                 <a href="<?=
                 URLHelper::getLink('', array('sortby'   => 'prelim',
-                                             'sortFlag' => strtolower($sortFlag))) ?>"><?= _('Vorläufig') ?></a>
+                                             'sortFlag' => mb_strtolower($sortFlag))) ?>"><?= _('Vorläufig') ?></a>
             </th>
         <? endif ?>
         <? if (in_array('contents', $view_filter)) : ?>
             <th style="width: <?= $nav_elements * 27 ?>px">
                 <?= _('Inhalt') ?>
+            </th>
+        <? endif ?>
+        <? if (in_array('last_activity', $view_filter)) : ?>
+            <th style="width: <?= $nav_elements * 27 ?>px">
+                <?= _('letzte Aktivität') ?>
             </th>
         <? endif ?>
         <th style="text-align: center" class="actions">
@@ -287,6 +293,13 @@
                 <? endif ?>
                 </td>
             <? endif ?>
+            <? if (in_array('last_activity', $view_filter)) : ?>
+                <td style="text-align: center;">
+                    <span title="<?=_('Datum der letzten Aktivität in dieser Veranstaltung')?>">
+                        <?= htmlReady(date('d.m.Y', $values['last_activity'])); ?>
+                    </span>
+                </td>
+            <? endif ?>
             <td style="text-align: right;" class="actions">
                 <? if ($actions[$selected_action]['multimode'] && is_numeric($selected_action)) : ?>
                     <? if ($GLOBALS['perm']->have_studip_perm('tutor', $semid)) : ?>
@@ -357,7 +370,8 @@
                         is_string($actions[$selected_action]['multimode'])
                             ? $actions[$selected_action]['multimode']
                             : $actions[$selected_action]['title'],
-                        $actions[$selected_action]['name']) ?>
+                        $actions[$selected_action]['name'],
+                        $selected_action == 16 ? array('data-dialog' => 1) : null) ?>
                 <? endif ?>
             </td>
         </tr>

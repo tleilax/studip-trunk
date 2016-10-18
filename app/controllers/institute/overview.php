@@ -38,7 +38,7 @@ class Institute_OverviewController extends AuthenticatedController
 
         //gibt es eine Anweisung zur Umleitung?
         if (Request::get('redirect_to')) {
-            $query_parts = explode('&', stristr(urldecode($_SERVER['QUERY_STRING']), 'redirect_to'));
+            $query_parts = explode('&', mb_stristr(urldecode($_SERVER['QUERY_STRING']), 'redirect_to'));
             list( , $where_to) = explode('=', array_shift($query_parts));
             $new_query = $where_to . '?' . join('&', $query_parts);
             page_close();
@@ -101,7 +101,7 @@ class Institute_OverviewController extends AuthenticatedController
                     $this->institute_id
                 ));
                 if ($statement->rowCount() > 0) {
-                    log_event('INST_USER_ADD', $this->institute_id, $GLOBALS['user']->user_id, 'user');
+                    StudipLog::log('INST_USER_ADD', $this->institute_id, $GLOBALS['user']->user_id, 'user');
                     NotificationCenter::postNotification('UserInstitutionDidCreate', $this->institute_id, $GLOBALS['user']->user_id);
 
                     PageLayout::postMessage(MessageBox::success(_("Sie haben die Einrichtung abonniert.")));
@@ -117,7 +117,7 @@ class Institute_OverviewController extends AuthenticatedController
                     $this->institute_id
                 ));
                 if ($statement->rowCount() > 0) {
-                    log_event('INST_USER_DEL', $this->institute_id, $GLOBALS['user']->user_id, 'user');
+                    StudipLog::log('INST_USER_DEL', $this->institute_id, $GLOBALS['user']->user_id, 'user');
                     NotificationCenter::postNotification('UserInstitutionDidDelete', $this->institute_id, $GLOBALS['user']->user_id);
                     PageLayout::postMessage(MessageBox::success(_("Sie haben sich aus der Einrichtung ausgetragen.")));
                     header('Location: '.URLHelper::getURL('', array('cid' => $this->institute_id)));

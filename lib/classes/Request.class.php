@@ -26,11 +26,7 @@ class Request implements ArrayAccess, IteratorAggregate
      */
     private function __construct()
     {
-        $params = array_merge($_GET, $_POST);
-
-        foreach ($params as $key => $value) {
-            $this->params[$key] = self::removeMagicQuotes($value);
-        }
+        $this->params = array_merge($_GET, $_POST);
     }
 
     /**
@@ -157,6 +153,26 @@ class Request implements ArrayAccess, IteratorAggregate
         return (isset($request[$param]) && is_string($request[$param]))
              ? $request[$param]
              : $default;
+    }
+
+    /**
+     * Return the value of the selected query parameter as an I18NString.
+     *
+     * @param string $param    parameter name
+     * @param string $default  default value if parameter is not set
+     *
+     * @return I18NString  parameter value as string (if set), else NULL
+     */
+    public static function i18n($param, $default = NULL)
+    {
+        $value = self::get($param, $default);
+
+        if (isset($value)) {
+            $lang = self::getArray($param . '_i18n');
+            $value = new I18NString($value, $lang);
+        }
+
+        return $value;
     }
 
     /**
@@ -423,37 +439,13 @@ class Request implements ArrayAccess, IteratorAggregate
     }
 
     /**
-     * Strip magic quotes from a given string or array. If the PHP setting
-     * "magic_quotes_gpc" is enabled, stripslashes() is used on the value.
-     * If the parameter is an array, magic quoting is stripped recursively.
-     *
-     * @param mixed $value    string or array value to be unquoted
-     *
-     * @return mixed  unquoted string or array
-     */
-    public static function removeMagicQuotes($value)
-    {
-        if (get_magic_quotes_gpc()) {
-            if (is_array($value)) {
-                foreach ($value as $key => $val) {
-                    $value[$key] = self::removeMagicQuotes($val);
-                }
-            } else {
-                $value = stripslashes($value);
-            }
-        }
-
-        return $value;
-    }
-
-    /**
      * Returns the (uppercase) request method.
      *
      * @return string  the uppercased method of the request
      */
     public static function method()
     {
-        return strtoupper($_SERVER['REQUEST_METHOD']);
+        return mb_strtoupper($_SERVER['REQUEST_METHOD']);
     }
 
     /**
@@ -556,5 +548,56 @@ class Request implements ArrayAccess, IteratorAggregate
     public static function isDialog()
     {
         return self::isXhr() && isset($_SERVER['HTTP_X_DIALOG']);
+    }
+
+    /**
+     * Returns an object that has previously been serialized using the
+     * ObjectBuilder.
+     *
+     * @param String $param         parameter name
+     * @param mixed $expected_class Expected class name of object (optional)
+     * @param bool   $allow_null    If true, return null on error; otherwise an
+     *                              exception is thrown
+     * @return mixed Object of arbitrary type or null on error and $allow_null
+     * @throws Exception when an error occurs and $allow_null = false
+     * @see ObjectBuilder
+     */
+    public static function getObject($param, $expected_class = null, $allow_null = true)
+    {
+        try {
+            return ObjectBuilder::build(Request::get($param), $expected_class);
+        } catch (Exception $e) {
+            if ($allow_null) {
+                return null;
+            }
+
+            throw $e;
+        }
+    }
+
+    /**
+     * Returns a collection of objects that have previously been serialized
+     * using the ObjectBuilder.
+     *
+     * @param String $param         parameter name
+     * @param mixed $expected_class Expected class name of objects (optional)
+     * @param bool   $allow_null    If true, return empty array on error;
+     *                              otherwise an exception is thrown
+     * @return array as collection of objects
+     * @throws Exception when an error occurs and $allow_null = false
+     * @see ObjectBuilder
+     */
+    public static function getManyObjects($param, $expected_class = null, $allow_null = true)
+    {
+        try {
+            $request = self::getInstance();
+            return ObjectBuilder::buildMany($request[$param] ?: null, $expected_class);
+        } catch (Exception $e) {
+            if ($allow_null) {
+                return [];
+            }
+
+            throw $e;
+        }
     }
 }

@@ -35,6 +35,9 @@
 
 class CourseDate extends SimpleORMap
 {
+    const FORMAT_DEFAULT = 'default';
+    const FORMAT_VERBOSE = 'verbose';
+
     /**
      * Returns course dates by issue id.
      *
@@ -71,6 +74,21 @@ class CourseDate extends SimpleORMap
     public static function findByRange_id($seminar_id, $order_by = 'ORDER BY date')
     {
         return parent::findByRange_id($seminar_id, $order_by);
+    }
+
+    /**
+     * Returns course dates by issue id.
+     *
+     * @param String $issue_id Id of the issue
+     * @return array with the associated dates
+     */
+    public static function findByStatusgruppe_id($group_id)
+    {
+        return self::findBySQL("INNER JOIN `termin_related_groups` USING (`termin_id`)
+            WHERE `termin_related_groups`.`statusgruppe_id` = ?
+            ORDER BY `date` ASC",
+            array($group_id)
+        );
     }
 
     /**
@@ -205,21 +223,26 @@ class CourseDate extends SimpleORMap
     /**
      * Returns the full qualified name of this date.
      *
-     * @param String $format Optional format type (only 'default' is
-     *                       supported by now)
+     * @param String $format Optional format type (only 'default' and
+     *                       'verbose' are supported by now)
      * @return String containing the full name of this date.
      */
     public function getFullname($format = 'default')
     {
-        if (!$this->date || $format !== 'default') {
+        if (!$this->date || !in_array($format, ['default', 'verbose'])) {
             return '';
         }
+
+        $latter_template = $format === 'verbose'
+                         ? _('%R Uhr')
+                         : '%R';
 
         if (($this->end_time - $this->date) / 60 / 60 > 23) {
             return strftime('%a., %x (' . _('ganztägig') . ')' , $this->date);
         }
 
-        return strftime('%a., %x, %R', $this->date) . ' - ' . strftime('%R', $this->end_time);
+        return strftime('%a., %x, %R', $this->date) . ' - '
+             . strftime($latter_template, $this->end_time);
     }
 
     /**

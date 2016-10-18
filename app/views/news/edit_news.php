@@ -1,8 +1,8 @@
-<? use Studip\Button, Studip\LinkButton ?>
+<? use Studip\Button, Studip\LinkButton; ?>
 <? if(!empty($flash['question_text'])) : ?>
-    <? $form_content = array('news_isvisible' => htmlReady(serialize($news_isvisible)),
-              'news_selectable_areas' => htmlReady(serialize($area_options_selectable)),
-              'news_selected_areas' => htmlReady(serialize($area_options_selected)),
+    <? $form_content = array('news_isvisible' => htmlReady(studip_json_encode($news_isvisible)),
+              'news_selectable_areas' => htmlReady(studip_json_encode($area_options_selectable)),
+              'news_selected_areas' => htmlReady(studip_json_encode($area_options_selected)),
               'news_basic_js' => '',
               'news_comments_js' => '',
               'news_areas_js' => '',
@@ -22,9 +22,9 @@
 <input type="hidden" name="news_basic_js" value="">
 <input type="hidden" name="news_comments_js" value="">
 <input type="hidden" name="news_areas_js" value="">
-<input type="hidden" name="news_isvisible" value="<?=htmlReady(serialize($news_isvisible))?>">
-<input type="hidden" name="news_selectable_areas" value="<?=htmlReady(serialize($area_options_selectable));?>">
-<input type="hidden" name="news_selected_areas" value="<?=htmlReady(serialize($area_options_selected))?>">
+<input type="hidden" name="news_isvisible" value="<?=htmlReady(studip_json_encode($news_isvisible))?>">
+<input type="hidden" name="news_selectable_areas" value="<?=htmlReady(studip_json_encode($area_options_selectable))?>">
+<input type="hidden" name="news_selected_areas" value="<?=htmlReady(studip_json_encode($area_options_selected))?>">
 <div id="news_dialog_content" class="news_dialog_content">
 <? if (count($_SESSION['messages'])) : ?>
     <? $anker = ''; ?>
@@ -200,16 +200,15 @@
                                     ondblclick="jQuery('input[name=news_add_areas]').click()">
                             <? foreach ($area_structure as $area_key => $area_data) : ?>
                                 <? if (count($area_options_selectable[$area_key])) : ?>
-                                    <option disabled class="news_area_title"
-                                            style="background-image: url('<?= Icon::create($area_data['icon'], 'info_alt')->asImagePath() ?>');">
-                                        <?=htmlReady($area_data['title'])?>
-                                    </option>
+                                    <optgroup class="news_area_title"
+                                            style="background-image: url('<?= Icon::create($area_data['icon'], 'info')->asImagePath() ?>');" label="<?=htmlReady($area_data['title'])?>">
                                     <? foreach ($area_options_selectable[$area_key] as $area_option_key => $area_option_title) : ?>
                                         <option <?= StudipNews::haveRangePermission('edit', $area_option_key) ? 'value="'.$area_option_key.'"' : 'disabled'?>
                                                 <?=tooltip($area_option_title);?>>
-                                        <?= htmlReady(mila($area_option_title))?>
-                                    </option>
+                                            <?= htmlReady(mila($area_option_title))?>
+                                        </option>
                                     <? endforeach ?>
+                                    </optgroup>
                                 <? endif ?>
                             <? endforeach ?>
                             </select>
@@ -242,16 +241,15 @@
                                     ondblclick="jQuery('input[name=news_remove_areas]').click()">
                             <? foreach ($area_structure as $area_key => $area_data) : ?>
                                 <? if (count($area_options_selected[$area_key])) : ?>
-                                    <option disabled  class="news_area_title"
-                                            style="background-image: url('<?= Icon::create($area_data['icon'], 'info')->asImagePath() ?>');">
-                                        <?=htmlReady($area_data['title'])?>
-                                    </option>
+                                    <optgroup class="news_area_title"
+                                            style="background-image: url('<?= Icon::create($area_data['icon'], 'info')->asImagePath() ?>');" label="<?=htmlReady($area_data['title'])?>">
                                     <? foreach ($area_options_selected[$area_key] as $area_option_key => $area_option_title) : ?>
                                         <option <?= (StudipNews::haveRangePermission('edit', $area_option_key) OR $may_delete) ? 'value="'.$area_option_key.'"' : 'disabled'?>
                                                 <?=tooltip($area_option_title);?>>
                                             <?= htmlReady(mila($area_option_title))?>
                                         </option>
                                     <? endforeach ?>
+                                    </optgroup>
                                 <? endif ?>
                             <? endforeach ?>
                             </select>

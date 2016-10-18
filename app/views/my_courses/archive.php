@@ -1,8 +1,3 @@
-<?
-// TODO: This should be removed when archive_assi uses PageLayout::postMessage()
-if ($message) parse_msg($message);
-?>
-
 <? if (empty($seminars)): ?>
     <?= MessageBox::info(_('Es befinden sich zur Zeit keine Veranstaltungen im Archiv, an denen Sie teilgenommen haben.')) ?>
 <? else: ?>
@@ -36,31 +31,37 @@ if ($message) parse_msg($message);
             <? foreach ($rows as $row): ?>
                 <tr>
                     <td>
-                        <a href="<?= URLHelper::getLink('archiv.php?dump_id=' . $row['seminar_id']) ?>" target="_blank">
+                        <a href="<?= URLHelper::getLink('dispatch.php/archive/overview/' . $row['seminar_id']) ?>" data-dialog>
                             <?= htmlReady($row['name']) ?>
                         </a>
                     </td>
                     <td align="center">
-                        <? if ($row['forumdump']): ?>
-                            <a href="<?= URLHelper::getLink('archiv.php?forum_dump_id=' . $row['seminar_id']) ?>" target="_blank">
+                        <? if ($row['forumdump'] and archiv_check_perm($row['seminar_id'])) : ?>
+                            <a href="<?= URLHelper::getLink('dispatch.php/archive/forum/' . $row['seminar_id']) ?>" data-dialog>
                                 <?= Icon::create('forum', 'clickable', ['title' => _('Beiträge des Forums der Veranstaltung')])->asImg(20) ?>
                             </a>
                         <? else: ?>
                             <?= Icon::create('forum', 'inactive')->asImg(20, ["style" => 'visibility: hidden;']) ?>
                         <? endif; ?>
 
-                        <? if ($row['archiv_file_id']):
-                            $filename = _('Dateisammlung') . '-' . substr($row['name'], 0, 200) . '.zip';
+                        <? if(($row['archiv_file_id']) and archiv_check_perm($row['seminar_id'])) :
+                                $filename = _('Dateisammlung') . '-' . mb_substr($row['name'], 0, 200) . '.zip';
                             ?>
                             <a href="<?= URLHelper::getLink(GetDownloadLink($row['archiv_file_id'], $filename, 1)) ?>">
-                                <?= Icon::create('download', 'clickable', ['title' => _('Dateisammlung der Veranstaltung herunterladen')])->asImg(20) ?>
+                                <?= Icon::create('file-archive', 'clickable', ['title' => _('Dateisammlung der Veranstaltung herunterladen')])->asImg(20) ?>
+                            </a>
+                        <? elseif(($row['archiv_protected_file_id']) and archiv_check_perm($row['seminar_id'] == 'admin')) :
+                                $filename = _('Dateisammlung') . '-' . mb_substr($row['name'], 0, 200) . '.zip';
+                            ?>
+                            <a href="<?= URLHelper::getLink(GetDownloadLink($row['archiv_protected_file_id'], $filename, 1)) ?>">
+                                <?= Icon::create('file-archive', 'clickable', ['title' => _('Dateisammlung der Veranstaltung herunterladen')])->asImg(20) ?>
                             </a>
                         <? else: ?>
-                            <?= Icon::create('download', 'inactive')->asImg(20, ["style" => 'visibility: hidden;']) ?>
+                            <?= Icon::create('file-archive', 'inactive')->asImg(20, ["style" => 'visibility: hidden;']) ?>
                         <? endif; ?>
 
-                        <? if ($row['wikidump']): ?>
-                            <a href="<?= URLHelper::getLink('archiv.php?wiki_dump_id=' . $row['seminar_id']) ?>" target="_blank">
+                        <? if ($row['wikidump'] and archiv_check_perm($row['seminar_id'])) : ?>
+                            <a href="<?= URLHelper::getLink('dispatch.php/archive/wiki/' . $row['seminar_id']) ?>" data-dialog>
                                 <?= Icon::create('wiki', 'clickable', ['title' => _('Beiträge des Wikis der Veranstaltung')])->asImg(20) ?>
                             </a>
                         <? else: ?>
@@ -81,7 +82,7 @@ $sidebar->setTitle(_('Meine archivierten Veranstaltungen'));
 
 $links = new LinksWidget();
 $links->setTitle(_('Aktionen'));
-$links->addLink(_('Suche im Archiv'),URLHelper::getLink('archiv.php'), Icon::create('search', 'info'));
+$links->addLink(_('Suche im Archiv'),URLHelper::getLink('dispatch.php/search/archive'), Icon::create('search', 'info'));
 
 $sidebar->addWidget($links, 'actions');
 ?>

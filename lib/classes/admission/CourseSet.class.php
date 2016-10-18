@@ -720,7 +720,8 @@ class CourseSet
     public function setAdmissionRules($newRules) {
         $this->admissionRules = array();
         foreach ($newRules as $newRule) {
-            $this->addAdmissionRule(unserialize(html_entity_decode($newRule)));
+            $rule = ObjectBuilder::build($newRule, 'AdmissionRule');
+            $this->addAdmissionRule($rule);
         }
         return $this;
     }
@@ -1009,7 +1010,7 @@ class CourseSet
             return true;
         }
         if ($perm->have_perm('admin', $user_id) || ($perm->have_perm('dozent', $user_id) && get_config('ALLOW_DOZENT_COURSESET_ADMIN'))) {
-            foreach ($this->getInstituteIds() as $one) {
+            foreach (array_keys($this->getInstituteIds()) as $one) {
                 if ($perm->have_studip_perm('dozent', $one, $user_id)) {
                     return true;
                 }

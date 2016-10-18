@@ -27,7 +27,7 @@ class Settings_CalendarController extends Settings_SettingsController
      */
     public function before_filter(&$action, &$args)
     {
-        if (!get_config('CALENDAR_ENABLE')) {
+        if (!Config::get()->CALENDAR_ENABLE) {
             throw new AccessDeniedException(_('Der Kalender ist nicht aktiviert.'));
         }
 
@@ -71,7 +71,7 @@ class Settings_CalendarController extends Settings_SettingsController
             'step_day_group'  => Request::option('cal_step_day_group')
         ));
 
-        $this->reportSuccess(_('Ihre Einstellungen wurden gespeichert'));
+        PageLayout::postSuccess(_('Ihre Einstellungen wurden gespeichert'));
         $this->redirect('settings/calendar');
     }
 }

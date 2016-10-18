@@ -34,8 +34,6 @@ $perm->check("root");
 include 'lib/seminar_open.php'; // initialise Stud.IP-Session
 // -- here you have to put initialisations for the current page
 
-require_once 'lib/msg.inc.php';
-
 PageLayout::setHelpKeyword("Basis.Ilias");
 PageLayout::setTitle(_("Verwaltung der Lernmodul-Schnittstelle"));
 Navigation::activateItem('/admin/config/elearning');
@@ -44,7 +42,7 @@ ob_start();
 
 $cms_select = Request::get('cms_select');
 
-if (get_config('ELEARNING_INTERFACE_ENABLE'))
+if (Config::get()->ELEARNING_INTERFACE_ENABLE)
 {
 
     if ($cms_select != "" && isset($ELEARNING_INTERFACE_MODULES[$cms_select]))
@@ -70,26 +68,20 @@ if (get_config('ELEARNING_INTERFACE_ENABLE'))
     } else {
         unset($cms_select);
     }
-
+    
     if ($messages["error"] != "")
     {
-        echo "<table>";
-        my_error($messages["error"]);
-        echo "</table>";
+        PageLayout::postError($messages["error"]);
     }
     if ($messages["info"] != "")
     {
-        echo "<table>";
-        my_info($messages["info"]);
-        echo "</table>";
+       PageLayout::postInfo($messages["info"]);
     }
-
-    echo "<font size=\"-1\">";
+    
     if ($cms_select == "")
         echo ELearningUtils::getCMSSelectbox(_("Bitte wählen Sie ein angebundenes System für die Schnittstelle: "), false) . "\n\n<br><br>";
     else
         echo ELearningUtils::getCMSSelectbox(_("Bitte wählen Sie ein angebundenes System für die Schnittstelle: "), false) . "\n\n<br><br>";
-    echo "</font>";
 
     if ($cms_select != "")
     {
@@ -125,7 +117,6 @@ if (get_config('ELEARNING_INTERFACE_ENABLE'))
         echo ELearningUtils::getCMSHeader($connected_cms[$cms_select]->getName());
         echo "<form method=\"POST\" action=\"" . URLHelper::getLink() . "\">\n";
         echo CSRFProtection::tokenTag();
-        echo "<font size=\"-1\">";
         echo "<br>\n";
         if (ELearningUtils::isCMSActive($cms_select))
         {
@@ -133,77 +124,57 @@ if (get_config('ELEARNING_INTERFACE_ENABLE'))
             echo ELearningUtils::getHeader(_("Status"));
             echo "<br>\n";
             echo _("Die Schnittstelle ist <b>aktiv</b>.");
-            echo "<br><br>\n<center>";
+            echo "<br><br>\n";
             echo _("Hier können Sie die Schnittstelle deaktivieren.");
             echo "<br><br>\n";
-            echo Button::create(_('Deaktivieren'), 'deactivate')."</center>";
+            echo Button::create(_('Deaktivieren'), 'deactivate');
         }
         else
         {
             echo ELearningUtils::getHeader(_("Status"));
             echo "<br>\n";
             echo _("Die Schnittstelle ist nicht aktiv.");
-            echo "<br><br>\n<center>";
+            echo "<br><br>\n";
             if ($error_count == 0)
             {
                 $status_info = "not active";
                 echo _("Hier können Sie die Schnittstelle aktivieren.");
                 echo "<br><br>\n";
-                echo Button::create(_('Aktivieren'), 'activate')."</center>";
+                echo Button::create(_('Aktivieren'), 'activate');
             }
         }
         echo "<input type=\"HIDDEN\" name=\"cms_select\" value=\"" . $cms_select . "\">\n";
-        echo "</font>";
         echo "</form>";
         echo "<br>\n";
 
         echo "<form method=\"POST\" action=\"" . URLHelper::getURL() . "\">\n";
         echo CSRFProtection::tokenTag();
-        echo "<font size=\"-1\">";
         if ($error_count == 0)
         {
             echo ELearningUtils::getHeader(_("Einstellungen"));
             echo "<br>\n";
             $connected_cms[$cms_select]->getPreferences();
         }
-        echo "<input type=\"HIDDEN\" name=\"cms_select\" value=\"" . $cms_select . "\">\n";
-        echo "</font>";
+        echo "<input type=\"hidden\" name=\"cms_select\" value=\"" . $cms_select . "\">\n";
         echo "</form>";
 
         echo ELearningUtils::getCMSFooter($connected_cms[$cms_select]->getLogo());
     }
 
+    Helpbar::Get()->addPlainText(_('Information'), _('Hier können Sie angebundene Systeme verwalten.'), Icon::create('info'));
+    Helpbar::Get()->addPlainText(_('Aktionen'), _('Nachdem Sie ein angebundenes System ausgewählt haben wird die Verbindung zum System geprüft.'), Icon::create('info'));
     // Anzeige, wenn noch keine Account-Zuordnung besteht
-        $infobox = array    (
-        array ("kategorie"  => _("Information:"),
-            "eintrag" => array  (
-                            array ( "icon" => Icon::create('info', 'clickable'),
-                                    "text"  => _("Hier können Sie angebundene Systeme verwalten.")
-                                 )
-                            )
-            )
-        );
-        $infobox[1]["kategorie"] = _("Aktionen:");
-            $infobox[1]["eintrag"][] = array (  'icon' => Icon::create('info', 'clickable'),
-                                        "text"  => _("Nachdem Sie ein angebundenes System ausgewählt haben wird die Verbindung zum System geprüft.")
-                                    );
-
+      
         switch($status_info)
         {
             case "active":
-            $infobox[1]["eintrag"][] = array (  'icon' => Icon::create('accept', 'accept'),
-                                        "text"  => sprintf(_("Die Verbindung zum System \"%s\" ist <b>aktiv</b>. Sie können die Einbindung des Systems in Stud.IP jederzeit deaktivieren."), $connected_cms[$cms_select]->getName())
-                                    );
+                PageLayout::postSuccess(sprintf(_("Die Verbindung zum System \"%s\" ist <b>aktiv</b>. Sie können die Einbindung des Systems in Stud.IP jederzeit deaktivieren."), $connected_cms[$cms_select]->getName()));
             break;
             case "not active":
-            $infobox[1]["eintrag"][] = array (  'icon' => Icon::create('exclaim', 'clickable'),
-                                        "text"  => sprintf(_("Die Verbindung zum System \"%s\" steht, das System ist jedoch nicht aktiviert. Sie können die Einbindung des Systems in Stud.IP jederzeit aktivieren. Solange die Verbindung nicht aktiviert wurde, werden die Module des Systems \"%s\" in Stud.IP nicht angezeigt."), $connected_cms[$cms_select]->getName(), $connected_cms[$cms_select]->getName())
-                                    );
+                PageLayout::postWarning(sprintf(_("Die Verbindung zum System \"%s\" steht, das System ist jedoch nicht aktiviert. Sie können die Einbindung des Systems in Stud.IP jederzeit aktivieren. Solange die Verbindung nicht aktiviert wurde, werden die Module des Systems \"%s\" in Stud.IP nicht angezeigt."), $connected_cms[$cms_select]->getName(), $connected_cms[$cms_select]->getName()));
             break;
             case "error":
-            $infobox[1]["eintrag"][] = array (  'icon' => Icon::create('decline', 'clickable'),
-                                        "text"  => sprintf(_("Bei der Prüfung der Verbindung sind Fehler aufgetreten. Sie müssen zunächst die Einträge in der Konfigurationsdatei korrigieren, bevor das System angebunden werden kann."), $connected_cms[$cms_select]->getName())
-                                    );
+                PageLayout::postError(sprintf(_("Bei der Prüfung der Verbindung sind Fehler aufgetreten. Sie müssen zunächst die Einträge in der Konfigurationsdatei korrigieren, bevor das System angebunden werden kann."), $connected_cms[$cms_select]->getName()));
             break;
         }
 
@@ -215,15 +186,15 @@ if (get_config('ELEARNING_INTERFACE_ENABLE'))
 }
 else
 {
-    // Start of Output
-    parse_window ("error§" . _("Die Schnittstelle für die Integration von Lernmodulen ist nicht aktiviert. Damit Lernmodule verwendet werden können, muss die Verbindung zu einem LCM-System in der Konfigurationsdatei von Stud.IP hergestellt werden. Wenden Sie sich bitte an den/die AdministratorIn."), "§",
-                _("E-Learning-Schnittstelle nicht eingebunden"));
+    PageLayout::postError(_("Die Schnittstelle für die Integration von Lernmodulen ist nicht aktiviert.
+    Damit Lernmodule verwendet werden können, muss die Verbindung zu einem LCM-System in der Konfigurationsdatei von Stud.IP hergestellt werden. 
+    Wenden Sie sich bitte an den/die AdministratorIn."), [_("E-Learning-Schnittstelle nicht eingebunden")]);
+    
 }
 
 
 $template = $GLOBALS['template_factory']->open('layouts/base.php');
 $template->content_for_layout = ob_get_clean();
-$template->infobox = $infobox ? array('content' => $infobox) : null;
 echo $template->render();
 
 page_close();

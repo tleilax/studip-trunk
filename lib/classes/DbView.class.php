@@ -114,7 +114,7 @@ class DbView
     
     public static function addView($view)
     {
-        $view = strtolower($view);
+        $view = mb_strtolower($view);
         if (!isset(self::$dbviewfiles[$view])) {
             self::$dbviewfiles[$view] = 0;
         }
@@ -238,16 +238,16 @@ class DbView
                 $query[$i]  = $this->parse_query($query[$i]);
                 $repl_query = (is_array($query[$i])) ? $query[$i][0] : $query[$i];
                 for ($j = 0; $j < $i; ++$j) {
-                    $spl = stristr($query[$j], "where");
+                    $spl = mb_stristr($query[$j], "where");
                     if (!$spl)
-                        $spl = stristr($query[$j], "having");
+                        $spl = mb_stristr($query[$j], "having");
                     if ($spl) {
-                        $pos = strpos($spl, "{" . $i . "}");
+                        $pos = mb_strpos($spl, "{" . $i . "}");
                         if (!$pos === false)
                             $repl_query = $this->get_temp_values($repl_query);
                     }
                     if (!$spl OR $pos === false) {
-                        $pos = strpos($query[$j], "{" . $i . "}");
+                        $pos = mb_strpos($query[$j], "{" . $i . "}");
                         if (!$pos === false)
                             $repl_query = $this->get_temp_table($repl_query);
                     }
@@ -317,7 +317,7 @@ class DbView
         if (count($tokens) > 1) {
             $types = [];
             $token = 0;
-            for ($i = 0; $i < strlen($query); $i++) {
+            for ($i = 0; $i < mb_strlen($query); $i++) {
                 switch ($query{$i}) {
                     case '?':
                         $types[$token++] = 1;

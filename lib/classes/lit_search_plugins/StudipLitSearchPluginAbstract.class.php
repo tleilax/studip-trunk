@@ -43,7 +43,7 @@ class StudipLitSearchPluginAbstract {
 
     function __construct(){
         global $sess;
-        $this->class_name = strtolower(get_class($this));
+        $this->class_name = mb_strtolower(get_class($this));
         $this->sess_var_name = "_search_result_" . $this->class_name;
         $this->search_result =& $_SESSION[$this->sess_var_name];
     }
@@ -76,10 +76,11 @@ class StudipLitSearchPluginAbstract {
         if ($format == "clear"){
             return $this->error_msg;
         } else {
-        for ($i = 0; $i < count($this->error_msg); ++$i){
-            $ret .= $this->error_msg[$i]['type'] . "§" . htmlReady($this->error_msg[$i]['msg']) . "§";
-        }
-        return $ret;
+            $ret = '';
+            for ($i = 0; $i < count($this->error_msg); ++$i){
+                $ret .= $this->error_msg[$i]['type'] . "§" . htmlReady($this->error_msg[$i]['msg']) . "§";
+            }
+            return $ret;
         }
     }
 
@@ -96,7 +97,7 @@ class StudipLitSearchPluginAbstract {
         global $_lit_search_plugins;
         $ret = false;
         for ($i = 0; $i < count($_lit_search_plugins); ++$i){
-            if (substr(strtolower($this->class_name),21) == strtolower($_lit_search_plugins[$i]['name'])){
+            if (mb_substr(strtolower($this->class_name),21) == mb_strtolower($_lit_search_plugins[$i]['name'])){
                 $ret = $_lit_search_plugins[$i]['name'];
                 break;
             }

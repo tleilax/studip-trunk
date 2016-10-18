@@ -3,12 +3,10 @@
 <? if (!Request::isXhr()) : ?>
     <h1><?= _('Raumanfragen bearbeiten / erstellen') ?></h1>
 <? endif ?>
-<? if ($request) : ?>
-    <h2><?= htmlready($request->getTypeExplained()) ?></h2>
-<? endif ?>
+
 <form method="post" name="room_request"
       action="<?= $this->controller->link_for('edit/' . $course_id, $params) ?>"
-    <?= Request::isXhr() ? 'data-dialog="size=big"' : '' ?> class="studip-form">
+    <?= Request::isXhr() ? 'data-dialog="size=big"' : '' ?> class="default">
     <?= CSRFProtection::tokenTag() ?>
     <?= $this->render_partial('course/room_requests/_form.php'); ?>
 

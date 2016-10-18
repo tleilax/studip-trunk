@@ -81,7 +81,7 @@ class ExportPDF extends TCPDF implements ExportDocument {
         if (count($matches[0])) {
             $endnote .= "<br><br>"._("Kommentare")."<hr>";
             for ($i=0; $i < count($matches[0]); $i++) {
-                $endnote .= ($i+1).") ".htmlReady(substr($matches[1][$i], 1)).": ".htmlReady($matches[2][$i])."<br>";
+                $endnote .= ($i+1).") ".htmlReady(mb_substr($matches[1][$i], 1)).": ".htmlReady($matches[2][$i])."<br>";
             }
         }
         $content = preg_replace_callback("#\[comment(=.*)?\](.*)\[/comment\]#msU", function ($m) {return $this->addEndnote($m[1], $m[2]);}, $content);
@@ -94,7 +94,7 @@ class ExportPDF extends TCPDF implements ExportDocument {
             $url = $match[1];
 
             // Detect possible html entities in url and remove them
-            if (strpos($url, '&amp;') !== false) {
+            if (mb_strpos($url, '&amp;') !== false) {
                 $url = html_entity_decode($url);
             }
 
@@ -102,7 +102,7 @@ class ExportPDF extends TCPDF implements ExportDocument {
             if (Config::GetInstance()->LOAD_EXTERNAL_MEDIA) {
                 $parsed = parse_url($url);
                 // Detect media proxy
-                if (strpos($parsed['path'], 'media_proxy') !== false && strpos($parsed['query'], 'url=') !== false) {
+                if (mb_strpos($parsed['path'], 'media_proxy') !== false && mb_strpos($parsed['query'], 'url=') !== false) {
                     // Remove media proxy
                     parse_str($parsed['query'], $parameters);
                     $url = $parameters['url'];
@@ -281,9 +281,9 @@ class ExportPDF extends TCPDF implements ExportDocument {
         $convurl = $url;
         $url_elements = @parse_url($url);
         $url = $url_elements['path'].'?'.$url_elements['query'];
-        if (strpos(implode('#', $this->domains), $url_elements['host']) !== false) {
-            if (strpos($url, 'dispatch.php/media_proxy?url=') !== false) {
-                $targeturl = urldecode(substr($url, 4));
+        if (mb_strpos(implode('#', $this->domains), $url_elements['host']) !== false) {
+            if (mb_strpos($url, 'dispatch.php/media_proxy?url=') !== false) {
+                $targeturl = urldecode(mb_substr($url, 4));
                 try {
                     // is file in cache?
                     if (!$metadata = $this->media_proxy->getMetaData($targeturl)) {
@@ -294,12 +294,12 @@ class ExportPDF extends TCPDF implements ExportDocument {
                 } catch (Exception $e) {
                     $convurl = '';
                 }
-            } else if (stripos($url, 'dispatch.php/document/download') !== false) {
+            } else if (mb_stripos($url, 'dispatch.php/document/download') !== false) {
                 if (preg_match('#([a-f0-9]{32})#', $url, $matches)) {
                     $convurl = DirectoryEntry::find($matches[1])->file->getStorageObject()->getPath();
                 }
-            } else if (stripos($url, 'download') !== false
-                    || stripos($url, 'sendfile.php') !== false) {
+            } else if (mb_stripos($url, 'download') !== false
+                    || mb_stripos($url, 'sendfile.php') !== false) {
                 //// get file id
                 if (preg_match('#([a-f0-9]{32})#', $url, $matches)) {
                     $document = new StudipDocument($matches[1]);

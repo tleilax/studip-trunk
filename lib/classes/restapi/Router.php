@@ -128,7 +128,7 @@ class Router
     public function register($request_method, $uri_template, $handler, $conditions = array(), $source = 'unknown')
     {
         // Normalize method and test whether it's supported
-        $request_method = strtolower($request_method);
+        $request_method = mb_strtolower($request_method);
         if (!in_array($request_method, $this->supported_methods)) {
             throw new \Exception('Method "' . $request_method . '" is not supported.');
         }
@@ -145,7 +145,7 @@ class Router
 
         // Sanitize conditions
         foreach ($conditions as $var => $pattern) {
-            if ($pattern[0] !== $pattern[strlen($pattern) - 1] || ctype_alnum($pattern[0])) {
+            if ($pattern[0] !== $pattern[mb_strlen($pattern) - 1] || ctype_alnum($pattern[0])) {
                 $conditions[$var] = '/' . $pattern . '/';
             }
         }
@@ -177,7 +177,7 @@ class Router
         // through it's methods to find any defined route
         $ref      = new \ReflectionClass($map);
         $filename = $ref->getFilename();
-        $source   = strpos($filename, 'plugins_packages') !== false
+        $source   = mb_strpos($filename, 'plugins_packages') !== false
                   ? 'plugin'
                   : 'core';
 
@@ -388,7 +388,7 @@ class Router
         $was_setup = true;
 
         // Register default routes
-        $routes = words('Blubber Contacts Course Discovery Events Files Forum Messages News Schedule Semester Studip User UserConfig Wiki');
+        $routes = words('Activity Blubber Contacts Course Discovery Events Files Forum Messages News Schedule Semester Studip User UserConfig Wiki');
 
         foreach ($routes as $route) {
             require_once "app/routes/$route.php";
@@ -480,7 +480,7 @@ class Router
 
     private function normalizeRequestMethod($method)
     {
-        return strtolower($method ?: $_SERVER['REQUEST_METHOD'] ?: 'get');
+        return mb_strtolower($method ?: $_SERVER['REQUEST_METHOD'] ?: 'get');
     }
 
     /**
@@ -527,8 +527,8 @@ class Router
         $matched    = null;
         $parameters = array();
         if (isset($this->routes[$method])) {
-            if ($content_renderer->extension() && strpos($uri, $content_renderer->extension()) !== false) {
-                $uri = substr($uri, 0, -strlen($content_renderer->extension()));
+            if ($content_renderer->extension() && mb_strpos($uri, $content_renderer->extension()) !== false) {
+                $uri = mb_substr($uri, 0, -mb_strlen($content_renderer->extension()));
             }
 
             foreach ($this->routes[$method] as $uri_template => $route) {
