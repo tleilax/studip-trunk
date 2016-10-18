@@ -61,7 +61,7 @@ class MyRealmModel
                     $nav->setImage(Icon::create('files+new', 'attention', ["title" => sprintf('%s %s, %s %s',$result['count'],_('Dokument(e)'),$result['neue'],_('neue'))]));
                     $nav->setBadgeNumber($result['neue']);
                 } else {
-                    $nav->setURL(URLHelper::getURL('dispatch.php/course/files/tree'));
+                    $nav->setURL(URLHelper::getURL('dispatch.php/course/files/index'));
                     $nav->setImage(Icon::create('files', 'inactive', ["title" => sprintf('%s %s',$result['count'],_('Dokument(e)'))]));
                 }
                 return $nav;

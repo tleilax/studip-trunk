@@ -54,7 +54,7 @@ class FileController extends AuthenticatedController
                 }
                 
                 //DEVELOPMENT STAGE ONLY:
-                return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/tree/'));
+                return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/'));
             }
         }
         $this->folder_id = Request::option('topfolder');

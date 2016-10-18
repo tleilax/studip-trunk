@@ -91,7 +91,7 @@ class UserfilesController extends AuthenticatedController
         $this->buildSidebar();
         PageLayout::setTitle($user->getFullname() . ' - ' . _('Dateien'));
         
-        $this->render_template('course/files/tree.php', $GLOBALS['template_factory']->open('layouts/base'));
+        $this->render_template('course/files/index.php', $GLOBALS['template_factory']->open('layouts/base'));
     }
 
 

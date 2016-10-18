@@ -59,7 +59,7 @@ class Course_FilesController extends AuthenticatedController
     /**
         Displays the files in tree view
     **/
-    public function tree_action($topFolder = '')
+    public function index_action($topFolder = '')
     {
         if(Navigation::hasItem('/course/files_new')) {
             Navigation::activateItem('/course/files_new');
@@ -107,8 +107,26 @@ class Course_FilesController extends AuthenticatedController
         }
 
     }
-
-
+    
+    
+    private function getFolderFiles(Folder $folder)
+    {
+        $files = [];
+        if($folder->file_refs) {
+            foreach($folder->file_refs as $fileRef) {
+                $files[] = $fileRef;
+            }
+            
+            if($folder->subfolders) {
+                foreach($folder->subfolders as $subFolder) {
+                    $files = array_merge($files, $this->getFolderFiles($subFolder));
+                }
+            }
+        }
+        return $files;
+    }
+    
+    
     /**
         Displays the files in flat view
     **/
@@ -120,13 +138,18 @@ class Course_FilesController extends AuthenticatedController
         if(Navigation::hasItem('/course/files_new/flat')) {
             Navigation::activateItem('/course/files_new/flat');
         }
-
+        
+        $filePreselector = Request::get('select', null);
+        
+        
         $course = Course::find(Request::get('cid'));
         if(!$course) {
             //TODO: throw exception
 
             return; //DEVELOPMENT STAGE CODE!
         }
+        
+        //find top folder:
         
         if (!$topFolder) {
             $this->topFolder = Folder::findTopFolder($course->id);
@@ -142,17 +165,16 @@ class Course_FilesController extends AuthenticatedController
             $this->topFolder->store();
         }
         
+        //find all files in all subdirectories:
+        
+        $this->files = $this->getFolderFiles($this->topFolder);
+        
+        
         $this->buildSidebar();
         PageLayout::setTitle($course->getFullname() . ' - ' . _('Dateien'));
     }
-
-
-    public function index_action()
-    {
-        $this->redirect('course/files/tree');
-    }
-
-
+    
+    
     public function upload_action()
     {
         if (Request::isPost() && is_array($_FILES)) {

@@ -126,7 +126,7 @@ class CourseNavigation extends Navigation
             $newFilesNavigation = new Navigation(_('Dateien (neu)'), 'dispatch.php/course/files');
             $newFilesNavigation->setImage(Icon::create('files', 'info_alt'));
             $newFilesNavigation->setActiveImage(Icon::create('files', 'info'));
-            $treeNavigation = new Navigation(_('Baumansicht'), 'dispatch.php/course/files/tree');
+            $treeNavigation = new Navigation(_('Standardansicht'), 'dispatch.php/course/files/index');
             $newFilesNavigation->addSubNavigation('tree', $treeNavigation);
             $flatNavigation = new Navigation(_('Flache Ansicht'), 'dispatch.php/course/files/flat');
             $newFilesNavigation->addSubNavigation('flat', $flatNavigation);
