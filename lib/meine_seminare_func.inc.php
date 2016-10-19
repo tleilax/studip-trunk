@@ -95,8 +95,8 @@ function sort_groups($group_field, &$groups)
 
         case 'dozent_id':
         uksort($groups, create_function('$a,$b',
-                'return strnatcasecmp(str_replace(array("ä","ö","ü"), array("ae","oe","ue"), strtolower(get_fullname($a, "no_title_short"))),
-                                    str_replace(array("ä","ö","ü"), array("ae","oe","ue"), strtolower(get_fullname($b, "no_title_short"))));'));
+                'return strnatcasecmp(str_replace(array("ä","ö","ü"), array("ae","oe","ue"), mb_strtolower(get_fullname($a, "no_title_short"))),
+                                    str_replace(array("ä","ö","ü"), array("ae","oe","ue"), mb_strtolower(get_fullname($b, "no_title_short"))));'));
         break;
 
         default:
@@ -243,7 +243,7 @@ function fill_groups(&$groups, $group_key, $group_entry)
     if (is_null($group_key)){
         $group_key = 'not_grouped';
     }
-    $group_entry['name'] = str_replace(array("ä","ö","ü"), array("ae","oe","ue"), strtolower($group_entry['name']));
+    $group_entry['name'] = str_replace(array("ä","ö","ü"), array("ae","oe","ue"), mb_strtolower($group_entry['name']));
     if (!is_array($groups[$group_key]) || (is_array($groups[$group_key]) && !in_array($group_entry, $groups[$group_key]))){
         $groups[$group_key][$group_entry['seminar_id']] = $group_entry;
         return true;
@@ -294,7 +294,7 @@ function get_obj_clause($table_name, $range_field, $count_field, $if_clause,
     $type_sql = ($type) ? "='$type'" : "IN('sem','inst')";
     $object_field = ($object_field) ? $object_field : "my.object_id";
     $on_clause = " ON(my.object_id=a.{$range_field} $add_on) ";
-    if (strpos($table_name,'{ON_CLAUSE}') !== false){
+    if (mb_strpos($table_name,'{ON_CLAUSE}') !== false){
         $table_name = str_replace('{ON_CLAUSE}', $on_clause, $table_name);
     } else {
         $table_name .= $on_clause;

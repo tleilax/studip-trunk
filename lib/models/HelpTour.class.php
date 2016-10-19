@@ -124,7 +124,7 @@ class HelpTour extends SimpleORMap {
     {
         $params = array();
         $condition = '';
-        if (strlen(trim($term)) >= 3) {
+        if (mb_strlen(trim($term)) >= 3) {
             $condition =  "WHERE name LIKE CONCAT('%', ?, '%')";
             $params[] = $term;
         }
@@ -222,13 +222,13 @@ class HelpTour extends SimpleORMap {
     function isVisible() {
         if (!$this->settings->active)
             return false;
-        $language = substr($GLOBALS['user']->preferred_language, 0, 2);
+        $language = mb_substr($GLOBALS['user']->preferred_language, 0, 2);
         if (!$language)
             $language = 'de';
         if ($language != $this->language)
             return false;
         $current_role = User::findCurrent() ? User::findCurrent()->perms : 'nobody';
-        if ((strpos($this->roles, $current_role) === false))
+        if ((mb_strpos($this->roles, $current_role) === false))
             return false;
         foreach ($this->audiences as $audience) {
             switch ($audience->type) {

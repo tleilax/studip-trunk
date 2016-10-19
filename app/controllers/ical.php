@@ -31,7 +31,7 @@ class iCalController extends StudipController
      */
     function index_action($key = '')
     {
-        if (strlen($key)) {
+        if (mb_strlen($key)) {
             $user_id = IcalExport::getUserIdByKey($key);
         } else {
             $username = $_SERVER['PHP_AUTH_USER'];
@@ -63,7 +63,7 @@ class iCalController extends StudipController
                 return;
             }
             $content = join($export->getExport());
-            if (stripos($_SERVER['HTTP_USER_AGENT'], 'google-calendar') !== false) {
+            if (mb_stripos($_SERVER['HTTP_USER_AGENT'], 'google-calendar') !== false) {
                 $content = str_replace(array('CLASS:PRIVATE','CLASS:CONFIDENTIAL'), 'CLASS:PUBLIC', $content);
             }
             $this->response->add_header('Content-Type', 'text/calendar;charset=utf-8');
@@ -71,7 +71,7 @@ class iCalController extends StudipController
             $this->response->add_header('Content-Transfer-Encoding', 'binary');
             $this->response->add_header('Pragma', 'public');
             $this->response->add_header('Cache-Control', 'private');
-            $this->response->add_header('Content-Length', strlen($content));
+            $this->response->add_header('Content-Length', mb_strlen($content));
             $this->render_text($content);
         } else {
             // delayed response to prevent brute force attacks ???

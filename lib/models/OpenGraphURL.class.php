@@ -122,7 +122,7 @@ class OpenGraphURL extends SimpleORMap
         }
 
         $response = parse_link($this['url']);
-        if ($response['response_code'] == 200 && strpos($response['Content-Type'],'html') !== false) {
+        if ($response['response_code'] == 200 && mb_strpos($response['Content-Type'],'html') !== false) {
             if (preg_match('/(?<=charset=)[^;]*/i', $response['Content-Type'], $match)) {
                 $currentEncoding = $match[0];
             } else {
@@ -151,14 +151,14 @@ class OpenGraphURL extends SimpleORMap
             foreach ($metatags as $tag) {
                 $key = false;
                 if ($tag->hasAttribute('property')
-                    && strpos($tag->getAttribute('property'), 'og:') === 0)
+                    && mb_strpos($tag->getAttribute('property'), 'og:') === 0)
                 {
-                    $key = strtolower(substr($tag->getAttribute('property'), 3));
+                    $key = mb_strtolower(mb_substr($tag->getAttribute('property'), 3));
                 }
                 if (!$key && $tag->hasAttribute('name')
-                    && strpos($tag->getAttribute('name'), 'og:') === 0)
+                    && mb_strpos($tag->getAttribute('name'), 'og:') === 0)
                 {
-                    $key = strtolower(substr($tag->getAttribute('name'), 3));
+                    $key = mb_strtolower(mb_substr($tag->getAttribute('name'), 3));
                 }
                 if ($key) {
                     $content = studip_utf8decode($tag->getAttribute('content'));
@@ -180,8 +180,8 @@ class OpenGraphURL extends SimpleORMap
             }
             if (!$this['description'] && $isOpenGraph) {
                 foreach ($metatags as $tag) {
-                    if (stripos($tag->getAttribute('name'), "description") !== false
-                        || stripos($tag->getAttribute('property'), "description") !== false)
+                    if (mb_stripos($tag->getAttribute('name'), "description") !== false
+                        || mb_stripos($tag->getAttribute('property'), "description") !== false)
                     {
                         $this['description'] = studip_utf8decode($tag->getAttribute('content'));
                     }

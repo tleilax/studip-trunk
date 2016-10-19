@@ -51,7 +51,7 @@ class UserDataAdapter implements ArrayAccess, Countable, IteratorAggregate
      */
     function adaptOffset($offset)
     {
-        $adapted = trim(strstr($offset, '.'), '.');
+        $adapted = trim(mb_strstr($offset, '.'), '.');
         return $adapted ?: $offset;
     }
 
@@ -167,7 +167,7 @@ class UserManagement
     {
         if ($attr === 'user_data') {
             if (!is_array($value)) {
-                throw InvalidArgumentException('user_data only accepts array');
+                throw new InvalidArgumentException('user_data only accepts array');
             }
             return $this->user_data->setData($value, true);
         }
@@ -970,7 +970,7 @@ class UserManagement
         }
 
         // delete user from Statusgruppen
-        if ($db_ar = RemovePersonFromAllStatusgruppen(get_username($this->user_data['auth_user_md5.user_id']))  > 0) {
+        if ($db_ar = StatusgruppeUser::deleteBySQL('user_id = ?', [$this->user_data['auth_user_md5.user_id']]) > 0) {
             $this->msg .= "info§" . sprintf(_("%s Einträge aus Funktionen / Gruppen gelöscht."), $db_ar) . "§";
         }
 
@@ -1110,7 +1110,7 @@ class UserManagement
                     if ($cms->auth_necessary && ($cms->user instanceOf ConnectedUser)) {
                         $user_auto_create = $cms->USER_AUTO_CREATE;
                         $cms->USER_AUTO_CREATE = false;
-                        $userclass = strtolower(get_class($cms->user));
+                        $userclass = mb_strtolower(get_class($cms->user));
                         $connected_user = new $userclass($cms->cms_type, $this->user_data['auth_user_md5.user_id']);
                         if($ok = $connected_user->deleteUser()){
                             if($connected_user->is_connected){

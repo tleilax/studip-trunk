@@ -84,7 +84,7 @@ global $ex_type, $xml_file_id, $page, $o_mode, $format, $choose, $xslt_files, $e
 }
 
 $export_pagename = _("Konvertierung der Daten: ");
-$xslt_filename =  strlen(Request::get('xslt_filename')) ? basename(stripslashes(Request::get('xslt_filename'))) : $xslt_filename_default;
+$xslt_filename =  mb_strlen(Request::get('xslt_filename')) ? basename(stripslashes(Request::get('xslt_filename'))) : $xslt_filename_default;
 
 if (!CheckParamXSLT())
 {
@@ -156,7 +156,7 @@ elseif (!isset($page) or ($page == 0)) // Seite 1 : Auswahl des Dateiformats
 
 elseif ($page == 1) // Seite 2 : Auswahl des XSLT-Scripts
 {
-    if (strpos($choose, $format) === false)
+    if (mb_strpos($choose, $format) === false)
         unset($choose);
     $export_pagename .= _("Auswahl des Ausgabemoduls");
 

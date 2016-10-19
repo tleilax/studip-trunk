@@ -16,7 +16,7 @@ namespace Studip {
 namespace {
 
     //software version - please leave it as it is!
-    $SOFTWARE_VERSION = '3.6.alpha-svn';
+    $SOFTWARE_VERSION = '4.0.alpha-svn';
 
     global $PHP_SELF, $STUDIP_BASE_PATH;
 
@@ -208,7 +208,7 @@ namespace {
 
     if (Config::get()->CALENDAR_ENABLE) {
         StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/' . $GLOBALS['RELATIVE_PATH_CALENDAR'] . '/lib');
-        require_once $GLOBALS['STUDIP_BASE_PATH'] . '/' . $GLOBALS['RELATIVE_PATH_CALENDAR'] . '/calendar_func.inc.php';
+        require_once 'lib/calendar_functions.inc.php';
     }
 
     if (Config::get()->ELEARNING_INTERFACE_ENABLE) {
@@ -247,7 +247,7 @@ namespace {
     /*mail settings
     ----------------------------------------------------------------*/
     if ($GLOBALS['MAIL_TRANSPORT']) {
-        $mail_transporter_name = strtolower($GLOBALS['MAIL_TRANSPORT']) . '_message';
+        $mail_transporter_name = mb_strtolower($GLOBALS['MAIL_TRANSPORT']) . '_message';
     } else {
         $mail_transporter_name = 'smtp_message';
     }

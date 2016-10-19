@@ -194,12 +194,11 @@ abstract class StudipController extends Trails_Controller
      *
      * @return string  a URL to this route
      */
-    function url_for($to = ''/* , ... */)
+    public function url_for($to = ''/* , ... */)
     {
         $args = func_get_args();
-        if (is_array($args[1])) {
-            $params = $args[1];
-            unset($args[1]);
+        if (is_array(end($args))) {
+            $params = array_pop($args);
         } else {
             $params = array();
         }
@@ -209,7 +208,7 @@ abstract class StudipController extends Trails_Controller
             $to = '/' . ($this->parent_controller ? $this->parent_controller->current_action : $this->current_action);
         }
         if ($to[0] === '/') {
-            $prefix = str_replace('_', '/', strtolower(strstr(get_class($this->parent_controller ? $this->parent_controller : $this), 'Controller', true)));
+            $prefix = str_replace('_', '/', mb_strtolower(mb_strstr(get_class($this->parent_controller ? $this->parent_controller : $this), 'Controller', true)));
             $to = $prefix . $to;
         }
         $args[0] = $to;

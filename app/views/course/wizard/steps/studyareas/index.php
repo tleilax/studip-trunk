@@ -24,7 +24,7 @@
         data-forward-url="<?= $no_js_url ?>" data-no-search-result="<?=_('Es wurde kein Suchergebnis gefunden.') ?>">
         <h2><?= _('Alle Studienbereiche') ?></h2>
         <div>
-            <input type="text" size="40" name="search" id="sem-tree-search"
+            <input style="width:auto" type="text" size="40" name="search" id="sem-tree-search"
                    value="<?= $values['searchterm'] ?>"/>
             <span id="sem-tree-search-start">
                 <?= Icon::create('search', 'clickable')->asInput(["name" => 'start_search', "onclick" => "return STUDIP.CourseWizard.searchTree()", "class" => $search_result?'hidden-no-js':'']) ?>
@@ -41,8 +41,8 @@
         </div>
         <ul class="collapsable css-tree">
             <li class="sem-tree-root tree-loaded keep-node">
-                <input type="checkbox" id="root" checked="checked"/>
-                <label for="root">
+                <input type="checkbox" id="root" checked="checked">
+                <label for="root" class="undecorated">
                     <?= $GLOBALS['UNI_NAME'] ?>
                 </label>
                 <ul>

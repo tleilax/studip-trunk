@@ -98,7 +98,7 @@ class ForumBulkMail extends Messaging {
                 $mail->setReplyToEmail('')
                 ->setBodyText($data['text']);
 
-                if (strlen($data['reply_to'])) {
+                if (mb_strlen($data['reply_to'])) {
                     $mail->setSenderEmail($data['reply_to'])
                          ->setSenderName($snd_fullname);
                 }
@@ -109,8 +109,9 @@ class ForumBulkMail extends Messaging {
                 }
 
                 if($GLOBALS["ENABLE_EMAIL_ATTACHMENTS"]){
-                    foreach(get_message_attachments($data['message_id']) as $attachment){
-                        $mail->addStudipAttachment($attachment['dokument_id']);
+                    $message = Message::find($data['message_id']);
+                    foreach($message->attachments as $attachment){
+                        $mail->addStudipAttachment($attachment->id);
                     }
                 }
                 $mail->send();

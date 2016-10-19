@@ -103,7 +103,7 @@
 							$current_word = $character;
 							$mode = 'whitespace';
 						} else {
-							if( ctype_alnum( $character ) && ( strlen($current_word) == 0 || ctype_alnum( $current_word ) ) ) {
+							if( ctype_alnum( $character ) && ( mb_strlen($current_word) == 0 || ctype_alnum( $current_word ) ) ) {
 								$current_word .= $character;
 							} else {
 								$words[] = $current_word;
@@ -267,7 +267,7 @@
 				} else {
 					$workTag = $this->ExtractConsecutiveWords( $words, 'tag' );
 			                if( isset($workTag[0]) && $this->IsOpeningTag( $workTag[ 0 ] ) && !$this->IsClosingTag( $workTag[ 0 ] ) ) {
-			                    if( strpos( $workTag[ 0 ], 'class=' ) ) {
+			                    if( mb_strpos( $workTag[ 0 ], 'class=' ) ) {
 			                        $workTag[ 0 ] = str_replace( 'class="', 'class="diffmod ', $workTag[ 0 ] );
 			                        $workTag[ 0 ] = str_replace( "class='", 'class="diffmod ', $workTag[ 0 ] );
 			                    } else {

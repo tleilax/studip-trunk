@@ -27,10 +27,10 @@
             <tr>
                 <td><strong><?= _('Beschreibung:') ?></strong></td>
                 <td>
-                    <? if (!strlen($dokument->beschreibung) && !strlen($dokument->beschreibung)) : ?>
+                    <? if (!mb_strlen($dokument->beschreibung) && !mb_strlen($dokument->beschreibung)) : ?>
                         <?= _('Keine Beschreibung vorhanden.') ?>
                     <? else : ?>
-                        <? if (strlen($dokument->beschreibung)) : ?>
+                        <? if (mb_strlen($dokument->beschreibung)) : ?>
                         <div>
                             <img src="<?= Assets::image_path('languages/lang_de.gif') ?>" alt="<?= _('deutsch') ?>">
                             <?= formatReady($dokument->beschreibung) ?>
@@ -60,7 +60,7 @@
                                 <? foreach ($relation as $rel) : ?>
                                     <? $related_object = $object_type::getEnriched($rel['range_id']) ?>
                                     <li>
-                                        <a href="<?= $this->controller->url_for('dispatch/index', strtolower($object_type), $rel['range_id']) ?>">
+                                        <a href="<?= $this->controller->url_for('dispatch/index', mb_strtolower($object_type), $rel['range_id']) ?>">
                                             <?= $related_object->getDisplayName() ?>
                                         </a>
                                     </li>

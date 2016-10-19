@@ -32,7 +32,7 @@ class StudipPDO extends PDO
      */
     protected function verify($statement)
     {
-        if (strpos($statement, ';') !== false) {
+        if (mb_strpos($statement, ';') !== false) {
             if (preg_match('/;\s*\S/', self::replaceStrings($statement))) {
                 throw new PDOException('multiple statement execution not allowed');
             }
@@ -51,7 +51,7 @@ class StudipPDO extends PDO
      */
     protected static function replaceStrings($statement)
     {
-        $count = substr_count($statement, '"') + substr_count($statement, "'") + substr_count($statement, '\\');
+        $count = mb_substr_count($statement, '"') + mb_substr_count($statement, "'") + mb_substr_count($statement, '\\');
 
         // use fast preg_replace() variant if possible
         if ($count < 1000) {

@@ -258,7 +258,7 @@ class ExternSemBrowseTable extends SemBrowse {
             
             foreach ($group_by_data as $group_field => $sem_ids){
                 foreach ($sem_ids['Seminar_id'] as $seminar_id => $foo){
-                    $name = strtolower(key($sem_data[$seminar_id]["Name"]));
+                    $name = mb_strtolower(key($sem_data[$seminar_id]["Name"]));
                     $name = str_replace("ä","ae",$name);
                     $name = str_replace("ö","oe",$name);
                     $name = str_replace("ü","ue",$name);
@@ -352,9 +352,9 @@ class ExternSemBrowseTable extends SemBrowse {
                         //create Turnus field
                         $data["content"]["zeiten"] = Seminar::GetInstance($seminar_id)->getDatesExport(array('show_room' => true));
                         //Shorten, if string too long
-                        if (strlen($data["content"]["zeiten"]) >70) {
-                            $data["content"]["zeiten"] = substr($data["content"]["zeiten"], 0,
-                                    strpos(substr($data["content"]["zeiten"], 70, strlen($data["content"]["zeiten"])), ",") +71);
+                        if (mb_strlen($data["content"]["zeiten"]) >70) {
+                            $data["content"]["zeiten"] = mb_substr($data["content"]["zeiten"], 0,
+                                    mb_strpos(mb_substr($data["content"]["zeiten"], 70, mb_strlen($data["content"]["zeiten"])), ",") +71);
                             $data["content"]["zeiten"] .= "...";
                         }
                         $data["content"]["zeiten"] = htmlReady($data["content"]["zeiten"]);

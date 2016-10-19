@@ -92,11 +92,11 @@ class StudipAuthShib extends StudipAuthSSO
             if ($_REQUEST['sso'] == 'shib') {
                 // force Shibboleth authentication (lazy session)
                 $shib_url = $this->session_initiator;
-                $shib_url .= strpos($shib_url, '?') === false ? '?' : '&';
+                $shib_url .= mb_strpos($shib_url, '?') === false ? '?' : '&';
                 $shib_url .= 'target='.urlencode($this->getURL());
 
                 // break redirection loop in case of misconfiguration
-                if (strstr($_SERVER['HTTP_REFERER'], 'target=') == false) {
+                if (mb_strstr($_SERVER['HTTP_REFERER'], 'target=') == false) {
                     header('Location: '.$shib_url);
                     echo '<html></html>';
                     exit();
@@ -115,8 +115,8 @@ class StudipAuthShib extends StudipAuthSSO
         $this->userdata['username'] = $remote_user;
 
         foreach ($_SERVER as $key => $value) {
-            if (substr($key, 0, 10) == 'HTTP_SHIB_') {
-                $key = strtolower(substr($key, 10));
+            if (mb_substr($key, 0, 10) == 'HTTP_SHIB_') {
+                $key = mb_strtolower(mb_substr($key, 10));
                 $this->userdata[$key] = utf8_decode($value);
             }
         }
@@ -130,10 +130,10 @@ class StudipAuthShib extends StudipAuthSSO
     function getUserDomains ()
     {
         $user = $this->getUser();
-        $pos = strpos($user, '@');
+        $pos = mb_strpos($user, '@');
 
         if ($pos !== false) {
-            return array(substr($user, $pos + 1));
+            return array(mb_substr($user, $pos + 1));
         }
 
         return NULL;

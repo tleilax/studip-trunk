@@ -131,6 +131,7 @@ class Course_BasicdataController extends AuthenticatedController
             'title' => _("Teilnehmende"),
             'name' => "course_participants",
             'type' => 'textarea',
+            'i18n' => true,
             'value' => $data['participants'],
             'locked' => LockRules::Check($course_id, 'teilnehmer')
         );
@@ -138,13 +139,15 @@ class Course_BasicdataController extends AuthenticatedController
             'title' => _("Voraussetzungen"),
             'name' => "course_requirements",
             'type' => 'textarea',
-            'value' => $data['requirements'],
+            'i18n' => true,
+            'value' => $data['vorrausetzungen'],
             'locked' => LockRules::Check($course_id, 'voraussetzungen')
         );
         $this->descriptions[] = array(
             'title' => _("Lernorganisation"),
             'name' => "course_orga",
             'type' => 'textarea',
+            'i18n' => true,
             'value' => $data['orga'],
             'locked' => LockRules::Check($course_id, 'lernorga')
         );
@@ -152,6 +155,7 @@ class Course_BasicdataController extends AuthenticatedController
             'title' => _("Leistungsnachweis"),
             'name' => "course_leistungsnachweis",
             'type' => 'textarea',
+            'i18n' => true,
             'value' => $data['leistungsnachweis'],
             'locked' => LockRules::Check($course_id, 'leistungsnachweis')
         );
@@ -163,9 +167,10 @@ class Course_BasicdataController extends AuthenticatedController
                 _("Diese Ortsangabe wird nur angezeigt, wenn keine " .
                   "Angaben aus Zeiten oder Sitzungsterminen gemacht werden können.") .
                 "</span>",
+            'i18n' => true,
             'name' => "course_location",
             'type' => 'textarea',
-            'value' => $data['location'],
+            'value' => $data['ort'],
             'locked' => LockRules::Check($course_id, 'Ort')
         );
 
@@ -391,7 +396,7 @@ class Course_BasicdataController extends AuthenticatedController
             foreach (array_merge($this->attributes, $this->institutional, $this->descriptions) as $field) {
                 if (!$field['locked']) {
                     if ($field['type'] == 'datafield') {
-                        $datafield_id = substr($field['name'], 10);
+                        $datafield_id = mb_substr($field['name'], 10);
                         $datafield = $all_fields_types[$datafield_id];
                         $datafield->setValueFromSubmit($datafield_values[$datafield_id]);
                         if ($datafield->isValid()) {
@@ -408,7 +413,7 @@ class Course_BasicdataController extends AuthenticatedController
                         }
                     } else {
                         // format of input element name is "course_xxx"
-                        $varname = substr($field['name'], 7);
+                        $varname = mb_substr($field['name'], 7);
                         if ($field['i18n']) {
                             $req_value = Request::i18n($field['name']);
                         } else {

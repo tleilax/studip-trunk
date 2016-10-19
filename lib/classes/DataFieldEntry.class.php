@@ -65,7 +65,7 @@ abstract class DataFieldEntry
     public static function getDataFieldEntries($range_id, $object_type = '', $object_class_hint = '')
     {
         if (!$range_id) {
-            return false; // we necessarily need a range ID
+            return []; // we necessarily need a range ID
         }
 
         $parameters = array();
@@ -257,8 +257,8 @@ abstract class DataFieldEntry
      */
     public function getType()
     {
-        $class = strtolower(get_class($this));
-        return substr($class, 9, strpos($class, 'entry') - 9);
+        $class = mb_strtolower(get_class($this));
+        return mb_substr($class, 9, mb_strpos($class, 'entry') - 9);
     }
 
     /**

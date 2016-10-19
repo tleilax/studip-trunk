@@ -26,7 +26,7 @@ class MVVPlugin extends StudipPlugin implements SystemPlugin, Loggable {
         parent::__construct();
 
         $this->restoreConfig();
-        $this->me = strtolower(__CLASS__);
+        $this->me = mb_strtolower(__CLASS__);
         if ($this->isVisibleSearch()) {
             $this->setNavigationSearch();
         }
@@ -231,7 +231,7 @@ class MVVPlugin extends StudipPlugin implements SystemPlugin, Loggable {
             throw new AccessDeniedException();
         }
         $this->init();
-        if (strpos($unconsumed_path, 'lvgselector') === false) {
+        if (mb_strpos($unconsumed_path, 'lvgselector') === false) {
             // get rid of cid!
             UrlHelper::removeLinkParam('cid');
         }

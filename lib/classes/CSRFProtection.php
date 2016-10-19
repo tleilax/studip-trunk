@@ -177,7 +177,7 @@ class CSRFProtection
             }
             $bytes = '';
         }
-        if (strlen($bytes) < $count) {
+        if (mb_strlen($bytes) < $count) {
             // /dev/urandom is available on many *nix systems and is considered the
             // best commonly available pseudo-random source.
             if ($fh = @fopen('/dev/urandom', 'rb')) {
@@ -195,13 +195,13 @@ class CSRFProtection
             // the microtime() - is prepended rather than appended. This is to avoid
             // directly leaking $random_state via the $output stream, which could
             // allow for trivial prediction of further "random" numbers.
-            while (strlen($bytes) < $count) {
+            while (mb_strlen($bytes) < $count) {
                 $random_state = hash('sha256', microtime() . mt_rand() . $random_state);
                 $bytes .= hash('sha256', mt_rand() . $random_state, TRUE);
             }
         }
-        $output = substr($bytes, 0, $count);
-        $bytes = substr($bytes, $count);
+        $output = mb_substr($bytes, 0, $count);
+        $bytes = mb_substr($bytes, $count);
         return $output;
     }
 }

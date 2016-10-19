@@ -205,12 +205,12 @@ class StudipAutoloader
     private static function convertClassToFilename($class, $prefix = '')
     {
         // Test whether the namespace prefix matches the class name, leave early if not
-        if ($prefix && strpos($class, $prefix) !== 0) {
+        if ($prefix && mb_strpos($class, $prefix) !== 0) {
             return false;
         }
 
         // Remove namespace prefix
-        $class = substr($class, strlen($prefix));
+        $class = mb_substr($class, mb_strlen($prefix));
 
         // Convert namespace into directory structure
         $namespaced = str_replace('\\', DIRECTORY_SEPARATOR, $class);
@@ -246,7 +246,7 @@ class StudipAutoloader
             $path = '';
             foreach ($chunks as $chunk) {
                 if (!is_dir($path . DIRECTORY_SEPARATOR . $chunk)) {
-                    $chunk = strtolower($chunk);
+                    $chunk = mb_strtolower($chunk);
                 }
                 if (!is_dir($path . DIRECTORY_SEPARATOR . $chunk)) {
                     return false;

@@ -37,6 +37,19 @@ class StatusgruppeUser extends SimpleORMap
             'class_name' => 'User',
             'foreign_key' => 'user_id',
         );
+        $config['has_many']['datafields'] = array(
+            'class_name' => 'DatafieldEntryModel',
+            'foreign_key' => function($group_member) {
+                return [$group_member];
+            },
+            'assoc_foreign_key' => function($model, $params) {
+                $model->setValue('range_id', $params[0]->user_id);
+                $model->setValue('sec_range_id', $params[0]->statusgruppe_id);
+            },
+            'assoc_func' => 'findByModel',
+            'on_delete' => 'delete',
+            'on_store'  => 'store',
+        );
         parent::configure($config);
     }
 
@@ -61,7 +74,8 @@ class StatusgruppeUser extends SimpleORMap
     /**
      * {@inheritdoc }
      */
-    public function store() {
+    public function store()
+    {
         if ($this->isNew()) {
             $sql = "SELECT MAX(position)+1 FROM statusgruppe_user WHERE statusgruppe_id = ?";
             $stmt = DBManager::get()->prepare($sql);
@@ -74,12 +88,13 @@ class StatusgruppeUser extends SimpleORMap
     /**
      * {@inheritdoc }
      */
-    public function delete() {
-
+    public function delete()
+    {
         // Resort members
         $query = "UPDATE statusgruppe_user SET position = position - 1 WHERE statusgruppe_id = ? AND position > ?";
         $statement = DBManager::get()->prepare($query);
         $statement->execute(array($this->statusgruppe_id, $this->position));
+
         return parent::delete();
     }
 

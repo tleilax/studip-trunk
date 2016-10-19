@@ -56,7 +56,7 @@ function fakeServerGlobals($uri) {
     $_SERVER['HTTPS'] = false;
     $_SERVER['SERVER_PORT'] = 80;
     if (isset($urlComponents['scheme'])
-        && strtolower($urlComponents['scheme']) == 'https'
+        && mb_strtolower($urlComponents['scheme']) == 'https'
     ) {
         $_SERVER['HTTPS'] = 'on';
         $_SERVER['SERVER_PORT'] = 443;
@@ -95,7 +95,7 @@ function computeRelativePath() {
         );
     }
 
-    if (substr($CANONICAL_RELATIVE_PATH_STUDIP, -1) != '/') {
+    if (mb_substr($CANONICAL_RELATIVE_PATH_STUDIP, -1) != '/') {
         $CANONICAL_RELATIVE_PATH_STUDIP .= '/';
     }
 }
@@ -109,7 +109,7 @@ function computeAbsoluteURI() {
     // code copied from config/config_local.inc.php
     if (isset($_SERVER['SERVER_NAME'])) {
         // work around possible bug in lighttpd
-        if (strpos($_SERVER['SERVER_NAME'], ':') !== false) {
+        if (mb_strpos($_SERVER['SERVER_NAME'], ':') !== false) {
             list($_SERVER['SERVER_NAME'], $_SERVER['SERVER_PORT']) =
                 explode(':', $_SERVER['SERVER_NAME']);
         }

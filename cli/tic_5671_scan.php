@@ -103,7 +103,7 @@ $highlight = function ($content, $variable) {
     
     $result = array();
     foreach ($lines as $index => $line) {
-        if (strpos($line, $variable) === false) {
+        if (mb_strpos($line, $variable) === false) {
             continue;
         }
         $result[$index + 1] = $line;
@@ -113,7 +113,7 @@ $highlight = function ($content, $variable) {
         return '';
     }
 
-    $max = max(array_map('strlen', array_keys($result)));
+    $max = max(array_map('mb_strlen', array_keys($result)));
 
     foreach ($result as $index => $line) {
         $result[$index] = sprintf('#{yellow:%0' . $max . 'u}: %s', $index, str_replace($variable, "#{yellow_bg,black:$variable}", $line));

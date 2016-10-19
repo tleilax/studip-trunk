@@ -101,6 +101,28 @@ class Calendar_InstscheduleController extends AuthenticatedController
         } else {
             PageLayout::addStylesheet('print.css', array('media' => 'print'));
         }
+        
+        Helpbar::Get()->addPlainText(_('Information'), _('Der Stundenplan zeigt die regelmäßigen Veranstaltungen dieser Einrichtung.'), Icon::create('info'));
+        
+        $views = new ViewsWidget();
+        $views->addLink(_('klein'), URLHelper::getLink('', array('zoom' => 0)))->setActive($zoom == 0);
+        $views->addLink(_('mittel'), URLHelper::getLink('', array('zoom' => 2)))->setActive($zoom == 2);
+        $views->addLink(_('groß'), URLHelper::getLink('', array('zoom' => 4)))->setActive($zoom == 4);
+        $views->addLink(_('extra groß'), URLHelper::getLink('', array('zoom' => 7)))->setActive($zoom == 7);
+        
+        Sidebar::Get()->addWidget($views);
+        $actions = new ActionsWidget();
+        $actions->addLink(_('Druckansicht'),
+            $this->url_for('calendar/instschedule/index/'. implode(',', $this->days),
+                ['printview'    => 'true',
+                 'semester_id'  => $this->current_semester['semester_id']]),
+            Icon::create('print', 'clickable'),
+            ['target' => '_blank']);
+        Sidebar::Get()->addWidget($actions);
+        $semesterSelector = new SemesterSelectorWidget($this->url_for('calendar/instschedule'), 'semester_id', 'post');
+        $semesterSelector->includeAll(false);
+        Sidebar::Get()->addWidget($semesterSelector);
+        
     }
 
     /**
@@ -126,8 +148,8 @@ class Calendar_InstscheduleController extends AuthenticatedController
             $this->seminars[$zw[0]] = Seminar::getInstance($zw[0]);
         }
 
-        $this->start = substr($start, 0, 2) .':'. substr($start, 2, 2);
-        $this->end   = substr($end, 0, 2) .':'. substr($end, 2, 2);
+        $this->start = mb_substr($start, 0, 2) .':'. mb_substr($start, 2, 2);
+        $this->end   = mb_substr($end, 0, 2) .':'. mb_substr($end, 2, 2);
 
         $day_names  = array(_("Montag"),_("Dienstag"),_("Mittwoch"),
             _("Donnerstag"),_("Freitag"),_("Samstag"),_("Sonntag"));

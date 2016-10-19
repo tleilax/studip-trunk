@@ -56,8 +56,8 @@ endforeach;
     <td>
         <? $dates = implode('<br>', $dates)?>
 
-        <? if(strlen($dates) > 222) : ?>
-            <?= substr($dates, 0, 228)?>
+        <? if(mb_strlen($dates) > 222) : ?>
+            <?= mb_substr($dates, 0, 228)?>
             <div class="more-location-dates-infos" style="display:none">
                 <?=$dates?>
             </div>

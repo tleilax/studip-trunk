@@ -23,13 +23,7 @@
     if (is_array($dates['regular']['turnus_data']))
         foreach ($dates['regular']['turnus_data'] as $cycle) :
             $first_date = sprintf(_("ab %s"), strftime('%x', $cycle['first_date']['date']));
-            if ($cycle['cycle'] == 1) :
-                $cycle_output = $cycle['tostring'] . ' (' . sprintf(_("zweiwöchentlich, %s"), $first_date) . ')';
-            elseif ($cycle['cycle'] == 2) :
-                $cycle_output = $cycle['tostring'] . ' (' . sprintf(_("dreiwöchentlich, %s"), $first_date) . ')';
-            else :
-                $cycle_output = $cycle['tostring'] . ' (' . $first_date . ')';
-            endif;
+            $cycle_output = $cycle['tostring'] . ' (' . $first_date . ')';
             if ($cycle['desc'])
                 $cycle_output .= ', <i>' . htmlReady($cycle['desc']) . '</i>';
 
@@ -82,11 +76,11 @@
                  title="' . _('Blenden Sie die restlichen Termine ein') . '">(' ._('mehr'). ')</a>';
                 else :
                     $string = implode(', ', $dates);
-                    if (strlen($string) > 222) :
-                        echo substr($string,0, 128);
+                    if (mb_strlen($string) > 222) :
+                        echo mb_substr($string,0, 128);
                         echo '<span class="more-dates-infos" style="display: none">';
-                        echo substr($string, -1, 1) != ','? ', ' : ' ';
-                        echo substr($string, 129);
+                        echo mb_substr($string, -1, 1) != ','? ', ' : ' ';
+                        echo mb_substr($string, 129);
                         echo '</span>';
                         echo '<span class="more-dates-digits"> ...</span>';
                         echo '<a class="more-dates" style="cursor: pointer; margin-left: 3px"

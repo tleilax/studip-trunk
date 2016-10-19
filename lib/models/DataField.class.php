@@ -52,16 +52,12 @@ class DataField extends SimpleORMap
         $config['db_table'] = 'datafields';
         $config['has_many']['entries'] = array(
             'class_name' => 'DatafieldEntryModel',
-            'on_delete'  => function ($df) {
-                return DatafieldEntryModel::deleteBySQL("datafield_id = ?", array($df->id));
-            },
+            'on_delete'  => 'delete',
         );
         $config['has_many']['visibility_settings'] = array(
             'class_name'        => 'User_Visibility_Settings',
             'assoc_foreign_key' => 'identifier',
-            'on_delete'         => function ($df) {
-                return User_Visibility_Settings::deleteBySQL("identifier = ?", array($df->id));
-            },
+            'on_delete'         => 'delete',
         );
         parent::configure($config);
     }
@@ -160,7 +156,7 @@ class DataField extends SimpleORMap
     private function convertLegacyFields($field)
     {
         $field = preg_replace('/(?<=[a-z])([A-Z])/', '_$1', $field);
-        return strtolower($field);
+        return mb_strtolower($field);
     }
 
     /**
@@ -214,11 +210,11 @@ class DataField extends SimpleORMap
      */
     public function __call($method, array $arguments)
     {
-        if (substr($method, 0, 3) === 'get') {
-            return $this->getValue(substr($method, 3));
+        if (mb_substr($method, 0, 3) === 'get') {
+            return $this->getValue(mb_substr($method, 3));
         }
-        if (substr($method, 0, 3) === 'set') {
-            return $this->setValue(substr($method, 3), $arguments[0]);
+        if (mb_substr($method, 0, 3) === 'set') {
+            return $this->setValue(mb_substr($method, 3), $arguments[0]);
         }
         throw new BadMethodCallException('Call to undefined method ' . __CLASS__ . '::' . $method);
     }

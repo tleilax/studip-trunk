@@ -306,7 +306,7 @@ class StudipFormat extends TextFormat
      */
     protected static function markupHeading($markup, $matches)
     {
-        $level = max(1, 5 - strlen($matches[1]));
+        $level = max(1, 5 - mb_strlen($matches[1]));
         $text = $markup->format($matches[2]);
 
         return sprintf('<h%d class="content">%s</h%d>', $level, $text, $level);
@@ -354,7 +354,7 @@ class StudipFormat extends TextFormat
         );
 
         $key = $matches[1];
-        $level = strlen($matches[0]) / 2;
+        $level = mb_strlen($matches[0]) / 2;
         $open = str_repeat('<' . $tag[$key] . '>', $level);
         $close = str_repeat('</' . $tag[$key] . '>', $level);
 
@@ -393,7 +393,7 @@ class StudipFormat extends TextFormat
 
         foreach ($rows as $row) {
             list($level, $text) = explode(' ', $row, 2);
-            $level = strlen($level);
+            $level = mb_strlen($level);
 
             if ($indent < $level) {
                 for (; $indent < $level; ++$indent) {
@@ -469,8 +469,8 @@ class StudipFormat extends TextFormat
      */
     protected static function markupQuote($markup, $matches, $contents)
     {
-        if (strlen($matches[1]) > 1) {
-            $title = sprintf(_('%s hat geschrieben:'), $markup->format(substr($matches[1], 1)));
+        if (mb_strlen($matches[1]) > 1) {
+            $title = sprintf(_('%s hat geschrieben:'), $markup->format(mb_substr($matches[1], 1)));
             return sprintf('<blockquote><div class="author">%s</div>%s</blockquote>',
                        $title, trim($contents));
         } else {
@@ -493,8 +493,8 @@ class StudipFormat extends TextFormat
     protected static function markupCode($markup, $matches)
     {
         $codetype = "";
-        if (strlen($matches[1])) {
-            $codetype = " ".decodeHTML(trim(substr($matches[1], 1)), ENT_QUOTES);
+        if (mb_strlen($matches[1])) {
+            $codetype = " ".decodeHTML(trim(mb_substr($matches[1], 1)), ENT_QUOTES);
         }
         $code = decodeHTML(trim($matches[2]), ENT_QUOTES);
         return sprintf('<pre class="usercode %1$s"><code class="%1$s">%2$s</code></pre>',
@@ -537,7 +537,7 @@ class StudipFormat extends TextFormat
                 } elseif(in_array($param, words("left center right"))) {
                     $position = $param;
                 } elseif($key === 0 && $param[0] === "=") {
-                    $title = substr($param, 1);
+                    $title = mb_substr($param, 1);
                 } elseif($key < count($params) - 1) {
                     $virtual_url = $param.":".$params[$key + 1];
                     if (isURL($virtual_url)) {
@@ -557,10 +557,10 @@ class StudipFormat extends TextFormat
         $pu = @parse_url($url);
         if (($pu['scheme'] == 'http' || $pu['scheme'] == 'https')
                 && ($pu['host'] == $_SERVER['HTTP_HOST'] || $pu['host'].':'.$pu['port'] == $_SERVER['HTTP_HOST'])
-                && strpos($pu['path'], $GLOBALS['CANONICAL_RELATIVE_PATH_STUDIP']) === 0) {
+                && mb_strpos($pu['path'], $GLOBALS['CANONICAL_RELATIVE_PATH_STUDIP']) === 0) {
             $intern = true;
-            $checkpath = urldecode(substr($pu['path'], strlen($GLOBALS['CANONICAL_RELATIVE_PATH_STUDIP'])));
-            if (strpos($checkpath, '../') === false) {
+            $checkpath = urldecode(mb_substr($pu['path'], mb_strlen($GLOBALS['CANONICAL_RELATIVE_PATH_STUDIP'])));
+            if (mb_strpos($checkpath, '../') === false) {
                 list($pu['first_target']) = explode('/', $checkpath);
             } else {
                 $pu['first_target'] = false;
@@ -569,7 +569,7 @@ class StudipFormat extends TextFormat
         $LOAD_EXTERNAL_MEDIA = Config::GetInstance()->getValue('LOAD_EXTERNAL_MEDIA');
         if ($intern
             && !in_array($pu['first_target'], array('sendfile.php','download','assets','pictures'))
-            && !($pu['first_target'] === 'dispatch.php' && strpos($pu['path'], 'dispatch.php/document/download') !== false))
+            && !($pu['first_target'] === 'dispatch.php' && mb_strpos($pu['path'], 'dispatch.php/document/download') !== false))
         {
             return $matches[0];
         } elseif ((!$LOAD_EXTERNAL_MEDIA || $LOAD_EXTERNAL_MEDIA === 'deny') && !$intern) {
@@ -603,7 +603,7 @@ class StudipFormat extends TextFormat
         }
 
         if ($tag === 'audio') {
-            $random_id = 'audio-' . substr(md5(uniqid('audio', true)), -8);
+            $random_id = 'audio-' . mb_substr(md5(uniqid('audio', true)), -8);
             $media = str_replace('<audio ', '<audio id="' . $random_id . '" onerror="STUDIP.Audio.handle(this);" ', $media);
         }
 

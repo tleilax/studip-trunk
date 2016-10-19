@@ -59,7 +59,7 @@ class Assets
     {
         Assets::$assets_url = $url;
         Assets::$counter_cache = NULL;
-        Assets::$dynamic = strpos($url, '%d') !== FALSE;
+        Assets::$dynamic = mb_strpos($url, '%d') !== FALSE;
     }
 
 
@@ -119,7 +119,7 @@ class Assets
             $to == ''
                 ? Assets::$counter_cache++ % Assets::NUMBER_OF_ALIASES
                 # alternative implementation
-                # : hexdec(substr(sha1($to),-1)) & 3)
+                # : hexdec(mb_substr(sha1($to),-1)) & 3)
                 : ord($to[1]) & (Assets::NUMBER_OF_ALIASES - 1))
 
         . $to;
@@ -196,7 +196,7 @@ class Assets
         $parts = explode('/', $source);
 
         if (($pos = array_search('icons', $parts)) !== false) {
-            $source = substr($source, 6);
+            $source = mb_substr($source, 6);
             $source = preg_replace('/\.png$/', '', $source);
 
             return Icon::create2($source, $opt)->render(Icon::SVG | Icon::INPUT);
@@ -344,11 +344,11 @@ class Assets
     {
 
         # add extension if not present
-        if ('' == substr(strrchr($source, "."), 1))
+        if ('' == mb_substr(mb_strrchr($source, "."), 1))
             $source .= ".$ext";
 
         # if source is not absolute
-        if (FALSE === strpos($source, ':')) {
+        if (FALSE === mb_strpos($source, ':')) {
 
             # add dir if url does not contain a path
             if ('/' !== $source[0])

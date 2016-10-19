@@ -181,7 +181,7 @@ class Institute_BasicdataController extends AuthenticatedController
         $institute->lock_rule       = Request::option('lock_rule', $institute->lock_rule);
 
         // Do we have all necessary data?
-        if (!strlen($institute->name)) {
+        if (!mb_strlen($institute->name)) {
             PageLayout::postMessage(MessageBox::error(_('Bitte geben Sie eine Bezeichnung für die Einrichtung ein!')));
             return $this->redirect('institute/basicdata/index/' . $i_id);
         }
@@ -363,7 +363,7 @@ class Institute_BasicdataController extends AuthenticatedController
             // set a suitable default institute for each user
             foreach ($user_ids as $user_id) {
                 StudipLog::log('INST_USER_DEL', $i_id, $user_id);
-                checkExternDefaultForUser($user_id);
+                InstituteMember::ensureDefaultInstituteForUser($user_id);
             }
             if (count($user_ids)) {
                 $details[] = sprintf(_('%u Mitarbeiter gelöscht.'), count($user_ids));
@@ -398,7 +398,7 @@ class Institute_BasicdataController extends AuthenticatedController
             }
 
             // Statusgruppen entfernen
-            if ($db_ar = DeleteAllStatusgruppen($i_id) > 0) {
+            if ($db_ar = Statusgruppen::deleteBySQL('range_id = ?', [$i_id]) > 0) {
                 $details[] = sprintf(_('%s Funktionen/Gruppen gelöscht.'), $db_ar);
             }
 

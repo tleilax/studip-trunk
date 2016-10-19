@@ -35,7 +35,7 @@ class Admin_ConfigurationController extends AuthenticatedController
         // set navigation
         Navigation::activateItem('/admin/config/configuration');
 
-        $this->setupSidebar(strpos($action, 'user') !== false);
+        $this->setupSidebar(mb_strpos($action, 'user') !== false);
     }
 
     /**
@@ -175,7 +175,7 @@ class Admin_ConfigurationController extends AuthenticatedController
         }
 
         // Step 2: Validate
-        if (strlen($value) === 0) {
+        if (mb_strlen($value) === 0) {
             $error = _('Es wurde kein gültiger Wert eingetragen!');
         } elseif ($config['type'] === 'integer' && !is_numeric($value)) {
             $error = _('Bitte geben Sie bei Parametern vom Typ "integer" nur Zahlen ein!');

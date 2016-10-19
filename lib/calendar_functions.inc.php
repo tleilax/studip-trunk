@@ -36,56 +36,6 @@
 // +---------------------------------------------------------------------------+
 
 
-// Erzeugt aus einem Unix-Timestamp den Wochentag
-// Name entweder in Lang- ("LONG") oder Kurzform ("SHORT")
-
-function wday ($tmstamp = "", $mode = "LONG", $day_german = "") {
-    global $_language;
-
-    // translate german weekdays with strftime()
-    if (!$tmstamp) {
-        // timestamps of known weekdays
-        $tmstamps = array(
-            "MO" => 39092400,
-            "DI" => 39178800,
-            "MI" => 39265200,
-            "DO" => 39351600,
-            "FR" => 39438000,
-            "SA" => 39524400,
-            "SO" => 39610800
-        );
-        $tmstamp = $tmstamps[$day_german];
-    }
-
-    // If the setlocale is set to "de_DE" the short form of day names is a bit
-    // strange ;-), so it's better to use these:
-    if ($_language == "de_DE") {
-        $dayname_long = array("Sonntag", "Montag", "Dienstag", "Mittwoch",
-                                                "Donnerstag", "Freitag", "Samstag");
-        $dayname_short = array("So", "Mo", "Di", "Mi", "Do", "Fr", "Sa");
-
-        $dow = date("w", $tmstamp);
-
-
-        if($mode == "SHORT")
-            return $dayname_short[$dow];
-        return $dayname_long[$dow];
-    }
-
-    // For the rest of the world strftime() should be OK ;-)
-    if ($mode == "SHORT")
-        return htmlReady(strftime("%a", $tmstamp));
-    return htmlReady(strftime("%A", $tmstamp));
-
-}
-
-
-function ldate ($tmstamp) {
-    return wday($tmstamp) . ", " . date("j. ",$tmstamp)
-            . htmlReady(strftime("%B %Y", $tmstamp));
-}
-
-
 // Hier jezt die ultimative Feiertags-"Berechnung"
 // Zurueckgegeben wird ein Array mit Namen des Feiertages ("name") und
 // Faerbungsgrad ("col", 0 bis 2).
@@ -211,48 +161,7 @@ function check_date ($month, $day, $year, $hour = 0, $min = 0) {
     return mktime($hour, $min, 0, $month, $day, $year);
 }
 
-// ermittelt die Anzahl von Tagen zwischen zwei timestamps (plus Schalttage)
-function day_diff ($ts_1, $ts_2) {
-    $days = (int)(abs($ts_1 - $ts_2) / 86400);
-    $days_1 = (int)(date("Y", $ts_1) / 4);
-    $days_2 = (int)(date("Y", $ts_2) / 4);
-    if (date("n", $ts_1) > 3 && date("L", $ts_1))
-        $days_1--;
-    if (date("n", $ts_2) > 3 && date("L", $ts_2))
-        $days_2--;
 
-    return $days - abs($days_1 - $days_2);
-}
-
-/**
- * Useful function to return the name of the n-th day. Note that the first
- * day's is 1 not 0. Thus "monday" is "1" and "sunday" is "7"!
- *
- *
- * @param int     the index of the day
- *
- * @return string the name of the day
- *
- */
-function get_day_name($day) {
-
-  $days = array(_("Montag"),
-                _("Dienstag"),
-                _("Mittwoch"),
-                _("Donnerstag"),
-                _("Freitag"),
-                _("Samstag"),
-                _("Sonntag"));
-
-  if (!isset($days[$day - 1])) {
-    trigger_error(sprintf('Argument(%s) has to be between 1 and 7', $day),
-                  E_USER_ERROR);
-    exit;
-  }
-
-
-    return $days[$day - 1];
-}
 
 /**
  * checks values that shall become a single date with start- and endtime

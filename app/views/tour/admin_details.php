@@ -11,7 +11,7 @@
                    </span>
                     <select name="tour_language">
                         <? foreach ($GLOBALS['INSTALLED_LANGUAGES'] as $key => $language) : ?>
-                            <option value="<?= substr($key, 0, 2) ?>"<?= ($tour->language == substr($key, 0, 2)) ? ' selected' : '' ?>><?= $language['name'] ?></option>
+                            <option value="<?= mb_substr($key, 0, 2) ?>"<?= ($tour->language == mb_substr($key, 0, 2)) ? ' selected' : '' ?>><?= $language['name'] ?></option>
                         <? endforeach ?>
                     </select>
                 </label>
@@ -64,7 +64,7 @@
             <? foreach (["autor", "tutor", "dozent", "admin", "root"] as $role) : ?>
                 <label>
                     <input type="checkbox" name="tour_roles[]"
-                           value="<?= $role ?>"<?= (strpos($tour->roles, $role) !== false) ? ' checked' : '' ?>><?= $role ?>
+                           value="<?= $role ?>"<?= (mb_strpos($tour->roles, $role) !== false) ? ' checked' : '' ?>><?= $role ?>
                 </label>
             <? endforeach ?>
 

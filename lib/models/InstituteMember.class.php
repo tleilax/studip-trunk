@@ -70,6 +70,7 @@ class InstituteMember extends SimpleORMap
         $config['additional_fields']['email'] = array('user', 'email');
         $config['additional_fields']['title_front'] = array('user', 'title_front');
         $config['additional_fields']['title_rear'] = array('user', 'title_rear');
+        $config['additional_fields']['user_info'] = array('user', 'info');
         $config['additional_fields']['institute_name'] = array();
         parent::configure($config);
     }
@@ -112,8 +113,57 @@ class InstituteMember extends SimpleORMap
                              __CLASS__ . '::buildExisting');
     }
 
-        function getUserFullname($format = "full")
+    public function getUserFullname($format = "full")
     {
         return User::build(array_merge(array('motto' => ''), $this->toArray('vorname nachname username title_front title_rear')))->getFullname($format);
+    }
+
+    /**
+     * Returns the id of the default institute for a user or false if none is set.
+     *
+     * @param string $user_id Id of the user
+     * @return string institute id or bool false
+     */
+    public static function getDefaultInstituteIdForUser($user_id)
+    {
+        $institute = self::findOneBySQL("user_id = ? AND inst_perms != 'user' AND externdefault = 1", [$user_id]);
+        return $institute ? $institute->id : false;
+    }
+
+    /**
+     * Returns the id of the default institute for a user or false if none is set.
+     *
+     * @param string $user_id Id of the user
+     * @return bool true if institute was updated, false otherwise
+     */
+    public static function ensureDefaultInstituteForUser($user_id)
+    {
+        $institute = self::findOneBySQL("user_id = ? AND inst_perms != 'user' ORDER BY externdefault = 1 DESC, priority", [$user_id]);
+        if (!$institute || $institute->externdefault) {
+            return false;
+        }
+
+        $institute->externdefault = true;
+        $institute->store();
+
+        return true;
+    }
+
+    /**
+     * Removes a user from an institute. Removes the user from all
+     * statusgroups as well.
+     *
+     * @return int number of deleted institute member records
+     */
+    public function delete()
+    {
+        $institute = $this->institute;
+        $user_id   = $this->user_id;
+
+        if ($result = parent::delete()) {
+            $institute->status_groups->removeUser($user_id, true);
+        }
+
+        return $result;
     }
 }

@@ -8,7 +8,6 @@
  * the License, or (at your option) any later version.
  */
 
-require_once 'lib/sms_functions.inc.php';
 require_once 'lib/statusgruppe.inc.php';
 
 class MessagesController extends AuthenticatedController {
@@ -272,7 +271,7 @@ class MessagesController extends AuthenticatedController {
                         $this->default_message['message'] = "[quote]\n".$old_message['message']."\n[/quote]";
                     }
                 }
-                $this->default_message['subject'] = substr($old_message['subject'], 0, 4) === "RE: " ? $old_message['subject'] : "RE: ".$old_message['subject'];
+                $this->default_message['subject'] = mb_substr($old_message['subject'], 0, 4) === "RE: " ? $old_message['subject'] : "RE: ".$old_message['subject'];
                 $user = new MessageUser();
                 $user->setData(array('user_id' => $old_message['autor_id'], 'snd_rec' => "rec"));
                 $this->default_message->receivers[] = $user;
@@ -636,15 +635,4 @@ class MessagesController extends AuthenticatedController {
         PageLayout::postMessage(MessageBox::success(_('Schlagwort gelöscht!')));
         $this->redirect($this->url_for('messages/overview'));
     }
-
-    function after_filter($action, $args)
-    {
-        if (Request::isXhr()) {
-            if (PageLayout::getTitle()) {
-                $this->response->add_header('X-Title', PageLayout::getTitle());
-            }
-        }
-        parent::after_filter($action, $args);
-    }
-
 }

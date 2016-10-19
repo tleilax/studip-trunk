@@ -76,7 +76,7 @@ class Course_StudygroupController extends AuthenticatedController
         global $perm;
         $studygroup = new Seminar($id);
         if (Request::isXhr()) {
-            header('X-Title: ' . _('Studiengruppendetails'));
+            PageLayout::setTitle(_('Studiengruppendetails'));
         } else {
             PageLayout::setTitle(getHeaderLine($id) . ' - ' . _('Studiengruppendetails'));
             PageLayout::setHelpKeyword('Basis.StudiengruppenAbonnieren');
@@ -1072,7 +1072,7 @@ class Course_StudygroupController extends AuthenticatedController
     public function message_action($id)
     {
         $sem = Course::find($id);
-        if (studip_strlen($sem->getFullname()) > 32) {//cut subject if to long
+        if (mb_strlen($sem->getFullname()) > 32) {//cut subject if to long
             $subject = sprintf(_("[Studiengruppe: %s...]"), studip_substr($sem->getFullname(), 0, 30));
         } else {
             $subject = sprintf(_("[Studiengruppe: %s]"), $sem->getFullname());

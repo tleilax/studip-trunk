@@ -153,7 +153,7 @@ class ForumEntry {
      */
     public static function removeQuotes($description)
     {
-        if (strpos($description, '[quote') !== false) {
+        if (mb_strpos($description, '[quote') !== false) {
             $description = preg_replace('/\[quote(=.*)\].*\[\/quote\]/is', '', $description);
         }
         return $description;
@@ -399,8 +399,8 @@ class ForumEntry {
         foreach ($postings as $data) {
             // we throw away all formatting stuff, tags, etc, leaving the important bit of information
             $desc_short = ForumEntry::br2space(ForumEntry::killFormat(strip_tags($data['content'])));
-            if (strlen($desc_short) > (ForumEntry::THREAD_PREVIEW_LENGTH + 2)) {
-                $desc_short = substr($desc_short, 0, ForumEntry::THREAD_PREVIEW_LENGTH) . '...';
+            if (mb_strlen($desc_short) > (ForumEntry::THREAD_PREVIEW_LENGTH + 2)) {
+                $desc_short = mb_substr($desc_short, 0, ForumEntry::THREAD_PREVIEW_LENGTH) . '...';
             } else {
                 $desc_short = $desc_short;
             }
@@ -563,8 +563,8 @@ class ForumEntry {
                 $text = ForumEntry::br2space($text);
                 $text = ForumEntry::killFormat(ForumEntry::killQuotes($text));
 
-                if (strlen($text) > 42) {
-                    $text = substr($text, 0, 40) . '...';
+                if (mb_strlen($text) > 42) {
+                    $text = mb_substr($text, 0, 40) . '...';
                 }
 
                 $last_posting['text'] = $text;

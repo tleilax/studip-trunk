@@ -109,7 +109,7 @@ if ($view_mode)
 else //or... see above ;)
     $view_mode = $_SESSION['resources_data']["view_mode"];
 
-if (strpos($view, "openobject") !== FALSE) {
+if (mb_strpos($view, "openobject") !== FALSE) {
     $_SESSION['resources_data']["view_mode"] = "oobj";
     $view_mode = "oobj";
 }
@@ -804,8 +804,8 @@ if ($change_object_properties && Request::isPost()) {
         $change_property_val = Request::getArray('change_property_val');
         if (is_array($change_property_val))
             foreach ($change_property_val as $key=>$val) {
-                if ((substr($val, 0, 4) == "_id_") && (substr($change_property_val[$key+1], 0, 4) != "_id_"))
-                    if ($changeObject->storeProperty(substr($val, 4, strlen($val)), $change_property_val[$key+1]))
+                if ((mb_substr($val, 0, 4) == "_id_") && (mb_substr($change_property_val[$key+1], 0, 4) != "_id_"))
+                    if ($changeObject->storeProperty(mb_substr($val, 4, mb_strlen($val)), $change_property_val[$key+1]))
                         $props_changed=TRUE;
             }
 
@@ -949,7 +949,7 @@ if ((Request::quoted('add_type')) || (Request::option('delete_type')) || (Reques
             $statement = DBManager::get()->prepare($query);
 
             foreach ($requestable as $key=>$val) {
-                if ((strpos($requestable[$key-1], "id1_")) &&  (strpos($requestable[$key], "id2_"))) {
+                if ((mb_strpos($requestable[$key-1], "id1_")) &&  (mb_strpos($requestable[$key], "id2_"))) {
                     if ($requestable[$key+1] == "on") {
                         $req_num = 1;
                     } else {
@@ -957,8 +957,8 @@ if ((Request::quoted('add_type')) || (Request::option('delete_type')) || (Reques
                     }
                     $statement->execute(array(
                         $req_num,
-                        substr($requestable[$key - 1], 5),
-                        substr($requestable[$key], 5)
+                        mb_substr($requestable[$key - 1], 5),
+                        mb_substr($requestable[$key], 5)
                     ));
                 }
             }
@@ -972,7 +972,7 @@ if ((Request::quoted('add_type')) || (Request::option('delete_type')) || (Reques
             $statement = DBManager::get()->prepare($query);
 
             foreach ($protected as $key => $val) {
-                if (strpos($protected[$key - 1], 'id1_') &&  strpos($protected[$key], 'id2_')) {
+                if (mb_strpos($protected[$key - 1], 'id1_') &&  mb_strpos($protected[$key], 'id2_')) {
                     if ($protected[$key + 1] === 'on') {
                         $req_num = 1;
                     } else {
@@ -980,8 +980,8 @@ if ((Request::quoted('add_type')) || (Request::option('delete_type')) || (Reques
                     }
                     $statement->execute(array(
                         $req_num,
-                        substr($protected[$key - 1], 5),
-                        substr($protected[$key], 5)
+                        mb_substr($protected[$key - 1], 5),
+                        mb_substr($protected[$key], 5)
                     ));
                 }
             }
@@ -1095,7 +1095,7 @@ change settings
 if (Request::option('change_global_settings')) {
     if ($globalPerm == "admin") { //check for resources root or global root
         $config = Config::get();
-    
+
         try {
             $config->store('RESOURCES_LOCKING_ACTIVE', Request::option('locking_active',false));
         } catch (InvalidArgumentException $e) {
@@ -1369,8 +1369,8 @@ if ($view == "search") {
         $search_property_val = Request::quotedArray('search_property_val');
         if (is_array($search_property_val))
             foreach ($search_property_val as $key=>$val) {
-                if ((substr($val, 0, 4) == "_id_") && (substr($search_property_val[$key+1], 0, 4) != "_id_") && ($search_property_val[$key+1]))
-                    $_SESSION['resources_data']["search_array"]["properties"][substr($val, 4, strlen($val))]=$search_property_val[$key+1];
+                if ((mb_substr($val, 0, 4) == "_id_") && (mb_substr($search_property_val[$key+1], 0, 4) != "_id_") && ($search_property_val[$key+1]))
+                    $_SESSION['resources_data']["search_array"]["properties"][mb_substr($val, 4, mb_strlen($val))]=$search_property_val[$key+1];
         }
 
         //handle dates for searching resources that are free for this times
@@ -1614,7 +1614,6 @@ if (is_array($selected_resource_id)) {
 
 // save the assigments in db
 if (Request::submitted('save_state')) {
-    require_once ($RELATIVE_PATH_RESOURCES."/lib/RoomRequest.class.php");
     require_once ($RELATIVE_PATH_RESOURCES."/lib/VeranstaltungResourcesAssign.class.php");
     require_once ("lib/classes/Seminar.class.php");
 
@@ -1762,7 +1761,7 @@ if (Request::submitted('save_state')) {
             if ($skipped_termin_ids) {
                 foreach ($skipped_termin_ids as $key=>$val) {
                     $skipped_msg="<br>"._("Belegungszeit:")."&nbsp;".date("d.m.Y, H:i", $dates_with_request[$key]["begin"]).(($dates_with_request[$key]["end"]) ? " - ".date("H:i", $dates_with_request[$key]["end"]) : "");
-                    $skipped_msg.=sprintf("&nbsp;"._("Status:")."&nbsp;<font color=\"%s\">%s</font>", ($dates_with_request[$key]["closed"] == 0) ? "red" : "green", ($dates_with_request[$key]["closed"] == 0) ? _("noch nicht bearbeitet") : _("bereits bearbeitet"));
+                    $skipped_msg.=sprintf("&nbsp;"._("Status:")."&nbsp;<span style=\"color:%s\">%s</span>", ($dates_with_request[$key]["closed"] == 0) ? "red" : "green", ($dates_with_request[$key]["closed"] == 0) ? _("noch nicht bearbeitet") : _("bereits bearbeitet"));
                     $skipped_objects++;
                 }
             }
@@ -1840,8 +1839,6 @@ if (Request::submitted('suppose_decline_request')) {
 }
 
 if (Request::int('decline_request')) {
-    require_once ($RELATIVE_PATH_RESOURCES."/lib/RoomRequest.class.php");
-
     $reqObj = new RoomRequest($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["request_id"]);
 
     $_sendMessage['request_id'] = $reqObj->id;
@@ -1870,7 +1867,6 @@ if (Request::submitted('delete_request') || Request::quoted('approveDelete')) {
         }
 
     if(Request::quoted('approveDelete')){
-            require_once ($RELATIVE_PATH_RESOURCES."/lib/RoomRequest.class.php");
             $reqObj = new RoomRequest($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["request_id"]);//Request::quoted('request_id'));
             unset($_SESSION['resources_data']["requests_open"][$reqObj->getId()]);
             $reqObj->delete();
@@ -1973,7 +1969,6 @@ if (Request::get('reply_recipients') !== null) {
 if (Request::submitted('inc_request') || Request::submitted('dec_request')
     || $new_session_started || $marked_clip_ids || Request::submitted('save_state') || $auto_inc
     || $auto_dec || $_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["reload"]) {
-    require_once ($RELATIVE_PATH_RESOURCES."/lib/RoomRequest.class.php");
     require_once ($RELATIVE_PATH_RESOURCES."/lib/CheckMultipleOverlaps.class.php");
     require_once ($RELATIVE_PATH_RESOURCES."/lib/VeranstaltungResourcesAssign.class.php");
     require_once ($RELATIVE_PATH_RESOURCES."/lib/ResourcesUserRoomsList.class.php");

@@ -49,9 +49,9 @@ class Settings_SettingsController extends AuthenticatedController
             URLHelper::addLinkParam('username', $username);
         }
         $this->user       = User::findByUsername($username);
-        
+
         if (!$GLOBALS['perm']->get_profile_perm($this->user->user_id)) {
-            $this->reportErrorWithDetails(_('Zugriff verweigert.'), array(
+            PageLayout::postError(_('Zugriff verweigert.'), array(
                 _("Wahrscheinlich ist Ihre Session abgelaufen. Bitte "
                  ."nutzen Sie in diesem Fall den untenstehenden Link, "
                  ."um zurück zur Anmeldung zu gelangen.\n\n"
@@ -66,7 +66,6 @@ class Settings_SettingsController extends AuthenticatedController
             return;
         }
 
-        
         $this->restricted = ($GLOBALS['perm']->get_profile_perm($this->user->user_id) !== 'user')
                             && ($username !== $GLOBALS['user']->username);
         $this->config     = UserConfig::get($this->user->user_id);
@@ -85,9 +84,10 @@ class Settings_SettingsController extends AuthenticatedController
             $message = sprintf(_('Daten von: %s %s (%s), Status: %s'),
                                htmlReady($this->user->Vorname),
                                htmlReady($this->user->Nachname),
-                               $username,
-                               $this->user->perms);
-            $this->reportInfo($message);
+                               htmlReady($username),
+                               htmlReady($this->user->perms));
+            $mbox = MessageBox::info($message);
+            PageLayout::postMessage($mbox, 'settings-user-anncouncement');
         }
 
         Sidebar::get()->setImage('sidebar/person-sidebar.png');
@@ -104,17 +104,6 @@ class Settings_SettingsController extends AuthenticatedController
         if (!$ticket || !check_ticket($ticket)) {
             throw new InvalidSecurityTokenException();
         }
-    }
-
-    /**
-     * Switch layout if an infobox is used
-     */
-    protected function populateInfobox()
-    {
-        if (!isset($this->infobox)) {
-            $this->set_layout($GLOBALS['template_factory']->open('layouts/base'));
-        }
-        parent::populateInfobox();
     }
 
     /**
@@ -143,7 +132,7 @@ class Settings_SettingsController extends AuthenticatedController
     public function get_default_template($action)
     {
         $class = get_class($this);
-        $controller_name = Trails_Inflector::underscore(substr($class, 0, -10));
+        $controller_name = Trails_Inflector::underscore(mb_substr($class, 0, -10));
         return file_exists($this->dispatcher->trails_root . '/views/' . $controller_name . '.php')
             ? $controller_name
             : $controller_name . '/' . $action;
@@ -181,7 +170,7 @@ class Settings_SettingsController extends AuthenticatedController
     public function shallChange($field, $attribute = null, $value = null)
     {
         $column = end(explode('.', $field));
-        $attribute = $attribute ?: strtolower($column);
+        $attribute = $attribute ?: mb_strtolower($column);
 
         $global_mapping = array(
             'email'    => 'ALLOW_CHANGE_EMAIL',
@@ -223,36 +212,6 @@ class Settings_SettingsController extends AuthenticatedController
         $template->question        = $message;
 
         return $template->render();
-    }
-
-    /**
-     * Enables methods like reportError, reportInfo or reportSuccess as
-     * a shortcut to post messages to the layout.
-     *
-     * @param String $method    Name of the called method
-     * @param Array  $arguments Arguments passed to the method
-     * @return Object Returns $this to allow chaining
-     * @throws BadMethodCallException when an unhandled method was called
-     */
-    public function __call($method, $arguments)
-    {
-        if (preg_match('/^report(Error|Warning|Info|Success)(WithDetails)?$/', $method, $match)) {
-            $hash    = md5($method . serialize($arguments));
-            $type    = strtolower($match[1]);
-            $details = empty($match[2]) ? false : array_pop($arguments);
-
-            $message = array_shift($arguments);
-            $message = vsprintf($message, $arguments);
-
-            $box     = $details
-                     ? MessageBox::$type($message, $details)
-                     : MessageBox::$type($message);
-
-            PageLayout::postMessage($box, $hash);
-            return $this;
-        }
-
-        throw new BadMethodCallException('Method "' . $method . '" does not exist.');
     }
 
     /**

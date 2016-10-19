@@ -72,6 +72,11 @@ class DatafieldEntryModel extends SimpleORMap
             $object_class = $model->sprache;
             $object_type = 'modulteildeskriptor';
             $range_id = $model->deskriptor_id;
+        } elseif ($model instanceof StatusgruppeUser) {
+            $object_class = 255;
+            $object_type = 'userinstrole';
+            $range_id = $model->user_id;
+            $sec_range_id = $model->statusgruppe_id;
         }
 
         if (!$object_type) {
@@ -144,17 +149,18 @@ class DatafieldEntryModel extends SimpleORMap
      */
     public function getTypedDatafield()
     {
-        $range_id = $this->sec_range_id ? array($this->range_id, $this->sec_range_id) : $this->range_id;
+        $range_id = $this->sec_range_id
+                  ? [$this->range_id, $this->sec_range_id]
+                  : $this->range_id;
+
         $df = DataFieldEntry::createDataFieldEntry($this->datafield, $range_id, $this->getValue('content'));
-        $self = $this;
-        $observer =
-            function ($event, $object, $user_data) use ($self)
-            {
-                if ($user_data['changed']) {
-                    $self->restore();
-                }
-            };
+        $observer = function ($event, $object, $user_data) {
+            if ($user_data['changed']) {
+                $this->restore();
+            }
+        };
         NotificationCenter::addObserver($observer, '__invoke', 'DatafieldDidUpdate', $df);
+
         return $df;
     }
 }

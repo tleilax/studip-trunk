@@ -22,40 +22,8 @@
 
 require_once 'lib/user_visible.inc.php';
 require_once 'lib/datei.inc.php';
-require_once 'lib/sms_functions.inc.php';
 
-function CheckSelected($a, $b)
-{
-    if ($a == $b) {
-        return "selected";
-    } else {
-        return FALSE;
-    }
-}
-//
-function array_add_value($add, $array)
-{
-    foreach ($add as $a) {
-        if (!empty($array)) {
-            if (!in_array($a, $array)) {
-                $x = array_push($array, $a);
-            }
-        } else {
-            $array = array($a);
-        }
-    }
-    return $array;
-}
 
-//
-function array_delete_value($array, $value)
-{
-    for ($i=0;$i<count($array);$i++) {
-        if ($array[$i] == $value)
-            array_splice($array, $i, 1);
-        }
-    return $array;
-}
 
 
 class messaging
@@ -158,32 +126,7 @@ class messaging
             $this->delete_message($message_id, $user_id);
         }
     }
-
-    /**
-     * update messages as readed
-     *
-     * @param $message_id
-     */
-    function set_read_message($message_id)
-    {
-        $query = "UPDATE IGNORE message_user
-                  SET readed = 1
-                  WHERE user_id = ? AND message_id = ?";
-        $statement = DBManager::get()->prepare($query);
-        $statement->execute(array($GLOBALS['user']->id, $message_id));
-    }
-
-    /**
-     * delete all messages from user
-     */
-    function set_read_all_messages()
-    {
-        $query = "UPDATE IGNORE message_user
-                  SET readed = 1
-                  WHERE user_id = ? AND readed = '0' AND deleted = '0' AND snd_rec = 'rec'";
-        $statement = DBManager::get()->prepare($query);
-        $statement->execute(array($GLOBALS['user']->id));
-    }
+    
 
     /**
      *
@@ -215,8 +158,9 @@ class messaging
      */
     function sendingEmail($rec_user_id, $snd_user_id, $message, $subject, $message_id)
     {
+        $msg      = Message::find($message_id);
         $receiver = User::find($rec_user_id);
-        $to = $receiver->Email;
+        $to       = $receiver->Email;
 
         // do not try to send mails to users without a mail address
         if (!$to) {
@@ -237,10 +181,7 @@ class messaging
         }
         $attachments = array();
         if ($GLOBALS['ENABLE_EMAIL_ATTACHMENTS']) {
-            $attachments = get_message_attachments($message_id);
-            $size_of_attachments = array_sum(array_map(function ($a) {
-                return $a['filesize'];
-            }, $attachments));
+            $size_of_attachments = array_sum($msg->attachments->pluck('filesize')) ?: 0;
             //assume base64 takes 33% more space
             $attachments_as_links = $size_of_attachments * 1.33 > $GLOBALS['MAIL_ATTACHMENTS_MAX_SIZE'] * 1024 * 1024;
         }
@@ -272,7 +213,7 @@ class messaging
         if ($GLOBALS['MESSAGING_FORWARD_USE_REPLYTO']) {
             $mail->setReplyToEmail($reply_to)
                 ->setReplyToName($snd_fullname);
-        } elseif (strlen($reply_to)) {
+        } elseif (mb_strlen($reply_to)) {
             $mail->setSenderEmail($reply_to)
                 ->setSenderName($snd_fullname)
                 ->setReplyToEmail('');
@@ -293,25 +234,7 @@ class messaging
             MailQueueEntry::add($mail, $message_id, $rec_user_id);
         }
     }
-
-    /**
-     *
-     * @param $id
-     */
-    function get_forward_id($id)
-    {
-        return User::find($id)->smsforward_rec;
-    }
-
-    /**
-     *
-     * @param $id
-     */
-    function get_forward_copy($id)
-    {
-        return User::find($id)->smsforward_copy;
-    }
-
+    
     /**
      *
      * @param $message
@@ -364,10 +287,11 @@ class messaging
 
         // Setzen der Message-ID als Range_ID für angehängte Dateien
         if (isset($this->provisonal_attachment_id) && $GLOBALS['ENABLE_EMAIL_ATTACHMENTS']) {
-            $query = "UPDATE dokumente SET range_id = ?, description = '' WHERE dokument_id = ?";
-            $statement = DBManager::get()->prepare($query);
-            foreach (get_message_attachments($this->provisonal_attachment_id, true) as $attachment) {
-                $statement->execute(array($tmp_message_id, $attachment['dokument_id']));
+            $attachments = StudipDocument::findBySQL("range_id = 'provisional' AND description = ?", [$this->provisonal_attachment_id]);
+            foreach ($attachments as $attachment) {
+                $attachment->range_id = $tmp_message_id;
+                $attachment->description = '';
+                $attachment->store();
             }
         }
 
@@ -405,7 +329,7 @@ class messaging
                 $insert_tags->execute(array(
                     'message_id' => $tmp_message_id,
                     'user_id' => $snd_user_id,
-                    'tag' => strtolower($tag)
+                    'tag' => mb_strtolower($tag)
                 ));
             }
         }
@@ -424,7 +348,8 @@ class messaging
         // wir gehen das eben erstellt array durch und schauen, ob irgendwer was weiterleiten moechte.
         // diese user_id schreiben wir in ein tempraeres array
         foreach ($rec_id as $one) {
-            $tmp_forward_id = User::find($this->get_forward_id($one))->user_id;
+            $smsforward_rec = User::find($one)->smsforward_rec;
+            $tmp_forward_id = User::find($smsforward_rec)->user_id;
             if ($tmp_forward_id) {
                 $rec_id[] = $tmp_forward_id;
             }
@@ -454,7 +379,7 @@ class messaging
                     $insert_tags->execute(array(
                         'message_id' => $tmp_message_id,
                         'user_id' => $one,
-                        'tag' => strtolower($tag)
+                        'tag' => mb_strtolower($tag)
                     ));
                 }
             }

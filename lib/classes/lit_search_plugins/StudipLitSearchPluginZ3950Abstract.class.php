@@ -175,7 +175,7 @@ class StudipLitSearchPluginZ3950Abstract extends StudipLitSearchPluginAbstract{
 
     function doCheckAccession($accession_number){
         if (!$this->z_accession_bib){
-            $this->addError("error", sprintf(_("Attribut für Zugriffsnummer fehlt! (%s)"), strtolower(get_class($this))));
+            $this->addError("error", sprintf(_("Attribut für Zugriffsnummer fehlt! (%s)"), mb_strtolower(get_class($this))));
             return false;
         }
         if (!$accession_number){
@@ -222,7 +222,7 @@ class StudipLitSearchPluginZ3950Abstract extends StudipLitSearchPluginAbstract{
             $rpn_end = "";
             for ($i = 0 ; $i < count($search_values); ++$i){
                 $term = $search_values[$i]['search_term'];
-                if (strlen($term)){
+                if (mb_strlen($term)){
                     if ($this->convert_umlaute){
                         $term = $this->ConvertUmlaute($term);
                     }
@@ -260,7 +260,7 @@ class StudipLitSearchPluginZ3950Abstract extends StudipLitSearchPluginAbstract{
             }
         }
         $rpn = $rpn_front . $rpn_end;
-        return (strlen($rpn)) ? $rpn : false;
+        return (mb_strlen($rpn)) ? $rpn : false;
     }
 
     function getZRecord($zid, $rn){
@@ -342,7 +342,7 @@ class StudipLitSearchPluginZ3950Abstract extends StudipLitSearchPluginAbstract{
 
     function simpleFixFieldMap($cat_element, $data, $field, $args){
         if (is_array($args) && $data != "") {
-            if ($result = trim(substr($data,$args['start'],$args['length']))) {
+            if ($result = trim(mb_substr($data,$args['start'],$args['length']))) {
                 if ($args['template']){
                     $result = str_replace('{result}',$result, $args['template']);
                 }

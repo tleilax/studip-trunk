@@ -19,13 +19,13 @@ class PluginEngine
     public static function routeRequest($dispatch_to)
     {
         $dispatch_to = ltrim($dispatch_to, '/');
-        if (strlen($dispatch_to) === 0) {
+        if (mb_strlen($dispatch_to) === 0) {
             throw new PluginNotFoundException(_('Es wurde kein Plugin gewählt.'));
         }
-        $pos = strpos($dispatch_to, '/');
+        $pos = mb_strpos($dispatch_to, '/');
         return $pos === FALSE
             ? array($dispatch_to, '')
-            : array(substr($dispatch_to, 0, $pos), substr($dispatch_to, $pos + 1));
+            : array(mb_substr($dispatch_to, 0, $pos), mb_substr($dispatch_to, $pos + 1));
     }
 
     /**
@@ -130,8 +130,8 @@ class PluginEngine
         if (is_null($plugin)) {
             throw new InvalidArgumentException(_('Es wurde kein Plugin gewählt.'));
         } else if (is_object($plugin)) {
-            $plugin = strtolower(get_class($plugin)) . '/' . $cmd;
-        } else if (strpos($plugin, '/') === false) {
+            $plugin = mb_strtolower(get_class($plugin)) . '/' . $cmd;
+        } else if (mb_strpos($plugin, '/') === false) {
             $plugin = $plugin . '/' . $cmd;
         }
 

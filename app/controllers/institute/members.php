@@ -1,815 +1,609 @@
 <?php
-# Lifter010: TODO
-
-/*
- * Copyright (C) 2014 - Arne Schröder <schroeder@data-quest.de>
+/**
+ * @author Arne Schröder <schroeder@data-quest.de>
+ * @author Jan-Hendrik Willms <tleilax+studip@gmail.com>
+ * @license GPL2 or any later version
  *
- * formerly institut_main.php - Die Eingangsseite fuer ein Institut
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
+ * @todo test datafields!
  */
 
-require_once 'lib/statusgruppe.inc.php';  //Funktionen der Statusgruppen
 include_once $GLOBALS['PATH_EXPORT'] . '/export_linking_func.inc.php';
 
 class Institute_MembersController extends AuthenticatedController
 {
     protected $allow_nobody = true;
 
-    function before_filter(&$action, &$args) {
+    public function before_filter(&$action, &$args)
+    {
+        $this->type = 'function';
+        if (in_array($action, ['function', 'status', 'list'])) {
+            $this->type = $action;
+            $action = 'index';
+        }
+
+        PageLayout::setTitle(_('Liste der Mitarbeiter/-innen'));
+
         if (Request::option('auswahl')) {
             Request::set('cid', Request::option('auswahl'));
         }
 
         parent::before_filter($action, $args);
 
-        $this->admin_view = $GLOBALS['perm']->have_perm('admin') && Request::option('admin_view') !== null;
+        if (!Institute::findCurrent()) {
+            require_once 'lib/admin_search.inc.php';
+
+            // TODO: We don't seem to need this since admin_search will stop the script
+            PageLayout::postInfo(_('Sie müssen zunächst eine Einrichtung auswählen'));
+            $this->redirect('institute/basicdata/index?list=TRUE');
+            return;
+        }
+
+        $this->institute = Institute::findCurrent();
+
+        // this page is used for administration (if the user has the proper rights)
+        // or for just displaying the workers and their roles
+        $this->admin_view = $GLOBALS['perm']->have_perm('admin')
+                            && $GLOBALS['perm']->have_studip_perm('admin', $this->institute->id)
+                            && Request::option('admin_view') !== null;
+
+        if ($this->admin_view) {
+            PageLayout::setTitle(_('Verwaltung von Mitarbeiter/-innen'));
+            if (Navigation::hasItem('/admin/institute/faculty')) {
+                Navigation::activateItem('/admin/institute/faculty');
+            }
+            $GLOBALS['perm']->check('admin');
+        } else {
+            checkObject();
+            checkObjectModule('personal');
+
+            if (Navigation::hasItem('/course/faculty/view')) {
+                Navigation::activateItem('/course/faculty/view');
+            }
+            $GLOBALS['perm']->check('autor');
+        }
+
+        //Change header_line if open object
+        if ($header_line = getHeaderLine($this->institute->id)) {
+            PageLayout::setTitle($header_line." - ".PageLayout::getTitle());
+        }
+
+        // Bind parameters
+        if ($this->admin_view) {
+            $accepted_columns = array('Nachname', 'inst_perms');
+        } else {
+            $accepted_columns = array('Nachname');
+        }
+
+        $this->sortby = Request::option('sortby');
+        $this->extend = Request::option('extend');
+        if (!in_array($this->sortby, $accepted_columns)) {
+            $this->sortby = 'Nachname';
+            $this->statusgruppe_user_sortby = 'position';
+        } else {
+            $this->statusgruppe_user_sortby = $this->sortby;
+        }
+
+        $this->direction = Request::option('direction');
+        if (!in_array($this->direction, ['ASC', 'DESC'])) {
+            $this->direction === 'ASC';
+        }
+
+        URLHelper::addLinkParam('admin_view', $this->admin_view);
+        URLHelper::addLinkParam('sortby', $this->sortby);
+        URLHelper::addLinkParam('direction', $this->direction);
+        URLHelper::addLinkParam('extend', $this->extend);
 
         PageLayout::addScript('multi_person_search.js');
+
+        $this->setupSidebar();
     }
 
     /**
      * show institute members page
-     *
-     * @return void
      */
-    function index_action()
+    public function index_action()
     {
-        if ($GLOBALS['perm']->have_studip_perm('tutor', $GLOBALS['SessSemName'][1])) {
-            $this->rechte = true;
+        // Collect groups
+        $this->groups = $this->institute->all_status_groups;
+
+        // Show lock rule information
+        $lockrule = LockRules::getObjectRule($this->institute->id);
+        if ($this->admin_view && $lockrule->description && LockRules::Check($this->institute->id, 'participants')) {
+            PageLayout::postInfo(formatLinks($lockrule->description));
         }
 
-        // this page is used for administration (if the user has the proper rights)
-        // or for just displaying the workers and their roles
-        if ($this->admin_view) {
-            PageLayout::setTitle(_("Verwaltung von Mitarbeiter/-innen"));
-            if (Navigation::hasItem('/admin/institute/faculty')) {
-                Navigation::activateItem('/admin/institute/faculty');
-            }
-            $GLOBALS['perm']->check("admin");
+        // Create structure chunks from defaults datafields
+        $default_fields = array(
+            'raum'         => _('Raum'),
+            'sprechzeiten' => _('Sprechzeiten'),
+            'telefon'      => _('Telefon'),
+            'email'        => _('E-Mail'),
+            'homepage'     => _('Homepage')
+        );
+
+        $this->datafields_list = DataField::getDataFields('userinstrole');
+
+        if ($this->extend === 'yes') {
+            $dview = $GLOBALS['INST_ADMIN_DATAFIELDS_VIEW']['extended'];
         } else {
-            PageLayout::setTitle(_("Liste der Mitarbeiter/-innen"));
-            if (Navigation::hasItem('/course/faculty/view')) {
-                Navigation::activateItem('/course/faculty/view');
-            }
-            $GLOBALS['perm']->check("autor");
+            $dview = $GLOBALS['INST_ADMIN_DATAFIELDS_VIEW']['default'];
         }
 
-        require_once 'lib/admin_search.inc.php';
-
-        //get ID from a open Institut. We have to wait until a links_*.inc.php has opened an institute (necessary if we jump directly to this page)
-        if ($GLOBALS['SessSemName'][1]) {
-            $this->inst_id=$GLOBALS['SessSemName'][1];
-        } else {
-            PageLayout::postMessage(MessageBox::info(_('Sie müssen zunächst eine Einrichtung auswählen')));
-            $this->redirect(URLHelper::getLink('dispatch.php/institute/basicdata/index?list=TRUE'));
-            return;
-        }
-
-
-        if (!$this->admin_view) {
-            checkObject();
-            checkObjectModule("personal");
-        }
-
-        if ($this->admin_view && isset($this->inst_id) && !$GLOBALS['perm']->have_studip_perm('admin', $this->inst_id)) {
-            $this->admin_view = false;
-        }
-
-        //Change header_line if open object
-        $header_line = getHeaderLine($this->inst_id);
-        if ($header_line) {
-            PageLayout::setTitle($header_line." - ".PageLayout::getTitle());
-        }
-
-        // check the given parameters or initialize them
-        if ($GLOBALS['perm']->have_studip_perm("admin", $this->inst_id)) {
-            $accepted_columns = array("Nachname", "inst_perms");
-        } else {
-            $accepted_columns = array("Nachname");
-        }
-        $sortby = Request::option('sortby');
-        $this->extend = Request::option('extend');
-        if (!in_array($sortby, $accepted_columns)) {
-            $sortby = "Nachname";
-            $this->statusgruppe_user_sortby = "position";
-        } else {
-            $this->statusgruppe_user_sortby = $sortby;
-        }
-        $this->direction = Request::option('direction');
-        if ($this->direction == "ASC") {
-            $new_direction = "DESC";
-        } else if ($this->direction == "DESC") {
-            $new_direction = "ASC";
-        } else {
-            $this->direction = "ASC";
-            $new_direction = "DESC";
-        }
-        $this->show = Request::option('show');
-        if (!isset($this->show)) {
-            $this->show = "funktion";
-        }
-        URLHelper::addLinkParam('admin_view', $this->admin_view);
-        URLHelper::addLinkParam('sortby', $sortby);
-        URLHelper::addLinkParam('direction', $this->direction);
-        URLHelper::addLinkParam('show', $this->show);
-        URLHelper::addLinkParam('extend', $this->extend);
-
-        $this->groups = GetAllStatusgruppen($this->inst_id);
-        $this->group_list = GetRoleNames($this->groups, 0, '', true);
-
-        $cmd = Request::option('cmd');
-        $role_id = Request::option('role_id');
-        $username = Request::username('username');
-        if ($cmd == 'removeFromGroup' && $GLOBALS['perm']->have_studip_perm('admin', $this->inst_id)) {
-            $query = "DELETE FROM statusgruppe_user
-                      WHERE statusgruppe_id = ? AND user_id = ?";
-            $statement = DBManager::get()->prepare($query);
-            $statement->execute(array($role_id, get_userid($username)));
-
-            if ($statement->rowCount() > 0) {
-                PageLayout::postMessage(MessageBox::info(sprintf(_('%s wurde von der Liste der Mitarbeiter/-innen gelöscht.'),
-                                   User::findByUsername($username)->getFullName())));
+        if (empty($dview)) {
+            $dview = ['raum', 'sprechzeiten', 'telefon', 'email'];
+            if ($this->extend === 'yes') {
+                $dview[] = 'homepage';
             }
         }
 
-        if ($cmd == 'removeFromInstitute' && $GLOBALS['perm']->get_profile_perm(get_userid($username)) == 'admin' && $username != $GLOBALS['user']->username) {
-            $del_user_id = get_userid($username);
-            if (is_array($this->group_list) && count($this->group_list) > 0) {
-                $query = "DELETE FROM statusgruppe_user
-                          WHERE statusgruppe_id IN (?) AND user_id = ?";
-                $statement = DBManager::get()->prepare($query);
-                $statement->execute(array(array_keys($this->group_list), $del_user_id));
+        foreach ($default_fields as $key => $name) {
+            if (in_array($key, $dview)) {
+                $this->struct[$key] = array('name' => $name, 'width' => '10%');
             }
-
-            $query = "DELETE FROM user_inst
-                      WHERE user_id = ? AND Institut_id = ?";
-            $statement = DBManager::get()->prepare($query);
-            $statement->execute(array($del_user_id, $this->inst_id));
-
-            if ($statement->rowCount() > 0) {
-                PageLayout::postMessage(MessageBox::info(sprintf(_('%s wurde von der Liste der Mitarbeiter/-innen gelöscht.'),
-                                   User::findByUsername($username)->getFullName())));
+        }
+        foreach ($this->datafields_list as $entry) {
+            if (in_array($entry->id, $dview) === TRUE) {
+                $this->struct[$entry->id] = array (
+                    'name' => $entry->name,
+                    'width' => '10%'
+                );
             }
-
-            StudipLog::log('INST_USER_DEL', $this->inst_id, $del_user_id);
-            NotificationCenter::postNotification('UserInstitutionDidDelete', $this->inst_id, $del_user_id);
-            checkExternDefaultForUser($del_user_id);
         }
 
-        // Jemand soll ans Institut...
-        $this->mp = MultiPersonSearch::load("inst_member_add" . $this->inst_id);
-        $additionalCheckboxes = $this->mp->getAdditionalOptionArray();
+        $this->structure = $this->getTableStructure($this->struct);
 
-        if ($additionalCheckboxes != NULL && array_search("admins", $additionalCheckboxes) !== false) {
-            $enable_mail_admin = true;
-        }
-        if ($additionalCheckboxes != NULL && array_search("dozenten", $additionalCheckboxes) !== false) {
-            $enable_mail_dozent = true;
-        }
+        // Actual display routines
+        $this->display_tables = [];
+        
+        if ($this->type == 'function') {
+            $this->display_recursive($this->institute->status_groups, $dview);
 
-        if (count($this->mp->getAddedUsers()) !== 0) {
-            foreach ($this->mp->getAddedUsers() as $u_id) {
-
-                $query = "SELECT inst_perms FROM user_inst WHERE Institut_id = ? AND user_id = ?";
-                $statement = DBManager::get()->prepare($query);
-                $statement->execute(array($this->inst_id, $u_id));
-                $inst_perms = $statement->fetchColumn();
-
-                if ($inst_perms && $inst_perms != 'user') {
-                    // der Admin hat Tomaten auf den Augen, der Mitarbeiter sitzt schon im Institut
-                    PageLayout::postMessage(MessageBox::error(_("Die Person ist bereits in der Einrichtung eingetragen. Um Rechte etc. zu ändern folgen Sie dem Link zu den Nutzerdaten der Person!")));
-                } else {  // mal nach dem globalen Status sehen
-                    $query = "SELECT {$GLOBALS['_fullname_sql']['full']} AS fullname, perms
-                              FROM auth_user_md5
-                              LEFT JOIN user_info USING (user_id)
-                              WHERE user_id = ?";
-                    $statement = DBManager::get()->prepare($query);
-                    $statement->execute(array($u_id));
-                    $user_info = $statement->fetch(PDO::FETCH_ASSOC);
-
-                    $Fullname = $user_info['fullname'];
-                    $perms    = $user_info['perms'];
-
-                    if ($perms == 'root') {
-                        PageLayout::postMessage(MessageBox::error(_('ROOTs können nicht berufen werden!')));
-                    } elseif ($perms == 'admin') {
-                        if ($GLOBALS['perm']->have_perm('root') || (!$GLOBALS['SessSemName']["is_fak"] && $GLOBALS['perm']->have_studip_perm("admin",$GLOBALS['SessSemName']["fak"]))) {
-                            // Emails schreiben...
-                            if ($enable_mail_admin && $enable_mail_dozent) {
-                                $in = array('admin', 'dozent');
-                                $wem = 'Admins und Dozenten';
-                            } else if($enable_mail_admin){
-                                $in = array('admin');
-                                $wem = 'Admins';
-                            } else if($enable_mail_dozent) {
-                                $in = array('dozent');
-                                $wem = 'Dozenten';
-                            }
-                            if (!empty($in)) {
-                                $notin = array();
-                                $mails_sent = 0;
-
-                                $query = "SELECT Name FROM Institute WHERE Institut_id = ?";
-                                $statement = DBManager::get()->prepare($query);
-                                $statement->execute(array($this->inst_id));
-                                $instname = $statement->fetchColumn();
-
-                                $vorname = $Fullname;
-                                $nachname = ''; // siehe $vorname
-
-                                $query = "SELECT user_id, Vorname, Nachname, Email
-                                          FROM user_inst
-                                          INNER JOIN auth_user_md5 USING (user_id)
-                                          WHERE Institut_id = ? AND inst_perms IN (?)";
-                                $statement = DBManager::get()->prepare($query);
-                                $statement->execute(array($this->inst_id, $in));
-
-                                while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
-                                    $user_language = getUserLanguagePath($row['user_id']);
-                                    include("locale/$user_language/LC_MAILS/new_admin_mail.inc.php");
-                                    StudipMail::sendMessage($row['Email'], $subject, $mailbody);
-                                    $notin[] = $row['user_id'];
-
-                                    $mails_sent += 1;
-                                }
-                                if (!(count($in) == 1 && reset($in) == 'dozent')) {
-                                    $notin[] = $u_id;
-                                    //Noch ein paar Mails für die Fakultätsadmins
-                                    $query = "SELECT user_id, Vorname, Nachname, Email
-                                              FROM user_inst
-                                              INNER JOIN auth_user_md5 USING (user_id)
-                                              WHERE user_id NOT IN (?) AND inst_perms = 'admin'
-                                                AND Institut_id IN (
-                                                        SELECT fakultaets_id
-                                                        FROM Institute
-                                                        WHERE Institut_id = ? AND Institut_id != fakultaets_id
-                                                    )";
-                                    $statement = DBManager::get()->prepare($query);
-                                    $statement->execute(array($notin, $this->inst_id));
-
-                                    while($row = $statement->fetch(PDO::FETCH_ASSOC)) {
-                                        $user_language = getUserLanguagePath($row['user_id']);
-                                        include("locale/$user_language/LC_MAILS/new_admin_mail.inc.php");
-                                        StudipMail::sendMessage($row['Email'], $subject, $mailbody);
-
-                                        $mails_sent += 1;
-                                    }
-                                }
-                                PageLayout::postMessage(MessageBox::info(sprintf(_("Es wurden ingesamt %s Mails an die %s der Einrichtung geschickt."),$mails_sent,$wem)));
-                            }
-
-                            StudipLog::log('INST_USER_ADD', $this->inst_id ,$u_id, 'admin');
-
-                            // als admin aufnehmen
-                            $query = "INSERT INTO user_inst (user_id, Institut_id, inst_perms)
-                                      VALUES (?, ?, 'admin')";
-                            $statement = DBManager::get()->prepare($query);
-                            $statement->execute(array($u_id, $this->inst_id));
-
-                            PageLayout::postMessage(MessageBox::info(sprintf(_("%s wurde als \"admin\" in die Einrichtung aufgenommen."), $Fullname)));
-                            NotificationCenter::postNotification('UserInstitutionDidCreate', $this->inst_id, $u_id);
-
-                        } else {
-                            PageLayout::postMessage(MessageBox::error(_("Sie haben keine Berechtigung einen Admin zu berufen!")));
-                        }
-                    } else {
-                        //ok, aber nur hochstufen auf Maximal-Status (hat sich selbst schonmal gemeldet als Student an dem Inst)
-                        if ($inst_perms == 'user') {
-                            // ok, neu aufnehmen als das was er global ist
-                            $query = "UPDATE user_inst
-                                      SET inst_perms = ?
-                                      WHERE user_id = ? AND Institut_id = ?";
-                            $statement = DBManager::get()->prepare($query);
-                            $statement->execute(array($perms, $u_id, $this->inst_id));
-
-                            StudipLog::log('INST_USER_STATUS', $this->inst_id ,$u_id, $perms);
-                            NotificationCenter::postNotification('UserInstitutionPermDidUpdate', $this->inst_id, $u_id); 
-
-                        } else {
-                            $query = "INSERT INTO user_inst (user_id, Institut_id, inst_perms)
-                                      VALUES (?, ?, ?)";
-                            $statement = DBManager::get()->prepare($query);
-                            $statement->execute(array($u_id, $this->inst_id, $perms));
-
-                            StudipLog::log('INST_USER_ADD', $this->inst_id ,$u_id, $perms);
-                        }
-                        if ($statement->rowCount()) {
-                            PageLayout::postMessage(MessageBox::info(sprintf(_("%s wurde als \"%s\" in die Einrichtung aufgenommen. Um Rechte etc. zu ändern folgen Sie dem Link zu den Nutzerdaten der Person!"), $Fullname, $perms)));
-                            NotificationCenter::postNotification('UserInstitutionDidCreate', $this->inst_id, $u_id);
-
-                        } else {
-                            PageLayout::postMessage(MessageBox::error(sprintf(_("%s konnte nicht in die Einrichtung aufgenommen werden!"), $Fullname)));
-                        }
+            if ($GLOBALS['perm']->have_perm('admin')) {
+                // Collect all assigned users and then collect all
+                // institute members that have not been assigned
+                $assigned = array_unique(array_flatten($this->groups->map(function ($group) {
+                    return $group->members->pluck('user_id');
+                })));
+                $institut_members = $this->institute->members->filter(function ($member) use ($assigned) {
+                    if (!$GLOBALS['perm']->have_perm('admin') && !($member->visible && $member->user->visible !== 'never')) {
+                        return false;
                     }
-                }
-                checkExternDefaultForUser($u_id);
+                    if ($member->inst_perms === 'user') {
+                        return false;
+                    }
+                    return !in_array($member->user_id, $assigned);
+                })->orderBy($this->sortby . ' ' . $this->direction);
+
+                $this->display_tables[] = [
+                    'members'     => $institut_members,
+                    'dview'       => $dview,
+                    'th_title'    => _('keiner Funktion zugeordnet'),
+                ];
             }
-            $this->mp->clearSession();
-        }
-
-        $lockrule = LockRules::getObjectRule($this->inst_id);
-        if ($this->admin_view && $lockrule->description && LockRules::Check($this->inst_id, 'participants')) {
-            PageLayout::postMessage(MessageBox::info(formatLinks($lockrule->description)));
-        }
-
-        if ($this->inst_id != '' && $this->inst_id != '0') {
-            $inst_name = $GLOBALS['SessSemName'][0];
-            $this->auswahl = $this->inst_id;
-
-            // Mitglieder zählen und E-Mail-Adressen zusammenstellen
-            if ($GLOBALS['perm']->have_studip_perm('admin', $this->inst_id)) {
-                $query = "SELECT Email
-                          FROM user_inst
-                          LEFT JOIN auth_user_md5 USING (user_id)
-                          WHERE Institut_id = ? AND inst_perms != 'user' AND Email != ''";
-                $statement = DBManager::get()->prepare($query);
-                $statement->execute(array($this->auswahl));
-                $this->mail_list = $statement->fetchAll(PDO::FETCH_COLUMN);
-
-                $this->count = count($this->mail_list);
-            } else {
-                $this->count = CountMembersStatusgruppen($this->auswahl);
-            }
-
-            if ($this->admin_view) {
-                if (!LockRules::Check($this->inst_id, 'participants')) {
-                    $search_obj = new SQLSearch("SELECT auth_user_md5.user_id, {$GLOBALS['_fullname_sql']['full_rev']} as fullname, username, perms "
-                        . "FROM auth_user_md5 "
-                        . "LEFT JOIN user_info ON (auth_user_md5.user_id = user_info.user_id) "
-                        . "WHERE "
-                        . "(username LIKE :input OR Vorname LIKE :input "
-                        . "OR CONCAT(Vorname,' ',Nachname) LIKE :input "
-                        . "OR CONCAT(Nachname,' ',Vorname) LIKE :input "
-                        . "OR Nachname LIKE :input OR {$GLOBALS['_fullname_sql']['full_rev']} LIKE :input) "
-                        . "AND visible != 'never' "
-                        . " ORDER BY fullname ASC",
-                        _("Nutzer suchen"), "user_id");
-
-
-                    $defaultSelectedUser = new SimpleCollection(InstituteMember::findByInstituteAndStatus($this->inst_id, words('autor tutor dozent admin')));
-                    URLHelper::setBaseURL($GLOBALS['ABSOLUTE_URI_STUDIP']);
-                    $this->mp = MultiPersonSearch::get("inst_member_add" . $this->inst_id)
-                    ->setLinkText(_("Mitarbeiter/-innen hinzufügen"))
-                    ->setDefaultSelectedUser($defaultSelectedUser->pluck('user_id'))
-                    ->setTitle(_('Personen in die Einrichtung eintragen'))
-                    ->setExecuteURL(URLHelper::getLink("dispatch.php/institute/members", array('admin_view' => 1)))
-                    ->setSearchObject($search_obj)
-                    ->setAdditionalHTML('<p><strong>' . _('Nur bei Zuordnung eines Admins:') .' </strong> <label>Benachrichtigung der <input name="additional[]" value="admins" type="checkbox">' . _('Admins') .'</label>
-                                         <label><input name="additional[]" value="dozenten" type="checkbox">' . _('Dozenten') . '</label></p>')
-                    ->render();
-                }
-            }
-
-            $default_fields = array(
-                'raum'         => _('Raum'),
-                'sprechzeiten' => _('Sprechzeiten'),
-                'telefon'      => _('Telefon'),
-                'email'        => _('E-Mail'),
-                'homepage'     => _('Homepage')
+        } elseif ($this->type == 'status') {
+            $inst_permissions = array(
+                'admin'  => _('Admin'),
+                'dozent' => _('Lehrende'),
+                'tutor'  => _('Tutor/-in'),
+                'autor'  => _('Studierende')
             );
 
-            $this->datafields_list = DataField::getDataFields('userinstrole');
+            foreach ($inst_permissions as $key => $permission) {
+                $institut_members = $this->institute->members->filter(function ($member) use ($key) {
+                    if (!$GLOBALS['perm']->have_perm('admin') && !($member->visible && $member->user->visible !== 'never')) {
+                        return false;
+                    }
 
-            if ($this->extend == 'yes') {
-                $dview = $GLOBALS['INST_ADMIN_DATAFIELDS_VIEW']['extended'];
-            } else {
-                $dview = $GLOBALS['INST_ADMIN_DATAFIELDS_VIEW']['default'];
+                    return $member->inst_perms === $key;
+                })->orderBy($this->sortby . ' ' . $this->direction);
+
+                $this->display_tables[] = [
+                    'members'     => $institut_members,
+                    'dview'       => $dview,
+                    'mail_status' => true,
+                    'key'         => $key,
+                    'th_title'    => $permission,
+                ];
             }
-
-            if (empty($dview)) {
-                $dview = array('raum', 'sprechzeiten', 'telefon', 'email');
-                if ($this->extend == 'yes') {
-                    $dview[] = 'homepage';
+        } else {
+            $institut_members = $this->institute->members->filter(function ($member) {
+                if (!$GLOBALS['perm']->have_perm('admin') && !($member->visible && $member->user->visible !== 'never')) {
+                    return false;
                 }
-            }
 
-            foreach ($default_fields as $key => $name) {
-                if (in_array($key, $dview)) {
-                    $this->struct[$key] = array('name' => $name, 'width' => '10%');
-                }
-            }
-            foreach ($this->datafields_list as $entry) {
-                if (in_array($entry->id, $dview) === TRUE) {
-                    $this->struct[$entry->id] = array (
-                        'name' => $entry->name,
-                        'width' => '10%'
-                    );
-                }
-            }
-
-            // this array contains the structure of the table for the different views
-            if ($this->extend == "yes") {
-                switch ($this->show) {
-                    case 'liste' :
-                        if ($GLOBALS['perm']->have_perm("admin")) {
-                            $this->table_structure = array(
-                                "name" => array(
-                                    "name" => _("Name"),
-                                    "link" => "?sortby=Nachname&direction=" . $new_direction,
-                                    "width" => "30%"),
-                                "status" => array(
-                                    "name" => _("Status"),
-                                    "link" => "?sortby=inst_perms&direction=" . $new_direction,
-                                    "width" => "10"),
-                                "statusgruppe" => array(
-                                    "name" => _("Funktion"),
-                                    "width" => "15%")
-                            );
-                        }
-                        else {
-                            $this->table_structure = array(
-                                "name" => array(
-                                    "name" => _("Name"),
-                                    "link" => "?sortby=Nachname&direction=" . $new_direction,
-                                    "width" => "30%"),
-                                "statusgruppe" => array(
-                                    "name" => _("Funktion"),
-                                    "width" => "10%")
-                            );
-                        }
-                        break;
-                    case 'status' :
-                        $this->table_structure = array(
-                            "name" => array(
-                                "name" => _("Name"),
-                                "link" => "?sortby=Nachname&direction=" . $new_direction,
-                                "width" => "30%"),
-                            "statusgruppe" => array(
-                                "name" => _("Funktion"),
-                                "width" => "15%")
-                        );
-                        break;
-                    default :
-                        if ($GLOBALS['perm']->have_perm("admin")) {
-                            $this->table_structure = array(
-                                "name" => array(
-                                    "name" => _("Name"),
-                                    "link" => "?sortby=Nachname&direction=" . $new_direction,
-                                    "width" => "30%"),
-                                "status" => array(
-                                    "name" => _("Status"),
-                                    "link" => "?sortby=inst_perms&direction=" . $new_direction,
-                                    "width" => "10")
-                            );
-                        }
-                        else {
-                            $this->table_structure = array(
-                                "name" => array(
-                                    "name" => _("Name"),
-                                    "link" => "?sortby=Nachname&direction=" . $new_direction,
-                                    "width" => "30%")
-                            );
-                        }
-                } // switch
-            } else {
-                switch ($this->show) {
-                    case 'liste' :
-                        if ($GLOBALS['perm']->have_perm("admin")) {
-                            $this->table_structure = array(
-                                "name" => array(
-                                    "name" => _("Name"),
-                                    "link" => "?sortby=Nachname&direction=" . $new_direction,
-                                    "width" => "35%"),
-                                "status" => array(
-                                    "name" => _("Status"),
-                                    "link" => "?sortby=inst_perms&direction=" . $new_direction,
-                                    "width" => "10"),
-                                "statusgruppe" => array(
-                                    "name" => _("Funktion"),
-                                    "width" => "15%")
-                            );
-                        }
-                        else {
-                            $this->table_structure = array(
-                                "name" => array(
-                                    "name" => _("Name"),
-                                    "link" => "?sortby=Nachname&direction=" . $new_direction,
-                                    "width" => "30%"),
-                                "statusgruppe" => array(
-                                    "name" => _("Funktion"),
-                                    "width" => "15%")
-                            );
-                        }
-                        break;
-                    case 'status' :
-                        $this->table_structure = array(
-                            "name" => array(
-                                "name" => _("Name"),
-                                "link" => "?sortby=Nachname&direction=" . $new_direction,
-                                "width" => "40%"),
-                            "statusgruppe" => array(
-                                "name" => _("Funktion"),
-                                "width" => "20%")
-                        );
-                        break;
-                    default :
-                        if ($GLOBALS['perm']->have_perm("admin")) {
-                            $this->table_structure = array(
-                                "name" => array(
-                                    "name" => _("Name"),
-                                    "link" => "?sortby=Nachname&direction=" . $new_direction,
-                                    "width" => "40%"),
-                                "status" => array(
-                                    "name" => _("Status"),
-                                    "link" => "?sortby=inst_perms&direction=" . $new_direction,
-                                    "width" => "15")
-                            );
-                        }
-                        else {
-                            $this->table_structure = array(
-                                "name" => array(
-                                    "name" => _("Name"),
-                                    "link" => "?sortby=Nachname&direction=" . $new_direction,
-                                    "width" => "40%")
-                            );
-                        }
-                } // switch
-            }
-
-            $this->table_structure = array_merge((array)$this->table_structure, (array)$this->struct);
-
-            if ($this->admin_view || $GLOBALS['perm']->have_studip_perm('autor', $GLOBALS['SessSemName'][1])) {
-                $this->table_structure['actions'] = array(
-                    "name" => _("Aktionen"),
-                    "width" => "5%"
-                );
-            }
-
-            if ($this->show == "funktion") {
-                $all_statusgruppen = $this->groups;
-                if ($all_statusgruppen) {
-                    $this->display_recursive($all_statusgruppen, 0, '', $dview);
-                }
                 if ($GLOBALS['perm']->have_perm('admin')) {
-                    $assigned = GetAllSelected($this->auswahl) ?: array('');
-                    if ($this->extend == 'yes') {
-                        $query = "SELECT {$GLOBALS['_fullname_sql']['full_rev']} AS fullname,
-                                         ui.inst_perms, ui.raum, ui.sprechzeiten, ui.Telefon,
-                                         aum.Email, aum.user_id, aum.username
-                                  FROM user_inst AS ui
-                                  LEFT JOIN auth_user_md5 AS aum USING (user_id)
-                                  LEFT JOIN user_info USING (user_id)
-                                  WHERE ui.Institut_id = :inst_id AND ui.inst_perms != 'user'
-                                    AND ui.user_id NOT IN (:user_ids)
-                                  ORDER BY :sort_column :sort_order";
-                    } else {
-                        $query = "SELECT {$GLOBALS['_fullname_sql']['full_rev']} AS fullname,
-                                         ui.inst_perms, ui.raum, ui.Telefon,
-                                         aum.user_id, aum.username
-                                  FROM user_inst AS ui
-                                  LEFT JOIN auth_user_md5 AS aum USING (user_id)
-                                  LEFT JOIN user_info USING (user_id)
-                                  WHERE ui.Institut_id = :inst_id AND ui.inst_perms != 'user'
-                                    AND ui.user_id NOT IN (:user_ids)
-                                  ORDER BY :sort_column :sort_order";
-                    }
-                    $statement = DBManager::get()->prepare($query);
-                    $statement->bindValue(':inst_id', $this->auswahl);
-                    $statement->bindValue(':user_ids', $assigned, StudipPDO::PARAM_ARRAY);
-                    $statement->bindValue(':sort_column', $sortby, StudipPDO::PARAM_COLUMN);
-                    $statement->bindValue(':sort_order', $this->direction, StudipPDO::PARAM_COLUMN);
-                    $statement->execute();
+                    return $member->inst_perms !== 'user';
+                }
 
-                    $institut_members = $statement->fetchAll(PDO::FETCH_ASSOC);
-
-                    if (count($institut_members) > 0) {
-                        $template = $GLOBALS['template_factory']->open('institute/_table_body.php');
-                        $template->th_title = _("keiner Funktion zugeordnet");
-                        $template->members = $institut_members;
-                        $template->range_id = $this->auswahl;
-                        $template->struct = $this->struct;
-                        $template->structure = $this->table_structure;
-                        $template->datafields_list = $this->datafields_list;
-                        $template->group_list = $this->group_list;
-                        $template->admin_view = $this->admin_view;
-                        $template->dview = $dview;
-                        $this->table_content .= $template->render();
+                foreach ($this->groups as $group) {
+                    if ($group->isMember($member->user_id)) {
+                        return true;
                     }
                 }
-            } elseif ($this->show == 'status') {
-                $inst_permissions = array(
-                    'admin'  => _('Admin'),
-                    'dozent' => _('Lehrende'),
-                    'tutor'  => _('Tutor/-in'),
-                    'autor'  => _('Studierende')
-                );
 
-                $query = "SELECT {$GLOBALS['_fullname_sql']['full_rev']} AS fullname,
-                                 ui.raum, ui.sprechzeiten, ui.Telefon,
-                                 inst_perms, Email, user_id, username,
-                                 (ui.visible = 1 AND auth_user_md5.visible != 'never') AS visible
-                          FROM user_inst AS ui
-                          LEFT JOIN auth_user_md5 USING (user_id)
-                          LEFT JOIN user_info USING (user_id)
-                          WHERE ui.Institut_id = :inst_id AND inst_perms = :perms
-                          ORDER BY :sort_column :sort_order";
-                $statement = DBManager::get()->prepare($query);
+                return false;
+            })->orderBy($this->sortby . ' ' . $this->direction);
 
-                foreach ($inst_permissions as $key => $permission) {
-                    $statement->bindValue(':inst_id', $this->auswahl);
-                    $statement->bindValue(':perms', $key);
-                    $statement->bindValue(':sort_column', $sortby, StudipPDO::PARAM_COLUMN);
-                    $statement->bindValue(':sort_order', $this->direction, StudipPDO::PARAM_COLUMN);
-                    $statement->execute();
+            $this->display_tables[] = [
+                'members' => $institut_members,
+                'dview'   => $dview,
+            ];
+        }
 
-                    $institut_members = $statement->fetchAll(PDO::FETCH_ASSOC);
-                    $institut_members = array_filter($institut_members, function ($member) {
-                        return $GLOBALS['perm']->have_perm('admin') || $member['visible'];
-                    });
+        $this->display_tables = array_filter($this->display_tables, function ($table) {
+            return count($table['members']) > 0;
+        });
+    }
 
-                    $statement->closeCursor();
-
-                    if (count($institut_members) > 0) {
-                        $template = $GLOBALS['template_factory']->open('institute/_table_body.php');
-                        $template->mail_status = true;
-                        $template->key = $key;
-                        $template->th_title = $permission;
-                        $template->members = $institut_members;
-                        $template->range_id = $this->auswahl;
-                        $template->struct = $this->struct;
-                        $template->structure = $this->table_structure;
-                        $template->datafields_list = $this->datafields_list;
-                        $template->group_list = $this->group_list;
-                        $template->admin_view = $this->admin_view;
-                        $template->dview = $dview;
-                        $this->table_content .= $template->render();
-                    }
-                }
+    private function display_recursive($groups, $dview = [], $all_title = '')
+    {
+        foreach ($groups as $group) {
+            if ($all_title == '') {
+                $title = $group->name;
             } else {
-                $parameters = array();
-                if ($this->extend == 'yes') {
-                    if ($GLOBALS['perm']->have_perm('admin')) {
-                        $query = "SELECT {$GLOBALS['_fullname_sql']['full_rev']} AS fullname,
-                                         ui.raum, ui.sprechzeiten, ui.Telefon, ui.inst_perms,
-                                         user_id, info.Home, aum.Email, aum.username,
-                                         (ui.visible = 1 AND aum.visible != 'never') AS visible
-                                  FROM user_inst AS ui
-                                  LEFT JOIN auth_user_md5 AS aum USING (user_id)
-                                  LEFT JOIN user_info AS info USING (user_id)
-                                  WHERE ui.Institut_id = :inst_id AND ui.inst_perms != 'user'
-                                  ORDER BY :sort_column :sort_order";
-                    } else {
-                        $query = "SELECT {$GLOBALS['_fullname_sql']['full_rev']} AS fullname,
-                                         ui.raum, ui.sprechzeiten, ui.Telefon,
-                                         user_id, info.Home, aum.Email, aum.username, Institut_id,
-                                         (ui.visible = 1 AND aum.visible != 'never') AS visible
-                                  FROM statusgruppen
-                                  LEFT JOIN statusgruppe_user USING (statusgruppe_id)
-                                  LEFT JOIN user_inst AS ui USING (user_id)
-                                  LEFT JOIN auth_user_md5 AS aum USING (user_id)
-                                  LEFT JOIN user_info AS info USING (user_id)
-                                  WHERE statusgruppen.statusgruppe_id IN (:statusgruppen_ids)
-                                    AND Institut_id = :inst_id
-                                  ORDER BY :sort_column :sort_order";
-                        $parameters[':statusgruppen_ids'] = getAllStatusgruppenIDS($this->auswahl);
-                    }
-                } else {
-                    if ($GLOBALS['perm']->have_perm('admin')) {
-                        $query = "SELECT {$GLOBALS['_fullname_sql']['full_rev']} AS fullname,
-                                         ui.raum, ui.sprechzeiten, ui.Telefon,
-                                         user_id, username, inst_perms,
-                                         (ui.visible = 1 AND auth_user_md5.visible != 'never') AS visible
-                                  FROM user_inst AS ui
-                                  LEFT JOIN auth_user_md5 USING (user_id)
-                                  LEFT JOIN user_info USING (user_id)
-                                  WHERE ui.Institut_id = :inst_id AND inst_perms != 'user'
-                                  ORDER BY :sort_column :sort_order";
-                    } else {
-                        $query = "SELECT {$GLOBALS['_fullname_sql']['full_rev']} AS fullname,
-                                         ui.raum, ui.sprechzeiten, ui.Telefon,
-                                         user_id, username, Institut_id,
-                                         (ui.visible = 1 AND aum.visible != 'never') AS visible
-                                  FROM statusgruppen
-                                  LEFT JOIN statusgruppe_user AS su USING (statusgruppe_id)
-                                  LEFT JOIN user_inst AS ui USING (user_id)
-                                  LEFT JOIN auth_user_md5 AS aum USING (user_id)
-                                  LEFT JOIN user_info USING (user_id)
-                                  WHERE statusgruppen.statusgruppe_id IN (:statusgruppen_ids)
-                                    AND Institut_id = :inst_id
-                                  GROUP BY user_id
-                                  ORDER BY :sort_column :sort_order";
-                        $parameters[':statusgruppen_ids'] = getAllStatusgruppenIDS($this->auswahl);
-                    }
+                $title = $all_title . ' > '. $group->name;
+            }
+
+            // Find members
+            $institut_members = $this->institute->members->filter(function ($member) use ($group) {
+                if ($member->inst_perms === 'user') {
+                    return false;
                 }
-                $statement = DBManager::get()->prepare($query);
-                $statement->bindValue(':inst_id', $this->auswahl);
-                $statement->bindValue(':sort_column', $sortby, StudipPDO::PARAM_COLUMN);
-                $statement->bindValue(':sort_order', $this->direction, StudipPDO::PARAM_COLUMN);
-
-                $aborted = false;
-                foreach ($parameters as $parameter => $value) {
-                    if (is_array($value) && count($value) === 0) {
-                        $aborted = true;
-                        break;
-                    }
-                    $statement->bindValue($parameter, $value);
+                if (!$GLOBALS['perm']->have_perm('admin') && !($member->visible && $member->user->visible !== 'never')) {
+                    return false;
                 }
+                return $group->isMember($member->user_id);
+            });
 
-                if (!$aborted) {
-                    $statement->execute();
-
-                    $institut_members = $statement->fetchAll(PDO::FETCH_ASSOC);
-
-                    array_walk($institut_members, function(&$member, $key) {
-                        $member['Email'] = get_visible_email($member['user_id']);
-                    });
-
-                    $institut_members = array_filter($institut_members, function ($member) {
-                        return $GLOBALS['perm']->have_perm('admin') || $member['visible'];
-                    });
-
-                    if (count($institut_members) > 0) {
-                        $template = $GLOBALS['template_factory']->open('institute/_table_body.php');
-                        $template->members = $institut_members;
-                        $template->range_id = $this->auswahl;
-                        $template->struct = $this->struct;
-                        $template->structure = $this->table_structure;
-                        $template->datafields_list = $this->datafields_list;
-                        $template->group_list = $this->group_list;
-                        $template->admin_view = $this->admin_view;
-                        $template->dview = $dview;
-                        $this->table_content .= $template->render();
+            // Sort
+            if ($this->statusgruppe_user_sortby === 'position') {
+                $ordered = [];
+                $group->members->each(function ($member) use (&$ordered, $institut_members) {
+                    $inst_member = $institut_members->findOneBy('user_id', $member->user_id);
+                    if ($inst_member) {
+                        $ordered[] = $inst_member;
                     }
-                }
+                });
+                $institut_members->exchangeArray($ordered);
+            } else {
+                $institut_members = $institut_members->orderBy($this->statusgruppe_user_sortby . ' ' . $this->direction);
+            };
+
+            // output
+            $this->display_tables[] = [
+                'members'     => $institut_members,
+                'group'       => $group,
+                'th_title'    => $title,
+                'dview'       => $dview,
+
+                // StEP 154: Nachricht an alle Mitglieder der Gruppe
+                'mail_gruppe' => $GLOBALS['ENABLE_EMAIL_TO_STATUSGROUP']
+                              && $GLOBALS['perm']->have_studip_perm('autor', $this->institute->id),
+            ];
+
+            if ($group->children) {
+                $this->display_recursive($group->children, $dview, $title);
             }
         }
     }
 
-    function display_recursive($roles, $level = 0, $title = '', $dview = array()) {
-        foreach ($roles as $role_id => $role) {
-            if ($title == '') {
-                $zw_title = $role['role']->getName();
+    // Jemand soll ans Institut...
+    public function add_action($type)
+    {
+        $mp = MultiPersonSearch::load("inst_member_add" . $this->institute->id);
+        $additionalCheckboxes = $mp->getAdditionalOptionArray() ?: [];
+
+        $enable_mail_admin  = in_array('admins', $additionalCheckboxes);
+        $enable_mail_dozent = in_array('dozenten', $additionalCheckboxes);
+
+        foreach ($mp->getAddedUsers() as $u_id) {
+            $member = new InstituteMember([$u_id, $this->institute->id]);
+
+            if (!$member->isNew() && $member->inst_perms !== 'user') {
+                // der Admin hat Tomaten auf den Augen, der Mitarbeiter sitzt schon im Institut
+                PageLayout::postError(
+                    _('Die Person ist bereits in der Einrichtung eingetragen.') . ' ' .
+                    _('Um Rechte etc. zu ändern folgen Sie dem Link zu den Nutzerdaten der Person!')
+                );
             } else {
-                $zw_title = $title .' > '. $role['role']->getName();
-            }
-            if ($this->extend == 'yes') {
-                $query = "SELECT {$GLOBALS['_fullname_sql']['full_rev']} AS fullname, ui.inst_perms,
-                                 ui.raum, ui.sprechzeiten, ui.Telefon, aum.Email, aum.user_id,
-                                 aum.username, info.Home, statusgruppe_id,
-                                 (ui.visible = 1 AND aum.visible != 'never') AS visible
-                          FROM statusgruppe_user
-                          LEFT JOIN auth_user_md5 AS aum USING (user_id)
-                          LEFT JOIN user_info AS info USING (user_id)
-                          LEFT JOIN user_inst AS ui USING (user_id)
-                          WHERE ui.Institut_id = :inst_id AND statusgruppe_id = :role_id
-                            AND ui.inst_perms != 'user'
-                          ORDER BY :sort_column :sort_order";
-            } else {
-                $query = "SELECT {$GLOBALS['_fullname_sql']['full_rev']} AS fullname, user_inst.raum,
-                                 user_inst.sprechzeiten, user_inst.Telefon, inst_perms,
-                                 Email, user_id, username, statusgruppe_id,
-                                 (user_inst.visible = 1 AND auth_user_md5.visible != 'never') AS visible
-                          FROM statusgruppe_user
-                          LEFT JOIN auth_user_md5 USING (user_id)
-                          LEFT JOIN user_info USING (user_id)
-                          LEFT JOIN user_inst USING (user_id)
-                          WHERE Institut_id = :inst_id AND statusgruppe_id = :role_id
-                            AND inst_perms != 'user'
-                          ORDER BY :sort_column :sort_order";
-            }
-            $statement = DBManager::get()->prepare($query);
-            $statement->bindValue(':inst_id', $this->auswahl);
-            $statement->bindValue(':role_id', $role_id);
-            $statement->bindValue(':sort_column', $this->statusgruppe_user_sortby, StudipPDO::PARAM_COLUMN);
-            $statement->bindValue(':sort_order', $this->direction, StudipPDO::PARAM_COLUMN);
-            $statement->execute();
+                // mal nach dem globalen Status sehen
+                $Fullname = $member->getUserFullName('full');
+                $perms    = $member->user->perms;
 
-            $institut_members = $statement->fetchAll(PDO::FETCH_ASSOC);
+                if ($perms === 'root') {
+                    PageLayout::postError(_('ROOTs können nicht berufen werden!'));
+                } elseif ($perms == 'admin') {
+                    if ($GLOBALS['perm']->have_perm('root') || (!$GLOBALS['SessSemName']['is_fak'] && $GLOBALS['perm']->have_studip_perm('admin', $GLOBALS['SessSemName']['fak']))) {
+                        // Emails schreiben...
+                        if ($enable_mail_dozent || $enable_mail_admin) {
+                            if ($enable_mail_admin && $enable_mail_dozent) {
+                                $in  = ['admin', 'dozent'];
+                                $wem = _('Admins und Dozenten');
+                            } elseif ($enable_mail_admin){
+                                $in  = ['admin'];
+                                $wem = _('Admins');
+                            } elseif ($enable_mail_dozent) {
+                                $in  = ['dozent'];
+                                $wem = _('Dozenten');
+                            }
 
-            array_walk($institut_members, function(&$member, $key) {
-                $member['Email'] = get_visible_email($member['user_id']);
-            });
+                            $notin = [];
+                            $mails_sent = 0;
 
-            $institut_members = array_filter($institut_members, function ($member) {
-                return $GLOBALS['perm']->have_perm('admin') || $member['visible'];
-            });
+                            $relevant_users = $this->institute->members->findBy('inst_perms', $in);
+                            foreach ($relevant_users as $user) {
+                                $user_language = getUserLanguagePath($user->id);
+                                include("locale/$user_language/LC_MAILS/new_admin_mail.inc.php");
+                                StudipMail::sendMessage($user->email, $subject, $mailbody);
+                                $notin[] = $user->id;
 
-            if (count($institut_members) > 0) {
-                $template = $GLOBALS['template_factory']->open('institute/_table_body.php');
-                // StEP 154: Nachricht an alle Mitglieder der Gruppe
-                if ($GLOBALS['perm']->have_studip_perm('autor', $GLOBALS['SessSemName'][1]) AND $GLOBALS["ENABLE_EMAIL_TO_STATUSGROUP"] == true) {
-                    $template->mail_gruppe = true;
+                                $mails_sent += 1;
+                            }
+                            if ($enable_mail_admin && !$this->institute->is_fak) {
+                                $notin[] = $u_id;
+
+                                $relevant_users = $this->institute->faculty->members->findBy('inst_perms', 'admin');
+                                foreach ($relevant_users as $user) {
+                                    if (in_array($user->id, $notin)) {
+                                        continue;
+                                    }
+
+                                    $user_language = getUserLanguagePath($user->id);
+                                    include("locale/$user_language/LC_MAILS/new_admin_mail.inc.php");
+                                    StudipMail::sendMessage($user->email, $subject, $mailbody);
+                                    $notin[] = $user->id;
+
+                                    $mails_sent += 1;
+                                }
+                            }
+                            PageLayout::postInfo(sprintf(
+                                _('Es wurden ingesamt %u Mails an die %s der Einrichtung geschickt.'),
+                                $mails_sent, $wem
+                            ));
+                        }
+
+                        StudipLog::log('INST_USER_ADD', $this->institute->id, $u_id, 'admin');
+
+                        // als admin aufnehmen
+                        $member->inst_perms = 'admin';
+                        $member->store();
+
+                        PageLayout::postInfo(sprintf(_('%s wurde als "admin" in die Einrichtung aufgenommen.'), htmlReady($Fullname)));
+                        NotificationCenter::postNotification('UserInstitutionDidCreate', $this->institute->id, $u_id);
+                    } else {
+                        PageLayout::postError(_('Sie haben keine Berechtigung einen Admin zu berufen!'));
+                    }
+                } else {
+                    //ok, aber nur hochstufen auf Maximal-Status (hat sich selbst schonmal gemeldet als Student an dem Inst)
+                    $was_new = $member->isNew();
+                    
+                    $member->inst_perms = $perms;
+                    if ($member->store()) {
+
+                        if ($was_new) {
+                            StudipLog::log('INST_USER_ADD', $this->institute->id ,$u_id, $perms);
+                            NotificationCenter::postNotification('UserInstitutionDidCreate', $this->institute->id, $u_id);
+                        } else {
+                            StudipLog::log('INST_USER_STATUS', $this->institute->id ,$u_id, $perms);
+                            NotificationCenter::postNotification('UserInstitutionPermDidUpdate', $this->institute->id, $u_id);
+                        }
+
+                        PageLayout::postInfo(
+                            sprintf(_('%s wurde als "%s" in die Einrichtung aufgenommen.'), htmlReady($Fullname), $perms) . ' ' .
+                            _('Um Rechte etc. zu ändern folgen Sie dem Link zu den Nutzerdaten der Person!')
+                        );
+                    } else {
+                        PageLayout::postError(sprintf(_('%s konnte nicht in die Einrichtung aufgenommen werden!'), htmlReady($Fullname)));
+                    }
                 }
-                $template->role_id = $role_id;
-                $template->th_title = $zw_title;
-                $template->members = $institut_members;
-                $template->range_id = $this->auswahl;
-                $template->struct = $this->struct;
-                $template->structure = $this->table_structure;
-                $template->datafields_list = $this->datafields_list;
-                $template->group_list = $this->group_list;
-                $template->admin_view = $this->admin_view;
-                $template->dview = $dview;
-                $this->table_content .= $template->render();
-
             }
-            if ($role['child']) {
-                $this->display_recursive($role['child'], $level + 1, $zw_title, $dview);
-            }
+            InstituteMember::ensureDefaultInstituteForUser($u_id);
         }
+        $mp->clearSession();
+
+        $this->redirect('institute/members/' . $type);
+    }
+
+    public function remove_from_group_action($group_id, $type)
+    {
+        if (!$GLOBALS['perm']->have_studip_perm('admin', $this->institute->id)) {
+            throw new AccessDeniedException();
+        }
+
+        $username = Request::username('username');
+        $user     = User::findByUsername($username);
+        $group    = Statusgruppen::find($group_id);
+        $result   = $group->removeUser($user->id);
+
+        if ($result) {
+            PageLayout::postInfo(sprintf(
+                _('%s wurde aus der Gruppe %s ausgetragen.'),
+                htmlReady($user->getFullName()),
+                htmlReady($group->name)
+            ));
+        }
+
+        $this->redirect('institute/members/' . $type);
+    }
+
+    public function remove_from_institute_action($type)
+    {
+        $username = Request::username('username');
+        $user     = User::findByUsername($username);
+
+        if (!$GLOBALS['perm']->have_studip_perm('admin', $this->institute->id)
+            || $GLOBALS['perm']->get_profile_perm($user->id) !== 'admin')
+        {
+            throw new AccessDeniedException();
+        }
+
+        if ($user->id === $GLOBALS['user']->id) {
+            throw new Exception(_('Sie können sich nicht selbst aus der Einrichtung austragen.'));
+        }
+
+        $member = InstituteMember::find([$user->id, $this->institute->id]);
+        if ($member && $member->delete()) {
+            PageLayout::postInfo(sprintf(
+                _('%s wurde von der Liste des Personals gelöscht.'),
+                htmlReady($user->getFullName())
+            ));
+
+            StudipLog::log('INST_USER_DEL', $this->institute->id, $user->id);
+            NotificationCenter::postNotification('UserInstitutionDidDelete', $this->institute->id, $user->id);
+            InstituteMember::ensureDefaultInstituteForUser($user->id);
+        }
+
+        $this->redirect('institute/members/'. $type);
+    }
+
+    private function getTableStructure($additional_structure = [])
+    {
+        $table_structure = [
+            'name' => [
+                'name'    => _('Name'),
+                'link'    => '?sortby=Nachname&direction=' . ($this->direction === 'ASC' ? 'DESC' : 'ASC'),
+                'colspan' => 2,
+            ],
+            'status' => [
+                'name' => _('Status'),
+                'link' => '?sortby=inst_perms&direction=' . ($this->direction === 'ASC' ? 'DESC' : 'ASC'),
+                'width' => 70,
+            ],
+            'statusgruppe' => [
+                'name'  => _('Funktion'),
+                'width' => '20%',
+            ],
+        ];
+
+        if ($this->extend === 'yes') {
+            $table_structure['statusgruppe']['width'] = '15%';
+        }
+
+        if ($this->type === 'status' || !$this->admin_view) {
+            unset($table_structure['status']);
+        }
+        if (!in_array($this->type, ['list', 'status'])) {
+            unset($table_structure['statusgruppe']);
+        }
+
+        $table_structure = array_merge($table_structure, $additional_structure);
+
+        if ($this->admin_view || $GLOBALS['perm']->have_studip_perm('autor', $this->institute->id)) {
+            $table_structure['actions'] = array(
+                'name' => _('Aktionen'),
+                'width' => '5%'
+            );
+        }
+
+        return $table_structure;
+    }
+
+    private function setupSidebar()
+    {
+        $sidebar = Sidebar::get();
+        $sidebar->setImage('sidebar/person-sidebar.png');
+
+        $widget = new ViewsWidget();
+        $widget->addLink(
+            _('Standard'),
+            URLHelper::getURL('?extend=no')
+        )->setActive($this->extend !== 'yes');
+        $widget->addLink(
+            _('Erweitert'),
+            URLHelper::getURL('?extend=yes')
+        )->setActive($this->extend === 'yes');
+        $sidebar->addWidget($widget);
+
+        if ($this->admin_view) {
+            $actions = new ActionsWidget();
+
+            if (!LockRules::Check($this->institute->id, 'participants')) {
+                $search = $this->getMultipersonSearch();
+                $icon   = $search->getLinkIconPath();
+                $search->setLinkIconPath(false);
+                $actions->addElement(LinkElement::fromHTML($search->render(), $icon));
+            }
+
+            // Mitglieder zählen und E-Mail-Adressen zusammenstellen
+            $valid_mail_members = $this->institute->members->filter(function ($member) {
+                return $member->inst_perms !== 'user'
+                    && (bool)$member->email;
+            });
+            if (count($valid_mail_members) > 0) {
+                $actions->addLink(
+                    _('Stud.IP Rundmail'),
+                    $this->url_for('messages/write', ['inst_id' => $this->institute->id, 'emailrequest' => 1]),
+                    Icon::create('mail', 'clickable'),
+                    ['data-dialog' => 'size=50%']
+                );
+            }
+
+            $sidebar->addWidget($actions);
+        }
+
+
+        $widget = new OptionsWidget(_('Gruppierung'));
+        // Admins can choose between different grouping functions
+        if ($this->admin_view) {
+            $widget->addRadioButton(
+                _('Funktion'),
+                $this->link_for('institute/members/function'),
+                $this->type === 'function'
+            );
+            $widget->addRadioButton(
+                _('Status'),
+                $this->link_for('institute/members/status'),
+                $this->type === 'status'
+            );
+            $widget->addRadioButton(
+                _('keine'),
+                $this->link_for('institute/members/list'),
+                $this->type === 'list');
+        } else {
+            $widget->addRadioButton(
+                _('Nach Funktion gruppiert'),
+                $this->link_for('institute/members/function'),
+                $this->type === 'function'
+            );
+            $widget->addRadioButton(
+                _('Alphabetische Liste'),
+                $this->link_for('institute/members/list'),
+                $this->type === 'list'
+            );
+        }
+        $sidebar->addWidget($widget);
+
+        if (Config::get()->EXPORT_ENABLE && $GLOBALS['perm']->have_perm('tutor')) {
+            $widget = new ExportWidget();
+            $widget->addElement(new WidgetElement(export_form_sidebar($institute->id, 'person', $GLOBALS['SessSemName'][0])));
+            $sidebar->addWidget($widget);
+        }
+    }
+
+    private function getMultipersonSearch()
+    {
+        $query = "SELECT auth_user_md5.user_id,
+                         {$GLOBALS['_fullname_sql']['full_rev']} AS fullname,
+                         username, perms
+                  FROM auth_user_md5
+                  LEFT JOIN user_info ON (auth_user_md5.user_id = user_info.user_id)
+                  WHERE visible != 'never'
+                    AND (username LIKE :input OR
+                         CONCAT(Vorname, ' ', Nachname) LIKE :input OR
+                         CONCAT(Nachname, ' ', Vorname) LIKE :input OR
+                         {$GLOBALS['_fullname_sql']['full_rev']} LIKE :input)
+                  ORDER BY fullname ASC";
+        $search_obj = new SQLSearch($query, _('Nutzer suchen'), 'user_id');
+
+        $defaultSelectedUser = $this->institute->members->findBy('inst_perms', words('autor tutor dozent admin'));
+
+        return MultiPersonSearch::get('inst_member_add' . $this->institute->id)
+            ->setLinkText(_('Personen in die Einrichtung eintragen'))
+            ->setDefaultSelectedUser($defaultSelectedUser->pluck('user_id'))
+            ->setTitle(_('Personen in die Einrichtung eintragen'))
+            ->setExecuteURL($this->link_for('institute/members/add', $this->type, ['admin_view' => 1]))
+            ->setSearchObject($search_obj)
+            ->setAdditionalHTML('<p><strong>' . _('Nur bei Zuordnung eines Admins:') .' </strong> <label>Benachrichtigung der <input name="additional[]" value="admins" type="checkbox">' . _('Admins') .'</label>
+                             <label><input name="additional[]" value="dozenten" type="checkbox">' . _('Dozenten') . '</label></p>');
     }
 }

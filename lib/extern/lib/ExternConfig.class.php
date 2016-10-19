@@ -49,9 +49,9 @@ class ExternConfig {
 
     function GetInstance ($range_id, $module_name, $config_id = '') {
         
-    //  require_once($GLOBALS["RELATIVE_PATH_EXTERN"] . '/lib/ExternConfig' . ucfirst(strtolower($GLOBALS['EXTERN_CONFIG_STORAGE_CONTAINER'])) . '.class.php');
+    //  require_once($GLOBALS["RELATIVE_PATH_EXTERN"] . '/lib/ExternConfig' . ucfirst(mb_strtolower($GLOBALS['EXTERN_CONFIG_STORAGE_CONTAINER'])) . '.class.php');
         
-        $class_name = 'ExternConfig' . ucfirst(strtolower($GLOBALS['EXTERN_CONFIG_STORAGE_CONTAINER']));
+        $class_name = 'ExternConfig' . ucfirst(mb_strtolower($GLOBALS['EXTERN_CONFIG_STORAGE_CONTAINER']));
         $instance = new $class_name($range_id, $module_name, $config_id);
         return $instance;
     }
@@ -134,7 +134,7 @@ class ExternConfig {
         foreach ($config as $element_name => $element) {
             if (is_array($element)) foreach ($element as $attribute => $value) {
                 if ((string)$value{0} == '|') {
-                    $new_config[$element_name][$attribute] = explode('|', substr($value, 1));
+                    $new_config[$element_name][$attribute] = explode('|', mb_substr($value, 1));
                 } else {
                     $new_config[$element_name][$attribute] = $value;
                 }
@@ -314,7 +314,7 @@ class ExternConfig {
                 $all_config_names .= $configuration['name'];
         }
         
-        while(stristr($all_config_names, $config_name)) {
+        while(mb_stristr($all_config_names, $config_name)) {
             $config_name = $config_name_prefix . $config_name_suffix;
             $config_name_suffix++;
         }

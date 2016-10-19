@@ -369,7 +369,7 @@ class Course_TimesroomsController extends AuthenticatedController
         $groups = Statusgruppen::findBySeminar_id($this->course->id);
         $related_groups = Request::getArray('related_statusgruppen');
         if ($related_groups && count($related_groups) !== count($groups)) {
-            $related_groups = Statusgruppen::findMany($related_groups);
+            $termin->statusgruppen = Statusgruppen::findMany($related_groups);
         }
 
         if (!Request::get('room') || Request::get('room') === 'nothing') {
@@ -768,14 +768,14 @@ class Course_TimesroomsController extends AuthenticatedController
                 $weeks        = $sem->getStartWeeks($sem_duration);
 
                 foreach ($this->start_weeks as $key => $week) {
-                    if (strpos($week, substr($weeks[0], -15)) !== false) {
+                    if (mb_strpos($week, mb_substr($weeks[0], -15)) !== false) {
                         $this->end_semester_weeks['start'][] = array('value' => $key, 'label' => sprintf(_('Anfang %s'), $sem->name));
                     }
-                    if (strpos($week, substr($weeks[count($weeks) - 1], -15)) !== false) {
+                    if (mb_strpos($week, mb_substr($weeks[count($weeks) - 1], -15)) !== false) {
                         $this->end_semester_weeks['ende'][] = array('value' => $key + 1, 'label' => sprintf(_('Ende %s'), $sem->name));
                     }
                     foreach ($weeks as $val) {
-                        if (strpos($week, substr($val, -15)) !== false) {
+                        if (mb_strpos($week, mb_substr($val, -15)) !== false) {
                             $this->clean_weeks[$sem->name][$key] = $val;
                         }
                     }
@@ -937,7 +937,8 @@ class Course_TimesroomsController extends AuthenticatedController
     {
         if (!$this->locked) {
             $actions = new ActionsWidget();
-            $actions->addLink(_('Startsemester ändern'), $this->url_for('course/timesrooms/editSemester'), Icon::create('date', 'clickable'))->asDialog('size=400');
+            $actions->addLink(sprintf(_('Startsemester ändern (%s)'), $this->course->start_semester->name),
+                              $this->url_for('course/timesrooms/editSemester'), Icon::create('date', 'clickable'))->asDialog('size=400');
             Sidebar::Get()->addWidget($actions);
         }
 
@@ -1047,7 +1048,7 @@ class Course_TimesroomsController extends AuthenticatedController
         $new_offset_value  = 0;
 
         foreach ($new_start_weeks as $value => $label) {
-            if (strpos($label, substr($old_offset_string, -15)) !== false) {
+            if (mb_strpos($label, mb_substr($old_offset_string, -15)) !== false) {
                 $new_offset_value = $value;
             }
         }
@@ -1126,10 +1127,10 @@ class Course_TimesroomsController extends AuthenticatedController
 
         if (Request::isXhr()) {
             $url       = call_user_func_array('parent::url_for', $arguments);
-            $url_chunk = Trails_Inflector::underscore(substr(get_class($this), 0, -10));
+            $url_chunk = Trails_Inflector::underscore(mb_substr(get_class($this), 0, -10));
             $index_url = $url_chunk . '/index';
 
-            if (strpos($url, $index_url) !== false) {
+            if (mb_strpos($url, $index_url) !== false) {
                 $this->flash['update-times'] = $this->course->id;
             }
         }
