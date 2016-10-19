@@ -59,7 +59,7 @@ class Course_FilesController extends AuthenticatedController
     /**
         Displays the files in tree view
     **/
-    public function index_action($topFolder = '')
+    public function index_action($topFolder = '', $page = 1)
     {
         if(Navigation::hasItem('/course/files_new')) {
             Navigation::activateItem('/course/files_new');
@@ -98,7 +98,28 @@ class Course_FilesController extends AuthenticatedController
             }
             $this->topFolder->store();
         }
+
+        if (!empty($this->topFolder['parent_id'])) {
+            $this->isRoot = false;
+            $this->parent_id = $this->topFolder['parent_id'];
+            $this->parent_page = 1;
+        } else {
+            $this->isRoot = true;
+        }
         
+        
+        
+        $this->marked = array();        
+        $this->filecount = count($this->topFolder->subfolders);
+        $this->filecount += count($this->topFolder->file_refs);
+        
+        $limit = 2;        
+        $start_index = ($page-1) * $limit;
+        
+        $this->limit = $limit;
+        $this->page = $page;
+        $this->dir_id = $this->topFolder->id;
+                
         $this->buildSidebar();
         if($course) {
             PageLayout::setTitle($course->getFullname() . ' - ' . _('Dateien'));

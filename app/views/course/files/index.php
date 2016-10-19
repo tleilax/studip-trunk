@@ -9,14 +9,14 @@
         <? else: ?>
             <div class="bread-crumbs">
         <? endif; ?>
-            <a href="<?= $controller->link_for('/tree/' . $last_crumb->id) ?>">
+            <a href="<?= $controller->link_for('/index/' . $last_crumb->id) ?>">
                 <?= Icon::create('folder-parent', 'clickable')->asImg(24) ?>
             </a>
             <? if (count($breadcrumbs) > 1) : ?>
                 <ul>
                 <? foreach ($breadcrumbs as $crumb) : ?>
                     <li>
-                        <a href="<?= $controller->url_for('/tree/' . $crumb->id) ?>">
+                        <a href="<?= $controller->url_for('/index/' . $crumb->id) ?>">
                             <?= htmlReady($crumb->name) ?>
                         </a>
                     </li>
@@ -67,12 +67,12 @@
             <td>&nbsp;</td>
             <td>&nbsp;</td>
             <td class="document-icon">
-                <a href="<?= $controller->url_for('/tree/' . $parent_id, $parent_page ) ?>">
+                <a href="<?= $controller->url_for('/index/' . $parent_id, $parent_page ) ?>">
                     <?//= Icon::create('arr_1up', 'clickable', ['title' => _('Ein Verzeichnis nach oben wechseln')])->asImg(24) ?>
                 </a>
             </td>
             <td>
-                <a href="<?= $controller->url_for('/tree/' . $parent_id, $parent_page) ?>" title="<?= _('Ein Verzeichnis nach oben wechseln') ?>">
+                <a href="<?= $controller->url_for('/index/' . $parent_id, $parent_page) ?>" title="<?= _('Ein Verzeichnis nach oben wechseln') ?>">
                     <small><?= _('Ein Verzeichnis nach oben wechseln') ?></small>
                 </a>
             </td>
@@ -106,7 +106,7 @@
                 </a>
             </td>
             <td>
-                <a href="<?= $controller->url_for('/tree/' . $file->id) ?>">
+                <a href="<?= $controller->url_for('/index/' . $file->id) ?>">
                     <?= htmlReady($file->name) ?>
                 </a>
             <? if ($file->description): ?>
@@ -234,7 +234,7 @@
                         'perPage'      => $limit,
                         'num_postings' => $filecount,
                         'page'         => $page,
-                        'pagelink'     => $controller->url_for('/tree/' . $dir_id . '/%u')
+                        'pagelink'     => $controller->url_for('/index/' . $dir_id . '/%u')
                     ))
                 ?>
             </td>
