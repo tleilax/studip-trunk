@@ -59,7 +59,7 @@ class UserfilesController extends AuthenticatedController
     /**
         Displays the files in tree view
     **/
-    public function tree_action($topFolder = '')
+    public function index_action($topFolder = '')
     {
         if(Navigation::hasItem('/profile/files')) {
             Navigation::activateItem('/profile/files');
@@ -132,12 +132,6 @@ class UserfilesController extends AuthenticatedController
         PageLayout::setTitle($user->getFullname() . ' - ' . _('Dateien'));
         
         $this->render_template('course/files/flat.php', $GLOBALS['template_factory']->open('layouts/base'));
-    }
-
-
-    public function index_action()
-    {
-        $this->redirect('userfiles/tree');
     }
     
 }

@@ -61,9 +61,8 @@ class FileController extends AuthenticatedController
     }
     
     
-    public function download_action()
+    public function download_action($fileId)
     {
-        $fileId = Request::get('fileId');
         if($fileId) {
             $file = File::find($fileId);
             if($file) {
@@ -87,9 +86,8 @@ class FileController extends AuthenticatedController
     }
     
     
-    public function edit_action()
+    public function edit_action($fileId)
     {
-        $fileId = Request::get('fileId');
         $fileName = Request::get('fileName');
         
         //TODO: implement updating the file's data
@@ -109,9 +107,8 @@ class FileController extends AuthenticatedController
     }
     
     
-    public function link_action()
+    public function link_action($fileId)
     {
-        $fileId = Request::get('fileId');
         $targetFolderId = Request::get('folderId');
         $description = Request::get('description', '');
         $license = Request::get('license', 'UnknownLicense');
@@ -131,9 +128,8 @@ class FileController extends AuthenticatedController
     }
     
     
-    public function copy_action()
+    public function copy_action($fileId)
     {
-        $fileId = Request::get('fileId');
         $destinationFolderId = Request::get('destinationId');
         
         if(!$fileId) {
@@ -174,9 +170,8 @@ class FileController extends AuthenticatedController
         }
     }
     
-    public function move_action()
+    public function move_action($fileId)
     {
-        $fileId = Request::get('fileId');
         $sourceFolderId = Request::get('sourceId');
         $destinationFolderId = Request::get('destinationId');
         
@@ -199,10 +194,8 @@ class FileController extends AuthenticatedController
     }
     
     
-    public function delete_action()
+    public function delete_action($fileId)
     {
-        $fileId = Request::get('fileId');
-        
         if($fileId) {
             $file = File::find($fileId);
             if($file) {

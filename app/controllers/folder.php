@@ -100,12 +100,11 @@ class FolderController extends AuthenticatedController
     }
     
     
-    public function edit_action()
+    public function edit_action($folderId)
     {
         global $perm;
         
         //we need the folder-ID of the folder that is to be edited:
-        $folderId = Request::get('folderId');
         if(!$folderId) {
             PageLayout::postError(_('Ordner-ID nicht gefunden!'));
             return;
@@ -138,14 +137,13 @@ class FolderController extends AuthenticatedController
     }
     
     
-    public function move_action()
+    public function move_action($folderId)
     {
         global $perm;
         
         //we need the IDs of the folder and the target parent folder.
         //these should only be present when the form was sent.
         
-        $folderId = Request::get('folderId');
         if(!$folderId) {
             PageLayout::postError(_('Ordner-ID nicht gefunden!'));
             return;
@@ -191,12 +189,11 @@ class FolderController extends AuthenticatedController
     }
     
     
-    public function delete_action()
+    public function delete_action($folderId)
     {
         global $perm;
         
         //we need the ID of the folder:
-        $folderId = Request::get('folderId');
         if(!$folderId) {
             PageLayout::postError(_('Ordner-ID nicht gefunden!'));
             return;
