@@ -15,6 +15,6 @@ if (\Studip\Wysiwyg\Settings::getInstance()->isDisabled()) {
 ?>
 <script>
     CKEDITOR_BASEPATH = '<?=
-        $GLOBALS['ABSOLUTE_URI_STUDIP'] . 'assets/javascripts/ckeditor/'
+        $GLOBALS['ASSETS_URL'] . 'javascripts/ckeditor/'
     ?>';
 </script>

@@ -58,9 +58,6 @@ jQuery(function ($) {
             textarea.attr('id', createNewId('wysiwyg'));
         }
 
-        // convert plain text to html
-        textarea.val(getHtml(textarea.val()));
-
         // create new toolbar container
         var textareaWidth = (textarea.width() / textarea.parent().width() * 100) + '%';
 
@@ -80,9 +77,11 @@ jQuery(function ($) {
                     attributes: ['!href', 'target', 'rel'],
                     classes: 'link-extern'
                 },
+                big: {},
                 blockquote: {},
                 br: {},
                 caption: {},
+                code: {},
                 em: {},
                 div: {
                     classes: 'author', // needed for quotes
@@ -113,7 +112,9 @@ jQuery(function ($) {
                 p: {
                     styles: ['text-align']
                 },
-                pre: {},
+                pre: {
+                    classes: ['usercode']
+                },
                 span: {
                     // note that 'wiki-links' are currently set as a span due
                     // to implementation difficulties, but probably this
@@ -128,6 +129,7 @@ jQuery(function ($) {
                 u: {},
                 ul: {},
                 s: {},
+                small: {},
                 sub: {},
                 sup: {},
                 table: {
@@ -152,7 +154,8 @@ jQuery(function ($) {
                     attributes: ['colspan', 'rowspan', 'scope'],
                     styles: ['text-align', 'width', 'height']
                 },
-                tr: {}
+                tr: {},
+                tt: {}
             },
             width: textareaWidth,
             skin: 'studip,' + STUDIP.ASSETS_URL + 'stylesheets/ckeditor-skin/',
@@ -325,37 +328,6 @@ jQuery(function ($) {
             var editor = event.editor,
                 $textarea = $(editor.element.$);
 
-            // NOTE some HTML elements are output on their own line so that old
-            // markup code and older plugins run into less problems
-
-            // output divivisons as
-            // text before
-            // <div>
-            // Text
-            // </div>
-            // text after
-            editor.dataProcessor.writer.setRules('div', {
-                indent: false,
-                breakBeforeOpen: true,
-                breakAfterOpen: true,
-                breakBeforeClose: true,
-                breakAfterClose: true
-            });
-
-            // output paragraphs as
-            // text before
-            // <p>
-            // Text
-            // </p>
-            // text after
-            editor.dataProcessor.writer.setRules('p', {
-                indent: false,
-                breakBeforeOpen: true,
-                breakAfterOpen: true,
-                breakBeforeClose: true,
-                breakAfterClose: true
-            });
-
             // auto-resize editor area in source view mode, and keep focus!
             editor.on('mode', function (event) {
                 var editor = event.editor;
@@ -375,9 +347,6 @@ jQuery(function ($) {
                 editor.setData(w.markAsHtml(editor.getData()));
                 editor.updateElement(); // update textarea, in case it's accessed by other JS code
             });
-
-            // focus editor if corresponding textarea is focused
-            $textarea.focus(function (event) { event.editor.focus(); });
 
             // update textarea on editor blur
             editor.on('blur', function (event) {
@@ -446,38 +415,6 @@ jQuery(function ($) {
                 }
             }
         });
-    }
-
-    // convert plain text entries to html
-    function getHtml(text) {
-        return STUDIP.wysiwyg.isHtml(text) ? text : convertToHtml(text);
-    }
-    function convertToHtml(text) {
-        var quote = getQuote(text);
-        if (quote) {
-            var quotedHtml = getHtml(quote[2].trim());
-            return '<p>' + quote[1] + quotedHtml + quote[3] + '</p>';
-        }
-        return replaceNewlines(encodeHtmlEntities(text));
-    }
-    function getQuote(text) {
-        // matches[1] = quote start  \[quote(=.*?)?\]
-        // matches[2] = quoted text  [\s\S]*   (multiline)
-        // matches[3] = quote end    \[\/quote\]
-        return text.match(
-            /^\s*(\[quote(?:=.*?)?\])([\s\S]*)(\[\/quote\])\s*$/) || null;
-    }
-    function encodeHtmlEntities(text) {
-        return $('<div>').text(text).html();
-    }
-    function replaceNewlines(text) {
-        return replaceNewlineWithBr(replaceMultiNewlinesWithP(text));
-    }
-    function replaceMultiNewlinesWithP(text) {
-        return '<p>' + text.replace(/(\r?\n|\r){2,}/, '</p><p>') + '</p>';
-    }
-    function replaceNewlineWithBr(text) {
-        return text.replace(/(\r?\n|\r)/g, '<br>\n');
     }
 
     // create an unused id

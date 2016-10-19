@@ -417,7 +417,7 @@ STUDIP.Forum = {
             'span[data-edit-topic=' + topic_id +'] textarea[name=content]'
         ).val();
 
-        var content = '[quote=' + name + ']\n' + originalContent + '\n[/quote]\n';
+        var content = STUDIP.Forum.quote(originalContent, name);
         var w = STUDIP.wysiwyg;
         if (w && w.isHtml(originalContent)) {
             content = w.markAsHtml(content);
@@ -429,6 +429,35 @@ STUDIP.Forum = {
 
         jQuery('input[type=hidden][name=parent]').val(topic_id);
         STUDIP.Forum.newEntry();
+    },
+
+    quote: function(text, name) {
+        // If quoting is changed update these functions:
+        // - StudipFormat::markupQuote
+        //   lib/classes/StudipFormat.php
+        // - quotes_encode lib/visual.inc.php
+        // - STUDIP.Forum.citeEntry > quote
+        //   public/plugins_packages/core/Forum/javascript/forum.js
+        // - studipQuotePlugin > insertStudipQuote
+        //   public/assets/javascripts/ckeditor/plugins/studip-quote/plugin.js
+
+        if (!STUDIP.wysiwyg.disabled) {
+            // quote with HTML markup
+            var author = '';
+            if (name) {
+                var writtenBy = '%s hat geschrieben:'.toLocaleString();
+                author = '<div class="author">'
+                    + writtenBy.replace('%s', name)
+                    + '</div>';
+            }
+            return '<blockquote>' + author + text + '</blockquote><p>&nbsp;</p>';
+        }
+
+        // quote with Stud.IP markup
+        if (name) {
+            return '[quote=' + name + ']\n' + text + '\n[/quote]\n';
+        }
+        return '[quote]\n' + text + '\n[/quote]\n';
     },
 
     forwardEntry: function(topic_id) {
@@ -490,6 +519,9 @@ STUDIP.Forum = {
     preview: function (text_element_id, preview_id) {
         var posting = {};
         posting.posting = jQuery('textarea[data-textarea=' + text_element_id + ']').val();
+        if (STUDIP.wysiwyg && !STUDIP.wysiwyg.disabled) {
+            posting.posting = STUDIP.wysiwyg.markAsHtml(posting.posting);
+        }
 
         jQuery.ajax(STUDIP.URLHelper.getURL('plugins.php/coreforum/index/preview?cid=' + STUDIP.Forum.seminar_id), {
             type: 'POST',

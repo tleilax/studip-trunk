@@ -51,7 +51,7 @@
             <textarea name="hobby" id="hobbies"
                       class="add_toolbar wysiwyg"
                     <? if (!$controller->shallChange('user_info.hobby')) echo 'disabled'; ?>
-            ><?= htmlReady($user->hobby) ?></textarea>
+            ><?= wysiwygReady($user->hobby) ?></textarea>
         </label>
         <a name="lebenslauf"></a>
         <label>
@@ -59,7 +59,7 @@
             <textarea id="lebenslauf" name="lebenslauf"
                       class="add_toolbar wysiwyg"
                     <? if (!$controller->shallChange('user_info.lebenslauf')) echo 'disabled'; ?>
-            ><?= htmlReady($user->lebenslauf) ?></textarea>
+            ><?= wysiwygReady($user->lebenslauf) ?></textarea>
         </label>
         <? if ($is_dozent): ?>
             <a name="schwerpunkte"></a>
@@ -68,7 +68,7 @@
                 <textarea id="schwerp" name="schwerp"
                           class="add_toolbar wysiwyg"
                         <? if (!$controller->shallChange('user_info.schwerp')) echo 'disabled'; ?>
-                ><?= htmlReady($user->schwerp) ?></textarea>
+                ><?= wysiwygReady($user->schwerp) ?></textarea>
             </label>
             <a name="publikationen"></a>
             <label>
@@ -76,7 +76,7 @@
                 <textarea id="publi" name="publi" style="width:100%;height:100px;"
                           class="add_toolbar wysiwyg"
                         <? if (!$controller->shallChange('user_info.publi')) echo 'disabled'; ?>
-                ><?= htmlReady($user->publi) ?></textarea>
+                ><?= wysiwygReady($user->publi) ?></textarea>
             </label>
         <? endif; ?>
     </fieldset>

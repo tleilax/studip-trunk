@@ -15,9 +15,8 @@ if (Settings::getInstance()->isGloballyDisabled()) {
         STUDIP.wysiwyg = {
             disabled: <?= Settings::getInstance()->isDisabled() ? 'true' : 'false' ?>,
             settings: <?= Settings::getInstance()->asJson() ?>,
-            seminarId: '<?= $_SESSION['SessionSeminar'] ?>',
             htmlMarker: '<?= addslashes(Markup::HTML_MARKER) ?>',
-            htmlMarkerRegExp: '<?= addslashes(Markup::HTML_MARKER_REGEXP) ?>',
+            htmlMarkerRegExp: <?= Markup::HTML_MARKER_REGEXP ?>,
             isHtml: function isHtml(text) {
                 // NOTE keep this function in sync with
                 // Markup::isHtml in Markup.class.php
@@ -30,7 +29,7 @@ if (Settings::getInstance()->isGloballyDisabled()) {
             hasHtmlMarker: function hasHtmlMarker(text) {
                 // NOTE keep this function in sync with
                 // Markup::hasHtmlMarker in Markup.class.php
-                return (new RegExp(this.htmlMarkerRegExp)).test(text);
+                return this.htmlMarkerRegExp.test(text);
             },
             markAsHtml: function markAsHtml(text) {
                 // NOTE keep this function in sync with

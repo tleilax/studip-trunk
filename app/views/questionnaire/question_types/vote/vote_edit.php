@@ -1,7 +1,7 @@
 <label>
     <?= _("Frage") ?>
-    <textarea name="questions[<?= $vote->getId() ?>][questiondata][question]" class="size-l" required><?=
-        isset($vote['questiondata']['question']) ? htmlReady($vote['questiondata']['question']) : ""
+    <textarea name="questions[<?= $vote->getId() ?>][questiondata][question]" class="size-l wysiwyg" required><?=
+        isset($vote['questiondata']['question']) ? wysiwygReady($vote['questiondata']['question']) : ""
         ?></textarea>
 </label>
 

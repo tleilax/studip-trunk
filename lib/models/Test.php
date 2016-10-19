@@ -26,6 +26,7 @@ class Test extends QuestionnaireQuestion implements QuestionType
     {
         $questions = Request::getArray("questions");
         $question_data = $questions[$this->getId()];
+        $question_data['question'] = Studip\Markup::purifyHtml($question_data['question']);
 
         //now remove empty trailing options
         $i = count($question_data['questiondata']['options']) - 1;

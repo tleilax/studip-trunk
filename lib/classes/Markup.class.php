@@ -38,23 +38,28 @@ class Markup
      */
     public static function apply($markup, $text, $trim)
     {
-        if (self::isHtml($text)){
-            return self::markupPurified($markup, $text, $trim);
+        if (self::isHtml($text)) {
+            $is_fallback = self::isHtmlFallback($text);
+            $text = self::purify($text);
+
+            if (!$is_fallback) {
+                foreach (\StudipCoreFormat::getCoreStudipMarkup() as $name => $rule) {
+                    // filter out all basic Stud.IP markup rules
+                    $markup->removeMarkup($name);
+                }
+            }
+
+            return $markup->format($text);
         }
+
         return self::markupHtmlReady($markup, $text, $trim);
     }
 
-    // HTML entries must beginn with "<!--HTML-->". Whitespace is
-    // ignored and comments may be inserted between "<!--HTML"
-    // and "-->", but must not contain "-" or ">" characters.
-    const HTML_MARKER =
-        '<!-- HTML: Insert text after this line only. -->';
+    // signature for HTML entries
+    const HTML_MARKER = '<!--HTML-->';
 
-    // No delimiter is given here to enable using the same
-    // regular expression in JavaScript. It is assumed that '/'
-    // is used as delimiter and that no modifiers are set.
-    const HTML_MARKER_REGEXP =
-        '^[\s\n]*<!--[\s\n]*[Hh][Tt][Mm][Ll][^->]*-->';
+    // regular expression for detecting HTML signature
+    const HTML_MARKER_REGEXP = '/^\s*<!--\s*HTML.*?-->/i';
 
     /**
      * Return `true` for HTML code and `false` for plain text.
@@ -70,20 +75,55 @@ class Markup
      */
     public static function isHtml($text)
     {
-        // NOTE keep this function in sync with the JavaScript
-        // function isHtml in WyswygHtmlHead.php
-        if (self::hasHtmlMarker($text)) {
+        return \Config::get()->WYSIWYG &&
+            (self::hasHtmlMarker($text) || self::isHtmlFallback($text));
+    }
+
+    /**
+     * Return `true` for Stud.IP-HTML and `false` otherwise.
+     *
+     * Stud.IP-HTML is HTML that can contain Stud.IP Markup.
+     *
+     * Stud.IP-HTML must either match Stud.IP 3.2's HTML marker
+     * or begin with '<' and end with '>'. Leading and trailing
+     * whitespace is ignored.
+     *
+     * Everything else is considered not Stud.IP-HTML. In other
+     * words, if it's not Stud.IP-HTML it might be everything
+     * from plain text to binary code. But usually it's either
+     * Stud.IP markup or plain HTML code, then.
+     *
+     * @param string $text  Text that is or isn't Stud.IP-HTML.
+     *
+     * @return boolean  `true` for Stud.IP-HTML
+     */
+    public static function isHtmlFallback($text)
+    {
+        // return false if Stud.IP-HTML is not allowed
+        if (!\Config::get()->WYSIWYG_HTML_HEURISTIC_FALLBACK) {
+            return false;
+        }
+
+        // it's Stud.IP-HTML if Stud.IP 3.2's HTML marker is detected
+        $trimmed = trim($text);
+        $studip_3_2_Marker = '<!-- HTML: Insert text after this line only. -->';
+        if (MarkupPrivate\String\startsWith($trimmed, $studip_3_2_Marker)) {
             return true;
         }
-        $trimmed = trim($text);
+
+        // it's not Stud.IP-HTML if it's plain HTML: plain HTML
+        // might look like Stud.IP-HTML to '< ... >' heuristic
+        if (self::hasHtmlMarker($text)) {
+            return false;
+        }
+
+        // it's Stud.IP-HTML if it fit's the '< ... >' heuristic
         return $trimmed[0] === '<' && mb_substr($trimmed, -1) === '>';
     }
 
     public static function hasHtmlMarker($text)
     {
-        // NOTE keep this function in sync with the JavaScript
-        // function hasHtmlMarker in WyswygHtmlHead.php
-        return preg_match('/' . self::HTML_MARKER_REGEXP . '/', $text);
+        return preg_match(self::HTML_MARKER_REGEXP, $text);
     }
 
     /**
@@ -101,28 +141,10 @@ class Markup
     {
         // NOTE keep this function in sync with the JavaScript
         // function markAsHtml in WyswygHtmlHead.php
-        if (self::hasHtmlMarker($text)) {
+        if (self::hasHtmlMarker($text) || trim($text) === '') {
             return $text; // marker already set, don't set twice
         }
         return self::HTML_MARKER . PHP_EOL . $text;
-    }
-
-    /**
-     * Run text through HTML purifier and afterwards apply markup rules.
-     *
-     * @param TextFormat $markup  Markup rules applied on marked-up text.
-     * @param string     $text    Marked-up text on which rules are applied.
-     * @param boolean    $trim    Trim text before applying markup rules, if TRUE.
-     *
-     * @return string  HTML code computed from marked-up text.
-     */
-    private static function markupPurified($markup, $text, $trim)
-    {
-        $text = self::unixEOL($text);
-        if ($trim) {
-            $text = trim($text);
-        }
-        return self::markupText($markup, self::purify($text));
     }
 
     /**
@@ -244,9 +266,11 @@ class Markup
         //
         $config->set('HTML.Allowed', '
             a[class|href|target|rel]
+            big
             blockquote
             br
             caption
+            code
             div[class|style]
             em
             h1
@@ -260,12 +284,13 @@ class Markup
             li
             ol
             p[style]
-            pre
+            pre[class]
             span[style|class]
             strong
             u
             ul
             s
+            small
             sub
             sup
             table[class]
@@ -274,6 +299,7 @@ class Markup
             thead
             th[colspan|rowspan|style|scope]
             tr
+            tt
         ');
 
         $config->set('Attr.AllowedFrameTargets', array('_blank'));
@@ -282,8 +308,9 @@ class Markup
             'author',
             'content',
             'link-extern',
-            'wiki-link',
-            'math-tex'
+            'math-tex',
+            'usercode',
+            'wiki-link'
         ));
         $config->set('AutoFormat.Custom', array(
             'ClassifyLinks',
@@ -336,6 +363,49 @@ class Markup
             $text = nl2br($text, false);
         }
         return $text;
+    }
+
+    /**
+     * Prepare text for wysiwyg (if enabled), otherwise convert special
+     * characters using htmlReady.
+     *
+     * @param  string  $text  The text.
+     * @param  boolean $trim  Trim text before applying markup rules, if TRUE.
+     * @param  boolean $br    Replace newlines by <br>, if TRUE and wysiwyg editor disabled.
+     * @param  boolean $double_encode  Encode existing HTML entities, if TRUE and wysiwyg editor disabled.
+     * @return string         The converted string.
+     */
+    public static function wysiwygReady(
+        $text, $trim = true, $br = false, $double_encode = true
+    ) {
+        if (\Config::get()->WYSIWYG) {
+            $text = self::markupToHtml($text, $trim);
+        }
+        return self::htmlReady($text, $trim, $br, $double_encode);
+    }
+
+    /**
+     * Convert Stud.IP markup (possibly mixed with HTML if fallback mode is
+     * enabled) to editable HTML. Pure HTML will only run through the purifier.
+     *
+     * @param  string  $text  The text.
+     * @param  boolean $trim  Trim text before applying markup rules, if TRUE.
+     * @return string         The converted string.
+     */
+    public static function markupToHtml($text, $trim = true)
+    {
+        if (self::isHtml($text)) {
+            $is_fallback = self::isHtmlFallback($text);
+            $text = self::purify($text);
+
+            if ($is_fallback) {
+                $text = self::markupText(new \StudipCoreFormat(), $text);
+            }
+        } else {
+            $text = self::markupHtmlReady(new \StudipCoreFormat(), $text, $trim);
+        }
+
+        return self::markAsHtml($text);
     }
 
     public static function removeHTML($html) {

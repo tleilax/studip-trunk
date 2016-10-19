@@ -91,7 +91,7 @@ class ForumEntry {
 
         $comment = ForumEntry::getEditComment($description, $anonymous);
         if ($comment) {
-            $raw_content .= "\n" . '%%' . $comment . '%%';
+            $raw_content .= "\n" . '[admin_msg]' . $comment . '[/admin_msg]';
         }
 
         $content = formatReady($raw_content);
