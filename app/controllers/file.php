@@ -176,7 +176,7 @@ class FileController extends AuthenticatedController
     
     public function move_action()
     {
-        $fileId = Reuqest::get('fileId');
+        $fileId = Request::get('fileId');
         $sourceFolderId = Request::get('sourceId');
         $destinationFolderId = Request::get('destinationId');
         

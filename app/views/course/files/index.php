@@ -130,7 +130,7 @@
             </td>
             <td class="options">
             <? if ($full_access): ?>
-                <a href="<?= $controller->url_for('/edit/' . $file->id) ?>" data-dialog="size=auto" title="<?= _('Ordner bearbeiten') ?>">
+                <a href="<?= $controller->url_for('folder/edit/' . $file->id) ?>" data-dialog="size=auto" title="<?= _('Ordner bearbeiten') ?>">
                     <?= Icon::create('edit', 'clickable')->asImg(16, ["alt" => _('bearbeiten')]) ?>
                 </a>
             <? endif; ?>
@@ -138,13 +138,13 @@
                     <?= Icon::create('download', 'clickable')->asImg(16, ["alt" => _('herunterladen')]) ?>
                 </a>
             <? if ($full_access): ?>
-                <a href="<?= $controller->url_for('/move/' . $file->id) ?>" data-dialog="size=auto" title="<?= _('Ordner verschieben') ?>">
+                <a href="<?= $controller->url_for('folder/move/' . $file->id) ?>" data-dialog="size=auto" title="<?= _('Ordner verschieben') ?>">
                     <?= Icon::create('folder-empty+move_right', 'clickable')->asImg(16, ["alt" => _('verschieben')]) ?>
                 </a>
-                 <a href="<?= $controller->url_for('copy/' . $file->id) ?>" data-dialog="size=auto" title="<?= _('Ordner kopieren') ?>">
+                 <a href="<?= $controller->url_for('folder/copy/' . $file->id) ?>" data-dialog="size=auto" title="<?= _('Ordner kopieren') ?>">
                     <?= Icon::create('folder-empty+add', 'clickable')->asImg(16, ["alt" => _('kopieren')]) ?>
                 </a>
-                <a href="<?= $controller->url_for('/delete/' . $file->id) ?>" title="<?= _('Ordner löschen') ?>">
+                <a href="<?= $controller->url_for('folder/delete/' . $file->id) ?>" title="<?= _('Ordner löschen') ?>">
                     <?= Icon::create('trash', 'clickable')->asImg(16, ["alt" => _('löschen')]) ?>
                 </a>
             <? endif; ?>
@@ -191,7 +191,7 @@
             </td>
             <td class="options">
             <? if ($full_access): ?>
-                <a href="<?= $controller->url_for('/edit/' . $file_ref->id) ?>" data-dialog="size=auto" title="<?= _('Datei bearbeiten') ?>">
+                <a href="<?= $controller->url_for('file/edit/' . $file_ref->id) ?>" data-dialog="size=auto" title="<?= _('Datei bearbeiten') ?>">
                     <?= Icon::create('edit', 'clickable')->asImg(16, ["alt" => _('bearbeiten')]) ?>
                 </a>
             <? endif; ?>
