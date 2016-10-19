@@ -107,14 +107,33 @@ class Course_FilesController extends AuthenticatedController
             $this->isRoot = true;
         }
         
-        
-        
         $this->marked = array();        
         $this->filecount = count($this->topFolder->subfolders);
         $this->filecount += count($this->topFolder->file_refs);
         
-        $limit = 2;        
-        $start_index = ($page-1) * $limit;
+        $limit = 20;  
+        $remain_limit = $limit;
+        $start_index = ($page-1) * $limit;        
+        
+        $partial_folders = array();
+        $partial_frefs = array();
+        
+        if ($start_index < count($this->topFolder->subfolders)) {
+            $partial_folders = $this->topFolder->subfolders->limit($start_index, $limit);
+            $remain_limit -= count($partial_folders);
+        }
+        if (!empty($remain_limit)) {
+            if(!empty($partial_folders)) {
+                $start_index = $start_index - count($this->topFolder->subfolders) + count($partial_folders);
+                $partial_frefs = $this->topFolder->file_refs->limit($start_index, $remain_limit);
+            } else {
+                $start_index = $start_index - count($this->topFolder->subfolders);
+                $partial_frefs = $this->topFolder->file_refs->limit($start_index, $remain_limit);
+            }            
+        }
+        
+        $this->topFolder->subfolders = $partial_folders;
+        $this->topFolder->file_refs = $partial_frefs;
         
         $this->limit = $limit;
         $this->page = $page;
