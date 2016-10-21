@@ -16,6 +16,22 @@
 
 class Course_FilesController extends AuthenticatedController
 {
+    public function before_filter(&$action, &$args)
+    {
+        parent::before_filter($action, $args);
+        // set navigation
+
+        $this->cid = Request::option('cid');
+        if ($action == 'index') {
+            if (!empty($args)) {
+                $this->currentFolder = $args[0];
+            } else {                
+                $this->currentFolder = Folder::findTopFolder($this->cid)->id;
+            }
+        }
+    }
+    
+    
     /**
         Retrieves the permissions of the current user (identified by $userId).
     **/
@@ -38,7 +54,8 @@ class Course_FilesController extends AuthenticatedController
         if($userRights['w'] and $userRights['x']) {
             $actions->addLink(
                 _('Neuer Ordner'),
-                URLHelper::getUrl('dispatch.php/folder/new'),
+                URLHelper::getUrl('dispatch.php/folder/new', 
+                        array('context' => 'course', 'rangeId' => $this->cid, 'parentFolderId' => $this->currentFolder)),
                 Icon::create('folder-empty+add', 'clickable'),
                 array('data-dialog' => 'size=auto')
             );

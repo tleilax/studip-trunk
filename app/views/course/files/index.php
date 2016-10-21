@@ -151,7 +151,8 @@
             </td>
         </tr>
     <? endforeach ?>
-    <? foreach ($topFolder->file_refs as $file_ref) : ?>
+    <? foreach ($topFolder->file_refs as $file_ref) : ?>    
+    	<? $mime_type = File::find($file_ref->file_id)->mime_type; ?>    	
         <tr <? if ($full_access) printf('data-file="%s"', $file_ref->id) ?>>
             <td>
             </td>

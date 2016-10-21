@@ -21,7 +21,8 @@ class FileController extends AuthenticatedController
 {
     public function upload_action()
     {
-        if (Request::isPost() and is_array($_FILES)) {
+        if (Request::isPost() && is_array($_FILES)) {
+            
             $folder = Folder::find(Request::option('folder_id'));
             CSRFProtection::verifyUnsafeRequest();
             $validatedFiles = FileManager::handleFileUpload(
@@ -29,6 +30,7 @@ class FileController extends AuthenticatedController
                 $folder->getTypedFolder(),
                 $GLOBALS['user']->id
             );
+            
             if (count($validatedFiles['error'])) {
                 //error during upload: display error message:
                 PageLayout::postError(
@@ -86,14 +88,14 @@ class FileController extends AuthenticatedController
     }
     
     
-    public function edit_action($fileId)
+    public function edit_action($fileRef_id)
     {
-        $fileName = Request::get('fileName');
+        /*$fileName = Request::get('fileName');
         
         //TODO: implement updating the file's data
         //(handle uploaded files)
         
-        if($fileId and $fileName) {
+        if($fileId && $fileName) {
             $file = File::find($fileId);
             if($file) {
                 $file->filename = $fileName;
@@ -103,7 +105,31 @@ class FileController extends AuthenticatedController
             }
         } else {
             //file ID not set
+        }*/
+        
+        
+        
+        $fileref = FileRef::find($fileRef_id);
+        if ($fileref) {
+            $this->fileref_id = $fileref->id;
+            $this->folder_id = $fileref->folder_id;
+            $this->description = $fileref->description;
         }
+        
+        if (Request::submitted('save')) {
+            $fileref = FileRef::find(Request::option('fileref_id'));
+            if ($fileref) {
+                //$fileref->licence = Request::get('licence');
+                $fileref->description = Request::get('description');
+                if ($fileref->store()) {
+                    PageLayout::postSuccess(_('Änderungen gespeichert.'));
+                } else {
+                    PageLayout::postError(_('Fehler beim Speichern der Änderungen.'));
+                }
+                return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/'));
+            }
+        }
+        
     }
     
     
@@ -113,7 +139,7 @@ class FileController extends AuthenticatedController
         $description = Request::get('description', '');
         $license = Request::get('license', 'UnknownLicense');
         
-        if($fileId and $targetFolderId) {
+        if($fileId && $targetFolderId) {
             $folder = Folder::find($folderId);
             if($folder) {
                 $folder->linkFile($fileId, $description, $license);
@@ -175,11 +201,13 @@ class FileController extends AuthenticatedController
         $sourceFolderId = Request::get('sourceId');
         $destinationFolderId = Request::get('destinationId');
         
-        if($fileId and $sourceFolderId and $destinationFolderId) {
+        if($fileId && $sourceFolderId && $destinationFolderId) {
+            
             $file = File::find($fileId);
             $sourceFolder = Folder::find($sourceFolderId);
             $destinationFolder = Folder::find($destinationFolderId);
-            if($file and $sourceFolder and $destinationFolder) {
+            
+            if($file && $sourceFolder && $destinationFolder) {
                 //ok, we can move the file
                 
             } else {

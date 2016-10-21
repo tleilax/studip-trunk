@@ -28,13 +28,13 @@
                 <input type="radio" name="restricted" value="1">
                 <?= sprintf(_('Nein, dieses Dokumnt ist %snicht%s frei von Rechten Dritter.'), '<em>', '</em>') ?>
             </label>
-        </fieldset>
+        </fieldset>*/?>
     </fieldset>
-*/?>
+
 
         <div data-dialog-button>
             <?= Studip\Button::createAccept(_('Hochladen'), 'upload') ?>
             <?= Studip\LinkButton::createCancel(_('Abbrechen'),
-                $controller->url_for('/tree/' . $folder_id)) ?>
+                $controller->url_for('/index/' . $folder_id)) ?>
         </div>
 </form>

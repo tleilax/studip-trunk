@@ -2,19 +2,19 @@
 <ul>
 
 <? if($files): ?>
-<? foreach ($files as $fileref) : ?>
+<? foreach ($files as $file_ref) : ?>
     <li>
     <div>
-        <a href="<?=$fileref->getDownloadURL()?>"><?=htmlReady($fileref->file->name)?></a>
-        <a href="<?= URLHelper::getLink('dispatch.php/file/edit', ['fileId' => $fileref->id]) ?>"
+        <a href="<?=$file_ref->getDownloadURL()?>"><?=htmlReady($file_ref->file->name)?></a>
+        <a href="<?= $controller->url_for('file/edit/' . $file_ref->id) ?>"
             data-dialog="reload-on-close">
             <?= Icon::create('edit', 'clickable')->asImg('12px') ?>
         </a>
-        <a href="<?= URLHelper::getLink('dispatch.php/file/link', ['fileId' => $fileref->id]) ?>"
+        <a href="<?= $controller->url_for('file/link/' . $file_ref->id) ?>"
             data-dialog="reload-on-close">
             <?= Icon::create('group', 'clickable')->asImg('12px') ?>
         </a>
-        <a href="<?= URLHelper::getLink('dispatch.php/file/delete', ['fileId' => $fileref->id]) ?>"
+        <a href="<?= $controller->url_for('file/delete/' . $file_ref->id) ?>"
             data-dialog="reload-on-close">
             <?= Icon::create('trash', 'clickable')->asImg('12px') ?>
         </a>
