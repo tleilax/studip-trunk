@@ -23,7 +23,14 @@ class FileController extends AuthenticatedController
     {
         if (Request::isPost() && is_array($_FILES)) {
             
-            $folder = Folder::find(Request::option('folder_id'));
+            $folderId = Request::option('folder_id');
+            if(!Folder::exists($folderId)) {
+                PageLayout::postError(
+                    _('Zielordner für Dateiupload nicht gefunden!')
+                );
+                return;
+            }
+            $folder = Folder::find($folderId);
             CSRFProtection::verifyUnsafeRequest();
             $validatedFiles = FileManager::handleFileUpload(
                 $_FILES['file'],
@@ -59,7 +66,10 @@ class FileController extends AuthenticatedController
                 return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/'));
             }
         }
+        
         $this->folder_id = Request::option('topfolder');
+        
+        echo $this->folder_id;
     }
     
     

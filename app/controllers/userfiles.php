@@ -82,10 +82,7 @@ class UserfilesController extends AuthenticatedController
         
         if(!$this->topFolder) {
             //create top folder:
-            $this->topFolder = new Folder();
-            $this->topFolder->user_id = $user->id;
-            $this->topFolder->range_id = $user->id;
-            $this->topFolder->store();
+            $this->topFolder = Folder::createTopFolder($user->id, 'user');
         }
         
         $this->buildSidebar();
@@ -122,10 +119,7 @@ class UserfilesController extends AuthenticatedController
         
         if(!$this->topFolder) {
             //create top folder:
-            $this->topFolder = new Folder();
-            $this->topFolder->user_id = $user->id;
-            $this->topFolder->range_id = $user->id;
-            $this->topFolder->store();
+            $this->topFolder = Folder::createTopFolder($user->id, 'user');
         }
         
         $this->buildSidebar();

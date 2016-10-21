@@ -76,7 +76,7 @@ class Course_FilesController extends AuthenticatedController
     /**
         Displays the files in tree view
     **/
-    public function index_action($topFolder = '', $page = 1)
+    public function index_action($topFolderId = '', $page = 1)
     {
         if(Navigation::hasItem('/course/files_new')) {
             Navigation::activateItem('/course/files_new');
@@ -90,32 +90,34 @@ class Course_FilesController extends AuthenticatedController
         if(!$course) {
             $institute = Institute::findCurrent();
         }
-        if (!$topFolder) {
+        if (!$topFolderId) {
             if($course) {
                 $this->topFolder = Folder::findTopFolder($course->id);
             } else {
                 $this->topFolder = Folder::findTopFolder($institute->id);
             }
-            
         } else {
-            $this->topFolder = Folder::find($topFolder);
+            $this->topFolder = Folder::find($topFolderId);
         }
         
         if(!$this->topFolder) {
             //create top folder:
-            $this->topFolder = new Folder();
-            //$this->topFolder->user_id = ;
             if($course) {
-                $this->topFolder->range_id = $course->id;
+                $this->topFolder = Folder::createTopFolder($course->id, 'course');
+                
             } elseif($institute) {
-                $this->topFolder->range_id = $institute->id;
+                $this->topFolder = Folder::createTopFolder($institute->id, 'inst');
             } else {
                 PageLayout::postError(_('Fehler beim Erstellen des Hauptordners: Zugehöriges Datenbankobjekt nicht gefunden!'));
                 return;
             }
-            $this->topFolder->store();
         }
-
+        
+        if(!$this->topFolder) {
+            PageLayout::postError(_('Fehler beim Laden des Hauptordners!'));
+            return;
+        }
+        
         if (!empty($this->topFolder['parent_id'])) {
             $this->isRoot = false;
             $this->parent_id = $this->topFolder['parent_id'];
