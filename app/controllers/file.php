@@ -231,11 +231,12 @@ class FileController extends AuthenticatedController
     }
     
     
-    public function delete_action($fileId)
+    public function delete_action($fileRefId)
     {
-        if($fileId) {
-            $file = File::find($fileId);
-            if($file) {
+       if($fileRefId) {
+            $fileRef = FileRef::find($fileRefId);           
+            if($fileRef) {                
+                $file = File::find($fileRef->file_id);
                 $file->deleteDataFile();
                 $file->delete();
             } else {
@@ -244,5 +245,9 @@ class FileController extends AuthenticatedController
         } else {
             //you can't delete things you don't know
         }
+        
+        $folderId = Request::option('folder_id', Folder::findTopFolder(Request::get("cid"))->id);
+        //DEVELOPMENT STAGE ONLY:
+        return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/'.$folderId));
     }
 }

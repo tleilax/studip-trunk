@@ -1,3 +1,4 @@
+<form method="post">
 <table class="default documents <? if (count($topFolder->file_refs) > 0) : ?>sortable-table<? endif ?>">
     <caption>
         <div class="caption-container">
@@ -144,9 +145,13 @@
                  <a href="<?= $controller->url_for('folder/copy/' . $file->id) ?>" data-dialog="size=auto" title="<?= _('Ordner kopieren') ?>">
                     <?= Icon::create('folder-empty+add', 'clickable')->asImg(16, ["alt" => _('kopieren')]) ?>
                 </a>
-                <a href="<?= $controller->url_for('folder/delete/' . $file->id) ?>" title="<?= _('Ordner löschen') ?>">
+                <?/* <a href="<?= $controller->url_for('folder/delete/' . $file->id) ?>" title="<?= _('Ordner löschen') ?>">
                     <?= Icon::create('trash', 'clickable')->asImg(16, ["alt" => _('löschen')]) ?>
-                </a>
+                </a>*/?>
+                <?= Icon::create('trash', 'clickable',
+                            ['title' => _('löschen')])->asInput(array(
+                                    'data-confirm' => sprintf(_('Soll den Ordner "%s" wirklich gelöscht werden?'), htmlReady($file->name)),
+                                    'formaction'   => $controller->url_for('folder/delete/' . $file->id))) ?>
             <? endif; ?>
             </td>
         </tr>
@@ -206,9 +211,15 @@
                 <a href="<?= $controller->url_for('file/copy/' . $file_ref->id) ?>" data-dialog="size=auto" title="<?= _('Datei kopieren') ?>">
                     <?= Icon::create('file+add', 'clickable')->asImg(16, ["alt" => _('kopieren')]) ?>
                 </a>
+                <?/* 
                 <a href="<?= $controller->url_for('file/delete/' . $file_ref->id) ?>" title="<?= _('Datei löschen') ?>">
-                    <?= Icon::create('trash', 'clickable')->asImg(16, ["alt" => _('löschen')]) ?>
-                </a>
+                    <?= Icon::create('trash', 'clickable')->asImg(16, ["alt" => _('löschen')]) ?>                    
+                   
+                </a>*/?>                
+                 <?= Icon::create('trash', 'clickable',
+                            ['title' => _('löschen')])->asInput(array(
+                                    'data-confirm' => sprintf(_('Soll die Datei "%s" wirklich gelöscht werden?'), htmlReady($file_ref->file->name)),
+                                    'formaction'   => $controller->url_for('file/delete/' . $file_ref->id))) ?>
             <? endif; ?>
             </td>
         </tr>
