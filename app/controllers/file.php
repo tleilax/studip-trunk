@@ -30,6 +30,7 @@ class FileController extends AuthenticatedController
                 );
                 return;
             }
+            
             $folder = Folder::find($folderId);
             CSRFProtection::verifyUnsafeRequest();
             $validatedFiles = FileManager::handleFileUpload(
@@ -63,13 +64,11 @@ class FileController extends AuthenticatedController
                 }
                 
                 //DEVELOPMENT STAGE ONLY:
-                return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/'));
+                return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/'.$folderId));
             }
         }
         
         $this->folder_id = Request::option('topfolder');
-        
-        echo $this->folder_id;
     }
     
     

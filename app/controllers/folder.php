@@ -61,6 +61,11 @@ class FolderController extends AuthenticatedController
                     $folder->range_id = $parentFolder->range_id;
                     $folder->user_id = $currentUser->id;
                     $folder->range_type = $context;
+                    if ($context == 'coursegroup') {
+                        $folder->folder_type = 'CourseGroupFolder';
+                    } else {
+                        $folder->folder_type = 'StandardFolder';
+                    }
                     $folder->name = studip_utf8decode($folderName);
                     $folder->description = studip_utf8decode($folderDescription);                    
                     $folder->store();
@@ -200,5 +205,7 @@ class FolderController extends AuthenticatedController
             //not permitted to delete the folder:
             PageLayout::postError(_('Sie sind nicht dazu berechtigt, diesen Ordner zu löschen!'));
         }
+        //DEVELOPMENT STAGE ONLY:
+        return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/'.$parentFolder->id));
     }
 }
