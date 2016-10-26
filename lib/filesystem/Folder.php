@@ -91,12 +91,57 @@ class Folder extends SimpleORMap
         ];
         return self::create($data);
     }
-
-    public static function findTopFolder($range_id)
+    
+    /**
+        Helper method to find the range type from a range-ID.
+        
+        @returns 'course', 'inst', 'user', 'message' on success, false on error.
+    **/
+    public static function findRangeTypeById($rangeId)
     {
-        return self::findOneBySQL("range_id = ? AND parent_id=''", [$range_id]);
+        if(Course::exists($rangeId)) {
+            return 'course';
+        } elseif(Institute::exists($rangeId)) {
+            return 'inst';
+        } elseif(User::exists($rangeId)) {
+            return 'user';
+        } elseif(Message::exists($rangeId)) {
+            return 'message';
+        } else {
+            return false;
+        }
     }
-
+    
+    
+    /**
+        Find the root folder of a course, institute, personal file area or a message.
+        If the root folder doesn't exist, it will be created.
+        
+        @returns Folder object on success or null, if no folder can be created
+    **/
+    public static function findTopFolder($rangeId)
+    {
+        $topFolder = self::findOneBySQL("range_id = ? AND parent_id=''", [$rangeId]);
+        
+        //topFolder may not exist!
+        if(!$topFolder) {
+            //topFolder doest not exist: create it
+            
+            //determine range type:
+            $rangeType = self::findRangeTypeById($rangeId);
+            if($rangeType) {
+                //range type determined: folder can be created!
+                $topFolder = self::createTopFolder($rangeId, $rangeType);
+            } else {
+                //no range type means we can't create a folder!
+                return null;
+            }
+        }
+        
+        return $topFolder;
+    }
+    
+    
     public function getTypedFolder()
     {
         if (class_exists($this->folder_type)) {
