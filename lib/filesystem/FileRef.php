@@ -12,6 +12,14 @@
  * @copyright   2016 Stud.IP Core-Group
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
+ *
+ *
+ * @property string id database column
+ * @property string file_id database column
+ * @property string folder_id database column
+ * @property string downloads database column
+ * @property string description database column
+ * @property string license database column
  */
 class FileRef extends SimpleORMap
 {
