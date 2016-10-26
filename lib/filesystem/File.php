@@ -12,6 +12,17 @@
  * @copyright   2016 Stud.IP Core-Group
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
+ *
+ *
+ * @property string id database column
+ * @property string user_id database column
+ * @property string mime_type database column
+ * @property string name database column
+ * @property string size database column
+ * @property string storage enum('disk', 'url') database column
+ * @property string author_name database column
+ * @property string mkdate database column
+ * @property string chdate database column
  */
 class File extends SimpleORMap
 {

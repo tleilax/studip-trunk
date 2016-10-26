@@ -114,6 +114,26 @@ class Folder extends SimpleORMap
     
     
     /**
+        Helper method: Checks if the file exists in a folder.
+        
+        @returns true, if a file was found, false otherwise
+    **/
+    public function fileExists($fileName = '')
+    {
+        //get files :
+        
+        $foundFiles = FileRef::countBySql(
+              "INNER JOIN files ON file_refs.file_id = files.id "
+            . "WHERE files.name = :fileName",
+            ['fileName' => $fileName]
+        );
+        
+        return ($foundFiles > 0);
+    }
+    
+    
+    
+    /**
         Find the root folder of a course, institute, personal file area or a message.
         If the root folder doesn't exist, it will be created.
         
