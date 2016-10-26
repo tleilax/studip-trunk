@@ -120,8 +120,12 @@ class Folder extends SimpleORMap
     **/
     public function fileExists($fileName = '')
     {
-        //get files :
+        if(!$fileName) {
+            //you can't search for a file with no name...
+            return false;
+        }
         
+        //get files :
         $foundFiles = FileRef::countBySql(
               "INNER JOIN files ON file_refs.file_id = files.id "
             . "WHERE files.name = :fileName",

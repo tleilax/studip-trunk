@@ -23,6 +23,9 @@
  * @property string author_name database column
  * @property string mkdate database column
  * @property string chdate database column
+ * @property SimpleORMap owner belongs_to User
+ * @property SimpleORMap url has_one FileURL
+ * @property SimpleORMapCollection refs has_many FileReference
  */
 class File extends SimpleORMap
 {

@@ -20,6 +20,8 @@
  * @property string downloads database column
  * @property string description database column
  * @property string license database column
+ * @property SimpleORMap file belongs_to File
+ * @property SimpleORMap folder belongs_to Folder
  */
 class FileRef extends SimpleORMap
 {
@@ -51,7 +53,77 @@ class FileRef extends SimpleORMap
             File::deleteBySQL("id = ?", $this->file_id);
         }
     }
-
+    
+    
+    /**
+        Renames the file associated with this file reference.
+        
+        If the parameter forceRename is set to true and the current user 
+        is the owner of the file, the file will be renamed
+        even if there are other references linked with it.
+        
+        @param newName the new name of the file
+        @param forceRename if set to true, renaming will be forced. Defaults to false.
+        
+        @returns true on success, false on failure
+    **/
+    public function rename($newName = '', $forceRename = false)
+    {
+        if(!$newName) {
+            //you can't rename a file to (empty string)...
+            return false;
+        }
+        
+        if(!$this->folder->fileExists()) {
+            //there is no file with that name. We can rename the file.
+            
+            //check if there are other file refercences:
+            $numReferences = FileRef::countBySql(
+                '(file_id = :fileId) AND (id <> :referenceId)',
+                ['fileId' => $this->file_id, 'referenceId' => $this->id]
+            );
+            
+            //check if the current user is the owner of the file:
+            
+            $currentUserId = User::findCurrent()->id;
+            
+            if($this->file->user_id = $currentUserId) {
+                //yes, the current user owns this file. We can rename it,
+                //if that is forced:
+                
+                if($numReferences > 0) {
+                    //there is at least one other file reference:
+                    if($forceRename) {
+                        $this->file->name = $newName;
+                        $this->file->store();
+                    } else {
+                        //do not force rename: we can't rename when there
+                        //are more than one file references:
+                        return false;
+                    }
+                    
+                } else {
+                    // no other references
+                }
+            } else {
+                //user is not the owner of the file:
+                return false;
+            }
+        }
+    }
+    
+    
+    /**
+        Copies a file to the destination folder.
+        
+        In case the current user is not the owner of the file
+        the file will be cloned (including the data file).
+    **/
+    public function copy(Folder $destination)
+    {
+        //STUB
+    }
+    
     public function getDownloadURL($dltype = 'normal')
     {
         $mode = Config::get()->SENDFILE_LINK_MODE ?: 'normal';
