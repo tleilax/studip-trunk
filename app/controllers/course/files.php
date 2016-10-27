@@ -170,7 +170,8 @@ class Course_FilesController extends AuthenticatedController
         } elseif($institute) {
             PageLayout::setTitle($institute->getFullname() . ' - ' . _('Dateien'));
         }
-
+        
+        $this->render_template('files/index.php', $GLOBALS['template_factory']->open('layouts/base'));
     }
     
     
@@ -237,6 +238,9 @@ class Course_FilesController extends AuthenticatedController
         
         $this->buildSidebar();
         PageLayout::setTitle($course->getFullname() . ' - ' . _('Dateien'));
+        
+        
+        $this->render_template('files/flat.php', $GLOBALS['template_factory']->open('layouts/base'));
     }
     
     
@@ -261,6 +265,12 @@ class Course_FilesController extends AuthenticatedController
             }
         }
         $this->folder_id = Request::option('topfolder');
+        
+        if(Request::isDialog()) {
+            $this->render_template('file/upload.php');
+        } else {
+            $this->render_template('files/index.php', $GLOBALS['template_factory']->open('layouts/base'));
+        }
     }
 
 }

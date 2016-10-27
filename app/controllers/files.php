@@ -16,41 +16,28 @@
 
 class FilesController extends AuthenticatedController
 {
-    /**
-        Retrieves the permissions of the current user (identified by $userId).
-    **/
-    private function getPermissions($userId = null)
-    {
-        //STUB:
-        return ['r' => true, 'w' => true, 'x' => true];
-    }
-
-
+    
     private function buildSidebar()
     {
         $sidebar = Sidebar::get();
         $sidebar->setImage('sidebar/files-sidebar.png');
 
-        $userRights = $this->getPermissions(User::findCurrent()->id);
-
         $actions = new ActionsWidget();
 
-        if($userRights['w'] and $userRights['x']) {
-            $actions->addLink(
-                _('Neuer Ordner'),
-                URLHelper::getUrl('dispatch.php/folder/new'),
-                Icon::create('folder-empty+add', 'clickable'),
-                array('data-dialog' => 'size=auto')
-            );
+        $actions->addLink(
+            _('Neuer Ordner'),
+            URLHelper::getUrl('dispatch.php/folder/new'),
+            Icon::create('folder-empty+add', 'clickable'),
+            array('data-dialog' => 'size=auto')
+        );
 
-        }
         $actions->addLink(
             _('Neue Datei'),
             URLHelper::getUrl('dispatch.php/file/upload', ['topfolder' => $this->topFolder->id]),
             Icon::create('file+add', 'clickable'),
             array('data-dialog' => 'size=auto')
         );
-
+        
         $sidebar->addWidget($actions);
     }
 
@@ -67,7 +54,7 @@ class FilesController extends AuthenticatedController
         if(Navigation::hasItem('/profile/files/tree')) {
             Navigation::activateItem('/profile/files/tree');
         }
-
+        
         $user = User::findCurrent();
         if(!$user) {
             //TODO: throw exception
@@ -88,7 +75,7 @@ class FilesController extends AuthenticatedController
         $this->buildSidebar();
         PageLayout::setTitle($user->getFullname() . ' - ' . _('Dateien'));
         
-        $this->render_template('course/files/index.php', $GLOBALS['template_factory']->open('layouts/base'));
+        $this->render_template('files/index.php', $GLOBALS['template_factory']->open('layouts/base'));
     }
 
 
@@ -125,7 +112,9 @@ class FilesController extends AuthenticatedController
         $this->buildSidebar();
         PageLayout::setTitle($user->getFullname() . ' - ' . _('Dateien'));
         
-        $this->render_template('course/files/flat.php', $GLOBALS['template_factory']->open('layouts/base'));
+        $this->render_template('files/flat.php', $GLOBALS['template_factory']->open('layouts/base'));
     }
+    
+    
     
 }

@@ -21,17 +21,19 @@ class FolderController extends AuthenticatedController
         global $perm;
         
         //get ID of course, institute, user etc.
-        if (Request::submitted('create_folder')) {
-                
+        if (Request::submitted('createFolder')) {
+            
+            echo "created!";
+            
             $folderName = Request::get('folderName');
             $parentFolderId = Request::get('parentFolderId');            
+            $rangeId = Request::option('rangeId');
             $currentUser = User::findCurrent();
             
-            if($folderName && $parentFolderId) {
-                //if $folderName and $parentFolderId are present
-                //we know that the form was submitted.
+            if($folderName && ($parentFolderId || $rangeId)) {
+                //if $folderName and $parentFolderId or $rangeId are present
+                //we have all required parameters to create a folder.
                 
-                $rangeId = Request::option('rangeId');
                 $context = Request::get('context');
                 $folderDescription = Request::get('description'); 
                 
@@ -46,9 +48,10 @@ class FolderController extends AuthenticatedController
                 //display error message and return if the parent folder doesn't exist:
                 if(!$parentFolder) {
                     if($parentFolderId) {
+                        //
                         PageLayout::postError(_('Unterordner kann nicht erstellt werden!'));
                     } else {
-                        PageLayout::postError(_('Fehler beim Erstellen eines Ordners!'));
+                        
                     }
                     return;
                 }
@@ -85,6 +88,12 @@ class FolderController extends AuthenticatedController
                 $parentFolderId = Folder::findTopFolder($this->rangeId)->id;
             }
             $this->parentFolderId = $parentFolderId;
+        }
+        
+        if(Request::isDialog()) {
+            $this->render_template('file/new_folder.php');
+        } else {
+            $this->render_template('file/new_folder.php', $GLOBALS['template_factory']->open('layouts/base'));
         }
     }
     
@@ -123,6 +132,9 @@ class FolderController extends AuthenticatedController
             //current user isn't permitted to change this folder:
             PageLayout::postError(_('Sie sind nicht dazu berechtigt, diesen Ordner zu bearbeiten!'));
         }
+        
+        
+        $this->render_template('file/edit.php', $GLOBALS['template_factory']->open('layouts/base'));
     }
     
     
@@ -175,6 +187,7 @@ class FolderController extends AuthenticatedController
                 PageLayout::postError(_('Sie sind nicht dazu berechtigt, den Ordner zu verschieben!'));
         }
         
+        $this->render_template('file/move.php', $GLOBALS['template_factory']->open('layouts/base'));
     }
     
     
@@ -206,6 +219,8 @@ class FolderController extends AuthenticatedController
             PageLayout::postError(_('Sie sind nicht dazu berechtigt, diesen Ordner zu löschen!'));
         }
         //DEVELOPMENT STAGE ONLY:
-        return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/'.$parentFolder->id));
+        //return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/'.$parentFolder->id));
+        
+        $this->render_template('file/delete.php', $GLOBALS['template_factory']->open('layouts/base'));
     }
 }

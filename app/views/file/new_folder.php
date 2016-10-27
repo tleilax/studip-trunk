@@ -1,4 +1,4 @@
-<form enctype="multipart/form-data" method="post" class="studip_form"
+<form method="post" class="studip_form"
       action="<?= $controller->url_for('/new') ?>">
     <?= CSRFProtection::tokenTag() ?>
     <input type="hidden" name="parentFolderId" value="<?=htmlReady($parentFolderId)?>">
