@@ -157,8 +157,11 @@ class FolderController extends AuthenticatedController
             PageLayout::postError(_('Sie sind nicht dazu berechtigt, diesen Ordner zu bearbeiten!'));
         }
         
-        
-        $this->render_template('file/edit.php', $GLOBALS['template_factory']->open('layouts/base'));
+        if(Request::isDialog()) {
+            $this->render_template('file/edit.php');
+        } else {
+            $this->render_template('file/edit.php', $GLOBALS['template_factory']->open('layouts/base'));
+        }
     }
     
     
@@ -211,7 +214,11 @@ class FolderController extends AuthenticatedController
                 PageLayout::postError(_('Sie sind nicht dazu berechtigt, den Ordner zu verschieben!'));
         }
         
-        $this->render_template('file/move.php', $GLOBALS['template_factory']->open('layouts/base'));
+        if(Request::isDialog()) {
+            $this->render_template('file/move.php');
+        } else {
+            $this->render_template('file/move.php', $GLOBALS['template_factory']->open('layouts/base'));
+        }
     }
     
     
@@ -245,6 +252,10 @@ class FolderController extends AuthenticatedController
         //DEVELOPMENT STAGE ONLY:
         //return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/'.$parentFolder->id));
         
-        $this->render_template('file/delete.php', $GLOBALS['template_factory']->open('layouts/base'));
+        if(Request::isDialog()) {
+            $this->render_template('file/delete.php');
+        } else {
+            $this->render_template('file/delete.php', $GLOBALS['template_factory']->open('layouts/base'));
+        }
     }
 }
