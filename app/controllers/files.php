@@ -1,6 +1,6 @@
 <?php
 /**
- * userfiles.php - controller to display personal files of a user
+ * files.php - controller to display personal files of a user
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -14,7 +14,7 @@
  */
 
 
-class UserfilesController extends AuthenticatedController
+class FilesController extends AuthenticatedController
 {
     /**
         Retrieves the permissions of the current user (identified by $userId).
