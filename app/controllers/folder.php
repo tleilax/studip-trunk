@@ -20,53 +20,54 @@ class FolderController extends AuthenticatedController
     {
         global $perm;
         
+        $this->parentFolderId = Request::get('parentFolderId');            
+        $this->rangeId = Request::get('rangeId');
+        
+        //get parent folder:
+        $parentFolder = Folder::find($this->parentFolderId);
+        if(!$parentFolder) {
+            if($this->parentFolderId) {
+                //parent folder ID was given but parent folder was not found: that's an error!
+                PageLayout::postError(_('Übergeordnetes Verzeichnis nicht gefunden!'));
+                $this->render_text('');
+                return;
+            }
+            Folder::findTopFolder($this->rangeId);
+        }
+        
+        if(!$parentFolder) {
+            PageLayout::postError(
+                _('Das übergeordnete Verzeichnis kann nicht identifiziert werden!')
+            );
+            $this->render_text('');
+            return;
+        }
+        
+        
         //get ID of course, institute, user etc.
-        if (Request::submitted('create_folder')) {
+        if (Request::get('submitted')) {
             
             $this->folderName = Request::get('folderName');
-            $this->parentFolderId = Request::get('parentFolderId');            
-            $this->rangeId = Request::option('rangeId');
             $currentUser = User::findCurrent();
             
-            if($this->folderName && ($this->parentFolderId || $this->rangeId)) {
-                //if $folderName and $this->parentFolderId or $this->rangeId are present
+            if($this->folderName) {
+                //if $this->folderName and $this->parentFolderId or $this->rangeId are present
                 //we have all required parameters to create a folder.
                 
-                $folderDescription = Request::get('description'); 
+                $this->folderDescription = Request::get('description'); 
                 
-                //get parent folder:
-                $parentFolder = null;
-                if($this->parentFolderId) {
-                    $parentFolder = Folder::find($this->parentFolderId);
-                } else {
-                    $parentFolder = Folder::findTopFolder($this->rangeId);
-                }
-                
-                //check if parent folder doesn't exist:
-                if(!$parentFolder) {
-                    if($this->parentFolderId) {
-                        //parent folder ID was given but parent folder was not found: that's an error!
-                        PageLayout::postError(_('Unterordner kann nicht erstellt werden!'));
-                        return;
-                    } else {
-                        //no parent folder ID was given: we can still get the parent folder
-                        //by looking at the range-ID and get the top folder:
-                        
-                        $parentFolder = Folder::findTopFolder($this->rangeId);
-                    }
-                }
-                
-                
+                echo "rangeType == " . $parentFolder->range_type;
                 //the current user is the only one who can create a folder in his personal file area.
                 //Any other user is not allowed to add a folder to the personal file area.
                 //If it is not a folder of the personal file area the user must be the owner
                 //of the parent folder or he must be root to create a subfolder.
-                if(($parentFolder->user_id == $currentUser->id) && 
+                /*if(($parentFolder->user_id == $currentUser->id) && 
                         (
                         ($parentFolder->range_type == 'user') ||
                         (($parentFolder->range_type != 'user') && (($parentFolder->user_id == $currentUser->id) || $perm->have_perm('root')))
                         )
-                    ) {
+                    ) {*/
+                if(true) { //DEVELOPMENT ONLY!
                     //current user may create a new folder in the parent folder
                     
                     $folder = new Folder();
@@ -75,8 +76,8 @@ class FolderController extends AuthenticatedController
                     $folder->user_id = $currentUser->id;
                     $folder->range_type = $parentFolder->range_type;
                     $folder->folder_type = $parentFolder->folder_type;
-                    $folder->name = studip_utf8decode($folderName);
-                    $folder->description = studip_utf8decode($folderDescription);
+                    $folder->name = studip_utf8decode($this->folderName);
+                    $folder->description = studip_utf8decode($this->folderDescription);
                     $folder->store();
                     
                     PageLayout::postSuccess('Ordner wurde erstellt!');
@@ -84,6 +85,7 @@ class FolderController extends AuthenticatedController
                     PageLayout::postError(
                         _('Sie besitzen nicht die erforderlichen Berechtigungen zum Anlegen eines neuen Ordners!')
                     );
+                    $this->render_text('');
                     return;
                 }
                 
@@ -97,32 +99,19 @@ class FolderController extends AuthenticatedController
                 
                 
             } else {
-                if(!$this->folderName) {
-                    PageLayout::postError(
-                        _('Es wurde kein Name angegeben!')
-                    );
-                } else {
-                    PageLayout::postError(
-                        _('Das übergeordnete Verzeichnis kann nicht identifiziert werden!')
-                    );
-                }
-            }
-        } else {
-            
-            $this->rangeId = Request::option('rangeId');
-            $this->context = Request::get('context');
-           
-            $this->parentFolderId = Request::get('parentFolderId');
-            if (empty($this->parentFolderId)) {
-                $this->parentFolderId = Folder::findTopFolder($this->rangeId)->id;
+                PageLayout::postError(
+                    _('Es wurde kein Name angegeben!')
+                );
             }
         }
+        
         
         if(Request::isDialog()) {
             $this->render_template('file/new_folder.php');
         } else {
             $this->render_template('file/new_folder.php', $GLOBALS['template_factory']->open('layouts/base'));
         }
+        
     }
     
     
