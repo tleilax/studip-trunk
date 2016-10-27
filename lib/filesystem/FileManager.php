@@ -52,4 +52,28 @@ class FileManager
         }
         return array_merge($result, ['error' => $error]);
     }
+
+    public static function getFolderTypes($range_type = null)
+    {
+        $result = array();
+        foreach (scandir(dirname(__FILE__)) as $filename) {
+            $path = pathinfo($filename);
+            if ($path['extension'] == 'php') {
+                class_exists($path['filename']);
+            }
+        }
+        foreach (get_declared_classes() as $declared_class) {
+            if (is_a($declared_class, 'FolderType', true)) {
+                $folder = new $declared_class([]);
+                foreach ($folder->getAllowedRangeTypes() as $type) {
+                    $result[$type][] = $declared_class;
+                }
+            }
+        }
+        if ($range_type) {
+            return @$result[$range_type] ?: [];
+        } else {
+            return $result;
+        }
+    }
 }

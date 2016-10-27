@@ -20,12 +20,9 @@ class Moadb extends Migration
     public function up()
     {
         $db = DBManager::get();
-        //$db->exec("RENAME TABLE files TO _files");
-        //$db->exec("RENAME TABLE file_refs TO _file_refs");
-        $db->exec("truncate table folders");
-        $db->exec("truncate table files");
-        $db->exec("truncate table file_refs");
-        $db->exec("truncate table file_urls");
+        $db->exec("RENAME TABLE files TO _files");
+        $db->exec("RENAME TABLE file_refs TO _file_refs");
+
         $db->exec("CREATE TABLE IF NOT EXISTS `files` (
                  `id` varchar(32) NOT NULL,
                  `user_id` varchar(32) NOT NULL,
@@ -143,7 +140,7 @@ class Moadb extends Migration
         $db = DBManager::get();
         $insert_folder = $db->prepare("INSERT INTO `folders` (`id`, `user_id`, `parent_id`, `range_id`, `range_type`, `folder_type`, `name`, `data_content`, `description`, `mkdate`, `chdate`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
-        $insert_folder->execute(array($folder['folder_id'], $folder['user_id'], $folder['range_id'], $range_id, $range_type, $folder_type, $folder['name'], isset($folder['permission']) && $folder['permission'] != 7 ? json_encode(['permission' => $folder['permission']]): '', (string)$folder['description'], $folder['mkdate'], $folder['chdate']));
+        $insert_folder->execute(array($folder['folder_id'], $folder['user_id'], $folder['range_id'], $range_id, $range_type, isset($folder['permission']) && $folder['permission'] != 7 ? 'PermissionEnabledFolder' : $folder_type, $folder['name'], isset($folder['permission']) && $folder['permission'] != 7 ? json_encode(['permission' => $folder['permission']]): '', (string)$folder['description'], $folder['mkdate'], $folder['chdate']));
         $subfolders = $db->fetchAll("SELECT * FROM folder WHERE range_id = ?", array($folder['folder_id']));
         foreach ($subfolders as $one) {
             $this->migrateFolder($one, $range_id, $range_type, $folder_type);

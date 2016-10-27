@@ -33,4 +33,6 @@ interface FolderType
     public function setData($request);
 
     public function validateUpload($file, $user_id);
+
+    public function getAllowedRangeTypes();
 }

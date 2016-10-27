@@ -14,13 +14,9 @@
  */
 class StandardFolder implements FolderType
 {
-    private $folderdata;
-    private $permission = 7;
-    private $range_id;
-    private $range_type;
-    private $perms = array('x' => 1, 'w' => 2, 'r' => 4, 'f' => 8);
-    private $must_have_perm;
-
+    protected $folderdata;
+    protected $range_id;
+    protected $range_type;
 
     public function __construct($folderdata)
     {
@@ -35,48 +31,28 @@ class StandardFolder implements FolderType
     public function setFolderData($folderdata)
     {
         $this->folderdata = $folderdata;
-        $this->permission = $folderdata['data_content']['permission'] ?: 7;
         $this->range_id = $folderdata['range_id'];
         $this->range_type = $folderdata['range_type'];
-        $this->must_have_perm = $this->range_type == 'course' ? 'tutor' : 'autor';
-
     }
 
-    public function getPermissionString()
-    {
-        $perms = $this->perms;
-        array_pop($perms);
-        $r = array_flip($perms);
-        foreach($perms as $v => $p) if(!($this->permission & $p)) $r[$p] = '-';
-        return join('', array_reverse($r));
-    }
-
-    protected function checkPermission($perm, $user_id)
-    {
-        if (is_object($GLOBALS['perm']) && $GLOBALS['perm']->have_studip_perm($this->must_have_perm, $this->range_id, $user_id)) {
-            return true;
-        }
-        return (bool)($this->permission & $this->perms[$perm]);
-
-    }
     public function isVisible($user_id)
     {
-        return $this->checkPermission('x', $user_id);
+        return true;
     }
 
     public function isReadable($user_id)
     {
-        return $this->checkPermission('r', $user_id);
+        return true;
     }
 
     public function isWritable($user_id)
     {
-        return $this->checkPermission('w', $user_id);
+        return true;
     }
 
     public function isSubfolderAllowed($user_id)
     {
-        return $this->checkPermission('f', $user_id);
+        return true;
     }
 
     public function getName()
@@ -101,15 +77,10 @@ class StandardFolder implements FolderType
 
     public function setData($request)
     {
-        $this->permission = $request['permission'];
-        $this->folderdata['data_content']['permission'] = $this->permission;
     }
 
     public function validateUpload($uploadedfile, $user_id)
     {
-        if (!$this->isWritable($user_id)) {
-            return _("Der Dateiordner ist nicht beschreibbar.");
-        }
         if ($this->range_type == 'course') {
             $status = $GLOBALS['perm']->get_studip_perm($this->range_id, $user_id);
             $active_upload_type = Course::find($this->range_id)->status;
@@ -135,5 +106,10 @@ class StandardFolder implements FolderType
         if (in_array($ext, $types) && $upload_type['type'] == 'allow') {
             return sprintf(_("Sie dürfen den Dateityp %s nicht hochladen!"), $ext);
         }
+    }
+
+    public function getAllowedRangeTypes()
+    {
+        return ['course', 'institute'];
     }
 }
