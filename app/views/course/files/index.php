@@ -127,21 +127,21 @@
             <td class="options">
             <? if ($full_access): ?>
                 <a href="<?= $controller->url_for('folder/edit/' . $file->id) ?>" data-dialog="size=auto" title="<?= _('Ordner bearbeiten') ?>">
-                    <?= Icon::create('edit', 'clickable')->asImg(16, ["alt" => _('bearbeiten')]) ?>
+                    <?= Icon::create('edit', 'clickable')->asImg(20, ["alt" => _('bearbeiten')]) ?>
                 </a>
             <? endif; ?>
                 <a href="<?= $downloadlink ?>" title="<?= _('Ordner herunterladen') ?>">
-                    <?= Icon::create('download', 'clickable')->asImg(16, ["alt" => _('herunterladen')]) ?>
+                    <?= Icon::create('download', 'clickable')->asImg(20, ["alt" => _('herunterladen')]) ?>
                 </a>
             <? if ($full_access): ?>
                 <a href="<?= $controller->url_for('folder/move/' . $file->id) ?>" data-dialog="size=auto" title="<?= _('Ordner verschieben') ?>">
-                    <?= Icon::create('folder-empty+move_right', 'clickable')->asImg(16, ["alt" => _('verschieben')]) ?>
+                    <?= Icon::create('folder-empty+move_right', 'clickable')->asImg(20, ["alt" => _('verschieben')]) ?>
                 </a>
                  <a href="<?= $controller->url_for('folder/copy/' . $file->id) ?>" data-dialog="size=auto" title="<?= _('Ordner kopieren') ?>">
-                    <?= Icon::create('folder-empty+add', 'clickable')->asImg(16, ["alt" => _('kopieren')]) ?>
+                    <?= Icon::create('folder-empty+add', 'clickable')->asImg(20, ["alt" => _('kopieren')]) ?>
                 </a>
                 <?/* <a href="<?= $controller->url_for('folder/delete/' . $file->id) ?>" title="<?= _('Ordner löschen') ?>">
-                    <?= Icon::create('trash', 'clickable')->asImg(16, ["alt" => _('löschen')]) ?>
+                    <?= Icon::create('trash', 'clickable')->asImg(20, ["alt" => _('löschen')]) ?>
                 </a>*/?>
                 <?= Icon::create('trash', 'clickable',
                             ['title' => _('löschen')])->asInput(array(
