@@ -36,7 +36,7 @@ class FilesController extends AuthenticatedController
                 $actionParams
             ),
             Icon::create('folder-empty+add', 'clickable'),
-            array('data-dialog' => 'size=auto')
+            array('data-dialog' => 'size=auto; reload-on-close')
         );
 
         $actions->addLink(

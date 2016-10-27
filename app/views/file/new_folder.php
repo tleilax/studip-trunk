@@ -1,6 +1,6 @@
 <form method="post" class="studip_form"
       action="<?= $controller->url_for('/new') ?>"
-      data-dialog="1">
+      data-dialog="reload-on-close">
     <?= CSRFProtection::tokenTag() ?>
     <input type="hidden" name="parentFolderId" value="<?=htmlReady($parentFolderId)?>">
     <input type="hidden" name="rangeId" value="<?=htmlReady($rangeId)?>">

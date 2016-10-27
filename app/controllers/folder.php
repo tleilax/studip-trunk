@@ -56,7 +56,6 @@ class FolderController extends AuthenticatedController
                 
                 $this->folderDescription = Request::get('description'); 
                 
-                echo "rangeType == " . $parentFolder->range_type;
                 //the current user is the only one who can create a folder in his personal file area.
                 //Any other user is not allowed to add a folder to the personal file area.
                 //If it is not a folder of the personal file area the user must be the owner
@@ -89,6 +88,14 @@ class FolderController extends AuthenticatedController
                     return;
                 }
                 
+                PageLayout::postSuccess(
+                    _('Ordner wurde angelegt!')
+                );
+                
+                $this->render_text('');
+                return;
+                
+                /*
                 if($folder->range_type == 'user') {
                     return $this->redirect(URLHelper::getUrl('dispatch.php/files/index/'.$parentFolder->id));
                 } elseif($folder->range_type == 'course') {
@@ -96,7 +103,7 @@ class FolderController extends AuthenticatedController
                 } elseif($folder->range_type == 'inst') {
                     return $this->redirect(URLHelper::getUrl('dispatch.php/institute/files/index/'.$parentFolder->id));
                 }
-                
+                */
                 
             } else {
                 PageLayout::postError(
