@@ -1,9 +1,9 @@
 <form method="post" class="studip_form"
-      action="<?= $controller->url_for('/new') ?>">
+      action="<?= $controller->url_for('/new') ?>"
+      data-dialog="1">
     <?= CSRFProtection::tokenTag() ?>
     <input type="hidden" name="parentFolderId" value="<?=htmlReady($parentFolderId)?>">
     <input type="hidden" name="rangeId" value="<?=htmlReady($rangeId)?>">
-    <input type="hidden" name="context" value="<?=htmlReady($context)?>">
     <fieldset>
         <fieldset>
             <label>
@@ -17,7 +17,7 @@
                 <textarea name="description" placeholder="<?= _('Optionale Beschreibung') ?>"></textarea>
             </label>
         </fieldset>
-	</fieldset>	
+        </fieldset>
     <div data-dialog-button>
         <?= Studip\Button::createAccept(_('Erstellen'), 'create_folder') ?>
         <?= Studip\LinkButton::createCancel(_('Abbrechen')) ?>

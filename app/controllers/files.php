@@ -17,23 +17,32 @@
 class FilesController extends AuthenticatedController
 {
     
-    private function buildSidebar()
+    private function buildSidebar($topFolderId = null)
     {
         $sidebar = Sidebar::get();
         $sidebar->setImage('sidebar/files-sidebar.png');
 
         $actions = new ActionsWidget();
-
+        
+        $actionParams = [];
+        if($topFolderId) {
+            $actionParams['folderId'] = $topFolderId;
+        }
+        
         $actions->addLink(
             _('Neuer Ordner'),
-            URLHelper::getUrl('dispatch.php/folder/new'),
+            URLHelper::getUrl(
+                'dispatch.php/folder/new',
+                $actionParams
+            ),
             Icon::create('folder-empty+add', 'clickable'),
             array('data-dialog' => 'size=auto')
         );
 
         $actions->addLink(
             _('Neue Datei'),
-            URLHelper::getUrl('dispatch.php/file/upload', ['topfolder' => $this->topFolder->id]),
+            URLHelper::getUrl(
+                'dispatch.php/file/upload', ['topfolder' => $this->topFolder->id]),
             Icon::create('file+add', 'clickable'),
             array('data-dialog' => 'size=auto')
         );
@@ -72,7 +81,7 @@ class FilesController extends AuthenticatedController
             $this->topFolder = Folder::createTopFolder($user->id, 'user');
         }
         
-        $this->buildSidebar();
+        $this->buildSidebar($this->topFolder->id);
         PageLayout::setTitle($user->getFullname() . ' - ' . _('Dateien'));
         
         $this->render_template('files/index.php', $GLOBALS['template_factory']->open('layouts/base'));
