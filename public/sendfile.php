@@ -56,15 +56,14 @@ $file_id = escapeshellcmd(basename(Request::get('file_id')));
 $type = Request::int('type');
 if($type < 0 || $type > 7) $type = 0;
 
-$document = new StudipDocument($file_id);
-
-$object_id = $document->getValue('seminar_id');
+$file_ref = new FileRef($file_id);
+$folder = $file_ref->folder->getTypedFolder();
 
 $no_access = true;
 
 //download from course or institute or document is a message attachement
-if ($object_id && in_array($type, array(0, 6, 7))) {
-    $no_access = !$document->checkAccess($GLOBALS['user']->id);
+if ($file_ref->folder && in_array($type, array(0, 6, 7))) {
+    $no_access = !$folder->isReadable($GLOBALS['user']->id) /*|| !$file_ref->getLicense()->isDownloadable($file_ref)*/;
 }
 //download from archive, allowed if former participant
 if ($type == 1){
@@ -128,15 +127,15 @@ switch ($type) {
     break;
     //download linked file
     case 6:
-        $path_file = getLinkPath($file_id);
+        $path_file = $file_ref->file->url->url;
     break;
     //we want to download a file attached to a system message (this mode performs perm checks)
     case 7:
-        $path_file = get_upload_file_path($file_id);
+        $path_file = $file_ref->file->getPath();
     break;
     //we want to download from the regular upload-folder (this mode performs perm checks)
     default:
-        $path_file = get_upload_file_path($file_id);
+        $path_file = $file_ref->file->getPath();
     break;
 }
 

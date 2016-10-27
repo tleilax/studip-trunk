@@ -53,18 +53,18 @@ class FileRef extends SimpleORMap
             File::deleteBySQL("id = ?", $this->file_id);
         }
     }
-    
-    
+
+
     /**
         Renames the file associated with this file reference.
-        
-        If the parameter forceRename is set to true and the current user 
+
+        If the parameter forceRename is set to true and the current user
         is the owner of the file, the file will be renamed
         even if there are other references linked with it.
-        
+
         @param newName the new name of the file
         @param forceRename if set to true, renaming will be forced. Defaults to false.
-        
+
         @returns true on success, false on failure
     **/
     public function rename($newName = '', $forceRename = false)
@@ -73,24 +73,24 @@ class FileRef extends SimpleORMap
             //you can't rename a file to (empty string)...
             return false;
         }
-        
+
         if(!$this->folder->fileExists()) {
             //there is no file with that name. We can rename the file.
-            
+
             //check if there are other file refercences:
             $numReferences = FileRef::countBySql(
                 '(file_id = :fileId) AND (id <> :referenceId)',
                 ['fileId' => $this->file_id, 'referenceId' => $this->id]
             );
-            
+
             //check if the current user is the owner of the file:
-            
+
             $currentUserId = User::findCurrent()->id;
-            
+
             if($this->file->user_id = $currentUserId) {
                 //yes, the current user owns this file. We can rename it,
                 //if that is forced:
-                
+
                 if($numReferences > 0) {
                     //there is at least one other file reference:
                     if($forceRename) {
@@ -101,7 +101,7 @@ class FileRef extends SimpleORMap
                         //are more than one file references:
                         return false;
                     }
-                    
+
                 } else {
                     // no other references
                 }
@@ -111,11 +111,11 @@ class FileRef extends SimpleORMap
             }
         }
     }
-    
-    
+
+
     /**
         Copies a file to the destination folder.
-        
+
         In case the current user is not the owner of the file
         the file will be cloned (including the data file).
     **/
@@ -123,7 +123,7 @@ class FileRef extends SimpleORMap
     {
         //STUB
     }
-    
+
     public function getDownloadURL($dltype = 'normal')
     {
         $mode = Config::get()->SENDFILE_LINK_MODE ?: 'normal';
@@ -163,5 +163,13 @@ class FileRef extends SimpleORMap
                 $link[] = '&file_name=' . $file_name;
         }
         return URLHelper::getScriptURL(implode('', $link));
+    }
+
+    public function getLicenseObject()
+    {
+        if (class_exists($this->license)) {
+            return new $this->license();
+        }
+        throw new InvalidValuesException('class: ' . $this->license . ' not found');
     }
 }
