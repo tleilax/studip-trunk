@@ -44,7 +44,7 @@
         <col width="100px">
         <col width="150px">
         <col width="120px">
-        <col width="120px">
+        <col width="121px">
     </colgroup>
     <thead>
         <tr>
@@ -144,7 +144,7 @@
                     <?= Icon::create('trash', 'clickable')->asImg(20, ["alt" => _('löschen')]) ?>
                 </a>*/?>
                 <?= Icon::create('trash', 'clickable',
-                            ['title' => _('löschen')])->asInput(array(
+                            ['title' => _('löschen')])->asInput(20, array(
                                     'data-confirm' => sprintf(_('Soll den Ordner "%s" wirklich gelöscht werden?'), htmlReady($file->name)),
                                     'formaction'   => $controller->url_for('folder/delete/' . $file->id))) ?>
             <? endif; ?>
@@ -210,7 +210,7 @@
                    
                 </a>*/?>                
                  <?= Icon::create('trash', 'clickable',
-                            ['title' => _('löschen')])->asInput(array(
+                            ['title' => _('löschen')])->asInput(20, array(
                                     'data-confirm' => sprintf(_('Soll die Datei "%s" wirklich gelöscht werden?'), htmlReady($file_ref->file->name)),
                                     'formaction'   => $controller->url_for('file/delete/' . $file_ref->id))) ?>
             <? endif; ?>
