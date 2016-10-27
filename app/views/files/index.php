@@ -60,8 +60,8 @@
             <th data-sort="false"><?= _('Aktionen') ?></th>
         </tr>
     </thead>
-    <tbody>
 <? if (!$isRoot) : ?>
+    <tbody>
         <tr class="chdir-up" <? if ($full_access) printf('data-folder="%s"', $folder_id) ?> data-sort-fixed>
             <td>&nbsp;</td>
             <td class="document-icon">
@@ -79,14 +79,18 @@
             <td class="responsive-hidden">&nbsp;</td>
             <td>&nbsp;</td>
         </tr>
+    </tbody>
 <? endif; ?>
 <? if (count($topFolder->subfolders) + count($topFolder->file_refs) === 0): ?>
+    <tbody>
         <tr>
             <td colspan="8" class="empty">
                 <?= _('Dieser Ordner ist leer') ?>
             </td>
         </tr>
-<? else: ?>
+    <tbody>
+<? elseif (count($topFolder->subfolders)) : ?>
+    <tbody>
     <? foreach ($topFolder->subfolders as $file) : ?>
         <tr <? if ($full_access) printf('data-file="%s"', $file->id) ?> <? if ($full_access) printf('data-folder="%s"', $file->id); ?>>
             <td>
@@ -151,8 +155,12 @@
             </td>
         </tr>
     <? endforeach ?>
+    </tbody>
+<? endif; ?>
+<? if (count($topFolder->file_refs)) : ?>
+    <tbody>
     <? foreach ($topFolder->file_refs as $file_ref) : ?>    
-    	<? $mime_type = File::find($file_ref->file_id)->mime_type; ?>    	
+        <? $mime_type = File::find($file_ref->file_id)->mime_type; ?>    	
         <tr <? if ($full_access) printf('data-file="%s"', $file_ref->id) ?>>
             <td>
                 <input type="checkbox" name="ids[]" value="<?= $file->id ?>" <? if (in_array($file_ref->id, $marked)) echo 'checked'; ?>>
@@ -167,7 +175,7 @@
                     <?= htmlReady($file_ref->file->name) ?>
                 </a>
             <? if ($file_ref_file_restricted): ?>
-              <?= Icon::create('lock-locked', 'clickable',['title' => _('Diese Datei ist nicht frei von Rechten Dritter.')])->asImg(['class' => 'text-top']) ?>
+                <?= Icon::create('lock-locked', 'clickable',['title' => _('Diese Datei ist nicht frei von Rechten Dritter.')])->asImg(['class' => 'text-top']) ?>
             <? endif; ?>
             <? if ($file_ref->description): ?>
                 <small class="responsive-hidden"><?= htmlReady($file_ref->description) ?></small>
@@ -179,7 +187,7 @@
             <td data-sort-value="<?= $file_ref->file->owner->getFullName('no_title') ?>" class="responsive-hidden">
             <? if ($file_ref->file->owner->id !== $GLOBALS['user']->id): ?>
                 <a href="<?= URLHelper::getLink('dispatch.php/profile?username=' . $file_ref->file->owner->username) ?>">
-                    <?= htmlReady($file_ref->file->owner->getFullName()) ?>
+                <?= htmlReady($file_ref->file->owner->getFullName()) ?>
                 </a>
             <? else: ?>
                 <?= htmlReady($file_ref->file->owner->getFullName()) ?>
@@ -206,10 +214,9 @@
                 </a>
                 <?/* 
                 <a href="<?= $controller->url_for('file/delete/' . $file_ref->id) ?>" title="<?= _('Datei löschen') ?>">
-                    <?= Icon::create('trash', 'clickable')->asImg(20, ["alt" => _('löschen')]) ?>
-                   
+                <?= Icon::create('trash', 'clickable')->asImg(20, ["alt" => _('löschen')]) ?>
                 </a>*/?>                
-                 <?= Icon::create('trash', 'clickable',
+                <?= Icon::create('trash', 'clickable',
                             ['title' => _('löschen')])->asInput(20, array(
                                     'data-confirm' => sprintf(_('Soll die Datei "%s" wirklich gelöscht werden?'), htmlReady($file_ref->file->name)),
                                     'formaction'   => $controller->url_for('file/delete/' . $file_ref->id))) ?>
@@ -217,8 +224,8 @@
             </td>
         </tr>
     <? endforeach; ?>
-<? endif; ?>
     </tbody>
+<? endif; ?>
     <tfoot>
         <tr>
             <td colspan="100">
