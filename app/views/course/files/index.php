@@ -1,5 +1,5 @@
 <form method="post">
-<table class="default documents <? if (count($topFolder->file_refs) > 0) : ?>sortable-table<? endif ?>">
+<table class="default documents <? if (count($topFolder->file_refs) > 0) : ?>sortable-table<? endif ?>" data-folder_id="<?= htmlReady($topFolder->getId()) ?>">
     <caption>
         <div class="caption-container">
             <? $full_access = true;
@@ -41,9 +41,9 @@
         <col width="30px">
         <col width="20px">
         <col>
-        <col width="100px">
-        <col width="150px">
-        <col width="120px">
+        <col width="100px" class="responsive-hidden">
+        <col width="150px" class="responsive-hidden">
+        <col width="120px" class="responsive-hidden">
         <col width="121px">
     </colgroup>
     <thead>
@@ -54,9 +54,9 @@
             </th>
             <th data-sort="htmldata"><?= _('Typ') ?></th>
             <th data-sort="text"><?= _('Name') ?></th>
-            <th data-sort="htmldata"><?= _('Größe') ?></th>
-            <th data-sort="htmldata"><?= _('Autor/in') ?></th>
-            <th data-sort="htmldata"><?= _('Datum') ?></th>
+            <th data-sort="htmldata" class="responsive-hidden"><?= _('Größe') ?></th>
+            <th data-sort="htmldata" class="responsive-hidden"><?= _('Autor/in') ?></th>
+            <th data-sort="htmldata" class="responsive-hidden"><?= _('Datum') ?></th>
             <th data-sort="false"><?= _('Aktionen') ?></th>
         </tr>
     </thead>
@@ -74,9 +74,9 @@
                     <small><?= _('Ein Verzeichnis nach oben wechseln') ?></small>
                 </a>
             </td>
-            <td>&nbsp;</td>
-            <td>&nbsp;</td>
-            <td>&nbsp;</td>
+            <td class="responsive-hidden">&nbsp;</td>
+            <td class="responsive-hidden">&nbsp;</td>
+            <td class="responsive-hidden">&nbsp;</td>
             <td>&nbsp;</td>
         </tr>
 <? endif; ?>
@@ -106,13 +106,13 @@
                     <?= htmlReady($file->name) ?>
                 </a>
             <? if ($file->description): ?>
-                <small><?= htmlReady($file->description) ?></small>
+                <small class="responsive-hidden"><?= htmlReady($file->description) ?></small>
             <? endif; ?>
             </td>
             <? // -number + file count => directories should be sorted apart from files ?>
-            <td data-sort-value="<?= -1000000 ?>">
+            <td data-sort-value="<?= -1000000 ?>" class="responsive-hidden">
             </td>
-            <td data-sort-value="<?= htmlReady($file->owner->getFullName('no_title')) ?>">
+            <td data-sort-value="<?= htmlReady($file->owner->getFullName('no_title')) ?>" class="responsive-hidden">
             <? if ($file->owner->id !== $GLOBALS['user']->id) : ?>
                 <a href="<?= URLHelper::getLink('dispatch.php/profile?username=' . $file->owner->username) ?>">
                     <?= htmlReady($file->owner->getFullName()) ?>
@@ -121,7 +121,7 @@
                 <?= htmlReady($file->owner->getFullName()) ?>
             <? endif; ?>
             </td>
-            <td title="<?= strftime('%x %X', $file->mkdate) ?>" data-sort-value="<?= $file->mkdate ?>">
+            <td title="<?= strftime('%x %X', $file->mkdate) ?>" data-sort-value="<?= $file->mkdate ?>" class="responsive-hidden">
                 <?= reltime($file->mkdate) ?>
             </td>
             <td class="options">
@@ -170,13 +170,13 @@
               <?= Icon::create('lock-locked', 'clickable',['title' => _('Diese Datei ist nicht frei von Rechten Dritter.')])->asImg(['class' => 'text-top']) ?>
             <? endif; ?>
             <? if ($file_ref->description): ?>
-                <small><?= htmlReady($file_ref->description) ?></small>
+                <small class="responsive-hidden"><?= htmlReady($file_ref->description) ?></small>
             <? endif; ?>
             </td>
-            <td title="<?= number_format($file_ref->file->size, 0, ',', '.') . ' Byte' ?>" data-sort-value="<?= $file_ref->file->size ?>">
+            <td title="<?= number_format($file_ref->file->size, 0, ',', '.') . ' Byte' ?>" data-sort-value="<?= $file_ref->file->size ?>" class="responsive-hidden">
                 <?= relSize($file_ref->file->size, false) ?>
             </td>
-            <td data-sort-value="<?= $file_ref->file->owner->getFullName('no_title') ?>">
+            <td data-sort-value="<?= $file_ref->file->owner->getFullName('no_title') ?>" class="responsive-hidden">
             <? if ($file_ref->file->owner->id !== $GLOBALS['user']->id): ?>
                 <a href="<?= URLHelper::getLink('dispatch.php/profile?username=' . $file_ref->file->owner->username) ?>">
                     <?= htmlReady($file_ref->file->owner->getFullName()) ?>
@@ -185,7 +185,7 @@
                 <?= htmlReady($file_ref->file->owner->getFullName()) ?>
             <? endif; ?>
             </td>
-            <td title="<?= strftime('%x %X', $file_ref->file->mkdate) ?>" data-sort-value="<?= $file_ref->file->mkdate ?>">
+            <td title="<?= strftime('%x %X', $file_ref->file->mkdate) ?>" data-sort-value="<?= $file_ref->file->mkdate ?>" class="responsive-hidden">
                 <?= reltime($file_ref->file->mkdate) ?>
             </td>
             <td class="options">
@@ -237,4 +237,8 @@
         </tr>
     </tfoot>
 </table>
+</form>
+
+<form style="display: none;" id="file_selector">
+    <input type="file" name="files[]" multiple onChange="STUDIP.Files.upload(this.files);">
 </form>

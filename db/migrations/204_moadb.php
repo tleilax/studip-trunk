@@ -22,6 +22,10 @@ class Moadb extends Migration
         $db = DBManager::get();
         //$db->exec("RENAME TABLE files TO _files");
         //$db->exec("RENAME TABLE file_refs TO _file_refs");
+        $db->exec("truncate table folders");
+        $db->exec("truncate table files");
+        $db->exec("truncate table file_refs");
+        $db->exec("truncate table file_urls");
         $db->exec("CREATE TABLE IF NOT EXISTS `files` (
                  `id` varchar(32) NOT NULL,
                  `user_id` varchar(32) NOT NULL,

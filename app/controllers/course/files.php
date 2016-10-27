@@ -62,10 +62,16 @@ class Course_FilesController extends AuthenticatedController
 
         }
         $actions->addLink(
-            _('Neue Datei'),
+            _('Datei hochladen'),
+            "#",
+            Icon::create('file+add', 'clickable'),
+            array('onClick' => "jQuery('#file_selector input[type=file]').click(); return false;")
+        );
+        $actions->addLink(
+            _('Datei aus meinem Bereich kopieren'),
             URLHelper::getUrl('dispatch.php/file/upload', ['topfolder' => $this->topFolder->id]),
             Icon::create('file+add', 'clickable'),
-            array('data-dialog' => 'size=auto')
+            array('onClick' => "return false;")
         );
 
         $sidebar->addWidget($actions);
