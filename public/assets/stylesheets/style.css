@@ -760,7 +760,7 @@ table.default > tbody > tr > td.dragHandle {
   cursor: move;
 }
 table.default > tbody > tr.dragover > td {
-  background-color: #f7a866;
+  background-color: #fce2cc;
 }
 table.default > tbody > tr:last-child > td {
   border-bottom: 1px solid #1f4171;
@@ -5721,6 +5721,16 @@ table.dates .draggable-topic-handle {
   cursor: move;
   background: transparent url("../images/anfasser_24.png") 3px center no-repeat;
   padding-left: 12px;
+}
+.file_uploader {
+  display: none;
+}
+.uploadbar {
+  padding: 10px;
+  background-image: linear-gradient(#28497c, #28497c);
+  background-size: 0% 100%;
+  background-repeat: no-repeat;
+  border: #28497c solid 1px;
 }
 /* classes for the evaluation modules in Stud.IP ---------------------------- */
 .eval_title {

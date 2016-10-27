@@ -249,3 +249,11 @@
 <form style="display: none;" id="file_selector">
     <input type="file" name="files[]" multiple onChange="STUDIP.Files.upload(this.files);">
 </form>
+
+<div class="file_uploader">
+    <ul class="filenames clean"></ul>
+    <div class="uploadbar">
+        <?= Icon::create("upload", "info_alt")->asImg(30) ?>
+    </div>
+
+</div>
