@@ -19,20 +19,20 @@
 **/
 class FileController extends AuthenticatedController
 {
-    public function upload_action()
+    public function upload_action($folder_id)
     {
         if (Request::isPost() && is_array($_FILES)) {
             
-            $folderId = Request::option('folder_id');
-            if(!Folder::exists($folderId)) {
+            //$folder_id = Request::option('folder_id');
+            if(!Folder::exists($folder_id)) {
                 PageLayout::postError(
                     _('Zielordner für Dateiupload nicht gefunden!')
                 );
                 return;
             }
             
-            $folder = Folder::find($folderId);
-            CSRFProtection::verifyUnsafeRequest();
+            $folder = Folder::find($folder_id);
+            //CSRFProtection::verifyUnsafeRequest();
             $validatedFiles = FileManager::handleFileUpload(
                 $_FILES['file'],
                 $folder->getTypedFolder(),
@@ -43,7 +43,7 @@ class FileController extends AuthenticatedController
                 //error during upload: display error message:
                 PageLayout::postError(
                     _('Beim Upload ist ein Fehler aufgetreten ', 
-                    array_map('htmlready', $validated_files['error'])
+                    array_map('htmlready', $validatedFiles['error'])
                     )
                 );
             } else {
@@ -64,11 +64,11 @@ class FileController extends AuthenticatedController
                 }
                 
                 //DEVELOPMENT STAGE ONLY:
-                return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/'.$folderId));
+                return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/'.$folder_id));
             }
         }
         
-        $this->folder_id = Request::option('topfolder');
+        $this->folder_id = $folder_id;
     }
     
     

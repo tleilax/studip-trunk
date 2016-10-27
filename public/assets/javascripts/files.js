@@ -6,19 +6,25 @@ STUDIP.Files = {
         console.log(filelist);
         var files = 0;
         var folder_id = jQuery("table.documents").data("folder_id");
-        console.log(folder_id);
+        var data = new FormData();
 
         //Open upload-dialog
-
-        //start upload
-        var data = new FormData();
+        jQuery("#file_uploader .filenames").html("");
         jQuery.each(filelist, function (index, file) {
             if (file.size > 0) {
                 data.append(index, file);
+                jQuery("#file_uploader .filenames").append(jQuery("<li/>").text(file.name));
                 files += 1;
             }
         });
+        STUDIP.Dialog.show(jQuery("#file_uploader").html(), {
+            title: "Datei hochladen"
+        });
+
+        //start upload
+        jQuery(".documents[data-folder_id] tbody > tr.dragover").removeClass('dragover');
         if (files > 0) {
+            jQuery(".upload_bar").css("background-size", "0% 100%");
             jQuery.ajax({
                 'url': STUDIP.ABSOLUTE_URI_STUDIP + "dispatch.php/file/upload/" + folder_id,
                 'data': data,
@@ -36,14 +42,16 @@ STUDIP.Files = {
                             if (event.lengthComputable) {
                                 percent = Math.ceil(position / total * 100);
                             }
-                            console.log(percent);
                             //Set progress
-                            //jQuery(writer).css("background-size", percent + "% 5px");
+                            jQuery(".upload_bar").css("background-size", percent + "% 100%");
                         }, false);
                     }
                     return xhr;
                 },
                 'success': function (json) {
+                    jQuery(".upload_bar").css("background-size", "100% 100%");
+                    console.log(json);
+                    STUDIP.Dialog.close();
                     /*if (typeof json.inserts === "object") {
                      jQuery.each(json.inserts, function (index, text) {
                      jQuery(textarea).val(jQuery(textarea).val() + " " + text);
@@ -66,3 +74,16 @@ STUDIP.Files = {
 
     }
 };
+
+jQuery(function () {
+    jQuery(".documents[data-folder_id] tbody > tr")
+        .on('dragover dragleave', function (event) {
+            jQuery(this).toggleClass('dragover', event.type === 'dragover');
+            return false;
+        });
+    jQuery(".documents[data-folder_id]").on("drop", function (event) {
+        event.preventDefault();
+        var filelist = event.originalEvent.dataTransfer.files || {};
+        STUDIP.Files.upload(filelist);
+    });
+});
