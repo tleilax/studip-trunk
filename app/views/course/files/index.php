@@ -38,7 +38,6 @@
         </div>
     </caption>
     <colgroup>
-        <col width="25px">
         <col width="30px">
         <col width="20px">
         <col>
@@ -49,7 +48,6 @@
     </colgroup>
     <thead>
         <tr>
-            <th data-sort="false">&nbsp;</th>
             <th data-sort="false">
                 <input type="checkbox" data-proxyfor=":checkbox[name='ids[]']"
                        data-activates="table.documents tfoot button">
@@ -65,7 +63,6 @@
     <tbody>
 <? if (!$isRoot) : ?>
         <tr class="chdir-up" <? if ($full_access) printf('data-folder="%s"', $folder_id) ?> data-sort-fixed>
-            <td>&nbsp;</td>
             <td>&nbsp;</td>
             <td class="document-icon">
                 <a href="<?= $controller->url_for('/index/' . $parent_id, $parent_page ) ?>">
@@ -92,8 +89,6 @@
 <? else: ?>
     <? foreach ($topFolder->subfolders as $file) : ?>
         <tr <? if ($full_access) printf('data-file="%s"', $file->id) ?> <? if ($full_access) printf('data-folder="%s"', $file->id); ?>>
-            <td>
-            </td>
             <td>
                 <input type="checkbox" name="ids[]" value="<?= $file->id ?>" <? if (in_array($file->id, $marked)) echo 'checked'; ?>>
             </td>
@@ -160,8 +155,6 @@
     	<? $mime_type = File::find($file_ref->file_id)->mime_type; ?>    	
         <tr <? if ($full_access) printf('data-file="%s"', $file_ref->id) ?>>
             <td>
-            </td>
-            <td>
                 <input type="checkbox" name="ids[]" value="<?= $file->id ?>" <? if (in_array($file_ref->id, $marked)) echo 'checked'; ?>>
             </td>
             <td class="document-icon" data-sort-value="1">
@@ -198,22 +191,22 @@
             <td class="options">
             <? if ($full_access): ?>
                 <a href="<?= $controller->url_for('file/edit/' . $file_ref->id) ?>" data-dialog="size=auto" title="<?= _('Datei bearbeiten') ?>">
-                    <?= Icon::create('edit', 'clickable')->asImg(16, ["alt" => _('bearbeiten')]) ?>
+                    <?= Icon::create('edit', 'clickable')->asImg(20, ["alt" => _('bearbeiten')]) ?>
                 </a>
             <? endif; ?>
                 <a href="<?= $file_ref->getDownloadURL() ?>" title="<?= _('Datei herunterladen') ?>">
-                    <?= Icon::create('download', 'clickable')->asImg(16, ["alt" => _('herunterladen')]) ?>
+                    <?= Icon::create('download', 'clickable')->asImg(20, ["alt" => _('herunterladen')]) ?>
                 </a>
             <? if ($full_access): ?>
                 <a href="<?= $controller->url_for('file/move/' . $file_ref->id) ?>" data-dialog="size=auto" title="<?= _('Datei verschieben') ?>">
-                    <?= Icon::create('file+move_right', 'clickable')->asImg(16, ["alt" => _('verschieben')]) ?>
+                    <?= Icon::create('file+move_right', 'clickable')->asImg(20, ["alt" => _('verschieben')]) ?>
                 </a>
                 <a href="<?= $controller->url_for('file/copy/' . $file_ref->id) ?>" data-dialog="size=auto" title="<?= _('Datei kopieren') ?>">
-                    <?= Icon::create('file+add', 'clickable')->asImg(16, ["alt" => _('kopieren')]) ?>
+                    <?= Icon::create('file+add', 'clickable')->asImg(20, ["alt" => _('kopieren')]) ?>
                 </a>
                 <?/* 
                 <a href="<?= $controller->url_for('file/delete/' . $file_ref->id) ?>" title="<?= _('Datei löschen') ?>">
-                    <?= Icon::create('trash', 'clickable')->asImg(16, ["alt" => _('löschen')]) ?>                    
+                    <?= Icon::create('trash', 'clickable')->asImg(20, ["alt" => _('löschen')]) ?>
                    
                 </a>*/?>                
                  <?= Icon::create('trash', 'clickable',
@@ -228,7 +221,7 @@
     </tbody>
     <tfoot>
         <tr>
-            <td colspan="5">
+            <td colspan="100">
         <? if ($full_access || extension_loaded('zip')): ?>
                 <?= _('Alle markierten') ?>
             <? if (extension_loaded('zip')): ?>
@@ -240,15 +233,6 @@
                 <?= Studip\Button::create(_('Löschen'), 'delete') ?>
             <? endif; ?>
         <? endif; ?>
-            </td>
-            <td colspan="3" class="actions">
-                <?= $GLOBALS['template_factory']->render('shared/pagechooser', array(
-                        'perPage'      => $limit,
-                        'num_postings' => $filecount,
-                        'page'         => $page,
-                        'pagelink'     => $controller->url_for('/index/' . $dir_id . '/%u')
-                    ))
-                ?>
             </td>
         </tr>
     </tfoot>
