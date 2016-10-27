@@ -36,6 +36,9 @@ class FileRef extends SimpleORMap
             'class_name'  => 'Folder',
             'foreign_key' => 'folder_id',
         );
+
+        $config['additional_fields']['file_name'] = array();
+
         $config['registered_callbacks']['after_delete'][] = 'cbRemoveFileIfOrphaned';
         $config['notification_map']['after_create'] = 'FileRefDidCreate';
         $config['notification_map']['after_store'] = 'FileRefDidUpdate';
@@ -163,6 +166,12 @@ class FileRef extends SimpleORMap
                 $link[] = '&file_name=' . $file_name;
         }
         return URLHelper::getScriptURL(implode('', $link));
+    }
+
+    public function incrementDownloadCounter()
+    {
+        $this->downloads++;
+        return $this->store();
     }
 
     public function getLicenseObject()

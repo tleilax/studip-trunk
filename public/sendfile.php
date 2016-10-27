@@ -241,7 +241,7 @@ Metrics::increment('core.file_download');
 if ($type != 5) {
     @readfile_chunked($path_file, $start, $end);
     if (in_array($type, array(0,6)) && !$start) {
-        TrackAccess($file_id, 'dokument');
+        $file_ref->incrementDownloadCounter();
     }
 } else {
     echo $the_data;

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Folder.php
  * model class for table folders
@@ -28,6 +29,9 @@
  */
 class Folder extends SimpleORMap
 {
+    /**
+     * @param array $config
+     */
     protected static function configure($config = array())
     {
         $config['db_table'] = 'folders';
@@ -36,35 +40,35 @@ class Folder extends SimpleORMap
             'foreign_key' => 'user_id',
         );
         $config['has_many']['file_refs'] = array(
-            'class_name'  => 'FileRef',
+            'class_name'        => 'FileRef',
             'assoc_foreign_key' => 'folder_id',
-            'on_delete' => 'delete',
-            'on_store' => 'store',
+            'on_delete'         => 'delete',
+            'on_store'          => 'store',
         );
         $config['has_many']['subfolders'] = array(
-            'class_name'  => 'Folder',
+            'class_name'        => 'Folder',
             'assoc_foreign_key' => 'parent_id',
-            'on_delete' => 'delete',
-            'on_store' => 'store',
+            'on_delete'         => 'delete',
+            'on_store'          => 'store',
         );
         $config['belongs_to']['parentfolder'] = array(
-            'class_name' => 'Folder',
+            'class_name'  => 'Folder',
             'foreign_key' => 'parent_id',
         );
         $config['belongs_to']['course'] = array(
-            'class_name' => 'Course',
+            'class_name'  => 'Course',
             'foreign_key' => 'range_id',
         );
         $config['belongs_to']['institute'] = array(
-            'class_name' => 'Institute',
+            'class_name'  => 'Institute',
             'foreign_key' => 'range_id',
         );
         $config['belongs_to']['user'] = array(
-            'class_name' => 'User',
+            'class_name'  => 'User',
             'foreign_key' => 'range_id',
         );
         $config['belongs_to']['message'] = array(
-            'class_name' => 'Message',
+            'class_name'  => 'Message',
             'foreign_key' => 'range_id',
         );
         $config['serialized_fields']['data_content'] = 'JSONArrayObject';
@@ -78,82 +82,106 @@ class Folder extends SimpleORMap
         parent::configure($config);
     }
 
+    /**
+     * @param $range_id
+     * @param $range_type
+     * @return SimpleORMap
+     */
     public static function createTopFolder($range_id, $range_type)
     {
         $data = [
-            'parent_id' => '',
-            'range_id' => $range_id,
-            'range_type' => $range_type,
-            'description' => 'virtual top folder',
-            'name' => '',
+            'parent_id'    => '',
+            'range_id'     => $range_id,
+            'range_type'   => $range_type,
+            'description'  => 'virtual top folder',
+            'name'         => '',
             'data_content' => '',
-            'folder_type' => 'StandardFolder'
+            'folder_type'  => 'StandardFolder'
         ];
         return self::create($data);
     }
-    
+
     /**
-        Helper method to find the range type from a range-ID.
-        
-        @returns 'course', 'inst', 'user', 'message' on success, false on error.
-    **/
+     * @param $rangeId
+     * @return bool|string
+     */
     public static function findRangeTypeById($rangeId)
     {
-        if(Course::exists($rangeId)) {
+        if (Course::exists($rangeId)) {
             return 'course';
-        } elseif(Institute::exists($rangeId)) {
+        } elseif (Institute::exists($rangeId)) {
             return 'inst';
-        } elseif(User::exists($rangeId)) {
+        } elseif (User::exists($rangeId)) {
             return 'user';
-        } elseif(Message::exists($rangeId)) {
+        } elseif (Message::exists($rangeId)) {
             return 'message';
         } else {
             return false;
         }
     }
-    
-    
+
+
     /**
-        Helper method: Checks if the file exists in a folder.
-        
-        @returns true, if a file was found, false otherwise
-    **/
-    public function fileExists($fileName = '')
+     * Helper method: Checks if the file exists in a folder.
+     *
+     * @returns true, if a file was found, false otherwise
+     **/
+    public function fileExists($fileName)
     {
-        if(!$fileName) {
-            //you can't search for a file with no name...
-            return false;
-        }
-        
+
         //get files :
         $foundFiles = FileRef::countBySql(
-              "INNER JOIN files ON file_refs.file_id = files.id "
-            . "WHERE files.name = :fileName",
-            ['fileName' => $fileName]
+            "INNER JOIN files ON file_refs.file_id = files.id "
+            . "WHERE files.name = :fileName AND folder_id = :id",
+            ['fileName' => $fileName,
+             'id'       => $this->id]
         );
-        
-        return ($foundFiles > 0);
+        $foundfolders = Folder::countBySql(
+            "name = :fileName AND parent_id= :id",
+            ['fileName' => $fileName,
+             'id'       => $this->id]
+        );
+
+        return ($foundFiles + $foundfolders) > 0;
     }
-    
-    
-    
+
     /**
-        Find the root folder of a course, institute, personal file area or a message.
-        If the root folder doesn't exist, it will be created.
-        
-        @returns Folder object on success or null, if no folder can be created
-    **/
+     * @param $filename
+     * @return string
+     */
+    public function getUniqueName($filename)
+    {
+        $c = 0;
+        $ext = pathinfo($filename, PATHINFO_EXTENSION);
+        if ($ext) {
+            $name = substr($filename, 0, strrpos($filename, $ext) - 1);
+        } else {
+            $name = $filename;
+        }
+        while ($this->fileExists($filename)) {
+            $filename = $name . '[' . ++$c . ']' . ($ext ? '.' . $ext : '');
+        }
+        return $filename;
+    }
+
+
+    /**
+     * Find the root folder of a course, institute, personal file area or a message.
+     * If the root folder doesn't exist, it will be created.
+     *
+     * @returns Folder object on success or null, if no folder can be created
+     **/
     public static function findTopFolder($rangeId)
     {
         $topFolder = self::findOneBySQL("range_id = ? AND parent_id=''", [$rangeId]);
-        
+
         //topFolder may not exist!
-        if(!$topFolder) {
+        if (!$topFolder) {
             //topFolder doest not exist: create it
-            
+
             //determine range type:
             $rangeType = self::findRangeTypeById($rangeId);
-            if($rangeType) {
+            if ($rangeType) {
                 //range type determined: folder can be created!
                 $topFolder = self::createTopFolder($rangeId, $rangeType);
             } else {
@@ -161,11 +189,15 @@ class Folder extends SimpleORMap
                 return null;
             }
         }
-        
+
         return $topFolder;
     }
-    
-    
+
+
+    /**
+     * @return mixed
+     * @throws InvalidValuesException
+     */
     public function getTypedFolder()
     {
         if (class_exists($this->folder_type)) {
@@ -174,6 +206,12 @@ class Folder extends SimpleORMap
         throw new InvalidValuesException('class: ' . $this->folder_type . ' not found');
     }
 
+    /**
+     * @param $file_or_id
+     * @param string $description
+     * @param string $license
+     * @return FileRef
+     */
     public function linkFile($file_or_id, $description = '', $license = 'UnknownLicense')
     {
 
@@ -188,17 +226,25 @@ class Folder extends SimpleORMap
         }
     }
 
+    /**
+     * @param $fileref_or_id
+     * @return mixed
+     */
     public function unlinkFileRef($fileref_or_id)
     {
         $fileref = File::toObject($fileref_or_id);
         return $fileref->delete();
     }
 
-    public function getParents() {
+    /**
+     * @return array
+     */
+    public function getParents()
+    {
         $path = array();
         $current = $this;
         while ($current) {
-                $path[] = $current;
+            $path[] = $current;
             if (!$current->parent_id) {
                 break;
             }
@@ -208,6 +254,10 @@ class Folder extends SimpleORMap
         return $path;
     }
 
+    /**
+     * @param string $delimiter
+     * @return string
+     */
     public function getPath($delimiter = '/')
     {
         return join($delimiter, SimpleCollection::createFromArray($this->getParents())->pluck('name'));
