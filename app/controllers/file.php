@@ -67,7 +67,7 @@ class FileController extends AuthenticatedController
                     );
                     foreach ($storedFiles as $fileref) {
                         $this->fileref = $fileref;
-                        $this->controller = new FilesController();
+                        $this->controller = $this;
                     }
                     $this->render_json($output);
                 }
