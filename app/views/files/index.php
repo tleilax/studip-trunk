@@ -255,3 +255,32 @@
 <form style="display: none;" id="file_selector">
     <input type="file" name="files[]" multiple onChange="STUDIP.Files.upload(this.files);">
 </form>
+
+<div class="file_uploader">
+    <ul class="filenames clean"></ul>
+    <div class="uploadbar">
+        <?= Icon::create("upload", "info_alt")->asImg(30) ?>
+    </div>
+</div>
+
+<div class="source_selector">
+    <?= _("Quelle auswählen") ?>
+    <div class="file_select_possibilities">
+        <a href="#" onClick="jQuery('#file_selector input[type=file]').click(); return false;">
+            <?= Icon::create("computer", "clickable")->asImg(50) ?>
+            <?= _("Mein Computer") ?>
+        </a>
+        <a href="">
+            <?= Icon::create("files", "clickable")->asImg(50) ?>
+            <?= _("Meine Dateien") ?>
+        </a>
+        <a href="">
+            <?= Icon::create("computer", "clickable")->asImg(50) ?>
+            <?= _("OwnCloud") ?>
+        </a>
+        <a href="">
+            <?= Icon::create("service", "clickable")->asImg(50) ?>
+            <?= _("Lernmaterialien") ?>
+        </a>
+    </div>
+</div>

@@ -23,13 +23,14 @@ class FileController extends AuthenticatedController
     {
         if (Request::isPost() && is_array($_FILES)) {
             
-            //$folder_id = Request::option('folder_id');
             if(!Folder::exists($folder_id)) {
                 PageLayout::postError(
                     _('Zielordner für Dateiupload nicht gefunden!')
                 );
                 return;
             }
+            var_dump($_FILES);
+            die();
             
             $folder = Folder::find($folder_id);
             //CSRFProtection::verifyUnsafeRequest();
