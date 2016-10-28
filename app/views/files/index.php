@@ -91,13 +91,13 @@
     </tbody>
 <? elseif (count($topFolder->subfolders)) : ?>
     <tbody>
-    <? foreach ($topFolder->subfolders as $file) : ?>
-        <tr <? if ($full_access) printf('data-file="%s"', $file->id) ?> <? if ($full_access) printf('data-folder="%s"', $file->id); ?>>
+    <? foreach ($topFolder->subfolders as $folder) : ?>
+        <tr <? if ($full_access) printf('data-file="%s"', $folder->id) ?> <? if ($full_access) printf('data-folder="%s"', $folder->id); ?>>
             <td>
-                <input type="checkbox" name="ids[]" value="<?= $file->id ?>" <? if (in_array($file->id, $markedElementIds)) echo 'checked'; ?>>
+                <input type="checkbox" name="ids[]" value="<?= $file->id ?>" <? if (in_array($file->id, $marked_element_ids)) echo 'checked'; ?>>
             </td>
             <td class="document-icon" data-sort-value="0">
-                <a href="<?= $controller->url_for('document/files/index/' . $file->id) ?>">
+                <a href="<?= $controller->url_for('document/files/index/' . $folder->id) ?>">
                 <? if ($is_empty): ?>
                     <?= Icon::create('folder-empty', 'clickable')->asImg(24) ?>
                 <? else: ?>
@@ -106,32 +106,32 @@
                 </a>
             </td>
             <td>
-                <a href="<?= $controller->url_for('/index/' . $file->id) ?>">
-                    <?= htmlReady($file->name) ?>
+                <a href="<?= $controller->url_for('/index/' . $folder->id) ?>">
+                    <?= htmlReady($folder->name) ?>
                 </a>
-            <? if ($file->description): ?>
-                <small class="responsive-hidden"><?= htmlReady($file->description) ?></small>
+            <? if ($folder->description): ?>
+                <small class="responsive-hidden"><?= htmlReady($folder->description) ?></small>
             <? endif; ?>
             </td>
             <? // -number + file count => directories should be sorted apart from files ?>
             <td data-sort-value="<?= -1000000 ?>" class="responsive-hidden">
             </td>
-            <td data-sort-value="<?= htmlReady($file->owner->getFullName('no_title')) ?>" class="responsive-hidden">
-            <? if ($file->owner->id !== $GLOBALS['user']->id) : ?>
-                <a href="<?= URLHelper::getLink('dispatch.php/profile?username=' . $file->owner->username) ?>">
-                    <?= htmlReady($file->owner->getFullName()) ?>
+            <td data-sort-value="<?= htmlReady($folder->owner->getFullName('no_title')) ?>" class="responsive-hidden">
+            <? if ($folder->owner->id !== $GLOBALS['user']->id) : ?>
+                <a href="<?= URLHelper::getLink('dispatch.php/profile?username=' . $folder->owner->username) ?>">
+                    <?= htmlReady($folder->owner->getFullName()) ?>
                 </a>
             <? else: ?>
-                <?= htmlReady($file->owner->getFullName()) ?>
+                <?= htmlReady($folder->owner->getFullName()) ?>
             <? endif; ?>
             </td>
-            <td title="<?= strftime('%x %X', $file->mkdate) ?>" data-sort-value="<?= $file->mkdate ?>" class="responsive-hidden">
-                <?= reltime($file->mkdate) ?>
+            <td title="<?= strftime('%x %X', $folder->mkdate) ?>" data-sort-value="<?= $folder->mkdate ?>" class="responsive-hidden">
+                <?= reltime($folder->mkdate) ?>
             </td>
             <td class="actions">
                 <? $actionMenu = ActionMenu::get() ?>
                 <? if ($full_access): ?>
-                    <? $actionMenu->addLink($controller->url_for('folder/edit/' . $file->id),
+                    <? $actionMenu->addLink($controller->url_for('folder/edit/' . $folder->id),
                             _('Ordner bearbeiten'),
                             Icon::create('edit', 'clickable'),
                             ['data-dialog' => 'size=auto']) ?>
@@ -140,20 +140,20 @@
                         _('Ordner herunterladen'),
                         Icon::create('download', 'clickable')) ?>
                 <? if ($full_access): ?>
-                    <? $actionMenu->addLink($controller->url_for('folder/move/' . $file->id),
+                    <? $actionMenu->addLink($controller->url_for('folder/move/' . $folder->id),
                             _('Ordner verschieben'),
                             Icon::create('folder-empty+move_right', 'clickable'),
                             ['data-dialog' => 'size=auto']) ?>
-                    <? $actionMenu->addLink($controller->url_for('folder/copy/' . $file->id),
+                    <? $actionMenu->addLink($controller->url_for('folder/copy/' . $folder->id),
                             _('Ordner kopieren'),
                             Icon::create('folder-empty+add', 'clickable'),
                             ['data-dialog' => 'size=auto']) ?>
-                    <? $actionMenu->addLink($controller->url_for('folder/delete/' . $file->id),
+                    <? $actionMenu->addLink($controller->url_for('folder/delete/' . $folder->id),
                             _('Ordner löschen'),
                             Icon::create('trash', 'clickable'),
-                            ['data-confirm' => sprintf(_('Soll den Ordner "%s" wirklich gelöscht werden?'), htmlReady($file->name)),
+                            ['data-confirm' => sprintf(_('Soll den Ordner "%s" wirklich gelöscht werden?'), htmlReady($folder->name)),
                              'data-dialog' => 'size=auto',
-                             'formaction' => $controller->url_for('folder/delete/' . $file->id)]) ?>
+                             'formaction' => $controller->url_for('folder/delete/' . $folder->id)]) ?>
                 <? endif; ?>
                 <?= $actionMenu->render() ?>
             </td>
@@ -167,7 +167,7 @@
         <? $mime_type = File::find($file_ref->file_id)->mime_type; ?>    	
         <tr <? if ($full_access) printf('data-file="%s"', $file_ref->id) ?>>
             <td>
-                <input type="checkbox" name="ids[]" value="<?= $file->id ?>" <? if (in_array($file_ref->id, $markedElementIds)) echo 'checked'; ?>>
+                <input type="checkbox" name="ids[]" value="<?= $file->id ?>" <? if (in_array($file_ref->id, $marked_element_ids)) echo 'checked'; ?>>
             </td>
             <td class="document-icon" data-sort-value="1">
                 <a href="<?= $file_ref->getDownloadURL() ?>">
@@ -202,24 +202,30 @@
             </td>
             <td class="actions">
                 <? $actionMenu = ActionMenu::get() ?>
-                <? if ($full_access): ?>
+                <? if ($file_ref->isEditable($GLOBALS['user']->id)): ?>
                     <? $actionMenu->addLink($controller->url_for('file/edit/' . $file_ref->id),
                             _('Datei bearbeiten'),
                             Icon::create('edit', 'clickable'),
                             ['data-dialog' => 'size=auto']) ?>
                 <? endif; ?>
-                <? $actionMenu->addLink($downloadlink,
-                        _('Datei herunterladen'),
-                        Icon::create('download', 'clickable')) ?>
-                <? if ($full_access): ?>
+                <? if ($file_ref->isDownloadable($GLOBALS['user']->id)): ?>
+                    <? $actionMenu->addLink($downloadlink,
+                            _('Datei herunterladen'),
+                            Icon::create('download', 'clickable')) ?>
+                <? endif; ?>
+                <? if ($file_ref->isDeletable($GLOBALS['user']->id)): ?>
                     <? $actionMenu->addLink($controller->url_for('file/move/' . $file_ref->id),
                             _('Datei verschieben'),
                             Icon::create('file+move_right', 'clickable'),
                             ['data-dialog' => 'size=auto']) ?>
+                <? endif; ?>
+                <? if ($file_ref->isDownloadable($GLOBALS['user']->id)): ?>
                     <? $actionMenu->addLink($controller->url_for('file/copy/' . $file_ref->id),
                             _('Datei kopieren'),
                             Icon::create('file+add', 'clickable'),
                             ['data-dialog' => 'size=auto']) ?>
+                <? endif; ?>
+                <? if ($file_ref->isDeletable($GLOBALS['user']->id)): ?>
                     <? $actionMenu->addLink($controller->url_for('file/delete/' . $file_ref->id),
                             _('Datei löschen'),
                             Icon::create('trash', 'clickable'),
