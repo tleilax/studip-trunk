@@ -3,16 +3,16 @@
 
 STUDIP.Files = {
     upload: function (filelist) {
-        console.log(filelist);
         var files = 0;
         var folder_id = jQuery("table.documents").data("folder_id");
+        console.log(folder_id);
         var data = new FormData();
 
         //Open upload-dialog
         jQuery(".file_uploader .filenames").html("");
         jQuery.each(filelist, function (index, file) {
             if (file.size > 0) {
-                data.append(index, file);
+                data.append("file[]", file);
                 jQuery(".file_uploader .filenames").append(jQuery("<li/>").text(file.name));
                 files += 1;
             }
@@ -43,7 +43,6 @@ STUDIP.Files = {
                                 percent = Math.ceil(position / total * 100);
                             }
                             //Set progress
-
                             jQuery(".uploadbar").css("background-size", percent + "% 100%");
                         }, false);
                     }
