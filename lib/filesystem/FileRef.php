@@ -184,11 +184,6 @@ class FileRef extends SimpleORMap
         throw new InvalidValuesException('class: ' . $this->license . ' not found');
     }
 
-    public function isVisible($user_id)
-    {
-        return true;
-    }
-
     public function isDownloadable($user_id)
     {
         return true;

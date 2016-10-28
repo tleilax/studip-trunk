@@ -263,4 +263,18 @@ class Folder extends SimpleORMap
         return join($delimiter, SimpleCollection::createFromArray($this->getParents())->pluck('name'));
     }
 
+    public function isReadable($user_id)
+    {
+        return true;
+    }
+
+    public function isEditable($user_id)
+    {
+        return true;
+    }
+
+    public function isDeletable($user_id)
+    {
+        return true;
+    }
 }
