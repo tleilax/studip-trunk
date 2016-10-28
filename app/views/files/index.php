@@ -1,5 +1,5 @@
 <form method="post">
-<table class="default" data-folder_id="<?= htmlReady($topFolder->getId()) ?>">
+<table class="default documents" data-folder_id="<?= htmlReady($topFolder->getId()) ?>">
     <caption>
         <div class="caption-container">
             <? $full_access = true;
