@@ -152,8 +152,9 @@ class FolderController extends AuthenticatedController
             }
         } else {
             //current user isn't permitted to change this folder:
-            PageLayout::postError(_('Sie sind nicht dazu berechtigt, diesen Ordner zu bearbeiten!'));
-            $this->render_text('');
+            $this->render_text(
+                MessageBox::error(_('Sie sind nicht dazu berechtigt, diesen Ordner zu bearbeiten!'))
+            );
             return;
         }
         
@@ -173,29 +174,25 @@ class FolderController extends AuthenticatedController
         //these should only be present when the form was sent.
         
         if(!$folderId) {
-            PageLayout::postError(_('Ordner-ID nicht gefunden!'));
-            $this->render_text('');
+            $this->render_text(MessageBox::error(_('Ordner-ID nicht gefunden!')));
             return;
         }
         
         $targetFolderId = Request::get('targetFolderId');
         if(!$targetFolderId) {
-            PageLayout::postError(_('Zielordner-ID nicht gefunden!'));
-            $this->render_text('');
+            $this->render_text(MessageBox::error(_('Zielordner-ID nicht gefunden!')));
             return;
         }
         
         $this->folder = Folder::find($folderId);
         if(!$this->folder) {
-            PageLayout::postError(_('Ordner nicht gefunden!'));
-            $this->render_text('');
+            $this->render_text(MessageBox::error(_('Ordner nicht gefunden!')));
             return;
         }
         
         $this->targetFolder = Folder::find($targetFolderId);
         if(!$this->targetFolder) {
-            PageLayout::postError(_('Zielordner nicht gefunden!'));
-            $this->render_text('');
+            $this->render_text(MessageBox::error(_('Zielordner nicht gefunden!')));
             return;
         }
         
@@ -212,14 +209,12 @@ class FolderController extends AuthenticatedController
                 $this->folder->store();
             } else {
                 //not permitted to create subfolder in target folder:
-                PageLayout::postError(_('Sie sind nicht dazu berechtigt, im Zielordner einen Ordner einzufügen!'));
-                $this->render_text('');
+                $this->render_text(MessageBox::error(_('Sie sind nicht dazu berechtigt, im Zielordner einen Ordner einzufügen!')));
                 return;
             }
         } else {
                 //not permitted to change folder:
-                PageLayout::postError(_('Sie sind nicht dazu berechtigt, den Ordner zu verschieben!'));
-                $this->render_text('');
+                $this->render_text(MessageBox::error(_('Sie sind nicht dazu berechtigt, den Ordner zu verschieben!')));
                 return;
         }
         
@@ -237,15 +232,13 @@ class FolderController extends AuthenticatedController
         
         //we need the ID of the folder:
         if(!$folderId) {
-            PageLayout::postError(_('Ordner-ID nicht gefunden!'));
-            $this->render_text('');
+            $this->render_text(MessageBox::error(_('Ordner-ID nicht gefunden!')));
             return;
         }
         
         $this->folder = Folder::find($folderId);
         if(!$this->folder) {
-            PageLayout::postError(_('Ordner nicht gefunden!'));
-            $this->render_text('');
+            $this->render_text(MessageBox::error(_('Ordner nicht gefunden!')));
             return;
         }
         
@@ -255,13 +248,11 @@ class FolderController extends AuthenticatedController
         
         if(($this->folder->user_id == $currentUser->id) or $perm->have_perm('admin')) {
             $this->folder->delete();
-            PageLayout::postSuccess(_('Ordner wurde gelöscht!'));
-            $this->render_text('');
+            $this->render_text(MessageBox::success(_('Ordner wurde gelöscht!')));
             return;
         } else {
             //not permitted to delete the folder:
-            PageLayout::postError(_('Sie sind nicht dazu berechtigt, diesen Ordner zu löschen!'));
-            $this->render_text('');
+            $this->render_text(MessageBox::error(_('Sie sind nicht dazu berechtigt, diesen Ordner zu löschen!')));
             return;
         }
         //DEVELOPMENT STAGE ONLY:
