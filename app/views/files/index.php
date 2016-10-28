@@ -143,16 +143,16 @@
                     <? $actionMenu->addLink($controller->url_for('folder/move/' . $folder->id),
                             _('Ordner verschieben'),
                             Icon::create('folder-empty+move_right', 'clickable'),
-                            ['data-dialog' => 'size=auto']) ?>
+                            ['data-dialog' => 'size=auto; reload-on-close']) ?>
                     <? $actionMenu->addLink($controller->url_for('folder/copy/' . $folder->id),
                             _('Ordner kopieren'),
                             Icon::create('folder-empty+add', 'clickable'),
-                            ['data-dialog' => 'size=auto']) ?>
+                            ['data-dialog' => 'size=auto; reload-on-close']) ?>
                     <? $actionMenu->addLink($controller->url_for('folder/delete/' . $folder->id),
                             _('Ordner löschen'),
                             Icon::create('trash', 'clickable'),
                             ['data-confirm' => sprintf(_('Soll den Ordner "%s" wirklich gelöscht werden?'), htmlReady($folder->name)),
-                             'data-dialog' => 'size=auto',
+                             'data-dialog' => 'size=auto; reload-on-close',
                              'formaction' => $controller->url_for('folder/delete/' . $folder->id)]) ?>
                 <? endif; ?>
                 <?= $actionMenu->render() ?>
@@ -206,7 +206,7 @@
                     <? $actionMenu->addLink($controller->url_for('file/edit/' . $file_ref->id),
                             _('Datei bearbeiten'),
                             Icon::create('edit', 'clickable'),
-                            ['data-dialog' => 'size=auto']) ?>
+                            ['data-dialog' => 'size=auto; reload-on-close', '' => '']) ?>
                 <? endif; ?>
                 <? if ($file_ref->isDownloadable($GLOBALS['user']->id)): ?>
                     <? $actionMenu->addLink($downloadlink,
@@ -217,13 +217,13 @@
                     <? $actionMenu->addLink($controller->url_for('file/move/' . $file_ref->id),
                             _('Datei verschieben'),
                             Icon::create('file+move_right', 'clickable'),
-                            ['data-dialog' => 'size=auto']) ?>
+                            ['data-dialog' => 'size=auto; reload-on-close']) ?>
                 <? endif; ?>
                 <? if ($file_ref->isDownloadable($GLOBALS['user']->id)): ?>
                     <? $actionMenu->addLink($controller->url_for('file/copy/' . $file_ref->id),
                             _('Datei kopieren'),
                             Icon::create('file+add', 'clickable'),
-                            ['data-dialog' => 'size=auto']) ?>
+                            ['data-dialog' => 'size=auto; reload-on-close']) ?>
                 <? endif; ?>
                 <? if ($file_ref->isDeletable($GLOBALS['user']->id)): ?>
                     <? $actionMenu->addLink($controller->url_for('file/delete/' . $file_ref->id),
