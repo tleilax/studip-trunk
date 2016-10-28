@@ -20,6 +20,8 @@
  * @property string downloads database column
  * @property string description database column
  * @property string license database column
+ * @property string mkdate database column
+ * @property string chdate database column
  * @property SimpleORMap file belongs_to File
  * @property SimpleORMap folder belongs_to Folder
  */
@@ -180,5 +182,25 @@ class FileRef extends SimpleORMap
             return new $this->license();
         }
         throw new InvalidValuesException('class: ' . $this->license . ' not found');
+    }
+
+    public function isVisible($user_id)
+    {
+        return true;
+    }
+
+    public function isDownloadable($user_id)
+    {
+        return true;
+    }
+
+    public function isEditable($user_id)
+    {
+        return true;
+    }
+
+    public function isDeletable($user_id)
+    {
+        return true;
     }
 }
