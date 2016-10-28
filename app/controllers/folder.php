@@ -228,7 +228,7 @@ class FolderController extends AuthenticatedController
             }
             
             //ok, all data are present... now we have to check the permissions:
-        
+            
             $target_folder_type = $this->folder->getTypedFolder();
         
             if($target_folder_type->isWritable($current_user->id)) {

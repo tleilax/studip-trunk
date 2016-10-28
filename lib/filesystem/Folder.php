@@ -44,12 +44,14 @@ class Folder extends SimpleORMap
             'assoc_foreign_key' => 'folder_id',
             'on_delete'         => 'delete',
             'on_store'          => 'store',
+            'order_by'          => 'ORDER BY name ASC'
         );
         $config['has_many']['subfolders'] = array(
             'class_name'        => 'Folder',
             'assoc_foreign_key' => 'parent_id',
             'on_delete'         => 'delete',
             'on_store'          => 'store',
+            'order_by'          => 'ORDER BY name ASC'
         );
         $config['belongs_to']['parentfolder'] = array(
             'class_name'  => 'Folder',
