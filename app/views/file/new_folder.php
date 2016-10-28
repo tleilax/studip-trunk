@@ -1,25 +1,12 @@
-<form method="post" class="studip_form"
+<form method="post" class="default"
       action="<?= $controller->url_for('/new') ?>"
-      data-dialog="reload-on-close">
-    <?= CSRFProtection::tokenTag() ?>
-    <input type="hidden" name="parentFolderId" value="<?=htmlReady($parentFolderId)?>">
-    <input type="hidden" name="rangeId" value="<?=htmlReady($rangeId)?>">
-    <input type="hidden" name="submitted" value="1">
-    <fieldset>
-        <fieldset>
-            <label>
-                <?= _('Name') ?>
-                <input name="folderName" type="text" required="required" value="<?= htmlReady($folderName) ?>">
-            </label>
-        </fieldset>
-        <fieldset>
-            <label>
-                <?= _('Beschreibung') ?>
-                <textarea name="description" placeholder="<?= _('Optionale Beschreibung') 
-                    ?>"><?= htmlReady($folderDescription) ?></textarea>
-            </label>
-        </fieldset>
-        </fieldset>
+      data-dialog="size=auto; reload-on-close">
+    <input type="hidden" name="parent_folder_id" value="<?= $parent_folder_id ?>">
+    <?= $this->render_partial('file/new_edit_folder_form.php',
+        [ 
+            'name' => $name,
+            'description' => $description
+        ]) ?>
     <div data-dialog-button>
         <?= Studip\Button::createAccept(_('Erstellen')) ?>
         <?= Studip\LinkButton::createCancel(_('Abbrechen')) ?>

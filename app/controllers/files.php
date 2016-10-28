@@ -33,7 +33,7 @@ class FilesController extends AuthenticatedController
         
         $actionParams = [];
         if($topFolderId) {
-            $actionParams['parentFolderId'] = $topFolderId;
+            $actionParams['parent_folder_id'] = $topFolderId;
         }
         
         $actions->addLink(

@@ -16,20 +16,20 @@
 class FolderController extends AuthenticatedController
 {
     
-    protected $utf8decode_xhr = false;
+    protected $utf8decode_xhr = true;
     
     
     public function new_action()
     {
         global $perm;
         
-        $this->parentFolderId = Request::get('parentFolderId');            
+        $this->parent_folder_id = Request::get('parent_folder_id');            
         $this->rangeId = Request::get('rangeId');
         
         //get parent folder:
-        $parentFolder = Folder::find($this->parentFolderId);
+        $parentFolder = Folder::find($this->parent_folder_id);
         if(!$parentFolder) {
-            if($this->parentFolderId) {
+            if($this->parent_folder_id) {
                 //parent folder ID was given but parent folder was not found: that's an error!
                 PageLayout::postError(_('Übergeordnetes Verzeichnis nicht gefunden!'));
                 $this->render_text('');
@@ -39,44 +39,37 @@ class FolderController extends AuthenticatedController
         }
         
         if(!$parentFolder) {
-            PageLayout::postError(
-                _('Das übergeordnete Verzeichnis kann nicht identifiziert werden!')
+            $this->render_text(
+                MessageBox::error(
+                    _('Das übergeordnete Verzeichnis kann nicht identifiziert werden!')
+                )
             );
-            $this->render_text('');
             return;
         }
         
         
         //get ID of course, institute, user etc.
-        if (Request::get('submitted')) {
+        if (Request::get('form_sent')) {
             
-            $this->folderName = Request::get('folderName');
-            $currentUser = User::findCurrent();
+            $this->name = Request::get('name');
+            $current_user = User::findCurrent();
             
-            if($this->folderName) {
-                //if $this->folderName and $this->parentFolderId or $this->rangeId are present
+            if($this->name) {
+                //if $this->name and $this->parent_folder_id or $this->rangeId are present
                 //we have all required parameters to create a folder.
                 
-                $this->folderDescription = Request::get('description'); 
+                $this->description = Request::get('description'); 
                 
-                //the current user is the only one who can create a folder in his personal file area.
-                //Any other user is not allowed to add a folder to the personal file area.
-                //If it is not a folder of the personal file area the user must be the owner
-                //of the parent folder or he must be root to create a subfolder.
-                /*if(($parentFolder->user_id == $currentUser->id) && 
-                        (
-                        ($parentFolder->range_type == 'user') ||
-                        (($parentFolder->range_type != 'user') && (($parentFolder->user_id == $currentUser->id) || $perm->have_perm('root')))
-                        )
-                    ) {*/
-                if(true) { //DEVELOPMENT ONLY!
+                $folder_type = $parentFolder->getTypedFolder();
+                
+                if($folder_type->isWritable($current_user->id)) {
                     //current user may create a new folder in the parent folder
                     
                     $folder = new Folder();
-                    $folder->name = studip_utf8decode($this->folderName);
-                    $folder->description = studip_utf8decode($this->folderDescription);
+                    $folder->name = $this->name;
+                    $folder->description = $this->description;
                     
-                    $errors = FileManager::createSubFolder($parentFolder, $currentUser, $folder);
+                    $errors = FileManager::createSubFolder($parentFolder, $current_user, $folder);
                     if(!$errors) {
                         //FileManager::createSubFolder returned an empty array => no errors!
                         $this->render_text(MessageBox::success(_('Ordner wurde angelegt!')));
@@ -85,10 +78,11 @@ class FolderController extends AuthenticatedController
                     }
                     return;
                 } else {
-                    PageLayout::postError(
-                        _('Sie besitzen nicht die erforderlichen Berechtigungen zum Anlegen eines neuen Ordners!')
+                    $this->render_text(
+                        MessageBox::error(
+                            _('Sie besitzen nicht die erforderlichen Berechtigungen zum Anlegen eines neuen Ordners!')
+                        )
                     );
-                    $this->render_text('');
                     return;
                 }
                                 
