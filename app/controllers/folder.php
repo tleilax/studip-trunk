@@ -116,19 +116,19 @@ class FolderController extends AuthenticatedController
     }
     
     
-    public function edit_action($folderId)
+    public function edit_action($folder_id)
     {
         global $perm;
         
         //we need the folder-ID of the folder that is to be edited:
-        if(!$folderId) {
+        if(!$folder_id) {
             $this->render_text(
                 MessageBox::error(_('Ordner-ID nicht gefunden!'))
             );
             return;
         }
         
-        $this->folder = Folder::find($folderId);
+        $this->folder = Folder::find($folder_id);
         if(!$this->folder) {
             $this->render_text(
                 MessageBox::error(_('Ordner nicht gefunden!'))
@@ -136,24 +136,42 @@ class FolderController extends AuthenticatedController
             return;
         }
         
-        $currentUser = User::findCurrent();
+        $this->folder_id = $this->folder->id;
+        
+        $current_user = User::findCurrent();
         
         //permission check: is the current allowed to edit the folder?
         
-        $folderType = $folder->getTypedFolder();
+        $folder_type = $this->folder->getTypedFolder();
         
-        if($folderType->isWritable($currentUser->id)) {
-            //update edited fields (that should only be present when the form was sent)
-            $folderName = Request::get('folderName');
-            if($folderName) {
-                $this->folder->name = $folderName;
-            }
+        if($folder_type->isWritable($current_user->id)) {
             
-            if($folderDescription) {
-                $this->folder->description = $folderDescription;
+            if(Request::get('form_sent')) {
+                //update edited fields
+                $this->name = Request::get('name');
+                if($this->name) {
+                    $this->folder->name = $this->name;
+                } else {
+                    //name is empty:
+                    $this->render_text(
+                        MessageBox::error(_('Ein neuer Name für den Ordner wurde nicht angegeben!'))
+                    );
+                }
+                
+                $this->description = Request::get('description');
+                
+                $this->folder->description = $this->description;
+                
+                $this->folder->store();
+                
+                $this->render_text(MessageBox::success(_('Ordner wurde bearbeitet!')));
+                return;
+            } else {
+                //show current field values:
+                
+                $this->name = $this->folder->name;
+                $this->description = $this->folder->description;
             }
-            
-            $this->folder->store();
         } else {
             //current user isn't permitted to change this folder:
             $this->render_text(
@@ -163,21 +181,21 @@ class FolderController extends AuthenticatedController
         }
         
         if(Request::isDialog()) {
-            $this->render_template('file/edit.php');
+            $this->render_template('file/edit_folder.php');
         } else {
-            $this->render_template('file/edit.php', $GLOBALS['template_factory']->open('layouts/base'));
+            $this->render_template('file/edit_folder.php', $GLOBALS['template_factory']->open('layouts/base'));
         }
     }
     
     
-    public function move_action($folderId)
+    public function move_action($folder_id)
     {
         global $perm;
         
         //we need the IDs of the folder and the target parent folder.
         //these should only be present when the form was sent.
         
-        if(!$folderId) {
+        if(!$folder_id) {
             $this->render_text(MessageBox::error(_('Ordner-ID nicht gefunden!')));
             return;
         }
@@ -188,7 +206,7 @@ class FolderController extends AuthenticatedController
             return;
         }
         
-        $this->folder = Folder::find($folderId);
+        $this->folder = Folder::find($folder_id);
         if(!$this->folder) {
             $this->render_text(MessageBox::error(_('Ordner nicht gefunden!')));
             return;
@@ -230,17 +248,17 @@ class FolderController extends AuthenticatedController
     }
     
     
-    public function delete_action($folderId)
+    public function delete_action($folder_id)
     {
         global $perm;
         
         //we need the ID of the folder:
-        if(!$folderId) {
+        if(!$folder_id) {
             $this->render_text(MessageBox::error(_('Ordner-ID nicht gefunden!')));
             return;
         }
         
-        $this->folder = Folder::find($folderId);
+        $this->folder = Folder::find($folder_id);
         if(!$this->folder) {
             $this->render_text(MessageBox::error(_('Ordner nicht gefunden!')));
             return;

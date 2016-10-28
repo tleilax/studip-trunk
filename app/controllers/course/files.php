@@ -93,7 +93,7 @@ class Course_FilesController extends AuthenticatedController
             Navigation::activateItem('/course/files_new/tree');
         }
         
-        $this->markedElementIds = [];
+        $this->marked_element_ids = [];
         
         $course = Course::findCurrent();
         $institute = null;
@@ -209,7 +209,7 @@ class Course_FilesController extends AuthenticatedController
             Navigation::activateItem('/course/files_new/flat');
         }
         
-        $this->markedElementIds = [];
+        $this->marked_element_ids = [];
         
         $filePreselector = Request::get('select', null);
         

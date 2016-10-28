@@ -71,7 +71,7 @@ class FilesController extends AuthenticatedController
             Navigation::activateItem('/profile/files/tree');
         }
         
-        $this->markedElementIds = [];
+        $this->marked_element_ids = [];
         
         $user = User::findCurrent();
         if(!$user) {
@@ -109,7 +109,7 @@ class FilesController extends AuthenticatedController
             Navigation::activateItem('/profile/files/flat');
         }
         
-        $this->markedElementIds = [];
+        $this->marked_element_ids = [];
         
         $user = User::findCurrent();
         if(!$user) {
