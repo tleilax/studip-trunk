@@ -200,4 +200,11 @@ class FileRef extends SimpleORMap
     {
         return true;
     }
+
+    public function delete() {
+        if (count($this->file) == 1)
+            $this->file->deleteDataFile();
+        
+        parent::delete();
+    }
 }

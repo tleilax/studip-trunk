@@ -304,9 +304,7 @@ class FileController extends AuthenticatedController
        if($fileRefId) {
             $fileRef = FileRef::find($fileRefId);           
             if($fileRef) {                
-                $file = File::find($fileRef->file_id);
-                $file->deleteDataFile();
-                $file->delete();
+                $fileRef->delete();
             } else {
                 //file not found
             }
