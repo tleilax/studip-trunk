@@ -47,11 +47,10 @@ class FilesController extends AuthenticatedController
         );
 
         $actions->addLink(
-            _('Neue Datei'),
-            URLHelper::getUrl(
-                'dispatch.php/file/upload', ['topfolder' => $this->topFolder->id]),
+            _('Datei hinzufügen'),
+            "#",
             Icon::create('file+add', 'clickable'),
-            array('data-dialog' => 'reload-on-close;size=auto')
+            array('onClick' => "STUDIP.Dialog.show(jQuery('.source_selector').html(), { title: '"._("Datei hinzufügen")."'}); return false;")
         );
         
         $sidebar->addWidget($actions);
@@ -89,8 +88,6 @@ class FilesController extends AuthenticatedController
             //create top folder:
             $this->topFolder = Folder::createTopFolder($user->id, 'user');
         }
-        
-        $this->parent_id = $this->topFolder->parent_id;
         
         $this->buildSidebar($this->topFolder->id);
         PageLayout::setTitle($user->getFullname() . ' - ' . _('Dateien'));

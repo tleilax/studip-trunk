@@ -52,6 +52,7 @@ STUDIP.Files = {
                     jQuery(".uploadbar").css("background-size", "100% 100%");
                     console.log(json);
                     STUDIP.Dialog.close();
+                    location.reload();
                 },
                 'complete': function () {
                     /*jQuery(textarea).removeClass("hovered");

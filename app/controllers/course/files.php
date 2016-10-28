@@ -64,12 +64,6 @@ class Course_FilesController extends AuthenticatedController
 
         }
         $actions->addLink(
-            _('Datei hochladen'),
-            "#",
-            Icon::create('file+add', 'clickable'),
-            array('onClick' => "jQuery('#file_selector input[type=file]').click(); return false;")
-        );
-        $actions->addLink(
             _('Datei hinzufügen'),
             "#",
             Icon::create('file+add', 'clickable'),

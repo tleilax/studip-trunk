@@ -215,5 +215,14 @@
             <?= Icon::create("service", "clickable")->asImg(50) ?>
             <?= _("Lernmaterialien") ?>
         </a>
+        <? foreach (PluginManager::getInstance()->getPlugins('FilesystemPlugin') as $plugin) : ?>
+            <? $nav = $plugin->getFileSelectNavigation() ?>
+            <? if ($nav) : ?>
+                <a href="">
+                    <?= $nav->getImage()->asImg(50) ?>
+                    <?= htmlReady($nav->getTitle()) ?>
+                </a>
+            <? endif ?>
+        <? endforeach ?>
     </div>
 </div>
