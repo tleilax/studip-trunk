@@ -5737,6 +5737,7 @@ table.dates .draggable-topic-handle {
 }
 .file_select_possibilities {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
   align-items: stretch;
 }
@@ -5745,7 +5746,11 @@ table.dates .draggable-topic-handle {
   border: thin solid #e7ebf1;
   padding: 5px;
   width: 100px;
+  min-width: 100px;
+  max-width: 100px;
   height: 100px;
+  min-height: 100px;
+  max-height: 100px;
   display: flex;
   flex-direction: column;
   justify-content: space-around;
