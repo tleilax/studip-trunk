@@ -16,6 +16,9 @@
 class FolderController extends AuthenticatedController
 {
     
+    protected $utf8decode_xhr = false;
+    
+    
     public function new_action()
     {
         global $perm;
