@@ -48,11 +48,11 @@ class FileController extends AuthenticatedController
             } else {
                 //all files were uploaded successfully:
                 foreach($validatedFiles['files'] as $file) {
-                    if ($file->store() && $folder->linkFile($file, Request::get('description', ""))) {
-                        $storedFiles[] = $file->name;
+                    if ($file->store() && ($fileref = $folder->linkFile($file, Request::get('description', "")))) {
+                        $storedFiles[] = $fileref;
                     }
                 }
-                if (count($storedFiles)) {
+                if (count($storedFiles) && !Request::isAjax()) {
                     PageLayout::postSuccess(
                         sprintf(
                             _('Es wurden %s Dateien hochgeladen'),
@@ -61,12 +61,18 @@ class FileController extends AuthenticatedController
                         array_map('htmlready', $storedFiles)
                     );
                 }
+                if (Request::isAjax()) {
+                    $output = array(
+                        "new_html" => array()
+                    );
+                    foreach ($storedFiles as $fileref) {
+                        $this->fileref = $fileref;
+                        $this->controller = new FilesController();
+                    }
+                    $this->render_json($output);
+                }
                 
             }
-        }
-        if (Request::isAjax()) {
-
-            $this->render_json(array());
         }
         $this->folder_id = $folder_id;
     }

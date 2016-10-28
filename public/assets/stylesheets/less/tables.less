@@ -427,8 +427,8 @@ table.default {
             }
         }
     }
-    > tbody > tr:last-child > td {
-            border-bottom: 1px solid @brand-color-darker;
+    > tbody:last-of-type > tr:last-child > td {
+        border-bottom: 1px solid @brand-color-darker;
     }
     // Hover effect
     &:not(.nohover) > tbody:not(.nohover) > tr:not(.nohover):hover > td:not(.nohover) {
