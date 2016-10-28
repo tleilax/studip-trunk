@@ -20,8 +20,8 @@ class Moadb extends Migration
     public function up()
     {
         $db = DBManager::get();
-        $db->exec("RENAME TABLE files TO _files");
-        $db->exec("RENAME TABLE file_refs TO _file_refs");
+        //$db->exec("RENAME TABLE files TO _files");
+        //$db->exec("RENAME TABLE file_refs TO _file_refs");
 
         $db->exec("CREATE TABLE IF NOT EXISTS `files` (
                  `id` varchar(32) NOT NULL,
@@ -175,7 +175,7 @@ class Moadb extends Migration
                 $filename = $name . '['.++$c.']' . ($ext ? '.' . $ext : '');
             }
             $filenames[] = $filename;
-            $insert_file_ref->execute(array($one['dokument_id'], $one['dokument_id'], $folder_id, $one['downloads'], $one['name'] != $one['filename'] ? trim($one['name'] . "\n" . $one['description']) : (string)$one['description'], $one['protected'] ? 'RestrictedLicense' : 'UnknownLicense'), $one['user_id'], $filename, $one['mkdate'], $one['chdate']);
+            $insert_file_ref->execute(array($one['dokument_id'], $one['dokument_id'], $folder_id, $one['downloads'], $one['name'] != $one['filename'] ? trim($one['name'] . "\n" . $one['description']) : (string)$one['description'], $one['protected'] ? 'RestrictedLicense' : 'UnknownLicense', $one['user_id'], $filename, $one['mkdate'], $one['chdate']));
             $insert_file->execute(array($one['dokument_id'], $one['user_id'], get_mime_type($one['filename']), $filename, $one['filesize'], $one['url'] ? 'url' : 'disk', $one['author_name'], $one['mkdate'], $one['chdate']));
             if ($one['url']) {
                 $insert_file_url->execute(array($one['dokument_id'], $one['url']));
