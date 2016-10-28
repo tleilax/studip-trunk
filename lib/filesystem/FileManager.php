@@ -52,6 +52,62 @@ class FileManager
         }
         return array_merge($result, ['error' => $error]);
     }
+    
+    
+    /**
+        Handles the sub folder creation routine.
+        
+        @param folder The folder where the subfolder shall be created.
+        @param user The user who wants to create the subfolder.
+        @param subFolder The subfolder that shall be linked.
+        
+        @returns array with error messages
+        
+    **/
+    public static function createSubFolder(Folder $folder, User $user, Folder $subFolder)
+    {
+        $errorMessages = [];
+        
+        //check if subFolder is new:
+        if(!$subFolder->isNew()) {
+            $errorMessages[] = _('Ein bereits erstellter Ordner kann nicht neu erzeugt werden!');
+        }
+        
+        
+        //check if user is owner of parent folder:
+        $folderType = $folder->getTypedFolder();
+        
+        if(!$folderType->isSubfolderAllowed($user->id)) {
+            $errorMessages[] = _('Sie sind nicht dazu berechtigt, einen Unterordner zu erstellen!');
+        }
+        
+        //check if folder name is unique and change it, if it isn't:
+        $subFolder->name = $folder->getUniqueName($subFolder->name);
+        
+        //we can return here if we have found errors:
+        if($errorMessages) {
+            return $errorMessages;
+        }
+        
+        
+        //check if all necessary attributes of the sub folder are set 
+        //and if they aren't set, set them here:
+        
+        $subFolder->user_id = $user->id;
+        
+        $subFolder->range_id = $folder->range_id;
+        
+        $subFolder->parent_id = $folder->id;
+        
+        $subFolder->range_type = $folder->range_type;
+        
+        $subFolder->folder_type = $folder->folder_type;
+        
+        $subFolder->store();
+                
+    }
+    
+    
 
     public static function getFolderTypes($range_type = null)
     {

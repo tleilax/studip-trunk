@@ -70,16 +70,17 @@ class FolderController extends AuthenticatedController
                     //current user may create a new folder in the parent folder
                     
                     $folder = new Folder();
-                    $folder->parent_id = $parentFolder->id;
-                    $folder->range_id = $parentFolder->range_id;
-                    $folder->user_id = $currentUser->id;
-                    $folder->range_type = $parentFolder->range_type;
-                    $folder->folder_type = $parentFolder->folder_type;
                     $folder->name = studip_utf8decode($this->folderName);
                     $folder->description = studip_utf8decode($this->folderDescription);
-                    $folder->store();
                     
-                    PageLayout::postSuccess('Ordner wurde erstellt!');
+                    $errors = FileManager::createSubFolder($parentFolder, $currentUser, $folder);
+                    if(!$errors) {
+                        //FileManager::createSubFolder returned an empty array => no errors!
+                        $this->render_text(MessageBox::success(_('Ordner wurde angelegt!')));
+                    } else {
+                        $this->render_text(MessageBox::error(_('Fehler beim Anlegen des Ordners'), $errors));
+                    }
+                    return;
                 } else {
                     PageLayout::postError(
                         _('Sie besitzen nicht die erforderlichen Berechtigungen zum Anlegen eines neuen Ordners!')
@@ -87,14 +88,7 @@ class FolderController extends AuthenticatedController
                     $this->render_text('');
                     return;
                 }
-                
-                PageLayout::postSuccess(
-                    _('Ordner wurde angelegt!')
-                );
-                
-                $this->render_text('');
-                return;
-                
+                                
                 /*
                 if($folder->range_type == 'user') {
                     return $this->redirect(URLHelper::getUrl('dispatch.php/files/index/'.$parentFolder->id));
@@ -128,15 +122,17 @@ class FolderController extends AuthenticatedController
         
         //we need the folder-ID of the folder that is to be edited:
         if(!$folderId) {
-            PageLayout::postError(_('Ordner-ID nicht gefunden!'));
-            $this->render_text('');
+            $this->render_text(
+                MessageBox::error(_('Ordner-ID nicht gefunden!'))
+            );
             return;
         }
         
         $this->folder = Folder::find($folderId);
         if(!$this->folder) {
-            PageLayout::postError(_('Ordner nicht gefunden!'));
-            $this->render_text('');
+            $this->render_text(
+                MessageBox::error(_('Ordner nicht gefunden!'))
+            );
             return;
         }
         
