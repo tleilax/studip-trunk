@@ -92,7 +92,9 @@ class Course_FilesController extends AuthenticatedController
         if(Navigation::hasItem('/course/files_new/tree')) {
             Navigation::activateItem('/course/files_new/tree');
         }
-
+        
+        $this->markedElementIds = [];
+        
         $course = Course::findCurrent();
         $institute = null;
         if(!$course) {
@@ -206,6 +208,8 @@ class Course_FilesController extends AuthenticatedController
         if(Navigation::hasItem('/course/files_new/flat')) {
             Navigation::activateItem('/course/files_new/flat');
         }
+        
+        $this->markedElementIds = [];
         
         $filePreselector = Request::get('select', null);
         

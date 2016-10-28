@@ -138,9 +138,11 @@ class FolderController extends AuthenticatedController
         
         $currentUser = User::findCurrent();
         
-        //permission check: is the current user the owner of the folder
-        //or is the current user an admin?
-        if(($folder->user_id == $currentUser->id) or $perm->have_perm('admin')) {
+        //permission check: is the current allowed to edit the folder?
+        
+        $folderType = $folder->getTypedFolder();
+        
+        if($folderType->isWritable($currentUser->id)) {
             //update edited fields (that should only be present when the form was sent)
             $folderName = Request::get('folderName');
             if($folderName) {
@@ -150,6 +152,8 @@ class FolderController extends AuthenticatedController
             if($folderDescription) {
                 $this->folder->description = $folderDescription;
             }
+            
+            $this->folder->store();
         } else {
             //current user isn't permitted to change this folder:
             $this->render_text(
