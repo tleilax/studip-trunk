@@ -1,5 +1,5 @@
 <form method="post">
-<table class="default documents <? if (count($topFolder->file_refs) > 0) : ?>sortable-table<? endif ?>" data-folder_id="<?= htmlReady($topFolder->getId()) ?>">
+<table class="default" data-folder_id="<?= htmlReady($topFolder->getId()) ?>">
     <caption>
         <div class="caption-container">
             <? $full_access = true;
@@ -88,7 +88,7 @@
                 <?= _('Dieser Ordner ist leer') ?>
             </td>
         </tr>
-    <tbody>
+    </tbody>
 <? elseif (count($topFolder->subfolders)) : ?>
     <tbody>
     <? foreach ($topFolder->subfolders as $file) : ?>
@@ -128,30 +128,34 @@
             <td title="<?= strftime('%x %X', $file->mkdate) ?>" data-sort-value="<?= $file->mkdate ?>" class="responsive-hidden">
                 <?= reltime($file->mkdate) ?>
             </td>
-            <td class="options">
-            <? if ($full_access): ?>
-                <a href="<?= $controller->url_for('folder/edit/' . $file->id) ?>" data-dialog="size=auto" title="<?= _('Ordner bearbeiten') ?>">
-                    <?= Icon::create('edit', 'clickable')->asImg(20, ["alt" => _('bearbeiten')]) ?>
-                </a>
-            <? endif; ?>
-                <a href="<?= $downloadlink ?>" title="<?= _('Ordner herunterladen') ?>">
-                    <?= Icon::create('download', 'clickable')->asImg(20, ["alt" => _('herunterladen')]) ?>
-                </a>
-            <? if ($full_access): ?>
-                <a href="<?= $controller->url_for('folder/move/' . $file->id) ?>" data-dialog="size=auto" title="<?= _('Ordner verschieben') ?>">
-                    <?= Icon::create('folder-empty+move_right', 'clickable')->asImg(20, ["alt" => _('verschieben')]) ?>
-                </a>
-                 <a href="<?= $controller->url_for('folder/copy/' . $file->id) ?>" data-dialog="size=auto" title="<?= _('Ordner kopieren') ?>">
-                    <?= Icon::create('folder-empty+add', 'clickable')->asImg(20, ["alt" => _('kopieren')]) ?>
-                </a>
-                <?/* <a href="<?= $controller->url_for('folder/delete/' . $file->id) ?>" title="<?= _('Ordner löschen') ?>">
-                    <?= Icon::create('trash', 'clickable')->asImg(20, ["alt" => _('löschen')]) ?>
-                </a>*/?>
-                <?= Icon::create('trash', 'clickable',
-                            ['title' => _('löschen')])->asInput(20, array(
-                                    'data-confirm' => sprintf(_('Soll den Ordner "%s" wirklich gelöscht werden?'), htmlReady($file->name)),
-                                    'formaction'   => $controller->url_for('folder/delete/' . $file->id))) ?>
-            <? endif; ?>
+            <td class="actions">
+                <? $actionMenu = ActionMenu::get() ?>
+                <? if ($full_access): ?>
+                    <? $actionMenu->addLink($controller->url_for('folder/edit/' . $file->id),
+                            _('Ordner bearbeiten'),
+                            Icon::create('edit', 'clickable'),
+                            ['data-dialog' => 'size=auto']) ?>
+                <? endif; ?>
+                <? $actionMenu->addLink($downloadlink,
+                        _('Ordner herunterladen'),
+                        Icon::create('download', 'clickable')) ?>
+                <? if ($full_access): ?>
+                    <? $actionMenu->addLink($controller->url_for('folder/move/' . $file->id),
+                            _('Ordner verschieben'),
+                            Icon::create('folder-empty+move_right', 'clickable'),
+                            ['data-dialog' => 'size=auto']) ?>
+                    <? $actionMenu->addLink($controller->url_for('folder/copy/' . $file->id),
+                            _('Ordner kopieren'),
+                            Icon::create('folder-empty+add', 'clickable'),
+                            ['data-dialog' => 'size=auto']) ?>
+                    <? $actionMenu->addLink($controller->url_for('folder/delete/' . $file->id),
+                            _('Ordner löschen'),
+                            Icon::create('trash', 'clickable'),
+                            ['data-confirm' => sprintf(_('Soll den Ordner "%s" wirklich gelöscht werden?'), htmlReady($file->name)),
+                             'data-dialog' => 'size=auto',
+                             'formaction' => $controller->url_for('folder/delete/' . $file->id)]) ?>
+                <? endif; ?>
+                <?= $actionMenu->render() ?>
             </td>
         </tr>
     <? endforeach ?>
@@ -196,31 +200,34 @@
             <td title="<?= strftime('%x %X', $file_ref->file->mkdate) ?>" data-sort-value="<?= $file_ref->file->mkdate ?>" class="responsive-hidden">
                 <?= reltime($file_ref->file->mkdate) ?>
             </td>
-            <td class="options">
-            <? if ($full_access): ?>
-                <a href="<?= $controller->url_for('file/edit/' . $file_ref->id) ?>" data-dialog="size=auto" title="<?= _('Datei bearbeiten') ?>">
-                    <?= Icon::create('edit', 'clickable')->asImg(20, ["alt" => _('bearbeiten')]) ?>
-                </a>
-            <? endif; ?>
-                <a href="<?= $file_ref->getDownloadURL() ?>" title="<?= _('Datei herunterladen') ?>">
-                    <?= Icon::create('download', 'clickable')->asImg(20, ["alt" => _('herunterladen')]) ?>
-                </a>
-            <? if ($full_access): ?>
-                <a href="<?= $controller->url_for('file/move/' . $file_ref->id) ?>" data-dialog="size=auto" title="<?= _('Datei verschieben') ?>">
-                    <?= Icon::create('file+move_right', 'clickable')->asImg(20, ["alt" => _('verschieben')]) ?>
-                </a>
-                <a href="<?= $controller->url_for('file/copy/' . $file_ref->id) ?>" data-dialog="size=auto" title="<?= _('Datei kopieren') ?>">
-                    <?= Icon::create('file+add', 'clickable')->asImg(20, ["alt" => _('kopieren')]) ?>
-                </a>
-                <?/* 
-                <a href="<?= $controller->url_for('file/delete/' . $file_ref->id) ?>" title="<?= _('Datei löschen') ?>">
-                <?= Icon::create('trash', 'clickable')->asImg(20, ["alt" => _('löschen')]) ?>
-                </a>*/?>                
-                <?= Icon::create('trash', 'clickable',
-                            ['title' => _('löschen')])->asInput(20, array(
-                                    'data-confirm' => sprintf(_('Soll die Datei "%s" wirklich gelöscht werden?'), htmlReady($file_ref->file->name)),
-                                    'formaction'   => $controller->url_for('file/delete/' . $file_ref->id))) ?>
-            <? endif; ?>
+            <td class="actions">
+                <? $actionMenu = ActionMenu::get() ?>
+                <? if ($full_access): ?>
+                    <? $actionMenu->addLink($controller->url_for('file/edit/' . $file_ref->id),
+                            _('Datei bearbeiten'),
+                            Icon::create('edit', 'clickable'),
+                            ['data-dialog' => 'size=auto']) ?>
+                <? endif; ?>
+                <? $actionMenu->addLink($downloadlink,
+                        _('Datei herunterladen'),
+                        Icon::create('download', 'clickable')) ?>
+                <? if ($full_access): ?>
+                    <? $actionMenu->addLink($controller->url_for('file/move/' . $file_ref->id),
+                            _('Datei verschieben'),
+                            Icon::create('file+move_right', 'clickable'),
+                            ['data-dialog' => 'size=auto']) ?>
+                    <? $actionMenu->addLink($controller->url_for('file/copy/' . $file_ref->id),
+                            _('Datei kopieren'),
+                            Icon::create('file+add', 'clickable'),
+                            ['data-dialog' => 'size=auto']) ?>
+                    <? $actionMenu->addLink($controller->url_for('file/delete/' . $file_ref->id),
+                            _('Datei löschen'),
+                            Icon::create('trash', 'clickable'),
+                            ['data-confirm' => sprintf(_('Soll die Datei "%s" wirklich gelöscht werden?'), htmlReady($file_ref->file->name)),
+                             'data-dialog' => 'size=auto',
+                             'formaction' => $controller->url_for('file/delete/' . $file_ref->id)]) ?>
+                <? endif; ?>
+                <?= $actionMenu->render() ?>
             </td>
         </tr>
     <? endforeach; ?>
@@ -230,7 +237,6 @@
         <tr>
             <td colspan="100">
         <? if ($full_access || extension_loaded('zip')): ?>
-                <?= _('Alle markierten') ?>
             <? if (extension_loaded('zip')): ?>
                 <?= Studip\Button::create(_('Herunterladen'), 'download') ?>
             <? endif; ?>
