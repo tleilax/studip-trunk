@@ -578,7 +578,7 @@ class StreamsController extends PluginController {
                 $document['range_id'] = $context_type === "course" ? $folder_id : $parent_folder_id;
                 $document['filesize'] = $file['size'];
 
-                if ($context === $GLOBALS['user']->id && Config::get()->PERSONALDOCUMENT_ENABLE) {
+                if ($context === $GLOBALS['user']->id) {
                     try {
                         $root_dir = RootDirectory::find($GLOBALS['user']->id);
                         $blubber_directory = $root_dir->listDirectories()->findOneBy('name', 'Blubber');

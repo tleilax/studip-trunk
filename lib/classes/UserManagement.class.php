@@ -874,10 +874,8 @@ class UserManagement
         // delete documents of this user
         if ($delete_documents) {
             // Remove private file space of this user
-            if (Config::get()->PERSONALDOCUMENT_ENABLE) {
-                $root_dir = new RootDirectory($this->user_data['auth_user_md5.user_id']);
-                $root_dir->delete();
-            }
+            $root_dir = new RootDirectory($this->user_data['auth_user_md5.user_id']);
+            $root_dir->delete();
 
             // Remove other files
             $temp_count = 0;
