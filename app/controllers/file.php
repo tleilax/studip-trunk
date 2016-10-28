@@ -211,31 +211,93 @@ class FileController extends AuthenticatedController
         }
     }
     
-    public function move_action($fileId)
+    public function move_action($file_ref_id)
     {
-        $sourceFolderId = Request::get('sourceId');
-        $destinationFolderId = Request::get('destinationId');
+
+        global $perm;
         
-        if($fileId && $sourceFolderId && $destinationFolderId) {
+        if (Request::submitted("do_move")) {
+        
+            $folder_id = Request::get('dest_folder');
             
-            $file = File::find($fileId);
-            $sourceFolder = Folder::find($sourceFolderId);
-            $destinationFolder = Folder::find($destinationFolderId);
-            
-            if($file && $sourceFolder && $destinationFolder) {
-                //ok, we can move the file
+            if($file_ref_id && $folder_id) {
                 
-            } else {
-                //either the file or the source folder or the
-                //destination folder is missing: we can't move the file!
+                $file_ref = FileRef::find($file_ref_id);                
+                $source_folder = Folder::find($file_ref->folder_id);
+                $destination_folder = Folder::find($folder_id);
+                
+                if($source_folder && $destination_folder) {
+                    $user_id = User::findCurrent()->id;                   
+                    
+                    if($source_folder->isReadable($user_id) && $destination_folder->isEditable($user_id)) {
+                        $file_ref->folder_id = $folder_id;
+                        if($file_ref->store()){
+                            PageLayout::postSuccess(_('Die Datei wurde verschoben.'));
+                        } else {
+                            PageLayout::postError(_('Fehler beim Verschieben der Datei.'));
+                        }
+                        //DEVELOPMENT STAGE ONLY:
+                        return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/'.$folder_id));
+                    }
+                }
             }
-        } else {
-            //at least one of the required parameters is not set:
-            //TODO: show some error message
-        }
             
+        } else {
+            
+            
+            
+            if ($perm->have_perm('root')) {
+                $parameters = array(
+                    'semtypes' => studygroup_sem_types() ?: array(),
+                    'exclude' => array()
+                );
+            } else if ($perm->have_perm('admin')) {
+                $parameters = array(
+                    'semtypes' => studygroup_sem_types() ?: array(),
+                    'institutes' => array_map(function ($i) {
+                    return $i['Institut_id'];
+                    }, Institute::getMyInstitutes()),
+                    'exclude' => array()
+                    );
+            
+            } else {
+                $parameters = array(
+                    'userid' => $GLOBALS['user']->id,
+                    'semtypes' => studygroup_sem_types() ?: array(),
+                    'exclude' => array()
+                );
+            }
+            
+            $coursesearch = MyCoursesSearch::get('Seminar_id', $GLOBALS['perm']->get_perm(), $parameters);
+            $this->search = QuickSearch::get('course_id', $coursesearch)
+            ->setInputStyle('width:100%')
+            ->fireJSFunctionOnSelect('function(){STUDIP.Files.getFolders();}')
+            ->withButton()
+            ->render();
+            
+            
+            $this->range_name = "test";
+            $this->file_ref = $file_ref_id;
+        }
     }
     
+    public function getFolders_action()
+    {
+        $rangeId = Request::get("range");        
+        $folders = Folder::findBySQL("range_id=?", array($rangeId));
+        $folderray = array();
+        foreach ($folders as $folder) {
+            $folderray[][ $folder->getPath()] = $folder->id;
+        }
+        sort($folderray);
+        
+        if (Request::isAjax()) {
+            echo json_encode($folderray);
+            die();
+        } else {
+            $this->render_nothing();
+        }
+    }
     
     public function delete_action($fileRefId)
     {

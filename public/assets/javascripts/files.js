@@ -61,6 +61,25 @@ STUDIP.Files = {
             });
         }
 
+    },
+
+    getFolders: function () {
+    	var range = $("#copymove-range > div > input").first().val();
+    	
+    	$.post(STUDIP.URLHelper.getURL("dispatch.php/file/getFolders"), {"range": range}, function( data ) {
+		    if (data) {
+		    	$("#copymove-subfolder select").empty();
+		    	$.each(data, function( index, value ) {
+		    		$.each(value, function( label, folder_id ) {
+		    			$("#copymove-subfolder select").append('<option value="' + folder_id + '">' + label + '</option>');
+		    		});
+	    		});
+		    }
+		}, "json").done(function(){
+			$("#copymove-subfolder").show();
+		});
+    	
+        
     }
 };
 
@@ -75,4 +94,14 @@ jQuery(function () {
         var filelist = event.originalEvent.dataTransfer.files || {};
         STUDIP.Files.upload(filelist);
     });
+    
+    $(document).on('change', '#copymove-destination', function (event) {
+    	var elem = jQuery(this).find('select').first();
+    	if ($.inArray( elem.val(), [ "courses", "institutes" ] ) > -1) {
+    		$("#copymove-range").show();
+    	} else {
+    		$("#copymove-subfolder").show();
+    	}	
+    });
+    
 });

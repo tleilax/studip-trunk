@@ -51,7 +51,7 @@
             <? $actionMenu->addLink($controller->url_for('file/move/' . $file_ref->id),
                 _('Datei verschieben'),
                 Icon::create('file+move_right', 'clickable'),
-                ['data-dialog' => 'size=auto; reload-on-close']) ?>
+                ['data-dialog' => 'size=big; reload-on-close']) ?>
         <? endif; ?>
         <? if ($file_ref->isDownloadable($GLOBALS['user']->id)): ?>
             <? $actionMenu->addLink($controller->url_for('file/copy/' . $file_ref->id),
