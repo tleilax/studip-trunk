@@ -109,18 +109,66 @@ class FileManager
     
     
     /**
+        This method handles copying a file to a new folder.
+        
+        @param source The file reference for the file that shall be copied.
+        @param destination_folder The destination folder.
+        
+        @returns Array with error messages: Empty array on success, filled array on failure.
+    **/
+    public static function copyFileRef(FileRef $source, Folder $destination_folder)
+    {
+        return ['Not yet implemented!'];
+    }
+    
+    
+    /**
         This method handles copying folders, including
         copying the subfolders and files recursively.
         
         @param source_folder The folder that shall be copied.
-        @param target_folder The destination folder.
+        @param destination_folder The destination folder.
         
         @returns Array with error messages: Empty array on success, filled array on failure.
     **/
     public static function copyFolder(Folder $source_folder, Folder $destination_folder)
     {
-        return ['Not yet implemented!'];
+        $errors = [];
+        
+        
+        $new_folder = Folder();
+        $new_folder->user_id = $source_folder->user_id;
+        $new_folder->parent_id = $destination_folder->id;
+        $new_folder->range_id = $destination_folder->range_id;
+        $new_folder->range_type = $destination_folder->range_type;
+        $new_folder->folder_type = $source_folder->folder_type;
+        $new_folder->name = $source_folder->name;
+        $new_folder->data_content = $source_folder->data_content;
+        $new_folder->description = $source_folder->description;
+        //folder is copied, we can store it:
+        $new_folder->store();
+        
+        
+        //now we go through all subfolders and copy them:
+        foreach($source_folder->subfolders as $sub_folder) {
+            $errors[] = self::copyFolder($sub_folder, $new_folder);
+            if($errors) {
+                return $errors;
+            }
+        }
+        
+        //now go through all files and copy them, too:
+        foreach($source_folder->file_refs as $file_ref) {
+            $errors[] = self::copyFileRef($file_ref, $new_folder);
+            
+            if($errors) {
+                return $errors;
+            }
+        }
+        
+        return $errors;
     }
+    
     
     public static function getFolderTypes($range_type = null)
     {
