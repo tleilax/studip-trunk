@@ -94,7 +94,7 @@
     <? foreach ($topFolder->subfolders as $file) : ?>
         <tr <? if ($full_access) printf('data-file="%s"', $file->id) ?> <? if ($full_access) printf('data-folder="%s"', $file->id); ?>>
             <td>
-                <input type="checkbox" name="ids[]" value="<?= $file->id ?>" <? if (in_array($file->id, $marked)) echo 'checked'; ?>>
+                <input type="checkbox" name="ids[]" value="<?= $file->id ?>" <? if (in_array($file->id, $markedElementIds)) echo 'checked'; ?>>
             </td>
             <td class="document-icon" data-sort-value="0">
                 <a href="<?= $controller->url_for('document/files/index/' . $file->id) ?>">
@@ -167,7 +167,7 @@
         <? $mime_type = File::find($file_ref->file_id)->mime_type; ?>    	
         <tr <? if ($full_access) printf('data-file="%s"', $file_ref->id) ?>>
             <td>
-                <input type="checkbox" name="ids[]" value="<?= $file->id ?>" <? if (in_array($file_ref->id, $marked)) echo 'checked'; ?>>
+                <input type="checkbox" name="ids[]" value="<?= $file->id ?>" <? if (in_array($file_ref->id, $markedElementIds)) echo 'checked'; ?>>
             </td>
             <td class="document-icon" data-sort-value="1">
                 <a href="<?= $file_ref->getDownloadURL() ?>">

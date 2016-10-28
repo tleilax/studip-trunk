@@ -71,6 +71,8 @@ class FilesController extends AuthenticatedController
             Navigation::activateItem('/profile/files/tree');
         }
         
+        $this->markedElementIds = [];
+        
         $user = User::findCurrent();
         if(!$user) {
             //TODO: throw exception
@@ -106,7 +108,9 @@ class FilesController extends AuthenticatedController
         if(Navigation::hasItem('/profile/files/flat')) {
             Navigation::activateItem('/profile/files/flat');
         }
-
+        
+        $this->markedElementIds = [];
+        
         $user = User::findCurrent();
         if(!$user) {
             //TODO: throw exception
