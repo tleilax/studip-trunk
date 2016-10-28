@@ -185,10 +185,8 @@ class FolderController extends AuthenticatedController
     }
     
     
-    public function move_action($folder_id)
+    public function copyOrMove($folder_id, $copy = true)
     {
-        global $perm;
-        
         //we need the IDs of the folder and the target parent folder.
         //these should only be present when the form was sent.
         
@@ -205,12 +203,19 @@ class FolderController extends AuthenticatedController
         
         $current_user = User::findCurrent();
         
+        if($copy && !$folder_type->isReadable($current_user->id)) {
+            //not permitted to copy the folder:
+            $this->render_text(MessageBox::error(_('Sie sind nicht dazu berechtigt, den Ordner zu kopieren!')));
+            return;
+        }
+        
         $folder_type = $this->folder->getTypedFolder();
-        if(!$folder_type->isWritable($current_user->id)) {
+        if(!$copy && !$folder_type->isWritable($current_user->id)) {
             //not permitted to move the folder:
             $this->render_text(MessageBox::error(_('Sie sind nicht dazu berechtigt, den Ordner zu verschieben!')));
             return;
         }
+        
         
         //check if form was sent:
         
@@ -232,13 +237,28 @@ class FolderController extends AuthenticatedController
             $target_folder_type = $this->folder->getTypedFolder();
         
             if($target_folder_type->isWritable($current_user->id)) {
-                //ok, we can move the folder!
-                $this->folder->parent_id = $this->target_folder->id;
-                $this->folder->store();
-                
-                $this->render_text(
-                    MessageBox::success(_('Ordner erfolgreich verschoben!'))
-                );
+                if($copy) {
+                    $errors = FileManager::copyFolder($this->folder, $this->target_folder);
+                    
+                    if(!$errors) {
+                        $this->render_text(
+                            MessageBox::success(_('Ordner erfolgreich kopiert!'))
+                        );
+                    } else {
+                        $this->render_text(
+                            MessageBox::error(_('Fehler beim Kopieren des Ordners!'), $errors)
+                        );
+                    }
+                } else {
+                    //ok, we can move the folder!
+                    
+                    $this->folder->parent_id = $this->target_folder->id;
+                    $this->folder->store();
+                    
+                    $this->render_text(
+                        MessageBox::success(_('Ordner erfolgreich verschoben!'))
+                    );
+                }
                 return;
             } else {
                 //not permitted to create subfolder in target folder:
@@ -248,11 +268,31 @@ class FolderController extends AuthenticatedController
         }
         
         
-        if(Request::isDialog()) {
-            $this->render_template('file/move.php');
+        if($copy) {
+            if(Request::isDialog()) {
+                $this->render_template('file/copy.php');
+            } else {
+                $this->render_template('file/copy.php', $GLOBALS['template_factory']->open('layouts/base'));
+            }
         } else {
-            $this->render_template('file/move.php', $GLOBALS['template_factory']->open('layouts/base'));
+            if(Request::isDialog()) {
+                $this->render_template('file/move.php');
+            } else {
+                $this->render_template('file/move.php', $GLOBALS['template_factory']->open('layouts/base'));
+            }
         }
+    }
+    
+    
+    public function copy_action($folder_id)
+    {
+        $this->copyOrMove($folder_id, true);
+    }
+    
+    
+    public function move_action($folder_id)
+    {
+        $this->copyOrMove($folder_id, false);
     }
     
     

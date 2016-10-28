@@ -108,7 +108,20 @@ class FileManager
     }
     
     
-
+    /**
+        This method handles copying folders, including
+        copying the subfolders and files recursively.
+        
+        @param source_folder The folder that shall be copied.
+        @param target_folder The destination folder.
+        
+        @returns Array with error messages: Empty array on success, filled array on failure.
+    **/
+    public static function copyFolder(Folder $source_folder, Folder $destination_folder)
+    {
+        return ['Not yet implemented!'];
+    }
+    
     public static function getFolderTypes($range_type = null)
     {
         $result = array();
