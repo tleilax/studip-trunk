@@ -5732,6 +5732,25 @@ table.dates .draggable-topic-handle {
   background-repeat: no-repeat;
   border: #28497c solid 1px;
 }
+.source_selector {
+  display: none;
+}
+.file_select_possibilities {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+}
+.file_select_possibilities > * {
+  margin: 10px;
+  border: thin solid #e7ebf1;
+  padding: 5px;
+  width: 100px;
+  height: 100px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+}
 /* classes for the evaluation modules in Stud.IP ---------------------------- */
 .eval_title {
   font-size: 1.2em;

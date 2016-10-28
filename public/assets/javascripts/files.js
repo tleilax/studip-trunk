@@ -53,17 +53,6 @@ STUDIP.Files = {
                     jQuery(".uploadbar").css("background-size", "100% 100%");
                     console.log(json);
                     STUDIP.Dialog.close();
-                    /*if (typeof json.inserts === "object") {
-                     jQuery.each(json.inserts, function (index, text) {
-                     jQuery(textarea).val(jQuery(textarea).val() + " " + text);
-                     });
-                     }
-                     if (typeof json.errors === "object") {
-                     alert(json.errors.join("\n"));
-                     } else if (typeof json.inserts !== "object") {
-                     alert("Fehler beim Dateiupload.");
-                     }
-                     jQuery(textarea).trigger("keydown");*/
                 },
                 'complete': function () {
                     /*jQuery(textarea).removeClass("hovered");

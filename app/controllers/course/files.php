@@ -68,10 +68,10 @@ class Course_FilesController extends AuthenticatedController
             array('onClick' => "jQuery('#file_selector input[type=file]').click(); return false;")
         );
         $actions->addLink(
-            _('Datei aus meinem Bereich kopieren'),
-            URLHelper::getUrl('dispatch.php/file/upload', ['topfolder' => $this->topFolder->id]),
+            _('Datei hinzufügen'),
+            "#",
             Icon::create('file+add', 'clickable'),
-            array('onClick' => "return false;")
+            array('onClick' => "STUDIP.Dialog.show(jQuery('.source_selector').html(), { title: '"._("Datei hinzufügen")."'}); return false;")
         );
 
         $sidebar->addWidget($actions);
