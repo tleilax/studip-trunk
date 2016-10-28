@@ -62,7 +62,7 @@ class FilesController extends AuthenticatedController
     /**
         Displays the files in tree view
     **/
-    public function index_action($topFolder = '')
+    public function index_action($folder_id = '')
     {
         if(Navigation::hasItem('/profile/files')) {
             Navigation::activateItem('/profile/files');
@@ -79,16 +79,18 @@ class FilesController extends AuthenticatedController
 
             return; //DEVELOPMENT STAGE CODE!
         }
-        if (!$topFolder) {
+        if (!$folder_id) {
             $this->topFolder = Folder::findTopFolder($user->id);
         } else {
-            $this->topFolder = Folder::find($topFolder);
+            $this->topFolder = Folder::find($folder_id);
         }
         
         if(!$this->topFolder) {
             //create top folder:
             $this->topFolder = Folder::createTopFolder($user->id, 'user');
         }
+        
+        $this->parent_id = $this->topFolder->parent_id;
         
         $this->buildSidebar($this->topFolder->id);
         PageLayout::setTitle($user->getFullname() . ' - ' . _('Dateien'));

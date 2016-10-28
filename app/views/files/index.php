@@ -62,6 +62,7 @@
     </thead>
 <? if (!$isRoot) : ?>
     <tbody>
+        <? if(($parent_id) && ($parent_id != $folder_id)): ?>
         <tr class="chdir-up" <? if ($full_access) printf('data-folder="%s"', $folder_id) ?> data-sort-fixed>
             <td>&nbsp;</td>
             <td class="document-icon">
@@ -69,16 +70,13 @@
                     <?//= Icon::create('arr_1up', 'clickable', ['title' => _('Ein Verzeichnis nach oben wechseln')])->asImg(24) ?>
                 </a>
             </td>
-            <td>
+            <td colspan="5">
                 <a href="<?= $controller->url_for('/index/' . $parent_id, $parent_page) ?>" title="<?= _('Ein Verzeichnis nach oben wechseln') ?>">
                     <small><?= _('Ein Verzeichnis nach oben wechseln') ?></small>
                 </a>
             </td>
-            <td class="responsive-hidden">&nbsp;</td>
-            <td class="responsive-hidden">&nbsp;</td>
-            <td class="responsive-hidden">&nbsp;</td>
-            <td>&nbsp;</td>
         </tr>
+        <? endif ?>
     </tbody>
 <? endif; ?>
 <? if (count($topFolder->subfolders) + count($topFolder->file_refs) === 0): ?>
