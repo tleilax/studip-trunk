@@ -34,7 +34,7 @@ class Moadb extends Migration
                  `mkdate` int(10) unsigned NOT NULL,
                  `chdate` int(10) unsigned NOT NULL,
                  PRIMARY KEY (`id`)
-                ) ENGINE=InnoDB");
+                ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC");
         $db->exec("CREATE TABLE IF NOT EXISTS `file_refs` (
                  `id` varchar(32) NOT NULL,
                  `file_id` varchar(32) NOT NULL,
@@ -42,15 +42,19 @@ class Moadb extends Migration
                  `downloads` int(10) unsigned NOT NULL DEFAULT 0,
                  `description` text NOT NULL,
                  `license` varchar(255) NOT NULL,
+                 `user_id` varchar(32) NOT NULL DEFAULT '',
+                 `name` varchar(255) NOT NULL DEFAULT '',
+                 `mkdate` int(10) UNSIGNED NOT NULL DEFAULT 0,
+                 `chdate` int(10) UNSIGNED NOT NULL DEFAULT 0,
                  PRIMARY KEY (`id`),
                  KEY `file_id` (`file_id`),
                  KEY `folder_id` (`folder_id`)
-                ) ENGINE=InnoDB");
+                ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC");
         $db->exec("CREATE TABLE IF NOT EXISTS `file_urls` (
                  `file_id` varchar(32)  NOT NULL,
                  `url` varchar(4096)  NOT NULL,
                  PRIMARY KEY (`file_id`)
-                ) ENGINE=InnoDB");
+                ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC");
         $db->exec("CREATE TABLE IF NOT EXISTS `folders` (
                  `id` varchar(32)  NOT NULL,
                  `user_id` varchar(32)  NOT NULL,
@@ -66,7 +70,7 @@ class Moadb extends Migration
                  PRIMARY KEY (`id`),
                  KEY `range_id` (`range_id`),
                  KEY `parent_id` (`parent_id`)
-                ) ENGINE=InnoDB");
+                ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC");
 
 
         //top folder courses
@@ -154,7 +158,7 @@ class Moadb extends Migration
     public function migrateFiles($files, $folder_id)
     {
         $db = DBManager::get();
-        $insert_file_ref = $db->prepare("INSERT INTO `file_refs` (`id`, `file_id`, `folder_id`, `downloads`, `description`, `license`) VALUES (?, ?, ?, ?, ?, ?)");
+        $insert_file_ref = $db->prepare("INSERT INTO `file_refs` (`id`, `file_id`, `folder_id`, `downloads`, `description`, `license`, `user_id`, `name`, `mkdate`, `chdate`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $insert_file = $db->prepare("INSERT INTO `files` (`id`, `user_id`, `mime_type`, `name`, `size`, `storage`, `author_name`, `mkdate`, `chdate`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $insert_file_url = $db->prepare("INSERT INTO `file_urls` (`file_id`, `url`) VALUES (?, ?)");
         $filenames = array();
@@ -171,7 +175,7 @@ class Moadb extends Migration
                 $filename = $name . '['.++$c.']' . ($ext ? '.' . $ext : '');
             }
             $filenames[] = $filename;
-            $insert_file_ref->execute(array($one['dokument_id'], $one['dokument_id'], $folder_id, $one['downloads'], $one['name'] != $one['filename'] ? trim($one['name'] . "\n" . $one['description']) : (string)$one['description'], $one['protected'] ? 'RestrictedLicense' : 'UnknownLicense'));
+            $insert_file_ref->execute(array($one['dokument_id'], $one['dokument_id'], $folder_id, $one['downloads'], $one['name'] != $one['filename'] ? trim($one['name'] . "\n" . $one['description']) : (string)$one['description'], $one['protected'] ? 'RestrictedLicense' : 'UnknownLicense'), $one['user_id'], $filename, $one['mkdate'], $one['chdate']);
             $insert_file->execute(array($one['dokument_id'], $one['user_id'], get_mime_type($one['filename']), $filename, $one['filesize'], $one['url'] ? 'url' : 'disk', $one['author_name'], $one['mkdate'], $one['chdate']));
             if ($one['url']) {
                 $insert_file_url->execute(array($one['dokument_id'], $one['url']));

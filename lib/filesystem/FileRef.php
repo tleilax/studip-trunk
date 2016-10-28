@@ -38,8 +38,10 @@ class FileRef extends SimpleORMap
             'class_name'  => 'Folder',
             'foreign_key' => 'folder_id',
         );
-
-        $config['additional_fields']['file_name'] = array();
+        $config['belongs_to']['owner'] = array(
+            'class_name'  => 'User',
+            'foreign_key' => 'user_id',
+        );
 
         $config['registered_callbacks']['after_delete'][] = 'cbRemoveFileIfOrphaned';
         $config['notification_map']['after_create'] = 'FileRefDidCreate';
