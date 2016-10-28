@@ -16,6 +16,13 @@
 
 class FilesController extends AuthenticatedController
 {
+    public function before_filter(&$action, &$args)
+    {
+        parent::before_filter($action, $args);
+        // set navigation
+    
+        PageLayout::addSqueezePackage('tablesorter');
+    }
     
     private function buildSidebar($topFolderId = null)
     {
