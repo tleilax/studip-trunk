@@ -92,7 +92,7 @@
     <? foreach ($topFolder->subfolders as $folder) : ?>
         <tr <? if ($full_access) printf('data-file="%s"', $folder->id) ?> <? if ($full_access) printf('data-folder="%s"', $folder->id); ?>>
             <td>
-                <input type="checkbox" name="ids[]" value="<?= $file->id ?>" <? if (in_array($file->id, $marked_element_ids)) echo 'checked'; ?>>
+                <input type="checkbox" name="ids[]" value="<?= $folder->id ?>" <? if (in_array($folder->id, $marked_element_ids)) echo 'checked'; ?>>
             </td>
             <td class="document-icon" data-sort-value="0">
                 <a href="<?= $controller->url_for('document/files/index/' . $folder->id) ?>">
@@ -161,7 +161,7 @@
 <? endif; ?>
 <? if (count($topFolder->file_refs)) : ?>
     <tbody>
-    <? foreach ($topFolder->file_refs as $file_ref) : ?>    
+    <? foreach ($topFolder->file_refs as $file_ref) : ?>
         <?= $this->render_partial("files/_fileref_tr", compact("controller", "file_ref", "file_ref_file_restricted")) ?>
     <? endforeach; ?>
     </tbody>

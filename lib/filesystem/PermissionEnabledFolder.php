@@ -91,7 +91,7 @@ class PermissionEnabledFolder extends StandardFolder
         if (!$this->isWritable($user_id)) {
             return _("Der Dateiordner ist nicht beschreibbar.");
         } else {
-            return parent::validateUpload($uploadedfile, $uploadedfile);
+            return parent::validateUpload($uploadedfile, $user_id);
         }
     }
 

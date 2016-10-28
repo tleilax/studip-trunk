@@ -133,8 +133,7 @@ class Folder extends SimpleORMap
 
         //get files :
         $foundFiles = FileRef::countBySql(
-            "INNER JOIN files ON file_refs.file_id = files.id "
-            . "WHERE files.name = :fileName AND folder_id = :id",
+            "name = :fileName AND folder_id = :id",
             ['fileName' => $fileName,
              'id'       => $this->id]
         );
@@ -221,6 +220,8 @@ class Folder extends SimpleORMap
         $ref = new FileRef();
         $ref->file_id = $file->id;
         $ref->folder_id = $this->id;
+        $ref->name = $this->getUniqueName($file->name);
+        $ref->user_id = $file->user_id;
         $ref->description = $description;
         $ref->license = $license;
         if ($ref->store()) {
