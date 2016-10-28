@@ -1,8 +1,8 @@
 <form method="post" class="default"
       action="<?= $controller->url_for('/edit/' . $folder_id) ?>"
-      data-dialog="size=auto; reload-on-close">
+      data-dialog="reload-on-close;size=auto">
     <?= $this->render_partial('file/new_edit_folder_form.php',
-        [ 
+        [
             'name' => $name,
             'description' => $description
         ]) ?>

@@ -197,45 +197,56 @@ class FolderController extends AuthenticatedController
             return;
         }
         
-        $targetFolderId = Request::get('targetFolderId');
-        if(!$targetFolderId) {
-            $this->render_text(MessageBox::error(_('Zielordner-ID nicht gefunden!')));
-            return;
-        }
-        
         $this->folder = Folder::find($folder_id);
         if(!$this->folder) {
             $this->render_text(MessageBox::error(_('Ordner nicht gefunden!')));
             return;
         }
         
-        $this->targetFolder = Folder::find($targetFolderId);
-        if(!$this->targetFolder) {
-            $this->render_text(MessageBox::error(_('Zielordner nicht gefunden!')));
+        $current_user = User::findCurrent();
+        
+        $folder_type = $this->folder->getTypedFolder();
+        if(!$folder_type->isWritable($current_user->id)) {
+            //not permitted to move the folder:
+            $this->render_text(MessageBox::error(_('Sie sind nicht dazu berechtigt, den Ordner zu verschieben!')));
             return;
         }
         
-        $currentUser = User::findCurrent();
+        //check if form was sent:
         
-        //ok, all data are present... now we have to check the permissions:
+        if(Request::get('form_sent')) {
+            $target_folder_id = Request::get('target_folder_id');
+            if(!$target_folder_id) {
+                $this->render_text(MessageBox::error(_('Zielordner-ID nicht gefunden!')));
+                return;
+            }
+            
+            $this->target_folder = Folder::find($target_folder_id);
+            if(!$this->target_folder) {
+                $this->render_text(MessageBox::error(_('Zielordner nicht gefunden!')));
+                return;
+            }
+            
+            //ok, all data are present... now we have to check the permissions:
         
-        if(($this->folder->user_id == $currentUser->id) or $perm->have_perm('admin')) {
-            //ok, first step was successfull...
-            if(($this->targetFolder->user_id == $currentUser->id) or $perm->have_perm('admin')) {
-                //second step was successfull as well => we can move the folder
-                
-                $this->folder->parent_id = $this->targetFolder->id;
+            $target_folder_type = $this->folder->getTypedFolder();
+        
+            if($target_folder_type->isWritable($current_user->id)) {
+                //ok, we can move the folder!
+                $this->folder->parent_id = $this->target_folder->id;
                 $this->folder->store();
+                
+                $this->render_text(
+                    MessageBox::success(_('Ordner erfolgreich verschoben!'))
+                );
+                return;
             } else {
                 //not permitted to create subfolder in target folder:
                 $this->render_text(MessageBox::error(_('Sie sind nicht dazu berechtigt, im Zielordner einen Ordner einzufügen!')));
                 return;
             }
-        } else {
-                //not permitted to change folder:
-                $this->render_text(MessageBox::error(_('Sie sind nicht dazu berechtigt, den Ordner zu verschieben!')));
-                return;
         }
+        
         
         if(Request::isDialog()) {
             $this->render_template('file/move.php');

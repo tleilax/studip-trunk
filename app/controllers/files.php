@@ -43,7 +43,7 @@ class FilesController extends AuthenticatedController
                 $actionParams
             ),
             Icon::create('folder-empty+add', 'clickable'),
-            array('data-dialog' => 'size=auto; reload-on-close')
+            array('data-dialog' => 'reload-on-close;size=auto')
         );
 
         $actions->addLink(
@@ -51,7 +51,7 @@ class FilesController extends AuthenticatedController
             URLHelper::getUrl(
                 'dispatch.php/file/upload', ['topfolder' => $this->topFolder->id]),
             Icon::create('file+add', 'clickable'),
-            array('data-dialog' => 'size=auto')
+            array('data-dialog' => 'reload-on-close;size=auto')
         );
         
         $sidebar->addWidget($actions);
