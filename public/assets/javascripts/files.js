@@ -140,8 +140,6 @@ jQuery(function () {
     	} else if ($.inArray( elem.val(), [ "myfiles" ] ) > -1) {    		
     		$("#copymove-subfolder").show();
     		STUDIP.Files.getFolders();
-    	} else {
-    		$("#copymove-subfolder").show();	
     	}
     });
     

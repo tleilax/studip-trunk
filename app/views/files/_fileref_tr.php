@@ -48,16 +48,16 @@
                 Icon::create('download', 'clickable')) ?>
         <? endif; ?>
         <? if ($file_ref->isDeletable($GLOBALS['user']->id)): ?>
-            <? $actionMenu->addLink($controller->url_for('file/move/' . $file_ref->id),
+            <? $actionMenu->addLink($controller->url_for('file/move/' . $file_ref->id, array('copymode' => 'move')),
                 _('Datei verschieben'),
                 Icon::create('file+move_right', 'clickable'),
-                ['data-dialog' => 'size=big; reload-on-close']) ?>
+                ['data-dialog' => 'size=400; reload-on-close']) ?>
         <? endif; ?>
         <? if ($file_ref->isDownloadable($GLOBALS['user']->id)): ?>
-            <? $actionMenu->addLink($controller->url_for('file/copy/' . $file_ref->id),
+            <? $actionMenu->addLink($controller->url_for('file/move/' . $file_ref->id, array('copymode' => 'copy')),
                 _('Datei kopieren'),
                 Icon::create('file+add', 'clickable'),
-                ['data-dialog' => 'size=auto; reload-on-close']) ?>
+                ['data-dialog' => 'size=400; reload-on-close']) ?>
         <? endif; ?>
         <? if ($file_ref->isDeletable($GLOBALS['user']->id)): ?>
             <? $actionMenu->addLink($controller->url_for('file/delete/' . $file_ref->id),

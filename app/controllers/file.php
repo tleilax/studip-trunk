@@ -228,16 +228,25 @@ class FileController extends AuthenticatedController
                 $destination_folder = Folder::find($folder_id);
                 
                 if($source_folder && $destination_folder) {
-                                       
-                    
+                         
                     if($source_folder->isReadable($user_id) && $destination_folder->isEditable($user_id)) {
-                        $file_ref->folder_id = $folder_id;
-                        if($file_ref->store()){
-                            PageLayout::postSuccess(_('Die Datei wurde verschoben.'));
+                        
+                        if (Request::get("copymode", 'move') == 'move') {
+                            $file_ref->folder_id = $folder_id;
+                            if($file_ref->store()){
+                                PageLayout::postSuccess(_('Die Datei wurde verschoben.'));
+                            } else {
+                                PageLayout::postError(_('Fehler beim Verschieben der Datei.'));
+                            }
                         } else {
-                            PageLayout::postError(_('Fehler beim Verschieben der Datei.'));
+                            $copy_result = FileManager::copyFileRef($file_ref, $destination_folder);
+                            if(empty($copy_result)){
+                                PageLayout::postSuccess(_('Die Datei wurde kopiert.'));
+                            } else {
+                                PageLayout::postError(_('Fehler beim Kopieren der Datei.'));
+                            }
                         }
-                        //DEVELOPMENT STAGE ONLY:
+                        
                         
                         $dest_range = $destination_folder->range_id;
                         
@@ -308,16 +317,7 @@ class FileController extends AuthenticatedController
                     'exclude' => array()
                 );
             }
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
+                        
             $coursesearch = MyCoursesSearch::get('Seminar_id', $GLOBALS['perm']->get_perm(), $parameters);
             //$instsearch = StandardSearch::get('Institut_id');
             $instsearch = SQLSearch::get($inst_sql, _("Einrichtung suchen"), 'Institut_id');
@@ -333,7 +333,7 @@ class FileController extends AuthenticatedController
             ->render();
             
             
-            $this->range_name = "test";
+            $this->move_copy = Request::get("copymode", 'move');
             $this->user_id = $user_id;
             $this->file_ref = $file_ref_id;
         }

@@ -1,8 +1,11 @@
 <form class="default" action="<?= $controller->url_for('/move/'. $file_ref); ?>">
 
+	<input type="hidden" name="copymode" value="<?= $move_copy; ?>">
+
 	<div id="copymove-destination">
     	<label for="destination"><?= _('Ziel'); ?></label>
     	<select id="destination">
+    		<option value="null"></option>
         	<optgroup label="lokal">
         		<option value="myfiles"><?= _('Meine Dateien'); ?></option>
         		<option value="courses"><?= _('Veranstaltungen'); ?></option>
@@ -17,11 +20,11 @@
 	</div>
 	<input id="copymove-range-user_id" type="hidden" name="user_id" value="<?= htmlReady($user_id); ?>">
 	<div id="copymove-range-course" style="display: none;">
-    	<label for="range"><?= htmlReady($range_name); ?></label>
+    	<label for="range"><?= htmlReady(_('Veranstaltung')); ?></label>
     	<?= $search; ?>    	
 	</div>
 	<div id="copymove-range-inst" style="display: none;">
-    	<label for="range"><?= htmlReady($range_name); ?></label>
+    	<label for="range"><?= htmlReady(_('Einrichtung')); ?></label>
     	<?= $inst_search; ?>
 	</div>
 	
