@@ -215,6 +215,7 @@ class FileController extends AuthenticatedController
     {
 
         global $perm;
+        $user_id = User::findCurrent()->id;
         
         if (Request::submitted("do_move")) {
         
@@ -227,7 +228,7 @@ class FileController extends AuthenticatedController
                 $destination_folder = Folder::find($folder_id);
                 
                 if($source_folder && $destination_folder) {
-                    $user_id = User::findCurrent()->id;                   
+                                       
                     
                     if($source_folder->isReadable($user_id) && $destination_folder->isEditable($user_id)) {
                         $file_ref->folder_id = $folder_id;
@@ -247,11 +248,24 @@ class FileController extends AuthenticatedController
             
             
             if ($perm->have_perm('root')) {
+                $inst_sql =  "SELECT DISTINCT Institute.Institut_id, Institute.Name " .
+                    "FROM Institute " .
+                    "LEFT JOIN range_tree ON (range_tree.item_id = Institute.Institut_id) " .
+                    "WHERE Institute.Name LIKE :input " .
+                    "OR Institute.Strasse LIKE :input " .
+                    "OR Institute.email LIKE :input " .
+                    "OR range_tree.name LIKE :input " .
+                    "ORDER BY Institute.Name";
+                
                 $parameters = array(
                     'semtypes' => studygroup_sem_types() ?: array(),
                     'exclude' => array()
                 );
-            } else if ($perm->have_perm('admin')) {
+                
+                
+            /*} else if ($perm->have_perm('admin')) {
+                
+                
                 $parameters = array(
                     'semtypes' => studygroup_sem_types() ?: array(),
                     'institutes' => array_map(function ($i) {
@@ -259,8 +273,21 @@ class FileController extends AuthenticatedController
                     }, Institute::getMyInstitutes()),
                     'exclude' => array()
                     );
-            
+            */
             } else {
+                
+                $inst_sql =  "SELECT DISTINCT Institute.Institut_id, Institute.Name " .
+                    "FROM Institute " .
+                    "LEFT JOIN range_tree ON (range_tree.item_id = Institute.Institut_id) " .
+                    "LEFT JOIN user_inst ON (user_inst.Institut_id = Institute.Institut_id)" .
+                    "WHERE user_inst.user_id = '" . $user_id . "' " .
+                    "AND Institute.Name LIKE :input " .
+                    "OR Institute.Strasse LIKE :input " .
+                    "OR Institute.email LIKE :input " .
+                    "OR range_tree.name LIKE :input " .
+                    "ORDER BY Institute.Name";
+                
+                
                 $parameters = array(
                     'userid' => $GLOBALS['user']->id,
                     'semtypes' => studygroup_sem_types() ?: array(),
@@ -268,8 +295,24 @@ class FileController extends AuthenticatedController
                 );
             }
             
+            
+            
+            
+            
+            
+            
+            
+            
+            
             $coursesearch = MyCoursesSearch::get('Seminar_id', $GLOBALS['perm']->get_perm(), $parameters);
+            //$instsearch = StandardSearch::get('Institut_id');
+            $instsearch = SQLSearch::get($inst_sql, _("Einrichtung suchen"), 'Institut_id');
             $this->search = QuickSearch::get('course_id', $coursesearch)
+            ->setInputStyle('width:100%')
+            ->fireJSFunctionOnSelect('function(){STUDIP.Files.getFolders();}')
+            ->withButton()
+            ->render();
+            $this->inst_search = QuickSearch::get('Institut_id', $instsearch)
             ->setInputStyle('width:100%')
             ->fireJSFunctionOnSelect('function(){STUDIP.Files.getFolders();}')
             ->withButton()

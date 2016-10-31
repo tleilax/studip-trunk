@@ -9,16 +9,20 @@
         		<option value="institutes"><?= _('Einrichtungen'); ?></option>
         	</optgroup>
         	<optgroup label="extern">
-        		<option value="plugin1"><?= _('Plugin1'); ?></option>
-        		<option value="plugin2"><?= _('Plugin2'); ?></option>
-        		<option value="plugin3"><?= _('Plugin3'); ?></option>
+        		<option disabled="disabled" value="plugin1"><?= _('Plugin1'); ?></option>
+        		<option disabled="disabled" value="plugin2"><?= _('Plugin2'); ?></option>
+        		<option disabled="disabled" value="plugin3"><?= _('Plugin3'); ?></option>
         	</optgroup>
     	</select>
 	</div>
 	
-	<div id="copymove-range" style="display: none;">
+	<div id="copymove-range-course" style="display: none;">
     	<label for="range"><?= htmlReady($range_name); ?></label>
-    	<?= $search; ?>
+    	<?= $search; ?>    	
+	</div>
+	<div id="copymove-range-inst" style="display: none;">
+    	<label for="range"><?= htmlReady($range_name); ?></label>
+    	<?= $inst_search; ?>
 	</div>
 	
 	<div id="copymove-subfolder" style="display: none;">

@@ -65,7 +65,14 @@ STUDIP.Files = {
     },
 
     getFolders: function () {
-    	var range = $("#copymove-range > div > input").first().val();
+    	
+    	var context =  $("#copymove-destination").find('select').first().val();
+    	
+    	if ($.inArray( context, [ "courses"] ) > -1) {    		
+    		var range = $("#copymove-range-course > div > input").first().val();
+    	} else {
+    		var range = $("#copymove-range-inst > div > input").first().val();
+    	}
     	
     	$.post(STUDIP.URLHelper.getURL("dispatch.php/file/getFolders"), {"range": range}, function( data ) {
 		    if (data) {
@@ -97,11 +104,20 @@ jQuery(function () {
     });
     
     $(document).on('change', '#copymove-destination', function (event) {
+    	$("#copymove-subfolder select").empty();
     	var elem = jQuery(this).find('select').first();
-    	if ($.inArray( elem.val(), [ "courses", "institutes" ] ) > -1) {
-    		$("#copymove-range").show();
+    	if ($.inArray( elem.val(), [ "courses"] ) > -1) {    		
+    		$("#copymove-range-course").show();
+    		$("#copymove-range-inst").hide();
+    		$("#copymove-subfolder").hide();
+    	} else if ($.inArray( elem.val(), [ "institutes" ] ) > -1) {    		
+    		$("#copymove-range-inst").show();
+    		$("#copymove-range-course").hide();
+    		$("#copymove-subfolder").hide();
     	} else {
     		$("#copymove-subfolder").show();
+    		$("#copymove-range-course").hide();
+    		$("#copymove-range-inst").hide();
     	}	
     });
     
