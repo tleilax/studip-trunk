@@ -256,12 +256,17 @@ class FolderController extends AuthenticatedController
                 } else {
                     //ok, we can move the folder!
                     
-                    $this->folder->parent_id = $this->target_folder->id;
-                    $this->folder->store();
+                    $errors = FileManager::moveFolder($this->folder, $this->target_folder);
                     
-                    $this->render_text(
-                        MessageBox::success(_('Ordner erfolgreich verschoben!'))
-                    );
+                    if(!$errors) {
+                        $this->render_text(
+                            MessageBox::success(_('Ordner erfolgreich verschoben!'))
+                        );
+                    } else {
+                        $this->render_text(
+                            MessageBox::error(_('Fehler beim Verschieben des Ordners!'), $errors)
+                        );
+                    }
                 }
                 return;
             } else {

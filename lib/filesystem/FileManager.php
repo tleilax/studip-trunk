@@ -202,7 +202,10 @@ class FileManager
     **/
     public static function moveFolder(Folder $source_folder, Folder $destination_folder)
     {
-        return ['Not yet implemented!'];
+        $source_folder->parend_id = $destination_folder->id;
+        $source_folder->store();
+        
+        return [];
     }
     
     
