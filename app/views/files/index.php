@@ -183,7 +183,7 @@
                     'dispatch.php/folder/new',
                     array('parent_folder_id' => $topFolder->getId())
                 ), array('data-dialog' => 'reload-on-close;size=auto')) ?>
-                <?= Studip\LinkButton::create(_("Datei hinzufügen"), "#", array('onClick' => "STUDIP.Dialog.show(jQuery('.source_selector').html(), { title: '"._("Datei hinzufügen")."'}); return false;")) ?>
+                <?= Studip\LinkButton::create(_("Datei hinzufügen"), "#", array('onClick' => "STUDIP.Files.openAddFilesWindow(); return false;")) ?>
             </span>
         <? endif; ?>
             </td>
@@ -192,48 +192,5 @@
 </table>
 </form>
 
-<form style="display: none;" id="file_selector">
-    <input type="file" name="files[]" multiple onChange="STUDIP.Files.upload(this.files);">
-</form>
-
-<div class="file_uploader">
-    <ul class="filenames clean"></ul>
-    <div class="uploadbar">
-        <?= Icon::create("upload", "info_alt")->asImg(30) ?>
-    </div>
-</div>
-
-<div class="source_selector">
-    <?= _("Quelle auswählen") ?>
-    <div class="file_select_possibilities">
-        <a href="#" onClick="jQuery('#file_selector input[type=file]').click(); return false;">
-            <?= Icon::create("computer", "clickable")->asImg(50) ?>
-            <?= _("Mein Computer") ?>
-        </a>
-        <a href="">
-            <?= Icon::create("files", "clickable")->asImg(50) ?>
-            <?= _("Meine Dateien") ?>
-        </a>
-        <a href="">
-            <?= Icon::create("seminar", "clickable")->asImg(50) ?>
-            <?= _("Meine Veranstaltungen") ?>
-        </a>
-        <a href="">
-            <?= Icon::create("computer", "clickable")->asImg(50) ?>
-            <?= _("OwnCloud") ?>
-        </a>
-        <a href="">
-            <?= Icon::create("service", "clickable")->asImg(50) ?>
-            <?= _("Lernmaterialien") ?>
-        </a>
-        <? foreach (PluginManager::getInstance()->getPlugins('FilesystemPlugin') as $plugin) : ?>
-            <? $nav = $plugin->getFileSelectNavigation() ?>
-            <? if ($nav) : ?>
-                <a href="">
-                    <?= $nav->getImage()->asImg(50) ?>
-                    <?= htmlReady($nav->getTitle()) ?>
-                </a>
-            <? endif ?>
-        <? endforeach ?>
-    </div>
-</div>
+<?= $this->render_partial("files/upload_window.php") ?>
+<?= $this->render_partial("files/add_files_window.php", array('folder_id' => $topFolder->getId())) ?>

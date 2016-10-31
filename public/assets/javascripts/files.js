@@ -2,10 +2,21 @@
 /*global window, $, jQuery, _ */
 
 STUDIP.Files = {
+    openAddFilesWindow: function (folder_id) {
+        if (jQuery('.files_source_selector').length > 0) {
+            console.log(jQuery('.files_source_selector').html());
+            STUDIP.Dialog.show(jQuery('.files_source_selector').html(), {
+                title: 'Datei hinzufügen'.toLocaleString()
+            });
+        } else {
+            STUDIP.Dialog.fromURL(STUDIP.ABSOLUTE_URI_STUDIP + "dispatch.php/files/add_files_window/" + folder_id, {
+                title: 'Datei hinzufügen'.toLocaleString()
+            });
+        }
+    },
     upload: function (filelist) {
         var files = 0;
-        var folder_id = jQuery("table.documents").data("folder_id");
-        console.log(folder_id);
+        var folder_id = jQuery(".files_source_selector").data("folder_id");
         var data = new FormData();
 
         //Open upload-dialog
@@ -17,9 +28,15 @@ STUDIP.Files = {
                 files += 1;
             }
         });
-        STUDIP.Dialog.show(jQuery(".file_uploader").html(), {
-            title: "Datei hochladen"
-        });
+        if (jQuery(".file_uploader").length > 0) {
+            STUDIP.Dialog.show(jQuery(".file_uploader").html(), {
+                title: "Datei hochladen".toLocaleString()
+            });
+        } else {
+            STUDIP.Dialog.fromURL(STUDIP.ABSOLUTE_URI_STUDIP + "dispatch.php/files/upload_window", {
+                title: 'Datei hochladen'.toLocaleString()
+            });
+        }
 
         //start upload
         jQuery(".documents[data-folder_id] tbody > tr.dragover").removeClass('dragover');

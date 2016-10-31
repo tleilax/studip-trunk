@@ -50,7 +50,7 @@ class FilesController extends AuthenticatedController
             _('Datei hinzufügen'),
             "#",
             Icon::create('file+add', 'clickable'),
-            array('onClick' => "STUDIP.Dialog.show(jQuery('.source_selector').html(), { title: '"._("Datei hinzufügen")."'}); return false;")
+            array('onClick' => "STUDIP.Files.openAddFilesWindow(); return false;")
         );
         
         $sidebar->addWidget($actions);
@@ -132,6 +132,15 @@ class FilesController extends AuthenticatedController
         PageLayout::setTitle($user->getFullname() . ' - ' . _('Dateien'));
         
         $this->render_template('files/flat.php', $GLOBALS['template_factory']->open('layouts/base'));
+    }
+
+    public function upload_window_action()
+    {
+    }
+
+    public function add_files_window_action($folder_id)
+    {
+        $this->folder_id = $folder_id;
     }
     
     
