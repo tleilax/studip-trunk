@@ -169,45 +169,37 @@ class FileController extends AuthenticatedController
     }
     
     
-    public function copy_action($fileId)
+    public function copy_action($file_ref_id)
     {
         $destinationFolderId = Request::get('destinationId');
         
-        if(!$fileId) {
+        if(!$file_ref_id) {
             PageLayout::postError(_('Datei-ID nicht gesetzt!'));
             return;
         }
         
-        $this->file = File::find($fileId);
-        if(!$this->file) {
+        $this->file_ref = FileRef::find($file_ref_id);
+        if(!$this->file_ref) {
             PageLayout::postError(_('Datei nicht gefunden!'));
             return;
         }
         
         if($destinationFolderId) {
             //form was sent
-            $this->destinationFolder = Folder::find($destinationFolderId);
+            $this->destination_folder = Folder::find($destinationFolderId);
             
-            if(!$this->destinationFolder) {
+            if(!$this->destination_folder) {
                 PageLayout::postError(_('Zielordner nicht gefunden!'));
                 return;
             }
             
-            //destination folder is present. We now have to check,
-            //if the current user is the owner of the file (by looking at the folder
-            //where the file resides).
-            //If so, we just make a new reference to that file.
-            //If the current usern isn't the owner of the file we must copy the file
-            //and its content.
+            $errors = FileManager::copyFileRef($this->file_ref, $this->destination_folder, User::findCurrent());
             
-            global $perm;
-            
-            //TODO: get folder of file
-            
-            //TODO: get file contents if the file is not owned by the current user
-            
-            //TODO: link file if the file is owned by the current user
-            
+            if(empty($errors)) {
+                PageLayout::postSuccess(_('Die Datei wurde kopiert.'));
+                } else {
+                    PageLayout::postError(_('Fehler beim Kopieren der Datei.'), $errors);
+            }
         }
     }
     

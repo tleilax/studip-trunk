@@ -69,7 +69,7 @@ class FolderController extends AuthenticatedController
                     $folder->name = $this->name;
                     $folder->description = $this->description;
                     
-                    $errors = FileManager::createSubFolder($parentFolder, $current_user, $folder);
+                    $errors = FileManager::createSubFolder($parentFolder, $folder, $current_user);
                     if(!$errors) {
                         //FileManager::createSubFolder returned an empty array => no errors!
                         $this->render_text(MessageBox::success(_('Ordner wurde angelegt!')));
@@ -240,40 +240,33 @@ class FolderController extends AuthenticatedController
             
             $target_folder_type = $this->folder->getTypedFolder();
         
-            if($target_folder_type->isWritable($current_user->id)) {
-                if($copy) {
-                    $errors = FileManager::copyFolder($this->folder, $this->target_folder);
-                    
-                    if(!$errors) {
-                        $this->render_text(
-                            MessageBox::success(_('Ordner erfolgreich kopiert!'))
-                        );
-                    } else {
-                        $this->render_text(
-                            MessageBox::error(_('Fehler beim Kopieren des Ordners!'), $errors)
-                        );
-                    }
+            if($copy) {
+                $errors = FileManager::copyFolder($this->folder, $this->target_folder, $current_user);
+                
+                if(!$errors) {
+                    $this->render_text(
+                        MessageBox::success(_('Ordner erfolgreich kopiert!'))
+                    );
                 } else {
-                    //ok, we can move the folder!
-                    
-                    $errors = FileManager::moveFolder($this->folder, $this->target_folder);
-                    
-                    if(!$errors) {
-                        $this->render_text(
-                            MessageBox::success(_('Ordner erfolgreich verschoben!'))
-                        );
-                    } else {
-                        $this->render_text(
-                            MessageBox::error(_('Fehler beim Verschieben des Ordners!'), $errors)
-                        );
-                    }
+                    $this->render_text(
+                        MessageBox::error(_('Fehler beim Kopieren des Ordners!'), $errors)
+                    );
                 }
-                return;
             } else {
-                //not permitted to create subfolder in target folder:
-                $this->render_text(MessageBox::error(_('Sie sind nicht dazu berechtigt, im Zielordner einen Ordner einzufügen!')));
-                return;
+                //ok, we can move the folder!
+                $errors = FileManager::moveFolder($this->folder, $this->target_folder, $current_user);
+                
+                if(!$errors) {
+                    $this->render_text(
+                        MessageBox::success(_('Ordner erfolgreich verschoben!'))
+                    );
+                } else {
+                    $this->render_text(
+                        MessageBox::error(_('Fehler beim Verschieben des Ordners!'), $errors)
+                    );
+                }
             }
+            return;
         }
         
         if ($perm->have_perm('root')) {
