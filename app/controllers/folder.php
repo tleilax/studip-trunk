@@ -76,21 +76,42 @@ class FolderController extends AuthenticatedController
                             $this->render_text(MessageBox::success(_('Ordner wurde angelegt!')));
                         } else {
                             PageLayout::postSuccess(_('Ordner wurde angelegt!'));
+                            
+                            $dest_range = $destination_folder->range_id;
+                    
+                            switch ($destination_folder->range_type) {
+                                case 'course':
+                                case 'inst':
+                                case 'institute':
+                                    return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/'.$folder_id. '?cid=' . $dest_range));                            
+                                case 'user':
+                                    return $this->redirect(URLHelper::getUrl('dispatch.php/files/index/'.$folder_id));
+                                default:
+                                    return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/'.$folder_id));
+                            }
                         }
                     } else {
                         if(Request::isDialog()) {
                             $this->render_text(MessageBox::error(_('Fehler beim Anlegen des Ordners'), $errors));
                         } else {
                             PageLayout::postError(_('Fehler beim Anlegen des Ordners'), $errors);
+                            $this->render_template('file/new_folder.php', $GLOBALS['template_factory']->open('layouts/base'));
                         }
                     }
                     return;
                 } else {
-                    $this->render_text(
-                        MessageBox::error(
+                    if(Request::isDialog()) {
+                        $this->render_text(
+                            MessageBox::error(
+                                _('Sie besitzen nicht die erforderlichen Berechtigungen zum Anlegen eines neuen Ordners!')
+                            )
+                        );
+                    } else {
+                        PageLayout::postError(
                             _('Sie besitzen nicht die erforderlichen Berechtigungen zum Anlegen eines neuen Ordners!')
-                        )
-                    );
+                        );
+                        $this->render_template('file/new_folder.php', $GLOBALS['template_factory']->open('layouts/base'));
+                    }
                     return;
                 }
                                 
