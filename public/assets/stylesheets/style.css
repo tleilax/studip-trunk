@@ -5755,6 +5755,7 @@ table.dates .draggable-topic-handle {
   flex-direction: column;
   justify-content: space-around;
   align-items: center;
+  text-align: center;
 }
 /* classes for the evaluation modules in Stud.IP ---------------------------- */
 .eval_title {

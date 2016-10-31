@@ -4,12 +4,7 @@
  * @license GPL2 or any later version
  *
 */
-/*
-truncate table folders;
-truncate table files;
-truncate table file_refs;
-truncate table file_urls;
-*/
+
 class Moadb extends Migration
 {
     public function description()
@@ -20,8 +15,17 @@ class Moadb extends Migration
     public function up()
     {
         $db = DBManager::get();
-        //$db->exec("RENAME TABLE files TO _files");
-        //$db->exec("RENAME TABLE file_refs TO _file_refs");
+        $firsttime = !$_SESSION['MOADB_MIGRATION_ALREADY_EXECUTED'];
+        if ($firsttime) {
+            $db->exec("RENAME TABLE files TO _files");
+            $db->exec("RENAME TABLE file_refs TO _file_refs");
+            $_SESSION['MOADB_MIGRATION_ALREADY_EXECUTED'] = true;
+        } else {
+            $db->exec("TRUNCATE table folders");
+            $db->exec("TRUNCATE table files");
+            $db->exec("TRUNCATE table file_refs");
+            $db->exec("TRUNCATE table file_urls");
+        }
 
         $db->exec("CREATE TABLE IF NOT EXISTS `files` (
                  `id` varchar(32) NOT NULL,

@@ -208,6 +208,10 @@
             <?= _("Meine Dateien") ?>
         </a>
         <a href="">
+            <?= Icon::create("seminar", "clickable")->asImg(50) ?>
+            <?= _("Meine Veranstaltungen") ?>
+        </a>
+        <a href="">
             <?= Icon::create("computer", "clickable")->asImg(50) ?>
             <?= _("OwnCloud") ?>
         </a>
