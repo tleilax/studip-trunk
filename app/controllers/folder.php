@@ -300,6 +300,25 @@ class FolderController extends AuthenticatedController
             ->withButton()
             ->render();
         
+        $institute_sql =  "SELECT DISTINCT Institute.Institut_id, Institute.Name " .
+                    "FROM Institute " .
+                    "LEFT JOIN range_tree ON (range_tree.item_id = Institute.Institut_id) " .
+                    "LEFT JOIN user_inst ON (user_inst.Institut_id = Institute.Institut_id)" .
+                    "WHERE user_inst.user_id = '" . $user_id . "' " .
+                    "AND Institute.Name LIKE :input " .
+                    "OR Institute.Strasse LIKE :input " .
+                    "OR Institute.email LIKE :input " .
+                    "OR range_tree.name LIKE :input " .
+                    "ORDER BY Institute.Name";
+        
+        $instsearch = SQLSearch::get($institute_sql, _("Einrichtung suchen"), 'Institut_id');
+        $this->inst_search = QuickSearch::get('Institut_id', $instsearch)
+            ->setInputStyle('width:100%')
+            ->fireJSFunctionOnSelect('function(){STUDIP.Files.getFolders();}')
+            ->withButton()
+            ->render();
+        
+        $this->copy_mode = $copy; //for the view: copy and move both use the file/move_folder view
         
         
         if($copy) {
