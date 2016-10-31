@@ -178,6 +178,13 @@
                 <?= Studip\Button::create(_('Kopieren'), 'copy', array('data-dialog' => ''))?>
                 <?= Studip\Button::create(_('Löschen'), 'delete') ?>
             <? endif; ?>
+            <span class="responsive-visible">
+                <?= Studip\LinkButton::create(_("Neuer Ordner"), URLHelper::getUrl(
+                    'dispatch.php/folder/new',
+                    array('parent_folder_id' => $topFolder->getId())
+                ), array('data-dialog' => 'reload-on-close;size=auto')) ?>
+                <?= Studip\LinkButton::create(_("Datei hinzufügen"), "#", array('onClick' => "STUDIP.Dialog.show(jQuery('.source_selector').html(), { title: '"._("Datei hinzufügen")."'}); return false;")) ?>
+            </span>
         <? endif; ?>
             </td>
         </tr>
