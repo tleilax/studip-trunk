@@ -170,6 +170,7 @@ class FileManager
                     _('Ungenügende Berechtigungen zum Verschieben der Datei %s in Ordner %s!'),
                     $source->file->name,
                     $destination_folder->name
+                )
             ];
         }
     }

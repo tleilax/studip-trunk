@@ -72,9 +72,17 @@ class FolderController extends AuthenticatedController
                     $errors = FileManager::createSubFolder($parentFolder, $folder, $current_user);
                     if(!$errors) {
                         //FileManager::createSubFolder returned an empty array => no errors!
-                        $this->render_text(MessageBox::success(_('Ordner wurde angelegt!')));
+                        if(Request::isDialog()) {
+                            $this->render_text(MessageBox::success(_('Ordner wurde angelegt!')));
+                        } else {
+                            PageLayout::postSuccess(_('Ordner wurde angelegt!'));
+                        }
                     } else {
-                        $this->render_text(MessageBox::error(_('Fehler beim Anlegen des Ordners'), $errors));
+                        if(Request::isDialog()) {
+                            $this->render_text(MessageBox::error(_('Fehler beim Anlegen des Ordners'), $errors));
+                        } else {
+                            PageLayout::postError(_('Fehler beim Anlegen des Ordners'), $errors);
+                        }
                     }
                     return;
                 } else {
