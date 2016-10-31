@@ -215,7 +215,7 @@ class FileController extends AuthenticatedController
     {
 
         global $perm;
-        $user_id = User::findCurrent()->id;
+        $user = User::findCurrent();
         
         if (Request::submitted("do_move")) {
         
@@ -228,40 +228,33 @@ class FileController extends AuthenticatedController
                 $destination_folder = Folder::find($folder_id);
                 
                 if($source_folder && $destination_folder) {
-                         
-                    if($source_folder->isReadable($user_id) && $destination_folder->isEditable($user_id)) {
-                        
-                        if (Request::get("copymode", 'move') == 'move') {
-                            $file_ref->folder_id = $folder_id;
-                            if($file_ref->store()){
-                                PageLayout::postSuccess(_('Die Datei wurde verschoben.'));
-                            } else {
-                                PageLayout::postError(_('Fehler beim Verschieben der Datei.'));
-                            }
-                        } else {
-                            $copy_result = FileManager::copyFileRef($file_ref, $destination_folder);
-                            if(empty($copy_result)){
-                                PageLayout::postSuccess(_('Die Datei wurde kopiert.'));
-                            } else {
-                                PageLayout::postError(_('Fehler beim Kopieren der Datei.'));
-                            }
-                        }
-                        
-                        
-                        $dest_range = $destination_folder->range_id;
-                        
-                        switch ($destination_folder->range_type) {
-                            case 'course':
-                            case 'inst':
-                            case 'institute':
-                                return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/'.$folder_id. '?cid=' . $dest_range));                            
-                            case 'user':
-                                return $this->redirect(URLHelper::getUrl('dispatch.php/files/index/'.$folder_id));
-                            default:
-                                return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/'.$folder_id));
-                        }
-                        
-                        
+                    
+                    $errors = [];
+                    
+                    if (Request::get("copymode", 'move') == 'move') {
+                        $errors = FileManager::moveFileRef($file_ref, $destination_folder, $user);
+                    } else {
+                        $errors = FileManager::copyFileRef($file_ref, $destination_folder, $user);
+                    }
+                    
+                    if(empty($errors)){
+                        PageLayout::postSuccess(_('Die Datei wurde kopiert.'));
+                    } else {
+                        PageLayout::postError(_('Fehler beim Kopieren der Datei.'), $errors);
+                    }
+                    
+                    
+                    $dest_range = $destination_folder->range_id;
+                    
+                    switch ($destination_folder->range_type) {
+                        case 'course':
+                        case 'inst':
+                        case 'institute':
+                            return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/'.$folder_id. '?cid=' . $dest_range));                            
+                        case 'user':
+                            return $this->redirect(URLHelper::getUrl('dispatch.php/files/index/'.$folder_id));
+                        default:
+                            return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/'.$folder_id));
                     }
                 }
             }

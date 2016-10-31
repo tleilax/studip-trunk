@@ -59,14 +59,85 @@ class FileManager
     /**
         This method handles copying a file to a new folder.
         
+        If the user (given by $user) is the owner of the file (by looking at the user_id
+        in the file reference) we can just make a new reference to that file.
+        Else, we must copy the file and its content.
+        
         @param source The file reference for the file that shall be copied.
-        @param destination_folder The destination folder.
+        @param destination_folder The destination folder for the file.
+        @param user The user who wishes to copy the file.
         
         @returns Array with error messages: Empty array on success, filled array on failure.
     **/
-    public static function copyFileRef(FileRef $source, Folder $destination_folder)
+    public static function copyFileRef(FileRef $source, Folder $destination_folder, User $user)
     {
-        return ['Not yet implemented!'];
+        if($source->isReadable($user->id) && $destination_folder->isEditable($user->id)) {
+            if($source->user_id == $user->id) {
+                //the user is the owner of the file: we can simply make a new reference to it
+                
+                $new_reference = new FileRef();
+                $new_reference->file_id = $source->file_id;
+                $new_reference->folder_id = $destination_folder->id;
+                $new_reference->description = $source->description;
+                $new_reference->license = $source->license;
+                
+                if($new_reference->store()) {
+                    return [];
+                } else {
+                    return[
+                        _('Fehler beim Kopieren: Neue Referenz kann nicht erzeugt werden!')
+                    ];
+                }
+            } else {
+                //the user is not the owner of the file: we must copy the file object, too!
+                
+                $file_copy = new File();
+                $file_copy->user_id = $user->id;
+                $file_copy->mime_type = $source->file->mime_type;
+                $file_copy->name = $source->file->name;
+                $file_copy->size = $source->file->size;
+                $file_copy->storage = $source->file->storage;
+                $file_copy->author_name = $source->file->author_name;
+                
+                if($file_copy->store()) {
+                    //ok, file is stored, now we need to copy the real data:
+                    
+                    if(copy($source->getPath(), $file_copy->getPath())) {
+                        
+                        //ok, create the file ref for the copied file:
+                        $new_reference = new FileRef();
+                        $new_reference->file_id = $file_copy->file_id;
+                        $new_reference->folder_id = $destination_folder->id;
+                        $new_reference->description = $source->description;
+                        $new_reference->license = $source->license;
+                        
+                        if($new_reference->store()) {
+                            return [];
+                        } else {
+                            //file reference can't be created!
+                            return[
+                                _('Fehler beim Kopieren: Neue Referenz kann nicht erzeugt werden!')
+                            ];
+                            //delete $file_copy
+                            //(to avoid orphaned entries in the database)
+                            $file_copy->delete();
+                        }
+                    } else {
+                        //error while copying: delete $file_copy
+                        //(to avoid orphaned entries in the database)
+                        $file_copy->delete();
+                    }                
+                }
+            }
+        } else {
+            return [
+                sprintf(
+                    _('Ungenügende Berechtigungen zum Kopieren der Datei %s in Ordner %s!'),
+                    $source->file->name,
+                    $destination_folder->name
+                )
+            ];
+        }
     }
     
     /**
@@ -77,9 +148,24 @@ class FileManager
         
         @returns Array with error messages: Empty array on success, filled array on failure.
     **/
-    public static function moveFileRef(FileRef $source, Folder $destination_folder)
+    public static function moveFileRef(FileRef $source, Folder $destination_folder, User $user)
     {
-        return ['Not yet implemented!'];
+        if($source->isReadable($user->id) && $destination_folder->isEditable($user->id)) {
+            
+            $source->folder_id = $destination_folder->id;
+            if($source->store()) {
+                return [];
+            } else {
+                return [_('Datei konnte nicht gespeichert werden.')];
+            }
+        } else {
+            return [
+                sprintf(
+                    _('Ungenügende Berechtigungen zum Verschieben der Datei %s in Ordner %s!'),
+                    $source->file->name,
+                    $destination_folder->name
+            ];
+        }
     }
     
     
