@@ -15,7 +15,7 @@
         	</optgroup>
     	</select>
 	</div>
-	
+	<input id="copymove-range-user_id" type="hidden" name="user_id" value="<?= htmlReady($user_id); ?>">
 	<div id="copymove-range-course" style="display: none;">
     	<label for="range"><?= htmlReady($range_name); ?></label>
     	<?= $search; ?>    	

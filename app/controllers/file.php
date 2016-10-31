@@ -238,7 +238,21 @@ class FileController extends AuthenticatedController
                             PageLayout::postError(_('Fehler beim Verschieben der Datei.'));
                         }
                         //DEVELOPMENT STAGE ONLY:
-                        return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/'.$folder_id));
+                        
+                        $dest_range = $destination_folder->range_id;
+                        
+                        switch ($destination_folder->range_type) {
+                            case 'course':
+                            case 'inst':
+                            case 'institute':
+                                return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/'.$folder_id. '?cid=' . $dest_range));                            
+                            case 'user':
+                                return $this->redirect(URLHelper::getUrl('dispatch.php/files/index/'.$folder_id));
+                            default:
+                                return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/'.$folder_id));
+                        }
+                        
+                        
                     }
                 }
             }
@@ -320,6 +334,7 @@ class FileController extends AuthenticatedController
             
             
             $this->range_name = "test";
+            $this->user_id = $user_id;
             $this->file_ref = $file_ref_id;
         }
     }
