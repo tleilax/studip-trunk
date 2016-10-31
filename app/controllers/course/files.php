@@ -57,7 +57,7 @@ class Course_FilesController extends AuthenticatedController
             $actions->addLink(
                 _('Neuer Ordner'),
                 URLHelper::getUrl('dispatch.php/folder/new', 
-                        array('context' => 'course', 'rangeId' => $this->cid, 'parentFolderId' => $this->currentFolder)),
+                        array('context' => 'course', 'rangeId' => $this->cid, 'parent_folder_id' => $this->currentFolder)),
                 Icon::create('folder-empty+add', 'clickable'),
                 array('data-dialog' => 'size=auto')
             );

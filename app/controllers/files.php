@@ -24,7 +24,7 @@ class FilesController extends AuthenticatedController
         PageLayout::addSqueezePackage('tablesorter');
     }
     
-    private function buildSidebar($topFolderId = null)
+    private function buildSidebar($top_folder_id = null)
     {
         $sidebar = Sidebar::get();
         $sidebar->setImage('sidebar/files-sidebar.png');
@@ -32,8 +32,8 @@ class FilesController extends AuthenticatedController
         $actions = new ActionsWidget();
         
         $actionParams = [];
-        if($topFolderId) {
-            $actionParams['parent_folder_id'] = $topFolderId;
+        if($top_folder_id) {
+            $actionParams['parent_folder_id'] = $top_folder_id;
         }
         
         $actions->addLink(

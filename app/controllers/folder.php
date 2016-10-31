@@ -203,13 +203,14 @@ class FolderController extends AuthenticatedController
         
         $current_user = User::findCurrent();
         
+        $folder_type = $this->folder->getTypedFolder();
+        
         if($copy && !$folder_type->isReadable($current_user->id)) {
             //not permitted to copy the folder:
             $this->render_text(MessageBox::error(_('Sie sind nicht dazu berechtigt, den Ordner zu kopieren!')));
             return;
         }
         
-        $folder_type = $this->folder->getTypedFolder();
         if(!$copy && !$folder_type->isWritable($current_user->id)) {
             //not permitted to move the folder:
             $this->render_text(MessageBox::error(_('Sie sind nicht dazu berechtigt, den Ordner zu verschieben!')));
@@ -270,15 +271,15 @@ class FolderController extends AuthenticatedController
         
         if($copy) {
             if(Request::isDialog()) {
-                $this->render_template('file/copy.php');
+                $this->render_template('file/move_folder.php');
             } else {
-                $this->render_template('file/copy.php', $GLOBALS['template_factory']->open('layouts/base'));
+                $this->render_template('file/move_folder.php', $GLOBALS['template_factory']->open('layouts/base'));
             }
         } else {
             if(Request::isDialog()) {
-                $this->render_template('file/move.php');
+                $this->render_template('file/move_folder.php');
             } else {
-                $this->render_template('file/move.php', $GLOBALS['template_factory']->open('layouts/base'));
+                $this->render_template('file/move_folder.php', $GLOBALS['template_factory']->open('layouts/base'));
             }
         }
     }
