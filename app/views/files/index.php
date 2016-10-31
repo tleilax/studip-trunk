@@ -141,11 +141,11 @@
                     <? $actionMenu->addLink($controller->url_for('folder/move/' . $folder->id),
                             _('Ordner verschieben'),
                             Icon::create('folder-empty+move_right', 'clickable'),
-                            ['data-dialog' => 'size=auto; reload-on-close']) ?>
+                            ['data-dialog' => 'reload-on-close']) ?>
                     <? $actionMenu->addLink($controller->url_for('folder/copy/' . $folder->id),
                             _('Ordner kopieren'),
                             Icon::create('folder-empty+add', 'clickable'),
-                            ['data-dialog' => 'size=auto; reload-on-close']) ?>
+                            ['data-dialog' => 'reload-on-close']) ?>
                     <? $actionMenu->addLink($controller->url_for('folder/delete/' . $folder->id),
                             _('Ordner löschen'),
                             Icon::create('trash', 'clickable'),

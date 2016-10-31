@@ -1,5 +1,5 @@
-<form class="default" action="<?= $controller->url_for('/move/'. $folder_id); ?>">
-    
+<form class="default" action="<?= $controller->url_for('/move/'. $folder_id); ?>" 
+    data-dialog="reload-on-close">
     <div id="copymove-destination">
         <label for="destination"><?= _('Ziel'); ?></label>
         <select id="destination">
@@ -27,7 +27,7 @@
     </div>
 
     <div data-dialog-button>
-        <?= Studip\Button::createAccept(_('Verschieben'), 'do_move') ?>
+        <?= Studip\Button::createAccept(_('Verschieben'), 'form_sent') ?>
         <?= Studip\LinkButton::createCancel(_('Abbrechen')) ?>
     </div>
 </form>

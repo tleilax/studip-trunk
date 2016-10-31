@@ -187,6 +187,7 @@ class FolderController extends AuthenticatedController
     
     public function copyOrMove($folder_id, $copy = true)
     {
+        global $perm;
         //we need the IDs of the folder and the target parent folder.
         //these should only be present when the form was sent.
         
@@ -200,6 +201,8 @@ class FolderController extends AuthenticatedController
             $this->render_text(MessageBox::error(_('Ordner nicht gefunden!')));
             return;
         }
+        
+        $this->folder_id = $folder_id;
         
         $current_user = User::findCurrent();
         
@@ -220,8 +223,8 @@ class FolderController extends AuthenticatedController
         
         //check if form was sent:
         
-        if(Request::get('form_sent')) {
-            $target_folder_id = Request::get('target_folder_id');
+        if(Request::submitted('form_sent')) {
+            $target_folder_id = Request::get('dest_folder');
             if(!$target_folder_id) {
                 $this->render_text(MessageBox::error(_('Zielordner-ID nicht gefunden!')));
                 return;
@@ -267,6 +270,36 @@ class FolderController extends AuthenticatedController
                 return;
             }
         }
+        
+        if ($perm->have_perm('root')) {
+            $parameters = array(
+                'semtypes' => studygroup_sem_types() ?: array(),
+                'exclude' => array()
+            );
+        } else if ($perm->have_perm('admin')) {
+            $parameters = array(
+                'semtypes' => studygroup_sem_types() ?: array(),
+                'institutes' => array_map(function ($i) {
+                return $i['Institut_id'];
+                }, Institute::getMyInstitutes()),
+                'exclude' => array()
+                );
+        
+        } else {
+            $parameters = array(
+                'userid' => $GLOBALS['user']->id,
+                'semtypes' => studygroup_sem_types() ?: array(),
+                'exclude' => array()
+            );
+        }
+        
+        $coursesearch = MyCoursesSearch::get('Seminar_id', $GLOBALS['perm']->get_perm(), $parameters);
+        $this->search = QuickSearch::get('course_id', $coursesearch)
+            ->setInputStyle('width:100%')
+            ->fireJSFunctionOnSelect('function(){STUDIP.Files.getFolders();}')
+            ->withButton()
+            ->render();
+        
         
         
         if($copy) {
