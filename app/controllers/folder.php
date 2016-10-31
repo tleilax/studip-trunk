@@ -77,17 +77,17 @@ class FolderController extends AuthenticatedController
                         } else {
                             PageLayout::postSuccess(_('Ordner wurde angelegt!'));
                             
-                            $dest_range = $destination_folder->range_id;
+                            $dest_range = $parentFolder->range_id;
                     
                             switch ($destination_folder->range_type) {
                                 case 'course':
                                 case 'inst':
                                 case 'institute':
-                                    return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/'.$folder_id. '?cid=' . $dest_range));                            
+                                    return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/'.$parentFolder->id. '?cid=' . $dest_range));                            
                                 case 'user':
-                                    return $this->redirect(URLHelper::getUrl('dispatch.php/files/index/'.$folder_id));
+                                    return $this->redirect(URLHelper::getUrl('dispatch.php/files/index/'.$parentFolder->id));
                                 default:
-                                    return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/'.$folder_id));
+                                    return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/'.$parentFolder->id));
                             }
                         }
                     } else {
