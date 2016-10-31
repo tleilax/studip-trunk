@@ -31,7 +31,7 @@
                         <?= htmlReady($last_crumb->name) ?>
                     </h2>
                 <? if ($last_crumb->description) : ?>
-                    <p><?= formatReady($last_crumb['description']) ?></p>
+                    <p><?= htmlReady($last_crumb['description']) ?></p>
                 <? endif; ?>
                 </header>
             </div>
@@ -193,4 +193,4 @@
 </form>
 
 <?= $this->render_partial("files/upload_window.php") ?>
-<?= $this->render_partial("files/add_files_window.php", array('folder_id' => $topFolder->getId())) ?>
+<?= $this->render_partial("files/add_files_window.php", array('folder_id' => $topFolder->getId(), 'hidden' => true)) ?>

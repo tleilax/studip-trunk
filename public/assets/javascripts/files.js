@@ -67,9 +67,7 @@ STUDIP.Files = {
                 },
                 'success': function (json) {
                     jQuery(".uploadbar").css("background-size", "100% 100%");
-                    console.log(json);
-                    STUDIP.Dialog.close();
-                    location.reload();
+                    STUDIP.Files.reloadPage();
                 },
                 'complete': function () {
                     /*jQuery(textarea).removeClass("hovered");
@@ -79,6 +77,11 @@ STUDIP.Files = {
             });
         }
 
+    },
+
+    reloadPage: function () {
+        STUDIP.Dialog.close();
+        location.reload();
     },
 
     getFolders: function () {

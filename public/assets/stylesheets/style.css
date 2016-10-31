@@ -5732,9 +5732,6 @@ table.dates .draggable-topic-handle {
   background-repeat: no-repeat;
   border: #28497c solid 1px;
 }
-.files_source_selector {
-  display: none;
-}
 .file_select_possibilities {
   display: flex;
   flex-wrap: wrap;

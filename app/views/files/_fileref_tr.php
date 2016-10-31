@@ -1,11 +1,10 @@
-<? $mime_type = File::find($file_ref->file_id)->mime_type; ?>
 <tr <? if ($full_access) printf('data-file="%s"', $file_ref->id) ?>>
     <td>
         <input type="checkbox" name="ids[]" value="<?= $file_ref->id ?>" <? if (in_array($file_ref->id, $marked_element_ids)) echo 'checked'; ?>>
     </td>
     <td class="document-icon" data-sort-value="1">
         <a href="<?= $file_ref->getDownloadURL() ?>">
-            <?= Icon::create(get_icon_for_mimetype($mime_type), 'clickable')->asImg(24) ?>
+            <?= Icon::create(get_icon_for_mimetype($file_ref->file->mime_type), 'clickable')->asImg(24) ?>
         </a>
     </td>
     <td>

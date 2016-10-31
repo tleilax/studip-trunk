@@ -142,6 +142,47 @@ class FilesController extends AuthenticatedController
     {
         $this->folder_id = $folder_id;
     }
+
+    public function choose_file_action($folder_id = null)
+    {
+        if (Request::get("to_plugin")) {
+            $to_plugin = PluginManager::getInstance()->getPlugin(Request::get("to_plugin"));
+            $this->to_folder_type = $to_plugin->getFolder(Request::get("to_folder_id"));
+        } else {
+            $folder = new Folder(Request::option("to_folder_id"));
+            $this->to_folder_type = new StandardFolder($folder);
+        }
+
+        if (Request::isPost()) {
+            //copy
+            if (Request::get("plugin")) {
+                $plugin = PluginManager::getInstance()->getPlugin(Request::get("plugin"));
+                $file = $plugin->getPreparedFile(Request::get("file_id"));
+            } else {
+                $file = FileRef::find(Request::get("file_id"))->file;
+            }
+            $success = $this->to_folder_type->validateUpload($file, $GLOBALS['user']->id);
+            if ($success) {
+                //do the copy
+                //$this->to_folder_type->addFile($file, $GLOBALS['user']->id);
+                $this->response->add_header("X-Dialog-Execute", "STUDIP.Files.reloadPage");
+                $this->render_nothing();
+            } else {
+                PageLayout::postMessage(MessageBox::error(_("Konnte die Datei nicht hinzufügen.")));
+            }
+        }
+        if (Request::get("plugin")) {
+            $this->plugin = PluginManager::getInstance()->getPlugin(Request::get("plugin"));
+            $this->top_folder = $this->plugin->getFolder($folder_id, true);
+            if (is_a($this->top_folder, "Flexi_Template")) {
+                $this->top_folder->set_attribute("select", true);
+                $this->top_folder->set_attribute("to_folder", $this->to_folder);
+                $this->render_text($this->top_folder);
+            }
+        } else {
+            $this->top_folder = new Folder($folder_id);
+        }
+    }
     
     
     
