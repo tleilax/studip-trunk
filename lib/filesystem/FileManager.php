@@ -14,7 +14,9 @@
  */
 class FileManager
 {
-
+    
+    //FILE METHODS
+    
     public static function handleFileUpload(Array $uploadedfiles, FolderType $folder, $user_id)
     {
         $result = array();
@@ -52,6 +54,38 @@ class FileManager
         }
         return array_merge($result, ['error' => $error]);
     }
+    
+    
+    /**
+        This method handles copying a file to a new folder.
+        
+        @param source The file reference for the file that shall be copied.
+        @param destination_folder The destination folder.
+        
+        @returns Array with error messages: Empty array on success, filled array on failure.
+    **/
+    public static function copyFileRef(FileRef $source, Folder $destination_folder)
+    {
+        return ['Not yet implemented!'];
+    }
+    
+    /**
+        This method handles moving a file to a new folder.
+        
+        @param source The file reference for the file that shall be moved.
+        @param destination_folder The destination folder.
+        
+        @returns Array with error messages: Empty array on success, filled array on failure.
+    **/
+    public static function moveFileRef(FileRef $source, Folder $destination_folder)
+    {
+        return ['Not yet implemented!'];
+    }
+    
+    
+    
+    
+    // FOLDER METHODS
     
     
     /**
@@ -108,19 +142,6 @@ class FileManager
     }
     
     
-    /**
-        This method handles copying a file to a new folder.
-        
-        @param source The file reference for the file that shall be copied.
-        @param destination_folder The destination folder.
-        
-        @returns Array with error messages: Empty array on success, filled array on failure.
-    **/
-    public static function copyFileRef(FileRef $source, Folder $destination_folder)
-    {
-        return ['Not yet implemented!'];
-    }
-    
     
     /**
         This method handles copying folders, including
@@ -167,6 +188,21 @@ class FileManager
         }
         
         return $errors;
+    }
+    
+    
+    /**
+        This method handles moving folders, including
+        subfolders and files.
+        
+        @param source_folder The folder that shall be moved.
+        @param destination_folder The destination folder.
+        
+        @returns Array with error messages: Empty array on success, filled array on failure.
+    **/
+    public static function moveFolder(Folder $source_folder, Folder $destination_folder)
+    {
+        return ['Not yet implemented!'];
     }
     
     

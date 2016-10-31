@@ -37,7 +37,11 @@
     </div>
 
     <div data-dialog-button>
+        <? if($copy_mode): ?>
+        <?= Studip\Button::createAccept(_('Kopieren'), 'form_sent') ?>
+        <? else: ?>
         <?= Studip\Button::createAccept(_('Verschieben'), 'form_sent') ?>
+        <? endif ?>
         <?= Studip\LinkButton::createCancel(_('Abbrechen')) ?>
     </div>
 </form>
