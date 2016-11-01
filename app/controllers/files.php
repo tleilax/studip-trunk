@@ -148,15 +148,30 @@ class FilesController extends AuthenticatedController
     {
         if (Request::get("course_id")) {
             $folder = Folder::findTopFolder(Request::get("course_id"));
-            $this->redirect(URLHelper::get("files/choose_file/".$folder->getId(), array(
+            /*header("Location: ". URLHelper::getURL("/choose_file/".$folder->getId(), array(
                 'to_plugin' => Request::get("to_plugin"),
                 'to_folder_id' => $folder_id
-            )));
+            )));*/
+            $this->redirect("files/choose_file/".$folder->getId(), array(
+                'to_plugin' => Request::get("to_plugin"),
+                'to_folder_id' => $folder_id
+            ));
         }
         $this->folder_id = $folder_id;
         $this->plugin = Request::get("to_plugin");
         if (!$GLOBALS['perm']->have_perm("admin")) {
-            $this->courses = Course::findMine();
+            $statement = DBManager::get()->prepare("
+                SELECT seminare.*
+                FROM seminare
+                    INNER JOIN seminar_user ON (seminar_user.Seminar_id = seminare.Seminar_id)
+                WHERE seminar_user.user_id = :user_id
+                ORDER BY seminare.duration_time = -1, seminare.start_time DESC, seminare.name ASC
+            ");
+            $statement->execute(array('user_id' => $GLOBALS['user']->id));
+            $this->courses = array();
+            foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $coursedata) {
+                $this->courses[] = Course::buildExisting($coursedata);
+            }
         }
     }
 

@@ -9,7 +9,7 @@
             <?= Icon::create("files", "clickable")->asImg(50) ?>
             <?= _("Meine Dateien") ?>
         </a>
-        <a href="">
+        <a href="<?= $controller->link_for("files/choose_file_from_course/".htmlReady($folder_id)) ?>" data-dialog>
             <?= Icon::create("seminar", "clickable")->asImg(50) ?>
             <?= _("Meine Veranstaltungen") ?>
         </a>
