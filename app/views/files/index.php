@@ -23,15 +23,10 @@
                     <? endforeach ?>
                 <? endif ?>
             </div>
-            <div class="caption-content">
-                    
-                <? if ($last_crumb->description) : ?>
-                    <header class="folder-description">
-                        <p><?= htmlReady($last_crumb['description']) ?></p>
-                    </header>
-                <? endif; ?>
-            </div>
         </div>
+        <? if ($last_crumb->description) : ?>
+        <small><?= htmlReady($last_crumb['description']) ?></small>
+        <? endif; ?>
     </caption>
     <colgroup>
         <col width="30px">
