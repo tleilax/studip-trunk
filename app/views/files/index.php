@@ -4,36 +4,32 @@
         <div class="caption-container">
             <? $full_access = true;
                $breadcrumbs = $topFolder->getParents();
-               $last_crumb = end($topFolder->getParents()); ?>
-        <? if (count($breadcrumbs) > 1) : ?>
-            <div class="extendable bread-crumbs" title="<?= _('In übergeordnete Verzeichnisse wechseln') ?>">
-        <? else: ?>
-            <div class="bread-crumbs">
-        <? endif; ?>
-            <a href="<?= $controller->link_for('/index/' . $last_crumb->id) ?>">
-                <?= Icon::create('folder-parent', 'clickable')->asImg(24) ?>
-            </a>
-            <? if (count($breadcrumbs) > 1) : ?>
-                <ul>
-                <? foreach ($breadcrumbs as $crumb) : ?>
-                    <li>
-                        <a href="<?= $controller->url_for('/index/' . $crumb->id) ?>">
-                            <?= htmlReady($crumb->name) ?>
-                        </a>
-                    </li>
-                <? endforeach; ?>
-                </ul>
-            <? endif; ?>
+               $root_dir = array_shift($breadcrumbs);
+               $last_crumb = end($breadcrumbs); ?>
+            <div>
+                <a href="<?= $controller->link_for('/index/' . $root_dir->id) ?>">
+                    <?= Icon::create('folder-parent', 'clickable')->asImg(24) ?>
+                    <? if (count($breadcrumbs) < 6): ?><?= htmlReady($root_dir->name) ?><? endif ?>
+                </a>
+                <? if(!empty($breadcrumbs)): ?>
+                    <? if (count($breadcrumbs) > 5): ?>/...<?
+                        $breadcrumbs = array_slice($breadcrumbs, count($breadcrumbs) - 5, 5);
+                        ?><? endif ?>
+                        
+                    <? foreach ($breadcrumbs as $crumb): ?>
+                            /<a href="<?= $controller->url_for('/index/' . $crumb->id) ?>">
+                                <?= htmlReady($crumb->name) ?>
+                            </a>
+                    <? endforeach ?>
+                <? endif ?>
             </div>
             <div class="caption-content">
-                <header class="folder-description">
-                    <h2>
-                        <?= htmlReady($last_crumb->name) ?>
-                    </h2>
+                    
                 <? if ($last_crumb->description) : ?>
-                    <p><?= htmlReady($last_crumb['description']) ?></p>
+                    <header class="folder-description">
+                        <p><?= htmlReady($last_crumb['description']) ?></p>
+                    </header>
                 <? endif; ?>
-                </header>
             </div>
         </div>
     </caption>
