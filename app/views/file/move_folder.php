@@ -4,7 +4,10 @@
     <? else: ?>
     action="<?= $controller->url_for('/move/'. $folder_id); ?>" 
     <? endif ?>
-    data-dialog="reload-on-close">
+    <? if(Request::isDialog()): ?>
+      data-dialog="reload-on-close"
+    <? endif ?>
+    >
     <div id="copymove-destination">
         <label for="destination"><?= _('Ziel'); ?></label>
         <select id="destination">

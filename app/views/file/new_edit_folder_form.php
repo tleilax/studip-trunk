@@ -13,4 +13,3 @@
         <textarea name="description" placeholder="<?= _('Optionale Beschreibung') ?>"><?= htmlReady($description); ?></textarea>
     </label>
 </fieldset>
-
