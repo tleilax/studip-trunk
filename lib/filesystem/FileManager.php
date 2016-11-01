@@ -72,8 +72,10 @@ class FileManager
     public static function copyFileRef(FileRef $source, Folder $destination_folder, User $user)
     {
         //first we have to make sure if the user has the permissions to read the source folder
-        //and the permissions to write to the destination folder:
-        if($source->isReadable($user->id) && $destination_folder->isEditable($user->id)) {
+        //and the permissions to write to the destination folder:        
+        $source_folder = Folder::find($source->folder_id);
+        
+        if($source_folder->isReadable($user->id) && $destination_folder->isEditable($user->id)) {
             //user is permitted to copy a file, but is he the owner?
             if($source->user_id == $user->id) {
                 //the user is the owner of the file: we can simply make a new reference to it
@@ -156,7 +158,9 @@ class FileManager
     **/
     public static function moveFileRef(FileRef $source, Folder $destination_folder, User $user)
     {
-        if($source->isReadable($user->id) && $destination_folder->isEditable($user->id)) {
+        $source_folder = Folder::find($source->folder_id);
+        
+        if($source_folder->isReadable($user->id) && $destination_folder->isEditable($user->id)) {
             
             $source->folder_id = $destination_folder->id;
             if($source->store()) {
