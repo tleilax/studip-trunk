@@ -11,6 +11,6 @@
         ]) ?>
     <div data-dialog-button>
         <?= Studip\Button::createAccept(_('Speichern')) ?>
-        <?= Studip\LinkButton::createCancel(_('Abbrechen')) ?>
+        <?= Studip\LinkButton::createCancel(_('Abbrechen'), $controller->url_for('/goto/' . $parent_folder_id) ?>
     </div>
 </form>

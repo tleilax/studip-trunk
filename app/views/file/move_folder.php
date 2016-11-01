@@ -45,6 +45,6 @@
         <? else: ?>
         <?= Studip\Button::createAccept(_('Verschieben'), 'form_sent') ?>
         <? endif ?>
-        <?= Studip\LinkButton::createCancel(_('Abbrechen')) ?>
+        <?= Studip\LinkButton::createCancel(_('Abbrechen'), $controller->url_for('/goto/' . $parent_folder_id)) ?>
     </div>
 </form>

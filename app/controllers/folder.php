@@ -48,11 +48,25 @@ class FolderController extends AuthenticatedController
     }
     
     
+    /**
+        Helper action for views: If the abort button in a view is clicked this action is called
+        with the ID of a folder. It then loads the folder object and decides to which URL
+        the user shall be redirected.
+    **/
+    public function goto_action($folder_id)
+    {
+        $folder = Folder::find($folder_id);
+        if($folder) {
+            $this->redirectToFolder($folder);
+        }
+    }
+    
+    
     public function new_action()
     {
         global $perm;
         
-        $this->parent_folder_id = Request::get('parent_folder_id');            
+        $this->parent_folder_id = Request::get('parent_folder_id');
         $this->range_id = Request::get('range_id');
         
         //get parent folder:
@@ -176,6 +190,7 @@ class FolderController extends AuthenticatedController
         }
         
         $this->folder_id = $this->folder->id;
+        $this->parent_folder_id = $this->folder->parent_id;
         
         $current_user = User::findCurrent();
         
@@ -239,6 +254,7 @@ class FolderController extends AuthenticatedController
         }
         
         $this->folder_id = $folder_id;
+        $this->parent_folder_id = $this->folder->parent_id;
         
         $current_user = User::findCurrent();
         
