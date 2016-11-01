@@ -236,6 +236,81 @@ class FileManager
     }
     
     
+    /**
+        This method does all the checks that are necessary before editing a folder's data.
+        Note that either name or description has to be set. Otherwise this method
+        will do nothing.
+        
+        @param folder The folder that shall be edited.
+        @param user The user who wants to edit the folder.
+        @param name The new name for the folder (can be left empty).
+        @param description The new description for the folder (can be left empty).
+        
+        @returns Array with error messages.
+    **/
+    public static function editFolder(Folder $folder, User $user, $name = null, $description = null)
+    {
+        //Since name must not be empty we have to check if it validates to false
+        //(which can happen with emtpy strings). Description on the other hand
+        //can be null which means it shoudln't be changed.
+        //If description is an empty string it shall be changed to an empty string
+        //if it had a filled string as value.
+        if(!$name && ($description == null)) {
+            //neither name nor description are set: we can't do anything.
+            return [_('Keine Änderungen angegeben!')];
+        }
+        
+        //check if folder is not a top folder:
+        if(!$folder->parent_id) {
+            //folder is a top folder which cannot be edited!
+            return [
+                sprintf(
+                    _('Ordner %s ist ein Hauptordner, der nicht bearbeitet werden kann!'),
+                    $folder->name
+                )
+            ];
+        }
+        
+        
+        $folder_type = $folder->getTypedFolder();
+        
+        if($folder_type->isWritable($user->id)) {
+            //ok, user has write permissions for this folder:
+            //edit name or description or both
+            
+            if($name) {
+                //get the parent folder to check for duplicate names
+                //and set the folder name to an unique name:
+                
+                $folder->name = $folder->parentfolder->getUniqueName($name);
+            }
+            
+            if($description != null) {
+                $folder->description = $description;
+            }
+            
+            if($folder->store()) {
+                //folder successfully edited
+                return [];
+            } else {
+                return [
+                    sprintf(
+                        _('Fehler beim Speichern des Ordners %s'),
+                        $folder->name
+                    )
+                ];
+            }
+            
+        } else {
+            return [
+                sprintf(
+                    _('Unzureichende Berechtigungen zum Bearbeiten des Ordners %s'),
+                    $folder->name
+                )
+            ];
+        }
+    }
+    
     
     /**
         This method handles copying folders, including

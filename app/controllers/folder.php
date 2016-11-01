@@ -188,22 +188,15 @@ class FolderController extends AuthenticatedController
             if(Request::get('form_sent')) {
                 //update edited fields
                 $this->name = Request::get('name');
-                if($this->name) {
-                    $this->folder->name = $this->name;
-                } else {
-                    //name is empty:
-                    $this->render_text(
-                        MessageBox::error(_('Ein neuer Name für den Ordner wurde nicht angegeben!'))
-                    );
-                }
-                
                 $this->description = Request::get('description');
                 
-                $this->folder->description = $this->description;
+                $errors = FileManager::editFolder($this->folder, $current_user, $this->name, $this->description);
                 
-                $this->folder->store();
-                
-                $this->redirectToFolder($this->folder, MessageBox::success(_('Ordner wurde bearbeitet!')));
+                if(empty($errors)) {
+                    $this->redirectToFolder($this->folder, MessageBox::success(_('Ordner wurde bearbeitet!')));
+                } else {
+                    $this->redirectToFolder($this->folder, MessageBox::error(_('Fehler beim Bearbeiten des Ordners!'), $errors));
+                }
                 return;
             } else {
                 //show current field values:
@@ -216,14 +209,7 @@ class FolderController extends AuthenticatedController
             $error_message = MessageBox::error(_('Sie sind nicht dazu berechtigt, diesen Ordner zu bearbeiten!'));
             
             $this->redirectToFolder($this->folder, $error_message);
-            /*
-            if(Request::isDialog()) {
-                $this->render_text($error_message);
-                return;
-            } else {
-                PageLayout::postMessage($error_message);
-            }
-            */
+            
             return;
         }
         
