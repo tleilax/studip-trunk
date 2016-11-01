@@ -28,4 +28,22 @@ interface FilesystemPlugin
      * @return array : the already prepared File just like a file-upload-array
      */
     public function getPreparedFile($file_id);
+
+
+
+    public function hasSearch();
+
+    /**
+     * Spezielles Format
+     * @return array(array(), ...)
+     */
+    public function getSearchParameters();
+
+    /**
+     * @param $text
+     * @param array $parameters
+     * @return FolderType|null
+     */
+    public function search($text, $parameters = array());
+
 }

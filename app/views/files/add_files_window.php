@@ -18,6 +18,10 @@
             <?= _("OwnCloud") ?>
         </a>
         <a href="">
+            <?= Icon::create("literature", "clickable")->asImg(50) ?>
+            <?= _("Bibliothek") ?>
+        </a>
+        <a href="">
             <?= Icon::create("service", "clickable")->asImg(50) ?>
             <?= _("Lernmaterialien") ?>
         </a>

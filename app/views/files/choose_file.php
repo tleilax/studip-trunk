@@ -91,7 +91,6 @@ if (Request::get("to_folder_id")) {
     <? endif ?>
 </table>
 
-<? var_dump($controller->url_for('/add_files_window/' . Request::get("to_folder_id"))) ?>
 <?
 $options = array();
 if (Request::get("to_plugin")) {

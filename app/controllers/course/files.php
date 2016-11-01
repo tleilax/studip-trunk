@@ -67,7 +67,7 @@ class Course_FilesController extends AuthenticatedController
             _('Datei hinzufügen'),
             "#",
             Icon::create('file+add', 'clickable'),
-            array('onClick' => "STUDIP.Dialog.show(jQuery('.source_selector').html(), { title: '"._("Datei hinzufügen")."'}); return false;")
+            array('onClick' => "STUDIP.Files.openAddFilesWindow(); return false;")
         );
 
         $sidebar->addWidget($actions);

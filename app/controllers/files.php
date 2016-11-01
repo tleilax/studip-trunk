@@ -141,6 +141,23 @@ class FilesController extends AuthenticatedController
     public function add_files_window_action($folder_id)
     {
         $this->folder_id = $folder_id;
+        $this->plugin = Request::get("to_plugin");
+    }
+
+    public function choose_file_from_course_action($folder_id)
+    {
+        if (Request::get("course_id")) {
+            $folder = Folder::findTopFolder(Request::get("course_id"));
+            $this->redirect(URLHelper::get("files/choose_file/".$folder->getId(), array(
+                'to_plugin' => Request::get("to_plugin"),
+                'to_folder_id' => $folder_id
+            )));
+        }
+        $this->folder_id = $folder_id;
+        $this->plugin = Request::get("to_plugin");
+        if (!$GLOBALS['perm']->have_perm("admin")) {
+            $this->courses = Course::findMine();
+        }
     }
 
     public function choose_file_action($folder_id = null)
