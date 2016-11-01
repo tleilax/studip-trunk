@@ -85,6 +85,7 @@ class FileManager
                 $new_reference->folder_id = $destination_folder->id;
                 $new_reference->description = $source->description;
                 $new_reference->license = $source->license;
+                $new_reference->user_id = $user->id;
                 
                 if($new_reference->store()) {
                     return [];
