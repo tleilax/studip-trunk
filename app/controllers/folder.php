@@ -19,26 +19,55 @@ class FolderController extends AuthenticatedController
     protected $utf8decode_xhr = true;
     
     
+    private function redirectToFolder(Folder $folder, $message = null)
+    {
+        if($message instanceof MessageBox) {
+            if(Request::isDialog()) {
+                $this->render_text($message);
+            } else {
+                PageLayout::postMessage($message);
+            }
+        }
+        
+        if(!Request::isDialog()) {
+            //we only need to redirect when we're not in a dialog!
+            
+            $dest_range = $folder->range_id;
+    
+            switch ($folder->range_type) {
+                case 'course':
+                case 'inst':
+                case 'institute':
+                    return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/' . $folder->id . '?cid=' . $dest_range));                            
+                case 'user':
+                    return $this->redirect(URLHelper::getUrl('dispatch.php/files/index/' . $folder->id));
+                default:
+                    return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/' . $folder->id));
+            }
+        }
+    }
+    
+    
     public function new_action()
     {
         global $perm;
         
         $this->parent_folder_id = Request::get('parent_folder_id');            
-        $this->rangeId = Request::get('rangeId');
+        $this->range_id = Request::get('range_id');
         
         //get parent folder:
-        $parentFolder = Folder::find($this->parent_folder_id);
-        if(!$parentFolder) {
+        $parent_folder = Folder::find($this->parent_folder_id);
+        if(!$parent_folder) {
             if($this->parent_folder_id) {
                 //parent folder ID was given but parent folder was not found: that's an error!
                 PageLayout::postError(_('Übergeordnetes Verzeichnis nicht gefunden!'));
                 $this->render_text('');
                 return;
             }
-            Folder::findTopFolder($this->rangeId);
+            Folder::findTopFolder($this->range_id);
         }
         
-        if(!$parentFolder) {
+        if(!$parent_folder) {
             $this->render_text(
                 MessageBox::error(
                     _('Das übergeordnete Verzeichnis kann nicht identifiziert werden!')
@@ -60,7 +89,7 @@ class FolderController extends AuthenticatedController
                 
                 $this->description = Request::get('description'); 
                 
-                $folder_type = $parentFolder->getTypedFolder();
+                $folder_type = $parent_folder->getTypedFolder();
                 
                 if($folder_type->isWritable($current_user->id)) {
                     //current user may create a new folder in the parent folder
@@ -69,27 +98,11 @@ class FolderController extends AuthenticatedController
                     $folder->name = $this->name;
                     $folder->description = $this->description;
                     
-                    $errors = FileManager::createSubFolder($parentFolder, $folder, $current_user);
+                    $errors = FileManager::createSubFolder($folder, $parent_folder, $current_user);
                     if(!$errors) {
                         //FileManager::createSubFolder returned an empty array => no errors!
-                        if(Request::isDialog()) {
-                            $this->render_text(MessageBox::success(_('Ordner wurde angelegt!')));
-                        } else {
-                            PageLayout::postSuccess(_('Ordner wurde angelegt!'));
-                            
-                            $dest_range = $parentFolder->range_id;
-                    
-                            switch ($destination_folder->range_type) {
-                                case 'course':
-                                case 'inst':
-                                case 'institute':
-                                    return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/'.$parentFolder->id. '?cid=' . $dest_range));                            
-                                case 'user':
-                                    return $this->redirect(URLHelper::getUrl('dispatch.php/files/index/'.$parentFolder->id));
-                                default:
-                                    return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/'.$parentFolder->id));
-                            }
-                        }
+                        
+                        $this->redirectToFolder($parent_folder, MessageBox::success(_('Ordner wurde angelegt!')));
                     } else {
                         if(Request::isDialog()) {
                             $this->render_text(MessageBox::error(_('Fehler beim Anlegen des Ordners'), $errors));
@@ -117,11 +130,11 @@ class FolderController extends AuthenticatedController
                                 
                 /*
                 if($folder->range_type == 'user') {
-                    return $this->redirect(URLHelper::getUrl('dispatch.php/files/index/'.$parentFolder->id));
+                    return $this->redirect(URLHelper::getUrl('dispatch.php/files/index/'.$parent_folder->id));
                 } elseif($folder->range_type == 'course') {
-                    return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/'.$parentFolder->id));
+                    return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/'.$parent_folder->id));
                 } elseif($folder->range_type == 'inst') {
-                    return $this->redirect(URLHelper::getUrl('dispatch.php/institute/files/index/'.$parentFolder->id));
+                    return $this->redirect(URLHelper::getUrl('dispatch.php/institute/files/index/'.$parent_folder->id));
                 }
                 */
                 
@@ -190,7 +203,7 @@ class FolderController extends AuthenticatedController
                 
                 $this->folder->store();
                 
-                $this->render_text(MessageBox::success(_('Ordner wurde bearbeitet!')));
+                $this->redirectToFolder($this->folder, MessageBox::success(_('Ordner wurde bearbeitet!')));
                 return;
             } else {
                 //show current field values:
@@ -200,9 +213,17 @@ class FolderController extends AuthenticatedController
             }
         } else {
             //current user isn't permitted to change this folder:
-            $this->render_text(
-                MessageBox::error(_('Sie sind nicht dazu berechtigt, diesen Ordner zu bearbeiten!'))
-            );
+            $error_message = MessageBox::error(_('Sie sind nicht dazu berechtigt, diesen Ordner zu bearbeiten!'));
+            
+            $this->redirectToFolder($this->folder, $error_message);
+            /*
+            if(Request::isDialog()) {
+                $this->render_text($error_message);
+                return;
+            } else {
+                PageLayout::postMessage($error_message);
+            }
+            */
             return;
         }
         
@@ -273,30 +294,23 @@ class FolderController extends AuthenticatedController
                 $errors = FileManager::copyFolder($this->folder, $this->target_folder, $current_user);
                 
                 if(!$errors) {
-                    $this->render_text(
-                        MessageBox::success(_('Ordner erfolgreich kopiert!'))
-                    );
+                    $this->redirectToFolder($this->target_folder, MessageBox::success(_('Ordner erfolgreich kopiert!')));
                 } else {
-                    $this->render_text(
-                        MessageBox::error(_('Fehler beim Kopieren des Ordners!'), $errors)
-                    );
+                    $this->redirectToFolder($this->target_folder, MessageBox::error(_('Fehler beim Kopieren des Ordners!'), $errors));
                 }
             } else {
                 //ok, we can move the folder!
                 $errors = FileManager::moveFolder($this->folder, $this->target_folder, $current_user);
                 
                 if(!$errors) {
-                    $this->render_text(
-                        MessageBox::success(_('Ordner erfolgreich verschoben!'))
-                    );
+                    $this->redirectToFolder($this->target_folder, MessageBox::success(_('Ordner erfolgreich verschoben!')));
                 } else {
-                    $this->render_text(
-                        MessageBox::error(_('Fehler beim Verschieben des Ordners!'), $errors)
-                    );
+                    $this->redirectToFolder(MessageBox::error(_('Fehler beim Verschieben des Ordners!'), $errors));
                 }
             }
             return;
         }
+        
         
         if ($perm->have_perm('root')) {
             $parameters = array(
@@ -314,14 +328,14 @@ class FolderController extends AuthenticatedController
         
         } else {
             $parameters = array(
-                'userid' => $GLOBALS['user']->id,
+                'userid' => $current_user->id,
                 'semtypes' => studygroup_sem_types() ?: array(),
                 'exclude' => array()
             );
         }
         
-        $coursesearch = MyCoursesSearch::get('Seminar_id', $GLOBALS['perm']->get_perm(), $parameters);
-        $this->search = QuickSearch::get('course_id', $coursesearch)
+        $course_search = MyCoursesSearch::get('Seminar_id', $GLOBALS['perm']->get_perm(), $parameters);
+        $this->search = QuickSearch::get('course_id', $course_search)
             ->setInputStyle('width:100%')
             ->fireJSFunctionOnSelect('function(){STUDIP.Files.getFolders();}')
             ->withButton()
@@ -331,15 +345,15 @@ class FolderController extends AuthenticatedController
                     "FROM Institute " .
                     "LEFT JOIN range_tree ON (range_tree.item_id = Institute.Institut_id) " .
                     "LEFT JOIN user_inst ON (user_inst.Institut_id = Institute.Institut_id)" .
-                    "WHERE user_inst.user_id = '" . $user_id . "' " .
+                    "WHERE user_inst.user_id = '" . $current_user->id . "' " .
                     "AND Institute.Name LIKE :input " .
                     "OR Institute.Strasse LIKE :input " .
                     "OR Institute.email LIKE :input " .
                     "OR range_tree.name LIKE :input " .
                     "ORDER BY Institute.Name";
         
-        $instsearch = SQLSearch::get($institute_sql, _("Einrichtung suchen"), 'Institut_id');
-        $this->inst_search = QuickSearch::get('Institut_id', $instsearch)
+        $institute_search = SQLSearch::get($institute_sql, _("Einrichtung suchen"), 'Institut_id');
+        $this->inst_search = QuickSearch::get('Institut_id', $institute_search)
             ->setInputStyle('width:100%')
             ->fireJSFunctionOnSelect('function(){STUDIP.Files.getFolders();}')
             ->withButton()
@@ -348,18 +362,10 @@ class FolderController extends AuthenticatedController
         $this->copy_mode = $copy; //for the view: copy and move both use the file/move_folder view
         
         
-        if($copy) {
-            if(Request::isDialog()) {
-                $this->render_template('file/move_folder.php');
-            } else {
-                $this->render_template('file/move_folder.php', $GLOBALS['template_factory']->open('layouts/base'));
-            }
+        if(Request::isDialog()) {
+            $this->render_template('file/move_folder.php');
         } else {
-            if(Request::isDialog()) {
-                $this->render_template('file/move_folder.php');
-            } else {
-                $this->render_template('file/move_folder.php', $GLOBALS['template_factory']->open('layouts/base'));
-            }
+            $this->render_template('file/move_folder.php', $GLOBALS['template_factory']->open('layouts/base'));
         }
     }
     

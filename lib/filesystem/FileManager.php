@@ -184,54 +184,55 @@ class FileManager
     /**
         Handles the sub folder creation routine.
         
-        @param folder The folder where the subfolder shall be created.
-        @param subFolder The subfolder that shall be linked.
+        @param sub_folder The subfolder that shall be linked with $destination_folder
+        @param destination_folder The folder where the subfolder shall be linked.
         @param user The user who wishes to create the subfolder.
         
         @returns array with error messages
         
     **/
-    public static function createSubFolder(Folder $folder, Folder $subFolder, User $user)
+    public static function createSubFolder(Folder $sub_folder, Folder $destination_folder, User $user)
     {
-        $errorMessages = [];
+        $errors = [];
         
         //check if subFolder is new:
-        if(!$subFolder->isNew()) {
-            $errorMessages[] = _('Ein bereits erstellter Ordner kann nicht neu erzeugt werden!');
+        if(!$sub_folder->isNew()) {
+            $errors[] = _('Ein bereits erstellter Ordner kann nicht neu erzeugt werden!');
         }
         
         
         //check if user is owner of parent folder:
-        $folderType = $folder->getTypedFolder();
+        $folder_type = $destination_folder->getTypedFolder();
         
-        if(!$folderType->isSubfolderAllowed($user->id)) {
-            $errorMessages[] = _('Sie sind nicht dazu berechtigt, einen Unterordner zu erstellen!');
+        if(!$folder_type->isSubfolderAllowed($user->id)) {
+            $errors[] = _('Sie sind nicht dazu berechtigt, einen Unterordner zu erstellen!');
         }
         
         //check if folder name is unique and change it, if it isn't:
-        $subFolder->name = $folder->getUniqueName($subFolder->name);
+        $sub_folder->name = $destination_folder->getUniqueName($sub_folder->name);
         
         //we can return here if we have found errors:
-        if($errorMessages) {
-            return $errorMessages;
+        if($errors) {
+            return $errors;
         }
         
         
         //check if all necessary attributes of the sub folder are set 
         //and if they aren't set, set them here:
         
-        $subFolder->user_id = $user->id;
+        $sub_folder->user_id = $user->id;
         
-        $subFolder->range_id = $folder->range_id;
+        $sub_folder->range_id = $destination_folder->range_id;
         
-        $subFolder->parent_id = $folder->id;
+        $sub_folder->parent_id = $destination_folder->id;
         
-        $subFolder->range_type = $folder->range_type;
+        $sub_folder->range_type = $destination_folder->range_type;
         
-        $subFolder->folder_type = $folder->folder_type;
+        $sub_folder->folder_type = $destination_folder->folder_type;
         
-        $subFolder->store();
-                
+        $sub_folder->store();
+        
+        return []; //no errors
     }
     
     
