@@ -116,6 +116,16 @@ STUDIP.Files = {
 };
 
 jQuery(function () {
+	jQuery('.documents[data-folder_id]').tablesorter({
+        textExtraction: function (node) {
+            var $node = $(node);
+            return String($node.data('timestamp') || $node.text()).trim();
+        },
+        cssAsc: 'sortasc',
+        cssDesc: 'sortdesc',
+        sortList: [[2, 0]]
+    });
+
     jQuery(".documents[data-folder_id] tbody > tr")
         .on('dragover dragleave', function (event) {
             jQuery(this).toggleClass('dragover', event.type === 'dragover');
