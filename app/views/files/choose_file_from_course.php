@@ -11,6 +11,14 @@ if (Request::get("to_plugin")) {
     </form>
 <? else : ?>
     <table class="default">
+        <thead>
+            <tr>
+                <th><?= _("Bild") ?></th>
+                <th><?= _("Name") ?></th>
+                <th><?= _("Semester") ?></th>
+                <th><?= _("Zum Dateibereich") ?></th>
+            </tr>
+        </thead>
         <tbody>
             <? foreach ($courses as $course) : ?>
                 <tr>
@@ -22,6 +30,14 @@ if (Request::get("to_plugin")) {
                     <td>
                         <a href="<?= $controller->link_for("files/choose_file_from_course/".$folder_id, array_merge($options, array('course_id' => $course->getId()))) ?>" data-dialog>
                             <?= htmlReady($course->name) ?>
+                        </a>
+                    </td>
+                    <td>
+                        <?= htmlReady($course->start_semester->name) ?>
+                    </td>
+                    <td>
+                        <a href="<?= $controller->link_for("files/choose_file_from_course/".$folder_id, array_merge($options, array('course_id' => $course->getId()))) ?>" data-dialog>
+                            <?= Icon::create("folder-full", "clickable")->asImg(30) ?>
                         </a>
                     </td>
                 </tr>

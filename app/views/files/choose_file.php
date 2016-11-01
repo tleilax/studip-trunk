@@ -15,6 +15,29 @@ if (Request::get("to_folder_id")) {
     $options['to_folder_id'] = Request::get("to_folder_id");
 }
 ?>
+
+<? if ($filesystemplugin && $filesystemplugin->hasSearch()) : ?>
+    <form action="" method="get" class="default">
+        <input type="text" name="search" value="<?= htmlReady(Request::get("search")) ?>" placeholder="<?= _("Suche nach ...") ?>">
+        <? foreach ($filesystemplugin->getSearchParameters() as $parameter) : ?>
+            <label>
+                <?= htmlReady($parameter['label']) ?>
+                <? switch ($parameter['type']) : ?>
+                    <? case "text": ?>
+                        <input type="text" name="<?= htmlReady($parameter['name']) ?>" value="<?= htmlReady(Request::get($parameter['name'])) ?>" placeholder="<?= htmlReady($parameter['placeholder']) ?>">
+                        <? break ?>
+                    <? case "select": ?>
+                        <select name="<?= htmlReady($parameter['name']) ?>">
+
+                        </select>
+
+                <? endswitch ?>
+            </label>
+        <? endforeach ?>
+    </form>
+
+<? endif ?>
+
 <table class="default">
     <thead>
         <tr>
