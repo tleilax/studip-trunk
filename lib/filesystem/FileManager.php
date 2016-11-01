@@ -334,34 +334,54 @@ class FileManager
         $destination_folder_type = $destination_folder->getTypedFolder();
         if($destination_folder_type->isWritable($user->id)) {
             
-            $new_folder = Folder();
-            $new_folder->user_id = $source_folder->user_id;
-            $new_folder->parent_id = $destination_folder->id;
-            $new_folder->range_id = $destination_folder->range_id;
-            $new_folder->range_type = $destination_folder->range_type;
-            $new_folder->folder_type = $source_folder->folder_type;
-            $new_folder->name = $source_folder->name;
-            $new_folder->data_content = $source_folder->data_content;
-            $new_folder->description = $source_folder->description;
-            //folder is copied, we can store it:
-            $new_folder->store();
+            $source_folder_type = Folder::findRangeTypeById($source_folder->range_id);
             
-            
-            //now we go through all subfolders and copy them:
-            foreach($source_folder->subfolders as $sub_folder) {
-                $errors[] = self::copyFolder($sub_folder, $new_folder, $user);
-                if($errors) {
-                    return $errors;
-                }
-            }
-            
-            //now go through all files and copy them, too:
-            foreach($source_folder->file_refs as $file_ref) {
-                $errors[] = self::copyFileRef($file_ref, $new_folder, $user);
+            //we have to check, if the source folder is a folder from a course.
+            //If so, then only users with status dozent or tutor (or root)
+            //may copy the folder!
+            if(($source_folder_type == 'course' &&
+                ($user->perms == 'tutor') || ($user->perms == 'dozent') || ($user->perms == 'root'))
+                || ($source_folder_type != 'course')
+            ) {
+                //the if-query above returns true if the folder type is not course
+                //or if the user has the permissions to copy a course folder
                 
-                if($errors) {
-                    return $errors;
+                $new_folder = new Folder();
+                $new_folder->user_id = $source_folder->user_id;
+                $new_folder->parent_id = $destination_folder->id;
+                $new_folder->range_id = $destination_folder->range_id;
+                $new_folder->range_type = $destination_folder->range_type;
+                $new_folder->folder_type = $source_folder->folder_type;
+                $new_folder->name = $source_folder->name;
+                $new_folder->data_content = $source_folder->data_content;
+                $new_folder->description = $source_folder->description;
+                //folder is copied, we can store it:
+                $new_folder->store();
+                
+            
+                //now we go through all subfolders and copy them:
+                foreach($source_folder->subfolders as $sub_folder) {
+                    $errors[] = self::copyFolder($sub_folder, $new_folder, $user);
+                    if($errors) {
+                        return $errors;
+                    }
                 }
+                
+                //now go through all files and copy them, too:
+                foreach($source_folder->file_refs as $file_ref) {
+                    $errors[] = self::copyFileRef($file_ref, $new_folder, $user);
+                    
+                    if($errors) {
+                        return $errors;
+                    }
+                }
+            } else {
+                //no permission to copy course folders!
+                $errors[] = sprintf(
+                    _('Unzureichende Berechtigungen zum Kopieren von Veranstaltungsordner %s in Ordner %s!'),
+                    $source_folder->name,
+                    $destination_folder->name
+                );
             }
         } else {
             $errors[] = sprintf(
