@@ -314,7 +314,7 @@ class Folder extends SimpleORMap
      */
     public function unlinkFileRef($fileref_or_id)
     {
-        $fileref = File::toObject($fileref_or_id); //File or FileRef????
+        $fileref = FileRef::toObject($fileref_or_id);
         return $fileref->delete();
     }
 
