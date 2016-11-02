@@ -17,6 +17,15 @@ class FileManager
     
     //FILE METHODS
     
+    /**
+        Handles uploading one or more files
+        
+        @param uploaded_files An array with file data for all uploaded files
+        @param folder the folder where the files are inserted
+        @param user_id the ID of the user who wants to upload files
+        
+        @return Array with the created file objects and error strings
+    */
     public static function handleFileUpload(Array $uploaded_files, FolderType $folder, $user_id)
     {
         $result = array();
@@ -67,8 +76,8 @@ class FileManager
         @param destination_folder The destination folder for the file.
         @param user The user who wishes to copy the file.
         
-        @returns Array with error messages: Empty array on success, filled array on failure.
-    **/
+        @return Array with error messages: Empty array on success, filled array on failure.
+    */
     public static function copyFileRef(FileRef $source, Folder $destination_folder, User $user)
     {
         //first we have to make sure if the user has the permissions to read the source folder
@@ -423,6 +432,18 @@ class FileManager
     }
     
     
+    /**
+        returns the available folder types, sorted (and at your option selected) by range type
+        
+        There are several types of folders in Stud.IP. This method returns
+        all available folder types. If the parameter range_type is set then only
+        the folder types allowed in that range are returned.
+        
+        @param range_type the range type: "course", "institute", "user", ...
+        
+        @return Array with strings representing the class names of available folder types.
+        
+    */
     public static function getFolderTypes($range_type = null)
     {
         $result = array();
