@@ -24,7 +24,7 @@ class FileManager
      * @param folder the folder where the files are inserted
      * @param user_id the ID of the user who wants to upload files
      * 
-     * @return Array with the created file objects and error strings
+     * @return mixed[] Array with the created file objects and error strings
      */
     public static function handleFileUpload(Array $uploaded_files, FolderType $folder, $user_id)
     {
@@ -71,12 +71,16 @@ class FileManager
      * If the user (given by $user) is the owner of the file (by looking at the user_id
      * in the file reference) we can just make a new reference to that file.
      * Else, we must copy the file and its content.
+     *
+     * The file name is altered when a file with the identical name exists in
+     * the destination folder. In that case, only the name in the FileRef object
+     * of the file is altered and the File object's name is unchanged.
      * 
      * @param source The file reference for the file that shall be copied.
      * @param destination_folder The destination folder for the file.
      * @param user The user who wishes to copy the file.
      * 
-     * @return Array with error messages: Empty array on success, filled array on failure.
+     * @return string[] Array with error messages: Empty array on success, filled array on failure.
      */
     public static function copyFileRef(FileRef $source, Folder $destination_folder, User $user)
     {
@@ -92,6 +96,7 @@ class FileManager
                 $new_reference = new FileRef();
                 $new_reference->file_id = $source->file_id;
                 $new_reference->folder_id = $destination_folder->id;
+                $new_reference->name = $destination_folder->getUniqueName($source->file->name);
                 $new_reference->description = $source->description;
                 $new_reference->license = $source->license;
                 $new_reference->user_id = $user->id;
@@ -109,7 +114,11 @@ class FileManager
                 $file_copy = new File();
                 $file_copy->user_id = $user->id;
                 $file_copy->mime_type = $source->file->mime_type;
+                
+                //The File object's name is unchanged here.
+                //It must only be unique for the file reference (see below).
                 $file_copy->name = $source->file->name;
+                
                 $file_copy->size = $source->file->size;
                 $file_copy->storage = $source->file->storage;
                 $file_copy->author_name = $source->file->author_name;
@@ -122,6 +131,10 @@ class FileManager
                         //ok, create the file ref for the copied file:
                         $new_reference = new FileRef();
                         $new_reference->file_id = $file_copy->file_id;
+                        
+                        //Create an unique name for the file reference:
+                        $new_reference->name = $destination_folder->getUniqueName($file_copy->name);
+                        
                         $new_reference->folder_id = $destination_folder->id;
                         $new_reference->description = $source->description;
                         $new_reference->license = $source->license;
@@ -164,7 +177,7 @@ class FileManager
      * @param destination_folder The destination folder.
      * @param user The user who wishes to move the file.
      * 
-     * @returns Array with error messages: Empty array on success, filled array on failure.
+     * @returns string[] Array with error messages: Empty array on success, filled array on failure.
      */
     public static function moveFileRef(FileRef $source, Folder $destination_folder, User $user)
     {
@@ -173,6 +186,8 @@ class FileManager
         if($source_folder->isReadable($user->id) && $destination_folder->isEditable($user->id)) {
             
             $source->folder_id = $destination_folder->id;
+            $source->name = $destination_folder->getUniqueName($source->name);
+            
             if($source->store()) {
                 return [];
             } else {
@@ -202,7 +217,7 @@ class FileManager
      * @param destination_folder The folder where the subfolder shall be linked.
      * @param user The user who wishes to create the subfolder.
      * 
-     * @returns array with error messages
+     * @returns string[] Array with error messages: Empty array on success, filled array on failure.
      * 
      */
     public static function createSubFolder(Folder $sub_folder, Folder $destination_folder, User $user)
@@ -260,7 +275,7 @@ class FileManager
      * @param name The new name for the folder (can be left empty).
      * @param description The new description for the folder (can be left empty).
      * 
-     * @returns Array with error messages.
+     * @returns string[] Array with error messages: Empty array on success, filled array on failure.
      */
     public static function editFolder(Folder $folder, User $user, $name = null, $description = null)
     {

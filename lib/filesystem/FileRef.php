@@ -17,6 +17,8 @@
  * @property string id database column
  * @property string file_id database column
  * @property string folder_id database column
+ * @property string user_id database column
+ * @property string name database column
  * @property string downloads database column
  * @property string description database column
  * @property string license database column
@@ -24,6 +26,7 @@
  * @property string chdate database column
  * @property SimpleORMap file belongs_to File
  * @property SimpleORMap folder belongs_to Folder
+ * @property SimpleORMap owner belongs_to User
  */
 class FileRef extends SimpleORMap
 {
