@@ -21,9 +21,11 @@ interface FolderType
     static public function getTypeName();
 
     /**
-     * @return Icon
+     * Returns the name of the icon shape that shall be used with this folder type.
+     * 
+     * @return string Name of icon shape
      */
-    static public function getIcon();
+    static public function getIconShape();
 
     /**
      * @param string $range_type : "course", "user", "institute"
