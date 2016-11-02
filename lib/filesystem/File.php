@@ -62,7 +62,9 @@ class File extends SimpleORMap
     }
 
     /**
-     * @return mixed
+     * Returns the file extension of a file.
+     * 
+     * @return string A string with the file extension.
      */
     public function getExtension()
     {
@@ -70,7 +72,9 @@ class File extends SimpleORMap
     }
 
     /**
-     * @return null|string
+     * Returns the path to the file in the operating system's file system.
+     * 
+     * @return null|string Returns the operating system's file system path of the file or null on failure.
      */
     function getPath()
     {
@@ -81,7 +85,9 @@ class File extends SimpleORMap
     }
 
     /**
-     * @return bool
+     * Deletes the data file associated with the File object.
+     * 
+     * @return bool Returns true on success and false on failure.
      */
     public function deleteDataFile()
     {
@@ -89,8 +95,10 @@ class File extends SimpleORMap
     }
 
     /**
-     * @param $path_to_file
-     * @return bool
+     * Connects the File object to a physical file that is stored in the operating system's file system.
+     * 
+     * @param string $path_to_file The path to the physical file.
+     * @return bool Returns true on success and false on failure.
      */
     public function connectWithDataFile($path_to_file)
     {
