@@ -18,14 +18,14 @@ class FileManager
     //FILE METHODS
     
     /**
-        Handles uploading one or more files
-        
-        @param uploaded_files An array with file data for all uploaded files
-        @param folder the folder where the files are inserted
-        @param user_id the ID of the user who wants to upload files
-        
-        @return Array with the created file objects and error strings
-    */
+     * Handles uploading one or more files
+     * 
+     * @param uploaded_files An array with file data for all uploaded files
+     * @param folder the folder where the files are inserted
+     * @param user_id the ID of the user who wants to upload files
+     * 
+     * @return Array with the created file objects and error strings
+     */
     public static function handleFileUpload(Array $uploaded_files, FolderType $folder, $user_id)
     {
         $result = array();
@@ -66,18 +66,18 @@ class FileManager
     
     
     /**
-        This method handles copying a file to a new folder.
-        
-        If the user (given by $user) is the owner of the file (by looking at the user_id
-        in the file reference) we can just make a new reference to that file.
-        Else, we must copy the file and its content.
-        
-        @param source The file reference for the file that shall be copied.
-        @param destination_folder The destination folder for the file.
-        @param user The user who wishes to copy the file.
-        
-        @return Array with error messages: Empty array on success, filled array on failure.
-    */
+     * This method handles copying a file to a new folder.
+     * 
+     * If the user (given by $user) is the owner of the file (by looking at the user_id
+     * in the file reference) we can just make a new reference to that file.
+     * Else, we must copy the file and its content.
+     * 
+     * @param source The file reference for the file that shall be copied.
+     * @param destination_folder The destination folder for the file.
+     * @param user The user who wishes to copy the file.
+     * 
+     * @return Array with error messages: Empty array on success, filled array on failure.
+     */
     public static function copyFileRef(FileRef $source, Folder $destination_folder, User $user)
     {
         //first we have to make sure if the user has the permissions to read the source folder
@@ -158,14 +158,14 @@ class FileManager
     }
     
     /**
-        This method handles moving a file to a new folder.
-        
-        @param source The file reference for the file that shall be moved.
-        @param destination_folder The destination folder.
-        @param user The user who wishes to move the file.
-        
-        @returns Array with error messages: Empty array on success, filled array on failure.
-    **/
+     * This method handles moving a file to a new folder.
+     * 
+     * @param source The file reference for the file that shall be moved.
+     * @param destination_folder The destination folder.
+     * @param user The user who wishes to move the file.
+     * 
+     * @returns Array with error messages: Empty array on success, filled array on failure.
+     */
     public static function moveFileRef(FileRef $source, Folder $destination_folder, User $user)
     {
         $source_folder = Folder::find($source->folder_id);
@@ -196,15 +196,15 @@ class FileManager
     
     
     /**
-        Handles the sub folder creation routine.
-        
-        @param sub_folder The subfolder that shall be linked with $destination_folder
-        @param destination_folder The folder where the subfolder shall be linked.
-        @param user The user who wishes to create the subfolder.
-        
-        @returns array with error messages
-        
-    **/
+     * Handles the sub folder creation routine.
+     * 
+     * @param sub_folder The subfolder that shall be linked with $destination_folder
+     * @param destination_folder The folder where the subfolder shall be linked.
+     * @param user The user who wishes to create the subfolder.
+     * 
+     * @returns array with error messages
+     * 
+     */
     public static function createSubFolder(Folder $sub_folder, Folder $destination_folder, User $user)
     {
         $errors = [];
@@ -251,17 +251,17 @@ class FileManager
     
     
     /**
-        This method does all the checks that are necessary before editing a folder's data.
-        Note that either name or description has to be set. Otherwise this method
-        will do nothing.
-        
-        @param folder The folder that shall be edited.
-        @param user The user who wants to edit the folder.
-        @param name The new name for the folder (can be left empty).
-        @param description The new description for the folder (can be left empty).
-        
-        @returns Array with error messages.
-    **/
+     * This method does all the checks that are necessary before editing a folder's data.
+     * Note that either name or description has to be set. Otherwise this method
+     * will do nothing.
+     * 
+     * @param folder The folder that shall be edited.
+     * @param user The user who wants to edit the folder.
+     * @param name The new name for the folder (can be left empty).
+     * @param description The new description for the folder (can be left empty).
+     * 
+     * @returns Array with error messages.
+     */
     public static function editFolder(Folder $folder, User $user, $name = null, $description = null)
     {
         //Since name must not be empty we have to check if it validates to false
@@ -327,15 +327,15 @@ class FileManager
     
     
     /**
-        This method handles copying folders, including
-        copying the subfolders and files recursively.
-        
-        @param source_folder The folder that shall be copied.
-        @param destination_folder The destination folder.
-        @param user The user who wishes to copy the folder.
-        
-        @returns Array with error messages: Empty array on success, filled array on failure.
-    **/
+     * This method handles copying folders, including
+     * copying the subfolders and files recursively.
+     * 
+     * @param source_folder The folder that shall be copied.
+     * @param destination_folder The destination folder.
+     * @param user The user who wishes to copy the folder.
+     * 
+     * @returns Array with error messages: Empty array on success, filled array on failure.
+     */
     public static function copyFolder(Folder $source_folder, Folder $destination_folder, User $user)
     {
         global $perm;
@@ -406,15 +406,15 @@ class FileManager
     
     
     /**
-        This method handles moving folders, including
-        subfolders and files.
-        
-        @param source_folder The folder that shall be moved.
-        @param destination_folder The destination folder.
-        @param user The user who wishes to move the folder.
-        
-        @returns Array with error messages: Empty array on success, filled array on failure.
-    **/
+     * This method handles moving folders, including
+     * subfolders and files.
+     * 
+     * @param source_folder The folder that shall be moved.
+     * @param destination_folder The destination folder.
+     * @param user The user who wishes to move the folder.
+     * 
+     * @returns Array with error messages: Empty array on success, filled array on failure.
+     */
     public static function moveFolder(Folder $source_folder, Folder $destination_folder, User $user)
     {
         $destination_folder_type = $destination_folder->getTypedFolder();
@@ -433,17 +433,17 @@ class FileManager
     
     
     /**
-        returns the available folder types, sorted (and at your option selected) by range type
-        
-        There are several types of folders in Stud.IP. This method returns
-        all available folder types. If the parameter range_type is set then only
-        the folder types allowed in that range are returned.
-        
-        @param range_type the range type: "course", "institute", "user", ...
-        
-        @return Array with strings representing the class names of available folder types.
-        
-    */
+     * returns the available folder types, sorted (and at your option selected) by range type
+     * 
+     * There are several types of folders in Stud.IP. This method returns
+     * all available folder types. If the parameter range_type is set then only
+     * the folder types allowed in that range are returned.
+     * 
+     * @param range_type the range type: "course", "institute", "user", ...
+     * 
+     * @return Array with strings representing the class names of available folder types.
+     * 
+     */
     public static function getFolderTypes($range_type = null)
     {
         $result = array();
