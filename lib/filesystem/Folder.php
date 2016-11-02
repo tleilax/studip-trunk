@@ -84,6 +84,7 @@ class Folder extends SimpleORMap
         parent::configure($config);
     }
 
+
     /**
      * Creates a top folder (root directory) for a Stud.IP object given by range_id and range_type.
      * 
@@ -91,8 +92,8 @@ class Folder extends SimpleORMap
      * To properly create such a folder this method requires the parameters
      * range_id and range_type to be set.
      * 
-     * @param $range_id the ID of the Stud.IP object
-     * @param $range_type the type of the object: "course", "inst", "user", ...
+     * @param string $range_id The ID of the Stud.IP object
+     * @param string $range_type The type of the object: "course", "inst", "user", ...
      * 
      * @return Folder Created Folder object.
      */
@@ -110,6 +111,7 @@ class Folder extends SimpleORMap
         return self::create($data);
     }
 
+
     /**
      * Determines the range type by probing the given range ID.
      *
@@ -118,7 +120,8 @@ class Folder extends SimpleORMap
      * is given, this method will help to determine the corresponding
      * object type.
      * 
-     * @param $range_id The ID of an object whose type shall be determined.
+     * @param string $range_id The ID of an object whose type shall be determined.
+     * 
      * @return bool|string Returns false on failure, otherwise the name of the range.
      */
     public static function findRangeTypeById($range_id = null)
@@ -144,80 +147,114 @@ class Folder extends SimpleORMap
 
 
     /**
-     * Helper method: Checks if the file exists in a folder.
+     * Checks if a file or folder with a given file name exists inside the folder.
+     * 
+     * By looking at the number of associated FileRef objects and 
+     * the number of associated Folder objects this method determines
+     * if a file or folder with a given name exists inside the folder.
      *
+     * @param string $file_name The file name of the file or folder which is searched.
+     * 
      * @return bool Returns true, if a file was found, false otherwise.
      **/
-    public function fileExists($fileName)
+    public function fileExists($file_name)
     {
 
         //get files :
-        $foundFiles = FileRef::countBySql(
-            "name = :fileName AND folder_id = :id",
-            ['fileName' => $fileName,
+        $found_files = FileRef::countBySql(
+            "name = :file_name AND folder_id = :id",
+            ['file_name' => $file_name,
              'id'       => $this->id]
         );
-        $foundfolders = Folder::countBySql(
-            "name = :fileName AND parent_id= :id",
-            ['fileName' => $fileName,
+        $found_folders = Folder::countBySql(
+            "name = :file_name AND parent_id= :id",
+            ['file_name' => $file_name,
              'id'       => $this->id]
         );
 
-        return ($foundFiles + $foundfolders) > 0;
+        return ($found_files + $found_folders) > 0;
     }
 
+
     /**
-     * @param $filename
-     * @return string
+     * Makes a given file name unique and returns the altered file name.
+     *
+     * The file and folder names in a folder must be unique. This helper method
+     * will check, if a file or folder with the name given by the parameter
+     * $file_name exists and if so, it will append a number in square brackets
+     * to the file name to make it unique. The unique file name is returned.
+     * 
+     * @param string $file_name The file name that shall be checked for uniqueness.
+     * 
+     * @return string An unique filename.
      */
-    public function getUniqueName($filename)
+    public function getUniqueName($file_name)
     {
         $c = 0;
-        $ext = pathinfo($filename, PATHINFO_EXTENSION);
+        $ext = pathinfo($file_name, PATHINFO_EXTENSION);
         if ($ext) {
-            $name = substr($filename, 0, strrpos($filename, $ext) - 1);
+            $name = substr($file_name, 0, strrpos($file_name, $ext) - 1);
         } else {
-            $name = $filename;
+            $name = $file_name;
         }
-        while ($this->fileExists($filename)) {
-            $filename = $name . '[' . ++$c . ']' . ($ext ? '.' . $ext : '');
+        while ($this->fileExists($file_name)) {
+            $file_name = $name . '[' . ++$c . ']' . ($ext ? '.' . $ext : '');
         }
-        return $filename;
+        return $file_name;
     }
 
 
     /**
-     * Find the root folder of a course, institute, personal file area or a message.
+     * Find the top folder of a Stud.IP object or create it, if it doesn't exist.
+     * 
+     * This method finds the top folder (root directory) of a course, institute,
+     * personal file area or a message by the ID given in the range_id parameter.
      * If the root folder doesn't exist, it will be created.
      *
-     * @returns Folder object on success or null, if no folder can be created
+     * Note that the range_id parameter is mandatory!
+     *
+     * @param string range_id The ID of the Stud.IP object whose top folder shall be found.
+     *
+     * @returns Folder|null Folder object on success or null, if no folder can be created.
      **/
-    public static function findTopFolder($rangeId)
+    public static function findTopFolder($range_id = null)
     {
-        $topFolder = self::findOneBySQL("range_id = ? AND parent_id=''", [$rangeId]);
+        if(!$range_id) {
+            //If $range_id isn't set we don't need to query the database
+            //for non-existing objects and can directly return null.
+            return null;
+        }
+        
+        $top_folder = self::findOneBySQL("range_id = ? AND parent_id=''", [$range_id]);
 
-        //topFolder may not exist!
-        if (!$topFolder) {
-            //topFolder doest not exist: create it
+        //top_folder may not exist!
+        if (!$top_folder) {
+            //top_folder doest not exist: create it
 
             //determine range type:
-            $rangeType = self::findRangeTypeById($rangeId);
-            if ($rangeType) {
+            $range_type = self::findRangeTypeById($range_id);
+            if ($range_type) {
                 //range type determined: folder can be created!
-                $topFolder = self::createTopFolder($rangeId, $rangeType);
+                $top_folder = self::createTopFolder($range_id, $range_type);
             } else {
                 //no range type means we can't create a folder!
                 return null;
             }
         }
 
-        return $topFolder;
+        return $top_folder;
     }
 
 
     /**
-     * @return mixed
-     * @throws InvalidValuesException
+     * Gets the FolderType object for the current folder.
+     * 
+     * The FolderType class defines extended attributes for a folder.
+     * With this method the associated FolderType of a folder can be
+     * determined.
+     * 
+     * @return FolderType An object of a FolderType derivate.
+     * @throws InvalidValuesException If the class specified by the folder's folder_type attribute can't be found an Exception is thrown.
      */
     public function getTypedFolder()
     {
@@ -227,16 +264,34 @@ class Folder extends SimpleORMap
         throw new InvalidValuesException('class: ' . $this->folder_type . ' not found');
     }
 
+
     /**
-     * @param $file_or_id
-     * @param string $description
-     * @param string $license
-     * @return FileRef
+     * Creates a FileRef object for a given File object or its ID.
+     * 
+     * This method creates a FileRef object for a file that is represented
+     * by its object or its ID. The new FileRef's description is different
+     * than the one from the file since it is set via the $description parameter.
+     * Furthermore license information can be stored via the $license parameter.
+     * 
+     * @param File|string $file_or_id Either a file object or a string containing a File object's ID.
+     * @param string $description The description for the file that shall be used in the FileRef object.
+     * @param string $license A string describing a license, defaults to "UnknownLicense".
+     * 
+     * @return FileRef|null On success a FileRef for the given file is returned. On failrue, null is returned.
      */
     public function linkFile($file_or_id, $description = '', $license = 'UnknownLicense')
     {
-
+        if(!$file_or_id) {
+            //empty string or something else that validates to false!
+            return null;
+        }
+        
         $file = File::toObject($file_or_id);
+        if(!$file) {
+            //file object wasn't found!
+            return null;
+        }
+        
         $ref = new FileRef();
         $ref->file_id = $file->id;
         $ref->folder_id = $this->id;
@@ -246,21 +301,34 @@ class Folder extends SimpleORMap
         $ref->license = $license;
         if ($ref->store()) {
             return $ref;
+        } else {
+            return null;
         }
     }
 
+
     /**
-     * @param $fileref_or_id
-     * @return mixed
+     * Removes a file reference.
+     * @param FileRef|string $fileref_or_id The FileRef itself or its ID
+     * @return int|bool Returns the amount of deleted databasw rows on success or false on failure.
      */
     public function unlinkFileRef($fileref_or_id)
     {
-        $fileref = File::toObject($fileref_or_id);
+        $fileref = File::toObject($fileref_or_id); //File or FileRef????
         return $fileref->delete();
     }
 
+
     /**
-     * @return array
+     * Returns a list of parent folders, starting with the top folder.
+     * 
+     * This method returns a list with the parent folders of the folder
+     * until the top folder (root directory) is found.
+     * The list is reversed so that it starts with the top folder and 
+     * ends with this folder.
+     *
+     * 
+     * @return \Folder[] An array of parent folders, starting with the top folder.
      */
     public function getParents()
     {
@@ -277,25 +345,56 @@ class Folder extends SimpleORMap
         return $path;
     }
 
+
     /**
-     * @param string $delimiter
-     * @return string
+     * Returns the file system path from the top folder to this folder.
+     * 
+     * By calling the getParents method of this class and getting the names
+     * of the parent folders the path is created. The default path separator
+     * is a slash, but it can be overwritten by specifying the $delimiter parameter.
+     * 
+     * @param string $delimiter The character to be used as path separator.
+     * @return string The path from the top folder to this folder, separated by the character set in $delimiter.
      */
     public function getPath($delimiter = '/')
     {
         return join($delimiter, SimpleCollection::createFromArray($this->getParents())->pluck('name'));
     }
 
+
+    /**
+     * Checks if a user has the permission to read this folder.
+     * 
+     * @param string user_id The ID of the user whose permissions for this folder shall be checked.
+     * 
+     * @return bool True, if the user may read this folder, false otherwise.
+     */
     public function isReadable($user_id)
     {
         return true;
     }
 
+
+    /**
+     * Checks if a user has the permission to edit this folder.
+     * 
+     * @param string user_id The ID of the user whose permissions for this folder shall be checked.
+     * 
+     * @return bool True, if the user may edit this folder, false otherwise.
+     */
     public function isEditable($user_id)
     {
         return true;
     }
 
+
+    /**
+     * Checks if a user has the permission to delete this folder.
+     * 
+     * @param string user_id The ID of the user whose permissions for this folder shall be checked.
+     * 
+     * @return bool True, if the user may delete this folder, false otherwise.
+     */
     public function isDeletable($user_id)
     {
         return true;
