@@ -1,6 +1,6 @@
 <?php
 /**
- * HomeworkFolder.class.php
+ * InboxFolder.class.php
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -14,12 +14,13 @@
  */
 
 /**
- * This is a FolderType implementation for homework folders.
+ * This is a FolderType implementation especially for message attachments.
  * 
- * A homework folder in Stud.IP can be writeable by all course members
- * but is only readable by teachers.
+ * Message attachments of Stud.IP messages are covered by the file system.
+ * So they have to be stored somewhere in the file system.
+ * The InboxFolder folder type exists for this special purpose.
  */
-class HomeworkFolder implements FolderType
+class InboxFolder implements FolderType
 {
     public $folder = null;
     
@@ -32,19 +33,19 @@ class HomeworkFolder implements FolderType
     
     static public function getTypeName()
     {
-        return 'HomeworkFolder';
+        return 'InboxFolder';
     }
     
     
     static public function getIconShape()
     {
-        return 'folder-empty';
+        return 'inbox';
     }
     
     
     static public function creatableInStandardFolder($range_type)
     {
-        return ($range_type == 'course');
+        return ($range_type == 'user');
     }
     
     
@@ -60,18 +61,23 @@ class HomeworkFolder implements FolderType
     
     public function isVisible($user_id)
     {
-        //folders of this type are visible for everyone
-        return true;
+        //folders of this type are visible only for the folder's owner
+        if($this->folder) {
+            return ($this->folder->user_id == $user_id);
+        } else {
+            //a non-existant folder isn't visible!
+            return false;
+        }
     }
     
     
     public function isReadable($user_id)
     {
-        //folders of this type are readable only for course teachers
+        //folders of this type are readable only for the folder's owner
         global $perm;
         
         if($this->folder) {
-            return $perm->have_studip_perm('dozent', $this->folder->range_id, $user_id);
+            return ($this->folder->user_id == $user_id);
         } else {
             //a non-existant folder isn't readable!
             return false;
@@ -81,12 +87,9 @@ class HomeworkFolder implements FolderType
     
     public function isWritable($user_id)
     {
-        //folders of this type are writable for users with permissions author
-        
-        global $perm;
-        
+        //folders of this type are writable only for the folder's owner
         if($this->folder) {
-            return $perm->have_studip_perm('autor', $this->folder->range_id, $user_id);
+            return ($this->folder->user_id == $user_id);
         } else {
             //a non-existant folder isn't writable!
             return false;
@@ -96,7 +99,7 @@ class HomeworkFolder implements FolderType
     
     public function isSubfolderAllowed($user_id)
     {
-        //no subfolders allowed (I'm a homework folder, not a home folder backup!)
+        //no subfolders allowed (This is an inbox, not a standard folder)
         return false;
     }
     
@@ -104,14 +107,14 @@ class HomeworkFolder implements FolderType
     public function getDescriptionTemplate()
     {
         if($this->folder) {
-            $course = Course::find($this->folder->range_id);
-            if($course) {
+            $user = User::find($this->folder->user_id);
+            if($user) {
                 return sprintf(
-                    _('Hausaufgabenordner für %s'),
-                    $course->getFullName()
+                    _('Nachrichtenanhänge von %s'),
+                    $user->getFullName()
                 );
             } else {
-                return _('Hausaufgabenordner');
+                return _('Nachrichtenanhänge');
             }
         }
     }
