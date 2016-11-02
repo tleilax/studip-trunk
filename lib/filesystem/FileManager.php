@@ -334,7 +334,7 @@ class FileManager
      * @param destination_folder The destination folder.
      * @param user The user who wishes to copy the folder.
      * 
-     * @returns Array with error messages: Empty array on success, filled array on failure.
+     * @return string[] Array with error messages: Empty array on success, filled array on failure.
      */
     public static function copyFolder(Folder $source_folder, Folder $destination_folder, User $user)
     {
@@ -363,7 +363,7 @@ class FileManager
                 $new_folder->range_id = $destination_folder->range_id;
                 $new_folder->range_type = $destination_folder->range_type;
                 $new_folder->folder_type = $source_folder->folder_type;
-                $new_folder->name = $source_folder->name;
+                $new_folder->name = $destination_folder->getUniqueName($source_folder->name);
                 $new_folder->data_content = $source_folder->data_content;
                 $new_folder->description = $source_folder->description;
                 //folder is copied, we can store it:
@@ -420,6 +420,7 @@ class FileManager
         $destination_folder_type = $destination_folder->getTypedFolder();
         if($destination_folder_type->isWritable($user->id)) {
             $source_folder->parent_id = $destination_folder->id;
+            $source_folder->name = $destination_folder->getUniqueName($source_folder->name);
             $source_folder->store();
         } else {
             $errors[] = sprintf(
