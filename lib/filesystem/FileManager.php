@@ -483,4 +483,21 @@ class FileManager
             return $result;
         }
     }
+
+    public static function getInboxFolder(User $user)
+    {
+        $folder_id = md5("INBOXFOLDER_".$user->getId());
+        return self::getOrCreateFolder($folder_id, $user);
+    }
+
+    public static function getPublicFolder(User $user)
+    {
+        $folder_id = md5("PUBLICFOLDER_".$user->getId());
+        return self::getOrCreateFolder($folder_id, $user);
+    }
+
+    static protected function getOrCreateFolder($folder_id, User $user)
+    {
+
+    }
 }

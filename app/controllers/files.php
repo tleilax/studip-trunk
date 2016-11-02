@@ -201,7 +201,6 @@ class FilesController extends AuthenticatedController
             if (!$error) {
                 //do the copy
                 //$this->to_folder_type->addFile($file, $GLOBALS['user']->id);
-                //var_dump($this->to_folder_type->getFolderData()); die();
                 $this->to_folder_type->getFolderData()->linkFile($file);
                 $this->response->add_header("X-Dialog-Execute", "STUDIP.Files.reloadPage");
                 $this->render_text(MessageBox::success(_("Datei wurde hinzugefügt.")));

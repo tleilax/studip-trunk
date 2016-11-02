@@ -14,18 +14,52 @@
  */
 interface FolderType
 {
-    public function isVisible($user_id);
+    /**
+     * Returns the name of the FolderType (not the folder)
+     * @return string
+     */
+    static public function getTypeName();
 
-    public function isReadable($user_id);
+    /**
+     * @return Icon
+     */
+    static public function getIcon();
 
-    public function isWritable($user_id);
-
-    public function isSubfolderAllowed($user_id);
+    /**
+     * @param string $range_type : "course", "user", "institute"
+     * @return boolean
+     */
+    static public function creatableInStandardFolder($range_type);
 
     public function getName();
 
-    public function getIcon();
+    /**
+     * @param $user_id
+     * @return boolean
+     */
+    public function isVisible($user_id);
 
+    /**
+     * @param $user_id
+     * @return boolean
+     */
+    public function isReadable($user_id);
+
+    /**
+     * @param $user_id
+     * @return boolean
+     */
+    public function isWritable($user_id);
+
+    /**
+     * @param $user_id
+     * @return boolean
+     */
+    public function isSubfolderAllowed($user_id);
+
+    /**
+     * @return string
+     */
     public function getDescriptionTemplate();
 
     public function getEditTemplate();
@@ -33,6 +67,4 @@ interface FolderType
     public function setData($request);
 
     public function validateUpload($file, $user_id);
-
-    public function getAllowedRangeTypes();
 }
