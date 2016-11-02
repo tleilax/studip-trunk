@@ -17,23 +17,23 @@ class FileManager
     
     //FILE METHODS
     
-    public static function handleFileUpload(Array $uploadedfiles, FolderType $folder, $user_id)
+    public static function handleFileUpload(Array $uploaded_files, FolderType $folder, $user_id)
     {
         $result = array();
-        if (is_array($uploadedfiles['name'])) {
+        if (is_array($uploaded_files['name'])) {
             $error = [];
-            foreach ($uploadedfiles['name'] as $key => $filename) {
-                if ($uploadedfiles['error'][$key] === UPLOAD_ERR_INI_SIZE) {
+            foreach ($uploaded_files['name'] as $key => $filename) {
+                if ($uploaded_files['error'][$key] === UPLOAD_ERR_INI_SIZE) {
                     $error[] = _("Die maximale Dateigröße wurde überschritten.");
                     continue;
                 }
-                if ($uploadedfiles['error'][$key] > 0) {
-                    $error[] = _("Ein Systemfehler ist beim Upload aufgetreten. Fehlercode: " . $uploadedfiles['error'][$key]);
+                if ($uploaded_files['error'][$key] > 0) {
+                    $error[] = _("Ein Systemfehler ist beim Upload aufgetreten. Fehlercode: " . $uploaded_files['error'][$key]);
                     continue;
                 }
-                $filetype = $uploadedfiles['type'][$key] ?: get_mime_type($filename);
-                $tmpname = $uploadedfiles['tmp_name'][$key];
-                $size = $uploadedfiles['size'][$key];
+                $filetype = $uploaded_files['type'][$key] ?: get_mime_type($filename);
+                $tmpname = $uploaded_files['tmp_name'][$key];
+                $size = $uploaded_files['size'][$key];
                 if ($folder_error = $folder->validateUpload(['name' => $filename, 'size' => $size], $user_id)) {
                     $error[] = $folder_error;
                     continue;
