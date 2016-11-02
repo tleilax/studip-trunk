@@ -329,6 +329,8 @@ class FileManager
     **/
     public static function copyFolder(Folder $source_folder, Folder $destination_folder, User $user)
     {
+        global $perm;
+        
         $errors = [];
         
         $destination_folder_type = $destination_folder->getTypedFolder();
@@ -337,10 +339,10 @@ class FileManager
             $source_folder_type = Folder::findRangeTypeById($source_folder->range_id);
             
             //we have to check, if the source folder is a folder from a course.
-            //If so, then only users with status dozent or tutor (or root)
+            //If so, then only users with status dozent or tutor (or root) in that course
             //may copy the folder!
-            if(($source_folder_type == 'course' &&
-                ($user->perms == 'tutor') || ($user->perms == 'dozent') || ($user->perms == 'root'))
+            if($source_folder_type == 'course' &&
+                $perm->have_studip_perm('tutor', $source_folder->range_id, $user->id)
                 || ($source_folder_type != 'course')
             ) {
                 //the if-query above returns true if the folder type is not course
