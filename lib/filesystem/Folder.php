@@ -85,9 +85,16 @@ class Folder extends SimpleORMap
     }
 
     /**
-     * @param $range_id
-     * @param $range_type
-     * @return SimpleORMap
+     * Creates a top folder (root directory) for a Stud.IP object given by range_id and range_type.
+     * 
+     * This method creates and stores a top folder (root directory) for a Stud.IP object.
+     * To properly create such a folder this method requires the parameters
+     * range_id and range_type to be set.
+     * 
+     * @param $range_id the ID of the Stud.IP object
+     * @param $range_type the type of the object: "course", "inst", "user", ...
+     * 
+     * @return Folder Created Folder object.
      */
     public static function createTopFolder($range_id, $range_type)
     {
@@ -104,18 +111,31 @@ class Folder extends SimpleORMap
     }
 
     /**
-     * @param $rangeId
-     * @return bool|string
+     * Determines the range type by probing the given range ID.
+     *
+     * This is a helper method that can be used in conjunction with the
+     * createTopFolder method. In case when only the ID of a Stud.IP object
+     * is given, this method will help to determine the corresponding
+     * object type.
+     * 
+     * @param $range_id The ID of an object whose type shall be determined.
+     * @return bool|string Returns false on failure, otherwise the name of the range.
      */
-    public static function findRangeTypeById($rangeId)
+    public static function findRangeTypeById($range_id = null)
     {
-        if (Course::exists($rangeId)) {
+        //If range_id isn't set we don't need to query the database at all!
+        //Therefore we check first, if range_id validates to false.
+        if(!$range_id) {
+            return false;
+        }
+        
+        if (Course::exists($range_id)) {
             return 'course';
-        } elseif (Institute::exists($rangeId)) {
+        } elseif (Institute::exists($range_id)) {
             return 'inst';
-        } elseif (User::exists($rangeId)) {
+        } elseif (User::exists($range_id)) {
             return 'user';
-        } elseif (Message::exists($rangeId)) {
+        } elseif (Message::exists($range_id)) {
             return 'message';
         } else {
             return false;
@@ -126,7 +146,7 @@ class Folder extends SimpleORMap
     /**
      * Helper method: Checks if the file exists in a folder.
      *
-     * @returns true, if a file was found, false otherwise
+     * @return bool Returns true, if a file was found, false otherwise.
      **/
     public function fileExists($fileName)
     {
