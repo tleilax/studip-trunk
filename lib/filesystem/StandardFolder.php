@@ -18,37 +18,33 @@ class StandardFolder implements FolderType
     protected $range_id;
     protected $range_type;
 
-    static public function getIcon()
+    
+    public function __construct($folderdata)
     {
-        return Icon::create('folder');
+        $this->setFolderData($folderdata);
     }
+    
 
     static public function getTypeName()
     {
         return _("Ordner");
+    }
+    
+    static public function getIconShape()
+    {
+        return 'folder';
     }
 
     static public function creatableInStandardFolder($range_type)
     {
         return true;
     }
-
-    public function __construct($folderdata)
+    
+    public function getName()
     {
-        $this->setFolderData($folderdata);
+        return $this->folderdata['name'];
     }
-
-    public function getFolderData()
-    {
-        return $this->folderdata;
-    }
-
-    public function setFolderData($folderdata)
-    {
-        $this->folderdata = $folderdata;
-        $this->range_id = $folderdata['range_id'];
-        $this->range_type = $folderdata['range_type'];
-    }
+    
 
     public function isVisible($user_id)
     {
@@ -69,11 +65,21 @@ class StandardFolder implements FolderType
     {
         return true;
     }
+    
 
-    public function getName()
+    public function getFolderData()
     {
-        return $this->folderdata['name'];
+        return $this->folderdata;
     }
+
+    public function setFolderData($folderdata)
+    {
+        $this->folderdata = $folderdata;
+        $this->range_id = $folderdata['range_id'];
+        $this->range_type = $folderdata['range_type'];
+    }
+
+
 
     public function getDescriptionTemplate()
     {
