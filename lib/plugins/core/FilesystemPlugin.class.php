@@ -4,6 +4,7 @@ interface FilesystemPlugin
 {
 
     /**
+     * Returns a Navigation-object. Only the title and the image will be used.
      * @return null|Navigation with title and image
      */
     public function getFileSelectNavigation();
@@ -30,18 +31,31 @@ interface FilesystemPlugin
     public function getPreparedFile($file_id);
 
 
-
+    /**
+     * Defines if the filesystem-plugin has a search-function.
+     * @return mixed
+     */
     public function hasSearch();
 
     /**
-     * Spezielles Format
-     * @return array(array(), ...)
+     * Returns an array for each special search parameter. Each parameter is itself represented by as associative array
+     * like
+     *     array(
+     *         'name' => "name of this parameter in the form",
+     *         'type' => "one of 'text', 'checkbox', 'select'",
+     *         'options' => array() //only neccesary if type is 'select' - a key-value array with the key key as the value of the select and the value as the label of the option
+     *         'placeholder' => "only possible for type 'text' but not mandatory"
+     *     )
+     * This method can also return an empty array or null if no search parameters are needed or no search is provided at all.
+     * @return null|array(array(), ...)
      */
     public function getSearchParameters();
 
     /**
-     * @param $text
-     * @param array $parameters
+     * Returns a virtual folder that 'contains' all the files as a search-result. Only return null
+     * if search is not implemented.
+     * @param $text : a string
+     * @param array $parameters : an associative array of additional search parameters as defined in getSearchParameters()
      * @return FolderType|null
      */
     public function search($text, $parameters = array());

@@ -5,6 +5,9 @@
         $options['to_plugin'] = Request::get("to_plugin");
     }
     if (Request::get("to_folder_id")) {
+        $options['to_folder_id'] = Request::get("to_folder_id");
+    }
+    if ($folder_id) {
         $options['to_folder_id'] = $folder_id;
     }
     ?>
