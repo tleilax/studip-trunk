@@ -15,8 +15,8 @@
 
 
 /**
-    This controller contains actions related to single files.
-**/
+ * This controller contains actions related to single files.
+ */
 class FileController extends AuthenticatedController
 {
     

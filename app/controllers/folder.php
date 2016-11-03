@@ -12,13 +12,19 @@
  * @category    Stud.IP
  * @since       4.0
  */
- 
+
+/**
+ * This controller contains actions related to single folders.
+ */
 class FolderController extends AuthenticatedController
 {
     
     protected $utf8decode_xhr = true;
     
-    
+    /**
+     * This is a helper method that decides where a redirect shall be made
+     * in case of error or success after an action was executed.
+     */
     private function redirectToFolder(Folder $folder, $message = null)
     {
         if($message instanceof MessageBox) {
@@ -48,10 +54,10 @@ class FolderController extends AuthenticatedController
     
     
     /**
-        Helper action for views: If the abort button in a view is clicked this action is called
-        with the ID of a folder. It then loads the folder object and decides to which URL
-        the user shall be redirected.
-    **/
+     * Helper action for views: If the abort button in a view is clicked this action is called
+     * with the ID of a folder. It then loads the folder object and decides to which URL
+     * the user shall be redirected.
+     */
     public function goto_action($folder_id)
     {
         $folder = Folder::find($folder_id);
@@ -61,6 +67,9 @@ class FolderController extends AuthenticatedController
     }
     
     
+    /**
+     * Action for creating a new folder.
+     */
     public function new_action()
     {
         global $perm;
@@ -168,6 +177,11 @@ class FolderController extends AuthenticatedController
     }
     
     
+    /**
+     * Action for editing an existing folder, referenced by its ID.
+     * 
+     * @param string folder_id The ID of the folder that shall be edited.
+     */
     public function edit_action($folder_id)
     {
         global $perm;
@@ -235,6 +249,16 @@ class FolderController extends AuthenticatedController
     }
     
     
+    /**
+     * Common method for copying or moving folders.
+     * 
+     * Since the process of copying or moving folders is very similar it is
+     * unified into one method that distincts via a parameter, if it is in
+     * copy or move mode.
+     * 
+     * @param string folder_id The ID of the folder that shall be copied/moved.
+     * @param bool copy True, if the folder shall be copied, otherwise false. Defaults to true.
+     */
     public function copyOrMove($folder_id, $copy = true)
     {
         global $perm;
@@ -371,18 +395,31 @@ class FolderController extends AuthenticatedController
     }
     
     
+    /**
+     * Action for copying a folder, referenced by its ID.
+     * 
+     * This action does nothing but calling the copyOrMove method.
+     */
     public function copy_action($folder_id)
     {
         $this->copyOrMove($folder_id, true);
     }
     
     
+    /**
+     * Action for moving a folder, referenced by its ID.
+     * 
+     * This action does nothing but calling the copyOrMove method.
+     */
     public function move_action($folder_id)
     {
         $this->copyOrMove($folder_id, false);
     }
     
     
+    /**
+     * Action for deleting a folder, referenced by its ID.
+     */
     public function delete_action($folder_id)
     {
         global $perm;
