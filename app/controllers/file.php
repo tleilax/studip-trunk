@@ -19,6 +19,35 @@
 **/
 class FileController extends AuthenticatedController
 {
+    
+    private function redirectToFolder(Folder $folder, $message = null)
+    {
+        if($message instanceof MessageBox) {
+            if(Request::isDialog()) {
+                $this->render_text($message);
+            } else {
+                PageLayout::postMessage($message);
+            }
+        }
+        
+        if(!Request::isDialog()) {
+            //we only need to redirect when we're not in a dialog!
+            
+            $dest_range = $folder->range_id;
+    
+            switch ($folder->range_type) {
+                case 'course':
+                case 'institute':
+                    return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/' . $folder->id . '?cid=' . $dest_range));                            
+                case 'user':
+                    return $this->redirect(URLHelper::getUrl('dispatch.php/files/index/' . $folder->id));
+                default:
+                    return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/' . $folder->id));
+            }
+        }
+    }
+    
+    
     public function upload_action($folder_id)
     {
         if (Request::isPost() && is_array($_FILES)) {
@@ -341,21 +370,28 @@ class FileController extends AuthenticatedController
         }
     }
     
-    public function delete_action($fileRefId)
+    public function delete_action($file_ref_id)
     {
-       if($fileRefId) {
-            $fileRef = FileRef::find($fileRefId);           
-            if($fileRef) {                
-                $fileRef->delete();
+        $folder = null;
+        
+        if($file_ref_id) {
+            $file_ref = FileRef::find($file_ref_id);
+            if($file_ref) {
+                $folder = $file_ref->folder;
+                $file_ref->delete();
+                return $this->redirectToFolder(
+                    $folder,
+                    MessageBox::success(_('Datei wurde gelöscht!'))
+                );
             } else {
                 //file not found
+                PageLayout::postError(_('Datei nicht gefunden!'));
+                return;
             }
         } else {
             //you can't delete things you don't know
+            PageLayout::postError(_('Datei-ID nicht angegeben!'));
+            return;
         }
-        
-        $folderId = Request::option('folder_id', Folder::findTopFolder(Request::get("cid"))->id);
-        //DEVELOPMENT STAGE ONLY:
-        return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/'.$folderId));
     }
 }
