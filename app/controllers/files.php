@@ -14,6 +14,9 @@
  */
 
 
+/**
+ * The FilesController controller provides actions for the personal file area.
+ */
 class FilesController extends AuthenticatedController
 {
     public function before_filter(&$action, &$args)
@@ -24,6 +27,10 @@ class FilesController extends AuthenticatedController
         PageLayout::addSqueezePackage('tablesorter');
     }
     
+    
+    /**
+     * Helper method for filling the sidebar with actions.
+     */
     private function buildSidebar($top_folder_id = null)
     {
         $sidebar = Sidebar::get();
@@ -59,8 +66,8 @@ class FilesController extends AuthenticatedController
 
 
     /**
-        Displays the files in tree view
-    **/
+     * Displays the files in tree view.
+     */
     public function index_action($folder_id = '')
     {
         if(Navigation::hasItem('/profile/files')) {
@@ -94,8 +101,8 @@ class FilesController extends AuthenticatedController
 
 
     /**
-        Displays the files in flat view
-    **/
+     * Displays the files in flat view.
+     */
     public function flat_action($topFolder = '')
     {
         if(Navigation::hasItem('/profile/files')) {
