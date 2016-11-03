@@ -60,7 +60,7 @@ class FileRef extends SimpleORMap
     public function cbRemoveFileIfOrphaned()
     {
         if (!self::countBySql("file_id = ?", array($this->file_id))) {
-            File::deleteBySQL("id = ?", $this->file_id);
+            File::deleteBySQL("id = ?", array($this->file_id));
         }
     }
 
