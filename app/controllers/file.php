@@ -132,48 +132,47 @@ class FileController extends AuthenticatedController
     }
     
     
-    public function edit_action($fileRef_id)
+    public function edit_action($file_ref_id)
     {
-        /*$fileName = Request::get('fileName');
-        
-        //TODO: implement updating the file's data
-        //(handle uploaded files)
-        
-        if($fileId && $fileName) {
-            $file = File::find($fileId);
-            if($file) {
-                $file->filename = $fileName;
-                $file->store();
-            } else {
-                //file not found
-            }
+        $file_ref = FileRef::find($file_ref_id);
+        if ($file_ref) {
+            $this->file_ref_id = $file_ref->id;
+            $this->folder_id = $file_ref->folder_id;
+            $this->description = $file_ref->description;
         } else {
-            //file ID not set
-        }*/
-        
-        
-        
-        $fileref = FileRef::find($fileRef_id);
-        if ($fileref) {
-            $this->fileref_id = $fileref->id;
-            $this->folder_id = $fileref->folder_id;
-            $this->description = $fileref->description;
+            if(Request::isDialog()) {
+                $this->render_text(
+                    MessageBox::error(_('Die zu bearbeitende Datei wurde nicht gefunden!'))
+                );
+            } else {
+                PageLayout::postError(_('Die zu bearbeitende Datei wurde nicht gefunden!'));
+            }
         }
         
         if (Request::submitted('save')) {
-            $fileref = FileRef::find(Request::option('fileref_id'));
-            if ($fileref) {
-                //$fileref->licence = Request::get('licence');
-                $fileref->description = Request::get('description');
-                if ($fileref->store()) {
-                    PageLayout::postSuccess(_('Änderungen gespeichert.'));
-                } else {
-                    PageLayout::postError(_('Fehler beim Speichern der Änderungen.'));
-                }
-                return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/'));
+            //form was sent
+            $this->name = Request::get('name');
+            $this->description = Request::get('description');
+            $this->license = Request::get('licence');
+            
+            $errors = FileManager::editFileRef($file_ref, $this->name, $this->description, $this->license);
+            if (empty($errors)) {
+                $this->redirectToFolder(
+                    $file_ref->folder,
+                    MessageBox::success(_('Änderungen gespeichert!'))
+                );
+            } else {
+                $this->redirectToFolder(
+                    $file_ref->folder,
+                    MessageBox::error(_('Fehler beim Speichern der Änderungen!'), $errors)
+                );
             }
+        } else {
+            //load default data:
+            $this->name = $file_ref->name;
+            $this->description = $file_ref->description;
+            $this->license = $file_ref->license;
         }
-        
     }
     
     

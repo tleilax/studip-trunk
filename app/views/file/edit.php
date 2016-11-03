@@ -1,13 +1,17 @@
 <form enctype="multipart/form-data"
       method="post"
       class="default"
-      action="<?= $controller->url_for('/edit') ?>">
+      action="<?= $controller->url_for('/edit/' . $file_ref_id) ?>">
 
     <?= CSRFProtection::tokenTag() ?>
-    <input type="hidden" name="fileref_id" value="<?=htmlReady($fileref_id)?>">
-    <input type="hidden" name="folder_id" value="<?=htmlReady($folder_id)?>">
+    <input type="hidden" name="fileref_id" value="<?=htmlReady($file_ref_id)?>">
+    <input type="hidden" name="folder_id" value="<?=htmlReady($file_ref_id)?>">
     <fieldset>
         <legend><?= _("Datei bearbeiten") ?></legend>
+        <label>
+            <?= _('Name') ?>
+            <input type="text" name="name" value="<?= htmlReady($name) ?>">
+        </label>
         <label>
             <?= _('Lizenz') ?>
             <select name="licence">
