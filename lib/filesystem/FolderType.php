@@ -1,5 +1,5 @@
 <?php
-/*
+/**
  * FolderType.php
  *
  * This program is free software; you can redistribute it and/or
@@ -15,34 +15,63 @@
 
 /**
  * Interface FolderType
- * This interface is to be implemented by all file-folders. It is like the god-class-interface thingy
- * for all workflows containing folders, may they be standard-folder, homework-folders or virtual owncloud-folder that don't
- * even exist in the database.
+ * 
+ * The FolderType interface defines methods for Folder objects
+ * and other kinds of Folder like objects regarding permissions and access to
+ * subfolders and files.
+ * 
+ * Using the folder_type attribute of a Folder object it is possible to
+ * associate a FolderType object to a Folder object. A FolderType object
+ * provides information about permissions for the Folder object.
+ * 
+ * By separating permission information from the Folder class and defining them
+ * in FolderType implementations it it possible to define a lot of different
+ * FolderType implementations that can use the same table in the database
+ * (using the Folder SORM class).
+ * 
+ * Furthermore it is possible to use other kinds of Folder-like objects that 
+ * aren't stored in the database but which are accessible via the Stud.IP
+ * file system with this interface. These folders probably would have their own
+ * FolderType implementation which then can be integrated into the Stud.IP
+ * file system like ordinary Stud.IP folders. This means that sources
+ * for files and folders outside the Stud.IP system can become accessible
+ * in Stud.IP and that they can be used like Stud.IP file system objects.
  */
 interface FolderType
 {
     /**
      * Returns a human-friendly representation of the FolderType's name.
-     * @return string
+     * 
+     * @return string A human-friendly name for the FolderType implementation.
      */
     static public function getTypeName();
 
     /**
-     * Returns the name of the icon shape that shall be used with this folder type.
+     * Returns the name of the icon shape that shall be used with the FolderType implementation.
      * 
-     * @return string Name of icon shape
+     * @return string Name of the icon shape for the FolderType implementation.
      */
     static public function getIconShape();
 
     public function getId();
 
     /**
-     * @param string $range_type : "course", "user", "institute"
-     * @return boolean
+     * This method tells if the FolderType implementation can be created in a specific range type.
+     * 
+     * Some FolderType implementations aren't useful in conjunction with a
+     * specific range type. An FolderType implementation therefore must provide
+     * this method so that other parts of the file area system can easily check
+     * if folders of the FolderType implementation can be placed inside
+     * standard folders.
+     * 
+     * @param string $range_type : "course", "user", "institute", "message"
+     * @return boolean True, if creatable in standard folder, false otherwise.
      */
     static public function creatableInStandardFolder($range_type);
 
     /**
+     * Determines if a user may see the folder.
+     * 
      * @param $user_id
      * @return boolean
      */
