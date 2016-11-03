@@ -3,7 +3,7 @@
     <caption>
         <div class="caption-container">
             <? $full_access = true;
-               $breadcrumbs = $topFolder->getParents();
+               $breadcrumbs = array(); //$topFolder->getParents();
                $root_dir = array_shift($breadcrumbs);
                $last_crumb = end($breadcrumbs); ?>
             <div>
@@ -48,7 +48,7 @@
         <? endif ?>
     </tbody>
 <? endif; ?>
-<? if (count($topFolder->subfolders) + count($topFolder->file_refs) === 0): ?>
+<? if (count($topFolder->getSubfolders()) + count($topFolder->getFiles()) === 0): ?>
     <tbody>
         <tr>
             <td colspan="8" class="empty">
@@ -56,15 +56,16 @@
             </td>
         </tr>
     </tbody>
-<? elseif (count($topFolder->subfolders)) : ?>
+<? elseif (count($topFolder->getSubfolders())) : ?>
     <tbody>
-    <? foreach ($topFolder->subfolders as $folder) : ?>
-        <tr <? if ($full_access) printf('data-file="%s"', $folder->id) ?> <? if ($full_access) printf('data-folder="%s"', $folder->id); ?>>
+    <? foreach ($topFolder->getSubfolders() as $folder) : ?>
+        <? $owner = User::find($folder->user_id) ?: new User() ?>
+        <tr <? if ($full_access) printf('data-file="%s"', $folder->getId()) ?> <? if ($full_access) printf('data-folder="%s"', $folder->getId()); ?>>
             <td>
-                <input type="checkbox" name="ids[]" value="<?= $folder->id ?>" <? if (in_array($folder->id, $marked_element_ids)) echo 'checked'; ?>>
+                <input type="checkbox" name="ids[]" value="<?= $folder->getId() ?>" <? if (in_array($folder->getId(), $marked_element_ids)) echo 'checked'; ?>>
             </td>
             <td class="document-icon" data-sort-value="0">
-                <a href="<?= $controller->url_for('document/files/index/' . $folder->id) ?>">
+                <a href="<?= $controller->url_for('document/files/index/' . $folder->getId()) ?>">
                 <? if ($is_empty): ?>
                     <?= Icon::create('folder-empty', 'clickable')->asImg(24) ?>
                 <? else: ?>
@@ -73,7 +74,7 @@
                 </a>
             </td>
             <td>
-                <a href="<?= $controller->url_for('/index/' . $folder->id) ?>">
+                <a href="<?= $controller->url_for('/index/' . $folder->getId()) ?>">
                     <?= htmlReady($folder->name) ?>
                 </a>
             <? if ($folder->description): ?>
@@ -83,13 +84,13 @@
             <? // -number + file count => directories should be sorted apart from files ?>
             <td data-sort-value="<?= -1000000 ?>" class="responsive-hidden">
             </td>
-            <td data-sort-value="<?= htmlReady($folder->owner->getFullName('no_title')) ?>" class="responsive-hidden">
-            <? if ($folder->owner->id !== $GLOBALS['user']->id) : ?>
-                <a href="<?= URLHelper::getLink('dispatch.php/profile?username=' . $folder->owner->username) ?>">
-                    <?= htmlReady($folder->owner->getFullName()) ?>
+            <td data-sort-value="<?= htmlReady($owner->getFullName('no_title')) ?>" class="responsive-hidden">
+            <? if ($folder->user_id !== $GLOBALS['user']->id) : ?>
+                <a href="<?= URLHelper::getLink('dispatch.php/profile?username=' . $owner->username) ?>">
+                    <?= htmlReady($owner->getFullName()) ?>
                 </a>
             <? else: ?>
-                <?= htmlReady($folder->owner->getFullName()) ?>
+                <?= htmlReady($owner->getFullName()) ?>
             <? endif; ?>
             </td>
             <td title="<?= strftime('%x %X', $folder->mkdate) ?>" data-sort-value="<?= $folder->mkdate ?>" class="responsive-hidden">
@@ -98,7 +99,7 @@
             <td class="actions">
                 <? $actionMenu = ActionMenu::get() ?>
                 <? if ($full_access): ?>
-                    <? $actionMenu->addLink($controller->url_for('folder/edit/' . $folder->id),
+                    <? $actionMenu->addLink($controller->url_for('folder/edit/' . $folder->getId()),
                             _('Ordner bearbeiten'),
                             Icon::create('edit', 'clickable'),
                             ['data-dialog' => 'size=auto; reload-on-close']) ?>
@@ -107,20 +108,20 @@
                         _('Ordner herunterladen'),
                         Icon::create('download', 'clickable')) ?>
                 <? if ($full_access): ?>
-                    <? $actionMenu->addLink($controller->url_for('folder/move/' . $folder->id),
+                    <? $actionMenu->addLink($controller->url_for('folder/move/' . $folder->getId()),
                             _('Ordner verschieben'),
                             Icon::create('folder-empty+move_right', 'clickable'),
                             ['data-dialog' => 'reload-on-close']) ?>
-                    <? $actionMenu->addLink($controller->url_for('folder/copy/' . $folder->id),
+                    <? $actionMenu->addLink($controller->url_for('folder/copy/' . $folder->getId()),
                             _('Ordner kopieren'),
                             Icon::create('folder-empty+add', 'clickable'),
                             ['data-dialog' => 'reload-on-close']) ?>
-                    <? $actionMenu->addLink($controller->url_for('folder/delete/' . $folder->id),
+                    <? $actionMenu->addLink($controller->url_for('folder/delete/' . $folder->getId()),
                             _('Ordner löschen'),
                             Icon::create('trash', 'clickable'),
                             ['data-confirm' => sprintf(_('Soll den Ordner "%s" wirklich gelöscht werden?'), htmlReady($folder->name)),
                              'data-dialog' => 'size=auto; reload-on-close',
-                             'formaction' => $controller->url_for('folder/delete/' . $folder->id)]) ?>
+                             'formaction' => $controller->url_for('folder/delete/' . $folder->getId())]) ?>
                 <? endif; ?>
                 <?= $actionMenu->render() ?>
             </td>
@@ -128,9 +129,9 @@
     <? endforeach ?>
     </tbody>
 <? endif; ?>
-<? if (count($topFolder->file_refs)) : ?>
+<? if (count($topFolder->getFiles())) : ?>
     <tbody>
-    <? foreach ($topFolder->file_refs as $file_ref) : ?>
+    <? foreach ($topFolder->getFiles() as $file_ref) : ?>
         <?= $this->render_partial("files/_fileref_tr", compact("controller", "file_ref", "file_ref_file_restricted")) ?>
     <? endforeach; ?>
     </tbody>

@@ -79,20 +79,20 @@ class FilesController extends AuthenticatedController
             return; //DEVELOPMENT STAGE CODE!
         }
         if (!$folder_id) {
-            $this->topFolder = Folder::findTopFolder($user->id);
+            $this->topFolder = new StandardFolder(Folder::findTopFolder($user->id));
         } else {
-            $this->topFolder = Folder::find($folder_id);
+            $this->topFolder = new StandardFolder(Folder::find($folder_id));
         }
         
         if(!$this->topFolder) {
             //create top folder:
-            $this->topFolder = Folder::createTopFolder($user->id, 'user');
+            $this->topFolder = new StandardFolder(Folder::createTopFolder($user->id, 'user'));
         }
         
-        $this->buildSidebar($this->topFolder->id);
+        $this->buildSidebar($this->topFolder->getId());
         PageLayout::setTitle($user->getFullname() . ' - ' . _('Dateien'));
         
-        $this->render_template('files/index.php', $GLOBALS['template_factory']->open('layouts/base'));
+        //$this->render_template('files/index.php', $GLOBALS['template_factory']->open('layouts/base'));
     }
 
 
@@ -200,7 +200,7 @@ class FilesController extends AuthenticatedController
             $error = $this->to_folder_type->validateUpload($file, $GLOBALS['user']->id);
             if (!$error) {
                 //do the copy
-                //$this->to_folder_type->addFile($file, $GLOBALS['user']->id);
+                //$this->to_folder_type->createFile($file, $GLOBALS['user']->id);
                 $this->to_folder_type->getFolderData()->linkFile($file);
                 $this->response->add_header("X-Dialog-Execute", "STUDIP.Files.reloadPage");
                 $this->render_text(MessageBox::success(_("Datei wurde hinzugefügt.")));

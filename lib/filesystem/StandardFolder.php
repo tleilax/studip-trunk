@@ -18,18 +18,19 @@ class StandardFolder implements FolderType
     protected $range_id;
     protected $range_type;
 
-    
-    public function __construct($folderdata)
+
+    public function __construct(Folder $folderdata)
     {
-        $this->setFolderData($folderdata);
+        $this->folderdata = $folderdata;
+        //$this->setFolderData($folderdata);
     }
-    
+
 
     static public function getTypeName()
     {
         return _("Ordner");
     }
-    
+
     static public function getIconShape()
     {
         return 'folder';
@@ -39,12 +40,17 @@ class StandardFolder implements FolderType
     {
         return true;
     }
-    
-    public function getName()
+
+    public function getId()
     {
-        return $this->folderdata['name'];
+        return $this->folderdata->getId();
     }
-    
+
+    public function __get($attribute)
+    {
+        return $this->folderdata[$attribute];
+    }
+
 
     public function isVisible($user_id)
     {
@@ -65,21 +71,6 @@ class StandardFolder implements FolderType
     {
         return true;
     }
-    
-
-    public function getFolderData()
-    {
-        return $this->folderdata;
-    }
-
-    public function setFolderData($folderdata)
-    {
-        $this->folderdata = $folderdata;
-        $this->range_id = $folderdata['range_id'];
-        $this->range_type = $folderdata['range_type'];
-    }
-
-
 
     public function getDescriptionTemplate()
     {
@@ -91,8 +82,11 @@ class StandardFolder implements FolderType
 
     }
 
-    public function setData($request)
+    public function setDataFromEditTemplate($request)
     {
+        foreach ($this->folderdata as $name => $value) {
+
+        }
     }
 
     public function validateUpload($uploadedfile, $user_id)
@@ -123,5 +117,41 @@ class StandardFolder implements FolderType
             return sprintf(_("Sie dürfen den Dateityp %s nicht hochladen!"), $ext);
         }
     }
+
+    public function getSubfolders()
+    {
+        $subfolders = array();
+        foreach ($this->folderdata->subfolders as $subfolder) {
+            //check FolderType of subfolder
+            $subfolders[] = new StandardFolder($subfolder);
+        }
+        return $subfolders;
+    }
+
+    public function getFiles()
+    {
+        return $this->folderdata->file_refs;
+    }
+
+    public function createFile($file)
+    {
+
+    }
+
+    public function isFileDownloadable($file_id)
+    {
+
+    }
+
+    public function isFileEditable($file_id)
+    {
+
+    }
+
+    public function isFileWritable($file_id)
+    {
+
+    }
+
 
 }
