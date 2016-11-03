@@ -330,7 +330,7 @@ class FileController extends AuthenticatedController
                     'exclude' => array()
                 );
             }
-                        
+            
             $coursesearch = MyCoursesSearch::get('Seminar_id', $GLOBALS['perm']->get_perm(), $parameters);
             //$instsearch = StandardSearch::get('Institut_id');
             $instsearch = SQLSearch::get($inst_sql, _("Einrichtung suchen"), 'Institut_id');
