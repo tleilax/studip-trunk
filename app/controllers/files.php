@@ -74,9 +74,8 @@ class FilesController extends AuthenticatedController
         
         $user = User::findCurrent();
         if(!$user) {
-            //TODO: throw exception
-
-            return; //DEVELOPMENT STAGE CODE!
+            PageLayout::postError(_('Nutzerobjekt nicht gefunden!'));
+            return;
         }
         if (!$folder_id) {
             $this->topFolder = new StandardFolder(Folder::findTopFolder($user->id));
@@ -91,8 +90,6 @@ class FilesController extends AuthenticatedController
         
         $this->buildSidebar($this->topFolder->getId());
         PageLayout::setTitle($user->getFullname() . ' - ' . _('Dateien'));
-        
-        //$this->render_template('files/index.php', $GLOBALS['template_factory']->open('layouts/base'));
     }
 
 
@@ -112,9 +109,8 @@ class FilesController extends AuthenticatedController
         
         $user = User::findCurrent();
         if(!$user) {
-            //TODO: throw exception
-            
-            return; //DEVELOPMENT STAGE CODE!
+            PageLayout::postError(_('Nutzerobjekt nicht gefunden!'));
+            return;
         }
         
         if (!$topFolder) {
@@ -130,10 +126,9 @@ class FilesController extends AuthenticatedController
         
         $this->buildSidebar();
         PageLayout::setTitle($user->getFullname() . ' - ' . _('Dateien'));
-        
-        $this->render_template('files/flat.php', $GLOBALS['template_factory']->open('layouts/base'));
     }
-
+    
+    
     public function upload_window_action()
     {
     }
