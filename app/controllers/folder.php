@@ -36,7 +36,6 @@ class FolderController extends AuthenticatedController
     
             switch ($folder->range_type) {
                 case 'course':
-                case 'inst':
                 case 'institute':
                     return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/' . $folder->id . '?cid=' . $dest_range));                            
                 case 'user':

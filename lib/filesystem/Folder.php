@@ -19,7 +19,7 @@
  * @property string user_id database column: owner of folder
  * @property string parent_id database column: parent folder
  * @property string range_id database column: user-ID, course-ID, institute-ID etc.
- * @property string range_type database column: 'course', 'inst', 'user', ...
+ * @property string range_type database column: 'course', 'institute', 'user', ...
  * @property string folder_type database column
  * @property string name database column: folder name
  * @property string data_content database column
@@ -135,7 +135,7 @@ class Folder extends SimpleORMap
         if (Course::exists($range_id)) {
             return 'course';
         } elseif (Institute::exists($range_id)) {
-            return 'inst';
+            return 'institute';
         } elseif (User::exists($range_id)) {
             return 'user';
         } elseif (Message::exists($range_id)) {
