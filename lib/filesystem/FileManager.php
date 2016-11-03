@@ -484,20 +484,45 @@ class FileManager
         }
     }
 
+    
+    /**
+     * Returns a FolderType object for the inbox folder of the given user.
+     * 
+     * @param User user The user whose inbox folder is requested.
+     */
     public static function getInboxFolder(User $user)
     {
-        $folder_id = md5("INBOXFOLDER_".$user->getId());
-        return self::getOrCreateFolder($folder_id, $user);
+        
     }
-
+    
+    /**
+     * Returns a FolderType object for the outbox folder of the given user.
+     * 
+     * @param User user The user whose outbox folder is requested.
+     */
+    public static function getOutboxFolder(User $user)
+    {
+        
+    }
+    
+    /**
+     * Returns a FolderType object for the homework folder of the given user.
+     * 
+     * @param User user The user whose homework folder is requested.
+     */
+    public static function getHomeworkFolder(User $user)
+    {
+        
+    }
+    
+    /**
+     * Returns a FolderType object for the public folder of the given user.
+     * 
+     * @param User user The user whose public folder is requested.
+     */
     public static function getPublicFolder(User $user)
     {
-        $folder_id = md5("PUBLICFOLDER_".$user->getId());
-        return self::getOrCreateFolder($folder_id, $user);
+        
     }
-
-    static protected function getOrCreateFolder($folder_id, User $user)
-    {
-
-    }
+    
 }
