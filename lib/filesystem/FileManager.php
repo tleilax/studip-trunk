@@ -213,37 +213,61 @@ class FileManager
     /**
      * Handles the sub folder creation routine.
      * 
-     * @param sub_folder The subfolder that shall be linked with $destination_folder
-     * @param destination_folder The folder where the subfolder shall be linked.
-     * @param user The user who wishes to create the subfolder.
+     * @param Folder sub_folder The subfolder that shall be linked with $destination_folder
+     * @param Folder destination_folder The folder where the subfolder shall be linked.
+     * @param User user The user who wishes to create the subfolder.
+     * @param FolderType sub_folder_type The folder type of the sub folder. Can only be used if $destination_folder is a standard folder! This parameter is optional!
      * 
      * @returns string[] Array with error messages: Empty array on success, filled array on failure.
      * 
      */
-    public static function createSubFolder(Folder $sub_folder, Folder $destination_folder, User $user)
+    public static function createSubFolder(Folder $sub_folder, Folder $destination_folder, User $user, $sub_folder_type = null)
     {
         $errors = [];
+        
         
         //check if subFolder is new:
         if(!$sub_folder->isNew()) {
             $errors[] = _('Ein bereits erstellter Ordner kann nicht neu erzeugt werden!');
         }
         
-        
         //check if user is owner of parent folder:
-        $folder_type = $destination_folder->getTypedFolder();
+        $destination_folder_type = $destination_folder->getTypedFolder();
         
-        if(!$folder_type->isSubfolderAllowed($user->id)) {
-            $errors[] = _('Sie sind nicht dazu berechtigt, einen Unterordner zu erstellen!');
+        
+        //check if folder_type is set and if destination_folder is a standard folder
+        if($folder_type instanceof FolderType) {
+            //ok, a FolderType instance is given. We must check if the parent folder
+            //is a standard folder to be able to proceed.
+            
+            if($destination_folder_type->getTypeName() == 'StandardFolder') {
+                //the parent folder is a StandardFolder, that's OK!
+                
+            } else {
+                //we can't create a special folder in another special folder!
+                $errors[] = sprintf(
+                    _('Ein Ordner vom Typ %s kann nicht in einem Ordner vom Typ %s erzeugt werden!'),
+                    $folder_type->getTypeName(),
+                    $destination_folder_type->getTypeName()
+                );
+            }
+        } else {
+            //no FolderType instance given: set it to StandardFolder
+            $folder_type = new StandardFolder($sub_folder);
         }
         
-        //check if folder name is unique and change it, if it isn't:
-        $sub_folder->name = $destination_folder->getUniqueName($sub_folder->name);
+        
+        if(!$destination_folder_type->isSubfolderAllowed($user->id)) {
+            $errors[] = _('Sie sind nicht dazu berechtigt, einen Unterordner zu erstellen!');
+        }
         
         //we can return here if we have found errors:
         if($errors) {
             return $errors;
         }
+        
+        //check if folder name is unique and change it, if it isn't:
+        $sub_folder->name = $destination_folder->getUniqueName($sub_folder->name);
         
         
         //check if all necessary attributes of the sub folder are set 
@@ -257,7 +281,7 @@ class FileManager
         
         $sub_folder->range_type = $destination_folder->range_type;
         
-        $sub_folder->folder_type = $destination_folder->folder_type;
+        $sub_folder->folder_type = get_class($folder_type);
         
         $sub_folder->store();
         
@@ -489,11 +513,38 @@ class FileManager
      * Returns a FolderType object for the inbox folder of the given user.
      * 
      * @param User user The user whose inbox folder is requested.
+     * 
+     * @return Folder|null Returns the inbox folder on success, null on failure.
      */
     public static function getInboxFolder(User $user)
     {
+        $top_folder = Folder::getTopFolder($user->id, 'user');
+        if(!$top_folder) {
+            return null;
+        }
         
+        $inbox_folder = Folder::findOneBySql(
+            "(parent_id = :parent_id) AND (name = 'inbox')",
+            ['parent_id' => $top_folder->id]
+        );
+        
+        if(!$inbox_folder) {
+            //inbox folder doesn't exist: create it!
+            
+            $inbox_folder = new Folder();
+            $inbox_folder->name = 'INBOX';
+            $inbox_folder->description = _('Ein Ordner für Dateianhänge eingegangener Nachrichten');
+            
+            $errors = self::createSubFolder($inbox_folder, $top_folder, $user);
+            
+            if(empty($errors)) {
+                return $inbox_folder;
+            } else {
+                return null;
+            }
+        }
     }
+    
     
     /**
      * Returns a FolderType object for the outbox folder of the given user.
@@ -502,7 +553,31 @@ class FileManager
      */
     public static function getOutboxFolder(User $user)
     {
+        $top_folder = Folder::getTopFolder($user->id, 'user');
+        if(!$top_folder) {
+            return null;
+        }
         
+        $inbox_folder = Folder::findOneBySql(
+            "(parent_id = :parent_id) AND (name = 'outbox')",
+            ['parent_id' => $top_folder->id]
+        );
+        
+        if(!$inbox_folder) {
+            //inbox folder doesn't exist: create it!
+            
+            $inbox_folder = new Folder();
+            $inbox_folder->name = 'OUTBOX';
+            $inbox_folder->description = _('Ein Ordner für Dateianhänge gesendeter Nachrichten');
+            
+            $errors = self::createSubFolder($inbox_folder, $top_folder, $user);
+            
+            if(empty($errors)) {
+                return $inbox_folder;
+            } else {
+                return null;
+            }
+        }
     }
     
     /**

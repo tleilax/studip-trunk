@@ -22,7 +22,7 @@
 interface FolderType
 {
     /**
-     * Returns the name of the FolderType (not the folder)
+     * Returns a human-friendly representation of the FolderType's name.
      * @return string
      */
     static public function getTypeName();
