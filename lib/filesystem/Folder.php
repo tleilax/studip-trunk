@@ -261,7 +261,7 @@ class Folder extends SimpleORMap
                 }
                 
                 if($valid_range) {
-                    $top_folder = self::createtopFolder($range_id, $range_type);
+                    $top_folder = self::createTopFolder($range_id, $range_type);
                 } else {
                     //if the range ID is invalid (can't be found in the database)
                     //we can't create a top folder!
