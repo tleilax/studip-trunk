@@ -20,6 +20,10 @@
 class FileController extends AuthenticatedController
 {
     
+    /**
+     * This is a helper method that decides where a redirect shall be made
+     * in case of error or success after an action was executed.
+     */
     private function redirectToFolder(Folder $folder, $message = null)
     {
         if($message instanceof MessageBox) {
@@ -107,7 +111,7 @@ class FileController extends AuthenticatedController
     }
     
     
-    public function download_action($fileId)
+    public function download_action($file_id)
     {
         if($fileId) {
             $file = File::find($fileId);
@@ -132,6 +136,9 @@ class FileController extends AuthenticatedController
     }
     
     
+    /**
+     * The action for editing a file reference.
+     */
     public function edit_action($file_ref_id)
     {
         $file_ref = FileRef::find($file_ref_id);
@@ -197,6 +204,9 @@ class FileController extends AuthenticatedController
     }
     
     
+    /**
+     * This action handles copying file references to another folder.
+     */
     public function copy_action($file_ref_id)
     {
         $destinationFolderId = Request::get('destinationId');
@@ -231,6 +241,10 @@ class FileController extends AuthenticatedController
         }
     }
     
+    
+    /**
+     * The action for moving a file reference.
+     */
     public function move_action($file_ref_id)
     {
 
@@ -369,6 +383,10 @@ class FileController extends AuthenticatedController
         }
     }
     
+    
+    /**
+     * The action for deleting a file reference.
+     */
     public function delete_action($file_ref_id)
     {
         $folder = null;
