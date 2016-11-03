@@ -26,7 +26,18 @@ class Moadb extends Migration
             $db->exec("TRUNCATE table file_refs");
             $db->exec("TRUNCATE table file_urls");
         }
-
+        
+        
+        //delete configuration variables designed for the old file area:
+        $db->exec(
+            "DELETE FROM `config`
+            WHERE
+            (field = 'PERSONALDOCUMENT_OPEN_ACCESS')
+            OR
+            (field = 'PERSONALDOCUMENT_OPEN_ACCESS_ROOT_PRIVILEDGED');"
+        );
+        
+        
         $db->exec("CREATE TABLE IF NOT EXISTS `files` (
                  `id` varchar(32) NOT NULL,
                  `user_id` varchar(32) NOT NULL,
