@@ -226,7 +226,7 @@ class FileManager
         $errors = [];
         
         
-        //check if subFolder is new:
+        //check if sub_folder is new:
         if(!$sub_folder->isNew()) {
             $errors[] = _('Ein bereits erstellter Ordner kann nicht neu erzeugt werden!');
         }
@@ -235,8 +235,8 @@ class FileManager
         $destination_folder_type = $destination_folder->getTypedFolder();
         
         
-        //check if folder_type is set and if destination_folder is a standard folder
-        if($folder_type instanceof FolderType) {
+        //check if sub_folder_type is set and if destination_folder is a standard folder
+        if($sub_folder_type instanceof FolderType) {
             //ok, a FolderType instance is given. We must check if the parent folder
             //is a standard folder to be able to proceed.
             
@@ -247,13 +247,10 @@ class FileManager
                 //we can't create a special folder in another special folder!
                 $errors[] = sprintf(
                     _('Ein Ordner vom Typ %s kann nicht in einem Ordner vom Typ %s erzeugt werden!'),
-                    $folder_type->getTypeName(),
+                    $sub_folder_type->getTypeName(),
                     $destination_folder_type->getTypeName()
                 );
             }
-        } else {
-            //no FolderType instance given: set it to StandardFolder
-            $folder_type = new StandardFolder($sub_folder);
         }
         
         
@@ -281,7 +278,11 @@ class FileManager
         
         $sub_folder->range_type = $destination_folder->range_type;
         
-        $sub_folder->folder_type = get_class($folder_type);
+        if($sub_folder_type instanceof FolderType) {
+            $sub_folder->folder_type = get_class($sub_folder_type);
+        } else {
+            $sub_folder->folder_type = 'StandardFolder';
+        }
         
         $sub_folder->store();
         
