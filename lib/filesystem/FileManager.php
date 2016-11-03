@@ -66,6 +66,72 @@ class FileManager
     
     
     /**
+     * This method handles editing file refernce attributes.
+     * 
+     * Checks that have to be made during the editing of a file reference are placed
+     * in this method so that a controller can simply call this method
+     * to change attributes of a file reference.
+     * 
+     * At least one of the three parameters name, description and license
+     * must be set. Otherwise this method will do nothing.
+     * 
+     * @param FileRef file_ref The file reference that shall be edited.
+     * @param string|null name The new name for the file reference
+     * @param string|null description The new description for the file reference.
+     * @param string|null license The new license description for the file reference.
+     * 
+     * @return string[] Array with error messages: Empty array on success, filled array on failure.
+     */
+    public static function editFileRef(FileRef $file_ref, $name = null, $description = null, $license = null)
+    {
+        if(!$name && !$description && !$license) {
+            //nothing to do, no errors:
+            return [];
+        }
+        
+        if($name !== null) {
+            //name is special: we have to check if files/folders in
+            //the file_ref's folder have the same name. If so, we must
+            //make it unique.
+            $folder = $file_ref->folder;
+            
+            if(!$folder) {
+                return [
+                    sprintf(
+                        _('Verzeichnis von Datei %s nicht gefunden!'),
+                        $file_ref->name
+                    )
+                ];
+            }
+            
+            $file_ref->name = $folder->getUniqueName($name);
+        }
+        
+        if($description !== null) {
+            //description may be an empty string which is allowed here
+            $file_ref->description = $description;
+        }
+        
+        if($license !== null) {
+            $file_ref->license = $license;
+        }
+        
+        if($file_ref->store()) {
+            //everything went fine
+            return [];
+        } else {
+            //error while saving the changes!
+            return [
+                sprintf(
+                    _('Fehler beim Speichern der Änderungen bei Datei %s'),
+                    $file_ref->name
+                )
+            ];
+        }
+    }
+    
+    
+    /**
      * This method handles copying a file to a new folder.
      * 
      * If the user (given by $user) is the owner of the file (by looking at the user_id
