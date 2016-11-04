@@ -28,9 +28,9 @@
  * @property string internal_name database column: unique name for the terms of use object
  * @property string description database column: Description text of the terms of use object
  * @property int download_condition: database column
- * 0 = no conditions (downloadable by anyone)
- * 1 = closed groups (e.g. courses with signup rules)
- * 2 = only for owner
+ *      0 = no conditions (downloadable by anyone)
+ *      1 = closed groups (e.g. courses with signup rules)
+ *      2 = only for owner
  */
 class ContentTermsOfUse extends SimpleORMap
 {
@@ -45,6 +45,21 @@ class ContentTermsOfUse extends SimpleORMap
     
     /**
      * Determines if a user is permitted to download a file.
+     * 
+     * Depening on the value of the download_condition attribute a decision
+     * is made regarding the permission of the given user to download
+     * a file, given by one of its associated FileRef objects.
+     * 
+     * The folder condition can have the values 0, 1 and 2.
+     * - 0 means that there are no conditions for downloading, therefore the
+     *   file is downloadable by anyone.
+     * - 1 means that the file is only downloadable inside a closed group.
+     *   Such a group can be a course or study group with closed admission.
+     *   In this case this method checks if the user is a member of the
+     *   course or study group.
+     * - 2 means that the file is only downloadable for the owner.
+     *   The user's ID must therefore match the user_id attribute
+     *   of the FileRef object.
      */
     public function fileIsDownloadable(FileRef $file_ref, $user_id = null)
     {
@@ -125,7 +140,7 @@ class ContentTermsOfUse extends SimpleORMap
             }
         } elseif($this->download_condition == 2) {
             //can only be downloaded if the user is the owner of the file:
-            return ($file_ref->user_id == $user->id);
+            return ($file_ref->user_id == $user_id);
         } else {
             //invalid download_condition ID!
             return false;
