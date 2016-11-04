@@ -32,7 +32,7 @@ class HomeworkFolder implements FolderType
     
     static public function getTypeName()
     {
-        return 'HomeworkFolder';
+        return _('Ordner für Hausarbeiten');
     }
     
     
@@ -107,11 +107,11 @@ class HomeworkFolder implements FolderType
             $course = Course::find($this->folder->range_id);
             if($course) {
                 return sprintf(
-                    _('Hausaufgabenordner für %s'),
+                    _('Hausarbeitenordner für %s'),
                     $course->getFullName()
                 );
             } else {
-                return _('Hausaufgabenordner');
+                return _('Hausarbeitenordner');
             }
         }
     }

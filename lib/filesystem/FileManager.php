@@ -8,9 +8,19 @@
  * the License, or (at your option) any later version.
  *
  * @author      André Noack <noack@data-quest.de>
+ * @author      Moritz Strohm <strohm@data-quest.de>
  * @copyright   2016 Stud.IP Core-Group
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
+ */
+
+/**
+ * The FileManager class contains methods that faciliate the management of files
+ * and folders. Furthermore its methods perform necessary additional checks
+ * so that files and folders are managed in a correct manner.
+ * 
+ * It is recommended to use the methods of this class for file and folder
+ * management instead of writing own methods.
  */
 class FileManager
 {
