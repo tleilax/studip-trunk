@@ -296,9 +296,26 @@ class Folder extends SimpleORMap
     public function getTypedFolder()
     {
         if (class_exists($this->folder_type)) {
-            return new $this->folder_type($this);
+            if(is_subclass_of($this->folder_type, 'FolderType')) {
+                return new $this->folder_type($this);
+            } else {
+                throw new InvalidValuesException(
+                    sprintf(
+                        'Error in Folder.php: Class %s (from folder %s) does not implement the FolderType interface!',
+                        $this->folder_type,
+                        $this->id
+                    )
+                );
+            }
+        } else {
+            throw new InvalidValuesException(
+                sprintf(
+                    'Error in Folder.php: Class %s (from folder %s) not found!',
+                    $this->folder_type,
+                    $this->id
+                )
+            );
         }
-        throw new InvalidValuesException('class: ' . $this->folder_type . ' not found');
     }
 
 
