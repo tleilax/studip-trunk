@@ -16,9 +16,9 @@
 
 
 /**
- * The TermsOfUse class provides information about the terms under which
- * a content object in Stud.IP can be used. Each entry in the database
- * corresponds to one terms of use variant.
+ * The ContentTermsOfUse class provides information about the terms under which
+ * a content object in Stud.IP can be used. Each entry in the database table
+ * content_terms_of_use_entries corresponds to one terms of use variant.
  * 
  * Content can be a file or another Stud.IP object that is capable
  * of storing copyrighted material.
@@ -30,8 +30,7 @@
  * @property int download_condition: database column
  * 0 = no conditions (downloadable by anyone)
  * 1 = closed groups (e.g. courses with signup rules)
- * 2 = closed groups that can't be joined anymore (e.g. courses with a terminated signup deadline)
- * 3 = only for owner
+ * 2 = only for owner
  */
 class ContentTermsOfUse extends SimpleORMap
 {
@@ -47,18 +46,25 @@ class ContentTermsOfUse extends SimpleORMap
     /**
      * Determines if a user is permitted to download a file.
      */
-    public function fileIsDownloadable(FileRef $file_ref, $user_id = null, $range_id = null)
+    public function fileIsDownloadable(FileRef $file_ref, $user_id = null)
     {
         if($this->download_condition == 0) {
             return true;
-        } elseif(($this->download_condition == 1) || ($this->download_condition == 2)) {
+        } elseif($this->download_condition == 1) {
+            $folder = $file_ref->folder;
+            if(!$folder) {
+                //no folder: we can't check if the file is downloadable
+                //when this download condition is set!
+                return false;
+            }
+            
             //the content is only downloadable when the user is inside a closed group
             //(referenced by range_id). If download_condition is set to 2
             //the group must also have a terminated signup deadline.
-            if($range_id) {
+            if($folder->range_id && $folder->range_type) {
                 //check where this range_id comes from:
-                $course = Course::find($range_id);
-                if($course) {
+                if($folder->range_type == 'course') {
+                    $course = Course::find($folder->range_id);
                     //ok, range is a course:
                     $status = $course->getParticipantStatus($user_id);
                     if(!$status || ($status == 'awaiting')) {
@@ -70,21 +76,15 @@ class ContentTermsOfUse extends SimpleORMap
                     } else {
                         //the user has the status 'accepted' (applicants_seminar_user table)
                         //or is one of 'user', 'autor', 'tutor', 'dozent' (seminar_user table).
-                        //If download condition is set to 2 we must also check
-                        //if the course has a terminated signup deadline!
+                        //If download condition is set to 1 we must also check
+                        //if the course admission is closed!
                         
-                        if($this->download_condition == 2) {
-                            //TODO: look at admission rules for the course
-                            //and especially, if it is a timed admission.
-                            //If it is, then check if the admission's end_time
-                            //has passed. If so, the file is downloadable.
-                            //Otherwise it isn't.
-                            return false; //NOT IMPLEMENTED YET!
-                        } else {
-                            //download_condition == 1: we can simply return true
-                            //since the user is inside a closed group!
-                            return true;
-                        }
+                        //TODO: look at admission rules for the course
+                        //and especially, if it is a timed admission.
+                        //If it is, then check if the admission's end_time
+                        //has passed. If so, the file is downloadable.
+                        //Otherwise it isn't.
+                        return false; //NOT IMPLEMENTED YET!
                     }
                 }
             } else {
@@ -92,9 +92,12 @@ class ContentTermsOfUse extends SimpleORMap
                 //so it won't be downloadable at all!
                 return false;
             }
-        } elseif($this->download_condition == 3) {
+        } elseif($this->download_condition == 2) {
             //can only be downloaded if the user is the owner of the file:
             return ($file_ref->user_id == $user->id);
+        } else {
+            //invalid download_condition ID!
+            return false;
         }
     }
 }

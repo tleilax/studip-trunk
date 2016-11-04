@@ -212,7 +212,7 @@ class FileRef extends SimpleORMap
     {
         if($this->terms_of_use) {
             //terms of use are defined for this file!
-            return $this->terms_of_use->isDownloadable($this, $user_id, $this->folder->range_id);
+            return $this->terms_of_use->isDownloadable($this, $user_id);
         }
         //no terms of use are defined for this file: file is downloadable!
         return true;
