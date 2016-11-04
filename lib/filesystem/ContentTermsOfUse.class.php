@@ -79,12 +79,43 @@ class ContentTermsOfUse extends SimpleORMap
                         //If download condition is set to 1 we must also check
                         //if the course admission is closed!
                         
-                        //TODO: look at admission rules for the course
-                        //and especially, if it is a timed admission.
-                        //If it is, then check if the admission's end_time
-                        //has passed. If so, the file is downloadable.
-                        //Otherwise it isn't.
-                        return false; //NOT IMPLEMENTED YET!
+                        $seminar = new Seminar($course);
+                        
+                        
+                        if($seminar->isPasswordProtected() || $seminar->isAdmissionLocked()) {
+                            //course is password protected or locked:
+                            return true;
+                        } else {
+                            //There are two last chances to permit the download:
+                            //Either the course has a timed admission that
+                            //is closed or the course is a study group
+                            //without open admission.
+                            
+                            $admission_timeframe = $seminar->getAdmissionTimeFrame();
+                            
+                            if(is_array($admission_timeframe)) {
+                                //There is a timed admission for this course:
+                                //Check if it has ended.
+                                if($admission_timeframe['end_time'] > 0 &&
+                                    $admission_timeframe['end_time'] < time()) {
+                                    //it has ended!
+                                    return true;
+                                }
+                                
+                            } else {
+                                //There is no timed admission: One last chance:
+                                //Is the course a closed studygroup?
+                                //(a studygroup without open admission)
+                                if(StudygroupModel::isStudygroup($folder->range_id) &&
+                                    ($seminar->admission_prelim == 1)) {
+                                    //The course is a studygroup without open admission!
+                                    return true;
+                                }
+                            }
+                            //in case the above if-statements didn't validate
+                            //to true we can't permit to download the file:
+                            return false;
+                        }
                     }
                 }
             } else {
