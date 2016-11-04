@@ -57,6 +57,7 @@ class Moadb extends Migration
                  `downloads` int(10) unsigned NOT NULL DEFAULT 0,
                  `description` text NOT NULL,
                  `license` varchar(255) NOT NULL,
+                 `content_terms_of_use_id` varchar(32) NOT NULL,
                  `user_id` varchar(32) NOT NULL DEFAULT '',
                  `name` varchar(255) NOT NULL DEFAULT '',
                  `mkdate` int(10) UNSIGNED NOT NULL DEFAULT 0,
@@ -86,7 +87,16 @@ class Moadb extends Migration
                  KEY `range_id` (`range_id`),
                  KEY `parent_id` (`parent_id`)
                 ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC");
-
+                
+        //table for SORM class ContentTermsOfUse:
+        $db->exec(
+            "CREATE TABLE IF NOT EXISTS `content_terms_of_use_entries` (
+            `id` VARCHAR(32) NOT NULL,
+            `name` VARCHAR(255) NOT NULL,
+            `description` TEXT NOT NULL,
+            `download_condition` TINYINT(2) NOT NULL
+            ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC;"
+        );
 
         //top folder courses
         $institute_folders = array();

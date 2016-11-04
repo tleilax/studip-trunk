@@ -22,6 +22,7 @@
  * @property string downloads database column
  * @property string description database column
  * @property string license database column
+ * @property string content_terms_of_use_id database column
  * @property string mkdate database column
  * @property string chdate database column
  * @property SimpleORMap file belongs_to File

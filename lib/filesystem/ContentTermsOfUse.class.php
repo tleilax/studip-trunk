@@ -44,7 +44,7 @@ class ContentTermsOfUse extends SimpleORMap
     
     
     /**
-     * Determines if a user is permitted to download the file 
+     * Determines if a user is permitted to download a file.
      */
     public function fileIsDownloadable(User $user, FileRef $file_ref, $range_id = null)
     {
