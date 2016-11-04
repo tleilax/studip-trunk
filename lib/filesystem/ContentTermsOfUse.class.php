@@ -23,7 +23,7 @@
  * Content can be a file or another Stud.IP object that is capable
  * of storing copyrighted material.
  * 
- * @property string id database column: ID of the terms of use object
+ * @property string id database column: ID of the content terms of use object
  * @property string name database column: Short name of the terms of use object
  * @property string description database column: Description text of the terms of use object
  * @property int download_condition: database column
@@ -73,7 +73,12 @@ class ContentTermsOfUse extends SimpleORMap
                         //if the course has a terminated signup deadline!
                         
                         if($this->download_condition == 2) {
-                            
+                            //TODO: look at admission rules for the course
+                            //and especially, if it is a timed admission.
+                            //If it is, then check if the admission's end_time
+                            //has passed. If so, the file is downloadable.
+                            //Otherwise it isn't.
+                            return false; //NOT IMPLEMENTED YET!
                         } else {
                             //download_condition == 1: we can simply return true
                             //since the user is inside a closed group!
