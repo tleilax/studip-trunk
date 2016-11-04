@@ -41,6 +41,18 @@
     </tfoot>
 </table>
 </form>
-
 <?= $this->render_partial("files/upload_window.php") ?>
 <?= $this->render_partial("files/add_files_window.php", array('folder_id' => $topFolder->getId(), 'hidden' => true)) ?>
+
+<? ob_start(); ?>
+<div align="center">
+<input class="tablesorterfilter" placeholder="Name" data-column="2" type="search"><br>
+<input class="tablesorterfilter" placeholder="Autor/in" data-column="4" type="search"><br>
+<input class="tablesorterfilter" placeholder="Datum" data-column="5" type="search"><br>
+</div>
+<? $content = ob_get_clean();
+$sidebar = Sidebar::get();
+$widget = new SidebarWidget();
+$widget->setTitle(_('Filter'));
+$widget->addElement(new WidgetElement($content));
+$sidebar->addWidget($widget); ?>

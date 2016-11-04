@@ -21,8 +21,8 @@ class Course_FilesController extends AuthenticatedController
         parent::before_filter($action, $args);
         // set navigation
 
-        PageLayout::addSqueezePackage('tablesorter');
-
+        PageLayout::addSqueezePackage('tablesorterfork');
+        
         $this->cid = Request::option('cid');
         if ($action == 'index') {
             if (!empty($args)) {

@@ -525,6 +525,13 @@ tr.sortable th.sortdesc {
     background-size: 16px 16px;
   }
 }
+.tablesorter .filtered {
+  display: none;
+}
+.tablesorter .tablesorter-errorRow td {
+  text-align: center;
+  cursor: pointer;
+}
 /* styles for settings tables */
 .settings {
   border-collapse: collapse;

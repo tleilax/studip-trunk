@@ -24,7 +24,7 @@ class FilesController extends AuthenticatedController
         parent::before_filter($action, $args);
         // set navigation
     
-        PageLayout::addSqueezePackage('tablesorter');
+        PageLayout::addSqueezePackage('tablesorterfork');
     }
     
     

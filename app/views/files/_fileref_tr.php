@@ -7,7 +7,7 @@
             <?= Icon::create(get_icon_for_mimetype($file_ref->file->mime_type), 'clickable')->asImg(24) ?>
         </a>
     </td>
-    <td>
+    <td data-sort-value="<?= htmlReady($file_ref->name) ?>">
         <a href="<?= $file_ref->getDownloadURL() ?>">
             <?= htmlReady($file_ref->name) ?>
         </a>

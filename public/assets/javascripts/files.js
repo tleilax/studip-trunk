@@ -116,15 +116,98 @@ STUDIP.Files = {
 };
 
 jQuery(function () {
-	jQuery('.documents[data-folder_id]').tablesorter({
+/*	jQuery('.documents[data-folder_id]').tablesorter({
         textExtraction: function (node) {
             var $node = $(node);
             return String($node.data('timestamp') || $node.text()).trim();
         },
         cssAsc: 'sortasc',
         cssDesc: 'sortdesc',
-        sortList: [[2, 0]]
+        sortList: [[2, 0]],
+        // initialize zebra striping and filter widgets
+        widgets: ["filter"],
+
+        // headers: { 5: { sorter: false, filter: false } },
+
+        widgetOptions : {
+
+          // extra css class applied to the table row containing the filters & the inputs within that row
+          filter_cssFilter   : '',
+
+          filter_columnFilters: false,
+          filter_saveFilters : true,
+          filter_reset: '.reset'
+          // If there are child rows in the table (rows with class name from "cssChildRow" option)
+          // and this option is true and a match is found anywhere in the child row, then it will make that row
+          // visible; default is false
+          filter_childRows   : false,
+
+          // if true, filters are collapsed initially, but can be revealed by hovering over the grey bar immediately
+          // below the header row. Additionally, tabbing through the document will open the filter row when an input gets focus
+          filter_hideFilters : false,
+
+          // Set this option to false to make the searches case sensitive
+          filter_ignoreCase  : true,
+
+          // jQuery selector string of an element used to reset the filters
+          filter_reset : '.reset',
+
+          // Use the $.tablesorter.storage utility to save the most recent filters
+          filter_saveFilters : true,
+
+          // Delay in milliseconds before the filter widget starts searching; This option prevents searching for
+          // every character while typing and should make searching large tables faster.
+          filter_searchDelay : 300,
+
+          // Set this option to true to use the filter to find text from the start of the column
+          // So typing in "a" will find "albert" but not "frank", both have a's; default is false
+          filter_startsWith  : false,
+
+        }
     });
+/**/
+  var $table = $('table').tablesorter({
+    theme: 'blue',
+    widgets: ["filter"],
+    widgetOptions : {
+      // use the filter_external option OR use bindSearch function (below)
+      // to bind external filters.
+      // filter_external : '.search',
+
+      filter_columnFilters: false,
+      filter_saveFilters : true,
+      filter_reset: '.reset',
+          // Set this option to false to make the searches case sensitive
+          filter_ignoreCase  : true,
+          // Set this option to true to use the filter to find text from the start of the column
+          // So typing in "a" will find "albert" but not "frank", both have a's; default is false
+          filter_startsWith  : false
+    }
+  });
+
+  // Target the $('.search') input using built in functioning
+  // this binds to the search using "search" and "keyup"
+  // Allows using filter_liveSearch or delayed search &
+  // pressing escape to cancel the search
+  $.tablesorter.filter.bindSearch( $table, $('.tablesorterfilter') );
+
+  // Basic search binding, alternate to the above
+  // bind to search - pressing enter and clicking on "x" to clear (Webkit)
+  // keyup allows dynamic searching
+  /*
+  $(".search").bind('search keyup', function (e) {
+    $('table').trigger('search', [ [this.value] ]);
+  });
+  */
+
+  // Allow changing an input from one column (any column) to another
+  $('select').change(function(){
+    // modify the search input data-column value (swap "0" or "all in this demo)
+    $('.selectable').attr( 'data-column', $(this).val() );
+    // update external search inputs
+    $.tablesorter.filter.bindSearch( $table, $('.tablesorterfilter'), false );
+  });
+jQuery.tablesorter.filter.bindSearch( $table, $('.tablesorterfilter') );
 
     jQuery(".documents[data-folder_id] tbody > tr")
         .on('dragover dragleave', function (event) {

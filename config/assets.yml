@@ -49,6 +49,10 @@ javascripts:
     - javascripts/jquery/jquery.tablesorter-2.22.5.js
     - javascripts/jquery/jquery.tablesorter.pager-2.22.5.js
 
+  tablesorterfork: &tablesorterfork
+    - javascripts/jquery/jquery.tablesorter-fork-2.27.8.js
+    - javascripts/jquery/jquery.tablesorter-fork-2.27.8.widgets.js
+
   base:
     - *jquery
     - *modernizr
