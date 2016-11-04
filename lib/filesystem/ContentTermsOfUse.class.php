@@ -25,6 +25,7 @@
  * 
  * @property string id database column: ID of the content terms of use object
  * @property string name database column: Short name of the terms of use object
+ * @property string internal_name database column: unique name for the terms of use object
  * @property string description database column: Description text of the terms of use object
  * @property int download_condition: database column
  * 0 = no conditions (downloadable by anyone)
@@ -46,7 +47,7 @@ class ContentTermsOfUse extends SimpleORMap
     /**
      * Determines if a user is permitted to download a file.
      */
-    public function fileIsDownloadable(User $user, FileRef $file_ref, $range_id = null)
+    public function fileIsDownloadable(FileRef $file_ref, $user_id = null, $range_id = null)
     {
         if($this->download_condition == 0) {
             return true;
@@ -59,7 +60,7 @@ class ContentTermsOfUse extends SimpleORMap
                 $course = Course::find($range_id);
                 if($course) {
                     //ok, range is a course:
-                    $status = $course->getParticipantStatus($user->id);
+                    $status = $course->getParticipantStatus($user_id);
                     if(!$status || ($status == 'awaiting')) {
                         //the user is not a member in the course
                         //or he is awaiting membership to the course.

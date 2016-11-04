@@ -46,6 +46,11 @@ class FileRef extends SimpleORMap
             'class_name'  => 'User',
             'foreign_key' => 'user_id',
         );
+        
+        $config['belongs_to']['terms_of_use'] = array(
+            'class_name' => 'ContentTermsOfUse',
+            'foreign_key' => 'content_terms_of_use_id'
+        );
 
         $config['registered_callbacks']['after_delete'][] = 'cbRemoveFileIfOrphaned';
         $config['notification_map']['after_create'] = 'FileRefDidCreate';
@@ -205,6 +210,11 @@ class FileRef extends SimpleORMap
      */
     public function isDownloadable($user_id)
     {
+        if($this->terms_of_use) {
+            //terms of use are defined for this file!
+            return $this->terms_of_use->isDownloadable($this, $user_id, $this->folder->range_id);
+        }
+        //no terms of use are defined for this file: file is downloadable!
         return true;
     }
 

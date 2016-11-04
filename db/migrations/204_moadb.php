@@ -93,6 +93,7 @@ class Moadb extends Migration
             "CREATE TABLE IF NOT EXISTS `content_terms_of_use_entries` (
             `id` VARCHAR(32) NOT NULL,
             `name` VARCHAR(255) NOT NULL,
+            `internal_name` VARCHAR(16) UNIQUE NOT NULL,
             `description` TEXT NOT NULL,
             `download_condition` TINYINT(2) NOT NULL
             ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC;"
@@ -161,7 +162,7 @@ class Moadb extends Migration
             $folder['range_id'] = $seminar_folders[$folder['seminar_id']];
             $this->migrateFolder($folder, $folder['seminar_id'], 'coursetopic', 'CourseTopicFolder');
         }
-
+        
     }
 
     public function migrateFolder($folder, $range_id, $range_type, $folder_type)
