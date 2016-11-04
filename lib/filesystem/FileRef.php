@@ -181,6 +181,11 @@ class FileRef extends SimpleORMap
         return $this->store();
     }
 
+    /**
+     * Returns the license object for this file.
+     * 
+     * @return Object (to be specified!)
+     */
     public function getLicenseObject()
     {
         if (class_exists($this->license)) {
@@ -189,16 +194,39 @@ class FileRef extends SimpleORMap
         throw new InvalidValuesException('class: ' . $this->license . ' not found');
     }
 
+
+    /**
+     * Determines if the user (given by user-ID) is allowed to download the file.
+     * 
+     * @param string user_id The user who wishes to download the file.
+     * 
+     * @return bool True, if downloadable for the user, false otherwise
+     */
     public function isDownloadable($user_id)
     {
         return true;
     }
 
+
+    /**
+     * Determines if the user (given by user-ID) is allowed to edit the file.
+     * 
+     * @param string user_id The user who wishes to edit the file.
+     * 
+     * @return bool True, if editable for the user, false otherwise
+     */
     public function isEditable($user_id)
     {
         return true;
     }
 
+    /**
+     * Determines if the user (given by user-ID) is allowed to delete the file.
+     * 
+     * @param string user_id The user who wishes to delete the file.
+     * 
+     * @return bool True, if deletable for the user, false otherwise
+     */
     public function isDeletable($user_id)
     {
         return true;
