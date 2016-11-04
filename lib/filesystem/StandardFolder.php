@@ -19,10 +19,9 @@ class StandardFolder implements FolderType
     protected $range_type;
 
 
-    public function __construct(Folder $folderdata)
+    public function __construct($folderdata)
     {
-        $this->folderdata = $folderdata;
-        //$this->setFolderData($folderdata);
+        $this->folderdata = Folder::buildExisting($folderdata);
     }
 
 
@@ -85,8 +84,9 @@ class StandardFolder implements FolderType
     public function setDataFromEditTemplate($request)
     {
         foreach ($this->folderdata as $name => $value) {
-
+            $this->folderdata[$name] = $request[$name];
         }
+        return $this->folderdata->store();
     }
 
     public function validateUpload($uploadedfile, $user_id)
@@ -133,24 +133,33 @@ class StandardFolder implements FolderType
         return $this->folderdata->file_refs;
     }
 
+    /**
+     * Returns the parent-folder as a StandardFolder
+     * @return StandardFolder
+     */
+    public function getParent()
+    {
+        return FolderFactory::get()->init($this->folderdata->parentfolder);
+    }
+
     public function createFile($file)
     {
-
+        $this->folderdata->linkFile($file);
     }
 
     public function isFileDownloadable($file_id)
     {
-
+        return true;
     }
 
     public function isFileEditable($file_id)
     {
-
+        return true;
     }
 
     public function isFileWritable($file_id)
     {
-
+        return true;
     }
 
 

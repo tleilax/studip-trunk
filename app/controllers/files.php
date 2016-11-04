@@ -87,7 +87,7 @@ class FilesController extends AuthenticatedController
         if (!$folder_id) {
             $this->topFolder = new StandardFolder(Folder::findTopFolder($user->id));
         } else {
-            $this->topFolder = new StandardFolder(Folder::find($folder_id));
+            $this->topFolder = FolderFactory::get()->init(Folder::find($folder_id));
         }
         
         if(!$this->topFolder) {
@@ -154,10 +154,6 @@ class FilesController extends AuthenticatedController
                 'to_plugin' => Request::get("to_plugin"),
                 'to_folder_id' => $folder_id
             )));
-            /*$this->redirect("files/choose_file/".$folder->getId(), array(
-                'to_plugin' => Request::get("to_plugin"),
-                'to_folder_id' => $folder_id
-            ));*/
         }
         $this->folder_id = $folder_id;
         $this->plugin = Request::get("to_plugin");
@@ -203,7 +199,7 @@ class FilesController extends AuthenticatedController
             if (!$error) {
                 //do the copy
                 //$this->to_folder_type->createFile($file, $GLOBALS['user']->id);
-                $this->to_folder_type->getFolderData()->linkFile($file);
+                $this->to_folder_type->createFile($file);
                 $this->response->add_header("X-Dialog-Execute", "STUDIP.Files.reloadPage");
                 $this->render_text(MessageBox::success(_("Datei wurde hinzugefügt.")));
             } else {
@@ -223,7 +219,7 @@ class FilesController extends AuthenticatedController
                 }
             }
         } else {
-            $this->top_folder = new Folder($folder_id);
+            $this->top_folder = new StandardFolder(new Folder($folder_id));
             if (!$this->top_folder->isReadable($GLOBALS['user']->id)) {
                 throw new AccessException();
             }

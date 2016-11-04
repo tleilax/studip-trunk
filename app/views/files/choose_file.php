@@ -17,7 +17,7 @@ if (Request::get("to_folder_id")) {
 ?>
 
 <? if ($filesystemplugin && $filesystemplugin->hasSearch()) : ?>
-    <form action="<?= $controller->url_for('/choose_file/' . $top_folder['parent_id']) ?>" method="get" class="default" data-dialog>
+    <form action="<?= $controller->url_for('/choose_file/' . $top_folder->parent_id) ?>" method="get" class="default" data-dialog>
         <? foreach ($options as $key => $value) : ?>
             <input type="hidden" name="<?= htmlReady($key) ?>" value="<?= htmlReady($value) ?>">
         <? endforeach ?>
@@ -56,18 +56,18 @@ if (Request::get("to_folder_id")) {
             <th><?= _("Name") ?></th>
         </tr>
     </thead>
-    <? if ($top_folder['parent_id'] && ($top_folder['parent_id'] !== $top_folder->getId())) : ?>
+    <? if ($top_folder->parent_id && ($top_folder->parent_id !== $top_folder->getId())) : ?>
         <tbody>
             <tr>
                 <td colspan="2">
-                    <a href="<?= $controller->url_for('/choose_file/' . $top_folder['parent_id'], $options) ?>" title="<?= _('Ein Verzeichnis nach oben wechseln') ?>" data-dialog>
+                    <a href="<?= $controller->url_for('/choose_file/' . $top_folder->parent_id, $options) ?>" title="<?= _('Ein Verzeichnis nach oben wechseln') ?>" data-dialog>
                         <small><?= _('Ein Verzeichnis nach oben wechseln') ?></small>
                     </a>
                 </td>
             </tr>
         </tbody>
     <? endif ?>
-    <? if (count($top_folder->subfolders) + count($top_folder->file_refs) === 0): ?>
+    <? if (count($top_folder->getSubfolders()) + count($top_folder->getFiles()) === 0): ?>
         <tbody>
         <tr>
             <td colspan="2" class="empty">
@@ -76,11 +76,11 @@ if (Request::get("to_folder_id")) {
         </tr>
         </tbody>
     <? else : ?>
-        <? foreach ($top_folder->subfolders as $subfolder) : ?>
-            <tr <? if ($full_access) printf('data-file="%s"', $subfolder->id) ?> <? if ($full_access) printf('data-folder="%s"', $subfolder->id); ?>>
+        <? foreach ($top_folder->getSubfolders() as $subfolder) : ?>
+            <tr <? if ($full_access) printf('data-file="%s"', $subfolder->getId()) ?> <? if ($full_access) printf('data-folder="%s"', $subfolder->id); ?>>
                 <td class="document-icon" data-sort-value="0">
                     <? if ($subfolder->isReadable($GLOBALS['user']->id)) : ?>
-                    <a href="<?= $controller->link_for('/choose_file/' . $subfolder->id, $options) ?>" data-dialog>
+                    <a href="<?= $controller->link_for('/choose_file/' . $subfolder->getId(), $options) ?>" data-dialog>
                     <? endif ?>
                         <? if ($is_empty): ?>
                             <?= Icon::create('folder-empty', 'clickable')->asImg(24) ?>
@@ -106,13 +106,13 @@ if (Request::get("to_folder_id")) {
             </tr>
         <? endforeach ?>
         </tbody>
-        <? if (count($top_folder->file_refs)) : ?>
+        <? if (count($top_folder->getFiles())) : ?>
             <tbody>
-            <? foreach ($top_folder->file_refs as $fileref) : ?>
+            <? foreach ($top_folder->getFiles() as $fileref) : ?>
                 <tr>
                     <td class="document-icon" data-sort-value="1">
                         <? if ($fileref->isDownloadable($GLOBALS['user']->id)) : ?>
-                        <form action="<?= $controller->link_for('/choose_file/' . $top_folder->id, $options) ?>" method="post" data-dialog>
+                        <form action="<?= $controller->link_for('/choose_file/' . $top_folder->getId(), $options) ?>" method="post" data-dialog>
                             <input type="hidden" name="file_id" value="<?= htmlReady($fileref->getId()) ?>">
                             <a href="#" onClick="jQuery(this).closest('form').submit(); return false;">
                         <? endif ?>
@@ -124,7 +124,7 @@ if (Request::get("to_folder_id")) {
                     </td>
                     <td>
                         <? if ($fileref->isDownloadable($GLOBALS['user']->id)) : ?>
-                        <form action="<?= $controller->link_for('/choose_file/' . $top_folder->id, $options) ?>" method="post" data-dialog>
+                        <form action="<?= $controller->link_for('/choose_file/' . $top_folder->getId(), $options) ?>" method="post" data-dialog>
                             <input type="hidden" name="file_id" value="<?= htmlReady($fileref->getId()) ?>">
                             <a href="#" onClick="jQuery(this).closest('form').submit(); return false;">
                         <? endif ?>

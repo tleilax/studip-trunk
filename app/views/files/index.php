@@ -3,11 +3,15 @@
     <caption>
         <div class="caption-container">
             <? $full_access = true;
-               $breadcrumbs = array(); //$topFolder->getParents();
-               $root_dir = array_shift($breadcrumbs);
-               $last_crumb = end($breadcrumbs); ?>
+                $breadcrumbs = array();
+                $folder = $topFolder;
+                do {
+                    $breadcrumbs[] = $folder;
+                } while ($folder = $folder->getParent());
+                $root_dir = array_shift($breadcrumbs);
+                $last_crumb = end($breadcrumbs); ?>
             <div>
-                <a href="<?= $controller->link_for('/index/' . $root_dir->id) ?>">
+                <a href="<?= $controller->link_for('/index/' . $root_dir->getId()) ?>">
                     <?= Icon::create('folder-parent', 'clickable')->asImg(24) ?>
                     <? if (count($breadcrumbs) < 6): ?><?= htmlReady($root_dir->name) ?><? endif ?>
                 </a>
@@ -17,7 +21,7 @@
                         ?><? endif ?>
                         
                     <? foreach ($breadcrumbs as $crumb): ?>
-                            /<a href="<?= $controller->url_for('/index/' . $crumb->id) ?>">
+                            /<a href="<?= $controller->url_for('/index/' . $crumb->getId()) ?>">
                                 <?= htmlReady($crumb->name) ?>
                             </a>
                     <? endforeach ?>
@@ -25,7 +29,7 @@
             </div>
         </div>
         <? if ($last_crumb->description) : ?>
-        <small><?= htmlReady($last_crumb['description']) ?></small>
+        <small><?= htmlReady($last_crumb->description) ?></small>
         <? endif; ?>
     </caption>
     <?= $this->render_partial("files/_files_thead.php") ?>
