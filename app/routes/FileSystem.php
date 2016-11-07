@@ -18,80 +18,8 @@ namespace RESTAPI\Routes;
 class FileSystem extends \RESTAPI\RouteMap
 {
     
-    /**
-     * Helper method to convert a File object into an associative array.
-     */
-    private function fileToArray(\File $file)
-    {
-        return [
-            'id' => $file->id,
-            'user_id' => $file->user_id,
-            'mime_type' => $file->mime_type,
-            'name' => $file->name,
-            'size' => $file->size,
-            'storage' => $file->storage,
-            'author_name' => $file->author_name,
-            'mkdate' => $file->mkdate,
-            'chdate' => $file->chdate
-        ];
-    }
     
-    
-    /**
-     * Helper method to convert a FileRef object into an associative array.
-     */
-    private function fileRefToArray(\FileRef $file_ref)
-    {
-        return [
-            'id' => $file_ref->id,
-            'file_id' => $file_ref->file_id,
-            'folder_id' => $file_ref->folder_id,
-            'user_id' => $file_ref->user_id,
-            'name' => $file_ref->name,
-            'downloads' => $file_ref->downloads,
-            'description' => $file_ref->description,
-            'license' => $file_ref->license,
-            'content_terms_of_use_id' => $file_ref->content_terms_of_use_id,
-            'mkdate' => $file_ref->mkdate,
-            'chdate' => $file_ref->chdate
-        ];
-    }
-    
-    
-    /**
-     * Helper method to convert a ContentTermsOfUse object into an associative array.
-     */
-    private function contentTermsOfUseToArray(\ContentTermsOfUse $content_terms_of_use)
-    {
-         return [
-            'id' => $content_terms_of_use->id,
-            'name' => $content_terms_of_use->name,
-            'internal_name' => $content_terms_of_use->internal_name,
-            'description' => $content_terms_of_use->description,
-            'download_condition' => $content_terms_of_use->download_condition
-        ];
-    }
-    
-    
-    /**
-     * Helper method to convert a Folder object into an associative array.
-     */
-    private function folderToArray(\Folder $folder)
-    {
-        return [
-            'id' => $folder->id,
-            'user_id' => $folder->user_id,
-            'parent_id' => $folder->parent_id,
-            'range_id' => $folder->range_id,
-            'range_type' => $folder->range_type,
-            'folder_type' => $folder->folder_type,
-            'name' => $folder->name,
-            'data_content' => $folder->data_content,
-            'description' => $folder->description,
-            'mkdate' => $folder->mkdate,
-            'chdate' => $folder->chdate
-        ];
-    }
+    // FILE REFERENCE AND FILE ROUTES:
     
     
     /**
@@ -123,6 +51,18 @@ class FileSystem extends \RESTAPI\RouteMap
         //the current user may read the file reference:
         $result = $file_ref->toRawArray();
         
+        
+        //add permissions for the user who called this REST route to the result:
+        
+        //this code wouldn't be executed if the FileRef wasn't readable (see above):
+        $result['is_readable'] = true;
+        
+        $result['is_downloadable'] = $file_ref->isDownloadable($user_id);
+        $result['is_editable'] = $file_ref->isEditable($user_id);
+        $result['is_deletable'] = $file_ref->isDeletable($user_id);
+        
+        //maybe the user wants not just only the FileRef object's data
+        //but also data from related objects:
         if($extended_data == 1) {
             //In case more data are requested we can add a File,
             //Folder and ContentTermsOfUse object
@@ -151,7 +91,7 @@ class FileSystem extends \RESTAPI\RouteMap
      
      
     /**
-     * Get the data of a file by the ID of an associated FileRef object (shortcut route)
+     * Get the data of a file by the ID of an associated FileRef object
      * @get /file_ref/:file_ref_id/file_data
      */
     public function getFileRefData($file_ref_id)
@@ -178,8 +118,22 @@ class FileSystem extends \RESTAPI\RouteMap
     }
     
     
+    
+    // FOLDER ROUTES:
+    
+    
     /**
-     * Get a folder object
+     * Returns a list of defined folder types, separated by range type.
+     * @get /studip/file_system/folder_types
+     */
+    public function getDefinedFolderTypes()
+    {
+        return \FileManager::getFolderTypes();
+    }
+    
+    
+    /**
+     * Get a folder object with its file references, subdirectories and the permissions for the user who has made the API call.
      * @get /folder/:folder_id
      */
     public function getFolder($folder_id)
@@ -213,10 +167,134 @@ class FileSystem extends \RESTAPI\RouteMap
             }
         }
         
+        $result['is_readable'] = $folder->isReadable($user_id);
+        $result['is_editable'] = $folder->isEditable($user_id);
+        $result['is_deletable'] = $folder->isDeletable($user_id);
+        
         return $result;
     }
     
     
+    /**
+     * Creates a new folder inside of another folder and returns the new object on success.
+     * @post /folder/:parent_folder_id/new_folder
+     */
+    public function createNewFolder($parent_folder_id)
+    {
+        $parent_folder = \Folder::find($parent_folder_id);
+        if(!$parent_folder) {
+            $this->halt(404, 'Folder not found!');
+        }
+        
+        $user = \User::findCurrent();
+        
+        if(!$parent_folder->isEditable($user->id)) {
+            $this->halt(403, 'You are not permitted to create a subfolder in the parent folder!');
+        }
+        
+        $folder = new \Folder();
+        $folder->name = $name;
+        $folder->description = $description;
+        
+        $folder_type = 'StandardFolder'; //to be extended
+        
+        $errors = \FileManager::createSubFolder($folder, $parent_folder, $user, $folder_type);
+        if(!empty($errors)) {
+            $this->halt(500, 'Error when creating a subfolder: ' . implode(' ', $errors));
+        }
+        
+        return $folder;
+    }
     
     
+    /**
+     * Get a list with all FileRef objects of a folder.
+     * @get /folder/:folder_id/file_refs
+     */
+    public function getFileRefsOfFolder($folder_id)
+    {
+        $folder = \Folder::find($folder_id);
+        if(!$folder) {
+            $this->halt(404, 'Folder not found!');
+        }
+        
+        $user_id = \User::findCurrent()->id;
+        
+        if(!$folder->isReadable($user_id)) {
+            $this->halt(403, 'You are not permitted to read this folder!');
+        }
+        
+        $result = [];
+        
+        if($folder->file_refs) {
+            foreach($folder->file_refs as $file_ref) {
+                $result[] = $file_ref->toRawArray();
+            }
+        }
+        
+        return $result;
+    }
+    
+    
+    /**
+     * Get a list with all FileRef objects of a folder.
+     * @get /folder/:folder_id/subfolders
+     */
+    public function getSubfoldersOfFolder($folder_id)
+    {
+        $folder = \Folder::find($folder_id);
+        if(!$folder) {
+            $this->halt(404, 'Folder not found!');
+        }
+        
+        $user_id = \User::findCurrent()->id;
+        
+        if(!$folder->isReadable($user_id)) {
+            $this->halt(403, 'You are not permitted to read this folder!');
+        }
+        
+        $result = [];
+        
+        if($folder->subfolders) {
+            foreach($folder->subfolders as $subfolder) {
+                $result[] = $subfolder->toRawArray();
+            }
+        }
+        
+        return $result;
+    }
+    
+    
+    /**
+     * Get a list with permissions a user (or the current user) has for a folder.
+     * @get /folder/:folder_id/permissions
+     * @get /folder/:folder_id/permissions/:user_id
+     */
+    public function getFolderPermissions($folder_id, $user_id = null)
+    {
+        $folder = \Folder::find($folder_id);
+        if(!$folder) {
+            $this->halt(404, 'Folder not found!');
+        }
+        
+        if(!$user_id) {
+            //user_id is not set: use the ID of the current user
+            $user_id = \User::findCurrent()->id;
+        }
+        
+        //read permissions of the user and return them:
+        
+        return [
+            'folder_id' => $folder->id,
+            'user_id' => $user_id,
+            'is_readable' => $folder->isReadable($user_id),
+            'is_editable' => $folder->isEditable($user_id),
+            'is_deletable' => $folder->isDeletable($user_id),
+        ];
+    }
+    
+    
+    /**
+     * 
+     */
 }

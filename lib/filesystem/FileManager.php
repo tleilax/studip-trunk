@@ -327,6 +327,8 @@ class FileManager
                     $destination_folder_type->getTypeName()
                 );
             }
+        } else {
+            $errors[] = _('Unbekannter Ordnertyp!');
         }
         
         

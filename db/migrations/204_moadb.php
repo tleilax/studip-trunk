@@ -111,7 +111,7 @@ class Moadb extends Migration
             ('f66fe78c95f721bdfc54c3002bb33bef', 'Abbildungen, Fotos, Filme, Musikstücke, Partituren', 'NON_TEXTUAL', '', '1'),
             ('1de7bd86120ddb26abb89e44d5103008', 'Publizierte Texte ohne erworbene Lizenz oder gesonderte Erlaubnis', 'PUB_NO_LICENSE', '', '2'),
             ('2093c5f3733697f297d2f530320b91f8', 'Ungeklärte Lizenz', 'UNDEF_LICENSE', '', '2');"
-        );
+    
         
         
         //top folder courses
