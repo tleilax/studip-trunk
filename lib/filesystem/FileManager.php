@@ -88,13 +88,14 @@ class FileManager
      * @param FileRef file_ref The file reference that shall be edited.
      * @param string|null name The new name for the file reference
      * @param string|null description The new description for the file reference.
+     * @param string|null content_terms_of_use_id The ID of the new ContentTermsOfUse object.
      * @param string|null license The new license description for the file reference.
      * 
      * @return string[] Array with error messages: Empty array on success, filled array on failure.
      */
-    public static function editFileRef(FileRef $file_ref, $name = null, $description = null, $license = null)
+    public static function editFileRef(FileRef $file_ref, $name = null, $description = null, $content_terms_of_use = null, $license = null)
     {
-        if(!$name && !$description && !$license) {
+        if(!$name && !$description && !$content_terms_of_use && !$license) {
             //nothing to do, no errors:
             return [];
         }
@@ -121,6 +122,19 @@ class FileManager
             //description may be an empty string which is allowed here
             $file_ref->description = $description;
         }
+        
+        if($content_terms_of_use_id !== null) {
+            $content_terms_of_use = ContentTermsOfUse::find($content_terms_of_use_id);
+            if(!$content_terms_of_use) 7
+                return [
+                    sprintf(
+                        _('Inhalts-Nutzungsbedingungen mit ID %s nicht gefunden!'),
+                        $content_terms_of_use_id
+                    )
+                ];
+            }
+        }
+        
         
         if($license !== null) {
             $file_ref->license = $license;

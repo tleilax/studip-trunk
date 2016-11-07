@@ -88,8 +88,8 @@ class FileSystem extends \RESTAPI\RouteMap
         
         return $result;
     }
-     
-     
+    
+    
     /**
      * Get the data of a file by the ID of an associated FileRef object
      * 
@@ -142,7 +142,7 @@ class FileSystem extends \RESTAPI\RouteMap
         //check if the current user has the permissions to upload
         //data for the file reference's file object:
         if($file_ref->folder) {
-            if($file_ref->folder->isReadable($user_id)) {
+            if($file_ref->folder->isEditable($user_id)) {
                 if(!$file_ref->file) {
                     $this->halt(500, 'File reference has no associated file object!');
                 }
@@ -161,6 +161,48 @@ class FileSystem extends \RESTAPI\RouteMap
     }
     
     
+    /**
+     * Edit a file reference.
+     * 
+     * @put /file/:file_ref_id/edit
+     */
+    public function editFileRef($file_ref_id)
+    {
+        $file_ref = \FileRef::find($file_ref_id);
+        if(!$file_ref) {
+            $this->halt(404, 'File reference not found!');
+        }
+        
+        $user_id = \User::findCurrent()->id;
+        
+        //check if the current user has the permissions to edit
+        //the file reference:
+        if($file_ref->folder) {
+            if($file_ref->folder->isEditable($user_id)) {
+                
+                $name = Request::get('name');
+                $description = Request::get('description');
+                $content_term_of_use_id = Request::get('content_terms_of_use_id');
+                $license = Request::get('license');
+                
+                $errors = \FileManager::editFileRef(
+                    $file_ref,
+                    $name,
+                    $description,
+                    $content_term_of_use_id,
+                    $license
+                );
+                
+                if(!empty($errors)) {
+                    $this->halt('Error while editing a file reference: ' . implode(' ', $errors));
+                }
+                
+                return $file_ref->toRawArray();
+            }
+        } else {
+            $this->halt(500, 'File reference has no associated folder object!');
+        }
+    }
     
     
     
