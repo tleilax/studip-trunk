@@ -95,7 +95,8 @@ class Moadb extends Migration
             `name` VARCHAR(255) NOT NULL,
             `internal_name` VARCHAR(16) UNIQUE NOT NULL,
             `description` TEXT NOT NULL,
-            `download_condition` TINYINT(2) NOT NULL
+            `download_condition` TINYINT(2) NOT NULL,
+            PRIMARY KEY (`id`)
             ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC;"
         );
         
