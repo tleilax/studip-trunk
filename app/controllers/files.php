@@ -131,7 +131,6 @@ class FilesController extends AuthenticatedController
             $this->topFolder = Folder::createTopFolder($user->id, 'user');
         }
         
-        $this->buildSidebar();
         PageLayout::setTitle($user->getFullname() . ' - ' . _('Dateien'));
     }
     

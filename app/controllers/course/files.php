@@ -210,7 +210,6 @@ class Course_FilesController extends AuthenticatedController
         $this->files = $this->getFolderFiles($this->topFolder);
         
         
-        $this->buildSidebar();
         PageLayout::setTitle($course->getFullname() . ' - ' . _('Dateien'));
         
         
