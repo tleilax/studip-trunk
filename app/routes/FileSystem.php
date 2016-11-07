@@ -92,7 +92,8 @@ class FileSystem extends \RESTAPI\RouteMap
      
     /**
      * Get the data of a file by the ID of an associated FileRef object
-     * @get /file/:file_ref_id/data
+     * 
+     * @get /file/:file_ref_id/download
      */
     public function getFileRefData($file_ref_id)
     {
@@ -122,6 +123,45 @@ class FileSystem extends \RESTAPI\RouteMap
             $this->halt(500, 'File reference has no associated folder object!');
         }
     }
+    
+    
+    /**
+     * Upload file data using a FileReference to it.
+     * 
+     * @put /file/:file_ref_id/upload
+     */
+    public function uploadFileData($file_ref_id)
+    {
+        $file_ref = \FileRef::find($file_ref_id);
+        if(!$file_ref) {
+            $this->halt(404, 'File reference not found!');
+        }
+        
+        $user_id = \User::findCurrent()->id;
+        
+        //check if the current user has the permissions to upload
+        //data for the file reference's file object:
+        if($file_ref->folder) {
+            if($file_ref->folder->isReadable($user_id)) {
+                if(!$file_ref->file) {
+                    $this->halt(500, 'File reference has no associated file object!');
+                }
+                //if this code is executed the user can
+                //upload new data to the associated file object
+                $data_path = $file_ref->file->getPath();
+                if(!file_exists($data_path)) {
+                    $this->halt(404, "File was not found in the operating system's file system!");
+                }
+                
+                //TODO
+            }
+        } else {
+            $this->halt(500, 'File reference has no associated folder object!');
+        }
+    }
+    
+    
+    
     
     
     
