@@ -68,7 +68,9 @@ interface FolderType
      * @return boolean True, if creatable in standard folder, false otherwise.
      */
     static public function creatableInStandardFolder($range_type);
-
+    
+    static public function getAllowedRangeTypes();
+    
     /**
      * Determines if a user may see the folder.
      * 

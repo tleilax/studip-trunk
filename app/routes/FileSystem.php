@@ -226,13 +226,30 @@ class FileSystem extends \RESTAPI\RouteMap
         
         $result = [];
         
-        if($folder->file_refs) {
-            foreach($folder->file_refs as $file_ref) {
+        $file_refs = \FileRef::findBySql(
+            'folder_id = :folder_id ORDER BY name ASC LIMIT :limit OFFSET :offset',
+            [
+                'folder_id' => $folder->id,
+                'limit' => $this->limit,
+                'offset' => $this->offset
+            ]
+        );
+        
+        $num_file_refs = \FileRef::countBySql(
+            'folder_id = :folder_id',
+            [
+                'folder_id' => $folder->id
+            ]
+        );
+        
+        
+        if($file_refs) {
+            foreach($file_refs as $file_ref) {
                 $result[] = $file_ref->toRawArray();
             }
         }
         
-        return $result;
+        return $this->paginated($result, $num_file_refs, ['folder_id' => $folder->id]);
     }
     
     
@@ -255,13 +272,31 @@ class FileSystem extends \RESTAPI\RouteMap
         
         $result = [];
         
-        if($folder->subfolders) {
-            foreach($folder->subfolders as $subfolder) {
+        $subfolders = \Folder::findBySql(
+            'parent_id = :parent_id ORDER BY name ASC LIMIT :limit OFFSET :offset',
+            [
+                'parent_id' => $folder->id,
+                'limit' => $this->limit,
+                'offset' => $this->offset
+            ]
+        );
+        
+        $num_subfolders = \Folder::countBySql(
+            'parent_id = :parent_id',
+            [
+                'parent_id' => $folder->id
+            ]
+        );
+        
+        
+        
+        if($subfolders) {
+            foreach($subfolders as $subfolder) {
                 $result[] = $subfolder->toRawArray();
             }
         }
         
-        return $result;
+        return $this->paginated($result, $num_subfolders, ['folder_id' => $folder->id]);
     }
     
     

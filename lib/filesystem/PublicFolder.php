@@ -7,67 +7,97 @@ class PublicFolder implements FolderType
     protected $range_id;
     protected $range_type;
 
+    
     public function __construct($folderdata)
     {
         $this->setFolderData($folderdata);
     }
-
-    public function getFolderData()
+    
+    
+    static public function getTypeName()
     {
-        return $this->folderdata;
+        return _('Ein Ordner für öffentlich zugängliche Daten');
     }
-
-    public function setFolderData($folderdata)
+    
+    
+    static public function getIconShape()
     {
-        $this->folderdata = $folderdata;
-        $this->range_id = $folderdata['range_id'];
-        $this->range_type = $folderdata['range_type'];
+        return 'folder-full';
     }
-
+    
+    
+    public function getId()
+    {
+        return 1;
+    }
+    
+    
+    static public function creatableInStandardFolder($range_type)
+    {
+        return true;
+    }
+    
+    
+    static public function getAllowedRangeTypes()
+    {
+        return ['user'];
+    }
+    
+    
     public function isVisible($user_id)
     {
         return true;
     }
+
 
     public function isReadable($user_id)
     {
         return true;
     }
 
+
     public function isWritable($user_id)
     {
         return $user_id === $GLOBALS['user']->id;
     }
 
+    
     public function isSubfolderAllowed($user_id)
     {
         return $user_id === $GLOBALS['user']->id;
     }
-
-    public function getName()
-    {
-        return $this->folderdata['name'];
-    }
-
-    public function getIcon()
-    {
-        return Icon::create('folder');
-    }
-
+    
+    
     public function getDescriptionTemplate()
     {
         return _("Öffentlich sichtbar für alle.");
     }
 
+
+    public function getSubfolders()
+    {
+        //to be implemented
+    }
+    
+    
+    public function getFiles()
+    {
+        //to be implemented
+    }
+    
+    
     public function getEditTemplate()
     {
-
+        //to be implemented
     }
-
-    public function setData($request)
+    
+    
+    public function setDataFromEditTemplate($request)
     {
+        //to be implemented
     }
-
+    
+    
     public function validateUpload($uploadedfile, $user_id)
     {
         if ($this->range_type == 'course') {
@@ -96,9 +126,64 @@ class PublicFolder implements FolderType
             return sprintf(_("Sie dürfen den Dateityp %s nicht hochladen!"), $ext);
         }
     }
-
-    public function getAllowedRangeTypes()
+    
+    
+    public function createFile($file)
     {
-        return ['user'];
+        //to be implemented
     }
+    
+    
+    public function isFileDownloadable($file_id)
+    {
+        //to be implemented
+    }
+    
+    
+    public function isFileEditable($file_id)
+    {
+        //to be implemented
+    }
+    
+    
+    public function isFileWritable($file_id)
+    {
+        //to be implemented
+    }
+    
+    
+    
+    
+    
+
+    public function getFolderData()
+    {
+        return $this->folderdata;
+    }
+
+    public function setFolderData($folderdata)
+    {
+        $this->folderdata = $folderdata;
+        $this->range_id = $folderdata['range_id'];
+        $this->range_type = $folderdata['range_type'];
+    }
+
+
+
+    public function getName()
+    {
+        return $this->folderdata['name'];
+    }
+
+    public function getIcon()
+    {
+        return Icon::create('folder');
+    }
+
+
+    public function setData($request)
+    {
+    }
+
+
 }

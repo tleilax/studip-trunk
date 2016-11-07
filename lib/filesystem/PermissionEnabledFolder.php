@@ -45,6 +45,12 @@ class PermissionEnabledFolder extends StandardFolder
         return (bool)($this->permission & $this->perms[$perm]);
 
     }
+    
+    static public function getAllowedRangeTypes()
+    {
+        return ['course', 'institute'];
+    }
+    
     public function isVisible($user_id)
     {
         return $this->checkPermission('x', $user_id);
@@ -95,8 +101,4 @@ class PermissionEnabledFolder extends StandardFolder
         }
     }
 
-    public function getAllowedRangeTypes()
-    {
-        return ['course', 'institute'];
-    }
 }

@@ -40,6 +40,12 @@ class StandardFolder implements FolderType
         return true;
     }
 
+    static public function getAllowedRangeTypes()
+    {
+        return ['course', 'institute', 'message', 'user'];
+    }
+    
+    
     public function getId()
     {
         return $this->folderdata->getId();
