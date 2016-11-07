@@ -209,7 +209,7 @@ class FileSystem extends \RESTAPI\RouteMap
     
     /**
      * Get a list with all FileRef objects of a folder.
-     * @get /folder/:folder_id/file_refs
+     * @get /folder/:folder_id/files
      */
     public function getFileRefsOfFolder($folder_id)
     {
@@ -385,8 +385,8 @@ class FileSystem extends \RESTAPI\RouteMap
     
     
     /**
-     * Moved a folder into another folder.
-     * @post /folder/:folder_id/copy/:destination_folder_id
+     * Move a folder into another folder.
+     * @post /folder/:folder_id/move/:destination_folder_id
      */
     public function moveFolder($folder_id, $destination_folder_id)
     {
