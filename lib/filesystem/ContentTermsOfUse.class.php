@@ -40,6 +40,7 @@ class ContentTermsOfUse extends SimpleORMap
         
         //TODO: define has_many relationship for FileRef
         //(and later: other object types)
+        parent::configure($config);
     }
     
     

@@ -24,7 +24,7 @@ class FileSystem extends \RESTAPI\RouteMap
     
     /**
      * Get a file reference object (metadata)
-     * @get /file_ref/:file_ref_id
+     * @get /file/:file_ref_id
      */
      public function getFileRef($file_ref_id)
      {
@@ -92,7 +92,7 @@ class FileSystem extends \RESTAPI\RouteMap
      
     /**
      * Get the data of a file by the ID of an associated FileRef object
-     * @get /file_ref/:file_ref_id/file_data
+     * @get /file/:file_ref_id/data
      */
     public function getFileRefData($file_ref_id)
     {
@@ -329,7 +329,34 @@ class FileSystem extends \RESTAPI\RouteMap
     }
     
     
+    // RELATED OBJECT ROUTES:
+    
     /**
+     * Get a collection of all ContentTermsOfUse objects
      * 
+     * @get /studip/content_terms_of_use_list
      */
+     public function getContentTermsOfUseList()
+     {
+        $content_terms_of_use_objects = \ContentTermsOfUse::findBySql(
+            'TRUE ORDER BY name ASC LIMIT :limit OFFSET :offset',
+            [
+                'limit' => $this->limit,
+                'offset' => $this->offset
+            ]
+        );
+        
+        $num_content_terms_of_use_objects = \ContentTermsOfUse::countBySql('TRUE');
+        
+        $result = [];
+        if($content_terms_of_use_objects) {
+            foreach($content_terms_of_use_objects as $object) {
+                $result[] = $object->toRawArray();
+            }
+        }
+        
+        return $this->paginated($result, $num_content_terms_of_use_objects);
+     }
+     
+     
 }
