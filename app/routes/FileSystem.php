@@ -164,7 +164,7 @@ class FileSystem extends \RESTAPI\RouteMap
     /**
      * Edit a file reference.
      * 
-     * @put /file/:file_ref_id/edit
+     * @put /file/:file_ref_id
      */
     public function editFileRef($file_ref_id)
     {
@@ -203,6 +203,43 @@ class FileSystem extends \RESTAPI\RouteMap
             $this->halt(500, 'File reference has no associated folder object!');
         }
     }
+    
+    
+    /**
+     * Deletes a file reference.
+     * 
+     * @delete /file/:file_ref_id
+     */
+    public function deleteFileRef($file_ref_id)
+    {
+        $file_ref = \FileRef::find($file_ref_id);
+        if(!$file_ref) {
+            $this->halt(404, 'File reference not found!');
+        }
+        
+        $user = \User::findCurrent();
+        
+        //check if the current user has the permissions to delete
+        //the file reference:
+        if($file_ref->folder) {
+            if($file_ref->folder->isDeletable($user->id)) {
+                
+                $errors = \FileManager::deleteFileRef(
+                    $file_ref,
+                    $user
+                );
+                
+                if(!empty($errors)) {
+                    $this->halt('Error while deleting a file reference: ' . implode(' ', $errors));
+                }
+                
+                $this->halt(200, 'OK');
+            }
+        } else {
+            $this->halt(500, 'File reference has no associated folder object!');
+        }
+    }
+    
     
     
     

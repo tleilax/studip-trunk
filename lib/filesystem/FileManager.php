@@ -295,6 +295,19 @@ class FileManager
     }
     
     
+    /**
+     * This method handles deletign a file reference.
+     * 
+     * @param FileRef file_ref The file reference that shall be deleted
+     * @param User user The user who wishes to delete the file reference.
+     * 
+     * @return string[] Array with error messages: Empty array on success, filled array on failure.
+     */
+    public static function deleteFileRef(FileRef $file_ref, User $user)
+    {
+        return ['Not implemented yet!'];
+    }
+    
     
     
     // FOLDER METHODS
