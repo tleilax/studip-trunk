@@ -28,6 +28,7 @@
  * @property SimpleORMap file belongs_to File
  * @property SimpleORMap folder belongs_to Folder
  * @property SimpleORMap owner belongs_to User
+ * @property SimpleORMap terms_of_use belongs_to ContentTermsOfUse
  */
 class FileRef extends SimpleORMap
 {
