@@ -101,6 +101,8 @@ class FileSystem extends \RESTAPI\RouteMap
             $this->halt(404, 'File reference not found!');
         }
         
+        $user_id = \User::findCurrent()->id;
+        
         //check if the current user has the permissions to read this file reference:
         if($file_ref->folder) {
             if($file_ref->folder->isReadable($user_id)) {
@@ -108,13 +110,17 @@ class FileSystem extends \RESTAPI\RouteMap
                     $this->halt(500, 'File reference has no associated file object!');
                 }
                 //if this code is executed we can read the file's data
-                //TODO
+                $data_path = $file_ref->file->getPath();
+                if(!file_exists($data_path)) {
+                    $this->halt(404, "File was not found in the operating system's file system!");
+                }
+                
+                $this->lastModified($file_ref->file->chdate);
+                $this->sendFile($data_path, ['filename' => $file_ref->name]);
             }
         } else {
             $this->halt(500, 'File reference has no associated folder object!');
         }
-        
-        $user_id = \User::findCurrent()->id;
     }
     
     
