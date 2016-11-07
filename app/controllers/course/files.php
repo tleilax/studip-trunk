@@ -19,28 +19,18 @@ class Course_FilesController extends AuthenticatedController
     public function before_filter(&$action, &$args)
     {
         parent::before_filter($action, $args);
-        // set navigation
+
+        checkObject();
+        checkObjectModule('documents');
+        $this->course = Course::findCurrent();
+        object_set_visit_module('documents');
 
         PageLayout::addSqueezePackage('tablesorterfork');
-        
-        $this->cid = Request::option('cid');
-        if ($action == 'index') {
-            if (!empty($args)) {
-                $this->currentFolder = $args[0];
-            } else {                
-                $this->currentFolder = Folder::findTopFolder($this->cid)->id;
-            }
-        }
-    }
-    
-    
-    /**
-        Retrieves the permissions of the current user (identified by $userId).
-    **/
-    private function getPermissions($userId = null)
-    {
-        //STUB:
-        return ['r' => true, 'w' => true, 'x' => true];
+        PageLayout::setHelpKeyword("Basis.Dateien");
+        PageLayout::setTitle($this->course->getFullname() . " - " . _("Dateien"));
+
+        $this->last_visitdate = object_get_visit($this->course->id, 'documents');
+
     }
 
 
@@ -49,15 +39,13 @@ class Course_FilesController extends AuthenticatedController
         $sidebar = Sidebar::get();
         $sidebar->setImage('sidebar/files-sidebar.png');
 
-        $userRights = $this->getPermissions(User::findCurrent()->id);
-
         $actions = new ActionsWidget();
 
-        if($userRights['w'] and $userRights['x']) {
+        if ($this->topFolder && $this->topFolder->isSubfolderAllowed($GLOBALS['user']->id)) {
             $actions->addLink(
                 _('Neuer Ordner'),
-                URLHelper::getUrl('dispatch.php/folder/new', 
-                        array('context' => 'course', 'rangeId' => $this->cid, 'parent_folder_id' => $this->currentFolder)),
+                URLHelper::getUrl('dispatch.php/folder/new',
+                        array('context' => 'course', 'rangeId' => $this->course->id, 'parent_folder_id' => $this->topFolder->getId())),
                 Icon::create('folder-empty+add', 'clickable'),
                 array('data-dialog' => 'size=auto')
             );
@@ -78,50 +66,31 @@ class Course_FilesController extends AuthenticatedController
     /**
         Displays the files in tree view
     **/
-    public function index_action($topFolderId = '', $page = 1)
+    public function index_action($topFolderId = '')
     {
+
+
         if(Navigation::hasItem('/course/files_new')) {
             Navigation::activateItem('/course/files_new');
         }
         if(Navigation::hasItem('/course/files_new/tree')) {
             Navigation::activateItem('/course/files_new/tree');
         }
-        
+
         $this->marked_element_ids = [];
-        
-        $course = Course::findCurrent();
-        $institute = null;
-        if(!$course) {
-            $institute = Institute::findCurrent();
-        }
+
         if (!$topFolderId) {
-            if($course) {
-                $this->topFolder = new StandardFolder(Folder::findTopFolder($course->id));
-            } else {
-                $this->topFolder = new StandardFolder(Folder::findTopFolder($institute->id));
-            }
+            $folder = Folder::findTopFolder($this->course->id);
         } else {
-            $this->topFolder = new StandardFolder(Folder::find($topFolderId));
+            $folder = Folder::find($topFolderId);
         }
-        
-        if(!$this->topFolder) {
-            //create top folder:
-            if($course) {
-                $this->topFolder = new StandardFolder(Folder::createTopFolder($course->id, 'course'));
-                
-            } elseif($institute) {
-                $this->topFolder = new StandardFolder(Folder::createTopFolder($institute->id, 'inst'));
-            } else {
-                PageLayout::postError(_('Fehler beim Erstellen des Hauptordners: Zugehöriges Datenbankobjekt nicht gefunden!'));
-                return;
-            }
+
+        if (!$folder) {
+            throw new Exception(_('Fehler beim Laden des Hauptordners!'));
         }
-        
-        if(!$this->topFolder) {
-            PageLayout::postError(_('Fehler beim Laden des Hauptordners!'));
-            return;
-        }
-        
+
+        $this->topFolder = $folder->getTypedFolder();
+
         if (!empty($this->topFolder->parent_id)) {
             $this->isRoot = false;
             $this->parent_id = $this->topFolder->parent_id;
@@ -129,46 +98,35 @@ class Course_FilesController extends AuthenticatedController
         } else {
             $this->isRoot = true;
         }
-        
-        $this->marked = array();        
+
+        $this->marked = array();
         $this->filecount = count($this->topFolder->getSubfolders());
         $this->filecount += count($this->topFolder->getFiles());
-        
+
         $this->dir_id = $this->topFolder->getId();
-                
+
         $this->buildSidebar();
-        if($course) {
-            PageLayout::setTitle($course->getFullname() . ' - ' . _('Dateien'));
-        } elseif($institute) {
-            PageLayout::setTitle($institute->getFullname() . ' - ' . _('Dateien'));
-        }
-        
+
         $this->render_template('files/index.php', $GLOBALS['template_factory']->open('layouts/base'));
     }
-    
-    
-    private function getFolderFiles(Folder $folder)
+
+
+    private function getFolderFiles($folder)
     {
-        $files = [];
-        if($folder->file_refs) {
-            foreach($folder->file_refs as $fileRef) {
-                $files[] = $fileRef;
-            }
-            
-            if($folder->subfolders) {
-                foreach($folder->subfolders as $subFolder) {
-                    $files = array_merge($files, $this->getFolderFiles($subFolder));
-                }
-            }
+        $this->folders[$folder->getId()] = $folder;
+        foreach ($folder->getSubFolders() as $subfolder) {
+            $this->getFolderFiles($subfolder);
         }
-        return $files;
+        foreach ($folder->getFiles() as $file) {
+            $this->files[] = $file;
+        }
     }
-    
-    
+
+
     /**
         Displays the files in flat view
     **/
-    public function flat_action($topFolder = '')
+    public function flat_action()
     {
         if(Navigation::hasItem('/course/files_new')) {
             Navigation::activateItem('/course/files_new');
@@ -176,47 +134,29 @@ class Course_FilesController extends AuthenticatedController
         if(Navigation::hasItem('/course/files_new/flat')) {
             Navigation::activateItem('/course/files_new/flat');
         }
-        
-        $this->marked_element_ids = [];
-        
-        $filePreselector = Request::get('select', null);
-        
-        
-        $course = Course::find(Request::get('cid'));
-        if(!$course) {
-            //TODO: throw exception
 
-            return; //DEVELOPMENT STAGE CODE!
+        $this->marked_element_ids = [];
+
+        $filePreselector = Request::get('select', null);
+
+        $folder = Folder::findTopFolder($this->course->id);
+
+        if (!$folder) {
+            throw new Exception(_('Fehler beim Laden des Hauptordners!'));
         }
-        
-        //find top folder:
-        
-        if (!$topFolder) {
-            $this->topFolder = Folder::findTopFolder($course->id);
-        } else {
-            $this->topFolder = Folder::find($topFolder);
-        }
-        
-        if(!$this->topFolder) {
-            //create top folder:
-            $this->topFolder = new Folder();
-            //$this->topFolder->user_id = $user->id;
-            $this->topFolder->range_id = $course->id;
-            $this->topFolder->store();
-        }
-        
+
+        $this->topFolder = $folder->getTypedFolder();
+
         //find all files in all subdirectories:
-        
-        $this->files = $this->getFolderFiles($this->topFolder);
-        
-        
-        PageLayout::setTitle($course->getFullname() . ' - ' . _('Dateien'));
-        
-        
+        $this->files = [];
+        $this->folders = [];
+        $this->getFolderFiles($this->topFolder);
+
+
         $this->render_template('files/flat.php', $GLOBALS['template_factory']->open('layouts/base'));
     }
-    
-    
+
+
     public function upload_action()
     {
         if (Request::isPost() && is_array($_FILES)) {
@@ -238,7 +178,7 @@ class Course_FilesController extends AuthenticatedController
             }
         }
         $this->folder_id = Request::option('topfolder');
-        
+
         if(Request::isDialog()) {
             $this->render_template('file/upload.php');
         } else {

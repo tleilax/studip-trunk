@@ -87,14 +87,14 @@ class Folder extends SimpleORMap
 
     /**
      * Creates a top folder (root directory) for a Stud.IP object given by range_id and range_type.
-     * 
+     *
      * This method creates and stores a top folder (root directory) for a Stud.IP object.
      * To properly create such a folder this method requires the parameters
      * range_id and range_type to be set.
-     * 
+     *
      * @param string $range_id The ID of the Stud.IP object
      * @param string $range_type The type of the object: "course", "inst", "user", ...
-     * 
+     *
      * @return Folder Created Folder object.
      */
     public static function createTopFolder($range_id, $range_type)
@@ -103,7 +103,7 @@ class Folder extends SimpleORMap
             'parent_id'    => '',
             'range_id'     => $range_id,
             'range_type'   => $range_type,
-            'description'  => 'virtual top folder',
+            'description'  => '',
             'name'         => '',
             'data_content' => '',
             'folder_type'  => 'StandardFolder'
@@ -119,9 +119,9 @@ class Folder extends SimpleORMap
      * createTopFolder method. In case when only the ID of a Stud.IP object
      * is given, this method will help to determine the corresponding
      * object type.
-     * 
+     *
      * @param string $range_id The ID of an object whose type shall be determined.
-     * 
+     *
      * @return bool|string Returns false on failure, otherwise the name of the range.
      */
     public static function findRangeTypeById($range_id = null)
@@ -131,7 +131,7 @@ class Folder extends SimpleORMap
         if(!$range_id) {
             return false;
         }
-        
+
         if (Course::exists($range_id)) {
             return 'course';
         } elseif (Institute::exists($range_id)) {
@@ -148,13 +148,13 @@ class Folder extends SimpleORMap
 
     /**
      * Checks if a file or folder with a given file name exists inside the folder.
-     * 
-     * By looking at the number of associated FileRef objects and 
+     *
+     * By looking at the number of associated FileRef objects and
      * the number of associated Folder objects this method determines
      * if a file or folder with a given name exists inside the folder.
      *
      * @param string $file_name The file name of the file or folder which is searched.
-     * 
+     *
      * @return bool Returns true, if a file was found, false otherwise.
      **/
     public function fileExists($file_name)
@@ -183,9 +183,9 @@ class Folder extends SimpleORMap
      * will check, if a file or folder with the name given by the parameter
      * $file_name exists and if so, it will append a number in square brackets
      * to the file name to make it unique. The unique file name is returned.
-     * 
+     *
      * @param string $file_name The file name that shall be checked for uniqueness.
-     * 
+     *
      * @return string An unique filename.
      */
     public function getUniqueName($file_name)
@@ -206,7 +206,7 @@ class Folder extends SimpleORMap
 
     /**
      * Find the top folder of a Stud.IP object or create it, if it doesn't exist.
-     * 
+     *
      * This method finds the top folder (root directory) of a course, institute,
      * personal file area or a message by the ID given in the range_id parameter.
      * If the root folder doesn't exist, it will be created.
@@ -228,13 +228,13 @@ class Folder extends SimpleORMap
             //for non-existing objects and can directly return null.
             return null;
         }
-        
+
         $top_folder = self::findOneBySQL("range_id = ? AND parent_id=''", [$range_id]);
 
         //top_folder may not exist!
         if (!$top_folder) {
             //top_folder doest not exist: create it
-            
+
             //check if range_type is set and has a valid value:
             if($range_type) {
                 //range type is set. If its valid (value = course, institute,
@@ -259,7 +259,7 @@ class Folder extends SimpleORMap
                         $valid_range = true;
                     }
                 }
-                
+
                 if($valid_range) {
                     $top_folder = self::createTopFolder($range_id, $range_type);
                 } else {
@@ -285,11 +285,11 @@ class Folder extends SimpleORMap
 
     /**
      * Gets the FolderType object for the current folder.
-     * 
+     *
      * The FolderType class defines extended attributes for a folder.
      * With this method the associated FolderType of a folder can be
      * determined.
-     * 
+     *
      * @return FolderType An object of a FolderType derivate.
      * @throws InvalidValuesException If the class specified by the folder's folder_type attribute can't be found an Exception is thrown.
      */
@@ -321,16 +321,16 @@ class Folder extends SimpleORMap
 
     /**
      * Creates a FileRef object for a given File object or its ID.
-     * 
+     *
      * This method creates a FileRef object for a file that is represented
      * by its object or its ID. The new FileRef's description is different
      * than the one from the file since it is set via the $description parameter.
      * Furthermore license information can be stored via the $license parameter.
-     * 
+     *
      * @param File|string $file_or_id Either a file object or a string containing a File object's ID.
      * @param string $description The description for the file that shall be used in the FileRef object.
      * @param string $license A string describing a license, defaults to "UnknownLicense".
-     * 
+     *
      * @return FileRef|null On success a FileRef for the given file is returned. On failrue, null is returned.
      */
     public function linkFile($file_or_id, $description = '', $license = 'UnknownLicense')
@@ -339,13 +339,13 @@ class Folder extends SimpleORMap
             //empty string or something else that validates to false!
             return null;
         }
-        
+
         $file = File::toObject($file_or_id);
         if(!$file) {
             //file object wasn't found!
             return null;
         }
-        
+
         $ref = new FileRef();
         $ref->file_id = $file->id;
         $ref->folder_id = $this->id;
@@ -375,13 +375,13 @@ class Folder extends SimpleORMap
 
     /**
      * Returns a list of parent folders, starting with the top folder.
-     * 
+     *
      * This method returns a list with the parent folders of the folder
      * until the top folder (root directory) is found.
-     * The list is reversed so that it starts with the top folder and 
+     * The list is reversed so that it starts with the top folder and
      * ends with this folder.
      *
-     * 
+     *
      * @return \Folder[] An array of parent folders, starting with the top folder.
      */
     public function getParents()
@@ -402,11 +402,11 @@ class Folder extends SimpleORMap
 
     /**
      * Returns the file system path from the top folder to this folder.
-     * 
+     *
      * By calling the getParents method of this class and getting the names
      * of the parent folders the path is created. The default path separator
      * is a slash, but it can be overwritten by specifying the $delimiter parameter.
-     * 
+     *
      * @param string $delimiter The character to be used as path separator.
      * @return string The path from the top folder to this folder, separated by the character set in $delimiter.
      */
@@ -418,9 +418,9 @@ class Folder extends SimpleORMap
 
     /**
      * Checks if a user has the permission to read this folder.
-     * 
-     * @param string user_id The ID of the user whose permissions for this folder shall be checked.
-     * 
+     *
+     * @param string $user_id The ID of the user whose permissions for this folder shall be checked.
+     *
      * @return bool True, if the user may read this folder, false otherwise.
      */
     public function isReadable($user_id)
@@ -431,9 +431,9 @@ class Folder extends SimpleORMap
 
     /**
      * Checks if a user has the permission to edit this folder.
-     * 
-     * @param string user_id The ID of the user whose permissions for this folder shall be checked.
-     * 
+     *
+     * @param string $user_id The ID of the user whose permissions for this folder shall be checked.
+     *
      * @return bool True, if the user may edit this folder, false otherwise.
      */
     public function isEditable($user_id)
@@ -444,9 +444,9 @@ class Folder extends SimpleORMap
 
     /**
      * Checks if a user has the permission to delete this folder.
-     * 
-     * @param string user_id The ID of the user whose permissions for this folder shall be checked.
-     * 
+     *
+     * @param string $user_id The ID of the user whose permissions for this folder shall be checked.
+     *
      * @return bool True, if the user may delete this folder, false otherwise.
      */
     public function isDeletable($user_id)

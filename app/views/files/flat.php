@@ -1,5 +1,5 @@
 <form method="post">
-<table class="default documents" data-folder_id="<?= htmlReady($topFolder->getId()) ?>">
+<table class="default documents">
     <?= $this->render_partial("files/_files_thead.php") ?>
 <? if (count($files) === 0): ?>
     <tbody>
@@ -12,7 +12,7 @@
 <? elseif (count($files)) : ?>
     <tbody>
     <? foreach ($files as $file_ref) : ?>
-        <?= $this->render_partial("files/_fileref_tr", compact("controller", "file_ref", "file_ref_file_restricted")) ?>
+        <?= $this->render_partial("files/_fileref_tr", ['file_ref' => $file_ref, 'current_folder' => $folders[$file_ref->folder_id]]) ?>
     <? endforeach; ?>
     </tbody>
 <? endif; ?>

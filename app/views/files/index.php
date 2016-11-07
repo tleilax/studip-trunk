@@ -19,7 +19,7 @@
                     <? if (count($breadcrumbs) > 5): ?>/...<?
                         $breadcrumbs = array_slice($breadcrumbs, count($breadcrumbs) - 5, 5);
                         ?><? endif ?>
-                        
+
                     <? foreach ($breadcrumbs as $crumb): ?>
                             /<a href="<?= $controller->url_for('/index/' . $crumb->getId()) ?>">
                                 <?= htmlReady($crumb->name) ?>
@@ -136,7 +136,7 @@
 <? if (count($topFolder->getFiles())) : ?>
     <tbody>
     <? foreach ($topFolder->getFiles() as $file_ref) : ?>
-        <?= $this->render_partial("files/_fileref_tr", compact("controller", "file_ref", "file_ref_file_restricted")) ?>
+        <?= $this->render_partial("files/_fileref_tr", ['file_ref' => $file_ref, 'current_folder' => $topFolder]) ?>
     <? endforeach; ?>
     </tbody>
 <? endif; ?>

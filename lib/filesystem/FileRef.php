@@ -47,11 +47,16 @@ class FileRef extends SimpleORMap
             'class_name'  => 'User',
             'foreign_key' => 'user_id',
         );
-        
+
         $config['belongs_to']['terms_of_use'] = array(
             'class_name' => 'ContentTermsOfUse',
             'foreign_key' => 'content_terms_of_use_id'
         );
+
+        $config['additional_fields']['size'] = ['file', 'size'];
+        $config['additional_fields']['mime_type'] = ['file', 'mime_type'];
+        $config['additional_fields']['download_url']['get'] = 'getDownloadURL';
+        $config['additional_fields']['author_name']['get'] = 'getAuthorName';
 
         $config['registered_callbacks']['after_delete'][] = 'cbRemoveFileIfOrphaned';
         $config['notification_map']['after_create'] = 'FileRefDidCreate';
@@ -182,6 +187,15 @@ class FileRef extends SimpleORMap
         return URLHelper::getScriptURL(implode('', $link));
     }
 
+    public function getAuthorName()
+    {
+        if (isset($this->owner)) {
+            return $this->owner->getFullName('no_title');
+        }  else {
+            return $this->file->author_name;
+        }
+    }
+
     public function incrementDownloadCounter()
     {
         $this->downloads++;
@@ -190,7 +204,7 @@ class FileRef extends SimpleORMap
 
     /**
      * Returns the license object for this file.
-     * 
+     *
      * @return Object (to be specified!)
      */
     public function getLicenseObject()
@@ -199,50 +213,5 @@ class FileRef extends SimpleORMap
             return new $this->license();
         }
         throw new InvalidValuesException('class: ' . $this->license . ' not found');
-    }
-
-
-    /**
-     * Determines if the user (given by user-ID) is allowed to download the file.
-     * 
-     * @param string user_id The user who wishes to download the file.
-     * 
-     * @return bool True, if downloadable for the user, false otherwise
-     */
-    public function isDownloadable($user_id)
-    {
-        if($this->content_terms_of_use_id) {
-            if($this->terms_of_use) {;
-                //terms of use are defined for this file!
-                return $this->terms_of_use->isDownloadable($this, $user_id);
-            }
-        }
-        //no terms of use are defined for this file: file is downloadable!
-        return true;
-    }
-
-
-    /**
-     * Determines if the user (given by user-ID) is allowed to edit the file.
-     * 
-     * @param string user_id The user who wishes to edit the file.
-     * 
-     * @return bool True, if editable for the user, false otherwise
-     */
-    public function isEditable($user_id)
-    {
-        return true;
-    }
-
-    /**
-     * Determines if the user (given by user-ID) is allowed to delete the file.
-     * 
-     * @param string user_id The user who wishes to delete the file.
-     * 
-     * @return bool True, if deletable for the user, false otherwise
-     */
-    public function isDeletable($user_id)
-    {
-        return true;
     }
 }

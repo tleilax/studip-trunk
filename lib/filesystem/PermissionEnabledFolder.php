@@ -18,6 +18,11 @@ class PermissionEnabledFolder extends StandardFolder
     protected $perms = array('x' => 1, 'w' => 2, 'r' => 4, 'f' => 8);
     protected $must_have_perm;
 
+    static public function creatableInStandardFolder($range_type)
+    {
+        return $range_type == 'course' || $range_type == 'institute';
+    }
+
     public function setFolderData($folderdata)
     {
         $this->folderdata = $folderdata;
@@ -43,14 +48,8 @@ class PermissionEnabledFolder extends StandardFolder
             return true;
         }
         return (bool)($this->permission & $this->perms[$perm]);
+    }
 
-    }
-    
-    static public function getAllowedRangeTypes()
-    {
-        return ['course', 'institute'];
-    }
-    
     public function isVisible($user_id)
     {
         return $this->checkPermission('x', $user_id);
@@ -69,11 +68,6 @@ class PermissionEnabledFolder extends StandardFolder
     public function isSubfolderAllowed($user_id)
     {
         return $this->checkPermission('f', $user_id);
-    }
-
-    public function getIcon()
-    {
-        return Icon::create('folder');
     }
 
     public function getDescriptionTemplate()
@@ -100,5 +94,4 @@ class PermissionEnabledFolder extends StandardFolder
             return parent::validateUpload($uploadedfile, $user_id);
         }
     }
-
 }

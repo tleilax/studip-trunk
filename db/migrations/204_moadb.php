@@ -26,8 +26,8 @@ class Moadb extends Migration
             $db->exec("TRUNCATE table file_refs");
             $db->exec("TRUNCATE table file_urls");
         }
-        
-        
+
+
         //delete configuration variables designed for the old file area:
         $db->exec(
             "DELETE FROM `config`
@@ -36,8 +36,8 @@ class Moadb extends Migration
             OR
             (field = 'PERSONALDOCUMENT_OPEN_ACCESS_ROOT_PRIVILEDGED');"
         );
-        
-        
+
+
         $db->exec("CREATE TABLE IF NOT EXISTS `files` (
                  `id` varchar(32) NOT NULL,
                  `user_id` varchar(32) NOT NULL,
@@ -87,7 +87,7 @@ class Moadb extends Migration
                  KEY `range_id` (`range_id`),
                  KEY `parent_id` (`parent_id`)
                 ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC");
-                
+
         //table for SORM class ContentTermsOfUse:
         $db->exec(
             "CREATE TABLE IF NOT EXISTS `content_terms_of_use_entries` (
@@ -99,7 +99,7 @@ class Moadb extends Migration
             PRIMARY KEY (`id`)
             ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC;"
         );
-        
+
         //default terms of use entries:
         $db->exec(
             "INSERT INTO content_terms_of_use_entries (`id`, `name`, `internal_name`, `description`, `download_condition`)
@@ -110,10 +110,10 @@ class Moadb extends Migration
             ('ce7801c11c6eeed2e8b5253e46a22b01', 'Nutzungserlaubnis oder Lizenz liegt vor', 'WITH_LICENSE', '', '1'),
             ('f66fe78c95f721bdfc54c3002bb33bef', 'Abbildungen, Fotos, Filme, Musikstücke, Partituren', 'NON_TEXTUAL', '', '1'),
             ('1de7bd86120ddb26abb89e44d5103008', 'Publizierte Texte ohne erworbene Lizenz oder gesonderte Erlaubnis', 'PUB_NO_LICENSE', '', '2'),
-            ('2093c5f3733697f297d2f530320b91f8', 'Ungeklärte Lizenz', 'UNDEF_LICENSE', '', '2');"
-    
-        
-        
+            ('2093c5f3733697f297d2f530320b91f8', 'Ungeklärte Lizenz', 'UNDEF_LICENSE', '', '2')");
+
+
+
         //top folder courses
         $institute_folders = array();
         foreach ($db->query("SELECT i.institut_id as new_range_id,i.name FROM `folder` f INNER JOIN `Institute` i ON i.institut_id = f.range_id OR MD5(CONCAT(i.institut_id, 'top_folder')) = f.range_id group by i.institut_id") as $folder) {
@@ -177,7 +177,7 @@ class Moadb extends Migration
             $folder['range_id'] = $seminar_folders[$folder['seminar_id']];
             $this->migrateFolder($folder, $folder['seminar_id'], 'coursetopic', 'CourseTopicFolder');
         }
-        
+
     }
 
     public function migrateFolder($folder, $range_id, $range_type, $folder_type)
