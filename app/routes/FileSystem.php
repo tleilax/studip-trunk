@@ -329,6 +329,93 @@ class FileSystem extends \RESTAPI\RouteMap
     }
     
     
+    /**
+     * Allows editing the name or the description (or both) of a folder.
+     * 
+     * @put /folder/:folder_id/edit
+     */
+    public function editFolder($folder_id)
+    {
+        $folder = \Folder::find($folder_id);
+        if(!$folder) {
+            $this->halt(404, 'Folder not found!');
+        }
+        
+        $name = \Request::get('name', null);
+        $description = \Request::get('description', null);
+        
+        $errors = \FileManager::editFolder($folder, User::findCurrent(), $name, $description);
+        
+        if(!empty($errors)) {
+            $this->halt(500, 'Error while editing a folder: ' . implode(' ', $errors));
+        }
+        
+        return $folder->toRawArray();
+    }
+    
+    
+    /**
+     * Copies a folder into another folder.
+     * 
+     * @post /folder/:folder_id/copy/:destination_folder_id
+     */
+    public function copyFolder($folder_id, $destination_folder_id)
+    {
+        $folder = \Folder::find($folder_id);
+        $destination_folder = \Folder::find($destination_folder_id);
+        
+        if(!$folder || !$destination_folder) {
+            if(!$folder) {
+                $this->halt(404, 'Source folder not found!');
+            } else {
+                $this->halt(404, 'Destination folder not found!');
+            }
+        }
+        
+        $user = \User::findCurrent();
+        
+        $errors = \FileManager::copyFolder($folder, $destination_folder, $user);
+        
+        if(!empty($errors)) {
+            $this->halt(500, 'Error while copying a folder: ' . implode(' ', $errors));
+        }
+        
+        return $destination_folder->toRawArray();
+    }
+    
+    
+    /**
+     * Moved a folder into another folder.
+     * @post /folder/:folder_id/copy/:destination_folder_id
+     */
+    public function moveFolder($folder_id, $destination_folder_id)
+    {
+        $folder = \Folder::find($folder_id);
+        $destination_folder = \Folder::find($destination_folder_id);
+        
+        if(!$folder || !$destination_folder) {
+            if(!$folder) {
+                $this->halt(400, 'Source folder not found!');
+            } else {
+                $this->halt(400, 'Destination folder not found!');
+            }
+        }
+        
+        $user = \User::findCurrent();
+        
+        $errors = \FileManager::moveFolder($folder, $destination_folder, $user);
+        
+        if(!empty($errors)) {
+            $this->halt(500, 'Error while moving a folder: ' . implode(' ', $errors));
+        }
+        
+        return $folder->toRawArray();
+    }
+    
+    
+    
+    
+    
     // RELATED OBJECT ROUTES:
     
     /**
