@@ -27,10 +27,7 @@ class PermissionEnabledFolder extends StandardFolder
     {
         $this->folderdata = $folderdata;
         $this->permission = $folderdata['data_content']['permission'] ?: 7;
-        $this->range_id = $folderdata['range_id'];
-        $this->range_type = $folderdata['range_type'];
         $this->must_have_perm = $this->range_type == 'course' ? 'tutor' : 'autor';
-
     }
 
     public function getPermissionString()

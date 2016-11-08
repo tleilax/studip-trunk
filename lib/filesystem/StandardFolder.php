@@ -18,15 +18,6 @@ class StandardFolder implements FolderType
      * @var Folder
      */
     protected $folderdata;
-    /**
-     * @var string
-     */
-    protected $range_id;
-    /**
-     * @var string
-     */
-    protected $range_type;
-
 
     /**
      * StandardFolder constructor.
@@ -105,7 +96,7 @@ class StandardFolder implements FolderType
      */
     public function isWritable($user_id)
     {
-        return ($this->range_type == 'user' && $GLOBALS['user']->id == $user_id) || $GLOBALS['perm']->have_studip_perm('tutor', $this->range_id, $user_id);
+        return ($this->range_type == 'user' && $GLOBALS['user']->id == $user_id) || Seminar_Perm::get()->have_studip_perm('tutor', $this->range_id, $user_id);
     }
 
     /**
