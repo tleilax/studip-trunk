@@ -173,35 +173,86 @@ class FileSystem extends \RESTAPI\RouteMap
             $this->halt(404, 'File reference not found!');
         }
         
-        $user_id = \User::findCurrent()->id;
+        $user = \User::findCurrent();
         
-        //check if the current user has the permissions to edit
-        //the file reference:
-        if($file_ref->folder) {
-            if($file_ref->folder->isEditable($user_id)) {
-                
-                $name = Request::get('name');
-                $description = Request::get('description');
-                $content_term_of_use_id = Request::get('content_terms_of_use_id');
-                $license = Request::get('license');
-                
-                $errors = \FileManager::editFileRef(
-                    $file_ref,
-                    $name,
-                    $description,
-                    $content_term_of_use_id,
-                    $license
-                );
-                
-                if(!empty($errors)) {
-                    $this->halt('Error while editing a file reference: ' . implode(' ', $errors));
-                }
-                
-                return $file_ref->toRawArray();
-            }
-        } else {
-            $this->halt(500, 'File reference has no associated folder object!');
+        $name = Request::get('name');
+        $description = Request::get('description');
+        $content_term_of_use_id = Request::get('content_terms_of_use_id');
+        $license = Request::get('license');
+        
+        $errors = \FileManager::editFileRef(
+            $file_ref,
+            $user,
+            $name,
+            $description,
+            $content_term_of_use_id,
+            $license
+        );
+        
+        if(!empty($errors)) {
+            $this->halt(500, 'Error while editing a file reference: ' . implode(' ', $errors));
         }
+        
+        return $file_ref->toRawArray();
+    }
+    
+    
+    /**
+     * Copies a file reference.
+     * 
+     * @post /file/:file_ref_id/copy/:destination_folder_id
+     */
+    public function copyFileRef($file_ref_id, $destination_folder_id)
+    {
+        $file_ref = \FileRef::find($file_ref_id);
+        if(!$file_ref) {
+            $this->halt(404, 'File reference not found!');
+        }
+        
+        $destination_folder = \Folder::find($destination_folder_id);
+        if(!$destination_folder) {
+            $this->halt(404, 'Destination folder not found!');
+        }
+        
+        $user = \User::findCurrent();
+        
+        $errors = \FileManager::copyFileRef($file_ref, $destination_folder, $user);
+        
+        if(!empty($errors)) {
+            $this->halt(500, 'Error while copying a file reference: ' . implode(' ', $errors));
+        }
+    
+        return $file_ref->toRawArray();
+        
+    }
+    
+    
+    /**
+     * Moves a file reference.
+     * 
+     * @post /file/:file_ref_id/move/:destination_folder_id
+     */
+    public function moveFileRef($file_ref_id, $destination_folder_id)
+    {
+        $file_ref = \FileRef::find($file_ref_id);
+        if(!$file_ref) {
+            $this->halt(404, 'File reference not found!');
+        }
+        
+        $destination_folder = \Folder::find($destination_folder_id);
+        if(!$destination_folder) {
+            $this->halt(404, 'Destination folder not found!');
+        }
+        
+        $user = \User::findCurrent();
+        
+        $errors = \FileManager::moveFileRef($file_ref, $destination_folder, $user);
+        
+        if(!empty($errors)) {
+            $this->halt(500, 'Error while moving a file reference: ' . implode(' ', $errors));
+        }
+    
+        return $file_ref->toRawArray();
     }
     
     
@@ -219,29 +270,17 @@ class FileSystem extends \RESTAPI\RouteMap
         
         $user = \User::findCurrent();
         
-        //check if the current user has the permissions to delete
-        //the file reference:
-        if($file_ref->folder) {
-            if($file_ref->folder->isDeletable($user->id)) {
-                
-                $errors = \FileManager::deleteFileRef(
-                    $file_ref,
-                    $user
-                );
-                
-                if(!empty($errors)) {
-                    $this->halt('Error while deleting a file reference: ' . implode(' ', $errors));
-                }
-                
-                $this->halt(200, 'OK');
-            }
-        } else {
-            $this->halt(500, 'File reference has no associated folder object!');
+        $errors = \FileManager::deleteFileRef(
+            $file_ref,
+            $user
+        );
+            
+        if(!empty($errors)) {
+            $this->halt(500, 'Error while deleting a file reference: ' . implode(' ', $errors));
         }
+        
+        $this->halt(200, 'OK');
     }
-    
-    
-    
     
     
     // FOLDER ROUTES:
@@ -457,7 +496,7 @@ class FileSystem extends \RESTAPI\RouteMap
     /**
      * Allows editing the name or the description (or both) of a folder.
      * 
-     * @put /folder/:folder_id/edit
+     * @put /folder/:folder_id
      */
     public function editFolder($folder_id)
     {
@@ -538,10 +577,33 @@ class FileSystem extends \RESTAPI\RouteMap
     }
     
     
-    
+    /**
+     * Deletes a folder.
+     * 
+     * @delete /folder/:folder_id
+     */
+    public function deleteFolder($folder_id)
+    {
+        $folder = \Folder::find($folder_id);
+        
+        if(!$folder) {
+            $this->halt(404, 'Folder not found!');
+        }
+        
+        $user = \User::findCurrent();
+        
+        $errors = \FileManager::moveFolder($folder, $destination_folder, $user);
+        
+        if(!empty($errors)) {
+            $this->halt(500, 'Error while deleting a folder: ' . implode(' ', $errors));
+        }
+        
+        return $folder->toRawArray();
+    }
     
     
     // RELATED OBJECT ROUTES:
+    
     
     /**
      * Get a collection of all ContentTermsOfUse objects

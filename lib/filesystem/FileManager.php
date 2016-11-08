@@ -86,6 +86,7 @@ class FileManager
      * must be set. Otherwise this method will do nothing.
      * 
      * @param FileRef file_ref The file reference that shall be edited.
+     * @param User user The user who wishes to edit the file reference.
      * @param string|null name The new name for the file reference
      * @param string|null description The new description for the file reference.
      * @param string|null content_terms_of_use_id The ID of the new ContentTermsOfUse object.
@@ -93,63 +94,77 @@ class FileManager
      * 
      * @return string[] Array with error messages: Empty array on success, filled array on failure.
      */
-    public static function editFileRef(FileRef $file_ref, $name = null, $description = null, $content_terms_of_use = null, $license = null)
+    public static function editFileRef(FileRef $file_ref, User $user, $name = null, $description = null, $content_terms_of_use = null, $license = null)
     {
-        if(!$name && !$description && !$content_terms_of_use && !$license) {
+        if(!$name && ($description == null) && ($content_terms_of_use == null) && ($license == null)) {
             //nothing to do, no errors:
             return [];
         }
         
-        if($name !== null) {
-            //name is special: we have to check if files/folders in
-            //the file_ref's folder have the same name. If so, we must
-            //make it unique.
-            $folder = $file_ref->folder;
+        if(!$file_ref->folder) {
+            return [_('Dateireferenz ist keinem Ordner zugeordnet!')];
+        }
+        
+        if($file_ref->folder->isEditable($user->id)) {
             
-            if(!$folder) {
+            if($name !== null) {
+                //name is special: we have to check if files/folders in
+                //the file_ref's folder have the same name. If so, we must
+                //make it unique.
+                $folder = $file_ref->folder;
+                
+                if(!$folder) {
+                    return [
+                        sprintf(
+                            _('Verzeichnis von Datei %s nicht gefunden!'),
+                            $file_ref->name
+                        )
+                    ];
+                }
+                
+                $file_ref->name = $folder->getUniqueName($name);
+            }
+            
+            if($description !== null) {
+                //description may be an empty string which is allowed here
+                $file_ref->description = $description;
+            }
+            
+            if($content_terms_of_use_id !== null) {
+                $content_terms_of_use = ContentTermsOfUse::find($content_terms_of_use_id);
+                if(!$content_terms_of_use) {
+                    return [
+                        sprintf(
+                            _('Inhalts-Nutzungsbedingungen mit ID %s nicht gefunden!'),
+                            $content_terms_of_use_id
+                        )
+                    ];
+                }
+            }
+            
+            
+            if($license !== null) {
+                $file_ref->license = $license;
+            }
+            
+            if($file_ref->store()) {
+                //everything went fine
+                return [];
+            } else {
+                //error while saving the changes!
                 return [
                     sprintf(
-                        _('Verzeichnis von Datei %s nicht gefunden!'),
+                        _('Fehler beim Speichern der Änderungen bei Datei %s'),
                         $file_ref->name
                     )
                 ];
             }
-            
-            $file_ref->name = $folder->getUniqueName($name);
-        }
-        
-        if($description !== null) {
-            //description may be an empty string which is allowed here
-            $file_ref->description = $description;
-        }
-        
-        if($content_terms_of_use_id !== null) {
-            $content_terms_of_use = ContentTermsOfUse::find($content_terms_of_use_id);
-            if(!$content_terms_of_use) 7
-                return [
-                    sprintf(
-                        _('Inhalts-Nutzungsbedingungen mit ID %s nicht gefunden!'),
-                        $content_terms_of_use_id
-                    )
-                ];
-            }
-        }
-        
-        
-        if($license !== null) {
-            $file_ref->license = $license;
-        }
-        
-        if($file_ref->store()) {
-            //everything went fine
-            return [];
         } else {
-            //error while saving the changes!
             return [
                 sprintf(
-                    _('Fehler beim Speichern der Änderungen bei Datei %s'),
-                    $file_ref->name
-                )
+                        _('Ungenügende Berechtigungen zum Bearbeiten der Datei %s!'),
+                        $file_ref->name
+                    )
             ];
         }
     }
@@ -177,6 +192,10 @@ class FileManager
         //first we have to make sure if the user has the permissions to read the source folder
         //and the permissions to write to the destination folder:        
         $source_folder = Folder::find($source->folder_id);
+        
+        if(!$source_folder) {
+            return [_('Dateireferenz ist keinem Ordner zugeordnet!')];
+        }
         
         if($source_folder->isReadable($user->id) && $destination_folder->isEditable($user->id)) {
             //user is permitted to copy a file, but is he the owner?
@@ -253,7 +272,7 @@ class FileManager
             return [
                 sprintf(
                     _('Ungenügende Berechtigungen zum Kopieren der Datei %s in Ordner %s!'),
-                    $source->file->name,
+                    $source->name,
                     $destination_folder->name
                 )
             ];
@@ -273,6 +292,10 @@ class FileManager
     {
         $source_folder = Folder::find($source->folder_id);
         
+        if(!$source_folder) {
+            return [_('Dateireferenz ist keinem Ordner zugeordnet!')];
+        }
+        
         if($source_folder->isReadable($user->id) && $destination_folder->isEditable($user->id)) {
             
             $source->folder_id = $destination_folder->id;
@@ -287,7 +310,7 @@ class FileManager
             return [
                 sprintf(
                     _('Ungenügende Berechtigungen zum Verschieben der Datei %s in Ordner %s!'),
-                    $source->file->name,
+                    $source->name,
                     $destination_folder->name
                 )
             ];
@@ -305,7 +328,30 @@ class FileManager
      */
     public static function deleteFileRef(FileRef $file_ref, User $user)
     {
-        return ['Not implemented yet!'];
+        $source_folder = Folder::find($file_ref->folder_id);
+        
+        if(!$source_folder) {
+            return [_('Dateireferenz ist keinem Ordner zugeordnet!')];
+        }
+        
+        if($source_folder->isDeletable($user->id)) {
+            
+            $source->folder_id = $destination_folder->id;
+            $source->name = $destination_folder->getUniqueName($source->name);
+            
+            if($source->delete()) {
+                return [];
+            } else {
+                return [_('Dateireferenz konnte nicht gelöscht werden.')];
+            }
+        } else {
+            return [
+                sprintf(
+                    _('Ungenügende Berechtigungen zum Löschen der Datei %s in Ordner %s!'),
+                    $file_ref->name,
+                )
+            ];
+        }
     }
     
     
@@ -574,6 +620,38 @@ class FileManager
                 $destination_folder->name
             );
         }
+        return [];
+    }
+    
+    
+    /**
+     * This method helps with deleting a folder.
+     * 
+     * @param Folder folder The folder that shall be deleted.
+     * @param User user The user who wishes to delete the folder.
+     * 
+     * @return string[] Array with error messages: Empty array on success, filled array on failure.
+     */
+    public static function deleteFolder(Folder $folder, User $user)
+    {
+        if(!$folder->isDeletable($user->id)) {
+            return [
+                sprintf(
+                    _('Unzureichende Berechtigungen zum Löschen von Ordner %s!'),
+                    $folder->name
+                )
+            ];
+        }
+        
+        if(!$folder->delete()) {
+            return [
+                sprintf(
+                    _('Fehler beim Löschvorgang von Ordner %s!'),
+                    $folder->name
+                )
+            ];
+        }
+        
         return [];
     }
     
