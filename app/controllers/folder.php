@@ -98,6 +98,7 @@ class FolderController extends AuthenticatedController
             return;
         }
         
+        $this->folder_types = FileManager::getFolderTypes($parent_folder->range_type);
         
         //get ID of course, institute, user etc.
         if (Request::get('form_sent')) {
@@ -110,10 +111,20 @@ class FolderController extends AuthenticatedController
                 //we have all required parameters to create a folder.
                 
                 $this->description = Request::get('description'); 
+                $this->current_folder_type = Request::get('folder_type');
                 
-                $folder_type = $parent_folder->getTypedFolder();
+                if(!$this->current_folder_type instanceof FolderType) {
+                    if(Request::isDialog()) {
+                        $this->render_text(MessageBox::error(_('Unbekannter Ordnertyp!'), $errors));
+                    } else {
+                        PageLayout::postError(_('Unbekannter Ordnertyp!'), $errors);
+                        $this->render_template('file/new_folder.php', $GLOBALS['template_factory']->open('layouts/base'));
+                    }
+                }
                 
-                if($folder_type->isWritable($current_user->id)) {
+                $parent_folder_type = $parent_folder->getTypedFolder();
+                
+                if($parent_folder_type->isWritable($current_user->id)) {
                     //current user may create a new folder in the parent folder
                     
                     $folder = new Folder();
