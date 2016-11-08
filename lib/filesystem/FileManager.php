@@ -386,10 +386,7 @@ class FileManager
         
         //check if destination_folder is a standard folder
         
-        if($destination_folder_type->getTypeName() == 'StandardFolder') {
-            //the parent folder is a StandardFolder, that's OK!
-            
-        } else {
+        if(get_class($destination_folder_type) != 'StandardFolder') {
             //we can't create a special folder in another special folder!
             $errors[] = sprintf(
                 _('Ein Ordner vom Typ %s kann nicht in einem Ordner vom Typ %s erzeugt werden!'),
@@ -423,11 +420,7 @@ class FileManager
         
         $sub_folder->range_type = $destination_folder->range_type;
         
-        if($sub_folder_type instanceof FolderType) {
-            $sub_folder->folder_type = get_class($sub_folder_type);
-        } else {
-            $sub_folder->folder_type = 'StandardFolder';
-        }
+        $sub_folder->folder_type = get_class($sub_folder_type);
         
         $sub_folder->store();
         

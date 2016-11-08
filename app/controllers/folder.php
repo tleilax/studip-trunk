@@ -120,7 +120,7 @@ class FolderController extends AuthenticatedController
                     $folder->name = $this->name;
                     $folder->description = $this->description;
                     
-                    $errors = FileManager::createSubFolder($folder, $parent_folder, $current_user);
+                    $errors = FileManager::createSubFolder($folder, $parent_folder, $current_user, new StandardFolder($folder));
                     if(!$errors) {
                         //FileManager::createSubFolder returned an empty array => no errors!
                         
