@@ -348,7 +348,7 @@ class FileManager
             return [
                 sprintf(
                     _('Ungenügende Berechtigungen zum Löschen der Datei %s in Ordner %s!'),
-                    $file_ref->name,
+                    $file_ref->name
                 )
             ];
         }
