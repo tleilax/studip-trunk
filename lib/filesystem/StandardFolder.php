@@ -184,11 +184,11 @@ class StandardFolder implements FolderType
     }
 
     /**
-     * @return null|SimpleORMapCollection
+     * @return FileRef[]
      */
     public function getFiles()
     {
-        return $this->folderdata->file_refs;
+        return $this->folderdata->file_refs->getArrayCopy();
     }
 
     /**

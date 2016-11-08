@@ -90,17 +90,6 @@ class FilesController extends AuthenticatedController
     }
 
 
-    private function getFolderFiles($folder)
-    {
-        $this->folders[$folder->getId()] = $folder;
-        foreach ($folder->getSubFolders() as $subfolder) {
-            $this->getFolderFiles($subfolder);
-        }
-        foreach ($folder->getFiles() as $file) {
-            $this->files[] = $file;
-        }
-    }
-
 
     /**
     Displays the files in flat view
@@ -123,9 +112,8 @@ class FilesController extends AuthenticatedController
         $this->topFolder = $folder->getTypedFolder();
 
         //find all files in all subdirectories:
-        $this->files = [];
-        $this->folders = [];
-        $this->getFolderFiles($this->topFolder);
+        //find all files in all subdirectories:
+        list($this->files, $this->folders) = array_values(FileManager::getFolderFilesRecursive($this->topFolder, $GLOBALS['user']->id));
     }
 
 

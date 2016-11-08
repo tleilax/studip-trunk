@@ -19,24 +19,14 @@
     <tfoot>
         <tr>
             <td colspan="100">
-        <? if ($full_access || extension_loaded('zip')): ?>
-            <? if (extension_loaded('zip')): ?>
-                <?= Studip\Button::create(_('Herunterladen'), 'download') ?>
-            <? endif; ?>
-            <? if ($full_access): ?>
+            <?= Studip\Button::create(_('Herunterladen'), 'download') ?>
+            <?= Studip\Button::create(_('Kopieren'), 'copy', array('data-dialog' => ''))?>
+
+            <? if ($topFolder->isWritable($GLOBALS['user']->id)): ?>
                 <?= Studip\Button::create(_('Verschieben'), 'move', array('data-dialog' => '')) ?>
-                <?= Studip\Button::create(_('Kopieren'), 'copy', array('data-dialog' => ''))?>
-                <?= Studip\Button::create(_('Löschen'), 'delete') ?>
+                <?= Studip\Button::create(_('Löschen'), 'delete', array('data-dialog' => '')) ?>
             <? endif; ?>
-            <span class="responsive-visible">
-                <?= Studip\LinkButton::create(_("Neuer Ordner"), URLHelper::getUrl(
-                    'dispatch.php/folder/new',
-                    array('parent_folder_id' => $topFolder->getId())
-                ), array('data-dialog' => 'reload-on-close;size=auto')) ?>
-                <?= Studip\LinkButton::create(_("Datei hinzufügen"), "#", array('onClick' => "STUDIP.Files.openAddFilesWindow(); return false;")) ?>
-            </span>
-        <? endif; ?>
-            </td>
+           </td>
         </tr>
     </tfoot>
 </table>

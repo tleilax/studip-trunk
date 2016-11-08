@@ -18,22 +18,22 @@
  * The FileManager class contains methods that faciliate the management of files
  * and folders. Furthermore its methods perform necessary additional checks
  * so that files and folders are managed in a correct manner.
- * 
+ *
  * It is recommended to use the methods of this class for file and folder
  * management instead of writing own methods.
  */
 class FileManager
 {
-    
+
     //FILE METHODS
-    
+
     /**
      * Handles uploading one or more files
-     * 
+     *
      * @param uploaded_files An array with file data for all uploaded files
      * @param folder the folder where the files are inserted
      * @param user_id the ID of the user who wants to upload files
-     * 
+     *
      * @return mixed[] Array with the created file objects and error strings
      */
     public static function handleFileUpload(Array $uploaded_files, FolderType $folder, $user_id)
@@ -73,25 +73,25 @@ class FileManager
         }
         return array_merge($result, ['error' => $error]);
     }
-    
-    
+
+
     /**
      * This method handles editing file refernce attributes.
-     * 
+     *
      * Checks that have to be made during the editing of a file reference are placed
      * in this method so that a controller can simply call this method
      * to change attributes of a file reference.
-     * 
+     *
      * At least one of the three parameters name, description and license
      * must be set. Otherwise this method will do nothing.
-     * 
+     *
      * @param FileRef file_ref The file reference that shall be edited.
      * @param User user The user who wishes to edit the file reference.
      * @param string|null name The new name for the file reference
      * @param string|null description The new description for the file reference.
      * @param string|null content_terms_of_use_id The ID of the new ContentTermsOfUse object.
      * @param string|null license The new license description for the file reference.
-     * 
+     *
      * @return string[] Array with error messages: Empty array on success, filled array on failure.
      */
     public static function editFileRef(FileRef $file_ref, User $user, $name = null, $description = null, $content_terms_of_use = null, $license = null)
@@ -100,19 +100,19 @@ class FileManager
             //nothing to do, no errors:
             return [];
         }
-        
+
         if(!$file_ref->folder) {
             return [_('Dateireferenz ist keinem Ordner zugeordnet!')];
         }
-        
+
         if($file_ref->folder->isEditable($user->id)) {
-            
+
             if($name !== null) {
                 //name is special: we have to check if files/folders in
                 //the file_ref's folder have the same name. If so, we must
                 //make it unique.
                 $folder = $file_ref->folder;
-                
+
                 if(!$folder) {
                     return [
                         sprintf(
@@ -121,15 +121,15 @@ class FileManager
                         )
                     ];
                 }
-                
+
                 $file_ref->name = $folder->getUniqueName($name);
             }
-            
+
             if($description !== null) {
                 //description may be an empty string which is allowed here
                 $file_ref->description = $description;
             }
-            
+
             if($content_terms_of_use_id !== null) {
                 $content_terms_of_use = ContentTermsOfUse::find($content_terms_of_use_id);
                 if(!$content_terms_of_use) {
@@ -141,12 +141,12 @@ class FileManager
                     ];
                 }
             }
-            
-            
+
+
             if($license !== null) {
                 $file_ref->license = $license;
             }
-            
+
             if($file_ref->store()) {
                 //everything went fine
                 return [];
@@ -168,11 +168,11 @@ class FileManager
             ];
         }
     }
-    
-    
+
+
     /**
      * This method handles copying a file to a new folder.
-     * 
+     *
      * If the user (given by $user) is the owner of the file (by looking at the user_id
      * in the file reference) we can just make a new reference to that file.
      * Else, we must copy the file and its content.
@@ -180,28 +180,28 @@ class FileManager
      * The file name is altered when a file with the identical name exists in
      * the destination folder. In that case, only the name in the FileRef object
      * of the file is altered and the File object's name is unchanged.
-     * 
+     *
      * @param source The file reference for the file that shall be copied.
      * @param destination_folder The destination folder for the file.
      * @param user The user who wishes to copy the file.
-     * 
+     *
      * @return string[] Array with error messages: Empty array on success, filled array on failure.
      */
     public static function copyFileRef(FileRef $source, Folder $destination_folder, User $user)
     {
         //first we have to make sure if the user has the permissions to read the source folder
-        //and the permissions to write to the destination folder:        
+        //and the permissions to write to the destination folder:
         $source_folder = Folder::find($source->folder_id);
-        
+
         if(!$source_folder) {
             return [_('Dateireferenz ist keinem Ordner zugeordnet!')];
         }
-        
+
         if($source_folder->isReadable($user->id) && $destination_folder->isEditable($user->id)) {
             //user is permitted to copy a file, but is he the owner?
             if($source->user_id == $user->id) {
                 //the user is the owner of the file: we can simply make a new reference to it
-                
+
                 $new_reference = new FileRef();
                 $new_reference->file_id = $source->file_id;
                 $new_reference->folder_id = $destination_folder->id;
@@ -209,7 +209,7 @@ class FileManager
                 $new_reference->description = $source->description;
                 $new_reference->license = $source->license;
                 $new_reference->user_id = $user->id;
-                
+
                 if($new_reference->store()) {
                     return [];
                 } else {
@@ -219,35 +219,35 @@ class FileManager
                 }
             } else {
                 //the user is not the owner of the file: we must copy the file object, too!
-                
+
                 $file_copy = new File();
                 $file_copy->user_id = $user->id;
                 $file_copy->mime_type = $source->file->mime_type;
-                
+
                 //The File object's name is unchanged here.
                 //It must only be unique for the file reference (see below).
                 $file_copy->name = $source->file->name;
-                
+
                 $file_copy->size = $source->file->size;
                 $file_copy->storage = $source->file->storage;
                 $file_copy->author_name = $source->file->author_name;
-                
+
                 if($file_copy->store()) {
                     //ok, file is stored, now we need to copy the real data:
-                    
+
                     if(copy($source->getPath(), $file_copy->getPath())) {
-                        
+
                         //ok, create the file ref for the copied file:
                         $new_reference = new FileRef();
                         $new_reference->file_id = $file_copy->file_id;
-                        
+
                         //Create an unique name for the file reference:
                         $new_reference->name = $destination_folder->getUniqueName($file_copy->name);
-                        
+
                         $new_reference->folder_id = $destination_folder->id;
                         $new_reference->description = $source->description;
                         $new_reference->license = $source->license;
-                        
+
                         if($new_reference->store()) {
                             return [];
                         } else {
@@ -263,7 +263,7 @@ class FileManager
                         //error while copying: delete $file_copy
                         //(to avoid orphaned entries in the database)
                         $file_copy->delete();
-                    }                
+                    }
                 }
             }
         } else {
@@ -278,29 +278,29 @@ class FileManager
             ];
         }
     }
-    
+
     /**
      * This method handles moving a file to a new folder.
-     * 
+     *
      * @param source The file reference for the file that shall be moved.
      * @param destination_folder The destination folder.
      * @param user The user who wishes to move the file.
-     * 
+     *
      * @returns string[] Array with error messages: Empty array on success, filled array on failure.
      */
     public static function moveFileRef(FileRef $source, Folder $destination_folder, User $user)
     {
         $source_folder = Folder::find($source->folder_id);
-        
+
         if(!$source_folder) {
             return [_('Dateireferenz ist keinem Ordner zugeordnet!')];
         }
-        
+
         if($source_folder->isReadable($user->id) && $destination_folder->isEditable($user->id)) {
-            
+
             $source->folder_id = $destination_folder->id;
             $source->name = $destination_folder->getUniqueName($source->name);
-            
+
             if($source->store()) {
                 return [];
             } else {
@@ -316,29 +316,29 @@ class FileManager
             ];
         }
     }
-    
-    
+
+
     /**
      * This method handles deletign a file reference.
-     * 
+     *
      * @param FileRef file_ref The file reference that shall be deleted
      * @param User user The user who wishes to delete the file reference.
-     * 
+     *
      * @return string[] Array with error messages: Empty array on success, filled array on failure.
      */
     public static function deleteFileRef(FileRef $file_ref, User $user)
     {
         $source_folder = Folder::find($file_ref->folder_id);
-        
+
         if(!$source_folder) {
             return [_('Dateireferenz ist keinem Ordner zugeordnet!')];
         }
-        
+
         if($source_folder->isDeletable($user->id)) {
-            
+
             $source->folder_id = $destination_folder->id;
             $source->name = $destination_folder->getUniqueName($source->name);
-            
+
             if($source->delete()) {
                 return [];
             } else {
@@ -353,39 +353,39 @@ class FileManager
             ];
         }
     }
-    
-    
-    
+
+
+
     // FOLDER METHODS
-    
-    
+
+
     /**
      * Handles the sub folder creation routine.
-     * 
+     *
      * @param Folder sub_folder The subfolder that shall be linked with $destination_folder
      * @param Folder destination_folder The folder where the subfolder shall be linked.
      * @param User user The user who wishes to create the subfolder.
      * @param FolderType sub_folder_type The folder type of the sub folder. Can only be used if $destination_folder is a standard folder! This parameter is optional!
-     * 
+     *
      * @returns string[] Array with error messages: Empty array on success, filled array on failure.
-     * 
+     *
      */
     public static function createSubFolder(Folder $sub_folder, Folder $destination_folder, User $user, FolderType $sub_folder_type)
     {
         $errors = [];
-        
-        
+
+
         //check if sub_folder is new:
         if(!$sub_folder->isNew()) {
             $errors[] = _('Ein bereits erstellter Ordner kann nicht neu erzeugt werden!');
         }
-        
+
         //check if user is owner of parent folder:
         $destination_folder_type = $destination_folder->getTypedFolder();
-        
-        
+
+
         //check if destination_folder is a standard folder
-        
+
         if(get_class($destination_folder_type) != 'StandardFolder') {
             //we can't create a special folder in another special folder!
             $errors[] = sprintf(
@@ -394,50 +394,50 @@ class FileManager
                 $destination_folder_type->getTypeName()
             );
         }
-        
-        
+
+
         if(!$destination_folder_type->isSubfolderAllowed($user->id)) {
             $errors[] = _('Sie sind nicht dazu berechtigt, einen Unterordner zu erstellen!');
         }
-        
+
         //we can return here if we have found errors:
         if($errors) {
             return $errors;
         }
-        
+
         //check if folder name is unique and change it, if it isn't:
         $sub_folder->name = $destination_folder->getUniqueName($sub_folder->name);
-        
-        
-        //check if all necessary attributes of the sub folder are set 
+
+
+        //check if all necessary attributes of the sub folder are set
         //and if they aren't set, set them here:
-        
+
         $sub_folder->user_id = $user->id;
-        
+
         $sub_folder->range_id = $destination_folder->range_id;
-        
+
         $sub_folder->parent_id = $destination_folder->id;
-        
+
         $sub_folder->range_type = $destination_folder->range_type;
-        
+
         $sub_folder->folder_type = get_class($sub_folder_type);
-        
+
         $sub_folder->store();
-        
+
         return []; //no errors
     }
-    
-    
+
+
     /**
      * This method does all the checks that are necessary before editing a folder's data.
      * Note that either name or description has to be set. Otherwise this method
      * will do nothing.
-     * 
+     *
      * @param folder The folder that shall be edited.
      * @param user The user who wants to edit the folder.
      * @param name The new name for the folder (can be left empty).
      * @param description The new description for the folder (can be left empty).
-     * 
+     *
      * @returns string[] Array with error messages: Empty array on success, filled array on failure.
      */
     public static function editFolder(Folder $folder, User $user, $name = null, $description = null)
@@ -451,7 +451,7 @@ class FileManager
             //neither name nor description are set: we can't do anything.
             return [_('Keine Änderungen angegeben!')];
         }
-        
+
         //check if folder is not a top folder:
         if(!$folder->parent_id) {
             //folder is a top folder which cannot be edited!
@@ -462,25 +462,25 @@ class FileManager
                 )
             ];
         }
-        
-        
+
+
         $folder_type = $folder->getTypedFolder();
-        
+
         if($folder_type->isWritable($user->id)) {
             //ok, user has write permissions for this folder:
             //edit name or description or both
-            
+
             if($name) {
                 //get the parent folder to check for duplicate names
                 //and set the folder name to an unique name:
-                
+
                 $folder->name = $folder->parentfolder->getUniqueName($name);
             }
-            
+
             if($description != null) {
                 $folder->description = $description;
             }
-            
+
             if($folder->store()) {
                 //folder successfully edited
                 return [];
@@ -492,7 +492,7 @@ class FileManager
                     )
                 ];
             }
-            
+
         } else {
             return [
                 sprintf(
@@ -502,29 +502,29 @@ class FileManager
             ];
         }
     }
-    
-    
+
+
     /**
      * This method handles copying folders, including
      * copying the subfolders and files recursively.
-     * 
+     *
      * @param source_folder The folder that shall be copied.
      * @param destination_folder The destination folder.
      * @param user The user who wishes to copy the folder.
-     * 
+     *
      * @return string[] Array with error messages: Empty array on success, filled array on failure.
      */
     public static function copyFolder(Folder $source_folder, Folder $destination_folder, User $user)
     {
         global $perm;
-        
+
         $errors = [];
-        
+
         $destination_folder_type = $destination_folder->getTypedFolder();
         if($destination_folder_type->isWritable($user->id)) {
-            
+
             $source_folder_type = Folder::findRangeTypeById($source_folder->range_id);
-            
+
             //we have to check, if the source folder is a folder from a course.
             //If so, then only users with status dozent or tutor (or root) in that course
             //may copy the folder!
@@ -534,7 +534,7 @@ class FileManager
             ) {
                 //the if-query above returns true if the folder type is not course
                 //or if the user has the permissions to copy a course folder
-                
+
                 $new_folder = new Folder();
                 $new_folder->user_id = $source_folder->user_id;
                 $new_folder->parent_id = $destination_folder->id;
@@ -546,8 +546,8 @@ class FileManager
                 $new_folder->description = $source_folder->description;
                 //folder is copied, we can store it:
                 $new_folder->store();
-                
-            
+
+
                 //now we go through all subfolders and copy them:
                 foreach($source_folder->subfolders as $sub_folder) {
                     $errors[] = self::copyFolder($sub_folder, $new_folder, $user);
@@ -555,11 +555,11 @@ class FileManager
                         return $errors;
                     }
                 }
-                
+
                 //now go through all files and copy them, too:
                 foreach($source_folder->file_refs as $file_ref) {
                     $errors[] = self::copyFileRef($file_ref, $new_folder, $user);
-                    
+
                     if($errors) {
                         return $errors;
                     }
@@ -581,16 +581,16 @@ class FileManager
         }
         return $errors;
     }
-    
-    
+
+
     /**
      * This method handles moving folders, including
      * subfolders and files.
-     * 
+     *
      * @param source_folder The folder that shall be moved.
      * @param destination_folder The destination folder.
      * @param user The user who wishes to move the folder.
-     * 
+     *
      * @returns Array with error messages: Empty array on success, filled array on failure.
      */
     public static function moveFolder(Folder $source_folder, Folder $destination_folder, User $user)
@@ -609,14 +609,14 @@ class FileManager
         }
         return [];
     }
-    
-    
+
+
     /**
      * This method helps with deleting a folder.
-     * 
+     *
      * @param Folder folder The folder that shall be deleted.
      * @param User user The user who wishes to delete the folder.
-     * 
+     *
      * @return string[] Array with error messages: Empty array on success, filled array on failure.
      */
     public static function deleteFolder(Folder $folder, User $user)
@@ -629,7 +629,7 @@ class FileManager
                 )
             ];
         }
-        
+
         if(!$folder->delete()) {
             return [
                 sprintf(
@@ -638,22 +638,22 @@ class FileManager
                 )
             ];
         }
-        
+
         return [];
     }
-    
-    
+
+
     /**
      * returns the available folder types, sorted (and at your option selected) by range type
-     * 
+     *
      * There are several types of folders in Stud.IP. This method returns
      * all available folder types. If the parameter range_type is set then only
      * the folder types allowed in that range are returned.
-     * 
+     *
      * @param range_type the range type: "course", "institute", "user", ...
-     * 
+     *
      * @return Array with strings representing the class names of available folder types.
-     * 
+     *
      */
     public static function getFolderTypes($range_type = null)
     {
@@ -664,7 +664,7 @@ class FileManager
                 class_exists($path['filename']);
             }
         }
-        
+
         foreach (get_declared_classes() as $declared_class) {
             if (is_a($declared_class, 'FolderType', true)) {
                 if($range_type == null) {
@@ -686,23 +686,43 @@ class FileManager
                 }
             }
         }
-        
+
         if ($range_type) {
             return @$result[$range_type] ?: [];
         } else {
             return $result;
         }
     }
-    
-    
+
+
     /**
      * Returns a FolderType object for the public folder of the given user.
-     * 
+     *
      * @param User user The user whose public folder is requested.
      */
     public static function getPublicFolder(User $user)
     {
-        
+
     }
-    
+
+    /**
+     * @param FolderType $top_folder
+     * @param string $user_id
+     * @return array
+     */
+    public static function getFolderFilesRecursive(FolderType $top_folder, $user_id)
+    {
+        $files = [];
+        $folders = [];
+        $array_walker = function ($top_folder) use (&$array_walker, &$folders, &$files, $user_id) {
+            if ($top_folder->isVisible($user_id) && $top_folder->isReadable($user_id)) {
+                $folders[$top_folder->getId()] = $top_folder;
+                $files = array_merge($files, $top_folder->getFiles());
+                array_walk($top_folder->getSubFolders(), $array_walker);
+            }
+        };
+        array_walk($top_folder->getSubFolders(), $array_walker);
+        return compact('files', 'folders');
+    }
+
 }
