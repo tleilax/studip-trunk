@@ -370,7 +370,7 @@ class FileManager
      * @returns string[] Array with error messages: Empty array on success, filled array on failure.
      * 
      */
-    public static function createSubFolder(Folder $sub_folder, Folder $destination_folder, User $user, $sub_folder_type = null)
+    public static function createSubFolder(Folder $sub_folder, Folder $destination_folder, User $user, FolderType $sub_folder_type)
     {
         $errors = [];
         
@@ -384,24 +384,18 @@ class FileManager
         $destination_folder_type = $destination_folder->getTypedFolder();
         
         
-        //check if sub_folder_type is set and if destination_folder is a standard folder
-        if($sub_folder_type instanceof FolderType) {
-            //ok, a FolderType instance is given. We must check if the parent folder
-            //is a standard folder to be able to proceed.
+        //check if destination_folder is a standard folder
+        
+        if($destination_folder_type->getTypeName() == 'StandardFolder') {
+            //the parent folder is a StandardFolder, that's OK!
             
-            if($destination_folder_type->getTypeName() == 'StandardFolder') {
-                //the parent folder is a StandardFolder, that's OK!
-                
-            } else {
-                //we can't create a special folder in another special folder!
-                $errors[] = sprintf(
-                    _('Ein Ordner vom Typ %s kann nicht in einem Ordner vom Typ %s erzeugt werden!'),
-                    $sub_folder_type->getTypeName(),
-                    $destination_folder_type->getTypeName()
-                );
-            }
         } else {
-            $errors[] = _('Unbekannter Ordnertyp!');
+            //we can't create a special folder in another special folder!
+            $errors[] = sprintf(
+                _('Ein Ordner vom Typ %s kann nicht in einem Ordner vom Typ %s erzeugt werden!'),
+                $sub_folder_type->getTypeName(),
+                $destination_folder_type->getTypeName()
+            );
         }
         
         
