@@ -67,7 +67,13 @@ STUDIP.Files = {
                 },
                 'success': function (json) {
                     jQuery(".uploadbar").css("background-size", "100% 100%");
-                    STUDIP.Files.reloadPage();
+                    if (json.redirect) {
+                        STUDIP.Dialog.fromURL(json.redirect, {
+                            title: 'Lizenz auswählen'.toLocaleString()
+                        });
+                    } else {
+                        STUDIP.Files.reloadPage();
+                    }
                 },
                 'complete': function () {
                     /*jQuery(textarea).removeClass("hovered");

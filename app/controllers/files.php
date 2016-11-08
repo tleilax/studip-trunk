@@ -185,6 +185,7 @@ class FilesController extends AuthenticatedController
                     header("Location: ". URLHelper::getURL("dispatch.php/files/edit_license", array(
                         'file_refs' => array($file_ref->getId())
                     )));
+                    $this->render_nothing();
                 } else {
                     $this->response->add_header("X-Dialog-Execute", "STUDIP.Files.reloadPage");
                     $this->render_text(MessageBox::success(_("Datei wurde hinzugefügt.")));
