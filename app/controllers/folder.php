@@ -122,7 +122,8 @@ class FolderController extends AuthenticatedController
                 $this->description = Request::get('description'); 
                 $this->current_folder_type = Request::get('folder_type');
                 
-                if(!$this->current_folder_type instanceof FolderType) {
+                
+                if(!is_subclass_of($this->current_folder_type, FolderType)) {
                     if(Request::isDialog()) {
                         $this->render_text(MessageBox::error(_('Unbekannter Ordnertyp!'), $errors));
                     } else {
