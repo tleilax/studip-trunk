@@ -72,8 +72,6 @@ class FolderController extends AuthenticatedController
      */
     public function new_action()
     {
-        global $perm;
-        
         $this->parent_folder_id = Request::get('parent_folder_id');
         $this->range_id = Request::get('range_id');
         
@@ -207,8 +205,6 @@ class FolderController extends AuthenticatedController
      */
     public function edit_action($folder_id)
     {
-        global $perm;
-        
         //we need the folder-ID of the folder that is to be edited:
         if(!$folder_id) {
             $this->render_text(
@@ -284,7 +280,6 @@ class FolderController extends AuthenticatedController
      */
     public function copyOrMove($folder_id, $copy = true)
     {
-        global $perm;
         //we need the IDs of the folder and the target parent folder.
         //these should only be present when the form was sent.
         
@@ -360,12 +355,12 @@ class FolderController extends AuthenticatedController
         }
         
         
-        if ($perm->have_perm('root')) {
+        if ($GLOBALS['perm']->have_perm('root')) {
             $parameters = array(
                 'semtypes' => studygroup_sem_types() ?: array(),
                 'exclude' => array()
             );
-        } else if ($perm->have_perm('admin')) {
+        } else if ($GLOBALS['perm']->have_perm('admin')) {
             $parameters = array(
                 'semtypes' => studygroup_sem_types() ?: array(),
                 'institutes' => array_map(function ($i) {
@@ -445,8 +440,6 @@ class FolderController extends AuthenticatedController
      */
     public function delete_action($folder_id)
     {
-        global $perm;
-        
         //we need the ID of the folder:
         if(!$folder_id) {
             $this->render_text(MessageBox::error(_('Ordner-ID nicht gefunden!')));
@@ -463,7 +456,7 @@ class FolderController extends AuthenticatedController
         
         $currentUser = User::findCurrent();
         
-        if(($this->folder->user_id == $currentUser->id) or $perm->have_perm('admin')) {
+        if(($this->folder->user_id == $currentUser->id) or $GLOBALS['perm']->have_perm('admin')) {
             $this->folder->delete();
             $this->render_text(MessageBox::success(_('Ordner wurde gelöscht!')));
             return;
