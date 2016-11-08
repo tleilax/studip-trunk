@@ -22,36 +22,35 @@ class FilesController extends AuthenticatedController
     public function before_filter(&$action, &$args)
     {
         parent::before_filter($action, $args);
-        // set navigation
-    
+
+        PageLayout::setTitle(_('Meine Dateien'));
+        PageLayout::setHelpKeyword('Basis.Dateien');
         PageLayout::addSqueezePackage('tablesorterfork');
+
+        $this->user = User::findCurrent();
     }
-    
-    
+
+
     /**
      * Helper method for filling the sidebar with actions.
      */
-    private function buildSidebar($top_folder_id = null)
+    private function buildSidebar()
     {
         $sidebar = Sidebar::get();
         $sidebar->setImage('sidebar/files-sidebar.png');
 
         $actions = new ActionsWidget();
-        
-        $actionParams = [];
-        if($top_folder_id) {
-            $actionParams['parent_folder_id'] = $top_folder_id;
+
+        if ($this->topFolder && $this->topFolder->isSubfolderAllowed($GLOBALS['user']->id)) {
+            $actions->addLink(
+                _('Neuer Ordner'),
+                URLHelper::getUrl('dispatch.php/folder/new',
+                    array('context' => 'user', 'rangeId' => $this->user->id, 'parent_folder_id' => $this->topFolder->getId())),
+                Icon::create('folder-empty+add', 'clickable'),
+                array('data-dialog' => 'size=auto')
+            );
+
         }
-        
-        $actions->addLink(
-            _('Neuer Ordner'),
-            URLHelper::getUrl(
-                'dispatch.php/folder/new',
-                $actionParams
-            ),
-            Icon::create('folder-empty+add', 'clickable'),
-            array('data-dialog' => 'reload-on-close;size=auto')
-        );
 
         $actions->addLink(
             _('Datei hinzufügen'),
@@ -59,7 +58,7 @@ class FilesController extends AuthenticatedController
             Icon::create('file+add', 'clickable'),
             array('onClick' => "STUDIP.Files.openAddFilesWindow(); return false;")
         );
-        
+
         $sidebar->addWidget($actions);
     }
 
@@ -68,73 +67,82 @@ class FilesController extends AuthenticatedController
     /**
      * Displays the files in tree view.
      */
-    public function index_action($folder_id = '')
+    public function index_action($topFolderId = '')
     {
-        if(Navigation::hasItem('/profile/files')) {
-            Navigation::activateItem('/profile/files');
-        }
-        if(Navigation::hasItem('/profile/files/tree')) {
-            Navigation::activateItem('/profile/files/tree');
-        }
-        
+
+        Navigation::activateItem('/profile/files/tree');
+
         $this->marked_element_ids = [];
-        
-        $user = User::findCurrent();
-        if(!$user) {
-            PageLayout::postError(_('Nutzerobjekt nicht gefunden!'));
-            return;
-        }
-        if (!$folder_id) {
-            $this->topFolder = new StandardFolder(Folder::findTopFolder($user->id));
+
+        if (!$topFolderId) {
+            $folder = Folder::findTopFolder($this->user->id);
         } else {
-            $this->topFolder = FolderFactory::get()->init(Folder::find($folder_id));
+            $folder = Folder::find($topFolderId);
         }
-        
-        if(!$this->topFolder) {
-            //create top folder:
-            $this->topFolder = new StandardFolder(Folder::createTopFolder($user->id, 'user'));
+
+        if (!$folder) {
+            throw new Exception(_('Fehler beim Laden des Hauptordners!'));
         }
-        
-        $this->buildSidebar($this->topFolder->getId());
-        PageLayout::setTitle($user->getFullname() . ' - ' . _('Dateien'));
+
+        $this->topFolder = $folder->getTypedFolder();
+
+        if (!empty($this->topFolder->parent_id)) {
+            $this->isRoot = false;
+            $this->parent_id = $this->topFolder->parent_id;
+            $this->parent_page = 1;
+        } else {
+            $this->isRoot = true;
+        }
+
+        $this->marked = array();
+        $this->filecount = count($this->topFolder->getSubfolders());
+        $this->filecount += count($this->topFolder->getFiles());
+
+        $this->dir_id = $this->topFolder->getId();
+
+        $this->buildSidebar();
+    }
+
+
+    private function getFolderFiles($folder)
+    {
+        $this->folders[$folder->getId()] = $folder;
+        foreach ($folder->getSubFolders() as $subfolder) {
+            $this->getFolderFiles($subfolder);
+        }
+        foreach ($folder->getFiles() as $file) {
+            $this->files[] = $file;
+        }
     }
 
 
     /**
-     * Displays the files in flat view.
-     */
-    public function flat_action($topFolder = '')
+    Displays the files in flat view
+     **/
+    public function flat_action()
     {
-        if(Navigation::hasItem('/profile/files')) {
-            Navigation::activateItem('/profile/files');
-        }
-        if(Navigation::hasItem('/profile/files/flat')) {
-            Navigation::activateItem('/profile/files/flat');
-        }
-        
+
+        Navigation::activateItem('/profile/files/flat');
+
         $this->marked_element_ids = [];
-        
-        $user = User::findCurrent();
-        if(!$user) {
-            PageLayout::postError(_('Nutzerobjekt nicht gefunden!'));
-            return;
+
+        $filePreselector = Request::get('select', null);
+
+        $folder = Folder::findTopFolder($this->user->id);
+
+        if (!$folder) {
+            throw new Exception(_('Fehler beim Laden des Hauptordners!'));
         }
-        
-        if (!$topFolder) {
-            $this->topFolder = Folder::findTopFolder($user->id);
-        } else {
-            $this->topFolder = Folder::find($topFolder);
-        }
-        
-        if(!$this->topFolder) {
-            //create top folder:
-            $this->topFolder = Folder::createTopFolder($user->id, 'user');
-        }
-        
-        PageLayout::setTitle($user->getFullname() . ' - ' . _('Dateien'));
+
+        $this->topFolder = $folder->getTypedFolder();
+
+        //find all files in all subdirectories:
+        $this->files = [];
+        $this->folders = [];
+        $this->getFolderFiles($this->topFolder);
     }
-    
-    
+
+
     public function upload_window_action()
     {
     }
@@ -224,7 +232,7 @@ class FilesController extends AuthenticatedController
             }
         }
     }
-    
-    
-    
+
+
+
 }

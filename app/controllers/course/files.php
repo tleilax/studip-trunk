@@ -68,14 +68,7 @@ class Course_FilesController extends AuthenticatedController
     **/
     public function index_action($topFolderId = '')
     {
-
-
-        if(Navigation::hasItem('/course/files_new')) {
-            Navigation::activateItem('/course/files_new');
-        }
-        if(Navigation::hasItem('/course/files_new/tree')) {
-            Navigation::activateItem('/course/files_new/tree');
-        }
+        Navigation::activateItem('/course/files_new/tree');
 
         $this->marked_element_ids = [];
 
@@ -122,18 +115,13 @@ class Course_FilesController extends AuthenticatedController
         }
     }
 
-
     /**
         Displays the files in flat view
     **/
     public function flat_action()
     {
-        if(Navigation::hasItem('/course/files_new')) {
-            Navigation::activateItem('/course/files_new');
-        }
-        if(Navigation::hasItem('/course/files_new/flat')) {
-            Navigation::activateItem('/course/files_new/flat');
-        }
+
+        Navigation::activateItem('/course/files_new/flat');
 
         $this->marked_element_ids = [];
 
