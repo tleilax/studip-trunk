@@ -105,7 +105,7 @@ class StandardFolder implements FolderType
      */
     public function isWritable($user_id)
     {
-        return true;
+        return ($this->range_type == 'user' && $GLOBALS['user']->id == $user_id) || $GLOBALS['perm']->have_studip_perm('tutor', $this->range_id, $user_id);
     }
 
     /**

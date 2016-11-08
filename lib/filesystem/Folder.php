@@ -124,7 +124,7 @@ class Folder extends SimpleORMap
      *
      * @return bool|string Returns false on failure, otherwise the name of the range.
      */
-    public static function findRangeTypeById($range_id = null)
+    public static function findRangeTypeById($range_id)
     {
         //If range_id isn't set we don't need to query the database at all!
         //Therefore we check first, if range_id validates to false.
@@ -212,62 +212,18 @@ class Folder extends SimpleORMap
      * If the root folder doesn't exist, it will be created.
      *
      * Note that the range_id parameter is mandatory!
-     * If the range_type parameter is omitted the range_type will be determined
-     * by looking for an object with the given range ID in the tables for all
-     * range types.
      *
      * @param string range_id The ID of the Stud.IP object whose top folder shall be found.
-     * @param string range_type The range type for the range_id (optional).
      *
      * @returns Folder|null Folder object on success or null, if no folder can be created.
      **/
-    public static function findTopFolder($range_id = null, $range_type = null)
+    public static function findTopFolder($range_id)
     {
-        if(!$range_id) {
-            //If $range_id isn't set we don't need to query the database
-            //for non-existing objects and can directly return null.
-            return null;
-        }
-
         $top_folder = self::findOneBySQL("range_id = ? AND parent_id=''", [$range_id]);
 
         //top_folder may not exist!
         if (!$top_folder) {
             //top_folder doest not exist: create it
-
-            //check if range_type is set and has a valid value:
-            if($range_type) {
-                //range type is set. If its valid (value = course, institute,
-                //user or message) we can we must validate the range ID
-                //here since findRangeTypeById won't be called.
-                $valid_range = false;
-                if($range_type == 'course') {
-                    //validate range:
-                    if(Course::exists($range_id)) {
-                        $valid_range = true;
-                    }
-                } elseif ($range_type == 'institute') {
-                    if(Institute::exists($range_id)) {
-                        $valid_range = true;
-                    }
-                } elseif ($range_type == 'user') {
-                    if(User::exists($range_id)) {
-                        $valid_range = true;
-                    }
-                } elseif ($range_type == 'message') {
-                    if(Message::exists($range_id)) {
-                        $valid_range = true;
-                    }
-                }
-
-                if($valid_range) {
-                    $top_folder = self::createTopFolder($range_id, $range_type);
-                } else {
-                    //if the range ID is invalid (can't be found in the database)
-                    //we can't create a top folder!
-                    return null;
-                }
-            }
             //determine range type:
             $range_type = self::findRangeTypeById($range_id);
             if ($range_type) {

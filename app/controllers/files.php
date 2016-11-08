@@ -86,20 +86,6 @@ class FilesController extends AuthenticatedController
 
         $this->topFolder = $folder->getTypedFolder();
 
-        if (!empty($this->topFolder->parent_id)) {
-            $this->isRoot = false;
-            $this->parent_id = $this->topFolder->parent_id;
-            $this->parent_page = 1;
-        } else {
-            $this->isRoot = true;
-        }
-
-        $this->marked = array();
-        $this->filecount = count($this->topFolder->getSubfolders());
-        $this->filecount += count($this->topFolder->getFiles());
-
-        $this->dir_id = $this->topFolder->getId();
-
         $this->buildSidebar();
     }
 

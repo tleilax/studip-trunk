@@ -2,7 +2,7 @@
 <table class="default documents" data-folder_id="<?= htmlReady($topFolder->getId()) ?>">
     <caption>
         <div class="caption-container">
-            <? $full_access = true;
+            <?
                 $breadcrumbs = array();
                 $folder = $topFolder;
                 do {
@@ -34,25 +34,7 @@
         <? endif; ?>
     </caption>
     <?= $this->render_partial("files/_files_thead.php") ?>
-    <? if (!$isRoot) : ?>
-    <tbody>
-        <? if(($parent_id) && ($parent_id != $folder_id)): ?>
-        <tr class="chdir-up" <? if ($full_access) printf('data-folder="%s"', $folder_id) ?> data-sort-fixed>
-            <td>&nbsp;</td>
-            <td class="document-icon">
-                <a href="<?= $controller->url_for('/index/' . $parent_id, $parent_page ) ?>">
-                    <?//= Icon::create('arr_1up', 'clickable', ['title' => _('Ein Verzeichnis nach oben wechseln')])->asImg(24) ?>
-                </a>
-            </td>
-            <td colspan="5">
-                <a href="<?= $controller->url_for('/index/' . $parent_id, $parent_page) ?>" title="<?= _('Ein Verzeichnis nach oben wechseln') ?>">
-                    <small><?= _('Ein Verzeichnis nach oben wechseln') ?></small>
-                </a>
-            </td>
-        </tr>
-        <? endif ?>
-    </tbody>
-<? endif; ?>
+
 <? if (count($topFolder->getSubfolders()) + count($topFolder->getFiles()) === 0): ?>
     <tbody>
         <tr>
@@ -64,24 +46,37 @@
 <? elseif (count($topFolder->getSubfolders())) : ?>
     <tbody>
     <? foreach ($topFolder->getSubfolders() as $folder) : ?>
+        <? if (!$folder->isVisible($GLOBALS['user']->id)) continue; ?>
+        <? $is_readable = $folder->isReadable($GLOBALS['user']->id) ?>
         <? $owner = User::find($folder->user_id) ?: new User() ?>
-        <tr <? if ($full_access) printf('data-file="%s"', $folder->getId()) ?> <? if ($full_access) printf('data-folder="%s"', $folder->getId()); ?>>
+        <? $is_empty = count($folder->getSubfolders()) + count($folder->getFiles()) == 0 ?>
+        <? $foldershape = call_user_func([get_class($folder), 'getIconShape']) ?>
+        <tr>
             <td>
-                <input type="checkbox" name="ids[]" value="<?= $folder->getId() ?>" <? if (in_array($folder->getId(), $marked_element_ids)) echo 'checked'; ?>>
+                <? if ($is_readable) : ?>
+                    <input type="checkbox" name="ids[]" value="<?= $folder->getId() ?>" <? if (in_array($folder->getId(), $marked_element_ids)) echo 'checked'; ?>>
+                <? endif?>
             </td>
             <td class="document-icon" data-sort-value="0">
-                <a href="<?= $controller->url_for('document/files/index/' . $folder->getId()) ?>">
+                <? if ($is_readable) : ?>
+                    <a href="<?= $controller->url_for('document/files/index/' . $folder->getId()) ?>">
+                <? endif ?>
                 <? if ($is_empty): ?>
-                    <?= Icon::create('folder-empty', 'clickable')->asImg(24) ?>
+                    <?= Icon::create($foldershape . '-empty', $is_readable ? 'clickable': '')->asImg(24) ?>
                 <? else: ?>
-                    <?= Icon::create('folder-full', 'clickable')->asImg(24) ?>
+                    <?= Icon::create($foldershape . '-full', $is_readable ? 'clickable': '')->asImg(24) ?>
                 <? endif; ?>
+                <? if ($is_readable) : ?>
                 </a>
+                <? endif ?>
             </td>
             <td>
-                <a href="<?= $controller->url_for('/index/' . $folder->getId()) ?>">
+                <? if ($is_readable) : ?>
+                    <a href="<?= $controller->url_for('/index/' . $folder->getId()) ?>">                       <? endif ?>
                     <?= htmlReady($folder->name) ?>
-                </a>
+                <? if ($is_readable) : ?>
+                    </a>
+                <? endif ?>
             <? if ($folder->description): ?>
                 <small class="responsive-hidden"><?= htmlReady($folder->description) ?></small>
             <? endif; ?>
@@ -92,10 +87,10 @@
             <td data-sort-value="<?= htmlReady($owner->getFullName('no_title')) ?>" class="responsive-hidden">
             <? if ($folder->user_id !== $GLOBALS['user']->id) : ?>
                 <a href="<?= URLHelper::getLink('dispatch.php/profile?username=' . $owner->username) ?>">
-                    <?= htmlReady($owner->getFullName()) ?>
+                    <?= htmlReady($owner->getFullName('no_title')) ?>
                 </a>
             <? else: ?>
-                <?= htmlReady($owner->getFullName()) ?>
+                <?= htmlReady($owner->getFullName('no_title')) ?>
             <? endif; ?>
             </td>
             <td title="<?= strftime('%x %X', $folder->mkdate) ?>" data-sort-value="<?= $folder->mkdate ?>" class="responsive-hidden">
@@ -103,7 +98,7 @@
             </td>
             <td class="actions">
                 <? $actionMenu = ActionMenu::get() ?>
-                <? if ($full_access): ?>
+                <? if ($folder->isWritable($GLOBALS['user']->id)): ?>
                     <? $actionMenu->addLink($controller->url_for('folder/edit/' . $folder->getId()),
                             _('Ordner bearbeiten'),
                             Icon::create('edit', 'clickable'),
@@ -112,7 +107,7 @@
                 <? $actionMenu->addLink($downloadlink,
                         _('Ordner herunterladen'),
                         Icon::create('download', 'clickable')) ?>
-                <? if ($full_access): ?>
+                <? if ($folder->isWritable($GLOBALS['user']->id)): ?>
                     <? $actionMenu->addLink($controller->url_for('folder/move/' . $folder->getId()),
                             _('Ordner verschieben'),
                             Icon::create('folder-empty+move_right', 'clickable'),
@@ -134,7 +129,7 @@
     <? endforeach ?>
     </tbody>
 <? endif; ?>
-<? if (count($topFolder->getFiles())) : ?>
+<? if (count($topFolder->getFiles()) && $topFolder->isReadable($GLOBALS['user']->id)) : ?>
     <tbody>
     <? foreach ($topFolder->getFiles() as $file_ref) : ?>
         <?= $this->render_partial("files/_fileref_tr", ['file_ref' => $file_ref, 'current_folder' => $topFolder]) ?>

@@ -30,7 +30,7 @@
         <?= relSize($file_ref->size, false) ?>
     </td>
     <td data-sort-value="<?= htmlReady($file_ref->author_name) ?>" class="responsive-hidden">
-        <? if ($file_ref->user_id !== $GLOBALS['user']->id || !$file_ref->owner): ?>
+        <? if ($file_ref->user_id !== $GLOBALS['user']->id && $file_ref->owner): ?>
             <a href="<?= URLHelper::getScriptLink('dispatch.php/profile?username=' . $file_ref->owner->username) ?>">
                 <?= htmlReady($file_ref->author_name) ?>
             </a>
