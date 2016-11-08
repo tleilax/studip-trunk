@@ -370,10 +370,12 @@ class FileController extends AuthenticatedController
         $rangeId = Request::get("range");        
         $folders = Folder::findBySQL("range_id=?", array($rangeId));
         $folderray = array();
+        $pathes = array();
         foreach ($folders as $folder) {
-            $folderray[][ $folder->getPath()] = $folder->id;
+            $pathes[] = $folder->getPath();
+            $folderray[][$folder->getPath()] = $folder->id;
         }
-        sort($folderray);
+        array_multisort($pathes, SORT_ASC, SORT_STRING, $folderray);
         
         if (Request::isAjax()) {
             echo json_encode($folderray);
