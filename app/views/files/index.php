@@ -8,6 +8,7 @@
                 do {
                     $breadcrumbs[] = $folder;
                 } while ($folder = $folder->getParent());
+                $breadcrumbs = array_reverse($breadcrumbs);
                 $root_dir = array_shift($breadcrumbs);
                 $last_crumb = end($breadcrumbs); ?>
             <div>
