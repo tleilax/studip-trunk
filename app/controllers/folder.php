@@ -98,7 +98,16 @@ class FolderController extends AuthenticatedController
             return;
         }
         
-        $this->folder_types = FileManager::getFolderTypes($parent_folder->range_type);
+        $folder_types = FileManager::getFolderTypes($parent_folder->range_type);
+        
+        $this->folder_types = [];
+        
+        foreach($folder_types as $folder_type) {
+            $this->folder_types[] = [
+                'class' => $folder_type,
+                'name' => $folder_type::getTypeName()
+            ];
+        }
         
         //get ID of course, institute, user etc.
         if (Request::get('form_sent')) {
@@ -120,6 +129,7 @@ class FolderController extends AuthenticatedController
                         PageLayout::postError(_('Unbekannter Ordnertyp!'), $errors);
                         $this->render_template('file/new_folder.php', $GLOBALS['template_factory']->open('layouts/base'));
                     }
+                    return;
                 }
                 
                 $parent_folder_type = $parent_folder->getTypedFolder();
@@ -136,6 +146,7 @@ class FolderController extends AuthenticatedController
                         //FileManager::createSubFolder returned an empty array => no errors!
                         
                         $this->redirectToFolder($parent_folder, MessageBox::success(_('Ordner wurde angelegt!')));
+                        return;
                     } else {
                         if(Request::isDialog()) {
                             $this->render_text(MessageBox::error(_('Fehler beim Anlegen des Ordners'), $errors));

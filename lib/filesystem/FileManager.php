@@ -664,14 +664,29 @@ class FileManager
                 class_exists($path['filename']);
             }
         }
+        
         foreach (get_declared_classes() as $declared_class) {
             if (is_a($declared_class, 'FolderType', true)) {
-                $folder = new $declared_class([]);
-                foreach ($folder->getAllowedRangeTypes() as $type) {
-                    $result[$type][] = $declared_class;
+                if($range_type == null) {
+                    foreach(['course', 'institute', 'message', 'user'] as $known_range_type) {
+                        if($declared_class::creatableInStandardFolder($known_range_type)) {
+                            if(!is_array($result[$known_range_type])) {
+                                $result[$known_range_type] = [];
+                            }
+                            $result[$known_range_type][] = $declared_class;
+                        }
+                    }
+                } else {
+                    if($declared_class::creatableInStandardFolder($range_type)) {
+                        if(!is_array($result[$range_type])) {
+                            $result[$range_type] = [];
+                        }
+                        $result[$range_type][] = $declared_class;
+                    }
                 }
             }
         }
+        
         if ($range_type) {
             return @$result[$range_type] ?: [];
         } else {

@@ -134,19 +134,19 @@ class PublicFolder implements FolderType
     }
     
     
-    public function isFileDownloadable($file_id)
+    public function isFileDownloadable($file_id, $user_id)
     {
         //to be implemented
     }
     
     
-    public function isFileEditable($file_id)
+    public function isFileEditable($file_id, $user_id)
     {
         //to be implemented
     }
     
     
-    public function isFileWritable($file_id)
+    public function isFileWritable($file_id, $user_id)
     {
         //to be implemented
     }
