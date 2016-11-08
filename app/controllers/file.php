@@ -329,7 +329,7 @@ class FileController extends AuthenticatedController
                     "FROM Institute " .
                     "LEFT JOIN range_tree ON (range_tree.item_id = Institute.Institut_id) " .
                     "LEFT JOIN user_inst ON (user_inst.Institut_id = Institute.Institut_id)" .
-                    "WHERE user_inst.user_id = '" . $user_id . "' " .
+                    "WHERE user_inst.user_id = '" . $user->id . "' " .
                     "AND Institute.Name LIKE :input " .
                     "OR Institute.Strasse LIKE :input " .
                     "OR Institute.email LIKE :input " .
@@ -338,7 +338,7 @@ class FileController extends AuthenticatedController
                 
                 
                 $parameters = array(
-                    'userid' => $GLOBALS['user']->id,
+                    'userid' => $user->id,
                     'semtypes' => studygroup_sem_types() ?: array(),
                     'exclude' => array()
                 );
@@ -360,7 +360,7 @@ class FileController extends AuthenticatedController
             
             
             $this->move_copy = Request::get("copymode", 'move');
-            $this->user_id = $user_id;
+            $this->user_id = $user->id;
             $this->file_ref = $file_ref_id;
         }
     }
