@@ -14,7 +14,7 @@
  */
 
 
-class Course_FilesController extends AuthenticatedController
+class Institute_FilesController extends AuthenticatedController
 {
     public function before_filter(&$action, &$args)
     {
@@ -22,14 +22,14 @@ class Course_FilesController extends AuthenticatedController
 
         checkObject();
         checkObjectModule('documents');
-        $this->course = Course::findCurrent();
+        $this->institute = Institute::findCurrent();
         object_set_visit_module('documents');
 
         PageLayout::addSqueezePackage('tablesorterfork');
         PageLayout::setHelpKeyword("Basis.Dateien");
-        PageLayout::setTitle($this->course->getFullname() . " - " . _("Dateien"));
+        PageLayout::setTitle($this->institute->getFullname() . " - " . _("Dateien"));
 
-        $this->last_visitdate = object_get_visit($this->course->id, 'documents');
+        $this->last_visitdate = object_get_visit($this->institute->id, 'documents');
 
     }
 
@@ -45,7 +45,7 @@ class Course_FilesController extends AuthenticatedController
             $actions->addLink(
                 _('Neuer Ordner'),
                 URLHelper::getUrl('dispatch.php/folder/new',
-                        array('context' => 'course', 'rangeId' => $this->course->id, 'parent_folder_id' => $this->topFolder->getId())),
+                    array('context' => 'institute', 'rangeId' => $this->institute->id, 'parent_folder_id' => $this->topFolder->getId())),
                 Icon::create('folder-empty+add', 'clickable'),
                 array('data-dialog' => 'size=auto')
             );
@@ -64,23 +64,18 @@ class Course_FilesController extends AuthenticatedController
 
 
     /**
-        Displays the files in tree view
-    **/
+    Displays the files in tree view
+     **/
     public function index_action($topFolderId = '')
     {
 
 
-        if(Navigation::hasItem('/course/files_new')) {
-            Navigation::activateItem('/course/files_new');
-        }
-        if(Navigation::hasItem('/course/files_new/tree')) {
-            Navigation::activateItem('/course/files_new/tree');
-        }
+        Navigation::activateItem('/course/files_new/tree');
 
         $this->marked_element_ids = [];
 
         if (!$topFolderId) {
-            $folder = Folder::findTopFolder($this->course->id);
+            $folder = Folder::findTopFolder($this->institute->id);
         } else {
             $folder = Folder::find($topFolderId);
         }
@@ -124,22 +119,18 @@ class Course_FilesController extends AuthenticatedController
 
 
     /**
-        Displays the files in flat view
-    **/
+    Displays the files in flat view
+     **/
     public function flat_action()
     {
-        if(Navigation::hasItem('/course/files_new')) {
-            Navigation::activateItem('/course/files_new');
-        }
-        if(Navigation::hasItem('/course/files_new/flat')) {
-            Navigation::activateItem('/course/files_new/flat');
-        }
+
+        Navigation::activateItem('/course/files_new/flat');
 
         $this->marked_element_ids = [];
 
         $filePreselector = Request::get('select', null);
 
-        $folder = Folder::findTopFolder($this->course->id);
+        $folder = Folder::findTopFolder($this->institute->id);
 
         if (!$folder) {
             throw new Exception(_('Fehler beim Laden des Hauptordners!'));
