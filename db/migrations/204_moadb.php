@@ -96,21 +96,22 @@ class Moadb extends Migration
             `internal_name` VARCHAR(16) UNIQUE NOT NULL,
             `description` TEXT NOT NULL,
             `download_condition` TINYINT(2) NOT NULL,
+            `icon` VARCHAR(128) NULL
             PRIMARY KEY (`id`)
             ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC;"
         );
 
         //default terms of use entries:
         $db->exec(
-            "INSERT INTO content_terms_of_use_entries (`id`, `name`, `internal_name`, `description`, `download_condition`)
-            VALUES ('e3ce00626924b34cb945f8b9207e43fe', 'Dokument ist frei von Rechten Dritter', '3RD_PARTY_FALSE', '', '0'),
-            ('93739b2a33dc5d8602434067fbc7d4ac', 'Dokument ist nicht frei von Rechten Dritter', '3RD_PARTY_TRUE', '', '1'),
-            ('87f3194d604723e6ac529e7d7069f907', 'Selbst verfasstes, nicht publiziertes Werk', 'SELFMADE_NONPUB', '', '0'),
-            ('38c706dbb45afcb5ad73b54c07d04662', 'Werk mit freier Lizenz', 'FREE_LICENSE', '', '0'),
-            ('ce7801c11c6eeed2e8b5253e46a22b01', 'Nutzungserlaubnis oder Lizenz liegt vor', 'WITH_LICENSE', '', '1'),
-            ('f66fe78c95f721bdfc54c3002bb33bef', 'Abbildungen, Fotos, Filme, Musikstücke, Partituren', 'NON_TEXTUAL', '', '1'),
-            ('1de7bd86120ddb26abb89e44d5103008', 'Publizierte Texte ohne erworbene Lizenz oder gesonderte Erlaubnis', 'PUB_NO_LICENSE', '', '2'),
-            ('2093c5f3733697f297d2f530320b91f8', 'Ungeklärte Lizenz', 'UNDEF_LICENSE', '', '2')");
+            "INSERT INTO content_terms_of_use_entries (`id`, `name`, `internal_name`, `description`, `download_condition`, `icon`)
+            VALUES ('e3ce00626924b34cb945f8b9207e43fe', 'Dokument ist frei von Rechten Dritter', '3RD_PARTY_FALSE', '', '0', 'checkbox-checked'),
+            ('93739b2a33dc5d8602434067fbc7d4ac', 'Dokument ist nicht frei von Rechten Dritter', '3RD_PARTY_TRUE', '', '1', 'checkbox-unchecked'),
+            ('87f3194d604723e6ac529e7d7069f907', 'Selbst verfasstes, nicht publiziertes Werk', 'SELFMADE_NONPUB', '', '0', 'person'),
+            ('38c706dbb45afcb5ad73b54c07d04662', 'Werk mit freier Lizenz', 'FREE_LICENSE', '', '0', 'cc'),
+            ('ce7801c11c6eeed2e8b5253e46a22b01', 'Nutzungserlaubnis oder Lizenz liegt vor', 'WITH_LICENSE', '', '1', 'medal'),
+            ('f66fe78c95f721bdfc54c3002bb33bef', 'Abbildungen, Fotos, Filme, Musikstücke, Partituren', 'NON_TEXTUAL', '', '1', 'file-pic'),
+            ('1de7bd86120ddb26abb89e44d5103008', 'Publizierte Texte ohne erworbene Lizenz oder gesonderte Erlaubnis', 'PUB_NO_LICENSE', '', '2', 'literature'),
+            ('2093c5f3733697f297d2f530320b91f8', 'Ungeklärte Lizenz', 'UNDEF_LICENSE', '', '2', 'question-circle')");
 
 
 

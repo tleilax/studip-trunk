@@ -1,16 +1,16 @@
+<?
+$options = array();
+if (Request::get("to_plugin")) {
+    $options['to_plugin'] = Request::get("to_plugin");
+}
+if (Request::get("to_folder_id")) {
+    $options['to_folder_id'] = Request::get("to_folder_id");
+}
+if ($folder_id) {
+    $options['to_folder_id'] = $folder_id;
+}
+?>
 <div class="files_source_selector" data-folder_id="<?= htmlReady($folder_id) ?>"<?= $hidden ? ' style="display: none;"' : "" ?>>
-    <?
-    $options = array();
-    if (Request::get("to_plugin")) {
-        $options['to_plugin'] = Request::get("to_plugin");
-    }
-    if (Request::get("to_folder_id")) {
-        $options['to_folder_id'] = Request::get("to_folder_id");
-    }
-    if ($folder_id) {
-        $options['to_folder_id'] = $folder_id;
-    }
-    ?>
     <?= _("Quelle auswählen") ?>
     <div class="file_select_possibilities">
         <a href="#" onClick="jQuery('.file_selector input[type=file]').first().click(); return false;">

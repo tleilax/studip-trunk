@@ -111,6 +111,11 @@ interface FolderType
 
     public function validateUpload($file, $user_id);
 
+    /**
+     * Must create the file and return the FileRef object.
+     * @param $file
+     * @return mixed
+     */
     public function createFile($file);
 
     public function isFileDownloadable($file_id, $user_id);

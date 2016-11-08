@@ -180,9 +180,15 @@ class FilesController extends AuthenticatedController
             if (!$error) {
                 //do the copy
                 //$this->to_folder_type->createFile($file, $GLOBALS['user']->id);
-                $this->to_folder_type->createFile($file);
-                $this->response->add_header("X-Dialog-Execute", "STUDIP.Files.reloadPage");
-                $this->render_text(MessageBox::success(_("Datei wurde hinzugefügt.")));
+                $file_ref = $this->to_folder_type->createFile($file);
+                if (in_array($this->to_folder_type->range_type, array("course", "institute"))) {
+                    header("Location: ". URLHelper::getURL("dispatch.php/files/edit_license", array(
+                        'file_refs' => array($file_ref->getId())
+                    )));
+                } else {
+                    $this->response->add_header("X-Dialog-Execute", "STUDIP.Files.reloadPage");
+                    $this->render_text(MessageBox::success(_("Datei wurde hinzugefügt.")));
+                }
             } else {
                 PageLayout::postMessage(MessageBox::error(_("Konnte die Datei nicht hinzufügen.", array($error))));
             }
@@ -205,6 +211,25 @@ class FilesController extends AuthenticatedController
                 throw new AccessException();
             }
         }
+    }
+
+    public function edit_license_action()
+    {
+        $this->file_refs = FileRef::findMany(Request::getArray("file_refs"));
+        if (Request::isPost()) {
+            foreach ($this->file_refs as $file_ref) {
+                $file_ref['content_terms_of_use_id'] = Request::option("license_id");
+                $file_ref->store();
+            }
+            if (Request::isDialog()) {
+                $this->response->add_header("X-Dialog-Execute", "STUDIP.Files.reloadPage");
+                $this->render_text(MessageBox::success(_("Datei wurde bearbeitet.")));
+            } else {
+                PageLayout::postMessage(MessageBox::success(_("Datei wurde bearbeitet.")));
+                //redirect:
+            }
+        }
+        $this->licenses = ContentTermsOfUse::findBySQL("1=1");
     }
 
 

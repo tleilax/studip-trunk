@@ -111,25 +111,25 @@ if (Request::get("to_folder_id")) {
             <? foreach ($top_folder->getFiles() as $fileref) : ?>
                 <tr>
                     <td class="document-icon" data-sort-value="1">
-                        <? if ($fileref->isDownloadable($GLOBALS['user']->id)) : ?>
+                        <? if ($top_folder->isFileDownloadable($fileref, $GLOBALS['user']->id)) : ?>
                         <form action="<?= $controller->link_for('/choose_file/' . $top_folder->getId(), $options) ?>" method="post" data-dialog>
                             <input type="hidden" name="file_id" value="<?= htmlReady($fileref->getId()) ?>">
                             <a href="#" onClick="jQuery(this).closest('form').submit(); return false;">
                         <? endif ?>
                                 <?= Icon::create(get_icon_for_mimetype($fileref->file->mime_type), 'clickable')->asImg(24) ?>
-                        <? if ($fileref->isDownloadable($GLOBALS['user']->id)) : ?>
+                        <? if ($top_folder->isFileDownloadable($fileref, $GLOBALS['user']->id)) : ?>
                             </a>
                         </form>
                         <? endif ?>
                     </td>
                     <td>
-                        <? if ($fileref->isDownloadable($GLOBALS['user']->id)) : ?>
+                        <? if ($top_folder->isFileDownloadable($fileref, $GLOBALS['user']->id)) : ?>
                         <form action="<?= $controller->link_for('/choose_file/' . $top_folder->getId(), $options) ?>" method="post" data-dialog>
                             <input type="hidden" name="file_id" value="<?= htmlReady($fileref->getId()) ?>">
                             <a href="#" onClick="jQuery(this).closest('form').submit(); return false;">
                         <? endif ?>
                                 <?= htmlReady($fileref->file->name) ?>
-                        <? if ($fileref->isDownloadable($GLOBALS['user']->id)) : ?>
+                        <? if ($top_folder->isFileDownloadable($fileref, $GLOBALS['user']->id)) : ?>
                             </a>
                         </form>
                         <? endif ?>

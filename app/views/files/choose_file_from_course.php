@@ -3,6 +3,9 @@ $options = array();
 if (Request::get("to_plugin")) {
     $options['to_plugin'] = Request::get("to_plugin");
 }
+if (Request::get("range_type")) {
+    $options['range_type'] = Request::get("range_type");
+}
 ?>
 
 <? if ($GLOBALS['perm']->have_perm("admin")) : ?>

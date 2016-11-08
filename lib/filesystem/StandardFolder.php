@@ -205,7 +205,7 @@ class StandardFolder implements FolderType
      */
     public function createFile($file)
     {
-        $this->folderdata->linkFile($file);
+        return $this->folderdata->linkFile($file);
     }
 
     /**
@@ -222,7 +222,7 @@ class StandardFolder implements FolderType
         if (in_array($this->range_type, ['course', 'institute'])) {
             if (is_object($fileref->terms_of_use)) {
                 //terms of use are defined for this file!
-                return $fileref->terms_of_use->isDownloadable($fileref, $user_id);
+                return $fileref->terms_of_use->fileIsDownloadable($fileref, $user_id);
             }
             return $GLOBALS['perm']->have_studip_perm('user', $this->range_id, $user_id);
         }
