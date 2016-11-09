@@ -76,6 +76,11 @@ class PermissionEnabledFolder extends StandardFolder
     {
 
     }
+    
+    static public function getTypeName()
+    {
+        return _("Ordner mit Zugangsbeschränkung");
+    }
 
     public function setData($request)
     {

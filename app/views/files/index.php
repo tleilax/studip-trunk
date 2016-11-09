@@ -59,7 +59,7 @@
             </td>
             <td class="document-icon" data-sort-value="0">
                 <? if ($is_readable) : ?>
-                    <a href="<?= $controller->url_for('document/files/index/' . $folder->getId()) ?>">
+                    <a href="<?= $controller->url_for('files/index/' . $folder->getId()) ?>">
                 <? endif ?>
                 <? if ($is_empty): ?>
                     <?= Icon::create($foldershape . '-empty', $is_readable ? 'clickable': '')->asImg(24) ?>

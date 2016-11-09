@@ -1,7 +1,7 @@
 <?php
 
 
-class PublicFolder implements FolderType
+class PublicFolder extends StandardFolder
 {
     protected $folderdata;
     protected $range_id;
@@ -28,7 +28,7 @@ class PublicFolder implements FolderType
     
     public function getId()
     {
-        return 1;
+        return $this->folderdata['id'];
     }
     
     
@@ -74,28 +74,6 @@ class PublicFolder implements FolderType
     }
 
 
-    public function getSubfolders()
-    {
-        //to be implemented
-    }
-    
-    
-    public function getFiles()
-    {
-        //to be implemented
-    }
-    
-    
-    public function getEditTemplate()
-    {
-        //to be implemented
-    }
-    
-    
-    public function setDataFromEditTemplate($request)
-    {
-        //to be implemented
-    }
     
     
     public function validateUpload($uploadedfile, $user_id)

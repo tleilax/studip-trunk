@@ -118,7 +118,7 @@ class FolderController extends AuthenticatedController
                 //we have all required parameters to create a folder.
                 
                 $this->description = Request::get('description'); 
-                $this->current_folder_type = Request::get('folder_type');
+                $this->current_folder_type = Request::get('folder_type', 'StandardFolder');
                 
                 
                 if(!is_subclass_of($this->current_folder_type, FolderType)) {
@@ -140,7 +140,9 @@ class FolderController extends AuthenticatedController
                     $folder->name = $this->name;
                     $folder->description = $this->description;
                     
-                    $errors = FileManager::createSubFolder($folder, $parent_folder, $current_user, new StandardFolder($folder));
+                    $errors = FileManager::createSubFolder($folder, $parent_folder, $current_user, new $this->current_folder_type($folder));
+                    
+                    
                     if(!$errors) {
                         //FileManager::createSubFolder returned an empty array => no errors!
                         

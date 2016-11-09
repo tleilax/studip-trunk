@@ -8,7 +8,8 @@
     <?= $this->render_partial('file/new_edit_folder_form.php',
         [ 
             'name' => $name,
-            'description' => $description
+            'description' => $description,
+            'folder_types' => $folder_types
         ]) ?>
     <div data-dialog-button>
         <?= Studip\Button::createAccept(_('Erstellen')) ?>

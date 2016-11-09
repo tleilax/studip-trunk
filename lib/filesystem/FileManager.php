@@ -374,7 +374,8 @@ class FileManager
     {
         $errors = [];
 
-
+        //echo "sfname = " . $sub_folder->name;
+        
         //check if sub_folder is new:
         if(!$sub_folder->isNew()) {
             $errors[] = _('Ein bereits erstellter Ordner kann nicht neu erzeugt werden!');
@@ -383,10 +384,11 @@ class FileManager
         //check if user is owner of parent folder:
         $destination_folder_type = $destination_folder->getTypedFolder();
 
-
+        
         //check if destination_folder is a standard folder
 
-        if(get_class($destination_folder_type) != 'StandardFolder') {
+        if((get_class($destination_folder_type) != 'StandardFolder') &&
+            (get_class($sub_folder_type) != 'StandardFolder')) {
             //we can't create a special folder in another special folder!
             $errors[] = sprintf(
                 _('Ein Ordner vom Typ %s kann nicht in einem Ordner vom Typ %s erzeugt werden!'),
@@ -401,14 +403,14 @@ class FileManager
         }
 
         //we can return here if we have found errors:
-        if($errors) {
+        if(!empty($errors)) {
             return $errors;
         }
-
+        
+        
         //check if folder name is unique and change it, if it isn't:
         $sub_folder->name = $destination_folder->getUniqueName($sub_folder->name);
-
-
+        
         //check if all necessary attributes of the sub folder are set
         //and if they aren't set, set them here:
 
@@ -423,7 +425,7 @@ class FileManager
         $sub_folder->folder_type = get_class($sub_folder_type);
 
         $sub_folder->store();
-
+        
         return []; //no errors
     }
 
