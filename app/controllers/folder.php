@@ -18,9 +18,9 @@
  */
 class FolderController extends AuthenticatedController
 {
-    
+
     protected $utf8decode_xhr = true;
-    
+
     /**
      * This is a helper method that decides where a redirect shall be made
      * in case of error or success after an action was executed.
@@ -34,16 +34,16 @@ class FolderController extends AuthenticatedController
                 PageLayout::postMessage($message);
             }
         }
-        
+
         if(!Request::isDialog()) {
             //we only need to redirect when we're not in a dialog!
-            
+
             $dest_range = $folder->range_id;
-    
+
             switch ($folder->range_type) {
                 case 'course':
                 case 'institute':
-                    return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/' . $folder->id . '?cid=' . $dest_range));                            
+                    return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/' . $folder->id . '?cid=' . $dest_range));
                 case 'user':
                     return $this->redirect(URLHelper::getUrl('dispatch.php/files/index/' . $folder->id));
                 default:
@@ -51,8 +51,8 @@ class FolderController extends AuthenticatedController
             }
         }
     }
-    
-    
+
+
     /**
      * Helper action for views: If the abort button in a view is clicked this action is called
      * with the ID of a folder. It then loads the folder object and decides to which URL
@@ -65,62 +65,51 @@ class FolderController extends AuthenticatedController
             $this->redirectToFolder($folder);
         }
     }
-    
-    
+
     /**
      * Action for creating a new folder.
      */
     public function new_action()
     {
-        $this->parent_folder_id = Request::get('parent_folder_id');
-        $this->range_id = Request::get('range_id');
-        
-        //get parent folder:
-        $parent_folder = Folder::find($this->parent_folder_id);
-        if(!$parent_folder) {
-            if($this->parent_folder_id) {
-                //parent folder ID was given but parent folder was not found: that's an error!
-                PageLayout::postError(_('Übergeordnetes Verzeichnis nicht gefunden!'));
-                $this->render_text('');
-                return;
-            }
-            Folder::findTopFolder($this->range_id);
+
+        if (!$parent_folder = Folder::findTypedFolder(Request::option('parent_folder_id'))) {
+            throw new Trails_Exception(404, 'parent folder not found');
         }
-        
-        if(!$parent_folder) {
-            $this->render_text(
-                MessageBox::error(
-                    _('Das übergeordnete Verzeichnis kann nicht identifiziert werden!')
-                )
-            );
-            return;
+
+        if (!$parent_folder->isSubfolderAllowed($GLOBALS['user']->id)) {
+            throw new AccessDeniedException();
         }
-        
+
+        $this->parent_folder_id = $parent_folder->getId();
+        $this->range_id = $parent_folder->range_id;
+
+
+
         $folder_types = FileManager::getFolderTypes($parent_folder->range_type);
-        
+
         $this->folder_types = [];
-        
+
         foreach($folder_types as $folder_type) {
             $this->folder_types[] = [
                 'class' => $folder_type,
                 'name' => $folder_type::getTypeName()
             ];
         }
-        
+
         //get ID of course, institute, user etc.
         if (Request::get('form_sent')) {
-            
+
             $this->name = Request::get('name');
             $current_user = User::findCurrent();
-            
+
             if($this->name) {
                 //if $this->name and $this->parent_folder_id or $this->rangeId are present
                 //we have all required parameters to create a folder.
-                
-                $this->description = Request::get('description'); 
+
+                $this->description = Request::get('description');
                 $this->current_folder_type = Request::get('folder_type', 'StandardFolder');
-                
-                
+
+
                 if(!is_subclass_of($this->current_folder_type, FolderType)) {
                     if(Request::isDialog()) {
                         $this->render_text(MessageBox::error(_('Unbekannter Ordnertyp!'), $errors));
@@ -130,28 +119,27 @@ class FolderController extends AuthenticatedController
                     }
                     return;
                 }
-                
-                $parent_folder_type = $parent_folder->getTypedFolder();
-                
-                if($parent_folder_type->isWritable($current_user->id)) {
+
+
+                if($parent_folder->isWritable($current_user->id)) {
                     //current user may create a new folder in the parent folder
-                    
+
                     $folder = new Folder();
                     $folder->name = $this->name;
                     $folder->description = $this->description;
-                    
+
                     $folder_type = new $this->current_folder_type($folder);
-                    
+
                     $errors = FileManager::createSubFolder($folder, $parent_folder, $current_user, $folder_type);
-                    
-                    
+
+
                     if(!$errors) {
                         //FileManager::createSubFolder returned an empty array => no errors!
-                        
+
                         if(Request::isAjax()) {
                             $this->folder = $folder_type; //FolderType is the interface for all folders!
                             $this->marked_element_ids = [];
-                            
+
                             $this->render_text(
                                 $this->render_template_as_string('files/_folder_tr')
                             );
@@ -183,7 +171,7 @@ class FolderController extends AuthenticatedController
                     }
                     return;
                 }
-                                
+
                 /*
                 if($folder->range_type == 'user') {
                     return $this->redirect(URLHelper::getUrl('dispatch.php/files/index/'.$parent_folder->id));
@@ -193,27 +181,27 @@ class FolderController extends AuthenticatedController
                     return $this->redirect(URLHelper::getUrl('dispatch.php/institute/files/index/'.$parent_folder->id));
                 }
                 */
-                
+
             } else {
                 PageLayout::postError(
                     _('Es wurde kein Name angegeben!')
                 );
             }
         }
-        
-        
+
+
         if(Request::isDialog()) {
             $this->render_template('file/new_folder.php');
         } else {
             $this->render_template('file/new_folder.php', $GLOBALS['template_factory']->open('layouts/base'));
         }
-        
+
     }
-    
-    
+
+
     /**
      * Action for editing an existing folder, referenced by its ID.
-     * 
+     *
      * @param string folder_id The ID of the folder that shall be edited.
      */
     public function edit_action($folder_id)
@@ -225,7 +213,7 @@ class FolderController extends AuthenticatedController
             );
             return;
         }
-        
+
         $this->folder = Folder::find($folder_id);
         if(!$this->folder) {
             $this->render_text(
@@ -233,25 +221,25 @@ class FolderController extends AuthenticatedController
             );
             return;
         }
-        
+
         $this->folder_id = $this->folder->id;
         $this->parent_folder_id = $this->folder->parent_id;
-        
+
         $current_user = User::findCurrent();
-        
+
         //permission check: is the current allowed to edit the folder?
-        
+
         $folder_type = $this->folder->getTypedFolder();
-        
+
         if($folder_type->isWritable($current_user->id)) {
-            
+
             if(Request::get('form_sent')) {
                 //update edited fields
                 $this->name = Request::get('name');
                 $this->description = Request::get('description');
-                
+
                 $errors = FileManager::editFolder($this->folder, $current_user, $this->name, $this->description);
-                
+
                 if(empty($errors)) {
                     $this->redirectToFolder($this->folder, MessageBox::success(_('Ordner wurde bearbeitet!')));
                 } else {
@@ -260,34 +248,34 @@ class FolderController extends AuthenticatedController
                 return;
             } else {
                 //show current field values:
-                
+
                 $this->name = $this->folder->name;
                 $this->description = $this->folder->description;
             }
         } else {
             //current user isn't permitted to change this folder:
             $error_message = MessageBox::error(_('Sie sind nicht dazu berechtigt, diesen Ordner zu bearbeiten!'));
-            
+
             $this->redirectToFolder($this->folder, $error_message);
-            
+
             return;
         }
-        
+
         if(Request::isDialog()) {
             $this->render_template('file/edit_folder.php');
         } else {
             $this->render_template('file/edit_folder.php', $GLOBALS['template_factory']->open('layouts/base'));
         }
     }
-    
-    
+
+
     /**
      * Common method for copying or moving folders.
-     * 
+     *
      * Since the process of copying or moving folders is very similar it is
      * unified into one method that distincts via a parameter, if it is in
      * copy or move mode.
-     * 
+     *
      * @param string folder_id The ID of the folder that shall be copied/moved.
      * @param bool copy True, if the folder shall be copied, otherwise false. Defaults to true.
      */
@@ -295,60 +283,60 @@ class FolderController extends AuthenticatedController
     {
         //we need the IDs of the folder and the target parent folder.
         //these should only be present when the form was sent.
-        
+
         if(!$folder_id) {
             $this->render_text(MessageBox::error(_('Ordner-ID nicht gefunden!')));
             return;
         }
-        
+
         $this->folder = Folder::find($folder_id);
         if(!$this->folder) {
             $this->render_text(MessageBox::error(_('Ordner nicht gefunden!')));
             return;
         }
-        
+
         $this->folder_id = $folder_id;
         $this->parent_folder_id = $this->folder->parent_id;
-        
+
         $current_user = User::findCurrent();
-        
+
         $folder_type = $this->folder->getTypedFolder();
-        
+
         if($copy && !$folder_type->isReadable($current_user->id)) {
             //not permitted to copy the folder:
             $this->render_text(MessageBox::error(_('Sie sind nicht dazu berechtigt, den Ordner zu kopieren!')));
             return;
         }
-        
+
         if(!$copy && !$folder_type->isWritable($current_user->id)) {
             //not permitted to move the folder:
             $this->render_text(MessageBox::error(_('Sie sind nicht dazu berechtigt, den Ordner zu verschieben!')));
             return;
         }
-        
-        
+
+
         //check if form was sent:
-        
+
         if(Request::submitted('form_sent')) {
             $target_folder_id = Request::get('dest_folder');
             if(!$target_folder_id) {
                 $this->render_text(MessageBox::error(_('Zielordner-ID nicht gefunden!')));
                 return;
             }
-            
+
             $this->target_folder = Folder::find($target_folder_id);
             if(!$this->target_folder) {
                 $this->render_text(MessageBox::error(_('Zielordner nicht gefunden!')));
                 return;
             }
-            
+
             //ok, all data are present... now we have to check the permissions:
-            
+
             $target_folder_type = $this->folder->getTypedFolder();
-        
+
             if($copy) {
                 $errors = FileManager::copyFolder($this->folder, $this->target_folder, $current_user);
-                
+
                 if(!$errors) {
                     $this->redirectToFolder($this->target_folder, MessageBox::success(_('Ordner erfolgreich kopiert!')));
                 } else {
@@ -357,7 +345,7 @@ class FolderController extends AuthenticatedController
             } else {
                 //ok, we can move the folder!
                 $errors = FileManager::moveFolder($this->folder, $this->target_folder, $current_user);
-                
+
                 if(!$errors) {
                     $this->redirectToFolder($this->target_folder, MessageBox::success(_('Ordner erfolgreich verschoben!')));
                 } else {
@@ -366,8 +354,8 @@ class FolderController extends AuthenticatedController
             }
             return;
         }
-        
-        
+
+
         if ($GLOBALS['perm']->have_perm('root')) {
             $parameters = array(
                 'semtypes' => studygroup_sem_types() ?: array(),
@@ -381,7 +369,7 @@ class FolderController extends AuthenticatedController
                 }, Institute::getMyInstitutes()),
                 'exclude' => array()
                 );
-        
+
         } else {
             $parameters = array(
                 'userid' => $current_user->id,
@@ -389,14 +377,14 @@ class FolderController extends AuthenticatedController
                 'exclude' => array()
             );
         }
-        
+
         $course_search = MyCoursesSearch::get('Seminar_id', $GLOBALS['perm']->get_perm(), $parameters);
         $this->search = QuickSearch::get('course_id', $course_search)
             ->setInputStyle('width:100%')
             ->fireJSFunctionOnSelect('function(){STUDIP.Files.getFolders();}')
             ->withButton()
             ->render();
-        
+
         $institute_sql =  "SELECT DISTINCT Institute.Institut_id, Institute.Name " .
                     "FROM Institute " .
                     "LEFT JOIN range_tree ON (range_tree.item_id = Institute.Institut_id) " .
@@ -407,47 +395,47 @@ class FolderController extends AuthenticatedController
                     "OR Institute.email LIKE :input " .
                     "OR range_tree.name LIKE :input " .
                     "ORDER BY Institute.Name";
-        
+
         $institute_search = SQLSearch::get($institute_sql, _("Einrichtung suchen"), 'Institut_id');
         $this->inst_search = QuickSearch::get('Institut_id', $institute_search)
             ->setInputStyle('width:100%')
             ->fireJSFunctionOnSelect('function(){STUDIP.Files.getFolders();}')
             ->withButton()
             ->render();
-        
+
         $this->copy_mode = $copy; //for the view: copy and move both use the file/move_folder view
-        
-        
+
+
         if(Request::isDialog()) {
             $this->render_template('file/move_folder.php');
         } else {
             $this->render_template('file/move_folder.php', $GLOBALS['template_factory']->open('layouts/base'));
         }
     }
-    
-    
+
+
     /**
      * Action for copying a folder, referenced by its ID.
-     * 
+     *
      * This action does nothing but calling the copyOrMove method.
      */
     public function copy_action($folder_id)
     {
         $this->copyOrMove($folder_id, true);
     }
-    
-    
+
+
     /**
      * Action for moving a folder, referenced by its ID.
-     * 
+     *
      * This action does nothing but calling the copyOrMove method.
      */
     public function move_action($folder_id)
     {
         $this->copyOrMove($folder_id, false);
     }
-    
-    
+
+
     /**
      * Action for deleting a folder, referenced by its ID.
      */
@@ -458,17 +446,17 @@ class FolderController extends AuthenticatedController
             $this->render_text(MessageBox::error(_('Ordner-ID nicht gefunden!')));
             return;
         }
-        
+
         $this->folder = Folder::find($folder_id);
         if(!$this->folder) {
             $this->render_text(MessageBox::error(_('Ordner nicht gefunden!')));
             return;
         }
-        
+
         //ok, check permissions:
-        
+
         $currentUser = User::findCurrent();
-        
+
         if(($this->folder->user_id == $currentUser->id) or $GLOBALS['perm']->have_perm('admin')) {
             $this->folder->delete();
             $this->render_text(MessageBox::success(_('Ordner wurde gelöscht!')));
@@ -480,7 +468,7 @@ class FolderController extends AuthenticatedController
         }
         //DEVELOPMENT STAGE ONLY:
         //return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/'.$parentFolder->id));
-        
+
         if(Request::isDialog()) {
             $this->render_template('file/delete.php');
         } else {

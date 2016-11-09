@@ -1,8 +1,5 @@
-<? if (!$folder->isVisible($GLOBALS['user']->id)) continue; ?>
 <? $is_readable = $folder->isReadable($GLOBALS['user']->id) ?>
 <? $owner = User::find($folder->user_id) ?: new User() ?>
-<? $is_empty = count($folder->getSubfolders()) + count($folder->getFiles()) == 0 ?>
-<? $foldershape = call_user_func([get_class($folder), 'getIconShape']) ?>
 <tr>
     <td>
         <? if ($is_readable) : ?>
@@ -13,11 +10,7 @@
         <? if ($is_readable) : ?>
             <a href="<?= $controller->url_for('files/index/' . $folder->getId()) ?>">
         <? endif ?>
-        <? if ($is_empty): ?>
-            <?= Icon::create($foldershape . '-empty', $is_readable ? 'clickable': '')->asImg(24) ?>
-        <? else: ?>
-            <?= Icon::create($foldershape . '-full', $is_readable ? 'clickable': '')->asImg(24) ?>
-        <? endif; ?>
+            <?= $folder->getIcon($is_readable ? 'clickable': 'info')->asImg(24) ?>
         <? if ($is_readable) : ?>
         </a>
         <? endif ?>

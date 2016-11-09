@@ -51,7 +51,7 @@ interface FolderType
      *
      * @return string Name of the icon shape for the FolderType implementation.
      */
-    static public function getIconShape();
+    public function getIcon($role);
 
     public function getId();
 

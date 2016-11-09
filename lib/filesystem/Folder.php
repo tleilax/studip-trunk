@@ -85,6 +85,14 @@ class Folder extends SimpleORMap
     }
 
 
+    public static function findTypedFolder($id)
+    {
+        $folder = self::find($id);
+        if ($folder) {
+            return $folder->getTypedFolder();
+        }
+    }
+
     /**
      * Creates a top folder (root directory) for a Stud.IP object given by range_id and range_type.
      *
@@ -247,7 +255,7 @@ class Folder extends SimpleORMap
      * determined.
      *
      * @return FolderType An object of a FolderType derivate.
-     * @throws InvalidValuesException If the class specified by the folder's folder_type attribute can't be found an Exception is thrown.
+     * @throws UnexpectedValueException If the class specified by the folder's folder_type attribute can't be found an Exception is thrown.
      */
     public function getTypedFolder()
     {
@@ -255,22 +263,16 @@ class Folder extends SimpleORMap
             if(is_subclass_of($this->folder_type, 'FolderType')) {
                 return new $this->folder_type($this);
             } else {
-                throw new InvalidValuesException(
+                throw new UnexpectedValueException(
                     sprintf(
-                        'Error in Folder.php: Class %s (from folder %s) does not implement the FolderType interface!',
+                        'Class %s (from folder %s) does not implement the FolderType interface!',
                         $this->folder_type,
                         $this->id
                     )
                 );
             }
         } else {
-            throw new InvalidValuesException(
-                sprintf(
-                    'Error in Folder.php: Class %s (from folder %s) not found!',
-                    $this->folder_type,
-                    $this->id
-                )
-            );
+            return new UnknownFolderType($this);
         }
     }
 

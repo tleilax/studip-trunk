@@ -38,11 +38,12 @@ class StandardFolder implements FolderType
     }
 
     /**
-     * @return string
+     * @return Icon
      */
-    static public function getIconShape()
+    public function getIcon($role = Icon::DEFAULT_ROLE)
     {
-        return 'folder';
+        $shape = count($this->getSubfolders()) + count($this->getFiles()) == 0 ? 'folder-empty' : 'folder-full';
+        return Icon::create($shape, $role);
     }
 
     /**
@@ -78,7 +79,7 @@ class StandardFolder implements FolderType
      */
     public function isVisible($user_id)
     {
-        return true;
+        return ($this->range_type == 'user' && $this->range_id == $user_id) || Seminar_Perm::get()->have_studip_perm('user', $this->range_id, $user_id);
     }
 
     /**
@@ -87,7 +88,7 @@ class StandardFolder implements FolderType
      */
     public function isReadable($user_id)
     {
-        return true;
+        return ($this->range_type == 'user' && $this->range_id == $user_id) || Seminar_Perm::get()->have_studip_perm('user', $this->range_id, $user_id);
     }
 
     /**
@@ -96,7 +97,7 @@ class StandardFolder implements FolderType
      */
     public function isWritable($user_id)
     {
-        return ($this->range_type == 'user' && $GLOBALS['user']->id == $user_id) || Seminar_Perm::get()->have_studip_perm('tutor', $this->range_id, $user_id);
+        return ($this->range_type == 'user' && $this->range_id == $user_id) || Seminar_Perm::get()->have_studip_perm('tutor', $this->range_id, $user_id);
     }
 
     /**
@@ -105,7 +106,7 @@ class StandardFolder implements FolderType
      */
     public function isSubfolderAllowed($user_id)
     {
-        return true;
+        return ($this->range_type == 'user' && $this->range_id == $user_id) || Seminar_Perm::get()->have_studip_perm('tutor', $this->range_id, $user_id);
     }
 
     /**
@@ -197,7 +198,7 @@ class StandardFolder implements FolderType
      */
     public function getParent()
     {
-        return FolderFactory::get()->init($this->folderdata->parentfolder);
+        return $this->folderdata->parentfolder ? $this->folderdata->parentfolder->getTypedFolder() : null;
     }
 
     /**

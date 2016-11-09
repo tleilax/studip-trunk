@@ -47,6 +47,7 @@
 <? elseif (count($topFolder->getSubfolders())) : ?>
     <tbody>
     <? foreach ($topFolder->getSubfolders() as $folder) : ?>
+        <? if (!$folder->isVisible($GLOBALS['user']->id)) continue; ?>
         <?= $this->render_partial('files/_folder_tr', ['folder' => $folder, 'marked_element_ids' => $marked_element_ids]) ?>
     <? endforeach ?>
     </tbody>
