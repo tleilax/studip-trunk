@@ -71,9 +71,8 @@ STUDIP.Files = {
                             title: 'Lizenz auswählen'.toLocaleString()
                         });
                     } else {
-                        console.log(json);
                         jQuery.each(json.new_html, function (index, tr) {
-                            jQuery(tr).hide().appendTo(".documents[data-folder_id] tbody.files").delay(index * 200).fadeIn(300);
+                            STUDIP.Files.addFile(tr, index * 200);
                         });
                         STUDIP.Dialog.close();
                     }
@@ -84,6 +83,25 @@ STUDIP.Files = {
                      jQuery(textarea).next(".uploader").removeClass("uploading");*/
                 }
             });
+        }
+    },
+    addFile: function (html, delay) {
+        if (typeof delay === "undefined") {
+            delay = 0;
+        }
+        window.setTimeout(STUDIP.Dialog.close, 20);
+        var tr;
+        if ((typeof html !== "array") && (typeof html !== "object")) {
+            html = [html];
+        }
+        for (var i in html) {
+            tr = jQuery(html[i]);
+            if (jQuery("#" + tr.attr("id")).length > 0) {
+                jQuery("#" + tr.attr("id")).replaceWith(tr);
+            } else {
+                jQuery(".documents[data-folder_id] tbody.files").append(html[i]);
+                tr.hide().delay(delay + i * 200).fadeIn(300);
+            }
         }
     },
     removeFile: function (fileref_id) {

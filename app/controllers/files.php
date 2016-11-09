@@ -187,8 +187,18 @@ class FilesController extends AuthenticatedController
                     )));
                     $this->render_nothing();
                 } else {
-                    $this->response->add_header("X-Dialog-Execute", "STUDIP.Files.reloadPage");
-                    $this->render_text(MessageBox::success(_("Datei wurde hinzugefügt.")));
+                    if (Request::isAjax()) {
+                        $this->file_ref = $file_ref;
+                        $this->current_folder = $this->to_folder_type;
+                        $this->marked_element_ids = array();
+                        $payload = $this->render_template_as_string("files/_fileref_tr");
+
+                        $payload = array("func" => "STUDIP.Files.addFile", 'payload' => $payload);
+                        $this->response->add_header("X-Dialog-Execute", json_encode(studip_utf8encode($payload)));
+                        $this->render_nothing();
+                    } else {
+                        $this->render_text(MessageBox::success(_("Datei wurde hinzugefügt.")));
+                    }
                 }
             } else {
                 PageLayout::postMessage(MessageBox::error(_("Konnte die Datei nicht hinzufügen.", array($error))));
@@ -222,9 +232,18 @@ class FilesController extends AuthenticatedController
                 $file_ref['content_terms_of_use_id'] = Request::option("license_id");
                 $file_ref->store();
             }
-            if (Request::isDialog()) {
-                $this->response->add_header("X-Dialog-Execute", "STUDIP.Files.reloadPage");
-                $this->render_text(MessageBox::success(_("Datei wurde bearbeitet.")));
+            if (Request::isAjax()) {
+                $payload = array();
+
+                foreach ($this->file_refs as $file_ref) {
+                    $this->file_ref = $file_ref;
+                    $this->current_folder = $file_ref->folder->getTypedFolder();
+                    $this->marked_element_ids = array();
+                    $payload[] = $this->render_template_as_string("files/_fileref_tr");
+                }
+
+                $payload = array("func" => "STUDIP.Files.addFile", 'payload' => $payload);
+                $this->response->add_header("X-Dialog-Execute", json_encode(studip_utf8encode($payload)));
             } else {
                 PageLayout::postMessage(MessageBox::success(_("Datei wurde bearbeitet.")));
                 //redirect:
