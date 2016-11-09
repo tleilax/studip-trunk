@@ -12,6 +12,7 @@
         <?= _('Beschreibung') ?>
         <textarea name="description" placeholder="<?= _('Optionale Beschreibung') ?>"><?= htmlReady($description); ?></textarea>
     </label>
+    <? if($new_folder_form) : ?>
     <label>
         <?= _('Ordnertyp') ?>
         <select name="folder_type">
@@ -24,4 +25,5 @@
         <? endif ?>
         </select>
     </label>
+    <? endif ?>
 </fieldset>

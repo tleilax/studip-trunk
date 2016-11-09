@@ -140,14 +140,25 @@ class FolderController extends AuthenticatedController
                     $folder->name = $this->name;
                     $folder->description = $this->description;
                     
-                    $errors = FileManager::createSubFolder($folder, $parent_folder, $current_user, new $this->current_folder_type($folder));
+                    $folder_type = new $this->current_folder_type($folder);
+                    
+                    $errors = FileManager::createSubFolder($folder, $parent_folder, $current_user, $folder_type);
                     
                     
                     if(!$errors) {
                         //FileManager::createSubFolder returned an empty array => no errors!
                         
-                        $this->redirectToFolder($parent_folder, MessageBox::success(_('Ordner wurde angelegt!')));
-                        return;
+                        if(Request::isAjax()) {
+                            $this->folder = $folder_type; //FolderType is the interface for all folders!
+                            $this->marked_element_ids = [];
+                            
+                            $this->render_text(
+                                $this->render_template_as_string('files/_folder_tr')
+                            );
+                        } else {
+                            $this->redirectToFolder($parent_folder, MessageBox::success(_('Ordner wurde angelegt!')));
+                            return;
+                        }
                     } else {
                         if(Request::isDialog()) {
                             $this->render_text(MessageBox::error(_('Fehler beim Anlegen des Ordners'), $errors));

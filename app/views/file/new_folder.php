@@ -9,7 +9,8 @@
         [ 
             'name' => $name,
             'description' => $description,
-            'folder_types' => $folder_types
+            'folder_types' => $folder_types,
+            'new_folder_form' => true
         ]) ?>
     <div data-dialog-button>
         <?= Studip\Button::createAccept(_('Erstellen')) ?>
