@@ -392,8 +392,8 @@ class FileManager
             //we can't create a special folder in another special folder!
             $errors[] = sprintf(
                 _('Ein Ordner vom Typ %s kann nicht in einem Ordner vom Typ %s erzeugt werden!'),
-                $sub_folder_type->getTypeName(),
-                $destination_folder_type->getTypeName()
+                get_class($sub_folder_type),
+                get_class($destination_folder_type)
             );
         }
 
