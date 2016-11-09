@@ -99,8 +99,7 @@ STUDIP.Files = {
             if (jQuery("#" + tr.attr("id")).length > 0) {
                 jQuery("#" + tr.attr("id")).replaceWith(tr);
             } else {
-                jQuery(".documents[data-folder_id] tbody.files").append(html[i]);
-                tr.hide().delay(delay + i * 200).fadeIn(300);
+                tr.hide().appendTo(".documents[data-folder_id] tbody.files").delay(500 + delay + i * 200).fadeIn(300);
             }
         }
     },
