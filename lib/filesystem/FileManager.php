@@ -384,11 +384,25 @@ class FileManager
         //check if user is owner of parent folder:
         $destination_folder_type = $destination_folder->getTypedFolder();
 
+        //check if the sub folder type is creatable in a StandardFolder,
+        //if the destination folder is a StandardFolder:
+        if((get_class($destination_folder_type) == 'StandardFolder') &&
+            !$sub_folder_type->creatableInStandardFolder($destination_folder->range_type)) {
+            
+            $errors[] = sprintf(
+                _('Ein Ordner vom Typ %s kann nicht in einem Ordner vom Typ %s erzeugt werden!'),
+                get_class($sub_folder_type),
+                'StandardFolder'
+            );
+        }
+            
+        
+        
         
         //check if destination_folder is a standard folder
 
         if((get_class($destination_folder_type) != 'StandardFolder') &&
-            (get_class($sub_folder_type) != 'StandardFolder')) {
+            (get_class($sub_folder_type) != get_class($destination_folder_type))) {
             //we can't create a special folder in another special folder!
             $errors[] = sprintf(
                 _('Ein Ordner vom Typ %s kann nicht in einem Ordner vom Typ %s erzeugt werden!'),
