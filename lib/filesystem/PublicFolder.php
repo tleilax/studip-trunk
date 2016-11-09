@@ -22,7 +22,7 @@ class PublicFolder extends StandardFolder
     
     static public function getIconShape()
     {
-        return 'folder-full';
+        return 'folder';
     }
     
     
