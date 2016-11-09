@@ -8,6 +8,7 @@
       data-dialog="reload-on-close"
     <? endif ?>
     >
+    <?= CSRFProtection::tokenTag() ?>
     <div id="copymove-destination">
         <label for="destination"><?= _('Ziel'); ?></label>
         <select id="destination">

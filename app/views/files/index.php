@@ -1,4 +1,5 @@
 <form method="post">
+<?= CSRFProtection::tokenTag() ?>
 <table class="default documents" data-folder_id="<?= htmlReady($topFolder->getId()) ?>">
     <caption>
         <div class="caption-container">

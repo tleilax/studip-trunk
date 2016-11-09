@@ -4,6 +4,7 @@
       data-dialog="reload-on-close;size=auto"
       <? endif ?>
       >
+    <?= CSRFProtection::tokenTag() ?>
     <?= $this->render_partial('file/new_edit_folder_form.php',
         [
             'name' => $name,

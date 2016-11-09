@@ -4,6 +4,7 @@
       data-dialog="reload-on-close;size=auto"
       <? endif ?>
       >
+    <?= CSRFProtection::tokenTag() ?>
     <input type="hidden" name="parent_folder_id" value="<?= $parent_folder_id ?>">
     <?= $this->render_partial('file/new_edit_folder_form.php',
         [ 
