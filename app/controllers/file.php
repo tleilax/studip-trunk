@@ -98,13 +98,15 @@ class FileController extends AuthenticatedController
                     $output = array(
                         "new_html" => array()
                     );
-                    $ref_ids = array();
-                    foreach ($storedFiles as $file_ref) {
-                        $ref_ids[] = $file_ref->getId();
+                    if (in_array($folder['range_type'], array("course", "institute"))) {
+                        $ref_ids = array();
+                        foreach ($storedFiles as $file_ref) {
+                            $ref_ids[] = $file_ref->getId();
+                        }
+                        $output['redirect'] = URLHelper::getURL("dispatch.php/files/edit_license", array(
+                            'file_refs' => $ref_ids
+                        ));
                     }
-                    $output['redirect'] = URLHelper::getURL("dispatch.php/files/edit_license", array(
-                        'file_refs' => $ref_ids
-                    ));
 
                     foreach ($storedFiles as $fileref) {
                         $this->fileref = $fileref;
