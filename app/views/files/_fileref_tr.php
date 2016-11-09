@@ -1,6 +1,9 @@
-<tr <? if ($full_access) printf('data-file="%s"', $file_ref->id) ?>>
+<tr <? if ($full_access) printf('data-file="%s"', $file_ref->id) ?> id="fileref_<?= htmlReady($file_ref->id) ?>">
     <td>
-        <input type="checkbox" name="ids[]" value="<?= $file_ref->id ?>" <? if (in_array($file_ref->id, $marked_element_ids)) echo 'checked'; ?>>
+        <input type="checkbox"
+               name="ids[]"
+               value="<?= $file_ref->id ?>"
+               <? if (in_array($file_ref->id, (array) $marked_element_ids)) echo 'checked'; ?>>
     </td>
     <td class="document-icon" data-sort-value="1">
         <? if ($current_folder->isFileDownloadable($file_ref, $GLOBALS['user']->id)) : ?>
@@ -65,9 +68,12 @@
             <? $actionMenu->addLink($controller->url_for('file/delete/' . $file_ref->id),
                 _('Datei löschen'),
                 Icon::create('trash', 'clickable'),
-                ['data-confirm' => sprintf(_('Soll die Datei "%s" wirklich gelöscht werden?'), htmlReady($file_ref->name)),
-                    'data-dialog' => 'size=auto',
-                    'formaction' => $controller->url_for('file/delete/' . $file_ref->id)]) ?>
+                [
+                    //'data-confirm' => sprintf(_('Soll die Datei "%s" wirklich gelöscht werden?'), htmlReady($file_ref->name)),
+                    //'data-dialog' => '1'//,
+                    'onClick' => "STUDIP.Dialog.confirm('".sprintf(_('Soll die Datei "%s" wirklich gelöscht werden?'), htmlReady($file_ref->name))."', function () { STUDIP.Files.removeFile('". $file_ref->id . "'); }); return false;"
+                    //'formaction' => $controller->url_for('file/delete/' . $file_ref->id)
+                ]) ?>
         <? endif; ?>
         <?= $actionMenu->render() ?>
     </td>

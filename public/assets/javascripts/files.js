@@ -4,7 +4,6 @@
 STUDIP.Files = {
     openAddFilesWindow: function (folder_id) {
         if (jQuery('.files_source_selector').length > 0) {
-            console.log(jQuery('.files_source_selector').html());
             STUDIP.Dialog.show(jQuery('.files_source_selector').html(), {
                 title: 'Datei hinzufügen'.toLocaleString()
             });
@@ -72,7 +71,11 @@ STUDIP.Files = {
                             title: 'Lizenz auswählen'.toLocaleString()
                         });
                     } else {
-                        STUDIP.Files.reloadPage();
+                        console.log(json);
+                        jQuery.each(json.new_html, function (index, tr) {
+                            jQuery(tr).hide().appendTo(".documents[data-folder_id] tbody.files").delay(index * 200).fadeIn(300);
+                        });
+                        STUDIP.Dialog.close();
                     }
                 },
                 'complete': function () {
@@ -82,9 +85,20 @@ STUDIP.Files = {
                 }
             });
         }
-
     },
-
+    removeFile: function (fileref_id) {
+        console.log(fileref_id);
+        jQuery.ajax({
+            url: STUDIP.ABSOLUTE_URI_STUDIP + "dispatch.php/file/delete/" + fileref_id,
+            type: "post",
+            success: function () {
+                console.log(jQuery(".documents tbody.files > tr#fileref_" + fileref_id));
+                jQuery(".documents tbody.files > tr#fileref_" + fileref_id).fadeOut(300, function () {
+                    jQuery(this).remove();
+                });
+            }
+        });
+    },
     reloadPage: function () {
         STUDIP.Dialog.close();
         location.reload();

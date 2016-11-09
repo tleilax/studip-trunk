@@ -130,7 +130,7 @@
     </tbody>
 <? endif; ?>
 <? if (count($topFolder->getFiles()) && $topFolder->isReadable($GLOBALS['user']->id)) : ?>
-    <tbody>
+    <tbody class="files">
     <? foreach ($topFolder->getFiles() as $file_ref) : ?>
         <?= $this->render_partial("files/_fileref_tr", ['file_ref' => $file_ref, 'current_folder' => $topFolder]) ?>
     <? endforeach; ?>

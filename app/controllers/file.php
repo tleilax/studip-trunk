@@ -26,7 +26,7 @@ class FileController extends AuthenticatedController
      */
     private function redirectToFolder(Folder $folder, $message = null)
     {
-        if($message instanceof MessageBox) {
+        if ($message instanceof MessageBox) {
             if(Request::isDialog()) {
                 $this->render_text($message);
             } else {
@@ -34,7 +34,7 @@ class FileController extends AuthenticatedController
             }
         }
         
-        if(!Request::isDialog()) {
+        if (!Request::isDialog()) {
             //we only need to redirect when we're not in a dialog!
             
             $dest_range = $folder->range_id;
@@ -95,6 +95,7 @@ class FileController extends AuthenticatedController
                     );
                 }
                 if (Request::isAjax()) {
+                    $new_html = array();
                     $output = array(
                         "new_html" => array()
                     );
@@ -109,8 +110,10 @@ class FileController extends AuthenticatedController
                     }
 
                     foreach ($storedFiles as $fileref) {
-                        $this->fileref = $fileref;
-                        $this->controller = $this;
+                        $this->file_ref = $fileref;
+                        $this->current_folder = $folder->getTypedFolder();
+                        $this->marked_element_ids = array();
+                        $output['new_html'][] = $this->render_template_as_string("files/_fileref_tr");
                     }
                     $this->render_json($output);
                 }
@@ -123,8 +126,8 @@ class FileController extends AuthenticatedController
     
     public function download_action($file_id)
     {
-        if($fileId) {
-            $file = File::find($fileId);
+        if($file_id) {
+            $file = File::find($file_id);
             if($file) {
                 $dataPath = $file->getPath();
                 
@@ -408,10 +411,14 @@ class FileController extends AuthenticatedController
             if($file_ref) {
                 $folder = $file_ref->folder;
                 $file_ref->delete();
-                return $this->redirectToFolder(
-                    $folder,
-                    MessageBox::success(_('Datei wurde gelöscht!'))
-                );
+                if (Request::isAjax() && !Request::isDialog()) {
+                    $this->render_nothing();
+                } else {
+                    return $this->redirectToFolder(
+                        $folder,
+                        MessageBox::success(_('Datei wurde gelöscht!'))
+                    );
+                }
             } else {
                 //file not found
                 PageLayout::postError(_('Datei nicht gefunden!'));
