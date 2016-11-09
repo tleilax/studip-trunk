@@ -668,7 +668,7 @@ class FileManager
      *
      * @param range_type the range type: "course", "institute", "user", ...
      *
-     * @return Array with strings representing the class names of available folder types.
+     * @return array with strings representing the class names of available folder types.
      *
      */
     public static function getFolderTypes($range_type = null)

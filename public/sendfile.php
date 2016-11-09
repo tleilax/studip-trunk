@@ -62,8 +62,8 @@ $folder = $file_ref->folder->getTypedFolder();
 $no_access = true;
 
 //download from course or institute or document is a message attachement
-if ($file_ref->folder && in_array($type, array(0, 6, 7))) {
-    $no_access = !$folder->isReadable($GLOBALS['user']->id) /*|| !$file_ref->getLicense()->isDownloadable($file_ref)*/;
+if ($folder && in_array($type, array(0, 6, 7))) {
+    $no_access = !$folder->isFileDownloadable($file_ref, $GLOBALS['user']->id);
 }
 //download from archive, allowed if former participant
 if ($type == 1){
