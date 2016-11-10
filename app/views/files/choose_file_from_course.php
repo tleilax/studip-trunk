@@ -9,8 +9,14 @@ if (Request::get("range_type")) {
 ?>
 
 <? if ($GLOBALS['perm']->have_perm("admin")) : ?>
-    <form action="<?= $controller->link_for("files/choose_file_from_course/".$folder_id) ?>" method="get">
-        <?= QuickSearch::get("course_id", new StandardSearch("Seminar_id"))->render() ?>
+    <form id="filechooser_course_search"
+          action="<?= $controller->link_for("files/choose_file_from_course/".$folder_id) ?>"
+          method="get"
+          data-dialog>
+        <?= QuickSearch::get("course_id", new StandardSearch("Seminar_id"))
+            ->fireJSFunctionOnSelect("function () { jQuery('#filechooser_course_search').submit(); }")
+            ->setInputStyle("width: calc(100% - 40px); margin: 20px;")
+            ->render() ?>
     </form>
 <? else : ?>
     <table class="default">
