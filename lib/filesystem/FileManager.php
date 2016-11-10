@@ -375,7 +375,7 @@ class FileManager
         $errors = [];
 
         //echo "sfname = " . $sub_folder->name;
-        
+
         //check if sub_folder is new:
         if(!$sub_folder->isNew()) {
             $errors[] = _('Ein bereits erstellter Ordner kann nicht neu erzeugt werden!');
@@ -387,17 +387,17 @@ class FileManager
         //if the destination folder is a StandardFolder:
         if((get_class($destination_folder_type) == 'StandardFolder') &&
             !$sub_folder_type->creatableInStandardFolder($destination_folder_type->range_type)) {
-            
+
             $errors[] = sprintf(
                 _('Ein Ordner vom Typ %s kann nicht in einem Ordner vom Typ %s erzeugt werden!'),
                 get_class($sub_folder_type),
                 'StandardFolder'
             );
         }
-            
-        
-        
-        
+
+
+
+
         //check if destination_folder is a standard folder
 
         if((get_class($destination_folder_type) != 'StandardFolder') &&
@@ -419,11 +419,11 @@ class FileManager
         if(!empty($errors)) {
             return $errors;
         }
-        
-        
+
+
         //check if folder name is unique and change it, if it isn't:
         $sub_folder->name = $destination_folder->getUniqueName($sub_folder->name);
-        
+
         //check if all necessary attributes of the sub folder are set
         //and if they aren't set, set them here:
 
@@ -438,7 +438,7 @@ class FileManager
         $sub_folder->folder_type = get_class($sub_folder_type);
 
         $sub_folder->store();
-        
+
         return []; //no errors
     }
 
@@ -738,6 +738,29 @@ class FileManager
         };
         array_walk($top_folder->getSubFolders(), $array_walker);
         return compact('files', 'folders');
+    }
+    
+    /**
+     * @param $id
+     * @param null $pluginclass
+     * @return FolderType
+     */
+    public static function getTypedFolder($id, $pluginclass = null)
+    {
+        if (!isset($pluginclass)) {
+            $folder = Folder::find($id);
+            if ($folder) {
+                return $folder->getTypedFolder();
+            }
+        } else {
+            $plugin = PluginManager::getInstance()->getPlugin($pluginclass);
+            if ($plugin instanceof FilesystemPlugin) {
+                $folder = $plugin->getFolder($id);
+                if ($folder instanceof FolderType) {
+                    return $folder;
+                }
+            }
+        }
     }
 
 }

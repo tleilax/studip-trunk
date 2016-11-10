@@ -85,13 +85,6 @@ class Folder extends SimpleORMap
     }
 
 
-    public static function findTypedFolder($id)
-    {
-        $folder = self::find($id);
-        if ($folder) {
-            return $folder->getTypedFolder();
-        }
-    }
 
     /**
      * Creates a top folder (root directory) for a Stud.IP object given by range_id and range_type.
