@@ -736,7 +736,8 @@ class FileManager
                 array_walk($top_folder->getSubFolders(), $array_walker);
             }
         };
-        array_walk($top_folder->getSubFolders(), $array_walker);
+        $top_folders = [$top_folder];
+        array_walk($top_folders, $array_walker);
         return compact('files', 'folders');
     }
 
