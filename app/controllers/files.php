@@ -205,11 +205,11 @@ class FilesController extends AuthenticatedController
             }
         }
         if (Request::get("plugin")) {
-            $this->plugin = PluginManager::getInstance()->getPlugin(Request::get("plugin"));
-            if (Request::get("search") && $this->plugin->hasSearch()) {
-                $this->top_folder = $this->plugin->search(Request::get("search"), Request::getArray("parameter"));
+            $this->filesystemplugin = PluginManager::getInstance()->getPlugin(Request::get("plugin"));
+            if (Request::get("search") && $this->filesystemplugin->hasSearch()) {
+                $this->top_folder = $this->filesystemplugin->search(Request::get("search"), Request::getArray("parameter"));
             } else {
-                $this->top_folder = $this->plugin->getFolder($folder_id, true);
+                $this->top_folder = $this->filesystemplugin->getFolder($folder_id, true);
                 if (is_a($this->top_folder, "Flexi_Template")) {
                     $this->top_folder->set_attribute("select", true);
                     $this->top_folder->set_attribute("to_folder", $this->to_folder);

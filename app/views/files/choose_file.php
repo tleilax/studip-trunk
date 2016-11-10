@@ -17,13 +17,14 @@ if (Request::get("to_folder_id")) {
 ?>
 
 <? if ($filesystemplugin && $filesystemplugin->hasSearch()) : ?>
-    <form action="<?= $controller->url_for('/choose_file/' . $top_folder->parent_id) ?>" method="get" class="default" data-dialog>
+    <form action="<?= $controller->url_for('/choose_file/' . $top_folder->parent_id) ?>" method="get" class="default" data-dialog style="margin-bottom: 50px;">
         <? foreach ($options as $key => $value) : ?>
             <input type="hidden" name="<?= htmlReady($key) ?>" value="<?= htmlReady($value) ?>">
         <? endforeach ?>
         <? $request_parameter = Request::getArray("parameter") ?>
-        <input type="text" name="search" value="<?= htmlReady(Request::get("search")) ?>" placeholder="<?= _("Suche nach ...") ?>">
-        <? foreach ($filesystemplugin->getSearchParameters() as $parameter) : ?>
+        <input type="text" name="search" value="<?= htmlReady(Request::get("search")) ?>" placeholder="<?= _("Suche nach ...") ?>" style="max-width: 100%;">
+
+        <? foreach ((array) $filesystemplugin->getSearchParameters() as $parameter) : ?>
             <label>
                 <? switch ($parameter['type']) {
                     case "text": ?>
@@ -49,6 +50,7 @@ if (Request::get("to_folder_id")) {
 
 <? endif ?>
 
+<? if ($top_folder) : ?>
 <table class="default">
     <thead>
         <tr>
@@ -113,10 +115,10 @@ if (Request::get("to_folder_id")) {
                     <td class="document-icon" data-sort-value="1">
                         <? if ($top_folder->isFileDownloadable($fileref, $GLOBALS['user']->id)) : ?>
                         <form action="<?= $controller->link_for('/choose_file/' . $top_folder->getId(), $options) ?>" method="post" data-dialog>
-                            <input type="hidden" name="file_id" value="<?= htmlReady($fileref->getId()) ?>">
+                            <input type="hidden" name="file_id" value="<?= htmlReady($fileref->id) ?>">
                             <a href="#" onClick="jQuery(this).closest('form').submit(); return false;">
                         <? endif ?>
-                                <?= Icon::create(get_icon_for_mimetype($fileref->file->mime_type), 'clickable')->asImg(24) ?>
+                                <?= Icon::create(get_icon_for_mimetype($fileref->mime_type), 'clickable')->asImg(24) ?>
                         <? if ($top_folder->isFileDownloadable($fileref, $GLOBALS['user']->id)) : ?>
                             </a>
                         </form>
@@ -125,10 +127,10 @@ if (Request::get("to_folder_id")) {
                     <td>
                         <? if ($top_folder->isFileDownloadable($fileref, $GLOBALS['user']->id)) : ?>
                         <form action="<?= $controller->link_for('/choose_file/' . $top_folder->getId(), $options) ?>" method="post" data-dialog>
-                            <input type="hidden" name="file_id" value="<?= htmlReady($fileref->getId()) ?>">
+                            <input type="hidden" name="file_id" value="<?= htmlReady($fileref->id) ?>">
                             <a href="#" onClick="jQuery(this).closest('form').submit(); return false;">
                         <? endif ?>
-                                <?= htmlReady($fileref->file->name) ?>
+                                <?= htmlReady($fileref->name) ?>
                         <? if ($top_folder->isFileDownloadable($fileref, $GLOBALS['user']->id)) : ?>
                             </a>
                         </form>
@@ -140,6 +142,7 @@ if (Request::get("to_folder_id")) {
         <? endif ?>
     <? endif ?>
 </table>
+<? endif ?>
 
 <?
 $options = array();
