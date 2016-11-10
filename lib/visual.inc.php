@@ -751,8 +751,12 @@ function get_icon_for_mimetype($mime_type)
     }
 
     $parts = explode('/', $mime_type);
-    if (reset($parts) === 'application' && in_array(end($parts), words('vnd.ms-excel msexcel x-msexcel x-ms-excel x-excel x-dos_ms_excel xls x-xls'))) {
-        return 'file-xls';
+    if (reset($parts) === 'application' && in_array(end($parts), words('vnd.ms-excel msexcel x-msexcel x-ms-excel x-excel x-dos_ms_excel xls x-xls vnd.openxmlformats-officedocument.spreadsheetml.sheet'))) {
+        return 'file-excel';
+    }
+    if (reset($parts) === 'application' && in_array(end($parts), words('vnd.ms-word msword x-msword x-ms-word x-word vnd.openxmlformats-officedocument.wordprocessingml.document
+'))) {
+        return 'file-office';
     }
     if (reset($parts) === 'application' && in_array(end($parts), words('7z arj rar zip'))) {
         return 'file-archive';
