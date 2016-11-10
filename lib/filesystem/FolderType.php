@@ -53,6 +53,10 @@ interface FolderType
      */
     public function getIcon($role);
 
+    /**
+     * Returns the ID of the folder that is managed from this FolderType instance.
+     * @return string ID of the folder.
+     */
     public function getId();
 
     /**
@@ -79,30 +83,43 @@ interface FolderType
     public function isVisible($user_id);
 
     /**
-     * @param $user_id
-     * @return boolean
+     * Determines if a user may read the content of the folder.
+     * @param $user_id The user who wishes to read the folder's content.
+     * @return boolean True, if the user is permitted to read the folder, false otherwise.
      */
     public function isReadable($user_id);
 
     /**
-     * @param $user_id
-     * @return boolean
+     * Determines if a user may have write permissions for the folder.
+     * @param $user_id The user who wishes to write into the folder.
+     * @return boolean True, if the user is permitted to write into the folder, false otherwise.
      */
     public function isWritable($user_id);
 
     /**
-     * @param $user_id
-     * @return boolean
+     * Determines if a user may create a subfolder in this folder.
+     * @param $user_id The user who wishes to create a subfolder.
+     * @return boolean True, if the user is permitted to create a subfolder, false otherwise.
      */
     public function isSubfolderAllowed($user_id);
 
     /**
+     * 
      * @return string
      */
     public function getDescriptionTemplate();
 
+    /**
+     * Returns a list of subfolders of this folder.
+     * @return Array List of folder objects
+     */
     public function getSubfolders();
 
+    
+    /**
+     * Returns a list of files of this folder.
+     * @return Array List of FileRef objects
+     */
     public function getFiles();
 
     public function getEditTemplate();
@@ -113,6 +130,12 @@ interface FolderType
      */
     public function setDataFromEditTemplate($folderdata);
 
+    /**
+     * Validates a file upload.
+     * 
+     * @param mixed file The file to be validated.
+     * @param string user_id The ID of the user who uploaded the file.
+     */
     public function validateUpload($file, $user_id);
 
     /**
@@ -128,10 +151,28 @@ interface FolderType
      */
     public function createSubfolder($folderdata);
 
+    /**
+     * Determines if a user may download the file.
+     * @param $file_id The file that shall be downloaded.
+     * @param $user_id The user who wishes to download the file.
+     * @return boolean True, if the user is permitted to download the file, false otherwise.
+     */
     public function isFileDownloadable($file_id, $user_id);
 
+    /**
+     * Determines if a user may edit the file.
+     * @param $file_id The file that shall be edited.
+     * @param $user_id The user who wishes to edit the file.
+     * @return boolean True, if the user is permitted to edit the file, false otherwise.
+     */
     public function isFileEditable($file_id, $user_id);
 
+    /**
+     * Determines if a user may write to the file.
+     * @param $file_id The file that shall be written.
+     * @param $user_id The user who wishes to write to the file.
+     * @return boolean True, if the user is permitted to write to the file, false otherwise.
+     */
     public function isFileWritable($file_id, $user_id);
 
 }
