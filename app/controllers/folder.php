@@ -72,13 +72,18 @@ class FolderController extends AuthenticatedController
     public function new_action()
     {
 
-        if (!$parent_folder = Folder::findTypedFolder(Request::option('parent_folder_id'))) {
+        if (!$parent_folder_object = Folder::find(Request::option('parent_folder_id'))) {
             throw new Trails_Exception(404, 'parent folder not found');
         }
-
+        
+        $parent_folder = $parent_folder_object->getTypedFolder();
+        
+        /*
+        TEMPORARY DISABLED!
         if (!$parent_folder->isSubfolderAllowed($GLOBALS['user']->id)) {
             throw new AccessDeniedException();
         }
+        */
 
         $this->parent_folder_id = $parent_folder->getId();
         $this->range_id = $parent_folder->range_id;
