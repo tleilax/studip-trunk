@@ -160,7 +160,7 @@ class FileRef extends SimpleORMap
         $mode = Config::get()->SENDFILE_LINK_MODE ?: 'normal';
         $link = array();
         $type = '0';
-        $file_name = $this->file->name;
+        $file_name = $this->name;
         $file_id = $this->id;
         switch($mode) {
             case 'rewrite':
