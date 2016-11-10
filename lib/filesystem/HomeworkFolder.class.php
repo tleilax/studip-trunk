@@ -133,4 +133,9 @@ class HomeworkFolder implements FolderType
     {
         return true; //STUB
     }
+
+    public function createSubfolder($folderdata)
+    {
+
+    }
 }

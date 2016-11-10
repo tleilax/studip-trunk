@@ -107,16 +107,26 @@ interface FolderType
 
     public function getEditTemplate();
 
-    public function setDataFromEditTemplate($request);
+    /**
+     * @param ArrayAccess|Array $folderdata
+     * @return FolderType|MessageBox : FolderType of the edited folder or MessageBox if an error occured
+     */
+    public function setDataFromEditTemplate($folderdata);
 
     public function validateUpload($file, $user_id);
 
     /**
      * Must create the file and return the FileRef object.
-     * @param $file
-     * @return mixed
+     * @param ArrayAccess|Array $file
+     * @return File|MessageBox : File of the created file or MessageBox if an error occured
      */
     public function createFile($file);
+
+    /**
+     * @param ArrayAccess|Array $folderdata
+     * @return FolderType|MessageBox : FolderType of the created folder or MessageBox if an error occured
+     */
+    public function createSubfolder($folderdata);
 
     public function isFileDownloadable($file_id, $user_id);
 

@@ -209,6 +209,11 @@ class StandardFolder implements FolderType
         return $this->folderdata->linkFile($file);
     }
 
+    public function createSubfolder($folderdata)
+    {
+
+    }
+
     /**
      * @param $fileref_or_id
      * @param $user_id

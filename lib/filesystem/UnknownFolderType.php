@@ -170,6 +170,11 @@ class UnknownFolderType implements FolderType
 
     }
 
+    public function createSubfolder($folderdata)
+    {
+
+    }
+
     /**
      * @param $fileref_or_id
      * @param $user_id

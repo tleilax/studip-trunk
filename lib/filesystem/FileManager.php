@@ -370,7 +370,7 @@ class FileManager
      * @returns string[] Array with error messages: Empty array on success, filled array on failure.
      *
      */
-    public static function createSubFolder(Folder $sub_folder, Folder $destination_folder, User $user, FolderType $sub_folder_type)
+    public static function createSubFolder(Folder $sub_folder, FolderType $destination_folder_type, User $user, FolderType $sub_folder_type)
     {
         $errors = [];
 
@@ -382,12 +382,11 @@ class FileManager
         }
 
         //check if user is owner of parent folder:
-        $destination_folder_type = $destination_folder->getTypedFolder();
 
         //check if the sub folder type is creatable in a StandardFolder,
         //if the destination folder is a StandardFolder:
         if((get_class($destination_folder_type) == 'StandardFolder') &&
-            !$sub_folder_type->creatableInStandardFolder($destination_folder->range_type)) {
+            !$sub_folder_type->creatableInStandardFolder($destination_folder_type->range_type)) {
             
             $errors[] = sprintf(
                 _('Ein Ordner vom Typ %s kann nicht in einem Ordner vom Typ %s erzeugt werden!'),
@@ -430,11 +429,11 @@ class FileManager
 
         $sub_folder->user_id = $user->id;
 
-        $sub_folder->range_id = $destination_folder->range_id;
+        $sub_folder->range_id = $destination_folder_type->range_id;
 
-        $sub_folder->parent_id = $destination_folder->id;
+        $sub_folder->parent_id = $destination_folder_type->getId();
 
-        $sub_folder->range_type = $destination_folder->range_type;
+        $sub_folder->range_type = $destination_folder_type->range_type;
 
         $sub_folder->folder_type = get_class($sub_folder_type);
 
