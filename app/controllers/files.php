@@ -42,6 +42,7 @@ class FilesController extends AuthenticatedController
         $actions = new ActionsWidget();
 
         if ($this->topFolder && $this->topFolder->isSubfolderAllowed($GLOBALS['user']->id)) {
+            //standard dialog version:
             $actions->addLink(
                 _('Neuer Ordner'),
                 URLHelper::getUrl('dispatch.php/folder/new',
@@ -49,6 +50,15 @@ class FilesController extends AuthenticatedController
                 Icon::create('folder-empty+add', 'clickable'),
                 array('data-dialog' => 'size=auto')
             );
+            
+            //JavaScript version:
+            $actions->addLink(
+                _('Neuer Ordner (JS)'),
+                URLHelper::getUrl('#'),
+                Icon::create('folder-empty+add', 'clickable'),
+                ['onclick' => 'STUDIP.Folders.openAddFoldersWindow(\''. $this->topFolder->getId() . '\', \'' . $this->user->id . '\'); return false;']
+            );
+            
 
         }
 

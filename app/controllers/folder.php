@@ -25,7 +25,7 @@ class FolderController extends AuthenticatedController
      * This is a helper method that decides where a redirect shall be made
      * in case of error or success after an action was executed.
      */
-    private function redirectToFolder(Folder $folder, $message = null)
+    private function redirectToFolder(FolderType $folder, $message = null)
     {
         if($message instanceof MessageBox) {
             if(Request::isDialog()) {
@@ -43,11 +43,11 @@ class FolderController extends AuthenticatedController
             switch ($folder->range_type) {
                 case 'course':
                 case 'institute':
-                    return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/' . $folder->id . '?cid=' . $dest_range));
+                    return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/' . $folder->getId() . '?cid=' . $dest_range));
                 case 'user':
-                    return $this->redirect(URLHelper::getUrl('dispatch.php/files/index/' . $folder->id));
+                    return $this->redirect(URLHelper::getUrl('dispatch.php/files/index/' . $folder->getId()));
                 default:
-                    return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/' . $folder->id));
+                    return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/' . $folder->getId()));
             }
         }
     }
@@ -141,13 +141,17 @@ class FolderController extends AuthenticatedController
                     if(!$errors) {
                         //FileManager::createSubFolder returned an empty array => no errors!
 
-                        if(Request::isAjax()) {
+                        if(Request::get('js')) {
+                            //special return value for JavaScript dialogs
                             $this->folder = $folder_type; //FolderType is the interface for all folders!
                             $this->marked_element_ids = [];
-
-                            $this->render_text(
-                                $this->render_template_as_string('files/_folder_tr')
-                            );
+                            
+                            $result = [];
+                            $result['tr'] = $this->render_template_as_string('files/_folder_tr');
+                            $result['folder_id'] = $folder->id;
+                            $payload = array("func" => "STUDIP.Folders.updateFolderListEntry", 'payload' => $payload);
+                        
+                            $this->render_json($result);
                         } else {
                             $this->redirectToFolder($parent_folder, MessageBox::success(_('Ordner wurde angelegt!')));
                             return;

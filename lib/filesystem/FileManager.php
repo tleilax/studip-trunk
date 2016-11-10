@@ -422,7 +422,9 @@ class FileManager
 
 
         //check if folder name is unique and change it, if it isn't:
-        $sub_folder->name = $destination_folder->getUniqueName($sub_folder->name);
+        
+        //TEMPORARY DISABLED:
+        //$sub_folder->name = $destination_folder->getUniqueName($sub_folder->name);
 
         //check if all necessary attributes of the sub folder are set
         //and if they aren't set, set them here:

@@ -79,6 +79,7 @@ javascripts:
     - javascripts/study_area_selection.js
     - javascripts/file_system.js
     - javascripts/files.js
+    - javascripts/folders.js
     - javascripts/arbeitsgruppen.js
     - javascripts/news.js
     - javascripts/markup.js
