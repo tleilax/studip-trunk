@@ -46,6 +46,14 @@
     </td>
     <td class="actions">
         <? $actionMenu = ActionMenu::get() ?>
+        
+        <? if (Navigation::hasItem('/course/files_new/flat') && Navigation::getItem('/course/files_new/flat')->isActive()) : ?>
+         <? $actionMenu->addLink($controller->url_for('course/files/index/' . $file_ref->folder_id),
+                _('Ordner öffnen'), Icon::create('folder-empty', 'clickable')) ?>         
+         <? elseif (Navigation::hasItem('/profile/files/flat') && Navigation::getItem('/profile/files/flat')->isActive()) : ?>
+             <? $actionMenu->addLink($controller->url_for('files/index/' . $file_ref->folder_id),
+                _('Ordner öffnen'), Icon::create('folder-empty', 'clickable')) ?>                
+        <? endif; ?>        
         <? if ($current_folder->isFileEditable($file_ref->id, $GLOBALS['user']->id)): ?>
             <? $actionMenu->addLink($controller->url_for('file/edit/' . $file_ref->id),
                 _('Datei bearbeiten'),
