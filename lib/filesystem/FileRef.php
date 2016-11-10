@@ -59,6 +59,8 @@ class FileRef extends SimpleORMap
         $config['additional_fields']['author_name']['get'] = 'getAuthorName';
 
         $config['registered_callbacks']['after_delete'][] = 'cbRemoveFileIfOrphaned';
+        $config['registered_callbacks']['before_store'][] = 'cbMakeUniqueFilename';
+
         $config['notification_map']['after_create'] = 'FileRefDidCreate';
         $config['notification_map']['after_store'] = 'FileRefDidUpdate';
         $config['notification_map']['before_create'] = 'FileRefWillCreate';
@@ -73,6 +75,13 @@ class FileRef extends SimpleORMap
     {
         if (!self::countBySql("file_id = ?", array($this->file_id))) {
             File::deleteBySQL("id = ?", array($this->file_id));
+        }
+    }
+
+    public function cbMakeUniqueFilename()
+    {
+        if (isset($this->folder)) {
+            $this->name = $this->folder->getUniqueName($this->name);
         }
     }
 

@@ -739,7 +739,7 @@ class FileManager
         array_walk($top_folder->getSubFolders(), $array_walker);
         return compact('files', 'folders');
     }
-    
+
     /**
      * @param $id
      * @param null $pluginclass

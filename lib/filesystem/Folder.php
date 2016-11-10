@@ -75,6 +75,8 @@ class Folder extends SimpleORMap
         );
         $config['serialized_fields']['data_content'] = 'JSONArrayObject';
 
+        $config['registered_callbacks']['before_store'][] = 'cbMakeUniqueName';
+
         $config['notification_map']['after_create'] = 'FolderDidCreate';
         $config['notification_map']['after_store'] = 'FolderDidUpdate';
         $config['notification_map']['before_create'] = 'FolderWillCreate';
@@ -146,6 +148,12 @@ class Folder extends SimpleORMap
         }
     }
 
+    public function cbMakeUniqueName()
+    {
+        if (isset($this->parentfolder)) {
+            $this->name = $this->parentfolder->getUniqueName($this->name);
+        }
+    }
 
     /**
      * Checks if a file or folder with a given file name exists inside the folder.
@@ -299,8 +307,8 @@ class Folder extends SimpleORMap
 
         $ref = new FileRef();
         $ref->file_id = $file->id;
-        $ref->folder_id = $this->id;
-        $ref->name = $this->getUniqueName($file->name);
+        $ref->folder = $this;
+        $ref->name = $file->name;
         $ref->user_id = $file->user_id;
         $ref->description = $description;
         $ref->license = $license;
@@ -367,41 +375,5 @@ class Folder extends SimpleORMap
     }
 
 
-    /**
-     * Checks if a user has the permission to read this folder.
-     *
-     * @param string $user_id The ID of the user whose permissions for this folder shall be checked.
-     *
-     * @return bool True, if the user may read this folder, false otherwise.
-     */
-    public function isReadable($user_id)
-    {
-        return true;
-    }
 
-
-    /**
-     * Checks if a user has the permission to edit this folder.
-     *
-     * @param string $user_id The ID of the user whose permissions for this folder shall be checked.
-     *
-     * @return bool True, if the user may edit this folder, false otherwise.
-     */
-    public function isEditable($user_id)
-    {
-        return true;
-    }
-
-
-    /**
-     * Checks if a user has the permission to delete this folder.
-     *
-     * @param string $user_id The ID of the user whose permissions for this folder shall be checked.
-     *
-     * @return bool True, if the user may delete this folder, false otherwise.
-     */
-    public function isDeletable($user_id)
-    {
-        return true;
-    }
 }
