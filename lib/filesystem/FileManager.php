@@ -187,23 +187,30 @@ class FileManager
      * the destination folder. In that case, only the name in the FileRef object
      * of the file is altered and the File object's name is unchanged.
      *
-     * @param source The file reference for the file that shall be copied.
-     * @param destination_folder The destination folder for the file.
-     * @param user The user who wishes to copy the file.
+     * @param FileRef $source The file reference for the file that shall be copied.
+     * @param FolderType $destination_folder The destination folder for the file.
+     * @param User $user The user who wishes to copy the file.
      *
      * @return string[] Array with error messages: Empty array on success, filled array on failure.
      */
-    public static function copyFileRef(FileRef $source, Folder $destination_folder, User $user)
+    public static function copyFileRef(FileRef $source, FolderType $destination_folder, User $user)
     {
         //first we have to make sure if the user has the permissions to read the source folder
         //and the permissions to write to the destination folder:
-        $source_folder = Folder::find($source->folder_id);
+        $source_folder = $source->folder;
 
         if(!$source_folder) {
             return [_('Dateireferenz ist keinem Ordner zugeordnet!')];
         }
-
-        if($source_folder->isReadable($user->id) && $destination_folder->isEditable($user->id)) {
+        
+        $source_folder = $source->folder->getTypedFolder();
+        
+        if(!$source_folder) {
+            return [_('Ordnertyp des Quellordners konnte nicht ermittelt werden!')];
+        }
+        
+        
+        if($source_folder->isReadable($user->id) && $destination_folder->isWritable($user->id)) {
             //user is permitted to copy a file, but is he the owner?
             if($source->user_id == $user->id) {
                 //the user is the owner of the file: we can simply make a new reference to it
@@ -211,7 +218,7 @@ class FileManager
                 $new_reference = new FileRef();
                 $new_reference->file_id = $source->file_id;
                 $new_reference->folder_id = $destination_folder->id;
-                $new_reference->name = $destination_folder->getUniqueName($source->file->name);
+                $new_reference->name = $source->file->name;
                 $new_reference->description = $source->description;
                 $new_reference->license = $source->license;
                 $new_reference->user_id = $user->id;
@@ -241,14 +248,14 @@ class FileManager
                 if($file_copy->store()) {
                     //ok, file is stored, now we need to copy the real data:
 
-                    if(copy($source->getPath(), $file_copy->getPath())) {
+                    if(copy($source->file->getPath(), $file_copy->getPath())) {
 
                         //ok, create the file ref for the copied file:
                         $new_reference = new FileRef();
                         $new_reference->file_id = $file_copy->file_id;
 
                         //Create an unique name for the file reference:
-                        $new_reference->name = $destination_folder->getUniqueName($file_copy->name);
+                        $new_reference->name = $file_copy->name;
 
                         $new_reference->folder_id = $destination_folder->id;
                         $new_reference->description = $source->description;
@@ -285,27 +292,34 @@ class FileManager
         }
     }
 
+    
     /**
      * This method handles moving a file to a new folder.
      *
-     * @param source The file reference for the file that shall be moved.
-     * @param destination_folder The destination folder.
-     * @param user The user who wishes to move the file.
+     * @param FileRef $source The file reference for the file that shall be moved.
+     * @param FolderType $destination_folder The destination folder.
+     * @param User $user The user who wishes to move the file.
      *
      * @returns string[] Array with error messages: Empty array on success, filled array on failure.
      */
-    public static function moveFileRef(FileRef $source, Folder $destination_folder, User $user)
+    public static function moveFileRef(FileRef $source, FolderType $destination_folder, User $user)
     {
         $source_folder = Folder::find($source->folder_id);
 
         if(!$source_folder) {
             return [_('Dateireferenz ist keinem Ordner zugeordnet!')];
         }
+        
+        $source_folder = $source->folder->getTypedFolder();
+        
+        if(!$source_folder) {
+            return [_('Ordnertyp des Quellordners konnte nicht ermittelt werden!')];
+        }
+        
 
-        if($source_folder->isReadable($user->id) && $destination_folder->isEditable($user->id)) {
+        if($source_folder->isReadable($user->id) && $destination_folder->isWritable($user->id)) {
 
             $source->folder_id = $destination_folder->id;
-            $source->name = $destination_folder->getUniqueName($source->name);
 
             if($source->store()) {
                 return [];
@@ -339,8 +353,15 @@ class FileManager
         if(!$source_folder) {
             return [_('Dateireferenz ist keinem Ordner zugeordnet!')];
         }
-
-        if($source_folder->isDeletable($user->id)) {
+        
+        $source_folder = $source->folder->getTypedFolder();
+        
+        if(!$source_folder) {
+            return [_('Ordnertyp des Quellordners konnte nicht ermittelt werden!')];
+        }
+        
+        
+        if($source_folder->isFileWritable($file_ref->id, $user->id)) {
 
             $source->folder_id = $destination_folder->id;
             $source->name = $destination_folder->getUniqueName($source->name);

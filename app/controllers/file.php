@@ -222,7 +222,7 @@ class FileController extends AuthenticatedController
      */
     public function copy_action($file_ref_id)
     {
-        $destinationFolderId = Request::get('destinationId');
+        $destination_folder_id = Request::get('destinationId');
         
         if(!$file_ref_id) {
             PageLayout::postError(_('Datei-ID nicht gesetzt!'));
@@ -235,14 +235,21 @@ class FileController extends AuthenticatedController
             return;
         }
         
-        if($destinationFolderId) {
+        if($destination_folder_id) {
             //form was sent
-            $this->destination_folder = Folder::find($destinationFolderId);
+            $destination_folder = Folder::find($destination_folder_id);
             
-            if(!$this->destination_folder) {
+            if(!$destination_folder) {
                 PageLayout::postError(_('Zielordner nicht gefunden!'));
                 return;
             }
+            
+            $this->destination_folder = $destination_folder->getTypedFolder();
+            if(!$this->destination_folder) {
+                PageLayout::postError(_('Ordnertyp des Zielordners konnte nicht ermittelt werden!'));
+                return;
+            }
+            
             
             $errors = FileManager::copyFileRef($this->file_ref, $this->destination_folder, User::findCurrent());
             
@@ -273,6 +280,17 @@ class FileController extends AuthenticatedController
                 $file_ref = FileRef::find($file_ref_id);                
                 $source_folder = Folder::find($file_ref->folder_id);
                 $destination_folder = Folder::find($folder_id);
+                
+                if(!$destination_folder) {
+                PageLayout::postError(_('Zielordner nicht gefunden!'));
+                return;
+                }
+                
+                $destination_folder = $destination_folder->getTypedFolder();
+                if(!$destination_folder) {
+                    PageLayout::postError(_('Ordnertyp des Zielordners konnte nicht ermittelt werden!'));
+                    return;
+                }
                 
                 if($source_folder && $destination_folder) {
                     

@@ -214,6 +214,13 @@ class FileSystem extends \RESTAPI\RouteMap
             $this->halt(404, 'Destination folder not found!');
         }
         
+        $destination_folder = $destination_folder->getTypedFolder();
+        if(!$destination_folder) {
+            $this->halt(500, 'Cannot find folder type of destination folder!');
+            return;
+        }
+            
+        
         $user = \User::findCurrent();
         
         $errors = \FileManager::copyFileRef($file_ref, $destination_folder, $user);
@@ -243,6 +250,13 @@ class FileSystem extends \RESTAPI\RouteMap
         if(!$destination_folder) {
             $this->halt(404, 'Destination folder not found!');
         }
+        
+        $destination_folder = $destination_folder->getTypedFolder();
+        if(!$destination_folder) {
+            $this->halt(500, 'Cannot find folder type of destination folder!');
+            return;
+        }
+        
         
         $user = \User::findCurrent();
         
