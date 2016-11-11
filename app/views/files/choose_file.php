@@ -131,6 +131,9 @@ if (Request::get("to_folder_id")) {
                             <a href="#" onClick="jQuery(this).closest('form').submit(); return false;">
                         <? endif ?>
                                 <?= htmlReady($fileref->name) ?>
+                                <? if ($fileref->description) : ?>
+                                    <div style="color: grey; font-size: 0.8em;"><?= htmlReady($fileref->description) ?></div>
+                                <? endif ?>
                         <? if ($top_folder->isFileDownloadable($fileref, $GLOBALS['user']->id)) : ?>
                             </a>
                         </form>
