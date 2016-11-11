@@ -500,10 +500,10 @@ class FileManager
      * Note that either name or description has to be set. Otherwise this method
      * will do nothing.
      *
-     * @param folder The folder that shall be edited.
-     * @param user The user who wants to edit the folder.
-     * @param name The new name for the folder (can be left empty).
-     * @param description The new description for the folder (can be left empty).
+     * @param FolderType $folder The folder that shall be edited.
+     * @param User $user The user who wants to edit the folder.
+     * @param string|null $name The new name for the folder (can be left empty).
+     * @param string|null $description The new description for the folder (can be left empty).
      *
      * @returns string[] Array with error messages: Empty array on success, filled array on failure.
      */
@@ -653,19 +653,18 @@ class FileManager
      * This method handles moving folders, including
      * subfolders and files.
      *
-     * @param source_folder The folder that shall be moved.
-     * @param destination_folder The destination folder.
-     * @param user The user who wishes to move the folder.
+     * @param FolderType $source_folder The folder that shall be moved.
+     * @param FolderType $destination_folder The destination folder.
+     * @param User $user The user who wishes to move the folder.
      *
      * @returns Array with error messages: Empty array on success, filled array on failure.
      */
-    public static function moveFolder(Folder $source_folder, Folder $destination_folder, User $user)
+    public static function moveFolder(FolderType $source_folder, FolderType $destination_folder, User $user)
     {
-        $destination_folder_type = $destination_folder->getTypedFolder();
-        if($destination_folder_type->isWritable($user->id)) {
-            $source_folder->parent_id = $destination_folder->id;
-            $source_folder->name = $destination_folder->getUniqueName($source_folder->name);
-            $source_folder->store();
+        if($destination_folder->isWritable($user->id)) {
+            $source_data = $source_folder->getEditTemplate();
+            $source_data['parent_id'] = $destination_folder->getId();
+            $source_folder->setDataFromEditTemplate($source_data);
         } else {
             $errors[] = sprintf(
                 _('Unzureichende Berechtigungen zum Verschieben von Ordner %s in Ordner %s!'),

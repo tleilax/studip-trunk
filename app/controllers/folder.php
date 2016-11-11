@@ -349,7 +349,7 @@ class FolderController extends AuthenticatedController
 
             //ok, all data are present... now we have to check the permissions:
 
-            $target_folder_type = $this->folder->getTypedFolder();
+            $target_folder_type = $this->target_folder->getTypedFolder();
 
             if($copy) {
                 $errors = FileManager::copyFolder($this->folder, $this->target_folder, $current_user);
@@ -361,7 +361,7 @@ class FolderController extends AuthenticatedController
                 }
             } else {
                 //ok, we can move the folder!
-                $errors = FileManager::moveFolder($this->folder, $this->target_folder, $current_user);
+                $errors = FileManager::moveFolder($folder_type, $target_folder_type, $current_user);
 
                 if(!$errors) {
                     $this->redirectToFolder($this->target_folder, MessageBox::success(_('Ordner erfolgreich verschoben!')));
