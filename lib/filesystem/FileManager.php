@@ -389,31 +389,60 @@ class FileManager
     /**
      * Handles the sub folder creation routine.
      *
-     * @param Folder sub_folder The subfolder that shall be linked with $destination_folder
-     * @param Folder destination_folder The folder where the subfolder shall be linked.
-     * @param User user The user who wishes to create the subfolder.
-     * @param FolderType sub_folder_type The folder type of the sub folder. Can only be used if $destination_folder is a standard folder! This parameter is optional!
+     * @param FolderType $destination_folder The folder where the subfolder shall be linked.
+     * @param User $user The user who wishes to create the subfolder.
+     * @param string $folder_type_class_name The FolderType class name for the new folder
+     * @param string $name The name for the new folder
+     * @param string $description The description of the new folder
      *
-     * @returns string[] Array with error messages: Empty array on success, filled array on failure.
+     * @returns string|string[] Either the ID of the new folder or an Array with error messages.
      *
      */
-    public static function createSubFolder(Folder $sub_folder, FolderType $destination_folder_type, User $user, FolderType $sub_folder_type)
+    public static function createSubFolder(
+        FolderType $destination_folder,
+        User $user,
+        $folder_type_class_name = null,
+        $name = null,
+        $description = null)
     {
         $errors = [];
-
-        //echo "sfname = " . $sub_folder->name;
-
-        //check if sub_folder is new:
-        if(!$sub_folder->isNew()) {
-            $errors[] = _('Ein bereits erstellter Ordner kann nicht neu erzeugt werden!');
+        
+        
+        if(!$folder_type_class_name) {
+            //folder_type_class_name is not set: we can't create a folder!
+            return [_('Es wurde kein Ordnertyp angegeben!')];
         }
-
-        //check if user is owner of parent folder:
+        
+        //check if folder_type_class_name has a valid class:
+        if(!is_subclass_of($folder_type_class_name, 'FolderType')) {
+            return [
+                sprintf(
+                    _('Die Klasse %s ist nicht von FolderType abgeleitet!'),
+                    $folder_type_class_name
+                )
+            ];
+        }
+        
+        if(!$name) {
+            //name is not set: we can't create a folder!
+            return [_('Es wurde kein Ordnername angegeben!')];
+        }
+        
+        $sub_folder = new Folder();
+        $sub_folder_type = new $folder_type_class_name($sub_folder);
+        
+        //set name and description of the new folder:
+        $sub_folder->name = $name;
+        
+        if($description) {
+            $sub_folder->description = $description;
+        }
+        
 
         //check if the sub folder type is creatable in a StandardFolder,
         //if the destination folder is a StandardFolder:
-        if((get_class($destination_folder_type) == 'StandardFolder') &&
-            !$sub_folder_type->creatableInStandardFolder($destination_folder_type->range_type)) {
+        if((get_class($destination_folder) == 'StandardFolder') &&
+            !$sub_folder_type->creatableInStandardFolder($destination_folder->range_type)) {
 
             $errors[] = sprintf(
                 _('Ein Ordner vom Typ %s kann nicht in einem Ordner vom Typ %s erzeugt werden!'),
@@ -427,18 +456,18 @@ class FileManager
 
         //check if destination_folder is a standard folder
 
-        if((get_class($destination_folder_type) != 'StandardFolder') &&
-            (get_class($sub_folder_type) != get_class($destination_folder_type))) {
+        if((get_class($destination_folder) != 'StandardFolder') &&
+            (get_class($sub_folder_type) != get_class($destination_folder))) {
             //we can't create a special folder in another special folder!
             $errors[] = sprintf(
                 _('Ein Ordner vom Typ %s kann nicht in einem Ordner vom Typ %s erzeugt werden!'),
                 get_class($sub_folder_type),
-                get_class($destination_folder_type)
+                get_class($destination_folder)
             );
         }
 
 
-        if(!$destination_folder_type->isSubfolderAllowed($user->id)) {
+        if(!$destination_folder->isSubfolderAllowed($user->id)) {
             $errors[] = _('Sie sind nicht dazu berechtigt, einen Unterordner zu erstellen!');
         }
 
@@ -447,28 +476,22 @@ class FileManager
             return $errors;
         }
 
-
-        //check if folder name is unique and change it, if it isn't:
-        
-        //TEMPORARY DISABLED:
-        //$sub_folder->name = $destination_folder->getUniqueName($sub_folder->name);
-
         //check if all necessary attributes of the sub folder are set
         //and if they aren't set, set them here:
 
         $sub_folder->user_id = $user->id;
 
-        $sub_folder->range_id = $destination_folder_type->range_id;
+        $sub_folder->range_id = $destination_folder->range_id;
 
-        $sub_folder->parent_id = $destination_folder_type->getId();
+        $sub_folder->parent_id = $destination_folder->getId();
 
-        $sub_folder->range_type = $destination_folder_type->range_type;
+        $sub_folder->range_type = $destination_folder->range_type;
 
         $sub_folder->folder_type = get_class($sub_folder_type);
 
         $sub_folder->store();
 
-        return []; //no errors
+        return $sub_folder_type->getId(); //no errors
     }
 
 

@@ -135,10 +135,17 @@ class FolderController extends AuthenticatedController
 
                     $folder_type = new $this->current_folder_type($folder);
 
-                    $errors = FileManager::createSubFolder($folder, $parent_folder, $current_user, $folder_type);
+                    $result = FileManager::createSubFolder(
+                        $parent_folder,
+                        $current_user,
+                        $this->current_folder_type,
+                        $this->name,
+                        $this->description
+                    );
+                    
 
-
-                    if(!$errors) {
+                    if(!is_array($result)) {
+                        $folder_id = $result;
                         //FileManager::createSubFolder returned an empty array => no errors!
 
                         if(Request::get('js')) {
@@ -146,21 +153,21 @@ class FolderController extends AuthenticatedController
                             $this->folder = $folder_type; //FolderType is the interface for all folders!
                             $this->marked_element_ids = [];
                             
-                            $result = [];
-                            $result['tr'] = $this->render_template_as_string('files/_folder_tr');
-                            $result['folder_id'] = $folder->id;
+                            $result_json = [];
+                            $result_json['tr'] = $this->render_template_as_string('files/_folder_tr');
+                            $result_json['folder_id'] = $folder_id;
                             $payload = array("func" => "STUDIP.Folders.updateFolderListEntry", 'payload' => $payload);
                         
-                            $this->render_json($result);
+                            $this->render_json($result_json);
                         } else {
                             $this->redirectToFolder($parent_folder, MessageBox::success(_('Ordner wurde angelegt!')));
                             return;
                         }
                     } else {
                         if(Request::isDialog()) {
-                            $this->render_text(MessageBox::error(_('Fehler beim Anlegen des Ordners'), $errors));
+                            $this->render_text(MessageBox::error(_('Fehler beim Anlegen des Ordners'), $result));
                         } else {
-                            PageLayout::postError(_('Fehler beim Anlegen des Ordners'), $errors);
+                            PageLayout::postError(_('Fehler beim Anlegen des Ordners'), $result);
                             $this->render_template('file/new_folder.php', $GLOBALS['template_factory']->open('layouts/base'));
                         }
                     }

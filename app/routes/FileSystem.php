@@ -361,7 +361,12 @@ class FileSystem extends \RESTAPI\RouteMap
     {
         $parent_folder = \Folder::find($parent_folder_id);
         if(!$parent_folder) {
-            $this->halt(404, 'Folder not found!');
+            $this->halt(404, 'Parent folder not found!');
+        }
+        
+        $parent_folder = $parent_folder->getTypedFolder();
+        if(!$parent_folder) {
+            $this->halt(500, 'Parent folder has an invalid folder type!');
         }
         
         $user = \User::findCurrent();
@@ -371,13 +376,20 @@ class FileSystem extends \RESTAPI\RouteMap
         }
         
         $folder = new \Folder();
-        $folder->name = $name;
-        $folder->description = $description;
+        $name = $this->data['name'];
+        $description = $this->data['description'];
         
         $folder_type = 'StandardFolder'; //to be extended
         
-        $errors = \FileManager::createSubFolder($folder, $parent_folder, $user, $folder_type);
-        if(!empty($errors)) {
+        $errors = \FileManager::createSubFolder(
+            $parent_folder,
+            $user,
+            $folder_type,
+            $name,
+            $description
+        );
+        
+        if(is_array($errors)) {
             $this->halt(500, 'Error when creating a subfolder: ' . implode(' ', $errors));
         }
         
