@@ -122,7 +122,11 @@ class StandardFolder implements FolderType
      */
     public function getEditTemplate()
     {
-
+        $template = [];
+        foreach ($this->folderdata as $name => $value) {
+            $template[$name] = $this->folderdata[$name];
+        }
+        return $template;
     }
 
     /**

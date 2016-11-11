@@ -231,17 +231,24 @@ class FolderController extends AuthenticatedController
             );
             return;
         }
-
-        $this->folder_id = $this->folder->id;
+        
+        $this->folder = $this->folder->getTypedFolder();
+        if(!$this->folder) {
+            $this->render_text(
+                MessageBox::error(_('Ordnertyp des Ordners konnte nicht ermittelt werden!'))
+            );
+            return;
+        }
+        
+        
+        $this->folder_id = $this->folder->getId();
         $this->parent_folder_id = $this->folder->parent_id;
 
         $current_user = User::findCurrent();
 
         //permission check: is the current allowed to edit the folder?
 
-        $folder_type = $this->folder->getTypedFolder();
-
-        if($folder_type->isWritable($current_user->id)) {
+        if($this->folder->isWritable($current_user->id)) {
 
             if(Request::get('form_sent')) {
                 //update edited fields

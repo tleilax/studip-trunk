@@ -72,11 +72,6 @@ class PermissionEnabledFolder extends StandardFolder
 
     }
 
-    public function getEditTemplate()
-    {
-
-    }
-    
     static public function getTypeName()
     {
         return _("Ordner mit Zugangsbeschränkung");

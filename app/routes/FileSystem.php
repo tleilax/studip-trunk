@@ -531,6 +531,11 @@ class FileSystem extends \RESTAPI\RouteMap
             $this->halt(404, 'Folder not found!');
         }
         
+        $folder = $folder->getTypedFolder();
+        if(!$folder) {
+            $this->halt(500, 'Parent folder has an invalid folder type!');
+        }
+        
         $name = \Request::get('name', null);
         $description = \Request::get('description', null);
         
@@ -540,7 +545,6 @@ class FileSystem extends \RESTAPI\RouteMap
             $this->halt(500, 'Error while editing a folder: ' . implode(' ', $errors));
         }
         
-        return $folder->toRawArray();
     }
     
     

@@ -507,7 +507,7 @@ class FileManager
      *
      * @returns string[] Array with error messages: Empty array on success, filled array on failure.
      */
-    public static function editFolder(Folder $folder, User $user, $name = null, $description = null)
+    public static function editFolder(FolderType $folder, User $user, $name = null, $description = null)
     {
         //Since name must not be empty we have to check if it validates to false
         //(which can happen with emtpy strings). Description on the other hand
@@ -531,24 +531,23 @@ class FileManager
         }
 
 
-        $folder_type = $folder->getTypedFolder();
-
-        if($folder_type->isWritable($user->id)) {
+        if($folder->isWritable($user->id)) {
             //ok, user has write permissions for this folder:
             //edit name or description or both
 
+            $data = $folder->getEditTemplate();
+            
             if($name) {
                 //get the parent folder to check for duplicate names
                 //and set the folder name to an unique name:
-
-                $folder->name = $folder->parentfolder->getUniqueName($name);
+                $data['name'] = $name;
             }
 
             if($description != null) {
-                $folder->description = $description;
+                $data['description'] = $description;
             }
 
-            if($folder->store()) {
+            if($folder->setDataFromEditTemplate($data)) {
                 //folder successfully edited
                 return [];
             } else {
