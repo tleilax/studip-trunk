@@ -129,12 +129,6 @@ class FolderController extends AuthenticatedController
                 if($parent_folder->isWritable($current_user->id)) {
                     //current user may create a new folder in the parent folder
 
-                    $folder = new Folder();
-                    $folder->name = $this->name;
-                    $folder->description = $this->description;
-
-                    $folder_type = new $this->current_folder_type($folder);
-
                     $result = FileManager::createSubFolder(
                         $parent_folder,
                         $current_user,
@@ -145,7 +139,7 @@ class FolderController extends AuthenticatedController
                     
 
                     if(!is_array($result)) {
-                        $folder_id = $result;
+                        $folder_type = $result;
                         //FileManager::createSubFolder returned an empty array => no errors!
 
                         if(Request::get('js')) {
@@ -155,7 +149,7 @@ class FolderController extends AuthenticatedController
                             
                             $result_json = [];
                             $result_json['tr'] = $this->render_template_as_string('files/_folder_tr');
-                            $result_json['folder_id'] = $folder_id;
+                            $result_json['folder_id'] = $folder_type->getId();
                             $payload = array("func" => "STUDIP.Folders.updateFolderListEntry", 'payload' => $payload);
                         
                             $this->render_json($result_json);

@@ -395,7 +395,7 @@ class FileManager
      * @param string $name The name for the new folder
      * @param string $description The description of the new folder
      *
-     * @returns string|string[] Either the ID of the new folder or an Array with error messages.
+     * @returns FolderType|string[] Either the FolderType object of the new folder or an Array with error messages.
      *
      */
     public static function createSubFolder(
@@ -491,7 +491,7 @@ class FileManager
 
         $sub_folder->store();
 
-        return $sub_folder_type->getId(); //no errors
+        return $sub_folder_type; //no errors
     }
 
 
