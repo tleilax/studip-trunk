@@ -104,8 +104,14 @@ class FileManager
         if(!$file_ref->folder) {
             return [_('Dateireferenz ist keinem Ordner zugeordnet!')];
         }
-
-        if($file_ref->folder->isEditable($user->id)) {
+        
+        $folder_type = $file_ref->folder->getTypedFolder();
+        
+        if(!$folder_type) {
+            return [_('Ordnertyp konnte nicht ermittelt werden!')];
+        }
+        
+        if($folder_type->isFileEditable($file_ref, $user->id)) {
 
             if($name !== null) {
                 //name is special: we have to check if files/folders in

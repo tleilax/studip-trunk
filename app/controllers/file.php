@@ -175,7 +175,7 @@ class FileController extends AuthenticatedController
             $this->description = Request::get('description');
             $this->license = Request::get('licence');
             
-            $errors = FileManager::editFileRef($file_ref, $this->name, $this->description, $this->license);
+            $errors = FileManager::editFileRef($file_ref, User::findCurrent(), $this->name, $this->description, null, $this->license);
             if (empty($errors)) {
                 $this->redirectToFolder(
                     $file_ref->folder,

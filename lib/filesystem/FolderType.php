@@ -153,26 +153,26 @@ interface FolderType
 
     /**
      * Determines if a user may download the file.
-     * @param $file_id The file that shall be downloaded.
-     * @param $user_id The user who wishes to download the file.
+     * @param string $file_ref_id The ID of the FileRef object of a file that shall be downloaded.
+     * @param string $user_id The user who wishes to download the file.
      * @return boolean True, if the user is permitted to download the file, false otherwise.
      */
-    public function isFileDownloadable($file_id, $user_id);
+    public function isFileDownloadable($file_ref_id, $user_id);
 
     /**
      * Determines if a user may edit the file.
-     * @param $file_id The file that shall be edited.
-     * @param $user_id The user who wishes to edit the file.
+     * @param string $file_ref_id The ID of the FileRef object of a file that shall be edited.
+     * @param string $user_id The user who wishes to edit the file.
      * @return boolean True, if the user is permitted to edit the file, false otherwise.
      */
-    public function isFileEditable($file_id, $user_id);
+    public function isFileEditable($file_ref_id, $user_id);
 
     /**
      * Determines if a user may write to the file.
-     * @param $file_id The file that shall be written.
-     * @param $user_id The user who wishes to write to the file.
+     * @param string $file_id The FileRef object of a file that shall be written.
+     * @param string $user_id The user who wishes to write to the file.
      * @return boolean True, if the user is permitted to write to the file, false otherwise.
      */
-    public function isFileWritable($file_id, $user_id);
+    public function isFileWritable($file_ref_id, $user_id);
 
 }
