@@ -210,7 +210,29 @@ class StandardFolder implements FolderType
      */
     public function createFile($file)
     {
-        return $this->folderdata->linkFile($file);
+        if (!is_a($file, "File")) {
+            $newfile = new File();
+            $newfile->user_id = $GLOBALS['user']->id;
+            $newfile->name = $file['name'];
+            $newfile->mime_type = $file['type'];
+            $newfile->size = $file['size'];
+            $newfile->storage = 'disk';
+            $newfile->id = $newfile->getNewId();
+            $newfile->connectWithDataFile($file['tmp_path']);
+        } else {
+            $newfile = $file;
+        }
+        $file_ref =  $this->folderdata->linkFile($newfile);
+        if (!is_a($file, "File") && $file['description']) {
+            $file_ref['description'] = $file['description'];
+        }
+        if (!is_a($file, "File") && $file['license']) {
+            $file_ref['license'] = $file['license'];
+        }
+        if (!is_a($file, "File") && $file['content_terms_of_use_id']) {
+            $file_ref['content_terms_of_use_id'] = $file['content_terms_of_use_id'];
+        }
+        return $file_ref;
     }
 
     public function createSubfolder($folderdata)

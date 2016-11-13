@@ -189,7 +189,6 @@ class FilesController extends AuthenticatedController
             $error = $this->to_folder_type->validateUpload($file, $GLOBALS['user']->id);
             if (!$error) {
                 //do the copy
-                //$this->to_folder_type->createFile($file, $GLOBALS['user']->id);
                 $file_ref = $this->to_folder_type->createFile($file);
                 if (in_array($this->to_folder_type->range_type, array("course", "institute"))) {
                     header("Location: ". URLHelper::getURL("dispatch.php/files/edit_license", array(
@@ -207,7 +206,8 @@ class FilesController extends AuthenticatedController
                         $this->response->add_header("X-Dialog-Execute", json_encode(studip_utf8encode($payload)));
                         $this->render_nothing();
                     } else {
-                        $this->render_text(MessageBox::success(_("Datei wurde hinzugefügt.")));
+                        PageLayout::postMessage(MessageBox::success(_("Datei wurde hinzugefügt.")));
+                        $this->redirect(($this->to_folder_type->range_type === "course" ? "course/" : "")."files/index/".$folder_id);
                     }
                 }
             } else {
