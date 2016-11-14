@@ -42,8 +42,13 @@ class FileSystem extends \RESTAPI\RouteMap
             $this->halt(500, 'File reference has no folder!');
         }
         
+        $folder_type = $file_ref->folder->getTypedFolder();
+        if(!$folder_type) {
+            $this->halt(500, "File reference's folder has no folder type!");
+        }
+        
         //check if the current user has the permissions to read this file reference:
-        if(!$file_ref->folder->isReadable($user_id)) {
+        if(!$folder_type->isReadable($user_id)) {
             $this->halt(403, 'You are not permitted to read this file reference!');
         }
         
@@ -57,9 +62,9 @@ class FileSystem extends \RESTAPI\RouteMap
         //this code wouldn't be executed if the FileRef wasn't readable (see above):
         $result['is_readable'] = true;
         
-        $result['is_downloadable'] = $file_ref->isDownloadable($user_id);
-        $result['is_editable'] = $file_ref->isEditable($user_id);
-        $result['is_deletable'] = $file_ref->isDeletable($user_id);
+        $result['is_downloadable'] = $folder_type->isFileDownloadable($file_ref->id, $user_id);
+        $result['is_editable'] = $folder_type->isFileEditable($file_ref->id, $user_id);
+        $result['is_writable'] = $folder_type->isFileWritable($file_ref->id, $user_id);
         
         //maybe the user wants not just only the FileRef object's data
         //but also data from related objects:
@@ -102,25 +107,35 @@ class FileSystem extends \RESTAPI\RouteMap
             $this->halt(404, 'File reference not found!');
         }
         
+        if(!$file_ref->folder) {
+            $this->halt(500, 'File reference is not bound to a folder!');
+        }
+        
+        $folder_type = $file_ref->folder->getTypedFolder();
+        if(!$folder_type) {
+            $this->halt(500, "Cannot find folder type of the file reference's folder!");
+            return;
+        }
+        
+        
         $user_id = \User::findCurrent()->id;
         
         //check if the current user has the permissions to read this file reference:
-        if($file_ref->folder) {
-            if($file_ref->folder->isReadable($user_id)) {
-                if(!$file_ref->file) {
-                    $this->halt(500, 'File reference has no associated file object!');
-                }
-                //if this code is executed we can read the file's data
-                $data_path = $file_ref->file->getPath();
-                if(!file_exists($data_path)) {
-                    $this->halt(404, "File was not found in the operating system's file system!");
-                }
-                
-                $this->lastModified($file_ref->file->chdate);
-                $this->sendFile($data_path, ['filename' => $file_ref->name]);
+        if($folder_type->isReadable($user_id)) {
+            //if this code is executed we can read the file's data
+            
+            //check if file exists:
+            if(!$file_ref->file) {
+                $this->halt(500, 'File reference has no associated file object!');
             }
-        } else {
-            $this->halt(500, 'File reference has no associated folder object!');
+            
+            $data_path = $file_ref->file->getPath();
+            if(!file_exists($data_path)) {
+                $this->halt(404, "File was not found in the operating system's file system!");
+            }
+            
+            $this->lastModified($file_ref->file->chdate);
+            $this->sendFile($data_path, ['filename' => $file_ref->name]);
         }
     }
     
@@ -175,18 +190,13 @@ class FileSystem extends \RESTAPI\RouteMap
         
         $user = \User::findCurrent();
         
-        $name = Request::get('name');
-        $description = Request::get('description');
-        $content_term_of_use_id = Request::get('content_terms_of_use_id');
-        $license = Request::get('license');
-        
         $errors = \FileManager::editFileRef(
             $file_ref,
             $user,
-            $name,
-            $description,
-            $content_term_of_use_id,
-            $license
+            $this->data['name'],
+            $this->data['description'],
+            $this->data['content_term_of_use_id'],
+            $this->data['license']
         );
         
         if(!empty($errors)) {
@@ -321,33 +331,43 @@ class FileSystem extends \RESTAPI\RouteMap
             $this->halt(404, 'Folder not found!');
         }
         
+        $folder_type = $folder->getTypedFolder();
+        if(!$folder_type) {
+            $this->halt(500, 'Folder type not found!');
+        }
+        
         $user_id = \User::findCurrent()->id;
         
-        if(!$folder->isReadable($user_id)) {
-            $this->halt(403, 'You are not permitted to read this folder!');
-        }
+        $result['is_visible'] = $folder_type->isVisible($user_id);
+        $result['is_readable'] = $folder_type->isReadable($user_id);
+        $result['is_writable'] = $folder_type->isWritable($user_id);
         
-        //if the code below is executed the user is permitted to read the folder
+        //If the folder isn't readable by the user (given by user_id)
+        //the result parameter is_readable is set to false.
         
-        $result = $folder->toRawArray();
-        
-        if($folder->subfolders) {
-            $result['subfolders'] = [];
-            foreach($folder->subfolders as $subfolder) {
-                $result['subfolders'][] = $subfolder->toRawArray();
+        if($result['is_readable']) {
+            
+            $result = $folder->toRawArray();
+            
+            $subfolders = $folder_type->getSubfolders();
+            
+            if($subfolders) {
+                $result['subfolders'] = [];
+                foreach($subfolders as $subfolder) {
+                    $result['subfolders'][] = $subfolder->getEditTemplate();
+                }
             }
-        }
-        
-        if($folder->file_refs) {
-            $result['file_refs'] = [];
-            foreach($folder->file_refs as $file_ref) {
-                $result['file_refs'][] = $file_ref->toRawArray();
+            
+            $file_refs = $folder_type->getFiles();
+            
+            if($file_refs) {
+                $result['file_refs'] = [];
+                foreach($file_refs as $file_ref) {
+                    $result['file_refs'][] = $file_ref->toRawArray();
+                }
             }
+            
         }
-        
-        $result['is_readable'] = $folder->isReadable($user_id);
-        $result['is_editable'] = $folder->isEditable($user_id);
-        $result['is_deletable'] = $folder->isDeletable($user_id);
         
         return $result;
     }
@@ -371,29 +391,26 @@ class FileSystem extends \RESTAPI\RouteMap
         
         $user = \User::findCurrent();
         
-        if(!$parent_folder->isEditable($user->id)) {
+        if(!$parent_folder->isWritable($user->id)) {
             $this->halt(403, 'You are not permitted to create a subfolder in the parent folder!');
         }
         
-        $folder = new \Folder();
-        $name = $this->data['name'];
-        $description = $this->data['description'];
         
         $folder_type = 'StandardFolder'; //to be extended
         
-        $errors = \FileManager::createSubFolder(
+        $result = \FileManager::createSubFolder(
             $parent_folder,
             $user,
             $folder_type,
-            $name,
-            $description
+            $this->data['name'],
+            $this->data['description']
         );
         
         if(is_array($errors)) {
             $this->halt(500, 'Error when creating a subfolder: ' . implode(' ', $errors));
         }
         
-        return $folder;
+        return $result->getEditTemplate();
     }
     
     
@@ -408,11 +425,16 @@ class FileSystem extends \RESTAPI\RouteMap
             $this->halt(404, 'Folder not found!');
         }
         
-        $user_id = \User::findCurrent()->id;
+        $folder = $folder->getTypedFolder();
+        if(!$folder) {
+            $this->halt(500, 'Folder type not found!');
+        }
         
         if(!$folder->isReadable($user_id)) {
             $this->halt(403, 'You are not permitted to read this folder!');
         }
+        
+        $user_id = \User::findCurrent()->id;
         
         $result = [];
         
@@ -454,11 +476,17 @@ class FileSystem extends \RESTAPI\RouteMap
             $this->halt(404, 'Folder not found!');
         }
         
-        $user_id = \User::findCurrent()->id;
+        $folder = $folder->getTypedFolder();
+        if(!$folder) {
+            $this->halt(500, 'Folder type not found!');
+        }
         
         if(!$folder->isReadable($user_id)) {
             $this->halt(403, 'You are not permitted to read this folder!');
         }
+        
+        
+        $user_id = \User::findCurrent()->id;
         
         $result = [];
         
@@ -502,6 +530,11 @@ class FileSystem extends \RESTAPI\RouteMap
             $this->halt(404, 'Folder not found!');
         }
         
+        $folder = $folder->getTypedFolder();
+        if(!$folder) {
+            $this->halt(500, 'Folder type not found!');
+        }
+        
         if(!$user_id) {
             //user_id is not set: use the ID of the current user
             $user_id = \User::findCurrent()->id;
@@ -512,9 +545,9 @@ class FileSystem extends \RESTAPI\RouteMap
         return [
             'folder_id' => $folder->id,
             'user_id' => $user_id,
+            'is_visible' => $folder->isVisible($user_id),
             'is_readable' => $folder->isReadable($user_id),
-            'is_editable' => $folder->isEditable($user_id),
-            'is_deletable' => $folder->isDeletable($user_id),
+            'is_writable' => $folder->isWritable($user_id),
         ];
     }
     
@@ -536,10 +569,7 @@ class FileSystem extends \RESTAPI\RouteMap
             $this->halt(500, 'Folder has an invalid folder type!');
         }
         
-        $name = \Request::get('name', null);
-        $description = \Request::get('description', null);
-        
-        $errors = \FileManager::editFolder($folder, User::findCurrent(), $name, $description);
+        $errors = \FileManager::editFolder($folder, \User::findCurrent(), $this->data['name'], $this->data['description']);
         
         if(!empty($errors)) {
             $this->halt(500, 'Error while editing a folder: ' . implode(' ', $errors));
@@ -565,6 +595,17 @@ class FileSystem extends \RESTAPI\RouteMap
                 $this->halt(404, 'Destination folder not found!');
             }
         }
+        
+        $folder_type = $folder->getTypedFolder();
+        if(!$folder_type) {
+            $this->halt(500, 'Source folder type not found!');
+        }
+        
+        $destination_folder_type = $folder->getTypedFolder();
+        if(!$destination_folder_type) {
+            $this->halt(500, 'Destination folder type not found!');
+        }
+        
         
         $user = \User::findCurrent();
         
@@ -631,9 +672,15 @@ class FileSystem extends \RESTAPI\RouteMap
             $this->halt(404, 'Folder not found!');
         }
         
+        $folder_type = $folder->getTypedFolder();
+        
+        if(!$folder_type) {
+            $this->halt(500, 'Folder type of folder not found!');
+        }
+        
         $user = \User::findCurrent();
         
-        $errors = \FileManager::moveFolder($folder, $destination_folder, $user);
+        $errors = \FileManager::deleteFolder($folder_type, $user);
         
         if(!empty($errors)) {
             $this->halt(500, 'Error while deleting a folder: ' . implode(' ', $errors));

@@ -216,7 +216,10 @@ class User extends \RESTAPI\RouteMap
         //then we can get the top folder:
         $top_folder = \Folder::findTopFolder($user->id, 'user');
         
-        if(!$top_folder->isReadable(\User::findCurrent()->id)) {
+        $top_folder_type = $top_folder->getTypedFolder();
+        
+        
+        if(!$top_folder_type->isReadable(\User::findCurrent()->id)) {
             $this->halt(403, 'You are not allowed to read the top folder of another user\'s file area!');
         }
         

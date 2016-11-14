@@ -348,25 +348,22 @@ class FileManager
      */
     public static function deleteFileRef(FileRef $file_ref, User $user)
     {
-        $source_folder = Folder::find($file_ref->folder_id);
+        $folder = $file_ref->folder;
 
-        if(!$source_folder) {
+        if(!$folder) {
             return [_('Dateireferenz ist keinem Ordner zugeordnet!')];
         }
         
-        $source_folder = $source->folder->getTypedFolder();
+        $folder_type = $folder->getTypedFolder();
         
-        if(!$source_folder) {
+        if(!$folder_type) {
             return [_('Ordnertyp des Quellordners konnte nicht ermittelt werden!')];
         }
         
         
-        if($source_folder->isFileWritable($file_ref->id, $user->id)) {
+        if($folder_type->isFileWritable($file_ref->id, $user->id)) {
 
-            $source->folder_id = $destination_folder->id;
-            $source->name = $destination_folder->getUniqueName($source->name);
-
-            if($source->delete()) {
+            if($file_ref->delete()) {
                 return [];
             } else {
                 return [_('Dateireferenz konnte nicht gelöscht werden.')];
@@ -757,14 +754,14 @@ class FileManager
     /**
      * This method helps with deleting a folder.
      *
-     * @param Folder folder The folder that shall be deleted.
-     * @param User user The user who wishes to delete the folder.
+     * @param FolderType $folder The folder that shall be deleted.
+     * @param User $user The user who wishes to delete the folder.
      *
      * @return string[] Array with error messages: Empty array on success, filled array on failure.
      */
-    public static function deleteFolder(Folder $folder, User $user)
+    public static function deleteFolder(FolderType $folder, User $user)
     {
-        if(!$folder->isDeletable($user->id)) {
+        if(!$folder->isWritable($user->id)) {
             return [
                 sprintf(
                     _('Unzureichende Berechtigungen zum Löschen von Ordner %s!'),

@@ -115,11 +115,17 @@ class Messages extends \RESTAPI\RouteMap
         //we can get the top folder:
         $top_folder = \Folder::findTopFolder($message->id, 'message');
         
+        $top_folder = $top_folder->getTypedFolder();
+        if(!$top_folder) {
+            $this->halt(500, 'Folder type not found!');
+        }
+        
+        
         if(!$top_folder->isReadable($user->id)) {
             $this->halt(403, 'You are not allowed to read the top folder of this message!');
         }
         
-        return $top_folder->toRawArray();
+        return $top_folder->getEditTemplate();
     }
     
     
