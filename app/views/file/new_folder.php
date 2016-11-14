@@ -1,11 +1,18 @@
 <form method="post" class="default"
-      <? if(Request::isDialog()): ?>
-      data-dialog="size=auto<?= (Request::get('js')) ? '' : ';reload-on-close' ?>"
-      <? endif ?>
-      action="<?= $controller->url_for('/new') ?>"
+    <? if(Request::isDialog()): ?>
+    data-dialog="size=auto<?= (Request::get('js')) ? '' : ';reload-on-close' ?>"
+    <? endif ?>
+    <? if(Request::get('js')): ?>
+        onsubmit="javascript:STUDIP.Folders.sendNewFolderForm(); return false;"
+    <? endif ?>
+    action="<?= $controller->url_for('/new') ?>"
+    
       id="new_folder_form">
     <?= CSRFProtection::tokenTag() ?>
     <input type="hidden" name="parent_folder_id" value="<?= $parent_folder_id ?>">
+    <? if(Request::get('js')): ?>
+    <input type="hidden" name="js" value="1">
+    <? endif ?>
     <?= $this->render_partial('file/new_edit_folder_form.php',
         [ 
             'name' => $name,

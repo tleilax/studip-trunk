@@ -20,33 +20,32 @@ STUDIP.Folders = {
         
         var folder_name = jQuery(new_folder_form).find('input[name="name"]').val();
         var folder_description = jQuery(new_folder_form).find('input[name="description"]').val();
-        var folder_type = jQuery(new_folder_form).find('input[name="folder_type"]').val();
+        var folder_type = jQuery(new_folder_form).find('select[name="folder_type"]').val();
+        
         
         if(folder_name && folder_type) {
             var form_data = new FormData();
             //all necessary parameters are set
-            new_folder_form.append('name', folder_name);
-            new_folder_form.append('description', folder_description);
-            new_folder_form.append('folder_type', folder_type);
-            new_folder_form.append('js', '1');
+            //form_data.append('name', folder_name);
+            //form_data.append('description', folder_description);
+            //form_data.append('folder_type', folder_type);
+            //form_data.append('js', '1');
             
             jQuery.ajax({
                 'url': STUDIP.ABSOLUTE_URI_STUDIP + 'dispatch.php/folder/new',
                 'data': form_data,
                 'cache': false,
-                'type': 'POST'
+                'type': 'POST',
+                'success': function(result) {
+                    STUDIP.Folder.updateFolderListEntry(result.folder_id, result.tr);
+                }
             });
             
         }
     },
     
-    /*
-     * 'success': function(result) {
-                    STUDIP.Folder.updateFolderListEntry(result.folder_id, result.tr);
-                }
-     * */
     
-    updateFolderListEntry: function(html, delay) {
+    updateFolderListEntry: function(folder_id, html, delay) {
         //updates the folder entry in the folder list
         var documents_table = jQuery('.documents[data-folder_id]');
         

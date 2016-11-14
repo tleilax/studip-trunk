@@ -108,8 +108,8 @@ class FolderController extends AuthenticatedController
             $current_user = User::findCurrent();
 
             if($this->name) {
-                //if $this->name and $this->parent_folder_id or $this->rangeId are present
-                //we have all required parameters to create a folder.
+                //If $this->name is present we have all required parameters
+                //to create a folder.
 
                 $this->description = Request::get('description');
                 $this->current_folder_type = Request::get('folder_type', 'StandardFolder');
@@ -150,7 +150,7 @@ class FolderController extends AuthenticatedController
                             $result_json = [];
                             $result_json['tr'] = $this->render_template_as_string('files/_folder_tr');
                             $result_json['folder_id'] = $folder_type->getId();
-                            $payload = array("func" => "STUDIP.Folders.updateFolderListEntry", 'payload' => $payload);
+                            // (unsused code) $payload = array("func" => "STUDIP.Folders.updateFolderListEntry", 'payload' => $payload);
                         
                             $this->render_json($result_json);
                         } else {
