@@ -335,7 +335,16 @@ class FolderController extends AuthenticatedController
         //check if form was sent:
 
         if(Request::submitted('form_sent')) {
-            $target_folder_id = Request::get('dest_folder');
+            $target_folder_id = Request::get('course_dest_folder');
+            
+            if(!$target_folder_id) {
+                $target_folder_id = Request::get('inst_dest_folder');
+            }
+            
+            if(!$target_folder_id) {
+                $target_folder_id = Request::get('user_dest_folder');
+            }
+            
             if(!$target_folder_id) {
                 $this->render_text(MessageBox::error(_('Zielordner-ID nicht gefunden!')));
                 return;
@@ -352,7 +361,7 @@ class FolderController extends AuthenticatedController
             $target_folder_type = $this->target_folder->getTypedFolder();
 
             if($copy) {
-                $errors = FileManager::copyFolder_OLD($this->folder, $this->target_folder, $current_user);
+                $errors = FileManager::copyFolder($folder_type, $target_folder_type, $current_user);
 
                 if(!$errors) {
                     $this->redirectToFolder($this->target_folder, MessageBox::success(_('Ordner erfolgreich kopiert!')));
@@ -400,6 +409,7 @@ class FolderController extends AuthenticatedController
             ->setInputStyle('width:100%')
             ->fireJSFunctionOnSelect('function(){STUDIP.Files.getFolders();}')
             ->withButton()
+            ->setAttributes(['name' => 'course_dest_folder'])
             ->render();
 
         $institute_sql =  "SELECT DISTINCT Institute.Institut_id, Institute.Name " .
@@ -418,6 +428,7 @@ class FolderController extends AuthenticatedController
             ->setInputStyle('width:100%')
             ->fireJSFunctionOnSelect('function(){STUDIP.Files.getFolders();}')
             ->withButton()
+            ->setAttributes(['name' => 'inst_dest_folder'])
             ->render();
 
         $this->copy_mode = $copy; //for the view: copy and move both use the file/move_folder view

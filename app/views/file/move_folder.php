@@ -37,7 +37,7 @@
     
     <div id="copymove-subfolder" style="display: none;">
         <label for="subfolder"><?= _('Ordner'); ?></label>
-        <select id="subfolder" name="dest_folder" ></select>
+        <select id="subfolder" name="user_dest_folder" ></select>
     </div>
 
     <div data-dialog-button>
