@@ -648,6 +648,84 @@ class FileManager
         return $errors;
     }
 
+    
+    /**
+     * This method handles copying folders, including
+     * copying the subfolders and files recursively.
+     *
+     * @param FolderType $source_folder The folder that shall be copied.
+     * @param FolderType $destination_folder The destination folder.
+     * @param User $user The user who wishes to copy the folder.
+     *
+     * @return string[] Array with error messages: Empty array on success, filled array on failure.
+     */
+    public static function copyFolder(FolderType $source_folder, FolderType $destination_folder, User $user)
+    {
+        global $perm;
+
+        $errors = [];
+
+        $destination_folder_type = $destination_folder->getTypedFolder();
+        if($destination_folder_type->isWritable($user->id)) {
+
+            //we have to check, if the source folder is a folder from a course.
+            //If so, then only users with status dozent or tutor (or root) in that course
+            //may copy the folder!
+            if($source_folder->isReadable($user->id) &&
+                $destination_folder->isWritable($user->id)) {
+                //the user has the permissions to copy the folder
+                
+                $folder_class_name = get_class($source_folder);
+                
+                $new_folder = new $folder_class_name();
+                $data = $new_folder->getEditTemplate();
+                
+                $data['user_id'] = $source_folder->user_id;
+                $data['parent_id'] = $destination_folder->id;
+                $data['range_id'] = $destination_folder->range_id;
+                $data['range_type'] = $destination_folder->range_type;
+                $data['folder_type'] = $source_folder->folder_type;
+                $data['name'] = $destination_folder->getUniqueName($source_folder->name);
+                $data['data_content'] = $source_folder->data_content;
+                $data['description'] = $source_folder->description;
+                
+                //folder is copied, we can store it:
+                $new_folder->setDataFromEditTemplate($data);
+
+                //now we go through all subfolders and copy them:
+                foreach($source_folder->getSubfolders() as $sub_folder) {
+                    $errors[] = self::copyFolder($sub_folder, $new_folder, $user);
+                    if($errors) {
+                        return $errors;
+                    }
+                }
+
+                //now go through all files and copy them, too:
+                foreach($source_folder->getFiles() as $file_ref) {
+                    $errors[] = self::copyFileRef($file_ref, $new_folder, $user);
+
+                    if($errors) {
+                        return $errors;
+                    }
+                }
+            } else {
+                //no permission to copy course folders!
+                $errors[] = sprintf(
+                    _('Unzureichende Berechtigungen zum Kopieren von Veranstaltungsordner %s in Ordner %s!'),
+                    $source_folder->name,
+                    $destination_folder->name
+                );
+            }
+        } else {
+            $errors[] = sprintf(
+                _('Unzureichende Berechtigungen zum Kopieren von Ordner %s in Ordner %s!'),
+                $source_folder->name,
+                $destination_folder->name
+            );
+        }
+        return $errors;
+    }
+
 
     /**
      * This method handles moving folders, including
