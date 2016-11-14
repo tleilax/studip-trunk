@@ -219,10 +219,12 @@ class StandardFolder implements FolderType
             $newfile->storage = 'disk';
             $newfile->id = $newfile->getNewId();
             $newfile->connectWithDataFile($file['tmp_path']);
+            $newfile->store();
         } else {
             $newfile = $file;
         }
         $file_ref =  $this->folderdata->linkFile($newfile);
+        //var_dump($file_ref);
         if (!is_a($file, "File") && $file['description']) {
             $file_ref['description'] = $file['description'];
         }
