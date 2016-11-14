@@ -1,6 +1,5 @@
 
 
-
 STUDIP.Folders = {
     
     openAddFoldersWindow: function(folder_id, range_id) {
@@ -32,6 +31,7 @@ STUDIP.Folders = {
                 cache: false,
                 success: function(data) {
                     STUDIP.Folders.updateFolderListEntry(data.folder_id, data.tr);
+                    STUDIP.Dialog.close();
                 }
             });
             
@@ -49,11 +49,5 @@ STUDIP.Folders = {
             jQuery(documents_table).append(html);
         }
         
-        STUDIP.Dialog.close();
-    },
-    
-    showFolderHtml: function(folder_html) {
-        //this is executed when the html code in the AJAX response
-        //shall be put onto the page
     }
 };

@@ -43,17 +43,18 @@ class FilesController extends AuthenticatedController
 
         if ($this->topFolder && $this->topFolder->isSubfolderAllowed($GLOBALS['user']->id)) {
             //standard dialog version:
-            $actions->addLink(
+            /*$actions->addLink(
                 _('Neuer Ordner'),
                 URLHelper::getUrl('dispatch.php/folder/new',
                     array('context' => 'user', 'rangeId' => $this->user->id, 'parent_folder_id' => $this->topFolder->getId())),
                 Icon::create('folder-empty+add', 'clickable'),
                 array('data-dialog' => 'size=auto')
             );
+            */
             
             //JavaScript version:
             $actions->addLink(
-                _('Neuer Ordner (JS)'),
+                _('Neuer Ordner'),
                 URLHelper::getUrl('#'),
                 Icon::create('folder-empty+add', 'clickable'),
                 ['onclick' => 'STUDIP.Folders.openAddFoldersWindow(\''. $this->topFolder->getId() . '\', \'' . $this->user->id . '\'); return false;']
