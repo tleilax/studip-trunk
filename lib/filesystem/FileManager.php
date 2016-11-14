@@ -580,7 +580,7 @@ class FileManager
      *
      * @return string[] Array with error messages: Empty array on success, filled array on failure.
      */
-    public static function copyFolder(Folder $source_folder, Folder $destination_folder, User $user)
+    public static function copyFolder_OLD(Folder $source_folder, Folder $destination_folder, User $user)
     {
         global $perm;
 

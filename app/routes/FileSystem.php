@@ -568,7 +568,7 @@ class FileSystem extends \RESTAPI\RouteMap
         
         $user = \User::findCurrent();
         
-        $errors = \FileManager::copyFolder($folder, $destination_folder, $user);
+        $errors = \FileManager::copyFolder_OLD($folder, $destination_folder, $user);
         
         if(!empty($errors)) {
             $this->halt(500, 'Error while copying a folder: ' . implode(' ', $errors));
