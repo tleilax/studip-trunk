@@ -1,6 +1,6 @@
 <? $is_readable = $folder->isReadable($GLOBALS['user']->id) ?>
 <? $owner = User::find($folder->user_id) ?: new User() ?>
-<tr>
+<tr id="row_folder_<?= $folder->id ?>">
     <td>
         <? if ($is_readable) : ?>
             <input type="checkbox" name="ids[]" value="<?= $folder->getId() ?>" <? if (in_array($folder->getId(), $marked_element_ids)) echo 'checked'; ?>>

@@ -43,11 +43,20 @@ STUDIP.Folders = {
         //updates the folder entry in the folder list
         var documents_table = jQuery('.documents[data-folder_id]');
         
-        if(jQuery('#' + folder_id).length > 0) {
-            jQuery('#' + folder_id).replaceWith(html);
+        if(jQuery('#row_folder_' + folder_id).length > 0) {
+            //row with folder-ID was found:
+            jQuery('#row_folder_' + folder_id).replaceWith(html);
         } else {
             jQuery(documents_table).append(html);
         }
         
+    },
+    
+    removeFolderListEntry: function(folder_id) {
+        //removes a row from the folder list:
+        if(jQuery('#row_folder_' + folder_id).length > 0) {
+            //row with folder-ID was found:
+            jQuery('#row_folder_' + folder_id).remove();
+        }
     }
 };
