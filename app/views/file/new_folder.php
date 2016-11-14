@@ -7,7 +7,7 @@
     <? endif ?>
     action="<?= $controller->url_for('/new') ?>"
     
-      id="new_folder_form">
+    id="new_folder_form">
     <?= CSRFProtection::tokenTag() ?>
     <input type="hidden" name="parent_folder_id" value="<?= $parent_folder_id ?>">
     <? if(Request::get('js')): ?>

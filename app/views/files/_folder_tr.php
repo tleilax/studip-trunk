@@ -17,7 +17,7 @@
     </td>
     <td>
         <? if ($is_readable) : ?>
-            <a href="<?= $controller->url_for('/index/' . $folder->getId()) ?>">                       <? endif ?>
+            <a href="<?= $controller->url_for('files/index/' . $folder->getId()) ?>">                       <? endif ?>
             <?= htmlReady($folder->name) ?>
         <? if ($is_readable) : ?>
             </a>

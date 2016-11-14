@@ -21,23 +21,17 @@ STUDIP.Folders = {
         var folder_name = jQuery(new_folder_form).find('input[name="name"]').val();
         var folder_description = jQuery(new_folder_form).find('input[name="description"]').val();
         var folder_type = jQuery(new_folder_form).find('select[name="folder_type"]').val();
+        var parent_folder_id = jQuery(new_folder_form).find('input[name="parent_folder_id"]').val();
         
-        
-        if(folder_name && folder_type) {
-            var form_data = new FormData();
-            //all necessary parameters are set
-            //form_data.append('name', folder_name);
-            //form_data.append('description', folder_description);
-            //form_data.append('folder_type', folder_type);
-            //form_data.append('js', '1');
+        if(folder_name && folder_type && parent_folder_id) {
             
             jQuery.ajax({
-                'url': STUDIP.ABSOLUTE_URI_STUDIP + 'dispatch.php/folder/new',
-                'data': form_data,
-                'cache': false,
-                'type': 'POST',
-                'success': function(result) {
-                    STUDIP.Folder.updateFolderListEntry(result.folder_id, result.tr);
+                method: 'POST',
+                url: STUDIP.ABSOLUTE_URI_STUDIP + 'dispatch.php/folder/new',
+                data: new_folder_form.serialize(),
+                cache: false,
+                success: function(data) {
+                    STUDIP.Folders.updateFolderListEntry(data.folder_id, data.tr);
                 }
             });
             
@@ -55,6 +49,7 @@ STUDIP.Folders = {
             jQuery(documents_table).append(html);
         }
         
+        STUDIP.Dialog.close();
     },
     
     showFolderHtml: function(folder_html) {
