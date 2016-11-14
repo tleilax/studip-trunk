@@ -18,17 +18,22 @@ use Studip\Button, Studip\LinkButton;
 
 <form action="<?= URLHelper::getLink($save_url) ?>" method="post">
 <?= CSRFProtection::tokenTag() ?>
-
+<input name="uebernehmen" value="1" type="hidden">
 <table class="default nohover plus">
 <!-- <caption><?=_("Inhaltselemente")?></caption> -->
 <tbody>
 <?
 foreach ($available_modules as $category => $pluginlist) {
-    if ($_SESSION['plus']['displaystyle'] != 'category' && $category != 'Funktionen von A-Z') continue;
-    if (isset($_SESSION['plus']) && !$_SESSION['plus']['Kategorie'][$category] && $category != 'Funktionen von A-Z') continue;
+    $visibility = "";
+    if ($_SESSION['plus']['displaystyle'] != 'category' && $category != 'Funktionen von A-Z') {
+        $visibility = "invisible";
+    }
+    if (isset($_SESSION['plus']) && !$_SESSION['plus']['Kategorie'][$category] && $category != 'Funktionen von A-Z') {
+        $visibility = "invisible";
+    }
 
     ?>
-    <tr>
+    <tr class="<?= $visibility; ?>">
         <th colspan=3>
             <?= htmlReady($category) ?>            
         </th>
@@ -42,6 +47,7 @@ foreach ($available_modules as $category => $pluginlist) {
             $info = $plugin->getMetadata();
 
             //Checkbox
+            $anchor = 'p_' . $plugin->getPluginId();
             $cb_name = 'plugin_' . $plugin->getPluginId();
             $cb_disabled = '';
             $cb_checked = $plugin_activated ? "checked" : "";
@@ -63,6 +69,7 @@ foreach ($available_modules as $category => $pluginlist) {
                 }
             }
 
+            $anchor = 'm_' . $modul['id'];
             $cb_name = $val['modulkey'] . '_value';
             $cb_disabled = $pre_check ? 'disabled' : '';
             $cb_checked = $modules->isBit($_SESSION['admin_modules_data']["changed_bin"], $modul["id"]) ? "checked" : "";
@@ -83,13 +90,14 @@ foreach ($available_modules as $category => $pluginlist) {
         //if(isset($info['complexity']) && isset($_SESSION['plus']) && !$_SESSION['plus']['Komplex'][$info['complexity']])continue;
         ?>
 
-        <tr class="<?= $pre_check != null ? ' quiet' : '' ?>">
+        <tr id="<?= htmlReady($anchor);?>" class="<?= $visibility; ?> <?= $pre_check != null ? ' quiet' : '' ?>">
             <td colspan=3>
 
                 <div class="plus_basic">
 
                     <!-- checkbox -->
-                    <input type="checkbox" id="<?= $pluginname ?>" name="<?= $cb_name ?>" value="TRUE" <?= $cb_disabled ?> <?= $cb_checked ?>>
+                    <input type="checkbox" id="<?= $pluginname ?>" name="<?= $cb_name ?>" value="TRUE" <?= $cb_disabled ?> <?= $cb_checked ?>
+                    onClick="form.submit()">
 
                     <div class="element_header">
 
@@ -313,8 +321,9 @@ foreach ($available_modules as $category => $pluginlist) {
     }
 } ?>
 </tbody>
+
 <tfoot>
-<tr>
+<tr class="hidden-js">
     <td align="center" colspan="3">
         <?= Button::create(_('An- / Ausschalten'), 'uebernehmen') ?>
     </td>

@@ -731,13 +731,15 @@ class CalendarEvent extends SimpleORMap implements Event
     }
 
     /**
-     * Returns the global uni id of this event.
+     * Returns the global unique id of this event.
      *
      * @return string The global unique id.
      */
     public function getUid()
     {
-        return 'Stud.IP-' . $this->event_id . '@' . $_SERVER['SERVER_NAME'];
+        return $this->event->uid !== ''
+                ? $this->event->uid
+                : 'Stud.IP-' . $this->event_id . '@' . $_SERVER['SERVER_NAME'];
     }
 
     /**
