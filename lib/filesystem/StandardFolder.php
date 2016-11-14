@@ -235,10 +235,50 @@ class StandardFolder implements FolderType
         return $file_ref;
     }
 
+    
+    public function deleteFile($file_ref_id)
+    {
+        $file_refs = $this->folderdata->file_refs;
+        
+        if($file_refs) {
+            foreach($file_refs as $file_ref) {
+                if($file_ref->id == $file_ref_id) {
+                    //we found the FileRef that shall be deleted
+                    return $file_ref->delete();
+                }
+            }
+        }
+        
+        //if no file refs are present or the file ref can't be found
+        //we return false:
+        return false;
+    }
+    
+    
     public function createSubfolder($folderdata)
     {
 
     }
+    
+    
+    public function deleteSubfolder($subfolder_id)
+    {
+        $subfolders = $this->folderdata->subfolders;
+        
+        if($subfolders) {
+            foreach($subfolders as $subfolder) {
+                if($subfolder->id == $subfolder_id) {
+                    //we found the subfolder that shall be deleted
+                    return $subfolder->delete();
+                }
+            }
+        }
+        
+        //if no subfolders are present or the subfolder can't be found
+        //we return false:
+        return false;
+    }
+    
 
     /**
      * @param $fileref_or_id

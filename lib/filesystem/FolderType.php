@@ -139,18 +139,38 @@ interface FolderType
     public function validateUpload($file, $user_id);
 
     /**
-     * Must create the file and return the FileRef object.
-     * @param ArrayAccess|Array $file
+     * This method is responsible for creating a file and the associated FileRef object.
+     * 
+     * @param ArrayAccess|Array $file Data which are required to create a file.
      * @return File|MessageBox : File of the created file or MessageBox if an error occured
      */
     public function createFile($file);
-
+    
+    /**
+     * Deletes a file in this folder.
+     * @param string $file_ref_id The ID of the FileRef object of the file that shall be deleted.
+     * @return bool True on success, False on failure.
+     */
+    public function deleteFile($file_ref_id);
+    
+    
     /**
      * @param ArrayAccess|Array $folderdata
      * @return FolderType|MessageBox : FolderType of the created folder or MessageBox if an error occured
      */
     public function createSubfolder($folderdata);
 
+    
+    /**
+     * Deletes a subfolder in this folder.
+     * 
+     * @param string $subfolder_id The ID of the subfolder that shall be deleted.
+     * 
+     * @return bool True on success, False on failure.
+     */
+    public function deleteSubfolder($subfolder_id);
+    
+    
     /**
      * Determines if a user may download the file.
      * @param string $file_ref_id The ID of the FileRef object of a file that shall be downloaded.

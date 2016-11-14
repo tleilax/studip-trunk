@@ -169,11 +169,25 @@ class UnknownFolderType implements FolderType
     {
 
     }
+    
+    
+    public function deleteFile($file_ref_id)
+    {
+        return false;
+    }
+    
 
     public function createSubfolder($folderdata)
     {
 
     }
+    
+    
+    public function deleteSubfolder($subfolder_id)
+    {
+        return false;
+    }
+    
 
     /**
      * @param $fileref_or_id

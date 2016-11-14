@@ -769,12 +769,26 @@ class FileManager
                 )
             ];
         }
-
-        if(!$folder->delete()) {
+        
+        //get the parent folder and delete the folder from there:
+        $folder_data = $folder->getEditTemplate();
+        
+        $parent_folder = self::getTypedFolder($folder_data['parent_id']);
+        if(!$parent_folder instanceof FolderType) {
+            return [
+                sprintf(
+                    _('Übergeordnetes Verzeichnis von Ordner %s konnte nicht gefunden werden!'),
+                    $folder_data['name']
+                )
+            ];
+        }
+        
+        
+        if(!$parent_folder->deleteSubfolder($folder->id)) {
             return [
                 sprintf(
                     _('Fehler beim Löschvorgang von Ordner %s!'),
-                    $folder->name
+                    $folder_data->name
                 )
             ];
         }
