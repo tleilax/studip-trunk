@@ -15,10 +15,8 @@ STUDIP.Folders = {
     sendNewFolderForm: function() {
         var new_folder_form = jQuery('#new_folder_form');
         
-        //get folder attributes:
-        
+        //get form fields to check if the required fields are set:
         var folder_name = jQuery(new_folder_form).find('input[name="name"]').val();
-        var folder_description = jQuery(new_folder_form).find('input[name="description"]').val();
         var folder_type = jQuery(new_folder_form).find('select[name="folder_type"]').val();
         var parent_folder_id = jQuery(new_folder_form).find('input[name="parent_folder_id"]').val();
         

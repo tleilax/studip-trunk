@@ -52,12 +52,14 @@ class FilesController extends AuthenticatedController
             );
             */
             
-            //JavaScript version:
+            //AJAX version:
             $actions->addLink(
                 _('Neuer Ordner'),
                 URLHelper::getUrl('#'),
                 Icon::create('folder-empty+add', 'clickable'),
-                ['onclick' => 'STUDIP.Folders.openAddFoldersWindow(\''. $this->topFolder->getId() . '\', \'' . $this->user->id . '\'); return false;']
+                [
+                    'onclick' => 'STUDIP.Folders.openAddFoldersWindow(\''. $this->topFolder->getId() . '\', \'' . $this->user->id . '\'); return false;'
+                ]
             );
             
 

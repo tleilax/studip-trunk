@@ -42,12 +42,25 @@ class Institute_FilesController extends AuthenticatedController
         $actions = new ActionsWidget();
 
         if ($this->topFolder && $this->topFolder->isSubfolderAllowed($GLOBALS['user']->id)) {
+            /*
+            //standard dialog version:
             $actions->addLink(
                 _('Neuer Ordner'),
                 URLHelper::getUrl('dispatch.php/folder/new',
                     array('context' => 'institute', 'rangeId' => $this->institute->id, 'parent_folder_id' => $this->topFolder->getId())),
                 Icon::create('folder-empty+add', 'clickable'),
                 array('data-dialog' => 'size=auto')
+            );
+            */
+            
+            //AJAX version:
+            $actions->addLink(
+                _('Neuer Ordner'),
+                URLHelper::getUrl('#'),
+                Icon::create('folder-empty+add', 'clickable'),
+                [
+                    'onclick' => 'STUDIP.Folders.openAddFoldersWindow(\''. $this->topFolder->getId() . '\', \'' . $this->institute->id . '\'); return false;'
+                ]
             );
 
         }
