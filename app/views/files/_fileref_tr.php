@@ -55,7 +55,7 @@
                 _('Ordner öffnen'), Icon::create('folder-empty', 'clickable')) ?>                
         <? endif; ?>        
         <? if ($current_folder->isFileEditable($file_ref->id, $GLOBALS['user']->id)): ?>
-            <? $actionMenu->addLink($controller->url_for('file/manage/' . $file_ref->id),
+            <? $actionMenu->addLink($controller->url_for('file/edit/' . $file_ref->id),
                 _('Datei bearbeiten'),
                 Icon::create('edit', 'clickable'),
                 ['data-dialog' => 'reload-on-close', '' => '']) ?>

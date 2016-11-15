@@ -281,25 +281,4 @@ jQuery.tablesorter.filter.bindSearch( $table, $('.tablesorterfilter') );
         STUDIP.Files.upload(filelist);
     });
     
-    /*
-    $(document).on('change', '#copymove-destination', function (event) {
-    	
-    	$("#copymove-range-course").hide();
-		$("#copymove-range-inst").hide();
-		$("#copymove-subfolder").hide();
-		$("#copymove-subfolder select").empty();
-		
-    	var elem = jQuery(this).find('select').first();
-    	
-    	if ($.inArray( elem.val(), [ "courses"] ) > -1) {   
-    		$("#copymove-range-course").show();
-    	} else if ($.inArray( elem.val(), [ "institutes" ] ) > -1) {    		
-    		$("#copymove-range-inst").show();
-    	} else if ($.inArray( elem.val(), [ "myfiles" ] ) > -1) {    		
-    		$("#copymove-subfolder").show();
-    		STUDIP.Files.getFolders();
-    	}
-    });
-    */
-    
 });
