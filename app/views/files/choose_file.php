@@ -154,5 +154,5 @@ if (Request::get("to_plugin")) {
 }
 ?>
 <div data-dialog-button>
-    <?= Studip\LinkButton::create(_("zurück"), $controller->url_for('/add_files_window/' . Request::get("to_folder_id"), $options), array('data-dialog' => 1)) ?>
+    <?= Studip\LinkButton::create(_("Zurück"), $controller->url_for('/add_files_window/' . Request::get("to_folder_id"), $options), array('data-dialog' => 1)) ?>
 </div>

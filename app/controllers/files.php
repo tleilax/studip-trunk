@@ -272,6 +272,50 @@ class FilesController extends AuthenticatedController
         $this->licenses = ContentTermsOfUse::findBySQL("1=1");
     }
 
+    public function add_url_action($folder_id)
+    {
+        if (Request::get("to_plugin")) {
+            $to_plugin = PluginManager::getInstance()->getPlugin(Request::get("to_plugin"));
+            $this->to_folder_type = $to_plugin->getFolder($folder_id);
+        } else {
+            $folder = new Folder($folder_id);
+            $this->to_folder_type = new StandardFolder($folder);
+        }
+
+        if (Request::isPost()) {
+            $file = new File();
+            $file['storage'] = "url";
+            $file['user_id'] = $GLOBALS['user']->id;
+            $file['mime_type'] = "";
+            $file['name'] = Request::get("name");
+            $file->id = $file->getNewId();
+            $file->url = new FileURL();
+            $file->url->url = Request::get("url");
+
+            $this->file_ref = $this->to_folder_type->createFile($file);
+            $payload = array();
+
+            $this->current_folder = $this->to_folder_type;
+            $this->marked_element_ids = array();
+            $payload[] = $this->render_template_as_string("files/_fileref_tr");
+
+            $payload = array("func" => "STUDIP.Files.addFile", 'payload' => $payload);
+            $this->response->add_header("X-Dialog-Execute", json_encode(studip_utf8encode($payload)));
+            $this->render_nothing();
+        }
+
+
+        if (Request::get("plugin")) {
+            $this->filesystemplugin = PluginManager::getInstance()->getPlugin(Request::get("plugin"));
+            $this->top_folder = $this->filesystemplugin->getFolder($folder_id, true);
+        } else {
+            $this->top_folder = new StandardFolder(new Folder($folder_id));
+            if (!$this->top_folder->isReadable($GLOBALS['user']->id)) {
+                throw new AccessException();
+            }
+        }
+    }
+
 
 
 }

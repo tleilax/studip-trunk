@@ -44,8 +44,7 @@ class File extends SimpleORMap
             'foreign_key' => 'file_id',
         );
         $config['has_one']['url'] = array(
-            'class_name'  => 'FileURL',
-            'foreign_key' => 'file_id',
+            'class_name'  => 'FileURL'
         );
         $config['additional_fields']['extension'] = true;
         $config['additional_fields']['path'] = true;
