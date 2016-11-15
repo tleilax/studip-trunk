@@ -94,9 +94,9 @@ class FileManager
      *
      * @return string[] Array with error messages: Empty array on success, filled array on failure.
      */
-    public static function editFileRef(FileRef $file_ref, User $user, $name = null, $description = null, $content_terms_of_use = null, $license = null)
+    public static function editFileRef(FileRef $file_ref, User $user, $name = null, $description = null, $content_terms_of_use_id = null, $license = null)
     {
-        if(!$name && ($description == null) && ($content_terms_of_use == null) && ($license == null)) {
+        if(!$name && ($description == null) && ($content_terms_of_use_id == null) && ($license == null)) {
             //nothing to do, no errors:
             return [];
         }
@@ -112,8 +112,10 @@ class FileManager
         }
         
         if($folder_type->isFileEditable($file_ref, $user->id)) {
-
-            if($name !== null) {
+            
+            //check if name is set and is different from the current name
+            //of the file reference:
+            if(($name !== null) && ($name != $file_ref->name)) {
                 //name is special: we have to check if files/folders in
                 //the file_ref's folder have the same name. If so, we must
                 //make it unique.
@@ -128,7 +130,7 @@ class FileManager
                     ];
                 }
 
-                $file_ref->name = $folder->getUniqueName($name);
+                $file_ref->name = $name;
             }
 
             if($description !== null) {
@@ -146,6 +148,8 @@ class FileManager
                         )
                     ];
                 }
+                
+                $file_ref->content_terms_of_use_id = $content_terms_of_use->id;
             }
 
 

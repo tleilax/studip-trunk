@@ -240,13 +240,15 @@ class FileController extends AuthenticatedController
             }
         }
         
+        $this->content_terms_of_use_entries = ContentTermsOfUse::findBySql('TRUE');
+        
         if (Request::submitted('save')) {
             //form was sent
             $this->name = Request::get('name');
             $this->description = Request::get('description');
-            $this->license = Request::get('licence');
+            $this->content_terms_of_use_id = Request::get('content_terms_of_use_id');
             
-            $errors = FileManager::editFileRef($file_ref, User::findCurrent(), $this->name, $this->description, null, $this->license);
+            $errors = FileManager::editFileRef($file_ref, User::findCurrent(), $this->name, $this->description, $this->content_terms_of_use_id, $this->license);
             if (empty($errors)) {
                 $this->redirectToFolder(
                     $file_ref->folder,

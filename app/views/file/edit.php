@@ -12,36 +12,26 @@
             <?= _('Name') ?>
             <input type="text" name="name" value="<?= htmlReady($name) ?>">
         </label>
+        <? if ($content_terms_of_use_entries): ?>
         <label>
-            <?= _('Lizenz') ?>
-            <select name="licence">
-                <option value="1">Placeholder1</option>
-                <option value="2">Placeholder2</option>
+            <?= _('Nutzungsrechte') ?>
+            <select name="content_terms_of_use_id">
+                <? foreach ($content_terms_of_use_entries as $ctou): ?>
+                    <option value="<?= $ctou->id ?>"><?= htmlReady($ctou->name) ?></option>
+                <? endforeach ?>
             </select>
         </label>
-
+        <? endif ?>
+        
         <label>
             <?= _('Beschreibung') ?>
             <textarea name="description" placeholder="<?= _('Optionale Beschreibung') ?>"><?= htmlReady($description); ?></textarea>
         </label>
-
-        <?/*
-        <fieldset>
-            <label>
-                <input type="radio" name="restricted" value="0">
-                <?= _('Ja, dieses Dokument ist frei von Rechten Dritter.') ?>
-            </label>
-            <label>
-                <input type="radio" name="restricted" value="1">
-                <?= sprintf(_('Nein, dieses Dokumnt ist %snicht%s frei von Rechten Dritter.'), '<em>', '</em>') ?>
-            </label>
-        </fieldset>*/?>
     </fieldset>
 
-
-        <div data-dialog-button>
-            <?= Studip\Button::createAccept(_('Speichern'), 'save') ?>
-            <?= Studip\LinkButton::createCancel(_('Abbrechen'),
-                $controller->url_for('/index/' . $folder_id)) ?>
-        </div>
+    <div data-dialog-button>
+        <?= Studip\Button::createAccept(_('Speichern'), 'save') ?>
+        <?= Studip\LinkButton::createCancel(_('Abbrechen'),
+            $controller->url_for('/index/' . $folder_id)) ?>
+    </div>
 </form>
