@@ -56,5 +56,21 @@ STUDIP.Folders = {
             //row with folder-ID was found:
             jQuery('#row_folder_' + folder_id).remove();
         }
+    },
+    
+    delete: function(folder_id) {
+        if(!folder_id) {
+            return false;
+        }
+        
+        jQuery.ajax({
+            method: 'GET',
+            url: STUDIP.ABSOLUTE_URI_STUDIP + 'dispatch.php/folder/delete/' + folder_id,
+            data: null,
+            cache: false,
+            success: function(data) {
+                STUDIP.Folders.removeFolderListEntry(folder_id);
+            }
+        });
     }
 };

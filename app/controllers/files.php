@@ -55,7 +55,14 @@ class FilesController extends AuthenticatedController
             //AJAX version:
             $actions->addLink(
                 _('Neuer Ordner'),
-                URLHelper::getUrl('#'),
+                URLHelper::getUrl(
+                    'dispatch.php/folder/new',
+                    [
+                        'context' => 'user',
+                        'rangeId' => $this->user->id,
+                        'parent_folder_id' => $this->topFolder->getId()
+                    ]
+                ),
                 Icon::create('folder-empty+add', 'clickable'),
                 [
                     'onclick' => 'STUDIP.Folders.openAddFoldersWindow(\''. $this->topFolder->getId() . '\', \'' . $this->user->id . '\'); return false;'

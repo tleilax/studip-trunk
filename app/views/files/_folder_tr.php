@@ -61,12 +61,13 @@
                     _('Ordner kopieren'),
                     Icon::create('folder-empty+add', 'clickable'),
                     ['data-dialog' => 'reload-on-close']) ?>
-            <? $actionMenu->addLink($controller->url_for('folder/delete/' . $folder->getId()),
+            <? $actionMenu->addLink(
+                    $controller->url_for('folder/delete/' . $folder->getId()),
                     _('Ordner löschen'),
                     Icon::create('trash', 'clickable'),
-                    ['data-confirm' => sprintf(_('Soll den Ordner "%s" wirklich gelöscht werden?'), htmlReady($folder->name)),
-                        'data-dialog' => 'size=auto; reload-on-close',
-                        'formaction' => $controller->url_for('folder/delete/' . $folder->getId())]) ?>
+                    [
+                        'onclick' => "STUDIP.Dialog.confirm('".sprintf(_('Soll der Ordner "%s" wirklich gelöscht werden?'), htmlReady($folder->name))."', function () { STUDIP.Folders.delete('". $folder->getId() . "'); }); return false;"
+                    ]) ?>
         <? endif; ?>
         <?= $actionMenu->render() ?>
     </td>
