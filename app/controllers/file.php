@@ -159,6 +159,7 @@ class FileController extends AuthenticatedController
             $this->file_ref_id = $file_ref->id;
             $this->folder_id = $file_ref->folder_id;
             $this->description = $file_ref->description;
+            $this->file_ref = $file_ref;
         } else {
             if(Request::isDialog()) {
                 $this->render_text(
