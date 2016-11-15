@@ -11,7 +11,7 @@
             <?= Icon::create(get_icon_for_mimetype($file_ref->mime_type), 'clickable')->asImg(24) ?>
         </a>
         <? else : ?>
-            <?= Icon::create(get_icon_for_mimetype($file_ref->mime_type))->asImg(24) ?>
+            <?= Icon::create(get_icon_for_mimetype($file_ref->mime_type), "inactive")->asImg(24) ?>
         <? endif ?>
     </td>
     <td data-sort-value="<?= htmlReady($file_ref->name) ?>">
@@ -23,7 +23,7 @@
             <?= htmlReady($file_ref->name) ?>
         <? endif ?>
         <? if ($file_ref->content_terms_of_use_id): ?>
-            <?= Icon::create('lock-locked', 'clickable',['title' => _('Diese Datei ist nicht frei von Rechten Dritter.')])->asImg(['class' => 'text-top']) ?>
+            <?= Icon::create('lock-locked', 'info')->asImg(['class' => 'text-top', 'title' => _('Diese Datei ist nicht frei von Rechten Dritter.')]) ?>
         <? endif; ?>
         <? if ($file_ref->description): ?>
             <small class="responsive-hidden"><?= htmlReady($file_ref->description) ?></small>
