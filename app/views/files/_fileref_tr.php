@@ -22,8 +22,10 @@
         <? else : ?>
             <?= htmlReady($file_ref->name) ?>
         <? endif ?>
-        <? if ($file_ref->content_terms_of_use_id): ?>
-            <?= Icon::create('lock-locked', 'info')->asImg(['class' => 'text-top', 'title' => _('Diese Datei ist nicht frei von Rechten Dritter.')]) ?>
+        <? if ($file_ref->terms_of_use): ?>
+            <? if($file_ref->terms_of_use->download_condition > 1): ?>
+                <?= Icon::create('lock-locked', 'info')->asImg(['class' => 'text-top', 'title' => _('Diese Datei ist nicht frei von Rechten Dritter.')]) ?>
+            <? endif ?>
         <? endif; ?>
         <? if ($file_ref->description): ?>
             <small class="responsive-hidden"><?= htmlReady($file_ref->description) ?></small>
