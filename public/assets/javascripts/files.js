@@ -121,34 +121,58 @@ STUDIP.Files = {
         location.reload();
     },
 
-    getFolders: function () {
+    getFolders: function(name = '') {
     	
-    	var context =  $("#copymove-destination").find('select').first().val();
+        var element_name = 'folder_select_'+name;
+        
+    	var context =  $('#'+element_name+'-destination').val();
     	var range = null;
     	
     	if ($.inArray( context, [ "courses"] ) > -1) {    		
-    		range = $("#copymove-range-course > div > input").first().val();
+    		range = $('#'+element_name+'-range-course > div > input').first().val();
     	} else if ($.inArray( context, [ "institutes"] ) > -1) {
-    		range = $("#copymove-range-inst > div > input").first().val();
+    		range = $('#'+element_name+'-range-inst > div > input').first().val();
     	} else if ($.inArray( context, [ "myfiles"] ) > -1) {
-    		range = $("#copymove-range-user_id").val();
+    		range = $('#'+element_name+'-range-user_id').val();
     	}
 
     	if (range != null) {
 	    	$.post(STUDIP.URLHelper.getURL("dispatch.php/file/getFolders"), {"range": range}, function( data ) {
 			    if (data) {
-			    	$("#copymove-subfolder select").empty();
+			    	$('#'+element_name+'-subfolder select').empty();
 			    	$.each(data, function( index, value ) {
 			    		$.each(value, function( label, folder_id ) {
-			    			$("#copymove-subfolder select").append('<option value="' + folder_id + '">' + label + '</option>');
+			    			$('#'+element_name+'-subfolder select').append('<option value="' + folder_id + '">' + label + '</option>');
 			    		});
 		    		});
 			    }
 			}, "json").done(function(){
-				$("#copymove-subfolder").show();
+				$('#'+element_name+'-subfolder').show();
 			});
     	}
         
+    },
+    
+    changeFolderSource: function(name = '') {
+        var element_name = 'folder_select_'+name;
+        
+        console.log(element_name);
+        
+        $('#'+element_name+'-range-course').hide();
+        $('#'+element_name+'-range-inst').hide();
+        $('#'+element_name+'-subfolder').hide();
+        $('#'+element_name+'-subfolder select').empty();
+                
+        var elem = jQuery('#'+element_name+'-destination');
+        
+        if ($.inArray( elem.val(), [ "courses"] ) > -1) {   
+            $('#'+element_name+'-range-course').show();
+        } else if ($.inArray( elem.val(), [ "institutes" ] ) > -1) {                    
+            $('#'+element_name+'-range-inst').show();
+        } else if ($.inArray( elem.val(), [ "myfiles" ] ) > -1) {               
+            $('#'+element_name+'-subfolder').show();
+            STUDIP.Files.getFolders(name);
+        }
     }
 };
 
@@ -257,6 +281,7 @@ jQuery.tablesorter.filter.bindSearch( $table, $('.tablesorterfilter') );
         STUDIP.Files.upload(filelist);
     });
     
+    /*
     $(document).on('change', '#copymove-destination', function (event) {
     	
     	$("#copymove-range-course").hide();
@@ -275,5 +300,6 @@ jQuery.tablesorter.filter.bindSearch( $table, $('.tablesorterfilter') );
     		STUDIP.Files.getFolders();
     	}
     });
+    */
     
 });

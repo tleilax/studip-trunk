@@ -2,9 +2,10 @@
 
 	<input type="hidden" name="copymode" value="<?= $move_copy; ?>">
 
-	<div id="copymove-destination">
-    	<label for="destination"><?= _('Ziel'); ?></label>
-    	<select id="destination">
+	<div id="folder_select_-container">
+    	<label for="folder_select_-destination"><?= _('Ziel'); ?></label>
+    	<select id="folder_select_-destination"
+            onchange="STUDIP.Files.changeFolderSource();">
     		<option value="null"></option>
         	<optgroup label="lokal">
         		<option value="myfiles"><?= _('Meine Dateien'); ?></option>
@@ -18,17 +19,17 @@
         	</optgroup>
     	</select>
 	</div>
-	<input id="copymove-range-user_id" type="hidden" name="user_id" value="<?= htmlReady($user_id); ?>">
-	<div id="copymove-range-course" style="display: none;">
+	<input id="folder_select_-range-user_id" type="hidden" name="user_id" value="<?= htmlReady($user_id); ?>">
+	<div id="folder_select_-range-course" style="display: none;">
     	<label for="range"><?= htmlReady(_('Veranstaltung')); ?></label>
     	<?= $search; ?>    	
 	</div>
-	<div id="copymove-range-inst" style="display: none;">
+	<div id="folder_select_-range-inst" style="display: none;">
     	<label for="range"><?= htmlReady(_('Einrichtung')); ?></label>
     	<?= $inst_search; ?>
 	</div>
 	
-	<div id="copymove-subfolder" style="display: none;">
+	<div id="folder_select_-subfolder" style="display: none;">
     	<label for="subfolder"><?= _('Ordner'); ?></label>
     	<select id="subfolder" name="dest_folder" ></select>
 	</div>
