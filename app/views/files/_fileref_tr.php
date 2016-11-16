@@ -66,13 +66,13 @@
             <? $actionMenu->addLink($controller->url_for('file/move/' . $file_ref->id, array('copymode' => 'move')),
                 _('Datei verschieben'),
                 Icon::create('file+move_right', 'clickable'),
-                ['data-dialog' => 'size=400; reload-on-close']) ?>
+                ['data-dialog' => 'size=400']) ?>
         <? endif; ?>
         <? if ($current_folder->isFileDownloadable($file_ref, $GLOBALS['user']->id)): ?>
             <? $actionMenu->addLink($controller->url_for('file/move/' . $file_ref->id, array('copymode' => 'copy')),
                 _('Datei kopieren'),
                 Icon::create('file+add', 'clickable'),
-                ['data-dialog' => 'size=400; reload-on-close']) ?>
+                ['data-dialog' => 'size=400']) ?>
         <? endif; ?>
         <? if ($current_folder->isFileWritable($file_ref->id, $GLOBALS['user']->id)): ?>
             <? $actionMenu->addLink($controller->url_for('file/delete/' . $file_ref->id),

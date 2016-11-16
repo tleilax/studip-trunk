@@ -56,11 +56,11 @@
             <? $actionMenu->addLink($controller->url_for('folder/move/' . $folder->getId()),
                     _('Ordner verschieben'),
                     Icon::create('folder-empty+move_right', 'clickable'),
-                    ['data-dialog' => 'reload-on-close']) ?>
+                    ['data-dialog' => '1']) ?>
             <? $actionMenu->addLink($controller->url_for('folder/copy/' . $folder->getId()),
                     _('Ordner kopieren'),
                     Icon::create('folder-empty+add', 'clickable'),
-                    ['data-dialog' => 'reload-on-close']) ?>
+                    ['data-dialog' => '1']) ?>
             <? $actionMenu->addLink(
                     $controller->url_for('folder/delete/' . $folder->getId()),
                     _('Ordner löschen'),
