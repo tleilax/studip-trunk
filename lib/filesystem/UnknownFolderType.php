@@ -42,7 +42,7 @@ class UnknownFolderType implements FolderType
      */
     public function getIcon($role = 'info')
     {
-        return Icon::create('brokenfolder', $role);
+        return Icon::create('folder-broken', $role);
     }
 
     /**

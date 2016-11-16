@@ -21,6 +21,7 @@ class FilesController extends AuthenticatedController
 {
     public function before_filter(&$action, &$args)
     {
+        $this->utf8decode_xhr = true;
         parent::before_filter($action, $args);
 
         PageLayout::setTitle(_('Meine Dateien'));

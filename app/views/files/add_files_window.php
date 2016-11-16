@@ -18,7 +18,7 @@ if ($folder_id) {
             <?= _("Mein Computer") ?>
         </a>
         <a href="<?= $controller->link_for("files/add_url/" . Folder::findTopFolder($GLOBALS['user']->id)->getId(), $options) ?>" data-dialog>
-            <?= Icon::create("campusnavi", "clickable")->asImg(50) ?>
+            <?= Icon::create("globe", "clickable")->asImg(50) ?>
             <?= _("Webadresse") ?>
         </a>
         <a href="<?= $controller->link_for("files/choose_file/" . Folder::findTopFolder($GLOBALS['user']->id)->getId(), $options) ?>" data-dialog>
