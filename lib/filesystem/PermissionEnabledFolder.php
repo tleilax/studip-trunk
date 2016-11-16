@@ -47,6 +47,12 @@ class PermissionEnabledFolder extends StandardFolder
         return (bool)($this->permission & $this->perms[$perm]);
     }
 
+    public function getIcon($role = Icon::DEFAULT_ROLE)
+    {
+        $shape = count($this->getSubfolders()) + count($this->getFiles()) == 0 ? 'folder-lock-empty' : 'folder-lock-full';
+        return Icon::create($shape, $role);
+    }
+
     public function isVisible($user_id)
     {
         return $this->checkPermission('x', $user_id);
