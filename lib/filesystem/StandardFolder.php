@@ -42,7 +42,11 @@ class StandardFolder implements FolderType
      */
     public function getIcon($role = Icon::DEFAULT_ROLE)
     {
-        $shape = count($this->getSubfolders()) + count($this->getFiles()) == 0 ? 'folder-empty' : 'folder-full';
+        if ($this->parent_id) {
+            $shape = count($this->getSubfolders()) + count($this->getFiles()) == 0 ? 'folder-empty' : 'folder-full';
+        } else {
+            $shape = count($this->getSubfolders()) + count($this->getFiles()) == 0 ? 'folder-home-empty' : 'folder-home-full';
+        }
         return Icon::create($shape, $role);
     }
 

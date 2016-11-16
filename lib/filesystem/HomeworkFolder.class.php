@@ -19,42 +19,27 @@
  * A homework folder in Stud.IP can be writeable by all course members
  * but is only readable by teachers.
  */
-class HomeworkFolder implements FolderType
+class HomeworkFolder extends StandardFolder
 {
-    public $folder = null;
-    
-    
-    public function __construct(Folder $folder)
-    {
-        $this->folder = $folder;
-    }
+    public $folderdata = null;
     
     
     static public function getTypeName()
     {
         return _('Ordner für Hausarbeiten');
     }
-    
-    
-    static public function getIconShape()
+
+
+    public function getIcon($role = Icon::DEFAULT_ROLE)
     {
-        return 'folder-empty';
+        $shape = count($this->getSubfolders()) + count($this->getFiles()) == 0 ? 'folder-lock-empty' : 'folder-lock-full';
+        return Icon::create($shape, $role);
     }
     
     
     static public function creatableInStandardFolder($range_type)
     {
         return ($range_type == 'course');
-    }
-    
-    
-    public function getName()
-    {
-        if($this->folder) {
-            return $this->folder->name;
-        } else {
-            return null;
-        }
     }
     
     
@@ -67,26 +52,37 @@ class HomeworkFolder implements FolderType
     
     public function isReadable($user_id)
     {
-        //folders of this type are readable only for course teachers
-        global $perm;
-        
-        if($this->folder) {
-            return $perm->have_studip_perm('dozent', $this->folder->range_id, $user_id);
-        } else {
-            //a non-existant folder isn't readable!
-            return false;
-        }
+        //We need to enter this folder even as a student
+        return true;
     }
-    
-    
+
+    public function getFiles()
+    {
+        return $this->folderdata->file_refs->getArrayCopy();
+    }
+
+    public function isFileDownloadable($fileref_or_id, $user_id)
+    {
+        $fileref = FileRef::toObject($fileref_or_id);
+        return $fileref['user_id'] === $user_id || $GLOBALS['perm']->have_studip_perm('tutor', $this->range_id, $user_id);
+    }
+
+    public function isFileEditable($fileref_or_id, $user_id)
+    {
+        return $this->isFileDownloadable($fileref_or_id, $user_id);
+    }
+
+    public function isFileWritable($fileref_or_id, $user_id)
+    {
+        return $this->isFileDownloadable($fileref_or_id, $user_id);
+    }
+
+
     public function isWritable($user_id)
     {
         //folders of this type are writable for users with permissions author
-        
-        global $perm;
-        
-        if($this->folder) {
-            return $perm->have_studip_perm('autor', $this->folder->range_id, $user_id);
+        if ($this->folderdata) {
+            return $GLOBALS['perm']->have_studip_perm('autor', $this->folderdata->range_id, $user_id);
         } else {
             //a non-existant folder isn't writable!
             return false;
@@ -104,7 +100,7 @@ class HomeworkFolder implements FolderType
     public function getDescriptionTemplate()
     {
         if($this->folder) {
-            $course = Course::find($this->folder->range_id);
+            $course = Course::find($this->folderdata->range_id);
             if($course) {
                 return sprintf(
                     _('Hausarbeitenordner für %s'),
@@ -126,16 +122,5 @@ class HomeworkFolder implements FolderType
     public function setData($request)
     {
         return null; //STUB
-    }
-    
-    
-    public function validateUpload($file, $user_id)
-    {
-        return true; //STUB
-    }
-
-    public function createSubfolder($folderdata)
-    {
-
     }
 }
