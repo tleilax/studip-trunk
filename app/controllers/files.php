@@ -227,6 +227,7 @@ class FilesController extends AuthenticatedController
         }
         if (Request::get("plugin")) {
             $this->filesystemplugin = PluginManager::getInstance()->getPlugin(Request::get("plugin"));
+            PageLayout::setTitle(_("Datei hinzufügen von")." ".$this->filesystemplugin->getPluginName());
             if (Request::get("search") && $this->filesystemplugin->hasSearch()) {
                 $this->top_folder = $this->filesystemplugin->search(Request::get("search"), Request::getArray("parameter"));
             } else {

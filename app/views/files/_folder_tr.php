@@ -1,3 +1,4 @@
+<? $controllerpath = ($topFolder->range_type === "user" ? "" : $topFolder->range_type."/").'files/index' ?>
 <? $is_readable = $folder->isReadable($GLOBALS['user']->id) ?>
 <? $owner = User::find($folder->user_id) ?: new User() ?>
 <tr id="row_folder_<?= $folder->id ?>">
@@ -8,16 +9,16 @@
     </td>
     <td class="document-icon" data-sort-value="0">
         <? if ($is_readable) : ?>
-            <a href="<?= $controller->url_for('files/index/' . $folder->getId()) ?>">
+            <a href="<?= $controller->url_for($controllerpath . '/' . $folder->getId()) ?>">
         <? endif ?>
-            <?= $folder->getIcon($is_readable ? 'clickable': 'info')->asImg(24) ?>
+            <?= $folder->getIcon($is_readable ? 'clickable': 'info')->asImg(26) ?>
         <? if ($is_readable) : ?>
         </a>
         <? endif ?>
     </td>
     <td>
         <? if ($is_readable) : ?>
-            <a href="<?= $controller->url_for('files/index/' . $folder->getId()) ?>">                       <? endif ?>
+            <a href="<?= $controller->url_for($controllerpath . '/' . $folder->getId()) ?>">                       <? endif ?>
             <?= htmlReady($folder->name) ?>
         <? if ($is_readable) : ?>
             </a>

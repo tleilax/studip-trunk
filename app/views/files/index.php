@@ -1,3 +1,4 @@
+<? $controllerpath = ($topFolder->range_type === "user" ? "" : $topFolder->range_type."/").'files/index' ?>
 <form method="post">
 <?= CSRFProtection::tokenTag() ?>
 <table class="default documents" data-folder_id="<?= htmlReady($topFolder->getId()) ?>">
@@ -13,8 +14,8 @@
                 $root_dir = array_shift($breadcrumbs);
                 $last_crumb = end($breadcrumbs); ?>
             <div>
-                <a href="<?= $controller->link_for('/index/' . $root_dir->getId()) ?>">
-                    <?= Icon::create('folder-parent', 'clickable')->asImg(24) ?>
+                <a href="<?= $controller->link_for($controllerpath . '/' . $root_dir->getId()) ?>" title="<?= _("Zum Hauptordner") ?>">
+                    <?= Icon::create('folder-home-empty', 'clickable')->asImg(30, array('class' => "text-bottom")) ?>
                     <? if (count($breadcrumbs) < 6): ?><?= htmlReady($root_dir->name) ?><? endif ?>
                 </a>
                 <? if(!empty($breadcrumbs)): ?>
@@ -23,7 +24,7 @@
                         ?><? endif ?>
 
                     <? foreach ($breadcrumbs as $crumb): ?>
-                            /<a href="<?= $controller->url_for('/index/' . $crumb->getId()) ?>">
+                            /<a href="<?= $controller->url_for($controllerpath . '/' . $crumb->getId()) ?>">
                                 <?= htmlReady($crumb->name) ?>
                             </a>
                     <? endforeach ?>
