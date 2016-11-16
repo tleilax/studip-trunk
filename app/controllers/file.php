@@ -373,7 +373,7 @@ class FileController extends AuthenticatedController
                     
                     
                     
-                    if($copymode == 'move') {
+                    if($this->copymode == 'move') {
                         $errors = FileManager::moveFileRef($file_ref, $destination_folder, $user);
                         
                         if(empty($errors)){   
