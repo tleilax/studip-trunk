@@ -15,7 +15,7 @@
                 $last_crumb = end($breadcrumbs); ?>
             <div>
                 <a href="<?= $controller->link_for($controllerpath . '/' . $root_dir->getId()) ?>" title="<?= _("Zum Hauptordner") ?>">
-                    <?= Icon::create('folder-home-empty', 'clickable')->asImg(30, array('class' => "text-bottom")) ?>
+                    <?= Icon::create('folder-home-full', 'clickable')->asImg(30, array('class' => "text-bottom")) ?>
                     <? if (count($breadcrumbs) < 6): ?><?= htmlReady($root_dir->name) ?><? endif ?>
                 </a>
                 <? if(!empty($breadcrumbs)): ?>
