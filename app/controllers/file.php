@@ -344,6 +344,8 @@ class FileController extends AuthenticatedController
         global $perm;
         $user = User::findCurrent();
         
+        $this->copymode = Request::get("copymode", 'move');
+        
         if (Request::submitted("do_move")) {
         
             $folder_id = Request::get('dest_folder');
@@ -369,16 +371,24 @@ class FileController extends AuthenticatedController
                     
                     $errors = [];
                     
-                    if (Request::get("copymode", 'move') == 'move') {
+                    
+                    
+                    if($copymode == 'move') {
                         $errors = FileManager::moveFileRef($file_ref, $destination_folder, $user);
+                        
+                        if(empty($errors)){   
+                            PageLayout::postSuccess(_('Die Datei wurde verschoben.'));
+                        } else {
+                            PageLayout::postError(_('Fehler beim Verschieben der Datei.'), $errors);
+                        }
                     } else {
                         $errors = FileManager::copyFileRef($file_ref, $destination_folder, $user);
-                    }
-                    
-                    if(empty($errors)){
-                        PageLayout::postSuccess(_('Die Datei wurde kopiert.'));
-                    } else {
-                        PageLayout::postError(_('Fehler beim Kopieren der Datei.'), $errors);
+                        
+                        if(empty($errors)){   
+                            PageLayout::postSuccess(_('Die Datei wurde kopiert.'));
+                        } else {
+                            PageLayout::postError(_('Fehler beim Kopieren der Datei.'), $errors);
+                        }
                     }
                     
                     
@@ -462,8 +472,6 @@ class FileController extends AuthenticatedController
             ->withButton()
             ->render();
             
-            
-            $this->move_copy = Request::get("copymode", 'move');
             $this->user_id = $user->id;
             $this->file_ref = $file_ref_id;
         }

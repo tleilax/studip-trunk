@@ -1,6 +1,6 @@
 <form class="default" action="<?= $controller->url_for('/move/'. $file_ref); ?>">
 
-	<input type="hidden" name="copymode" value="<?= $move_copy; ?>">
+	<input type="hidden" name="copymode" value="<?= $copymode; ?>">
 
 	<div id="folder_select_-container">
     	<label for="folder_select_-destination"><?= _('Ziel'); ?></label>
@@ -36,7 +36,11 @@
 
 
 	<div data-dialog-button>
-        <?= Studip\Button::createAccept(_('Verschieben'), 'do_move') ?>
+	<? if ($copymode == 'move'): ?>
+            <?= Studip\Button::createAccept(_('Verschieben'), 'do_move') ?>
+        <? else: ?>
+            <?= Studip\Button::createAccept(_('Kopieren'), 'do_move') ?>
+        <? endif ?>
         <?= Studip\LinkButton::createCancel(_('Abbrechen')) ?>
     </div>
 </form>
