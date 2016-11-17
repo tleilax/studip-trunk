@@ -1,5 +1,5 @@
 <form action="<?= $controller->link_for('/add_url/' . $top_folder->id) ?>" method="post" data-dialog class="default">
-<?=CSRFProtection::tokenTag()?>
+    <?= CSRFProtection::tokenTag() ?>
     <fieldset>
         <legend><?= _("Datei aus dem Internet verlinken") ?></legend>
         <label>
@@ -15,11 +15,11 @@
         </label>
             <label>
                 <input type="radio" name="access_type" value="redirect" checked>
-                <?= _("Weiterleitung")?>
+                <?= _("Direktlink")?>
             </label>
             <label>
-                <input type="radio" name="access_type" value="proxy" <?=Request::get('access_type') == 'proxy' ? 'checked' : ''?>>
-                <?= _("Durchleitung")?>
+                <input type="radio" name="access_type" value="proxy" <?= Request::get('access_type') == 'proxy' ? 'checked' : '' ?>>
+                <?= _("Link über Proxy")?>
             </label>
     </fieldset>
     <div data-dialog-button>
