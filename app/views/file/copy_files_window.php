@@ -1,0 +1,45 @@
+<?
+$options = array();
+if (Request::get("to_plugin")) {
+    $options['to_plugin'] = Request::get("to_plugin");
+}
+if (Request::get("to_folder_id")) {
+    $options['to_folder_id'] = Request::get("to_folder_id");
+}
+if (Request::get("copymode")) {
+    $options['copymode'] = Request::get("copymode");
+}
+if ($fileref_id) {
+    $options['fileref_id'] = $fileref_id;
+}
+?>
+<div class="files_source_selector" <?= $hidden ? ' style="display: none;"' : "" ?>>
+    <?= _("Ziel auswählen") ?>
+    <div class="file_select_possibilities">
+        <a href="<?= $controller->link_for("/choose_folder/" . Folder::findTopFolder($GLOBALS['user']->id)->getId(), $options) ?>" data-dialog>
+            <?= Icon::create("files", "clickable")->asImg(50) ?>
+            <?= _("Meine Dateien") ?>
+        </a>
+        <a href="<?= $controller->link_for("/choose_folder_from_course/", $options) ?>" data-dialog>
+            <?= Icon::create("seminar", "clickable")->asImg(50) ?>
+            <?= _("Meine Veranstaltungen") ?>
+        </a>
+        <a href="<?= $controller->link_for("/choose_folder_from_institute/", $options) ?>" data-dialog>
+            <?= Icon::create("institute", "clickable")->asImg(50) ?>
+            <?= _("Meine Einrichtungen") ?>
+        </a>
+  <!--  <a href="">
+            <?= Icon::create("cloud", "clickable")->asImg(50) ?>
+            <?= _("OwnCloud") ?>
+        </a>  -->
+        <? foreach (PluginManager::getInstance()->getPlugins('FilesystemPlugin') as $plugin) : ?>
+            <? $nav = $plugin->getFileSelectNavigation() ?>
+            <? if ($nav) : ?>
+                <a href="<?= $controller->link_for("/choose_folder/", array_merge($options, array('plugin' => get_class($plugin)))) ?>" data-dialog>
+                    <?= $nav->getImage()->asImg(50) ?>
+                    <?= htmlReady($nav->getTitle()) ?>
+                </a>
+            <? endif ?>
+        <? endforeach ?>
+    </div>
+</div>

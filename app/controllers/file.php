@@ -396,8 +396,9 @@ class FileController extends AuthenticatedController
                     
                     switch ($destination_folder->range_type) {
                         case 'course':
+                            return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/'.$folder_id. '?cid=' . $dest_range));
                         case 'institute':
-                            return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/'.$folder_id. '?cid=' . $dest_range));                            
+                            return $this->redirect(URLHelper::getUrl('dispatch.php/institute/files/index/'.$folder_id. '?cid=' . $dest_range));                            
                         case 'user':
                             return $this->redirect(URLHelper::getUrl('dispatch.php/files/index/'.$folder_id));
                         default:
@@ -474,6 +475,215 @@ class FileController extends AuthenticatedController
             
             $this->user_id = $user->id;
             $this->file_ref = $file_ref_id;
+        }
+    }
+    
+    
+    public function copy_files_window_action($fileref_id)
+    {
+        $this->fileref_id = $fileref_id;
+        $this->plugin = Request::get("to_plugin");
+    }
+    
+    public function choose_folder_from_course_action()
+    {
+        if (Request::get("course_id")) {
+            $folder = Folder::findTopFolder(Request::get("course_id"));
+            header("Location: ". URLHelper::getURL("dispatch.php/file/choose_folder/".$folder->getId(), array(
+                    'to_plugin' => Request::get("to_plugin"),
+                    'fileref_id' => Request::get("fileref_id"),
+                    'copymode' => Request::get("copymode")
+            )));
+        }
+
+        
+        $this->plugin = Request::get("to_plugin");
+        if (!$GLOBALS['perm']->have_perm("admin")) {
+            $statement = DBManager::get()->prepare("
+                SELECT seminare.*
+                FROM seminare
+                    INNER JOIN seminar_user ON (seminar_user.Seminar_id = seminare.Seminar_id)
+                WHERE seminar_user.user_id = :user_id
+                ORDER BY seminare.duration_time = -1, seminare.start_time DESC, seminare.name ASC
+            ");
+            $statement->execute(array('user_id' => $GLOBALS['user']->id));
+            $this->courses = array();
+            foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $coursedata) {
+                $this->courses[] = Course::buildExisting($coursedata);
+            }
+        }
+    }
+    
+    public function choose_folder_from_institute_action()
+    {
+        if (Request::get("Institut_id")) {            
+            $folder = Folder::findTopFolder(Request::get("Institut_id"));
+            header("Location: ". URLHelper::getURL("dispatch.php/file/choose_folder/".$folder->getId(), array(
+                    'to_plugin' => Request::get("to_plugin"),
+                    'fileref_id' => Request::get("fileref_id"),
+                    'copymode' => Request::get("copymode")
+            )));
+        }
+        
+        if ($GLOBALS['perm']->have_perm('root')) {
+            $inst_sql =  "SELECT DISTINCT Institute.Institut_id, Institute.Name " .
+                    "FROM Institute " .
+                    "LEFT JOIN range_tree ON (range_tree.item_id = Institute.Institut_id) " .
+                    "WHERE Institute.Name LIKE :input " .
+                    "OR Institute.Strasse LIKE :input " .
+                    "OR Institute.email LIKE :input " .
+                    "OR range_tree.name LIKE :input " .
+                    "ORDER BY Institute.Name";        
+            $parameters = array(
+                    'semtypes' => studygroup_sem_types() ?: array(),
+                    'exclude' => array()
+            );
+        } else {        
+            $inst_sql =  "SELECT DISTINCT Institute.Institut_id, Institute.Name " .
+                    "FROM Institute " .
+                    "LEFT JOIN range_tree ON (range_tree.item_id = Institute.Institut_id) " .
+                    "LEFT JOIN user_inst ON (user_inst.Institut_id = Institute.Institut_id)" .
+                    "WHERE user_inst.user_id = '" . $user->id . "' " .
+                    "AND Institute.Name LIKE :input " .
+                    "OR Institute.Strasse LIKE :input " .
+                    "OR Institute.email LIKE :input " .
+                    "OR range_tree.name LIKE :input " .
+                    "ORDER BY Institute.Name";
+            $parameters = array(
+                    'userid' => $user->id,
+                    'semtypes' => studygroup_sem_types() ?: array(),
+                    'exclude' => array()
+            );
+        }        
+        $this->instsearch = SQLSearch::get($inst_sql, _("Einrichtung suchen"), 'Institut_id');
+        
+        $this->plugin = Request::get("to_plugin");
+        /*if (!$GLOBALS['perm']->have_perm("admin")) {
+            $statement = DBManager::get()->prepare("
+                SELECT seminare.*
+                FROM seminare
+                    INNER JOIN seminar_user ON (seminar_user.Seminar_id = seminare.Seminar_id)
+                WHERE seminar_user.user_id = :user_id
+                ORDER BY seminare.duration_time = -1, seminare.start_time DESC, seminare.name ASC
+            ");
+            $statement->execute(array('user_id' => $GLOBALS['user']->id));
+            $this->courses = array();
+            foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $coursedata) {
+                $this->courses[] = Course::buildExisting($coursedata);
+            }
+        }*/
+        
+    }
+    
+    public function choose_folder_action($folder_id = null)
+    {
+        /*
+        if (Request::get("to_plugin")) {
+            $to_plugin = PluginManager::getInstance()->getPlugin(Request::get("to_plugin"));
+            $this->to_folder_type = $to_plugin->getFolder(Request::get("to_folder_id"));
+        } else {
+            $folder = new Folder(Request::option("to_folder_id"));
+            $this->to_folder_type = new StandardFolder($folder);
+        }*/
+        
+        if (Request::isPost()) {
+            //copy
+            
+            if (Request::get("plugin")) {
+                $plugin = PluginManager::getInstance()->getPlugin(Request::get("plugin"));
+                //$file = $plugin->getPreparedFile(Request::get("file_id"));
+            } else {
+                $folder = new Folder($folder_id);
+                $this->to_folder_type = new StandardFolder($folder);
+            }
+            
+            $error = false;//$this->to_folder_type->validateUpload($file, $GLOBALS['user']->id);
+            if (!$error) {
+                //do the copy
+                //$this->to_folder_type->createFile($file, $GLOBALS['user']->id);
+                /*$file_ref = $this->to_folder_type->createFile($file);
+                if (in_array($this->to_folder_type->range_type, array("course", "institute"))) {
+                    header("Location: ". URLHelper::getURL("dispatch.php/files/edit_license", array(
+                            'file_refs' => array($file_ref->getId())
+                    )));
+                    $this->render_nothing();
+                } else {
+                    if (Request::isAjax()) {
+                        $this->file_ref = $file_ref;
+                        $this->current_folder = $this->to_folder_type;
+                        $this->marked_element_ids = array();
+                        $payload = $this->render_template_as_string("files/_fileref_tr");
+    
+                        $payload = array("func" => "STUDIP.Files.addFile", 'payload' => $payload);
+                        $this->response->add_header("X-Dialog-Execute", json_encode(studip_utf8encode($payload)));
+                        $this->render_nothing();
+                    } else {
+                        $this->render_text(MessageBox::success(_("Datei wurde hinzugefügt.")));
+                    }
+                }*/
+                
+                $file_ref_id = Request::get("fileref_id");
+
+                if($file_ref_id && $folder) {
+                
+                    $file_ref = FileRef::find($file_ref_id);
+                    $source_folder = Folder::find($file_ref->folder_id);
+                    $destination_folder = $folder;
+                    $user = User::findCurrent();
+                
+                    if($source_folder && $destination_folder) {
+                
+                        $errors = [];
+                
+                        if (Request::get("copymode", 'move') == 'move') {
+                            $errors = FileManager::moveFileRef($file_ref, $destination_folder->getTypedFolder(), $user);
+                        } else {
+                            $errors = FileManager::copyFileRef($file_ref, $destination_folder->getTypedFolder(), $user);
+                        }
+                
+                        if(empty($errors)){
+                            PageLayout::postSuccess(_('Die Datei wurde kopiert.'));
+                        } else {
+                            PageLayout::postError(_('Fehler beim Kopieren der Datei.'), $errors);
+                        }
+                
+                
+                        $dest_range = $destination_folder->range_id;
+                
+                        switch ($destination_folder->range_type) {
+                            case 'course':
+                                return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/'.$folder_id. '?cid=' . $dest_range));
+                            case 'institute':
+                                return $this->redirect(URLHelper::getUrl('dispatch.php/institute/files/index/'.$folder_id. '?cid=' . $dest_range));
+                            case 'user':
+                                return $this->redirect(URLHelper::getUrl('dispatch.php/files/index/'.$folder_id));
+                            default:
+                                return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/'.$folder_id));
+                        }
+                    }
+                }
+                
+            } else {
+                PageLayout::postMessage(MessageBox::error(_("Konnte die Datei nicht hinzufügen.", array($error))));
+            }
+        }
+        if (Request::get("plugin")) {
+            $this->filesystemplugin = PluginManager::getInstance()->getPlugin(Request::get("plugin"));
+            if (Request::get("search") && $this->filesystemplugin->hasSearch()) {
+                $this->top_folder = $this->filesystemplugin->search(Request::get("search"), Request::getArray("parameter"));
+            } else {
+                $this->top_folder = $this->filesystemplugin->getFolder($folder_id, true);
+                if (is_a($this->top_folder, "Flexi_Template")) {
+                    $this->top_folder->set_attribute("select", true);
+                    $this->top_folder->set_attribute("to_folder", $this->to_folder);
+                    $this->render_text($this->top_folder);
+                }
+            }
+        } else {
+            $this->top_folder = new StandardFolder(new Folder($folder_id));
+            if (!$this->top_folder->isReadable($GLOBALS['user']->id)) {
+                throw new AccessException();
+            }
         }
     }
     
