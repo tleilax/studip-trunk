@@ -5759,6 +5759,11 @@ table.dates .draggable-topic-handle {
   flex-wrap: wrap;
   justify-content: center;
   align-items: stretch;
+  /* for file/edit view: */
+  /*
+    .termsOfUseBox.selected {
+        background-color: black;
+    }*/
 }
 .file_select_possibilities > * {
   background-color: transparent;
@@ -5791,6 +5796,17 @@ table.dates .draggable-topic-handle {
   min-height: 140px;
   max-height: 140px;
   color: #28497c;
+}
+.file_select_possibilities input[name=content_terms_of_use_id] {
+  position: absolute;
+  top: -9999px;
+  left: -9999px;
+}
+.file_select_possibilities div {
+  background-color: navy;
+}
+.file_select_possibilities input[name=content_terms_of_use_id]:checked ~ div {
+  background-color: black;
 }
 /* classes for the evaluation modules in Stud.IP ---------------------------- */
 .eval_title {
@@ -6412,6 +6428,20 @@ a.bookable_rooms_action {
 }
 .contentbox.timesrooms article header.green {
   border-left: 3px solid #6ead10;
+}
+.contentbox.timesrooms article header.red .tooltip-icon::before {
+  background-repeat: no-repeat;
+  content: ' ';
+  display: inline-block;
+  height: 16px;
+  margin-right: 0;
+  background-image: url("../images/icons/blue/arr_1right.svg");
+  -webkit-background-size: 16px 16px;
+  -moz-background-size: 16px 16px;
+  -o-background-size: 16px 16px;
+  background-size: 16px 16px;
+  vertical-align: text-top;
+  width: 16px;
 }
 .contentbox.timesrooms article header.red .tooltip-icon::before {
   background-repeat: no-repeat;

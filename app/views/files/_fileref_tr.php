@@ -60,7 +60,7 @@
             <? $actionMenu->addLink($controller->url_for('file/edit/' . $file_ref->id),
                 _('Datei bearbeiten'),
                 Icon::create('edit', 'clickable'),
-                ['data-dialog' => 'reload-on-close', '' => '']) ?>
+                ['data-dialog' => '1', '' => '']) ?>
         <? endif; ?>
         <?/* if ($current_folder->isFileWritable($file_ref->id, $GLOBALS['user']->id)): ?>
             <? $actionMenu->addLink($controller->url_for('file/move/' . $file_ref->id, array('copymode' => 'move')),

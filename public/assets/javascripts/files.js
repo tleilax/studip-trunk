@@ -173,6 +173,25 @@ STUDIP.Files = {
             $('#'+element_name+'-subfolder').show();
             STUDIP.Files.getFolders(name);
         }
+    },
+    
+    selectLicense: function(terms_of_use_box = null, select_field_name) {
+        if(!terms_of_use_box) {
+            return false;
+        }
+        
+        //get terms of use ID:
+        var terms_of_use_id = jQuery(terms_of_use_box).attr('data-id');
+        
+        //get license chooser:
+        var license_chooser = jQuery('#file_license_chooser_'+select_field_name);
+        
+        //set new terms of use ID:
+        jQuery('#file_license_chooser_id_field_'+select_field_name).val(terms_of_use_id);
+        
+        //deselect all other icon box and select the current box:
+        jQuery(license_chooser).find('.termsOfUseBox').removeClass('selected');
+        jQuery(terms_of_use_box).addClass('selected');
     }
 };
 
